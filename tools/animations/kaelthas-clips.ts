@@ -103,7 +103,9 @@ for (const [pose, key, gesture, contact, target] of [
   const special = KAELTHAS_SPECIALS[key]!;
   for (const air of [false, true]) {
     const form = air ? special.air ?? special.ground : special.ground;
-    actions.push({ pose: (air ? `${pose}Air` : pose) as HeroPose, frames: form.endFrame, contact, gesture: air ? { ...gesture, thigh: 30, leftThigh: -35 } : gesture, target, air });
+    const projectile = key === "neutral" ? form.projectiles?.[0] : undefined;
+    const release = projectile === undefined ? contact : projectile.spawnFrame + (projectile.activeFrom ?? 1) - 1;
+    actions.push({ pose: (air ? `${pose}Air` : pose) as HeroPose, frames: form.endFrame, contact: release, gesture: air ? { ...gesture, thigh: 30, leftThigh: -35 } : gesture, target, air });
   }
 }
 const damageActions: Action[] = [];

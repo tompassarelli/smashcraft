@@ -31,7 +31,7 @@ interface SavedBotHabit {
   readonly interval: number;
 }
 
-export interface BotRead {
+interface SavedBotRead {
   readonly choice: HabitChoice;
   readonly context: number;
   readonly expectedFrame: number;
@@ -55,34 +55,76 @@ export interface BotStrategy {
   lastContext: number;
   lastSerial: number;
   events: number;
-  read: BotRead | undefined;
+  readActive: boolean;
+  readChoice: HabitChoice;
+  readContext: number;
+  readExpectedFrame: number;
+  readExpires: number;
+  readConfidence: number;
+  readActed: boolean;
+  readActionFrame: number;
+  readActionSerial: number;
+  readActionStyle: number;
+  readActionFacing: Direction;
   lastOption: number;
 }
 
 export function createBotStrategy(): BotStrategy {
-  return { history: [], historyKey: "", observedFrame: -1, opponent: -1, lastChoice: HabitChoice.none, lastContext: 0, lastSerial: -1, events: 0, read: undefined, lastOption: -1 };
+  return { history: [], historyKey: "", observedFrame: -1, opponent: -1, lastChoice: HabitChoice.none, lastContext: 0, lastSerial: -1, events: 0, readActive: false, readChoice: HabitChoice.none, readContext: 0, readExpectedFrame: 0, readExpires: 0, readConfidence: 0, readActed: false, readActionFrame: -1, readActionSerial: -1, readActionStyle: -1, readActionFacing: 0, lastOption: -1 };
 }
 
-export type SavedBotStrategy = Omit<BotStrategy, "history" | "historyKey"> & { readonly history: readonly SavedBotHabit[] };
+export type SavedBotStrategy = Pick<BotStrategy, "observedFrame" | "opponent" | "lastChoice" | "lastContext" | "lastSerial" | "events" | "lastOption"> & {
+  readonly history: readonly SavedBotHabit[];
+  readonly read: SavedBotRead | undefined;
+};
 
-/** Replay text keeps the existing named habit records; live snapshots keep scalars. */
+/** Replay text keeps named records; live snapshots keep owned scalars. */
 export function savedBotStrategy(state: Readonly<BotStrategy>): SavedBotStrategy {
-  const { history: numbers, historyKey: _key, ...fields } = state;
   const history: SavedBotHabit[] = [];
-  for (let index = 0; index < numbers.length; index += HABIT_FIELDS) {
-    history.push({ frame: at(numbers, index), context: at(numbers, index + 1), choice: at(numbers, index + 2), interval: at(numbers, index + 3) });
+  for (let index = 0; index < state.history.length; index += HABIT_FIELDS) {
+    history.push({ frame: at(state.history, index), context: at(state.history, index + 1), choice: at(state.history, index + 2), interval: at(state.history, index + 3) });
   }
-  return { history, ...fields };
+  const read = state.readActive ? {
+    choice: state.readChoice,
+    context: state.readContext,
+    expectedFrame: state.readExpectedFrame,
+    expires: state.readExpires,
+    confidence: state.readConfidence,
+    acted: state.readActed,
+    actionFrame: state.readActionFrame,
+    actionSerial: state.readActionSerial,
+    actionStyle: state.readActionStyle,
+    actionFacing: state.readActionFacing,
+  } : undefined;
+  return { history, observedFrame: state.observedFrame, opponent: state.opponent, lastChoice: state.lastChoice, lastContext: state.lastContext, lastSerial: state.lastSerial, events: state.events, read, lastOption: state.lastOption };
 }
 
 export function restoredBotStrategy(saved: Readonly<SavedBotStrategy>): BotStrategy {
-  const history: number[] = [];
-  for (const habit of saved.history) history.push(habit.frame, habit.context, habit.choice, habit.interval);
-  return { ...saved, history, historyKey: history.join(",") };
+  const state = createBotStrategy();
+  for (const habit of saved.history) state.history.push(habit.frame, habit.context, habit.choice, habit.interval);
+  state.historyKey = state.history.join(",");
+  state.observedFrame = saved.observedFrame;
+  state.opponent = saved.opponent;
+  state.lastChoice = saved.lastChoice;
+  state.lastContext = saved.lastContext;
+  state.lastSerial = saved.lastSerial;
+  state.events = saved.events;
+  state.lastOption = saved.lastOption;
+  if (saved.read !== undefined) {
+    state.readActive = true;
+    state.readChoice = saved.read.choice;
+    state.readContext = saved.read.context;
+    state.readExpectedFrame = saved.read.expectedFrame;
+    state.readExpires = saved.read.expires;
+    state.readConfidence = saved.read.confidence;
+    state.readActed = saved.read.acted;
+    state.readActionFrame = saved.read.actionFrame;
+    state.readActionSerial = saved.read.actionSerial;
+    state.readActionStyle = saved.read.actionStyle;
+    state.readActionFacing = saved.read.actionFacing;
+  }
+  return state;
 }
-
-type BotReadStorage = { -readonly [Field in keyof BotRead]: BotRead[Field] };
-const copiedReads = new WeakMap<Readonly<BotStrategy>, BotReadStorage>();
 
 export function copyBotStrategy(target: BotStrategy, source: Readonly<BotStrategy>): void {
   if (target.historyKey !== source.historyKey) {
@@ -97,26 +139,17 @@ export function copyBotStrategy(target: BotStrategy, source: Readonly<BotStrateg
   target.lastSerial = source.lastSerial;
   target.events = source.events;
   target.lastOption = source.lastOption;
-  const read = source.read;
-  if (read === undefined) target.read = undefined;
-  else {
-    let into = copiedReads.get(target);
-    if (into === undefined) {
-      into = { ...read };
-      copiedReads.set(target, into);
-    }
-    into.choice = read.choice;
-    into.context = read.context;
-    into.expectedFrame = read.expectedFrame;
-    into.expires = read.expires;
-    into.confidence = read.confidence;
-    into.acted = read.acted;
-    into.actionFrame = read.actionFrame;
-    into.actionSerial = read.actionSerial;
-    into.actionStyle = read.actionStyle;
-    into.actionFacing = read.actionFacing;
-    target.read = into;
-  }
+  target.readActive = source.readActive;
+  target.readChoice = source.readChoice;
+  target.readContext = source.readContext;
+  target.readExpectedFrame = source.readExpectedFrame;
+  target.readExpires = source.readExpires;
+  target.readConfidence = source.readConfidence;
+  target.readActed = source.readActed;
+  target.readActionFrame = source.readActionFrame;
+  target.readActionSerial = source.readActionSerial;
+  target.readActionStyle = source.readActionStyle;
+  target.readActionFacing = source.readActionFacing;
 }
 
 export function clearBotStrategy(state: BotStrategy): void {
@@ -125,10 +158,9 @@ export function clearBotStrategy(state: BotStrategy): void {
 
 /** Dense scalar enumeration is shared by canonical/difference and periodic replay checks. */
 export function botStrategyValues(state: Readonly<BotStrategy>): number[] {
-  const read = state.read;
   const values = [state.observedFrame, state.opponent, state.lastChoice, state.lastContext, state.lastSerial, state.events, state.lastOption,
-    read === undefined ? 0 : 1, read?.choice ?? 0, read?.context ?? 0, read?.expectedFrame ?? 0, read?.expires ?? 0, read?.confidence ?? 0, read?.acted ? 1 : 0,
-    read?.actionFrame ?? -1, read?.actionSerial ?? -1, read?.actionStyle ?? -1, read?.actionFacing ?? 0, floorDiv(state.history.length, HABIT_FIELDS)];
+    state.readActive ? 1 : 0, state.readActive ? state.readChoice : 0, state.readActive ? state.readContext : 0, state.readActive ? state.readExpectedFrame : 0, state.readActive ? state.readExpires : 0, state.readActive ? state.readConfidence : 0, state.readActive && state.readActed ? 1 : 0,
+    state.readActive ? state.readActionFrame : -1, state.readActive ? state.readActionSerial : -1, state.readActive ? state.readActionStyle : -1, state.readActive ? state.readActionFacing : 0, floorDiv(state.history.length, HABIT_FIELDS)];
   for (const value of state.history) values.push(value);
   return values;
 }
@@ -186,8 +218,8 @@ export function learnBotHabit(state: BotStrategy, ownObserved: Readonly<Fighter>
 
 /** Revises an expired plan from historical evidence; a held plan does not track new inputs. */
 export function prepareBotRead(state: BotStrategy, own: Readonly<Fighter>, target: Readonly<Fighter>, frame: number, delay: number, policy: CpuDecisionPolicy): void {
-  if (state.read !== undefined && frame <= state.read.expires) return;
-  state.read = undefined;
+  if (state.readActive && frame <= state.readExpires) return;
+  state.readActive = false;
   const context = habitContext(own, target);
   const counts = readCounts, intervals = readIntervals, timed = readTimed, latest = readLatest;
   for (let index = 0; index < counts.length; index++) {
@@ -222,30 +254,39 @@ export function prepareBotRead(state: BotStrategy, own: Readonly<Fighter>, targe
   let expectedFrame = at(latest, choice) + interval;
   while (expectedFrame <= frame) expectedFrame += interval;
   if (expectedFrame > frame + 90) return;
-  state.read = { choice, context, expectedFrame, expires: expectedFrame + delay + 6, confidence, acted: false, actionFrame: -1, actionSerial: -1, actionStyle: -1, actionFacing: 0 };
+  state.readActive = true;
+  state.readChoice = choice;
+  state.readContext = context;
+  state.readExpectedFrame = expectedFrame;
+  state.readExpires = expectedFrame + delay + 6;
+  state.readConfidence = confidence;
+  state.readActed = false;
+  state.readActionFrame = -1;
+  state.readActionSerial = -1;
+  state.readActionStyle = -1;
+  state.readActionFacing = 0;
 }
 
 /** A prepared read may position or buffer before its expected event, and may miss. */
 export function pressBotRead(state: BotStrategy, own: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, input: Controls, commands: AttackBuffer): boolean {
-  const read = state.read;
-  if (read === undefined || frame > read.expires || !own.motion.grounded || own.down.state !== DownState.none || own.launch.hitstun > 0) return false;
-  const ahead = read.expectedFrame - frame;
+  if (!state.readActive || frame > state.readExpires || !own.motion.grounded || own.down.state !== DownState.none || own.launch.hitstun > 0) return false;
+  const ahead = state.readExpectedFrame - frame;
   const dx = f32(target.motion.x - own.motion.x);
   const toward = dx < 0 ? -1 : 1;
-  if (read.choice === HabitChoice.attack) {
+  if (state.readChoice === HabitChoice.attack) {
     if (ahead > 8 || ahead < -8) return false;
     input.shield = true;
-    read.acted = true;
+    state.readActed = true;
     return true;
   }
-  if (read.acted) {
-    if (read.actionFrame < 0 || frame - read.actionFrame > 6 || own.attack.serial !== read.actionSerial) return false;
-    queueAttack(commands, { style: read.actionStyle, facing: read.actionFacing, frame: read.actionFrame, mayCharge: false });
+  if (state.readActed) {
+    if (state.readActionFrame < 0 || frame - state.readActionFrame > 6 || own.attack.serial !== state.readActionSerial) return false;
+    queueAttack(commands, { style: state.readActionStyle, facing: state.readActionFacing, frame: state.readActionFrame, mayCharge: false });
     input.attackHeld = true;
     return true;
   }
-  const style = read.choice === HabitChoice.shield ? AttackStyle.grab
-    : read.choice === HabitChoice.jump || read.choice === HabitChoice.landing ? AttackStyle.upTilt : AttackStyle.forwardTilt;
+  const style = state.readChoice === HabitChoice.shield ? AttackStyle.grab
+    : state.readChoice === HabitChoice.jump || state.readChoice === HabitChoice.landing ? AttackStyle.upTilt : AttackStyle.forwardTilt;
   const startup = attackStartupFrames(style, own.tuning.moves);
   const reach = moveReachAhead(own.character, style, target, own.tuning.moves);
   const goal = f32(target.motion.x - f32(toward * Math.max(20.0, f32(reach - 45.0))));
@@ -255,14 +296,14 @@ export function pressBotRead(state: BotStrategy, own: Readonly<Fighter>, target:
     return true;
   }
   if (ahead < -4 || !slideStaysOnDeck(own, stage, matchFrame)) return false;
-  const anticipatedZ = read.choice === HabitChoice.jump ? 70.0 : read.choice === HabitChoice.landing ? 0.0 : f32(target.motion.z - own.motion.z);
+  const anticipatedZ = state.readChoice === HabitChoice.jump ? 70.0 : state.readChoice === HabitChoice.landing ? 0.0 : f32(target.motion.z - own.motion.z);
   if (!moveReaches(own.character, style, target, Math.abs(dx), anticipatedZ, own.tuning.moves)) return false;
   queueAttack(commands, { style, facing: toward, frame, mayCharge: false });
   input.attackHeld = true;
-  read.acted = true;
-  read.actionFrame = frame;
-  read.actionSerial = own.attack.serial;
-  read.actionStyle = style;
-  read.actionFacing = toward;
+  state.readActed = true;
+  state.readActionFrame = frame;
+  state.readActionSerial = own.attack.serial;
+  state.readActionStyle = style;
+  state.readActionFacing = toward;
   return true;
 }

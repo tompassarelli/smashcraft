@@ -9,7 +9,7 @@ const flameStrike: AuthoredSpecial = {
     model: "Abilities\\Spells\\Human\\FlameStrike\\FlameStrike1.mdx",
     modelAnimation: { sequence: "birth", warningSeconds: 0.5, activeSeconds: 1.5 },
     spawnFrame: 8, offsetX: 180.0, offsetZ: 45.0, velocityX: 0.0, velocityZ: 0.0,
-    life: 22, activeFrom: 17, radius: 65.0, effect: kaelHit(10.0, 80, 95.0, 24.0),
+    life: 45, activeFrom: 10, radius: 65.0, effect: kaelHit(10.0, 80, 95.0, 24.0),
     reflectable: false, limit: 1, cancelOnInterrupt: true, needsLineOfSight: true,
   }],
 };
@@ -29,7 +29,7 @@ const banish: AuthoredSpecial = {
 };
 
 export const KAELTHAS_SPECIALS: FighterSpecials = {
-  neutral: { name: "Flame Strike", description: "Mark the space ahead, then erupt once. The enemy can move out or interrupt the cast.", ground: flameStrike },
+  neutral: { name: "Flame Strike", description: "Mark the space ahead, then leave a flame that launches once. The enemy can shield, move out or interrupt the cast.", ground: flameStrike },
   side: { name: "Siphon Mana", description: "Reach ahead to take mana from an enemy. Shields stop it.", ground: siphon },
   up: { name: "Phoenix Flight", description: "Aim, then ride a burst of fire. You fall helpless after the flight.", ground: flight(15, 14.0), free: flight(0, 9.0) },
   down: { name: "Banish", description: "Briefly turn ethereal, then push nearby enemies away.", ground: banish },

@@ -24,8 +24,15 @@ jumps and dodge timing stay the roster's. Unlike Mewtwo's tail, his disjoint
 flames are not part of his hurt body; his extended casting arm is.
 
 [Robin's Arcfire](https://www.ssbwiki.com/Arcfire) supplies Flame Strike's
-placement-into-launcher role. Kael's version has one hit: it cannot hold a
-victim in repeated flame hits.
+medium-range approach stop and persistent pillar into a launcher.
+[Ultimate Robin's side-special timing](https://www.ssbwiki.com/Robin_(SSBU)/Side_special)
+lists the initial projectile at frames 17–76 and the caster interruptible at
+frame 64. These support a delayed threat that persists beyond its caster's
+commitment. The [Warcraft III Blood Mage](https://classic.battle.net/war3/human/units/bloodmage.shtml)
+likewise leaves fire in a target area over time. Kael's 36-frame live window
+is original Smashcraft tuning, not Arcfire's projectile or pillar duration.
+His flame ends on its first body or shield contact, so it cannot hold a victim
+in repeated flame hits.
 [Ridley's Wing Blitz](https://www.ssbwiki.com/Wing_Blitz) supplies the recovery
 commitment: choose a heading before flight, then punish the helpless landing.
 [Mewtwo's moves](https://www.ssbwiki.com/Mewtwo_(SSBU)#Moveset) supply the
@@ -70,7 +77,7 @@ apply. No guaranteed repeat-grab or flame loop is designed.
 
 | Input | Decision and counterplay | Original values | Warcraft / Smash reference |
 |---|---|---|---|
-| Neutral: Flame Strike | Mark space in front, then erupt once. Opponent can leave or interrupt the caster before eruption. Ground and air use the same placed flame at cast height. | 20 mana; appear f8 at x180/z45, radius65; active f24–29; 10%, upward launch; action ends f43; air landing20; one live flame; no reflection; interrupted startup cancels | [Flame Strike][wc], [Arcfire][arc] |
+| Neutral: Flame Strike | Mark space in front, then leave a flame that launches once. Opponent can shield, leave the marked space or interrupt the caster before eruption. An untouched flame persists after the caster recovers. Ground and air use the same placed flame at cast height. | 20 mana; appear f8 at x180/z45, radius65; first active f17, last active f52 (36 frames); 10%, upward launch; action ends f43; air landing20; one live flame; one body or shield contact consumes it; no reflection; interrupted startup cancels | [Flame Strike][flame], [Arcfire][arc], [Robin's timing][arcframes] |
 | Side: Siphon Mana | Short reaching cast trades fire damage for mana. Shield or space it; a whiff leaves the hand exposed. | 5 mana; strike f15–17 to x145; 4%; steal up to25 mana; action ends f42; air landing20; one contact | [Siphon Mana][wc], [Mewtwo Confusion][mw] |
 | Up: Phoenix Flight | Aim during startup, then fly in that heading. Opponent attacks the startup or catches the helpless descent. | 15 mana; aim through f10; f11–30 travel at14/frame, 280 units; free version9/frame, 180 units; 6% flame contact f11–20; end f36; spends aerial jump, once per airtime, helpless; landing24 | [Phoenix][wc], [Wing Blitz][wing] |
 | Down: Banish | Briefly phase the caster, then push nearby opponents away. This is self-Banish, not a long victim stun. | 15 mana; intangible f5–12; burst f13–15, radius65; 5%; ends f38; air landing20 | [Banish][wc], [Mewtwo Disable's evasive startup][mw] |
@@ -85,7 +92,9 @@ supply all presentation; no downloaded art or recordings are needed.
 The Flame Strike model's birth sequence draws its warning before its fire:
 presentation samples 0.5 seconds at placement and 1.5 seconds at the first
 active frame, then advances from each sample with the projectile clock.
-Playing the stock sequence from zero would leave this short attack invisible.
+The warning lasts f8–16; fire is live f17–52 unless it has already hit.
+Both ground and air casting gestures peak at the f17 eruption and end at f43.
+Playing the stock sequence from zero would leave its first hit invisible.
 
 ## Position in the roster
 
@@ -93,8 +102,8 @@ Archer and Rifleman fire repeatedly from farther away; Kael threatens one
 fixed delayed zone. Illidan drains while rushing; Kael risks a stationary
 Siphon. Blademaster and Warden win through weapon approach and escape routes;
 Kael commits to casting. Mountain King and Uther survive trades better.
-Lich is slower and controls more persistent space; Kael moves faster with a
-short single eruption. Dreadlord has a command grab and healing; Kael's drain
+Lich is slower and controls wider space; Kael moves faster with a
+fixed flame that ends on one contact. Dreadlord has a command grab and healing; Kael's drain
 loses to shield. Shadow Hunter maintains a ward, Pit Lord owns wider melee
 space, and Beastmaster fights beside a ground partner. Lich King holds a
 heavier body and soul resource. Kael pays for mobility with a tall hurt body,
@@ -108,4 +117,6 @@ up air; DI, airdodge and tech choices decide the follow-up.
 [wc]: https://wowpedia.fandom.com/wiki/Blood_Mage_(Warcraft_III)
 [mw]: https://www.ssbwiki.com/Mewtwo_(SSBU)#Moveset
 [arc]: https://www.ssbwiki.com/Arcfire
+[arcframes]: https://www.ssbwiki.com/Robin_(SSBU)/Side_special
+[flame]: https://classic.battle.net/war3/human/units/bloodmage.shtml
 [wing]: https://www.ssbwiki.com/Wing_Blitz

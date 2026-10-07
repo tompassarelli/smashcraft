@@ -1,0 +1,108 @@
+$ bun scripts/wisp.ts perf census --fighter cairne-bloodhoof --functions --out perf-out/run.txt
+group         entry                              base ms  worst ms  spike ms  at   +instructions  +natives  +KB
+cairne-bloodhoof jab                                   5.01      4.98     -0.04    6           1300       -32    1
+cairne-bloodhoof jab chain                             4.48      4.98      0.50  149          20900         0   28
+cairne-bloodhoof forward tilt                          4.49      4.92      0.43    2          16600        12   28
+cairne-bloodhoof up tilt                               4.50      4.86      0.37   73          17200         0    1
+cairne-bloodhoof down tilt                             4.49      4.87      0.37   90          17500         0    1
+cairne-bloodhoof forward smash                         4.63      4.88      0.25  107          11600         0    1
+cairne-bloodhoof up smash                              4.48      4.88      0.40  124          18650         0    1
+cairne-bloodhoof down smash                            4.51      4.88      0.37   21          17400         0    1
+cairne-bloodhoof dash attack                           4.50      5.29      0.79   22          32300        48    4
+cairne-bloodhoof neutral air                           4.52      4.90      0.38   55          17700         0    1
+cairne-bloodhoof forward air                           4.51      4.86      0.35   72          16500         0    1
+cairne-bloodhoof back air                              4.52      4.91      0.38   89          17800         0    1
+cairne-bloodhoof up air                                4.64      4.87      0.23  106          10700         0    1
+cairne-bloodhoof down air                              4.54      4.93      0.39    3          18400         0    1
+cairne-bloodhoof grab                                  4.52      4.91      0.40   20          18600         0    1
+cairne-bloodhoof pummel                                4.54      4.93      0.40   37          18500         0    1
+cairne-bloodhoof forward throw                         4.52      4.88      0.36   54          16600         0    1
+cairne-bloodhoof back throw                            4.54      4.94      0.39   71          18400         0    1
+cairne-bloodhoof up throw                              4.52      4.88      0.36   88          16700         0    1
+cairne-bloodhoof down throw                            4.67      4.97      0.30  105          12700         0   16
+cairne-bloodhoof neutral special                       4.58      4.94      0.36    2          16900         0    2
+cairne-bloodhoof neutral special, again                4.55      5.26      0.71   19          30500         0   30
+cairne-bloodhoof air neutral special                   4.53      4.96      0.43   36          19900         0    2
+cairne-bloodhoof air neutral special, again            4.55      4.96      0.41   53          18900         0    2
+cairne-bloodhoof side special                          4.53      5.06      0.52   14          20100        46    2
+cairne-bloodhoof side special, again                   4.47      5.29      0.82   20          31900        40   30
+cairne-bloodhoof air side special                      4.87      5.30      0.43   43          20250         0    2
+cairne-bloodhoof air side special, again               4.56      5.36      0.80   44          33300        40    4
+cairne-bloodhoof up special                            4.49      4.95      0.46   77          21300         0    2
+cairne-bloodhoof up special, again                     4.52      4.95      0.43   94          19900         0    2
+cairne-bloodhoof air up special                        4.62      4.95      0.33  111          15400         0    3
+cairne-bloodhoof air up special, again                 4.52      5.05      0.53    6          22100         0   28
+cairne-bloodhoof down special                          4.49      4.96      0.46   25          21600         0    2
+cairne-bloodhoof down special, again                   4.53      4.99      0.46  149          19200         0   27
+cairne-bloodhoof air down special                      4.50      4.96      0.47   59          21800         0    2
+cairne-bloodhoof air down special, again               4.54      4.98      0.44   76          20400         0    2
+cairne-bloodhoof side special, then attack             4.50      5.28      0.78   11          30100        40   30
+cairne-bloodhoof up special, then jump                 4.57      4.93      0.36  110          16500         0    2
+cairne-bloodhoof up special, then attack               4.49      4.97      0.48    7          22400         0    2
+39 entries; worst spike 0.82 ms (cairne-bloodhoof side special, again); 0 over 2 ms
+profile cairne-bloodhoof side special, again (frame +20, 0.82 ms over baseline): k-instructions above a baseline frame, inclusive / self
+     85     0  platform.shell.shell line 99450
+     85     0  platform.dispatch run
+     81     0  platform.shell.shell gameTick
+     57     4  match.frameInput executeMatchFrame
+     52     0  platform.shell.rollback rollbackTick
+     43    19  sim.f32 slowFloat32
+     32     0  platform.shell.rollback stepConfirmed
+     32     1  platform.shell.frame applyFrame
+     27    -4  match.step stepMatch
+     25     3  presentation.impactState projectImpact
+     25    -1  platform.shell.view renderPersistentPresentation
+     24     5  render.combatEffects CombatEffects.prototype.present
+profile cairne-bloodhoof air side special, again (frame +44, 0.80 ms over baseline): k-instructions above a baseline frame, inclusive / self
+    193     1  platform.shell.shell gameTick
+    193     0  platform.shell.shell line 99450
+    193     0  platform.dispatch run
+    142     0  platform.shell.rollback rollbackTick
+    137     1  platform.shell.frame applyFrame
+    137     0  platform.shell.rollback stepConfirmed
+    127     2  replay.moment beginMomentFrame
+    127     0  platform.shell.frame beginRecordedFrame
+    125     0  replay.snapshot captureReplaySnapshot
+    118    -1  replay.snapshot copyReplayState
+     84     5  match.pacingAndPresentation copyPacingAndPresentation
+     65    65  presentation.impactState copyImpactStateInto
+profile cairne-bloodhoof dash attack (frame +22, 0.79 ms over baseline): k-instructions above a baseline frame, inclusive / self
+    224    -0  platform.shell.shell gameTick
+    224     0  platform.shell.shell line 99450
+    224     0  platform.dispatch run
+    177    -0  platform.shell.rollback rollbackTick
+    147     1  platform.shell.frame applyFrame
+    147     0  platform.shell.rollback stepConfirmed
+    131     1  platform.shell.frame beginRecordedFrame
+    130     1  replay.snapshot copyReplayState
+    130     0  replay.snapshot captureReplaySnapshot
+    130     0  replay.moment beginMomentFrame
+     82     0  match.pacingAndPresentation copyPacingAndPresentation
+     65    65  presentation.impactState copyImpactStateInto
+profile cairne-bloodhoof side special, then attack (frame +11, 0.78 ms over baseline): k-instructions above a baseline frame, inclusive / self
+     41    -0  platform.shell.shell gameTick
+     41     0  platform.shell.shell line 99450
+     41     0  platform.dispatch run
+     31     1  match.frameInput executeMatchFrame
+     29     0  platform.shell.rollback rollbackTick
+     28     1  sim.matchCamera advanceMatchCamera
+     27     9  sim.f32 slowFloat32
+     24     0  shell.rollbackPlayback ReplayHistoryPlayback.prototype.catchUp
+     23    -0  replay.shadowPlayback ShadowInputPlayback.prototype.advanceSpeculative
+     20     0  match.step stepMatch
+     16     2  platform.shell.view renderPersistentPresentation
+     14     5  render.combatEffects CombatEffects.prototype.present
+profile cairne-bloodhoof neutral special, again (frame +19, 0.71 ms over baseline): k-instructions above a baseline frame, inclusive / self
+     80     0  platform.shell.replays serviceReplay
+     79    10  replay.matchReplay foldMatchAndFrame
+     79     0  replay.matchReplay stepCheckpoint
+     79     0  replay.matchReplay continueMatchReplay
+     47    14  replay.matchReplay foldFields
+     46    -0  platform.shell.shell gameTick
+     45     0  platform.shell.shell line 99450
+     45     0  platform.dispatch run
+     40     8  replay.matchReplay foldValue
+     30    30  replay.matchReplay foldInteger
+     12     5  replay.matchReplay foldNumber
+      8     6  replay.matchReplay fieldName
+  92.365 s  perf (92.365 s)

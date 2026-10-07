@@ -18,7 +18,9 @@ const ANGLES = {
 } as const;
 export function tinkerHit(damage: number, kind: keyof typeof STRENGTH, angle: keyof typeof ANGLES, facing = 1.0, element: HitElement = HitElement.normal): Readonly<HitEffect> {
   const direction = ANGLES[angle];
-  return { damage, ...STRENGTH[kind], launchX: f32(direction[0] * facing), launchZ: direction[1], electric: false, element };
+  const strength = STRENGTH[kind];
+  const growth = kind === "link" || kind === "juggle" || kind === "chase" ? strength.growth : f32(strength.growth * f32(0.65));
+  return { damage, ...strength, growth, launchX: f32(direction[0] * facing), launchZ: direction[1], electric: false, element };
 }
 export const claw = (x1: number, z1: number, x2: number, z2: number, radius = 10.0): StrikeCapsule => ({ x1, z1, x2, z2, radius });
 const region = (first: number, last: number, strike: StrikeCapsule, effect: Readonly<HitEffect>, grounded?: Readonly<HitEffect>): MoveRegion => heroRegion(first, last, strike, effect, grounded);

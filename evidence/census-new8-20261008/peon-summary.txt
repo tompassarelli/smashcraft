@@ -1,0 +1,108 @@
+$ bun scripts/wisp.ts perf census --fighter peon --functions --out perf-out/run.txt
+group         entry                              base ms  worst ms  spike ms  at   +instructions  +natives  +KB
+peon          jab                                   5.02      5.06      0.03    4           4600       -32    1
+peon          jab chain                             4.49      4.97      0.47  149          19600         0   29
+peon          forward tilt                          4.50      4.93      0.43    2          16500        12   27
+peon          up tilt                               4.50      4.88      0.38   55          17700         0    1
+peon          down tilt                             4.50      4.89      0.39   72          18100         0    1
+peon          forward smash                         4.63      4.89      0.26   89          12300         0    1
+peon          up smash                              4.54      4.89      0.35  106          16550         0    1
+peon          down smash                            4.52      4.91      0.39    3          18100         0    1
+peon          dash attack                           4.51      5.31      0.80   20          33400        40    4
+peon          neutral air                           4.54      4.92      0.38   53          17700         0    1
+peon          forward air                           4.53      4.88      0.35   70          16400         0    1
+peon          back air                              4.55      4.93      0.38   71          17900         0    1
+peon          up air                                4.65      4.89      0.24  104          11300         0    1
+peon          down air                              4.66      4.95      0.29    1          13400         0    1
+peon          grab                                  4.54      4.94      0.40   18          18600         0    1
+peon          pummel                                4.55      4.97      0.41  149          16800         0   27
+peon          forward throw                         4.54      4.90      0.36   52          16800         0    1
+peon          back throw                            4.57      4.96      0.39   69          18200         0    1
+peon          up throw                              4.54      4.90      0.36   86          16700         0    1
+peon          down throw                            4.62      4.96      0.34  103          15800         0    2
+peon          neutral special                       4.66      4.96      0.30    0          13850         0    2
+peon          neutral special, again                4.57      4.99      0.42   17          19600         0    2
+peon          air neutral special                   4.55      4.97      0.42   34          19600         0    2
+peon          air neutral special, again            4.57      4.98      0.41   51          18900         0    2
+peon          side special                          4.55      5.07      0.51   13          19400        48    2
+peon          side special, again                   4.46      5.22      0.76   20          29300        36   30
+peon          air side special                      4.45      5.05      0.60   34          25800        23    0
+peon          air side special, again               4.95      5.51      0.56   40          25550         8    3
+peon          up special                            4.57      5.01      0.44   73          20400         0    2
+peon          up special, again                     4.54      5.01      0.46   90          21700         0    2
+peon          air up special                        4.62      5.01      0.39  107          17900         0    2
+peon          air up special, again                 4.54      5.01      0.46    4          21600         0    2
+peon          down special                          4.50      5.01      0.51  141          23600         0    2
+peon          down special, again                   4.54      5.01      0.46   38          21600         0    2
+peon          air down special                      4.50      5.00      0.51   55          23500         0    2
+peon          air down special, again               4.54      5.01      0.46   72          21500         0    2
+peon          side special, then attack             4.50      5.31      0.81   11          31400        40   30
+peon          up special, then jump                 4.66      4.99      0.33  106          15200         0    2
+peon          up special, then attack               4.51      5.03      0.52    0          21750         0   28
+39 entries; worst spike 0.81 ms (peon side special, then attack); 0 over 2 ms
+profile peon side special, then attack (frame +11, 0.81 ms over baseline): k-instructions above a baseline frame, inclusive / self
+     37     0  shell.rollbackPlayback ReplayHistoryPlayback.prototype.catchUp
+     37    -0  replay.shadowPlayback ShadowInputPlayback.prototype.advanceSpeculative
+     27     0  platform.shell.view renderPersistentPresentation
+     27    -1  render.combatEffects CombatEffects.prototype.present
+     22     0  platform.shell.shell gameTick
+     22     0  platform.shell.shell line 99450
+     22     0  platform.dispatch run
+     20     3  sim.f32 slowFloat32
+     19     3  presentation.impactState projectImpact
+     16     4  sim.matchCamera advanceMatchCamera
+     10    10  sim.f32 f32
+     10    10  render.effects parkOnce
+profile peon dash attack (frame +20, 0.80 ms over baseline): k-instructions above a baseline frame, inclusive / self
+    227    -1  platform.shell.shell gameTick
+    226     0  platform.shell.shell line 99450
+    226     0  platform.dispatch run
+    184     1  platform.shell.rollback rollbackTick
+    155    -1  platform.shell.rollback stepConfirmed
+    155    -1  platform.shell.frame applyFrame
+    135     3  replay.snapshot copyReplayState
+    130     0  platform.shell.frame beginRecordedFrame
+    129     0  replay.snapshot captureReplaySnapshot
+    129     0  replay.moment beginMomentFrame
+     87     1  match.pacingAndPresentation copyPacingAndPresentation
+     72     4  match.botPerception observeOpponents
+profile peon side special, again (frame +20, 0.76 ms over baseline): k-instructions above a baseline frame, inclusive / self
+     76     0  platform.shell.shell line 99450
+     76     0  platform.dispatch run
+     72    -0  platform.shell.shell gameTick
+     52     0  platform.shell.rollback rollbackTick
+     43     1  match.frameInput executeMatchFrame
+     35    -1  platform.shell.rollback stepConfirmed
+     34     1  platform.shell.frame applyFrame
+     28    12  sim.f32 slowFloat32
+     26    -1  match.botPerception observeOpponents
+     26    -2  platform.shell.view renderPersistentPresentation
+     24     1  render.combatEffects CombatEffects.prototype.present
+     23    -0  match.botPlay produceComputerInput
+profile peon air side special (frame +34, 0.60 ms over baseline): k-instructions above a baseline frame, inclusive / self
+     48     0  sim.matchCamera advanceMatchCamera
+     47    25  sim.f32 slowFloat32
+     31    -0  platform.shell.shell gameTick
+     30     0  platform.shell.shell line 99450
+     30     0  platform.dispatch run
+     29    -0  match.step stepMatch
+     29     0  shell.rollbackPlayback ReplayHistoryPlayback.prototype.catchUp
+     27    -0  replay.shadowPlayback ShadowInputPlayback.prototype.advanceSpeculative
+     27    -0  match.frameInput executeMatchFrame
+     22     0  platform.shell.view renderPersistentPresentation
+     21    -1  platform.shell.rollback rollbackTick
+     19     6  render.combatEffects CombatEffects.prototype.present
+profile peon air side special, again (frame +40, 0.56 ms over baseline): k-instructions above a baseline frame, inclusive / self
+    197     0  platform.shell.shell line 99450
+    197     0  platform.dispatch run
+    196    -0  platform.shell.shell gameTick
+    178     1  platform.shell.rollback rollbackTick
+    166    -1  platform.shell.rollback stepConfirmed
+    165    -1  platform.shell.frame applyFrame
+    135     3  replay.snapshot copyReplayState
+    133     0  platform.shell.frame beginRecordedFrame
+    132     0  replay.snapshot captureReplaySnapshot
+    132     0  replay.moment beginMomentFrame
+     87    -1  match.pacingAndPresentation copyPacingAndPresentation
+     63    63  presentation.impactState copyImpactStateInto
+  90.606 s  perf (90.606 s)
