@@ -12,6 +12,8 @@ const key = (path: string) => path.replaceAll("\\", "/").toLowerCase().replace(/
 const PRIVATE = join(homedir(), ".local/share/smashcraft-render-assets");
 
 export interface RenderAssetOptions {
+  readonly assets?: string;
+  readonly imports?: readonly { readonly entry: string; readonly source: string }[];
   readonly extractor?: string;
   readonly storage?: string;
   readonly textures?: string;
@@ -24,8 +26,8 @@ export function headlessRender(options: RenderAssetOptions = {}) {
   const pending = new Map<string, Promise<Uint8Array | undefined>>();
   const loadSources = async () => {
     const manifest = await Effect.runPromise(readManifest());
-    const assets = assetsView(manifest);
-    const imports = await Effect.runPromise(importedAssets(assets, join(INPUTS_STORE, "summon", manifest.summon)));
+    const assets = options.assets ?? assetsView(manifest);
+    const imports = options.imports ?? await Effect.runPromise(importedAssets(assets, join(INPUTS_STORE, "summon", manifest.summon)));
     const paths = new Map(imports.map(({ entry, source }) => [key(entry), source]));
     for (const { presentation } of HERO_ROSTER) {
       if (!paths.has(key(presentation.model))) paths.set(key(presentation.model), join(assets, heroModelSource(presentation.model)));
