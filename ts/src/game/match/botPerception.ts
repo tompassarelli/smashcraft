@@ -299,30 +299,71 @@ const positiveRealDigest = textDigest(",+");
 const colonDigest = textDigest(":");
 const minusDigest = textDigest("-");
 
-/** Folds a non-negative integer's decimal bytes, exactly as writeCanonicalNumber writes them. */
-function foldDecimal(value: number): void {
-  if (value < 1000) { foldDigest(at(leadingGroupDigests, value)); return; }
-  foldDecimal(floorDiv(value, 1000));
-  foldDigest(at(paddedGroupDigests, floorMod(value, 1000)));
+function appendDigest(digest: Readonly<ObservationDigest>): void {
+  buildingDigest.first = floorMod(buildingDigest.first * digest.firstPower + digest.first, 46337);
+  buildingDigest.second = floorMod(buildingDigest.second * digest.secondPower + digest.second, 46337);
+  buildingDigest.firstPower = floorMod(buildingDigest.firstPower * digest.firstPower, 46337);
+  buildingDigest.secondPower = floorMod(buildingDigest.secondPower * digest.secondPower, 46337);
 }
-function foldSignedDecimal(value: number): void {
-  if (value < 0) { foldDigest(minusDigest); foldDecimal(-value); } else foldDecimal(value);
+
+/** Appends a non-negative integer's decimal bytes, exactly as writeCanonicalNumber writes them. */
+function digestDecimal(value: number): void {
+  if (value < 1000) { appendDigest(at(leadingGroupDigests, value)); return; }
+  digestDecimal(floorDiv(value, 1000));
+  appendDigest(at(paddedGroupDigests, floorMod(value, 1000)));
+}
+function digestSignedDecimal(value: number): void {
+  if (value < 0) { appendDigest(minusDigest); digestDecimal(-value); } else digestDecimal(value);
+}
+
+interface CachedNumberDigest extends ObservationDigest { value: number | undefined }
+// A repair revisits recent coordinates; reuse exact digests without retaining a match's numbers indefinitely.
+const NUMBER_DIGEST_CAPACITY = 1024;
+const numberDigests: Record<number, CachedNumberDigest | undefined> = {};
+const numberDigestRing: CachedNumberDigest[] = [];
+for (let index = 0; index < NUMBER_DIGEST_CAPACITY; index++) {
+  numberDigestRing.push({ value: undefined, first: 0, second: 0, firstPower: 1, secondPower: 1 });
+}
+let nextNumberDigest = 0;
+
+function numberDigest(value: number, integer: number): Readonly<ObservationDigest> {
+  const cached = numberDigests[value];
+  if (cached !== undefined) return cached;
+  const digest = at(numberDigestRing, nextNumberDigest);
+  if (digest.value !== undefined) delete numberDigests[digest.value];
+  nextNumberDigest = floorMod(nextNumberDigest + 1, NUMBER_DIGEST_CAPACITY);
+  digest.value = value;
+  digest.first = 0;
+  digest.second = 0;
+  digest.firstPower = 1;
+  digest.secondPower = 1;
+  buildingDigest = digest;
+  if (integer === value && value >= -2147483647 && value <= 2147483647) {
+    if (integer < 0) { appendDigest(negativeSeparatorDigest); digestDecimal(-integer); }
+    else { appendDigest(separatorDigest); digestDecimal(integer); }
+  } else if (integer !== value && splitFiniteReal(value < 0 ? -value : value)) {
+    appendDigest(value < 0 ? negativeSeparatorDigest : positiveRealDigest);
+    digestSignedDecimal(realParts.exponent);
+    appendDigest(colonDigest);
+    digestDecimal(realParts.high);
+    appendDigest(colonDigest);
+    digestDecimal(realParts.low);
+  } else {
+    digestByte(44);
+    writeCanonicalNumber(digestByte, value);
+  }
+  numberDigests[value] = digest;
+  return digest;
 }
 
 function foldObservationNumber(value: number): void {
-  if (value >= -1 && value <= 255 && Math.floor(value) === value) {
-    foldDigest(at(integerDigests, value + 1));
-  } else if (Math.floor(value) === value && value >= -2147483647 && value <= 2147483647) {
-    const integer = Math.floor(value);
-    if (integer < 0) { foldDigest(negativeSeparatorDigest); foldDecimal(-integer); } else { foldDigest(separatorDigest); foldDecimal(integer); }
-  } else if (Math.floor(value) !== value && value === value && splitFiniteReal(value < 0 ? -value : value)) {
-    foldDigest(value < 0 ? negativeSeparatorDigest : positiveRealDigest);
-    foldSignedDecimal(realParts.exponent);
-    foldDigest(colonDigest);
-    foldDecimal(realParts.high);
-    foldDigest(colonDigest);
-    foldDecimal(realParts.low);
+  const integer = Math.floor(value);
+  if (value >= -1 && value <= 255 && integer === value) {
+    foldDigest(at(integerDigests, integer + 1));
+  } else if (value === value) {
+    foldDigest(numberDigest(value, integer));
   } else {
+    // NaN cannot key a Lua table.
     foldObservationByte(44);
     writeCanonicalNumber(foldObservationByte, value);
   }
