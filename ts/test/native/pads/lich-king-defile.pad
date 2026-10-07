@@ -7,8 +7,10 @@
 40 a tap X 2
 41 a stick 0 0
 50 a capture
+60 a capture
 65 b stick 0 0
 65 b release LB
+65 a capture
 70 b tap B 8
 70 b stick 1 0
 77 a capture
@@ -46,6 +48,8 @@
 740 a press VIEW
 810 a release VIEW
 #! expect a 40 special 16
+#! expect b 73 applied jump 1 double 0
+#! absent b 70-109 damage
 #! absent a 250-251 special 16
 #! expect a 360 special 16
 #! expect b 540 special 16
