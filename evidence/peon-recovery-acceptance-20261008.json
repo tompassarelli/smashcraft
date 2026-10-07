@@ -1,0 +1,35 @@
+{
+  "source": "0d7ff9f3b0c749800f7a826dd63fa0e5f96eac5e",
+  "cpuAcceptance": {
+    "command": "GAME_TESTS=peonCoverage bun test test/game.test.ts",
+    "case": "Peon CPU uses all four specials in eight seeded Wren Expert matches",
+    "timeoutMs": 5000,
+    "elapsedMs": 2459.02,
+    "passed": 1,
+    "failed": 0,
+    "scope": "f117f3d3-7204-47b3-8d17-7b30286f2158",
+    "scopeReleased": true
+  },
+  "focusedRecovery": {
+    "originalDistanceBandCase": "pass, unchanged assertions",
+    "originalKeyboardAndStickSteeringCase": "pass, unchanged assertions",
+    "emittedLua32": { "passed": 29, "failed": 0 }
+  },
+  "all20": {
+    "run": "https://github.com/tompassarelli/smashcraft/actions/runs/37684669270",
+    "opponent": "wren",
+    "tier": "expert",
+    "seeds": 100,
+    "minimumPerPair": 400,
+    "opponents": 20,
+    "matches": 8160,
+    "wins": 2954,
+    "losses": 5206,
+    "ties": 0,
+    "winRate": 0.3620098039215686,
+    "stockLosses": 20884,
+    "selfDestructs": 444,
+    "noHitLosses": 4402,
+    "margin45to55Passed": false
+  }
+}
