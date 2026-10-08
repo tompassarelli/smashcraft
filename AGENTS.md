@@ -633,12 +633,15 @@ code. From smashcraft:ts/:
   (smashcraft:docs/native-bot-session.md, "Many scripts in one game").
 - Pad cut (#233): `bun scripts/nativePadCut233.ts --pair N --clients-file FILE --helper WC3_CONTROLLER --map MAP --out DIR --app-id NAME=ID --app-id NAME=ID` uses one existing offline LAN pair, stops its own controller producer for 1 s, and checks the HUD waiting count and normal match results.
 - Keyboard timing: `bun scripts/nativeKeyboardPad.ts --script FILE --helper WC3_CONTROLLER --out DIR --clients-file FILE --client NAME --app-id ID`; `--observe` validates the same SDL stimulus without keyboard output. It records the original physical 60 Hz deadlines on CLOCK_MONOTONIC, separately from native simulation frames; this is playable draw timing, while journal parity remains `bun wisp pad`. Export the response probe after capture.
-- Native acceptance: `bun wisp accept [--only ID...] [--pair K... | --pairs N | --clients-file FILE] [--map MAP.w3x] [--dry-run]` runs every
+- Native acceptance: `bun wisp accept [--only ID...] [--pair K... | --pairs N | --clients-file FILE] [--solo] [--map MAP.w3x] [--dry-run]` runs every
   open native check declared in smashcraft:ts/scripts/wisp/acceptChecks.ts in
   as few fresh matches as their maps allow and prints pass, fail or
   needs-look per check with its evidence folder (wisp:docs/accept.md). `--pair K`
   selects the offline pool pair; every check, capture and receipt follows its
-  two clients, and sessions start through `lan fresh`. Several pairs
+  two clients, and sessions start through `lan fresh`. `--solo --pair K`
+  starts each client in its own single-player game through `lan solo`, for
+  captures on 3.0.1 where LAN is removed; it sends each game's setup separately.
+  Several pairs
   (`--pair K` repeated, or `--pairs N`) split the sessions over every pair at
   once, one process per pair, with each map built once; the merged report and
   each `shard-K/` are under the run's evidence folder. Declare

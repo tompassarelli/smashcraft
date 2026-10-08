@@ -50,6 +50,21 @@ export const acceptForClients = (suite: AcceptSuite, clients: readonly [string, 
   })) };
 };
 
+/** Solo games have their own slot zero, so each game's inputs are sent separately. */
+export const acceptForSoloClients = (suite: AcceptSuite, clients: readonly [string, ...string[]]): AcceptSuite => ({
+  ...acceptForClients(suite, clients),
+  checks: acceptForClients(suite, clients).checks.map(check => ({ ...check,
+    ...(check.setup === undefined ? {} : { setup: check.setup.flatMap(step =>
+      ("chat" in step || "keys" in step) && step.client === undefined ? clients.map(client => ({ ...step, client })) : [step]) }),
+  })),
+});
+
+export const sendSoloDevCommand = (command: string, name?: string) => Effect.gen(function*() {
+  const clients = yield* Clients;
+  yield* Effect.forEach(clients.all.filter(client => name === undefined || client.name === name), client =>
+    sendDevCommand(command, client.name).pipe(Effect.provideService(Clients, { ...clients, all: [client] })), { discard: true });
+});
+
 // Doctor heals the clients before the run and once after a failure
 // (wisp:docs/doctor.md): before Clients' layer finds each client's window, so
 // a client it relaunches is driven by its new window. A run's failures are
@@ -104,11 +119,13 @@ export const runShard = (pair: string, ids: readonly string[], directory: string
 
 export const accept: Command = (rawArgs) => Effect.gen(function*() {
   const { clientsFile, args } = yield* Effect.try({ try: () => clientArguments(rawArgs), catch: (cause) => cause instanceof UsageFailure ? cause : new UsageFailure({ problem: String(cause) }) });
+  const solo = args.includes("--solo");
   const [candidate] = flagValues(args, "map");
   if (candidate !== undefined && !existsSync(candidate)) return yield* new UsageFailure({ problem: `no built map ${candidate}` });
   const profiles: Readonly<Record<string, SmashcraftMapProfile>> = candidate === undefined ? MAP_PROFILES : Object.fromEntries(Object.entries(MAP_PROFILES).map(([name, { rebuild: _rebuild, ...profile }]) => [name, { ...profile, path: candidate }]));
   const suite = { ...SMASHCRAFT_ACCEPT, maps: profiles };
   const requested = yield* selectedPairs(args);
+  if (solo && requested.length !== 1) return yield* new UsageFailure({ problem: "--solo requires one --pair K; each client plays its own single-player game" });
   const id = requested.length === 1 ? Number(requested[0]) : undefined;
   const pair = id === undefined ? undefined : yield* Effect.try({
     try: () => {
@@ -121,7 +138,7 @@ export const accept: Command = (rawArgs) => Effect.gen(function*() {
   if (pair !== undefined && clientsFile !== clientState) return yield* new UsageFailure({ problem: "--clients-file and --pair select different clients; give one" });
   const selectedClients = pair?.clients ?? clientsFile;
   const names = clientNames(selectedClients);
-  const withoutMap = args.filter((arg, index) => arg !== "--map" && !arg.startsWith("--map=") && args[index - 1] !== "--map");
+  const withoutMap = args.filter((arg, index) => arg !== "--solo" && arg !== "--map" && !arg.startsWith("--map=") && args[index - 1] !== "--map");
   const forwarded = requested.length > 1 ? withoutMap : withoutPairFlags(withoutMap);
   const rebuilt = new Set<string>();
   const start = (map: string) => Effect.gen(function*() {
@@ -136,11 +153,11 @@ export const accept: Command = (rawArgs) => Effect.gen(function*() {
       if (pair?.lan === undefined) yield* freshMatch(profile.path);
       else {
         const started = yield* Clock.currentTimeMillis;
-        yield* lan(["fresh", profile.path, "--pair", String(pair.lan)]);
+        yield* lan([solo ? "solo" : "fresh", profile.path, "--pair", String(pair.lan)]);
         const clients = yield* Clients;
         yield* Effect.forEach(clients.all, client => readyAfter(client, started), { concurrency: "unbounded" });
       }
-      yield* sendDevCommand(profile.quick).pipe(step(profile.quick));
+      yield* (solo ? sendSoloDevCommand(profile.quick) : sendDevCommand(profile.quick)).pipe(step(profile.quick));
     }).pipe(Effect.provide(Layer.merge(options.services.pipe(Layer.provideMerge(Clients.layer(selectedClients))), smashcraftWatch())));
   });
   const liveDriver = liveAcceptDriver({
@@ -152,7 +169,7 @@ export const accept: Command = (rawArgs) => Effect.gen(function*() {
     const context = yield* Effect.context<Clients | GameFiles>();
     return AcceptDriver.of({
       ...live,
-      chat: (name, text) => sendDevCommand(text, name).pipe(Effect.mapError((cause) => new AcceptFailure({ operation: `chat ${name}`, problem: describeCause(cause) })), Effect.provide(context)),
+      chat: (name, text) => (solo ? sendSoloDevCommand(text, name) : sendDevCommand(text, name)).pipe(Effect.mapError((cause) => new AcceptFailure({ operation: `chat ${name}`, problem: describeCause(cause) })), Effect.provide(context)),
     });
   })).pipe(Layer.provide(liveDriver), Layer.provide(Layer.mergeAll(Clients.layer(selectedClients), gameFilesLayer, smashcraftWatch())));
   const shards = {
@@ -161,7 +178,7 @@ export const accept: Command = (rawArgs) => Effect.gen(function*() {
     prepare: (sessions: readonly { readonly map: string }[]) => prebuild(sessions.map(({ map }) => map), profiles),
     run: (pair: string, ids: readonly string[], directory: string) => runShard(pair, ids, directory, candidate),
   };
-  const run = makeAccept({ suite: acceptForClients(suite, names), evidenceRoot: join(homedir(), ".local/state/smashcraft/accept"), driver, clients: names, shards })(forwarded);
+  const run = makeAccept({ suite: solo ? acceptForSoloClients(suite, names) : acceptForClients(suite, names), evidenceRoot: join(homedir(), ".local/state/smashcraft/accept"), driver, clients: names, shards })(forwarded);
   // A dry run touches no client; each shard heals its own pair.
   return yield* (args.includes("--dry-run") || requested.length > 1 ? run : onHealthyClients(run, { retry: false, clientsFile: selectedClients }));
 });
