@@ -124,7 +124,7 @@ jobs:
           GAME_TESTS: ${{ matrix.game-tests }}
           GAME_TESTS_EXCLUDE: ${{ matrix.game-tests-exclude }}
           SWEEPS: ${{ matrix.sweeps }}
-          LUA_JOBS: 4
+          LUA_JOBS: ${{ matrix.sweeps == '1' && '4' || '1' }}
           LUA_PARTITION: ${{ matrix.lua-partition || '0/1' }}
 
   # Sweeps (many matches, whole-roster measurements) that the suite skips run

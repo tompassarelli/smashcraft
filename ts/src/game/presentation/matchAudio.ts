@@ -39,20 +39,20 @@ const MUSIC = "Sound\\Music\\mp3Music\\";
 export const MENU_MUSIC = `${MUSIC}War3XMainScreen.flac`;
 
 /**
- * Each stage's theme from the Warcraft III soundtrack, by its setting
- * (docs/design/match-flow.md, "Sound and music").
+ * Each stage's theme from the Warcraft III soundtrack, chosen for the
+ * fighters who call it home (smashcraft:docs/design/stage-music.md).
  */
 const STAGE_MUSIC: Readonly<Record<StageTile, string>> = {
   0: `${MUSIC}Human1.flac`,
   2: `${MUSIC}LichKingTheme.flac`,
-  3: `${MUSIC}Orc1.flac`,
-  4: `${MUSIC}Undead3.flac`,
-  6: `${MUSIC}Human2.flac`,
+  3: `${MUSIC}OrcX1.flac`,
+  4: `${MUSIC}NaxxramasWalking1.flac`,
+  6: `${MUSIC}ArthasTheme.flac`,
   7: `${MUSIC}NagaTheme.flac`,
   10: `${MUSIC}NightElf1.flac`,
   11: `${MUSIC}HumanX1.flac`,
-  12: `${MUSIC}OrcX1.flac`,
-  13: `${MUSIC}NagaTheme.flac`,
+  12: `${MUSIC}Human3.flac`,
+  13: `${MUSIC}NightElf2.flac`,
   14: `${MUSIC}IllidansTheme.flac`,
 };
 
@@ -72,6 +72,8 @@ const RACES: readonly Race[] = [
   // The Lich King: the Scourge.
   Race.undead,
   Race.orc, Race.human, Race.undead, Race.orc, Race.orc, Race.orc, Race.orc, Race.human,
+  // Murloc: a Broken Isles creep, fought there in the night elves' Terror of the Tides.
+  Race.nightElf,
 ];
 
 export const characterRace = (character: Character): Race => at(RACES, character);
@@ -87,9 +89,10 @@ export const victoryMusic = (winner: Character | undefined): string | undefined 
 
 /**
  * By Character: the unit's sound directory, the prefix of its voice files, and
- * the line it says when chosen where the unit has no Ready line (a campaign hero).
+ * the line it says when chosen where the unit has no Ready line (a campaign hero),
+ * and its battle cry where it has no Warcry line (a creep).
  */
-const VOICES: readonly (readonly [string, string, string?])[] = [
+const VOICES: readonly (readonly [string, string, string?, string?])[] = [
   ["Units\\NightElf\\Archer\\", "Archer"],
   ["Units\\Human\\Rifleman\\", "Rifleman"],
   ["Units\\NightElf\\HeroDemonHunter\\", "HeroDemonHunter"],
@@ -112,11 +115,13 @@ const VOICES: readonly (readonly [string, string, string?])[] = [
   ["Units\\Orc\\Peon\\","Peon"],
   ["Units\\Creeps\\HeroTinker\\","HeroTinker"],
   ["Units\\Human\\Kael\\","Kael"],
+  ["Units\\Creeps\\Murloc\\", "Murloc", "Ready", "YesAttack"],
 ];
 
 function voice(character: Character, line: string): string {
-  const [directory, prefix, ready] = at(VOICES, character);
-  return `${directory}${prefix}${line === "Ready" ? ready ?? line : line}1.flac`;
+  const [directory, prefix, ready, warcry] = at(VOICES, character);
+  const spoken = line === "Ready" ? ready ?? line : line === "Warcry" ? warcry ?? line : line;
+  return `${directory}${prefix}${spoken}1.flac`;
 }
 
 /** The line a hero says when trained: played when a player confirms that fighter. */

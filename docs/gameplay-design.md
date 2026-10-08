@@ -625,6 +625,7 @@ every newly registered fighter too.
 | Peon | Lumber Toss (25) | Burrow (45) | One 8% hit armored on frames 1–6 |
 | Goblin Tinker | Cluster Rockets (35) | Pocket Factory (45) | One 8% hit armored on frames 1–6 |
 | Kael'thas Sunstrider | Flame Strike (45) | Siphon Mana (30) | One 8% hit armored on frames 1–6 |
+| Murloc | Ensnare (35) | Tidal Rush (35) | One 8% hit armored on frames 1–6 |
 
 Prior art informs the decision, not these original numbers:
 [Capcom's EX manual](https://game.capcom.com/manual/sfv/en-us/page.html?cat=2&subcat=2)
@@ -1525,7 +1526,7 @@ aim launches upward. An up special spends the aerial jump and ends helpless.
 | Long, committed route | Rifleman, Blademaster, Tinker, Kael'thas | 480–640 | 480–900 | 780 | 920 |
 | Vertical, route mixups | Warden, Lich, Shadow Hunter, Thrall, Jaina, Chen | 400–560 | 320–600 | 700 | 840 |
 | Drifting, wide approach | Archer, Illidan, Dreadlord, Beastmaster, Sylvanas | 380–520 | 600–900 | 680 | 920 |
-| Heavy, exposed approach | Mountain King, Forsaken Paladin, Pit Lord, Lich King, Cairne, Peon | 320–440 | 320–480 | 620 | 740 |
+| Heavy, exposed approach | Mountain King, Forsaken Paladin, Pit Lord, Lich King, Cairne, Peon, Murloc | 320–440 | 320–480 | 620 | 740 |
 
 [spec #252] With empty mana, an up special reaches at least 240 units on each
 axis, and the full recovery envelope reaches at least 500 units deep and 640

@@ -36,6 +36,7 @@ const IDLE_TOPS: readonly { readonly character: Character; readonly idleClip: nu
   { character: Character.peon, idleClip: 9, top: 89 },
   { character: Character.tinker, idleClip: 6, top: 145 },
   { character: Character.kaelthas, idleClip: 0, top: 140 },
+  { character: Character.murloc, idleClip: 2, top: 76.3 },
 ];
 
 /** The hurt capsule's top may sit at most a tenth above the drawn head. */

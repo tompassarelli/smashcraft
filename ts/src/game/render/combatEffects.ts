@@ -33,6 +33,8 @@ import { SELECTABLE_CHARACTERS, heroDefinition } from "../sim/heroes/registry";
 import { type ParkedFlags, type WorldOrigin, hideEffect, parkOnce, placeEffect } from "./effects";
 import { characterModelScale } from "../presentation/modelScale";
 import { tierSoundPaths } from "../presentation/moveTiers";
+import { KO_BLUR_DISTANCE, type KoFlash, createKoFlash, endKoFlash, koFlashLevels, noteKoFlash } from "../presentation/koFlash";
+import type { Fighter } from "../sim/fighter";
 
 /** A KO body per star-KO impact and selectable fighter, so any fighter can fly off as itself. */
 const KO_FIGHTERS = SELECTABLE_CHARACTERS.length;
@@ -73,6 +75,9 @@ export class CombatEffects {
   private lateConfirmed: (number | undefined)[] = [];
   private lateLive = 0;
   private presentedFrame: number | undefined;
+  /** Created on first use, so a pool retained across a reload gains it. */
+  private koFlash: KoFlash | undefined;
+  private koFlashShown = false;
   /** Impacts at their pool index, then KO bodies. */
   private parked: ParkedFlags | undefined;
   /** The impacts' plane, just in front of the fighters; hidden models park beneath it. */
@@ -115,6 +120,46 @@ export class CombatEffects {
     this.lateConfirmed = [];
     this.lateLive = 0;
     this.presentedFrame = undefined;
+    if (this.koFlash !== undefined) endKoFlash(this.koFlash);
+    this.hideKoFlash();
+  }
+
+  /** Notes a fighter's confirmed frame for the KO flash, which only a confirmed KO starts. */
+  confirmKo(frame: number, slot: number, fighter: Readonly<Fighter>, events: Readonly<ImpactEvents>): void {
+    noteKoFlash((this.koFlash ??= createKoFlash()), frame, slot, fighter, events);
+  }
+
+  /** Silverpine's calls: a white mask over the screen and the camera's depth of field, on this client only. */
+  private presentKoFlash(frame: number, playing: boolean): void {
+    const flash = this.koFlash;
+    const levels = flash === undefined ? undefined : koFlashLevels(flash, frame);
+    if (flash === undefined || levels === undefined || !playing || !levels.showing) {
+      if (flash !== undefined && levels !== undefined && !levels.showing) endKoFlash(flash);
+      this.hideKoFlash();
+      return;
+    }
+    if (!this.koFlashShown) {
+      SetCineFilterTexture("ReplaceableTextures\\CameraMasks\\White_Mask.blp");
+      SetCineFilterBlendMode(BLEND_MODE_MODULATE_2X);
+      SetCineFilterTexMapFlags(TEXMAP_FLAG_NONE);
+      SetCineFilterStartUV(0.0, 0.0, 1.0, 1.0);
+      SetCineFilterEndUV(0.0, 0.0, 1.0, 1.0);
+      SetCineFilterDuration(0.0);
+      DisplayCineFilter(true);
+      SetCameraField(CAMERA_FIELD_DEPTH_OF_FIELD_DISTANCE, KO_BLUR_DISTANCE, 0.0);
+      this.koFlashShown = true;
+    }
+    SetCineFilterStartColor(levels.grey, levels.grey, levels.grey, 255);
+    SetCineFilterEndColor(levels.grey, levels.grey, levels.grey, 255);
+    SetCameraField(CAMERA_FIELD_DEPTH_OF_FIELD_SCALE, levels.blur, 0.0);
+  }
+
+  private hideKoFlash(): void {
+    if (!this.koFlashShown) return;
+    this.koFlashShown = false;
+    DisplayCineFilter(false);
+    SetCameraField(CAMERA_FIELD_DEPTH_OF_FIELD_DISTANCE, 0.0, 0.0);
+    SetCameraField(CAMERA_FIELD_DEPTH_OF_FIELD_SCALE, 0.0, 0.0);
   }
 
   /**
@@ -196,6 +241,7 @@ export class CombatEffects {
       this.place(model, i, kind, pose);
     }
     if (this.lateLive > 0) this.presentLate(state, frame, playing);
+    this.presentKoFlash(frame, playing);
     for (let i = 0; i < this.koBodies.length; i++) {
       const model = this.koBodies[i];
       if (model === undefined) continue;

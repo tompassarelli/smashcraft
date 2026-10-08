@@ -40,6 +40,15 @@ export const SMASHCRAFT_NOOPS: IntentionalNoops = {
   StopMusic: "quick-match inspects explicit sound cues; background music playback is not simulated",
   ClearMapMusic: "quick-match inspects explicit sound cues; background music playlists are not simulated",
   PlayMusic: "quick-match inspects explicit sound cues; background music playback is not simulated",
+  SetCineFilterTexture: "the KO flash's screen filter is local presentation; headless checks do not render the screen",
+  SetCineFilterBlendMode: "the KO flash's screen filter is local presentation; headless checks do not render the screen",
+  SetCineFilterTexMapFlags: "the KO flash's screen filter is local presentation; headless checks do not render the screen",
+  SetCineFilterStartUV: "the KO flash's screen filter is local presentation; headless checks do not render the screen",
+  SetCineFilterEndUV: "the KO flash's screen filter is local presentation; headless checks do not render the screen",
+  SetCineFilterStartColor: "the KO flash's screen filter is local presentation; headless checks do not render the screen",
+  SetCineFilterEndColor: "the KO flash's screen filter is local presentation; headless checks do not render the screen",
+  SetCineFilterDuration: "the KO flash's screen filter is local presentation; headless checks do not render the screen",
+  DisplayCineFilter: "the KO flash's screen filter is local presentation; headless checks do not render the screen",
 };
 
 export const smashcraftNativeBehavior = () => ({

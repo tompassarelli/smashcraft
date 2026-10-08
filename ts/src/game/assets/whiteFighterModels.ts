@@ -20,5 +20,6 @@ export const WHITE_FIGHTER_MODELS: readonly string[] = [
   "war3mapImported\\ChenStormstoutWhite-33d0c250588260d20ebf7886d61f42f5de4a0abf19acfb2b9848eb97e7ae6fd4.mdx",
   "war3mapImported\\PeonWhite-e694edc1cde755471e9bac4ccc8e3b4b55df7116efcaa5600f52fbb95a17643f.mdx",
   "war3mapImported\\GoblinTinkerWhite-294c635df5fed4534d22e5e2b84be78e91c2fdd9404adb4c6a51ac499cbc0614.mdx",
-  "war3mapImported\\KaelthasSunstriderWhite-e5cfc4b4750f950f917b61b2c4b83bec0b7aa0a0cebe94eadf06229952378d70.mdx"
+  "war3mapImported\\KaelthasSunstriderWhite-e5cfc4b4750f950f917b61b2c4b83bec0b7aa0a0cebe94eadf06229952378d70.mdx",
+  "war3mapImported\\MurlocWhite-7c521c4a6bf62d10f4357b194584ece2c2910d3ef39a3c6742418720a50c4c9f.mdx"
 ];

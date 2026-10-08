@@ -16,6 +16,36 @@ import { joinReplay, parseReplayHeader, parseReplayPart, replayMatch } from "../
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
 
+test("resume keeps frozen fighter and camera positions through batched callbacks while simulation advances [repro #206]", () => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, "os");
+  let clock = 10;
+  Object.defineProperty(globalThis, "os", { configurable: true, value: { clock: () => clock } });
+  try {
+    const clients = headless.clients({ start: () => startBuild({ ...PLAYABLE_BUILD, devConsole: true }), install }, [0]);
+    const client = clients.client(0);
+    clients.start();
+    clients.frames(30);
+    clients.chat(0, "-dev quick cpu wren intermediate hero dreadlord");
+    clients.frames(60);
+    clients.press(0, Key.y);
+    clients.frames(30);
+    const pausedFrame = value(client, () => shell().rollback?.speculative.runtime.simulationFrame ?? -1);
+    const picture = () => ({ camera: client.cameraPose(), effects: client.effectPoses({ visibleOnly: true }).map(pose => ({ model: pose.model, x: pose.x, y: pose.y, z: pose.z })), bars: client.frames.snapshot({ visibleOnly: true }).filter(frame => frame.name.includes("Mana")) });
+    const frozen = picture();
+    clients.press(0, Key.y);
+    clients.frames(30);
+    expect(value(client, () => shell().rollback?.speculative.runtime.simulationFrame ?? -1)).toBeGreaterThan(pausedFrame);
+    expect(picture()).toEqual(frozen);
+    clock += 0.0625;
+    clients.frames(1);
+    expect(picture()).not.toEqual(frozen);
+    expect(client.errors).toEqual([]);
+  } finally {
+    if (previous === undefined) Reflect.deleteProperty(globalThis, "os");
+    else Object.defineProperty(globalThis, "os", previous);
+  }
+});
+
 test("pause with a computer keeps its replay continuous and advances one frame per headless draw after resuming [repro #206] [invariant]", async () => {
   const clients = headless.clients({ start: () => startBuild({ ...PLAYABLE_BUILD, devConsole: true, responseProbe: true }), install }, [0]);
   const client = clients.client(0);

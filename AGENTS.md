@@ -156,6 +156,15 @@ code. From smashcraft:ts/:
   starts its response probe at match setup. The first pause and resume emit
   `pause-boundary` rows; resume exports the positions presented in that callback
   automatically, for `ts/test/native/pads/206/pause-dash.pad`.
+- Map size: players download the map in the lobby, so prefer Warcraft's own
+  assets (reshape, recolour, rescale or recombine stock models, doodads,
+  effects and animations) before importing a file. A custom asset is fine
+  where stock can't do the job well; each new import's commit names its size
+  and why stock couldn't do it. `bun wisp map build` prints the map's size and
+  imported bytes; the default build fails when the map is more than 10% over
+  smashcraft:ts/map-size-baseline.tsv, naming the largest new imports. After a
+  justified import or a cut, rebuild with `MAP_SIZE_UPDATE=1` and commit the
+  baseline (smashcraft:docs/design/map-size.md).
 - Build inputs: each private asset family is stored once under the hash of
   its contents and never edited; build-inputs.json names each family's hash,
   so changing art is `bun wisp inputs add FAMILY DIR` plus a commit, landed
@@ -199,6 +208,10 @@ code. From smashcraft:ts/:
   `bun tools/animations/kaelthas-clips.ts STOCK_BLOOD_MAGE.mdx PRIVATE_OUTPUT`
   appends Kael’thas’s normal, special, paired throw, recovery and nine pain
   gestures, preserves all eleven stock sequences, and writes both-facing sheets.
+  `bun tools/animations/murloc-clips.ts STOCK_MURLOC.mdx PRIVATE_OUTPUT` appends the
+  Murloc's normal, special, paired throw, recovery and nine pain gestures to the
+  stock Tiderunner, preserves its nine sequences and writes both-facing sheets;
+  run it twice for a fresh clip table, since its reach search reads the table.
   `bun tools/animations/grab-pads.ts` generates the #180 mirror and unlike-height capture batch:
   ten expansion heroes, four throws, both facings, with ordinary catch/pummel
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
@@ -443,7 +456,10 @@ code. From smashcraft:ts/:
   CI holds `playable-bot-four` to smashcraft:ts/test/fixtures/perf/playable-bot-four.perf;
   after an intended rise or a cut, rewrite that file with `--out` and commit it.
   `bun wisp perf budget RUN_FILE` holds a `--samples` run to #168's frame
-  budget (p99 10 ms, worst 14 ms predicted). Spike census (#168): `bun wisp
+  budget (p99 10 ms, worst 14 ms predicted). `bun wisp perf profile
+  playable-bot-four --phases --out FILE` preserves measured samples and each
+  client's slow-frame phase samples and simulation/repair step counts;
+  profiling is a separate replay, excluded from measured costs. Spike census (#168): `bun wisp
   perf census [--fighter NAME] [--stage ID] [--functions]` plays every
   fighter's moves, specials and follow-ups in a playable-build training match
   and every stage's hazards, and fails any entry over 2 ms above its standing

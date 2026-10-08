@@ -10,7 +10,7 @@ import { IMPACT_HIT_MODEL } from "../src/game/assets/impactAssetInfo";
 import { impactModel } from "../src/game/presentation/hitPresentation";
 import { Action, bit } from "../src/game/input/actions";
 import { requestStageSelect, requestStart, selectCharacter, selectStage, setParticipants } from "../src/game/match/rules";
-import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
+import { ARENA_CAMERA, FLOOR_HEIGHT, extremeCamera } from "../src/game/presentation/arenaCamera";
 import { CANNON_MODEL } from "../src/game/presentation/stageHazards";
 import { deckModel } from "../src/game/presentation/stagePreload";
 import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";
@@ -27,7 +27,7 @@ import { Character, DownState, SurfaceContact } from "../src/game/sim/codes";
 import { fighterAt } from "../src/game/sim/roster";
 import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, TIMED_TEST_STAGE, WIND_TEST_STAGE, DRIFTING_DECK_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, MAIN_DECK_UNDERSIDE_Z, solidSurfaceAt, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
 import { stageBounds } from "../src/game/sim/stageBounds";
-import { advanceMatchCamera } from "../src/game/sim/matchCamera";
+import { MATCH_CAMERA_ASPECT, advanceMatchCamera, createMatchCamera } from "../src/game/sim/matchCamera";
 import { initializeScenario } from "../src/game/shell/scenarios";
 import { BODY_HALF_WIDTH, bodyTop } from "../src/game/sim/surfaces";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../src/game/sim/tuning";
@@ -39,7 +39,7 @@ import { drawStage, lockArenaCamera, renderPersistentPresentation, renderUi } fr
 import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
 import type { HeadlessClient } from "wisp/src/headless/client";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
-import { MAIN_DECK_HALF_DEPTH } from "../scripts/stageDeck";
+import { MAIN_DECK_HALF_DEPTH, mainDeckOutlineStage } from "../scripts/stageDeck";
 import { CameraFindings } from "./cameraFindings";
 
 // Nothing here compares clients' native calls, so none are logged: the dense-dust match runs 240 frames.
@@ -127,6 +127,51 @@ test("every stage's scenery stays behind fighters, and fog starts beyond the fig
     }
   }
   expect([...new Set(problems)]).toEqual([]);
+});
+
+test("no stage shows a scenery piece's base below the deck at either camera extreme: the stage floats [spec docs/design/stage-art.md]", () => {
+  // Rule 11: every base reaches below the frame or hides behind the main deck or a nearer piece (a rock it stands on).
+  const tilt = (10 * Math.PI) / 180;
+  const problems: string[] = [];
+  for (const stage of STAGE_CATALOG) {
+    const placed = stageScenery(stage.id).pieces.flatMap((piece) => {
+      const bounds = MODEL_FACTS[piece.model]?.bounds;
+      if (bounds === undefined) return [];
+      const turn = (piece.yaw * Math.PI) / 180;
+      const flat = [bounds.min[0], bounds.max[0]].flatMap(x => [bounds.min[1], bounds.max[1]].map(y => [x * Math.cos(turn) - y * Math.sin(turn), x * Math.sin(turn) + y * Math.cos(turn)] as const));
+      const stretch = (piece.matrixScale?.[2] ?? 1) * piece.scale;
+      return [{
+        model: piece.model,
+        left: Math.min(...flat.map(p => p[0])) * piece.scale + piece.x, right: Math.max(...flat.map(p => p[0])) * piece.scale + piece.x,
+        front: Math.min(...flat.map(p => p[1])) * piece.scale + piece.y,
+        bottom: bounds.min[2] * stretch + piece.z, top: bounds.max[2] * stretch + piece.z,
+      }];
+    });
+    for (const extreme of ["near", "far"] as const) {
+      const camera = createMatchCamera();
+      extremeCamera(camera, stage.id, MATCH_CAMERA_ASPECT, extreme);
+      const depth = (y: number, z: number) => camera.distance + y * Math.cos(tilt) - (z - camera.z) * Math.sin(tilt);
+      const project = (x: number, y: number, z: number) => [
+        0.5 + (x - camera.x) / (2 * depth(y, z) * camera.tangent * MATCH_CAMERA_ASPECT),
+        0.5 - (y * Math.sin(tilt) + (z - camera.z) * Math.cos(tilt)) / (2 * depth(y, z) * camera.tangent),
+      ] as const;
+      const deck = Array.from({ length: MAIN_DECK_BODY_SURFACES }, (_, index) => solidSurfaceAt(mainDeckOutlineStage(stage.id), index)).map(line => project(line.startX, -MAIN_DECK_HALF_DEPTH, line.startZ));
+      const behindDeck = ([column, row]: readonly [number, number]) => deck.reduce((inside, [x1, y1], index) => {
+        const [x2, y2] = deck[(index + deck.length - 1) % deck.length]!;
+        return (y1 > row) !== (y2 > row) && column < ((x2 - x1) * (row - y1)) / (y2 - y1) + x1 ? !inside : inside;
+      }, false);
+      for (const piece of placed) {
+        const shown = Array.from({ length: 21 }, (_, step) => piece.left + ((piece.right - piece.left) * step) / 20).filter((x) => {
+          if (depth(piece.front, piece.bottom) > ARENA_CAMERA.farZ) return false;
+          const at = project(x, piece.front, piece.bottom);
+          if (at[0] < 0 || at[0] > 1 || at[1] < 0 || at[1] > 1 || behindDeck(at)) return false;
+          return !placed.some((other) => other !== piece && other.front <= piece.front && x >= other.left && x <= other.right && piece.bottom >= other.bottom && piece.bottom <= other.top);
+        });
+        if (shown.length > 0) problems.push(`${stage.name} ${extreme}: ${piece.model} base at z ${Math.round(piece.bottom)}`);
+      }
+    }
+  }
+  expect(problems).toEqual([]);
 });
 
 /** The client's latest scene report, from the lines it wrote. */

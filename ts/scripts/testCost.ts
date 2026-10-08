@@ -114,11 +114,13 @@ export function judge(options: {
   let baseCpu = 0;
   for (const [unit, cost] of [...measured].sort(([a], [b]) => (a < b ? -1 : 1))) {
     if (cost.tests === 0) continue;
-    tests += cost.tests;
+    // game.test.ts counts module tests again to amortize loading, not as new tests.
+    const wrapper = unit === "test/game.test.ts";
+    tests += wrapper ? 0 : cost.tests;
     cpu += cost.cpu;
     const base = baseline.get(unit);
     if (base !== undefined) {
-      baseTests += base.tests;
+      baseTests += wrapper ? 0 : base.tests;
       baseCpu += base.cpu;
     }
     if (options.whole === false) continue;
