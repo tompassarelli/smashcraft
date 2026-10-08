@@ -7,7 +7,7 @@
 import { assertEquals, assertGreaterThan, assertTrue } from "wisp/src/runtime/testing";
 import { sweep } from "../../runtime/sweep";
 import { floorDiv } from "wisp/src/sim/intMath";
-import { clearAttackBuffer } from "../input/attackBuffer";
+import { attackBuffer, clearAttackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { AttackStyle, Character, SpecialAction } from "../sim/codes";
 import { passivePips } from "../sim/passives";
@@ -18,6 +18,7 @@ import { gameplanOf, passiveLandingMove } from "./botGameplan";
 import { type GameplanMove, GameplanSpecial } from "../sim/gameplan";
 import { passiveSpec } from "../sim/passives";
 import { produceComputerInput } from "./botPlay";
+import { chooseAttack } from "./botMoves";
 import { createFrameControls } from "./controls";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
 import { createPacingAndPresentation } from "./pacingAndPresentation";
@@ -43,8 +44,8 @@ interface Watch {
   shielded: boolean;
 }
 
-/** A neutral special started this frame (Archer's arrow, Rifleman's blaster, a hero's neutral special). */
-const NEUTRAL_SPECIALS: readonly number[] = [SpecialAction.archerArrow, SpecialAction.riflemanBlaster, SpecialAction.demonHunterManaBurn, SpecialAction.heroNeutral];
+/** Projectile specials that can cash a passive, plus the heroes' neutral specials. */
+const OBSERVED_SPECIALS: readonly number[] = [SpecialAction.archerArrow, SpecialAction.archerHomingArrow, SpecialAction.riflemanBlaster, SpecialAction.demonHunterManaBurn, SpecialAction.heroNeutral];
 
 /** A move started while the passive is ready or charging, and whether it is the move that cashes it. */
 function moveStarted(f: Readonly<Fighter>, move: GameplanMove, counts: Counts): void {
@@ -61,7 +62,9 @@ function observe(f: Readonly<Fighter>, opponent: Readonly<Fighter>, watch: Watch
     moveStarted(f, f.ground.dashFrame > 0 && style === AttackStyle.dashAttack ? AttackStyle.dashAttack : style, counts);
   }
   watch.attack = f.attack.serial;
-  if (f.special.action !== watch.special && NEUTRAL_SPECIALS.includes(f.special.action)) moveStarted(f, GameplanSpecial.neutral, counts);
+  if (f.special.action !== watch.special && OBSERVED_SPECIALS.includes(f.special.action)) {
+    moveStarted(f, f.special.action === SpecialAction.archerHomingArrow ? GameplanSpecial.side : GameplanSpecial.neutral, counts);
+  }
   watch.special = f.special.action;
   // Eye Blast: Illidan's forward smash released after its full charge, once per attack.
   if (f.character === Character.demonHunter && style === AttackStyle.forwardSmash && !f.attack.smashCharging && f.attack.smashChargeFrames >= EYE_BLAST_CHARGE_FRAMES && watch.blast !== f.attack.serial) {
@@ -164,6 +167,23 @@ function shieldsReady(counts: Counts): void {
   assertGreaterThan((counts.readyShielded ?? 0) * (counts.idleThreats ?? 0), (counts.idleShielded ?? 0) * (counts.readyThreats ?? 0));
 }
 
+function favorsReadyShot(character: Character): void {
+  const fighter = createFighter(character, 0.0, 1);
+  const target = createFighter(character, 240.0, -1);
+  const shots = (stacks: number): number => {
+    fighter.passive.stacks = stacks;
+    let count = 0;
+    for (let frame = 1; frame <= 64; frame++) {
+      const input = neutralControls();
+      chooseAttack(fighter, target, 0, frame, frame, true, input, attackBuffer(6), 0);
+      if (input.specialPressed && input.specialX === 0 && input.specialZ === 0) count++;
+    }
+    return count;
+  };
+  // #273 changes the distances a match visits; compare the same affordable choices.
+  assertGreaterThan(shots(passiveSpec(character).stacks), shots(0));
+}
+
 const { forwardTiltUp, forwardTiltDown, downTilt, dashAttack, neutralAir, upAir, downAir, forwardAir, forwardTilt, downSmash } = AttackStyle;
 
 sweep("computer Blademaster throws Bladestorm, Blade Wheel, his down tilt and dash attack, and cashes Critical Strike [spec #155]", () => {
@@ -216,7 +236,9 @@ sweep("computer Archer and Rifleman never press a special their mana can't pay, 
   for (const character of [Character.archer, Character.rifleman]) {
     const counts = played(character);
     assertEquals(counts.manaDenied ?? 0, 0);
-    playsPassives(counts);
+    assertGreaterThan(counts.proc ?? 0, 0);
+    assertGreaterThan(counts.readyLanding ?? 0, 0);
+    favorsReadyShot(character);
   }
 });
 
