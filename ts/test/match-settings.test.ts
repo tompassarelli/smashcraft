@@ -64,7 +64,7 @@ function session(endless = false, hazardsOff = false) {
   until("match", () => read(() => shell().game.phase) === Phase.match, 120);
   return { clients, frames, read, until };
 }
-test("rules agree on both clients and the last countdown frame starts the next seeded pool stage", () => {
+test("rules agree on both clients and the last countdown frame starts the next seeded pool stage [spec #74] [invariant]", () => {
   const { clients, frames, read, until } = session();
   const rules = () => [shell().game.characterChoices.join(), shell().game.stockCount, shell().game.timeLimitMinutes, shell().game.automaticRematch, shell().game.endless];
   const before = read(rules);
@@ -92,7 +92,7 @@ test("rules agree on both clients and the last countdown frame starts the next s
   expectSynchronized(clients);
 });
 // About 1.5 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
-sweep("either player's press cancels the automatic rematch", () => {
+sweep("either player's press cancels the automatic rematch [spec #74] [invariant]", () => {
   for (const actor of [0, 1]) {
     for (const key of [Key.n, Key.u, Key.y]) {
     const { clients, frames, read, until } = session();
@@ -108,7 +108,7 @@ sweep("either player's press cancels the automatic rematch", () => {
   }
 }, 30_000);
 // About 2.4 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
-sweep("endless survives repeated knockouts past the selected time limit", () => {
+sweep("endless survives repeated knockouts past the selected time limit [spec #74] [invariant]", () => {
   const { clients, frames, read } = session(true);
   let respawns = 0; let out = false;
   for (let i = 0; i < 3800; i++) {
@@ -123,7 +123,7 @@ sweep("endless survives repeated knockouts past the selected time limit", () => 
   expect(read(() => shell().game.timedOut)).toBe(false);
   expectSynchronized(clients);
 }, 30_000);
-test("the stage menu's hazards toggle turns hazards off for both players and the match keeps the stage at rest", () => {
+test("the stage menu's hazards toggle turns hazards off for both players and the match keeps the stage at rest [spec #194] [invariant]", () => {
   const { clients, frames, read } = session(false, true);
   frames(120);
   expect(read(() => shell().game.hazards)).toBe(false);
@@ -131,8 +131,7 @@ test("the stage menu's hazards toggle turns hazards off for both players and the
   expectSynchronized(clients);
 }, 30_000);
 
-
-test("item switches sync between players and keep their choices at match start", () => {
+test("item switches sync between players and keep their choices at match start [spec #196] [invariant]", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 196), keepCalls: 64 });
   clients.start(); clients.frames(30);
   const settings = () => [shell().game.items.on, shell().game.items.enabledMask];

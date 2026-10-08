@@ -13,7 +13,7 @@ import { shell } from "../src/platform/shell/state";
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
-test("picked cards, HUD busts, stock icons and off-screen portraits send the fighter slot's outfit to Warcraft", () => {
+test("picked cards, HUD busts, stock icons and off-screen portraits send the fighter slot's outfit to Warcraft [spec #161]", () => {
   const clients = headless.clients({ install, start: () => startBuild(PLAYABLE_BUILD) });
   const textures = new Map<number, string[]>();
   for (const client of clients.clients) {

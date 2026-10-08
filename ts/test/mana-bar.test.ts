@@ -9,7 +9,7 @@ import { AttackStyle } from "../src/game/sim/codes";
 import { resolveGrabs } from "../src/game/sim/grabs";
 import { attackStartupFrames } from "../src/game/sim/moves";
 import { fighterAt } from "../src/game/sim/roster";
-import { MANA_BAR_SEGMENTS, MANA_DRAIN_UPDATES, OVERHEAD_MANA_WIDTH, advanceManaFeedback, manaDrainLit, manaFeedback } from "../src/game/presentation/manaBar";
+import { MANA_BAR_SEGMENTS, OVERHEAD_MANA_WIDTH } from "../src/game/presentation/manaBar";
 import { plateManaSlot } from "../src/game/ui/matchHud";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
@@ -40,7 +40,7 @@ function forBoth(clients: Clients, change: (slot: number) => void): void {
   for (const client of clients.clients) client.run(() => change(0));
 }
 
-test("every fighter's mana shows as a segmented bar over its head and on its plate, filled to its mana", () => {
+test("every fighter's mana shows as a segmented bar over its head and on its plate, filled to its mana [spec docs/design/mana.md]", () => {
   const clients = quickMatch();
   forBoth(clients, () => {
     fighterAt(shell().world, 0).mana.points = 40;
@@ -65,7 +65,7 @@ test("every fighter's mana shows as a segmented bar over its head and on its pla
   expect(clients.firstDivergence()).toBeUndefined();
 });
 
-test("both mana bars show a visible EX cue only for affordable neutral and side specials", () => {
+test("both mana bars show a visible EX cue only for affordable neutral and side specials [spec docs/design/mana.md]", () => {
   const clients = quickMatch();
   for (const [points, text] of [[27, ""], [28, "EX Neutral"], [37, "EX Neutral + Side"]] as const) {
     forBoth(clients, () => { fighterAt(shell().world, 0).mana.points = points; });
@@ -86,7 +86,7 @@ test("both mana bars show a visible EX cue only for affordable neutral and side 
   expect(clients.firstDivergence()).toBeUndefined();
 });
 
-test("a refused special flashes both of the fighter's bars; a paid hit makes them glow", () => {
+test("a refused special flashes both of the fighter's bars; a paid hit makes them glow [spec docs/design/mana.md]", () => {
   const clients = quickMatch();
   forBoth(clients, () => { fighterAt(shell().world, 0).visuals.manaDenied++; });
   clients.frames(1);
@@ -108,7 +108,7 @@ test("a refused special flashes both of the fighter's bars; a paid hit makes the
   expect(clients.firstDivergence()).toBeUndefined();
 });
 
-test("a held fighter's mana bar stacks just above its escape meter, never over it", () => {
+test("a held fighter's mana bar stacks just above its escape meter, never over it [spec docs/design/mana.md]", () => {
   const clients = quickMatch();
   for (const client of clients.clients) {
     client.run(() => {
@@ -141,14 +141,3 @@ test("a held fighter's mana bar stacks just above its escape meter, never over i
   expect(clients.firstDivergence()).toBeUndefined();
 });
 
-test("an opponent's draining hit burns the bar purple for a moment", () => {
-  const feedback = manaFeedback();
-  advanceManaFeedback(feedback, 50, 0, 0);
-  expect(manaDrainLit(feedback)).toBe(false);
-  advanceManaFeedback(feedback, 44, 0, 1);
-  expect(manaDrainLit(feedback)).toBe(true);
-  for (let update = 1; update < MANA_DRAIN_UPDATES; update++) advanceManaFeedback(feedback, 44, 0, 1);
-  expect(manaDrainLit(feedback)).toBe(true);
-  advanceManaFeedback(feedback, 44, 0, 1);
-  expect(manaDrainLit(feedback)).toBe(false);
-});

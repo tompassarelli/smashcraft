@@ -5,7 +5,7 @@ import { expect, test } from "bun:test";
 import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
 import { allProjectileModels } from "../src/game/presentation/projectileArt";
 
-test("every projectile missile is a model read from the game's archives", () => {
+test("every projectile missile is a model read from the game's archives [native]", () => {
   const models = allProjectileModels();
   expect(models.length).toBeGreaterThan(5);
   expect(models.filter((model) => MODEL_FACTS[model] === undefined)).toEqual([]);

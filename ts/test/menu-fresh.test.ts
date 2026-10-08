@@ -7,7 +7,7 @@ import { GameFiles } from "wisp/scripts/wisp/gameFiles";
 import { ClientWatch, type ClientView } from "wisp/scripts/wisp/watch";
 import { freshMatch } from "../scripts/wisp/commands/fresh";
 
-test.each([[true, false], [false, true], [true, true]])("fresh hosts only a private game through every client's page, and refuses before hosting when one has none (host=%s, guest=%s)", async (hostPage, guestPage) => {
+test.each([[true, false], [false, true], [true, true]])("fresh hosts only a private game through every client's page, and refuses before hosting when one has none (host=%s, guest=%s) [spec AGENTS.md]", async (hostPage, guestPage) => {
   const state = new Map([["a", "custom"], ["b", "custom"]]);
   const commands: string[] = [];
   const passwords: { host?: unknown; privateGame?: unknown; guest?: unknown } = {};

@@ -25,7 +25,7 @@ const wisp = (args: readonly string[]) => {
   return { code: run.exitCode, output: `${run.stdout.toString()}${run.stderr.toString()}`, untouched: readFileSync(defaultFile, "utf8") === sentinel && statSync(defaultFile).mtimeMs === before, defaultFile };
 };
 
-test("fresh, pad and accept use --clients-file FILE and leave clients.json untouched", () => {
+test("fresh, pad and accept use --clients-file FILE and leave clients.json untouched [spec AGENTS.md]", () => {
   const file = join(folder, "clones.json");
   const script = join(import.meta.dir, "native/pads/archer-neutral.pad");
   for (const args of [
@@ -45,7 +45,7 @@ test("fresh, pad and accept use --clients-file FILE and leave clients.json untou
   }
 }, 60_000);
 
-test("a setup receipt written before the session is ignored, even one in an older format", async () => {
+test("a setup receipt written before the session is ignored, even one in an older format [spec AGENTS.md]", async () => {
   const sessionStart = Date.now();
   const stale = join(folder, "stale.pld");
   copyFileSync(fixture("dev-command-receipt-malformed.pld"), stale);

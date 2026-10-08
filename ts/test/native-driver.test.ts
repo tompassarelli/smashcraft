@@ -15,7 +15,7 @@ const runtime = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(runtime.restore);
 
 // Real shell callback, capture and replay; command delivery itself belongs to Wisp.
-test("native driver sets up pad rows, holds the whole callback, and stepped and free runs replay equally", () => {
+test("native driver sets up pad rows, holds the whole callback, and stepped and free runs replay equally [invariant]", () => {
   const clients = runtime.clients({ install, start }, [0, 1]);
   const command = (text: string) => clients.everywhere(() => nativeDriverCommand(text));
   clients.start();
@@ -66,7 +66,7 @@ test("native driver sets up pad rows, holds the whole callback, and stepped and 
   expect(clients.firstDivergence()).toBeUndefined();
 });
 
-test("native driver retains the complete 460-frame pad trace and its normal expectations", () => {
+test("native driver retains the complete 460-frame pad trace and its normal expectations [provisional]", () => {
   const clients = runtime.clients({ install, start }, [0, 1]);
   clients.start();
   clients.frames(3);

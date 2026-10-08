@@ -16,7 +16,7 @@ import { stockLua } from "../scripts/wisp/luaRuntimes";
 const ts = join(import.meta.dir, "..");
 const lua = await Effect.runPromise(stockLua);
 
-test("a replay plays in a map bundle's own simulation with the viewer's modules added", () => {
+test("a replay plays in a map bundle's own simulation with the viewer's modules added [spec #141]", () => {
   const viewer = buildViewerLua(ts);
   const bundle = readFileSync(join(ts, "build/viewer-lua/viewer.lua"), "utf8");
   const recorded = recordTapeReplay(700, 401);

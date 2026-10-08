@@ -14,7 +14,7 @@ import { parsePadScript } from "../scripts/integrity/padScript";
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
-test("selection chat receipt stays closed after a missed Return and opens only when Warcraft's entry becomes visible", () => {
+test("selection chat receipt stays closed after a missed Return and opens only when Warcraft's entry becomes visible [provisional]", () => {
   const clients = headless.clients({ start() {}, install() {} }, [0]);
   clients.start();
   const client = clients.client(0);
@@ -53,7 +53,7 @@ test("selection chat receipt stays closed after a missed Return and opens only w
   });
 });
 
-test("native setup failure retains INVALID at the selected chat boundary without starting the pad timeline", async () => {
+test("native setup failure retains INVALID at the selected chat boundary without starting the pad timeline [spec AGENTS.md]", async () => {
   const root = mkdtempSync(join(tmpdir(), "smashcraft-setup-"));
   const data = [join(root, "a"), join(root, "b")] as const;
   data.forEach(dir => mkdirSync(dir));

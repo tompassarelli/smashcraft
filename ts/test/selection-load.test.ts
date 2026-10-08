@@ -78,7 +78,7 @@ function workMeter(client: HeadlessClient): (act: () => void) => Work {
   };
 }
 
-test("playable: selection creates no effect and reads no file; match start creates each fighter's clip pool once", () => {
+test("playable: selection creates no effect and reads no file; match start creates each fighter's clip pool once [provisional]", () => {
   const clients = headless.clients({ install, start: () => startBuild(PLAYABLE_BUILD) });
   const host = clients.clients[0];
   if (host === undefined) throw new Error("missing host client");
