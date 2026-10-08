@@ -1,3 +1,4 @@
+import { servicePauseCameraControls } from "./pauseCamera";
 // The native shell's lifecycle: start creates the state and every handle
 // once, install registers every callback by name (and after a hot reload
 // recreates the UI objects, which keep their creation code), and the game
@@ -86,6 +87,7 @@ function gameTick(s: ShellState): void {
   serviceVisualCapture(s);
   const epoch = journalEpoch(s);
   const editbox = s.rollback?.journal?.editbox;
+  servicePauseCameraControls(s);
   editbox?.tick();
   const chatSlot = s.build.devConsole ? localParticipantSlot(s) : undefined;
   if (chatSlot !== undefined) editbox?.publishChat(s.build.id, chatSlot);

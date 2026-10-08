@@ -6,6 +6,8 @@ import { Phase, humanActive } from "../../game/match/rules";
 import { trampoline } from "wisp/src/platform/dispatch";
 import { type ShellState, activeRollback } from "./state";
 
+import { pauseCameraKey } from "./pauseCamera";
+
 export const KEY_DOWN = "shell.keyDown";
 export const KEY_UP = "shell.keyUp";
 
@@ -15,9 +17,9 @@ export const Key = {
 } as const;
 
 /** Registers the key, with no modifier, for every human. */
-export function registerKey(s: Readonly<ShellState>, trigger: trigger, key: number, down: boolean): void {
+export function registerKey(s: Readonly<ShellState>, trigger: trigger, key: number, down: boolean, meta: number = 0): void {
   for (const slot of PARTICIPANT_SLOTS) {
-    if (humanActive(s.game, slot)) BlzTriggerRegisterPlayerKeyEvent(trigger, Player(slot), ConvertOsKeyType(key), 0, down);
+    if (humanActive(s.game, slot)) BlzTriggerRegisterPlayerKeyEvent(trigger, Player(slot), ConvertOsKeyType(key), meta, down);
   }
 }
 
@@ -31,10 +33,14 @@ function registerKeys(s: ShellState, escapeOnly: boolean): void {
   const up = CreateTrigger();
   for (let key = 1; key <= 255; key++) {
     // Return belongs to Warcraft chat while playing, and to the pause menu while paused.
-    const pauseKey = key === Key.escape || key === Key.enter || key === Key.f2 || key === 0x26 || key === 0x28 || key === 32 || key === 69 || key === Key.n || key === Key.u;
+    const pauseKey = pauseCameraKey(key) || key === Key.escape || key === Key.enter || key === Key.f2 || key === 0x26 || key === 0x28 || key === 32 || key === 69 || key === Key.n || key === Key.u;
     if (key === Key.y || (!escapeOnly && key === Key.enter) || (escapeOnly && !pauseKey)) continue;
     registerKey(s, down, key, true);
     registerKey(s, up, key, false);
+    if (key === 0xbb) {
+      registerKey(s, down, key, true, 1);
+      registerKey(s, up, key, false, 1);
+    }
   }
   TriggerAddAction(down, trampoline(KEY_DOWN));
   TriggerAddAction(up, trampoline(KEY_UP));

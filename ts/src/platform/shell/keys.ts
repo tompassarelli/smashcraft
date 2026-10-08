@@ -1,3 +1,4 @@
+import { cameraKey, returnPauseMenu, PAUSE_CAMERA_KEYS, pauseCameraKey } from "./pauseCamera";
 import { HIT_PRESENTATION_CASES } from "../../game/shell/hitPresentationCases";
 import { createImpactEvents } from "../../game/presentation/impactEvents";
 import { emitImpacts } from "../../game/presentation/impactState";
@@ -59,7 +60,7 @@ export function startDown(s: ShellState, slot: ParticipantSlot): void {
   const playing = s.game.phase === Phase.match;
   if (epoch?.journal.editbox !== undefined && chatBusy(epoch.journal)) return;
   if (epoch !== undefined && playing && epoch.journal.barrier.request !== undefined) return;
-  if (s.session.paused) s.pauseKeysHeld = [0x26, 0x28, 32, 69, Key.n, Key.u].filter(key => BlzIsKeyPressed(ConvertOsKeyType(key)));
+  if (s.session.paused) s.pauseKeysHeld = [0x26, 0x28, 32, 69, Key.n, Key.u, ...PAUSE_CAMERA_KEYS].filter(key => BlzIsKeyPressed(ConvertOsKeyType(key)));
   const deferred = epoch !== undefined && playing;
   const consumed = !s.session.startHeld[slot] && views(s).selections[slot].consumeStart();
   const action = startKeyDown(s.session, slot, s.game.phase, consumed || views(s).settings[slot].isOpen(), deferred);
@@ -136,6 +137,11 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
     return;
   }
   if (s.game.phase === Phase.match && s.session.paused) {
+    if (GetTriggerPlayer() === GetLocalPlayer() && pauseCameraKey(key)) {
+      if (s.rollback?.journal?.editbox === undefined || playsOnKeyboard(s.rollback.journal, slot)) cameraKey(s, key, true);
+      return;
+    }
+    if (GetTriggerPlayer() === GetLocalPlayer()) returnPauseMenu(s);
     const menu = s.pauseMenu ??= { choice: 0, shown: true, title: false };
     if (key === Key.f2 && s.game.training) s.trainingHints = !s.trainingHints;
     else if (key === 0x26 || key === 32) menu.choice = menu.choice === 0 ? 2 : menu.choice - 1;
@@ -195,7 +201,10 @@ function participantKeyUp(s: ShellState, slot: ParticipantSlot): void {
     startKeyUp(s.session, slot);
     return;
   }
-  if (s.game.phase === Phase.match && s.session.paused) return;
+  if (s.game.phase === Phase.match && s.session.paused) {
+    if (GetTriggerPlayer() === GetLocalPlayer()) cameraKey(s, key, false);
+    return;
+  }
   if (journalOwnsKey(s, slot, key)) return;
   if (s.trace.active) s.trace.window.keyUp[slot]++;
   traceParticipant(s, slot, `received up ${key}`);

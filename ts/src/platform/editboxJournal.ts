@@ -117,6 +117,33 @@ export class EditboxIngress {
     return this.session?.chatSerial;
   }
 
+  /** Local paused controls stay outside the journal's complete or partial text envelopes. */
+  takePauseControls(): string {
+    if (this.session?.chat !== "receiving" || !BlzIsLocalClientActive()) return "";
+    const text = BlzFrameGetText(this.box);
+    let journal = "";
+    let controls = "";
+    let cursor = 0;
+    while (cursor < text.length) {
+      if (text.charAt(cursor) === "@") {
+        const end = text.indexOf(";", cursor);
+        if (end < 0) {
+          journal += text.substring(cursor);
+          break;
+        }
+        journal += text.substring(cursor, end + 1);
+        cursor = end + 1;
+      } else {
+        const key = text.charAt(cursor);
+        if ("ijklop-=h enu".includes(key)) controls += key;
+        else journal += key;
+        cursor++;
+      }
+    }
+    if (journal !== text) BlzFrameSetText(this.box, journal);
+    return controls;
+  }
+
   /**
    * Drains newly typed text and returns the next payload to apply, which
    * stays next until consumed(). Undefined while there is none, while the
