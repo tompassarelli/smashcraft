@@ -21,7 +21,7 @@
 #! expect a 120 applied attack 1 style 15
 #! expect b 126 damage 4.000
 #! expect b 130 damage 12.000
-#! scene a StampedeMissileDeath
+#! scene a ImpactHit-
 # View held a second, twice: the moments the parity check replays.
 500 a press VIEW
 570 a release VIEW

@@ -5,13 +5,13 @@
 # runs don't read this folder. `#! cue` lines are checked by `bun scripts/nativeCapture.ts plan`.
 #! chat -dev quick
 # case 0
-#! cue 60-62 case 0: sound=WoodLightBashFlesh1 effect=StampedeMissileDeath
+#! cue 60-62 case 0: sound=WoodLightBashFlesh1 effect=ImpactHit-
 60 a chat -dev effects 0
 62 a capture
 68 a capture
 80 a capture
 # case 1
-#! cue 120-122 case 1: sound=WoodHeavyBashFlesh1 effect=StampedeMissileDeath
+#! cue 120-122 case 1: sound=WoodHeavyBashFlesh1 effect=ImpactHit-
 120 a chat -dev effects 1
 122 a capture
 128 a capture
@@ -23,7 +23,7 @@
 188 a capture
 200 a capture
 # case 3
-#! cue 240-242 case 3: sound=Fireball effect=FireLordDeathExplode
+#! cue 240-242 case 3: sound=Fireball effect=ImpactHit-
 240 a chat -dev effects 3
 242 a capture
 248 a capture
@@ -95,7 +95,7 @@
 908 a capture
 920 a capture
 # case 15
-#! cue 960-962 case 15: sound=BlinkTarget effect=ImpaleTargetDust
+#! cue 960-962 case 15: sound=BlinkTarget effect=ImpactDust-
 960 a chat -dev effects 15
 962 a capture
 968 a capture
@@ -107,19 +107,19 @@
 1028 a capture
 1040 a capture
 # case 17
-#! cue 1080-1082 case 17: sound=Defend effect=StampedeMissileDeath
+#! cue 1080-1082 case 17: sound=Defend effect=ImpactHit-
 1080 a chat -dev effects 17
 1082 a capture
 1088 a capture
 1100 a capture
 # case 18
-#! cue 1140-1142 case 18: sound=BlinkTarget effect=BlinkTarget
+#! cue 1140-1142 case 18: sound=BlinkTarget effect=ImpactJump-
 1140 a chat -dev effects 18
 1142 a capture
 1148 a capture
 1160 a capture
 # case 19
-#! cue 1200-1202 case 19: sound=ThunderClap effect=ThunderClapCaster
+#! cue 1200-1202 case 19: sound=ThunderClap effect=ImpactKO-
 1200 a chat -dev effects 19
 1202 a capture
 1208 a capture

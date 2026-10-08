@@ -166,7 +166,7 @@ They describe event vocabulary, not Smashcraft's fighter frame data.
 ## Smashcraft's Warcraft presentation
 
 The mapping lives in smashcraft:ts/src/game/presentation/hitPresentation.ts.
-Every model and sound is a stock Warcraft asset; this mapping imports no
+Sounds and elemental effects use stock Warcraft assets; contact stars, rings and dust reuse Smashcraft's existing geometry. This mapping imports no
 Melee asset. Effects use the existing pooled handles; audio consumes confirmed
 frames and never runs from a rollback replay. Tint and vibration change only
 the presented body. The bounded, authored choices below are Smashcraft's style,
@@ -174,8 +174,8 @@ not claims that Warcraft renders Melee's artwork or exact animation programs.
 
 | Event | Warcraft effect | Stock sound label |
 | --- | --- | --- |
-| Ordinary hit / pummel | Stampede missile impact | StampedeHit; pummel uses higher, quieter Defend |
-| Fire hit | Incinerate / Fire Lord explosion | Fireball |
+| Ordinary hit / pummel | Smashcraft hit burst | tiered wood strike on flesh; pummel uses higher, quieter Defend |
+| Fire hit | orange Smashcraft hit burst | Fireball |
 | Electric hit / electric shield | Lightning Shield target (Stand loop, held 24 frames) | LightningBolt |
 | Slash hit | Smashcraft hit burst (authored 16-ray star) | Sound\Units\Combat\MetalHeavySliceFlesh1 (heavy sword on flesh, by path) |
 | Ice / freeze begins | Frost Nova target | FrostNova |
@@ -183,11 +183,11 @@ not claims that Warcraft renders Melee's artwork or exact animation programs.
 | Missed floor/wall/ceiling tech | War Stomp impact and dust | Warstomp |
 | Successful tech | Dispel Magic target | DispelMagic |
 | Grab | Smashcraft shield star | EntanglingRoots |
-| Throw release | Blink target | BlinkTarget |
-| Ledge catch / recovery | Smashcraft shield star (Melee's contact spark at the lip) / Impale target dust (climb dust) | quiet BlinkTarget |
-| Ground jump / aerial jump | dust / Blink | quiet BlinkTarget |
-| Walk / run / dash / ordinary landing | Impale target dust | DeepFootstep / DeepFootstep2; distinct volume and pitch |
-| Blast KO / star close / respawn | Thunder Clap / Dispel Magic / Resurrection | ThunderClap for KO; original fighter death cues remain |
+| Throw release | Smashcraft jump ring | BlinkTarget |
+| Ledge catch / recovery | Smashcraft shield star (Melee's contact spark at the lip) / Smashcraft dust (climb dust) | quiet BlinkTarget |
+| Ground jump / aerial jump | Smashcraft dust / jump ring | quiet BlinkTarget |
+| Walk / run / dash / ordinary landing | Smashcraft dust | DeepFootstep / DeepFootstep2; distinct volume and pitch |
+| Blast KO / star close / respawn | Smashcraft KO burst / Dispel Magic / Resurrection | ThunderClap for KO; original fighter death cues remain |
 
 Inspection command in developer builds: `-dev quick`, then `-dev effects N`.
 The numbered cases are declared in
@@ -199,7 +199,7 @@ pool's model families; hot reload keeps existing handles and their models.
 
 Stock sound names were resolved from Warcraft's AnimSounds.slk. The stock model
 sequences were inspected too: War Stomp, Thunder Clap and Resurrection use
-Stand; the remaining mapped models use Birth. These names are Warcraft
+Stand; imported contact geometry also uses Stand. Frost Nova and Dispel Magic use Birth. These names are Warcraft
 metadata, not inferred spell-display names.
 
 A pooled cue shows for 9-15 frames (0.15-0.25 s), so a stock model must draw
@@ -216,10 +216,13 @@ keys (`impactStartSeconds` in hitPresentation.ts):
   orbs are geometry about 340 units across at scale 1, looping Stand from
   0 s. A hit draws it at 1.0 (0.75 for the smallest tier) and a shield hit at 0.6, and both stay in the
   pool for 24 frames (0.4 s) instead of a contact's 9.
-- Blink target draws nothing before 0.33 s and peaks at 0.63-0.87 s; throw
-  starts it at 0.6 s. Started there, a ledge-recovery Blink still showed
-  0 px natively (build 7d58ef69), so ledge recovery uses Impale target dust,
-  which emits 40-110-unit dust from 0 s.
+- Blink target draws nothing before 0.33 s and peaks at 0.63-0.87 s. The
+  attempted 0.6 s seek still left throw invisible in the #82 capture, while
+  Impale dust drew an opaque black cloud. Throw now reuses the jump ring
+  and ledge recovery reuses the soft dust geometry. Stampede contact and
+  Fire Lord explosion also failed that capture; they use the hit burst,
+  orange for fire. Contact, grab and throw geometry draws 128 units in
+  front of the fighter centre, beyond Mountain King's 115-unit body depth.
 - Dispel Magic target's first sparkle ring shows from 0.17 s and peaks at
   0.33-0.43 s; its sparks only emit at 0.7-0.8 s. Ready and the star-KO
   sparkle start it at 0.25 s. Started there, a ledge-catch Dispel showed at

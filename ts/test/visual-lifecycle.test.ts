@@ -142,6 +142,31 @@ test("electric hit and electric shield sparks draw Lightning Shield at least 200
   expect(client.errors).toEqual([]);
 });
 
+test("contact sparks and failed stock cues have visible geometry in front of Mountain King [repro #82]", () => {
+  const clients = headless.clients({ start, install });
+  clients.start();
+  const client = clients.client(0);
+  const body = MODEL_FACTS[fighterModel(Character.mountainKing)]?.bounds;
+  if (body === undefined) throw new Error("missing Mountain King bounds");
+  client.run(() => {
+    const renderer = new CombatEffects({ x: 0, y: 0, z: FLOOR_HEIGHT });
+    for (const index of [0, 1, 3, 6, 15, 16, 17, 18, 19]) {
+      renderer.clear();
+      const cue = HIT_PRESENTATION_CASES[index];
+      if (cue === undefined) throw new Error(`missing case ${index}`);
+      const impacts = createImpactState();
+      emitImpacts(impacts, { ...createImpactEvents(), ...cue.cue }, 8);
+      renderer.present(impacts, 0, impacts, true);
+      const shown = client.effectPoses({ visibleOnly: true });
+      expect(shown.some(pose => (MODEL_FACTS[pose.model]?.geosets ?? 0) > 0)).toBe(true);
+      if ([0, 1, 3, 6, 16, 17, 18].includes(index)) {
+        expect(shown.some(pose => pose.y < body.min[1] * characterModelScale(Character.mountainKing))).toBe(true);
+      }
+    }
+    renderer.destroy();
+  });
+});
+
 test("damage hue and shield recoil reach the renderer through freeze, stun and recovery without allocating effects [invariant]", () => {
   const clients = headless.clients({ start, install });
   clients.start();
@@ -194,7 +219,7 @@ test("combat effects: a hit corrected in after its spark's window still shows it
   if (client === undefined) throw new Error("missing host client");
   client.run(() => {
     const renderer = new CombatEffects({ x: 0, y: 0, z: FLOOR_HEIGHT });
-    const sparks = () => client.effectPoses().filter((pose) => pose.model.includes("StampedeMissileDeath") && pose.scale > 0 && pose.z > -FLOOR_HEIGHT);
+    const sparks = () => client.effectPoses().filter((pose) => pose.model.includes("ImpactHit-") && pose.scale > 0 && pose.z > -FLOOR_HEIGHT);
     const hit = { ...createImpactEvents(), hit: true, x: 40.0, z: 100.0 };
     const empty = createImpactState();
     // Prediction missed the hit on frame 10; its correction confirms 20 frames later, past the 9-frame spark.

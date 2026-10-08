@@ -11,10 +11,10 @@
 #! cue 38-40 run footstep: sound=DeepFootstep2 effect=ImpactDust-
 #! cue 61-63 walk footstep: sound=DeepFootstep
 #! cue 134-140 shield hit: sound=Defend effect=ImpactShield- recoil=b
-#! cue 199-205 normal hit: sound=WoodLightBashFlesh2 effect=StampedeMissileDeath tint=b shake=b
+#! cue 199-205 normal hit: sound=WoodLightBashFlesh2 effect=ImpactHit- tint=b shake=b
 #! cue 255-257 grab: sound=EntanglingRoots effect=ImpactShield-
-#! cue 324-330 pummel: sound=Defend effect=StampedeMissileDeath tint=b shake=b
-#! cue 349-355 throw: sound=BlinkTarget effect=BlinkTarget
+#! cue 324-330 pummel: sound=Defend effect=ImpactHit- tint=b shake=b
+#! cue 349-355 throw: sound=BlinkTarget effect=ImpactJump-
 # a dashes, runs and brakes.
 30 a stick 1 0
 30 a capture

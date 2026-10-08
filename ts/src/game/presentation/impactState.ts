@@ -296,7 +296,7 @@ export function emitImpacts(state: ImpactState, events: Readonly<ImpactEvents>, 
     spawn(state, IMPACT_AIR_JUMP, events.jumpOriginX, f32(events.jumpOriginZ - 5.0), 0, 1.0);
   }
   if (events.airDodge) spawn(state, IMPACT_DODGE, x, f32(z + 50.0), 0, f32(0.6));
-  if (events.movementDust || events.dodgeTrail || (events.runningDust && imod(frame, 8) === 0)) {
+  if (events.movementDust || events.dodgeTrail || (events.runningDust && (events.footstep === "run" || imod(frame, 8) === 0))) {
     spawn(state, IMPACT_DUST, f32(x - events.direction * 12), f32(z + 2.0), -events.direction, f32(0.45));
   }
   if (events.launchTrail) spawn(state, IMPACT_DUST, x, f32(z + 45.0), 0, f32(0.6));

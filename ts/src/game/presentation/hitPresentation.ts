@@ -7,7 +7,7 @@ import { SWING_SOUND, TIER_HIT_VOLUME, TIER_SWING_PITCH, TIER_SWING_VOLUME, tier
 import { at } from "wisp/src/runtime/lookup";
 import { type ImpactEvents, ImpactLanding, JumpCue } from "./impactEvents";
 import { IMPACT_FIRE_HIT, IMPACT_SLASH_HIT, IMPACT_ICE_HIT, IMPACT_ELECTRIC_SHIELD, IMPACT_PUMMEL } from "./impactState";
-import { IMPACT_DUST_MODEL, IMPACT_ROLL_MODEL, IMPACT_TECH_MODEL, IMPACT_JUMP_MODEL, IMPACT_SHIELD_MODEL, IMPACT_HIT_MODEL } from "../assets/impactAssetInfo";
+import { IMPACT_DUST_MODEL, IMPACT_ROLL_MODEL, IMPACT_TECH_MODEL, IMPACT_JUMP_MODEL, IMPACT_SHIELD_MODEL, IMPACT_HIT_MODEL, IMPACT_KO_MODEL } from "../assets/impactAssetInfo";
 
 /** Stock Lightning Shield: a looping ball of electric orbs about 340 units across at scale 1. */
 export const ELECTRIC_IMPACT_MODEL = "Abilities\\Spells\\Orc\\LightningShield\\LightningShieldTarget.mdx";
@@ -15,7 +15,7 @@ export const ELECTRIC_IMPACT_MODEL = "Abilities\\Spells\\Orc\\LightningShield\\L
 /** Movement uses small authored geometry so pooled dust respects scale and fading. */
 export function impactModel(kind: number): string {
   switch (kind) {
-    case 0: case IMPACT_PUMMEL: return "Abilities\\Spells\\Other\\Stampede\\StampedeMissileDeath.mdx";
+    case 0: case IMPACT_PUMMEL: return IMPACT_HIT_MODEL;
     case 1: return IMPACT_TECH_MODEL;
     case 13: case 16: return "Abilities\\Spells\\Human\\DispelMagic\\DispelMagicTarget.mdx";
     case 2: return "Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdx";
@@ -27,12 +27,12 @@ export function impactModel(kind: number): string {
     // Defend caster and Cleave target drew nothing as standalone effects in native capture (2f1115cd).
     case 6: case 10: case 12: case 14: return IMPACT_SHIELD_MODEL;
     case 7: return IMPACT_JUMP_MODEL;
-    case 11: return "Abilities\\Spells\\NightElf\\Blink\\BlinkTarget.mdx";
+    case 11: return IMPACT_JUMP_MODEL;
     // Ledge recovery is Melee's climb dust.
-    case 15: return "Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx";
-    case 8: return "Abilities\\Spells\\Human\\Thunderclap\\ThunderClapCaster.mdx";
+    case 15: return IMPACT_DUST_MODEL;
+    case 8: return IMPACT_KO_MODEL;
     case 9: return "Abilities\\Spells\\Human\\Resurrect\\ResurrectTarget.mdx";
-    case IMPACT_FIRE_HIT: return "Abilities\\Spells\\Other\\Incinerate\\FireLordDeathExplode.mdx";
+    case IMPACT_FIRE_HIT: return IMPACT_HIT_MODEL;
     case IMPACT_SLASH_HIT: return IMPACT_HIT_MODEL;
     case IMPACT_ICE_HIT: return "Abilities\\Spells\\Undead\\FrostNova\\FrostNovaTarget.mdx";
     default: return "Abilities\\Spells\\Human\\DispelMagic\\DispelMagicTarget.mdx";
@@ -41,21 +41,14 @@ export function impactModel(kind: number): string {
 
 /** These stock impacts name their only visible sequence Stand, rather than Birth. */
 export function impactAnimation(kind: number): string {
-  return kind === 1 || kind === 2 || kind === 3 || kind === 4 || kind === 6 || kind === 7 || kind === 8 || kind === 9 || kind === 10
-    || kind === 12 || kind === 14 || kind === IMPACT_SLASH_HIT || kind === 5 || kind === IMPACT_ELECTRIC_SHIELD ? "Stand" : "Birth";
+  return kind === 0 || kind === 1 || kind === 2 || kind === 3 || kind === 4 || kind === 6 || kind === 7 || kind === 8 || kind === 9 || kind === 10
+    || kind === 11 || kind === 12 || kind === 14 || kind === 15 || kind === IMPACT_FIRE_HIT || kind === IMPACT_PUMMEL
+    || kind === IMPACT_SLASH_HIT || kind === 5 || kind === IMPACT_ELECTRIC_SHIELD ? "Stand" : "Birth";
 }
 
-/**
- * Seconds into its sequence an impact starts. A pooled cue shows for 9-15
- * frames, but Blink target draws nothing before 0.33 s and peaks at
- * 0.63-0.87 s, and Dispel Magic target's first sparkle ring shows from
- * 0.17 s and peaks at 0.33-0.43 s. Each starts where its model is already drawn. Native
- * capture at 7d58ef69 showed nothing for Blink started at 0.6 s, so a cue
- * that must show uses a model that draws from 0 s instead.
- */
+/** Dispel Magic's first sparkle ring starts after 0.17 s; ready and star-KO cues skip that gap. */
 export function impactStartSeconds(kind: number): number {
   switch (kind) {
-    case 11: return 0.6000000238418579;
     case 13: case 16: return 0.25;
     default: return 0.0;
   }

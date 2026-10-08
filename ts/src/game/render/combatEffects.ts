@@ -5,6 +5,7 @@ import { RIFLEMAN_MODEL_FILE } from "../presentation/fighterAssetInfo";
 import {
   IMPACT_CHARGE,
   IMPACT_COUNT,
+  IMPACT_FIRE_HIT,
   IMPACT_GRAB,
   IMPACT_LEDGE_CATCH,
   IMPACT_LEDGE_RECOVERY,
@@ -96,6 +97,7 @@ export class CombatEffects {
     for (const path of tierSoundPaths()) Preload(path);
     for (let i = 0; i < IMPACT_COUNT; i++) {
       const model = AddSpecialEffect(impactModel(floorDiv(i, IMPACTS_PER_KIND)), origin.x, origin.y);
+      if (floorDiv(i, IMPACTS_PER_KIND) === IMPACT_FIRE_HIT) BlzSetSpecialEffectColor(model, 255, 100, 25);
       parkOnce(model, this, parked, i);
       this.impacts.push(model);
     }
@@ -282,7 +284,9 @@ export class CombatEffects {
   private place(model: effect, i: number, kind: number, pose: ReturnType<typeof projectImpact>): void {
     const parked = (this.parked ??= []);
     parked[i] = false;
-    const depth = kind === IMPACT_STAR_KO ? STAR_KO_DEPTH : 0.0;
+    // Flat contact geometry must sit beyond the body, which extends 115 units toward the camera.
+    const depth = kind === IMPACT_STAR_KO ? STAR_KO_DEPTH
+      : isContactImpact(kind) || kind === IMPACT_GRAB || kind === IMPACT_THROW ? -120.0 : 0.0;
     BlzSetSpecialEffectAlpha(model, pose.alpha);
     BlzSetSpecialEffectScale(model, pose.scale * impactModelScale(kind));
     BlzSetSpecialEffectPitch(model, pose.pitch);

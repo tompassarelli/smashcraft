@@ -26,6 +26,15 @@ function projectAll(match: TestMatch): void {
   for (let i = 0; i < IMPACT_COUNT; i++) projectImpact(match.runtime.impacts, i);
 }
 
+test("the run footstep at frame 38 also shows its dust [repro #82]", () => {
+  const pool = createImpactState();
+  const events = createImpactEvents();
+  events.runningDust = true;
+  events.footstep = "run";
+  emitImpacts(pool, events, 38);
+  assertTrue(projectImpact(pool, IMPACT_DUST * IMPACTS_PER_KIND).visible);
+});
+
 test("stock dust remains drawn until its slot expires [repro #95]", () => {
   const pool = createImpactState();
   const events = createImpactEvents();
