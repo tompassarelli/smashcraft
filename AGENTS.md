@@ -276,7 +276,7 @@ code. From smashcraft:ts/:
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL] [--replace NAME]`
   authors clips through Blender; the optional existing model preserves shipped
   sequences and appends only new clips; `--replace NAME` reauthors one existing clip at its same index and length (smashcraft:docs/fighter-animation-work.md).
-- Cairne Definitive body pilot: `bun tools/animations/hd-models.ts AUTHORED_CAIRNE.mdx STOCK_DEFINITIVE_CAIRNE.mdx PRIVATE_OUTPUT.mdx`
+- Definitive fighter body: `bun tools/animations/hd-models.ts AUTHORED.mdx STOCK_DEFINITIVE.mdx PRIVATE_OUTPUT.mdx [--character ID --rig PAIRS.ts]`
   transfers production poses to the stock Definitive rig and checks both retargeted
   clips and the final timeline within 0.5 units / 0.5 degrees.
 - Normal timeline body pilot (from the repository root):
