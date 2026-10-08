@@ -28,6 +28,7 @@ export function skinChunks(bytes: ArrayBuffer, writing: boolean, omitCameras = f
                     const packed = new Uint8Array(count * (writing ? 2 : 1));
                     for (let i = 0; i < count; i++) {
                         const value = writing ? geoset[skin + 8 + i] : new DataView(geoset.buffer).getUint16(skin + 8 + i * 2, true);
+                        if (value === undefined) throw new Error('Truncated Definitive skin');
                         if (value > 255) throw new Error('HD skin value exceeds the model parser limit');
                         packed[i * (writing ? 2 : 1)] = value;
                     }
@@ -50,4 +51,3 @@ export function skinChunks(bytes: ArrayBuffer, writing: boolean, omitCameras = f
     for (const chunk of chunks) { output.set(chunk, offset); offset += chunk.length; }
     return output.buffer;
 }
-

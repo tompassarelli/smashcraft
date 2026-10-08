@@ -4,6 +4,7 @@ import { parseMDX } from '../../ts/scripts/clipNodes';
 import { CAIRNE_DE_PAIRS, checkBodySkin, checkRetarget, generateHdBody, parseHdBody, retargetHd } from './hd-retarget';
 import { timelineBody } from './timeline-body';
 import { flashableSequences } from './white-flash-keys';
+import { thinKeys } from '../../ts/scripts/keyThin';
 
 const [sourcePath, stockPath, outputPath] = process.argv.slice(2);
 if (sourcePath === undefined || stockPath === undefined || outputPath === undefined) {
@@ -21,13 +22,14 @@ await Effect.runPromise(Effect.tryPromise({ try: async () => {
     if (converted.units > 0.5 || converted.degrees > 0.5) throw new Error(`Cairne retarget exceeds 0.5/0.5: ${JSON.stringify(converted)}`);
     for (const collision of result.model.CollisionShapes) delete result.model.Nodes[collision.ObjectId];
     result.model.CollisionShapes = [];
-    const timeline = timelineBody(result.model, sequences);
+    const thinned = thinKeys(result.model, { position: 0.45, rotationDegrees: 0.45 });
+    const timeline = timelineBody(thinned.model, sequences);
     const bytes = generateHdBody(timeline);
     const exportedSkin = checkBodySkin(parseHdBody(bytes));
     if (skin.geosets !== exportedSkin.geosets || skin.vertices !== exportedSkin.vertices) throw new Error('Definitive export changed the mesh count');
     const measured = checkRetarget({ ...result, samples: result.samples.map(sample => ({ ...sample, sequence: 0 })) }, bytes);
     if (measured.units > 0.5 || measured.degrees > 0.5) throw new Error(`Cairne timeline exceeds 0.5/0.5: ${JSON.stringify(measured)}`);
     await Bun.write(output, bytes);
-    console.log(JSON.stringify({ fighter: 'Cairne', sequences: sequences.length, joints: result.mapped, skin: exportedSkin, converted, timeline: measured,
+    console.log(JSON.stringify({ fighter: 'Cairne', sequences: sequences.length, joints: result.mapped, skin: exportedSkin, converted, thinning: thinned.report, timeline: measured,
         importReason: 'Authored moves cannot be played on the unmodified stock Definitive model.', output }));
 }, catch: cause => new Error('HD Cairne export failed', { cause }) }));
