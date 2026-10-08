@@ -21,7 +21,7 @@ export interface HeroBody {
 const body = (weight: number, run: number, air: number, width: number, height: number): HeroBody => ({ weight, run, air, width, height });
 
 const HERO_BODIES: { readonly [character: number]: HeroBody | undefined } = {
-  [Character.anubarak]: { ...body(f32(1.28), f32(0.82), f32(0.72), f32(1.6), f32(1.35)), shield: f32(1.35) },
+  [Character.anubarak]: { ...body(f32(1.28), f32(0.82), 0.75, f32(1.6), f32(1.35)), shield: f32(1.35) },
   [Character.blademaster]: { ...body(f32(1.00), f32(1.08), f32(1.00), f32(1.00), f32(1.05)), runSpeed: f32(13.74), dashSpeed: f32(11.892) },
   [Character.mountainKing]: body(f32(1.12), f32(0.88), f32(0.82), f32(1.10), f32(0.85)),
   [Character.warden]: { ...body(f32(0.88), f32(1.14), f32(1.10), f32(0.90), f32(1.00)), runSpeed: 13.799999237060547, dashSpeed: 12.0 },

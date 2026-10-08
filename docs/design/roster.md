@@ -1736,7 +1736,7 @@ All four ordinary specials are free. Shield + any Special spends the full univer
 |---|---|---|---|
 | Neutral — **Impale** | Stamp at f18; a floor-level spine line travels at 10 units/frame for 36 frames, 9%, upward launch; end f48. Air cast sends the same line forward at foot height, L24. | Wider line, 13%, stronger upward launch; same end. | Jump over the low line, shield or punish the stamp |
 | Side — **Burrow Hunt** | Coil f1–9, burrow f10–25 while moving 10 units/frame, erupt with a 12% launcher f26–29; end f56. Ground only. | Burrow f10–29 at 13 units/frame; wider 16% eruption f30–33, end f64. | Track the moving mound and meet the slow eruption with shield or a jump |
-| Up — **Crypt Eruption** | Charge aim f1–8, launch along the chosen direction for 28 frames over a 560-unit route; narrow 8% horn hit f9–16, stop then fall helpless; end f46. | 640-unit route and 12% wider horn, same helpless finish. | The broad shell is exposed before launch and during helpless fall |
+| Up — **Crypt Eruption** | Charge aim f1–8, launch along the chosen direction for 28 frames over a 400-unit route; narrow 8% horn hit f9–16, stop then fall helpless; end f46. | 640-unit route and 12% wider horn, same helpless finish. | The broad shell is exposed before launch and during helpless fall |
 | Down — **Carrion Beetle** | Plant a beetle nest f22, end f46; one fragile 24-HP nest lasts 180 frames and sends three floor-running beetles (5% each) at ages 12/60/108. Down again recalls it. | 36-HP nest, four 7% beetles at ages 12/48/84/120; same 180-frame life. | Destroy the nest, jump the beetles or reflect a beetle back |
 
 ### Grab and throws
@@ -1750,7 +1750,7 @@ Standing grab starts f10, the shared 96-unit envelope is active for three frames
 | Up | Crown impales then tosses overhead | 15 / 36 | 8%, 90 degrees, juggle |
 | Down | Pin prey and drive a tusk into the floor | 21 / 48 | 7%, 70 degrees, tech chase |
 
-**Body and risk:** weight 1.28, ground speed 0.82 and air drift 0.72 of reference; stock Crypt Lord scale and visible shell define his hurt body. Burrow changes his visible pose and matching hurt parts rather than silently granting invulnerability. His opponent can react to the mound and emergence. No guaranteed grab loop: up/down throw follow-ups are positional choices with DI, jump and tech escape checks.
+**Body and risk:** weight 1.28, ground speed 0.82 and air drift 0.75 of reference; stock Crypt Lord scale and visible shell define his hurt body. Burrow changes his visible pose and matching hurt parts rather than silently granting invulnerability. His opponent can react to the mound and emergence. No guaranteed grab loop: up/down throw follow-ups are positional choices with DI, jump and tech escape checks.
 
 ### Play-style profile
 

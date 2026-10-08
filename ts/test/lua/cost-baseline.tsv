@@ -51,7 +51,7 @@ src/game/match/stageRecoveryContracts.tests.ts	1	0.005
 src/game/match/startHold.tests.ts	3	0.094
 src/game/match/training.tests.ts	11	0.853
 src/game/match/tutorial.tests.ts	11	4.619
-src/game/match/upSpecialRecovery.tests.ts	3	2.244
+src/game/match/upSpecialRecovery.tests.ts	4	2.501
 src/game/match/wallTechInputContracts.tests.ts	8	2.646
 src/game/match/wardenRecoveryContracts.tests.ts	1	0.976
 src/game/menu/selectionDrag.tests.ts	2	0.002

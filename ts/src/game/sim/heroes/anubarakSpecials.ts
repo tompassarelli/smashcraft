@@ -20,7 +20,7 @@ const burrow = (ex: boolean): AuthoredSpecial => ({
 });
 const eruption = (ex: boolean): AuthoredSpecial => ({
   endFrame: 46, oncePerAirtime: true, helpless: true, aimFrames: CHARGED_AIM_FRAMES,
-  motion: chargedAngleMotion(ex ? 640.0 : 560.0, 28),
+  motion: chargedAngleMotion(ex ? 640.0 : 400.0, 28),
   regions: [heroRegion(9, 16, { x1: 0.0, z1: 70.0, x2: 0.0, z2: 150.0, radius: ex ? 31.0 : 21.0 }, anubarakHit(ex ? 12.0 : 8.0, 80, 85.0, 28.0))],
   ...(ex ? {} : { ex: eruption(true) }),
 });

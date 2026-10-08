@@ -95,6 +95,16 @@ function keysDriver(character: Character, mana: number): Driver {
 
 const DRIVERS = [stickDriver, keysDriver] as const;
 
+test("Anubarak's ordinary eruption stays in the heavy recovery band with zero or full meter [repro #345] [spec #252] [spec #335]", () => {
+  const band = assertDefined(RECOVERY_BANDS[recoveryArchetype(Character.anubarak)], "band");
+  const full = upSpecialRoute(Character.anubarak, 100);
+  check(full.rise >= band.riseMin && full.rise <= band.riseMax, `Anubarak rise ${full.rise}`);
+  check(full.reach >= band.reachMin && full.reach <= band.reachMax, `Anubarak reach ${full.reach}`);
+  const free = upSpecialRoute(Character.anubarak, 0);
+  assertEquals(free.rise, full.rise, "zero/full meter rise");
+  assertEquals(free.reach, full.reach, "zero/full meter reach");
+});
+
 sweep("every fighter's full up special recovers within its archetype's band equally at zero and full meter [spec #252] [spec #335]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const band = assertDefined(RECOVERY_BANDS[recoveryArchetype(character)], "band");
