@@ -193,4 +193,12 @@ export const DRAWN_REACH: readonly { readonly character: number; readonly style:
   { character: 20, style: 7, model: "units\\human\\HeroBloodElf\\HeroBloodElf.mdl", clip: 16, swing: 63.9, peakFrame: 7, firstActive: 7, lastActive: 10, forward: 41.3 },
   { character: 20, style: 8, model: "units\\human\\HeroBloodElf\\HeroBloodElf.mdl", clip: 17, swing: 30.5, peakFrame: 6, firstActive: 6, lastActive: 8, forward: 47.7 },
   { character: 20, style: 19, model: "units\\human\\HeroBloodElf\\HeroBloodElf.mdl", clip: 18, swing: 31.7, peakFrame: 9, firstActive: 9, lastActive: 12, forward: 61.0 },
+  { character: 21, style: 0, model: "units\\creeps\\Murloc\\Murloc.mdl", clip: 9, swing: 43.0, peakFrame: 2, firstActive: 2, lastActive: 3, forward: 57.0 },
+  { character: 21, style: 20, model: "units\\creeps\\Murloc\\Murloc.mdl", clip: 10, swing: 30.1, peakFrame: 2, firstActive: 4, lastActive: 5, forward: 36.4 },
+  { character: 21, style: 6, model: "units\\creeps\\Murloc\\Murloc.mdl", clip: 11, swing: 31.1, peakFrame: 4, firstActive: 5, lastActive: 7, forward: 58.6 },
+  { character: 21, style: 9, model: "units\\creeps\\Murloc\\Murloc.mdl", clip: 12, swing: 39.8, peakFrame: 5, firstActive: 5, lastActive: 7, forward: 58.3 },
+  { character: 21, style: 10, model: "units\\creeps\\Murloc\\Murloc.mdl", clip: 13, swing: 47.8, peakFrame: 4, firstActive: 5, lastActive: 7, forward: 63.2 },
+  { character: 21, style: 7, model: "units\\creeps\\Murloc\\Murloc.mdl", clip: 14, swing: 32.0, peakFrame: 5, firstActive: 4, lastActive: 7, forward: 48.5 },
+  { character: 21, style: 8, model: "units\\creeps\\Murloc\\Murloc.mdl", clip: 15, swing: 41.9, peakFrame: 3, firstActive: 4, lastActive: 6, forward: 69.9 },
+  { character: 21, style: 19, model: "units\\creeps\\Murloc\\Murloc.mdl", clip: 16, swing: 36.0, peakFrame: 4, firstActive: 6, lastActive: 10, forward: 23.1 },
 ];
