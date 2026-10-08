@@ -1,4 +1,4 @@
-import { model as mdx } from "war3-model";
+import { model as mdx } from "../../ts/scripts/clipNodes";
 import { isDeepStrictEqual } from "node:util";
 import { characterClips, namedClips } from "../../ts/src/game/presentation/fighterClips";
 import { contactDamageClips } from "../../ts/src/game/presentation/damagePose";
