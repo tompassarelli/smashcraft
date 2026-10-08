@@ -14,7 +14,6 @@ const notYetEffect = [
   "scripts/integrity/padScheduleWorker.ts",
   "scripts/lua-tests.ts",
   "scripts/numericParity.ts",
-  "scripts/prePush.ts",
   "scripts/test.ts",
   "scripts/typecheck-benchmark.ts",
   "scripts/unused-code.ts",

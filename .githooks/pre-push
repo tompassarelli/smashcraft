@@ -1,5 +1,13 @@
 #!/usr/bin/env bun
 // Git's pre-push hook; the gate is smashcraft:ts/scripts/prePush.ts.
-import { prePush } from "../ts/scripts/prePush.ts";
+import { Effect } from "effect";
+import { PrePushRefusal, prePush } from "../ts/scripts/prePush.ts";
 
-prePush(await Bun.stdin.text());
+const refused = await Effect.runPromise(prePush(await Bun.stdin.text()).pipe(
+  Effect.as(undefined),
+  Effect.catchTag("PrePushRefusal", (refusal: PrePushRefusal) => Effect.succeed(refusal.problem)),
+));
+if (refused !== undefined) {
+  console.error(refused);
+  process.exit(1);
+}

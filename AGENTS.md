@@ -594,9 +594,18 @@ See smashcraft:docs/design/fighter-portraits.md.
 Every push runs the pre-push gate (smashcraft:.githooks/pre-push, enabled for
 the repository with `git config core.hooksPath .githooks`; safe-push runs it):
 `bun run check` and the type-escape audit (smashcraft:ts/test/source-shapes.test.ts)
-when the pushed commits change ts/, and client/ui's type-check when they change
-it, in a few seconds (smashcraft:ts/scripts/prePush.ts). It checks the working
-tree, so push from a clean checkout of the commit.
+when the pushed commits change ts/, the model facts check
+(smashcraft:ts/test/model-facts.test.ts; it refuses with the `bun wisp view models`
+refresh command) when they change clips or model build inputs, and client/ui's
+type-check when they change it, in a few seconds (smashcraft:ts/scripts/prePush.ts).
+It checks the working tree, so push from a clean checkout of the commit.
+
+Main stays green. Each CI run on main opens, updates or closes the one
+"main is red" issue (smashcraft:.github/workflows/main-red.yml), which lists the
+failing tests and the first failing commit; the pre-push gate prints that list
+on every push. A red main is not "already failing": before landing, check
+whether your change touches a listed test, and if your commit broke main, fix
+it first.
 
 From smashcraft:ts/, use `bun test test/game.test.ts` for focused game tests,
 `bun run check` for host and map type-checking, and
