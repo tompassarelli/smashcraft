@@ -434,7 +434,7 @@ Each now has one role:
 | Shadow Hunter | Multi-hit | 8/9/20 | 0.50H | 3 + 3 + 5 | last hit 45, 100/22 | Kirby's and Luigi's multi-hit dash attacks |
 | Forsaken Paladin | Heavy, pushes off shield | 12/3/20 | 0.35H | 12 | 30, 100/26 | Ganondorf dash attack |
 | Lich | Hovering low glide | 10/6/22 | 0.80H | 8 | 25, 90/30 | Mewtwo dash attack (slow, lingering) |
-| Archer | Sliding kick, pops up | 6/4/20 | 0.75H | 6 (8 before #105 pass 4) | 70, 55/38 | Fox dash attack (into up air) |
+| Archer | Sliding kick, pops up | 9/4/20 | 0.75H | 6 (#279; 8 in #247) | 70, 55/38 | Fox dash attack (into up air) |
 | Rifleman | Rifle lunge | 9/3/25 | 0.50H | 11 | 40, 114/22 | Falco dash attack |
 | Pit Lord | Kill charge, no armor | 15/6/34 | 0.30H | 16 | 40, 110/26 | Ganondorf and Bowser dash attacks |
 | Beastmaster | Heaves the victim behind him | 11/5/28 | 0.50H | 12 | 135, 95/20 | Ultimate's reverse-launch dash attacks |
