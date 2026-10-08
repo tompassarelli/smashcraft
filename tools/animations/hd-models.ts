@@ -6,6 +6,7 @@ import { timelineBody } from './timeline-body';
 import { flashableSequences } from './white-flash-keys';
 import { thinKeys } from '../../ts/scripts/keyThin';
 import { fighters } from './original-clips';
+import { victoryAnimation } from '../../ts/src/game/presentation/matchAudio';
 
 const [sourcePath, stockPath, outputPath, ...options] = process.argv.slice(2);
 const option = (name: string) => { const index = options.indexOf(name); return index < 0 ? undefined : options[index + 1]; };
@@ -22,11 +23,16 @@ if (!relative(resolve(import.meta.dir, '../..'), output).startsWith('..')) throw
 await Effect.runPromise(Effect.tryPromise({ try: async () => {
     const source = parseMDX(await Bun.file(sourcePath).arrayBuffer());
     const hd = parseHdBody(await Bun.file(stockPath).arrayBuffer());
-    const pairs = rigPath === undefined ? CAIRNE_DE_PAIRS : (await import(resolve(rigPath))).pairs as readonly (readonly [string, string])[];
+    const rig = rigPath === undefined ? { pairs: CAIRNE_DE_PAIRS } : await import(resolve(rigPath));
+    const pairs = rig.pairs as readonly (readonly [string, string])[];
     if (!Array.isArray(pairs) || pairs.length === 0) throw new Error('Rig module must export a nonempty pairs array');
     const skin = checkBodySkin(hd);
-    const sequences = flashableSequences(character, source.Sequences);
-    const result = retargetHd(source, hd, pairs, sequences);
+    const normalize = (name: string) => name.replaceAll(/\s+/g, '').toLowerCase();
+    const victory = normalize(victoryAnimation(character));
+    const selected = new Set(flashableSequences(character, source.Sequences));
+    for (const sequence of source.Sequences) if (normalize(sequence.Name) === victory) selected.add(sequence);
+    const sequences = source.Sequences.filter(sequence => selected.has(sequence));
+    const result = retargetHd(source, hd, pairs, sequences, rig.visibilityPairs);
     const converted = checkRetarget(result);
     if (converted.units > 0.5 || converted.degrees > 0.5) throw new Error(`${fighter.name} retarget exceeds 0.5/0.5: ${JSON.stringify(converted)}`);
     for (const collision of result.model.CollisionShapes) delete result.model.Nodes[collision.ObjectId];

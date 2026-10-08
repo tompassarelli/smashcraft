@@ -87,7 +87,7 @@ function appendTransform(node: mdx.Node, matrix: mat4, frame: number): void {
 export interface RetargetSample { sequence: number; frame: number; expected: ReadonlyMap<number, mat4> }
 export interface RetargetResult { model: mdx.Model; samples: RetargetSample[]; mapped: number }
 
-export function retargetHd(source: mdx.Model, hd: mdx.Model, pairs: readonly (readonly [string, string])[], sequences: readonly mdx.Sequence[]): RetargetResult {
+export function retargetHd(source: mdx.Model, hd: mdx.Model, pairs: readonly (readonly [string, string])[], sequences: readonly mdx.Sequence[], visibilityPairs: readonly (readonly [number, number])[] = []): RetargetResult {
     const model = structuredClone(hd);
     const referenceSequence = (rig: mdx.Model) => {
         const ready = rig.Sequences.findIndex(sequence => /^Stand Ready(?:\s+\d+)?$/.test(sequence.Name));
@@ -112,36 +112,48 @@ export function retargetHd(source: mdx.Model, hd: mdx.Model, pairs: readonly (re
         : mat4.multiply(mat4.create(), inverse(hdReference[node.Parent]), hdReference[node.ObjectId])]));
     const registration = new Map([...correspondence].map(([to, from]) => [to,
         mat4.multiply(mat4.create(), inverse(sourceReference[from]), hdReference[to])]));
-    for (const node of model.Bones) { delete node.Translation; delete node.Rotation; delete node.Scaling; }
+    const hdBones = [...model.Bones];
+    for (const node of hdBones) { delete node.Translation; delete node.Rotation; delete node.Scaling; }
+    const sourceNodes = new Map<number, number>();
+    const globalOffset = model.GlobalSequences.length;
+    model.GlobalSequences.push(...source.GlobalSequences);
+    const copyAncestor = (id: number): number => {
+        const existing = sourceNodes.get(id);
+        if (existing !== undefined) return existing;
+        const original = source.Nodes[id];
+        if (original === undefined) throw new Error(`Missing authored ancestor ${id}`);
+        const parent = original.Parent == null ? null : copyAncestor(original.Parent);
+        const ObjectId = model.Nodes.length;
+        const node: mdx.Bone = {
+            Name: `Authored ${original.Name}`, ObjectId, Parent: parent, Flags: original.Flags,
+            PivotPoint: new Float32Array(original.PivotPoint), GeosetId: null, GeosetAnimId: null,
+        };
+        for (const kind of ['Translation', 'Rotation', 'Scaling'] as const) {
+            const track = original[kind];
+            if (track === undefined) continue;
+            node[kind] = structuredClone(track);
+            if (onGlobalClock(track)) node[kind].GlobalSeqId = track.GlobalSeqId! + globalOffset;
+        }
+        model.Bones.push(node);
+        model.Nodes.push(node);
+        model.PivotPoints.push(node.PivotPoint);
+        sourceNodes.set(id, ObjectId);
+        return ObjectId;
+    };
+    // A recovery squash followed by a registered rotation can shear. Keep its original
+    // local transform chain instead of reducing that world matrix to one lossy TRS.
+    for (const [to, from] of correspondence) model.Nodes[to].Parent = copyAncestor(from);
     const samples: RetargetSample[] = [];
     for (const sequence of sequences) {
         const index = source.Sequences.indexOf(sequence), [start, end] = sequence.Interval;
         const frames = new Set<number>([start, end]);
         tracks(source, track => { if (!onGlobalClock(track)) for (const key of track.Keys) if (key.Frame >= start && key.Frame <= end) frames.add(key.Frame); });
         for (const frame of [...frames].sort((a, b) => a - b)) {
-            const reference = sourceAt(index, frame), desired = new Map<number, mat4>();
-            const world = (node: mdx.Node): mat4 => {
-                const cached = desired.get(node.ObjectId);
-                if (cached !== undefined) return cached;
-                const from = correspondence.get(node.ObjectId);
-                const parent = node.Parent == null ? undefined : model.Nodes[node.Parent];
-                const result = from !== undefined
-                    ? mat4.multiply(mat4.create(), reference[from], registration.get(node.ObjectId)!)
-                    : parent === undefined ? mat4.clone(referenceLocal.get(node.ObjectId)!)
-                    : mat4.multiply(mat4.create(), world(parent), referenceLocal.get(node.ObjectId)!);
-                desired.set(node.ObjectId, result);
-                return result;
-            };
-            for (const node of model.Bones) {
-                const target = world(node);
-                if (!correspondence.has(node.ObjectId)) {
-                    if (frame === start || frame === end) appendTransform(node, referenceLocal.get(node.ObjectId)!, frame);
-                    continue;
-                }
-                const local = node.Parent == null ? target : mat4.multiply(mat4.create(), inverse(world(model.Nodes[node.Parent])), target);
-                appendTransform(node, local, frame);
-            }
-            samples.push({ sequence: index, frame, expected: new Map([...correspondence].map(([id]) => [id, desired.get(id)!])) });
+            const reference = sourceAt(index, frame);
+            if (frame === start || frame === end) for (const node of hdBones)
+                appendTransform(node, registration.get(node.ObjectId) ?? referenceLocal.get(node.ObjectId)!, frame);
+            samples.push({ sequence: index, frame, expected: new Map([...correspondence].map(([id, from]) =>
+                [id, mat4.multiply(mat4.create(), reference[from], registration.get(id)!)])) });
         }
     }
     model.Sequences = structuredClone(source.Sequences);
@@ -153,6 +165,17 @@ export function retargetHd(source: mdx.Model, hd: mdx.Model, pairs: readonly (re
         track.LineType = mdx.LineType.DontInterp;
         track.Keys = sequences.flatMap(sequence => [...sequence.Interval].map(Frame => ({ Frame, Vector: new Float32Array(first.Vector) })));
     });
+    for (const [classic, definitive] of visibilityPairs) {
+        if (source.Geosets[classic] === undefined || model.Geosets[definitive] === undefined) throw new Error(`Missing visibility mesh ${classic} → ${definitive}`);
+        const alpha = source.GeosetAnims.find(animation => animation.GeosetId === classic)?.Alpha ?? 1;
+        let animation = model.GeosetAnims.find(animation => animation.GeosetId === definitive);
+        if (animation === undefined) {
+            animation = { GeosetId: definitive, Flags: 0, Alpha: 1, Color: new Float32Array([1, 1, 1]) };
+            model.GeosetAnims.push(animation);
+        }
+        animation.Alpha = structuredClone(alpha);
+        if (typeof animation.Alpha !== 'number' && onGlobalClock(animation.Alpha)) animation.Alpha.GlobalSeqId = animation.Alpha.GlobalSeqId! + globalOffset;
+    }
     // Authored sequence indices stay stable even when their intervals are out of order.
     tracks(model, track => track.Keys.sort((left, right) => left.Frame - right.Frame));
     return { model, samples, mapped: correspondence.size };
