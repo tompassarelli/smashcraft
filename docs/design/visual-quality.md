@@ -525,6 +525,21 @@ Ahn'Qiraj 27.4, Hellfire 25.5). Its integrated farm budget run read p99
 (sky, fog, scenery and decks hidden) the empty screen read rgb(4,4,4) in all
 eight masks measured from the #170 batch.
 
+### Nordrassil atmosphere (#294)
+
+NO-3 softens the far World Tree's roots with teal-green height fog: style 3,
+distance 5,500–11,000, density 0.25, height −2,600 to −600 relative to the
+arena origin, maximum linear density 0.5, colour (0.25, 0.5, 0.375). The upper
+height stays below the deck. `DrawOverSky` stays off for NO-4: the preserved
+stock FelwoodSky aurora fills the upper frame, with #288's map bloom enabled
+at threshold 0.9 in HD. Classic retains the stock sky and Moon Well glow
+geometry; the old linear fog distances and colour remain the fallback fields.
+NO-4's only luminous scenery accents are the two stock Moon Wells; no wisp
+or extra point light is added. The existing silver key (236, 246, 232) and
+teal fill (136, 178, 172) retain their intensity of 1. No new imports.
+The #287 batch must establish the three-mode draw, aurora bloom, rubric,
+fighter contrast and frame cost before #294 closes.
+
 ### Not yet measured on 3.0
 
 - 3.0 fog: height fog, `MaxLinearDensity`, `DrawOverSky` and styles 3–5.

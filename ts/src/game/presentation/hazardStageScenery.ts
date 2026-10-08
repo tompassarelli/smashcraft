@@ -5,6 +5,8 @@ import { STAGE_SKY_MODELS } from "../assets/stageSkyInfo";
 export const NORDRASSIL_SCENERY: StageScenery = {
   sky: "Environment\\Sky\\FelwoodSky\\FelwoodSky.mdl",
   fog: { start: 5500.0, end: 11000.0, red: 0.25, green: 0.5, blue: 0.375 },
+  // NO-3 softens distant tree roots; NO-4 keeps the animated aurora above the mist.
+  heightFog: { start: 5500.0, end: 11000.0, density: 0.25, heightStart: -2600.0, heightEnd: -600.0, maxDensity: 0.5, drawOverSky: false },
   pieces: [
     // Dream Land tree silhouette with cool low moon wells; the aurora sky is preserved.
     { model: "Doodads\\Ashenvale\\Structures\\Worldtree\\Worldtree.mdx", x: -1900.0, y: 5800.0, z: -2650.0, scale: 0.625, yaw: 300.0, matrixScale: [1.0, 1.0, f32(1.512)] },

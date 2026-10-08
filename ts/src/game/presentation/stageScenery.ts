@@ -26,6 +26,16 @@ export interface StageScenery {
   readonly sky: string;
   readonly pieces: readonly SceneryPiece[];
   readonly fog?: { readonly start: number; readonly end: number; readonly red: number; readonly green: number; readonly blue: number };
+  readonly heightFog?: {
+    readonly start: number;
+    readonly end: number;
+    readonly density: number;
+    /** Heights relative to the arena origin, below the fighting deck. */
+    readonly heightStart: number;
+    readonly heightEnd: number;
+    readonly maxDensity: number;
+    readonly drawOverSky: boolean;
+  };
 }
 
 /** The practice stage keeps a plain sky as the neutral baseline. */
