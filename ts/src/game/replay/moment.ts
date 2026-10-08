@@ -201,7 +201,7 @@ export function savedRuntime(runtime: Readonly<PacingAndPresentation>): SavedRun
   return { ...runtime, botStrategies: [savedBotStrategy(strategies[0]), savedBotStrategy(strategies[1]), savedBotStrategy(strategies[2]), savedBotStrategy(strategies[3])] };
 }
 
-function savedView(state: Readonly<ReplayState>): object {
+export function savedView(state: Readonly<ReplayState>) {
   const fighters: (Fighter | undefined)[] = [];
   for (const slot of PARTICIPANT_SLOTS) if (isActive(state.world, slot)) fighters[slot] = fighterAt(state.world, slot);
   return { mask: state.world.mask, fighters, match: state.match, commands: state.controls.commands, runtime: savedRuntime(state.runtime) };
