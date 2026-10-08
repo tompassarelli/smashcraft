@@ -19,6 +19,7 @@ import { fighterPoseFacing, isIntangible } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { type WorldOrigin, facingYaw, hideEffect, placeEffect } from "./effects";
 import { damageTint } from "../presentation/hitPresentation";
+import { specialCueState } from "../presentation/specialCues";
 import { characterModelScale } from "../presentation/modelScale";
 import { fitFighterPlacement } from "../presentation/fighterPlacement";
 import { outgoingPoseAlpha, poseBlendFrames } from "../presentation/damageBlend";
@@ -182,6 +183,8 @@ export class FighterPoolPresentation {
       }
       if (isIntangible(fighter)) alpha = 140;
     }
+    const transformation = specialCueState(fighter);
+    if (transformation.phase === "active" && transformation.cues?.active.replacesBody === true) alpha = 0;
     if (changed || this.red !== red || this.green !== green || this.blue !== blue) {
       BlzSetSpecialEffectColor(model, red, green, blue);
       this.red = red;

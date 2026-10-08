@@ -208,4 +208,5 @@ export const DRAWN_REACH: readonly { readonly character: number; readonly style:
   { character: 26, style: 7, model: "units\\creeps\\Kobold\\Kobold.mdl", clip: 14, swing: 42.0, peakFrame: 4, firstActive: 4, lastActive: 7, forward: 38.2 },
   { character: 26, style: 8, model: "units\\creeps\\Kobold\\Kobold.mdl", clip: 15, swing: 38.5, peakFrame: 4, firstActive: 4, lastActive: 6, forward: 60.2 },
   { character: 26, style: 19, model: "units\\creeps\\Kobold\\Kobold.mdl", clip: 16, swing: 31.3, peakFrame: 6, firstActive: 6, lastActive: 10, forward: 68.1 },
+
 ];

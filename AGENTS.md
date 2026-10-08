@@ -256,6 +256,7 @@ code. From smashcraft:ts/:
   then `bun tools/animations/illidan-locomotion.ts PRIVATE_ASSETS PRIVATE_AUTHORED PRIVATE_OUTPUT`.
   Package with `bun tools/animations/package-illidan.ts PRIVATE_OUTPUT --metadata-only`,
   store `illidan-animation`, and refresh the original clip pool.
+- Malfurion stock-rig authoring: `bun tools/animations/malfurion-clips.ts STOCK_FURION.mdx PRIVATE_OUTPUT` appends staff, nature-spell, recovery, paired-throw and nine pain gestures while preserving the eight campaign sequences.
 - Jaina animation authoring (from the repository root):
   `bun tools/animations/jaina-clips.ts STOCK_JAINA.mdx PRIVATE_OUTPUT`
   appends her staff strikes, spell gestures, movement and nine contact reactions;

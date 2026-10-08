@@ -396,5 +396,23 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
       ]
     },
     "emitters": []
+  },
+  "war3mapimported/malfurionstormragewhite-4cb963cf5d56dd9c351f3647f4ded0b0ab8d3b048da3b9222f8a45105827efe1.mdx": {
+    "geosets": 15,
+    "triangles": 1155,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -222.80499267578125,
+        -231.8820037841797,
+        -124.39299774169922
+      ],
+      "max": [
+        244.66600036621094,
+        249.02699279785156,
+        485.5610046386719
+      ]
+    },
+    "emitters": []
   }
 };

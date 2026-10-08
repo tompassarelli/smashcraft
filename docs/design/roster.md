@@ -14,7 +14,7 @@ He has no passive, stacks or second resource. All four ordinary specials are
 free; a full universal super bar empowers anyone's next special, including his.
 
 **Body:** weight 94, run 10.8 units/frame, air 5.7 units/frame, standing hurt
-height 102 and radius 27. Slow feet and a tall exposed body make failed setup
+capsule endpoints at heights 4 and 101.2, radius 24. Slow feet and a tall exposed body make failed setup
 punishable. Stock campaign Malfurion, Keeper spells and Force of Nature treant
 art provide his Classic and Definitive presentation.
 
@@ -45,6 +45,16 @@ spacing, retreat and shield defense, occasional aerial branch finishers. The
 signature is Entangling Roots into staff spacing; it permits shield and jump
 answers rather than an automatic follow-up. Initial balance numbers are
 provisional until the one farm probe.
+
+```balance-profile
+fighter: malfurion-stormrage
+archetype: zoner
+aerials: nair 10-35, fair 15-40, bair 15-45, uair 10-35, dair 0-25
+air-share: 15-45
+approach: 20-50
+ranged: 25-65
+specials: neutral 5-25, side 3-20, up 0-8, down 3-15
+```
 
 Adopted by the owner on 6 October 2026 from the 2 October expansion brief.
 The requested roster is Blademaster, Mountain King, Warden, Lich, Forsaken Paladin,

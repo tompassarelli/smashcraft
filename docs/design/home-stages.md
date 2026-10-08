@@ -18,6 +18,7 @@ smashcraft:ts/src/game/menu/stageCatalog.ts.
 | Blademaster | Durotar Skies | 3 | TFT's "The Founding of Durotar": Samuro of the Burning Blade fights for Thrall's new homeland. |
 | Mountain King | Blackrock | 12 | Blackrock Mountain rises at the edge of Khaz Modan, the dwarves' homeland; its forges are held by their Dark Iron kin. |
 | Warden | Tomb of Sargeras | 7 | TFT's "Terror of the Tides": Maiev hunts Illidan to the Broken Isles and into the Tomb of Sargeras. |
+| Malfurion Stormrage | Tomb of Sargeras | 7 | Malfurion follows Illidan and Maiev through the Broken Isles in TFT. |
 | Lich | Naxxramas | 4 | Kel'Thuzad, raised as a lich in RoC, rules the Scourge necropolis Naxxramas. |
 | Forsaken Paladin | Stratholme | 6 | RoC's "The Culling": Lordaeron's paladins refuse to purge Stratholme and leave Arthas at its gates. |
 | Dreadlord | Stratholme | 6 | RoC's "The Culling": the dreadlord Mal'Ganis waits for Arthas in the plagued city. |

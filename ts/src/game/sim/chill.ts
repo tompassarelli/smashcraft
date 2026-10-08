@@ -13,6 +13,7 @@ export const CHILL_SPEED_SCALE = f32(0.6);
 
 /** The speed a fighter moves at: unchanged unless it is chilled. */
 export function chillScaled(f: Readonly<Fighter>, speed: number): number {
+  if (f.motion.grounded && f.status.condition === HeroStatusKind.root) return 0.0;
   return f.status.condition === HeroStatusKind.chill ? f32(speed * CHILL_SPEED_SCALE) : speed;
 }
 

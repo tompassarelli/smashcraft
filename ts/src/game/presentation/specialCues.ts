@@ -66,6 +66,8 @@ export interface Cue {
   readonly sequence?: string | undefined;
   readonly seconds?: number | undefined;
   readonly pitch?: number | undefined;
+  /** A visible transformation replaces the normal body while this cue plays. */
+  readonly replacesBody?: boolean | undefined;
 }
 
 /** `cue` started `seconds` into `sequence`. */
@@ -120,11 +122,18 @@ const VOODOO = cue("Abilities\\Spells\\Orc\\TrollBerserk\\TrollBeserkerTarget.md
 const FEL = cue("Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilSpecialArt.mdx", "hand", f32(0.7));
 const MURGUL = cue("Abilities\\Weapons\\MurgulMagicMissile\\MurgulMagicMissile.mdx", "hand", f32(0.6));
 const BEAST = cue("Abilities\\Spells\\Orc\\Bloodlust\\BloodlustTarget.mdx", "hand", f32(0.6));
+const NATURE = cue("Abilities\\Spells\\NightElf\\Tranquility\\TranquilityTarget.mdx", "hand", f32(0.7));
 /** The Lich King's dark rune under his feet. */
 const RUNE = cue("Abilities\\Spells\\Undead\\DarkRitual\\DarkRitualCaster.mdx", "feet", f32(0.6));
 
 /** Every hero's four specials; every form of a special (air, free, follow-up, recall, marked) shows its special's cues. */
 export const HERO_CUES: { readonly [character: number]: { readonly [slot in SpecialSlot]: MoveCues } } = {
+  [Character.malfurion]: {
+    neutral: { spell: "Entangling Roots", startup: NATURE, active: cue("Abilities\\Spells\\NightElf\\EntanglingRoots\\EntanglingRootsTarget.mdx", "ahead", f32(0.35)) },
+    side: { spell: "Stag Charge", startup: NATURE, active: { ...cue("units\\critters\\BlackStagMale\\BlackStagMale.mdx", "feet", 1.0), sequence: "walk", seconds: 0.0, replacesBody: true } },
+    up: { spell: "Dream Ascent", startup: NATURE, active: cue("Abilities\\Spells\\NightElf\\Tranquility\\Tranquility.mdx", "feet", f32(0.3)) },
+    down: { spell: "Force of Nature", startup: NATURE, active: cue("Abilities\\Spells\\NightElf\\TargetArtLumber\\TargetArtLumber.mdx", "ahead", f32(0.7)) },
+  },
   [Character.jaina]: {
     neutral: { spell: "Frostbolt", startup: ARCANE, active: cue("Abilities\\Weapons\\SorceressMissile\\SorceressMissile.mdx", "hand", 0.5) },
     side: { spell: "Blizzard", startup: ARCANE, active: cue("Abilities\\Weapons\\LichMissile\\LichMissile.mdx", "hand", f32(0.7)) },
@@ -291,6 +300,7 @@ const branch = (spell: string, startup: Cue, active: Cue): MoveCues => ({ spell,
 
 /** Every hero branch names its cue; specialCues.tests.ts checks each authored branch has one. */
 export const HERO_BRANCH_CUES: { readonly [character: number]: { readonly [slot in SpecialSlot]?: HeroBranchCues } } = {
+  [Character.malfurion]: { down: { recall: "slot" } },
   [Character.jaina]: {
     down: { recall: branch("Recall Water Elemental", ARCANE, cue("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportCaster.mdx", "body", 0.5)) },
   },

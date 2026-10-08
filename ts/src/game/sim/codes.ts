@@ -4,7 +4,7 @@
 /** Codes 3 and up are the roster expansion (smashcraft:docs/design/roster.md), defined in sim/heroes/registry.ts. */
 export const Character = { rifleman: 1, demonHunter: 2,
   blademaster: 3, mountainKing: 4, warden: 5, lich: 6, forsakenPaladin: 7, dreadlord: 8, shadowHunter: 9,
-  pitLord: 10, beastmaster: 11, lichKing: 12, thrall: 13, jaina: 14, sylvanas: 15, cairne: 16, chen: 17, peon: 18, tinker: 19, kaelthas: 20, murloc: 21, kobold: 26,
+  pitLord: 10, beastmaster: 11, lichKing: 12, thrall: 13, jaina: 14, sylvanas: 15, cairne: 16, chen: 17, peon: 18, tinker: 19, kaelthas: 20, murloc: 21, malfurion: 24, kobold: 26,
   grom: 22,
 } as const;
 export type Character = (typeof Character)[keyof typeof Character];
@@ -148,7 +148,7 @@ export const HitElement = { normal: 0, fire: 1, electric: 2, slash: 3, ice: 5, d
 export type HitElement = (typeof HitElement)[keyof typeof HitElement];
 
 /** Hero statuses (sim/heroStatus.ts) a body hit applies. Append only: the code is in replay text. */
-export const HeroStatusKind = { none: 0, sleep: 1, poison: 2, hex: 3, stun: 4, chill: 5, carried: 7, silence: 8 } as const;
+export const HeroStatusKind = { none: 0, sleep: 1, poison: 2, hex: 3, stun: 4, chill: 5, carried: 7, silence: 8, root: 9 } as const;
 export type HeroStatusKind = (typeof HeroStatusKind)[keyof typeof HeroStatusKind];
 
 /**

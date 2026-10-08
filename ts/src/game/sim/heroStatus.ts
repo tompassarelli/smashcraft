@@ -36,6 +36,7 @@ interface StatusRules {
 }
 
 const RULES: { readonly [kind: number]: StatusRules | undefined } = {
+  [HeroStatusKind.root]: { blocksActions: false, blocksSpecials: false, endsOnDamage: true },
   [HeroStatusKind.silence]: { blocksActions: false, blocksSpecials: true, endsOnDamage: false },
   // Sleep (#132): mashed out as a freeze is, never before frame 24.
   [HeroStatusKind.sleep]: { blocksActions: true, blocksSpecials: true, endsOnDamage: true, mashMinimum: 24 },
