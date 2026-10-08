@@ -737,6 +737,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("dashGrabTiming.activeFrames", t.dashGrab.activeFrames);
   int("dashGrabTiming.totalFrames", t.dashGrab.totalFrames);
   bool("dashGrabAttack", a.dashGrab);
+  bool("pivotGrabAttack", a.pivotGrab);
   bool("groundTurnRunFacingCommandLatched", g.turnRunFacingCommandLatched);
   bool("groundTurnRunPausePending", g.turnRunPausePending);
   int("character", fighter.character);
@@ -966,6 +967,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("cannonHeld", fighter.cannon.held ?? -1);
   int("cannonFiring", fighter.cannon.firing ?? -1);
   int("cannonCooldown", fighter.cannon.cooldown);
+  bool("cannonPassing", fighter.cannon.passing);
   bool("waterIn", fighter.water.inWater);
   int("waterFrames", fighter.water.frames);
   int("waterEntries", fighter.water.entries);
@@ -1022,7 +1024,6 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   bool("surfacePhysics.canWallJump", t.surface.canWallJump);
   emit(kitDigestField(`${prefix}.specials`, t.specials, SPECIALS_DIGESTS, fighterSpecialsCanonical));
   int("manaPoints", fighter.mana.points);
-  int("manaProgress", fighter.mana.progress);
   int("manaDeniedSerial", v.manaDenied);
   // Other hero state is written only where a hero kit or hero projectile exists.
   if (t.specials !== undefined) {

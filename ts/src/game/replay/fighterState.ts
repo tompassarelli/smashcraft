@@ -148,6 +148,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   attack.serial = sourceAttack.serial;
   attack.hit = sourceAttack.hit;
   attack.dashGrab = sourceAttack.dashGrab;
+  attack.pivotGrab = sourceAttack.pivotGrab;
   attack.cooldown = sourceAttack.cooldown;
   attack.smashCharging = sourceAttack.smashCharging;
   attack.smashChargeFrames = sourceAttack.smashChargeFrames;
@@ -330,6 +331,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   cannon.held = sourceCannon.held;
   cannon.firing = sourceCannon.firing;
   cannon.cooldown = sourceCannon.cooldown;
+  cannon.passing = sourceCannon.passing;
   const water = target.water;
   const sourceWater = source.water;
   water.inWater = sourceWater.inWater;
@@ -365,7 +367,6 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   const mana = target.mana;
   const sourceMana = source.mana;
   mana.points = sourceMana.points;
-  mana.progress = sourceMana.progress;
 
 
   while (target.pack.length < source.pack.length) target.pack.push(createPlacedObject());
@@ -552,6 +553,7 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
   if (attack.serial !== sourceAttack.serial || (attack.serial === 0 && 1 / attack.serial !== 1 / sourceAttack.serial)) return false;
   if (attack.hit !== sourceAttack.hit) return false;
   if (attack.dashGrab !== sourceAttack.dashGrab) return false;
+  if (attack.pivotGrab !== sourceAttack.pivotGrab) return false;
   if (attack.cooldown !== sourceAttack.cooldown || (attack.cooldown === 0 && 1 / attack.cooldown !== 1 / sourceAttack.cooldown)) return false;
   if (attack.smashCharging !== sourceAttack.smashCharging) return false;
   if (attack.smashChargeFrames !== sourceAttack.smashChargeFrames || (attack.smashChargeFrames === 0 && 1 / attack.smashChargeFrames !== 1 / sourceAttack.smashChargeFrames)) return false;
@@ -742,6 +744,7 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
   if (cannon.held !== sourceCannon.held || (cannon.held === 0 && sourceCannon.held === 0 && 1 / cannon.held !== 1 / sourceCannon.held)) return false;
   if (cannon.firing !== sourceCannon.firing || (cannon.firing === 0 && sourceCannon.firing === 0 && 1 / cannon.firing !== 1 / sourceCannon.firing)) return false;
   if (cannon.cooldown !== sourceCannon.cooldown || (cannon.cooldown === 0 && 1 / cannon.cooldown !== 1 / sourceCannon.cooldown)) return false;
+  if (cannon.passing !== sourceCannon.passing) return false;
   const water = target.water;
   const sourceWater = source.water;
   if (water.inWater !== sourceWater.inWater) return false;
@@ -777,7 +780,6 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
   const mana = target.mana;
   const sourceMana = source.mana;
   if (mana.points !== sourceMana.points || (mana.points === 0 && 1 / mana.points !== 1 / sourceMana.points)) return false;
-  if (mana.progress !== sourceMana.progress || (mana.progress === 0 && 1 / mana.progress !== 1 / sourceMana.progress)) return false;
 
 
   if (target.pack.length !== source.pack.length || (target.pack.length === 0 && 1 / target.pack.length !== 1 / source.pack.length)) return false;

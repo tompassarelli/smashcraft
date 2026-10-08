@@ -295,7 +295,7 @@ test("throw hitstun blocks standing and dash regrabs until it ends [spec docs/ga
     owner.grab.action = GrabAction.none;
     owner.grab.frame = 0;
     target.motion.x = 90.0;
-    target.motion.z = 65.0;
+    target.motion.z = 0.0;
     testBeginAttacks(world, AttackStyle.grab, undefined);
     owner.attack.dashGrab = dash;
     owner.attack.frame = dash ? owner.tuning.dashGrab.startupFrames : attackStartupFrames(AttackStyle.grab);
@@ -306,7 +306,7 @@ test("throw hitstun blocks standing and dash regrabs until it ends [spec docs/ga
     advanceFighter(world, 1, 0, controls(), 240.0);
     assertEquals(target.launch.throwHitstun, false);
     target.motion.x = 90.0;
-    target.motion.z = 65.0;
+    target.motion.z = 0.0;
     resolveAttacks(world);
     assertEquals(target.grab.owner, 0, dash ? "dash regrab" : "standing regrab");
   }
@@ -325,7 +325,7 @@ test("throw follow-up attacks replace throw hitstun and permit attack-to-grab re
     owner.grab.action = GrabAction.none;
     owner.grab.frame = 0;
     target.motion.x = 90.0;
-    target.motion.z = 65.0;
+    target.motion.z = 0.0;
     testBeginAttacks(world, AttackStyle.grab, undefined);
     owner.attack.frame = attackStartupFrames(AttackStyle.grab);
     resolveAttacks(world);

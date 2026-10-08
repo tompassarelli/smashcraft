@@ -157,13 +157,13 @@ test("Mountain King angled axe hooks have distinct narrow paths and body attacks
   assertEquals(gap.target.status.damage, 0.0);
 });
 
-test("Mountain King standing grab reaches half H and its dash jab selects the body charge [spec docs/design/roster.md]", () => {
+test("Mountain King standing grab uses scaled reach and its dash jab selects the body charge [spec docs/design/roster.md]", () => {
   for (const facing of [1, -1]) {
-    const catchable = attackPair(AttackStyle.grab, 7, 66.0, 0.0, facing);
+    const catchable = attackPair(AttackStyle.grab, 7, 96.0, 0.0, facing);
     resolveAttacks(catchable.world);
     assertEquals(catchable.owner.grab.target, 1);
     assertEquals(catchable.target.grab.owner, 0);
-    const outside = attackPair(AttackStyle.grab, 7, 67.0, 0.0, facing);
+    const outside = attackPair(AttackStyle.grab, 7, 97.0, 0.0, facing);
     resolveAttacks(outside.world);
     assertEquals(outside.owner.grab.target, undefined);
     const owner = createFighter(Character.archer, 0.0, facing);
@@ -177,9 +177,9 @@ test("Mountain King standing grab reaches half H and its dash jab selects the bo
   assertEquals(smashDamageMultiplier(100, MOUNTAIN_KING_MOVES), 1.25);
 });
 
-test("Mountain King dash grab keeps standing reach with three startup and eight recovery frames added [spec docs/design/roster.md]", () => {
+test("Mountain King dash grab extends standing reach with three startup and eleven total frames added [spec docs/design/roster.md]", () => {
   for (const facing of [1, -1]) {
-    for (const [x, caught] of [[66.0, true], [67.0, false]] as const) {
+    for (const [x, caught] of [[120.0, true], [121.0, false]] as const) {
       const owner = createFighter(Character.archer, 0.0, facing);
       owner.tuning.moves = MOUNTAIN_KING_MOVES;
       owner.ground.dashFrame = 1;

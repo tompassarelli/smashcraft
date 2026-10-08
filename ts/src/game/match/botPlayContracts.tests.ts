@@ -130,7 +130,7 @@ function heroUsage(game: ReturnType<typeof computerMatch>, slot: number, frames:
   return { specials, grabs, computer };
 }
 
-test("computer Forsaken Paladin uses Righteous Fury at a level target in range and never presses what its mana can't pay [spec #155]", () => {
+test("computer Forsaken Paladin uses Righteous Fury in range and regular specials at zero meter [spec #155] [spec #335]", () => {
   const game = computerMatch([Character.archer, Character.forsakenPaladin], [-200.0, 200.0], 0, 2);
   const { specials } = heroUsage(game, 1, 900);
   assertGreaterThan(specials[1] ?? 0, 0);
@@ -142,7 +142,7 @@ test("computer Forsaken Paladin uses Righteous Fury at a level target in range a
     broke.step();
     if (broke.produced.inputs[1].specialPressed && broke.produced.inputs[1].specialZ <= 0) pressedWithoutMana++;
   }
-  assertEquals(pressedWithoutMana, 0);
+  assertGreaterThan(pressedWithoutMana, 0);
   assertEquals(forsakenPaladin.visuals.manaDenied, 0);
 });
 

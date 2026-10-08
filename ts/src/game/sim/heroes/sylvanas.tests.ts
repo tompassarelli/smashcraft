@@ -34,6 +34,7 @@ function frame(world: Roster, press: Readonly<Controls> = controls(), response: 
 }
 function pair(gap = 100.0, facing = 1) {
   const owner = createFighter(Character.sylvanas, f32(-gap * 0.5 * facing), facing);
+  owner.mana.points = 100;
   const target = createFighter(Character.archer, f32(gap * 0.5 * facing), -facing);
   const world = testWorld(owner, target);
   for (let i = 0; i < 3; i++) frame(world);
@@ -106,15 +107,15 @@ test("Sylvanas pummel is one slow Life Drain squeeze and never repeats in one ho
   assertEquals(target.status.damage, 3.0);
 });
 
-test("Sylvanas specials spend once and finish their whiffs on the designed frame [spec docs/design/sylvanas.md]", () => {
+test("Sylvanas regular specials preserve the super meter and finish their whiffs on the designed frame [spec #335]", () => {
   for (const [x, z, action, mana, end] of [[0, 0, SpecialAction.heroNeutral, 8, 40], [1, 0, SpecialAction.heroSide, 20, 48], [0, 1, SpecialAction.heroUp, 15, 31], [0, -1, SpecialAction.heroDown, 20, 52]] as const) {
     const { world, owner } = pair(900.0);
     frame(world, controls({ specialPressed: true, specialX: x, specialZ: z }));
     assertEquals(owner.special.action, action);
-    assertEquals(owner.mana.points, 100 - mana);
+    assertEquals(owner.mana.points, 100);
     for (let i = 2; i <= end; i++) frame(world);
     assertEquals(owner.special.action, SpecialAction.none);
-    assertEquals(owner.mana.points, 100 - mana);
+    assertEquals(owner.mana.points, 100);
   }
 });
 
@@ -162,11 +163,11 @@ test("Life Drain catches a shield, heals at most nine per stock and refuses an a
     owner.motion.z = 300.0;
     frame(world, controls({ specialPressed: true, specialZ: -1 }));
     assertEquals(owner.special.action, SpecialAction.none);
-    assertEquals(owner.mana.points, 80);
+    assertEquals(owner.mana.points, 100);
   }
 });
 
-test("Banshee Flight steers in both directions, spends her jump and has a weaker free recovery [spec docs/design/sylvanas.md]", () => {
+test("Banshee Flight steers in both directions, spends her jump and keeps full recovery at zero meter [spec #335]", () => {
   for (const direction of [-1, 1]) {
     let fullRise = 0.0;
     for (const mana of [100, 0]) {
@@ -182,7 +183,7 @@ test("Banshee Flight steers in both directions, spends her jump and has a weaker
       assertEquals(owner.jump.remaining, 0);
       assertTrue(owner.special.fall);
       if (mana > 0) fullRise = owner.motion.z;
-      else assertLessThan(owner.motion.z, fullRise - 60.0);
+      else assertEquals(owner.motion.z, fullRise);
     }
   }
 });

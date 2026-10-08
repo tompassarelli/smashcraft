@@ -9,7 +9,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { Character, SurfaceContact } from "../sim/codes";
 import { WALL_TECH_STARTUP_FRAMES, canAttack, isIntangible, isTumbling } from "../sim/conditions";
 import { type Fighter, createFighter } from "../sim/fighter";
-import { CANNON_TEST_STAGE, MAIN_DECK_BODY_SURFACES, SOLID_DECK_TEST_STAGE, solidSurfaceAt, solidSurfacesOf, surfaceRight } from "../sim/stage";
+import { MAIN_DECK_BODY_SURFACES, SOLID_DECK_TEST_STAGE, solidSurfaceAt, solidSurfacesOf, surfaceRight } from "../sim/stage";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { bodyTop } from "../sim/surfaces";
 import { WORLD_UNITS_PER_MELEE_UNIT, melee } from "../sim/tuning";
@@ -469,10 +469,8 @@ function stageWallOutcomes(stage: number): readonly [string, string, string] {
   return [bounce, wallTech, techJump];
 }
 
-// Blackrock's deck is floor-only (Kongo Jungle's GrOk.dat), so the cannon below
-// can fire fighters up through it; it has no side to bounce off (#338).
-test("on every stage with a solid deck, a launch into its side bounces off it, a trigger wall techs and up adds the wall-tech jump [spec #338]", () => {
-  const failures = STAGE_CATALOG.filter(({ id }) => id !== CANNON_TEST_STAGE).flatMap(({ id, name }) => {
+test("on every stage, a launch into its side bounces off it, a trigger wall techs and up adds the wall-tech jump [spec #338]", () => {
+  const failures = STAGE_CATALOG.flatMap(({ id, name }) => {
     const [bounce, tech, jump] = stageWallOutcomes(id);
     return bounce === "" && tech === "" && jump === "" ? [] : [`${name}: bounce ${bounce || "ok"}, tech ${tech || "ok"}, tech jump ${jump || "ok"}`];
   });

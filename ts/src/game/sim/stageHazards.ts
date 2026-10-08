@@ -198,6 +198,11 @@ export const cannonOn = (stage: number, frame: number): boolean => hasCannon(sta
 
 export const inStageCannon = (f: Readonly<Fighter>): boolean => f.cannon.held !== undefined;
 
+/** Ends a shot's pass through the main deck once the fighter stands on a deck or its feet are above the main deck's top. */
+export function endCannonPass(f: Fighter, stage: number): void {
+  if (f.cannon.passing && (f.motion.grounded || f.motion.z > mainDeckZ(stage))) f.cannon.passing = false;
+}
+
 function holdAtCannon(f: Fighter, frame: number): void {
   const { motion, launch } = f;
   motion.x = cannonX(frame);
@@ -234,6 +239,7 @@ function catchFighter(world: Roster, slot: number, frame: number): void {
   f.shield.raised = false;
   f.cannon.held = 0;
   f.cannon.firing = undefined;
+  f.cannon.passing = false;
   holdAtCannon(f, frame);
 }
 
@@ -243,6 +249,8 @@ function fire(f: Fighter, frame: number): void {
   f.cannon.held = undefined;
   f.cannon.firing = undefined;
   f.cannon.cooldown = CANNON_RECATCH_FRAMES;
+  // Kongo's deck is floor-only so the barrel fires up through it; this one has walls and an underside, which the shot passes.
+  f.cannon.passing = true;
   const aim = cannonAim(frame);
   const knockback = contactKnockback(f.status.damage, 0.0, knockbackWeight(f), 0.0, CANNON_BASE_KNOCKBACK, 1.0);
   const { launch } = f;

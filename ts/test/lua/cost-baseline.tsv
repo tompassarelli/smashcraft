@@ -186,7 +186,7 @@ src/game/sim/illidanRaidBoss.tests.ts	10	0.153
 src/game/sim/knockdown.tests.ts	17	0.047
 src/game/sim/lava.tests.ts	4	0.101
 src/game/sim/ledge.tests.ts	17	0.029
-src/game/sim/mana.tests.ts	9	0.001
+src/game/sim/mana.tests.ts	5	0.038
 src/game/sim/meleeContact.tests.ts	4	0.001
 src/game/sim/normals.tests.ts	12	0.062
 src/game/sim/passives.tests.ts	15	0.005

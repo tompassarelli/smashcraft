@@ -1,3 +1,4 @@
+import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { frames, type AuthoredSpecial, type FighterSpecials, type SpecialProjectile } from "../heroSpecials";
@@ -43,9 +44,9 @@ const SUMMON: AuthoredSpecial = {
 };
 
 export const JAINA_SPECIALS: FighterSpecials = {
-  neutral: { name: "Frostbolt", description: "A straight frost bolt; jump it or shield it.", ground: FROSTBOLT },
-  side: { name: "Blizzard", description: "Ice falls twice on the marked patch ahead; leave it before the first strike.", ground: BLIZZARD },
-  up: { name: "Blink", description: "Aim a teleport, then fall helpless. Empty mana shortens its reach.", ground: blink(15, f32(3.2)), free: blink(0, f32(1.85)) },
-  down: { name: "Summon Water Elemental", description: "Summon a fragile ally that fires four water bolts. Press again to recall it.", ground: SUMMON,
-    recall: { cost: 0, endFrame: 26, groundOnly: true, recall: true } },
+  neutral: withExKit({ name: "Frostbolt", description: "A straight frost bolt; jump it or shield it.", ground: FROSTBOLT }, { damage: 1.25 }),
+  side: withExKit({ name: "Blizzard", description: "Ice falls twice on the marked patch ahead; leave it before the first strike.", ground: BLIZZARD }, { damage: 1.25 }),
+  up: withExKit({ name: "Blink", description: "Aim a teleport, then fall helpless. Empty mana shortens its reach.", ground: blink(15, f32(3.2)), free: blink(0, f32(1.85)) }, { travel: 1.25 }),
+  down: withExKit({ name: "Summon Water Elemental", description: "Summon a fragile ally that fires four water bolts. Press again to recall it.", ground: SUMMON,
+    recall: { cost: 0, endFrame: 26, groundOnly: true, recall: true } }, { damage: 1.25, durability: 1.25, recallProtection: 4 }),
 };

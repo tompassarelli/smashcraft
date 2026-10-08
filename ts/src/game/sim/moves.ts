@@ -178,7 +178,7 @@ export function attackReach(style: AttackStyle): number {
     case AttackStyle.downSmash:
       return 125.0;
     case AttackStyle.grab:
-      return 100.0;
+      return 96.0;
     default:
       return 145.0;
   }
@@ -247,6 +247,7 @@ export function attackActiveFrames(style: AttackStyle): number {
 }
 
 export function characterAttackActiveFrames(character: Character, style: AttackStyle, moves?: FighterMoves): number {
+  if (style === AttackStyle.grab) return 3;
   const authored = moves?.normals[style];
   if (authored !== undefined) return authored.activeFrames;
   if (character === Character.archer && style === AttackStyle.downAir) return ARCHER_DOWN_ACTIVE_FRAMES;

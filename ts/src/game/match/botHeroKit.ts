@@ -111,15 +111,6 @@ const relocates = (move: Readonly<AuthoredSpecial>): boolean => {
 
 const STANCE_SLOTS = [SpecialSlot.down, SpecialSlot.side, SpecialSlot.neutral] as const;
 
-/** The mana a kit with a guard stance (Divine Shield) keeps for it when spending on another special: its grounded cost. */
-function guardReserve(specials: Readonly<FighterSpecials>, move: Readonly<AuthoredSpecial>): number {
-  for (const slot of STANCE_SLOTS) {
-    const guard = specialKit(specials, slot).ground;
-    if (guard !== move && guard.guard !== undefined && isStance(guard)) return guard.cost;
-  }
-  return 0;
-}
-
 /** Whether the special's travel ends over the deck; a helpless form needs room to land back on it. */
 function travelStaysOnDeck(f: Readonly<Fighter>, move: Readonly<AuthoredSpecial>, stage: number): boolean {
   let travelX = 0.0;
@@ -147,15 +138,12 @@ export function heroSpecialUse(f: Readonly<Fighter>, target: Readonly<Fighter>, 
   const specials = f.tuning.specials;
   if (specials === undefined || !canAttack(f)) return HeroSpecialUse.none;
   const move = startableForm(f, specials, slot);
-  // The free up special is kept for recovery (botRecovery.ts).
-  if (move === undefined || (slot === SpecialSlot.up && move.cost === 0 && specials.up.ground.cost > 0)) return HeroSpecialUse.none;
+  if (move === undefined) return HeroSpecialUse.none;
   const observedNowX = f32(target.motion.x + f32(target.motion.deltaX * observationAge));
   const dx = f32(observedNowX - f.motion.x);
   const localX = f32(dx * f.facing);
   const localZ = f32(target.motion.z - f.motion.z);
-  // Active protection can be spent on offense; it need not reserve the cost of another guard.
-  const reserve = f.status.divineFrames > 0 ? 0 : guardReserve(specials, move);
-  if (isStance(move) || relocates(move) || f32(f.mana.points - move.cost) < reserve) return HeroSpecialUse.none;
+  if (isStance(move) || relocates(move)) return HeroSpecialUse.none;
   if (!travelStaysOnDeck(f, move, stage)) return HeroSpecialUse.none;
   let firstStrike: number | undefined;
   for (const region of move.regions ?? []) if (firstStrike === undefined || region.firstFrame < firstStrike) firstStrike = region.firstFrame;

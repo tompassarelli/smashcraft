@@ -78,6 +78,8 @@ export class CombatEffects {
   /** Created on first use, so a pool retained across a reload gains it. */
   private koFlash: KoFlash | undefined;
   private koFlashShown = false;
+  /** Per KO impact, whether every one of its bodies is parked; created on first use, so a pool retained across a reload gains it. */
+  private koParked: (boolean | undefined)[] | undefined;
   /** Impacts at their pool index, then KO bodies. */
   private parked: ParkedFlags | undefined;
   /** The impacts' plane, just in front of the fighters; hidden models park beneath it. */
@@ -213,7 +215,8 @@ export class CombatEffects {
   present(state: Readonly<ImpactState>, frame: number, confirmed: Readonly<ImpactState>, playing: boolean): void {
     const shownAges = (this.shownAges ??= []);
     const parked = (this.parked ??= []);
-    for (let i = 0; i < this.impacts.length; i++) {
+    const count = this.impacts.length;
+    for (let i = 0; i < count; i++) {
       const model = this.impacts[i];
       if (model === undefined) continue;
       const kind = floorDiv(i, IMPACTS_PER_KIND);
@@ -223,7 +226,7 @@ export class CombatEffects {
       const pose = playing && age !== undefined ? projectImpact(source, i) : undefined;
       if (pose === undefined || !pose.visible) {
         // The late pass below shows or parks a slot holding a late spark.
-        if (this.lateLive === 0 || this.late?.ages[i] === undefined) parkOnce(model, this, parked, i);
+        if (parked[i] !== true && (this.lateLive === 0 || this.late?.ages[i] === undefined)) parkOnce(model, this, parked, i);
         shownAges[i] = undefined;
         this.shownEmissions[i] = undefined;
         continue;
@@ -242,15 +245,30 @@ export class CombatEffects {
     }
     if (this.lateLive > 0) this.presentLate(state, frame, playing);
     this.presentKoFlash(frame, playing);
+    const koParked = (this.koParked ??= []);
     for (let i = 0; i < this.koBodies.length; i++) {
+      const group = floorDiv(i, KO_FIGHTERS);
+      const impact = STAR_KO_FIRST + group;
+      if (!playing || confirmed.ages[impact] === undefined) {
+        // A KO impact's bodies all park together, and almost every frame has none flying.
+        if (koParked[group] !== true) {
+          for (let body = i; body < i + KO_FIGHTERS; body++) {
+            const hidden = this.koBodies[body];
+            if (hidden !== undefined) parkOnce(hidden, this, parked, IMPACT_COUNT + body);
+          }
+          koParked[group] = true;
+        }
+        i += KO_FIGHTERS - 1;
+        continue;
+      }
       const model = this.koBodies[i];
       if (model === undefined) continue;
-      const impact = STAR_KO_FIRST + floorDiv(i, KO_FIGHTERS);
-      const pose = playing && confirmed.ages[impact] !== undefined ? projectKo(confirmed, impact) : undefined;
-      if (pose === undefined || !pose.visible || pose.character !== at(SELECTABLE_CHARACTERS, floorMod(i, KO_FIGHTERS))) {
+      const pose = projectKo(confirmed, impact);
+      if (!pose.visible || pose.character !== at(SELECTABLE_CHARACTERS, floorMod(i, KO_FIGHTERS))) {
         parkOnce(model, this, parked, IMPACT_COUNT + i);
         continue;
       }
+      koParked[group] = false;
       parked[IMPACT_COUNT + i] = false;
       placeEffect(model, this.x + pose.x, this.y + pose.y, this.z + pose.z);
       BlzSetSpecialEffectScale(model, characterModelScale(pose.character) * pose.scale);

@@ -1,8 +1,8 @@
-# #193: run from the safe centre into the right molten end, capture launch.
+# #193: run from the spawn onto the right lava spot (x about 184) and stand there; capture the warning glow, then the eruption's launch on frame 601.
 #! chat -dev quick stage 12
 15 a stick 1 0
-43 a stick 0 0
-45 a capture
-110 a capture
-130 a press VIEW
-200 a release VIEW
+35 a stick 0 0
+450 a capture
+612 a capture
+630 a press VIEW
+700 a release VIEW

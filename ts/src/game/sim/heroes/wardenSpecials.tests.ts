@@ -11,7 +11,6 @@ import { type Fighter, createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { SpecialForm } from "../heroSpecials";
 import { advanceHeroStatus } from "../heroSpecialRules";
-import { regenerateMana } from "../mana";
 import { updateProjectiles } from "../projectiles";
 import { type Controls, type Roster, createRoster } from "../roster";
 import { advanceSpecials, startFighterSpecial } from "../specials";
@@ -35,13 +34,13 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   updateProjectiles(world);
   finishDamageContacts(world);
   for (let slot = 0; slot < 2; slot++) {
-    regenerateMana(world.fighters[slot]!);
     advanceHeroStatus(world.fighters[slot]!);
   }
 }
 
 function pair(ownerX: number, targetX: number, facing = 1): { world: Roster; warden: Fighter; target: Fighter } {
   const warden = createFighter(Character.warden, ownerX, facing);
+  warden.mana.points = 100;
   const target = createFighter(Character.archer, targetX, -facing);
   const world = createRoster(3, [warden, target]);
   for (let i = 0; i < 3; i++) frame(world);
@@ -63,14 +62,14 @@ const upB = controls({ specialPressed: true, specialZ: 1, verticalDirection: 1 }
 const downB = controls({ specialPressed: true, specialZ: -1 });
 const hold = (direction: number, verticalDirection: number) => controls({ direction, verticalDirection });
 
-test("Warden's specials cost 5, 15, 20 and 18 mana once on entry [spec docs/design/roster.md]", () => {
-  for (const [input, cost] of [[neutralB, 5], [sideB(1), 15], [upB, 20], [downB, 18]] as const) {
+test("Warden's regular specials preserve the super meter [spec #335]", () => {
+  for (const input of [neutralB, sideB(1), upB, downB]) {
     const { world, warden } = pair(0.0, 500.0);
     frame(world, input);
     assertTrue(warden.special.action !== SpecialAction.none);
-    assertEquals(warden.mana.points, 100 - cost);
+    assertEquals(warden.mana.points, 100);
     for (let f = 2; f <= 20; f++) frame(world);
-    assertEquals(warden.mana.points, 100 - cost);
+    assertEquals(warden.mana.points, 100);
   }
 });
 
@@ -89,7 +88,7 @@ test("Shadow Strike throws one slow reflectable blade on f16 and refuses a secon
   assertEquals(warden.special.action, SpecialAction.none);
   frame(world, neutralB);
   assertEquals(warden.special.action, SpecialAction.none);
-  assertEquals(warden.mana.points, 95);
+  assertEquals(warden.mana.points, 100);
 });
 
 test("Pursuit Lunge travels 1.0H, slashes once for 10 at f11-14 and stops dead, in both facings [spec docs/design/roster.md]", () => {
@@ -159,7 +158,7 @@ test("Blink hovers through f8, then moves 3.5H in the held direction on f9, inta
   }
 });
 
-test("Blink's mana-free form blinks 1.9H the held way without intangibility [spec #252]", () => {
+test("Blink keeps its 3.5H travel and intangibility with a partial meter [spec #335]", () => {
   const { world, warden } = pair(0.0, 1500.0);
   place(warden, 0.0, 600.0);
   warden.mana.points = 19;
@@ -167,12 +166,12 @@ test("Blink's mana-free form blinks 1.9H the held way without intangibility [spe
   assertEquals(warden.mana.points, 19);
   for (let f = 2; f <= 9; f++) {
     frame(world, hold(1, 0));
-    assertFalse(isIntangible(warden));
+    assertEquals(isIntangible(warden), f >= 7);
   }
   const beforeX = warden.motion.x;
   const beforeZ = warden.motion.z;
   frame(world);
-  assertNear(f32(warden.motion.x - beforeX), f32(H * f32(1.9)), f32(0.01));
+  assertNear(f32(warden.motion.x - beforeX), f32(H * f32(3.5)), f32(0.01));
   assertEquals(warden.motion.z, beforeZ);
 });
 
@@ -234,7 +233,7 @@ test("Fan of Knives reaches 1.30H on the ground and in the air in both direction
     assertEquals(target.status.damage, 7.0);
     assertGreaterThan(target.status.poisonFrames, 0);
     assertGreaterThan(f32(target.launch.knockbackX * side), 0.0);
-    assertEquals(warden.mana.points, 82);
+    assertEquals(warden.mana.points, 100);
   }
 });
 
@@ -372,7 +371,7 @@ test("Shadow Pursuit: side special against a marked target in reach appears behi
     const mana = warden.mana.points;
     const before = target.status.damage;
     frame(world, sideB(facing));
-    assertEquals(warden.mana.points, mana - 15);
+    assertEquals(warden.mana.points, mana);
     run(world, 13);
     assertGreaterThan(f32(f32(target.motion.x - warden.motion.x) * facing), 100.0);
     run(world, 1);

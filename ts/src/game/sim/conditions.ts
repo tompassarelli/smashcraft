@@ -91,7 +91,7 @@ export function isIntangible(f: Fighter): boolean {
     || (dodge.airDodging && dodge.airFrame >= AIR_DODGE_INTANGIBLE_START && dodge.airFrame <= AIR_DODGE_INTANGIBLE_END);
 }
 
-export function canStartAttack(attacker: Fighter): boolean {
+export function canStartAttack(attacker: Fighter, allowJumpSquat = false): boolean {
   if (inSurfaceTechStartup(attacker)) return false;
   const { grab, shield } = attacker;
   if (grab.target !== undefined || grab.action !== GrabAction.none) return false;
@@ -100,7 +100,7 @@ export function canStartAttack(attacker: Fighter): boolean {
   return !attacker.status.out && !attacker.special.fall && attacker.special.lockFrames <= 0 && shield.breakState === ShieldBreak.none
     && (attacker.down.state === DownState.none || isTumbling(attacker)) && grab.grabbedFrames <= 0
     && attacker.launch.hitlag <= 0 && attacker.launch.hitstun <= 0 && shield.stun <= 0 && shield.releaseLag <= 0
-    && attacker.landing.lag <= 0 && !attacker.dodge.airDodging && !isGroundDodging(attacker) && attacker.jump.squat <= 0
+    && attacker.landing.lag <= 0 && !attacker.dodge.airDodging && !isGroundDodging(attacker) && (allowJumpSquat || attacker.jump.squat <= 0)
     && attacker.attack.cooldown <= 0;
 }
 
@@ -109,7 +109,7 @@ export function canAttack(attacker: Fighter): boolean {
 }
 
 export function canShieldGrab(attacker: Fighter): boolean {
-  return canStartAttack(attacker) && attacker.shield.raised && attacker.motion.grounded && !attacker.shield.drainResumePending;
+  return canStartAttack(attacker) && attacker.shield.raised && attacker.motion.grounded;
 }
 
 /**
@@ -128,6 +128,7 @@ export function jabChainStep(f: Readonly<Fighter>): AttackStyle | undefined {
 
 /** Whether a requested action may start; DASH_GRAB_REQUEST asks for a dash or shield grab. */
 export function canStartAttackStyle(attacker: Fighter, style: AttackStyle | undefined): boolean {
+  if (style === AttackStyle.grab && attacker.motion.grounded && attacker.jump.squat > 0) return canStartAttack(attacker, true);
   if (style === AttackStyle.jab && jabChainStep(attacker) !== undefined) return true;
   const dashGrabs = attacker.tuning.dashGrab.startupFrames > 0;
   if (style === DASH_GRAB_REQUEST) {
@@ -149,7 +150,7 @@ export function attackStartup(f: Readonly<Fighter>, style: AttackStyle): number 
 export function attackActive(f: Readonly<Fighter>, style: AttackStyle): number {
   if (!f.attack.dashGrab) return characterAttackActiveFrames(f.character, style, f.tuning.moves);
   const authoredGrab = f.tuning.moves?.normals[AttackStyle.grab];
-  return authoredGrab === undefined ? f.tuning.dashGrab.activeFrames : authoredGrab.activeFrames;
+  return authoredGrab === undefined ? f.tuning.dashGrab.activeFrames : 3;
 }
 
 export function attackPhase(f: Fighter): AttackPhase {

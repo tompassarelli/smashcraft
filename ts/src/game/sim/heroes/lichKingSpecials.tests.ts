@@ -12,7 +12,6 @@ import { type Fighter, createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { advanceHeroStatus } from "../heroSpecialRules";
 import { maskHeroStatusControls } from "../heroStatus";
-import { regenerateMana } from "../mana";
 import { attackStartupFrames, grabContactFrame } from "../moves";
 import { heroProjectileRadius, updateProjectiles } from "../projectiles";
 import { type Controls, type Roster, createRoster } from "../roster";
@@ -49,7 +48,6 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   updateProjectiles(world);
   finishDamageContacts(world);
   for (let slot = 0; slot < 2; slot++) {
-    regenerateMana(world.fighters[slot]!);
     advanceHeroStatus(world.fighters[slot]!);
   }
 }
@@ -74,17 +72,17 @@ function actionLength(world: Roster, owner: Fighter, press: Readonly<Controls>):
 
 const liveHero = (f: Readonly<Fighter>) => f.projectiles.find(p => p.life > 0 && p.kind === ProjectileKind.hero);
 
-test("the Lich King's specials spend their costs once and end on their authored frames [spec docs/design/roster.md]", () => {
-  for (const [press, cost, end] of [[neutral, 15, 44], [side, 20, 40], [down, 20, 50]] as const) {
+test("the Lich King's specials preserve their super meter and end on their authored frames [spec #335]", () => {
+  for (const [press, end] of [[neutral, 44], [side, 40], [down, 50]] as const) {
     const { world, owner } = pair(1000.0);
     const length = actionLength(world, owner, press);
     if (press === down) assertEquals(length, end);
-    assertEquals(owner.mana.points, 100 - cost);
+    assertEquals(owner.mana.points, 100);
   }
   const { world, owner } = pair(1000.0);
   frame(world, up);
   assertEquals(owner.special.action, SpecialAction.heroUp);
-  assertEquals(owner.mana.points, 85);
+  assertEquals(owner.mana.points, 100);
 });
 
 test("Val'kyr Shadowguard carries its catch toward the edge it flew at for 80 frames, rising, with no control [spec docs/design/roster.md]", () => {
@@ -109,7 +107,7 @@ test("Val'kyr Shadowguard carries its catch toward the edge it flew at for 80 fr
   }
 });
 
-test("a carried fighter mashes free, never before frame 20, and any hit drops the carry [spec docs/design/roster.md]", () => {
+test("a carried fighter mashes free, never before frame 20, and any hit drops the carry [spec #335]", () => {
   const mashLength = (mash: boolean): number => {
     const { world, target } = pair(f32(H * f32(1.2)));
     frame(world, side);

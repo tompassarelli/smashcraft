@@ -71,7 +71,7 @@ const imports: string[] = [];
 const themed: string[] = [];
 for (const { stage, theme, palette, materials } of STAGE_DECK_PALETTES) {
     // Each stage's main deck, in arena units at scale 1, from its own outline; its compiled vertices must be the outline's.
-    // A stage whose main deck has no body (Blackrock's floor-only deck) draws the slab and keeps the reference outline.
+    // A stage whose main deck has no body keeps the reference outline.
     const mainFaces = mainDeckFaces(mainDeckOutlineStage(stage));
     const authored = mainFaces.flatMap(face => face.corners.flatMap(corner => corner.map(Math.fround)));
     const { bytes: texture, name: textureName } = paletteTexture(palette);

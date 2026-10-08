@@ -21,7 +21,7 @@ import {
 } from "./transitions";
 
 import { stageBounds } from "./stageBounds";
-import { refillMana } from "./heroSpecialRules";
+import { resetSpecialOnStock } from "./heroSpecialRules";
 import { clearHeroStatus } from "./heroStatus";
 import { endItemBuff, groundedJumps } from "./itemBuffs";
 const RESPAWN_FRAMES = 60;
@@ -85,13 +85,14 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   motion.crouching = false;
   f.ground.dashGrabWindow = 0;
   attack.dashGrab = false;
+  attack.pivotGrab = false;
   jump.dodgeQueued = false;
   jump.dodgeX = 0;
   jump.dodgeZ = 0;
   clearGrabLinks(world, slot);
   clearSpecialOnStock(f);
   f.visuals.manaDrained = 0;
-  refillMana(f);
+  resetSpecialOnStock(f);
   f.status.armorFrames = 0;
   f.status.armorChills = false;
   f.status.divineFrames = 0;
@@ -116,6 +117,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   f.cannon.held = undefined;
   f.cannon.firing = undefined;
   f.cannon.cooldown = 0;
+  f.cannon.passing = false;
   f.water.inWater = false;
   f.water.frames = 0;
   f.water.entries = 0;

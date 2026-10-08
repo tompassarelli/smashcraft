@@ -514,7 +514,7 @@ test("ground actions, their clock and the actor's ground rules are replay state 
   assertEquals(firstStateDifference(expected, actual), "fighter[0].groundTurnRunFacingCommandLatched");
 });
 
-test("dash grab rules and the catch window are replay state [invariant]", () => {
+test("dash and pivot grabs and the catch window are replay state [invariant]", () => {
   const expected = createReplaySnapshot();
   const actual = createReplaySnapshot();
   for (const snapshot of [expected, actual]) {
@@ -531,6 +531,9 @@ test("dash grab rules and the catch window are replay state [invariant]", () => 
   fighter.attack.dashGrab = false;
   assertEquals(firstStateDifference(expected, actual), "fighter[0].dashGrabAttack");
   fighter.attack.dashGrab = true;
+  fighter.attack.pivotGrab = true;
+  assertEquals(firstStateDifference(expected, actual), "fighter[0].pivotGrabAttack");
+  fighter.attack.pivotGrab = false;
   fighter.tuning.dashGrab = { startupFrames: 10, activeFrames: 1, totalFrames: 40 };
   assertEquals(firstStateDifference(expected, actual), "fighter[0].dashGrabTiming");
   fighter.tuning.dashGrab = NTSC_CAPTAIN_FALCON_DASH_GRAB_RULES;

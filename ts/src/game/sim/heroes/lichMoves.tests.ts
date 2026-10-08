@@ -175,8 +175,8 @@ test("Lich dash attack selects the hovering glide and smash charge caps at 45 fr
   assertEquals(out.effect.damage, 22.5);
 });
 
-test("Lich spectral grab catches shield on either active tick at its adopted reach [spec docs/design/roster.md]", () => {
-  const reach = f32(HERO_REFERENCE_HEIGHT * f32(0.70));
+test("Lich spectral grab catches shield on either active tick at the scaled standing reach [spec #337]", () => {
+  const reach = 96.0;
   for (const facing of [-1, 1]) {
     for (const tick of [9, 10]) {
       for (const [x, caught] of [[reach, true], [f32(reach + 1.0), false]] as const) {

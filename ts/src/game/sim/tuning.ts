@@ -335,7 +335,7 @@ export const NTSC_CAPTAIN_FALCON_GROUND_MOVEMENT_RULES: GroundMovementRules = {
 /** The authored roster dash grabs with its ordinary grab timing; test rigs override it. */
 export const AUTHORED_DASH_GRAB_RULES: DashGrabRules = {
   startupFrames: attackStartupFrames(AttackStyle.grab),
-  activeFrames: 1,
+  activeFrames: 3,
   totalFrames: attackDurationFramesForGrounding(AttackStyle.grab, true),
 };
 

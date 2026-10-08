@@ -93,6 +93,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   record("dashGrabTiming", expectedTuning.dashGrab, actualTuning.dashGrab, DASH_GRAB_KEYS);
   add("dashGrabWindow", e.ground.dashGrabWindow, a.ground.dashGrabWindow);
   add("dashGrabAttack", e.attack.dashGrab, a.attack.dashGrab);
+  add("pivotGrabAttack", e.attack.pivotGrab, a.attack.pivotGrab);
   add("groundAction", e.ground.action, a.ground.action);
   add("groundActionFrame", e.ground.actionFrame, a.ground.actionFrame);
   add("groundRunBrakeFramesRemaining", e.ground.runBrakeFramesRemaining, a.ground.runBrakeFramesRemaining);
@@ -220,7 +221,6 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("poisonEvery", e.status.poisonEvery, a.status.poisonEvery);
   add("poisonDamage", e.status.poisonDamage, a.status.poisonDamage);
   add("manaPoints", e.mana.points, a.mana.points);
-  add("manaProgress", e.mana.progress, a.mana.progress);
   add("manaDeniedSerial", e.visuals.manaDenied, a.visuals.manaDenied);
   add("specialForm", e.special.form, a.special.form);
   add("specialAimX", e.special.aimX, a.special.aimX);
@@ -376,6 +376,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("cannonHeld", e.cannon.held ?? -1, a.cannon.held ?? -1);
   add("cannonFiring", e.cannon.firing ?? -1, a.cannon.firing ?? -1);
   add("cannonCooldown", e.cannon.cooldown, a.cannon.cooldown);
+  add("cannonPassing", e.cannon.passing ? 1 : 0, a.cannon.passing ? 1 : 0);
   add("waterIn", e.water.inWater, a.water.inWater);
   add("waterFrames", e.water.frames, a.water.frames);
   add("waterEntries", e.water.entries, a.water.entries);

@@ -1,6 +1,5 @@
 // Executes the expansion heroes' authored specials (heroSpecials.ts) and the
-// roster's mana contract: costs spent once on entry, the free up special,
-// grounded regeneration, strike paths, motion, projectiles, intangible and
+// roster's special contract: strike paths, motion, projectiles, intangible and
 // armor windows, airtime limits and helpless ends. Every value it changes is
 // fighter state, so rollback restores it with the fighter.
 import { max, min } from "../../runtime/numbers";
@@ -15,7 +14,7 @@ import { type FighterSpecials, type AuthoredSpecial, CompanionMode, CompanionOrd
 import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "./hitRegions";
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { travelBeforeBodies } from "./travelStop";
-import { fillMana, gainMana, spendMana } from "./mana";
+import { gainMana } from "./mana";
 import { endDivineShield } from "./transitions";
 import { capsuleCircleIntersects, shieldSizeMultiplier } from "./shield";
 import { shieldCenterX, shieldCenterZ } from "./shieldTilt";
@@ -116,8 +115,7 @@ const choice: HeroSpecialChoice = { slot: SpecialSlot.neutral, form: SpecialForm
 
 /**
  * The form a press would start, or undefined when it may not: ground-only in
- * the air, already used this airtime, or past an entity limit. Below the full
- * cost, a kit with a free form chooses it; one without refuses (`manaShort`).
+ * the air, already used this airtime, or past an entity limit.
  */
 export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<FighterSpecials>, input: Readonly<Controls>, out: SpecialRefusal, world?: Roster): HeroSpecialChoice | undefined {
   out.manaShort = false;
@@ -128,21 +126,13 @@ export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<Fight
   const airborne = !f.motion.grounded;
   const recalls = kit.recall !== undefined && recallHolds(f, kit);
   const marks = kit.marked !== undefined && world !== undefined && markedTarget(world, f, kit.marked.range) !== undefined;
-  let form: SpecialForm = recalls ? SpecialForm.recall : marks ? SpecialForm.marked : airborne && kit.air !== undefined ? SpecialForm.air : SpecialForm.ground;
-  let move = specialForm(kit, form);
+  const form: SpecialForm = recalls ? SpecialForm.recall : marks ? SpecialForm.marked : airborne && kit.air !== undefined ? SpecialForm.air : SpecialForm.ground;
+  const move = specialForm(kit, form);
   if (move.groundOnly === true && airborne) {
     out.groundOnly = true;
     return undefined;
   }
   if (move.armor?.shell === true && f.status.armorFrames > 0) return undefined;
-  if (move.cost > f.mana.points) {
-    if (kit.free === undefined) {
-      out.manaShort = true;
-      return undefined;
-    }
-    form = SpecialForm.free;
-    move = kit.free;
-  }
   if (move.oncePerAirtime === true && airborne && (f.special.airtimeUses & (1 << slot)) !== 0) return undefined;
   if (move.command?.order === CompanionOrder.lunge && !companionReady(f, move.command.slot)) return undefined;
   if (!projectilesFit(f, move)) return undefined;
@@ -151,9 +141,8 @@ export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<Fight
   return choice;
 }
 
-/** A new stock starts with full mana, its airtime uses restored and no guard healing spent. */
-export function refillMana(f: Fighter): void {
-  fillMana(f);
+/** A new stock restores airtime uses and guard healing; its super meter carries. */
+export function resetSpecialOnStock(f: Fighter): void {
   f.special.airtimeUses = 0;
 }
 
@@ -191,7 +180,7 @@ export function steerHeroSpecial(f: Fighter, input: Readonly<Controls>): void {
   f.special.aimZ = z;
 }
 
-/** Spends the chosen form's cost and records the entry; the caller has started the action. */
+/** Records the chosen form; the caller has started the action and paid any EX meter. */
 export function enterHeroSpecial(f: Fighter, chosen: Readonly<HeroSpecialChoice>, input: Readonly<Controls>): AuthoredSpecial {
   const specials = f.tuning.specials;
   if (specials === undefined) throw new Error("hero special without a kit");
@@ -207,7 +196,6 @@ export function enterHeroSpecial(f: Fighter, chosen: Readonly<HeroSpecialChoice>
   for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
   special.hit = false;
   special.guarded = false;
-  spendMana(f, move.cost);
   special.cooldowns[SpecialAction.heroNeutral + chosen.slot] = move.cooldownFrames ?? 0;
   if (move.oncePerAirtime === true) special.airtimeUses |= 1 << chosen.slot;
   if (move.recallsProjectiles === true) recallProjectiles(f);
@@ -647,10 +635,6 @@ export function followUpHeroSpecial(f: Fighter, input: Readonly<Controls>): bool
   if (index >= followUps.length) return false;
   const followUp = at(followUps, index);
   const next = followUp.special;
-  if (next.cost > f.mana.points) {
-    f.visuals.manaDenied++;
-    return false;
-  }
   if (followUp.facesStick === true && input.direction !== 0) f.facing = input.direction < 0 ? -1 : 1;
   special.form += FOLLOW_UP_FORM * (index + 1);
   special.exArmorUsed = special.ex;
@@ -661,7 +645,6 @@ export function followUpHeroSpecial(f: Fighter, input: Readonly<Controls>): bool
   f.attack.cooldown = next.endFrame;
   for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
   special.hit = false;
-  spendMana(f, next.cost);
   applyWindows(f, next, 0);
   return true;
 }

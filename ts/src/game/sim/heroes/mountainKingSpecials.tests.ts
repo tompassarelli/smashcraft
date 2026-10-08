@@ -8,7 +8,6 @@ import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { advanceHeroStatus } from "../heroSpecialRules";
-import { regenerateMana } from "../mana";
 import { updateProjectiles } from "../projectiles";
 import { type Controls, type Roster, createRoster } from "../roster";
 import { advanceSpecials, startFighterSpecial } from "../specials";
@@ -41,7 +40,6 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   updateProjectiles(world);
   finishDamageContacts(world);
   for (let slot = 0; slot < 2; slot++) {
-    regenerateMana(world.fighters[slot]!);
     advanceHeroStatus(world.fighters[slot]!);
   }
 }
@@ -65,17 +63,17 @@ function actionLength(world: Roster, owner: Fighter, press: Readonly<Controls>):
   return length;
 }
 
-test("Mountain King's specials spend their roster costs once and end on their roster frames [spec docs/design/roster.md]", () => {
+test("Mountain King's specials preserve their super meter and end on their roster frames [spec #335]", () => {
   assertTrue(MOUNTAIN_KING_HERO.specials !== undefined);
-  for (const [press, cost, end] of [[neutral, 8, 58], [side, 18, 46], [down, 20, 81]] as const) {
+  for (const [press, end] of [[neutral, 58], [side, 46], [down, 81]] as const) {
     const { world, owner } = pair(1200.0);
     assertEquals(actionLength(world, owner, press), end);
-    assertEquals(owner.mana.points, 100 - cost);
+    assertEquals(owner.mana.points, 100);
   }
   const { world, owner } = pair(1200.0);
   frame(world, up);
   assertEquals(owner.special.action, SpecialAction.heroUp);
-  assertEquals(owner.mana.points, 85);
+  assertEquals(owner.mana.points, 100);
 });
 
 test("Storm Bolt flies 0.12H a frame from frame 20, one at a time, and hits once for 5.525 [spec docs/design/roster.md]", () => {
@@ -107,7 +105,7 @@ test("Storm Bolt flies 0.12H a frame from frame 20, one at a time, and hits once
   }
 });
 
-test("a shielded Storm Bolt at full travel leaves the defender free before Mountain King can run in to grab [spec docs/design/roster.md]", () => {
+test("a shielded Storm Bolt at full travel leaves the defender free before Mountain King can run in to grab [spec #335]", () => {
   // Its outbound flight: 45 frames from frame 20, then it turns back.
   const travel = f32(f32(H * f32(0.12)) * 44);
   const { world, owner, target } = pair(f32(travel + 32.0));
@@ -159,7 +157,7 @@ test("Thunder Clap charges: a release in f10-29 is the 9.945% Clap, f30-49 the 1
   assertEquals(target.status.damage, 0.0);
   run(world, 4);
   assertGreaterThan(target.status.damage, 0.0);
-  assertEquals(owner.mana.points, 80);
+  assertEquals(owner.mana.points, 100);
 });
 
 test("Thunder Clap's ground waves reach about 2.4H past the ring on both sides; the small Clap sends none [spec docs/design/roster.md]", () => {
@@ -197,7 +195,7 @@ test("Thunder Clap counterplay: a jump clears ring and waves, a hit during the c
   assertEquals(held.owner.special.action, SpecialAction.none);
   run(held.world, 2, controls({ shield: true, shieldTriggerActive: true }));
   assertTrue(held.owner.shield.raised);
-  assertEquals(held.owner.mana.points, 80);
+  assertEquals(held.owner.mana.points, 100);
 });
 
 test("Storm Bolt turns back after 45 frames and flies to Mountain King, who can throw again once it arrives [spec docs/design/roster.md]", () => {
@@ -231,7 +229,7 @@ test("Storm Bolt recall: neutral special while it flies calls it back at once, a
   assertGreaterThan(bolt.x, target.motion.x);
   assertEquals(owner.special.action, SpecialAction.none);
   frame(world, neutral);
-  assertEquals(owner.mana.points, 92);
+  assertEquals(owner.mana.points, 100);
   target.motion.z = 0.0;
   target.motion.grounded = true;
   target.motion.vz = 0.0;
@@ -304,7 +302,7 @@ test("Storm Rush carries 1.2H, hits for 13.26 and its air form ends helpless [sp
   assertTrue(air.owner.special.fall);
 });
 
-test("Thunder Leap rises 2.7H straight up and strikes; below 15 mana the free leap rises less, spends nothing and cannot strike [spec #189] [spec docs/design/roster.md]", () => {
+test("Thunder Leap keeps its full rise and strike at every meter level [spec #335]", () => {
   const rise = (mana: number, target: boolean): { height: number; damage: number; owner: Fighter } => {
     const { world, owner, target: victim } = pair(target ? 40.0 : 1200.0);
     owner.mana.points = mana;
@@ -321,16 +319,16 @@ test("Thunder Leap rises 2.7H straight up and strikes; below 15 mana the free le
       frame(world, f === 1 ? up : controls());
       peak = Math.max(peak, owner.motion.z);
     }
-    assertEquals(owner.mana.points, mana >= 15 ? mana - 15 : mana);
+    assertEquals(owner.mana.points, Math.min(100, mana + Math.min(12, Math.floor(victim.status.damage))));
     return { height: peak, damage: victim.status.damage, owner };
   };
   const full = rise(100, false);
   const free = rise(10, false);
-  assertLessThan(free.height, full.height);
+  assertEquals(free.height, full.height);
   assertTrue(full.owner.special.fall);
   assertTrue(free.owner.special.fall);
   assertGreaterThan(rise(100, true).damage, 0.0);
-  assertEquals(rise(10, true).damage, 0.0);
+  assertEquals(rise(10, true).damage, rise(100, true).damage);
 });
 
 test("replaying Mountain King's specials from a restored snapshot reproduces every fighter field [invariant]", () => {
@@ -352,7 +350,7 @@ test("replaying Mountain King's specials from a restored snapshot reproduces eve
   copyFighterState(endOwner, owner, 3);
   copyFighterState(endTarget, target, 3);
   assertGreaterThan(target.status.damage, 0.0);
-  assertFalse(owner.mana.points === 100);
+  assertEquals(owner.mana.points, 100);
   copyFighterState(owner, savedOwner, 3);
   copyFighterState(target, savedTarget, 3);
   run();
@@ -372,7 +370,7 @@ test("Storm Rush stops at a raised shield or a body instead of carrying through 
   }
 });
 
-test("a point-blank Storm Bolt on a held shield leaves the defender free well before Mountain King acts [spec docs/design/roster.md]", () => {
+test("a point-blank Storm Bolt on a held shield leaves the defender free well before Mountain King acts [spec #335]", () => {
   const { world, target } = pair(90.0);
   const guard = controls({ shield: true });
   let blockedAt = 0;

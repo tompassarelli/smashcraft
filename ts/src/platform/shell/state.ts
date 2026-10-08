@@ -265,6 +265,8 @@ export interface ShellState {
   /** The stage whose decks and cannon are drawn. */
   drawnStage: number;
   stageCannon: effect | undefined;
+  /** Blackrock's lava patch, drawn on its side of the timetable. */
+  stageLava: effect | undefined;
   stageScenery: effect[] | undefined;
   shadowLightsRaised: boolean;
   /** `-dev view near|far` holds the local camera at a stage's camera extreme for captures; never in replay state. */
@@ -375,7 +377,7 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
     produced: createFrameControls(), runtime: createPacingAndPresentation(), session: createMatchControls(),
     frameInput: createMatchFrameInput(),
     participants: [participant(0, persistence), participant(1, persistence), participant(2, persistence), participant(3, persistence)],
-    status: { text: "", seconds: 0.0 }, frames: setup.frames, stageDecks: [], stageDeckParts: [], drawnStage: 0, stageCannon: undefined, stageScenery: undefined, shadowLightsRaised: false, viewExtreme: undefined, ui: undefined,
+    status: { text: "", seconds: 0.0 }, frames: setup.frames, stageDecks: [], stageDeckParts: [], drawnStage: 0, stageCannon: undefined, stageLava: undefined, stageScenery: undefined, shadowLightsRaised: false, viewExtreme: undefined, ui: undefined,
     sounds: createModelSoundCursor(ORIGINAL_MODEL_SOUNDS),
     dev: { rollback: isShadow(input) ? input.rollback : 6, delay: isShadow(input) ? input.delay : 3, batch: DEFAULT_BATCH, rematchSeconds: REMATCH_COUNTDOWN_SECONDS }, devReceipts: 0,
     trace: inputTrace(build.responseProbe || build.inputProfile === "native-driver" ? 2048 : 256),

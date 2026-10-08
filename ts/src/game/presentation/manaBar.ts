@@ -70,7 +70,7 @@ export function manaDrainLit(feedback: Readonly<ManaFeedback>): boolean {
 }
 
 export function manaGlowLit(feedback: Readonly<ManaFeedback>): boolean {
-  return feedback.glowLeft > 0;
+  return feedback.seenPoints >= ROSTER_MANA.max || feedback.glowLeft > 0;
 }
 
 /** The fill's share of the bar, 0..1. */

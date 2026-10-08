@@ -1,6 +1,6 @@
 import { mutableProjectile } from "./fighterProjectiles";
 // Shared hero-special and mana contracts, run through the production special,
-// projectile, contact and regeneration functions with a test kit.
+// projectile and contact functions with a test kit.
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "./attacks";
@@ -11,9 +11,8 @@ import { heroRegion } from "./heroMoves";
 import { HurtContact, fighterHurtParts, hurtPart, hurtPose, strikeHurtContact } from "./hurtboxes";
 import { emptyCapsule, hurtCapsule, placeCapsule } from "../physics/contactGeometry";
 import { advanceHeroStatus } from "./heroSpecialRules";
-import { ROSTER_MANA, regenerateMana } from "./mana";
+import { ROSTER_MANA } from "./mana";
 import { type AuthoredSpecial, type FighterSpecials, frames } from "./heroSpecials";
-import { HERO_ROSTER } from "./heroes/registry";
 import { updateProjectiles } from "./projectiles";
 import { FROZEN_THRONE_STAGE, SOLID_DECK_TEST_STAGE, surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
 import { type Controls, type Roster, createRoster } from "./roster";
@@ -62,7 +61,6 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   updateProjectiles(world, 0, 0);
   finishDamageContacts(world);
   for (let slot = 0; slot < 2; slot++) {
-    regenerateMana(world.fighters[slot]!);
     advanceHeroStatus(world.fighters[slot]!);
   }
 }
@@ -80,52 +78,52 @@ const up = controls({ specialPressed: true, specialZ: 1 });
 const down = controls({ specialPressed: true, specialZ: -1 });
 const neutral = controls({ specialPressed: true });
 
-test("a hero special spends its cost once on entry and the fighter acts again the frame after its end [spec docs/design/mana.md]", () => {
+test("a regular hero special spends no meter and the fighter acts again the frame after its end [spec #335]", () => {
   const { world, owner } = pair(600.0);
   frame(world, side);
   assertEquals(owner.special.action, SpecialAction.heroSide);
-  assertEquals(owner.mana.points, 82);
+  assertEquals(owner.mana.points, 100);
   for (let f = 2; f <= 29; f++) frame(world, side);
   assertEquals(owner.special.action, SpecialAction.heroSide);
-  assertEquals(owner.mana.points, 82);
+  assertEquals(owner.mana.points, 100);
   frame(world);
   assertEquals(owner.special.action, SpecialAction.none);
   frame(world, neutral);
   assertEquals(owner.special.action, SpecialAction.heroNeutral);
 });
 
-test("an unaffordable special starts nothing and counts one refusal per press [spec docs/design/mana.md]", () => {
+test("a regular special starts at zero meter without a refusal [spec #335]", () => {
   const { world, owner } = pair(600.0);
-  owner.mana.points = 10;
+  owner.mana.points = 0;
   frame(world, down);
-  assertEquals(owner.special.action, SpecialAction.none);
-  assertEquals(owner.mana.points, 10);
-  assertEquals(owner.visuals.manaDenied, 1);
+  assertEquals(owner.special.action, SpecialAction.heroDown);
+  assertEquals(owner.mana.points, 0);
+  assertEquals(owner.visuals.manaDenied, 0);
   frame(world);
-  assertEquals(owner.visuals.manaDenied, 1);
+  assertEquals(owner.visuals.manaDenied, 0);
   frame(world, side);
-  assertEquals(owner.visuals.manaDenied, 2);
+  assertEquals(owner.visuals.manaDenied, 0);
 });
 
-test("below the full cost the up special takes its free form and spends nothing [spec docs/design/mana.md]", () => {
+test("at zero meter the up special takes its full form and spends nothing [spec #335]", () => {
   const { world, owner } = pair(600.0);
-  owner.mana.points = 14;
+  owner.mana.points = 0;
   frame(world, up);
   assertEquals(owner.special.action, SpecialAction.heroUp);
-  assertEquals(owner.special.form, 2);
-  assertEquals(owner.mana.points, 14);
+  assertEquals(owner.special.form, 0);
+  assertEquals(owner.mana.points, 0);
   for (let f = 2; f <= 6; f++) frame(world);
-  assertEquals(owner.motion.vz < 12.0, true);
+  assertEquals(owner.motion.vz, 12.0);
   for (let f = 7; f <= 25; f++) frame(world);
   assertTrue(owner.special.fall);
   frame(world, up);
   assertEquals(owner.special.action, SpecialAction.none);
 });
 
-test("an up special is used once per airtime and landing restores it [spec docs/design/roster.md]", () => {
+test("an up special is used once per airtime without spending meter and landing restores it [spec docs/design/roster.md] [spec #335]", () => {
   const { world, owner } = pair(600.0);
   frame(world, up);
-  assertEquals(owner.mana.points, 85);
+  assertEquals(owner.mana.points, 100);
   for (let f = 2; f <= 25; f++) frame(world);
   assertFalse(owner.motion.grounded);
   assertTrue(owner.special.fall);
@@ -135,29 +133,6 @@ test("an up special is used once per airtime and landing restores it [spec docs/
   for (let f = 0; f < 240 && !owner.motion.grounded; f++) frame(world);
   assertTrue(owner.motion.grounded);
   assertEquals(owner.special.airtimeUses, 0);
-});
-
-test("mana trickles back a point every 60 eligible frames from the frame a special ends, never during it [spec docs/design/mana.md]", () => {
-  const { world, owner } = pair(600.0);
-  frame(world, side);
-  for (let f = 2; f <= 29; f++) frame(world);
-  assertEquals(owner.mana.progress, 0);
-  frame(world);
-  assertEquals(owner.mana.points, 82);
-  assertEquals(owner.mana.progress, 2);
-  assertEquals(owner.special.action, SpecialAction.none);
-  for (let f = 1; f <= 15; f++) frame(world);
-  assertEquals(owner.mana.points, 82);
-  for (let f = 1; f <= 43; f++) frame(world);
-  assertEquals(owner.mana.points, 82);
-  frame(world);
-  assertEquals(owner.mana.points, 83);
-  for (let f = 1; f <= 16; f++) frame(world);
-  assertEquals(owner.mana.points, 83);
-  owner.shield.raised = true;
-  const shielded = owner.mana.points;
-  for (let f = 1; f <= 30; f++) frame(world, controls({ shield: true }));
-  assertEquals(owner.mana.points, shielded);
 });
 
 test("a ground-only special fails in the air without spending [spec docs/design/roster.md]", () => {
@@ -229,15 +204,6 @@ test("replaying a hero special from a restored snapshot reproduces every fighter
   run();
   assertEquals(firstFighterDifference(endOwner, owner, 3, 3), undefined);
   assertEquals(firstFighterDifference(endTarget, target, 3, 3), undefined);
-});
-
-test("a complete hero ships its four specials with a free up special [spec docs/design/mana.md]", () => {
-  for (const definition of HERO_ROSTER) {
-    if (!definition.complete) continue;
-    const specials = definition.specials;
-    assertTrue(specials !== undefined);
-    assertTrue(specials?.up.free !== undefined && specials.up.free.cost === 0);
-  }
 });
 
 test("a stopsAtBody dash special ends short of an exposed body and a raised shield, and an unmarked one carries through [spec docs/design/roster.md]", () => {
@@ -330,7 +296,7 @@ test("hero projectiles end on walls, undersides and solid deck tops, and pass th
 });
 
 
-test("a second press inside a follow-up window starts the follow-up once; presses outside it change nothing [spec docs/design/roster.md]", () => {
+test("a second press inside a follow-up window starts the follow-up once without spending meter; presses outside it change nothing [spec docs/design/roster.md] [spec #335]", () => {
   const slash: AuthoredSpecial = { cost: 0, endFrame: 37, regions: [heroRegion(10, 12, { x1: 10.0, z1: 50.0, x2: 110.0, z2: 50.0, radius: 12.0 }, hit(10.0))] };
   const feint: AuthoredSpecial = { cost: 15, endFrame: 24, followUps: [{ window: frames(8, 19), special: slash }] };
   const run = (pressAt: number) => {
@@ -350,7 +316,7 @@ test("a second press inside a follow-up window starts the follow-up once; presse
     for (let f = outside + 1; f <= 24; f++) frame(world);
     assertEquals(owner.special.action, SpecialAction.none);
     assertEquals(target.status.damage, 0.0);
-    assertEquals(owner.mana.points, 85);
+    assertEquals(owner.mana.points, 100);
   }
   for (const inside of [8, 19]) {
     const { world, owner, target } = run(inside);
@@ -369,6 +335,6 @@ test("a second press inside a follow-up window starts the follow-up once; presse
     }
     assertEquals(last, 36);
     assertEquals(owner.special.action, SpecialAction.none);
-    assertEquals(owner.mana.points, 85);
+    assertEquals(owner.mana.points, 100);
   }
 });

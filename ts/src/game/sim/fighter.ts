@@ -24,7 +24,6 @@ import {
 } from "./codes";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type FighterTuning, authoredTuning } from "./tuning";
-import { ROSTER_MANA } from "./mana";
 import { HitElement } from "./hitRegions";
 import { initializeInfluenceOperands } from "./influenceOperands";
 import type { SpecialPlacement, SpecialProjectile } from "./heroSpecials";
@@ -185,6 +184,7 @@ interface Attack {
   serial: number;
   hit: boolean;
   dashGrab: boolean;
+  pivotGrab: boolean;
   /** Frames before any new action, set by attacks, specials and traps. */
   cooldown: number;
   smashCharging: boolean;
@@ -435,6 +435,8 @@ interface StageCannon {
   firing: number | undefined;
   /** Frames before a cannon can catch this fighter again. */
   cooldown: number;
+  /** A shot carrying this fighter up through the main deck: its walls and underside let it pass until it is above the deck's top or lands. */
+  passing: boolean;
 }
 
 /** The Tomb's sea (water.ts): this fighter's visit and the hydra rising under it. */
@@ -488,8 +490,6 @@ interface Status {
 /** Every fighter's resource for specials (sim/mana.ts). */
 interface Mana {
   points: number;
-  /** Trickle progress toward the next point. */
-  progress: number;
 }
 
 /** A placed object or animal (sim/placedObjects.ts); `life` 0 when absent. */
@@ -691,6 +691,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       serial: 0,
       hit: false,
       dashGrab: false,
+      pivotGrab: false,
       cooldown: 0,
       smashCharging: false,
       smashChargeFrames: 0,
@@ -755,10 +756,10 @@ export function createFighter(character: Character, startX: number, facing: numb
       move: PlatformMove.none, frame: 0, duration: 0, deck: undefined, fromX: 0.0, toX: 0.0, fromZ: 0.0, toZ: 0.0, rise: 0.0,
       stand: false, shield: false, wrapLeft: 0, wrapLeftAge: 0, wrapRight: 0, wrapRightAge: 0, dodgeQueued: false, dodgeX: 0, dodgeZ: 0, specialQueued: false, specialX: 0, specialZ: 0,
     },
-    cannon: { held: undefined, firing: undefined, cooldown: 0 },
+    cannon: { held: undefined, firing: undefined, cooldown: 0, passing: false },
     water: { inWater: false, frames: 0, entries: 0, hydraFrame: 0, hydraX: 0.0 },
     status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0, armorChills: false, condition: 0, conditionFrames: 0, conditionGroup: 0, conditionImmunityFrames: 0, conditionImmunity: [0, 0, 0], divineFrames: 0, poisonFrames: 0, poisonEvery: 0, poisonDamage: 0.0, buff: 0, buffFrames: 0 },
-    mana: { points: ROSTER_MANA.max, progress: 0 },
+    mana: { points: 0 },
     placed: createPlacedObject(),
     pack: character === Character.beastmaster ? [createPlacedObject(), createPlacedObject()] : [],
   };

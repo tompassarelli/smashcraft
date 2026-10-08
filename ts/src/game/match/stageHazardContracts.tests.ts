@@ -159,14 +159,20 @@ test("the cannon catches the first fighter to touch it, holds it intangible as i
   }
   playPads(run, NEUTRAL, NEUTRAL);
   assertFiredAlongAim(victim, shot);
-  // The shot clears the deck and leaves the fighter in play; the cannon does not catch it again on the way.
+  // Fired from under the deck, the shot passes up through its underside and
+  // floor and leaves the fighter in play; the cannon does not catch it again
+  // on the way. Above the deck's top the deck is solid to it again (#338).
+  assertLessThan(Math.abs(victim.motion.x), 600.0);
+  assertTrue(victim.cannon.passing);
   let highest = victim.motion.z;
   for (let frame = 0; frame < 240; frame++) {
     playPads(run, NEUTRAL, NEUTRAL);
     highest = Math.max(highest, victim.motion.z);
+    if (victim.motion.z > 0.0) assertFalse(victim.cannon.passing);
     assertFalse(victim.status.out);
   }
   assertGreaterThan(highest, 0.0);
+  assertFalse(victim.cannon.passing);
 });
 
 test("a held fighter that presses nothing is fired when the hold runs out [spec #79]", () => {

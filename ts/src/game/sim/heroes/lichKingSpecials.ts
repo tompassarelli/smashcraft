@@ -1,11 +1,9 @@
 // The Lich King's four specials (#167), from the Icecrown Citadel encounter
 // and Warcraft III: Howling Blast, Val'kyr Shadowguard, Ascension of the
 // Damned and Defile. Frames follow the roster brief (entry tick is frame 1).
-// A banked soul (Frostmourne Hungers, sim/passives.ts) empowers Howling Blast
-// and Val'kyr Shadowguard through their `soul` forms. Values are provisional.
+import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HeroStatusGroup, HeroStatusKind, HitElement } from "../codes";
-import { CHILL } from "../chill";
 import { HERO_REFERENCE_HEIGHT, heroRegion } from "../heroMoves";
 import { type AppliedStatus } from "../heroStatus";
 import { type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, frames } from "../heroSpecials";
@@ -19,7 +17,7 @@ const AIR_LANDING_LAG = 20;
 
 /**
  * Howling Blast: a wide frost gust that travels about 2.9H on frame 16.
- * Reflectable; with a soul it is wider, harder and chills (sim/chill.ts).
+ * Reflectable.
  */
 const blastProjectile = (radius: number, damage: number, status: AppliedStatus | undefined): SpecialProjectile => ({
   model: "Abilities\\Weapons\\FrostWyrmMissile\\FrostWyrmMissile.mdx",
@@ -27,7 +25,6 @@ const blastProjectile = (radius: number, damage: number, status: AppliedStatus |
   life: 36, radius, effect: hit(damage, "POKE", 40), reflectable: true, limit: 1, status,
 });
 const HOWLING_BLAST = blastProjectile(h(f32(0.22)), 6.0, undefined);
-const SOUL_HOWLING_BLAST = blastProjectile(h(f32(0.28)), 8.0, CHILL);
 const howlingBlast = (projectile: SpecialProjectile, landingLag: number | undefined): AuthoredSpecial => ({
   cost: 15,
   endFrame: 44,
@@ -45,8 +42,7 @@ const CARRIED: AppliedStatus = { kind: HeroStatusKind.carried, frames: 80, group
 
 /**
  * Val'kyr Shadowguard: a Val'kyr flies out on frame 14 and seizes the first
- * body it reaches. A shield stops her, and a powershield sends her back. With a
- * soul she flies half again as fast, over the same time.
+ * body it reaches. A shield stops her, and a powershield sends her back.
  */
 const valkyrProjectile = (speed: number): SpecialProjectile => ({
   model: "Units\\Undead\\Banshee\\Banshee.mdx",
@@ -55,7 +51,6 @@ const valkyrProjectile = (speed: number): SpecialProjectile => ({
   reflectable: true, limit: 1, status: CARRIED,
 });
 const VALKYR = valkyrProjectile(5.0);
-const SOUL_VALKYR = valkyrProjectile(7.5);
 const shadowguard = (projectile: SpecialProjectile, landingLag: number | undefined): AuthoredSpecial => ({
   cost: 20,
   endFrame: 40,
@@ -107,29 +102,27 @@ const DEFILE: AuthoredSpecial = {
 };
 
 export const LICH_KING_SPECIALS: FighterSpecials = {
-  neutral: {
+  neutral: withExKit({
     name: "Howling Blast",
-    description: "A wide frost gust that travels; spending a soul makes it wider and chills.",
+    description: "A wide frost gust that travels toward the foe.",
     ground: howlingBlast(HOWLING_BLAST, undefined),
     air: howlingBlast(HOWLING_BLAST, AIR_LANDING_LAG),
-    soul: howlingBlast(SOUL_HOWLING_BLAST, AIR_LANDING_LAG),
-  },
-  side: {
+  }, { damage: 1.25 }),
+  side: withExKit({
     name: "Val'kyr Shadowguard",
     description: "A Val'kyr seizes the first foe she reaches and carries them toward the edge; mash to break free.",
     ground: shadowguard(VALKYR, undefined),
     air: shadowguard(VALKYR, AIR_LANDING_LAG),
-    soul: shadowguard(SOUL_VALKYR, AIR_LANDING_LAG),
-  },
-  up: {
+  }, { damage: 1.25 }),
+  up: withExKit({
     name: "Ascension of the Damned",
     description: "An ice column lifts him in a frost vortex, then a helpless fall.",
     ground: ascension(15, f32(2.7), f32(1.15), true),
     free: ascension(0, f32(2.0), f32(0.8), false),
-  },
-  down: {
+  }, { travel: 1.25 }),
+  down: withExKit({
     name: "Defile",
     description: "Plant Frostmourne to spread a shadow pool; hurting a grounded foe grows it and flashes the edge. Jump out; recasts must wait.",
     ground: DEFILE,
-  },
+  }, { reach: 1.25 }),
 };

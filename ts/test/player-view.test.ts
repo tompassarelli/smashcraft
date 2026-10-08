@@ -1,6 +1,7 @@
 // The development build's scene report, read the way the host reads it, against
 // Smashcraft's declared player view (scripts/wisp/playerView.ts), with the model
 // facts and arena cameras of its render visibility.
+import { STAGE_LAVA_MODEL } from "../src/game/assets/terrainAssetInfo";
 import { afterAll, expect, test } from "bun:test";
 import { trampoline } from "wisp/src/platform/dispatch";
 import { reportedModel, sceneFile } from "wisp/src/runtime/scene";
@@ -183,7 +184,7 @@ test("every stage's scenery and the fighting plane stand inside Warcraft's world
     for (const stage of STAGE_CATALOG) {
       s.game.stageChoice = stage.id;
       drawStageScenery(s);
-      const pieces = placedPieces(stage.id, s.game.hazards);
+      const pieces = placedPieces(stage.id);
       for (const [index, effect] of (s.stageScenery ?? []).entries()) {
         if (!inside(BlzGetLocalSpecialEffectX(effect), BlzGetLocalSpecialEffectY(effect))) outside.push(`${stage.name}: ${pieces[index]?.model}`);
       }
@@ -449,6 +450,7 @@ test("every hazard stage shows its warning before acting and declares the cannon
     [CARRIED_TEST_STAGE, 30, "Platform moves in 30 frames."],
     [TIMED_TEST_STAGE, 60, "Platform moves in 30 frames."],
     [CANNON_TEST_STAGE, 31, "Cannon fires in 10 frames."],
+    [CANNON_TEST_STAGE, 450, "Lava erupts on the right in 151 frames."],
   ] as const) {
     const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
     clients.start();
@@ -465,7 +467,8 @@ test("every hazard stage shows its warning before acting and declares the cannon
       startMatch(s);
       s.game.matchFrame = frame;
       s.status.seconds = 0;
-      if (stage === CANNON_TEST_STAGE) {
+      const cannonShot = warning.startsWith("Cannon");
+      if (cannonShot) {
         fighterAt(s.world, 0).cannon.held = 30;
         fighterAt(s.world, 0).cannon.firing = 1;
       }
@@ -477,6 +480,8 @@ test("every hazard stage shows its warning before acting and declares the cannon
       const report = sceneReport(client);
       expect(sceneProblems(report, SMASHCRAFT_SCENE)).toEqual([]);
       if (stage === CANNON_TEST_STAGE) expect(report.models.find(({ model }) => model === reportedModel(CANNON_MODEL))).toMatchObject({ live: 1, drawn: 1 });
+      // The warning glows at the lava's own spot.
+      if (!cannonShot && stage === CANNON_TEST_STAGE) expect(report.models.find(({ model }) => model === reportedModel(STAGE_LAVA_MODEL))).toMatchObject({ live: 1, drawn: 1 });
     });
     expect(client.errors).toEqual([]);
   }
@@ -856,7 +861,7 @@ test("ranked stage lineup: both clients choose all ten stages and draw their dec
       client.run(() => {
         const s = shell();
         expect(s.stageDecks).toHaveLength(surfaceCount(stage.id));
-        expect(s.stageScenery).toHaveLength(placedPieces(stage.id, s.game.hazards).length);
+        expect(s.stageScenery).toHaveLength(placedPieces(stage.id).length);
         expect(s.stageScenery?.length).toBeGreaterThan(0);
         trampoline("scene.report")();
       });

@@ -82,7 +82,7 @@ import { advanceShieldTilt } from "./shieldTilt";
 import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence, discardPendingSmashDirectionalInfluence, renewSmashDirectionalInfluenceString } from "./smashDirectionalInfluence";
 import { floorFriction, floorTraction, groundLineCosine, surfaceCount, surfaceLeft, surfaceLine, surfaceMoves, surfacePass, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ, surfaceZAt } from "./stage";
 
-import { inStageCannon, windPush } from "./stageHazards";
+import { endCannonPass, inStageCannon, windPush } from "./stageHazards";
 // One local for the sea: this module is near Lua's 200-local limit.
 import * as sea from "./water";
 import { stickX } from "./stick";
@@ -194,6 +194,7 @@ function advanceActionClocks(f: Fighter, input: Readonly<Controls>): boolean {
       attack.frame = 0;
       attack.hit = false;
       attack.dashGrab = false;
+      attack.pivotGrab = false;
       attack.smashCharging = false;
       attack.smashChargeFrames = 0;
       attack.smashChargeAllowed = false;
@@ -652,6 +653,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     motion.crouching = false;
     advanceWallJump(f, wallSide, frameDeltaX, horizontalStick);
   }
+  endCannonPass(f, stage);
   checkBlastZone(world, slot, stage);
   motion.deltaX = f32(motion.x - oldX);
   motion.deltaZ = f32(motion.z - oldZ);

@@ -33,7 +33,7 @@ function pair(x: number, facing = 1) {
   return { owner, target, world: testWorld(owner, target) };
 }
 
-test("Murloc every normal hits once on its first active frame and Scavenger takes mana, both facings [spec docs/design/murloc.md]", () => {
+test("Murloc every normal hits once on its first active frame and Scavenger takes mana, both facings [spec #335]", () => {
   for (const facing of [-1, 1]) for (const [style, x, z, damage] of normalCases) {
     const { owner, target, world } = pair(x, facing);
     owner.motion.grounded = !isAerialAttack(style); target.motion.grounded = false; target.motion.z = z;
@@ -68,10 +68,10 @@ function frame(world: Roster, input: Readonly<Controls> = controls(), targetInpu
   resolveAttacks(world); advanceSpecials(world, 0, 0, rows); updateProjectiles(world); finishDamageContacts(world);
 }
 
-test("Murloc Ensnare's net slows the first body it reaches and spends ten mana [spec docs/design/murloc.md]", () => {
+test("Murloc Ensnare's net slows the first body it reaches and preserves the super meter [spec #335]", () => {
   for (const facing of [-1, 1]) {
     const { owner, target, world } = pair(160.0, facing);
-    frame(world, controls({ specialPressed: true })); assertEquals(owner.special.action, SpecialAction.heroNeutral); assertEquals(owner.mana.points, 30);
+    frame(world, controls({ specialPressed: true })); assertEquals(owner.special.action, SpecialAction.heroNeutral); assertEquals(owner.mana.points, 40);
     for (let tick = 0; tick < 40 && target.status.damage === 0.0; tick++) frame(world);
     assertEquals(target.status.damage, 4.0); assertEquals(target.status.condition, HeroStatusKind.chill);
   }
