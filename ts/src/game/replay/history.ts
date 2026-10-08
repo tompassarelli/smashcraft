@@ -26,6 +26,7 @@ import { copyMatchState } from "../match/rules";
 import { copyPacingAndPresentation } from "../match/pacingAndPresentation";
 import { copyFighterState, sameFighterState } from "./fighterState";
 import { apartFromOthers, matchScopable, scopedStepHeld } from "./scopedRepair";
+import { sameReplayState } from "./difference";
 
 /** A whole repaired frame's cost against a repair's budget, where a fighter-scoped one costs 1. */
 export const REPAIR_WHOLE_COST = 2;
@@ -150,6 +151,13 @@ export class ReplayHistory {
   observeScoped: ((frame: number, before: Readonly<ReplayState>, row: MatchFrameInput, after: Readonly<ReplayState>) => void) | undefined;
   /** Whether a frame's snapshot is the state its previous frame's snapshot reached, so its computers' decisions were made from that one. */
   private readonly follows = repeat(REPLAY_HISTORY_CAPACITY, () => false);
+  /** As follows, for live state: it is the state the last recorded frame reached from its snapshot. */
+  private liveFollows = false;
+  private skippedFrames = 0;
+  /** Off, a repair that reaches a stored snapshot still replays every later frame (tests compare the two). */
+  convergence = true;
+  /** How a repair proves its state equals a stored snapshot; a test swaps in a weaker proof to show it matters. */
+  sameState: (this: void, stored: Readonly<ReplayState>, state: Readonly<ReplayState>, first: number) => boolean = sameReplayState;
   private readonly repeated: { mask: number; after: ReplayState["runtime"] } = { mask: 0, after: createReplaySnapshot().runtime };
   private repeatedDecisions = 0;
   /** A frame truncate restored from a snapshot that doesn't follow the one before it. */
@@ -184,6 +192,7 @@ export class ReplayHistory {
     for (const row of this.inputs) resetMatchFrameInput(row);
     this.speculative.fill(false);
     this.follows.fill(false);
+    this.liveFollows = false;
     this.changed.fill(0);
     this.repairDirty = 0;
     this.repairInputs = 0;
@@ -204,6 +213,7 @@ export class ReplayHistory {
   visitWorlds(visit: (world: Roster) => void): void {
     // The changed worlds no longer lead to the decisions recorded after them.
     this.follows.fill(false);
+    this.liveFollows = false;
     for (const snapshot of this.snapshots) visit(snapshot.world);
     visit(this.spare.world);
     visit(this.repairState.world);
@@ -217,6 +227,11 @@ export class ReplayHistory {
   /** The next frame a pending repair replays; stateAfter refuses it and the frame before it. */
   pendingRepairFrame(epoch: number): number | undefined {
     return epoch === this.current ? this.repairNext : undefined;
+  }
+
+  /** Frames repairs kept from the earlier run, because the corrected state reached its snapshot. */
+  convergedRepairFrames(): number {
+    return this.skippedFrames;
   }
 
   /** Repaired frames that played only the corrected fighter. */
@@ -256,6 +271,7 @@ export class ReplayHistory {
   restore(epoch: number, frame: number, live: ReplayState): boolean {
     if (!this.contains(epoch, frame)) return false;
     copyReplayState(live, this.snapshotAt(frame));
+    this.liveFollows = false;
     return true;
   }
 
@@ -270,6 +286,7 @@ export class ReplayHistory {
     // A positioned repair that stopped at `frame` left its snapshot from the run before the correction.
     this.unfollowed = this.repairNext === frame && this.repairPositioned ? frame : undefined;
     copyReplayState(live, this.snapshotAt(frame));
+    this.liveFollows = false;
     this.count -= this.nextFrame - frame;
     this.nextFrame = frame;
     this.matchedThrough = Math.min(this.matchedThrough, frame - 1);
@@ -346,7 +363,10 @@ export class ReplayHistory {
    * frames and `cost` units (a whole frame REPAIR_WHOLE_COST, a scoped one
    * 1, and always at least one frame), refreshing each snapshot it passes.
    * Live state keeps running the present meanwhile; once the repair reaches
-   * it, the corrected state replaces live state. Returns the frames it replayed.
+   * it, the corrected state replaces live state. Once the corrected state
+   * equals a stored snapshot, every later frame whose row and run are
+   * unchanged already holds the corrected run, so the repair skips them.
+   * Returns the frames it advanced.
    */
   repair(epoch: number, budget: number, live: ReplayState, cost = Number.POSITIVE_INFINITY): number | "rejected" {
     if (this.current === undefined || epoch !== this.current) return "rejected";
@@ -367,8 +387,11 @@ export class ReplayHistory {
     }
     let frame = start;
     let spent = 0;
+    // The frame whose state was taken from its own snapshot, which needn't be written back.
+    let resumed = restored ? start : -1;
+    let converged = false;
     for (let steps = 0; steps < budget && frame < this.nextFrame; steps++) {
-      const first = restored && frame === start;
+      const first = frame === resumed;
       const slot = this.slotOf(frame);
       const unchanged = state.world.mask & ~this.repairDirty;
       const dirty = this.repairDirty | at(this.changed, slot);
@@ -391,9 +414,23 @@ export class ReplayHistory {
       this.changed[slot] = 0;
       frame++;
       this.repairNext = frame;
+      const resume = this.convergence ? this.keptThrough(frame, direct) : frame;
+      // Full equality, not a checksum: presentation and computer state must match too.
+      if (resume === frame || !this.sameState(this.snapshotAt(frame), state, this.repairDirty | this.repairInputs)) continue;
+      this.follows[this.slotOf(frame)] = true;
+      this.repairDirty = 0;
+      this.repairInputs = 0;
+      this.skippedFrames += resume - frame;
+      converged = resume === this.nextFrame;
+      if (!converged) copyReplayState(state, this.snapshotAt(resume));
+      frame = resume;
+      resumed = frame;
+      this.repairNext = frame;
     }
     if (frame < this.nextFrame) return frame - start;
-    if (!direct) copyReplayState(live, state);
+    // A converged repair leaves live state as it was: the run it kept reached it.
+    if (!direct && !converged) copyReplayState(live, state);
+    this.liveFollows = true;
     this.repairNext = undefined;
     this.repairPositioned = false;
     return frame - start;
@@ -415,6 +452,18 @@ export class ReplayHistory {
     this.matchedThrough = Math.max(this.matchedThrough, frame);
     this.borrowed = this.snapshotAt(frame + 1);
     return this.borrowed;
+  }
+
+  /**
+   * The first frame from `frame` a converged repair must still run: frames
+   * before it ran on unchanged rows from the snapshot before them, and live
+   * state is the last one's result unless the repair runs in it (`direct`).
+   */
+  private keptThrough(frame: number, direct: boolean): number {
+    let resume = frame;
+    while (resume < this.nextFrame && at(this.changed, this.slotOf(resume)) === 0
+      && (resume + 1 < this.nextFrame ? at(this.follows, this.slotOf(resume + 1)) : this.liveFollows && !direct)) resume++;
+    return resume;
   }
 
   /**
@@ -520,6 +569,8 @@ export class ReplayHistory {
     copyMatchFrameInput(at(this.inputs, slot), row);
     this.speculative[slot] = predicted;
     this.changed[slot] = 0;
+    // Its caller runs the frame from this snapshot next.
+    this.liveFollows = true;
     this.nextFrame++;
     this.count = Math.min(this.count + 1, REPLAY_HISTORY_CAPACITY);
     this.advanceAuthoritative();

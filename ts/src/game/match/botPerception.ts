@@ -149,6 +149,78 @@ export function firstBotMemoryDifference(expected: Readonly<BotMemory>, actual: 
   return undefined;
 }
 
+/** A number as copies keep it: signed zeros differ. */
+const exact = (a: number, b: number): boolean => a === b && (a !== 0 || 1 / a === 1 / b);
+const sameSlot = (a: number | undefined, b: number | undefined): boolean => a === b;
+
+/** Whether two observed bodies hold every field copyObservation copies equal. */
+function sameObservation(a: Readonly<Fighter>, b: Readonly<Fighter>): boolean {
+  if (a === b) return true;
+  if (a.character !== b.character || !exact(a.facing, b.facing)) return false;
+  const t = a.tuning;
+  const u = b.tuning;
+  if (t.moves !== u.moves || t.specials !== u.specials || t.physics !== u.physics || t.surface !== u.surface || t.ground !== u.ground
+    || t.dashGrab !== u.dashGrab || t.shield !== u.shield || t.tech !== u.tech || t.shieldBreak !== u.shieldBreak) return false;
+  const m = a.motion;
+  const n = b.motion;
+  if (!exact(m.x, n.x) || !exact(m.z, n.z) || !exact(m.deltaX, n.deltaX) || !exact(m.deltaZ, n.deltaZ) || !exact(m.vx, n.vx) || !exact(m.vz, n.vz)
+    || m.grounded !== n.grounded || m.surface !== n.surface) return false;
+  const at1 = a.attack;
+  const at2 = b.attack;
+  if (at1.style !== at2.style || at1.frame !== at2.frame || at1.duration !== at2.duration || at1.serial !== at2.serial || at1.cooldown !== at2.cooldown) return false;
+  const s1 = a.special;
+  const s2 = b.special;
+  if (s1.action !== s2.action || s1.frame !== s2.frame || s1.duration !== s2.duration || s1.lockFrames !== s2.lockFrames || s1.form !== s2.form || s1.grabFrame !== s2.grabFrame) return false;
+  if (a.shield.raised !== b.shield.raised || a.shield.stun !== b.shield.stun || a.shield.releaseLag !== b.shield.releaseLag) return false;
+  if (a.launch.hitstun !== b.launch.hitstun || a.launch.hitlag !== b.launch.hitlag || !sameSlot(a.hits.lastAttacker, b.hits.lastAttacker)) return false;
+  const st = a.status;
+  const su = b.status;
+  if (st.out !== su.out || st.stocks !== su.stocks || !exact(st.damage, su.damage) || st.invincible !== su.invincible || st.frozenFrames !== su.frozenFrames
+    || st.condition !== su.condition || st.conditionFrames !== su.conditionFrames || st.poisonFrames !== su.poisonFrames) return false;
+  if (a.landing.lag !== b.landing.lag) return false;
+  if (a.down.state !== b.down.state || a.down.frame !== b.down.frame || a.down.direction !== b.down.direction || a.down.faceUp !== b.down.faceUp) return false;
+  if (!sameSlot(a.grab.owner, b.grab.owner) || !sameSlot(a.grab.target, b.grab.target) || a.grab.action !== b.grab.action) return false;
+  if (a.ledge.state !== b.ledge.state || a.ledge.side !== b.ledge.side || a.ledge.intangible !== b.ledge.intangible) return false;
+  const d1 = a.dodge;
+  const d2 = b.dodge;
+  if (d1.groundFrame !== d2.groundFrame || d1.groundDirection !== d2.groundDirection || d1.airDodging !== d2.airDodging || d1.airFrame !== d2.airFrame) return false;
+  if (a.surfaceRecovery.state !== b.surfaceRecovery.state || a.surfaceRecovery.frame !== b.surfaceRecovery.frame || !sameSlot(a.cannon.held, b.cannon.held)) return false;
+  if (a.bear.life !== b.bear.life || !exact(a.bear.x, b.bear.x) || !exact(a.bear.z, b.bear.z) || a.bear.hitSerial !== b.bear.hitSerial) return false;
+  const p = a.projectiles;
+  const q = b.projectiles;
+  if (p.length !== q.length) return false;
+  for (let index = 0; index < p.length; index++) {
+    const x = p[index];
+    const y = q[index];
+    if (x === y) continue;
+    if (x === undefined || y === undefined) return false;
+    if (x.life !== y.life || !exact(x.x, y.x) || !exact(x.z, y.z) || !exact(x.direction, y.direction) || !exact(x.velocityX, y.velocityX)
+      || !exact(x.velocityZ, y.velocityZ) || x.serial !== y.serial) return false;
+  }
+  return true;
+}
+
+/** Whether two memories hold the same samples and directions: firstBotMemoryDifference without building canonical text. */
+export function sameBotMemory(expected: Readonly<BotMemory>, actual: Readonly<BotMemory>): boolean {
+  if (expected.history.length !== actual.history.length) return false;
+  for (let index = 0; index < expected.history.length; index++) {
+    const e = at(expected.history, index);
+    const a = at(actual.history, index);
+    if (e === a) continue;
+    if (e.frame !== a.frame) return false;
+    for (const slot of PARTICIPANT_SLOTS) {
+      const x = e.opponents[slot];
+      const y = a.opponents[slot];
+      if (x === y) continue;
+      if (x === undefined || y === undefined || !sameObservation(x, y)) return false;
+    }
+  }
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (expected.directions[slot] !== actual.directions[slot] || expected.directionFrames[slot] !== actual.directionFrames[slot]) return false;
+  }
+  return true;
+}
+
 /** Only the opponent's visible body, action, status and entities enter perception. */
 function createObservation(): ObservationFighter {
   const f = EMPTY;

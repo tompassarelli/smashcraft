@@ -7,7 +7,8 @@ import { participantInputs } from "../input/participants";
 import { Action, bit } from "../input/actions";
 import { type ImpactEvents } from "../presentation/impactEvents";
 import { type Controls, createRoster, fighterAt, neutralControls } from "../sim/roster";
-import { firstStateDifference } from "./difference";
+import { firstPoseDifference, firstStateDifference } from "./difference";
+import { stateChecksum } from "./canonical";
 import { ReplayCorrections, ReplayHistory } from "./history";
 import { REPLAY_HISTORY_CAPACITY, REPLAY_MAX_CORRECTION_FRAMES } from "./limits";
 import { copyReplayState, createReplaySnapshot } from "./snapshot";
@@ -527,4 +528,85 @@ test("a fighter-scoped repair of a mispredicted input ends on the same state as 
   assertEquals(near.difference, undefined);
   // Scoping them anyway loses the hits: the comparison above catches broken eligibility.
   assertTrue(scopedAgainstWhole("force", -260.0).difference !== undefined);
+});
+
+/**
+ * Two humans far apart; slot 0's Illidan crouches for 3 frames every 16 and
+ * holds walk without a direction for 3 more. His rows arrive 4 frames late,
+ * so each is mispredicted and repaired the way the shell does, a few frames
+ * a callback. Walk alone changes nothing, so those repairs reach the stored
+ * snapshots at once; crouching changes only his pose, which the checksum
+ * leaves out. Returns the frames repairs kept and the first difference,
+ * gameplay or presentation, from the same match replaying every frame.
+ */
+function convergedAgainstWhole(sameState?: ReplayHistory["sameState"]): { kept: number; difference: string | undefined } {
+  const late = 4;
+  const world = (): TapeWorld => createTapeWorld({ stocks: 99, humans: 2, first: createFighter(Character.demonHunter, -300.0, 1), second: createFighter(Character.rifleman, 300.0, -1) });
+  const kept = world();
+  const whole = world();
+  const histories = [new ReplayHistory(), new ReplayHistory()] as const;
+  if (sameState !== undefined) histories[0].sameState = sameState;
+  histories[1].convergence = false;
+  const corrections = new ReplayCorrections();
+  for (const history of histories) assertTrue(history.beginEpoch(1, 1, REPLAY_MAX_CORRECTION_FRAMES));
+  assertTrue(corrections.beginEpoch(1));
+  const actual = participantInputs();
+  const predicted = participantInputs();
+  const actualAt = (frame: number) => {
+    const beat = floorMod(frame, 16);
+    actual[0].held = beat >= 4 && beat < 7 ? bit(Action.moveDown) : beat >= 10 && beat < 13 ? bit(Action.walk) : 0;
+    return actual;
+  };
+  const row = createMatchFrameInput();
+  let difference: string | undefined;
+  const compare = (when: string) => {
+    const expected = captureTape(whole);
+    const got = captureTape(kept);
+    const found = firstStateDifference(expected, got) ?? firstPoseDifference(expected, got);
+    if (found !== undefined) difference ??= `${when}: ${found}`;
+  };
+  const tapes = [kept, whole] as const;
+  const repair = () => {
+    for (const index of [0, 1] as const) assertTrue(histories[index].repair(1, 3, tapes[index].live, 6) !== "rejected");
+  };
+  const last = 96;
+  for (let frame = 1; frame <= last; frame++) {
+    predicted[0].held = actualAt(Math.max(1, frame - late))[0].held;
+    for (const index of [0, 1] as const) {
+      resetMatchFrameInput(row);
+      assertTrue(captureNetworkFrame(row, frame, predicted, tapes[index].live.world, 3));
+      assertTrue(histories[index].saveSpeculative(1, row, tapes[index].live));
+      execute(tapes[index], row);
+    }
+    if (frame > late) {
+      resetMatchFrameInput(row);
+      assertTrue(captureNetworkFrame(row, frame - late, actualAt(frame - late), kept.live.world, 3));
+      corrections.clear();
+      assertTrue(corrections.add(row));
+      for (const index of [0, 1] as const) assertTrue(histories[index].amend(1, corrections, tapes[index].live) !== "rejected");
+    }
+    repair();
+    compare(`frame ${frame}`);
+  }
+  for (let settle = 0; settle < 4; settle++) repair();
+  compare("settled");
+  // Every retained snapshot, too: later corrections start from them.
+  const expected = createReplaySnapshot();
+  const got = createReplaySnapshot();
+  for (let frame = histories[0].firstRetainedFrame(); frame <= last; frame++) {
+    assertTrue(histories[1].restore(1, frame, expected));
+    assertTrue(histories[0].restore(1, frame, got));
+    difference ??= firstStateDifference(expected, got) ?? firstPoseDifference(expected, got);
+  }
+  assertEquals(histories[1].convergedRepairFrames(), 0);
+  return { kept: histories[0].convergedRepairFrames(), difference };
+}
+
+test("a repair that reaches a stored snapshot keeps the later frames and ends as replaying them all [invariant]", () => {
+  const converged = convergedAgainstWhole();
+  assertGreaterThan(converged.kept, 20);
+  assertEquals(converged.difference, undefined);
+  // A checksum leaves the crouching pose out: declaring convergence on it keeps snapshots that differ.
+  const checksum = convergedAgainstWhole((stored, state) => stateChecksum(stored) === stateChecksum(state));
+  assertTrue(checksum.difference !== undefined);
 });

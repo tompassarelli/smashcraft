@@ -2,7 +2,7 @@ import { placedObject } from "../sim/fighter";
 // The first field that differs between two replay states, by Wurst
 // ReplayState's diagnostic path and checked in its order, which is not the
 // canonical tape's order.
-import { attackBufferCanonicalState, type AttackBuffer } from "../input/attackBuffer";
+import { attackBufferCanonicalState, sameAttackBuffer, type AttackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS } from "../input/participants";
 import { firstFighterPoseDifference } from "../presentation/fighterPose";
 import { firstImpactDifference } from "../presentation/impactState";
@@ -18,8 +18,11 @@ import { canonicalSlot, fighterMovesCanonical, fighterSpecialsCanonical } from "
 import { firstTrainingDifference } from "../match/trainingState";
 import { firstRunDifference } from "../classic/runState";
 import { firstItemsDifference } from "../match/items";
-import { firstBotMemoryDifference } from "../match/botPerception";
-import { botStrategyValues } from "../match/botStrategy";
+import { firstBotMemoryDifference, sameBotMemory } from "../match/botPerception";
+import { botStrategyValues, sameBotStrategy } from "../match/botStrategy";
+import type { MatchState } from "../match/rules";
+import { sameControls } from "../sim/roster";
+import { sameFighterState } from "./fighterState";
 import type { ReplayState } from "./snapshot";
 
 type Value = number | boolean | undefined;
@@ -402,8 +405,24 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
     const command = firstCommandDifference(expected.controls.commands[slot], actual.controls.commands[slot]);
     if (command !== undefined) return `commands[${slot}].${command}`;
   }
-  const e = expected.match;
-  const a = actual.match;
+  const match = firstMatchDifference(expected.match, actual.match);
+  if (match !== undefined) return match;
+  if (expected.runtime.simulationFrame !== actual.runtime.simulationFrame) return "runtime.simulationFrame";
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (expected.runtime.botAttackDelays[slot] !== actual.runtime.botAttackDelays[slot]) return `runtime.botAttackDelays[${slot}]`;
+  }
+  const botMemory = firstBotMemoryDifference(expected.runtime.botMemory, actual.runtime.botMemory);
+  if (botMemory !== undefined) return `runtime.botMemory.${botMemory}`;
+  for (const slot of PARTICIPANT_SLOTS) {
+    const e = botStrategyValues(expected.runtime.botStrategies[slot]);
+    const a = botStrategyValues(actual.runtime.botStrategies[slot]);
+    if (e.length !== a.length) return `runtime.botStrategies[${slot}].values.length`;
+    for (let index = 0; index < e.length; index++) if (e[index] !== a[index]) return `runtime.botStrategies[${slot}].values[${index}]`;
+  }
+  return undefined;
+}
+
+function firstMatchDifference(e: Readonly<MatchState>, a: Readonly<MatchState>): string | undefined {
   if (e.phase !== a.phase) return "match.phase";
   for (const key of ["initialized", "x", "z", "distance", "tangent", "left", "right", "bottom", "top"] as const) if (e.camera[key] !== a.camera[key]) return `match.camera.${key}`;
   for (const slot of PARTICIPANT_SLOTS) for (const key of ["left", "right", "bottom", "top"] as const) if (e.camera.boxes[slot][key] !== a.camera.boxes[slot][key]) return `match.camera.box${slot}.${key}`;
@@ -449,19 +468,41 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
   const items = firstItemsDifference(e.items, a.items);
   if (items !== undefined) return items;
   if (e.timedOut !== a.timedOut) return "match.timedOut";
-  if (expected.runtime.simulationFrame !== actual.runtime.simulationFrame) return "runtime.simulationFrame";
-  for (const slot of PARTICIPANT_SLOTS) {
-    if (expected.runtime.botAttackDelays[slot] !== actual.runtime.botAttackDelays[slot]) return `runtime.botAttackDelays[${slot}]`;
-  }
-  const botMemory = firstBotMemoryDifference(expected.runtime.botMemory, actual.runtime.botMemory);
-  if (botMemory !== undefined) return `runtime.botMemory.${botMemory}`;
-  for (const slot of PARTICIPANT_SLOTS) {
-    const e = botStrategyValues(expected.runtime.botStrategies[slot]);
-    const a = botStrategyValues(actual.runtime.botStrategies[slot]);
-    if (e.length !== a.length) return `runtime.botStrategies[${slot}].values.length`;
-    for (let index = 0; index < e.length; index++) if (e[index] !== a[index]) return `runtime.botStrategies[${slot}].values[${index}]`;
-  }
   return undefined;
+}
+
+/**
+ * Whether two states hold everything copyReplayState copies equal, signed
+ * zeros in fighters apart: a repair whose state reaches a stored snapshot
+ * may keep every later one (ReplayHistory.repair). Fighters likeliest to
+ * differ, `first`, compare first.
+ */
+export function sameReplayState(expected: Readonly<ReplayState>, actual: Readonly<ReplayState>, first = 0): boolean {
+  const mask = expected.world.mask;
+  if (mask !== actual.world.mask) return false;
+  for (const slot of PARTICIPANT_SLOTS) {
+    if ((first & (1 << slot)) === 0 || !isActive(expected.world, slot)) continue;
+    if (!sameFighterState(fighterAt(expected.world, slot), fighterAt(actual.world, slot))) return false;
+  }
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (!isActive(expected.world, slot)) continue;
+    if ((first & (1 << slot)) === 0 && !sameFighterState(fighterAt(expected.world, slot), fighterAt(actual.world, slot))) return false;
+    if (!sameAttackBuffer(expected.controls.commands[slot], actual.controls.commands[slot])) return false;
+  }
+  if (firstMatchDifference(expected.match, actual.match) !== undefined) return false;
+  const e = expected.runtime;
+  const a = actual.runtime;
+  if (e.simulationFrame !== a.simulationFrame) return false;
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (e.botAttackDelays[slot] !== a.botAttackDelays[slot] || e.observedLegal[slot] !== a.observedLegal[slot] || e.observedStarted[slot] !== a.observedStarted[slot]) return false;
+    if (!sameBotStrategy(e.botStrategies[slot], a.botStrategies[slot])) return false;
+    const decision = e.botDecisions[slot];
+    const other = a.botDecisions[slot];
+    if (decision.decided !== other.decided) return false;
+    if (decision.decided && (!sameControls(decision.input, other.input) || !sameAttackBuffer(decision.commands, other.commands))) return false;
+  }
+  if (!sameBotMemory(e.botMemory, a.botMemory)) return false;
+  return firstPoseDifference(expected, actual) === undefined;
 }
 
 /** Wurst ReplaySnapshot.firstPoseDifference: presentation history, which the checksum leaves out. */
