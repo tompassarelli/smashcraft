@@ -59,6 +59,7 @@ export function startDown(s: ShellState, slot: ParticipantSlot): void {
   const playing = s.game.phase === Phase.match;
   if (epoch?.journal.editbox !== undefined && chatBusy(epoch.journal)) return;
   if (epoch !== undefined && playing && epoch.journal.barrier.request !== undefined) return;
+  if (s.session.paused) s.pauseKeysHeld = [0x26, 0x28, 32, 69, Key.n, Key.u].filter(key => BlzIsKeyPressed(ConvertOsKeyType(key)));
   const deferred = epoch !== undefined && playing;
   const consumed = !s.session.startHeld[slot] && views(s).selections[slot].consumeStart();
   const action = startKeyDown(s.session, slot, s.game.phase, consumed || views(s).settings[slot].isOpen(), deferred);

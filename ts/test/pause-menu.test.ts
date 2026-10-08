@@ -1,6 +1,7 @@
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { PREDICTED_HEADLESS } from "../scripts/wisp/headless";
+import { Action, bit } from "../src/game/input/actions";
 import { Phase, selectCharacter, setParticipants } from "../src/game/match/rules";
 import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
 import { install, startBuild } from "../src/platform/main";
@@ -44,9 +45,14 @@ for (const mode of ["cpu", "classic", "training", "practice", "tutorial"] as con
     const frame = value(first, () => shell().runtime.simulationFrame);
     clients.press(0, 0x28);
     clients.press(0, 0x26);
-    clients.press(0, Key.enter);
+    if (mode === "cpu") first.key(0, Key.n, 0, true);
+    else clients.press(0, Key.enter);
     clients.frames(5);
     expect(value(first, () => shell().session.paused)).toBe(false);
+    if (mode === "cpu") {
+      expect(value(first, () => (shell().rollback?.keyboard?.capture.row.held ?? 0) & bit(Action.attack))).toBe(0);
+      first.key(0, Key.n, 0, false);
+    }
     clients.press(0, Key.y);
     clients.frames(1);
     expect(value(first, () => shell().session.paused)).toBe(true);

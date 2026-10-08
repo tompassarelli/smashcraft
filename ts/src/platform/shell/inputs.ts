@@ -69,7 +69,14 @@ export function pollLocalKeys(s: Readonly<ShellState>): number {
   const slot = localSlot();
   if (!isParticipantSlot(slot) || !BlzIsLocalClientActive() || !humanFighterActive(s.game, slot)) return 0;
   const { bindings } = s.participants[slot].bindings;
-  const pressed = (key: number | undefined) => key !== undefined && BlzIsKeyPressed(ConvertOsKeyType(key));
+  const menuHeld = s.pauseKeysHeld;
+  if (menuHeld !== undefined) {
+    for (let index = menuHeld.length - 1; index >= 0; index--) {
+      const key = menuHeld[index];
+      if (key !== undefined && !BlzIsKeyPressed(ConvertOsKeyType(key))) menuHeld.splice(index, 1);
+    }
+  }
+  const pressed = (key: number | undefined) => key !== undefined && !menuHeld?.includes(key) && BlzIsKeyPressed(ConvertOsKeyType(key));
   let held = 0;
   for (const action of ACTION_ORDER) {
     if (pressed(keyFor(bindings, action, 0)) || pressed(keyFor(bindings, action, 1))) held |= bit(action);
