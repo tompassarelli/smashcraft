@@ -170,7 +170,7 @@ jobs:
           pids=()
           for slot in $(seq 0 $((LUA_PER_JOB - 1))); do
             shard=$((${{ matrix.job }} * LUA_PER_JOB + slot))
-            ( LUA_SHARD="$shard/$count" LUA_SHARD_PLAN=build/lua-plan.tsv LUA_TEST_RESULT="build/lua-$shard.tsv" "$LUA" build/lua-tests/tests.lua > "build/lua-$shard.log" 2>&1
+            ( LUA_SHARD="$shard/$count" LUA_SHARD_PLAN=build/lua-plan.tsv LUA_TEST_RESULT="build/lua-$shard.tsv" LUA_TEST_COST="build/lua-cost-$shard.tsv" "$LUA" build/lua-tests/tests.lua > "build/lua-$shard.log" 2>&1
               code=$?
               bun node_modules/wisp/scripts/wisp/farmShards.ts lua --shard "$shard" --exit-code "$code" "build/lua-$shard.tsv" > "result-lua-$shard.json"
               exit "$code" ) &
@@ -191,7 +191,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: farm-test-result-lua-${{ matrix.job }}
-          path: ts/result-lua-*.json
+          path: |
+            ts/result-lua-*.json
+            ts/build/lua-cost-*.tsv
           retention-days: 3
 
   # Every native recording in the checked-in corpus replays headless in Bun and
@@ -266,6 +268,12 @@ jobs:
           path: ts/farm
       - working-directory: ts
         run: bun node_modules/wisp/scripts/wisp/farmShards.ts merge --plan farm/farm-test-plan/plan.json --timings farm-timings.json --out summary.json $(find farm -name 'result*.json')
+      - name: Check Lua32 CPU budget from every shard
+        working-directory: ts
+        env:
+          LUA_TESTS_STEP: budget
+          LUA_TEST_COST_DIR: farm
+        run: bun scripts/lua-tests.ts
       - uses: actions/upload-artifact@v4
         with:
           name: farm-test-summary
