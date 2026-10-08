@@ -19,6 +19,7 @@ import {
 import { SHIELD_P1_MODEL, SHIELD_P2_MODEL, SHIELD_P3_MODEL, SHIELD_P4_MODEL } from "../../src/game/assets/shieldAssetInfo";
 import { STAGE_DECK_MODELS } from "../../src/game/assets/stageAssetInfo";
 import { STOCK_PLATFORM_MODELS } from "../../src/game/presentation/stockPlatforms";
+import { STAGE_EDGE_LIGHT_MODEL } from "../../src/game/presentation/stageEdgeLights";
 import { STAGE_DECK_PALETTES } from "../../src/game/assets/stagePalette";
 import { DEMON_HUNTER_MODEL_FILE } from "../../src/game/presentation/demonHunterAssetInfo";
 import { RIFLEMAN_MODEL_FILE } from "../../src/game/presentation/fighterAssetInfo";
@@ -108,7 +109,7 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
     { name: "stage deck", models: [...Object.values(STAGE_DECK_MODELS).flatMap(({ main, slab, alternate }) => alternate === undefined ? [main, slab] : [main, slab, alternate]), ...STOCK_PLATFORM_MODELS] },
     { name: "stage cannon", models: [CANNON_MODEL] },
     { name: "stage lava", models: [STAGE_LAVA_MODEL] },
-    { name: "stage scenery", models: [...new Set(STAGE_CATALOG.flatMap(({ id }) => placedPieces(id).map(({ model }) => model)))] },
+    { name: "stage scenery", models: [...new Set(STAGE_CATALOG.flatMap(({ id }) => placedPieces(id).map(({ model }) => model))), STAGE_EDGE_LIGHT_MODEL] },
     { name: "pooled fighter", models: fighterModels },
     { name: "body flash", models: Object.values(WHITE_FIGHTER_MODELS) },
     // Heroes draw with their fighter unit, shown while the hero is in play.

@@ -10,6 +10,7 @@ import { placedPieces, stageLightModel, stageScenery } from "./stageScenery";
 import { platformParts } from "./stockPlatforms";
 import { CARRIED_TEST_STAGE, surfacePass } from "../sim/stage";
 import { f32 } from "wisp/src/sim/f32";
+import { stageEdgeLight, STAGE_EDGE_LIGHT_MODEL } from "./stageEdgeLights";
 
 /** The model drawn for one deck of a stage, in the stage's palette. */
 export function deckModel(stage: number, index: number): string {
@@ -42,6 +43,7 @@ export function stageModels(stage: number): string[] {
   if (hasCannon(stage)) models.push(CANNON_MODEL);
   if (hasLava(stage)) models.push(STAGE_LAVA_MODEL);
   for (const piece of placedPieces(stage)) models.push(piece.model);
+  if (stageEdgeLight(stage, 0, 0) !== undefined) models.push(STAGE_EDGE_LIGHT_MODEL);
   return models;
 }
 

@@ -3,6 +3,7 @@ import { MATCH_HELP_BOX, MATCH_NOTICE_BOX } from "../../game/ui/hudLayout";
 import { CryDecision, createCryGate, cryStandIn, gateCry } from "../../game/presentation/hurtVoice";
 import { deckModel, slabScale } from "../../game/presentation/stagePreload";
 import { type PlatformPart, platformParts } from "../../game/presentation/stockPlatforms";
+import { stageEdgeLight, STAGE_EDGE_LIGHT_MODEL } from "../../game/presentation/stageEdgeLights";
 import { f32 } from "wisp/src/sim/f32";
 import { Character } from "../../game/sim/codes";
 import { at } from "wisp/src/runtime/lookup";
@@ -157,6 +158,16 @@ export function drawStage(s: ShellState): void {
     BlzSetSpecialEffectPosition(s.stageCannon, origin.x + cannonX(stageFrame), origin.y, origin.z + CANNON_Z);
     BlzSetSpecialEffectScale(s.stageCannon, 1.5);
   }
+  for (let index = 0; index < 6; index++) {
+    const light = stageEdgeLight(stage, index, stageFrame);
+    if (light === undefined) break;
+    const effect = AddSpecialEffect(STAGE_EDGE_LIGHT_MODEL, origin.x + light.x, origin.y - 45.0);
+    BlzSetSpecialEffectPosition(effect, origin.x + light.x, origin.y - 45.0, origin.z + light.z);
+    BlzSetSpecialEffectScale(effect, 0.75);
+    BlzSetSpecialEffectColor(effect, 96, 255, 64);
+    BlzPlaySpecialEffect(effect, ANIM_TYPE_STAND);
+    s.stageDeckParts.push(effect);
+  }
   if (hasLava(stage)) {
     const piece = lavaPiece(lavaSide(stageFrame));
     s.stageLava = AddSpecialEffect(piece.model, origin.x + piece.x, origin.y + piece.y);
@@ -306,6 +317,11 @@ export function renderPersistentPresentation(s: ShellState): void {
   // The decks drawn are the drawn stage's: the stage menu changes the choice before the match draws it.
   const drawn = s.drawnStage;
   const beforePlatform = framesUntilPlatformMoves(drawn, matchFrame);
+  for (let index = 0; index < s.stageDeckParts.length; index++) {
+    const light = stageEdgeLight(drawn, index, matchFrame);
+    if (light === undefined) break;
+    BlzSetSpecialEffectPosition(at(s.stageDeckParts, index), s.origin.x + light.x, s.origin.y - 45.0, s.origin.z + light.z);
+  }
   for (let index = 1; index < s.stageDecks.length; index++) {
     if (!surfaceMoves(drawn, index)) continue;
     const x = s.origin.x + (surfaceLeft(drawn, index, matchFrame) + surfaceRight(drawn, index, matchFrame)) / 2;

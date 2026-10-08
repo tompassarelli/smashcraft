@@ -21,8 +21,8 @@ export const NAXXRAMAS_SCENERY: StageScenery = {
   // NX-1's slate-to-teal sky; NX-3's distant citadel fades after the fighting plane.
   fog: { start: 5000.0, end: 11000.0, red: 0.25, green: 0.5, blue: 0.625 },
   pieces: [
-    // One floating citadel above a low ruined approach; the central sky stays open.
-    { model: "buildings\\undead\\Necropolis\\Necropolis.mdx", x: 1450.0, y: 6200.0, z: -1050.0, scale: 1.5, yaw: 250.0 },
+    // NX-3: the floating citadel clears the deck and stays inside the far camera's clip.
+    { model: "buildings\\undead\\Necropolis\\Necropolis.mdx", x: 1900.0, y: 4600.0, z: -450.0, scale: 1.5, yaw: 250.0 },
     // NX-3: low Definitive-only stock garnish beside the citadel, invisible in Classic and Reforged.
     { model: "Doodads\\Undercity\\Props\\NaxxDeco\\NaxxDeco0.mdx", x: 1700.0, y: 5900.0, z: -1250.0, scale: 0.5, yaw: 250.0 },
     { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier5.mdx", x: 1490.0, y: 6200.0, z: -3665.0, scale: f32(7.1), yaw: 287.0, matrixScale: [1.0, 1.0, f32(1.317)] },
