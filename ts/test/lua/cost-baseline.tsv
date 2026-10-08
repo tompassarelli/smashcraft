@@ -134,7 +134,7 @@ src/game/sim/archerSpecials.tests.ts	12	0.069
 src/game/sim/dashDance.tests.ts	6	1.584
 src/game/sim/demonHunterContracts.tests.ts	11	0.017
 src/game/sim/directionalInfluence.tests.ts	17	0.003
-src/game/sim/dodgesAndStocks.tests.ts	25	0.139
+src/game/sim/dodgesAndStocks.tests.ts	27	0.198
 src/game/sim/downAir.tests.ts	21	0.002
 src/game/sim/downSmashes.tests.ts	13	5.700
 src/game/sim/downThrows.tests.ts	13	4.246
