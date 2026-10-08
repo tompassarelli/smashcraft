@@ -332,7 +332,12 @@ code. From smashcraft:ts/:
   screen that hasn't redrawn can't pass for it. `--control` first plays the
   checked-in control (the same Archer walk twice around a Mountain King script);
   `bun scripts/nativeCapture.ts compare DIR control-walk control-walk-again`
-  prints how far the twins' captures differ per frame.
+  prints how far the twins' captures differ per frame. `run` also records the
+  client's own PipeWire sink to DIR/audio.wav on the captures' clock
+  (`--audio-sink SINK` or `--no-audio`). `bun scripts/nativeCapture.ts plan
+  PAD|DIR...` plays the scripts headlessly on the map's schedule and checks
+  each `#! cue FROM[-TO] NAME: sound=… effect=… tint=b shake=b recoil=b` line
+  against the held capture frames, without a Warcraft client.
 - Engine debugger: a native desync? `bun wisp engine desync A B` names the
   first differing turn and checksum section of the clients' Desync.log
   dumps; `bun wisp engine poll --client a,b` during a repro and `bun wisp

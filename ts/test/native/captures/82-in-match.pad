@@ -1,0 +1,57 @@
+# smashcraft#82 box 2, the looks `-dev effects` can't show because it draws no fighter: Mountain
+# King a against Mountain King b in a real match. a dashes and runs (footsteps), brakes (its walk
+# footstep), hits b's shield (shield spark, struck bubble), hits b (normal spark, damage tint,
+# hitlag shake), then grabs, pummels and throws b. Each event is held on its own frame and a
+# few frames later. The frames come from `bun scripts/nativeCapture.ts plan` on this file, which
+# checks every `#! cue` line; native captures only, as 82-effects.pad.
+# A steady walk makes no footstep: only run, brake and turn frames advance the footstep clock
+# (smashcraft:ts/src/game/sim/groundMovement.ts), so the walk footstep is the brake's.
+#! chat -dev quick hero mountain king
+#! cue 30-32 dash footstep: sound=DeepFootstep2 effect=ImpactDust-
+#! cue 38-40 run footstep: sound=DeepFootstep2 effect=ImpactDust-
+#! cue 61-63 walk footstep: sound=DeepFootstep
+#! cue 134-140 shield hit: sound=Defend effect=ImpactShield- recoil=b
+#! cue 199-205 normal hit: sound=WoodLightBashFlesh2 effect=StampedeMissileDeath tint=b shake=b
+#! cue 255-257 grab: sound=EntanglingRoots effect=ImpactShield-
+#! cue 324-330 pummel: sound=Defend effect=StampedeMissileDeath tint=b shake=b
+#! cue 349-355 throw: sound=BlinkTarget effect=BlinkTarget
+# a dashes, runs and brakes.
+30 a stick 1 0
+30 a capture
+32 a capture
+38 a capture
+40 a capture
+44 a stick 0 0
+61 a capture
+63 a capture
+# a walks up; b shields; a's jab strikes the shield.
+70 a stick 0.3 0
+88 a stick 0 0
+120 b shield 1
+130 a tap A 2
+134 a capture
+136 a capture
+140 a capture
+# b drops its shield; a walks up and jabs b.
+170 b shield 0
+172 a stick 0.3 0
+190 a stick 0 0
+195 a tap A 2
+199 a capture
+201 a capture
+205 a capture
+# a walks up and grabs b, pummels once (it connects 60 frames later) and throws b forward.
+212 a stick 0.4 0
+240 a stick 0 0
+248 a tap RB 2
+255 a capture
+257 a capture
+265 a tap A 2
+300 a stick 1 0
+302 a stick 0 0
+324 a capture
+326 a capture
+330 a capture
+349 a capture
+351 a capture
+355 a capture

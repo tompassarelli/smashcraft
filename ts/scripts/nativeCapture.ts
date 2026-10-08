@@ -4,17 +4,26 @@
 //     (smashcraft:ts/src/platform/nativeCaptureMain.ts) and writes MAP.captures.json;
 //     --control plays the control fixtures (smashcraft:ts/src/platform/captureFixtures.ts)
 //     first, and with no scripts the map plays only them;
-//   bun scripts/nativeCapture.ts run --clients-file FILE --client NAME --manifest MAP.captures.json --out DIR
+//   bun scripts/nativeCapture.ts plan PAD|DIR...
+//     plays the scripts headlessly on the capture map's schedule and checks each
+//     `#! cue` line against the held frames (smashcraft:ts/scripts/nativeCapturePlan.ts);
+//   bun scripts/nativeCapture.ts run --clients-file FILE --client NAME --manifest MAP.captures.json --out DIR [--audio-sink SINK | --no-audio]
 //     with that map hosted on the client (`bun wisp fresh MAP --no-quick`), keeps
 //     capturing the screen and saves each capture whose drawn stamp names a
 //     requested fixture and frame (smashcraft:ts/src/runtime/drawnStamp.ts) as
 //     DIR/FIXTURE/frame-N.ppm; every capture's stamp is logged in DIR/captures.json;
+//     meanwhile it records the client's own PipeWire sink (`wisp-online-NAME`,
+//     wisp:docs/lan.md) to DIR/audio.wav, its start on the same clock as each
+//     capture's `ms` and `capturedMs`;
 //   bun scripts/nativeCapture.ts compare DIR FIXTURE OTHER
 //     prints, per shared frame, how far the two fixtures' captures differ, and
 //     how far each fixture's first and last captures differ.
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
+import { BunRuntime, BunServices } from "@effect/platform-bun";
 import { Effect, Schema } from "effect";
+import { ChildProcess } from "effect/process";
+import { runProcess } from "./hostProcess";
 import { capture, loadClients } from "wisp/scripts/warcraft/desktop";
 import { type Frame, decodePpm, encodePpm } from "wisp/scripts/wisp/frameProbe";
 import { preloadLines } from "wisp/scripts/wisp/boundary";
@@ -37,7 +46,7 @@ function option(args: readonly string[], name: string): string | undefined {
   return index < 0 ? undefined : args[index + 1];
 }
 /** Flags that take no value. */
-const SWITCHES = new Set(["--control"]);
+const SWITCHES = new Set(["--control", "--no-audio"]);
 const positional = (args: readonly string[]) => args.filter((value, index) => !value.startsWith("--") && !(args[index - 1]?.startsWith("--") === true && !SWITCHES.has(args[index - 1] ?? "")));
 
 /** A pad script's capture frames, once each, in order. Chat lines are the native driver's own, so other lines go through the pad parser. */
@@ -112,13 +121,45 @@ export function frameStamp(frame: Frame): { readonly script: number; readonly fr
 
 const Manifest = Schema.fromJsonString(Schema.Struct({ map: Schema.String, fixtures: Schema.Array(Schema.Struct({ name: Schema.String, frames: Schema.Array(Schema.Finite) })) }));
 
-const runCaptures = (args: readonly string[]) => Effect.gen(function*() {
+const PipeWireObjects = Schema.fromJsonString(Schema.Array(Schema.Struct({
+  id: Schema.Finite,
+  type: Schema.String,
+  info: Schema.optional(Schema.NullOr(Schema.Struct({
+    props: Schema.optional(Schema.Record(Schema.String, Schema.Unknown)),
+    "input-node-id": Schema.optional(Schema.Finite),
+  }))),
+})));
+
+/** The sink's serial: a stopped client's sink can linger beside its new one, so the one a stream plays into wins, else the newest. */
+const sinkSerial = (sink: string) => Effect.gen(function*() {
+  const dump = yield* runProcess(ChildProcess.make("pw-dump", [])).pipe(Effect.mapError(failure => new CaptureFailure({ problem: failure.message })));
+  const objects = yield* Schema.decodeEffect(PipeWireObjects)(dump).pipe(Effect.mapError(cause => new CaptureFailure({ problem: `pw-dump: ${String(cause)}` })));
+  const fed = new Set(objects.filter(row => row.type === "PipeWire:Interface:Link").map(row => row.info?.["input-node-id"]));
+  const sinks = objects.filter(row => row.type === "PipeWire:Interface:Node" && row.info?.props?.["node.name"] === sink && row.info.props["media.class"] === "Audio/Sink")
+    .map(row => ({ fed: fed.has(row.id), serial: Number(row.info?.props?.["object.serial"]) }))
+    .sort((a, b) => Number(b.fed) - Number(a.fed) || b.serial - a.serial);
+  const chosen = sinks[0];
+  if (chosen === undefined || !Number.isInteger(chosen.serial)) return yield* new CaptureFailure({ problem: `no PipeWire sink ${sink}; pass --audio-sink SINK or --no-audio` });
+  return chosen;
+});
+
+/** Records the sink until the run's scope closes; SIGINT lets pw-record finish the WAV header. */
+const recordAudio = (sink: string, file: string, started: number) => Effect.gen(function*() {
+  const chosen = yield* sinkSerial(sink);
+  const startedMs = Date.now() - started;
+  yield* ChildProcess.make("pw-record", ["--target", String(chosen.serial), "-P", "{ stream.capture.sink=true }", "--rate", "48000", "--channels", "2", "--format", "s16", file], { stdin: "ignore", stdout: "ignore", stderr: "inherit", killSignal: "SIGINT", forceKillAfter: "3 seconds" })
+    .pipe(Effect.mapError(cause => new CaptureFailure({ problem: `pw-record: ${cause.message}` })));
+  console.log(`recording ${sink} (serial ${chosen.serial}${chosen.fed ? ", playing" : ", silent so far"}) to ${file}`);
+  return { file: basename(file), sink, serial: chosen.serial, startedMs };
+});
+
+const runCaptures = (args: readonly string[]) => Effect.scoped(Effect.gen(function*() {
   const clientsFile = option(args, "--clients-file");
   const clientName = option(args, "--client");
   const manifestPath = option(args, "--manifest");
   const out = option(args, "--out");
   const minutes = Number(option(args, "--minutes") ?? "60");
-  if (clientsFile === undefined || clientName === undefined || manifestPath === undefined || out === undefined) return yield* new CaptureFailure({ problem: "usage: run --clients-file FILE --client NAME --manifest MAP.captures.json --out DIR [--minutes M]" });
+  if (clientsFile === undefined || clientName === undefined || manifestPath === undefined || out === undefined) return yield* new CaptureFailure({ problem: "usage: run --clients-file FILE --client NAME --manifest MAP.captures.json --out DIR [--minutes M] [--audio-sink SINK | --no-audio]" });
   const text = yield* attempt("read the manifest", () => readFileSync(manifestPath, "utf8"));
   const manifest = yield* Schema.decodeEffect(Manifest)(text).pipe(Effect.mapError(cause => new CaptureFailure({ problem: `${manifestPath}: ${String(cause)}` })));
   const client = (yield* loadClients(clientsFile).pipe(Effect.mapError(failure => new CaptureFailure({ problem: `${failure.operation}: ${failure.cause}` })))).find(row => row.name === clientName);
@@ -126,6 +167,7 @@ const runCaptures = (args: readonly string[]) => Effect.gen(function*() {
   yield* attempt("create the result folder", () => mkdirSync(out, { recursive: true }));
   const statusPath = join(dataDirectory(client.documents), CAPTURE_STATUS_FILE);
   const started = Date.now();
+  const audio = args.includes("--no-audio") ? undefined : yield* recordAudio(option(args, "--audio-sink") ?? `wisp-online-${client.name}`, join(out, "audio.wav"), started);
   const wanted = manifest.fixtures.reduce((total, fixture) => total + fixture.frames.length, 0);
   const saved = new Map<string, { fixture: string; frame: number; file: string; capturedMs: number }>();
   const log: { ms: number; captureMs: number; stamp: string }[] = [];
@@ -154,11 +196,27 @@ const runCaptures = (args: readonly string[]) => Effect.gen(function*() {
     if (lastScript >= manifest.fixtures.length && Date.now() - idleSince > 30000) break;
   }
   const missed = manifest.fixtures.flatMap(fixture => fixture.frames.filter(frame => !saved.has(`${fixture.name}/${frame}`)).map(frame => ({ fixture: fixture.name, frame })));
-  const result = { map: manifest.map, captured: saved.size, wanted, missed, captures: [...saved.values()], log };
+  const result = { map: manifest.map, captured: saved.size, wanted, missed, audio, captures: [...saved.values()], log };
   yield* attempt("write captures.json", () => writeFileSync(join(out, "captures.json"), `${JSON.stringify(result, null, 1)}\n`));
   const unreadable = log.filter(row => row.stamp === "unreadable").length;
   console.log(JSON.stringify({ captured: saved.size, wanted, missed: missed.length, screenCaptures: log.length, unreadable, medianCaptureMs: [...log.map(row => row.captureMs)].sort((a, b) => a - b)[Math.floor(log.length / 2)] ?? 0 }));
   if (missed.length > 0) return yield* new CaptureFailure({ problem: `missed ${missed.map(row => `${row.fixture}@${row.frame}`).join(", ")}` });
+}));
+
+const plan = (args: readonly string[]) => Effect.gen(function*() {
+  const pads = positional(args).flatMap(path => statSync(path).isDirectory() ? readdirSync(path).filter(file => file.endsWith(".pad")).sort().map(file => join(path, file)) : [path]);
+  if (pads.length === 0) return yield* new CaptureFailure({ problem: "usage: plan PAD|DIR..." });
+  const fixtures = yield* attempt("read pad scripts", () => pads.map(path => fixtureOf(path, readFileSync(path, "utf8"))));
+  const { planFixture } = yield* Effect.promise(() => import("./nativeCapturePlan"));
+  let cues = 0;
+  let passed = 0;
+  for (const fixture of fixtures) {
+    const row = yield* planFixture(fixture).pipe(Effect.mapError(failure => new CaptureFailure({ problem: failure.problem })));
+    cues += row.cues;
+    passed += row.passed;
+  }
+  console.log(`plan: ${passed}/${cues} cues shown on a capture frame, ${fixtures.length} scripts`);
+  if (passed !== cues) return yield* new CaptureFailure({ problem: `${cues - passed} cues aren't shown on a capture frame` });
 });
 
 /** Root-mean-square difference of two captures over the frame, on a 0..1 scale, skipping the stamp row. */
@@ -198,6 +256,6 @@ const compare = (args: readonly string[]) => Effect.gen(function*() {
 
 if (import.meta.main) {
   const [verb, ...args] = Bun.argv.slice(2);
-  const program = verb === "build" ? build(args) : verb === "run" ? runCaptures(args) : verb === "compare" ? compare(args) : Effect.fail(new CaptureFailure({ problem: "usage: nativeCapture.ts build|run|compare ..." }));
-  await Effect.runPromise(program).catch((cause: unknown) => { console.error(String(cause)); process.exit(1); });
+  const program = verb === "build" ? build(args) : verb === "plan" ? plan(args) : verb === "run" ? runCaptures(args) : verb === "compare" ? compare(args) : Effect.fail(new CaptureFailure({ problem: "usage: nativeCapture.ts build|plan|run|compare ..." }));
+  BunRuntime.runMain(program.pipe(Effect.provide(BunServices.layer)));
 }
