@@ -19,6 +19,7 @@ import { advanceFighter } from "../step";
 import { controls } from "../testWorld";
 import { setWorldMotionValue } from "../motion";
 import { mainDeckRight } from "../stage";
+import { squareRoot } from "../warcraftMath";
 
 const H = HERO_REFERENCE_HEIGHT;
 
