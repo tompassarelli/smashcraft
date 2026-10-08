@@ -1,3 +1,4 @@
+import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { heroRegion } from "../heroMoves";
 import { frames, type AuthoredSpecial, type FighterSpecials } from "../heroSpecials";
@@ -23,9 +24,9 @@ const lift = (free: boolean): AuthoredSpecial => ({
   regions: free ? undefined : [heroRegion(11, 16, c(0.0, 95.0, 0.0, 200.0, 20.0), hit(9.0, "launch", 80))],
 });
 export const CAIRNE_SPECIALS: FighterSpecials = {
-  neutral: { name: "Shockwave", description: "Plant the totem and send one low wave along the ground.", ground: shockwave(false), air: shockwave(true) },
-  side: { name: "War Stomp", description: "Step forward and stomp both sides, lifting nearby foes for a follow-up.", ground: stomp(false), air: stomp(true) },
-  up: { name: "Spirit Lift", description: "Rise behind the totem, then fall helplessly with exposed sides.", ground: lift(false), free: lift(true) },
-  down: { name: "Reincarnation", description: "Read an incoming strike to heal 12 damage, up to 24 per stock. A wait or grab beats it.",
-    ground: { cost: 25, endFrame: 46, groundOnly: true, intangible: frames(6, 9), guard: { ...frames(6, 9), heal: 12.0 } } },
+  neutral: withExKit({ name: "Shockwave", description: "Plant the totem and send one low wave along the ground.", ground: shockwave(false), air: shockwave(true) }, { damage: 1.25 }),
+  side: withExKit({ name: "War Stomp", description: "Step forward and stomp both sides, lifting nearby foes for a follow-up.", ground: stomp(false), air: stomp(true) }, { reach: 1.25 }),
+  up: withExKit({ name: "Spirit Lift", description: "Rise behind the totem, then fall helplessly with exposed sides.", ground: lift(false), free: lift(true) }, { travel: 1.25 }),
+  down: withExKit({ name: "Reincarnation", description: "Read an incoming strike to heal 12 damage, up to 24 per stock. A wait or grab beats it.",
+    ground: { cost: 25, endFrame: 46, groundOnly: true, intangible: frames(6, 9), guard: { ...frames(6, 9), heal: 12.0 } } }, { guardFrames: 4 }),
 };

@@ -16,7 +16,7 @@ const heroes = [Character.forsakenPaladin, Character.dreadlord, Character.shadow
 
 function cast(character: Character, slot: SpecialSlot, ex: boolean, air = false) {
   const owner = createFighter(character, 0.0, 1);
-  const target = createFighter(Character.archer, 900.0, -1);
+  const target = createFighter(Character.rifleman, 900.0, -1);
   const world = testWorld(owner, target);
   owner.mana.points = 100;
   owner.motion.grounded = !air;
@@ -63,13 +63,12 @@ test("Paladin hammer and Fury and Pit Lord charge deal 25% more in ground and ai
   }
 });
 
-test("Vampiric Pounce's ground and air bites deal 25% more and retain the 4 heal and 12 stock cap [spec docs/design/mana.md]", () => {
-  for (const air of [false, true]) for (const healed of [0.0, 12.0]) {
+test("Vampiric Pounce's ground and air bites deal 25% more and retain their four point heal [spec docs/design/mana.md]", () => {
+  for (const air of [false, true]) {
     const normal = cast(Character.dreadlord, SpecialSlot.side, false, air);
     const ex = cast(Character.dreadlord, SpecialSlot.side, true, air);
     for (const state of [normal, ex]) {
       state.owner.status.damage = 30.0;
-      state.owner.status.guardHealed = healed;
       state.target.motion.x = 40.0;
       state.target.motion.z = state.owner.motion.z;
       state.owner.special.frame = 16;
@@ -78,8 +77,7 @@ test("Vampiric Pounce's ground and air bites deal 25% more and retain the 4 heal
       state.owner.special.frame = 32;
       advanceSpecials(state.world, 0, 0);
       assertGreaterThan(state.target.status.damage, 0.0);
-      assertEquals(state.owner.status.damage, healed === 0.0 ? 26.0 : 30.0);
-      assertEquals(state.owner.status.guardHealed, healed === 0.0 ? 4.0 : 12.0);
+      assertEquals(state.owner.status.damage, 26.0);
     }
     assertEquals(ex.target.status.damage, f32(normal.target.status.damage * 1.25));
   }

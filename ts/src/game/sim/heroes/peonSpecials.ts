@@ -1,3 +1,4 @@
+import { withExKit } from "../exSpecialAuthoring";
 import { type AuthoredSpecial, type FighterSpecials, frames } from "../heroSpecials";
 import { peonHit } from "./peonMoves";
 
@@ -34,8 +35,8 @@ const repair = (air: boolean): AuthoredSpecial => ({
 });
 
 export const PEON_SPECIALS: FighterSpecials = {
-  neutral: { name: "Lumber Toss", description: "Toss a slow bundle of lumber to clear some working room.", ground: lumberToss(false), air: lumberToss(true) },
-  side: { name: "Burrow", description: "Build a fragile burrow that fires spears; press again to pack it up.", ground: BURROW, recall: { name: "Pack Up", cost: 0, endFrame: 52, groundOnly: true, recall: true } },
-  up: { name: "Worksite Launch", description: "Vault toward the stage, then fall helpless.", ground: vault(15, 6.0, 16.0), free: vault(0, 5.0, 12.5) },
-  down: { name: "Repair", description: "Duck behind the tools; a correctly timed hit repairs a little damage.", ground: repair(false), air: repair(true) },
+  neutral: withExKit({ name: "Lumber Toss", description: "Toss a slow bundle of lumber to clear some working room.", ground: lumberToss(false), air: lumberToss(true) }, { damage: 1.25 }),
+  side: withExKit({ name: "Burrow", description: "Build a fragile burrow that fires spears; press again to pack it up.", ground: BURROW, recall: { name: "Pack Up", cost: 0, endFrame: 52, groundOnly: true, recall: true } }, { durability: 1.25, damage: 1.25, recallProtection: 4 }),
+  up: withExKit({ name: "Worksite Launch", description: "Vault toward the stage, then fall helpless.", ground: vault(15, 6.0, 16.0), free: vault(0, 5.0, 12.5) }, { travel: 1.25 }),
+  down: withExKit({ name: "Repair", description: "Duck behind the tools; a correctly timed hit repairs a little damage.", ground: repair(false), air: repair(true) }, { guardFrames: 4 }),
 };
