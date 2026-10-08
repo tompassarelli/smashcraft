@@ -3,8 +3,7 @@
 // Mirror Image and its swap, a Storm Bolt recalled through the target, Shadow
 // Pursuit onto a mark, a Frost Nova burst, Frost Armor and Dark Ritual for
 // mana, the recoil shot's routes and second shot, Immolate cancelled by a
-// jump, the glide, running behind Mana Burn, the short-hop blaster, the
-// hippogryph's low line, leap-off and perch-dive. Hero options are read from
+// jump, the glide, running behind Mana Burn and the short-hop blaster. Hero options are read from
 // the kit's data (sim/heroSpecials.ts), so a hero whose kit has the same
 // shape gets the same play. Each option is taken in the level's kitTenths of
 // the moments that suit it, drawn with botChoice from the match state.
@@ -81,10 +80,6 @@ const DASH_IN_FAR = 300.0;
 
 /** Whether an original fighter can pay for a special now (sim/mana.ts): an unpaid press is refused. */
 const affords = (f: Readonly<Fighter>, action: SpecialAction): boolean => specialCooldownReady(f, action);
-
-/** The perched hippogryph's dive strikes a target this close to its path (sim/summons.ts). */
-const DIVE_REACH_X = 60.0;
-const DIVE_REACH_Z = 100.0;
 
 const HERO_SLOTS = [SpecialSlot.neutral, SpecialSlot.side, SpecialSlot.up, SpecialSlot.down] as const;
 
@@ -324,8 +319,7 @@ function orbTowardTarget(f: Readonly<Fighter>, target: Readonly<Fighter>) {
 
 /**
  * The kit options an actionable fighter takes in neutral: a hero's recall,
- * burst, image, armor or pursuit; the perched hippogryph's dive through the
- * target; the short-hop blaster; running behind Mana Burn. `ready` is false
+ * burst, image, armor or pursuit; the short-hop blaster; running behind Mana Burn. `ready` is false
  * while the attack pause lasts, which only the placed and offensive options
  * wait for. True when that took the frame.
  */
@@ -382,7 +376,7 @@ export function pressKitOption(f: Readonly<Fighter>, target: Readonly<Fighter>, 
 /**
  * The original fighters' running specials: the recoil shot's route and
  * second shot, Immolate cancelled by a jump, Wing Ascent's glide and its
- * slash, the hippogryph ride's low line and leap-off. Runs after the
+ * slash. Runs after the
  * return's steering (botRecovery.ts), so a return keeps its direction home.
  * True when that took the frame.
  */

@@ -24,7 +24,6 @@ await Effect.runPromise(Effect.gen(function*() {
   const first = from === undefined ? 0 : SELECTABLE_CHARACTERS.findIndex(character => fighterSlug(character) === from);
   ensure(first >= 0, `Unknown fighter: ${from}`);
   for (const character of SELECTABLE_CHARACTERS.slice(first)) {
-    if (character === Character.archer) continue;
     const session = yield* Effect.tryPromise({
       try: () => createStandaloneSession({ presentation: "pool-confirmed", script: [
         `#! chat -dev pain middle medium ${fighterName(character).toLowerCase()}`,

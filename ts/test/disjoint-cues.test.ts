@@ -8,7 +8,7 @@ import { attackDurationFramesForGrounding } from "../src/game/sim/moves";
 import { disjointNormals } from "../src/game/presentation/disjointCues";
 import { HitAreaEffects } from "../src/game/render/hitAreaEffects";
 import { effectMotion } from "../src/game/render/effects";
-import { Character, HippogryphKind, ProjectileKind, SpecialAction } from "../src/game/sim/codes";
+import { Character, ProjectileKind, SpecialAction } from "../src/game/sim/codes";
 import { specialForm, specialKit } from "../src/game/sim/heroSpecials";
 import { heroProjectileArt } from "../src/game/presentation/projectileArt";
 import { ProjectilePresentation } from "../src/game/render/projectilePresentation";
@@ -169,7 +169,7 @@ test("headless spell models and stationary field rims remain at their live proje
   console.log(`projectile presentation: ${measured} live frames checked, 0 missing or misplaced`);
 });
 
-test("existing bear, hippogryph and freeze trap art follows the remote contact centre each frame [spec docs/disjoint-legibility.md]", () => {
+test("existing bear and freeze trap art follows the remote contact centre each frame [spec docs/disjoint-legibility.md]", () => {
   const clients = headless.clients({ start: () => {}, install: () => {} });
   clients.start();
   const client = clients.clients[0];
@@ -180,33 +180,24 @@ test("existing bear, hippogryph and freeze trap art follows the remote contact c
     const renderer = new SpecialEffects({ x: 0, y: 0, z: 0 });
     const frost = new FrostEffects({ x: 0, y: 0, z: 0 });
     fighter.bear.life = 150;
-    fighter.hippogryph.life = 150;
-    fighter.hippogryph.kind = HippogryphKind.strike;
     fighter.freezeTrap.life = 150;
     fighter.freezeTrap.arming = 0;
     for (let frame = 1; frame <= 150; frame++) {
       fighter.bear.x = 2 * frame;
       fighter.bear.z = 193;
-      fighter.hippogryph.x = 3 * frame;
-      fighter.hippogryph.z = 227;
       fighter.freezeTrap.x = 400;
       fighter.freezeTrap.z = 30;
-      if (frame === 50) fighter.hippogryph.kind = HippogryphKind.dive;
-      if (frame === 100) fighter.hippogryph.kind = HippogryphKind.released;
       advanceSummons(summons, fighter, 0);
       renderer.presentSummons(summons, fighter, 0);
-      renderer.presentHippogryph(fighter, 0, frame);
       renderer.presentConfirmedAnimated(frame, fighter, 0);
       frost.present(fighter, 0);
       const actual = client.effectPoses().filter(effect => effect.scale > 0 && effect.z > 0);
-      expect(actual).toHaveLength(3);
+      expect(actual).toHaveLength(2);
       expect(actual.some(effect => effect.x === fighter.bear.x && effect.z === fighter.bear.z)).toBe(true);
-      const birdZ = fighter.hippogryph.z - (fighter.hippogryph.kind === HippogryphKind.released ? 60 : 0);
-      expect(actual.some(effect => effect.x === fighter.hippogryph.x && effect.z === birdZ)).toBe(true);
       expect(actual.some(effect => effect.x === fighter.freezeTrap.x && effect.z === fighter.freezeTrap.z)).toBe(true);
     }
     renderer.destroy();
     frost.destroy();
   });
-  console.log("summon presentation: 450 live frames checked, 0 missing or misplaced");
+  console.log("summon presentation: 300 live frames checked, 0 missing or misplaced");
 });

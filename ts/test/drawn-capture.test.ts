@@ -70,7 +70,7 @@ test("Warcraft's 127-character chat limit preserves all 13 original cue schedule
   const frames = (n: number) => { for (let i = 0; i < n; i++) { clients.frames(1); helpers.service(clients); } };
   clients.start();
   frames(30);
-  const original = "-dev quick hero rifleman |capture 1791371747161-3316068 62,76,91,102,116,131,142,150,156,171,222,232,312,326,402,405,642,646,702,706 -";
+  const original = "-dev quick hero thrall |capture 1791371747161-3316068 62,76,91,102,116,131,142,150,156,171,222,232,312,326,402,405,642,646,702,706 -";
   expect(original.slice(0, 127)).toEndWith("702,");
   clients.chat(0, original.slice(0, 127));
   for (const client of clients.clients) expect(value(client, () => shell().game.phase)).toBe(Phase.characterMenu);

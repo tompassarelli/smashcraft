@@ -1,4 +1,4 @@
-// Special-move effects per participant slot: the bear summon, hippogryph,
+// Special-move effects per participant slot: the bear summon,
 // Illidan's aura, wing trail, the drain flash, immolation flames and mana-burn
 // hand. Handles are created with the match; numerical state owns every
 // contact. Animated particles restart only from confirmed frames.
