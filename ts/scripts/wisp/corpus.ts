@@ -1,7 +1,7 @@
 // `bun wisp parity corpus` (wisp#69): replays every native recording headless
 // in Bun and in 32-bit Lua and names each replay's first divergent frame and
-// field. A recording is a folder Wisp's session recorder wrote
-// (wisp:docs/autopsy.md, "Corpus"): session.json and, per client, the files
+// field. A recording is a folder Wisp's session recorder wrote:
+// session.json and, per client, the files
 // its map wrote, among them each match's replay (smashcraft:ts/src/game/replay/matchReplay.ts),
 // whose test-build frames each carry a digest (frameDigest.ts).
 //

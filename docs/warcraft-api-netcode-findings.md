@@ -1137,12 +1137,8 @@ turn. Native evidence for turn 921:
 - Each client's birth time matched its `wc3-melee-input-start.txt` write
   within 3 ms.
 
-**Debugging one.** `bun wisp engine` (wisp:docs/engine.md) packages the steps
-below: `desync` diffs the Desync.logs, `poll` and `diff` name the birth,
-`watch` records its stack, and `locate` re-finds the offsets after an update.
-Its "Why these tools exist" section records this issue's cost: about 3.5 h of
-one-variable native experiments without engine visibility, against about
-30 min from launch to the call site with the poller and a perf breakpoint.
+**Debugging one.** About 3.5 h went to one-variable native experiments, against
+about 30 min from launch to the call site with the poller and a perf breakpoint.
 
 - Each Errors folder's `*_Desync.log` holds the last three turns of every
   checksum section, appended across games. Section names are FourCC decimals:

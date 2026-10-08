@@ -547,7 +547,7 @@ code. From smashcraft:ts/:
   `+ - *` round toward zero (`TOWARD_ZERO_LUA`, or built with nix on first use).
 - Native corpus (wisp#69): every native session (`pad`, `fresh`, captures, `accept`,
   `client doctor|watch`) records what its clients' maps wrote into
-  ~/.local/state/wisp/corpus/ with no extra step (wisp:docs/autopsy.md, "Corpus"):
+  ~/.local/state/wisp/corpus/ with no extra step:
   each match's replay, whose test-build frames each carry a digest of every
   fighter's position, velocity, action, timers, shield and damage
   (smashcraft:ts/src/game/replay/frameDigest.ts). `bun wisp parity corpus [DIR...]`

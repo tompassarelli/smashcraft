@@ -29,7 +29,7 @@ spectating. Tom's install is Tom's.
 ## When a run desyncs
 
 `fresh`, `integrity capture`, `pad` and `accept` run inside Wisp's desync
-autopsy (wisp:docs/autopsy.md). On a new desync report they print
+autopsy. On a new desync report they print
 
 ```text
 desync autopsy: first divergent birth #N Class at turn T on client X
@@ -38,9 +38,7 @@ desync autopsy: first divergent birth #N Class at turn T on client X
 and save both clients' reports, poll logs and the comparison under
 ~/.local/state/wisp/autopsy/<time>/. The run itself is invalid and reruns
 (below); the line names what to fix. `CScriptFunc` is a code callback made
-on a different turn in each client, as in #158. For a desync outside a
-session, `bun wisp engine desync`, `poll` and `diff` find the same
-(wisp:docs/engine.md).
+on a different turn in each client, as in #158.
 
 ## The session
 
