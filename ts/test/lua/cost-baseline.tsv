@@ -1,9 +1,9 @@
 unit	tests	cpu_s
-src/game/assets/stageLighting.tests.ts	5	0.000
+src/game/assets/stageLighting.tests.ts	7	0.000
 src/game/assets/stagePalette.tests.ts	3	0.000
 src/game/classic/classic.tests.ts	7	4.135
 src/game/classic/loreBattles.tests.ts	4	0.004
-src/game/input/adapter.tests.ts	9	0.009
+src/game/input/adapter.tests.ts	10	0.257
 src/game/input/attackBuffer.tests.ts	6	0.000
 src/game/input/input.tests.ts	6	0.018
 src/game/input/keyBindings.tests.ts	2	0.001
@@ -69,7 +69,7 @@ src/game/netcode/journal/vocabulary.tests.ts	1	0.000
 src/game/netcode/ledger.tests.ts	8	0.026
 src/game/netcode/shadowSchedule.tests.ts	14	0.058
 src/game/physics/techInput.tests.ts	3	0.000
-src/game/presentation/attackClipFamilies.tests.ts	21	0.003
+src/game/presentation/attackClipFamilies.tests.ts	22	0.002
 src/game/presentation/attackCues.tests.ts	1	0.005
 src/game/presentation/bearFeedback.tests.ts	2	0.000
 src/game/presentation/blademasterClips.tests.ts	1	0.000
@@ -88,7 +88,7 @@ src/game/presentation/hurtVoice.tests.ts	2	0.000
 src/game/presentation/illidanCues.tests.ts	3	0.000
 src/game/presentation/impactEvents.tests.ts	8	0.002
 src/game/presentation/impactState.tests.ts	9	0.149
-src/game/presentation/itemLook.tests.ts	2	0.000
+src/game/presentation/itemLook.tests.ts	1	0.000
 src/game/presentation/jumpClips.tests.ts	1	0.002
 src/game/presentation/koFlash.tests.ts	3	0.002
 src/game/presentation/matchCues.tests.ts	5	0.046
@@ -115,7 +115,7 @@ src/game/replay/moment.tests.ts	4	1.747
 src/game/replay/shadowPlayback.tests.ts	7	1.276
 src/game/replay/state.tests.ts	12	0.530
 src/game/replay/viewer.tests.ts	1	0.889
-src/game/shell/devSettings.tests.ts	5	0.001
+src/game/shell/devSettings.tests.ts	6	0.002
 src/game/shell/journalFiles.tests.ts	1	0.000
 src/game/shell/localInput.tests.ts	1	0.051
 src/game/shell/matchRecord.tests.ts	3	0.001
@@ -134,18 +134,19 @@ src/game/sim/dashDance.tests.ts	6	1.584
 src/game/sim/demonHunterContracts.tests.ts	11	0.017
 src/game/sim/directionalInfluence.tests.ts	17	0.003
 src/game/sim/dodgesAndStocks.tests.ts	25	0.139
-src/game/sim/downAir.tests.ts	21	0.002
+src/game/sim/downAir.tests.ts	22	0.002
 src/game/sim/downSmashes.tests.ts	13	5.700
 src/game/sim/downThrows.tests.ts	13	4.246
 src/game/sim/exCommandHeroes.tests.ts	6	0.045
+src/game/sim/exOriginals.tests.ts	8	0.022
 src/game/sim/exSpecials.tests.ts	6	0.032
 src/game/sim/felRush.tests.ts	8	0.221
 src/game/sim/floorFriction.tests.ts	5	0.016
 src/game/sim/fourPlayerContracts.tests.ts	3	0.001
-src/game/sim/freezeTrapContracts.tests.ts	11	0.301
+src/game/sim/freezeTrapContracts.tests.ts	12	0.382
 src/game/sim/grabs.tests.ts	12	0.846
 src/game/sim/groundMovement.tests.ts	17	0.025
-src/game/sim/heroSpecials.tests.ts	16	0.117
+src/game/sim/heroSpecials.tests.ts	14	0.099
 src/game/sim/heroStatus.tests.ts	5	0.019
 src/game/sim/heroes/beastmasterMoves.tests.ts	3	0.003
 src/game/sim/heroes/beastmasterSpecials.tests.ts	10	0.602
@@ -160,7 +161,7 @@ src/game/sim/heroes/exCoreHeroes.tests.ts	8	0.044
 src/game/sim/heroes/fighterArt.tests.ts	1	0.000
 src/game/sim/heroes/forsakenPaladinMoves.tests.ts	10	0.011
 src/game/sim/heroes/forsakenPaladinSpecials.tests.ts	14	1.039
-src/game/sim/heroes/jaina.tests.ts	9	0.051
+src/game/sim/heroes/jaina.tests.ts	8	0.057
 src/game/sim/heroes/kaelthas.tests.ts	9	0.189
 src/game/sim/heroes/lichKingSpecials.tests.ts	6	0.167
 src/game/sim/heroes/lichMoves.tests.ts	9	0.035
@@ -187,7 +188,7 @@ src/game/sim/hurtboxes.tests.ts	8	0.056
 src/game/sim/identityTraits.tests.ts	15	0.004
 src/game/sim/illidanRaidBoss.tests.ts	10	0.153
 src/game/sim/knockdown.tests.ts	17	0.047
-src/game/sim/lava.tests.ts	4	0.101
+src/game/sim/lava.tests.ts	6	0.119
 src/game/sim/ledge.tests.ts	17	0.029
 src/game/sim/mana.tests.ts	5	0.038
 src/game/sim/meleeContact.tests.ts	4	0.001
@@ -200,6 +201,7 @@ src/game/sim/platformMoves.tests.ts	13	0.213
 src/game/sim/powershield.tests.ts	18	0.018
 src/game/sim/recoilAndGlide.tests.ts	9	0.057
 src/game/sim/recovery.tests.ts	9	0.003
+src/game/sim/runCeiling.tests.ts	2	0.035
 src/game/sim/shieldBreak.tests.ts	10	0.032
 src/game/sim/shieldTilt.tests.ts	9	0.005
 src/game/sim/simulation.tests.ts	22	0.047
