@@ -15,6 +15,10 @@ export const KO_BLUR_DISTANCE = 50.0;
 /** Silverpine's fades at 60 frames a second: the flash over 0.25 s, the blur over 0.6 s. */
 export const KO_FLASH_FADE_FRAMES = 15;
 export const KO_BLUR_FADE_FRAMES = 36;
+/** MODULATE_2X's identity grey: the filter at this grey leaves the screen unchanged, so it can turn off without a step. */
+export const KO_FILTER_NEUTRAL_GREY = 128;
+/** Silverpine's filter floor once the flash has faded. */
+const KO_FILTER_FLOOR_GREY = 185;
 
 export interface KoFlash {
   /** Per slot, the hitlag of the last hit that fighter took. */
@@ -26,7 +30,7 @@ export interface KoFlash {
 }
 
 export interface KoFlashLevels {
-  /** The filter's grey, 185-255, as Silverpine maps its alpha. */
+  /** The filter's grey: 185-255 as Silverpine maps the flash's alpha, then easing to neutral 128 by the frame it turns off. */
   readonly grey: number;
   readonly blur: number;
   /** False on the frame both have faded, when the filter and blur turn off. */
@@ -58,8 +62,12 @@ export function koFlashLevels(flash: Readonly<KoFlash>, frame: number): KoFlashL
   if (flash.start === undefined) return undefined;
   const age = Math.max(0, frame - flash.start);
   const alpha = pulse(age, flash.rise, KO_FLASH_FADE_FRAMES, KO_FLASH_ALPHA);
+  // Silverpine holds the 185 floor until the filter turns off, a visible darkening step; this lowers it to neutral over the blur's remaining frames instead.
+  const settle = KO_BLUR_FADE_FRAMES - KO_FLASH_FADE_FRAMES - 1;
+  const settled = Math.min(settle, Math.max(0, age - flash.rise - KO_FLASH_FADE_FRAMES));
+  const floor = KO_FILTER_FLOOR_GREY - floorDiv((KO_FILTER_FLOOR_GREY - KO_FILTER_NEUTRAL_GREY) * settled, settle);
   return {
-    grey: 185 + floorDiv(Math.floor(alpha) * 70, 255),
+    grey: floor + floorDiv(Math.floor(alpha) * (255 - floor), 255),
     blur: pulse(age, flash.rise, KO_BLUR_FADE_FRAMES, KO_BLUR_SCALE),
     showing: age < flash.rise + KO_BLUR_FADE_FRAMES,
   };

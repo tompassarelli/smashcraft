@@ -6,7 +6,7 @@ import { stageBounds } from "../sim/stageBounds";
 import { advanceFighter } from "../sim/step";
 import { contactBatch, controls, hitEffect, testWorld } from "../sim/testWorld";
 import { captureImpactEventsBefore, createImpactEvents, finishImpactEventsAfter } from "./impactEvents";
-import { KO_BLUR_FADE_FRAMES, KO_BLUR_SCALE, createKoFlash, koFlashLevels, noteKoFlash } from "./koFlash";
+import { KO_BLUR_FADE_FRAMES, KO_BLUR_SCALE, KO_FILTER_NEUTRAL_GREY, createKoFlash, koFlashLevels, noteKoFlash } from "./koFlash";
 
 function fingerprint(f: Readonly<Fighter>): string {
   const { motion, launch, status } = f;
@@ -70,4 +70,28 @@ test("the KO flash peaks at Silverpine's caps after the blow's hitlag and turns 
   assertTrue(koFlashLevels(flash, 112 + KO_BLUR_FADE_FRAMES - 1)?.showing === true);
   assertEquals(koFlashLevels(flash, 112 + KO_BLUR_FADE_FRAMES)?.showing, false);
   assertEquals(koFlashLevels(flash, 112 + KO_BLUR_FADE_FRAMES)?.blur, 0.0);
+});
+
+test("the KO filter fades to neutral before it turns off, never stepping more than 6 luma a frame [repro #289]", () => {
+  // Lane C's Classic capture: a 92.6-luma scene read 132 under the 185 floor and snapped back at the off call, so one grey unit moves about 92.6 / 128 luma; 6 luma is 7680 / 926 grey.
+  const flash = createKoFlash();
+  const fighter = createFighter(Character.archer, 0.0, 1);
+  const events = createImpactEvents();
+  events.koDirectionX = 1;
+  fighter.launch.hitlag = 12;
+  events.hit = true;
+  noteKoFlash(flash, 0, 0, fighter, events);
+  const peak = 12;
+  const off = peak + KO_BLUR_FADE_FRAMES;
+  assertEquals(koFlashLevels(flash, peak)?.grey, 255);
+  assertEquals(koFlashLevels(flash, off - 1)?.showing, true);
+  assertEquals(koFlashLevels(flash, off - 1)?.grey, KO_FILTER_NEUTRAL_GREY, "transparent on the last frame before the off call");
+  assertEquals(koFlashLevels(flash, off)?.showing, false);
+  let previous = 255;
+  for (let frame = peak + 1; frame <= off; frame++) {
+    const levels = koFlashLevels(flash, frame);
+    const grey = levels?.showing === true ? levels.grey : KO_FILTER_NEUTRAL_GREY;
+    assertEquals(Math.abs(grey - previous) * 926 <= 7680, true, `frame ${frame}: grey ${previous} to ${grey}`);
+    previous = grey;
+  }
 });
