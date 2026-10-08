@@ -25,6 +25,26 @@ import { observeOpponents, perceivedOpponent } from "./botPerception";
 
 const EXPERT = cpuProfile("wren", "expert");
 
+test("Thrall saves Chain Lightning for a retreat beyond hammer range [repro #279]", () => {
+  const own = createFighter(Character.thrall, 0.0, 1);
+  const target = createFighter(Character.rifleman, 300.0, -1);
+  const casts = (gap: number, drift: number): number => {
+    target.motion.x = gap;
+    target.motion.deltaX = drift;
+    let lightning = 0;
+    for (let frame = 1; frame <= 120; frame++) {
+      const input = neutralControls();
+      chooseAttack(own, target, 0, frame, frame, true, input, attackBuffer(6), 0, -1, cpuSkill("wren", "expert"));
+      if (input.specialPressed && input.specialX === 0 && input.specialZ === 0) lightning++;
+    }
+    return lightning;
+  };
+  assertEquals(casts(300.0, -2.0), 0, "approaching target");
+  assertEquals(casts(300.0, 0.0), 0, "standing target");
+  assertEquals(casts(80.0, 2.0), 0, "target in hammer range");
+  assertTrue(casts(300.0, 2.0) > 0, "retreating target");
+});
+
 function trained(choice: number, policy: CpuDecisionPolicy = EXPERT, cycles = 8) {
   const own = createFighter(Character.rifleman, 0.0, 1);
   const target = createFighter(Character.rifleman, 60.0, -1);
