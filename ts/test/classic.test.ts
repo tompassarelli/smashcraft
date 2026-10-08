@@ -3,15 +3,19 @@
 // strikes, with both clients agreeing throughout.
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
-import { bossDefinition } from "../src/game/classic/bosses";
+import { BOSSES, BossPhase, bossCycleFrames, bossDefinition, bossMoment, collectBossContacts } from "../src/game/classic/bosses";
+import { ClassicPresentation, BOSS_TELEGRAPH_MODEL } from "../src/game/render/classicPresentation";
 import { classicRoute } from "../src/game/classic/routes";
 import { extremeCamera } from "../src/game/presentation/arenaCamera";
 import { MATCH_CAMERA_ASPECT, createMatchCamera } from "../src/game/sim/matchCamera";
 import { MAIN_DECK_HALF_DEPTH } from "../scripts/stageDeck";
 import { BossKind } from "../src/game/classic/runState";
-import { Phase } from "../src/game/match/rules";
+import { createMatchState, Phase } from "../src/game/match/rules";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
 import { Character } from "../src/game/sim/codes";
+import { createFighter } from "../src/game/sim/fighter";
+import { createRoster } from "../src/game/sim/roster";
+import { beginDamageContacts } from "../src/game/sim/contacts";
 import { RULE_BUTTONS } from "../src/game/ui/ruleButtons";
 import { install, startBuild } from "../src/platform/main";
 import { Key } from "../src/platform/shell/keyEvents";
@@ -108,3 +112,58 @@ test("every boss's whole drawn body stands behind the deck and inside the view a
     }
   }
 });
+
+for (const boss of BOSSES) {
+  test(`${boss.name}'s every hit follows a visible area warning for its full reaction window [spec #330]`, () => {
+    const clients = headless.clients({ start: () => {}, install: () => {} }, [0]);
+    const client = clients.client(0);
+    const game = createMatchState();
+    game.phase = Phase.match; game.run.active = true; game.run.boss.kind = boss.kind; game.run.boss.health = 1000;
+    const fighter = createFighter(Character.archer, 0, 1);
+    const world = createRoster(1, [fighter]);
+    let presentation: ClassicPresentation;
+    client.run(() => {
+      presentation = new ClassicPresentation({ x: 0, y: 0, z: 0 });
+      presentation.beginMatch(game);
+      const starts = new Map<number, number>();
+      const hits = new Map<number, number>();
+      for (let clock = 1; clock <= bossCycleFrames(boss) + 90; clock++) {
+        game.matchFrame = clock;
+        const now = { ...bossMoment(boss, clock) };
+        const strike = boss.strikes[now.index];
+        const zone = strike?.zones[0];
+        if (zone === undefined || strike === undefined) throw new Error("missing strike");
+        fighter.motion.x = zone.x; fighter.motion.z = Math.max(0, zone.bottom);
+        beginDamageContacts();
+        collectBossContacts(game.run.boss, world, clock, 0);
+        presentation.present(game);
+        if (now.strike < 0) continue;
+        const markers = client.effectPoses({ visibleOnly: true }).filter(pose => pose.model === BOSS_TELEGRAPH_MODEL);
+        if (now.phase === BossPhase.tell) {
+          expect(game.run.boss.hitMask).toBe(0);
+          expect(markers.length).toBe(strike.zones.length);
+          if (!starts.has(now.strike)) starts.set(now.strike, clock);
+          for (let index = 0; index < strike.zones.length; index++) {
+            const area = strike.zones[index]; const marker = markers[index];
+            if (area === undefined || marker === undefined) throw new Error("missing zone marker");
+            expect(marker.matrixScale[0] * 38.168).toBeCloseTo(area.halfWidth, 2);
+            expect(marker.matrixScale[1] * 76.336).toBeCloseTo(area.top - area.bottom, 2);
+            expect(marker.roll).toBeCloseTo(Math.PI / 2, 5);
+            expect(marker.timeScale).toBe(0);
+          }
+        } else if (now.phase === BossPhase.active && !hits.has(now.strike)) {
+          expect(game.run.boss.hitMask).toBe(1);
+          const start = starts.get(now.strike);
+          expect(start).toBeDefined();
+          expect(clock - (start ?? clock)).toBeGreaterThanOrEqual(20);
+          expect(clock - (start ?? clock)).toBe(strike.tell);
+          hits.set(now.strike, clock);
+          console.log(`${boss.name}/${now.index} ${strike.name}: tell=${start} hit=${clock} window=${clock - (start ?? clock)}`);
+        }
+      }
+      expect(hits.size).toBe(boss.strikes.length);
+      presentation.destroy();
+    });
+    expect(client.errors).toEqual([]);
+  });
+}

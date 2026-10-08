@@ -201,3 +201,34 @@ classic boss NAME` its final battle, for native captures.
 Each route's fifth fight is on the fighter's home stage. Fighters that share
 Durotar Skies (Thrall's Horde) also share many of its rivals; their routes
 differ in order, team fight, arch-rival and boss.
+
+## Boss attack warnings
+
+Every attack gives at least 20 displayed frames to react (#330). Its stock
+spell wind-up runs alongside a yellow rectangular area outline from Warcraft's
+building selection square (`UI\Feedback\SelectionCircle\SelectionCircle.mdx`,
+`Neutral Big`). The square is held on a visible animation frame and stretched
+independently across its width and height in the fighters' plane. Its bottom,
+top and sides mark the actual damage zone; tall columns reach above the view.
+The warning remains visible throughout the tell, and goes away when the hit
+art starts. Aimed rectangles lock to the player's x at the tell's start.
+There are no imported warning assets.
+
+Coordinates below are stage units: x is horizontal and z is height above the
+main deck. Frame 0 is the first tell frame, and the hit begins on frame N;
+the warning covers frames 0 through N−1. Repeated entries retain their own
+warning and start a new wind-up.
+
+| Boss / ability | Warning rectangle (x; z) | Wind-up / first hit frame |
+| --- | --- | --- |
+| Archimonde / Rain of Fire, first | Four columns centred at −450, −150, 150, 450; ±90 wide; −60…700 high | Spell; 50 |
+| Archimonde / Rain of Fire, second | Three columns centred at −300, 0, 300; ±90 wide; −60…700 high | Spell; 50 |
+| Archimonde / Finger of Death | Player's locked x ±55; −60…700 high | Spell; 35 |
+| Archimonde / Doom's Shockwave | −600…600; −30…50 high | Spell; 45 |
+| Lich King / Howling Blast (both) | Player's locked x ±75; −60…700 high | Spell; 45 |
+| Lich King / Remorseless Winter | −600…600; −30…55 high | Spell; 50 |
+| Lich King / Frostmourne's Cleave, right | 0…600; −30…230 high | Spell; 40 |
+| Lich King / Frostmourne's Cleave, left | −600…0; −30…230 high | Spell; 40 |
+| Kil'jaeden / Shadow Spike (all three) | Player's locked x ±65; −60…700 high | Spell; 40 |
+| Kil'jaeden / Legion Lightning | −600…600; 150…420 high | Spell; 45 |
+| Kil'jaeden / Darkness | −260…260; −30…400 high | Spell; 55 |

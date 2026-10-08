@@ -14,6 +14,9 @@ import { type ParkedFlags, type WorldOrigin, parkOnce } from "./effects";
 
 /** Strike art per zone; no strike has more zones than this. */
 const ZONE_EFFECTS = 4;
+export const BOSS_TELEGRAPH_MODEL = "UI\\Feedback\\SelectionCircle\\SelectionCircle.mdx";
+// The stock building selection square spans 76.336 model units in its ground plane.
+const MARKER_HALF = f32(38.168);
 const QUARTER_TURN = f32(1.5707963);
 const PANEL_TEXTURE = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp";
 
@@ -71,7 +74,13 @@ export class ClassicPresentation {
     BlzSetSpecialEffectColor(this.body, boss.tint[0], boss.tint[1], boss.tint[2]);
     BlzSetSpecialEffectYaw(this.body, -QUARTER_TURN);
     for (let index = 0; index < ZONE_EFFECTS; index++) {
-      this.tells.push(AddSpecialEffect(boss.tellArt, x, y));
+      const tell = AddSpecialEffect(BOSS_TELEGRAPH_MODEL, x, y);
+      BlzSetSpecialEffectAnimationBlendTime(tell, 0.0);
+      BlzSetSpecialEffectAnimation(tell, "Neutral Big");
+      BlzSetSpecialEffectTime(tell, 0.5);
+      BlzSetSpecialEffectTimeScale(tell, 0.0);
+      BlzSetSpecialEffectRoll(tell, QUARTER_TURN);
+      this.tells.push(tell);
       this.hits.push(AddSpecialEffect(boss.hitArt, x, y));
     }
     for (let index = 0; index < ZONE_EFFECTS * 2; index++) this.parked[index] = false;
@@ -119,8 +128,14 @@ export class ClassicPresentation {
       const showHit = zone !== undefined && now.strike >= 0 && now.phase === BossPhase.active;
       if (showTell && strike !== undefined && zone !== undefined) {
         this.parked[index] = false;
-        BlzSetSpecialEffectScale(tell, f32(zone.halfWidth / 90.0));
-        BlzSetSpecialEffectPosition(tell, origin.x + zoneCenter(strike, zone, game.run.boss.aimX), origin.y, origin.z + Math.max(0.0, zone.bottom));
+        BlzSetSpecialEffectScale(tell, 1.0);
+        BlzResetSpecialEffectMatrix(tell);
+        BlzSetSpecialEffectMatrixScale(tell, f32(zone.halfWidth / MARKER_HALF), f32(f32(zone.top - zone.bottom) / f32(2.0 * MARKER_HALF)), 1.0);
+        BlzSetSpecialEffectRoll(tell, QUARTER_TURN);
+        BlzSetSpecialEffectPosition(tell, origin.x + zoneCenter(strike, zone, game.run.boss.aimX), origin.y + 20.0, origin.z + f32(f32(zone.bottom + zone.top) / 2.0));
+        BlzSetSpecialEffectAlpha(tell, 255);
+        BlzSetSpecialEffectAnimation(tell, "Neutral Big");
+        BlzSetSpecialEffectTime(tell, 0.5);
       } else parkOnce(tell, origin, this.parked, index);
       if (showHit && strike !== undefined && zone !== undefined) {
         this.parked[ZONE_EFFECTS + index] = false;
