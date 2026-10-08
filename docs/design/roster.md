@@ -1218,6 +1218,12 @@ path while she holds the ledge.
 
 **Balance** (#247, her 20-pair computer field, Wren Expert, 400/pair): homing arrow 3 → 5 damage and dash attack 6 → 8: field win rate 36% (5adb030c) → 47% (02f650a3, run 37741282489; 3804/8160); side special is 23% of her moves, above the zoner profile's 3-15%.
 
+**Side-special play style** (#273): keeping the computer's homing-arrow
+choices in its long-range spacing band reduced side-special starts from
+21.95% (2,769/12,617) to 6.98% (818/11,725) over 120 identical Wren Expert
+matches against Forsaken Paladin (febfa549 → 8b1fcc8e;
+[focused evidence](../../evidence/archer-playstyle-273-20261008/result.md)).
+
 #### Play-style profile
 
 Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). Distance is her identity: arrows and back air keep the gap.
