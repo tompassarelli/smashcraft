@@ -4,9 +4,6 @@ declare const SetCameraPosition: (x: number, y: number) => void;
 
 /** Assumptions shared by the Bun journey and emitted-Lua journey. */
 export const SMASHCRAFT_NOOPS: IntentionalNoops = {
-  BlzFrameSetFont: "quick-match checks frame text and points; font rasterization is not part of its verdict",
-  BlzFrameSetTextAlignment: "quick-match checks frame text and points; glyph alignment is not part of its verdict",
-  BlzFrameSetScale: "quick-match checks declared frame positions; Warcraft frame scaling is not part of its verdict",
   GetPlayableMapRect: "stage initialization only uses this rectangle to obtain the declared zero-centered map origin",
   GetRectCenter: "stage initialization uses the declared zero-centered map origin supplied by location getters",
   RemoveLocation: "the temporary stage-center location holds no state after initialization",
