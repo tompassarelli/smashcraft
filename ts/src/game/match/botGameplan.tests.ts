@@ -55,7 +55,7 @@ test("Archer chooses homing arrows at long range instead of using them throughou
       for (let frame = 1; frame <= 64; frame++) {
         const input = neutralControls();
         chooseAttack(f, target, 0, frame, frame, true, input, attackBuffer(6), 0);
-        if (input.specialPressed && input.specialX !== 0 && input.specialY === 0) count++;
+        if (input.specialPressed && input.specialX !== 0 && input.specialZ === 0) count++;
       }
       return count;
     };
