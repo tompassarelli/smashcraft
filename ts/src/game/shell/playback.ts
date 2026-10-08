@@ -88,7 +88,7 @@ export const REPAIR_FRAMES = 4;
  * costs REPAIR_WHOLE_COST, a fighter-scoped one 1. Each whole frame costs a
  * Lua32 callback about 2.5 ms, so the frame-cost budget (#168) bounds it.
  */
-export const REPAIR_COST = 4;
+export const REPAIR_COST = 6;
 
 /**
  * Frames and units of repair one callback may spend when it may also run
