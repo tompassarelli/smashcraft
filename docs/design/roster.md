@@ -83,6 +83,53 @@ Murloc ([#262](https://github.com/tompassarelli/smashcraft/issues/262)),
 requested by Tom on 8 October 2026, is a small, light rushdown; his kit,
 body and gameplan are in [murloc.md](murloc.md).
 
+## Kobold — You no take candle! (#344)
+
+A tiny, frantic candle-hoarder who wins scraps with a mining pick, then scurries
+away clutching his light. He is comedy through movement: anxious tiptoe runs,
+overcommitted digging and a panicked recovery. Unlike Peon's building setup or
+Murloc's sustained claw pressure, Kobold pokes, ducks underneath a reply and
+punishes a missed swing. No passive or second resource. Use the stock Kobold
+creep body, portrait, voice and fire/dirt effects in Classic and Definitive.
+
+Provisional body: weight 0.90, run multiplier 1.10, air 1.02, width 0.78,
+height 0.66. Short pick reach and low weight punish careless approaches;
+recovery rises for 20 frames at 16 units/frame, then becomes helpless.
+The four ordinary specials cost zero; full-meter EX uses the shared rules
+from #335/#329, available for each special with no Kobold-specific meter rule.
+
+| Action | Gesture and purpose | Startup / active / recovery; damage |
+| --- | --- | --- |
+| Jab 1 / 2 | Two nervous pick taps | 3 / 2 / 11; 2%, then 5 / 2 / 15; 4% |
+| Forward tilt (three angles) | Candle hand back, pick jabs out | 6 / 3 / 19; 8% |
+| Up tilt | Lift the pick over his precious candle; launcher | 5 / 4 / 18; 7% |
+| Down tilt | Scrape ankles with the pick; tech chase | 5 / 3 / 16; 6% |
+| Dash attack | Trip into a shoulder-and-pick shove | 7 / 5 / 26; 9% |
+| Forward / up / down smash | Big pick swing / overhead jab / two-sided scrape | 14 / 3 / 36; 16%, 11 / 4 / 34; 15%, 12 / 4 / 34; 13% |
+| Neutral / forward / back aerial | Panicky flail / pick jab / backwards kick | 5 / 6 / 20; 8%, 7 / 3 / 24; 10%, 8 / 3 / 24; 12% |
+| Up / down aerial | Lift the candle / dig straight down | 6 / 4 / 20; 9%, 12 / 3 / 28; 11% |
+| Get-up / ledge attack | Scramble and swing the pick | 17 / 3 / 30; 6%, 17 / 3 / 21; 6% |
+
+| Special | Ordinary move and counterplay | EX expression |
+| --- | --- | --- |
+| Neutral: Wick Flick | Flick a tiny flame on frame 12; 4%, 36 total frames. Jump or shield the short projectile; punish his recovery. | Shared EX stronger flame, same readable release. |
+| Side: Panic Dig | Ground-level 11-unit/frame scurry on frames 8–22; 8%, 32 total. In air, swing the pick forward. Shield stops the scurry. | Shared EX deeper shove; shield still stops it. |
+| Up: Candle Escape | Panic spring upward on frame 6, 16-unit/frame rise through 25; 5% on frames 6–14. One use per airtime; helpless after. | Shared EX stronger rising pick; no refresh of the recovery. |
+| Down: Mine! | Hunch over the candle, then sweep the pick across both ankles on frames 10–13; 7%, 34 total. Jump over or punish the whiff. | Shared EX stronger sweep, same commitment. |
+
+Grab clutches the opponent's sleeve; one candle-headbutt pummel. Forward throw
+shoves them away (7%, frame 12/32 total); back throw yanks and tumbles backward
+(9%, 14/36); up throw panics and lifts them (6%, 12/26), starting a juggle;
+down throw trips them over the pick (5%, 16/38), starting a tech chase.
+Grabs use the universal envelope and mash escape; the follow-up is a read,
+with DI and tech available, rather than a guaranteed repeated throw.
+
+Play-style profile: scrappy ground skirmisher; approach 50% run / 35% jump /
+15% flame cover, aerial damage 25–35%, ranged damage 5–15%, special damage
+20–30%. Signature: Panic Dig into a spacing reset. Kill choices are committed
+pick smashes and back aerial; short range prevents safe long-range zoning.
+The first balance probe records actual shares and field win rate on #344.
+
 Build order is a recommendation, not permission to delete or overwrite ongoing work. Finish or checkpoint the current synchronization milestone before integrating new gameplay into that branch. A first overnight pass should finish one or two complete heroes and reusable move primitives; it should not report all fifteen finished because character-select entries exist.
 
 ## Shared combat contract
