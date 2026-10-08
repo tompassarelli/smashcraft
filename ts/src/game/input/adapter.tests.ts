@@ -58,6 +58,7 @@ test("Tilt selects neutral horizontal specials and faces the held direction on k
     for (const x of [-1, 0, 1] as const) for (const z of [-1, 0, 1] as const) {
       const f = fixture();
       f.fighter.motion.grounded = true;
+      f.fighter.motion.surface = 0;
       f.fighter.facing = x === -1 ? 1 : -1;
       const held = maskOf(Action.special) | (tilt ? maskOf(Action.walk) : 0)
         | (x === -1 ? maskOf(Action.moveLeft) : x === 1 ? maskOf(Action.moveRight) : 0)
