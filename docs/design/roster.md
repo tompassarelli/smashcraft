@@ -206,7 +206,7 @@ The individual hero sections below specify all attacks. Their counterplay descri
 | --- | --- | --- |
 | Neutral B | **Wind Cutter:** short traveling blade wave. 6 damage, POKE at 35 degrees; speed 0.14H/frame, life 24 frames, radius 0.16H. Reflectable; only one owned wave at a time. | Spawn f18, action ends f40; 0 mana |
 | Side B | **Wind Walk** (#124, smashcraft:docs/design/kit-review-1.md): a 7-frame fade, then a 2.2H walk that passes bodies and stops at a raised shield. In f10–31 an attack press is **Backstab**, a slash for 12 damage at 40 degrees, EDGE, toward the held stick (back turns him: the cross-up); a special press steps out; nothing recovers. No invisibility or invulnerability. In air once per airtime, then helpless. | Walk f8–31, end f44; Backstab active f6–8 of its press, end f30; step out ends 8 frames after its press; 18 mana |
-| Up B | **Rising Whirlwind:** sword extended through a charged spin dash, with 2.8H travel in the chosen direction; one hit for 9 damage at 80 degrees, LAUNCH. No intangibility. Mana-free version travels 1.9H with no attack. | Aim f1–8, hit f9–14, dash f9–22, stop f23, then helpless; 15 mana |
+| Up B | **Rising Whirlwind:** sword extended through a charged spin dash, in the chosen direction, meeting the [#252 long-route recovery band](../gameplay-design.md#recovery-and-edgeguarding); one hit for 9 damage at 80 degrees, LAUNCH. No intangibility. Mana-free version meets the 240-unit route floor with no attack. | Aim f1–8, hit f9–14, dash f9–22, stop f23, then helpless; 15 mana |
 | Down B | **Mirror Image** (#124): after a visible tell, an image stays where he stood (one hit of any kind shatters it; 150 frames) and he steps 1.0H back (down with a side turns him to that side first). Down special while the image stands **swaps**: he takes the image's place facing its way and slashes for 10 damage at 40 degrees, EDGE. The image never attacks; no intangibility. | Image and step f8, end f24, 15 mana; swap f6, slash f8–10, end f30, free |
 
 ### Grab and throws
@@ -230,7 +230,7 @@ Standing grab 7/2/22, reach 0.55H, one-handed collar catch. Pummel: pommel strik
 - Down air's tip spikes airborne targets only; it sends grounded targets at 55 degrees, as the shared notation directs.
 - Dash grab uses the shared rule (startup +3, recovery +8) on the standing grab's volumes.
 - Wind Cutter, Mirror Image and Wind Walk keep their grounded timing in the air; Wind Cutter and Mirror Image end on landing with 20 frames of lag, and the airborne Wind Walk is once per airtime and ends helpless, Backstab and step out included.
-- Rising Whirlwind hovers through f8, then dashes 2.8H in the chosen direction over f9–22 and stops on f23, so the helpless fall starts from rest; its free form dashes 1.9H with no hit. The stock whirlwind is reserved for this move family.
+- Rising Whirlwind hovers through f8, then dashes in the chosen direction over f9–22 and stops on f23, so the helpless fall starts from rest. The paid route rises 480–640 units; the shorter free route reaches at least 240 units on either axis, with no hit (#252). The stock whirlwind is reserved for this move family.
 - Wind Walk's walk stops before a raised shield but passes bodies (`stopsAtShield`); Backstab and step out are its attack and special branches (`followUps`). Mirror Image's image is a placed object drawn as his see-through model; the swap is its recall form (`relocate`).
 - Presentation extends the stock model with a distinct authored gesture for every jab, tilt angle, smash and aerial. Down smash sweeps front then rear; neutral air cuts two short arcs; back air turns into its slash; down air keeps the downward Sword Plunge. The double jump keeps its authored front flip. These clips preserve the existing combat timing, regions and damage.
 - Bladestorm is not implemented; ultimates stay off in competitive play.
@@ -547,7 +547,7 @@ in [Forsaken Paladin](forsaken-paladin.md); production frame data lives in forsa
 | --- | --- | --- |
 | Neutral B | **Cleansing Hammer:** overhead launcher, 11.05 damage at 80°, growth 70/base 42. Removes his poison and movement slow on contact frame, even on a miss. Air drifts with 18 landing frames. | Active f14–16, end f38; 10 mana |
 | Side B | **Righteous Fury:** held-hammer charge, 0.75H travel, 11.9 damage at 40°. Body hit slows movement 40% for 75 frames, then 120 immunity. Ground armor absorbs one hit up to 5 damage on f15–18. Air has no armor, one use, 20 landing frames and helpless finish. | Hammer/travel f15–20, end f49; 25 mana |
-| Up B | **Ascension:** steerable hammer rise, 2.9H paid or 2.0H free; 0.2H forward and up to 1.6H steering. Paid form hits once for 6.8 damage at 80°. Jump spent, one use per airtime, helpless finish. | Hit f10–15, travel f8–28, stop/end f29; 15 mana or free |
+| Up B | **Ascension:** steerable hammer rise in the [#252 heavy recovery band](../gameplay-design.md#recovery-and-edgeguarding), with the free route reaching at least 240 units on either axis; 0.2H forward and up to 1.6H steering. Paid form hits once for 6.8 damage at 80°. Jump spent, one use per airtime, helpless finish. | Hit f10–15, travel f8–28, stop/end f29; 15 mana or free |
 | Down B | **Consecration:** fixed, jumpable holy patch, radius 60, 70 units ahead. Life 120 frames, 1.7 damage at most every 45 frames; one patch and 150-frame recast interval. Ground only. | Pool f16, end f42; 20 mana |
 
 **Sacred Aura:** three blocked hits make the next non-throw launch 20% weaker.
@@ -729,7 +729,7 @@ specials: neutral 3-15, side 2-12, up 0-8, down 3-15
 | --- | --- | --- |
 | Neutral B | **Howl of Terror:** visible two-sided roar, 7 damage at 35 degrees, radius 1.0H, no lingering status. | Active f15–18, end f46; 12 mana |
 | Side B | **Ruin Charge:** 1.5H grounded charge, 15 damage, EDGE at 35 degrees. One-hit armor up to 6 damage on f19–24; no armor on startup or recovery. Stops at shield. Air version travels 0.8H horizontally, no armor, helpless afterward. | Active/movement f19–26, R38; 22 mana |
-| Up B | **Abyssal Leap:** slow arcing leap, 1.7H rise and 0.7H horizontal reach, hoof hit for 10 damage at 80 degrees, LAUNCH. Free version 1.2H and 0.4H, no hit. | Hit f13–18, movement through f32, then helpless; 15 mana |
+| Up B | **Abyssal Leap:** slow arcing leap in the [#252 heavy recovery band](../gameplay-design.md#recovery-and-edgeguarding), hoof hit for 10 damage at 80 degrees, LAUNCH. Free route reaches at least 240 units on either axis with no hit. | Hit f13–18, movement through f32, then helpless; 15 mana |
 | Down B | **Rain of Fire:** three visible falling meteors, 5 damage each at 70 degrees; lanes 1.8H/2.2H/2.6H ahead. Reflectable and shieldable; jump out or rush underneath. | Spawn f25/31/37, end f60; 20 mana |
 
 The sourced redesign and visual gestures are in [Pit Lord](pit-lord.md).

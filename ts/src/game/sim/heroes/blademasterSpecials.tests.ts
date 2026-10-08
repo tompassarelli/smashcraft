@@ -1,6 +1,6 @@
 // Blademaster's four specials against the roster rows, run through the
 // production special, contact and projectile steps.
-import { assertEquals, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, ProjectileKind, SpecialAction } from "../codes";
@@ -56,23 +56,34 @@ function risingBlade(mana: number, gap = 60.0, aimX = 0, aimZ = 0): { rise: numb
   let drift = 0.0;
   for (let f = 2; f <= 80; f++) {
     frame(world, controls({ direction: f <= 8 ? aimX : 0, verticalDirection: f <= 8 ? aimZ : 0 }));
+    if (gap === 900.0) {
+      if (f <= 8) assertEquals(owner.motion.z, startZ);
+      if (f === 9 || f === 22) assertGreaterThan(owner.motion.vz, 0.0);
+      if (f === 23) { assertEquals(owner.motion.vx, 0.0); assertEquals(owner.motion.vz, 0.0); }
+      if (f === 24) { assertTrue(owner.special.fall); assertEquals(owner.jump.remaining, 0); }
+    }
     top = Math.max(top, owner.motion.z);
     if (f === 23) drift = owner.motion.x;
   }
   return { rise: f32(top - startZ), drift, mana: spent, damage: target.status.damage };
 }
 
-test("Rising Blade dashes 2.8H the way the stick picks in its startup at 15 mana; below 15 its free form reaches 1.9H without a hit", () => {
-  const near = (value: number, heights: number) => Math.abs(value - f32(heights * H)) <= f32(f32(0.02) * H);
+test("Rising Whirlwind charges through f8, dashes f9–22 in the chosen direction, stops f23 and falls helpless; paid rise is 480–640, free at least 240 with no hit [spec #252] [spec docs/design/roster.md]", () => {
+  const tolerance = f32(f32(0.02) * H);
   const full = risingBlade(100, 900.0);
   assertEquals(full.mana, 85);
-  assertTrue(near(full.rise, f32(2.8)) && near(full.drift, 0.0));
+  assertTrue(full.rise >= 480.0 && full.rise <= 640.0);
+  assertNear(full.drift, 0.0, tolerance);
   const diagonal = risingBlade(100, 900.0, 1, 1);
-  assertTrue(near(diagonal.rise, f32(f32(2.8) * f32(0.70710677))) && near(diagonal.drift, f32(f32(2.8) * f32(0.70710677))));
+  const diagonalAxis = f32(full.rise * f32(0.70710677));
+  assertNear(diagonal.rise, diagonalAxis, tolerance);
+  assertNear(diagonal.drift, diagonalAxis, tolerance);
   assertGreaterThan(risingBlade(100).damage, 0.0);
   const free = risingBlade(14, 900.0);
   assertEquals(free.mana, 14);
-  assertTrue(near(free.rise, f32(1.9)) && near(free.drift, 0.0));
+  assertTrue(free.rise >= 240.0);
+  assertLessThan(free.rise, full.rise);
+  assertNear(free.drift, 0.0, tolerance);
   assertEquals(risingBlade(14).damage, 0.0);
 });
 

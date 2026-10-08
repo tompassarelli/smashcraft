@@ -1,5 +1,6 @@
 import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
+import { upSpecialRoute } from "../../match/recoveryEnvelope";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, SpecialAction } from "../codes";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
@@ -211,23 +212,23 @@ test("Beastmaster Wild Axes are free, throw twice and return toward the moving o
   assertTrue(pulled);
 });
 
-test("Beastmaster airborne Hawk Lift retains full and free recovery and leaves Hawk alive", () => {
-  for (const [mana, rise] of [[100, f32(3.2)], [10, f32(2.3)]] as const) {
+test("Beastmaster Hawk Lift rises 380–520 and reaches 600–900, its free route at least 240 on each axis; Hawk survives the helpless fall [spec #252] [spec docs/design/beastmaster.md]", () => {
+  for (const mana of [100, 10]) {
+    const route = upSpecialRoute(Character.beastmaster, mana);
+    assertTrue(mana === 100 ? route.rise >= 380.0 && route.rise <= 520.0 : route.rise >= 240.0);
+    assertTrue(mana === 100 ? route.reach >= 600.0 && route.reach <= 900.0 : route.reach >= 240.0);
     const { world, owner } = pair();
     owner.motion.grounded = false;
     owner.motion.surface = undefined;
     owner.motion.z = 100.0;
     owner.motion.vz = 0.0;
     owner.mana.points = mana;
-    let liftStart = owner.motion.z;
-    let peak = liftStart;
     frame(world, up);
     assertEquals(owner.mana.points, mana === 100 ? 85 : 10);
-    for (let f = 2; f <= 33; f++) { frame(world); if (f === 10) liftStart = owner.motion.z; peak = Math.max(peak, owner.motion.z); }
+    for (let f = 2; f <= 33; f++) frame(world);
     assertTrue(owner.special.fall);
     assertEquals(owner.jump.remaining, 0);
     assertGreaterThan(placedObject(owner, 2).life, 0);
-    assertNear(f32(peak - liftStart), f32(H * rise), f32(H * f32(0.2)));
     frame(world, up);
     assertEquals(owner.special.action, SpecialAction.none);
   }
