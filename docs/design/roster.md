@@ -1694,7 +1694,6 @@ Stock campaign Grom model, textures, portrait, cries and Orc spell effects
 are the first inputs. Authored clips reshape that stock rig to make each
 contact point readable in Classic and Definitive; no third-party model.
 
-||||||| parent of 518a6c528 (Design Anubarak as a burrowing insect king (#341))
 ## Anub'arak (#341)
 
 **Identity:** an ancient insect king who treats the stage as his crypt. He advances with a low, six-legged scuttle, skewers ankles with his tusks, disappears under the floor and erupts beneath prey. His carrion beetles do the undignified chasing for him. Heavy ground control and frightening eruptions cost slow turns, a broad body and committed recovery. No reflective passive, resource or hidden stat bonus.
