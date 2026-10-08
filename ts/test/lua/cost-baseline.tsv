@@ -155,6 +155,7 @@ src/game/sim/heroes/chenMoves.tests.ts	3	0.009
 src/game/sim/heroes/chenSpecials.tests.ts	6	0.092
 src/game/sim/heroes/dreadlordMoves.tests.ts	9	0.009
 src/game/sim/heroes/dreadlordSpecials.tests.ts	12	0.208
+src/game/sim/heroes/exCoreHeroes.tests.ts	8	0.044
 src/game/sim/heroes/fighterArt.tests.ts	1	0.000
 src/game/sim/heroes/forsakenPaladinMoves.tests.ts	10	0.011
 src/game/sim/heroes/forsakenPaladinSpecials.tests.ts	14	1.039
