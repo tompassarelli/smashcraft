@@ -147,23 +147,23 @@ Generated from the packaged models by `bun wisp view motion --assets DIR` (#171)
 | Uther | walk | 12: Walk 1 | 85.8 | 20.9 | forward; 82.9/75.0 |
 | Uther | dash | 12: Walk 1 | 85.6 | 20.2 | forward; 82.7/74.3 |
 | Uther | run | 12: Walk 1 | 94.3 | 22.2 | forward; 81.3/93.4 |
-| Uther | turn | 13: test | 64.5 | 12.6 | back; 29.7/18.0 |
-| Uther | brake | 14: Cinematic Dialogue One | 4.6 | 0.4 | in place; 4.4/0.3 |
-| Uther | jump-squat | 15: Attack Slam | 20.3 | 1.5 | down; 15.4/7.5 |
-| Uther | roll-forward | 22: CInematic Surprised Two | 12.3 | 3.0 | forward; 5.4/11.5 |
-| Uther | roll-back | 23: CInematic Turn90Left One | 40.0 | 16.7 | back; 40.0/16.0 |
-| Uther | spot-dodge | 24: Cinematic Turn90Right One | 25.4 | 10.1 | in place; 17.5/24.6 |
-| Uther | air-dodge | 16: Spell | 117.9 | 28.1 | in place; 110.2/87.4 |
-| Uther | tech | 17: Spell Fast | 84.6 | 28.9 | in place; 84.0/66.4 |
-| Uther | tech-forward | 18: Cinematic Walk | 78.1 | 16.7 | forward; 65.1/76.8 |
-| Uther | tech-back | 19: Cinematic Salute Two | 210.8 | 20.5 | back; 95.4/193.9 |
-| Uther | get-up | 25: CInematicTurn180Left One | 79.8 | 29.5 | up; 22.2/14.3 |
-| Uther | get-up-forward | 20: Cinematic Dialogue Two | 60.1 | 10.8 | forward; 36.5/57.9 |
-| Uther | get-up-back | 21: Cinematic Surprised One | 33.3 | 10.4 | back; 30.8/8.0 |
-| Uther | get-up-attack | 26: Cinematic Turn180Right One | 100.9 | 24.0 | both; 36.2/100.9 |
-| Uther | ledge-get-up | 27: Spell Slam | 164.1 | 30.5 | up; 76.5/71.0 |
-| Uther | ledge-roll | 28: Uther jab | 33.3 | 6.8 | forward; 25.9/11.1 |
-| Uther | ledge-attack | 29: Uther jab2 | 29.8 | 8.4 | both; 27.0/19.1 |
+| Uther | turn | 50: Uther turn | 226.6 | 29.1 | back; 100.9/225.8 |
+| Uther | brake | 51: Uther stop | 41.8 | 10.4 | in place; 27.6/23.8 |
+| Uther | jump-squat | 52: Uther jumpSquat | 66.0 | 9.4 | down; 33.6/64.4 |
+| Uther | roll-forward | 85: Uther rollForward | 253.6 | 93.2 | forward; 253.2/151.9 |
+| Uther | roll-back | 86: Uther rollBackward | 253.8 | 92.9 | back; 151.8/253.1 |
+| Uther | spot-dodge | 66: Uther spotDodge | 39.8 | 13.1 | in place; 30.6/18.2 |
+| Uther | air-dodge | 48: Uther airDodge | 46.6 | 15.0 | in place; 33.6/16.1 |
+| Uther | tech | 67: Uther tech | 175.7 | 28.6 | in place; 126.2/108.8 |
+| Uther | tech-forward | 87: Uther techForward | 253.7 | 93.8 | forward; 253.2/151.9 |
+| Uther | tech-back | 88: Uther techBackward | 253.7 | 93.8 | back; 151.9/253.1 |
+| Uther | get-up | 64: Uther getUp | 214.8 | 49.7 | up; 93.5/81.3 |
+| Uther | get-up-forward | 89: Uther getUpRollForward | 253.7 | 93.5 | forward; 253.3/151.6 |
+| Uther | get-up-back | 90: Uther getUpRollBackward | 253.6 | 93.3 | back; 151.9/253.2 |
+| Uther | get-up-attack | 65: Uther getUpAttack | 220.0 | 63.5 | both; 173.9/206.2 |
+| Uther | ledge-get-up | 60: Uther ledgeClimb | 160.0 | 27.0 | up; 128.4/71.6 |
+| Uther | ledge-roll | 91: Uther ledgeRoll | 253.8 | 93.5 | forward; 253.3/151.6 |
+| Uther | ledge-attack | 61: Uther ledgeAttack | 49.6 | 9.8 | both; 44.2/19.1 |
 | Dreadlord | walk | 5: Walk | 115.4 | 38.3 | forward; 115.3/109.0 |
 | Dreadlord | dash | 5: Walk | 115.7 | 38.0 | forward; 115.7/107.5 |
 | Dreadlord | run | 5: Walk | 119.3 | 40.1 | forward; 110.1/107.2 |
@@ -364,9 +364,9 @@ Generated from the packaged models by `bun wisp view motion --assets DIR` (#171)
 | Chen Stormstout | ledge-get-up | 45: Chen ledgeClimb | 296.6 | 43.8 | up; 209.7/165.1 |
 | Chen Stormstout | ledge-roll | 62: Chen ledgeRoll | 305.9 | 123.4 | forward; 143.7/305.5 |
 | Chen Stormstout | ledge-attack | 46: Chen ledgeAttack | 64.0 | 16.6 | both; 52.8/18.0 |
-| Peon | walk | 1: Walk | 81.7 | 32.3 | forward; 73.2/81.7 |
-| Peon | dash | 1: Walk | 81.2 | 31.9 | forward; 71.4/81.2 |
-| Peon | run | 1: Walk | 63.1 | 26.5 | forward; 63.1/61.7 |
+| Peon | walk | 1: Walk | 81.6 | 32.3 | forward; 73.3/81.5 |
+| Peon | dash | 1: Walk | 81.2 | 32.0 | forward; 71.5/81.1 |
+| Peon | run | 1: Walk | 59.4 | 25.0 | forward; 58.8/59.0 |
 | Peon | turn | 42: Peon turn | 104.2 | 26.8 | back; 60.5/104.2 |
 | Peon | brake | 43: Peon stop | 17.2 | 7.5 | in place; 8.7/13.6 |
 | Peon | jump-squat | 44: Peon jumpSquat | 39.0 | 19.5 | down; 34.9/9.3 |

@@ -5,7 +5,6 @@ export const DOWN_AIR_CLIPS = {
   3: { downAir: { index: 54, seconds: f32(0.767), aligned: true } },
   4: { downAir: { index: 66, seconds: 0.75, aligned: true } },
   6: { downAir: { index: 49, seconds: f32(0.833), aligned: true } },
-  7: { downAir: { index: 52, seconds: f32(0.817), aligned: true } },
   8: { downAir: { index: 51, seconds: f32(0.767), aligned: true } },
   10: { downAir: { index: 56, seconds: f32(1.033), aligned: true } },
   11: { downAir: { index: 49, seconds: f32(0.85), aligned: true } },

@@ -20,7 +20,6 @@ const gestures = [
   {character:Character.blademaster,name:"Sword Plunge",chest:12,wrist:95,arm:15,knee:85},
   {character:Character.mountainKing,name:"Boot Stomp",chest:-15,wrist:0,arm:-65,knee:0},
   {character:Character.lich,name:"Frost Press",chest:48,wrist:45,arm:20,knee:0},
-  {character:Character.uther,name:"Hammer Drop",chest:30,wrist:60,arm:-45,knee:75},
   {character:Character.dreadlord,name:"Claw Dive",chest:45,wrist:40,arm:25,knee:70},
   {character:Character.pitLord,name:"Four Hooves",chest:-15,wrist:0,arm:-70,knee:0},
   {character:Character.beastmaster,name:"Twin Axe Drop",chest:35,wrist:90,arm:-15,knee:65},

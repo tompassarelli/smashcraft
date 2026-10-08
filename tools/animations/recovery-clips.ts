@@ -71,7 +71,7 @@ function quaternion(y: number, z: number): Float32Array {
 const generated: string[] = [];
 const records: unknown[] = [];
 for (const [character, fighter] of fighters.entries()) {
-  if (character === Character.demonHunter || character === Character.lichKing) continue;
+  if (character === Character.demonHunter || character === Character.lichKing || character === Character.uther) continue;
   if (metadataOnly) {
     const model = parseSource(await Bun.file(join(output, fighter.source)).arrayBuffer());
     const bindings = actions(character).map(action => {
