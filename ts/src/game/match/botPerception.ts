@@ -257,6 +257,8 @@ function copyObservation(target: ObservationFighter, source: Readonly<Fighter>):
   for (let index = 0; index < source.projectiles.length; index++) {
     const from = at(source.projectiles, index);
     const into = at(target.projectiles, index);
+    // An observed projectile without life always holds EMPTY's values, so a dead one stays as it is.
+    if (from.life <= 0 && into.life <= 0) continue;
     const p = from.life <= 0 ? at(EMPTY.projectiles, 0) : from;
     into.life = p.life;
     into.x = p.x;
