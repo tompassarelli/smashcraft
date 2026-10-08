@@ -7,7 +7,7 @@ import { MEDIVH_CLIPS, MEDIVH_DAMAGE_CLIPS, MEDIVH_FALLBACK, MEDIVH_MODEL_FILE }
 
 export const MEDIVH_HERO: HeroDefinition = {
   character: Character.medivh, name: "Medivh", purpose: "A mad prophet vanishes before the punchline",
-  weakness: "Light body and punishable blink arrivals", complete: false,
+  weakness: "Light body and punishable blink arrivals", complete: true,
   moves: MEDIVH_MOVES, specials: MEDIVH_SPECIALS, gameplan: MEDIVH_GAMEPLAN,
   jab: { name: "Impatient Prophecy", description: "Two pointed staff taps for those who will not listen." },
   presentation: { model: MEDIVH_MODEL_FILE, objectId: 0x6d666d65,
