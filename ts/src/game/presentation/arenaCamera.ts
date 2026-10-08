@@ -8,6 +8,16 @@ import { stageBounds } from "../sim/stageBounds";
 /** The arena floor stands this far above the ground at the world origin. */
 export const FLOOR_HEIGHT = 1800.0;
 
+/**
+ * Warcraft draws no effect whose position lies outside the map's world bounds
+ * (#298). The base map's are 64 x 64 cells, x and y -4096..4096, and its playable
+ * centre is at y -256; Wisp's headless world has no bounds and centres at 0.
+ */
+export const WORLD_BOUNDS = { left: -4096.0, right: 4096.0, front: -4096.0, back: 4096.0, playableCentreY: -256.0 } as const;
+
+/** The arena stands this far south of the playable centre, so scenery up to 7,600 behind the fighters stays inside the world bounds. */
+export const ARENA_SOUTH = 3500.0;
+
 /** The fields the arena camera keeps, in degrees and world units: along +y, ten degrees down. */
 export const ARENA_CAMERA = { rotation: 90.0, angleOfAttack: 350.0, farZ: 8000.0 } as const;
 

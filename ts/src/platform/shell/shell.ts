@@ -8,7 +8,7 @@ import { ownConfirmedState } from "./confirmedState";
 import { startKeyUp } from "../../game/match/controls";
 import { Phase, copyMatchState, humanActive, humanPresent, participantLeft, updateConnectedHumans } from "../../game/match/rules";
 import { FRAME_SECONDS } from "../../game/presentation/fighterPose";
-import { FLOOR_HEIGHT } from "../../game/presentation/arenaCamera";
+import { ARENA_SOUTH, FLOOR_HEIGHT } from "../../game/presentation/arenaCamera";
 import { type MapBuild, journalIngress } from "../../game/shell/build";
 import { pausing } from "../../game/shell/pauseBarrier";
 import type { RollbackPlayback } from "../../game/shell/playback";
@@ -275,10 +275,10 @@ function createTriggers(s: ShellState): void {
   startFrameClock(tick);
 }
 
-/** The playable map's center, with the floor FLOOR_HEIGHT above the ground there. */
+/** ARENA_SOUTH south of the playable map's center, with the floor FLOOR_HEIGHT above the ground at that center. */
 function worldOrigin(): { x: number; y: number; z: number } {
   const center = GetRectCenter(GetPlayableMapRect());
-  const origin = { x: GetLocationX(center), y: GetLocationY(center), z: GetLocationZ(center) + FLOOR_HEIGHT };
+  const origin = { x: GetLocationX(center), y: GetLocationY(center) - ARENA_SOUTH, z: GetLocationZ(center) + FLOOR_HEIGHT };
   RemoveLocation(center);
   return origin;
 }
