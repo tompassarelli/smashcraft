@@ -571,6 +571,8 @@ Hammer cannot remove silence, sleep, stun or a forced carry.
 Consecration near grounded opponents, ordinary shield/dodge for defense,
 then ledge-oriented Ascension for recovery. Coverage counts all four specials.
 
+**Balance** (#249, his own 20-pair computer field, Wren Expert, 408/pair): damage multiplier 0.85 → 0.80: field win rate 61% (6d0b5a2c, run 37736075431) → 50% (0b0d4ced, run 37741856017); side special is 22% of his moves and 29% of his damage.
+
 ## Dreadlord
 
 **Identity:** a winged close-range fighter with strong grabs and deceptive aerial approaches. Bat imagery supports movement, but he cannot fly indefinitely. Sleep is a short skill shot, not unavoidable RTS crowd control.
@@ -1208,6 +1210,8 @@ ride until her jump is gone. She avoids the edge. The perch and dive are her
 stage control: a dive line through the gap she keeps, or through a recovery
 path while she holds the ledge.
 
+**Balance** (#247, her 20-pair computer field, Wren Expert, 400/pair): homing arrow 3 → 5 damage and dash attack 6 → 8: field win rate 36% (5adb030c) → 47% (02f650a3, run 37741282489; 3804/8160); side special is 23% of her moves, above the zoner profile's 3-15%.
+
 #### Play-style profile
 
 Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). Distance is her identity: arrows and back air keep the gap.
@@ -1242,6 +1246,8 @@ into forward or up smash; the bear into a shot or forward smash. He kills
 with forward smash from 80%, up smash from 95% and the recoil shot from
 100%. He returns to the ledge and spends his jump before the recoil. He
 avoids close range.
+
+**Balance** (#248, his 20-pair computer field, Wren Expert, 400/pair): forward tilt growth 90 → 108 and dash attack 95 → 114, for kill power (he dealt 191 damage per stock taken against a field median near 140): field win rate 38% (5adb030c, run 37736380119) → 46% (run 37741496717, measured on 7cb29b97; landed as 07b13e80).
 
 #### Play-style profile
 
