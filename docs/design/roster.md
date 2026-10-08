@@ -1609,3 +1609,49 @@ ducking, peeking face and occupied-break hitstun belong to a future move change.
 The #148 repeated-contact checks pin the absence of counted damage, healing,
 reactive chill and jump refunds. Existing normal, special and command-grab
 checks continue to pin the kept actions in Bun and emitted Lua.
+
+## Medivh (#343)
+
+**Identity:** a mad prophet who knows the punchline before anyone else. Cryptic,
+theatrical staff flourishes bait a chase; he disappears and returns where the
+opponent committed. Mobility trickster, light body (0.90 reference weight),
+ordinary run (0.98), strong air drift (1.20), narrow 0.90-wide, 1.10-high body.
+His staff is honest close-range contact; blink endpoints have visible recovery.
+No passive, charge system, second resource or automatic counter.
+
+| Normal | Gesture and purpose | First / active / recovery; damage |
+| --- | --- | --- |
+| Jab, jab 2 | Two impatient staff taps | 5/2/13, 6/3/16; 3, 4 |
+| Forward tilt, angled variants | Pointed staff rebuke, aiming high or low | 9/3/20; 7 |
+| Up tilt | Lift the staff into a vertical launcher | 8/4/20; 7 |
+| Down tilt | Ankle hook, launching into an aerial chase | 7/3/18; 6 |
+| Dash attack | Robe-first shoulder and staff shove | 10/4/24; 8 |
+| Forward smash | Two-handed prophet's staff thrust | 13/3/31; 15 |
+| Up smash | Sweep the staff overhead | 18/5/31; 14 |
+| Down smash | Low staff sweep forward then behind | 20/4/32; 13 |
+| Neutral air | Wide theatrical robe/staff sweep | 8/6/22; 6; landing 14 |
+| Forward air | Staff push away | 8/3/25; 9; landing 14 |
+| Back air | Blind backwards staff jab | 12/3/24; 10; landing 16 |
+| Up air | Overhead staff catch | 10/4/21; 8; landing 14 |
+| Down air | Pointed staff plunge; airborne spike | 15/3/29; 11; landing 20 |
+| Get-up / ledge attack | Staff sweep / climbing shove | 17/3/30, 17/3/21; 7 |
+
+| Special | Ordinary version (all free) | EX (one full universal bar) |
+| --- | --- | --- |
+| Neutral: Arcane Omen | f12 launches one slow purple bolt, 8 damage, 40-frame cast. Shield or jump it. | Faster larger 12-damage bolt; same cast commitment. |
+| Side: Vanishing Act | f10 blink 180 units forward, f12–14 staff strike for 7, end f38; intangible only f9–10. Read the arrival and punish recovery. | Blink 250 units, 11-damage strike; same exposed arrival. |
+| Up: Raven Flight | Compress f1–8, raven-form aimed flight f9–28 at 16 units/frame, 5-damage wing contact f9–15; end f36 helpless, spends air jump. | Flight speed 20 and 8-damage contact; same helpless landing. |
+| Down: Last Word | f10 blink 120 units backwards, f13–15 outward arcane burst for 5, end f38; intangible f9–10. Bait the pursuit or lose ground. | Retreat 160 units and 9-damage wider burst. |
+
+**Grab and throws:** shared grab envelope; one 3-damage staff pummel. Forward
+throw pushes at f14 for 7; back throw vanishes behind the victim then sweeps at
+f17 for 9; up throw lifts with the staff at f16 for 7 (juggle); down throw
+presses down at f18 for 6 (tech chase). No guaranteed string is assumed; DI,
+air dodge and tech remain the victim's replies.
+
+**Play-style profile:** mobility trickster; target 40–60% field wins, aerial
+share 35–55%, approach 20–40%, ranged 10–25%, special 20–40%. Signature is
+Vanishing Act's punishable arrival; no move should exceed 40% of total damage,
+and single-move spam should win at most 45%. Explosive openings come from down
+tilt/up throw into an aerial chase. Stock campaign Medivh and raven model,
+Warcraft spell art and voice only; Classic and Definitive share combat data.
