@@ -3,7 +3,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { luma } from "./stagePalette";
 import { STAGE_LIGHTS } from "./stageLighting";
-import { CANNON_TEST_STAGE, DRIFTING_DECK_STAGE, FROZEN_THRONE_STAGE, TIMED_TEST_STAGE } from "../sim/stage";
+import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, DRIFTING_DECK_STAGE, FROZEN_THRONE_STAGE, TIMED_TEST_STAGE } from "../sim/stage";
 
 // smashcraft:docs/design/visual-quality.md, "Stage light rules".
 test("every selectable stage has its own light [spec docs/design/visual-quality.md]", () => {
@@ -62,4 +62,11 @@ test("Blackrock's forge light shines at 1.2 so fighters stand brighter than its 
   const blackrock = STAGE_LIGHTS.find(({ stage }) => stage === CANNON_TEST_STAGE)?.light;
   assertEquals(`${blackrock?.key.join(",")}/${blackrock?.ambient.join(",")}`, "255,216,176/170,124,112");
   assertEquals(blackrock?.intensity, f32(1.2));
+});
+
+// #295: under the full light Gryphon Aerie's fighters rose to the bright sky (abs ΔL 7.7 → 2.4 in Reforged).
+test("Gryphon Aerie's mountain light shines at 0.2 so fighters stay apart from the bright sky [spec #295]", () => {
+  const aerie = STAGE_LIGHTS.find(({ stage }) => stage === CARRIED_TEST_STAGE)?.light;
+  assertEquals(`${aerie?.key.join(",")}/${aerie?.ambient.join(",")}`, "255,248,226/164,182,220");
+  assertEquals(aerie?.intensity, f32(0.2));
 });
