@@ -111,3 +111,17 @@ with Reincarnation and saves Spirit Lift for returning to the ledge.
 [krool]: https://www.ssbwiki.com/King_K._Rool_(SSBU)
 [eruption]: https://www.ssbwiki.com/Eruption
 [slap]: https://www.ssbwiki.com/Hand_Slap
+
+## Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). The true super-heavyweight; his totem controls a large patch of ground.
+
+```balance-profile
+fighter: cairne-bloodhoof
+archetype: heavy
+aerials: nair 10-40, fair 10-40, bair 15-45, uair 5-30, dair 5-30
+air-share: 5-35
+approach: 45-75
+ranged: 0-20
+specials: neutral 2-12, side 2-12, up 0-8, down 2-12
+```

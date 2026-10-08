@@ -114,3 +114,17 @@ base-game Shaman's Purge glow around the body.
 Author deliberate preparation/contact/recovery poses, both facing directions,
 the shared recovery actions, paired grabs and nine pain poses. All extracted
 and authored Warcraft model data remains in the private build-input store.
+
+## Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). A heavy ground-control brawler around Doomhammer's reach.
+
+```balance-profile
+fighter: thrall
+archetype: heavy
+aerials: nair 10-40, fair 10-40, bair 15-45, uair 5-30, dair 5-30
+air-share: 10-40
+approach: 45-75
+ranged: 0-20
+specials: neutral 2-12, side 2-12, up 0-8, down 2-12
+```

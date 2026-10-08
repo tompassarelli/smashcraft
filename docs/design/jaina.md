@@ -117,3 +117,17 @@ before the opponent enters it, not trapping input or winning trades.
 [teleport]: https://www.ssbwiki.com/Teleport
 [blizzard]: https://www.ssbwiki.com/Blizzard
 [robin]: https://www.ssbwiki.com/Robin_(SSBU)
+
+## Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). A zoner: she gives up ground speed and close pressure for spells at range.
+
+```balance-profile
+fighter: jaina-proudmoore
+archetype: zoner
+aerials: nair 10-35, fair 10-35, bair 20-50, uair 5-30, dair 0-25
+air-share: 15-45
+approach: 20-50
+ranged: 30-70
+specials: neutral 5-25, side 3-15, up 0-8, down 3-15
+```

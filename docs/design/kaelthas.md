@@ -132,3 +132,17 @@ still serves as an offensive burst when the nearby enemy is in reach.
 [arcframes]: https://www.ssbwiki.com/Robin_(SSBU)/Side_special
 [flame]: https://classic.battle.net/war3/human/units/bloodmage.shtml
 [wing]: https://www.ssbwiki.com/Wing_Blitz
+
+## Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). A fire mage whose projectile stops an approach; mid-range pressure.
+
+```balance-profile
+fighter: kael'thas-sunstrider
+archetype: zoner
+aerials: nair 10-35, fair 10-35, bair 20-50, uair 5-30, dair 0-25
+air-share: 15-45
+approach: 30-60
+ranged: 25-65
+specials: neutral 5-25, side 3-15, up 0-8, down 2-12
+```

@@ -22,13 +22,15 @@ import { produceComputerInput } from "../src/game/match/botPlay";
 import { isCpuOpponent, isCpuTier, type CpuOpponentId, type CpuTier } from "../src/game/match/cpuProfiles";
 import { gameplanOf } from "../src/game/match/botGameplan";
 import { type GameplanMove, GameplanSpecial, GameplanThrow } from "../src/game/sim/gameplan";
-import { AttackStyle, type Character, LedgeState, SpecialAction } from "../src/game/sim/codes";
+import { AttackStyle, type Character, DownState, GrabAction, LedgeState, SpecialAction } from "../src/game/sim/codes";
 import { createFighter, type Fighter } from "../src/game/sim/fighter";
 import { SELECTABLE_CHARACTERS, fighterSlug, selectableCharacterBySlug } from "../src/game/sim/heroes/registry";
 import { copyControls, createRoster, fighterAt, neutralControls } from "../src/game/sim/roster";
 import { mainDeckLeft, mainDeckRight } from "../src/game/sim/stage";
 import soak from "./wisp/soak";
 import { admitsThroughHelper, runAdmitted } from "./heavyCapacity";
+import { spamOnly } from "./spamPolicy";
+import { BALANCE_SPEC, DISADVANTAGE_FRAMES, PUNISH_RESET_FRAMES, type Measured, type PlayStyleProfile, balanceGate, balanceScore, readProfiles } from "./balance";
 
 /** The soak's stages by the game's stage numbers (test/soak/game.ts). */
 export const FIELD_STAGES: Readonly<Record<string, number>> = {
@@ -63,7 +65,12 @@ const MOVE_NAMES: Readonly<Record<number, string>> = {
   [AttackStyle.demonHunterDashAttack]: "dash-attack", [AttackStyle.dashAttack]: "dash-attack",
   [SPECIAL_MOVE.neutral]: "neutral-special", [SPECIAL_MOVE.side]: "side-special", [SPECIAL_MOVE.up]: "up-special", [SPECIAL_MOVE.down]: "down-special",
 };
-const moveName = (move: number): string => MOVE_NAMES[move] ?? `move-${move}`;
+export const moveName = (move: number): string => MOVE_NAMES[move] ?? `move-${move}`;
+/** A move as the balance report counts it: jab strings are the jab, angled forward tilts the forward tilt, Illidan's dash attack the dash attack. */
+export const reportedMove = (move: number): number =>
+  move === AttackStyle.jab2 || move === AttackStyle.jab3 ? AttackStyle.jab
+    : move === AttackStyle.forwardTiltUp || move === AttackStyle.forwardTiltDown ? AttackStyle.forwardTilt
+      : move === AttackStyle.demonHunterDashAttack ? AttackStyle.dashAttack : move;
 
 /** The special slot a running special action belongs to. */
 function specialMove(action: number): number | undefined {
@@ -95,6 +102,41 @@ interface SideRecord {
   /** Stocks lost plus the one still standing at the end. */
   stocksPlayed: number;
   readonly stockLosses: { readonly frame: number; readonly sinceHit: number | undefined; readonly selfDestruct: boolean }[];
+  /** Damage dealt, by reported move: the move the body was striking with, or the last move started for a hit it wasn't (a projectile, summon or placed object). */
+  readonly damageByMove: Record<number, number>;
+  /** Opponent stocks taken (self-destructs excluded), by the reported move of the last hit. */
+  readonly kosByMove: Record<number, number>;
+  /** Damage dealt while its body struck nothing. */
+  rangedDamage: number;
+  /** Frames moving toward or away from the opponent, while able to act. */
+  approachFrames: number;
+  retreatFrames: number;
+  readonly punishes: PunishTotals;
+}
+
+/**
+ * Its punishes of the opponent, Slippi's conversions (balance.md, "Openings
+ * and punishes"): a punish starts with a hit and lasts until the opponent has
+ * been actionable PUNISH_RESET_FRAMES frames or loses the stock. One with a
+ * second hit or a disadvantage state is an opening; the rest are pokes.
+ */
+export interface PunishTotals {
+  openings: number;
+  /** Openings started while the opponent wasn't punishing it. */
+  neutralWins: number;
+  /** Neutral-win openings with a second hit. */
+  neutralConverted: number;
+  pokes: number;
+  pokeDamage: number;
+  /** Openings that took a stock. */
+  kills: number;
+  /** Stocks taken by one opening that started at the stock's first hit. */
+  zeroToDeaths: number;
+  /** Hits and damage over openings, and the largest opening. */
+  hits: number;
+  damage: number;
+  maxHits: number;
+  maxDamage: number;
 }
 
 export interface MatchRecord {
@@ -127,6 +169,8 @@ export interface FieldOptions {
   /** The named profiles slots 0 and 1 play (Wren Expert by default). */
   readonly opponents?: readonly [CpuOpponentId, CpuOpponentId];
   readonly tiers?: readonly [CpuTier, CpuTier];
+  /** The spam probe: a fighter named here attacks only with this move (spamPolicy.ts). */
+  readonly spam?: Readonly<Partial<Record<string, number>>>;
 }
 
 interface Watch {
@@ -142,11 +186,66 @@ interface Watch {
   lastHit: number | undefined;
   /** The last frame it stood on a deck or held the ledge. */
   lastSafe: number | undefined;
+  /** The reported move it last started. */
+  lastStarted: number | undefined;
+  /** The reported move of the last hit it took. */
+  lastHitMove: number | undefined;
+  /** The opponent's punish of it, if one runs. */
+  punish: Punish | undefined;
+  /** Damage when its stock began or the last punish of it ended, for zero-to-death. */
+  stockFirstHit: boolean;
+}
+
+interface Punish {
+  hits: number;
+  damage: number;
+  quiet: number;
+  neutral: boolean;
+  disadvantage: boolean;
+  /** Frames since the first hit it couldn't act. */
+  stunned: number;
+  fromStockStart: boolean;
 }
 
 const watchOf = (f: Readonly<Fighter>): Watch => ({
-  serial: f.attack.serial, special: f.special.action, specialFrame: f.special.frame, specialForm: f.special.form, mana: f.mana.points, denied: f.visuals.manaDenied, hits: f.visuals.hit, damage: f.status.damage, out: f.status.out, lastHit: undefined, lastSafe: undefined,
+  serial: f.attack.serial, special: f.special.action, specialFrame: f.special.frame, specialForm: f.special.form, mana: f.mana.points, denied: f.visuals.manaDenied, hits: f.visuals.hit, damage: f.status.damage, out: f.status.out, lastHit: undefined, lastSafe: undefined, lastStarted: undefined, lastHitMove: undefined, punish: undefined, stockFirstHit: true,
 });
+
+/** The reported move a fighter's body strikes with now, if any. */
+function strikingMove(f: Readonly<Fighter>): number | undefined {
+  if (f.grab.target !== undefined || (f.grab.action >= GrabAction.hold && f.grab.action <= GrabAction.throwDown)) return AttackStyle.grab;
+  const special = specialMove(f.special.action);
+  if (special !== undefined) return special;
+  return f.attack.style === undefined ? undefined : reportedMove(f.attack.style);
+}
+
+/** Whether a fighter can't act now: in hitlag, hitstun, a hold, tumble or on the floor. */
+const unactionable = (f: Readonly<Fighter>): boolean =>
+  f.launch.hitlag > 0 || f.launch.hitstun > 0 || f.grab.owner !== undefined || f.down.state !== DownState.none;
+
+const emptyPunishes = (): PunishTotals => ({ openings: 0, neutralWins: 0, neutralConverted: 0, pokes: 0, pokeDamage: 0, kills: 0, zeroToDeaths: 0, hits: 0, damage: 0, maxHits: 0, maxDamage: 0 });
+
+/** Closes a punish into its attacker's totals: an opening, or a poke when it was one hit that left no disadvantage. */
+function closePunish(totals: PunishTotals, punish: Punish, kill: boolean): void {
+  if (punish.hits < 2 && !punish.disadvantage && !kill) {
+    totals.pokes++;
+    totals.pokeDamage += punish.damage;
+    return;
+  }
+  totals.openings++;
+  if (punish.neutral) {
+    totals.neutralWins++;
+    if (punish.hits >= 2) totals.neutralConverted++;
+  }
+  totals.hits += punish.hits;
+  totals.damage += punish.damage;
+  totals.maxHits = Math.max(totals.maxHits, punish.hits);
+  totals.maxDamage = Math.max(totals.maxDamage, punish.damage);
+  if (kill) {
+    totals.kills++;
+    if (punish.fromStockStart) totals.zeroToDeaths++;
+  }
+}
 
 const NEUTRAL = neutralControls();
 
@@ -181,7 +280,11 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
   const runtime = createPacingAndPresentation();
   const row = createMatchFrameInput();
   initializeMatchFighters(match, world);
-  const side = (character: Character): SideRecord => ({ fighter: fighterSlug(character), moves: {}, hitsLanded: 0, damageDealt: 0, manaSpent: 0, specialsStarted: 0, specialsRefused: 0, stocksPlayed: 0, stockLosses: [] });
+  const side = (character: Character): SideRecord => ({
+    fighter: fighterSlug(character), moves: {}, hitsLanded: 0, damageDealt: 0, manaSpent: 0, specialsStarted: 0, specialsRefused: 0, stocksPlayed: 0, stockLosses: [],
+    damageByMove: {}, kosByMove: {}, rangedDamage: 0, approachFrames: 0, retreatFrames: 0, punishes: emptyPunishes(),
+  });
+  const spam = [options.spam?.[fighterSlug(a)], options.spam?.[fighterSlug(b)]] as const;
   const sides: [SideRecord, SideRecord] = [side(a), side(b)];
   const watches = [watchOf(fighterAt(world, 0)), watchOf(fighterAt(world, 1))] as const;
   const limit = (match.timeLimitMinutes * 60 + 5) * MATCH_TICKS_PER_SECOND;
@@ -192,6 +295,8 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
       copyControls(produced.inputs[slot], NEUTRAL);
       clearAttackBuffer(produced.commands[slot]);
       if (slot <= 1) produceComputerInput(match, world, runtime, slot, frame, produced.inputs[slot], produced.commands[slot]);
+      const only = slot === 0 || slot === 1 ? spam[slot] : undefined;
+      if (only !== undefined) spamOnly(fighterAt(world, slot), fighterAt(world, 1 - slot), only, stage, frame, produced.inputs[slot], produced.commands[slot]);
     }
     if (!captureFrame(row, frame, world.mask, produced, runtime)) throw new Error(`capture refused frame ${frame}`);
     if (!executeMatchFrame(row, match, world, controls, runtime, frame)) throw new Error(`execution refused frame ${frame}`);
@@ -200,27 +305,71 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
       const seen = watches[slot];
       const own = sides[slot];
       const other = sides[1 - slot];
-      if (f.attack.serial !== seen.serial && f.attack.style !== undefined) own.moves[f.attack.style] = (own.moves[f.attack.style] ?? 0) + 1;
+      const opponent = fighterAt(world, 1 - slot);
+      const opponentSeen = watches[slot === 0 ? 1 : 0];
+      if (f.attack.serial !== seen.serial && f.attack.style !== undefined) {
+        own.moves[f.attack.style] = (own.moves[f.attack.style] ?? 0) + 1;
+        seen.lastStarted = reportedMove(f.attack.style);
+      }
       const special = specialMove(f.special.action);
       const startedSpecial = special !== undefined && (f.special.action !== seen.special || f.special.frame < seen.specialFrame);
       if (startedSpecial) {
         own.moves[special] = (own.moves[special] ?? 0) + 1;
         own.specialsStarted++;
+        seen.lastStarted = special;
+      }
+      if (!f.status.out && !unactionable(f) && Math.abs(f.motion.vx) > 1.0) {
+        if (f32(f.motion.vx * f32(opponent.motion.x - f.motion.x)) > 0) own.approachFrames++;
+        else own.retreatFrames++;
       }
       const branched = special !== undefined && f.special.action === seen.special && f.special.form !== seen.specialForm;
       if ((startedSpecial || branched) && f.mana.points < seen.mana) own.manaSpent += seen.mana - f.mana.points;
       own.specialsRefused += f.visuals.manaDenied - seen.denied;
-      if (f.visuals.hit !== seen.hits && other !== undefined) {
+      const hit = f.visuals.hit !== seen.hits;
+      const dealt = f.status.damage > seen.damage ? f.status.damage - seen.damage : 0;
+      if (hit && other !== undefined) {
         other.hitsLanded++;
         seen.lastHit = frame;
       }
-      if (f.status.damage > seen.damage && other !== undefined) other.damageDealt += f.status.damage - seen.damage;
+      if ((hit || dealt > 0) && other !== undefined) {
+        const striking = strikingMove(opponent);
+        const move = striking ?? opponentSeen.lastStarted;
+        if (move !== undefined) {
+          seen.lastHitMove = move;
+          if (dealt > 0) other.damageByMove[move] = (other.damageByMove[move] ?? 0) + dealt;
+        }
+        if (striking === undefined) other.rangedDamage += dealt;
+        other.damageDealt += dealt;
+        if (seen.punish === undefined) {
+          seen.punish = { hits: 0, damage: 0, quiet: 0, neutral: opponentSeen.punish === undefined, disadvantage: false, stunned: 0, fromStockStart: seen.stockFirstHit };
+          seen.stockFirstHit = false;
+        }
+        seen.punish.hits += hit ? 1 : 0;
+        seen.punish.damage += dealt;
+        seen.punish.quiet = 0;
+      } else if (seen.punish !== undefined && other !== undefined) {
+        const punish = seen.punish;
+        if (unactionable(f)) {
+          punish.quiet = 0;
+          if (punish.hits === 1 && ++punish.stunned >= DISADVANTAGE_FRAMES) punish.disadvantage = true;
+        } else if (++punish.quiet >= PUNISH_RESET_FRAMES) {
+          closePunish(other.punishes, punish, false);
+          seen.punish = undefined;
+        }
+      }
+      // Knocked to the floor, onto the ledge or off the deck: the hit made a disadvantage state.
+      if (seen.punish !== undefined && (f.down.state !== DownState.none || f.ledge.state !== LedgeState.none || f.motion.x < mainDeckLeft(stage) || f.motion.x > mainDeckRight(stage) || f.motion.z < 0.0)) seen.punish.disadvantage = true;
       // Standing in hitlag or hitstun isn't standing: the hit that put it there still counts.
       if (!f.status.out && f.launch.hitlag <= 0 && f.launch.hitstun <= 0 && (f.motion.grounded || f.ledge.state !== LedgeState.none)) seen.lastSafe = frame;
       if (f.status.out && !seen.out) {
         const selfDestruct = seen.lastHit === undefined || (seen.lastSafe !== undefined && seen.lastHit < seen.lastSafe);
         own.stockLosses.push({ frame, sinceHit: seen.lastHit === undefined ? undefined : frame - seen.lastHit, selfDestruct });
+        if (!selfDestruct && other !== undefined && seen.lastHitMove !== undefined) other.kosByMove[seen.lastHitMove] = (other.kosByMove[seen.lastHitMove] ?? 0) + 1;
+        if (seen.punish !== undefined && other !== undefined) closePunish(other.punishes, seen.punish, !selfDestruct);
+        seen.punish = undefined;
+        seen.stockFirstHit = true;
         seen.lastHit = undefined;
+        seen.lastHitMove = undefined;
       }
       seen.serial = f.attack.serial;
       seen.special = f.special.action;
@@ -232,6 +381,10 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
       seen.damage = f.status.damage;
       seen.out = f.status.out;
     }
+  }
+  for (const slot of [0, 1] as const) {
+    const open = watches[slot].punish;
+    if (open !== undefined) closePunish(sides[slot === 0 ? 1 : 0].punishes, open, false);
   }
   for (const slot of [0, 1] as const) sides[slot].stocksPlayed = sides[slot].stockLosses.length + (fighterAt(world, slot).status.stocks > 0 ? 1 : 0);
   return {
@@ -306,6 +459,136 @@ export interface FighterSummary {
   /** Special presses refused for want of mana, over special presses (started plus refused). */
   readonly refusedShare: number;
   readonly moves: readonly MoveUse[];
+  readonly style: StyleSummary;
+}
+
+export interface MoveDamage {
+  readonly move: number;
+  readonly name: string;
+  readonly damage: number;
+  readonly share: number;
+}
+
+/** How a fighter played and converted (smashcraft:docs/design/balance.md): the play-style profile's and the score's inputs. */
+export interface StyleSummary {
+  /** Damage dealt by reported move, most first, and stocks taken by move. */
+  readonly damage: readonly MoveDamage[];
+  readonly kos: readonly MoveDamage[];
+  readonly topDamageShare: number;
+  readonly top2DamageShare: number;
+  /** Each aerial's share of aerials started, by name (neutral-air ...). */
+  readonly aerials: Readonly<Record<string, number>>;
+  /** Aerials over normals started (specials apart). */
+  readonly airShare: number;
+  /** Frames moving toward the opponent over frames moving. */
+  readonly approachShare: number;
+  /** Damage dealt while the body struck nothing (projectiles, summons, placed objects) over damage dealt. */
+  readonly rangedShare: number;
+  /** Each special slot's share of moves started, by name (neutral-special ...). */
+  readonly specials: Readonly<Record<string, number>>;
+  /** Normalized entropy of moves started over the report's REPORTED_MOVES kit: 1 every move alike, 0 one move. */
+  readonly variety: number;
+  readonly kills: number;
+  readonly openingsPerKill: number;
+  /** Average damage of an opening: the average combo's damage. */
+  readonly damagePerOpening: number;
+  readonly neutralConversion: number;
+  readonly averageComboHits: number;
+  readonly maxComboHits: number;
+  readonly maxComboDamage: number;
+  readonly zeroToDeathShare: number;
+  readonly pokesPerKill: number;
+  readonly pokeDamagePerKill: number;
+}
+
+const AERIAL_MOVES = [AttackStyle.neutralAir, AttackStyle.forwardAir, AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir] as const;
+const SPECIAL_MOVES: readonly number[] = [SPECIAL_MOVE.neutral, SPECIAL_MOVE.side, SPECIAL_MOVE.up, SPECIAL_MOVE.down];
+/**
+ * The kit the variety score spreads over: nine ground moves (jab or shot,
+ * three tilts, three smashes, dash attack, grab), five aerials and four
+ * specials. Get-up and ledge attacks are situational and left out.
+ */
+export const REPORTED_MOVES: readonly number[] = [
+  AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.downSmash,
+  AttackStyle.dashAttack, AttackStyle.grab, ...AERIAL_MOVES, ...SPECIAL_MOVES,
+];
+/** Rifleman's shot is his jab slot. */
+const varietyMove = (move: number): number => (move === AttackStyle.shot ? AttackStyle.jab : reportedMove(move));
+
+/** Normalized Shannon entropy of `counts` over `kit` moves. */
+export function moveVariety(counts: ReadonlyMap<number, number>, kit = REPORTED_MOVES.length): number {
+  const total = [...counts.values()].reduce((sum, count) => sum + count, 0);
+  if (total === 0 || kit < 2) return 0;
+  let entropy = 0;
+  for (const count of counts.values()) if (count > 0) entropy -= (count / total) * Math.log(count / total);
+  return entropy / Math.log(kit);
+}
+
+const ratio = (top: number, bottom: number) => (bottom === 0 ? Number.NaN : top / bottom);
+
+function shares(totals: ReadonlyMap<number, number>): MoveDamage[] {
+  const total = [...totals.values()].reduce((sum, value) => sum + value, 0);
+  return [...totals.entries()].map(([move, damage]) => ({ move, name: moveName(move), damage, share: total === 0 ? 0 : damage / total }))
+    .sort((x, y) => y.damage - x.damage || x.move - y.move);
+}
+
+/** A fighter's StyleSummary over its sides in `records`. */
+export function styleSummary(records: readonly MatchRecord[], fighter: string): StyleSummary {
+  const damage = new Map<number, number>();
+  const kos = new Map<number, number>();
+  const started = new Map<number, number>();
+  const punish = emptyPunishes();
+  let ranged = 0, dealt = 0, approach = 0, retreat = 0;
+  for (const record of records) for (const side of record.sides) {
+    if (side.fighter !== fighter) continue;
+    for (const [move, value] of Object.entries(side.damageByMove)) damage.set(Number(move), (damage.get(Number(move)) ?? 0) + value);
+    for (const [move, value] of Object.entries(side.kosByMove)) kos.set(Number(move), (kos.get(Number(move)) ?? 0) + value);
+    for (const [move, value] of Object.entries(side.moves)) started.set(varietyMove(Number(move)), (started.get(varietyMove(Number(move))) ?? 0) + value);
+    ranged += side.rangedDamage;
+    dealt += side.damageDealt;
+    approach += side.approachFrames;
+    retreat += side.retreatFrames;
+    const p = side.punishes;
+    punish.openings += p.openings;
+    punish.neutralWins += p.neutralWins;
+    punish.neutralConverted += p.neutralConverted;
+    punish.pokes += p.pokes;
+    punish.pokeDamage += p.pokeDamage;
+    punish.kills += p.kills;
+    punish.zeroToDeaths += p.zeroToDeaths;
+    punish.hits += p.hits;
+    punish.damage += p.damage;
+    punish.maxHits = Math.max(punish.maxHits, p.maxHits);
+    punish.maxDamage = Math.max(punish.maxDamage, p.maxDamage);
+  }
+  const damageShares = shares(damage);
+  const kit = new Map([...started].filter(([move]) => REPORTED_MOVES.includes(move)));
+  const aerialTotal = AERIAL_MOVES.reduce((sum, move) => sum + (started.get(move) ?? 0), 0);
+  const normalTotal = [...kit].filter(([move]) => !SPECIAL_MOVES.includes(move)).reduce((sum, [, count]) => sum + count, 0);
+  const startedTotal = [...started.values()].reduce((sum, count) => sum + count, 0);
+  const kills = [...kos.values()].reduce((sum, count) => sum + count, 0);
+  return {
+    damage: damageShares,
+    kos: shares(kos),
+    topDamageShare: damageShares[0]?.share ?? 0,
+    top2DamageShare: (damageShares[0]?.share ?? 0) + (damageShares[1]?.share ?? 0),
+    aerials: Object.fromEntries(AERIAL_MOVES.map((move) => [moveName(move), aerialTotal === 0 ? 0 : (started.get(move) ?? 0) / aerialTotal])),
+    airShare: ratio(aerialTotal, normalTotal),
+    approachShare: ratio(approach, approach + retreat),
+    rangedShare: ratio(ranged, dealt),
+    specials: Object.fromEntries(SPECIAL_MOVES.map((move) => [moveName(move), startedTotal === 0 ? 0 : (started.get(move) ?? 0) / startedTotal])),
+    variety: moveVariety(kit),
+    kills,
+    openingsPerKill: ratio(punish.openings, kills),
+    damagePerOpening: ratio(punish.damage, punish.openings),
+    neutralConversion: ratio(punish.neutralConverted, punish.neutralWins),
+    averageComboHits: ratio(punish.hits, punish.openings),
+    maxComboHits: punish.maxHits,
+    maxComboDamage: punish.maxDamage,
+    zeroToDeathShare: ratio(punish.zeroToDeaths, kills),
+    pokesPerKill: ratio(punish.pokes, kills),
+    pokeDamagePerKill: ratio(punish.pokeDamage, kills),
+  };
 }
 
 /** Moves a fighter started across `records`, most-used first. */
@@ -487,6 +770,7 @@ function summarizeField(records: readonly MatchRecord[]): FighterSummary[] {
       manaPerStock: stocksPlayed === 0 ? Number.NaN : manaSpent / stocksPlayed,
       refusedShare: specialsStarted + specialsRefused === 0 ? 0 : specialsRefused / (specialsStarted + specialsRefused),
       moves: moveUsage(records, fighter),
+      style: styleSummary(records, fighter),
     };
   });
 }
@@ -518,6 +802,97 @@ function fieldTable(summaries: readonly FighterSummary[], records: readonly Matc
   return lines.join("\n");
 }
 
+const share = (value: number) => (Number.isNaN(value) ? "-" : `${(100 * value).toFixed(0)}%`);
+const fixed = (value: number, digits = 1) => (Number.isNaN(value) ? "-" : value.toFixed(digits));
+
+/** A fighter's moves by name: the report's names back to move numbers (dash-attack is the dash attack). */
+export function moveNamed(name: string): number | undefined {
+  if (name === "dash-attack") return AttackStyle.dashAttack;
+  const found = Object.entries(MOVE_NAMES).find(([, known]) => known === name);
+  return found === undefined ? undefined : Number(found[0]);
+}
+
+/** The field's measures the balance score and gate read, with the spam probe's win rate where it ran. */
+export function measuredOf(summary: FighterSummary, spamWinRate: number | undefined): Measured {
+  const s = summary.style;
+  return {
+    fighter: summary.fighter, winRate: summary.winRate, ...(s.damage[0] === undefined ? {} : { topMove: s.damage[0].name }), topDamageShare: s.topDamageShare, aerials: s.aerials, airShare: s.airShare,
+    approachShare: s.approachShare, rangedShare: s.rangedShare, specials: s.specials, variety: s.variety, ...(spamWinRate === undefined ? {} : { spamWinRate }),
+  };
+}
+
+/** The style, conversion and balance tables (smashcraft:docs/design/balance.md). */
+function balanceTables(summaries: readonly FighterSummary[], probes: ReadonlyMap<string, { readonly move: string; readonly winRate: number; readonly matches: number }>, profiles: ReadonlyMap<string, PlayStyleProfile>): string {
+  const lines = [
+    "",
+    "Damage and stocks by move (share of the fighter's damage dealt and stocks taken; a hit is credited to the move its body was striking with, else to the last move it started):",
+    "",
+    "| Fighter | Win rate | Top move share of damage | Top-2 share | Damage by move | Stocks taken by move | Move variety | Air share of normals | Aerials (n/f/b/u/d) | Approach share of movement | Ranged share of damage | Specials (n/s/u/d, share of moves) |",
+    "| --- | ---: | ---: | ---: | --- | --- | ---: | ---: | --- | ---: | ---: | --- |",
+  ];
+  for (const summary of summaries) {
+    const s = summary.style;
+    const aerial = (name: string) => share(s.aerials[name] ?? 0);
+    const special = (name: string) => share(s.specials[name] ?? 0);
+    lines.push(`| ${summary.fighter} | ${share(summary.winRate)} | ${s.damage[0]?.name ?? "-"} ${share(s.topDamageShare)} | ${share(s.top2DamageShare)} | ${s.damage.slice(0, 4).map((use) => `${use.name} ${share(use.share)}`).join(", ")} | ${s.kos.slice(0, 3).map((use) => `${use.name} ${share(use.share)}`).join(", ")} | ${fixed(s.variety, 2)} | ${share(s.airShare)} | ${["neutral-air", "forward-air", "back-air", "up-air", "down-air"].map(aerial).join("/")} | ${share(s.approachShare)} | ${share(s.rangedShare)} | ${["neutral-special", "side-special", "up-special", "down-special"].map(special).join("/")} |`);
+  }
+  lines.push(
+    "",
+    `Openings and punishes (Slippi's conversions: a punish lasts until the opponent has been actionable ${PUNISH_RESET_FRAMES} frames; a lone hit that left it able to act within ${DISADVANTAGE_FRAMES} frames, on the deck and not on the floor, is a poke, not an opening):`,
+    "",
+    "| Fighter | Stocks taken | Openings per kill | Pokes per kill | Poke damage per kill | Damage per opening | Neutral wins converted | Combo hits (average / most) | Most combo damage | Zero-to-death share of stocks |",
+    "| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: |",
+  );
+  for (const summary of summaries) {
+    const s = summary.style;
+    lines.push(`| ${summary.fighter} | ${s.kills} | ${fixed(s.openingsPerKill)} | ${fixed(s.pokesPerKill)} | ${fixed(s.pokeDamagePerKill, 0)} | ${fixed(s.damagePerOpening)} | ${share(s.neutralConversion)} | ${fixed(s.averageComboHits)} / ${s.maxComboHits} | ${fixed(s.maxComboDamage, 0)} | ${share(s.zeroToDeathShare)} |`);
+  }
+  const { winLow, winHigh, spamMax, topMoveMax } = BALANCE_SPEC;
+  lines.push(
+    "",
+    `Gate (balance.md: win rate ${share(winLow)}-${share(winHigh)}, spam probe at most ${share(spamMax)} against Expert, no move over ${share(topMoveMax)} of damage but a profile's signature move) and balance score (percentage points outside each target, weighted; potential openings per kill and recovery come from their own tools):`,
+    "",
+    "| Fighter | Archetype | Spam probe (move, win rate, matches) | Gate | Score | Win | Profile | Variety | Top move | Probe | Openings | Recovery | Profile misses |",
+    "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
+  );
+  const failing: string[] = [];
+  for (const summary of summaries) {
+    const probe = probes.get(summary.fighter);
+    const profile = profiles.get(summary.fighter);
+    const measured = measuredOf(summary, probe?.winRate);
+    const gate = balanceGate(measured, profile);
+    const score = balanceScore(measured, profile);
+    if (gate.failures.length > 0) failing.push(`${summary.fighter} (${gate.failures.join("; ")})`);
+    const term = (value: number | undefined) => (value === undefined ? "-" : value.toFixed(1));
+    lines.push(`| ${summary.fighter} | ${profile?.archetype ?? "no profile"} | ${probe === undefined ? "not run" : `${probe.move} ${share(probe.winRate)} (${probe.matches})`} | ${gate.balanced ? "balanced" : gate.failures.length > 0 ? `fails: ${gate.failures.join("; ")}` : "probe not run"} | ${score.total.toFixed(1)} | ${term(score.win)} | ${term(score.profile)} | ${term(score.variety)} | ${term(score.spam)} | ${term(score.probe)} | ${term(score.openings)} | ${term(score.recovery)} | ${score.misses.join(", ")} |`);
+  }
+  const probed = summaries.every((summary) => probes.has(summary.fighter));
+  lines.push("", `Balanced (win band, spam probe, move share): ${!probed ? "probe not run" : failing.length === 0 ? "passes" : "fails"}.${failing.length === 0 ? "" : ` Failing: ${failing.join(", ")}.`}`);
+  return lines.join("\n");
+}
+
+/** Each spam-probe run's fighter, move and win rate, from cpuField --json files written with --probe-fighter. */
+function probeResults(files: readonly string[]): Map<string, { move: string; winRate: number; matches: number }> {
+  const out = new Map<string, { move: string; winRate: number; matches: number }>();
+  for (const file of files) {
+    const parsed: unknown = JSON.parse(readFileSync(file, "utf8"));
+    if (!isFieldFile(parsed)) throw new Error(`${file} holds no cpuField --json probe`);
+    const { options, summaries } = parsed;
+    for (const [fighter, move] of Object.entries(options.spam ?? {})) {
+      const summary = summaries.find((s) => s.fighter === fighter);
+      if (summary === undefined || move === undefined) continue;
+      out.set(fighter, { move: moveName(move), winRate: summary.winRate, matches: summary.matches });
+    }
+  }
+  return out;
+}
+
+/** Whether a parsed --json file looks like this script's options and summaries. */
+function isFieldFile(value: unknown): value is { readonly options: FieldOptions; readonly summaries: FighterSummary[] } {
+  return typeof value === "object" && value !== null && "options" in value && typeof value.options === "object" && value.options !== null
+    && "summaries" in value && Array.isArray(value.summaries) && value.summaries.every((s: unknown) => typeof s === "object" && s !== null && "fighter" in s && "style" in s);
+}
+
 /** Whether a parsed --json file's records look like this script's match records. */
 function isMatchRecords(value: unknown): value is MatchRecord[] {
   return Array.isArray(value) && value.every((record: unknown) => typeof record === "object" && record !== null && "fighters" in record && "sides" in record && "winner" in record);
@@ -534,7 +909,8 @@ function shardRecords(file: string): MatchRecord[] {
 if (import.meta.main) {
   const { values } = parseArgs({
     args: process.argv.slice(2),
-    options: { variants: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, opponents: { type: "string" }, tiers: { type: "string" }, stocks: { type: "string" }, minutes: { type: "string" }, json: { type: "string" }, merge: { type: "string" }, fighters: { type: "string" }, pairs: { type: "string" } },
+    options: { variants: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, opponents: { type: "string" }, tiers: { type: "string" }, stocks: { type: "string" }, minutes: { type: "string" }, json: { type: "string" }, merge: { type: "string" }, fighters: { type: "string" }, pairs: { type: "string" },
+      "probe-fighter": { type: "string" }, from: { type: "string" }, probe: { type: "string" } },
     strict: true,
   });
   const fighterNamed = (slug: string) => {
@@ -543,7 +919,19 @@ if (import.meta.main) {
     return character;
   };
   const fighters = values.fighters?.split(",").map(fighterNamed);
-  const pairs = values.pairs?.split(",").map((pair) => {
+  // The spam probe (balance.md): the fighter, attacking only with its top damage move in --from's field, against every other fighter.
+  const probeFighter = values["probe-fighter"] === undefined ? undefined : fighterNamed(values["probe-fighter"]);
+  let spam: Record<string, number> | undefined;
+  if (probeFighter !== undefined) {
+    if (values.from === undefined) throw new Error("--probe-fighter takes --from FIELD.json, the field whose top damage move it spams");
+    const parsed: unknown = JSON.parse(readFileSync(values.from, "utf8"));
+    const top = isFieldFile(parsed) ? parsed.summaries.find((s) => s.fighter === fighterSlug(probeFighter))?.style.damage[0]?.name : undefined;
+    const move = top === undefined ? undefined : moveNamed(top);
+    if (move === undefined) throw new Error(`${values.from} has no top damage move for ${fighterSlug(probeFighter)}`);
+    spam = { [fighterSlug(probeFighter)]: move };
+  }
+  const probePairs = probeFighter === undefined ? undefined : SELECTABLE_CHARACTERS.filter((other) => other !== probeFighter).map((other) => [probeFighter, other] as const);
+  const pairs = probePairs ?? values.pairs?.split(",").map((pair) => {
     const [a, b, extra] = pair.split(":");
     if (a === undefined || b === undefined || extra !== undefined || a === b) throw new Error(`--pairs takes pairs of different fighters, like archer:rifleman; not ${pair}`);
     return [fighterNamed(a), fighterNamed(b)] as const;
@@ -567,6 +955,7 @@ if (import.meta.main) {
     ...(fighters === undefined ? {} : { fighters }),
     ...(pairs === undefined ? {} : { pairs }),
     ...(values["per-pair"] === undefined ? {} : { perPair: Number(values["per-pair"]) }),
+    ...(spam === undefined ? {} : { spam }),
   };
   if (values.merge === undefined) {
     const pairCount = pairs?.length ?? ((fighters ?? SELECTABLE_CHARACTERS).length * ((fighters ?? SELECTABLE_CHARACTERS).length - 1)) / 2;
@@ -592,5 +981,6 @@ if (import.meta.main) {
   console.log(`${records.length} computer matches (${options.stocks} stocks, ${options.minutes}-minute clock, ${options.perPair === undefined ? `${options.variants} spawn variant(s) of ${options.seeds} seed(s) per ordered pair and stage` : `spawn variants and ${options.seeds} seed(s) each until each pair has ${options.perPair} matches`}, computer tiers ${(options.tiers ?? ["expert", "expert"]).join(" and ")}), ${((performance.now() - started) / 1000).toFixed(0)} s; win rate over decisive matches; a self-destruct is a stock lost with no hit taken since the fighter last stood on a deck or held the ledge; the fall-time column counts stocks lost over ${NO_HIT_FRAMES / MATCH_TICKS_PER_SECOND} s after the last hit.`);
   console.log("");
   console.log(fieldTable(summaries, records));
+  console.log(balanceTables(summaries, probeResults(values.probe?.split(",").filter(Boolean) ?? []), readProfiles()));
   if (values.json !== undefined) writeFileSync(values.json, `${JSON.stringify({ options, summaries, records }, null, 1)}\n`);
 }

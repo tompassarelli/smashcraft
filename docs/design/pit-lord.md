@@ -72,3 +72,17 @@ It uses Howl when crowded, Charge to advance and Leap
 to recover. Its seeded match coverage records all four separately. Down air
 is the four-hoof downward spike, with its own downward pose from #218.
 The issue carries the delivery and playtest checklist.
+
+## Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). The siege heavyweight: Rain of Fire closes a landing lane, the cleaver kills early.
+
+```balance-profile
+fighter: pit-lord
+archetype: heavy
+aerials: nair 10-40, fair 10-40, bair 15-45, uair 5-30, dair 5-30
+air-share: 10-40
+approach: 45-75
+ranged: 5-30
+specials: neutral 2-12, side 2-12, up 0-8, down 2-12
+```

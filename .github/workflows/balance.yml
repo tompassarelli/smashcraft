@@ -3,8 +3,11 @@ name: Balance
 # The balance gate's computer field (smashcraft:docs/design/roster.md, "Balance
 # gate") on free hosted runners: `bun wisp farm balance` dispatches it. Every
 # pair of selectable fighters at the commit is played by its own
-# `cpuField --pairs` process, one a core, then one job merges the shards and
-# writes the verdict and the field table to the run's summary.
+# `cpuField --pairs` process, one a core, then one job merges the shards. On
+# a full-roster run each fighter's spam probe (smashcraft:docs/design/balance.md)
+# then attacks only with its top damage move against every other fighter, one
+# process a core, and the verdict job writes the field, style, conversion and
+# balance tables with both verdicts to the run's summary.
 on:
   workflow_dispatch:
     inputs:
@@ -26,6 +29,9 @@ on:
       matchups:
         description: Optional comma-separated fighter:opponent pairs for a named repair
         default: ""
+      probe:
+        description: Spam-probe matches a pair (0 skips the probe; a matchups run never probes)
+        default: "40"
       tag:
         description: Names the run so `bun wisp farm` can find the one it dispatched
         default: ""
@@ -43,6 +49,7 @@ jobs:
       sha: ${{ steps.plan.outputs.sha }}
       shards: ${{ steps.plan.outputs.shards }}
       jobs: ${{ steps.plan.outputs.jobs }}
+      probes: ${{ steps.plan.outputs.probes }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -69,7 +76,10 @@ jobs:
             const pairs = requested.length === 0 ? allPairs : allPairs.filter((pair) => requested.includes(pair));
             const jobs = Math.ceil(pairs.length / 8);
             const shards = Array.from({ length: jobs }, (_, job) => pairs.filter((_, index) => index % jobs === job).join(","));
-            console.log(`shards=${JSON.stringify(shards)}\njobs=${jobs}`);
+            // The spam probe: four fighters a job, one a core.
+            const probeJobs = Math.ceil(slugs.length / 4);
+            const probes = Array.from({ length: probeJobs }, (_, job) => slugs.filter((_, index) => index % probeJobs === job).join(","));
+            console.log(`shards=${JSON.stringify(shards)}\njobs=${jobs}\nprobes=${JSON.stringify(probes)}`);
             console.error(`${pairs.length} pairs of ${slugs.length} fighters in ${jobs} jobs`);
           ' >> "$GITHUB_OUTPUT"
 
@@ -136,7 +146,96 @@ jobs:
           pattern: balance-shard-*
           merge-multiple: true
           path: ts/shards
-      - name: Merge and print the verdict
+      - name: Merge the field
+        working-directory: ts
+        env:
+          OPPONENT: ${{ inputs.opponent }}
+          TIER: ${{ inputs.tier }}
+          PER_PAIR: ${{ inputs.per-pair }}
+          SEEDS: ${{ inputs.seeds }}
+        run: |
+          mkdir -p balance
+          bun scripts/cpuField.ts --merge "$(ls shards/*.json | paste -sd,)" --opponents "$OPPONENT,$OPPONENT" --tiers "$TIER,$TIER" --per-pair "$PER_PAIR" --seeds "$SEEDS" --json balance/field.json > balance/merged.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-merged
+          path: ts/balance/field.json
+          retention-days: 3
+
+  probe:
+    needs: [plan, merge]
+    if: ${{ inputs.matchups == '' && inputs.probe != '0' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: true
+      max-parallel: 6
+      matrix:
+        fighters: ${{ fromJSON(needs.plan.outputs.probes) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+        working-directory: ts
+      - uses: actions/download-artifact@v4
+        with:
+          name: balance-merged
+          path: ts/balance
+      - name: Play each fighter's spam probe, one process a core
+        working-directory: ts
+        env:
+          FIGHTERS: ${{ matrix.fighters }}
+          OPPONENT: ${{ inputs.opponent }}
+          TIER: ${{ inputs.tier }}
+          PROBE: ${{ inputs.probe }}
+          SEEDS: ${{ inputs.seeds }}
+        run: |
+          mkdir -p probes
+          printf '%s' "$FIGHTERS" | tr ',' '\0' | xargs -0 -P "$(nproc)" -I{} sh -c '
+            name=$(printf "%s" "$1" | tr -c "A-Za-z0-9-" _)
+            bun scripts/cpuField.ts --probe-fighter "$1" --from balance/field.json --opponents "$OPPONENT,$OPPONENT" --tiers "$TIER,$TIER" --per-pair "$PROBE" --seeds "$SEEDS" --json "probes/$name.json" > "probes/$name.log" 2>&1 \
+              || { echo "::error::spam probe $1 failed"; cat "probes/$name.log"; exit 1; }
+            grep -m1 "computer matches" "probes/$name.log" | cut -c1-90
+          ' sh '{}'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-probe-${{ strategy.job-index }}
+          path: ts/probes/*.json
+          retention-days: 3
+
+  verdict:
+    needs: [plan, shard, merge, probe]
+    if: ${{ always() && needs.merge.result == 'success' && needs.probe.result != 'failure' && needs.probe.result != 'cancelled' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+        working-directory: ts
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: balance-shard-*
+          merge-multiple: true
+          path: ts/shards
+      - uses: actions/download-artifact@v4
+        if: ${{ needs.probe.result == 'success' }}
+        with:
+          pattern: balance-probe-*
+          merge-multiple: true
+          path: ts/probes
+      - name: Merge and print the verdicts
         working-directory: ts
         env:
           GH_TOKEN: ${{ github.token }}
@@ -144,14 +243,15 @@ jobs:
           TIER: ${{ inputs.tier }}
           PER_PAIR: ${{ inputs.per-pair }}
           SEEDS: ${{ inputs.seeds }}
+          PROBE: ${{ inputs.probe }}
           SHA: ${{ needs.plan.outputs.sha }}
           MATCHUPS: ${{ inputs.matchups }}
         run: |
-          mkdir -p balance
-          bun scripts/cpuField.ts --merge "$(ls shards/*.json | paste -sd,)" --opponents "$OPPONENT,$OPPONENT" --tiers "$TIER,$TIER" --per-pair "$PER_PAIR" --seeds "$SEEDS" --json balance/field.json > balance/table.md
+          mkdir -p balance probes
+          bun scripts/cpuField.ts --merge "$(ls shards/*.json | paste -sd,)" --probe "$(ls probes/*.json 2>/dev/null | paste -sd,)" --opponents "$OPPONENT,$OPPONENT" --tiers "$TIER,$TIER" --per-pair "$PER_PAIR" --seeds "$SEEDS" --json balance/field.json > balance/table.md
           started=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --jq .run_started_at)
           wall=$(( $(date +%s) - $(date -d "$started" +%s) ))
-          verdict=$(grep '^Balance gate' balance/table.md)
+          verdict="$(grep '^Balance gate' balance/table.md) $(grep '^Balanced' balance/table.md)"
           if [ -n "$MATCHUPS" ]; then
             verdict="Targeted matchup report: $MATCHUPS. Full-roster gate not measured."
           fi
@@ -160,10 +260,10 @@ jobs:
             echo
             echo "**${verdict}**"
             echo
-            echo "$OPPONENT $TIER, $PER_PAIR a pair, $(ls shards/*.json | wc -l) pairs in ${{ needs.plan.outputs.jobs }} jobs; $((wall / 60)) min $((wall % 60)) s from the run's start to the verdict."
+            echo "$OPPONENT $TIER, $PER_PAIR a pair, $(ls shards/*.json | wc -l) pairs in ${{ needs.plan.outputs.jobs }} jobs; spam probe $PROBE a pair for $(ls probes/*.json 2>/dev/null | wc -l) fighters; $((wall / 60)) min $((wall % 60)) s from the run's start to the verdict."
             echo
             if [ -n "$MATCHUPS" ]; then
-              grep -v -e '^Merged from' -e '^Balance gate' balance/table.md
+              grep -v -e '^Merged from' -e '^Balance gate' -e '^Balanced' balance/table.md
             else
               grep -v '^Merged from' balance/table.md
             fi
@@ -181,3 +281,4 @@ jobs:
         if: ${{ inputs.matchups == '' && inputs.opponent == 'wren' && inputs.tier == 'expert' && fromJSON(inputs.per-pair) >= 400 }}
         run: |
           grep -q '^Balance gate .*: passes\.' ts/balance/table.md
+          if [ "${{ inputs.probe }}" != "0" ]; then grep -q '^Balanced .*: passes\.' ts/balance/table.md; fi

@@ -105,3 +105,17 @@ Presentation uses the installed classic Goblin Tinker, Pocket Factory,
 Clockwerk Goblin and rocket assets and stock sounds. Claw-pack and robot clips
 keep their respective model visibility, with both facings read at gameplay
 size. Simulation capsules, never drawn model bones, decide contacts.
+
+## Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). A heavyweight gadget fighter; the Pocket Factory sends out its pressure.
+
+```balance-profile
+fighter: goblin-tinker
+archetype: setplay
+aerials: nair 10-40, fair 10-40, bair 15-45, uair 5-30, dair 0-25
+air-share: 15-45
+approach: 35-65
+ranged: 15-50
+specials: neutral 3-15, side 2-12, up 0-8, down 3-15
+```

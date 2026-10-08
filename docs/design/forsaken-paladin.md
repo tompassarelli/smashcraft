@@ -152,3 +152,17 @@ His reach is useful but his commitment and weak chase are exploitable.
 | Peon | No burrow, building or resource summon. |
 | Tinker | Direct weapon contact instead of factory or transformation. |
 | Kael’thas | Held hammer instead of aimed Flame Strike or siphon. |
+
+## Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). A heavy hammer spaced around a short, fixed holy patch.
+
+```balance-profile
+fighter: forsaken-paladin
+archetype: bait-and-punish
+aerials: nair 10-40, fair 15-45, bair 15-45, uair 5-30, dair 0-25
+air-share: 15-45
+approach: 40-70
+ranged: 0-20
+specials: neutral 1-10, side 2-12, up 0-8, down 2-12
+```

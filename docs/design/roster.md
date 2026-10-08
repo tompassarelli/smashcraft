@@ -235,6 +235,20 @@ Standing grab 7/2/22, reach 0.55H, one-handed collar catch. Pummel: pommel strik
 - Presentation extends the stock model with a distinct authored gesture for every jab, tilt angle, smash and aerial. Down smash sweeps front then rear; neutral air cuts two short arcs; back air turns into its slash; down air keeps the downward Sword Plunge. The double jump keeps its authored front flip. These clips preserve the existing combat timing, regions and damage.
 - Bladestorm is not implemented; ultimates stay off in competitive play.
 
+### Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). Blade-tip spacing and whiff punishment on the ground.
+
+```balance-profile
+fighter: blademaster
+archetype: bait-and-punish
+aerials: nair 10-40, fair 15-45, bair 15-45, uair 5-30, dair 0-25
+air-share: 15-45
+approach: 40-70
+ranged: 0-20
+specials: neutral 1-10, side 2-12, up 0-8, down 1-10
+```
+
 ## Mountain King
 
 **Identity:** a compact heavy whose hammer, axe, and deliberate stun setups reward close reads. He has strong burst force and a projectile, but poor chase and limited air drift. No random Bash.
@@ -296,6 +310,20 @@ Standing grab 8/2/25, reach 0.50H. Pummel: helmet headbutt.
 
 **Gameplan** (smashcraft:ts/src/game/sim/heroes/mountainKingGameplan.ts, #105): he keeps 0.6-1.0H, at Axe Hook's tip, spacing with Axe Hook and Boot and Axe and covering his slow approach with Storm Bolt from 1.5H out; he shoots or runs in with grab, Boot and Axe and Dwarf Charge, never jumps in, and meets an attack with his shield or a spot dodge. Boot and Axe, Hammer Lift and the down throw start his strings; Mountain Breaker, Twin Lift, Backhand Axe and the back throw finish. His limited air drift is the weakness he plays around: he fights on the ground and keeps his spot 160 units inside the edge, so a launch leaves the shortest way back, and returns to the ledge with his jump before Thunder Leap.
 
+### Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). A grounded heavy; back air only as a finisher, Storm Bolt covers the approach.
+
+```balance-profile
+fighter: mountain-king
+archetype: heavy
+aerials: nair 15-45, fair 15-45, bair 0-20, uair 5-30, dair 5-30
+air-share: 5-35
+approach: 45-75
+ranged: 0-20
+specials: neutral 3-15, side 1-10, up 0-8, down 1-10
+```
+
 ## Warden
 
 **Identity:** light, mobile precision fighter using crescent blades and a punishable blink. Her escape options cost space and commitment; they cannot erase a bad attack. Fan of Knives gives close coverage rather than full-screen zoning.
@@ -354,6 +382,20 @@ Standing grab 6/2/22, reach 0.48H. Pummel: elbow to the ribs.
 - Spirit of Vengeance is not implemented; ultimates stay off in competitive play.
 
 **Gameplan** (smashcraft:ts/src/game/sim/heroes/wardenGameplan.ts, #105): she keeps 0.7-1.4H, just past her blades, and spaces with Crescent Slice and Pursuit Lunge; she runs in with dash attack, lunge and grab or jumps in with aerials led by Pursuer, and never camps at long range. Up tilt, down tilt, up air and the up and down throws start her strings; Heel Blade, Judgment Edge, Moon Arc and the low outward Pursuer and Twin Crescent finish. She spends her jump before Blink, so its punishable endpoint is her last resort, and stays out from under a target.
+
+### Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). Precision mobility and edge pressure by a light fighter.
+
+```balance-profile
+fighter: warden
+archetype: rushdown
+aerials: nair 15-40, fair 20-45, bair 5-25, uair 5-30, dair 10-35
+air-share: 30-65
+approach: 55-85
+ranged: 0-15
+specials: neutral 2-12, side 3-15, up 0-8, down 1-10
+```
 
 ## Pandaren Brewmaster
 
@@ -479,6 +521,20 @@ the tables:
 
 **Gameplan** (smashcraft:ts/src/game/sim/heroes/lichGameplan.ts, #105): he keeps 1.5-2.4H, where Death and Decay lands on the target and Frost Nova still flies, and never runs in: he advances behind his shots and covers a run-in with Ice Spear. A threat close by he mostly answers by backing out to range. Death and Decay, down tilt, up tilt and the down throw start his strings; Ice Spear, Bone Spike and a late Death and Decay finish. He jumps before Spectral Ascent, aims for the ledge, and stays off the edge, out of close range and out from under a target.
 
+### Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). Deliberate projectile placement from range by a frail, slow caster.
+
+```balance-profile
+fighter: lich
+archetype: zoner
+aerials: nair 10-35, fair 10-35, bair 20-50, uair 5-30, dair 0-25
+air-share: 15-45
+approach: 20-50
+ranged: 30-70
+specials: neutral 5-25, side 5-25, up 0-8, down 3-15
+```
+
 ## Forsaken Paladin
 
 **Identity:** a Forsaken Paladin with a substantial hammer, a short slowing
@@ -569,6 +625,20 @@ Standing grab 7/3/26, reach 0.65H. Pummel: claw squeeze. No automatic lifesteal.
 - Sleep's 2-damage hit stops his target's momentum like any hit; the sleep that follows leaves velocity and gravity alone and discards the sleeper's inputs.
 - Presentation uses the classic HeroDreadLord model's eleven usable sequences: claws on Attack - 1/2, wings and horns on Spell and Stand - 3, the low sweep and down air on Spell Slam, jumps and Bat Ascension on the Stand - 2 wing spread. Dissipate draws no body and is not used.
 
+### Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). Air movement, grabs and close pressure.
+
+```balance-profile
+fighter: dreadlord
+archetype: grappler
+aerials: nair 15-45, fair 10-40, bair 10-40, uair 5-30, dair 5-30
+air-share: 20-55
+approach: 50-80
+ranged: 0-15
+specials: neutral 1-10, side 2-12, up 0-8, down 1-10
+```
+
 ## Shadow Hunter
 
 **Identity:** Rokhan-inspired trap and angle specialist with a glaive, a destructible serpent ward, and brief hex pressure. His zoning is built from placed objects rather than another Archer moveset. He retains functional normals when his setup is gone.
@@ -616,6 +686,20 @@ Standing grab 8/2/24, reach 0.55H. Pummel: mask headbutt.
 **Required counterplay test:** a ward can be cleared with one or two intentional attacks; ward fire plus Hex cannot permanently remove recovery or lock shield. Throws into a ward are setups to measure, not assumed true combos.
 
 **Implemented kit notes.** Source: smashcraft:ts/src/game/sim/heroes/shadowHunterMoves.ts (normals, grab, throws), shadowHunterSpecials.ts (specials, ward and Hex values) and shadowHunterHero.ts (registration and clip map). The model is the classic `units\orc\HeroShadowHunter\HeroShadowHunter.mdl` at scale 1.0 (Stand Ready is 138 units tall against 1.08H). It has fourteen sequences and one attack clip, so moves share clips by motion: glaive cuts play Attack, overhead moves Spell, the low lunge and the overhand release Spell Throw, Twin Totems and Serpent Ward the hopping Stand Channel, jumps and Loa Vault the leap in Stand Victory, knockdown Death, and a KO the rising spirit of Dissipate. The model has no kick, so Heel Hook plays the rear arm-and-glaive sweep of Stand -2; its hit volume keeps the listed M reach and the swinging arm carries an exposed hurt volume, preserving the move's no-disjoint trade-off. No move is omitted.
+
+### Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). Totem placement and angles.
+
+```balance-profile
+fighter: shadow-hunter
+archetype: setplay
+aerials: nair 10-40, fair 10-40, bair 15-45, uair 5-30, dair 0-25
+air-share: 15-45
+approach: 35-65
+ranged: 15-50
+specials: neutral 3-15, side 2-12, up 0-8, down 3-15
+```
 
 ## Pit Lord
 
@@ -1074,6 +1158,20 @@ makes the target act with Howling Blast and Defile, starts tech chases from
 Frozen Ground and Harvest Soul, and kills with the smashes, his back air and a
 Val'kyr carry near the ledge.
 
+### Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). A heavy swordsman holding Frostmourne's tip; kills with smashes, back air and a Val'kyr carry.
+
+```balance-profile
+fighter: lich-king
+archetype: bait-and-punish
+aerials: nair 10-40, fair 15-45, bair 15-50, uair 5-30, dair 0-25
+air-share: 15-45
+approach: 40-70
+ranged: 0-20
+specials: neutral 2-12, side 2-12, up 0-8, down 2-12
+```
+
 ## Original fighters
 
 Archer and Rifleman were built before this specification. Their kits live in
@@ -1110,6 +1208,20 @@ ride until her jump is gone. She avoids the edge. The perch and dive are her
 stage control: a dive line through the gap she keeps, or through a recovery
 path while she holds the ledge.
 
+#### Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). Distance is her identity: arrows and back air keep the gap.
+
+```balance-profile
+fighter: archer
+archetype: zoner
+aerials: nair 10-35, fair 10-35, bair 20-50, uair 5-30, dair 0-25
+air-share: 15-45
+approach: 25-55
+ranged: 25-65
+specials: neutral 8-30, side 3-15, up 0-8, down 2-12
+```
+
 ### Rifleman
 
 **Identity:** a gunner who holds ground. He is slow on the ground (run 9.00)
@@ -1130,6 +1242,21 @@ into forward or up smash; the bear into a shot or forward smash. He kills
 with forward smash from 80%, up smash from 95% and the recoil shot from
 100%. He returns to the ledge and spends his jump before the recoil. He
 avoids close range.
+
+#### Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). Blaster and traps from range; the Bear is his signature spell (smashcraft:docs/design/mana.md).
+
+```balance-profile
+fighter: rifleman
+archetype: zoner
+aerials: nair 10-35, fair 10-35, bair 20-50, uair 5-30, dair 0-25
+air-share: 15-45
+approach: 25-55
+ranged: 25-65
+specials: neutral 8-30, side 3-15, up 0-8, down 2-12
+signature: side-special 50
+```
 
 ### Illidan
 
@@ -1426,6 +1553,10 @@ smashcraft:ts/scripts/cpuField.ts. smashcraft:ts/scripts/cpuField.tests.ts
 pins the constant and checks that this section states the same numbers, so
 changing the gate means changing the code, the test and this section
 together.
+
+Tom's fuller balance spec (8 Oct), which adds the spam probe, the move-share
+ceiling, play-style profiles and the balance score on top of this band, is
+smashcraft:docs/design/balance.md.
 
 Matchup parity is reported but not gated. Each matchup's win rate, the
 count inside 45-55%, the count whose 95% interval overlaps that band and

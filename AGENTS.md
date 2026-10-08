@@ -481,9 +481,12 @@ code. From smashcraft:ts/:
   `--per-pair`, `--seeds`) on GitHub's free hosted runners, a `cpuField
   --pairs` process a core, eight pairs a job and at most 8 jobs at once (the
   account runs 20 jobs at once; wisp:docs/ci.md, "Runner capacity and
-  waiting"), and with `--wait` prints the
-  verdict and field table. A Wren Expert run with at least 400 matches per pair
-  fails when the balance gate fails, after publishing the report artifact;
+  waiting"), then each fighter's spam probe (its top damage move only,
+  `--probe N` matches a pair, 40 by default, 0 to skip), and with `--wait`
+  prints the verdicts, the field table and the damage-by-move, play-style,
+  openings-per-kill and balance-score tables (smashcraft:docs/design/balance.md).
+  A Wren Expert run with at least 400 matches per pair fails when the win-rate
+  gate or the balanced gate fails, after publishing the report artifact;
   lower-tier or smaller exploratory fields remain reports.
   `--matchups archer:chen-stormstout,lich:chen-stormstout` runs only those
   named pairs for a repair comparison; its report is not a full-roster gate.

@@ -96,3 +96,17 @@ attempts, uses Repair against visible incoming hits, and saves its jump before
 Worksite Launch. Base-game Peon model, Burrow, missiles, portraits and sounds
 are the only art sources. Authored motion and private pooled clips preserve
 recognizable work gestures in both facings at gameplay zoom.
+
+## Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). A stubborn worker who wins by making an awkward little worksite.
+
+```balance-profile
+fighter: peon
+archetype: grappler
+aerials: nair 15-45, fair 10-40, bair 10-40, uair 5-30, dair 5-30
+air-share: 10-40
+approach: 50-80
+ranged: 0-25
+specials: neutral 2-12, side 2-12, up 0-8, down 2-12
+```

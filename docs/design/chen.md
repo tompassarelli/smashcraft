@@ -101,3 +101,17 @@ Presentation uses the installed Warcraft III Pandaren Brewmaster model,
 icon, sounds and fire/cloud effects. Original staff, kick, stumble, paired
 throw and reaction clips are authored over that private stock input. No
 proprietary model or texture enters Git.
+
+## Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). Staff footwork and reads around heavy commitments.
+
+```balance-profile
+fighter: chen-stormstout
+archetype: bait-and-punish
+aerials: nair 10-40, fair 15-45, bair 15-45, uair 5-30, dair 0-25
+air-share: 15-45
+approach: 40-70
+ranged: 0-20
+specials: neutral 2-12, side 2-12, up 0-8, down 2-12
+```

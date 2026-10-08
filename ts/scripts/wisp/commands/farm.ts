@@ -4,7 +4,8 @@
 // (wisp:docs/farm.md). `balance` dispatches
 // smashcraft:.github/workflows/balance.yml (the balance gate's computer
 // field, a `cpuField --pairs` process a core over about 17 jobs, merged in
-// one); `pads` dispatches smashcraft:.github/workflows/headless-pads.yml
+// one, then each fighter's spam probe, `--probe N` matches a pair, 0 to skip);
+// `pads` dispatches smashcraft:.github/workflows/headless-pads.yml
 // (every top-level native check script, or the files/folders `--only PATH` names,
 // headless, against its own expectations);
 // `perf "RUN ARGS" ... [--out DIR]` dispatches smashcraft:.github/workflows/perf.yml,
@@ -25,16 +26,19 @@ import { FarmFailure, type RunState, currentRepo, dispatch, farmTest, resolveRef
 const WORKFLOWS = { balance: "balance.yml", pads: "headless-pads.yml", perf: "perf.yml", memory: "memory-soak.yml" } as const;
 type Job = keyof typeof WORKFLOWS;
 
+// A failing gate still publishes its tables: print them, then fail.
 const balanceResult = (repo: string, id: number, state: RunState) => Effect.gen(function*() {
+  const folder = mkdtempSync(join(tmpdir(), "farm-balance-"));
+  const downloaded = yield* run(["gh", "run", "download", String(id), "-R", repo, "-n", "balance-field", "-D", folder]).pipe(Effect.as(true), Effect.orElseSucceed(() => false));
+  if (downloaded) {
+    console.log(readFileSync(join(folder, "field.md"), "utf8"));
+    console.log(`Merged records: gh run download ${id} -R ${repo} -n balance-field`);
+  }
+  rmSync(folder, { recursive: true });
   if (state.conclusion !== "success") {
     const failed = state.jobs.filter((job) => job.conclusion !== "success" && job.conclusion !== "skipped").map((job) => job.name);
     return yield* new FarmFailure({ problem: `the balance run ended ${state.conclusion} (${failed.join(", ")}); gh run view ${id} -R ${repo} --log-failed` });
   }
-  const folder = mkdtempSync(join(tmpdir(), "farm-balance-"));
-  yield* run(["gh", "run", "download", String(id), "-R", repo, "-n", "balance-field", "-D", folder]);
-  console.log(readFileSync(join(folder, "field.md"), "utf8"));
-  console.log(`Merged records: gh run download ${id} -R ${repo} -n balance-field`);
-  rmSync(folder, { recursive: true });
 });
 
 const padsResult = (repo: string, id: number, state: RunState) => Effect.gen(function*() {
@@ -83,7 +87,7 @@ const memoryResult = (repo: string, id: number, state: RunState) => Effect.gen(f
 export const farm: Command = (args) => Effect.gen(function*() {
   const parsed = yield* Effect.try({
     try: () => parseArgs({ args: [...args], allowPositionals: true, options: {
-      ref: { type: "string" }, wait: { type: "boolean" }, out: { type: "string" }, opponent: { type: "string" }, tier: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, matchups: { type: "string" }, minutes: { type: "string" }, only: { type: "string", multiple: true },
+      ref: { type: "string" }, wait: { type: "boolean" }, out: { type: "string" }, opponent: { type: "string" }, tier: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, matchups: { type: "string" }, probe: { type: "string" }, minutes: { type: "string" }, only: { type: "string", multiple: true },
     } }),
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
@@ -98,7 +102,7 @@ export const farm: Command = (args) => Effect.gen(function*() {
     const { ref, scratch } = yield* resolveRef(parsed.values.ref, repo);
     const tag = runTag();
     const inputs = job === "balance"
-      ? { ref, opponent: parsed.values.opponent ?? "wren", tier: parsed.values.tier ?? "expert", "per-pair": parsed.values["per-pair"] ?? "400", seeds: parsed.values.seeds ?? "100", matchups: parsed.values.matchups ?? "", tag }
+      ? { ref, opponent: parsed.values.opponent ?? "wren", tier: parsed.values.tier ?? "expert", "per-pair": parsed.values["per-pair"] ?? "400", seeds: parsed.values.seeds ?? "100", matchups: parsed.values.matchups ?? "", probe: parsed.values.probe ?? "40", tag }
       : job === "perf" ? { ref, runs: JSON.stringify(runs), tag } : job === "memory" ? { ref, minutes: parsed.values.minutes ?? "30", tag } : { ref, dirs: parsed.values.only?.join(" ") ?? ".", tag };
     const started = performance.now();
     const found = yield* dispatch(repo, workflow, inputs);

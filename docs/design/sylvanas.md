@@ -149,3 +149,17 @@ measurement and completed roster presentation.
 [flight]: https://www.ssbwiki.com/Power_of_Flight
 [confusion]: https://www.ssbwiki.com/Confusion
 [blackhole]: https://www.ssbwiki.com/Black_Hole_Laser
+
+## Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). A bow fighter who keeps distance.
+
+```balance-profile
+fighter: sylvanas-windrunner
+archetype: zoner
+aerials: nair 10-35, fair 10-35, bair 20-50, uair 5-30, dair 0-25
+air-share: 15-45
+approach: 25-55
+ranged: 25-65
+specials: neutral 5-25, side 3-15, up 0-8, down 2-12
+```

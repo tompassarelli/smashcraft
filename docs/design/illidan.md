@@ -363,3 +363,17 @@ measured windows.
 Source: smashcraft:ts/src/game/sim/specials.ts (Fel Rush),
 smashcraft:ts/src/game/sim/hitRegions.ts (drain on hit), contract tests in
 smashcraft:ts/src/game/sim/felRush.tests.ts.
+
+## Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). Air speed and glaive reach: he attacks from the air and chases.
+
+```balance-profile
+fighter: illidan
+archetype: rushdown
+aerials: nair 15-40, fair 20-45, bair 5-25, uair 5-30, dair 10-35
+air-share: 30-65
+approach: 55-85
+ranged: 0-15
+specials: neutral 2-12, side 3-15, up 0-8, down 2-12
+```

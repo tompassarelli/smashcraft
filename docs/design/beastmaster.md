@@ -103,3 +103,17 @@ The headless contract checks the four state windows, one roar per command and
 one impact per connected bite; the existing pack script still exercises the
 whole kit. The automated script checks that the roar crest is visible during the windup;
 all special and companion gameplay contracts remain in Bun and emitted Lua.
+
+## Play-style profile
+
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). Separate ground and air threats from the pack, followed by axe normals.
+
+```balance-profile
+fighter: beastmaster
+archetype: setplay
+aerials: nair 10-40, fair 10-40, bair 15-45, uair 5-30, dair 0-25
+air-share: 15-45
+approach: 35-65
+ranged: 15-50
+specials: neutral 3-15, side 3-15, up 0-8, down 2-12
+```
