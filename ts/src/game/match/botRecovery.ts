@@ -8,7 +8,7 @@ import { at } from "wisp/src/runtime/lookup";
 import { f32 } from "wisp/src/sim/f32";
 import { toInt } from "../../runtime/numbers";
 import { TECH_REPEAT_MINIMUM_AGE_FRAMES } from "../physics/techInput";
-import { Character, DownState, LedgeState, SpecialAction } from "../sim/codes";
+import { Character, DownState, LedgeState, PlatformMove, SpecialAction } from "../sim/codes";
 import { isTumbling } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { totalVelocityZ } from "../sim/motion";
@@ -219,6 +219,10 @@ export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, m
   if (fighter.status.out) return false;
   if (fighter.ledge.state !== LedgeState.none) {
     chooseLedgeOption(fighter, stage, input, target, skill.mixesUp);
+    return true;
+  }
+  if (fighter.platform.move === PlatformMove.ascent) {
+    input.down = true;
     return true;
   }
   if (chooseGetUp(fighter, input, target, skill.mixesUp)) return true;
