@@ -66,7 +66,7 @@ export const STAGE_DECK_PALETTES: readonly { readonly stage: number; readonly th
     },
   } },
   // Dwarven granite, Alliance gold and blue.
-  { stage: CARRIED_TEST_STAGE, theme: "Aerie", palette: { top: [120, 118, 112], lip: [176, 142, 62], body: [44, 54, 76], underside: [70, 80, 100] }, materials: {
+  { stage: CARRIED_TEST_STAGE, theme: "Aerie", palette: { top: [140, 138, 132], lip: [176, 142, 62], body: [44, 54, 76], underside: [70, 80, 100] }, materials: {
     top: { texture: "TerrainArt\\Cityscape\\City_SquareTiles.blp" },
     lip: { texture: "TerrainArt\\Cityscape\\City_BrickTiles.blp" },
     body: { texture: "TerrainArt\\LordaeronWinter\\Lordw_Rock.blp" },
