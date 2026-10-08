@@ -71,13 +71,13 @@ const launcherCommand = (name: string, run: string, client: { readonly compatDat
 
 /**
  * The signed-in 3.0.1 clones (wisp:docs/lan.md, "Signed-in 3.0.1 clients"):
- * clients named clone-a, clone-b or clone-c start only through their own
+ * clients named clone-a, clone-b, clone-c or clone-d start only through their own
  * launch script, which keeps clone-a (Tom's account) off while he plays. They
  * keep their own sign-in, so doctor types no account into them.
  */
 const CLONE_LAUNCH = join(homedir(), ".local/share/wisp/online/launch.sh");
 const cloneLauncher = (name: string, run: string) => {
-  const clone = /^clone-([abc])$/.exec(name)?.[1];
+  const clone = /^clone-([abcd])$/.exec(name)?.[1];
   return clone === undefined ? undefined : { kind: "command" as const, command: [CLONE_LAUNCH, clone, run], log: join(homedir(), `.local/share/wisp/online/${name}-launch.log`) };
 };
 
