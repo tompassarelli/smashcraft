@@ -420,7 +420,18 @@ So a batch:
   `bun wisp lan fresh MAP --pair K`). Each pair takes the next script when
   it is free.
 
-It writes `DIR/batch.tsv` and `batch.json`: each script's new-game, reset,
+With `--hot` (integrity build only), the batch also hot-reloads the current
+TypeScript into the pair's clients before every script: after a new game,
+whose clients run the map's own bundle, and before each reset, so the reset
+and the next match run the reloaded code. One game then serves a series of
+TypeScript-only changes (effects, timing, presentation values); imports,
+object data and art still need a rebuilt map. The compiler warms up while the
+first game loads. A reload neither client acknowledges within 10 s counts as
+a broken run: the script gets a new game. smashcraft:ts/test/dev-reset.test.ts
+holds that a match after a hot reload and a reset equals the game's first
+match (#312).
+
+It writes `DIR/batch.tsv` and `batch.json`: each script's new-game, reload, reset,
 native, headless and compare seconds, attempts and verdict, then the
 totals. `--fresh-each` starts a new game per script, only to measure the
 old loop. `bun wisp pad SCRIPT|DIR... --headless --helper HELPER --out DIR`

@@ -90,7 +90,7 @@ const setupCommand = (session: NativeSession, command: string, send: Effect.Effe
 
 const USAGE = "pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat=TEXT] [--map MAP.w3x [--retries N]] [--clients-file FILE]\n"
   + "       bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT] [--compare NATIVE_DIR] [--render DIR --frames N...]\n"
-  + "       bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR --map MAP.w3x [--pairs N | --pair K... | --app-id a=ID --app-id b=ID] [--headless-jobs N] [--fresh-each] [--clients-file FILE]\n"
+  + "       bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR --map MAP.w3x [--pairs N | --pair K... | --app-id a=ID --app-id b=ID] [--headless-jobs N] [--fresh-each] [--hot] [--clients-file FILE]\n"
   + "       bun wisp pad SCRIPT|DIR... --headless --helper BINARY --out DIR [--headless-jobs N]";
 
 /** How long a capture waits for its client to draw its frame: about 3 s behind the helper's clock, past #156's worst lag (88 frames). */
@@ -500,7 +500,7 @@ export const pad: Command = (args) => Effect.gen(function*() {
       helper: { type: "string" }, build: { type: "string" }, out: { type: "string" }, chat: { type: "string" }, "app-id": { type: "string", multiple: true },
       headless: { type: "boolean" }, compare: { type: "string" }, retries: { type: "string" }, map: { type: "string" },
       render: { type: "string" }, frames: { type: "string" },
-      pairs: { type: "string" }, pair: { type: "string", multiple: true }, pool: { type: "string" }, "fresh-each": { type: "boolean" }, "headless-jobs": { type: "string" },
+      pairs: { type: "string" }, pair: { type: "string", multiple: true }, pool: { type: "string" }, "fresh-each": { type: "boolean" }, hot: { type: "boolean" }, "headless-jobs": { type: "string" },
       "clients-file": { type: "string" },
     } }),
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
@@ -569,7 +569,7 @@ const scriptBatch = (values: { readonly [name: string]: string | boolean | reado
     return yield* headlessBatch({ scripts, helper, build, out, headlessJobs, retries: Number(text("retries") ?? "2") });
   }
   if (helper === undefined || out === undefined || map === undefined || positionals.length === 0) {
-    return yield* new UsageFailure({ problem: "usage: bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR (--map MAP.w3x | --headless) [--build BUILD] [--pairs N | --pair K... [--pool POOL.json] | --app-id a=ID --app-id b=ID] [--clients-file FILE] [--retries N] [--headless-jobs N] [--fresh-each]" });
+    return yield* new UsageFailure({ problem: "usage: bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR (--map MAP.w3x | --headless) [--build BUILD] [--pairs N | --pair K... [--pool POOL.json] | --app-id a=ID --app-id b=ID] [--clients-file FILE] [--retries N] [--headless-jobs N] [--fresh-each] [--hot]" });
   }
   const pairCount = text("pairs");
   const clientsFile = text("clients-file") ?? clientState;
@@ -589,6 +589,6 @@ const scriptBatch = (values: { readonly [name: string]: string | boolean | reado
   const scripts = yield* Effect.try({ try: () => batchScripts(positionals), catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
   return yield* padBatch({
     scripts, pairs, helper, build, out, map,
-    retries: Number(text("retries") ?? "2"), freshEach: values["fresh-each"] === true, headlessJobs,
+    retries: Number(text("retries") ?? "2"), freshEach: values["fresh-each"] === true, hot: values.hot === true, headlessJobs,
   });
 });

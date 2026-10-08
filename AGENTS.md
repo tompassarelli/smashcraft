@@ -638,7 +638,8 @@ code. From smashcraft:ts/:
   Several scripts are one batch, and the batch is how native parity runs:
   `bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR --map MAP.w3x
   [--pairs N | --pair K... | --app-id a=ID --app-id b=ID]` starts ONE game per client pair,
-  types `-dev reset` between scripts (a new game only after an invalid run),
+  types `-dev reset` between scripts (a new game only after an invalid run;
+  `--hot` also hot-reloads the current TypeScript before each script),
   runs every headless side alongside (`--headless-jobs N`) and compares as
   each native run ends; `--pairs N` (the first N) or `--pair K` (a share) shards over the offline LAN pool.
   Never loop `bun wisp fresh` + `bun wisp pad` per script (about a minute a
