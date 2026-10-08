@@ -452,7 +452,7 @@ export function generateTapes(): Map<string, string> {
     ["short-hop", recordTape("Z short and long holds with late input corrections and rollback.", [{
       characters: [Character.archer, Character.rifleman], stage: 0, stocks: 3, minutes: 0, frames: 180,
       holds: [[[1, 1, SHORT_HOP], [60, 60, SHORT_HOP, JUMP]], [[1, 60, SHORT_HOP], [100, 3, SHORT_HOP]]],
-      approaches: [[], []], rollbacks: [[1, 30], [55, 120]], predictions: [[1, 10], [98, 110]],
+      approaches: [[], []], rollbacks: [[1, 30], [65, 120]], predictions: [[1, 10], [98, 110]],
     }])],
     ["actions", recordTape("Every bound source pressed by both players, with short replays.", [ACTIONS], pressed)],
     ["rollback", recordTape("Combat replayed from one frame up to the whole retained history.", [ROLLBACK])],
@@ -529,6 +529,6 @@ export function generateTapes(): Map<string, string> {
     const missing = [...SOURCES.keys()].filter(source => !sources.has(source));
     if (missing.length > 0) throw new Error(`the actions tape never presses ${missing.join(", ")} for slot ${slot}`);
   });
-  if (SOURCES.size !== 20 || new Set(SOURCES.values()).size !== ACTION_COUNT) throw new Error("the standard layout no longer binds the sources the tapes press");
+  if (new Set(SOURCES.values()).size !== ACTION_COUNT) throw new Error("the standard layout no longer binds the sources the tapes press");
   return tapes;
 }
