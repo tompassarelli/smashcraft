@@ -1615,6 +1615,69 @@ Stock campaign Grom model, textures, portrait, cries and Orc spell effects
 are the first inputs. Authored clips reshape that stock rig to make each
 contact point readable in Classic and Definitive; no third-party model.
 
+||||||| parent of 518a6c528 (Design Anubarak as a burrowing insect king (#341))
+## Anub'arak (#341)
+
+**Identity:** an ancient insect king who treats the stage as his crypt. He advances with a low, six-legged scuttle, skewers ankles with his tusks, disappears under the floor and erupts beneath prey. His carrion beetles do the undignified chasing for him. Heavy ground control and frightening eruptions cost slow turns, a broad body and committed recovery. No reflective passive, resource or hidden stat bonus.
+
+### Normals
+
+Original provisional values; F/A/R counts start at simulation frame zero. Volumes are tusk, claw and carapace capsules authored for his broad body.
+
+| Input and move | F/A/R; landing | Damage | Gesture and purpose |
+|---|---|---:|---|
+| Jab — Royal Rebuke | 6/3/17 | 4 | Short left tusk jab; another tap delivers the right tusk (8/3/20, 6%) |
+| Forward tilt — Mandible Spear | 10/4/24 | 11 | Long front pincer thrust; angled forms aim high or rake ankles |
+| Up tilt — Crown Lift | 9/5/23 | 10 | Horn lifts prey into a juggle, narrow near the ground |
+| Down tilt — Grave Rake | 8/4/20 | 8 | Low claw scrape launches a tech chase |
+| Dash attack — King’s Advance | 12/5/28 | 12 | Planted forelegs and a committed horn shove |
+| Forward smash — Execution Tusk | 20/4/34 | 20 | Huge forward stab with exposed recovery |
+| Up smash — Crown of Spines | 17/5/31 | 18 | Raise both pincers above the shell |
+| Down smash — Crypt Sweep | 16/6/32 | 16 | Front sweep then rear sweep; one hit per target |
+| Neutral air — Carapace Wheel | 10/7/24; L18 | 10 | Broad shell twist clears nearby bodies |
+| Forward air — Royal Skewer | 13/4/27; L20 | 13 | Heavy forward tusk thrust |
+| Back air — Hindclaw | 11/4/27; L20 | 14 | Rear legs kick behind the shell |
+| Up air — Horn of the King | 9/4/23; L16 | 10 | Pointed vertical crown poke |
+| Down air — Tombstone | 17/4/30; L24 | 15 | Head-first downward shell strike; airborne spike |
+
+### Four specials and EX
+
+All four ordinary specials are free. Shield + any Special spends the full universal bar for its EX form; no beetle count or burrow meter is shown or banked. EX keeps the ordinary startup and recovery unless the row names its extra commitment.
+
+| Input | Ordinary move | EX form | Counterplay |
+|---|---|---|---|
+| Neutral — **Impale** | Stamp at f18; a floor-level spine line travels at 10 units/frame for 36 frames, 9%, upward launch; end f48. Air cast sends the same line forward at foot height, L24. | Wider line, 13%, stronger upward launch; same end. | Jump over the low line, shield or punish the stamp |
+| Side — **Burrow Hunt** | Coil f1–9, burrow f10–25 while moving 10 units/frame, erupt with a 12% launcher f26–29; end f56. Ground only. | Burrow f10–29 at 13 units/frame; wider 16% eruption f30–33, end f64. | Track the moving mound and meet the slow eruption with shield or a jump |
+| Up — **Crypt Eruption** | Charge aim f1–8, launch along the chosen direction for 28 frames over a 560-unit route; narrow 8% horn hit f9–16, stop then fall helpless; end f46. | 640-unit route and 12% wider horn, same helpless finish. | The broad shell is exposed before launch and during helpless fall |
+| Down — **Carrion Beetle** | Plant a beetle nest f22, end f46; one fragile 24-HP nest lasts 180 frames and sends three floor-running beetles (5% each) at ages 12/60/108. Down again recalls it. | 36-HP nest, four 7% beetles at ages 12/48/84/120; same 180-frame life. | Destroy the nest, jump the beetles or reflect a beetle back |
+
+### Grab and throws
+
+Standing grab starts f10, the shared 96-unit envelope is active for three frames, total 37; dash and pivot use the shared extensions. Both front pincers clasp the victim. One short pummel dents them for 3%.
+
+| Throw | Gesture | Contact / total | Damage and launch |
+|---|---|---|---|
+| Forward | Pincers push prey from the crypt | 16 / 40 | 9%, 40 degrees |
+| Back | Shell pivots and flings prey behind | 19 / 46 | 11%, 40 degrees, kill throw |
+| Up | Crown impales then tosses overhead | 15 / 36 | 8%, 90 degrees, juggle |
+| Down | Pin prey and drive a tusk into the floor | 21 / 48 | 7%, 70 degrees, tech chase |
+
+**Body and risk:** weight 1.28, ground speed 0.82 and air drift 0.72 of reference; stock Crypt Lord scale and visible shell define his hurt body. Burrow changes his visible pose and matching hurt parts rather than silently granting invulnerability. His opponent can react to the mound and emergence. No guaranteed grab loop: up/down throw follow-ups are positional choices with DI, jump and tech escape checks.
+
+### Play-style profile
+
+Ground-control draft: Impale makes prey jump into the crown; beetles pressure approaches while Burrow Hunt punishes a stationary guard. Slow aerials cover space, not repeated rushdown.
+
+```balance-profile
+fighter: anub'arak
+archetype: trapper
+aerials: nair 10-35, fair 15-40, bair 10-35, uair 10-35, dair 0-25
+air-share: 10-35
+approach: 20-50
+ranged: 15-45
+specials: neutral 5-20, side 3-15, up 0-8, down 3-15
+```
+
 ## Fighter identity audit (#148, Tom 9 Oct 2026)
 
 The old counted effects are cut. Existing standard actions carry these identities;
