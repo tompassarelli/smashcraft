@@ -7,14 +7,28 @@ import { max, min } from "../../runtime/numbers";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import type { Fighter } from "./fighter";
 import { type Roster, fighterAt, isActive } from "./roster";
-import { SEA_SURFACE_Z, hasTide, inSea } from "./stageHazards";
-import { setWorldMotionValue } from "./motion";
+import { SEA_SURFACE_Z, TIDE_SPEED, hasTide, inSea, tideDirection, tidePush } from "./stageHazards";
+import { collectTerrainContact } from "./contacts";
+import type { HitEffect } from "./hitRegions";
+import { isIntangible } from "./conditions";
+import { moveMeleeX, setWorldMotionValue } from "./motion";
 import { melee } from "./tuning";
 import { SurfaceContact } from "./codes";
 import { aerialJumps, jumpBuffed } from "./itemBuffs";
 import { JUMP_BIT, lockedOut } from "./jumpsAndDodges";
 import { observeActionDecision, observeActionStart } from "./observations";
 import { clearDownState } from "./transitions";
+
+/** Brawl's drowning time: after this long in the sea since landing the hydra's tell starts under the fighter. */
+export const HYDRA_TRIGGER_FRAMES = 150;
+/** The tell, as long as the wind's cue; the strike is its next frame. */
+export const HYDRA_TELL_FRAMES = 45;
+export const HYDRA_STRIKE_FRAME = HYDRA_TELL_FRAMES + 1;
+/** The lunge: a circle of radius 15 Melee units round the mark, swept from the surface to 150 above it. */
+export const HYDRA_RADIUS = melee(15.0);
+export const HYDRA_REACH = 150.0;
+/** Summit's fish's 15%, and a launch straight down through the bottom blast line at any percent. */
+export const HYDRA_HIT: Readonly<HitEffect> = { damage: 15.0, growth: 0.0, base: 120.0, launchX: 0.0, launchZ: -1.0, electric: false };
 
 /** Ultimate's buoyancy, 0.1 Melee units a frame upward each frame, in place of gravity, up to 3 a frame. */
 export const WATER_BUOYANCY = melee(0.10000000149011612);
@@ -84,23 +98,21 @@ export function swimVelocity(vx: number, direction: number): number {
   return direction > 0 ? min(target, max(vx, f32(vx + SWIM_ACCELERATION))) : max(target, min(vx, f32(vx - SWIM_ACCELERATION)));
 }
 
-export function clearWater(f: Fighter): void {
-  const { water } = f;
-  water.inWater = false;
-  water.frames = 0;
-  water.entries = 0;
-  water.hydraFrame = 0;
-  water.hydraX = 0.0;
-}
-
-/** After the fighters move: who is in the sea, for how long, and how often they went back in since landing. */
-export function advanceWater(world: Roster, stage: number): void {
+/**
+ * After the fighters move: the current carries everyone in the sea, as the
+ * wind does, by a position offset after the fighter's own motion; hitlag and
+ * hitstun don't stop it. Then who is in the sea, for how long, and how often
+ * they went back in since landing. `matchFrame` is the match's own frame,
+ * not the stage clock: the tide runs with hazards off.
+ */
+export function advanceWater(world: Roster, stage: number, matchFrame: number, hazards: boolean): void {
   if (!hasTide(stage)) return;
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
     const f = fighterAt(world, slot);
     if (f.status.out) continue;
     const { motion, water } = f;
+    moveMeleeX(f, tidePush(stage, matchFrame, motion.x, motion.z));
     const now = inSea(stage, motion.x, motion.z);
     if (motion.grounded) {
       water.frames = 0;
@@ -109,5 +121,42 @@ export function advanceWater(world: Roster, stage: number): void {
     if (now && !water.inWater) water.entries++;
     if (now) water.frames++;
     water.inWater = now;
+    // The hydra's mark drifts with the tide; it never steers toward a fighter.
+    if (water.hydraFrame > 0) {
+      water.hydraFrame++;
+      water.hydraX = f32(water.hydraX + f32(tideDirection(matchFrame) * TIDE_SPEED));
+    } else if (hazards && now && water.frames >= HYDRA_TRIGGER_FRAMES) {
+      water.hydraFrame = 1;
+      water.hydraX = motion.x;
+    }
+  }
+}
+
+/** Whether (x, z) is inside the hydra's lunge from the mark at `markX`. */
+export function inHydraStrike(markX: number, x: number, z: number): boolean {
+  const dx = f32(x - markX);
+  const dz = z < SEA_SURFACE_Z ? f32(z - SEA_SURFACE_Z) : z > SEA_SURFACE_Z + HYDRA_REACH ? f32(z - f32(SEA_SURFACE_Z + HYDRA_REACH)) : 0.0;
+  return f32(f32(dx * dx) + f32(dz * dz)) <= f32(HYDRA_RADIUS * HYDRA_RADIUS);
+}
+
+/**
+ * The hydra's strike, in the ordinary body-hit batch as Blackrock's lava
+ * is: every fighter in the lunge, shield or not, unless intangible. Then
+ * it submerges and the fighter it rose under starts its count again.
+ */
+export function collectHydraContacts(world: Roster, stage: number): void {
+  if (!hasTide(stage)) return;
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (!isActive(world, slot)) continue;
+    const { water } = fighterAt(world, slot);
+    if (water.hydraFrame < HYDRA_STRIKE_FRAME) continue;
+    for (const target of PARTICIPANT_SLOTS) {
+      if (!isActive(world, target)) continue;
+      const victim = fighterAt(world, target);
+      if (victim.status.out || isIntangible(victim) || victim.launch.hitlag > 0) continue;
+      if (inHydraStrike(water.hydraX, victim.motion.x, victim.motion.z)) collectTerrainContact(world, target, HYDRA_HIT);
+    }
+    water.hydraFrame = 0;
+    water.frames = 0;
   }
 }
