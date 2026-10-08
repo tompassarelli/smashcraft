@@ -34,6 +34,10 @@ All move designs and numbers below are proposals, not existing implementation fa
 | 14 | Dark Ranger | Marked targets and a single skeletal helper | Requires setup and cannot replace Archer’s neutral game |
 | 15 | Firelord | Fire zones and one short-lived summon | Zones have startup and can be escaped vertically |
 
+Future expansion: [Murloc (#262)](https://github.com/tompassarelli/smashcraft/issues/262),
+requested by Tom on 8 October 2026. The gameplan and moveset will be chosen
+when implementation starts, after polishing the current 21-fighter roster.
+
 Build order is a recommendation, not permission to delete or overwrite ongoing work. Finish or checkpoint the current synchronization milestone before integrating new gameplay into that branch. A first overnight pass should finish one or two complete heroes and reusable move primitives; it should not report all fifteen finished because character-select entries exist.
 
 ## Shared combat contract
