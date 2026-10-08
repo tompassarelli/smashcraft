@@ -17,7 +17,6 @@ import { value } from "./rematch/playableMatch";
 const runtime = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(runtime.restore);
 
-<<<<<<< HEAD
 function checkMovementRolls(file: string): void {
   const clients = runtime.clients({ install, start }, [0]);
   const client = clients.client(0);
@@ -54,8 +53,6 @@ sweep("every movement capture script plays and advances the forward roll after i
   for (const file of readdirSync(new URL("./native/pads/171/", import.meta.url)).filter(file => file.endsWith(".pad"))) checkMovementRolls(file);
 });
 
-||||||| parent of a13701a44 (Keep Defile upright and start its dark pool boundary pose (#174))
-=======
 test("Defile's ground effect stays upright and starts the boundary's visible Stand pose [repro #174]", () => {
   const clients = runtime.clients({ install, start }, [0]);
   clients.start();
@@ -75,7 +72,6 @@ test("Defile's ground effect stays upright and starts the boundary's visible Sta
   expect(clients.client(0).errors).toEqual([]);
 });
 
->>>>>>> a13701a44 (Keep Defile upright and start its dark pool boundary pose (#174))
 // Real shell callback, capture and replay; command delivery itself belongs to Wisp.
 test("native driver sets up pad rows, holds the whole callback, and stepped and free runs replay equally [invariant]", () => {
   const clients = runtime.clients({ install, start }, [0, 1]);
