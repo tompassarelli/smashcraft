@@ -1,4 +1,4 @@
-// `pad` and `fresh` take their clients from --clients-file and leave the
+// `pad`, `fresh` and `accept` take their clients from --clients-file and leave the
 // default clients.json alone; the pad runner ignores setup receipts written
 // before its session began (a prefix copied from another install carries them).
 import { afterAll, expect, test } from "bun:test";
@@ -25,13 +25,14 @@ const wisp = (args: readonly string[]) => {
   return { code: run.exitCode, output: `${run.stdout.toString()}${run.stderr.toString()}`, untouched: readFileSync(defaultFile, "utf8") === sentinel && statSync(defaultFile).mtimeMs === before, defaultFile };
 };
 
-test("fresh and pad use --clients-file FILE and leave clients.json untouched", () => {
+test("fresh, pad and accept use --clients-file FILE and leave clients.json untouched", () => {
   const file = join(folder, "clones.json");
   const script = join(import.meta.dir, "native/pads/archer-neutral.pad");
   for (const args of [
     ["fresh", join(folder, "missing.w3x"), "--no-quick", "--clients-file", file],
     ["pad", script, "--helper", "helper", "--build", "typescript-integrity", "--out", join(folder, "out"), "--app-id", "a=x", "--app-id", "b=y", "--clients-file", file],
     ["pad", script, script, "--helper", "helper", "--out", join(folder, "batch"), "--map", join(folder, "missing.w3x"), "--clients-file", file],
+    ["accept", "--only", "82-effects-12", "--out", join(folder, "accept"), "--clients-file", file],
   ]) {
     const run = wisp(args);
     expect(run.code, args[0]).not.toBe(0);
