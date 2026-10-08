@@ -27,7 +27,7 @@ smashcraft:ts/src/game/menu/stageCatalog.ts.
 | Beastmaster | Durotar Skies | 3 | Rexxar is the hero of TFT's bonus campaign, "The Founding of Durotar". |
 | Lich King | Frozen Throne | 2 | TFT's final mission: Arthas climbs Icecrown and takes the Frozen Throne. |
 | Anub'arak | Frozen Throne | 2 | TFT's underground Northrend campaign brings the crypt king and Arthas through Azjol-Nerub toward Icecrown. |
-
+| Medivh | Nordrassil | 10 | RoC's prophet brings the human, orc and night elf leaders together to defend Mount Hyjal and its World Tree. |
 | Thrall | Durotar Skies | 3 | Thrall leads the founding of Durotar. |
 | Jaina Proudmoore | Gryphon Aerie | 11 | Jaina leads the Alliance expedition with its human forces. |
 | Sylvanas Windrunner | Naxxramas | 4 | The Dark Ranger fights the Scourge in Lordaeron. |
