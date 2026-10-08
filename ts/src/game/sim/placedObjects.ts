@@ -5,6 +5,7 @@
 // so rollback restores it with its owner.
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, ProjectileKind } from "./codes";
+import { mutableProjectile } from "./fighterProjectiles";
 import { inGrabContext } from "./conditions";
 import { staggerCompanion } from "./companions";
 import { type Fighter, type PlacedObject, placedObject } from "./fighter";
@@ -70,7 +71,9 @@ function specialStrike(placed: PlacedObject, sourceSlot: number, source: Readonl
 /** Damage from the source's projectiles that crossed the object this frame; each one that does is spent. */
 function projectileStrikes(source: Fighter): number {
   let damage = 0.0;
-  for (const projectile of source.projectiles) {
+  for (let index = 0; index < source.projectiles.length; index++) {
+    const projectile = source.projectiles[index];
+    if (projectile === undefined) continue;
     if (projectile.life <= 0) continue;
     strike.x1 = f32(projectile.x - projectile.velocityX);
     strike.z1 = f32(projectile.z - projectile.velocityZ);
@@ -79,7 +82,7 @@ function projectileStrikes(source: Fighter): number {
     strike.radius = projectile.kind === ProjectileKind.hero && projectile.spec !== undefined ? projectile.spec.radius : ORIGINAL_PROJECTILE_RADIUS;
     if (!capsulesIntersect(strike, body)) continue;
     damage = f32(damage + projectileDamage(projectile));
-    projectile.life = 0;
+    mutableProjectile(source, index).life = 0;
   }
   return damage;
 }

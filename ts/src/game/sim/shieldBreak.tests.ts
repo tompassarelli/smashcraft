@@ -1,3 +1,4 @@
+import { mutableProjectile } from "./fighterProjectiles";
 import { stageBounds } from "./stageBounds";
 // Shield break: the launch, landing, standing and dizzy phases and what ends them.
 import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
@@ -45,7 +46,7 @@ function dizzyShieldBreakTest(fighter: Fighter, input: Readonly<Controls>): void
 
 /** A blaster bolt about to reach a fighter at x = 0. */
 function aimShot(shooter: Fighter): void {
-  const shot = shooter.projectiles[0]!;
+  const shot = mutableProjectile(shooter, 0)!;
   shot.life = 2;
   shot.x = -30.0;
   shot.z = 45.0;

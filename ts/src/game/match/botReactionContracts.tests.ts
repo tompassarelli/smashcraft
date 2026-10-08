@@ -1,3 +1,4 @@
+import { mutableProjectile } from "../sim/fighterProjectiles";
 import { assertDefined, assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
@@ -38,7 +39,7 @@ const surprises: readonly ((target: Fighter) => void)[] = [
   target => { target.motion.grounded = false; target.motion.z = 220.0; target.motion.vz = 8.0; },
   target => { target.motion.x = -300.0; target.motion.deltaX = -10.0; },
   target => { target.special.action = SpecialAction.riflemanBlaster; target.special.frame = 0;
-    const p = at(target.projectiles, 0); p.life = 100; p.x = 0.0; p.z = 45.0; p.direction = -1; p.velocityX = -12.0; p.serial++; },
+    const p = mutableProjectile(target, 0); p.life = 100; p.x = 0.0; p.z = 45.0; p.direction = -1; p.velocityX = -12.0; p.serial++; },
 ];
 
 test("retained observations survive storage reuse, restored plain history and rollback [invariant]", () => {
@@ -47,7 +48,7 @@ test("retained observations survive storage reuse, restored plain history and ro
   for (let frame = 1; frame <= 43; frame++) {
     game.target.motion.x = frame;
     game.target.attack.style = AttackStyle.forwardSmash;
-    const projectile = at(game.target.projectiles, 0);
+    const projectile = mutableProjectile(game.target, 0);
     projectile.life = frame;
     projectile.x = frame;
     observeOpponents(game.runtime.botMemory, game.world, frame);
@@ -57,7 +58,7 @@ test("retained observations survive storage reuse, restored plain history and ro
   for (let frame = 44; frame <= 300; frame++) {
     game.target.motion.x = frame;
     game.target.attack.style = undefined;
-    at(game.target.projectiles, 0).life = 0;
+    mutableProjectile(game.target, 0).life = 0;
     observeOpponents(game.runtime.botMemory, game.world, frame);
   }
   for (let index = 0; index < saved.history.length; index++) {
@@ -67,8 +68,8 @@ test("retained observations survive storage reuse, restored plain history and ro
   assertEquals(game.runtime.botMemory.history.length, 43);
   const latest = at(game.runtime.botMemory.history, 42);
   assertEquals(latest.opponents[1]?.attack.style, undefined);
-  assertEquals(at(assertDefined(latest.opponents[1]).projectiles, 0).life, 0);
-  assertEquals(at(assertDefined(latest.opponents[1]).projectiles, 0).x, 0);
+  assertEquals(mutableProjectile(assertDefined(latest.opponents[1]), 0).life, 0);
+  assertEquals(mutableProjectile(assertDefined(latest.opponents[1]), 0).x, 0);
   // Decoded moment records carry no private ownership metadata.
   const plain: BotMemory = { history: saved.history, directions: [0, 0, 0, 0], directionFrames: [0, 0, 0, 0] };
   copyBotMemory(game.runtime.botMemory, plain);
@@ -117,7 +118,7 @@ sweep("150 surprise-action traces: no computer input responds before its authore
       assertEquals(seen.motion.z, changed.target.motion.z);
       assertEquals(seen.shield.raised, changed.target.shield.raised);
       assertEquals(seen.attack.style, changed.target.attack.style);
-      assertEquals(at(seen.projectiles, 0).life, at(changed.target.projectiles, 0).life);
+      assertEquals(mutableProjectile(seen, 0).life, mutableProjectile(changed.target, 0).life);
     }
   }
   assertEquals(early, 0);

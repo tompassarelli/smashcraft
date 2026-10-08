@@ -1,3 +1,4 @@
+import { mutableProjectile } from "./fighterProjectiles";
 import { assertEquals, assertGreaterThan, test } from "wisp/src/runtime/testing";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, ProjectileKind } from "./codes";
@@ -83,7 +84,7 @@ test("a detached projectile impact does not freeze its shooter [spec docs/physic
       const shooter = createFighter(Character.archer, 0.0, 1);
       const target = createFighter(Character.rifleman, 100.0, -1);
       target.shield.raised = shielded;
-      const projectile = shooter.projectiles[0]!;
+      const projectile = mutableProjectile(shooter, 0)!;
       projectile.life = 2;
       projectile.kind = kind;
       projectile.x = 90.0;

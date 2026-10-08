@@ -1,3 +1,4 @@
+import { mutableProjectile } from "./fighterProjectiles";
 // Powershield: the parry and red parry, the shield bubble, reflect and
 // perfect-shield windows, projectile reflection, and the original
 // capsule-against-shield boundaries.
@@ -34,7 +35,7 @@ test("projectile shield coverage separates exposed-body and shield-only contacts
     defender.motion.z = 0.0;
     defender.shield.raised = true;
     defender.tuning.shield = { centerX: 0.0, centerZ: 45.0, radius: scenario === 0 ? 60.0 : 200.0 };
-    const projectile = shooter.projectiles[0]!;
+    const projectile = mutableProjectile(shooter, 0)!;
     projectile.x = scenario === 0 ? -20.0 : -80.0;
     projectile.z = scenario === 0 ? 110.0 : 45.0;
     projectile.velocityX = scenario === 0 ? 40.0 : 30.0;
@@ -104,7 +105,7 @@ test("pressure to a full press honors the two-frame input window [reference]", (
 test("the reflector uses the authored circle and transfers a scaled projectile [reference]", () => {
   const shooter = createFighter(Character.archer, -30.0, 1);
   const defender = createFighter(Character.rifleman, 0.0, -1);
-  const shot = shooter.projectiles[0]!;
+  const shot = mutableProjectile(shooter, 0)!;
   shot.x = -50.0;
   shot.z = 45.0;
   shot.velocityX = 60.0;
@@ -122,7 +123,7 @@ test("the reflector uses the authored circle and transfers a scaled projectile [
   updateProjectiles(testWorld(shooter, defender));
   assertFalse(projectileActive(shooter, 0));
   assertTrue(projectileActive(defender, 0));
-  const reflected = defender.projectiles[0]!;
+  const reflected = mutableProjectile(defender, 0)!;
   assertEquals(reflected.direction, -1);
   assertEquals(reflected.velocityX, -42.0);
   assertEquals(reflected.damageMultiplier, SHIELD_PROJECTILE_DAMAGE_MULTIPLIER);
@@ -135,7 +136,7 @@ test("the reflector uses the authored circle and transfers a scaled projectile [
   updateProjectiles(testWorld(shooter, defender));
   const baselineShooter = createFighter(Character.archer, -30.0, 1);
   const baselineDefender = createFighter(Character.rifleman, 0.0, -1);
-  const baseline = baselineShooter.projectiles[0]!;
+  const baseline = mutableProjectile(baselineShooter, 0)!;
   baseline.x = -50.0;
   baseline.z = 45.0;
   baseline.velocityX = 60.0;
@@ -269,7 +270,7 @@ test("each hit of a string needs its own parry, and the reward follows the last 
 
 /** A shot `distance` left of the defender's shield centre, flying right at 60 a frame. */
 function aimShot(shooter: Fighter, defender: Fighter, index: number, distance: number): void {
-  const shot = shooter.projectiles[index]!;
+  const shot = mutableProjectile(shooter, index)!;
   shot.x = f32(defender.motion.x - distance);
   shot.z = 45.0;
   shot.velocityX = 60.0;

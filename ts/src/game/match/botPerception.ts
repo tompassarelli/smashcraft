@@ -5,7 +5,7 @@ import { botObservationCanonical, realParts, splitFiniteReal, writeCanonicalNumb
 import { f32 } from "wisp/src/sim/f32";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../input/participants";
-import { createFighter, type Fighter } from "../sim/fighter";
+import { createFighter, type Fighter, type Projectile } from "../sim/fighter";
 import { fighterAt, isActive, type Controls, type Roster } from "../sim/roster";
 
 export const BOT_DIRECTION_FRAMES = 5;
@@ -34,9 +34,11 @@ export interface BotMemory {
   readonly directionFrames: Slots<number>;
 }
 
+type ObservationFighter = Fighter & { readonly projectiles: Projectile[] };
+
 interface ObservationEntry {
   readonly sample: { frame: number; opponents: Slots<Fighter | undefined>; checksumFirst: number; checksumSecond: number };
-  readonly bodies: Slots<Fighter>;
+  readonly bodies: Slots<ObservationFighter>;
   readonly arena: ObservationArena;
   references: number;
 }
@@ -59,7 +61,7 @@ function storageFor(memory: Readonly<BotMemory>): MemoryStorage {
   const storage: MemoryStorage = { arena, history: [], entries: [] };
   // Saved moments restore plain records; adopt their samples before a live copy.
   for (const sample of memory.history) {
-    const bodies: Slots<Fighter> = [createObservation(), createObservation(), createObservation(), createObservation()];
+    const bodies: Slots<ObservationFighter> = [createObservation(), createObservation(), createObservation(), createObservation()];
     const entry: ObservationEntry = {
       sample: { frame: sample.frame, opponents: [undefined, undefined, undefined, undefined],
         checksumFirst: sample.checksumFirst, checksumSecond: sample.checksumSecond },
@@ -148,7 +150,7 @@ export function firstBotMemoryDifference(expected: Readonly<BotMemory>, actual: 
 }
 
 /** Only the opponent's visible body, action, status and entities enter perception. */
-function createObservation(): Fighter {
+function createObservation(): ObservationFighter {
   const f = EMPTY;
   return {
     ...EMPTY, character: f.character, tuning: { ...f.tuning }, facing: f.facing,
@@ -180,7 +182,7 @@ function createObservation(): Fighter {
   };
 }
 
-function copyObservation(target: Fighter, source: Readonly<Fighter>): void {
+function copyObservation(target: ObservationFighter, source: Readonly<Fighter>): void {
   target.character = source.character;
   target.facing = source.facing;
   target.tuning.moves = source.tuning.moves;

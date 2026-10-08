@@ -3,12 +3,13 @@ import { at } from "wisp/src/runtime/lookup";
 import { PARTICIPANT_CAPACITY, participantActive } from "../input/participants";
 import type { Fighter } from "../sim/fighter";
 import { HERO_STATUS_GROUPS } from "../sim/codes";
+import { shareFighterProjectiles } from "../sim/fighterProjectiles";
 
 const retained = (activeMask: number, slot: number | undefined) => (slot !== undefined && participantActive(activeMask, slot) ? slot : undefined);
 
 /**
- * Copies every field into existing storage, so a replay row never aliases live
- * mutable records. Tuning records are immutable values and are shared. A
+ * Copies mutable records and shares tuning and projectile values. Projectile
+ * writers detach shared values before changing them. A
  * reference to a slot outside activeMask becomes absent, as Wurst's roster
  * remap drops a fighter the source world doesn't seat.
  */
@@ -203,26 +204,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   special.grabFrame = sourceSpecial.grabFrame;
   special.guarded = sourceSpecial.guarded;
 
-  let projectile = 0;
-  for (const to of target.projectiles) {
-    const from = source.projectiles[projectile++];
-    if (from === undefined) throw new Error(`no projectile ${projectile - 1} to copy`);
-    to.life = from.life;
-    to.x = from.x;
-    to.z = from.z;
-    to.direction = from.direction;
-    to.kind = from.kind;
-    to.visualFamily = from.visualFamily;
-    to.velocityX = from.velocityX;
-    to.velocityZ = from.velocityZ;
-    to.serial = from.serial;
-    to.damageMultiplier = from.damageMultiplier;
-    to.newlyReflected = from.newlyReflected;
-    to.longRifle = from.longRifle;
-    to.poolHits = from.poolHits;
-    to.poolWait = from.poolWait;
-    to.spec = from.spec;
-  }
+  shareFighterProjectiles(target, source);
 
   const bear = target.bear;
   const sourceBear = source.bear;

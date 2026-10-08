@@ -1,3 +1,4 @@
+import { mutableProjectile } from "../fighterProjectiles";
 // The Lich King's kit rules (#167) through the production special,
 // projectile, contact, status, grab and passive paths: Frostmourne Hungers
 // banks and spends souls, Val'kyr Shadowguard carries its catch toward the
@@ -249,8 +250,9 @@ test("Defile stays through five 2-damage pulses spaced 36 frames; body hits grow
   assertEquals(target.status.damage, 10.0);
   for (let i = 1; i < strikes.length; i++) assertEquals(strikes[i]! - strikes[i - 1]!, 36);
   assertNear(widest, f32(f32(H * f32(0.3)) + 30.0), f32(0.01));
-  pool.life = 10;
-  pool.poolHits = 100;
+  const writablePool = mutableProjectile(owner, owner.projectiles.indexOf(pool));
+  writablePool.life = 10;
+  writablePool.poolHits = 100;
   assertNear(heroProjectileRadius(pool, pool.spec), f32(H * f32(0.6)), f32(0.01));
   // A pool's growth and wait are rollback state.
   const copy = lichKing(0.0, 1);
