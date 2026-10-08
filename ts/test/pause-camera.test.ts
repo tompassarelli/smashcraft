@@ -1,7 +1,7 @@
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { PREDICTED_HEADLESS } from "../scripts/wisp/headless";
-import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
+import { PLAYABLE_BUILD, INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
 import { install, startBuild } from "../src/platform/main";
 import { shell } from "../src/platform/shell/state";
 import { Key } from "../src/platform/shell/keyEvents";
@@ -9,7 +9,10 @@ import { advancePauseCamera } from "../src/platform/shell/pauseCamera";
 import { stageBounds } from "../src/game/sim/stageBounds";
 import { WORLD_BOUNDS } from "../src/game/presentation/arenaCamera";
 import { confirmedChecksum } from "../src/platform/shell/diagnostics";
-import { shows, value } from "./rematch/playableMatch";
+import { shows, value, startPlayableMatch, expectSynchronized } from "./rematch/playableMatch";
+
+import { textEnvelope } from "../src/game/netcode/journal/text";
+import { JournalHelpers } from "./rematch/journalHelper";
 
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
@@ -95,4 +98,49 @@ test("paused camera cannot pan outside the stage or world or zoom through the st
     }
   });
   expect(client.errors).toEqual([]);
+});
+
+
+test("controller camera text stays local while both paused journal clients keep their match checksums [spec #332] [invariant]", () => {
+  const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
+  const { clients, frames, clientA: a, clientB: b } = startPlayableMatch(headless, helpers, false);
+  frames(30);
+  helpers.pressStart(0);
+  for (let i = 0; i < 90 && clients.clients.some(client => !value(client, () => shell().session.paused)); i++) frames(1);
+  expect(clients.clients.map(client => value(client, () => shell().session.paused))).toEqual([true, true]);
+  const frozen = clients.clients.map(client => value(client, () => confirmedChecksum(shell())));
+  const remote = b.cameraPose();
+  const overlay = () => a.frames.snapshot({ visibleOnly: true }).some(frame => frame.name === "SmashcraftPause");
+  const before = value(a, () => shell().camera.x);
+  clients.type(0, "l");
+  frames(1);
+  expect(value(a, () => shell().camera.x)).toBeGreaterThan(before);
+  expect(overlay()).toBe(false);
+  clients.type(0, "h");
+  frames(1);
+  expect(value(a, () => shell().pauseCamera?.hideHud)).toBe(true);
+  clients.type(0, "e");
+  frames(1);
+  expect(overlay()).toBe(true);
+  for (const controls of ["j", "i", "k", "-", "=", "o", "p"]) {
+    clients.type(0, controls);
+    frames(1);
+  }
+  expect(b.cameraPose()).toEqual(remote);
+  expect(clients.clients.map(client => value(client, () => confirmedChecksum(shell())))).toEqual(frozen);
+  expect(clients.clients.map(client => value(client, () => shell().rollback?.journal?.failed))).toEqual([false, false]);
+  expectSynchronized(clients);
+  a.run(() => {
+    const ingress = shell().rollback?.journal?.editbox;
+    if (ingress === undefined) throw Error("focused controller box missing");
+    const box = BlzGetFrameByName("JournalControllerInput", 969);
+    const envelope = textEnvelope(shell().rollback?.epoch ?? 0, 1, "I4|ijklop-h");
+    if (envelope === undefined) throw Error("journal envelope missing");
+    for (const text of [envelope, envelope.substring(0, envelope.length - 1)]) {
+      BlzFrameSetText(box, "h" + text);
+      expect(ingress.takePauseControls()).toBe("h");
+      expect(BlzFrameGetText(box)).toBe(text);
+    }
+    BlzFrameSetText(box, "");
+  });
 });

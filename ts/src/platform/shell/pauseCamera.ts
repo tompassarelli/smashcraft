@@ -65,3 +65,17 @@ export function advancePauseCamera(s: ShellState, aspect: number): void {
 }
 
 export const pauseCameraAngle = (s: Readonly<ShellState>): number => ARENA_CAMERA.angleOfAttack + (s.pauseCamera?.tilt ?? 0.0);
+
+/** The controller types into the focused journal box; these local letters never enter its records. */
+export function servicePauseCameraControls(s: ShellState): void {
+  if (!s.session.paused || s.game.phase !== Phase.match) return;
+  const controls = s.rollback?.journal?.editbox?.takePauseControls() ?? "";
+  for (let index = 0; index < controls.length; index++) {
+    const key = controls.charAt(index);
+    const code = key === "=" ? 0xbb : key === "-" ? 0xbd : key.toUpperCase().charCodeAt(0);
+    if (pauseCameraKey(code)) {
+      cameraKey(s, code, true);
+      cameraKey(s, code, false);
+    } else returnPauseMenu(s);
+  }
+}
