@@ -1,7 +1,8 @@
 // Rollback input on top of the fixed schedule. A speculative cursor F runs on
 // the local row and predictions of late remote rows, up to R frames past the
 // last frame every remote row has arrived through: the local row is final once
-// captured, so its own echo never holds prediction back. A confirmed cursor
+// captured, so its own echo holds prediction back only before the row captured
+// after F, at F + 1 + D, would pass the ledger's future limit. A confirmed cursor
 // runs only on accepted rows, through min(K, F - 1), where K is the common
 // frontier. The common ledger owns synchronized rows and the confirmed cursor;
 // local samples and predictions stay private to this client.
@@ -182,10 +183,16 @@ export class ShadowInputSchedule {
     return receipt;
   }
 
-  /** F may run while it is within R frames past the last frame every remote row has arrived through. */
+  /**
+   * F may run while it is within R frames past the last frame every remote row
+   * has arrived through, and while the ledger will admit the local row captured
+   * after it: alone against computers, a late echo otherwise let prediction
+   * capture rows the ledger refused, stalling the match for good (#233).
+   */
   mayAdvanceSpeculative(localPlayer: number): boolean {
     return this.current !== undefined && this.nextSpeculative <= INPUT_LAST_FRAME
-      && this.nextSpeculative - this.window <= this.remoteThrough(localPlayer);
+      && this.nextSpeculative - this.window <= this.remoteThrough(localPlayer)
+      && this.nextSpeculative + 1 + this.fixedDelay - (this.nextConfirmed - 1) <= FUTURE_LIMIT;
   }
 
   /** As mayAdvanceSpeculative, and the local player's row for F is accepted or captured. */

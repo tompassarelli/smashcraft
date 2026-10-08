@@ -388,3 +388,33 @@ test("a keyboard's clock follows the furthest frame another player has sent, nev
   assertEquals(schedule.othersThrough(0, 31), 31);
   assertEquals(schedule.othersThrough(2, 5), 40);
 });
+
+test("#233 a lone player's late echo holds prediction before its rows pass the future limit, so every captured row is accepted", () => {
+  const schedule = new ShadowInputSchedule();
+  const inputs = participantInputs();
+  const epoch = 1502;
+  const run = () => {
+    assertTrue(schedule.resolveSpeculative(epoch, 0, inputs) !== undefined);
+    assertTrue(schedule.completeSpeculative(epoch, schedule.speculativeFrame()));
+  };
+  assertTrue(schedule.beginEpoch(epoch, 2, DEFAULT_ROLLBACK_WINDOW, 0b0001));
+  // No other player bounds prediction and no echo arrives: capture and run as long as the schedule allows.
+  for (let callback = 0; callback < 2 * PENDING_CAPACITY; callback++) {
+    schedule.captureLocal(epoch, WALK_RIGHT);
+    if (!schedule.mayAdvanceSpeculativeFor(0)) break;
+    run();
+  }
+  // The echo arrives: every captured row is admitted, and confirmation lets capture and prediction resume.
+  for (let frame = schedule.knownThrough() + 1; schedule.pending(epoch, frame) !== undefined; frame++) deliver(schedule, 0, epoch, frame, assertDefined(schedule.pending(epoch, frame), `row ${frame}`));
+  for (let callback = 0; callback < 2 * FUTURE_LIMIT; callback++) {
+    while (schedule.mayAdvanceConfirmed()) {
+      const frame = schedule.nextConfirmedFrame();
+      assertTrue(schedule.readConfirmed(epoch, inputs));
+      assertTrue(schedule.completeConfirmed(epoch, frame));
+    }
+    const target = assertDefined(schedule.captureTarget(), "capture target");
+    if (schedule.captureLocal(epoch, WALK_RIGHT) === Capture.captured) deliver(schedule, 0, epoch, target, WALK_RIGHT);
+    if (schedule.mayAdvanceSpeculativeFor(0)) run();
+  }
+  assertTrue(schedule.nextConfirmedFrame() > 2 * FUTURE_LIMIT);
+});
