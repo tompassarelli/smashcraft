@@ -5,8 +5,8 @@ import { medivhHit } from "./medivhMoves";
 const omen = (ex: boolean): AuthoredSpecial => ({
   endFrame: 40, landingLag: 18,
   projectiles: [{ spawnFrame: 12, offsetX: 40.0, offsetZ: 55.0,
-    velocityX: ex ? 11.0 : 8.0, velocityZ: 0.0, life: 40, radius: ex ? 23.0 : 17.0,
-    effect: medivhHit(ex ? 12.0 : 8.0, 55, 85.0, 22.0), reflectable: true, limit: 1,
+    velocityX: ex ? 11.0 : 8.0, velocityZ: 0.0, life: 40, radius: ex ? 40.0 : 32.0,
+    effect: medivhHit(ex ? 12.0 : 8.0, 80, 55.0, 50.0), reflectable: true, limit: 1,
     model: "Abilities\\Weapons\\PriestMissile\\PriestMissile.mdl" }],
 });
 const vanish = (ex: boolean, retreat: boolean): AuthoredSpecial => ({
@@ -16,7 +16,7 @@ const vanish = (ex: boolean, retreat: boolean): AuthoredSpecial => ({
     { ...frames(11, 38), velocityX: 0.0, velocityZ: 0.0 }],
   regions: [heroRegion(retreat ? 13 : 12, retreat ? 15 : 14,
     { x1: retreat ? -35.0 : 15.0, z1: 50.0, x2: retreat ? 35.0 : 100.0, z2: 50.0, radius: retreat ? (ex ? 40.0 : 28.0) : 14.0 },
-    medivhHit(retreat ? (ex ? 9.0 : 5.0) : (ex ? 11.0 : 7.0), 55, 80.0, 22.0))],
+    medivhHit(retreat ? (ex ? 9.0 : 5.0) : (ex ? 11.0 : 7.0), 80, 45.0, 85.0))],
 });
 const raven = (ex: boolean): AuthoredSpecial => ({
   endFrame: 36, aimFrames: 8, oncePerAirtime: true, helpless: true, landingLag: 24,
