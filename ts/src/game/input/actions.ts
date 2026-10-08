@@ -44,5 +44,5 @@ export function maskOf(...actions: Action[]): number {
 }
 
 export function has(mask: number, action: Action): boolean {
-  return (mask & bit(action)) !== 0;
+  return (mask & (1 << action)) !== 0;
 }

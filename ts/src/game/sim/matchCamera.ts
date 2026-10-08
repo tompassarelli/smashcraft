@@ -55,7 +55,8 @@ export function copyMatchCamera(target: MatchCamera, source: Readonly<MatchCamer
 
 const clamp = (value: number, low: number, high: number): number => Math.min(high, Math.max(low, value));
 const ease = (current: number, target: number, rate: number): number => f32(current + f32(f32(target - current) * rate));
-const extent = (current: number, target: number, step: number): number => f32(current + clamp(f32(target - current), -step, step));
+// A settled extent stays put: a nonzero current equal to its target gives current + 0 exactly.
+const extent = (current: number, target: number, step: number): number => current === target && current !== 0 ? current : f32(current + clamp(f32(target - current), -step, step));
 // The eased camera's goal this frame; never part of match state.
 const goal = createMatchCamera();
 

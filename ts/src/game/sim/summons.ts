@@ -116,9 +116,12 @@ export function advanceFreezeTraps(world: Roster): void {
     triggers[slot] = false;
     freezes[slot] = false;
   }
+  let any = false;
   for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
     if (!isActive(world, ownerSlot)) continue;
     const owner = fighterAt(world, ownerSlot);
+    // trapCanContact's owner terms: without a live, armed trap no target qualifies.
+    if (owner.freezeTrap.life <= 0 || owner.freezeTrap.arming !== 0 || owner.status.out) continue;
     let nearest: number | undefined;
     let distance = 0.0;
     for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
@@ -132,10 +135,12 @@ export function advanceFreezeTraps(world: Roster): void {
       }
     }
     if (nearest !== undefined) {
+      any = true;
       triggers[ownerSlot] = true;
       freezes[nearest] = freezes[nearest] === true || !fighterAt(world, nearest).shield.raised;
     }
   }
+  if (!any) return;
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (isActive(world, slot) && triggers[slot]) clearOwnedFreezeTrap(fighterAt(world, slot));
   }

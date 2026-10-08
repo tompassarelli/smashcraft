@@ -93,7 +93,6 @@ import { advanceTechInput, techContactWindow } from "../physics/techInput";
 import { FREEZE_MINIMUM_FRAMES, clearDownState, clearOwnedFreezeTrap, thawFighter } from "./transitions";
 import { advanceMash } from "./mash";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
-import { at } from "wisp/src/runtime/lookup";
 import { aerialJumps, heavyFall, jumpBuffed, speedBuffed } from "./itemBuffs";
 
 const FAST_FALL_DOWN_THRESHOLD = 0.6625000238418579;
@@ -184,7 +183,8 @@ function advanceActionClocks(f: Fighter, input: Readonly<Controls>): boolean {
   if (special.lockFrames > 0) special.lockFrames--;
   const cooldowns = special.cooldowns;
   for (let action = 1; action < cooldowns.length; action++) {
-    const remaining = at(cooldowns, action);
+    // Dense: every index below length holds a number.
+    const remaining = cooldowns[action] ?? 0;
     if (remaining !== 0) cooldowns[action] = max(0, remaining - 1);
   }
   if (attack.style !== undefined) {

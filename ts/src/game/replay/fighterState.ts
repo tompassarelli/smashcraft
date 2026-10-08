@@ -1,11 +1,12 @@
 import { createPlacedObject, placedObject } from "../sim/fighter";
-import { at } from "wisp/src/runtime/lookup";
-import { PARTICIPANT_CAPACITY, participantActive } from "../input/participants";
+import { PARTICIPANT_CAPACITY } from "../input/participants";
 import type { Fighter } from "../sim/fighter";
 import { HERO_STATUS_GROUPS } from "../sim/codes";
 import { shareFighterProjectiles } from "../sim/fighterProjectiles";
 
-const retained = (activeMask: number, slot: number | undefined) => (slot !== undefined && participantActive(activeMask, slot) ? slot : undefined);
+// participantActive inline: a snapshot copy asks it for every slot reference.
+const retained = (activeMask: number, slot: number | undefined) =>
+  (slot !== undefined && activeMask > 0 && activeMask < 16 && slot >= 0 && slot < 4 && (activeMask & (1 << slot)) !== 0 ? slot : undefined);
 
 /**
  * Copies mutable records and shares tuning and projectile values. Projectile
@@ -194,7 +195,10 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   special.duration = sourceSpecial.duration;
   special.lockFrames = sourceSpecial.lockFrames;
   special.fall = sourceSpecial.fall;
-  for (let i = 0; i < special.cooldowns.length; i++) special.cooldowns[i] = at(sourceSpecial.cooldowns, i);
+  // Both hold SPECIAL_ACTION_CAPACITY numbers.
+  const cooldowns = special.cooldowns;
+  const sourceCooldowns = sourceSpecial.cooldowns;
+  for (let i = 0; i < cooldowns.length; i++) cooldowns[i] = sourceCooldowns[i] ?? 0;
   special.direction = sourceSpecial.direction;
   special.hit = sourceSpecial.hit;
   for (let i = 0; i < PARTICIPANT_CAPACITY; i++) special.hitTargets[i] = retained(activeMask, sourceSpecial.hitTargets[i]);
@@ -590,9 +594,11 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
   if (special.duration !== sourceSpecial.duration || (special.duration === 0 && 1 / special.duration !== 1 / sourceSpecial.duration)) return false;
   if (special.lockFrames !== sourceSpecial.lockFrames || (special.lockFrames === 0 && 1 / special.lockFrames !== 1 / sourceSpecial.lockFrames)) return false;
   if (special.fall !== sourceSpecial.fall) return false;
-  for (let i = 0; i < special.cooldowns.length; i++) {
-    const cooldown = at(special.cooldowns, i);
-    const other = at(sourceSpecial.cooldowns, i);
+  const cooldowns = special.cooldowns;
+  const sourceCooldowns = sourceSpecial.cooldowns;
+  for (let i = 0; i < cooldowns.length; i++) {
+    const cooldown = cooldowns[i] ?? 0;
+    const other = sourceCooldowns[i] ?? 0;
     if (cooldown !== other || (cooldown === 0 && 1 / cooldown !== 1 / other)) return false;
   }
   if (special.direction !== sourceSpecial.direction || (special.direction === 0 && 1 / special.direction !== 1 / sourceSpecial.direction)) return false;

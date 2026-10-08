@@ -536,6 +536,20 @@ export function settleBotMemoryChecksums(memory: Readonly<BotMemory>): void {
 }
 
 function perceivedFrame(memory: Readonly<BotMemory>, frame: number, delay: number): BotObservationFrame | undefined {
+  // Frames strictly increase along a history, one a frame in play: try the
+  // index that holds the wanted frame before walking back to it.
+  const history = memory.history;
+  const last = history.length - 1;
+  const wanted = frame - delay;
+  const newest = history[last];
+  if (newest !== undefined) {
+    const guess = last - (newest.frame - wanted);
+    const candidate = guess >= 0 && guess <= last ? history[guess] : undefined;
+    if (candidate !== undefined && candidate.frame <= wanted) {
+      const next = history[guess + 1];
+      if (next === undefined || next.frame > wanted) return candidate;
+    }
+  }
   for (let index = memory.history.length - 1; index >= 0; index--) {
     const candidate = at(memory.history, index);
     if (candidate.frame <= frame - delay) return candidate;

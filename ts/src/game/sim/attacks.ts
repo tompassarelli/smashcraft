@@ -86,6 +86,8 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
   const target = fighterAt(world, targetSlot);
   copyHitRegion(out, NO_HIT_REGION);
   const { attack } = attacker;
+  // A fighter not attacking strikes nothing: out stays empty.
+  if (attack.style === undefined) return false;
   // Divine Shield stops strikes, not grabs.
   const grabsDivine = attack.style === AttackStyle.grab && target.status.divineFrames > 0;
   if (attacker.status.out || attacker.launch.hitlag > 0 || target.status.out || (isIntangible(target) && !grabsDivine)) return false;
@@ -102,8 +104,6 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
     if (grabTouchesBody(strikeCapsule, target, grabTargetZ(attacker, target))) copyHitRegion(out, region);
     return false;
   }
-  // A fighter not attacking strikes nothing: out stays empty.
-  if (attack.style === undefined) return false;
   for (let index = 0; index < authoredHitRegionCount(attack.style, attacker.tuning.moves); index++) {
     authoredHitRegion(out, attacker.character, attack.style, attack.frame, attack.smashChargeFrames, index, attacker.tuning.moves);
     if (out.window <= 0 || alreadyHitRegion(attackerSlot, attacker, target, out.window)) continue;

@@ -724,12 +724,13 @@ function demonHunterSpecialContact(owner: Fighter, targetSlot: number, target: F
 const specialScratch = {
   contacts: Array.from({ length: PARTICIPANT_CAPACITY * PARTICIPANT_CAPACITY }, (): Readonly<HitRegion> => NO_HIT_REGION),
   facings: [0, 0, 0, 0],
+  active: [false, false, false, false],
 };
 
 /** Advances every special timeline, applies Immolation contacts selected against one state, then summons. */
 export function advanceSpecials(world: Roster, stage: number, matchFrame: number, inputs?: readonly Readonly<Controls>[]): void {
   const ownsBatch = openDamageContacts();
-  const { contacts, facings } = specialScratch;
+  const { contacts, facings, active } = specialScratch;
   resolveHeroGuards(world);
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (!isActive(world, slot)) continue;
@@ -743,6 +744,9 @@ export function advanceSpecials(world: Roster, stage: number, matchFrame: number
     if (!isActive(world, ownerSlot)) continue;
     const owner = fighterAt(world, ownerSlot);
     facings[ownerSlot] = owner.facing;
+    // Both contact tests start from a running special.
+    active[ownerSlot] = owner.special.action !== SpecialAction.none;
+    if (!active[ownerSlot]) continue;
     for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
       if (!isActive(world, targetSlot) || targetSlot === ownerSlot) continue;
       contacts[ownerSlot * PARTICIPANT_CAPACITY + targetSlot] = isHeroSpecialAction(owner.special.action)
@@ -751,7 +755,7 @@ export function advanceSpecials(world: Roster, stage: number, matchFrame: number
     }
   }
   for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
-    if (!isActive(world, ownerSlot)) continue;
+    if (!isActive(world, ownerSlot) || !active[ownerSlot]) continue;
     const owner = fighterAt(world, ownerSlot);
     for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
       if (!isActive(world, targetSlot) || targetSlot === ownerSlot) continue;
