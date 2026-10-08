@@ -100,8 +100,9 @@ const BIRTH_CUES = new Set([
 const cue = (model: string, anchor: CueAnchor, scale: number): Cue => {
   const name = (model.split("\\").pop() ?? model).replace(".mdx", "").replace(".mdl", "");
   const sequence = BIRTH_CUES.has(name) ? "birth" : "stand";
-  // Mark of Chaos's flash opens at 0.666 s; Flame Strike's wall at 1.3 s.
+  // Dark Ritual starts emitting at 0.833 s; Death and Decay at 0.267-0.367 s.
   const seconds = name === "MarkOfChaosTarget" || name === "InvisibilityTarget" ? 0.75 : name === "FlameStrike1" ? f32(1.3)
+    : name === "DarkRitualCaster" ? 1.0 : name === "DeathAndDecayTarget" ? 0.5
     : name === "DeathCoilSpecialArt" || name === "ThunderClapCaster" || name === "WarStompCaster" ? f32(0.3)
     : name === "StarfallTarget" ? f32(0.8) : f32(0.2);
   const pitch = name === "ThunderClapCaster" || name === "WarStompCaster" || name === "Consecration" || name === "FanOfKnivesCaster" ? f32(1.570796327) : 0.0;

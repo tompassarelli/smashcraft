@@ -73,3 +73,35 @@ test("frost, quill and glaive missiles enter their flying sequence without the e
     });
   } finally { runtime.restore(); }
 });
+
+test("Defile's startup and active cues skip the stock models' empty lead-in [repro #144]", () => {
+  const runtime = installHeadless(SMASHCRAFT_HEADLESS);
+  try {
+    const clients = runtime.clients({ install() {}, start() {} }, [0]), client = clients.client(0);
+    clients.start();
+    const move = heroDefinition(Character.lichKing)?.specials?.down.ground;
+    if (move === undefined) throw new Error("missing Defile");
+    // Stock Dark Ritual first emits at 0.833 s; Death and Decay at 0.267-0.367 s.
+    for (const [frame, fragment, animation, seconds] of [
+        [1, "DarkRitualCaster", "birth", 1.0],
+        [heroCueWindows(move).active.first, "DeathAndDecayTarget", "stand", 0.5],
+      ] as const) {
+        const fighter = createFighter(Character.lichKing, 0.0, 1);
+        fighter.special.action = SpecialAction.heroDown;
+        fighter.special.frame = frame;
+        let created: SpecialCueEffects | undefined;
+        client.run(() => { created = new SpecialCueEffects(Character.lichKing, { x: 0.0, y: 0.0, z: 0.0 }); });
+        if (created === undefined) throw new Error("missing cue renderer");
+        const renderer = created;
+        client.run(() => renderer.present(fighter, true, false));
+        clients.frames(1);
+        client.run(() => {
+          renderer.present(fighter, true, false);
+          const shown = client.effectPoses().find(effect => effect.model.includes(fragment) && effect.scale > 0 && effect.alpha > 0);
+          expect(shown?.animation).toBe(animation);
+          expect(shown?.animationElapsed).toBe(seconds);
+          renderer.destroy();
+        });
+      }
+  } finally { runtime.restore(); }
+});

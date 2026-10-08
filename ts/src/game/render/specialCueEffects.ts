@@ -24,6 +24,7 @@ export class SpecialCueEffects {
   /** The cue and key shown last, so a new phase or hit restarts its effect from its first frame. */
   private shown: Cue | undefined;
   private shownKey = 0;
+  private seekAgain = false;
   private readonly front: number;
   private readonly scale: number;
   private readonly attack: AttackCueState = { cue: undefined, x: 0.0, z: 0.0, key: 0 };
@@ -45,6 +46,7 @@ export class SpecialCueEffects {
     }
     this.shown = undefined;
     this.shownKey = 0;
+    this.seekAgain = false;
   }
 
   present(fighter: Readonly<Fighter> | undefined, playing: boolean, paused: boolean): void {
@@ -88,6 +90,11 @@ export class SpecialCueEffects {
       if (this.shown !== cue || this.shownKey !== key) {
         if (entry.cue.sequence !== undefined) BlzSetSpecialEffectAnimation(model, entry.cue.sequence);
         BlzSetSpecialEffectTime(model, entry.cue.seconds ?? 0.0);
+        this.seekAgain = true;
+      } else if (this.seekAgain) {
+        // Warcraft discards a seek in the callback that selects an animation (#58 native rulers).
+        BlzSetSpecialEffectTime(model, entry.cue.seconds ?? 0.0);
+        this.seekAgain = false;
       }
       BlzSetSpecialEffectYaw(model, facingYaw(fighter.facing));
       BlzSetSpecialEffectPitch(model, entry.cue.pitch ?? 0.0);
