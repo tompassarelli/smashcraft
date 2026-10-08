@@ -137,6 +137,44 @@ target applies to **combo potential**, measured by the combo search
 independent of computer skill; the field's realized rates show whether the
 computers actually convert, and are reported, not scored.
 
+## Combo potential
+
+`bun wisp combos [--fighter NAME]... [--jobs N]` measures the fighter's
+available punish rather than its computer player's choices. It plays ordinary
+controller inputs through the match frame executor. Each of 21 fighters is
+measured against Archer, Rifleman and Cairne (light, middle and heavy bodies)
+at the centre and ledge of stage 0: 126 units. Every landing opener is searched
+at 0–180% in 10% steps and five held DI directions: out, up, down, in and none.
+The defender's result is the least damaging of the attacker's best routes
+against each DI, preferring a route that escapes a KO.
+
+The search saves each contact state and tries grounded, dash, hop, drift and
+double-jump follow-ups. It retains four routes at each of eight depths. Attack
+presses cover the first six available frames individually and later frames at
+two-frame intervals. A link must hit before the defender's first free frame;
+a tumble landing ends the true combo because it offers a tech. Offstage flight
+is played with the defender jumping and using up special toward the stage.
+The search is finite; the table reports the routes it found.
+
+A conversion begins with the best searched opener at the grid percent at or
+below the current damage. True links count together. Up to two best reads of
+the four tech outcomes may continue that conversion, because a tech chase
+does not provide the 45 grounded actionable frames that end a Slippi punish.
+Otherwise the next setup begins a new conversion; this models separate neutral
+wins rather than playing a complete neutral exchange. Repeat from 0% until a
+KO or 12 conversions. A `+` marks any fighter with an unfinished chain.
+The target is 3–4 conversions by Slippi's count and 2–3 conversions with two
+or more hits. The separate read count charges each tech read as another opening.
+
+The table includes maximum true damage, median best punish damage across
+0–120% and six opponent/position units, median kill-confirm percent, mean
+openings per kill, multi-hit openings, openings counting reads and damage per
+opening. The command writes detailed units to `tools/move-data/combos/units.jsonl`
+and the roster table to `tools/move-data/combo-potential.json` and `.md`.
+Every retained opener route is replayed from a fresh match; any changed damage
+or stock result fails the command. Route playback also runs in Bun and Lua32,
+and a seeded Wren match checks that the explorer finds an observed true follow-up.
+
 ## Play-style profiles
 
 Each fighter's design doc (its own doc, or its section of
