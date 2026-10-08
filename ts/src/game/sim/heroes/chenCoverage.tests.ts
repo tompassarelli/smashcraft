@@ -4,7 +4,7 @@ import { fighterCoverage } from "../../match/botCoverage";
 import { Character } from "../codes";
 import { SELECTABLE_CHARACTERS } from "./registry";
 
-sweep("Chen's computer uses fire, haze, Storm recovery and Earth branches over eight seeded matches", () => {
+sweep("Chen's computer uses fire, haze, Storm recovery and Earth branches over eight seeded matches [spec docs/design/chen.md]", () => {
   const choices: Character[] = SELECTABLE_CHARACTERS.filter(character => character !== Character.chen);
   choices.push(Character.chen);
   const coverage = fighterCoverage(choices.length - 1, undefined, choices);

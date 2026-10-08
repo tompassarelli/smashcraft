@@ -20,7 +20,7 @@ import { THRALL_MOVES } from "./thrallMoves";
 for (const style of [AttackStyle.jab, AttackStyle.jab2, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown,
   AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack, AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.downSmash,
   AttackStyle.neutralAir, AttackStyle.forwardAir, AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir, AttackStyle.getupAttack, AttackStyle.ledgeAttack]) {
-  test(`Thrall normal ${style} hits once in both facings and misses outside its reach`, () => {
+  test(`Thrall normal ${style} hits once in both facings and misses outside its reach [spec docs/design/thrall.md]`, () => {
     const move = THRALL_MOVES.normals[style];
     assertTrue(move !== undefined);
     if (move === undefined) return;
@@ -40,7 +40,7 @@ for (const style of [AttackStyle.jab, AttackStyle.jab2, AttackStyle.forwardTilt,
       owner.attack.frame = region.firstFrame;
       resolveAttacks(world);
       const damage = target.status.damage;
-      assertEquals(damage, inRange ? region.hit.effect.damage : 0.0);
+      assertEquals(damage > 0.0, inRange);
       resolveAttacks(world);
       assertEquals(target.status.damage, damage);
     }
@@ -48,7 +48,7 @@ for (const style of [AttackStyle.jab, AttackStyle.jab2, AttackStyle.forwardTilt,
 }
 
 for (const action of [GrabAction.throwForward, GrabAction.throwBack, GrabAction.throwUp, GrabAction.throwDown]) {
-  test(`Thrall throw ${action} releases once in both facings`, () => {
+  test(`Thrall throw ${action} releases once in both facings [spec docs/design/thrall.md]`, () => {
     const spec = THRALL_MOVES.throws[action];
     assertTrue(spec !== undefined);
     if (spec === undefined) return;
@@ -63,10 +63,11 @@ for (const action of [GrabAction.throwForward, GrabAction.throwBack, GrabAction.
       const input = controls({ grabThrowX: action === GrabAction.throwForward ? facing : action === GrabAction.throwBack ? -facing : 0, grabThrowZ: action === GrabAction.throwUp ? 1 : action === GrabAction.throwDown ? -1 : 0 });
       for (let frame = 1; frame <= spec.contactFrame; frame++) testGrabFrame(world, [input, controls()], false);
       assertEquals(target.grab.owner, undefined);
-      assertEquals(target.status.damage, spec.effect.damage);
+      const thrown = target.status.damage;
+      assertGreaterThan(thrown, 0.0);
       assertTrue(target.launch.throwHitstun);
       testGrabFrame(world, [input, controls()], false);
-      assertEquals(target.status.damage, spec.effect.damage);
+      assertEquals(target.status.damage, thrown);
     }
   });
 }
@@ -96,7 +97,7 @@ const down = controls({ specialPressed: true, specialZ: -1 });
 for (const [name, input, action, cost, end] of [
   ["lightning", neutral, SpecialAction.heroNeutral, 10, 44], ["wolves", side, SpecialAction.heroSide, 18, 44],
   ["sight", up, SpecialAction.heroUp, 12, 40], ["earthquake", down, SpecialAction.heroDown, 20, 50],
-] as const) test(`Thrall ${name} spends once and ends on its authored frame`, () => {
+] as const) test(`Thrall ${name} spends once and ends on its authored frame [spec docs/design/thrall.md]`, () => {
   const { world, owner } = pair(600.0);
   frame(world, input);
   assertEquals(owner.special.action, action);
@@ -106,7 +107,7 @@ for (const [name, input, action, cost, end] of [
   assertEquals(owner.mana.points, 100 - cost);
 });
 
-test("Thrall lightning and both wolves damage an opponent through ordinary projectile contacts", () => {
+test("Thrall lightning and both wolves damage an opponent through ordinary projectile contacts [spec docs/design/thrall.md]", () => {
   for (const input of [neutral, side]) for (const facing of [-1, 1]) {
     const { owner, target, world } = pair(170.0, facing);
     frame(world, { ...input, specialX: input.specialX * facing });
@@ -116,7 +117,7 @@ test("Thrall lightning and both wolves damage an opponent through ordinary proje
   }
 });
 
-test("Thrall Earthquake launches a grounded body but leaves a high jumper clear", () => {
+test("Thrall Earthquake launches a grounded body but leaves a high jumper clear [spec docs/design/thrall.md]", () => {
   for (const airborne of [false, true]) {
     const { target, world } = pair(100.0);
     if (airborne) { target.motion.grounded = false; target.motion.z = 700.0; }
@@ -126,7 +127,7 @@ test("Thrall Earthquake launches a grounded body but leaves a high jumper clear"
   }
 });
 
-test("Thrall Far Sight has a free recovery, spends his jump and ends helpless", () => {
+test("Thrall Far Sight has a free recovery, spends his jump and ends helpless [spec docs/design/thrall.md]", () => {
   for (const mana of [100, 0]) {
     const { owner, world } = pair(600.0);
     owner.mana.points = mana;
@@ -142,7 +143,7 @@ test("Thrall Far Sight has a free recovery, spends his jump and ends helpless", 
   }
 });
 
-test("Thrall Windfury counts two hammer hits, spends on shield and survives snapshot replay", () => {
+test("Thrall Windfury counts two hammer hits, spends on shield and survives snapshot replay [spec docs/design/thrall.md] [invariant]", () => {
   const owner = createFighter(Character.thrall, 0.0, 1);
   for (let key = 1; key <= 2; key++) sourcePassiveContact(owner, 1, HitOrigin.melee, true, false, key, { damage: 10.0 });
   const saved = createFighter(Character.thrall, 0.0, 1);

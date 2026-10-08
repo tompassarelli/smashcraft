@@ -35,7 +35,7 @@ const side = controls({ specialPressed: true, specialX: 1 });
 const up = controls({ specialPressed: true, specialZ: 1 });
 const down = controls({ specialPressed: true, specialZ: -1 });
 
-test("Chen spends each special once, recovers on its last frame and snapshots every running action", () => {
+test("Chen spends each special once, recovers on its last frame and snapshots every running action [spec docs/design/chen.md] [invariant]", () => {
   for (const [input, action, cost, end] of [[neutral, SpecialAction.heroNeutral, 10, 42], [side, SpecialAction.heroSide, 12, 38], [up, SpecialAction.heroUp, 15, 40], [down, SpecialAction.heroDown, 10, 33]] as const) {
     const { world, owner } = pair(600.0);
     frame(world, input);
@@ -47,7 +47,7 @@ test("Chen spends each special once, recovers on its last frame and snapshots ev
   }
 });
 
-test("Breath of Fire hits once facing either way and a shield stops body damage", () => {
+test("Breath of Fire hits once facing either way and a shield stops body damage [spec docs/design/chen.md]", () => {
   for (const facing of [-1, 1]) for (const shielding of [false, true]) {
     const { world, owner, target } = pair(110.0, facing);
     for (let tick = 1; tick <= 65; tick++) frame(world, tick === 1 ? neutral : controls(), controls({ shield: shielding, shieldStrength: 1.0 }));
@@ -56,7 +56,7 @@ test("Breath of Fire hits once facing either way and a shield stops body damage"
   }
 });
 
-test("Drunken Haze reaches a distant body, slows its movement and respects shield", () => {
+test("Drunken Haze reaches a distant body, slows its movement and respects shield [spec docs/design/chen.md]", () => {
   for (const shielding of [false, true]) {
     const { world, target } = pair(240.0);
     for (let tick = 1; tick <= 42; tick++) frame(world, tick === 1 ? side : controls(), controls({ shield: shielding, shieldStrength: 1.0 }));
@@ -66,7 +66,7 @@ test("Drunken Haze reaches a distant body, slows its movement and respects shiel
   }
 });
 
-test("Storm Rise travels higher with mana, spends the jump and ends helpless in both forms", () => {
+test("Storm Rise travels higher with mana, spends the jump and ends helpless in both forms [spec docs/design/chen.md]", () => {
   let paidHeight = 0.0;
   for (const mana of [100, 0]) {
     const { world, owner } = pair(600.0);
@@ -80,7 +80,7 @@ test("Storm Rise travels higher with mana, spends the jump and ends helpless in 
   }
 });
 
-test("Earth braces and fresh attack or special chooses the Fire or Storm branch", () => {
+test("Earth braces and fresh attack or special chooses the Fire or Storm branch [spec docs/design/chen.md]", () => {
   for (const attack of [true, false]) {
     const { world, owner, target } = pair(80.0);
     frame(world, down);
@@ -94,7 +94,7 @@ test("Earth braces and fresh attack or special chooses the Fire or Storm branch"
   }
 });
 
-test("Drunken Brawler counts three distinct melee contacts then spends on hit or shield and resets", () => {
+test("Drunken Brawler counts three distinct melee contacts then spends on hit or shield and resets [spec docs/design/chen.md]", () => {
   for (const blocked of [false, true]) {
     const owner = createFighter(Character.chen, 0.0, 1);
     for (let key = 1; key <= 3; key++) sourcePassiveContact(owner, 1, HitOrigin.melee, true, false, key, { damage: 8.0 });

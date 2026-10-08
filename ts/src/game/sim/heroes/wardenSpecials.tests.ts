@@ -19,7 +19,6 @@ import { advanceFighter } from "../step";
 import { controls } from "../testWorld";
 import { setWorldMotionValue } from "../motion";
 import { mainDeckRight } from "../stage";
-import { squareRoot } from "../warcraftMath";
 
 const H = HERO_REFERENCE_HEIGHT;
 
@@ -63,7 +62,7 @@ const upB = controls({ specialPressed: true, specialZ: 1, verticalDirection: 1 }
 const downB = controls({ specialPressed: true, specialZ: -1 });
 const hold = (direction: number, verticalDirection: number) => controls({ direction, verticalDirection });
 
-test("Warden's specials cost 5, 15, 20 and 18 mana once on entry", () => {
+test("Warden's specials cost 5, 15, 20 and 18 mana once on entry [spec docs/design/roster.md]", () => {
   for (const [input, cost] of [[neutralB, 5], [sideB(1), 15], [upB, 20], [downB, 18]] as const) {
     const { world, warden } = pair(0.0, 500.0);
     frame(world, input);
@@ -74,7 +73,7 @@ test("Warden's specials cost 5, 15, 20 and 18 mana once on entry", () => {
   }
 });
 
-test("Shadow Strike throws one slow reflectable blade on f16 and refuses a second while it flies", () => {
+test("Shadow Strike throws one slow reflectable blade on f16 and refuses a second while it flies [spec docs/design/roster.md]", () => {
   const { world, warden } = pair(0.0, 1200.0);
   frame(world, neutralB);
   const live = () => warden.projectiles.filter(p => p.life > 0 && p.kind === ProjectileKind.hero).length;
@@ -92,7 +91,7 @@ test("Shadow Strike throws one slow reflectable blade on f16 and refuses a secon
   assertEquals(warden.mana.points, 95);
 });
 
-test("Pursuit Lunge travels 1.0H, slashes once for 10 at f11-14 and stops dead, in both facings", () => {
+test("Pursuit Lunge travels 1.0H, slashes once for 10 at f11-14 and stops dead, in both facings [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
     const travel = pair(0.0, f32(1500.0 * facing), facing);
     frame(travel.world, sideB(facing));
@@ -114,7 +113,7 @@ test("Pursuit Lunge travels 1.0H, slashes once for 10 at f11-14 and stops dead, 
   }
 });
 
-test("Pursuit Lunge in the air tilts 20 degrees only for a direction held through entry, then falls helpless", () => {
+test("Pursuit Lunge in the air tilts 20 degrees only for a direction held through entry, then falls helpless [spec docs/design/roster.md]", () => {
   const rise = (vertical: number, late: number) => {
     const { world, warden } = pair(0.0, 1500.0);
     place(warden, 0.0, 700.0);
@@ -134,7 +133,7 @@ test("Pursuit Lunge in the air tilts 20 degrees only for a direction held throug
   assertNear(rise(0, 1), 0.0, f32(0.01));
 });
 
-test("[spec #252] Blink hovers through f8, then moves 3.5H in the held direction on f9, intangible only f8-10, then helpless", () => {
+test("Blink hovers through f8, then moves 3.5H in the held direction on f9, intangible only f8-10, then helpless [spec #252]", () => {
   for (const [x, z] of [[1, 1], [-1, 0], [0, 1], [1, -1], [0, 0]] as const) {
     const { world, warden, target } = pair(0.0, 1500.0);
     place(warden, 0.0, 600.0);
@@ -159,7 +158,7 @@ test("[spec #252] Blink hovers through f8, then moves 3.5H in the held direction
   }
 });
 
-test("[spec #252] Blink's mana-free form blinks 1.9H the held way without intangibility", () => {
+test("Blink's mana-free form blinks 1.9H the held way without intangibility [spec #252]", () => {
   const { world, warden } = pair(0.0, 1500.0);
   place(warden, 0.0, 600.0);
   warden.mana.points = 19;
@@ -176,7 +175,7 @@ test("[spec #252] Blink's mana-free form blinks 1.9H the held way without intang
   assertEquals(warden.motion.z, beforeZ);
 });
 
-test("Blink stops at the stage below its lip instead of crossing it, and a grounded endpoint stays punishable", () => {
+test("Blink stops at the stage below its lip instead of crossing it, and a grounded endpoint stays punishable [spec docs/design/roster.md]", () => {
   // Beside the main deck's body below its lip, aimed into it: the wall stops the
   // displacement (a teleport into the lip itself passes it: sim/edgeRecovery.ts).
   const { world, warden } = pair(0.0, 1500.0, -1);
@@ -205,7 +204,7 @@ test("Blink stops at the stage below its lip instead of crossing it, and a groun
   assertFalse(down.warden.special.fall);
 });
 
-test("Fan of Knives strikes front and back once each for 7 at 45 degrees outward", () => {
+test("Fan of Knives strikes front and back once each for 7 at 45 degrees outward [spec docs/design/warden-fan-of-knives.md]", () => {
   for (const facing of [-1, 1]) {
     for (const side of [-1, 1]) {
       const { world, warden, target } = pair(0.0, f32(90.0 * facing * side), facing);
@@ -222,7 +221,7 @@ test("Fan of Knives strikes front and back once each for 7 at 45 degrees outward
   }
 });
 
-test("Fan of Knives reaches 1.30H on the ground and in the air in both directions", () => {
+test("Fan of Knives reaches 1.30H on the ground and in the air in both directions [spec docs/design/warden-fan-of-knives.md]", () => {
   for (const height of [0.0, 600.0]) for (const facing of [-1, 1]) for (const side of [-1, 1]) {
     const distance = f32(H * f32(1.27));
     const { world, warden, target } = pair(0.0, f32(distance * side), facing);
@@ -238,7 +237,7 @@ test("Fan of Knives reaches 1.30H on the ground and in the air in both direction
   }
 });
 
-test("Shadow Strike is reflected by a powershield back at Warden, owned by the reflector", () => {
+test("Shadow Strike is reflected by a powershield back at Warden, owned by the reflector [spec docs/design/roster.md]", () => {
   const { world, warden, target } = pair(0.0, 300.0);
   frame(world, neutralB);
   let reflected = false;
@@ -253,7 +252,7 @@ test("Shadow Strike is reflected by a powershield back at Warden, owned by the r
   assertFalse(warden.projectiles.some(p => p.life > 0));
 });
 
-test("a point-blank Shadow Strike on a held shield leaves the defender free well before Warden acts", () => {
+test("a point-blank Shadow Strike on a held shield leaves the defender free well before Warden acts [spec docs/design/roster.md]", () => {
   const { world, target } = pair(0.0, 90.0);
   const guard = controls({ shield: true });
   let blockedAt = 0;
@@ -271,7 +270,7 @@ test("a point-blank Shadow Strike on a held shield leaves the defender free well
   assertLessThan(blockedAt + stun + 10, 38);
 });
 
-test("Fan of Knives on a held shield leaves the defender a punish before Warden acts", () => {
+test("Fan of Knives on a held shield leaves the defender a punish before Warden acts [spec docs/design/roster.md]", () => {
   for (const side of [-1, 1]) {
     const { world, target } = pair(0.0, f32(70.0 * side));
     const guard = controls({ shield: true });
@@ -291,7 +290,7 @@ test("Fan of Knives on a held shield leaves the defender a punish before Warden 
   }
 });
 
-test("Blink cannot start from an attack's recovery", () => {
+test("Blink cannot start from an attack's recovery [spec docs/design/roster.md]", () => {
   const { world, warden } = pair(0.0, 1500.0);
   beginFighterAttack(world, 0, AttackStyle.forwardTilt, false);
   for (let f = 1; f < warden.attack.duration; f++) {
@@ -301,7 +300,7 @@ test("Blink cannot start from an attack's recovery", () => {
   }
 });
 
-test("Shadow Strike marks a body hit: poison for three 1-damage ticks over 180 frames without flinching, refreshed not stacked", () => {
+test("Shadow Strike marks a body hit: poison for three 1-damage ticks over 180 frames without flinching, refreshed not stacked [spec docs/design/roster.md]", () => {
   const { world, warden, target } = pair(0.0, 260.0);
   frame(world, neutralB);
   let hitFrame = 0;
@@ -330,7 +329,7 @@ test("Shadow Strike marks a body hit: poison for three 1-damage ticks over 180 f
   assertEquals(warden.status.damage, 0.0);
 });
 
-test("a shielded Shadow Strike applies no poison", () => {
+test("a shielded Shadow Strike applies no poison [spec docs/design/roster.md]", () => {
   const { world, target } = pair(0.0, 260.0);
   const guard = controls({ shield: true });
   frame(world, neutralB, guard);
@@ -343,7 +342,7 @@ const run = (world: Roster, frames: number, first: Readonly<Controls> = controls
   for (let f = 0; f < frames; f++) frame(world, first, second);
 };
 
-test("Fan of Knives marks every body it hits, and never through a shield", () => {
+test("Fan of Knives marks every body it hits, and never through a shield [spec docs/design/roster.md]", () => {
   const open = pair(0.0, 60.0);
   frame(open.world, downB);
   run(open.world, 12);
@@ -366,7 +365,7 @@ function marked(facing = 1): { world: Roster; warden: Fighter; target: Fighter }
   return match;
 }
 
-test("Shadow Pursuit: side special against a marked target in reach appears behind it on f15, slashes for 10 and spends the mark", () => {
+test("Shadow Pursuit: side special against a marked target in reach appears behind it on f15, slashes for 10 and spends the mark [spec docs/design/roster.md]", () => {
   for (const facing of [1, -1]) {
     const { world, warden, target } = marked(facing);
     const mana = warden.mana.points;
@@ -384,7 +383,7 @@ test("Shadow Pursuit: side special against a marked target in reach appears behi
   }
 });
 
-test("Without a mark in reach, side special is Pursuit Lunge", () => {
+test("Without a mark in reach, side special is Pursuit Lunge [spec docs/design/roster.md]", () => {
   const plain = pair(0.0, 1500.0);
   frame(plain.world, sideB(1));
   run(plain.world, 14);
@@ -398,7 +397,7 @@ test("Without a mark in reach, side special is Pursuit Lunge", () => {
   assertGreaterThan(far.target.status.poisonFrames, 0);
 });
 
-test("Shadow Pursuit counterplay: a shield blocks the slash, and the spent mark allows no second pursuit", () => {
+test("Shadow Pursuit counterplay: a shield blocks the slash, and the spent mark allows no second pursuit [spec docs/design/roster.md]", () => {
   const { world, warden, target } = marked();
   const before = target.status.damage;
   const guard = controls({ shield: true });

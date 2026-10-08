@@ -19,7 +19,7 @@ const STRIKES = [
 ] as const;
 
 for (const [style, x, z, damage] of STRIKES) {
-  test(`Peon normal ${style} hits once on its authored contact frame in both facings`, () => {
+  test(`Peon normal ${style} hits once on its authored contact frame in both facings [spec docs/design/peasant.md]`, () => {
     for (const facing of [-1, 1]) {
       const owner = createFighter(Character.peon, 0.0, facing);
       const target = createFighter(Character.archer, x * facing, -facing);
@@ -43,7 +43,7 @@ for (const [style, x, z, damage] of STRIKES) {
   });
 }
 
-test("Peon down air spikes in the air and launches upward from the floor", () => {
+test("Peon down air spikes in the air and launches upward from the floor [spec docs/design/peasant.md]", () => {
   for (const grounded of [false, true]) {
     const owner = createFighter(Character.peon, 0.0, 1);
     owner.motion.grounded = false;
@@ -64,7 +64,7 @@ for (const [action, damage, x, z] of [
   [GrabAction.throwForward, 7.0, 1, 0], [GrabAction.throwBack, 8.0, -1, 0],
   [GrabAction.throwUp, 6.0, 0, 1], [GrabAction.throwDown, 5.0, 0, -1],
 ] as const) {
-  test(`Peon throw ${action} catches a shield and releases once in both facings`, () => {
+  test(`Peon throw ${action} catches a shield and releases once in both facings [spec docs/design/peasant.md]`, () => {
     for (const facing of [-1, 1]) {
       const owner = createFighter(Character.peon, 0.0, facing);
       const target = createFighter(Character.archer, 45.0 * facing, -facing);
@@ -88,7 +88,7 @@ for (const [action, damage, x, z] of [
   });
 }
 
-test("Peon Pillage restores eight mana on the third distinct tool hit and resets with the stock", () => {
+test("Peon Pillage restores eight mana on the third distinct tool hit and resets with the stock [spec docs/design/peasant.md]", () => {
   const owner = createFighter(Character.peon, 0.0, 1);
   owner.mana.points = 20;
   const effect = { damage: 3.0 };
