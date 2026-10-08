@@ -43,12 +43,12 @@ test("a human without a controller helper plays on the keyboard: the match runs,
   const { clients, frames, clientA: a, clientB: b } = startPlayableMatch(headless, helpers, true);
   const player2X = (client: typeof a) => value(client, () => fighterAt(shell().world, 1).motion.x);
   const paused = () => clients.clients.map(client => value(client, () => shell().session.paused));
-  // Every client names the player the start waits for.
+  // A missing input waits without text over the fighters (#336).
   frames(60);
-  expect([shows(a, WAITING), shows(b, WAITING)]).toEqual([true, true]);
-  // Two seconds after the match began, player 2 plays on the keyboard, and their screen says so.
+  expect([shows(a, WAITING), shows(b, WAITING)]).toEqual([false, false]);
+  // Two seconds after the match began, player 2 plays on the keyboard.
   frames(90);
-  expect([shows(a, KEYBOARD_FALLBACK_MESSAGE), shows(b, KEYBOARD_FALLBACK_MESSAGE)]).toEqual([false, true]);
+  expect([shows(a, KEYBOARD_FALLBACK_MESSAGE), shows(b, KEYBOARD_FALLBACK_MESSAGE)]).toEqual([false, false]);
   expect([shows(a, "Start: pause."), shows(b, "Y: pause.")]).toEqual([true, true]);
   // The match runs on every client, with player 2's fighter on neutral input.
   const started = [confirmedFrame(a), confirmedFrame(b)];

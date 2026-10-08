@@ -231,6 +231,7 @@ interface KeyEvents {
 
 export interface ShellState {
   pauseMenu?: { choice: number; shown: boolean; title: boolean };
+  trainingHints?: boolean;
   pauseSelection?: MatchState;
   pauseKeysHeld?: number[];
   menuPublication?: { phase: MenuPhase; ticks: number };

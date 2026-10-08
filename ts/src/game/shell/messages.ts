@@ -2,13 +2,13 @@
 import { Advantage, type TrainingState } from "../match/trainingState";
 import { PARTICIPANT_SLOTS, participantActive } from "../input/participants";
 import { floorDiv } from "wisp/src/sim/intMath";
-import { MATCH_TICKS_PER_SECOND, Phase, type MatchState, computerActive, humanFighterActive, humanPresent, keepsStocks, practiceSelected } from "../match/rules";
-import { AttackStyle, DownState, ItemKind, LedgeState } from "../sim/codes";
+import { MATCH_TICKS_PER_SECOND, Phase, type MatchState, humanFighterActive, humanPresent, practiceSelected } from "../match/rules";
+import { DownState, ItemKind, LedgeState } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { SPECIAL_INPUTS, fighterKit, normalName, specialName } from "../sim/moveNames";
 import { fighterName } from "../sim/heroes/registry";
-import { CPU_OPPONENT_DEFAULT, CPU_TIER_DEFAULT } from "../match/cpuProfiles";
 import { classicResultHelp, classicResultMessage, tierName } from "../classic/classicText";
+import { CPU_OPPONENT_DEFAULT, CPU_TIER_DEFAULT } from "../match/cpuProfiles";
 import { loreBattle, loreResultHelp, loreResultMessage } from "../classic/loreBattles";
 
 /** The control that starts, pauses and resumes: a controller's Start, or Y on a keyboard. */
@@ -18,30 +18,10 @@ export function fighterLabel(game: Readonly<MatchState>, slot: number): string {
   return humanFighterActive(game, slot) ? `Player ${slot + 1}` : "Computer";
 }
 
-/** The actual opponent this match drew, while the selector may still show Random. */
 export function cpuOpponentSummary(game: Readonly<MatchState>, slot: number): string {
   const opponent = game.cpuResolvedOpponents[slot] ?? CPU_OPPONENT_DEFAULT;
   const tier = game.cpuTiers[slot] ?? CPU_TIER_DEFAULT;
   return `CPU ${slot + 1} · ${opponent.charAt(0).toUpperCase()}${opponent.slice(1)} · ${tier.charAt(0).toUpperCase()}${tier.slice(1)}`;
-}
-
-/** A knockout as the match announces it, calling out a fighter down to its last stock. */
-export function stockLossMessage(game: Readonly<MatchState>, slot: number, stocks: number): string {
-  const label = fighterLabel(game, slot);
-  if (keepsStocks(game)) return `${label} was knocked out!`;
-  return stocks === 1 ? `${label} is on their last stock!` : `${label} lost a stock!`;
-}
-
-const AERIAL_NAMES: Partial<Readonly<Record<AttackStyle, string>>> = {
-  [AttackStyle.neutralAir]: "Neutral air!",
-  [AttackStyle.forwardAir]: "Forward air!",
-  [AttackStyle.backAir]: "Back air!",
-  [AttackStyle.upAir]: "Up air!",
-  [AttackStyle.downAir]: "Down air!",
-};
-
-export function aerialName(style: AttackStyle): string | undefined {
-  return AERIAL_NAMES[style];
 }
 
 export function resultMessage(game: Readonly<MatchState>): string {
@@ -65,10 +45,7 @@ function rematchStatus(game: Readonly<MatchState>, start: StartControl): string 
 /** The result announcement, with the automatic rematch's countdown while it runs. */
 export function resultNotice(game: Readonly<MatchState>, result: string): string {
   const notice = game.rematchCountdown > 0 ? `${result}\nRematch in ${floorDiv(game.rematchCountdown + MATCH_TICKS_PER_SECOND - 1, MATCH_TICKS_PER_SECOND)}` : result;
-  if (game.phase !== Phase.match || game.startHold <= 0) return notice;
-  const opponents = PARTICIPANT_SLOTS.filter(slot => computerActive(game, slot)).map(slot => cpuOpponentSummary(game, slot));
-  // A status such as the keyboard fallback stays above the opponent summary.
-  return opponents.length === 0 ? notice : notice === "" ? opponents.join("\n") : `${notice}\n${opponents.join("\n")}`;
+  return notice;
 }
 
 export const stockSetting = (count: number) => (count === 1 ? "1 Stock" : `${count} Stocks`);
@@ -124,8 +101,6 @@ export function matchHelp(game: Readonly<MatchState>, paused: boolean, start: St
   return `${start}: pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nShield + neutral/side Special: EX, 25 extra mana. Shield then Left/Right: roll; Down: dodge.`;
 }
 
-/** Shown to the player who saved the last seconds of play for a bug report. */
-export const MOMENT_SAVED_MESSAGE = "Moment saved";
 
 const signed = (value: number) => (value > 0 ? `+${value}` : `${value}`);
 

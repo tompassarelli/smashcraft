@@ -24,13 +24,11 @@ import { FighterHud, MatchClock, plateManaSlot } from "../../game/ui/matchHud";
 import { TrainingReadout } from "../../game/ui/trainingReadout";
 import { HitAreaPresentation } from "../../game/render/hitAreaPresentation";
 import { EscapeMeter } from "../../game/ui/escapeMeter";
-import { PassivePips } from "../../game/ui/passivePips";
 import { OffscreenBubble } from "../../game/ui/offscreenBubble";
 import { ManaBar } from "../../game/ui/manaBar";
 import { MANA_BAR_HEIGHT_PX } from "../../game/ui/plateLayout";
 import { unitsForPixels } from "../../game/ui/portraitFrames";
-import { OVERHEAD_MANA_BORDER, OVERHEAD_MANA_HEIGHT } from "../../game/presentation/manaBar";
-import { consoleUi, gameUi } from "../../game/ui/frames";
+import { gameUi } from "../../game/ui/frames";
 import { type SelectionActions, SelectionPanel } from "../../game/ui/selectionUi";
 import { type SettingsActions, SettingsPanel } from "../../game/ui/settingsUi";
 import { type StageActions, StagePanel } from "../../game/ui/stageUi";
@@ -65,10 +63,8 @@ export interface UiObjects {
   readonly huds: Slots<FighterHud>;
   readonly bubbles: Slots<OffscreenBubble>;
   readonly escapeMeters: Slots<EscapeMeter>;
-  /** Each fighter's mana bar over its head and on its HUD plate; created on reload by a bundle that predates them. */
+  /** Each fighter's meter on its HUD plate; created on reload by a bundle that predates them. */
   manaBars: Slots<ManaBars>;
-  /** Each fighter's passive pips, above its overhead mana bar. */
-  passivePips: Slots<PassivePips>;
   readonly selections: Slots<SelectionPanel>;
   readonly settings: Slots<SettingsPanel>;
   readonly stage: StagePanel;
@@ -102,13 +98,10 @@ export function views(s: Readonly<ShellState>): UiObjects {
 const each = <T>(create: (slot: ParticipantSlot) => T): Slots<T> => [create(0), create(1), create(2), create(3)];
 
 export interface ManaBars {
-  readonly overhead: ManaBar;
   readonly hud: ManaBar;
 }
 
 const createManaBars = (slot: ParticipantSlot): ManaBars => ({
-  // Like the escape meter, the overhead bar draws on the console backdrop, outside GameUI's central area.
-  overhead: new ManaBar("Overhead", slot, consoleUi(), 1200 + slot * 20, OVERHEAD_MANA_HEIGHT, OVERHEAD_MANA_BORDER),
   // The plate art draws the bar's track (plateLayout.ts).
   hud: new ManaBar("Hud", slot, gameUi(), 1300 + slot * 20, unitsForPixels(MANA_BAR_HEIGHT_PX), 0.0),
 });
@@ -129,7 +122,6 @@ export function createUi(s: ShellState, actions: PanelActions): UiObjects {
     bubbles: each(slot => new OffscreenBubble(slot)),
     escapeMeters: each(slot => new EscapeMeter(slot)),
     manaBars: each(createManaBars),
-    passivePips: each(slot => new PassivePips(slot)),
     stage: new StagePanel(actions.stage, controls),
     selections: each(slot => new SelectionPanel(actions.selection, slot, controls)),
     settings: each(slot => new SettingsPanel(s.participants[slot].bindings, actions.settings, slot)),
@@ -225,12 +217,8 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
   const retainedBars: { readonly manaBars?: Slots<ManaBars> } = ui;
   if (retainedBars.manaBars === undefined) ui.manaBars = each(createManaBars);
   else for (const slot of PARTICIPANT_SLOTS) {
-    bindPrototype(ui.manaBars[slot].overhead, ManaBar.prototype);
     bindPrototype(ui.manaBars[slot].hud, ManaBar.prototype);
   }
-  const retainedPips: { readonly passivePips?: Slots<PassivePips> } = ui;
-  if (retainedPips.passivePips === undefined) ui.passivePips = each(slot => new PassivePips(slot));
-  else for (const slot of PARTICIPANT_SLOTS) bindPrototype(ui.passivePips[slot], PassivePips.prototype);
   // A bundle from before the match presentation left none to rebind.
   const retained: { readonly match?: MatchPresentation } = ui;
   if (retained.match === undefined) ui.match = new MatchPresentation(s.origin);

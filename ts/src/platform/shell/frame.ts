@@ -9,14 +9,12 @@ import { borrowMatchFrame, captureFrame, executeMatchFrame, hasNetworkRows } fro
 import { ownConfirmedState } from "./confirmedState";
 import { beginMomentFrame, keepMomentEnd, momentFrameRan, recordMomentRow } from "../../game/replay/moment";
 import { Phase, beginRematchCountdown, computerActive, humanFighterActive } from "../../game/match/rules";
-import { resultMessage, aerialName, fighterLabel } from "../../game/shell/messages";
+import { resultMessage } from "../../game/shell/messages";
 import { produceScenarioComputerInput } from "../../game/shell/scenarios";
-import { DownState } from "../../game/sim/codes";
 import { canAttack } from "../../game/sim/conditions";
 import { influenceOperands } from "../../game/sim/knockback";
 import { canonicalReal } from "../../game/replay/canonical";
 import type { Fighter } from "../../game/sim/fighter";
-import { isAerialAttack } from "../../game/sim/moves";
 import { fighterAt, isActive } from "../../game/sim/roster";
 import { traceFrameInput, traceParticipant } from "./diagnostics";
 import { confirmModelSounds } from "../../game/render/modelSounds";
@@ -28,7 +26,7 @@ import { probeRecording } from "./responseProbe";
 import { MatchCue } from "../../game/presentation/matchAudio";
 import { resultsView } from "../../game/presentation/matchCues";
 import { RESULTS_DELAY_FRAMES } from "../../game/render/matchPresentation";
-import { LASTING, announce, renderFighter, resumePresentationHeld, setStatus } from "./view";
+import { LASTING, renderFighter, resumePresentationHeld, setStatus } from "./view";
 import { writeMatchRecord } from "./matchRecords";
 import { beginReplayFrame, endReplaySegment, replayFrameRan } from "./replays";
 
@@ -58,15 +56,6 @@ const bit = (value: boolean) => (value ? "1" : "0");
 
 /** Announcements and trace lines for what the frame changed; trace text is built only while tracing. */
 function reportChanges(s: ShellState, slot: ParticipantSlot, before: Readonly<FrameObservation>, f: Readonly<Fighter>): void {
-  if (f.shield.breakSerial > before.shieldBreak) announce(s, `${fighterLabel(s.game, slot)}'s shield broke!`);
-  if (before.down !== f.down.state) {
-    if (f.down.state === DownState.tech) announce(s, "Tech!");
-    else if (f.down.state === DownState.techRoll) announce(s, "Tech roll!");
-  }
-  if (before.attack !== f.attack.serial) {
-    const name = f.attack.style !== undefined && isAerialAttack(f.attack.style) ? aerialName(f.attack.style) : undefined;
-    if (name !== undefined) announce(s, name);
-  }
   if (s.trace.active) traceChanges(s, slot, before, f);
 }
 

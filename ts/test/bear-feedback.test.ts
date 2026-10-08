@@ -10,7 +10,7 @@ import { CompanionMode } from "../src/game/sim/heroSpecials";
 const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: {} });
 afterAll(headless.restore);
 
-test("Bear command draws a large rear-up, four state labels, one roar and a bite-only impact [spec docs/design/beastmaster.md]", () => {
+test("Bear command draws a large rear-up, one roar and a bite-only impact [spec #336]", () => {
   const clients = headless.clients({ install() {}, start() {} });
   clients.start();
   const client = clients.clients[0];
@@ -46,15 +46,12 @@ test("Bear command draws a large rear-up, four state labels, one roar and a bite
     effects.presentConfirmed(114, fighter, 0);
     effects.present(fighter, 0);
     const labels = client.log.filter(call => call.name === "SetTextTagText").map(call => call.args[1]);
-    expect(labels).toEqual(["FOLLOWING", "CHARGING", "ATTACKING", "RESTING"]);
-    const positions = client.log.filter(call => call.name === "SetTextTagPos");
-    expect(positions.every(call => Number(call.args[3]) > bear.z + 100)).toBe(true);
+    expect(labels).toEqual([]);
     const sounds = client.log.filter(call => call.name === "CreateSoundFromLabel").map(call => call.args[0]);
     expect(sounds).toEqual(["BattleRoar", "MetalHeavySliceFlesh"]);
     bear.life = 0;
     effects.present(fighter, 0);
     expect(body()?.scale).toBe(0);
-    expect(client.log.filter(call => call.name === "SetTextTagVisibility").at(-1)?.args[1]).toBe(false);
     effects.destroy();
   });
 });
