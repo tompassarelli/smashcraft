@@ -30,6 +30,16 @@ test("every match sound, theme and voice line is a stock path found in the game 
   assertEquals(victoryMusic(undefined), undefined);
 });
 
+test("every selectable stage plays its own stock Warcraft track [spec docs/design/stage-music.md]", () => {
+  const tracks: string[] = [];
+  for (const stage of STAGE_CATALOG) {
+    const track = stageMusic(stage.id) as string | undefined;
+    assertEquals(track !== undefined && verified(track), true, `${stage.name} (${stage.id}) has no stock track`);
+    assertEquals(tracks.includes(track!), false, `${stage.name} (${stage.id}) shares ${track}`);
+    tracks.push(track!);
+  }
+});
+
 /** Runs one confirmed frame as the shell presents it: observe, execute, then read its cues. */
 function presentFrame(match: TestMatch, observation: CueObservation, tally: MatchTally, cues: MatchCue[]): void {
   observeForCues(observation, match.game, match.world);

@@ -84,7 +84,7 @@ src/game/presentation/impactEvents.tests.ts	8	0.002
 src/game/presentation/impactState.tests.ts	9	0.149
 src/game/presentation/itemLook.tests.ts	2	0.000
 src/game/presentation/jumpClips.tests.ts	1	0.002
-src/game/presentation/matchCues.tests.ts	4	0.020
+src/game/presentation/matchCues.tests.ts	5	0.046
 src/game/presentation/moveTiers.tests.ts	2	0.029
 src/game/presentation/passiveLook.tests.ts	3	0.000
 src/game/presentation/projectileArt.tests.ts	2	0.003
