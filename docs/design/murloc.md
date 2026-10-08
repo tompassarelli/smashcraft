@@ -152,3 +152,6 @@ shields, and his weight lost stocks early. One tuning pass: weight 0.80 to
 0.94, one more damage on every tilt, smash and aerial, forward smash growth
 105 to 112 and back air 105 to 110, Tidal Rush ends on f32 instead of f40,
 and the computer no longer approaches with it.
+After (dc96043e, same field and seeds): 46% over 8568 matches; balance score
+23.7 to 9.7, with the profile misses (back air 40%, up air 5%, Ensnare 19%,
+Tidal Rush 20%) left for later tuning.
