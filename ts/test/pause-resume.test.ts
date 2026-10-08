@@ -6,7 +6,11 @@ import { shell } from "../src/platform/shell/state";
 import { Key } from "../src/platform/shell/keyEvents";
 import { exportProbe, exportProbePage, startProbe } from "../src/platform/shell/responseProbe";
 import { PREDICTED_HEADLESS } from "../scripts/wisp/headless";
-import { value } from "./rematch/playableMatch";
+import { confirmedFrame, expectSynchronized, startPlayableMatch, value } from "./rematch/playableMatch";
+import { JournalHelpers } from "./rematch/journalHelper";
+import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
+import { holdingStart } from "../src/game/match/rules";
+import { FUTURE_LIMIT } from "../src/game/netcode/ledger";
 import { ResponsePage } from "../scripts/wisp/boundary";
 import { Effect } from "effect";
 import { responsePageFile, replayFile, replayPartFile } from "../src/runtime/gameFiles";
@@ -105,4 +109,27 @@ test("pause with a computer keeps its replay continuous and advances one frame p
   expect(replay.recorded).toBeGreaterThan(5);
   expect(client.errors).toEqual([]);
   console.log("headless draw windows: normal 120/120 and resumed 120/120 at one simulation frame each; 0 corrections, replay stayed in one segment");
+}, 30_000);
+
+test("Start pauses and resumes when the helpers journaled more than the future window past its frame before the pause reached them [repro #206]", () => {
+  const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
+  const { clients, frames, clientA: a, clientB: b } = startPlayableMatch(headless, helpers, false);
+  const paused = () => clients.clients.map(client => value(client, () => shell().session.paused));
+  for (let i = 0; i < 240 && value(a, () => holdingStart(shell().game)); i++) frames(1);
+  frames(30);
+  // As on 8 Oct natively: the sync round trip outlasted the helper's Start seal,
+  // so both helpers journaled 2.5 s on before the pause request reached them.
+  helpers.pressStart(0);
+  helpers.clock = lockstep => lockstep.frame + FUTURE_LIMIT + 22;
+  frames(120);
+  expect(paused()).toEqual([true, true]);
+  const stopped = confirmedFrame(a);
+  frames(30);
+  expect([confirmedFrame(a), confirmedFrame(b)]).toEqual([stopped, stopped]);
+  helpers.pressStart(0);
+  frames(120);
+  expect(paused()).toEqual([false, false]);
+  for (const client of [a, b]) expect(confirmedFrame(client)).toBeGreaterThan(stopped + 5);
+  expectSynchronized(clients);
+  expect([...a.errors, ...b.errors]).toEqual([]);
 }, 30_000);

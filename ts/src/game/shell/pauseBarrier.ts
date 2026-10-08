@@ -64,7 +64,7 @@ export function agreedFrame({ request }: Readonly<PauseBarrier>): number | undef
 export function stopFrame(barrier: Readonly<PauseBarrier>): number | undefined {
   const { request } = barrier;
   if (request === undefined) return undefined;
-  return agreedFrame(barrier) ?? (request.stage === "PREPARE" ? request.target : undefined);
+  return agreedFrame(barrier) ?? (pausing(barrier) ? request.target : undefined);
 }
 
 /** The frame a completed PREPARE round asks every helper to pause at. */

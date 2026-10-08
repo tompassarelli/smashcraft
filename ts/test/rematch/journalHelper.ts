@@ -14,6 +14,7 @@ import { encodeInputMessage, encodePacket, inputPacket } from "../../src/game/in
 import { decodeTransport } from "../../src/game/netcode/journal/transport";
 import { TEXT_WINDOW, TYPED_AHEAD_CHARACTERS, textEnvelope } from "../../src/game/netcode/journal/text";
 import { momentRequest } from "../../src/game/replay/moment";
+import { padDecimal } from "../../src/game/netcode/journal/decimal";
 import { quiescentFile } from "../../src/game/shell/journalFiles";
 import { journalControlFile, journalLifecycleFile, journalReadyFile } from "../../src/runtime/gameFiles";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
@@ -129,6 +130,16 @@ export class JournalHelpers {
     helper.queue.push(momentRequest(helper.epoch));
   }
 
+  /**
+   * Slot's controller presses Start, as the companion types it among the rows:
+   * a pause at the next frame it journals, or a resume while paused.
+   */
+  pressStart(slot: number): void {
+    const helper = this.helper(slot);
+    const request = `JP1${padDecimal(helper.epoch, 10)}${padDecimal(helper.control, 10)}`;
+    helper.queue.push(helper.limit === undefined ? `${request}P${padDecimal(helper.journaled + 1, 10)}` : `${request}R`);
+  }
+
   /** Frames a slot's helper has journaled this match; undefined while it isn't journaling. */
   journaled(slot: number): number | undefined {
     const helper = this.helpers.get(slot);
@@ -181,7 +192,8 @@ export class JournalHelpers {
         committed = Number(frame);
         helper.limit = committed - 1;
       } else if (request === "RESUME") {
-        acknowledge("RESUME", helper.journaled + 1);
+        // The companion restarts at the paused frame, keeping rows it already journaled past it.
+        acknowledge("RESUME", Number(frame));
         helper.limit = undefined;
         helper.started = now - helper.journaled;
       }

@@ -48,6 +48,8 @@ test("[repro #206] a Start press pauses at its own frame, however late the other
   assertEquals(receiveControlAck(barrier, HUMANS, EPOCH, 2, ack(2, 1, "PREPARE", 192)), "complete");
   assertEquals(preparedFrame(barrier), 168);
   requestRound(barrier, "PAUSE", 168);
+  // Rows the later helper journaled before it prepared must not carry the match past the pause.
+  assertEquals(stopFrame(barrier), 168);
   assertEquals(receiveControlAck(barrier, HUMANS, EPOCH, 0, ack(0, 2, "PAUSE", 168)), "recorded");
   assertEquals(receiveControlAck(barrier, HUMANS, EPOCH, 2, ack(2, 2, "PAUSE", 168)), "complete");
   assertEquals(agreedFrame(barrier), 168);

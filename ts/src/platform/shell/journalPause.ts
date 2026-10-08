@@ -12,7 +12,7 @@ import { pausedMessage } from "../../game/shell/messages";
 import { CONTROL_ACK_PREFIX, agreedFrame, encodeControlAck, pausing, preparedFrame, receiveControlAck, requestRound } from "../../game/shell/pauseBarrier";
 import { readChunk } from "wisp/src/platform/fileio";
 import { releaseMessage } from "../keyboardJournal";
-import { consumeEditbox, failJournal, journalEpoch, journalIdentity, mailboxMessage, peekEditbox, writeJournalFile } from "./journal";
+import { consumeEditbox, failJournal, journalEpoch, journalIdentity, mailboxMessage, peekEditbox, setAsideRows, writeJournalFile } from "./journal";
 import { type Journal, type Rollback, type ShellState, localSlot, playsOnKeyboard } from "./state";
 import { traceInput } from "./trace";
 import { LASTING, pauseMatchPresentation, setStatus, startControl } from "./view";
@@ -75,7 +75,10 @@ export function serviceControlAck(s: ShellState, rollback: Rollback, journal: Jo
   const keyboard = playsOnKeyboard(journal, localSlot());
   let wire: string | undefined;
   if (keyboard) wire = keyboardAck(journal, source, request);
-  else if (journal.ingress === "editbox") wire = peekEditbox(s, rollback, journal);
+  else if (journal.ingress === "editbox") {
+    setAsideRows(s, rollback, journal);
+    wire = peekEditbox(s, rollback, journal);
+  }
   else if (journal.ingress === "keyboard") wire = mailboxMessage(journal, "ACK1|");
   else {
     const read = readVocabularyControlAck(readChunk, source.controlAckBase());

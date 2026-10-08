@@ -83,6 +83,21 @@ export function peekEditbox(s: ShellState, rollback: Rollback, journal: Journal)
   return wire;
 }
 
+/**
+ * Takes rows at the head of the edit box out of it, so a pause acknowledgment
+ * typed after them can be read. While a pause round holds the confirmed
+ * cursor, rows the helper journaled before it stopped can lie past the future
+ * window and could otherwise never be admitted ahead of the acknowledgment (#206).
+ */
+export function setAsideRows(s: ShellState, rollback: Rollback, journal: Journal): void {
+  for (let index = 0; index < TEXT_WINDOW; index++) {
+    const wire = peekEditbox(s, rollback, journal);
+    if (wire === undefined || !(wire.startsWith("I4") || wire.startsWith("I5"))) return;
+    journal.setAside.push(wire);
+    if (!consumeEditbox(s, rollback, journal)) return;
+  }
+}
+
 /** Marks the edit box payload applied; false after failing the journal. */
 export function consumeEditbox(s: ShellState, rollback: Rollback, journal: Journal): boolean {
   const { editbox } = journal;
@@ -167,6 +182,8 @@ function nextPacketText(s: ShellState, rollback: Rollback, journal: Journal): st
   if (source === undefined) return undefined;
   switch (journal.ingress) {
     case "editbox": {
+      const held = journal.setAside[0];
+      if (held !== undefined) return held;
       const wire = peekEditbox(s, rollback, journal);
       // Pause acknowledgments and requests, and moment requests, are serviced in their own order.
       return wire === undefined || wire.startsWith("ACK1|") || wire.startsWith("JP1") || isMomentRequest(wire) ? undefined : wire;
@@ -290,7 +307,8 @@ export function serviceJournalInput(s: ShellState, rollback: Rollback, journal: 
     if (rows < packet.rows.length) return;
     if (keyboard) commitEdges(journal.keys);
     else if (editbox) {
-      if (!consumeEditbox(s, rollback, journal)) return;
+      if (journal.setAside.length > 0) journal.setAside.shift();
+      else if (!consumeEditbox(s, rollback, journal)) return;
     } else if (journal.mailbox !== undefined) releaseMessage(journal.mailbox);
   }
 }
