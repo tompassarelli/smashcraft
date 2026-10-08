@@ -2138,4 +2138,6 @@ export const MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
   "war3mapImported\\WardenWhite-34b81ee50c632c505b4205029b2fb0eb2dc21c965065362ad309679eb7ccf92e.mdx": {"geosets":5,"triangles":685,"lights":0,"bounds":{"min":[-156.195,-144.205,-54.452],"max":[143.658,141.6,442.065]},"emitters":[]},
   "war3mapImported\\StagePointLight-a80bf58f5aab59d642ab911bc6ae05f69654de09308907c907d76de24c2fd479.mdx": {"geosets":0,"triangles":0,"lights":1,"emitters":[]},
   "war3mapImported\\StagePointLight-e40b69be1b897ad6f33fb53f05e23630f4af667ba227af8a3da1b3ea270dfb6f.mdx": {"geosets":0,"triangles":0,"lights":1,"emitters":[]},
+  "war3mapImported\\StagePointLight-3c239f503cd4b885fb1d2ccbd395dce50e78f4797f65e6db0ea63e33a1d92923.mdx": {"geosets":0,"triangles":0,"lights":1,"emitters":[]},
+  "Doodads\\Undercity\\Props\\NaxxDeco\\NaxxDeco0.mdx": {"geosets":1,"triangles":4429,"lights":0,"bounds":{"min":[-117.249,-119.99,-3.007],"max":[117.249,119.99,229.372]},"emitters":[]},
 };

@@ -18,10 +18,13 @@ export const DUROTAR_SCENERY: StageScenery = {
 
 export const NAXXRAMAS_SCENERY: StageScenery = {
   sky: STAGE_SKY_MODELS[4] ?? "",
+  // NX-1's slate-to-teal sky; NX-3's distant citadel fades after the fighting plane.
   fog: { start: 5000.0, end: 11000.0, red: 0.25, green: 0.5, blue: 0.625 },
   pieces: [
     // One floating citadel above a low ruined approach; the central sky stays open.
     { model: "buildings\\undead\\Necropolis\\Necropolis.mdx", x: 1450.0, y: 6200.0, z: -1050.0, scale: 1.5, yaw: 250.0 },
+    // NX-3: low Definitive-only stock garnish beside the citadel, invisible in Classic and Reforged.
+    { model: "Doodads\\Undercity\\Props\\NaxxDeco\\NaxxDeco0.mdx", x: 1700.0, y: 5900.0, z: -1250.0, scale: 0.5, yaw: 250.0 },
     { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier5.mdx", x: 1490.0, y: 6200.0, z: -3665.0, scale: f32(7.1), yaw: 287.0, matrixScale: [1.0, 1.0, f32(1.317)] },
     { model: "buildings\\undead\\Ziggurat\\Ziggurat.mdx", x: -1800.0, y: 3900.0, z: -1150.0, scale: 0.75, yaw: 25.0 },
     { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier5.mdx", x: -2085.0, y: 3900.0, z: -2770.0, scale: f32(3.3), yaw: 62.0, matrixScale: [1.0, 1.0, f32(1.69)] },

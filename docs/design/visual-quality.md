@@ -447,6 +447,18 @@ Per stage (backdrop facts from [Per-stage recommendations](#per-stage-recommenda
 | Ahn'Qiraj (13) | bright sandstone; light at 0.5 | Dusk-ochre height fog below the deck; the G3 Definitive light copy | — |
 | Hellfire (14) | dark haze *(guess)* | Fel-green omni lights from imported effects; bloom on fel fire. Outland_Sky is available in every mode | — |
 
+Naxxramas's row is in place (#296). NX-1's cold plague-green omni light
+frames NX-3's lone necropolis at (1450, 6000, -900), with radius 1400,
+intensity 0.875 and no flicker. Its reach ends 4400 units behind the fighter
+volume; the one shadow caster adds depth around the citadel. NX-1's teal fog
+starts at 5000 and ends at 11000, preserving the clear fighting plane.
+One half-scale stock `NaxxDeco0` at (1700, 5900, -1250) is low Definitive-only
+garnish. Classic and Reforged keep the stock Necropolis and ruined approach
+when that prop is absent; Classic also draws no model omni light. The authored
+light-only model is 756 bytes: stock green spell effects add particles and
+geometry, while Undercity lanterns have no light, so neither supplies this
+steady isolated glow. No stock art is imported.
+
 Tomb's row is in place (#298), following TS-1/TS-2: teal height fog uses
 style 3, distance 5,000–11,000, density 0.25, heights −1,800 to −100 relative
 to the arena, maximum opacity 0.375 and leaves the sky clear. Classic retains

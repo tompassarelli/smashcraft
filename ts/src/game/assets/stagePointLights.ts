@@ -1,6 +1,6 @@
 // Backdrop omni lights, which tools/stage/package.ts writes into light-only
 // models that the stage's scenery places (smashcraft:docs/design/visual-quality.md).
-import { CANNON_TEST_STAGE, HELLFIRE_STAGE, STRATHOLME_STAGE } from "../sim/stage";
+import { CANNON_TEST_STAGE, HELLFIRE_STAGE, PATTERNED_DECKS_STAGE, STRATHOLME_STAGE } from "../sim/stage";
 
 type Rgb = readonly [red: number, green: number, blue: number];
 
@@ -33,6 +33,12 @@ export interface StagePointLight {
  * contrast of any stage (#178, ΔE00 21.2).
  */
 export const STAGE_POINT_LIGHTS: readonly { readonly stage: number; readonly theme: string; readonly lights: readonly StagePointLight[] }[] = [
+  {
+    stage: PATTERNED_DECKS_STAGE, theme: "Naxxramas", lights: [
+      // NX-1's plague green frames NX-3's lone necropolis; the light ends behind the fighting plane.
+      { x: 1450.0, y: 6000.0, z: -900.0, color: [96, 220, 168], intensity: 0.875, flicker: 0.0, loopMs: 2400, radius: 1400.0, castsShadow: true },
+    ],
+  },
   {
     // HF-2/HF-3: fel green stays in the recessed rocks; no light reaches the fight.
     stage: HELLFIRE_STAGE, theme: "Hellfire", lights: [

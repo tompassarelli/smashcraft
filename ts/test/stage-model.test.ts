@@ -9,7 +9,7 @@ import { luma } from "../src/game/assets/stagePalette";
 import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";
 import { pointLightPieces, shadowCastingLights, stageScenery } from "../src/game/presentation/stageScenery";
 import { STAGE_DECK_PALETTES } from "../src/game/assets/stagePalette";
-import { CANNON_TEST_STAGE, HELLFIRE_STAGE, MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt, solidSurfaceCount, surfaceLine } from "../src/game/sim/stage";
+import { CANNON_TEST_STAGE, HELLFIRE_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt, solidSurfaceCount, surfaceLine } from "../src/game/sim/stage";
 
 /** The stages whose main deck has walls and an underside, each drawn from its own outline. */
 const SHIPPED_STAGES = [1, ...STAGE_DECK_PALETTES.map(({ stage }) => stage).filter((stage) => solidSurfaceCount(stage) > 0)];
@@ -165,6 +165,19 @@ test("Hellfire recesses fel flames and green lights into haze under the stock Ou
     expect(flames.some(({ x, y, z }) => x === light.x && y === light.y && z === light.z)).toBe(true);
   }
   expect(shadowCastingLights(HELLFIRE_STAGE)).toBe(1);
+});
+
+test("Naxxramas's cold green light frames the necropolis with one shadow and leaves fighters outside its reach [spec #296]", () => {
+  const lights = STAGE_POINT_LIGHTS.find(({ stage }) => stage === PATTERNED_DECKS_STAGE)?.lights ?? [];
+  expect(lights.map(({ x, y, z, color, intensity, flicker, loopMs, radius, castsShadow }) => `${x},${y},${z} ${color.join(",")}@${intensity}±${flicker}/${loopMs}ms r${radius}${castsShadow ? " shadow" : ""}`)).toEqual([
+    "1450,6000,-900 96,220,168@0.875±0/2400ms r1400 shadow",
+  ]);
+  expect(shadowCastingLights(PATTERNED_DECKS_STAGE)).toBe(1);
+  for (const light of lights) expect(light.y - light.radius - 200).toBeGreaterThan(3000);
+  expect(stageScenery(PATTERNED_DECKS_STAGE).fog).toEqual({ start: 5000, end: 11000, red: 0.25, green: 0.5, blue: 0.625 });
+  const scenery = stageScenery(PATTERNED_DECKS_STAGE).pieces;
+  expect(scenery.filter(({ model }) => model.includes("NaxxDeco")).map(({ x, y, z, scale }) => [x, y, z, scale])).toEqual([[1700, 5900, -1250, 0.5]]);
+  expect(scenery.filter(({ model }) => model.includes("Necropolis")).map(({ x, y }) => [x, y])).toEqual([[1450, 6200]]);
 });
 
 test("Stratholme keeps its cathedral against the fall sky and limits warm lights to town fires [spec #297]", () => {
