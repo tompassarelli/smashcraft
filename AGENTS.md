@@ -556,6 +556,10 @@ code. From smashcraft:ts/:
   each replay's first divergent frame and field; `bun wisp parity corpus keep
   RECORDING...` copies local recordings into smashcraft:ts/test/corpus/, which
   CI and `farm test` replay on every push.
+  A native box in a subsystem with zero corpus divergence is met by its
+  headless check plus the weekly native spot batch. Keep the corpus coverage
+  and replay result for that subsystem in wisp#69; native lanes batch the
+  weekly spot checks with their other pending sessions.
 - Parity: `bun wisp parity numeric` compares the numeric corpus with both Lua32s;
   `bun wisp integrity capture --screen --clients-file FILE --client NAME --out PRIVATE_DIR [--count N] [--region X,Y,WIDTH,HEIGHT]`
   measures serial framebuffer acquisition on the input stimulus clock and saves
