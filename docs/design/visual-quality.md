@@ -54,7 +54,7 @@ measurements are in [Measured on 3.0](#measured-on-30-under-wine).
 | HD water | `SetHDWaterParams*`, `BlzSetHDWater*` | HD water's colour, opacity, reflectivity, emissivity, waves | HD modes | Unusable: water is terrain, and the terrain is hidden |
 | Point-light shadows | `BlzSetMinShadowCastingPointLightCount` | How many model point lights cast shadows | HD modes | Unused, **unmeasured** |
 | Lighting editor, omni lights | World Editor 3.0 (`war3map.w3l`, imported DNC models) | The map's own terrain and unit DNC models; map-placed omni lights and shadow-casting omni lights | HD modes; placed once per map, not per stage | Unused; file format in [Lighting editor output](#lighting-editor-output-war3mapw3l) |
-| Map post-processing | World Editor 3.0 (`war3mapPostProcessing.txt`) | Ambient occlusion, bloom, portrait bloom, tone-map exposure and normal-map strength for the whole map | HD *(guess)* | Unused; fields in [Map-level post-processing](#map-level-post-processing-what-the-editor-writes); no native changes them |
+| Map post-processing | World Editor 3.0 (`war3mapPostProcessing.txt`) | Ambient occlusion, bloom, portrait bloom, tone-map exposure and normal-map strength for the whole map | HD *(guess)* | Shipped (#288, smashcraft:ts/scripts/postProcessing.ts): bloom above 0.9 and contact-shadow ASSAO; fields in [Map-level post-processing](#map-level-post-processing-what-the-editor-writes); no native changes them |
 | HD materials | stock asset paths | Reforged and Definitive draw the HD PBR copy of a stock path | HD | **Measured** availability: all 25 stock scenery and sky paths resolve in all three modes; the HD draw itself is unmeasured |
 
 ### What is impossible
@@ -309,7 +309,9 @@ EnvMapStrength. *(guess)* The fog and water controls belong to the lighting
 editor and are written into `main` as `SetTerrainFogExV` and
 `SetHDWaterParamsEx`. Blizzard's Forgotten Hollow scenario ships
 `[ASSAO] Radius=6, ShadowMultiplier=3`: tighter and darker contact shadows
-than stock.
+than stock. It is the only one of the 369 non-Classic stock maps in 3.0.1.24342
+(the 96 Reforged campaign maps among them) that ships the file, and it lists
+only the keys it changes.
 
 So bloom, tone-map exposure and AO strength are map-wide. One file serves
 every stage, and no native changes it during a match. *(guess)* They apply in

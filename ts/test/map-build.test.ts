@@ -6,6 +6,7 @@ import { fileIoAbility } from "../scripts/objectData";
 import { GENERATED_MODELS, MODEL_SOUND_TABLE, SCRIPT_MODELS, soundTableProblem } from "../scripts/wisp/mapInputs";
 import { STAGE_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
 import { importedModelFile } from "../scripts/heroModelSource";
+import { generatedFiles } from "../scripts/wisp/commands/map";
 
 const project = join(import.meta.dir, "../..");
 
@@ -34,4 +35,12 @@ test("every model sound cue names a stock label and keys a pooled clip [invarian
 test("the FileIO ability retains the recorded war3map.w3a bytes [reference]", () => {
   const hash = new Bun.CryptoHasher("sha256").update(fileIoAbility()).digest("hex");
   expect(hash).toBe("28b1c0200840165876f4feccaf5bb389a2261e7492ffb0269b23ba0cb569e994");
+});
+
+test("the map ships war3mapPostProcessing.txt: Forgotten Hollow's contact-shadow ASSAO and bloom above 0.9 only [spec #288]", () => {
+  const file = generatedFiles().find(({ entry }) => entry === "war3mapPostProcessing.txt");
+  // Radius and ShadowMultiplier from Blizzard's (1)ForgottenHollow.w3x; Bloom Enabled 0 and threshold 0.72 in stock PostProcessingConfig.txt.
+  expect(new TextDecoder().decode(file?.contents)).toBe(
+    "[ASSAO]\r\nRadius=6.000000\r\nShadowMultiplier=3.000000\r\n\r\n[Bloom]\r\nEnabled=1\r\nBloomThreshold=0.900000\r\n",
+  );
 });

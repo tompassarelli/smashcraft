@@ -424,5 +424,25 @@ Generated from the packaged models by `bun wisp view motion --assets DIR` (#171)
 | Kael'thas Sunstrider | ledge-get-up | 43: Kaelthas ledgeClimb | 114.3 | 20.7 | up; 108.5/8.9 |
 | Kael'thas Sunstrider | ledge-roll | 71: Kaelthas ledgeRoll | 173.0 | 78.2 | forward; 138.3/102.3 |
 | Kael'thas Sunstrider | ledge-attack | 44: Kaelthas ledgeAttack | 68.1 | 11.1 | both; 55.2/19.3 |
+| Murloc | walk | 1: Walk | 125.5 | 32.7 | forward; 117.8/124.3 |
+| Murloc | dash | 1: Walk | 119.8 | 31.4 | forward; 110.2/119.8 |
+| Murloc | run | 1: Walk | 89.3 | 29.3 | forward; 53.8/88.3 |
+| Murloc | turn | 31: Murloc turn | 165.1 | 44.8 | back; 149.2/32.1 |
+| Murloc | brake | 32: Murloc stop | 67.8 | 15.4 | in place; 43.8/49.8 |
+| Murloc | jump-squat | 33: Murloc jumpSquat | 36.8 | 13.0 | down; 22.0/33.3 |
+| Murloc | roll-forward | 66: Murloc rollForward | 167.4 | 71.9 | forward; 71.6/157.4 |
+| Murloc | roll-back | 70: Murloc rollBackward | 166.3 | 71.1 | back; 157.3/71.6 |
+| Murloc | spot-dodge | 47: Murloc spotDodge | 77.2 | 23.0 | in place; 46.2/59.5 |
+| Murloc | air-dodge | 28: Murloc airDodge | 65.4 | 13.9 | in place; 45.5/55.4 |
+| Murloc | tech | 48: Murloc tech | 75.3 | 31.5 | in place; 24.5/47.5 |
+| Murloc | tech-forward | 67: Murloc techForward | 167.5 | 71.5 | forward; 71.5/157.5 |
+| Murloc | tech-back | 71: Murloc techBackward | 167.5 | 71.4 | back; 157.5/71.6 |
+| Murloc | get-up | 45: Murloc getUp | 111.1 | 44.9 | up; 73.6/77.5 |
+| Murloc | get-up-forward | 68: Murloc getUpRollForward | 147.7 | 60.7 | forward; 123.7/94.2 |
+| Murloc | get-up-back | 72: Murloc getUpRollBackward | 128.4 | 60.6 | back; 98.8/121.6 |
+| Murloc | get-up-attack | 46: Murloc getUpAttack | 134.6 | 49.8 | both; 133.3/39.7 |
+| Murloc | ledge-get-up | 41: Murloc ledgeClimb | 107.1 | 26.3 | up; 76.0/89.8 |
+| Murloc | ledge-roll | 69: Murloc ledgeRoll | 167.3 | 71.7 | forward; 71.6/157.2 |
+| Murloc | ledge-attack | 42: Murloc ledgeAttack | 77.2 | 15.7 | both; 22.0/75.7 |
 
 Walking/running cadence uses grounded vertices' horizontal excursion twice per cycle. The Lich floats and uses the stock sequence's movement speed. Both measurements use the fighter's displayed model scale.

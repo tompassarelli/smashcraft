@@ -87,6 +87,75 @@ art (researched 7 Oct; inferences are marked):
   light and dark with an eclipse instead of a full day cycle, keeping the
   stage's brightness range bounded ([SmashWiki](https://www.ssbwiki.com/Battlefield_(SSBU))).
 
+### Primary sources on stage art, 2018–2026
+
+Researched 8 Oct (#272); each stage's board in [stage boards](stage-boards.md)
+applies these. The reference images are private, listed there.
+
+- **Terrain outshines backdrop.** Sakurai tells stage artists "your
+  backdrop's outshining your terrain": play up what you can stand on, play
+  down the rest. Haze on everything but terrain helps, but alone it "really
+  hurts the overall look"; balance the two and give gameplay "the slight
+  edge" ([Emphasize Objects with Collision, 28 Oct 2022](https://www.youtube.com/watch?v=FfPN4ZGgBpo)).
+- **Mark the edge, not just the top.** Ultimate lights floor edges' side
+  faces, stripes them or darkens them for contrast, and gives ledges a
+  deliberately unexplained light ([CEDEC 2019, 4Gamer, 7 Sep 2019](https://www.4gamer.net/games/412/G041234/20190906163/));
+  thin platforms carry lights or decoration, the near side of narrow paths is
+  darkened, and the walkable centre line is checked in black and white
+  ([Famitsu, 9 Sep 2019](https://www.famitsu.com/news/201909/09182823.html)).
+- **Fighters are small; contrast rises as they shrink.** A fighter can be as
+  small as 24×39 pixels, so Ultimate raises contrast when they are small and
+  rejected depth of field because it made them look like miniatures; the
+  camera tilts 30°, not 40°, so a fighter on a ledge is not hidden
+  (4Gamer, above). A TV fills about 30° of view, so budget screen space for
+  play ([A Small Window Into the World, 25 Nov 2022](https://www.youtube.com/watch?v=DGIJk0Uh8jU)).
+- **One culture, one light.** Ultimate's Battlefield brief: one culture and
+  era, a repeated motif, open gaps in the frame, an asymmetric-looking layout,
+  varied stones, backlit with a rim light from a single source (4Gamer,
+  above). Battlefield was built first and set every other stage's base look
+  (Famitsu, above).
+- **Paint the light, judge the frame.** Background art shows the light
+  objects reflect: a coloured key light, brightened lit spots, slight hue
+  variation, then atmosphere ([Draw the Light, Not the Asset, 6 Sep 2022](https://www.youtube.com/watch?v=FuAtKjEuck8)).
+  What counts is how the whole frame comes together after post-processing,
+  not each model; Ultimate blends hues where Melee gave each object its own
+  ([Final Output, 11 May 2024](https://www.youtube.com/watch?v=MGPwDINsVbU)).
+  Lower saturation and matched texture detail unify a style
+  ([Unifying Visual Style, 20 Jul 2023](https://www.youtube.com/watch?v=BLzEMMcwUKk), via GoNintendo's summary).
+- **Backgrounds low in contrast, by design.** Rivals 2's director: "even the
+  backgrounds are designed in a way where they can have less contrast but
+  still look nice. That's all to serve the purpose of the gameplay"
+  ([Dan Fornace, Software Engineering Daily 1853, 16 Dec 2025](https://softwareengineeringdaily.com/wp-content/uploads/2025/12/SED1853-Aether-Studios.txt)).
+  Its Fire Capital background plate (press kit, 7 Nov 2024) sits under heavy
+  blue-grey haze.
+- **A stage body is three materials and a place-shaped silhouette.** Across
+  both games' stage shots, the walking surface is the lightest and simplest
+  material, the edge a separate trim band and the body a darker, rougher
+  material that tapers in a shape of the place; drop-through platforms look
+  thin ([Sakurai, Denfaminicogamer, 21 Dec 2018](https://news.denfaminicogamer.jp/projectbook/181221)).
+  Observations and files are in [stage boards](stage-boards.md#how-the-references-build-a-stage-body).
+- **When hues match, outline the stage.** Rivals 2 1.7.1 added Stage Outlines
+  because geometry stopped reading under its Rivals 1 camera; its patch
+  image shows a dark edge line separating a stage from a background of the
+  same hue ([Steam, 1 Sep 2026](https://store.steampowered.com/news/app/2217000/view/1842212951314215)).
+- **Skins vary the look on fixed geometry.** Rivals 2 adds stage skins with
+  the same gameplay: Crystal Oasis over Rock Wall
+  ([1.2.0, 2 Apr 2025](https://store.steampowered.com/news/app/2217000/view/1795917897297995)),
+  Metal Graveyard over Aetherian Forest
+  ([1.4.0, 7 Oct 2025](https://store.steampowered.com/news/app/2217000/view/1811772772644125)),
+  Low Poly Fire Capital ([1.4.2, 4 Nov 2025](https://store.steampowered.com/news/app/2217000/view/1815034433041596)),
+  Underground Arena over Godai Delta
+  ([1.5.0, 6 Jan 2026](https://store.steampowered.com/news/app/2217000/view/1819386365126340)).
+  Rule 2's split, look free and geometry fixed, is the genre's practice.
+- **Lighting is tuned per stage after release.** Rivals 2 fixed Hodojo's
+  lighting in 1.4.5.1 (20 Dec 2025) and Julesvale platforms that "appear
+  darker than intended" in 1.7.0.2 (6 Aug 2026), and added warning visuals
+  before casual-stage hazards move in 1.6.0.3 (9 Apr 2026) (Steam news,
+  app 2217000).
+- **Simplify what play can't read.** Rivals 2's workshop guidance: "If a
+  detail cannot be clearly read from gameplay distance… simplify"
+  ([workshop docs](https://rivals2.com/workshop), read 8 Oct 2026).
+
 ## Rules
 
 Smashcraft's arena camera looks along +y, ten degrees down; scenery `x` is
@@ -182,6 +251,16 @@ from the floor (smashcraft:ts/src/game/presentation/stageScenery.ts).
     stage with hazards under two match seeds and requires identical hazard
     tracks, and smashcraft:ts/test/stage-hazard-random.test.ts refuses
     hazard code that reads the match's random source.
+14. **Every stage change names its board item.** A commit, issue box or
+    review that changes a stage's scenery, sky, fog, light, deck or platform
+    look names the item of that stage's board in
+    [stage boards](stage-boards.md) it follows (for example "follows FT-2"),
+    and is judged against that stage's rubric there. A change that follows no
+    item first adds one to the board, with its source and date.
+15. **Three materials, lit edge.** Deck top, edge and body are different
+    materials from the stage's set in [stage boards](stage-boards.md); the
+    edge reads as its own band, distinct from top and body, in grayscale, and each
+    platform's material differs from the deck top.
 
 ### Art checklist
 
@@ -240,6 +319,10 @@ Melee and Ultimate are complemented by actual Rivals of Aether screenshots
 and concrete skyline observations in
 smashcraft:docs/design/patrol-stage-composition.md. Its provenance table names
 the official Steam screenshot revisions and their private local files.
+
+The per-stage table below is #178's composition pass; each stage's current
+references, material set and rubric are its board in
+[stage boards](stage-boards.md), which governs where they differ.
 
 All nine stages keep their collision layouts. Stock model bounds matter more
 than nominal scale: the old World Tree at scale 2 reached 8,425 world units

@@ -208,6 +208,10 @@ code. From smashcraft:ts/:
   `bun tools/animations/kaelthas-clips.ts STOCK_BLOOD_MAGE.mdx PRIVATE_OUTPUT`
   appends Kael’thas’s normal, special, paired throw, recovery and nine pain
   gestures, preserves all eleven stock sequences, and writes both-facing sheets.
+  `bun tools/animations/murloc-clips.ts STOCK_MURLOC.mdx PRIVATE_OUTPUT` appends the
+  Murloc's normal, special, paired throw, recovery and nine pain gestures to the
+  stock Tiderunner, preserves its nine sequences and writes both-facing sheets;
+  run it twice for a fresh clip table, since its reach search reads the table.
   `bun tools/animations/grab-pads.ts` generates the #180 mirror and unlike-height capture batch:
   ten expansion heroes, four throws, both facings, with ordinary catch/pummel
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.

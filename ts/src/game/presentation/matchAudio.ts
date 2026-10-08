@@ -72,6 +72,8 @@ const RACES: readonly Race[] = [
   // The Lich King: the Scourge.
   Race.undead,
   Race.orc, Race.human, Race.undead, Race.orc, Race.orc, Race.orc, Race.orc, Race.human,
+  // Murloc: a Broken Isles creep, fought there in the night elves' Terror of the Tides.
+  Race.nightElf,
 ];
 
 export const characterRace = (character: Character): Race => at(RACES, character);
@@ -87,9 +89,10 @@ export const victoryMusic = (winner: Character | undefined): string | undefined 
 
 /**
  * By Character: the unit's sound directory, the prefix of its voice files, and
- * the line it says when chosen where the unit has no Ready line (a campaign hero).
+ * the line it says when chosen where the unit has no Ready line (a campaign hero),
+ * and its battle cry where it has no Warcry line (a creep).
  */
-const VOICES: readonly (readonly [string, string, string?])[] = [
+const VOICES: readonly (readonly [string, string, string?, string?])[] = [
   ["Units\\NightElf\\Archer\\", "Archer"],
   ["Units\\Human\\Rifleman\\", "Rifleman"],
   ["Units\\NightElf\\HeroDemonHunter\\", "HeroDemonHunter"],
@@ -112,11 +115,13 @@ const VOICES: readonly (readonly [string, string, string?])[] = [
   ["Units\\Orc\\Peon\\","Peon"],
   ["Units\\Creeps\\HeroTinker\\","HeroTinker"],
   ["Units\\Human\\Kael\\","Kael"],
+  ["Units\\Creeps\\Murloc\\", "Murloc", "Ready", "YesAttack"],
 ];
 
 function voice(character: Character, line: string): string {
-  const [directory, prefix, ready] = at(VOICES, character);
-  return `${directory}${prefix}${line === "Ready" ? ready ?? line : line}1.flac`;
+  const [directory, prefix, ready, warcry] = at(VOICES, character);
+  const spoken = line === "Ready" ? ready ?? line : line === "Warcry" ? warcry ?? line : line;
+  return `${directory}${prefix}${spoken}1.flac`;
 }
 
 /** The line a hero says when trained: played when a player confirms that fighter. */

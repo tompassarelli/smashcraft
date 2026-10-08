@@ -96,6 +96,7 @@ const VAMPIRIC = cue("Abilities\\Spells\\Undead\\UnholyFrenzy\\UnholyFrenzyTarge
 const DREADLORD_BITE_CUES: MoveCues = { spell: "Healing bite", startup: VAMPIRIC, active: cue("Abilities\\Weapons\\Blood\\BloodImpact.mdx", "ahead", 1.0) };
 const VOODOO = cue("Abilities\\Spells\\Orc\\TrollBerserk\\TrollBeserkerTarget.mdx", "hand", f32(0.7));
 const FEL = cue("Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilSpecialArt.mdx", "hand", f32(0.7));
+const MURGUL = cue("Abilities\\Weapons\\MurgulMagicMissile\\MurgulMagicMissile.mdx", "hand", f32(0.6));
 const BEAST = cue("Abilities\\Spells\\Orc\\Bloodlust\\BloodlustTarget.mdx", "hand", f32(0.6));
 /** The Lich King's dark rune under his feet. */
 const RUNE = cue("Abilities\\Spells\\Undead\\DarkRitual\\DarkRitualCaster.mdx", "feet", f32(0.6));
@@ -149,6 +150,12 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     side: { spell: "Siphon Mana", startup: FROST, active: cue("Abilities\\Spells\\Human\\ManaFlare\\ManaFlareTarget.mdx", "ahead", 0.75) },
     up: { spell: "Phoenix Flight", startup: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "body", 0.5), active: timed(cue("units\\human\\Phoenix\\Phoenix.mdx", "body", 0.5), "stand", 0.0) },
     down: { spell: "Banish", startup: cue("Abilities\\Spells\\Human\\Banish\\BanishTarget.mdx", "body", 0.75), active: cue("Abilities\\Spells\\Human\\Banish\\BanishTarget.mdx", "body", 0.75) },
+  },
+  [Character.murloc]: {
+    neutral: { spell: "Ensnare", startup: MURGUL, active: cue("Abilities\\Spells\\Orc\\Ensnare\\EnsnareTarget.mdx", "hand", 0.75) },
+    side: { spell: "Tidal Rush", startup: MURGUL, active: cue("Abilities\\Spells\\Other\\CrushingWave\\CrushingWaveDamage.mdx", "ahead", 0.5) },
+    up: { spell: "Tide Spout", startup: MURGUL, active: cue("Objects\\Spawnmodels\\Naga\\NagaDeath\\NagaDeath.mdx", "feet", 0.75) },
+    down: { spell: "Disease Cloud", startup: MURGUL, active: cue("Abilities\\Spells\\Undead\\PlagueCloud\\PlagueCloudCaster.mdx", "feet", 0.75) },
   },
   [Character.blademaster]: {
     neutral: { spell: "Wind Cutter", startup: BLOODLUST, active: cue("Abilities\\Spells\\Other\\Tornado\\Tornado_Target.mdx", "hand", f32(0.6)) },

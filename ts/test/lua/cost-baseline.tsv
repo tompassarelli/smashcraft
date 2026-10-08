@@ -160,6 +160,7 @@ src/game/sim/heroes/lichMoves.tests.ts	9	0.035
 src/game/sim/heroes/lichSpecials.tests.ts	13	0.180
 src/game/sim/heroes/mountainKingMoves.tests.ts	10	0.011
 src/game/sim/heroes/mountainKingSpecials.tests.ts	15	0.354
+src/game/sim/heroes/murloc.tests.ts	5	0.051
 src/game/sim/heroes/peonMoves.tests.ts	22	0.008
 src/game/sim/heroes/peonSpecials.tests.ts	5	0.077
 src/game/sim/heroes/pitLordMoves.tests.ts	4	0.005
