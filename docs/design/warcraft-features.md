@@ -1,8 +1,8 @@
 # Warcraft III features since Reforged: the index
 
 Every engine and World Editor feature Warcraft III added from Reforged
-(1.32, January 2020) through the current client, 3.0.0.24268 "Forsaken
-Kingdom" (12 September 2026), that changes how a map can look or what its
+(1.32, January 2020) through 3.0.1.24342 (7 October 2026), following
+3.0.0.24268 "Forsaken Kingdom" (12 September 2026), that changes how a map can look or what its
 script can drive: lighting, fog, sky, water, particles, materials, terrain,
 camera and the natives behind them. For each: the patch, the native or
 editor field, whether map script can drive it at run time, graphics modes,
@@ -24,12 +24,76 @@ Graphics modes: 3.0 offers Classic, Reforged and Definitive Edition
 neither read nor choose it ([visual quality](visual-quality.md#the-renderer-is-fixed)).
 "HD" below means Reforged and Definitive.
 
+## 3.0.1 (October 2026): renderer and asset corrections
+
+The [3.0.1 notes](https://us.forums.blizzard.com/en/warcraft3/t/warcraft-iii-reforged-forsaken-kingdom-patch-notes/38400/4)
+and the installed common.j/assets are covered in
+[visual quality](visual-quality.md#301-presentation-changes). No new
+presentation native was added; the 3.0 fog, lighting and water interfaces
+below still apply.
+
+| Feature / correction | Map access | Cost / application |
+| --- | --- | --- |
+| Ambient Occlusion option restored | player option; map post-processing configuration | extra graphics cost; capture profiles record AO explicitly |
+| Lordaeron Summer daytime lighting dimmed by 10% | stock day/night models | stock contrast baselines must use 3.0.1; authored models retain their values |
+| Stock spell effects retuned; Brewmaster and Grunt reanimated | existing model paths | captures of those effects and animations must name the client build |
+| `WaterfallNoMist` asset | HD / Definitive model path; no Classic copy | use a Classic stock waterfall when needed; no map-script emitter controls |
+| Definitive portrait animation and lip sync improved | native unit portraits | Smashcraft uses rendered portraits |
+| Imported assets, model paths containing periods, item-light cleanup and editor lighting/post-processing fixes | existing imports and editor fields | removes engine defects; no new per-frame script calls |
+
+## Smashcraft application by stage
+
+This table describes the shipped setup in `ts/src/game/presentation/stageScenery.ts`,
+its scenery modules, and `ts/src/game/assets/stageLighting.ts` /
+`stagePointLights.ts`. Every row has an authored day/night light and distance
+fog. Height fog uses `SetTerrainFogExV(3, ...)`, a maximum-density cap and the
+listed draw-over-sky choice. Point lights are model lights, with one shadow
+caster per lit stage; the shell requests that minimum through
+`BlzSetMinShadowCastingPointLightCount`. Classic and Definitive are the
+supported player modes. Stage capture and performance results belong in
+[#192](https://github.com/tompassarelli/smashcraft/issues/192).
+
+| Stage | Sky | Shipped 3.0 feature application |
+| --- | --- | --- |
+| Practice / Sky (0) | authored neutral sky | neutral light and linear fog; no atmosphere below the plain practice deck |
+| Frozen Throne (2) | authored glacier sky | icy light at 0.8; linear fog; height fog remains a capture candidate |
+| Durotar (3) | authored desert sky | warm light at 0.3; linear dust fog; height fog remains a capture candidate |
+| Naxxramas (4) | authored necropolis sky | one plague-green model light, shadow-casting; linear teal fog |
+| Stratholme (6) | stock Lordaeron Fall | two fire model lights, one shadow-casting; linear dusk fog |
+| Tomb of Sargeras (7) | authored sea sky | teal height fog below the deck, cap 0.375, draw-over-sky off |
+| Nordrassil (10) | stock Felwood aurora | teal height fog below the roots, cap 0.5, draw-over-sky off to preserve the aurora |
+| Gryphon Aerie (11) | authored cloud sky | desaturated blue height fog below the deck, cap 0.5, draw-over-sky on; light at 0.2 |
+| Blackrock (12) | authored cavern sky | two forge-fire model lights, one shadow-casting; light at 1.2 and linear ember fog |
+| Ahn'Qiraj (13) | authored sandstone sky | ochre light at 0.5; linear fog; height fog remains a capture candidate |
+| Hellfire (14) | stock Outland sky | two fel-green model lights, one shadow-casting; linear green fog |
+
+HD terrain-water controls do not affect the model surfaces used for Tomb's
+tide floor or Blackrock's lava: terrain is hidden. Existing sky models use
+`SetSkyModel`, an older native; 3.0's new sky-related control is fog drawn over
+the sky. The shell resets the fog cap, draw-over-sky and shadow-light minimum
+between stages so a previous scene does not leave its settings behind.
+
+Slash contact sparks use the existing authored Hit model with a warm-white
+omni light: radius 380, intensity 0.9 → 0.35 → 0 over 140 ms. This uses 3.0's
+uncapped HD model lights and adds 204 bytes to the existing model, with no
+additional file or per-frame script call. The Classic spark geometry is
+retained. Native before/after captures determine the readability improvement;
+the unchanged #168 gate is p99 ≤10 ms and worst ≤14 ms.
+
+Wisp reports the model, emitter and external effect file for visible
+PopcornFX emitters, and fails a render naming unsupported emitters
+([wisp#83](https://github.com/tompassarelli/wisp/issues/83)). That failure is
+useful evidence of the missing draw; it is not a particle-fidelity pass.
+Height-fog appearance, point-light shadows and the slash light still need
+the corresponding Classic/Definitive captures when no matched native
+reference exists.
+
 ## 3.0.0 Forsaken Kingdom (September 2026): the priority features
 
 Source for this section unless noted: the
 [3.0.0 patch notes](https://us.forums.blizzard.com/en/warcraft3/t/warcraft-iii-reforged-forsaken-kingdom-patch-notes/38400)
 ("PN3"), the [Hive 3.0 thread](https://www.hiveworkshop.com/threads/warcraft-3-reforged-forsaken-kingdom-expansion-and-major-updates.374111/),
-and common.j. No 3.0.x hotfix notes were found as of 7 Oct 2026.
+and common.j.
 
 ### Fog (atmosphere, not fog of war)
 
