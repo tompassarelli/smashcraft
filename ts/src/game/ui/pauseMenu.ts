@@ -42,7 +42,7 @@ export class PauseMenu {
     BlzFrameSetVisible(this.controls, !title);
     BlzFrameSetText(this.controls, "Q: full shield    T: light shield    P: tilt    Z / L3: short hop\n"
       + "Shield before landing: tech; hold left/right for a tech roll.\n"
-      + "Shield + neutral/side Special: EX, 25 extra meter. Shield + left/right: roll; down: dodge.\n"
+      + "Shield + Special in any direction: EX, full bar. Shield + left/right: roll; down: dodge.\n"
       + "Knocked down: Attack/Special to strike; Up/Jump/Shield to stand; left/right to roll.\n"
       + "Ledge: Up/toward stage to climb; Jump to leap; Shield to roll; Attack to strike; Down/away to let go."
       + (training ? `\nF2: training hints ${hints ? "On" : "Off"}` : ""));
