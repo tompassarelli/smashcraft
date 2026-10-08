@@ -136,7 +136,7 @@ async function modelFor(character: Character, name: string): Promise<string> {
   const mdx = join(models, `${name}.mdx`);
   if (importedModelFile(hero.presentation.model) !== undefined) await Bun.write(mdx, Bun.file(join(assets!, heroModelSource(hero.presentation.model))));
   else run([extract, storage, stored(hero.presentation.model).replace(/\.mdl$/, '.mdx'), mdx]);
-  run(['bun', join(project, 'tools/animations/convert.ts'), mdx, mdl]);
+  run(['bun', join(project, 'tools/animations/convert.ts'), mdx, mdl, '--body-only']);
   await Bun.write(mdl, lowerTextureExtensions(posedLayers(await Bun.file(mdl).text())));
   return mdl;
 }
