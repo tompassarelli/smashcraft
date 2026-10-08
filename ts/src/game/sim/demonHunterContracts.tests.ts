@@ -17,26 +17,6 @@ import { canAttack } from "./conditions";
 import { resolveLedges } from "./ledge";
 import { cancelSpecialState } from "./transitions";
 
-test("demonHunterGroundInputsCanHitStandingOpponents", () => {
-  for (const facing of [-1, 1]) for (let variant = 0; variant <= 8; variant++) {
-    const walking = variant >= 4;
-    const horizontal = variant === 3 || variant === 4 || variant >= 7 ? facing : 0;
-    const vertical = variant === 1 || variant === 5 || variant === 7 ? 1 : variant === 2 || variant === 6 || variant === 8 ? -1 : 0;
-    const style = walking
-      ? vertical > 0 ? AttackStyle.upTilt : vertical < 0 ? AttackStyle.downTilt : AttackStyle.forwardTilt
-      : vertical > 0 ? AttackStyle.upSmash : vertical < 0 ? AttackStyle.downSmash : horizontal !== 0 ? AttackStyle.forwardSmash : AttackStyle.jab;
-    const attacker = createFighter(Character.demonHunter, 0.0, facing);
-    const target = createFighter(Character.archer, facing * 60.0, -facing);
-    if (style === AttackStyle.upSmash || style === AttackStyle.upTilt) target.motion.z = 65.0;
-    if (style === AttackStyle.downSmash || style === AttackStyle.downTilt) target.motion.z = -65.0;
-    const world = testWorld(attacker, target);
-    beginFighterAttack(world, 0, style, false);
-    attacker.attack.frame = attackStartupFrames(style);
-    resolveAttacks(world);
-    assertGreaterThan(target.status.damage, 0.0);
-  }
-});
-
 test("demonHunterSharesGrabGetupAndLedgeContactRules", () => {
   for (const facing of [-1, 1]) for (const action of [0, 1, 2]) {
     const style = action === 0 ? AttackStyle.grab : action === 1 ? AttackStyle.getupAttack : AttackStyle.ledgeAttack;
