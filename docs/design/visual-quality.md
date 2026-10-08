@@ -257,7 +257,7 @@ right. Re-capture the stock/mask/stage triple after every change.
 | --- | --- | --- | --- | --- |
 | Sky Deck (0) | Classic noon (255 / 214, 214, 250) | authored | session failed; #178 ΔE00 22.8 | Keep as the neutral baseline; capture the triple |
 | Frozen Throne (2) | 226, 240, 255 / 150, 172, 220 | authored | contrast falls (ΔE00 −2.2, −0.8) | Darken key and fill toward stock, or darken the band behind the deck; re-capture |
-| Durotar (3) | 255, 226, 180 / 190, 152, 134 | authored | contrast falls (ΔE00 −3.3, −3.5) | Same as Frozen Throne |
+| Durotar (3) | 255, 226, 180 / 190, 152, 134, intensity 0.65 (#266) | authored | contrast fell at intensity 1 (ΔE00 −3.3, −3.5) | Re-capture the triple at 0.65 |
 | Naxxramas (4) | 222, 230, 255 / 150, 136, 196 | authored | contrast rises (ΔE00 +2.3, +1.9) | Keep; pin the light |
 | Stratholme (6) | 255, 214, 180 / 170, 140, 150 | authored | added after the batch | Capture the triple first |
 | Tomb of Sargeras (7) | 226, 244, 255 / 130, 176, 180 | authored | added after the batch | Capture the triple first |

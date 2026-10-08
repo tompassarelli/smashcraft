@@ -2,7 +2,7 @@ import { assertEquals, test } from "wisp/src/runtime/testing";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { luma } from "./stagePalette";
 import { STAGE_LIGHTS } from "./stageLighting";
-import { TIMED_TEST_STAGE } from "../sim/stage";
+import { DRIFTING_DECK_STAGE, TIMED_TEST_STAGE } from "../sim/stage";
 
 // smashcraft:docs/design/visual-quality.md, "Stage light rules".
 test("every selectable stage has its own light [spec docs/design/visual-quality.md]", () => {
@@ -35,4 +35,10 @@ test("Ahn'Qiraj's light shines at half strength so fighters stay darker than the
     const intensity = light.intensity ?? 1;
     assertEquals(intensity > 0 && intensity <= 1, true, `${theme}: intensity ${intensity} is outside (0, 1]`);
   }
+});
+
+// #170 measured Durotar's full-intensity light lifting fighters toward its bright ring (ΔE00 −3.3, −3.5); #266 dims it.
+test("Durotar's key and fill stay dimmed to 0.65 so fighters keep their contrast against its bright backdrop [spec docs/design/visual-quality.md]", () => {
+  const durotar = STAGE_LIGHTS.find(({ stage }) => stage === DRIFTING_DECK_STAGE)?.light;
+  assertEquals(`${durotar?.key.join(",")}/${durotar?.ambient.join(",")}@${durotar?.intensity}`, "255,226,180/190,152,134@0.65");
 });

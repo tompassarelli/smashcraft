@@ -28,8 +28,8 @@ export const STAGE_LIGHTS: readonly { readonly stage: number; readonly theme: st
   { stage: WIND_TEST_STAGE, theme: "Nordrassil", light: { key: [236, 246, 232], ambient: [136, 178, 172] } },
   // High mountain sun, sky-blue fill.
   { stage: CARRIED_TEST_STAGE, theme: "Aerie", light: { key: [255, 248, 226], ambient: [164, 182, 220] } },
-  // Low desert sun, red-earth fill.
-  { stage: DRIFTING_DECK_STAGE, theme: "Durotar", light: { key: [255, 226, 180], ambient: [190, 152, 134] } },
+  // Low desert sun, red-earth fill, dimmed below the bright mesa skyline (#266).
+  { stage: DRIFTING_DECK_STAGE, theme: "Durotar", light: { key: [255, 226, 180], ambient: [190, 152, 134], intensity: 0.65 } },
   // Cold necropolis light, plague-violet fill.
   { stage: PATTERNED_DECKS_STAGE, theme: "Scourge", light: { key: [222, 230, 255], ambient: [150, 136, 196] } },
   // Burning sky key, fel-green fill.
