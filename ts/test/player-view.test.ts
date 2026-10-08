@@ -88,6 +88,32 @@ test("Frozen Throne: a selectable match draws four platforms and the winter back
   }
 });
 
+test("Tomb's Temple of Tides draws on the right at both camera extremes [repro #263]", () => {
+  const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
+  clients.start();
+  clients.frames(30);
+  clients.chat(0, "-dev quick stage 7");
+  const client = clients.client(0);
+  const piece = stageScenery(7).pieces.find(({ model }) => model.includes("TempleOfTides"));
+  if (piece === undefined) throw new Error("missing Tomb landmark");
+  for (const extreme of ["near", "far"] as const) {
+    const camera = createMatchCamera();
+    extremeCamera(camera, 7, MATCH_CAMERA_ASPECT, extreme);
+    const tilt = 10 * Math.PI / 180;
+    const depth = camera.distance + piece.y * Math.cos(tilt) - (piece.z - camera.z) * Math.sin(tilt);
+    expect(depth, extreme).toBeLessThan(ARENA_CAMERA.farZ);
+    const column = 0.5 + (piece.x - camera.x) / (2 * depth * camera.tangent * MATCH_CAMERA_ASPECT);
+    expect(column, extreme).toBeGreaterThanOrEqual(2 / 3);
+    expect(column, extreme).toBeLessThan(1);
+    clients.chat(0, `-dev view ${extreme}`);
+    clients.frames(1);
+    client.run(() => trampoline("scene.report")());
+    const temple = sceneReport(client).models.find(({ model }) => model === reportedModel("Buildings\\Naga\\TempleOfTides\\TempleOfTides.mdx"));
+    expect(temple, extreme).toMatchObject({ live: 1, inView: 1, drawn: 1 });
+  }
+  expect(client.errors).toEqual([]);
+});
+
 test("every stage's scenery stays behind fighters, and fog starts beyond the fight in every declared camera [provisional]", () => {
   const visibility = SMASHCRAFT_SCENE.visibility;
   if (visibility === undefined) throw new Error("missing visibility");
