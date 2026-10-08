@@ -74,7 +74,7 @@ test("a copied row executes as its source [invariant]", () => {
   const original = testMatch(3, Character.rifleman);
   const copied = testMatch(3, Character.rifleman);
   const copy = createMatchFrameInput();
-  for (let frame = 1; frame <= 12; frame++) {
+  for (let frame = 1; frame <= 22; frame++) {
     original.inputs.inputs[0].specialPressed = frame === 1;
     original.inputs.inputs[0].down = true;
     original.inputs.inputs[0].specialZ = -1;
