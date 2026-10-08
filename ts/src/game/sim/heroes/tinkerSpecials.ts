@@ -37,6 +37,6 @@ export const TINKER_SPECIALS: FighterSpecials = {
     } },
     recall: { cost: 0, endFrame: 36, groundOnly: true, recall: true },
   },
-  up: { name: "Rocket Boots", description: "Burn upward and steer left or right, then fall helplessly.", ground: boots(15, 14.0, 5.0), free: boots(0, 9.0, 4.0) },
+  up: { name: "Rocket Boots", description: "Blast off, burn upward and steer left or right, then fall helplessly.", ground: boots(15, 14.0, 5.0), free: boots(0, 9.0, 4.0) },
   down: { name: "Robo-Goblin", description: "Transform for an armored hammer-tank charge; grabs and heavy hits beat the armor.", ground: robo(false), air: robo(true) },
 };

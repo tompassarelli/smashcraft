@@ -256,7 +256,7 @@ Normals, inspired by:
 | --- | --- | --- |
 | Neutral special | Cluster Rockets | Three rockets cover the approach and charge the next claw hit. |
 | Side special | Pocket Factory | Build a breakable factory that sends out Clockwerk Goblins; press again to recall it. |
-| Up special | Rocket Boots | Burn upward and steer left or right, then fall helplessly. |
+| Up special | Rocket Boots | Blast off, burn upward and steer left or right, then fall helplessly. |
 | Down special | Robo-Goblin | Transform for an armored hammer-tank charge; grabs and heavy hits beat the armor. |
 | Jab, repeated | Claw-Pack | Two short claw taps and a wrench shove. |
 | Passive | Engineering Upgrade | Gadget hits charge up to two upgrades; the next claw hit spends them for extra damage. |
