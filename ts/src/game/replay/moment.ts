@@ -14,6 +14,7 @@ import { INPUT_ROW_NUMBERS, type InputRow, emptyInput, loadInputNumbers, storeIn
 import { PARTICIPANT_SLOTS, type ParticipantInputs, type Slots, participantActive } from "../input/participants";
 import { type FrameControls, createFrameControls } from "../match/controls";
 import { type SavedBotStrategy, restoredBotStrategy, savedBotStrategy } from "../match/botStrategy";
+import { settleBotMemoryChecksums } from "../match/botPerception";
 import { padDecimal } from "../netcode/journal/decimal";
 import { type MatchFrameInput, captureFrame, captureNetworkFrame, createMatchFrameInput, executeMatchFrame } from "../match/frameInput";
 import type { PacingAndPresentation } from "../match/pacingAndPresentation";
@@ -194,6 +195,7 @@ export const KEYED_BY_ACTION = ["attacks", "normals", "throws"];
 type SavedRuntime = Omit<PacingAndPresentation, "botStrategies"> & { readonly botStrategies: Slots<SavedBotStrategy> };
 
 export function savedRuntime(runtime: Readonly<PacingAndPresentation>): SavedRuntime {
+  settleBotMemoryChecksums(runtime.botMemory);
   const strategies = runtime.botStrategies;
   return { ...runtime, botStrategies: [savedBotStrategy(strategies[0]), savedBotStrategy(strategies[1]), savedBotStrategy(strategies[2]), savedBotStrategy(strategies[3])] };
 }

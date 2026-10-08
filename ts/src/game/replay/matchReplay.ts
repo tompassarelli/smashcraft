@@ -27,6 +27,7 @@ import { Character } from "../sim/codes";
 import { type Fighter } from "../sim/fighter";
 import { authoredTuning } from "../sim/tuning";
 import { botStrategyValues } from "../match/botStrategy";
+import { settleObservationChecksum } from "../match/botPerception";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import {
   type FrameRows, type FrameScratch, KEYED_BY_ACTION, type MomentInput, type MomentRecorder, ROW_FRAMES, SNAPSHOT_FRAMES,
@@ -168,6 +169,7 @@ function foldMatchAndFrame(lanes: Lanes, match: Readonly<MatchState>, runtime: R
   foldInteger(lanes, 7, memory.history.length);
   for (let index = 0; index < memory.history.length; index++) {
     const sample = at(memory.history, index);
+    settleObservationChecksum(sample);
     const base = floorMod(11 + index * 977, MODULUS);
     foldInteger(lanes, base, sample.frame);
     foldInteger(lanes, base + 1, sample.checksumFirst);

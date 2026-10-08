@@ -17,9 +17,16 @@ const EMPTY = createFighter(0, 0.0, 1);
 export interface BotObservationFrame {
   readonly frame: number;
   readonly opponents: Slots<Readonly<Fighter> | undefined>;
-  readonly checksumFirst: number;
-  readonly checksumSecond: number;
+  /** UNSETTLED until settleObservationChecksum computes it from the immutable sample. */
+  checksumFirst: number;
+  checksumSecond: number;
 }
+
+/**
+ * A checksum not computed yet. Only replay checkpoints and saved moments read
+ * checksums, so a sample replaced by a correction before then never pays for one.
+ */
+const UNSETTLED = -1;
 
 export interface BotMemory {
   history: readonly BotObservationFrame[];
@@ -453,16 +460,28 @@ export function observeOpponents(memory: BotMemory, world: Roster, frame: number
     if (isActive(world, slot)) { copyObservation(body, fighterAt(world, slot)); entry.sample.opponents[slot] = body; }
     else entry.sample.opponents[slot] = undefined;
   }
-  checksumFirst = 0;
-  checksumSecond = 0;
-  zeroNumbers = 0;
-  writeObservations(checksumWriter, entry.sample.opponents);
-  flushObservationZeroes();
-  entry.sample.checksumFirst = checksumFirst;
-  entry.sample.checksumSecond = checksumSecond;
+  entry.sample.checksumFirst = UNSETTLED;
+  entry.sample.checksumSecond = UNSETTLED;
   storage.entries.push(entry);
   storage.history.push(entry.sample);
   memory.history = storage.history;
+}
+
+/** Computes a sample's checksum on its first read; its observations never change while any history holds it. */
+export function settleObservationChecksum(sample: BotObservationFrame): void {
+  if (sample.checksumFirst !== UNSETTLED) return;
+  checksumFirst = 0;
+  checksumSecond = 0;
+  zeroNumbers = 0;
+  writeObservations(checksumWriter, sample.opponents);
+  flushObservationZeroes();
+  sample.checksumFirst = checksumFirst;
+  sample.checksumSecond = checksumSecond;
+}
+
+/** Settles every retained sample's checksum, before a memory is written out as text. */
+export function settleBotMemoryChecksums(memory: Readonly<BotMemory>): void {
+  for (const sample of memory.history) settleObservationChecksum(sample);
 }
 
 function perceivedFrame(memory: Readonly<BotMemory>, frame: number, delay: number): BotObservationFrame | undefined {

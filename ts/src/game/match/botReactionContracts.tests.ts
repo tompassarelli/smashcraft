@@ -6,7 +6,7 @@ import { createFighter, type Fighter } from "../sim/fighter";
 import { createRoster, fighterAt, neutralControls, sameControls } from "../sim/roster";
 import { sameAttackBuffer } from "../input/attackBuffer";
 import { produceComputerInput } from "./botPlay";
-import { BOT_DIRECTION_FRAMES, type BotMemory, commitBotDirection, copyBotMemory, createBotMemory, observeOpponents, perceivedOpponent } from "./botPerception";
+import { BOT_DIRECTION_FRAMES, type BotMemory, commitBotDirection, copyBotMemory, createBotMemory, observeOpponents, perceivedOpponent, settleObservationChecksum } from "./botPerception";
 import { cpuSkill } from "./cpuSkill";
 import { CPU_PROFILES, type CpuOpponentId, type CpuTier } from "./cpuProfiles";
 import { createFrameControls } from "./controls";
@@ -83,6 +83,7 @@ test("retained observations survive storage reuse, restored plain history and ro
     first = floorMod(first * 31 + code, 46337);
     second = floorMod(second * 37 + code, 46337);
   }
+  settleObservationChecksum(sample);
   assertEquals(sample.checksumFirst, first);
   assertEquals(sample.checksumSecond, second);
 });
@@ -120,6 +121,7 @@ test("cached observation chunks fold the exact text across kits, fractional valu
         first = floorMod(first * 31 + code, 46337);
         second = floorMod(second * 37 + code, 46337);
       }
+      settleObservationChecksum(sample);
       assertEquals(sample.checksumFirst, first);
       assertEquals(sample.checksumSecond, second);
     }
@@ -133,8 +135,10 @@ test("observation number digests remain exact after recent values are evicted an
     game.target.motion.x = value + 0.5;
     game.target.motion.z = -value - 0.25;
     observeOpponents(game.runtime.botMemory, game.world, frame);
-    if (frame !== 1 && frame !== 1200 && frame !== 1201) continue;
     const sample = at(game.runtime.botMemory.history, game.runtime.botMemory.history.length - 1);
+    // Every sample's digest is computed, as checkpoints would, so the digest cache evicts and revisits.
+    settleObservationChecksum(sample);
+    if (frame !== 1 && frame !== 1200 && frame !== 1201) continue;
     const text = botObservationCanonical(sample);
     let first = 0;
     let second = 0;
