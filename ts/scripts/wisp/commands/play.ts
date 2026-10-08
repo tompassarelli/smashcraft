@@ -22,6 +22,7 @@ import { clientState, gameFilesLayer } from "../project";
 import { smashcraftWatch } from "../doctor";
 import { currentPlaytest } from "../currentPlaytest";
 import { optionalController } from "../controllerService";
+import { pollUntil } from "../../hostPoll";
 import { installLatest } from "../mapLibrary";
 import type { Command } from "wisp/scripts/wisp/command";
 import { PLAYABLE_BUILD } from "../../../src/game/shell/currentBuild";
@@ -80,15 +81,8 @@ const MATCH_SECONDS = 15;
 const problem = (cause: { readonly message: string }) => new PlayProblem({ problem: cause.message });
 
 /** Polls until `observe` returns a value; after `seconds` fails with `text`. */
-const until = <A, R>(seconds: number, observe: Effect.Effect<A | undefined, PlayProblem, R>, text: string) => Effect.gen(function*() {
-  const deadline = (yield* Clock.currentTimeMillis) + seconds * 1000;
-  while (true) {
-    const value = yield* observe;
-    if (value !== undefined) return value;
-    if ((yield* Clock.currentTimeMillis) >= deadline) return yield* new PlayProblem({ problem: text });
-    yield* Effect.sleep("250 millis");
-  }
-});
+const until = <A, R>(seconds: number, observe: Effect.Effect<A | undefined, PlayProblem, R>, text: string) =>
+  pollUntil(observe, { every: "250 millis", within: `${seconds} seconds`, orElse: () => Effect.fail(new PlayProblem({ problem: text })) });
 
 export function playtest({ build, map, helper, computerSlot, computerOpponent, computerTier, menuReportPort }: Playtest): PlayDeclaration<GameFiles> {
   /** The ready file the map writes at fighter selection; one being written reads as absent. */
