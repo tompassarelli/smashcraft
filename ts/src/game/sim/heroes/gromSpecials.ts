@@ -10,7 +10,7 @@ const rush = (air: boolean): AuthoredSpecial => ({
 });
 const leap: AuthoredSpecial = {
   endFrame: 36, oncePerAirtime: true, helpless: true, facesStick: true,
-  motion: [{ ...frames(1, 6), velocityX: 0.0, velocityZ: 0.0 }, { ...frames(7, 22), velocityX: 0.0, velocityZ: 17.5, driftSpeed: 5.0 }, { ...frames(23, 23), velocityX: 0.0, velocityZ: 0.0 }],
+  motion: [{ ...frames(1, 6), velocityX: 0.0, velocityZ: 0.0 }, { ...frames(7, 22), velocityX: 0.0, velocityZ: 24.0, driftSpeed: 13.0 }, { ...frames(23, 23), velocityX: 0.0, velocityZ: 0.0 }],
   regions: [heroRegion(7, 14, { x1: 12.0, z1: 54.0, x2: 12.0, z2: 146.0, radius: 16.0 }, gromHit(8.100000381469727, 80, 76.5, 27.0))],
 };
 const bane: AuthoredSpecial = { endFrame: 50, regions: [heroRegion(20, 23, { x1: 24.0, z1: 94.0, x2: 124.0, z2: 20.0, radius: 16.0 }, gromHit(19.799999237060547, 35, 106.19999694824219, 27.0))] };

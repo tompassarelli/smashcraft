@@ -1629,7 +1629,7 @@ leaves images or plays a safe outer-blade spacing game.
 
 Initial values are original, provisional tuning: weight 1.16H, run 1.04H,
 air drift 0.92H, width 1.12H, height 1.10H. Normal axe reach is 95–132 world
-units; fast hilt checks reach 52. His upward leap travels 280 units before
+units; fast hilt checks reach 52. His upward leap travels 384 units before
 gravity, costs his aerial jump and ends helpless. Predictable recovery is
 his edge-guard weakness.
 
