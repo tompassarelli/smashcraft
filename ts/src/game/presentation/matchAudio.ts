@@ -105,7 +105,7 @@ export const victoryMusic = (winner: Character | undefined): string | undefined 
  * the line it says when chosen where the unit has no Ready line (a campaign hero),
  * and its battle cry where it has no Warcry line (a creep).
  */
-const VOICES: Readonly<Record<Exclude<Character, Character.medivh>, readonly [string, string, string?, string?]>> = {
+const VOICES: Readonly<Record<Exclude<Character, typeof Character.medivh>, readonly [string, string, string?, string?]>> = {
   1: ["Units\\Human\\Rifleman\\", "Rifleman"],
   2: ["Units\\NightElf\\HeroDemonHunter\\", "HeroDemonHunter"],
   3: ["Units\\Orc\\HeroBladeMaster\\", "HeroBladeMaster"],
