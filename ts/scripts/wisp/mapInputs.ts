@@ -278,6 +278,12 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
   const clipEvidencePath = join(clipDirectory, "original-clips-evidence.json");
   const clipEvidence = yield* readJson(OriginalClipEvidence, clipEvidencePath);
   const clipFiles = [...new Set(clipEvidence.records.flatMap((record) => [...record.clips.map(({ filename }) => filename), ...(record.light === null ? [] : [record.light.filename])]))].filter((file) => ORIGINAL_CLIP_MODELS.includes(`war3mapImported\\${file}`));
+  const definitiveBodies = ORIGINAL_CLIP_MODELS.filter((model) => model.includes("TimelineBody-")).flatMap((model) =>
+    ["_de.w3mod", "_hd.w3mod"].flatMap((mod) => {
+      const entry = `${mod}\\${model}`;
+      const source = join(clipDirectory, "imports", ...entry.split("\\"));
+      return existsSync(source) ? [{ entry, source }] : [];
+    }));
   // A changed fighter clip (a re-authored original, a new hero) needs a new pool in the private inputs too.
   yield* requireListed(clipEvidencePath, clipFiles, ORIGINAL_CLIP_MODELS,
     `this assets folder's clip pool predates the checkout's clips. From the repository root, export a new pool from ${assets} ` +
@@ -303,6 +309,7 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
     ...TOMB_WATERFALL_IMPORTS.map(({ entry, file }) => ({ entry, source: join(assets, "stage-assets", file) })),
     ...summonFiles.map((filename) => imported(join(summon, "imports/war3mapImported"), filename)),
     ...clipFiles.map((filename) => imported(join(clipDirectory, "imports/war3mapImported"), filename)),
+    ...definitiveBodies,
   ];
   const problem = importProblem(entries);
   if (problem !== undefined) return yield* new MapBuildFailure({ operation: "check imports", path: assets, cause: problem });
