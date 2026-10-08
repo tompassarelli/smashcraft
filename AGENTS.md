@@ -152,6 +152,10 @@ code. From smashcraft:ts/:
   setup and the response probe (Ctrl+G records, Ctrl+H exports); its rendered
   marker identifies the callback actually captured in pixels. Report that
   diagnostic overhead; journal integrity is a separate input path.
+  `--profile pause-probe` runs the integrity map's unchanged input path and
+  starts its response probe at match setup. The first pause and resume emit
+  `pause-boundary` rows; resume exports the positions presented in that callback
+  automatically, for `ts/test/native/pads/206/pause-dash.pad`.
 - Build inputs: each private asset family is stored once under the hash of
   its contents and never edited; build-inputs.json names each family's hash,
   so changing art is `bun wisp inputs add FAMILY DIR` plus a commit, landed

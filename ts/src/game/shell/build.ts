@@ -41,6 +41,8 @@ export interface MapBuild {
   readonly presentation: PresentationProfile;
   readonly scenario: Scenario;
   readonly responseProbe: boolean;
+  /** Records the first pause/resume boundary automatically in the #206 fixture. */
+  readonly pausePositionProbe?: boolean;
   /** How the controller supplies analog axes and trigger pressure. */
   readonly analogPad?: "keys" | "cursor";
   /** Fixed comparison camera, calibration receipts and recorded pad rows. */

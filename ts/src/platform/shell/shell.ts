@@ -37,7 +37,7 @@ import { STAGE_READY, cancelStageLoad, serviceStageLoad, stageReadyEvent } from 
 import { STAGE_READY_PREFIX } from "../../game/shell/stageLoad";
 import { makePreview } from "./preview";
 import { preloadStageAssets } from "./stageScenery";
-import { PROBE_EXPORT, exportProbePage, probeBegin, probeFighterPosition, probePresent, probeRecording } from "./responseProbe";
+import { PROBE_EXPORT, exportProbe, exportProbePage, probeBegin, probeFighterPosition, probeIntegrity, probePresent, probeRecording, startProbe } from "./responseProbe";
 import { receiveInput, rollbackTick } from "./rollback";
 import { SAVE_MOMENT, momentKey, serviceMomentRequest, serviceMomentSave } from "./moment";
 import { readMatchIndex, writeMatchRecord } from "./matchRecords";
@@ -80,6 +80,8 @@ declare global {
 /** One game callback. */
 function gameTick(s: ShellState): void {
   if (!beforeNativeDriverTick(s)) return;
+  if (s.build.pausePositionProbe && s.game.phase === Phase.match && s.probe?.run === 0) startProbe(s.probe, false);
+  const pausedBefore = s.session.paused;
   serviceVisualCapture(s);
   const epoch = journalEpoch(s);
   const editbox = s.rollback?.journal?.editbox;
@@ -152,6 +154,10 @@ function gameTick(s: ShellState): void {
         if (!isActive(world, slot)) continue;
         const { x, z } = fighterAt(world, slot).motion;
         probeFighterPosition(s.probe, slot, frame, x, z);
+      }
+      if (s.build.pausePositionProbe && pausedBefore !== s.session.paused) {
+        probeIntegrity(s.probe, `pause-boundary ${s.session.paused ? "paused" : "resumed"} ${frame}`);
+        if (!s.session.paused) exportProbe(s.probe);
       }
     }
   }
