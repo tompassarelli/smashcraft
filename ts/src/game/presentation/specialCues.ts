@@ -191,8 +191,8 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
   [Character.grom]: {
     neutral: { spell: "Warsong Cry", startup: BLOODLUST, active: cue("Abilities\\Spells\\NightElf\\BattleRoar\\RoarTarget.mdx", "body", 0.75) },
     side: { spell: "Gorehowl Rush", startup: BLOODLUST, active: BLOODLUST },
-    up: { spell: "Blood Leap", startup: BLOODLUST, active: cue("Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx", "feet", 0.75) },
-    down: { spell: "Mannoroth's Bane", startup: BLOODLUST, active: cue("Abilities\\Spells\\Other\\Stampede\\StampedeMissileDeath.mdx", "ahead", 0.75) },
+    up: { spell: "Blood Leap", startup: BLOODLUST, active: { ...VAMPIRIC, anchor: "body" } },
+    down: { spell: "Mannoroth's Bane", startup: BLOODLUST, active: { ...FEL, anchor: "ahead" } },
   },
   [Character.kobold]: {
     neutral: { spell: "Wick Flick", startup: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "hand", f32(0.3)), active: cue("Abilities\\Weapons\\LavaSpawnMissile\\LavaSpawnMissile.mdx", "hand", f32(0.4)) },
