@@ -26,6 +26,7 @@
 360 a tap X 2
 361 a stick 0 0
 370 a capture
+380 a capture
 380 b shield 1
 400 a capture
 420 b tap B 8
@@ -38,6 +39,7 @@
 540 b tap X 2
 541 b stick 0 0
 550 b capture
+560 b capture
 580 b capture
 600 a press VIEW
 670 a release VIEW

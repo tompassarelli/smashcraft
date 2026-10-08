@@ -17,6 +17,7 @@ import { value } from "./rematch/playableMatch";
 const runtime = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(runtime.restore);
 
+<<<<<<< HEAD
 function checkMovementRolls(file: string): void {
   const clients = runtime.clients({ install, start }, [0]);
   const client = clients.client(0);
@@ -53,6 +54,28 @@ sweep("every movement capture script plays and advances the forward roll after i
   for (const file of readdirSync(new URL("./native/pads/171/", import.meta.url)).filter(file => file.endsWith(".pad"))) checkMovementRolls(file);
 });
 
+||||||| parent of a13701a44 (Keep Defile upright and start its dark pool boundary pose (#174))
+=======
+test("Defile's ground effect stays upright and starts the boundary's visible Stand pose [repro #174]", () => {
+  const clients = runtime.clients({ install, start }, [0]);
+  clients.start();
+  clients.frames(3);
+  clients.everywhere(() => nativeDriverCommand("#! chat -dev quick hero lich king\n40 a stick 0 -1\n40 a tap X 2\n41 a stick 0 0\n"));
+  clients.everywhere(() => nativeDriverCommand("resume 60"));
+  clients.frames(65);
+  const effects = clients.client(0).effectPoses({ visibleOnly: true });
+  const pool = effects.find(pose => pose.model.includes("DarkPortalTarget"));
+  const boundary = effects.find(pose => pose.model.includes("ImpactDefile"));
+  expect(pool).toBeDefined();
+  expect(pool?.pitch).toBe(0);
+  expect(boundary).toBeDefined();
+  expect(boundary?.animation).toBe("stand");
+  expect(boundary?.animationElapsed).toBe(0);
+  expect(boundary?.timeScale).toBe(0);
+  expect(clients.client(0).errors).toEqual([]);
+});
+
+>>>>>>> a13701a44 (Keep Defile upright and start its dark pool boundary pose (#174))
 // Real shell callback, capture and replay; command delivery itself belongs to Wisp.
 test("native driver sets up pad rows, holds the whole callback, and stepped and free runs replay equally [invariant]", () => {
   const clients = runtime.clients({ install, start }, [0, 1]);

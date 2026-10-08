@@ -51,7 +51,11 @@ export class ProjectilePresentation {
         this.visible.push(false);
         if (groundPool) {
           boundaries.push(this.models.length);
-          this.models.push(AddSpecialEffect(IMPACT_DEFILE_MODEL, origin.x, origin.y));
+          const boundary = AddSpecialEffect(IMPACT_DEFILE_MODEL, origin.x, origin.y);
+          BlzSetSpecialEffectAnimationBlendTime(boundary, 0.0);
+          BlzSetSpecialEffectAnimation(boundary, "stand");
+          BlzSetSpecialEffectTime(boundary, 0.0);
+          this.models.push(boundary);
           this.visible.push(false);
         }
       }

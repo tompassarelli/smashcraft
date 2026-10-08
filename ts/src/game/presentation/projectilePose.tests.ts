@@ -12,7 +12,7 @@ import { projectedProjectile } from "./projectilePose";
 import { LICH_KING_SPECIALS } from "../sim/heroes/lichKingSpecials";
 import { heroProjectileRadius } from "../sim/projectiles";
 
-test("Defile's rim follows its danger radius and distinguishes its warning from its armed pool across rollback [spec #174] [invariant]", () => {
+test("Defile stays upright and its rim follows its danger radius through warning, growth and rollback [repro #174] [invariant]", () => {
   const fighter = createFighter(Character.lichKing, 0.0, 1);
   const projectile = mutableProjectile(fighter, 0);
   const spec = LICH_KING_SPECIALS.down.ground.projectiles?.[0];
@@ -26,6 +26,7 @@ test("Defile's rim follows its danger radius and distinguishes its warning from 
   const warning = projectedProjectile(fighter, 0, true);
   assertTrue(warning.visible);
   assertFalse(warning.armed);
+  assertEquals(warning.pitch, 0.0);
   assertEquals(warning.poolRadius, heroProjectileRadius(projectile, spec));
   projectile.life -= spec.activeFrom ?? 0;
   projectile.poolHits = 3;

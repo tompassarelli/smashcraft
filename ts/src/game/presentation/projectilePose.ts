@@ -44,7 +44,7 @@ export function projectedProjectile(fighter: Readonly<Fighter> | undefined, inde
     x: projectile.x,
     z: projectile.z,
     yaw: velocityX >= 0.0 ? 0.0 : f32(3.141592654),
-    pitch: -meleeAtan2(velocityZ, Math.abs(velocityX)),
+    pitch: velocityX === 0.0 && velocityZ === 0.0 ? 0.0 : -meleeAtan2(velocityZ, Math.abs(velocityX)),
     poolRadius: radius,
     dangerRadius: spec === undefined ? 0.0 : heroProjectileRadius(projectile, spec),
     armed,
