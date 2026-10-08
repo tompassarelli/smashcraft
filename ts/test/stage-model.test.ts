@@ -225,7 +225,14 @@ test("Stratholme keeps its cathedral against the fall sky and limits warm lights
   expect(scenery.fog).toEqual({ start: 5000, end: 11000, red: 0.5, green: 0.28125, blue: 0.1875 });
   const cathedral = scenery.pieces.find(({ model }) => model.includes("CathedralRuined"));
   expect(cathedral?.x).toBe(1500);
-  expect(cathedral?.y).toBe(6200);
+  if (cathedral === undefined) throw new Error("missing Stratholme cathedral");
+  for (const view of ["near", "far"] as const) {
+    const camera = createMatchCamera();
+    extremeCamera(camera, 6, MATCH_CAMERA_ASPECT, view);
+    const tilt = 10 * Math.PI / 180;
+    const distance = Math.hypot(cathedral.x - camera.x, cathedral.y + camera.distance * Math.cos(tilt), cathedral.z - camera.z - camera.distance * Math.sin(tilt));
+    expect(distance, view).toBeLessThan(7500);
+  }
   const city = scenery.pieces.filter(({ model }) => model.includes("LordaeronFall"));
   expect(city.map(({ x, y, z, scale, yaw }) => [x, y, z, scale, yaw])).toEqual([[-1600, 7600, -1800, 2, 270]]);
   const lights = STAGE_POINT_LIGHTS.find(({ stage }) => stage === 6)?.lights ?? [];

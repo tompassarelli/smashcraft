@@ -13,8 +13,8 @@ export const STRATHOLME_SCENERY: StageScenery = {
     // ST-3: a second skyline band; this stock HD ruin draws nothing in Classic.
     { model: "Doodads\\LordaeronFall\\Structures\\AndrohalClockTower_Destroyed\\AndrohalClockTower_Destroyed.mdx", x: -1600.0, y: 7600.0, z: -1800.0, scale: 2.0, yaw: 270.0 },
     // The ruined cathedral burns on the right third; the city gate and a gutted hall frame the left.
-    { model: "Doodads\\Cityscape\\Structures\\CathedralRuined\\CathedralRuined.mdx", x: 1500.0, y: 6200.0, z: -1300.0, scale: 3.0, yaw: 250.0 },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 1730.0, y: 6195.0, z: -3790.0, scale: f32(12.4), yaw: 287.0, matrixScale: [1.0, 1.0, f32(2.487)] },
+    { model: "Doodads\\Cityscape\\Structures\\CathedralRuined\\CathedralRuined.mdx", x: 1500.0, y: 5500.0, z: -1300.0, scale: 3.0, yaw: 250.0 },
+    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 1730.0, y: 5495.0, z: -3790.0, scale: f32(12.4), yaw: 287.0, matrixScale: [1.0, 1.0, f32(2.487)] },
     { model: TOWN_FIRE, x: 1250.0, y: 6000.0, z: -900.0, scale: 1.75, yaw: 0.0 },
     { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 1215.0, y: 6000.0, z: -3980.0, scale: f32(6.05), yaw: 37.0, matrixScale: [1.0, 1.0, f32(6.398)] },
     { model: "Doodads\\Cityscape\\Structures\\CityWallEntrance\\CityWallEntrance.mdx", x: -1900.0, y: 3800.0, z: -1300.0, scale: 2.0, yaw: 285.0 },

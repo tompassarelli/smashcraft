@@ -385,7 +385,7 @@ Material set:
 | --- | --- | --- |
 | Deck top | Cobble street | `TerrainArt\Village\Village_CobblePath.blp` |
 | Edge | Kerb stones, Alliance-blue tint | `TerrainArt\Village\Village_StonePath.blp` |
-| Body and underside | Scorched brick foundation | `TerrainArt\Cityscape\City_BrickTiles.blp`, underside `TerrainArt\Misc\misc_CharredEarth.blp` |
+| Body and underside | Scorched brick foundation | `TerrainArt\Cityscape\City_BrickTiles.blp` on both, tinted brown-black below |
 | Platforms | Slate roofs on ruined walls | a roof region of `Textures\CityBuildingsRuin.blp` |
 
 Topology: cobbled slopes, as the stage has; the body a foundation wall with one broken corner (ST-2).
