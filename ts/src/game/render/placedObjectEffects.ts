@@ -62,7 +62,14 @@ export class PlacedObjectEffects {
     bindPrototype(this.feedback, BearFeedback.prototype);
   }
 
-  presentConfirmed(frame: number, fighter: Readonly<Fighter>, slot: number): void { this.feedback.confirm(frame, fighter, slot); }
+  presentConfirmed(frame: number, fighter: Readonly<Fighter>, slot: number): void {
+    for (let animal = 0; animal <= fighter.pack.length; animal++) {
+      const placed = placedObject(fighter, animal);
+      const look = placed.spec?.model ?? heroDefinition(fighter.character)?.presentation.placedModel ?? DEFAULT_LOOK;
+      this.modelFor(slot * 3 + animal, look.path);
+    }
+    this.feedback.confirm(frame, fighter, slot);
+  }
 
   hideSlot(slot: number): void {
     for (let animal = 0; animal < 3; animal++) this.hideModel(slot * 3 + animal);
@@ -85,7 +92,8 @@ export class PlacedObjectEffects {
 
   private presentAnimal(fighter: Readonly<Fighter>, placed: Readonly<PlacedObject>, slot: number): void {
     const look = placed.spec?.model ?? heroDefinition(fighter.character)?.presentation.placedModel ?? DEFAULT_LOOK;
-    const model = this.modelFor(slot, look.path);
+    // Predicted summons can arrive on different client turns; only confirmed frames create their handles.
+    const model = this.paths[slot] === look.path ? this.models[slot] : undefined;
     const spec = placed.spec;
     if (model === undefined) return;
     if (placed.life <= 0 || spec === undefined || fighter.status.out) {

@@ -1,0 +1,28 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "smashcraft-replay-part 62 8" )
+	call Preload( "checkpoint 4320 28865:39465" )
+	call Preload( "rows 120:3:0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" )
+	call Preload( "digests wewbnm wf2bop wf8bps wfebqv wfkbry wfqbt1 wfwbu4 wg2bv7 wg8bwa wgebxd wgkbyg wgqbzj wgwc0m wh2c1p wh8c2s whec3v whkc4y whqc61 whwc74 wi2c87 wi8c9a wiecad wikcbg wiqccj wiwcdm wj2cep wj8cfs" )
+	call Preload( "digests wjecgv wjkchy wjqcj1 wjwck4 wk2cl7 wk8cma wkecnd wkkcog wkqcpj wkwcqm wl2crp wl8css wlectv wlkcuy wlqcw1 wlwcx4 wm2cy7 wm8cza wmed0d wmkd1g wmqd2j wmwd3m wn2d4p wn8d5s wned6v wnkd7y wnqd91" )
+	call Preload( "digests wnwda4 wo2db7 wo8dca woeddd wokdeg woqdfj wowdgm wp2dhp wp8dis wpedjv wpkdky wpqdm1 wpwdn4 wq2do7 wq8dpa wqedqd wqkdrg wqqdsj wqwdtm wr2dup wr8dvs wredwv wrkdxy wrqdz1 wrwe04 ws2e17 ws8e2a" )
+	call Preload( "digests wsee3d wske4g wsqe5j wswe6m wt2e7p wt8e8s wtee9v wtkeay wtqec1 wtwed4 wu2ee7 wu8efa wueegd wukehg wuqeij wuwejm wv2ekp wv8els wveemv wvkeny wvqep1 wvweq4 ww2er7 ww8esa wweetd wwkeug wwqevj" )
+	call Preload( "digests wwwewm wx2exp wx8eys wxeezv wxkf0y wxqf21 wxwf34 wy2f47 wy8f5a wyef6d wykf7g wyqf8j" )
+	call Preload( "checkpoint 4440 39825:23139" )
+	call Preload( "rows 120:3:0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" )
+	call Preload( "digests wywf9m wz2fap wz8fbs wzefcv wzkfdy wzqff1 wzwfg4 x02fh7 x08fia x0efjd x0kfkg x0qflj x0wfmm x12fnp x18fos x1efpv x1kfqy x1qfs1 x1wft4 x22fu7 x28fva x2efwd x2kfxg x2qfyj x2wfzm x32g0p x38g1s" )
+	call Preload( "digests x3eg2v x3kg3y x3qg51 x3wg64 x42g77 x48g8a x4eg9d x4kgag x4qgbj x4wgcm x52gdp x58ges x5egfv x5kggy x5qgi1 x5wgj4 x62gk7 x68gla x6egmd x6kgng x6qgoj x6wgpm x72gqp x78grs x7egsv x7kgty x7qgv1" )
+	call Preload( "digests x7wgw4 x82gx7 x88gya x8egzd x8kh0g x8qh1j x8wh2m x92h3p x98h4s x9eh5v x9kh6y x9qh81 x9wh94 xa2ha7 xa8hba xaehcd xakhdg xaqhej xawhfm xb2hgp xb8hhs xbehiv xbkhjy xbqhl1 xbwhm4 xc2hn7 xc8hoa" )
+	call Preload( "digests xcehpd xckhqg xcqhrj xcwhsm xd2htp xd8hus xdehvv xdkhwy xdqhy1 xdwhz4 xe2i07 xe8i1a xeei2d xeki3g xeqi4j xewi5m xf2i6p xf8i7s xfei8v xfki9y xfqib1 xfwic4 xg2id7 xg8iea xgeifd xgkigg xgqihj" )
+	call Preload( "digests xgwiim xh2ijp xh8iks xheilv xhkimy xhqio1 xhwip4 xi2iq7 xi8ira xieisd xikitg xiqiuj" )
+	call Preload( "checkpoint 4560 4448:6813" )
+	call Preload( "rows 20:3:0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" )
+	call Preload( "digests xiwivm xj2iwp xj8ixs xjeiyv xjkizy xjqj11 xjwj24 xk2j37 xk8j4a xkej5d xkkj6g xkqj7j xkwj8m xl2j9p xl8jas xlejbv xlkjcy xlqje1 xlwjf4 xm2jg7" )
+	call Preload( "checkpoint 4580 26991:25303" )
+	call Preload( "end 18" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

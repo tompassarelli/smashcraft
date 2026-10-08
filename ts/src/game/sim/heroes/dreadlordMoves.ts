@@ -23,7 +23,7 @@ const CLASS = {
   POKE: { growth: 67.875, base: 18.0 },
   LAUNCH: { growth: 95.0250015258789, base: 20.0 },
   EDGE: { growth: 99.55000305175781, base: 22.0 },
-  KILL: { growth: 115.84000396728516, base: 28.0 },
+  KILL: { growth: 108.5999984741211, base: 28.0 },
   SPIKE: { growth: 90.5, base: 22.0 },
   // Throw roles (#107): an up throw's guaranteed short juggle and a down throw's tech chase.
   JUGGLE: { growth: 56.11000061035156, base: 50.0 },

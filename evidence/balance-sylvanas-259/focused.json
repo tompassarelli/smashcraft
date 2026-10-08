@@ -1,0 +1,28 @@
+{
+  "issue": 259,
+  "fighter": "sylvanas-windrunner",
+  "change": { "move": "Black Arrow", "damageBefore": 11, "damageAfter": 9 },
+  "baseline": {
+    "revision": "a7b07a462b336a27e3ae4f0263274d5c88858139",
+    "run": "https://github.com/tompassarelli/smashcraft/actions/runs/37747404895",
+    "fullFieldWins": 5083,
+    "fullFieldMatches": 8160,
+    "blackArrowDamageShare": 0.4594294468343341,
+    "blackArrowKillShare": 0.308253873659118
+  },
+  "candidate": {
+    "revision": "fc1251d53c811cb1bec5a32170529dd47422f3fd",
+    "codeCommit": "d433a0b564e37ae15b9947edee1a97cec9ffea3e",
+    "run": "https://github.com/tompassarelli/smashcraft/actions/runs/37752778293"
+  },
+  "settings": { "opponent": "wren", "tier": "expert", "matchesPerPair": 408, "seeds": 100, "stocks": 3, "minutes": 4, "spamProbe": 0 },
+  "pairs": [
+    { "opponent": "archer", "beforeWins": 285, "afterWins": 223, "matches": 408, "opponentUnchanged": true },
+    { "opponent": "lich", "beforeWins": 325, "afterWins": 279, "matches": 408, "opponentUnchanged": true },
+    { "opponent": "rifleman", "beforeWins": 318, "afterWins": 291, "matches": 408, "opponentUnchanged": false },
+    { "opponent": "warden", "beforeWins": 237, "afterWins": 215, "matches": 408, "opponentUnchanged": false }
+  ],
+  "contracts": { "bunPassed": 26, "lua32Passed": 26, "lua32CpuSeconds": 0.270, "typecheckPassed": true, "oldBlackArrowContractFailed": true },
+  "preserved": ["Black Quiver", "Silence", "Life Drain", "Banshee Flight", "movement", "hit regions", "attack timing"],
+  "interactionGraph": "The command refuses Sylvanas because it supports only Archer, Rifleman and Illidan."
+}
