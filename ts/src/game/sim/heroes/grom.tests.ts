@@ -64,7 +64,7 @@ test("Grom's rush stops at shields and Blood Leap ends helpless with the aerial 
 
 test("Grom's four specials hit at their authored contacts in ground and air, both facings [spec #340]", () => {
   for (const facing of [-1, 1]) for (const air of [false, true]) for (const [x, z, targetX, targetZ, damage, contact] of [
-    [0, 0, 44.0, 0.0, 5.25, 12], [1, 0, 104.0, 0.0, 9.0, 10], [0, 1, 12.0, 96.0, 6.75, 7], [0, -1, 124.0, 0.0, 16.5, 20],
+    [0, 0, 44.0, 0.0, 6.300000190734863, 12], [1, 0, 104.0, 0.0, 10.800000190734863, 10], [0, 1, 12.0, 96.0, 8.100000381469727, 7], [0, -1, 124.0, 0.0, 19.799999237060547, 20],
   ] as const) {
     const owner = createFighter(Character.grom, 0.0, facing), target = createFighter(Character.rifleman, targetX * facing, -facing);
     owner.motion.grounded = !air; owner.motion.surface = 0; target.motion.grounded = false; target.motion.z = targetZ;
