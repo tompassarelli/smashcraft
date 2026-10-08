@@ -88,8 +88,12 @@ export class SpecialEffects {
     this.slots.forEach((slot, index) => {
       resetImpactPresentationCursor(slot.cursor);
       slot.bear.hide();
-      // In flag order.
-      [slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.drainFlash, slot.silence].forEach((model, effect) => this.park(model, index, effect));
+      this.park(slot.aura, index, AURA);
+      this.park(slot.felFlames, index, FEL_FLAMES);
+      this.park(slot.manaHand, index, MANA_HAND);
+      this.park(slot.wingTrail, index, WING_TRAIL);
+      this.park(slot.drainFlash, index, DRAIN_FLASH);
+      this.park(slot.silence, index, SILENCE);
       slot.previousSpecial = SpecialAction.none;
       slot.previousSpecialFrame = 0;
       this.releaseImmolationLoop(slot);
@@ -208,10 +212,6 @@ export class SpecialEffects {
       this.park(effects.aura, slot, AURA);
       this.park(effects.wingTrail, slot, WING_TRAIL);
       this.park(effects.drainFlash, slot, DRAIN_FLASH);
-      this.park(effects.felFlames, slot, FEL_FLAMES);
-      this.park(effects.manaHand, slot, MANA_HAND);
-      this.park(effects.silence, slot, SILENCE);
-      this.releaseImmolationLoop(effects);
       return;
     }
     this.applyStatic(effects.aura, slot, AURA, projectSpecialEffect(state, fighter, slot, STATIC_AURA));
