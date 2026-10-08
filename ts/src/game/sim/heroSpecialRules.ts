@@ -36,7 +36,7 @@ export const isHeroSpecialAction = (action: number): boolean => action >= Specia
 export function runningHeroSpecial(f: Readonly<Fighter>): AuthoredSpecial | undefined {
   const specials = f.tuning.specials;
   if (specials === undefined || !isHeroSpecialAction(f.special.action)) return undefined;
-  return specialForm(specialKit(specials, f.special.action - SpecialAction.heroNeutral), f.special.form);
+  return specialForm(specialKit(specials, f.special.action - SpecialAction.heroNeutral), f.special.form, f.special.ex);
 }
 
 function requestedSlot(input: Readonly<Controls>): SpecialSlot {
@@ -90,7 +90,8 @@ function recallHolds(f: Readonly<Fighter>, kit: Readonly<SpecialKit>): boolean {
   if (kit.recallWhile === "armor") return f.status.armorFrames > 0;
   if (kit.recallWhile === "projectile") {
     const spec = kit.ground.projectiles?.[0];
-    return spec !== undefined && ownedCount(f, spec) > 0;
+    const exSpec = kit.ground.ex?.projectiles?.[0];
+    return (spec !== undefined && ownedCount(f, spec) > 0) || (exSpec !== undefined && ownedCount(f, exSpec) > 0);
   }
   return (kit.recallGroundOnly !== true || f.motion.grounded) && placedObject(f, kit.ground.placement?.slot).life > 0;
 }
@@ -192,7 +193,7 @@ export function steerHeroSpecial(f: Fighter, input: Readonly<Controls>): void {
 export function enterHeroSpecial(f: Fighter, chosen: Readonly<HeroSpecialChoice>, input: Readonly<Controls>): AuthoredSpecial {
   const specials = f.tuning.specials;
   if (specials === undefined) throw new Error("hero special without a kit");
-  const move = specialForm(specialKit(specials, chosen.slot), chosen.form);
+  const move = specialForm(specialKit(specials, chosen.slot), chosen.form, f.special.ex);
   const { special } = f;
   endDivineShield(f);
   special.form = chosen.form;

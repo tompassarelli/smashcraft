@@ -257,6 +257,8 @@ export interface SpecialGuard extends FrameWindow {
 }
 
 export interface AuthoredSpecial {
+  /** Full-bar upgrade of this form, selected once on entry and retained through its branches. */
+  readonly ex?: AuthoredSpecial | undefined;
   /**
    * The official name of a form the design names on its own (Backstab,
    * Hammerfall, Dark Ritual); a form without one goes by its kit's `name`.
@@ -382,16 +384,17 @@ export function specialKit(specials: Readonly<FighterSpecials>, slot: number): S
 }
 
 /** The form a running special uses. */
-export function specialForm(kit: Readonly<SpecialKit>, form: number): AuthoredSpecial {
+export function specialForm(kit: Readonly<SpecialKit>, form: number, ex = false): AuthoredSpecial {
   if (form >= FOLLOW_UP_FORM) {
-    const base = specialForm(kit, imod(form, FOLLOW_UP_FORM));
+    const base = specialForm(kit, imod(form, FOLLOW_UP_FORM), ex);
     return base.followUps?.[idiv(form, FOLLOW_UP_FORM) - 1]?.special ?? base;
   }
-  if (form === SpecialForm.free) return kit.free ?? kit.ground;
-  if (form === SpecialForm.recall) return kit.recall ?? kit.ground;
-  if (form === SpecialForm.marked) return kit.marked?.special ?? kit.ground;
-  if (form === SpecialForm.soul) return kit.soul ?? kit.ground;
-  return form === SpecialForm.air ? kit.air ?? kit.ground : kit.ground;
+  const move = form === SpecialForm.free ? kit.free ?? kit.ground
+    : form === SpecialForm.recall ? kit.recall ?? kit.ground
+    : form === SpecialForm.marked ? kit.marked?.special ?? kit.ground
+    : form === SpecialForm.soul ? kit.soul ?? kit.ground
+    : form === SpecialForm.air ? kit.air ?? kit.ground : kit.ground;
+  return ex ? move.ex ?? move : move;
 }
 
 /** The form a choice starts. */

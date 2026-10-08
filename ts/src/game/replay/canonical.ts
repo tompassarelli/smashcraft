@@ -350,6 +350,7 @@ export function fighterSpecialsCanonical(specials: Readonly<FighterSpecials> | u
 
 function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): string {
   const result: string[] = [];
+  if (move.ex !== undefined) result.push(specialMoveCanonical(move.ex, `${name}.ex`));
   const int = (field: string, value: number) => { result.push(canonicalInt(`${name}.${field}`, value)); };
   const real = (field: string, value: number) => { result.push(canonicalRealField(`${name}.${field}`, value)); };
   int("cost", move.cost);
@@ -1244,9 +1245,13 @@ export function prepareKitDigests(): void {
       if (kit.free !== undefined) forms.push(kit.free);
       if (kit.recall !== undefined) forms.push(kit.recall);
       if (kit.marked !== undefined) forms.push(kit.marked.special);
+      if (kit.soul !== undefined) forms.push(kit.soul);
       for (const branch of kit.ground.followUps ?? []) forms.push(branch.special);
       for (const branch of kit.air?.followUps ?? []) forms.push(branch.special);
-      for (const form of forms) kitDigestField("placedSpec", form.placement, PLACEMENT_DIGESTS, placedSpecCanonical);
+      for (const form of forms) {
+        kitDigestField("placedSpec", form.placement, PLACEMENT_DIGESTS, placedSpecCanonical);
+        kitDigestField("placedSpec", form.ex?.placement, PLACEMENT_DIGESTS, placedSpecCanonical);
+      }
     }
   }
 }

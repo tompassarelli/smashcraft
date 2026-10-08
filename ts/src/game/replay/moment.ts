@@ -376,6 +376,7 @@ function authoredParts(specials: Readonly<FighterSpecials>, projectiles: Map<str
   };
   const move = (special: AuthoredSpecial | undefined): void => {
     if (special === undefined) return;
+    move(special.ex);
     for (const spec of special.projectiles ?? []) projectile(spec);
     projectile(special.burst?.from);
     projectile(special.burst?.into);
@@ -391,6 +392,7 @@ function authoredParts(specials: Readonly<FighterSpecials>, projectiles: Map<str
     move(kit.free);
     move(kit.recall);
     move(kit.marked?.special);
+    move(kit.soul);
   }
 }
 
