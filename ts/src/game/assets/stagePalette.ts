@@ -66,23 +66,23 @@ export const STAGE_DECK_PALETTES: readonly { readonly stage: number; readonly th
     },
   } },
   // Dwarven granite, Alliance gold and blue.
-  { stage: CARRIED_TEST_STAGE, theme: "Aerie", palette: { top: [140, 138, 132], lip: [176, 142, 62], body: [44, 54, 76], underside: [70, 80, 100] }, materials: {
+  { stage: CARRIED_TEST_STAGE, theme: "Aerie", palette: { top: [216, 224, 232], lip: [255, 230, 96], body: [110, 116, 128], underside: [100, 112, 128] }, materials: {
     top: { texture: "TerrainArt\\Cityscape\\City_SquareTiles.blp" },
     lip: { texture: "TerrainArt\\Cityscape\\City_BrickTiles.blp" },
-    body: { texture: "TerrainArt\\LordaeronWinter\\Lordw_Rock.blp" },
-    underside: { texture: "TerrainArt\\Village\\Village_Rocks.blp" },
+    body: { texture: "TerrainArt\\LordaeronWinter\\Lordw_Rock.blp", crop: [0, 0, 0.125, 0.25] },
+    underside: { texture: "TerrainArt\\Village\\Village_Rocks.blp", crop: [0, 0, 0.125, 0.25] },
     platform: {
       top: { texture: "TerrainArt\\Cityscape\\City_RoundTiles.blp" },
       lip: { texture: "TerrainArt\\Cityscape\\City_BrickTiles.blp" },
-      body: { texture: "TerrainArt\\LordaeronWinter\\Lordw_Rock.blp" },
-      underside: { texture: "TerrainArt\\Village\\Village_Rocks.blp" },
+      body: { texture: "TerrainArt\\LordaeronWinter\\Lordw_Rock.blp", crop: [0, 0, 0.125, 0.25] },
+      underside: { texture: "TerrainArt\\Village\\Village_Rocks.blp", crop: [0, 0, 0.125, 0.25] },
       tint: [154, 166, 192],
     },
     alternatePlatform: {
       top: { texture: "Buildings\\Human\\GryphonAviary\\GriffonAviary.blp", crop: [0, 0.4375, 0.5625, 0.625] },
       lip: { texture: "TerrainArt\\Cityscape\\City_BrickTiles.blp" },
       body: { texture: "Buildings\\Human\\GryphonAviary\\GriffonAviary.blp", crop: [0, 0.4375, 0.5625, 0.625] },
-      underside: { texture: "TerrainArt\\Village\\Village_Rocks.blp" },
+      underside: { texture: "TerrainArt\\Village\\Village_Rocks.blp", crop: [0, 0, 0.125, 0.25] },
       tint: [202, 158, 94],
     },
   } },
