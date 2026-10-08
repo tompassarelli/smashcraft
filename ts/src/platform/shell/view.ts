@@ -5,7 +5,7 @@
 import { archerMounted } from "../../game/presentation/hippogryphPose";
 import { MATCH_HELP_BOX, MATCH_NOTICE_BOX } from "../../game/ui/hudLayout";
 import { CryDecision, createCryGate, cryStandIn, gateCry } from "../../game/presentation/hurtVoice";
-import { deckModel } from "../../game/presentation/stagePreload";
+import { deckModel, slabScale } from "../../game/presentation/stagePreload";
 import { type PlatformPart, platformParts } from "../../game/presentation/stockPlatforms";
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
@@ -33,8 +33,8 @@ import { type MapBuild, journalIngress } from "../../game/shell/build";
 import { MOMENT_SAVED_MESSAGE, type StartControl, matchHelp, resultNotice, stockLossMessage, waitingMessage } from "../../game/shell/messages";
 import { isIntangible } from "../../game/sim/conditions";
 import { type Roster, fighterAt, isActive } from "../../game/sim/roster";
-import { surfaceCount, surfaceLeft, surfaceMoves, surfacePass, surfaceRight, surfaceZ } from "../../game/sim/stage";
-import { CANNON_Z, cannonAim, cannonOn, cannonX, hasCannon } from "../../game/sim/stageHazards";
+import { surfaceCount, surfaceLeft, surfaceMoves, surfaceRight, surfaceZ } from "../../game/sim/stage";
+import { CANNON_Z, cannonAim, cannonOn, cannonX } from "../../game/sim/stageHazards";
 import { localParticipantSlot, traceParticipant } from "./diagnostics";
 import { placeFighterBody, renderDizzy } from "./fighterBody";
 import { type ShellState, type StatusFrames, activeRollback, localSlot, playsOnKeyboard } from "./state";
@@ -127,7 +127,6 @@ export function drawStage(s: ShellState): void {
   for (let index = 0; index < surfaceCount(stage); index++) {
     const left = surfaceLeft(stage, index, stageFrame);
     const right = surfaceRight(stage, index, stageFrame);
-    const pass = surfacePass(stage, index);
     const x = origin.x + (left + right) / 2;
     const deck = AddSpecialEffect(deckModel(stage, index), x, origin.y);
     const z = origin.z + surfaceZ(stage, index, stageFrame);
@@ -143,8 +142,8 @@ export function drawStage(s: ShellState): void {
       s.stageDecks.push(deck);
       continue;
     }
-    // The slab's walking plane spans [-50, 50] at z = 0; the body stays below it.
-    if (index > 0 || hasCannon(stage)) BlzSetSpecialEffectMatrixScale(deck, (right - left) / 100, pass ? f32(0.65) : 1.0, pass || hasCannon(stage) ? f32(0.45) : 1.0);
+    const scale = slabScale(stage, index, right - left);
+    if (scale !== undefined) BlzSetSpecialEffectMatrixScale(deck, scale[0], scale[1], scale[2]);
     s.stageDecks.push(deck);
   }
   if (cannonOn(stage, stageFrame)) {

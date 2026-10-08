@@ -6,7 +6,8 @@ import { hasCannon } from "../sim/stageHazards";
 import { CANNON_MODEL } from "./stageHazards";
 import { placedPieces, stageLightModel, stageScenery } from "./stageScenery";
 import { platformParts } from "./stockPlatforms";
-import { CARRIED_TEST_STAGE } from "../sim/stage";
+import { CARRIED_TEST_STAGE, surfacePass } from "../sim/stage";
+import { f32 } from "wisp/src/sim/f32";
 
 /** The model drawn for one deck of a stage, in the stage's palette. */
 export function deckModel(stage: number, index: number): string {
@@ -16,6 +17,17 @@ export function deckModel(stage: number, index: number): string {
   if (index === 0 && !hasCannon(stage)) return themed === undefined ? STAGE_MAIN_DECK_MODEL : themed.main;
   if (themed?.alternate !== undefined && (stage === CARRIED_TEST_STAGE ? index === 1 : index === 2)) return themed.alternate;
   return themed === undefined ? STAGE_DECK_MODEL : themed.slab;
+}
+
+/**
+ * The matrix scale the shell gives a deck's palette model `width` wide: a
+ * slab's walking plane spans [-50, 50] at z = 0 and its body stays below it;
+ * undefined draws the main deck's own model as built from its collision.
+ */
+export function slabScale(stage: number, index: number, width: number): readonly [x: number, y: number, z: number] | undefined {
+  if (index === 0 && !hasCannon(stage)) return undefined;
+  const pass = surfacePass(stage, index);
+  return [width / 100, pass ? f32(0.65) : 1.0, pass || hasCannon(stage) ? f32(0.45) : 1.0];
 }
 
 /** The effect models a stage's scene draws: decks, cannon and scenery pieces. */

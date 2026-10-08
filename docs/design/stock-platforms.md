@@ -19,15 +19,21 @@ shell creates, fades and clears with the decks
 palette slab. The parts' models are declared as "stage deck" in
 smashcraft:ts/scripts/wisp/playerView.ts and need model facts like any other
 model (smashcraft:docs/player-view.md).
-smashcraft:ts/test/stock-platforms.test.ts requires each stock walking piece
-to span at least 90% of its deck and its top to sit within 2 units of the
-walking line.
+smashcraft:ts/test/stock-platforms.test.ts checks every deck of every stage,
+slabs included, from each model's bounds and scale in every graphics mode:
+the drawn walking piece's top within 3 units of its collision top and its
+ends within 4 units of the deck's ends; no drawn part above its walking line;
+and no part hanging deeper than the palette slab's body (17 units) into the
+space a reference fighter (132 units) stands in above another deck (#322).
 
 Frozen Throne is the first stage built this way (Icecrown ice over saronite,
 [stage-art](stage-art.md) rule 10): each platform is an alpha-cut Northrend
 ice floe, its top on the walking line, over Icecrown rock and saronite rubble
-hung upside down beneath it. The three platforms use two floe shapes and
-different yaws and dressing, so no two read as copies. Imports: none.
+hung upside down beneath it. All three use North_IceFloe3 at yaw 0 or 180,
+the only floe and turn that spans the deck in both classic and HD, squashed
+to 0.19 of its height; the dressing differs per platform. Under the side
+decks everything stays within 25 units of the walking line, above a standing
+fighter's head. Imports: none.
 
 ## Techniques
 
@@ -56,11 +62,15 @@ extractor returned with identical bytes for every model below.
   Definitive the HD file at the same path, with diffuse, normal and ORM
   textures (Ice_Rock0: 3,460 B classic, 113,210 B HD). These cost the map
   nothing in any mode.
-- HD geometry differs a little: Ice_Rock0's HD top is z 121 against classic
-  107, Icecrown_Rubble0's 82 against 79. Hung parts move by a few units;
-  the walking piece's top is what must hold. The HD floes' files carry a
-  camera chunk the `war3-model` decoder can't read, so their HD top is
-  unmeasured and native captures in Reforged and Definitive judge it.
+- HD geometry can differ a lot. Ice_Rock0's HD top is z 121 against classic
+  107, Icecrown_Rubble0's 82 against 79. The HD floes are lumpy icebergs, not
+  flat floes: North_IceFloe3 is z -76 to 61 in HD against -22 to 31 classic,
+  and North_IceFloe2's HD long axis is y, not x (x -115 to 29). At its #290
+  scale the HD floe stood 22 units above the walking line and hung 90 below,
+  into the fighters' space under the side decks (#322). Their files carry a
+  camera chunk the `war3-model` decoder can't read, so the test keeps their
+  MODL extents, read straight from the `_hd.w3mod` files, beside the
+  classic model facts.
 - A copied (swapped) model draws its classic geometry and classic texture in
   every mode, so it looks flatter beside HD stock parts.
 - The headless renderer draws classic models only.

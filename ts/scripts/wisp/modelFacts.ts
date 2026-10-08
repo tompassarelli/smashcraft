@@ -186,7 +186,6 @@ export const MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
   "Doodads\\Icecrown\\Rocks\\Icecrown_Crystal\\Icecrown_Crystal3.mdx": {"geosets":1,"triangles":48,"lights":0,"bounds":{"min":[-126.362,-117.634,0],"max":[114.056,118.795,223.283]},"emitters":[]},
   "Doodads\\Icecrown\\Structures\\Icecrown_Rubble\\Icecrown_Rubble0.mdx": {"geosets":1,"triangles":76,"lights":0,"bounds":{"min":[-53.565,-65.977,-1.443],"max":[51.735,69.197,78.586]},"emitters":[]},
   "Doodads\\LordaeronFall\\Structures\\AndrohalClockTower_Destroyed\\AndrohalClockTower_Destroyed.mdx": {"geosets":8,"triangles":16826,"lights":0,"bounds":{"min":[-152.258,-150.796,-317.154],"max":[147.384,147.285,714.133]},"emitters":[]},
-  "Doodads\\Northrend\\Water\\North_IceFloe2\\North_IceFloe2.mdx": {"geosets":1,"triangles":62,"lights":0,"bounds":{"min":[-129.594,-161.746,-22.631],"max":[152.633,102.803,31.666]},"emitters":[]},
   "Doodads\\Northrend\\Water\\North_IceFloe3\\North_IceFloe3.mdx": {"geosets":1,"triangles":36,"lights":0,"bounds":{"min":[-113.322,-114.035,-21.611],"max":[116.892,114.469,30.829]},"emitters":[]},
   "Doodads\\Ruins\\Props\\RuinsObelisk\\RuinsObelisk1.mdx": {"geosets":2,"triangles":32,"lights":0,"bounds":{"min":[-74.412,-75.332,0.322],"max":[80.705,75.215,289.022]},"emitters":[]},
   "Doodads\\Ruins\\Rocks\\Ruins_Rock\\Ruins_Rock0.mdx": {"geosets":1,"triangles":48,"lights":0,"bounds":{"min":[-72.02,-80.892,0],"max":[71.031,79.73,149.991]},"emitters":[]},
