@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { parseRepro } from "wisp/src/runtime/repro";
@@ -8,11 +8,50 @@ import { install, start } from "../src/platform/nativeDriverMain";
 import { shell } from "../src/platform/shell/state";
 import { confirmedChecksum } from "../src/platform/shell/diagnostics";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
+import { fighterAt } from "../src/game/sim/roster";
+import { clipFor } from "../src/game/presentation/fighterClips";
+import { sweep } from "./sweep";
 import { TRACE_FILE, parseExpectations, parseTrace, unmetExpectations } from "../scripts/integrity/padParity";
 import { value } from "./rematch/playableMatch";
 
 const runtime = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(runtime.restore);
+
+function checkMovementRolls(file: string): void {
+  const clients = runtime.clients({ install, start }, [0]);
+  const client = clients.client(0);
+  const command = (text: string) => clients.everywhere(() => nativeDriverCommand(text));
+  const fighter = () => fighterAt(shell().world, 0);
+  clients.start();
+  clients.frames(3);
+  command(readFileSync(new URL(`./native/pads/171/${file}`, import.meta.url), "utf8"));
+  command("resume 212");
+  clients.frames(215);
+  expect(value(client, () => fighter().dodge.groundDirection)).toBe(-1);
+  expect(value(client, () => fighter().shield.raised)).toBe(false);
+  command("resume 256");
+  clients.frames(45);
+  expect(value(client, () => fighter().dodge.groundDirection)).toBe(1);
+  expect(value(client, () => fighter().dodge.groundFrame)).toBe(6);
+  expect(value(client, () => fighter().shield.raised)).toBe(false);
+  expect(value(client, () => shell().runtime.poses[0].clipIndex)).toBe(value(client, () => clipFor(fighter().character, "rollForward").index));
+  const before = value(client, () => fighter().motion.x);
+  const clipTime = value(client, () => shell().runtime.poses[0].clipTime);
+  command("resume 262");
+  clients.frames(7);
+  expect(value(client, () => fighter().dodge.groundFrame)).toBe(12);
+  expect(value(client, () => fighter().motion.x)).toBeGreaterThan(before);
+  expect(value(client, () => shell().runtime.poses[0].clipTime)).toBeGreaterThan(clipTime);
+  expect(client.errors).toEqual([]);
+}
+
+test("movement capture script completes its backward roll before starting its forward roll [repro #171]", () => {
+  checkMovementRolls("rifleman.pad");
+});
+
+sweep("every movement capture script plays and advances the forward roll after its backward roll [repro #171]", () => {
+  for (const file of readdirSync(new URL("./native/pads/171/", import.meta.url)).filter(file => file.endsWith(".pad"))) checkMovementRolls(file);
+});
 
 // Real shell callback, capture and replay; command delivery itself belongs to Wisp.
 test("native driver sets up pad rows, holds the whole callback, and stepped and free runs replay equally [invariant]", () => {

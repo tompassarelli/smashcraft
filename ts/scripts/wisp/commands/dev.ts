@@ -33,6 +33,7 @@ export const SMASHCRAFT_DEV: DevProject = {
       "test/tune.test.ts": ["src/**"],
       "test/repro.test.ts": [],
       "test/standalone.test.ts": ["test/native/pads/cpu-expert.pad"],
+      "test/native-driver.test.ts": ["test/native/pads/rifleman-neutral.pad", "test/native/pads/171/*.pad"],
       "scripts/meleeOracle.tests.ts": ["../docs/gameplay-design.md"],
     },
     // Played in simulated clients: reported with the quick-match journey.
