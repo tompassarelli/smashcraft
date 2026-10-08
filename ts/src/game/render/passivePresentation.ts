@@ -7,6 +7,7 @@ import type { Character } from "../sim/codes";
 import { passivePips } from "../sim/passives";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { type WorldOrigin, hideEffect, placeEffect } from "./effects";
+import { f32 } from "wisp/src/sim/f32";
 
 export class PassivePresentation {
   private readonly ready: effect | undefined;
@@ -26,6 +27,10 @@ export class PassivePresentation {
     this.proc = look.proc === undefined ? undefined : AddSpecialEffect(look.proc, origin.x, origin.y);
     if (this.ready !== undefined) hideEffect(this.ready, origin);
     if (this.proc !== undefined) hideEffect(this.proc, origin);
+    if (this.ready !== undefined) {
+      BlzSetSpecialEffectAnimation(this.ready, "Stand");
+      BlzSetSpecialEffectTime(this.ready, f32(0.5));
+    }
   }
 
   present(world: Readonly<Roster>, slot: number, playing: boolean): void {
@@ -38,17 +43,26 @@ export class PassivePresentation {
     const { origin } = this;
     if (this.ready !== undefined) {
       if (passivePips(fighter).ready) {
-        if (!this.readyShown) BlzSetSpecialEffectScale(this.ready, 1.0);
+        if (!this.readyShown) {
+          BlzSetSpecialEffectScale(this.ready, 1.5);
+          BlzSetSpecialEffectTime(this.ready, f32(0.5));
+        }
         // Only a moved fighter moves its effect: this runs every rendered frame.
         if (!this.readyShown || fighter.motion.x !== this.readyX || fighter.motion.z !== this.readyZ) {
           this.readyX = fighter.motion.x;
           this.readyZ = fighter.motion.z;
-          placeEffect(this.ready, origin.x + fighter.motion.x, origin.y, origin.z + fighter.motion.z);
+          placeEffect(this.ready, origin.x + fighter.motion.x, origin.y - 12.0, origin.z + fighter.motion.z + 20.0);
         }
         this.readyShown = true;
       } else this.hideReady();
     }
-    if (newPassiveProc(this.cursor, fighter.passive.serial)) this.procLeft = PASSIVE_PROC_UPDATES;
+    if (newPassiveProc(this.cursor, fighter.passive.serial)) {
+      this.procLeft = PASSIVE_PROC_UPDATES;
+      if (this.proc !== undefined) {
+        BlzSetSpecialEffectAnimation(this.proc, "Birth");
+        BlzSetSpecialEffectTime(this.proc, 0.0);
+      }
+    }
     if (this.proc === undefined) return;
     if (this.procLeft <= 0) {
       this.hideProc();
@@ -57,7 +71,7 @@ export class PassivePresentation {
     this.procLeft--;
     this.procShown = true;
     const at = this.onVictim ? passiveVictim(world, slot) : fighter;
-    BlzSetSpecialEffectScale(this.proc, 1.0);
+    BlzSetSpecialEffectScale(this.proc, 2.0);
     placeEffect(this.proc, origin.x + at.motion.x, origin.y - 8.0, origin.z + at.motion.z + 60.0);
   }
 

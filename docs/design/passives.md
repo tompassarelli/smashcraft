@@ -373,3 +373,25 @@ Rifleman and Forsaken Paladin, 1 for Warden and Beastmaster, 2 for everyone else
 ready-state effect is attached to the fighter, and the proc effect plays
 once per proc serial. Hierarchy: the proc is louder than the ready state,
 and the ready state is louder than the charging pips.
+
+The arena renderer adds stock accents where pips or bonus damage alone did
+not make the ready or proc moment readable in the #148 native captures:
+
+| Fighter | Ready accent | Proc accent |
+| --- | --- | --- |
+| Blademaster | Command Aura | Cleave spray on the target |
+| Mountain King | Devotion Aura | Thunderclap on the target |
+| Warden | Trueshot Aura | Blink on herself |
+| Rifleman | Trueshot Aura | Bolt impact on himself when the shot fires |
+| Archer | Trueshot Aura | Bolt impact on the target |
+| Lich | Frost Armor | Frost Nova on the striker |
+| Forsaken Paladin | Devotion Aura | Devotion Aura burst on himself |
+| Dreadlord | Vampiric Aura | Heal on himself |
+| Shadow Hunter | Voodoo Aura | Thunderclap on the target |
+| Pit Lord | Vampiric Aura | Incinerate burst on the target |
+| Beastmaster | Command Aura during the pair window | Stampede burst on the target |
+
+Ready accents use 1.5 scale and proc accents 2.0 scale. Each proc restarts
+its stock Birth animation; the renderer retains the highest shown serial
+through rollback so replay cannot show the same burst twice. These accents
+do not change the counter, trigger, damage or healing.

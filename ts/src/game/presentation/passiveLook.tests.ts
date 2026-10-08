@@ -29,12 +29,12 @@ test("every fighter with a passive shows a ready or proc effect [spec #148]", ()
   }
 });
 
-test("a proc plays once per serial; a rollback lowers the cursor without replaying [spec #148]", () => {
+test("a proc plays once per serial across rollback and replay [spec #148]", () => {
   const cursor = { seen: -1 };
   assertFalse(newPassiveProc(cursor, 0));
   assertTrue(newPassiveProc(cursor, 1));
   assertFalse(newPassiveProc(cursor, 1));
   assertFalse(newPassiveProc(cursor, 0));
-  assertTrue(newPassiveProc(cursor, 1));
+  assertFalse(newPassiveProc(cursor, 1));
   assertTrue(newPassiveProc(cursor, 2));
 });
