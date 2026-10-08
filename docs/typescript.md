@@ -100,6 +100,45 @@ Map Lua has 32-bit integers that wrap silently and binary32 numbers whose raw
 
 ## Shape the code
 
+### Host tools
+
+Bun-run code in smashcraft:ts/scripts/ that starts processes, waits, retries
+or reads outside data follows four rules (#240), so Ctrl-C, a killed run or a
+failed step stops every child and reports a typed error:
+
+1. **Processes belong to a scope.** Start children with Effect's
+   `ChildProcess.make(program, args, options)` (`effect/process`), provided by
+   `BunServices.layer` from `@effect/platform-bun`. When the scope closes, on
+   success, failure or interrupt, it sends SIGTERM to the child's process group
+   and waits up to 1 s (`forceKillAfter` escalates to SIGKILL). Run a program to
+   completion with `runProcess` (smashcraft:ts/scripts/hostProcess.ts): its
+   trimmed stdout, or a `ProcessFailure` with the exit code and stderr. Wisp's
+   `Command` type takes no services, so a command provides `BunServices.layer`
+   itself. Anything else the run creates (a pushed branch, a lease, a virtual
+   pad) is an `Effect.acquireRelease` registered before the step that makes it
+   visible.
+2. **One runtime boundary.** A script runs one program through
+   `BunRuntime.runMain` (`@effect/platform-bun`), never `Effect.runPromise` in
+   the middle: SIGINT or SIGTERM interrupts it and every finalizer runs before
+   the process exits (code 130).
+3. **Waits use Schedule.** Poll with `Effect.repeat({ schedule:
+   Schedule.spaced(…), until })` and retry with `Effect.retry({ schedule,
+   while })`, bounded by `Effect.timeout` or `Effect.timeoutOrElse` that fails
+   with the tool's error. No hand deadline loops or `Bun.sleep` polls.
+4. **Outside data is decoded, failures are tagged.** Read JSON files and tool
+   output with Schema's Effect decoders (`Schema.decodeUnknownEffect`,
+   `Schema.decodeEffect(Schema.fromJsonString(S))`), never bare `JSON.parse`;
+   fail with a `Schema.TaggedError`, never a thrown string.
+
+Examples: smashcraft:ts/scripts/wisp.ts (rule 2) and
+smashcraft:ts/scripts/hostProcess.ts (rule 1).
+smashcraft:ts/test/host-tools.test.ts checks both with stand-in programs: a
+SIGTERM to `bun wisp` leaves no child running, and `runProcess` stopped by
+`Effect.timeoutOrElse` leaves none either. The host type-check allows the
+unstable `effect/process` (`allowedUnstableApis` in smashcraft:ts/tsconfig.json),
+and smashcraft:typescript-toolchain.lock pins `@effect/platform-bun` (its
+`@effect/platform-node-shared` overridden to the same version) with Effect.
+
 ### Effect on the host
 
 Wisp's host tools use Effect for asynchronous orchestration: typed failures,

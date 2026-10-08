@@ -13,6 +13,7 @@
     "parity": "bun wisp parity numeric"
   },
   "devDependencies": {
+    "@effect/platform-bun": "4.0.1",
     "@effect/tsgo": "0.48.0",
     "@types/bun": "1.4.2",
     "effect": "4.0.1",
@@ -23,5 +24,8 @@
     "typescript-to-lua": "1.37.1",
     "war3-model": "4.0.1",
     "wisp": "file:vendor/wisp-7de8f2c3facdbe27111cd9118d7c4f8b30e25cf8.tgz"
+  },
+  "overrides": {
+    "@effect/platform-node-shared": "4.0.1"
   }
 }

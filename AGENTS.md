@@ -67,9 +67,8 @@ smashcraft:docs/design/animation-reference.md. Reference pixels remain private.
 Host tools that Bun runs (commands, runners, builds, captures, farm jobs) are
 written as Effect programs when they start processes, wait, retry, hold a
 resource or parse outside data. Load the effect-development skill before
-designing one, and follow the existing services in scripts/ (for example
-smashcraft:ts/scripts/wisp/padBatch.ts, smashcraft:ts/scripts/integrity/capture.ts
-and smashcraft:ts/scripts/wisp/commands/accept.ts). Map code compiled to Lua
+designing one, and follow the four rules and examples in
+smashcraft:docs/typescript.md, "Host tools". Map code compiled to Lua
 stays plain TypeScript; pure calculations stay plain functions.
 smashcraft:ts/test/effect-host-tools.test.ts enforces this.
 

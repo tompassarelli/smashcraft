@@ -2,7 +2,9 @@
 // composed from the services in smashcraft:ts/scripts/wisp/ and prints how
 // long each of its steps took.
 // Usage (from ts/): bun wisp COMMAND [ARGUMENTS]
-import { Cause, Effect, Exit, Option } from "effect";
+import { BunRuntime } from "@effect/platform-bun";
+import { Cause, Effect, Exit } from "effect";
+import type { Teardown } from "effect/Runtime";
 import type { Command } from "wisp/scripts/wisp/command";
 import { step, timingsLayer } from "wisp/scripts/wisp/timings";
 
@@ -54,11 +56,21 @@ if (name === "play") {
   }
 }
 const command = await entry.load();
-const exit = await Effect.runPromiseExit(command(args).pipe(step(name), Effect.provide(timingsLayer((line) => console.error(line)))));
-if (Exit.isFailure(exit)) {
-  const failure = Cause.findErrorOption(exit.cause);
-  if (Option.isNone(failure)) console.error(Cause.pretty(exit.cause));
-  else console.error(failure.value._tag === "UsageFailure" ? `${failure.value.message}\nusage: bun wisp ${entry.usage}` : failure.value.message);
-  process.exit(Option.isSome(failure) && failure.value._tag === "UsageFailure" ? 2 : 1);
-}
-process.exit(0);
+// Commands can leave watchers or servers open, so the entry always exits itself.
+const teardown: Teardown = (exit) => {
+  if (Exit.isFailure(exit)) {
+    if (!Cause.hasInterruptsOnly(exit.cause)) console.error(Cause.pretty(exit.cause));
+    process.exit(Cause.hasInterruptsOnly(exit.cause) ? 130 : 1);
+  }
+  process.exit();
+};
+// runMain interrupts the command on SIGINT or SIGTERM, so its finalizers stop
+// every helper, pad and child before the process exits (docs/typescript.md, "Host tools").
+BunRuntime.runMain(command(args).pipe(
+  step(name),
+  Effect.provide(timingsLayer((line) => console.error(line))),
+  Effect.catch((failure) => Effect.sync(() => {
+    console.error(failure._tag === "UsageFailure" ? `${failure.message}\nusage: bun wisp ${entry.usage}` : failure.message);
+    process.exitCode = failure._tag === "UsageFailure" ? 2 : 1;
+  })),
+), { disableErrorReporting: true, teardown });
