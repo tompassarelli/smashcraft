@@ -180,7 +180,7 @@ sweep("computer Mountain King angles his forward tilt, throws his down tilt and 
   playsPassives(counts);
 });
 
-sweep("computer Warden throws Falling Knives, Sky Crescent, angled forward tilts, her down tilt and dash attack [spec #155]", () => {
+sweep("computer Warden throws Falling Knives, Sky Crescent, angled forward tilts, her down tilt and dash attack [spec #155] [repro #242]", () => {
   throws(played(Character.warden), [downAir, upAir, forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
 });
 

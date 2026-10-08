@@ -56,7 +56,7 @@ const RIFLEMAN: FighterGameplan = {
     { move: AttackStyle.downTilt, near: 0.0, far: 150.0 },
   ],
   approach: [
-    { via: "shoot", moves: [GameplanSpecial.neutral, GameplanSpecial.side, AttackStyle.downTilt], weight: 3 },
+    { via: "shoot", moves: [GameplanSpecial.neutral, GameplanSpecial.side, GameplanSpecial.down, AttackStyle.downTilt], weight: 3 },
     { via: "jump", moves: [AttackStyle.forwardAir, AttackStyle.downAir] },
   ],
   defense: ["shield", "shield", "spotDodge", "jump"],
