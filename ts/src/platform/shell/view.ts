@@ -358,6 +358,13 @@ export function lockArenaCamera(s: ShellState): void {
   if (s.viewExtreme !== undefined) extremeCamera(s.camera, game.stageChoice, aspect, s.viewExtreme);
   const { x: centerX, y: centerY } = s.origin;
   const framing = s.camera;
+  if (game.phase === Phase.match && game.run.active && game.run.boss.kind !== 0 && !s.session.paused) {
+    // Following a launched fighter can hide the deck before a boss's low attack.
+    framing.x = 0.0;
+    framing.z = 160.0;
+    framing.distance = 1450.0;
+    framing.tangent = 0.2679491937160492;
+  }
   probeCamera(s.probe, game.camera, framing, centerX, FLOOR_HEIGHT);
   const duration = s.cameraTween === true && game.phase === Phase.match && !s.session.paused ? FRAME_SECONDS : 0.0;
   applyArenaCamera(s, framing, aspect, pauseCameraAngle(s), duration);
