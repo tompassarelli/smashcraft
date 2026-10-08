@@ -64,18 +64,12 @@ export function showTutorialLesson(frames: TutorialMenuFrames, lesson: number): 
   BlzFrameSetText(frames.lesson, lessonChoiceText(lesson));
 }
 
-// This client's answer; read from its file on first use.
-let seen: boolean | undefined;
-
 /** Whether this client's player has started a match or answered the tutorial's offer. */
 export function tutorialSeen(): boolean {
-  seen ??= readChunks(SEEN_FILE).join("") === SEEN;
-  return seen;
+  return readChunks(SEEN_FILE).join("") === SEEN;
 }
 
 /** Remembers on this client that its player needs no offer again. */
 export function markTutorialSeen(): void {
-  if (tutorialSeen()) return;
-  seen = true;
   writeChunks(SEEN_FILE, [SEEN]);
 }

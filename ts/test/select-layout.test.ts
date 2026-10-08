@@ -27,6 +27,9 @@ for (const width of [1920, 1620]) test(`both selection screens at ${width}: text
   try {
     const clients = runtime.clients({ start: () => startBuild(PLAYABLE_BUILD), install }, [0]);
     clients.start(); clients.frames(3);
+    // A fresh profile opens the tutorial menu over the roster; answer it with Not now (ui/tutorialMenu.ts: 0.41, 0.315, 0.16 by 0.035).
+    expect(clients.click(0, 0.41 + 0.16 / 2, 0.315 - 0.035 / 2)).toBe(true);
+    clients.frames(2);
     clients.everywhere(() => {
       const game = shell().game;
       setParticipants(game, 1, 2);

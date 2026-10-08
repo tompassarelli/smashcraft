@@ -216,6 +216,8 @@ export class SelectionPanel {
   /** The tutorial menu: presentation only, opened by the owner's click or, once, by itself for a new player. */
   private tutorialOpen = false;
   private tutorialOffered = false;
+  // This client's answer, read from its file once: headless clients share this module, so it can't live there.
+  private seen: boolean | undefined;
 
   constructor(
     private actions: SelectionActions,
@@ -436,7 +438,7 @@ export class SelectionPanel {
     else if (button.kind === "tutorialStep") this.actions.stepTutorial(this.participantId, button.direction);
     else if (button.kind === "tutorialStart" || button.kind === "tutorialClose") {
       this.tutorialOpen = false;
-      if (this.ownsLocalClient()) markTutorialSeen();
+      if (this.ownsLocalClient()) this.markSeen();
       if (button.kind === "tutorialStart") this.actions.startTutorial(this.participantId);
       else this.actions.closeTutorial(this.participantId);
     }
@@ -607,6 +609,17 @@ export class SelectionPanel {
     if (this.ownsLocalClient() && this.choosing() !== undefined && held !== undefined) BlzSendSyncData("fighter-recall", I2S(held));
   }
 
+  private isSeen(): boolean {
+    this.seen ??= tutorialSeen();
+    return this.seen;
+  }
+
+  private markSeen(): void {
+    if (this.isSeen()) return;
+    this.seen = true;
+    markTutorialSeen();
+  }
+
   /** Every rendered frame on every client, for every panel; only the owner's client draws. */
   update(game: Readonly<MatchState>, settingsOpen: boolean): void {
     this.game = game;
@@ -617,10 +630,10 @@ export class SelectionPanel {
     const visible = this.choosing() !== undefined;
     const cpuOpen = visible && this.cpuSlot !== undefined;
     // A match started: this player needs no offer any more.
-    if (game.phase === Phase.match) markTutorialSeen();
+    if (game.phase === Phase.match) this.markSeen();
     if (visible && !this.tutorialOffered) {
       this.tutorialOffered = true;
-      if (!tutorialSeen()) this.tutorialOpen = true;
+      if (!this.isSeen()) this.tutorialOpen = true;
     }
     BlzFrameSetVisible(this.tutorial.root, visible && this.tutorialOpen && !cpuOpen && !this.movesOpen);
     BlzFrameSetVisible(this.cpuRoot, cpuOpen);
