@@ -673,6 +673,7 @@ code. From smashcraft:ts/:
   `-dev capture 18000` writes every client's raw callback samples; read full-run
   median/p95/p99/worst with Wisp's capture reader. Procedure and limits:
   smashcraft:docs/native-bot-session.md, "Raw playable cost captures".
+- Capture judge: `bun wisp judge DIR --rubric FILE` writes `DIR/judge.json` with each case and measurement line, checks drawn frame stamps, and lists only crops near a rubric threshold for model inspection. Rubric format and #82 reference: `docs/capture-judge.md`, `ts/test/native/rubrics/82-f9d0fbf3.json`.
 - Stage lighting: `bun wisp accept --only '170-*'` captures stock lighting, a
   fighter mask and stage lighting in one paused scene per stage. From the
   repository root, `bun tools/stage/contrast.ts MASK.png STOCK.png STAGE.png`

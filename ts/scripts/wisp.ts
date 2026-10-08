@@ -14,6 +14,7 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   map: { usage: "map build --name NAME --out OUT.w3x [--base BASE.w3m] [--container MAP.w3x] [--assets DIR] [--summon DIR] [--packager PATH] [--profile NAME] | map rebuild MAP.w3x [--profile NAME]", load: async () => (await import("./wisp/commands/map")).map },
   inputs: { usage: "inputs add FAMILY PATH | check | path [base|container|assets|summon]   (content-addressed private build inputs named by build-inputs.json: docs/build-inputs.md)", load: async () => (await import("./wisp/commands/inputs")).inputs },
   fresh: { usage: "fresh MAP.w3x [--rebuild] [--no-quick] [--profile main|integrity|playable|native-perf|physics-probe|frame-cost|stack-trace] [--clients-file FILE]", load: async () => (await import("./wisp/commands/fresh")).fresh },
+  judge: { usage: "judge DIR --rubric FILE", load: async () => (await import("./wisp/commands/judge")).judge },
   oracle: { usage: "oracle", load: async () => (await import("./wisp/commands/oracle")).oracle },
   agency: { usage: "agency [--attacker Archer|Rifleman|Illidan]... [--out FILE]", load: async () => (await import("./wisp/commands/agency")).agency },
   interactions: { usage: "interactions [--check | --move FIGHTER:MOVE]", load: async () => (await import("./wisp/commands/interactions")).interactions },
