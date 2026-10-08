@@ -64,6 +64,8 @@ jobs:
     timeout-minutes: 40
     strategy:
       fail-fast: false
+      # Leave two of the workflow's eight runner slots for Bun and development.
+      max-parallel: 6
       matrix:
         include:
           - partition: bot
@@ -74,11 +76,37 @@ jobs:
             game-tests: ""
             game-tests-exclude: game/match/bot
             sweeps: ""
-          # The sweeps the suite skips (src/runtime/sweep.ts), every module.
-          - partition: sweeps
+          # Each sweep runs in exactly one of these six name-hash partitions.
+          - partition: sweeps 1/6
             game-tests: ""
             game-tests-exclude: ""
             sweeps: "1"
+            lua-partition: 0/6
+          - partition: sweeps 2/6
+            game-tests: ""
+            game-tests-exclude: ""
+            sweeps: "1"
+            lua-partition: 1/6
+          - partition: sweeps 3/6
+            game-tests: ""
+            game-tests-exclude: ""
+            sweeps: "1"
+            lua-partition: 2/6
+          - partition: sweeps 4/6
+            game-tests: ""
+            game-tests-exclude: ""
+            sweeps: "1"
+            lua-partition: 3/6
+          - partition: sweeps 5/6
+            game-tests: ""
+            game-tests-exclude: ""
+            sweeps: "1"
+            lua-partition: 4/6
+          - partition: sweeps 6/6
+            game-tests: ""
+            game-tests-exclude: ""
+            sweeps: "1"
+            lua-partition: 5/6
     name: Lua32 (${{ matrix.partition }})
     steps:
       - uses: actions/checkout@v4
@@ -97,6 +125,7 @@ jobs:
           GAME_TESTS_EXCLUDE: ${{ matrix.game-tests-exclude }}
           SWEEPS: ${{ matrix.sweeps }}
           LUA_JOBS: 4
+          LUA_PARTITION: ${{ matrix.lua-partition || '0/1' }}
 
   # Sweeps (many matches, whole-roster measurements) that the suite skips run
   # here on every push, so a failure still turns main red (#243).
