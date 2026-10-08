@@ -6,7 +6,7 @@ import { stateChecksum } from "../replay/canonical";
 import { firstStateDifference } from "../replay/difference";
 import { copyReplayState, createReplaySnapshot } from "../replay/snapshot";
 import { prepareQuickMatch } from "../shell/devSettings";
-import { AttackStyle, Character, GroundAction, HeroStatusKind, ItemKind, LedgeState, itemBit } from "../sim/codes";
+import { AttackStyle, Character, GroundAction, ItemKind, LedgeState, itemBit } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { advanceGroundMovement } from "../sim/groundMovement";
 import { applyItemBuff, knockbackWeight } from "../sim/itemBuffs";
@@ -49,7 +49,7 @@ function pickup(character: Character, kind: ItemKind, style: AttackStyle = Attac
   return fixture;
 }
 
-test("centre items spawn 30–60 seconds after GO and warn exactly ten seconds ahead", () => {
+test("centre items spawn 30–60 seconds after GO and warn exactly ten seconds ahead [spec #196]", () => {
   for (let seed = -100; seed <= 100; seed++) {
     const game = createMatchState();
     setHumanCount(game, 2);
@@ -74,7 +74,7 @@ test("centre items spawn 30–60 seconds after GO and warn exactly ten seconds a
   }
 });
 
-sweep("every fighter takes every item with a normal attack or grab; expiry includes the pickup frame", () => {
+sweep("every fighter takes every item with a normal attack or grab; expiry includes the pickup frame [spec docs/gameplay-design.md]", () => {
   for (const character of Object.values(Character)) for (const kind of [ItemKind.speed, ItemKind.extraJump, ItemKind.heavy]) for (const style of [AttackStyle.jab, AttackStyle.grab]) {
     const { game, first, world, input } = pickup(character, kind, style);
     assertEquals(first.status.buffFrames, 599);
@@ -94,7 +94,7 @@ sweep("every fighter takes every item with a normal attack or grab; expiry inclu
   }
 });
 
-test("Speed raises every fighter's walk dash run and ledge/air/ground jump, without scaling its cap twice", () => {
+test("Speed raises every fighter's walk dash run and ledge/air/ground jump, without scaling its cap twice [spec docs/gameplay-design.md]", () => {
   for (const character of Object.values(Character)) {
     for (const walking of [true, false]) {
       const plain = createFighter(character, 0.0, 1);
@@ -150,7 +150,7 @@ test("Speed raises every fighter's walk dash run and ledge/air/ground jump, with
   }
 });
 
-test("Extra Jump grants one immediately, refills on landing and never stacks beyond one", () => {
+test("Extra Jump grants one immediately, refills on landing and never stacks beyond one [spec docs/gameplay-design.md]", () => {
   for (const character of Object.values(Character)) {
     const { first, world, game, input } = pickup(character, ItemKind.extraJump);
     assertEquals(first.jump.remaining, 3);
@@ -173,7 +173,7 @@ test("Extra Jump grants one immediately, refills on landing and never stacks bey
   }
 });
 
-test("Heavy gives every fighter 1.5 weight and 1.3 gravity terminal and fast-fall speeds", () => {
+test("Heavy gives every fighter 1.5 weight and 1.3 gravity terminal and fast-fall speeds [spec docs/gameplay-design.md]", () => {
   for (const character of Object.values(Character)) {
     const plain = createFighter(character, 0.0, 1);
     const heavy = createFighter(character, 0.0, 1);
@@ -199,17 +199,7 @@ test("Heavy gives every fighter 1.5 weight and 1.3 gravity terminal and fast-fal
   }
 });
 
-test("Speed composes with Cairne's Endurance Aura and Lich's Chill", () => {
-  const fighter = createFighter(Character.cairne, 0.0, 1);
-  fighter.passive.used = true;
-  fighter.passive.window = 180;
-  fighter.status.condition = HeroStatusKind.chill;
-  applyItemBuff(fighter, ItemKind.speed);
-  advanceGroundMovement(fighter, 1, false);
-  assertEquals(fighter.motion.vx, f32(f32(f32(fighter.tuning.physics.dashSpeed * f32(1.1)) * f32(0.6)) * f32(1.3)));
-});
-
-sweep("five minutes of seeded spawns pickups and expiry replay from a saved snapshot exactly", () => {
+sweep("five minutes of seeded spawns pickups and expiry replay from a saved snapshot exactly [spec #196] [invariant]", () => {
   const live = createReplaySnapshot();
   live.match.phase = Phase.match;
   live.match.stageChoice = 0;

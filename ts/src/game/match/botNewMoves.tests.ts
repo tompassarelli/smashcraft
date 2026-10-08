@@ -166,7 +166,7 @@ function shieldsReady(counts: Counts): void {
 
 const { forwardTiltUp, forwardTiltDown, downTilt, dashAttack, neutralAir, upAir, downAir, forwardAir, forwardTilt, downSmash } = AttackStyle;
 
-sweep("computer Blademaster throws Bladestorm, Blade Wheel, his down tilt and dash attack, and cashes Critical Strike", () => {
+sweep("computer Blademaster throws Bladestorm, Blade Wheel, his down tilt and dash attack, and cashes Critical Strike [spec #155]", () => {
   // Shields are rare (about 2% of his mirror's attacks) and whiff punishes reshuffle the mirror: 16 matches give the shares a sample.
   const counts = played(Character.blademaster, Character.blademaster, 2 * MATCHES);
   throws(counts, [downAir, neutralAir, downTilt, dashAttack]);
@@ -174,45 +174,45 @@ sweep("computer Blademaster throws Bladestorm, Blade Wheel, his down tilt and da
   shieldsReady(counts);
 });
 
-sweep("computer Mountain King angles his forward tilt, throws his down tilt and dash attack, and cashes Bash", () => {
+sweep("computer Mountain King angles his forward tilt, throws his down tilt and dash attack, and cashes Bash [spec #155]", () => {
   const counts = played(Character.mountainKing);
   throws(counts, [forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
   playsPassives(counts);
 });
 
-sweep("computer Warden throws Falling Knives, Sky Crescent, angled forward tilts, her down tilt and dash attack", () => {
+sweep("computer Warden throws Falling Knives, Sky Crescent, angled forward tilts, her down tilt and dash attack [spec #155]", () => {
   throws(played(Character.warden), [downAir, upAir, forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
 });
 
-sweep("computer Lich throws Frost Halo, angled forward tilts, his down tilt and dash attack", () => {
+sweep("computer Lich throws Frost Halo, angled forward tilts, his down tilt and dash attack [spec #155]", () => {
   // A Lich mirror keeps its range; Warden, who jumps and runs in, brings his close moves out. Frost Halo
   // answers her jump-ins only, a few a match since she stopped spacing with forward air (#160): 16 matches give it a sample.
   throws(played(Character.lich, Character.warden, 2 * MATCHES), [neutralAir, forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
 });
 
-sweep("computer Dreadlord throws Batwing Turn, angled forward tilts, his down tilt and dash attack, and cashes Vampiric Aura", () => {
+sweep("computer Dreadlord throws Batwing Turn, angled forward tilts, his down tilt and dash attack, and cashes Vampiric Aura [spec #155]", () => {
   const counts = played(Character.dreadlord);
   throws(counts, [neutralAir, forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
   playsPassives(counts);
 });
 
-sweep("computer Shadow Hunter throws the glaive drill, angled forward tilts, his down tilt and dash attack, and cashes Voodoo", () => {
+sweep("computer Shadow Hunter throws the glaive drill, angled forward tilts, his down tilt and dash attack, and cashes Voodoo [spec #155]", () => {
   const counts = played(Character.shadowHunter);
   throws(counts, [downAir, forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
   playsPassives(counts);
 });
 
-sweep("computer Forsaken Paladin throws his down tilt and dash attack", () => {
+sweep("computer Forsaken Paladin throws his down tilt and dash attack [spec #155]", () => {
   throws(played(Character.forsakenPaladin), [downTilt, dashAttack]);
 });
 
-sweep("computer Illidan charges Eye Blast and throws Shear, Flames of Azzinoth and the two-hit forward air", () => {
+sweep("computer Illidan charges Eye Blast and throws Shear, Flames of Azzinoth and the two-hit forward air [spec #155]", () => {
   const counts = played(Character.demonHunter);
   throws(counts, [forwardTilt, downSmash, forwardAir]);
   assertGreaterThan(counts.eyeBlast ?? 0, 0);
 });
 
-sweep("computer Archer and Rifleman never press a special their mana can't pay, and cash Trueshot and Long Rifles", () => {
+sweep("computer Archer and Rifleman never press a special their mana can't pay, and cash Trueshot and Long Rifles [spec #155]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     const counts = played(character);
     assertEquals(counts.manaDenied ?? 0, 0);
@@ -220,6 +220,6 @@ sweep("computer Archer and Rifleman never press a special their mana can't pay, 
   }
 });
 
-sweep("computer Archer and Rifleman never press a special their mana can't pay in a seeded mirror, which replays its counts", () => {
+sweep("computer Archer and Rifleman never press a special their mana can't pay in a seeded mirror, which replays its counts [spec #155]", () => {
   for (const character of [Character.archer, Character.rifleman]) assertEquals(played(character, character, 1).manaDenied ?? 0, 0);
 });

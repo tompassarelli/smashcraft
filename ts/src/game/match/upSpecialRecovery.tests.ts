@@ -95,7 +95,7 @@ function keysDriver(character: Character, mana: number): Driver {
 
 const DRIVERS = [stickDriver, keysDriver] as const;
 
-sweep("[spec #252] every fighter's up special recovers within its archetype's band, and its zero-mana form above the floor", () => {
+sweep("every fighter's up special recovers within its archetype's band, and its zero-mana form above the floor [spec #252]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const band = assertDefined(RECOVERY_BANDS[recoveryArchetype(character)], "band");
     const name = `${fighterName(character)} (${band.name})`;
@@ -128,7 +128,7 @@ function launchStep(driver: Driver, aimX: number, aimZ: number): { x: number; z:
 /** -1, 0 or 1: a component under a quarter of the step counts as none. */
 const component = (value: number, length: number): number => (Math.abs(value) < 0.25 * length ? 0 : value < 0 ? -1 : 1);
 
-test("a charged-angle up special flies any of eight directions held in its startup, with keys or a stick", () => {
+test("a charged-angle up special flies any of eight directions held in its startup, with keys or a stick [spec #189]", () => {
   for (const character of CHARGED_ANGLE) {
     for (const driver of DRIVERS) {
       for (let aimX = -1; aimX <= 1; aimX++) {
@@ -146,7 +146,7 @@ test("a charged-angle up special flies any of eight directions held in its start
   }
 });
 
-test("a stick a little off a direction still picks that direction's aim", () => {
+test("a stick a little off a direction still picks that direction's aim [spec #189]", () => {
   for (const character of CHARGED_ANGLE) {
     // About 17 degrees above level and 17 degrees off vertical.
     for (const [x, z, aimX, aimZ] of [[f32(0.95), f32(0.3), 1, 0], [f32(0.3), f32(0.95), 0, 1], [f32(0.95), f32(-0.3), 1, 0]] as const) {
@@ -157,7 +157,7 @@ test("a stick a little off a direction still picks that direction's aim", () => 
   }
 });
 
-test("a guided up special steers toward the held side while it travels, with keys or a stick", () => {
+test("a guided up special steers toward the held side while it travels, with keys or a stick [spec #189]", () => {
   const H = HERO_REFERENCE_HEIGHT;
   for (const character of SELECTABLE_CHARACTERS) {
     if (CHARGED_ANGLE.includes(character)) continue;

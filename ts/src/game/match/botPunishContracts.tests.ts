@@ -55,7 +55,7 @@ function forecastRecovery(setup: (target: Fighter) => void): void {
   assertEquals(forecast.frames, actual.frames);
 }
 
-test("a delayed punish forecast follows an attack through its observed hitlag into recovery", () => {
+test("a delayed punish forecast follows an attack through its observed hitlag into recovery [invariant]", () => {
   forecastRecovery(target => {
     // Hitlag's expiry frame advances the action; the preceding five frames stay frozen.
     target.attack.style = AttackStyle.forwardTiltDown;
@@ -66,7 +66,7 @@ test("a delayed punish forecast follows an attack through its observed hitlag in
   });
 });
 
-test("a delayed punish forecast recognizes an observed aerial's landing recovery", () => {
+test("a delayed punish forecast recognizes an observed aerial's landing recovery [invariant]", () => {
   forecastRecovery(target => {
     target.motion.grounded = false;
     target.motion.surface = undefined;
@@ -156,10 +156,10 @@ function punishCount(whiff: Whiff, character: Character, tier: CpuTier, seeds: n
 
 for (const whiff of WHIFFS) {
   const name = whiff === Whiff.forwardSmash ? "whiffed forward smash" : whiff === Whiff.grab ? "missed grab" : "landing lag";
-  test(`a Wren Expert Archer computer punishes Pit Lord's ${name} within the window`, () => {
+  test(`a Wren Expert Archer computer punishes Pit Lord's ${name} within the window [spec #157]`, () => {
     assertEquals(punishCount(whiff, Character.archer, "expert", HARD_SEEDS), HARD_SEEDS);
   });
-  sweep(`a Wren Expert computer of every fighter punishes Pit Lord's ${name} within the window; a Wren Rookie computer usually doesn't`, () => {
+  sweep(`a Wren Expert computer of every fighter punishes Pit Lord's ${name} within the window; a Wren Rookie computer usually doesn't [spec #157]`, () => {
     let easy = 0;
     for (const character of SELECTABLE_CHARACTERS) {
       assertEquals(punishCount(whiff, character, "expert", HARD_SEEDS), HARD_SEEDS);
@@ -178,7 +178,7 @@ const PAIRS = [
 const MATCH_FRAMES = 1800;
 const MATCH_SEEDS = 4;
 
-sweep("computers punish in ordinary Wren Expert matches: they attack into open windows and land in more of them than without the punish", () => {
+sweep("computers punish in ordinary Wren Expert matches: they attack into open windows and land in more of them than without the punish [spec #157]", () => {
   // Windows each computer saw open, the ones it attacked into, and the ones it hit or grabbed in.
   let windowsSeen = 0;
   let attempts = 0;
@@ -250,7 +250,7 @@ sweep("computers punish in ordinary Wren Expert matches: they attack into open w
   assertGreaterThan(landed * 100, windowsSeen * 14);
 });
 
-test("a grounded sleeper is a punish window for its frames left, and a Wren Expert Dreadlord beside it hits it before it wakes (#105)", () => {
+test("a grounded sleeper is a punish window for its frames left, and a Wren Expert Dreadlord beside it hits it before it wakes (#105) [spec #146]", () => {
   for (let seed = 0; seed < HARD_SEEDS; seed++) {
     const world = createRoster(3, [createFighter(Character.pitLord, 0.0, 1), createFighter(Character.dreadlord, 140.0, -1)]);
     const match = createMatchState();

@@ -21,7 +21,7 @@ import { testMatch } from "./testMatch";
 
 const NEUTRAL: Pad = {};
 
-test("controllers ride a complete carried loop and rising-sinking timetable; every departure is warned 30 frames ahead", () => {
+test("controllers ride a complete carried loop and rising-sinking timetable; every departure is warned 30 frames ahead [spec #79]", () => {
   for (const [stage, period] of [[CARRIED_TEST_STAGE, 920], [TIMED_TEST_STAGE, 420]] as const) {
     const match = testMatch(3, Character.archer);
     match.game.stageChoice = stage;
@@ -67,7 +67,7 @@ function playWind(run: PadMatch, last: number, check: (frame: number, first: num
   }
 }
 
-test("Whispy's wind waits, warns for 45 frames, then pushes standing fighters on its side 0.2 Melee units a frame, alternating sides", () => {
+test("Whispy's wind waits, warns for 45 frames, then pushes standing fighters on its side 0.2 Melee units a frame, alternating sides [spec #79]", () => {
   const run = windMatch();
   const gust = WIND_CALM_FRAMES + WIND_CUE_FRAMES;
   assertEquals(windPhase(1), WindPhase.calm);
@@ -136,7 +136,7 @@ function assertFiredAlongAim(victim: Fighter, frame: number): void {
   assertEquals(victim.motion.z, CANNON_Z);
 }
 
-test("the cannon catches the first fighter to touch it, holds it intangible as it swings, and fires it 11 frames after Attack", () => {
+test("the cannon catches the first fighter to touch it, holds it intangible as it swings, and fires it 11 frames after Attack [spec #79]", () => {
   const run = cannonMatch();
   const { victim, other } = run;
   playPads(run, NEUTRAL, NEUTRAL);
@@ -169,7 +169,7 @@ test("the cannon catches the first fighter to touch it, holds it intangible as i
   assertGreaterThan(highest, 0.0);
 });
 
-test("a held fighter that presses nothing is fired when the hold runs out", () => {
+test("a held fighter that presses nothing is fired when the hold runs out [spec #79]", () => {
   const run = cannonMatch();
   const { victim } = run;
   playPads(run, NEUTRAL, NEUTRAL);

@@ -117,7 +117,7 @@ function optionStart(d: Duel, option: Option, horizon: number): number | undefin
   return undefined;
 }
 
-test("after a parried hit every grounded option starts on the first actionable frame, pressed during the freeze", () => {
+test("after a parried hit every grounded option starts on the first actionable frame, pressed during the freeze [spec #102]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const name = fighterName(character);
     const late = jabOnShield(character, 0).contact;
@@ -139,7 +139,7 @@ test("after a parried hit every grounded option starts on the first actionable f
   }
 });
 
-test("a late shield keeps its shieldstun and release lag", () => {
+test("a late shield keeps its shieldstun and release lag [spec #102]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const { duel: d } = jabOnShield(character, 0);
     const defender = defenderOf(d);
@@ -180,7 +180,7 @@ function shotOnShield(character: Character, raise: number): { readonly duel: Due
   return undefined;
 }
 
-sweep("after a parried projectile every grounded option starts on the next frame", () => {
+sweep("after a parried projectile every grounded option starts on the next frame [spec #102]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const name = fighterName(character);
     for (const option of OPTIONS) {

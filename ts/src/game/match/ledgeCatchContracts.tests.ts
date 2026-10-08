@@ -68,7 +68,7 @@ function assertSnapped(fighter: Fighter, side: number): void {
   assertEquals(fighter.motion.z, f32(surfaceZ(0, 0, 0) - LEDGE_HANG_DEPTH));
 }
 
-test("a fighter falling beside the ledge within its catch box snaps to it as its feet pass the box's top", () => {
+test("a fighter falling beside the ledge within its catch box snaps to it as its feet pass the box's top [repro #47]", () => {
   for (const character of ROSTER) {
     const { reach, lowest } = ledgeCatchBox(character);
     for (const side of [-1, 1]) {
@@ -84,7 +84,7 @@ test("a fighter falling beside the ledge within its catch box snaps to it as its
   }
 });
 
-test("a double jump from below the ledge rises through the box, then snaps on the way down", () => {
+test("a double jump from below the ledge rises through the box, then snaps on the way down [repro #47]", () => {
   for (const character of ROSTER) {
     const { lowest, highest } = ledgeCatchBox(character);
     for (const side of [-1, 1]) {
@@ -100,7 +100,7 @@ test("a double jump from below the ledge rises through the box, then snaps on th
   }
 });
 
-test("the same recoveries just beyond the catch box's reach fall past the ledge", () => {
+test("the same recoveries just beyond the catch box's reach fall past the ledge [repro #47]", () => {
   for (const character of ROSTER) {
     const { reach, highest } = ledgeCatchBox(character);
     for (const side of [-1, 1]) {
@@ -116,7 +116,7 @@ test("the same recoveries just beyond the catch box's reach fall past the ledge"
   }
 });
 
-test("a fall that starts just below the catch box falls past the ledge", () => {
+test("a fall that starts just below the catch box falls past the ledge [repro #47]", () => {
   for (const character of ROSTER) {
     const { highest } = ledgeCatchBox(character);
     for (const side of [-1, 1]) {
@@ -127,7 +127,7 @@ test("a fall that starts just below the catch box falls past the ledge", () => {
   }
 });
 
-test("a ledge jump rises past the main deck's side wall and lands on the stage", () => {
+test("a ledge jump rises past the main deck's side wall and lands on the stage [spec #52]", () => {
   for (const character of ROSTER) {
     const { reach } = ledgeCatchBox(character);
     for (const side of [-1, 1]) {
