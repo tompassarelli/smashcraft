@@ -638,6 +638,9 @@ code. From smashcraft:ts/:
   and prints each outcome beside the value cited from the decompilation; the
   test suite fails on any mismatch it doesn't list as known
   (smashcraft:docs/physics.md, "Melee behaviour oracle").
+- Combo potential: `bun wisp combos [--fighter NAME]... [--jobs N]` searches
+  true combos and tech-chase reads, replays its best routes, and writes the
+  per-fighter openings-per-kill table (docs/design/balance.md, "Combo potential").
 - Interaction graph: `bun wisp interactions` plays every fighter's
   situations (aerials on shield, neutral, landing, ledge, tech) and writes
   smashcraft:tools/move-data/interactions/, which Git ignores (write it before

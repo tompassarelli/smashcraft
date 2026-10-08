@@ -94,6 +94,6 @@ const SERPENT_WARD_RECALL: AuthoredSpecial = { cost: 0, endFrame: 52, groundOnly
 export const SHADOW_HUNTER_SPECIALS: FighterSpecials = {
   neutral: { name: "Spirit Glaive", description: "A glaive that flies out and back, pulling its target toward him on the return.", ground: spiritGlaive(false), air: spiritGlaive(true) },
   side: { name: "Serpent Ward", description: "Place a ward that fires on its own; press again to recall it.", ground: SERPENT_WARD_CAST, recall: SERPENT_WARD_RECALL },
-  up: { name: "Loa Vault", description: "Hold a direction as the spirits gather, then a vault that way and a helpless fall.", ground: loaVault(15, f32(2.9)), free: loaVault(0, f32(2.0)) },
+  up: { name: "Loa Vault", description: "Hold a direction as the spirits gather, then a vault that way and a helpless fall.", ground: loaVault(15, f32(3.55)), free: loaVault(0, f32(2.0)) },
   down: { name: "Hex", description: "A short orb that stops its target attacking, grabbing or casting until it mashes out.", ground: hex(false), air: hex(true) },
 };

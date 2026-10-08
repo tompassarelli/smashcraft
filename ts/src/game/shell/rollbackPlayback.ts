@@ -63,6 +63,14 @@ class ReplayHistoryPlayback implements RollbackPlayback {
     return true;
   }
 
+  rewind(schedule: Parameters<RollbackPlayback["rewind"]>[0], epoch: number, frame: number, match: SpeculativeMatch): boolean {
+    if (epoch !== this.current) return false;
+    if (frame >= schedule.speculativeFrame()) return true;
+    if (!this.history.truncate(epoch, frame, this.bind(match)) || !schedule.rewindSpeculative(epoch, frame)) return false;
+    this.playback.forgetReconciliation();
+    return true;
+  }
+
   confirmedState(epoch: number, frame: number, row: Readonly<MatchFrameInput>): Readonly<ReplayState> | undefined {
     return epoch === this.current ? this.history.stateAfter(epoch, frame, row) : undefined;
   }

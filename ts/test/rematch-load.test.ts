@@ -153,7 +153,8 @@ function shownClipProblems(client: HeadlessClient, parkedBelow: number, seen: Ma
       seen.set(character, (seen.get(character) ?? 0) + 1);
       const fitted = { x: 0, z: 0 };
       fitFighterPlacement(fitted, fighter, s.game.stageChoice);
-      const place = [s.origin.x + fitted.x, s.origin.y, s.origin.z + fitted.z];
+      // Warcraft stores the effect natives' real coordinates as binary32.
+      const place = [s.origin.x + fitted.x, s.origin.y, s.origin.z + fitted.z].map(Math.fround);
       if (pose.x !== place[0] || pose.y !== place[1] || pose.z !== place[2]) problems.push(`slot ${slot} clip at ${pose.x} ${pose.y} ${pose.z}, fighter at ${place.join(" ")}`);
       if (pose.scale !== characterModelScale(character) || (pose.alpha !== 255 && pose.alpha !== 140)) problems.push(`slot ${slot} clip scale ${pose.scale} alpha ${pose.alpha}`);
       const mesh = MODEL_FACTS[pose.model];
@@ -167,7 +168,7 @@ function shownClipProblems(client: HeadlessClient, parkedBelow: number, seen: Ma
 }
 
 // About 2.3 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
-test("a match and its three-fighter rematch show each pooled fighter whole where he stands, read only correctable rollback rows, touch no parked effect and keep nothing between them", () => {
+test("[repro #242] a match and its three-fighter rematch show each pooled fighter whole where he stands, read only correctable rollback rows, touch no parked effect and keep nothing between them", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 7) });
   const host = clients.clients[0] as HeadlessClient;
   const lifetimes = countLifetimes(host);

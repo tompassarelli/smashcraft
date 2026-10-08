@@ -4,7 +4,7 @@
 // they agreed on. Rows, lifecycle and menus are in journal.ts.
 import { isParticipantSlot } from "../../game/input/participants";
 import { Phase, humanActive } from "../../game/match/rules";
-import { padDecimal } from "../../game/netcode/journal/decimal";
+import { padDecimal, parseDecimal } from "../../game/netcode/journal/decimal";
 import type { JournalInputSource } from "../../game/netcode/journal/source";
 import { readVocabularyControlAck } from "../../game/netcode/journal/vocabulary";
 import { controlFile } from "../../game/shell/journalFiles";
@@ -25,12 +25,22 @@ export function chatBusy(journal: Readonly<Journal>): boolean {
   return journal.chatRequested.some(requested => requested);
 }
 
-/** Asks every helper to pause or resume at a frame it chooses. */
-export function requestPause(s: ShellState, rollback: Rollback, journal: Journal, wantPaused: boolean): void {
+/**
+ * Asks every helper to pause at `startFrame`, the synchronized frame of a
+ * controller's Start, or without one at a frame they choose; a resume
+ * restarts every helper at the paused frame.
+ */
+export function requestPause(s: ShellState, rollback: Rollback, journal: Journal, wantPaused: boolean, startFrame?: number): void {
   const { source } = journal;
   if (source === undefined || journal.barrier.request !== undefined || (!wantPaused && chatBusy(journal))) return;
-  writeJournalFile(controlFile(journalIdentity(s, rollback.epoch), source.controlSequenceNumber(), wantPaused ? "PAUSE" : "RESUME", source.expectedFrame()));
-  requestRound(journal.barrier, wantPaused ? "PREPARE" : "RESUME");
+  // Paused, the confirmed cursor waits at the paused frame on every client.
+  const target = wantPaused ? startFrame : rollback.schedule.nextConfirmedFrame();
+  writeJournalFile(controlFile(journalIdentity(s, rollback.epoch), source.controlSequenceNumber(), wantPaused ? "PAUSE" : "RESUME", target ?? source.expectedFrame()));
+  requestRound(journal.barrier, wantPaused ? "PREPARE" : "RESUME", target);
+  if (startFrame !== undefined && !rollback.playback.rewind(rollback.schedule, rollback.epoch, startFrame, rollback.speculative)) {
+    failJournal(s, rollback, journal, "prediction could not return to the pause frame");
+    return;
+  }
   setStatus(s, wantPaused ? "Pausing…" : "Resuming…", LASTING);
 }
 
@@ -47,6 +57,8 @@ function keyboardAck(journal: Journal, source: JournalInputSource, request: NonN
     if (journal.keyStop === undefined || frame < journal.keyStop) return undefined;
     frame = journal.keyStop;
   } else {
+    // Rows already sent past the paused frame play first; the clock restarts level with the others.
+    frame = request.target ?? frame;
     journal.keyStop = undefined;
     journal.keyClock = frame - 1;
   }
@@ -98,7 +110,7 @@ export function sendPauseCommit(s: ShellState, rollback: Rollback, journal: Jour
   if (journal.source === undefined || frame === undefined) return;
   if (playsOnKeyboard(journal, localSlot())) journal.keyStop = frame;
   writeJournalFile(controlFile(journalIdentity(s, rollback.epoch), journal.source.controlSequenceNumber(), "PAUSE_COMMIT", frame));
-  requestRound(journal.barrier, "PAUSE");
+  requestRound(journal.barrier, "PAUSE", frame);
 }
 
 /** Pauses or resumes exactly when the confirmed cursor reaches the agreed frame. */
@@ -167,5 +179,13 @@ export function pauseRequestEvent(s: ShellState): void {
   const paused = s.session.paused;
   // The epoch and control sequence discard delayed or simultaneous requests.
   const expected = `JP1${padDecimal(rollback.epoch, 10)}${padDecimal(journal.source.controlSequenceNumber(), 10)}${paused ? "R" : "P"}`;
-  if (BlzGetTriggerSyncData() === expected) requestPause(s, rollback, journal, !paused);
+  const wire = BlzGetTriggerSyncData();
+  if (paused) {
+    if (wire === expected) requestPause(s, rollback, journal, false);
+    return;
+  }
+  // A pause names the frame Start was pressed in; one the match already confirmed past pauses where the helpers stop.
+  const frame = wire.length === expected.length + 10 && wire.startsWith(expected) ? parseDecimal(wire.substring(expected.length)) : undefined;
+  if (frame === undefined) return;
+  requestPause(s, rollback, journal, true, frame >= rollback.schedule.nextConfirmedFrame() ? frame : undefined);
 }

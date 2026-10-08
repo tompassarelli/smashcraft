@@ -180,6 +180,25 @@ export class ReplayHistory {
   }
 
   /**
+   * Drops the recorded frames from `frame` on, none of them authoritative,
+   * and restores the state before it: frames that will run again on other rows.
+   */
+  truncate(epoch: number, frame: number, live: ReplayState): boolean {
+    if (this.current === undefined || epoch !== this.current || live.runtime.simulationFrame !== this.nextFrame - 1) return false;
+    if (frame >= this.nextFrame) return true;
+    if (frame <= this.authoritativeThrough || !this.contains(epoch, frame)) return false;
+    copyReplayState(live, this.snapshotAt(frame));
+    this.count -= this.nextFrame - frame;
+    this.nextFrame = frame;
+    this.matchedThrough = Math.min(this.matchedThrough, frame - 1);
+    if (this.repairNext !== undefined && this.repairNext >= frame) {
+      this.repairNext = undefined;
+      this.repairPositioned = false;
+    }
+    return true;
+  }
+
+  /**
    * Restores the state before fromFrame and runs the recorded rows through
    * throughFrame. The whole interval is validated before live state changes.
    */

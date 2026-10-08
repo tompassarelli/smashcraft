@@ -3,7 +3,7 @@ import { Action } from "../src/game/input/actions";
 import { canonicalState } from "../src/game/replay/canonical";
 import { Character, GrabAction } from "../src/game/sim/codes";
 import { Timeline, type Situation } from "./interactions";
-import { fighter, frame, scene } from "./frameScene";
+import { fighter, frame, scene } from "../src/game/match/padScene";
 
 test("a controller direction tap throws a held victim, and a held direction has no repeated tap", () => {
   const match = scene(0, [

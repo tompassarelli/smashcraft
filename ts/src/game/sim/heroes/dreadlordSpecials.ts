@@ -81,6 +81,6 @@ function batAscension(cost: number, rise: number, across: number): AuthoredSpeci
 export const DREADLORD_SPECIALS: FighterSpecials = {
   neutral: { name: "Carrion Swarm", description: "A short, slow cloud of bats.", ground: CARRION_SWARM, air: { ...CARRION_SWARM, landingLag: AIR_LANDING_LAG } },
   side: { name: "Vampiric Pounce", description: "Corkscrew forward with trailing bats; bite and heal on a catch, recover on a miss.", ground: NIGHT_POUNCE, air: NIGHT_POUNCE_AIR },
-  up: { name: "Bat Ascension", description: "A steerable rise on bat wings, then a helpless fall.", ground: batAscension(15, f32(2.8), 1.0), free: batAscension(0, 2.0, f32(0.6)) },
+  up: { name: "Bat Ascension", description: "A steerable rise on bat wings, then a helpless fall.", ground: batAscension(15, f32(2.9), f32(2.2)), free: batAscension(0, f32(2.1), f32(0.8)) },
   down: { name: "Sleep", description: "A slow orb that puts a grounded target to sleep until it mashes out or is hit.", ground: SLEEP_ORB, air: { ...SLEEP_ORB, landingLag: AIR_LANDING_LAG } },
 };

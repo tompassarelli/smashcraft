@@ -32,7 +32,7 @@ const attempt = <A>(operation: string, run: () => A) => Effect.try({ try: run, c
 const send = (clients: readonly DriverClient[], text: string, frame?: number) => Effect.gen(function*() {
   const started = performance.now();
   const serial = yield* attempt("publish native command", () => publishDriverCommand(clients, "smashcraft", text));
-  const status = yield* Effect.tryPromise({ try: () => waitDriverCommand(clients, "smashcraft", serial, 30000, frame), catch: cause => new EngineFailure({ problem: String(cause) }) });
+  const status = yield* waitDriverCommand(clients, "smashcraft", serial, 30000, frame);
   if (new Set(status.map(value => value.checksum)).size !== 1) return yield* new EngineFailure({ problem: `native clients disagree: ${JSON.stringify(status)}` });
   return { status, milliseconds: performance.now() - started };
 });

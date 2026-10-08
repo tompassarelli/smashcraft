@@ -141,7 +141,7 @@ test("the catch box sweeps the frame's movement, and only a downward movement ca
   }
 });
 
-test("falling, helpless, post-dodge and tumbling fighters catch; aerials, specials, air dodges and hitstun don't", () => {
+test("[spec #252] falling, running up specials, helpless, post-dodge and tumbling fighters catch; other specials, aerials, air dodges and hitstun don't", () => {
   const upSpecials = [SpecialAction.archerRecovery, SpecialAction.riflemanRecovery, SpecialAction.demonHunterWingAscent] as const;
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
     const states: readonly (readonly [boolean, (f: Fighter) => void])[] = [
@@ -157,9 +157,13 @@ test("falling, helpless, post-dodge and tumbling fighters catch; aerials, specia
         f.attack.style = AttackStyle.neutralAir;
         f.attack.cooldown = 1;
       }],
-      [false, (f) => {
+      [true, (f) => {
         f.special.action = upSpecials[character];
         f.special.lockFrames = 1;
+        f.attack.cooldown = 1;
+      }],
+      [false, (f) => {
+        f.special.action = SpecialAction.heroSide;
       }],
       [false, (f) => {
         f.down.state = DownState.tumble;

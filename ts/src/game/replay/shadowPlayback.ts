@@ -57,6 +57,11 @@ export class ShadowInputPlayback {
     return true;
   }
 
+  /** The next reconcile rebuilds every retained row, as after a rewind. */
+  forgetReconciliation(): void {
+    this.reconciledPackets = undefined;
+  }
+
   /**
    * Runs local rows already assigned, at most stepBudget of them and never
    * frame stopBefore, an acknowledged pause frontier. The schedule still

@@ -49,6 +49,12 @@ export interface RollbackPlayback {
    * corrected, so the confirmed match may take it instead of running the frame.
    */
   confirmedState(epoch: number, frame: number, row: Readonly<MatchFrameInput>): Readonly<ReplayState> | undefined;
+  /**
+   * Returns the speculative match to the state before `frame`, dropping the
+   * predicted frames from it on: a pause at `frame` will not run them. True
+   * when nothing past it ran.
+   */
+  rewind(schedule: ShadowInputSchedule, epoch: number, frame: number, match: SpeculativeMatch): boolean;
   /** Every world the history holds, for a change a replay must not undo, such as authored tuning a reload changed. */
   visitWorlds(visit: (world: Roster) => void): void;
 }

@@ -76,7 +76,7 @@ const risingBlade: AuthoredSpecial = {
   cost: 15,
   endFrame: 24,
   aimFrames: CHARGED_AIM_FRAMES,
-  motion: rise(f32(2.8)),
+  motion: rise(f32(4.1)),
   regions: path(9, [
     capsule(40.0, 30.0, 70.0, 70.0),
     capsule(30.0, 40.0, 55.0, 90.0),
@@ -95,7 +95,7 @@ const risingBladeFree: AuthoredSpecial = {
   cost: 0,
   endFrame: 24,
   aimFrames: CHARGED_AIM_FRAMES,
-  motion: rise(f32(1.9)),
+  motion: rise(f32(2.8)),
   oncePerAirtime: true,
   helpless: true,
 };

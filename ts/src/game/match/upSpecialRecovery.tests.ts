@@ -1,5 +1,6 @@
-// Up specials (#189, smashcraft:docs/gameplay-design.md, "Up specials"):
-// every selectable fighter's up special recovers within the roster band, and
+// Up specials (#189, smashcraft:docs/gameplay-design.md, "Up specials" and
+// "Recovery and edgeguarding"): every selectable fighter's up special recovers
+// within its recovery archetype's band, and
 // both control styles answer keyboard keys and a controller stick through the
 // real input path (a helper journal for the stick, the keyboard sampler for
 // keys): a charged-angle up special flies any of eight directions picked in
@@ -16,18 +17,9 @@ import { HERO_REFERENCE_HEIGHT } from "../sim/heroMoves";
 import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 import { captureNetworkFrame, executeMatchFrame } from "./frameInput";
 import { type PadMatch, padMatch, playPads } from "./helperPads";
+import { FREE_ROUTE_MIN, RECOVERY_BANDS, recoveryArchetype, upSpecialRoute } from "./recoveryEnvelope";
 import { testMatch } from "./testMatch";
 import { sweep } from "../../runtime/sweep";
-
-/** The documented band, world units from where the up special starts. */
-const VERTICAL_MIN = 320.0;
-const VERTICAL_MAX = 480.0;
-const HORIZONTAL_MIN = 320.0;
-const HORIZONTAL_MAX = 900.0;
-/** The zero-mana form's floor on both axes. */
-const FREE_MIN = 200.0;
-/** Height a fighter may sink below its start and still count as level with it. */
-const LEVEL_TOLERANCE = 10.0;
 
 const CHARGED_ANGLE: readonly Character[] = [Character.rifleman, Character.warden, Character.blademaster, Character.mountainKing, Character.shadowHunter];
 
@@ -103,46 +95,15 @@ function keysDriver(character: Character, mana: number): Driver {
 
 const DRIVERS = [stickDriver, keysDriver] as const;
 
-/** Presses up special with the stick up, then holds `hold(frame)`; the highest rise and farthest level reach. */
-function recover(driver: Driver, hold: (frame: number) => Hold): { rise: number; reach: number } {
-  const { fighter } = driver;
-  let rise = 0.0;
-  let reach = 0.0;
-  driver.play({ x: 0, z: 1, special: true });
-  for (let frame = 2; frame <= 300 && !fighter.motion.grounded && !fighter.status.out; frame++) {
-    driver.play(hold(frame));
-    const height = fighter.motion.z - START_Z;
-    rise = Math.max(rise, height);
-    if (height >= -LEVEL_TOLERANCE) reach = Math.max(reach, fighter.motion.x - START_X);
-  }
-  return { rise, reach };
-}
-
-const UP: Hold = { x: 0, z: 1 };
-const AWAY_UP: Hold = { x: 1, z: 1 };
-const AWAY: Hold = { x: 1, z: 0 };
-
-/** Vertical: up held throughout. Horizontal: the farthest of the ordinary returns, a glide jump included. */
-function band(character: Character, mana: number): { vertical: number; horizontal: number } {
-  const vertical = recover(stickDriver(character, mana), () => UP).rise;
-  const plans: ((frame: number) => Hold)[] = [
-    () => AWAY_UP,
-    () => AWAY,
-    (frame) => frame === 20 ? { ...AWAY, jump: true } : AWAY,
-  ];
-  let horizontal = 0.0;
-  for (const plan of plans) horizontal = Math.max(horizontal, recover(stickDriver(character, mana), plan).reach);
-  return { vertical, horizontal };
-}
-
-sweep("every fighter's up special recovers within the documented band, and its zero-mana form above the floor", () => {
+sweep("[spec #252] every fighter's up special recovers within its archetype's band, and its zero-mana form above the floor", () => {
   for (const character of SELECTABLE_CHARACTERS) {
-    const full = band(character, 100);
-    const name = fighterName(character);
-    check(full.vertical >= VERTICAL_MIN && full.vertical <= VERTICAL_MAX, `${name} vertical ${full.vertical}`);
-    check(full.horizontal >= HORIZONTAL_MIN && full.horizontal <= HORIZONTAL_MAX, `${name} horizontal ${full.horizontal}`);
-    const free = band(character, 0);
-    check(free.vertical >= FREE_MIN && free.horizontal >= FREE_MIN, `${name} free ${free.vertical} ${free.horizontal}`);
+    const band = assertDefined(RECOVERY_BANDS[recoveryArchetype(character)], "band");
+    const name = `${fighterName(character)} (${band.name})`;
+    const full = upSpecialRoute(character, 100);
+    check(full.rise >= band.riseMin && full.rise <= band.riseMax, `${name} rise ${full.rise}`);
+    check(full.reach >= band.reachMin && full.reach <= band.reachMax, `${name} reach ${full.reach}`);
+    const free = upSpecialRoute(character, 0);
+    check(free.rise >= FREE_ROUTE_MIN && free.reach >= FREE_ROUTE_MIN, `${name} free ${free.rise} ${free.reach}`);
   }
 });
 

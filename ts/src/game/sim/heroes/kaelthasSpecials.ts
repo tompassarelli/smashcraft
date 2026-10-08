@@ -31,6 +31,6 @@ const banish: AuthoredSpecial = {
 export const KAELTHAS_SPECIALS: FighterSpecials = {
   neutral: { name: "Flame Strike", description: "Send a wall of flame along the ground that launches the first enemy it reaches. Shield it or jump over it.", ground: flameStrike },
   side: { name: "Siphon Mana", description: "Reach ahead to take mana from an enemy. Shields stop it.", ground: siphon },
-  up: { name: "Phoenix Flight", description: "Aim, then ride a burst of fire. You fall helpless after the flight.", ground: flight(15, 14.0), free: flight(0, 9.0) },
+  up: { name: "Phoenix Flight", description: "Aim, then ride a burst of fire. You fall helpless after the flight.", ground: flight(15, 20.0), free: flight(0, 11.0) },
   down: { name: "Banish", description: "Briefly turn ethereal, then push nearby enemies away.", ground: banish },
 };

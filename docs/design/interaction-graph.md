@@ -77,7 +77,7 @@ jump neutral air and jump back air 13 frames after contact.
 ## How it is measured
 
 Every number comes from playing the situation through the match frame executor
-from controller rows (smashcraft:ts/scripts/frameScene.ts, shared with the
+from controller rows (smashcraft:ts/src/game/match/padScene.ts, shared with the
 Melee oracle), with the six-frame attack buffer a live match gives each player.
 So the graph reads the authored timing, hit regions, landing lag, shield,
 hitlag, hitstun and input rules exactly as a match does, not a second model of

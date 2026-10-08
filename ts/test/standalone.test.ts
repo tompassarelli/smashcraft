@@ -32,7 +32,7 @@ sweep("standalone keyboard play runs a full three-stock Archer versus CPU Riflem
   } finally { session.close(); }
 });
 
-test("standalone four-fighter match keeps one human and three computers on stage", async () => {
+test("[repro #242] standalone four-fighter match moves the human on its first dash and keeps three computers on stage", async () => {
   const session = await createStandaloneSession({ fourFighters: true });
   try {
     const { client } = session;
@@ -40,9 +40,11 @@ test("standalone four-fighter match keeps one human and three computers on stage
     expect(value(client, () => shell().game.computerMask)).toBe(14);
     expect(value(client, () => shell().game.characterChoices.slice(0, 4))).toEqual([Character.archer, Character.rifleman, Character.demonHunter, Character.archer]);
     const x = value(client, () => shell().world.fighters[0]?.motion.x);
-    for (let frame = 0; frame < 600; frame++) session.step(NEUTRAL_INPUT);
-    expect(value(client, () => shell().world.fighters.filter(fighter => fighter !== undefined && fighter.status.stocks > 0).length)).toBe(4);
+    for (let frame = 0; frame < 132; frame++) session.step(NEUTRAL_INPUT);
+    // A later stock loss may legitimately put the human back at this spawn.
     expect(value(client, () => shell().world.fighters[0]?.motion.x)).not.toBe(x);
+    for (let frame = 132; frame < 600; frame++) session.step(NEUTRAL_INPUT);
+    expect(value(client, () => shell().world.fighters.filter(fighter => fighter !== undefined && fighter.status.stocks > 0).length)).toBe(4);
     expect(session.finished()).toBe(false);
     expect(client.errors).toEqual([]);
   } finally { session.close(); }

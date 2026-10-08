@@ -75,6 +75,8 @@ export interface SpecialMotion extends FrameWindow {
   readonly relocate?: Relocation | undefined;
   /** How far away a marked target may be for `Relocation.behindMark`; past it the fighter stays put. */
   readonly relocateReach?: number | undefined;
+  /** A one-frame teleport that may pass the main deck's lip (sim/edgeRecovery.ts, passThroughEdge). */
+  readonly throughEdge?: boolean | undefined;
 }
 
 /**

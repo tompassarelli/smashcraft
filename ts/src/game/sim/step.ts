@@ -47,6 +47,7 @@ import { demonHunterGliding, demonHunterJumpOrGlideCancel } from "./specials";
 import { AIR_DODGE_ANIMATION_FRAMES, AIR_DODGE_DECAY, beginAirDodge, beginGroundDodge, beginJump, canBeginGroundDodge } from "./jumpsAndDodges";
 import { ageKnockback, applyDirectionalInfluence, decayKnockback } from "./knockback";
 import { advanceLedge } from "./ledge";
+import { EdgePass, passThroughEdge, rideWall } from "./edgeRecovery";
 import { DOWN_ATTACK_FRAMES, EARLY_ASCENT_GRAB_FRAMES, SMASH_MAX_CHARGE_FRAMES, attackFall, attackStartupFrames, isSmashAttack } from "./moves";
 import {
   addMeleeWorldValues,
@@ -616,10 +617,13 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   // Melee adds the wind to the position after the frame's velocities, before collision (fighter.c Fighter_procUpdate, windOffset).
   if (!isGroundDodging(f)) moveMeleeX(f, windPush(stage, matchFrame, motion.x, motion.z));
   const frameDeltaX = f32(motion.x - oldX);
-  let wallSide = resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input);
+  const frameDeltaZ = f32(motion.z - oldZ);
+  const edge = passThroughEdge(world, slot, stage, oldX, oldZ);
+  let wallSide = edge === EdgePass.none ? resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input) : 0;
+  rideWall(f, wallSide, frameDeltaX, frameDeltaZ, oldX, oldZ);
   // Rising into a platform ascends it; a half-circle onto one wraps under it instead of landing.
-  const ascending = beginPlatformAscent(f, stage, matchFrame);
-  const landing = ascending ? undefined : landingDeck(f, stage, matchFrame, oldX, oldZ, carried);
+  const ascending = edge === EdgePass.none && beginPlatformAscent(f, stage, matchFrame);
+  const landing = edge === EdgePass.land ? 0 : edge !== EdgePass.none || ascending ? undefined : landingDeck(f, stage, matchFrame, oldX, oldZ, carried);
   const wrapping = landing !== undefined && beginPlatformWrapUnder(f, stage, matchFrame, landing);
   if (landing !== undefined && !wrapping) {
     finishLanding(f, stage, matchFrame, input, landing, false);
