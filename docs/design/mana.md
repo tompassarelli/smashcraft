@@ -96,6 +96,7 @@ its active time. Status durations and healing caps stay unchanged.
 | Tinker | Cluster Rockets deal 25% more damage. | Pocket Factory has 25% more durability and goblin damage; recall gains four protected entry frames. | Rocket Boots travels 25% farther. | Robo-Goblin deals 25% more damage. |
 | Kael'thas | Flame Strike deals 25% more damage. | Siphon has 25% more reach; its resource interaction follows #335. | Phoenix Flight travels 25% farther. | Banish's push has 25% more reach. |
 | Murloc | Ensnare has 25% more reach, with unchanged slow. | Tidal Rush deals 25% more damage. | Tide Spout travels 25% farther. | Disease Cloud has 25% more reach, with unchanged poison duration and tick rate. |
+| Grom | Warsong Cry deals 25% more damage with 15% more reach. | Gorehowl Rush deals 25% more damage and travels 25% farther. | Blood Leap rises and steers 25% farther. | Mannoroth's Bane deals 25% more damage. |
 | Kobold | Wick Flick deals 25% more damage. | Panic Dig deals 25% more damage. | Candle Escape rises and steers 25% farther. | Mine! has 25% more reach on both sides. |
 
 Ground, air, marked and recall forms use their matching upgrade. A
