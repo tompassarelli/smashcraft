@@ -113,10 +113,10 @@ from #335/#329, available for each special with no Kobold-specific meter rule.
 
 | Special | Ordinary move and counterplay | EX expression |
 | --- | --- | --- |
-| Neutral: Wick Flick | Flick a tiny flame on frame 12; 4%, 36 total frames. Jump or shield the short projectile; punish his recovery. | Shared EX stronger flame, same readable release. |
-| Side: Panic Dig | Ground-level 11-unit/frame scurry on frames 8–22; 8%, 32 total. In air, swing the pick forward. Shield stops the scurry. | Shared EX deeper shove; shield still stops it. |
-| Up: Candle Escape | Panic spring upward on frame 6, 16-unit/frame rise through 25; 5% on frames 6–14. One use per airtime; helpless after. | Shared EX stronger rising pick; no refresh of the recovery. |
-| Down: Mine! | Hunch over the candle, then sweep the pick across both ankles on frames 10–13; 7%, 34 total. Jump over or punish the whiff. | Shared EX stronger sweep, same commitment. |
+| Neutral: Wick Flick | Flick a tiny flame on frame 12; 4%, 36 total frames. Jump or shield the short projectile; punish his recovery. | 5% flame, same readable release. |
+| Side: Panic Dig | Ground-level 11-unit/frame scurry on frames 8–22; 8%, 32 total. In air, swing the pick forward. Shield stops the scurry. | 10% shove; shield still stops it. |
+| Up: Candle Escape | Panic spring upward on frame 6, 16-unit/frame rise through 25; 5% on frames 6–14. One use per airtime; helpless after. | 20-unit/frame rise and 25% farther steering; same 5% pick and helpless ending. |
+| Down: Mine! | Hunch over the candle, then sweep the pick across both ankles on frames 10–13; 7%, 34 total. Jump over or punish the whiff. | 25% wider sweep on both sides, same damage and commitment. |
 
 Grab clutches the opponent's sleeve; one candle-headbutt pummel. Forward throw
 shoves them away (7%, frame 12/32 total); back throw yanks and tumbles backward

@@ -1,4 +1,5 @@
 import { HitElement } from "../codes";
+import { withExKit } from "../exSpecialAuthoring";
 import { heroRegion } from "../heroMoves";
 import { frames, type AuthoredSpecial, type FighterSpecials } from "../heroSpecials";
 import { koboldHit } from "./koboldMoves";
@@ -28,8 +29,8 @@ const mine = (air: boolean): AuthoredSpecial => ({
 });
 
 export const KOBOLD_SPECIALS: FighterSpecials = {
-  neutral: { name: "Wick Flick", description: "Flick candle flame forward. Jump or shield it, then punish the recovery.", ground: wick(false), air: wick(true) },
-  side: { name: "Panic Dig", description: "Scurry forward behind the pick. A raised shield stops the charge.", ground: dig(false), air: dig(true) },
-  up: { name: "Candle Escape", description: "Spring upward in a panic, steer, then fall helpless.", ground: escape, air: escape, free: escape },
-  down: { name: "Mine!", description: "Protect the candle with a two-sided ankle sweep. Jump over the pick.", ground: mine(false), air: mine(true) },
+  neutral: withExKit({ name: "Wick Flick", description: "Flick candle flame forward. Jump or shield it, then punish the recovery.", ground: wick(false), air: wick(true) }, { damage: 1.25 }),
+  side: withExKit({ name: "Panic Dig", description: "Scurry forward behind the pick. A raised shield stops the charge.", ground: dig(false), air: dig(true) }, { damage: 1.25 }),
+  up: withExKit({ name: "Candle Escape", description: "Spring upward in a panic, steer, then fall helpless.", ground: escape, air: escape }, { travel: 1.25 }),
+  down: withExKit({ name: "Mine!", description: "Protect the candle with a two-sided ankle sweep. Jump over the pick.", ground: mine(false), air: mine(true) }, { reach: 1.25 }),
 };

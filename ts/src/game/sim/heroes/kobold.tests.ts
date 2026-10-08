@@ -1,4 +1,4 @@
-import { assertEquals, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, GrabAction, HeroStatusKind, SpecialAction } from "../codes";
@@ -11,6 +11,7 @@ import { updateProjectiles } from "../projectiles";
 import { advanceFighter } from "../step";
 import { fighterAt, type Controls, type Roster } from "../roster";
 import { KOBOLD_MOVES } from "./koboldMoves";
+import { runningHeroSpecial } from "../heroSpecialRules";
 
 // [style, target x, target z, damage]
 const normalCases = [
@@ -106,5 +107,56 @@ test("Kobold Panic Dig and Candle Escape hit once without spending meter in both
     for (let tick = 0; tick < 25 && target.status.damage === 0.0; tick++) frame(world);
     assertEquals(target.status.damage, rise ? 5.0 : 8.0);
     if (rise) assertEquals(owner.special.airtimeUses & 4, 4);
+  }
+});
+
+test("Kobold EX Wick Flick and Panic Dig spend one full bar for 25% more damage in ground and air [spec docs/design/mana.md]", () => {
+  for (const facing of [-1, 1]) for (const air of [false, true]) for (const side of [false, true]) {
+    const { owner, target, world } = pair(side ? 80.0 : 160.0, facing);
+    owner.mana.points = 100;
+    if (air) {
+      owner.motion.grounded = false; owner.motion.surface = undefined; owner.motion.z = 1000.0;
+      target.motion.grounded = false; target.motion.surface = undefined; target.motion.z = 1000.0;
+    }
+    frame(world, controls({ specialPressed: true, specialX: side ? facing : 0, shield: true }));
+    assertTrue(owner.special.ex); assertEquals(owner.mana.points, 0);
+    for (let tick = 0; tick < 40 && target.status.damage === 0.0; tick++) {
+      beginDamageContacts(); advanceSpecials(world, 0, tick); updateProjectiles(world); finishDamageContacts(world);
+    }
+    assertEquals(target.status.damage, side ? 10.0 : 5.0, `EX facing ${facing}, air ${air}, side ${side}`);
+  }
+});
+
+test("Kobold EX Candle Escape rises and steers 25% farther on the same helpless timeline [spec docs/design/mana.md]", () => {
+  const travel: number[][] = [];
+  for (const ex of [false, true]) {
+    const { owner, world } = pair(1000.0);
+    owner.mana.points = 100;
+    owner.motion.grounded = false; owner.motion.surface = undefined; owner.motion.z = 1000.0;
+    assertTrue(startFighterSpecial(owner, 0, 0, controls({ specialPressed: true, specialZ: 1, shield: ex }), world));
+    assertEquals(owner.mana.points, ex ? 0 : 100);
+    const move = runningHeroSpecial(owner);
+    let x = 0.0; let z = 0.0;
+    for (let tick = 1; tick <= (move?.endFrame ?? 0); tick++) {
+      advanceSpecials(world, 0, tick, [controls({ direction: 1 })]);
+      if (move?.motion?.some(segment => tick >= segment.first && tick <= segment.last)) {
+        x = f32(x + owner.motion.vx); z = f32(z + owner.motion.vz);
+      }
+    }
+    assertTrue(owner.special.fall); travel.push([x, z, move?.endFrame ?? 0]);
+  }
+  assertNear(travel[1]?.[0] ?? 0.0, f32((travel[0]?.[0] ?? 0.0) * 1.25), f32(0.001));
+  assertNear(travel[1]?.[1] ?? 0.0, f32((travel[0]?.[1] ?? 0.0) * 1.25), f32(0.001));
+  assertEquals(travel[1]?.[2], travel[0]?.[2]);
+});
+
+test("Kobold EX Mine reaches outside the ordinary swipe on both sides [spec docs/design/mana.md]", () => {
+  for (const facing of [-1, 1]) for (const side of [-1, 1]) for (const ex of [false, true]) {
+    const { owner, target, world } = pair(115.0 * side, facing);
+    owner.mana.points = 100;
+    frame(world, controls({ specialPressed: true, specialZ: -1, shield: ex }));
+    assertEquals(owner.mana.points, ex ? 0 : 100);
+    for (let tick = 0; tick < 18 && target.status.damage === 0.0; tick++) frame(world);
+    assertEquals(target.status.damage, ex ? 7.0 : 0.0);
   }
 });
