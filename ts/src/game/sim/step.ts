@@ -83,6 +83,8 @@ import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence
 import { floorFriction, floorTraction, groundLineCosine, surfaceCount, surfaceLeft, surfaceLine, surfaceMoves, surfacePass, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ, surfaceZAt } from "./stage";
 
 import { inStageCannon, windPush } from "./stageHazards";
+// One local for the sea: this module is near Lua's 200-local limit.
+import * as sea from "./water";
 import { stickX } from "./stick";
 import { checkBlastZone, respawnFighter } from "./stocks";
 import { advanceSurfaceRecovery, advanceWallJump, leaveMainDeckBody, resolveSolidSurfaceContacts } from "./surfaces";
@@ -477,7 +479,10 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   if (launch.hitstun === 0) launch.throwHitstun = false;
   const squatBeforeInput = jump.squat;
   if (input.jumpPressed || input.attackPressed) demonHunterJumpOrGlideCancel(f, input);
-  if ((input.jumpPressed || parryOption === ParryBuffer.jump) && !wallJumped) beginJump(f, input.direction);
+  // In the sea a jump is the water jump; a fighter that can't take it keeps its double jump.
+  const wet = sea.wet(f, stage);
+  const waterJumped = wet && (input.jumpPressed || parryOption === ParryBuffer.jump) && !wallJumped && sea.beginWaterJump(f, input.direction);
+  if ((input.jumpPressed || parryOption === ParryBuffer.jump) && !wallJumped && !waterJumped) beginJump(f, input.direction);
   if (jump.squat > 0 && launch.hitlag === 0 && (f.character === Character.demonHunter || squatBeforeInput !== 1)) jump.held = jump.held && input.jumpHeld;
   if (input.airDodgePressed && !exSpecialPressed(input)) {
     if (motion.grounded && jump.squat > 0) {
@@ -562,7 +567,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     } else if (direction !== 0 && !groundTakeoff) {
       // Air steering changes velocity, not facing; back aerials rely on a stable orientation.
       const driftStick = input.driftStickX ?? direction;
-      motion.vx = airDriftVelocity(f, motion.vx, driftStick === 0 ? direction : driftStick);
+      motion.vx = wet ? sea.swimVelocity(motion.vx, direction) : airDriftVelocity(f, motion.vx, driftStick === 0 ? direction : driftStick);
     }
   }
   if (isGroundDodging(f) && dodge.groundDirection !== 0) {
@@ -596,11 +601,15 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     motion.vz = f32(motion.vz * AIR_DODGE_DECAY);
   }
   const drill = motion.grounded ? undefined : attackFall(attack.style, attack.frame, f.tuning.moves);
+  let buoyant = false;
   if (drill?.speedX !== undefined) motion.vx = f32(drill.speedX * f.facing);
   moveHorizontally(f, stage, matchFrame, dashEntryDisplacementAdjustment);
   if (isGroundDodging(f) || (motion.grounded && jump.squat > 0)) {
     motion.vz = 0.0;
     motion.z = surfaceZAt(stage, motion.surface ?? 0, matchFrame, motion.x);
+  } else if (wet && !waterJumped && launch.hitstun <= 0 && !dodgeActive && !authoredMotion && drill?.speedZ === undefined) {
+    buoyant = true;
+    sea.applyBuoyancy(f);
   } else if ((!dodgeActive || motion.grounded) && !groundTakeoff && !authoredMotion) {
     if (!motion.grounded && !motion.fastFalling && downHeld && motion.fastFallInputAge < FAST_FALL_INPUT_WINDOW && input.direction === 0
       && down.state === DownState.none && launch.hitstun <= 0 && motion.vz < 0) {
@@ -614,6 +623,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   moveMeleeVerticalVelocity(f);
   moveMeleeZ(f, divideFloat32(launch.knockbackZ, WORLD_UNITS_PER_MELEE_UNIT));
   moveMeleeZ(f, divideFloat32(shield.recoilZ, WORLD_UNITS_PER_MELEE_UNIT));
+  if (buoyant) sea.floatAtSurface(f);
   // Melee adds the wind to the position after the frame's velocities, before collision (fighter.c Fighter_procUpdate, windOffset).
   if (!isGroundDodging(f)) moveMeleeX(f, windPush(stage, matchFrame, motion.x, motion.z));
   const frameDeltaX = f32(motion.x - oldX);

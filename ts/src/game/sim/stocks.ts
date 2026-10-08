@@ -8,6 +8,7 @@ import { clearMotionValue, setWorldMotionValue } from "./motion";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt } from "./roster";
 import { clearPowershield, clearShieldBreak } from "./shield";
+import { clearWater } from "./water";
 import { at } from "wisp/src/runtime/lookup";
 import {
   clearDownState,
@@ -118,6 +119,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   f.cannon.held = undefined;
   f.cannon.firing = undefined;
   f.cannon.cooldown = 0;
+  clearWater(f);
   clearShieldBreak(f);
   shield.breakSerial = 0;
   clearOwnedFreezeTrap(f);
