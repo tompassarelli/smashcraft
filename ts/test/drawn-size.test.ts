@@ -39,6 +39,7 @@ const IDLE_TOPS: readonly { readonly character: Character; readonly idleClip: nu
   { character: Character.kobold, idleClip: 0, top: 72.11871337890625 },
   { character: Character.grom, idleClip: 8, top: 189.2610626220703 },
   { character: Character.malfurion, idleClip: 0, top: 159.57972717285156 },
+  { character: Character.medivh, idleClip: 0, top: 144.29507446289062 },
 ];
 
 /** The hurt capsule's top may sit at most a tenth above the drawn head. */
