@@ -329,6 +329,18 @@ export const CLASSIC_ROUTES: readonly ClassicRoute[] = [
     ],
     ending: ["Kil'jaeden's claws cannot reach the throne. The tunnels belong to me.", "I was king beneath this ice before your kingdoms had names.", "Now tread carefully, little champions. My children are hungry."],
   },
+  {
+    fighter: C.medivh, boss: BossKind.archimonde,
+    story: "The returned Guardian gathers Azeroth's divided champions at Hyjal to undo the ruin he once invited.",
+    fights: [
+      fight(C.lich, 0, "Your book opened Dalaran to the Legion, Guardian. Your warnings come too late."),
+      fight(C.jaina, 11, "I followed your warning west. Now show me why I should trust the Horde."),
+      fight(C.thrall, 3, "You led us to Kalimdor, prophet. I will not lead my people into another trap."),
+      fight([C.dreadlord, C.pitLord], 14, "Sargeras spoke through you once. The Legion has not forgotten its favourite door."),
+      fight(C.malfurion, 10, "Nordrassil shelters this world, Medivh. Prove your counsel will not betray it."),
+    ],
+    ending: ["The Legion's shadow has lifted. Azeroth's children chose to stand together.", "I opened the wrong door once. This time, I showed them the way home.", "My work is finished. Their future belongs to them."],
+  },
 ];
 
 export const CLASSIC_CHARACTERS: readonly Character[] = CLASSIC_ROUTES.map(route => route.fighter);

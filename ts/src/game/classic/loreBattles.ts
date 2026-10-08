@@ -160,6 +160,11 @@ export const LORE_BATTLES: readonly LoreBattle[] = [
     win: koWithinClock, minutes: 3, playerStocks: 2, opponentStocks: 1,
     speaker: "Anub'arak", intro: "The usurpers bar the way to Icecrown. Follow me, King Arthas. We shall make a passage through their bones.",
   }),
+  battle({
+    id: "medivh-warning", title: "The Guardian's Last Warning", player: C.medivh, against: [C.dreadlord, C.pitLord], tier: "expert", stage: 10,
+    win: koWithinClock, minutes: 3, playerStocks: 2, opponentStocks: 1,
+    speaker: "Medivh", intro: "At Hyjal, human, orc and night elf stand together. Demons, you will find no willing door in me again.",
+  }),
 ];
 
 export const loreBattle = (index: number): LoreBattle | undefined => LORE_BATTLES[index];
