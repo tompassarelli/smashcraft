@@ -287,7 +287,7 @@ const ARCHER = HitElement.normal;
 export const ARCHER_GROUND: GroundKit = {
   normals: {
     [AttackStyle.jab2]: heroMove(4, 3, 16, 0, swing(4, [[16.0, 30.0, 96.0, 26.0], [16.0, 28.0, 100.0, 22.0], [16.0, 26.0, 94.0, 20.0]], 10.0, groundHit(5.0, 40, 95.0, 22.0, ARCHER))),
-    [AttackStyle.dashAttack]: heroMove(6, 4, 20, 0, [held(6, 9, [14.0, 14.0, 90.0, 10.0], 10.0, groundHit(6.0, 70, 55.0, 38.0, ARCHER))], 99.0, true),
+    [AttackStyle.dashAttack]: heroMove(6, 4, 20, 0, [held(6, 9, [14.0, 14.0, 90.0, 10.0], 10.0, groundHit(8.0, 70, 55.0, 38.0, ARCHER))], 99.0, true),
   },
   reaches: {},
 };

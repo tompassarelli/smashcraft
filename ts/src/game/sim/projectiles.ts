@@ -152,7 +152,7 @@ export function projectileDamage(projectile: Readonly<Projectile>): number {
   const { kind, spec } = projectile;
   const damage = kind === ProjectileKind.hero && spec !== undefined ? heroProjectileEffect(projectile, spec).damage
     : kind === ProjectileKind.blaster ? attackDamage(AttackStyle.shot)
-      : kind === ProjectileKind.homingArrow ? 3.0 : kind === ProjectileKind.arrow ? ARCHER_ARROW_DAMAGE : kind === ProjectileKind.recoil || kind === ProjectileKind.manaBurn ? 5.0 : 7.0;
+      : kind === ProjectileKind.homingArrow ? 5.0 : kind === ProjectileKind.arrow ? ARCHER_ARROW_DAMAGE : kind === ProjectileKind.recoil || kind === ProjectileKind.manaBurn ? 5.0 : 7.0;
   return roundToFloat32(f32(damage * projectile.damageMultiplier));
 }
 
