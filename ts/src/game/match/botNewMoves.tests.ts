@@ -232,8 +232,8 @@ sweep("computer Illidan charges Eye Blast and throws Shear, Flames of Azzinoth a
   assertGreaterThan(counts.eyeBlast ?? 0, 0);
 });
 
-sweep("computer Rifleman and Rifleman never press a special their mana can't pay, and cash Trueshot and Long Rifles [spec #155]", () => {
-  for (const character of [Character.demonHunter, Character.rifleman]) {
+sweep("computer Rifleman never presses a special his mana cannot pay, and cashes Long Rifles [spec #155]", () => {
+  for (const character of [Character.rifleman]) {
     const counts = played(character);
     assertEquals(counts.manaDenied ?? 0, 0);
     assertGreaterThan(counts.proc ?? 0, 0);
@@ -242,6 +242,6 @@ sweep("computer Rifleman and Rifleman never press a special their mana can't pay
   }
 });
 
-sweep("computer Rifleman and Rifleman never press a special their mana can't pay in a seeded mirror, which replays its counts [spec #155]", () => {
+sweep("computer Illidan and Rifleman never press a special their mana can't pay in a seeded mirror, which replays its counts [spec #155]", () => {
   for (const character of [Character.demonHunter, Character.rifleman]) assertEquals(played(character, character, 1).manaDenied ?? 0, 0);
 });

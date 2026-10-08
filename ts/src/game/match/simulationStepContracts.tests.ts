@@ -20,7 +20,7 @@ function frameControls(first: Controls, second: Controls, firstCommands: ReturnT
 }
 function testMatch() {
   const game = createMatchState(); setParticipants(game, 1, 2); recallCharacter(game, 0, 1);
-  selectCharacter(game, 0, 0); selectCpuCharacter(game, 0, cpuSlot(game) ?? -1, 1);
+  selectCharacter(game, 0, 1); selectCpuCharacter(game, 0, cpuSlot(game) ?? -1, 1);
   requestStageSelect(game, 0); startAtGo(game, 0); return game;
 }
 function runToAttackActive(game: ReturnType<typeof createMatchState>, first: Fighter, second: Fighter, firstInput: Controls, secondInput: Controls, firstCommands: ReturnType<typeof attackBuffer>, secondCommands: ReturnType<typeof attackBuffer>, style: number, startFrame: number): void {

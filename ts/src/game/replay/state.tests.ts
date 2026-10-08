@@ -101,7 +101,7 @@ test("captured projectiles survive expiry, slot reuse and rollback [invariant]",
 
 test("a practice match's mode is replay state that restores and differs [invariant]", () => {
   const game = createMatchState();
-  selectCharacter(game, 0, 0);
+  selectCharacter(game, 0, 1);
   requestStageSelect(game, 0);
   requestStart(game, 0);
   const first = createFighter(Character.rifleman, -240.0, 1);

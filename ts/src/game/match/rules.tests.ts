@@ -27,7 +27,7 @@ test("bothPlayersMustSelectBeforeEitherCanOpenStages [spec #234]", () => {
   selectCharacter(game, 0, 1);
   assertFalse(requestStageSelect(game, 0));
   assertFalse(requestStageSelect(game, 1));
-  selectCharacter(game, 1, 0);
+  selectCharacter(game, 1, 1);
   assertTrue(requestStageSelect(game, 1));
   selectStage(game, 1, 10);
   assertEquals(game.stageChoice, 10);
@@ -61,7 +61,7 @@ test("menuAndUnlimitedMatchesDoNotRunClock [spec docs/design/match-flow.md]", ()
   advanceClock(game, testStanding(0, 0.0, 0, 0.0));
   assertEquals(game.remainingFrames, 25200);
   assertEquals(game.phase, Phase.characterMenu);
-  selectCharacter(game, 0, 0);
+  selectCharacter(game, 0, 1);
   selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 0);
   requestStageSelect(game, 0);
   advanceClock(game, testStanding(0, 0.0, 0, 0.0));

@@ -34,7 +34,6 @@ interface Watch {
   form: number;
   frame: number;
   entryFacing: number;
-  bird: number;
   divine: number;
   asleep: boolean;
   hexed: boolean;
@@ -141,7 +140,7 @@ function computerMatch(character: Character, opponent: Character, seed: number, 
     match.cpuResolvedOpponents[slot] = "wren";
     match.cpuTiers[slot] = "expert";
     fighterAt(world, slot).status.damage = damage;
-    watches.push({ action: 0, form: 0, frame: 0, entryFacing: 1, bird: 0, divine: 0, asleep: false, hexed: false });
+    watches.push({ action: 0, form: 0, frame: 0, entryFacing: 1, divine: 0, asleep: false, hexed: false });
   }
   for (let step = 0; step < FRAMES; step++) {
     const frame = runtime.simulationFrame + 1;

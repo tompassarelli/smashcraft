@@ -359,7 +359,7 @@ function slotModeJournalOutcome(variant: number, heldInactiveInput: boolean): st
   setParticipants(game, humans, 6);
   assertTrue(cycleSlotMode(game, 0, 0));
   if (variant === 1 || variant === 3) assertTrue(cycleSlotMode(game, 0, 0));
-  if (variant < 2) selectCharacter(game, 3, 0);
+  if (variant < 2) selectCharacter(game, 3, 1);
   assertTrue(requestStageSelect(game, 0));
   assertTrue(requestStart(game, 0));
   game.timeLimitMinutes = 0;

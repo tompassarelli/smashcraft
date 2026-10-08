@@ -359,7 +359,7 @@ test("humanDirectAttacksReachBothSlotsOnTheNextStep [invariant]", () => {
   for (let style = 1; style <= 5; style++) {
     const game = testSoloMatch();
     setHumanCount(game, 2);
-    selectCharacter(game, 0, 0);
+    selectCharacter(game, 0, 1);
     selectCharacter(game, 1, 1);
     requestStageSelect(game, 0);
     startAtGo(game, 0);
@@ -387,7 +387,7 @@ test("humanDirectAttacksReachBothSlotsOnTheNextStep [invariant]", () => {
 });
 test("activeShieldConsumesGrabButRejectsOrdinaryAttackCommand [spec docs/design/melee/defense.md]", () => {
   const game = testSoloMatch();
-  selectCharacter(game, 0, 0);
+  selectCharacter(game, 0, 1);
   selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
   requestStageSelect(game, 0);
   startAtGo(game, 0);

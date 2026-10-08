@@ -258,7 +258,7 @@ sweep("#60: every local press starts in the presser's next prediction unless a r
   until("match", () => phase() === Phase.match, 120);
   until("journaling", () => (helpers.journaled(0) ?? 0) > 0 && (helpers.journaled(1) ?? 0) > 0, 60);
   slower = B_SLOWER;
-  expect(read(host, () => [shell().game.humanFighterMask, shell().game.computerMask, [...shell().game.characterChoices]])).toEqual([3, 12, [0, 1, 2, 0]]);
+  expect(read(host, () => [shell().game.humanFighterMask, shell().game.computerMask, [...shell().game.characterChoices]])).toEqual([3, 12, [Character.rifleman, Character.demonHunter, Character.demonHunter, Character.rifleman]]);
 
   /** Frames B's helper journaled while B's game was stopped. */
   const ownStalls: [number, number][] = [];

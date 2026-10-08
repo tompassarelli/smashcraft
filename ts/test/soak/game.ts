@@ -279,10 +279,10 @@ const THROW_NAMES: Readonly<Record<number, string>> = {
 };
 /** The special each projectile flies from. */
 const PROJECTILE_MOVES: Readonly<Record<number, string>> = {
-  [ProjectileKind.arrow]: "neutral-special", [ProjectileKind.blaster]: "neutral-special", [ProjectileKind.manaBurn]: "neutral-special",
-  [ProjectileKind.homingArrow]: "side-special", [ProjectileKind.recoil]: "up-special",
+  [ProjectileKind.blaster]: "neutral-special", [ProjectileKind.manaBurn]: "neutral-special",
+  [ProjectileKind.recoil]: "up-special",
 };
-/** Specials with nothing that strikes: Rifleman's mount and Illidan's ascent count once started. */
+/** Specials with nothing that strikes: Rifleman's recoil and Illidan's ascent count once started. */
 const STRIKELESS_SPECIALS: Readonly<Record<number, string>> = { [SpecialAction.riflemanRecovery]: "up-special", [SpecialAction.demonHunterWingAscent]: "up-special" };
 /** A hero's specials by the move names, in SpecialSlot order. */
 const HERO_SPECIAL_NAMES = ["neutral-special", "side-special", "up-special", "down-special"] as const;
