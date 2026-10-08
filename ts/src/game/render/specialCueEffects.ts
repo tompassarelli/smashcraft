@@ -2,8 +2,8 @@
 // special (presentation/specialCues.ts) and the effects its signature normals
 // show where their hit region is live (presentation/attackCues.ts), created
 // with the fighter's renderers. Presentation follows numerical state (the
-// running special or attack and its frame), so a restore reapplies it without
-// spawning anything.
+// running special or attack and its frame). Popcorn births follow confirmed
+// state; predicted presentation only moves their existing handles.
 import type { Character } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { type AttackCueState, attackCueState, fighterRenderedCues } from "../presentation/attackCues";
@@ -11,10 +11,28 @@ import { characterModelScale } from "../presentation/modelScale";
 import { CUE_ANCHORS, type Cue, specialCueState } from "../presentation/specialCues";
 import { type ParkedFlags, type WorldOrigin, facingYaw, parkOnce, placeEffect } from "./effects";
 import { HitAreaEffects } from "./hitAreaEffects";
+import { DEFINITIVE_CUE_EMITTERS } from "../presentation/cueEmitterInfo";
+
+declare global { var __smashcraftCueDefinitive: boolean | undefined; }
+
+function definitiveCues(): boolean {
+  if (globalThis.__smashcraftCueDefinitive === undefined) {
+    BlzLoadTOCFile("war3mapImported\\CueGraphics.toc");
+    globalThis.__smashcraftCueDefinitive = GetLocalizedString("SMASHCRAFT_CUE_GRAPHICS") === "definitive";
+  }
+  return globalThis.__smashcraftCueDefinitive;
+}
 
 interface CueModel {
   readonly cue: Cue;
   readonly model: effect;
+}
+
+interface PopcornCue {
+  readonly cue: Cue;
+  readonly model: effect;
+  readonly born: number;
+  seekStep: number;
 }
 
 export class SpecialCueEffects {
@@ -25,6 +43,10 @@ export class SpecialCueEffects {
   private shown: Cue | undefined;
   private shownKey = 0;
   private seekAgain = false;
+  private readonly popcorn: PopcornCue[] = [];
+  private confirmedCue: Cue | undefined;
+  private confirmedKey = 0;
+  private readonly definitive: boolean;
   private readonly front: number;
   private readonly scale: number;
   private readonly attack: AttackCueState = { cue: undefined, x: 0.0, z: 0.0, key: 0 };
@@ -33,7 +55,10 @@ export class SpecialCueEffects {
     this.areas = new HitAreaEffects(character, origin);
     this.front = origin.y - 12.0;
     this.scale = characterModelScale(character);
-    for (const cue of fighterRenderedCues(character)) this.cues.push({ cue, model: AddSpecialEffect(cue.model, origin.x, origin.y) });
+    this.definitive = definitiveCues();
+    for (const cue of fighterRenderedCues(character)) {
+      if (DEFINITIVE_CUE_EMITTERS[cue.model] !== true) this.cues.push({ cue, model: AddSpecialEffect(cue.model, origin.x, origin.y) });
+    }
     this.clear();
   }
 
@@ -47,6 +72,32 @@ export class SpecialCueEffects {
     this.shown = undefined;
     this.shownKey = 0;
     this.seekAgain = false;
+    for (const entry of this.popcorn) { parkOnce(entry.model, this.origin, [], 0); DestroyEffect(entry.model); }
+    this.popcorn.length = 0;
+    this.confirmedCue = undefined;
+    this.confirmedKey = 0;
+  }
+
+  /** Handle births and deaths use confirmed state in every graphics mode. */
+  confirm(fighter: Readonly<Fighter> | undefined, playing: boolean, now: number): void {
+    const state = fighter === undefined || !playing ? undefined : specialCueState(fighter);
+    const cue = state?.cues === undefined || state.phase === "none" ? undefined
+      : state.phase === "startup" ? state.cues.startup : state.cues.active;
+    const key = fighter === undefined ? 0 : fighter.special.action * 100 + fighter.special.form;
+    if (cue !== undefined && DEFINITIVE_CUE_EMITTERS[cue.model] === true && (cue !== this.confirmedCue || key !== this.confirmedKey)) {
+      const model = AddSpecialEffect(cue.model, this.origin.x, this.origin.y);
+      this.popcorn.push({ cue, model, born: now, seekStep: 0 });
+    }
+    for (let index = this.popcorn.length - 1; index >= 0; index--) {
+      const entry = this.popcorn[index];
+      if (entry !== undefined && entry.cue !== cue && now - entry.born >= 1.0) {
+        parkOnce(entry.model, this.origin, [], 0);
+        DestroyEffect(entry.model);
+        this.popcorn.splice(index, 1);
+      }
+    }
+    this.confirmedCue = cue;
+    this.confirmedKey = key;
   }
 
   present(fighter: Readonly<Fighter> | undefined, playing: boolean, paused: boolean): void {
@@ -102,12 +153,31 @@ export class SpecialCueEffects {
       BlzSetSpecialEffectAlpha(model, 255);
       BlzSetSpecialEffectTimeScale(model, paused || fighter.launch.hitlag > 0 ? 0.0 : 1.0);
     }
+    if (fighter !== undefined && playing) {
+      for (const entry of this.popcorn) {
+        if (!this.definitive && entry.cue !== cue) {
+          parkOnce(entry.model, this.origin, [], 0);
+          continue;
+        }
+        const anchor = CUE_ANCHORS[entry.cue.anchor];
+        placeEffect(entry.model, this.origin.x + fighter.motion.x + fighter.facing * anchor.x * this.scale, this.front, this.origin.z + fighter.motion.z + anchor.z * this.scale);
+        BlzSetSpecialEffectYaw(entry.model, facingYaw(fighter.facing));
+        BlzSetSpecialEffectPitch(entry.model, entry.cue.pitch ?? 0.0);
+        BlzSetSpecialEffectScale(entry.model, entry.cue.scale * this.scale);
+        if (!this.definitive) {
+          if (entry.seekStep === 0 && entry.cue.sequence !== undefined) BlzSetSpecialEffectAnimation(entry.model, entry.cue.sequence);
+          if (entry.seekStep < 2) { BlzSetSpecialEffectTime(entry.model, entry.cue.seconds ?? 0.0); entry.seekStep++; }
+          BlzSetSpecialEffectTimeScale(entry.model, paused || fighter.launch.hitlag > 0 ? 0.0 : 1.0);
+        }
+      }
+    }
     this.shown = cue;
     this.shownKey = key;
   }
 
   setPaused(paused: boolean): void {
     for (const { model } of this.cues) BlzSetSpecialEffectTimeScale(model, paused ? 0.0 : 1.0);
+    if (!this.definitive) for (const { model } of this.popcorn) BlzSetSpecialEffectTimeScale(model, paused ? 0.0 : 1.0);
   }
 
   destroy(): void {

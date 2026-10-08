@@ -93,7 +93,7 @@ test("Defile's startup and active cues skip the stock models' empty lead-in [rep
         client.run(() => { created = new SpecialCueEffects(Character.lichKing, { x: 0.0, y: 0.0, z: 0.0 }); });
         if (created === undefined) throw new Error("missing cue renderer");
         const renderer = created;
-        client.run(() => renderer.present(fighter, true, false));
+        client.run(() => { renderer.confirm(fighter, true, 0); renderer.present(fighter, true, false); });
         clients.frames(1);
         client.run(() => {
           renderer.present(fighter, true, false);
@@ -103,5 +103,56 @@ test("Defile's startup and active cues skip the stock models' empty lead-in [rep
           renderer.destroy();
         });
       }
+  } finally { runtime.restore(); }
+});
+
+test("Definitive Popcorn cues start on confirmed casts, run without clock controls and survive their first spawn [spec #144]", () => {
+  const runtime = installHeadless({ ...SMASHCRAFT_HEADLESS, natives: client => ({
+    ...SMASHCRAFT_HEADLESS.natives?.(client),
+    GetLocalizedString: (key: string) => key === "SMASHCRAFT_CUE_GRAPHICS" ? client.slot === 0 ? "classic" : "definitive" : key,
+  }) });
+  try {
+    const clients = runtime.clients({ install() {}, start() {} }, [0, 1]);
+    clients.start();
+    const move = heroDefinition(Character.lichKing)?.specials?.down.ground;
+    if (move === undefined) throw new Error("missing Defile");
+    const handles: unknown[][] = [];
+    for (const client of clients.clients) client.run(() => {
+      const renderer = new SpecialCueEffects(Character.lichKing, { x: 0, y: 0, z: 0 });
+      const fighter = createFighter(Character.lichKing, 0, 1);
+      const begin = client.log.length;
+      const cast = (frame: number, now: number) => {
+        fighter.special.action = SpecialAction.heroDown;
+        fighter.special.frame = frame;
+        renderer.confirm(fighter, true, now);
+        renderer.present(fighter, true, false);
+        renderer.present(fighter, true, true);
+        renderer.setPaused(true);
+        renderer.setPaused(false);
+      };
+      // #144 native lead: Dark Ritual first spawn 833 ms; Decay 267–367 ms.
+      cast(1, 0);
+      cast(heroCueWindows(move).active.first, 0.2);
+      const births = client.log.slice(begin).filter(call => call.name === "AddSpecialEffect");
+      expect(births).toHaveLength(2);
+      const ids = client.effectPoses().filter(pose => pose.model.includes("DarkRitualCaster") || pose.model.includes("DeathAndDecayTarget")).map(pose => pose.handle);
+      handles.push(ids);
+      const clocks = client.log.slice(begin).filter(call => ids.includes(call.args[0]) && ["BlzSetSpecialEffectTime", "BlzSetSpecialEffectTimeScale", "BlzSetSpecialEffectAnimation"].includes(call.name));
+      if (client.slot === 1) expect(clocks).toHaveLength(0);
+      else expect(clocks.filter(call => call.name === "BlzSetSpecialEffectTime").map(call => call.args[1])).toEqual([1, 1, 0.5, 0.5]);
+      // Predicted correction changes poses, without starting another effect.
+      fighter.special.frame = 1;
+      renderer.present(fighter, true, false);
+      expect(client.log.slice(begin).filter(call => call.name === "AddSpecialEffect")).toHaveLength(2);
+      fighter.special.action = SpecialAction.none;
+      renderer.confirm(fighter, true, 0.99);
+      expect(client.log.slice(begin).filter(call => call.name === "DestroyEffect")).toHaveLength(0);
+      renderer.confirm(fighter, true, 1);
+      expect(client.log.slice(begin).filter(call => call.name === "DestroyEffect").map(call => call.args[0])).toEqual([ids[0]]);
+      renderer.confirm(fighter, true, 1.21);
+      expect(client.log.slice(begin).filter(call => call.name === "DestroyEffect").map(call => call.args[0])).toEqual(ids);
+      renderer.destroy();
+    });
+    expect(handles[0]).toEqual(handles[1]);
   } finally { runtime.restore(); }
 });

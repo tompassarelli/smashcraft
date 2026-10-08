@@ -131,7 +131,7 @@ export function inputTrace(capacity: number): InputTrace {
   return trace;
 }
 
-function clockSeconds(trace: Readonly<InputTrace>): number {
+export function clockSeconds(trace: Readonly<InputTrace>): number {
   return trace.clockPeriods * CLOCK_PERIOD + TimerGetElapsed(trace.clock);
 }
 

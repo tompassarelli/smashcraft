@@ -38,6 +38,7 @@ import { pauseEffects, views } from "./ui";
 import { loreClears } from "../../game/classic/loreClears";
 import { drawStageScenery } from "./stageScenery";
 import { probeCamera, probeWaiting } from "./responseProbe";
+import { clockSeconds } from "./trace";
 
 declare const os: { readonly clock?: (this: void) => number } | undefined;
 
@@ -269,6 +270,10 @@ function presentedMatch(s: ShellState): PresentedMatch {
 /** Runs once per callback, after confirmed catch-up and any replay. */
 export function renderPersistentPresentation(s: ShellState): void {
   if (resumePresentationHeld(s)) return;
+  const now = clockSeconds(s.trace);
+  for (const slot of PARTICIPANT_SLOTS) {
+    views(s).fighters[slot]?.cues?.confirm(isActive(s.world, slot) ? fighterAt(s.world, slot) : undefined, s.game.phase === Phase.match, now);
+  }
   const { game, world, runtime, playing } = presentedMatch(s);
   const stage = game.stageChoice;
   const matchFrame = stageClock(game);

@@ -9,6 +9,7 @@ import type { LocalNatives } from "wisp/src/headless/client";
  * synchronized.
  */
 export const SMASHCRAFT_LOCAL_NATIVES: LocalNatives = {
+  GetLocalizedString: "reads the local graphics mode's cue string; only effect poses depend on it",
   BlzGetLocalClientWidth: "local screen size, for layout",
   BlzGetLocalClientHeight: "local screen size, for layout",
   SetCameraBounds: "frames this client's camera for its screen aspect",

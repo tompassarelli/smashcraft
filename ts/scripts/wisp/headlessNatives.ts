@@ -51,6 +51,7 @@ export const SMASHCRAFT_NOOPS: IntentionalNoops = {
 };
 
 export const smashcraftNativeBehavior = () => ({
+  GetLocalizedString: (key: string) => key === "SMASHCRAFT_CUE_GRAPHICS" ? "classic" : key,
   // Headless frames retain the requested target; only native capture measures the transition.
   PanCameraToTimed: (x: number, y: number) => SetCameraPosition(x, y),
   // Smashcraft's authored stage origin is (0, 0, 0).
