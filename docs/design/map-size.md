@@ -252,3 +252,21 @@ budget is the line it should never reach.
 
 Doing 1, 3 and 4 brings the fighters from 134 MB to about 35 MB and the map
 to about 40 MB, a third of the budget.
+
+## Stage-select pictures (#304)
+
+Seven stages show Warcraft's own campaign loading art, which costs no import
+bytes; their layout silhouettes and name banners are drawn by frames. The four
+stages with no fitting zone art import one 512x512 BLP each
+(smashcraft:docs/design/stage-select.md), 122,043 bytes together, measured
+by `bun scripts/stageThumbnails.ts` on 8 Oct 2026 (ts/stage-thumbnails.json
+keeps the current total):
+
+| Picture | Bytes |
+| --- | ---: |
+| `StageCardGryphon.blp` | 34,468 |
+| `StageCardBlackrock.blp` | 27,158 |
+| `StageCardAhnQiraj.blp` | 42,372 |
+| `StageCardSkyDeck.blp` | 18,045 |
+
+They replace the eleven drawn `Selection<Stage>.tga` tiles (about 0.5 MB).

@@ -133,7 +133,7 @@ No audio is copied.
 Warcraft III streams a stage's models and textures after the script creates
 them, so a match that begins on the start press can open on a half-drawn stage
 (Tom, 7 Oct). Smashcraft puts a loading screen between the press and the
-match: the chosen stage's selection art and name over a dark cover, with the
+match: the chosen stage's square card picture (smashcraft:docs/design/stage-select.md) and name over a dark cover, with the
 stage drawn behind it. Each client reports "stage drawn" through a
 synchronized message once its drawing has settled (`STAGE_SETTLE_FRAMES`). The
 match, and so its countdown, begins on the callback where the last present
