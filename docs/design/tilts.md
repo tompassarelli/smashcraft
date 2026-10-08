@@ -287,7 +287,7 @@ over the old shared down tilt (10 damage) and pops straight up at low percent.
 | Normal | F/A/R | Damage | Reach | Launch | Angled | Inspired by |
 | --- | --- | --- | --- | --- | --- | --- |
 | Jab | 4/3/16 | 4 | 0.80H | 20, 45/18 | | Falco jab (pushes) |
-| Forward tilt | 7/3/21 | 10 | 1.25H | 30, 90/22 | up 50, down 15 | Falco forward tilt (angled) |
+| Forward tilt | 7/3/21 | 10 | 1.25H | 30, 108/22 | up 50, down 15 | Falco forward tilt (angled) |
 | Up tilt | 6/3/22 | 8 | 0.85H, above | 90, 80/26 | | Falco up tilt |
 | Down tilt | 7/3/22 | 10 | 0.90H, below 0.15H | 80, 45/50 | | Falco down tilt (vertical pop-up) |
 
@@ -435,7 +435,7 @@ Each now has one role:
 | Forsaken Paladin | Heavy, pushes off shield | 12/3/20 | 0.35H | 12 | 30, 100/26 | Ganondorf dash attack |
 | Lich | Hovering low glide | 10/6/22 | 0.80H | 8 | 25, 90/30 | Mewtwo dash attack (slow, lingering) |
 | Archer | Sliding kick, pops up | 6/4/20 | 0.75H | 6 (8 before #105 pass 4) | 70, 55/38 | Fox dash attack (into up air) |
-| Rifleman | Rifle lunge | 9/3/25 | 0.50H | 11 | 40, 95/22 | Falco dash attack |
+| Rifleman | Rifle lunge | 9/3/25 | 0.50H | 11 | 40, 114/22 | Falco dash attack |
 | Pit Lord | Kill charge, no armor | 15/6/34 | 0.30H | 16 | 40, 110/26 | Ganondorf and Bowser dash attacks |
 | Beastmaster | Heaves the victim behind him | 11/5/28 | 0.50H | 12 | 135, 95/20 | Ultimate's reverse-launch dash attacks |
 

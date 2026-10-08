@@ -1467,6 +1467,12 @@ Frost Nova's shieldstun and Defile's later arming: point-blank shield grabs
 could no longer land. Frost Nova's end moves from 37 to 39, and Defile's
 from 46 to 50, restoring shield grabs in their 60-unit mirror situations.
 
+Rifleman (#248, 8 Oct, his 20 pairs at Wren Expert, 400 a pair): he dealt
+191 damage per stock taken against a field median near 140, so his lever is
+kill power on the moves that take his stocks. Forward tilt growth 90→108 and
+dash attack 95→114 moved him from 38% (run 37736380119) to 46%
+(run 37741496717); his move mix held (blaster 34% of moves, bear 25% of damage).
+
 ## Implementation details for the overnight agent
 
 ### Read the real project first

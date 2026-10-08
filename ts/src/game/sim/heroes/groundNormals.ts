@@ -297,7 +297,7 @@ export const ARCHER_GROUND: GroundKit = {
 // ratio over the old shared down tilt), and a lunge.
 const RIFLE = HitElement.normal;
 const bayonet = (ends: readonly (readonly [number, number, number])[], angle: Angle) =>
-  swing(7, ends.map(([z1, x, z]): Segment => [18.0, z1, x, z]), 10.0, groundHit(9.300000190734863, angle, 83.70000457763672, 22.0, RIFLE));
+  swing(7, ends.map(([z1, x, z]): Segment => [18.0, z1, x, z]), 10.0, groundHit(9.300000190734863, angle, 100.44000244140625, 22.0, RIFLE));
 export const RIFLEMAN_GROUND: GroundKit = {
   normals: {
     [AttackStyle.jab]: jabStep(heroMove(4, 3, 16, 0, swing(4, [[18.0, 50.0, 95.0, 52.0], [18.0, 50.0, 95.0, 50.0], [18.0, 50.0, 90.0, 48.0]], 10.0, groundHit(3.7200000286102295, 20, 41.85000228881836, 18.0, RIFLE)))),
@@ -310,7 +310,7 @@ export const RIFLEMAN_GROUND: GroundKit = {
     [AttackStyle.downTilt]: heroMove(7, 3, 22, 0, swing(7, [[14.0, 10.0, 108.0, 10.0], [14.0, 8.0, 108.0, 6.0], [14.0, 6.0, 100.0, 2.0]], 10.0,
       groundHit(9.300000190734863, 80, 41.85000228881836, 50.0, RIFLE))),
     [AttackStyle.dashAttack]: heroMove(9, 3, 25, 0, swing(9, [[18.0, 50.0, 140.0, 52.0], [18.0, 50.0, 140.0, 50.0], [18.0, 48.0, 130.0, 48.0]], 10.0,
-      groundHit(10.230000495910645, 40, 88.35000610351562, 22.0, RIFLE)), 66.0, true),
+      groundHit(10.230000495910645, 40, 106.02000427246094, 22.0, RIFLE)), 66.0, true),
   },
   reaches: {},
 };
