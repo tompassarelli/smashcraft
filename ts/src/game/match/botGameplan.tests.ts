@@ -5,6 +5,9 @@ import { type FighterGameplan, GameplanSpecial, GameplanThrow, gameplanKeyMoves 
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { aimsLedge, defenseOption, gameplanOf, gameplanThrow, keptGap, moveWeight, onAnotherDeck, upSpecialFirst } from "./botGameplan";
 import { botChoice } from "./botRandom";
+import { attackBuffer } from "../input/attackBuffer";
+import { neutralControls } from "../sim/roster";
+import { chooseAttack } from "./botMoves";
 
 /** A spacing fighter built around a back air, in the manner #105 describes. */
 const SPACER: FighterGameplan = {
@@ -36,6 +39,29 @@ test("Archer prefers Swift Arrow in her usual gap and saves homing-arrow spacing
   const nearWeight = moveWeight(plan, -1, f, 0, target, GameplanSpecial.side);
   target.motion.x = 440.0;
   assertTrue(moveWeight(plan, -1, f, 0, target, GameplanSpecial.side) > nearWeight);
+});
+
+test("Archer chooses homing arrows at long range instead of using them throughout ground and air approaches [repro #273]", () => {
+  for (const grounded of [true, false]) {
+    const { f, target } = pair(240.0);
+    f.motion.grounded = grounded;
+    if (!grounded) {
+      f.motion.z = 300.0;
+      target.motion.z = 300.0;
+    }
+    const countSide = (gap: number): number => {
+      target.motion.x = gap;
+      let count = 0;
+      for (let frame = 1; frame <= 64; frame++) {
+        const input = neutralControls();
+        chooseAttack(f, target, 0, frame, frame, true, input, attackBuffer(6), 0);
+        if (input.specialPressed && input.specialX !== 0 && input.specialY === 0) count++;
+      }
+      return count;
+    };
+    assertEquals(countSide(240.0), 0);
+    assertTrue(countSide(440.0) > 0);
+  }
 });
 
 test("every declared gameplan names key moves and an ordered range band [spec #105]", () => {

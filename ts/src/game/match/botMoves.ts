@@ -223,7 +223,9 @@ function addShots(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number
   if (motion.grounded && facing === f.facing && distance >= 160 && distance <= 700 && dz >= SHOT_LOW && dz <= SHOT_HIGH && specialReady(f, NEUTRAL_SPECIAL)) {
     options[added++] = NEUTRAL_SPECIAL;
   }
-  if (f.character === Character.archer && distance >= 140 && distance <= 520 && Math.abs(dz) <= 120 && specialReady(f, SIDE_SPECIAL)) options[added++] = SIDE_SPECIAL;
+  const plan = gameplanOf(f.character);
+  if (f.character === Character.archer && plan !== undefined && spacedAt(plan, SIDE_SPECIAL, distance)
+    && Math.abs(dz) <= 120 && specialReady(f, SIDE_SPECIAL)) options[added++] = SIDE_SPECIAL;
   if (f.character === Character.rifleman && motion.grounded && target.motion.grounded && f.bear.life <= 0 && distance >= 80 && distance <= 450
     && Math.abs(dz) <= 60 && specialReady(f, SIDE_SPECIAL)) options[added++] = SIDE_SPECIAL;
   return added;
