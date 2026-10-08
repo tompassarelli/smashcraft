@@ -112,11 +112,11 @@ test("[spec #252] an up special that comes down beside the ledge catches it befo
 
 test("[spec #252] a hero taller than the reference catches a ledge higher above its feet", () => {
   const tall = ledgeCatchBox(Character.cairne);
-  const reference = ledgeCatchBox(Character.archer);
+  const reference = ledgeCatchBox(Character.rifleman);
   check(tall.highest > reference.highest && tall.reach > reference.reach, `${tall.highest} ${tall.reach}`);
-  // Falling past the ledge with it just above Archer's box: Cairne catches, Archer doesn't.
+  // Falling past the ledge with it just above Rifleman's box: Cairne catches, Rifleman doesn't.
   const above = f32(reference.highest + 10.0);
-  for (const [character, catches] of [[Character.cairne, true], [Character.archer, false]] as const) {
+  for (const [character, catches] of [[Character.cairne, true], [Character.rifleman, false]] as const) {
     const run = recoveryRun(character, 100, f32(LEDGE + 30.0), f32(-above + 6.0));
     run.fighter.special.fall = true;
     for (let frame = 0; frame < 4; frame++) playKeys(run, 0);

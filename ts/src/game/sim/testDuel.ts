@@ -25,7 +25,7 @@ export interface Duel {
 }
 
 /** Illidan at 0 facing right and a fighter `gap` ahead facing him, both settled on the main deck. */
-export function duel(gap: number, character: Character = Character.archer): Duel {
+export function duel(gap: number, character: Character = Character.rifleman): Duel {
   const game = createMatchState();
   game.phase = Phase.match;
   const illidan = createFighter(Character.demonHunter, 0.0, 1);

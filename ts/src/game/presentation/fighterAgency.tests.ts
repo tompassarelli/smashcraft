@@ -15,7 +15,7 @@ test("locked input boundaries agree with the replay agency references in Lua32 [
     { name: "forced stand", letters: ".....................................AAAAAAAAAAA" },
   ];
   const forecast = new FighterAgencyForecast();
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+  for (const character of [Character.rifleman, Character.demonHunter]) {
     for (const reference of references) {
       const fighter = createFighter(character, 0.0, 1);
       const world = createRoster(1, [fighter]);
@@ -37,7 +37,7 @@ sweep("clearance shortcuts preserve full contact forecasts near stage geometry i
   const bounded = new FighterAgencyForecast();
   const full = new FighterAgencyForecast(false);
   const input = neutralControls();
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+  for (const character of [Character.rifleman, Character.demonHunter]) {
     for (const stage of STAGE_CATALOG) {
       for (const x of [-900.0, -200.0, 0.0, 200.0, 900.0]) {
         for (const z of [-100.0, 0.0, 20.0, 150.0, 600.0]) {
@@ -69,7 +69,7 @@ test("frozen tech press lockouts preserve the full forecast through hitlag expir
   let hitSerial = 0;
   for (const hitlag of [1, 2, 3, 4, 7, 12]) {
     for (const pressAge of [0, 19, 20, 39, 40, 255]) {
-      const fighter = createFighter(Character.archer, 240.0, 1);
+      const fighter = createFighter(Character.rifleman, 240.0, 1);
       const world = createRoster(1, [fighter]);
       fighter.launch.hitlag = hitlag;
       fighter.visuals.hit = ++hitSerial;

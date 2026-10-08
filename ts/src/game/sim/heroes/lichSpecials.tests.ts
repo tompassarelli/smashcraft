@@ -37,7 +37,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   }
 }
 
-function lichPair(gap: number, opponent: Character = Character.archer): { world: Roster; lich: Fighter; target: Fighter } {
+function lichPair(gap: number, opponent: Character = Character.rifleman): { world: Roster; lich: Fighter; target: Fighter } {
   const lich = createFighter(Character.lich, f32(-gap * 0.5), 1);
   lich.mana.points = 100;
   const target = createFighter(opponent, f32(gap * 0.5), -1);
@@ -279,7 +279,7 @@ test("Spectral Ascent keeps its full rise and steering at zero meter [spec #335]
 test("replaying Lich's nova, armor and ascent from a restored snapshot reproduces both fighters [invariant]", () => {
   const { world, lich, target } = lichPair(f32(H * f32(1.5)));
   const savedLich = createFighter(Character.lich, 0.0, 1);
-  const savedTarget = createFighter(Character.archer, 0.0, 1);
+  const savedTarget = createFighter(Character.rifleman, 0.0, 1);
   copyFighterState(savedLich, lich, 3);
   copyFighterState(savedTarget, target, 3);
   const run = () => {
@@ -294,7 +294,7 @@ test("replaying Lich's nova, armor and ascent from a restored snapshot reproduce
   assertGreaterThan(target.status.damage, 0.0);
   assertGreaterThan(lich.status.armorFrames, 0);
   const endLich = createFighter(Character.lich, 0.0, 1);
-  const endTarget = createFighter(Character.archer, 0.0, 1);
+  const endTarget = createFighter(Character.rifleman, 0.0, 1);
   copyFighterState(endLich, lich, 3);
   copyFighterState(endTarget, target, 3);
   copyFighterState(lich, savedLich, 3);
@@ -304,7 +304,7 @@ test("replaying Lich's nova, armor and ascent from a restored snapshot reproduce
   assertEquals(firstFighterDifference(endTarget, target, 3, 3), undefined);
 });
 
-test("an Archer inside forward-tilt range challenges Frost Nova's startup and no orb is thrown [spec docs/design/roster.md]", () => {
+test("an Rifleman inside forward-tilt range challenges Frost Nova's startup and no orb is thrown [spec docs/design/roster.md]", () => {
   const { world, lich } = lichPair(90.0);
   frame(world, neutral);
   for (let f = 2; f <= 6; f++) frame(world);

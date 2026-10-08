@@ -20,7 +20,7 @@ test("counted passive ready and proc cues survive hidden time, reset and replay 
   const clients = runtime.clients({ install() {}, start() {} }, [0]);
   const client = clients.client(0);
   client.run(() => {
-    for (const character of [Character.blademaster, Character.mountainKing, Character.warden, Character.rifleman, Character.archer, Character.lich, Character.forsakenPaladin, Character.dreadlord, Character.shadowHunter, Character.pitLord, Character.beastmaster]) {
+    for (const character of [Character.blademaster, Character.mountainKing, Character.warden, Character.rifleman, Character.rifleman, Character.lich, Character.forsakenPaladin, Character.dreadlord, Character.shadowHunter, Character.pitLord, Character.beastmaster]) {
       const fighter = createFighter(character, 0.0, 1);
       const world = createRoster(1, [fighter]);
       const renderer = new PassivePresentation(character, { x: 0.0, y: 0.0, z: 0.0 });

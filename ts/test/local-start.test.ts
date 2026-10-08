@@ -1,6 +1,6 @@
 // #60's claim headless, in the 0.0.49 native bot session's four-fighter
 // match (R2): two helpers' pads playing the session's beats against computer
-// Illidan and Archer, client B's game stopped for 2 s three times, Battle.net
+// Illidan and Rifleman, client B's game stopped for 2 s three times, Battle.net
 // latency as that session measured it and the helpers' typing cost. Every
 // legal press must start in its presser's first prediction, at most a callback
 // after the map captured it. Presses captured while a remote row R frames
@@ -246,7 +246,7 @@ sweep("#60: every local press starts in the presser's next prediction unless a r
 
   clients.start();
   for (let frame = 0; frame < 30; frame++) tick();
-  for (const [slot, character] of [[2, Character.demonHunter], [3, Character.archer]] as const) {
+  for (const [slot, character] of [[2, Character.demonHunter], [3, Character.rifleman]] as const) {
     for (let click = 0; click < 2; click++) clients.everywhere(() => panelActions().selection.cycleMode(0, slot));
     clients.everywhere(() => panelActions().selection.selectCpuChoice(0, slot, character));
   }

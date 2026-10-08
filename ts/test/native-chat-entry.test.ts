@@ -63,7 +63,7 @@ test("native setup failure retains INVALID at the selected chat boundary without
   writeFileSync(join(data[0], nativeChatFile("test", 0)), 'function PreloadFiles takes nothing returns nothing\ncall Preload( "SMASHCRAFT CHAT v=1 revision=1 available=0 open=0" )\nendfunction\n');
   try {
     const result = await Effect.runPromise(Effect.gen(function*() {
-      const fiber = yield* Effect.forkChild(nativeScript(session, { scriptPath: "unreached.pad", steps: parsePadScript("150 a press A"), helper: "/unreachable", build: "test", out, chat: "-dev quick hero archer" }), { startImmediately: true });
+      const fiber = yield* Effect.forkChild(nativeScript(session, { scriptPath: "unreached.pad", steps: parsePadScript("150 a press A"), helper: "/unreachable", build: "test", out, chat: "-dev quick hero rifleman" }), { startImmediately: true });
       yield* TestClock.adjust("2 seconds");
       return yield* Fiber.join(fiber);
     }).pipe(Effect.provide(TestClock.layer())));

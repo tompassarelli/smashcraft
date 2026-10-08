@@ -22,47 +22,10 @@ const SPACER: FighterGameplan = {
 };
 
 function pair(gap: number) {
-  const f = createFighter(Character.archer, 0.0, 1);
+  const f = createFighter(Character.rifleman, 0.0, 1);
   const target = createFighter(Character.rifleman, gap, -1);
   return { f, target };
 }
-
-test("Archer prefers Swift Arrow in her usual gap and saves homing-arrow spacing for long range [spec #273]", () => {
-  const { f, target } = pair(240.0);
-  const plan = gameplanOf(Character.archer);
-  assertTrue(plan !== undefined);
-  if (plan === undefined) return;
-  for (const approach of [-1, 0]) {
-    assertTrue(moveWeight(plan, approach, f, 0, target, GameplanSpecial.neutral)
-      > moveWeight(plan, approach, f, 0, target, GameplanSpecial.side));
-  }
-  const nearWeight = moveWeight(plan, -1, f, 0, target, GameplanSpecial.side);
-  target.motion.x = 440.0;
-  assertTrue(moveWeight(plan, -1, f, 0, target, GameplanSpecial.side) > nearWeight);
-});
-
-test("Archer chooses homing arrows at long range instead of using them throughout ground and air approaches [repro #273]", () => {
-  for (const grounded of [true, false]) {
-    const { f, target } = pair(240.0);
-    f.motion.grounded = grounded;
-    if (!grounded) {
-      f.motion.z = 300.0;
-      target.motion.z = 300.0;
-    }
-    const countSide = (gap: number): number => {
-      target.motion.x = gap;
-      let count = 0;
-      for (let frame = 1; frame <= 64; frame++) {
-        const input = neutralControls();
-        chooseAttack(f, target, 0, frame, frame, true, input, attackBuffer(6), 0);
-        if (input.specialPressed && input.specialX !== 0 && input.specialZ === 0) count++;
-      }
-      return count;
-    };
-    assertEquals(countSide(240.0), 0);
-    assertTrue(countSide(440.0) > 0);
-  }
-});
 
 test("every declared gameplan names key moves and an ordered range band [spec #105]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
@@ -76,7 +39,7 @@ test("every declared gameplan names key moves and an ordered range band [spec #1
 
 test("Peon closes on a grounded shield to use his grappler tools [spec #282]", () => {
   const f = createFighter(Character.peon, 0.0, 1);
-  const target = createFighter(Character.archer, 240.0, -1);
+  const target = createFighter(Character.rifleman, 240.0, -1);
   target.shield.raised = true;
   const plan = gameplanOf(f.character);
   assertTrue(plan !== undefined);
@@ -86,7 +49,7 @@ test("Peon closes on a grounded shield to use his grappler tools [spec #282]", (
 
 test("Peon favors a tool strike over lumber while following his own hit [spec #282]", () => {
   const f = createFighter(Character.peon, 0.0, 1);
-  const target = createFighter(Character.archer, 150.0, -1);
+  const target = createFighter(Character.rifleman, 150.0, -1);
   target.launch.hitstun = 20;
   target.hits.lastAttacker = 0;
   const plan = gameplanOf(f.character);
@@ -97,7 +60,7 @@ test("Peon favors a tool strike over lumber while following his own hit [spec #2
 
 test("a jump onto a raised deck keeps approaching until landing instead of turning back to ranged spacing [repro #160]", () => {
   const f = createFighter(Character.jaina, -8.0, -1);
-  const target = createFighter(Character.archer, -265.0, 1);
+  const target = createFighter(Character.rifleman, -265.0, 1);
   const plan = gameplanOf(f.character);
   assertTrue(plan !== undefined);
   if (plan === undefined) return;

@@ -11,7 +11,8 @@ import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, ContactKind, DownState, GrabAction, GroundAction, ProjectileKind, ShieldBreak } from "./codes";
 import { SPOT_DODGE_FRAMES, GROUND_ROLL_FRAMES, canAttack, fighterPoseFacing, isForwardGroundRoll } from "./conditions";
 import { beginDamageContacts, finishDamageContacts, queueDamageContact } from "./contacts";
-import { type Fighter, createFighter } from "./fighter";
+import { type Fighter,  } from "./fighter";
+import { createReferenceFighter } from "./referenceRig";
 import { resolveGrabs } from "./grabs";
 import { beginAirDodge, beginJump } from "./jumpsAndDodges";
 import {
@@ -45,8 +46,8 @@ function retailCombatContact(world: Roster, knockback: number, dx: number, dz: n
 
 test("retail combat stacking starts on the tenth moving frame and freezes in hitlag [reference]", () => {
   for (const age of [9, 10]) {
-    const owner = createFighter(Character.archer, -300.0, 1);
-    const target = createFighter(Character.rifleman, -100.0, -1);
+    const owner = createReferenceFighter(Character.sylvanas, -300.0, 1);
+    const target = createReferenceFighter(Character.rifleman, -100.0, -1);
     const world = testWorld(owner, target);
     const input = controls();
     target.motion.grounded = false;
@@ -73,8 +74,8 @@ test("retail combat stacking starts on the tenth moving frame and freezes in hit
 });
 
 test("retail combat stacking merges each axis once after strongest contact selection [reference]", () => {
-  const owner = createFighter(Character.archer, 0.0, 1);
-  const target = createFighter(Character.rifleman, 100.0, -1);
+  const owner = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const target = createReferenceFighter(Character.rifleman, 100.0, -1);
   const world = testWorld(owner, target);
   target.motion.grounded = false;
   target.motion.z = 300.0;
@@ -103,8 +104,8 @@ test("retail combat stacking merges each axis once after strongest contact selec
 
 test("retail combat ground tangent uses the new contact, then traction rather than air decay [reference]", () => {
   for (const facing of [-1, 1]) {
-    const owner = createFighter(Character.archer, -100.0, 1);
-    const target = createFighter(Character.rifleman, 0.0, -1);
+    const owner = createReferenceFighter(Character.sylvanas, -100.0, 1);
+    const target = createReferenceFighter(Character.rifleman, 0.0, -1);
     const world = testWorld(owner, target);
     const input = controls();
     target.motion.surface = 0;
@@ -141,8 +142,8 @@ test("retail combat damage levels use all three unrounded scaled thresholds [ref
 test("retail combat ground bounce uses a ten-degree threshold and four-fifths vertical speed [reference]", () => {
   for (const grounded of [false, true]) {
     for (const steep of [false, true]) {
-      const owner = createFighter(Character.archer, 0.0, 1);
-      const target = createFighter(Character.rifleman, 100.0, -1);
+      const owner = createReferenceFighter(Character.sylvanas, 0.0, 1);
+      const target = createReferenceFighter(Character.rifleman, 100.0, -1);
       const world = testWorld(owner, target);
       target.motion.grounded = grounded;
       target.motion.z = grounded ? 0.0 : 300.0;
@@ -193,7 +194,7 @@ const FALCO_REFERENCE_PHYSICS: FighterPhysics = {
 };
 
 function falcoRig(character: Character, x: number, facing: number): Fighter {
-  const f = createFighter(character, x, facing);
+  const f = createReferenceFighter(character, x, facing);
   f.tuning.physics = FALCO_REFERENCE_PHYSICS;
   return f;
 }
@@ -221,11 +222,11 @@ function recordedFalcoFallFirstDifference(hostCharacter: Character, initialVeloc
 }
 
 test("a recorded NTSC Falco neutral fall matches ten independent positions [reference]", () => {
-  for (const host of [Character.archer, Character.rifleman]) assertEquals(recordedFalcoFallFirstDifference(host, 0.0), 0);
+  for (const host of [Character.sylvanas, Character.rifleman]) assertEquals(recordedFalcoFallFirstDifference(host, 0.0), 0);
 });
 
 test("the recorded Falco fall detects a perturbed velocity at the first frame [invariant]", () => {
-  assertEquals(recordedFalcoFallFirstDifference(Character.archer, 0.05999999865889549), -59);
+  assertEquals(recordedFalcoFallFirstDifference(Character.sylvanas, 0.05999999865889549), -59);
 });
 
 function recordedFalcoJumpFirstDifference(hostCharacter: Character, jumpInputFrame: number): number {
@@ -280,21 +281,21 @@ function recordedFalcoDashFirstDifference(hostCharacter: Character, initialSpeed
 }
 
 test("recorded Falco dash overspeed braking matches both original fighter hosts [reference]", () => {
-  for (const host of [Character.archer, Character.rifleman]) assertEquals(recordedFalcoDashFirstDifference(host, -1.9000000953674316), 0);
+  for (const host of [Character.sylvanas, Character.rifleman]) assertEquals(recordedFalcoDashFirstDifference(host, -1.9000000953674316), 0);
 });
 
 test("the recorded Falco dash detects a perturbed overspeed at its first frame [invariant]", () => {
-  assertEquals(recordedFalcoDashFirstDifference(Character.archer, -1.8400001525878906), -33);
+  assertEquals(recordedFalcoDashFirstDifference(Character.sylvanas, -1.8400001525878906), -33);
 });
 
 test("recorded Falco dash entry uses the walk self velocity for entry displacement [reference]", () => {
-  for (const host of [Character.archer, Character.rifleman]) assertTrue(recordedFalcoDashEntryMatches(host));
+  for (const host of [Character.sylvanas, Character.rifleman]) assertTrue(recordedFalcoDashEntryMatches(host));
 });
 
 // The test-only reference rig uses PlFc.dat movement values from the locally
 // identified NTSC 1.02 extraction; it never changes playable fighter defaults.
 test("retail walk uses character acceleration and the common taper [reference]", () => {
-  for (const host of [Character.archer, Character.rifleman]) {
+  for (const host of [Character.sylvanas, Character.rifleman]) {
     const f = falcoRig(host, 0.0, 1);
     const input = controls({ direction: 1, walking: true });
     for (const expected of [f32(1.8), f32(2.5071428), f32(3.1385202), f32(3.7022507)]) {
@@ -306,14 +307,14 @@ test("retail walk uses character acceleration and the common taper [reference]",
 
 test("retail run tapers below target and brakes overspeed by character friction [reference]", () => {
   const input = controls({ direction: 1 });
-  const belowTarget = falcoRig(Character.archer, 0.0, 1);
+  const belowTarget = falcoRig(Character.sylvanas, 0.0, 1);
   belowTarget.motion.vx = melee(0.8999999761581421);
   belowTarget.ground.dashFrame = INITIAL_DASH_FRAMES + 1;
   belowTarget.ground.dashDirection = 1;
   belowTarget.ground.action = GroundAction.run;
   advanceSolo(belowTarget, 0, input, 0.0);
   assertNear(belowTarget.motion.vx, f32(5.5152), f32(0.00001));
-  const overspeed = falcoRig(Character.archer, 100.0, 1);
+  const overspeed = falcoRig(Character.sylvanas, 100.0, 1);
   overspeed.motion.vx = melee(1.899999976158142);
   overspeed.ground.dashFrame = INITIAL_DASH_FRAMES + 1;
   overspeed.ground.dashDirection = 1;
@@ -323,7 +324,7 @@ test("retail run tapers below target and brakes overspeed by character friction 
 });
 
 test("a retail run turn preserves facing until ground velocity crosses [reference]", () => {
-  const f = falcoRig(Character.archer, 0.0, 1);
+  const f = falcoRig(Character.sylvanas, 0.0, 1);
   f.motion.vx = melee(1.0);
   f.ground.dashFrame = INITIAL_DASH_FRAMES + 1;
   f.ground.dashDirection = 1;
@@ -340,16 +341,16 @@ test("a retail run turn preserves facing until ground velocity crosses [referenc
 });
 
 test("a recorded NTSC Falco jump has five grounded frames, then a raw takeoff [reference]", () => {
-  for (const host of [Character.archer, Character.rifleman]) assertEquals(recordedFalcoJumpFirstDifference(host, 25), 0);
+  for (const host of [Character.sylvanas, Character.rifleman]) assertEquals(recordedFalcoJumpFirstDifference(host, 25), 0);
 });
 
 test("the recorded Falco jump detects a delayed input on its original frame [invariant]", () => {
-  assertEquals(recordedFalcoJumpFirstDifference(Character.archer, 26), 25);
+  assertEquals(recordedFalcoJumpFirstDifference(Character.sylvanas, 26), 25);
 });
 
 test("grounded knockback matches the recorded first released displacement [reference]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
-    const f = createFighter(character, melee(-11.548782348632812), 1);
+  for (const character of [Character.sylvanas, Character.rifleman]) {
+    const f = createReferenceFighter(character, melee(-11.548782348632812), 1);
     // Captain Falcon observation: only the observed traction is required here.
     withPhysics(f, { traction: melee(0.07999999821186066) });
     const input = controls({ down: true, verticalDirection: -1 });
@@ -365,7 +366,7 @@ test("grounded knockback matches the recorded first released displacement [refer
 
 test("grounded knockback traction clamps both directions without reversing [reference]", () => {
   for (const direction of [-1, 0, 1]) {
-    const f = createFighter(Character.archer, 0.0, 1);
+    const f = createReferenceFighter(Character.sylvanas, 0.0, 1);
     f.launch.knockbackX = melee(f32(direction * 0.03999999910593033));
     f.launch.hitstun = 10;
     advanceSolo(f, 0, controls(), 0.0);
@@ -385,7 +386,7 @@ const RECORDED_GROUNDED_DAMAGE_VELOCITY = [
 ];
 
 function recordedGroundedDamageFirstDifference(character: Character, velocityOffset: number): number {
-  const f = createFighter(character, melee(-11.548782348632812), 1);
+  const f = createReferenceFighter(character, melee(-11.548782348632812), 1);
   // Shared grounded-damage rule with the observation's traction, not a full character rig.
   withPhysics(f, { traction: melee(0.07999999821186066) });
   const input = controls({ down: true, verticalDirection: -1 });
@@ -414,17 +415,17 @@ function recordedGroundedDamageFirstDifference(character: Character, velocityOff
 const min12 = (sample: number) => (sample < 12 ? sample : 12);
 
 test("recorded NTSC grounded damage matches freeze release, traction and actionability [reference]", () => {
-  for (const character of [Character.archer, Character.rifleman]) assertEquals(recordedGroundedDamageFirstDifference(character, 0.0), 0);
+  for (const character of [Character.sylvanas, Character.rifleman]) assertEquals(recordedGroundedDamageFirstDifference(character, 0.0), 0);
 });
 
 test("recorded grounded damage detects a perturbed knockback on the first frame [invariant]", () => {
-  assertEquals(recordedGroundedDamageFirstDifference(Character.archer, 0.05999999865889549), 3433);
+  assertEquals(recordedGroundedDamageFirstDifference(Character.sylvanas, 0.05999999865889549), 3433);
 });
 
 test("fast fall persists after release and aerial startup but clears on landing and jump [reference]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
-    const f = createFighter(character, 0.0, 1);
-    const other = createFighter(Character.rifleman, 1000.0, -1);
+  for (const character of [Character.sylvanas, Character.rifleman]) {
+    const f = createReferenceFighter(character, 0.0, 1);
+    const other = createReferenceFighter(Character.rifleman, 1000.0, -1);
     const world = testWorld(f, other);
     const input = controls({ down: true });
     f.motion.grounded = false;
@@ -435,7 +436,7 @@ test("fast fall persists after release and aerial startup but clears on landing 
     input.down = false;
     input.direction = 1;
     advanceFighter(world, 0, 0, input, 0.0);
-    const fastFallSpeed = character === Character.archer ? -f32(20.40000057220459) : -21.0;
+    const fastFallSpeed = character === Character.sylvanas ? -f32(20.40000057220459) : -21.0;
     assertNear(f.motion.vz, fastFallSpeed, f32(0.000001));
     testBeginAttacks(world, AttackStyle.neutralAir, undefined);
     advanceFighter(world, 0, 0, input, 0.0);
@@ -457,7 +458,7 @@ test("fast fall persists after release and aerial startup but clears on landing 
 });
 
 test("fast fall requires descending self velocity, and an air dodge clears it [reference]", () => {
-  const f = createFighter(Character.archer, 0.0, 1);
+  const f = createReferenceFighter(Character.sylvanas, 0.0, 1);
   const input = controls({ down: true });
   f.motion.grounded = false;
   f.motion.z = 300.0;
@@ -486,8 +487,8 @@ function contactProjectile(owner: Fighter, target: Fighter, index: number, kind:
 test("the combat ground contact threshold keeps low downward hits on the floor [reference]", () => {
   for (const airborne of [false, true]) {
     for (const aboveThreshold of [0, 1]) {
-      const owner = createFighter(Character.archer, 0.0, 1);
-      const target = createFighter(Character.rifleman, 100.0, -1);
+      const owner = createReferenceFighter(Character.sylvanas, 0.0, 1);
+      const target = createReferenceFighter(Character.rifleman, 100.0, -1);
       const world = testWorld(owner, target);
       const input = controls();
       target.status.damage = 100.0 + aboveThreshold;
@@ -530,7 +531,7 @@ test("the combat ground contact threshold keeps low downward hits on the floor [
 });
 
 test("combat DI uses the actual launch magnitude for authored non-unit directions [reference]", () => {
-  const target = createFighter(Character.demonHunter, 0.0, 1);
+  const target = createReferenceFighter(Character.demonHunter, 0.0, 1);
   target.motion.grounded = false;
   target.motion.z = 300.0;
   target.launch.knockbackX = 8.0;
@@ -575,10 +576,10 @@ function advanceBoth(world: Roster, first: Readonly<Controls>, second: Readonly<
 }
 
 test("a recorded NTSC digital shield contact matches paired pushback and grounded recoil [reference]", () => {
-  for (const sourceCharacter of [Character.archer, Character.rifleman]) {
-    for (const targetCharacter of [Character.archer, Character.rifleman]) {
-      const source = createFighter(sourceCharacter, melee(38.56430435180664), 1);
-      const target = createFighter(targetCharacter, melee(45.46552276611328), -1);
+  for (const sourceCharacter of [Character.sylvanas, Character.rifleman]) {
+    for (const targetCharacter of [Character.sylvanas, Character.rifleman]) {
+      const source = createReferenceFighter(sourceCharacter, melee(38.56430435180664), 1);
+      const target = createReferenceFighter(targetCharacter, melee(45.46552276611328), -1);
       const world = testWorld(source, target);
       const sourceInput = controls();
       const targetInput = controls({ shield: true });
@@ -611,8 +612,8 @@ test("a recorded NTSC digital shield contact matches paired pushback and grounde
 
 test("detached and airborne contacts don't invent attacker ground recoil [reference]", () => {
   for (const direct of [false, true]) {
-    const source = createFighter(Character.archer, 0.0, 1);
-    const target = createFighter(Character.rifleman, 10.0, -1);
+    const source = createReferenceFighter(Character.sylvanas, 0.0, 1);
+    const target = createReferenceFighter(Character.rifleman, 10.0, -1);
     const world = testWorld(source, target);
     source.motion.grounded = !direct;
     target.shield.raised = true;
@@ -622,8 +623,8 @@ test("detached and airborne contacts don't invent attacker ground recoil [refere
     assertEquals(source.shield.recoilX, 0.0);
   }
   for (const facing of [-1, 1]) {
-    const source = createFighter(Character.archer, 0.0, facing);
-    const target = createFighter(Character.rifleman, 10.0, -facing);
+    const source = createReferenceFighter(Character.sylvanas, 0.0, facing);
+    const target = createReferenceFighter(Character.rifleman, 10.0, -facing);
     const world = testWorld(source, target);
     target.shield.raised = true;
     beginDamageContacts();
@@ -635,8 +636,8 @@ test("detached and airborne contacts don't invent attacker ground recoil [refere
 });
 
 test("a later clean hit replaces the remaining shield recoil [reference]", () => {
-  const attacker = createFighter(Character.archer, 0.0, 1);
-  const defender = createFighter(Character.rifleman, 10.0, -1);
+  const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const defender = createReferenceFighter(Character.rifleman, 10.0, -1);
   const world = testWorld(attacker, defender);
   defender.shield.raised = true;
   beginDamageContacts();
@@ -652,8 +653,8 @@ test("a later clean hit replaces the remaining shield recoil [reference]", () =>
 });
 
 test("the recorded shield contact detects a perturbed recoil on its first release frame [invariant]", () => {
-  const source = createFighter(Character.archer, melee(38.56430435180664), 1);
-  const target = createFighter(Character.rifleman, melee(45.46552276611328), -1);
+  const source = createReferenceFighter(Character.sylvanas, melee(38.56430435180664), 1);
+  const target = createReferenceFighter(Character.rifleman, melee(45.46552276611328), -1);
   const world = testWorld(source, target);
   const sourceInput = controls();
   const targetInput = controls({ shield: true });
@@ -671,8 +672,8 @@ test("the recorded shield contact detects a perturbed recoil on its first releas
 });
 
 test("airborne shield recoil decays as a separate vector without changing self velocity [reference]", () => {
-  const withRecoil = createFighter(Character.archer, 0.0, 1);
-  const control = createFighter(Character.archer, 0.0, 1);
+  const withRecoil = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const control = createReferenceFighter(Character.sylvanas, 0.0, 1);
   const input = controls();
   for (const f of [withRecoil, control]) {
     f.motion.grounded = false;
@@ -716,8 +717,8 @@ function prepareAirborneShieldPair(attacker: Fighter, defender: Fighter): void {
 }
 
 test("an airborne shield contact initializes stacked, weight-scaled relative recoil [reference]", () => {
-  const attacker = createFighter(Character.archer, 0.0, 1);
-  const defender = createFighter(Character.rifleman, 100.0, -1);
+  const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const defender = createReferenceFighter(Character.rifleman, 100.0, -1);
   const world = testWorld(attacker, defender);
   prepareAirborneShieldPair(attacker, defender);
   withPhysics(defender, { gravity: attacker.tuning.physics.gravity, weight: 50.0 });
@@ -738,8 +739,8 @@ test("an airborne shield contact initializes stacked, weight-scaled relative rec
   assertNear(attacker.shield.recoilX, 2 * (3 - 2) * 0.125, f32(0.0001));
   assertNear(attacker.shield.recoilZ, 0.0, f32(0.0001));
 
-  const oppositeAttacker = createFighter(Character.archer, 0.0, 1);
-  const oppositeDefender = createFighter(Character.rifleman, 100.0, -1);
+  const oppositeAttacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const oppositeDefender = createReferenceFighter(Character.rifleman, 100.0, -1);
   const opposite = testWorld(oppositeAttacker, oppositeDefender);
   prepareAirborneShieldPair(oppositeAttacker, oppositeDefender);
   withPhysics(oppositeAttacker, { gravity: oppositeDefender.tuning.physics.gravity, weight: 100.0 });
@@ -760,7 +761,7 @@ test("an airborne shield contact initializes stacked, weight-scaled relative rec
 });
 
 test("shield recoil transitions from an air vector to a ground tangent and back [reference]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   const input = controls();
   fighter.shield.recoilX = -2.0;
   fighter.shield.recoilZ = 1.0;
@@ -779,9 +780,9 @@ test("shield recoil transitions from an air vector to a ground tangent and back 
 });
 
 test("a combat shield break uses the character's launch attribute after the contact freeze [reference]", () => {
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
-    const owner = createFighter(Character.archer, 0.0, 1);
-    const target = createFighter(character, 85.0, -1);
+  for (const character of [Character.sylvanas, Character.rifleman, Character.demonHunter]) {
+    const owner = createReferenceFighter(Character.sylvanas, 0.0, 1);
+    const target = createReferenceFighter(character, 85.0, -1);
     const world = testWorld(owner, target);
     owner.motion.grounded = true;
     target.shield.raised = true;
@@ -804,8 +805,8 @@ test("a combat shield break uses the character's launch attribute after the cont
 
 test("a contact batch collects all damage before choosing a launch, in either traversal [reference] [invariant]", () => {
   for (const reversed of [false, true]) {
-    const owner = createFighter(Character.archer, 0.0, 1);
-    const target = createFighter(Character.rifleman, 100.0, -1);
+    const owner = createReferenceFighter(Character.sylvanas, 0.0, 1);
+    const target = createReferenceFighter(Character.rifleman, 100.0, -1);
     const world = testWorld(owner, target);
     target.status.damage = 10.899999618530273;
     target.motion.crouching = true;
@@ -842,8 +843,8 @@ test("a contact batch collects all damage before choosing a launch, in either tr
 });
 
 test("a contact-batch shield break blocks every collected contact [reference]", () => {
-  const owner = createFighter(Character.archer, 0.0, 1);
-  const target = createFighter(Character.rifleman, 85.0, -1);
+  const owner = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const target = createReferenceFighter(Character.rifleman, 85.0, -1);
   const world = testWorld(owner, target);
   owner.motion.grounded = true;
   target.shield.raised = true;
@@ -851,7 +852,7 @@ test("a contact-batch shield break blocks every collected contact [reference]", 
   testBeginAttacks(world, AttackStyle.jab, undefined);
   owner.attack.frame = attackStartupFrames(AttackStyle.jab);
   contactProjectile(owner, target, 0, ProjectileKind.recoil);
-  contactProjectile(owner, target, 1, ProjectileKind.arrow);
+  contactProjectile(owner, target, 1, ProjectileKind.blaster);
   beginDamageContacts();
   resolveAttacks(world);
   updateProjectiles(world);
@@ -875,8 +876,8 @@ function holdBeforeContact(world: Roster, owner: Fighter, target: Fighter, actio
 
 test("a contact batch's throws and pummels include detached damage [reference]", () => {
   for (const pummel of [false, true]) {
-    const owner = createFighter(Character.archer, 0.0, 1);
-    const target = createFighter(Character.rifleman, 50.0, -1);
+    const owner = createReferenceFighter(Character.sylvanas, 0.0, 1);
+    const target = createReferenceFighter(Character.rifleman, 50.0, -1);
     const world = testWorld(owner, target);
     const input = controls();
     holdBeforeContact(world, owner, target, pummel ? GrabAction.pummel : GrabAction.throwForward);
@@ -912,7 +913,7 @@ const OBSERVED_ROLL_TOTALS: readonly (readonly [number, number])[] = [
 ];
 
 function observedRollTotal(character: Character, profile: number): number {
-  return OBSERVED_ROLL_TOTALS[profile]![character === Character.archer ? 0 : 1];
+  return OBSERVED_ROLL_TOTALS[profile]![character === Character.sylvanas ? 0 : 1];
 }
 
 /** Starts a roll of a profile: 0-1 ground roll, 2-5 getup roll from face up or down, 6-7 tech roll. */
@@ -946,10 +947,10 @@ function startObservedRoll(f: Fighter, input: Controls, profile: number, directi
 }
 
 test("backward rolls and spot dodges keep their orientation [spec docs/physics.md]", () => {
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+  for (const character of [Character.sylvanas, Character.rifleman, Character.demonHunter]) {
     for (const entryFacing of [-1, 1]) {
       for (const spot of [false, true]) {
-        const f = createFighter(character, 0.0, entryFacing);
+        const f = createReferenceFighter(character, 0.0, entryFacing);
         const input = controls();
         startObservedRoll(f, input, 1, spot ? 0 : -entryFacing);
         const duration = spot ? SPOT_DODGE_FRAMES : GROUND_ROLL_FRAMES;
@@ -986,8 +987,8 @@ test("knockback caps before motion modifiers, and fixed power ignores percent [r
 
 test("crouch and charge are sampled before a hit interrupts the action [reference]", () => {
   for (const context of [0, 1, 2]) {
-    const attacker = createFighter(Character.archer, 0.0, 1);
-    const victim = createFighter(Character.rifleman, 100.0, -1);
+    const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
+    const victim = createReferenceFighter(Character.rifleman, 100.0, -1);
     const world = testWorld(attacker, victim);
     advanceFighter(world, 1, 0, controls({ down: context === 1 }), 0.0);
     assertEquals(victim.motion.crouching, context === 1);
@@ -1008,49 +1009,49 @@ test("crouch and charge are sampled before a hit interrupts the action [referenc
 });
 
 test("air drift preserves opposed overspeed and brakes in the same direction [reference]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+  for (const character of [Character.sylvanas, Character.rifleman]) {
     for (const direction of [-1, 1]) {
-      const f = createFighter(character, 0.0, -direction);
+      const f = createReferenceFighter(character, 0.0, -direction);
       const input = controls({ direction: -direction });
       f.motion.grounded = false;
       f.motion.z = 200.0;
       f.motion.vx = f32(12.0 * direction);
       advanceSolo(f, 0, input, 0.0);
-      assertNear(f.motion.vx, (character === Character.archer ? f32(11.52) : f32(11.58)) * direction, f32(0.0001));
+      assertNear(f.motion.vx, (character === Character.sylvanas ? f32(11.52) : f32(11.58)) * direction, f32(0.0001));
       assertNear(f.motion.x, f.motion.vx, f32(0.0001));
       input.direction = direction;
       advanceSolo(f, 0, input, 0.0);
-      assertNear(f.motion.vx, (character === Character.archer ? f32(11.4) : f32(11.46)) * direction, f32(0.0001));
+      assertNear(f.motion.vx, (character === Character.sylvanas ? f32(11.4) : f32(11.46)) * direction, f32(0.0001));
       f.motion.vx = f32(40.0 * direction);
       advanceSolo(f, 0, input, 0.0);
-      assertEquals(f.motion.vx, f32((character === Character.archer ? 18.0 : 24.0) * direction));
+      assertEquals(f.motion.vx, f32((character === Character.sylvanas ? 18.0 : 24.0) * direction));
     }
   }
 });
 
 test("a ground jump uses its takeoff input, and an air jump replaces horizontal momentum [reference]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+  for (const character of [Character.sylvanas, Character.rifleman]) {
     for (const direction of [-1, 0, 1]) {
-      const f = createFighter(character, 0.0, 1);
+      const f = createReferenceFighter(character, 0.0, 1);
       beginJump(f, -direction);
       f.jump.squat = 1;
       f.motion.vx = 4.0;
       advanceSolo(f, 0, controls({ direction, jumpHeld: true }), 0.0);
-      const entry = (character === Character.archer ? f32(3.32) : 4.0) + direction * (character === Character.archer ? f32(4.32) : f32(4.2));
+      const entry = (character === Character.sylvanas ? f32(3.32) : 4.0) + direction * (character === Character.sylvanas ? f32(4.32) : f32(4.2));
       assertNear(f.motion.vx, entry, f32(0.0001));
       assertNear(f.motion.x, entry, f32(0.0001));
       f.motion.vx = 13.0;
       beginJump(f, direction);
-      assertNear(f.motion.vx, direction * (character === Character.archer ? f32(5.4) : f32(5.64)), f32(0.0001));
+      assertNear(f.motion.vx, direction * (character === Character.sylvanas ? f32(5.4) : f32(5.64)), f32(0.0001));
     }
   }
-  const capped = createFighter(Character.archer, 0.0, 1);
+  const capped = createReferenceFighter(Character.sylvanas, 0.0, 1);
   beginJump(capped, 1);
   capped.jump.squat = 1;
   capped.motion.vx = 30.0;
   advanceSolo(capped, 0, controls({ direction: 1 }), 0.0);
   assertNear(capped.motion.vx, f32(10.2), f32(0.0001));
-  const illidan = createFighter(Character.demonHunter, 0.0, 1);
+  const illidan = createReferenceFighter(Character.demonHunter, 0.0, 1);
   illidan.motion.grounded = false;
   illidan.motion.vx = 13.0;
   beginJump(illidan, -1);
@@ -1058,10 +1059,10 @@ test("a ground jump uses its takeoff input, and an air jump replaces horizontal 
 });
 
 test("sampled roll paths clamp at both stage edges without discarding reversals [spec docs/physics.md]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+  for (const character of [Character.sylvanas, Character.rifleman]) {
     for (let profile = 0; profile <= 7; profile++) {
       for (const direction of [-1, 1]) {
-        const f = createFighter(character, f32(590.0 * direction), floorMod(profile, 2) === 0 ? direction : -direction);
+        const f = createReferenceFighter(character, f32(590.0 * direction), floorMod(profile, 2) === 0 ? direction : -direction);
         const input = controls();
         startObservedRoll(f, input, profile, direction);
         let touchedEdge = Math.abs(f.motion.x) === 600;
@@ -1080,11 +1081,11 @@ test("sampled roll paths clamp at both stage edges without discarding reversals 
 });
 
 test("a ground jump's entry preserves its launch, then applies gravity and drift [reference]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+  for (const character of [Character.sylvanas, Character.rifleman]) {
     for (const full of [false, true]) {
-      const f = createFighter(character, 0.0, 1);
+      const f = createReferenceFighter(character, 0.0, 1);
       const input = controls({ jumpPressed: true, jumpHeld: full, direction: 1 });
-      const squat = character === Character.archer ? 3 : 5;
+      const squat = character === Character.sylvanas ? 3 : 5;
       for (let frame = 1; frame <= squat; frame++) {
         advanceSolo(f, 0, input, 0.0);
         input.jumpPressed = false;
@@ -1093,8 +1094,8 @@ test("a ground jump's entry preserves its launch, then applies gravity and drift
         assertEquals(f.jump.serial, 0);
       }
       advanceSolo(f, 0, input, 0.0);
-      const launch = character === Character.archer ? (full ? f32(22.08) : f32(12.6)) : full ? f32(24.6) : f32(11.4);
-      const horizontal = character === Character.archer ? f32(4.32) : f32(4.2);
+      const launch = character === Character.sylvanas ? (full ? f32(22.08) : f32(12.6)) : full ? f32(24.6) : f32(11.4);
+      const horizontal = character === Character.sylvanas ? f32(4.32) : f32(4.2);
       assertFalse(f.motion.grounded);
       assertEquals(f.jump.serial, 1);
       assertNear(f.motion.vz, launch, f32(0.00001));
@@ -1102,33 +1103,33 @@ test("a ground jump's entry preserves its launch, then applies gravity and drift
       assertNear(f.motion.vx, horizontal, f32(0.00001));
       assertNear(f.motion.x, horizontal, f32(0.00001));
       advanceSolo(f, 0, input, 0.0);
-      const gravity = character === Character.archer ? f32(1.38) : f32(1.02);
+      const gravity = character === Character.sylvanas ? f32(1.38) : f32(1.02);
       assertNear(f.motion.vz, launch - gravity, f32(0.00001));
       assertNear(f.motion.z, 2 * launch - gravity, f32(0.00001));
-      assertNear(f.motion.vx, character === Character.archer ? f32(4.8) : f32(4.62), f32(0.00001));
+      assertNear(f.motion.vx, character === Character.sylvanas ? f32(4.8) : f32(4.62), f32(0.00001));
     }
   }
 });
 
 test("an aerial jump's entry applies gravity immediately [reference]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
-    const f = createFighter(character, 0.0, 1);
+  for (const character of [Character.sylvanas, Character.rifleman]) {
+    const f = createReferenceFighter(character, 0.0, 1);
     f.motion.grounded = false;
     f.motion.z = 100.0;
     f.motion.vz = -10.0;
     f.jump.remaining = 1;
     advanceSolo(f, 0, controls({ jumpPressed: true, direction: 1 }), 0.0);
-    assertNear(f.motion.vz, character === Character.archer ? f32(25.116) : f32(22.104), f32(0.00001));
-    assertNear(f.motion.z, character === Character.archer ? 125.11599731445312 : 122.10399627685547, f32(0.00001));
-    assertNear(f.motion.vx, character === Character.archer ? f32(5.28) : f32(5.52), f32(0.00001));
+    assertNear(f.motion.vz, character === Character.sylvanas ? f32(25.116) : f32(22.104), f32(0.00001));
+    assertNear(f.motion.z, character === Character.sylvanas ? 125.11599731445312 : 122.10399627685547, f32(0.00001));
+    assertNear(f.motion.vx, character === Character.sylvanas ? f32(5.28) : f32(5.52), f32(0.00001));
     assertEquals(f.jump.remaining, 0);
     assertTrue(f.jump.isDouble);
   }
 });
 
 test("releasing jump on the takeoff frame keeps a full jump, and hitlag doesn't latch a release [reference]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
-    const f = createFighter(character, 0.0, 1);
+  for (const character of [Character.sylvanas, Character.rifleman]) {
+    const f = createReferenceFighter(character, 0.0, 1);
     const input = controls({ jumpPressed: true, jumpHeld: true });
     advanceSolo(f, 0, input, 0.0);
     input.jumpPressed = false;
@@ -1143,7 +1144,7 @@ test("releasing jump on the takeoff frame keeps a full jump, and hitlag doesn't 
     }
     input.jumpHeld = false;
     advanceSolo(f, 0, input, 0.0);
-    assertNear(f.motion.vz, character === Character.archer ? f32(22.08) : f32(24.6), f32(0.00001));
+    assertNear(f.motion.vz, character === Character.sylvanas ? f32(22.08) : f32(24.6), f32(0.00001));
   }
 });
 
@@ -1151,8 +1152,8 @@ test("an electric contact preserves the attacker's and victim's pause boundaries
   for (const electric of [false, true]) {
     for (const crouching of [false, true]) {
       for (const direct of [false, true]) {
-        const owner = createFighter(Character.archer, 0.0, 1);
-        const target = createFighter(Character.rifleman, 100.0, -1);
+        const owner = createReferenceFighter(Character.sylvanas, 0.0, 1);
+        const target = createReferenceFighter(Character.rifleman, 100.0, -1);
         const world = testWorld(owner, target);
         const input = controls();
         target.motion.crouching = crouching;
@@ -1193,8 +1194,8 @@ test("an electric contact preserves the attacker's and victim's pause boundaries
 
 test("an electric contact on a shield uses the ordinary freeze before shieldstun [reference]", () => {
   for (const direct of [false, true]) {
-    const owner = createFighter(Character.archer, 0.0, 1);
-    const target = createFighter(Character.rifleman, 100.0, -1);
+    const owner = createReferenceFighter(Character.sylvanas, 0.0, 1);
+    const target = createReferenceFighter(Character.rifleman, 100.0, -1);
     const world = testWorld(owner, target);
     const input = controls({ shield: true });
     target.shield.raised = true;
@@ -1217,8 +1218,8 @@ test("an electric contact on a shield uses the ordinary freeze before shieldstun
 test("an electric contact batch uses the strongest launch's effect and the largest damage [reference]", () => {
   for (const electricWinner of [false, true]) {
     for (const reversed of [0, 1]) {
-      const owner = createFighter(Character.archer, 0.0, 1);
-      const target = createFighter(Character.rifleman, 100.0, -1);
+      const owner = createReferenceFighter(Character.sylvanas, 0.0, 1);
+      const target = createReferenceFighter(Character.rifleman, 100.0, -1);
       const world = testWorld(owner, target);
       beginDamageContacts();
       for (let entry = 0; entry <= 1; entry++) {
@@ -1237,8 +1238,8 @@ test("an electric contact batch uses the strongest launch's effect and the large
 
 test("an electric contact batch with tied launches keeps the first effect [reference]", () => {
   for (const electricFirst of [false, true]) {
-    const owner = createFighter(Character.archer, 0.0, 1);
-    const target = createFighter(Character.rifleman, 100.0, -1);
+    const owner = createReferenceFighter(Character.sylvanas, 0.0, 1);
+    const target = createReferenceFighter(Character.rifleman, 100.0, -1);
     const world = testWorld(owner, target);
     beginDamageContacts();
     queueDamageContact(world, 0, 1, hitEffect(3.0, 0.0, 50.0, 1.0, 0.0, electricFirst), 1, ContactKind.launch, false, undefined);
@@ -1252,8 +1253,8 @@ test("an electric contact batch with tied launches keeps the first effect [refer
 
 test("the same character uses its assigned weight for an actual damage contact [reference]", () => {
   for (const weight of [50.0, 150.0]) {
-    const owner = createFighter(Character.archer, 0.0, 1);
-    const target = createFighter(Character.archer, 100.0, -1);
+    const owner = createReferenceFighter(Character.sylvanas, 0.0, 1);
+    const target = createReferenceFighter(Character.sylvanas, 100.0, -1);
     const world = testWorld(owner, target);
     withPhysics(target, { weight });
     testBeginAttacks(world, AttackStyle.jab, undefined);
@@ -1400,7 +1401,7 @@ test("a stronger aerial dodge resumes gravity and drift on tick thirty [spec #34
 });
 
 test("a retail aerial dodge's switch boundary freezes in hitlag [reference]", () => {
-  const f = falcoRig(Character.archer, 0.0, 1);
+  const f = falcoRig(Character.sylvanas, 0.0, 1);
   f.motion.grounded = false;
   f.motion.z = 300.0;
   const input = controls({ airDodgePressed: true });
@@ -1425,9 +1426,9 @@ test("a retail aerial dodge's switch boundary freezes in hitlag [reference]", ()
 });
 
 test("a forward roll turns on frame 20 while keeping its entry pose and travel [spec docs/physics.md]", () => {
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+  for (const character of [Character.sylvanas, Character.rifleman, Character.demonHunter]) {
     for (const entryFacing of [-1, 1]) {
-      const f = createFighter(character, 0.0, entryFacing);
+      const f = createReferenceFighter(character, 0.0, entryFacing);
       const world = soloWorld(f);
       const input = controls();
       startObservedRoll(f, input, 0, entryFacing);
@@ -1447,7 +1448,7 @@ test("a forward roll turns on frame 20 while keeping its entry pose and travel [
       assertEquals(f.facing, character === Character.demonHunter ? entryFacing : -entryFacing);
       assertEquals(fighterPoseFacing(f), entryFacing);
       assertTrue(isForwardGroundRoll(f));
-      const travel20 = character === Character.archer ? f32(9.6163101198) : character === Character.rifleman ? f32(11.0186805726) : 0.0;
+      const travel20 = character === Character.sylvanas ? f32(9.6163101198) : character === Character.rifleman ? f32(11.0186805726) : 0.0;
       assertNear(f.motion.x - before, entryFacing * travel20, f32(0.0001));
       for (let frame = 21; frame <= 31; frame++) {
         advanceFighter(world, 0, 0, input, 0.0);
@@ -1470,10 +1471,10 @@ test("a forward roll turns on frame 20 while keeping its entry pose and travel [
 });
 
 test("sampled rolls move through their actual entry, a freeze and recovery [reference]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+  for (const character of [Character.sylvanas, Character.rifleman]) {
     for (let profile = 0; profile <= 7; profile++) {
       for (const facing of [-1, 1]) {
-        const f = createFighter(character, 0.0, facing);
+        const f = createReferenceFighter(character, 0.0, facing);
         const input = controls();
         const direction = floorMod(profile, 2) === 0 ? facing : -facing;
         const duration = profile < 2 ? 31 : profile < 6 ? 35 : 40;
@@ -1484,7 +1485,7 @@ test("sampled rolls move through their actual entry, a freeze and recovery [refe
           advanceSolo(f, 0, input, 0.0);
           if (profile < 2 && frame === 6) assertEquals(f.motion.x, 0.0);
           if (profile < 2 && frame === 9) {
-            const ninth = profile === 0 ? (character === Character.archer ? f32(69.12) : f32(79.2)) : character === Character.archer ? f32(23.04) : f32(26.4);
+            const ninth = profile === 0 ? (character === Character.sylvanas ? f32(69.12) : f32(79.2)) : character === Character.sylvanas ? f32(23.04) : f32(26.4);
             assertNear(f.motion.x, direction * ninth, f32(0.0001));
           }
         }

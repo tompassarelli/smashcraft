@@ -14,11 +14,11 @@ import { dealtManaGain } from "./mana";
 import { resetSpecialOnStock } from "./heroSpecialRules";
 import { clearSpecialOnStock } from "./transitions";
 
-const roster: readonly Character[] = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(hero => hero.character)];
+const roster: readonly Character[] = [Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(hero => hero.character)];
 
 function special(character: Character, side: boolean, mana: number, ex: boolean) {
   const f = createFighter(character, 0.0, 1);
-  const world = testWorld(f, createFighter(Character.archer, 900.0, -1));
+  const world = testWorld(f, createFighter(Character.rifleman, 900.0, -1));
   f.motion.grounded = true;
   f.mana.points = mana;
   const input = controls({ specialPressed: true, specialX: side ? 1 : 0, shield: ex, shieldPressed: ex, airDodgePressed: ex, groundDodgePressed: ex });
@@ -59,7 +59,7 @@ test("every fighter's unaffordable EX falls back to a free ordinary special [spe
 
 test("EX takes one light hit's damage and freeze without interruption; a second, heavy, late hit or throw interrupts [spec #335]", () => {
   for (const kind of ["second", "heavy", "late", "throw"] as const) {
-    const { f, world } = special(Character.archer, false, 100, true);
+    const { f, world } = special(Character.rifleman, false, 100, true);
     const hit = (damage: number, contact: ContactKind = ContactKind.launch) => contactBatch(world, () => collectDamageContact(world, 1, 0, hitEffect(damage, 90.0, 20.0, 1.0, 0.0), 1, contact, true, undefined, false));
     if (kind === "second") {
       hit(5.0);
@@ -80,7 +80,7 @@ test("EX takes one light hit's damage and freeze without interruption; a second,
 test("parrying earns no meter without body damage [spec #335]", () => {
   for (const character of roster) {
     const f = createFighter(character, 0.0, 1);
-    const target = createFighter(Character.archer, 30.0, -1);
+    const target = createFighter(Character.rifleman, 30.0, -1);
     const world = testWorld(f, target);
     f.mana.points = 50;
     target.mana.points = 50;
@@ -117,7 +117,7 @@ test("EX state and spent armor restore exactly, reset on a stock while spent met
       upDown.motion.grounded = true;
       upDown.motion.surface = 0;
       upDown.mana.points = 100;
-      testWorld(upDown, createFighter(Character.archer, 900.0, -1));
+      testWorld(upDown, createFighter(Character.rifleman, 900.0, -1));
       startFighterSpecial(upDown, 0, 0, controls({ specialPressed: true, specialZ: direction, shield: true }));
       assertTrue(upDown.special.ex);
       assertEquals(upDown.mana.points, 0);
@@ -126,7 +126,7 @@ test("EX state and spent armor restore exactly, reset on a stock while spent met
 });
 
 test("only a full bar can buy EX [spec #335]", () => {
-  const f = createFighter(Character.archer, 0.0, 1);
+  const f = createFighter(Character.rifleman, 0.0, 1);
   for (const points of [0, 28, 99, 100]) {
     f.mana.points = points;
     assertEquals(exSpecialAffordable(f), points === 100);

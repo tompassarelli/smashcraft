@@ -38,7 +38,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), strike?: A
   }
 }
 
-function pair(gap: number, opponent: Character = Character.archer): { world: Roster; owner: Fighter; target: Fighter } {
+function pair(gap: number, opponent: Character = Character.rifleman): { world: Roster; owner: Fighter; target: Fighter } {
   const owner = createFighter(Character.forsakenPaladin, f32(-gap * 0.5), 1);
   owner.mana.points = 100;
   const target = createFighter(opponent, f32(gap * 0.5), -1);
@@ -313,13 +313,13 @@ test("replaying Forsaken Paladin's Consecration and Righteous Fury restores ever
   const { world, owner, target } = pair(70.0);
   frame(world, down);
   const savedOwner = createFighter(Character.forsakenPaladin, 0.0, 1);
-  const savedTarget = createFighter(Character.archer, 0.0, -1);
+  const savedTarget = createFighter(Character.rifleman, 0.0, -1);
   copyFighterState(savedOwner, owner, 3);
   copyFighterState(savedTarget, target, 3);
   const run = () => { for (let f = 2; f <= 130; f++) frame(world, f === 50 ? side : controls()); };
   run();
   const endOwner = createFighter(Character.forsakenPaladin, 0.0, 1);
-  const endTarget = createFighter(Character.archer, 0.0, -1);
+  const endTarget = createFighter(Character.rifleman, 0.0, -1);
   copyFighterState(endOwner, owner, 3);
   copyFighterState(endTarget, target, 3);
   assertGreaterThan(target.status.damage, 0.0);

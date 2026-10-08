@@ -213,7 +213,7 @@ test("a Lore Battles entry built from data alone plays through the configured-ma
   for (const [win, expected] of [[WinCondition.survive, RunOutcome.won], [WinCondition.koWithinClock, RunOutcome.lost]] as const) {
     const game = createMatchState();
     setParticipants(game, 1, 0);
-    beginConfiguredRun(game, 0, Character.archer);
+    beginConfiguredRun(game, 0, Character.rifleman);
     applyConfiguredMatch(game, { ...hunt, win });
     const world = begin(game);
     same([fighterAt(world, 0).character, fighterAt(world, 0).status.stocks, fighterAt(world, 0).status.damage], [Character.warden, 1, 50]);

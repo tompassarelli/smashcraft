@@ -1,8 +1,8 @@
 // Wall techs, wall jumps and ceiling techs through a controller's real input
-// path (helperPads.ts): an Archer's forward air launches each fighter from
+// path (helperPads.ts): an Rifleman's forward air launches each fighter from
 // below the right ledge into the main deck's side, at medium and high
 // percent; each fighter drifts into the side and flicks away from it; and an
-// Archer's up smash launches each fighter into a raised deck's underside.
+// Rifleman's up smash launches each fighter into a raised deck's underside.
 import { max, min } from "../../runtime/numbers";
 import { assertDefined, assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
@@ -39,7 +39,6 @@ function referenceWall(character: Character): {
 } {
   switch (character) {
     default:
-    case Character.archer:
       return { pushOff: 0.5, jumpX: 1.399999976158142, jumpZ: 3.299999952316284, ceiling: 0.699999988079071, ceilingFrame: 14 };
     case Character.rifleman:
       return { pushOff: 0.5, jumpX: 1.2999999523162842, jumpZ: 3.5999999046325684, ceiling: 0.699999988079071, ceilingFrame: 14 };
@@ -81,11 +80,11 @@ function rightWallX(stage: number, z: number): number | undefined {
  * keeps the same gap to its own wall at that height (none: stage 0's place).
  */
 function startRun(victimCharacter: Character, percent: number, stage = 0): Run {
-  const match = testMatch(3, Character.archer);
+  const match = testMatch(3, Character.rifleman);
   match.game.stageChoice = stage;
   const wall = rightWallX(stage, -150.0);
   const shift = wall === undefined ? 0.0 : f32(wall - assertDefined(rightWallX(0, -150.0), "stage 0's wall"));
-  const attacker = createFighter(Character.archer, f32(560.0 + shift), -1);
+  const attacker = createFighter(Character.rifleman, f32(560.0 + shift), -1);
   const victim = createFighter(victimCharacter, f32(530.0 + shift), 1);
   victim.status.damage = percent;
   for (const fighter of [attacker, victim]) {
@@ -98,7 +97,7 @@ function startRun(victimCharacter: Character, percent: number, stage = 0): Run {
   return { ...padMatch(match, "wall-tech"), victim };
 }
 
-/** The C-stick toward the stage: a forward air from an Archer facing it. */
+/** The C-stick toward the stage: a forward air from an Rifleman facing it. */
 const STRIKE: Pad = { cx: -1.0 };
 
 interface Launch {
@@ -119,13 +118,13 @@ function launch(run: Run, victimPadAt: (frame: number) => Pad, strike: Pad = STR
   throw new Error("the victim never met a solid surface");
 }
 
-/** Every selectable fighter; heroes take Archer's reference (Fox) wall values (sim/tuning.ts). */
+/** Every selectable fighter; heroes take Rifleman's reference (Fox) wall values (sim/tuning.ts). */
 const VICTIMS = SELECTABLE_CHARACTERS;
 const NEUTRAL = (): Pad => ({});
 
 /** Melee common +0x154/+0x160: DamageFly begins at knockback times 0.4 >= 32. */
 function strikeTumbles(run: Run, percent: number): boolean {
-  const effect = authoredHitRegion(emptyHitRegion(), Character.archer, AttackStyle.forwardAir, attackStartupFrames(AttackStyle.forwardAir), 0, 0).effect;
+  const effect = authoredHitRegion(emptyHitRegion(), Character.rifleman, AttackStyle.forwardAir, attackStartupFrames(AttackStyle.forwardAir), 0, 0).effect;
   const knockback = ordinaryHitKnockback(percent, effect.damage, run.victim.tuning.physics.weight, effect.growth, effect.base, 1.0);
   return multiplyFloat32(knockback, 0.4000000059604645) >= 32.0;
 }
@@ -229,9 +228,9 @@ test("up on the stick at a wall tech launches each fighter with its reference's 
   }
 });
 
-/** Below the right ledge, outside the side and facing away from it, drifting toward it at full air speed; the Archer stands on the stage. */
+/** Below the right ledge, outside the side and facing away from it, drifting toward it at full air speed; the Rifleman stands on the stage. */
 function startDrift(character: Character): Run {
-  const match = testMatch(3, Character.archer);
+  const match = testMatch(3, Character.rifleman);
   match.game.stageChoice = 0;
   const victim = createFighter(character, 520.0, 1);
   victim.motion.grounded = false;
@@ -281,7 +280,7 @@ test("a flick away from the main deck's side wall jumps each fighter off it with
 });
 
 test("a fighter without Melee's wall jump trait doesn't wall jump [reference]", () => {
-  const run = startDrift(Character.archer);
+  const run = startDrift(Character.rifleman);
   const { victim } = run;
   victim.tuning = { ...victim.tuning, surface: { ...victim.tuning.surface, canWallJump: false } };
   flickOffSide(run);
@@ -290,13 +289,13 @@ test("a fighter without Melee's wall jump trait doesn't wall jump [reference]", 
   assertLessThan(victim.motion.deltaZ, 0.0);
 });
 
-/** On the solid-deck test stage, the Archer facing right below its left raised deck and the victim beside it, at 120%. */
+/** On the solid-deck test stage, the Rifleman facing right below its left raised deck and the victim beside it, at 120%. */
 function startUnderDeck(victimCharacter: Character): Run {
-  const match = testMatch(3, Character.archer);
+  const match = testMatch(3, Character.rifleman);
   match.game.stageChoice = SOLID_DECK_TEST_STAGE;
   const victim = createFighter(victimCharacter, -380.0, -1);
   victim.status.damage = 120.0;
-  match.world.fighters[0] = createFighter(Character.archer, -420.0, 1);
+  match.world.fighters[0] = createFighter(Character.rifleman, -420.0, 1);
   match.world.fighters[1] = victim;
   return { ...padMatch(match, "ceiling-tech"), victim };
 }
@@ -352,7 +351,7 @@ test("a ceiling tech starts at the ECB top's contact and moves each fighter side
 });
 
 /**
- * Puts the Archer in slot 0 over the victim with a fresh, active neutral air and
+ * Puts the Rifleman in slot 0 over the victim with a fresh, active neutral air and
  * resolves it: true when it struck the victim's body.
  */
 function strikeOverlapping(run: Run): boolean {
@@ -423,7 +422,7 @@ function firstFailure(checks: readonly (readonly [string, boolean])[]): string {
 }
 
 function stageWallOutcomes(stage: number): readonly [string, string, string] {
-  const probe = startRun(Character.archer, 120.0, stage);
+  const probe = startRun(Character.rifleman, 120.0, stage);
   let missed: Launch;
   try {
     missed = launch(probe, NEUTRAL);
@@ -437,7 +436,7 @@ function stageWallOutcomes(stage: number): readonly [string, string, string] {
     ["reflected away", bounced.launch.knockbackX > 0.0],
   ]);
 
-  const tech = startRun(Character.archer, 120.0, stage);
+  const tech = startRun(Character.rifleman, 120.0, stage);
   launch(tech, (frame) => ({ trigger: frame === missed.free }));
   const teched = tech.victim;
   const { x, z } = teched.motion;
@@ -454,17 +453,17 @@ function stageWallOutcomes(stage: number): readonly [string, string, string] {
   const wallTech = firstFailure([
     ...entered,
     ["held and invincible", held],
-    ["pushed off", teched.motion.vx === f32(melee(referenceWall(Character.archer).pushOff) - teched.tuning.physics.airFriction)],
+    ["pushed off", teched.motion.vx === f32(melee(referenceWall(Character.rifleman).pushOff) - teched.tuning.physics.airFriction)],
   ]);
 
-  const jump = startRun(Character.archer, 120.0, stage);
+  const jump = startRun(Character.rifleman, 120.0, stage);
   launch(jump, (frame) => ({ trigger: frame === missed.free, y: frame === missed.contact ? 1.0 : 0.0 }));
   const jumper = jump.victim;
   const queued = jumper.surfaceRecovery.state === SurfaceContact.techWall && jumper.surfaceRecovery.wallJumpQueued;
   for (let frame = 1; frame <= WALL_TECH_STARTUP_FRAMES; frame++) playPads(jump, {}, {});
   const techJump = firstFailure([
     ["wall-tech jump queued", queued],
-    ["jumped off", jumper.motion.vx === f32(melee(referenceWall(Character.archer).jumpX) - jumper.tuning.physics.airFriction) && jumper.motion.deltaZ > 0.0],
+    ["jumped off", jumper.motion.vx === f32(melee(referenceWall(Character.rifleman).jumpX) - jumper.tuning.physics.airFriction) && jumper.motion.deltaZ > 0.0],
   ]);
   return [bounce, wallTech, techJump];
 }

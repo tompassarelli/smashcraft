@@ -56,7 +56,7 @@ export const SDI_FIXTURES: readonly SdiFixture[] = [
 
 /** An airborne victim with no gravity, drift or launch, so only SDI and ASDI move it. */
 function isolatedVictim(): Fighter {
-  const f = createFighter(Character.archer, 0.0, 1);
+  const f = createFighter(Character.rifleman, 0.0, 1);
   withPhysics(f, { gravity: 0.0, airAcceleration: 0.0, airFriction: 0.0 });
   f.motion.grounded = false;
   f.motion.surface = undefined;
@@ -201,7 +201,7 @@ test("queued requests count against the hit, and release discards the unfinished
 });
 
 test("a replacement hit renews the hit allowance and drops queued travel, but not the string [spec #70]", () => {
-  const attacker = createFighter(Character.archer, -60.0, 1);
+  const attacker = createFighter(Character.rifleman, -60.0, 1);
   const victim = isolatedVictim();
   victim.motion.x = 0.0;
   victim.motion.z = 0.0;

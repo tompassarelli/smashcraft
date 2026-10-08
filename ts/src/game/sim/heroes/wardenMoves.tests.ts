@@ -25,11 +25,11 @@ const NORMALS = [
 ] as const;
 
 function pair(style: AttackStyle, frame: number, x: number, z = 0.0, facing = 1, groundedTarget = true, ownerZ = 0.0) {
-  const owner = createFighter(Character.archer, 0.0, facing);
+  const owner = createFighter(Character.rifleman, 0.0, facing);
   owner.tuning.moves = WARDEN_MOVES;
   owner.motion.grounded = !isAerialAttack(style);
   owner.motion.z = ownerZ;
-  const target = createFighter(Character.archer, f32(x * facing), -facing);
+  const target = createFighter(Character.rifleman, f32(x * facing), -facing);
   target.motion.z = z;
   target.motion.grounded = groundedTarget;
   const world = testWorld(owner, target);
@@ -58,7 +58,7 @@ test("Warden roster phases and single-contact paths reach production [spec docs/
     for (let frame = first - 2; frame <= first + active - 1; frame++) {
       let live = 0;
       for (let index = 0; index < count; index++) {
-        authoredHitRegion(out, Character.archer, style, frame, 0, index, WARDEN_MOVES);
+        authoredHitRegion(out, Character.rifleman, style, frame, 0, index, WARDEN_MOVES);
         if (out.window > 0) {
           live++;
           assertTrue(out.window === 1 || (isMultiHit(WARDEN_MOVES.normals[style]) && out.window > 1));
@@ -190,7 +190,7 @@ test("Warden's blades are disjoint while the arm and Heel Blade leg stay hittabl
   const probe = (target: ReturnType<typeof createFighter>, x: number, z: number) =>
     strikeHurtContact({ x1: x, z1: z, x2: x, z2: z, radius: 1.0 }, target);
   for (const facing of [-1, 1]) {
-    const warden = createFighter(Character.archer, 0.0, facing);
+    const warden = createFighter(Character.rifleman, 0.0, facing);
     warden.tuning.moves = WARDEN_MOVES;
     // At rest the hand is inside the body.
     assertEquals(probe(warden, f32(26.0 * facing), 70.0), HurtContact.none);

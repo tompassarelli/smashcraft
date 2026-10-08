@@ -86,7 +86,7 @@ test("captured projectiles survive expiry, slot reuse and rollback [invariant]",
   const saved = createReplaySnapshot();
   const owner = fighterAt(live.world, 0);
   fighterAt(live.world, 1).motion.x = 2000.0;
-  spawnProjectileMotion(owner, ProjectileKind.arrow, 8.0, 0.0, 1, 11);
+  spawnProjectileMotion(owner, ProjectileKind.blaster, 8.0, 0.0, 1, 11);
   copyReplayState(saved, live);
   const savedChecksum = stateChecksum(saved);
   updateProjectiles(live.world);
@@ -104,7 +104,7 @@ test("a practice match's mode is replay state that restores and differs [invaria
   selectCharacter(game, 0, 0);
   requestStageSelect(game, 0);
   requestStart(game, 0);
-  const first = createFighter(Character.archer, -240.0, 1);
+  const first = createFighter(Character.rifleman, -240.0, 1);
   const second = createFighter(Character.rifleman, 240.0, -1);
   initializeMatchFighters(game, testWorld(first, second));
   const live = liveState(first, second, game, frameControls(attackBuffer(0), attackBuffer(0)), createPacingAndPresentation());
@@ -121,7 +121,7 @@ test("a practice match's mode is replay state that restores and differs [invaria
 });
 
 test("capture and restore include combat references, projectiles and queued input [invariant]", () => {
-  const first = createFighter(Character.archer, -90.0, 1);
+  const first = createFighter(Character.rifleman, -90.0, 1);
   const second = createFighter(Character.rifleman, 90.0, -1);
   const match = createMatchState();
   const firstCommands = attackBuffer(4);
@@ -311,7 +311,7 @@ test("capture and restore include combat references, projectiles and queued inpu
 });
 
 test("restore and replay reproduce movement and the match clock [invariant]", () => {
-  const first = createFighter(Character.archer, -30.0, 1);
+  const first = createFighter(Character.rifleman, -30.0, 1);
   const second = createFighter(Character.rifleman, 30.0, -1);
   const match = createMatchState();
   const firstInput = neutralControls();
@@ -342,7 +342,7 @@ test("restore and replay reproduce movement and the match clock [invariant]", ()
 });
 
 test("restoring into other fighters keeps the contact registry by slot [invariant]", () => {
-  const first = createFighter(Character.archer, 0.0, 1);
+  const first = createFighter(Character.rifleman, 0.0, 1);
   const second = createFighter(Character.rifleman, 100.0, -1);
   const match = createMatchState();
   const commands = attackBuffer(0);
@@ -355,7 +355,7 @@ test("restoring into other fighters keeps the contact registry by slot [invarian
   assertGreaterThan(second.status.damage, 0.0);
   assertEquals(second.hits.lastAttacker, 0);
   copyReplayState(snapshot, liveState(first, second, match, controls, runtime));
-  const replayFirst = createFighter(Character.archer, 0.0, 1);
+  const replayFirst = createFighter(Character.rifleman, 0.0, 1);
   const replaySecond = createFighter(Character.rifleman, 0.0, -1);
   const replay = liveState(replayFirst, replaySecond, match, controls, runtime);
   copyReplayState(replay, snapshot);
@@ -374,7 +374,7 @@ test("restoring into other fighters keeps the contact registry by slot [invarian
 test("recorded rows replay an attack against a shield from independently restored fighters [invariant]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
-  const first = createFighter(Character.archer, 0.0, 1);
+  const first = createFighter(Character.rifleman, 0.0, 1);
   const second = createFighter(Character.rifleman, 100.0, -1);
   const firstInput = neutralControls();
   const secondInput = neutralControls();
@@ -418,7 +418,7 @@ test("recorded rows replay an attack against a shield from independently restore
 
   const recoveredGame = createMatchState();
   recoveredGame.phase = Phase.result;
-  const recoveredFirst = createFighter(Character.archer, 800.0, 1);
+  const recoveredFirst = createFighter(Character.rifleman, 800.0, 1);
   const recoveredSecond = createFighter(Character.rifleman, -800.0, -1);
   const recovered = liveState(recoveredFirst, recoveredSecond, recoveredGame, frameControls(attackBuffer(3), attackBuffer(3)), createPacingAndPresentation());
   copyReplayState(recovered, before);
@@ -541,7 +541,7 @@ test("dash and pivot grabs and the catch window are replay state [invariant]", (
 });
 
 test("every physics parameter survives capture and restore and participates in equality [invariant]", () => {
-  const first = createFighter(Character.archer, 0.0, 1);
+  const first = createFighter(Character.rifleman, 0.0, 1);
   const second = createFighter(Character.rifleman, 100.0, -1);
   const live = liveState(first, second, createMatchState(), frameControls(attackBuffer(0), attackBuffer(0)), createPacingAndPresentation());
   const expected = createReplaySnapshot();

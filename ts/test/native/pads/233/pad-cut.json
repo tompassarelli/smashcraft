@@ -1,5 +1,5 @@
 {
-  "setup": "-dev quick hero archer",
+  "setup": "-dev quick hero rifleman",
   "cut": { "client": "a", "afterMilliseconds": 2000, "milliseconds": 1000 },
   "combat": { "beatMilliseconds": 100, "deadlineMilliseconds": 240000 },
   "pass": ["Both keyboard frontiers advance during the cut", "No recorded match callback waits for its own player", "Both match records end normally and agree"]

@@ -3,7 +3,8 @@
 import { assertEquals, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { Character } from "./codes";
-import { type Fighter, createFighter } from "./fighter";
+import { type Fighter,  } from "./fighter";
+import { createReferenceFighter } from "./referenceRig";
 import { installDamageLaunch } from "./knockback";
 import { FROZEN_THRONE_STAGE, TOMB_OF_SARGERAS_STAGE, WATER_FRICTION, floorFriction, surfaceCount } from "./stage";
 import { advanceSolo, controls } from "./testWorld";
@@ -26,7 +27,7 @@ function slideToRest(f: Fighter, stage: number, moving: (f: Fighter) => boolean)
 
 /** A fighter that has run right for 40 frames from x -400. */
 function runner(stage: number): Fighter {
-  const f = createFighter(Character.archer, -400.0, 1);
+  const f = createReferenceFighter(Character.sylvanas, -400.0, 1);
   for (let frame = 0; frame < 40; frame++) advanceSolo(f, stage, HELD_RIGHT, 0.0);
   return f;
 }
@@ -64,7 +65,7 @@ test("a run released on water brakes at half traction and slides twice as far [s
 
 test("a landing slide (wavedash and waveland) carries twice as far on water [spec docs/physics.md]", () => {
   const slide = (stage: number) => {
-    const f = createFighter(Character.rifleman, -300.0, 1);
+    const f = createReferenceFighter(Character.rifleman, -300.0, 1);
     f.motion.vx = 14.0;
     f.landing.lag = 10;
     return slideToRest(f, stage, groundSpeed).distance;
@@ -74,7 +75,7 @@ test("a landing slide (wavedash and waveland) carries twice as far on water [spe
 
 test("ground knockback slides twice as far on water [spec docs/physics.md]", () => {
   const slide = (stage: number) => {
-    const f = createFighter(Character.archer, -300.0, 1);
+    const f = createReferenceFighter(Character.sylvanas, -300.0, 1);
     installDamageLaunch(f, 60.0, 1.0, 0.0, true);
     f.launch.hitstun = 24;
     assertTrue(f.motion.grounded);
@@ -85,7 +86,7 @@ test("ground knockback slides twice as far on water [spec docs/physics.md]", () 
 
 test("shield pushback slides twice as far on water [spec docs/physics.md]", () => {
   const slide = (stage: number) => {
-    const f = createFighter(Character.archer, -300.0, 1);
+    const f = createReferenceFighter(Character.sylvanas, -300.0, 1);
     const shielding = controls({ shield: true });
     advanceSolo(f, stage, shielding, 0.0);
     f.shield.pushbackX = 9.0;

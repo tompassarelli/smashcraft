@@ -22,7 +22,7 @@ test("pips show the stacks, all lit when the passive is ready [spec #148]", () =
 });
 
 test("every fighter with a passive shows a ready or proc effect [spec #148]", () => {
-  for (let character = 0; character <= Character.beastmaster; character++) {
+  for (let character = 1; character <= Character.beastmaster; character++) {
     const look = passiveLook(character as Character);
     const has = passiveSpec(character as Character).stacks > 0;
     assertEquals(look.ready !== undefined || look.proc !== undefined, has);

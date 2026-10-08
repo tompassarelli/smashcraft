@@ -42,11 +42,11 @@ const SHIELD = row({ held: bit(Action.leftTrigger), pressed: bit(Action.leftTrig
 const JUMP = row({ held: bit(Action.jump), pressed: bit(Action.jump) });
 const ATTACK = row({ pressed: bit(Action.attack) });
 const WALK_RIGHT = row({ held: bit(Action.moveRight), pressed: bit(Action.moveRight) });
-const SLOT_CHARACTERS = [Character.archer, Character.rifleman, Character.demonHunter, Character.archer] as const;
+const SLOT_CHARACTERS = [Character.rifleman, Character.demonHunter, Character.blademaster, Character.rifleman] as const;
 
-/** Two archers 200 apart for two connected humans. */
+/** Two riflemans 200 apart for two connected humans. */
 function shadowWorld(): TapeWorld {
-  return createTapeWorld({ stocks: 99, humans: 2, first: createFighter(Character.archer, -100.0, 1), second: createFighter(Character.archer, 100.0, -1) });
+  return createTapeWorld({ stocks: 99, humans: 2, first: createFighter(Character.rifleman, -100.0, 1), second: createFighter(Character.rifleman, 100.0, -1) });
 }
 
 function deliver(schedule: ShadowInputSchedule, sender: number, epoch: number, frame: number, input: Readonly<InputRow>): void {

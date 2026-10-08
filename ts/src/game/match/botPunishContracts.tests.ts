@@ -32,7 +32,7 @@ const NEUTRAL = neutralControls();
 function forecastRecovery(setup: (target: Fighter) => void): void {
   const target = createFighter(Character.lich, 0.0, 1);
   setup(target);
-  const world = createRoster(3, [target, createFighter(Character.archer, -500.0, 1)]);
+  const world = createRoster(3, [target, createFighter(Character.rifleman, -500.0, 1)]);
   const observed = createFighter(Character.lich, 0.0, 1);
   copyFighterState(observed, target, world.mask);
   const match = createMatchState();
@@ -156,8 +156,8 @@ function punishCount(whiff: Whiff, character: Character, tier: CpuTier, seeds: n
 
 for (const whiff of WHIFFS) {
   const name = whiff === Whiff.forwardSmash ? "whiffed forward smash" : whiff === Whiff.grab ? "missed grab" : "landing lag";
-  test(`a Wren Expert Archer computer punishes Pit Lord's ${name} within the window [spec #157]`, () => {
-    assertEquals(punishCount(whiff, Character.archer, "expert", HARD_SEEDS), HARD_SEEDS);
+  test(`a Wren Expert Rifleman computer punishes Pit Lord's ${name} within the window [spec #157]`, () => {
+    assertEquals(punishCount(whiff, Character.rifleman, "expert", HARD_SEEDS), HARD_SEEDS);
   });
   sweep(`a Wren Expert computer of every fighter punishes Pit Lord's ${name} within the window; a Wren Rookie computer usually doesn't [spec #157]`, () => {
     let easy = 0;
@@ -172,7 +172,7 @@ for (const whiff of WHIFFS) {
 
 /** Level-9 computers on both sides of these pairings, MATCH_SEEDS seeded matches each. */
 const PAIRS = [
-  [Character.pitLord, Character.blademaster], [Character.mountainKing, Character.lich], [Character.archer, Character.forsakenPaladin],
+  [Character.pitLord, Character.blademaster], [Character.mountainKing, Character.lich], [Character.rifleman, Character.forsakenPaladin],
   [Character.dreadlord, Character.warden], [Character.shadowHunter, Character.beastmaster], [Character.demonHunter, Character.rifleman],
 ] as const;
 const MATCH_FRAMES = 1800;

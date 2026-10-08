@@ -44,7 +44,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
 function pair(gap = 1000.0, facing = 1): { world: Roster; owner: Fighter; target: Fighter } {
   const owner = createFighter(Character.beastmaster, f32(-gap * 0.5 * facing), facing);
   owner.mana.points = 100;
-  const target = createFighter(Character.archer, f32(gap * 0.5 * facing), -facing);
+  const target = createFighter(Character.rifleman, f32(gap * 0.5 * facing), -facing);
   const world = createRoster(3, [owner, target]);
   for (let i = 0; i < 3; i++) frame(world);
   owner.mana.points = 100;
@@ -247,12 +247,12 @@ test("rollback restores Beastmaster's three separate companion positions and com
   frame(world, down);
   run(world, 8);
   const savedOwner = createFighter(Character.beastmaster, 0.0, 1);
-  const savedTarget = createFighter(Character.archer, 0.0, 1);
+  const savedTarget = createFighter(Character.rifleman, 0.0, 1);
   copyFighterState(savedOwner, owner, 3);
   copyFighterState(savedTarget, target, 3);
   run(world, 55);
   const expectedOwner = createFighter(Character.beastmaster, 0.0, 1);
-  const expectedTarget = createFighter(Character.archer, 0.0, 1);
+  const expectedTarget = createFighter(Character.rifleman, 0.0, 1);
   copyFighterState(expectedOwner, owner, 3);
   copyFighterState(expectedTarget, target, 3);
   copyFighterState(owner, savedOwner, 3);

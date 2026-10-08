@@ -1,0 +1,27 @@
+# Rifleman's blaster draw, recovery and repeated-shot defense; Rifleman mirror.
+#! chat -dev quick hero rifleman
+50 b shield 1
+60 a tap X 2
+70 a tap X 2
+80 a tap X 2
+90 a tap X 2
+100 a tap X 2
+110 a tap X 2
+120 a tap X 2
+130 a tap X 2
+140 a tap X 2
+150 a tap X 2
+200 b shield 0
+210 a tap X 2
+214 b tap B 8
+330 a tap X 2
+370 a tap X 2
+390 a press VIEW
+460 a release VIEW
+#! expect a 60 special 7 form 0
+#! absent a 61-96 special
+#! expect a 97 special 0 form 0
+#! expect a 100 special 7 form 0
+#! expect a 140 special 7 form 0
+#! expect a 330 special 7 form 0
+#! expect a 370 special 7 form 0

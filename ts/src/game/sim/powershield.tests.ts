@@ -30,7 +30,7 @@ import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 
 test("projectile shield coverage separates exposed-body and shield-only contacts [spec docs/physics.md]", () => {
   for (let scenario = 0; scenario <= 1; scenario++) {
-    const shooter = createFighter(Character.archer, -100.0, 1);
+    const shooter = createFighter(Character.rifleman, -100.0, 1);
     const defender = createFighter(Character.rifleman, 0.0, -1);
     defender.motion.z = 0.0;
     defender.shield.raised = true;
@@ -59,7 +59,7 @@ test("projectile shield coverage separates exposed-body and shield-only contacts
 });
 
 test("a full trigger within the observed window starts and expires the reflect state [reference]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createFighter(Character.rifleman, 0.0, 1);
   const input = controls({ shield: true, shieldPressed: true, shieldTriggerActive: true, shieldStrength: 1.0 });
   advanceSolo(fighter, 0, input, 0.0);
   assertTrue(fighter.shield.raised);
@@ -79,7 +79,7 @@ test("a full trigger within the observed window starts and expires the reflect s
 });
 
 test("pressure to a full press honors the two-frame input window [reference]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createFighter(Character.rifleman, 0.0, 1);
   const input = controls({ shieldTriggerActive: true });
   advanceSolo(fighter, 0, input, 0.0);
   input.shield = true;
@@ -87,7 +87,7 @@ test("pressure to a full press honors the two-frame input window [reference]", (
   input.shieldStrength = 1.0;
   advanceSolo(fighter, 0, input, 0.0);
   assertEquals(fighter.shield.reflectFrames, SHIELD_REFLECTOR_ACTIVE_FRAMES);
-  const late = createFighter(Character.archer, 0.0, 1);
+  const late = createFighter(Character.rifleman, 0.0, 1);
   input.shield = false;
   input.shieldPressed = false;
   input.shieldStrength = 1.0;
@@ -103,7 +103,7 @@ test("pressure to a full press honors the two-frame input window [reference]", (
 });
 
 test("the reflector uses the authored circle and transfers a scaled projectile [reference]", () => {
-  const shooter = createFighter(Character.archer, -30.0, 1);
+  const shooter = createFighter(Character.rifleman, -30.0, 1);
   const defender = createFighter(Character.rifleman, 0.0, -1);
   const shot = mutableProjectile(shooter, 0)!;
   shot.x = -50.0;
@@ -112,7 +112,7 @@ test("the reflector uses the authored circle and transfers a scaled projectile [
   shot.velocityZ = 0.0;
   shot.direction = 1;
   shot.kind = ProjectileKind.blaster;
-  shot.visualFamily = Character.archer;
+  shot.visualFamily = Character.rifleman;
   shot.life = 3;
   shot.damageMultiplier = 1.0;
   defender.shield.raised = true;
@@ -127,14 +127,14 @@ test("the reflector uses the authored circle and transfers a scaled projectile [
   assertEquals(reflected.direction, -1);
   assertEquals(reflected.velocityX, -42.0);
   assertEquals(reflected.damageMultiplier, SHIELD_PROJECTILE_DAMAGE_MULTIPLIER);
-  assertEquals(reflected.visualFamily, Character.archer);
+  assertEquals(reflected.visualFamily, Character.rifleman);
   assertEquals(reflected.x, 10.0);
   assertEquals(defender.visuals.shieldReflect, reflectSerial + 1);
   assertEquals(defender.visuals.shield, shieldSerial);
   defender.shield.raised = false;
   defender.shield.reflectFrames = 0;
   updateProjectiles(testWorld(shooter, defender));
-  const baselineShooter = createFighter(Character.archer, -30.0, 1);
+  const baselineShooter = createFighter(Character.rifleman, -30.0, 1);
   const baselineDefender = createFighter(Character.rifleman, 0.0, -1);
   const baseline = mutableProjectile(baselineShooter, 0)!;
   baseline.x = -50.0;
@@ -183,7 +183,7 @@ function untilLastFreezeFrame(f: Fighter, input: Readonly<Controls>): void {
 }
 
 test("a parried hit takes no shield damage or shieldstun; an ordinary block takes both [reference] [spec #102]", () => {
-  const attacker = createFighter(Character.archer, -100.0, 1);
+  const attacker = createFighter(Character.rifleman, -100.0, 1);
   const target = createFighter(Character.rifleman, 0.0, -1);
   const world = testWorld(attacker, target);
   target.shield.raised = true;
@@ -207,7 +207,7 @@ test("a parried hit takes no shield damage or shieldstun; an ordinary block take
 });
 
 test("a parry's reward drops the shield with no release lag until holding guard spends it [spec #102]", () => {
-  const attacker = createFighter(Character.archer, -100.0, 1);
+  const attacker = createFighter(Character.rifleman, -100.0, 1);
   const world = testWorld(attacker, createFighter(Character.rifleman, 0.0, -1));
   for (let heldTicks = 0; heldTicks <= SHIELD_PERFECT_POST_CONTACT_FRAMES; heldTicks++) {
     const target = guarding(world);
@@ -231,7 +231,7 @@ test("a parry's reward drops the shield with no release lag until holding guard 
 });
 
 test("each hit of a string needs its own parry, and the reward follows the last [spec #102]", () => {
-  const world = testWorld(createFighter(Character.archer, -100.0, 1), createFighter(Character.rifleman, 0.0, -1));
+  const world = testWorld(createFighter(Character.rifleman, -100.0, 1), createFighter(Character.rifleman, 0.0, -1));
   for (const retimed of [false, true]) {
     const target = guarding(world);
     target.shield.reflectFrames = SHIELD_REFLECTOR_ACTIVE_FRAMES;
@@ -277,13 +277,13 @@ function aimShot(shooter: Fighter, defender: Fighter, index: number, distance: n
   shot.velocityZ = 0.0;
   shot.direction = 1;
   shot.kind = ProjectileKind.blaster;
-  shot.visualFamily = Character.archer;
+  shot.visualFamily = Character.rifleman;
   shot.life = 10;
   shot.damageMultiplier = 1.0;
 }
 
 test("each projectile in a stream needs its own parry [spec #102]", () => {
-  const shooter = createFighter(Character.archer, -300.0, 1);
+  const shooter = createFighter(Character.rifleman, -300.0, 1);
   const defender = createFighter(Character.rifleman, 0.0, -1);
   const world = testWorld(shooter, defender);
   defender.tuning.shield = { centerX: 0.0, centerZ: 45.0, radius: 60.0 };
@@ -307,7 +307,7 @@ test("each projectile in a stream needs its own parry [spec #102]", () => {
 });
 
 test("a red parry, a re-press in shieldstun on the next hit's frame or the one before, parries it [spec #102]", () => {
-  const world = testWorld(createFighter(Character.archer, -100.0, 1), createFighter(Character.rifleman, 0.0, -1));
+  const world = testWorld(createFighter(Character.rifleman, -100.0, 1), createFighter(Character.rifleman, 0.0, -1));
   for (let early = 0; early <= SHIELD_RED_PARRY_FRAMES; early++) {
     const target = guarding(world);
     target.visuals.shield = 0;
@@ -341,7 +341,7 @@ test("a red parry, a re-press in shieldstun on the next hit's frame or the one b
 });
 
 test("mashing the shield in shieldstun gets one red parry try per blocked hit [spec #102]", () => {
-  const world = testWorld(createFighter(Character.archer, -100.0, 1), createFighter(Character.rifleman, 0.0, -1));
+  const world = testWorld(createFighter(Character.rifleman, -100.0, 1), createFighter(Character.rifleman, 0.0, -1));
   const target = guarding(world);
   contactBatch(world, queueHitOf(world, 20.0));
   while (target.launch.hitlag > 0) advanceSolo(target, 0, held(), 0.0);
@@ -357,7 +357,7 @@ test("mashing the shield in shieldstun gets one red parry try per blocked hit [s
 });
 
 test("the shield bubble shrinks as it drains while held, regenerates once released, and can be poked [spec #102]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createFighter(Character.rifleman, 0.0, 1);
   advanceSolo(fighter, 0, pressed(), 0.0);
   let previous = fighter.shield.energy;
   for (let frame = 1; frame <= 60; frame++) advanceSolo(fighter, 0, held(), 0.0);

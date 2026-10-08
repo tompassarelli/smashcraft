@@ -14,7 +14,7 @@ function testSoloMatch() {
 }
 
 function testStanding(firstStocks: number, firstDamage: number, secondStocks: number, secondDamage: number) {
-  const world = createRoster(3, [createFighter(0, 0, 1), createFighter(1, 0, -1)]);
+  const world = createRoster(3, [createFighter(1, 0, 1), createFighter(1, 0, -1)]);
   fighterAt(world, 0).status.stocks = firstStocks;
   fighterAt(world, 0).status.damage = firstDamage;
   fighterAt(world, 1).status.stocks = secondStocks;

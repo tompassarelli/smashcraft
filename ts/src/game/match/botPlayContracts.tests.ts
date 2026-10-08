@@ -61,7 +61,7 @@ function computerMatch(characters: readonly [Character, Character], xs: readonly
 
 test("computerChasesToTheEdgeWithoutLeavingTheStage [spec #56]", () => {
   // The #12 soak's self-destruct: a computer chasing an opponent at the deck's edge ran off it.
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+  for (const character of [Character.rifleman, Character.demonHunter]) {
     for (const side of [-1, 1]) {
       const edge = side < 0 ? surfaceLeft(0, 0, 0) : surfaceRight(0, 0, 0);
       const game = computerMatch([Character.rifleman, character], [edge - side * 10.0, -side * 200.0], 0, 2);
@@ -78,7 +78,7 @@ test("computerChasesToTheEdgeWithoutLeavingTheStage [spec #56]", () => {
 
 test("computerGetsUpUnderJabResets [repro #56]", () => {
   // A 5-damage jab on a lying fighter resets it; a computer that lay still was reset until time ran out.
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+  for (const character of [Character.rifleman, Character.demonHunter]) {
     const game = computerMatch([Character.rifleman, character], [-60.0, 0.0], 0, 2);
     const computer = fighterAt(game.world, 1);
     computer.status.damage = 100.0;
@@ -101,7 +101,7 @@ test("computerMatchesRepeatFromTheSameStart [invariant]", () => {
     const checksums: string[] = [];
     let landed = 0;
     for (let run = 0; run < 2; run++) {
-      const game = computerMatch([Character.archer, Character.demonHunter], [-240.0, 240.0], stage, 3);
+      const game = computerMatch([Character.rifleman, Character.demonHunter], [-240.0, 240.0], stage, 3);
       for (let frame = 1; frame <= 600; frame++) game.step();
       checksums.push(stateChecksum(game));
       landed = fighterAt(game.world, 0).visuals.hit + fighterAt(game.world, 1).visuals.hit;
@@ -131,10 +131,10 @@ function heroUsage(game: ReturnType<typeof computerMatch>, slot: number, frames:
 }
 
 test("computer Forsaken Paladin uses Righteous Fury in range and regular specials at zero meter [spec #155] [spec #335]", () => {
-  const game = computerMatch([Character.archer, Character.forsakenPaladin], [-200.0, 200.0], 0, 2);
+  const game = computerMatch([Character.rifleman, Character.forsakenPaladin], [-200.0, 200.0], 0, 2);
   const { specials } = heroUsage(game, 1, 900);
   assertGreaterThan(specials[1] ?? 0, 0);
-  const broke = computerMatch([Character.archer, Character.forsakenPaladin], [-200.0, 200.0], 0, 2);
+  const broke = computerMatch([Character.rifleman, Character.forsakenPaladin], [-200.0, 200.0], 0, 2);
   const forsakenPaladin = fighterAt(broke.world, 1);
   let pressedWithoutMana = 0;
   for (let frame = 1; frame <= 600; frame++) {
@@ -150,20 +150,20 @@ test("computer Forsaken Paladin shields or dodges an incoming strike and grabs a
   // The hammer kit defends with ordinary shield or dodge.
   let guards = 0;
   for (let serial = 0; serial < 30; serial++) {
-    const world = createRoster(3, [createFighter(Character.archer, -60.0, 1), createFighter(Character.forsakenPaladin, 30.0, -1)]);
-    const archer = fighterAt(world, 0);
+    const world = createRoster(3, [createFighter(Character.rifleman, -60.0, 1), createFighter(Character.forsakenPaladin, 30.0, -1)]);
+    const rifleman = fighterAt(world, 0);
     beginFighterAttack(world, 0, AttackStyle.forwardSmash, false);
-    archer.attack.serial = serial;
-    archer.attack.frame = attackStartupFrames(AttackStyle.forwardSmash) - 6;
+    rifleman.attack.serial = serial;
+    rifleman.attack.frame = attackStartupFrames(AttackStyle.forwardSmash) - 6;
     const input = neutralControls();
-    if (chooseDefense(fighterAt(world, 1), archer, 0, input)) {
+    if (chooseDefense(fighterAt(world, 1), rifleman, 0, input)) {
       assertFalse(input.specialPressed);
       assertTrue(input.shield || input.groundDodgePressed);
       guards++;
     }
   }
   assertGreaterThan(guards, 0);
-  const shielding = computerMatch([Character.archer, Character.forsakenPaladin], [-40.0, 40.0], 0, 2);
+  const shielding = computerMatch([Character.rifleman, Character.forsakenPaladin], [-40.0, 40.0], 0, 2);
   const grabbed = heroUsage(shielding, 1, 600, (slot) => {
     const input = shielding.produced.inputs[slot];
     input.shield = true;
@@ -180,7 +180,7 @@ for (const hero of HERO_ROSTER) {
   sweep(`${hero.name}'s computer uses its specials and grabs in a match against another computer, the same each time [spec #146] [invariant]`, () => {
     const checksums: string[] = [];
     for (let run = 0; run < 2; run++) {
-      const game = computerMatch([Character.archer, hero.character], [-240.0, 240.0], 0, 3);
+      const game = computerMatch([Character.rifleman, hero.character], [-240.0, 240.0], 0, 3);
       const { specials } = heroUsage(game, 1, 3600);
       assertGreaterThan(specials.filter((count, slot) => slot !== 2 && count > 0).length, 0);
       checksums.push(stateChecksum(game));
@@ -191,7 +191,7 @@ for (const hero of HERO_ROSTER) {
 
 test("a frozen computer mashes out of the freeze at a human pace [spec #114]", () => {
   // Ten presses a second (botPlay.ts) thaw it on frame 131 of 300, well above the 60-frame floor.
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+  for (const character of [Character.rifleman, Character.demonHunter]) {
     const game = computerMatch([Character.rifleman, character], [-300.0, 0.0], 0, 2);
     const computer = fighterAt(game.world, 1);
     game.step();
@@ -206,7 +206,7 @@ test("a frozen computer mashes out of the freeze at a human pace [spec #114]", (
 });
 
 test("a computer repeats a decision only from the same state: any change to its fighter, perception, strategy, delay or clock refuses it [invariant]", () => {
-  const game = computerMatch([Character.archer, Character.rifleman], [-100.0, 100.0], 0, 2);
+  const game = computerMatch([Character.demonHunter, Character.rifleman], [-100.0, 100.0], 0, 2);
   for (let frame = 1; frame <= 90; frame++) game.step();
   const live = { world: game.world, match: game.match, controls: game.controls, runtime: game.runtime };
   const before = createReplaySnapshot();

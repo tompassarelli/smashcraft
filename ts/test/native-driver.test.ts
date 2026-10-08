@@ -20,7 +20,7 @@ test("native driver sets up pad rows, holds the whole callback, and stepped and 
   const command = (text: string) => clients.everywhere(() => nativeDriverCommand(text));
   clients.start();
   clients.frames(3);
-  const script = "#! chat -dev quick hero archer\n1 a stick 0.6 0\n10 a tap A 2\n20 a press VIEW\n20 a stick 0 0\n40 b tap B 8\n70 a cstick 0 1\n75 a cstick 0 0\n90 a release VIEW\n120 a capture\n";
+  const script = "#! chat -dev quick hero rifleman\n1 a stick 0.6 0\n10 a tap A 2\n20 a press VIEW\n20 a stick 0 0\n40 b tap B 8\n70 a cstick 0 1\n75 a cstick 0 0\n90 a release VIEW\n120 a capture\n";
   command(script);
   clients.frames(20);
   for (const client of clients.clients) expect(value(client, () => shell().runtime.simulationFrame)).toBe(0);
@@ -70,7 +70,7 @@ test("native driver retains the complete 460-frame pad trace and its normal expe
   const clients = runtime.clients({ install, start }, [0, 1]);
   clients.start();
   clients.frames(3);
-  const script = readFileSync(new URL("./native/pads/archer-neutral.pad", import.meta.url), "utf8");
+  const script = readFileSync(new URL("./native/pads/rifleman-neutral.pad", import.meta.url), "utf8");
   clients.everywhere(() => nativeDriverCommand(script));
   clients.everywhere(() => nativeDriverCommand("resume 460"));
   clients.frames(490);

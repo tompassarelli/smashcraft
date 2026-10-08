@@ -22,7 +22,7 @@ import { INITIAL_DASH_FRAMES } from "./tuning";
 const FIRST_ERUPTION = LAVA_CALM_FRAMES + LAVA_WARNING_FRAMES + 1;
 
 function lavaWorld() {
-  return testWorld(createFighter(Character.archer, LAVA_CENTER_X, -1), createFighter(Character.rifleman, -500.0, 1));
+  return testWorld(createFighter(Character.rifleman, LAVA_CENTER_X, -1), createFighter(Character.rifleman, -500.0, 1));
 }
 
 test("lava produces the same complete victim as an ordinary scripted fire hit [spec docs/stage-hazards.md] [invariant]", () => {

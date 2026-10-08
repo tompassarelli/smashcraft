@@ -62,7 +62,7 @@ test("flameCrashPlungeSpikesAndUsesSingleContact [spec docs/design/illidan.md]",
 
 test("manaBurnCreatesFlinchingProjectileWithoutAManaResource [spec #116]", () => {
   const illidan = createFighter(Character.demonHunter, 0.0, 1);
-  const target = createFighter(Character.archer, 500.0, -1);
+  const target = createFighter(Character.rifleman, 500.0, -1);
   const world = testWorld(illidan, target);
   assertTrue(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true })));
   assertEquals(illidan.special.action, SpecialAction.demonHunterManaBurn);
@@ -77,9 +77,9 @@ test("manaBurnCreatesFlinchingProjectileWithoutAManaResource [spec #116]", () =>
 });
 
 test("wingAscentConsumesJumpsAndEndsInHelplessFallAfterInterruptionRules [spec docs/physics.md]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+  for (const character of [Character.demonHunter, Character.rifleman]) {
     const fighter = createFighter(character, 0.0, 1);
-    const target = createFighter(character === Character.archer ? Character.rifleman : Character.archer, 500.0, -1);
+    const target = createFighter(character === Character.rifleman ? Character.rifleman : Character.rifleman, 500.0, -1);
     fighter.motion.grounded = false;
     fighter.motion.z = 500.0;
     fighter.jump.remaining = 1;
@@ -124,7 +124,7 @@ test("wingAscentConsumesJumpsAndEndsInHelplessFallAfterInterruptionRules [spec d
     assertEquals(landing.jump.remaining, 2);
 
     const ledge = createFighter(character, 620.0, -1);
-    const other = createFighter(character === Character.archer ? Character.rifleman : Character.archer, 0.0, 1);
+    const other = createFighter(character === Character.rifleman ? Character.rifleman : Character.rifleman, 0.0, 1);
     ledge.motion.grounded = false;
     ledge.motion.z = -80.0;
     ledge.motion.vz = -2.0;
@@ -159,7 +159,7 @@ function orbHit(target: Fighter, world: Roster, orb: Readonly<Projectile>): void
 
 test("manaBurnCastsASlowOrbOnFrame16RecoversOnFrame46AndKeepsOneOut [spec #116]", () => {
   const illidan = createFighter(Character.demonHunter, 0.0, 1);
-  const target = createFighter(Character.archer, 5000.0, -1);
+  const target = createFighter(Character.rifleman, 5000.0, -1);
   const world = testWorld(illidan, target);
   assertTrue(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true })));
   for (let tick = 1; tick < 16; tick++) {
@@ -194,7 +194,7 @@ test("manaBurnBurns25ManaAndStunsWithoutKnockbackLongerTheEmptierItLeavesTheTarg
   // The 5% hit earns the target 2 mana before the burn.
   for (const [before, after, frames] of [[100, 75, 26], [50, 27, 47], [25, 2, 59], [0, 0, 60]] as const) {
     const illidan = createFighter(Character.demonHunter, 0.0, 1);
-    const target = createFighter(Character.archer, 5000.0, -1);
+    const target = createFighter(Character.rifleman, 5000.0, -1);
     const world = testWorld(illidan, target);
     target.mana.points = before;
     target.status.damage = 40.0;
@@ -210,7 +210,7 @@ test("manaBurnBurns25ManaAndStunsWithoutKnockbackLongerTheEmptierItLeavesTheTarg
 
 test("manaBurnStunIgnoresInputEndsOnTheNextHitAndCannotChain [spec #116]", () => {
   const illidan = createFighter(Character.demonHunter, 0.0, 1);
-  const target = createFighter(Character.archer, 5000.0, -1);
+  const target = createFighter(Character.rifleman, 5000.0, -1);
   const world = testWorld(illidan, target);
   target.status.damage = 95.0;
   orbHit(target, world, castOrb(illidan, world));
@@ -234,7 +234,7 @@ test("manaBurnStunIgnoresInputEndsOnTheNextHitAndCannotChain [spec #116]", () =>
 
 test("aHeldShieldBlocksManaBurnsStun [spec #116]", () => {
   const illidan = createFighter(Character.demonHunter, 0.0, 1);
-  const target = createFighter(Character.archer, 5000.0, -1);
+  const target = createFighter(Character.rifleman, 5000.0, -1);
   const world = testWorld(illidan, target);
   target.shield.raised = true;
   orbHit(target, world, castOrb(illidan, world));
@@ -245,7 +245,7 @@ test("aHeldShieldBlocksManaBurnsStun [spec #116]", () => {
 test("aFullJumpClearsManaBurnWhereStandingStillIsHit [spec #116]", () => {
   for (const jumps of [false, true]) {
     const illidan = createFighter(Character.demonHunter, 0.0, 1);
-    const target = createFighter(Character.archer, 600.0, -1);
+    const target = createFighter(Character.rifleman, 600.0, -1);
     const world = testWorld(illidan, target);
     const orb = castOrb(illidan, world);
     let pressed = false;
@@ -264,7 +264,7 @@ test("aFullJumpClearsManaBurnWhereStandingStillIsHit [spec #116]", () => {
 
 test("aPowershieldReflectsManaBurnAndTheOrbStunsIllidan [spec #116]", () => {
   const illidan = createFighter(Character.demonHunter, 0.0, 1);
-  const defender = createFighter(Character.archer, 5000.0, -1);
+  const defender = createFighter(Character.rifleman, 5000.0, -1);
   const world = testWorld(illidan, defender);
   const orb = castOrb(illidan, world);
   // projectileRules.tests.ts measures the real presses that reflect it (#98 rule 1); this pins what the reflection does.

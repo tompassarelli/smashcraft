@@ -22,7 +22,7 @@ const JAB = { damage: 4.0, growth: 40.0, base: 10.0, launchX: f32(0.8), launchZ:
 
 function pair() {
   const owner = createFighter(Character.dreadlord, -100.0, 1);
-  const target = createFighter(Character.archer, 100.0, -1);
+  const target = createFighter(Character.rifleman, 100.0, -1);
   return { world: createRoster(2, [owner, target]), owner, target };
 }
 
@@ -99,7 +99,7 @@ test("a status and its immunity are rollback state and enter the canonical recor
   const quiet = stateChecksum(live);
   const { world, target: slept } = pair();
   contact(world, TAP, SLEEP);
-  const saved = createFighter(Character.archer, 0.0, 1);
+  const saved = createFighter(Character.rifleman, 0.0, 1);
   copyFighterState(saved, slept, 3);
   assertEquals(firstFighterDifference(saved, slept, 3, 3), undefined);
   assertEquals(saved.status.condition, HeroStatusKind.sleep);

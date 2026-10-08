@@ -82,7 +82,7 @@ test("an unused Frost Trap expires after eight seconds and can be replaced [spec
 });
 
 test("a jump chosen fifteen frames after thaw leaves before a waiting trap can refreeze any fighter [spec docs/gameplay-design.md]", () => {
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+  for (const character of [Character.rifleman, Character.demonHunter]) {
     for (const [direction, verticalDirection] of [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]] as const) {
       const match = testMatch(3, character);
       const owner = fighterAt(match.world, 0);
@@ -131,7 +131,7 @@ test("a thawed fighter who stays on a waiting trap can be caught again only afte
 
 test("shieldConsumesTrapWithoutFreezingAndHitBreaksIce [spec docs/physics.md]", () => {
   const owner = createFighter(Character.rifleman, 0.0, 1);
-  const target = createFighter(Character.archer, 0.0, -1);
+  const target = createFighter(Character.rifleman, 0.0, -1);
   owner.motion.surface = 0;
   target.motion.surface = 0;
   owner.freezeTrap.life = 30;
@@ -157,7 +157,7 @@ test("shieldConsumesTrapWithoutFreezingAndHitBreaksIce [spec docs/physics.md]", 
 
 test("trapConsumesOnContactButNotOwnerOrInvulnerableTarget [spec docs/physics.md]", () => {
   const owner = createFighter(Character.rifleman, 0.0, 1);
-  const target = createFighter(Character.archer, 0.0, -1);
+  const target = createFighter(Character.rifleman, 0.0, -1);
   owner.motion.surface = 0;
   target.motion.surface = 0;
   owner.freezeTrap.life = 30;
@@ -176,7 +176,7 @@ test("trapConsumesOnContactButNotOwnerOrInvulnerableTarget [spec docs/physics.md
 });
 
 test("freezeExpiresAfterThreeHundredFramesIncludingHitlag [spec docs/physics.md]", () => {
-  const target = createFighter(Character.archer, 0.0, 1);
+  const target = createFighter(Character.rifleman, 0.0, 1);
   target.status.frozenFrames = 300;
   target.launch.hitlag = 20;
   for (let frame = 1; frame < 300; frame++) advanceSolo(target, 0, controls(), -240.0);
@@ -223,10 +223,10 @@ test("koRespawnAndResetClearTrapAndFrozenState [spec docs/physics.md]", () => {
   assertEquals(rifleman.status.freezeImmunityFrames, 0);
 });
 
-/** An Archer the Rifleman's trap has just frozen, through the real trap contact. */
-function trapFrozenArcher(): Fighter {
+/** An Rifleman the Rifleman's trap has just frozen, through the real trap contact. */
+function trapFrozenRifleman(): Fighter {
   const owner = createFighter(Character.rifleman, 0.0, 1);
-  const target = createFighter(Character.archer, 0.0, -1);
+  const target = createFighter(Character.rifleman, 0.0, -1);
   owner.motion.surface = 0;
   target.motion.surface = 0;
   owner.freezeTrap.life = 30;
@@ -238,7 +238,7 @@ function trapFrozenArcher(): Fighter {
 }
 
 test("each fresh press or new stick direction takes eight frames off a freeze, never ending it before frame sixty [spec docs/gameplay-design.md]", () => {
-  const target = trapFrozenArcher();
+  const target = trapFrozenRifleman();
   const step = (input: Partial<Controls>) => advanceSolo(target, 0, controls(input), 0.0);
   step({});
   assertEquals(target.status.frozenFrames, FREEZE_TRAP_FREEZE_FRAMES - 1);
@@ -266,7 +266,7 @@ test("each fresh press or new stick direction takes eight frames off a freeze, n
 
 /** The frozen frame a mash of `rate` presses a second (first on frame 1) thaws on; `wiggle` flips the stick as often. */
 function thawFrame(rate: number, wiggle: boolean): number {
-  const target = trapFrozenArcher();
+  const target = trapFrozenRifleman();
   let frame = 0;
   while (target.status.frozenFrames > 0) {
     frame++;
@@ -290,7 +290,7 @@ test("mashing out of a freeze: the thaw frame by mash rate [spec docs/gameplay-d
 
 test("a held button does not mash a freeze [spec docs/gameplay-design.md]", () => {
   // grabMashPressed is a fresh press (input/adapter.ts); a held button never sets it again.
-  const target = trapFrozenArcher();
+  const target = trapFrozenRifleman();
   advanceSolo(target, 0, controls({ grabMashPressed: true, attackHeld: true, jumpHeld: true, shield: true }), 0.0);
   for (let frame = 2; frame <= 20; frame++) advanceSolo(target, 0, controls({ attackHeld: true, jumpHeld: true, shield: true }), 0.0);
   assertEquals(target.status.frozenFrames, FREEZE_TRAP_FREEZE_FRAMES - 20 - MASH_FRAMES);

@@ -5,7 +5,8 @@ import { assertEquals, assertLessThan, assertNear, assertTrue, test } from "wisp
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GroundAction } from "./codes";
-import { type Fighter, createFighter } from "./fighter";
+import { type Fighter,  } from "./fighter";
+import { createReferenceFighter } from "./referenceRig";
 import { advanceFighter } from "./step";
 import { respawnFighter } from "./stocks";
 import { stageBounds } from "./stageBounds";
@@ -25,7 +26,7 @@ const NTSC_RIGS: readonly GroundMovementRules[] = [NTSC_FOX_GROUND_MOVEMENT_RULE
 
 /** A fighter already in a ground action after its dash, with the given rules and speed. */
 function groundActionFighter(x: number, facing: number, rules: GroundMovementRules, action: GroundAction, actionFrame: number, dashDirection: number, vx: number): Fighter {
-  const fighter = createFighter(Character.archer, x, facing);
+  const fighter = createReferenceFighter(Character.sylvanas, x, facing);
   fighter.tuning.ground = rules;
   fighter.ground.action = action;
   fighter.ground.actionFrame = actionFrame;
@@ -36,21 +37,21 @@ function groundActionFighter(x: number, facing: number, rules: GroundMovementRul
 }
 
 test("an initial dash's entry transitions toward the actor's run speed [spec docs/physics.md]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+  for (const character of [Character.sylvanas, Character.rifleman]) {
     for (const direction of [-1, 1]) {
-      const fighter = createFighter(character, 0.0, -direction);
+      const fighter = createReferenceFighter(character, 0.0, -direction);
       const input = controls({ direction });
       advanceSolo(fighter, 0, input, 0.0);
       assertNear(fighter.motion.vx, f32(11.4) * direction, f32(0.001));
       let expectedSpeed = f32(11.4);
       for (let tick = 2; tick <= INITIAL_DASH_FRAMES; tick++) {
         advanceSolo(fighter, 0, input, 0.0);
-        expectedSpeed = character === Character.archer ? min(f32(13.2), expectedSpeed + f32(0.72)) : max(9.0, expectedSpeed - GROUND_TRACTION);
+        expectedSpeed = character === Character.sylvanas ? min(f32(13.2), expectedSpeed + f32(0.72)) : max(9.0, expectedSpeed - GROUND_TRACTION);
         assertNear(fighter.motion.vx, expectedSpeed * direction, f32(0.001));
         assertEquals(fighter.facing, direction);
       }
       advanceSolo(fighter, 0, input, 0.0);
-      assertNear(fighter.motion.vx, (character === Character.archer ? f32(13.2) : 9.0) * direction, f32(0.001));
+      assertNear(fighter.motion.vx, (character === Character.sylvanas ? f32(13.2) : 9.0) * direction, f32(0.001));
       assertEquals(fighter.ground.dashFrame, INITIAL_DASH_FRAMES + 1);
     }
   }
@@ -58,7 +59,7 @@ test("an initial dash's entry transitions toward the actor's run speed [spec doc
 
 test("the retail dash-to-run command uses the actor's encoded enable frame [reference] [spec docs/physics.md]", () => {
   NTSC_RIGS.forEach((rules, rig) => {
-    const fighter = createFighter(Character.archer, 0.0, 1);
+    const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
     const input = controls({ direction: 1 });
     fighter.tuning.ground = rules;
     advanceSolo(fighter, 0, input, 0.0);
@@ -162,7 +163,7 @@ test("a turn-run uses the retail velocity threshold in world units [reference] [
   // 0.03 world units is greater than the old 0.01 comparison but less than
   // 0.01 Melee units converted at six world units per Melee unit.
   for (const [vx, turns] of [[0.029999999329447746, true], [0.05999999865889549, true], [0.07000000029802322, false]] as const) {
-    const fighter = createFighter(Character.archer, 0.0, 1);
+    const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
     fighter.ground.action = GroundAction.turnRun;
     fighter.ground.actionFrame = 9;
     fighter.ground.turnRunEntryFacing = 1;
@@ -215,13 +216,13 @@ test("a retail run-brake ends at its clip or its maximum frame count [reference]
 });
 
 test("an initial dash reversal restarts the window, including across neutral [spec docs/gameplay-design.md]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
-    const fighter = createFighter(character, 0.0, 1);
+  for (const character of [Character.sylvanas, Character.rifleman]) {
+    const fighter = createReferenceFighter(character, 0.0, 1);
     const input = controls({ direction: 1 });
     for (let tick = 1; tick <= 8; tick++) advanceSolo(fighter, 0, input, 0.0);
     input.direction = 0;
     advanceSolo(fighter, 0, input, 0.0);
-    assertNear(fighter.motion.vx, (character === Character.archer ? f32(13.2) : 9.0) - GROUND_TRACTION, f32(0.001));
+    assertNear(fighter.motion.vx, (character === Character.sylvanas ? f32(13.2) : 9.0) - GROUND_TRACTION, f32(0.001));
     assertEquals(fighter.ground.dashFrame, 9);
     input.direction = -1;
     advanceSolo(fighter, 0, input, 0.0);
@@ -238,13 +239,13 @@ test("an initial dash reversal restarts the window, including across neutral [sp
 });
 
 test("a run turn uses the character's dash acceleration before changing facing [spec docs/physics.md]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+  for (const character of [Character.sylvanas, Character.rifleman]) {
     for (const firstDirection of [-1, 1]) {
-      const fighter = createFighter(character, 0.0, firstDirection);
+      const fighter = createReferenceFighter(character, 0.0, firstDirection);
       const input = controls({ direction: firstDirection });
       for (let tick = 1; tick <= fighter.tuning.ground.dashRunEnableFrame; tick++) advanceSolo(fighter, 0, input, 0.0);
       input.direction = -firstDirection;
-      const speed = character === Character.archer ? f32(13.2) : 9.0;
+      const speed = character === Character.sylvanas ? f32(13.2) : 9.0;
       for (let tick = 1; tick <= 4; tick++) {
         advanceSolo(fighter, 0, input, 0.0);
         assertNear(fighter.motion.vx, firstDirection * (speed - f32(0.72) * tick), f32(0.001));
@@ -260,20 +261,20 @@ test("a run turn uses the character's dash acceleration before changing facing [
 });
 
 test("an initial dash's expiration prevents a late instant reversal [spec docs/gameplay-design.md]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
-    const fighter = createFighter(character, 0.0, 1);
+  for (const character of [Character.sylvanas, Character.rifleman]) {
+    const fighter = createReferenceFighter(character, 0.0, 1);
     const input = controls({ direction: 1 });
     for (let tick = 1; tick <= fighter.tuning.ground.dashRunEnableFrame; tick++) advanceSolo(fighter, 0, input, 0.0);
     assertEquals(fighter.ground.action, GroundAction.run);
     input.direction = -1;
     advanceSolo(fighter, 0, input, 0.0);
-    assertNear(fighter.motion.vx, character === Character.archer ? f32(12.48) : f32(8.28), f32(0.001));
+    assertNear(fighter.motion.vx, character === Character.sylvanas ? f32(12.48) : f32(8.28), f32(0.001));
     assertEquals(fighter.facing, 1);
   }
 });
 
 test("under-target ground velocity uses the actor's acceleration and run cap [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   // Keep this velocity fixture's run-entry timing independent of the roster's
   // dash-dance window; its expected numbers include three tapered run ticks.
   fighter.tuning.ground = { ...fighter.tuning.ground, dashRunEnableFrame: 11 };
@@ -295,7 +296,7 @@ test("under-target ground velocity uses the actor's acceleration and run cap [sp
 });
 
 test("a neutral stop after an initial dash allows a fresh dash [spec docs/gameplay-design.md]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   const input = controls({ direction: 1 });
   advanceSolo(fighter, 0, input, 0.0);
   input.direction = 0;
@@ -309,7 +310,7 @@ test("a neutral stop after an initial dash allows a fresh dash [spec docs/gamepl
 });
 
 test("hitlag freezes an initial dash, then a reversal resumes [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.archer, 100.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 100.0, 1);
   const input = controls({ direction: 1 });
   advanceSolo(fighter, 0, input, 0.0);
   fighter.launch.hitlag = 2;
@@ -329,8 +330,8 @@ test("hitlag freezes an initial dash, then a reversal resumes [spec docs/physics
 
 test("an initial dash clears on a jump, shield, attack and respawn [spec docs/physics.md]", () => {
   for (let interruption = 0; interruption <= 3; interruption++) {
-    const fighter = createFighter(Character.archer, 0.0, 1);
-    const world = testWorld(fighter, createFighter(Character.rifleman, 300.0, -1));
+    const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
+    const world = testWorld(fighter, createReferenceFighter(Character.rifleman, 300.0, -1));
     const input = controls({ direction: 1 });
     advanceFighter(world, 0, 0, input, 0.0);
     if (interruption === 0) {
@@ -359,7 +360,7 @@ test("an initial dash clears on a jump, shield, attack and respawn [spec docs/ph
 });
 
 test("hitlag freezes position until it expires [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.motion.x = 25.0;
   fighter.launch.hitlag = 3;
   const input = controls({ direction: 1 });

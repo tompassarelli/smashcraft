@@ -31,7 +31,7 @@ const NORMALS = [
 function pair(style: AttackStyle, frame: number, x: number, facing = 1) {
   const owner = createFighter(Character.beastmaster, 0.0, facing);
   owner.motion.grounded = !isAerialAttack(style);
-  const target = createFighter(Character.archer, f32(x * facing), -facing);
+  const target = createFighter(Character.rifleman, f32(x * facing), -facing);
   target.motion.grounded = true;
   const world = testWorld(owner, target);
   beginFighterAttack(world, 0, style, false);

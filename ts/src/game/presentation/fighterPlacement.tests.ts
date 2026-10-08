@@ -55,7 +55,7 @@ test("each fighter's visible envelope clears the main underside and every side f
 });
 
 test("body fitting preserves grounded and deliberately attached ledge poses [spec #81]", () => {
-  const fighter = createFighter(Character.archer, mainDeckRight(0) - 1.0, -1);
+  const fighter = createFighter(Character.rifleman, mainDeckRight(0) - 1.0, -1);
   const placement = { x: 0.0, z: 0.0 };
   fitFighterPlacement(placement, fighter, 0);
   assertEquals(placement.x, fighter.motion.x);

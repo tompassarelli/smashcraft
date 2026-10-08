@@ -31,11 +31,11 @@ function scriptedRow(slot: number, frame: number): InputRow {
 /**
  * Saves the moment that ends after `frames` frames while the match runs on,
  * a save step a frame, and replays it: it must reach the match's checksum at
- * its end. A callback match pits a human Illidan against a computer archer.
+ * its end. A callback match pits a human Illidan against a computer rifleman.
  */
 function roundTrip(callback: boolean, frames: number, row = scriptedRow, fighters?: { first: Fighter; second: Fighter }, inspect = false): Repro {
   const tape = callback
-    ? createTapeWorld({ stocks: 3, humans: 1, first: createFighter(Character.demonHunter, 0.0, 1), second: createFighter(Character.archer, 100.0, -1) })
+    ? createTapeWorld({ stocks: 3, humans: 1, first: createFighter(Character.demonHunter, 0.0, 1), second: createFighter(Character.rifleman, 100.0, -1) })
     : createTapeWorld({ stocks: 3, humans: 2, ...fighters });
   const { world, match, controls, runtime } = tape.live;
   if (callback) setParticipants(match, 1, 2);

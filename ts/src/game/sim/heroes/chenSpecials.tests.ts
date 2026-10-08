@@ -26,7 +26,7 @@ function frame(world: Roster, input: Readonly<Controls> = controls(), defender: 
 function pair(gap: number, facing = 1) {
   const owner = createFighter(Character.chen, 0.0, facing);
   owner.mana.points = 100;
-  const target = createFighter(Character.archer, gap * facing, -facing);
+  const target = createFighter(Character.rifleman, gap * facing, -facing);
   const world = createRoster(3, [owner, target]);
   for (let i = 0; i < 3; i++) frame(world);
   return { world, owner, target };

@@ -52,7 +52,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   }
 }
 
-function pair(gap: number, facing = 1, opponent: Character = Character.archer): { world: Roster; owner: Fighter; target: Fighter } {
+function pair(gap: number, facing = 1, opponent: Character = Character.rifleman): { world: Roster; owner: Fighter; target: Fighter } {
   const owner = lichKing(f32(-gap * 0.5 * facing), facing);
   const target = createFighter(opponent, f32(gap * 0.5 * facing), -facing);
   const world = createRoster(3, [owner, target]);

@@ -25,11 +25,11 @@ const NORMALS = [
 ] as const;
 
 function pair(style: AttackStyle, frame: number, x: number, z = 0.0, facing = 1, groundedTarget = true, ownerZ = 0.0) {
-  const owner = createFighter(Character.archer, 0.0, facing);
+  const owner = createFighter(Character.rifleman, 0.0, facing);
   owner.tuning.moves = SHADOW_HUNTER_MOVES;
   owner.motion.grounded = !isAerialAttack(style);
   owner.motion.z = ownerZ;
-  const target = createFighter(Character.archer, f32(x * facing), -facing);
+  const target = createFighter(Character.rifleman, f32(x * facing), -facing);
   target.motion.z = z;
   target.motion.grounded = groundedTarget;
   const world = testWorld(owner, target);
@@ -42,13 +42,13 @@ test("Shadow Hunter adopted phases and narrow single-contact regions reach produ
   const out = emptyHitRegion();
   for (const [style, first, active] of NORMALS) {
     assertEquals(attackStartupFrames(style, SHADOW_HUNTER_MOVES), first - 1);
-    assertEquals(characterAttackActiveFrames(Character.archer, style, SHADOW_HUNTER_MOVES), active);
+    assertEquals(characterAttackActiveFrames(Character.rifleman, style, SHADOW_HUNTER_MOVES), active);
     const count = authoredHitRegionCount(style, SHADOW_HUNTER_MOVES);
     assertGreaterThan(count, 0);
     for (let frame = first - 2; frame <= first + active - 1; frame++) {
       let live = 0;
       for (let index = 0; index < count; index++) {
-        authoredHitRegion(out, Character.archer, style, frame, 0, index, SHADOW_HUNTER_MOVES);
+        authoredHitRegion(out, Character.rifleman, style, frame, 0, index, SHADOW_HUNTER_MOVES);
         if (out.window > 0) {
           live++;
           assertTrue(out.window === 1 || (isMultiHit(SHADOW_HUNTER_MOVES.normals[style]) && out.window > 1));
@@ -182,7 +182,7 @@ test("Shadow Hunter's Heel Hook arm is exposed behind him while the glaive tip s
   // A small probe placed in world space, as a strike from an opponent would be.
   const probe = (x: number, z: number) => ({ x1: x, z1: z, x2: x, z2: z, radius: 4.0 });
   for (const facing of [-1, 1]) {
-    const f = createFighter(Character.archer, 0.0, facing);
+    const f = createFighter(Character.rifleman, 0.0, facing);
     f.tuning.moves = SHADOW_HUNTER_MOVES;
     const touches = (style: AttackStyle | undefined, frame: number, x: number, z: number) => {
       f.attack.style = style;

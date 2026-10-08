@@ -45,7 +45,7 @@ test("bot session setup: slot, fighter, rule and stage commands, each confirmed 
   confirmed("-dev slots 3 0", { "human-fighters": "3", computers: "0" });
   for (const [humans, computers] of [[7, 0], [3, 4], [11, 4], [3, 12]] as const) confirmed(`-dev slots ${humans} ${computers}`, { "human-fighters": `${humans}`, computers: `${computers}` });
   confirmed(`-dev fighter 3 ${fighterName(Character.demonHunter)}`, {});
-  confirmed(`-dev fighter 4 ${fighterName(Character.archer)}`, { characters: `0,1,${Character.demonHunter},${Character.archer}` });
+  confirmed(`-dev fighter 4 ${fighterName(Character.rifleman)}`, { characters: `${Character.rifleman},${Character.rifleman},${Character.demonHunter},${Character.rifleman}` });
   confirmed("-dev stocks 1", { stocks: "1" });
   confirmed("-dev time 1", { minutes: "1" });
   confirmed("-dev auto-rematch on", { "automatic-rematch": "1" });

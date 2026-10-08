@@ -42,10 +42,10 @@ const EYE_BLAST_FAR = 600.0;
 
 /** The original fighters' specials with a purpose at range, and those that only carry the fighter. */
 const ORIGINAL_ZONING: readonly number[] = [
-  SpecialAction.archerArrow, SpecialAction.archerHomingArrow, SpecialAction.archerDisengage, SpecialAction.riflemanBear,
+  SpecialAction.riflemanBear,
   SpecialAction.riflemanBlaster, SpecialAction.riflemanTrap, SpecialAction.demonHunterManaBurn,
 ];
-const ORIGINAL_MOVEMENT: readonly number[] = [SpecialAction.archerRecovery, SpecialAction.riflemanRecovery, SpecialAction.demonHunterWingAscent];
+const ORIGINAL_MOVEMENT: readonly number[] = [SpecialAction.riflemanRecovery, SpecialAction.riflemanRecovery, SpecialAction.demonHunterWingAscent];
 
 /** The opponent stands idle: still on a deck, out of hitstun and not down. Starts at an opponent launched, sliding or down are chases, not this contract. */
 const standsIdle = (o: Readonly<Fighter>): boolean => o.motion.grounded && o.motion.deltaX === 0.0 && o.motion.deltaZ === 0.0 && o.launch.hitstun <= 0 && o.launch.hitlag <= 0 && o.down.state === DownState.none;
@@ -97,7 +97,7 @@ interface ReachRun {
 
 /** A Wren Expert computer at (cx, cz) on deck `surface` against an idle opponent at (ox, oz) on deck `opponentSurface`, on the raised stage. */
 function playIdleOpponent(character: Character, cx: number, cz: number, surface: number, ox: number, oz: number, opponentSurface: number): ReachRun {
-  const opponent = createFighter(character === Character.archer ? Character.rifleman : Character.archer, ox, cx > ox ? 1 : -1);
+  const opponent = createFighter(character === Character.rifleman ? Character.rifleman : Character.rifleman, ox, cx > ox ? 1 : -1);
   opponent.motion.z = oz;
   opponent.motion.surface = opponentSurface;
   const computer = createFighter(character, cx, cx > ox ? -1 : 1);

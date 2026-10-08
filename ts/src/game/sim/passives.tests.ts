@@ -16,7 +16,7 @@ import { respawnFighter } from "./stocks";
 
 const strike = (damage: number): HitEffect => ({ damage, growth: 60.0, base: 20.0, launchX: f32(0.8), launchZ: f32(0.6), electric: false });
 
-function pair(attacker: Character, defender: Character = Character.archer): { world: Roster; source: Fighter; target: Fighter } {
+function pair(attacker: Character, defender: Character = Character.rifleman): { world: Roster; source: Fighter; target: Fighter } {
   const source = createFighter(attacker, -100.0, 1);
   const target = createFighter(defender, 100.0, -1);
   return { world: createRoster(3, [source, target]), source, target };
@@ -115,20 +115,6 @@ test("Warden: a landed aerial in the air returns one aerial jump, once per airti
   source.motion.grounded = true;
   advancePassive(source);
   assertTrue(passivePips(source).ready);
-});
-
-test("Archer: the third landed arrow deals double damage, still without hitstun; a shield spends it [spec docs/design/passives.md]", () => {
-  const { world, source, target } = pair(Character.archer, Character.blademaster);
-  land(world, 2, strike(6.0), HitOrigin.arrow);
-  assertEquals(source.passive.stacks, 2);
-  const before = target.status.damage;
-  hit(world, 0, 1, strike(6.0), HitOrigin.arrow, false, ContactKind.damageOnly);
-  assertEquals(target.status.damage - before, 12.0);
-  land(world, 2, strike(6.0), HitOrigin.arrow);
-  hit(world, 0, 1, strike(6.0), HitOrigin.arrow, true);
-  assertEquals(source.passive.stacks, 0);
-  land(world, 3, strike(6.0), HitOrigin.melee);
-  assertEquals(source.passive.stacks, 0);
 });
 
 test("Rifleman: every fourth blaster shot fired is a Long Rifle shot that flies farther [spec docs/design/passives.md]", () => {

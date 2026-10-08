@@ -4,14 +4,15 @@ import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, DownState } from "./codes";
 import { TECH_INTANGIBLE_FRAMES, isFloorTeching } from "./conditions";
-import { type Fighter, createFighter } from "./fighter";
+import { type Fighter,  } from "./fighter";
+import { createReferenceFighter } from "./referenceRig";
 import { updateProjectiles } from "./projectiles";
 import type { Controls } from "./roster";
 import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
 import { advanceSolo, controls, resolveStartedAttack, testWorld } from "./testWorld";
 
 function techTestTumbler(): Fighter {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.down.state = DownState.tumble;
   fighter.launch.hitstun = 100;
@@ -70,7 +71,7 @@ test("a grounded shield edge counts, but only a tumble contact can tech [referen
   const held = techTestTumbler();
   landTechTest(held, 0, 0, input);
   assertEquals(held.down.state, DownState.bound);
-  const grounded = createFighter(Character.archer, 0.0, 1);
+  const grounded = createReferenceFighter(Character.sylvanas, 0.0, 1);
   input.techPressed = true;
   advanceSolo(grounded, 0, input, 0.0);
   assertEquals(grounded.tech.window, TECH_WINDOW_FRAMES);
@@ -81,7 +82,7 @@ test("a grounded shield edge counts, but only a tumble contact can tech [referen
   landTechTest(grounded, 0, 0, input);
   assertEquals(grounded.down.state, DownState.bound);
   assertEquals(grounded.tech.window, 0);
-  const ordinary = createFighter(Character.archer, 0.0, 1);
+  const ordinary = createReferenceFighter(Character.sylvanas, 0.0, 1);
   ordinary.motion.grounded = false;
   landTechTest(ordinary, 0, 0, input);
   assertEquals(ordinary.down.state, DownState.none);
@@ -153,12 +154,12 @@ test("a tech's vulnerable recovery can be interrupted by melee or the rifleman's
     const fighter = techTestTumbler();
     fighter.motion.x = 100.0;
     landTechTest(fighter, 0, 0, controls({ techPressed: true }));
-    const early = testWorld(createFighter(Character.rifleman, 0.0, 1), fighter);
+    const early = testWorld(createReferenceFighter(Character.rifleman, 0.0, 1), fighter);
     resolveStartedAttack(early, style);
     updateProjectiles(early);
     assertEquals(fighter.status.damage, 0.0);
     fighter.down.frame = TECH_INTANGIBLE_FRAMES + 1;
-    const late = testWorld(createFighter(Character.rifleman, 0.0, 1), fighter);
+    const late = testWorld(createReferenceFighter(Character.rifleman, 0.0, 1), fighter);
     resolveStartedAttack(late, style);
     updateProjectiles(late);
     assertGreaterThan(fighter.status.damage, 0.0);
@@ -168,7 +169,7 @@ test("a tech's vulnerable recovery can be interrupted by melee or the rifleman's
 });
 
 test("a grabbed fighter still tracks digital tech presses and their lockout [reference]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   const input = controls({ techPressed: true });
   fighter.grab.grabbedFrames = 10;
   advanceSolo(fighter, 0, input, 0.0);

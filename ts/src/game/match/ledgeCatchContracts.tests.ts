@@ -10,7 +10,7 @@ import { fighterAt } from "../sim/roster";
 import { surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
 import { type TestMatch, executeNext, testMatch } from "./testMatch";
 
-const ROSTER = [Character.archer, Character.rifleman, Character.demonHunter] as const;
+const ROSTER = [Character.rifleman, Character.demonHunter] as const;
 
 function ledgeEdge(side: number): number {
   return side < 0 ? surfaceLeft(0, 0, 0) : surfaceRight(0, 0, 0);

@@ -55,7 +55,7 @@ function knockOut(match: TestMatch, slot: number, attacker: number): void {
 }
 
 test("knockouts, the last stock and GAME! each cue once, on their confirmed frame, and the results tally them [spec #123]", () => {
-  const match = testMatch(3, Character.archer);
+  const match = testMatch(3, Character.rifleman);
   match.game.stockCount = 2;
   for (const slot of [0, 1]) fighterAt(match.world, slot).status.stocks = 2;
   const observation = createCueObservation();
@@ -77,13 +77,13 @@ test("knockouts, the last stock and GAME! each cue once, on their confirmed fram
   assertEquals(tally.kos.join(","), "2,0,0,0");
   assertEquals(tally.falls.join(","), "0,2,0,0");
   const view = resultsView(match.game, match.world, tally);
-  assertEquals(view.winner, Character.archer);
+  assertEquals(view.winner, Character.rifleman);
   assertEquals(view.rows.length, 2);
   assertTrue(view.rows[0]?.winner === true && view.rows[0]?.slot === 0);
 });
 
 test("a match that runs out of time calls TIME! [spec #123]", () => {
-  const match = testMatch(3, Character.archer);
+  const match = testMatch(3, Character.rifleman);
   match.game.timeLimitMinutes = 1;
   match.game.remainingFrames = 1;
   const observation = createCueObservation();
@@ -95,7 +95,7 @@ test("a match that runs out of time calls TIME! [spec #123]", () => {
 });
 
 test("selection sounds: hovering a tile, confirming a fighter, changing a confirmed fighter and choosing stages [spec #123]", () => {
-  const { game } = testMatch(3, Character.archer);
+  const { game } = testMatch(3, Character.rifleman);
   game.phase = Phase.characterMenu;
   game.characterReadiness.fill(false);
   const before = createMenuObservation();

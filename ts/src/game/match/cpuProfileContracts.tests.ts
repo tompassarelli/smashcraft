@@ -19,7 +19,7 @@ import { sweep } from "../../runtime/sweep";
 
 const NEUTRAL = neutralControls();
 
-/** Archer against Rifleman on the first stage, both computers playing `opponent` at `tier` under `seed`. */
+/** Rifleman against Rifleman on the first stage, both computers playing `opponent` at `tier` under `seed`. */
 function computerMatch(opponent: CpuOpponentId, tier: CpuTier, seed: number) {
   const match = createMatchState();
   match.phase = Phase.match;
@@ -32,7 +32,7 @@ function computerMatch(opponent: CpuOpponentId, tier: CpuTier, seed: number) {
   }
   match.matchSeed = seed;
   const state: ReplayState = {
-    world: createRoster(3, [createFighter(Character.archer, -200.0, 1), createFighter(Character.rifleman, 200.0, -1)]),
+    world: createRoster(3, [createFighter(Character.rifleman, -200.0, 1), createFighter(Character.rifleman, 200.0, -1)]),
     match, controls: createFrameControls(), runtime: createPacingAndPresentation(),
   };
   const produced = createFrameControls();

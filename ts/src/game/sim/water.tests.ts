@@ -108,7 +108,7 @@ function floater(character: Character): Fighter {
 }
 
 test("a fighter that falls into the sea sinks, rises at most 18 a frame and then floats at the surface [spec docs/design/water-stage.md]", () => {
-  const f = createFighter(Character.archer, OPEN_SEA, -1);
+  const f = createFighter(Character.rifleman, OPEN_SEA, -1);
   f.motion.grounded = false; f.motion.surface = undefined; f.motion.z = SEA_SURFACE_Z + 60.0;
   let deepest = f.motion.z;
   for (let frame = 0; frame < 240; frame++) {
@@ -121,7 +121,7 @@ test("a fighter that falls into the sea sinks, rises at most 18 a frame and then
   assertEquals(f.motion.vz, 0.0);
   assertEquals(f.status.out, false);
   // Under the deck's centre the sea is 60 below the deck body: nothing there moves a floating fighter.
-  const under = floater(Character.archer);
+  const under = floater(Character.rifleman);
   under.motion.x = 0.0;
   for (let frame = 0; frame < 60; frame++) advanceSolo(under, TOMB, NEUTRAL, 0.0);
   assertEquals(under.motion.x, 0.0);
@@ -129,7 +129,7 @@ test("a fighter that falls into the sea sinks, rises at most 18 a frame and then
 });
 
 test("a floating fighter swims at up to 3.6 a frame, gaining 0.3 a frame [spec docs/design/water-stage.md]", () => {
-  const f = floater(Character.archer);
+  const f = floater(Character.rifleman);
   const right = controls({ direction: 1 });
   advanceSolo(f, TOMB, right, 0.0);
   assertNear(f.motion.vx, 0.30000001192092896, 0.0010000000474974513);
@@ -145,7 +145,7 @@ test("the water jump is the full ground jump, scaled by 0.91 per re-entry since 
   assertNear(waterJumpScale(5), 0.6857805252075195, 0.00009999999747378752);
   assertEquals(waterJumpScale(9), waterJumpScale(5));
   for (const entries of [1, 3, 7]) {
-    const f = floater(Character.archer);
+    const f = floater(Character.rifleman);
     f.water.entries = entries;
     f.jump.remaining = 0;
     advanceSolo(f, TOMB, JUMP, 0.0);
@@ -153,7 +153,7 @@ test("the water jump is the full ground jump, scaled by 0.91 per re-entry since 
     assertTrue(f.jump.remaining > 0);
   }
   for (const entries of [1, 3, 5]) {
-    const f = floater(Character.archer); f.water.entries = entries;
+    const f = floater(Character.rifleman); f.water.entries = entries;
     assertTrue(beginWaterJump(f, 0));
     assertEquals(f.motion.vz, f32(f.tuning.physics.fullJumpSpeed * waterJumpScale(entries)));
   }

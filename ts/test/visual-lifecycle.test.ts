@@ -150,7 +150,7 @@ test("damage hue and shield recoil reach the renderer through freeze, stun and r
   if (client === undefined) throw new Error("missing host client");
   client.run(() => {
     const s = shell();
-    selectCharacter(s.game, 0, Character.archer);
+    selectCharacter(s.game, 0, Character.rifleman);
     selectCharacter(s.game, 1, Character.rifleman);
     expect(requestStageSelect(s.game, 0)).toBe(true);
     expect(startAtGo(s.game, 0)).toBe(true);
@@ -267,7 +267,7 @@ test("combat effects: rollback, pause/resume and rematch neither replay nor reta
   client.run(() => {
     const s = shell();
     selectCharacter(s.game, 0, Character.demonHunter);
-    selectCharacter(s.game, 1, Character.archer);
+    selectCharacter(s.game, 1, Character.rifleman);
     expect(requestStageSelect(s.game, 0)).toBe(true);
     expect(startAtGo(s.game, 0)).toBe(true);
     startMatch(s);
@@ -373,7 +373,7 @@ test("quick match: a shot's missile and the idle missile pools stay out of the a
   if (client === undefined) throw new Error("missing host client");
   client.run(() => {
     const s = shell();
-    selectCharacter(s.game, 0, Character.archer);
+    selectCharacter(s.game, 0, Character.rifleman);
     selectCharacter(s.game, 1, Character.rifleman);
     expect(requestStageSelect(s.game, 0)).toBe(true);
     expect(startAtGo(s.game, 0)).toBe(true);
@@ -424,7 +424,7 @@ test("pooled fighters: unchanged poses keep their appearance and a returning fad
   const client = clients.clients[0];
   if (client === undefined) throw new Error("missing host client");
   client.run(() => {
-    const fighter = createFighter(Character.archer, 0, 1);
+    const fighter = createFighter(Character.rifleman, 0, 1);
     const pool = new FighterPoolPresentation(fighter.character, 0, { x: 0, y: 0, z: FLOOR_HEIGHT });
     const pose = createFighterPose();
     pose.clipIndex = 0;

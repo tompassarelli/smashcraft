@@ -20,7 +20,6 @@ type Held = readonly Action[];
 type Outcome = "reflected" | "parried" | "blocked" | "hit";
 
 const FIGHTERS: readonly { readonly character: Character; readonly name: string }[] = [
-  { character: Character.archer, name: "Archer" },
   { character: Character.rifleman, name: "Rifleman" },
   { character: Character.demonHunter, name: "Illidan" },
   ...HERO_ROSTER.map((hero) => ({ character: hero.character, name: hero.name })),

@@ -25,7 +25,7 @@ interface Duel {
   frame: number;
 }
 
-/** An Archer in slot 0 facing the defender in slot 1, `gap` to its right; `guard` raises an ordinary held shield. */
+/** An Rifleman in slot 0 facing the defender in slot 1, `gap` to its right; `guard` raises an ordinary held shield. */
 function duel(character: Character, gap: number, guard: boolean): Duel {
   const game = createMatchState();
   game.phase = Phase.match;
@@ -34,7 +34,7 @@ function duel(character: Character, gap: number, guard: boolean): Duel {
     defender.shield.raised = true;
     defender.shield.heldFrames = SHIELD_MIN_HOLD_FRAMES;
   }
-  return { game, world: createRoster(3, [createFighter(Character.archer, f32(-gap / 2), 1), defender]), controls: createBufferedFrameControls(), frame: 0 };
+  return { game, world: createRoster(3, [createFighter(Character.rifleman, f32(-gap / 2), 1), defender]), controls: createBufferedFrameControls(), frame: 0 };
 }
 
 const defenderOf = (d: Duel): Fighter => fighterAt(d.world, 1);
@@ -95,7 +95,7 @@ const OPTIONS: readonly Option[] = [
 
 const GAP = 40.0;
 
-/** The frame the Archer's jab meets the defender's shield when the shield is raised on `raise` (0: held from the start). */
+/** The frame the Rifleman's jab meets the defender's shield when the shield is raised on `raise` (0: held from the start). */
 function jabOnShield(character: Character, raise: number): { readonly duel: Duel; readonly contact: number } {
   const d = duel(character, GAP, raise === 0);
   queueAttack(d.controls.commands[0], { style: AttackStyle.jab, facing: 0, frame: 1, mayCharge: false });
@@ -139,7 +139,7 @@ function checkParriedHit(character: Character): void {
 }
 
 test("after a parried hit every grounded option starts on the first actionable frame, pressed during the freeze [spec #102]", () => {
-  checkParriedHit(Character.archer);
+  checkParriedHit(Character.rifleman);
 });
 
 sweep("every fighter starts every grounded option on the first actionable frame after a parried hit [spec #102]", () => {
@@ -159,7 +159,7 @@ test("a late shield keeps its shieldstun and release lag [spec #102]", () => {
   }
 });
 
-/** A shot from the far-left Archer at the defender's shield centre height, `distance` away, flying right. */
+/** A shot from the far-left Rifleman at the defender's shield centre height, `distance` away, flying right. */
 function shotAt(d: Duel, distance: number): void {
   const defender = defenderOf(d);
   const shot = mutableProjectile(fighterAt(d.world, 0), 0)!;
@@ -169,7 +169,7 @@ function shotAt(d: Duel, distance: number): void {
   shot.velocityZ = 0.0;
   shot.direction = 1;
   shot.kind = ProjectileKind.blaster;
-  shot.visualFamily = Character.archer;
+  shot.visualFamily = Character.rifleman;
   shot.life = 40;
   shot.damageMultiplier = 1.0;
 }

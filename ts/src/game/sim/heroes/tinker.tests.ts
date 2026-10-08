@@ -31,7 +31,7 @@ function frame(world: Roster, input: Readonly<Controls> = controls()): void {
 function pair(gap = 900.0, facing = 1) {
   const owner = createFighter(Character.tinker, 0.0, facing);
   owner.mana.points = 100;
-  const target = createFighter(Character.archer, f32(gap * facing), -facing);
+  const target = createFighter(Character.rifleman, f32(gap * facing), -facing);
   const world = createRoster(3, [owner, target]);
   for (let i = 0; i < 3; i++) frame(world);
   return { owner, target, world };
@@ -101,10 +101,10 @@ test("Tinker grabs a shield and all four throws release once in their authored d
 
 test("Tinker body preserves the named Ultimate ROB weight, run and air speed [reference] [spec docs/design/tinker.md]", () => {
   const f = createFighter(Character.tinker, 0.0, 1);
-  const archer = createFighter(Character.archer, 0.0, 1);
+  const rifleman = createFighter(Character.rifleman, 0.0, 1);
   assertNear(f.tuning.physics.weight, 106.0, f32(0.001));
-  assertNear(f.tuning.physics.runSpeed / archer.tuning.physics.runSpeed, f32(f32(1.725) / f32(2.2)), f32(0.00001));
-  assertNear(f.tuning.physics.airSpeed / archer.tuning.physics.airSpeed, f32(f32(1.134) / f32(0.83)), f32(0.00001));
+  assertNear(f.tuning.physics.runSpeed / rifleman.tuning.physics.runSpeed, f32(f32(1.725) / f32(2.2)), f32(0.00001));
+  assertNear(f.tuning.physics.airSpeed / rifleman.tuning.physics.airSpeed, f32(f32(1.134) / f32(0.83)), f32(0.00001));
 });
 
 test("Tinker regular specials preserve the super meter, complete their frames and use rockets for an airborne side press [spec #335]", () => {

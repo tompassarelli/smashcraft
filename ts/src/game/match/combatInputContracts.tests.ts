@@ -25,11 +25,11 @@ function frameControls(first: Controls, second: Controls, firstCommands: ReturnT
 
 test("bothFightersCanGrabNormallyAndFromShieldWithAttackOrGrabKey [spec docs/player-guide.md]", () => {
   assertEquals(actionFor(presetBindings("standard"), 79), Action.grab);
-  for (const character of [Character.archer, Character.rifleman]) for (let grabInput = 0; grabInput <= 2; grabInput++) {
+  for (const character of [Character.demonHunter, Character.rifleman]) for (let grabInput = 0; grabInput <= 2; grabInput++) {
     const game = createMatchState();
     game.phase = Phase.match;
     const fighter = createFighter(character, 0.0, 1);
-    const target = createFighter(character === Character.archer ? Character.rifleman : Character.archer, 45.0, -1);
+    const target = createFighter(character === Character.rifleman ? Character.rifleman : Character.rifleman, 45.0, -1);
     const input = neutralControls();
     const otherInput = neutralControls();
     const commands = attackBuffer(0);

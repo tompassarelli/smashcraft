@@ -13,10 +13,10 @@ import { createCombatObservation, createCombatTally, observeCombat, tallyCombat 
 import type { MatchCue } from "./matchAudio";
 import { type CueObservation, type MatchTally, confirmedFrameCues, createCueObservation, createMatchTally, observeForCues } from "./matchCues";
 
-/** Archer (P1) and a Rifleman at 50% (P2) facing each other, both on controllers. */
+/** Rifleman (P1) and a Rifleman at 50% (P2) facing each other, both on controllers. */
 function scriptedMatch(): PadMatch {
-  const match = testMatch(3, Character.archer);
-  match.world.fighters[0] = createFighter(Character.archer, -560.0, 1);
+  const match = testMatch(3, Character.rifleman);
+  match.world.fighters[0] = createFighter(Character.rifleman, -560.0, 1);
   const victim = createFighter(Character.rifleman, -460.0, -1);
   victim.status.damage = 50.0;
   match.world.fighters[1] = victim;
@@ -118,7 +118,7 @@ test("a scripted match's combat stats: damage dealt, openings, techs, missed tec
 });
 
 test("a hit on a fighter already in hitstun adds damage dealt but no opening; one on a free fighter opens [spec #140]", () => {
-  const match = testMatch(3, Character.archer);
+  const match = testMatch(3, Character.rifleman);
   const victim = fighterAt(match.world, 1);
   const before = createCombatObservation();
   const tally = createCombatTally();

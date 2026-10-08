@@ -27,7 +27,7 @@ const normalCases = [
 
 function pair(x: number, facing = 1) {
   const owner = createFighter(Character.murloc, 0.0, facing);
-  const target = createFighter(Character.archer, f32(x * facing), -facing);
+  const target = createFighter(Character.rifleman, f32(x * facing), -facing);
   for (const fighter of [owner, target]) { fighter.motion.grounded = true; fighter.motion.surface = 0; }
   owner.mana.points = 40; target.mana.points = 60;
   return { owner, target, world: testWorld(owner, target) };

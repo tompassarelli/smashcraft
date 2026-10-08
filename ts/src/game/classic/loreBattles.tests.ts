@@ -47,7 +47,7 @@ function battleTier(index: number): number {
   return CPU_TIERS.indexOf(battle.opponents[0]?.tier ?? "rookie");
 }
 
-test("twenty Lore Battles, each a valid fighter, opponents, stage, clock, win condition and transmission, together using all 22 fighters and 11 stages and never getting easier down the list [spec #305]", () => {
+test("twenty Lore Battles, each a valid fighter, opponents, stage, clock, win condition and transmission, together using all 21 fighters and 11 stages and never getting easier down the list [spec #305]", () => {
   assertEquals(LORE_BATTLES.length, 20);
   const fighters = new Set<number>();
   const stages = new Set<number>();

@@ -13,7 +13,7 @@ function prepareJab(world: Roster, attacker: Fighter, facing: number): void {
 }
 
 test("a melee capsule blocks and damages a shield only when it reaches the circle [spec docs/physics.md]", () => {
-  const attacker = createFighter(Character.archer, 0.0, 1);
+  const attacker = createFighter(Character.rifleman, 0.0, 1);
   const shielded = createFighter(Character.rifleman, 70.0, -1);
   const world = testWorld(attacker, shielded);
   shielded.shield.raised = true;
@@ -25,7 +25,7 @@ test("a melee capsule blocks and damages a shield only when it reaches the circl
 });
 
 test("a drained shield leaves a real melee poke at the exposed body edge [spec docs/physics.md]", () => {
-  const attacker = createFighter(Character.archer, 0.0, 1);
+  const attacker = createFighter(Character.rifleman, 0.0, 1);
   const defender = createFighter(Character.rifleman, 100.0, -1);
   const world = testWorld(attacker, defender);
   defender.shield.raised = true;
@@ -39,7 +39,7 @@ test("a drained shield leaves a real melee poke at the exposed body edge [spec d
 
 test("melee can reach a shield before the body, and facing mirrors its volume [spec docs/physics.md] [invariant]", () => {
   for (const direction of [-1, 1]) {
-    const attacker = createFighter(Character.archer, 0.0, direction);
+    const attacker = createFighter(Character.rifleman, 0.0, direction);
     const defender = createFighter(Character.rifleman, direction * 110.0, -direction);
     const world = testWorld(attacker, defender);
     defender.shield.raised = true;
@@ -51,7 +51,7 @@ test("melee can reach a shield before the body, and facing mirrors its volume [s
 });
 
 test("melee trades queue both contacts before either hit resolves [spec docs/gameplay-design.md]", () => {
-  const first = createFighter(Character.archer, -35.0, 1);
+  const first = createFighter(Character.rifleman, -35.0, 1);
   const second = createFighter(Character.rifleman, 35.0, -1);
   const world = testWorld(first, second);
   testBeginAttacks(world, AttackStyle.jab, AttackStyle.jab);

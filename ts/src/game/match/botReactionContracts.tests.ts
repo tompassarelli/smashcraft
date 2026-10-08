@@ -22,7 +22,7 @@ import { sweep } from "../../runtime/sweep";
 const SURPRISE_FRAME = 50;
 
 function setup(opponent: CpuOpponentId = "wren", tier: CpuTier = "expert") {
-  const own = createFighter(Character.archer, -150.0, 1);
+  const own = createFighter(Character.rifleman, -150.0, 1);
   const target = createFighter(Character.rifleman, 150.0, -1);
   const world = createRoster(3, [own, target]);
   const game = createMatchState();

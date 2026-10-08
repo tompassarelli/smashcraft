@@ -10,7 +10,7 @@ import { SpecialSlot } from "../sim/heroSpecials";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 
 test("a delayed horizontal attack forecast advances the observed target without advancing the attacker [invariant]", () => {
-  const own = createFighter(Character.archer, 0.0, 1);
+  const own = createFighter(Character.rifleman, 0.0, 1);
   const delayed = createFighter(Character.rifleman, 300.0, -1);
   delayed.motion.deltaX = -12.0;
   const current = createFighter(Character.rifleman, 156.0, -1);
@@ -23,7 +23,7 @@ test("a delayed horizontal attack forecast advances the observed target without 
 });
 
 test("twenty attack choices from a delayed moving target match its current-position reference [invariant]", () => {
-  const own = createFighter(Character.archer, 0.0, 1);
+  const own = createFighter(Character.rifleman, 0.0, 1);
   const delayed = createFighter(Character.rifleman, 300.0, -1);
   delayed.motion.deltaX = -12.0;
   const current = createFighter(Character.rifleman, 156.0, -1);
@@ -64,7 +64,7 @@ test("hero special reach from a delayed moving target matches its current-positi
 
 test("Forsaken Paladin catches a retreat with Fury and waits for an approach beyond hammer range [spec #275]", () => {
   const own = createFighter(Character.forsakenPaladin, 0.0, 1);
-  const target = createFighter(Character.archer, 240.0, -1);
+  const target = createFighter(Character.rifleman, 240.0, -1);
   const skill = { ...perceivedCpuSkill("wren", "expert"), misplay: 0 };
   for (const velocity of [-1.0, 0.0, 1.0]) {
     target.motion.deltaX = velocity;

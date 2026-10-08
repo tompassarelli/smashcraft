@@ -11,7 +11,7 @@ test("CPU choices survive fighter/stage changes, New Match and the automatic rem
   setCpuOpponent(game, 0, 2, "random");
   setCpuTier(game, 0, 2, "advanced");
   setAutomaticRematch(game, 0, true);
-  selectCpuCharacter(game, 0, 2, Character.archer);
+  selectCpuCharacter(game, 0, 2, Character.rifleman);
   assertTrue(requestStageSelect(game, 0));
   selectStage(game, 0, 0);
   returnToCharacters(game, 0);

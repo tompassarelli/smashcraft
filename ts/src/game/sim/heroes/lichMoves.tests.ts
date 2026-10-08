@@ -28,10 +28,10 @@ const NORMALS = [
 // Existing actors exercise the production move seam without depending on
 // the parent's character-selection and presentation integration.
 function attackPair(style: AttackStyle, x: number, z = 0.0, facing = 1, targetGrounded = true) {
-  const owner = createFighter(Character.archer, 0.0, facing);
+  const owner = createFighter(Character.rifleman, 0.0, facing);
   owner.tuning.moves = LICH_MOVES;
   owner.motion.grounded = !isAerialAttack(style);
-  const target = createFighter(Character.archer, f32(x * facing), -facing);
+  const target = createFighter(Character.rifleman, f32(x * facing), -facing);
   target.motion.z = z;
   target.motion.grounded = targetGrounded;
   const world = testWorld(owner, target);
@@ -162,16 +162,16 @@ test("Lich Grave Frost hits once across both floor bursts and sends the rear hit
 });
 
 test("Lich dash attack selects the hovering glide and smash charge caps at 45 frames [spec docs/design/roster.md]", () => {
-  const owner = createFighter(Character.archer, 0.0, 1);
+  const owner = createFighter(Character.rifleman, 0.0, 1);
   owner.tuning.moves = LICH_MOVES;
   owner.ground.dashFrame = 1;
-  beginFighterAttack(testWorld(owner, createFighter(Character.archer, 1000.0, -1)), 0, AttackStyle.jab, false);
+  beginFighterAttack(testWorld(owner, createFighter(Character.rifleman, 1000.0, -1)), 0, AttackStyle.jab, false);
   assertEquals(owner.attack.style, AttackStyle.dashAttack);
   assertEquals(smashDamageMultiplier(0, LICH_MOVES), 1.0);
   assertEquals(smashDamageMultiplier(45, LICH_MOVES), 1.25);
   assertEquals(smashDamageMultiplier(90, LICH_MOVES), 1.25);
   const out = emptyHitRegion();
-  authoredHitRegion(out, Character.archer, AttackStyle.forwardSmash, 17, 45, 0, LICH_MOVES);
+  authoredHitRegion(out, Character.rifleman, AttackStyle.forwardSmash, 17, 45, 0, LICH_MOVES);
   assertEquals(out.effect.damage, 22.5);
 });
 
@@ -189,10 +189,10 @@ test("Lich spectral grab catches shield on either active tick at the scaled stan
         assertEquals(pair.target.status.damage, 0.0);
       }
     }
-    const owner = createFighter(Character.archer, 0.0, facing);
+    const owner = createFighter(Character.rifleman, 0.0, facing);
     owner.tuning.moves = LICH_MOVES;
     owner.ground.dashFrame = 1;
-    const target = createFighter(Character.archer, f32(reach * facing), -facing);
+    const target = createFighter(Character.rifleman, f32(reach * facing), -facing);
     const world = testWorld(owner, target);
     beginFighterAttack(world, 0, DASH_GRAB_REQUEST, false);
     assertTrue(owner.attack.dashGrab);
@@ -255,7 +255,7 @@ test("Lich's casting arm extends the body while the conjured frost beyond the ha
   // A rifleman jab (slot 0) against Lich's forward smash on its first active frame.
   const challenge = (x: number, lichFrame: number): number => {
     const attacker = createFighter(Character.rifleman, 0.0, 1);
-    const lich = createFighter(Character.archer, x, -1);
+    const lich = createFighter(Character.rifleman, x, -1);
     lich.tuning.moves = LICH_MOVES;
     const world = testWorld(attacker, lich);
     beginFighterAttack(world, 0, AttackStyle.jab, false);
@@ -277,7 +277,7 @@ test("Lich's casting arm extends the body while the conjured frost beyond the ha
   // The arm adds reach for the challenger, but far less than the spear's XL tip.
   assertGreaterThan(extended(), standing());
   assertLessThan(f32(extended() - standing()), f32(HERO_REFERENCE_HEIGHT * f32(0.5)));
-  const lich = createFighter(Character.archer, 0.0, 1);
+  const lich = createFighter(Character.rifleman, 0.0, 1);
   lich.tuning.moves = LICH_MOVES;
   for (const style of [AttackStyle.forwardTilt, AttackStyle.forwardSmash, AttackStyle.forwardAir, AttackStyle.grab]) {
     lich.attack.style = style;

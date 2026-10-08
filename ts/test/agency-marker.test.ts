@@ -15,7 +15,7 @@ test("both clients show both locked markers on each fighter and remove them on c
   clients.start();
   clients.frames(1);
   clients.chat(0, "-dev quick");
-  for (const character of ["archer", "rifleman", "illidan"]) {
+  for (const character of ["rifleman", "rifleman", "illidan"]) {
     for (const mode of ["none", "di", "act"]) {
       clients.chat(0, `-dev agency ${character} ${mode}`);
       clients.frames(1);

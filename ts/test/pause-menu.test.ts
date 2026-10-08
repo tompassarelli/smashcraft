@@ -27,7 +27,7 @@ for (const mode of ["cpu", "classic", "training", "practice", "tutorial"] as con
     });
     const first = clients.client(0);
     const choices = value(first, () => shell().game.characterChoices.slice());
-    if (mode === "classic") clients.chat(0, "-dev classic Archer");
+    if (mode === "classic") clients.chat(0, "-dev classic Rifleman");
     else if (mode === "tutorial") clients.everywhere(() => panelActions().selection.startTutorial(0));
     else if (mode === "practice") {
       clients.everywhere(() => {
@@ -69,7 +69,7 @@ for (const mode of ["cpu", "classic", "training", "practice", "tutorial"] as con
       expect(value(first, () => shell().game.characterChoices)).toEqual(choices);
       expect(value(first, () => [shell().game.stockCount, shell().game.timeLimitMinutes, shell().game.classic])).toEqual([4, 7, true]);
     } else expect(value(first, () => ({ fighters: shell().game.characterChoices.slice(), stocks: shell().game.stockCount, minutes: shell().game.timeLimitMinutes, training: shell().game.training, lesson: shell().game.trainer.lesson }))).toEqual(selected);
-    if (mode === "classic") clients.chat(0, "-dev classic Archer");
+    if (mode === "classic") clients.chat(0, "-dev classic Rifleman");
     else if (mode === "tutorial") clients.everywhere(() => panelActions().selection.startTutorial(0));
     else if (mode === "practice") {
       clients.everywhere(() => {

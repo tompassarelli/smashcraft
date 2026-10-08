@@ -3,7 +3,7 @@
 // and multi-hit aerials, Illidan's raid-boss normals, the heroes' angled
 // forward tilts, down tilts and dash attacks; with its passive ready it
 // favours the move that cashes it, against a ready opponent it shields
-// more, and Archer and Rifleman never press a special their mana can't pay.
+// more, and Rifleman and Rifleman never press a special their mana can't pay.
 import { assertEquals, assertGreaterThan, assertTrue } from "wisp/src/runtime/testing";
 import { sweep } from "../../runtime/sweep";
 import { floorDiv } from "wisp/src/sim/intMath";
@@ -45,7 +45,7 @@ interface Watch {
 }
 
 /** Projectile specials that can cash a passive, plus the heroes' neutral specials. */
-const OBSERVED_SPECIALS: readonly number[] = [SpecialAction.archerArrow, SpecialAction.archerHomingArrow, SpecialAction.riflemanBlaster, SpecialAction.demonHunterManaBurn, SpecialAction.heroNeutral];
+const OBSERVED_SPECIALS: readonly number[] = [SpecialAction.riflemanBlaster, SpecialAction.demonHunterManaBurn, SpecialAction.heroNeutral];
 
 /** A move started while the passive is ready or charging, and whether it is the move that cashes it. */
 function moveStarted(f: Readonly<Fighter>, move: GameplanMove, counts: Counts): void {
@@ -63,7 +63,7 @@ function observe(f: Readonly<Fighter>, opponent: Readonly<Fighter>, watch: Watch
   }
   watch.attack = f.attack.serial;
   if (f.special.action !== watch.special && OBSERVED_SPECIALS.includes(f.special.action)) {
-    moveStarted(f, f.special.action === SpecialAction.archerHomingArrow ? GameplanSpecial.side : GameplanSpecial.neutral, counts);
+    moveStarted(f, GameplanSpecial.neutral, counts);
   }
   watch.special = f.special.action;
   // Eye Blast: Illidan's forward smash released after its full charge, once per attack.
@@ -232,8 +232,8 @@ sweep("computer Illidan charges Eye Blast and throws Shear, Flames of Azzinoth a
   assertGreaterThan(counts.eyeBlast ?? 0, 0);
 });
 
-sweep("computer Archer and Rifleman never press a special their mana can't pay, and cash Trueshot and Long Rifles [spec #155]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+sweep("computer Rifleman and Rifleman never press a special their mana can't pay, and cash Trueshot and Long Rifles [spec #155]", () => {
+  for (const character of [Character.demonHunter, Character.rifleman]) {
     const counts = played(character);
     assertEquals(counts.manaDenied ?? 0, 0);
     assertGreaterThan(counts.proc ?? 0, 0);
@@ -242,6 +242,6 @@ sweep("computer Archer and Rifleman never press a special their mana can't pay, 
   }
 });
 
-sweep("computer Archer and Rifleman never press a special their mana can't pay in a seeded mirror, which replays its counts [spec #155]", () => {
-  for (const character of [Character.archer, Character.rifleman]) assertEquals(played(character, character, 1).manaDenied ?? 0, 0);
+sweep("computer Rifleman and Rifleman never press a special their mana can't pay in a seeded mirror, which replays its counts [spec #155]", () => {
+  for (const character of [Character.demonHunter, Character.rifleman]) assertEquals(played(character, character, 1).manaDenied ?? 0, 0);
 });

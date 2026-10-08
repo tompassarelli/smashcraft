@@ -27,7 +27,7 @@ const wisp = (args: readonly string[]) => {
 
 test("fresh, pad and accept use --clients-file FILE and leave clients.json untouched [spec AGENTS.md]", () => {
   const file = join(folder, "clones.json");
-  const script = join(import.meta.dir, "native/pads/archer-neutral.pad");
+  const script = join(import.meta.dir, "native/pads/rifleman-neutral.pad");
   for (const args of [
     ["fresh", join(folder, "missing.w3x"), "--no-quick", "--clients-file", file],
     ["pad", script, "--helper", "helper", "--build", "typescript-integrity", "--out", join(folder, "out"), "--app-id", "a=x", "--app-id", "b=y", "--clients-file", file],

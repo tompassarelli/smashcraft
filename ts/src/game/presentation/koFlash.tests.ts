@@ -16,7 +16,7 @@ function fingerprint(f: Readonly<Fighter>): string {
 
 /** A launch near the right blast zone, played to its KO; `flash` watches each confirmed frame as the shell does. */
 function playKo(watch: boolean): { readonly frames: readonly string[]; readonly kos: readonly number[]; readonly hitlag: number; readonly flash: ReturnType<typeof createKoFlash> } {
-  const attacker = createFighter(Character.archer, stageBounds(0).blast.right - 160.0, 1);
+  const attacker = createFighter(Character.rifleman, stageBounds(0).blast.right - 160.0, 1);
   const victim = createFighter(Character.rifleman, stageBounds(0).blast.right - 120.0, -1);
   const world = testWorld(attacker, victim);
   const events = createImpactEvents();
@@ -54,7 +54,7 @@ test("the KO flash leaves a launch to its KO frame for frame unchanged [invarian
 
 test("the KO flash peaks at Silverpine's caps after the blow's hitlag and turns off after its blur fades [spec docs/design/visual-quality.md]", () => {
   const flash = createKoFlash();
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createFighter(Character.rifleman, 0.0, 1);
   const events = createImpactEvents();
   fighter.launch.hitlag = 12;
   events.hit = true;
@@ -87,7 +87,7 @@ function washedLuma(scene: number, alpha: number, reforged: boolean): number {
 test("the KO flash eases out in Classic and Reforged, never stepping more than 6 luma a frame from its peak through the off call [repro #289]", () => {
   // Lane C's captures: the scene after the KO reads 92.6 luma in Classic and 91.6 in Reforged.
   const flash = createKoFlash();
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createFighter(Character.rifleman, 0.0, 1);
   const events = createImpactEvents();
   events.koDirectionX = 1;
   fighter.launch.hitlag = 12;

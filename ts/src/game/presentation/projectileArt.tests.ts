@@ -16,7 +16,7 @@ const SAME_SPELL: readonly (readonly string[])[] = [];
 
 test("every projectile-firing move names its own stock missile [spec #144]", () => {
   const owner = new Map<string, string>();
-  for (const kind of [ProjectileKind.arrow, ProjectileKind.homingArrow, ProjectileKind.blaster, ProjectileKind.recoil, ProjectileKind.manaBurn] as const) {
+  for (const kind of [ProjectileKind.blaster, ProjectileKind.recoil, ProjectileKind.manaBurn] as const) {
     const model = ORIGINAL_PROJECTILE_MODELS[kind];
     assertEquals(owner.get(model), undefined, `kind ${kind} shares ${model}`);
     owner.set(model, `kind ${kind}`);
@@ -42,7 +42,7 @@ test("a live projectile draws its move's missile, wherever it flies [spec #144]"
   for (const hero of HERO_ROSTER) {
     if (hero.specials === undefined) continue;
     // A reflected projectile sits in another fighter's slots with its record unchanged.
-    const holder = createFighter(Character.archer, 0.0, 1);
+    const holder = createFighter(Character.rifleman, 0.0, 1);
     const projectile = mutableProjectile(holder, 0);
     if (projectile === undefined) continue;
     for (const { spec } of heroProjectileArt(hero.specials)) {
@@ -52,10 +52,10 @@ test("a live projectile draws its move's missile, wherever it flies [spec #144]"
       assertTrue(spec.model !== undefined && fighterProjectileModels(hero.character).includes(spec.model));
     }
   }
-  const archer = createFighter(Character.archer, 0.0, 1);
-  const arrow = mutableProjectile(archer, 0);
-  if (arrow === undefined) return;
-  arrow.kind = ProjectileKind.homingArrow;
-  assertEquals(projectileModelOf(arrow), ORIGINAL_PROJECTILE_MODELS[ProjectileKind.homingArrow]);
-  assertEquals(fighterProjectileModels(Character.archer)[0], ORIGINAL_PROJECTILE_MODELS[ProjectileKind.arrow]);
+  const rifleman = createFighter(Character.rifleman, 0.0, 1);
+  const shot = mutableProjectile(rifleman, 0);
+  if (shot === undefined) return;
+  shot.kind = ProjectileKind.blaster;
+  assertEquals(projectileModelOf(shot), ORIGINAL_PROJECTILE_MODELS[ProjectileKind.blaster]);
+  assertEquals(fighterProjectileModels(Character.rifleman)[0], ORIGINAL_PROJECTILE_MODELS[ProjectileKind.blaster]);
 });

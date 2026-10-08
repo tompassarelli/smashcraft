@@ -194,7 +194,7 @@ test("Drain on hit: a normal and a throw drain their authored amounts, a shield 
 
   // Another fighter's hits drain nothing.
   const other = duel(70.0);
-  other.illidan.character = Character.archer;
+  other.illidan.character = Character.rifleman;
   other.target.mana.points = 50;
   queueAttack(other.commands[0], { style: AttackStyle.jab, facing: 1, frame: other.step(), mayCharge: false });
   other.run(8);

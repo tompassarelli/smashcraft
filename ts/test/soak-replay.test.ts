@@ -16,7 +16,7 @@ import { sweep } from "./sweep";
 const runtime = installHeadless(project.map);
 afterAll(runtime.restore);
 
-const match: SoakMatch = { index: 0, seed: 96542, fighters: ["archer", "archer"], stage: "sky-deck", policies: ["fuzz", "cpu"], frames: 30 };
+const match: SoakMatch = { index: 0, seed: 96542, fighters: ["rifleman", "rifleman"], stage: "sky-deck", policies: ["fuzz", "cpu"], frames: 30 };
 const quiet: SoakInputs = { edges: [], silences: [], hitches: [], slow: [] };
 
 sweep("offscreen indicators follow the presented result while confirmation is still finishing the match [native]", () => {

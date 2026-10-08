@@ -10,10 +10,10 @@ import { imod } from "wisp/src/sim/intMath";
 
 function fourWorld() {
   return createRoster(15, [
-    createFighter(Character.archer, -300.0, 1),
-    createFighter(Character.archer, -100.0, -1),
-    createFighter(Character.archer, 100.0, 1),
-    createFighter(Character.archer, 300.0, -1),
+    createFighter(Character.rifleman, -300.0, 1),
+    createFighter(Character.rifleman, -100.0, -1),
+    createFighter(Character.rifleman, 100.0, 1),
+    createFighter(Character.rifleman, 300.0, -1),
   ]);
 }
 

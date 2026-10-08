@@ -19,7 +19,7 @@ const CASES = [
 test("Chen's authored normals connect once in both facings and miss outside their reach [spec docs/design/chen.md]", () => {
   for (const facing of [-1, 1]) for (const [style, x, z, damage] of CASES) {
     const owner = createFighter(Character.chen, 0.0, facing);
-    const target = createFighter(Character.archer, f32(x * facing), -facing);
+    const target = createFighter(Character.rifleman, f32(x * facing), -facing);
     const world = testWorld(owner, target);
     owner.motion.grounded = !isAerialAttack(style);
     target.motion.z = z;
@@ -29,7 +29,7 @@ test("Chen's authored normals connect once in both facings and miss outside thei
     assertEquals(target.status.damage, damage, `style ${style} facing ${facing}`);
     resolveAttacks(world);
     assertEquals(target.status.damage, damage);
-    const far = createFighter(Character.archer, 400.0 * facing, -facing);
+    const far = createFighter(Character.rifleman, 400.0 * facing, -facing);
     const farWorld = testWorld(createFighter(Character.chen, 0.0, facing), far);
     beginFighterAttack(farWorld, 0, style, false);
     farWorld.fighters[0]!.attack.frame = attackStartupFrames(style, owner.tuning.moves);
@@ -44,7 +44,7 @@ test("Chen's grab and all four throws release with their authored damage and dir
     [GrabAction.throwUp, 0, 1, 8.75], [GrabAction.throwDown, 0, -1, 7.5],
   ] as const) {
     const owner = createFighter(Character.chen, 0.0, facing);
-    const target = createFighter(Character.archer, 50.0 * facing, -facing);
+    const target = createFighter(Character.rifleman, 50.0 * facing, -facing);
     const world = testWorld(owner, target);
     beginFighterAttack(world, 0, AttackStyle.grab, false);
     owner.attack.frame = attackStartupFrames(AttackStyle.grab, owner.tuning.moves);

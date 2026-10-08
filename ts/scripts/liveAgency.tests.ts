@@ -28,7 +28,7 @@ function compareLiveAgency(victims: readonly Character[], throws: readonly GrabA
     console.log(`${name}: ${agencyLetters(report.frames)} / ${agencyLetters(live)}`);
   };
   for (const character of victims) {
-    const setup = () => standingMatch(Character.archer, character, 0, 400);
+    const setup = () => standingMatch(Character.rifleman, character, 0, 400);
     if (scenarios) {
       const frozen = setup();
       fighterAt(frozen.world, 1).status.frozenFrames = 15;
@@ -83,10 +83,10 @@ function compareLiveAgency(victims: readonly Character[], throws: readonly GrabA
 }
 
 sweep("live locked marker matches the agency replay for buffers, tech, grabs, release, hitlag, freeze and forced stand [invariant]", () => {
-  compareLiveAgency([Character.archer], [GrabAction.throwForward]);
+  compareLiveAgency([Character.rifleman], [GrabAction.throwForward]);
 }, 120_000);
 
-sweep("live locked marker matches the agency replay for Archer's other throws and for Rifleman and Illidan victims [invariant]", () => {
-  compareLiveAgency([Character.archer], THROWS.slice(1), false);
+sweep("live locked marker matches the agency replay for Rifleman's other throws and for Rifleman and Illidan victims [invariant]", () => {
+  compareLiveAgency([Character.rifleman], THROWS.slice(1), false);
   compareLiveAgency([Character.rifleman, Character.demonHunter], THROWS);
 }, 120_000);

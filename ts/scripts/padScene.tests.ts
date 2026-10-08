@@ -11,7 +11,7 @@ test("a contact continuation preserves replay state and controller edges [invari
   ];
   const situation: Situation = {
     placements: [
-      { character: Character.archer, x: 0, facing: 1 },
+      { character: Character.rifleman, x: 0, facing: 1 },
       { character: Character.rifleman, x: 400, facing: -1 },
     ],
     policies,
@@ -36,7 +36,7 @@ test("a contact continuation preserves replay state and controller edges [invari
 test("retaining only frame 1 plays the same full state as retaining every baseline frame [invariant]", () => {
   const situation: Situation = {
     placements: [
-      { character: Character.archer, x: 0, facing: 1 },
+      { character: Character.rifleman, x: 0, facing: 1 },
       { character: Character.rifleman, x: 40, facing: -1 },
     ],
     policies: [() => [], () => []],

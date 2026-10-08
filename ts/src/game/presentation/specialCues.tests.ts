@@ -12,7 +12,7 @@ import { RIFLEMAN_SECOND_SHOT_FORM } from "../sim/specials";
 import { HERO_BRANCH_CUES, HERO_CUES, ORIGINAL_CUES, fighterBranchCues, fighterMoveCues, heroCueWindows, specialCueState } from "./specialCues";
 
 /** The original three and every registered hero, so a new hero needs its cues. */
-const FIGHTERS: readonly Character[] = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(({ character }) => character)];
+const FIGHTERS: readonly Character[] = [Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(({ character }) => character)];
 
 test("Rifleman's blaster cue readies on startup and flashes on the shot frame [spec #144]", () => {
   const fighter = createFighter(Character.rifleman, 0.0, 1);

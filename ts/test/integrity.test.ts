@@ -288,7 +288,7 @@ test("bot sessions set slots C/D, the computers' fighters and the stage by comma
     expect(slots(bot.trace)).toEqual([
       "type a -dev slots 3 0", "type a -dev slots 7 0", "type a -dev slots 3 4",
       ...(botFour ? ["type a -dev slots 11 4", "type a -dev slots 3 12"] : []),
-      "type a -dev fighter 3 Illidan", ...(botFour ? ["type a -dev fighter 4 Archer"] : []),
+      "type a -dev fighter 3 Illidan", ...(botFour ? ["type a -dev fighter 4 Rifleman"] : []),
       "type a -dev slots 3 0",
     ]);
     // The run ends with two humans again.

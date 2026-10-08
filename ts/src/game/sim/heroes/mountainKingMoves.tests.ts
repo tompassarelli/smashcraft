@@ -29,7 +29,7 @@ const NORMAL_TIMINGS = [
 ] as const;
 
 function attackPair(style: AttackStyle, frame: number, targetX: number, targetZ = 0.0, facing = 1, groundedTarget = true) {
-  const owner = createFighter(Character.archer, 0.0, facing);
+  const owner = createFighter(Character.rifleman, 0.0, facing);
   owner.tuning.moves = MOUNTAIN_KING_MOVES;
   owner.motion.grounded = !isAerialAttack(style);
   const target = createFighter(Character.rifleman, f32(targetX * facing), -facing);
@@ -66,7 +66,7 @@ test("Mountain King authored contact paths exist only on their adopted active fr
     for (let actionFrame = 0; actionFrame < first + active + recovery; actionFrame++) {
       let live = 0;
       for (let index = 0; index < count; index++) {
-        authoredHitRegion(out, Character.archer, style, actionFrame, 0, index, MOUNTAIN_KING_MOVES);
+        authoredHitRegion(out, Character.rifleman, style, actionFrame, 0, index, MOUNTAIN_KING_MOVES);
         if (out.window > 0) {
           live++;
           assertEquals(out.window, 1);
@@ -134,9 +134,9 @@ test("Mountain King angled axe hooks have distinct narrow paths and body attacks
   const straight = emptyHitRegion();
   const up = emptyHitRegion();
   const down = emptyHitRegion();
-  authoredHitRegion(straight, Character.archer, AttackStyle.forwardTilt, 9, 0, 0, MOUNTAIN_KING_MOVES);
-  authoredHitRegion(up, Character.archer, AttackStyle.forwardTiltUp, 9, 0, 0, MOUNTAIN_KING_MOVES);
-  authoredHitRegion(down, Character.archer, AttackStyle.forwardTiltDown, 9, 0, 0, MOUNTAIN_KING_MOVES);
+  authoredHitRegion(straight, Character.rifleman, AttackStyle.forwardTilt, 9, 0, 0, MOUNTAIN_KING_MOVES);
+  authoredHitRegion(up, Character.rifleman, AttackStyle.forwardTiltUp, 9, 0, 0, MOUNTAIN_KING_MOVES);
+  authoredHitRegion(down, Character.rifleman, AttackStyle.forwardTiltDown, 9, 0, 0, MOUNTAIN_KING_MOVES);
   assertGreaterThan(up.maxZ, straight.maxZ);
   assertLessThan(down.minZ, straight.minZ);
   assertGreaterThan(up.effect.launchZ, straight.effect.launchZ);
@@ -145,7 +145,7 @@ test("Mountain King angled axe hooks have distinct narrow paths and body attacks
     const region = emptyHitRegion();
     const first = attackStartupFrames(style, MOUNTAIN_KING_MOVES);
     for (let index = 0; index < authoredHitRegionCount(style, MOUNTAIN_KING_MOVES); index++) {
-      authoredHitRegion(region, Character.archer, style, first, 0, index, MOUNTAIN_KING_MOVES);
+      authoredHitRegion(region, Character.rifleman, style, first, 0, index, MOUNTAIN_KING_MOVES);
       if (region.window > 0) {
         assertTrue(region.minX >= -24.0);
         assertTrue(region.maxX <= 24.0);
@@ -166,7 +166,7 @@ test("Mountain King standing grab uses scaled reach and its dash jab selects the
     const outside = attackPair(AttackStyle.grab, 7, 97.0, 0.0, facing);
     resolveAttacks(outside.world);
     assertEquals(outside.owner.grab.target, undefined);
-    const owner = createFighter(Character.archer, 0.0, facing);
+    const owner = createFighter(Character.rifleman, 0.0, facing);
     owner.tuning.moves = MOUNTAIN_KING_MOVES;
     owner.ground.dashFrame = 1;
     beginFighterAttack(testWorld(owner, createFighter(Character.rifleman, 1000.0, -facing)), 0, AttackStyle.jab, false);
@@ -180,7 +180,7 @@ test("Mountain King standing grab uses scaled reach and its dash jab selects the
 test("Mountain King dash grab extends standing reach with three startup and eleven total frames added [spec docs/design/roster.md]", () => {
   for (const facing of [1, -1]) {
     for (const [x, caught] of [[120.0, true], [121.0, false]] as const) {
-      const owner = createFighter(Character.archer, 0.0, facing);
+      const owner = createFighter(Character.rifleman, 0.0, facing);
       owner.tuning.moves = MOUNTAIN_KING_MOVES;
       owner.ground.dashFrame = 1;
       const target = createFighter(Character.rifleman, f32(x * facing), -facing);
@@ -245,7 +245,7 @@ test("Mountain King throws release once on their roster frame with facing-relati
 
 test("Mountain King's limbs follow his swings while hammer and axe stay disjoint [spec docs/design/roster.md]", () => {
   for (const facing of [1, -1]) {
-    const mk = createFighter(Character.archer, 0.0, facing);
+    const mk = createFighter(Character.rifleman, 0.0, facing);
     mk.tuning.moves = MOUNTAIN_KING_MOVES;
     const body = fighterHurtParts(mk)[0];
     assertTrue(body !== undefined);
@@ -262,7 +262,7 @@ test("Mountain King's limbs follow his swings while hammer and axe stay disjoint
     for (let frame = 19; frame <= 21; frame++) {
       mk.attack.frame = frame;
       for (let index = 0; index < 3; index++) {
-        authoredHitRegion(out, Character.archer, AttackStyle.forwardSmash, frame, 0, index, MOUNTAIN_KING_MOVES);
+        authoredHitRegion(out, Character.rifleman, AttackStyle.forwardSmash, frame, 0, index, MOUNTAIN_KING_MOVES);
         if (out.window === 0 || out.strike === undefined) continue;
         const head = { x1: f32(out.strike.x1 * facing), z1: out.strike.z1, x2: f32(out.strike.x2 * facing), z2: out.strike.z2, radius: out.strike.radius };
         assertEquals(strikeHurtContact(head, mk), HurtContact.none);

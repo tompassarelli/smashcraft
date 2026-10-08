@@ -16,7 +16,7 @@ test("a quick match readies every present human's default fighter and starts wit
     assertEquals(game.phase, Phase.match);
     assertEquals(game.stageChoice, 0);
     assertEquals(game.stockCount, 1);
-    assertEquals(game.characterChoices[0], Character.archer);
+    assertEquals(game.characterChoices[0], Character.rifleman);
     assertEquals(game.characterChoices[1], Character.rifleman);
     assertEquals(fighterMask(game), 0b111);
   }

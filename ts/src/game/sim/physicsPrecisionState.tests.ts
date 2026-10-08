@@ -1,7 +1,7 @@
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { beginDamageContacts, finishDamageContacts, queueDamageContact } from "./contacts";
 import { Character, ContactKind } from "./codes";
-import { createFighter } from "./fighter";
+import { createReferenceFighter } from "./referenceRig";
 import { controls, hitEffect, soloWorld, testWorld, withPhysics } from "./testWorld";
 import { advanceFighter } from "./step";
 import { digitalShieldDamage, digitalShieldstunDuration } from "./shield";
@@ -10,7 +10,7 @@ import { melee } from "./tuning";
 // These are the five state-bearing comparisons from the native #9 arithmetic
 // fixture. Run them through the production fighter and roster simulation.
 test("#9 GROUNDED_BINARY32_EXACT_PASS [reference]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   withPhysics(fighter, { traction: melee(0.07999999821186066) });
   fighter.launch.knockbackX = melee(0.7562744617462158);
   fighter.launch.hitstun = 10;
@@ -21,7 +21,7 @@ test("#9 GROUNDED_BINARY32_EXACT_PASS [reference]", () => {
 });
 
 test("#9 SHIELD_REGEN_BINARY32_EXACT_PASS [reference]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.shield.energy = 20.0;
 
   advanceFighter(soloWorld(fighter), 0, 0, controls(), 0.0);
@@ -39,8 +39,8 @@ test("#9 SHIELD_STUN_BINARY32_EXACT_PASS [reference]", () => {
 });
 
 test("#9 SHIELD_CONTACT_SUM_BINARY32_EXACT_PASS [reference]", () => {
-  const defender = createFighter(Character.archer, 0.0, 1);
-  const attacker = createFighter(Character.rifleman, 100.0, -1);
+  const defender = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const attacker = createReferenceFighter(Character.rifleman, 100.0, -1);
   const world = testWorld(defender, attacker);
   defender.shield.raised = true;
   defender.shield.energy = 8.0;

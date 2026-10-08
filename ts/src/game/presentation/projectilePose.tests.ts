@@ -47,7 +47,7 @@ test("Defile's rim follows its danger radius and distinguishes its warning from 
 
 test("a sparse restore replaces a speculative projectile and freeze state [invariant]", () => {
   const world = createRoster(9);
-  world.fighters[0] = createFighter(Character.archer, -100.0, 1);
+  world.fighters[0] = createFighter(Character.rifleman, -100.0, 1);
   const fighter = createFighter(Character.demonHunter, 100.0, -1);
   world.fighters[3] = fighter;
   const game = createMatchState();

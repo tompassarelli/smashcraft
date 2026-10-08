@@ -1,5 +1,5 @@
 // The 0.0.49 bot session's four fighters (two pads, computer Illidan and
-// Archer) with every row 4-22 frames late, outside the default suite. Run on
+// Rifleman) with every row 4-22 frames late, outside the default suite. Run on
 // demand, in Bun and in Lua32: GAME_SOAK=1 bun test test/game.test.ts, or
 // GAME_SOAK=1 with scripts/lua-tests.ts. Predictions replay from snapshots,
 // so any state a snapshot misses in Lua only shows here as the speculative
@@ -22,7 +22,7 @@ import { ReplayHistory } from "./history";
 import { ShadowInputPlayback } from "./shadowPlayback";
 import { type ReplayState, copyReplayState, createReplaySnapshot } from "./snapshot";
 
-const SLOT_CHARACTERS = [Character.archer, Character.rifleman, Character.demonHunter, Character.archer] as const;
+const SLOT_CHARACTERS = [Character.rifleman, Character.demonHunter, Character.blademaster, Character.rifleman] as const;
 const row = (fields: RowFields = {}): InputRow => assertDefined(inputRow(fields), "row");
 
 /** The bot session's beats, both pads together: [action bits, frames held (0 for a tap), what the press carries]; 24 frames apart. */

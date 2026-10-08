@@ -1,7 +1,7 @@
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { Character, ContactKind } from "./codes";
 import { beginDamageContacts, finishDamageContacts, queueDamageContact } from "./contacts";
-import { createFighter } from "./fighter";
+import { createReferenceFighter } from "./referenceRig";
 import { controls, hitEffect, soloWorld, testWorld } from "./testWorld";
 import { advanceFighter } from "./step";
 import { setMeleeKnockback, setMeleePosition, setMeleeRecoil, setMeleeVerticalVelocity, totalVelocityX } from "./motion";
@@ -13,8 +13,8 @@ test("#9 RECORDED_FALL_TEN_FRAMES_BINARY32_EXACT_PASS [reference]", () => {
     7.492424488067627, 6.472424507141113, 5.282424449920654, 3.922424554824829,
     2.3924245834350586, 0.6924247741699219,
   ];
-  for (const character of [Character.archer, Character.rifleman]) {
-    const f = createFighter(character, -360.0, 1);
+  for (const character of [Character.sylvanas, Character.rifleman]) {
+    const f = createReferenceFighter(character, -360.0, 1);
     f.tuning.physics = {
       ...f.tuning.physics,
       gravity: melee(0.17000000178813934),
@@ -66,7 +66,7 @@ test("#9 AIR_DECREMENT_BINARY32_EXACT_PASS [reference]", () => {
   ];
   for (const [rows, recoil] of [[launchCases, false], [recoilCases, true]] as const) {
     for (const [index, [x, z, afterX, afterZ, afterPosition]] of rows.entries()) {
-      const f = createFighter(Character.rifleman, -360.0, 1);
+      const f = createReferenceFighter(Character.rifleman, -360.0, 1);
       f.motion.grounded = false;
       f.motion.surface = undefined;
       f.motion.z = 300.0;
@@ -108,7 +108,7 @@ test("#9 AIR_CUTOFF_BINARY32_EXACT_PASS [reference]", () => {
     [0.05000000074505806, 0.049999967217445374, 0.00006444918835768476, 8.195639722430315e-9, 6.315589978073133e-12],
   ];
   for (const [index, [decay, x, z, afterX, afterZ]] of cases.entries()) {
-    const f = createFighter(Character.rifleman, -360.0, 1);
+    const f = createReferenceFighter(Character.rifleman, -360.0, 1);
     f.motion.grounded = false;
     f.motion.surface = undefined;
     f.motion.z = 300.0;
@@ -132,8 +132,8 @@ test("#9 AIR_CUTOFF_BINARY32_EXACT_PASS [reference]", () => {
     [2, 0, 0.019999999552965164, 0, 0, 0, 0],
   ] as const;
   for (const [index, [launchX, launchZ, recoilX, recoilZ, afterLaunchZ, afterRecoilX, afterRecoilZ]] of stateCases.entries()) {
-    const fighter = createFighter(Character.rifleman, 0.0, 1);
-    const control = createFighter(Character.rifleman, 0.0, 1);
+    const fighter = createReferenceFighter(Character.rifleman, 0.0, 1);
+    const control = createReferenceFighter(Character.rifleman, 0.0, 1);
     for (const f of [fighter, control]) {
       f.motion.grounded = false;
       f.motion.surface = undefined;
@@ -181,7 +181,7 @@ test("#9 GROUND_MOTION_BINARY32_EXACT_PASS [reference]", () => {
   ];
   for (const [index, row] of cases.entries()) {
     const [kind, position, self, launch, pushback, recoil, traction, afterPosition, afterLaunch, afterPushback, afterRecoil] = row;
-    const f = createFighter(Character.rifleman, melee(position), 1);
+    const f = createReferenceFighter(Character.rifleman, melee(position), 1);
     f.launch.hitstun = 5;
     f.tuning.physics = { ...f.tuning.physics, traction: melee(traction) };
     f.motion.vx = melee(self);
@@ -199,8 +199,8 @@ test("#9 GROUND_MOTION_BINARY32_EXACT_PASS [reference]", () => {
     [1.75, -1], [1.75, 1], [-1.75, -1], [-1.75, 1],
   ] as const;
   for (const [index, [previousGroundSpeed, direction]] of guardRows.entries()) {
-    const defender = createFighter(Character.rifleman, 0.0, 1);
-    const attacker = createFighter(Character.archer, -100.0, 1);
+    const defender = createReferenceFighter(Character.rifleman, 0.0, 1);
+    const attacker = createReferenceFighter(Character.sylvanas, -100.0, 1);
     const world = testWorld(defender, attacker);
     defender.motion.vx = melee(previousGroundSpeed);
     defender.shield.raised = true;

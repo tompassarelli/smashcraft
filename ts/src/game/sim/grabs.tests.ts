@@ -32,16 +32,16 @@ function catchTarget(world: Roster, owner: Fighter, target: Fighter): void {
 }
 
 function grabbedPair(): { world: Roster; owner: Fighter; target: Fighter } {
-  const owner = createFighter(Character.archer, 0.0, 1);
+  const owner = createFighter(Character.rifleman, 0.0, 1);
   const target = createFighter(Character.rifleman, 90.0, -1);
   const world = testWorld(owner, target);
   catchTarget(world, owner, target);
   return { world, owner, target };
 }
 
-test("only flinching projectiles release either end of a grab [spec docs/gameplay-design.md] [spec docs/physics.md]", () => {
+test("Rifleman’s blaster and recoil release either end of a grab [spec docs/gameplay-design.md] [spec docs/physics.md]", () => {
   for (const victim of [0, 1]) {
-    for (const kind of [ProjectileKind.blaster, ProjectileKind.arrow, ProjectileKind.homingArrow, ProjectileKind.recoil]) {
+    for (const kind of [ProjectileKind.blaster, ProjectileKind.recoil]) {
       const { world, owner, target } = grabbedPair();
       const shooter = victim === 0 ? target : owner;
       const hit = victim === 0 ? owner : target;
@@ -54,18 +54,10 @@ test("only flinching projectiles release either end of a grab [spec docs/gamepla
       projectile.direction = 1;
       updateProjectiles(world);
       assertGreaterThan(hit.status.damage, 0.0);
-      if (kind === ProjectileKind.arrow || kind === ProjectileKind.homingArrow) {
-        assertEquals(hit.launch.hitstun, 0);
-        assertEquals(hit.launch.hitlag, 0);
-        assertEquals(owner.grab.target, 1);
-        assertEquals(target.grab.owner, 0);
-        assertEquals(target.grab.grabbedFrames, GRAB_HOLD_FRAMES);
-      } else {
         assertGreaterThan(hit.launch.hitstun, 0);
         assertEquals(owner.grab.target, undefined);
         assertEquals(target.grab.owner, undefined);
         assertEquals(target.grab.grabbedFrames, 0);
-      }
     }
   }
 });
@@ -92,7 +84,7 @@ test("a freeze trap releases reciprocal grab links [spec docs/physics.md]", () =
 });
 
 test("simultaneous grabs give neither slot ownership [spec docs/physics.md]", () => {
-  const first = createFighter(Character.archer, 0.0, 1);
+  const first = createFighter(Character.rifleman, 0.0, 1);
   const second = createFighter(Character.rifleman, 90.0, -1);
   const world = testWorld(first, second);
   testBeginAttacks(world, AttackStyle.grab, AttackStyle.grab);
@@ -111,7 +103,7 @@ test("simultaneous grabs give neither slot ownership [spec docs/physics.md]", ()
 });
 
 test("grab mash uses one button and one remembered stick contribution [spec docs/gameplay-design.md]", () => {
-  const owner = createFighter(Character.archer, 0.0, 1);
+  const owner = createFighter(Character.rifleman, 0.0, 1);
   const target = createFighter(Character.rifleman, 90.0, -1);
   const world = testWorld(owner, target);
   target.status.damage = 50.0;
@@ -138,7 +130,7 @@ test("grab mash uses one button and one remembered stick contribution [spec docs
 
 // ------------------------------------------------------------------ legible holds (#101)
 
-const GRABBERS = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
+const GRABBERS = [Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
 
 type Mash = "none" | "slow" | "human" | "quick" | "fastest";
 

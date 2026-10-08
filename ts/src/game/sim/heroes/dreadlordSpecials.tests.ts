@@ -44,7 +44,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   resolveGrabs(world);
 }
 
-function pair(gap: number, target = Character.archer): { world: Roster; owner: Fighter; victim: Fighter } {
+function pair(gap: number, target = Character.rifleman): { world: Roster; owner: Fighter; victim: Fighter } {
   const owner = createFighter(Character.dreadlord, -gap * 0.5, 1);
   owner.mana.points = 100;
   const victim = createFighter(target, gap * 0.5, -1);
@@ -158,7 +158,7 @@ test("the sleeper mashes out sooner, never before its frame 24, and a damaging h
 });
 
 test("Vampiric Pounce grabs through a shield, bites 16 frames after the catch and recovers 28 frames [spec docs/design/roster.md]", () => {
-  const { world, owner, victim } = pair(H, Character.archer);
+  const { world, owner, victim } = pair(H, Character.rifleman);
   frame(world, side, shield);
   let caught = 0;
   for (let f = 2; f <= 19 && caught === 0; f++) {
@@ -257,7 +257,7 @@ test("Bat Ascension keeps its full rise and steering at every meter level [spec 
 test("replaying Vampiric Pounce from a restored snapshot reproduces both fighters [invariant]", () => {
   const { world, owner, victim } = pair(H);
   const savedOwner = createFighter(Character.dreadlord, 0.0, 1);
-  const savedVictim = createFighter(Character.archer, 0.0, 1);
+  const savedVictim = createFighter(Character.rifleman, 0.0, 1);
   copyFighterState(savedOwner, owner, 3);
   copyFighterState(savedVictim, victim, 3);
   const run = () => {
@@ -266,7 +266,7 @@ test("replaying Vampiric Pounce from a restored snapshot reproduces both fighter
   };
   run();
   const endOwner = createFighter(Character.dreadlord, 0.0, 1);
-  const endVictim = createFighter(Character.archer, 0.0, 1);
+  const endVictim = createFighter(Character.rifleman, 0.0, 1);
   copyFighterState(endOwner, owner, 3);
   copyFighterState(endVictim, victim, 3);
   assertEquals(victim.status.damage, 10.000250816345215);
@@ -319,7 +319,7 @@ test("Vampiric Pounce corkscrews forward in both facings and air forms; another 
 });
 
 test("Vampiric Pounce's bite heals Dreadlord 4 percent, at most 12 a stock [spec docs/design/roster.md]", () => {
-  const { world, owner, victim } = pair(H, Character.archer);
+  const { world, owner, victim } = pair(H, Character.rifleman);
   owner.status.damage = 30.0;
   // Vampiric Aura (sim/passives.ts) also heals on every third bite; spend its budget so only the bite heals here.
   owner.passive.spent = VAMPIRIC_HEAL_CAP;

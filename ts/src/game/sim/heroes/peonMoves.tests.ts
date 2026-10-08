@@ -22,7 +22,7 @@ for (const [style, x, z, damage] of STRIKES) {
   test(`Peon normal ${style} hits once on its authored contact frame in both facings [spec docs/design/peasant.md]`, () => {
     for (const facing of [-1, 1]) {
       const owner = createFighter(Character.peon, 0.0, facing);
-      const target = createFighter(Character.archer, x * facing, -facing);
+      const target = createFighter(Character.rifleman, x * facing, -facing);
       const world = testWorld(owner, target);
       owner.motion.grounded = !isAerialAttack(style);
       target.motion.z = z;
@@ -47,7 +47,7 @@ test("Peon down air spikes in the air and launches upward from the floor [spec d
   for (const grounded of [false, true]) {
     const owner = createFighter(Character.peon, 0.0, 1);
     owner.motion.grounded = false;
-    const target = createFighter(Character.archer, 10.0, -1);
+    const target = createFighter(Character.rifleman, 10.0, -1);
     target.motion.z = -70.0;
     target.motion.grounded = grounded;
     const world = testWorld(owner, target);
@@ -67,7 +67,7 @@ for (const [action, damage, x, z] of [
   test(`Peon throw ${action} catches a shield and releases once in both facings [spec docs/design/peasant.md]`, () => {
     for (const facing of [-1, 1]) {
       const owner = createFighter(Character.peon, 0.0, facing);
-      const target = createFighter(Character.archer, 45.0 * facing, -facing);
+      const target = createFighter(Character.rifleman, 45.0 * facing, -facing);
       const world = testWorld(owner, target);
       target.shield.raised = true;
       beginFighterAttack(world, 0, AttackStyle.grab, false);

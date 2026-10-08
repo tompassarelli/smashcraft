@@ -17,7 +17,7 @@ import { INPUT_ROW_NUMBERS, type InputRow, emptyInput, inputRow, loadInputNumber
 import { PARTICIPANT_SLOTS } from "../../src/game/input/participants";
 import { MATCH_TICKS_PER_SECOND, Phase } from "../../src/game/match/rules";
 import { INTEGRITY_BUILD } from "../../src/game/shell/currentBuild";
-import { AttackStyle, Character, DownState, GrabAction, HippogryphKind, ProjectileKind, SpecialAction } from "../../src/game/sim/codes";
+import { AttackStyle, Character, DownState, GrabAction, ProjectileKind, SpecialAction } from "../../src/game/sim/codes";
 import type { Fighter } from "../../src/game/sim/fighter";
 import { isHeroSpecialAction } from "../../src/game/sim/heroSpecialRules";
 import type { SpecialProjectile } from "../../src/game/sim/heroSpecials";
@@ -165,7 +165,7 @@ export function beginMatch(clients: Lockstep, match: SoakMatch, frame: () => voi
   for (const client of clients.clients) clients.press(client.slot, Key.n);
   frames(5);
   clients.clients.forEach(({ slot }) => {
-    const character = fighters[slot] ?? Character.archer;
+    const character = fighters[slot] ?? Character.rifleman;
     if (match.policies[slot] === "cpu") {
       clients.everywhere(() => panelActions().selection.cycleMode(slot, slot));
       clients.everywhere(() => panelActions().selection.selectCpuChoice(slot, slot, character));
@@ -282,8 +282,8 @@ const PROJECTILE_MOVES: Readonly<Record<number, string>> = {
   [ProjectileKind.arrow]: "neutral-special", [ProjectileKind.blaster]: "neutral-special", [ProjectileKind.manaBurn]: "neutral-special",
   [ProjectileKind.homingArrow]: "side-special", [ProjectileKind.recoil]: "up-special",
 };
-/** Specials with nothing that strikes: Archer's mount and Illidan's ascent count once started. */
-const STRIKELESS_SPECIALS: Readonly<Record<number, string>> = { [SpecialAction.archerRecovery]: "up-special", [SpecialAction.demonHunterWingAscent]: "up-special" };
+/** Specials with nothing that strikes: Rifleman's mount and Illidan's ascent count once started. */
+const STRIKELESS_SPECIALS: Readonly<Record<number, string>> = { [SpecialAction.riflemanRecovery]: "up-special", [SpecialAction.demonHunterWingAscent]: "up-special" };
 /** A hero's specials by the move names, in SpecialSlot order. */
 const HERO_SPECIAL_NAMES = ["neutral-special", "side-special", "up-special", "down-special"] as const;
 
@@ -371,14 +371,12 @@ function creditStrike(victim: Readonly<Fighter>, victimSeen: Seen, attackerSlot:
   const projectile = attacker.projectiles[ended];
   if (projectile !== undefined) return land(attackerSeen, projectile.kind === ProjectileKind.hero ? heroProjectileMove(attacker, projectile.spec) : PROJECTILE_MOVES[projectile.kind]);
   if (attacker.bear.hitSerial !== attackerSeen.bearHits) return land(attackerSeen, "side-special");
-  const hippogryph = attacker.hippogryph.kind;
-  const disengage = hippogryph === HippogryphKind.strike || hippogryph === HippogryphKind.dive || attacker.special.action === SpecialAction.archerDisengage;
-  if (attacker.special.hit && !attackerSeen.specialHit && hippogryph === HippogryphKind.released) return land(attackerSeen, "up-special");
+  const disengage = false;
   if (attacker.special.hit && !attackerSeen.specialHit && isHeroSpecialAction(attacker.special.action)) {
     return land(attackerSeen, HERO_SPECIAL_NAMES[attacker.special.action - SpecialAction.heroNeutral]);
   }
   if (attacker.special.hit && !attackerSeen.specialHit && attacker.special.action === SpecialAction.demonHunterFelRush) return land(attackerSeen, "side-special");
-  if (attacker.special.hit && !attackerSeen.specialHit && (disengage || attacker.special.action === SpecialAction.demonHunterImmolate)) land(attackerSeen, "down-special");
+  if (attacker.special.hit && !attackerSeen.specialHit && attacker.special.action === SpecialAction.demonHunterImmolate) land(attackerSeen, "down-special");
 }
 
 /**

@@ -31,7 +31,7 @@ function blasterHit(): Fighter {
 }
 
 function smashHit(): Fighter {
-  const owner = createFighter(Character.archer, 0.0, 1);
+  const owner = createFighter(Character.rifleman, 0.0, 1);
   const target = createFighter(Character.mountainKing, 20.0, -1);
   target.status.damage = 120.0;
   const world = testWorld(owner, target);

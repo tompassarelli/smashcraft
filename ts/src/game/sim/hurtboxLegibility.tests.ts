@@ -80,7 +80,7 @@ function specialBodies(special: AuthoredSpecial | undefined, name: string, out: 
 
 function everyFighter(): FighterBodies[] {
   const fighters: FighterBodies[] = [];
-  const originals: readonly [Character, string][] = [[Character.archer, "Archer"], [Character.rifleman, "Rifleman"], [Character.demonHunter, "Illidan"]];
+  const originals: readonly [Character, string][] = [[Character.rifleman, "Rifleman"], [Character.rifleman, "Rifleman"], [Character.demonHunter, "Illidan"]];
   for (const [character, name] of originals) {
     const set = fighterHurtboxes(createFighter(character, 0.0, 1));
     fighters.push({ name, set, moves: attackBodies(set, undefined) });
@@ -238,7 +238,7 @@ test("the checker catches each rule it enforces [spec docs/gameplay-design.md]",
 });
 
 test("rule 1: outside attacks and specials only crouch changes the body, and selection is a function of state [spec docs/gameplay-design.md]", () => {
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+  for (const character of [Character.rifleman, Character.demonHunter]) {
     const f = createFighter(character, 0.0, 1);
     const set = fighterHurtboxes(f);
     assertEquals(fighterHurtParts(f), set.stand);
@@ -257,7 +257,7 @@ test("rule 1: outside attacks and specials only crouch changes the body, and sel
 });
 
 test("rule 6: a strike tangent to a normal part hits [spec docs/gameplay-design.md]", () => {
-  const target = createFighter(Character.archer, 0.0, 1);
+  const target = createFighter(Character.rifleman, 0.0, 1);
   const body = fighterHurtboxes(target).stand[0];
   assertTrue(body !== undefined);
   if (body === undefined) return;

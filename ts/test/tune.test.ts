@@ -30,7 +30,7 @@ afterAll(() => {
 });
 
 const JUMP = 0x49;
-const TUNED_GRAVITY = [["Archer gravity", 0.35], ["Rifleman gravity", 0.3], ["Demon Hunter gravity", 0.3]] as const;
+const TUNED_GRAVITY = [["Rifleman gravity", 0.3], ["Demon Hunter gravity", 0.3]] as const;
 
 interface Tuned {
   readonly entry: MapEntry;

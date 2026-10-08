@@ -16,7 +16,7 @@ test("Flint changes a practiced strike read after fewer new shield events at eac
     let total = 0;
     for (let seed = 0; seed < 10; seed++) for (let trial = 0; trial < 10; trial++) {
       const own = createFighter(Character.rifleman, 0.0, 1);
-      const target = createFighter(Character.archer, 60.0, -1);
+      const target = createFighter(Character.rifleman, 60.0, -1);
       const strategy = createBotStrategy();
       for (let event = 0; event < 20; event++) {
         const frame = event * 60;

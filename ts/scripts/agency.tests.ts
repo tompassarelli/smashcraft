@@ -24,7 +24,7 @@ function grabbed(start: ReplayState, attacker: (state: Readonly<ReplayState>, fr
 }
 
 test("a standing fighter can act on every frame [spec docs/gameplay-design.md]", () => {
-  const start = standingMatch(Character.archer, Character.rifleman, 0, 200);
+  const start = standingMatch(Character.rifleman, Character.rifleman, 0, 200);
   const report = analyzeAgency({ start, victim: VICTIM, frames: 4, row: () => emptyInput() });
   expect(agencyLetters(report.frames)).toBe("AAAA");
   expect(report.frames[0]?.classes).toContain("jump");
@@ -46,7 +46,7 @@ test("a hit's hitlag leaves the victim only the stick, its hitstun nothing, and 
 });
 
 test("mashing out of a hold the attacker keeps is acting [spec docs/gameplay-design.md]", () => {
-  const start = standingMatch(Character.archer, Character.rifleman, 0, 40);
+  const start = standingMatch(Character.rifleman, Character.rifleman, 0, 40);
   const grab = attackerPlan("forward throw", start.runtime.simulationFrame + 1);
   const held = grabbed(start, grab);
   // The attacker never throws: the hold runs down, sooner for every press.

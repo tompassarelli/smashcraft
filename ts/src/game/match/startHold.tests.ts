@@ -18,7 +18,7 @@ function startedMatch(humans = 3) {
   game.stageChoice = 0;
   game.phase = Phase.stageMenu;
   assertTrue(requestStart(game, 0));
-  const world = createRoster(humans, [createFighter(Character.archer, matchSpawnX(0), 1), createFighter(Character.rifleman, matchSpawnX(1), -1)]);
+  const world = createRoster(humans, [createFighter(Character.rifleman, matchSpawnX(0), 1), createFighter(Character.rifleman, matchSpawnX(1), -1)]);
   initializeMatchFighters(game, world);
   return { game, world, controls: createFrameControls() };
 }

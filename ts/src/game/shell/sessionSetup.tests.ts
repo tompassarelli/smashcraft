@@ -33,11 +33,11 @@ test("fighter commands set a computer's fighter or the typist's own, and nobody 
   applySetupCommand(game, 0, "-dev slots 3 12");
   const illidan = fighterName(Character.demonHunter);
   assertEquals(applySetupCommand(game, 0, `-dev fighter 3 ${illidan.toLowerCase()}`), `dev: player 3 plays ${illidan}`);
-  assertEquals(applySetupCommand(game, 0, `-dev fighter 4 ${fighterName(Character.archer)}`), `dev: player 4 plays ${fighterName(Character.archer)}`);
-  assertEquals(`${game.characterChoices[2]} ${game.characterChoices[3]}`, `${Character.demonHunter} ${Character.archer}`);
+  assertEquals(applySetupCommand(game, 0, `-dev fighter 4 ${fighterName(Character.rifleman)}`), `dev: player 4 plays ${fighterName(Character.rifleman)}`);
+  assertEquals(`${game.characterChoices[2]} ${game.characterChoices[3]}`, `${Character.demonHunter} ${Character.rifleman}`);
   assertEquals(applySetupCommand(game, 0, `-dev fighter 1 ${illidan}`), `dev: player 1 plays ${illidan}`);
   assertEquals(game.characterReadiness[0], true);
   assertEquals(applySetupCommand(game, 0, `-dev fighter 2 ${illidan}`), "dev: fighter refused");
   assertEquals(applySetupCommand(game, 0, "-dev fighter 3 nobody"), "dev: fighter refused");
-  assertEquals(applySetupCommand(game, 0, "-dev fighter 5 archer"), "dev: fighter refused");
+  assertEquals(applySetupCommand(game, 0, "-dev fighter 5 rifleman"), "dev: fighter refused");
 });

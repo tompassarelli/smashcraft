@@ -1,6 +1,6 @@
 // The native bot session's selection (scripts/wisp/botMatch.ts BOT_FOUR):
 // players A and B on journal helpers, a computer Illidan in C and a computer
-// Archer in D, through fighter and stage selection on the integrity build.
+// Rifleman in D, through fighter and stage selection on the integrity build.
 // Stepping back from Random Stage wraps to Sky Deck, a stage with fewer
 // decks than the arena still draws until the match starts.
 import { afterAll, expect } from "bun:test";

@@ -63,5 +63,5 @@ test("only entering or leaving one of the nine pain poses blends [spec #181]", (
     assertEquals(poseBlendFrames(f, outside, outsideToo), 0);
     assertEquals(poseBlendFrames(f, pain, pain), 0);
   }
-  assertTrue(!isContactPainClip(Character.archer, -1));
+  assertTrue(!isContactPainClip(Character.rifleman, -1));
 });

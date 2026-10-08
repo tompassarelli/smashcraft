@@ -11,7 +11,8 @@ import { multiplyFloat32 } from "wisp/src/sim/binary32";
 import { AttackStyle, Character, ContactKind, DownState } from "./codes";
 import { isTumbling } from "./conditions";
 import { collectDamageContact } from "./contacts";
-import { type Fighter, createFighter } from "./fighter";
+import { type Fighter,  } from "./fighter";
+import { createReferenceFighter } from "./referenceRig";
 import { type HitEffect, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "./hitRegions";
 import { ordinaryHitKnockback } from "./knockback";
 import { attackStartupFrames } from "./moves";
@@ -23,7 +24,7 @@ const MELEE_HITSTUN_PER_KNOCKBACK = 0.4000000059604645;
 const MELEE_TUMBLE_LEVEL = 32.0;
 const PERCENTS = [10.0, 50.0, 100.0] as const;
 /** Each fighter attacks the next one. */
-const MATCHUPS = [[Character.archer, Character.rifleman], [Character.rifleman, Character.demonHunter], [Character.demonHunter, Character.archer]] as const;
+const MATCHUPS = [[Character.sylvanas, Character.rifleman], [Character.rifleman, Character.demonHunter], [Character.demonHunter, Character.sylvanas]] as const;
 const LANDING_LIMIT_FRAMES = 600;
 
 interface Landing {
@@ -36,8 +37,8 @@ interface Landing {
 /** A target 500 units inside the deck, launched toward its middle. */
 function hitTarget(attackerCharacter: Character, targetCharacter: Character, effect: Readonly<HitEffect>, percent: number, airborne: boolean): { world: Roster; target: Fighter } {
   const facing = effect.launchX < 0 ? -1 : 1;
-  const attacker = createFighter(attackerCharacter, -facing * 560.0, facing);
-  const target = createFighter(targetCharacter, -facing * 500.0, -facing);
+  const attacker = createReferenceFighter(attackerCharacter, -facing * 560.0, facing);
+  const target = createReferenceFighter(targetCharacter, -facing * 500.0, -facing);
   target.status.damage = percent;
   if (airborne) {
     target.motion.grounded = false;

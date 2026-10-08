@@ -13,7 +13,7 @@ for (const character of SELECTABLE_CHARACTERS) {
   // #208 measures the original thirteen-fighter field.
   if (character > Character.lichKing) continue;
   test(`${fighterName(character)} down throw gives floor defense at 20/40/60 percent [spec #208]`, () => {
-    for (const victim of [Character.archer, Character.rifleman, Character.pitLord]) {
+    for (const victim of [Character.demonHunter, Character.rifleman, Character.pitLord]) {
       for (const percent of [20.0, 40.0, 60.0]) {
         for (const facing of [-1, 1]) {
           for (const defense of ["tech", "toward", "away", "getup", "getupRoll", "getupAttack"] as const) {

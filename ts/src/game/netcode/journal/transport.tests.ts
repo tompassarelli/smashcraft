@@ -166,7 +166,7 @@ interface Message {
 function match(computerSlotOne: boolean): MatchState {
   const game = createMatchState();
   setParticipants(game, 0b11, 0);
-  selectCharacter(game, 0, Character.archer);
+  selectCharacter(game, 0, Character.rifleman);
   selectCharacter(game, 1, Character.rifleman);
   if (computerSlotOne) assertTrue(cycleSlotMode(game, 1, 1));
   assertTrue(requestStageSelect(game, 0));
@@ -181,7 +181,7 @@ function world(source: Readonly<MatchState>): ReplayState {
   copyMatchState(game, source);
   const roster = createRoster(fighterMask(game));
   for (const slot of PARTICIPANT_SLOTS) {
-    if (fighterActive(game, slot)) roster.fighters[slot] = createFighter(slot === 0 ? Character.archer : Character.rifleman, matchSpawnX(slot), slot === 0 ? 1 : -1);
+    if (fighterActive(game, slot)) roster.fighters[slot] = createFighter(slot === 0 ? Character.rifleman : Character.rifleman, matchSpawnX(slot), slot === 0 ? 1 : -1);
   }
   initializeMatchFighters(game, roster);
   return { world: roster, match: game, controls: createFrameControls(), runtime: createPacingAndPresentation() };

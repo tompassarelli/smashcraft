@@ -24,7 +24,7 @@ function journal(events: ImpactEvents, fighter: Readonly<Fighter>, change: () =>
 }
 
 test("impact cues tell a tech, a missed tech and an ordinary landing apart [spec docs/design/melee/hit-effects.md]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createFighter(Character.rifleman, 0.0, 1);
   const events = createImpactEvents();
   for (const state of [DownState.tech, DownState.techRoll]) {
     fighter.down.state = DownState.tumble;
@@ -46,7 +46,7 @@ test("impact cues tell a tech, a missed tech and an ordinary landing apart [spec
 });
 
 test("a hit flash does not repeat through hitlag or on a KO [spec docs/design/melee/hit-effects.md]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createFighter(Character.rifleman, 0.0, 1);
   const attacker = createFighter(Character.rifleman, -100.0, 1);
   const world = testWorld(attacker, fighter);
   const events = createImpactEvents();
@@ -63,7 +63,7 @@ test("a hit flash does not repeat through hitlag or on a KO [spec docs/design/me
 
 test("contact cues tell ordinary, electric and blocked hits apart [spec docs/design/melee/hit-effects.md]", () => {
   for (let mode = 0; mode <= 2; mode++) {
-    const attacker = createFighter(Character.archer, -100.0, 1);
+    const attacker = createFighter(Character.rifleman, -100.0, 1);
     const fighter = createFighter(Character.rifleman, 0.0, -1);
     const world = testWorld(attacker, fighter);
     const events = createImpactEvents();
@@ -115,7 +115,7 @@ test("a shield reaction restarts only on a new contact [spec docs/design/melee/h
 
 test("a grab cue needs an accepted capture and a throw cue the release contact [spec docs/design/melee/hit-effects.md]", () => {
   for (let rejected = 0; rejected <= 1; rejected++) {
-    const owner = createFighter(Character.archer, 0.0, 1);
+    const owner = createFighter(Character.rifleman, 0.0, 1);
     const target = createFighter(Character.rifleman, 90.0, -1);
     const world = testWorld(owner, target);
     const ownerInput = neutralControls();
@@ -152,7 +152,7 @@ test("a grab cue needs an accepted capture and a throw cue the release contact [
 
 test("a grab escape and an interrupted throw raise no release cue [spec docs/design/melee/hit-effects.md]", () => {
   for (let interrupted = 0; interrupted <= 1; interrupted++) {
-    const owner = createFighter(Character.archer, 0.0, 1);
+    const owner = createFighter(Character.rifleman, 0.0, 1);
     const target = createFighter(Character.rifleman, 90.0, -1);
     const world = testWorld(owner, target);
     const ownerInput = neutralControls();
@@ -181,7 +181,7 @@ test("a grab escape and an interrupted throw raise no release cue [spec docs/des
 
 test("ledge cues follow an accepted catch and its options, at the actual lip [spec docs/design/melee/hit-effects.md]", () => {
   for (let option = 0; option <= 4; option++) {
-    const fighter = createFighter(Character.archer, -620.0, 1);
+    const fighter = createFighter(Character.rifleman, -620.0, 1);
     const other = createFighter(Character.rifleman, 0.0, 1);
     const input = neutralControls();
     const controls = [input, neutralControls()];

@@ -13,7 +13,7 @@ import { actionFor, decodeBindings, encodeBindings, presetBindings, rebind } fro
 import { commitEdges, keyboardCapture, sampleKeys } from "./keyboardCapture";
 import { heldActions, playerKeys, pressKey } from "./playerKeys";
 
-function fixture(character: Character = Character.archer, graceFrames = 0) {
+function fixture(character: Character = Character.rifleman, graceFrames = 0) {
   const fighter = createFighter(character, 0, 1);
   const input = neutralControls();
   const attacks = attackBuffer(graceFrames);
@@ -27,7 +27,7 @@ function fixture(character: Character = Character.archer, graceFrames = 0) {
 }
 
 test("Z hold lengths match quick-release jump height and takeoff frame, even with jump held [spec #321]", () => {
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+  for (const character of [Character.rifleman, Character.demonHunter]) {
     for (const jumpHeld of [false, true]) {
     for (const hold of [1, 3, 10, 60]) {
       const reference = fixture(character);

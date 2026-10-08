@@ -132,8 +132,6 @@ test("every hero spell projectile marks its collision centre on every live frame
 
 test("the original fighters' missiles mark their live collision centre every frame [spec docs/disjoint-legibility.md]", () => {
   const cases = [
-    { character: Character.archer, kind: ProjectileKind.arrow },
-    { character: Character.archer, kind: ProjectileKind.homingArrow },
     { character: Character.rifleman, kind: ProjectileKind.blaster },
     { character: Character.rifleman, kind: ProjectileKind.recoil },
     { character: Character.demonHunter, kind: ProjectileKind.manaBurn },
