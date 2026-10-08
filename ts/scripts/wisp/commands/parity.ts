@@ -2,6 +2,7 @@
 // its capture and result through the real helper into headless clients.
 // Capture and reconciliation call the harness APIs directly so they remain
 // part of Wisp's traced Effect program.
+import { BunServices } from "@effect/platform-bun";
 import { Effect, Schema } from "effect";
 import { runNumericParity } from "../../numericParity";
 import { luaRuntimes } from "../luaRuntimes";
@@ -42,10 +43,10 @@ export const parity: Command = ([mode, ...args]) => {
         : luaRuntimes.pipe(Effect.map(({ nearest, towardZero }) => [["stock Lua32", nearest], ["toward-zero Lua32", towardZero]]));
       return luas.pipe(
         Effect.mapError((cause) => new IntegrityFailure({ operation: "find the 32-bit Luas", path: "LUA, TOWARD_ZERO_LUA", cause })),
-        Effect.flatMap((runtimes) => Effect.tryPromise({
-          try: () => runNumericParity(args, runtimes),
-          catch: (cause) => new IntegrityFailure({ operation: "run numeric parity", path: "TypeScriptToLua/Lua", cause: describeCause(cause) }),
-        })),
+        Effect.flatMap((runtimes) => runNumericParity(args, runtimes).pipe(
+          Effect.mapError((failure) => new IntegrityFailure({ operation: "run numeric parity", path: "TypeScriptToLua/Lua", cause: failure.message })),
+          Effect.provide(BunServices.layer),
+        )),
         Effect.flatMap((passed) => passed
           ? Effect.void
           : Effect.fail(new IntegrityFailure({ operation: "run numeric parity", path: "TypeScriptToLua/Lua", cause: "the numeric corpus was empty or had mismatches" }))),

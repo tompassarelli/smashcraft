@@ -12,7 +12,6 @@ const notYetEffect = [
   "scripts/compiler-benchmark.ts",
   "scripts/cpuCalibration.ts",
   "scripts/integrity/padScheduleWorker.ts",
-  "scripts/numericParity.ts",
   "scripts/test.ts",
   "scripts/typecheck-benchmark.ts",
   "scripts/unused-code.ts",

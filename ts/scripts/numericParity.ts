@@ -1,6 +1,9 @@
 // Numeric Lua parity implementation used by the Wisp parity command.
+import { Effect, Schema } from "effect";
+import { ChildProcess } from "effect/process";
 import { evaluateCase } from "../src/parity/corpus";
 import { at } from "wisp/src/runtime/lookup";
+import { runProcess } from "./hostProcess";
 
 // Lua's %a hex floats are exact: [-]0xH.HHHp[+-]D.
 function parseHexFloat(text: string): number {
@@ -55,23 +58,36 @@ function compareOutput(name: string, output: string): boolean {
   return cases > 0 && mismatches === 0;
 }
 
+/** A corpus step that couldn't run: an unreadable result file, or TypeScriptToLua or a Lua that failed. */
+export class NumericParityFailure extends Schema.TaggedError<NumericParityFailure>()("NumericParityFailure", {
+  operation: Schema.String,
+  problem: Schema.String,
+}) {
+  override get message(): string {
+    return `${this.operation}: ${this.problem}`;
+  }
+}
+
 /**
  * Runs the emitted Lua corpus in each named Lua, or reads the supplied native
- * result files, against Bun; returns false for an empty or divergent result.
+ * result files, against Bun; succeeds with false for an empty or divergent result.
  */
-export async function runNumericParity(supplied: readonly string[], luas: readonly (readonly [name: string, executable: string])[]): Promise<boolean> {
+export const runNumericParity = (supplied: readonly string[], luas: readonly (readonly [name: string, executable: string])[]) => Effect.gen(function*() {
   if (supplied.length > 0) {
-    const texts = await Promise.all(supplied.map((path) => Bun.file(path).text()));
+    const texts = yield* Effect.tryPromise({
+      try: () => Promise.all(supplied.map((path) => Bun.file(path).text())),
+      catch: (cause) => new NumericParityFailure({ operation: "read native results", problem: String(cause) }),
+    });
     // Preload files wrap each line as: call Preload( "..." )
     return compareOutput("native", texts.join("\n").replace(/call Preload\( "([^"]*)" \)/g, "$1"));
   }
-  const compile = Bun.spawnSync([process.execPath, "--bun", "node_modules/typescript-to-lua/dist/tstl.js", "-p", "tsconfig.lua.json"], { stdout: "inherit", stderr: "inherit" });
-  if (compile.exitCode !== 0) throw new Error("TypeScriptToLua failed");
+  yield* runProcess(ChildProcess.make(process.execPath, ["--bun", "node_modules/typescript-to-lua/dist/tstl.js", "-p", "tsconfig.lua.json"], { stdout: "inherit", stderr: "inherit" })).pipe(
+    Effect.mapError((failure) => new NumericParityFailure({ operation: "TypeScriptToLua", problem: failure.message })));
   let passed = true;
   for (const [name, executable] of luas) {
-    const run = Bun.spawnSync([executable, "build/parity.lua"], { stderr: "inherit" });
-    if (run.exitCode !== 0) throw new Error(`${name} run failed`);
-    if (!compareOutput(name, run.stdout.toString())) passed = false;
+    const output = yield* runProcess(ChildProcess.make(executable, ["build/parity.lua"], { stderr: "inherit" })).pipe(
+      Effect.mapError((failure) => new NumericParityFailure({ operation: `${name} run`, problem: failure.message })));
+    if (!compareOutput(name, output)) passed = false;
   }
   return passed;
-}
+});
