@@ -3,6 +3,7 @@ import { unlink } from 'node:fs/promises';
 import { Effect } from 'effect';
 import { encodeVerified, fighters, hash, parseSource, tracks } from './original-clips';
 import { timelineBody } from './timeline-body';
+import { checkTimelineGeosets } from './timeline-geosets';
 import { thinKeys } from '../../ts/scripts/keyThin';
 import { flashableSequences } from './white-flash-keys';
 import { modelFacts } from '../../ts/node_modules/wisp/scripts/wisp/models';
@@ -21,6 +22,8 @@ await Effect.runPromise(Effect.tryPromise({ try: async () => {
     const source = thinKeys(parseSource(await Bun.file(join(assets, fighter.source)).arrayBuffer())).model;
     const played = flashableSequences([...fighters].find(([, item]) => item === fighter)![0], source.Sequences);
     const bytes = encodeVerified(timelineBody(source, played));
+    const geosets = checkTimelineGeosets(source, parseSource(bytes), played);
+    console.log(`TIMELINE_GEOSETS_PASS ${fighter.name}: ${JSON.stringify(geosets)}`);
     tracks(parseSource(bytes), (track, path) => {
         if (track.Keys.length === 0) throw new Error(`${fighter.name}: timeline body left ${path} without keys`);
     });

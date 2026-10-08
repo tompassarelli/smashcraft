@@ -218,6 +218,9 @@ code. From smashcraft:ts/:
   `bun tools/animations/pain-captures.ts PRIVATE_OUTPUT [FIRST_FIGHTER_SLUG]` plays accepted hits through
   the Wisp map, checks held hitstun and recovery, validates the bound pain models,
   and renders interruption, entry, held and recovery frames for the remaining roster.
+  `bun tools/animations/stand-captures.ts PRIVATE_OUTPUT` checks each selectable
+  fighter's shipped timeline against its source geosets at every Stand/move frame
+  and renders both-facing Stand frames in Classic and Definitive.
   `bun tools/animations/grab-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT [--character ID]` appends
   coordinated expansion-hero reach, hold, pummel and four-direction holder/victim
   gestures or reauthors their existing indices. `--character` limits reauthoring

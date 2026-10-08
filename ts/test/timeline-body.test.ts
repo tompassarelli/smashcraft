@@ -26,6 +26,27 @@ import { timelineBody } from '../../tools/animations/timeline-body';
 import { originalBodyClip } from '../../tools/animations/original-clips';
 import { stageSkyMdl } from '../scripts/stageSky';
 import { DrawnModel } from '../scripts/wisp/hurtboxView';
+import { checkTimelineGeosets } from '../../tools/animations/timeline-geosets';
+
+test('the timeline geoset check catches missing and hidden parts while respecting the source form visibility [repro #328]', () => {
+    const source = parseMDL(stageSkyMdl('test.tga'));
+    const stand = source.Sequences[0];
+    if (stand === undefined) throw new Error('Missing fixture Stand');
+    stand.Interval = new Uint32Array([0, 100]);
+    source.Sequences.push({ ...stand, Name: 'Morph', Interval: new Uint32Array([200, 300]) });
+    source.GeosetAnims = [{ GeosetId: 0, Alpha: { LineType: mdx.LineType.DontInterp, GlobalSeqId: null, Keys: [
+        { Frame: 0, Vector: new Float32Array([1]) }, { Frame: 100, Vector: new Float32Array([1]) },
+        { Frame: 200, Vector: new Float32Array([0]) }, { Frame: 300, Vector: new Float32Array([0]) },
+    ] }, Color: new Float32Array([1, 1, 1]), Flags: 0 }];
+    const body = timelineBody(source, source.Sequences);
+    expect(checkTimelineGeosets(source, body, source.Sequences).samples).toBeGreaterThan(0);
+    const missing = structuredClone(body); missing.Geosets = [];
+    expect(() => checkTimelineGeosets(source, missing, source.Sequences)).toThrow('missing or changed');
+    const hidden = structuredClone(body); hidden.GeosetAnims[0].Alpha = 0;
+    expect(() => checkTimelineGeosets(source, hidden, source.Sequences)).toThrow('is hidden');
+    const invisibleMaterial = structuredClone(body); invisibleMaterial.Materials[0].Layers[0].Alpha = 0;
+    expect(() => checkTimelineGeosets(source, invisibleMaterial, source.Sequences)).toThrow('is hidden');
+});
 
 test('timeline bodies remove empty global-clock tracks that crash Warcraft on load [repro #284]', () => {
     const source = parseMDL(stageSkyMdl('test.tga'));
