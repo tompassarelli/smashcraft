@@ -746,7 +746,7 @@ particle emitters. Wait 13 seconds before capturing the mask: the stage snow's
 longest authored particle lifetime is 12 seconds. Restore with
 `-dev backdrop on`; switch only the light while the fighters stay paused.
 Use one mask for the stock/stage pair, keeping sky, fog, camera and pose fixed.
-An actual Classic and Reforged draw is needed for the asset fallback claim.
+An actual Classic and Definitive draw is needed for the asset fallback claim.
 
 ### 3.0.1 headless comparison reference
 
@@ -758,14 +758,19 @@ the earlier `view off` comparisons. `--look day-night-light,fog,sky` records
 the levers being measured; the native profile's shadows, water and HD
 post-processing remain outside this headless reference.
 
-Hellfire's complete reference, measured with `tools/stage/contrast.ts`:
+Hellfire's complete reference for both clients, measured with
+`tools/stage/contrast.ts`:
 
-| Mode / view | Stock \|ΔL\| / ΔE00 | Stage \|ΔL\| / ΔE00 | Neither falls |
+| Mode / view / client | Stock \|ΔL\| / ΔE00 | Stage \|ΔL\| / ΔE00 | Neither falls at reported precision |
 | --- | --- | --- | --- |
-| Classic / near | 5.4 / 9.4 | 5.6 / 9.3 | no |
-| Classic / far | 5.3 / 8.6 | 6.1 / 8.2 | no |
-| Definitive / near | 5.2 / 7.6 | 6.2 / 7.4 | no |
-| Definitive / far | 4.5 / 3.9 | 5.3 / 4.0 | yes |
+| Classic / near / 0 | 5.4 / 9.4 | 5.6 / 9.3 | no |
+| Classic / far / 0 | 5.3 / 8.6 | 6.1 / 8.2 | no |
+| Definitive / near / 0 | 5.2 / 7.6 | 6.2 / 7.4 | no |
+| Definitive / far / 0 | 4.5 / 3.9 | 5.3 / 4.0 | yes |
+| Classic / near / 1 | 4.7 / 9.8 | 5.0 / 9.8 | yes |
+| Classic / far / 1 | 5.5 / 8.1 | 6.6 / 8.5 | yes |
+| Definitive / near / 1 | 5.2 / 7.2 | 6.3 / 7.0 | no |
+| Definitive / far / 1 | 4.3 / 2.7 | 4.3 / 2.7 | yes |
 
 The failed rows require a lighting adjustment before claiming a contrast
 pass. They do not replace #287's full native capture-profile baseline.
