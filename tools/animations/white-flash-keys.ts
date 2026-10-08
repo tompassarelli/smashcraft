@@ -1,12 +1,11 @@
 import { model as mdx } from "../../ts/scripts/clipNodes";
 import { isDeepStrictEqual } from "node:util";
-import { characterClips, namedClips } from "../../ts/src/game/presentation/fighterClips";
+import { characterClips, illidanSmashClips, namedClips, specialClip } from "../../ts/src/game/presentation/fighterClips";
 import { contactDamageClips } from "../../ts/src/game/presentation/damagePose";
 import { heroDefinition } from "../../ts/src/game/sim/heroes/registry";
-import * as original from "../../ts/src/game/presentation/fighterAssetInfo";
 import * as illidan from "../../ts/src/game/presentation/demonHunterAssetInfo";
 import { DREADLORD_POUNCE_CLIPS } from "../../ts/src/game/presentation/dreadlordPounceClipInfo";
-import { Character } from "../../ts/src/game/sim/codes";
+import { AttackStyle, Character, SpecialAction } from "../../ts/src/game/sim/codes";
 import { onGlobalClock } from "./original-clips";
 import { originalClipNamed } from "../../ts/src/game/assets/fighterOriginalClipInfo";
 
@@ -16,14 +15,45 @@ export function flashableSequences(character: number, sequences: readonly mdx.Se
   for (const clip of contactDamageClips(character) ?? []) indices.add(clip.index);
   const fallback = heroDefinition(character)?.presentation.fallback;
   if (fallback !== undefined) indices.add(fallback.index);
-  for (const name of ["stand", "stand ready", "stand hit", "walk"]) {
+  for (const name of character === Character.demonHunter ? ["stand", "stand ready", "stand hit"] : ["stand", "stand ready", "stand hit", "walk"]) {
     const index = originalClipNamed(character, name);
     if (index !== undefined) indices.add(index);
   }
-  const prefix = character === Character.archer ? "ARCHER_" : character === Character.rifleman ? "RIFLEMAN_" : "DEMON_HUNTER_";
   if (character <= Character.demonHunter) {
-    for (const [name, index] of Object.entries(character === Character.demonHunter ? illidan : original)) {
-      if (name.startsWith(prefix) && name.endsWith("_INDEX") && typeof index === "number" && !name.includes("_KO_")) indices.add(index);
+    const actions = character === Character.archer
+      ? [SpecialAction.archerArrow, SpecialAction.archerHomingArrow, SpecialAction.archerDisengage, SpecialAction.archerRecovery]
+      : character === Character.rifleman
+        ? [SpecialAction.riflemanBlaster, SpecialAction.riflemanBear, SpecialAction.riflemanTrap, SpecialAction.riflemanRecovery]
+        : [SpecialAction.demonHunterManaBurn, SpecialAction.demonHunterFelRush, SpecialAction.demonHunterWingAscent, SpecialAction.demonHunterImmolate];
+    for (const action of actions) for (const grounded of [false, true]) {
+      indices.add(specialClip(character, action, grounded, !grounded).index);
+    }
+    if (character !== Character.demonHunter) {
+      const attack = originalClipNamed(character, "attack");
+      if (attack !== undefined) indices.add(attack);
+    } else {
+      // fighterPose selects these outside the combined clip table, including KO.
+      for (const index of [
+        illidan.DEMON_HUNTER_KO_INDEX, illidan.DEMON_HUNTER_LEDGE_CATCH_INDEX,
+        illidan.DEMON_HUNTER_SHIELD_BREAK_INDEX, illidan.DEMON_HUNTER_DOWN_WAIT_INDEX,
+        illidan.DEMON_HUNTER_GRAB_ESCAPE_INDEX, illidan.DEMON_HUNTER_AIR_DODGE_INDEX,
+        illidan.DEMON_HUNTER_JUMP_SQUAT_INDEX, illidan.DEMON_HUNTER_LAND_INDEX,
+        illidan.DEMON_HUNTER_LAND_SPECIAL_INDEX, illidan.DEMON_HUNTER_SHIELD_RAISE_INDEX,
+        illidan.DEMON_HUNTER_SHIELD_HOLD_INDEX, illidan.DEMON_HUNTER_SHIELD_RELEASE_INDEX,
+        illidan.DEMON_HUNTER_RESPAWN_INDEX, illidan.DEMON_HUNTER_LEDGE_JUMP_INDEX,
+        illidan.DEMON_HUNTER_TECH_NEUTRAL_INDEX, illidan.DEMON_HUNTER_TECH_FORWARD_INDEX,
+        illidan.DEMON_HUNTER_TECH_BACK_INDEX, illidan.DEMON_HUNTER_GET_UP_ROLL_FORWARD_INDEX,
+        illidan.DEMON_HUNTER_GET_UP_ROLL_BACK_INDEX, illidan.DEMON_HUNTER_WALK_FORWARD_INDEX,
+        illidan.DEMON_HUNTER_RUN_FORWARD_INDEX, illidan.DEMON_HUNTER_INITIAL_DASH_BURST_INDEX,
+        illidan.DEMON_HUNTER_TURNAROUND_INDEX, illidan.DEMON_HUNTER_STOP_INDEX,
+        illidan.DEMON_HUNTER_CROUCH_INDEX, illidan.DEMON_HUNTER_FAST_FALL_INDEX,
+        illidan.DEMON_HUNTER_FALL_INDEX, illidan.DEMON_HUNTER_COMBAT_IDLE_INDEX,
+      ]) indices.add(index);
+      for (const style of [AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.downSmash]) {
+        const clips = illidanSmashClips(style);
+        indices.add(clips.charge.index);
+        indices.add(clips.release.index);
+      }
     }
   }
   if (character === Character.dreadlord) for (const clip of Object.values(DREADLORD_POUNCE_CLIPS)) indices.add(clip.index);
