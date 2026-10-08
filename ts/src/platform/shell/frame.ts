@@ -153,10 +153,10 @@ export function applyFrame(s: ShellState, recorded = false): void {
       ? (sound, volume, pitch) => traceInput(s.trace, `participant ${slot} frame ${runtime.simulationFrame} sound ${sound} volume ${volume} pitch ${canonicalReal(pitch)}`)
       : undefined);
     ui.combat.confirmContacts(runtime.simulationFrame, runtime.frameImpacts[slot]);
+    ui.placed.presentConfirmed(runtime.simulationFrame, fighter, slot);
     if (!held) {
       renderFighter(s, slot, runtime.poses[slot], participant.before.out);
       ui.special.presentConfirmedAnimated(runtime.simulationFrame, fighter, slot);
-      ui.placed.presentConfirmed(runtime.simulationFrame, fighter, slot);
     }
   }
   const cues = ui.match.presentConfirmed(s.game, world);
