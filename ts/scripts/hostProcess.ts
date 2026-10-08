@@ -3,6 +3,18 @@
 import { Effect, Schema, Stream } from "effect";
 import type { ChildProcess } from "effect/process";
 
+/** Resume a stopped child so cancellation also reaps a producer paused for a cut. */
+export const stopBunProcess = (child: Pick<Bun.Subprocess, "exitCode" | "kill" | "exited">) => Effect.gen(function*() {
+  if (child.exitCode !== null) return;
+  child.kill("SIGCONT");
+  child.kill("SIGINT");
+  const stopped = yield* Effect.promise(() => child.exited).pipe(Effect.timeoutOption("1 second"));
+  if (stopped._tag === "None") {
+    child.kill("SIGKILL");
+    yield* Effect.promise(() => child.exited);
+  }
+});
+
 /** Bun's rusage includes waited-for children; the platform handle has no rusage. */
 export const runMeasuredProcess = (command: readonly string[], cwd: string, env: Record<string, string | undefined>) =>
   Effect.acquireUseRelease(
@@ -14,15 +26,7 @@ export const runMeasuredProcess = (command: readonly string[], cwd: string, env:
       const usage = child.resourceUsage()?.cpuTime;
       return { code, cpu: usage === undefined ? 0 : (Number(usage.user) + Number(usage.system)) / 1e6 };
     })),
-    (child) => Effect.gen(function*() {
-      if (child.exitCode !== null) return;
-      child.kill("SIGINT");
-      const stopped = yield* Effect.promise(() => child.exited).pipe(Effect.timeoutOption("1 second"));
-      if (stopped._tag === "None") {
-        child.kill("SIGKILL");
-        yield* Effect.promise(() => child.exited);
-      }
-    }),
+    stopBunProcess,
   );
 
 /** A program that couldn't start, was killed, or exited nonzero. */
@@ -34,6 +38,27 @@ export class ProcessFailure extends Schema.TaggedError<ProcessFailure>()("Proces
     return `${this.command} ${this.problem}`;
   }
 }
+
+/** A line-fed producer stays owned while its input is written and outputs are collected. */
+export const startInputProcess = (command: readonly string[], options: {
+  readonly env: Record<string, string | undefined>;
+  readonly stdout?: string;
+  readonly stderr: string;
+}) => Effect.acquireRelease(
+  Effect.try({
+    try: () => Bun.spawn([...command], {
+      env: options.env, stdin: "pipe", stdout: options.stdout === undefined ? "ignore" : Bun.file(options.stdout), stderr: Bun.file(options.stderr),
+    }),
+    catch: cause => new ProcessFailure({ command: command[0] ?? "", problem: `could not start: ${String(cause)}` }),
+  }),
+  stopBunProcess,
+).pipe(Effect.map(child => ({
+  child,
+  write: (line: string) => Effect.tryPromise({
+    try: async () => { child.stdin.write(`${line}\n`); await child.stdin.flush(); },
+    catch: cause => new ProcessFailure({ command: command[0] ?? "", problem: `could not write input: ${String(cause)}` }),
+  }),
+})));
 
 /**
  * Runs `command` in its own scope and returns its trimmed stdout.
