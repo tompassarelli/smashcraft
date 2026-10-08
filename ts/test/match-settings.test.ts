@@ -5,7 +5,7 @@ import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel
 import { nextMatchSeed } from "../src/game/match/botRandom";
 import { randomStage } from "../src/game/menu/stageCatalog";
 
-import { Phase, stageClock } from "../src/game/match/rules";
+import { beginRematchCountdown, copyMatchState, createMatchState, Phase, requestStageSelect, requestStart, setParticipants, stageClock, tickRematchCountdown } from "../src/game/match/rules";
 import { HAZARDS_BUTTON } from "../src/game/ui/stageUi";
 import { stageAtRest } from "../src/game/sim/stage";
 
@@ -64,7 +64,34 @@ function session(endless = false, hazardsOff = false) {
   until("match", () => read(() => shell().game.phase) === Phase.match, 120);
   return { clients, frames, read, until };
 }
-test("rules agree on both clients and the last countdown frame starts the next seeded pool stage [spec #74] [invariant]", () => {
+test("the last rematch countdown frame starts the next seeded pool stage on both copies [spec #74] [invariant]", () => {
+  const first = createMatchState();
+  setParticipants(first, 1, 2);
+  first.characterReadiness[0] = true;
+  expect(requestStageSelect(first, 0)).toBe(true);
+  expect(requestStart(first, 0)).toBe(true);
+  first.automaticRematch = true;
+  first.matchFrame = 1;
+  first.phase = Phase.result;
+  beginRematchCountdown(first, 1);
+  const second = createMatchState();
+  copyMatchState(second, first);
+  const nextSeed = nextMatchSeed(first.matchSeed);
+  const nextStage = randomStage(nextSeed, first.stagePool.remainingMask);
+  const remainingMask = first.stagePool.remainingMask & ~(1 << nextStage);
+  for (const game of [first, second]) {
+    for (let frame = 0; frame < 59; frame++) expect(tickRematchCountdown(game)).toBe(false);
+    expect(game.phase).toBe(Phase.result);
+    expect(game.rematchCountdown).toBe(1);
+    expect(tickRematchCountdown(game)).toBe(true);
+    expect(game.phase).toBe(Phase.match);
+    expect(game.matchSeed).toBe(nextSeed);
+    expect(game.stageChoice).toBe(nextStage);
+    expect(game.stagePool.remainingMask).toBe(remainingMask);
+  }
+  expect(second).toEqual(first);
+});
+sweep("rules agree on both clients and the last countdown frame starts the next seeded pool stage [spec #74] [invariant]", () => {
   const { clients, frames, read, until } = session();
   const rules = () => [shell().game.characterChoices.join(), shell().game.stockCount, shell().game.timeLimitMinutes, shell().game.automaticRematch, shell().game.endless];
   const before = read(rules);
@@ -90,7 +117,7 @@ test("rules agree on both clients and the last countdown frame starts the next s
   expect(nextStage).not.toBe(previousStage);
   expect(read(() => shell().game.stagePool)).toEqual({ ...pool, remainingMask: pool.remainingMask & ~(1 << nextStage) });
   expectSynchronized(clients);
-});
+}, 30_000);
 // About 1.5 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
 sweep("either player's press cancels the automatic rematch [spec #74] [invariant]", () => {
   for (const actor of [0, 1]) {
