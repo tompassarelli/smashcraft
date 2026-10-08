@@ -12,6 +12,7 @@ import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, HeroStatusKind, HeroStatusGroup, SpecialAction } from "../codes";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
+import { createReferenceContactFighter } from "../referenceRig";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { advanceHeroStatus } from "../heroSpecialRules";
 import { ordinaryHitlagFrames } from "../knockback";
@@ -38,10 +39,10 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), strike?: A
   }
 }
 
-function pair(gap: number, opponent: Character = Character.rifleman): { world: Roster; owner: Fighter; target: Fighter } {
+function pair(gap: number, opponent: Character = Character.sylvanas): { world: Roster; owner: Fighter; target: Fighter } {
   const owner = createFighter(Character.forsakenPaladin, f32(-gap * 0.5), 1);
   owner.mana.points = 100;
-  const target = createFighter(opponent, f32(gap * 0.5), -1);
+  const target = opponent === Character.sylvanas ? createReferenceContactFighter(f32(gap * 0.5), -1) : createFighter(opponent, f32(gap * 0.5), -1);
   const world = createRoster(3, [owner, target]);
   for (let i = 0; i < 3; i++) frame(world);
   return { world, owner, target };

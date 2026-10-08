@@ -43,7 +43,7 @@ function keys(input: StandaloneInput): Set<number> {
  * Rifleman, Illidan and Warden, 99 stocks and a two-minute clock, so four
  * fighters stay on stage for the whole measurement.
  */
-const FOUR_FIGHTERS = ["-dev slots 1 14", "-dev fighter 2 Rifleman", "-dev fighter 3 Illidan", "-dev fighter 4 Warden", "-dev time 2"];
+const FOUR_FIGHTERS = ["-dev slots 1 14", "-dev fighter 1 Illidan", "-dev fighter 2 Rifleman", "-dev fighter 3 Illidan", "-dev fighter 4 Warden", "-dev time 2"];
 const FOUR_FIGHTER_STOCKS = 99;
 
 /** One map callback per step; scripts share the native driver's exact pad rows. */

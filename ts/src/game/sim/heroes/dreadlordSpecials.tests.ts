@@ -9,6 +9,7 @@ import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, HeroStatusKind, ProjectileKind, SpecialAction } from "../codes";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
+import { createReferenceContactFighter } from "../referenceRig";
 import { advanceGrabs, captureGrabPauses, resolveGrabs } from "../grabs";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { advanceHeroStatus } from "../heroSpecialRules";
@@ -44,10 +45,10 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   resolveGrabs(world);
 }
 
-function pair(gap: number, target = Character.rifleman): { world: Roster; owner: Fighter; victim: Fighter } {
+function pair(gap: number, target = Character.sylvanas): { world: Roster; owner: Fighter; victim: Fighter } {
   const owner = createFighter(Character.dreadlord, -gap * 0.5, 1);
   owner.mana.points = 100;
-  const victim = createFighter(target, gap * 0.5, -1);
+  const victim = target === Character.sylvanas ? createReferenceContactFighter(gap * 0.5, -1) : createFighter(target, gap * 0.5, -1);
   const world = createRoster(3, [owner, victim]);
   for (let i = 0; i < 3; i++) frame(world);
   return { world, owner, victim };

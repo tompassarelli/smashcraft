@@ -7,6 +7,7 @@ import { copyReplayState, createReplaySnapshot } from "../replay/snapshot";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character } from "./codes";
 import { type Fighter, createFighter } from "./fighter";
+import { createReferenceContactFighter } from "./referenceRig";
 import { f32 } from "wisp/src/sim/f32";
 import { hurtCapsule } from "../physics/contactGeometry";
 import { attackStartupFrames, characterAttackActiveFrames } from "./moves";
@@ -148,8 +149,8 @@ test("every shipped fighter's forward-smash arm is hit [spec docs/hurtboxes.md] 
 });
 
 test("a strike that reaches only an extended down-air leg counter-hits it, and a restored snapshot selects the same body [spec docs/gameplay-design.md] [invariant]", () => {
-  const attacker = createFighter(Character.rifleman, 0.0, 1);
-  const target = createFighter(Character.rifleman, 0.0, -1);
+  const attacker = createReferenceContactFighter(0.0, 1);
+  const target = createReferenceContactFighter(0.0, -1);
   attacker.motion.z = 0.0;
   target.motion.grounded = false;
   target.motion.z = 75.0;
@@ -160,12 +161,12 @@ test("a strike that reaches only an extended down-air leg counter-hits it, and a
   target.attack.frame = 0;
   resolveAttacks(world);
   const hitWhileStanding = target.status.damage;
-  const fresh = createFighter(Character.rifleman, 0.0, -1);
+  const fresh = createReferenceContactFighter(0.0, -1);
   fresh.motion.grounded = false;
   fresh.motion.z = 75.0;
   fresh.attack.style = AttackStyle.downAir;
   fresh.attack.frame = attackStartupFrames(AttackStyle.downAir);
-  const second = createFighter(Character.rifleman, 0.0, 1);
+  const second = createReferenceContactFighter(0.0, 1);
   const legsWorld = testWorld(second, fresh);
   testBeginAttacks(legsWorld, AttackStyle.jab, undefined);
   second.attack.frame = attackStartupFrames(AttackStyle.jab);
@@ -175,6 +176,8 @@ test("a strike that reaches only an extended down-air leg counter-hits it, and a
   const live = createReplaySnapshot();
   const saved = createReplaySnapshot();
   const f = fighterAt(live.world, 0);
+  f.character = Character.sylvanas;
+  f.tuning = createReferenceContactFighter(0.0, 1).tuning;
   f.attack.style = AttackStyle.downAir;
   f.attack.frame = attackStartupFrames(AttackStyle.downAir);
   const parts = fighterHurtParts(f);

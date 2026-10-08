@@ -4,6 +4,7 @@ import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GrabAction } from "../codes";
 import { attackPhase } from "../conditions";
 import { createFighter } from "../fighter";
+import { createReferenceContactFighter } from "../referenceRig";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { fighterHurtParts } from "../hurtboxes";
 import { SHARED_GRAB_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
@@ -31,7 +32,7 @@ function attackPair(style: AttackStyle, x: number, z = 0.0, facing = 1, targetGr
   const owner = createFighter(Character.rifleman, 0.0, facing);
   owner.tuning.moves = LICH_MOVES;
   owner.motion.grounded = !isAerialAttack(style);
-  const target = createFighter(Character.rifleman, f32(x * facing), -facing);
+  const target = createReferenceContactFighter(f32(x * facing), -facing);
   target.motion.z = z;
   target.motion.grounded = targetGrounded;
   const world = testWorld(owner, target);

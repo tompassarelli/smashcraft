@@ -4,6 +4,7 @@ import { hurtCapsule } from "../../physics/contactGeometry";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character } from "../codes";
 import { createFighter } from "../fighter";
+import { createReferenceContactFighter } from "../referenceRig";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
 import { HurtContact, strikeHurtContact } from "../hurtboxes";
 import { attackStartupFrames, characterAttackActiveFrames, isAerialAttack } from "../moves";
@@ -34,7 +35,7 @@ const NORMALS = [
 function pair(style: AttackStyle, frame: number, x: number, facing = 1) {
   const owner = createFighter(Character.pitLord, 0.0, facing);
   owner.motion.grounded = !isAerialAttack(style);
-  const target = createFighter(Character.rifleman, f32(x * facing), -facing);
+  const target = createReferenceContactFighter(f32(x * facing), -facing);
   target.motion.grounded = true;
   const world = testWorld(owner, target);
   beginFighterAttack(world, 0, style, false);

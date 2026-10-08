@@ -3,6 +3,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, GrabAction } from "../codes";
 import { type Fighter, createFighter } from "../fighter";
+import { createReferenceContactFighter } from "../referenceRig";
 import { SHARED_GRAB_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
 import { attackStartupFrames, characterAttackActiveFrames } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
@@ -56,7 +57,7 @@ function contact(style: AttackStyle, facing: number, x: number, z = 0.0, airborn
   const owner = fighter(facing);
   owner.motion.grounded = !airborneOwner;
   owner.motion.z = ownerZ;
-  const target = createFighter(Character.rifleman, f32(x * facing), -facing);
+  const target = createReferenceContactFighter(f32(x * facing), -facing);
   target.motion.z = z;
   target.motion.grounded = !airborneTarget;
   const world = testWorld(owner, target);
