@@ -8,7 +8,7 @@ export const WHITE_FIGHTER_MODELS: Readonly<Record<number, string>> = {
   "6": "war3mapImported\\LichWhite-7315d0afe11f8a7235711785a9918b08bb2623ab623365f4fa21a53dbe3c345d.mdx",
   "7": "war3mapImported\\ForsakenPaladinWhite-47300af24b7ed7c1b568d6676f227da01076ac9c434e59d2b9d931a9f789411e.mdx",
   "8": "war3mapImported\\DreadlordWhite-3235f558ac560625b6d16948ed45b709277e54908d3082b9fa465396563bbc0b.mdx",
-  "9": "war3mapImported\\ShadowHunterWhite-6babaf54b99ccec7fca04c384162c1d3e69ac609b1413bde6435d8961bcff6a0.mdx",
+  "9": "war3mapImported\\ShadowHunterWhite-44c1b3592e57efa1a4e78ffc62583540c6797c1b814ad2b6864d0346dd8d48af.mdx",
   "10": "war3mapImported\\PitLordWhite-9237e6ad85ea0cf77325da0e05e83d8f1d822f90f0112c551c9727229894f565.mdx",
   "11": "war3mapImported\\BeastmasterWhite-15b2d61c3beb00d5efcd19ff4b2c5d9f78c6701110a8be8f9c99dbaec85f9f2d.mdx",
   "12": "war3mapImported\\LichKingWhite-a16ceeed09605d40c93b3115bf29bb1dabe99127f4e1d4ffd1045f2c18af4ae0.mdx",

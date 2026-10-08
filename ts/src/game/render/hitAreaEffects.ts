@@ -1,5 +1,5 @@
 import { f32 } from "wisp/src/sim/f32";
-import { Character, SpecialAction } from "../sim/codes";
+import { AttackStyle, Character, SpecialAction } from "../sim/codes";
 import { createFighter, type Fighter } from "../sim/fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../sim/hitRegions";
 import { runningHeroSpecial } from "../sim/heroSpecialRules";
@@ -59,7 +59,9 @@ export class HitAreaEffects {
         const model = this.models[shown];
         if (model === undefined) break;
         this.parked[shown++] = false;
-        BlzSetSpecialEffectPosition(model, this.origin.x + pose.x, this.origin.y - 14.0, this.origin.z + pose.z);
+        // His low cut crosses below the floor; keep its held contact accent above it.
+        const drawnZ = normal && fighter.character === Character.shadowHunter && style === AttackStyle.downTilt ? Math.max(pose.z, fighter.motion.z + 12.0) : pose.z;
+        BlzSetSpecialEffectPosition(model, this.origin.x + pose.x, this.origin.y - 14.0, this.origin.z + drawnZ);
         BlzSetSpecialEffectYaw(model, facingYaw(fighter.facing));
         BlzSetSpecialEffectPitch(model, 0.0);
         const size = fighter.character === Character.lich ? f32(0.2) : 0.5;

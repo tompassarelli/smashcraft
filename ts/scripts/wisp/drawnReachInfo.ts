@@ -78,7 +78,7 @@ export const DRAWN_REACH: readonly { readonly character: number; readonly style:
   { character: 9, style: 9, model: "units\\orc\\HeroShadowHunter\\HeroShadowHunter.mdl", clip: 58, swing: 38.9, peakFrame: 8, firstActive: 8, lastActive: 9, forward: 76.8 },
   { character: 9, style: 10, model: "units\\orc\\HeroShadowHunter\\HeroShadowHunter.mdl", clip: 8, swing: 67.5, peakFrame: 8, firstActive: 8, lastActive: 9, forward: 79.0 },
   { character: 9, style: 7, model: "units\\orc\\HeroShadowHunter\\HeroShadowHunter.mdl", clip: 59, swing: 55.0, peakFrame: 8, firstActive: 6, lastActive: 10, forward: 68.5 },
-  { character: 9, style: 8, model: "units\\orc\\HeroShadowHunter\\HeroShadowHunter.mdl", clip: 3, swing: 124.0, peakFrame: 6, firstActive: 6, lastActive: 7, forward: 162.0 },
+  { character: 9, style: 8, model: "units\\orc\\HeroShadowHunter\\HeroShadowHunter.mdl", clip: 65, swing: 76.6, peakFrame: 8, firstActive: 6, lastActive: 7, forward: 143.3 },
   { character: 9, style: 19, model: "units\\orc\\HeroShadowHunter\\HeroShadowHunter.mdl", clip: 60, swing: 47.9, peakFrame: 10, firstActive: 7, lastActive: 15, forward: 112.8 },
   { character: 10, style: 0, model: "units\\demon\\HeroPitLord\\HeroPitLord.mdl", clip: 7, swing: 90.1, peakFrame: 6, firstActive: 6, lastActive: 8, forward: 222.6 },
   { character: 10, style: 20, model: "units\\demon\\HeroPitLord\\HeroPitLord.mdl", clip: 7, swing: 104.0, peakFrame: 7, firstActive: 7, lastActive: 9, forward: 244.0 },
