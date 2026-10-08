@@ -56,12 +56,25 @@ function observe(before: FrameObservation, fighter: Readonly<Fighter>): void {
 
 const bit = (value: boolean) => (value ? "1" : "0");
 
-/** Announcements and trace lines for what the frame changed. */
+/** Announcements and trace lines for what the frame changed; trace text is built only while tracing. */
 function reportChanges(s: ShellState, slot: ParticipantSlot, before: Readonly<FrameObservation>, f: Readonly<Fighter>): void {
-  if (s.trace.active && (before.shieldRaised !== f.shield.raised || before.shieldTiltX !== f.shield.tiltX || before.shieldTiltZ !== f.shield.tiltZ)) {
+  if (f.shield.breakSerial > before.shieldBreak) announce(s, `${fighterLabel(s.game, slot)}'s shield broke!`);
+  if (before.down !== f.down.state) {
+    if (f.down.state === DownState.tech) announce(s, "Tech!");
+    else if (f.down.state === DownState.techRoll) announce(s, "Tech roll!");
+  }
+  if (before.attack !== f.attack.serial) {
+    const name = f.attack.style !== undefined && isAerialAttack(f.attack.style) ? aerialName(f.attack.style) : undefined;
+    if (name !== undefined) announce(s, name);
+  }
+  if (s.trace.active) traceChanges(s, slot, before, f);
+}
+
+function traceChanges(s: ShellState, slot: ParticipantSlot, before: Readonly<FrameObservation>, f: Readonly<Fighter>): void {
+  if (before.shieldRaised !== f.shield.raised || before.shieldTiltX !== f.shield.tiltX || before.shieldTiltZ !== f.shield.tiltZ) {
     traceParticipant(s, slot, `shield tilt x ${R2S(f.shield.tiltX)} z ${R2S(f.shield.tiltZ)} raised ${bit(f.shield.raised)} grounded ${bit(f.motion.grounded)} roll ${f.dodge.groundFrame} jump ${f.jump.squat}`);
   }
-  if (s.trace.active && (before.ground !== f.ground.action || before.facing !== f.facing)) {
+  if (before.ground !== f.ground.action || before.facing !== f.facing) {
     traceParticipant(s, slot, `ground action ${f.ground.action} facing ${f.facing} dash-frame ${f.ground.dashFrame}`);
   }
   if (before.grab !== f.grab.action) traceParticipant(s, slot, `grab action ${f.grab.action} frame ${f.grab.frame} serial ${f.grab.serial}`);
@@ -73,30 +86,21 @@ function reportChanges(s: ShellState, slot: ParticipantSlot, before: Readonly<Fr
   }
   else if (before.form !== f.special.form) traceParticipant(s, slot, `special-form ${f.special.form} action ${f.special.action} action-frame ${f.special.frame} x ${R2S(f.motion.x)} z ${R2S(f.motion.z)}`);
   const actionable = canAttack(f);
-  if (s.trace.active && (f.down.state !== before.down || actionable !== before.actionable)) {
+  if (f.down.state !== before.down || actionable !== before.actionable) {
     traceParticipant(s, slot, `recovery down ${f.down.state} actionable ${bit(actionable)} hitlag ${f.launch.hitlag} hitstun ${f.launch.hitstun} damage ${R2S(f.status.damage)}`);
   }
-  if (f.shield.breakSerial > before.shieldBreak) announce(s, `${fighterLabel(s.game, slot)}'s shield broke!`);
   if (before.breakState !== f.shield.breakState) traceParticipant(s, slot, `shield-break ${f.shield.breakState} z ${R2S(f.motion.z)} remaining ${R2S(f.shield.breakRemaining)}`);
   if (before.ledge !== f.ledge.state) traceParticipant(s, slot, `ledge ${f.ledge.state} x ${R2S(f.motion.x)} z ${R2S(f.motion.z)}`);
   if (before.jump !== f.jump.serial) traceParticipant(s, slot, `applied jump ${f.jump.serial} double ${bit(f.jump.isDouble)} z ${R2S(f.motion.z)}`);
   if (before.damage !== f.status.damage) traceParticipant(s, slot, `damage ${R2S(f.status.damage)} hitlag ${f.launch.hitlag} hitstun ${f.launch.hitstun} height ${f.visuals.hitHeight} strength ${f.visuals.hitStrength} clip ${s.runtime.poses[slot].clipIndex ?? -1}`);
-  const influence = s.trace.active && before.di !== f.launch.diSerial ? influenceOperands(f) : undefined;
+  const influence = before.di !== f.launch.diSerial ? influenceOperands(f) : undefined;
   if (influence !== undefined) {
     // Exact x, z, stick x, stick z, degrees, radians and angle, so a replay can repeat the DI operation by operation.
     const { x, z, stickX, stickZ, degrees, angleRadians } = influence;
     const exact = [x, z, stickX, stickZ, degrees, angleRadians, f.launch.diAngleDegrees].map(value => canonicalReal(value)).join(" ");
     traceParticipant(s, slot, `di ${f.launch.diSerial} ${exact}`);
   }
-  if (before.down !== f.down.state) {
-    if (f.down.state === DownState.tech) announce(s, "Tech!");
-    else if (f.down.state === DownState.techRoll) announce(s, "Tech roll!");
-  }
-  if (before.attack !== f.attack.serial) {
-    traceParticipant(s, slot, `applied attack ${f.attack.serial} style ${f.attack.style ?? -1}`);
-    const name = f.attack.style !== undefined && isAerialAttack(f.attack.style) ? aerialName(f.attack.style) : undefined;
-    if (name !== undefined) announce(s, name);
-  }
+  if (before.attack !== f.attack.serial) traceParticipant(s, slot, `applied attack ${f.attack.serial} style ${f.attack.style ?? -1}`);
 }
 
 /**
