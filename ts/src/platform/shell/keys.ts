@@ -1,5 +1,6 @@
 import { cameraKey, returnPauseMenu, PAUSE_CAMERA_KEYS, pauseCameraKey } from "./pauseCamera";
 import { HIT_PRESENTATION_CASES } from "../../game/shell/hitPresentationCases";
+import { warcraftChatOpen } from "../editboxJournal";
 import { createImpactEvents } from "../../game/presentation/impactEvents";
 import { emitImpacts } from "../../game/presentation/impactState";
 // Synchronized key and chat events: menu keys, Start, settings capture,
@@ -139,6 +140,7 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
     return;
   }
   if (s.game.phase === Phase.match && s.session.paused) {
+    if (key === Key.enter && warcraftChatOpen()) return;
     if (GetTriggerPlayer() === GetLocalPlayer() && pauseCameraKey(key)) {
       if (s.rollback?.journal?.editbox === undefined || playsOnKeyboard(s.rollback.journal, slot)) cameraKey(s, key, true);
       return;

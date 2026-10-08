@@ -32,6 +32,11 @@ function chatEntry(gameUi: framehandle): framehandle | undefined {
   return found;
 }
 
+export function warcraftChatOpen(): boolean {
+  const chat = chatEntry(BlzGetOriginFrame(ORIGIN_FRAME_GAME_UI, 0));
+  return chat !== undefined && BlzFrameIsVisible(chat);
+}
+
 /**
  * The edit box the helper types into. Construct on every client after map
  * initialization: frames are shared handles, and the chat entry is found
