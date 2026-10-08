@@ -161,7 +161,7 @@ export const DRAWN_REACH: readonly { readonly character: number; readonly style:
   { character: 16, style: 19, model: "units\\orc\\HeroTaurenChieftain\\HeroTaurenChieftain.mdl", clip: 19, swing: 62.2, peakFrame: 15, firstActive: 15, lastActive: 19, forward: 79.3 },
   { character: 17, style: 0, model: "units\\creeps\\PandarenBrewmaster\\PandarenBrewmaster.mdl", clip: 11, swing: 72.2, peakFrame: 3, firstActive: 3, lastActive: 4, forward: 109.0 },
   { character: 17, style: 20, model: "units\\creeps\\PandarenBrewmaster\\PandarenBrewmaster.mdl", clip: 12, swing: 87.1, peakFrame: 3, firstActive: 4, lastActive: 5, forward: 132.8 },
-  { character: 17, style: 21, model: "units\\creeps\\PandarenBrewmaster\\PandarenBrewmaster.mdl", clip: 13, swing: 67.0, peakFrame: 6, firstActive: 6, lastActive: 8, forward: 111.5 },
+  { character: 17, style: 21, model: "units\\creeps\\PandarenBrewmaster\\PandarenBrewmaster.mdl", clip: 13, swing: 64.7, peakFrame: 9, firstActive: 6, lastActive: 8, forward: 111.5 },
   { character: 17, style: 6, model: "units\\creeps\\PandarenBrewmaster\\PandarenBrewmaster.mdl", clip: 14, swing: 94.6, peakFrame: 7, firstActive: 8, lastActive: 10, forward: 144.0 },
   { character: 17, style: 9, model: "units\\creeps\\PandarenBrewmaster\\PandarenBrewmaster.mdl", clip: 15, swing: 93.0, peakFrame: 8, firstActive: 8, lastActive: 10, forward: 148.6 },
   { character: 17, style: 10, model: "units\\creeps\\PandarenBrewmaster\\PandarenBrewmaster.mdl", clip: 16, swing: 89.6, peakFrame: 8, firstActive: 8, lastActive: 10, forward: 145.2 },
