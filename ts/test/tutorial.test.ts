@@ -45,6 +45,7 @@ const walk = (toward: number): InputRow => row({ held: side(toward) | bit(Action
 function pad(action: LessonAction, frame: number, player: Readonly<Fighter>, partner: Readonly<Fighter>): InputRow {
   const toward = partner.motion.x < player.motion.x ? -1 : 1;
   const distance = Math.abs(partner.motion.x - player.motion.x);
+  if (action !== LessonAction.ledge && player.ledge.state === LedgeState.hang) return row({ pressed: side(-player.ledge.side), released: side(-player.ledge.side) });
   switch (action) {
     case LessonAction.dash: {
       // A full stick flick from neutral, each way in turn.
@@ -71,8 +72,9 @@ function pad(action: LessonAction, frame: number, player: Readonly<Fighter>, par
     }
     case LessonAction.throw:
       if (player.grab.target !== undefined) return floorMod(frame, 10) === 0 ? row({ pressed: side(toward), released: side(toward) }) : NEUTRAL;
-      // A grab reaches where the player faces: turn first.
-      if (distance > 25.0 || player.facing !== toward) return walk(toward);
+      // A grab reaches where the player faces: turn first. Stop short of the partner's body, which a
+      // walk pushes (#338) and could shove off the edge; the grab box still reaches it (#337).
+      if (distance > 60.0 || player.facing !== toward) return walk(toward);
       return floorMod(frame, 20) === 0 ? row({ pressed: bit(Action.grab), released: bit(Action.grab) }) : NEUTRAL;
     case LessonAction.ledge: {
       // Walk to the left edge, face the stage, jump backward off it, drift back onto the ledge, jumping again if low.

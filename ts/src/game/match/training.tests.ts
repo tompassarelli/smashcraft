@@ -4,7 +4,8 @@ import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "
 import { f32 } from "wisp/src/sim/f32";
 import { clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
-import { AttackStyle, Character, DownState } from "../sim/codes";
+import { AttackStyle, Character, DownState, LedgeState } from "../sim/codes";
+import { snapToLedge } from "../sim/ledge";
 import { attackActive, attackStartup } from "../sim/conditions";
 import { createFighter } from "../sim/fighter";
 import { attackStartupFrames } from "../sim/moves";
@@ -119,6 +120,16 @@ test("partnerBehaviours [spec #120]", () => {
   const start = fight.partner.motion.x;
   for (let i = 0; i < 90; i++) fight.step();
   assertTrue(fight.partner.motion.x < start - 20.0 || fight.partner.attack.serial > 0);
+});
+
+test("the tutorial partner climbs back from a ledge so later lessons can reach it [repro #306]", () => {
+  for (const side of [-1, 1]) {
+    const match = trainingMatch(PartnerBehaviour.stand, 200.0);
+    match.game.trainer.lesson = 5;
+    assertTrue(snapToLedge(match.world, 1, 0, side));
+    match.until(() => match.partner.ledge.state === LedgeState.none && match.partner.motion.grounded, 60);
+    assertEquals(match.game.trainer.lessonCount, 0);
+  }
 });
 
 /** The stick the partner holds on its hitlag's last frame for each escape. */

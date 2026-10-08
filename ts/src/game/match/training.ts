@@ -8,7 +8,7 @@ import { type AttackBuffer, queueAttack } from "../input/attackBuffer";
 import type { Direction } from "../input/inputRow";
 import { PARTICIPANT_SLOTS, type Slots, participantActive } from "../input/participants";
 import { copyFighterState } from "../replay/fighterState";
-import { AttackStyle, Character, DownState, SpecialAction } from "../sim/codes";
+import { AttackStyle, Character, DownState, LedgeState, SpecialAction } from "../sim/codes";
 import { attackActive, attackStartup, canAttack, canShieldGrab, isTumbling } from "../sim/conditions";
 import { type Fighter, createFighter } from "../sim/fighter";
 import { type Controls, type Roster, createRoster, fighterAt, isActive, neutralControls } from "../sim/roster";
@@ -186,6 +186,11 @@ export function trainingPartnerInput(state: Readonly<TrainingState>, world: Rost
       const option = state.escape === PartnerEscape.random ? PartnerEscape.toward + botChoice(f.visuals.hit, slot * 5 + 2, 2) : state.escape;
       input.direction = option === PartnerEscape.toward ? towardAttacker(world, slot) : -towardAttacker(world, slot);
     }
+    return true;
+  }
+  if (state.lesson >= 0 && f.ledge.state === LedgeState.hang) {
+    input.getupDirectionPressed = true;
+    input.getupDirection = -f.ledge.side;
     return true;
   }
   if (isTumbling(f)) {
