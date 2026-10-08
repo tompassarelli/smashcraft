@@ -1109,8 +1109,9 @@ const shooterPolicy = (input: SpecialInput, fire: number, every = 0): Policy => 
 const liveProjectiles = (f: Fighter): number => f.projectiles.filter((projectile) => projectile.life > 0).length;
 
 /**
- * Fired away from everyone: how long the first projectile lives, whether it
- * moves, and the most out while the input repeats. A projectile sent backward
+ * Fired away from everyone: how long the first projectile lives (its own
+ * slot, not a stream of later shots overlapping it), whether it moves, and
+ * the most out while the input repeats. A projectile sent backward
  * (Thunder Clap's rear wave) can reach the idle fighter behind; the flight
  * runs through that contact, which ends the projectile, instead of stopping
  * there and reading the projectile as never ending.
@@ -1124,13 +1125,22 @@ function projectileFlight(character: Character, input: SpecialInput): { readonly
   let born: number | undefined;
   let died: number | undefined;
   let traveling = false;
+  let slot = -1;
+  let life = 0;
   once.play(NONE, PROJECTILE_HORIZON, (n, a) => {
-    const live = liveProjectiles(a);
-    if (born === undefined && live > 0) {
+    if (born === undefined) {
+      const first = a.projectiles.find((projectile) => projectile.life > 0);
+      if (first === undefined) return false;
+      slot = a.projectiles.indexOf(first);
       born = n;
-      traveling = !isProjectileSummon(character, input.name) && a.projectiles.some((projectile) => projectile.life > 0 && (projectile.velocityX !== 0 || projectile.velocityZ !== 0));
+      life = first.life;
+      traveling = !isProjectileSummon(character, input.name) && (first.velocityX !== 0 || first.velocityZ !== 0);
+      return false;
     }
-    if (born !== undefined && live === 0) died = n;
+    // A slot whose life rises was retired and refilled by a later shot.
+    const next = a.projectiles[slot]?.life ?? 0;
+    if (next <= 0 || next > life) died = n;
+    life = next;
     return died !== undefined;
   }, true);
   once.release();
