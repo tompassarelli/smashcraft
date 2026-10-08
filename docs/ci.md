@@ -24,7 +24,8 @@ test it locally.
    farm result for the base or one of its last 30 main ancestors: the
    summary a previous landing saved (artifact `autoland-summary-SHA`, kept
    14 days) or a `bun wisp farm test` run's. Only when none exists does it
-   run `bun wisp farm test --ref BASE`. A test that fails on the branch but
+   run `bun wisp farm test --ref BASE`; an ancestor's result can miss what
+   broke on main since, so before refusing on one it runs the base too. A test that fails on the branch but
    not in that result is a new failure; a shard that crashed without naming
    a test is new unless main's result also had one in that suite.
 5. **Land.** With no new failures, the rebased commits are pushed to main
@@ -42,7 +43,9 @@ test it locally.
 The push itself only queues a run of main's copy of the workflow, so a
 branch made from an older main still lands with the current rules. Runs
 share one concurrency group with a queue, so branches land one at a
-time in push order and never race main. To retry a branch without a new
+time in push order and never race main. The run's own status is red
+whenever a suite shard fails, main's known failures included; its `land`
+job and summary say whether it landed. To retry a branch without a new
 commit: `gh workflow run autoland.yml -f branch=claude/NAME`.
 
 Everything runs on GitHub's hosted runners from source: no private build
