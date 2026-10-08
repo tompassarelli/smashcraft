@@ -208,7 +208,7 @@ Every attack gives at least 20 displayed frames to react (#330). Its stock
 spell wind-up runs alongside a yellow rectangular area outline from Warcraft's
 building selection square (`UI\Feedback\SelectionCircle\SelectionCircle.mdx`,
 `Neutral Big`). The square is held on a visible animation frame and stretched
-independently across its width and height in the fighters' plane. Its bottom,
+independently across its width and height at the deck's front edge. Its bottom,
 top and sides mark the actual damage zone; tall columns reach above the view.
 The warning remains visible throughout the tell, and goes away when the hit
 art starts. Aimed rectangles lock to the player's x at the tell's start.

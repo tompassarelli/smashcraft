@@ -132,7 +132,8 @@ export class ClassicPresentation {
         BlzResetSpecialEffectMatrix(tell);
         BlzSetSpecialEffectMatrixScale(tell, f32(zone.halfWidth / MARKER_HALF), f32(f32(zone.top - zone.bottom) / f32(2.0 * MARKER_HALF)), 1.0);
         BlzSetSpecialEffectRoll(tell, QUARTER_TURN);
-        BlzSetSpecialEffectPosition(tell, origin.x + zoneCenter(strike, zone, game.run.boss.aimX), origin.y + 20.0, origin.z + f32(f32(zone.bottom + zone.top) / 2.0));
+        // The deck's near lip hides low warnings drawn in the fighters' plane.
+        BlzSetSpecialEffectPosition(tell, origin.x + zoneCenter(strike, zone, game.run.boss.aimX), origin.y - 220.0, origin.z + f32(f32(zone.bottom + zone.top) / 2.0));
         BlzSetSpecialEffectAlpha(tell, 255);
         BlzSetSpecialEffectAnimation(tell, "Neutral Big");
         BlzSetSpecialEffectTime(tell, 0.5);
