@@ -1,0 +1,11 @@
+# #214/#238 menu pointer on client A, a 1920x1080 window: to slot 3's mode button (UI 0.485, 0.257 = 1113, 618 px)
+# Rows: milliseconds, left X, left Y (SDL, down positive), A, Start. Run through
+# companion/tests/service.rs a_private_pad_script (companion/README.md, menu check).
+# Moves start from the top-left corner; full tilt moves 1920 px a second.
+200 0 0 0 0
+1200 -32767 -32767 0 0
+100 0 0 0 0
+580 32767 0 0 0
+100 0 0 0 0
+322 0 32767 0 0
+300 0 0 0 0

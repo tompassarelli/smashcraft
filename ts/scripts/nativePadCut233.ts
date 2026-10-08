@@ -34,7 +34,9 @@ export function validatePadCutClients(clients: readonly Pick<Client, "name" | "d
       throw new Error("Use only the explicitly assigned clients on their private displays");
     }
     if (pair === "online") {
-      if ((entry.name !== "a" && entry.name !== "b") || entry.documents !== join(homedir(), ".local/share/wc3-melee", `client-${entry.name}`, "pfx/drive_c/users/steamuser/Documents/Warcraft III")) {
+      const owned = [join(homedir(), ".local/share/wc3-melee", `client-${entry.name}`), ...["b", "c"].map(clone => join(homedir(), ".local/share/wisp/online", `clone-${clone}`))]
+        .map(prefix => join(prefix, "pfx/drive_c/users/steamuser/Documents/Warcraft III"));
+      if ((entry.name !== "a" && entry.name !== "b") || !owned.includes(entry.documents)) {
         throw new Error("Online clients must be registered owned test clients");
       }
     } else if (!entry.documents.includes(`/wisp/lan/clients/lan${pair}${slot === 0 ? "a" : "b"}/`)) {

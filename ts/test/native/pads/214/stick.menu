@@ -1,0 +1,4 @@
+# #214 pointer off: full right for 0.5 s; in a match the pointer must not move.
+200 0 0 0 0
+500 32767 0 0 0
+200 0 0 0 0
