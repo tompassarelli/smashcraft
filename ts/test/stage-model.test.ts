@@ -233,3 +233,9 @@ test("Blackrock's lava glows above the bloom threshold only on its crests [spec 
   expect(glowing / texels).toBeGreaterThan(0.05);
   expect(glowing / texels).toBeLessThan(0.3);
 });
+
+test("Gryphon Aerie darkens the cloud field below the deck and keeps distant Classic fog [spec #295]", () => {
+  const scenery = stageScenery(11);
+  expect(scenery.fog).toEqual({ start: 5500, end: 11500, red: 0.25, green: 0.375, blue: 0.5 });
+  expect(scenery.heightFog).toEqual({ start: 5500, end: 11500, density: 0.25, heightStart: -1800, heightEnd: -500, maxDensity: 0.5, drawOverSky: true });
+});
