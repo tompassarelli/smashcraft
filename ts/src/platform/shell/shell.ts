@@ -298,6 +298,9 @@ function initialize(): void {
   EnableUserControl(true);
   FogEnable(false);
   FogMaskEnable(false);
+  // A lobby can give a player another colour (Tom's 0.0.95 match drew P1 in blue). The HUD shows
+  // slot N in player N's colour, and effects coloured by Player(N) take its colour when created.
+  for (const slot of PARTICIPANT_SLOTS) SetPlayerColor(Player(slot), ConvertPlayerColor(slot));
   const s = createShellState(build, {
     origin, frames: view.createStatusFrames(build), persistence: bindingFiles, playback: pending.playback,
     editbox: journalIngress(build) === "editbox" ? new EditboxIngress() : undefined,

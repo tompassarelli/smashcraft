@@ -13,6 +13,7 @@ export const SMASHCRAFT_NOOPS: IntentionalNoops = {
   BlzHideOriginFrames: "the headless UI contains only map-created frames; Warcraft's origin UI is not rendered",
   BlzEnableSelections: "the journey drives the map's scripted fighter controls and never Warcraft selection",
   EnableUserControl: "the journey drives scripted input without an operating-system window",
+  SetPlayerColor: "the map gives each participant player its own slot's colour, so an effect's recorded player is its colour",
   FogEnable: "visibility is decided by the map's stage and effect state; terrain fog of war is not simulated",
   FogMaskEnable: "visibility is decided by the map's stage and effect state; terrain fog mask is not simulated",
   BlzSetSpecialEffectAnimationBlendTime: "quick-match records selected clips and times without Warcraft animation blending",

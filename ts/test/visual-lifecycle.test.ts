@@ -16,11 +16,14 @@ import { applyFrame } from "../src/platform/shell/frame";
 import { startMatch } from "../src/platform/shell/matchStart";
 import { confirm } from "../src/platform/shell/menus";
 import { shell } from "../src/platform/shell/state";
+import { views } from "../src/platform/shell/ui";
+import { PARTICIPANT_SLOTS } from "../src/game/input/participants";
+import { resultsView } from "../src/game/presentation/matchCues";
 import { pauseMatchPresentation, renderFighter, renderPersistentPresentation } from "../src/platform/shell/view";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import type { EffectPose, HeadlessClient } from "wisp/src/headless/client";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
-import { CombatEffects } from "../src/game/render/combatEffects";
+import { CombatEffects, fighterModel } from "../src/game/render/combatEffects";
 import { createImpactEvents } from "../src/game/presentation/impactEvents";
 import { ELECTRIC_CONTACT_FRAMES, advanceImpacts, createImpactState, emitImpacts } from "../src/game/presentation/impactState";
 import { ELECTRIC_IMPACT_MODEL } from "../src/game/presentation/hitPresentation";
@@ -473,6 +476,52 @@ test("pooled fighters: unchanged poses keep their appearance and a returning fad
     expect(shown()?.scale).toBe(characterModelScale(fighter.character));
     expect(client.log.filter(call => call.name === "AddSpecialEffect")).toHaveLength(allocations);
     pool.destroy();
+  });
+  expect(client.errors).toEqual([]);
+});
+
+test("every fighter wears its slot's player colour from the first match frame through the victory pose [repro #320]", () => {
+  const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install });
+  clients.start();
+  clients.frames(30);
+  const client = clients.clients[0];
+  if (client === undefined) throw new Error("missing host client");
+  // A lobby can colour a player otherwise, so the map sets each participant player's colour before any model takes it.
+  const firstColoured = client.log.findIndex(call => call.name === "BlzSetSpecialEffectColorByPlayer" || call.name === "CreateUnit");
+  expect(firstColoured).toBeGreaterThan(0);
+  const recoloured = client.log.slice(0, firstColoured).filter(call => call.name === "SetPlayerColor").map(call => call.args.join(","));
+  expect(recoloured).toEqual(PARTICIPANT_SLOTS.map(slot => `${slot},${slot}`));
+  clients.chat(0, "-dev quick pair Forsaken Paladin / Cairne Bloodhoof");
+  const problems: string[] = [];
+  let matchFrames = 0;
+  for (let frame = 0; frame < 150; frame++) {
+    clients.frames(1);
+    client.run(() => {
+      const s = shell();
+      if (s.game.phase !== Phase.match) return;
+      matchFrames++;
+      for (const slot of [0, 1] as const) {
+        const pool = views(s).fighters[slot]?.pool as unknown as { readonly clips: readonly unknown[] } | undefined;
+        if (pool === undefined) {
+          problems.push(`match frame ${matchFrames}: slot ${slot} has no clip pool`);
+          continue;
+        }
+        const poses = (client as unknown as { readonly effects: ReadonlyMap<unknown, EffectPose> }).effects;
+        const colours = new Set(pool.clips.map(clip => poses.get(clip)?.teamColor));
+        if (colours.size !== 1 || !colours.has(slot)) problems.push(`match frame ${matchFrames}: slot ${slot} clips wear players ${[...colours].join(",")}`);
+      }
+    });
+  }
+  expect(problems).toEqual([]);
+  expect(matchFrames).toBeGreaterThan(60);
+  client.run(() => {
+    const s = shell();
+    s.game.winner = 1;
+    const ui = views(s);
+    ui.match.beginResults(resultsView(s.game, s.world, ui.match.tally), 0);
+    ui.match.tick();
+    const pose = client.effectPoses().find(effect => effect.model === fighterModel(Character.cairne) && effect.scale > 0);
+    expect(pose?.teamColor).toBe(1);
   });
   expect(client.errors).toEqual([]);
 });

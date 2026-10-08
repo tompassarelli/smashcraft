@@ -1,6 +1,8 @@
 import { expect, test } from 'bun:test';
 import { originalClip, originalClipCount } from '../src/game/assets/fighterOriginalClipInfo';
 import { SELECTABLE_CHARACTERS, fighterName } from '../src/game/sim/heroes/registry';
+import { FIGHTER_OBJECTS } from '../src/game/objectData';
+import { MODEL_FACTS } from '../scripts/wisp/modelFacts';
 
 test("every selectable fighter's normal body stores its mesh once across all clips [spec #308]", () => {
     for (const character of SELECTABLE_CHARACTERS) {
@@ -8,6 +10,14 @@ test("every selectable fighter's normal body stores its mesh once across all cli
         expect(clips.length, fighterName(character)).toBeGreaterThan(0);
         expect(new Set(clips.map(clip => clip?.modelPath)).size, fighterName(character)).toBe(1);
         expect(clips.every(clip => clip?.timeline === true), fighterName(character)).toBe(true);
+    }
+});
+
+test("every selectable fighter's in-match body has every geoset and triangle of the model its unit and victory pose draw [invariant]", () => {
+    for (const character of SELECTABLE_CHARACTERS) {
+        const body = MODEL_FACTS[originalClip(character, 0)?.modelPath ?? ''], whole = MODEL_FACTS[FIGHTER_OBJECTS[character].model];
+        expect(body === undefined ? undefined : [body.geosets, body.triangles], fighterName(character)).toEqual(whole === undefined ? undefined : [whole.geosets, whole.triangles]);
+        expect(whole, fighterName(character)).toBeDefined();
     }
 });
 
