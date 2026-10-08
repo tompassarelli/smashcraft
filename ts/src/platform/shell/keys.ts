@@ -106,6 +106,7 @@ function exitPausedMatch(s: ShellState, title: boolean): void {
   if (s.game.run.active && s.pauseSelection !== undefined) copyMatchState(s.game, s.pauseSelection);
   s.game.phase = Phase.characterMenu;
   s.game.practice = false;
+  s.game.trainer.lesson = -1;
   s.game.run.active = false;
   s.session.paused = false;
   const menu = s.pauseMenu ??= { choice: 0, shown: false, title: false };
