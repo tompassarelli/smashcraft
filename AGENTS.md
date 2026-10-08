@@ -156,6 +156,15 @@ code. From smashcraft:ts/:
   starts its response probe at match setup. The first pause and resume emit
   `pause-boundary` rows; resume exports the positions presented in that callback
   automatically, for `ts/test/native/pads/206/pause-dash.pad`.
+- Map size: players download the map in the lobby, so prefer Warcraft's own
+  assets (reshape, recolour, rescale or recombine stock models, doodads,
+  effects and animations) before importing a file. A custom asset is fine
+  where stock can't do the job well; each new import's commit names its size
+  and why stock couldn't do it. `bun wisp map build` prints the map's size and
+  imported bytes; the default build fails when the map is more than 10% over
+  smashcraft:ts/map-size-baseline.tsv, naming the largest new imports. After a
+  justified import or a cut, rebuild with `MAP_SIZE_UPDATE=1` and commit the
+  baseline (smashcraft:docs/design/map-size.md).
 - Build inputs: each private asset family is stored once under the hash of
   its contents and never edited; build-inputs.json names each family's hash,
   so changing art is `bun wisp inputs add FAMILY DIR` plus a commit, landed
