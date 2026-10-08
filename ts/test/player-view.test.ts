@@ -105,6 +105,7 @@ test("Tomb's Temple of Tides draws on the right at both camera extremes [repro #
     const column = 0.5 + (piece.x - camera.x) / (2 * depth * camera.tangent * MATCH_CAMERA_ASPECT);
     expect(column, extreme).toBeGreaterThanOrEqual(2 / 3);
     expect(column, extreme).toBeLessThan(1);
+    expect(piece.y * Math.sin(tilt) + piece.z * Math.cos(tilt), `${extreme}: landmark clears the deck`).toBeGreaterThan(0);
     clients.chat(0, `-dev view ${extreme}`);
     clients.frames(1);
     client.run(() => trampoline("scene.report")());
