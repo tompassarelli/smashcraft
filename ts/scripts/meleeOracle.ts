@@ -1214,6 +1214,7 @@ const SHIELD_AND_DODGES: readonly Scenario[] = [
   {
     area: "shield/dodge", name: "air dodge first-frame travel (Melee units)",
     cite: "PlCo +0x338 = 3.1 force x +0x33C = 0.9 decay before the first move: melee:src/melee/ft/kinds/ftCommon/ftCo_EscapeAir.c",
+    departure: "Air dodge speed: 3.4 Melee units, about 9.7% faster, with unchanged 0.9 decay (owner decision 2026-10-09, #347)",
     run: (c) => ({ expected: f32(3.0999999046325684 * 0.8999999761581421), actual: airDodgeFirstTravel(c), tolerance: 0.0001 }),
   },
   {
