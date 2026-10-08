@@ -7,9 +7,14 @@ import { stepMatch } from "../match/step";
 import { stateChecksum } from "../replay/canonical";
 import { firstStateDifference } from "../replay/difference";
 import { type ReplayState, copyReplayState, createReplaySnapshot } from "../replay/snapshot";
-import type { Fighter } from "./fighter";
+import { Character } from "./codes";
+import { type Fighter, createFighter } from "./fighter";
+import { SELECTABLE_CHARACTERS } from "./heroes/registry";
 import { fighterAt } from "./roster";
-import { FROZEN_THRONE_STAGE, TOMB_OF_SARGERAS_STAGE } from "./stage";
+import { FROZEN_THRONE_STAGE, TOMB_OF_SARGERAS_STAGE, mainDeckZ } from "./stage";
+import { advanceSolo, controls } from "./testWorld";
+import { f32 } from "wisp/src/sim/f32";
+import { SWIM_SPEED, WATER_RISE_CAP, beginWaterJump, waterJumpScale } from "./water";
 import { SEA_SURFACE_Z, TIDE_SPEED, framesUntilTideTurns, seaLeft, seaRight, tideDirection, tideNextDirection, tidePush } from "./stageHazards";
 
 const TOMB = TOMB_OF_SARGERAS_STAGE;
@@ -88,4 +93,85 @@ test("a fighter's water state is saved with the match: a rollback into the sea r
   play(replay, 7, 36);
   assertEquals(firstStateDifference(live, replay), undefined);
   assertEquals(stateChecksum(live), stateChecksum(replay));
+});
+
+const NEUTRAL = controls();
+const JUMP = controls({ jumpPressed: true, jumpHeld: true });
+const OPEN_SEA = 900.0;
+
+/** A fighter of `character` already floating at the surface in open water, beyond the deck. */
+function floater(character: Character): Fighter {
+  const f = createFighter(character, OPEN_SEA, -1);
+  f.motion.grounded = false; f.motion.surface = undefined; f.motion.z = SEA_SURFACE_Z;
+  advanceSolo(f, TOMB, NEUTRAL, 0.0);
+  return f;
+}
+
+test("a fighter that falls into the sea sinks, rises at most 18 a frame and then floats at the surface [spec docs/design/water-stage.md]", () => {
+  const f = createFighter(Character.archer, OPEN_SEA, -1);
+  f.motion.grounded = false; f.motion.surface = undefined; f.motion.z = SEA_SURFACE_Z + 60.0;
+  let deepest = f.motion.z;
+  for (let frame = 0; frame < 240; frame++) {
+    advanceSolo(f, TOMB, NEUTRAL, 0.0);
+    deepest = Math.min(deepest, f.motion.z);
+    assertTrue(f.motion.vz <= WATER_RISE_CAP);
+  }
+  assertTrue(deepest < SEA_SURFACE_Z);
+  assertEquals(f.motion.z, SEA_SURFACE_Z);
+  assertEquals(f.motion.vz, 0.0);
+  assertEquals(f.status.out, false);
+  // Under the deck's centre the sea is 60 below the deck body: nothing there moves a floating fighter.
+  const under = floater(Character.archer);
+  under.motion.x = 0.0;
+  for (let frame = 0; frame < 60; frame++) advanceSolo(under, TOMB, NEUTRAL, 0.0);
+  assertEquals(under.motion.x, 0.0);
+  assertEquals(under.motion.z, SEA_SURFACE_Z);
+});
+
+test("a floating fighter swims at up to 3.6 a frame, gaining 0.3 a frame [spec docs/design/water-stage.md]", () => {
+  const f = floater(Character.archer);
+  const right = controls({ direction: 1 });
+  advanceSolo(f, TOMB, right, 0.0);
+  assertNear(f.motion.vx, 0.30000001192092896, 0.0010000000474974513);
+  for (let frame = 0; frame < 30; frame++) advanceSolo(f, TOMB, right, 0.0);
+  assertEquals(f.motion.vx, SWIM_SPEED);
+  assertNear(SWIM_SPEED, 3.5999999046325684, 0.0010000000474974513);
+  assertEquals(f.motion.z, SEA_SURFACE_Z);
+});
+
+test("the water jump is the full ground jump, scaled by 0.91 per re-entry since landing up to four times, and keeps the double jump [spec docs/design/water-stage.md]", () => {
+  assertEquals(waterJumpScale(1), 1.0);
+  assertEquals(waterJumpScale(2), 0.9100000262260437);
+  assertNear(waterJumpScale(5), 0.6857805252075195, 0.00009999999747378752);
+  assertEquals(waterJumpScale(9), waterJumpScale(5));
+  for (const entries of [1, 3, 7]) {
+    const f = floater(Character.archer);
+    f.water.entries = entries;
+    f.jump.remaining = 0;
+    advanceSolo(f, TOMB, JUMP, 0.0);
+    assertGreaterThan(f.motion.z, SEA_SURFACE_Z);
+    assertTrue(f.jump.remaining > 0);
+  }
+  for (const entries of [1, 3, 5]) {
+    const f = floater(Character.archer); f.water.entries = entries;
+    assertTrue(beginWaterJump(f, 0));
+    assertEquals(f.motion.vz, f32(f.tuning.physics.fullJumpSpeed * waterJumpScale(entries)));
+  }
+});
+
+test("every fighter's water jump and double jump from the surface reach above the deck [spec docs/design/water-stage.md]", () => {
+  for (const character of SELECTABLE_CHARACTERS) {
+    const f = floater(character);
+    f.water.entries = 1;
+    advanceSolo(f, TOMB, JUMP, 0.0);
+    let highest = f.motion.z;
+    let doubled = false;
+    for (let frame = 0; frame < 180 && (f.motion.z > SEA_SURFACE_Z || frame === 0); frame++) {
+      const press = !doubled && f.motion.vz <= 0;
+      if (press) doubled = true;
+      advanceSolo(f, TOMB, press ? JUMP : controls({ jumpHeld: true }), 0.0);
+      highest = Math.max(highest, f.motion.z);
+    }
+    if (!(doubled && highest > mainDeckZ(TOMB))) throw new Error(`fighter ${character} reaches ${highest} from the surface, below the deck at ${mainDeckZ(TOMB)}`);
+  }
 });
