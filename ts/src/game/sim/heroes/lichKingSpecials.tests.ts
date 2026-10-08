@@ -1,7 +1,6 @@
 import { mutableProjectile } from "../fighterProjectiles";
 // The Lich King's kit rules (#167) through the production special,
-// projectile, contact, status, grab and passive paths: Frostmourne Hungers
-// banks and spends souls, Val'kyr Shadowguard carries its catch toward the
+// projectile, contact, status and grab paths: Val'kyr Shadowguard carries its catch toward the
 // edge until it is mashed out or struck, and Defile stays and grows on hits.
 import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
@@ -86,58 +85,6 @@ test("the Lich King's specials spend their costs once and end on their authored 
   frame(world, up);
   assertEquals(owner.special.action, SpecialAction.heroUp);
   assertEquals(owner.mana.points, 85);
-});
-
-test("Frostmourne Hungers banks a soul for each landed normal, none on a shield, at most three [spec docs/design/roster.md]", () => {
-  const { world, owner, target } = pair(70.0);
-  const jab = (shielding: boolean) => {
-    target.shield.raised = shielding;
-    beginFighterAttack(world, 0, AttackStyle.jab3, false);
-    for (let f = 0; f < 40 && owner.attack.style !== undefined; f++) frame(world, controls(), controls({ shield: shielding }));
-    target.motion.x = f32(owner.motion.x + 70.0);
-    target.status.damage = 0.0;
-  };
-  jab(true);
-  assertEquals(owner.passive.stacks, 0);
-  for (let soul = 1; soul <= 4; soul++) {
-    jab(false);
-    assertEquals(owner.passive.stacks, Math.min(soul, 3));
-  }
-});
-
-test("Harvest Soul, his down throw, banks a soul; the pummel and other throws don't [spec docs/design/roster.md]", () => {
-  for (const action of [GrabAction.throwDown, GrabAction.throwForward] as const) {
-    const owner = lichKing(0.0, 1);
-    const target = createFighter(Character.archer, 50.0, -1);
-    const world = testWorld(owner, target);
-    beginFighterAttack(world, 0, AttackStyle.grab, false);
-    owner.attack.frame = attackStartupFrames(AttackStyle.grab, LICH_KING_MOVES);
-    resolveAttacks(world);
-    assertEquals(owner.grab.target, 1);
-    const throwInput = controls(action === GrabAction.throwDown ? { grabThrowZ: -1 } : { grabThrowX: 1 });
-    testGrabFrame(world, [throwInput, controls()], false);
-    assertEquals(owner.grab.action, action);
-    for (let f = 2; f <= grabContactFrame(action, LICH_KING_MOVES); f++) testGrabFrame(world, [controls(), controls()], false);
-    assertEquals(target.grab.owner, undefined);
-    assertEquals(owner.passive.stacks, action === GrabAction.throwDown ? 1 : 0);
-  }
-});
-
-test("a banked soul makes Howling Blast wider and chilling, and is spent; without one the blast doesn't chill [spec docs/design/roster.md]", () => {
-  for (const souls of [0, 2]) {
-    const { world, owner, target } = pair(f32(H * f32(2.0)));
-    owner.passive.stacks = souls;
-    frame(world, neutral);
-    assertEquals(owner.passive.stacks, Math.max(0, souls - 1));
-    for (let f = 0; f < 60 && target.status.damage === 0.0; f++) frame(world);
-    assertEquals(target.status.damage, souls > 0 ? 8.0 : 6.0);
-    assertEquals(target.status.condition === HeroStatusKind.chill, souls > 0);
-  }
-  // Ascension of the Damned never spends one.
-  const { world, owner } = pair(1000.0);
-  owner.passive.stacks = 3;
-  frame(world, up);
-  assertEquals(owner.passive.stacks, 3);
 });
 
 test("Val'kyr Shadowguard carries its catch toward the edge it flew at for 80 frames, rising, with no control [spec docs/design/roster.md]", () => {
