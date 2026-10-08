@@ -210,7 +210,9 @@ export class MatchPresentation {
   }
 
   private pose(winner: Character, slot: number | undefined, x: number, z: number): effect {
-    const model = AddSpecialEffect(fighterModel(winner), this.origin.x + x, this.origin.y);
+    // Handle creation must use shared coordinates; only placement follows the local camera.
+    const model = AddSpecialEffect(fighterModel(winner), this.origin.x, this.origin.y);
+    BlzSetSpecialEffectX(model, this.origin.x + x);
     // An effect has no owner: without this the pose keeps the default colour, not the winner's.
     if (slot !== undefined) BlzSetSpecialEffectColorByPlayer(model, Player(slot));
     BlzSetSpecialEffectZ(model, this.origin.z + z);
