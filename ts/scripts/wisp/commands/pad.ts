@@ -49,7 +49,7 @@ import { PREDICTED_HEADLESS, SMASHCRAFT_HEADLESS } from "../headless";
 type HeadlessClient = ReturnType<HeadlessRuntime["clients"]>["clients"][number];
 import { sceneFile } from "wisp/src/runtime/scene";
 import { clientState } from "../project";
-import { onHealthyClients } from "../doctor";
+import { onHealthyClients, readClientsFile } from "../doctor";
 import { DevCommandReceipt } from "../boundary";
 import { devCommandReceiptFile } from "../../../src/runtime/gameFiles";
 import { Phase } from "../../../src/game/match/rules";
@@ -244,7 +244,7 @@ const selectionChat = (session: NativeSession, text: string) => setupCommand(ses
     const current = receipt();
     return current === undefined ? undefined : { available: current.available === "1", open: current.open === "1", modified: statSync(path).mtimeMs };
   });
-  yield* openObservedChat(session.clients[0], entry, batch(session.clients[0], [{ kind: "wait", millis: 250 }, { kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop))).pipe(Effect.mapError((cause) => cause instanceof IntegrityFailure ? cause : fromDesktop(cause)));
+  yield* openObservedChat(session.clients[0], entry, requireCaptureLease.pipe(Effect.andThen(batch(session.clients[0], [{ kind: "wait", millis: 250 }, { kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop))), Effect.asVoid)).pipe(Effect.mapError((cause) => cause instanceof IntegrityFailure ? cause : fromDesktop(cause)));
   yield* batch(session.clients[0], [{ kind: "text", text, delayMillis: 35 }, { kind: "keys", keys: ["Return"], settleMillis: 0 }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
 }));
 
@@ -271,7 +271,6 @@ export const nativeChat = (session: NativeSession, text: string) => setupCommand
 /** One script in the persistent native session's next match. */
 export const nativeScript = (session: NativeSession, options: PadOptions) => Effect.scoped(Effect.gen(function*() {
   const { scriptPath, steps, build, out, chat } = options;
-  yield* requireCaptureLease;
   const { clients, data, pads } = session;
   yield* tryIntegrity("create pad directory", out, () => {
     mkdirSync(out, { recursive: true });
@@ -297,6 +296,7 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
     }
     yield* tryIntegrity("write setup receipts", out, () => writeFileSync(join(out, "setup.json"), json({ command: chat, clients: setup.value, confirmed_monotonic_ns: monotonicNs() })));
   }
+  yield* requireCaptureLease;
   const epochs = yield* matchEpochs(logs, startedNs, out);
   const matchIds = logs().map((text) => matchStart(text)?.epoch ?? 0);
   const captures: Record<string, unknown>[] = [];
@@ -505,7 +505,11 @@ export const pad: Command = (args) => Effect.gen(function*() {
     } }),
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
-  if (parsed.values.headless !== true && (yield* admitCaptures(args))) return;
+  if (parsed.values.headless !== true) {
+    const clientsFile = parsed.values["clients-file"] ?? clientState;
+    yield* Effect.try({ try: () => readClientsFile(clientsFile), catch: (cause) => new UsageFailure({ problem: `can't read the clients from ${clientsFile}: ${describeCause(cause)}` }) });
+    if (yield* admitCaptures(args)) return;
+  }
   const { helper, out, chat, compare } = parsed.values;
   const clientsFile = parsed.values["clients-file"] ?? clientState;
   const renderFrames = parsed.values.frames?.split(",").map(Number);

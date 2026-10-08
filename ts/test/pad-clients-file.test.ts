@@ -36,9 +36,8 @@ test("fresh, pad and accept use --clients-file FILE and leave clients.json untou
   ]) {
     const run = wisp(args);
     expect(run.code, args[0]).not.toBe(0);
-    // The run stops reading the named file, which doesn't exist, before any client is touched;
-    // a batch's new game is its own `fresh`, logged in the script's folder.
-    const output = args.includes("--map") ? readFileSync(join(folder, "batch/archer-neutral/game-0.log.1"), "utf8") : run.output;
+    // A missing clients file fails before capacity admission or client input.
+    const output = run.output;
     expect(output, args.join(" ")).toContain(`can't read the clients from ${file}`);
     expect(output).not.toContain(run.defaultFile);
     expect(run.untouched, args.join(" ")).toBe(true);
