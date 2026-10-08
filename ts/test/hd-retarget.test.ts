@@ -3,6 +3,7 @@ import { model as mdx, parseMDL } from 'war3-model';
 import { stageSkyMdl } from '../scripts/stageSky';
 import { retargetHd, checkRetarget, parseHdBody, generateHdBody, checkBodySkin } from '../../tools/animations/hd-retarget';
 import { encodeVerified, parseSource } from '../../tools/animations/original-clips';
+import { DrawnModel } from '../scripts/wisp/hurtboxView';
 
 test('authored translations survive out-of-order sequence intervals after HD export [repro #334]', () => {
     const classic = parseMDL(stageSkyMdl('stock.blp'));
@@ -73,4 +74,30 @@ test('skin IDs address bones independently of matrix-group order [repro #334]', 
     expect(checkBodySkin(model).vertices).toBe(model.Geosets.reduce((sum, geoset) => sum + geoset.Vertices.length / 3, 0));
     model.Geosets[0]!.SkinWeights![0] = 2;
     expect(() => checkBodySkin(model)).toThrow('absent bone');
+});
+
+test('[repro wisp#84] raw Definitive silhouettes apply all four skin influences with weights totaling 255', () => {
+    const model = parseMDL(stageSkyMdl('stock.blp'));
+    model.Version = 1800;
+    const bone = model.Bones[0]!;
+    bone.Translation = { LineType: mdx.LineType.Linear, GlobalSeqId: null, Keys: [{ Frame: 0, Vector: new Float32Array([5, 0, 0]) }] };
+    const second = { ...structuredClone(bone), Name: 'Second bone', ObjectId: 1 };
+    second.Translation!.Keys[0]!.Vector[0] = 10;
+    model.Bones.push(second);
+    model.PivotPoints.push(new Float32Array([0, 0, 0]));
+    for (const geoset of model.Geosets) {
+        geoset.Vertices = geoset.Vertices.slice(0, 9);
+        geoset.Normals = geoset.Normals.slice(0, 9);
+        geoset.VertexGroup = geoset.VertexGroup.slice(0, 3);
+        geoset.Faces = new Uint16Array([0, 1, 2]);
+        geoset.TVertices = geoset.TVertices.map(values => values.slice(0, 6));
+        geoset.SkinWeights = new Uint8Array(geoset.Vertices.length / 3 * 8);
+        for (let vertex = 0; vertex < geoset.SkinWeights.length; vertex += 8) geoset.SkinWeights.set([0, 1, 0, 1, 64, 64, 64, 63], vertex);
+    }
+    const drawn = new DrawnModel(generateHdBody(model), 1).triangles(0, 0, 1);
+    let corner = 0;
+    for (const geoset of model.Geosets) for (const vertex of geoset.Faces) {
+        expect(drawn[corner++]).toBeCloseTo((geoset.Vertices[vertex * 3] ?? 0) + (5 * 128 + 10 * 127) / 255, 3);
+        expect(drawn[corner++]).toBeCloseTo(geoset.Vertices[vertex * 3 + 2] ?? 0, 3);
+    }
 });

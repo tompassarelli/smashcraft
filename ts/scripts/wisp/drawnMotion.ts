@@ -1,5 +1,5 @@
 // Movement legibility (#171), measured from the models at production pose times.
-import { parseMDX } from "war3-model";
+import { parseModelMDX } from "wisp/scripts/wisp/models";
 import { Character, DownState, LedgeState } from "../../src/game/sim/codes";
 import { createFighter } from "../../src/game/sim/fighter";
 import { createRoster, neutralControls } from "../../src/game/sim/roster";
@@ -133,7 +133,7 @@ export interface DrawnStride {
 /** Grounded vertices' horizontal excursion over a full cycle, twice per cycle (one stride per leg). */
 export function measureDrawnStride(bytes: ArrayBuffer, drawn: DrawnModel, character: Character, motion: "walk" | "run", model: string): DrawnStride {
   const clip = groundLocomotionClip(character, motion === "walk" ? IllidanLocomotion.walk : IllidanLocomotion.run);
-  const sequence = clip === undefined ? undefined : parseMDX(bytes).Sequences[clip.index];
+  const sequence = clip === undefined ? undefined : parseModelMDX(bytes).Sequences[clip.index];
   if (clip === undefined || sequence === undefined) throw new Error(`${character}/${motion}: no sequence`);
   const seconds = ((sequence.Interval[1] ?? 0) - (sequence.Interval[0] ?? 0)) / 1000;
   const samples = Array.from({ length: 61 }, (_, frame) => drawn.triangles(clip.index, seconds * frame / 60, 1));

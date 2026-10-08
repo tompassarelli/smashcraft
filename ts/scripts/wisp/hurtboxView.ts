@@ -5,7 +5,8 @@
 // volumes. Contact never reads the model: these captures check the authored
 // volumes against what a player sees (smashcraft:docs/hurtboxes.md).
 import { deflateSync } from "node:zlib";
-import { ModelRenderer, type model as mdx, parseMDX } from "war3-model";
+import { ModelRenderer, type model as mdx } from "war3-model";
+import { parseModelMDX } from "wisp/scripts/wisp/models";
 import { originalClip, originalClipNamed } from "../../src/game/assets/fighterOriginalClipInfo";
 import { advanceFighterPose, createFighterPose } from "../../src/game/presentation/fighterPose";
 import { characterModelScale } from "../../src/game/presentation/modelScale";
@@ -140,7 +141,7 @@ export class DrawnModel {
   private readonly visible: number[];
 
   constructor(bytes: ArrayBuffer, private readonly scale: number) {
-    this.model = parseMDX(bytes);
+    this.model = parseModelMDX(bytes);
     this.renderer = new ModelRenderer(this.model);
     // Additive and modulated layers are glows and shadows, not the body's silhouette.
     this.visible = this.model.Geosets.flatMap((geoset, index) => {
