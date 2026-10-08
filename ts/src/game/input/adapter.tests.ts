@@ -1,7 +1,8 @@
 import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
-import { Character } from "../sim/codes";
+import { Character, SpecialAction } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { neutralControls } from "../sim/roster";
+import { startFighterSpecial } from "../sim/specials";
 import { analogShieldActive, analogShieldStrength, shieldContactDamage, shieldSizeMultiplier, shieldstunFrames } from "../sim/shield";
 import { advanceSolo } from "../sim/testWorld";
 import { Action, maskOf } from "./actions";
@@ -48,6 +49,30 @@ test("Z hold lengths match quick-release jump height and takeoff frame, even wit
         assertEquals(hop.fighter.jump.serial, reference.fighter.jump.serial);
       }
     }
+    }
+  }
+});
+
+test("Tilt selects neutral horizontal specials and faces the held direction on keyboard and pad [repro #326]", () => {
+  for (const keyboard of [false, true]) for (const tilt of [false, true]) {
+    for (const x of [-1, 0, 1] as const) for (const z of [-1, 0, 1] as const) {
+      const f = fixture();
+      f.fighter.motion.grounded = true;
+      f.fighter.facing = x === -1 ? 1 : -1;
+      const held = maskOf(Action.special) | (tilt ? maskOf(Action.walk) : 0)
+        | (x === -1 ? maskOf(Action.moveLeft) : x === 1 ? maskOf(Action.moveRight) : 0)
+        | (z === -1 ? maskOf(Action.moveDown) : z === 1 ? maskOf(Action.moveUp) : 0);
+      if (keyboard) {
+        const capture = keyboardCapture();
+        sampleKeys(capture, held);
+        f.adapt(capture.row, 1);
+      } else f.adapt({ held, pressed: maskOf(Action.special), axisX: x * 127, axisZ: z * 127, specialX: x, specialZ: z }, 1);
+      startFighterSpecial(f.fighter, 0, 0, f.input);
+      const wanted = z > 0 ? SpecialAction.archerRecovery : z < 0 ? SpecialAction.archerDisengage
+        : x !== 0 && !tilt ? SpecialAction.archerHomingArrow : SpecialAction.archerArrow;
+      const label = `${keyboard ? "keyboard" : "pad"} tilt ${tilt} x ${x} z ${z}`;
+      assertEquals(f.fighter.special.action, wanted, label);
+      if (z === 0 && x !== 0) assertEquals(f.fighter.facing, x, `${label} facing`);
     }
   }
 });

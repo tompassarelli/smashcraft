@@ -64,7 +64,7 @@ export class SettingsPanel {
     this.title = text(`MeleeSettingsTitle${suffix}`, 410 + offset, f32(0.17), f32(0.575), f32(0.48), f32(0.035));
     BlzFrameSetText(this.title, "CONTROLS");
     this.help = text(`MeleeSettingsHelp${suffix}`, 411 + offset, f32(0.17), f32(0.542), f32(0.48), f32(0.032));
-    BlzFrameSetText(this.help, "Choose a preset, then click a key and press its replacement.");
+    BlzFrameSetText(this.help, "Click a key to rebind. Tilt + left/right + Special: neutral special facing that way. Up/down keep their specials.");
     this.status = text(`MeleeSettingsStatus${suffix}`, 412 + offset, f32(0.17), f32(0.105), f32(0.48), f32(0.03));
     this.buttons = [
       button(`MeleeSettingsQwerty${suffix}`, 420 + offset, f32(0.17), f32(0.065), f32(0.105), "QWERTY", { kind: "standard" }),

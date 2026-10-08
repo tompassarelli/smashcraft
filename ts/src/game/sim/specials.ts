@@ -568,6 +568,7 @@ function turnForSpecial(owner: Fighter, input: Readonly<Controls>): void {
   if (input.specialZ !== 0) return;
   const { motion } = owner;
   if (input.specialX !== 0) owner.facing = input.specialX < 0 ? -1 : 1;
+  else if (input.walking && input.direction !== 0) owner.facing = input.direction < 0 ? -1 : 1;
   else if (motion.turnaroundSide !== 0 && motion.turnaroundAge <= TURNAROUND_SPECIAL_WINDOW_FRAMES) owner.facing = motion.turnaroundSide;
 }
 
