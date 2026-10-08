@@ -13,8 +13,8 @@ import { insideMainDeckBody } from "../sim/surfaces";
 import { TELEPORT_LEDGE_INSET, TELEPORT_LIP_DEPTH } from "../sim/edgeRecovery";
 import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 import {
-  AWAY, DOWN, FREE_HEIGHT_MIN, FREE_REACH_MIN, RECOVERY_BANDS, type RecoveryRun, SPECIAL, TOWARD, UP,
-  playKeys, recovered, recoveryArchetype, recoveryEnvelope, recoveryRun,
+  AWAY, DOWN, FREE_HEIGHT_MIN, FREE_REACH_MIN, HEIGHT_PROBE_OUT, REACH_PROBE_DEPTH, RECOVERY_BANDS, RECOVERY_PLANS, type RecoveryRun, SPECIAL, TOWARD, UP,
+  playKeys, recovered, recovers, recoveryArchetype, recoveryEnvelope, recoveryRun,
 } from "./recoveryEnvelope";
 
 const LEDGE = mainDeckRight(0);
@@ -157,7 +157,13 @@ function meetsEnvelope(character: Character): void {
 }
 
 test("[spec #252] Warden's recovery envelope meets the vertical band's floors", () => {
-  meetsEnvelope(Character.warden);
+  const character = Character.warden;
+  const band = assertDefined(RECOVERY_BANDS[recoveryArchetype(character)], "band");
+  // The suite checks the four required starts; the farm searches the whole envelope.
+  for (const [mana, height, reach] of [[100, band.heightMin, band.envelopeReachMin], [0, FREE_HEIGHT_MIN, FREE_REACH_MIN]] as const) {
+    check(RECOVERY_PLANS.some((plan) => recovers(character, mana, f32(LEDGE + HEIGHT_PROBE_OUT), -height, plan)), `Warden mana ${mana} height floor ${height}`);
+    check(RECOVERY_PLANS.some((plan) => recovers(character, mana, f32(LEDGE + reach), -REACH_PROBE_DEPTH, plan)), `Warden mana ${mana} reach floor ${reach}`);
+  }
 });
 
 sweep("[spec #252] every fighter's recovery envelope meets its archetype's floors, full and empty mana", () => {
