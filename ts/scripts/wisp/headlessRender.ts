@@ -7,6 +7,7 @@ import { Effect, Schema } from "effect";
 import { ChildProcess } from "effect/process";
 import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
 import { FIGHTER_OBJECTS } from "../../src/game/objectData";
+import { PLAYABLE_BOUNDS, WORLD_BOUNDS } from "../../src/game/presentation/arenaCamera";
 import { heroModelSource, importedModelFile } from "../heroModelSource";
 import { INPUTS_STORE, assetsView, readManifest } from "./buildInputs";
 import { importedAssets } from "./mapInputs";
@@ -158,6 +159,8 @@ export function headlessRender(options: RenderAssetOptions = {}) {
   };
   return {
     unitModels: Object.fromEntries(Object.values(FIGHTER_OBJECTS).map(({ id, model }) => [id, model])),
+    // Warcraft draws no effect outside the base map's world bounds (#297, #298); the headless world stands 0,0 on the playable centre.
+    terrain: { bounds: { minX: WORLD_BOUNDS.left, maxX: WORLD_BOUNDS.right, minY: WORLD_BOUNDS.front, maxY: WORLD_BOUNDS.back }, origin: [0.0, PLAYABLE_BOUNDS.centreY] as const },
     resolveAsset,
     readAsset: (path: string, graphics: Graphics = "classic") => resolveAsset(path, graphics).then(({ bytes }) => bytes),
   };
