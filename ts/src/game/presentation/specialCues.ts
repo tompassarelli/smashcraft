@@ -70,6 +70,7 @@ export interface Cue {
    */
   readonly sequence?: string | undefined;
   readonly seconds?: number | undefined;
+  readonly pitch?: number | undefined;
 }
 
 /** `cue` started `seconds` into `sequence`. */
@@ -82,7 +83,33 @@ export interface MoveCues {
   readonly active: Cue;
 }
 
-const cue = (model: string, anchor: CueAnchor, scale: number): Cue => ({ model, anchor, scale });
+// These stock spells have no visible Stand, or need Birth rather than their
+// empty first sequence. Names and draw times come from the classic model keys.
+const BIRTH_CUES = new Set([
+  "StarfallTarget", "MoonWellCasterArt", "TauntCaster", "StarfallCaster", "GyroCopterImpact",
+  "FeralSpiritTarget", "FlakTarget", "FireLordDeathExplode", "SlowCaster", "BlizzardTarget",
+  "SteamTankImpact", "SpellBreakerAttack", "SilenceAreaBirth", "ImpaleHitTarget",
+  "BreathOfFireMissile", "VolcanoDeath", "MirrorImageCaster", "MirrorImageDeathCaster",
+  "MarkOfChaosTarget", "SpiritWalkerChange", "MirrorImageMissile", "ForkedLightningTarget",
+  "DefendCaster", "ImpaleTargetDust", "GlaiveMissileTarget", "BlinkCaster", "FanOfKnivesCaster",
+  "SpiritTouchTarget", "AnimateDeadTarget", "DarkRitualCaster", "FrostArmorDamage", "DarkRitualTarget",
+  "HealTarget", "HolyBoltSpecialArt", "StampedeMissileDeath", "CarrionSwarmDamage", "SleepSpecialArt",
+  "HealingWaveTarget", "FeralSpiritDone", "PolymorphTarget", "AncestralSpiritCaster", "HowlCaster",
+  "FlameStrike1", "FreezingBreathMissile", "FrostNovaTarget", "DispelMagicTarget",
+  "MassTeleportTarget", "WaterElementalMissile", "NeutralBuildingExplosion", "RedDragonMissile",
+  "GoldCredit", "NagaDeath",
+]);
+
+const cue = (model: string, anchor: CueAnchor, scale: number): Cue => {
+  const name = model.slice(model.lastIndexOf("\\") + 1).replace(".mdx", "").replace(".mdl", "");
+  const sequence = BIRTH_CUES.has(name) ? "birth" : "stand";
+  // Mark of Chaos's flash opens at 0.666 s; Flame Strike's wall at 1.3 s.
+  const seconds = name === "MarkOfChaosTarget" || name === "InvisibilityTarget" ? 0.75 : name === "FlameStrike1" ? f32(1.3)
+    : name === "DeathCoilSpecialArt" || name === "ThunderClapCaster" || name === "WarStompCaster" ? f32(0.3)
+    : name === "StarfallTarget" ? f32(0.8) : f32(0.2);
+  const pitch = name === "ThunderClapCaster" || name === "WarStompCaster" || name === "Consecration" || name === "FanOfKnivesCaster" ? f32(1.570796327) : 0.0;
+  return { model, anchor, scale, sequence, seconds, pitch };
+};
 const drawn = (model: string, anchor: CueAnchor): Cue => ({ model, anchor, scale: 1.0, drawn: true });
 
 // Each hero's cast flash, its colour: orc fury, storm, shadow, frost, holy light, vampiric, voodoo, fel, wild.
@@ -234,7 +261,7 @@ const FEL_FLAMES = "Abilities\\Spells\\NightElf\\Immolation\\ImmolationTarget.md
 /** The original fighters' specials, by action. */
 export const ORIGINAL_CUES: { readonly [action: number]: MoveCues } = {
   [SpecialAction.archerArrow]: { spell: "Arrow", startup: cue("Abilities\\Spells\\NightElf\\Starfall\\StarfallTarget.mdx", "hand", 0.5), active: cue("Abilities\\Spells\\NightElf\\FaerieFire\\FaerieFireTarget.mdx", "hand", f32(0.6)) },
-  [SpecialAction.archerHomingArrow]: { spell: "Searing homing arrow", startup: cue("Abilities\\Spells\\NightElf\\MoonWell\\MoonWellCasterArt.mdx", "feet", 0.5), active: cue("Abilities\\Spells\\NightElf\\Starfall\\StarfallTarget.mdx", "hand", f32(0.7)) },
+  [SpecialAction.archerHomingArrow]: { spell: "Searing homing arrow", startup: cue("Abilities\\Spells\\NightElf\\MoonWell\\MoonWellCasterArt.mdx", "feet", 1.0), active: cue("Abilities\\Spells\\NightElf\\Starfall\\StarfallTarget.mdx", "hand", f32(0.7)) },
   [SpecialAction.archerDisengage]: { spell: "Hippogryph call", startup: cue("Abilities\\Spells\\NightElf\\Taunt\\TauntCaster.mdx", "body", 0.5), active: cue("Abilities\\Spells\\NightElf\\Starfall\\StarfallCaster.mdx", "feet", f32(0.4)) },
   [SpecialAction.archerRecovery]: { spell: "Hippogryph ride", startup: cue("Abilities\\Spells\\NightElf\\Taunt\\TauntCaster.mdx", "body", 0.5), active: cue("Abilities\\Spells\\NightElf\\Tranquility\\TranquilityTarget.mdx", "feet", 0.5) },
   [SpecialAction.riflemanBlaster]: { spell: "Blaster", startup: drawn(RIFLEMAN_MODEL_FILE, "barrel"), active: cue("Abilities\\Weapons\\GyroCopter\\GyroCopterImpact.mdx", "barrel", 0.5) },

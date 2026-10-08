@@ -32,14 +32,12 @@ export class ProjectilePresentation {
   private readonly serials: number[] = [];
   private readonly specs: (Fighter["projectiles"][number]["spec"])[] = [];
   private parked: ParkedFlags | undefined;
-  private readonly scale: number;
 
   constructor(
     character: Character,
     private readonly origin: WorldOrigin,
   ) {
     const hero = heroDefinition(character) !== undefined;
-    this.scale = character === Character.rifleman ? f32(0.65) : 1.0;
     fighterProjectileModels(character).forEach((path, index) => {
       // A hero owns at most three projectiles; one more for a reflected one. The original fighters' main missile can fill every slot.
       const size = hero ? HERO_PROJECTILE_CAP + 1 : index === 0 ? PROJECTILE_CAPACITY : 4;
@@ -113,6 +111,8 @@ export class ProjectilePresentation {
       parked[slot] = false;
       const projectile = fighter?.projectiles[index];
       if (projectile !== undefined && (this.serials[slot] !== projectile.serial || this.specs[slot] !== projectile.spec || !this.visible[slot])) {
+        const birth = pool?.path.includes("FreezingBreathMissile") === true || pool?.path.includes("WaterElementalMissile") === true;
+        BlzSetSpecialEffectAnimation(model, pose.animationSequence ?? (birth ? "birth" : "stand"));
         BlzSetSpecialEffectTime(model, 0.0);
         this.serials[slot] = projectile.serial;
         this.specs[slot] = projectile.spec;
@@ -120,8 +120,8 @@ export class ProjectilePresentation {
       BlzSetSpecialEffectYaw(model, pose.yaw);
       BlzSetSpecialEffectPitch(model, pose.pitch);
       BlzSetSpecialEffectPosition(model, this.origin.x + pose.x, this.origin.y, this.origin.z + pose.z);
-      const frostOrb = fighter?.character === Character.lich && pool?.path === "Abilities\\Spells\\Other\\FrostBolt\\FrostBoltMissile.mdx";
-      BlzSetSpecialEffectScale(model, this.scale * pose.modelScale * (frostOrb ? 0.25 : 1.0));
+      const smallMissile = pool?.path.includes("QuillSprayMissile") === true || pool?.path.includes("ShadowHunterMissile") === true;
+      BlzSetSpecialEffectScale(model, pose.modelScale * (smallMissile ? f32(1.5) : 1.0));
       BlzSetSpecialEffectAlpha(model, 255);
       BlzSetSpecialEffectTimeScale(model, paused ? 0.0 : 1.0);
       if (pose.animationSeconds !== undefined) {

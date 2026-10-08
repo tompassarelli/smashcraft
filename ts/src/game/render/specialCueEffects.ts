@@ -60,7 +60,7 @@ export class SpecialCueEffects {
         const anchor = CUE_ANCHORS[cue.anchor];
         x = anchor.x * this.scale;
         z = anchor.z * this.scale;
-        key = fighter.special.action;
+        key = fighter.special.action * 100 + fighter.special.form;
       } else {
         const attack = attackCueState(fighter, this.attack);
         cue = attack.cue;
@@ -83,13 +83,14 @@ export class SpecialCueEffects {
         continue;
       }
       const { model } = entry;
+      parked[index] = false;
+      placeEffect(model, this.origin.x + fighter.motion.x + fighter.facing * x, this.front, this.origin.z + fighter.motion.z + z);
       if (this.shown !== cue || this.shownKey !== key) {
         if (entry.cue.sequence !== undefined) BlzSetSpecialEffectAnimation(model, entry.cue.sequence);
         BlzSetSpecialEffectTime(model, entry.cue.seconds ?? 0.0);
       }
-      parked[index] = false;
-      placeEffect(model, this.origin.x + fighter.motion.x + fighter.facing * x, this.front, this.origin.z + fighter.motion.z + z);
       BlzSetSpecialEffectYaw(model, facingYaw(fighter.facing));
+      BlzSetSpecialEffectPitch(model, entry.cue.pitch ?? 0.0);
       BlzSetSpecialEffectScale(model, entry.cue.scale * this.scale);
       BlzSetSpecialEffectAlpha(model, 255);
       BlzSetSpecialEffectTimeScale(model, paused || fighter.launch.hitlag > 0 ? 0.0 : 1.0);
