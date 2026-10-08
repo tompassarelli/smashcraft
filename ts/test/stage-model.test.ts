@@ -13,6 +13,7 @@ import { texturedDeckMdl } from "../scripts/stageMaterials";
 import { parseMDL } from "war3-model";
 import { ARENA_CAMERA, extremeCamera } from "../src/game/presentation/arenaCamera";
 import { createMatchCamera, MATCH_CAMERA_ASPECT } from "../src/game/sim/matchCamera";
+import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
 import { CANNON_TEST_STAGE, HELLFIRE_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt, solidSurfaceCount, surfaceLine } from "../src/game/sim/stage";
 
 /** The stages whose main deck has walls and an underside, each drawn from its own outline. */
@@ -204,6 +205,32 @@ test("Hellfire's Demon Gate projects inside the left third at the far camera [sp
   expect(column).toBeLessThan(1 / 3);
   expect(row).toBeGreaterThan(0);
   expect(row).toBeLessThan(1);
+});
+
+test("World Tree and aviary stay inside the far clip, and the aviary roof clears the deck on the right third [repro #191]", () => {
+  const tilt = 10 * Math.PI / 180;
+  for (const stage of [10, 11]) {
+    const landmark = stageScenery(stage).pieces[0];
+    if (landmark === undefined) throw new Error(`stage ${stage} has no landmark`);
+    const camera = createMatchCamera();
+    extremeCamera(camera, stage, MATCH_CAMERA_ASPECT, "far");
+    const distance = Math.hypot(landmark.x - camera.x, landmark.y + camera.distance * Math.cos(tilt), landmark.z - camera.z - camera.distance * Math.sin(tilt));
+    expect(distance, landmark.model).toBeLessThan(ARENA_CAMERA.farZ);
+    if (stage !== 11) continue;
+    const bounds = MODEL_FACTS[landmark.model]?.bounds;
+    if (bounds === undefined) throw new Error("aviary has no measured model bounds");
+    const roof = landmark.z + landmark.scale * bounds.max[2];
+    const dz = roof - camera.z;
+    const depth = camera.distance + landmark.y * Math.cos(tilt) - dz * Math.sin(tilt);
+    const column = 0.5 + landmark.x / (2 * depth * camera.tangent * MATCH_CAMERA_ASPECT);
+    const row = 0.5 - (dz * Math.cos(tilt) + landmark.y * Math.sin(tilt)) / (2 * depth * camera.tangent);
+    const deckDepth = camera.distance + camera.z * Math.sin(tilt);
+    const deckRow = 0.5 + camera.z * Math.cos(tilt) / (2 * deckDepth * camera.tangent);
+    expect(column).toBeGreaterThan(2 / 3);
+    expect(column).toBeLessThan(1);
+    expect(row).toBeGreaterThan(0);
+    expect(row).toBeLessThan(deckRow);
+  }
 });
 
 test("Naxxramas's cold green light frames the necropolis with one shadow and leaves fighters outside its reach [spec #296]", () => {

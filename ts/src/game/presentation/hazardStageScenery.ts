@@ -9,7 +9,7 @@ export const NORDRASSIL_SCENERY: StageScenery = {
   heightFog: { start: 5500.0, end: 11000.0, density: 0.25, heightStart: -2600.0, heightEnd: -600.0, maxDensity: 0.5, drawOverSky: false },
   pieces: [
     // Dream Land tree silhouette with cool low moon wells; the aurora sky is preserved.
-    { model: "Doodads\\Ashenvale\\Structures\\Worldtree\\Worldtree.mdx", x: -1900.0, y: 5800.0, z: -2650.0, scale: 0.625, yaw: 300.0, matrixScale: [1.0, 1.0, f32(1.512)] },
+    { model: "Doodads\\Ashenvale\\Structures\\Worldtree\\Worldtree.mdx", x: -1900.0, y: 4800.0, z: -2650.0, scale: 0.625, yaw: 300.0, matrixScale: [1.0, 1.0, f32(1.512)] },
     { model: "Buildings\\NightElf\\MoonWell\\MoonWell.mdx", x: 1600.0, y: 2900.0, z: -900.0, scale: 1.0, yaw: 250.0 },
     { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 1715.0, y: 2900.0, z: -2295.0, scale: f32(5.35), yaw: 287.0, matrixScale: [1.0, 1.0, f32(2.605)] },
     { model: "Buildings\\NightElf\\MoonWell\\MoonWell.mdx", x: -2300.0, y: 4400.0, z: -1200.0, scale: 0.625, yaw: 20.0 },
@@ -25,8 +25,8 @@ export const GRYPHON_SCENERY: StageScenery = {
   heightFog: { start: 5500.0, end: 11500.0, density: 0.25, heightStart: -1800.0, heightEnd: -500.0, maxDensity: 0.5, drawOverSky: true },
   pieces: [
     // The aviary sits on the right third; Aerie Peak's crag answers it on the left, a far peak between.
-    { model: "Buildings\\Human\\GryphonAviary\\GryphonAviary.mdx", x: 2100.0, y: 5700.0, z: -1350.0, scale: 1.5, yaw: 215.0 },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 2415.0, y: 5700.0, z: -3620.0, scale: f32(10.2), yaw: 252.0, matrixScale: [1.0, 1.0, f32(2.079)] },
+    { model: "Buildings\\Human\\GryphonAviary\\GryphonAviary.mdx", x: 2300.0, y: 4800.0, z: -150.0, scale: 1.25, yaw: 215.0 },
+    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 2550.0, y: 4800.0, z: -3650.0, scale: 8.0, yaw: 252.0, matrixScale: [1.0, 1.0, 4.75] },
     { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -2050.0, y: 3200.0, z: -2475.0, scale: 3.5, yaw: 35.0, matrixScale: [1.0, 1.0, f32(5.138)] },
     { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -550.0, y: 5200.0, z: -3505.0, scale: f32(5.05), yaw: 110.0, matrixScale: [1.0, 1.0, f32(6.005)] },
   ],
