@@ -5,21 +5,30 @@ import { CAIRNE_DE_PAIRS, checkBodySkin, checkRetarget, generateHdBody, parseHdB
 import { timelineBody } from './timeline-body';
 import { flashableSequences } from './white-flash-keys';
 import { thinKeys } from '../../ts/scripts/keyThin';
+import { fighters } from './original-clips';
 
-const [sourcePath, stockPath, outputPath] = process.argv.slice(2);
+const [sourcePath, stockPath, outputPath, ...options] = process.argv.slice(2);
+const option = (name: string) => { const index = options.indexOf(name); return index < 0 ? undefined : options[index + 1]; };
+const character = Number(option('--character') ?? 16);
+const rigPath = option('--rig');
+const fighter = fighters.get(character);
+if (fighter === undefined) throw new Error(`Unknown fighter ${character}`);
 if (sourcePath === undefined || stockPath === undefined || outputPath === undefined) {
-    throw new Error('usage: bun tools/animations/hd-models.ts AUTHORED_CAIRNE.mdx STOCK_DEFINITIVE_CAIRNE.mdx PRIVATE_OUTPUT.mdx');
+    throw new Error('usage: bun tools/animations/hd-models.ts AUTHORED.mdx STOCK_DEFINITIVE.mdx PRIVATE_OUTPUT.mdx [--character ID --rig PAIRS.ts]');
 }
+if (character !== 16 && rigPath === undefined) throw new Error('Every fighter needs its registered literal rig mapping');
 const output = resolve(outputPath);
 if (!relative(resolve(import.meta.dir, '../..'), output).startsWith('..')) throw new Error('HD bodies stay in private storage');
 await Effect.runPromise(Effect.tryPromise({ try: async () => {
     const source = parseMDX(await Bun.file(sourcePath).arrayBuffer());
     const hd = parseHdBody(await Bun.file(stockPath).arrayBuffer());
+    const pairs = rigPath === undefined ? CAIRNE_DE_PAIRS : (await import(resolve(rigPath))).pairs as readonly (readonly [string, string])[];
+    if (!Array.isArray(pairs) || pairs.length === 0) throw new Error('Rig module must export a nonempty pairs array');
     const skin = checkBodySkin(hd);
-    const sequences = flashableSequences(16, source.Sequences);
-    const result = retargetHd(source, hd, CAIRNE_DE_PAIRS, sequences);
+    const sequences = flashableSequences(character, source.Sequences);
+    const result = retargetHd(source, hd, pairs, sequences);
     const converted = checkRetarget(result);
-    if (converted.units > 0.5 || converted.degrees > 0.5) throw new Error(`Cairne retarget exceeds 0.5/0.5: ${JSON.stringify(converted)}`);
+    if (converted.units > 0.5 || converted.degrees > 0.5) throw new Error(`${fighter.name} retarget exceeds 0.5/0.5: ${JSON.stringify(converted)}`);
     for (const collision of result.model.CollisionShapes) delete result.model.Nodes[collision.ObjectId];
     result.model.CollisionShapes = [];
     const thinned = thinKeys(result.model, { position: 0.45, rotationDegrees: 0.45 });
@@ -28,8 +37,8 @@ await Effect.runPromise(Effect.tryPromise({ try: async () => {
     const exportedSkin = checkBodySkin(parseHdBody(bytes));
     if (skin.geosets !== exportedSkin.geosets || skin.vertices !== exportedSkin.vertices) throw new Error('Definitive export changed the mesh count');
     const measured = checkRetarget({ ...result, samples: result.samples.map(sample => ({ ...sample, sequence: 0 })) }, bytes);
-    if (measured.units > 0.5 || measured.degrees > 0.5) throw new Error(`Cairne timeline exceeds 0.5/0.5: ${JSON.stringify(measured)}`);
+    if (measured.units > 0.5 || measured.degrees > 0.5) throw new Error(`${fighter.name} timeline exceeds 0.5/0.5: ${JSON.stringify(measured)}`);
     await Bun.write(output, bytes);
-    console.log(JSON.stringify({ fighter: 'Cairne', sequences: sequences.length, joints: result.mapped, skin: exportedSkin, converted, thinning: thinned.report, timeline: measured,
+    console.log(JSON.stringify({ fighter: fighter.name, character, sequences: sequences.length, joints: result.mapped, skin: exportedSkin, converted, thinning: thinned.report, timeline: measured,
         importReason: 'Authored moves cannot be played on the unmodified stock Definitive model.', output }));
-}, catch: cause => new Error('HD Cairne export failed', { cause }) }));
+}, catch: cause => new Error(`Definitive ${fighter.name} export failed`, { cause }) }));
