@@ -21,8 +21,8 @@ import { BUSY_PRESSURE, INCONCLUSIVE_EXIT, withPressure } from "wisp/scripts/wis
 import { runAdmitted } from "./heavyCapacity";
 import { LUA_TEST_CEILING_S, addCost, judge, type Costs } from "./testCost";
 import { stockLua } from "./wisp/luaRuntimes";
-
 import { refuseUntagged } from "./oracleTags";
+
 const compile = (config: string) =>
   Bun.spawnSync([process.execPath, "--bun", "node_modules/typescript-to-lua/dist/tstl.js", "-p", config], { stdout: "inherit", stderr: "inherit" }).exitCode ?? 1;
 const run = (bundle: string) => Bun.spawnSync([lua, bundle], { stdout: "inherit", stderr: "inherit" }).exitCode ?? 1;
@@ -106,4 +106,3 @@ for (const step of steps) {
   const exitCode = await step();
   if (exitCode !== 0) process.exit(exitCode);
 }
-

@@ -23,22 +23,16 @@ const SMASHCRAFT_DEV: DevProject = {
       "test/wisp.test.ts": ["test/fixtures/wisp/**"],
       "test/command-list.test.ts": ["scripts/wisp.ts", "../AGENTS.md"],
       "test/stage-render.test.ts": [],
-      "test/contrast-tool.test.ts": ["../tools/stage/contrast.ts"],
-      "test/move-list.test.ts": ["../docs/move-list.md"],
       "test/ui-frames.test.ts": ["../tools/selection/art/*.fdf", "../tools/selection/art/*.toc"],
       "test/menu-fresh.test.ts": ["test/fixtures/wisp/**"],
       // Dated evidence records, never edited.
       "test/integrity.test.ts": ["../evidence/**"],
       "test/playable.test.ts": ["test/fixtures/playable-0045/**", "../evidence/**"],
-      // Only the temporary directories it creates.
-      "test/tape-process.test.ts": [],
       // It copies src/, the tunables' files included, to load the map with tuned values.
       "test/tune.test.ts": ["src/**"],
       "test/repro.test.ts": [],
       "test/standalone.test.ts": ["test/native/pads/cpu-expert.pad"],
       "scripts/meleeOracle.tests.ts": ["../docs/gameplay-design.md"],
-      // The case study's pages and the reference data its numbers come from.
-      "scripts/meleeCaseStudy.tests.ts": ["../docs/design/melee/**", "../references/melee-frame-data/**", "../docs/smash-melee-reference/retail-roster.json"],
     },
     // Played in simulated clients: reported with the quick-match journey.
     journeys: [

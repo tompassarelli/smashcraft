@@ -6,7 +6,7 @@ import { createFighter, type Fighter } from "../sim/fighter";
 import { createRoster, fighterAt, neutralControls, sameControls } from "../sim/roster";
 import { sameAttackBuffer } from "../input/attackBuffer";
 import { produceComputerInput } from "./botPlay";
-import { BOT_DIRECTION_FRAMES, type BotMemory, commitBotDirection, copyBotMemory, createBotMemory, observeOpponents, perceivedOpponent, settleObservationChecksum } from "./botPerception";
+import { BOT_DIRECTION_FRAMES, type BotMemory, commitBotDirection, copyBotMemory, createBotMemory, observeOpponents, perceivedOpponent } from "./botPerception";
 import { cpuSkill } from "./cpuSkill";
 import { CPU_PROFILES, type CpuOpponentId, type CpuTier } from "./cpuProfiles";
 import { createFrameControls } from "./controls";
