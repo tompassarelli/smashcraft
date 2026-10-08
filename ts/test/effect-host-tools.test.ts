@@ -8,7 +8,6 @@ const importsEffect = /(?:from|import)\s*\(?\s*["'](?:effect|@effect\/[^"'/]+)(?
 // Written before the rule. This list only shrinks: convert a file, then remove it.
 // scripts/ serves no browser pages today; exclude one here if it ever does.
 const notYetEffect = [
-  "scripts/ci.ts",
   "scripts/compiler-benchmark.ts",
   "scripts/cpuCalibration.ts",
   "scripts/integrity/padScheduleWorker.ts",
