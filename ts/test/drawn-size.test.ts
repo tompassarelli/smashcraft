@@ -38,6 +38,7 @@ const IDLE_TOPS: readonly { readonly character: Character; readonly idleClip: nu
   { character: Character.murloc, idleClip: 2, top: 76.3 },
   { character: Character.kobold, idleClip: 0, top: 72.11871337890625 },
   { character: Character.grom, idleClip: 8, top: 189.2610626220703 },
+  { character: Character.malfurion, idleClip: 0, top: 159.57972717285156 },
 ];
 
 /** The hurt capsule's top may sit at most a tenth above the drawn head. */
@@ -52,6 +53,7 @@ const DEPARTURES: { readonly [character: number]: string } = {
   [Character.chen]: "his hat rises about 12 units above his drawn head",
   [Character.tinker]: "the raised backpack claw extends above the goblin and lower backpack body",
   [Character.grom]: "the carried banner rises about 50 units above his drawn head",
+  [Character.malfurion]: "the carried staff rises above his drawn head",
 };
 
 test("every fighter's drawn standing height meets its hurt capsule's top [spec #97]", () => {

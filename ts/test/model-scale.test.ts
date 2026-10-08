@@ -17,6 +17,7 @@ const UNITSKIN_MODEL_SCALE: Readonly<Record<string, number>> = {
   Othr: 1.0, Hjai: 1.0, Otch: 1.0, Npbm: 1.0, opeo: 1.0, Ntin: 1.0, Hblm: 1.0, nmrl: 1.0, nkob: 1.0,
   // A community model has no unit behind it, so no unit scale: drawn at 1.0 (#167).
   LichKing2: 1.0,
+  Efur: Math.fround(1.1),
 };
 
 test("every fighter is drawn at its stock unit's model scale times the shared factor [native]", () => {
