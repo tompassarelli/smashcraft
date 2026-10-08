@@ -3,6 +3,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { STAGE_WATER_MODEL, STAGE_LAVA_MODEL } from "../assets/terrainAssetInfo";
 import { LAVA_CENTER_X, LAVA_HALF_WIDTH } from "../sim/lava";
+import { SEA_SURFACE_Z, seaLeft, seaRight } from "../sim/stageHazards";
 import { STAGE_LIGHT_MODELS, STAGE_POINT_LIGHT_MODELS, STAGE_SNOW_MODEL } from "../assets/stageAssetInfo";
 import { STAGE_POINT_LIGHTS } from "../assets/stagePointLights";
 import { STAGE_SKY_MODELS } from "../assets/stageSkyInfo";
@@ -83,7 +84,11 @@ export function stageScenery(stage: number): StageScenery {
 
 /** Visible liquid sits within its contact surface; background pieces keep their own depth bands. Blackrock's timed lava is drawn by the match view (lavaPiece). */
 export function terrainPieces(stage: number): readonly SceneryPiece[] {
-  if (stage === TOMB_OF_SARGERAS_STAGE) return [{ model: STAGE_WATER_MODEL, x: 0.0, y: 0.0, z: 1.0, scale: 1.0, matrixScale: [12.0, 1.0, 1.0], yaw: 0.0 }];
+  if (stage === TOMB_OF_SARGERAS_STAGE) return [
+    { model: STAGE_WATER_MODEL, x: 0.0, y: 0.0, z: 1.0, scale: 1.0, matrixScale: [12.0, 1.0, 1.0], yaw: 0.0 },
+    { model: STAGE_WATER_MODEL, x: f32(f32(seaLeft(stage) + seaRight(stage)) / 2.0), y: 0.0, z: SEA_SURFACE_Z, scale: 1.0,
+      matrixScale: [f32(f32(seaRight(stage) - seaLeft(stage)) / 100.0), 1.0, 1.0], yaw: 0.0 },
+  ];
   return [];
 }
 
