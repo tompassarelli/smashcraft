@@ -11,6 +11,8 @@ const PASSIVE_PIP_SIZE = f32(0.006);
 const PIP_GAP = f32(0.002);
 /** From the top of the mana bar's border to the pips' centre. */
 export const PASSIVE_PIP_LIFT = f32(0.003) + PASSIVE_PIP_SIZE / 2.0;
+/** From the top of the mana bar's border to the pips' top edge. */
+export const PASSIVE_PIP_TOP = PASSIVE_PIP_LIFT + PASSIVE_PIP_SIZE / 2.0;
 const DIM = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp";
 const LIT = "ReplaceableTextures\\TeamColor\\TeamColor04.blp";
 const READY = "ReplaceableTextures\\TeamColor\\TeamColor05.blp";

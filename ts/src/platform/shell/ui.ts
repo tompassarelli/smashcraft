@@ -108,7 +108,7 @@ export interface ManaBars {
 
 const createManaBars = (slot: ParticipantSlot): ManaBars => ({
   // Like the escape meter, the overhead bar draws on the console backdrop, outside GameUI's central area.
-  overhead: new ManaBar("Overhead", slot, consoleUi(), 1200 + slot * 20, OVERHEAD_MANA_HEIGHT, OVERHEAD_MANA_BORDER),
+  overhead: new ManaBar("Overhead", slot, consoleUi(), 1200 + slot * 20, OVERHEAD_MANA_HEIGHT, OVERHEAD_MANA_BORDER, true),
   // The plate art draws the bar's track (plateLayout.ts).
   hud: new ManaBar("Hud", slot, gameUi(), 1300 + slot * 20, unitsForPixels(MANA_BAR_HEIGHT_PX), 0.0),
 });

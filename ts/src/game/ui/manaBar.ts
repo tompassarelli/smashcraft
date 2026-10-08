@@ -8,6 +8,7 @@ import {
   MANA_BAR_SEGMENTS, type ManaFeedback, advanceManaFeedback, manaFeedback, manaFill, manaDrainLit, manaFlashLit, manaGlowLit,
 } from "../presentation/manaBar";
 import { createBackdrop, createText } from "./frames";
+import { PASSIVE_PIP_TOP } from "./passivePips";
 
 const LINE_WIDTH = f32(0.0006);
 const DARK = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp";
@@ -16,6 +17,13 @@ const FLASH = "ReplaceableTextures\\TeamColor\\TeamColor00.blp";
 const GLOW = "ReplaceableTextures\\TeamColor\\TeamColor02.blp";
 /** Fits "EX Neutral + Side" at the label's scale; the label grows left from the bar's right end. */
 const EX_LABEL_WIDTH = f32(0.12);
+const EX_LABEL_SCALE = f32(0.6);
+/**
+ * Over the overhead bar the label clears the passive pips centred above it.
+ * A scaled frame may scale its point offsets, so the lift is divided by the
+ * scale: drawn either way, it is never lower than the pips' top.
+ */
+const EX_LABEL_OVER_PIPS = f32(f32(PASSIVE_PIP_TOP + f32(0.001)) / EX_LABEL_SCALE);
 /** Purple: mana burned away by an opponent's hit. */
 const DRAIN = "ReplaceableTextures\\TeamColor\\TeamColor03.blp";
 
@@ -38,8 +46,8 @@ export class ManaBar {
   private drainShown = false;
   private shownFill = -1.0;
 
-  /** `name` keeps the frame names apart: "Overhead" or "Hud". */
-  constructor(name: string, slot: number, parent: framehandle, context: number, private readonly height: number, private readonly border: number) {
+  /** `name` keeps the frame names apart: "Overhead" or "Hud"; `pipsAbove` when passive pips sit over this bar. */
+  constructor(name: string, slot: number, parent: framehandle, context: number, private readonly height: number, private readonly border: number, pipsAbove = false) {
     const suffix = `${name}${I2S(slot)}`;
     this.back = createBackdrop(`ManaBarBack${suffix}`, parent, context);
     this.fill = createBackdrop(`ManaBarFill${suffix}`, parent, context + 1);
@@ -50,9 +58,9 @@ export class ManaBar {
     this.flash = createBackdrop(`ManaBarFlash${suffix}`, parent, context + 2 + MANA_BAR_SEGMENTS);
     this.drain = createBackdrop(`ManaBarDrain${suffix}`, parent, context + 3 + MANA_BAR_SEGMENTS);
     this.exLabel = createText(`ManaBarEx${suffix}`, parent, context + 4 + MANA_BAR_SEGMENTS);
-    BlzFrameSetPoint(this.exLabel, FRAMEPOINT_BOTTOMRIGHT, this.back, FRAMEPOINT_TOPRIGHT, 0.0, 0.0);
+    BlzFrameSetPoint(this.exLabel, FRAMEPOINT_BOTTOMRIGHT, this.back, FRAMEPOINT_TOPRIGHT, 0.0, pipsAbove ? EX_LABEL_OVER_PIPS : 0.0);
     BlzFrameSetTextAlignment(this.exLabel, TEXT_JUSTIFY_BOTTOM, TEXT_JUSTIFY_RIGHT);
-    BlzFrameSetScale(this.exLabel, f32(0.6));
+    BlzFrameSetScale(this.exLabel, EX_LABEL_SCALE);
     BlzFrameSetTexture(this.back, DARK, 0, true);
     BlzFrameSetTexture(this.fill, FILL, 0, true);
     BlzFrameSetTexture(this.glow, GLOW, 0, true);
