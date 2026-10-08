@@ -57,7 +57,7 @@ function hitArcher(world: Roster): void {
   finishDamageContacts(world);
 }
 
-test("archerRideHoversThenRisesSteeredByTheStickAndEndsHelpless", () => {
+test("archerRideHoversThenRisesSteeredByTheStickAndEndsHelpless [spec docs/design/archer-specials.md]", () => {
   const { world, archer } = airborne();
   frame(world, up);
   assertEquals(archer.special.action, SpecialAction.archerRecovery);
@@ -78,7 +78,7 @@ test("archerRideHoversThenRisesSteeredByTheStickAndEndsHelpless", () => {
   assertGreaterThan(archer.motion.x, f32(ARCHER_RIDE_MAX_X * 15));
 });
 
-test("archerRideLowRouteFliesFlatterThanTheHighRoute", () => {
+test("archerRideLowRouteFliesFlatterThanTheHighRoute [spec docs/design/archer-specials.md]", () => {
   const high = airborne();
   const low = airborne();
   frame(high.world, up);
@@ -92,7 +92,7 @@ test("archerRideLowRouteFliesFlatterThanTheHighRoute", () => {
   assertEquals(high.archer.motion.x, low.archer.motion.x);
 });
 
-test("archerLeapsOffActionableWithoutASecondRideUntilSheLands", () => {
+test("archerLeapsOffActionableWithoutASecondRideUntilSheLands [spec docs/design/archer-specials.md]", () => {
   const { world, archer } = airborne();
   frame(world, up);
   for (let i = 1; i < 10; i++) frame(world);
@@ -115,7 +115,7 @@ test("archerLeapsOffActionableWithoutASecondRideUntilSheLands", () => {
   assertEquals(archer.special.action, SpecialAction.archerRecovery);
 });
 
-test("archerLeapOffLeavesTheHippogryphStrikingUpward", () => {
+test("archerLeapOffLeavesTheHippogryphStrikingUpward [spec docs/design/archer-specials.md]", () => {
   const { world, archer, target } = airborne();
   frame(world, up);
   for (let i = 1; i < 14; i++) frame(world);
@@ -129,7 +129,7 @@ test("archerLeapOffLeavesTheHippogryphStrikingUpward", () => {
   assertGreaterThan(target.launch.knockbackZ, 0.0);
 });
 
-test("archerHitDuringTheRideHoverKnocksHerOffTheMount", () => {
+test("archerHitDuringTheRideHoverKnocksHerOffTheMount [spec docs/design/archer-specials.md]", () => {
   const { world, archer } = airborne();
   frame(world, up);
   frame(world);
@@ -139,7 +139,7 @@ test("archerHitDuringTheRideHoverKnocksHerOffTheMount", () => {
   assertTrue(!archer.special.fall);
 });
 
-test("archerCallSwoopsThroughTheGapThenPerches", () => {
+test("archerCallSwoopsThroughTheGapThenPerches [spec docs/design/archer-specials.md]", () => {
   const { world, archer, target } = pair(0.0, 200.0);
   frame(world, down);
   assertEquals(archer.special.action, SpecialAction.archerDisengage);
@@ -153,7 +153,7 @@ test("archerCallSwoopsThroughTheGapThenPerches", () => {
   assertEquals(archer.hippogryph.kind, HippogryphKind.perch);
 });
 
-test("archerCallWithASideFacesItAndHopsBackFromIt", () => {
+test("archerCallWithASideFacesItAndHopsBackFromIt [spec docs/design/archer-specials.md]", () => {
   for (const side of [1, -1]) {
     const { world, archer } = pair(0.0, 550.0);
     frame(world, controls({ specialPressed: true, specialZ: -1, specialX: side, down: true, direction: side }));
@@ -181,7 +181,7 @@ function dive(world: Roster, archer: Fighter): void {
   for (let i = 1; i < ARCHER_DIVE_LAUNCH_FRAME + HIPPOGRYPH_DIVE_ARRIVAL + 8; i++) frame(world);
 }
 
-test("archerDiveStrikesAFighterBetweenThePerchAndHer", () => {
+test("archerDiveStrikesAFighterBetweenThePerchAndHer [spec docs/design/archer-specials.md]", () => {
   const { world, archer, target } = perched();
   target.motion.x = 180.0;
   dive(world, archer);
@@ -190,14 +190,14 @@ test("archerDiveStrikesAFighterBetweenThePerchAndHer", () => {
   assertEquals(archer.hippogryph.kind, HippogryphKind.none);
 });
 
-test("archerDiveMissesAFighterOffItsLine", () => {
+test("archerDiveMissesAFighterOffItsLine [spec docs/design/archer-specials.md]", () => {
   const { world, archer, target } = perched();
   target.motion.x = -400.0;
   dive(world, archer);
   assertEquals(target.status.damage, 0.0);
 });
 
-test("archerDiveIsBlockedByAShield", () => {
+test("archerDiveIsBlockedByAShield [spec docs/design/archer-specials.md]", () => {
   const { world, archer, target } = perched();
   target.motion.x = 180.0;
   for (let i = 0; i < 10; i++) frame(world, controls(), controls({ shield: true, shieldTriggerActive: true, shieldStrength: 1.0 }));
@@ -211,7 +211,7 @@ test("archerDiveIsBlockedByAShield", () => {
   assertTrue(target.shield.energy < f32(energy - 2.0));
 });
 
-test("archerHitScaresTheHippogryphOffItsPerch", () => {
+test("archerHitScaresTheHippogryphOffItsPerch [spec docs/design/archer-specials.md]", () => {
   const { world, archer } = perched();
   hitArcher(world);
   frame(world);
@@ -219,7 +219,7 @@ test("archerHitScaresTheHippogryphOffItsPerch", () => {
   assertEquals(archer.hippogryph.kind, HippogryphKind.none);
 });
 
-test("archerRideSpendsThePerch", () => {
+test("archerRideSpendsThePerch [spec docs/design/archer-specials.md]", () => {
   const { world, archer } = perched();
   frame(world, up);
   assertEquals(archer.special.action, SpecialAction.archerRecovery);

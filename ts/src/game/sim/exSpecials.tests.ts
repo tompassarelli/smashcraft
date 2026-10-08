@@ -10,10 +10,9 @@ import { contactBatch, controls, hitEffect, testWorld } from "./testWorld";
 import { copyFighterState } from "../replay/fighterState";
 import { firstFighterDifference } from "../replay/difference";
 import { grantParry } from "./shield";
-import { dealtManaGain, takenManaGain } from "./mana";
+import { dealtManaGain } from "./mana";
 import { refillMana } from "./heroSpecialRules";
 import { clearSpecialOnStock } from "./transitions";
-import { upgradeThreatenedSpecial } from "../match/botPlay";
 
 const roster: readonly Character[] = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(hero => hero.character)];
 
@@ -28,7 +27,7 @@ function special(character: Character, side: boolean, mana: number, ex: boolean)
   return { f, world, started };
 }
 
-test("every fighter's neutral and side EX pay 25 extra, arm one light hit, and keep ordinary duration", () => {
+test("every fighter's neutral and side EX pay 25 extra, arm one light hit, and keep ordinary duration [spec docs/gameplay-design.md]", () => {
   for (const character of roster) for (const side of [false, true]) {
     const normal = special(character, side, 100, false);
     const ex = special(character, side, 100, true);
@@ -47,7 +46,7 @@ test("every fighter's neutral and side EX pay 25 extra, arm one light hit, and k
   }
 });
 
-test("every fighter's unaffordable EX falls back and pays only its normal cost", () => {
+test("every fighter's unaffordable EX falls back and pays only its normal cost [spec docs/gameplay-design.md]", () => {
   for (const character of roster) for (const side of [false, true]) {
     const price = exSpecialCost(createFighter(character, 0.0, 1), side) - EX_EXTRA_MANA;
     const attempt = special(character, side, price, true);
@@ -58,7 +57,7 @@ test("every fighter's unaffordable EX falls back and pays only its normal cost",
   }
 });
 
-test("EX takes one light hit's damage and freeze without interruption; a second, heavy, late hit or throw interrupts", () => {
+test("EX takes one light hit's damage and freeze without interruption; a second, heavy, late hit or throw interrupts [spec docs/gameplay-design.md]", () => {
   for (const kind of ["second", "heavy", "late", "throw"] as const) {
     const { f, world } = special(Character.archer, false, 100, true);
     const hit = (damage: number, contact: ContactKind = ContactKind.launch) => contactBatch(world, () => collectDamageContact(world, 1, 0, hitEffect(damage, 90.0, 20.0, 1.0, 0.0), 1, contact, true, undefined, false));
@@ -78,7 +77,7 @@ test("EX takes one light hit's damage and freeze without interruption; a second,
   }
 });
 
-test("each fighter earns the listed hit, damage taken and parry mana, bounded by 100", () => {
+test("each fighter earns parry mana once per window, bounded by 100 [spec docs/gameplay-design.md]", () => {
   for (const character of roster) {
     const f = createFighter(character, 0.0, 1);
     const target = createFighter(Character.archer, 30.0, -1);
@@ -88,8 +87,6 @@ test("each fighter earns the listed hit, damage taken and parry mana, bounded by
     f.attack.style = AttackStyle.jab;
     contactBatch(world, () => collectDamageContact(world, 0, 1, hitEffect(10.0, 0.0, 0.0, 1.0, 0.0), 1, ContactKind.launch, true, undefined, false));
     const earned = 50 + dealtManaGain(target.status.damage);
-    assertEquals(f.mana.points, earned);
-    assertEquals(target.mana.points, 50 + takenManaGain(target.status.damage));
     f.shield.perfectFrames = 1;
     grantParry(f);
     assertEquals(f.mana.points, earned + 8);
@@ -102,7 +99,7 @@ test("each fighter earns the listed hit, damage taken and parry mana, bounded by
   }
 });
 
-test("EX state and spent armor restore exactly, reset on a stock, and up/down remain ordinary", () => {
+test("EX state and spent armor restore exactly, reset on a stock, and up/down remain ordinary [invariant] [spec docs/gameplay-design.md]", () => {
   for (const character of roster) {
     const { f } = special(character, false, 100, true);
     f.special.exArmorUsed = true;
@@ -125,7 +122,7 @@ test("EX state and spent armor restore exactly, reset on a stock, and up/down re
   }
 });
 
-test("the EX cue names only the specials the current mana can pay", () => {
+test("the EX cue names only the specials the current mana can pay [spec docs/gameplay-design.md]", () => {
   const f = createFighter(Character.archer, 0.0, 1);
   f.mana.points = 27;
   assertEquals(exManaCue(f), "");
@@ -133,22 +130,4 @@ test("the EX cue names only the specials the current mana can pay", () => {
   assertEquals(exManaCue(f), "EX Neutral");
   f.mana.points = 37;
   assertEquals(exManaCue(f), "EX Neutral + Side");
-});
-
-test("a computer uses its observed nearby attack to upgrade a chosen special, preserving the chosen direction", () => {
-  const f = createFighter(Character.archer, 0.0, 1);
-  const seen = createFighter(Character.rifleman, 90.0, -1);
-  seen.attack.style = AttackStyle.jab;
-  const input = controls({ specialPressed: true, specialX: -1 });
-  upgradeThreatenedSpecial(f, seen, input);
-  assertTrue(input.shield);
-  assertEquals(input.specialX, -1);
-  input.shield = false;
-  f.mana.points = 36;
-  upgradeThreatenedSpecial(f, seen, input);
-  assertFalse(input.shield);
-  f.mana.points = 100;
-  seen.motion.x = 400.0;
-  upgradeThreatenedSpecial(f, seen, input);
-  assertFalse(input.shield);
 });

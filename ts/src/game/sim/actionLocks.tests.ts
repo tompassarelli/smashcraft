@@ -15,7 +15,7 @@ import { authoredPhysics, melee } from "./tuning";
 
 const jumpSquatFrames = (character: Character) => authoredPhysics(character).jumpSquatFrames;
 
-test("releasing a shield waits for the minimum hold, then applies release lag", () => {
+test("releasing a shield waits for the minimum hold, then applies release lag [spec #100]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   const input = controls({ shield: true });
   advanceSolo(fighter, 0, input, -240.0);
@@ -33,7 +33,7 @@ test("releasing a shield waits for the minimum hold, then applies release lag", 
   assertEquals(fighter.shield.releaseLag, SHIELD_RELEASE_LAG_FRAMES - 1);
 });
 
-test("every fighter's dropped shield blocks attacks for Ultimate's 11 frames, then frees them", () => {
+test("every fighter's dropped shield blocks attacks for Ultimate's 11 frames, then frees them [spec #100]", () => {
   assertEquals(SHIELD_RELEASE_LAG_FRAMES, 11);
   for (const character of Object.values(Character)) {
     const fighter = createFighter(character, 0.0, 1);
@@ -54,7 +54,7 @@ test("every fighter's dropped shield blocks attacks for Ultimate's 11 frames, th
   }
 });
 
-test("a shield grab requires an unstunned, grounded, active shield and keeps other attacks locked", () => {
+test("a shield grab requires an unstunned, grounded, active shield and keeps other attacks locked [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   fighter.shield.raised = true;
   assertFalse(canAttack(fighter));
@@ -84,7 +84,7 @@ test("a shield grab requires an unstunned, grounded, active shield and keeps oth
   assertFalse(canShieldGrab(fighter));
 });
 
-test("full and short jumps use distinct launch speeds", () => {
+test("full and short jumps use distinct launch speeds [reference]", () => {
   const full = createFighter(Character.archer, 0.0, 1);
   const short = createFighter(Character.archer, 0.0, 1);
   const input = controls({ jumpPressed: true, jumpHeld: true });
@@ -99,7 +99,7 @@ test("full and short jumps use distinct launch speeds", () => {
   assertNear(full.motion.vz, 22.079999923706055, 0.00009999999747378752);
 });
 
-test("an air dodge protects only frames four through twenty-nine", () => {
+test("an air dodge protects only frames four through twenty-nine [reference]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     for (let frame = 1; frame <= 30; frame++) {
       const fighter = createFighter(character, 100.0, -1);
@@ -118,7 +118,7 @@ test("an air dodge protects only frames four through twenty-nine", () => {
   }
 });
 
-test("a hit during dodge startup interrupts the dodge's movement", () => {
+test("a hit during dodge startup interrupts the dodge's movement [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 100.0, -1);
   fighter.motion.z = 300.0;
   fighter.motion.grounded = false;
@@ -134,7 +134,7 @@ test("a hit during dodge startup interrupts the dodge's movement", () => {
   assertGreaterThan(fighter.launch.hitstun, 0);
 });
 
-test("landing ends dodge protection without removing respawn protection", () => {
+test("landing ends dodge protection without removing respawn protection [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 100.0, -1);
   fighter.motion.z = 30.0;
   fighter.motion.grounded = false;
@@ -191,7 +191,7 @@ function airJumpApex(character: Character): number {
   return apex - 100;
 }
 
-test("complete jump trajectories match the reference heights", () => {
+test("complete jump trajectories match the reference heights [reference]", () => {
   assertNear(groundJumpApex(Character.archer, true), melee(31.280000686645508), 0.019999999552965164);
   assertNear(groundJumpApex(Character.archer, false), melee(10.649999618530273), 0.019999999552965164);
   assertNear(airJumpApex(Character.archer), melee(40.20399856567383), 0.019999999552965164);
@@ -200,7 +200,7 @@ test("complete jump trajectories match the reference heights", () => {
   assertNear(airJumpApex(Character.rifleman), melee(41.77799987792969), 0.019999999552965164);
 });
 
-test("another press during jump squat doesn't restart it or spend an air jump", () => {
+test("another press during jump squat doesn't restart it or spend an air jump [spec docs/physics.md]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     const fighter = createFighter(character, 0.0, 1);
     const input = controls({ jumpPressed: true, jumpHeld: true });
@@ -211,7 +211,7 @@ test("another press during jump squat doesn't restart it or spend an air jump", 
   }
 });
 
-test("releasing, then re-pressing during squat keeps a short hop", () => {
+test("releasing, then re-pressing during squat keeps a short hop [reference]", () => {
   const fighter = createFighter(Character.rifleman, 0.0, 1);
   const input = controls({ jumpPressed: true, jumpHeld: true });
   advanceSolo(fighter, 0, input, -240.0);
@@ -224,7 +224,7 @@ test("releasing, then re-pressing during squat keeps a short hop", () => {
   assertEquals(fighter.jump.remaining, 1);
 });
 
-test("attack recovery blocks a jump through the advance", () => {
+test("attack recovery blocks a jump through the advance [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   setRecovery(fighter, 3);
   advanceSolo(fighter, 0, controls({ jumpPressed: true, jumpHeld: true }), -240.0);
@@ -233,7 +233,7 @@ test("attack recovery blocks a jump through the advance", () => {
   assertTrue(fighter.motion.grounded);
 });
 
-test("attack recovery blocks an air dodge through the advance", () => {
+test("attack recovery blocks an air dodge through the advance [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.z = 10.0;
@@ -244,14 +244,14 @@ test("attack recovery blocks an air dodge through the advance", () => {
   assertEquals(fighter.jump.remaining, 2);
 });
 
-test("attack recovery blocks a shield through the advance", () => {
+test("attack recovery blocks a shield through the advance [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   setRecovery(fighter, 3);
   advanceSolo(fighter, 0, controls({ shield: true }), -240.0);
   assertFalse(fighter.shield.raised);
 });
 
-test("attack commitment blocks ground steering but keeps air drift", () => {
+test("attack commitment blocks ground steering but keeps air drift [spec docs/physics.md]", () => {
   const grounded = createFighter(Character.archer, 0.0, 1);
   setRecovery(grounded, 10);
   advanceSolo(grounded, 0, controls({ direction: -1 }), -240.0);
@@ -266,7 +266,7 @@ test("attack commitment blocks ground steering but keeps air drift", () => {
   assertLessThan(airborne.motion.vx, 0.0);
 });
 
-test("the final recovery frame allows actions on the same simulation tick", () => {
+test("the final recovery frame allows actions on the same simulation tick [spec docs/physics.md]", () => {
   const jumper = createFighter(Character.archer, 0.0, 1);
   setRecovery(jumper, 1);
   jumper.attack.frame = attackDurationFrames(AttackStyle.jab) - 1;
@@ -289,7 +289,7 @@ test("the final recovery frame allows actions on the same simulation tick", () =
   assertEquals(shielder.attack.cooldown, 0);
 });
 
-test("a jump out of shield clears the shield throughout squat", () => {
+test("a jump out of shield clears the shield throughout squat [spec docs/physics.md]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     const fighter = createFighter(character, 0.0, 1);
     fighter.shield.raised = true;
@@ -307,7 +307,7 @@ test("a jump out of shield clears the shield throughout squat", () => {
   }
 });
 
-test("a jump cancels shield release into an ordinary squat", () => {
+test("a jump cancels shield release into an ordinary squat [spec docs/physics.md]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     for (let remaining = 1; remaining <= SHIELD_RELEASE_LAG_FRAMES; remaining++) {
       const fighter = createFighter(character, 0.0, 1);
@@ -332,7 +332,7 @@ test("a jump cancels shield release into an ordinary squat", () => {
   }
 });
 
-test("a shield-release jump still respects stun and action recovery", () => {
+test("a shield-release jump still respects stun and action recovery [spec docs/physics.md]", () => {
   const blockers = [
     (f: Fighter) => (f.shield.stun = 5),
     (f: Fighter) => (f.launch.hitlag = 5),
@@ -351,7 +351,7 @@ test("a shield-release jump still respects stun and action recovery", () => {
   }
 });
 
-test("a shield jump into a directional dodge lands with a sliding recovery", () => {
+test("a shield jump into a directional dodge lands with a sliding recovery [spec docs/physics.md]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     const fighter = createFighter(character, 0.0, 1);
     fighter.shield.raised = true;

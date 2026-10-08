@@ -24,7 +24,7 @@ function dashFor(fighter: Fighter, facing: number, frames: number): void {
   for (let frame = 0; frame < frames; frame++) sample(fighter, facing);
 }
 
-test("dash dancing: authored window accepts thirteen held frames and rejects fourteen", () => {
+test("dash dancing: authored window accepts thirteen held frames and rejects fourteen [spec docs/gameplay-design.md]", () => {
   for (const facing of [-1, 1]) {
     for (const hold of [13, 14]) {
       const fighter = createFighter(Character.archer, 0.0, facing);
@@ -36,7 +36,7 @@ test("dash dancing: authored window accepts thirteen held frames and rejects fou
   }
 });
 
-test("dash dancing: weak travel gets a second and third sample at the last dash frame", () => {
+test("dash dancing: weak travel gets a second and third sample at the last dash frame [spec docs/gameplay-design.md]", () => {
   for (const facing of [-1, 1]) {
     const fighter = createFighter(Character.archer, 0.0, facing);
     dashFor(fighter, facing, 13);
@@ -53,7 +53,7 @@ test("dash dancing: weak travel gets a second and third sample at the last dash 
   }
 });
 
-test("dash dancing: deliberate walking and slow stick turns stay walks", () => {
+test("dash dancing: deliberate walking and slow stick turns stay walks [spec docs/gameplay-design.md]", () => {
   for (const facing of [-1, 1]) {
     const fighter = createFighter(Character.archer, 0.0, facing);
     dashFor(fighter, facing, 5);
@@ -78,7 +78,7 @@ test("dash dancing: deliberate walking and slow stick turns stay walks", () => {
   }
 });
 
-test("dash dancing: 512 analog and digital timelines have zero transition or rollback mismatches", () => {
+test("dash dancing: 512 analog and digital timelines have zero transition or rollback mismatches [spec docs/gameplay-design.md] [invariant]", () => {
   let cases = 0;
   for (const character of [Character.archer, Character.rifleman]) {
     for (const facing of [-1, 1]) {
@@ -114,7 +114,7 @@ test("dash dancing: 512 analog and digital timelines have zero transition or rol
   assertEquals(cases, 512);
 });
 
-test("dash dancing: recorded analog reversal rows replay through the two-sample boundary", () => {
+test("dash dancing: recorded analog reversal rows replay through the two-sample boundary [invariant]", () => {
   for (const facing of [-1, 1]) {
     const make = () => createTapeWorld({ stocks: 1, humans: 2, first: createFighter(Character.archer, -240.0, facing), second: createFighter(Character.rifleman, 240.0, -facing) });
     const canonical = make();
@@ -219,7 +219,7 @@ function travelSample(driver: DanceDriver, input: DanceInput, to: number, transi
   return false;
 }
 
-sweep("dash dancing: 9,984 scripted dash-backs over the roster, stick and keyboard, 1-4 frame flicks: 0 misreads", () => {
+sweep("dash dancing: 9,984 scripted dash-backs over the roster, stick and keyboard, 1-4 frame flicks: 0 misreads [spec #188]", () => {
   let dashbacks = 0;
   let misreads = 0;
   const failures: string[] = [];
@@ -261,7 +261,7 @@ sweep("dash dancing: 9,984 scripted dash-backs over the roster, stick and keyboa
   assertEquals(misreads, 0);
 });
 
-test("dash dancing: a dash released to neutral late in its window turns into a dash, never a run turn", () => {
+test("dash dancing: a dash released to neutral late in its window turns into a dash, never a run turn [spec #188]", () => {
   let dashbacks = 0;
   for (const character of ROSTER) {
     for (const facing of [-1, 1]) {

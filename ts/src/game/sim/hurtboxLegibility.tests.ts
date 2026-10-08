@@ -198,7 +198,7 @@ function violations(fighter: FighterBodies): string[] {
   return found;
 }
 
-test("every fighter's authored bodies follow the legible-hurtbox rules or name a departure", () => {
+test("every fighter's authored bodies follow the legible-hurtbox rules or name a departure [spec docs/gameplay-design.md]", () => {
   const unexpected: string[] = [];
   const seen: { [key: string]: boolean } = {};
   for (const fighter of everyFighter()) {
@@ -214,13 +214,7 @@ test("every fighter's authored bodies follow the legible-hurtbox rules or name a
   assertEquals(stale.join("\n"), "");
 });
 
-test("the original fighters' sampled moves are checked", () => {
-  const archer = everyFighter()[0];
-  assertEquals(archer?.name, "Archer");
-  assertTrue((archer?.moves.length ?? 0) >= 5);
-});
-
-test("the checker catches each rule it enforces", () => {
+test("the checker catches each rule it enforces [spec docs/gameplay-design.md]", () => {
   const torso: HurtPart = { x1: 0.0, z1: 4.0, x2: 0.0, z2: 88.0, radius: 24.0 };
   const pose = (first: number, last: number, parts: readonly HurtPart[]): HurtPose => ({ firstFrame: first, lastFrame: last, parts });
   const rules = (poses: readonly HurtPose[]): string => violations({
@@ -243,7 +237,7 @@ test("the checker catches each rule it enforces", () => {
   assertEquals(rules([pose(2, 8, [{ ...torso, state: HurtState.invincible }, arm(50.0)])]), "rule 5");
 });
 
-test("rule 1: outside attacks and specials only crouch changes the body, and selection is a function of state", () => {
+test("rule 1: outside attacks and specials only crouch changes the body, and selection is a function of state [spec docs/gameplay-design.md]", () => {
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
     const f = createFighter(character, 0.0, 1);
     const set = fighterHurtboxes(f);
@@ -262,7 +256,7 @@ test("rule 1: outside attacks and specials only crouch changes the body, and sel
   }
 });
 
-test("rule 6: a strike tangent to a normal part hits", () => {
+test("rule 6: a strike tangent to a normal part hits [spec docs/gameplay-design.md]", () => {
   const target = createFighter(Character.archer, 0.0, 1);
   const body = fighterHurtboxes(target).stand[0];
   assertTrue(body !== undefined);

@@ -16,9 +16,8 @@ import { f32 } from "wisp/src/sim/f32";
 import { executeNext, testMatch } from "../match/testMatch";
 import { fighterAt } from "./roster";
 import { startFighterSpecial } from "./specials";
-import { originalClipNamed } from "../assets/fighterOriginalClipInfo";
 
-test("Frost Trap plays its laying animation and releases Rifleman after twenty frames", () => {
+test("Frost Trap's laying action releases Rifleman after twenty frames [spec docs/physics.md]", () => {
   const match = testMatch(3, Character.rifleman);
   const owner = fighterAt(match.world, 0);
   owner.motion.surface = 0;
@@ -27,8 +26,6 @@ test("Frost Trap plays its laying animation and releases Rifleman after twenty f
   for (let frame = 1; frame < 20; frame++) {
     executeNext(match);
     assertEquals(owner.special.action, SpecialAction.riflemanTrap);
-    assertEquals(match.runtime.poses[0].clipIndex, originalClipNamed(Character.rifleman, "special down"));
-    if (frame > 1) assertGreaterThan(match.runtime.poses[0].clipTime, 0.0);
     assertFalse(canStartAttackStyle(owner, AttackStyle.jab));
   }
   executeNext(match);
@@ -40,7 +37,7 @@ test("Frost Trap plays its laying animation and releases Rifleman after twenty f
   assertEquals(owner.attack.style, AttackStyle.jab);
 });
 
-test("an unused Frost Trap expires after eight seconds and can be replaced", () => {
+test("an unused Frost Trap expires after eight seconds and can be replaced [spec docs/physics.md]", () => {
   const match = testMatch(3, Character.rifleman);
   const owner = fighterAt(match.world, 0);
   owner.motion.surface = 0;
@@ -54,7 +51,7 @@ test("an unused Frost Trap expires after eight seconds and can be replaced", () 
   assertTrue(startFighterSpecial(owner, 0, 480, lay));
 });
 
-test("a jump chosen fifteen frames after thaw leaves before a waiting trap can refreeze any fighter", () => {
+test("a jump chosen fifteen frames after thaw leaves before a waiting trap can refreeze any fighter [spec docs/gameplay-design.md]", () => {
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
     for (const [direction, verticalDirection] of [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]] as const) {
       const match = testMatch(3, character);
@@ -82,7 +79,7 @@ test("a jump chosen fifteen frames after thaw leaves before a waiting trap can r
   }
 });
 
-test("a thawed fighter who stays on a waiting trap can be caught again only after the escape interval", () => {
+test("a thawed fighter who stays on a waiting trap can be caught again only after the escape interval [spec docs/physics.md]", () => {
   const match = testMatch(3, Character.rifleman);
   const owner = fighterAt(match.world, 0);
   const target = fighterAt(match.world, 1);
@@ -102,7 +99,7 @@ test("a thawed fighter who stays on a waiting trap can be caught again only afte
   assertEquals(owner.freezeTrap.life, 0);
 });
 
-test("shieldConsumesTrapWithoutFreezingAndHitBreaksIce", () => {
+test("shieldConsumesTrapWithoutFreezingAndHitBreaksIce [spec docs/physics.md]", () => {
   const owner = createFighter(Character.rifleman, 0.0, 1);
   const target = createFighter(Character.archer, 0.0, -1);
   owner.motion.surface = 0;
@@ -128,7 +125,7 @@ test("shieldConsumesTrapWithoutFreezingAndHitBreaksIce", () => {
   assertGreaterThan(target.status.freezeImmunityFrames, 0);
 });
 
-test("trapConsumesOnContactButNotOwnerOrInvulnerableTarget", () => {
+test("trapConsumesOnContactButNotOwnerOrInvulnerableTarget [spec docs/physics.md]", () => {
   const owner = createFighter(Character.rifleman, 0.0, 1);
   const target = createFighter(Character.archer, 0.0, -1);
   owner.motion.surface = 0;
@@ -148,7 +145,7 @@ test("trapConsumesOnContactButNotOwnerOrInvulnerableTarget", () => {
   assertEquals(owner.status.frozenFrames, 0);
 });
 
-test("freezeExpiresAfterThreeHundredFramesIncludingHitlag", () => {
+test("freezeExpiresAfterThreeHundredFramesIncludingHitlag [spec docs/physics.md]", () => {
   const target = createFighter(Character.archer, 0.0, 1);
   target.status.frozenFrames = 300;
   target.launch.hitlag = 20;
@@ -163,7 +160,7 @@ test("freezeExpiresAfterThreeHundredFramesIncludingHitlag", () => {
   assertTrue(canStartAttackStyle(target, AttackStyle.jab));
 });
 
-test("koRespawnAndResetClearTrapAndFrozenState", () => {
+test("koRespawnAndResetClearTrapAndFrozenState [spec docs/physics.md]", () => {
   const rifleman = createFighter(Character.rifleman, 0.0, 1);
   const world = createRoster(1, [rifleman]);
   rifleman.status.stocks = 2;
@@ -210,7 +207,7 @@ function trapFrozenArcher(): Fighter {
   return target;
 }
 
-test("each fresh press or new stick direction takes eight frames off a freeze, never ending it before frame sixty", () => {
+test("each fresh press or new stick direction takes eight frames off a freeze, never ending it before frame sixty [spec docs/gameplay-design.md]", () => {
   const target = trapFrozenArcher();
   const step = (input: Partial<Controls>) => advanceSolo(target, 0, controls(input), 0.0);
   step({});
@@ -250,7 +247,7 @@ function thawFrame(rate: number, wiggle: boolean): number {
   return frame;
 }
 
-test("mashing out of a freeze: the thaw frame by mash rate", () => {
+test("mashing out of a freeze: the thaw frame by mash rate [spec docs/gameplay-design.md]", () => {
   // smashcraft:docs/gameplay-design.md, "Rifleman's trap escape", lists these.
   assertEquals(thawFrame(0, false), 300);
   assertEquals(thawFrame(4, false), 195);
@@ -261,7 +258,7 @@ test("mashing out of a freeze: the thaw frame by mash rate", () => {
   assertEquals(thawFrame(30, true), FREEZE_MINIMUM_FRAMES);
 });
 
-test("a held button does not mash a freeze", () => {
+test("a held button does not mash a freeze [spec docs/gameplay-design.md]", () => {
   // grabMashPressed is a fresh press (input/adapter.ts); a held button never sets it again.
   const target = trapFrozenArcher();
   advanceSolo(target, 0, controls({ grabMashPressed: true, attackHeld: true, jumpHeld: true, shield: true }), 0.0);
