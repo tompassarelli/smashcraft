@@ -250,6 +250,11 @@ code. From smashcraft:ts/:
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL] [--replace NAME]`
   authors clips through Blender; the optional existing model preserves shipped
   sequences and appends only new clips; `--replace NAME` reauthors one existing clip at its same index and length (smashcraft:docs/fighter-animation-work.md).
+- Normal timeline body pilot (from the repository root):
+  `bun tools/animations/timeline-models.ts PRIVATE_ASSETS PRIVATE_POOL MountainKing`
+  combines Mountain King's normal mesh and keys into one seekable model in a writable copy
+  of `original-clips-static-lights` and refreshes its clip and model tables.
+  Store the family with `bun wisp inputs add original-clips-static-lights PRIVATE_POOL`.
 - White body flashes (from the repository root):
   `bun tools/animations/white-flash-models.ts PRIVATE_ASSETS PRIVATE_OUTPUT [--character ID]`
   authors white body-only copies with the original meshes and keys for selectable gameplay poses, removing unused sequences and repeated constant keys for charge and heavy-hit flashes; store PRIVATE_OUTPUT as `impact-assets`.

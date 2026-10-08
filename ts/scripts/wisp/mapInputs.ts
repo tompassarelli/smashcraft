@@ -104,11 +104,11 @@ const SUMMON_MODELS = Array.from({ length: summonClipCount(SUMMON_BEAR) }, (_, i
  * The pooled fighters' clip and light models the compiled script draws; the
  * original clip export's evidence lists their files.
  */
-export const ORIGINAL_CLIP_MODELS = Object.values(Character).flatMap((character) => {
+export const ORIGINAL_CLIP_MODELS = [...new Set(Object.values(Character).flatMap((character) => {
   const light = originalLightPath(character);
   const clips = Array.from({ length: originalClipCount(character) }, (_, index) => originalClip(character, index)?.modelPath ?? "");
   return light === undefined ? clips : [...clips, light];
-});
+}))];
 
 /** The heroes whose bodies are community models the map imports (importedModelInfo.ts). */
 const IMPORTED_HERO_MODELS = HERO_ROSTER.map(({ presentation }) => presentation.model).filter((model) => importedModelFile(model) !== undefined);
@@ -263,7 +263,7 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
   const clipDirectory = join(assets, "original-clips-static-lights");
   const clipEvidencePath = join(clipDirectory, "original-clips-evidence.json");
   const clipEvidence = yield* readJson(OriginalClipEvidence, clipEvidencePath);
-  const clipFiles = clipEvidence.records.flatMap((record) => [...record.clips.map(({ filename }) => filename), ...(record.light === null ? [] : [record.light.filename])]);
+  const clipFiles = [...new Set(clipEvidence.records.flatMap((record) => [...record.clips.map(({ filename }) => filename), ...(record.light === null ? [] : [record.light.filename])]))];
   // A changed fighter clip (a re-authored original, a new hero) needs a new pool in the private inputs too.
   yield* requireListed(clipEvidencePath, clipFiles, ORIGINAL_CLIP_MODELS,
     `this assets folder's clip pool predates the checkout's clips. From the repository root, export a new pool from ${assets} ` +

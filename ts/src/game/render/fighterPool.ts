@@ -152,7 +152,7 @@ export class FighterPoolPresentation {
     }
     if (changed) BlzSetSpecialEffectScale(model, this.scale);
     if (changed || this.seconds !== seconds) {
-      BlzSetSpecialEffectTime(model, seconds);
+      BlzSetSpecialEffectTime(model, (clip.timeline ? clip.startSeconds : 0.0) + seconds);
       this.seconds = seconds;
     }
     if (this.light !== undefined) {

@@ -30,8 +30,8 @@ const metadataOnly = process.argv.includes('--metadata-only');
 const keepUnchanged = process.argv.includes('--keep-unchanged');
 const retained = metadataOnly || keepUnchanged ? await Bun.file(join(output, 'original-clips-evidence.json')).json() : null;
 const moduleClips: string[][] = [], moduleNames: string[][] = [], moduleLights: (string | null)[] = [];
-const clipLiteral = (modelPath: string, interval: readonly number[], looping: boolean) =>
-    `{ modelPath: ${JSON.stringify(modelPath)}, startSeconds: ${seconds(Number((interval[0] / 1000).toFixed(3)))}, endSeconds: ${seconds(Number((interval[1] / 1000).toFixed(3)))}, looping: ${looping} },`;
+const clipLiteral = (modelPath: string, interval: readonly number[], looping: boolean, timeline = false) =>
+    `{ modelPath: ${JSON.stringify(modelPath)}, startSeconds: ${seconds(Number((interval[0] / 1000).toFixed(3)))}, endSeconds: ${seconds(Number((interval[1] / 1000).toFixed(3)))}, looping: ${looping}${timeline ? ", timeline: true" : ""} },`;
 const records = [];
 let totalBytes = 0, theoreticalFullSourceBytes = 0, theoreticalUntrimmedBodyBytes = 0;
 const started = performance.now();
@@ -79,6 +79,7 @@ for (const fighter of fighters) {
     const clips = [];
     let fighterBytes = light?.bytes ?? 0;
     const fighterClips: string[] = [];
+    const countedClips = new Set<string>();
     moduleClips.push(fighterClips);
     moduleLights.push(light?.modelPath ?? null);
     for (let index = 0; index < source.Sequences.length; index++) {
@@ -88,9 +89,12 @@ for (const fighter of fighters) {
                 `${fighter.name}/${index}: retained sequence metadata differs`);
             ensure(hash(await Bun.file(join(output, 'imports/war3mapImported', clip.filename)).arrayBuffer()) === clip.sha256,
                 `${fighter.name}/${index}: retained clip bytes differ`);
-            fighterClips.push(clipLiteral(clip.modelPath, clip.interval, clip.looping));
+            fighterClips.push(clipLiteral(clip.modelPath, clip.interval, clip.looping, clip.timeline));
             clips.push(clip);
-            fighterBytes += clip.bytes;
+            if (!countedClips.has(clip.filename)) {
+                fighterBytes += clip.bytes;
+                countedClips.add(clip.filename);
+            }
             continue;
         }
         const result = originalBodyClip(components.body, index);
@@ -158,6 +162,7 @@ const typescript = [
     '',
     'export interface FighterOriginalClip {',
     '  readonly modelPath: string;',
+    '  readonly timeline?: boolean;',
     '  readonly startSeconds: number;',
     '  readonly endSeconds: number;',
     '  readonly looping: boolean;',

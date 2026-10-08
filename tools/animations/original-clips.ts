@@ -1,8 +1,7 @@
 // Foreign MDX boundary: one body clip per original sequence and one static
 // light component per fighter, retaining native selected-sequence evaluation.
-import {parseMDX, generateMDX, model as mdx} from 'war3-model';
+import {parseMDX, generateMDX, model as mdx, renumberNodes} from '../../ts/scripts/clipNodes';
 import {isDeepStrictEqual} from 'node:util';
-import {renumberNodes} from '../../ts/scripts/clipNodes';
 import {HERO_ROSTER} from '../../ts/src/game/sim/heroes/registry';
 import {heroModelSource, importedModelFile, stockModelPath} from '../../ts/scripts/heroModelSource';
 

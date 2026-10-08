@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "effect": "4.0.1",
     "pngjs": "7.0.0",
     "war3-model": "4.0.1"
   }

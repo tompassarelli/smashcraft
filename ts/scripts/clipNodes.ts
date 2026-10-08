@@ -1,3 +1,4 @@
+export { parseMDX, generateMDX, model } from "war3-model";
 // The node table of an MDX model, as tools/animations/original-clips.ts
 // writes the pooled fighters' clip models. Warcraft does not read a node's
 // ObjectId as written: Illidan's standalone light, written alone with
