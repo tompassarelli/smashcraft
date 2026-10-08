@@ -751,6 +751,17 @@ Pick the clients by what the test needs (Tom, 7 Oct). The offline LAN pool
 is the default for native testing: pad parity runs, captures, `accept`
 checks and desync hunts.
 
+Wisp is the test engine (Tom, 8 Oct; wisp#75 M1): 98% of checks run on Wisp,
+not on a running Warcraft copy. A gameplay box (rules, meters, items, hazards,
+terrain effects, recovery, tutorial progression, pause state, match flow) is
+met by one Wisp run of the real map, two simulated players where the rule
+needs two, citing the run; tick it and say so. Visual, audio and frame-cost
+boxes move to Wisp as its frames, cue logs and cost model land; until then a
+box that only Warcraft can check links the Wisp issue for the missing piece.
+New Done-when boxes are written against Wisp evidence. Warcraft records
+reference captures when art or the client changes, plays one smoke match
+before a build goes to Tom, and covers listed intractable cases only.
+
 Native lanes: four solo-profile lanes, one per client (a, b, c, d), share
 the visual queue; pairs are only for sync and EX checks. A TypeScript-only
 change (presentation values, effects, menus, CPU tuning) hot-reloads into one
