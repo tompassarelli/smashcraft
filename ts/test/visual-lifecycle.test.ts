@@ -73,7 +73,7 @@ test("grab holders draw in front of large captives in both facings and return af
   expect(client.errors).toEqual([]);
 });
 
-test("Ahn'Qiraj tints fighter bodies only, keeps the hit pulse and resets at stock light or stage change [spec #267]", () => {
+test("Ahn'Qiraj keeps neutral fighter colours, the hit pulse and scenery at stock light or stage change [spec #267]", () => {
   const clients = headless.clients({ start: () => startBuild({ ...INTEGRITY_BUILD, presentation: "pool-confirmed" }), install });
   clients.start();
   clients.frames(30);
@@ -93,10 +93,10 @@ test("Ahn'Qiraj tints fighter bodies only, keeps the hit pulse and resets at sto
     expect(s.game.stageChoice).toBe(TIMED_TEST_STAGE);
     const backdrop = scenery();
     renderPersistentPresentation(s);
-    expect(body()?.color).toEqual([128, 128, 128]);
+    expect(body()?.color).toEqual([255, 255, 255]);
     fighter.launch.hitlag = 10;
     renderPersistentPresentation(s);
-    expect(white()?.color).toEqual([128, 128, 128]);
+    expect(white()?.color).toEqual([255, 255, 255]);
     expect(white()?.alpha).toBe(220);
     fighter.launch.hitlag = 8;
     renderPersistentPresentation(s);
@@ -104,7 +104,7 @@ test("Ahn'Qiraj tints fighter bodies only, keeps the hit pulse and resets at sto
     fighter.launch.hitlag = 0;
     fighter.status.frozenFrames = 3;
     renderPersistentPresentation(s);
-    expect(body()?.color).toEqual([77, 105, 128]);
+    expect(body()?.color).toEqual([155, 210, 255]);
     expect(scenery()).toEqual(backdrop);
     applyDeveloperCommand(s, 0, "-dev lighting stock");
     expect(body()?.color).toEqual([155, 210, 255]);
@@ -114,7 +114,7 @@ test("Ahn'Qiraj tints fighter bodies only, keeps the hit pulse and resets at sto
     s.participants[0].pooled = false;
     renderFighter(s, 0, pose, false);
     const unit = s.participants[0].body?.unit;
-    expect(client.log.findLast(call => call.name === "SetUnitVertexColor" && call.args[0] === unit)?.args.slice(1)).toEqual([128, 128, 128, 255]);
+    expect(client.log.findLast(call => call.name === "SetUnitVertexColor" && call.args[0] === unit)?.args.slice(1)).toEqual([255, 255, 255, 255]);
     applyDeveloperCommand(s, 0, "-dev lighting stock");
     expect(client.log.findLast(call => call.name === "SetUnitVertexColor" && call.args[0] === unit)?.args.slice(1)).toEqual([255, 255, 255, 255]);
     applyDeveloperCommand(s, 0, "-dev lighting stage");

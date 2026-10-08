@@ -7,8 +7,7 @@ const NEUTRAL: Rgb = [255, 255, 255];
 
 /** Body-only colour multipliers; stage lights also affect scenery. */
 export const STAGE_FIGHTER_TINTS: readonly { readonly stage: number; readonly tint: Rgb }[] = [
-  // AQ-3 / #267: move even the white paused body below the bright sandstone.
-  { stage: TIMED_TEST_STAGE, tint: [128, 128, 128] },
+  { stage: TIMED_TEST_STAGE, tint: [255, 255, 255] },
 ];
 
 export function stageFighterTint(stage: number, authored = true): Rgb {
