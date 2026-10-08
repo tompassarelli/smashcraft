@@ -766,6 +766,14 @@ Keep ordinary combat completion intact; do not force a win to shorten a test.
 Pick the clients by what the test needs (Tom, 7 Oct). The offline LAN pool
 is the default for native testing: pad parity runs, captures, `accept`
 checks and desync hunts.
+
+Native lanes: four solo-profile lanes, one per client (a, b, c, d), share
+the visual queue; pairs are only for sync and EX checks. A TypeScript-only
+change (presentation values, effects, menus, CPU tuning) hot-reloads into one
+running match with `bun wisp hot --data ... --watch` between captures; rebuild
+the map only for imports, object data or art. Batch captures by build: one map
+build serves every capture that needs it. Record captures per hour per lane in
+the status.
 Signed-in A and B are only for tests that need Battle.net itself: real
 netplay or latency, direct play (#142), spectating. Tom's install (account a,
 display :0) is Tom's. A run during which a client wrote a desync report or
