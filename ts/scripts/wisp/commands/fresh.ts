@@ -22,7 +22,8 @@ import { step } from "wisp/scripts/wisp/timings";
 import { hostLobby, joinLobby, leaveLobby, reportedMenus, startLobby } from "wisp/scripts/wisp/menus";
 import { ClientWatch, inState, unlessLost, waitFor as waitForState } from "wisp/scripts/wisp/watch";
 import { rebuildMap } from "../mapInputs";
-import { clientState, profileOption, sceneProfiles } from "../project";
+import { profileOption, sceneProfiles } from "../project";
+import { clientArguments } from "./client";
 import { freshFrames, smashcraftPlayerView } from "../playerView";
 import { profileOptions } from "./map";
 import { onHealthyClients } from "../doctor";
@@ -30,12 +31,13 @@ import { onHealthyClients } from "../doctor";
 /** Six random letters and digits, as `wisp menus host` chooses. */
 const gamePassword = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), (byte) => (byte % 36).toString(36)).join("");
 
-export const fresh: Command = (args) => Effect.gen(function*() {
+export const fresh: Command = (rawArgs) => Effect.gen(function*() {
+  const { clientsFile, args } = yield* Effect.try({ try: () => clientArguments(rawArgs), catch: (cause) => cause instanceof UsageFailure ? cause : new UsageFailure({ problem: String(cause) }) });
   const options = yield* profileOptions(args);
   const { profile } = yield* profileOption(args);
   const [map, ...flags] = options.args;
   if (map === undefined || flags.some((flag) => flag !== "--rebuild" && flag !== "--no-quick")) {
-    return yield* new UsageFailure({ problem: "fresh takes MAP.w3x [--rebuild] [--no-quick] [--profile PROFILE]" });
+    return yield* new UsageFailure({ problem: "fresh takes MAP.w3x [--rebuild] [--no-quick] [--profile PROFILE] [--clients-file FILE]" });
   }
   if (flags.includes("--rebuild")) yield* rebuildMap(map).pipe(step("map rebuilt"), Effect.provide(options.services));
   // Doctor heals the clients first and once after a failure (wisp:docs/doctor.md);
@@ -47,7 +49,7 @@ export const fresh: Command = (args) => Effect.gen(function*() {
       yield* sendQuickMatchCommand.pipe(step("quick match and client receipts"));
       yield* checkPlayerView(smashcraftPlayerView({ frame: true, scene: sceneProfiles.has(profile) }), since, freshFrames).pipe(step("player view"));
     }
-  }).pipe(Effect.provide(Layer.merge(options.services.pipe(Layer.provideMerge(Clients.layer(clientState))), ClientWatch.layer({ filePrefix: "smashcraft" })))));
+  }).pipe(Effect.provide(Layer.merge(options.services.pipe(Layer.provideMerge(Clients.layer(clientsFile))), ClientWatch.layer({ filePrefix: "smashcraft" })))), { clientsFile });
 });
 
 /** The game in every client, at character selection, through every client's menu page. */
