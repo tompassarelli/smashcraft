@@ -3,9 +3,9 @@
     {
       "stage": 11,
       "file": "StageCardGryphon.blp",
-      "inputs": "5c3fcb5846d75d1f4d8304c65a281495e4ff49ec98f21d2243a231b3781056da",
-      "sha256": "53b0a428e1664b1959df6a7360976658f7275a696549256b45ac8168941c8b79",
-      "bytes": 43083
+      "inputs": "5eefc32ca26cf2df3d6a42d062e79e4af03f18579f76974c2e189ffdc6f21437",
+      "sha256": "e37fb84e608b07edd548b4ff3787c07c90587eb29ed3d8e20bf0b917853be311",
+      "bytes": 43424
     },
     {
       "stage": 12,
