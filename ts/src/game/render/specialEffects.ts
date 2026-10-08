@@ -208,6 +208,10 @@ export class SpecialEffects {
       this.park(effects.aura, slot, AURA);
       this.park(effects.wingTrail, slot, WING_TRAIL);
       this.park(effects.drainFlash, slot, DRAIN_FLASH);
+      this.park(effects.felFlames, slot, FEL_FLAMES);
+      this.park(effects.manaHand, slot, MANA_HAND);
+      this.park(effects.silence, slot, SILENCE);
+      this.releaseImmolationLoop(effects);
       return;
     }
     this.applyStatic(effects.aura, slot, AURA, projectSpecialEffect(state, fighter, slot, STATIC_AURA));
