@@ -92,12 +92,12 @@ test("Cleansing Hammer bonks once, launches upward and holds both fighters three
     for (let f = 2; f <= 13; f++) frame(world);
     assertEquals(target.status.damage, 0.0);
     for (let f = 14; f <= 16 && target.status.damage === 0.0; f++) frame(world);
-    assertEquals(target.status.damage, f32(13.0 * f32(0.85)));
+    assertEquals(target.status.damage, f32(13.0 * f32(0.8)));
     assertEquals(owner.launch.hitlag, ordinaryHitlagFrames(13.0) + 3);
     assertEquals(target.launch.hitlag, ordinaryHitlagFrames(13.0) + 3);
     assertGreaterThan(target.launch.knockbackZ, Math.abs(target.launch.knockbackX));
     for (let f = 0; f < 60; f++) frame(world);
-    assertEquals(target.status.damage, f32(13.0 * f32(0.85)));
+    assertEquals(target.status.damage, f32(13.0 * f32(0.8)));
     assertEquals(owner.projectiles.filter((p) => p.life > 0).length, 0);
   }
 });
@@ -107,7 +107,7 @@ test("Forsaken Paladin's balanced hammer normal keeps its original hitlag while 
   beginFighterAttack(world, 0, AttackStyle.forwardTilt, false);
   owner.attack.frame = 11;
   resolveAttacks(world);
-  assertEquals(target.status.damage, f32(12.0 * f32(0.85)));
+  assertEquals(target.status.damage, f32(12.0 * f32(0.8)));
   assertEquals(owner.launch.hitlag, ordinaryHitlagFrames(12.0) + 3);
   assertEquals(target.launch.hitlag, ordinaryHitlagFrames(12.0) + 3);
 });
@@ -124,7 +124,7 @@ test("Righteous Fury advances with the hammer, hits once up close, slows movemen
   const close = pair(100.0);
   frame(close.world, side);
   for (let f = 2; f <= 75; f++) frame(close.world);
-  assertEquals(close.target.status.damage, f32(14.0 * f32(0.85)));
+  assertEquals(close.target.status.damage, f32(14.0 * f32(0.8)));
   assertEquals(close.target.status.condition, HeroStatusKind.chill);
   const ranged = pair(400.0);
   frame(ranged.world, side);
@@ -198,7 +198,7 @@ test("Ascension rises 2.9H with one hit, its free form 2.0H without one, both dr
     close.owner.mana.points = mana;
     frame(close.world, up);
     for (let f = 2; f <= 30; f++) frame(close.world);
-    assertEquals(close.target.status.damage, f32(damage * f32(0.85)));
+    assertEquals(close.target.status.damage, f32(damage * f32(0.8)));
   }
 });
 
@@ -246,7 +246,7 @@ test("Consecration refuses in air, pulses only on grounded targets and has one f
   for (let f = 2; f <= 15; f++) frame(world);
   assertEquals(target.status.damage, 0.0);
   frame(world);
-  assertEquals(target.status.damage, f32(2.0 * f32(0.85)));
+  assertEquals(target.status.damage, f32(2.0 * f32(0.8)));
   const pool = owner.projectiles.find(p => p.life > 0);
   assertTrue(pool !== undefined);
   if (pool === undefined) return;
@@ -262,7 +262,7 @@ test("Consecration refuses in air, pulses only on grounded targets and has one f
     updateProjectiles(world);
     finishDamageContacts(world);
   }
-  assertEquals(target.status.damage, f32(2.0 * f32(0.85)));
+  assertEquals(target.status.damage, f32(2.0 * f32(0.8)));
   target.motion.z = 0.0;
   target.motion.grounded = true;
   target.status.invincible = 0;
@@ -271,7 +271,7 @@ test("Consecration refuses in air, pulses only on grounded targets and has one f
   beginDamageContacts();
   updateProjectiles(world);
   finishDamageContacts(world);
-  assertEquals(target.status.damage, f32(4.0 * f32(0.85)));
+  assertEquals(target.status.damage, f32(4.0 * f32(0.8)));
   assertEquals(pool.x, x);
   assertEquals(pool.spec?.radius, 60.0);
 });

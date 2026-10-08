@@ -32,10 +32,10 @@ The source identities become these original, provisional Smashcraft moves:
 
 | Input | Reward and risk | Contract | Sources |
 | --- | --- | --- | --- |
-| Neutral: **Cleansing Hammer** | Raise the hammer and bonk upward; exposed startup and long recovery punish a miss. At contact time cleanse only Forsaken Paladin’s poison or movement slow. | 10 mana; hammer f14–16; end f38; 11.05 damage, 80°, growth 70/base 42. Cleanse at f14 even on a miss. Air drift and 18 landing frames. | HotS Hammer of Justice and Forsaken Cleansing Fire’s dispel; Dedede’s weight and Ike’s single-stroke commitment. |
-| Side: **Righteous Fury** | Lead a short charge with the hammer. A body hit slows a retreat; shield blocks the slow and leaves a punish. | 25 mana; travel 0.75H on f15–20; end f49; 11.9 damage, 40°, growth 100/base 25. Movement slowed 40% for 75 frames, then 120 frames immunity. Ground armor absorbs one hit up to 5 damage on f15–18; stops at bodies. Air has no armor, one use per airtime, 20 landing frames and helpless finish. | Forsaken Righteous Fury and its final 3.0.1 slow; Ike’s armored commitment. Shared attack speeds remain unchanged. |
-| Up: **Ascension** | Raise and follow the hammer, steer toward the ledge, then fall helplessly with exposed sides. | 15 mana; rise 2.9H over f8–28; stop f29; 0.2H forward plus 1.6H steering. Hammer f10–15 deals 6.8 damage at 80°. Free form rises 2.0H without a hit. Jump spent, one use per airtime. | Paladin resurrection and HotS Hammer of Justice; Ike’s weapon-led Aether without its descent. |
-| Down: **Consecration** | Plant the hammer and defend a small holy patch. Jump or retreat to leave it. | Ground only; 20 mana; end f42; pool on f16, 70 units ahead at height 6, radius 60. Life 120 frames; 1.7 damage at most every 45 frames, growth 30/base 30, near-vertical launch. One patch; 150 frames between casts; no growth or healing. | Forsaken Consecration’s ground-only periodic damage, compressed from 10 seconds; Dedede’s placed threat and committed recovery. |
+| Neutral: **Cleansing Hammer** | Raise the hammer and bonk upward; exposed startup and long recovery punish a miss. At contact time cleanse only Forsaken Paladin’s poison or movement slow. | 10 mana; hammer f14–16; end f38; 10.4 damage, 80°, growth 70/base 42. Cleanse at f14 even on a miss. Air drift and 18 landing frames. | HotS Hammer of Justice and Forsaken Cleansing Fire’s dispel; Dedede’s weight and Ike’s single-stroke commitment. |
+| Side: **Righteous Fury** | Lead a short charge with the hammer. A body hit slows a retreat; shield blocks the slow and leaves a punish. | 25 mana; travel 0.75H on f15–20; end f49; 11.2 damage, 40°, growth 100/base 25. Movement slowed 40% for 75 frames, then 120 frames immunity. Ground armor absorbs one hit up to 5 damage on f15–18; stops at bodies. Air has no armor, one use per airtime, 20 landing frames and helpless finish. | Forsaken Righteous Fury and its final 3.0.1 slow; Ike’s armored commitment. Shared attack speeds remain unchanged. |
+| Up: **Ascension** | Raise and follow the hammer, steer toward the ledge, then fall helplessly with exposed sides. | 15 mana; rise 2.9H over f8–28; stop f29; 0.2H forward plus 1.6H steering. Hammer f10–15 deals 6.4 damage at 80°. Free form rises 2.0H without a hit. Jump spent, one use per airtime. | Paladin resurrection and HotS Hammer of Justice; Ike’s weapon-led Aether without its descent. |
+| Down: **Consecration** | Plant the hammer and defend a small holy patch. Jump or retreat to leave it. | Ground only; 20 mana; end f42; pool on f16, 70 units ahead at height 6, radius 60. Life 120 frames; 1.6 damage at most every 45 frames, growth 30/base 30, near-vertical launch. One patch; 150 frames between casts; no growth or healing. | Forsaken Consecration’s ground-only periodic damage, compressed from 10 seconds; Dedede’s placed threat and committed recovery. |
 
 Cleansing Hammer and Righteous Fury make the hammer central; Ascension
 carries it into a third special. Consecration does not follow Forsaken Paladin, grow or
@@ -51,7 +51,7 @@ with Ascension. Its four primary spacing tools remain forward tilt (6),
 neutral special (30), side special (31) and down tilt (8), the original
 gameplan's four keys. Consecration is a supporting patch with a 150-frame
 cooldown: the computer uses it without making it a fifth primary attack.
-The original 0.85 damage multiplier, three extra hammer hitlag
+The damage multiplier (0.80 since #249; originally 0.85), three extra hammer hitlag
 frames, volume 127 heavy bash and readable contact/white-body flash remain.
 The new model needs its own flash and contact review. The old 47.6875% field
 is historical.
@@ -75,7 +75,7 @@ is historical.
 ## The rest of his moves
 
 Existing frame data and normal geometry stay in the fighter's move tables.
-A 0.85 multiplier scales all Forsaken Paladin damage after passive bonuses, including
+A 0.80 multiplier scales all Forsaken Paladin damage after passive bonuses, including
 normal attacks, throws and specials. Hitlag still uses the original damage;
 the extra three hammer frames remain. The special rows above show final damage.
 These rows document their identities and reference relationships;

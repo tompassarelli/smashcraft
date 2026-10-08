@@ -2,7 +2,7 @@ import { AttackStyle, Character, SpecialAction } from "../codes";
 import type { Fighter } from "../fighter";
 import { f32 } from "wisp/src/sim/f32";
 
-export const FORSAKEN_PALADIN_DAMAGE_MULTIPLIER = f32(0.85);
+export const FORSAKEN_PALADIN_DAMAGE_MULTIPLIER = f32(0.8);
 
 export function forsakenPaladinHammerAttack(character: Character, style: AttackStyle | undefined): boolean {
   return character === Character.forsakenPaladin && style !== undefined
