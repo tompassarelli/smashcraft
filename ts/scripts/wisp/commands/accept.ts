@@ -8,9 +8,10 @@ import { existsSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { BunServices } from "@effect/platform-bun";
-import { Clock, Effect, Layer } from "effect";
+import { Clock, type Duration, Effect, Layer } from "effect";
 import { ChildProcess } from "effect/process";
-import { AcceptDriver, AcceptFailure, type AcceptSuite } from "wisp/scripts/wisp/accept";
+import { AcceptDriver, AcceptFailure, type AcceptSuite, type ReceiptFile } from "wisp/scripts/wisp/accept";
+import type { Frame } from "wisp/scripts/wisp/frameProbe";
 import { liveAcceptDriver } from "wisp/scripts/wisp/acceptLive";
 import { spawnLogged } from "wisp/scripts/wisp/hostProcess";
 import { Clients } from "wisp/scripts/wisp/clients";
@@ -19,7 +20,9 @@ import { makeAccept } from "wisp/scripts/wisp/commands/accept";
 import { lan } from "wisp/scripts/wisp/commands/lan";
 import { step } from "wisp/scripts/wisp/timings";
 import { GameFiles } from "wisp/scripts/wisp/gameFiles";
+import { Phase } from "../../../src/game/match/rules";
 import { MAP_PROFILES, SMASHCRAFT_ACCEPT, type SmashcraftMapProfile } from "../acceptChecks";
+import { DevCommandReceipt } from "../boundary";
 import { rebuildMap } from "../mapInputs";
 import { clientState, gameFilesLayer } from "../project";
 import { clientArguments } from "./client";
@@ -64,6 +67,67 @@ export const sendSoloDevCommand = (command: string, name?: string) => Effect.gen
   yield* Effect.forEach(clients.all.filter(client => name === undefined || client.name === name), client =>
     sendDevCommand(command, client.name).pipe(Effect.provideService(Clients, { ...clients, all: [client] })), { discard: true });
 });
+
+const fighterCount = (mask: number) => {
+  let count = 0;
+  for (let rest = mask; rest > 0; rest >>= 1) count += rest & 1;
+  return count;
+};
+
+/**
+ * The failed condition of a run's first capture, or undefined: two fighters
+ * present, the match still running since `since`, a drawn frame. A solo quick
+ * match with one fighter once made 18 invalid captures before anyone looked.
+ */
+export const smokeProblem = (frame: Frame, receipts: readonly ReceiptFile[], since: number) => Effect.gen(function*() {
+  const quick = receipts.filter(({ name }) => name.startsWith("smashcraft-dev-")).sort((a, b) => b.modified - a.modified)[0];
+  if (quick === undefined) return "two fighters present: the host wrote no quick-match receipt";
+  const setup = yield* DevCommandReceipt.decode(quick.name, quick.text).pipe(Effect.option);
+  if (setup._tag === "None") return `two fighters present: ${quick.name} doesn't read as a quick-match receipt`;
+  const fighters = fighterCount(setup.value.humanFighters | setup.value.computers);
+  if (fighters < 2) return `two fighters present: the match has ${fighters} fighter${fighters === 1 ? "" : "s"}`;
+  const ended = receipts.find(({ name, modified }) => name.startsWith("smashcraft-replay-") && modified > since);
+  if (setup.value.phase !== Phase.match || ended !== undefined) return `match still running: the match had already ended${ended === undefined ? "" : ` (${ended.name})`}`;
+  let low = 765;
+  let high = 0;
+  const step = Math.max(1, Math.floor(frame.width * frame.height / 4096)) * 3;
+  for (let index = 0; index + 2 < frame.rgb.length; index += step) {
+    const value = (frame.rgb[index] ?? 0) + (frame.rgb[index + 1] ?? 0) + (frame.rgb[index + 2] ?? 0);
+    low = Math.min(low, value);
+    high = Math.max(high, value);
+  }
+  if (frame.rgb.length === 0 || high - low < 24) return "frame not blank: the host's frame is one flat colour";
+  return undefined;
+});
+
+/**
+ * `driver` with one smoke capture after its first session starts. When that
+ * capture fails, every later session stops before touching a client, and
+ * `failed()` names the condition so the command can abort the batch.
+ */
+export const withSmokeCapture = (driver: AcceptDriver["Service"], settle: Duration.Input = "2 seconds") => {
+  let smoked = false;
+  let failed: string | undefined;
+  const stopped = () => new AcceptFailure({ operation: "smoke capture", problem: `${failed ?? ""}; the batch stopped` });
+  return {
+    failed: () => failed,
+    driver: AcceptDriver.of({
+      ...driver,
+      prepare: Effect.suspend(() => failed === undefined ? driver.prepare : Effect.fail(stopped())),
+      start: (map, session) => Effect.gen(function*() {
+        if (failed !== undefined) return yield* stopped();
+        const since = yield* Clock.currentTimeMillis;
+        yield* driver.start(map, session);
+        if (smoked) return;
+        smoked = true;
+        yield* Effect.sleep(settle);
+        const host = driver.clients[0];
+        failed = yield* smokeProblem(yield* driver.capture(host), yield* driver.receipts(host), since);
+        if (failed !== undefined) return yield* stopped();
+      }),
+    }),
+  };
+};
 
 // Doctor heals the clients before the run and once after a failure
 // (wisp:docs/doctor.md): before Clients' layer finds each client's window, so
@@ -164,13 +228,15 @@ export const accept: Command = (rawArgs) => Effect.gen(function*() {
     start,
     receipt: (name) => name.startsWith("smashcraft-dev-") || name.startsWith("smashcraft-stage-") || name.startsWith("smashcraft-error-") || name.startsWith("smashcraft-render-clock-") || name.startsWith("smashcraft-replay-"),
   }).pipe(Layer.provide(Layer.mergeAll(Clients.layer(selectedClients), gameFilesLayer, smashcraftWatch())));
+  let smoke: ReturnType<typeof withSmokeCapture> | undefined;
   const driver = Layer.effect(AcceptDriver, Effect.gen(function*() {
     const live = yield* AcceptDriver;
     const context = yield* Effect.context<Clients | GameFiles>();
-    return AcceptDriver.of({
+    smoke = withSmokeCapture(AcceptDriver.of({
       ...live,
       chat: (name, text) => (solo ? sendSoloDevCommand(text, name) : sendDevCommand(text, name)).pipe(Effect.mapError((cause) => new AcceptFailure({ operation: `chat ${name}`, problem: describeCause(cause) })), Effect.provide(context)),
-    });
+    }));
+    return smoke.driver;
   })).pipe(Layer.provide(liveDriver), Layer.provide(Layer.mergeAll(Clients.layer(selectedClients), gameFilesLayer, smashcraftWatch())));
   const shards = {
     flags: ["--pair", "--pairs"],
@@ -178,7 +244,19 @@ export const accept: Command = (rawArgs) => Effect.gen(function*() {
     prepare: (sessions: readonly { readonly map: string }[]) => prebuild(sessions.map(({ map }) => map), profiles),
     run: (pair: string, ids: readonly string[], directory: string) => runShard(pair, ids, directory, candidate),
   };
-  const run = makeAccept({ suite: solo ? acceptForSoloClients(suite, names) : acceptForClients(suite, names), evidenceRoot: join(homedir(), ".local/state/smashcraft/accept"), driver, clients: names, shards })(forwarded);
+  const accepted = makeAccept({ suite: solo ? acceptForSoloClients(suite, names) : acceptForClients(suite, names), evidenceRoot: join(homedir(), ".local/state/smashcraft/accept"), driver, clients: names, shards })(forwarded);
+  // A failed smoke capture fails every check, so its condition replaces the run's own failure.
+  const smokeStop = () => {
+    const failed = smoke?.failed();
+    return failed === undefined ? undefined : new AcceptFailure({ operation: "smoke capture", problem: `${failed}; the batch stopped before its checks` });
+  };
+  const run = accepted.pipe(
+    Effect.mapError((cause) => smokeStop() ?? cause),
+    Effect.tap(() => {
+      const stop = smokeStop();
+      return stop === undefined ? Effect.void : Effect.fail(stop);
+    }),
+  );
   // A dry run touches no client; each shard heals its own pair.
   return yield* (args.includes("--dry-run") || requested.length > 1 ? run : onHealthyClients(run, { retry: false, clientsFile: selectedClients }));
 });
