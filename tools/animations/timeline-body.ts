@@ -60,9 +60,12 @@ function preserveNonunitHolds(source: mdx.Model, model: mdx.Model, sequences: re
         for (const [suffix, property, track] of [['axis', 'Rotation', axisTrack], ['stretch', 'Scaling', scaleTrack], ['inverse', 'Rotation', inverseTrack]] as const) {
             track.Keys.sort((a, b) => a.Frame - b.Frame);
             const id = model.PivotPoints.length;
-            const helper: mdx.Node = { Name: `${bone.Name} hold ${suffix}`, ObjectId: id, Parent: parent, Flags: 0, PivotPoint: new Float32Array(bone.PivotPoint), [property]: track };
-            model.Helpers.push(helper);
-            model.PivotPoints.push(helper.PivotPoint);
+            const node: mdx.Node = { Name: `${bone.Name} hold ${suffix}`, ObjectId: id, Parent: parent, Flags: 0, PivotPoint: new Float32Array(bone.PivotPoint), [property]: track };
+            // Vertices move onto the last node, so it must be a bone: HD and Definitive skin only from the
+            // bone palette, and a helper's index reads another model's bone there (#319).
+            if (suffix === 'inverse') model.Bones.push({ ...node, GeosetId: bone.GeosetId, GeosetAnimId: bone.GeosetAnimId });
+            else model.Helpers.push(node);
+            model.PivotPoints.push(node.PivotPoint);
             parent = id;
         }
         for (const child of children) child.Parent = parent;

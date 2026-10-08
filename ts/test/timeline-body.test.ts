@@ -77,3 +77,19 @@ test('nonunit quaternion holds keep the reference mesh at both clip edges [repro
         }
     }
 });
+
+test('a nonunit hold skins its vertices to a bone, not a helper, so HD and Definitive draw them in place [repro #319]', () => {
+    const source = parseMDL(stageSkyMdl('test.tga'));
+    const sequence = source.Sequences[0], bone = source.Bones[0];
+    if (sequence === undefined || bone === undefined) throw new Error('Missing authored fixture body');
+    sequence.Interval = new Uint32Array([100, 1000]);
+    bone.Rotation = { LineType: mdx.LineType.Linear, GlobalSeqId: null, Keys: [
+        { Frame: 400, Vector: new Float32Array([-0.22460900247097015, 0.34179699420928955, -0.11767599731683731, 0.9023439884185791]) },
+        { Frame: 800, Vector: new Float32Array([0, 0, 0, 1]) },
+    ] };
+    const body = timelineBody(source, [sequence]);
+    const bones = new Set(body.Bones.map(node => node.ObjectId));
+    const skinned = body.Geosets.flatMap(geoset => geoset.Groups.flat());
+    expect(body.Helpers.some(node => node.Name?.endsWith(' hold stretch'))).toBe(true);
+    expect(skinned.filter(id => !bones.has(id)).map(id => body.Nodes[id]?.Name)).toEqual([]);
+});

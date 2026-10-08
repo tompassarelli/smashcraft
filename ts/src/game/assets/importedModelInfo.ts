@@ -22,9 +22,8 @@ export const HOWLING_BLAST_MODEL = "Abilities\\Weapons\\FrostWyrmMissile\\FrostW
  * Side special Val'kyr Shadowguard: a winged spirit of the dead that seizes
  * and carries. It is the game's classic Banshee.mdx, imported unchanged under
  * its own path (#319): at the stock path HD clients draw the HD Banshee (one
- * 182-bone skinned mesh), and while it is on screen they draw long dark
- * bars from both Lich Kings to a point above her. An imported path has no HD
- * replacement, so every client draws the classic model.
+ * 182-bone skinned mesh). An imported path has no HD replacement, so every
+ * client draws the classic model.
  */
 export const VALKYR_MODEL = "war3mapImported\\ValkyrBanshee.mdx";
 /** Down special Defile: a dark pool swirling on the ground. */
