@@ -2,6 +2,7 @@
 // in the brief's frame numbering (entry tick is frame 1). Damage and launch
 // use the kit's provisional knockback classes (lichMoves.ts); Chill is
 // sim/chill.ts.
+import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT, heroRegion } from "../heroMoves";
 import { type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, frames } from "../heroSpecials";
@@ -98,8 +99,8 @@ const DARK_RITUAL: AuthoredSpecial = {
 };
 
 export const LICH_SPECIALS: FighterSpecials = {
-  neutral: { name: "Frost Nova", description: "A slow orb that chills; press again to burst it where it is.", ground: frostNova(undefined), air: frostNova(AIR_LANDING_LAG), recall: frostNovaBurst(undefined), recallWhile: "projectile" },
-  side: { name: "Death and Decay", description: "A rotting field ahead that strikes twice, small then strong; walk or jump out.", ground: DEATH_AND_DECAY },
-  up: { name: "Spectral Ascent", description: "A steerable rise, then a helpless fall.", ground: ascent(15, f32(3.7), f32(1.0)), free: ascent(0, f32(2.3), f32(0.7)) },
-  down: { name: "Frost Armor", description: "A shell that takes the knockback of one light hit and chills the attacker; press again for Dark Ritual: shatter it for mana.", ground: FROST_ARMOR, recall: DARK_RITUAL, recallWhile: "armor" },
+  neutral: withExKit({ name: "Frost Nova", description: "A slow orb that chills; press again to burst it where it is.", ground: frostNova(undefined), air: frostNova(AIR_LANDING_LAG), recall: frostNovaBurst(undefined), recallWhile: "projectile" }, { reach: 1.25 }),
+  side: withExKit({ name: "Death and Decay", description: "A rotting field ahead that strikes twice, small then strong; walk or jump out.", ground: DEATH_AND_DECAY }, { damage: 1.25 }),
+  up: withExKit({ name: "Spectral Ascent", description: "A steerable rise, then a helpless fall.", ground: ascent(15, f32(3.7), f32(1.0)), free: ascent(0, f32(2.3), f32(0.7)) }, { travel: 1.25 }),
+  down: withExKit({ name: "Frost Armor", description: "A shell that takes the knockback of one light hit and chills the attacker; press again for Dark Ritual: shatter it for mana.", ground: FROST_ARMOR, recall: DARK_RITUAL, recallWhile: "armor" }, { armorDamage: 1.25, recallProtection: 4.0 }),
 };

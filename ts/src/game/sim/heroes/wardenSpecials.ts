@@ -1,8 +1,9 @@
 // Warden's four specials from smashcraft:docs/design/roster.md ("Warden", B
 // specials), in the brief's frame numbering. Starting values, not balance.
+import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT, heroRegion, type MoveRegion, type StrikeCapsule } from "../heroMoves";
-import { CHARGED_AIM_FRAMES, Relocation, frames, type AuthoredSpecial, type FighterSpecials } from "../heroSpecials";
+import { CHARGED_AIM_FRAMES, Relocation, frames, type AuthoredSpecial, type FighterSpecials, type SpecialKit } from "../heroSpecials";
 import { HeroStatusGroup, HeroStatusKind, HitElement } from "../codes";
 import type { AppliedStatus } from "../heroStatus";
 import { wardenHit } from "./wardenMoves";
@@ -74,10 +75,10 @@ export const WARDEN_FAN_REACH = f32(H * f32(1.30));
 const FAN = f32(WARDEN_FAN_REACH - KNIFE_RADIUS);
 const FAN_DIAGONAL = f32(FAN * f32(0.707106781));
 const FAN_CENTER = 48.0;
-const fanRegions = (): readonly MoveRegion[] => {
+const fanRegions = (scale = 1.0): readonly MoveRegion[] => {
   const front = wardenHit(7.0, "POKE", 45);
   const back = wardenHit(7.0, "POKE", 45, -1.0);
-  return [
+  const regions = [
     heroRegion(9, 11, blade(16.0, FAN_CENTER, FAN, FAN_CENTER), front),
     heroRegion(9, 11, blade(12.0, f32(FAN_CENTER + 12.0), FAN_DIAGONAL, f32(FAN_CENTER + FAN_DIAGONAL)), front),
     heroRegion(9, 11, blade(12.0, f32(FAN_CENTER - 12.0), FAN_DIAGONAL, f32(FAN_CENTER - FAN_DIAGONAL)), front),
@@ -86,12 +87,30 @@ const fanRegions = (): readonly MoveRegion[] => {
     heroRegion(9, 11, blade(-12.0, f32(FAN_CENTER + 12.0), -FAN_DIAGONAL, f32(FAN_CENTER + FAN_DIAGONAL)), back),
     heroRegion(9, 11, blade(-12.0, f32(FAN_CENTER - 12.0), -FAN_DIAGONAL, f32(FAN_CENTER - FAN_DIAGONAL)), back),
   ];
+  if (scale === 1.0) return regions;
+  return regions.map(region => {
+    const strike = region.hit.strike;
+    if (strike === undefined) return region;
+    const height = (z: number): number => f32(FAN_CENTER + f32(f32(z - FAN_CENTER) * scale));
+    return heroRegion(region.firstFrame + 1, region.lastFrame + 1, blade(
+      f32(strike.x1 * scale), height(strike.z1), f32(strike.x2 * scale), height(strike.z2), f32(strike.radius * scale),
+    ), region.hit.effect);
+  });
 };
 const FAN_OF_KNIVES: AuthoredSpecial = { cost: 18, endFrame: 38, regions: fanRegions(), strikeStatus: POISON };
 
+// All seven rays expand about the same chest-height center.
+function withFanEx(kit: SpecialKit): SpecialKit {
+  const upgraded = withExKit(kit, { reach: 1.25 });
+  const form = (move: AuthoredSpecial): AuthoredSpecial => ({ ...move,
+    ex: move.ex === undefined ? undefined : { ...move.ex, regions: fanRegions(1.25) },
+  });
+  return { ...upgraded, ground: form(upgraded.ground), air: upgraded.air === undefined ? undefined : form(upgraded.air) };
+}
+
 export const WARDEN_SPECIALS: FighterSpecials = {
-  neutral: { name: "Shadow Strike", description: "A slow dagger that marks and poisons its target.", ground: SHADOW_STRIKE },
-  side: { name: "Shadow Pursuit", description: "Appear behind a marked opponent and slash; with no mark nearby, a dashing Pursuit Lunge.", ground: PURSUIT_LUNGE, air: PURSUIT_LUNGE_AIR, marked: { special: SHADOW_PURSUIT, range: PURSUIT_REACH } },
-  up: { name: "Blink", description: "Teleport in any of eight directions; the landing spot is open to a punish.", ground: BLINK, free: BLINK_FREE },
-  down: { name: "Fan of Knives", description: "Throw knives outward in a wide burst, marking and poisoning everyone hit.", ground: FAN_OF_KNIVES, air: FAN_OF_KNIVES },
+  neutral: withExKit({ name: "Shadow Strike", description: "A slow dagger that marks and poisons its target.", ground: SHADOW_STRIKE }, { damage: 1.25 }),
+  side: withExKit({ name: "Shadow Pursuit", description: "Appear behind a marked opponent and slash; with no mark nearby, a dashing Pursuit Lunge.", ground: PURSUIT_LUNGE, air: PURSUIT_LUNGE_AIR, marked: { special: SHADOW_PURSUIT, range: PURSUIT_REACH } }, { damage: 1.25 }),
+  up: withExKit({ name: "Blink", description: "Teleport in any of eight directions; the landing spot is open to a punish.", ground: BLINK, free: BLINK_FREE }, { travel: 1.25 }),
+  down: withFanEx({ name: "Fan of Knives", description: "Throw knives outward in a wide burst, marking and poisoning everyone hit.", ground: FAN_OF_KNIVES, air: FAN_OF_KNIVES }),
 };

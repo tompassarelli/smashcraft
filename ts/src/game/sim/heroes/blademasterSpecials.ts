@@ -1,6 +1,7 @@
 // Blademaster's four specials (smashcraft:docs/design/roster.md, "Blademaster",
 // "B specials"), as data for sim/heroSpecials.ts. Brief frame numbering: the
 // entry tick is frame 1 and windows are inclusive.
+import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { type AuthoredSpecial, type FighterSpecials, type SpecialPlacement, CHARGED_AIM_FRAMES, FollowUpInput, Relocation, chargedAngleMotion, frames } from "../heroSpecials";
 import { hurtPose } from "../hurtboxes";
@@ -133,8 +134,8 @@ const imageSwap: AuthoredSpecial = {
 const inAir = (special: AuthoredSpecial): AuthoredSpecial => ({ ...special, landingLag: AIR_LANDING_LAG });
 
 export const BLADEMASTER_SPECIALS: FighterSpecials = {
-  neutral: { name: "Wind Cutter", description: "A short blade wave that costs no mana.", ground: windCutter, air: inAir(windCutter) },
-  side: { name: "Wind Walk", description: "Fade and walk through bodies; attack to Backstab on either side, special to step out.", ground: windWalk(false), air: windWalk(true) },
-  up: { name: "Rising Whirlwind", description: "Hold a direction as he gathers, then a slashing dash that way and a helpless fall.", ground: risingBlade, free: risingBladeFree },
-  down: { name: "Mirror Image", description: "Step back and leave an image; press again to swap to it with a slash. One hit breaks it.", ground: mirrorImage, air: inAir(mirrorImage), recall: imageSwap },
+  neutral: withExKit({ name: "Wind Cutter", description: "A short blade wave that costs no mana.", ground: windCutter, air: inAir(windCutter) }, { damage: 1.25 }),
+  side: withExKit({ name: "Wind Walk", description: "Fade and walk through bodies; attack to Backstab on either side, special to step out.", ground: windWalk(false), air: windWalk(true) }, { damage: 1.25 }),
+  up: withExKit({ name: "Rising Whirlwind", description: "Hold a direction as he gathers, then a slashing dash that way and a helpless fall.", ground: risingBlade, free: risingBladeFree }, { travel: 1.25 }),
+  down: withExKit({ name: "Mirror Image", description: "Step back and leave an image; press again to swap to it with a slash. One hit breaks it.", ground: mirrorImage, air: inAir(mirrorImage), recall: imageSwap }, { damage: 1.25, durability: 2.0 }),
 };

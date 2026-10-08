@@ -1,9 +1,10 @@
+import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { hurtCapsule } from "../../physics/contactGeometry";
 import { Character, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, type MoveRegion, heroRegion } from "../heroMoves";
 import { hurtPart, hurtPose } from "../hurtboxes";
-import { type AuthoredSpecial, type FighterSpecials, type SpecialMotion, type SpecialProjectile, CHARGED_AIM_FRAMES, FollowUpInput, chargedAngleMotion, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, type SpecialKit, type SpecialMotion, type SpecialProjectile, CHARGED_AIM_FRAMES, FollowUpInput, chargedAngleMotion, frames } from "../heroSpecials";
 import { MEDIUM, SHORT, capsule, hit } from "./mountainKingMoves";
 
 // smashcraft:docs/design/roster.md "Mountain King": costs, frames, damage,
@@ -94,8 +95,20 @@ const CHARGED_CLAP: AuthoredSpecial = {
 // Air form: the hammer swings under the body, 0.55H reach, no shockwave.
 const AIR_CLAP = hit(11.049999237060547, "LAUNCH", 70, false, HitElement.electric);
 
+// Hammerfall branches from Thunder Leap but also receives its specified damage upgrade.
+function withHammerfallEx(kit: SpecialKit): SpecialKit {
+  const upgraded = withExKit(kit, { travel: 1.25 });
+  const ex = upgraded.ground.ex;
+  if (ex === undefined) return upgraded;
+  return { ...upgraded, ground: { ...upgraded.ground, ex: { ...ex,
+    followUps: ex.followUps?.map(branch => ({ ...branch,
+      special: withExKit({ ...kit, ground: branch.special }, { damage: 1.25 }).ground.ex ?? branch.special,
+    })),
+  } } };
+}
+
 export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
-  neutral: {
+  neutral: withExKit({
     name: "Storm Bolt",
     description: "A hammer that flies out and back, hitting toward him on the return; press again to call it back.",
     ground: {
@@ -110,8 +123,8 @@ export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
     },
     recall: BOLT_RECALL,
     recallWhile: "projectile",
-  },
-  side: {
+  }, { damage: 1.25 }),
+  side: withExKit({
     name: "Storm Rush",
     description: "A shoulder charge that stops dead at a body or shield.",
     ground: {
@@ -130,8 +143,8 @@ export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
       oncePerAirtime: true,
       helpless: true,
     },
-  },
-  up: {
+  }, { damage: 1.25 }),
+  up: withHammerfallEx({
     name: "Thunder Leap",
     description: "Hold a direction as he crouches, then a hammer leap that way; press special at the top to plunge down as Hammerfall.",
     ground: {
@@ -154,8 +167,8 @@ export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
       oncePerAirtime: true,
       helpless: true,
     },
-  },
-  down: {
+  }),
+  down: withExKit({
     name: "Thunder Clap",
     description: "Raise the hammer and slam: early for a small clap, late for a ring with shockwaves. Shield drops the charge.",
     ground: CHARGED_CLAP,
@@ -165,5 +178,5 @@ export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
       regions: [heroRegion(18, 21, capsule(10.0, 10.0, f32(SHORT - 14.0), -20.0, 14.0), AIR_CLAP)],
       landingLag: 20,
     },
-  },
+  }, { reach: 1.25 }),
 };
