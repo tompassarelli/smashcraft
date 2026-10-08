@@ -250,6 +250,13 @@ export class ShadowInputSchedule {
     return true;
   }
 
+  /** Moves F back to `frame`, never before the confirmed cursor; the frames after it run again. */
+  rewindSpeculative(epoch: number, frame: number): boolean {
+    if (epoch !== this.current || this.preparedSpeculative !== undefined || frame < this.nextConfirmed) return false;
+    if (frame < this.nextSpeculative) this.nextSpeculative = frame;
+    return true;
+  }
+
   mayAdvanceConfirmed(): boolean {
     return this.current !== undefined && this.nextConfirmed <= this.confirmedFrame();
   }

@@ -1,7 +1,8 @@
 // A journal match pauses and resumes only at a frame every human's helper
 // acknowledged. A pause takes two rounds: each helper first acknowledges
-// PREPARE with the next frame it can stop at, then PAUSE at the highest of
-// those; a resume takes one RESUME round. Each client relays its helper's
+// PREPARE with the next frame it can stop at, then PAUSE at the frame the
+// controller's Start was pressed in, or without one at the highest of those;
+// a resume takes one RESUME round at the paused frame. Each client relays its helper's
 // acknowledgment to every client in a synchronized SC_JC message, so all
 // clients complete each round on the same message.
 import { padDecimal, parseDecimal } from "../netcode/journal/decimal";
@@ -14,6 +15,12 @@ export const CONTROL_ACK_PREFIX = "SC_JC";
 interface BarrierRequest {
   /** The acknowledgment each helper owes this round. */
   readonly stage: ControlState;
+  /**
+   * The frame the round settles on whatever the helpers answer: a Start
+   * press's frame, every client's from its synchronized request, or the
+   * paused frame a resume restarts at.
+   */
+  readonly target: number | undefined;
   /** The common frame, once every human acknowledged this round. */
   frame: number | undefined;
 }
@@ -37,8 +44,8 @@ export function resetPauseBarrier(barrier: PauseBarrier): void {
 }
 
 /** Starts a round; the caller has written the control request the helpers answer. */
-export function requestRound(barrier: PauseBarrier, stage: ControlState): void {
-  barrier.request = { stage, frame: undefined };
+export function requestRound(barrier: PauseBarrier, stage: ControlState, target?: number): void {
+  barrier.request = { stage, target, frame: undefined };
   barrier.frames.fill(undefined);
 }
 
@@ -48,6 +55,16 @@ export const pausing = (barrier: Readonly<PauseBarrier>): boolean => barrier.req
 /** The frame a completed PAUSE or RESUME round takes effect at. */
 export function agreedFrame({ request }: Readonly<PauseBarrier>): number | undefined {
   return request !== undefined && request.stage !== "PREPARE" ? request.frame : undefined;
+}
+
+/**
+ * The frame neither cursor may run while a round is in flight: a pause's
+ * target from its request on, otherwise the agreed frame.
+ */
+export function stopFrame(barrier: Readonly<PauseBarrier>): number | undefined {
+  const { request } = barrier;
+  if (request === undefined) return undefined;
+  return agreedFrame(barrier) ?? (request.stage === "PREPARE" ? request.target : undefined);
 }
 
 /** The frame a completed PREPARE round asks every helper to pause at. */
@@ -111,7 +128,7 @@ export function receiveControlAck(barrier: PauseBarrier, humans: number, epoch: 
   }
   const [first, ...rest] = prepared;
   if (first === undefined) return "recorded";
-  const common = pauseBarrierFrame([first, ...rest]);
+  const common = request.target ?? pauseBarrierFrame([first, ...rest]);
   if (request.stage !== "PREPARE" && prepared.some(frame => frame !== common)) return { failure: "players acknowledged different pause frames" };
   request.frame = common;
   return "complete";

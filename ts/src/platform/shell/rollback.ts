@@ -22,7 +22,7 @@ import { MatchLifecycle } from "../../game/netcode/journal/lifecycle";
 import { JournalInputSource } from "../../game/netcode/journal/source";
 import { decodeTransport } from "../../game/netcode/journal/transport";
 import { captureReplaySnapshot, restoreReplaySnapshot } from "../../game/replay/snapshot";
-import { resetPauseBarrier, agreedFrame } from "../../game/shell/pauseBarrier";
+import { resetPauseBarrier, stopFrame } from "../../game/shell/pauseBarrier";
 import { REPAIR_FRAMES, confirmedBudget, speculativeBudget } from "../../game/shell/playback";
 import { queueLocalRows } from "../../game/shell/localInput";
 import { applyFrame } from "./frame";
@@ -266,7 +266,7 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
     noteWaiting(rollback, s.game.humanMask & ~journal.readyMask, START_NOTICE_CALLBACKS);
     return;
   }
-  const stopAt = journal === undefined ? undefined : agreedFrame(journal.barrier);
+  const stopAt = journal === undefined ? undefined : stopFrame(journal.barrier);
   const slot = localSlot();
   const reconciled = rollback.playback.reconcile(schedule, epoch, slot, speculative);
   if (reconciled === "rejected") {

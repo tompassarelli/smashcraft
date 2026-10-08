@@ -1,6 +1,6 @@
 import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import type { ControlState } from "../netcode/journal/source";
-import { agreedFrame, encodeControlAck, pauseBarrier, pausing, preparedFrame, receiveControlAck, requestRound } from "./pauseBarrier";
+import { agreedFrame, encodeControlAck, pauseBarrier, pausing, preparedFrame, receiveControlAck, requestRound, stopFrame } from "./pauseBarrier";
 
 const EPOCH = 3;
 const HUMANS = 0b0101;
@@ -38,4 +38,17 @@ test("players that acknowledge different pause frames stop the journal", () => {
   const split = receiveControlAck(barrier, HUMANS, EPOCH, 2, ack(2, 1, "RESUME", 51));
   assertEquals(typeof split === "object" ? split.failure : split, "players acknowledged different pause frames");
   assertEquals(agreedFrame(barrier), undefined);
+});
+
+test("#206 a Start press pauses at its own frame, however late the other helper prepared", () => {
+  const barrier = pauseBarrier();
+  requestRound(barrier, "PREPARE", 168);
+  assertEquals(stopFrame(barrier), 168);
+  assertEquals(receiveControlAck(barrier, HUMANS, EPOCH, 0, ack(0, 1, "PREPARE", 168)), "recorded");
+  assertEquals(receiveControlAck(barrier, HUMANS, EPOCH, 2, ack(2, 1, "PREPARE", 192)), "complete");
+  assertEquals(preparedFrame(barrier), 168);
+  requestRound(barrier, "PAUSE", 168);
+  assertEquals(receiveControlAck(barrier, HUMANS, EPOCH, 0, ack(0, 2, "PAUSE", 168)), "recorded");
+  assertEquals(receiveControlAck(barrier, HUMANS, EPOCH, 2, ack(2, 2, "PAUSE", 168)), "complete");
+  assertEquals(agreedFrame(barrier), 168);
 });
