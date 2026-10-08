@@ -73,7 +73,7 @@ few declared files.
 | Category | Files | Size | What it is |
 | --- | ---: | ---: | --- |
 | Animations (clip pool) | 1741 | 73.75 MB | One model per sequence for each of 21 fighters, each carrying the whole body mesh |
-| Portraits | 260 | 28.63 MB | Card, bust, tile and stock icon TGAs, neutral plus four slot colours, for 13 fighters |
+| Portraits | 260 | 28.63 MB | Card, bust, tile and stock icon TGAs, neutral plus four slot colours, for 13 fighters (11.86 MB as BLP since #307) |
 | White-flash bodies | 71 | 19.31 MB | Every fighter's mesh and keys on one timeline with white materials, plus 50 white textures |
 | Fighter models | 6 | 12.61 MB | Full Archer, Rifleman, Illidan, Forsaken Paladin and Lich King models (KO bodies, winner pose, unit) |
 | Textures (UI, model) | 29 | 2.83 MB | Selection backdrop and cards, HUD plates, shield bubbles, Lich King textures |
@@ -140,6 +140,27 @@ clips times mesh, so high-poly fighters with many sequences cost most.
 Each stage is a deck slab, a main deck, a light, a sky and a thumbnail
 (Nordrassil keeps the stock aurora sky).
 
+## Portraits as BLP, 8 Oct 2026 (#307)
+
+The build encodes each fighter portrait from its TGA in the `fighter-renders`
+input to a one-level BLP1 JPEG at quality 90 (smashcraft:ts/scripts/blp.ts),
+cached by source hash under `~/.cache/smashcraft/blp-portraits/`; the map
+script names the `.blp` files. Build of 4af9c1d3 plus #307: the 260 portraits
+take 11.86 MB in the map instead of 28.63 MB, and the map measured 162.7 MB.
+smashcraft:ts/test/portrait-blp.test.ts holds every portrait import to BLP and
+their total to 12.5 MB in the committed baseline.
+
+| Quality | Portraits | Worst portrait PSNR | Largest channel error |
+| ---: | ---: | ---: | ---: |
+| 90 | 12.03 MB | 38.4 dB | 22 |
+| 85 | 10.54 MB | 35.4 dB | 34 |
+| 80 | 9.00 MB | 33.3 dB | 42 |
+| 75 | 8.13 MB | 31.9 dB | 54 |
+| 70 | 7.54 MB | 30.7 dB | 59 |
+
+Sizes are the encoded files; error is decoded with war3-model's BLP reader
+against the source, over opaque pixels' colour and every pixel's alpha.
+
 ## Items over 1 MB
 
 Eight files are over 1 MB, and so are 21 clip pools, four portrait sets and
@@ -163,7 +184,7 @@ same frames into fewer bytes.
 | `ArcherFighter.mdx` | 3.17 MB | Same | 3.17 MB | None |
 | `ForsakenPaladin.mdx` | 1.57 MB | Same; the timeline body is derived from it, so the source stays in private inputs only | 1.57 MB | None |
 | Archer, Rifleman, Illidan keys (full, white, pool) | about 30 MB | Remove keys that linear interpolation reproduces within a small tolerance; these baked models carry about 405,000 keys each (Archer) | about 10 MB (unmeasured; assumes half the keys go) | None at a small tolerance; motion may soften at a coarse one |
-| Portraits, 260 TGAs | 28.63 MB | Store as JPEG BLP at quality 90 (alpha in the fourth channel), one mip level | 22.9 MB (all 260 encoded as JPEG at quality 90 with ImageMagick: 5.7 MB) | Slight softening at edges, not visible at the frames' sizes. Needs a BLP writer; the repo has none |
+| Portraits, 260 TGAs | 28.63 MB | Done (#307): JPEG BLP at quality 90, encoded at build time, one mip level | 16.77 MB (now 11.86 MB) | Worst portrait 38.4 dB PSNR against its source, largest channel error 22 of 255. The 5.7 MB estimate does not hold for BLP: Warcraft decodes BLP JPEG as four B, G, R, A planes with no colour transform, so colour can't be subsampled. 7 MB needs about quality 65 (30 dB) |
 | Portraits, same | | Drop the four slot-colour variants and keep the neutral portrait | 80% of what is left (about 4.6 MB after BLP) | The card and plate lose the slot's outfit colour |
 | `FighterCard*` set | 11.06 MB (65) | Covered by the BLP row | about 8.8 MB | As above |
 | `FighterBust*` set | 8.90 MB (65) | Covered by the BLP row | about 7 MB | As above |
