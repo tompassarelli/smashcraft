@@ -297,16 +297,20 @@ export class ReplayHistory {
   /**
    * The state after `frame` when history ran it on a row equal to `row` from
    * a corrected state before it: every earlier row authoritative or already
-   * matched here, no repair pending. Running `row` from the state before
-   * `frame` would reach it. Otherwise undefined.
+   * matched here. A repair's corrected prefix ends in repairState; the
+   * speculative frontier ends in live state, before its next snapshot exists.
    */
-  stateAfter(epoch: number, frame: number, row: Readonly<MatchFrameInput>): Readonly<ReplayState> | undefined {
-    if (!this.contains(epoch, frame) || !this.contains(epoch, frame + 1)) return undefined;
+  stateAfter(epoch: number, frame: number, row: Readonly<MatchFrameInput>, live?: Readonly<ReplayState>): Readonly<ReplayState> | undefined {
+    if (!this.contains(epoch, frame)) return undefined;
     if (Math.max(this.authoritativeThrough, this.matchedThrough) < frame - 1) return undefined;
-    if (this.repairNext !== undefined && this.repairNext <= frame + 1) return undefined;
+    if (this.repairNext !== undefined && this.repairNext <= frame) return undefined;
     if (!sameMatchFrameInput(this.inputAt(frame), row)) return undefined;
+    const after = this.repairNext === frame + 1 && this.repairPositioned ? this.repairState
+      : this.contains(epoch, frame + 1) ? this.snapshotAt(frame + 1)
+        : live?.runtime.simulationFrame === frame ? live : undefined;
+    if (after === undefined) return undefined;
     this.matchedThrough = Math.max(this.matchedThrough, frame);
-    return this.snapshotAt(frame + 1);
+    return after;
   }
 
   private saveRow(epoch: number, row: Readonly<MatchFrameInput>, predicted: boolean, live: Readonly<ReplayState>): boolean {
