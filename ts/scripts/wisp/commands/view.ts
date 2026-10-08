@@ -25,7 +25,7 @@ import { characterModelScale } from "../../../src/game/presentation/modelScale";
 import { type DrawnReachRow, REACH_CHECKED, drawnReachSource, measureDrawnReach } from "../drawnReach";
 import { DRAWN_REACH } from "../drawnReachInfo";
 import { measureStrikeMoments, strikeMomentSource } from "../strikeMoments";
-import { HERO_ROSTER, SELECTABLE_CHARACTERS, fighterName, fighterSlug } from "../../../src/game/sim/heroes/registry";
+import { HERO_ROSTER, SELECTABLE_CHARACTERS, isSelectableCharacter, fighterName, fighterSlug } from "../../../src/game/sim/heroes/registry";
 import { DRAWN_STRIDES } from "../../../src/game/presentation/drawnStrideInfo";
 import { DRAWN_MOTION } from "../drawnMotionInfo";
 import { MOTION_STATES, drawnStrideSource, measureDrawnMotion, measureDrawnStride, type DrawnStride, type DrawnMotionRow } from "../drawnMotion";
@@ -253,10 +253,13 @@ const reach = (args: readonly string[]) => Effect.gen(function*() {
 const motion = (args: readonly string[]) => Effect.gen(function*() {
   const assets = args[0] === "--assets" ? args[1] : undefined;
   const selected = args[2] === "--character" ? Number(args[3]) : undefined;
-  if (assets === undefined || !(args.length === 2 || args.length === 4 && selected !== undefined && SELECTABLE_CHARACTERS.includes(selected as Character))) return yield* new UsageFailure({ problem: "view motion takes --assets DIR [--character ID]" });
+  if (assets === undefined || !(args.length === 2 || args.length === 4 && selected !== undefined && isSelectableCharacter(selected))) return yield* new UsageFailure({ problem: "view motion takes --assets DIR [--character ID]" });
   const result = yield* Effect.tryPromise({
     try: async () => {
-      const strides: DrawnStride[] = selected === undefined ? [] : Object.entries(DRAWN_STRIDES).flatMap(([character, row]) => row === undefined || Number(character) === selected ? [] : (["walk", "run"] as const).map(motion => ({ character: Number(character) as Character, motion, ...row[motion] })));
+      const strides: DrawnStride[] = selected === undefined ? [] : SELECTABLE_CHARACTERS.flatMap(character => {
+        const row = DRAWN_STRIDES[character];
+        return row === undefined || character === selected ? [] : (["walk", "run"] as const).map(motion => ({ character, motion, ...row[motion] }));
+      });
       const rows: DrawnMotionRow[] = selected === undefined ? [] : DRAWN_MOTION.filter(row => row.character !== selected);
       const models: { character: Character; drawn: DrawnModel; model: string }[] = [];
       const characters = [ Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
