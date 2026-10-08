@@ -1,7 +1,7 @@
 // Foreign MDX boundary: authored contact gestures append to immutable fighter inputs.
 import { chmodSync, mkdirSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
-import { generateMDX, model as mdx } from "war3-model";
+import { generateMDX, ModelRenderer, model as mdx } from "war3-model";
 import { DrawnModel, sheet } from "../../ts/scripts/wisp/hurtboxView";
 import { characterModelScale } from "../../ts/src/game/presentation/modelScale";
 import { AttackPhase, AttackStyle, type Character } from "../../ts/src/game/sim/codes";
@@ -18,7 +18,7 @@ import { attackGestureBaseModel } from "./recovery-model";
 const PLAN: Readonly<Record<number, readonly HeroPose[]>> = {
   2: ["jab3"],
   4: ["jab", "jab2", "upTilt", "upSmash", "neutralAir", "upAir", "backAir", "dashAttack", "forwardAir"],
-  5: ["jab3", "forwardTiltDown", "downTilt", "neutralAir", "backAir", "downSmash", "dashAttack", "forwardAir", "upSmash", "upAir"],
+  5: ["jab3", "forwardTiltDown", "downTilt", "neutralAir", "backAir", "downSmash", "dashAttack", "forwardAir", "upSmash", "upAir", "upTilt", "forwardTiltUp"],
   6: ["forwardTiltDown", "downTilt", "backAir", "downSpecial", "forwardTilt", "forwardTiltUp", "upTilt", "forwardSmash", "upSmash", "downSmash", "dashAttack", "forwardAir", "upAir"],
   8: ["jab2", "jab3", "downTilt", "forwardSmash", "forwardAir", "backAir", "upAir", "upTilt", "neutralAir"],
   9: ["jab3", "forwardTilt", "forwardTiltUp", "upTilt", "dashAttack", "forwardAir", "upSmash", "upAir", "forwardSmash"],
@@ -71,6 +71,7 @@ const HOP: Readonly<Record<number, Readonly<Record<string, number>>>> = {
 };
 
 function joint(name: string, pose: HeroPose, character: number): number {
+  if (wardenWeaponPose(character, pose)) return name === "Bone_Head" ? 4 : name === "Bone_Arm1_L" ? 20 : name === "Bone_Arm2_L" ? -10 : name === "Bone_Arm1_R" || name === "Bone_Arm2_R" ? 1 : 0;
   const p=contactProfile(pose,character);ensure(p,`missing contact profile ${pose}`);
   const left=/(?:_L|ArmL|HandL|LegL|^L(?:hip|knee|shoulder|elbow|hand))$/i.test(name);
   const heavy=character===4||character===7||character===10, scale=heavy?0.8:character===9?1.12:1;
@@ -91,6 +92,50 @@ function joint(name: string, pose: HeroPose, character: number): number {
   if(/^Bone (Front|Back) [LR] Leg01$/.test(name))return p[5]!*(name.includes("Front")?0.65:-0.15);
   if(/^Bone (Front|Back) [LR] Shin01$/.test(name))return p[6]!*(name.includes("Front")?0.6:0.1);
   return 0;
+}
+
+const wardenWeaponPose = (character: number, pose: HeroPose) => character === 5 && ["jab3", "forwardTiltDown", "downTilt", "dashAttack", "upSmash", "upAir", "upTilt", "forwardTiltUp"].includes(pose);
+
+function aimWardenWeapon(model: mdx.Model, index: number, start: number, contact: number, total: number, pose: HeroPose) {
+  const nodes = [...model.Bones, ...model.Helpers, ...model.Attachments];
+  const named = (name: string) => { const node = nodes.find(n => n.Name === name); ensure(node, name); return node; };
+  const arm = [named("Bone_Arm1_R"), named("Bone_Arm2_R")], hand = named("Bone_Hand_R"), tip = named("Weapon Ref");
+  const renderer = new ModelRenderer(model); renderer.setSequence(index);
+  const data = Reflect.get(renderer, "rendererData") as { frame: number; nodes: { matrix: Float32Array }[] };
+  const position = (node: mdx.Node) => { const m = data.nodes[node.ObjectId]!.matrix, v = model.PivotPoints[node.ObjectId]!; return [m[0]!*v[0]!+m[4]!*v[1]!+m[8]!*v[2]!+m[12]!, m[1]!*v[0]!+m[5]!*v[1]!+m[9]!*v[2]!+m[13]!, m[2]!*v[0]!+m[6]!*v[1]!+m[10]!*v[2]!+m[14]!]; };
+  data.frame = start; renderer.update(0);
+  const initialHand = position(hand), initialTip = position(tip);
+  const targets: Readonly<Record<string, readonly [number[], number[]]>> = {
+    jab3: [[58,-27,99],[108,-28,99]],
+    forwardTiltDown: [[50,-27,66],[95,-28,35]],
+    downTilt: [[39,-27,64],[79,-28,28]],
+    dashAttack: [[58,-27,89],[105,-28,74]],
+    upSmash: [[0,-27,140],[0,-28,193]],
+    upTilt: [[12,-27,137],[12,-28,190]],
+    upAir: [[20,-27,132],[49,-28,177]],
+    forwardTiltUp: [[28,-27,128],[63,-28,168]],
+  };
+  const [targetHand,targetTip] = targets[pose]!;
+  for (let frame = 0; frame <= total; frame++) {
+    const at = start + Math.round(frame*1000/60); data.frame = at; renderer.update(0);
+    const anticipation = Math.max(1,contact-2);
+    const weight = frame < anticipation ? -0.3*Math.sin(frame/anticipation*Math.PI/2) : frame <= contact ? -0.3+1.3*(frame-anticipation)/(contact-anticipation) : frame < contact+3 ? 1 : Math.max(0,1-(frame-contact-3)/(total-contact-3));
+    const target = (from: number[], to: number[]) => from.map((v,i) => v+(to[i]!-v)*weight);
+    const aim = (node: mdx.Node, effector: mdx.Node, target: number[]) => {
+      const origin = position(node), a = position(effector).map((v,i) => v-origin[i]!), b = target.map((v,i) => v-origin[i]!);
+      const an = Math.hypot(...a), bn = Math.hypot(...b); if (an < 0.001 || bn < 0.001) return;
+      const av = a.map(v => v/an), bv = b.map(v => v/bn), cross = [av[1]!*bv[2]!-av[2]!*bv[1]!, av[2]!*bv[0]!-av[0]!*bv[2]!, av[0]!*bv[1]!-av[1]!*bv[0]!], length = Math.hypot(...cross); if (length < 0.00001) return;
+      const axis = cross.map(v => v/length), parent = node.Parent == null ? undefined : data.nodes[node.Parent]?.matrix;
+      const local = parent ? [0,1,2].map(i => (axis[0]!*parent[i*4]!+axis[1]!*parent[i*4+1]!+axis[2]!*parent[i*4+2]!)/Math.hypot(parent[i*4]!,parent[i*4+1]!,parent[i*4+2]!)) : axis;
+      const key = node.Rotation?.Keys.find(k => k.Frame === at); ensure(key, `${node.Name}: missing contact key`);
+      const angle = Math.acos(Math.max(-1,Math.min(1,av.reduce((sum,v,i) => sum+v*bv[i]!,0))))/2, s = Math.sin(angle), q = key.Vector, [x,y,z] = local;
+      const [u,v,w,t] = q, d = Math.cos(angle), p = [x!*s,y!*s,z!*s];
+      const vector = new Float32Array([d*u!+p[0]!*t!+p[1]!*w!-p[2]!*v!, d*v!-p[0]!*w!+p[1]!*t!+p[2]!*u!, d*w!+p[0]!*v!-p[1]!*u!+p[2]!*t!, d*t!-p[0]!*u!-p[1]!*v!-p[2]!*w!]);
+      const norm = Math.hypot(...vector); key.Vector = vector.map(v => v/norm); if (key.InTan) { key.InTan = key.Vector.slice(); key.OutTan = key.Vector.slice(); } renderer.update(0);
+    };
+    for (let iteration = 0; iteration < 12; iteration++) for (const node of arm.toReversed()) aim(node,hand,target(initialHand,targetHand));
+    aim(hand,tip,target(initialTip,targetTip));
+  }
 }
 
 const [inputArg,outputArg,...options]=process.argv.slice(2),input=resolve(inputArg??""),output=resolve(outputArg??""),project=resolve(import.meta.dir,"../..");
@@ -151,10 +196,11 @@ for(const [id,poses]of Object.entries(PLAN)) {
     ensure(articulated>=4,`${f.name}/${pose}: only ${articulated} moving joints`);
     for(let frame=0;frame<=total;frame++) {
       const arc=frame<=contact?Math.sin(frame/contact*Math.PI/2):Math.max(0,1-(frame-contact)/(total-contact));
-      helper.Rotation?.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:rotate(new Float32Array([0,0,0,1]),contactProfile(pose,character)![7]!*arc)});
+      helper.Rotation?.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:rotate(new Float32Array([0,0,0,1]),wardenWeaponPose(character,pose)?0:contactProfile(pose,character)![7]!*arc)});
     }
     if(hop)for(let frame=0;frame<=total;frame++)hop.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([0,0,frame<contact?(hops[pose]??0)*Math.sin(Math.PI*frame/contact):0])});
-    const binding=`{ index: ${index}, seconds: ${seconds((end-start)/1000)} }`;
+    if (wardenWeaponPose(character,pose)) aimWardenWeapon(model,index,start,contact,total,pose);
+    const binding=`{ index: ${index}, seconds: ${seconds((end-start)/1000)}${wardenWeaponPose(character,pose)?", aligned: true":""} }`;
     bindings.push(`    ${pose}: ${binding},`);
     if(special)for(const suffix of ["Air","FollowUp","FollowUpAir"])bindings.push(`    ${pose}${suffix}: ${binding},`);
     const moments=[Math.max(1,contact-3),contact,Math.min(total-1,contact+5)];
