@@ -555,7 +555,7 @@ Shared EX neutral/side costs 25 extra mana for six startup frames of one-hit
 armor. There are no ultimates in the adopted mana system.
 
 Direct hammer hits retain three extra hitlag frames and the volume-127 heavy
-bash. The 0.85 damage multiplier applies after passive bonuses and preserves
+bash. The 0.80 damage multiplier applies after passive bonuses and preserves
 original hitlag strength. Normal hit regions, hurt capsules and throws remain
 in forsakenPaladinMoves.ts; this revision changes Forsaken Paladin specials and their computer use.
 
@@ -570,6 +570,8 @@ Hammer cannot remove silence, sleep, stun or a forced carry.
 **Computer:** close hammer spacing, Righteous Fury for an approach,
 Consecration near grounded opponents, ordinary shield/dodge for defense,
 then ledge-oriented Ascension for recovery. Coverage counts all four specials.
+
+**Balance** (#249, his own 20-pair computer field, Wren Expert, 408/pair): damage multiplier 0.85 → 0.80: field win rate 61% (6d0b5a2c, run 37736075431) → 50% (0b0d4ced, run 37741856017); side special is 22% of his moves and 29% of his damage.
 
 ## Dreadlord
 
@@ -1208,6 +1210,8 @@ ride until her jump is gone. She avoids the edge. The perch and dive are her
 stage control: a dive line through the gap she keeps, or through a recovery
 path while she holds the ledge.
 
+**Balance** (#247, her 20-pair computer field, Wren Expert, 400/pair): homing arrow 3 → 5 damage and dash attack 6 → 8: field win rate 36% (5adb030c) → 47% (02f650a3, run 37741282489; 3804/8160); side special is 23% of her moves, above the zoner profile's 3-15%.
+
 #### Play-style profile
 
 Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). Distance is her identity: arrows and back air keep the gap.
@@ -1242,6 +1246,8 @@ into forward or up smash; the bear into a shot or forward smash. He kills
 with forward smash from 80%, up smash from 95% and the recoil shot from
 100%. He returns to the ledge and spends his jump before the recoil. He
 avoids close range.
+
+**Balance** (#248, his 20-pair computer field, Wren Expert, 400/pair): forward tilt growth 90 → 108 and dash attack 95 → 114, for kill power (he dealt 191 damage per stock taken against a field median near 140): field win rate 38% (5adb030c, run 37736380119) → 46% (run 37741496717, measured on 7cb29b97; landed as 07b13e80).
 
 #### Play-style profile
 
@@ -1472,6 +1478,35 @@ Rifleman (#248, 8 Oct, his 20 pairs at Wren Expert, 400 a pair): he dealt
 kill power on the moves that take his stocks. Forward tilt growth 90→108 and
 dash attack 95→114 moved him from 38% (run 37736380119) to 46%
 (run 37741496717); his move mix held (blaster 34% of moves, bear 25% of damage).
+
+#250's shared field is all 21 fighters, computer level Wren Expert, 210
+pairs at 408 games a pair (85,680 matches, 8,160 a fighter), build
+07b13e80, run 37743744018. Win rate counts decisive matches; every fighter
+is inside the 40–60% gate.
+
+| Fighter | Wins | Losses | Win rate |
+| --- | ---: | ---: | ---: |
+| Archer | 3823 | 4337 | 46.85% |
+| Rifleman | 3766 | 4394 | 46.15% |
+| Illidan | 4760 | 3400 | 58.33% |
+| Blademaster | 3776 | 4384 | 46.27% |
+| Mountain King | 4374 | 3785 | 53.61% |
+| Warden | 3419 | 4740 | 41.90% |
+| Lich | 4018 | 4141 | 49.25% |
+| Forsaken Paladin | 3979 | 4181 | 48.76% |
+| Dreadlord | 4477 | 3683 | 54.87% |
+| Shadow Hunter | 4188 | 3972 | 51.32% |
+| Pit Lord | 3323 | 4837 | 40.72% |
+| Beastmaster | 3891 | 4268 | 47.69% |
+| Lich King | 4128 | 4032 | 50.59% |
+| Thrall | 3907 | 4253 | 47.88% |
+| Jaina Proudmoore | 4421 | 3739 | 54.18% |
+| Sylvanas Windrunner | 4096 | 4064 | 50.20% |
+| Cairne Bloodhoof | 4758 | 3402 | 58.31% |
+| Chen Stormstout | 4307 | 3853 | 52.78% |
+| Peon | 3875 | 4285 | 47.49% |
+| Goblin Tinker | 4185 | 3975 | 51.29% |
+| Kael'thas Sunstrider | 4207 | 3953 | 51.56% |
 
 ## Implementation details for the overnight agent
 
