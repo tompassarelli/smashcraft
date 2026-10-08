@@ -157,13 +157,15 @@ function statePieces(pieces: StatePiece[], record: unknown, depth: number, skip 
  * active fighters, the match, the command buffers and the pacing and
  * presentation, as record text the moment's reader takes.
  */
-function savedStatePieces(state: Readonly<ReplayState>): StatePiece[] {
-  const pieces: StatePiece[] = [`mask=${state.world.mask}`, "fighters["];
-  for (const slot of PARTICIPANT_SLOTS) {
-    if (!isActive(state.world, slot)) continue;
+/** The pieces of the starting state's fighter in `slot`, or with `slot` past the last, of its match, commands and runtime. */
+function savedStatePieces(pieces: StatePiece[], state: Readonly<ReplayState>, slot: number): void {
+  if (slot === 0) pieces.push(`mask=${state.world.mask}`, "fighters[");
+  if (slot < PARTICIPANT_SLOTS.length) {
+    if (!isActive(state.world, slot)) return;
     pieces.push(`${slot}{`);
     statePieces(pieces, fighterAt(state.world, slot), 1, AUTHORED_FIELD);
     pieces.push("}");
+    return;
   }
   pieces.push("]", "match{");
   statePieces(pieces, state.match, 1);
@@ -172,7 +174,6 @@ function savedStatePieces(state: Readonly<ReplayState>): StatePiece[] {
   pieces.push("runtime{");
   statePieces(pieces, savedRuntime(state.runtime), 1);
   pieces.push("}");
-  return pieces;
 }
 
 /** A piece's tokens; undefined when a field can't be written as record text. */
@@ -186,13 +187,18 @@ function pieceTokens(piece: StatePiece): readonly string[] | undefined {
 // ---------------------------------------------------------------- recording
 
 /**
- * A segment's starting state being written as text: its checksum and pieces
- * in the first callback after the segment starts, then a few pieces a
- * callback, so the frame that starts it pays only for the copy.
+ * A segment's starting state being written as text: its checksum folded a
+ * few fields a callback, its pieces a fighter a callback, then a few pieces
+ * a callback, so no callback pays for the whole state (#168).
  */
 interface StateText {
-  /** The index in the pending lines of the segment line, whose checksum the first step fills in. */
+  /** The index in the pending lines of the segment line, whose checksum the fold fills in. */
   readonly segmentLine: number;
+  /** The segment checksum's fold over the starting state, until it fills the segment line. */
+  fold: PendingFold | undefined;
+  /** The next slot whose pieces are gathered; past the last, the match's and runtime's. */
+  slot: number;
+  readonly gathered: StatePiece[];
   pieces: readonly StatePiece[] | undefined;
   next: number;
   readonly tokens: string[];
@@ -239,14 +245,54 @@ export interface MatchReplayRecorder {
 /** Root fields or projectile records folded per callback; four fighters finish well before the next checkpoint. */
 const CHECKPOINT_FIELDS_PER_CALLBACK = 6;
 
-/** A checkpoint whose checksum is being folded, reading only its frozen snapshot. */
-interface PendingCheckpoint {
-  readonly frame: number;
+/** A replay checksum being folded over a frozen snapshot, a few root fields a callback. */
+interface PendingFold {
   readonly lanes: Lanes;
   slot: number;
   fields: readonly string[] | undefined;
   field: number;
   projectile: number;
+}
+
+/** A checkpoint whose checksum is being folded, reading only its frozen snapshot. */
+interface PendingCheckpoint extends PendingFold {
+  readonly frame: number;
+}
+
+function beginFold(world: Readonly<Roster>): PendingFold {
+  const lanes: Lanes = { first: 0, second: 0 };
+  foldInteger(lanes, 1, world.mask);
+  return { lanes, slot: 0, fields: undefined, field: 0, projectile: 0 };
+}
+
+/** Folds the next fields of `world`'s fighters; false once every fighter is folded, leaving the match and frame. */
+function stepFold(fold: PendingFold, world: Readonly<Roster>): boolean {
+  while (fold.slot < PARTICIPANT_SLOTS.length && !isActive(world, fold.slot)) fold.slot++;
+  if (fold.slot >= PARTICIPANT_SLOTS.length) return false;
+  const fighter = fighterAt(world, fold.slot);
+  const base = floorMod(fold.slot * 977 + 13, MODULUS);
+  const fields = fold.fields ?? Object.keys(fighter);
+  fold.fields = fields;
+  let remaining = CHECKPOINT_FIELDS_PER_CALLBACK;
+  if (isFields(fighter)) {
+    while (fold.field < fields.length && remaining > 0) {
+      const key = at(fields, fold.field++);
+      if (fieldName(key) && key !== "tuning") foldValue(fold.lanes, floorMod(base * 31 + keyHash(key), MODULUS), fighter[key], 0);
+      remaining--;
+    }
+  }
+  while (fold.field === fields.length && fold.projectile < fighter.projectiles.length && remaining > 0) {
+    const index = fold.projectile++;
+    foldFields(fold.lanes, floorMod(base * 31 + index + 5, MODULUS), at(fighter.projectiles, index), 1);
+    remaining--;
+  }
+  if (fold.field === fields.length && fold.projectile === fighter.projectiles.length) {
+    fold.slot++;
+    fold.fields = undefined;
+    fold.field = 0;
+    fold.projectile = 0;
+  }
+  return true;
 }
 
 export function createMatchReplayRecorder(): MatchReplayRecorder {
@@ -268,12 +314,24 @@ function finishStateText(recorder: MatchReplayRecorder): void {
 function continueStateText(recorder: MatchReplayRecorder, budget: number): void {
   const text = recorder.text;
   if (text === undefined) return;
+  const all = budget === Number.MAX_SAFE_INTEGER;
+  // The start is a snapshot copy, so folding it gives checksumVia's checksum.
+  const { world, match, runtime } = recorder.start;
+  const fold = text.fold;
+  if (fold !== undefined) {
+    while (stepFold(fold, world)) if (!all) return;
+    recorder.lines[text.segmentLine] = `segment ${recorder.segmentStart} ${foldMatchAndFrame(fold.lanes, match, runtime)}`;
+    text.fold = undefined;
+    if (!all) return;
+  }
   let pieces = text.pieces;
   if (pieces === undefined) {
-    recorder.lines[text.segmentLine] = `segment ${recorder.segmentStart} ${checksumVia(recorder.scratch, recorder.start)}`;
-    pieces = savedStatePieces(recorder.start);
+    while (text.slot <= PARTICIPANT_SLOTS.length) {
+      savedStatePieces(text.gathered, recorder.start, text.slot++);
+      if (!all) return;
+    }
+    pieces = text.gathered;
     text.pieces = pieces;
-    if (budget < Number.MAX_SAFE_INTEGER) return;
   }
   let written = 0;
   while (text.next < pieces.length && written < budget) {
@@ -305,7 +363,7 @@ function beginSegment(recorder: MatchReplayRecorder, start: number, world: Reado
   recorder.digests = [];
   recorder.last = start;
   recorder.ended = false;
-  recorder.text = { segmentLine: recorder.lines.length, pieces: undefined, next: 0, tokens: [] };
+  recorder.text = { segmentLine: recorder.lines.length, fold: beginFold(recorder.start.world), slot: 0, gathered: [], pieces: undefined, next: 0, tokens: [] };
   recorder.lines.push("segment");
 }
 
@@ -377,33 +435,7 @@ function stepCheckpoint(recorder: MatchReplayRecorder): boolean {
   const checkpoint = recorder.checkpoint;
   if (checkpoint === undefined) return false;
   const { world, match, runtime } = recorder.checkpointState;
-  while (checkpoint.slot < PARTICIPANT_SLOTS.length && !isActive(world, checkpoint.slot)) checkpoint.slot++;
-  if (checkpoint.slot < PARTICIPANT_SLOTS.length) {
-    const fighter = fighterAt(world, checkpoint.slot);
-    const base = floorMod(checkpoint.slot * 977 + 13, MODULUS);
-    const fields = checkpoint.fields ?? Object.keys(fighter);
-    checkpoint.fields = fields;
-    let remaining = CHECKPOINT_FIELDS_PER_CALLBACK;
-    if (isFields(fighter)) {
-      while (checkpoint.field < fields.length && remaining > 0) {
-        const key = at(fields, checkpoint.field++);
-        if (fieldName(key) && key !== "tuning") foldValue(checkpoint.lanes, floorMod(base * 31 + keyHash(key), MODULUS), fighter[key], 0);
-        remaining--;
-      }
-    }
-    while (checkpoint.field === fields.length && checkpoint.projectile < fighter.projectiles.length && remaining > 0) {
-      const index = checkpoint.projectile++;
-      foldFields(checkpoint.lanes, floorMod(base * 31 + index + 5, MODULUS), at(fighter.projectiles, index), 1);
-      remaining--;
-    }
-    if (checkpoint.field === fields.length && checkpoint.projectile === fighter.projectiles.length) {
-      checkpoint.slot++;
-      checkpoint.fields = undefined;
-      checkpoint.field = 0;
-      checkpoint.projectile = 0;
-    }
-    return true;
-  }
+  if (stepFold(checkpoint, world)) return true;
   recorder.checkpoint = undefined;
   recorder.lines.push(`checkpoint ${checkpoint.frame} ${foldMatchAndFrame(checkpoint.lanes, match, runtime)}`);
   return false;
@@ -433,9 +465,7 @@ export function matchReplayFrameRan(recorder: MatchReplayRecorder, moment: Reado
   }
   // The same checksum checksumVia gives, its fighters folded on the callbacks after this frame.
   copyReplayState(recorder.checkpointState, { world, match, controls, runtime });
-  const lanes: Lanes = { first: 0, second: 0 };
-  foldInteger(lanes, 1, recorder.checkpointState.world.mask);
-  recorder.checkpoint = { frame, lanes, slot: 0, fields: undefined, field: 0, projectile: 0 };
+  recorder.checkpoint = { ...beginFold(recorder.checkpointState.world), frame };
 }
 
 /**
@@ -467,6 +497,9 @@ export function matchReplayDone(recorder: Readonly<MatchReplayRecorder>, match: 
 /** Takes the pending lines for a part: when PART_LINES are waiting, or all of them with `all`. */
 export function takeMatchReplayPart(recorder: MatchReplayRecorder, all: boolean): readonly string[] | undefined {
   if (recorder.lines.length === 0 || (!all && recorder.lines.length < PART_LINES)) return undefined;
+  // The segment line waits for its checksum's fold; taking every line finishes it.
+  if (all) finishStateText(recorder);
+  else if (recorder.text?.fold !== undefined) return undefined;
   const lines = recorder.lines;
   recorder.lines = [];
   recorder.parts++;
