@@ -18,6 +18,7 @@ import { PartnerBehaviour } from "../match/trainingState";
 import { selectableStage } from "../menu/stageCatalog";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
 import type { Character } from "../sim/codes";
+import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 import { isScenario, type Scenario } from "./build";
 
@@ -193,6 +194,22 @@ export function loreDevRequest(message: string, battles: number): number | undef
   if (!message.startsWith(LORE_COMMAND)) return undefined;
   const battle = commandInteger(message.substring(LORE_COMMAND.length));
   return battle !== undefined && battle >= 1 && battle <= battles ? battle : undefined;
+}
+
+/** Lore Battles' native clear check (#305): `-dev lore win` knocks out every opponent of the battle being played, boss included; the match then ends and is judged as any win. */
+export const LORE_WIN_COMMAND = "-dev lore win";
+
+export function winLoreBattle(game: MatchState, world: Roster): boolean {
+  const { run } = game;
+  if (!game.lore || !run.active || game.phase !== Phase.match) return false;
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (slot === run.player || !isActive(world, slot)) continue;
+    const { status } = fighterAt(world, slot);
+    status.stocks = 0;
+    status.out = true;
+  }
+  run.boss.health = 0;
+  return true;
 }
 
 /** Training's native check (#120): a computer partner shielding at 40%, hit areas on, then the quick match. */

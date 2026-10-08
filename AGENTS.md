@@ -293,6 +293,7 @@ code. From smashcraft:ts/:
   a quick match against a named computer at the selected difficulty over three stocks.
   `-dev classic NAME` starts that fighter's Classic run and `-dev classic boss NAME` its boss battle (smashcraft:docs/design/classic-mode.md).
   `-dev lore N` starts Lore Battle N (1-20, smashcraft:ts/src/game/classic/loreBattles.ts) for the first player.
+  `-dev lore win` during a Lore Battle knocks out every opponent (a boss's health to zero), so the battle ends and is saved as cleared through the normal result.
   `-dev quick offstage hero NAME` starts the #189 recovery check at x=700, z=300 on Frozen Throne with jumps spent.
   The named variant uses the normal CPU selection rule.
   `-dev pain HEIGHT STRENGTH FIGHTER` starts the #181 mirror capture fixture:
