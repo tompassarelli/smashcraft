@@ -167,9 +167,11 @@ test("a guided up special steers toward the held side while it travels, with key
         for (let frame = 1; frame <= 40; frame++) run.play(frame === 1 ? { x: 0, z: 1, special: true } : { x: side, z: 1 });
         return run.fighter.motion.x;
       };
-      const label = `${fighterName(character)} ${driver(character, 100).name}`;
-      check(endX(1) - endX(-1) > 0.5 * H, `${label} steered ${endX(1) - endX(-1)}`);
-      check(endX(-1) < START_X + 0.5 * H, `${label} back ${endX(-1)}`);
+      const right = endX(1);
+      const left = endX(-1);
+      const label = `${fighterName(character)} ${driver === stickDriver ? "stick" : "keys"}`;
+      check(right - left > 0.5 * H, `${label} steered ${right - left}`);
+      check(left < START_X + 0.5 * H, `${label} back ${left}`);
     }
   }
 });
