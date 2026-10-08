@@ -225,6 +225,8 @@ export const replayRecording = (): ReplayRecording => ({ recorder: createMatchRe
 interface KeyEvents {
   down: trigger | undefined;
   up: trigger | undefined;
+  /** Whether the triggers hold Escape alone, for a paused rollback match. */
+  escapeOnly: boolean;
 }
 
 export interface ShellState {
@@ -376,7 +378,7 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
     trace: inputTrace(build.responseProbe || build.inputProfile === "native-driver" ? 2048 : 256),
     probe: build.responseProbe ? createResponseProbe(build.id) : undefined,
     rollback: isShadow(input) ? rollback(input, setup.playback, setup.editbox) : undefined,
-    keyEvents: { down: undefined, up: undefined }, readyMarkerWritten: false, restartRequested: false,
+    keyEvents: { down: undefined, up: undefined, escapeOnly: false }, readyMarkerWritten: false, restartRequested: false,
     diagnostic: createReplaySnapshot(), moment: momentSaves(), replay: replayRecording(),
   };
   // Live history, every saved-moment owner, rollback and correction storage.

@@ -21,14 +21,17 @@ export function registerKey(s: Readonly<ShellState>, trigger: trigger, key: numb
   }
 }
 
-function registerAllKeys(s: ShellState): void {
+function registerKeys(s: ShellState, escapeOnly: boolean): void {
   const { keyEvents } = s;
-  if (keyEvents.down !== undefined || keyEvents.up !== undefined) return;
+  if (keyEvents.down !== undefined || keyEvents.up !== undefined) {
+    if (keyEvents.escapeOnly === escapeOnly) return;
+    removeKeyEvents(s);
+  }
   const down = CreateTrigger();
   const up = CreateTrigger();
   for (let key = 1; key <= 255; key++) {
     // A registered Return reaches the map instead of opening Warcraft's chat.
-    if (key === Key.y || key === Key.enter) continue;
+    if (key === Key.y || key === Key.enter || (escapeOnly && key !== Key.escape)) continue;
     registerKey(s, down, key, true);
     registerKey(s, up, key, false);
   }
@@ -36,6 +39,7 @@ function registerAllKeys(s: ShellState): void {
   TriggerAddAction(up, trampoline(KEY_UP));
   keyEvents.down = down;
   keyEvents.up = up;
+  keyEvents.escapeOnly = escapeOnly;
 }
 
 export function removeKeyEvents(s: ShellState): void {
@@ -46,8 +50,14 @@ export function removeKeyEvents(s: ShellState): void {
   keyEvents.up = undefined;
 }
 
-/** Called after anything that changes the phase, the pause or the rollback session; a paused match reads Escape to leave. */
+/**
+ * Called after anything that changes the phase, the pause or the rollback session.
+ * A rollback match polls the keyboard, so it has no key triggers; paused, it
+ * reads Escape alone to leave, since any other key event would reach the
+ * players' simulations in a different order than the polled rows.
+ */
 export function syncKeyEvents(s: ShellState): void {
-  if (activeRollback(s) !== undefined && s.game.phase === Phase.match && !s.session.paused) removeKeyEvents(s);
-  else registerAllKeys(s);
+  const rollbackMatch = activeRollback(s) !== undefined && s.game.phase === Phase.match;
+  if (rollbackMatch && !s.session.paused) removeKeyEvents(s);
+  else registerKeys(s, rollbackMatch);
 }
