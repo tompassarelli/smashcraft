@@ -3,13 +3,16 @@
 // red" issue's failing tests (smashcraft:ts/scripts/mainRed.ts) and runs the
 // clean-room check (smashcraft:ts/scripts/cleanRoom.ts) and the fast checks
 // for the projects the pushed commits change, so no lane lands a
-// compile break, a type escape or stale model facts. CI runs the full suite on
-// main. The checks read the working tree, so the gate refuses a push whose
+// compile break, a type escape or stale model facts. A push to main then runs
+// the tests its change affects and is refused when one fails that main's
+// latest CI run didn't (smashcraft:ts/scripts/newFailures.ts). CI runs the
+// full suite on main. The checks read the working tree, so the gate refuses a push whose
 // commit isn't the clean checkout.
 import { existsSync } from "node:fs";
-import { join } from "node:path";
-import { Console, Effect, Schema } from "effect";
+import { join, resolve } from "node:path";
+import { Console, Effect, Option, Schema } from "effect";
 import { issueTests, redTitle } from "./mainRed";
+import { GATE_BUDGET_S, affectedTests, appendLanding, decodeRuns, knownFailing, landingLine, newFailures, processResult, refusal } from "./newFailures";
 
 const root = join(import.meta.dir, "../..");
 const ZERO = /^0+$/;
@@ -97,8 +100,8 @@ const mainRedNotice = run(["gh", "issue", "list", "--state", "open", "--search",
 export const prePush = (input: string) => Effect.gen(function*() {
   yield* mainRedNotice;
   const pushed = input.split("\n").flatMap((line) => {
-    const [, local, , remote] = line.trim().split(/\s+/);
-    return local === undefined || remote === undefined || ZERO.test(local) ? [] : [{ local, remote }];
+    const [, local, remoteRef, remote] = line.trim().split(/\s+/);
+    return local === undefined || remote === undefined || ZERO.test(local) ? [] : [{ local, remoteRef, remote }];
   });
   const paths = [...new Set((yield* Effect.forEach(pushed, ({ local, remote }) => changedPaths(local, remote))).flat())];
   const checks = checksFor(paths);
@@ -119,4 +122,37 @@ export const prePush = (input: string) => Effect.gen(function*() {
     }
     yield* Console.error(`pre-push: ${name} passed (${seconds} s)`);
   }
+  if (pushed.some(({ remoteRef }) => remoteRef === "refs/heads/main")) yield* newFailureGate(head, paths);
+});
+
+/** Refuses a push to main whose affected tests fail where main's latest CI run passed; logs each verdict. */
+const newFailureGate = (head: string, paths: readonly string[]) => Effect.gen(function*() {
+  const plan = affectedTests(paths);
+  const gitDirectory = resolve(root, yield* git("rev-parse", "--git-common-dir"));
+  const log = join(gitDirectory, "new-fail-gate.tsv");
+  for (const path of plan.uncovered) yield* Console.error(`pre-push: no affected-test selection for ${path}; CI covers it`);
+  if (plan.deferred.length > 0) yield* Console.error(`pre-push: ${plan.deferred.length} heavier affected test files left to CI: ${plan.deferred.join(", ")}`);
+  const units = plan.files.length + plan.game.length + plan.lua.length;
+  if (units === 0) return yield* appendLanding(log, landingLine(new Date(), head, "passed", 0, [], 0, "none affected"));
+  yield* Console.error(`pre-push: running the affected tests: ${plan.files.length} Bun files, ${plan.game.length} game modules${plan.lua.length === 0 ? "" : `, ${plan.lua.length} in Lua32`} (budget ${GATE_BUDGET_S} s)`);
+  const started = performance.now();
+  const [finished, known] = yield* Effect.all([
+    run([process.execPath, "scripts/newFailures.ts", "run", JSON.stringify(plan)], join(root, "ts")).pipe(Effect.timeoutOption(`${GATE_BUDGET_S} seconds`)),
+    knownFailing(join(gitDirectory, "known-failing")),
+  ], { concurrency: "unbounded" });
+  const seconds = ((performance.now() - started) / 1000).toFixed(1);
+  const knownFrom = known === undefined ? "main's failing set unavailable" : `main ${known.sha.slice(0, 10)}: ${known.tests.length} failing`;
+  if (Option.isNone(finished)) {
+    yield* Console.error(`pre-push: the affected tests didn't finish within ${GATE_BUDGET_S} s; landing unverified, CI decides`);
+    return yield* appendLanding(log, landingLine(new Date(), head, "unverified", 0, [], units, knownFrom));
+  }
+  const runs = yield* decodeRuns(finished.value.stdout);
+  if (runs === undefined) {
+    return yield* new PrePushRefusal({ problem: `${finished.value.stdout}${finished.value.stderr}\npre-push: the affected-test runner exited ${finished.value.exitCode} without a result` });
+  }
+  const failures = newFailures(runs, new Set(known?.tests ?? []));
+  const passed = runs.reduce((sum, ran) => sum + processResult(ran).passed, 0);
+  yield* appendLanding(log, landingLine(new Date(), head, failures.length === 0 ? "passed" : "refused", passed, failures, units, knownFrom));
+  if (failures.length > 0) return yield* new PrePushRefusal({ problem: refusal(failures, knownFrom) });
+  yield* Console.error(`pre-push: affected tests: ${passed} passed, none newly failing (${knownFrom}; ${seconds} s)`);
 });

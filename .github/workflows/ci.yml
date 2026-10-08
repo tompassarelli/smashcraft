@@ -66,6 +66,10 @@ jobs:
         continue-on-error: true
         run: bun wisp perf budget build/playable-bot-four.perf
         working-directory: ts
+      # This commit's p95 frame cost, allocation and map script size, in the job summary and log (`grep commit-metrics`).
+      - if: ${{ !cancelled() }}
+        run: bun scripts/commitMetrics.ts build/playable-bot-four.perf build/playable.lua | tee -a "$GITHUB_STEP_SUMMARY"
+        working-directory: ts
 
   lua-tests:
     runs-on: ubuntu-latest

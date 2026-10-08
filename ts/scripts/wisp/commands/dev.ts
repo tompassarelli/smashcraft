@@ -7,7 +7,7 @@ import { type DevProject, makeDev } from "wisp/scripts/wisp/commands/dev";
 import { ISOLATED_TEST_GROUPS, TEST_WORKER_ENV, testWorkerEnvironment } from "../../testWorkers";
 import { buildProject, sourceMapDirectory, tsDirectory } from "../project";
 
-const SMASHCRAFT_DEV: DevProject = {
+export const SMASHCRAFT_DEV: DevProject = {
   root: tsDirectory,
   sources: ["src", "scripts", "test"],
   typeCheck: { projects: ["tsconfig.json", "tsconfig.game.json"], command: [process.execPath, "run", "check"] },

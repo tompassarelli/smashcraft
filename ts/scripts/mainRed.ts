@@ -16,18 +16,23 @@ class MainRedFailure extends Schema.TaggedError<MainRedFailure>()("MainRedFailur
 export const redTitle = (branch: string) => `${branch} is red`;
 const TESTS_HEADING = "## Failing tests";
 
+/** The test a Bun `(fail) NAME [TIME]` or Lua32 runner `fail NAME: MESSAGE` line names, as CI's log and a local run print it. */
+export function failedTest(line: string): string | undefined {
+  const text = line.replace(/\x1b\[[0-9;]*m/g, "");
+  const bun = /^\(fail\) (.+?)(?: \[[\d.]+m?s\])?$/.exec(text);
+  const lua = /^fail (.+?): /.exec(text);
+  return bun?.[1] ?? (lua?.[1] === undefined ? undefined : `Lua32: ${lua[1]}`);
+}
+
 /** Bun's `(fail) NAME [TIME]` and the Lua32 runner's `fail NAME: MESSAGE` lines; a failed step with neither is named instead. */
 export function failingTests(log: string): string[] {
   const tests = new Set<string>();
   const steps = new Map<string, boolean>();
   for (const line of log.split("\n")) {
     const [job = "", step = "", stamped = ""] = line.split("\t");
-    const text = stamped.replace(/^\S+Z /, "").replace(/\x1b\[[0-9;]*m/g, "");
     const key = `${job}: ${step.replace(/^Run /, "")}`;
     if (!steps.has(key)) steps.set(key, false);
-    const bun = /^\(fail\) (.+?)(?: \[[\d.]+m?s\])?$/.exec(text);
-    const lua = /^fail (.+?): /.exec(text);
-    const name = bun?.[1] ?? (lua?.[1] === undefined ? undefined : `Lua32: ${lua[1]}`);
+    const name = failedTest(stamped.replace(/^\S+Z /, ""));
     if (name !== undefined) {
       tests.add(name);
       steps.set(key, true);

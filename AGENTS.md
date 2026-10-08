@@ -708,6 +708,7 @@ when the pushed commits change ts/, the model facts check
 refresh command) when they change clips or model build inputs, and client/ui's
 type-check when they change it, in a few seconds (smashcraft:ts/scripts/prePush.ts).
 It checks the working tree, so push from a clean checkout of the commit.
+A push to main then runs the tests its change affects (`bun wisp dev`'s selection, plus the affected game modules in 32-bit Lua when sim code changed; at most 150 s, under the capacity helper) and is refused when one fails that main's latest completed CI run doesn't, naming each and its rerun command; tests main already fails don't block, and each verdict is appended to new-fail-gate.tsv in the clone's git directory (smashcraft:ts/scripts/newFailures.ts).
 
 Main stays green. Each CI run on main opens, updates or closes the one
 "main is red" issue (smashcraft:.github/workflows/main-red.yml), which lists the

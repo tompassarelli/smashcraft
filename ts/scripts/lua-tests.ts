@@ -5,7 +5,8 @@
 // the sweeps (src/runtime/sweep.ts). LUA_JOBS=N runs the tests in N Lua
 // processes at once, each taking the tests whose name hashes to its shard.
 // LUA_PARTITION=K/N divides those process shards across N CI jobs.
-// GAME_TESTS includes and GAME_TESTS_EXCLUDE excludes module-path substrings.
+// GAME_TESTS includes and GAME_TESTS_EXCLUDE excludes module-path substrings;
+// GAME_MODULES=A,B runs only those modules (paths from ts/, as the pre-push gate names them).
 // The remainder (no GAME_TESTS) also runs the memory census and stack checks.
 // The stack plugin instruments a whole bundle, so the stack-trace profile's
 // TypeScript frames are checked in a second bundle, after the tests pass.
@@ -82,10 +83,11 @@ const soak = process.env.GAME_SOAK === "1";
 const sweeps = process.env.SWEEPS === "1";
 const include = process.env.GAME_TESTS ?? "";
 const exclude = process.env.GAME_TESTS_EXCLUDE ?? "";
-const remainder = include === "";
+const listed = process.env.GAME_MODULES?.split(",");
+const remainder = include === "" && listed === undefined;
 const pattern = soak ? "src/**/*.soak.ts" : "src/**/*.tests.ts";
 const modules = [...new Bun.Glob(pattern).scanSync(".")]
-  .filter((module) => module.includes(include) && (exclude === "" || !module.includes(exclude))).sort();
+  .filter((module) => module.includes(include) && (exclude === "" || !module.includes(exclude)) && (listed === undefined || listed.includes(module))).sort();
 if (modules.length === 0) throw new Error("No Lua test modules match GAME_TESTS and GAME_TESTS_EXCLUDE");
 // TSTL hoists imports above other statements, so the index loads each module
 // with require and records the registry length before it: entry.ts charges
