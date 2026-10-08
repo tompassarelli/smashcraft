@@ -97,3 +97,18 @@ world, like the other effects; it never feeds the simulation. Setup commands
 for native sessions: `-dev training on`, `-dev hit-areas on`,
 `-dev partner BEHAVIOUR DRIFT TECH DAMAGE`, `-dev speed 1|2|4`
 (smashcraft:ts/src/game/shell/sessionSetup.ts).
+
+## Tutorial
+
+The basic tutorial (#306) runs as a training match on the Sky Deck with the
+partner standing: eight lessons (move and dash, double jump, attacks,
+specials, shield and dodge, grab and throw, back to the ledge, knock out the
+partner), each with one instruction in the readout's place and a count the
+sim keeps (smashcraft:ts/src/game/match/tutorial.ts). A lesson passes when its
+count reaches its goal; "Well done!" shows for two seconds and the next lesson
+starts. The lesson, its count and that pause are training state, folded into
+the checksum only while a tutorial runs. With Training on, the Tutorial button
+opens the menu where any lesson can be chosen and replayed. The same menu
+opens by itself on fighter selection for a player whose client has never
+started a match or answered it (`SmashcraftTutorial.pld`;
+smashcraft:ts/src/game/ui/tutorialMenu.ts).

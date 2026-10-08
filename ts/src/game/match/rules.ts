@@ -292,7 +292,14 @@ export function setEndless(game: MatchState, slot: number, endless: boolean): vo
 }
 
 export function setTraining(game: MatchState, slot: number, training: boolean): void {
-  if (settingRules(game, slot)) game.training = training;
+  if (!settingRules(game, slot)) return;
+  game.training = training;
+  if (!training) game.trainer.lesson = -1;
+}
+
+/** The tutorial's lesson (match/tutorial.ts, #306), -1 for none; it runs in a training match. */
+export function setTutorialLesson(game: MatchState, slot: number, lesson: number, lessons: number): void {
+  if (settingRules(game, slot) && lesson >= -1 && lesson < lessons) game.trainer.lesson = lesson;
 }
 
 const cycle = (value: number, count: number, direction: number): number => floorMod(value + direction, count);
@@ -407,6 +414,7 @@ export function leaveMatch(game: MatchState, slot: number): boolean {
   if (game.phase !== Phase.match || !(game.practice ? slot === firstHumanSlot(game) : (game.endless || game.training) && humanPresent(game, slot))) return false;
   game.phase = Phase.characterMenu;
   game.practice = false;
+  game.trainer.lesson = -1;
   return true;
 }
 
