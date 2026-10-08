@@ -5,7 +5,7 @@ export const MEDIVH_GAMEPLAN: FighterGameplan = {
   range: { near: 100.0, far: 250.0 },
   spacing: [
     { move: GameplanSpecial.neutral, near: 125.0, far: 240.0 },
-    { move: GameplanSpecial.side, near: 265.0, far: 285.0 },
+    { move: GameplanSpecial.side, near: 190.0, far: 285.0 },
     { move: AttackStyle.forwardTilt, near: 75.0, far: 125.0 },
   ],
   approach: [{ via: "jump", moves: [AttackStyle.forwardAir, AttackStyle.neutralAir], weight: 6 }, { via: "shoot", moves: [GameplanSpecial.neutral] }],

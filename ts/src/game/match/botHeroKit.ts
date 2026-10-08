@@ -88,8 +88,15 @@ export function strikeMeets(move: Readonly<AuthoredSpecial>, target: Readonly<Fi
   for (const branch of move.followUps ?? []) {
     if (branch.input !== FollowUpInput.shield && strikeMeets(branch.special, target, localX, localZ, travelX, travelZ)) return true;
   }
+  let motionEnds = 0;
+  for (const segment of move.motion ?? []) if (segment.velocityX !== 0.0 || segment.velocityZ !== 0.0) motionEnds = Math.max(motionEnds, segment.last);
   for (const region of regions) {
     const hit = region.hit;
+    // A strike that starts once the travel is over (a blink, then a burst) strikes only from where the travel left it.
+    if (motionEnds > 0 && region.firstFrame + 1 > motionEnds) {
+      if (boxMeets(target, f32(localX - travelX), f32(localZ - travelZ), 0.0, 0.0, hit.minX, hit.maxX, hit.minZ, hit.maxZ)) return true;
+      continue;
+    }
     if (boxMeets(target, localX, localZ, travelX, travelZ, hit.minX, hit.maxX, hit.minZ, hit.maxZ)) return true;
   }
   if (grab === undefined) return false;

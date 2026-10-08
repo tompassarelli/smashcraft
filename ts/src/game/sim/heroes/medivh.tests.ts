@@ -12,6 +12,8 @@ import { updateProjectiles } from "../projectiles";
 import { advanceFighter } from "../step";
 import { fighterAt, type Controls, type Roster } from "../roster";
 import { MEDIVH_MOVES } from "./medivhMoves";
+import { MEDIVH_SPECIALS } from "./medivhSpecials";
+import { strikeMeets } from "../../match/botHeroKit";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
 
@@ -105,5 +107,15 @@ test("Medivh all four free specials make real contact and keep the victims bar [
   frame(world,controls({specialPressed:true,specialX,specialZ}));
   for(let tick=2;tick<=30;tick++)frame(world);
   assertEquals(target.status.damage,damage,`special ${specialX}/${specialZ}`);assertEquals(target.visuals.manaDrained,0);
+ }
+});
+
+test("Medivh computer counts a blink as striking only where the real blink lands its hit [repro #343]", () => {
+ for(const [x,specialX,specialZ,form] of [[80.0,1,0,MEDIVH_SPECIALS.side.ground],[240.0,1,0,MEDIVH_SPECIALS.side.ground],[40.0,0,-1,MEDIVH_SPECIALS.down.ground],[-120.0,0,-1,MEDIVH_SPECIALS.down.ground]] as const){
+  const {target,world}=pair(x);
+  const predicted=strikeMeets(form,target,x,0.0);
+  frame(world,controls({specialPressed:true,specialX,specialZ}));
+  for(let tick=2;tick<=30;tick++)frame(world);
+  assertEquals(predicted,target.status.damage>0.0,`blink at ${x}`);
  }
 });
