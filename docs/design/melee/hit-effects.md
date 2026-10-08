@@ -176,7 +176,7 @@ not claims that Warcraft renders Melee's artwork or exact animation programs.
 | --- | --- | --- |
 | Ordinary hit / pummel | Stampede missile impact | StampedeHit; pummel uses higher, quieter Defend |
 | Fire hit | Incinerate / Fire Lord explosion | Fireball |
-| Electric hit / electric shield | Forked Lightning target | LightningBolt |
+| Electric hit / electric shield | Lightning Shield target (Stand loop, held 24 frames) | LightningBolt |
 | Slash hit | Smashcraft hit burst (authored 16-ray star) | Sound\Units\Combat\MetalHeavySliceFlesh1 (heavy sword on flesh, by path) |
 | Ice / freeze begins | Frost Nova target | FrostNova |
 | Shield / powershield / shield break | Smashcraft shield star (authored 10-ray star; break draws it twice as large) | Defend, powershield higher |
@@ -209,10 +209,13 @@ keys (`impactStartSeconds` in hitPresentation.ts):
 - Bolt impact draws nothing for its first 0.17 s (every material at alpha 0)
   and has no particle emitters, so an electric cue parked before it showed;
   the side camera recorded at most 5 changed pixels. Forked Lightning target
-  draws a billboarded flash and lightning particles from 0 s and reaches full
-  size at 0.13 s; cues start it at 0.1 s. At an electric hit's 0.75 scale it
-  showed natively for one frame (516 px) where the shield hit's 1.0 showed for
-  seven (1,318 px), so an electric hit draws it 1.5 times larger.
+  draws a billboarded flash and lightning particles from 0 s, but in the
+  fullscreen native capture of f9d0fbf3 it was a violet speck about 40 px
+  across (650 px for a hit, 364 px on a shield) and gone by +8 frames
+  (#301, #302). Electric sparks therefore draw Lightning Shield target: its
+  orbs are geometry about 340 units across at scale 1, looping Stand from
+  0 s. A hit draws it at 1.0 (0.75 for the smallest tier) and a shield hit at 0.6, and both stay in the
+  pool for 24 frames (0.4 s) instead of a contact's 9.
 - Blink target draws nothing before 0.33 s and peaks at 0.63-0.87 s; throw
   starts it at 0.6 s. Started there, a ledge-recovery Blink still showed
   0 px natively (build 7d58ef69), so ledge recovery uses Impale target dust,

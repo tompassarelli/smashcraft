@@ -189,17 +189,20 @@ export function clearImpactState(state: ImpactState): void {
 /** Frames a contact spark (a hit, pummel or shield hit) stays in the pool. */
 const CONTACT_FRAMES = 9;
 
+/** Frames an electric spark stays: Forked Lightning's 9 were gone natively by +8 (#301, #302). */
+export const ELECTRIC_CONTACT_FRAMES = 24;
+
 /** Frames an impact of this kind stays in the pool. */
 export function impactLifetime(kind: number): number {
   switch (kind) {
     case IMPACT_STAR_KO: return KO_STAR_FRAMES;
     case IMPACT_SCREEN_KO: return KO_SCREEN_FRAMES;
-    case IMPACT_HIT:
     case IMPACT_ELECTRIC_HIT:
+    case IMPACT_ELECTRIC_SHIELD: return ELECTRIC_CONTACT_FRAMES;
+    case IMPACT_HIT:
     case IMPACT_FIRE_HIT:
     case IMPACT_SLASH_HIT:
     case IMPACT_ICE_HIT:
-    case IMPACT_ELECTRIC_SHIELD:
     case IMPACT_PUMMEL:
     case IMPACT_SHIELD_HIT: return CONTACT_FRAMES;
     case IMPACT_TECH: return 15;
@@ -210,7 +213,7 @@ export function impactLifetime(kind: number): number {
 }
 
 /** Hits, pummels and shield hits: the sparks a player must see for every hit that lands. */
-export const isContactImpact = (kind: number): boolean => impactLifetime(kind) === CONTACT_FRAMES;
+export const isContactImpact = (kind: number): boolean => impactLifetime(kind) === CONTACT_FRAMES || impactLifetime(kind) === ELECTRIC_CONTACT_FRAMES;
 
 /** Ages every live impact by one executed frame. */
 export function advanceImpacts(state: ImpactState): void {
