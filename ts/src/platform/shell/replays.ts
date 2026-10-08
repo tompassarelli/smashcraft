@@ -40,9 +40,9 @@ export function beginReplayFrame(s: ShellState, frame: number): void {
   s.replay.recordSerial = serial;
 }
 
-/** After the confirmed match ran `frame` and the moment recorded its rows. */
+/** After the confirmed match ran `frame` and the moment recorded its rows; test builds (with the dev console) record each frame's digest (wisp#69). */
 export function replayFrameRan(s: ShellState, frame: number): void {
-  matchReplayFrameRan(s.replay.recorder, s.moment.recorder, frame, s.world, s.game, s.controls, s.runtime);
+  matchReplayFrameRan(s.replay.recorder, s.moment.recorder, frame, s.world, s.game, s.controls, s.runtime, s.build.devConsole);
 }
 
 /** Before the shell changes the match between frames, beside keepMomentEnd. */

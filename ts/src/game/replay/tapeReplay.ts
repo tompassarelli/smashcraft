@@ -71,7 +71,7 @@ export function recordTapeReplay(frames: number, pauseAt: number): TapeReplay {
     must(executeMatchFrame(frameInput, match, world, controls, runtime, frame), `frame ${frame} ran`);
     for (const slot of PARTICIPANT_SLOTS) if (participantActive(match.humanMask, slot)) recordMomentRow(moment, frame, slot, rows[slot]);
     momentFrameRan(moment, frame);
-    matchReplayFrameRan(recorder, moment, frame, world, match, controls, runtime);
+    matchReplayFrameRan(recorder, moment, frame, world, match, controls, runtime, true);
     service(false);
   }
   keepMomentEnd(moment, world, match, controls, runtime);

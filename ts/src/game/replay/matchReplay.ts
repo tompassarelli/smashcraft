@@ -15,7 +15,7 @@
 import { at } from "wisp/src/runtime/lookup";
 import { lineTokens, parseRecord, recordTokens } from "wisp/src/runtime/recordText";
 import { type Repro, type ReproResult, reproLines } from "wisp/src/runtime/repro";
-import { floorDiv, floorMod } from "wisp/src/sim/intMath";
+import { floorMod } from "wisp/src/sim/intMath";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type FrameControls, createFrameControls } from "../match/controls";
 import { createMatchFrameInput } from "../match/frameInput";
@@ -35,6 +35,8 @@ import {
 } from "./moment";
 import { parseReplayHeader } from "./replayFormat";
 import { type ReplayState, captureReplaySnapshot, copyReplayState, createReplaySnapshot } from "./snapshot";
+import { describeDigestDifference, digestDifference, frameDigest } from "./frameDigest";
+import { type Lanes, MODULUS, fieldName, foldFields, foldInteger, foldNumber, foldValue, isFields, keyHash } from "./replayFold";
 export * from "./replayFormat";
 
 /** Frames between checkpoints: two seconds, as the moment's snapshots. */
@@ -48,10 +50,10 @@ const STATE_PIECE_DEPTH = 2;
 
 // ---------------------------------------------------------------- checksum
 
-/** A prime whose square fits Warcraft's 32-bit integers. */
-const MODULUS = 46337;
-const TWO_23 = 8388608.0;
-const TWO_24 = 16777216.0;
+/** Parsed arrays are Lua tables that need not start at index 1, so any table is indexed as one (moment.ts). */
+const isSavedList = (value: unknown): value is unknown[] => typeof value === "object" && value !== null;
+const CHARACTERS: readonly number[] = Object.values(Character);
+const isCharacter = (value: number): value is Character => CHARACTERS.includes(value);
 
 /**
  * The replay checksum folds every number and boolean of each active fighter,
@@ -61,97 +63,6 @@ const TWO_24 = 16777216.0;
  * value always does. About a thousandth of the canonical checksum's cost, so
  * a match can check it every two seconds within the frame-cost gate (#48).
  */
-interface Lanes {
-  first: number;
-  second: number;
-}
-
-const KEY_HASHES: Record<string, number> = {};
-
-function keyHash(key: string): number {
-  const known = KEY_HASHES[key];
-  if (known !== undefined) return known;
-  let hash = 0;
-  for (let index = 0; index < key.length; index++) hash = floorMod(hash * 31 + key.charCodeAt(index) + 1, MODULUS);
-  KEY_HASHES[key] = hash;
-  return hash;
-}
-
-const isDigitCode = (code: number) => code >= 48 && code <= 57;
-
-/** A field name: Lua gives array and integer keys as numbers, Bun as digits. */
-function fieldName(key: unknown): key is string {
-  return typeof key === "string" && key.length > 0 && !isDigitCode(key.charCodeAt(0));
-}
-
-/** One term per lane for an integer below 2^24 in magnitude under name hash `key`. */
-function foldInteger(lanes: Lanes, key: number, value: number): void {
-  const low = floorMod(value, MODULUS);
-  const high = floorMod(floorDiv(value, MODULUS) * 31 + low, MODULUS);
-  lanes.first = floorMod(lanes.first + (key + 1) * (low + 1), MODULUS);
-  lanes.second = floorMod(lanes.second + (floorMod(key * 7 + 3, MODULUS) + 1) * (high + 1), MODULUS);
-}
-
-/** A number's exact binary32 value: whole numbers as themselves, others as exponent and 24-bit significand. */
-function foldNumber(lanes: Lanes, key: number, value: number): void {
-  if (value !== value) {
-    foldInteger(lanes, key, -1);
-    return;
-  }
-  const whole = Math.floor(value);
-  if (whole === value && whole < TWO_24 && whole > -TWO_24) {
-    foldInteger(lanes, key, whole);
-    return;
-  }
-  let magnitude = value < 0 ? -value : value;
-  if (magnitude * 2.0 === magnitude) {
-    foldInteger(lanes, floorMod(key + 1, MODULUS), value < 0 ? -2 : 2);
-    return;
-  }
-  // Scaling by powers of two is exact, so Bun and Lua reach the same significand.
-  let exponent = 0;
-  while (magnitude >= TWO_24 * 256.0) {
-    magnitude *= 0.00390625;
-    exponent += 8;
-  }
-  while (magnitude >= TWO_24) {
-    magnitude *= 0.5;
-    exponent++;
-  }
-  while (magnitude < TWO_23 * 0.00390625) {
-    magnitude *= 256.0;
-    exponent -= 8;
-  }
-  while (magnitude < TWO_23) {
-    magnitude *= 2.0;
-    exponent--;
-  }
-  const significand = Math.floor(magnitude);
-  foldInteger(lanes, floorMod(key + (exponent + 400) * 101, MODULUS), value < 0 ? -significand : significand);
-}
-
-function foldValue(lanes: Lanes, key: number, value: unknown, depth: number): void {
-  if (typeof value === "number") foldNumber(lanes, key, value);
-  else if (typeof value === "boolean") foldInteger(lanes, floorMod(key + 17, MODULUS), value ? 1 : 0);
-  else if (typeof value === "object" && value !== null && depth < 2) foldFields(lanes, key, value, depth + 1);
-}
-
-const isFields = (value: unknown): value is Readonly<Record<string, unknown>> => typeof value === "object" && value !== null;
-/** Parsed arrays are Lua tables that need not start at index 1, so any table is indexed as one (moment.ts). */
-const isSavedList = (value: unknown): value is unknown[] => typeof value === "object" && value !== null;
-const CHARACTERS: readonly number[] = Object.values(Character);
-const isCharacter = (value: number): value is Character => CHARACTERS.includes(value);
-
-/** Each named field of `record` under the parent's name hash `parent`. */
-function foldFields(lanes: Lanes, parent: number, record: unknown, depth: number): void {
-  if (!isFields(record)) return;
-  const fields = record;
-  for (const key in fields) {
-    if (!fieldName(key) || (depth === 0 && key === "tuning")) continue;
-    foldValue(lanes, floorMod(parent * 31 + keyHash(key), MODULUS), fields[key], depth);
-  }
-}
-
 function foldFighter(lanes: Lanes, slot: number, fighter: Readonly<Fighter>): void {
   const base = floorMod(slot * 977 + 13, MODULUS);
   foldFields(lanes, base, fighter, 0);
@@ -315,6 +226,8 @@ export interface MatchReplayRecorder {
   runIndex: number;
   runCount: number;
   text: StateText | undefined;
+  /** Each frame's digest since the last encoded frame, in a test build (frameDigest.ts). */
+  digests: string[];
   /** Lines not yet written to a part. */
   lines: string[];
   /** Parts written so far. */
@@ -340,7 +253,7 @@ export function createMatchReplayRecorder(): MatchReplayRecorder {
   return {
     open: false, segmentStart: 0, encoded: 0, last: 0, ended: false, checksum: "",
     start: createReplaySnapshot(), scratch: createReplaySnapshot(), checkpointState: createReplaySnapshot(), checkpoint: undefined,
-    scanned: 0, runs: [], runIndex: 0, runCount: 0, text: undefined, lines: [], parts: 0, failed: false,
+    scanned: 0, runs: [], runIndex: 0, runCount: 0, text: undefined, digests: [], lines: [], parts: 0, failed: false,
   };
 }
 
@@ -389,6 +302,7 @@ function beginSegment(recorder: MatchReplayRecorder, start: number, world: Reado
   recorder.scanned = start;
   recorder.runs = [];
   recorder.runCount = 0;
+  recorder.digests = [];
   recorder.last = start;
   recorder.ended = false;
   recorder.text = { segmentLine: recorder.lines.length, pieces: undefined, next: 0, tokens: [] };
@@ -452,6 +366,8 @@ function encodeRows(recorder: MatchReplayRecorder, moment: Readonly<MomentRecord
   recorder.runCount = 0;
   for (const line of section("rows", recorder.runs)) recorder.lines.push(line);
   recorder.runs = [];
+  if (recorder.digests.length > 0) for (const line of section("digests", recorder.digests)) recorder.lines.push(line);
+  recorder.digests = [];
   recorder.encoded = last;
   return true;
 }
@@ -498,10 +414,15 @@ function finishCheckpoint(recorder: MatchReplayRecorder): void {
   while (stepCheckpoint(recorder));
 }
 
-/** After the match ran `frame` and the moment recorded its rows: every two seconds of the segment, its rows and a checkpoint. */
-export function matchReplayFrameRan(recorder: MatchReplayRecorder, moment: Readonly<MomentRecorder>, frame: number, world: Readonly<Roster>, match: Readonly<MatchState>, controls: Readonly<FrameControls>, runtime: Readonly<PacingAndPresentation>): void {
+/**
+ * After the match ran `frame` and the moment recorded its rows: with `digest`
+ * (test builds), the frame's digest; every two seconds of the segment, its
+ * rows and a checkpoint.
+ */
+export function matchReplayFrameRan(recorder: MatchReplayRecorder, moment: Readonly<MomentRecorder>, frame: number, world: Readonly<Roster>, match: Readonly<MatchState>, controls: Readonly<FrameControls>, runtime: Readonly<PacingAndPresentation>, digest = false): void {
   if (!recorder.open || recorder.ended) return;
   recorder.last = frame;
+  if (digest) recorder.digests.push(frameDigest(world, frame));
   if (floorMod(frame - recorder.segmentStart, CHECKPOINT_FRAMES) !== 0) {
     if (!scanRows(recorder, moment, frame)) recorder.failed = true;
     return;
@@ -572,6 +493,8 @@ export interface ReplaySegment {
   readonly state: ReplayState;
   /** Frames start + 1 onward, in order. */
   readonly frames: readonly FrameRows[];
+  /** Each frame's recorded digest, in the frames' order; empty when the build records none. */
+  readonly digests: readonly string[];
   readonly checkpoints: ReadonlyMap<number, string>;
 }
 
@@ -591,6 +514,7 @@ interface SegmentText {
   readonly startChecksum: string;
   readonly stateLines: string[];
   readonly frames: FrameRows[];
+  readonly digests: string[];
   readonly checkpoints: Map<number, string>;
 }
 
@@ -627,11 +551,13 @@ export function parseReplay(lines: readonly string[]): ParsedReplay | string {
       if (start === undefined || second === undefined) return "malformed segment line";
       const previous = texts[texts.length - 1];
       if (previous !== undefined && start !== previous.start + previous.frames.length) return `the segment at frame ${start} doesn't follow the one before`;
-      texts.push({ start, startChecksum: second, stateLines: [], frames: [], checkpoints: new Map() });
+      texts.push({ start, startChecksum: second, stateLines: [], frames: [], digests: [], checkpoints: new Map() });
     } else if (segment === undefined) return `"${word}" before the first segment`;
     else if (word === "state") segment.stateLines.push(rest);
     else if (word === "rows") {
       for (const token of lineTokens([rest])) if (!readRun(token, segment.frames)) return `malformed rows "${token}"`;
+    } else if (word === "digests") {
+      for (const token of lineTokens([rest])) segment.digests.push(token);
     } else if (word === "checkpoint") {
       const frame = wholeNumber(first);
       if (frame === undefined || second === undefined) return "malformed checkpoint line";
@@ -646,7 +572,8 @@ export function parseReplay(lines: readonly string[]): ParsedReplay | string {
     if (record !== undefined) restoreTuning(record);
     const state = record === undefined ? undefined : savedState(record);
     if (state === undefined) return `the state at frame ${text.start} is malformed`;
-    segments.push({ start: text.start, startChecksum: text.startChecksum, state, frames: text.frames, checkpoints: text.checkpoints });
+    if (text.digests.length > 0 && text.digests.length !== text.frames.length) return `the segment at frame ${text.start} has ${text.digests.length} digests for ${text.frames.length} frames`;
+    segments.push({ start: text.start, startChecksum: text.startChecksum, state, frames: text.frames, digests: text.digests, checkpoints: text.checkpoints });
   }
   const last = at(segments, segments.length - 1);
   const frame = last.start + last.frames.length;
@@ -669,12 +596,15 @@ export interface MatchReplayResult extends ReproResult {
   /** Recorded checksums the replay reached, and how many it was to reach. */
   readonly reached: number;
   readonly recorded: number;
+  /** Frames whose recorded digest the replay compared, and how many of them differed. */
+  readonly digests: number;
+  readonly divergent: number;
 }
 
 /** Replays every segment from its state, checking every recorded checksum on the way. */
 export function replayMatch(lines: readonly string[]): MatchReplayResult {
   const replay = parseReplay(lines);
-  if (typeof replay === "string") return { checksum: "", frames: 0, problems: [replay], reached: 0, recorded: 0 };
+  if (typeof replay === "string") return { checksum: "", frames: 0, problems: [replay], reached: 0, recorded: 0, digests: 0, divergent: 0 };
   const problems: string[] = [];
   const state = createReplaySnapshot();
   const checksums = createReplaySnapshot();
@@ -682,6 +612,8 @@ export function replayMatch(lines: readonly string[]): MatchReplayResult {
   let frames = 0;
   let reached = 0;
   let recorded = 1;
+  let digests = 0;
+  let divergent = 0;
   const check = (frame: number, expected: string) => {
     const actual = checksumVia(checksums, state);
     if (actual === expected) reached++;
@@ -695,15 +627,25 @@ export function replayMatch(lines: readonly string[]): MatchReplayResult {
       const frame = segment.start + index + 1;
       if (!runReplayFrame(state, replay.input, scratch, at(segment.frames, index), frame)) {
         problems.push(`frame ${frame} could not run`);
-        return { checksum: checksumVia(checksums, state), frames, problems, reached, recorded };
+        return { checksum: checksumVia(checksums, state), frames, problems, reached, recorded, digests, divergent };
       }
       frames++;
+      const digest = segment.digests[index];
+      if (digest !== undefined) {
+        digests++;
+        const replayed = frameDigest(state.world, frame);
+        if (replayed !== digest) {
+          // The first divergent frame names its field; the frames after it follow from it.
+          if (divergent === 0) problems.unshift(`first divergent frame ${frame}: digest ${replayed}, the game recorded ${digest}: ${describeDigestDifference(digestDifference(state.world, frame, digest))}`);
+          divergent++;
+        }
+      }
       const expected = segment.checkpoints.get(frame);
       if (expected !== undefined) check(frame, expected);
     }
   }
   check(replay.frame, replay.checksum);
-  return { checksum: checksumVia(checksums, state), frames, problems, reached, recorded };
+  return { checksum: checksumVia(checksums, state), frames, problems, reached, recorded, digests, divergent };
 }
 
 /** `wisp repro`'s shape (wisp:src/runtime/repro.ts) for a joined replay, so Wisp's simulated clients can run it. */

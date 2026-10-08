@@ -194,8 +194,51 @@ jobs:
           path: ts/result-lua-*.json
           retention-days: 3
 
+  # Every native recording in the checked-in corpus replays headless in Bun and
+  # 32-bit Lua, each on the source that recorded it (wisp#69, scripts/wisp/corpus.ts).
+  corpus:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    name: native corpus
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-install-${{ hashFiles('ts/bun.lock') }}
+      - run: bun install --frozen-lockfile
+        working-directory: ts
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/wisp/lua32
+          key: wisp-lua32-${{ hashFiles('ts/node_modules/wisp/scripts/wisp/lua32.ts', 'ts/node_modules/wisp/native/toward-zero.h') }}
+      - name: Replay the native corpus headless
+        working-directory: ts
+        run: |
+          set +e
+          mkdir -p build
+          started=$(date +%s)
+          bun wisp parity corpus test/corpus > build/corpus.log 2>&1
+          code=$?
+          cat build/corpus.log
+          printf '%s\t%s\tparity corpus: every native recording replays headless with 0 divergent frames\n' "$([ $code = 0 ] && echo pass || echo fail)" "$(( $(date +%s) - started ))" > build/corpus.tsv
+          bun node_modules/wisp/scripts/wisp/farmShards.ts lua --shard 0 --exit-code "$code" build/corpus.tsv > result-corpus.json
+          exit "$code"
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: farm-test-result-corpus
+          path: ts/result-corpus.json
+          retention-days: 3
+
   merge:
-    needs: [plan, bun, lua]
+    needs: [plan, bun, lua, corpus]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5

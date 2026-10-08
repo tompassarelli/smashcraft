@@ -16,6 +16,7 @@ import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/com
 import { step } from "wisp/scripts/wisp/timings";
 
 import { tapes } from "./tapes";
+import { corpus } from "../corpus";
 import { reconcileFourFighters } from "../../fourFighters";
 import { reconcilePlayable } from "../../playable";
 import { join } from "node:path";
@@ -54,7 +55,8 @@ export const parity: Command = ([mode, ...args]) => {
       );
     }
     case "tapes": return tapes(args);
-    default: return Effect.fail(new UsageFailure({ problem: "parity takes numeric or tapes" }));
+    case "corpus": return corpus(args).pipe(step("native corpus replay"));
+    default: return Effect.fail(new UsageFailure({ problem: "parity takes numeric, tapes or corpus" }));
   }
 };
 

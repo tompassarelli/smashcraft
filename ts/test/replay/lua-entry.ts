@@ -13,6 +13,6 @@ if (file === undefined) {
   file.close();
   const lines = text.split("\n").filter((line) => line.length > 0);
   const result = replayMatch(lines);
-  print(`frames ${result.frames} reached ${result.reached} recorded ${result.recorded} checksum ${result.checksum}`);
+  print(`frames ${result.frames} reached ${result.reached} recorded ${result.recorded} checksum ${result.checksum} digests ${result.digests} divergent ${result.divergent}`);
   for (const problem of result.problems) print(`problem ${problem}`);
 }

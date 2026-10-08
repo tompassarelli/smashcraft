@@ -44,6 +44,11 @@ jobs:
       - if: ${{ !cancelled() }}
         run: bun wisp parity tapes && bun wisp parity numeric
         working-directory: ts
+      # Every native recording in the checked-in corpus replays headless with 0
+      # divergent frames, each on the source that recorded it (wisp#69).
+      - if: ${{ !cancelled() }}
+        run: bun wisp parity corpus test/corpus
+        working-directory: ts
       # Frame-cost landing gate (#48, #168): the playable build's four-fighter bot match,
       # each frame's cost predicted from counts (not time), may not rise beyond 5%
       # over the committed baseline. After an intended rise or a cut, rewrite the

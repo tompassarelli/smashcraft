@@ -508,6 +508,17 @@ code. From smashcraft:ts/:
 - Tapes: set `LUA` to the 32-bit Lua executable, then run `bun wisp parity tapes` to
   compare replay results across Bun, that Lua32 and a Lua32 whose raw float
   `+ - *` round toward zero (`TOWARD_ZERO_LUA`, or built with nix on first use).
+- Native corpus (wisp#69): every native session (`pad`, `fresh`, captures, `accept`,
+  `client doctor|watch`) records what its clients' maps wrote into
+  ~/.local/state/wisp/corpus/ with no extra step (wisp:docs/autopsy.md, "Corpus"):
+  each match's replay, whose test-build frames each carry a digest of every
+  fighter's position, velocity, action, timers, shield and damage
+  (smashcraft:ts/src/game/replay/frameDigest.ts). `bun wisp parity corpus [DIR...]`
+  replays every recording (by default smashcraft:ts/test/corpus/ and the local
+  corpus) in Bun and 32-bit Lua, each on the commit that recorded it, and names
+  each replay's first divergent frame and field; `bun wisp parity corpus keep
+  RECORDING...` copies local recordings into smashcraft:ts/test/corpus/, which
+  CI and `farm test` replay on every push.
 - Parity: `bun wisp parity numeric` compares the numeric corpus with both Lua32s;
   `bun wisp integrity capture --screen --clients-file FILE --client NAME --out PRIVATE_DIR [--count N] [--region X,Y,WIDTH,HEIGHT]`
   measures serial framebuffer acquisition on the input stimulus clock and saves

@@ -48,13 +48,14 @@ async function compileReplayLua(): Promise<void> {
   await Bun.write(stamp, hash);
 }
 
-/** The Lua replayer's report: "frames F reached R recorded T checksum C", then a "problem ..." line each. */
+/** The Lua replayer's report: "frames F reached R recorded T checksum C digests D divergent X", then a "problem ..." line each. */
 export function parseLuaReport(stdout: string): MatchReplayResult | undefined {
   const lines = stdout.split("\n").filter((line) => line.length > 0);
-  const match = /^frames (\d+) reached (\d+) recorded (\d+) checksum (\S*)$/.exec(lines[0] ?? "");
+  const match = /^frames (\d+) reached (\d+) recorded (\d+) checksum (\S*) digests (\d+) divergent (\d+)$/.exec(lines[0] ?? "");
   if (match === null) return undefined;
   return {
     frames: Number(match[1]), reached: Number(match[2]), recorded: Number(match[3]), checksum: match[4] ?? "",
+    digests: Number(match[5]), divergent: Number(match[6]),
     problems: lines.slice(1).map((line) => line.replace(/^problem /, "")),
   };
 }
@@ -62,7 +63,7 @@ export function parseLuaReport(stdout: string): MatchReplayResult | undefined {
 const passed = (result: MatchReplayResult) => result.problems.length === 0 && result.reached === result.recorded;
 
 const report = (runtime: string, result: MatchReplayResult) => [
-  `${runtime}: ran ${result.frames} frames, reached ${result.reached} of ${result.recorded} recorded checksums`,
+  `${runtime}: ran ${result.frames} frames, reached ${result.reached} of ${result.recorded} recorded checksums${result.digests === 0 ? "" : `, ${result.divergent} of ${result.digests} frame digests divergent`}`,
   ...result.problems.map((problem) => `${runtime}: ${problem}`),
 ];
 
