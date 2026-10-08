@@ -1,3 +1,5 @@
+import type { QuickStageSettings } from "../../game/shell/devSettings";
+import { showBackdrop, showStageLighting } from "./stageScenery";
 // Starting a match, on every client at the same synchronized event: a fresh
 // confirmed match, the stage, the developer scenario, the rollback epoch and
 // its journal, then the fighters' renderers.
@@ -26,7 +28,7 @@ import type { ShellState } from "./state";
 import { beginFighterRenderers, views } from "./ui";
 import { LASTING, drawStage, pauseMatchPresentation, renderPersistentPresentation, setStatus } from "./view";
 
-export function startMatch(s: ShellState, scenario: Scenario = s.build.scenario): void {
+export function startMatch(s: ShellState, scenario: Scenario = s.build.scenario, stageSettings?: QuickStageSettings): void {
   // Revoke the helper's menu before the match takes text focus.
   publishMenu(s);
   const wasPaused = s.session.paused;
@@ -47,6 +49,9 @@ export function startMatch(s: ShellState, scenario: Scenario = s.build.scenario)
   // Keep the scene prepared behind the loading screen, including on rematch.
   // Recreating it here would expose the old scenery's death animations.
   if (s.drawnStage !== s.game.stageChoice || s.stageDecks.length !== surfaceCount(s.game.stageChoice)) drawStage(s);
+  if (stageSettings?.lighting !== undefined) showStageLighting(s, stageSettings.lighting === "stage");
+  if (stageSettings?.backdrop !== undefined) showBackdrop(s, stageSettings.backdrop === "on");
+  if (stageSettings?.view !== undefined) s.viewExtreme = stageSettings.view === "off" ? undefined : stageSettings.view;
   if (wasPaused) pauseMatchPresentation(s, false);
   initializeScenario(scenario, s.game, s.world);
   ui.classic?.beginMatch(s.game);

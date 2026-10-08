@@ -10,9 +10,46 @@ import { STAGE_LIGHTS } from "../src/game/assets/stageLighting";
 import { pointLightPieces } from "../src/game/presentation/stageScenery";
 import { POST_PROCESSING } from "../scripts/postProcessing";
 import { TOMB_WATERFALL_IMPORTS } from "../scripts/wisp/mapInputs";
+import { Phase } from "../src/game/match/rules";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
+
+test("quick stage applies capture look before the first match picture without later chat [repro wisp#79]", () => {
+  for (const command of ["-dev quick stage 2 lighting stock backdrop off view near", "-dev quick"]) {
+    const clients = headless.clients({ start, install });
+    clients.start(); clients.frames(30);
+    const client = clients.client(0);
+    const before = client.log.length;
+    let firstPicture = -1;
+    const camera = client.natives.SetCameraField as (...args: unknown[]) => void;
+    client.natives.SetCameraField = (...args: unknown[]) => {
+      if (firstPicture < 0) firstPicture = client.log.length - before;
+      camera(...args);
+    };
+    clients.chat(0, command);
+    client.run(() => {
+      const s = shell();
+      expect(s.game.phase).toBe(Phase.match);
+      expect(s.runtime.simulationFrame).toBe(0);
+      expect(s.game.stageChoice).toBe(command === "-dev quick" ? 0 : 2);
+      expect(s.viewExtreme).toBe(command === "-dev quick" ? undefined : "near");
+      const calls = client.log.slice(before);
+      const lighting = calls.filter(call => call.name === "SetDayNightModels").at(-1);
+      expect(String(lighting?.args[1]).includes(command === "-dev quick" ? "StageLight-" : "DNCLordaeronUnit")).toBe(true);
+      if (command !== "-dev quick") {
+        expect(calls.find(call => call.name === "BlzShowSkyBox")?.args).toEqual([false]);
+
+      }
+    });
+    clients.frames(1);
+    if (command !== "-dev quick") {
+      const look = client.log.slice(before).findIndex(call => call.name === "BlzShowSkyBox");
+      expect(firstPicture).toBeGreaterThan(look);
+    }
+    expect(client.errors).toEqual([]);
+  }
+});
 
 test("Tomb draws teal fog below its tide floor and replaces mist only in HD modes [spec #298]", () => {
   const clients = headless.clients({ start, install });

@@ -1,3 +1,4 @@
+import type { QuickStageSettings } from "../../game/shell/devSettings";
 // Character selection with the match rules, stage selection, settings and the
 // rematch, chosen or automatic. Every entry point runs from a synchronized
 // event (a key event, frame click, sync message, chat or the game timer), so
@@ -142,10 +143,10 @@ export function openSettingsScreen(s: ShellState, slot: ParticipantSlot): void {
 }
 
 /** `-dev quick`: every human's default fighter on the default stage, past both menus. */
-export function startQuickMatch(s: ShellState, stage = 0, scenario: Scenario = s.build.scenario, character?: Character | readonly Character[], stocks = 1): void {
+export function startQuickMatch(s: ShellState, stage = 0, scenario: Scenario = s.build.scenario, character?: Character | readonly Character[], stocks = 1, stageSettings?: QuickStageSettings): void {
   if (prepareQuickMatch(s.game, stage, character, stocks)) {
     for (const panel of views(s).settings) panel.close();
-    startMatch(s, scenario);
+    startMatch(s, scenario, stageSettings);
   }
 }
 

@@ -87,11 +87,33 @@ export const FROZEN_THRONE_QUICK_COMMAND = "-dev quick frozen-throne";
 
 /** Native scenery acceptance can start each named stage from the menus. */
 export function quickMatchStage(message: string): number | undefined {
-  if (message === QUICK_MATCH_COMMAND) return 0;
-  if (message === FROZEN_THRONE_QUICK_COMMAND) return 2;
+  return quickStageSettings(message)?.stage;
+}
+
+export interface QuickStageSettings {
+  readonly stage: number;
+  lighting?: "stock" | "stage";
+  backdrop?: "on" | "off";
+  view?: "near" | "far" | "off";
+}
+
+export function quickStageSettings(message: string): QuickStageSettings | undefined {
+  if (message === QUICK_MATCH_COMMAND) return { stage: 0 };
+  if (message === FROZEN_THRONE_QUICK_COMMAND) return { stage: 2 };
   if (!message.startsWith("-dev quick stage ")) return undefined;
-  const stage = commandInteger(message.substring(17));
-  return stage !== undefined && selectableStage(stage) ? stage : undefined;
+  const words = message.substring(17).split(" ");
+  const stage = commandInteger(words[0] ?? "");
+  if (stage === undefined || !selectableStage(stage)) return undefined;
+  const settings: QuickStageSettings = { stage };
+  for (let index = 1; index < words.length; index += 2) {
+    const option = words[index];
+    const value = words[index + 1];
+    if (option === "lighting" && (value === "stock" || value === "stage")) settings.lighting = value;
+    else if (option === "backdrop" && (value === "on" || value === "off")) settings.backdrop = value;
+    else if (option === "view" && (value === "near" || value === "far" || value === "off")) settings.view = value;
+    else return undefined;
+  }
+  return settings;
 }
 
 /** `-dev quick hero NAME`: a quick match in which every present human plays NAME (a selectable fighter's name, any case), such as `-dev quick hero mountain king`. */

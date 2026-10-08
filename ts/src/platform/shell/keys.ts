@@ -13,7 +13,7 @@ import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/pla
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
 import { Phase, cancelRematchCountdown, characterFor, copyMatchState, firstHumanSlot, humanActive, recallCharacter, selectCharacter } from "../../game/match/rules";
 import { NO_LESSON, tutorialFinished } from "../../game/match/tutorial";
-import { classicDevRequest, loreDevRequest, LORE_WIN_COMMAND, winLoreBattle, DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchPair, quickMatchStage, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../game/shell/devSettings";
+import { classicDevRequest, loreDevRequest, LORE_WIN_COMMAND, winLoreBattle, DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchPair, quickStageSettings, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../game/shell/devSettings";
 import { fighterName } from "../../game/sim/heroes/registry";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { endReplaySegment } from "./replays";
@@ -277,7 +277,7 @@ export function applyDeveloperCommand(s: ShellState, actor: number, original: st
   }
   const message = s.build.responseProbe ? configureVisualCapture(original, localSlot()) : original;
   let receipt: string | undefined;
-  const quickStage = quickMatchStage(message);
+  const quickStage = quickStageSettings(message);
   const quickHero = quickMatchHero(message);
   const quickPair = quickMatchPair(message);
   const recoveryHero = quickRecoveryHero(message);
@@ -314,7 +314,7 @@ export function applyDeveloperCommand(s: ShellState, actor: number, original: st
     startQuickMatch(s, 0, s.build.scenario, undefined, QUICK_CPU_STOCKS);
   } else if (quickStage !== undefined) {
     receipt = "dev: quick match";
-    startQuickMatch(s, quickStage);
+    startQuickMatch(s, quickStage.stage, s.build.scenario, undefined, 1, quickStage);
   } else if (offstageHero !== undefined) {
     receipt = `dev: quick offstage ${fighterName(offstageHero)}`;
     startQuickMatch(s, 0, "up-special-recovery", offstageHero);
