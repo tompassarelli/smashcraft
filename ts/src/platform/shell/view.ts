@@ -6,6 +6,7 @@ import { archerMounted } from "../../game/presentation/hippogryphPose";
 import { MATCH_HELP_BOX, MATCH_NOTICE_BOX } from "../../game/ui/hudLayout";
 import { CryDecision, createCryGate, cryStandIn, gateCry } from "../../game/presentation/hurtVoice";
 import { deckModel } from "../../game/presentation/stagePreload";
+import { type PlatformPart, platformParts } from "../../game/presentation/stockPlatforms";
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../../game/input/participants";
@@ -102,6 +103,17 @@ function clearStageDecks(s: ShellState): void {
     DestroyEffect(deck);
   }
   s.stageDecks.length = 0;
+  for (const part of s.stageDeckParts) {
+    hideEffect(part, s.origin);
+    DestroyEffect(part);
+  }
+  s.stageDeckParts.length = 0;
+}
+
+function placePart(deck: effect, part: Readonly<PlatformPart>, x: number, y: number, z: number): void {
+  BlzSetSpecialEffectPosition(deck, x + part.x, y + part.y, z + part.z);
+  BlzSetSpecialEffectMatrixScale(deck, part.scale[0], part.scale[1], part.scale[2]);
+  BlzSetSpecialEffectYaw(deck, part.yaw * (Math.PI / 180.0));
 }
 
 /** One deck model per surface of the chosen stage: the main deck's own, drawn from its collision, and a slab for each raised deck. */
@@ -117,7 +129,19 @@ export function drawStage(s: ShellState): void {
     const pass = surfacePass(stage, index);
     const x = origin.x + (left + right) / 2;
     const deck = AddSpecialEffect(deckModel(stage, index), x, origin.y);
-    BlzSetSpecialEffectPosition(deck, x, origin.y, origin.z + surfaceZ(stage, index, stageFrame));
+    const z = origin.z + surfaceZ(stage, index, stageFrame);
+    BlzSetSpecialEffectPosition(deck, x, origin.y, z);
+    const parts = platformParts(stage, index);
+    if (parts.length > 0) {
+      // Stock platforms: the first part stands in for the slab and the rest dress it.
+      for (const [order, part] of parts.entries()) {
+        const effect = order === 0 ? deck : AddSpecialEffect(part.model, x, origin.y);
+        placePart(effect, part, x, origin.y, z);
+        if (order > 0) s.stageDeckParts.push(effect);
+      }
+      s.stageDecks.push(deck);
+      continue;
+    }
     // The slab's walking plane spans [-50, 50] at z = 0; the body stays below it.
     if (index > 0 || hasCannon(stage)) BlzSetSpecialEffectMatrixScale(deck, (right - left) / 100, pass ? f32(0.65) : 1.0, pass || hasCannon(stage) ? f32(0.45) : 1.0);
     s.stageDecks.push(deck);
