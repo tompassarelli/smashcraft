@@ -179,7 +179,8 @@ smashcraft:ts/src/game/assets/stageLighting.tests.ts enforces them:
 4. Neither colour's chroma (largest channel minus smallest) exceeds 80, so a
    tinted light never repaints the team colours.
 5. A light's intensity, which scales key and fill together, is above 0 and at
-   most 1. Ahn'Qiraj's is 0.5, pinned, so fighters stay darker than its bright
+   most 1.25. Blackrock uses 1.2 against its dark cavern; Ahn'Qiraj's is 0.5,
+   pinned, so fighters stay darker than its bright
    sandstone ring (#267). Frozen Throne's is 0.8, pinned, so its lit key sits
    below the dimmest stock noon key, Reforged's 0.92 × (0.84, 0.84, 0.98),
    against its bright glacier backdrop (#265). Both follow "light the play,
@@ -188,6 +189,42 @@ smashcraft:ts/src/game/assets/stageLighting.tests.ts enforces them:
 
 Rules 2 and 3 hold fighters bright. The measurement below shows that is only
 right where the backdrop behind the fighters is darker than they are.
+
+### Chosen stage atmosphere (Classic and Definitive)
+
+The selectable stage chooses its own sky and fog colour, with distance fog
+starting at least 5,000 units away from the camera and ending beyond that
+start. Height fog's upper edge stays below the deck. These requirements are
+pinned through `stageScenery` in
+smashcraft:ts/src/game/presentation/stageScenery.tests.ts; the camera-specific
+fighter clearance check remains in smashcraft:ts/test/player-view.test.ts.
+
+The light rows live in `stageLighting.ts`; sky and fog are selected by
+`stageScenery.ts`. Both modes use the same stage choice and authored DNC
+model. Stock scene paths resolve to the player's Classic or Definitive art.
+Classic retains distance fog where the client does not draw height fog or
+model omni lights. The original imported skies use unshaded materials in
+both modes; the three stock skies preserve their stock animation.
+
+| Stage | Key / fill RGB; intensity | Sky | Distance fog start–end; RGB |
+| --- | --- | --- | --- |
+| Sky Deck | 255,255,255 / 214,214,250; 1 | Original neutral sky | 6,000–12,000; 0.6875,0.8125,0.9375 |
+| Frozen Throne | 226,240,255 / 150,172,220; 0.8 | Original glacier sky | 5,000–11,000; 0.375,0.625,0.875 |
+| Nordrassil | 236,246,232 / 136,178,172; 1 | Stock FelwoodSky aurora | 5,500–11,000; 0.25,0.5,0.375 |
+| Gryphon Aerie | 255,248,226 / 164,182,220; 0.2 | Original mountain sky | 5,500–11,500; 0.25,0.375,0.5 |
+| Durotar Skies | 255,226,180 / 190,152,134; 0.3 | Original dusty sky | 5,000–11,000; 0.75,0.5,0.25 |
+| Naxxramas | 222,230,255 / 150,136,196; 1 | Original slate-teal sky | 5,000–11,000; 0.25,0.5,0.625 |
+| Hellfire Citadel | 255,222,196 / 140,172,120; 1 | Stock Outland_Sky | 5,000–11,000; 0.25,0.5,0.125 |
+| Blackrock | 255,216,176 / 170,124,112; 1.2 | Original forge sky | 5,000–10,000; 0.5,0.125,0.0625 |
+| Ahn'Qiraj | 255,240,204 / 192,170,136; 0.5 | Original sandstone sky | 5,000–10,000; 0.75,0.625,0.375 |
+| Stratholme | 255,214,180 / 170,140,150; 1 | Stock LordaeronFallSky | 5,000–11,000; 0.5,0.28125,0.1875 |
+| Tomb of Sargeras | 226,244,255 / 130,176,180; 1 | Original tide sky | 5,000–11,000; 0.25,0.4375,0.46875 |
+
+Nordrassil, Gryphon Aerie and Tomb additionally use the below-deck height
+fog described in their stage sections. Blackrock, Hellfire, Naxxramas and
+Stratholme carry distant model lights in Definitive. The stage-specific
+capture comparisons decide fighter contrast; this table describes the
+chosen settings and does not replace those comparisons.
 
 ## 3.0.1 and Forsaken Kingdom: what came after the table
 
