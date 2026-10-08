@@ -1148,8 +1148,6 @@ above; damage and launch classes are provisional. The move list
 Grab 9/2/30. Throws: forward 10 (EDGE), back 12 (KILL), up 8 (JUGGLE), and
 **Harvest Soul**, the down throw: 6 (CHASE).
 
-### Passive: Frostmourne Hungers
-
 
 
 ### B specials

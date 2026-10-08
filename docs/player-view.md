@@ -92,6 +92,10 @@ effect destroyed in view whose death animation emits. It reads:
     --extractor ../build/animation-assets/casc-extract --storage "WARCRAFT_III_DIR"
   ```
 
+  After deleting a scene model, `bun wisp view models --prune` removes its
+  old measurement while retaining current models. A new model still needs
+  the full measurement command.
+
   Only numbers are kept: geosets, triangles, lights, boxes, and each
   emitter's rate, lifespan, reach and when it runs. Model files stay in the
   private inputs and the game's install.

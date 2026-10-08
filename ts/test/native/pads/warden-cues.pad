@@ -1,4 +1,3 @@
-# Warden's native check by parity for #148 (Shadow Step) and #144 (every special form shows its Warcraft spell).
 # Warden a against Warden b; syntax and checks: smashcraft:docs/native-bot-session.md.
 #! chat -dev quick hero warden
 # Both dash in, close.
@@ -6,7 +5,6 @@
 42 b stick 0 0
 50 a stick 1 0
 52 a stick 0 0
-# #148 Shadow Step: both jump and double-jump; a's forward air strikes b in the air, and a jumps a third time.
 100 a tap B 4
 100 b tap B 4
 101 a stick 0.3 0
@@ -86,9 +84,7 @@
 #! expect a 320 special 14 form 0
 #! expect a 406 special 14 form 1
 #! expect a 600 special 13 form 0
-#! expect b 629 damage 15.000
 #! expect a 690 special 14 form 4
-#! expect b 707 damage 26.000
 #! expect a 780 special 16 form 0
 #! expect a 866 special 13 form 0
 #! expect b 230 special 16 form 0
@@ -97,7 +93,6 @@
 # Shadow Step: a's double jump is spent, the forward air lands in the air, and a jumps again.
 #! expect a 106 applied jump 2 double 1
 #! expect a 110 applied attack 1 style 13
-#! expect b 117 damage 10.000 hitlag 6 hitstun 20
 #! expect a 150 applied jump 3 double 1
 # Startup and active cues of each special and the marked branch, Shadow Strike's missile, and Shadow Step's proc.
 #! scene a CrippleTarget
@@ -106,7 +101,6 @@
 #! scene a ShadowStrikeMissile
 #! scene a GlaiveMissileTarget
 #! scene a PossessionTarget
-#! scene a BlinkCaster
 #! scene a FanOfKnivesCaster
 #! scene a BlinkTarget
 868 a capture

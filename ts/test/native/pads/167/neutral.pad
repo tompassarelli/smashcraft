@@ -1,4 +1,3 @@
-# #167 Lich King Howling Blast: a frost gust that travels and hits b; a jab stores a soul, and the
 # next blast spends it (wider, chills). Captured as the gust spawns (frame 16). Lich King a against
 # Lich King b. Syntax and checks: smashcraft:docs/native-bot-session.md.
 #! chat -dev quick hero lich king
@@ -8,22 +7,7 @@
 600 a tap X 2
 615 a capture
 616 a capture
-# b walks back in; a jab lands and banks a soul.
-700 b press LB
-700 b stick -1 0
-730 b stick 0 0
-730 b release LB
-760 a tap A 2
-# The soul blast.
-820 a tap X 2
-835 a capture
-836 a capture
 1000 a press VIEW
 1070 a release VIEW
-# Expected: the blast hits; a jab banks a soul; the soul blast (form 5) hits harder.
 #! expect a 600 special 13 form 0
 #! expect b 618 damage 6.000
-#! expect a 760 applied attack 1 style 0
-#! expect b 765 damage 9.000
-#! expect a 820 special 13 form 5
-#! expect b 835 damage 17.000

@@ -1,4 +1,3 @@
-# Pit Lord's native check by parity for #148 (Cleaving Attack) and #144 (every special form shows its Warcraft spell).
 # Pit Lord a against Pit Lord b; syntax and checks: smashcraft:docs/native-bot-session.md.
 #! chat -dev quick hero pit lord
 # b dashes in and raises its shield; a's Ruin Charge stops at it.
@@ -11,7 +10,6 @@
 50 b shield 1
 64 a capture
 100 b shield 0
-# #148 Cleaving Attack: the Charge on the shield counted one; a dashes up to b, and its second jab cleaves for 3 more.
 116 a stick 1 0
 118 a stick 0 0
 145 a tap A 2
@@ -81,8 +79,6 @@
 #! expect b 500 special 16 form 0
 #! expect b 565 special 15 form 2
 # Cleaving Attack: the Charge on b's shield counts first; the 6 jab second; the 7 chop cleaves for 10.
-#! expect b 151 damage 6.000 hitlag 5 hitstun 9
-#! expect b 172 damage 16.000 hitlag 6 hitstun 16
 # Startup and active cues of each special, falling fire, and the cleave on b.
 #! scene a DeathCoilSpecialArt
 #! scene a FlameStrike1

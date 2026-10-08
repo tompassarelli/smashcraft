@@ -151,10 +151,7 @@ back and rises, with no gravity or drift, and the hit that applies it turns
 the victim to face back along the hit. It mashes out as Sleep does (never
 before frame 20) and any damaging hit ends it (`carryHeroStatus`).
 
-A kit's optional `soul` form (the Lich King's Frostmourne Hungers) replaces
-its ground and air forms while the fighter banks a soul, and entering it
-spends one (`heldSouls`, `spendSoul` in `sim/passives.ts`). A projectile's
-optional `pool` (Defile) keeps it alive through its hits: it waits `every`
+A projectile's optional `pool` (Defile) keeps it alive through its hits: it waits `every`
 frames between strikes and widens by `growth` per body hit up to `maxRadius`;
 its hit count and wait are projectile rollback state.
 

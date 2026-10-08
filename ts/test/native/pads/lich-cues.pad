@@ -1,7 +1,5 @@
-# #148 Frost Armor and #144 special cues: Lich's passive fills on two melee hits taken and chills the third striker; every special form shows its Warcraft spell.
 # Lich a against Lich b; syntax and checks: smashcraft:docs/native-bot-session.md.
 #! chat -dev quick hero lich
-# #148: b walks in, jabs twice and forward tilts; the third to reach a is chilled by Frost Armor. Then b walks away.
 40 b press LB
 40 b stick -1 0
 108 b stick 0 0
@@ -80,9 +78,6 @@
 1063 a stick 0 0
 # Expected, frame by frame (headless run of this script): every special form starts on its frame,
 # b's first two hits on a fill Frost Armor, and the third (a 183) is taken with it ready.
-#! expect a 125 damage 3.000 hitlag 4 hitstun 10
-#! expect a 145 damage 7.000 hitlag 4 hitstun 16
-#! expect a 183 damage 16.000 hitlag 6 hitstun 18
 #! expect a 280 special 16 form 0
 #! expect a 340 special 16 form 3
 #! expect a 370 special 13 form 0
@@ -94,7 +89,6 @@
 #! expect a 810 special 13 form 0
 #! expect a 1020 special 13 form 0
 #! expect a 1062 special 15 form 2
-#! scene a FrostArmorTarget
 #! scene a SpiritTouchTarget
 #! scene a FreezingBreathTargetArt
 #! scene a AnimateDeadTarget

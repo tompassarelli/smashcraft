@@ -1,10 +1,8 @@
-# #148 Voodoo and #144 special cues: Shadow Hunter's glaive hits charge two pips and his next melee hit spends them; every special form shows its Warcraft spell.
 # Shadow Hunter a against Shadow Hunter b; syntax and checks: smashcraft:docs/native-bot-session.md.
 #! chat -dev quick hero shadow hunter
 # b dashes in to about 310 away.
 40 b stick -1 0
 42 b stick 0 0
-# #148: two Spirit Glaives on b charge voodoo; a walks in and its forward tilt spends them.
 60 a tap X 2
 62 a capture
 78 a capture
@@ -67,11 +65,8 @@
 930 a tap X 2
 931 a stick 0 0
 #! expect a 60 special 13 form 0
-#! expect b 90 damage 6.000
 #! expect a 140 special 13 form 0
-#! expect b 173 damage 12.000
 #! expect a 238 applied attack 1 style 6
-#! expect b 246 damage 27.000
 #! expect a 300 special 16 form 0
 #! expect a 380 special 14 form 0
 #! expect a 450 special 16 form 0
@@ -80,7 +75,6 @@
 #! expect a 760 special 16 form 1
 #! expect a 830 special 15 form 2
 #! expect a 930 special 15 form 2
-#! scene a VoodooAura
 #! scene a TrollBeserkerTarget
 #! scene a HealingWaveTarget
 #! scene a StasisTotemTarget

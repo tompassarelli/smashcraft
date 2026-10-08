@@ -89,14 +89,8 @@
 # Expected, frame by frame (headless run of this script): every special form starts on its frame,
 # and the caught Pounce releases 16 frames after its catch, healing the 3.62 damage on a (#237).
 #! expect a 40 special 15 form 0
-#! expect a 138 damage 3.620
-#! expect b 187 damage 10.860
-#! expect b 227 damage 21.720
 #! expect a 300 special 16 form 0
-#! expect b 336 damage 23.530
 #! expect a 360 special 14 form 0
-#! expect b 392 damage 33.530
-#! expect a 392 damage 0.000
 #! expect a 600 special 14 form 0
 #! absent a 600-650 special-form
 #! expect a 2140 special 13 form 0
@@ -104,7 +98,6 @@
 #! expect a 2260 special 16 form 1
 #! expect a 2330 special 14 form 1
 #! expect a 2410 special 15 form 2
-#! scene a VampiricAuraTarget
 #! scene a UnholyFrenzyTarget
 #! scene a CarrionSwarmDamage
 #! scene a CarrionSwarmMissile

@@ -58,6 +58,8 @@ const frames = (paths: readonly string[]) => Effect.gen(function*() {
   });
 });
 
+import { MODEL_FACTS } from "../modelFacts";
+
 const MODEL_TABLE = join(import.meta.dir, "../modelFacts.ts");
 
 
@@ -71,6 +73,19 @@ const tableLine = (model: string, facts: ModelFacts) =>
  * tools/animations/extract.sh builds, and rewrites the model facts table.
  */
 const models = (args: readonly string[]) => Effect.scoped(Effect.gen(function*() {
+  if (args.length === 1 && args[0] === "--prune") {
+    const named = new Set(SMASHCRAFT_SCENE.kinds.flatMap(kind => kind.models).filter(model => model !== ""));
+    const missing = [...named].filter(model => MODEL_FACTS[model] === undefined);
+    if (missing.length > 0) return yield* new UsageFailure({ problem: `new models need a full measurement: ${missing.join(", ")}` });
+    const source = yield* Effect.tryPromise({ try: () => Bun.file(MODEL_TABLE).text(), catch: cause => new MapBuildFailure({ operation: "read model facts", path: MODEL_TABLE, cause }) });
+    const kept = source.split("\n").filter(line => {
+      const key = /^  ("(?:[^"\\]|\\.)*"):/.exec(line)?.[1];
+      return key === undefined || named.has(JSON.parse(key) as string);
+    }).join("\n");
+    yield* Effect.tryPromise({ try: () => Bun.write(MODEL_TABLE, kept), catch: cause => new MapBuildFailure({ operation: "write model facts", path: MODEL_TABLE, cause }) });
+    yield* Console.log(`Kept ${named.size} measured models: ${MODEL_TABLE}`);
+    return;
+  }
   const options = Object.fromEntries(args.flatMap((arg, index) => (arg.startsWith("--") && args[index + 1] !== undefined ? [[arg.slice(2), args[index + 1]]] : [])));
   const { assets, summon, extractor, storage } = options;
   if (assets === undefined || summon === undefined || extractor === undefined || storage === undefined || args.length !== 8) {

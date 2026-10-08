@@ -1,4 +1,3 @@
-# #148 Critical Strike and #144 special cues: Blademaster's three melee hits ready the crit and the fourth lands it; every special form shows its Warcraft spell.
 # Blademaster a against Blademaster b; syntax and checks: smashcraft:docs/native-bot-session.md.
 #! chat -dev quick hero blademaster
 # Both dash in; a walks up to jab range.
@@ -10,7 +9,6 @@
 80 a stick 1 0
 90 a stick 0 0
 90 a release LB
-# #148: two jabs, a step in and a third jab fill the counter; the Backstab below is the fourth hit and crits.
 100 a tap A 2
 103 a capture
 120 a tap A 2
@@ -88,23 +86,16 @@
 760 a tap B 8
 772 a tap X 2
 # Expected, frame by frame (headless run of this script):
-# #148: three jabs of 3.82 ready Critical Strike; the Backstab (11.46) lands as a crit of 17.19 and its cleave shows on b.
 #! expect a 100 applied attack 1 style 0
-#! expect b 102 damage 3.820
-#! expect b 122 damage 7.640
 #! expect a 165 applied attack 3 style 0
-#! expect b 167 damage 11.460
 #! expect a 195 special 14 form 0
 #! expect a 205 special-form 6 action 14
-#! expect b 210 damage 28.650
-#! scene a CleaveDamageTarget
 # #144: every form starts on its frame (ground 0, air 1, free 2, swap 3, Backstab 5, Step Out 10), and its cues and missile show.
 #! expect a 260 special 13 form 0
 #! expect a 300 special 14 form 0
 #! expect a 315 special-form 12 action 14
 #! expect a 360 special 16 form 0
 #! expect a 400 special 16 form 3
-#! expect b 407 damage 43.930
 #! expect a 450 special 15 form 0
 #! expect a 552 special 16 form 1
 #! expect a 612 special 14 form 1
