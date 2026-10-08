@@ -8,7 +8,7 @@ that feels like a place you would meet them in a Warcraft III campaign
 
 The source of truth is smashcraft:ts/src/game/menu/homeStages.ts;
 smashcraft:ts/test/home-stages.test.ts checks that it covers every
-selectable fighter exactly once and that this table agrees with it. Stage ids are the catalog tiles in
+selectable fighter exactly once, naming any fighter without one, and that each home stage is a selectable stage. Stage ids are the catalog tiles in
 smashcraft:ts/src/game/menu/stageCatalog.ts.
 
 | Fighter | Home stage | Stage id | Why |
