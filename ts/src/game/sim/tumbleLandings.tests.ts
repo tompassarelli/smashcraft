@@ -62,7 +62,7 @@ function land(world: Roster, target: Fighter, techFrame: number | undefined): La
   return { frame: undefined, state: target.down.state, everDown };
 }
 
-test("each fighter's moves tumble, tech and knock down by Melee's rule at low, medium and high percent", () => {
+test("each fighter's moves tumble, tech and knock down by Melee's rule at low, medium and high percent [reference]", () => {
   const effect = emptyHitRegion();
   let tumbleLandings = 0;
   let footLandings = 0;

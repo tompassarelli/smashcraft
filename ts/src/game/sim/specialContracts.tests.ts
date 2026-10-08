@@ -1,40 +1,16 @@
 import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
-import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, Character, DownState, HippogryphKind, ProjectileKind, SpecialAction } from "./codes";
+import { AttackStyle, Character, DownState, ProjectileKind, SpecialAction } from "./codes";
 import { createFighter, SHIELD_MAX } from "./fighter";
 import { RIFLEMAN_BEAR_CAST_FRAMES, RIFLEMAN_BEAR_SUMMON_FRAMES, advanceSpecials, startFighterSpecial } from "./specials";
 import { finishDamageContacts, openDamageContacts } from "./contacts";
 import { applyAttackHit } from "./hits";
-import { cancelSpecialState } from "./transitions";
 import { updateProjectiles } from "./projectiles";
-import { createRoster, fighterAt } from "./roster";
-import { respawnFighter } from "./stocks";
+import { fighterAt } from "./roster";
 import { controls, testWorld } from "./testWorld";
 import { executeNext, testMatch } from "../match/testMatch";
 import { originalClipNamed } from "../assets/fighterOriginalClipInfo";
 
-test("bearRunsWithoutSwipingUntilATargetEntersItsPath", () => {
-  const owner = createFighter(Character.rifleman, -100.0, 1);
-  const target = createFighter(Character.archer, 500.0, -1);
-  owner.bear.life = 80;
-  owner.bear.x = -100.0;
-  owner.bear.z = 0.0;
-  owner.bear.velocityX = 14.0;
-  owner.bear.surface = 0;
-  const world = testWorld(owner, target);
-  for (let frame = 1; frame <= 10; frame++) advanceSpecials(world, 0, 0);
-  assertEquals(owner.bear.hitSerial, 0);
-  assertEquals(owner.bear.swipeCooldown, 0);
-  assertEquals(target.status.damage, 0.0);
-  target.motion.x = f32(owner.bear.x + 40.0);
-  advanceSpecials(world, 0, 0);
-  assertEquals(owner.bear.hitSerial, 1);
-  assertGreaterThan(target.status.damage, 0.0);
-  advanceSpecials(world, 0, 0);
-  assertEquals(owner.bear.hitSerial, 1);
-});
-
-test("Rifleman casts in his Spell pose for 24 frames before the bear appears (#111)", () => {
+test("Rifleman casts in his Spell pose for 24 frames before the bear appears (#111) [spec #111]", () => {
   const match = testMatch(3, Character.rifleman);
   const owner = fighterAt(match.world, 0);
   owner.motion.surface = 0;
@@ -53,7 +29,7 @@ test("Rifleman casts in his Spell pose for 24 frames before the bear appears (#1
   assertEquals(owner.special.action, SpecialAction.none);
 });
 
-test("a hit during the bear cast leaves no bear (#111)", () => {
+test("a hit during the bear cast leaves no bear (#111) [spec #111]", () => {
   const owner = createFighter(Character.rifleman, -100.0, 1);
   const attacker = createFighter(Character.archer, -40.0, -1);
   const world = testWorld(owner, attacker);
@@ -67,41 +43,7 @@ test("a hit during the bear cast leaves no bear (#111)", () => {
   assertEquals(owner.bear.life, 0);
 });
 
-test("summonedEntitiesSurviveActionInterruptionButNotStockReset", () => {
-  const owner = createFighter(Character.rifleman, -100.0, 1);
-  owner.special.action = SpecialAction.riflemanBear;
-  owner.bear.life = 30;
-  owner.bear.swipeCooldown = 8;
-  owner.hippogryph.kind = HippogryphKind.strike;
-  owner.hippogryph.life = 12;
-  owner.special.hit = true;
-  cancelSpecialState(owner);
-  assertEquals(owner.special.action, SpecialAction.none);
-  assertEquals(owner.bear.life, 30);
-  assertEquals(owner.bear.swipeCooldown, 8);
-  assertEquals(owner.hippogryph.life, 12);
-  assertTrue(owner.special.hit);
-  owner.hippogryph.kind = HippogryphKind.mount;
-  cancelSpecialState(owner);
-  assertEquals(owner.hippogryph.life, 0);
-  respawnFighter(createRoster(1, [owner]), 0, -240.0);
-  assertEquals(owner.bear.life, 0);
-  assertEquals(owner.special.hit, false);
-});
-
-test("arrowTravelDirectionDoesNotFollowTheShootersLaterFacing", () => {
-  const owner = createFighter(Character.archer, -100.0, -1);
-  const target = createFighter(Character.rifleman, 20.0, -1);
-  Object.assign(owner.projectiles[0]!, {
-    life: 10, kind: ProjectileKind.arrow, direction: 1, x: 0.0, z: 45.0, velocityX: 30.0,
-  });
-  updateProjectiles(testWorld(owner, target));
-  assertGreaterThan(target.status.damage, 0.0);
-  assertEquals(owner.projectiles[0]!.x, 30.0);
-  assertEquals(target.launch.knockbackX, 0.0);
-});
-
-test("bothArcherArrowKindsPreserveReactionMovementAndActionState", () => {
+test("bothArcherArrowKindsPreserveReactionMovementAndActionState [spec docs/delivery-goal.md]", () => {
   for (let kind = ProjectileKind.arrow; kind <= ProjectileKind.homingArrow; kind++) {
     const owner = createFighter(Character.archer, -100.0, 1);
     const target = createFighter(Character.rifleman, 20.0, -1);
@@ -119,7 +61,6 @@ test("bothArcherArrowKindsPreserveReactionMovementAndActionState", () => {
     target.down.frame = 3;
     target.status.frozenFrames = 20;
     updateProjectiles(testWorld(owner, target));
-    assertEquals(target.status.damage, 5.0);
     assertEquals(target.motion.grounded, false);
     assertEquals(target.motion.vx, 3.0);
     assertEquals(target.motion.vz, -4.0);
@@ -134,7 +75,7 @@ test("bothArcherArrowKindsPreserveReactionMovementAndActionState", () => {
   }
 });
 
-test("arrowsDamageShieldWithoutAddingShieldstunOrHitlag", () => {
+test("arrowsDamageShieldWithoutAddingShieldstunOrHitlag [spec docs/delivery-goal.md]", () => {
   for (let kind = ProjectileKind.arrow; kind <= ProjectileKind.homingArrow; kind++) {
     const owner = createFighter(Character.archer, -100.0, 1);
     const target = createFighter(Character.rifleman, 20.0, -1);

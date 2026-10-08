@@ -59,7 +59,7 @@ function firstShot(stick: Readonly<Controls>): { vx: number; vz: number; shotX: 
   return { vx: owner.motion.vx, vz: owner.motion.vz, shotX: shot?.velocityX ?? 0.0, shotZ: shot?.velocityZ ?? 0.0 };
 }
 
-test("Recoil shot: the stick through frame 4 picks one of eight directions (up when neutral), and the shot fires the opposite way", () => {
+test("Recoil shot: the stick through frame 4 picks one of eight directions (up when neutral), and the shot fires the opposite way [spec #127]", () => {
   const up = firstShot(controls());
   assertEquals(up.vx, 0.0);
   assertGreaterThan(up.vz, 25.0);
@@ -85,7 +85,7 @@ test("Recoil shot: the stick through frame 4 picks one of eight directions (up w
   }
 });
 
-test("Recoil shot: one second shot on a special press in frames 12-24 changes the route; earlier, again or later it is refused", () => {
+test("Recoil shot: one second shot on a special press in frames 12-24 changes the route; earlier, again or later it is refused [spec #127]", () => {
   const { world, owner } = airborne(Character.rifleman, 400.0);
   frame(world, upB);
   run(world, 3, controls({ direction: 1 }));
@@ -107,7 +107,7 @@ test("Recoil shot: one second shot on a special press in frames 12-24 changes th
   assertEquals(late.owner.special.form, 0);
 });
 
-test("Recoil shot counterplay: intangible only through frame 10, and it still ends helpless", () => {
+test("Recoil shot counterplay: intangible only through frame 10, and it still ends helpless [spec #127]", () => {
   const { world, owner } = airborne(Character.rifleman, 400.0);
   frame(world, upB);
   run(world, 8);
@@ -119,7 +119,7 @@ test("Recoil shot counterplay: intangible only through frame 10, and it still en
   assertTrue(owner.special.fall);
 });
 
-test("Recoil shot: the shot is the edge-guard answer, striking the fighter it is fired at", () => {
+test("Recoil shot: the shot is the edge-guard answer, striking the fighter it is fired at [spec #127]", () => {
   const { world, owner, target } = airborne(Character.rifleman, 400.0, -70.0, 380.0);
   frame(world, upB);
   for (let f = 0; f < 12 && target.status.damage === 0.0; f++) {
@@ -143,7 +143,7 @@ function grounded(gap: number): { world: Roster; owner: Fighter; target: Fighter
   return { world, owner, target };
 }
 
-test("Immolate: a jump from its first active frame cancels it into a jump with the hit dealt; earlier it does not", () => {
+test("Immolate: a jump from its first active frame cancels it into a jump with the hit dealt; earlier it does not [spec #128]", () => {
   const { world, owner, target } = grounded(60.0);
   frame(world, downB);
   run(world, 3);
@@ -161,7 +161,7 @@ test("Immolate: a jump from its first active frame cancels it into a jump with t
   assertTrue(early.owner.motion.grounded);
 });
 
-test("Immolate counterplay: after a jump cancel the next Immolate waits its 24-frame cooldown", () => {
+test("Immolate counterplay: after a jump cancel the next Immolate waits its 24-frame cooldown [spec #128]", () => {
   const { world, owner } = grounded(900.0);
   frame(world, downB);
   run(world, 4);
@@ -171,7 +171,7 @@ test("Immolate counterplay: after a jump cancel the next Immolate waits its 24-f
   assertFalse(owner.special.action === SpecialAction.demonHunterImmolate && owner.special.frame <= 1);
 });
 
-test("Wing Ascent glide: a jump in frames 16-28 glides forward, and the stick pitches its line", () => {
+test("Wing Ascent glide: a jump in frames 16-28 glides forward, and the stick pitches its line [spec #128]", () => {
   const line = (pitch: number): { vx: number; vz: number; form: number } => {
     const { world, owner } = airborne(Character.demonHunter, 300.0);
     frame(world, upB);
@@ -193,7 +193,7 @@ test("Wing Ascent glide: a jump in frames 16-28 glides forward, and the stick pi
   assertEquals(early.owner.special.form, 0);
 });
 
-test("Wing Ascent glide: an attack slashes for 8 and ends helpless; running out ends helpless", () => {
+test("Wing Ascent glide: an attack slashes for 8 and ends helpless; running out ends helpless [spec #128]", () => {
   const { world, owner, target } = airborne(Character.demonHunter, 300.0, 900.0);
   frame(world, upB);
   run(world, 14);
@@ -226,7 +226,7 @@ test("Wing Ascent glide: an attack slashes for 8 and ends helpless; running out 
   assertTrue(out.owner.special.fall);
 });
 
-test("A special starts in its plain form: after a glide slash, Immolate still jump-cancels", () => {
+test("A special starts in its plain form: after a glide slash, Immolate still jump-cancels [repro #128]", () => {
   const { world, owner } = airborne(Character.demonHunter, 300.0);
   frame(world, upB);
   run(world, 14);
