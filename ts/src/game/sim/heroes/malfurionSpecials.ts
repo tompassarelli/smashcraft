@@ -27,7 +27,7 @@ const ASCENT: AuthoredSpecial = {
   regions: [heroRegion(10, 23, { x1: -20.0, z1: 50.0, x2: 20.0, z2: 125.0, radius: 18.0 }, malfurionHit(7.0, 80, 75.0, 24.0))],
 };
 const BRANCH: SpecialProjectile = {
-  model: "Abilities\\Weapons\\AncientProtectorMissile\\AncientProtectorMissile.mdl",
+  model: "Abilities\\Weapons\\TreantMissile\\TreantMissile.mdx",
   spawnFrame: 0, offsetX: 15.0, offsetZ: 48.0, velocityX: 8.0, velocityZ: 0.0,
   life: 55, radius: 12.0, effect: malfurionHit(5.0, 35, 70.0, 20.0), reflectable: true, limit: 3,
 };

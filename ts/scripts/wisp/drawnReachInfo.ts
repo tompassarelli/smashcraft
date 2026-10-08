@@ -208,5 +208,12 @@ export const DRAWN_REACH: readonly { readonly character: number; readonly style:
   { character: 26, style: 7, model: "units\\creeps\\Kobold\\Kobold.mdl", clip: 14, swing: 42.0, peakFrame: 4, firstActive: 4, lastActive: 7, forward: 38.2 },
   { character: 26, style: 8, model: "units\\creeps\\Kobold\\Kobold.mdl", clip: 15, swing: 38.5, peakFrame: 4, firstActive: 4, lastActive: 6, forward: 60.2 },
   { character: 26, style: 19, model: "units\\creeps\\Kobold\\Kobold.mdl", clip: 16, swing: 31.3, peakFrame: 6, firstActive: 6, lastActive: 10, forward: 68.1 },
-
+  { character: 24, style: 0, model: "units\\nightelf\\Furion\\Furion.mdl", clip: 8, swing: 46.5, peakFrame: 4, firstActive: 4, lastActive: 5, forward: 79.2 },
+  { character: 24, style: 20, model: "units\\nightelf\\Furion\\Furion.mdl", clip: 9, swing: 67.8, peakFrame: 5, firstActive: 4, lastActive: 5, forward: 101.6 },
+  { character: 24, style: 6, model: "units\\nightelf\\Furion\\Furion.mdl", clip: 10, swing: 94.5, peakFrame: 8, firstActive: 8, lastActive: 10, forward: 121.7 },
+  { character: 24, style: 9, model: "units\\nightelf\\Furion\\Furion.mdl", clip: 11, swing: 105.6, peakFrame: 8, firstActive: 8, lastActive: 10, forward: 116.6 },
+  { character: 24, style: 10, model: "units\\nightelf\\Furion\\Furion.mdl", clip: 12, swing: 78.1, peakFrame: 8, firstActive: 8, lastActive: 10, forward: 138.2 },
+  { character: 24, style: 7, model: "units\\nightelf\\Furion\\Furion.mdl", clip: 13, swing: 63.0, peakFrame: 7, firstActive: 7, lastActive: 10, forward: 39.8 },
+  { character: 24, style: 8, model: "units\\nightelf\\Furion\\Furion.mdl", clip: 14, swing: 67.2, peakFrame: 6, firstActive: 6, lastActive: 8, forward: 111.8 },
+  { character: 24, style: 19, model: "units\\nightelf\\Furion\\Furion.mdl", clip: 15, swing: 101.5, peakFrame: 10, firstActive: 10, lastActive: 13, forward: 127.1 },
 ];

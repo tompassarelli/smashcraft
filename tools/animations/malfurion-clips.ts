@@ -148,8 +148,8 @@ for(const [ordinal,action]of [...actions,...damageActions].entries()){
  const translations:mdx.AnimKeyframe[]=[];
  for(const {frame}of phases){const triangle=drawn.triangles(index,frame/60,1);let lowest=Infinity;for(let i=1;i<triangle.length;i+=2)lowest=Math.min(lowest,triangle[i]!);const old=center.Translation.Keys.find(k=>k.Frame===start+Math.round(frame*1000/60));translations.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([old?.Vector[0]??0,old?.Vector[1]??0,(old?.Vector[2]??0)-(action.air?0:lowest)]),...(center.Translation.LineType>1?{InTan:new Float32Array([0,0,0]),OutTan:new Float32Array([0,0,0])}:{})});}
  center.Translation.Keys=[...beforeKeys,...translations];
- const step=({jab:35,jab2:20,forwardTilt:70,forwardTiltUp:70,forwardTiltDown:70,downTilt:65,dashAttack:70} as Partial<Record<HeroPose,number>>)[action.pose];
- const rise=action.pose==="upAir"?40:0;
+ const step=({jab:35,jab2:10,forwardTilt:45,forwardTiltUp:45,forwardTiltDown:45,downTilt:45,dashAttack:45} as Partial<Record<HeroPose,number>>)[action.pose];
+ const rise=action.pose==="upAir"?38:0;
  if(step!==undefined||rise>0){
   const last=action.contact+(action.active??1)-1;
   for(const key of center.Translation.Keys)if(key.Frame>=start&&key.Frame<=end){
