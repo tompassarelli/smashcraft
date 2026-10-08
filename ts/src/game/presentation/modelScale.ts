@@ -17,6 +17,7 @@ export const FIGHTER_MATCH_SCALE = 1.0;
  * reference, Rifleman and Illidan models keep their stock units' geometry.
  */
 export const STOCK_MODEL_SCALES: Readonly<Record<Character, { readonly unit: string; readonly scale: number }>> = {
+  [Character.anubarak]: { unit: "Ucrl", scale: 1.0 },
   [Character.rifleman]: { unit: "hrif", scale: 1.0 },
   [Character.demonHunter]: { unit: "Edem", scale: 1.0 },
   [Character.chen]: { unit: "Npbm", scale: 1.0 },

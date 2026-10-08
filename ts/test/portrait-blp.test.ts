@@ -5,8 +5,8 @@ import { PORTRAIT_QUALITY, encodeBlp } from "../scripts/blp";
 import { readMapBaseline } from "../scripts/mapSize";
 import { MAP_PORTRAITS } from "../scripts/wisp/mapInputs";
 
-/** Built-map bytes the fighter portraits may take; #307's decision on quality versus size sets it. */
-const PORTRAIT_BUDGET = 12_500_000;
+/** #307: the 26-fighter cap at about 0.55 MB each needs 14.3 MB, rounded to 15 MB. */
+const PORTRAIT_BUDGET = 15_000_000;
 
 test("portraits are imported as BLP and stay within their map budget in the committed size baseline [spec #307]", () => {
   const names = MAP_PORTRAITS;

@@ -224,4 +224,12 @@ export const DRAWN_REACH: readonly { readonly character: number; readonly style:
   { character: 25, style: 7, model: "units\\creeps\\Medivh\\Medivh.mdl", clip: 27, swing: 82.8, peakFrame: 7, firstActive: 7, lastActive: 10, forward: 38.6 },
   { character: 25, style: 8, model: "units\\creeps\\Medivh\\Medivh.mdl", clip: 28, swing: 67.8, peakFrame: 6, firstActive: 6, lastActive: 8, forward: 111.8 },
   { character: 25, style: 19, model: "units\\creeps\\Medivh\\Medivh.mdl", clip: 29, swing: 89.7, peakFrame: 9, firstActive: 9, lastActive: 12, forward: 113.9 },
+  { character: 23, style: 0, model: "units\\undead\\HeroCryptLord\\HeroCryptLord.mdl", clip: 17, swing: 41.0, peakFrame: 5, firstActive: 5, lastActive: 7, forward: 100.9 },
+  { character: 23, style: 20, model: "units\\undead\\HeroCryptLord\\HeroCryptLord.mdl", clip: 18, swing: 40.2, peakFrame: 7, firstActive: 7, lastActive: 9, forward: 100.1 },
+  { character: 23, style: 6, model: "units\\undead\\HeroCryptLord\\HeroCryptLord.mdl", clip: 19, swing: 70.1, peakFrame: 9, firstActive: 9, lastActive: 12, forward: 132.6 },
+  { character: 23, style: 9, model: "units\\undead\\HeroCryptLord\\HeroCryptLord.mdl", clip: 20, swing: 63.8, peakFrame: 9, firstActive: 9, lastActive: 12, forward: 107.2 },
+  { character: 23, style: 10, model: "units\\undead\\HeroCryptLord\\HeroCryptLord.mdl", clip: 21, swing: 62.4, peakFrame: 9, firstActive: 9, lastActive: 12, forward: 129.3 },
+  { character: 23, style: 7, model: "units\\undead\\HeroCryptLord\\HeroCryptLord.mdl", clip: 22, swing: 81.4, peakFrame: 8, firstActive: 8, lastActive: 12, forward: 57.5 },
+  { character: 23, style: 8, model: "units\\undead\\HeroCryptLord\\HeroCryptLord.mdl", clip: 23, swing: 75.9, peakFrame: 7, firstActive: 7, lastActive: 10, forward: 128.6 },
+  { character: 23, style: 19, model: "units\\undead\\HeroCryptLord\\HeroCryptLord.mdl", clip: 24, swing: 71.6, peakFrame: 11, firstActive: 11, lastActive: 15, forward: 133.0 },
 ];

@@ -1196,6 +1196,10 @@ reason. Current departures:
   smash and down air). The mounted wolf's attacking paws reach 116 units
   sideways, about 0.764 of the standing height. Their measured body volumes
   stay hittable to the end of each paw; only Doomhammer is disjoint.
+- **Anub'arak's side special (Burrow Hunt), rule 4.** He drops under the
+  floor in one change and erupts in one change: while he travels only the low
+  mound, about 22 units tall, is hittable. A halfway pose would show a body
+  the burrow doesn't have.
 
 ## Aerials on shield
 

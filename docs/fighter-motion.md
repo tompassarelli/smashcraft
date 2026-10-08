@@ -464,6 +464,26 @@ Generated from the packaged models by `bun wisp view motion --assets DIR` (#171)
 | Kobold | ledge-get-up | 41: Kobold ledgeClimb | 96.5 | 26.5 | up; 88.2/33.6 |
 | Kobold | ledge-roll | 69: Kobold ledgeRoll | 129.2 | 52.9 | forward; 103.6/89.1 |
 | Kobold | ledge-attack | 42: Kobold ledgeAttack | 76.2 | 14.8 | both; 23.5/29.0 |
+| Malfurion Stormrage | walk | 7: Walk | 115.2 | 25.5 | forward; 107.0/114.7 |
+| Malfurion Stormrage | dash | 7: Walk | 111.9 | 24.3 | forward; 106.7/110.9 |
+| Malfurion Stormrage | run | 7: Walk | 90.2 | 18.1 | forward; 73.2/78.5 |
+| Malfurion Stormrage | turn | 30: Malfurion turn | 123.5 | 32.3 | back; 123.3/83.0 |
+| Malfurion Stormrage | brake | 31: Malfurion stop | 56.2 | 8.0 | in place; 52.7/25.3 |
+| Malfurion Stormrage | jump-squat | 32: Malfurion jumpSquat | 73.7 | 12.5 | down; 10.7/51.4 |
+| Malfurion Stormrage | roll-forward | 65: Malfurion rollForward | 176.9 | 86.3 | forward; 101.8/122.6 |
+| Malfurion Stormrage | roll-back | 69: Malfurion rollBackward | 183.4 | 88.0 | back; 122.7/101.8 |
+| Malfurion Stormrage | spot-dodge | 46: Malfurion spotDodge | 64.3 | 13.1 | in place; 56.0/28.8 |
+| Malfurion Stormrage | air-dodge | 27: Malfurion airDodge | 59.8 | 9.8 | in place; 55.0/20.9 |
+| Malfurion Stormrage | tech | 47: Malfurion tech | 102.7 | 49.2 | in place; 61.6/101.8 |
+| Malfurion Stormrage | tech-forward | 66: Malfurion techForward | 174.5 | 83.8 | forward; 101.9/122.6 |
+| Malfurion Stormrage | tech-back | 70: Malfurion techBackward | 177.8 | 86.0 | back; 122.7/101.7 |
+| Malfurion Stormrage | get-up | 44: Malfurion getUp | 138.8 | 70.0 | up; 128.1/64.3 |
+| Malfurion Stormrage | get-up-forward | 67: Malfurion getUpRollForward | 176.7 | 86.0 | forward; 101.8/122.5 |
+| Malfurion Stormrage | get-up-back | 71: Malfurion getUpRollBackward | 180.0 | 87.6 | back; 122.5/101.7 |
+| Malfurion Stormrage | get-up-attack | 45: Malfurion getUpAttack | 157.7 | 78.4 | both; 136.8/117.2 |
+| Malfurion Stormrage | ledge-get-up | 40: Malfurion ledgeClimb | 223.4 | 33.1 | up; 223.3/105.0 |
+| Malfurion Stormrage | ledge-roll | 68: Malfurion ledgeRoll | 173.8 | 84.4 | forward; 101.7/122.5 |
+| Malfurion Stormrage | ledge-attack | 41: Malfurion ledgeAttack | 67.2 | 14.6 | both; 62.0/23.2 |
 | Medivh | walk | 1: Walk | 102.3 | 25.6 | forward; 98.7/82.2 |
 | Medivh | dash | 1: Walk | 101.2 | 25.4 | forward; 98.8/81.1 |
 | Medivh | run | 1: Walk | 112.6 | 21.5 | forward; 104.2/111.6 |
@@ -484,5 +504,25 @@ Generated from the packaged models by `bun wisp view motion --assets DIR` (#171)
 | Medivh | ledge-get-up | 54: Medivh ledgeClimb | 99.7 | 21.8 | up; 68.6/19.8 |
 | Medivh | ledge-roll | 82: Medivh ledgeRoll | 175.5 | 85.4 | forward; 105.5/107.3 |
 | Medivh | ledge-attack | 55: Medivh ledgeAttack | 120.8 | 22.3 | both; 111.0/33.0 |
+| Anub'arak | walk | 2: Walk | 131.4 | 21.7 | forward; 129.5/74.1 |
+| Anub'arak | dash | 2: Walk | 130.0 | 21.3 | forward; 128.4/74.0 |
+| Anub'arak | run | 2: Walk | 117.1 | 17.7 | forward; 107.1/70.4 |
+| Anub'arak | turn | 39: Anubarak turn | 177.1 | 44.6 | back; 176.6/140.6 |
+| Anub'arak | brake | 40: Anubarak stop | 110.4 | 19.1 | in place; 108.3/31.7 |
+| Anub'arak | jump-squat | 41: Anubarak jumpSquat | 67.9 | 14.2 | down; 39.9/30.1 |
+| Anub'arak | roll-forward | 74: Anubarak rollForward | 248.0 | 120.5 | forward; 186.0/245.1 |
+| Anub'arak | roll-back | 78: Anubarak rollBackward | 248.4 | 121.3 | back; 245.1/183.1 |
+| Anub'arak | spot-dodge | 55: Anubarak spotDodge | 130.6 | 26.5 | in place; 127.3/37.0 |
+| Anub'arak | air-dodge | 36: Anubarak airDodge | 121.7 | 20.9 | in place; 119.5/34.8 |
+| Anub'arak | tech | 56: Anubarak tech | 112.8 | 47.0 | in place; 111.4/78.4 |
+| Anub'arak | tech-forward | 75: Anubarak techForward | 248.1 | 120.7 | forward; 186.4/245.5 |
+| Anub'arak | tech-back | 79: Anubarak techBackward | 248.2 | 121.5 | back; 245.5/186.4 |
+| Anub'arak | get-up | 53: Anubarak getUp | 181.1 | 72.2 | up; 122.7/180.8 |
+| Anub'arak | get-up-forward | 76: Anubarak getUpRollForward | 230.7 | 114.1 | forward; 201.2/178.8 |
+| Anub'arak | get-up-back | 80: Anubarak getUpRollBackward | 238.7 | 114.8 | back; 176.0/187.0 |
+| Anub'arak | get-up-attack | 54: Anubarak getUpAttack | 179.2 | 81.4 | both; 169.0/128.9 |
+| Anub'arak | ledge-get-up | 49: Anubarak ledgeClimb | 170.9 | 32.9 | up; 165.8/69.7 |
+| Anub'arak | ledge-roll | 77: Anubarak ledgeRoll | 248.0 | 120.4 | forward; 186.4/245.5 |
+| Anub'arak | ledge-attack | 50: Anubarak ledgeAttack | 81.1 | 11.6 | both; 61.7/23.5 |
 
 Walking/running cadence uses grounded vertices' horizontal excursion twice per cycle. The Lich floats and uses the stock sequence's movement speed. Both measurements use the fighter's displayed model scale.

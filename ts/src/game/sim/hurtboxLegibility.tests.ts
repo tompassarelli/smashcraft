@@ -42,6 +42,7 @@ const DEPARTURES: { readonly [key: string]: string | undefined } = {
   "Thrall downTilt rule 6": "the mounted wolf's paw is the strike and stays hittable to its measured 116-unit reach",
   "Thrall downSmash rule 6": "the mounted wolf's paws are the strikes and stay hittable to their measured 116-unit reach",
   "Thrall downAir rule 6": "the mounted wolf's paw is the strike and stays hittable to its measured 116-unit reach",
+  "Anub'arak side special rule 4": "Burrow Hunt sinks him under the floor in one change: only the low mound is hittable while he travels, then he erupts whole",
   ...wings(["forwardTilt", "forwardTiltDown", "downSmash", "forwardSmash", "forwardAir", "backAir", "downAir"]),
 };
 

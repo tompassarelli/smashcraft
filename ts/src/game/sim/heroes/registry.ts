@@ -27,13 +27,15 @@ import { MURLOC_HERO } from "./murlocHero";
 import { MALFURION_HERO } from "./malfurionHero";
 import { GROM_HERO } from "./gromHero";
 import { HIDDEN_FIGHTERS } from "./releaseRoster";
+import { ANUBARAK_HERO } from "./anubarakHero";
 
 export const HERO_ROSTER: readonly HeroDefinition[] = [
   BLADEMASTER_HERO, MOUNTAIN_KING_HERO, WARDEN_HERO, LICH_HERO, FORSAKEN_PALADIN_HERO, DREADLORD_HERO, SHADOW_HUNTER_HERO, PIT_LORD_HERO, BEASTMASTER_HERO, LICH_KING_HERO, THRALL_HERO, JAINA_HERO, SYLVANAS_HERO,
-  CAIRNE_HERO, CHEN_HERO, PEON_HERO, TINKER_HERO, KAELTHAS_HERO, MURLOC_HERO, GROM_HERO, KOBOLD_HERO, MALFURION_HERO, MEDIVH_HERO,
+  CAIRNE_HERO, CHEN_HERO, PEON_HERO, TINKER_HERO, KAELTHAS_HERO, MURLOC_HERO, GROM_HERO, KOBOLD_HERO, MALFURION_HERO, MEDIVH_HERO, ANUBARAK_HERO,
 ];
 
 const BY_CHARACTER: { readonly [character: number]: HeroDefinition | undefined } = {
+  [Character.anubarak]: ANUBARAK_HERO,
   [Character.chen]: CHEN_HERO,
   [Character.blademaster]: BLADEMASTER_HERO,
   [Character.mountainKing]: MOUNTAIN_KING_HERO,
@@ -106,7 +108,7 @@ export function nextSelectableCharacter(current: number | undefined, direction: 
  */
 export const RENDERED_FIGHTERS: readonly Character[] = [ Character.medivh, Character.rifleman, Character.demonHunter, Character.blademaster, Character.mountainKing, Character.warden,
   Character.lich, Character.forsakenPaladin, Character.dreadlord, Character.shadowHunter, Character.pitLord, Character.beastmaster, Character.lichKing, Character.kobold,
-  Character.grom, Character.malfurion,
+  Character.grom, Character.malfurion, Character.anubarak,
 ];
 
 /** The name a fighter's rendered portraits are filed under: "MountainKing". */

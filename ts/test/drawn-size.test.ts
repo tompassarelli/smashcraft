@@ -15,6 +15,7 @@ import { HERO_ROSTER } from "../src/game/sim/heroes/registry";
  * glow layers left out. A changed idle clip needs a new measurement.
  */
 const IDLE_TOPS: readonly { readonly character: Character; readonly idleClip: number; readonly top: number }[] = [
+  { character: Character.anubarak, idleClip: 0, top: 155.479248046875 },
   { character: Character.rifleman, idleClip: 0, top: 87 },
   { character: Character.demonHunter, idleClip: 0, top: 186 },
   { character: Character.blademaster, idleClip: 9, top: 180 },

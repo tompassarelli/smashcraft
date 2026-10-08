@@ -125,6 +125,8 @@ const BEAST = cue("Abilities\\Spells\\Orc\\Bloodlust\\BloodlustTarget.mdx", "han
 const NATURE = cue("Abilities\\Spells\\NightElf\\Tranquility\\TranquilityTarget.mdx", "hand", f32(0.7));
 /** The Lich King's dark rune under his feet. */
 const RUNE = cue("Abilities\\Spells\\Undead\\DarkRitual\\DarkRitualCaster.mdx", "feet", f32(0.6));
+/** Anub'arak's dust kicked up as he digs in. */
+const BURROW = cue("Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx", "feet", f32(0.4));
 
 /** Every hero's four specials; every form of a special (air, free, follow-up, recall, marked) shows its special's cues. */
 export const HERO_CUES: { readonly [character: number]: { readonly [slot in SpecialSlot]: MoveCues } } = {
@@ -193,6 +195,12 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     side: { spell: "Vanishing Act", startup: ARCANE, active: cue("Abilities\\Spells\\NightElf\\Blink\\BlinkTarget.mdx", "body", 0.75) },
     up: { spell: "Raven Flight", startup: ARCANE, active: cue("Abilities\\Weapons\\AvengerMissile\\AvengerMissile.mdx", "body", 0.75) },
     down: { spell: "Last Word", startup: ARCANE, active: cue("Abilities\\Spells\\Human\\Invisibility\\InvisibilityTarget.mdx", "body", 0.75) },
+  },
+  [Character.anubarak]: {
+    neutral: { spell: "Impale", startup: BURROW, active: cue("Abilities\\Spells\\Undead\\Impale\\ImpaleMissTarget.mdl", "ahead", f32(0.6)) },
+    side: { spell: "Burrow Hunt", startup: BURROW, active: cue("Abilities\\Spells\\Orc\\Shockwave\\ShockwaveMissile.mdx", "feet", f32(0.5)) },
+    up: { spell: "Crypt Eruption", startup: BURROW, active: cue("Abilities\\Spells\\Demon\\DarkPortal\\DarkPortalTarget.mdx", "feet", f32(0.4)) },
+    down: { spell: "Carrion Beetle", startup: BURROW, active: drawn("Units\\Undead\\Scarab\\Scarab.mdl", "ahead") },
   },
   [Character.grom]: {
     neutral: { spell: "Warsong Cry", startup: BLOODLUST, active: cue("Abilities\\Spells\\NightElf\\BattleRoar\\RoarTarget.mdx", "body", 0.75) },
@@ -313,6 +321,7 @@ const branch = (spell: string, startup: Cue, active: Cue): MoveCues => ({ spell,
 /** Every hero branch names its cue; specialCues.tests.ts checks each authored branch has one. */
 export const HERO_BRANCH_CUES: { readonly [character: number]: { readonly [slot in SpecialSlot]?: HeroBranchCues } } = {
   [Character.malfurion]: { down: { recall: "slot" } },
+  [Character.anubarak]: { down: { recall: "slot" } },
   [Character.jaina]: {
     down: { recall: branch("Recall Water Elemental", ARCANE, cue("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportCaster.mdx", "body", 0.5)) },
   },

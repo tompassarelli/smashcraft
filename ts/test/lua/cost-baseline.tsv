@@ -70,7 +70,7 @@ src/game/netcode/journal/vocabulary.tests.ts	1	0.000
 src/game/netcode/ledger.tests.ts	8	0.026
 src/game/netcode/shadowSchedule.tests.ts	14	0.058
 src/game/physics/techInput.tests.ts	3	0.000
-src/game/presentation/attackClipFamilies.tests.ts	25	0.002
+src/game/presentation/attackClipFamilies.tests.ts	26	0.002
 src/game/presentation/attackCues.tests.ts	1	0.005
 src/game/presentation/bearFeedback.tests.ts	2	0.000
 src/game/presentation/blademasterClips.tests.ts	1	0.000
@@ -79,7 +79,7 @@ src/game/presentation/damageBlend.tests.ts	3	0.002
 src/game/presentation/damagePose.tests.ts	1	0.000
 src/game/presentation/disjointCues.tests.ts	5	0.177
 src/game/presentation/fighterAgency.tests.ts	2	0.859
-src/game/presentation/fighterClips.tests.ts	35	0.006
+src/game/presentation/fighterClips.tests.ts	36	0.007
 src/game/presentation/fighterPlacement.tests.ts	2	0.107
 src/game/presentation/fighterPose.tests.ts	11	0.604
 src/game/presentation/heroStrikeMoments.tests.ts	2	0.002
@@ -132,7 +132,7 @@ src/game/sim/dashDance.tests.ts	6	1.584
 src/game/sim/demonHunterContracts.tests.ts	11	0.017
 src/game/sim/directionalInfluence.tests.ts	17	0.003
 src/game/sim/dodgesAndStocks.tests.ts	27	0.198
-src/game/sim/downAir.tests.ts	25	0.003
+src/game/sim/downAir.tests.ts	26	0.003
 src/game/sim/downSmashes.tests.ts	13	5.700
 src/game/sim/downThrows.tests.ts	13	4.246
 src/game/sim/exCommandHeroes.tests.ts	6	0.045

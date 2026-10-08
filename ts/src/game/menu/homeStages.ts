@@ -6,6 +6,7 @@ import { Character } from "../sim/codes";
  * Stage ids are smashcraft:ts/src/game/menu/stageCatalog.ts tiles.
  */
 export const HOME_STAGES: readonly { readonly character: Character; readonly stage: number }[] = [
+  { character: Character.anubarak, stage: 2 },
   { character: Character.rifleman, stage: 11 },
   { character: Character.demonHunter, stage: 14 },
   { character: Character.blademaster, stage: 3 },

@@ -4,8 +4,7 @@
 /** Codes 3 and up are the roster expansion (smashcraft:docs/design/roster.md), defined in sim/heroes/registry.ts. */
 export const Character = { rifleman: 1, demonHunter: 2,
   blademaster: 3, mountainKing: 4, warden: 5, lich: 6, forsakenPaladin: 7, dreadlord: 8, shadowHunter: 9,
-  pitLord: 10, beastmaster: 11, lichKing: 12, thrall: 13, jaina: 14, sylvanas: 15, cairne: 16, chen: 17, peon: 18, tinker: 19, kaelthas: 20, murloc: 21, malfurion: 24, medivh: 25, kobold: 26,
-  grom: 22,
+  pitLord: 10, beastmaster: 11, lichKing: 12, thrall: 13, jaina: 14, sylvanas: 15, cairne: 16, chen: 17, peon: 18, tinker: 19, kaelthas: 20, murloc: 21, grom: 22, anubarak: 23, malfurion: 24, medivh: 25, kobold: 26,
 } as const;
 export type Character = (typeof Character)[keyof typeof Character];
 
@@ -167,4 +166,3 @@ export const ITEM_KINDS: readonly ItemKind[] = [ItemKind.speed, ItemKind.extraJu
 /** Each kind's bit in a match's enabled-items mask. */
 export const itemBit = (kind: ItemKind): number => kind === ItemKind.none ? 0 : 1 << (kind - 1);
 export const ALL_ITEMS_MASK = 7;
-

@@ -239,7 +239,7 @@ function scaledHurtCapsule(character: number): Readonly<Capsule> | undefined {
   return { x1: 0.0, z1: reference.z1, x2: 0.0, z2: f32(reference.z1 + f32(height - f32(2.0 * radius))), radius };
 }
 
-/** The original fighters' capsules, then each hero's by Character code while heroBodies lists one. */
+/** The original fighters' capsules and each registered hero body. */
 const HURT_CAPSULES: Readonly<Record<number, Readonly<Capsule>>> = (() => {
   const capsules: Record<number, Readonly<Capsule>> = { ...ORIGINAL_HURT_CAPSULES };
   for (const character of Object.values(Character)) {
