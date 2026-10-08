@@ -27,4 +27,5 @@ export const HOME_STAGES: readonly { readonly character: Character; readonly sta
   { character: Character.peon, stage: 3 },
   { character: Character.tinker, stage: 3 },
   { character: Character.kaelthas, stage: 14 },
+  { character: Character.murloc, stage: 7 },
 ];

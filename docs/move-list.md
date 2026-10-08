@@ -273,3 +273,15 @@ Normals, inspired by:
 | Jab, repeated | Verdant Touch | A palm check, then a sphere shove on a second tap. |
 | Passive | Verdant Spheres | Ordinary attacks take a little mana from enemies they hit. |
 | Ultimate | Phoenix | Summon a phoenix that burns enemies and returns from its egg. |
+
+## Murloc
+
+| Input | Name | What it does |
+| --- | --- | --- |
+| Neutral special | Ensnare | Throw a net that slows the first enemy it reaches. Shield it or jump it. |
+| Side special | Tidal Rush | Belly-slide forward into a hit. A raised shield stops the slide. |
+| Up special | Tide Spout | Ride a water spout upward and steer it, then fall helpless. |
+| Down special | Disease Cloud | Leave a small plague cloud that poisons enemies standing in it; jumping clears it. |
+| Jab, repeated | Claw Flurry | A quick claw poke, then a second swipe on another tap. |
+| Passive | Scavenger | Ordinary attacks take a little mana from enemies they hit. |
+| Ultimate | Mrgllgll Swarm | A tide of murlocs rushes across the stage. |

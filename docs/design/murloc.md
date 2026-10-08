@@ -43,7 +43,7 @@ timing stay the roster's.
 
 ## Full kit
 
-Frames count entry as 1. Columns are first active / active duration / total;
+Frames count entry as 1. Columns are first active / active duration / recovery;
 aerial landing is the authored landing lag (aerials land with half of it).
 Reach is world units from his centre. Every contact is one hit per target
 and action. Ordinary contacts also feed his passive.
@@ -83,7 +83,7 @@ action, shield, jump and dodge.
 |---|---|---|---|
 | Neutral: Ensnare | Throw a net in a shallow arc that slows the first fighter it reaches, so a retreating opponent can be run down. Shield it, jump it, or punish the throw at close range. | 10 mana; spawns f12 at x32/z40, 8/frame with a slight drop, life 40, radius 18; 4%; slows like Chill (top speeds only); one live net; action ends f36; air landing 18 | [Ensnare][ensnare], [Water Gun](https://www.ssbwiki.com/Water_Gun) |
 | Side: Tidal Rush | Belly-slide forward through a gap; it stops at a raised shield, which punishes it. | 10 mana; slides f8–22 at 11/frame, about 165 units; 8% contact f8–22; ends f40; air landing 20 | [murloc swim][wc], [Withdraw][withdraw] |
-| Up: Tide Spout | A water spout carries him up while the stick steers; then a helpless fall. | 15 mana; rises f6–25, about 260 units, drift 3/frame; 5% contact f6–14; free version about 200 units; spends aerial jump, once per airtime, helpless | [murloc swim][wc], [Waterfall][waterfall] |
+| Up: Tide Spout | A water spout carries him up while the stick steers; then a helpless fall. | 15 mana; rises f6–25 at 17/frame, about 340 units, steered 6/frame; 5% contact f6–14; free version 12.5/frame, about 250 units; spends aerial jump, once per airtime, helpless | [murloc swim][wc], [Waterfall][waterfall] |
 | Down: Disease Cloud | Leave a small plague cloud at his feet that poisons grounded foes who stand in it; jumping over it or waiting it out clears it. | 15 mana; ground only; appears f14 at x40, radius 50, lasts 150 frames, pulses every 50 for 2%; each pulse poisons for three 1% ticks over 180 frames; 150-frame cooldown; ends f38 | [Disease Cloud][cloud], Plaguebearer |
 | Passive: Scavenger | Ordinary attacks that reach a body take 2 mana from it. Shields stop it; an empty enemy gives none. | 2 per ordinary body contact; shared 100-mana cap | [murloc creeps][wc] |
 | Ultimate: Mrgllgll Swarm | A tide of murlocs rushes across the stage. | Designed only: ultimates remain off under the current match rules | [murloc creeps][wc] |
@@ -93,6 +93,14 @@ double jump, spends the remaining aerial jump and ends helpless. Walking off a
 ledge keeps the aerial jump. His recovery is short and his body is light, so
 edge-guards on the spout's path and early kills are his weakness. The computer
 jumps first and steers the spout to the ledge.
+
+## Home stage
+
+Tomb of Sargeras (stage 7, smashcraft:docs/design/home-stages.md): TFT's
+"Terror of the Tides" puts murlocs and the naga's mur'gul thralls on the
+Broken Isles' shores around the tomb, and the stage's shallow tide floor and
+waterfall are a murloc's coast. He shares it with the Warden. No new stage or
+asset is needed.
 
 ## Position in the roster
 
