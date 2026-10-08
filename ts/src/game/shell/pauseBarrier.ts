@@ -40,13 +40,13 @@ export function pauseBarrier(): PauseBarrier {
 export function resetPauseBarrier(barrier: PauseBarrier): void {
   barrier.request = undefined;
   barrier.sequences.fill(0);
-  barrier.frames.fill(undefined);
+  for (const slot of PARTICIPANT_SLOTS) barrier.frames[slot] = undefined;
 }
 
 /** Starts a round; the caller has written the control request the helpers answer. */
 export function requestRound(barrier: PauseBarrier, stage: ControlState, target?: number): void {
   barrier.request = { stage, target, frame: undefined };
-  barrier.frames.fill(undefined);
+  for (const slot of PARTICIPANT_SLOTS) barrier.frames[slot] = undefined;
 }
 
 /** Whether the request in flight pauses (PREPARE or PAUSE) rather than resumes. */

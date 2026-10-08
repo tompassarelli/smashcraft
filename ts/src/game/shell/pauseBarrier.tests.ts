@@ -40,7 +40,7 @@ test("players that acknowledge different pause frames stop the journal", () => {
   assertEquals(agreedFrame(barrier), undefined);
 });
 
-test("#206 a Start press pauses at its own frame, however late the other helper prepared", () => {
+test("[repro #206] a Start press pauses at its own frame, however late the other helper prepared", () => {
   const barrier = pauseBarrier();
   requestRound(barrier, "PREPARE", 168);
   assertEquals(stopFrame(barrier), 168);
@@ -50,5 +50,10 @@ test("#206 a Start press pauses at its own frame, however late the other helper 
   requestRound(barrier, "PAUSE", 168);
   assertEquals(receiveControlAck(barrier, HUMANS, EPOCH, 0, ack(0, 2, "PAUSE", 168)), "recorded");
   assertEquals(receiveControlAck(barrier, HUMANS, EPOCH, 2, ack(2, 2, "PAUSE", 168)), "complete");
+  assertEquals(agreedFrame(barrier), 168);
+  requestRound(barrier, "RESUME", 168);
+  assertEquals(receiveControlAck(barrier, HUMANS, EPOCH, 0, ack(0, 3, "RESUME", 168)), "recorded");
+  assertEquals(agreedFrame(barrier), undefined);
+  assertEquals(receiveControlAck(barrier, HUMANS, EPOCH, 2, ack(2, 3, "RESUME", 168)), "complete");
   assertEquals(agreedFrame(barrier), 168);
 });
