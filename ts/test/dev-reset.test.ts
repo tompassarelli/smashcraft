@@ -72,6 +72,17 @@ test("a match after -dev reset equals the first match of the game: same trace ch
   play("camera match", "-dev camera");
   reset();
   const second = play("match after the reset");
-  expect(second).toEqual(first);
+  // The trace takes a checksum once a second of game callbacks, and Warcraft's binary32
+  // game clock (wisp#56) runs a different number of callbacks a frame later in a game, so
+  // the frames it lands on may shift; at every frame both matches hold, the state is equal.
+  expect(second.moment).toEqual(first.moment);
+  for (const slot of [0, 1]) {
+    const [was, now] = [first.traces[slot], second.traces[slot]];
+    expect(now?.events).toEqual(was?.events);
+    const before = new Map(was?.checksums);
+    const shared = (now?.checksums ?? []).filter(([frame]) => before.has(frame));
+    expect(shared.length).toBeGreaterThan(10);
+    expect(shared).toEqual(shared.map(([frame]) => [frame, before.get(frame)]));
+  }
   expect(value(clients.client(0), () => shell().game.phase)).toBe(Phase.match);
 }, 60_000);
