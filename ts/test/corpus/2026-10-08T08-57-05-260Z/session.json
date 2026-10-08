@@ -1,0 +1,25 @@
+{
+  "argv": [
+    "/home/tom/code/smashcraft/worktrees/native-currentchecks-20261008/build/nativeOnly70.ts",
+    "/home/tom/.local/state/wisp/online/ad-clients.json",
+    "/home/tom/.local/share/smashcraft-build-inputs/native-currentchecks-20261008/SmashcraftCurrentChecks.w3x",
+    "/home/tom/.local/state/smashcraft/native-corpus70-20261008/cues-ad-native",
+    "/home/tom/.local/state/smashcraft/native-corpus70-20261008/pads-inputs/mountain-king-cues.pad",
+    "/home/tom/.local/state/smashcraft/native-corpus70-20261008/pads-inputs/pit-lord-cues.pad",
+    "/home/tom/.local/state/smashcraft/native-corpus70-20261008/pads-inputs/rifleman-cues.pad",
+    "/home/tom/.local/state/smashcraft/native-corpus70-20261008/pads-inputs/shadow-hunter-cues.pad",
+    "/home/tom/.local/state/smashcraft/native-corpus70-20261008/pads-inputs/warden-cues.pad"
+  ],
+  "cwd": "/home/tom/code/smashcraft/worktrees/native-currentchecks-20261008/ts",
+  "started": "2026-10-08T08:57:05.260Z",
+  "ended": "2026-10-08T09:04:56.287Z",
+  "clients": [
+    "clone-a",
+    "clone-d"
+  ],
+  "git": {
+    "commit": "a7b07a462b336a27e3ae4f0263274d5c88858139",
+    "dirty": false
+  },
+  "desyncs": []
+}
