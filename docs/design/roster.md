@@ -711,6 +711,16 @@ original hitlag strength. Normal hit regions, hurt capsules and throws remain
 in forsakenPaladinMoves.ts; this revision changes Forsaken Paladin specials and their computer use.
 
 Presentation uses Blizzard's 3.0.1 Classic Forsaken body, head and sword.
+The stock game path is `Units\\Creeps\\HeroForsakenPaladin\\HeroForsakenPaladin.mdx`.
+In the installed archive, Classic is
+`war3.w3mod:units/creeps/heroforsakenpaladin/heroforsakenpaladin.mdx`;
+Definitive is
+`war3.w3mod:_de.w3mod:units/creeps/heroforsakenpaladin/heroforsakenpaladin.mdx`.
+Tom chose these Blizzard models for Classic and Definitive. The match and
+victory body use `war3mapImported\\ForsakenPaladin.mdx`, with authored clips
+pooled from the same stock rig. Selection, HUD, stock and ending portraits use
+the `FighterTile`, `FighterBust`, `FighterStock` and `FighterCard` Forsaken Paladin
+cutouts, including each player's outfit, rendered from that same body.
 Its version-1800 skin addresses bone matrices directly. The shipped authored
 actions retain their sequence indices and joint transforms on that stock rig.
 
