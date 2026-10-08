@@ -9,6 +9,9 @@ import { decodePpm, encodePpm, type Frame } from "wisp/scripts/wisp/frameProbe";
 import { frameStamp } from "../../nativeCapture";
 import { projectRoot } from "../project";
 const Line = Schema.Struct({ name: Schema.NonEmptyString, metric: Schema.Literals(["pixels", "stamp", "contrast"]), frames: Schema.Array(Schema.Int), baseline: Schema.optionalKey(Schema.Int), region: Schema.optionalKey(Schema.Tuple([Schema.Finite, Schema.Finite, Schema.Finite, Schema.Finite])), min: Schema.optionalKey(Schema.Finite), max: Schema.optionalKey(Schema.Finite), tolerance: Schema.optionalKey(Schema.Finite), borderline: Schema.optionalKey(Schema.Finite), mask: Schema.optionalKey(Schema.NonEmptyString), field: Schema.optionalKey(Schema.Literals(["absDL", "dE00", "localDL"])) });
+interface Sample { readonly frame: number; readonly value: number; readonly stamped: boolean }
+interface LineResult { readonly name: string; readonly metric: string; readonly pass: boolean; readonly needsLook: boolean; readonly value: number; readonly samples: readonly Sample[]; readonly crops: readonly string[] }
+interface CaseResult { readonly name: string; readonly pass: boolean; readonly lines: readonly LineResult[] }
 const Rubric = Schema.fromJsonString(Schema.Struct({ cases: Schema.Array(Schema.Struct({ name: Schema.NonEmptyString, fixture: Schema.NonEmptyString, script: Schema.Int, lines: Schema.Array(Line) })) }));
 class JudgeFailure extends Schema.TaggedError<JudgeFailure>()("JudgeFailure", { problem: Schema.String }) { override get message(): string { return this.problem; } }
 const attempt = <A>(problem: string, run: () => Promise<A>) => Effect.tryPromise({ try: run, catch: cause => new JudgeFailure({ problem: `${problem}: ${String(cause)}` }) });
@@ -24,14 +27,14 @@ function crop(frame: Frame, region: readonly number[]): Frame { const [left, top
 export const judge: Command = args => Effect.gen(function* () {
   const [directory, flag, rubricPath, ...extra] = args;
   if (directory === undefined || flag !== "--rubric" || rubricPath === undefined || extra.length > 0) return yield* new UsageFailure({ problem: "judge DIR --rubric FILE" });
-  const rubric = yield* attempt("decode rubric", async () => Schema.decodeUnknownSync(Rubric)(await Bun.file(rubricPath).text()));
-  const cases = [], model = new Set<string>(), captures = new Set<string>();
+  const rubric = yield* attempt("decode rubric", async () => Schema.decodeSync(Rubric)(await Bun.file(rubricPath).text()));
+  const cases: CaseResult[] = [], model = new Set<string>(), captures = new Set<string>();
   for (const entry of rubric.cases) {
     if (entry.lines.length === 0) return yield* new JudgeFailure({ problem: `${entry.name}: no rubric lines` });
-    const lines = [];
+    const lines: LineResult[] = [];
     for (const line of entry.lines) {
       if (line.frames.length === 0 || (line.metric !== "stamp" && line.min === undefined && line.max === undefined)) return yield* new JudgeFailure({ problem: `${entry.name}/${line.name}: frames and a measurement threshold are required` });
-      const samples = []; let valid = true; let baseline: Frame | undefined;
+      const samples: Sample[] = []; let valid = true; let baseline: Frame | undefined;
       if (line.metric === "pixels") {
         if (line.baseline === undefined) return yield* new JudgeFailure({ problem: `${entry.name}/${line.name}: pixels requires baseline` });
         const file = join(directory, entry.fixture, `frame-${line.baseline}.ppm`); baseline = yield* load(file); captures.add(file);
