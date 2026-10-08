@@ -37,7 +37,7 @@ sweep("offscreen indicators follow the presented result while confirmation is st
   playSoakMatch(runtime, observed, project, repro.match, repro.inputs);
   expect(sawResultAhead).toBe(true);
   expect(cameraFindings).toEqual([]);
-}, 30_000);
+});
 
 test("a stick inside its dead zone replays: through the helpers as pad edges the game never sees, through the stand-in as a row [repro wisp#16]", () => {
   // The native file's first edges: the helper's full-scale stick, inside its 9175 dead zone.

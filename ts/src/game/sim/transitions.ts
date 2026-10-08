@@ -2,6 +2,8 @@
 // states, and ending or interrupting actions. Grab links are the only state
 // that spans fighters, so clearing them takes the roster.
 import { clearTechInput } from "../physics/techInput";
+import { at } from "wisp/src/runtime/lookup";
+import { mutableProjectile } from "./fighterProjectiles";
 import { max } from "../../runtime/numbers";
 import { AttackStyle, DASH_GRAB_REQUEST, DownState, GrabAction, HippogryphKind, LedgeState, PlatformMove, ProjectileKind, SpecialAction, SurfaceContact } from "./codes";
 import { isTumbling } from "./conditions";
@@ -94,9 +96,10 @@ export function cancelSpecialState(f: Fighter): void {
   const { special, hippogryph } = f;
   // A hero marker that has not become active ends with its interrupted cast.
   if (special.action >= SpecialAction.heroNeutral) {
-    for (const projectile of f.projectiles) {
+    for (let index = 0; index < f.projectiles.length; index++) {
+      const projectile = at(f.projectiles, index);
       const spec = projectile.spec;
-      if (projectile.life > 0 && spec?.cancelOnInterrupt === true && spec.life - projectile.life < (spec.activeFrom ?? 0)) projectile.life = 0;
+      if (projectile.life > 0 && spec?.cancelOnInterrupt === true && spec.life - projectile.life < (spec.activeFrom ?? 0)) mutableProjectile(f, index).life = 0;
     }
   }
   special.fall = false;
@@ -136,7 +139,8 @@ export function clearSpecialOnStock(f: Fighter): void {
   hippogryph.z = 0.0;
   hippogryph.velocityX = 0.0;
   hippogryph.velocityZ = 0.0;
-  for (const projectile of f.projectiles) {
+  for (let index = 0; index < f.projectiles.length; index++) {
+    const projectile = mutableProjectile(f, index);
     projectile.life = 0;
     projectile.x = 0.0;
     projectile.z = 0.0;

@@ -1,3 +1,4 @@
+import { mutableProjectile } from "./fighterProjectiles";
 // Shared hero-special and mana contracts, run through the production special,
 // projectile, contact and regeneration functions with a test kit.
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
@@ -300,7 +301,7 @@ test("hero projectiles end on walls, undersides and solid deck tops, and pass th
   const target = createFighter(Character.archer, 2000.0, -1);
   const world = createRoster(3, [owner, target]);
   const launch = (x: number, z: number, velocityX: number, velocityZ: number) => {
-    const projectile = owner.projectiles[0]!;
+    const projectile = mutableProjectile(owner, 0)!;
     Object.assign(projectile, { life: 30, kind: ProjectileKind.hero, spec: NEUTRAL.projectiles![0], x, z, velocityX, velocityZ, direction: 1 });
     return projectile;
   };

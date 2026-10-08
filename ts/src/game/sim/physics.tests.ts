@@ -1,3 +1,4 @@
+import { mutableProjectile } from "./fighterProjectiles";
 // The large fixture set retains independent retail reference values across
 // arithmetic, motion and contact; each group must survive changes to production.
 // Retail physics references: NTSC 1.02 recordings and extracted parameters.
@@ -473,7 +474,7 @@ test("fast fall requires descending self velocity, and an air dodge clears it [r
 
 /** Places a projectile just behind the target, flying into it. */
 function contactProjectile(owner: Fighter, target: Fighter, index: number, kind: ProjectileKind): void {
-  const projectile = owner.projectiles[index]!;
+  const projectile = mutableProjectile(owner, index)!;
   projectile.life = 3;
   projectile.kind = kind;
   projectile.x = f32(target.motion.x - 10);

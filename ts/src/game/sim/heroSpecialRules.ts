@@ -8,6 +8,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
 import { advanceHeroConditions, cleansePoisonAndSlow } from "./heroStatus";
 import { AttackStyle, ProjectileKind, SpecialAction } from "./codes";
+import { mutableProjectile } from "./fighterProjectiles";
 import { canAttack, inGrabContext, isIntangible } from "./conditions";
 import { type Fighter, placedObject } from "./fighter";
 import { type FighterSpecials, type AuthoredSpecial, CompanionMode, CompanionOrder, type SpecialFollowUp, type SpecialGuard, type SpecialKit, type SpecialPlacement, type SpecialProjectile, FOLLOW_UP_FORM, FollowUpInput, Relocation, SpecialForm, SpecialSlot, specialForm, specialKit } from "./heroSpecials";
@@ -66,10 +67,12 @@ export function markedTarget(world: Roster, f: Readonly<Fighter>, range: number)
 
 /** Turns every outbound returning projectile of the fighter back toward it now. */
 function recallProjectiles(f: Fighter): void {
+  let index = -1;
   for (const projectile of f.projectiles) {
+    index++;
     const returns = projectile.spec?.returns;
     if (projectile.life <= 0 || projectile.kind !== ProjectileKind.hero || returns === undefined || projectile.spec === undefined || projectile.damageMultiplier !== 1.0) continue;
-    projectile.life = min(projectile.life, projectile.spec.life - returns.age);
+    mutableProjectile(f, index).life = min(projectile.life, projectile.spec.life - returns.age);
   }
 }
 
@@ -267,8 +270,11 @@ function spawnHeroProjectile(owner: Fighter, spec: Readonly<SpecialProjectile>, 
 
 /** Emits an owned hero projectile at a point along a facing: a caster's spawn point or its placed object's. */
 export function spawnHeroProjectileAt(owner: Fighter, spec: Readonly<SpecialProjectile>, x: number, z: number, facing: number, up: boolean, serial: number): void {
-  for (const projectile of owner.projectiles) {
-    if (projectile.life > 0) continue;
+  let index = -1;
+  for (const before of owner.projectiles) {
+    index++;
+    if (before.life > 0) continue;
+    const projectile = mutableProjectile(owner, index);
     const velocityX = up ? spec.upVelocityX ?? spec.velocityX : spec.velocityX;
     const velocityZ = up ? spec.upVelocityZ ?? spec.velocityZ : spec.velocityZ;
     projectile.kind = ProjectileKind.hero;
@@ -385,8 +391,11 @@ function endHeroSpecial(f: Fighter, move: Readonly<AuthoredSpecial>): void {
 
 /** Stops each of the fighter's live `from` projectiles where it is and makes it `into`, newly aged. */
 function burstProjectiles(f: Fighter, from: Readonly<SpecialProjectile>, into: Readonly<SpecialProjectile>): void {
-  for (const projectile of f.projectiles) {
-    if (projectile.life <= 0 || projectile.kind !== ProjectileKind.hero || projectile.spec !== from) continue;
+  let index = -1;
+  for (const before of f.projectiles) {
+    index++;
+    if (before.life <= 0 || before.kind !== ProjectileKind.hero || before.spec !== from) continue;
+    const projectile = mutableProjectile(f, index);
     projectile.spec = into;
     projectile.velocityX = 0.0;
     projectile.velocityZ = 0.0;

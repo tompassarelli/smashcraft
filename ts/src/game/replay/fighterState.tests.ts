@@ -19,7 +19,7 @@ type Field = Record<string, unknown>;
  * and stay out. In Lua an absent field has no key, so only Bun visits those.
  */
 function walk(left: object, right: object, path: string, leaves: LeafPair[], records: [object, object][]): void {
-  records.push([left, right]);
+  if (!path.startsWith(".projectiles[")) records.push([left, right]);
   const child = (childPath: string, get: (side: object) => unknown, set: (side: object, value: unknown) => void) => {
     const value = get(left);
     const other = get(right);
@@ -54,7 +54,7 @@ function changed(value: unknown, seed: number): unknown {
   return 1;
 }
 
-test("fighter replay copies carry every mutable field into detached records [invariant]", () => {
+test("fighter replay copies preserve every field and detach mutable records [invariant]", () => {
   const source = createFighter(Character.archer, -12.0, 1);
   const target = createFighter(Character.rifleman, 4.0, -1);
   const { leaves } = fighterLeaves(target, source);

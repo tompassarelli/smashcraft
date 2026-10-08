@@ -1,3 +1,4 @@
+import { mutableProjectile } from "../sim/fighterProjectiles";
 // Each projectile-firing move draws its own stock missile, and a live
 // projectile finds it from its authored record, a reflected one included.
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
@@ -42,7 +43,7 @@ test("a live projectile draws its move's missile, wherever it flies [spec #144]"
     if (hero.specials === undefined) continue;
     // A reflected projectile sits in another fighter's slots with its record unchanged.
     const holder = createFighter(Character.archer, 0.0, 1);
-    const projectile = holder.projectiles[0];
+    const projectile = mutableProjectile(holder, 0);
     if (projectile === undefined) continue;
     for (const { spec } of heroProjectileArt(hero.specials)) {
       projectile.kind = ProjectileKind.hero;
@@ -52,7 +53,7 @@ test("a live projectile draws its move's missile, wherever it flies [spec #144]"
     }
   }
   const archer = createFighter(Character.archer, 0.0, 1);
-  const arrow = archer.projectiles[0];
+  const arrow = mutableProjectile(archer, 0);
   if (arrow === undefined) return;
   arrow.kind = ProjectileKind.homingArrow;
   assertEquals(projectileModelOf(arrow), ORIGINAL_PROJECTILE_MODELS[ProjectileKind.homingArrow]);

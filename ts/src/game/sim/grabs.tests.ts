@@ -1,3 +1,4 @@
+import { mutableProjectile } from "./fighterProjectiles";
 import { stageBounds } from "./stageBounds";
 // Grab links: what releases them, mash-out and stock loss.
 import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
@@ -44,7 +45,7 @@ test("only flinching projectiles release either end of a grab [spec docs/gamepla
       const { world, owner, target } = grabbedPair();
       const shooter = victim === 0 ? target : owner;
       const hit = victim === 0 ? owner : target;
-      const projectile = shooter.projectiles[0]!;
+      const projectile = mutableProjectile(shooter, 0)!;
       projectile.life = 2;
       projectile.kind = kind;
       projectile.x = f32(hit.motion.x - 10);

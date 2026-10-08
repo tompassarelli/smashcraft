@@ -1,3 +1,4 @@
+import { mutableProjectile } from "./fighterProjectiles";
 // Hero passives (#148, smashcraft:docs/design/passives.md): each fighter's
 // passive procs on its stated count, its stated counter denies it, its
 // window clears it, and snapshots and the checksum carry its state.
@@ -134,7 +135,7 @@ test("Rifleman: every fourth blaster shot fired is a Long Rifle shot that flies 
   const rifleman = createFighter(Character.rifleman, 0.0, 1);
   const shots: boolean[] = [];
   for (let index = 0; index < 8; index++) {
-    for (const projectile of rifleman.projectiles) projectile.life = 0;
+    for (let shot = 0; shot < rifleman.projectiles.length; shot++) mutableProjectile(rifleman, shot).life = 0;
     spawnBlasterShot(rifleman, index + 1, true);
     const fired = rifleman.projectiles.find((projectile) => projectile.life > 0);
     shots.push(fired?.longRifle === true);

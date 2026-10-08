@@ -1,3 +1,4 @@
+import { mutableProjectile } from "../sim/fighterProjectiles";
 import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
 import { f32 } from "wisp/src/sim/f32";
@@ -90,7 +91,7 @@ function reaction(profile: CpuProfile, seed: number, trial: number, into: Calibr
         case 2: changed.target.motion.grounded = false; changed.target.motion.z = 220.0; changed.target.motion.vz = 8.0; break;
         case 3: changed.target.attack.style = AttackStyle.forwardSmash; changed.target.attack.serial++; break;
         case 4: {
-          const shot = at(changed.target.projectiles, 0);
+          const shot = mutableProjectile(changed.target, 0);
           shot.life = 100; shot.x = 80.0; shot.z = 45.0; shot.direction = -1; shot.velocityX = -12.0; shot.serial++;
           break;
         }

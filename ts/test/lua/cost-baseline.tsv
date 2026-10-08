@@ -107,7 +107,7 @@ src/game/replay/history.tests.ts	11	2.627
 src/game/replay/matchReplay.tests.ts	2	0.670
 src/game/replay/moment.tests.ts	4	1.747
 src/game/replay/shadowPlayback.tests.ts	7	1.276
-src/game/replay/state.tests.ts	11	0.268
+src/game/replay/state.tests.ts	12	0.530
 src/game/replay/viewer.tests.ts	1	0.889
 src/game/shell/devSettings.tests.ts	5	0.001
 src/game/shell/journalFiles.tests.ts	1	0.000
