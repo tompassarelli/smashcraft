@@ -1,4 +1,5 @@
 import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
+import { f32 } from "wisp/src/sim/f32";
 import { Character, ContactKind } from "../sim/codes";
 import { queueDamageContact } from "../sim/contacts";
 import { type Fighter, createFighter } from "../sim/fighter";
@@ -72,12 +73,15 @@ test("the KO flash peaks at Silverpine's caps after the blow's hitlag and turns 
   assertEquals(koFlashLevels(flash, 112 + KO_BLUR_FADE_FRAMES)?.blur, 0.0);
 });
 
+/** Display gamma, the same binary32 value in both runtimes. */
+const GAMMA = f32(2.2);
+
 /** A white blend of `alpha` over a scene of luma `scene`: Classic blends sRGB values, Reforged blends in linear light (#289's capture). */
 function washedLuma(scene: number, alpha: number, reforged: boolean): number {
   const a = alpha / 255;
   if (!reforged) return scene + (255 - scene) * a;
-  const linear = Math.pow(scene / 255, 2.2);
-  return 255 * Math.pow(linear * (1 - a) + a, 1 / 2.2);
+  const linear = Math.pow(scene / 255, GAMMA);
+  return 255 * Math.pow(linear * (1 - a) + a, 1 / GAMMA);
 }
 
 test("the KO flash eases out in Classic and Reforged, never stepping more than 6 luma a frame from its peak through the off call [repro #289]", () => {
@@ -94,7 +98,7 @@ test("the KO flash eases out in Classic and Reforged, never stepping more than 6
   assertEquals(koFlashLevels(flash, peak)?.alpha, KO_FLASH_ALPHA);
   assertEquals(koFlashLevels(flash, off - 1)?.showing, true);
   assertEquals(koFlashLevels(flash, off)?.showing, false);
-  for (const [mode, scene, reforged] of [["Classic", 92.6, false], ["Reforged", 91.6, true]] as const) {
+  for (const [mode, scene, reforged] of [["Classic", f32(92.6), false], ["Reforged", f32(91.6), true]] as const) {
     let previous = washedLuma(scene, KO_FLASH_ALPHA, reforged);
     for (let frame = peak + 1; frame <= off; frame++) {
       const levels = koFlashLevels(flash, frame);
