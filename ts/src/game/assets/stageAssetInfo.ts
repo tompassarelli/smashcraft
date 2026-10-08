@@ -22,7 +22,7 @@ export const STAGE_SNOW_MODEL = "war3mapImported\\StageSnow-917b74168e66aca04673
 /** Each selectable stage's day/night lighting model, from its light in stageLighting.ts. */
 export const STAGE_LIGHT_MODELS: Readonly<Record<number, string>> = {
   0: "war3mapImported\\StageLight-58aa70a31b10f62d7bb32417f729569e4b05db2baa78efd264754cca6e604be6.mdx",
-  2: "war3mapImported\\StageLight-0c26737873df1314a927484c7b4de405d36d0448c4049dc3b1a919d407d01c88.mdx",
+  2: "war3mapImported\\StageLight-1ad8299ee23d76791423ad6ef47e0c1efe055f732fbf692f5eea764c7bf0f738.mdx",
   10: "war3mapImported\\StageLight-237830eeeab84963d9a926cef8a7feaa72a71cb011309292ea8ad44f5ca69774.mdx",
   11: "war3mapImported\\StageLight-360d39b12a093ba6739003209b2befc84a674055b6c7880de97be29839c4437f.mdx",
   3: "war3mapImported\\StageLight-b3cd66205183a43d279fbcf8a8509a1c788dbdfe45def136a8ef2ebe3cc6ade0.mdx",

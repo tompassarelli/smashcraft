@@ -12,7 +12,7 @@ scripts/meleeOracle.tests.ts	2	5.845
 scripts/padScene.tests.ts	2	0.226
 scripts/projectileRules.tests.ts	6	5.690
 scripts/riflemanBlaster.tests.ts	4	0.728
-src/game/assets/stageLighting.tests.ts	2	0.001
+src/game/assets/stageLighting.tests.ts	5	0.001
 src/game/assets/stagePalette.tests.ts	3	0.002
 src/game/input/adapter.tests.ts	8	0.014
 src/game/input/attackBuffer.tests.ts	6	0.002
