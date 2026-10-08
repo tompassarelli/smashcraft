@@ -4,10 +4,11 @@
 // landings, ground dodges and walking.
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
-import { resolveAttacks } from "./attacks";
+import { beginFighterAttack, resolveAttacks } from "./attacks";
 import { AttackPhase, AttackStyle, Character } from "./codes";
 import { attackPhase, canAttack, isIntangible } from "./conditions";
 import { type Fighter, createFighter } from "./fighter";
+import { fighterSlug, SELECTABLE_CHARACTERS } from "./heroes/registry";
 import { ordinaryHitlagFrames } from "./knockback";
 import {
   attackActiveFrames,
@@ -23,6 +24,24 @@ import { advanceSolo, controls, testBeginAttacks, testWorld } from "./testWorld"
 
 const AERIALS = [AttackStyle.neutralAir, AttackStyle.forwardAir, AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir] as const;
 const LINGERING_AERIALS = [AttackStyle.neutralAir, AttackStyle.backAir] as const;
+
+test("every fighter has a grounded close strike against an overlapping standing foe in both facings [spec #279]", () => {
+  for (const character of SELECTABLE_CHARACTERS) for (const facing of [-1, 1]) {
+    let connects = false;
+    for (const style of [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.forwardTiltDown, AttackStyle.upTilt, AttackStyle.downTilt]) {
+      const owner = createFighter(character, 0.0, facing);
+      const target = createFighter(Character.archer, 0.0, -facing);
+      owner.motion.grounded = true;
+      target.motion.grounded = true;
+      const world = testWorld(owner, target);
+      beginFighterAttack(world, 0, style, false);
+      owner.attack.frame = attackStartupFrames(style, owner.tuning.moves);
+      resolveAttacks(world);
+      if (target.status.damage > 0.0) connects = true;
+    }
+    assertEquals(connects, true, `${fighterSlug(character)}, facing ${facing}, gap 0: standing foe untouched`);
+  }
+});
 
 test("angled forward tilts share the flat forward tilt's timing, damage and recovery [spec docs/design/roster.md]", () => {
   for (const style of [AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown]) {
