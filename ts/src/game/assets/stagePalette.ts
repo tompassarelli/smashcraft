@@ -134,17 +134,19 @@ export const STAGE_DECK_PALETTES: readonly { readonly stage: number; readonly th
     },
   } },
   // Shallow tide over sunken stone, Naga coral-gold lip.
-  { stage: TOMB_OF_SARGERAS_STAGE, theme: "Sargeras", palette: { top: [104, 170, 168], lip: [196, 120, 90], body: [58, 76, 74], underside: [80, 98, 94] }, materials: {
+  { stage: TOMB_OF_SARGERAS_STAGE, theme: "Sargeras", palette: { top: [144, 224, 208], lip: [224, 152, 104], body: [104, 152, 140], underside: [112, 156, 144] }, materials: {
     top: { texture: "TerrainArt\\Ruins\\Ruins_RoundTiles.blp" },
     lip: { texture: "TerrainArt\\Ruins\\Ruins_SmallBricks.blp" },
-    body: { texture: "Textures\\RuinsNatural.blp", crop: [0, 0.5, 0.5, 1] },
+    // Opaque 128x128 rock cell in the stock 512x512 atlas.
+    body: { texture: "Textures\\RuinsNatural.blp", crop: [0, 0, 0.25, 0.25] },
     underside: { texture: "Textures\\RuinsVines.blp", crop: [0.40625, 0, 0.59375, 1] },
     platform: {
-      top: { texture: "TerrainArt\\Ruins\\Ruins_LargeBricks.blp" },
+      // One 64x64 tile from the stock 512x256 brick atlas.
+      top: { texture: "TerrainArt\\Ruins\\Ruins_LargeBricks.blp", crop: [0, 0, 0.125, 0.25] },
       lip: { texture: "TerrainArt\\Ruins\\Ruins_SmallBricks.blp" },
-      body: { texture: "Textures\\RuinsNatural.blp", crop: [0, 0.5, 0.5, 1] },
+      body: { texture: "Textures\\RuinsNatural.blp", crop: [0, 0, 0.25, 0.25] },
       underside: { texture: "Textures\\RuinsVines.blp", crop: [0.40625, 0, 0.59375, 1] },
-      tint: [138, 174, 160],
+      tint: [224, 184, 126],
     },
   } },
   { stage: TIMED_TEST_STAGE, theme: "Qiraji", palette: { top: [224, 204, 160], lip: [170, 130, 50], body: [110, 84, 56], underside: [138, 108, 74] }, materials: {
