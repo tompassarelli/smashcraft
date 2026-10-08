@@ -1839,3 +1839,13 @@ Vanishing Act's punishable arrival; no move should exceed 40% of total damage,
 and single-move spam should win at most 45%. Explosive openings come from down
 tilt/up throw into an aerial chase. Stock campaign Medivh and raven model,
 Warcraft spell art and voice only; Classic and Definitive share combat data.
+
+```balance-profile
+fighter: medivh
+archetype: mobility trickster
+signature: side-special 40
+air-share: 35-55
+approach: 20-40
+ranged: 10-25
+specials: neutral 5-20, side 10-25, up 0-10, down 0-15
+```

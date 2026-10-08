@@ -257,6 +257,10 @@ code. From smashcraft:ts/:
   Package with `bun tools/animations/package-illidan.ts PRIVATE_OUTPUT --metadata-only`,
   store `illidan-animation`, and refresh the original clip pool.
 - Malfurion stock-rig authoring: `bun tools/animations/malfurion-clips.ts STOCK_FURION.mdx PRIVATE_OUTPUT` appends staff, nature-spell, recovery, paired-throw and nine pain gestures while preserving the eight campaign sequences.
+- Medivh animation authoring (from the repository root):
+  `bun tools/animations/medivh-clips.ts STOCK_MEDIVH.mdx PRIVATE_OUTPUT`
+  appends staff, blink, raven, grab, recovery and nine pain clips, preserving the
+  22 stock sequences. Store `hero-models`, export only Medivh, then timeline it.
 - Jaina animation authoring (from the repository root):
   `bun tools/animations/jaina-clips.ts STOCK_JAINA.mdx PRIVATE_OUTPUT`
   appends her staff strikes, spell gestures, movement and nine contact reactions;
