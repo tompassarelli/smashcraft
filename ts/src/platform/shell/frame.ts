@@ -6,7 +6,7 @@ import { adaptInput } from "../../game/input/adapter";
 import { commitEdges } from "../../game/input/keyboardCapture";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, participantActive } from "../../game/input/participants";
 import { borrowMatchFrame, captureFrame, executeMatchFrame, hasNetworkRows } from "../../game/match/frameInput";
-import { copyReplayState } from "../../game/replay/snapshot";
+import { ownConfirmedState } from "./confirmedState";
 import { beginMomentFrame, keepMomentEnd, momentFrameRan, recordMomentRow } from "../../game/replay/moment";
 import { settleNewestObservation } from "../../game/match/botPerception";
 import { Phase, beginRematchCountdown, computerActive, humanFighterActive } from "../../game/match/rules";
@@ -124,11 +124,11 @@ export function applyFrame(s: ShellState, recorded = false): void {
   const rollback = activeRollback(s);
   const ran = rollback !== undefined && !s.game.training && !s.trace.active && !probeRecording(s.probe) ? rollback.playback.confirmedState(rollback.epoch, frame, s.frameInput) : undefined;
   if (ran === undefined) {
-    finishConfirmedFrames(s);
+    ownConfirmedState(s);
     if (!executeMatchFrame(s.frameInput, s.game, s.world, s.controls, s.runtime, frame)) return;
   } else {
     if (!borrowMatchFrame(s.frameInput, s.world, s.runtime, frame, ran)) return;
-    s.confirmedBatch ??= { world: s.world, match: s.game, controls: s.controls, runtime: s.runtime };
+    s.ownedConfirmed ??= { world: s.world, match: s.game, controls: s.controls, runtime: s.runtime };
     s.world = ran.world;
     s.game = ran.match;
     s.controls = ran.controls;
@@ -167,27 +167,12 @@ export function applyFrame(s: ShellState, recorded = false): void {
   // The countdown changes the match between frames: the moment keeps it as its last frame left it.
   keepMomentEnd(recorder, world, s.game, s.controls, runtime);
   endReplaySegment(s);
-  finishConfirmedFrames(s);
+  ownConfirmedState(s);
   beginRematchCountdown(s.game, s.dev.rematchSeconds);
   const call = cues.find(cue => cue === MatchCue.game || cue === MatchCue.time);
   ui.match.beginResults(resultsView(s.game, world, ui.match.tally), call === undefined ? 0 : RESULTS_DELAY_FRAMES);
   writeMatchRecord(s);
   setStatus(s, resultMessage(s.game), LASTING);
-}
-
-/** Return to owned mutable state before another callback or a numerical step. */
-export function finishConfirmedFrames(s: ShellState): void {
-  const owned = s.confirmedBatch;
-  if (owned === undefined) return;
-  copyReplayState(owned, { world: s.world, match: s.game, controls: s.controls, runtime: s.runtime });
-  const scratch = owned.runtime.frameImpacts;
-  owned.runtime.frameImpacts = s.runtime.frameImpacts;
-  s.runtime.frameImpacts = scratch;
-  s.world = owned.world;
-  s.game = owned.match;
-  s.controls = owned.controls;
-  s.runtime = owned.runtime;
-  s.confirmedBatch = undefined;
 }
 
 /** A frame of a callback match: adapt each human's keys, choose the computers' controls, and run it. */

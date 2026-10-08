@@ -239,8 +239,8 @@ export interface ShellState {
   /** Callback matches adapt keys into these before a frame captures them. */
   readonly produced: FrameControls;
   runtime: PacingAndPresentation;
-  /** Owned state while this callback presents retained confirmed snapshots. */
-  confirmedBatch?: ReplayState | undefined;
+  /** Owned storage while the confirmed match reads a retained history snapshot. */
+  ownedConfirmed?: ReplayState | undefined;
   /** Pause and Start keys; outside replay state, so rollback never undoes a pause. */
   readonly session: MatchControls;
   readonly frameInput: MatchFrameInput;

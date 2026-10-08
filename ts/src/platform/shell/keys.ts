@@ -36,6 +36,7 @@ import { makePreview } from "./preview";
 import { exportProbe, probeIntegrity, probeRecording, startProbe } from "./responseProbe";
 import { type ShellState, activeRollback, cancelPendingPlaytest, localSlot, playsOnKeyboard } from "./state";
 import { views } from "./ui";
+import { ownConfirmedState } from "./confirmedState";
 import { LASTING, pauseMatchPresentation, setStatus } from "./view";
 
 /** Keys the journal's carriers or edit box own, which the map must not read as the player's controls. */
@@ -122,6 +123,7 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
   }
   if (!bindings.ready) return;
   if (key === 13 && s.game.phase !== Phase.match) return;
+  if (key === Key.escape && s.session.paused) ownConfirmedState(s);
   const { game } = s;
   views(s).selections[slot].menuBindings(bindings.bindings);
   const editbox = s.rollback?.journal?.editbox !== undefined;
@@ -226,6 +228,7 @@ export function onDevCommand(s: ShellState): void {
 
 /** Applies synchronized developer setup without requiring a chat event. */
 export function applyDeveloperCommand(s: ShellState, actor: number, original: string): void {
+  ownConfirmedState(s);
   if (original === RESET_COMMAND) {
     clearVisualCapture(localSlot());
     pauseMatchPresentation(s, s.session.paused);

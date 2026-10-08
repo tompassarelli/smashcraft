@@ -96,6 +96,8 @@ export class ReplayCorrections {
  */
 export class ReplayHistory {
   private readonly snapshots = repeat(REPLAY_HISTORY_CAPACITY, createReplaySnapshot);
+  private spare = createReplaySnapshot();
+  private borrowed: ReplayState | undefined;
   private readonly inputs = repeat(REPLAY_HISTORY_CAPACITY, createMatchFrameInput);
   private readonly speculative = repeat(REPLAY_HISTORY_CAPACITY, () => false);
   // The corrected state a repair replays, apart from live state, which keeps running.
@@ -124,6 +126,7 @@ export class ReplayHistory {
     this.matchedThrough = firstFrame - 1;
     this.repairNext = undefined;
     this.repairPositioned = false;
+    this.borrowed = undefined;
     for (const row of this.inputs) resetMatchFrameInput(row);
     this.speculative.fill(false);
     return true;
@@ -141,6 +144,7 @@ export class ReplayHistory {
   /** Every snapshot's world, retained or not, for a change they must all take, such as authored tuning a reload changed. */
   visitWorlds(visit: (world: Roster) => void): void {
     for (const snapshot of this.snapshots) visit(snapshot.world);
+    visit(this.spare.world);
     visit(this.repairState.world);
   }
 
@@ -281,7 +285,7 @@ export class ReplayHistory {
     }
     let frame = start;
     for (let steps = 0; steps < budget && frame < this.nextFrame; steps++) {
-      if (!restored || frame !== start) copyReplayState(this.snapshotAt(frame), state);
+      if (!restored || frame !== start) this.copySnapshot(frame, state);
       if (!this.executeRecorded(frame, state)) return "rejected";
       frame++;
       this.repairNext = frame;
@@ -298,7 +302,8 @@ export class ReplayHistory {
    * The state after `frame` when history ran it on a row equal to `row` from
    * a corrected state before it: every earlier row authoritative or already
    * matched here, no repair pending. Running `row` from the state before
-   * `frame` would reach it. Otherwise undefined.
+   * `frame` would reach it. It stays immutable until the next successful
+   * stateAfter call, even when the history ring reuses its slot.
    */
   stateAfter(epoch: number, frame: number, row: Readonly<MatchFrameInput>): Readonly<ReplayState> | undefined {
     if (!this.contains(epoch, frame) || !this.contains(epoch, frame + 1)) return undefined;
@@ -306,7 +311,8 @@ export class ReplayHistory {
     if (this.repairNext !== undefined && this.repairNext <= frame + 1) return undefined;
     if (!sameMatchFrameInput(this.inputAt(frame), row)) return undefined;
     this.matchedThrough = Math.max(this.matchedThrough, frame);
-    return this.snapshotAt(frame + 1);
+    this.borrowed = this.snapshotAt(frame + 1);
+    return this.borrowed;
   }
 
   private saveRow(epoch: number, row: Readonly<MatchFrameInput>, predicted: boolean, live: Readonly<ReplayState>): boolean {
@@ -318,7 +324,7 @@ export class ReplayHistory {
     // The frame counter must not wrap into a different history.
     if (this.nextFrame > INPUT_LAST_FRAME) return false;
     const slot = this.slotOf(this.nextFrame);
-    copyReplayState(at(this.snapshots, slot), live);
+    this.copySnapshot(this.nextFrame, live);
     copyMatchFrameInput(at(this.inputs, slot), row);
     this.speculative[slot] = predicted;
     this.nextFrame++;
@@ -329,6 +335,17 @@ export class ReplayHistory {
 
   private executeRecorded(frame: number, live: ReplayState): boolean {
     return executeMatchFrame(this.inputAt(frame), live.match, live.world, live.controls, live.runtime, frame);
+  }
+
+  private copySnapshot(frame: number, source: Readonly<ReplayState>): void {
+    const slot = this.slotOf(frame);
+    let target = at(this.snapshots, slot);
+    if (target === this.borrowed) {
+      this.snapshots[slot] = this.spare;
+      this.spare = target;
+      target = at(this.snapshots, slot);
+    }
+    copyReplayState(target, source);
   }
 
   private advanceAuthoritative(): void {

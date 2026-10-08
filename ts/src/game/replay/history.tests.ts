@@ -370,6 +370,32 @@ function assertSameFields<T>(expected: T, actual: T): void {
   for (const key in expected) assertEquals(actual[key], expected[key], key);
 }
 
+test("[invariant] a borrowed confirmed snapshot stays fixed when its history slot is reused", () => {
+  const tape = createTapeWorld({ stocks: 99 });
+  const history = new ReplayHistory();
+  assertTrue(history.beginEpoch(1, 1));
+  const requests = attackBuffer(0);
+  const controls = frameControls({ ...neutralControls(), direction: 1 }, neutralControls(), requests, requests);
+  const row = createMatchFrameInput();
+  const first = createMatchFrameInput();
+  for (let frame = 1; frame <= 2; frame++) {
+    assertTrue(captureFrame(row, frame, 3, controls, tape.live.runtime));
+    assertTrue(history.save(1, row, tape.live));
+    execute(tape, row);
+    if (frame === 1) copyMatchFrameInput(first, row);
+  }
+  const borrowed = history.stateAfter(1, 1, first);
+  if (borrowed === undefined) throw new Error("frame 1 is available");
+  const expected = createReplaySnapshot();
+  copyReplayState(expected, borrowed);
+  for (let frame = 3; frame <= REPLAY_HISTORY_CAPACITY + 2; frame++) {
+    assertTrue(captureFrame(row, frame, 3, controls, tape.live.runtime));
+    assertTrue(history.save(1, row, tape.live));
+    execute(tape, row);
+  }
+  assertEquals(firstStateDifference(expected, borrowed), undefined);
+});
+
 test("[invariant] restored and borrowed network frames preserve CPU state and every confirmed impact event", () => {
   const predicted = createTapeWorld({ stocks: 99 });
   const restored = createTapeWorld({ stocks: 99 });
