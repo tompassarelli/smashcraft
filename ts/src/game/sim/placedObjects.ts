@@ -71,9 +71,9 @@ function specialStrike(placed: PlacedObject, sourceSlot: number, source: Readonl
 /** Damage from the source's projectiles that crossed the object this frame; each one that does is spent. */
 function projectileStrikes(source: Fighter): number {
   let damage = 0.0;
-  for (let index = 0; index < source.projectiles.length; index++) {
-    const projectile = source.projectiles[index];
-    if (projectile === undefined) continue;
+  let index = -1;
+  for (const projectile of source.projectiles) {
+    index++;
     if (projectile.life <= 0) continue;
     strike.x1 = f32(projectile.x - projectile.velocityX);
     strike.z1 = f32(projectile.z - projectile.velocityZ);

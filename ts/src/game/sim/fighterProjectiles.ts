@@ -5,8 +5,10 @@ const shared = new WeakSet<Readonly<Projectile>>();
 
 /** Snapshot values stay fixed until their last reader releases them. */
 export function shareFighterProjectiles(target: Fighter, source: Readonly<Fighter>): void {
-  for (let index = 0; index < source.projectiles.length; index++) {
-    const projectile = at(source.projectiles, index);
+  let index = -1;
+  for (const projectile of source.projectiles) {
+    index++;
+    if (target.projectiles[index] === projectile) continue;
     shared.add(projectile);
     target.projectiles[index] = projectile;
   }

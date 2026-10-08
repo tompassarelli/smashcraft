@@ -67,8 +67,9 @@ export function markedTarget(world: Roster, f: Readonly<Fighter>, range: number)
 
 /** Turns every outbound returning projectile of the fighter back toward it now. */
 function recallProjectiles(f: Fighter): void {
-  for (let index = 0; index < f.projectiles.length; index++) {
-    const projectile = at(f.projectiles, index);
+  let index = -1;
+  for (const projectile of f.projectiles) {
+    index++;
     const returns = projectile.spec?.returns;
     if (projectile.life <= 0 || projectile.kind !== ProjectileKind.hero || returns === undefined || projectile.spec === undefined || projectile.damageMultiplier !== 1.0) continue;
     mutableProjectile(f, index).life = min(projectile.life, projectile.spec.life - returns.age);
@@ -269,8 +270,10 @@ function spawnHeroProjectile(owner: Fighter, spec: Readonly<SpecialProjectile>, 
 
 /** Emits an owned hero projectile at a point along a facing: a caster's spawn point or its placed object's. */
 export function spawnHeroProjectileAt(owner: Fighter, spec: Readonly<SpecialProjectile>, x: number, z: number, facing: number, up: boolean, serial: number): void {
-  for (let index = 0; index < owner.projectiles.length; index++) {
-    if (at(owner.projectiles, index).life > 0) continue;
+  let index = -1;
+  for (const before of owner.projectiles) {
+    index++;
+    if (before.life > 0) continue;
     const projectile = mutableProjectile(owner, index);
     const velocityX = up ? spec.upVelocityX ?? spec.velocityX : spec.velocityX;
     const velocityZ = up ? spec.upVelocityZ ?? spec.velocityZ : spec.velocityZ;
@@ -388,8 +391,9 @@ function endHeroSpecial(f: Fighter, move: Readonly<AuthoredSpecial>): void {
 
 /** Stops each of the fighter's live `from` projectiles where it is and makes it `into`, newly aged. */
 function burstProjectiles(f: Fighter, from: Readonly<SpecialProjectile>, into: Readonly<SpecialProjectile>): void {
-  for (let index = 0; index < f.projectiles.length; index++) {
-    const before = at(f.projectiles, index);
+  let index = -1;
+  for (const before of f.projectiles) {
+    index++;
     if (before.life <= 0 || before.kind !== ProjectileKind.hero || before.spec !== from) continue;
     const projectile = mutableProjectile(f, index);
     projectile.spec = into;

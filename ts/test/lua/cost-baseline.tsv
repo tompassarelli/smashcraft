@@ -3,6 +3,7 @@ src/game/match/comboRoute.tests.ts	1	0.185
 src/game/match/edgeRecovery.tests.ts	8	2.578
 src/game/presentation/impactState.tests.ts	9	0.149
 src/game/replay/history.tests.ts	11	2.627
+src/game/replay/state.tests.ts	12	0.530
 src/game/shell/pauseBarrier.tests.ts	3	0.000
 src/game/sim/heroes/pitLordMoves.tests.ts	4	0.005
 src/game/sim/heroes/pitLordSpecials.tests.ts	9	0.727
