@@ -23,7 +23,7 @@ import { advanceFighterMotion } from "../sim/step";
 import { maskHeroStatusControls } from "../sim/heroStatus";
 import { platformSpecialInput } from "../sim/platformMoves";
 import { advanceStageCannon } from "../sim/stageHazards";
-import { advanceWater } from "../sim/water";
+import { advanceWater, collectHydraContacts } from "../sim/water";
 import { surfaceCount, surfaceLine, surfaceZAt } from "../sim/stage";
 import { setWorldMotionValue } from "../sim/motion";
 import { advanceFreezeTraps } from "../sim/summons";
@@ -158,7 +158,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     observedFrameLegalActions[slot] = observedActions.legal;
     observedFrameStartedActions[slot] = observedActions.started;
   }
-  advanceWater(world, stage, game.matchFrame);
+  advanceWater(world, stage, game.matchFrame, game.hazards);
   advanceItems(game, world, controls, frame);
   advanceStageCannon(world, stage, stageFrame, controls.inputs);
 
@@ -166,6 +166,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   resolveGrabs(world);
   beginDamageContacts();
   collectLavaContacts(world, stage, game.hazards);
+  collectHydraContacts(world, stage);
   const bossFight = game.run.active && game.run.boss.kind !== BossKind.none;
   if (bossFight && !holdingStart(game)) collectBossContacts(game.run.boss, world, bossClock(game.matchFrame, game.startHold), game.run.player);
   advanceGrabs(world, controls.inputs);

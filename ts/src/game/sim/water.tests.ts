@@ -14,7 +14,7 @@ import { fighterAt } from "./roster";
 import { FROZEN_THRONE_STAGE, TOMB_OF_SARGERAS_STAGE, mainDeckZ } from "./stage";
 import { advanceSolo, controls } from "./testWorld";
 import { f32 } from "wisp/src/sim/f32";
-import { SWIM_SPEED, WATER_RISE_CAP, beginWaterJump, waterJumpScale } from "./water";
+import { HYDRA_STRIKE_FRAME, SWIM_SPEED, WATER_RISE_CAP, beginWaterJump, inHydraStrike, waterJumpScale } from "./water";
 import { SEA_SURFACE_Z, TIDE_SPEED, framesUntilTideTurns, seaLeft, seaRight, tideDirection, tideNextDirection, tidePush } from "./stageHazards";
 
 const TOMB = TOMB_OF_SARGERAS_STAGE;
@@ -189,10 +189,10 @@ function framesToBlastLine(x: number, hazards: boolean): number {
   return -1;
 }
 
-test("the flood carries a floating fighter from the ledge past the side blast line in 201 frames and from under the deck's centre in 326, hazards on or off [spec docs/design/water-stage.md]", () => {
-  assertEquals(framesToBlastLine(600.0, true), 201);
-  assertEquals(framesToBlastLine(0.0, true), 326);
+// With hazards off, so the hydra doesn't bite first: the current is the stage and stays.
+test("the flood carries a floating fighter from the ledge past the side blast line in 201 frames and from under the deck's centre in 326 [spec docs/design/water-stage.md]", () => {
   assertEquals(framesToBlastLine(600.0, false), 201);
+  assertEquals(framesToBlastLine(0.0, false), 326);
 });
 
 test("swimming against the tide still loses 1.2 a frame; jumping out ends the push that frame [spec docs/design/water-stage.md]", () => {
@@ -210,4 +210,55 @@ test("swimming against the tide still loses 1.2 a frame; jumping out ends the pu
   assertGreaterThan(f.motion.z, SEA_SURFACE_Z);
   assertFalse(f.water.inWater);
   assertNear(f.motion.x, atJump, 4.0);
+});
+
+test("the hydra's tell starts on a fighter's 150th frame in the water and it strikes on the 195th: 15% and straight down through the bottom blast line [spec docs/design/water-stage.md]", () => {
+  const state = seaMatch(-1000.0, SEA_SURFACE_Z);
+  const f = fighterAt(state.world, 0);
+  let tell = 0; let strike = 0; let out = 0; let bitten = 0.0; let fall = 0.0;
+  play(state, 1, 320, (frame, fighter) => {
+    if (tell === 0 && fighter.water.hydraFrame === 1) tell = frame;
+    if (strike === 0 && fighter.status.damage > 0) { strike = frame; bitten = fighter.status.damage; fall = fighter.launch.knockbackZ; }
+    if (out === 0 && fighter.status.out) out = frame;
+  });
+  assertEquals(tell, 150);
+  assertEquals(strike, 195);
+  assertEquals(bitten, 15.0);
+  assertTrue(fall < 0.0);
+  assertGreaterThan(out, strike);
+  assertEquals(f.water.hydraFrame, 0);
+});
+
+test("the hydra's mark drifts with the tide, not toward the fighter: swimming against the tide through the tell escapes it, and Hazards Off removes it [spec docs/design/water-stage.md]", () => {
+  const swimmer = seaMatch(-1000.0, SEA_SURFACE_Z);
+  const f = fighterAt(swimmer.world, 0);
+  play(swimmer, 1, 149);
+  swimmer.controls.inputs[0].direction = -1;
+  play(swimmer, 150, 200, (frame, fighter) => { if (frame === 194) assertEquals(fighter.water.hydraFrame, HYDRA_STRIKE_FRAME - 1); });
+  assertEquals(f.status.damage, 0.0);
+  assertEquals(f.water.hydraFrame, 0);
+  assertEquals(f.water.frames > 0 && f.water.frames < 10, true);
+  const off = seaMatch(-1000.0, SEA_SURFACE_Z);
+  off.match.hazards = false;
+  play(off, 1, 200);
+  assertEquals(fighterAt(off.world, 0).water.hydraFrame, 0);
+  assertEquals(fighterAt(off.world, 0).status.damage, 0.0);
+  // The lunge: radius 90 round the mark, from the surface to 150 above it.
+  assertTrue(inHydraStrike(0.0, 89.0, SEA_SURFACE_Z));
+  assertFalse(inHydraStrike(0.0, 91.0, SEA_SURFACE_Z));
+  assertTrue(inHydraStrike(0.0, 0.0, SEA_SURFACE_Z + 230.0));
+  assertFalse(inHydraStrike(0.0, 0.0, SEA_SURFACE_Z + 250.0));
+});
+
+test("a hydra strike replays through rollback with no difference [invariant]", () => {
+  const live = seaMatch(-1000.0, SEA_SURFACE_Z);
+  const saved = createReplaySnapshot(); const replay = createReplaySnapshot();
+  play(live, 1, 170);
+  copyReplayState(saved, live);
+  play(live, 171, 230);
+  copyReplayState(replay, saved);
+  play(replay, 171, 230);
+  assertGreaterThan(fighterAt(live.world, 0).status.damage, 0.0);
+  assertEquals(firstStateDifference(live, replay), undefined);
+  assertEquals(stateChecksum(live), stateChecksum(replay));
 });
