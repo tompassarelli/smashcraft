@@ -2,7 +2,7 @@
 import { chmodSync, mkdirSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { generateMDX, ModelRenderer, model as mdx } from "war3-model";
-import { DrawnModel, sheet } from "../../ts/scripts/wisp/hurtboxView";
+import { DrawnModel, sampleAttack, sheet } from "../../ts/scripts/wisp/hurtboxView";
 import { characterModelScale } from "../../ts/src/game/presentation/modelScale";
 import { AttackPhase, AttackStyle, type Character } from "../../ts/src/game/sim/codes";
 import { createFighter } from "../../ts/src/game/sim/fighter";
@@ -94,6 +94,21 @@ function joint(name: string, pose: HeroPose, character: number): number {
   return 0;
 }
 
+/** Normalised blend from rotation `from` (weight 0) to `to` (weight 1), along the shorter arc. */
+function blend(from: ArrayLike<number>, to: ArrayLike<number>, weight: number): Float32Array {
+  let dot = 0; for (let i = 0; i < 4; i++) dot += from[i]!*to[i]!;
+  const sign = dot < 0 ? -1 : 1, vector = new Float32Array(4); for (let i = 0; i < 4; i++) vector[i] = from[i]!*(1-weight)+sign*to[i]!*weight;
+  const norm = Math.hypot(...vector); return vector.map(v => v/norm);
+}
+
+/** The unit direction from the chest (50 units up) to the far end of the move's first active strike, as `view reach` measures toward. */
+function strikeDirection(pose: HeroPose): number[] {
+  const frames = sampleAttack(5 as Character, AttackStyle[pose as keyof typeof AttackStyle], 1, pose.endsWith("Air"));
+  const first = frames.find(f => f.phase === AttackPhase.active && f.strikes.length > 0), strike = first?.strikes[0]; ensure(first && strike, `${pose}: no active strike`);
+  const [x1,z1,x2,z2] = [strike.x1-first.x, strike.z1-first.z-50, strike.x2-first.x, strike.z2-first.z-50], far = Math.hypot(x2,z2) >= Math.hypot(x1,z1) ? [x2,z2] : [x1,z1], length = Math.hypot(...far) || 1;
+  return far.map(v => v/length);
+}
+
 const wardenWeaponPose = (character: number, pose: HeroPose) => character === 5 && ["jab3", "forwardTiltDown", "downTilt", "dashAttack", "upSmash", "upAir", "upTilt", "forwardTiltUp"].includes(pose);
 
 function aimWardenWeapon(model: mdx.Model, index: number, start: number, contact: number, total: number, pose: HeroPose) {
@@ -110,31 +125,82 @@ function aimWardenWeapon(model: mdx.Model, index: number, start: number, contact
     forwardTiltDown: [[50,-27,66],[95,-28,35]],
     downTilt: [[39,-27,64],[79,-28,28]],
     dashAttack: [[58,-27,89],[105,-28,74]],
-    upSmash: [[0,-27,140],[0,-28,193]],
+    upSmash: [[8,-27,150],[8,-28,210]],
     upTilt: [[12,-27,137],[12,-28,190]],
-    upAir: [[20,-27,132],[49,-28,177]],
+    upAir: [[18,-27,148],[36,-28,205]],
     forwardTiltUp: [[28,-27,128],[63,-28,168]],
   };
   const [targetHand,targetTip] = targets[pose]!;
+  // Up tilt's strike sweeps forward of her chest: the weapon passes through it the frame before it lands overhead.
+  const via = pose === "upTilt" ? [[50,-27,100],[100,-28,105]] as const : undefined;
+  const solved = [...arm, hand], held = new Map<mdx.Node, Float32Array>();
   for (let frame = 0; frame <= total; frame++) {
     const at = start + Math.round(frame*1000/60); data.frame = at; renderer.update(0);
+    // Past contact the solve would chase a retreating target and overshoot the contact reach; recovery instead blends the held contact rotations back to the base pose.
+    if (frame > contact) {
+      const weight = frame < contact+3 ? 1 : Math.max(0,1-(frame-contact-3)/(total-contact-3));
+      for (const node of solved) {
+        const key = node.Rotation?.Keys.find(k => k.Frame === at); ensure(key, `${node.Name}: missing recovery key`);
+        key.Vector = blend(key.Vector, held.get(node)!, weight); if (key.InTan) { key.InTan = key.Vector.slice(); key.OutTan = key.Vector.slice(); }
+      }
+      continue;
+    }
     const anticipation = Math.max(1,contact-2);
-    const weight = frame < anticipation ? -0.3*Math.sin(frame/anticipation*Math.PI/2) : frame <= contact ? -0.3+1.3*(frame-anticipation)/(contact-anticipation) : frame < contact+3 ? 1 : Math.max(0,1-(frame-contact-3)/(total-contact-3));
-    const target = (from: number[], to: number[]) => from.map((v,i) => v+(to[i]!-v)*weight);
+    const weight = frame < anticipation ? -0.3*Math.sin(frame/anticipation*Math.PI/2) : -0.3+1.3*(frame-anticipation)/(contact-anticipation);
+    const target = (from: number[], to: number[], through?: readonly number[]) => through && frame === contact-1 ? [...through] : from.map((v,i) => v+(to[i]!-v)*weight);
     const aim = (node: mdx.Node, effector: mdx.Node, target: number[]) => {
       const origin = position(node), a = position(effector).map((v,i) => v-origin[i]!), b = target.map((v,i) => v-origin[i]!);
       const an = Math.hypot(...a), bn = Math.hypot(...b); if (an < 0.001 || bn < 0.001) return;
       const av = a.map(v => v/an), bv = b.map(v => v/bn), cross = [av[1]!*bv[2]!-av[2]!*bv[1]!, av[2]!*bv[0]!-av[0]!*bv[2]!, av[0]!*bv[1]!-av[1]!*bv[0]!], length = Math.hypot(...cross); if (length < 0.00001) return;
-      const axis = cross.map(v => v/length), parent = node.Parent == null ? undefined : data.nodes[node.Parent]?.matrix;
+      turn(node, cross.map(v => v/length), Math.acos(Math.max(-1,Math.min(1,av.reduce((sum,v,i) => sum+v*bv[i]!,0)))));
+    };
+    const turn = (node: mdx.Node, axis: number[], full: number) => {
+      const parent = node.Parent == null ? undefined : data.nodes[node.Parent]?.matrix;
       const local = parent ? [0,1,2].map(i => (axis[0]!*parent[i*4]!+axis[1]!*parent[i*4+1]!+axis[2]!*parent[i*4+2]!)/Math.hypot(parent[i*4]!,parent[i*4+1]!,parent[i*4+2]!)) : axis;
       const key = node.Rotation?.Keys.find(k => k.Frame === at); ensure(key, `${node.Name}: missing contact key`);
-      const angle = Math.acos(Math.max(-1,Math.min(1,av.reduce((sum,v,i) => sum+v*bv[i]!,0))))/2, s = Math.sin(angle), q = key.Vector, [x,y,z] = local;
+      const angle = full/2, s = Math.sin(angle), q = key.Vector, [x,y,z] = local;
       const [u,v,w,t] = q, d = Math.cos(angle), p = [x!*s,y!*s,z!*s];
       const vector = new Float32Array([d*u!+p[0]!*t!+p[1]!*w!-p[2]!*v!, d*v!-p[0]!*w!+p[1]!*t!+p[2]!*u!, d*w!+p[0]!*v!-p[1]!*u!+p[2]!*t!, d*t!-p[0]!*u!-p[1]!*v!-p[2]!*w!]);
       const norm = Math.hypot(...vector); key.Vector = vector.map(v => v/norm); if (key.InTan) { key.InTan = key.Vector.slice(); key.OutTan = key.Vector.slice(); } renderer.update(0);
     };
-    for (let iteration = 0; iteration < 12; iteration++) for (const node of arm.toReversed()) aim(node,hand,target(initialHand,targetHand));
-    aim(hand,tip,target(initialTip,targetTip));
+    const base = solved.map(node => node.Rotation!.Keys.find(k => k.Frame === at)!.Vector.slice());
+    for (let iteration = 0; iteration < 12; iteration++) for (const node of arm.toReversed()) aim(node,hand,target(initialHand,targetHand,via?.[0]));
+    aim(hand,tip,target(initialTip,targetTip,via?.[1]));
+    if (frame === contact) {
+      // The contact pose must be the farthest reach: the blend back to the base pose can swing the weapon out past it, so contact starts where that blend reaches farthest.
+      const keys = solved.map(node => node.Rotation!.Keys.find(k => k.Frame === at)!), solution = keys.map(k => k.Vector.slice());
+      const direction = strikeDirection(pose), length = 1;
+      const reach = () => { const t = new DrawnModel(generateMDX(model),1).triangles(index,contact/60,1); let r = -Infinity; for (let i = 0; i < t.length; i += 2) r = Math.max(r,(t[i]!*direction[0]!+(t[i+1]!-50)*direction[1]!)/length); return r; };
+      let best = 1, most = -Infinity;
+      if (!via) for (let step = 20; step >= 0; step--) {
+        keys.forEach((key,i) => { key.Vector = blend(base[i]!, solution[i]!, step/20); }); renderer.update(0);
+        const r = reach(); if (r > most + 0.01) { most = r; best = step/20; }
+      }
+      keys.forEach((key,i) => { key.Vector = blend(base[i]!, solution[i]!, best); if (key.InTan) { key.InTan = key.Vector.slice(); key.OutTan = key.Vector.slice(); } });
+      renderer.update(0);
+      // An overhead strike rolls the glaive about her forearm until its crescent stands tallest.
+      if (pose === "upSmash" || pose === "upAir") {
+        const handKey = keys[keys.length-1]!, unrolled = handKey.Vector.slice(), top = () => { const t = new DrawnModel(generateMDX(model),1).triangles(index,contact/60,1); let z = -Infinity; for (let i = 1; i < t.length; i += 2) z = Math.max(z,t[i]!); return z; };
+        let roll = 0, tallest = top();
+        for (let step = 1; step < 24; step++) {
+          handKey.Vector = unrolled.slice(); renderer.update(0);
+          const h = position(hand), w = position(tip), axis = w.map((v,i) => v-h[i]!), n = Math.hypot(...axis);
+          turn(hand, axis.map(v => v/n), step*Math.PI/12); const z = top(); if (z > tallest + 0.01) { tallest = z; roll = step; }
+        }
+        handKey.Vector = unrolled.slice(); renderer.update(0);
+        if (roll) { const h = position(hand), w = position(tip), axis = w.map((v,i) => v-h[i]!), n = Math.hypot(...axis); turn(hand, axis.map(v => v/n), roll*Math.PI/12); }
+      }
+      keys.forEach((key,i) => held.set(solved[i]!, key.Vector.slice()));
+    }
+  }
+  // Her arm is straight at contact; an overhead strike also rises onto her toes, within the two units the floor allows.
+  if (pose === "upSmash" || pose === "upAir") {
+    const root = named("Bone_Root"), anticipation = Math.max(1,contact-2);
+    for (let frame = anticipation; frame <= total; frame++) {
+      const key = root.Translation?.Keys.find(k => k.Frame === start + Math.round(frame*1000/60)); ensure(key, "Bone_Root: missing lift key");
+      const weight = frame <= contact ? (frame-anticipation)/(contact-anticipation) : frame < contact+3 ? 1 : Math.max(0,1-(frame-contact-3)/(total-contact-3));
+      key.Vector = key.Vector.map((v,i) => i === 2 ? v+2*weight : v);
+    }
   }
 }
 
@@ -188,7 +254,7 @@ for(const [id,poses]of Object.entries(PLAN)) {
       const amount=node?joint(node.Name,pose,character):0;if(amount)articulated++;
       for(let frame=0;frame<=total;frame++) {
         const anticipation=Math.max(1,contact-2);
-        const amountAt=frame<anticipation?-back*Math.sin(frame/anticipation*Math.PI/2):frame<=contact?-back+(1+back)*(frame-anticipation)/(contact-anticipation):frame<contact+3?1+0.18*(frame-contact)/3:1.18*Math.max(0,1-(frame-contact-3)/(total-contact-3));
+        const amountAt=frame<anticipation?-back*Math.sin(frame/anticipation*Math.PI/2):frame<=contact?-back+(1+back)*(frame-anticipation)/(contact-anticipation):frame<contact+3?1+(wardenWeaponPose(character,pose)?0:0.18)*(frame-contact)/3:(wardenWeaponPose(character,pose)?1:1.18)*Math.max(0,1-(frame-contact-3)/(total-contact-3));
         const Vector=amount?rotate(key.Vector,amount*amountAt):key.Vector.slice();
         track.Keys.push({...key,Frame:start+Math.round(frame*1000/60),Vector,...key.InTan?{InTan:Vector.slice(),OutTan:Vector.slice()}: {}});
       }
