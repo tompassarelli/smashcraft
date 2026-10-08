@@ -532,6 +532,16 @@ Smaller textures (resolution) are not worth it here: the portraits are
 already at the size their frames draw (smashcraft:docs/design/fighter-portraits.md),
 and the selection backdrops compress to 0.9 MB.
 
+White-flash generation retains the clips named by gameplay's clip tables,
+contact reactions, the originals' indexed poses and named fallbacks (#310).
+Frozen fighters can take a heavy hit while holding their previous pose, so
+locomotion and recovery clips remain eligible. Global-clock tracks retain
+their own keys. Inside eligible clips, repeated identical vectors on linear
+or step tracks collapse to their endpoints; clip boundaries, varying keys
+and Hermite/Bezier tracks stay intact. The generator checks that every source
+bone/helper key in those clips is retained or reproduced exactly by a
+constant segment, and that geometry and hierarchy stay unchanged.
+
 ## Budget for the finished game
 
 ### Platform limit

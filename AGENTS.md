@@ -252,7 +252,7 @@ code. From smashcraft:ts/:
   sequences and appends only new clips; `--replace NAME` reauthors one existing clip at its same index and length (smashcraft:docs/fighter-animation-work.md).
 - White body flashes (from the repository root):
   `bun tools/animations/white-flash-models.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
-  authors white body-only copies with the original meshes and animation keys for charge and heavy-hit flashes; store PRIVATE_OUTPUT as `impact-assets`.
+  authors white body-only copies with the original meshes and keys for selectable gameplay poses, removing unused sequences and repeated constant keys for charge and heavy-hit flashes; store PRIVATE_OUTPUT as `impact-assets`.
 - Sylvanas animation authoring (from the repository root):
   `bun tools/animations/sylvanas-clips.ts STOCK_SYLVANAS.mdx PRIVATE_OUTPUT`
   appends bow attacks, casts, recovery, paired grabs and nine damage reactions
