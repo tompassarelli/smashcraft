@@ -1,5 +1,6 @@
 // Warden's four specials through the production special, contact, projectile
 // and motion functions (smashcraft:docs/design/roster.md, Warden B specials).
+import { insideMainDeckBody } from "../surfaces";
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
@@ -175,14 +176,17 @@ test("Blink's mana-free form blinks 1.7H the held way without intangibility", ()
   assertEquals(warden.motion.z, beforeZ);
 });
 
-test("Blink stops at the stage instead of crossing it, and a grounded endpoint stays punishable", () => {
-  // Beside the main deck's body, aimed into it: the wall stops the displacement.
+test("Blink stops at the stage below its lip instead of crossing it, and a grounded endpoint stays punishable", () => {
+  // Beside the main deck's body below its lip, aimed into it: the wall stops the
+  // displacement (a teleport into the lip itself passes it: sim/edgeRecovery.ts).
   const { world, warden } = pair(0.0, 1500.0, -1);
-  place(warden, 700.0, -30.0);
+  place(warden, 700.0, -200.0);
   frame(world, upB);
   for (let f = 2; f <= 9; f++) frame(world, hold(-1, 0));
   frame(world);
-  assertGreaterThan(warden.motion.x, mainDeckRight(0));
+  assertFalse(insideMainDeckBody(0, warden.motion.x, warden.motion.z));
+  assertFalse(warden.motion.grounded);
+  assertTrue(warden.motion.x > 400.0 && warden.motion.z < 0.0);
   // Above the deck, aimed down: it lands on the deck and keeps its endpoint recovery.
   const down = pair(0.0, 1500.0);
   place(down.warden, 0.0, 120.0);

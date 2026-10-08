@@ -34,6 +34,6 @@ const LIFE_DRAIN: AuthoredSpecial = {
 export const SYLVANAS_SPECIALS: FighterSpecials = {
   neutral: { name: "Black Arrow", description: "A dark arrow that charges her next bow strike. Hold up to fire upward.", ground: BLACK_ARROW, air: { ...BLACK_ARROW, landingLag: 16 } },
   side: { name: "Silence", description: "A short curse that stops offensive specials. Movement, attacks and recovery still work.", ground: SILENCE, air: { ...SILENCE, landingLag: 20 } },
-  up: { name: "Banshee Flight", description: "Rise as a spirit, steering toward the stage, then fall helpless.", ground: flight(15, f32(2.4), f32(1.2)), free: flight(0, f32(1.6), f32(0.8)) },
+  up: { name: "Banshee Flight", description: "Rise as a spirit, steering toward the stage, then fall helpless.", ground: flight(15, f32(2.6), f32(2.6)), free: flight(0, f32(1.75), f32(1.2)) },
   down: { name: "Life Drain", description: "Catch a nearby foe through their shield and drain a little life. A missed reach leaves her open.", ground: LIFE_DRAIN },
 };

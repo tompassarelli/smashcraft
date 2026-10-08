@@ -94,6 +94,6 @@ const howl = (air: boolean): AuthoredSpecial => ({
 export const PIT_LORD_SPECIALS: FighterSpecials = {
   neutral: { name: "Howl of Terror", description: "A close roar pushes enemies away on both sides; a shield stops it.", ground: howl(false), air: howl(true) },
   side: { name: "Ruin Charge", description: "A slow charge whose armor shrugs off one light hit; it stops at a shield.", ground: RUIN_CHARGE, air: RUIN_CHARGE_AIR },
-  up: { name: "Abyssal Leap", description: "A slow arcing leap you steer, with a hoof strike, then a helpless fall.", ground: abyssalLeap(15, h(f32(3.5)), h(f32(0.5)), h(f32(1.15)), true), free: abyssalLeap(0, h(f32(2.6)), h(f32(0.3)), h(f32(0.6)), false) },
+  up: { name: "Abyssal Leap", description: "A slow arcing leap you steer, with a hoof strike, then a helpless fall.", ground: abyssalLeap(15, h(f32(3.5)), h(f32(0.5)), h(f32(1.15)), true), free: abyssalLeap(0, h(f32(2.85)), h(f32(0.3)), h(f32(0.8)), false) },
   down: { name: "Rain of Fire", description: "Three waves of fire fall ahead; rush underneath or tilt your shield up.", ground: rain(false), air: rain(true) },
 };

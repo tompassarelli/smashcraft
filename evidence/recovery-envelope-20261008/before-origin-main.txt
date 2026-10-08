@@ -1,0 +1,21 @@
+Archer               upB full 473/756 free 473/756  env full 692/940 free 724/940
+Rifleman             upB full 416/753 free 416/753  env full 685/940 free 698/940
+Illidan              upB full 435/864 free 435/864  env full 762/940 free 762/720
+Blademaster          upB full 368/372 free 249/254  env full 660/793 free 545/676
+Mountain King        upB full 355/359 free 249/254  env full 692/749 free 583/646
+Warden               upB full 342/346 free 223/227  env full 609/786 free 493/668
+Lich                 upB full 369/371 free 229/261  env full 628/793 free 397/690
+Forsaken Paladin     upB full 333/362 free 214/320  env full 352/764 free 461/727
+Dreadlord            upB full 370/427 free 229/276  env full 609/903 free 513/756
+Shadow Hunter        upB full 381/386 free 263/267  env full 673/808 free 557/690
+Pit Lord             upB full 339/377 free 218/237  env full 615/749 free 493/610
+Beastmaster          upB full 346/359 free 226/247  env full 621/764 free 500/654
+Lich King            upB full 386/380 free 256/269  env full 609/778 free 513/668
+Thrall               upB full 345/412 free 201/355  env full 602/793 free 448/734
+Jaina Proudmoore     upB full 329/333 free 216/221  env full 634/749 free 519/639
+Sylvanas Windrunner  upB full 359/363 free 225/240  env full 609/771 free 506/654
+Cairne Bloodhoof     upB full 359/345 free 262/230  env full 583/764 free 474/646
+Chen Stormstout      upB full 327/360 free 213/255  env full 583/815 free 468/705
+Peon                 upB full 355/358 free 209/245  env full 621/793 free 468/676
+Goblin Tinker        upB full 385/378 free 231/262  env full 647/830 free 506/720
+Kael'thas Sunstrider upB full 343/416 free 204/261  env full 621/889 free 500/734

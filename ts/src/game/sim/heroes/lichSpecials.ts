@@ -100,6 +100,6 @@ const DARK_RITUAL: AuthoredSpecial = {
 export const LICH_SPECIALS: FighterSpecials = {
   neutral: { name: "Frost Nova", description: "A slow orb that chills; press again to burst it where it is.", ground: frostNova(undefined), air: frostNova(AIR_LANDING_LAG), recall: frostNovaBurst(undefined), recallWhile: "projectile" },
   side: { name: "Death and Decay", description: "A rotting field ahead that strikes twice, small then strong; walk or jump out.", ground: DEATH_AND_DECAY },
-  up: { name: "Spectral Ascent", description: "A steerable rise, then a helpless fall.", ground: ascent(15, f32(2.9), f32(1.0)), free: ascent(0, f32(2.1), f32(0.7)) },
+  up: { name: "Spectral Ascent", description: "A steerable rise, then a helpless fall.", ground: ascent(15, f32(3.7), f32(1.0)), free: ascent(0, f32(2.3), f32(0.7)) },
   down: { name: "Frost Armor", description: "A shell that takes the knockback of one light hit and chills the attacker; press again for Dark Ritual: shatter it for mana.", ground: FROST_ARMOR, recall: DARK_RITUAL, recallWhile: "armor" },
 };

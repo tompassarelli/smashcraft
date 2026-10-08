@@ -83,6 +83,6 @@ const hawkLift = (cost: number, rise: number, drift: number, steer: number): Aut
 export const BEASTMASTER_SPECIALS: FighterSpecials = {
   neutral: { name: "Wild Axes", description: "Throw two axes; move to guide their return through the enemy.", ground: wildAxes(false), air: wildAxes(true) },
   side: { name: "Summon Bear", description: "Call Bear, then press again for its lunge and a Stampede.", ground: SUMMON_BEAR, recall: BEAR_COMMAND },
-  up: { name: "Summon Hawk", description: "Call Hawk, then command a dive. In the air, Hawk carries him up.", ground: SUMMON_HAWK, recall: HAWK_DIVE, recallGroundOnly: true, air: hawkLift(15, h(f32(3.2)), h(f32(0.3)), h(f32(1.2))), free: hawkLift(0, h(f32(2.3)), h(f32(0.2)), h(f32(0.8))) },
+  up: { name: "Summon Hawk", description: "Call Hawk, then command a dive. In the air, Hawk carries him up.", ground: SUMMON_HAWK, recall: HAWK_DIVE, recallGroundOnly: true, air: hawkLift(15, h(f32(3.6)), h(f32(0.3)), h(f32(3.4))), free: hawkLift(0, h(f32(2.5)), h(f32(0.2)), h(f32(1.0))) },
   down: { name: "Summon Quilbeast", description: "Set a Quilbeast firing position; press again for a three-quill volley.", ground: SUMMON_QUILBEAST, recall: QUILL_VOLLEY },
 };

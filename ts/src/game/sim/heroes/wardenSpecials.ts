@@ -61,13 +61,13 @@ const blink = (cost: number, distance: number, intangible: boolean): AuthoredSpe
   cost, endFrame: 30, oncePerAirtime: true, helpless: true, aimFrames: CHARGED_AIM_FRAMES,
   motion: [
     { ...frames(1, CHARGED_AIM_FRAMES), velocityX: 0.0, velocityZ: 0.0 },
-    { ...frames(9, 9), velocityX: 0.0, velocityZ: distance, aimedSpeed: distance },
+    { ...frames(9, 9), velocityX: 0.0, velocityZ: distance, aimedSpeed: distance, throughEdge: true },
     { ...frames(10, 30), velocityX: 0.0, velocityZ: 0.0 },
   ],
   intangible: intangible ? frames(8, 10) : undefined,
 });
-const BLINK = blink(20, f32(H * f32(2.6)), true);
-const BLINK_FREE = blink(0, f32(H * f32(1.7)), false);
+const BLINK = blink(20, f32(H * f32(3.5)), true);
+const BLINK_FREE = blink(0, f32(H * f32(1.9)), false);
 
 // Fan of Knives reaches 1.30H; shield or bait the committed cast to punish it.
 export const WARDEN_FAN_REACH = f32(H * f32(1.30));

@@ -14,6 +14,7 @@ import { checkBlastZone } from "./stocks";
 import { aerialJumps, groundedJumps, jumpBuffed, speedBuffed } from "./itemBuffs";
 import { beginAttack, cancelAttack, clearDownState, clearLedge, clearPlatformMove, clearTech, leaveLedge, refreshOriginalAirtime } from "./transitions";
 import { melee } from "./tuning";
+import { heroBody } from "./heroes/heroBodies";
 
 export const LEDGE_CLIMB_FRAMES = 25;
 export const LEDGE_ROLL_FRAMES = 36;
@@ -45,10 +46,27 @@ const FOX_LEDGE_SNAP: LedgeSnap = { x: 11.0, y: 13.0, height: 9.0 };
 const FALCO_LEDGE_SNAP: LedgeSnap = { x: 11.0, y: 13.0, height: 9.0 };
 const CAPTAIN_FALCON_LEDGE_SNAP: LedgeSnap = { x: 9.0, y: 17.0, height: 11.0 };
 
+const heroSnaps: (LedgeSnap | undefined)[] = [];
+
+/**
+ * An expansion hero catches with Fox's box grown with its body: a body taller
+ * than the reference reaches as far beyond it as Fox does beyond his, as
+ * Melee's taller fighters' boxes sit higher (Captain Falcon's 17 against
+ * Fox's 13). Shorter bodies keep Fox's box.
+ */
+function heroSnap(character: Character): LedgeSnap {
+  const cached = heroSnaps[character];
+  if (cached !== undefined) return cached;
+  const scale = max(1.0, heroBody(character)?.height ?? 1.0);
+  const snap = { x: f32(FOX_LEDGE_SNAP.x * scale), y: f32(FOX_LEDGE_SNAP.y * scale), height: f32(FOX_LEDGE_SNAP.height * scale) };
+  heroSnaps[character] = snap;
+  return snap;
+}
+
 export function ledgeSnap(character: Character): LedgeSnap {
   switch (character) {
-    // Expansion heroes catch with the reference fighter's reach.
     default:
+      return heroSnap(character);
     case Character.archer:
       return FOX_LEDGE_SNAP;
     case Character.rifleman:
@@ -72,10 +90,17 @@ const ARCHER_CATCH_BOX = catchBox(FOX_LEDGE_SNAP);
 const RIFLEMAN_CATCH_BOX = catchBox(FALCO_LEDGE_SNAP);
 const DEMON_HUNTER_CATCH_BOX = catchBox(CAPTAIN_FALCON_LEDGE_SNAP);
 
+const heroCatchBoxes: (LedgeCatchBox | undefined)[] = [];
+
 export function ledgeCatchBox(character: Character): LedgeCatchBox {
   switch (character) {
-    // Expansion heroes catch with the reference fighter's reach.
-    default:
+    default: {
+      const cached = heroCatchBoxes[character];
+      if (cached !== undefined) return cached;
+      const box = catchBox(heroSnap(character));
+      heroCatchBoxes[character] = box;
+      return box;
+    }
     case Character.archer:
       return ARCHER_CATCH_BOX;
     case Character.rifleman:
@@ -102,15 +127,22 @@ function ledgeX(stage: number, side: number): number {
   return side < 0 ? mainDeckLeft(stage) : mainDeckRight(stage);
 }
 
+/** The four up specials, which spend the aerial jump and end in a helpless fall. */
+export function isUpSpecialAction(action: number): boolean {
+  return action === SpecialAction.heroUp || action === SpecialAction.archerRecovery
+    || action === SpecialAction.riflemanRecovery || action === SpecialAction.demonHunterWingAscent;
+}
+
 /**
- * Falling, helpless and tumbling fighters catch; attacks, specials, air dodges,
- * hitstun and shield breaks don't. An air dodge ends actionable when its
- * animation ends.
+ * Falling, helpless and tumbling fighters catch, and so does a running up
+ * special (smashcraft:docs/gameplay-design.md, "Recovery and edgeguarding",
+ * as most Melee up specials do); attacks, other specials, air dodges, hitstun
+ * and shield breaks don't. An air dodge ends actionable when its animation ends.
  */
 function canCatchLedge(f: Fighter): boolean {
   const { attack, special, dodge, launch, down } = f;
   return !f.status.out && f.status.frozenFrames <= 0 && launch.hitlag <= 0 && launch.hitstun <= 0
-    && attack.style === undefined && attack.cooldown <= 0 && special.action === SpecialAction.none && special.lockFrames <= 0
+    && attack.style === undefined && attack.cooldown <= 0 && (special.action === SpecialAction.none || isUpSpecialAction(special.action)) && special.lockFrames <= 0
     && !dodge.airDodging && f.shield.breakState === ShieldBreak.none
     && !inGrabContext(f) && (down.state === DownState.none || isTumbling(f));
 }
@@ -143,6 +175,9 @@ function ledgeDistance(f: Fighter, stage: number, side: number): number {
 
 function catchLedge(f: Fighter, stage: number, side: number): void {
   const { motion, launch, ledge } = f;
+  // A catch during an up special ends it there.
+  f.special.action = SpecialAction.none;
+  f.special.frame = 0;
   motion.crouching = false;
   motion.fastFalling = false;
   clearDash(f);
@@ -171,6 +206,23 @@ function catchLedge(f: Fighter, stage: number, side: number): void {
   f.jump.remaining = aerialJumps(f);
   clearPlatformMove(f);
   clearTech(f);
+}
+
+/**
+ * A teleport through the edge (sim/edgeRecovery.ts) catching `side`'s ledge at
+ * once; false, changing nothing, when another fighter holds that ledge or the
+ * fighter's regrab lock runs.
+ */
+export function snapToLedge(world: Roster, slot: number, stage: number, side: number): boolean {
+  const f = fighterAt(world, slot);
+  if (f.ledge.regrab > 0) return false;
+  for (let other = 0; other < PARTICIPANT_CAPACITY; other++) {
+    if (!isActive(world, other)) continue;
+    const holder = fighterAt(world, other);
+    if (holder.ledge.state !== LedgeState.none && holder.ledge.side === side) return false;
+  }
+  catchLedge(f, stage, side);
+  return true;
 }
 
 /** Catches each main-deck ledge for its nearest candidate; tied nearest candidates both fail. */

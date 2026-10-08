@@ -326,6 +326,14 @@ function mainDeckSideX(stage: number, side: number, z: number): number | undefin
   return undefined;
 }
 
+/** Whether a point lies strictly inside the main deck's solid body, below its walking plane and between its sides. */
+export function insideMainDeckBody(stage: number, x: number, z: number): boolean {
+  if (solidSurfaceCount(stage) === 0 || z >= mainDeckZ(stage)) return false;
+  const right = mainDeckSideX(stage, 1, z);
+  const left = mainDeckSideX(stage, -1, z);
+  return right !== undefined && left !== undefined && x > f32(left + BODY_REACH) && x < f32(right - BODY_REACH);
+}
+
 /**
  * Moves a fighter whose feet ended a frame inside the main deck's body out
  * sideways to the nearer flank, as Melee's collision box slides off a ledge's

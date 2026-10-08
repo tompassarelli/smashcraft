@@ -18,7 +18,7 @@ const stomp = (air: boolean): AuthoredSpecial => ({
 const lift = (free: boolean): AuthoredSpecial => ({
   cost: free ? 0 : 15, endFrame: 32, oncePerAirtime: true, helpless: true, facesStick: true,
   motion: [{ ...frames(1, 10), velocityX: 0.0, velocityZ: 0.0 },
-    { ...frames(11, 26), velocityX: 0.0, velocityZ: free ? 15.0 : 20.0, driftSpeed: free ? 6.0 : 10.0 },
+    { ...frames(11, 26), velocityX: 0.0, velocityZ: free ? 15.0 : 20.0, driftSpeed: free ? 7.0 : 10.0 },
     { ...frames(27, 32), velocityX: 0.0, velocityZ: free ? 4.0 : 6.0, driftSpeed: free ? 2.0 : 3.0 }],
   regions: free ? undefined : [heroRegion(11, 16, c(0.0, 95.0, 0.0, 200.0, 20.0), hit(9.0, "launch", 80))],
 });
