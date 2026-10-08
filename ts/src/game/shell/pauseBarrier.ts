@@ -11,6 +11,8 @@ import type { ControlState } from "../netcode/journal/source";
 import { PARTICIPANT_SLOTS, type Slots, isParticipantSlot, participantActive } from "../input/participants";
 
 export const CONTROL_ACK_PREFIX = "SC_JC";
+/** Synchronized prefix of an edit box pause or resume request. */
+export const PAUSE_REQUEST_PREFIX = "SC_JP";
 
 interface BarrierRequest {
   /** The acknowledgment each helper owes this round. */

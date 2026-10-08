@@ -12,6 +12,8 @@
 // of the integrity build, and with --compare checks a native run's folder
 // against it (smashcraft:ts/scripts/integrity/padParity.ts); without --compare
 // it checks the script's own `#!` expectations against the headless run.
+// `--replay-arrivals NATIVE_DIR` replays that native run's measured pause and
+// resume control-message arrivals (smashcraft:ts/scripts/integrity/pauseArrivals.ts).
 //
 // Several scripts, or a folder of them, run as one batch: one game per client
 // pair with `-dev reset` between scripts, the headless runs alongside, and
@@ -34,7 +36,8 @@ import { installHeadless, type HeadlessRuntime } from "wisp/scripts/wisp/headles
 import { readReplay } from "../replayFiles";
 import { RealtimeClients, type TypedInput, customMapData, typedFile } from "wisp/scripts/wisp/headlessInput";
 import { step } from "wisp/scripts/wisp/timings";
-import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
+import { MEASURED_BATTLE_NET, type ReplayedArrival, replayedDelivery, syncDelivery } from "wisp/src/headless/syncChannel";
+import { type PauseArrivals, measuredPauseArrivals, replayedPauseArrivals } from "../../integrity/pauseArrivals";
 import { INTEGRITY_BUILD } from "../../../src/game/shell/currentBuild";
 import { gameProcess, json, startHelper } from "../../integrity/capture";
 import { IntegrityFailure, producerLine, tryIntegrity } from "../../integrity/evidence";
@@ -93,7 +96,7 @@ const setupCommand = (session: NativeSession, command: string, send: Effect.Effe
 });
 
 const USAGE = "pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat=TEXT] [--map MAP.w3x [--retries N]] [--clients-file FILE]\n"
-  + "       bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT] [--compare NATIVE_DIR] [--render DIR --frames N...]\n"
+  + "       bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT] [--compare NATIVE_DIR] [--replay-arrivals NATIVE_DIR] [--render DIR --frames N...]\n"
   + "       bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR --map MAP.w3x [--pairs N | --pair K... | --app-id a=ID --app-id b=ID] [--headless-jobs N] [--fresh-each] [--hot] [--clients-file FILE]\n"
   + "       bun wisp pad SCRIPT|DIR... --headless --helper BINARY --out DIR [--headless-jobs N]";
 
@@ -202,6 +205,8 @@ export interface PadOptions {
   readonly candidate?: string | undefined;
   readonly render?: string | undefined;
   readonly renderFrames?: readonly number[] | undefined;
+  /** Headless: replay this native run's measured pause-control arrivals (--replay-arrivals NATIVE_DIR). */
+  readonly arrivals?: PauseArrivals | undefined;
 }
 
 /** Helpers and virtual pads belong to one game, across all of its scripted matches. */
@@ -419,7 +424,7 @@ const scheduled = (worker: Worker, schedule: Schedule) => Effect.callback<readon
  * in real time until the scope closes. The helpers follow every match, so a
  * session can play one script after another (`pad SCRIPT SCRIPT... --headless`).
  */
-export const headlessSession = (dir: string, helper: string, build: string, afterDraw?: (clients: readonly HeadlessClient[]) => void) => Effect.gen(function*() {
+export const headlessSession = (dir: string, helper: string, build: string, afterDraw?: (clients: readonly HeadlessClient[]) => void, arrivals?: PauseArrivals) => Effect.gen(function*() {
   yield* tryIntegrity("create pad directory", dir, () => mkdirSync(dir, { recursive: true }));
   const entry = yield* loadEntry;
   const runtime = yield* Effect.acquireRelease(Effect.sync(() => installHeadless(PREDICTED_HEADLESS)), (installed) => Effect.sync(installed.restore));
@@ -436,9 +441,17 @@ export const headlessSession = (dir: string, helper: string, build: string, afte
     ], Bun.env, join(dir, `helper-${slot}.log`));
   }
   const worker = yield* scheduleThread;
-  const clients = runtime.clients(entry, SLOTS, { files: (slot) => customMapData(at(data, slot)), delivery: syncDelivery(MEASURED_BATTLE_NET, 1), keepCalls: 64 });
+  // The script's Start presses, planned before it runs, for arrivals a native run measured from its presses.
+  const startPressesMs: number[] = [];
+  const network = syncDelivery(MEASURED_BATTLE_NET, 1);
+  let replayed: { readonly presses: number; readonly arrivals: readonly ReplayedArrival[] } = { presses: 0, arrivals: [] };
+  const delivery = arrivals === undefined ? network : replayedDelivery(() => {
+    if (replayed.presses !== startPressesMs.length) replayed = { presses: startPressesMs.length, arrivals: replayedPauseArrivals(arrivals, startPressesMs) };
+    return replayed.arrivals;
+  }, network, () => realtime.frameDueMs());
+  const clients = runtime.clients(entry, SLOTS, { files: (slot) => customMapData(at(data, slot)), delivery, keepCalls: 64 });
   const pause = pauseDraws(dir);
-  const realtime = new RealtimeClients(clients, typed, undefined, undefined, timing => {
+  const realtime: RealtimeClients = new RealtimeClients(clients, typed, () => monotonicNs() / 1e6, undefined, timing => {
     afterDraw?.(clients.clients);
     pause.afterDraw(clients.clients, timing);
   });
@@ -450,7 +463,7 @@ export const headlessSession = (dir: string, helper: string, build: string, afte
     })),
   ));
   const log = (slot: number) => readFileSync(join(dir, `helper-${slot}.log`), "utf8");
-  return { dir, build, data, pads, worker, clients, state, logs: (): [string, string] => [log(SLOTS[0]), log(SLOTS[1])] };
+  return { dir, build, data, pads, worker, clients, state, startPressesMs, logs: (): [string, string] => [log(SLOTS[0]), log(SLOTS[1])] };
 });
 
 export type HeadlessSession = Effect.Success<ReturnType<typeof headlessSession>>;
@@ -476,6 +489,7 @@ export const headlessScript = (session: HeadlessSession, options: PadOptions) =>
   const epochs = yield* matchEpochs(logs, startedNs, out);
   yield* checkFirstEdge(steps, epochs, scriptPath);
   const edges: ScheduledEdge[] = steps.flatMap((item) => item.kind === "edge" ? item.edges.map((edge) => ({ slot: item.slot, frame: item.frame, edge, line: item.line, text: item.text })) : []);
+  for (const edge of edges) if (edge.text.endsWith("press START")) session.startPressesMs.push(frameWriteNs(epochs[edge.slot], edge.frame) / 1e6);
   const sent = yield* scheduled(worker, { pads: [at(pads, 0), at(pads, 1)], epochs, edges });
   const last = steps.at(-1)?.frame ?? 0;
   yield* until(frameWriteNs(Math.max(...epochs), last + 30));
@@ -493,7 +507,7 @@ const headless = (options: PadOptions) => Effect.gen(function*() {
   const captures = options.chat !== undefined && options.steps.some((step) => step.kind === "capture");
   const frames = !captures ? undefined : (yield* Effect.promise(() => import("../padRender"))).padRender(options.out, options.build, options.steps, token, options.render === undefined ? [] : options.renderFrames);
   const result = yield* Effect.scoped(Effect.gen(function*() {
-    const session = yield* headlessSession(options.out, options.helper, options.build, frames?.afterDraw);
+    const session = yield* headlessSession(options.out, options.helper, options.build, frames?.afterDraw, options.arrivals);
     return yield* headlessScript(session, frames === undefined || options.chat === undefined ? options : { ...options, chat: visualCaptureCommand(options.chat, token, options.steps) });
   }));
   if (frames !== undefined && options.render !== undefined) {
@@ -508,7 +522,7 @@ export const pad: Command = (args) => Effect.gen(function*() {
   const parsed = yield* Effect.try({
     try: () => parseArgs({ args: [...args], allowPositionals: true, options: {
       helper: { type: "string" }, build: { type: "string" }, out: { type: "string" }, chat: { type: "string" }, "app-id": { type: "string", multiple: true },
-      headless: { type: "boolean" }, compare: { type: "string" }, retries: { type: "string" }, map: { type: "string" },
+      headless: { type: "boolean" }, compare: { type: "string" }, "replay-arrivals": { type: "string" }, retries: { type: "string" }, map: { type: "string" },
       render: { type: "string" }, frames: { type: "string" },
       pairs: { type: "string" }, pair: { type: "string", multiple: true }, pool: { type: "string" }, "fresh-each": { type: "boolean" }, hot: { type: "boolean" }, "headless-jobs": { type: "string" },
       "clients-file": { type: "string" },
@@ -544,7 +558,10 @@ export const pad: Command = (args) => Effect.gen(function*() {
   const script = yield* Effect.try({ try: () => readFileSync(scriptPath, "utf8"), catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
   const steps = yield* Effect.try({ try: () => compare === undefined ? parsePadScript(script) : comparisonSteps(script, scriptPath), catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
   if (renderFrames !== undefined && renderFrames.some((frame) => !steps.some((step) => step.kind === "capture" && step.frame === frame))) return yield* new UsageFailure({ problem: "every --frames value must name a capture in the pad script" });
-  const options: PadOptions = { scriptPath, steps, helper, build, out, chat: chat ?? scriptChat(script), candidate: parsed.values.map, render: parsed.values.render, renderFrames };
+  const replay = parsed.values["replay-arrivals"];
+  if (replay !== undefined && !isHeadless) return yield* new UsageFailure({ problem: "--replay-arrivals NATIVE_DIR goes with --headless" });
+  const arrivals = replay === undefined ? undefined : yield* Effect.try({ try: () => measuredPauseArrivals(replay), catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
+  const options: PadOptions = { scriptPath, steps, helper, build, out, chat: chat ?? scriptChat(script), candidate: parsed.values.map, render: parsed.values.render, renderFrames, arrivals };
   if (!isHeadless) {
     const appIds = new Map<string, string>();
     for (const entry of parsed.values["app-id"] ?? []) {

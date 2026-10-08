@@ -9,7 +9,7 @@ import type { JournalInputSource } from "../../game/netcode/journal/source";
 import { readVocabularyControlAck } from "../../game/netcode/journal/vocabulary";
 import { controlFile } from "../../game/shell/journalFiles";
 import { pausedMessage } from "../../game/shell/messages";
-import { CONTROL_ACK_PREFIX, agreedFrame, encodeControlAck, paceResume, pausing, preparedFrame, receiveControlAck, requestRound } from "../../game/shell/pauseBarrier";
+import { CONTROL_ACK_PREFIX, PAUSE_REQUEST_PREFIX, agreedFrame, encodeControlAck, paceResume, pausing, preparedFrame, receiveControlAck, requestRound } from "../../game/shell/pauseBarrier";
 import { readChunk } from "wisp/src/platform/fileio";
 import { releaseMessage } from "../keyboardJournal";
 import { consumeEditbox, failJournal, journalEpoch, journalIdentity, mailboxMessage, peekEditbox, setAsideRows, writeJournalFile } from "./journal";
@@ -18,8 +18,7 @@ import { syncKeyEvents } from "./keyEvents";
 import { traceInput } from "./trace";
 import { LASTING, pauseMatchPresentation, setStatus, startControl } from "./view";
 
-/** Synchronized prefixes: edit box pause requests, chat closes. */
-export const PAUSE_REQUEST_PREFIX = "SC_JP";
+/** Synchronized prefix of chat closes; pause requests use pauseBarrier's PAUSE_REQUEST_PREFIX. */
 export const CHAT_CLOSED_PREFIX = "SC_JH";
 
 export function chatBusy(journal: Readonly<Journal>): boolean {

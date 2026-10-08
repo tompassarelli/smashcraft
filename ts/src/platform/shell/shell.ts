@@ -41,7 +41,7 @@ import { SAVE_MOMENT, momentKey, serviceMomentRequest, serviceMomentSave } from 
 import { readMatchIndex, writeMatchRecord } from "./matchRecords";
 import { type ShellState, activeRollback, createShellState, localSlot, momentSaves, replayRecording, shellState } from "./state";
 import { endReplaySegment, serviceReplay } from "./replays";
-import { CONTROL_ACK_PREFIX } from "../../game/shell/pauseBarrier";
+import { CONTROL_ACK_PREFIX, PAUSE_REQUEST_PREFIX } from "../../game/shell/pauseBarrier";
 import { clearMatchEffects, createUi, recreateUi, views } from "./ui";
 import { resultsView } from "../../game/presentation/matchCues";
 import * as view from "./view";
@@ -256,7 +256,7 @@ function createTriggers(s: ShellState): void {
   if (rollback !== undefined) syncTrigger(s, INPUT_PREFIX, INPUT, true);
   if (rollback?.journal !== undefined) syncTrigger(s, CONTROL_ACK_PREFIX, CONTROL_ACK, true);
   if (rollback?.journal?.editbox !== undefined) {
-    syncTrigger(s, journalPause.PAUSE_REQUEST_PREFIX, PAUSE_REQUEST, true);
+    syncTrigger(s, PAUSE_REQUEST_PREFIX, PAUSE_REQUEST, true);
     syncTrigger(s, journalPause.CHAT_CLOSED_PREFIX, CHAT_CLOSED, true);
   }
   if (s.build.devConsole) {
