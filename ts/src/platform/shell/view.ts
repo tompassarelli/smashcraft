@@ -18,6 +18,7 @@ import { type MatchCamera, copyMatchCamera } from "../../game/sim/matchCamera";
 import { advanceMatchCamera } from "../../game/sim/matchCamera";
 import { stageBounds } from "../../game/sim/stageBounds";
 import { damageTint } from "../../game/presentation/hitPresentation";
+import { fighterTintChannel, stageFighterTint } from "../../game/presentation/stageFighterTint";
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import { hideEffect } from "../../game/render/effects";
 import { FRAME_SECONDS, type FighterPose } from "../../game/presentation/fighterPose";
@@ -246,14 +247,14 @@ export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readon
   if (!pooled) SetUnitTimeScale(body.unit, pose.rate);
   if (fighter.status.out) return;
   placeFighterBody(body, fighter, s.origin, s.game.stageChoice);
-  if (fighter.status.frozenFrames > 0) SetUnitVertexColor(body.unit, 155, 210, 255, 255);
-  else if (damageTint(fighter) !== undefined) {
-    const tint = damageTint(fighter);
-    if (tint !== undefined) SetUnitVertexColor(body.unit, tint.red, tint.green, tint.blue, 255);
-  } else {
-    const shielded = fighter.shield.raised;
-    SetUnitVertexColor(body.unit, shielded ? 100 : 255, shielded ? 160 : 255, 255, isIntangible(fighter) ? 140 : 255);
-  }
+  const tint = damageTint(fighter);
+  const frozen = fighter.status.frozenFrames > 0;
+  const red = frozen ? 155 : tint?.red ?? (fighter.shield.raised ? 100 : 255);
+  const green = frozen ? 210 : tint?.green ?? (fighter.shield.raised ? 160 : 255);
+  const blue = frozen ? 255 : tint?.blue ?? 255;
+  const stageTint = stageFighterTint(s.game.stageChoice, !s.stockLighting);
+  const alpha = !frozen && tint === undefined && isIntangible(fighter) ? 140 : 255;
+  SetUnitVertexColor(body.unit, fighterTintChannel(red, stageTint[0]), fighterTintChannel(green, stageTint[1]), fighterTintChannel(blue, stageTint[2]), alpha);
 }
 
 /** Freezes or resumes the units, effects and projectiles. */
@@ -345,11 +346,11 @@ export function renderPersistentPresentation(s: ShellState): void {
     const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
     const renderers = ui.fighters[slot];
     if (renderers?.pool !== undefined) {
-      if (fighter !== undefined && ui.match.posing !== slot) renderers.pool.present(fighter, runtime.poses[slot], stage, runtime.simulationFrame);
+      if (fighter !== undefined && ui.match.posing !== slot) renderers.pool.present(fighter, runtime.poses[slot], stage, runtime.simulationFrame, !s.stockLighting);
       else renderers.pool.hide();
     }
     const live = playing ? fighter : undefined;
-    renderers?.flash.present(ui.match.posing === slot ? undefined : live, runtime.poses[slot], stage, runtime.simulationFrame);
+    renderers?.flash.present(ui.match.posing === slot ? undefined : live, runtime.poses[slot], stage, runtime.simulationFrame, !s.stockLighting);
     if (renderers !== undefined) {
       const agency = live === undefined ? "act" : renderers.agency.forecast.classify(world, slot, stage, matchFrame, s.controls.commands[slot].graceFrames);
       renderers.agency.present(live, agency);

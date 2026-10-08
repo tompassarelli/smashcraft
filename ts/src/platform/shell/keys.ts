@@ -8,7 +8,7 @@ import { emitImpacts } from "../../game/presentation/impactState";
 import { Action } from "../../game/input/actions";
 import { sampleKeys } from "../../game/input/keyboardCapture";
 import { isCarrierKey } from "../../game/netcode/journal/keyboard";
-import { type ParticipantSlot, isParticipantSlot } from "../../game/input/participants";
+import { PARTICIPANT_SLOTS, type ParticipantSlot, isParticipantSlot } from "../../game/input/participants";
 import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/playerKeys";
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
 import { Phase, cancelRematchCountdown, characterFor, copyMatchState, firstHumanSlot, humanActive, recallCharacter, selectCharacter } from "../../game/match/rules";
@@ -41,7 +41,7 @@ import { exportProbe, probeIntegrity, probeRecording, startProbe } from "./respo
 import { type ShellState, activeRollback, cancelPendingPlaytest, localSlot, playsOnKeyboard } from "./state";
 import { clearMatchEffects, views } from "./ui";
 import { ownConfirmedState } from "./confirmedState";
-import { LASTING, pauseMatchPresentation, setStatus } from "./view";
+import { LASTING, pauseMatchPresentation, renderFighter, renderPersistentPresentation, setStatus } from "./view";
 
 /** Keys the journal's carriers or edit box own, which the map must not read as the player's controls. */
 function journalOwnsKey(s: ShellState, slot: ParticipantSlot, key: number): boolean {
@@ -351,6 +351,8 @@ export function applyDeveloperCommand(s: ShellState, actor: number, original: st
   } else if (message === "-dev lighting stock" || message === "-dev lighting stage") {
     const authored = message === "-dev lighting stage";
     showStageLighting(s, authored);
+    for (const slot of PARTICIPANT_SLOTS) renderFighter(s, slot, s.runtime.poses[slot], s.participants[slot].before.out);
+    renderPersistentPresentation(s);
     receipt = `dev: lighting ${authored ? "stage" : "stock"}`;
   } else if (message === "-dev view near" || message === "-dev view far" || message === "-dev view off") {
     s.viewExtreme = message === "-dev view near" ? "near" : message === "-dev view far" ? "far" : undefined;

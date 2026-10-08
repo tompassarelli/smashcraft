@@ -33,6 +33,7 @@ export function drawStageScenery(s: ShellState): void {
   SetSkyModel(scenery.sky);
   const light = stageLightModel(s.game.stageChoice);
   SetDayNightModels(light, light);
+  s.stockLighting = false;
   drawStageFog(s);
   // Set only once a stage with a shadow-casting light has raised it, then back to none.
   const shadows = shadowCastingLights(s.game.stageChoice);
@@ -100,6 +101,7 @@ export function showBackdrop(s: ShellState, visible: boolean): void {
 
 /** Same paused scene, old stock lighting versus the stage's authored lighting. */
 export function showStageLighting(s: ShellState, authored: boolean): void {
+  s.stockLighting = !authored;
   if (authored) {
     const light = stageLightModel(s.game.stageChoice);
     SetDayNightModels(light, light);
