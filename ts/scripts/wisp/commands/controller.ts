@@ -14,7 +14,7 @@ export const controller: Command = (args) => Effect.gen(function*() {
   if (args.length > 0) {
     const [verb, name] = args;
     if (verb !== "layout" || args.length !== 2 || (name !== "standard" && name !== "zjump")) return yield* new PlayProblem({ problem: "use controller layout standard|zjump" });
-    const result = yield* Effect.tryPromise({ try: () => setControllerLayout(name === "zjump" ? "z-jump" : "standard"), catch: (cause) => new PlayProblem({ problem: String(cause) }) });
+    const result = yield* setControllerLayout(name === "zjump" ? "z-jump" : "standard");
     console.log(`Controller layout: ${name === "zjump" ? "Z-jump" : "Standard"} (${result === "live" ? "changed live" : "saved for next start"}).`);
     return;
   }
