@@ -6,7 +6,7 @@ import { stageBounds } from "../sim/stageBounds";
 import { advanceFighter } from "../sim/step";
 import { contactBatch, controls, hitEffect, testWorld } from "../sim/testWorld";
 import { captureImpactEventsBefore, createImpactEvents, finishImpactEventsAfter } from "./impactEvents";
-import { KO_BLUR_FADE_FRAMES, KO_BLUR_SCALE, KO_FILTER_NEUTRAL_GREY, createKoFlash, koFlashLevels, noteKoFlash } from "./koFlash";
+import { KO_BLUR_FADE_FRAMES, KO_BLUR_SCALE, KO_FLASH_ALPHA, createKoFlash, koFlashLevels, noteKoFlash } from "./koFlash";
 
 function fingerprint(f: Readonly<Fighter>): string {
   const { motion, launch, status } = f;
@@ -64,16 +64,24 @@ test("the KO flash peaks at Silverpine's caps after the blow's hitlag and turns 
   events.koDirectionX = 1;
   assertTrue(noteKoFlash(flash, 100, 2, fighter, events));
   assertEquals(koFlashLevels(flash, 100)?.blur, 0.0);
-  assertEquals(koFlashLevels(flash, 100)?.grey, 185);
+  assertEquals(koFlashLevels(flash, 100)?.alpha, 0);
   assertEquals(koFlashLevels(flash, 112)?.blur, KO_BLUR_SCALE);
-  assertEquals(koFlashLevels(flash, 112)?.grey, 255);
+  assertEquals(koFlashLevels(flash, 112)?.alpha, KO_FLASH_ALPHA);
   assertTrue(koFlashLevels(flash, 112 + KO_BLUR_FADE_FRAMES - 1)?.showing === true);
   assertEquals(koFlashLevels(flash, 112 + KO_BLUR_FADE_FRAMES)?.showing, false);
   assertEquals(koFlashLevels(flash, 112 + KO_BLUR_FADE_FRAMES)?.blur, 0.0);
 });
 
-test("the KO filter fades to neutral before it turns off, never stepping more than 6 luma a frame [repro #289]", () => {
-  // Lane C's Classic capture: a 92.6-luma scene read 132 under the 185 floor and snapped back at the off call, so one grey unit moves about 92.6 / 128 luma; 6 luma is 7680 / 926 grey.
+/** A white blend of `alpha` over a scene of luma `scene`: Classic blends sRGB values, Reforged blends in linear light (#289's capture). */
+function washedLuma(scene: number, alpha: number, reforged: boolean): number {
+  const a = alpha / 255;
+  if (!reforged) return scene + (255 - scene) * a;
+  const linear = Math.pow(scene / 255, 2.2);
+  return 255 * Math.pow(linear * (1 - a) + a, 1 / 2.2);
+}
+
+test("the KO flash eases out in Classic and Reforged, never stepping more than 6 luma a frame from its peak through the off call [repro #289]", () => {
+  // Lane C's captures: the scene after the KO reads 92.6 luma in Classic and 91.6 in Reforged.
   const flash = createKoFlash();
   const fighter = createFighter(Character.archer, 0.0, 1);
   const events = createImpactEvents();
@@ -83,15 +91,17 @@ test("the KO filter fades to neutral before it turns off, never stepping more th
   noteKoFlash(flash, 0, 0, fighter, events);
   const peak = 12;
   const off = peak + KO_BLUR_FADE_FRAMES;
-  assertEquals(koFlashLevels(flash, peak)?.grey, 255);
+  assertEquals(koFlashLevels(flash, peak)?.alpha, KO_FLASH_ALPHA);
   assertEquals(koFlashLevels(flash, off - 1)?.showing, true);
-  assertEquals(koFlashLevels(flash, off - 1)?.grey, KO_FILTER_NEUTRAL_GREY, "transparent on the last frame before the off call");
   assertEquals(koFlashLevels(flash, off)?.showing, false);
-  let previous = 255;
-  for (let frame = peak + 1; frame <= off; frame++) {
-    const levels = koFlashLevels(flash, frame);
-    const grey = levels?.showing === true ? levels.grey : KO_FILTER_NEUTRAL_GREY;
-    assertEquals(Math.abs(grey - previous) * 926 <= 7680, true, `frame ${frame}: grey ${previous} to ${grey}`);
-    previous = grey;
+  for (const [mode, scene, reforged] of [["Classic", 92.6, false], ["Reforged", 91.6, true]] as const) {
+    let previous = washedLuma(scene, KO_FLASH_ALPHA, reforged);
+    for (let frame = peak + 1; frame <= off; frame++) {
+      const levels = koFlashLevels(flash, frame);
+      const luma = washedLuma(scene, levels?.showing === true ? levels.alpha : 0, reforged);
+      assertEquals(Math.abs(luma - previous) <= 6, true, `${mode} frame ${frame}: luma ${previous} to ${luma}`);
+      previous = luma;
+    }
+    assertEquals(previous, scene, `${mode} ends on the scene`);
   }
 });

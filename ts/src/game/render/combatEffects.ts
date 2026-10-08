@@ -140,7 +140,7 @@ export class CombatEffects {
     }
     if (!this.koFlashShown) {
       SetCineFilterTexture("ReplaceableTextures\\CameraMasks\\White_Mask.blp");
-      SetCineFilterBlendMode(BLEND_MODE_MODULATE_2X);
+      SetCineFilterBlendMode(BLEND_MODE_BLEND);
       SetCineFilterTexMapFlags(TEXMAP_FLAG_NONE);
       SetCineFilterStartUV(0.0, 0.0, 1.0, 1.0);
       SetCineFilterEndUV(0.0, 0.0, 1.0, 1.0);
@@ -149,8 +149,8 @@ export class CombatEffects {
       SetCameraField(CAMERA_FIELD_DEPTH_OF_FIELD_DISTANCE, KO_BLUR_DISTANCE, 0.0);
       this.koFlashShown = true;
     }
-    SetCineFilterStartColor(levels.grey, levels.grey, levels.grey, 255);
-    SetCineFilterEndColor(levels.grey, levels.grey, levels.grey, 255);
+    SetCineFilterStartColor(255, 255, 255, levels.alpha);
+    SetCineFilterEndColor(255, 255, 255, levels.alpha);
     SetCameraField(CAMERA_FIELD_DEPTH_OF_FIELD_SCALE, levels.blur, 0.0);
   }
 
