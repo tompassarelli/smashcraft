@@ -13,6 +13,8 @@ import { MODEL_FACTS } from "../../ts/scripts/wisp/modelFacts";
 import { whiteModelFactsSource } from "../../ts/scripts/wisp/whiteModelFactsSource";
 import { WHITE_FIGHTER_MODELS } from "../../ts/src/game/assets/whiteFighterModels";
 import { WHITE_MODEL_FACTS } from "../../ts/scripts/wisp/whiteModelFacts";
+import { thinKeys } from "../../ts/scripts/keyThin";
+import { timelineBody } from "./timeline-body";
 
 const [assetsArg, outputArg, option, characterArg] = process.argv.slice(2);
 if (assetsArg === undefined || outputArg === undefined || (option !== undefined && (option !== "--character" || characterArg === undefined))) throw new Error("usage: bun tools/animations/white-flash-models.ts PRIVATE_ASSETS PRIVATE_OUTPUT [--character ID]");
@@ -68,30 +70,13 @@ for (const [character, fighter] of fighters.entries()) {
     delete facts[previous.replaceAll("\\", "/").toLowerCase()];
   }
   const source = await Bun.file(join(assets, fighter.source)).arrayBuffer();
-  const model = parseModelMDX(source);
-  const original = parseModelMDX(source);
+  const thinned = thinKeys(parseModelMDX(source)).model;
+  const original = timelineBody(thinned, flashableSequences(character, thinned.Sequences));
+  const model = structuredClone(original);
   const sequence = model.Sequences[0];
   if (sequence === undefined) throw new Error(`${fighter.name}: no animation sequence`);
   const lastFrame = Math.max(...model.Sequences.map(item => item.Interval[1]));
-  const sequences = flashableSequences(character, model.Sequences);
-  // A combined timeline must keep each clip's missing channels at their static defaults.
-  tracks(model, (track, path) => {
-    const transform = /^\.(Bones|Helpers|Attachments|CollisionShapes)\.\d+\.(Translation|Rotation|Scaling)$/.test(path);
-    const alpha = /^\.(GeosetAnims\.\d+|Materials\.\d+\.Layers\.\d+)\.Alpha$/.test(path);
-    if (onGlobalClock(track) || (!transform && !alpha)) return;
-    const keys = track.Keys;
-    const defaults = alpha ? [1] : path.endsWith("Rotation") ? [0, 0, 0, 1] : path.endsWith("Scaling") ? [1, 1, 1] : [0, 0, 0];
-    const added: mdx.AnimKeyframe[] = [];
-    for (const clip of sequences) {
-      const [start, end] = clip.Interval;
-      const active = keys.filter(key => key.Frame >= start && key.Frame <= end);
-      for (const [frame, edge] of [[start, active[0]], [end, active.at(-1)]] as const) {
-        if (keys.some(key => key.Frame === frame)) continue;
-        added.push(edge === undefined ? { Frame: frame, Vector: new Float32Array(defaults), InTan: new Float32Array(defaults), OutTan: new Float32Array(defaults) } : { ...structuredClone(edge), Frame: frame });
-      }
-    }
-    track.Keys = [...keys, ...added].sort((a, b) => a.Frame - b.Frame);
-  });
+  const sequences = model.Sequences;
   trimFlashTracks(model, sequences);
   model.Sequences = [{ ...sequence, Name: "Stand", Interval: new Uint32Array([0, lastFrame]), NonLooping: true }];
   removeBodyEffects(model);
