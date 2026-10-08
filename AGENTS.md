@@ -614,6 +614,9 @@ failing tests and the first failing commit; the pre-push gate prints that list
 on every push. A red main is not "already failing": before landing, check
 whether your change touches a listed test, and if your commit broke main, fix
 it first.
+A push to a `claude/**` branch (a cloud worker's) lands on main by itself
+when its full suite adds no failure to main's, and otherwise comments on the
+referenced issue (smashcraft:docs/ci.md, "Autoland").
 
 From smashcraft:ts/, use `bun test test/game.test.ts` for focused game tests,
 `bun run check` for host and map type-checking, and

@@ -59,6 +59,7 @@ Dated trial records live in [evidence](../evidence/README.md).
 ## Building and testing
 
 - [Development setup and loop](development-loop.md): build, reload and test workflow.
+- [CI](ci.md): the workflows, and how a cloud worker's `claude/**` branch lands on main by itself (autoland).
 - [TypeScript workflow](typescript.md): source rules, build and test commands.
 - [Graphics settings](graphics-settings.md): which Warcraft III graphics settings Smashcraft reads, the LAN pool profiles and recommended player settings.
 - [What a player sees](player-view.md): scene report and frame probe checks, their expectations and thresholds.
