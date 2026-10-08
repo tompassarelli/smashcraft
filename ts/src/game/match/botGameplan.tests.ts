@@ -3,7 +3,7 @@ import { AttackStyle, Character } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { type FighterGameplan, GameplanSpecial, GameplanThrow, gameplanKeyMoves } from "../sim/gameplan";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
-import { aimsLedge, defenseOption, gameplanOf, gameplanThrow, keptGap, moveWeight, onAnotherDeck, upSpecialFirst } from "./botGameplan";
+import { aimsLedge, defenseOption, gameplanOf, gameplanThrow, keptGap, moveWeight, onAnotherDeck, SPACE_PLAN, upSpecialFirst } from "./botGameplan";
 import { botChoice } from "./botRandom";
 import { attackBuffer } from "../input/attackBuffer";
 import { neutralControls } from "../sim/roster";
@@ -72,6 +72,27 @@ test("every declared gameplan names key moves and an ordered range band [spec #1
     assertTrue(gameplanKeyMoves(plan).length > 0);
     assertTrue(plan.range.near <= plan.range.far);
   }
+});
+
+test("Peon closes on a grounded shield to use his grappler tools [spec #282]", () => {
+  const f = createFighter(Character.peon, 0.0, 1);
+  const target = createFighter(Character.archer, 240.0, -1);
+  target.shield.raised = true;
+  const plan = gameplanOf(f.character);
+  assertTrue(plan !== undefined);
+  if (plan === undefined) return;
+  assertEquals(keptGap(plan, f, target, 0, 1, 40, botChoice), 0.0);
+});
+
+test("Peon favors a tool strike over lumber while following his own hit [spec #282]", () => {
+  const f = createFighter(Character.peon, 0.0, 1);
+  const target = createFighter(Character.archer, 150.0, -1);
+  target.launch.hitstun = 20;
+  target.hits.lastAttacker = 0;
+  const plan = gameplanOf(f.character);
+  assertTrue(plan !== undefined);
+  if (plan === undefined) return;
+  assertTrue(moveWeight(plan, SPACE_PLAN, f, 0, target, AttackStyle.forwardTilt) > moveWeight(plan, SPACE_PLAN, f, 0, target, GameplanSpecial.neutral));
 });
 
 test("a jump onto a raised deck keeps approaching until landing instead of turning back to ranged spacing [repro #160]", () => {

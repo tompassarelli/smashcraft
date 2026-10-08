@@ -3,7 +3,8 @@
 import { f32 } from "wisp/src/sim/f32";
 import { STAGE_WATER_MODEL, STAGE_LAVA_MODEL } from "../assets/terrainAssetInfo";
 import { LAVA_INNER_X } from "../sim/lava";
-import { STAGE_LIGHT_MODELS, STAGE_SNOW_MODEL } from "../assets/stageAssetInfo";
+import { STAGE_LIGHT_MODELS, STAGE_POINT_LIGHT_MODELS, STAGE_SNOW_MODEL } from "../assets/stageAssetInfo";
+import { STAGE_POINT_LIGHTS } from "../assets/stagePointLights";
 import { STAGE_SKY_MODELS } from "../assets/stageSkyInfo";
 import { AHNQIRAJ_SCENERY, BLACKROCK_SCENERY, GRYPHON_SCENERY, NORDRASSIL_SCENERY } from "./hazardStageScenery";
 import { STRATHOLME_SCENERY, TOMB_OF_SARGERAS_SCENERY } from "./homeStageScenery";
@@ -77,4 +78,21 @@ export function terrainPieces(stage: number, hazards: boolean): readonly Scenery
   const width = 600.0 - LAVA_INNER_X;
   const x = LAVA_INNER_X + width / 2;
   return [-x, x].map(position => ({ model: STAGE_LAVA_MODEL, x: position, y: 0.0, z: 1.0, scale: 1.0, matrixScale: [width / 100, 1.0, 1.0] as const, yaw: 0.0 }));
+}
+
+/** A stage's backdrop omni lights (stagePointLights.ts), placed as light-only models. */
+export function pointLightPieces(stage: number): readonly SceneryPiece[] {
+  const models = STAGE_POINT_LIGHT_MODELS[stage] ?? [];
+  const lights = STAGE_POINT_LIGHTS.find(entry => entry.stage === stage)?.lights ?? [];
+  return lights.map((light, index) => ({ model: models[index] ?? "", x: light.x, y: light.y, z: light.z, scale: 1.0, yaw: 0.0 }));
+}
+
+/** How many of a stage's point lights cast shadows. */
+export function shadowCastingLights(stage: number): number {
+  return (STAGE_POINT_LIGHTS.find(entry => entry.stage === stage)?.lights ?? []).filter(light => light.castsShadow).length;
+}
+
+/** Every effect a stage's scene places, in the order the shell creates them. */
+export function placedPieces(stage: number, hazards: boolean): readonly SceneryPiece[] {
+  return [...stageScenery(stage).pieces, ...terrainPieces(stage, hazards), ...pointLightPieces(stage)];
 }

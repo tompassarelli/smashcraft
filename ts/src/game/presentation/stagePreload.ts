@@ -4,10 +4,13 @@ import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { surfaceCount } from "../sim/stage";
 import { hasCannon } from "../sim/stageHazards";
 import { CANNON_MODEL } from "./stageHazards";
-import { stageLightModel, stageScenery, terrainPieces } from "./stageScenery";
+import { placedPieces, stageLightModel, stageScenery } from "./stageScenery";
+import { platformParts } from "./stockPlatforms";
 
 /** The model drawn for one deck of a stage, in the stage's palette. */
 export function deckModel(stage: number, index: number): string {
+  const [stock] = platformParts(stage, index);
+  if (stock !== undefined) return stock.model;
   const themed = STAGE_DECK_MODELS[stage];
   if (index === 0 && !hasCannon(stage)) return themed === undefined ? STAGE_MAIN_DECK_MODEL : themed.main;
   return themed === undefined ? STAGE_DECK_MODEL : themed.slab;
@@ -16,9 +19,12 @@ export function deckModel(stage: number, index: number): string {
 /** The effect models a stage's scene draws: decks, cannon and scenery pieces. */
 export function stageModels(stage: number): string[] {
   const models: string[] = [];
-  for (let index = 0; index < surfaceCount(stage); index++) models.push(deckModel(stage, index));
+  for (let index = 0; index < surfaceCount(stage); index++) {
+    models.push(deckModel(stage, index));
+    for (const part of platformParts(stage, index).slice(1)) models.push(part.model);
+  }
   if (hasCannon(stage)) models.push(CANNON_MODEL);
-  for (const piece of [...stageScenery(stage).pieces, ...terrainPieces(stage, true)]) models.push(piece.model);
+  for (const piece of placedPieces(stage, true)) models.push(piece.model);
   return models;
 }
 

@@ -34,6 +34,7 @@ import { type MatchState, Phase, advanceClock, holdingStart, humanFighterActive,
 import { advanceItems } from "./centreItem";
 
 import { advanceTrainingReadout, captureTrainingBefore, resetTrainingPositions } from "./training";
+import { advanceTutorial, beginLesson, captureTutorialBefore, tutorialOn } from "./tutorial";
 
 export const observedFrameLegalActions: Slots<number> = [0, 0, 0, 0];
 export const observedFrameStartedActions: Slots<number> = [0, 0, 0, 0];
@@ -112,6 +113,11 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
       for (const slot of PARTICIPANT_SLOTS) clearAttackBuffer(controls.commands[slot]);
     }
     captureTrainingBefore(world);
+    if (tutorialOn(game.trainer)) {
+      // The chosen lesson starts afresh with every match.
+      if (game.matchFrame === 1) beginLesson(game.trainer, world, game.computerMask, game.trainer.lesson);
+      captureTutorialBefore(world);
+    }
   }
   carryOnMovingDecks(world, stage, stageFrame);
   for (const slot of PARTICIPANT_SLOTS) {
@@ -200,5 +206,6 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   advanceMatchCamera(game.camera, world, game.stageChoice);
   advanceOffscreenDamage(world, game.camera, game.practice || game.training);
   if (game.training) advanceTrainingReadout(game.trainer, world, game.humanFighterMask, game.computerMask);
+  if (game.training && tutorialOn(game.trainer)) advanceTutorial(game.trainer, world, game.humanFighterMask, game.computerMask);
   advanceClock(game, world);
 }

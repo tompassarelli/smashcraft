@@ -7,6 +7,7 @@ import { IMPACT_DUST, IMPACTS_PER_KIND } from "../src/game/presentation/impactSt
 import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
 import { ReplayCorrections, ReplayHistory } from "../src/game/replay/history";
 import { Character, SpecialAction } from "../src/game/sim/codes";
+import { HitElement } from "../src/game/sim/hitRegions";
 import { fighterAt } from "../src/game/sim/roster";
 import { projectileActive } from "../src/game/sim/projectiles";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
@@ -21,7 +22,9 @@ import type { EffectPose, HeadlessClient } from "wisp/src/headless/client";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { CombatEffects } from "../src/game/render/combatEffects";
 import { createImpactEvents } from "../src/game/presentation/impactEvents";
-import { createImpactState, emitImpacts } from "../src/game/presentation/impactState";
+import { ELECTRIC_CONTACT_FRAMES, advanceImpacts, createImpactState, emitImpacts } from "../src/game/presentation/impactState";
+import { ELECTRIC_IMPACT_MODEL } from "../src/game/presentation/hitPresentation";
+import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
 import { HIT_PRESENTATION_CASES } from "../src/game/shell/hitPresentationCases";
 import { SpecialEffects } from "../src/game/render/specialEffects";
 import { IMMOLATE_SOUNDS } from "../src/game/presentation/elementLooks";
@@ -93,9 +96,6 @@ test("hit event language: 26 event cases reach stock effects and confirmed sound
       expect(calls.filter(call => call.name === "StartSound")).toHaveLength(1);
       expect(client.effectPoses().some(pose => pose.model.includes(model) && pose.scale > 0)).toBe(true);
       shownScale[index] = Math.max(...client.effectPoses().filter(pose => pose.model.includes(model)).map(pose => pose.scale));
-      // Electric cues start past Forked Lightning's small opening.
-      const started = calls.filter(call => call.name === "BlzSetSpecialEffectTime").map(call => Number(call.args[1]));
-      if ([2, 7].includes(index)) expect(Math.max(...started)).toBeGreaterThan(0);
       const after = client.log.length;
       renderer.presentConfirmed(index + 1, 0, events);
       renderer.presentConfirmed(index, 0, events);
@@ -103,6 +103,37 @@ test("hit event language: 26 event cases reach stock effects and confirmed sound
     }
     // An electric hit's flash draws at least as large as an electric shield hit's.
     expect(shownScale[2]).toBeGreaterThanOrEqual(shownScale[7] ?? 0);
+    renderer.destroy();
+  });
+  expect(client.errors).toEqual([]);
+});
+
+test("electric hit and electric shield sparks draw Lightning Shield at least 200 units across for 24 frames [repro #301]", () => {
+  const clients = headless.clients({ start, install });
+  clients.start();
+  const client = clients.clients[0];
+  if (client === undefined) throw new Error("missing host client");
+  const facts = MODEL_FACTS[ELECTRIC_IMPACT_MODEL];
+  if (facts?.bounds === undefined) throw new Error("missing Lightning Shield facts");
+  const width = facts.bounds.max[0] - facts.bounds.min[0];
+  client.run(() => {
+    const renderer = new CombatEffects({ x: 0, y: 0, z: FLOOR_HEIGHT });
+    for (const cue of [{ hit: true, element: HitElement.electric, electric: true }, { shieldHit: true, shieldElectric: true }]) {
+      renderer.clear();
+      const impacts = createImpactState();
+      emitImpacts(impacts, { ...createImpactEvents(), ...cue }, 8);
+      const shown = () => client.effectPoses({ visibleOnly: true }).filter(pose => pose.model.includes("LightningShieldTarget"));
+      for (let age = 0; age <= ELECTRIC_CONTACT_FRAMES; age++) {
+        renderer.present(impacts, age, impacts, true);
+        if (age < ELECTRIC_CONTACT_FRAMES) {
+          expect(shown()).toHaveLength(1);
+          expect(shown()[0]?.animation).toBe("Stand");
+          // Geometry drawn at least a fighter across, at the spark's smallest (its first frame).
+          expect((shown()[0]?.scale ?? 0) * width).toBeGreaterThanOrEqual(200);
+        } else expect(shown()).toHaveLength(0);
+        advanceImpacts(impacts);
+      }
+    }
     renderer.destroy();
   });
   expect(client.errors).toEqual([]);

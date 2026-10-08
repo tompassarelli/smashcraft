@@ -23,6 +23,7 @@ export const SMASHCRAFT_NOOPS: IntentionalNoops = {
   SetSkyModel: "the sky is scenery outside quick-match's gameplay and scene assertions",
   SetDayNightModels: "quick-match uses map scene state without Warcraft's day-night lighting",
   SetTerrainFogEx: "quick-match does not assert engine terrain fog appearance",
+  BlzSetMinShadowCastingPointLightCount: "quick-match does not assert engine point-light shadows",
   CameraSetSmoothingFactor: "headless captures the camera target directly without engine interpolation",
   SetTimeOfDay: "the map's deterministic frame clock drives gameplay; engine lighting time is unused",
   SetTimeOfDayScale: "the map's deterministic frame clock drives gameplay; engine lighting time is unused",

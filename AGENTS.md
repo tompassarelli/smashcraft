@@ -27,7 +27,10 @@ complete scope, and its "Rules for whoever picks this up" govern the work.
   link). Don't add boxes or keep it open for guarantees it doesn't list.
 - A problem that doesn't block a box goes in a new `priority:later` issue, not
   into the current one.
-- Don't re-run a passing check unless the code it covers changed.
+- Every check gets one run on a commit: it passes, ship; a failure gets fixed
+  and run once more. Load-bearing rules get one run of the broader check (the
+  farm sweep), not repeats: determinism, rollback, netcode and input. Only
+  frame-cost and latency checks may confirm once on a quiet machine.
 - Agents run every check, playtests included, by script or capture; Tom plays
   only when he wants to, and anything he notices becomes an issue. Don't write
   boxes that wait on Tom.
@@ -47,10 +50,10 @@ investigation.
 - smashcraft:client/ owns the player's desktop app (Tauri: Rust backend, Bun-built TypeScript pages); it uses controller support only through the service's local interface (smashcraft:client/README.md).
 - smashcraft:tools/ owns build, native probes and automation.
 - smashcraft:docs/ holds durable knowledge only: how systems work, design
-  decisions, reference data and procedures. Status, progress, plans and claim
-  tables live in the owning issue. A dated trial's raw record goes in
-  smashcraft:evidence/ and is never edited afterwards. When a trial teaches
-  something durable, add that fact to the relevant doc, with its build.
+  decisions, reference data and procedures. Status, progress, plans, claim
+  tables and trial results live in the owning issue: the table, the run link
+  and the commit. When a trial teaches something durable, add that fact to the
+  relevant doc, with its build.
 - Use the declared project development shell when available. Preserve pinned
   dependencies; do not repeat ad hoc environment setup as the normal loop.
 
@@ -332,7 +335,12 @@ code. From smashcraft:ts/:
   screen that hasn't redrawn can't pass for it. `--control` first plays the
   checked-in control (the same Archer walk twice around a Mountain King script);
   `bun scripts/nativeCapture.ts compare DIR control-walk control-walk-again`
-  prints how far the twins' captures differ per frame.
+  prints how far the twins' captures differ per frame. `run` also records the
+  client's own PipeWire sink to DIR/audio.wav on the captures' clock
+  (`--audio-sink SINK` or `--no-audio`). `bun scripts/nativeCapture.ts plan
+  PAD|DIR...` plays the scripts headlessly on the map's schedule and checks
+  each `#! cue FROM[-TO] NAME: sound=… effect=… tint=b shake=b recoil=b` line
+  against the held capture frames, without a Warcraft client.
 - Engine debugger: a native desync? `bun wisp engine desync A B` names the
   first differing turn and checksum section of the clients' Desync.log
   dumps; `bun wisp engine poll --client a,b` during a repro and `bun wisp

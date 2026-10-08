@@ -1,5 +1,6 @@
 // Stage hazards on fixed timetables of the match frame, so a player can learn
-// them: Dream Land's wind and Kongo Jungle's barrel cannon. Nothing here is
+// them: Dream Land's wind, Kongo Jungle's barrel cannon and the Tomb of
+// Sargeras tide (smashcraft:docs/design/water-stage.md). Nothing here is
 // random or reacts to the fighters' positions when it chooses what to do.
 // smashcraft:docs/stage-hazards.md cites the Melee code and data each follows.
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
@@ -12,7 +13,8 @@ import type { Fighter } from "./fighter";
 import { contactKnockback, installDamageLaunch, ordinaryHitstunFrames } from "./knockback";
 import { setWorldMotionValue } from "./motion";
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
-import { CANNON_TEST_STAGE, WIND_TEST_STAGE, mainDeckLeft, mainDeckRight, mainDeckZ, stageAtRest } from "./stage";
+import { CANNON_TEST_STAGE, TOMB_OF_SARGERAS_STAGE, WIND_TEST_STAGE, mainDeckLeft, mainDeckRight, mainDeckZ, stageAtRest } from "./stage";
+import { stageBounds } from "./stageBounds";
 import { cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, interruptJumpOrDodge } from "./transitions";
 import { melee } from "./tuning";
 import { knockbackWeight } from "./itemBuffs";
@@ -89,6 +91,70 @@ export function windPush(stage: number, frame: number, x: number, z: number): nu
   const direction = windDirection(frame);
   if (!(x > windLeft(stage, direction) && x < windRight(stage, direction) && z > windBottom(stage) && z < windTop(stage))) return 0.0;
   return direction > 0 ? WIND_SPEED : -WIND_SPEED;
+}
+
+// ---------------------------------------------------------------- tide
+
+/** What the Tomb's tide is doing on a frame: flowing one way, or slack before it turns. */
+export const TidePhase = { flood: 0, slackToEbb: 1, ebb: 2, slackToFlood: 3 } as const;
+export type TidePhase = (typeof TidePhase)[keyof typeof TidePhase];
+
+/** Each flow lasts nine seconds, then a one-second slack while the notice names the turn. */
+export const TIDE_FLOW_FRAMES = 540;
+export const TIDE_SLACK_FRAMES = 60;
+/** Right for the first ten seconds of every twenty, left for the second. */
+export const TIDE_CYCLE_FRAMES = 2 * (TIDE_FLOW_FRAMES + TIDE_SLACK_FRAMES);
+/** A quarter of Jungle Japes' 3.0 Melee units a frame. */
+export const TIDE_SPEED = melee(0.800000011920929);
+/** The sea's surface: 60 below the Tomb deck's deepest underside (z −300), 480 above the bottom blast line. */
+export const SEA_SURFACE_Z = -360.0;
+
+export const hasTide = (stage: number): boolean => stage === TOMB_OF_SARGERAS_STAGE;
+
+const tideCycle = (frame: number) => floorMod(frame - 1, TIDE_CYCLE_FRAMES);
+
+/** The tide on match frame `frame` (the first is 1). It follows the match frame even with hazards off: the sea is the stage. */
+export function tidePhase(frame: number): TidePhase {
+  const cycle = tideCycle(frame);
+  if (cycle < TIDE_FLOW_FRAMES) return TidePhase.flood;
+  if (cycle < TIDE_FLOW_FRAMES + TIDE_SLACK_FRAMES) return TidePhase.slackToEbb;
+  return cycle < TIDE_CYCLE_FRAMES - TIDE_SLACK_FRAMES ? TidePhase.ebb : TidePhase.slackToFlood;
+}
+
+/** The way the current runs on `frame`: right on the flood, left on the ebb, still at slack. */
+export function tideDirection(frame: number): -1 | 0 | 1 {
+  const phase = tidePhase(frame);
+  return phase === TidePhase.flood ? 1 : phase === TidePhase.ebb ? -1 : 0;
+}
+
+/** The way the current will run after this frame's slack, or runs now. */
+export function tideNextDirection(frame: number): -1 | 1 {
+  const phase = tidePhase(frame);
+  return phase === TidePhase.flood || phase === TidePhase.slackToFlood ? 1 : -1;
+}
+
+/** Frames until the current runs again, or zero while it runs. */
+export function framesUntilTideTurns(frame: number): number {
+  const phase = tidePhase(frame);
+  if (phase === TidePhase.flood || phase === TidePhase.ebb) return 0;
+  const cycle = tideCycle(frame);
+  return (phase === TidePhase.slackToEbb ? TIDE_FLOW_FRAMES + TIDE_SLACK_FRAMES : TIDE_CYCLE_FRAMES) - cycle;
+}
+
+/** The sea fills the stage's whole width, blast line to blast line, from its surface down. */
+export const seaLeft = (stage: number): number => stageBounds(stage).blast.left;
+export const seaRight = (stage: number): number => stageBounds(stage).blast.right;
+
+/** Whether (x, z) is in the sea: at or below its surface, where a floating fighter rests. */
+export function inSea(stage: number, x: number, z: number): boolean {
+  return hasTide(stage) && z <= SEA_SURFACE_Z && x >= seaLeft(stage) && x <= seaRight(stage);
+}
+
+/** The world distance the current moves a fighter at (x, z) along x on match frame `frame`. */
+export function tidePush(stage: number, frame: number, x: number, z: number): number {
+  if (!inSea(stage, x, z)) return 0.0;
+  const direction = tideDirection(frame);
+  return direction === 0 ? 0.0 : direction > 0 ? TIDE_SPEED : -TIDE_SPEED;
 }
 
 // ---------------------------------------------------------------- cannon

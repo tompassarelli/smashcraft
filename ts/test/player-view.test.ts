@@ -14,7 +14,7 @@ import { ARENA_CAMERA, FLOOR_HEIGHT, extremeCamera } from "../src/game/presentat
 import { CANNON_MODEL } from "../src/game/presentation/stageHazards";
 import { deckModel } from "../src/game/presentation/stagePreload";
 import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";
-import { stageScenery, terrainPieces } from "../src/game/presentation/stageScenery";
+import { placedPieces, stageScenery } from "../src/game/presentation/stageScenery";
 import { modelReach } from "wisp/scripts/wisp/models";
 import { boxSeen } from "wisp/scripts/wisp/visibility";
 import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
@@ -658,7 +658,7 @@ test("ranked stage lineup: both clients choose all ten stages and draw their dec
       client.run(() => {
         const s = shell();
         expect(s.stageDecks).toHaveLength(surfaceCount(stage.id));
-        expect(s.stageScenery).toHaveLength(stageScenery(stage.id).pieces.length + terrainPieces(stage.id, s.game.hazards).length);
+        expect(s.stageScenery).toHaveLength(placedPieces(stage.id, s.game.hazards).length);
         expect(s.stageScenery?.length).toBeGreaterThan(0);
         trampoline("scene.report")();
       });

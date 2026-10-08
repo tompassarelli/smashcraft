@@ -1,6 +1,6 @@
 // Smashcraft's declared map imports and object data.
 import { mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { Effect, Schema } from "effect";
 import { WHITE_FIGHTER_MODELS } from "../../src/game/assets/whiteFighterModels";
@@ -15,13 +15,14 @@ import { IMPORTED_MODEL_FILES } from "../../src/game/assets/importedModelInfo";
 import { type ModelSoundCue, fighterSoundCue, fighterSoundCueCount, modelSoundLabel } from "../../src/game/assets/modelSoundInfo";
 import * as shieldModels from "../../src/game/assets/shieldAssetInfo";
 import { STAGE_WATER_MODEL, STAGE_LAVA_MODEL } from "../../src/game/assets/terrainAssetInfo";
-import { STAGE_DECK_MODELS, STAGE_LIGHT_MODELS, STAGE_SNOW_MODEL } from "../../src/game/assets/stageAssetInfo";
+import { STAGE_DECK_MODELS, STAGE_LIGHT_MODELS, STAGE_POINT_LIGHT_MODELS, STAGE_SNOW_MODEL } from "../../src/game/assets/stageAssetInfo";
 import { DEMON_HUNTER_MODEL_FILE } from "../../src/game/presentation/demonHunterAssetInfo";
 import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "../../src/game/presentation/fighterAssetInfo";
 import { SUMMON_BEAR, summonClip, summonClipCount } from "../../src/game/presentation/summonClipInfo";
 import { Character } from "../../src/game/sim/codes";
 import { HERO_ROSTER, PORTRAIT_KINDS, RENDERED_FIGHTERS, fighterPortrait } from "../../src/game/sim/heroes/registry";
 import { PARTICIPANT_SLOTS } from "../../src/game/input/participants";
+import { PORTRAIT_QUALITY, encodeBlp, readTga } from "../blp";
 import { importedModelFile } from "../heroModelSource";
 import { buildProject, projectRoot as PROJECT } from "./project";
 import { UI_FRAMES } from "./uiFrames";
@@ -82,7 +83,7 @@ const importLines = (path: string) =>
  */
 export const GENERATED_MODELS: readonly { readonly list: string; readonly generator: string; readonly models: readonly string[] }[] = [
   { list: "impact-assets/white-flash-imports.txt", generator: "tools/animations/white-flash-models.ts", models: WHITE_FIGHTER_MODELS },
-  { list: "stage-assets/imports.txt", generator: "tools/stage/package.ts", models: [...Object.values(STAGE_DECK_MODELS).flatMap(({ main, slab }) => [main, slab]), STAGE_SNOW_MODEL, STAGE_WATER_MODEL, STAGE_LAVA_MODEL, ...Object.values(STAGE_LIGHT_MODELS), ...Object.values(STAGE_SKY_MODELS)] },
+  { list: "stage-assets/imports.txt", generator: "tools/stage/package.ts", models: [...Object.values(STAGE_DECK_MODELS).flatMap(({ main, slab }) => [main, slab]), STAGE_SNOW_MODEL, STAGE_WATER_MODEL, STAGE_LAVA_MODEL, ...Object.values(STAGE_LIGHT_MODELS), ...Object.values(STAGE_POINT_LIGHT_MODELS).flat(), ...Object.values(STAGE_SKY_MODELS)] },
   { list: "impact-assets/imports.txt", generator: "tools/effects/package.ts", models: Object.values(impactModels) },
   { list: "impact-assets/frost-imports.txt", generator: "tools/effects/trap.ts", models: Object.values(frostModels) },
   { list: "impact-assets/shield-imports.txt", generator: "tools/effects/shield.ts", models: Object.values(shieldModels) },
@@ -198,6 +199,27 @@ export const rebuildMap = (map: string) => {
 
 const imported = (directory: string, file: string): ArchiveEntry => ({ entry: `war3mapImported\\${file}`, source: join(directory, file) });
 
+/** Where encoded portraits are kept, by source hash and quality, so a rebuild encodes only changed renders. */
+const PORTRAIT_CACHE = join(process.env.XDG_CACHE_HOME ?? join(homedir(), ".cache"), "smashcraft/blp-portraits");
+
+/**
+ * The fighter portraits as BLP (#307), encoded from the TGAs
+ * tools/selection/render-fighters.ts renders.
+ */
+const portraitImports = (assets: string) => Effect.forEach(
+  RENDERED_FIGHTERS.flatMap((character) => PORTRAIT_KINDS.flatMap((kind) => [undefined, ...PARTICIPANT_SLOTS].map((slot) => fighterPortrait(character, kind, slot)))),
+  (entry) => Effect.gen(function*() {
+    const source = join(assets, "fighter-renders", entry.replace("war3mapImported\\", "").replace(/\.blp$/, ".tga"));
+    const bytes = yield* tryMapPromise("read portrait", source, () => Bun.file(source).bytes());
+    const encoded = join(PORTRAIT_CACHE, `${new Bun.CryptoHasher("sha256").update(bytes).digest("hex")}-q${PORTRAIT_QUALITY}.blp`);
+    if (!(yield* tryMapPromise("check portrait cache", encoded, () => Bun.file(encoded).exists()))) {
+      const blp = yield* tryMapSync("encode portrait", source, () => encodeBlp(readTga(bytes), PORTRAIT_QUALITY));
+      yield* tryMapPromise("write portrait", encoded, () => Bun.write(encoded, blp));
+    }
+    return { entry, source: encoded } satisfies ArchiveEntry;
+  }),
+);
+
 /** Every asset the map imports, with the file it must equal (build.sh's import list). */
 export const importedAssets = (assets: string, summon: string) => Effect.gen(function*() {
   const generated = yield* Effect.forEach(GENERATED_MODELS, ({ list, generator, models }) => Effect.gen(function*() {
@@ -229,11 +251,7 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
     { entry: RIFLEMAN_MODEL_FILE, source: join(assets, "animation-assets/RiflemanFighter.mdx") },
     { entry: DEMON_HUNTER_MODEL_FILE, source: join(assets, "illidan-animation/DemonHunterFighter.mdx") },
     ...SELECTION_TEXTURES.map((texture) => imported(join(assets, "selection-assets"), `${texture}.tga`)),
-    // Generated by tools/selection/render-fighters.ts.
-    ...RENDERED_FIGHTERS.flatMap((character) => PORTRAIT_KINDS.flatMap((kind) => [undefined, ...PARTICIPANT_SLOTS].map((slot) => ({
-      entry: fighterPortrait(character, kind, slot),
-      source: join(assets, "fighter-renders", fighterPortrait(character, kind, slot).replace("war3mapImported\\", "")),
-    })))),
+    ...(yield* portraitImports(assets)),
     ...["SmashcraftHUD.fdf", "SmashcraftHUD.toc", ...UI_FRAME_FILES].map((file) => imported(join(PROJECT, "tools/selection/art"), file)),
     // Community models, textures and icons at the archive paths their authors' readmes name.
     ...IMPORTED_MODEL_FILES.map(({ entry, file }) => ({ entry, source: join(assets, "imported-models", file) })),

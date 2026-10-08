@@ -9,6 +9,9 @@ import { type ImpactEvents, ImpactLanding, JumpCue } from "./impactEvents";
 import { IMPACT_FIRE_HIT, IMPACT_SLASH_HIT, IMPACT_ICE_HIT, IMPACT_ELECTRIC_SHIELD, IMPACT_PUMMEL } from "./impactState";
 import { IMPACT_DUST_MODEL, IMPACT_ROLL_MODEL, IMPACT_TECH_MODEL, IMPACT_JUMP_MODEL, IMPACT_SHIELD_MODEL, IMPACT_HIT_MODEL } from "../assets/impactAssetInfo";
 
+/** Stock Lightning Shield: a looping ball of electric orbs about 340 units across at scale 1. */
+export const ELECTRIC_IMPACT_MODEL = "Abilities\\Spells\\Orc\\LightningShield\\LightningShieldTarget.mdx";
+
 /** Movement uses small authored geometry so pooled dust respects scale and fading. */
 export function impactModel(kind: number): string {
   switch (kind) {
@@ -18,7 +21,8 @@ export function impactModel(kind: number): string {
     case 2: return "Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdx";
     case 3: return IMPACT_DUST_MODEL;
     case 4: return IMPACT_ROLL_MODEL;
-    case 5: case IMPACT_ELECTRIC_SHIELD: return "Abilities\\Spells\\Other\\ForkedLightning\\ForkedLightningTarget.mdx";
+    // Forked Lightning target drew a 40 px speck natively (f9d0fbf3); Lightning Shield's orbs are geometry.
+    case 5: case IMPACT_ELECTRIC_SHIELD: return ELECTRIC_IMPACT_MODEL;
     // Ledge catch is Melee's contact spark at the lip, the same spark shield contact uses.
     // Defend caster and Cleave target drew nothing as standalone effects in native capture (2f1115cd).
     case 6: case 10: case 12: case 14: return IMPACT_SHIELD_MODEL;
@@ -38,21 +42,19 @@ export function impactModel(kind: number): string {
 /** These stock impacts name their only visible sequence Stand, rather than Birth. */
 export function impactAnimation(kind: number): string {
   return kind === 1 || kind === 2 || kind === 3 || kind === 4 || kind === 6 || kind === 7 || kind === 8 || kind === 9 || kind === 10
-    || kind === 12 || kind === 14 || kind === IMPACT_SLASH_HIT ? "Stand" : "Birth";
+    || kind === 12 || kind === 14 || kind === IMPACT_SLASH_HIT || kind === 5 || kind === IMPACT_ELECTRIC_SHIELD ? "Stand" : "Birth";
 }
 
 /**
  * Seconds into its sequence an impact starts. A pooled cue shows for 9-15
  * frames, but Blink target draws nothing before 0.33 s and peaks at
  * 0.63-0.87 s, and Dispel Magic target's first sparkle ring shows from
- * 0.17 s and peaks at 0.33-0.43 s; Forked Lightning target's flash reaches
- * full size at 0.13 s. Each starts where its model is already drawn. Native
+ * 0.17 s and peaks at 0.33-0.43 s. Each starts where its model is already drawn. Native
  * capture at 7d58ef69 showed nothing for Blink started at 0.6 s, so a cue
  * that must show uses a model that draws from 0 s instead.
  */
 export function impactStartSeconds(kind: number): number {
   switch (kind) {
-    case 5: case IMPACT_ELECTRIC_SHIELD: return 0.10000000149011612;
     case 11: return 0.6000000238418579;
     case 13: case 16: return 0.25;
     default: return 0.0;
@@ -60,12 +62,14 @@ export function impactStartSeconds(kind: number): number {
 }
 
 /**
- * Normal contact draws at 1.5 so even the small tier reads at gameplay zoom. An electric hit draws Forked
- * Lightning at least as large as an electric shield hit's (scale 1), which
- * showed natively where a hit's 0.75 lasted one frame.
+ * Normal contact draws at 1.5 so even the small tier reads at gameplay zoom.
+ * Lightning Shield's orbs span about 340 units at scale 1: an electric hit
+ * draws them about a fighter across, a shield hit a little smaller.
  */
 export function impactModelScale(kind: number): number {
-  return kind === 0 || kind === IMPACT_PUMMEL || kind === 5 ? 1.5 : 1.0;
+  if (kind === 5) return 1.0;
+  if (kind === IMPACT_ELECTRIC_SHIELD) return 0.6000000238418579;
+  return kind === 0 || kind === IMPACT_PUMMEL ? 1.5 : 1.0;
 }
 
 /** Plays a sound label, or with `file` a sound file by path, at a position. */

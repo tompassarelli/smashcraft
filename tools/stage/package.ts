@@ -5,7 +5,8 @@ import { join } from "node:path";
 import { STAGE_PALETTE_TEXTURE, mainDeckFaces, mainDeckMdl, mainDeckModelFile, mainDeckOutlineStage, paletteTexture } from "../../ts/scripts/stageDeck";
 import { STAGE_DECK_PALETTES } from "../../ts/src/game/assets/stagePalette";
 import { STAGE_LIGHTS } from "../../ts/src/game/assets/stageLighting";
-import { stageLightMdl, stageLightModelFile } from "../../ts/scripts/stageLight";
+import { STAGE_POINT_LIGHTS } from "../../ts/src/game/assets/stagePointLights";
+import { stageLightMdl, stageLightModelFile, stagePointLightMdl, stagePointLightModelFile } from "../../ts/scripts/stageLight";
 import { packageLiquids } from "./liquids";
 import { packageSkies } from "./skies";
 
@@ -149,7 +150,26 @@ for (const { stage, theme, light } of STAGE_LIGHTS) {
     lights.push(`  ${stage}: ${JSON.stringify(`war3mapImported\\${name}`)},`);
 }
 await Bun.write(infoPath, `${await Bun.file(infoPath).text()}/** Each selectable stage's day/night lighting model, from its light in stageLighting.ts. */\nexport const STAGE_LIGHT_MODELS: Readonly<Record<number, string>> = {\n${lights.join("\n")}\n};\n`);
+// Backdrop omni lights: one light each and no geometry, so Classic, which draws no model omni lights, shows nothing.
+const pointLights: string[] = [];
+const pointLightNames: string[] = [];
+for (const { stage, theme, lights } of STAGE_POINT_LIGHTS) {
+    const files: string[] = [];
+    for (const light of lights) {
+        const mdl = stagePointLightMdl(light);
+        const name = stagePointLightModelFile(mdl);
+        const bytes = new Uint8Array(generateMDX(parseMDL(mdl)));
+        const decoded = parseMDX(bytes.buffer);
+        if (decoded.Geosets.length !== 0 || decoded.Lights.length !== 1 || decoded.Lights[0]?.LightType !== 0) throw new Error(`${theme}: a point light model must hold one omni light and no geometry`);
+        await Bun.write(join(output, name), bytes);
+        await Bun.write(join(output, `StagePointLight${theme}${files.length}.mdl`), mdl);
+        pointLightNames.push(name);
+        files.push(JSON.stringify(`war3mapImported\\${name}`));
+    }
+    pointLights.push(`  ${stage}: [${files.join(", ")}],`);
+}
+await Bun.write(infoPath, `${await Bun.file(infoPath).text()}/** Each stage's backdrop omni light models, in the order of its lights in stagePointLights.ts. */\nexport const STAGE_POINT_LIGHT_MODELS: Readonly<Record<number, readonly string[]>> = {\n${pointLights.join("\n")}\n};\n`);
 const skyNames = await packageSkies(output);
 const liquidNames = await packageLiquids(output);
-await Bun.write(join(output, "imports.txt"), `${[...imports, snowName, ...lightNames, ...skyNames, ...liquidNames].join("\n")}\n`);
+await Bun.write(join(output, "imports.txt"), `${[...imports, snowName, ...lightNames, ...pointLightNames, ...skyNames, ...liquidNames].join("\n")}\n`);
 console.log(`Stage lights: ${STAGE_LIGHTS.length} lighting models`);

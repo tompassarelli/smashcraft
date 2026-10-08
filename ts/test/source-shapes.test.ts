@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { relative, join } from "node:path";
 import ts from "typescript";
+import { scanNumberRules } from "wisp/plugins/number-rules";
 import { savedFiles } from "wisp/scripts/wisp/devResult";
 
 const root = join(import.meta.dir, "..");
@@ -16,7 +17,7 @@ function parse(path: string): { readonly text: string; readonly source: ts.Sourc
   if (cached !== undefined) return cached;
   const file = join(root, path);
   const text = ts.sys.readFile(file) ?? "";
-  const result = { text, source: ts.createSourceFile(file, text, ts.ScriptTarget.Latest, false, ts.ScriptKind.TS) };
+  const result = { text, source: ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS) };
   parsed.set(path, result);
   return result;
 }
@@ -25,6 +26,20 @@ interface SourceShapeViolation {
   readonly file: string;
   readonly line: number;
   readonly shape: string;
+}
+
+/**
+ * Each decimal literal the map compiler's number rule TS9300 refuses
+ * (wisp:plugins/number-rules.ts), as `file:line`. A literal inside f32() needs the
+ * checker to confirm f32 is Wisp's helper; the compiler accepts it, so it is skipped.
+ */
+function nonBinary32Literals(paths: readonly string[]): string[] {
+  return paths.flatMap((path) => {
+    const { source } = parse(path);
+    return scanNumberRules<ts.Node>(ts, source)
+      .filter(({ node, condition }) => ts.isNumericLiteral(node) && condition === undefined)
+      .map(({ node, message }) => `${path}:${source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1}: ${message}`);
+  });
 }
 
 interface FunctionParts {
@@ -173,4 +188,13 @@ test("production TypeScript has no type escapes (#35, #38) [spec #38]", () => {
   }
   console.info(`type escape audit: ${JSON.stringify(counts)}`);
   expect(violations).toEqual([]);
+});
+
+test("map code has no decimal literal the map compiler refuses as non-binary32 (TS9300) [repro #267]", () => {
+  expect(nonBinary32Literals(mapSources.filter((path) => !/\.(test|tests)\.ts$|\.d\.ts$/.test(path)))).toEqual([]);
+});
+
+test("the binary32 literal audit names 6.489 at its file and line [repro #267]", () => {
+  expect(nonBinary32Literals(["test/fixtures/binary32/scale.ts"]))
+    .toEqual(["test/fixtures/binary32/scale.ts:2: 6.489 isn't a binary32 value; write 6.488999843597412 or f32(6.489)"]);
 });

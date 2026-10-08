@@ -1,4 +1,5 @@
 import { assertEquals, test } from "wisp/src/runtime/testing";
+import { f32 } from "wisp/src/sim/f32";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { luma } from "./stagePalette";
 import { STAGE_LIGHTS } from "./stageLighting";
@@ -40,14 +41,16 @@ test("Ahn'Qiraj's light shines at half strength so fighters stay darker than the
 // #170 measured Durotar's full-intensity light lifting fighters toward its bright ring (ΔE00 −3.3, −3.5); #266 dims it.
 test("Durotar's key and fill stay dimmed to 0.65 so fighters keep their contrast against its bright backdrop [spec docs/design/visual-quality.md]", () => {
   const durotar = STAGE_LIGHTS.find(({ stage }) => stage === DRIFTING_DECK_STAGE)?.light;
-  assertEquals(`${durotar?.key.join(",")}/${durotar?.ambient.join(",")}@${durotar?.intensity}`, "255,226,180/190,152,134@0.65");
+  assertEquals(`${durotar?.key.join(",")}/${durotar?.ambient.join(",")}`, "255,226,180/190,152,134");
+  assertEquals(durotar?.intensity, f32(0.65));
 });
 
 // #265: over Frozen Throne's bright glacier backdrop the full light cut fighter contrast (ΔE00 35.2 → 33.0, 30.9 → 30.1).
 test("Frozen Throne's light shines at 0.8 so lit fighters sit below the stock noon light [spec #265]", () => {
   const frozen = STAGE_LIGHTS.find(({ stage }) => stage === FROZEN_THRONE_STAGE)?.light;
-  assertEquals(`${frozen?.key.join(",")}/${frozen?.ambient.join(",")}@${frozen?.intensity}`, "226,240,255/150,172,220@0.8");
+  assertEquals(`${frozen?.key.join(",")}/${frozen?.ambient.join(",")}`, "226,240,255/150,172,220");
+  assertEquals(frozen?.intensity, f32(0.8));
   // Reforged's stock noon key, 0.92 × (0.839, 0.839, 0.980), the dimmest of the three modes.
-  const stockKey = 0.92 * luma([0.839 * 255, 0.839 * 255, 0.98 * 255]);
+  const stockKey = 0.9200000166893005 * luma([0.8389999866485596 * 255, 0.8389999866485596 * 255, 0.9800000190734863 * 255]);
   assertEquals(luma(frozen!.key) * frozen!.intensity! < stockKey, true, "Frozen Throne's key is not dimmer than stock");
 });

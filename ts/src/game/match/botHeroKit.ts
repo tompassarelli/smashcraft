@@ -12,6 +12,7 @@ import type { Fighter } from "../sim/fighter";
 import { chooseHeroSpecial, isHeroSpecialAction, runningHeroSpecial } from "../sim/heroSpecialRules";
 import { type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, FOLLOW_UP_FORM, FollowUpInput, SpecialSlot, specialForm, specialKit } from "../sim/heroSpecials";
 import { type Controls, neutralControls } from "../sim/roster";
+import { floorFriction, floorTraction } from "../sim/stage";
 import { heightAhead, safeAt } from "./botFooting";
 
 /** How the computer may use a special this frame. */
@@ -122,7 +123,18 @@ function guardReserve(specials: Readonly<FighterSpecials>, move: Readonly<Author
 /** Whether the special's travel ends over the deck; a helpless form needs room to land back on it. */
 function travelStaysOnDeck(f: Readonly<Fighter>, move: Readonly<AuthoredSpecial>, stage: number): boolean {
   let travelX = 0.0;
-  for (const segment of move.motion ?? []) travelX = f32(travelX + f32(segment.velocityX * (segment.last - segment.first + 1)));
+  let velocityX = 0.0;
+  for (const segment of move.motion ?? []) {
+    travelX = f32(travelX + f32(segment.velocityX * (segment.last - segment.first + 1)));
+    velocityX = segment.velocityX;
+  }
+  // The last motion segment leaves its velocity behind through the special's recovery.
+  if (f.motion.grounded && velocityX !== 0.0) {
+    const traction = floorTraction(f.tuning.physics.traction, floorFriction(stage, f.motion));
+    const speed = Math.abs(velocityX);
+    const coast = f32(f32(f32(speed * speed) / f32(2.0 * traction)) + speed);
+    travelX = f32(travelX + (velocityX < 0 ? -coast : coast));
+  }
   if (travelX === 0.0 && move.helpless !== true) return true;
   return safeAt(stage, f32(f.motion.x + f32(f.facing * travelX)), move.helpless === true ? 200.0 : 0.0);
 }

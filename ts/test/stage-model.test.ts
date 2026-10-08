@@ -1,10 +1,15 @@
 import { expect, test } from "bun:test";
 import { MAIN_DECK_HALF_DEPTH, STAGE_PALETTE_TEXTURE, type DeckFace, type OutlinePoint, mainDeckFaces, mainDeckMdl, mainDeckModelFile, mainDeckOutlineStage, paletteTexture } from "../scripts/stageDeck";
-import { STAGE_DECK_MODELS, STAGE_LIGHT_MODELS, STAGE_MAIN_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
+import { STAGE_DECK_MODELS, STAGE_LIGHT_MODELS, STAGE_MAIN_DECK_MODEL, STAGE_POINT_LIGHT_MODELS } from "../src/game/assets/stageAssetInfo";
 import { STAGE_LIGHTS } from "../src/game/assets/stageLighting";
-import { stageLightMdl, stageLightModelFile } from "../scripts/stageLight";
+import { STAGE_POINT_LIGHTS } from "../src/game/assets/stagePointLights";
+import { stageLightMdl, stageLightModelFile, stagePointLightMdl, stagePointLightModelFile } from "../scripts/stageLight";
+import { LAVA_GLOW, LIQUID_TEXTURE_SIZE, STOCK_BLOOM_THRESHOLD, lavaGlowTexel, liquidTexel } from "../scripts/stageLiquid";
+import { luma } from "../src/game/assets/stagePalette";
+import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";
+import { pointLightPieces, shadowCastingLights, stageScenery } from "../src/game/presentation/stageScenery";
 import { STAGE_DECK_PALETTES } from "../src/game/assets/stagePalette";
-import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt, solidSurfaceCount, surfaceLine } from "../src/game/sim/stage";
+import { CANNON_TEST_STAGE, MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt, solidSurfaceCount, surfaceLine } from "../src/game/sim/stage";
 
 /** The stages whose main deck has walls and an underside, each drawn from its own outline. */
 const SHIPPED_STAGES = [1, ...STAGE_DECK_PALETTES.map(({ stage }) => stage).filter((stage) => solidSurfaceCount(stage) > 0)];
@@ -122,4 +127,52 @@ test("each stage's shipped lighting model is the one its light declares [invaria
   for (const { stage, theme, light } of STAGE_LIGHTS) {
     expect(STAGE_LIGHT_MODELS[stage], theme).toBe(`war3mapImported\\${stageLightModelFile(stageLightMdl(light))}`);
   }
+});
+
+// #292, Blackrock: forge-fire omni lights (visual-quality.md, "Levers worth using, per stage").
+test("Blackrock's forge fires carry two warm omni lights, one shadow-casting, that fade out far behind the fight [spec #292]", () => {
+  const lights = STAGE_POINT_LIGHTS.find(({ stage }) => stage === CANNON_TEST_STAGE)?.lights ?? [];
+  expect(lights.map(({ x, y, z, color, intensity, flicker, loopMs, radius, castsShadow }) => `${x},${y},${z} ${color.join(",")}@${intensity}±${flicker}/${loopMs}ms r${radius}${castsShadow ? " shadow" : ""}`)).toEqual([
+    "-2100,4600,-1250 255,150,70@1.25±0.125/1600ms r1100 shadow",
+    "2050,6000,-1300 255,132,56@0.875±0.125/2100ms r900",
+  ]);
+  // stage-art.md, "light the play, not the backdrop": the fighting volume (y within 200 of the plane) stays outside every light by 3,000 units, so no fighter is tinted toward the ember ring.
+  for (const light of lights) expect(light.y - light.radius - 200).toBeGreaterThan(3000);
+  // Each light sits on one of the stage's fire pieces, within 300 units.
+  const fires = stageScenery(CANNON_TEST_STAGE).pieces.filter(({ model }) => model.includes("Fire"));
+  for (const light of lights) expect(fires.some((fire) => Math.hypot(fire.x - light.x, fire.y - light.y, fire.z - light.z) <= 300)).toBe(true);
+  // Rule 8: the flicker loops slower than once a second, far below three flashes a second.
+  for (const light of lights) expect(light.loopMs).toBeGreaterThanOrEqual(1000);
+  expect(shadowCastingLights(CANNON_TEST_STAGE)).toBe(1);
+  for (const { id } of STAGE_CATALOG) if (id !== CANNON_TEST_STAGE) expect(pointLightPieces(id)).toEqual([]);
+});
+
+test("the map ships each point light model its light declares [invariant]", () => {
+  for (const { stage, lights } of STAGE_POINT_LIGHTS) {
+    expect(STAGE_POINT_LIGHT_MODELS[stage]).toEqual(lights.map((light) => `war3mapImported\\${stagePointLightModelFile(stagePointLightMdl(light))}`));
+  }
+  expect(pointLightPieces(CANNON_TEST_STAGE).map(({ model }) => model)).toEqual([...(STAGE_POINT_LIGHT_MODELS[CANNON_TEST_STAGE] ?? [])]);
+});
+
+// #292: lava blooms under the map-wide post-processing (#288) through its crest glow; the body, decks and fighters stay below the threshold.
+test("Blackrock's lava glows above the bloom threshold only on its crests [spec #292]", () => {
+  expect(`${LAVA_GLOW.color.join(",")} from ${LAVA_GLOW.crest}`).toBe("255,196,96 from 0.8");
+  const threshold = STOCK_BLOOM_THRESHOLD * 255;
+  let bodyMax = 0;
+  let glowing = 0;
+  let peak = 0;
+  const texels = LIQUID_TEXTURE_SIZE * LIQUID_TEXTURE_SIZE;
+  for (let y = 0; y < LIQUID_TEXTURE_SIZE; y++) for (let x = 0; x < LIQUID_TEXTURE_SIZE; x++) {
+    const [r, g, b] = liquidTexel("Lava", x, y);
+    const [gr, gg, gb, ga] = lavaGlowTexel(x, y);
+    bodyMax = Math.max(bodyMax, luma([r, g, b]));
+    const lit = luma([Math.min(255, r + gr * ga / 255), Math.min(255, g + gg * ga / 255), Math.min(255, b + gb * ga / 255)]);
+    peak = Math.max(peak, lit);
+    if (lit > threshold) glowing++;
+  }
+  expect(bodyMax).toBeLessThan(threshold);
+  // The crest peak clears even a threshold raised to 0.9.
+  expect(peak).toBeGreaterThan(0.9 * 255);
+  expect(glowing / texels).toBeGreaterThan(0.05);
+  expect(glowing / texels).toBeLessThan(0.3);
 });
