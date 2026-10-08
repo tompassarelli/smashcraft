@@ -3,16 +3,16 @@
     {
       "stage": 11,
       "file": "StageCardGryphon.blp",
-      "inputs": "da8c64c365832ff3067734269951c05ee726a20e0d69ac3d3c5c9c5753e4399f",
+      "inputs": "a99043a5140b229e8d09155ed46c456d827841f924a0846921f4cd94d5ccfd81",
       "sha256": "4e5a18de6ddb8799e3d183153532beb864f6ed54ec34da88352f5c73cb77ae60",
       "bytes": 50500
     },
     {
       "stage": 12,
       "file": "StageCardBlackrock.blp",
-      "inputs": "1ec5e15e77e1c2af148e77ac998b1742d4dacdd55522bafe4f07566fab534675",
-      "sha256": "a69f612d8cc51f8b2f0728c9d28f8336d674e1493f7e8132b6de5d5979ad8eea",
-      "bytes": 25680
+      "inputs": "aa1d3dd57155b00447eb76ae10d33572b13c95086a07e6d41dc2d6d681360912",
+      "sha256": "ea854a48f5bdcfd0e9cf3e39e8e79469c4c289370b22a80fbd3a1a8cd6063f76",
+      "bytes": 26733
     },
     {
       "stage": 13,
