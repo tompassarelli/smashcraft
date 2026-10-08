@@ -105,16 +105,17 @@ export function shippedHurtboxes(character: Character, moves?: FighterMoves): Fi
   };
 }
 
+const FALLBACK_HURTBOXES = shippedHurtboxes(Character.demonHunter);
 const CHARACTER_HURTBOXES: Readonly<Record<number, FighterHurtboxes>> = {
   1: shippedHurtboxes(Character.rifleman),
-  2: shippedHurtboxes(Character.demonHunter),
+  2: FALLBACK_HURTBOXES,
 };
 
 /** The authored body set a fighter uses: its hero kit's, or its character's. */
 export function fighterHurtboxes(f: Readonly<Fighter>): Readonly<FighterHurtboxes> {
   const moves = f.tuning.moves;
   if (moves !== undefined) return moves.hurtboxes ?? defaultHurtboxes(f.character);
-  return CHARACTER_HURTBOXES[f.character] ?? CHARACTER_HURTBOXES[Character.demonHunter] as FighterHurtboxes;
+  return CHARACTER_HURTBOXES[f.character] ?? FALLBACK_HURTBOXES;
 }
 
 const DEFAULTS: FighterHurtboxes[] = [];
