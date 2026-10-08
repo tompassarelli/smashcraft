@@ -188,9 +188,15 @@ const newFailureGate = (head: string, paths: readonly string[]) => Effect.gen(fu
   if (runs === undefined) {
     return yield* new PrePushRefusal({ problem: `${finished.value.stdout}${finished.value.stderr}\npre-push: the affected-test runner exited ${finished.value.exitCode} without a result` });
   }
-  const failures = newFailures(runs, new Set(known?.tests ?? []));
+  const knownTests = new Set(known?.tests ?? []);
+  const failures = newFailures(runs, knownTests);
   const passed = runs.reduce((sum, ran) => sum + processResult(ran).passed, 0);
   yield* appendLanding(log, landingLine(new Date(), head, failures.length === 0 ? "passed" : "refused", passed, failures, units, knownFrom));
-  if (failures.length > 0) return yield* new PrePushRefusal({ problem: refusal(failures, knownFrom) });
+  if (failures.length > 0) {
+    for (const ran of runs) {
+      if (newFailures([ran], knownTests).length > 0) yield* Console.error(`${ran.command}\n${ran.output.trimEnd()}`);
+    }
+    return yield* new PrePushRefusal({ problem: refusal(failures, knownFrom) });
+  }
   yield* Console.error(`pre-push: affected tests: ${passed} passed, none newly failing (${knownFrom}; ${seconds} s)`);
 });
