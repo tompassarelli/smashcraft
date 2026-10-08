@@ -276,7 +276,8 @@ export class MatchPresentation {
     BlzFrameSetLevel(frames.cover, 8);
     BlzFrameSetTexture(frames.art, texture, 0, true);
     BlzFrameSetAbsPoint(frames.art, FRAMEPOINT_CENTER, f32(0.4), f32(0.35));
-    BlzFrameSetSize(frames.art, f32(0.32), f32(0.18));
+    // Stage pictures are square (smashcraft:docs/design/stage-select.md).
+    BlzFrameSetSize(frames.art, f32(0.18), f32(0.18));
     BlzFrameSetLevel(frames.art, 9);
     BlzFrameSetAbsPoint(frames.name, FRAMEPOINT_TOP, f32(0.4), f32(0.24));
     BlzFrameSetSize(frames.name, f32(0.4), f32(0.06));

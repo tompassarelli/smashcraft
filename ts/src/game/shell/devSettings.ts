@@ -172,6 +172,16 @@ export function prepareQuickMatch(game: MatchState, stage = 0, character?: Chara
   return true;
 }
 
+/** Classic's native route check (#284): `-dev classic NAME` starts that fighter's run, `-dev classic boss NAME` its final battle. */
+export const CLASSIC_COMMAND = "-dev classic ";
+
+export function classicDevRequest(message: string): { readonly character: Character; readonly boss: boolean } | undefined {
+  const boss = heroAfter(message, `${CLASSIC_COMMAND}boss `);
+  if (boss !== undefined) return { character: boss, boss: true };
+  const character = heroAfter(message, CLASSIC_COMMAND);
+  return character === undefined ? undefined : { character, boss: false };
+}
+
 /** Training's native check (#120): a computer partner shielding at 40%, hit areas on, then the quick match. */
 export const QUICK_TRAINING_COMMAND = "-dev quick training";
 

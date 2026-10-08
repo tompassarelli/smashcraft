@@ -3,7 +3,7 @@
 The map build reads private inputs that never enter Git: the base map, the
 asset container, the summon clips and the folders of `--assets` (fighter
 models, clip pools, stage and impact models, imported community models,
-selection art, fighter renders, hero models, model sounds). Each is a
+selection art, fighter renders, stage-select pictures, hero models, model sounds). Each is a
 *family*, stored once under the hash of its contents and never changed.
 smashcraft:build-inputs.json names the hash of every family a revision builds
 with, so a commit fixes its art exactly as it fixes its code.

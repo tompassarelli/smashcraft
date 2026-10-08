@@ -47,7 +47,7 @@ for (const [slot, color] of slots.entries()) {
 }
 await render('SelectionChipCPU', 'SelectionChip.svg', { CHIP_COLOR: '#626977', CHIP_LABEL: 'P2' }, true);
 await render('SelectionCardGray', 'SelectionCard.svg', { CARD_COLOR: '#30353b', CARD_EDGE: '#555d65', CARD_METAL: '#687078' }, false);
-for (const name of ['SelectionBackdrop', 'SelectionTileFrame', 'SelectionAction', 'StageBackdrop', 'StageChip', 'SelectionSkyDeck', 'SelectionThreeBridges', 'SelectionFrozenThrone', 'SelectionNordrassil', 'SelectionGryphon', 'SelectionDurotar', 'SelectionNaxxramas', 'SelectionHellfire', 'SelectionBlackrock', 'SelectionAhnQiraj', 'SelectionStratholme', 'SelectionTombOfSargeras']) {
+for (const name of ['SelectionBackdrop', 'SelectionTileFrame', 'SelectionAction', 'StageBackdrop', 'StageChip', 'SelectionThreeBridges']) {
   run(['magick', '-background', 'none', join(source, `${name}.svg`), '-depth', '8', `TGA:${join(output, `${name}.tga`)}`]);
 }
 console.log(run(['magick', 'identify', ...[...new Bun.Glob('*.tga').scanSync(output)].sort().map((file) => join(output, file))]));

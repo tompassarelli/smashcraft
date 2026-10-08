@@ -121,8 +121,7 @@ at one of them.
   model (`war3mapImported\LichKing2.mdx`, already in the map) at 3.2×;
   Archimonde is Warcraft's own Archimonde model (`Units\Demon\Warlock\Warlock`)
   at 2.6×; Kil'jaeden has no Warcraft III model, so he is the same eredar
-  model at 2.8×, tinted red (**Judgement**: the closest stock body; Reforged's
-  own Kil'jaeden is not in the classic archives).
+  model at 2.8×, tinted red (**Judgement**: the closest stock body).
 
 | Boss | Stage | Strikes, in order (tell / active / rest frames) | How to beat it |
 | --- | --- | --- | --- |

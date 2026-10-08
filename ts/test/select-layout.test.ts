@@ -71,8 +71,10 @@ for (const width of [1920, 1620]) test(`both selection screens at ${width}: text
         }
       } else {
         expect(text.find(frame => frame.text === "Random Stage" && frame.name.includes("TileName"))!.rectangle![1]).toBeLessThan(0.46);
-        const tiles = scene.ui.filter(frame => frame.visible && frame.name.startsWith("MeleeStageTile") && !frame.name.startsWith("MeleeStageTileName"));
-        for (const frame of text) for (const tile of tiles) expect(overlaps(frame, tile), `${frame.name} overlaps ${tile.name}`).toBe(false);
+        // A stage card's own name banner sits inside its panel; nothing else may.
+        const card = (name: string) => /^MeleeStageTile(\d+)/.exec(name)?.[1];
+        const tiles = scene.ui.filter(frame => frame.visible && /^MeleeStageTile\d+(Panel)?$/.test(frame.name));
+        for (const frame of text) for (const tile of tiles) if (!(/^MeleeStageTile\d+Name$/.test(frame.name) && card(frame.name) === card(tile.name))) expect(overlaps(frame, tile), `${frame.name} overlaps ${tile.name}`).toBe(false);
       }
       const output = process.env.SELECT_CAPTURE_DIR;
       if (output && width === 1620 && !training) { mkdirSync(output, { recursive: true }); await Bun.write(join(output, `${phase === Phase.characterMenu ? "fighters" : "stages"}.json`), JSON.stringify({ scene, fonts: Object.fromEntries(fonts), width, height: 1080 })); }

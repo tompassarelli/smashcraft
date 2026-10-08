@@ -19,7 +19,7 @@ export const MANIFEST = join(projectRoot, "build-inputs.json");
  * The others are the folders of `--assets` and the `--summon` folder.
  */
 export const FAMILY_NAMES = ["base", "container", "summon", "animation-assets", "illidan-animation", "selection-assets", "fighter-renders",
-  "stage-assets", "impact-assets", "imported-models", "original-clips-static-lights", "hero-models", "model-sounds"] as const;
+  "stage-assets", "stage-thumbnails", "impact-assets", "imported-models", "original-clips-static-lights", "hero-models", "model-sounds"] as const;
 export type Family = (typeof FAMILY_NAMES)[number];
 export const FAMILIES = {
   base: { file: "base.w3m", produce: "the private base map Melee_Prototype_Base.w3m (smashcraft:docs/development-loop.md)" },
@@ -30,6 +30,7 @@ export const FAMILIES = {
   "selection-assets": { produce: "bun tools/selection/build-art.ts (writes build/selection-assets)" },
   "fighter-renders": { produce: "bun tools/selection/render-fighters.ts --extract CASC_EXTRACT --assets \"$(bun wisp inputs path assets)\"" },
   "stage-assets": { produce: "bun tools/stage/package.ts (writes build/stage-assets)" },
+  "stage-thumbnails": { produce: "bun scripts/stageThumbnails.ts from ts/ (renders every stage-select card and stores this family itself)" },
   "impact-assets": { produce: "bun tools/effects/package.ts, trap.ts and shield.ts (write build/impact-assets)" },
   "imported-models": { produce: "the community models smashcraft:ts/src/game/assets/importedModelInfo.ts lists, from their authors' downloads" },
   "original-clips-static-lights": { produce: "cp -rL \"$(bun wisp inputs path assets)/original-clips-static-lights\" NEW && chmod -R u+w NEW && bun tools/animations/export-original-clips.ts --assets \"$(bun wisp inputs path assets)\" --out NEW --keep-unchanged (after adding the new fighter models' animation-assets or illidan-animation)" },
