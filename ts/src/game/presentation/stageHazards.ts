@@ -2,7 +2,9 @@ import { type MatchState, stageClock } from "../match/rules";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { CARRIED_TEST_STAGE, TIMED_TEST_STAGE, surfaceWaitFrames } from "../sim/stage";
-import { CANNON_HOLD_FRAMES, CANNON_SHOT_FRAMES, WindPhase, cannonOn, framesUntilWind, windDirection, windOn, windPhase } from "../sim/stageHazards";
+import {
+  CANNON_HOLD_FRAMES, CANNON_SHOT_FRAMES, WindPhase, cannonOn, framesUntilTideTurns, framesUntilWind, hasTide, tideNextDirection, windDirection, windOn, windPhase,
+} from "../sim/stageHazards";
 
 /** Classic Warcraft barrel, also listed in smashcraft:docs/design/stages.md. */
 export const CANNON_MODEL = "Units\\Other\\TNTBarrel\\TNTBarrel.mdx";
@@ -13,7 +15,7 @@ export function framesUntilPlatformMoves(stage: number, frame: number): number |
   return stage === TIMED_TEST_STAGE || stage === CARRIED_TEST_STAGE ? surfaceWaitFrames(stage, 1, frame) : undefined;
 }
 
-/** A warning in the players' language, before wind, platform motion or a shot. */
+/** A warning in the players' language, before wind, a turn of the tide, platform motion or a shot. */
 export function stageWarning(game: Readonly<MatchState>, world: Readonly<Roster>): string {
   const stage = game.stageChoice;
   const frame = stageClock(game);
@@ -22,6 +24,9 @@ export function stageWarning(game: Readonly<MatchState>, world: Readonly<Roster>
     if (windPhase(frame) === WindPhase.cue) return `Wind pushes ${side} in ${framesUntilWind(frame)} frames.`;
     if (windPhase(frame) === WindPhase.blowing) return `Wind pushes ${side}.`;
   }
+  // The tide follows the match frame, hazards on or off.
+  const turn = hasTide(stage) ? framesUntilTideTurns(game.matchFrame) : 0;
+  if (turn > 0) return `Tide turns ${tideNextDirection(game.matchFrame) > 0 ? "right" : "left"} in ${turn} frames.`;
   const before = framesUntilPlatformMoves(stage, frame);
   if (before !== undefined && before <= PLATFORM_CUE_FRAMES) return `Platform moves in ${before} frames.`;
   if (cannonOn(stage, frame)) {
