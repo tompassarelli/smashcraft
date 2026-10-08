@@ -10,7 +10,7 @@ const flameStrike: AuthoredSpecial = {
     modelAnimation: { sequence: "birth", warningSeconds: 0.5, activeSeconds: 1.5 },
     spawnFrame: 12, offsetX: 50.0, offsetZ: 45.0, velocityX: 9.0, velocityZ: 0.0,
     life: 34, radius: 40.0, effect: kaelHit(12.0, 80, 95.0, 24.0),
-    reflectable: false, limit: 1, needsLineOfSight: true,
+    reflectable: true, limit: 1, needsLineOfSight: true,
   }],
 };
 const siphon: AuthoredSpecial = {

@@ -266,7 +266,7 @@ Normals, inspired by:
 
 | Input | Name | What it does |
 | --- | --- | --- |
-| Neutral special | Flame Strike | Mark the space ahead, then leave a flame that launches once. The enemy can shield, move out or interrupt the cast. |
+| Neutral special | Flame Strike | Send a wall of flame along the ground that launches the first enemy it reaches. Shield it or jump over it. |
 | Side special | Siphon Mana | Reach ahead to take mana from an enemy. Shields stop it. |
 | Up special | Phoenix Flight | Aim, then ride a burst of fire. You fall helpless after the flight. |
 | Down special | Banish | Briefly turn ethereal, then push nearby enemies away. |
