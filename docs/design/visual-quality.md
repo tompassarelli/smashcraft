@@ -326,6 +326,14 @@ Classic retains the spark geometry. Compare `-dev effects 12` at the same
 50 ms capture intervals in the retained unlit and lit maps before claiming
 improved contact readability. The model adds no script calls per frame.
 
+Slash hit sparks (the authored Hit model, every `HitElement.slash` contact)
+carry the same kind of light: warm white `{1, 0.9, 0.7}`, radius 380,
+intensity 0.9 → 0.35 at 70 ms → 0 at 140 ms, inside the spark's 9-frame
+pooled life. It adds 204 bytes to the existing imported model and no new
+file: no stock contact spark carries a light of that colour and length, and a
+second stock effect per hit would add a pool and script calls. Checks
+`192-slash-before|after` compare it against the f9d0fbf3 build.
+
 The #168 gate is the measured predicted frame cost (p99 ≤10 ms, worst ≤14 ms)
 from a `--samples` run checked with `bun wisp perf budget RUN_FILE`. Run the
 matching workload on the hosted farm. GPU frame intervals and #165 profile
