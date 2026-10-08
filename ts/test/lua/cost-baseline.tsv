@@ -19,7 +19,7 @@ src/game/match/botPlayContracts.tests.ts	6	5.388
 src/game/match/botPunishContracts.tests.ts	6	0.313
 src/game/match/botReactionContracts.tests.ts	4	0.188
 src/game/match/botRecoveryContracts.tests.ts	1	0.645
-src/game/match/botStrategyContracts.tests.ts	9	0.681
+src/game/match/botStrategyContracts.tests.ts	10	1.286
 src/game/match/combatInputContracts.tests.ts	1	0.011
 src/game/match/comboRoute.tests.ts	1	0.185
 src/game/match/controls.tests.ts	4	0.000
