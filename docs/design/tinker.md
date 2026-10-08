@@ -72,9 +72,10 @@ the defender's responses. Grabs use the common mash escape and one-pummel rule.
 
 Offensive launch growth uses 65% of its original authored strength, with
 jab links, up-throw juggles and down-throw chases retaining their distinct
-setup values. Forward smash, up smash and Robo-Goblin share effective launch
-growth 76.7 and base 28. Their launch angles, damage and base knockback retain
-their authored values.
+setup values. Forward smash, up smash and Robo-Goblin use 80% instead:
+effective launch growth 94.4 and base 28. Forward smash can finish a 100%
+Rifleman from centre stage before hitstun ends with neutral DI. Their launch
+angles, damage and base knockback retain their authored values.
 
 ## Specials and ultimate
 

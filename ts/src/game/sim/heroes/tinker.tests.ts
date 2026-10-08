@@ -13,6 +13,7 @@ import { updateProjectiles } from "../projectiles";
 import { type Controls, type Roster, createRoster, fighterAt } from "../roster";
 import { advanceSpecials, startFighterSpecial } from "../specials";
 import { advanceFighter } from "../step";
+import { checkBlastZone } from "../stocks";
 import { controls, testGrabFrame } from "../testWorld";
 import { clearSpecialOnStock } from "../transitions";
 import { copyFighterState } from "../../replay/fighterState";
@@ -49,6 +50,22 @@ const NORMALS = [
   AttackStyle.dashAttack, AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.downSmash,
   AttackStyle.neutralAir, AttackStyle.forwardAir, AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir,
 ] as const;
+
+test("Tinker forward smash finishes a 100% Rifleman from centre before hitstun ends, both facings [spec docs/design/tinker.md]", () => {
+  for (const facing of [-1, 1]) {
+    const { owner, target, world } = pair(100.0, facing);
+    target.status.damage = 100.0;
+    beginFighterAttack(world, 0, AttackStyle.forwardSmash, false);
+    owner.attack.frame = attackStartupFrames(AttackStyle.forwardSmash, TINKER_MOVES);
+    resolveAttacks(world);
+    for (let tick = 0; tick < 120 && !target.status.out && target.launch.hitstun > 0; tick++) {
+      advanceFighter(world, 1, 0, controls(), f32(240.0 * facing));
+      checkBlastZone(world, 1);
+    }
+    assertTrue(target.status.out);
+  }
+});
+
 for (const style of NORMALS) test(`Tinker normal ${style} hits once in its active window, both facings [spec docs/design/tinker.md]`, () => {
   const move = TINKER_MOVES.normals[style]!;
   const region = move.regions[0]!;

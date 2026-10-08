@@ -177,7 +177,7 @@ src/game/sim/heroes/sharedGrab.tests.ts	1	0.001
 src/game/sim/heroes/startupTravel.tests.ts	2	0.005
 src/game/sim/heroes/sylvanas.tests.ts	26	0.177
 src/game/sim/heroes/thrall.tests.ts	29	0.169
-src/game/sim/heroes/tinker.tests.ts	26	0.113
+src/game/sim/heroes/tinker.tests.ts	27	0.166
 src/game/sim/heroes/wardenMoves.tests.ts	7	0.017
 src/game/sim/heroes/wardenSpecials.tests.ts	19	0.216
 src/game/sim/hitTiming.tests.ts	5	0.002
