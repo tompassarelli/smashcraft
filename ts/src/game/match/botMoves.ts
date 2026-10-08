@@ -25,7 +25,7 @@ import { passivePips, passiveSpec } from "../sim/passives";
 import type { FighterGameplan, GameplanMove } from "../sim/gameplan";
 import { type CpuSkill, FULL_SKILL } from "./cpuSkill";
 import { type AttackDecision, familiarOption, moveValueMultiplier } from "./botMoveValue";
-import { type BotStrategy, VARIETY_STARTS } from "./botStrategy";
+import type { BotStrategy } from "./botStrategy";
 
 const GROUND_MOVES = [
   AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt,
@@ -330,6 +330,8 @@ const PASSIVE_WEIGHT = 8;
 // for each such start; when every option in reach is such a repeat, the
 // chooser passes, so the computer moves instead of cycling its ranged
 // answers.
+/** Starts the move-variety rule remembers. */
+export const VARIETY_STARTS = 6;
 /** The span, in match frames, a start counts against its option. */
 export const VARIETY_FRAMES = 600;
 /** Weights are scaled by this before a repeat divides them, keeping them whole and above zero. */

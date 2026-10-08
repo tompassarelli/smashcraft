@@ -10,7 +10,7 @@ import { canAttack } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { attackStartupFrames } from "../sim/moves";
 import type { Controls } from "../sim/roster";
-import { moveReachAhead, moveReaches } from "./botMoves";
+import { VARIETY_STARTS, moveReachAhead, moveReaches } from "./botMoves";
 import { botChance } from "./botRandom";
 import { steerOnGround, slideStaysOnDeck } from "./botFooting";
 import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
@@ -71,8 +71,6 @@ export interface BotStrategy {
   readonly recentOptions: number[];
 }
 
-/** Starts the move-variety rule remembers (botMoves.ts, "Move variety"). */
-export const VARIETY_STARTS = 6;
 const noRecentOptions = (): number[] => Array.from({ length: 2 * VARIETY_STARTS }, () => -1);
 
 export function createBotStrategy(): BotStrategy {
