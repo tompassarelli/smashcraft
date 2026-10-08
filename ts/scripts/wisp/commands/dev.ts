@@ -23,7 +23,7 @@ const SMASHCRAFT_DEV: DevProject = {
       "test/wisp.test.ts": ["test/fixtures/wisp/**"],
       "test/command-list.test.ts": ["scripts/wisp.ts", "../AGENTS.md"],
       "test/stage-render.test.ts": [],
-      "test/stage-thumbnails.test.ts": ["stage-thumbnails.json", "../build-inputs.json"],
+      "test/stage-thumbnails.test.ts": ["stage-thumbnails.json", "src/game/menu/stageSilhouettes.ts"],
       "test/ui-frames.test.ts": ["../tools/selection/art/*.fdf", "../tools/selection/art/*.toc"],
       "test/menu-fresh.test.ts": ["test/fixtures/wisp/**"],
       // Dated evidence records, never edited.

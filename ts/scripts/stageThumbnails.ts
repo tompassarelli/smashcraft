@@ -3,8 +3,9 @@
 // (src/game/menu/stageSilhouettes.ts) and, for stages with no Warcraft zone
 // art, a headless render re-drawn from the stage's hero camera without
 // fighters or HUD, composited over its sky and graded, stored as a BLP in the
-// stage-thumbnails build-input family and recorded in ts/stage-thumbnails.json.
-// Usage (from ts/): bun scripts/stageThumbnails.ts [--out PRIVATE_DIR]
+// build-input store under its own hash and recorded in ts/stage-thumbnails.json.
+// Usage (from ts/): bun scripts/stageThumbnails.ts [--stage NAME] [--out PRIVATE_DIR]
+// --stage redraws only that stage's card and its row; without it, every stage.
 import { mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
@@ -20,8 +21,8 @@ import { encodeBlp } from "./blp";
 import { runProcess } from "./hostProcess";
 import { headlessRender } from "./wisp/headlessRender";
 import { SMASHCRAFT_JOURNEYS } from "./wisp/journeys";
-import { readManifest } from "./wisp/buildInputs";
-import { CARD, HERO_CAMERAS, RENDERED_STAGES, type ThumbnailManifest, silhouetteSource, stageInputHash, thumbnailFile } from "./stageThumbnailSpec";
+import { storeStageCard } from "./wisp/buildInputs";
+import { CARD, HERO_CAMERAS, RENDERED_STAGES, type ThumbnailManifest, silhouetteSource, stageInputHash, stageNamed, thumbnailFile } from "./stageThumbnailSpec";
 
 const TS = resolve(import.meta.dir, "..");
 const MANIFEST_FILE = join(TS, "stage-thumbnails.json");
@@ -48,6 +49,9 @@ const isScene = (value: unknown): value is RenderScene => Schema.is(SceneShape)(
 
 const outIndex = process.argv.indexOf("--out");
 const work = outIndex < 0 ? join(homedir(), ".local/share/smashcraft-build-inputs/stage-thumbnails-work") : resolve(process.argv[outIndex + 1] ?? "");
+
+const stageIndex = process.argv.indexOf("--stage");
+const stageName = stageIndex < 0 ? undefined : process.argv[stageIndex + 1] ?? "";
 
 const renderer = headlessRender();
 
@@ -97,32 +101,27 @@ const composePicture = (stage: StageTile, render: string, cards: string) => Effe
 });
 
 const program = Effect.gen(function*() {
+  const only = stageName === undefined ? undefined : stageNamed(stageName);
+  if (stageName !== undefined && only === undefined) return yield* new ThumbnailFailure({ problem: `no selectable stage is called ${JSON.stringify(stageName)}` });
   yield* attempt("write the silhouettes", () => Bun.write(SILHOUETTE_FILE, silhouetteSource()));
-  const stages = RENDERED_STAGES;
+  const stages = only === undefined ? RENDERED_STAGES : RENDERED_STAGES.filter((stage) => stage === only);
+  const previous: ThumbnailManifest = only === undefined ? { stages: [] } : yield* attempt("read the manifest", () => Bun.file(MANIFEST_FILE).json());
   mkdirSync(work, { recursive: true });
   const scenes = yield* Effect.forEach(stages, captureStage);
   const renders = join(work, "renders");
   // One browser per scene: the renderer fails tearing down one scene's models for the next.
   yield* Effect.forEach(scenes, (scene) => renderScenes({ ...renderer, width: CARD.renderWidth, height: CARD.renderHeight }, [scene], renders));
-  const family = join(work, "family");
   const cards = join(work, "cards");
-  mkdirSync(family, { recursive: true });
   mkdirSync(cards, { recursive: true });
-  const written = yield* Effect.forEach(stages, (stage) => composePicture(stage, join(renders, `p0-frame-${stage}.png`), cards).pipe(
-    Effect.tap((blp) => attempt("write the card", () => Bun.write(join(family, thumbnailFile(stage)), blp))),
-    Effect.map((blp) => ({ stage, file: thumbnailFile(stage), sha256: new Bun.CryptoHasher("sha256").update(blp).digest("hex"), bytes: blp.length })),
+  const rows = yield* Effect.forEach(stages, (stage) => composePicture(stage, join(renders, `p0-frame-${stage}.png`), cards).pipe(
+    Effect.flatMap((blp) => attempt("store the card", () => storeStageCard(blp)).pipe(
+      Effect.map((sha256) => ({ stage, file: thumbnailFile(stage), inputs: stageInputHash(stage), sha256, bytes: blp.length })))),
   ), { concurrency: 4 });
-  yield* runProcess(ChildProcess.make("bun", ["wisp", "inputs", "add", "stage-thumbnails", family], { cwd: TS, stdin: "ignore" }));
-  const manifest = yield* readManifest();
-  const stageAssets = manifest["stage-assets"];
-  const rows = yield* Effect.forEach(written, (row) => Effect.succeed({ ...row, inputs: stageInputHash(row.stage, stageAssets) }));
-  const record: ThumbnailManifest = {
-    family: manifest["stage-thumbnails"], totalBytes: rows.reduce((sum, row) => sum + row.bytes, 0),
-    stages: rows.map(({ stage, file, inputs, sha256, bytes }) => ({ stage, file, inputs, sha256, bytes })),
-  };
-  yield* attempt("write the manifest", () => Bun.write(MANIFEST_FILE, JSON.stringify(record, null, 2) + "\n"));
+  // The other stages' rows stay as they were, in catalog order, so one stage's regeneration changes only its own lines.
+  const merged = RENDERED_STAGES.flatMap((stage) => rows.find((row) => row.stage === stage) ?? previous.stages.find((row) => row.stage === stage) ?? []);
+  yield* attempt("write the manifest", () => Bun.write(MANIFEST_FILE, JSON.stringify({ stages: merged } satisfies ThumbnailManifest, null, 2) + "\n"));
   for (const row of rows) console.log(`${row.file}\t${row.bytes} bytes`);
-  console.log(`${rows.length} rendered pictures, ${record.totalBytes} bytes; previews in ${cards}; family ${record.family}`);
+  console.log(`${rows.length} rendered pictures; all cards ${merged.reduce((sum, row) => sum + row.bytes, 0)} bytes; previews in ${cards}`);
 });
 
 BunRuntime.runMain(program.pipe(Effect.provide(BunServices.layer)));

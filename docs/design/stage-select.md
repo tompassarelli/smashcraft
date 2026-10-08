@@ -2,9 +2,10 @@
 
 How other platform fighters present stage select, and the card every
 Smashcraft stage gets on the stage panel (#304). The cards are generated from
-the current stage data, so they never go stale: `bun scripts/stageThumbnails.ts`
-from ts/ regenerates them and smashcraft:ts/test/stage-thumbnails.test.ts fails
-until it has run after a stage changes.
+the current stage data, so they never go stale: after a stage changes,
+`bun scripts/stageThumbnails.ts --stage NAME` from ts/ regenerates that stage's
+card, and smashcraft:ts/test/stage-thumbnails.test.ts fails, printing that
+command, until it has run.
 
 ## References
 
@@ -123,19 +124,26 @@ the stage's hero camera (smashcraft:ts/scripts/stageThumbnailSpec.ts,
   general encoders don't write (ImageMagick's four-component JPEG is YCCK).
 - Budget: under 1 MB for all pictures together (8 Oct: 122,043 bytes).
 
-The pictures are stored as the `stage-thumbnails` build-input family
-(smashcraft:docs/build-inputs.md); smashcraft:ts/stage-thumbnails.json records
-each one's bytes, SHA-256 and the hash of its inputs.
+Each picture is stored in the build-input store
+(smashcraft:docs/build-inputs.md) under its own SHA-256, at
+`stage-cards/SHA256`; smashcraft:ts/stage-thumbnails.json records each one's
+bytes, SHA-256 and the hash of its own stage's inputs, and the map build
+imports each card by that hash.
 
 ## Staying current
 
-`bun scripts/stageThumbnails.ts` (from ts/, through the capacity helper:
-about a minute) rewrites the silhouettes, re-renders the four pictures,
-stores the family and writes ts/stage-thumbnails.json and build-inputs.json;
-commit all three with the stage change. smashcraft:ts/test/stage-thumbnails.test.ts
-fails when a selectable stage has neither zone art nor a recorded render, when
-a rendered stage's inputs (its scenery, terrain, lighting model, decks and
-surfaces, hero camera, the card format and the `stage-assets` family hash)
-hash differently from the recorded hash, when build-inputs.json names other
-pictures than the record, or when the silhouette file differs from what the
-stages' surfaces draw now.
+Freshness is per stage, so stage changes in different lanes never touch the
+same lines. After changing one stage, run
+`bun scripts/stageThumbnails.ts --stage NAME` (from ts/, through the capacity
+helper; NAME is the catalog name, such as `--stage "Gryphon Aerie"`): it
+rewrites the silhouettes, re-renders that stage's picture if it has one,
+stores it and rewrites only that stage's row of ts/stage-thumbnails.json;
+commit both files with the stage change. Without `--stage` it redraws every
+stage (about a minute). smashcraft:ts/test/stage-thumbnails.test.ts fails,
+naming the stage and printing its `--stage` command, when a selectable stage
+has neither zone art nor a recorded render, when a rendered stage's own inputs
+(its scenery, terrain, lighting model, decks, scenery models and surfaces,
+hero camera and the card format; stage-assets files are named by their
+contents' hash, so their names stand for their bytes) hash differently from
+its recorded hash, or when its silhouette differs from what its surfaces draw
+now.

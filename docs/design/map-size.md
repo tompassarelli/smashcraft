@@ -598,7 +598,7 @@ bytes; their layout silhouettes and name banners are drawn by frames. The four
 stages with no fitting zone art import one 512x512 BLP each
 (smashcraft:docs/design/stage-select.md), 122,043 bytes together, measured
 by `bun scripts/stageThumbnails.ts` on 8 Oct 2026 (ts/stage-thumbnails.json
-keeps the current total):
+keeps each card's current bytes):
 
 | Picture | Bytes |
 | --- | ---: |

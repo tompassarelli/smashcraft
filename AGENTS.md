@@ -690,11 +690,12 @@ code. From smashcraft:ts/:
   maps expose `-dev view near|far|off` for those framings and
   `-dev fogv STYLE ZSTART ZEND DENSITY HEIGHTSTART HEIGHTEND LINEARSTART LINEAREND R G B OVER_SKY`
   for the existing 3.0 fog comparison; these affect only local presentation.
-- Stage-select cards: `bun scripts/stageThumbnails.ts` (from ts/, through the
-  capacity helper) regenerates every stage's layout silhouette and the hero
-  renders of stages without Warcraft zone art, stores them and records their
-  input hashes; run it after any stage or stage-art change, or
-  ts/test/stage-thumbnails.test.ts fails (smashcraft:docs/design/stage-select.md).
+- Stage-select cards: `bun scripts/stageThumbnails.ts --stage NAME` (from ts/,
+  through the capacity helper) regenerates one stage's layout silhouette and
+  hero render, stores it and records its input hash in its own row of
+  ts/stage-thumbnails.json; run it after changing that stage or its art, or
+  ts/test/stage-thumbnails.test.ts fails and prints the command. Without
+  `--stage` it redraws every stage (smashcraft:docs/design/stage-select.md).
 - Melee oracle: `bun wisp oracle` plays Melee situations for every fighter
   and prints each outcome beside the value cited from the decompilation; the
   test suite fails on any mismatch it doesn't list as known

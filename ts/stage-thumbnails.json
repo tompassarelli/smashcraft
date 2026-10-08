@@ -1,34 +1,32 @@
 {
-  "family": "169c3723b447d7db579d4fa65e410294e60f79a8f01eaea9d455eed81836ec85",
-  "totalBytes": 122043,
   "stages": [
     {
       "stage": 11,
       "file": "StageCardGryphon.blp",
-      "inputs": "448d571805e598079d42698ef785af9b0cdf5c4248732e6895b555c37e3f4ce8",
-      "sha256": "c14c0bd5809c429a377856d0f2b840cc12213430fe99d181efaa56da913cf19f",
-      "bytes": 34468
+      "inputs": "f52454e8578cdb9dff4197fa9af6ed7f7524c2880e168289e81f578e84744d02",
+      "sha256": "927e6fb145b36cf01e734ca4a02d124aa92324d32c5e700f6f1e2566fa1814d9",
+      "bytes": 49884
     },
     {
       "stage": 12,
       "file": "StageCardBlackrock.blp",
-      "inputs": "2d9b7ea0e4db68ba4f48bc99b6e8120c6db061d32561c076e5a7b021e149548a",
-      "sha256": "637eda0af48ef77d1d0dce3281b7a20e89191ffef97d972faace300546b26af7",
-      "bytes": 27158
+      "inputs": "1ec5e15e77e1c2af148e77ac998b1742d4dacdd55522bafe4f07566fab534675",
+      "sha256": "a69f612d8cc51f8b2f0728c9d28f8336d674e1493f7e8132b6de5d5979ad8eea",
+      "bytes": 25680
     },
     {
       "stage": 13,
       "file": "StageCardAhnQiraj.blp",
-      "inputs": "91ad35da62e2c9534700d69e65353b7a6a4237c8f64e6418b80700de75b54d0a",
-      "sha256": "f19240fe0945326074164a00c9c69a088691e0fdfe46217ffc825157d989ef91",
-      "bytes": 42372
+      "inputs": "6435920f417cf25d76c19db6a92c43730d1cbb619d9ef62431b669fe70ca8a06",
+      "sha256": "f51e8d193cd8dc747e31d698c871caafa2705408b640ff97e9e9a3edd6065df5",
+      "bytes": 59795
     },
     {
       "stage": 0,
       "file": "StageCardSkyDeck.blp",
-      "inputs": "ac27af617a1412571404da9a4a2de4b34e8b88ede1f255134e72928a929bc2eb",
-      "sha256": "c3334e9ec0bc4ddde10d30f73036efee7687832cd5cbb88522a5340816a575a9",
-      "bytes": 18045
+      "inputs": "62d6fbb33a46d50fa5fcc2de9b5ad6e6410cbf0f02762d9a393c5a35b1130734",
+      "sha256": "af248d46bdd4c990e75d9a322459d9e15b0fc318db5f608426ea401e0b47930f",
+      "bytes": 37281
     }
   ]
 }

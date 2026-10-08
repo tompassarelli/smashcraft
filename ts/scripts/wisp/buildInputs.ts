@@ -19,7 +19,7 @@ export const MANIFEST = join(projectRoot, "build-inputs.json");
  * The others are the folders of `--assets` and the `--summon` folder.
  */
 export const FAMILY_NAMES = ["base", "container", "summon", "animation-assets", "illidan-animation", "selection-assets", "fighter-renders",
-  "stage-assets", "stage-thumbnails", "impact-assets", "imported-models", "original-clips-static-lights", "hero-models", "model-sounds"] as const;
+  "stage-assets", "impact-assets", "imported-models", "original-clips-static-lights", "hero-models", "model-sounds"] as const;
 export type Family = (typeof FAMILY_NAMES)[number];
 export const FAMILIES = {
   base: { file: "base.w3m", produce: "the private base map Melee_Prototype_Base.w3m (smashcraft:docs/development-loop.md)" },
@@ -30,7 +30,6 @@ export const FAMILIES = {
   "selection-assets": { produce: "bun tools/selection/build-art.ts (writes build/selection-assets)" },
   "fighter-renders": { produce: "bun tools/selection/render-fighters.ts --extract CASC_EXTRACT --assets \"$(bun wisp inputs path assets)\"" },
   "stage-assets": { produce: "bun tools/stage/package.ts (writes build/stage-assets)" },
-  "stage-thumbnails": { produce: "bun scripts/stageThumbnails.ts from ts/ (renders every stage-select card and stores this family itself)" },
   "impact-assets": { produce: "bun tools/effects/package.ts, trap.ts and shield.ts (write build/impact-assets)" },
   "imported-models": { produce: "the community models smashcraft:ts/src/game/assets/importedModelInfo.ts lists, from their authors' downloads" },
   "original-clips-static-lights": { produce: "cp -rL \"$(bun wisp inputs path assets)/original-clips-static-lights\" NEW && chmod -R u+w NEW && bun tools/animations/export-original-clips.ts --assets \"$(bun wisp inputs path assets)\" --out NEW --keep-unchanged (after adding the new fighter models' animation-assets or illidan-animation)" },
@@ -167,6 +166,22 @@ export async function storeFamily(family: Family, source: string, store = INPUTS
   } finally {
     removeTree(staging);
   }
+}
+
+/** Where a stage-select card with SHA-256 `sha256` is stored; ts/stage-thumbnails.json names each card's hash. */
+export const stageCardPath = (sha256: string, store = INPUTS_STORE) => join(store, "stage-cards", sha256);
+
+/** Stores one stage-select card under its own SHA-256 and returns the hash. */
+export async function storeStageCard(bytes: Uint8Array, store = INPUTS_STORE): Promise<string> {
+  const hash = new Bun.CryptoHasher("sha256").update(bytes).digest("hex");
+  const final = stageCardPath(hash, store);
+  if (existsSync(final)) return hash;
+  mkdirSync(dirname(final), { recursive: true });
+  const staging = join(dirname(final), `.add-${hash.slice(0, 12)}-${process.pid}`);
+  await Bun.write(staging, bytes);
+  chmodSync(staging, 0o444);
+  renameSync(staging, final);
+  return hash;
 }
 
 /** How to bring back a family the store lacks. */
