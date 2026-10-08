@@ -7,6 +7,7 @@ import { nativeDriverCommand } from "../src/platform/nativeDriver";
 import { install, start } from "../src/platform/nativeDriverMain";
 import { confirmedChecksum } from "../src/platform/shell/diagnostics";
 import { shell } from "../src/platform/shell/state";
+import { Character } from "../src/game/sim/codes";
 import { value } from "./rematch/playableMatch";
 import { sweep } from "./sweep";
 
@@ -84,4 +85,3 @@ test("standalone presentation defaults keep live prediction and native scripts [
     } finally { session.close(); }
   }
 });
-
