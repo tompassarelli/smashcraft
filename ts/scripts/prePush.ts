@@ -7,7 +7,7 @@
 // commit isn't the clean checkout.
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { Console, Effect, Option, Schema } from "effect";
+import { Console, Effect, Schema } from "effect";
 import { issueTests, redTitle } from "./mainRed";
 
 const root = join(import.meta.dir, "../..");
@@ -58,16 +58,20 @@ const run = (command: readonly string[], cwd: string, stdout: "pipe" | "ignore" 
   }),
 );
 
+/** Git's trimmed output; a failed call refuses the push, since an unknown change set can't pick its checks. */
 const git = (...args: string[]) => run(["git", ...args], root).pipe(
-  Effect.map(({ exitCode, stdout }) => (exitCode === 0 ? Option.some(stdout.trim()) : Option.none<string>())),
+  Effect.flatMap(({ exitCode, stdout, stderr }) => exitCode === 0
+    ? Effect.succeed(stdout.trim())
+    : Effect.fail(new PrePushRefusal({ problem: `pre-push: git ${args.join(" ")} exited ${exitCode}${stderr.trim() === "" ? "" : `: ${stderr.trim()}`}` }))),
 );
+
+/** Whether this clone has `commit`; `git cat-file -e` answers with its exit code. */
+const hasCommit = (commit: string) => run(["git", "cat-file", "-e", `${commit}^{commit}`], root).pipe(Effect.map(({ exitCode }) => exitCode === 0));
 
 /** The files the pushed commits change: from what the remote has, else from where they leave origin/main. */
 const changedPaths = (local: string, remote: string) => Effect.gen(function*() {
-  const known = !ZERO.test(remote) && Option.isSome(yield* git("cat-file", "-e", `${remote}^{commit}`));
-  const base = known ? Option.some(remote) : yield* git("merge-base", local, "origin/main");
-  const listed = Option.isSome(base) ? yield* git("diff", "--name-only", base.value, local) : yield* git("show", "--name-only", "--format=", local);
-  return Option.getOrElse(listed, () => "").split("\n").filter((path) => path.length > 0);
+  const base = !ZERO.test(remote) && (yield* hasCommit(remote)) ? remote : yield* git("merge-base", local, "origin/main");
+  return (yield* git("diff", "--name-only", base, local)).split("\n").filter((path) => path.length > 0);
 });
 
 const RedIssues = Schema.fromJsonString(Schema.Array(Schema.Struct({ number: Schema.Finite, title: Schema.String, body: Schema.String, url: Schema.String })));
@@ -97,10 +101,10 @@ export const prePush = (input: string) => Effect.gen(function*() {
   const paths = [...new Set((yield* Effect.forEach(pushed, ({ local, remote }) => changedPaths(local, remote))).flat())];
   const checks = checksFor(paths);
   if (checks.length === 0) return;
-  const head = Option.getOrUndefined(yield* git("rev-parse", "HEAD"));
-  const dirty = Option.getOrUndefined(yield* git("status", "--porcelain", "--", ...new Set(checks.map(({ directory }) => directory))));
+  const head = yield* git("rev-parse", "HEAD");
+  const dirty = yield* git("status", "--porcelain", "--", ...new Set(checks.map(({ directory }) => directory)));
   if (pushed.some(({ local }) => local !== head) || dirty !== "") {
-    return yield* new PrePushRefusal({ problem: `pre-push: the checks read the working tree, so push the clean checked-out commit (HEAD ${head?.slice(0, 12)}).\n${dirty ?? ""}` });
+    return yield* new PrePushRefusal({ problem: `pre-push: the checks read the working tree, so push the clean checked-out commit (HEAD ${head.slice(0, 12)}).\n${dirty}` });
   }
   for (const { name, directory, args, fix } of checks) {
     const cwd = join(root, directory);
