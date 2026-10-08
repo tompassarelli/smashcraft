@@ -3,12 +3,12 @@
 // camped"). Each side, from rest, tries every hop or descent with each aerial
 // pressed on each frame against an idle opponent; its first strike is the
 // earliest frame any of those damages the opponent. Played through the match
-// frame executor from controller rows (frameScene.ts).
+// frame executor from controller rows (src/game/match/padScene.ts).
 import { Action } from "../src/game/input/actions";
 import { Character } from "../src/game/sim/codes";
 import { SELECTABLE_CHARACTERS, fighterName } from "../src/game/sim/heroes/registry";
 import { surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
-import { fighter, frameRows, scene } from "./frameScene";
+import { fighter, frameRows, scene } from "../src/game/match/padScene";
 
 /** Stage 1's left raised deck, the Battlefield-style platform at z 170. */
 const STAGE = 1;

@@ -12,7 +12,7 @@ import { Character } from "../src/game/sim/codes";
 import { type Fighter, SHIELD_MAX } from "../src/game/sim/fighter";
 import { HERO_ROSTER } from "../src/game/sim/heroes/registry";
 import { SHIELD_REFLECTOR_ACTIVE_FRAMES } from "../src/game/sim/shield";
-import { fighter, frame, projectileShieldActions, scene } from "./frameScene";
+import { fighter, frame, projectileShieldActions, scene } from "../src/game/match/padScene";
 import { isProjectileSummon } from "./interactions";
 import { sweep } from "../test/sweep";
 

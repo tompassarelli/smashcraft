@@ -1,7 +1,7 @@
 // The interaction graph (#67): for each situation, the options both players
 // have, which option beats which and by how many frames, and the frames in
 // which a punish lands. Every number comes from playing the situation through
-// the match frame executor (frameScene.ts) from controller rows, so it reads
+// the match frame executor (src/game/match/padScene.ts) from controller rows, so it reads
 // the authored move data, physics, input buffers and contacts that a match
 // uses. smashcraft:docs/design/interaction-graph.md defines the model.
 import { Schema } from "effect";
@@ -15,7 +15,7 @@ import { attackStartupFrames } from "../src/game/sim/moves";
 import { mainDeckRight, mainDeckZ } from "../src/game/sim/stage";
 import { resetMatchFrameInput } from "../src/game/match/frameInput";
 import { type ReplayState, captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot } from "../src/game/replay/snapshot";
-import { type Placement, type Scene, airborne, fighter, frameRows, projectileShieldActions, scene, tumbling } from "./frameScene";
+import { type Placement, type Scene, airborne, fighter, frameRows, projectileShieldActions, scene, tumbling } from "../src/game/match/padScene";
 
 // ------------------------------------------------------------------ playing a situation
 

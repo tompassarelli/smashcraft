@@ -9,7 +9,7 @@ import {
   HOMING_ARROW_LIFETIME, HOMING_ARROW_MAX_PITCH_DEGREES, HOMING_ARROW_SPEED, HOMING_ARROW_TURN_DEGREES, updateProjectiles,
 } from "../src/game/sim/projectiles";
 import { testWorld } from "../src/game/sim/testWorld";
-import { fighter, frame, scene } from "./frameScene";
+import { fighter, frame, scene } from "../src/game/match/padScene";
 
 const FIRE = 10;
 const SPACINGS = [240, 480, 720] as const;

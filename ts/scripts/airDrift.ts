@@ -3,14 +3,14 @@
 // fighter's air values against the documented band, the horizontal speed a
 // jump out of a dash or run keeps, and a dash -> jump -> aerial that crosses
 // over a shielding opponent and meets its shield from behind. Played through
-// the match frame executor from controller rows (frameScene.ts).
+// the match frame executor from controller rows (src/game/match/padScene.ts).
 // `bun scripts/airDrift.ts` prints the roster table.
 import { Action } from "../src/game/input/actions";
 import { AttackStyle, type Character } from "../src/game/sim/codes";
 import type { Fighter } from "../src/game/sim/fighter";
 import { SELECTABLE_CHARACTERS, fighterName } from "../src/game/sim/heroes/registry";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../src/game/sim/tuning";
-import { fighter, frame, scene, solo } from "./frameScene";
+import { fighter, frame, scene, solo } from "../src/game/match/padScene";
 
 /** The documented bands, Melee units a frame (smashcraft:docs/gameplay-design.md). */
 export const AIR_SPEED_BAND = { min: 0.75, max: 1.25 } as const;

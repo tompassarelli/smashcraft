@@ -20,7 +20,7 @@ import { CANNON_TEST_STAGE, WIND_TEST_STAGE, DRIFTING_DECK_STAGE, MAIN_DECK_BODY
 import { CANNON_Z, cannonX } from "../src/game/sim/stageHazards";
 import { bodyTop } from "../src/game/sim/surfaces";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../src/game/sim/tuning";
-import { type Scene, airborne, fighter, frame, frameRows, framesUntil, scene, solo, tumbling } from "./frameScene";
+import { type Scene, airborne, fighter, frame, frameRows, framesUntil, scene, solo, tumbling } from "../src/game/match/padScene";
 import { ATTACK_BUFFER_FRAMES } from "../src/game/input/attackBuffer";
 import { TECH_WINDOW_FRAMES, TECH_REPEAT_MINIMUM_AGE_FRAMES } from "../src/game/physics/techInput";
 import { SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES } from "../src/game/sim/fighter";

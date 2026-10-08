@@ -2,16 +2,16 @@
 // rows, as a pad reports them. The Melee oracle (meleeOracle.ts) and the
 // interaction graph (interactions.ts) share it, so both measure the frame
 // order, input buffers and contacts that a match runs.
-import { Action, has } from "../src/game/input/actions";
-import { type InputRow, copyInput, emptyInput } from "../src/game/input/inputRow";
-import { type ParticipantInputs, participantInputs } from "../src/game/input/participants";
-import { type FrameControls, createBufferedFrameControls } from "../src/game/match/controls";
-import { type MatchFrameInput, captureNetworkFrame, createMatchFrameInput, executeMatchFrame } from "../src/game/match/frameInput";
-import { type PacingAndPresentation, createPacingAndPresentation } from "../src/game/match/pacingAndPresentation";
-import { type MatchState, Phase, createMatchState, setHumanMask } from "../src/game/match/rules";
-import { Character, DownState } from "../src/game/sim/codes";
-import { type Fighter, createFighter } from "../src/game/sim/fighter";
-import { type Roster, createRoster, fighterAt } from "../src/game/sim/roster";
+import { Action, has } from "../input/actions";
+import { type InputRow, copyInput, emptyInput } from "../input/inputRow";
+import { type ParticipantInputs, participantInputs } from "../input/participants";
+import { type FrameControls, createBufferedFrameControls } from "./controls";
+import { type MatchFrameInput, captureNetworkFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
+import { type PacingAndPresentation, createPacingAndPresentation } from "./pacingAndPresentation";
+import { type MatchState, Phase, createMatchState, setHumanMask } from "./rules";
+import { Character, DownState } from "../sim/codes";
+import { type Fighter, createFighter } from "../sim/fighter";
+import { type Roster, createRoster, fighterAt } from "../sim/roster";
 
 export interface Scene {
   readonly world: Roster;
@@ -86,10 +86,15 @@ function padRow(target: InputRow, held: number, previous: number): void {
 
 /** Runs controller rows, optionally adding the pulses and taps a pad reports beside held buttons. */
 export function frameRows(s: Scene, held: readonly (readonly Action[])[], amend?: (row: InputRow, slot: number) => void): void {
+  frameMasks(s, (slot) => maskOf(held[slot] ?? []), amend);
+}
+
+/** Runs controller rows from each slot's held action mask, as frameRows does from its listed actions. */
+export function frameMasks(s: Scene, held: (slot: number) => number, amend?: (row: InputRow, slot: number) => void): void {
   for (let slot = 0; slot < s.previous.length; slot++) {
     const row = s.source[slot];
     if (row === undefined) throw new Error(`slot ${slot} has no controller row`);
-    const mask = maskOf(held[slot] ?? []);
+    const mask = held(slot);
     padRow(row, mask, s.previous[slot] ?? 0);
     amend?.(row, slot);
     s.previous[slot] = mask;

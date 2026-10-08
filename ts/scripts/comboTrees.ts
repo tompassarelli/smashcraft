@@ -9,7 +9,7 @@ import type { Fighter } from "../src/game/sim/fighter";
 import type { ReplayState } from "../src/game/replay/snapshot";
 import { fighterAt } from "../src/game/sim/roster";
 import { Timeline, type Held, type Option, type Situation } from "./interactions";
-import { airborne } from "./frameScene";
+import { airborne } from "../src/game/match/padScene";
 
 /** Any selectable fighter: the graph's three and, for throw roles, every hero. */
 export interface FighterEntry { readonly character: Character; readonly name: string; readonly slug: string }
