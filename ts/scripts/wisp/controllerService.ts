@@ -8,8 +8,9 @@ import { spawn } from "node:child_process";
 import { closeSync, existsSync, mkdirSync, openSync, readFileSync, readlinkSync, renameSync, rmSync, symlinkSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
-import { Clock, Effect } from "effect";
+import { Effect } from "effect";
 import { PlayProblem } from "wisp/scripts/wisp/play";
+import { pollUntil } from "../hostPoll";
 
 export const CONTROLLER_LAUNCHER = join(homedir(), ".local/share/smashcraft-build-inputs/controller/wc3-journal");
 export const CONTROLLER_UNIT = "smashcraft-controller.service";
@@ -78,7 +79,12 @@ export const ensureService = (helper: string) => Effect.gen(function*() {
   if (alive(running) && !changed) return `the controller service (pid ${running}), log ${CONTROLLER_LOG}`;
   if (alive(running)) {
     process.kill(Number(running), "SIGTERM");
-    for (let waited = 0; alive(running) && waited < 40; waited++) yield* Effect.sleep("50 millis");
+    // Its lock would refuse the new copy, so an old service that outlives SIGTERM is a failure.
+    yield* pollUntil(Effect.sync(() => alive(running) ? undefined : true), {
+      every: "50 millis",
+      within: "2 seconds",
+      orElse: () => Effect.fail(fail(`the old controller service (pid ${running}) was still running 2 s after SIGTERM`)),
+    });
   }
   const pid = yield* Effect.tryPromise({
     try: () => new Promise<number>((resolve, reject) => {
@@ -105,19 +111,24 @@ export const ensureService = (helper: string) => Effect.gen(function*() {
 export const SERVE_SECONDS = 15;
 
 /** Waits until the service serves this game's session of `build`; fails at once when it found the game but no controller. */
-export const awaitService = (pid: number, build: string, runs: string, statusFile = CONTROLLER_STATUS) => Effect.gen(function*() {
-  const deadline = (yield* Clock.currentTimeMillis) + SERVE_SECONDS * 1000;
-  while (true) {
-    const status = readStatus(statusFile);
-    if (servesGame(status, pid, build)) return `ready for Warcraft III (pid ${pid}) through ${runs}`;
-    if (status.state === "no-controller" && status.game_pid === String(pid)) return yield* fail("no controller is plugged in");
-    if ((yield* Clock.currentTimeMillis) >= deadline) {
-      const why = status.problem === undefined ? `its state is ${status.state ?? "unknown"}` : status.problem;
-      return yield* fail(`the controller service didn't take this game within ${SERVE_SECONDS} s: ${why} (${statusFile})`);
-    }
-    yield* Effect.sleep("250 millis");
-  }
-});
+export const awaitService = (pid: number, build: string, runs: string, statusFile = CONTROLLER_STATUS) =>
+  pollUntil(
+    Effect.gen(function*() {
+      const status = readStatus(statusFile);
+      if (servesGame(status, pid, build)) return `ready for Warcraft III (pid ${pid}) through ${runs}`;
+      if (status.state === "no-controller" && status.game_pid === String(pid)) return yield* fail("no controller is plugged in");
+      return undefined;
+    }),
+    {
+      every: "250 millis",
+      within: `${SERVE_SECONDS} seconds`,
+      orElse: () => Effect.suspend(() => {
+        const status = readStatus(statusFile);
+        const why = status.problem === undefined ? `its state is ${status.state ?? "unknown"}` : status.problem;
+        return Effect.fail(fail(`the controller service didn't take this game within ${SERVE_SECONDS} s: ${why} (${statusFile})`));
+      }),
+    },
+  );
 
 /**
  * The controller is optional: the keyboard always plays. Starts or refreshes
