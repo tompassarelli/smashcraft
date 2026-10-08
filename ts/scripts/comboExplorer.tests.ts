@@ -21,7 +21,7 @@ test("[invariant] the explorer finds the true follow-up played in a seeded Wren 
   game.phase = Phase.match;
   game.stageChoice = 0;
   game.timeLimitMinutes = 0;
-  game.matchSeed = 11;
+  game.matchSeed = 13;
   for (const slot of [0, 1] as const) {
     game.cpuOpponents[slot] = "wren";
     game.cpuResolvedOpponents[slot] = "wren";
@@ -52,7 +52,7 @@ test("[invariant] the explorer finds the true follow-up played in a seeded Wren 
       const actual = defender.status.damage - root.damage;
       const explored = exploreFrom(setup, snapshot);
       expect(explored.damage).toBeGreaterThanOrEqual(actual);
-      console.log(`seed 11 frame ${n}: actual follow-up ${actual}%, explorer ${explored.damage}%`);
+      console.log(`seed 13 frame ${n}: actual follow-up ${actual}%, explorer ${explored.damage}%`);
       found = true;
       break;
     }

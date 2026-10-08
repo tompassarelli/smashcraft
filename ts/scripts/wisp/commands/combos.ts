@@ -15,6 +15,7 @@ import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/com
 import { step } from "wisp/scripts/wisp/timings";
 import { Action } from "../../../src/game/input/actions";
 import { playComboRoute } from "../../../src/game/match/comboRoute";
+import { Character } from "../../../src/game/sim/codes";
 import { SELECTABLE_CHARACTERS, fighterName } from "../../../src/game/sim/heroes/registry";
 import { type FighterSummary, MAX_CONVERSIONS, OPPONENTS, PERCENTS, POSITIONS, type RouteRecord, type UnitReport, fighterNamed, summarize } from "../../comboExplorer";
 import { admit } from "../../heavyCapacity";
@@ -38,38 +39,50 @@ interface Unit {
   readonly position: (typeof POSITIONS)[number];
 }
 
-/** Every unit on `jobs` worker threads, in the order given. */
-const measureUnits = (units: readonly Unit[], jobs: number) => Effect.tryPromise({
-  try: async () => {
-    const results: UnitReport[] = [];
-    let next = 0;
-    let done = 0;
-    const started = performance.now();
-    const runner = async () => {
-      while (next < units.length) {
-        const index = next++;
-        const unit = units[index];
-        if (unit === undefined) return;
-        results[index] = await new Promise<UnitReport>((resolve, reject) => {
-          const worker = new Worker(new URL("../../comboExplorerWorker.ts", import.meta.url).href);
-          worker.onmessage = (event: MessageEvent<UnitReport>) => {
-            resolve(event.data);
-            worker.terminate();
-          };
-          worker.onerror = (event) => {
-            reject(new Error(`${fighterName(unit.attacker)} on ${fighterName(unit.opponent)} at ${unit.position}: ${event.message}`));
-            worker.terminate();
-          };
-          worker.postMessage(unit);
-        });
-        done++;
-        console.error(`combos: ${done}/${units.length} ${fighterName(unit.attacker)} on ${fighterName(unit.opponent)} at ${unit.position}, ${((performance.now() - started) / 1000).toFixed(0)} s`);
-      }
-    };
-    await Promise.all(Array.from({ length: Math.max(1, jobs) }, runner));
-    return results;
-  },
-  catch: failure,
+const ComboSetupSchema = Schema.Struct({
+  stage: Schema.Finite, attacker: Schema.Enum(Character), defender: Schema.Enum(Character),
+  attackerX: Schema.Finite, defenderX: Schema.Finite, facing: Schema.Finite,
+  attackerZ: Schema.Finite, defenderZ: Schema.Finite, percent: Schema.Finite,
+});
+const DiSchema = Schema.Literals(["out", "up", "down", "in", "none"]);
+const RouteRecordSchema = Schema.Struct({
+  opener: Schema.String, percent: Schema.Finite, moves: Schema.Array(Schema.String),
+  damage: Schema.Finite, ko: Schema.Boolean, di: DiSchema,
+  route: Schema.Struct({ setup: ComboSetupSchema, held: Schema.Array(Schema.Finite) }),
+});
+const UnitReportSchema = Schema.Struct({
+  attacker: Schema.String, opponent: Schema.String, position: Schema.Literals(POSITIONS),
+  cells: Schema.Array(Schema.Struct({
+    opener: Schema.String, percent: Schema.Finite, damage: Schema.Finite, ko: Schema.Boolean,
+    hits: Schema.Finite, di: DiSchema, situation: Schema.Literals(["none", "tech chase", "ledge"]),
+    moves: Schema.Array(Schema.String),
+  })),
+  killPercent: Schema.optionalKey(Schema.Finite),
+  conversions: Schema.Array(Schema.Struct({
+    percent: Schema.Finite, moves: Schema.Array(Schema.String), damage: Schema.Finite,
+    hits: Schema.Finite, reads: Schema.Finite, ko: Schema.Boolean,
+  })),
+  kills: Schema.Boolean, routes: Schema.Array(RouteRecordSchema), frames: Schema.Finite,
+});
+
+/** Every unit on `jobs` scoped worker threads, in the order given. */
+const measureUnits = (units: readonly Unit[], jobs: number) => Effect.gen(function* () {
+  let done = 0;
+  const started = performance.now();
+  return yield* Effect.forEach(units, (unit) => Effect.scoped(Effect.gen(function* () {
+    const worker = yield* Effect.acquireRelease(
+      Effect.sync(() => new Worker(new URL("../../comboExplorerWorker.ts", import.meta.url).href)),
+      (thread) => Effect.sync(() => thread.terminate()),
+    );
+    const report = yield* Effect.callback<UnitReport, CombosFailure>((resume) => {
+      worker.onmessage = (event: MessageEvent<UnitReport>) => resume(Effect.succeed(event.data));
+      worker.onerror = (event) => resume(Effect.fail(failure(new Error(`${fighterName(unit.attacker)} on ${fighterName(unit.opponent)} at ${unit.position}: ${event.message}`))));
+      worker.postMessage(unit);
+    });
+    done++;
+    yield* Console.error(`combos: ${done}/${units.length} ${fighterName(unit.attacker)} on ${fighterName(unit.opponent)} at ${unit.position}, ${((performance.now() - started) / 1000).toFixed(0)} s`);
+    return report;
+  })), { concurrency: jobs });
 });
 
 /** Each route replayed from its setup in a new match: the damage and the stock must match what the search recorded. */
@@ -166,9 +179,15 @@ export const combos: Command = (args) => Effect.gen(function*() {
   const summaries = [...new Set(reports.map((report) => report.attacker))].map((fighter) => summarize(fighter, reports.filter((report) => report.attacker === fighter)));
   const routes = reports.flatMap((report) => report.routes.map((route) => ({ ...route, fighter: report.attacker, opponent: report.opponent, position: report.position })));
   const problems = yield* Effect.sync(() => replayProblems(routes)).pipe(step(`replaying ${routes.length} routes from their setups`));
+  const previous = yield* Effect.tryPromise({
+    try: async () => names.length === 0 || !(await Bun.file(unitsFile).exists()) ? "" : await Bun.file(unitsFile).text(),
+    catch: failure,
+  });
+  const decoded = yield* Effect.forEach(previous.split("\n").filter(line => line !== ""),
+    line => Schema.decodeEffect(Schema.fromJsonString(UnitReportSchema))(line).pipe(Effect.mapError(failure)));
+  const kept: UnitReport[] = decoded.filter(unit => !summaries.some(summary => summary.fighter === unit.attacker)).map(unit => ({ ...unit, killPercent: unit.killPercent }));
   yield* Effect.tryPromise({
     try: async () => {
-      const kept = names.length === 0 || !(await Bun.file(unitsFile).exists()) ? [] : (await Bun.file(unitsFile).text()).split("\n").filter((line) => line !== "").map((line): UnitReport => JSON.parse(line)).filter((unit) => !summaries.some((summary) => summary.fighter === unit.attacker));
       const allUnits = [...kept, ...reports];
       await Bun.write(unitsFile, allUnits.map((unit) => JSON.stringify(unit)).join("\n") + "\n");
       const all = [...new Set(allUnits.map((unit) => unit.attacker))].map((fighter) => summarize(fighter, allUnits.filter((unit) => unit.attacker === fighter)));
