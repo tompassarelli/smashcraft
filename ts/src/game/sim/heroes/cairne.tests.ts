@@ -1,12 +1,11 @@
 import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
-import { AttackStyle, Character, GrabAction, HitOrigin, SpecialAction } from "../codes";
+import { AttackStyle, Character, GrabAction, SpecialAction } from "../codes";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { createFighter } from "../fighter";
 import { advanceHeroStatus } from "../heroSpecialRules";
 import { attackStartupFrames, isAerialAttack } from "../moves";
-import { advancePassive, enduranceGroundSpeed, resetPassive, sourcePassiveContact } from "../passives";
 import { updateProjectiles } from "../projectiles";
 import { createRoster, fighterAt, type Controls, type Roster } from "../roster";
 import { advanceSpecials, startFighterSpecial } from "../specials";
@@ -141,7 +140,7 @@ test("Cairne Spirit Lift's totem strikes above him only in its paid form [spec d
   }
 });
 
-test("Cairne Reincarnation heals only a read, caps each stock at 24 and never adds a stock [spec docs/design/cairne.md]", () => {
+test("Cairne Reincarnation heals only a successful read and never adds a stock [spec docs/design/cairne.md]", () => {
   const { owner, world } = pair(60.0);
   owner.status.damage = 80.0;
   const stocks = owner.status.stocks;
@@ -149,7 +148,7 @@ test("Cairne Reincarnation heals only a read, caps each stock at 24 and never ad
     owner.mana.points = 100;
     frame(world, controls({ specialPressed: true, specialZ: -1 }));
     for (let f = 2; f <= 60; f++) frame(world, controls(), f === 3 ? AttackStyle.jab : undefined);
-    assertEquals(owner.status.damage, 80.0 - Math.min(24.0, 12.0 * (cast + 1)));
+    assertEquals(owner.status.damage, 80.0 - 12.0 * (cast + 1));
     assertEquals(owner.status.stocks, stocks);
   }
   const whiff = pair(1000.0);
@@ -163,25 +162,6 @@ test("Cairne Reincarnation heals only a read, caps each stock at 24 and never ad
   assertEquals(grabbed.owner.grab.owner, 1);
 });
 
-test("Cairne Endurance Aura needs two distinct body hits, survives replay and expires after 120 frames [spec docs/design/cairne.md] [invariant]", () => {
-  const { owner } = pair(1000.0);
-  const effect = { damage: 5.0 };
-  sourcePassiveContact(owner, 1, HitOrigin.melee, true, true, 1, effect);
-  assertEquals(owner.passive.stacks, 0);
-  sourcePassiveContact(owner, 1, HitOrigin.melee, true, false, 2, effect);
-  sourcePassiveContact(owner, 1, HitOrigin.melee, true, false, 2, effect);
-  sourcePassiveContact(owner, 2, HitOrigin.melee, true, false, 2, effect);
-  assertEquals(owner.passive.stacks, 1);
-  sourcePassiveContact(owner, 1, HitOrigin.melee, true, false, 3, effect);
-  assertNear(enduranceGroundSpeed(owner, 10.0), 11.0, f32(0.0001));
-  const restored = createFighter(Character.cairne, 0.0, 1);
-  copyFighterState(restored, owner, 3);
-  assertEquals(firstFighterDifference(owner, restored, 3, 3), undefined);
-  for (let i = 0; i < 120; i++) advancePassive(owner);
-  assertEquals(enduranceGroundSpeed(owner, 10.0), 10.0);
-  resetPassive(restored);
-  assertEquals(enduranceGroundSpeed(restored, 10.0), 10.0);
-});
 
 test("Cairne air specials keep finite commitment and an airborne Reincarnation press spends nothing [spec docs/design/cairne.md]", () => {
   for (const slot of [0, 1, -1]) {
@@ -200,17 +180,12 @@ test("Cairne air specials keep finite commitment and an airborne Reincarnation p
   }
 });
 
-test("Cairne stock loss clears earned Endurance Aura and Reincarnation healing, never reviving him [spec docs/design/cairne.md]", () => {
+test("Cairne stock loss never revives him [spec docs/design/cairne.md]", () => {
   const { owner, world } = pair(1000.0);
-  owner.passive.stacks = 2; owner.passive.used = true; owner.passive.window = 120;
-  owner.status.guardHealed = 24.0;
   const before = owner.status.stocks;
   owner.motion.x = 10000.0;
   checkBlastZone(world, 0, 0);
   assertEquals(owner.status.stocks, before - 1);
   for (let i = 0; i < 60; i++) frame(world);
   assertEquals(owner.status.stocks, before - 1);
-  assertEquals(owner.passive.stacks, 0);
-  assertEquals(owner.passive.used, false);
-  assertEquals(owner.status.guardHealed, 0.0);
 });

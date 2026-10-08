@@ -15,7 +15,6 @@ export const BLADEMASTER_HERO: HeroDefinition = {
   complete: true,
   moves: BLADEMASTER_MOVES,
   specials: BLADEMASTER_SPECIALS,
-  passive: { name: "Critical Strike", description: "Every fourth sword hit in a row strikes harder; his blade glows when it is ready." },
   jab: { name: "Swift Cuts", description: "Two quick cuts close to his body on repeated jabs." },
   ultimate: { name: "Bladestorm", description: "A powered-up whirlwind: a long flurry of cuts with one strong finishing hit." },
   gameplan: BLADEMASTER_GAMEPLAN,

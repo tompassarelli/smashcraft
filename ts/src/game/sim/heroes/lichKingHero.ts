@@ -15,7 +15,6 @@ export const LICH_KING_HERO: HeroDefinition = {
   name: "Lich King",
   purpose: "Heavy Frostmourne swordsman who commands the dead",
   weakness: "Slow walk and slow aerials; fast pressure and juggles get inside the blade",
-  passive: { name: "Frostmourne Hungers", description: "Each Frostmourne hit that lands, and Harvest Soul, stores a soul (up to 3); Howling Blast and Val'kyr Shadowguard spend one to grow stronger." },
   jab: { name: "Pommel and Rake", description: "A gauntlet check, a rake of the blade, then a Frostmourne thrust on repeated jabs." },
   ultimate: { name: "Fury of Frostmourne", description: "Every foe at high damage who isn't shielding or dodging is launched." },
   complete: true,

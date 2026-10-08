@@ -21,8 +21,7 @@ import type { Controls } from "../sim/roster";
 import { SHIELD_RELEASE_LAG_FRAMES } from "../sim/shield";
 import type { FighterGameplan } from "../sim/gameplan";
 import { deckUnder, heightAhead, safeAt, slideStaysOnDeck } from "./botFooting";
-import { gameplanOf, passiveLandingMove } from "./botGameplan";
-import { passivePips, passiveSpec } from "../sim/passives";
+import { gameplanOf } from "./botGameplan";
 import { aheadX, aheadZ, moveReachAhead, moveReaches } from "./botMoves";
 import { botChance } from "./botRandom";
 import type { CpuSkill } from "./cpuSkill";
@@ -201,9 +200,6 @@ export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, st
   let best: AttackStyle | undefined;
   let bestStartup = 0;
   let bestTool = false;
-  let bestPassive = false;
-  const cashing = plan !== undefined && !target.shield.raised && passivePips(f).ready
-    && botChance(open.key, f.character * 13 + 3, skill.kitTenths, 10);
   let runFits = false;
   const speed = Math.max(Math.abs(f.motion.vx), f.tuning.physics.dashSpeed);
   const running = f.ground.dashFrame > 0;
@@ -214,14 +210,12 @@ export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, st
     const startup = attackStartupFrames(style, moves);
     // A gameplan's spacing tool that arrives in time is its punish; otherwise the fastest move that does.
     const tool = plan !== undefined && spacingTool(plan, style === move ? move : AttackStyle.dashAttack);
-    const passive = cashing && plan !== undefined && passiveLandingMove(plan, passiveSpec(f.character).kind, style === move ? move : AttackStyle.dashAttack);
-    const better = best === undefined || (passive && !bestPassive) || (passive === bestPassive && ((tool && !bestTool) || (tool === bestTool && startup < bestStartup)));
+    const better = best === undefined || (tool && !bestTool) || (tool === bestTool && startup < bestStartup);
     const x = Math.abs(aheadX(f, target, startup, style, observationAge));
     if (startup <= believed && better && moveReaches(f.character, style, target, x, aheadZ(f, target, startup, stage, matchFrame, observationAge), moves) && grabSure(f, style, target, x)) {
       best = move;
       bestStartup = startup;
       bestTool = tool;
-      bestPassive = passive;
     }
     // Out of reach: a run closes the rest at dash speed, then the move (a jab as the dash attack) comes out.
     if (shielding || runFits) continue;

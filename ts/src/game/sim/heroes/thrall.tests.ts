@@ -3,12 +3,11 @@ import { f32 } from "wisp/src/sim/f32";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
-import { AttackStyle, Character, DownState, GrabAction, HitOrigin, SpecialAction } from "../codes";
+import { AttackStyle, Character, DownState, GrabAction, SpecialAction } from "../codes";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { createFighter } from "../fighter";
 import { advanceHeroStatus } from "../heroSpecialRules";
 import { isAerialAttack } from "../moves";
-import { sourcePassiveContact } from "../passives";
 import { updateProjectiles } from "../projectiles";
 import { type Roster, type Controls, fighterAt } from "../roster";
 import { advanceSpecials, startFighterSpecial } from "../specials";
@@ -143,18 +142,3 @@ test("Thrall Far Sight has a free recovery, spends his jump and ends helpless [s
   }
 });
 
-test("Thrall Windfury counts two hammer hits, spends on shield and survives snapshot replay [spec docs/design/thrall.md] [invariant]", () => {
-  const owner = createFighter(Character.thrall, 0.0, 1);
-  for (let key = 1; key <= 2; key++) sourcePassiveContact(owner, 1, HitOrigin.melee, true, false, key, { damage: 10.0 });
-  const saved = createFighter(Character.thrall, 0.0, 1);
-  copyFighterState(saved, owner, 3);
-  const effect = { damage: 10.0 };
-  sourcePassiveContact(owner, 1, HitOrigin.melee, true, false, 3, effect);
-  assertEquals(effect.damage, 15.0);
-  copyFighterState(owner, saved, 3);
-  assertEquals(firstFighterDifference(owner, saved, 3, 3), undefined);
-  const blocked = { damage: 10.0 };
-  sourcePassiveContact(owner, 1, HitOrigin.melee, true, true, 3, blocked);
-  assertEquals(blocked.damage, 10.0);
-  assertEquals(owner.passive.stacks, 0);
-});

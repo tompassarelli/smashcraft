@@ -9,7 +9,6 @@ export const JAINA_HERO: HeroDefinition = {
   character: Character.jaina, name: "Jaina Proudmoore", purpose: "Frost spells and a Water Elemental control the approach",
   weakness: "Slow on foot and exposed while setting up spells", complete: true,
   moves: JAINA_MOVES, specials: JAINA_SPECIALS, gameplan: JAINA_GAMEPLAN,
-  passive: { name: "Brilliance Aura", description: "Recover mana faster while moving or resting between spells." },
   jab: { name: "Staff Check", description: "Two short staff strikes to create space." },
   ultimate: { name: "Mass Teleport", description: "Bring nearby allies to her Water Elemental." },
   presentation: {

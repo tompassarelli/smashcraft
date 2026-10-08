@@ -77,7 +77,7 @@ DI/SDI, techs and shield rules apply. No guaranteed repeat-grab or net loop
 is designed: Ensnare's slow lowers top speeds only, so the victim keeps every
 action, shield, jump and dodge.
 
-## Specials, passive and ultimate
+## Specials and ultimate
 
 | Input | Decision and counterplay | Original values | Warcraft / Smash reference |
 |---|---|---|---|
@@ -85,7 +85,6 @@ action, shield, jump and dodge.
 | Side: Tidal Rush | Belly-slide forward through a gap; it stops at a raised shield, which punishes it. | 10 mana; slides f8–22 at 11/frame, about 165 units; 8% contact f8–22; ends f32; air landing 20 | [murloc swim][wc], [Withdraw][withdraw] |
 | Up: Tide Spout | A water spout carries him up while the stick steers; then a helpless fall. | 15 mana; rises f6–25 at 17/frame, about 340 units, steered 6/frame; 5% contact f6–14; free version 12.5/frame, about 250 units; spends aerial jump, once per airtime, helpless | [murloc swim][wc], [Waterfall][waterfall] |
 | Down: Disease Cloud | Leave a small plague cloud at his feet that poisons grounded foes who stand in it; jumping over it or waiting it out clears it. | 15 mana; ground only; appears f14 at x40, radius 50, lasts 150 frames, pulses every 50 for 2%; each pulse poisons for three 1% ticks over 180 frames; 150-frame cooldown; ends f38 | [Disease Cloud][cloud], Plaguebearer |
-| Passive: Scavenger | Ordinary attacks that reach a body take 2 mana from it. Shields stop it; an empty enemy gives none. | 2 per ordinary body contact; shared 100-mana cap | [murloc creeps][wc] |
 | Ultimate: Mrgllgll Swarm | A tide of murlocs rushes across the stage. | Designed only: ultimates remain off under the current match rules | [murloc creeps][wc] |
 
 Recovery: Tide Spout reaches the ledge from below and beside it after the

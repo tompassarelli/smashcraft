@@ -9,7 +9,6 @@ export const CHEN_HERO: HeroDefinition = {
   character: Character.chen, name: "Chen Stormstout", purpose: "Drunken footwork and close staff pressure",
   weakness: "Broad body, slow run and committed finishes", complete: true,
   moves: CHEN_MOVES, specials: CHEN_SPECIALS, gameplan: CHEN_GAMEPLAN,
-  passive: { name: "Drunken Brawler", description: "After three melee hits in a short time, the next deals extra damage." },
   jab: { name: "Staggering Three", description: "A palm, a staff butt and a belly check on repeated jabs." },
   ultimate: { name: "Storm, Earth and Fire", description: "Three spirits divide defense, movement and striking roles." },
   presentation: { model: CHEN_MODEL_FILE, objectId: 0x6d666368,

@@ -79,7 +79,7 @@ disjoint; the reaching arm and kicking leg remain hittable. Up/down tilt and
 up throw create follow-ups that still use DI, SDI, air dodge and techs; there
 is no scripted follow-up or command-grab loop through throw hitstun.
 
-## Specials, passive and ultimate
+## Specials and ultimate
 
 | Input | Contract and player decision | Warcraft source | Smash reference |
 | --- | --- | --- | --- |
@@ -87,7 +87,6 @@ is no scripted follow-up or command-grab loop through throw hitstun.
 | Side: **Silence** | 20 mana; f18–20 spectral strike reaches 155, end f48. 4 damage, 60°, growth 45/base 20. Body contact silences for 90 frames, then grants 180 frames of silence immunity. Shields stop it. Movement, normals, grabs, defense and up-special remain available. Air landing lag 20. | [Silence][ranger] | [Disable][disable], bait a short-range status cast; [Palutena control][flame] |
 | Up: **Banshee Flight** | 15 mana; hovers through f7, then f8–31 rises 2.4H and live-stick drifts up to 1.2H. No hitbox or intangibility. Once per airtime, spends aerial jump, ends helpless. Under 15 mana: free 1.6H rise and 0.8H drift. Challenge the exposed ascent or punish landing. | [Banshee spirit][banshee] | [Pit Power of Flight][flight], vulnerable aimed recovery |
 | Down: **Life Drain** | Ground only, 20 mana; command grab f16–18, reach 80; whiff ends f52. Holds 16 frames, releases for 9 damage at 50°, growth 90/base 24, then 28 recovery. Heals 3 damage, capped at 9 per stock. Shield loses, jump/dodge or an outside hit wins. | [Life Drain][ranger] | [Mewtwo Confusion][confusion], deliberate close catch |
-| Passive: **Black Quiver** | Each unblocked Black Arrow banks one charge, up to two for 240 frames. The next melee contact spends all charges for +2 damage each; a shield spends them without the bonus. Stock loss clears them. | [Black Arrow's death magic][ranger] | [Palutena's zoning into normals][palutena], projectile reward requires approaching |
 | Ultimate: **Charm** | Designed ultimate: briefly command a spectral enemy echo to fire at the nearest foe. It remains disabled with every other roster ultimate; there is no new ultimate input or enabled action. | [Charm][ranger] and [Possession][banshee] | [Palutena's Black Hole Laser][blackhole], a committed control payoff |
 
 Silence's status is the existing special-blocking status, not a freeze. Life

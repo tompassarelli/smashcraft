@@ -10,9 +10,8 @@ import { groundHit } from "./groundNormals";
 type Angle = 25 | 35 | 40 | 55 | 70 | 80 | 90;
 export const murlocHit = (damage: number, angle: Angle, growth = 70.0, base = 18.0, behind = false, element: HitElement = HitElement.normal) =>
   groundHit(damage, angle, growth, base, element, behind);
-/** Scavenger: ordinary body contacts take two mana. */
 const ordinary = (damage: number, angle: Angle, growth = 70.0, base = 18.0, behind = false) =>
-  ({ ...murlocHit(damage, angle, growth, base, behind), manaSteal: 2 });
+  murlocHit(damage, angle, growth, base, behind);
 const claw = (x1: number, z1: number, x2: number, z2: number, radius = 10.0): StrikeCapsule => ({ x1, z1, x2, z2, radius });
 const body = hurtCapsule(Character.murloc);
 const torso = hurtPart(0.0, 4.0, 0.0, body.z2, body.radius);

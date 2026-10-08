@@ -5,7 +5,7 @@ import { floorMod } from "wisp/src/sim/intMath";
 import { at } from "wisp/src/runtime/lookup";
 import { Character, ContactKind, GrabAction } from "./codes";
 import { finishDamageContacts, openDamageContacts, queueDamageContact } from "./contacts";
-import { DEMON_HUNTER_THROW_DRAIN, copyHitEffect, emptyHitEffect } from "./hitRegions";
+import { copyHitEffect, emptyHitEffect } from "./hitRegions";
 import { advanceMash, clearMash } from "./mash";
 import { GRAB_HOLD_DISTANCE, GRAB_HOLD_MINIMUM_FRAMES, PUMMEL_DAMAGE, grabActionDuration, grabContactFrame, pummelLimit } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
@@ -85,7 +85,7 @@ function releaseThrow(world: Roster, ownerSlot: number, targetSlot: number, targ
   throwHit.element = undefined;
   throwHit.carry = undefined;
   throwHit.electric = false;
-  throwHit.manaDrain = owner.character === Character.demonHunter ? DEMON_HUNTER_THROW_DRAIN : undefined;
+  throwHit.manaDrain = undefined;
   throwHit.manaSteal = undefined;
   const authored = owner.tuning.moves?.throws[action];
   if (authored !== undefined) copyHitEffect(throwHit, authored.effect);

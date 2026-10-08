@@ -7,7 +7,7 @@
 import { at } from "wisp/src/runtime/lookup";
 import { f32 } from "wisp/src/sim/f32";
 import { floorDiv } from "wisp/src/sim/intMath";
-import { AttackStyle, Character, PassiveKind } from "../sim/codes";
+import { AttackStyle, Character } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { type DefenseOption, type FighterGameplan, type GameplanMove, type GameplanSituation, GameplanSpecial, GameplanThrow } from "../sim/gameplan";
 import { heroDefinition } from "../sim/heroes/registry";
@@ -169,37 +169,6 @@ export function moveWeight(plan: Readonly<FighterGameplan>, planIndex: number, f
     }
   }
   return weight;
-}
-
-/**
- * Whether `move` is the one that cashes the fighter's ready passive
- * (smashcraft:docs/design/passives.md, "What the computer should exploit"):
- * Critical Strike and Cleave a finisher, Bash a combo starter for its extra
- * stun, Trueshot and Long Rifles the shot, Vampiric Aura a grab, Voodoo a
- * forward tilt. False for a passive that is no hit (Blink, Frost Armor,
- * Devotion, Pack Hunt).
- */
-export function passiveLandingMove(plan: Readonly<FighterGameplan>, kind: PassiveKind, move: GameplanMove): boolean {
-  switch (kind) {
-    case PassiveKind.criticalStrike:
-    case PassiveKind.cleave:
-      for (const kill of plan.kills) if (kill.move === move) return true;
-      return false;
-    case PassiveKind.bash:
-      for (const route of plan.combos) if (route.starter === move) return true;
-      return false;
-    case PassiveKind.trueshot:
-      // Both arrows cash Trueshot: the plain arrow and the homing arrow (sim/passives.ts projectileOrigin).
-      return move === GameplanSpecial.neutral || move === GameplanSpecial.side;
-    case PassiveKind.longRifles:
-      return move === GameplanSpecial.neutral;
-    case PassiveKind.vampiric:
-      return move === AttackStyle.grab;
-    case PassiveKind.voodoo:
-      return move === AttackStyle.forwardTilt || move === AttackStyle.forwardTiltUp || move === AttackStyle.forwardTiltDown;
-    default:
-      return false;
-  }
 }
 
 /** The answer the gameplan gives to a threat, chosen by `pick` among its listed answers; undefined when it lists none. */

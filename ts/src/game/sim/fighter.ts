@@ -268,8 +268,6 @@ export interface Projectile {
   damageMultiplier: number;
   /** Reflected this frame; it moves from the next frame. */
   newlyReflected: boolean;
-  /** Rifleman's Long Rifle shot (sim/passives.ts): it launches where the blaster flinches. */
-  longRifle: boolean;
   exReach: boolean;
   /** A pool's damaging hits so far, which widen it (SpecialProjectile.pool). */
   poolHits: number;
@@ -482,7 +480,6 @@ interface Status {
   /** Frames of Divine Shield left: intangible to strikes and projectiles, not grabs, until the fighter attacks (Forsaken Paladin, #131). */
   divineFrames: number;
   /** Damage percent hero guards and returning projectiles restored this stock. */
-  guardHealed: number;
   /** The item buff running (ItemKind, sim/itemBuffs.ts, #196) and its frames left; a knockout ends it. */
   buff: number;
   buffFrames: number;
@@ -493,23 +490,6 @@ interface Mana {
   points: number;
   /** Trickle progress toward the next point. */
   progress: number;
-}
-
-/** The fighter's one passive (sim/passives.ts, #148). */
-interface Passive {
-  /** Counted events toward the proc. */
-  stacks: number;
-  /** Frames before the stacks clear; 0 when the passive keeps them. */
-  window: number;
-  /** Counts procs, so presentation plays each once. */
-  serial: number;
-  /** Per-stock budget used: Vampiric Aura's healed percent. */
-  spent: number;
-  /** Warden's restore taken this airtime. */
-  used: boolean;
-  /** The attack last counted and its other fighter, so a multi-hit move counts once (-1: none). */
-  lastKey: number;
-  lastTarget: number;
 }
 
 /** A placed object or animal (sim/placedObjects.ts); `life` 0 when absent. */
@@ -573,7 +553,6 @@ export interface Fighter {
   readonly placed: PlacedObject;
   /** Beastmaster's additional animals: Quilbeast and Hawk. */
   readonly pack: PlacedObject[];
-  readonly passive: Passive;
 }
 
 const repeat = <T>(count: number, make: () => T): T[] => Array.from({ length: count }, () => make());
@@ -591,7 +570,6 @@ function emptyProjectile(): Projectile {
     serial: 0,
     damageMultiplier: 1.0,
     newlyReflected: false,
-    longRifle: false,
     exReach: false,
     poolHits: 0,
     poolWait: 0,
@@ -779,11 +757,10 @@ export function createFighter(character: Character, startX: number, facing: numb
     },
     cannon: { held: undefined, firing: undefined, cooldown: 0 },
     water: { inWater: false, frames: 0, entries: 0, hydraFrame: 0, hydraX: 0.0 },
-    status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0, armorChills: false, condition: 0, conditionFrames: 0, conditionGroup: 0, conditionImmunityFrames: 0, conditionImmunity: [0, 0, 0], guardHealed: 0.0, divineFrames: 0, poisonFrames: 0, poisonEvery: 0, poisonDamage: 0.0, buff: 0, buffFrames: 0 },
+    status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0, armorChills: false, condition: 0, conditionFrames: 0, conditionGroup: 0, conditionImmunityFrames: 0, conditionImmunity: [0, 0, 0], divineFrames: 0, poisonFrames: 0, poisonEvery: 0, poisonDamage: 0.0, buff: 0, buffFrames: 0 },
     mana: { points: ROSTER_MANA.max, progress: 0 },
     placed: createPlacedObject(),
     pack: character === Character.beastmaster ? [createPlacedObject(), createPlacedObject()] : [],
-    passive: { stacks: 0, window: 0, serial: 0, spent: 0.0, used: false, lastKey: -1, lastTarget: -1 },
   };
   initializeInfluenceOperands(fighter);
   return fighter;

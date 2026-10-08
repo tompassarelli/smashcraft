@@ -1,9 +1,8 @@
 import { assertEquals, assertGreaterThan, assertLessThan, test } from "wisp/src/runtime/testing";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
-import { AttackStyle, Character, GrabAction, HitOrigin } from "../codes";
+import { AttackStyle, Character, GrabAction } from "../codes";
 import { createFighter } from "../fighter";
 import { attackStartupFrames, grabContactFrame, isAerialAttack } from "../moves";
-import { sourcePassiveContact, resetPassive } from "../passives";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { PEON_MOVES } from "./peonMoves";
 
@@ -88,21 +87,3 @@ for (const [action, damage, x, z] of [
   });
 }
 
-test("Peon Pillage restores eight mana on the third distinct tool hit and resets with the stock [spec docs/design/peasant.md]", () => {
-  const owner = createFighter(Character.peon, 0.0, 1);
-  owner.mana.points = 20;
-  const effect = { damage: 3.0 };
-  for (let key = 1; key <= 3; key++) {
-    sourcePassiveContact(owner, 1, HitOrigin.melee, true, false, key, effect);
-    sourcePassiveContact(owner, 1, HitOrigin.melee, true, false, key, effect);
-    assertEquals(owner.mana.points, key === 3 ? 28 : 20);
-  }
-  sourcePassiveContact(owner, 1, HitOrigin.projectile, false, false, 4, effect);
-  assertEquals(owner.passive.stacks, 0);
-  for (let key = 5; key <= 7; key++) sourcePassiveContact(owner, 1, HitOrigin.melee, true, key === 7, key, effect);
-  assertEquals(owner.mana.points, 28);
-  assertEquals(owner.passive.stacks, 0);
-  sourcePassiveContact(owner, 1, HitOrigin.melee, true, false, 8, effect);
-  resetPassive(owner);
-  assertEquals(owner.passive.stacks, 0);
-});

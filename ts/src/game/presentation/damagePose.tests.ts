@@ -11,8 +11,8 @@ test("simultaneous contacts keep the strongest hit's pain pose through a snapsho
     const victim = createFighter(Character.archer, 0.0, -1);
     const attacker = createFighter(Character.rifleman, -100.0, 1);
     const world = testWorld(attacker, victim);
-    const weak = () => collectDamageContact(world, 0, 1, hitEffect(3.0, 0.0, 20.0, 1.0, 0.0), 1, ContactKind.launch, true, undefined, false, undefined, undefined, -30.0);
-    const strong = () => collectDamageContact(world, 0, 1, hitEffect(3.0, 0.0, 100.0, 1.0, 0.0), 1, ContactKind.launch, true, undefined, false, undefined, undefined, 180.0);
+    const weak = () => collectDamageContact(world, 0, 1, hitEffect(3.0, 0.0, 20.0, 1.0, 0.0), 1, ContactKind.launch, true, undefined, false, undefined, -30.0);
+    const strong = () => collectDamageContact(world, 0, 1, hitEffect(3.0, 0.0, 100.0, 1.0, 0.0), 1, ContactKind.launch, true, undefined, false, undefined, 180.0);
     contactBatch(world, () => { if (reversed) { strong(); weak(); } else { weak(); strong(); } });
     assertEquals(victim.visuals.hitHeight, 2);
     assertEquals(victim.visuals.hitStrength, 1);

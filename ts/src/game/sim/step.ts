@@ -94,7 +94,6 @@ import { FREEZE_MINIMUM_FRAMES, clearDownState, clearOwnedFreezeTrap, thawFighte
 import { advanceMash } from "./mash";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 import { at } from "wisp/src/runtime/lookup";
-import { advancePassive } from "./passives";
 import { aerialJumps, heavyFall, jumpBuffed, speedBuffed } from "./itemBuffs";
 
 const FAST_FALL_DOWN_THRESHOLD = 0.6625000238418579;
@@ -381,7 +380,6 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   motion.deltaX = 0.0;
   motion.deltaZ = 0.0;
   if (advanceOut(world, slot, respawnX)) return;
-  advancePassive(f);
   renewSmashDirectionalInfluenceString(f);
   if (inStageCannon(f)) return;
   // The deck this fighter stands on carried it before the frame began (carryOnMovingDecks).

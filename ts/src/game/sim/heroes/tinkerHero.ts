@@ -9,7 +9,6 @@ import { TINKER_GAMEPLAN } from "./tinkerGameplan";
 export const TINKER_HERO: HeroDefinition = {
   character: Character.tinker, name: "Goblin Tinker", purpose: "Factory and rocket space control",
   weakness: "Short claws and vulnerable setup",
-  passive: { name: "Engineering Upgrade", description: "Gadget hits charge up to two upgrades; the next claw hit spends them for extra damage." },
   jab: { name: "Claw-Pack", description: "Two short claw taps and a wrench shove." },
   ultimate: { name: "Robo-Goblin Overdrive", description: "An extended armored hammer-tank advance." },
   complete: true, moves: TINKER_MOVES, specials: TINKER_SPECIALS, gameplan: TINKER_GAMEPLAN,

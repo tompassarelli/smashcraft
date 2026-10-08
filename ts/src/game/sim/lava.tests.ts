@@ -1,5 +1,5 @@
 import { assertEquals, assertFalse, assertGreaterThan, test } from "wisp/src/runtime/testing";
-import { AttackStyle, Character, HitOrigin, ItemKind } from "./codes";
+import { AttackStyle, Character, ItemKind } from "./codes";
 import { beginDamageContacts, finishDamageContacts } from "./contacts";
 import { createFighter } from "./fighter";
 import { applyAttackHit } from "./hits";
@@ -24,7 +24,7 @@ test("lava produces the same complete victim as an ordinary scripted fire hit [s
     const first = fighterAt(lava, 0); const second = fighterAt(scripted, 0);
     first.status.damage = damage; second.status.damage = damage;
     beginDamageContacts(); collectLavaContacts(lava, CANNON_TEST_STAGE, true); finishDamageContacts(lava);
-    beginDamageContacts(); applyAttackHit(scripted, 1, 0, AttackStyle.jab, 1, LAVA_HIT, false, false, undefined, HitOrigin.foreign); finishDamageContacts(scripted);
+    beginDamageContacts(); applyAttackHit(scripted, 1, 0, AttackStyle.jab, 1, LAVA_HIT, false, false, undefined); finishDamageContacts(scripted);
     assertEquals(firstFighterDifference(first, second, 3, 3), undefined);
     assertEquals(first.status.damage, damage + 12.0);
     assertFalse(first.motion.grounded);

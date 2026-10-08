@@ -9,7 +9,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { PARTICIPANT_SLOTS, participantActive } from "../input/participants";
 import { attackCapsule, emptyCapsule, placeCapsule } from "../physics/contactGeometry";
-import { AttackStyle, ContactKind, HitElement, HitOrigin } from "../sim/codes";
+import { AttackStyle, ContactKind, HitElement } from "../sim/codes";
 import { isIntangible } from "../sim/conditions";
 import { collectDamageContact } from "../sim/contacts";
 import { mutableProjectile } from "../sim/fighterProjectiles";
@@ -242,7 +242,7 @@ export function collectBossContacts(state: BossState, world: Roster, clock: numb
       if (!inZone(strike, zone, state.aimX, motion.x, motion.z)) continue;
       state.hitMask |= 1 << slot;
       const facing = strike.away ? (motion.x < zoneCenter(strike, zone, state.aimX) ? -1 : 1) : 1;
-      collectDamageContact(world, slot, slot, strike.effect, facing, ContactKind.launch, false, undefined, fighter.shield.raised, undefined, HitOrigin.foreign, undefined, true);
+      collectDamageContact(world, slot, slot, strike.effect, facing, ContactKind.launch, false, undefined, fighter.shield.raised, undefined, undefined, true);
       break;
     }
   }

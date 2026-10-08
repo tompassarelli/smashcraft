@@ -16,7 +16,6 @@ export const FORSAKEN_PALADIN_HERO: HeroDefinition = {
   complete: true,
   moves: FORSAKEN_PALADIN_MOVES,
   specials: FORSAKEN_PALADIN_SPECIALS,
-  passive: { name: "Sacred Aura", description: "After he blocks three hits with his shield, the next launch he takes is 20% weaker." },
   jab: { name: "Hammer and Haft", description: "A hammer check, then a shove of the haft on a second jab." },
   gameplan: FORSAKEN_PALADIN_GAMEPLAN,
   presentation: {

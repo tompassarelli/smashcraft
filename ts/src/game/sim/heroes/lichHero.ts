@@ -39,7 +39,6 @@ export const LICH_HERO: HeroDefinition = {
   complete: true,
   moves: LICH_MOVES,
   specials: LICH_SPECIALS,
-  passive: { name: "Frost Aura", description: "The third melee hit he takes in a short time chills the attacker." },
   jab: { name: "Chilling Touch", description: "A slap, then a freezing palm on a second jab." },
   ultimate: { name: "Frost Wyrm", description: "He summons a frost wyrm." },
   gameplan: LICH_GAMEPLAN,

@@ -80,7 +80,7 @@ down throw. These are tuning hypotheses. Smashes charge for at most 45 frames
 to 1.25 damage. Shared grab escape, pummel limit, DI/SDI, techs and shield rules
 apply. No guaranteed repeat-grab or flame loop is designed.
 
-## Specials, passive and ultimate
+## Specials and ultimate
 
 | Input | Decision and counterplay | Original values | Warcraft / Smash reference |
 |---|---|---|---|
@@ -88,7 +88,6 @@ apply. No guaranteed repeat-grab or flame loop is designed.
 | Side: Siphon Mana | Short reaching cast trades fire damage for mana. Shield or space it; a whiff leaves the hand exposed. | 5 mana; strike f15–17 to x145; 4%; steal up to25 mana; action ends f42; air landing20; one contact | [Siphon Mana][wc], [Mewtwo Confusion][mw] |
 | Up: Phoenix Flight | Aim during startup, then fly in that heading. Opponent attacks the startup or catches the helpless descent. | 15 mana; hovers in place while aiming through f10; f11–30 travel at14/frame, 280 units; free version9/frame, 180 units; 6% flame contact f11–20; end f36; spends aerial jump, once per airtime, helpless; landing24 | [Phoenix][wc], [Wing Blitz][wing] |
 | Down: Banish | Briefly phase the caster, then push nearby opponents away. This is self-Banish, not a long victim stun. | 15 mana; intangible f5–12; burst f13–15, radius65; 5%; ends f38; air landing20 | [Banish][wc], [Mewtwo Disable's evasive startup][mw] |
-| Passive: Verdant Spheres | Body contacts with his ordinary sphere attacks transfer2 mana. A shield stops transfer, and an empty enemy gives none. Siphon uses its own25-point transfer. | Two points per ordinary contact; existing100-mana cap; no new resource | [Verdant Spheres and Siphon Mana][wc], [Robin's resource pressure][arc] |
 | Ultimate: Phoenix | A large phoenix follows Kael and fires at nearby enemies, then becomes an egg that can be destroyed. | Designed only: ultimates remain off under the current match rules, as for the rest of the roster | [Phoenix][wc], [Ridley's flight][wing] |
 
 Phoenix Flight reaches the ledge from below or beside it, spends the remaining

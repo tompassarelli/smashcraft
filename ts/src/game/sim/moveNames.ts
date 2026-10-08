@@ -1,6 +1,6 @@
 // What every fighter's moves are called, read from its kit data: a hero's
-// SpecialKit.name and HeroDefinition.passive/ultimate, an original fighter's
-// ORIGINAL_KITS record. Specials, passives and ultimates have official names;
+// SpecialKit.name and HeroDefinition/ultimate, an original fighter's
+// ORIGINAL_KITS record. Specials and ultimates have official names;
 // normals go by their input. smashcraft:docs/move-list.md, the Moves page and
 // training's readout all read this view.
 import { at } from "wisp/src/runtime/lookup";
@@ -24,8 +24,6 @@ export interface SpecialText extends NamedMove {
 export interface FighterKitText {
   /** Neutral, side, up and down, in SpecialSlot order. */
   readonly specials: readonly SpecialText[];
-  /** Undefined for a fighter the design gives no passive; `trait` then says what its hits do. */
-  readonly passive: NamedMove | undefined;
   readonly trait: string | undefined;
   /** The jab chain: every fighter's repeated jab (#163). */
   readonly jab: NamedMove;
@@ -90,7 +88,7 @@ function heroInspirations(moves: Readonly<FighterMoves>): { move: string; note: 
   return [...notes(NORMAL_NAMES, normals), ...notes(GRAB_NAMES, throws)];
 }
 
-/** The fighter's specials, passive and ultimate as players see them. */
+/** The fighter's specials and ultimate as players see them. */
 export function fighterKit(character: number): FighterKitText {
   const hero = heroDefinition(character);
   if (hero !== undefined) {
@@ -101,7 +99,6 @@ export function fighterKit(character: number): FighterKitText {
         const kit = specialKit(specials, slot);
         return { name: kit.name, description: kit.description, forms: namedForms(kit) };
       }),
-      passive: hero.passive,
       trait: undefined,
       jab: hero.jab,
       ultimate: hero.ultimate,
@@ -111,7 +108,6 @@ export function fighterKit(character: number): FighterKitText {
   const original = ORIGINAL_KITS[character] ?? at(ORIGINAL_KITS, 0);
   return {
     specials: original.specials.map((special) => ({ name: special.name, description: special.description, forms: special.forms ?? [] })),
-    passive: original.passive,
     trait: original.trait,
     jab: original.jab,
     ultimate: original.ultimate,

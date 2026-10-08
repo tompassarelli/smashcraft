@@ -1,6 +1,6 @@
 // The original fighters' move names: their specials run as code (specials.ts),
 // so their names and one-line descriptions live in this record, shaped like a
-// hero's (SpecialKit.name, HeroDefinition.passive and ultimate).
+// hero's (SpecialKit.name, HeroDefinition and ultimate).
 import { AttackStyle, SpecialAction } from "./codes";
 import type { NamedMove } from "./heroes/hero";
 import {
@@ -17,8 +17,6 @@ export interface OriginalSpecial extends NamedMove {
 export interface OriginalKit {
   /** Neutral, side, up and down. */
   readonly specials: readonly [OriginalSpecial, OriginalSpecial, OriginalSpecial, OriginalSpecial];
-  /** Absent for a fighter the design gives no passive; `trait` then says what its hits do instead. */
-  readonly passive?: NamedMove | undefined;
   readonly trait?: string | undefined;
   /** Its jab chain's name and one line for players (#163). */
   readonly jab: NamedMove;
@@ -39,7 +37,6 @@ export const ORIGINAL_KITS: readonly OriginalKit[] = [
         forms: [{ form: ARCHER_DIVE_FORM, name: "Hippogryph Dive" }],
       },
     ],
-    passive: { name: "Trueshot Aura", description: "Every third arrow that lands in a short time deals double damage; the ready arrow glows." },
     jab: { name: "Fist and Boot", description: "A quick fist punch, then a low kick on a second jab." },
   },
   {
@@ -52,7 +49,6 @@ export const ORIGINAL_KITS: readonly OriginalKit[] = [
       },
       { action: SpecialAction.riflemanTrap, name: "Frost Trap", description: "Set a trap that freezes the first opponent to step on it; mash to break free." },
     ],
-    passive: { name: "Long Rifles", description: "Every fourth blaster shot flies farther and launches." },
     jab: { name: "Rifle Butt", description: "A push of the barrel, then the stock driven in on a second jab." },
   },
   {
@@ -71,7 +67,6 @@ export const ORIGINAL_KITS: readonly OriginalKit[] = [
         forms: [{ form: FLAME_CRASH_FORM, name: "Flame Crash" }],
       },
     ],
-    trait: "Every hit he lands drains the target's mana; bigger hits drain more.",
     jab: { name: "Warglaive Flurry", description: "Three quick glaive cuts on repeated jabs; the third launches." },
     inspiredBy: {
       [AttackStyle.forwardTilt]: "Shear, from the Black Temple encounter",

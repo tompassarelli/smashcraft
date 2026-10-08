@@ -113,8 +113,6 @@ export interface HeroDefinition {
   readonly complete: boolean;
   readonly moves: FighterMoves;
   readonly specials?: FighterSpecials | undefined;
-  /** Its passive's official name and one line for players (smashcraft:docs/design/passives.md). */
-  readonly passive: NamedMove;
   /** Its jab chain's name and one line for players (#163, smashcraft:docs/design/tilts.md). */
   readonly jab: NamedMove;
   /** Its designed ultimate; shown only while ultimates are on in the match rules. */

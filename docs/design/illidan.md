@@ -171,10 +171,7 @@ dealt (rejected).** It ties drain to his light damage, so his identity
 (many light hits) would drain little; per-move authoring lets a combo ender
 drain more than its damage implies.
 
-**Hero passives.** Drain on hit is not a passive; it fills Illidan's slot in
-the roster-wide hero-passives system (the passives lane was told). It lives
-on the hit effect, so any future fighter can author drain on a move the same
-way.
+
 
 ## Neutral special: Mana Burn (kept; drain owned by the mana lane)
 

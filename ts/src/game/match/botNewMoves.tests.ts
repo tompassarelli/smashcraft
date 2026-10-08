@@ -1,22 +1,18 @@
 // The computer plays the newest moves (#155): as Wren Expert, in seeded
 // computer-against-computer mirror matches, each fighter throws its drills
 // and multi-hit aerials, Illidan's raid-boss normals, the heroes' angled
-// forward tilts, down tilts and dash attacks; with its passive ready it
-// favours the move that cashes it, against a ready opponent it shields
-// more, and Archer and Rifleman never press a special their mana can't pay.
+// forward tilts, down tilts and dash attacks.
 import { assertEquals, assertGreaterThan, assertTrue } from "wisp/src/runtime/testing";
 import { sweep } from "../../runtime/sweep";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { attackBuffer, clearAttackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { AttackStyle, Character, SpecialAction } from "../sim/codes";
-import { passivePips } from "../sim/passives";
 import { type Fighter, createFighter } from "../sim/fighter";
 import { EYE_BLAST_CHARGE_FRAMES } from "../sim/moves";
 import { copyControls, createRoster, fighterAt, isActive, neutralControls } from "../sim/roster";
-import { gameplanOf, passiveLandingMove } from "./botGameplan";
+import { gameplanOf } from "./botGameplan";
 import { type GameplanMove, GameplanSpecial } from "../sim/gameplan";
-import { passiveSpec } from "../sim/passives";
 import { produceComputerInput } from "./botPlay";
 import { chooseAttack } from "./botMoves";
 import { createFrameControls } from "./controls";
@@ -32,56 +28,16 @@ const FRAMES = 1800;
 type Counts = Record<string, number>;
 const count = (counts: Counts, key: string, by = 1) => { counts[key] = (counts[key] ?? 0) + by; };
 
-/** Each fighter's last attack serial, passive serial, and the attack it is shielding against. */
-interface Watch {
-  attack: number;
-  special: number;
-  blast: number;
-  proc: number;
-  /** The opponent's attack serial last seen starting, whether its passive was ready then, and whether this fighter shielded it. */
-  threat: number;
-  threatReady: boolean;
-  shielded: boolean;
-}
+interface Watch { attack: number; blast: number; }
 
-/** Projectile specials that can cash a passive, plus the heroes' neutral specials. */
-const OBSERVED_SPECIALS: readonly number[] = [SpecialAction.archerArrow, SpecialAction.archerHomingArrow, SpecialAction.riflemanBlaster, SpecialAction.demonHunterManaBurn, SpecialAction.heroNeutral];
-
-/** A move started while the passive is ready or charging, and whether it is the move that cashes it. */
-function moveStarted(f: Readonly<Fighter>, move: GameplanMove, counts: Counts): void {
-  const plan = gameplanOf(f.character);
-  const ready = passivePips(f).ready;
-  count(counts, ready ? "readyMoves" : "idleMoves");
-  if (plan !== undefined && passiveLandingMove(plan, passiveSpec(f.character).kind, move)) count(counts, ready ? "readyLanding" : "idleLanding");
-}
-
-function observe(f: Readonly<Fighter>, opponent: Readonly<Fighter>, watch: Watch, counts: Counts): void {
+function observe(f: Readonly<Fighter>, watch: Watch, counts: Counts): void {
   const style = f.attack.style;
-  if (style !== undefined && f.attack.serial !== watch.attack) {
-    count(counts, `style${style}`);
-    moveStarted(f, f.ground.dashFrame > 0 && style === AttackStyle.dashAttack ? AttackStyle.dashAttack : style, counts);
-  }
+  if (style !== undefined && f.attack.serial !== watch.attack) count(counts, `style${style}`);
   watch.attack = f.attack.serial;
-  if (f.special.action !== watch.special && OBSERVED_SPECIALS.includes(f.special.action)) {
-    moveStarted(f, f.special.action === SpecialAction.archerHomingArrow ? GameplanSpecial.side : GameplanSpecial.neutral, counts);
-  }
-  watch.special = f.special.action;
-  // Eye Blast: Illidan's forward smash released after its full charge, once per attack.
   if (f.character === Character.demonHunter && style === AttackStyle.forwardSmash && !f.attack.smashCharging && f.attack.smashChargeFrames >= EYE_BLAST_CHARGE_FRAMES && watch.blast !== f.attack.serial) {
     count(counts, "eyeBlast");
     watch.blast = f.attack.serial;
   }
-  if (f.passive.serial !== watch.proc) count(counts, "proc");
-  watch.proc = f.passive.serial;
-  // The opponent's attacks, each counted once as it starts, and whether this fighter raised a shield while it ran.
-  if (opponent.attack.style !== undefined && opponent.attack.serial !== watch.threat) {
-    if (watch.threat !== 0) count(counts, `${watch.threatReady ? "ready" : "idle"}Shielded`, watch.shielded ? 1 : 0);
-    watch.threat = opponent.attack.serial;
-    watch.threatReady = passivePips(opponent).ready;
-    watch.shielded = false;
-    count(counts, watch.threatReady ? "readyThreats" : "idleThreats");
-  }
-  if (opponent.attack.style !== undefined && f.shield.raised) watch.shielded = true;
 }
 
 /** A Wren Expert match of `character` against `opponent` under `seed`, both at `damage`, counting each computer playing `character`. */
@@ -102,7 +58,7 @@ function mirrorMatch(character: Character, opponent: Character, seed: number, da
     match.cpuResolvedOpponents[slot] = "wren";
     match.cpuTiers[slot] = "expert";
     fighterAt(world, slot).status.damage = damage;
-    watches.push({ attack: 0, special: 0, blast: 0, proc: 0, threat: 0, threatReady: false, shielded: false });
+    watches.push({ attack: 0, blast: 0 });
   }
   for (let step = 0; step < FRAMES; step++) {
     const frame = runtime.simulationFrame + 1;
@@ -116,15 +72,11 @@ function mirrorMatch(character: Character, opponent: Character, seed: number, da
     assertTrue(executeMatchFrame(row, match, world, controls, runtime, frame));
     for (const slot of [0, 1] as const) {
       const watch = watches[slot];
-      if (watch !== undefined && (slot === 0 || opponent === character)) observe(fighterAt(world, slot), fighterAt(world, 1 - slot), watch, counts);
+      if (watch !== undefined && (slot === 0 || opponent === character)) observe(fighterAt(world, slot), watch, counts);
     }
   }
   for (const slot of [0, 1] as const) {
     const watch = watches[slot];
-    // The final attack has no next attack to record whether it was shielded.
-    if (watch !== undefined && watch.threat !== 0 && (slot === 0 || opponent === character)) {
-      count(counts, `${watch.threatReady ? "ready" : "idle"}Shielded`, watch.shielded ? 1 : 0);
-    }
     count(counts, "manaDenied", fighterAt(world, slot).visuals.manaDenied);
   }
 }
@@ -150,54 +102,17 @@ function throws(counts: Counts, styles: readonly AttackStyle[]): void {
   }
 }
 
-/**
- * With its passive ready the fighter's moves are its landing move more often
- * than with it charging, and it procs; against a ready opponent it shields a
- * larger share of attacks than against one still charging.
- */
-function playsPassives(counts: Counts): void {
-  assertGreaterThan(counts.proc ?? 0, 0);
-  const readyShare = (counts.readyLanding ?? 0) * (counts.idleMoves ?? 0);
-  const idleShare = (counts.idleLanding ?? 0) * (counts.readyMoves ?? 0);
-  if (readyShare <= idleShare) throw new Error(`passive landing shares: ready ${counts.readyLanding ?? 0}/${counts.readyMoves ?? 0}, charging ${counts.idleLanding ?? 0}/${counts.idleMoves ?? 0}; ${Object.keys(counts).map(key => `${key}=${counts[key] ?? 0}`).join(", ")}`);
-}
-
-/** Shields a ready opponent's attacks more often than a charging one's (the counts are from both fighters' sides). */
-function shieldsReady(counts: Counts): void {
-  assertGreaterThan((counts.readyShielded ?? 0) * (counts.idleThreats ?? 0), (counts.idleShielded ?? 0) * (counts.readyThreats ?? 0));
-}
-
-function favorsReadyShot(character: Character): void {
-  const fighter = createFighter(character, 0.0, 1);
-  const target = createFighter(character, 240.0, -1);
-  const shots = (stacks: number): number => {
-    fighter.passive.stacks = stacks;
-    let count = 0;
-    for (let frame = 1; frame <= 64; frame++) {
-      const input = neutralControls();
-      chooseAttack(fighter, target, 0, frame, frame, true, input, attackBuffer(6), 0);
-      if (input.specialPressed && input.specialX === 0 && input.specialZ === 0) count++;
-    }
-    return count;
-  };
-  // #273 changes the distances a match visits; compare the same affordable choices.
-  assertGreaterThan(shots(passiveSpec(character).stacks), shots(0));
-}
-
 const { forwardTiltUp, forwardTiltDown, downTilt, dashAttack, neutralAir, upAir, downAir, forwardAir, forwardTilt, downSmash } = AttackStyle;
 
-sweep("computer Blademaster throws Bladestorm, Blade Wheel, his down tilt and dash attack, and cashes Critical Strike [spec #155]", () => {
+sweep("computer Blademaster throws Bladestorm, Blade Wheel, his down tilt and dash attack [spec #155]", () => {
   // Shields are rare (about 2% of his mirror's attacks) and whiff punishes reshuffle the mirror: 16 matches give the shares a sample.
   const counts = played(Character.blademaster, Character.blademaster, 2 * MATCHES);
   throws(counts, [downAir, neutralAir, downTilt, dashAttack]);
-  playsPassives(counts);
-  shieldsReady(counts);
 });
 
-sweep("computer Mountain King angles his forward tilt, throws his down tilt and dash attack, and cashes Bash [spec #155]", () => {
+sweep("computer Mountain King angles his forward tilt, throws his down tilt and dash attack [spec #155]", () => {
   const counts = played(Character.mountainKing);
   throws(counts, [forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
-  playsPassives(counts);
 });
 
 sweep("computer Warden throws Falling Knives, Sky Crescent, angled forward tilts, her down tilt and dash attack [spec #155] [repro #242]", () => {
@@ -210,16 +125,14 @@ sweep("computer Lich throws Frost Halo, angled forward tilts, his down tilt and 
   throws(played(Character.lich, Character.warden, 2 * MATCHES), [neutralAir, forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
 });
 
-sweep("computer Dreadlord throws Batwing Turn, angled forward tilts, his down tilt and dash attack, and cashes Vampiric Aura [spec #155]", () => {
+sweep("computer Dreadlord throws Batwing Turn, angled forward tilts, his down tilt and dash attack [spec #155]", () => {
   const counts = played(Character.dreadlord);
   throws(counts, [neutralAir, forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
-  playsPassives(counts);
 });
 
-sweep("computer Shadow Hunter throws the glaive drill, angled forward tilts, his down tilt and dash attack, and cashes Voodoo [spec #155]", () => {
+sweep("computer Shadow Hunter throws the glaive drill, angled forward tilts, his down tilt and dash attack [spec #155]", () => {
   const counts = played(Character.shadowHunter);
   throws(counts, [downAir, forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
-  playsPassives(counts);
 });
 
 sweep("computer Forsaken Paladin throws his down tilt and dash attack [spec #155]", () => {
@@ -230,16 +143,6 @@ sweep("computer Illidan charges Eye Blast and throws Shear, Flames of Azzinoth a
   const counts = played(Character.demonHunter);
   throws(counts, [forwardTilt, downSmash, forwardAir]);
   assertGreaterThan(counts.eyeBlast ?? 0, 0);
-});
-
-sweep("computer Archer and Rifleman never press a special their mana can't pay, and cash Trueshot and Long Rifles [spec #155]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
-    const counts = played(character);
-    assertEquals(counts.manaDenied ?? 0, 0);
-    assertGreaterThan(counts.proc ?? 0, 0);
-    assertGreaterThan(counts.readyLanding ?? 0, 0);
-    favorsReadyShot(character);
-  }
 });
 
 sweep("computer Archer and Rifleman never press a special their mana can't pay in a seeded mirror, which replays its counts [spec #155]", () => {

@@ -2,7 +2,7 @@
 // Commands stop while the owner is punished; their bodies never shield it.
 import { f32 } from "wisp/src/sim/f32";
 import { max, min } from "../../runtime/numbers";
-import { AttackStyle, HitOrigin } from "./codes";
+import { AttackStyle } from "./codes";
 import { inGrabContext, isIntangible } from "./conditions";
 import { type Fighter, type PlacedObject, placedObject } from "./fighter";
 import { runningHeroSpecial, spawnHeroProjectileAt } from "./heroSpecialRules";
@@ -47,7 +47,7 @@ function biteOpponents(world: Roster, ownerSlot: number, placed: PlacedObject, p
     const shielded = target.shield.raised && shieldCircleIntersects(target, bite.x1, bite.z1, bite.x2, bite.z2, 1.0, bite.radius);
     if (!shielded && strikeHurtContact(bite, target) !== HurtContact.hit) continue;
     placed.bitten |= bit;
-    applyAttackHit(world, ownerSlot, targetSlot, AttackStyle.jab, placed.direction, partner.biteEffect, false, shielded, undefined, HitOrigin.summon);
+    applyAttackHit(world, ownerSlot, targetSlot, AttackStyle.jab, placed.direction, partner.biteEffect, false, shielded, undefined);
   }
 }
 

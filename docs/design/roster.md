@@ -66,7 +66,7 @@ Use the project’s existing knockback, hitlag, hitstun, DI, shieldstun, and sta
 
 Calibrate classes in an empty test stage against a reference weight at 60 percent, no DI and no walls. Indicative displacement along the launch direction after 30 ticks: LINK 0.6–1.2H; POKE 1.2–2.0H; LAUNCH 2.0–3.0H; EDGE 2.5–3.5H; KILL 3.5–5.0H; SPIKE downward 2.5–3.5H before gravity. These are test bands, not a second knockback formula. Publish the actual coefficients and measured outcomes once calibrated. Adjust hitstun separately through the established formula rather than assuming distance proves a true combo. LINK never guarantees a follow-up without testing DI, percentage, weight, and move timing.
 
-No critical-hit RNG, random evasion, chance-on-hit stuns, or automatic spell counters. Warcraft passive identities become deliberate moves, temporary states, or one counted passive per fighter whose stacks both players see ([hero passives](passives.md), Tom, 7 Oct 2026): a crit, bash or lifesteal only as a deterministic, capped proc, never a chance. Damage is Smash-style percent damage; healing reduces damage percent and is tightly bounded. Damage-over-time ticks do not cause hitlag, hitstun, or knockback. A status applies only on an actual body hit, not on shield.
+No critical-hit RNG, random evasion, chance-on-hit stuns, or automatic spell counters. Every fighter is distinctive through expressive standard actions, designed case by case (Tom, 9 Oct 2026, #148). A passive is optional and only a visible physical trait learned by playing, such as a float, extra jumps or visible double-jump armour. No hidden stat passives. One universal super meter (#335); no character stacks, charges, resource timers or second bars. Ordinary move durations, cooldowns, statuses and placed-object HP remain action state. Damage is Smash-style percent damage; a healing move lowers it directly. Damage-over-time ticks do not cause hitlag, hitstun or knockback. A status applies only on an actual body hit, not on shield.
 
 ### Proposed resource profile
 
@@ -218,7 +218,7 @@ The individual hero sections below specify all attacks. Their counterplay descri
 
 ## Blademaster
 
-**Identity:** a disciplined sword fighter who wins by spacing the outer blade and punishing misses. He gets strong reach and ground speed, not unrestricted teleportation or random critical hits; his Critical Strike is a counted passive ([hero passives](passives.md)). His exposed hands and torso remain hittable.
+**Identity:** a disciplined sword fighter who wins by spacing the outer blade and punishing misses. He gets strong reach and ground speed, not unrestricted teleportation or random critical hits. His exposed hands and torso remain hittable.
 
 ### Normals
 
@@ -593,7 +593,7 @@ Shared EX neutral/side costs 25 extra mana for six startup frames of one-hit
 armor. There are no ultimates in the adopted mana system.
 
 Direct hammer hits retain three extra hitlag frames and the volume-127 heavy
-bash. The 0.80 damage multiplier applies after passive bonuses and preserves
+bash. The 0.80 damage multiplier applies to authored damage and preserves
 original hitlag strength. Normal hit regions, hurt capsules and throws remain
 in forsakenPaladinMoves.ts; this revision changes Forsaken Paladin specials and their computer use.
 
@@ -1146,15 +1146,11 @@ above; damage and launch classes are provisional. The move list
 | Down air, Frostmourne Plunge | 18/5/33, land 26 | 14 | 0.55H below | Spikes in the air, 55 degrees on the ground |
 
 Grab 9/2/30. Throws: forward 10 (EDGE), back 12 (KILL), up 8 (JUGGLE), and
-**Harvest Soul**, the down throw: 6 (CHASE), which also stores a soul.
+**Harvest Soul**, the down throw: 6 (CHASE).
 
 ### Passive: Frostmourne Hungers
 
-Each Frostmourne normal or aerial that reaches a body, and Harvest Soul,
-stores a soul, up to 3, shown as three pips; a shield stops it, and souls
-never time out. Howling Blast and Val'kyr Shadowguard spend one, when he has
-one, for their soul form. Ascension and Defile never spend one. Answer: shield
-his normals, and respect the empowered special the pips announce.
+
 
 ### B specials
 
@@ -1166,7 +1162,6 @@ his normals, and respect the empowered special the pips announce.
   reflected). The victim is carried 3 units a frame the way she flew, rising,
   for 80 frames, with no control. Mashing frees them, never before frame 20;
   any damaging hit, his own included, drops the carry; then 240 frames immune.
-  With a soul she flies 7.5 a frame instead of 5. Deviation from the brief
   (Tom delegated, 7 Oct): she carries toward the edge he faces rather than the
   nearest one, so the player aims the drop and the victim can read it.
 - **Ascension of the Damned** (up, 15 mana): an ice column lifts him 2H over
@@ -1393,7 +1388,7 @@ hit taken since the fighter last stood on a deck or held the ledge.
 | Before the pass (b2ed6109, 100/pair) | 27%, self-destructs 1% | 85%, 0% | 82%, 1% |
 | Archer runs in on his speed; blaster 32/20 frames (was 24/15); Illidan's glaives deal less (forward/back air 8→6, forward smash 15→12, growth 100→85, smash base 28→20); Storm Bolt 7→5 | 51%, 1% | 74%, 0% | 58%, 0% |
 
-After the kit redesigns, mana, passives and hero tilts, the field is twelve
+After the kit redesigns, mana, expressive hero actions, the field is twelve
 fighters (66 pairs) at computer level 9, 100 matches a pair (spawn variant
 0, seeds 0-4, every soak stage, both orders). Each change works a fighter's
 own strength or weakness lever. Cells are the win rate against the field,
@@ -1748,3 +1743,41 @@ Relevant Blizzard character references:
 - [Naga Sea Witch](https://classic.battle.net/war3/neutral/nagaseawitch.shtml), [Beastmaster](https://classic.battle.net/war3/neutral/beastmaster.shtml), [Dark Ranger](https://classic.battle.net/war3/neutral/darkranger.shtml), [Firelord](https://classic.battle.net/war3/neutral/firelord.shtml)
 
 Architecture reference: the project’s CODEX_IMPLEMENTATION_BRIEF.md and SMASHCRAFT_NETCODE_PROPOSAL.md dated 30 September 2026, read for this handoff, plus the current implementation agent’s actual source, logs, and tests. This expansion document does not certify those earlier technical claims or supersede newer measured findings.
+
+
+## Fighter identity audit (#148, Tom 9 Oct 2026)
+
+The old counted effects are cut. Existing standard actions carry these identities;
+there is no requirement to add a replacement passive. None of the current kits
+needs an extra passive. Archer is removed by #339; the roster cap is 26.
+
+| Fighter | Keep: expressive actions learned in play | Cut: counted or hidden effect |
+|---|---|---|
+| Rifleman | Rifle strikes, recoil steering, bear and freeze trap | Every fourth Long Rifle shot |
+| Illidan | Warglaive chain, Fel Rush branches, wing glide and plunge | Ordinary-hit and throw meter drain |
+| Blademaster | Outer-blade spacing, plunge drill and deliberate sword specials | Counted Critical Strike |
+| Mountain King | Hammer-and-axe chain, hammer lift and Thunder Leap | Counted Bash hitstun bonus |
+| Warden | Fan of Knives, glaive drill and chosen Blink | Aerial-hit jump refund |
+| Lich | Frost zones, deliberate ice armour and hovering cast poses | Counted reactive Frost Armour |
+| Forsaken Paladin | Hammer spacing, deliberate guard and Divine Shield | Counted launch reduction |
+| Dreadlord | Corkscrew bite and wing-led close moves | Counted automatic lifesteal |
+| Shadow Hunter | Glaive drill, ward placement and crossfire | Banked Voodoo damage |
+| Pit Lord | Wide cleaver swings and armoured charge move | Third-contact cleave bonus |
+| Beastmaster | Commanded bear, Quilbeast and hawk positions | Timed Pack Hunt bonus |
+| Lich King | Frostmourne reach, Val'kyr carry and growing Defile | Banked souls and soul forms |
+| Thrall | Mounted hammer reach, lightning and wolves | Counted Windfury |
+| Jaina | Staff strikes, Blizzard placement and Water Elemental | Faster hidden meter regeneration |
+| Sylvanas | Bow-and-dagger actions, Silence and chosen escape | Banked Black Quiver damage |
+| Cairne | Large visible body, totem swings and guard read | Timed Endurance speed and stock heal bank |
+| Chen | Heavy staff actions and chosen Earth/Fire/Storm branch | Counted Drunken Brawler |
+| Peon | Tool strikes, chosen building and visible burrow | Pillage meter refund and stock heal bank |
+| Tinker | Claw pack, factory placement and Robo-Goblin branch | Banked Engineering Upgrade |
+| Kael'thas | Sphere gestures and explicit spell choices | Ordinary-hit meter steal |
+| Murloc | Small visible body, quick claws and leap pressure | Ordinary-hit meter steal |
+
+Move healing restores its authored amount on a successful action, capped by
+current damage; it keeps no hidden per-stock bank. Peon's proposed burrow HP,
+ducking, peeking face and occupied-break hitstun belong to a future move change.
+The #148 repeated-contact checks pin the absence of counted damage, healing,
+reactive chill and jump refunds. Existing normal, special and command-grab
+checks continue to pin the kept actions in Bun and emitted Lua.

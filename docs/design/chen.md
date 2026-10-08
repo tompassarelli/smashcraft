@@ -62,7 +62,6 @@ Drunken Brawler is the source for original staff, hand and foot gestures.
 | Side special | Drunken Haze: arcing flask, 3.75% and 75 frames at 60% movement speed; shield stops it | Spawn 14, end 38; cost 12 | [Drunken Haze](https://wowpedia.fandom.com/wiki/Pandaren_Brewmaster_%28Warcraft_III%29) | [Ryu Hadoken spacing](https://www.ssbwiki.com/Hadoken) |
 | Up special | Storm Rise: rising staff spin with steering, then helpless fall | Rise 8–29, end 40; 10%, cost 15 | [Storm, Earth and Fire](https://wowpedia.fandom.com/wiki/Pandaren_Brewmaster_%28Warcraft_III%29) | [Ken Shoryuken](https://www.ssbwiki.com/Shoryuken) |
 | Down special | Earth stance absorbs one light hit; fresh Attack becomes Fire palm, fresh Special becomes Storm step | Armor 5–16, end 33; cost 10. Fire active 8–11, end 32, 13.75%. Storm travels 5–12, end 28, 8.75% | [Storm, Earth and Fire](https://wowpedia.fandom.com/wiki/Pandaren_Brewmaster_%28Warcraft_III%29) | [Swap](https://www.ssbwiki.com/Swap) |
-| Passive | Drunken Brawler: after three connected melee attacks in 180 frames, the next gains 50% damage, capped at +6; shield spends it | Deterministic counter; stock resets | [Drunken Brawler](https://wowpedia.fandom.com/wiki/Pandaren_Brewmaster_%28Warcraft_III%29) | [Ryu close pressure](https://www.ssbwiki.com/Ryu_%28SSBU%29) |
 | Ultimate | Storm, Earth and Fire: three spirits divide defense, movement and striking roles; currently off like roster ultimates | Design only while ultimates are disabled | [Storm, Earth and Fire](https://wowpedia.fandom.com/wiki/Pandaren_Brewmaster_%28Warcraft_III%29) | [Swap](https://www.ssbwiki.com/Swap) |
 
 ## Risk, recovery and computer
@@ -86,7 +85,7 @@ The CPU favors running into short checks and jumping with kicks, uses Haze
 occasionally while approaching, checks with tilt/fire, uses
 Earth against an expected strike, branches its stance when a strike reaches,
 and reserves Storm Rise for recovery. Stock loss and rematch clear the
-shared mana, passive, projectiles and special state.
+shared meter, projectiles and special state.
 
 Relative to today's roster: Archer and Rifleman outrange him; Illidan and
 Warden outrun him; Blademaster has a longer weapon; Mountain King wins single

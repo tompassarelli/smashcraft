@@ -146,7 +146,7 @@ export function selectionModeLabel(game: Readonly<MatchState>): string {
 export const MOVES_HEADER = "MOVES";
 
 /**
- * The Moves page: a fighter's specials, passive and, while ultimates are on,
+ * The Moves page: a fighter's specials and, while ultimates are on,
  * ultimate, one line each. Title first, then one line per move.
  */
 export function movesPage(character: number, ultimates: boolean): { title: string; lines: string[] } {
@@ -156,8 +156,7 @@ export function movesPage(character: number, ultimates: boolean): { title: strin
     const special = kit.specials[slot];
     if (special !== undefined) lines.push(`${SPECIAL_INPUTS[slot] ?? "Special"}: ${special.name}. ${special.description}`);
   }
-  const { passive } = kit;
-  lines.push(passive === undefined ? `No passive. ${kit.trait ?? ""}` : `Passive: ${passive.name}. ${passive.description}`);
+  if (kit.trait !== undefined) lines.push(kit.trait);
   if (ultimates && kit.ultimate !== undefined) lines.push(`Ultimate: ${kit.ultimate.name}. ${kit.ultimate.description}`);
   return { title: `${fighterName(character).toUpperCase()} — MOVES`, lines };
 }

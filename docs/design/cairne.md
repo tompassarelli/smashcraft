@@ -66,7 +66,7 @@ link names a relationship, not copied frame data or geometry.
 | Down throw | Contact f24, end f51; 9 damage at 25 degrees; tech chase, no bury. | [War Stomp][wc] | [K. Rool's grounded throw read][krool] |
 | Get-up and ledge attack | Shared recovery timings; totem clears room in the strike direction. | [Totem][wc] | [Heavyweight recovery attack][bowser] |
 
-## Specials, passive and ultimate
+## Specials and ultimate
 
 | Input | Original contract, reward and counterplay | Warcraft source | Smash reference |
 | --- | --- | --- | --- |
@@ -74,14 +74,13 @@ link names a relationship, not copied frame data or geometry.
 | Side: **War Stomp** | 20 mana; advance 66 units over f12–17, stomp f20–23, end f57. Front/rear low strike, 13 damage at 80 degrees, growth 70/base 42. No stun, armor or shield bonus. Air form has 26 landing frames and no ground shockwave beyond its authored low region. | [War Stomp][wc] | [Hand Slap's low surrounding launcher][slap] |
 | Up: **Spirit Lift** | 15 mana; hovers through f10, then rises 2.7H and steers up to 1.35H with the stick over f11–32; totem f11–16 for 9 damage at 80 degrees. Free form rises 2H/steers 0.82H with no hit. One use per airtime, spends aerial jump, ends helpless. Sides and landing remain exposed. | [Ancestral spirit of Reincarnation][wc] | [Bowser's finite recovery commitment][bowser] |
 | Down: **Reincarnation** | Ground only, 25 mana; guard and intangibility f6–9, end f46. Correctly reading a damaging contact heals 12 damage, capped at 24 per stock. Whiff, wait or grab beats it. It restores no stock, does not move Cairne and cannot rescue a KO. | [Reincarnation][wc] | [K. Rool's baitable defensive read][krool] |
-| Passive: **Endurance Aura** | Two distinct landed melee attacks within 180 frames grant 120 frames of 10% faster ground movement. No attack-frame or aerial-speed change; stocks/rematches clear it. The large body still has to approach. | [Endurance Aura][wc] | [K. Rool's ground/air mobility trade-off][krool] |
 | Ultimate: **Ancestral Reincarnation** | Designed for the roster's future ultimate mode: one grounded 60-frame ritual at 100+ damage heals 35 once per match; taking a hit interrupts and spends it. No invulnerability or stock revival. Like today's hero ultimates, named metadata only while the shared ultimate action is disabled. | [Reincarnation][wc] | [Bowser's survival traded against commitment][bowser] |
 
 War Stomp, up tilt and up throw start follow-ups. They use ordinary DI, SDI,
 hitstun and tech rules, with no scripted second hit, bury, capture or stun.
 The defender can change the landing and Cairne must choose a chase. Stronger
 hits retain longer recovery; no move adds shield damage beyond its damage.
-All state uses the existing passive, guard, projectile and special records,
+All state uses the existing guard, projectile and special records,
 including stock/rematch reset and replay copies.
 
 ## Place in the roster and presentation

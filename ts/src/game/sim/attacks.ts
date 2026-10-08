@@ -286,7 +286,7 @@ export function resolveAttacks(world: Roster): void {
       if (at(spent, source * PARTICIPANT_CAPACITY + target)) continue;
       attackCapsule(strikeCapsule, style, contact);
       const contactZ = f32(f.motion.z + f32(f32(strikeCapsule.z1 + strikeCapsule.z2) * 0.5));
-      applyAttackHit(world, source, target, style, at(facings, source), contact.effect, true, meleeHitIntersectsShield(f, victim, contact), undefined, undefined, contactZ);
+      applyAttackHit(world, source, target, style, at(facings, source), contact.effect, true, meleeHitIntersectsShield(f, victim, contact), undefined, contactZ);
     }
   }
   if (ownsBatch) finishDamageContacts(world);

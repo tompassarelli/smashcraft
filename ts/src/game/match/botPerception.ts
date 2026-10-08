@@ -166,8 +166,6 @@ function createObservation(): ObservationFighter {
     status: { ...EMPTY.status, out: f.status.out, stocks: f.status.stocks, damage: f.status.damage,
       invincible: f.status.invincible, frozenFrames: f.status.frozenFrames, condition: f.status.condition,
       conditionFrames: f.status.conditionFrames, poisonFrames: f.status.poisonFrames },
-    passive: { ...EMPTY.passive, stacks: f.passive.stacks, window: f.passive.window, serial: f.passive.serial,
-      spent: f.passive.spent, used: f.passive.used },
     landing: { lag: f.landing.lag },
     down: { ...EMPTY.down, state: f.down.state, frame: f.down.frame, direction: f.down.direction, faceUp: f.down.faceUp },
     grab: { ...EMPTY.grab, owner: f.grab.owner, target: f.grab.target, action: f.grab.action },
@@ -227,11 +225,6 @@ function copyObservation(target: ObservationFighter, source: Readonly<Fighter>):
   target.status.condition = source.status.condition;
   target.status.conditionFrames = source.status.conditionFrames;
   target.status.poisonFrames = source.status.poisonFrames;
-  target.passive.stacks = source.passive.stacks;
-  target.passive.window = source.passive.window;
-  target.passive.serial = source.passive.serial;
-  target.passive.spent = source.passive.spent;
-  target.passive.used = source.passive.used;
   target.landing.lag = source.landing.lag;
   target.down.state = source.down.state;
   target.down.frame = source.down.frame;

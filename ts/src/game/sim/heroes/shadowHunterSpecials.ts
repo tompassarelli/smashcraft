@@ -25,7 +25,6 @@ const SPIRIT_GLAIVE_SHOT: SpecialProjectile = {
   velocityX: h(f32(0.12)), velocityZ: 0.0, life: 70, radius: h(f32(0.15)),
   effect: hit(6.0, "POKE", 35), reflectable: true, limit: 1,
   returns: { age: 22, speed: h(f32(0.12)) }, returnEffect: hit(5.0, "POKE", 35),
-  feedsPassive: true,
 };
 
 const spiritGlaive = (air: boolean): AuthoredSpecial => ({
@@ -80,7 +79,6 @@ const SERPENT_WARD: SpecialPlacement = {
     spawnFrame: 0, offsetX: h(f32(0.15)), offsetZ: h(f32(0.4)),
     velocityX: h(f32(0.10)), velocityZ: 0.0, life: 36, radius: h(f32(0.12)),
     effect: hit(7.0, "POKE", 35, 1.0, HitElement.poison), reflectable: true, limit: 3,
-    feedsPassive: true,
   },
 };
 

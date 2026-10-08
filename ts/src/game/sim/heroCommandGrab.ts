@@ -93,9 +93,8 @@ export function advanceHeroCommandGrab(world: Roster, slot: number): void {
   const heal = grab.heal;
   if (heal !== undefined) {
     const { status } = owner;
-    const restored = min(min(heal.heal, max(0.0, f32(heal.capPerStock - status.guardHealed))), max(0.0, status.damage));
+    const restored = min(heal.heal, max(0.0, status.damage));
     status.damage = f32(status.damage - restored);
-    status.guardHealed = f32(status.guardHealed + restored);
   }
   target.motion.grounded = false;
   target.motion.surface = undefined;

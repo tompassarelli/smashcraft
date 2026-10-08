@@ -12,12 +12,11 @@ import { f32 } from "wisp/src/sim/f32";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { toInt } from "../../runtime/numbers";
 import { hurtCapsule } from "../physics/contactGeometry";
-import { AttackStyle, Character, DownState, HeroStatusKind, PassiveKind, HippogryphKind, ProjectileKind, SpecialAction } from "../sim/codes";
+import { AttackStyle, Character, DownState, HeroStatusKind, HippogryphKind, ProjectileKind, SpecialAction } from "../sim/codes";
 import { canAttack } from "../sim/conditions";
 import { type Fighter, placedObject } from "../sim/fighter";
 import { type AttackBuffer, queueAttack } from "../input/attackBuffer";
 import { EYE_BLAST_CHARGE_FRAMES, attackStartupFrames, characterAttackActiveFrames } from "../sim/moves";
-import { passivePips, passiveSpec } from "../sim/passives";
 import { companionReady, isHeroSpecialAction, runningHeroSpecial, specialCooldownReady } from "../sim/heroSpecialRules";
 import { heroStatusBlocksActions } from "../sim/heroStatus";
 import { type AuthoredSpecial, type SpecialFollowUp, type SpecialProjectile, CompanionOrder, FOLLOW_UP_FORM, FollowUpInput, SpecialSlot, specialKit } from "../sim/heroSpecials";
@@ -354,17 +353,10 @@ export function pressKitOption(f: Readonly<Fighter>, target: Readonly<Fighter>, 
       return true;
     }
     case Character.rifleman: {
-      // Long Rifles ready (passives.ts): the next shot flies half again as far, so it shoots from further and whenever a shot suits.
-      const rifles = passivePips(f).ready;
-      if (!free || !ready || toward !== f.facing || gap < SHOT_NEAR || gap > (rifles ? f32(SHOT_FAR * 1.5) : SHOT_FAR) || !affords(f, SpecialAction.riflemanBlaster)) return false;
+      if (!free || !ready || toward !== f.facing || gap < SHOT_NEAR || gap > SHOT_FAR || !affords(f, SpecialAction.riflemanBlaster)) return false;
       const rise = f32(motion.z - target.motion.z);
-      if (!takes(skill, floorDiv(frame, 40), f.character * 7 + 14) || (!rifles && botChoice(floorDiv(frame, 40), f.character * 7 + 15, 2) !== 0)) return false;
+      if (!takes(skill, floorDiv(frame, 40), f.character * 7 + 14) || botChoice(floorDiv(frame, 40), f.character * 7 + 15, 2) !== 0) return false;
       if (motion.grounded) {
-        // A ready shot is cashed on the ground before a hop can spend it on a normal.
-        if (rifles && Math.abs(rise) <= 30.0) {
-          pressSlot(input, SpecialSlot.neutral, 0);
-          return true;
-        }
         // The short hop: a jump let go at once.
         if (Math.abs(rise) > 30.0 || f.jump.squat > 0) return false;
         input.jumpPressed = true;
@@ -525,9 +517,6 @@ function punishable(target: Readonly<Fighter>): boolean {
  */
 export function dashIn(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, skill: CpuSkill, frame: number, closes: boolean, input: Controls): void {
   if (skill.kitTenths <= 0 || !f.motion.grounded || (f.tuning.moves?.dashAttack === undefined && f.character !== Character.demonHunter)) return;
-  // A ready shot passive (Trueshot, Long Rifles) is cashed from range, not by running in.
-  const kind = passiveSpec(f.character).kind;
-  if ((kind === PassiveKind.trueshot || kind === PassiveKind.longRifles) && passivePips(f).ready) return;
   const dx = f32(target.motion.x - f.motion.x);
   if (Math.abs(dx) > DASH_IN_FAR || Math.abs(f32(target.motion.z - f.motion.z)) > 40.0 || target.shield.raised || !safeAt(stage, target.motion.x, 0.0)) return;
   const stretch = floorDiv(frame, 40);

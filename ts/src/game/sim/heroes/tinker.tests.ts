@@ -125,7 +125,7 @@ test("Tinker specials spend once, complete their frames and use rockets for an a
   assertEquals(airborne.owner.mana.points, 90);
 });
 
-test("Tinker rockets fire three staggered contacts and charge Engineering Upgrade [spec docs/design/tinker.md]", () => {
+test("Tinker rockets fire three staggered contacts [spec docs/design/tinker.md]", () => {
   for (const facing of [-1, 1]) {
     const { owner, target, world } = pair(200.0, facing);
     frame(world, neutral);
@@ -135,8 +135,6 @@ test("Tinker rockets fire three staggered contacts and charge Engineering Upgrad
     assertEquals(owner.projectiles.filter(p => p.life > 0).length, 1);
     for (let tick = 15; tick <= 60; tick++) frame(world);
     assertGreaterThan(target.status.damage, 0.0);
-    assertGreaterThan(owner.passive.stacks, 0);
-    assertLessThan(owner.passive.stacks, 3);
   }
 });
 
@@ -206,7 +204,7 @@ test("Tinker Robo-Goblin armor takes one light hit and then a second hit interru
   assertEquals(owner.special.action, SpecialAction.none);
 });
 
-test("Tinker pummel strikes once and Engineering Upgrade boosts a normal only once [spec docs/design/tinker.md]", () => {
+test("Tinker pummel strikes once [spec docs/design/tinker.md]", () => {
   const { owner, target, world } = pair(40.0);
   beginFighterAttack(world, 0, AttackStyle.grab, false);
   owner.attack.frame = 7;
@@ -214,12 +212,5 @@ test("Tinker pummel strikes once and Engineering Upgrade boosts a normal only on
   testGrabFrame(world, [controls({ attackPressed: true }), controls()], false);
   for (let tick = 0; tick < 80; tick++) testGrabFrame(world, [controls(), controls()], false);
   assertEquals(target.status.damage, 3.0);
-  const upgraded = pair(50.0);
-  upgraded.owner.passive.stacks = 2;
-  upgraded.owner.passive.window = 240;
-  beginFighterAttack(upgraded.world, 0, AttackStyle.jab, false);
-  upgraded.owner.attack.frame = 3;
-  resolveAttacks(upgraded.world);
-  assertEquals(upgraded.target.status.damage, 7.0);
-  assertEquals(upgraded.owner.passive.stacks, 0);
+
 });

@@ -4,7 +4,7 @@
 // takes it.
 import { at } from "wisp/src/runtime/lookup";
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, Character, PassiveKind, SpecialAction } from "../sim/codes";
+import { AttackStyle, Character, SpecialAction } from "../sim/codes";
 import { canAttack } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { attackStartupFrames, characterAttackActiveFrames, RIFLEMAN_BLASTER_AIR_SHOT_FRAME, RIFLEMAN_BLASTER_GROUND_FRAMES, RIFLEMAN_BLASTER_GROUND_SHOT_FRAME } from "../sim/moves";
@@ -18,7 +18,6 @@ import { deckUnder, heightAhead, safeAt } from "./botFooting";
 import { heroStanceLater, heroStanceSlot } from "./botHeroKit";
 import { moveReaches } from "./botMoves";
 import { botChance, botChoice } from "./botRandom";
-import { passivePips, passiveSpec } from "../sim/passives";
 import { defenseOption, gameplanOf } from "./botGameplan";
 import type { DefenseOption } from "../sim/gameplan";
 import { type CpuSkill, FULL_SKILL } from "./cpuSkill";
@@ -185,32 +184,11 @@ function plannedResponse(f: Readonly<Fighter>, planned: DefenseOption, cornered:
   }
 }
 
-/** A ready passive that a shield spends (passives.ts): the next hit's bonus. Cleave instead breaks shields, so it is dodged. */
-function spentOnShield(kind: PassiveKind): boolean {
-  switch (kind) {
-    case PassiveKind.criticalStrike:
-    case PassiveKind.bash:
-    case PassiveKind.trueshot:
-    case PassiveKind.longRifles:
-    case PassiveKind.vampiric:
-    case PassiveKind.voodoo:
-      return true;
-    default:
-      return false;
-  }
-}
-
 function respond(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, skill: CpuSkill): Response {
   const choice = botChoice(threat.serial, f.visuals.hit * 5 + f.character, 10);
   const away = f.motion.x < target.motion.x ? -1 : 1;
   // A shield pushed back at the edge can slide off it: dodge there instead.
   const cornered = !safeAt(stage, f32(f.motion.x + f32(away * PUSHBACK_ROOM)), 0.0);
-  // The attacker's ready passive: shield the hit that would cash it (it is spent on a shield), dodge Cleave.
-  if (passivePips(target).ready && botChance(threat.serial, f.character * 7 + 4, skill.kitTenths, 10)) {
-    const kind = passiveSpec(target.character).kind;
-    if (kind === PassiveKind.cleave) return Response.spotDodge;
-    if (spentOnShield(kind)) return cornered ? Response.spotDodge : Response.shield;
-  }
   if (choice >= skill.defendTenths) return Response.none;
   const gameplan = gameplanOf(f.character);
   const planned = gameplan === undefined ? undefined : defenseOption(gameplan, botChoice, threat.serial, f.visuals.hit * 7 + f.character);

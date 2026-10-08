@@ -67,7 +67,7 @@ gestures. No throw is designed as an inescapable loop: up throw permits a short
 juggle, down throw offers the victim a tech direction, and shared throw-hitstun
 rules refuse immediate regrabs.
 
-## Specials, passive and ultimate
+## Specials and ultimate
 
 | Input | Behavior, reward and cost | Sources |
 |---|---|---|
@@ -75,7 +75,6 @@ rules refuse immediate regrabs.
 | Side: Burrow | Ground-only placement on f26, end52, cost20. One 32-durability Burrow, 240-frame life, fires 5% spears at ages45/85/125/165/205. A second press packs it up on end52 for no refund. Attacks break it, and shots stop while Peon is held or stunned. | [Burrow shelter](https://liquipedia.net/warcraft/Peon), [Timber setup](https://www.ssbwiki.com/Timber) |
 | Up: Worksite Launch | A frantic tool-assisted vault: f8–28 rises 16 per frame with live sideways steering up to 6, cost15, then helpless. Free form rises 11 with steering up to 4. Consumes aerial jump and once-per-airtime use. Its vulnerable return follows the held side throughout the launch. | [Burrow exit](https://classic.battle.net/war3/orc/basics.shtml), [Lloid ride](https://www.ssbwiki.com/Lloid_Rocket) |
 | Down: Repair | Duck behind the tools on f4–7; one correctly timed incoming contact restores4 damage, capped12 per stock. Those four frames are intangible. Cost20, end38, air landing lag20. A whiff grants nothing and leaves a long punish; no idle healing. | [Repair](https://liquipedia.net/warcraft/Peon), [Pocket's defensive window](https://www.ssbwiki.com/Pocket) |
-| Passive: Pillage | Every third distinct normal or aerial body hit restores8 mana. Shields spend a ready reward without paying it. Projectiles, pummels and Burrow shots do not count. Stock loss clears progress. | [Pillage](https://liquipedia.net/warcraft/Peon), [Pocket's banked reward](https://www.ssbwiki.com/Pocket) |
 | Ultimate: Overtime | Designed roster slot: a brief work frenzy, faster worksite setup and stronger tool hits. As with the roster template, ultimate activation is disabled by the current match rules; the four-special base kit stands alone. | [Orc construction](https://liquipedia.net/warcraft/Peon), [Villager house finisher](https://www.ssbwiki.com/Villager_(SSBU)#Moveset) |
 
 ## Matchup identity

@@ -115,7 +115,6 @@ test("Peon Repair heals only a timed contact and leaves a missed read punishable
   target.attack.frame = attackStartupFrames(AttackStyle.jab, target.tuning.moves) - 1;
   frame(world);
   assertEquals(owner.status.damage, 26.0);
-  assertEquals(owner.status.guardHealed, 4.0);
   const miss = pair(900.0);
   miss.owner.status.damage = 30.0;
   frame(miss.world, down);

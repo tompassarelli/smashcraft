@@ -30,7 +30,7 @@ const vault = (cost: number, x: number, z: number): AuthoredSpecial => ({
 
 const repair = (air: boolean): AuthoredSpecial => ({
   cost: 20, endFrame: 38, landingLag: air ? 20 : undefined,
-  intangible: frames(4, 7), guard: { ...frames(4, 7), heal: 4.0, healCapPerStock: 12.0 },
+  intangible: frames(4, 7), guard: { ...frames(4, 7), heal: 4.0 },
 });
 
 export const PEON_SPECIALS: FighterSpecials = {

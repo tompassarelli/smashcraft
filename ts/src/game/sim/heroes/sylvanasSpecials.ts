@@ -10,7 +10,7 @@ const BLACK_ARROW: AuthoredSpecial = {
   projectiles: [{
     model: "Abilities\\Spells\\Other\\BlackArrow\\BlackArrowMissile.mdl",
     spawnFrame: 16, offsetX: 44.0, offsetZ: 60.0, velocityX: 17.0, velocityZ: 0.0, upVelocityZ: 5.0,
-    life: 36, radius: 10.0, effect: sylvanasHit(9.0, 35, 70.0, 16.0), reflectable: true, limit: 1, feedsPassive: true,
+    life: 36, radius: 10.0, effect: sylvanasHit(9.0, 35, 70.0, 16.0), reflectable: true, limit: 1,
   }],
   hurt: [hurtPose(12, 22, sylvanasReach(44.0, 60.0))],
 };
@@ -27,7 +27,7 @@ const flight = (cost: number, rise: number, across: number): AuthoredSpecial => 
 });
 const LIFE_DRAIN: AuthoredSpecial = {
   cost: 20, endFrame: 52, groundOnly: true,
-  commandGrab: { ...frames(16, 18), strike: sylvanasStrike(18.0, 54.0, 68.0, 54.0, 12.0), holdFrames: 16, effect: sylvanasHit(9.0, 50, 90.0, 24.0), recovery: 28, heal: { heal: 3.0, capPerStock: 9.0 } },
+  commandGrab: { ...frames(16, 18), strike: sylvanasStrike(18.0, 54.0, 68.0, 54.0, 12.0), holdFrames: 16, effect: sylvanasHit(9.0, 50, 90.0, 24.0), recovery: 28, heal: { heal: 3.0 } },
   hurt: [hurtPose(13, 35, sylvanasReach(48.0, 54.0))],
 };
 

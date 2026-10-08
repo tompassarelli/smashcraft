@@ -246,11 +246,9 @@ export function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, pr
   int("reflectable", spec.reflectable ? 1 : 0);
   int("limit", spec.limit);
   int("cancelOnInterrupt", spec.cancelOnInterrupt === true ? 1 : 0);
-  if (spec.feedsPassive === true) int("feedsPassive", 1);
   if (spec.returnEffect !== undefined) result.push(hitEffectCanonical(spec.returnEffect, `${prefix}.returnEffect`));
   if (spec.catchHeal !== undefined) {
     real("catchHeal.heal", spec.catchHeal.heal);
-    real("catchHeal.capPerStock", spec.catchHeal.capPerStock);
   }
   if (spec.status !== undefined) {
     int("status.kind", spec.status.kind);
@@ -394,7 +392,6 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     int("guard.first", move.guard.first);
     int("guard.last", move.guard.last);
     real("guard.heal", move.guard.heal);
-    real("guard.healCapPerStock", move.guard.healCapPerStock);
     if (move.guard.shieldFrames !== undefined) int("guard.shieldFrames", move.guard.shieldFrames);
   }
   const motion = move.motion ?? [];
@@ -425,7 +422,6 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     int("commandGrab.recovery", grab.recovery);
     if (grab.heal !== undefined) {
       real("commandGrab.heal", grab.heal.heal);
-      real("commandGrab.healCapPerStock", grab.heal.capPerStock);
     }
     result.push(hitEffectCanonical(grab.effect, `${name}.commandGrab.effect`));
   }
@@ -652,11 +648,6 @@ export function writeObservations(writer: ObservationWriter, opponents: Slots<Re
     writer.number(f.status.condition);
     writer.number(f.status.conditionFrames);
     writer.number(f.status.poisonFrames);
-    writer.number(f.passive.stacks);
-    writer.number(f.passive.window);
-    writer.number(f.passive.serial);
-    writer.number(f.passive.spent);
-    writer.number(f.passive.used ? 1 : 0);
     writer.number(f.landing.lag);
     writer.number(f.down.state);
     writer.number(f.down.frame);
@@ -842,7 +833,6 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) real(`projectileVelocityZ[${i}]`, at(fighter.projectiles, i).velocityZ);
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) int(`projectileSerial[${i}]`, at(fighter.projectiles, i).serial);
   int("manaDrainedSerial", v.manaDrained);
-  for (let i = 0; i < PROJECTILE_CAPACITY; i++) if (at(fighter.projectiles, i).longRifle) int(`projectileLongRifle[${i}]`, 1);
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) if (at(fighter.projectiles, i).exReach) int(`projectileExReach[${i}]`, 1);
   // A pool's growth and strike wait (the Lich King's Defile); written only while either is live.
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) {
@@ -850,15 +840,6 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
     if (projectile.poolHits !== 0) int(`projectilePoolHits[${i}]`, projectile.poolHits);
     if (projectile.poolWait !== 0) int(`projectilePoolWait[${i}]`, projectile.poolWait);
   }
-  // Passive state (#148) is written only where it differs from a fresh fighter's.
-  const ps = fighter.passive;
-  if (ps.stacks !== 0) int("passiveStacks", ps.stacks);
-  if (ps.window !== 0) int("passiveWindow", ps.window);
-  if (ps.serial !== 0) int("passiveSerial", ps.serial);
-  if (ps.spent !== 0) real("passiveSpent", ps.spent);
-  if (ps.used) int("passiveUsed", 1);
-  if (ps.lastKey !== -1) int("passiveLastKey", ps.lastKey);
-  if (ps.lastTarget !== -1) int("passiveLastTarget", ps.lastTarget);
   int("specialAction", sp.action);
   if (sp.ex) bool("specialEx", true);
   if (sp.exArmorUsed) bool("specialExArmorUsed", true);
@@ -1076,7 +1057,6 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
       emit(kitDigestField(`${prefix}.${animalName}Spec`, placed.spec, PLACEMENT_DIGESTS, placedSpecCanonical));
     }
     int("specialGuarded", sp.guarded ? 1 : 0);
-    real("guardHealed", st.guardHealed);
     if (st.divineFrames !== 0) int("divineFrames", st.divineFrames);
   }
   // An item's buff (#196), written only while one runs.

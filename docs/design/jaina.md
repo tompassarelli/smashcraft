@@ -79,7 +79,7 @@ the roster's entry rules. Hold, escape and release use the shared grab link.
 | Up throw | Lift on a water spout; short juggle launcher | 15 / 25 | 7 | [Water Elemental attack][water] | [Zelda up throw][zelda] |
 | Down throw | Press onto ice; diagonal tech chase | 19 / 43 | 6 | [Blizzard][archmage] | [Zelda down throw][zelda] |
 
-## Specials, passive and ultimate
+## Specials and ultimate
 
 | Input | Behavior and cost | Risk and response | Warcraft source | Smash reference |
 |---|---|---|---|---|
@@ -87,7 +87,6 @@ the roster's entry rules. Hold, escape and release use the shared grab link.
 | Side: Blizzard | 18 mana; mark at frame 8, 1.6H ahead; first ice at frame 28, second at 52; 5 then 8 damage, radius 0.55H; end 48, air landing 20 | The visible mark precedes damage by 20 frames; interrupt Jaina or leave it; first hit does not freeze | [Blizzard's maintained area spell][archmage] | [Din's Fire delayed placement][din], [Ice Climbers' Blizzard][blizzard] |
 | Up: Blink | 15 mana; hover while choosing one of eight directions through frame 13, move 2.5H on frame 14, end 34; intangible frames 14–17, no attack | Startup and arrival exposed; spends aerial jump, once per airtime, then helpless; empty-mana form moves 1.65H | [Mass Teleport adapted to personal recovery][archmage] | [Mewtwo Teleport][teleport], [Farore's Wind][farore] |
 | Down: Summon Water Elemental | Ground only; 24 mana, place at frame 27, end 52; 24 durability, life 240; four 5-damage straight shots at ages 36/84/132/180; free recast recalls | Long exposed setup; opponent can destroy it; one elemental, shots stop when Jaina is held or in hitstun | [Summon Water Elemental][water] | [Robin resource commitment][robin], [Zelda delayed coverage][din] |
-| Passive: Brilliance Aura | Eligible idle/movement frames regenerate 6 mana/sec grounded and 2 airborne, versus roster 4/1.5 | Still stops while casting, shielding, grabbed or stunned; spells cannot fund endless casting | [Brilliance Aura][archmage] | [Robin finite spell resource][robin] |
 | Ultimate: Mass Teleport | Design for optional ultimates: take Jaina and nearby allies to her elemental after a visible channel | Same roster shape as existing heroes: named design only; the shared game has no ultimate action and competitive ultimates remain off | [Mass Teleport][archmage] | [Farore's Wind location change][farore] |
 
 The computer keeps 1.6–2.8H spacing, alternates bolt and Blizzard, establishes

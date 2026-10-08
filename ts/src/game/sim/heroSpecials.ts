@@ -14,7 +14,7 @@ export const SpecialSlot = { neutral: 0, side: 1, up: 2, down: 3 } as const;
 export type SpecialSlot = (typeof SpecialSlot)[keyof typeof SpecialSlot];
 
 /** Which authored form of a special is running; captured on entry. */
-export const SpecialForm = { ground: 0, air: 1, free: 2, recall: 3, marked: 4, soul: 5 } as const;
+export const SpecialForm = { ground: 0, air: 1, free: 2, recall: 3, marked: 4 } as const;
 export type SpecialForm = (typeof SpecialForm)[keyof typeof SpecialForm];
 /**
  * A running follow-up records its base form plus this offset times one more
@@ -92,8 +92,8 @@ export interface CommandGrab extends FrameWindow {
   readonly holdFrames: number;
   readonly effect: Readonly<HitEffect>;
   readonly recovery: number;
-  /** Damage percent the release restores to the grabber, within the per-stock heal cap (Vampiric Pounce's bite). */
-  readonly heal?: { readonly heal: number; readonly capPerStock: number } | undefined;
+  /** Damage percent the release restores to the grabber (Vampiric Pounce's bite). */
+  readonly heal?: { readonly heal: number } | undefined;
 }
 
 /**
@@ -123,12 +123,10 @@ export interface SpecialProjectile {
   readonly status?: AppliedStatus | undefined;
   /** Removed when the owner's special is interrupted before it becomes active (Frost Nova's marker). */
   readonly cancelOnInterrupt?: boolean | undefined;
-  /** Its body hits feed the owner's passive (Shadow Hunter's glaive and ward shots, sim/passives.ts). */
-  readonly feedsPassive?: boolean | undefined;
   /** A returning projectile's hit on its way back (`returns`); its outbound `effect` when absent. */
   readonly returnEffect?: Readonly<HitEffect> | undefined;
-  /** Damage percent a returning projectile restores when it reaches its owner, within the per-stock heal cap. */
-  readonly catchHeal?: { readonly heal: number; readonly capPerStock: number } | undefined;
+  /** Damage percent a returning projectile restores when it reaches its owner. */
+  readonly catchHeal?: { readonly heal: number } | undefined;
   /** Not placed when solid stage geometry lies between the owner's offsetZ height and the spawn point. */
   readonly needsLineOfSight?: boolean | undefined;
   /** Presentation only: a pool model's unscaled horizontal extent, including its particles. */
@@ -246,12 +244,10 @@ export type CompanionMode = (typeof CompanionMode)[keyof typeof CompanionMode];
 /**
  * A guard: when an opponent's damaging strike or projectile overlaps the
  * fighter's body during the window, the action records one success and
- * restores `heal` damage percent, never more than `healCapPerStock` in a
- * stock. It protects nothing by itself; pair it with an intangible window.
+ * restores `heal` damage percent on the successful guard. It protects nothing by itself; pair it with an intangible window.
  */
 export interface SpecialGuard extends FrameWindow {
   readonly heal: number;
-  readonly healCapPerStock: number;
   /** A success raises Divine Shield for this many frames (sim/transitions.ts `endDivineShield`). */
   readonly shieldFrames?: number | undefined;
 }
@@ -364,12 +360,6 @@ export interface SpecialKit {
    * `range` is marked: poisoned (Warden's Shadow Pursuit).
    */
   readonly marked?: { readonly special: AuthoredSpecial; readonly range: number } | undefined;
-  /**
-   * Chosen instead of the ground and air forms while the fighter holds a soul
-   * (the Lich King's Frostmourne Hungers, sim/passives.ts); entering it spends
-   * one. It never replaces a recall, a marked form or the free form.
-   */
-  readonly soul?: AuthoredSpecial | undefined;
 }
 
 export interface FighterSpecials {
@@ -392,7 +382,6 @@ export function specialForm(kit: Readonly<SpecialKit>, form: number, ex = false)
   const move = form === SpecialForm.free ? kit.free ?? kit.ground
     : form === SpecialForm.recall ? kit.recall ?? kit.ground
     : form === SpecialForm.marked ? kit.marked?.special ?? kit.ground
-    : form === SpecialForm.soul ? kit.soul ?? kit.ground
     : form === SpecialForm.air ? kit.air ?? kit.ground : kit.ground;
   return ex ? move.ex ?? move : move;
 }

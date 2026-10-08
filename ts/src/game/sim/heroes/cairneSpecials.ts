@@ -27,5 +27,5 @@ export const CAIRNE_SPECIALS: FighterSpecials = {
   side: { name: "War Stomp", description: "Step forward and stomp both sides, lifting nearby foes for a follow-up.", ground: stomp(false), air: stomp(true) },
   up: { name: "Spirit Lift", description: "Rise behind the totem, then fall helplessly with exposed sides.", ground: lift(false), free: lift(true) },
   down: { name: "Reincarnation", description: "Read an incoming strike to heal 12 damage, up to 24 per stock. A wait or grab beats it.",
-    ground: { cost: 25, endFrame: 46, groundOnly: true, intangible: frames(6, 9), guard: { ...frames(6, 9), heal: 12.0, healCapPerStock: 24.0 } } },
+    ground: { cost: 25, endFrame: 46, groundOnly: true, intangible: frames(6, 9), guard: { ...frames(6, 9), heal: 12.0 } } },
 };

@@ -358,7 +358,6 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   status.poisonFrames = sourceStatus.poisonFrames;
   status.poisonEvery = sourceStatus.poisonEvery;
   status.poisonDamage = sourceStatus.poisonDamage;
-  status.guardHealed = sourceStatus.guardHealed;
   status.divineFrames = sourceStatus.divineFrames;
   status.buff = sourceStatus.buff;
   status.buffFrames = sourceStatus.buffFrames;
@@ -368,15 +367,6 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   mana.points = sourceMana.points;
   mana.progress = sourceMana.progress;
 
-  const passive = target.passive;
-  const sourcePassive = source.passive;
-  passive.stacks = sourcePassive.stacks;
-  passive.window = sourcePassive.window;
-  passive.serial = sourcePassive.serial;
-  passive.spent = sourcePassive.spent;
-  passive.used = sourcePassive.used;
-  passive.lastKey = sourcePassive.lastKey;
-  passive.lastTarget = sourcePassive.lastTarget;
 
   while (target.pack.length < source.pack.length) target.pack.push(createPlacedObject());
   target.pack.length = source.pack.length;
@@ -780,7 +770,6 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
   if (status.poisonFrames !== sourceStatus.poisonFrames || (status.poisonFrames === 0 && 1 / status.poisonFrames !== 1 / sourceStatus.poisonFrames)) return false;
   if (status.poisonEvery !== sourceStatus.poisonEvery || (status.poisonEvery === 0 && 1 / status.poisonEvery !== 1 / sourceStatus.poisonEvery)) return false;
   if (status.poisonDamage !== sourceStatus.poisonDamage || (status.poisonDamage === 0 && 1 / status.poisonDamage !== 1 / sourceStatus.poisonDamage)) return false;
-  if (status.guardHealed !== sourceStatus.guardHealed || (status.guardHealed === 0 && 1 / status.guardHealed !== 1 / sourceStatus.guardHealed)) return false;
   if (status.divineFrames !== sourceStatus.divineFrames || (status.divineFrames === 0 && 1 / status.divineFrames !== 1 / sourceStatus.divineFrames)) return false;
   if (status.buff !== sourceStatus.buff || (status.buff === 0 && 1 / status.buff !== 1 / sourceStatus.buff)) return false;
   if (status.buffFrames !== sourceStatus.buffFrames || (status.buffFrames === 0 && 1 / status.buffFrames !== 1 / sourceStatus.buffFrames)) return false;
@@ -790,15 +779,6 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
   if (mana.points !== sourceMana.points || (mana.points === 0 && 1 / mana.points !== 1 / sourceMana.points)) return false;
   if (mana.progress !== sourceMana.progress || (mana.progress === 0 && 1 / mana.progress !== 1 / sourceMana.progress)) return false;
 
-  const passive = target.passive;
-  const sourcePassive = source.passive;
-  if (passive.stacks !== sourcePassive.stacks || (passive.stacks === 0 && 1 / passive.stacks !== 1 / sourcePassive.stacks)) return false;
-  if (passive.window !== sourcePassive.window || (passive.window === 0 && 1 / passive.window !== 1 / sourcePassive.window)) return false;
-  if (passive.serial !== sourcePassive.serial || (passive.serial === 0 && 1 / passive.serial !== 1 / sourcePassive.serial)) return false;
-  if (passive.spent !== sourcePassive.spent || (passive.spent === 0 && 1 / passive.spent !== 1 / sourcePassive.spent)) return false;
-  if (passive.used !== sourcePassive.used) return false;
-  if (passive.lastKey !== sourcePassive.lastKey || (passive.lastKey === 0 && 1 / passive.lastKey !== 1 / sourcePassive.lastKey)) return false;
-  if (passive.lastTarget !== sourcePassive.lastTarget || (passive.lastTarget === 0 && 1 / passive.lastTarget !== 1 / sourcePassive.lastTarget)) return false;
 
   if (target.pack.length !== source.pack.length || (target.pack.length === 0 && 1 / target.pack.length !== 1 / source.pack.length)) return false;
   for (let animal = 0; animal <= source.pack.length; animal++) {

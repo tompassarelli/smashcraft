@@ -8,7 +8,7 @@ import { groundHit } from "./groundNormals";
 export const kaelHit = (damage: number, angle: 25 | 35 | 40 | 55 | 70 | 80 | 90, growth = 80.0, base = 20.0, behind = false) =>
   groundHit(damage, angle, growth, base, HitElement.fire, behind);
 const ordinary = (damage: number, angle: 25 | 35 | 40 | 55 | 70 | 80 | 90, growth = 80.0, base = 20.0, behind = false) =>
-  ({ ...kaelHit(damage, angle, growth, base, behind), manaSteal: 2 });
+  kaelHit(damage, angle, growth, base, behind);
 const capsule = (x1: number, z1: number, x2: number, z2: number, radius = 12.0): StrikeCapsule => ({ x1, z1, x2, z2, radius });
 const body = hurtCapsule(Character.kaelthas);
 const torso = hurtPart(0.0, 4.0, 0.0, body.z2, body.radius);

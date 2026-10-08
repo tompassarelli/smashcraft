@@ -16,7 +16,6 @@ import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCoun
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { travelBeforeBodies } from "./travelStop";
 import { fillMana, gainMana, spendMana } from "./mana";
-import { heldSouls, spendSoul } from "./passives";
 import { endDivineShield } from "./transitions";
 import { capsuleCircleIntersects, shieldSizeMultiplier } from "./shield";
 import { shieldCenterX, shieldCenterZ } from "./shieldTilt";
@@ -129,8 +128,7 @@ export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<Fight
   const airborne = !f.motion.grounded;
   const recalls = kit.recall !== undefined && recallHolds(f, kit);
   const marks = kit.marked !== undefined && world !== undefined && markedTarget(world, f, kit.marked.range) !== undefined;
-  const souls = kit.soul !== undefined && heldSouls(f) > 0;
-  let form: SpecialForm = recalls ? SpecialForm.recall : marks ? SpecialForm.marked : souls ? SpecialForm.soul : airborne && kit.air !== undefined ? SpecialForm.air : SpecialForm.ground;
+  let form: SpecialForm = recalls ? SpecialForm.recall : marks ? SpecialForm.marked : airborne && kit.air !== undefined ? SpecialForm.air : SpecialForm.ground;
   let move = specialForm(kit, form);
   if (move.groundOnly === true && airborne) {
     out.groundOnly = true;
@@ -157,7 +155,6 @@ export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<Fight
 export function refillMana(f: Fighter): void {
   fillMana(f);
   f.special.airtimeUses = 0;
-  f.status.guardHealed = 0.0;
 }
 
 /** tan(22.5 degrees): an analog stick picks the nearest of eight 45-degree sectors. */
@@ -210,7 +207,6 @@ export function enterHeroSpecial(f: Fighter, chosen: Readonly<HeroSpecialChoice>
   for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
   special.hit = false;
   special.guarded = false;
-  if (chosen.form === SpecialForm.soul) spendSoul(f);
   spendMana(f, move.cost);
   special.cooldowns[SpecialAction.heroNeutral + chosen.slot] = move.cooldownFrames ?? 0;
   if (move.oncePerAirtime === true) special.airtimeUses |= 1 << chosen.slot;
@@ -295,7 +291,6 @@ export function spawnHeroProjectileAt(owner: Fighter, spec: Readonly<SpecialProj
     projectile.serial = serial;
     projectile.damageMultiplier = 1.0;
     projectile.newlyReflected = false;
-    projectile.longRifle = false;
     projectile.exReach = false;
     projectile.poolHits = 0;
     projectile.poolWait = 0;
@@ -535,9 +530,8 @@ function threatensBody(attacker: Readonly<Fighter>, target: Readonly<Fighter>): 
 function guardSucceeds(f: Fighter, guard: Readonly<SpecialGuard>): void {
   const { status } = f;
   f.special.guarded = true;
-  const heal = min(min(guard.heal, max(0.0, f32(guard.healCapPerStock - status.guardHealed))), max(0.0, status.damage));
+  const heal = min(guard.heal, max(0.0, status.damage));
   status.damage = f32(status.damage - heal);
-  status.guardHealed = f32(status.guardHealed + heal);
   if (guard.shieldFrames !== undefined) {
     status.invincible = max(status.invincible, guard.shieldFrames);
     status.divineFrames = guard.shieldFrames;

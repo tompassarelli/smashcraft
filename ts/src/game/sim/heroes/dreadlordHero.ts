@@ -15,7 +15,6 @@ export const DREADLORD_HERO: HeroDefinition = {
   complete: true,
   moves: DREADLORD_MOVES,
   specials: DREADLORD_SPECIALS,
-  passive: { name: "Vampiric Aura", description: "Every third melee hit or throw in a short time heals him a little." },
   jab: { name: "Vampiric Claws", description: "Two claw rakes and a wing strike on repeated jabs." },
   ultimate: { name: "Infernal", description: "An Infernal crashes down where he marks and swipes twice before it fades." },
   gameplan: DREADLORD_GAMEPLAN,

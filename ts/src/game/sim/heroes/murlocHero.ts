@@ -11,7 +11,6 @@ export const MURLOC_HERO: HeroDefinition = {
   name: "Murloc",
   purpose: "Small, light rushdown",
   weakness: "Short reach, early knockouts and a short recovery",
-  passive: { name: "Scavenger", description: "Ordinary attacks take a little mana from enemies they hit." },
   jab: { name: "Claw Flurry", description: "A quick claw poke, then a second swipe on another tap." },
   ultimate: { name: "Mrgllgll Swarm", description: "A tide of murlocs rushes across the stage." },
   complete: true,

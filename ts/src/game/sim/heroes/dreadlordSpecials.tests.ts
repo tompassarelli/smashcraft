@@ -22,7 +22,6 @@ import { advanceFighter } from "../step";
 import { controls } from "../testWorld";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
-import { VAMPIRIC_HEAL_CAP } from "../passives";
 
 const H = HERO_REFERENCE_HEIGHT;
 
@@ -322,8 +321,6 @@ test("Vampiric Pounce corkscrews forward in both facings and air forms; another 
 test("Vampiric Pounce's bite heals Dreadlord 4 percent, at most 12 a stock [spec docs/design/roster.md]", () => {
   const { world, owner, victim } = pair(H, Character.archer);
   owner.status.damage = 30.0;
-  // Vampiric Aura (sim/passives.ts) also heals on every third bite; spend its budget so only the bite heals here.
-  owner.passive.spent = VAMPIRIC_HEAL_CAP;
   for (let pounce = 0; pounce < 4; pounce++) {
     owner.mana.points = 100;
     victim.motion.x = f32(owner.motion.x + H);
@@ -334,5 +331,4 @@ test("Vampiric Pounce's bite heals Dreadlord 4 percent, at most 12 a stock [spec
     for (let f = 0; f < 60; f++) frame(world);
     assertEquals(owner.status.damage, f32(30.0 - Math.min(12.0, 4.0 * (pounce + 1))));
   }
-  assertEquals(owner.status.guardHealed, 12.0);
 });

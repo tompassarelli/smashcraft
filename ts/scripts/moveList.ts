@@ -15,7 +15,7 @@ export function moveListMarkdown(): string {
     "# Move list",
     "",
     "Generated from the fighters' kit data by `bun scripts/moveList.ts` (from",
-    "smashcraft:ts/); edit the names there, never here. Specials, passives and",
+    "smashcraft:ts/); edit the names there, never here. Specials and",
     "ultimates have official names, and so does each jab chain; the other",
     "normals are named by their input (forward tilt, forward air, down smash,",
     "pummel, up throw). A normal's",
@@ -30,8 +30,7 @@ export function moveListMarkdown(): string {
       lines.push(`| ${SPECIAL_INPUTS[slot] ?? "Special"} | ${cell(special.name)}${cell(forms)} | ${cell(special.description)} |`);
     });
     lines.push(`| Jab, repeated | ${cell(kit.jab.name)} | ${cell(kit.jab.description)} |`);
-    const { passive } = kit;
-    lines.push(passive === undefined ? `| Passive | none | ${cell(kit.trait ?? "")} |` : `| Passive | ${cell(passive.name)} | ${cell(passive.description)} |`);
+    if (kit.trait !== undefined) lines.push(`| Trait | | ${cell(kit.trait)} |`);
     if (kit.ultimate !== undefined) lines.push(`| Ultimate | ${cell(kit.ultimate.name)} | ${cell(kit.ultimate.description)} |`);
     if (kit.inspiredBy.length > 0) {
       lines.push("", "Normals, inspired by:", "");

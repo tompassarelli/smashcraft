@@ -22,7 +22,6 @@ import {
 
 import { stageBounds } from "./stageBounds";
 import { refillMana } from "./heroSpecialRules";
-import { resetPassive } from "./passives";
 import { clearHeroStatus } from "./heroStatus";
 import { endItemBuff, groundedJumps } from "./itemBuffs";
 const RESPAWN_FRAMES = 60;
@@ -93,7 +92,6 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   clearSpecialOnStock(f);
   f.visuals.manaDrained = 0;
   refillMana(f);
-  resetPassive(f);
   f.status.armorFrames = 0;
   f.status.armorChills = false;
   f.status.divineFrames = 0;

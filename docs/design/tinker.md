@@ -76,7 +76,7 @@ setup values. Forward smash, up smash and Robo-Goblin share effective launch
 growth 76.7 and base 28. Their launch angles, damage and base knockback retain
 their authored values.
 
-## Specials, passive and ultimate
+## Specials and ultimate
 
 | Input | Original Smashcraft rule | Warcraft source | Smash comparison |
 |---|---|---|---|
@@ -84,7 +84,6 @@ their authored values.
 | Side: Pocket Factory | Ground placement; airborne side press fires Cluster Rockets under the shared input rule. 20 mana, placement 24, end 48; 24 durability, life 240, goblins at ages 35/80/125/170/215, each 6 damage and travels forward at its release height for at most 44 frames, ending before the next launch. Recast recalls for free in 36 frames. One factory; destroy it or hit Tinker to stop its fire. | [Pocket Factory](https://liquipedia.net/warcraft/Tinker) | [Gyro](https://www.ssbwiki.com/Gyro) and [Wario Bike](https://www.ssbwiki.com/Wario_Bike) |
 | Up: Rocket Boots | 15 mana, hovers through 6, burn 7–29 at 14 vertical units/frame, live horizontal steering 5 units/frame; ignition blast 7–10 around the body for 5 fire damage at 85°; free burn 9 vertical/4 drift with no blast; ends 32 in helpless fall and spends aerial jump. Can start on ground or in air once per airtime. No armor. | Engineering Upgrade applied to rocket pack | [Robo Burner](https://www.ssbwiki.com/Robo_Burner) |
 | Down: Robo-Goblin | 20 mana; visible robot form with armor against one hit up to 10 damage on 8–23; rush 12–23 at 4 units/frame, claw contact 14–18 for 13 damage, end 46; air landing 20. Throws beat armor, stronger hits interrupt, shields punish recovery. | [Robo-Goblin / Demolish](https://liquipedia.net/warcraft/Tinker) | [R.O.B. Arm Rotor](https://www.ssbwiki.com/Arm_Rotor), committal moving attack |
-| Passive: Engineering Upgrade | Rocket and factory body hits bank up to two upgrades for 240 frames; next normal spends them for +2 damage each. A shield spends the upgrades without bonus. Shared counted passive state, cleared on stock loss. | [Engineering Upgrade](https://wowpedia.fandom.com/wiki/Tinker_(Warcraft_III)#Engineering_Upgrade_(Passive)) | [Gyro](https://www.ssbwiki.com/Gyro), gadget into direct pressure |
 | Ultimate: Robo-Goblin Overdrive | Designed: a longer armored hammer-tank advance. Disabled with every roster ultimate until the shared ultimate action is enabled. The ordinary down special provides the playable transformation. | [Robo-Goblin](https://liquipedia.net/warcraft/Tinker) | [R.O.B. Arm Rotor](https://www.ssbwiki.com/Arm_Rotor) |
 
 Recovery is a steerable rising burn with a visible pause before it starts;

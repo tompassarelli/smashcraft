@@ -88,7 +88,7 @@ Earthquake's low region is a spell pulse cast from the saddle. The wolf's
 body and attacking paws have exposed hurt volumes. This makes the hammer
 shorter than the initial design and the low paw his longer grounded poke.
 
-## Specials, passive and ultimate
+## Specials and ultimate
 
 | Input | Warcraft source / Smash reference | Authored rule and counterplay |
 | --- | --- | --- |
@@ -96,7 +96,6 @@ shorter than the initial design and the low paw his longer grounded poke.
 | Side: Feral Spirit | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Duck Hunt's dog](https://www.ssbwiki.com/Duck_Hunt_(SSBU)) | Two spectral wolves leave at frames16 and24, run low for 28 frames, each 4 damage/55°, cost18, end44, cooldown90. The second wolf makes a delayed jump or shield decision; each can hit only once. Summons can be blocked or parried but do not reflect. Air wolves descend and air landing lag20 applies. |
 | Up: Far Sight | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Duck Jump](https://www.ssbwiki.com/Duck_Jump) | Spirit sight points a safe way upward: after8 frames, rise2.25H with up to1.5H steering over24 frames, end40, cost12, no hitbox or armor. At low mana rise1.4H free. Both forms meet the shared recovery-distance band. Uses the aerial jump and ends helpless; the broad body can be intercepted. This movement is an original adaptation of a vision spell. |
 | Down: Earthquake | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Donkey Kong's Hand Slap](https://www.ssbwiki.com/Hand_Slap) | A low spell pulse hits both sides at frames18–21, 11 damage/75°, end50, cost20, cooldown90. Ground only, 135-unit reach; jump clears it. No extra shield damage, armor or repeating hold. |
-| Passive: Windfury | [Doomhammer](https://wowpedia.fandom.com/wiki/Doomhammer) / [Dedede's hammer](https://www.ssbwiki.com/King_Dedede_(SSBU)) | Two direct hammer contacts within180 frames prepare the third: +50% damage, capped at6. A shield spends the prepared bonus. The shared deterministic critical-hit counter supplies this mechanic; no random roll or action lock. |
 | Ultimate: Elemental Fury | [Far Seer's Earthquake](https://liquipedia.net/warcraft/Far_Seer) / [Pikachu's Volt Tackle](https://www.ssbwiki.com/Volt_Tackle) | Designed ultimate, matching today's hero template: a storm-assisted Earthquake that sends a broad final lightning wave. The current roster stores ultimate names/descriptions; its activation system is not yet implemented. |
 
 The computer holds midrange with lightning and wolves, approaches with down

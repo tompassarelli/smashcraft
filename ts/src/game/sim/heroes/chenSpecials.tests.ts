@@ -2,12 +2,11 @@ import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runt
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
 import { resolveAttacks } from "../attacks";
-import { Character, HeroStatusKind, HitOrigin, SpecialAction } from "../codes";
+import { Character, HeroStatusKind, SpecialAction } from "../codes";
 import { chillScaled } from "../chill";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { createFighter } from "../fighter";
 import { advanceHeroStatus } from "../heroSpecialRules";
-import { sourcePassiveContact, resetPassive } from "../passives";
 import { updateProjectiles } from "../projectiles";
 import { type Controls, type Roster, createRoster } from "../roster";
 import { advanceSpecials, startFighterSpecial } from "../specials";
@@ -94,14 +93,3 @@ test("Earth braces and fresh attack or special chooses the Fire or Storm branch 
   }
 });
 
-test("Drunken Brawler counts three distinct melee contacts then spends on hit or shield and resets [spec docs/design/chen.md]", () => {
-  for (const blocked of [false, true]) {
-    const owner = createFighter(Character.chen, 0.0, 1);
-    for (let key = 1; key <= 3; key++) sourcePassiveContact(owner, 1, HitOrigin.melee, true, false, key, { damage: 8.0 });
-    assertEquals(owner.passive.stacks, 3);
-    const effect = { damage: 8.0 };
-    sourcePassiveContact(owner, 1, HitOrigin.melee, true, blocked, 4, effect);
-    assertEquals(effect.damage, blocked ? 8.0 : 12.0); assertEquals(owner.passive.stacks, 0);
-    resetPassive(owner); assertEquals(owner.passive.window, 0);
-  }
-});

@@ -37,7 +37,7 @@ function pair(x: number, facing = 1) {
   return { owner, target, world: testWorld(owner, target) };
 }
 
-test("Kaelthas every normal starts after its tell, hits once and steals sphere mana in both facings [spec docs/design/kaelthas.md]", () => {
+test("Kaelthas every normal starts after its tell, hits once in both facings [spec docs/design/kaelthas.md]", () => {
   for (const facing of [-1, 1]) for (const [style, x, z, damage] of normalCases) {
     const { owner, target, world } = pair(x, facing);
     owner.motion.grounded = !isAerialAttack(style); target.motion.grounded = false; target.motion.z = z;
@@ -45,7 +45,7 @@ test("Kaelthas every normal starts after its tell, hits once and steals sphere m
     owner.attack.style = style; owner.attack.duration = move.totalFrames; owner.attack.frame = move.startupFrames - 1;
     resolveAttacks(world); assertEquals(target.status.damage, 0.0);
     owner.attack.frame++; resolveAttacks(world); assertEquals(target.status.damage, damage, `normal ${style}`);
-    assertEquals(target.visuals.manaDrained, 1); assertGreaterThan(owner.mana.points, 40);
+    assertEquals(target.visuals.manaDrained, 0); assertGreaterThan(owner.mana.points, 40);
     owner.launch.hitlag = 0; target.launch.hitlag = 0; resolveAttacks(world); assertEquals(target.status.damage, damage);
   }
 });

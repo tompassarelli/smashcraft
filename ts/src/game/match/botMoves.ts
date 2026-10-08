@@ -9,7 +9,7 @@ import { floorDiv } from "wisp/src/sim/intMath";
 import { botChance, botChoice } from "./botRandom";
 import { type AttackBuffer, queueAttack } from "../input/attackBuffer";
 import { attackCapsule, emptyCapsule, hurtCapsule } from "../physics/contactGeometry";
-import { AttackStyle, Character, LAST_ATTACK_STYLE, PassiveKind, SpecialAction } from "../sim/codes";
+import { AttackStyle, Character, LAST_ATTACK_STYLE, SpecialAction } from "../sim/codes";
 import { canAttack } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../sim/hitRegions";
@@ -20,8 +20,7 @@ import { immolationRegion } from "../sim/specials";
 import { deckUnder, heightAhead, safeAt, slideStaysOnDeck } from "./botFooting";
 import { HeroSpecialUse, heroSpecialUse } from "./botHeroKit";
 import { SpecialSlot } from "../sim/heroSpecials";
-import { SPACE_PLAN, avoids, gameplanOf, moveWeight, passiveLandingMove, spacedAt, toGameplanMove } from "./botGameplan";
-import { passivePips, passiveSpec } from "../sim/passives";
+import { SPACE_PLAN, avoids, gameplanOf, moveWeight, spacedAt, toGameplanMove } from "./botGameplan";
 import type { FighterGameplan, GameplanMove } from "../sim/gameplan";
 import { type CpuSkill, FULL_SKILL } from "./cpuSkill";
 import { type AttackDecision, familiarOption, moveValueMultiplier } from "./botMoveValue";
@@ -322,8 +321,6 @@ function gameplanMoveOf(f: Readonly<Fighter>, option: number): GameplanMove {
   return toGameplanMove(option);
 }
 
-/** A ready passive's landing move weighs this many times its gameplan weight. */
-const PASSIVE_WEIGHT = 8;
 
 // Move variety (#279, #275, #280, #281): an option the chooser started
 // among the last VARIETY_STARTS starts, within VARIETY_FRAMES, weighs less
@@ -373,14 +370,13 @@ function nothingFresh(strategy: Readonly<BotStrategy>, count: number, frame: num
 }
 
 /**
- * One of the first `count` options, each as likely as its gameplan weight;
- * with `cashing` set, the move that cashes the ready passive weighs more.
+ * One of the first `count` options, each as likely as its gameplan weight.
  */
-function weightedOption(gameplan: Readonly<FighterGameplan> | undefined, planIndex: number, f: Readonly<Fighter>, slot: number, target: Readonly<Fighter>, count: number, frame: number, cashing: PassiveKind, decision?: AttackDecision): number {
+function weightedOption(gameplan: Readonly<FighterGameplan> | undefined, planIndex: number, f: Readonly<Fighter>, slot: number, target: Readonly<Fighter>, count: number, frame: number, decision?: AttackDecision): number {
   let total = 0;
   for (let index = 0; index < count; index++) {
     const move = gameplanMoveOf(f, at(options, index));
-    const base = gameplan === undefined ? 1 : moveWeight(gameplan, planIndex, f, slot, target, move) * (passiveLandingMove(gameplan, cashing, move) ? PASSIVE_WEIGHT : 1);
+    const base = gameplan === undefined ? 1 : moveWeight(gameplan, planIndex, f, slot, target, move);
     const weight = decision === undefined ? base
       : Math.max(1, floorDiv(base * moveValueMultiplier(f, target, at(options, index), decision) * VARIETY_SCALE, varietyDivisor(recentStarts(decision.strategy, at(options, index), frame))));
     weights[index] = weight;
@@ -461,14 +457,13 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
     return false;
   }
   const grabbing = skill.grabsShields && target.shield.raised && f.motion.grounded && grabReaches;
-  // Running in, the dash attack when it reaches; a ready passive's landing move, never into a shield, which spends it.
+  // Running in, the dash attack when it reaches.
   const kit = botChance(frame, f.attack.serial * 13 + f.character + 3, skill.kitTenths, 10);
-  const cashing = kit && !target.shield.raised && passivePips(f).ready ? passiveSpec(f.character).kind : PassiveKind.none;
-  const dashIn = kit && dashing && f.motion.grounded && !target.shield.raised && dashReaches && cashing === PassiveKind.none && botChoice(frame, f.attack.serial * 5 + f.character, 2) === 0;
+  const dashIn = kit && dashing && f.motion.grounded && !target.shield.raised && dashReaches && botChoice(frame, f.attack.serial * 5 + f.character, 2) === 0;
   const familiar = decision === undefined ? undefined : familiarOption(options, count, f, frame, decision);
   const option = grabbing ? AttackStyle.grab
     : dashIn ? AttackStyle.jab
-    : familiar ?? weightedOption(skill.gameplanWeights ? gameplan : undefined, planIndex, f, slot, target, count, frame, cashing, decision);
+    : familiar ?? weightedOption(skill.gameplanWeights ? gameplan : undefined, planIndex, f, slot, target, count, frame, decision);
   if (decision !== undefined) {
     decision.strategy.lastOption = option;
     rememberStart(decision.strategy, option, frame);

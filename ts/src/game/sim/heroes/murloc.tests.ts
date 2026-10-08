@@ -41,7 +41,7 @@ test("Murloc every normal hits once on its first active frame and Scavenger take
     owner.attack.style = style; owner.attack.duration = move.totalFrames; owner.attack.frame = move.startupFrames - 1;
     resolveAttacks(world); assertEquals(target.status.damage, 0.0, `early ${style}`);
     owner.attack.frame++; resolveAttacks(world); assertEquals(target.status.damage, damage, `normal ${style}`);
-    assertEquals(target.visuals.manaDrained, 1); assertGreaterThan(owner.mana.points, 40);
+    assertEquals(target.visuals.manaDrained, 0); assertGreaterThan(owner.mana.points, 40);
     owner.launch.hitlag = 0; target.launch.hitlag = 0; resolveAttacks(world); assertEquals(target.status.damage, damage);
   }
 });

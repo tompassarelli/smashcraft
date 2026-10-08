@@ -225,7 +225,7 @@ export const LICH_KING_MOVES: FighterMoves = {
     [GrabAction.throwForward]: { contactFrame: 15, totalFrames: 38, effect: hit(10.0, "EDGE", 35, 1.0, HitElement.normal) },
     [GrabAction.throwBack]: { contactFrame: 18, totalFrames: 46, effect: hit(12.0, "KILL", 40, -1.0, HitElement.normal) },
     [GrabAction.throwUp]: { contactFrame: 16, totalFrames: 30, effect: hit(8.0, "JUGGLE", 85) },
-    // Harvest Soul: Frostmourne drinks the victim's soul (a banked soul, sim/passives.ts) and drops it into a tech chase.
+    // Harvest Soul drops the victim into a tech chase.
     [GrabAction.throwDown]: { inspiredBy: "Harvest Soul (Icecrown Citadel)", contactFrame: 24, totalFrames: 50, effect: hit(6.0, "CHASE", 25, 1.0, HitElement.dark) },
   },
 };
