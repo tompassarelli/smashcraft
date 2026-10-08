@@ -219,7 +219,7 @@ height at match start.
 
 Lifetimes are what a player should see, not what the code that hides an
 effect happens to do, with room for a pool slot reused while shown: three
-seconds for hit sparks, KO bodies, hippogryph, bear and Illidan's flames;
+seconds for hit sparks, KO bodies, bear and Illidan's flames;
 four for projectiles; six for an ice shell; ten for the dizzy mark; 31 for
 an unsprung freeze trap; 75 for a shield bubble, which the lightest press
 drains in about 72 s. A stay starts when the game places an effect in view
