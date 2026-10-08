@@ -1,0 +1,24 @@
+# #309 Illidan jab finisher (stock "Attack"): three neutral jabs facing right, then facing left.
+# The third jab starts on 556 and 716 (headless: applied attack style 21); its active frames 5-7 are
+# 560-562 and 720-722, captured with one frame either side.
+#! chat -dev quick hero illidan
+540 a tap A 2
+548 a tap A 2
+556 a tap A 2
+559 a capture
+560 a capture
+561 a capture
+562 a capture
+563 a capture
+640 a stick -1 0
+644 a stick 0 0
+700 a tap A 2
+708 a tap A 2
+716 a tap A 2
+719 a capture
+720 a capture
+721 a capture
+722 a capture
+723 a capture
+800 a press VIEW
+870 a release VIEW

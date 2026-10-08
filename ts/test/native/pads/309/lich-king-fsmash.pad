@@ -1,0 +1,45 @@
+# #309 Lich King forward smash (stock "Attack - 2"), uncharged and fully charged, facing right then left.
+# Uncharged starts on 540 and 800: active frames 22-25 are 561-564 and 821-824. Charged starts on 640
+# and 900 and holds before its first active frame until A is released on 700 and 960, which enters
+# the hit frame; the captures span the release to check it for a snap.
+#! chat -dev quick hero lich king
+540 a stick 1 0
+540 a tap A 2
+542 a stick 0 0
+560 a capture
+561 a capture
+562 a capture
+563 a capture
+564 a capture
+565 a capture
+640 a stick 1 0
+640 a press A
+642 a stick 0 0
+698 a capture
+700 a release A
+700 a capture
+701 a capture
+702 a capture
+703 a capture
+704 a capture
+800 a stick -1 0
+800 a tap A 2
+802 a stick 0 0
+820 a capture
+821 a capture
+822 a capture
+823 a capture
+824 a capture
+825 a capture
+900 a stick -1 0
+900 a press A
+902 a stick 0 0
+958 a capture
+960 a release A
+960 a capture
+961 a capture
+962 a capture
+963 a capture
+964 a capture
+1060 a press VIEW
+1130 a release VIEW

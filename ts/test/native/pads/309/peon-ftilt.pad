@@ -1,0 +1,26 @@
+# #309 Peon forward tilt (stock "Attack"), facing right then left.
+# The tilt starts on 540 and 620 (headless: applied attack style 6); active frames 7-9 are 546-548 and
+# 626-628, captured with one frame either side.
+#! chat -dev quick hero peon
+536 a press LB
+537 a stick 1 0
+540 a tap A 2
+545 a capture
+546 a capture
+547 a capture
+548 a capture
+549 a capture
+550 a stick 0 0
+550 a release LB
+616 a press LB
+617 a stick -1 0
+620 a tap A 2
+625 a capture
+626 a capture
+627 a capture
+628 a capture
+629 a capture
+630 a stick 0 0
+630 a release LB
+700 a press VIEW
+770 a release VIEW
