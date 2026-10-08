@@ -482,7 +482,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   // In the sea a jump is the water jump; a fighter that can't take it keeps its double jump.
   const wet = sea.wet(f, stage);
   const waterJumped = wet && (input.jumpPressed || parryOption === ParryBuffer.jump) && !wallJumped && sea.beginWaterJump(f, input.direction);
-  if ((input.jumpPressed || parryOption === ParryBuffer.jump) && !wallJumped && !waterJumped) beginJump(f, input.direction);
+  if ((input.jumpPressed || parryOption === ParryBuffer.jump) && !wallJumped && !waterJumped) beginJump(f, input.direction, input.shortHopPressed);
   if (jump.squat > 0 && launch.hitlag === 0 && (f.character === Character.demonHunter || squatBeforeInput !== 1)) jump.held = jump.held && input.jumpHeld;
   if (input.airDodgePressed && !exSpecialPressed(input)) {
     if (motion.grounded && jump.squat > 0) {

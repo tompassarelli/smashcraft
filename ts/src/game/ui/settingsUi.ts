@@ -74,7 +74,7 @@ export class SettingsPanel {
     ];
     const rows: ActionRow[] = [];
     for (const action of ACTION_ORDER) {
-      const y = f32(0.505) - action * f32(0.025);
+      const y = f32(0.505) - action * f32(0.023);
       const label = text(`MeleeSettingsAction${suffix}${I2S(action)}`, 430 + offset + action, f32(0.18), y, f32(0.22), f32(0.025));
       const key = (slot: KeySlot, x: number): framehandle => {
         const keyIndex = action * 2 + slot;

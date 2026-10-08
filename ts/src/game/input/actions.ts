@@ -20,6 +20,7 @@ export const Action = {
   smashDown: 13,
   walk: 14,
   lightShield: 15,
+  shortHop: 16,
 } as const;
 
 export type Action = (typeof Action)[keyof typeof Action];

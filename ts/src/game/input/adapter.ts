@@ -10,7 +10,7 @@ import { type AttackBuffer, clearAttackBuffer, queueAttack } from "./attackBuffe
 import { groundDodgeIntent, normalAttackStyle } from "./combat";
 import type { Direction, InputRow } from "./inputRow";
 
-const GRAB_MASH_ACTIONS = maskOf(Action.attack, Action.special, Action.jump, Action.grab, Action.leftTrigger, Action.rightTrigger, Action.lightShield);
+const GRAB_MASH_ACTIONS = maskOf(Action.attack, Action.special, Action.jump, Action.shortHop, Action.grab, Action.leftTrigger, Action.rightTrigger, Action.lightShield);
 const MOVEMENT_ACTIONS = maskOf(Action.moveLeft, Action.moveRight, Action.moveDown, Action.moveUp);
 const TRIGGERS = maskOf(Action.leftTrigger, Action.rightTrigger, Action.lightShield);
 
@@ -66,7 +66,8 @@ export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, 
     destination.diStickX = Math.max(-SHIELD_TILT_STICK_CAP, Math.min(SHIELD_TILT_STICK_CAP, destination.diStickX));
     destination.diStickZ = Math.max(-SHIELD_TILT_STICK_CAP, Math.min(SHIELD_TILT_STICK_CAP, destination.diStickZ));
   }
-  destination.jumpPressed = has(pressed, Action.jump);
+  destination.shortHopPressed = has(pressed, Action.shortHop);
+  destination.jumpPressed = has(pressed, Action.jump) || destination.shortHopPressed;
   destination.jumpHeld = has(held, Action.jump);
   destination.airDodgePressed = destination.shieldPressed;
   destination.dodgeX = destination.airDodgePressed ? row.dodgeX : 0;

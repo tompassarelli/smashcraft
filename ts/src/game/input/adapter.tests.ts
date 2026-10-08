@@ -9,7 +9,7 @@ import { adaptInput } from "./adapter";
 import { attackBuffer, takeAttack } from "./attackBuffer";
 import { inputRow, type RowFields } from "./inputRow";
 import { actionFor, decodeBindings, encodeBindings, presetBindings, rebind } from "./keyBindings";
-import { keyboardCapture, sampleKeys } from "./keyboardCapture";
+import { commitEdges, keyboardCapture, sampleKeys } from "./keyboardCapture";
 import { heldActions, playerKeys, pressKey } from "./playerKeys";
 
 function fixture(character: Character = Character.archer, graceFrames = 0) {
@@ -24,6 +24,33 @@ function fixture(character: Character = Character.archer, graceFrames = 0) {
     take(frame: number) { return assertDefined(takeAttack(attacks, frame, true)); },
   };
 }
+
+test("Z hold lengths match quick-release jump height and takeoff frame, even with jump held [spec #321]", () => {
+  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+    for (const jumpHeld of [false, true]) {
+    for (const hold of [1, 3, 10, 60]) {
+      const reference = fixture(character);
+      const hop = fixture(character);
+      const capture = keyboardCapture();
+      const keys = playerKeys();
+      const bindings = presetBindings("standard");
+      pressKey(keys, 90, bindings);
+      assertEquals(heldActions(keys), maskOf(Action.shortHop));
+      for (let frame = 1; frame <= 90; frame++) {
+        sampleKeys(capture, frame <= hold ? heldActions(keys) | (jumpHeld ? maskOf(Action.jump) : 0) : 0);
+        adaptInput(capture.row, hop.fighter, frame, hop.input, hop.attacks);
+        commitEdges(capture);
+        reference.adapt({ held: frame === 1 ? maskOf(Action.jump) : 0, pressed: frame === 1 ? maskOf(Action.jump) : 0 }, frame);
+        advanceSolo(reference.fighter, 0, reference.input, -240);
+        advanceSolo(hop.fighter, 0, hop.input, -240);
+        assertEquals(hop.fighter.motion.z, reference.fighter.motion.z, `character ${character} hold ${hold} frame ${frame}: height`);
+        assertEquals(hop.fighter.motion.grounded, reference.fighter.motion.grounded, `character ${character} hold ${hold} frame ${frame}: takeoff`);
+        assertEquals(hop.fighter.jump.serial, reference.fighter.jump.serial);
+      }
+    }
+    }
+  }
+});
 
 test("LT and keyboard 9 or custom 0 raise the lightest shield, larger and weaker than RT [spec docs/melee-analog-shield.md]", () => {
   const lightRows = [assertDefined(inputRow({ held: maskOf(Action.leftTrigger), pressed: maskOf(Action.leftTrigger), triggerLeft: 77 }))];

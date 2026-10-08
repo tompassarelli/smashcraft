@@ -28,7 +28,7 @@ SOURCES.set(STICK_JUMP, Action.jump);
 
 const LEFT = "W", RIGHT = "R", DOWN = "E", UP = "SPACE", JUMP = "I", JUMP_ALT = "8", ATTACK = "N", SPECIAL = "U",
   GRAB = "O", SHIELD_LEFT = "Q", SHIELD_RIGHT = "7", LIGHT_SHIELD = "9", LIGHT_SHIELD_ALT = "T", C_LEFT = "B", C_LEFT_ALT = "/", C_RIGHT = "M", C_UP = "J",
-  C_DOWN = "H", WALK = "P";
+  C_DOWN = "H", WALK = "P", SHORT_HOP = "Z";
 
 /** Pseudo-sources: the direction key toward or away from the opponent on this frame. */
 const TOWARD = "toward", AWAY = "away";
@@ -205,6 +205,7 @@ const every = (from: number, to: number, stride: number, length: number) => {
 const ACTIONS: MatchScript = {
   characters: [Character.archer, Character.rifleman], stage: 0, stocks: 3, minutes: 0, frames: 410,
   holds: [[
+    [1, 20, SHORT_HOP],
     [30, 2, ATTACK], [40, 10, DOWN], [42, 2, ATTACK], [70, 6, WALK, TOWARD], [72, 2, ATTACK], [86, 4, UP],
     [87, 2, ATTACK], [100, 3, JUMP], [106, 2, ATTACK], [130, 14, JUMP_ALT], [134, 16, STICK_JUMP], [140, 2, ATTACK],
     [144, 2, DOWN], [165, 2, SPECIAL], [190, 2, GRAB], [200, 2, TOWARD], [215, 8, TOWARD], [217, 2, SPECIAL],
@@ -212,6 +213,7 @@ const ACTIONS: MatchScript = {
     [298, 2, SHIELD_RIGHT], [315, 2, C_LEFT], [328, 2, C_RIGHT], [340, 2, C_LEFT_ALT], [352, 2, C_UP],
     [364, 2, C_DOWN], [378, 16, ATTACK], [380, 2, TOWARD], [396, 6, UP], [398, 2, SPECIAL], [402, 2, LIGHT_SHIELD], [406, 2, LIGHT_SHIELD_ALT],
   ], [
+    [1, 1, SHORT_HOP],
     [20, 24, SHIELD_RIGHT], [50, 2, ATTACK], [60, 2, GRAB], [84, 2, SHIELD_LEFT], [95, 4, JUMP], [101, 2, C_DOWN],
     [112, 2, SPECIAL], [126, 2, C_RIGHT], [150, 16, SHIELD_LEFT, SHIELD_RIGHT], [168, 14, STICK_JUMP],
     [170, 8, JUMP_ALT], [174, 2, ATTACK], [186, 2, UP], [192, 2, ATTACK], [194, 2, SPECIAL], [196, 2, JUMP],
@@ -447,6 +449,11 @@ const WARDEN: MatchScript = {
 export function generateTapes(): Map<string, string> {
   const pressed = [new Set<string>(), new Set<string>()];
   const tapes = new Map([
+    ["short-hop", recordTape("Z short and long holds with late input corrections and rollback.", [{
+      characters: [Character.archer, Character.rifleman], stage: 0, stocks: 3, minutes: 0, frames: 180,
+      holds: [[[1, 1, SHORT_HOP], [60, 60, SHORT_HOP, JUMP]], [[1, 60, SHORT_HOP], [100, 3, SHORT_HOP]]],
+      approaches: [[], []], rollbacks: [[1, 30], [55, 120]], predictions: [[1, 10], [98, 110]],
+    }])],
     ["actions", recordTape("Every bound source pressed by both players, with short replays.", [ACTIONS], pressed)],
     ["rollback", recordTape("Combat replayed from one frame up to the whole retained history.", [ROLLBACK])],
     ["rematch", recordTape("A one-stock match ends, both players confirm the rematch, a new match runs.", [FIRST_MATCH, SECOND_MATCH])],

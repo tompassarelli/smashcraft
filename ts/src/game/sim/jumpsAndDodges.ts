@@ -33,7 +33,7 @@ export function lockedOut(f: Fighter): boolean {
 }
 
 /** Starts jump squat on the ground or a double jump in the air. */
-export function beginJump(f: Fighter, horizontal: number): void {
+export function beginJump(f: Fighter, horizontal: number, shortHop = false): void {
   const { motion, jump, shield } = f;
   if (lockedOut(f) || (shield.releaseLag > 0 && !motion.grounded) || f.dodge.airDodging || isGroundDodging(f) || jump.squat > 0 || jump.remaining <= 0) return;
   observeActionDecision(JUMP_BIT);
@@ -47,7 +47,7 @@ export function beginJump(f: Fighter, horizontal: number): void {
     shield.heldFrames = 0;
     shield.releaseLag = 0;
     jump.squat = f.tuning.physics.jumpSquatFrames;
-    jump.held = true;
+    jump.held = !shortHop;
   } else {
     // Illidan keeps horizontal momentum on his aerial jump.
     if (f.character !== Character.demonHunter) motion.vx = f32(horizontal * f.tuning.physics.aerialJumpHorizontalSpeed);

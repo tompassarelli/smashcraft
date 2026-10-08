@@ -4,7 +4,7 @@ Requires Warcraft III 3.0 and a keyboard; nothing else to install. Put the
 map in the Warcraft III Maps folder and open it from Custom Games. A
 controller is optional: the Smashcraft controller helper turns its buttons
 and sticks into the same keys (A attacks, X specials, B or Y jumps, RB grabs,
-either trigger shields, LB walks, Start pauses). The current prototype includes character and stage
+either trigger shields, LB walks, left-stick click (L3) short hops, Start pauses). The current prototype includes character and stage
 selection, three fighters, a bot opponent, floating platforms, blast zones,
 stocks, rematches, and configurable controls.
 
@@ -84,6 +84,10 @@ button does not count as mashing. The bar above a held fighter drains as the
 hold runs out and faster with mashing; the mark on it shows when a pummel would
 land. Mash and wiggle the same way to break out of Rifleman's frost trap
 sooner; its bar shows how long the ice has left.
+
+Z always gives the existing short hop, however long you hold it; on a pad,
+click the left stick (L3). The ordinary jump keys still full hop when held and
+short hop when released during startup. In the air, Z uses your second jump.
 
 Attacks buffer for six frames, including through jump squat. Hold P to walk;
 P with E crouches on a platform instead of climbing down. Jumping into a

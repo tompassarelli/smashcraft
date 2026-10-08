@@ -57,6 +57,7 @@ export function presetBindings(preset: BindingPreset): KeyBindings {
   bind(Action.smashDown, code("H"));
   bind(Action.walk, code("P"));
   bind(Action.lightShield, code(custom ? "0" : "9"), code("T"));
+  bind(Action.shortHop, code("Z"));
   return { keys };
 }
 
@@ -165,6 +166,7 @@ export const ACTION_LABELS: Readonly<Record<Action, string>> = {
   [Action.smashDown]: "C-stick down",
   [Action.walk]: "Tilt",
   [Action.lightShield]: "Light shield",
+  [Action.shortHop]: "Short hop (L3 on pad)",
 };
 
 export function keyLabel(key: number | undefined): string {
