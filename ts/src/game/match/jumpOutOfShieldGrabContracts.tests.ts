@@ -5,6 +5,7 @@
 // smashcraft:docs/gameplay-design.md ("Throw roles").
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
+import { sweep } from "../../runtime/sweep";
 import { queueAttack } from "../input/attackBuffer";
 import { beginFighterAttack, resolveAttacks } from "../sim/attacks";
 import { AttackStyle, Character } from "../sim/codes";
@@ -50,39 +51,55 @@ const shield = (): Controls => controls({ shield: true, shieldTriggerActive: tru
 const jumpOutOfShield = (): Controls => controls({ ...shield(), jumpPressed: true, jumpHeld: true });
 const holdJump = (): Controls => controls({ jumpHeld: true });
 
+function checkEarlyGrab(grabber: Character, defender: Character): void {
+  const d = duel(grabber, defender);
+  const jumper = fighterAt(d.world, 1);
+  queueAttack(d.controls.commands[0], { style: AttackStyle.grab, facing: 0, frame: d.frame + 1, mayCharge: false });
+  play(d, jumpOutOfShield());
+  for (let frame = 0; frame < 20 && jumper.grab.owner === undefined; frame++) play(d, holdJump());
+  const pair = `${fighterName(grabber)} grabbing ${fighterName(defender)}`;
+  assertEquals(jumper.grab.owner, 0, pair);
+  // Caught in the jump squat or within the window, never later.
+  assertEquals(jumper.jump.ascent <= EARLY_ASCENT_GRAB_FRAMES, true, pair);
+}
+
 test("a grab started as a shielding opponent jumps catches it early in the ascent [spec #107]", () => {
+  checkEarlyGrab(Character.rifleman, Character.demonHunter);
+});
+
+sweep("every fighter pair's grab started as a shielding opponent jumps catches it early in the ascent [spec #107]", () => {
   for (const grabber of SELECTABLE_CHARACTERS) {
     for (const defender of SELECTABLE_CHARACTERS) {
-      const d = duel(grabber, defender);
-      const jumper = fighterAt(d.world, 1);
-      queueAttack(d.controls.commands[0], { style: AttackStyle.grab, facing: 0, frame: d.frame + 1, mayCharge: false });
-      play(d, jumpOutOfShield());
-      for (let frame = 0; frame < 20 && jumper.grab.owner === undefined; frame++) play(d, holdJump());
-      const pair = `${fighterName(grabber)} grabbing ${fighterName(defender)}`;
-      assertEquals(jumper.grab.owner, 0, pair);
-      // Caught in the jump squat or within the window, never later.
-      assertEquals(jumper.jump.ascent <= EARLY_ASCENT_GRAB_FRAMES, true, pair);
+      checkEarlyGrab(grabber, defender);
     }
   }
 });
 
+function checkGrabWindow(grabber: Character, defender: Character, lastFrame: boolean): void {
+  const d = duel(grabber, defender);
+  const jumper = fighterAt(d.world, 1);
+  const owner = fighterAt(d.world, 0);
+  play(d, jumpOutOfShield());
+  // Through the last window frame, or one frame past it.
+  while (jumper.jump.squat > 0 || jumper.jump.ascent < EARLY_ASCENT_GRAB_FRAMES) play(d, holdJump());
+  if (!lastFrame) play(d, holdJump());
+  const pair = `${fighterName(grabber)} grabbing ${fighterName(defender)} ${lastFrame ? "on" : "after"} the window's last frame`;
+  assertEquals(jumper.jump.ascent > 0, lastFrame, pair);
+  beginFighterAttack(d.world, 0, AttackStyle.grab, false);
+  owner.attack.frame = attackStartupFrames(AttackStyle.grab, owner.tuning.moves);
+  resolveAttacks(d.world);
+  assertEquals(jumper.grab.owner === 0, lastFrame, pair);
+}
+
 test("the early-ascent window ends after its last frame, so a late grab misses the jumper [spec #107]", () => {
+  for (const lastFrame of [true, false]) checkGrabWindow(Character.rifleman, Character.demonHunter, lastFrame);
+});
+
+sweep("every fighter pair's early-ascent window ends after its last frame, so a late grab misses the jumper [spec #107]", () => {
   for (const grabber of SELECTABLE_CHARACTERS) {
     for (const defender of SELECTABLE_CHARACTERS) {
       for (const lastFrame of [true, false]) {
-        const d = duel(grabber, defender);
-        const jumper = fighterAt(d.world, 1);
-        const owner = fighterAt(d.world, 0);
-        play(d, jumpOutOfShield());
-        // Through the last window frame, or one frame past it.
-        while (jumper.jump.squat > 0 || jumper.jump.ascent < EARLY_ASCENT_GRAB_FRAMES) play(d, holdJump());
-        if (!lastFrame) play(d, holdJump());
-        const pair = `${fighterName(grabber)} grabbing ${fighterName(defender)} ${lastFrame ? "on" : "after"} the window's last frame`;
-        assertEquals(jumper.jump.ascent > 0, lastFrame, pair);
-        beginFighterAttack(d.world, 0, AttackStyle.grab, false);
-        owner.attack.frame = attackStartupFrames(AttackStyle.grab, owner.tuning.moves);
-        resolveAttacks(d.world);
-        assertEquals(jumper.grab.owner === 0, lastFrame, pair);
+        checkGrabWindow(grabber, defender, lastFrame);
       }
     }
   }
