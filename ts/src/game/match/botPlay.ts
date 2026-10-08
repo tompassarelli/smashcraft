@@ -28,6 +28,7 @@ import { pressHeroFollowUp } from "./botHeroKit";
 import { dashIn, kitChargeGoal, pressKitOption, steerHeroBranches, steerRunningSpecial } from "./botKitOptions";
 import { MATCH_TICKS_PER_SECOND, type MatchState, stageClock } from "./rules";
 import { trainingPartnerInput } from "./training";
+import { sameFighterState } from "../replay/fighterState";
 import { type BotStrategy, copyBotStrategy, learnBotHabit, prepareBotRead, pressBotRead, sameBotStrategy } from "./botStrategy";
 import type { BotDecision } from "./pacingAndPresentation";
 
@@ -157,30 +158,7 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
   useMatchSeed(0);
 }
 
-/** Records nested deeper than this are treated as different. */
-const RECORD_DEPTH = 6;
-
-const negativeZero = (value: unknown): boolean => value === 0 && 1 / (typeof value === "number" ? value : 0) < 0;
-
-/** Equal fields all the way down, signed zeros apart; shared records compare by identity. */
-function sameRecord<T extends object>(a: Readonly<T>, b: Readonly<T>, depth: number): boolean {
-  if (depth > RECORD_DEPTH) return false;
-  let fields = 0;
-  for (const key in a) {
-    const x = a[key];
-    if (x === undefined) continue;
-    fields++;
-    const y = b[key];
-    if (x === y) {
-      // Inline, so an equal field costs no call: in a 32-bit Lua repair this check runs over every field of the computer's fighter.
-      if (x === 0 && typeof x === "number" && typeof y === "number" && 1 / x !== 1 / y) return false;
-      continue;
-    }
-    if (typeof x !== "object" || typeof y !== "object" || x === null || y === null || !sameRecord(x, y, depth + 1)) return false;
-  }
-  for (const key in b) if (b[key] !== undefined) fields--;
-  return fields === 0;
-}
+const negativeZero = (value: number): boolean => value === 0 && 1 / value < 0;
 
 /**
  * Whether produceComputerInput for `slot` at `frame` reads the same state as
@@ -204,7 +182,9 @@ export function sameComputerInputs(game: Readonly<MatchState>, world: Readonly<R
   if (attackDelay !== beforeDelay || negativeZero(attackDelay) !== negativeZero(beforeDelay)) return false;
   if (!sameBotStrategy(runtime.botStrategies[slot], beforeRuntime.botStrategies[slot])) return false;
   if (!samePerception(runtime.botMemory, beforeRuntime.botMemory, slot, frame, delay)) return false;
-  return sameRecord(fighterAt(world, slot), fighterAt(beforeWorld, slot), 0);
+  const fighter = fighterAt(world, slot);
+  const earlier = fighterAt(beforeWorld, slot);
+  return sameFighterState(fighter, earlier);
 }
 
 /**
