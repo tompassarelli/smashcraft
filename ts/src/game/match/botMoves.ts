@@ -7,12 +7,13 @@ import { f32 } from "wisp/src/sim/f32";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { botChance, botChoice } from "./botRandom";
 import { type AttackBuffer, queueAttack } from "../input/attackBuffer";
-import { attackCapsule, emptyCapsule, hurtCapsule } from "../physics/contactGeometry";
+import { attackCapsule, capsulesIntersect, emptyCapsule, hurtCapsule, placeCapsule } from "../physics/contactGeometry";
 import { AttackStyle, Character, LAST_ATTACK_STYLE, SpecialAction } from "../sim/codes";
 import { canAttack } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { SHARED_GRAB_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../sim/hitRegions";
 import { attackStartupFrames } from "../sim/moves";
+import { BLASTER_PROJECTILE_RADIUS } from "../sim/projectiles";
 import type { FighterMoves } from "../sim/heroMoves";
 import type { Controls } from "../sim/roster";
 import { immolationRegion } from "../sim/specials";
@@ -55,6 +56,8 @@ const strikeFilled: boolean[] = [];
 const strikeMoves: (FighterMoves | undefined)[] = [];
 const scratchRegion = emptyHitRegion();
 const scratchCapsule = emptyCapsule();
+const projectileFlight = emptyCapsule();
+const projectileTarget = emptyCapsule();
 // Preallocated: the options a decision weighs.
 const options: number[] = [];
 // Preallocated: each option's weight under a gameplan.
@@ -153,6 +156,22 @@ export const aheadZ = (f: Readonly<Fighter>, target: Readonly<Fighter>, frames: 
 function wallsOff(f: Readonly<Fighter>, style: AttackStyle, target: Readonly<Fighter>, localX: number, localZ: number): boolean {
   const reach = moveReachAhead(f.character, style, target, f.tuning.moves);
   return localX > 0.0 && localX <= f32(reach + SPACING_STEP) && moveReaches(f.character, style, target, Math.min(localX, reach), localZ, f.tuning.moves);
+}
+
+/** A shot already in flight launches the target before a normal can reach its observed position. */
+function ownShotArrives(f: Readonly<Fighter>, target: Readonly<Fighter>, frames: number, observationAge: number, stage: number, matchFrame: number): boolean {
+  placeCapsule(projectileTarget, hurtCapsule(target.character), horizontalAhead(target, observationAge, stage, matchFrame), heightAhead(target, observationAge, stage, matchFrame), target.facing);
+  for (const shot of f.projectiles) {
+    if (shot.life <= 0) continue;
+    const flight = Math.min(frames, shot.life);
+    projectileFlight.x1 = shot.x;
+    projectileFlight.z1 = shot.z;
+    projectileFlight.x2 = f32(shot.x + f32(shot.velocityX * flight));
+    projectileFlight.z2 = f32(shot.z + f32(shot.velocityZ * flight));
+    projectileFlight.radius = shot.spec?.radius ?? BLASTER_PROJECTILE_RADIUS;
+    if (capsulesIntersect(projectileFlight, projectileTarget)) return true;
+  }
+  return false;
 }
 
 /** Whether an airborne fighter lands on a deck within `frames` frames, cancelling an aerial started now before it strikes. */
@@ -404,6 +423,7 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
         if (f.shield.raised && move !== AttackStyle.grab) continue;
         const style = dashing && move === AttackStyle.jab ? f.tuning.moves?.dashAttack ?? AttackStyle.demonHunterDashAttack : move;
         const frames = attackStartupFrames(style, f.tuning.moves);
+        if (ownShotArrives(f, target, frames, observationAge, stage, matchFrame)) continue;
         // A slide may carry the attacker past its target; the queued facing stays fixed.
         const x = f32(aheadX(f, target, frames, style, observationAge, stage, matchFrame) * toward);
         const z = aheadZ(f, target, frames + 1, stage, matchFrame, observationAge);
