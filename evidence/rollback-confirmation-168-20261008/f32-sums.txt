@@ -1,0 +1,19 @@
+Change: exact f32 sums and differences round integer significands directly.
+Wisp bff9e24077361857d54b14683c9074a02a26c70d, from the earlier eaefa6f handoff.
+Before: a7b07a462b336a27e3ae4f0263274d5c88858139, farm 37747301595
+After: 00b63357f54e378ea8f539fd74da294bbcfea5fc, farm 37747433990
+Command: bun wisp farm perf 'playable-bot-four --samples'
+Both: 1800 frames, 0 problems; delay 2, rollback window 24, repair budget 6 unchanged.
+
+Player 0: predicted milliseconds p50 5.730 -> 5.567; p95 16.848 -> 16.492;
+p99 20.13 after; worst 23.941 -> 23.204. Mean instructions 296003 -> 287457.
+Player 1: predicted milliseconds p50 5.694 -> 5.549; p95 16.546 -> 16.033;
+p99 19.61 after; worst 24.344 -> 23.624. Mean instructions 290503 -> 282188.
+Mean allocation: both players 68 KB/frame before and after.
+Adjacent perf compare: PASS. Original 10/14 ms budget: FAIL.
+
+Wisp's emitted numeric/payload/record contracts pass in both Lua modes.
+Numeric parity: 2000 cases, 22000 results, 0 mismatches in each Lua mode.
+Parity tapes: 24 tapes, 19310 frames, 0 divergences in each Lua mode.
+The arithmetic implementation is identical to eaefa6f's earlier 1463120-operation
+old/new comparison; only test oracle tags and the test-total assertion were merged.
