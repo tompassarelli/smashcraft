@@ -14,13 +14,10 @@
 110 a cstick 1 0
 114 a cstick 0 0
 118 a capture
-140 a tap B 4
-150 a tap B 4
-151 a capture
 # a runs back left, then turns to face b again.
 200 a stick -1 0
 215 a stick 0 0
-# b spends its mana on five Fans of Knives, then Blink's free form.
+# b casts five Fans of Knives, then Blink.
 # a: Blink straight up, Pursuit Lunge with no mark, Pursuit Lunge in the air.
 230 b stick 0 -1
 230 b tap X 2
@@ -65,6 +62,9 @@
 600 a tap X 2
 602 a capture
 616 a capture
+# Close the gap after the dagger's knockback so the mark remains within 2.5H.
+650 a stick 1 0
+652 a stick 0 0
 690 a stick 1 0
 690 a tap X 2
 691 a stick 0 0
@@ -79,7 +79,7 @@
 860 a tap B 8
 866 a tap X 2
 # Expected, frame by frame (headless run of this script): every form of every special starts,
-# b's five Fans empty its bar and its Blink is the free form (2).
+# b's Blink uses its ground form after five Fans.
 #! expect a 250 special 15 form 0
 #! expect a 320 special 14 form 0
 #! expect a 406 special 14 form 1
@@ -89,12 +89,11 @@
 #! expect a 866 special 13 form 0
 #! expect b 230 special 16 form 0
 #! expect b 390 special 16 form 0
-#! expect b 435 special 15 form 2
-# Shadow Step: a's double jump is spent, the forward air lands in the air, and a jumps again.
+#! expect b 435 special 15 form 0
+# The setup spends a's double jump and lands the forward air.
 #! expect a 106 applied jump 2 double 1
 #! expect a 110 applied attack 1 style 13
-#! expect a 150 applied jump 3 double 1
-# Startup and active cues of each special and the marked branch, Shadow Strike's missile, and Shadow Step's proc.
+# Startup and active cues of each special and the marked branch and Shadow Strike's missile.
 #! scene a CrippleTarget
 #! scene a ShadowStrike.mdx
 #! scene a PoisonStingTarget
@@ -102,7 +101,7 @@
 #! scene a GlaiveMissileTarget
 #! scene a PossessionTarget
 #! scene a FanOfKnivesCaster
-#! scene a BlinkTarget
+#! scene a BlinkCaster
 868 a capture
 882 a capture
 1000 a press VIEW

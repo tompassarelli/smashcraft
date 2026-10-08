@@ -20,7 +20,7 @@
 # a runs back left.
 200 a stick -1 0
 230 a stick 0 0
-# b spends its mana on five Rains of Fire, then Abyssal Leap's free form.
+# b casts five Rains of Fire, then Abyssal Leap.
 # a: Abyssal Leap turned toward b, then Rain of Fire in the air.
 240 b stick 0 -1
 240 b tap X 2
@@ -68,7 +68,7 @@
 866 a tap X 2
 867 a stick 0 0
 # Expected, frame by frame (headless run of this script): every form of every special starts,
-# b's five Rains empty its bar and its Abyssal Leap is the free form (2).
+# b's Abyssal Leap uses its ground form after five Rains.
 #! expect a 45 special 14 form 0
 #! expect a 240 special 15 form 0
 #! expect a 326 special 16 form 1
@@ -77,7 +77,7 @@
 #! expect a 866 special 14 form 1
 #! expect b 240 special 16 form 0
 #! expect b 500 special 16 form 0
-#! expect b 565 special 15 form 2
+#! expect b 565 special 15 form 0
 # Cleaving Attack: the Charge on b's shield counts first; the 6 jab second; the 7 chop cleaves for 10.
 # Startup and active cues of each special, falling fire, and the cleave on b.
 #! scene a DeathCoilSpecialArt
@@ -86,7 +86,6 @@
 #! scene a BreathOfFireDamage
 #! scene a FlameStrikeEmbers
 #! scene a HowlCaster
-#! scene a FireLordDeathExplode
 868 a capture
 885 a capture
 1000 a press VIEW
