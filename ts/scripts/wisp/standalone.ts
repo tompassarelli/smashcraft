@@ -38,18 +38,28 @@ function keys(input: StandaloneInput): Set<number> {
   return held;
 }
 
+/**
+ * wisp#48's frame-rate match: Archer on the bot beat's keys against computer
+ * Rifleman, Illidan and Archer, 99 stocks and a two-minute clock, so four
+ * fighters stay on stage for the whole measurement.
+ */
+const FOUR_FIGHTERS = ["-dev slots 1 14", "-dev fighter 2 Rifleman", "-dev fighter 3 Illidan", "-dev fighter 4 Archer", "-dev time 2"];
+const FOUR_FIGHTER_STOCKS = 99;
+
 /** One map callback per step; scripts share the native driver's exact pad rows. */
-export async function createStandaloneSession(options: { readonly script?: string; readonly presentation?: MapBuild["presentation"] } = {}): Promise<StandaloneSession & { frame(): number; finished(): boolean }> {
-  const { script, presentation } = options;
+export async function createStandaloneSession(options: { readonly script?: string; readonly presentation?: MapBuild["presentation"]; readonly fourFighters?: boolean } = {}): Promise<StandaloneSession & { frame(): number; finished(): boolean }> {
+  const { script, presentation, fourFighters = false } = options;
   const runtime = installHeadless(script === undefined || presentation === "pool-confirmed" || presentation === "pool-predicted" ? PREDICTED_HEADLESS : SMASHCRAFT_HEADLESS);
   try {
     // Map modules are checked by tsconfig.game.json, with Warcraft's native types.
     const platform = join(import.meta.dir, "../../src/platform");
-    interface State { readonly game: { readonly phase: number }; readonly runtime: { readonly simulationFrame: number } }
+    interface State { readonly game: { readonly phase: number; stockCount: number }; readonly runtime: { readonly simulationFrame: number } }
     const { shell }: { shell(): State } = await import(join(platform, "shell/state.ts"));
     const { confirmedChecksum }: { confirmedChecksum(state: State): string } = await import(join(platform, "shell/diagnostics.ts"));
     const { applyDeveloperCommand }: { applyDeveloperCommand(state: State, slot: number, text: string): void } = await import(join(platform, "shell/keys.ts"));
     const { drawnFrame }: { drawnFrame(state: State): { readonly frame: number } } = await import(join(platform, "shell/drawnFrame.ts"));
+    const { botBeatKeys }: { botBeatKeys(frame: number): readonly [tap: number, held: number] } = await import(join(import.meta.dir, "botMatch.ts"));
+    const { startQuickMatch }: { startQuickMatch(state: State, stage: number, scenario: undefined, character: undefined, stocks: number): void } = await import(join(platform, "shell/menus.ts"));
     const build = { ...PLAYABLE_BUILD, devConsole: true, ...(presentation === undefined ? {} : { presentation }) };
     const main: { install(build: MapBuild): void; startBuild(build: MapBuild): void } = await import(join(platform, "main.ts"));
     const driverApi: { nativeDriverCommand(text: string): void; installSmashcraftNativeDriver(): void; startSmashcraftNativeDriver(): void } | undefined = script === undefined ? undefined : await import(join(platform, "nativeDriver.ts"));
@@ -69,23 +79,40 @@ export async function createStandaloneSession(options: { readonly script?: strin
       if (result === undefined) throw new Error("standalone state missing");
       return result;
     };
-    if (script === undefined) client.run(() => applyDeveloperCommand(shell(), 0, "-dev quick cpu wren expert"));
+    if (fourFighters) client.run(() => {
+      const state = shell();
+      for (const command of FOUR_FIGHTERS) applyDeveloperCommand(state, 0, command);
+      // The menus allow at most nine stocks; the beat's Archer loses about 40 in two minutes.
+      state.game.stockCount = FOUR_FIGHTER_STOCKS;
+      startQuickMatch(state, 0, undefined, undefined, FOUR_FIGHTER_STOCKS);
+    });
+    else if (script === undefined) client.run(() => applyDeveloperCommand(shell(), 0, "-dev quick cpu wren expert"));
     else clients.everywhere(() => driverCommand?.(script));
     if (value(() => shell().game.phase) !== Phase.match) throw new Error("standalone match did not start");
     if (script !== undefined) clients.everywhere(() => driverCommand?.("resume"));
     let held = new Set<number>();
+    let beat = 0, beatHeld = 0;
     let closed = false;
     return {
       client,
       step(input) {
         if (closed) throw new Error("standalone session is closed");
-        if (script === undefined) {
+        let tap = 0;
+        if (fourFighters) {
+          const [beatTap, hold] = botBeatKeys(++beat);
+          if (beatHeld !== hold && beatHeld !== 0) client.key(0, beatHeld, 0, false);
+          if (beatHeld !== hold && hold !== 0) client.key(0, hold, 0, true);
+          if (beatTap !== 0) client.key(0, beatTap, 0, true);
+          beatHeld = hold;
+          tap = beatTap;
+        } else if (script === undefined) {
           const next = keys(input);
           for (const key of held) if (!next.has(key)) client.key(0, key, 0, false);
           for (const key of next) if (!held.has(key)) client.key(0, key, 0, true);
           held = next;
         }
         clients.frames(1);
+        if (tap !== 0) client.key(0, tap, 0, false);
         for (const current of clients.clients) if (current.errors.length > 0) throw new Error(current.errors.join("\n"));
       },
       checksum: () => value(() => confirmedChecksum(shell())),
@@ -108,12 +135,13 @@ export const SMASHCRAFT_STANDALONE: StandaloneGame = {
 export function standaloneArguments(args: readonly string[]) {
   let script: string | undefined, out: string | undefined, frames: number | undefined;
   let presentation: MapBuild["presentation"] | undefined;
-  let headless = false;
+  let headless = false, fourFighters = false;
   const captureFrames: number[] = [];
   for (let index = 0; index < args.length; index++) {
     const arg = args[index];
     if (arg === "--standalone") continue;
     if (arg === "--headless") { headless = true; continue; }
+    if (arg === "--four-fighters") { fourFighters = true; continue; }
     if (arg === "--script" || arg === "--out" || arg === "--frames" || arg === "--capture-frames" || arg === "--presentation") {
       const value = args[++index];
       if (value === undefined || value.startsWith("--")) throw new Error(`${arg} needs a value`);
@@ -132,11 +160,12 @@ export function standaloneArguments(args: readonly string[]) {
     } else throw new Error(`unknown standalone option: ${arg}`);
   }
   if (headless && (frames === undefined || out === undefined)) throw new Error("--headless needs --frames N and --out DIR");
-  return { ...(script === undefined ? {} : { script }), ...(presentation === undefined ? {} : { presentation }), ...(out === undefined ? {} : { out }), ...(frames === undefined ? {} : { frames }), headless, ...(captureFrames.length === 0 ? {} : { captureFrames }) };
+  if (fourFighters && script !== undefined) throw new Error("--four-fighters plays its own inputs; drop --script");
+  return { ...(fourFighters ? { fourFighters } : {}), ...(script === undefined ? {} : { script }), ...(presentation === undefined ? {} : { presentation }), ...(out === undefined ? {} : { out }), ...(frames === undefined ? {} : { frames }), headless, ...(captureFrames.length === 0 ? {} : { captureFrames }) };
 }
 
 export const standalonePlay: Command = (args) => Effect.gen(function*() {
   const options = yield* Effect.try({ try: () => standaloneArguments(args), catch: (cause) => new UsageFailure({ problem: String(cause) }) });
   const { runStandalone } = yield* Effect.tryPromise({ try: () => import("wisp/scripts/wisp/standalone"), catch: (cause) => new RenderFailure({ cause }) });
-  return yield* runStandalone({ ...SMASHCRAFT_STANDALONE, create: (session) => createStandaloneSession({ ...session, ...(options.presentation === undefined ? {} : { presentation: options.presentation }) }) }, options);
+  return yield* runStandalone({ ...SMASHCRAFT_STANDALONE, create: (session) => createStandaloneSession({ ...session, ...(options.presentation === undefined ? {} : { presentation: options.presentation }), ...(options.fourFighters === true ? { fourFighters: true } : {}) }) }, options);
 });

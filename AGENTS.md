@@ -350,6 +350,8 @@ code. From smashcraft:ts/:
   saves frame checksums and captures (`--capture-frames N,N` picks their frames).
   `--presentation native|pool-confirmed|pool-predicted` selects fighter presentation;
   live play defaults to `pool-predicted`, scripts to `native`.
+  `--four-fighters --frames 7200 --out DIR` is wisp#48's 60 FPS measurement
+  (one game copy, four fighters; smashcraft:docs/play.md).
   Private map and Warcraft assets stay in the existing local asset store.
 - Controller layout: `bun wisp controller layout standard|zjump` changes the running service live, or saves the choice for its next start. Layout, tap jump and left/right full or light shield are kept in `~/.config/smashcraft/controller.json` (or `$XDG_CONFIG_HOME/smashcraft/controller.json`) and editable on the client Controller page.
 - Controller: `bun wisp controller` points the always-on controller service

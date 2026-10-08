@@ -16,6 +16,14 @@ updated the expected damage after the CPU changes. This is the CPU fixture for
 standalone/native comparisons. Map assets are read from the existing private
 inputs, with stock assets cached outside the repository.
 
+`bun wisp play --standalone --four-fighters --frames 7200 --out DIR` is
+wisp#48's frame-rate measurement. It runs one game copy, as live play does:
+Archer on the bot beat's keys against computer Rifleman, Illidan and Archer,
+99 stocks and a two-minute clock, so four fighters stay on stage. It prints
+the frame timing summary (the target is a p95 frame time of at most 16.7 ms);
+`DIR/standalone.json` keeps every frame's timing. Add `--headless` to run it
+without a window. Run it under an exclusive capacity lease.
+
 Add `--presentation native|pool-confirmed|pool-predicted` to select the map's
 fighter presentation. Live play defaults to `pool-predicted`; scripted play
 defaults to `native` and keeps the same authored pad driver in every profile.

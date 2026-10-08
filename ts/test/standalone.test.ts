@@ -32,6 +32,22 @@ test("standalone keyboard play runs a full three-stock Archer versus CPU Riflema
   } finally { session.close(); }
 });
 
+test("standalone four-fighter match keeps one human and three computers on stage", async () => {
+  const session = await createStandaloneSession({ fourFighters: true });
+  try {
+    const { client } = session;
+    expect(value(client, () => shell().game.stockCount)).toBe(99);
+    expect(value(client, () => shell().game.computerMask)).toBe(14);
+    expect(value(client, () => shell().game.characterChoices.slice(0, 4))).toEqual([Character.archer, Character.rifleman, Character.demonHunter, Character.archer]);
+    const x = value(client, () => shell().world.fighters[0]?.motion.x);
+    for (let frame = 0; frame < 600; frame++) session.step(NEUTRAL_INPUT);
+    expect(value(client, () => shell().world.fighters.filter(fighter => fighter !== undefined && fighter.status.stocks > 0).length)).toBe(4);
+    expect(value(client, () => shell().world.fighters[0]?.motion.x)).not.toBe(x);
+    expect(session.finished()).toBe(false);
+    expect(client.errors).toEqual([]);
+  } finally { session.close(); }
+});
+
 /** The standalone CPU fixture's confirmed checksum equals the native pad driver's on each of the first `frames` frames. */
 async function matchesNativeDriver(frames: number): Promise<void> {
   const script = readFileSync(new URL("./native/pads/cpu-expert.pad", import.meta.url), "utf8");
@@ -64,6 +80,8 @@ test("standalone CPU fixture matches the native pad driver over its first 300 fr
 sweep("standalone CPU fixture matches the native pad driver at all 1070 frames", () => matchesNativeDriver(1070), 120000);
 
 test("standalone arguments require a complete headless capture", () => {
+  expect(standaloneArguments(["--standalone", "--four-fighters", "--frames", "7200", "--out", "build/four"])).toEqual({ fourFighters: true, headless: false, frames: 7200, out: "build/four" });
+  expect(() => standaloneArguments(["--four-fighters", "--script", "a.pad"])).toThrow("--four-fighters plays its own inputs");
   expect(standaloneArguments(["--standalone", "--headless", "--frames", "1070", "--out", "build/cpu", "--capture-frames", "200,600,1000"])).toEqual({ headless: true, frames: 1070, out: "build/cpu", captureFrames: [200, 600, 1000] });
   expect(() => standaloneArguments(["--headless"])).toThrow("--headless needs");
 });
