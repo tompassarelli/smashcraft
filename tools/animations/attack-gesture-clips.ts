@@ -19,7 +19,6 @@ const PLAN: Readonly<Record<number, readonly HeroPose[]>> = {
   4: ["jab", "jab2", "upTilt", "upSmash", "neutralAir", "upAir", "backAir", "dashAttack", "forwardAir"],
   5: ["jab3", "forwardTiltDown", "downTilt", "neutralAir", "backAir", "downSmash", "dashAttack", "forwardAir", "upSmash", "upAir"],
   6: ["forwardTiltDown", "downTilt", "backAir", "downSpecial", "forwardTilt", "forwardTiltUp", "upTilt", "forwardSmash", "upSmash", "downSmash", "dashAttack", "forwardAir", "upAir"],
-  7: ["jab2", "downTilt", "neutralAir", "forwardTiltUp", "forwardTiltDown", "forwardSmash", "downSmash", "dashAttack", "forwardAir", "upSmash", "upAir"],
   8: ["jab2", "jab3", "downTilt", "forwardSmash", "forwardAir", "backAir", "upAir", "upTilt", "neutralAir"],
   9: ["jab3", "forwardTilt", "forwardTiltUp", "upTilt", "dashAttack", "forwardAir", "upSmash", "upAir", "forwardSmash"],
   10: ["forwardTilt", "forwardAir", "upAir", "neutralAir"],

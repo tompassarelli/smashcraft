@@ -2,7 +2,9 @@
 // composed from the services in smashcraft:ts/scripts/wisp/ and prints how
 // long each of its steps took.
 // Usage (from ts/): bun wisp COMMAND [ARGUMENTS]
-import { Cause, Effect, Exit, Option } from "effect";
+import { BunRuntime } from "@effect/platform-bun";
+import { Cause, Effect, Exit } from "effect";
+import type { Teardown } from "effect/Runtime";
 import type { Command } from "wisp/scripts/wisp/command";
 import { step, timingsLayer } from "wisp/scripts/wisp/timings";
 
@@ -11,7 +13,7 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   hot: { usage: "hot --data DIR [--data DIR ...] [--watch] [--profile main|integrity|playable|native-perf|physics-probe|frame-cost|stack-trace]", load: async () => (await import("./wisp/commands/hot")).hot },
   map: { usage: "map build --name NAME --out OUT.w3x [--base BASE.w3m] [--container MAP.w3x] [--assets DIR] [--summon DIR] [--packager PATH] [--profile NAME] | map rebuild MAP.w3x [--profile NAME]", load: async () => (await import("./wisp/commands/map")).map },
   inputs: { usage: "inputs add FAMILY PATH | check | path [base|container|assets|summon]   (content-addressed private build inputs named by build-inputs.json: docs/build-inputs.md)", load: async () => (await import("./wisp/commands/inputs")).inputs },
-  fresh: { usage: "fresh MAP.w3x [--rebuild] [--no-quick] [--profile main|integrity|playable|native-perf|physics-probe|frame-cost|stack-trace]", load: async () => (await import("./wisp/commands/fresh")).fresh },
+  fresh: { usage: "fresh MAP.w3x [--rebuild] [--no-quick] [--profile main|integrity|playable|native-perf|physics-probe|frame-cost|stack-trace] [--clients-file FILE]", load: async () => (await import("./wisp/commands/fresh")).fresh },
   oracle: { usage: "oracle", load: async () => (await import("./wisp/commands/oracle")).oracle },
   agency: { usage: "agency [--attacker Archer|Rifleman|Illidan]... [--out FILE]", load: async () => (await import("./wisp/commands/agency")).agency },
   interactions: { usage: "interactions [--check | --move FIGHTER:MOVE]", load: async () => (await import("./wisp/commands/interactions")).interactions },
@@ -30,11 +32,11 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   controller: { usage: "controller   (Tom's Xbox controller for any Smashcraft session on his desktop: points the always-on controller service at main's helper, or runs it here)", load: async () => (await import("./wisp/commands/controller")).controller },
   tune: { usage: "tune --data DIR [--data DIR ...] [--port N] [--profile main|integrity|playable|native-perf|physics-probe|frame-cost|stack-trace]", load: async () => (await import("./wisp/commands/tune")).tune },
   repro: { usage: "repro FILE [--view] [--test NAME] [--shrink [--out FILE]] [--frame N --out FILE] [--diff-frame N|previous]", load: async () => (await import("./wisp/commands/repro")).repro },
-  replay: { usage: "replay FILE [--out JOINED]   (LUA=<32-bit lua>)", load: async () => (await import("./wisp/commands/replay")).replay },
-  pad: { usage: "pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat=TEXT] [--map MAP.w3x [--retries N]] | pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT] [--compare NATIVE_DIR] [--render DIR --frames N...] | pad SCRIPT|DIR... --helper BINARY --out DIR (--map MAP.w3x [--pairs N | --pair K...] [--fresh-each] | --headless) [--headless-jobs N]   (timed virtual-pad edges through the real helpers; native vs headless parity; scripts/integrity/padScript.ts)", load: async () => (await import("./wisp/commands/pad")).pad },
+  replay: { usage: "replay FILE [--out JOINED]", load: async () => (await import("./wisp/commands/replay")).replay },
+  pad: { usage: "pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat=TEXT] [--map MAP.w3x [--retries N]] [--clients-file FILE] | pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT] [--compare NATIVE_DIR] [--render DIR --frames N...] | pad SCRIPT|DIR... --helper BINARY --out DIR (--map MAP.w3x [--pairs N | --pair K... | --clients-file FILE] [--fresh-each] | --headless) [--headless-jobs N]   (timed virtual-pad edges through the real helpers; native vs headless parity; scripts/integrity/padScript.ts)", load: async () => (await import("./wisp/commands/pad")).pad },
   accept: { usage: "accept [--only ID...] [--pair K...] [--map MAP.w3x] [--dry-run] [--out DIR]   (the declared native checks, batched: scripts/wisp/acceptChecks.ts)", load: async () => (await import("./wisp/commands/accept")).accept },
-  farm: { usage: "farm balance [--ref REF] [--opponent ID] [--tier TIER] [--per-pair N] [--seeds N] [--wait] | farm pads [--ref REF] [--only DIR]... [--wait] | farm perf [\"RUN ARGS\" ...] [--ref REF] [--out DIR] | farm memory [--ref REF] [--minutes N] [--wait]   (headless work on GitHub's free runners: .github/workflows/balance.yml, headless-pads.yml, perf.yml, memory-soak.yml)", load: async () => (await import("./wisp/commands/farm")).farm },
-  perf: { usage: "perf [quick-match|bot|bot-four|playable-bot-four] [--frames N] [--samples] [--out FILE] | perf compare A B [--threshold SHARE] | perf budget RUN_FILE [--p99 MS] [--worst MS] | perf profile RUN [--worst-frames N] | perf census [--fighter NAME] [--stage ID] [--rise-ms MS] [--jobs N] [--functions] [--out FILE]   (LUA=<32-bit lua>)", load: async () => (await import("./wisp/commands/perf")).perf },
+  farm: { usage: "farm test [--ref REF] [--wait] | farm balance [--ref REF] [--opponent ID] [--tier TIER] [--per-pair N] [--seeds N] [--wait] | farm pads [--ref REF] [--only DIR]... [--wait] | farm perf [\"RUN ARGS\" ...] [--ref REF] [--out DIR] | farm memory [--ref REF] [--minutes N] [--wait]   (headless work on GitHub's free runners: .github/workflows/farm-test.yml, balance.yml, headless-pads.yml, perf.yml, memory-soak.yml)", load: async () => (await import("./wisp/commands/farm")).farm },
+  perf: { usage: "perf [quick-match|bot|bot-four|playable-bot-four] [--frames N] [--samples] [--out FILE] | perf compare A B [--threshold SHARE] | perf budget RUN_FILE [--p99 MS] [--worst MS] | perf profile RUN [--worst-frames N] | perf census [--fighter NAME] [--stage ID] [--rise-ms MS] [--jobs N] [--functions] [--out FILE]", load: async () => (await import("./wisp/commands/perf")).perf },
 };
 
 const [name, ...args] = process.argv.slice(2);
@@ -54,11 +56,21 @@ if (name === "play") {
   }
 }
 const command = await entry.load();
-const exit = await Effect.runPromiseExit(command(args).pipe(step(name), Effect.provide(timingsLayer((line) => console.error(line)))));
-if (Exit.isFailure(exit)) {
-  const failure = Cause.findErrorOption(exit.cause);
-  if (Option.isNone(failure)) console.error(Cause.pretty(exit.cause));
-  else console.error(failure.value._tag === "UsageFailure" ? `${failure.value.message}\nusage: bun wisp ${entry.usage}` : failure.value.message);
-  process.exit(Option.isSome(failure) && failure.value._tag === "UsageFailure" ? 2 : 1);
-}
-process.exit(0);
+// Commands can leave watchers or servers open, so the entry always exits itself.
+const teardown: Teardown = (exit) => {
+  if (Exit.isFailure(exit)) {
+    if (!Cause.hasInterruptsOnly(exit.cause)) console.error(Cause.pretty(exit.cause));
+    process.exit(Cause.hasInterruptsOnly(exit.cause) ? 130 : 1);
+  }
+  process.exit();
+};
+// runMain interrupts the command on SIGINT or SIGTERM, so its finalizers stop
+// every helper, pad and child before the process exits (docs/typescript.md, "Host tools").
+BunRuntime.runMain(command(args).pipe(
+  step(name),
+  Effect.provide(timingsLayer((line) => console.error(line))),
+  Effect.catch((failure) => Effect.sync(() => {
+    console.error(failure._tag === "UsageFailure" ? `${failure.message}\nusage: bun wisp ${entry.usage}` : failure.message);
+    process.exitCode = failure._tag === "UsageFailure" ? 2 : 1;
+  })),
+), { disableErrorReporting: true, teardown });

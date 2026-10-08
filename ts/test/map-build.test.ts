@@ -14,6 +14,12 @@ const bundle = { text: "return { start = function() end }", key: "1-2" };
 
 test("the installed TypeScript toolchain matches typescript-toolchain.lock", async () => {
   await Effect.runPromise(verifyToolchain(join(project, "typescript-toolchain.lock"), join(project, "ts")));
+  // Wisp's check predates the host tools' platform package (docs/typescript.md, "Host tools").
+  const locked = Bun.TOML.parse(await Bun.file(join(project, "typescript-toolchain.lock")).text());
+  const declared = (await Bun.file(join(project, "ts/package.json")).json()).devDependencies["@effect/platform-bun"];
+  const installed = async (name: string) => (await Bun.file(join(project, "ts/node_modules", name, "package.json")).json()).version;
+  const version = locked["effectPlatformBun"];
+  expect({ declared, bun: await installed("@effect/platform-bun"), shared: await installed("@effect/platform-node-shared") }).toEqual({ declared: version, bun: version, shared: version });
 });
 
 test("a TypeScript-only map starts the TypeScript entry with its own config, before and after a rebuild", () => {

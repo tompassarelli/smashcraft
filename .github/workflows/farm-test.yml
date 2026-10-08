@@ -1,0 +1,223 @@
+name: Farm test
+
+# The full Bun and 32-bit Lua suites for one commit on free hosted runners,
+# sharded by each test file's (Bun) or test's (Lua) measured time
+# (wisp:docs/farm.md). `bun wisp farm test` dispatches it and prints the
+# summary the merge job uploads.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Commit, branch or tag to test
+        default: main
+      tag:
+        description: Names the run so `bun wisp farm test` can find the one it dispatched
+        default: ""
+
+run-name: Farm test ${{ inputs.ref }} ${{ inputs.tag }}
+
+permissions:
+  contents: read
+
+env:
+  BUN_SHARDS: 6
+  # Lua runs one core a process: each Lua job runs LUA_PER_JOB shards at once.
+  LUA_JOBS: 8
+  LUA_PER_JOB: 4
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      sha: ${{ steps.plan.outputs.sha }}
+      bun: ${{ steps.plan.outputs.bun }}
+      lua: ${{ steps.plan.outputs.lua }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-install-${{ hashFiles('ts/bun.lock') }}
+      - run: bun install --frozen-lockfile
+        working-directory: ts
+      # Every run saves its measurements under a new key; the newest restores here.
+      - uses: actions/cache/restore@v4
+        with:
+          path: ts/farm-timings.json
+          key: farm-test-timings-${{ github.run_id }}
+          restore-keys: farm-test-timings-
+      - id: plan
+        working-directory: ts
+        run: |
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          bun node_modules/wisp/scripts/wisp/farmShards.ts plan --timings farm-timings.json --bun "$BUN_SHARDS" --lua $((LUA_JOBS * LUA_PER_JOB)) $(bun scripts/test.ts --units) > plan.json
+          echo "bun=$(jq -c '[range(.bun | length)]' plan.json)" >> "$GITHUB_OUTPUT"
+          echo "lua=$(jq -c "[range($LUA_JOBS)]" -n)" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: farm-test-plan
+          path: ts/plan.json
+          retention-days: 3
+
+  bun:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.plan.outputs.bun) }}
+    name: bun ${{ matrix.shard }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-install-${{ hashFiles('ts/bun.lock') }}
+      - run: bun install --frozen-lockfile
+        working-directory: ts
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/wisp/lua32
+          key: wisp-lua32-${{ hashFiles('ts/node_modules/wisp/scripts/wisp/lua32.ts', 'ts/node_modules/wisp/native/toward-zero.h') }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: farm-test-plan
+          path: ts
+      - name: Test shard ${{ matrix.shard }}
+        working-directory: ts
+        run: |
+          set +e
+          mkdir -p build/junit
+          bun scripts/test.ts $(jq -r ".bun[${{ matrix.shard }}][]" plan.json)
+          code=$?
+          bun node_modules/wisp/scripts/wisp/farmShards.ts junit --shard ${{ matrix.shard }} --exit-code "$code" build/junit/*.xml > result.json
+          exit "$code"
+        env:
+          TEST_JUNIT_DIR: build/junit
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: farm-test-result-bun-${{ matrix.shard }}
+          path: ts/result.json
+          retention-days: 3
+
+  lua:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        job: ${{ fromJSON(needs.plan.outputs.lua) }}
+    name: lua32 ${{ matrix.job }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-install-${{ hashFiles('ts/bun.lock') }}
+      - run: bun install --frozen-lockfile
+        working-directory: ts
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/wisp/lua32
+          key: wisp-lua32-${{ hashFiles('ts/node_modules/wisp/scripts/wisp/lua32.ts', 'ts/node_modules/wisp/native/toward-zero.h') }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: farm-test-plan
+          path: ts
+      - name: Compile the Lua test bundle
+        working-directory: ts
+        run: bun scripts/lua-tests.ts
+        env:
+          LUA_TESTS_STEP: compile
+      # Job 0 also runs the stack-trace check, a bundle of its own.
+      - name: Test shards
+        working-directory: ts
+        run: |
+          LUA=$(bun node_modules/wisp/scripts/wisp/lua32.ts stock)
+          set +e
+          bun node_modules/wisp/scripts/wisp/farmShards.ts lua-plan plan.json > build/lua-plan.tsv
+          count=$((LUA_JOBS * LUA_PER_JOB))
+          pids=()
+          for slot in $(seq 0 $((LUA_PER_JOB - 1))); do
+            shard=$((${{ matrix.job }} * LUA_PER_JOB + slot))
+            ( LUA_SHARD="$shard/$count" LUA_SHARD_PLAN=build/lua-plan.tsv LUA_TEST_RESULT="build/lua-$shard.tsv" "$LUA" build/lua-tests/tests.lua > "build/lua-$shard.log" 2>&1
+              code=$?
+              bun node_modules/wisp/scripts/wisp/farmShards.ts lua --shard "$shard" --exit-code "$code" "build/lua-$shard.tsv" > "result-lua-$shard.json"
+              exit "$code" ) &
+            pids+=($!)
+          done
+          if [ "${{ matrix.job }}" = 0 ]; then
+            ( started=$(date +%s); LUA_TESTS_STEP=stack bun scripts/lua-tests.ts > build/lua-stack.log 2>&1; code=$?
+              printf '%s\t%s\tstack-trace profile TypeScript frames\n' "$([ $code = 0 ] && echo pass || echo fail)" "$(( $(date +%s) - started ))" > build/lua-stack.tsv
+              bun node_modules/wisp/scripts/wisp/farmShards.ts lua --shard 0 --exit-code "$code" build/lua-stack.tsv > result-lua-stack.json
+              exit "$code" ) &
+            pids+=($!)
+          fi
+          failed=0
+          for pid in "${pids[@]}"; do wait "$pid" || failed=1; done
+          for log in build/lua-*.log; do echo "== $log"; cat "$log"; done
+          exit "$failed"
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: farm-test-result-lua-${{ matrix.job }}
+          path: ts/result-lua-*.json
+          retention-days: 3
+
+  merge:
+    needs: [plan, bun, lua]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-install-${{ hashFiles('ts/bun.lock') }}
+      - run: bun install --frozen-lockfile
+        working-directory: ts
+      - uses: actions/cache/restore@v4
+        with:
+          path: ts/farm-timings.json
+          key: farm-test-timings-${{ github.run_id }}
+          restore-keys: farm-test-timings-
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: farm-test-*
+          path: ts/farm
+      - working-directory: ts
+        run: bun node_modules/wisp/scripts/wisp/farmShards.ts merge --plan farm/farm-test-plan/plan.json --timings farm-timings.json --out summary.json $(find farm -name 'result*.json')
+      - uses: actions/upload-artifact@v4
+        with:
+          name: farm-test-summary
+          path: ts/summary.json
+          retention-days: 7
+      - uses: actions/cache/save@v4
+        with:
+          path: ts/farm-timings.json
+          key: farm-test-timings-${{ github.run_id }}

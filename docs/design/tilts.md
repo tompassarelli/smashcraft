@@ -462,6 +462,6 @@ smashcraft:ts/src/game/sim/heroes/groundNormals.ts):
   tilt's farthest drawn point. drawn-reach.test.ts checks every chain step
   against the forward tilt's `forward` reach.
 - A chain's finisher may take a longer slice than its opener.
-- Archer's low kick slices her sliding kick's sequence.
+- Archer's low kick slices her down tilt's floor sweep.
 - Lich's model barely moves before his forward tilt's reach, so his slap is
   the one jab allowed to swing less than 30 units (25-26).

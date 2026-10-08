@@ -23,7 +23,8 @@
         "name": "@effect/language-service",
         "diagnostics": true,
         "includeSuggestionsInTsc": true,
-        "ignoreEffectSuggestionsInTscExitCode": true
+        "ignoreEffectSuggestionsInTscExitCode": true,
+        "allowedUnstableApis": ["effect/process"]
       },
       {
         "name": "wisp/plugins/number-rules-service.cjs",

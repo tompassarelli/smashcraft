@@ -120,7 +120,7 @@ async function wisp(args: readonly string[], log: string): Promise<number> {
 
 /** A new game on the pair, stopped at fighter selection: `bun wisp fresh MAP --no-quick`, or `bun wisp lan fresh MAP --pair K`. */
 const newGame = (pair: PadPair, map: string, log: string) => Effect.gen(function*() {
-  const args = pair.lan === undefined ? ["fresh", map, "--no-quick"] : ["lan", "fresh", map, "--pair", String(pair.lan)];
+  const args = pair.lan === undefined ? ["fresh", map, "--no-quick", "--clients-file", pair.clients] : ["lan", "fresh", map, "--pair", String(pair.lan)];
   for (let attempt = 0; attempt < 2; attempt++) {
     const started = Date.now();
     if ((yield* Effect.promise(() => wisp(args, `${log}.${attempt}`))) === 0) {
@@ -336,7 +336,7 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
           }
           return yield* nativeScript(session, padOptions);
         });
-        const ran = yield* Effect.exit(pair.lan === undefined ? onHealthyClients(play, { retry: false }) : play);
+        const ran = yield* Effect.exit(pair.lan === undefined ? onHealthyClients(play, { retry: false, clientsFile: pair.clients }) : play);
         made.run += seconds(at);
         // An edge off its frame or a stopped helper still leaves a match the next script can reset; anything else may not.
         outcome = ran._tag === "Success" ? ran.value : Cause.pretty(ran.cause).includes("edges off their frame") ? "failed" : "broken";

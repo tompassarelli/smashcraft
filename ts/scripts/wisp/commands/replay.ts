@@ -12,6 +12,7 @@ import { type Command, UsageFailure, describeCause, flagValues } from "wisp/scri
 import { captureProcess } from "wisp/scripts/wisp/mapBuild";
 import { step } from "wisp/scripts/wisp/timings";
 import { type MatchReplayResult, parseReplayHeader, replayMatch } from "../../../src/game/replay/matchReplay";
+import { stockLua } from "../luaRuntimes";
 import { readReplay } from "../replayFiles";
 
 const ts = join(import.meta.dir, "../../..");
@@ -66,8 +67,8 @@ const report = (runtime: string, result: MatchReplayResult) => [
 ];
 
 /** Replays the joined replay in 32-bit Lua; `file` holds its lines. */
-export const replayInLua = (file: string, lua = process.env.LUA) => Effect.gen(function*() {
-  if (lua === undefined) return yield* new ReplayFailure({ problem: "set LUA to a 32-bit Lua executable" });
+export const replayInLua = (file: string, given?: string) => Effect.gen(function*() {
+  const lua = given ?? (yield* stockLua.pipe(Effect.mapError((problem) => new ReplayFailure({ problem }))));
   yield* Effect.tryPromise({ try: compileReplayLua, catch: (cause) => new ReplayFailure({ problem: `compiling the Lua replayer: ${describeCause(cause)}` }) }).pipe(step("compile Lua replayer"));
   const { stdout, stderr, exitCode } = yield* captureProcess("replay in 32-bit Lua", file, [lua, replayLua], { env: { ...process.env, REPLAY_FILE: file } }).pipe(
     Effect.mapError((cause) => new ReplayFailure({ problem: describeCause(cause) })),

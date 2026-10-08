@@ -7,7 +7,7 @@
 // Prints the totals, or each runtime pair's first divergent frame and field.
 // smashcraft:ts/scripts/wisp/acceptanceTapes.ts records the tapes fresh
 // each run; every runtime then replays the same recorded rows.
-// Environment: LUA, a stock LUA_32BITS lua; TOWARD_ZERO_LUA, optional.
+// Environment: LUA and TOWARD_ZERO_LUA, optional (scripts/wisp/luaRuntimes.ts).
 import "../../../test/host-natives";
 import { join } from "node:path";
 import { Console, Effect, Schema } from "effect";
@@ -46,8 +46,6 @@ function runInBun(text: string): Run {
   return { records, error: result.ok ? undefined : `line ${result.line}: ${result.message}` };
 }
 
-const lua = process.env.LUA ?? "lua";
-
 async function inputsHash(paths: readonly string[], extra: string): Promise<string> {
   const hasher = new Bun.CryptoHasher("sha256");
   hasher.update(extra);
@@ -82,7 +80,7 @@ async function compileTypeScriptLua(): Promise<number> {
 }
 
 /** Two replay children bound pipe buffers while Bun replays on this thread. */
-export const replayInLua = (files: readonly string[], executable = lua) =>
+export const replayInLua = (files: readonly string[], executable: string) =>
   Effect.forEach(files, (file) =>
     captureProcess("replay in 32-bit Lua", file, [executable, tapesLua], { env: { ...process.env, TAPE_FILE: file } }).pipe(
       Effect.map(({ stdout, stderr, exitCode }): Run => ({
@@ -137,8 +135,8 @@ const isFrame = (operation: string | undefined) => operation === "frame" || oper
 const frameCount = (run: Run) => run.records.filter(record => isFrame(record.split(" ", 2)[1])).length;
 
 export const tapes: Command = (args) => Effect.gen(function*() {
-  if (args.length > 0) return yield* new UsageFailure({ problem: "tapes takes no arguments; set LUA to a 32-bit Lua" });
-  const luas = yield* luaRuntimes(ts).pipe(Effect.mapError((problem) => new TapesFailure({ problem })));
+  if (args.length > 0) return yield* new UsageFailure({ problem: "tapes takes no arguments; LUA and TOWARD_ZERO_LUA name optional 32-bit Luas" });
+  const luas = yield* luaRuntimes.pipe(Effect.mapError((problem) => new TapesFailure({ problem })));
   const tapes = yield* attempt("record tapes", async () => {
     await Bun.$`mkdir -p ${build}`;
     const recorded = [...generateTapes()].map(([name, text]) => ({ name, text, file: join(build, `${name}.tape`) }));

@@ -58,7 +58,7 @@ test("native setup failure retains INVALID at the selected chat boundary without
   const data = [join(root, "a"), join(root, "b")] as const;
   data.forEach(dir => mkdirSync(dir));
   const client = (name: string) => ({ name, documents: root, window: "0", x11: {}, wayland: {}, tools: { grim: "/unreachable", xdotool: "/unreachable", wlrctl: "/unreachable", tesseract: "/unreachable" } });
-  const session = { clients: [client("lan2a"), client("lan2b")], data, pads: [], build: "test", logs: () => ["", ""] } satisfies NativeSession;
+  const session = { clients: [client("lan2a"), client("lan2b")], data, pads: [], build: "test", logs: () => ["", ""], startedMs: 0 } satisfies NativeSession;
   const out = join(root, "out");
   writeFileSync(join(data[0], nativeChatFile("test", 0)), 'function PreloadFiles takes nothing returns nothing\ncall Preload( "SMASHCRAFT CHAT v=1 revision=1 available=0 open=0" )\nendfunction\n');
   try {

@@ -18,6 +18,7 @@ import { WARCRAFT_COST, nativeFrameCost } from "wisp/src/headless/nativeCost";
 import { SELECTABLE_CHARACTERS, fighterSlug } from "../../src/game/sim/heroes/registry";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
 import { CENSUS_STAGE } from "./census";
+import { stockLua } from "./luaRuntimes";
 import { tsDirectory } from "./project";
 
 /** An entry may rise this much above its baseline, in ms (#168). */
@@ -189,17 +190,19 @@ export interface CensusProject {
 const runOf = (entry: CensusEntry) => (entry.group === "stage" ? `census-stage-${entry.name}` : `census-${entry.group}`);
 
 /** Plays `run` of the perf program in 32-bit Lua with `bundle`'s map; with `profileFrames`, sampled on those frames instead of measured (censusProfile.ts). */
-export const runLua = (program: string, bundle: string, run: string, frames: number, profileFrames?: readonly number[]) => Effect.tryPromise({
-  try: async () => {
-    const lua = process.env.LUA ?? "lua";
-    const env = profileFrames === undefined ? process.env : { ...process.env, PERF_PROFILE_FRAMES: profileFrames.join(",") };
-    const child = Bun.spawn([lua, program, bundle, join(tsDirectory, "node_modules/wisp/src/natives/warcraft.d.ts"), run, String(frames), "samples"], { stdout: "pipe", stderr: "pipe", env });
-    const [out, err, code] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
-    if (code !== 0) throw new Error(`${run}: ${lua} exited ${code}: ${err}${out.split("\n").filter((line) => !line.startsWith("frame ")).join("\n")}`);
-    return out;
-  },
-  catch: (cause) => new PerfFailure({ problem: describeCause(cause) }),
-});
+export const runLua = (program: string, bundle: string, run: string, frames: number, profileFrames?: readonly number[]) => stockLua.pipe(
+  Effect.mapError((problem) => new PerfFailure({ problem })),
+  Effect.flatMap((lua) => Effect.tryPromise({
+    try: async () => {
+      const env = profileFrames === undefined ? process.env : { ...process.env, PERF_PROFILE_FRAMES: profileFrames.join(",") };
+      const child = Bun.spawn([lua, program, bundle, join(tsDirectory, "node_modules/wisp/src/natives/warcraft.d.ts"), run, String(frames), "samples"], { stdout: "pipe", stderr: "pipe", env });
+      const [out, err, code] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
+      if (code !== 0) throw new Error(`${run}: ${lua} exited ${code}: ${err}${out.split("\n").filter((line) => !line.startsWith("frame ")).join("\n")}`);
+      return out;
+    },
+    catch: (cause) => new PerfFailure({ problem: describeCause(cause) }),
+  })),
+);
 
 const runOne = (project: CensusProject, run: string, profileFrames?: readonly number[]) => runLua(project.program.bundle, project.map.bundle, run, 0, profileFrames);
 

@@ -31,7 +31,7 @@ const retimed = (index: number, seconds: number, startup: number, total: number,
 // roll and get-up attack. Only Illidan maps smashes and a dash attack.
 const ARCHER_CLIPS: HeroClipTable = {
   jab: clip(assets.ARCHER_JAB_INDEX, assets.ARCHER_JAB_SECONDS),
-  // The chain's low kick plays her sliding kick's sequence.
+  // The chain's low kick plays her down tilt's floor sweep.
   jab2: jabSlice({ index: assets.ARCHER_DOWN_TILT_INDEX }, f32(0.185)),
   grab: clip(assets.ARCHER_GRAB_INDEX, assets.ARCHER_GRAB_SECONDS),
   forwardTilt: clip(assets.ARCHER_FORWARD_TILT_INDEX, assets.ARCHER_FORWARD_TILT_SECONDS),
@@ -39,8 +39,8 @@ const ARCHER_CLIPS: HeroClipTable = {
   downTilt: clip(assets.ARCHER_DOWN_TILT_INDEX, assets.ARCHER_DOWN_TILT_SECONDS),
   forwardTiltUp: clip(assets.ARCHER_FORWARD_TILT_UP_INDEX, assets.ARCHER_FORWARD_TILT_UP_SECONDS),
   forwardTiltDown: clip(assets.ARCHER_FORWARD_TILT_DOWN_INDEX, assets.ARCHER_FORWARD_TILT_DOWN_SECONDS),
-  // The sliding kick plays the low sweep kick.
-  dashAttack: retimed(assets.ARCHER_DOWN_TILT_INDEX, assets.ARCHER_DOWN_TILT_SECONDS, 5, 28, ARCHER_GROUND, AttackStyle.dashAttack),
+  // The sliding kick plays her floor-skimming lunging kick, since the jab chain and down tilt already share the sweep.
+  dashAttack: retimed(assets.ARCHER_FORWARD_TILT_DOWN_INDEX, assets.ARCHER_FORWARD_TILT_DOWN_SECONDS, 5, 28, ARCHER_GROUND, AttackStyle.dashAttack),
   neutralAir: clip(assets.ARCHER_AERIAL_NEUTRAL_INDEX, assets.ARCHER_AERIAL_NEUTRAL_SECONDS),
   forwardAir: clip(assets.ARCHER_AERIAL_FORWARD_INDEX, assets.ARCHER_AERIAL_FORWARD_SECONDS),
   backAir: clip(assets.ARCHER_AERIAL_BACK_INDEX, assets.ARCHER_AERIAL_BACK_SECONDS),

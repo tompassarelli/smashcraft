@@ -100,6 +100,45 @@ Map Lua has 32-bit integers that wrap silently and binary32 numbers whose raw
 
 ## Shape the code
 
+### Host tools
+
+Bun-run code in smashcraft:ts/scripts/ that starts processes, waits, retries
+or reads outside data follows four rules (#240), so Ctrl-C, a killed run or a
+failed step stops every child and reports a typed error:
+
+1. **Processes belong to a scope.** Start children with Effect's
+   `ChildProcess.make(program, args, options)` (`effect/process`), provided by
+   `BunServices.layer` from `@effect/platform-bun`. When the scope closes, on
+   success, failure or interrupt, it sends SIGTERM to the child's process group
+   and waits up to 1 s (`forceKillAfter` escalates to SIGKILL). Run a program to
+   completion with `runProcess` (smashcraft:ts/scripts/hostProcess.ts): its
+   trimmed stdout, or a `ProcessFailure` with the exit code and stderr. Wisp's
+   `Command` type takes no services, so a command provides `BunServices.layer`
+   itself. Anything else the run creates (a pushed branch, a lease, a virtual
+   pad) is an `Effect.acquireRelease` registered before the step that makes it
+   visible.
+2. **One runtime boundary.** A script runs one program through
+   `BunRuntime.runMain` (`@effect/platform-bun`), never `Effect.runPromise` in
+   the middle: SIGINT or SIGTERM interrupts it and every finalizer runs before
+   the process exits (code 130).
+3. **Waits use Schedule.** Poll with `Effect.repeat({ schedule:
+   Schedule.spaced(…), until })` and retry with `Effect.retry({ schedule,
+   while })`, bounded by `Effect.timeout` or `Effect.timeoutOrElse` that fails
+   with the tool's error. No hand deadline loops or `Bun.sleep` polls.
+4. **Outside data is decoded, failures are tagged.** Read JSON files and tool
+   output with Schema's Effect decoders (`Schema.decodeUnknownEffect`,
+   `Schema.decodeEffect(Schema.fromJsonString(S))`), never bare `JSON.parse`;
+   fail with a `Schema.TaggedError`, never a thrown string.
+
+Examples: smashcraft:ts/scripts/wisp.ts (rule 2) and
+smashcraft:ts/scripts/hostProcess.ts (rule 1).
+smashcraft:ts/test/host-tools.test.ts checks both with stand-in programs: a
+SIGTERM to `bun wisp` leaves no child running, and `runProcess` stopped by
+`Effect.timeoutOrElse` leaves none either. The host type-check allows the
+unstable `effect/process` (`allowedUnstableApis` in smashcraft:ts/tsconfig.json),
+and smashcraft:typescript-toolchain.lock pins `@effect/platform-bun` (its
+`@effect/platform-node-shared` overridden to the same version) with Effect.
+
 ### Effect on the host
 
 Wisp's host tools use Effect for asynchronous orchestration: typed failures,
@@ -338,7 +377,7 @@ maxima of the last 120 frames. After each hot reload every client writes the
 `bun wisp hot --watch` and `bun wisp dev --data` print the change and flag a
 rise over 20%. The playable entry never imports the meter.
 
-`LUA=<32-bit lua> bun wisp perf [quick-match|bot|bot-four] [--frames N]`
+`bun wisp perf [quick-match|bot|bot-four] [--frames N]`
 plays a run in 32-bit Lua and prints each client's Lua instructions, Lua
 time, native calls, allocation and typed text per frame, and the frame's
 predicted cost in Warcraft (p50, p95, worst; [Wisp's model](https://github.com/tompassarelli/wisp/blob/main/docs/frame-cost.md#predicted-native-cost)).
@@ -577,15 +616,16 @@ From smashcraft:ts/:
   and the game's receipt writer, then
   restores the source in `finally` and checks it again. Cold startup has no
   latency gate; every check still fails CI on unexpected compiler errors.
-- `LUA=<32-bit lua> bun wisp parity numeric`: emitted Lua against Bun on
+- `bun wisp parity numeric`: emitted Lua against Bun on
   the numeric corpus, in that stock Lua32 and in one whose raw float `+ - *`
-  round toward zero (`TOWARD_ZERO_LUA`, or built in build/toward-zero-lua
-  with nix). The corpus includes `f32(a + b)`, `f32(a - b)` and `f32(a * b)`
+  round toward zero. `LUA` and `TOWARD_ZERO_LUA` name them; unset, each is
+  Wisp's pinned build, made once per user in ~/.cache/wisp/lua32
+  (wisp:scripts/wisp/lua32.ts). The corpus includes `f32(a + b)`, `f32(a - b)` and `f32(a * b)`
   as the compiler emits them.
 - `GAME_SOAK=1 bun test test/game.test.ts`: the long `*.soak.ts` scenarios,
   such as the 100000-frame replay tape, which the default suite leaves out.
   `GAME_SOAK=1` selects the same modules for `scripts/lua-tests.ts`.
-- Set `LUA=<32-bit lua>`, then run `bun wisp parity tapes` for replay acceptance
+- `bun wisp parity tapes` runs replay acceptance
   tapes. It records cases for every bound action, corrected predictions and a
   rematch, then compares canonical replay state and fighter poses after every
   frame in Bun and emitted Lua32, in the stock Lua32 and the toward-zero one
@@ -752,7 +792,7 @@ normal bundle's size and costs CPU
 (wisp:docs/stack-traces.md), so keep it out of playable and
 measurement builds. Frames cover this repository's TypeScript; Wisp's
 precompiled dispatch and reporter, and Warcraft natives, add none.
-`LUA=<32-bit lua> bun scripts/lua-tests.ts` compiles
+`bun scripts/lua-tests.ts` compiles
 smashcraft:ts/test/stack/entry.ts with the plugin and checks that the demo's
 report names its frames at the lines that executed them.
 

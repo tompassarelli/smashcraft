@@ -1165,7 +1165,8 @@ rifle-stock shove jab, a lunging bayonet thrust forward tilt (level, rising,
 low), an up tilt that swings the rifle overhead and on behind him, and a
 crouched floor sweep down tilt. His lunge dash attack replays the forward
 tilt, retimed to its own first active frame. Archer's down tilt is a
-crouching floor sweep, which her sliding dash attack replays.
+crouching floor sweep, which her second jab slices; her sliding dash attack
+replays the floor-skimming forward tilt, so no clip plays three of her attacks.
 
 The scenes to run it on are the editable scenes behind the shipped models
 (their packaged bytes reproduce the shipped hashes), kept with the private

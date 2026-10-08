@@ -1,4 +1,4 @@
-// `bun wisp accept [--only ID...] [--pair K... | --pairs N] [--dry-run] [--out DIR]`:
+// `bun wisp accept [--only ID...] [--pair K... | --pairs N | --clients-file FILE] [--dry-run] [--out DIR]`:
 // every open native check Smashcraft declares (smashcraft:ts/scripts/wisp/acceptChecks.ts),
 // run in as few fresh matches as their maps allow: on clients A and B, on one
 // offline pool pair (--pair K), or split over several pairs at once (--pair K
@@ -19,6 +19,7 @@ import { GameFiles } from "wisp/scripts/wisp/gameFiles";
 import { MAP_PROFILES, SMASHCRAFT_ACCEPT, type SmashcraftMapProfile } from "../acceptChecks";
 import { rebuildMap } from "../mapInputs";
 import { clientState, gameFilesLayer } from "../project";
+import { clientArguments } from "./client";
 import { freshMatch, readyAfter, sendDevCommand } from "./fresh";
 import { profileOptions } from "./map";
 import { onHealthyClients, readClientsFile, smashcraftWatch } from "../doctor";
@@ -92,7 +93,8 @@ const runShard = (pair: string, ids: readonly string[], directory: string, map?:
   catch: (cause) => new UsageFailure({ problem: `pair ${pair}: ${describeCause(cause)}` }),
 });
 
-export const accept: Command = (args) => Effect.gen(function*() {
+export const accept: Command = (rawArgs) => Effect.gen(function*() {
+  const { clientsFile, args } = yield* Effect.try({ try: () => clientArguments(rawArgs), catch: (cause) => cause instanceof UsageFailure ? cause : new UsageFailure({ problem: String(cause) }) });
   const [candidate] = flagValues(args, "map");
   if (candidate !== undefined && !existsSync(candidate)) return yield* new UsageFailure({ problem: `no built map ${candidate}` });
   const profiles: Readonly<Record<string, SmashcraftMapProfile>> = candidate === undefined ? MAP_PROFILES : Object.fromEntries(Object.entries(MAP_PROFILES).map(([name, { rebuild: _rebuild, ...profile }]) => [name, { ...profile, path: candidate }]));
@@ -107,7 +109,8 @@ export const accept: Command = (args) => Effect.gen(function*() {
     },
     catch: cause => new UsageFailure({ problem: describeCause(cause) }),
   });
-  const selectedClients = pair?.clients ?? clientState;
+  if (pair !== undefined && clientsFile !== clientState) return yield* new UsageFailure({ problem: "--clients-file and --pair select different clients; give one" });
+  const selectedClients = pair?.clients ?? clientsFile;
   const names = clientNames(selectedClients);
   const withoutMap = args.filter((arg, index) => arg !== "--map" && !arg.startsWith("--map=") && args[index - 1] !== "--map");
   const forwarded = requested.length > 1 ? withoutMap : withoutPairFlags(withoutMap);

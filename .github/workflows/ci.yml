@@ -39,29 +39,9 @@ jobs:
       # Replay tapes and the numeric corpus in a stock Lua32 and in one whose
       # raw float + - * round toward zero (wisp:docs/headless.md#raw-float-rounding):
       # both must equal Bun, so no raw float operation leaks past the exact helpers.
-      - name: Build stock and toward-zero 32-bit Luas
-        if: ${{ !cancelled() }}
-        working-directory: ts
-        run: |
-          mkdir -p build/lua-stock build/toward-zero-lua
-          curl -fsSL https://www.lua.org/ftp/lua-5.3.6.tar.gz -o build/lua-5.3.6.tar.gz
-          echo 'fc5fd69bb8736323f026672b1b7235da613d7177e72558893a0bdcd320466d60  build/lua-5.3.6.tar.gz' | sha256sum --check
-          tar -xzf build/lua-5.3.6.tar.gz -C build/lua-stock
-          tar -xzf build/lua-5.3.6.tar.gz -C build/toward-zero-lua
-          make -C build/lua-stock/lua-5.3.6 -j2 generic MYCFLAGS=-DLUA_32BITS
-          make -C build/toward-zero-lua/lua-5.3.6 -j2 generic "MYCFLAGS=-DLUA_32BITS -include $PWD/node_modules/wisp/native/toward-zero.h"
       - if: ${{ !cancelled() }}
         run: bun wisp parity tapes && bun wisp parity numeric
         working-directory: ts
-        env:
-          LUA: ${{ github.workspace }}/ts/build/lua-stock/lua-5.3.6/src/lua
-          TOWARD_ZERO_LUA: ${{ github.workspace }}/ts/build/toward-zero-lua/lua-5.3.6/src/lua
-      # A keyboard match in the playable build (#166) reaches its result, and its replay replays to every recorded checksum in 32-bit Lua too (#141).
-      - if: ${{ !cancelled() }}
-        run: bun test test/replay.test.ts test/map-replay.test.ts
-        working-directory: ts
-        env:
-          LUA: ${{ github.workspace }}/ts/build/lua-stock/lua-5.3.6/src/lua
       # Frame-cost landing gate (#48, #168): the playable build's four-fighter bot match,
       # each frame's cost predicted from counts (not time), may not rise beyond 5%
       # over the committed baseline. After an intended rise or a cut, rewrite the
@@ -71,8 +51,6 @@ jobs:
       - if: ${{ !cancelled() }}
         run: bun wisp perf playable-bot-four --samples --out build/playable-bot-four.perf && bun wisp perf compare test/fixtures/perf/playable-bot-four.perf build/playable-bot-four.perf && bun wisp perf budget build/playable-bot-four.perf
         working-directory: ts
-        env:
-          LUA: ${{ github.workspace }}/ts/build/lua-stock/lua-5.3.6/src/lua
 
   lua-tests:
     runs-on: ubuntu-latest
@@ -95,19 +73,10 @@ jobs:
           bun-version: 1.3.13
       - run: bun install --frozen-lockfile
         working-directory: ts
-      - name: Build stock 32-bit Lua
-        working-directory: ts
-        run: |
-          mkdir -p build/lua-stock
-          curl -fsSL https://www.lua.org/ftp/lua-5.3.6.tar.gz -o build/lua-5.3.6.tar.gz
-          echo 'fc5fd69bb8736323f026672b1b7235da613d7177e72558893a0bdcd320466d60  build/lua-5.3.6.tar.gz' | sha256sum --check
-          tar -xzf build/lua-5.3.6.tar.gz -C build/lua-stock
-          make -C build/lua-stock/lua-5.3.6 -j2 generic MYCFLAGS=-DLUA_32BITS
       # These disjoint partitions run every original module; auxiliary memory
       # and stack checks run once with the remainder.
       - run: bun scripts/lua-tests.ts
         working-directory: ts
         env:
-          LUA: ${{ github.workspace }}/ts/build/lua-stock/lua-5.3.6/src/lua
           GAME_TESTS: ${{ matrix.game-tests }}
           GAME_TESTS_EXCLUDE: ${{ matrix.game-tests-exclude }}

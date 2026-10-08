@@ -2,6 +2,9 @@ import { readFileSync } from "node:fs";
 import { availableParallelism } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { ISOLATED_TEST_GROUPS, testWorkerEnvironment } from "./testWorkers";
+import { runAdmitted } from "./heavyCapacity";
+
+await runAdmitted("heavy", "smashcraft:test", 1800);
 
 const project = resolve(import.meta.dir, "..");
 const files = [
@@ -11,6 +14,19 @@ const files = [
   .filter((file) => !file.startsWith("build/") && !file.split("/").some((part) => part === "node_modules" || part === ".git"))
   .sort();
 if (files.length === 0) throw new Error("No tests found");
+// `--units` prints what may be split across machines (`wisp farm test`): each
+// isolated group comma-joined, every other file alone. Files as arguments run
+// only those; TEST_JUNIT_DIR writes each process's JUnit report there.
+const [first, ...rest] = process.argv.slice(2);
+if (first === "--units") {
+  const grouped = ISOLATED_TEST_GROUPS.flat();
+  for (const group of ISOLATED_TEST_GROUPS) console.log(group.filter((file) => files.includes(file)).join(","));
+  for (const file of files.filter((file) => !grouped.includes(file))) console.log(file);
+  process.exit(0);
+}
+const only = [first, ...rest].filter((arg) => arg !== undefined).map((arg) => arg.replace(/^\.\//, ""));
+if (only.length > 0) files.splice(0, files.length, ...files.filter((file) => only.includes(file)));
+const junitDirectory = process.env.TEST_JUNIT_DIR;
 
 // Each isolated group gets its own process and the rest share one. CI's 6
 // CPUs bound the suite, so a process more only repeats module loading and JIT
@@ -49,7 +65,8 @@ const slots = Math.min(groups.length, Math.max(1, usableCpus() - 1));
 const started = performance.now();
 const codes: number[] = [];
 const runGroup = async (group: { readonly files: readonly string[] }): Promise<void> => {
-  const child = Bun.spawn([process.execPath, "test", ...group.files.map((file) => resolve(project, file))], {
+  const junit = junitDirectory === undefined ? [] : ["--reporter=junit", `--reporter-outfile=${resolve(junitDirectory, `${groups.indexOf(group)}.xml`)}`];
+  const child = Bun.spawn([process.execPath, "test", ...junit, ...group.files.map((file) => resolve(project, file))], {
     cwd: project,
     env: { ...process.env, ...testWorkerEnvironment(group.files) },
     stdout: "inherit",

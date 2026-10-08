@@ -67,10 +67,18 @@ export function requestedSetup(command: string, receipt: DevReceipt): boolean {
   return stage === undefined || receipt.phase === Phase.match && receipt.stage === stage;
 }
 
+/**
+ * A client's setup receipt, written since `sinceMs`. An older one is absent:
+ * it belongs to another session, or to an install the client's prefix was
+ * copied from, and may be in an older format.
+ */
+export const setupReceipt = (path: string, clientName: string, sinceMs: number) =>
+  tryIntegrity("read setup receipt", clientName, () => existsSync(path) && statSync(path).mtimeMs >= sinceMs ? { text: readFileSync(path, "latin1"), modified: statSync(path).mtimeMs } : undefined).pipe(Effect.flatMap((stored) => stored === undefined || preloadLines(stored.text) === undefined ? Effect.succeed(undefined) : DevCommandReceipt.decode(path, stored.text).pipe(Effect.map((value) => ({ value, modified: stored.modified })), Effect.mapError((cause) => new IntegrityFailure({ operation: "read setup receipt", path: clientName, cause })))));
+
 const setupCommand = (session: NativeSession, command: string, send: Effect.Effect<void, IntegrityFailure>) => Effect.gen(function*() {
   const targets = session.clients.map((client, slot) => {
     const path = join(at(session.data, slot), devCommandReceiptFile(session.build, slot));
-    const read = tryIntegrity("read setup receipt", client.name, () => existsSync(path) ? { text: readFileSync(path, "latin1"), modified: statSync(path).mtimeMs } : undefined).pipe(Effect.flatMap((stored) => stored === undefined || preloadLines(stored.text) === undefined ? Effect.succeed(undefined) : DevCommandReceipt.decode(path, stored.text).pipe(Effect.map((value) => ({ value, modified: stored.modified })), Effect.mapError((cause) => new IntegrityFailure({ operation: "read setup receipt", path: client.name, cause })))));
+    const read = setupReceipt(path, client.name, session.startedMs);
     type Stored = Exclude<Effect.Success<typeof read>, undefined>;
     return { client, read, requested: (current: Stored, before: Stored | undefined) => current.modified > (before?.modified ?? -1) && current.value.build === session.build && requestedSetup(command, current.value) };
   });
@@ -79,9 +87,9 @@ const setupCommand = (session: NativeSession, command: string, send: Effect.Effe
   return received.map((item, slot) => ({ client: session.clients[slot]?.name, modified: item.modified, ...item.value }));
 });
 
-const USAGE = "pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat=TEXT] [--map MAP.w3x [--retries N]]\n"
+const USAGE = "pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat=TEXT] [--map MAP.w3x [--retries N]] [--clients-file FILE]\n"
   + "       bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT] [--compare NATIVE_DIR] [--render DIR --frames N...]\n"
-  + "       bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR --map MAP.w3x [--pairs N | --pair K... | --app-id a=ID --app-id b=ID] [--headless-jobs N] [--fresh-each]\n"
+  + "       bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR --map MAP.w3x [--pairs N | --pair K... | --app-id a=ID --app-id b=ID] [--headless-jobs N] [--fresh-each] [--clients-file FILE]\n"
   + "       bun wisp pad SCRIPT|DIR... --headless --helper BINARY --out DIR [--headless-jobs N]";
 
 /** How long a capture waits for its client to draw its frame: about 3 s behind the helper's clock, past #156's worst lag (88 frames). */
@@ -183,6 +191,7 @@ export interface PadOptions {
 
 /** Helpers and virtual pads belong to one game, across all of its scripted matches. */
 export const nativeSession = (out: string, helper: string, build: string, appIds: ReadonlyMap<string, string>, clientsFile: string = clientState) => Effect.gen(function*() {
+  const startedMs = Date.now();
   const loaded = yield* loadClients(clientsFile).pipe(Effect.mapError(fromDesktop));
   if (loaded.length !== 2) return yield* new IntegrityFailure({ operation: "load clients", path: clientsFile, cause: `${loaded.length} clients, need 2` });
   const clients = [at(loaded, 0), at(loaded, 1)] as const;
@@ -203,7 +212,7 @@ export const nativeSession = (out: string, helper: string, build: string, appIds
   }
   const log = (slot: number) => readFileSync(join(out, `helper-${slot}.log`), "utf8");
   const logs = (): [string, string] => [log(SLOTS[0]), log(SLOTS[1])];
-  return { clients, data, pads, build, logs };
+  return { clients, data, pads, build, logs, startedMs };
 });
 
 export type NativeSession = Effect.Success<ReturnType<typeof nativeSession>>;
@@ -373,9 +382,9 @@ function invalidRun(names: readonly string[], documents: readonly string[], data
 }
 
 /** `bun wisp fresh MAP --no-quick`: a new game at fighter selection after a desynced run. */
-const freshGame = (map: string) => Effect.gen(function*() {
+const freshGame = (map: string, clientsFile: string) => Effect.gen(function*() {
   console.log(`starting a new game of ${map} for the rerun`);
-  const code = yield* Effect.promise(() => Bun.spawn(["bun", join(import.meta.dir, "../../wisp.ts"), "fresh", map, "--no-quick"], { stdout: "inherit", stderr: "inherit" }).exited);
+  const code = yield* Effect.promise(() => Bun.spawn(["bun", join(import.meta.dir, "../../wisp.ts"), "fresh", map, "--no-quick", "--clients-file", clientsFile], { stdout: "inherit", stderr: "inherit" }).exited);
   if (code !== 0) return yield* new IntegrityFailure({ operation: "start a new game", path: map, cause: `bun wisp fresh exited ${code}` });
 });
 
@@ -488,10 +497,12 @@ export const pad: Command = (args) => Effect.gen(function*() {
       headless: { type: "boolean" }, compare: { type: "string" }, retries: { type: "string" }, map: { type: "string" },
       render: { type: "string" }, frames: { type: "string" },
       pairs: { type: "string" }, pair: { type: "string", multiple: true }, pool: { type: "string" }, "fresh-each": { type: "boolean" }, "headless-jobs": { type: "string" },
+      "clients-file": { type: "string" },
     } }),
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
   const { helper, out, chat, compare } = parsed.values;
+  const clientsFile = parsed.values["clients-file"] ?? clientState;
   const renderFrames = parsed.values.frames?.split(",").map(Number);
   if (renderFrames !== undefined && (parsed.values.render === undefined || renderFrames.length === 0 || renderFrames.some((frame) => !Number.isInteger(frame) || frame < 0))) return yield* new UsageFailure({ problem: "--frames takes comma-separated whole frame numbers and needs --render DIR" });
   if (parsed.values.render !== undefined && (parsed.values.headless !== true || parsed.values.pairs !== undefined || (parsed.values.pair?.length ?? 0) > 0 || parsed.positionals.length !== 1 || parsed.positionals[0] === undefined || !existsSync(parsed.positionals[0]) || statSync(parsed.positionals[0]).isDirectory())) return yield* new UsageFailure({ problem: "pad --render DIR takes one existing script with --headless" });
@@ -516,13 +527,13 @@ export const pad: Command = (args) => Effect.gen(function*() {
     const retries = Number(parsed.values.retries ?? "3");
     const map = parsed.values.map;
     for (let attempt = 0; ; attempt++) {
-      const ran = yield* onHealthyClients(native(options, appIds).pipe(step("pad script")), { retry: false });
+      const ran = yield* onHealthyClients(native(options, appIds, clientsFile).pipe(step("pad script")), { retry: false, clientsFile });
       if (ran === "valid") return;
       if (map === undefined || attempt >= retries) {
         return yield* new IntegrityFailure({ operation: INVALID_RUN, path: out, cause: `desynced, rerun (${attempt + 1} attempt${attempt === 0 ? "" : "s"}${map === undefined ? "; --map MAP.w3x reruns it automatically" : ""})` });
       }
       console.log(`rerun ${attempt + 1} of ${retries}`);
-      yield* freshGame(map);
+      yield* freshGame(map, clientsFile);
     }
   }
   const ran = yield* Effect.exit(headless(options).pipe(step("headless pad script")));
@@ -553,9 +564,10 @@ const scriptBatch = (values: { readonly [name: string]: string | boolean | reado
     return yield* headlessBatch({ scripts, helper, build, out, headlessJobs, retries: Number(text("retries") ?? "2") });
   }
   if (helper === undefined || out === undefined || map === undefined || positionals.length === 0) {
-    return yield* new UsageFailure({ problem: "usage: bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR (--map MAP.w3x | --headless) [--build BUILD] [--pairs N | --pair K... [--pool POOL.json] | --app-id a=ID --app-id b=ID] [--retries N] [--headless-jobs N] [--fresh-each]" });
+    return yield* new UsageFailure({ problem: "usage: bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR (--map MAP.w3x | --headless) [--build BUILD] [--pairs N | --pair K... [--pool POOL.json] | --app-id a=ID --app-id b=ID] [--clients-file FILE] [--retries N] [--headless-jobs N] [--fresh-each]" });
   }
   const pairCount = text("pairs");
+  const clientsFile = text("clients-file") ?? clientState;
   const appIds = new Map<string, string>();
   for (const entry of Array.isArray(values["app-id"]) ? values["app-id"] : []) {
     const separator = entry.indexOf("=");
@@ -564,8 +576,8 @@ const scriptBatch = (values: { readonly [name: string]: string | boolean | reado
   const pairs = yield* Effect.try({
     try: () => {
       const ids = (Array.isArray(values.pair) ? values.pair : []).map(Number);
-      if (pairCount === undefined && ids.length === 0) return [{ name: "a+b", clients: clientState, appIds }];
-      return lanPairs(text("pool") ?? LAN_POOL_FILE, ids.length > 0 ? { ids } : { count: Number(pairCount) }).map((pair) => withTools(pair, clientState, out));
+      if (pairCount === undefined && ids.length === 0) return [{ name: "a+b", clients: clientsFile, appIds }];
+      return lanPairs(text("pool") ?? LAN_POOL_FILE, ids.length > 0 ? { ids } : { count: Number(pairCount) }).map((pair) => withTools(pair, clientsFile, out));
     },
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });

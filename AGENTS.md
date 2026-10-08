@@ -28,8 +28,9 @@ complete scope, and its "Rules for whoever picks this up" govern the work.
 - A problem that doesn't block a box goes in a new `priority:later` issue, not
   into the current one.
 - Don't re-run a passing check unless the code it covers changed.
-- Boxes marked (Tom) need Tom: prepare everything, ask once, keep working on
-  other boxes. Never build automated stand-ins for a human playtest.
+- Agents run every check, playtests included, by script or capture; Tom plays
+  only when he wants to, and anything he notices becomes an issue. Don't write
+  boxes that wait on Tom.
 - After two failed fixes on the same box, or about a day without progress, stop
   and tell Tom what fails, one recommended fix and its cost.
 - Keep each issue's Status section to 5 lines, edited in place, with at most
@@ -63,6 +64,14 @@ recovery clips and nine-way pain reactions. The project index of sources,
 with URLs, verified timestamps and rights, is
 smashcraft:docs/design/animation-reference.md. Reference pixels remain private.
 
+Host tools that Bun runs (commands, runners, builds, captures, farm jobs) are
+written as Effect programs when they start processes, wait, retry, hold a
+resource or parse outside data. Load the effect-development skill before
+designing one, and follow the four rules and examples in
+smashcraft:docs/typescript.md, "Host tools". Map code compiled to Lua
+stays plain TypeScript; pure calculations stay plain functions.
+smashcraft:ts/test/effect-host-tools.test.ts enforces this.
+
 Effect is the preferred foundation for Wisp's TypeScript tooling.
 Read smashcraft:.agents/skills/effect/SKILL.md for Effect work and for the
 weekly dependency/source update. The upstream repository is vendored at
@@ -76,8 +85,12 @@ development loop for Warcraft maps in TypeScript. Read
 warcraft-modding before changing TypeScript
 or code in a running game, and smashcraft:docs/typescript.md before writing map
 code. From smashcraft:ts/:
-- Logic: `bun run test`, plus `LUA=<32-bit lua> bun scripts/lua-tests.ts` for the
-  emitted Lua. `bun run check` type-checks.
+- Logic: run the tests a change affects locally (`bun wisp dev`), full suites
+  on the farm: `bun wisp farm test --wait` runs the full Bun suite (`bun run
+  test`) and the 32-bit Lua suite (`LUA=<32-bit lua> bun scripts/lua-tests.ts`)
+  for HEAD on GitHub's free runners and prints the counts and each failing
+  test (wisp:docs/farm.md). Don't run the full suites on this machine.
+  `bun run check` type-checks.
 - Every save: leave `bun wisp dev` running. It prints the saved files' type
   errors, the affected unit tests, the journeys (the quick match in two
   simulated clients and the affected journey tests) and the whole check, each
@@ -435,7 +448,10 @@ code. From smashcraft:ts/:
   selection (grid, stepping, opening picks) for players and computers, while
   measurement tools and named `-dev` commands keep every fighter. Empty
   unless the balance owner cuts a release build (smashcraft:docs/design/roster.md, "Balance gate").
-- Compute farm: `bun wisp farm balance [--ref REF] [--wait]` plays the
+- Compute farm: `bun wisp farm test [--ref REF] [--wait]` runs the full Bun
+  and 32-bit Lua suites, sharded by measured time
+  (smashcraft:.github/workflows/farm-test.yml).
+  `bun wisp farm balance [--ref REF] [--wait]` plays the
   balance gate's computer field (Wren Expert, 400 a pair; `--opponent`, `--tier`,
   `--per-pair`, `--seeds`) on GitHub's free hosted runners, a `cpuField
   --pairs` process a core over about 17 jobs, and with `--wait` prints the
@@ -518,7 +534,7 @@ code. From smashcraft:ts/:
   (smashcraft:docs/native-bot-session.md, "Many scripts in one game").
 - Pad cut (#233): `bun scripts/nativePadCut233.ts --pair N --clients-file FILE --helper WC3_CONTROLLER --map MAP --out DIR --app-id NAME=ID --app-id NAME=ID` uses one existing offline LAN pair, stops its own controller producer for 1 s, and checks the HUD waiting count and normal match results.
 - Keyboard timing: `bun scripts/nativeKeyboardPad.ts --script FILE --helper WC3_CONTROLLER --out DIR --clients-file FILE --client NAME --app-id ID`; `--observe` validates the same SDL stimulus without keyboard output. It records the original physical 60 Hz deadlines on CLOCK_MONOTONIC, separately from native simulation frames; this is playable draw timing, while journal parity remains `bun wisp pad`. Export the response probe after capture.
-- Native acceptance: `bun wisp accept [--only ID...] [--pair K... | --pairs N] [--map MAP.w3x] [--dry-run]` runs every
+- Native acceptance: `bun wisp accept [--only ID...] [--pair K... | --pairs N | --clients-file FILE] [--map MAP.w3x] [--dry-run]` runs every
   open native check declared in smashcraft:ts/scripts/wisp/acceptChecks.ts in
   as few fresh matches as their maps allow and prints pass, fail or
   needs-look per check with its evidence folder (wisp:docs/accept.md). `--pair K`
@@ -584,9 +600,18 @@ See smashcraft:docs/design/fighter-portraits.md.
 Every push runs the pre-push gate (smashcraft:.githooks/pre-push, enabled for
 the repository with `git config core.hooksPath .githooks`; safe-push runs it):
 `bun run check` and the type-escape audit (smashcraft:ts/test/source-shapes.test.ts)
-when the pushed commits change ts/, and client/ui's type-check when they change
-it, in a few seconds (smashcraft:ts/scripts/prePush.ts). It checks the working
-tree, so push from a clean checkout of the commit.
+when the pushed commits change ts/, the model facts check
+(smashcraft:ts/test/model-facts.test.ts; it refuses with the `bun wisp view models`
+refresh command) when they change clips or model build inputs, and client/ui's
+type-check when they change it, in a few seconds (smashcraft:ts/scripts/prePush.ts).
+It checks the working tree, so push from a clean checkout of the commit.
+
+Main stays green. Each CI run on main opens, updates or closes the one
+"main is red" issue (smashcraft:.github/workflows/main-red.yml), which lists the
+failing tests and the first failing commit; the pre-push gate prints that list
+on every push. A red main is not "already failing": before landing, check
+whether your change touches a listed test, and if your commit broke main, fix
+it first.
 
 From smashcraft:ts/, use `bun test test/game.test.ts` for focused game tests,
 `bun run check` for host and map type-checking, and
