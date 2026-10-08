@@ -61,7 +61,7 @@ export const decodeBuildOptions = (args: readonly string[]) => {
 const SELECTION_TEXTURES = [
   "SelectionBackdrop",
   "SelectionTileFrame", "SelectionCardRed", "SelectionCardBlue", "SelectionCardTeal", "SelectionCardPurple",
-  "SelectionCardGray", "SelectionAction", "StageBackdrop", "StageChip", "SelectionThreeBridges",
+  "SelectionCardGray", "SelectionAction", "StageBackdrop", "StageChip",
   "SelectionChipP1", "SelectionChipP2", "SelectionChipP3", "SelectionChipP4", "SelectionChipCPU",
   "HudPlate0", "HudPlate1", "HudPlate2", "HudPlate3",
 ] as const;
@@ -212,8 +212,12 @@ const PORTRAIT_CACHE = join(process.env.XDG_CACHE_HOME ?? join(homedir(), ".cach
  * The fighter portraits as BLP (#307), encoded from the TGAs
  * tools/selection/render-fighters.ts renders.
  */
+/** The portraits the map script names: the grid tile also without a slot, the card, bust and stock icon only in a slot's outfit (#286). */
+export const MAP_PORTRAITS: readonly string[] = RENDERED_FIGHTERS.flatMap((character) => PORTRAIT_KINDS.flatMap((kind) =>
+  [...(kind === "Tile" ? [undefined] : []), ...PARTICIPANT_SLOTS].map((slot) => fighterPortrait(character, kind, slot))));
+
 const portraitImports = (assets: string) => Effect.forEach(
-  RENDERED_FIGHTERS.flatMap((character) => PORTRAIT_KINDS.flatMap((kind) => [undefined, ...PARTICIPANT_SLOTS].map((slot) => fighterPortrait(character, kind, slot)))),
+  MAP_PORTRAITS,
   (entry) => Effect.gen(function*() {
     const source = join(assets, "fighter-renders", entry.replace("war3mapImported\\", "").replace(/\.blp$/, ".tga"));
     const bytes = yield* tryMapPromise("read portrait", source, () => Bun.file(source).bytes());

@@ -3,14 +3,13 @@ import { join } from "node:path";
 import { decodeBLP, getBLPImageData } from "war3-model";
 import { PORTRAIT_QUALITY, encodeBlp } from "../scripts/blp";
 import { readMapBaseline } from "../scripts/mapSize";
-import { PARTICIPANT_SLOTS } from "../src/game/input/participants";
-import { PORTRAIT_KINDS, RENDERED_FIGHTERS, fighterPortrait } from "../src/game/sim/heroes/registry";
+import { MAP_PORTRAITS } from "../scripts/wisp/mapInputs";
 
-/** Built-map bytes the 260 portraits may take; #307's decision on quality versus size sets it. */
+/** Built-map bytes the 221 portraits may take; #307's decision on quality versus size sets it. */
 const PORTRAIT_BUDGET = 12_500_000;
 
 test("portraits are imported as BLP and stay within their map budget in the committed size baseline [spec #307]", () => {
-  const names = RENDERED_FIGHTERS.flatMap((character) => PORTRAIT_KINDS.flatMap((kind) => [undefined, ...PARTICIPANT_SLOTS].map((slot) => fighterPortrait(character, kind, slot))));
+  const names = MAP_PORTRAITS;
   expect(names.filter((name) => !name.endsWith(".blp"))).toEqual([]);
   const baseline = readMapBaseline(join(import.meta.dir, "../map-size-baseline.tsv"));
   const rows = [...(baseline?.imports ?? new Map<string, number>())].filter(([entry]) => /Fighter(Card|Bust|Tile|Stock)/.test(entry));
