@@ -227,7 +227,7 @@ const label = (script: string, taken: Set<string>) => {
  * of each (`pad SCRIPT --headless`, new clients), all started now a few at a
  * time: they need nothing from the side they are compared with.
  */
-const prepare = (options: BatchOptions) => Effect.gen(function*() {
+const prepare = (options: BatchOptions, native = false) => Effect.gen(function*() {
   const taken = new Set<string>();
   const runs = yield* Effect.try({
     try: () => options.scripts.map((script): ScriptRun => {
@@ -242,6 +242,7 @@ const prepare = (options: BatchOptions) => Effect.gen(function*() {
     }),
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
+  if (native) yield* requireCaptureLease;
   const limit = limiter(options.headlessJobs);
   // A reference that slipped (an edge written late on a loaded host, a helper that
   // saw the match late) proves nothing about the other side: it runs again, twice at most.
@@ -305,13 +306,12 @@ const summarize = (out: string, runs: readonly ScriptRun[], reports: ScriptRepor
 
 /** Native scripts on every pair at once, each pair taking the next script when it is free. */
 export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() {
-  yield* requireCaptureLease;
-  const quietWindow = captureLoad();
   const { pairs, build, map, retries, freshEach, hot } = options;
   if (hot && build !== INTEGRITY_BUILD.id) return yield* new UsageFailure({ problem: `--hot reloads the integrity map's TypeScript; --build ${build} is another map` });
   const started = performance.now();
   mkdirSync(options.out, { recursive: true });
-  const { runs, report, compareLater, reports, compares } = yield* prepare(options);
+  const { runs, report, compareLater, reports, compares } = yield* prepare(options, true);
+  const quietWindow = captureLoad();
   let next = 0;
   const worker = (pair: PadPair) => Effect.scoped(Effect.gen(function*() {
     let previous: Parameters<typeof needsNewGame>[0] = "none";
