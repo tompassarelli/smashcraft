@@ -4,3 +4,4 @@ src/game/match/edgeRecovery.tests.ts	8	2.578
 src/game/presentation/impactState.tests.ts	9	0.149
 src/game/replay/history.tests.ts	11	2.627
 src/game/shell/pauseBarrier.tests.ts	3	0.000
+src/game/sim/heroes/sylvanas.tests.ts	26	0.270
