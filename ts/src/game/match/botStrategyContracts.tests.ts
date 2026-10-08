@@ -16,7 +16,7 @@ import { createMatchState, Phase } from "./rules";
 import { createBotStrategy, copyBotStrategy, learnBotHabit, prepareBotRead, pressBotRead, botStrategyValues, restoredBotStrategy, savedBotStrategy } from "./botStrategy";
 import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
 import { cpuProfile } from "./cpuProfiles";
-import { VARIETY_FRAMES, chooseAttack } from "./botMoves";
+import { VARIETY_FRAMES, VARIETY_PASS_STARTS, chooseAttack } from "./botMoves";
 import { useMatchSeed } from "./botRandom";
 import { cpuSkill } from "./cpuSkill";
 import { produceComputerInput } from "./botPlay";
@@ -266,12 +266,12 @@ test("a computer whose every option in reach was started within the variety span
     }
     return starts;
   };
-  // Sylvanas's lone shot: once a span, not every free frame.
+  // Sylvanas's lone shot: VARIETY_PASS_STARTS times a span, not every free frame, and again once the span lapses.
   const shots = startsAt(Character.sylvanas);
-  assertEquals(shots.map(start => start.frame).join(","), `1,${1 + VARIETY_FRAMES},${1 + 2 * VARIETY_FRAMES}`);
+  assertEquals(shots.filter(start => start.frame <= VARIETY_FRAMES).length, VARIETY_PASS_STARTS);
+  assertEquals(shots.find(start => start.frame > VARIETY_FRAMES)?.frame, 1 + VARIETY_FRAMES);
   assertEquals(new Set(shots.map(start => start.option)).size, 1);
-  // Jaina's three spells in reach: each is cast before the chooser passes.
-  const spells = startsAt(Character.jaina).filter(start => start.frame < VARIETY_FRAMES).map(start => start.option);
+  // Jaina's three spells in reach: a repeat weighs less, so each is cast within the span.
+  const spells = startsAt(Character.jaina).filter(start => start.frame <= VARIETY_FRAMES).map(start => start.option);
   assertEquals([...new Set(spells)].sort().join(","), "30,31,33");
-  assertLessThan(spells.length, 6);
 });

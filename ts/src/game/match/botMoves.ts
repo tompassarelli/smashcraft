@@ -335,7 +335,7 @@ export const VARIETY_FRAMES = 600;
 /** Weights are scaled by this before a repeat divides them, keeping them whole and above zero. */
 const VARIETY_SCALE = 12;
 /** When every option in reach was started this many times in the span, the chooser passes. */
-export const VARIETY_PASS_STARTS = 1;
+export const VARIETY_PASS_STARTS = 2;
 
 /** How many times `option` was started in the last VARIETY_FRAMES frames. */
 export function recentStarts(strategy: Readonly<BotStrategy>, option: number, frame: number): number {
@@ -353,8 +353,8 @@ let passedForVariety = false;
 /** Whether the last chooseAttack passed because nothing fresh was in reach; the computer then closes in instead of holding its spacing. */
 export const lastChoicePassedForVariety = (): boolean => passedForVariety;
 
-/** Each recent start divides an option's weight further: by 1, 4, 9, 16... for none, one, two, three starts. */
-const varietyDivisor = (starts: number): number => (1 + starts) * (1 + starts);
+/** Each recent start divides an option's weight further: by 1, 2, 3... for none, one, two starts. */
+const varietyDivisor = (starts: number): number => 1 + starts;
 
 /** Records a start, dropping the oldest. */
 function rememberStart(strategy: BotStrategy, option: number, frame: number): void {
