@@ -104,6 +104,40 @@ There are no ultimates. Shield + neutral/side Special requests EX: pay the chose
 
 ## Baseline fighter properties
 
+### Run and entry-dash ceiling (#333)
+
+No fighter's ordinary run or entry dash exceeds Captain Falcon's NTSC 1.02
+speed. The independently read numeric attributes in
+[retail-roster.json](../smash-melee-reference/retail-roster.json), fighter
+`captain_falcon`, record `PlCa.dat` +0x028 run speed as 2.299999952316284 and
++0x01C dash entry as 2.0 Melee units/frame. The field identities were checked
+read-only against `~/code/resources/melee:src/melee/ft/types.h`,
+`ftCo_DatAttrs`, revision `0296f009f32f710495979d30772d8332af2d411a`
+([source](https://github.com/doldecomp/melee/blob/0296f009f32f710495979d30772d8332af2d411a/src/melee/ft/types.h)).
+No gameplay implementation license is established for that reference;
+only independently recorded numerical facts and field identities are used.
+
+Smashcraft's existing scale is six world units per Melee unit at 60 logical
+frames/second (`WORLD_UNITS_PER_MELEE_UNIT` in `sim/tuning.ts`,
+[physics](../physics.md#initial-implementation-choices)). Binary32 scaling
+gives a run ceiling of **13.799999237060547 world units/frame** and dash-entry
+ceiling of **12 world units/frame**.
+
+The four over-limit fighters retain their strict speed order, above Shadow
+Hunter's unchanged 13.728 run and 11.856 dash: Blademaster < Dreadlord <
+Murloc < Warden. Their explicit overrides preserve the existing walk
+multiplier and all other movement properties.
+
+| Fighter | Run before → after | Entry dash before → after |
+| --- | ---: | ---: |
+| Blademaster | 14.256 → 13.74 | 12.312 → 11.892 |
+| Dreadlord | 14.520 → 13.76 | 12.540 → 11.928 |
+| Murloc | 14.784 → 13.78 | 12.768 → 11.964 |
+| Warden | 15.048 → 13.799999237060547 | 12.996 → 12 |
+
+Values in this table other than the ceiling are rounded for readability.
+Fighters already below the ceiling keep their existing values.
+
 Weight is relative to the current reference fighter at 1.00. Run speed is a multiplier on the existing reference; air speed is a multiplier on 1.00 Melee units a frame, the air-drift reference ([Air drift and jump momentum](../gameplay-design.md#air-drift-and-jump-momentum), #190); hurtbox dimensions are relative width and height. All fighters start with the same two jumps, with jump velocity and gravity inherited from the reference unless later testing explicitly changes them. Air speed does not change jump height. Size must match the visible model; trim collision capsules rather than counting weapons or flames as torso.
 
 | Hero | Weight | Run speed | Air speed | Width | Height |

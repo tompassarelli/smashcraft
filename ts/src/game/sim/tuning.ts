@@ -241,8 +241,8 @@ function heroPhysics(character: Character): FighterPhysics {
   const physics: FighterPhysics = {
     ...reference,
     weight: f32(REFERENCE_WEIGHT * body.weight),
-    dashSpeed: f32(reference.dashSpeed * body.run),
-    runSpeed: f32(reference.runSpeed * body.run),
+    dashSpeed: body.dashSpeed ?? f32(reference.dashSpeed * body.run),
+    runSpeed: body.runSpeed ?? f32(reference.runSpeed * body.run),
     walkSpeed: f32(reference.walkSpeed * body.run),
     airSpeed: f32(REFERENCE_AIR_SPEED * body.air),
   };
