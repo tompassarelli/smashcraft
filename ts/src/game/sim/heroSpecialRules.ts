@@ -81,7 +81,12 @@ function projectilesFit(f: Readonly<Fighter>, move: Readonly<AuthoredSpecial>): 
   const projectiles = move.projectiles ?? [];
   if (projectiles.length === 0) return true;
   if (ownedCount(f, undefined) + projectiles.length > HERO_PROJECTILE_CAP) return false;
-  for (const spec of projectiles) if (ownedCount(f, spec) >= spec.limit) return false;
+  for (let index = 0; index < projectiles.length; index++) {
+    const spec = at(projectiles, index);
+    const upgraded = move.ex?.projectiles?.[index];
+    const exCount = upgraded === undefined || upgraded === spec ? 0 : ownedCount(f, upgraded);
+    if (ownedCount(f, spec) + exCount >= spec.limit) return false;
+  }
   return true;
 }
 
