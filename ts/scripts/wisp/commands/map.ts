@@ -10,7 +10,7 @@ import { checkoutInputs } from "../buildInputs";
 import { step } from "wisp/scripts/wisp/timings";
 import { decodeBuildOptions, importedAssets, rebuildMap } from "../mapInputs";
 import { buildProject, gameFilesLayer, profileOption, projectRoot, sourceErrorsLayer } from "../project";
-import { describeMapSize, mapGrowthProblem, type MapSize, readMapBaseline, readTables, storedBytes, writeMapBaseline } from "../../mapSize";
+import { describeMapSize, mapBudgetProblem, mapGrowthProblem, type MapSize, readMapBaseline, readTables, storedBytes, writeMapBaseline } from "../../mapSize";
 import { SMASHCRAFT_MAP } from "../../mapInfo";
 import { fighterUnits, fileIoAbility } from "../../objectData";
 import { POST_PROCESSING_FILE } from "../../postProcessing";
@@ -69,6 +69,8 @@ const measureMap = (out: string, declared: readonly ArchiveEntry[]) => Effect.sc
 const checkMapSize = (out: string, imports: readonly ArchiveEntry[], bounded: boolean) => Effect.gen(function*() {
   const size = yield* measureMap(out, imports);
   yield* Console.log(describeMapSize(size));
+  const budgetProblem = mapBudgetProblem(size);
+  if (budgetProblem !== undefined) return yield* new MapBuildFailure({ operation: "check map size", path: out, cause: budgetProblem });
   if (!bounded) return;
   const baseline = readMapBaseline(MAP_SIZE_BASELINE);
   if (baseline === undefined || process.env.MAP_SIZE_UPDATE === "1") {

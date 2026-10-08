@@ -93,6 +93,22 @@ export const importedBytes = (size: MapSize) => [...size.imports.values()].reduc
 
 const mb = (bytes: number) => `${(bytes / 1e6).toFixed(1)} MB`;
 
+/** Both aliases occupy download bytes when the archive carries both. */
+export function definitiveBodyBytes(size: MapSize): number {
+  let bytes = 0;
+  for (const [entry, stored] of size.imports) {
+    if (/^_(de|hd)\.w3mod\\war3mapImported\\[^\\]+TimelineBody-[^\\]+\.mdx$/i.test(entry.replaceAll("/", "\\"))) bytes += stored;
+  }
+  return bytes;
+}
+
+export function mapBudgetProblem(size: MapSize): string | undefined {
+  if (size.total > 120_000_000) return `the map is ${size.total} bytes, over its 120000000-byte download budget (#334)`;
+  const bodies = definitiveBodyBytes(size);
+  if (bodies > 60_000_000) return `Definitive fighter bodies occupy ${bodies} compressed bytes, over their 60000000-byte budget (#334)`;
+  return undefined;
+}
+
 export function describeMapSize(size: MapSize): string {
   const imported = importedBytes(size);
   return `map ${mb(size.total)}, imports ${mb(imported)} (${((100 * imported) / size.total).toFixed(0)}%) in ${size.imports.size} files`;

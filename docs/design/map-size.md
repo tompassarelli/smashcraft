@@ -22,6 +22,12 @@ smashcraft:ts/map-size-baseline.tsv and fails when it is more than 10% larger,
 naming the five largest new or grown imports. After a justified import or a
 cut, rebuild with `MAP_SIZE_UPDATE=1` and commit the rewritten baseline.
 
+Every build profile also holds the whole map to 120,000,000 bytes and Definitive
+fighter bodies to 60,000,000 compressed bytes (#334). The body budget counts
+`war3mapImported\*TimelineBody-*.mdx` under `_de.w3mod` and `_hd.w3mod`, counting
+both entries when both aliases are present. Classic bodies and stage art use
+the whole-map budget. Updating the baseline cannot bypass these limits.
+
 ## Measurement, 8 Oct 2026
 
 Build of main at 88e494da (`bun wisp map build --name Smashcraft`):
