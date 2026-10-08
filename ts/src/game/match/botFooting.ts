@@ -122,6 +122,35 @@ export function heightAhead(f: Readonly<Fighter>, frames: number, stage: number,
 }
 
 /**
+ * The last fall searched for its landing: a computer's choice asks for the
+ * same target's landing once per candidate move, each further ahead, and
+ * repairs ask again for every replayed frame (#168).
+ */
+const lastLanding = { z: 0.0, deltaZ: 0.0, gravity: 0.0, terminalSpeed: 0.0, deckZ: 0.0, searched: 0, landing: 0 };
+
+/** The first frame from 1 on, at most `frames`, whose height ahead (deck aside) is at or below `deckZ`; frames + 1 when none is. */
+function landingFrame(f: Readonly<Fighter>, frames: number, deckZ: number, matchFrame: number): number {
+  const { z, deltaZ } = f.motion;
+  const { gravity, terminalSpeed } = f.tuning.physics;
+  const memo = lastLanding;
+  if (memo.z !== z || memo.deltaZ !== deltaZ || memo.gravity !== gravity || memo.terminalSpeed !== terminalSpeed || memo.deckZ !== deckZ) {
+    memo.z = z;
+    memo.deltaZ = deltaZ;
+    memo.gravity = gravity;
+    memo.terminalSpeed = terminalSpeed;
+    memo.deckZ = deckZ;
+    memo.searched = 0;
+    memo.landing = 0;
+  }
+  if (memo.landing > 0) return memo.landing <= frames ? memo.landing : frames + 1;
+  let landing = memo.searched + 1;
+  while (landing <= frames && heightAhead(f, landing, -1, matchFrame) > deckZ) landing++;
+  if (landing <= frames) memo.landing = landing;
+  else memo.searched = frames;
+  return landing;
+}
+
+/**
  * A fighter's horizontal position after `frames` more frames: its last
  * frame's travel, but an airborne fighter that falls onto the deck under it
  * within them slides on from the landing, braking by its traction on that
@@ -134,8 +163,7 @@ export function horizontalAhead(f: Readonly<Fighter>, frames: number, stage: num
   const deck = deckIndexUnder(stage, matchFrame, x, z);
   if (deck < 0) return straight;
   const deckZ = surfaceZAt(stage, deck, matchFrame, x);
-  let landing = 1;
-  while (landing <= frames && heightAhead(f, landing, -1, matchFrame) > deckZ) landing++;
+  const landing = landingFrame(f, frames, deckZ, matchFrame);
   if (landing > frames) return straight;
   const traction = floorTraction(f.tuning.physics.traction, floorFriction(stage, { grounded: true, surface: deck }));
   const speed = Math.abs(deltaX);
