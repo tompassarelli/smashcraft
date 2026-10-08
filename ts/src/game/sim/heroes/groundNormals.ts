@@ -7,7 +7,7 @@
 // its own volume and launch.
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, HitElement } from "../codes";
-import { type AuthoredMove, type MoveRegion, type StrikeCapsule, heroHurtPose, heroMove, heroRegion, jabStep } from "../heroMoves";
+import { type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule, heroHurtPose, heroMove, heroRegion, jabStep } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import type { HurtPart, HurtPose } from "../hurtboxes";
 import type { HeroClip } from "./hero";
@@ -314,7 +314,7 @@ export function jabSlice(clip: { readonly index: number }, until: number): HeroC
  * of a kit's ground normal: the first active frame unless named (1-based).
  * The clip stretches over the whole action, so seconds = strike × total / frames before it.
  */
-export function strikeClip(clip: { readonly index: number }, strike: number, kit: GroundKit, style: AttackStyle, frame?: number): HeroClip {
+export function strikeClip(clip: { readonly index: number }, strike: number, kit: Pick<FighterMoves, "normals">, style: AttackStyle, frame?: number): HeroClip {
   const move = kit.normals[style];
   const before = frame === undefined ? move?.startupFrames ?? 1 : frame - 1;
   return { index: clip.index, seconds: f32(f32(strike * (move?.totalFrames ?? 1)) / Math.max(1, before)), aligned: true };
