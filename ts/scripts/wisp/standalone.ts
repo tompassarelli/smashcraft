@@ -8,6 +8,7 @@ import { installHeadless } from "wisp/scripts/wisp/headless";
 import { Action } from "../../src/game/input/actions";
 import { keyFor, presetBindings } from "../../src/game/input/keyBindings";
 import { Phase } from "../../src/game/match/rules";
+import { Character } from "../../src/game/sim/codes";
 import { NATIVE_DRIVER_BUILD, PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
 import type { MapBuild } from "../../src/game/shell/build";
 import { PREDICTED_HEADLESS, SMASHCRAFT_HEADLESS } from "./headless";
@@ -43,7 +44,7 @@ function keys(input: StandaloneInput): Set<number> {
  * Rifleman, Illidan and Warden, 99 stocks and a two-minute clock, so four
  * fighters stay on stage for the whole measurement.
  */
-const FOUR_FIGHTERS = ["-dev slots 1 14", "-dev fighter 1 Illidan", "-dev fighter 2 Rifleman", "-dev fighter 3 Illidan", "-dev fighter 4 Warden", "-dev time 2"];
+const FOUR_FIGHTERS = ["-dev slots 1 14", "-dev fighter 2 Rifleman", "-dev fighter 3 Illidan", "-dev fighter 4 Warden", "-dev time 2"];
 const FOUR_FIGHTER_STOCKS = 99;
 
 /** One map callback per step; scripts share the native driver's exact pad rows. */
@@ -84,7 +85,7 @@ export async function createStandaloneSession(options: { readonly script?: strin
       for (const command of FOUR_FIGHTERS) applyDeveloperCommand(state, 0, command);
       // The menus allow at most nine stocks; the beat's reference loses about 40 in two minutes.
       state.game.stockCount = FOUR_FIGHTER_STOCKS;
-      startQuickMatch(state, 0, undefined, undefined, FOUR_FIGHTER_STOCKS);
+      startQuickMatch(state, 0, undefined, Character.demonHunter, FOUR_FIGHTER_STOCKS);
     });
     else if (script === undefined) client.run(() => applyDeveloperCommand(shell(), 0, "-dev quick cpu wren expert hero illidan"));
     else clients.everywhere(() => driverCommand?.(script));
