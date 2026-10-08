@@ -4,6 +4,48 @@ Tom’s roster decision (9 October 2026, #339): 21 fighters remain. Every fighte
 
 Smashcraft supports Classic and Definitive graphics. Each player chooses their look; moves, timing, hitboxes, hurtboxes and match results are identical across both. Reforged is dropped from the plans.
 
+## Malfurion Stormrage (#342)
+
+**Identity:** a serene, arrogant archdruid who treats the duel as gardening. He
+points where his opponent ought to stand, closes that space with roots and a
+treant, then dismisses them with his staff. A space-trapping zoner, distinct
+from Jaina's falling spells, Lich's frost bursts and Shadow Hunter's crossfire.
+He has no passive, stacks or second resource. All four ordinary specials are
+free; a full universal super bar empowers anyone's next special, including his.
+
+**Body:** weight 94, run 10.8 units/frame, air 5.7 units/frame, standing hurt
+height 102 and radius 27. Slow feet and a tall exposed body make failed setup
+punishable. Stock campaign Malfurion, Keeper spells and Force of Nature treant
+art provide his Classic and Definitive presentation.
+
+**Normals:** two dismissive staff jabs (5-frame startup, 3/4 damage), angled
+staff pokes (9, 8), upward branch lift (8, 7), low root sweep (7, 6), shoulder-led
+dash check (11, 10). Forward smash plants a long branch (19, 17), up smash
+raises the canopy (18, 16), down smash sweeps roots front then back (17, 13).
+Neutral air circles the staff (8, 8); forward/back air push it away (12/9,
+12/11); up air lifts it (10, 11); down air plants its tip below him (16, 12).
+Landing lag is 16/18/16/16/22 before the shared automatic halving. Down tilt
+and up throw launch into canopy follow-ups; down throw creates a tech chase.
+
+| Special | Ordinary action and counterplay | Full-bar EX |
+|---|---|---|
+| Entangling Roots, neutral | Mark a low patch 180 units ahead on frame 8; roots hit once after 20 telegraph frames for 8 damage and a 24-frame movement bind. Jump or shield the patch. 42 total frames. | 10 damage and a wider root patch. |
+| Stag Charge, side | Coil, then bound forward for frames 12–20 with a branching staff strike for 11 damage. Shield stops the charge; 43 total leaves a whiff punish. Air charge ends helpless. | 13.75 damage and 25% farther travel. |
+| Dream Ascent, up | Rise diagonally on frames 10–23 with a 7-damage canopy strike, spending the aerial jump and ending helpless. 40 total; exposed above and after the rise. | 25% farther rise. |
+| Force of Nature, down | Plant one fragile treant on frame 26, 20 durability, 240-frame life; four branch bolts do 5 damage each. Setup takes 50 frames. Destroy or jump the treant; repeat down special recalls it. | 25 durability, 6.25-damage bolts. |
+
+**Grabs:** shared standing/dash/pivot envelope. One staff-butt pummel uses the
+shared 3-damage escape window. Forward throw dismisses the victim (8 damage,
+frame 14); back throw flings them behind (9, 17); up throw lifts on a branch
+(7, 15); down throw plants them for a tech chase (6, 19). Throw recovery is
+22/24/10/24 frames. The normal throw-hitstun regrab rule applies.
+
+**Play-style profile:** ranged setup and horizontal traps, mostly grounded
+spacing, retreat and shield defense, occasional aerial branch finishers. The
+signature is Entangling Roots into staff spacing; it permits shield and jump
+answers rather than an automatic follow-up. Initial balance numbers are
+provisional until the one farm probe.
+
 Adopted by the owner on 6 October 2026 from the 2 October expansion brief.
 The requested roster is Blademaster, Mountain King, Warden, Lich, Forsaken Paladin,
 Dreadlord and Shadow Hunter, in that order. The Tavern kits below record the earlier expansion brief. Their tuning tables are starting values, not shipped
