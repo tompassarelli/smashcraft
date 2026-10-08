@@ -1,0 +1,38 @@
+{
+  "argv": [
+    "/home/tom/code/smashcraft/worktrees/native-corpus70-20261008/build/recordBatch70.ts",
+    "pad",
+    "/home/tom/.local/state/smashcraft/native-corpus70-20261008/pads-inputs/archer-cues.pad",
+    "/home/tom/.local/state/smashcraft/native-corpus70-20261008/flush.pad",
+    "--helper",
+    "/home/tom/code/smashcraft/worktrees/bc-lane2-20261008/companion/target/debug/wc3-journal",
+    "--build",
+    "typescript-integrity",
+    "--out",
+    "/home/tom/.local/state/smashcraft/native-corpus70-20261008/archer-flushed",
+    "--map",
+    "/home/tom/.local/share/smashcraft-build-inputs/native-corpus70-20261008/SmashcraftCorpus70.w3x",
+    "--app-id",
+    "a=steam_app_3775098022",
+    "--app-id",
+    "b=steam_app_3775098022",
+    "--headless-jobs",
+    "1",
+    "--retries",
+    "0",
+    "--clients-file",
+    "/home/tom/.local/state/wisp/online/corpus70-clients.json"
+  ],
+  "cwd": "/home/tom/code/smashcraft/worktrees/native-corpus70-20261008/ts",
+  "started": "2026-10-08T07:59:34.566Z",
+  "ended": "2026-10-08T08:04:59.700Z",
+  "clients": [
+    "a",
+    "b"
+  ],
+  "git": {
+    "commit": "07b13e804dc687d290c55addfe4e01cad661981c",
+    "dirty": false
+  },
+  "desyncs": []
+}

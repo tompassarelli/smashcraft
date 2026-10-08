@@ -26,7 +26,7 @@ test("Rifleman's blaster cue readies on startup and flashes on the shot frame [s
   }
 });
 
-test("[repro #251] the second recoil shot shows its cue at both ends of the legal input window", () => {
+test("the second recoil shot shows its cue at both ends of the legal input window [repro #251]", () => {
   const fighter = createFighter(Character.rifleman, 0.0, 1);
   fighter.special.action = SpecialAction.riflemanRecovery;
   fighter.special.form = RIFLEMAN_SECOND_SHOT_FORM;
