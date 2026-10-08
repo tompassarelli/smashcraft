@@ -9,7 +9,7 @@ import { isCarrierKey } from "../../game/netcode/journal/keyboard";
 import { type ParticipantSlot, isParticipantSlot } from "../../game/input/participants";
 import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/playerKeys";
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
-import { Phase, cancelRematchCountdown, characterFor, firstHumanSlot, humanActive, leaveMatch, recallCharacter, selectCharacter } from "../../game/match/rules";
+import { Phase, cancelRematchCountdown, characterFor, copyMatchState, firstHumanSlot, humanActive, recallCharacter, selectCharacter } from "../../game/match/rules";
 import { classicDevRequest, loreDevRequest, LORE_WIN_COMMAND, winLoreBattle, DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchPair, quickMatchStage, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../game/shell/devSettings";
 import { fighterName } from "../../game/sim/heroes/registry";
 import { keepMomentEnd } from "../../game/replay/moment";
@@ -36,7 +36,7 @@ import { LORE_BATTLES } from "../../game/classic/loreBattles";
 import { makePreview } from "./preview";
 import { exportProbe, probeIntegrity, probeRecording, startProbe } from "./responseProbe";
 import { type ShellState, activeRollback, cancelPendingPlaytest, localSlot, playsOnKeyboard } from "./state";
-import { views } from "./ui";
+import { clearMatchEffects, views } from "./ui";
 import { ownConfirmedState } from "./confirmedState";
 import { LASTING, pauseMatchPresentation, setStatus } from "./view";
 
@@ -96,6 +96,25 @@ function journalMenuKey(s: ShellState, slot: ParticipantSlot, key: number): bool
   return true;
 }
 
+function exitPausedMatch(s: ShellState, title: boolean): void {
+  ownConfirmedState(s);
+  keepMomentEnd(s.moment.recorder, s.world, s.game, s.controls, s.runtime);
+  endReplaySegment(s);
+  clearMatchEffects(s);
+  if (s.game.run.active && s.pauseSelection !== undefined) copyMatchState(s.game, s.pauseSelection);
+  s.game.phase = Phase.characterMenu;
+  s.game.practice = false;
+  s.game.run.active = false;
+  s.session.paused = false;
+  const menu = s.pauseMenu ??= { choice: 0, shown: false, title: false };
+  menu.shown = false;
+  menu.title = title;
+  clearCapturedInputs(s);
+  setStatus(s, "", 0.0);
+  makePreview(s);
+  pauseMatchPresentation(s, false);
+}
+
 function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
   if (!humanActive(s.game, slot)) return;
   const key = GetHandleId(BlzGetTriggerPlayerKey());
@@ -106,9 +125,27 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
   const { keys, bindings } = participant;
   const settings = views(s).settings[slot];
   if (key < 0 || key > 255 || keyDown(keys, key)) return;
+  if (s.pauseMenu?.title && (key === Key.enter || key === Key.n || key === Key.y)) {
+    s.pauseMenu.title = false;
+    return;
+  }
   if ((key === Key.y || key === Key.escape) && cancelRematchCountdown(s.game, slot)) return;
   if (key === Key.y) {
     startDown(s, slot);
+    return;
+  }
+  if (s.game.phase === Phase.match && s.session.paused) {
+    const menu = s.pauseMenu ??= { choice: 0, shown: true, title: false };
+    if (key === 0x26 || key === 32) menu.choice = menu.choice === 0 ? 2 : menu.choice - 1;
+    else if (key === 0x28 || key === 69) menu.choice = menu.choice === 2 ? 0 : menu.choice + 1;
+    else if (key === Key.escape || key === Key.u) exitPausedMatch(s, false);
+    else if (key === Key.enter || key === Key.n) {
+      if (menu.choice === 0) {
+        startDown(s, slot);
+        startKeyUp(s.session, slot);
+      }
+      else exitPausedMatch(s, menu.choice === 2);
+    }
     return;
   }
   if (key === Key.escape && settings.isOpen()) {
@@ -125,25 +162,12 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
   }
   if (!bindings.ready) return;
   if (key === 13 && s.game.phase !== Phase.match) return;
-  if (key === Key.escape && s.session.paused) ownConfirmedState(s);
   const { game } = s;
   views(s).selections[slot].menuBindings(bindings.bindings);
   const editbox = s.rollback?.journal?.editbox !== undefined;
   if (editbox && game.phase !== Phase.match && journalMenuKey(s, slot, key)) return;
   if (key === Key.escape && game.phase === Phase.stageMenu) {
     back(s, slot);
-    return;
-  }
-  // Leaving practice or an endless match ends it between frames: the moment keeps it as its last frame left it.
-  if (key === Key.escape && s.session.paused && (game.practice || game.endless || game.training)) {
-    keepMomentEnd(s.moment.recorder, s.world, game, s.controls, s.runtime);
-    endReplaySegment(s);
-  }
-  if (key === Key.escape && s.session.paused && leaveMatch(game, slot)) {
-    s.session.paused = false;
-    setStatus(s, "", 0.0);
-    makePreview(s);
-    pauseMatchPresentation(s, false);
     return;
   }
   if (game.phase === Phase.match && (s.session.paused || activeRollback(s) !== undefined)) return;
@@ -169,6 +193,7 @@ function participantKeyUp(s: ShellState, slot: ParticipantSlot): void {
     startKeyUp(s.session, slot);
     return;
   }
+  if (s.game.phase === Phase.match && s.session.paused) return;
   if (journalOwnsKey(s, slot, key)) return;
   if (s.trace.active) s.trace.window.keyUp[slot]++;
   traceParticipant(s, slot, `received up ${key}`);

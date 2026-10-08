@@ -51,12 +51,20 @@ export function choose(s: ShellState, slot: ParticipantSlot, direction: -1 | 1):
 
 /** Accept: continue to stages, start the match, or ready up for a rematch. */
 export function confirm(s: ShellState, slot: ParticipantSlot): void {
+  if (s.pauseMenu?.title) {
+    s.pauseMenu.title = false;
+    return;
+  }
   if (!controlsAvailable(s, slot)) {
     announce(s, "Controls are still loading or settings are open.");
     return;
   }
   const { game } = s;
   if (stageLoading(s)) return;
+  if (game.phase === Phase.characterMenu) {
+    s.pauseSelection = createMatchState();
+    copyMatchState(s.pauseSelection, game);
+  }
   if (game.phase === Phase.characterMenu && game.lore) {
     if (!startLore(game, slot)) return;
     for (const panel of views(s).settings) panel.close();
@@ -148,6 +156,8 @@ export function startDevClassic(s: ShellState, character: Character, boss: boole
   selectCharacter(s.game, first, character);
   s.game.training = false;
   s.game.classic = true;
+  s.pauseSelection = createMatchState();
+  copyMatchState(s.pauseSelection, s.game);
   if (!startClassic(s.game, first)) return;
   if (boss) skipToClassicBoss(s.game);
   for (const panel of views(s).settings) panel.close();

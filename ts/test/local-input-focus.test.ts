@@ -55,6 +55,7 @@ test("pause samples neutral keys, holds the agreed frame and resumes local rows 
   clients.frames(1);
   expect(value(first, () => shell().session.paused)).toBe(true);
   const target = value(first, () => shell().rollback?.schedule.captureTarget());
+  for (const key of [0x28, 0x26, 32, 69]) clients.press(0, key);
   clients.frames(60);
   expect(value(first, () => shell().rollback?.keyboard?.capture.row.held)).toBe(0);
   expect(value(first, () => shell().rollback?.schedule.captureTarget())).toBe(target);

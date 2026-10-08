@@ -30,8 +30,9 @@ function registerKeys(s: ShellState, escapeOnly: boolean): void {
   const down = CreateTrigger();
   const up = CreateTrigger();
   for (let key = 1; key <= 255; key++) {
-    // A registered Return reaches the map instead of opening Warcraft's chat.
-    if (key === Key.y || key === Key.enter || (escapeOnly && key !== Key.escape)) continue;
+    // Return belongs to Warcraft chat while playing, and to the pause menu while paused.
+    const pauseKey = key === Key.escape || key === Key.enter || key === 0x26 || key === 0x28 || key === 32 || key === 69 || key === Key.n || key === Key.u;
+    if (key === Key.y || (!escapeOnly && key === Key.enter) || (escapeOnly && !pauseKey)) continue;
     registerKey(s, down, key, true);
     registerKey(s, up, key, false);
   }
@@ -53,11 +54,10 @@ export function removeKeyEvents(s: ShellState): void {
 /**
  * Called after anything that changes the phase, the pause or the rollback session.
  * A rollback match polls the keyboard, so it has no key triggers; paused, it
- * reads Escape alone to leave, since any other key event would reach the
- * players' simulations in a different order than the polled rows.
+ * reads only pause-menu keys. Their handlers return before sampling combat input.
  */
 export function syncKeyEvents(s: ShellState): void {
   const rollbackMatch = activeRollback(s) !== undefined && s.game.phase === Phase.match;
   if (rollbackMatch && !s.session.paused) removeKeyEvents(s);
-  else registerKeys(s, rollbackMatch);
+  else registerKeys(s, s.session.paused);
 }

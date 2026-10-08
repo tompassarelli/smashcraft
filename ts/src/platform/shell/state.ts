@@ -225,12 +225,13 @@ export const replayRecording = (): ReplayRecording => ({ recorder: createMatchRe
 interface KeyEvents {
   down: trigger | undefined;
   up: trigger | undefined;
-  /** Whether the triggers hold Escape alone, for a paused rollback match. */
+  /** Whether the triggers hold only menu controls, for a paused match. */
   escapeOnly: boolean;
 }
 
 export interface ShellState {
   pauseMenu?: { choice: number; shown: boolean; title: boolean };
+  pauseSelection?: MatchState;
   menuPublication?: { phase: MenuPhase; ticks: number };
   readonly pad: NativePadCapture | undefined;
   /** Synchronized menu callbacks salt the random stage draw; retained across reloads. */
