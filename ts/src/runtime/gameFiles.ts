@@ -20,6 +20,8 @@ export const responsePageFile = (slot: number | "*", run: number | "*", page: nu
 export const edgeStampFile = (slot: number, run: number, row: number, stage: "poll" | "present") => `smashcraft-edge-p${slot}-run${run}-row${row}-${stage}.txt`;
 export const frameCostFile = (source: string, slot: number, language: "typescript" | "wurst") => `smashcraft-frame-cost-${source}-p${slot}-${language}.txt`;
 export const frameCostClockFile = (slot: number) => `smashcraft-frame-cost-clock-p${slot}.txt`;
+/** The native capture map's latest script or end, for the host's log (smashcraft:ts/src/platform/nativeCaptureMain.ts). */
+export const CAPTURE_STATUS_FILE = "smashcraft-capture-status.txt";
 export const renderClockFile = (slot: number, run: number) => `smashcraft-render-clock-p${slot}-run${run}.txt`;
 export const PHYSICS_REPORT_FILE = "smashcraft-native-physics-precision.txt";
 export const objectDataReceiptFile = (slot: number) => `smashcraft-object-data-p${slot}.txt`;

@@ -1,0 +1,75 @@
+# smashcraft#82 box 2: each mapped cue's Warcraft effect, made by `-dev effects N` at stage
+# centre (smashcraft:ts/src/game/shell/hitPresentationCases.ts) and held 2, 8 and 20 frames
+# later with the effects frozen. Native captures only (bun scripts/nativeCapture.ts): chat
+# lines are the native driver's; pad parity runs don't read this folder.
+#! chat -dev quick
+# case 2
+60 a chat -dev effects 2
+62 a capture
+68 a capture
+80 a capture
+# case 4
+120 a chat -dev effects 4
+122 a capture
+128 a capture
+140 a capture
+# case 5
+180 a chat -dev effects 5
+182 a capture
+188 a capture
+200 a capture
+# case 6
+240 a chat -dev effects 6
+242 a capture
+248 a capture
+260 a capture
+# case 7
+300 a chat -dev effects 7
+302 a capture
+308 a capture
+320 a capture
+# case 9
+360 a chat -dev effects 9
+362 a capture
+368 a capture
+380 a capture
+# case 11
+420 a chat -dev effects 11
+422 a capture
+428 a capture
+440 a capture
+# case 12
+480 a chat -dev effects 12
+482 a capture
+488 a capture
+500 a capture
+# case 13
+540 a chat -dev effects 13
+542 a capture
+548 a capture
+560 a capture
+# case 14
+600 a chat -dev effects 14
+602 a capture
+608 a capture
+620 a capture
+# case 15
+660 a chat -dev effects 15
+662 a capture
+668 a capture
+680 a capture
+# case 24
+720 a chat -dev effects 24
+722 a capture
+728 a capture
+740 a capture
+# case 25
+780 a chat -dev effects 25
+782 a capture
+788 a capture
+800 a capture
+# case 26
+840 a chat -dev effects 26
+842 a capture
+848 a capture
+860 a capture

@@ -267,6 +267,19 @@ code. From smashcraft:ts/:
   replays each hold. `--game-start-ms N` records launch-to-first-check time from the
   timestamp before hosting the map.
   This diagnostic path measures native script delivery, not hardware pad timing.
+- One-client look captures (clone-a, or any single signed-in client):
+  `bun scripts/nativeCapture.ts build --out MAP.w3x --control PAD|DIR...` bakes
+  the scripts and their `capture` frames into a native-capture map that plays
+  both pads itself and holds each capture frame with the fighters' animations
+  and effects frozen; host it with `bun wisp fresh MAP.w3x --no-quick
+  --clients-file FILE` while `bun scripts/nativeCapture.ts run --clients-file FILE
+  --client NAME --manifest MAP.captures.json --out DIR` captures the screen. A
+  capture counts only when the drawn stamp in its own pixels (a row of cells
+  along the top-left of the 4:3 UI area) names that fixture and frame, so a
+  screen that hasn't redrawn can't pass for it. `--control` first plays the
+  checked-in control (the same Archer walk twice around a Mountain King script);
+  `bun scripts/nativeCapture.ts compare DIR control-walk control-walk-again`
+  prints how far the twins' captures differ per frame.
 - Engine debugger: a native desync? `bun wisp engine desync A B` names the
   first differing turn and checksum section of the clients' Desync.log
   dumps; `bun wisp engine poll --client a,b` during a repro and `bun wisp

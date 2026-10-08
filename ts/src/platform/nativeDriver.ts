@@ -3,7 +3,7 @@ import { sampleKeys, commitEdges, keyboardCapture, type KeyboardCapture } from "
 import { PARTICIPANT_SLOTS, isParticipantSlot } from "../game/input/participants";
 import { copyInput } from "../game/input/inputRow";
 import { startKeyUp } from "../game/match/controls";
-import { Phase } from "../game/match/rules";
+import { Phase, setHumanCount } from "../game/match/rules";
 import { parseDecimal } from "../game/netcode/journal/decimal";
 import { beginMomentSave, continueMomentSave, momentInput } from "../game/replay/moment";
 import { writeRepro } from "wisp/src/platform/repro";
@@ -16,6 +16,7 @@ import { confirmedChecksum, startInputTrace } from "./shell/diagnostics";
 import { pauseMatchPresentation } from "./shell/view";
 import { applyDeveloperCommand, startDown } from "./shell/keys";
 import { shell, type ShellState, localSlot } from "./shell/state";
+import { paintDrawnStamp } from "./shell/drawnStamp";
 
 interface Pad {
   buttons: number;
@@ -41,12 +42,18 @@ interface Driver {
   captures: number[];
   paused: boolean;
   target: number | undefined;
+  /** A target hold froze the fighters' animations and effects on the frame it drew. */
+  frozen: boolean;
   readonly pads: readonly Pad[];
 }
-declare global { var __smashcraftNativeDriver: Driver | undefined; }
+declare global {
+  var __smashcraftNativeDriver: Driver | undefined;
+  /** Pad scripts started this game; the drawn stamp names the current one. */
+  var __smashcraftDriverScripts: number | undefined;
+}
 
 const neutralPad = (): Pad => ({ buttons: 0, x: 0.0, z: 0.0, cx: 0.0, cz: 0.0, shield: 0.0, viewSince: undefined, viewSaved: false, capture: keyboardCapture() });
-const state = (): Driver => globalThis.__smashcraftNativeDriver ??= { edges: [], next: 0, captures: [], paused: true, target: undefined, pads: PARTICIPANT_SLOTS.map(() => neutralPad()) };
+const state = (): Driver => globalThis.__smashcraftNativeDriver ??= { edges: [], next: 0, captures: [], paused: true, target: undefined, frozen: false, pads: PARTICIPANT_SLOTS.map(() => neutralPad()) };
 const BUTTONS: Readonly<Record<string, number>> = { A: 1, B: 2, X: 4, Y: 8, LB: 16, TL: 16, RB: 32, TR: 32, START: 64, VIEW: 128 };
 
 function whole(text: string): number {
@@ -77,6 +84,8 @@ function parseScript(text: string): { readonly setup: string; readonly edges: re
     previous = frame;
     const slot = player === "a" ? 0 : 1;
     if (action === "capture") { edges.push({ order: edges.length, frame, slot, action, args }); continue; }
+    // A developer command typed at a frame, such as `-dev effects 5` (native captures only; pad parity has no chat).
+    if (action === "chat") { edges.push({ order: edges.length, frame, slot, action, args }); continue; }
     if (action === "press" || action === "release" || action === "tap") {
       if (BUTTONS[(args[0] ?? "").toUpperCase()] === undefined) throw new Error("native driver: unknown pad button");
       const held = action === "tap" ? args[1] === undefined ? 1 : whole(args[1]) : 0;
@@ -149,6 +158,14 @@ function saveFrame(s: ShellState): void {
 }
 function publish(s: ShellState): void {
   publishNativeDriverStatus(s.runtime.simulationFrame, confirmedChecksum(s), state().paused);
+  paintDrawnStamp(globalThis.__smashcraftDriverScripts ?? 0, s.runtime.simulationFrame);
+}
+
+/** A held target shows the pose and effects of the frame it drew, as held visual captures do. */
+function freeze(s: ShellState, driver: Driver, frozen: boolean): void {
+  if (driver.frozen === frozen || s.game.phase !== Phase.match) return;
+  driver.frozen = frozen;
+  pauseMatchPresentation(s, frozen || s.session.paused);
 }
 
 /** Only a predeclared synchronized driver event calls this on the native clients. */
@@ -158,7 +175,7 @@ export function nativeDriverCommand(text: string): void {
   const command = text.trim();
   if (command === "reset") {
     applyDeveloperCommand(s, 0, "-dev reset");
-    globalThis.__smashcraftNativeDriver = { edges: [], next: 0, captures: [], paused: true, target: undefined, pads: PARTICIPANT_SLOTS.map(() => neutralPad()) };
+    globalThis.__smashcraftNativeDriver = { edges: [], next: 0, captures: [], paused: true, target: undefined, frozen: false, pads: PARTICIPANT_SLOTS.map(() => neutralPad()) };
     publish(s);
     return;
   }
@@ -166,6 +183,7 @@ export function nativeDriverCommand(text: string): void {
   if (command === "pause") { driver.paused = true; driver.target = undefined; publish(s); return; }
   if (command === "resume" || command.startsWith("resume ") || command.startsWith("step ")) {
     if (s.session.paused) { s.session.paused = false; pauseMatchPresentation(s, false); }
+    freeze(s, driver, false);
     const stepping = command.startsWith("step ");
     const count = command === "resume" ? undefined : whole(command.substring(command.indexOf(" ") + 1));
     driver.target = count === undefined ? undefined : stepping ? s.runtime.simulationFrame + count : count;
@@ -176,9 +194,12 @@ export function nativeDriverCommand(text: string): void {
   }
   const script = parseScript(text);
   applyDeveloperCommand(s, 0, "-dev reset");
+  // One client plays both pads: the second participant is a scripted human, not a computer.
+  setHumanCount(s.game, 2);
   applyDeveloperCommand(s, 0, script.setup);
+  globalThis.__smashcraftDriverScripts = (globalThis.__smashcraftDriverScripts ?? 0) + 1;
   if (s.game.phase !== Phase.match || s.runtime.simulationFrame !== 0) throw new Error("native driver: pad setup did not start a new match");
-  globalThis.__smashcraftNativeDriver = { edges: script.edges, next: 0, captures: [], paused: true, target: undefined, pads: PARTICIPANT_SLOTS.map(() => neutralPad()) };
+  globalThis.__smashcraftNativeDriver = { edges: script.edges, next: 0, captures: [], paused: true, target: undefined, frozen: false, pads: PARTICIPANT_SLOTS.map(() => neutralPad()) };
   startInputTrace(s);
   publish(s);
 }
@@ -201,6 +222,7 @@ export function captureNativeDriverInputs(s: ShellState): void {
     if (edge === undefined || edge.frame > frame) break;
     const pad = driver.pads[edge.slot];
     if (edge.action === "capture") driver.captures.push(edge.slot);
+    else if (edge.action === "chat") applyDeveloperCommand(s, edge.slot, edge.args.join(" "));
     else if (pad !== undefined) applyEdge(s, pad, edge);
     driver.next++;
   }
@@ -228,9 +250,10 @@ export function afterNativeDriverTick(s: ShellState): void {
   if (driver.target !== undefined && s.runtime.simulationFrame >= driver.target || s.game.phase !== Phase.match || s.session.paused) {
     driver.paused = true;
     driver.target = undefined;
+    freeze(s, driver, true);
     saveFrame(s);
     publish(s);
-  }
+  } else paintDrawnStamp(globalThis.__smashcraftDriverScripts ?? 0, s.runtime.simulationFrame);
 }
 export function installSmashcraftNativeDriver(): void { installNativeDriver(nativeDriverCommand); }
 export function startSmashcraftNativeDriver(): void { state(); startNativeDriver([0, 1]); }
