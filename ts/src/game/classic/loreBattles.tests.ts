@@ -79,7 +79,7 @@ test("the original twenty Lore Battles and authored expansion stories keep valid
     }
     if (index > 0) assertEquals(battleTier(index) >= battleTier(index - 1), true, `${name} is no easier than the battle before`);
   }
-  for (let fighter = 1; fighter <= 21; fighter++) assertTrue(fighters.has(fighter), `original fighter ${fighter} used`);
+  for (let fighter = 1; fighter <= 21; fighter++) assertEquals(fighters.has(fighter), true, `original fighter ${fighter} used`);
   for (const fighter of CLASSIC_CHARACTERS) assertEquals(fighters.has(fighter), true, `${fighterName(fighter)} has Lore coverage`);
   assertEquals(stages.size, STAGE_CATALOG.length, "stages used");
   assertEquals(wins.size, 4, "win conditions used");
