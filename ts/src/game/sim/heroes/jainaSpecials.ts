@@ -29,7 +29,8 @@ const BLIZZARD: AuthoredSpecial = {
 };
 const blink = (cost: number, distance: number): AuthoredSpecial => ({
   cost, endFrame: 34, aimFrames: 13,
-  motion: [{ ...frames(14, 14), velocityX: 0.0, velocityZ: h(distance), aimedSpeed: h(distance) },
+  motion: [{ ...frames(1, 13), velocityX: 0.0, velocityZ: 0.0 },
+    { ...frames(14, 14), velocityX: 0.0, velocityZ: h(distance), aimedSpeed: h(distance) },
     { ...frames(15, 34), velocityX: 0.0, velocityZ: 0.0 }],
   intangible: frames(14, 17), oncePerAirtime: true, helpless: true,
 });
@@ -44,7 +45,7 @@ const SUMMON: AuthoredSpecial = {
 export const JAINA_SPECIALS: FighterSpecials = {
   neutral: { name: "Frostbolt", description: "A straight frost bolt; jump it or shield it.", ground: FROSTBOLT },
   side: { name: "Blizzard", description: "Ice falls twice on the marked patch ahead; leave it before the first strike.", ground: BLIZZARD },
-  up: { name: "Blink", description: "Aim a teleport, then fall helpless. Empty mana shortens its reach.", ground: blink(15, f32(2.4)), free: blink(0, f32(1.65)) },
+  up: { name: "Blink", description: "Aim a teleport, then fall helpless. Empty mana shortens its reach.", ground: blink(15, f32(2.5)), free: blink(0, f32(1.65)) },
   down: { name: "Summon Water Elemental", description: "Summon a fragile ally that fires four water bolts. Press again to recall it.", ground: SUMMON,
     recall: { cost: 0, endFrame: 26, groundOnly: true, recall: true } },
 };

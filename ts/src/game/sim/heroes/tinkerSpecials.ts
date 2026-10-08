@@ -12,8 +12,9 @@ const rocket = (spawnFrame: number): SpecialProjectile => ({
 });
 const rockets = (air: boolean): AuthoredSpecial => ({ cost: 10, endFrame: 43, projectiles: [rocket(14), rocket(20), rocket(26)], landingLag: air ? 20 : undefined });
 const boots = (cost: number, rise: number, drift: number): AuthoredSpecial => ({
-  cost, endFrame: 32, motion: [{ ...frames(7, 29), velocityX: 0.0, velocityZ: rise, driftSpeed: drift }],
+  cost, endFrame: 32, motion: [{ ...frames(1, 6), velocityX: 0.0, velocityZ: 0.0 }, { ...frames(7, 29), velocityX: 0.0, velocityZ: rise, driftSpeed: drift }],
   oncePerAirtime: true, helpless: true, facesStick: true,
+  regions: cost > 0 ? [heroRegion(7, 10, claw(0.0, 10.0, 0.0, 90.0, 26.0), tinkerHit(5.0, "juggle", 85, 1.0, HitElement.fire))] : undefined,
 });
 const robo = (air: boolean): AuthoredSpecial => ({
   cost: 20, endFrame: 46, armor: { ...frames(8, 23), maxDamage: 10.0, shell: true },
@@ -36,6 +37,6 @@ export const TINKER_SPECIALS: FighterSpecials = {
     } },
     recall: { cost: 0, endFrame: 36, groundOnly: true, recall: true },
   },
-  up: { name: "Rocket Boots", description: "Burn upward and steer left or right, then fall helplessly.", ground: boots(15, 11.0, 3.0), free: boots(0, 8.0, 2.0) },
+  up: { name: "Rocket Boots", description: "Burn upward and steer left or right, then fall helplessly.", ground: boots(15, 14.0, 5.0), free: boots(0, 9.0, 4.0) },
   down: { name: "Robo-Goblin", description: "Transform for an armored hammer-tank charge; grabs and heavy hits beat the armor.", ground: robo(false), air: robo(true) },
 };

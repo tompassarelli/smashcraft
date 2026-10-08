@@ -16,8 +16,8 @@ const NOTHING = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.
 const SPIKE = { ...sylvanasHit(11.0, 90, 100.0, 24.0), launchZ: -1.0 };
 
 const NORMALS: FighterMoves["normals"] = {
-  [AttackStyle.jab]: jabStep(bow(4, 2, 13, 0, sylvanasStrike(18.0, 55.0, 46.0, 55.0), sylvanasHit(3.0, 35, 45.0, 18.0))),
-  [AttackStyle.jab2]: jabStep(bow(5, 2, 14, 0, sylvanasStrike(18.0, 50.0, 51.0, 52.0), sylvanasHit(3.0, 45, 45.0, 20.0))),
+  [AttackStyle.jab]: jabStep(bow(4, 2, 13, 0, sylvanasStrike(18.0, 55.0, 46.0, 55.0), sylvanasHit(3.0, 35, 45.0, 12.0))),
+  [AttackStyle.jab2]: jabStep(bow(5, 2, 14, 0, sylvanasStrike(18.0, 50.0, 51.0, 52.0), sylvanasHit(3.0, 45, 45.0, 12.0))),
   [AttackStyle.jab3]: bow(6, 2, 17, 0, sylvanasStrike(20.0, 50.0, 58.0, 60.0), sylvanasHit(5.0, 55, 80.0, 24.0)),
   [AttackStyle.forwardTilt]: frontTilt(46.0),
   [AttackStyle.forwardTiltUp]: frontTilt(80.0),

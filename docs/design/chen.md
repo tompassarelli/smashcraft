@@ -72,7 +72,7 @@ neutral wall. Broad body and 1.6 run speed make projectile approaches costly.
 Fire has 20 exit frames; Haze has 24 frames after release. Neither gains
 extra shield damage. Ground and air fire/haze use the same strikes, with
 20 landing frames in the air. Storm Rise moves 2.1 reference heights up and
-at most 0.45 sideways; the free form reaches 1.45 up and 0.3 sideways without
+at most 1.0 sideways; the free form reaches 1.45 up and 0.7 sideways without
 a hit. Both consume the aerial jump and finish helpless. Edgeguards can
 cover its predictable late rise; leaving a ledge without jumping retains the
 ordinary aerial jump.

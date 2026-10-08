@@ -4,7 +4,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import type { Fighter } from "../sim/fighter";
 import type { Controls } from "../sim/roster";
-import { floorFriction, floorTraction, mainDeckLeft, mainDeckRight, surfaceCount, surfaceLeft, surfaceRight, surfaceZAt } from "../sim/stage";
+import { floorFriction, floorTraction, mainDeckLeft, mainDeckRight, surfaceCount, surfaceLeft, surfaceLine, surfaceMoves, surfaceRight, surfaceZAt } from "../sim/stage";
 
 
 /** How far inside the main deck's edges the computer keeps its resting point. */
@@ -105,8 +105,12 @@ export function steerInAir(f: Readonly<Fighter>, stage: number, goal: number, in
  * by the deck under it when it falls that far (#160).
  */
 export function heightAhead(f: Readonly<Fighter>, frames: number, stage: number, matchFrame: number): number {
-  const { z, deltaZ } = f.motion;
-  if (f.motion.grounded) return f32(z + f32(deltaZ * frames));
+  const { z, deltaZ, surface } = f.motion;
+  if (f.motion.grounded) {
+    // On a fixed level deck the landing frame's step is the end of a fall, not motion that continues.
+    if (deltaZ !== 0.0 && stage >= 0 && surface !== undefined && !surfaceMoves(stage, surface) && surfaceLine(stage, surface) === undefined) return z;
+    return f32(z + f32(deltaZ * frames));
+  }
   const { gravity, terminalSpeed } = f.tuning.physics;
   const floor = Math.min(deltaZ, -terminalSpeed);
   // Frames whose fall gravity still speeds up before the floor holds it.

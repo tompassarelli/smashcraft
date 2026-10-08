@@ -22,7 +22,7 @@ const SILENCE: AuthoredSpecial = {
 };
 const flight = (cost: number, rise: number, across: number): AuthoredSpecial => ({
   cost, endFrame: 31,
-  motion: [{ ...frames(8, 31), velocityX: 0.0, velocityZ: f32(f32(HERO_REFERENCE_HEIGHT * rise) / 24.0), driftSpeed: f32(f32(HERO_REFERENCE_HEIGHT * across) / 24.0) }],
+  motion: [{ ...frames(1, 7), velocityX: 0.0, velocityZ: 0.0 }, { ...frames(8, 31), velocityX: 0.0, velocityZ: f32(f32(HERO_REFERENCE_HEIGHT * rise) / 24.0), driftSpeed: f32(f32(HERO_REFERENCE_HEIGHT * across) / 24.0) }],
   oncePerAirtime: true, helpless: true,
 });
 const LIFE_DRAIN: AuthoredSpecial = {
@@ -34,6 +34,6 @@ const LIFE_DRAIN: AuthoredSpecial = {
 export const SYLVANAS_SPECIALS: FighterSpecials = {
   neutral: { name: "Black Arrow", description: "A dark arrow that charges her next bow strike. Hold up to fire upward.", ground: BLACK_ARROW, air: { ...BLACK_ARROW, landingLag: 16 } },
   side: { name: "Silence", description: "A short curse that stops offensive specials. Movement, attacks and recovery still work.", ground: SILENCE, air: { ...SILENCE, landingLag: 20 } },
-  up: { name: "Banshee Flight", description: "Rise as a spirit, steering toward the stage, then fall helpless.", ground: flight(15, 2.0, f32(0.9)), free: flight(0, f32(1.4), f32(0.45)) },
+  up: { name: "Banshee Flight", description: "Rise as a spirit, steering toward the stage, then fall helpless.", ground: flight(15, f32(2.4), f32(1.2)), free: flight(0, f32(1.6), f32(0.8)) },
   down: { name: "Life Drain", description: "Catch a nearby foe through their shield and drain a little life. A missed reach leaves her open.", ground: LIFE_DRAIN },
 };

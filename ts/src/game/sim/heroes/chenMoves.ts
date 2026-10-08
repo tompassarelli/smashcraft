@@ -9,6 +9,7 @@ export const chenCapsule = (x1: number, z1: number, x2: number, z2: number, radi
 export const chenHit = (damage: number, growth: number, base: number, x: number, z: number, element: HitElement = HitElement.normal): Readonly<HitEffect> =>
   ({ damage: growth === 0.0 ? damage : f32(damage * 1.25), growth, base, launchX: f32(x), launchZ: f32(z), electric: false, element });
 const poke = (damage: number) => chenHit(damage, 78.0, 18.0, f32(0.819152), f32(0.573576));
+const tap = (damage: number) => chenHit(damage, 45.0, 12.0, f32(0.819152), f32(0.573576));
 const lift = (damage: number) => chenHit(damage, 83.0, 28.0, f32(0.173648), f32(0.984808));
 const finish = (damage: number, back = false) => chenHit(damage, 108.0, 28.0, back ? -f32(0.766044) : f32(0.766044), f32(0.642788));
 const region = (first: number, last: number, x1: number, z1: number, x2: number, z2: number, radius: number, effect: Readonly<HitEffect>) =>
@@ -35,9 +36,9 @@ export const CHEN_MOVES: FighterMoves = {
     },
   },
   normals: {
-    [AttackStyle.jab]: jabStep(heroMove(4, 2, 11, 0, [region(4, 5, 18.0, 62.0, 48.0, 64.0, 12.0, poke(3.0))])),
-    [AttackStyle.jab2]: jabStep(heroMove(5, 2, 13, 0, [region(5, 6, 18.0, 56.0, 62.0, 58.0, 11.0, poke(3.0))])),
-    [AttackStyle.jab3]: heroMove(7, 3, 18, 0, [region(7, 9, 18.0, 46.0, 48.0, 58.0, 20.0, poke(5.0))]),
+    [AttackStyle.jab]: jabStep(heroMove(4, 2, 11, 0, [region(4, 5, 18.0, 62.0, 48.0, 64.0, 12.0, tap(3.0))])),
+    [AttackStyle.jab2]: jabStep(heroMove(5, 2, 13, 0, [region(5, 6, 18.0, 56.0, 62.0, 58.0, 11.0, tap(3.0))])),
+    [AttackStyle.jab3]: heroMove(7, 3, 18, 0, [region(7, 9, 20.0, 50.0, 54.0, 54.0, 14.0, poke(5.0))]),
     [AttackStyle.forwardTilt]: tilt(58.0), [AttackStyle.forwardTiltUp]: tilt(88.0), [AttackStyle.forwardTiltDown]: tilt(26.0),
     [AttackStyle.upTilt]: heroMove(7, 4, 20, 0, [region(7, 10, 18.0, 72.0, 26.0, 112.0, 15.0, lift(7.0))]),
     [AttackStyle.downTilt]: heroMove(7, 3, 20, 0, [region(7, 9, 14.0, 22.0, 70.0, 16.0, 13.0, lift(6.0))]),

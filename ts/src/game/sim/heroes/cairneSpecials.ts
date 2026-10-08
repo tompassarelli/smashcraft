@@ -17,8 +17,9 @@ const stomp = (air: boolean): AuthoredSpecial => ({
 });
 const lift = (free: boolean): AuthoredSpecial => ({
   cost: free ? 0 : 15, endFrame: 32, oncePerAirtime: true, helpless: true, facesStick: true,
-  motion: [{ ...frames(11, 26), velocityX: free ? f32(2.625) : f32(4.125), velocityZ: free ? 9.0 : 13.0 },
-    { ...frames(27, 32), velocityX: free ? f32(0.7) : f32(1.1), velocityZ: free ? f32(2.4) : f32(3.833333333) }],
+  motion: [{ ...frames(1, 10), velocityX: 0.0, velocityZ: 0.0 },
+    { ...frames(11, 26), velocityX: free ? 6.0 : 10.0, velocityZ: free ? 15.0 : 20.0 },
+    { ...frames(27, 32), velocityX: free ? 2.0 : 3.0, velocityZ: free ? 4.0 : 6.0 }],
   regions: free ? undefined : [heroRegion(11, 16, c(0.0, 95.0, 0.0, 200.0, 20.0), hit(9.0, "launch", 80))],
 });
 export const CAIRNE_SPECIALS: FighterSpecials = {
