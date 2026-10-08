@@ -9,7 +9,8 @@ import { f32 } from "wisp/src/sim/f32";
 import { Character, SurfaceContact } from "../sim/codes";
 import { WALL_TECH_STARTUP_FRAMES, canAttack, isIntangible, isTumbling } from "../sim/conditions";
 import { type Fighter, createFighter } from "../sim/fighter";
-import { MAIN_DECK_BODY_SURFACES, SOLID_DECK_TEST_STAGE, solidSurfaceAt, surfaceRight } from "../sim/stage";
+import { CANNON_TEST_STAGE, MAIN_DECK_BODY_SURFACES, SOLID_DECK_TEST_STAGE, solidSurfaceAt, solidSurfacesOf, surfaceRight } from "../sim/stage";
+import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { bodyTop } from "../sim/surfaces";
 import { WORLD_UNITS_PER_MELEE_UNIT, melee } from "../sim/tuning";
 import { type Pad, type PadMatch, padMatch, playPads } from "./helperPads";
@@ -63,13 +64,29 @@ interface Run extends PadMatch {
   readonly victim: Fighter;
 }
 
-/** Both airborne beside the right side, below the ledge's catch boxes; the victim faces the Archer outside it. */
-function startRun(victimCharacter: Character, percent: number): Run {
+/** Where the right side's wall crosses height `z` on `stage`, if it has one there. */
+function rightWallX(stage: number, z: number): number | undefined {
+  for (const surface of solidSurfacesOf(stage)) {
+    if (surface.kind !== SurfaceContact.wall || surface.normalX <= 0.0) continue;
+    if (z > surface.startZ || z < surface.endZ) continue;
+    return surface.startX + (surface.endX - surface.startX) * ((z - surface.startZ) / (surface.endZ - surface.startZ));
+  }
+  return undefined;
+}
+
+/**
+ * Both airborne beside the right side, below the ledge's catch boxes; the
+ * victim faces the Archer outside it. Stage 0 holds Final Destination's
+ * reference walls, which these contracts measure against; another stage
+ * keeps the same gap to its own wall at that height (none: stage 0's place).
+ */
+function startRun(victimCharacter: Character, percent: number, stage = 0): Run {
   const match = testMatch(3, Character.archer);
-  // Final Destination's reference walls, which these contracts measure against.
-  match.game.stageChoice = 0;
-  const attacker = createFighter(Character.archer, 560.0, -1);
-  const victim = createFighter(victimCharacter, 530.0, 1);
+  match.game.stageChoice = stage;
+  const wall = rightWallX(stage, -150.0);
+  const shift = wall === undefined ? 0.0 : f32(wall - assertDefined(rightWallX(0, -150.0), "stage 0's wall"));
+  const attacker = createFighter(Character.archer, f32(560.0 + shift), -1);
+  const victim = createFighter(victimCharacter, f32(530.0 + shift), 1);
   victim.status.damage = percent;
   for (const fighter of [attacker, victim]) {
     fighter.motion.grounded = false;
@@ -393,4 +410,71 @@ test("a wall tech, its jump and a plain wall jump are each intangible for Melee'
     assertTrue(wallJump.victim.surfaceRecovery.wallJumpQueued);
     assertEquals(passThroughFrames(wallJump), 14, `${name} wall jump`);
   }
+});
+
+// #338: an edge-guard that knocks a fighter back into the stage, on every
+// selectable stage's own side wall: it bounces off, wall techs, or wall-tech
+// jumps, as on Final Destination.
+
+/** What failed of `checks` on the first false one, or "" when all hold. */
+function firstFailure(checks: readonly (readonly [string, boolean])[]): string {
+  for (const [what, held] of checks) if (!held) return what;
+  return "";
+}
+
+function stageWallOutcomes(stage: number): readonly [string, string, string] {
+  const probe = startRun(Character.archer, 120.0, stage);
+  let missed: Launch;
+  try {
+    missed = launch(probe, NEUTRAL);
+  } catch {
+    return ["never met the side", "never met the side", "never met the side"];
+  }
+  const bounced = probe.victim;
+  const bounce = firstFailure([
+    ["met a wall", bounced.surfaceRecovery.contactKind === SurfaceContact.wall],
+    ["still tumbling", isTumbling(bounced)],
+    ["reflected away", bounced.launch.knockbackX > 0.0],
+  ]);
+
+  const tech = startRun(Character.archer, 120.0, stage);
+  launch(tech, (frame) => ({ trigger: frame === missed.free }));
+  const teched = tech.victim;
+  const { x, z } = teched.motion;
+  const entered = [
+    ["wall tech", teched.surfaceRecovery.state === SurfaceContact.techWall && !teched.surfaceRecovery.wallJumpQueued],
+    ["hitstun ended", teched.launch.hitstun === 0],
+  ] as const;
+  let held = true;
+  for (let frame = 1; frame < WALL_TECH_STARTUP_FRAMES; frame++) {
+    playPads(tech, {}, {});
+    held &&= teched.motion.x === x && teched.motion.z === z && teched.status.invincible > 0;
+  }
+  playPads(tech, {}, {});
+  const wallTech = firstFailure([
+    ...entered,
+    ["held and invincible", held],
+    ["pushed off", teched.motion.vx === f32(melee(referenceWall(Character.archer).pushOff) - teched.tuning.physics.airFriction)],
+  ]);
+
+  const jump = startRun(Character.archer, 120.0, stage);
+  launch(jump, (frame) => ({ trigger: frame === missed.free, y: frame === missed.contact ? 1.0 : 0.0 }));
+  const jumper = jump.victim;
+  const queued = jumper.surfaceRecovery.state === SurfaceContact.techWall && jumper.surfaceRecovery.wallJumpQueued;
+  for (let frame = 1; frame <= WALL_TECH_STARTUP_FRAMES; frame++) playPads(jump, {}, {});
+  const techJump = firstFailure([
+    ["wall-tech jump queued", queued],
+    ["jumped off", jumper.motion.vx === f32(melee(referenceWall(Character.archer).jumpX) - jumper.tuning.physics.airFriction) && jumper.motion.deltaZ > 0.0],
+  ]);
+  return [bounce, wallTech, techJump];
+}
+
+// Blackrock's deck is floor-only (Kongo Jungle's GrOk.dat), so the cannon below
+// can fire fighters up through it; it has no side to bounce off (#338).
+test("on every stage with a solid deck, a launch into its side bounces off it, a trigger wall techs and up adds the wall-tech jump [spec #338]", () => {
+  const failures = STAGE_CATALOG.filter(({ id }) => id !== CANNON_TEST_STAGE).flatMap(({ id, name }) => {
+    const [bounce, tech, jump] = stageWallOutcomes(id);
+    return bounce === "" && tech === "" && jump === "" ? [] : [`${name}: bounce ${bounce || "ok"}, tech ${tech || "ok"}, tech jump ${jump || "ok"}`];
+  });
+  assertEquals(failures.join("; "), "");
 });

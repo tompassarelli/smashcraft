@@ -538,7 +538,10 @@ Competitive rules every profile keeps:
   one outline per stage and the level underside.
 
 Melee-reference contracts (wall techs, the underside scenario, the oracle and
-the interaction graph) measure Final Destination's walls on stage 0. Each
+the interaction graph) measure Final Destination's walls on stage 0; the
+wall bounce, wall tech and wall-tech jump are also played against every
+stage's own side wall, Blackrock's floor-only deck aside
+(smashcraft:ts/src/game/match/wallTechInputContracts.tests.ts). Each
 stage's drawn main deck is generated from its own outline by
 smashcraft:tools/stage/package.ts.
 
