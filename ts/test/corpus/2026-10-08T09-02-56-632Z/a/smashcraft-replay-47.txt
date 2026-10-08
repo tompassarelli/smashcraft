@@ -1,0 +1,16 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "wisp-repro 1" )
+	call Preload( "build typescript-integrity" )
+	call Preload( "frame 4569" )
+	call Preload( "checksum 31013:25973" )
+	call Preload( "replay 47" )
+	call Preload( "version 69eaa2f60be8" )
+	call Preload( "parts 8" )
+	call Preload( "end 3" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+
