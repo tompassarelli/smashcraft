@@ -1,0 +1,21 @@
+Change: per-kind occupied-slot bits skip empty impact slots during state
+copies and frame aging. Clearing, reuse and rendering update the same bits.
+Before: c0758db3f2b1e3bb2ffab411f9ac9a8e71fe03bc, farm 37749635776
+After: 1cab9e85e026d6319b98a1df320a71810ff20d4e, farm 37749639667
+Command: bun wisp farm perf 'playable-bot-four --samples'
+Both: 1800 frames, 0 problems; delay 2, rollback window 24, repair budget 6 unchanged.
+
+Player 0: predicted milliseconds p50 5.531 -> 5.473; p95 15.890 -> 15.458;
+p99 18.54 after; worst 22.061 -> 21.656. Mean instructions 281077 -> 276742.
+Player 1: predicted milliseconds p50 5.483 -> 5.421; p95 15.511 -> 15.112;
+p99 18.20 after; worst 22.510 -> 22.091. Mean instructions 275965 -> 271808.
+Mean allocation: both players 68 KB/frame before and after.
+Adjacent perf compare: PASS. Original fixture compare: FAIL.
+Original 10 ms p99 / 14 ms worst budget: FAIL; no budget was changed.
+
+Impact state and visual lifecycle tests: 16 Bun passed, 256 assertions.
+Impact state tests: 9/9 Lua32 passed, 0.149 s total CPU.
+Parity tapes: 24 tapes, 19310 frames, 0 divergences in each Lua mode.
+
+This completes the currently running experiment at Tom's stop instruction.
+No further experiment started; issue #168 remains open, Needs Tom.
