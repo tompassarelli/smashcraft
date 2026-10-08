@@ -3,7 +3,9 @@
 // building it on first use, and restarts the login unit when it changed;
 // without the unit, runs the service here until Ctrl-C
 // (smashcraft:companion/README.md, "Always-on controller service").
+import { BunServices } from "@effect/platform-bun";
 import { Effect } from "effect";
+import { ChildProcess } from "effect/process";
 import type { Command } from "wisp/scripts/wisp/command";
 import { PlayProblem } from "wisp/scripts/wisp/play";
 import { CONTROLLER_LAUNCHER, CONTROLLER_STATUS, CONTROLLER_UNIT, ensureService, pointLauncher, unitInstalled } from "../controllerService";
@@ -26,7 +28,13 @@ export const controller: Command = (args) => Effect.gen(function*() {
   }
   pointLauncher(helper);
   console.log(`No ${CONTROLLER_UNIT} installed; running the controller service here until Ctrl-C.`);
-  const child = Bun.spawn([CONTROLLER_LAUNCHER, "--service"], { stdio: ["inherit", "inherit", "inherit"] });
-  const code = yield* Effect.promise(() => child.exited);
+  // Scoped: Ctrl-C or a killed run stops the service with this command.
+  const code = yield* Effect.scoped(Effect.gen(function*() {
+    const child = yield* ChildProcess.make(CONTROLLER_LAUNCHER, ["--service"], { stdin: "inherit", stdout: "inherit", stderr: "inherit" });
+    return yield* child.exitCode;
+  })).pipe(
+    Effect.provide(BunServices.layer),
+    Effect.catchTag("PlatformError", (cause) => Effect.fail(new PlayProblem({ problem: `couldn't run the controller service: ${cause.message}` }))),
+  );
   if (code !== 0) return yield* new PlayProblem({ problem: `the controller service stopped (exit ${code})` });
 });
