@@ -176,7 +176,8 @@ const PAIRS = [
   [Character.dreadlord, Character.warden], [Character.shadowHunter, Character.beastmaster], [Character.demonHunter, Character.rifleman],
 ] as const;
 const MATCH_FRAMES = 1800;
-const MATCH_SEEDS = 4;
+// Rifleman replaces Archer in this sample; keep enough matches for the original >200-attempt oracle.
+const MATCH_SEEDS = 5;
 
 sweep("computers punish in ordinary Wren Expert matches: they attack into open windows and land in more of them than without the punish [spec #157]", () => {
   // Windows each computer saw open, the ones it attacked into, and the ones it hit or grabbed in.
