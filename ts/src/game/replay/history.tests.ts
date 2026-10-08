@@ -369,7 +369,7 @@ test("restored and borrowed network frames preserve CPU state and every confirme
   assertGreaterThan(contacts, 0);
 });
 
-test("#206 a client that predicted past the pause frame returns to the state before it", () => {
+test("#206 a client that predicted past the pause frame returns to the state before it [repro #206]", () => {
   const tape = createTapeWorld({ stocks: 99 });
   const { live } = tape;
   const history = new ReplayHistory();
