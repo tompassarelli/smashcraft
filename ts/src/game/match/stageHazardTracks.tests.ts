@@ -1,7 +1,9 @@
 // Stage hazards follow the match clock, never a random draw (#274,
 // smashcraft:docs/design/stage-art.md rule 13): every selectable stage with a
 // hazard plays under two match seeds, with the fighters standing at centre
-// and pressing nothing, and every hazard's track must agree frame by frame.
+// and pressing nothing (on the Tomb, the second fighter floats in its sea
+// from the start, so the current and the hydra act on it), and every
+// hazard's track must agree frame by frame.
 // The bots' random source is seeded with each match's seed while the hazards
 // are read, so a hazard that draws from it diverges.
 import { test } from "wisp/src/runtime/testing";
@@ -9,7 +11,8 @@ import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { stageWarning } from "../presentation/stageHazards";
 import { createReplaySnapshot } from "../replay/snapshot";
 import { surfaceCount, surfaceLeft, surfaceMoves, surfaceRight, surfaceZ } from "../sim/stage";
-import { cannonAim, cannonOn, cannonX, hasCannon, hasWind, windDirection, windOn, windPhase, windPush } from "../sim/stageHazards";
+import { fighterAt } from "../sim/roster";
+import { SEA_SURFACE_Z, cannonAim, cannonOn, cannonX, hasCannon, hasTide, hasWind, tideDirection, tidePush, windDirection, windOn, windPhase, windPush } from "../sim/stageHazards";
 import { useMatchSeed } from "./botRandom";
 import { Phase, stageClock } from "./rules";
 import { stepMatch } from "./step";
@@ -18,6 +21,7 @@ import { stepMatch } from "./step";
 const FRAMES = 920;
 const SEEDS = [3, 777] as const;
 const WIND_PROBES = [-560.0, -300.0, -40.0, 40.0, 300.0, 560.0];
+const SEA_PROBES = [-1500.0, -700.0, 0.0, 700.0, 1500.0];
 
 type Track = Record<string, string[]>;
 
@@ -26,6 +30,7 @@ function hazardNames(stage: number): string[] {
   for (let deck = 1; deck < surfaceCount(stage); deck++) if (surfaceMoves(stage, deck)) names.push(`moving platform ${deck}`);
   if (hasWind(stage)) names.push("wind");
   if (hasCannon(stage)) names.push("cannon");
+  if (hasTide(stage)) names.push("tide", "hydra");
   if (names.length > 0) names.push("warning");
   return names;
 }
@@ -38,6 +43,10 @@ function hazardTrack(stage: number, seed: number): Track {
   const { match, world, controls } = live;
   match.phase = Phase.match; match.stageChoice = stage; match.matchSeed = seed;
   match.humanMask = 3; match.humanFighterMask = 3;
+  const swimmer = fighterAt(world, 1);
+  if (hasTide(stage)) {
+    swimmer.motion.x = -1000.0; swimmer.motion.z = SEA_SURFACE_Z; swimmer.motion.grounded = false; swimmer.motion.surface = undefined;
+  }
   for (let frame = 1; frame <= FRAMES; frame++) {
     stepMatch(match, world, controls, frame);
     useMatchSeed(match.matchSeed);
@@ -51,6 +60,13 @@ function hazardTrack(stage: number, seed: number): Track {
       track["wind"]?.push(push);
     }
     if (hasCannon(stage)) track["cannon"]?.push(`${cannonOn(stage, clock)},${cannonX(clock)},${cannonAim(clock)}`);
+    if (hasTide(stage)) {
+      let push = `${tideDirection(match.matchFrame)}`;
+      for (const x of SEA_PROBES) push = `${push},${tidePush(stage, match.matchFrame, x, SEA_SURFACE_Z - 10.0)}`;
+      track["tide"]?.push(push);
+      const { motion, water, status } = swimmer;
+      track["hydra"]?.push(`${motion.x},${motion.z},${status.damage},${status.out},${water.inWater},${water.frames},${water.entries},${water.hydraFrame},${water.hydraX}`);
+    }
     track["warning"]?.push(stageWarning(match, world));
     useMatchSeed(0);
   }

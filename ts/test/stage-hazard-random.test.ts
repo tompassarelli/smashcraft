@@ -6,6 +6,7 @@ const root = join(import.meta.dir, "..");
 const HAZARD_FILES = [
   "src/game/sim/stageHazards.ts",
   "src/game/sim/lava.ts",
+  "src/game/sim/water.ts",
   "src/game/sim/stage.ts",
   "src/game/presentation/stageHazards.ts",
 ];
