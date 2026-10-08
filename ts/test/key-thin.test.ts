@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
 import { generateMDX, parseMDL } from 'war3-model';
 import { KEY_BOUND, poseError, savedKeyBytes, thinKeys } from '../scripts/keyThin';
+import { fighterName, SELECTABLE_CHARACTERS } from '../src/game/sim/heroes/registry';
 
 // An arm: a root bone turning about Z at a steady rate, with a 3 degree
 // flick at frame 500, and a hand 100 units out on it.
@@ -55,7 +56,7 @@ test('the bytes thinning reports saved are the encoded model\'s shrinkage [invar
 
 test("every fighter's thinned clips stay within 0.5 units and 0.5 degrees of the source pose and are no larger [spec #314]", async () => {
   const rows = (await Bun.file(new URL('fixtures/key-thin.tsv', import.meta.url)).text()).trim().split('\n').filter(line => !line.startsWith('#')).slice(1);
-  expect(rows.length).toBeGreaterThanOrEqual(22);
+  expect(rows.map(row => row.split('\t')[0]).sort()).toEqual(SELECTABLE_CHARACTERS.map(character => fighterName(character).replaceAll(/[^A-Za-z]/g, '')).sort());
   for (const row of rows) {
     const [fighter, keysBefore, keysAfter, bytesBefore, bytesAfter, maxPosition, maxRotationDegrees] = row.split('\t');
     expect({ fighter, fewer: Number(keysAfter) <= Number(keysBefore), smaller: Number(bytesAfter) <= Number(bytesBefore) }).toEqual({ fighter, fewer: true, smaller: true });
