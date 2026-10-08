@@ -843,6 +843,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) int(`projectileSerial[${i}]`, at(fighter.projectiles, i).serial);
   int("manaDrainedSerial", v.manaDrained);
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) if (at(fighter.projectiles, i).longRifle) int(`projectileLongRifle[${i}]`, 1);
+  for (let i = 0; i < PROJECTILE_CAPACITY; i++) if (at(fighter.projectiles, i).exReach) int(`projectileExReach[${i}]`, 1);
   // A pool's growth and strike wait (the Lich King's Defile); written only while either is live.
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) {
     const projectile = at(fighter.projectiles, i);
@@ -872,6 +873,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("specialDirection", sp.direction);
   bool("specialHit", sp.hit);
   int("bearLife", fighter.bear.life);
+  if (fighter.bear.exDamage) int("bearExDamage", 1);
   real("bearX", fighter.bear.x);
   real("bearZ", fighter.bear.z);
   real("bearVelocityX", fighter.bear.velocityX);
@@ -886,6 +888,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   real("hippogryphVelocityZ", fighter.hippogryph.velocityZ);
   int("hippogryphKind", fighter.hippogryph.kind);
   int("freezeTrapLife", fighter.freezeTrap.life);
+  if (fighter.freezeTrap.exReach) int("freezeTrapExReach", 1);
   int("freezeTrapArming", fighter.freezeTrap.arming);
   real("freezeTrapX", fighter.freezeTrap.x);
   real("freezeTrapZ", fighter.freezeTrap.z);

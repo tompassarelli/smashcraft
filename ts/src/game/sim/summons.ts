@@ -28,6 +28,7 @@ const HIPPOGRYPH_STRIKE = { damage: 8.0, growth: 100.0, base: 22.0, launchX: DIA
 const HIPPOGRYPH_DIVE = { damage: 9.0, growth: 95.0, base: 26.0, launchX: 0.9396926164627075, launchZ: 0.3420201539993286, electric: false } as const;
 /** Flying on after a leap-off, it launches nearly straight up: 80 degrees. */
 const HIPPOGRYPH_RELEASED = { damage: 6.0, growth: 80.0, base: 30.0, launchX: 0.1736481785774231, launchZ: 0.9848077297210693, electric: false } as const;
+const BEAR_SWIPE_EX = { ...BEAR_SWIPE, damage: f32(BEAR_SWIPE.damage * 1.25) } as const;
 /** A perch waits 4 s for its dive. */
 const HIPPOGRYPH_PERCH_FRAMES = 240;
 /** A dive reaches its archer this many frames after leaving the perch, then flies on. */
@@ -67,6 +68,7 @@ export function startFreezeTrap(owner: Fighter, stage: number, matchFrame: numbe
     return false;
   }
   trap.x = motion.x;
+  trap.exReach = owner.special.ex;
   motion.crouching = false;
   trap.surface = motion.surface;
   trap.z = surfaceZAt(stage, motion.surface, matchFrame, trap.x);
@@ -81,7 +83,7 @@ function trapCanContact(owner: Fighter, target: Fighter): boolean {
   const trap = owner.freezeTrap;
   return trap.life > 0 && trap.arming === 0 && !owner.status.out && !target.status.out && target.status.frozenFrames === 0 && target.status.freezeImmunityFrames === 0
     && target.motion.grounded && target.motion.surface === trap.surface && !isIntangible(target)
-    && Math.abs(f32(target.motion.x - trap.x)) <= FREEZE_TRAP_TRIGGER_RADIUS;
+    && Math.abs(f32(target.motion.x - trap.x)) <= f32(FREEZE_TRAP_TRIGGER_RADIUS * (trap.exReach ? 1.25 : 1.0));
 }
 
 function freezeFromTrap(world: Roster, slot: number): void {
@@ -180,7 +182,7 @@ export function advanceBear(world: Roster, ownerSlot: number, stage: number, mat
       const target = fighterAt(world, targetSlot);
       if (target.status.out || isIntangible(target) || Math.abs(f32(target.motion.x - bear.x)) > 70 || Math.abs(f32(target.motion.z - bear.z)) > 100) continue;
       hit = true;
-      applyAttackHit(world, ownerSlot, targetSlot, AttackStyle.jab, bear.velocityX < 0 ? -1 : 1, BEAR_SWIPE, false, target.shield.raised, undefined, HitOrigin.summon);
+      applyAttackHit(world, ownerSlot, targetSlot, AttackStyle.jab, bear.velocityX < 0 ? -1 : 1, bear.exDamage ? BEAR_SWIPE_EX : BEAR_SWIPE, false, target.shield.raised, undefined, HitOrigin.summon);
     }
     if (hit) {
       bear.swipeCooldown = RIFLEMAN_BEAR_SWIPE_INTERVAL;

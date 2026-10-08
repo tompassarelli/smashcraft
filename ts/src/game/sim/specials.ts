@@ -310,8 +310,9 @@ function fireRecoil(owner: Fighter, aimX: number, aimZ: number, speed: number, s
   const z = aimZ < 0 ? -1 : aimZ > 0 || x === 0 ? 1 : 0;
   const scale = x !== 0 && z !== 0 ? AIM_DIAGONAL : 1.0;
   spawnProjectileMotion(owner, ProjectileKind.recoil, f32(f32(-x * RIFLEMAN_RECOIL_SHOT_SPEED) * scale), f32(f32(-z * RIFLEMAN_RECOIL_SHOT_SPEED) * scale), 8, serial);
-  owner.motion.vx = f32(f32(x * speed) * scale);
-  owner.motion.vz = f32(f32(z * speed) * scale);
+  const travelSpeed = f32(speed * (owner.special.ex ? 1.25 : 1.0));
+  owner.motion.vx = f32(f32(x * travelSpeed) * scale);
+  owner.motion.vz = f32(f32(z * travelSpeed) * scale);
 }
 
 /**
@@ -497,6 +498,7 @@ function summonBear(owner: Fighter, stage: number, matchFrame: number): void {
   const { motion, bear, special } = owner;
   const moveX = special.direction;
   bear.life = RIFLEMAN_BEAR_LIFETIME;
+  bear.exDamage = special.ex;
   bear.x = f32(motion.x + f32(moveX * 45));
   bear.z = motion.grounded && motion.surface !== undefined ? surfaceZAt(stage, motion.surface, matchFrame, bear.x) : motion.z;
   bear.velocityX = f32(moveX * 14.0);
@@ -732,8 +734,8 @@ function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number,
       if (aimX === 0 && aimZ >= 0) {
         // Straight up on a shot straight down, as the recovery always flew: the side pressed drifts him.
         spawnProjectileMotion(owner, ProjectileKind.recoil, f32(owner.facing * 2.0), -RIFLEMAN_RECOIL_SHOT_SPEED, 8, shotSerial);
-        motion.vx = f32(special.direction * 8.0);
-        motion.vz = RIFLEMAN_RECOIL_SPEED;
+        motion.vx = f32(f32(special.direction * 8.0) * (special.ex ? 1.25 : 1.0));
+        motion.vz = f32(RIFLEMAN_RECOIL_SPEED * (special.ex ? 1.25 : 1.0));
       } else {
         fireRecoil(owner, aimX, aimZ, RIFLEMAN_RECOIL_SPEED, shotSerial);
       }
@@ -747,8 +749,8 @@ function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number,
   if (special.action === SpecialAction.demonHunterFelRush) advanceFelRush(owner);
   if (special.action === SpecialAction.demonHunterImmolate) advanceFlameCrash(owner);
   if (special.action === SpecialAction.demonHunterWingAscent && special.form === 0 && special.frame === DEMONHUNTER_WING_STARTUP) {
-    motion.vz = 30.0;
-    motion.vx = f32(special.direction * 5.0);
+    motion.vz = special.ex ? 37.5 : 30.0;
+    motion.vx = f32(f32(special.direction * 5.0) * (special.ex ? 1.25 : 1.0));
     launchUpward(owner);
     owner.status.invincible = max(owner.status.invincible, 4);
   }
@@ -788,9 +790,19 @@ const IMMOLATE_AIR: Readonly<HitRegion> = {
   effect: { damage: 9.0, growth: 110.0, base: 26.0, launchX: 0.11999999731779099, launchZ: -0.9929999709129333, electric: false, element: HitElement.fire, manaDrain: 6 },
   window: 1,
 };
+const IMMOLATE_GROUND_EX = exDamageRegion(IMMOLATE_GROUND);
+const IMMOLATE_AIR_EX = exDamageRegion(IMMOLATE_AIR);
+
+function exDamageRegion(region: Readonly<HitRegion>): Readonly<HitRegion> {
+  return {
+    ...region,
+    effect: { ...region.effect, damage: f32(region.effect.damage * 1.25) },
+    groundedEffect: region.groundedEffect === undefined ? undefined : { ...region.groundedEffect, damage: f32(region.groundedEffect.damage * 1.25) },
+  };
+}
 
 /** Where Immolation strikes a target's position, facing right, from the ground or the air. */
-export const immolationRegion = (grounded: boolean): Readonly<HitRegion> => (grounded ? IMMOLATE_GROUND : IMMOLATE_AIR);
+export const immolationRegion = (grounded: boolean, ex = false): Readonly<HitRegion> => (grounded ? ex ? IMMOLATE_GROUND_EX : IMMOLATE_GROUND : ex ? IMMOLATE_AIR_EX : IMMOLATE_AIR);
 
 // Flame Crash's plunge spikes an airborne target and launches a grounded one; the landing burst surrounds him.
 const FLAME_CRASH_PLUNGE: Readonly<HitRegion> = {
@@ -804,11 +816,13 @@ const FLAME_CRASH_BURST: Readonly<HitRegion> = {
   effect: { damage: 8.0, growth: 95.0, base: 30.0, launchX: 0.4226182699203491, launchZ: 0.9063078165054321, electric: false, element: HitElement.fire, manaDrain: 6 },
   window: 1,
 };
+const FLAME_CRASH_PLUNGE_EX = exDamageRegion(FLAME_CRASH_PLUNGE);
+const FLAME_CRASH_BURST_EX = exDamageRegion(FLAME_CRASH_BURST);
 
 /** The Flame Crash region that strikes this frame: the plunge from frame 5, the burst on landing frames 1-3. */
-export function flameCrashRegion(form: number, frame: number): Readonly<HitRegion> {
-  if (form === FLAME_CRASH_FORM) return frame > FLAME_CRASH_HANG_LAST ? FLAME_CRASH_PLUNGE : NO_HIT_REGION;
-  if (form === FLAME_CRASH_LANDING_FORM) return frame <= FLAME_CRASH_BURST_LAST ? FLAME_CRASH_BURST : NO_HIT_REGION;
+export function flameCrashRegion(form: number, frame: number, ex = false): Readonly<HitRegion> {
+  if (form === FLAME_CRASH_FORM) return frame > FLAME_CRASH_HANG_LAST ? ex ? FLAME_CRASH_PLUNGE_EX : FLAME_CRASH_PLUNGE : NO_HIT_REGION;
+  if (form === FLAME_CRASH_LANDING_FORM) return frame <= FLAME_CRASH_BURST_LAST ? ex ? FLAME_CRASH_BURST_EX : FLAME_CRASH_BURST : NO_HIT_REGION;
   return NO_HIT_REGION;
 }
 
@@ -842,16 +856,18 @@ const CHAOS_STRIKE: Readonly<HitRegion> = {
   effect: { damage: 10.0, growth: 95.0, base: 30.0, launchX: 0.7660444378852844, launchZ: 0.6427876353263855, electric: false, element: HitElement.fire, manaDrain: 10 },
   window: 1,
 };
+const FEL_RUSH_PASS_EX = exDamageRegion(FEL_RUSH_PASS);
+const CHAOS_STRIKE_EX = exDamageRegion(CHAOS_STRIKE);
 
 /** The Fel Rush region that strikes this frame: the pass on rush frames 6-15, Chaos Strike on its frames 5-8. */
-export function felRushRegion(form: number, frame: number): Readonly<HitRegion> {
-  if (form === 0) return frame >= FEL_RUSH_FIRST && frame <= FEL_RUSH_LAST ? FEL_RUSH_PASS : NO_HIT_REGION;
-  if (form === CHAOS_STRIKE_FORM || form === CHAOS_STRIKE_AIR_FORM) return frame >= CHAOS_STRIKE_FIRST && frame <= CHAOS_STRIKE_LAST ? CHAOS_STRIKE : NO_HIT_REGION;
+export function felRushRegion(form: number, frame: number, ex = false): Readonly<HitRegion> {
+  if (form === 0) return frame >= FEL_RUSH_FIRST && frame <= FEL_RUSH_LAST ? ex ? FEL_RUSH_PASS_EX : FEL_RUSH_PASS : NO_HIT_REGION;
+  if (form === CHAOS_STRIKE_FORM || form === CHAOS_STRIKE_AIR_FORM) return frame >= CHAOS_STRIKE_FIRST && frame <= CHAOS_STRIKE_LAST ? ex ? CHAOS_STRIKE_EX : CHAOS_STRIKE : NO_HIT_REGION;
   return NO_HIT_REGION;
 }
 
 function felRushContact(owner: Fighter, targetSlot: number, target: Fighter): Readonly<HitRegion> {
-  const region = felRushRegion(owner.special.form, owner.special.frame);
+  const region = felRushRegion(owner.special.form, owner.special.frame, owner.special.ex);
   if (region.window <= 0 || specialAlreadyHit(owner, targetSlot) || target.status.out || isIntangible(target)) return NO_HIT_REGION;
   const localX = f32(f32(target.motion.x - owner.motion.x) * owner.facing);
   const localZ = f32(target.motion.z - owner.motion.z);
@@ -864,7 +880,7 @@ function demonHunterSpecialContact(owner: Fighter, targetSlot: number, target: F
   if (owner.character === Character.demonHunter && special.action === SpecialAction.demonHunterWingAscent && special.form === DEMONHUNTER_GLIDE_SLASH_FORM) return glideSlashContact(owner, targetSlot, target);
   if (owner.character !== Character.demonHunter || special.action !== SpecialAction.demonHunterImmolate) return NO_HIT_REGION;
   if (special.form !== 0) {
-    const crash = flameCrashRegion(special.form, special.frame);
+    const crash = flameCrashRegion(special.form, special.frame, special.ex);
     if (crash.window <= 0 || specialAlreadyHit(owner, targetSlot) || target.status.out || isIntangible(target)) return NO_HIT_REGION;
     const x = f32(f32(target.motion.x - owner.motion.x) * owner.facing);
     const z = f32(target.motion.z - owner.motion.z);
@@ -874,7 +890,7 @@ function demonHunterSpecialContact(owner: Fighter, targetSlot: number, target: F
   if (special.frame >= DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE || target.status.out || isIntangible(target)) return NO_HIT_REGION;
   const localX = f32(f32(target.motion.x - owner.motion.x) * owner.facing);
   const localZ = f32(target.motion.z - owner.motion.z);
-  const contact = immolationRegion(owner.motion.grounded);
+  const contact = immolationRegion(owner.motion.grounded, special.ex);
   const inside = localX >= contact.minX && localX <= contact.maxX && localZ >= contact.minZ && localZ <= contact.maxZ;
   return inside ? contact : NO_HIT_REGION;
 }

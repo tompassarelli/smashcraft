@@ -208,6 +208,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
 
   const bear = target.bear;
   const sourceBear = source.bear;
+  bear.exDamage = sourceBear.exDamage;
   bear.life = sourceBear.life;
   bear.x = sourceBear.x;
   bear.z = sourceBear.z;
@@ -226,6 +227,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   hippogryph.kind = sourceHippogryph.kind;
   const trap = target.freezeTrap;
   const sourceTrap = source.freezeTrap;
+  trap.exReach = sourceTrap.exReach;
   trap.life = sourceTrap.life;
   trap.arming = sourceTrap.arming;
   trap.x = sourceTrap.x;
@@ -628,6 +630,7 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
 
   const bear = target.bear;
   const sourceBear = source.bear;
+  if (bear.exDamage !== sourceBear.exDamage) return false;
   if (bear.life !== sourceBear.life || (bear.life === 0 && 1 / bear.life !== 1 / sourceBear.life)) return false;
   if (bear.x !== sourceBear.x || (bear.x === 0 && 1 / bear.x !== 1 / sourceBear.x)) return false;
   if (bear.z !== sourceBear.z || (bear.z === 0 && 1 / bear.z !== 1 / sourceBear.z)) return false;
@@ -646,6 +649,7 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
   if (hippogryph.kind !== sourceHippogryph.kind || (hippogryph.kind === 0 && 1 / hippogryph.kind !== 1 / sourceHippogryph.kind)) return false;
   const trap = target.freezeTrap;
   const sourceTrap = source.freezeTrap;
+  if (trap.exReach !== sourceTrap.exReach) return false;
   if (trap.life !== sourceTrap.life || (trap.life === 0 && 1 / trap.life !== 1 / sourceTrap.life)) return false;
   if (trap.arming !== sourceTrap.arming || (trap.arming === 0 && 1 / trap.arming !== 1 / sourceTrap.arming)) return false;
   if (trap.x !== sourceTrap.x || (trap.x === 0 && 1 / trap.x !== 1 / sourceTrap.x)) return false;

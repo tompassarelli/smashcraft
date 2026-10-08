@@ -270,6 +270,7 @@ export interface Projectile {
   newlyReflected: boolean;
   /** Rifleman's Long Rifle shot (sim/passives.ts): it launches where the blaster flinches. */
   longRifle: boolean;
+  exReach: boolean;
   /** A pool's damaging hits so far, which widen it (SpecialProjectile.pool). */
   poolHits: number;
   /** Frames before a pool may strike again. */
@@ -280,6 +281,7 @@ export interface Projectile {
 
 /** Summons keep their last values when they expire; snapshots and checksums include them. */
 interface Bear {
+  exDamage: boolean;
   life: number;
   x: number;
   z: number;
@@ -300,6 +302,7 @@ interface Hippogryph {
 }
 
 interface FreezeTrap {
+  exReach: boolean;
   life: number;
   arming: number;
   x: number;
@@ -589,6 +592,7 @@ function emptyProjectile(): Projectile {
     damageMultiplier: 1.0,
     newlyReflected: false,
     longRifle: false,
+    exReach: false,
     poolHits: 0,
     poolWait: 0,
     spec: undefined,
@@ -741,9 +745,9 @@ export function createFighter(character: Character, startX: number, facing: numb
       guarded: false,
     },
     projectiles: repeat(PROJECTILE_CAPACITY, () => emptyProjectile()),
-    bear: { life: 0, x: 0.0, z: 0.0, velocityX: 0.0, velocityZ: 0.0, swipeCooldown: 0, hitSerial: 0, surface: undefined },
+    bear: { exDamage: false, life: 0, x: 0.0, z: 0.0, velocityX: 0.0, velocityZ: 0.0, swipeCooldown: 0, hitSerial: 0, surface: undefined },
     hippogryph: { life: 0, x: 0.0, z: 0.0, velocityX: 0.0, velocityZ: 0.0, kind: HippogryphKind.none },
-    freezeTrap: { life: 0, arming: 0, x: 0.0, z: 0.0, surface: undefined, serial: 0, cooldown: 0 },
+    freezeTrap: { exReach: false, life: 0, arming: 0, x: 0.0, z: 0.0, surface: undefined, serial: 0, cooldown: 0 },
     dodge: { airDodging: false, airFrame: 0, airUsed: false, airMotionFrames: 0, groundFrame: 0, groundDirection: 0, groundEntryFacing: 0 },
     landing: { lag: 0 },
     down: { state: DownState.none, frame: 0, direction: 0, waitRemaining: 0, faceUp: true, attackQueued: false },

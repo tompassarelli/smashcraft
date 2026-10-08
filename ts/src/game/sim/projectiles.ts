@@ -75,6 +75,7 @@ export function spawnProjectileMotion(owner: Fighter, kind: ProjectileKind, velo
     projectile.damageMultiplier = damageMultiplier;
     projectile.newlyReflected = false;
     projectile.longRifle = false;
+    projectile.exReach = kind === ProjectileKind.manaBurn && owner.special.ex;
     projectile.x = f32(owner.motion.x + f32(direction * BLASTER_PROJECTILE_SPAWN_OFFSET));
     projectile.z = f32(owner.motion.z + height);
     projectile.life = lifetime;
@@ -90,7 +91,7 @@ export function spawnProjectileMotion(owner: Fighter, kind: ProjectileKind, velo
  */
 export function spawnBlasterShot(owner: Fighter, serial: number, grounded: boolean): void {
   const shot = spawnProjectileMotion(owner, ProjectileKind.blaster, f32(owner.facing * BLASTER_PROJECTILE_SPEED), 0.0, BLASTER_PROJECTILE_LIFETIME, serial,
-    grounded ? RIFLEMAN_BLASTER_GROUND_DAMAGE_MULTIPLIER : 1.0, grounded ? BLASTER_PROJECTILE_HEIGHT : BLASTER_AIR_SHOT_HEIGHT);
+    f32((grounded ? RIFLEMAN_BLASTER_GROUND_DAMAGE_MULTIPLIER : 1.0) * (owner.special.ex ? 1.25 : 1.0)), grounded ? BLASTER_PROJECTILE_HEIGHT : BLASTER_AIR_SHOT_HEIGHT);
   // Long Rifles counts the shots that leave the barrel; every fourth flies farther and launches.
   if (shot !== undefined && longRifleShot(owner)) {
     shot.longRifle = true;
@@ -214,6 +215,7 @@ function reflectProjectile(target: Fighter, source: Projectile): boolean {
     reflected.life = source.life;
     reflected.newlyReflected = true;
     reflected.longRifle = false;
+    reflected.exReach = source.exReach;
     reflected.poolHits = 0;
     reflected.poolWait = 0;
     source.life = 0;
@@ -286,8 +288,10 @@ function flyProjectile(world: Roster, ownerSlot: number, projectile: Projectile,
   projectile.z = f32(oldZ + velocityZ);
   projectile.life--;
   const direction = velocityX < 0 ? -1 : 1;
-  const lowZ = f32(min(oldZ, projectile.z) - BLASTER_PROJECTILE_HALF_HEIGHT);
-  const highZ = f32(max(oldZ, projectile.z) + BLASTER_PROJECTILE_HALF_HEIGHT);
+  const radius = f32(BLASTER_PROJECTILE_RADIUS * (projectile.exReach ? 1.25 : 1.0));
+  const halfHeight = f32(BLASTER_PROJECTILE_HALF_HEIGHT * (projectile.exReach ? 1.25 : 1.0));
+  const lowZ = f32(min(oldZ, projectile.z) - halfHeight);
+  const highZ = f32(max(oldZ, projectile.z) + halfHeight);
   let nearest: number | undefined;
   let distance = 0.0;
   for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
@@ -296,7 +300,7 @@ function flyProjectile(world: Roster, ownerSlot: number, projectile: Projectile,
     const targetX = at(targets.x, targetSlot);
     const centerZ = f32(at(targets.z, targetSlot) + TARGET_CENTER_HEIGHT);
     const crossed = f32(f32(targetX - oldX) * direction) >= 0 && f32(f32(targetX - projectile.x) * direction) <= 0;
-    const near = Math.abs(f32(targetX - projectile.x)) <= BLASTER_PROJECTILE_RADIUS;
+    const near = Math.abs(f32(targetX - projectile.x)) <= radius;
     // The blaster meets the whole hurt capsule, so a short-hop shot reaches a standing body, and a shield at the shot's radius.
     const blaster = projectile.kind === ProjectileKind.blaster;
     const body = hurtCapsule(target.character);
@@ -306,7 +310,7 @@ function flyProjectile(world: Roster, ownerSlot: number, projectile: Projectile,
       ? f32(max(oldZ, projectile.z) + reach) >= f32(targetZ + body.z1) && f32(min(oldZ, projectile.z) - reach) <= f32(targetZ + body.z2)
       : centerZ >= lowZ && centerZ <= highZ;
     const shieldContact = target.shield.raised
-      && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, 1.0, blaster ? BLASTER_PROJECTILE_RADIUS : 0.0);
+      && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, 1.0, blaster ? BLASTER_PROJECTILE_RADIUS : projectile.exReach ? f32(BLASTER_PROJECTILE_RADIUS * 0.25) : 0.0);
     const reflector = shieldContact && at(targets.reflecting, targetSlot);
     const candidate = Math.abs(f32(targetX - oldX));
     if ((shieldContact || ((crossed || near) && height)) && (nearest === undefined || candidate < distance)) {

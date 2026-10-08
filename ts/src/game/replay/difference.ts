@@ -44,7 +44,7 @@ const PROJECTILE_FIELDS = [
   ["projectileLife", "life"], ["projectileX", "x"], ["projectileZ", "z"], ["projectileDirection", "direction"],
   ["projectileKind", "kind"], ["projectileDamageMultiplier", "damageMultiplier"], ["projectileVisualFamily", "visualFamily"],
   ["projectileNewlyReflected", "newlyReflected"], ["projectileVelocityX", "velocityX"], ["projectileVelocityZ", "velocityZ"],
-  ["projectileSerial", "serial"], ["projectileLongRifle", "longRifle"], ["projectilePoolHits", "poolHits"], ["projectilePoolWait", "poolWait"],
+  ["projectileSerial", "serial"], ["projectileLongRifle", "longRifle"], ["projectileExReach", "exReach"], ["projectilePoolHits", "poolHits"], ["projectilePoolWait", "poolWait"],
 ] as const satisfies readonly (readonly [string, keyof Projectile])[];
 
 /**
@@ -184,6 +184,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("specialExArmorUsed", e.special.exArmorUsed, a.special.exArmorUsed);
   add("specialHit", e.special.hit, a.special.hit);
   add("bearLife", e.bear.life, a.bear.life);
+  add("bearExDamage", e.bear.exDamage, a.bear.exDamage);
   add("bearX", e.bear.x, a.bear.x);
   add("bearZ", e.bear.z, a.bear.z);
   add("bearVelocityX", e.bear.velocityX, a.bear.velocityX);
@@ -198,6 +199,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("hippogryphVelocityZ", e.hippogryph.velocityZ, a.hippogryph.velocityZ);
   add("hippogryphKind", e.hippogryph.kind, a.hippogryph.kind);
   add("freezeTrapLife", e.freezeTrap.life, a.freezeTrap.life);
+  add("freezeTrapExReach", e.freezeTrap.exReach, a.freezeTrap.exReach);
   add("freezeTrapArming", e.freezeTrap.arming, a.freezeTrap.arming);
   add("freezeTrapX", e.freezeTrap.x, a.freezeTrap.x);
   add("freezeTrapZ", e.freezeTrap.z, a.freezeTrap.z);

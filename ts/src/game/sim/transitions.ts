@@ -122,6 +122,7 @@ export function clearSpecialOnStock(f: Fighter): void {
   special.fall = false;
   special.hit = false;
   bear.life = 0;
+  bear.exDamage = false;
   f.placed.life = 0;
   for (const animal of f.pack) animal.life = 0;
   bear.swipeCooldown = 0;
@@ -153,6 +154,7 @@ export function clearSpecialOnStock(f: Fighter): void {
     projectile.damageMultiplier = 1.0;
     projectile.newlyReflected = false;
     projectile.longRifle = false;
+    projectile.exReach = false;
     projectile.spec = undefined;
   }
   special.form = 0;
@@ -164,6 +166,7 @@ export function clearSpecialOnStock(f: Fighter): void {
 export function clearOwnedFreezeTrap(f: Fighter): void {
   const trap = f.freezeTrap;
   trap.life = 0;
+  trap.exReach = false;
   trap.arming = 0;
   trap.x = 0.0;
   trap.z = 0.0;
