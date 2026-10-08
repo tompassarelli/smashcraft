@@ -50,6 +50,8 @@ funny, annoying, menacing, heroic, or another specific character. Never flat or
 generic. Add only Grom (#340), Anub’arak (#341), Malfurion (#342), Medivh (#343)
 and Kobold (#344), then hold at 26, Melee’s size, until every fighter feels good.
 Use Warcraft’s own models before importing new assets.
+Support Classic and Definitive only. Each player chooses their look; gameplay,
+move timing, hitboxes and hurtboxes are identical. Reforged is dropped from the plans.
 
 ## Source and workflow
 

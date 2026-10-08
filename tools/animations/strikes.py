@@ -109,7 +109,7 @@ def lerp(a, b, t):
     return tuple(x * (1 - t) + y * t for x, y in zip(a, b)) if isinstance(a, tuple) else a * (1 - t) + b * t
 
 
-SCALARS = {'lean': 0., 'spin': 0., 'rise': 0., 'cloth': 0., 'rifle_pitch': 0., 'step': (0., 0.), 'rifle_lift': (0., 0.)}
+SCALARS = {'lean': 0., 'spin': 0., 'rise': 0., 'rifle_pitch': 0., 'step': (0., 0.), 'rifle_lift': (0., 0.)}
 TARGETS = ('hand_R', 'hand_L', 'foot_R', 'foot_L', 'aim_R', 'aim_L')
 
 
