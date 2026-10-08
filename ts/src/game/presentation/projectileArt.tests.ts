@@ -13,7 +13,7 @@ import { ORIGINAL_PROJECTILE_MODELS, fighterProjectileModels, heroProjectileArt,
  */
 const SAME_SPELL: readonly (readonly string[])[] = [];
 
-test("every projectile-firing move names its own stock missile", () => {
+test("every projectile-firing move names its own stock missile [spec #144]", () => {
   const owner = new Map<string, string>();
   for (const kind of [ProjectileKind.arrow, ProjectileKind.homingArrow, ProjectileKind.blaster, ProjectileKind.recoil, ProjectileKind.manaBurn] as const) {
     const model = ORIGINAL_PROJECTILE_MODELS[kind];
@@ -37,7 +37,7 @@ test("every projectile-firing move names its own stock missile", () => {
   assertTrue(named > 0);
 });
 
-test("a live projectile draws its move's missile, wherever it flies", () => {
+test("a live projectile draws its move's missile, wherever it flies [spec #144]", () => {
   for (const hero of HERO_ROSTER) {
     if (hero.specials === undefined) continue;
     // A reflected projectile sits in another fighter's slots with its record unchanged.

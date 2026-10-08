@@ -7,7 +7,7 @@ import { MATCH_HELP_BOX, MATCH_NOTICE_BOX, TRAINING_READOUT_BOX, TRAINING_READOU
 const overlaps = (a: TextBox, b: TextBox): boolean =>
   a.left < b.left + b.width && b.left < a.left + a.width && a.top - a.height < b.top && b.top - b.height < a.top;
 
-test("training's readout, the help line and the notice keep apart", () => {
+test("training's readout, the help line and the notice keep apart [repro #120]", () => {
   assertTrue(!overlaps(TRAINING_READOUT_BOX, MATCH_HELP_BOX));
   assertTrue(!overlaps(TRAINING_READOUT_BOX, MATCH_NOTICE_BOX));
   assertTrue(!overlaps(MATCH_HELP_BOX, MATCH_NOTICE_BOX));
@@ -17,7 +17,7 @@ test("training's readout, the help line and the notice keep apart", () => {
 
 const linear = (grey: number): number => (grey <= f32(0.04045) ? grey / f32(12.92) : ((grey + f32(0.055)) / f32(1.055)) ** f32(2.4));
 
-test("training's readout panel stays clear of the help and the notice and keeps white text at 4.5:1 over white sky", () => {
+test("training's readout panel stays clear of the help and the notice and keeps white text at 4.5:1 over white sky [repro #120]", () => {
   assertTrue(!overlaps(TRAINING_READOUT_PANEL, MATCH_HELP_BOX));
   assertTrue(!overlaps(TRAINING_READOUT_PANEL, MATCH_NOTICE_BOX));
   const panel = TRAINING_READOUT_PANEL;

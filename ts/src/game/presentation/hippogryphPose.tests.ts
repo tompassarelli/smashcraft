@@ -5,7 +5,7 @@ import { createFighter } from "../sim/fighter";
 import { ARCHER_RIDE_HOVER_FRAMES, ARCHER_RIDE_MAX_X } from "../sim/specials";
 import { archerMounted, createHippogryphPresentationState, projectHippogryph, HIPPOGRYPH_MODEL, HIPPOGRYPH_RIDER_MODEL } from "./hippogryphPose";
 
-test("hippogryph ride draws only the mounted stock rider, flying then walking and banking in both facings", () => {
+test("hippogryph ride draws only the mounted stock rider, flying then walking and banking in both facings [spec #232]", () => {
   for (const facing of [-1, 1]) {
     const f = createFighter(Character.archer, 100.0, facing);
     const state = createHippogryphPresentationState();
@@ -31,7 +31,7 @@ test("hippogryph ride draws only the mounted stock rider, flying then walking an
   }
 });
 
-test("hippogryph jump-off restores Archer and keeps the attacking bird at the mount's position", () => {
+test("hippogryph jump-off restores Archer and keeps the attacking bird at the mount's position [spec #232]", () => {
   const f = createFighter(Character.archer, 100.0, 1);
   const state = createHippogryphPresentationState();
   f.special.action = SpecialAction.archerRecovery;
@@ -49,7 +49,7 @@ test("hippogryph jump-off restores Archer and keeps the attacking bird at the mo
   assertEquals(after.z, before);
 });
 
-test("a hit separates the rider without reviving the simulation bird or leaving a mounted body", () => {
+test("a hit separates the rider without reviving the simulation bird or leaving a mounted body [spec #232]", () => {
   const f = createFighter(Character.archer, 100.0, -1);
   const state = createHippogryphPresentationState();
   f.special.action = SpecialAction.archerRecovery;
@@ -74,7 +74,7 @@ test("a hit separates the rider without reviving the simulation bird or leaving 
   assertTrue(!projectHippogryph(state, f, 78).visible);
 });
 
-test("hippogryph Call and Dive keep the unmounted bird", () => {
+test("hippogryph Call and Dive keep the unmounted bird [spec #232]", () => {
   const f = createFighter(Character.archer, 100.0, 1);
   const state = createHippogryphPresentationState();
   for (const kind of [HippogryphKind.strike, HippogryphKind.perch, HippogryphKind.dive]) {

@@ -5,7 +5,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { STAGE_DECK_PALETTES, luma } from "./stagePalette";
 
 // smashcraft:docs/design/stage-art.md, rule 10.
-test("every selectable stage has its own deck palette", () => {
+test("every selectable stage has its own deck palette [spec docs/design/stage-art.md]", () => {
   for (const { id, name } of STAGE_CATALOG) {
     assertEquals(STAGE_DECK_PALETTES.filter(({ stage }) => stage === id).length, 1, `${name} has no deck palette`);
   }
@@ -13,7 +13,7 @@ test("every selectable stage has its own deck palette", () => {
   assertEquals(new Set(tops).size, tops.length, "two stages share a deck top");
 });
 
-test("each deck's top stands apart from its fog in value and its body is darker than its top", () => {
+test("each deck's top stands apart from its fog in value and its body is darker than its top [spec docs/design/stage-art.md]", () => {
   for (const { stage, theme, palette } of STAGE_DECK_PALETTES) {
     const top = luma(palette.top);
     assertEquals(luma(palette.body) <= top - 50, true, `${theme}: body ${luma(palette.body)} is within 50 of top ${top}`);
@@ -68,7 +68,7 @@ function colorDifference([l1, a1, b1]: Lab, [l2, a2, b2]: Lab): number {
  */
 const LOWER_BACKDROP = cieLab([12, 12, 12]);
 
-test("each deck's body and underside read against the dark backdrop below it", () => {
+test("each deck's body and underside read against the dark backdrop below it [spec docs/design/stage-art.md]", () => {
   for (const { theme, palette } of STAGE_DECK_PALETTES) {
     for (const part of ["body", "underside"] as const) {
       const difference = colorDifference(cieLab(palette[part]), LOWER_BACKDROP);

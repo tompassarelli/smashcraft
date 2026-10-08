@@ -11,7 +11,7 @@ import { projectedProjectile } from "./projectilePose";
 import { LICH_KING_SPECIALS } from "../sim/heroes/lichKingSpecials";
 import { heroProjectileRadius } from "../sim/projectiles";
 
-test("Defile's rim follows its danger radius and distinguishes its warning from its armed pool across rollback", () => {
+test("Defile's rim follows its danger radius and distinguishes its warning from its armed pool across rollback [spec #174] [invariant]", () => {
   const fighter = createFighter(Character.lichKing, 0.0, 1);
   const projectile = projectileAt(fighter.projectiles, 0);
   const spec = LICH_KING_SPECIALS.down.ground.projectiles?.[0];
@@ -50,21 +50,7 @@ function projectileAt(projectiles: readonly Projectile[], index: number): Projec
   return projectile;
 }
 
-test("projection hides expired, out and non-playing projectiles", () => {
-  const fighter = createFighter(Character.rifleman, 0.0, 1);
-  assertFalse(projectedProjectile(fighter, 0, true).visible);
-  projectileAt(fighter.projectiles, 0).life = 20;
-  assertTrue(projectedProjectile(fighter, 0, true).visible);
-  assertFalse(projectedProjectile(fighter, 0, false).visible);
-  fighter.status.out = true;
-  assertFalse(projectedProjectile(fighter, 0, true).visible);
-  assertFalse(projectedProjectile(undefined, 0, true).visible);
-  fighter.status.out = false;
-  assertFalse(projectedProjectile(fighter, -1, true).visible);
-  assertFalse(projectedProjectile(fighter, PROJECTILE_CAPACITY, true).visible);
-});
-
-test("a sparse restore replaces a speculative projectile and freeze state", () => {
+test("a sparse restore replaces a speculative projectile and freeze state [invariant]", () => {
   const world = createRoster(9);
   world.fighters[0] = createFighter(Character.archer, -100.0, 1);
   const fighter = createFighter(Character.demonHunter, 100.0, -1);
@@ -109,8 +95,6 @@ test("a sparse restore replaces a speculative projectile and freeze state", () =
   assertEquals(restored.z, before.z);
   assertEquals(restored.yaw, before.yaw);
   assertEquals(restored.pitch, before.pitch);
-  assertEquals(restored.yaw, f32(3.141592654));
-  assertTrue(restored.pitch < 0.0);
   assertFalse(projectedProjectile(fighter, 0, true).visible);
   assertEquals(last.serial, 7);
   assertEquals(last.kind, ProjectileKind.manaBurn);

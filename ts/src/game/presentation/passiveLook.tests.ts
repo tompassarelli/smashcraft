@@ -7,7 +7,7 @@ import { createFighter } from "../sim/fighter";
 import { passivePips, passiveSpec } from "../sim/passives";
 import { newPassiveProc, passiveLook } from "./passiveLook";
 
-test("pips show the stacks, all lit when the passive is ready", () => {
+test("pips show the stacks, all lit when the passive is ready [spec #148]", () => {
   const blademaster = createFighter(Character.blademaster, 0.0, 1);
   assertEquals(passivePips(blademaster).of, 3);
   blademaster.passive.stacks = 2;
@@ -21,7 +21,7 @@ test("pips show the stacks, all lit when the passive is ready", () => {
   assertEquals(passivePips(warden).lit, 0);
 });
 
-test("every fighter with a passive shows a ready or proc effect", () => {
+test("every fighter with a passive shows a ready or proc effect [spec #148]", () => {
   for (let character = 0; character <= Character.beastmaster; character++) {
     const look = passiveLook(character as Character);
     const has = passiveSpec(character as Character).stacks > 0;
@@ -29,7 +29,7 @@ test("every fighter with a passive shows a ready or proc effect", () => {
   }
 });
 
-test("a proc plays once per serial; a rollback lowers the cursor without replaying", () => {
+test("a proc plays once per serial; a rollback lowers the cursor without replaying [spec #148]", () => {
   const cursor = { seen: -1 };
   assertFalse(newPassiveProc(cursor, 0));
   assertTrue(newPassiveProc(cursor, 1));

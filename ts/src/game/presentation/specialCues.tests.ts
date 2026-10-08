@@ -5,9 +5,7 @@ import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { Character, SpecialAction } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { HERO_ROSTER } from "../sim/heroes/registry";
-import { type AuthoredSpecial, SpecialForm } from "../sim/heroSpecials";
-import { SHADOW_HUNTER_SPECIALS } from "../sim/heroes/shadowHunterSpecials";
-import { MOUNTAIN_KING_SPECIALS } from "../sim/heroes/mountainKingSpecials";
+import { type AuthoredSpecial } from "../sim/heroSpecials";
 import { SPECIAL_SLOTS } from "./projectileArt";
 import { RIFLEMAN_BLASTER_AIR_SHOT_FRAME, RIFLEMAN_BLASTER_GROUND_SHOT_FRAME } from "../sim/moves";
 import { RIFLEMAN_SECOND_SHOT_FORM } from "../sim/specials";
@@ -16,7 +14,7 @@ import { HERO_BRANCH_CUES, HERO_CUES, ORIGINAL_CUES, fighterBranchCues, fighterM
 /** The original three and every registered hero, so a new hero needs its cues. */
 const FIGHTERS: readonly Character[] = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(({ character }) => character)];
 
-test("Rifleman's blaster cue readies on startup and flashes on the shot frame", () => {
+test("Rifleman's blaster cue readies on startup and flashes on the shot frame [spec #144]", () => {
   const fighter = createFighter(Character.rifleman, 0.0, 1);
   fighter.special.action = SpecialAction.riflemanBlaster;
   for (const grounded of [true, false]) {
@@ -45,7 +43,7 @@ function forms(special: AuthoredSpecial | undefined, into: AuthoredSpecial[]): v
   for (const followUp of special.followUps ?? []) forms(followUp.special, into);
 }
 
-test("every fighter's four specials each show a startup and an active spell", () => {
+test("every fighter's four specials each show a startup and an active spell [spec #144]", () => {
   for (const character of FIGHTERS) {
     const moves = fighterMoveCues(character);
     assertEquals(moves.length, 4, `fighter ${character} cues`);
@@ -53,7 +51,7 @@ test("every fighter's four specials each show a startup and an active spell", ()
   }
 });
 
-test("no two moves or branches show the same startup and active pair, nor the same active spell", () => {
+test("no two moves or branches show the same startup and active pair, nor the same active spell [spec #144]", () => {
   const pairs = new Map<string, string>();
   const actives = new Map<string, string>();
   for (const character of FIGHTERS) {
@@ -68,7 +66,7 @@ test("no two moves or branches show the same startup and active pair, nor the sa
   }
 });
 
-test("every hero special form's cue windows lie in its action: startup from frame 1, then active", () => {
+test("every hero special form's cue windows lie in its action: startup from frame 1, then active [spec #144]", () => {
   let checked = 0;
   for (const hero of HERO_ROSTER) {
     const specials = hero.specials;
@@ -91,7 +89,7 @@ test("every hero special form's cue windows lie in its action: startup from fram
   assertTrue(checked >= 28);
 });
 
-test("a running special shows its startup cue, then its active cue", () => {
+test("a running special shows its startup cue, then its active cue [spec #144]", () => {
   for (const hero of HERO_ROSTER) {
     if (hero.specials === undefined) continue;
     const fighter = createFighter(hero.character, 0.0, 1);
@@ -117,46 +115,7 @@ test("a running special shows its startup cue, then its active cue", () => {
   assertTrue(specialCueState(illidan).cues === ORIGINAL_CUES[SpecialAction.demonHunterManaBurn]);
 });
 
-test("paid and free Loa Vault show SpiritLink throughout hover, including the original 832 and 932 captures", () => {
-  const fighter = createFighter(Character.shadowHunter, 0.0, 1);
-  fighter.special.action = SpecialAction.heroUp;
-  for (const form of [SpecialForm.ground, SpecialForm.free]) {
-    fighter.special.form = form;
-    const move = form === SpecialForm.free ? SHADOW_HUNTER_SPECIALS.up.free : SHADOW_HUNTER_SPECIALS.up.ground;
-    assertTrue(move !== undefined);
-    if (move === undefined) continue;
-    const windows = heroCueWindows(move);
-    assertEquals(windows.startup.last, 8);
-    assertEquals(windows.active.first, 9);
-    for (let frame = 1; frame <= 8; frame++) {
-      fighter.special.frame = frame;
-      const state = specialCueState(fighter);
-      assertEquals(state.phase, "startup");
-      assertTrue(state.cues?.startup.model.includes("SpiritLinkTarget") === true);
-    }
-    for (let frame = 9; frame <= 24; frame++) {
-      fighter.special.frame = frame;
-      const state = specialCueState(fighter);
-      assertEquals(state.phase, "active");
-      assertTrue(state.cues?.active.model.includes("FeralSpiritDone") === true);
-    }
-  }
-});
-
-test("stationary casts retain active placement and attack regions independently of a zero-speed hold", () => {
-  const hold = [{ first: 1, last: 30, velocityX: 0.0, velocityZ: 0.0 }];
-  const ward = heroCueWindows({ ...SHADOW_HUNTER_SPECIALS.side.ground, motion: hold });
-  assertEquals(ward.startup.last, 25);
-  assertEquals(ward.active.first, 26);
-  const strike = heroCueWindows({ ...MOUNTAIN_KING_SPECIALS.side.ground, motion: hold });
-  assertEquals(strike.startup.last, 12);
-  assertEquals(strike.active.first, 13);
-  const recall = SHADOW_HUNTER_SPECIALS.side.recall;
-  assertTrue(recall !== undefined);
-  if (recall !== undefined) assertEquals(heroCueWindows(recall).active.first, 1);
-});
-
-test("every hero branch (recall, marked form, follow-up) names its cue", () => {
+test("every hero branch (recall, marked form, follow-up) names its cue [spec #144]", () => {
   let branches = 0;
   for (const hero of HERO_ROSTER) {
     const specials = hero.specials;

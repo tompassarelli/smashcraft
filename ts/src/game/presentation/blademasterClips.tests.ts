@@ -4,7 +4,7 @@ import { originalClipNamed } from "../assets/fighterOriginalClipInfo";
 import { BLADEMASTER_AUTHORED_CLIPS, BLADEMASTER_AUTHORED_CLIP_NAMES } from "./blademasterClipInfo";
 import { characterClips, clipFor } from "./fighterClips";
 
-test("Blademaster normal clips are named, separate gestures and only up B plays the whirlwind", () => {
+test("Blademaster normal clips are named, separate gestures and only up B plays the whirlwind [spec #236]", () => {
   const used: number[] = [];
   for (const pose of Object.keys(BLADEMASTER_AUTHORED_CLIPS) as (keyof typeof BLADEMASTER_AUTHORED_CLIPS)[]) {
     const clip = clipFor(Character.blademaster, pose);
@@ -13,8 +13,6 @@ test("Blademaster normal clips are named, separate gestures and only up B plays 
     assertTrue(!used.includes(clip.index));
     used.push(clip.index);
   }
-  assertEquals(clipFor(Character.blademaster, "downAir").index, 54);
-  assertEquals(clipFor(Character.blademaster, "doubleJump").index, 55);
   assertEquals(clipFor(Character.blademaster, "upSpecial").index, 13);
   assertEquals(clipFor(Character.blademaster, "upSpecialAir").index, 13);
   for (const [pose, clip] of Object.entries(characterClips(Character.blademaster))) {

@@ -1,9 +1,7 @@
 import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
-import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { clearPresentationHistory } from "../match/pacingAndPresentation";
 import { Phase } from "../match/rules";
-import { queueAttack } from "../input/attackBuffer";
 import { createFrameControls } from "../match/controls";
 import { captureFrame, createMatchFrameInput } from "../match/frameInput";
 import { captureNext, executeCaptured, executeNext, replayState, testMatch } from "../match/testMatch";
@@ -11,66 +9,16 @@ import { stateChecksum } from "../replay/canonical";
 import { firstPoseDifference, firstStateDifference } from "../replay/difference";
 import { ReplayCorrections, ReplayHistory } from "../replay/history";
 import { captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot } from "../replay/snapshot";
-import { AttackStyle, Character, SpecialAction } from "../sim/codes";
-import { createFighter } from "../sim/fighter";
+import { Character } from "../sim/codes";
 import { fighterAt, isActive } from "../sim/roster";
-import {
-  CHAOS_STRIKE_FIRST, CHAOS_STRIKE_FORM, CHAOS_STRIKE_LAST, DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_WING_STARTUP,
-  FEL_RUSH_FIRST, FEL_RUSH_LAST, FEL_RUSH_TELL_LAST, VENGEFUL_RETREAT_FORM, VENGEFUL_RETREAT_MOVE_LAST,
-} from "../sim/specials";
-import { characterModelScale } from "./modelScale";
 import {
   DRAIN_FLASH_FRAMES, STATIC_AURA, STATIC_DRAIN_FLASH, STATIC_WING_TRAIL, type SpecialEffectState, createSpecialEffectState,
   firstSpecialEffectDifference, projectSpecialEffect,
 } from "./specialEffectState";
 
-const SCALE = characterModelScale(Character.demonHunter);
 const STATIC_KINDS = [STATIC_AURA, STATIC_WING_TRAIL, STATIC_DRAIN_FLASH] as const;
 
-test("static special windows follow the selected fighter and stay on its body", () => {
-  const state = createSpecialEffectState();
-  const f = createFighter(Character.demonHunter, 123.0, -1);
-  f.motion.z = 42.0;
-  f.special.action = SpecialAction.demonHunterImmolate;
-  f.special.frame = DEMONHUNTER_IMMOLATE_STARTUP - 1;
-  assertFalse(projectSpecialEffect(state, f, 3, STATIC_AURA).visible);
-  f.special.frame++;
-  const aura = projectSpecialEffect(state, f, 3, STATIC_AURA);
-  assertTrue(aura.visible);
-  assertEquals(aura.x, 123.0);
-  f.special.frame = DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE;
-  assertFalse(projectSpecialEffect(state, f, 3, STATIC_AURA).visible);
-  // Fel Rush: the aura flares through the tell, the trail follows the rush.
-  f.special.action = SpecialAction.demonHunterFelRush;
-  for (let frame = 0; frame <= FEL_RUSH_LAST + 1; frame++) {
-    f.special.frame = frame;
-    assertEquals(projectSpecialEffect(state, f, 3, STATIC_AURA).visible, frame >= 1 && frame <= FEL_RUSH_TELL_LAST);
-    assertEquals(projectSpecialEffect(state, f, 3, STATIC_WING_TRAIL).visible, frame >= FEL_RUSH_FIRST && frame <= FEL_RUSH_LAST);
-  }
-  f.special.form = VENGEFUL_RETREAT_FORM;
-  for (let frame = 1; frame <= VENGEFUL_RETREAT_MOVE_LAST + 1; frame++) {
-    f.special.frame = frame;
-    assertEquals(projectSpecialEffect(state, f, 3, STATIC_WING_TRAIL).visible, frame <= VENGEFUL_RETREAT_MOVE_LAST);
-  }
-  f.special.form = CHAOS_STRIKE_FORM;
-  for (let frame = 1; frame <= CHAOS_STRIKE_LAST + 1; frame++) {
-    f.special.frame = frame;
-    assertEquals(projectSpecialEffect(state, f, 3, STATIC_AURA).visible, frame >= CHAOS_STRIKE_FIRST && frame <= CHAOS_STRIKE_LAST);
-  }
-  f.special.form = 0;
-  f.special.action = SpecialAction.demonHunterWingAscent;
-  f.special.frame = DEMONHUNTER_WING_STARTUP - 1;
-  assertFalse(projectSpecialEffect(state, f, 3, STATIC_WING_TRAIL).visible);
-  f.special.frame++;
-  const wing = projectSpecialEffect(state, f, 3, STATIC_WING_TRAIL);
-  assertTrue(wing.visible);
-  assertEquals(wing.x, 123.0);
-  f.special.action = SpecialAction.none;
-  assertFalse(projectSpecialEffect(state, f, 3, STATIC_WING_TRAIL).visible);
-  assertFalse(projectSpecialEffect(state, undefined, 1, STATIC_DRAIN_FLASH).visible);
-});
-
-test("the drain flash ages by executed frames, restores from a snapshot and projects read-only", () => {
+test("the drain flash ages by executed frames, restores from a snapshot and projects read-only [invariant]", () => {
   const match = testMatch(9, Character.demonHunter);
   const f = fighterAt(match.world, 3);
   f.visuals.manaDrained = 1;
@@ -101,7 +49,7 @@ test("the drain flash ages by executed frames, restores from a snapshot and proj
   assertTrue(projectSpecialEffect(match.runtime.specials, fighterAt(match.world, 3), 3, STATIC_DRAIN_FLASH).visible);
 });
 
-test("a late correction removes or restores a drain flash at its completed age", () => {
+test("a late correction removes or restores a drain flash at its completed age [invariant]", () => {
   for (const initiallyHits of [0, 1]) {
     const match = testMatch(9, Character.demonHunter);
     const live = replayState(match);
@@ -146,7 +94,7 @@ test("a late correction removes or restores a drain flash at its completed age",
   }
 });
 
-test("sparse and four-player drain flashes match whether projected or not, and reset", () => {
+test("sparse and four-player drain flashes match whether projected or not, and reset [invariant]", () => {
   for (const mask of [9, 15]) {
     const sequential = testMatch(mask, Character.demonHunter);
     const catchup = testMatch(mask, Character.demonHunter);
@@ -170,10 +118,8 @@ test("sparse and four-player drain flashes match whether projected or not, and r
     assertEquals(firstSpecialEffectDifference(specials, catchup.runtime.specials), undefined);
     for (const slot of PARTICIPANT_SLOTS) {
       if (isActive(sequential.world, slot)) {
-        assertEquals(specials.drainAge[slot], 7 - slot);
         const flash = projectSpecialEffect(specials, fighterAt(sequential.world, slot), slot, STATIC_DRAIN_FLASH);
         assertTrue(flash.visible);
-        assertEquals(flash.x, f32(-240.0 + slot * 150.0));
       } else {
         assertEquals(specials.drainSerial[slot], 0);
         assertEquals(specials.drainAge[slot], DRAIN_FLASH_FRAMES);

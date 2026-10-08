@@ -7,7 +7,7 @@ import { SELECTABLE_CHARACTERS, fighterName, heroDefinition } from "../sim/heroe
 // The playable build draws every fighter from its clip pool; a fighter
 // without one can't be played. Regenerate the pools with
 // tools/animations/export-original-clips.ts when a hero joins selection.
-test("every selectable fighter has a clip pool covering its clip table", () => {
+test("every selectable fighter has a clip pool covering its clip table [invariant]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const name = fighterName(character);
     const count = originalClipCount(character);

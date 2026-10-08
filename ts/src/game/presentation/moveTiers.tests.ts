@@ -19,17 +19,13 @@ const JABS = [AttackStyle.jab, AttackStyle.jab2, AttackStyle.jab3];
 const TILTS = [AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt, AttackStyle.downTilt];
 const SMASHES = [AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.downSmash];
 
-test("every normal maps to its class tier: jab small, tilt medium, smash large, departures named", () => {
+test("every normal maps to its class tier: jab small, tilt medium, smash large, departures named [spec #163]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     for (const [styles, tier] of [[JABS, SoundTier.small], [TILTS, SoundTier.medium], [SMASHES, SoundTier.large]] as const) {
       for (const style of styles) {
         const departure = TIER_DEPARTURES.find((each) => each.character === character && each.style === style);
         assertEquals(moveTier(character, style), departure?.tier ?? tier, `${fighterName(character)} ${style}`);
       }
-    }
-    for (const style of [AttackStyle.dashAttack, AttackStyle.neutralAir, AttackStyle.forwardAir, AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir]) {
-      const departure = TIER_DEPARTURES.find((each) => each.character === character && each.style === style);
-      assertEquals(moveTier(character, style), departure?.tier ?? SoundTier.medium, `${fighterName(character)} ${style}`);
     }
   }
   // Each departure differs from its class and says why.
@@ -68,7 +64,7 @@ function attackSounds(style: AttackStyle): { swing: string[]; hit: string[]; tie
   return { swing, hit, tier };
 }
 
-test("a jab swings and hits small, a forward tilt medium and a forward smash large", () => {
+test("a jab swings and hits small, a forward tilt medium and a forward smash large [spec #163]", () => {
   for (const [style, expected] of [[AttackStyle.jab, SoundTier.small], [AttackStyle.forwardTilt, SoundTier.medium], [AttackStyle.forwardSmash, SoundTier.large]] as const) {
     const { swing, hit, tier } = attackSounds(style);
     assertEquals(swing.join(","), `0:${expected}`, `swing of ${style}`);

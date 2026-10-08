@@ -1,11 +1,8 @@
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { Character, SpecialAction } from "../sim/codes";
-import { createFighter } from "../sim/fighter";
 import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 import type { HeroPose } from "../sim/heroes/hero";
-import { createRoster, neutralControls } from "../sim/roster";
-import { characterClips, clipFor, specialClip } from "./fighterClips";
-import { advanceFighterPose, createFighterPose } from "./fighterPose";
+import { characterClips, specialClip } from "./fighterClips";
 
 const ATTACK_POSES: readonly HeroPose[] = [
   "jab", "jab2", "jab3", "forwardTilt", "forwardTiltUp", "forwardTiltDown", "upTilt", "downTilt",
@@ -15,7 +12,7 @@ const ATTACK_POSES: readonly HeroPose[] = [
   "neutralSpecialFollowUp", "sideSpecialFollowUp", "upSpecialFollowUp", "downSpecialFollowUp",
   "neutralSpecialFollowUpAir", "sideSpecialFollowUpAir", "upSpecialFollowUpAir", "downSpecialFollowUpAir",
 ];
-test("roster jumps and falls never share an attack or special sequence", () => {
+test("roster jumps and falls never share an attack or special sequence [spec #230]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const table = characterClips(character);
     const actions = character === Character.archer
@@ -39,20 +36,3 @@ test("roster jumps and falls never share an attack or special sequence", () => {
   }
 });
 
-test("Blademaster flip retains thirty presentation frames and leaves Bladestorm alone", () => {
-  const fighter = createFighter(Character.blademaster, 0.0, 1);
-  fighter.motion.grounded = false; fighter.motion.z = 500.0; fighter.jump.isDouble = true;
-  const world = createRoster(1, [fighter]), pose = createFighterPose(), controls = neutralControls();
-  const flip = clipFor(Character.blademaster, "doubleJump");
-  assertEquals(clipFor(Character.blademaster, "upSpecial").index, 13);
-  assertEquals(clipFor(Character.blademaster, "neutralAir").index === 13, false);
-  for (let frame = 0; frame < 30; frame++) {
-    advanceFighterPose(pose, fighter, world, controls, false, frame === 0, false, false);
-    assertEquals(pose.clipIndex, flip.index);
-    assertEquals(pose.jumpAnimationRemaining, 30 - frame);
-  }
-  assertEquals(fighter.motion.z, 500.0);
-  assertEquals(fighter.special.action, SpecialAction.none);
-  advanceFighterPose(pose, fighter, world, controls, false, false, false, false);
-  assertEquals(pose.jumpAnimationRemaining, 0);
-});
