@@ -1,3 +1,4 @@
+import { mutableProjectile } from "../sim/fighterProjectiles";
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
@@ -105,7 +106,7 @@ test("every hero spell projectile marks its collision centre on every live frame
   for (const character of SELECTABLE_CHARACTERS) {
     const fighter = createFighter(character, 0.0, 1);
     const specials = fighter.tuning.specials;
-    const projectile = fighter.projectiles[0];
+    const projectile = mutableProjectile(fighter, 0);
     if (specials === undefined || projectile === undefined) continue;
     for (const { spec } of heroProjectileArt(specials)) {
       projectile.kind = ProjectileKind.hero;
@@ -139,7 +140,7 @@ test("the original fighters' missiles mark their live collision centre every fra
   ] as const;
   for (const entry of cases) {
     const fighter = createFighter(entry.character, -400.0, 1);
-    const projectile = fighter.projectiles[0];
+    const projectile = mutableProjectile(fighter, 0);
     if (projectile === undefined) throw new Error("missing projectile slot");
     projectile.kind = entry.kind;
     for (let life = 80; life > 0; life--) {

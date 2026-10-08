@@ -1,3 +1,4 @@
+import { mutableProjectile } from "../sim/fighterProjectiles";
 import { startAtGo } from "./testMatch";
 // These contracts exercise ordering in the complete match executor: input,
 // shield, contact, landing, stocks and timeout can interact on one frame.
@@ -197,12 +198,12 @@ test("shieldBreakBoundaryDamageAtZeroStillGuardsThenRestoresThirty [reference]",
   const secondInput = neutralControls();
   const firstCommands = attackBuffer(0);
   const secondCommands = attackBuffer(0);
-  first.projectiles[0]!.life = 2;
-  first.projectiles[0]!.x = 90;
-  first.projectiles[0]!.z = 45;
-  first.projectiles[0]!.velocityX = 20;
-  first.projectiles[0]!.direction = 1;
-  first.projectiles[0]!.kind = ProjectileKind.arrow;
+  mutableProjectile(first, 0)!.life = 2;
+  mutableProjectile(first, 0)!.x = 90;
+  mutableProjectile(first, 0)!.z = 45;
+  mutableProjectile(first, 0)!.velocityX = 20;
+  mutableProjectile(first, 0)!.direction = 1;
+  mutableProjectile(first, 0)!.kind = ProjectileKind.arrow;
   second.shield.raised = true;
   second.shield.energy = digitalShieldDamage(5.0);
   second.launch.hitlag = 4;
@@ -212,11 +213,11 @@ test("shieldBreakBoundaryDamageAtZeroStillGuardsThenRestoresThirty [reference]",
   assertTrue(second.shield.raised);
   assertEquals(second.shield.breakState, ShieldBreak.none);
   assertEquals(second.status.damage, 0.0);
-  first.projectiles[0]!.life = 2;
-  first.projectiles[0]!.x = 90;
-  first.projectiles[0]!.z = 45;
-  first.projectiles[0]!.velocityX = 20;
-  first.projectiles[0]!.direction = 1;
+  mutableProjectile(first, 0)!.life = 2;
+  mutableProjectile(first, 0)!.x = 90;
+  mutableProjectile(first, 0)!.z = 45;
+  mutableProjectile(first, 0)!.velocityX = 20;
+  mutableProjectile(first, 0)!.direction = 1;
   stepMatch(game, testRoster(first, second), testFrameControls(firstInput, secondInput, firstCommands, secondCommands), 2);
   assertFalse(second.shield.raised);
   assertEquals(second.shield.breakState, ShieldBreak.air);

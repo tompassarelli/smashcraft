@@ -1,3 +1,4 @@
+import { mutableProjectile } from "../sim/fighterProjectiles";
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { Character, ContactKind, ProjectileKind } from "../sim/codes";
 import { queueDamageContact } from "../sim/contacts";
@@ -18,7 +19,7 @@ function reactionClip(fighter: Readonly<Fighter>): number {
 function blasterHit(): Fighter {
   const owner = createFighter(Character.rifleman, 0.0, 1);
   const target = createFighter(Character.mountainKing, 20.0, -1);
-  const shot = owner.projectiles[0]!;
+  const shot = mutableProjectile(owner, 0)!;
   shot.life = 10;
   shot.kind = ProjectileKind.blaster;
   shot.direction = 1;

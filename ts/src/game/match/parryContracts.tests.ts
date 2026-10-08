@@ -1,3 +1,4 @@
+import { mutableProjectile } from "../sim/fighterProjectiles";
 // The powershield parry through the match step, for every shipped fighter:
 // after a parried hit or projectile each grounded option starts on the first
 // frame the defender can act, an option pressed during the parried hit's
@@ -155,7 +156,7 @@ test("a late shield keeps its shieldstun and release lag [spec #102]", () => {
 /** A shot from the far-left Archer at the defender's shield centre height, `distance` away, flying right. */
 function shotAt(d: Duel, distance: number): void {
   const defender = defenderOf(d);
-  const shot = fighterAt(d.world, 0).projectiles[0]!;
+  const shot = mutableProjectile(fighterAt(d.world, 0), 0)!;
   shot.x = f32(defender.motion.x - distance);
   shot.z = f32(defender.motion.z + defender.tuning.shield.centerZ);
   shot.velocityX = 20.0;

@@ -1,3 +1,4 @@
+import { mutableProjectile } from "../sim/fighterProjectiles";
 import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { at } from "wisp/src/runtime/lookup";
 import { Character } from "../sim/codes";
@@ -11,7 +12,7 @@ test("a delayed visible shot is defended at its predicted position without seein
   const target = createFighter(Character.rifleman, 700.0, -1);
   own.motion.grounded = true;
   target.motion.grounded = true;
-  const projectile = at(target.projectiles, 0);
+  const projectile = mutableProjectile(target, 0);
   projectile.life = 60;
   projectile.serial = 6;
   projectile.direction = -1;

@@ -1,3 +1,4 @@
+import { mutableProjectile } from "../sim/fighterProjectiles";
 import { f32 } from "wisp/src/sim/f32";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { at } from "wisp/src/runtime/lookup";
@@ -25,7 +26,7 @@ export function initializePainScenario(scenario: Scenario, world: Roster): boole
       top = Math.max(top, f32(Math.max(part.z1, part.z2) + part.radius));
     }
     const contact = f32(bottom + f32(f32(top - bottom) * at([0.1875, 0.5625, 0.875], height)));
-    const projectile = at(fighterAt(world, owner).projectiles, 0);
+    const projectile = mutableProjectile(fighterAt(world, owner), 0);
     projectile.kind = ProjectileKind.hero;
     projectile.visualFamily = fighterAt(world, owner).character;
     projectile.life = 180;

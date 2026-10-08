@@ -22,6 +22,7 @@ import { type MatchState, computerActive } from "../match/rules";
 import { type MapBuild, type Scenario, isScenario, isShadow } from "../shell/build";
 import { produceScenarioComputerInput } from "../shell/scenarios";
 import { type Fighter, placedObject, PROJECTILE_CAPACITY } from "../sim/fighter";
+import { mutableProjectile } from "../sim/fighterProjectiles";
 import { initializeInfluenceOperands } from "../sim/influenceOperands";
 import type { AuthoredSpecial, FighterSpecials, SpecialPlacement, SpecialProjectile } from "../sim/heroSpecials";
 import { type Roster, createRoster, fighterAt, isActive } from "../sim/roster";
@@ -409,7 +410,7 @@ function rebindAuthoredKit(fighter: Fighter): void {
   authoredParts(authored, projectiles, placements);
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) {
     const live = at(fighter.projectiles, i);
-    if (live.spec !== undefined) live.spec = projectiles.get(specialProjectileCanonical(live.spec, "")) ?? live.spec;
+    if (live.spec !== undefined) mutableProjectile(fighter, i).spec = projectiles.get(specialProjectileCanonical(live.spec, "")) ?? live.spec;
   }
   for (let index = 0; index <= fighter.pack.length; index++) {
     const animal = placedObject(fighter, index);
