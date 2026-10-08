@@ -23,7 +23,7 @@ const stag = (air: boolean): AuthoredSpecial => ({
 });
 const ASCENT: AuthoredSpecial = {
   endFrame: 40, landingLag: 24, oncePerAirtime: true, helpless: true,
-  motion: [{ ...frames(10, 23), velocityX: 5.0, velocityZ: 17.0, driftSpeed: 2.0 }],
+  motion: [{ ...frames(10, 23), velocityX: 5.0, velocityZ: 23.0, driftSpeed: 2.0 }],
   regions: [heroRegion(10, 23, { x1: -20.0, z1: 50.0, x2: 20.0, z2: 125.0, radius: 18.0 }, malfurionHit(7.0, 80, 75.0, 24.0))],
 };
 const BRANCH: SpecialProjectile = {
@@ -32,7 +32,7 @@ const BRANCH: SpecialProjectile = {
   life: 55, radius: 12.0, effect: malfurionHit(5.0, 35, 70.0, 20.0), reflectable: true, limit: 3,
 };
 const TREANT: AuthoredSpecial = {
-  endFrame: 50, groundOnly: true, hurt: malfurionCastBody(18, 34),
+  endFrame: 80, groundOnly: true, hurt: malfurionCastBody(18, 34),
   placement: { frame: 26, offsetX: 70.0, radius: 25.0, height: 92.0, durability: 20.0,
     life: 240, fireAges: [36, 84, 132, 180], shot: BRANCH },
 };

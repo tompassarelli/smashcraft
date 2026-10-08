@@ -23,6 +23,8 @@ import { fighterCoverage } from "../../match/botCoverage";
 import { moveReaches } from "../../match/botMoves";
 import { MALFURION_MOVES } from "./malfurionMoves";
 import { SELECTABLE_CHARACTERS } from "./registry";
+import { Action } from "../../input/actions";
+import { fighter as sceneFighter, frame as sceneFrame, scene } from "../../match/padScene";
 
 
 const NORMALS = [
@@ -188,9 +190,30 @@ test("Malfurion treant plants at frame 26, fires branches, snapshots and recalls
   assertEquals(firstFighterDifference(malfurion, copy, 3, 3), undefined);
   for (let tick = 27; tick <= 100 && victim.status.damage === 0.0; tick++) frame(world);
   assertEquals(victim.status.damage, 5.0);
+  while (malfurion.special.action !== SpecialAction.none) frame(world);
   frame(world, controls({ specialPressed: true, specialZ: -1 }));
   for (let tick = 2; tick <= 27; tick++) frame(world);
   assertEquals(malfurion.placed.life, 0);
+});
+
+test("Malfurion's first treant branch into a point-blank shield permits shield grab before he acts [repro #345] [spec #98]", () => {
+  const match = scene(0, [{ character: Character.malfurion, x: -30.0, facing: 1 }, { character: Character.malfurion, x: 30.0, facing: -1 }]);
+  const owner = sceneFighter(match, 0);
+  const defender = sceneFighter(match, 1);
+  let contact = false;
+  for (let tick = 1; tick <= 100 && !contact; tick++) {
+    sceneFrame(match, tick === 1 ? [Action.moveDown, Action.special] : [], [Action.rightTrigger]);
+    contact = defender.visuals.shield > 0;
+  }
+  assertTrue(contact);
+  while (defender.shield.stun > 0 || defender.launch.hitlag > 0) sceneFrame(match, [], [Action.rightTrigger]);
+  let acted = owner.special.action === SpecialAction.none;
+  for (let tick = 1; tick <= 20 && owner.grab.owner === undefined; tick++) {
+    sceneFrame(match, [], [Action.rightTrigger, Action.attack]);
+    if (owner.grab.owner === undefined && owner.special.action === SpecialAction.none) acted = true;
+  }
+  assertEquals(owner.grab.owner, 1);
+  assertTrue(!acted);
 });
 
 test("Malfurion computer respects staff reach and plays a seeded match with his kit [spec #342]", () => {

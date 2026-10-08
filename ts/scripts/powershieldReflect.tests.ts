@@ -10,7 +10,7 @@ import { expect } from "bun:test";
 import { Action } from "../src/game/input/actions";
 import { Character } from "../src/game/sim/codes";
 import { type Fighter, SHIELD_MAX } from "../src/game/sim/fighter";
-import { HERO_ROSTER } from "../src/game/sim/heroes/registry";
+import { HERO_ROSTER, heroDefinition } from "../src/game/sim/heroes/registry";
 import { SHIELD_REFLECTOR_ACTIVE_FRAMES } from "../src/game/sim/shield";
 import { fighter, frame, projectileShieldActions, scene } from "../src/game/match/padScene";
 import { isProjectileSummon } from "./interactions";
@@ -24,6 +24,11 @@ const FIGHTERS: readonly { readonly character: Character; readonly name: string 
   { character: Character.demonHunter, name: "Illidan" },
   ...HERO_ROSTER.map((hero) => ({ character: hero.character, name: hero.name })),
 ];
+const PROJECTILE_USERS = FIGHTERS.filter(({ character }) => {
+  if (character === Character.rifleman || character === Character.demonHunter) return true;
+  return Object.values(heroDefinition(character)?.specials ?? {}).some(({ ground }) =>
+    (ground.projectiles?.length ?? 0) > 0 || ground.placement?.shot !== undefined);
+});
 const SPECIALS = [
   { name: "neutral special", held: (): Held => [Action.special] },
   { name: "side special", held: (self: Fighter): Held => [self.facing > 0 ? Action.moveRight : Action.moveLeft, Action.special] },
@@ -177,7 +182,7 @@ function table(all: readonly Row[]): string {
 sweep("a powershield reflects every traveling projectile on the reflector's frames and only then [spec docs/gameplay-design.md]", () => {
   const all = rows();
   console.log(table(all));
-  expect(new Set(all.map((row) => row.fighter)).size).toBe(FIGHTERS.length);
+  expect([...new Set(all.map((row) => row.fighter))].sort()).toEqual(PROJECTILE_USERS.map(({ name }) => name).sort());
   const differs = all.filter((row) => !row.results.every((result) => meets(row, result)))
     .map((row) => `${row.fighter} ${row.source} at ${row.distance}: ${row.results.map((result) => `${result.timing}:${result.outcomes?.join("+") ?? "none"}`).join(" ")}`);
   expect(differs).toEqual([]);
