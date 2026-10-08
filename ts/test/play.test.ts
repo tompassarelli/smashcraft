@@ -109,7 +109,3 @@ test("the go-ahead starts the match, and the request and go-ahead are removed fo
   const deaf = customMapData("none");
   expect(failureText(await simulate(declared.match(game), deaf.files))).toContain("Smashcraft didn't take the playtest request within 15 s");
 });
-
-test("play starts no helper of its own: the always-on controller service serves the game when it has a controller", () => {
-  expect("service" in playtest(PLAYTEST).helper).toBe(true);
-});

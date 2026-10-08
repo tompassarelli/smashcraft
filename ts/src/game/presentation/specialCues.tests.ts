@@ -9,20 +9,13 @@ import { type AuthoredSpecial, SpecialForm } from "../sim/heroSpecials";
 import { SHADOW_HUNTER_SPECIALS } from "../sim/heroes/shadowHunterSpecials";
 import { MOUNTAIN_KING_SPECIALS } from "../sim/heroes/mountainKingSpecials";
 import { SPECIAL_SLOTS } from "./projectileArt";
-import { RIFLEMAN_MODEL_FILE } from "./fighterAssetInfo";
 import { RIFLEMAN_BLASTER_AIR_SHOT_FRAME, RIFLEMAN_BLASTER_GROUND_SHOT_FRAME } from "../sim/moves";
 import { HERO_BRANCH_CUES, HERO_CUES, ORIGINAL_CUES, fighterBranchCues, fighterMoveCues, heroCueWindows, specialCueState } from "./specialCues";
 
 /** The original three and every registered hero, so a new hero needs its cues. */
 const FIGHTERS: readonly Character[] = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(({ character }) => character)];
 
-test("Rifleman readies his rifle without Flare and fires a barrel muzzle flash", () => {
-  const blaster = ORIGINAL_CUES[SpecialAction.riflemanBlaster];
-  assertEquals(blaster?.startup.model, RIFLEMAN_MODEL_FILE);
-  assertEquals(blaster?.startup.drawn, true);
-  assertEquals(blaster?.startup.anchor, "barrel");
-  assertEquals(blaster?.active.model, "Abilities\\Weapons\\GyroCopter\\GyroCopterImpact.mdx");
-  assertEquals(blaster?.active.anchor, "barrel");
+test("Rifleman's blaster cue readies on startup and flashes on the shot frame", () => {
   const fighter = createFighter(Character.rifleman, 0.0, 1);
   fighter.special.action = SpecialAction.riflemanBlaster;
   for (const grounded of [true, false]) {

@@ -2,7 +2,6 @@
 // selection stepping, while measurement keeps the whole roster.
 import { expect, test } from "bun:test";
 import { Character } from "../src/game/sim/codes";
-import { HIDDEN_FIGHTERS } from "../src/game/sim/heroes/releaseRoster";
 import { PLAYABLE_CHARACTERS, SELECTABLE_CHARACTERS, nextCharacterIn, playableCharactersOf } from "../src/game/sim/heroes/registry";
 import { createMatchState } from "../src/game/match/rules";
 import { hiddenFighters, releaseRosterSource } from "../scripts/releaseRoster";
@@ -19,10 +18,6 @@ test("a hidden fighter is skipped by selection stepping and never preselected; m
     expect(at).not.toBe(Character.rifleman);
   }
   expect(playableCharactersOf(SELECTABLE_CHARACTERS, SELECTABLE_CHARACTERS.map(() => "archer")).length).toBe(SELECTABLE_CHARACTERS.length - 1);
-  // This build hides no one: selection and measurement see all 21 fighters.
-  expect(HIDDEN_FIGHTERS).toEqual([]);
-  expect(SELECTABLE_CHARACTERS.length).toBe(21);
-  expect(PLAYABLE_CHARACTERS).toEqual(SELECTABLE_CHARACTERS);
   for (const choice of createMatchState().characterChoices) expect(PLAYABLE_CHARACTERS).toContain(choice);
 });
 

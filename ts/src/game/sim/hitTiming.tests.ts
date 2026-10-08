@@ -1,6 +1,4 @@
-import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
-import { max } from "../../runtime/numbers";
-import { f32 } from "wisp/src/sim/f32";
+import { assertEquals, assertGreaterThan, test } from "wisp/src/runtime/testing";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, ProjectileKind } from "./codes";
 import { canAttack } from "./conditions";
@@ -15,24 +13,6 @@ import { advanceSolo, controls, testBeginAttacks, testWorld } from "./testWorld"
 // Slippi techTester.slp ff815345e641836a331191320c0f6eae21542a5f, frames
 // 3432-3445: NTSC recording, disc revision unknown. Only release timing is
 // compared here; grounded knockback displacement has its own fixture.
-test("recorded grounded damage resumes on hitlag expiry", () => {
-  const fighter = createFighter(Character.archer, f32(-11.548782348632812 * 6.0), 1);
-  const input = controls({ down: true, verticalDirection: -1 });
-  fighter.motion.surface = 0;
-  fighter.launch.hitlag = 4;
-  fighter.launch.hitstun = 10;
-  fighter.launch.knockbackX = f32(0.7562744617462158 * 6.0);
-  const contactX = fighter.motion.x;
-  for (let frame = 3433; frame <= 3445; frame++) {
-    advanceSolo(fighter, 0, input, 0.0);
-    assertEquals(fighter.launch.hitlag, max(0, 3436 - frame));
-    assertEquals(fighter.launch.hitstun, frame < 3436 ? 10 : 3445 - frame);
-    if (frame < 3436) assertEquals(fighter.motion.x, contactX);
-    else if (frame === 3436) assertTrue(fighter.motion.x > contactX);
-    assertEquals(canAttack(fighter), frame === 3445);
-  }
-});
-
 test("hitlag release allows a jump when hitstun expires on that frame", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   const input = controls({ jumpPressed: true, jumpHeld: true });

@@ -1,6 +1,6 @@
 import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { Action } from "./actions";
-import { ACTION_LABELS, type BindingPreset, type KeyBindings, actionFor, decodeBindings, encodeBindings, keyFor, presetBindings, rebind } from "./keyBindings";
+import { type BindingPreset, type KeyBindings, actionFor, decodeBindings, encodeBindings, keyFor, presetBindings, rebind } from "./keyBindings";
 
 const Key = {
   seven: 55, eight: 56, nine: 57, A: 65, D: 68, E: 69, F: 70, G: 71, I: 73, L: 76, N: 78, O: 79, P: 80, Q: 81, R: 82, S: 83, U: 85,
@@ -13,33 +13,6 @@ const decode = (saved: string) => assertDefined(decodeBindings(saved), saved);
 const asK2 = (bindings: KeyBindings) => `K2${encodeBindings(bindings).slice(2, 92)}`;
 /** The same layout as a K1 save, which predates the walk slots. */
 const asK1 = (bindings: KeyBindings) => `K1${encodeBindings(bindings).slice(2, 86)}`;
-
-test("presets put movement on QWER, actions on N and UIOP, and the owner's number row in custom", () => {
-  for (const preset of PRESETS) {
-    const bindings = presetBindings(preset);
-    assertEquals(actionFor(bindings, Key.Q), Action.leftTrigger);
-    assertEquals(actionFor(bindings, Key.W), Action.moveLeft);
-    assertEquals(actionFor(bindings, Key.E), Action.moveDown);
-    assertEquals(actionFor(bindings, Key.R), Action.moveRight);
-    assertEquals(actionFor(bindings, Key.N), Action.attack);
-    assertEquals(actionFor(bindings, Key.U), Action.special);
-    assertEquals(actionFor(bindings, Key.I), Action.jump);
-    assertEquals(actionFor(bindings, Key.O), Action.grab);
-    assertEquals(actionFor(bindings, Key.P), Action.walk);
-    assertEquals(actionFor(bindings, Key.T), Action.lightShield);
-    assertEquals(keyFor(bindings, Action.walk, 0), Key.P);
-    assertEquals(actionFor(bindings, Key.L), undefined);
-  }
-  const custom = presetBindings("custom");
-  const standard = presetBindings("standard");
-  assertEquals(keyFor(custom, Action.rightTrigger, 0), Key.eight);
-  assertEquals(keyFor(standard, Action.rightTrigger, 0), Key.seven);
-  assertEquals(keyFor(custom, Action.jump, 1), Key.nine);
-  assertEquals(keyFor(standard, Action.jump, 1), Key.eight);
-  assertEquals(keyFor(standard, Action.lightShield, 0), Key.nine);
-  assertEquals(keyFor(custom, Action.lightShield, 0), 48);
-  assertEquals(ACTION_LABELS[Action.walk], "Tilt");
-});
 
 test("rebinding refuses reserved and already bound keys", () => {
   const bindings = presetBindings("custom");

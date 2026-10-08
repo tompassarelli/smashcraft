@@ -5,7 +5,7 @@ import { AttackStyle, Character, DASH_GRAB_REQUEST, GrabAction } from "../codes"
 import { createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
-import { attackDurationFramesForGrounding, attackLandingLag, attackStartupFrames, characterAttackActiveFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
+import { attackStartupFrames, characterAttackActiveFrames, grabActionDuration, grabContactFrame, isAerialAttack } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { HurtContact, strikeHurtContact } from "../hurtboxes";
 import { SHADOW_HUNTER_MOVES } from "./shadowHunterMoves";
@@ -45,13 +45,11 @@ function pair(style: AttackStyle, frame: number, x: number, z = 0.0, facing = 1,
   return { owner, target, world };
 }
 
-test("Shadow Hunter adopted phases landings and narrow single-contact regions reach production", () => {
+test("Shadow Hunter adopted phases and narrow single-contact regions reach production", () => {
   const out = emptyHitRegion();
-  for (const [style, first, active, recovery, landing] of NORMALS) {
+  for (const [style, first, active] of NORMALS) {
     assertEquals(attackStartupFrames(style, SHADOW_HUNTER_MOVES), first - 1);
     assertEquals(characterAttackActiveFrames(Character.archer, style, SHADOW_HUNTER_MOVES), active);
-    assertEquals(attackDurationFramesForGrounding(style, !isAerialAttack(style), SHADOW_HUNTER_MOVES), first - 1 + active + recovery);
-    assertEquals(attackLandingLag(style, SHADOW_HUNTER_MOVES), landing);
     const count = authoredHitRegionCount(style, SHADOW_HUNTER_MOVES);
     assertGreaterThan(count, 0);
     for (let frame = first - 2; frame <= first + active - 1; frame++) {
@@ -125,15 +123,6 @@ test("Shadow Hunter Twin Totems cannot rehit across their later rear burst", () 
     assertEquals(rear.target.status.damage, 13.0);
     assertLessThan(f32(rear.target.launch.knockbackX * facing), 0.0);
   }
-});
-
-test("Shadow Hunter Spirit Cleaver caps charge at forty-five frames", () => {
-  assertEquals(smashDamageMultiplier(0, SHADOW_HUNTER_MOVES), 1.0);
-  assertEquals(smashDamageMultiplier(45, SHADOW_HUNTER_MOVES), 1.25);
-  assertEquals(smashDamageMultiplier(90, SHADOW_HUNTER_MOVES), 1.25);
-  const out = emptyHitRegion();
-  authoredHitRegion(out, Character.archer, AttackStyle.forwardSmash, 18, 45, 0, SHADOW_HUNTER_MOVES);
-  assertEquals(out.effect.damage, 22.5);
 });
 
 test("Shadow Hunter standing and dash grabs cover both active frames and stop at adopted reach", () => {

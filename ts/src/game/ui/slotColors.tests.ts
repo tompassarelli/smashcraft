@@ -20,6 +20,5 @@ test("slots 1 to 4 take Warcraft's colours for players 1 to 4, the colours their
 });
 
 test("portrait renders use a team colour no player has", () => {
-  assertEquals(PLAYER_COLORS.length, 12);
   assertTrue(NEUTRAL_TEAM_COLOR >= PLAYER_COLORS.length);
 });

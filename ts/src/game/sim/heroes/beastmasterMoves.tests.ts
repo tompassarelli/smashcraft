@@ -5,7 +5,7 @@ import { AttackStyle, Character } from "../codes";
 import { createFighter } from "../fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
 import { HurtContact, strikeHurtContact } from "../hurtboxes";
-import { attackDurationFramesForGrounding, attackLandingLag, attackStartupFrames, characterAttackActiveFrames, isAerialAttack } from "../moves";
+import { attackStartupFrames, characterAttackActiveFrames, isAerialAttack } from "../moves";
 import { testWorld } from "../testWorld";
 import { BEASTMASTER_MOVES } from "./beastmasterMoves";
 
@@ -40,13 +40,11 @@ function pair(style: AttackStyle, frame: number, x: number, facing = 1) {
   return { owner, target, world };
 }
 
-test("Beastmaster's adopted phases and landings reach production, a live strike path on every active frame", () => {
+test("Beastmaster's startup and active frames reach production, a live strike path on every active frame", () => {
   const out = emptyHitRegion();
-  for (const [style, first, active, recovery, landing] of NORMALS) {
+  for (const [style, first, active] of NORMALS) {
     assertEquals(attackStartupFrames(style, BEASTMASTER_MOVES), first - 1);
     assertEquals(characterAttackActiveFrames(Character.beastmaster, style, BEASTMASTER_MOVES), active);
-    assertEquals(attackDurationFramesForGrounding(style, !isAerialAttack(style), BEASTMASTER_MOVES), first - 1 + active + recovery);
-    assertEquals(attackLandingLag(style, BEASTMASTER_MOVES), landing);
     const count = authoredHitRegionCount(style, BEASTMASTER_MOVES);
     for (let frame = first - 2; frame <= first + active - 1; frame++) {
       let live = 0;

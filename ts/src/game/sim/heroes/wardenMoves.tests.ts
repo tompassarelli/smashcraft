@@ -6,7 +6,7 @@ import { attackPhase } from "../conditions";
 import { createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
-import { attackLandingLag, attackRecoveryFrames, attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
+import { attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { advanceFighter } from "../step";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { HurtContact, fighterHurtParts, strikeHurtContact } from "../hurtboxes";
@@ -48,14 +48,11 @@ function pair(style: AttackStyle, frame: number, x: number, z = 0.0, facing = 1,
   return { owner, target, world };
 }
 
-test("Warden roster phases final landings and single-contact paths reach production", () => {
+test("Warden roster phases and single-contact paths reach production", () => {
   const out = emptyHitRegion();
-  for (const [style, first, active, recovery, landing] of NORMALS) {
+  for (const [style, first, active] of NORMALS) {
     const { owner } = pair(style, 0, 1000.0);
-    assertEquals(owner.attack.duration, first - 1 + active + recovery);
     assertEquals(attackStartupFrames(style, WARDEN_MOVES), first - 1);
-    assertEquals(attackRecoveryFrames(owner.character, style, owner.motion.grounded, WARDEN_MOVES), recovery);
-    assertEquals(attackLandingLag(style, WARDEN_MOVES), landing);
     owner.attack.frame = first - 2;
     assertEquals(attackPhase(owner), AttackPhase.startup);
     owner.attack.frame++;

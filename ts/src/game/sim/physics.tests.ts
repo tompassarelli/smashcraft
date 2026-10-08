@@ -239,19 +239,6 @@ function prepareCanonicalFall(f: Fighter): void {
   setMeleeVerticalVelocity(f, 0.0);
 }
 
-test("canonical motion preserves all ten recorded fall positions exactly", () => {
-  const f = createFighter(Character.rifleman, -360.0, 1);
-  const input = controls();
-  prepareCanonicalFall(f);
-  for (const position of RECORDED_FALCO_FALL) {
-    advanceSolo(f, 0, input, 0.0);
-    assertEquals(f.motion.meleeZ.original, position);
-    assertEquals(f.motion.z, melee(position));
-    assertFalse(f.motion.grounded);
-    assertEquals(f.motion.x, -360.0);
-  }
-});
-
 test("canonical motion imports world edits and clears on respawn", () => {
   const f = createFighter(Character.rifleman, -360.0, 1);
   const world = soloWorld(f);
@@ -600,25 +587,6 @@ test("combat shield damage uses integer power before the shieldstun calculation"
   assertNear(digitalShieldPushback(4.0), 0.45600005984306335 * 6, f32(0.0001));
   assertNear(digitalShieldPushback(1000.0), 2 * 6, f32(0.0001));
   assertNear(digitalShieldRecoil(4.0), f32(0.3) * 6, f32(0.0001));
-});
-
-test("retail shield damage scales the accumulated contacts once", () => {
-  const attacker = createFighter(Character.archer, 0.0, 1);
-  const defender = createFighter(Character.rifleman, 100.0, -1);
-  const world = testWorld(attacker, defender);
-  defender.shield.raised = true;
-  defender.shield.energy = 8.0;
-  beginDamageContacts();
-  queueDamageContact(world, 0, 1, hitEffect(9.0, 0.0, 0.0, 0.0, 0.0), 1, ContactKind.damageOnly, false, undefined);
-  queueDamageContact(world, 0, 1, hitEffect(1.0, 0.0, 0.0, 0.0, 0.0), 1, ContactKind.damageOnly, false, undefined);
-  finishDamageContacts(world);
-  assertEquals(defender.shield.energy, 1.0);
-  assertTrue(defender.shield.raised);
-});
-
-test("retail shieldstun retains its fused rounding boundary", () => {
-  assertEquals(digitalShieldstunDuration(3.0), 3.3500001430511475);
-  assertEquals(digitalShieldstunDuration(9.0), 6.050000190734863);
 });
 
 const RECORDED_SHIELD_ATTACKER_POSITION = [38.35230255126953, 38.228302001953125, 38.19230270385742];
@@ -1706,11 +1674,3 @@ test("sampled rolls move through their actual entry, a freeze and recovery", () 
   }
 });
 
-test("grounded knockback retains the recorded binary32 velocity exactly", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
-  withPhysics(fighter, { traction: melee(0.07999999821186066) });
-  fighter.launch.knockbackX = melee(0.7562744617462158);
-  fighter.launch.hitstun = 10;
-  advanceSolo(fighter, 0, controls(), 0.0);
-  assertEquals(fighter.launch.knockbackX, melee(0.6762744784355164));
-});

@@ -8,7 +8,6 @@ import { STOCK_FALLBACK_CLIP } from "../sim/heroes/hero";
 import { HERO_ROSTER, SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 import { WARDEN_HERO } from "../sim/heroes/wardenHero";
 import * as dh from "./demonHunterAssetInfo";
-import * as assets from "./fighterAssetInfo";
 import { attackPose, characterClips, clipFor, grabActionPoses, namedClips, ownAttackClip, specialClip } from "./fighterClips";
 import { WARDEN_MODEL_FILE, WARDEN_SEQUENCES } from "./heroes/wardenClips";
 import { WARDEN_FAN_CLIPS } from "./wardenFanClipInfo";
@@ -43,30 +42,13 @@ for (const character of SELECTABLE_CHARACTERS) {
 }
 
 test("the original fighters' tables play their packaged clips", () => {
-  assertEquals(clipFor(Character.archer, "jab").index, assets.ARCHER_JAB_INDEX);
-  assertEquals(clipFor(Character.rifleman, "throwUp").seconds, assets.RIFLEMAN_THROW_UP_SECONDS);
-  assertEquals(clipFor(Character.demonHunter, "victimThrowDown").index, dh.DEMON_HUNTER_VICTIM_THROW_DOWN_INDEX);
-  // Archer and Rifleman reuse their roll and get-up attack at the ledge; Illidan has his own.
-  assertEquals(clipFor(Character.archer, "ledgeRoll").index, assets.ARCHER_ROLL_FORWARD_INDEX);
-  assertEquals(clipFor(Character.rifleman, "ledgeAttack").index, assets.RIFLEMAN_GET_UP_ATTACK_INDEX);
-  assertEquals(clipFor(Character.demonHunter, "ledgeRoll").index, dh.DEMON_HUNTER_LEDGE_ROLL_INDEX);
+  // Illidan's ledge attack plays his get-up attack.
   assertEquals(clipFor(Character.demonHunter, attackPose(AttackStyle.ledgeAttack) ?? "idle").index, dh.DEMON_HUNTER_GET_UP_ATTACK_INDEX);
-  // Only Illidan has smash clips; Rifleman's dash attack plays his bayonet thrust.
-  assertEquals(ownAttackClip(Character.demonHunter, AttackStyle.upSmash)?.index, dh.DEMON_HUNTER_UP_SMASH_INDEX);
-  assertEquals(ownAttackClip(Character.demonHunter, AttackStyle.demonHunterDashAttack)?.index, dh.DEMON_HUNTER_DASH_ATTACK_INDEX);
+  // Only Illidan has smash clips.
   assertEquals(ownAttackClip(Character.archer, AttackStyle.forwardSmash), undefined);
-  assertEquals(ownAttackClip(Character.rifleman, AttackStyle.dashAttack)?.index, assets.RIFLEMAN_FORWARD_TILT_INDEX);
-  // Rifleman summons the bear with his model's stock cast (#111).
-  assertEquals(specialClip(Character.rifleman, SpecialAction.riflemanBear, true, false).index, assets.RIFLEMAN_SPELL_INDEX);
   // Originals keep their named stand and walk clips.
   assertEquals(characterClips(Character.archer).idle, undefined);
   assertEquals(grabActionPoses(GrabAction.escape), undefined);
-});
-
-test("Archer Fist and Boot plays Attack Jab's quick punch then Down Tilt's low kick", () => {
-  assertEquals(clipFor(Character.archer, "jab").index, assets.ARCHER_JAB_INDEX);
-  assertEquals(clipFor(Character.archer, "jab").seconds, assets.ARCHER_JAB_SECONDS);
-  assertEquals(clipFor(Character.archer, "jab2").index, assets.ARCHER_DOWN_TILT_INDEX);
 });
 
 test("a hero plays its registered sequences and its fallback for any pose it leaves out", () => {

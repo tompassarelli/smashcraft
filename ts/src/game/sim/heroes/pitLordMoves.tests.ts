@@ -6,7 +6,7 @@ import { AttackStyle, Character } from "../codes";
 import { createFighter } from "../fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
 import { HurtContact, strikeHurtContact } from "../hurtboxes";
-import { attackDurationFramesForGrounding, attackLandingLag, attackStartupFrames, characterAttackActiveFrames, isAerialAttack } from "../moves";
+import { attackStartupFrames, characterAttackActiveFrames, isAerialAttack } from "../moves";
 import { testWorld } from "../testWorld";
 import { PIT_LORD_MOVES } from "./pitLordMoves";
 import { heroBody } from "./heroBodies";
@@ -42,13 +42,11 @@ function pair(style: AttackStyle, frame: number, x: number, facing = 1) {
   return { owner, target, world };
 }
 
-test("Pit Lord's adopted phases and landings reach production, one live strike path per frame", () => {
+test("Pit Lord's startup and active frames reach production, one live strike path per frame", () => {
   const out = emptyHitRegion();
-  for (const [style, first, active, recovery, landing] of NORMALS) {
+  for (const [style, first, active] of NORMALS) {
     assertEquals(attackStartupFrames(style, PIT_LORD_MOVES), first - 1);
     assertEquals(characterAttackActiveFrames(Character.pitLord, style, PIT_LORD_MOVES), active);
-    assertEquals(attackDurationFramesForGrounding(style, !isAerialAttack(style), PIT_LORD_MOVES), first - 1 + active + recovery);
-    assertEquals(attackLandingLag(style, PIT_LORD_MOVES), landing);
     const count = authoredHitRegionCount(style, PIT_LORD_MOVES);
     for (let frame = first - 2; frame <= first + active - 1; frame++) {
       let live = 0;

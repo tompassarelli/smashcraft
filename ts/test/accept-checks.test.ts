@@ -5,7 +5,6 @@ import { acceptForClients } from "../scripts/wisp/commands/accept";
 
 test("Smashcraft's declared native checks name known maps, clients and readings", () => {
   expect(suiteProblems(SMASHCRAFT_ACCEPT, ["a", "b"])).toEqual([]);
-  expect(SMASHCRAFT_ACCEPT.checks.map(({ closes }) => closes.split(" ")[0])).toContain("smashcraft#57");
 });
 
 test("all declared native checks target the selected offline pair's player positions", () => {

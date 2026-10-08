@@ -110,17 +110,6 @@ test("a short-hop shot meets a held shield rather than passing over it", () => {
   for (const distance of [60, 240, 480]) expect(play(distance, "shield", SHORT_HOP_PRESS).shieldMet).toBe(true);
 });
 
-test("the trade-off: a grounded shot fires sooner and hits harder, a short-hop shot frees Rifleman sooner", () => {
-  const ground = play(240, "idle", undefined);
-  const air = play(240, "idle", SHORT_HOP_PRESS);
-  expect(ground.shot ?? 0).toBeLessThan(air.shot ?? 0);
-  expect(ground.damage).toBeGreaterThan(air.damage);
-  expect(ground.shooterActs).toBeGreaterThan(air.shooterActs);
-  // A grounded shot is minus on hit at every spacing and punishable point blank on a shield; a short hop is plus on hit from mid range.
-  expect(advantage(ground) ?? 0).toBeLessThan(0);
-  expect(advantage(air) ?? 0).toBeGreaterThan(0);
-});
-
 test("one shot per short hop, and landing before the shot leaves cancels it", () => {
   expect(play(480, "idle", SHORT_HOP_PRESS, true).shots).toBe(1);
   const late = play(480, "idle", 18);

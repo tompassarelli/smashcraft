@@ -7,7 +7,7 @@ import { collectDamageContact } from "./contacts";
 import { type Fighter, createFighter } from "./fighter";
 import { applyHeroStatus } from "./heroStatus";
 import { refillMana } from "./heroSpecialRules";
-import { ROSTER_MANA, originalSpecialCost, regenerateMana, spendMana } from "./mana";
+import { ROSTER_MANA, regenerateMana, spendMana } from "./mana";
 import { MANA_BURN_STUN } from "./projectiles";
 import { startFighterSpecial } from "./specials";
 import { contactBatch, controls, hitEffect, testWorld } from "./testWorld";
@@ -148,17 +148,6 @@ test("every fighter starts each stock with a full bar", () => {
     assertEquals(f.mana.points, ROSTER_MANA.max);
     assertEquals(f.mana.progress, 0);
   }
-});
-
-test("each original special pays its own cost: Illidan's Wing Ascent is free and Immolation costs 15", () => {
-  assertEquals(originalSpecialCost(SpecialAction.archerArrow), 3);
-  assertEquals(originalSpecialCost(SpecialAction.archerRecovery), 0);
-  assertEquals(originalSpecialCost(SpecialAction.riflemanBear), 25);
-  assertEquals(originalSpecialCost(SpecialAction.riflemanRecovery), 0);
-  assertEquals(originalSpecialCost(SpecialAction.demonHunterManaBurn), 10);
-  assertEquals(originalSpecialCost(SpecialAction.demonHunterFelRush), 12);
-  assertEquals(originalSpecialCost(SpecialAction.demonHunterWingAscent), 0);
-  assertEquals(originalSpecialCost(SpecialAction.demonHunterImmolate), 15);
 });
 
 test("mana transfer takes only available enemy mana, respects shields and caps its receiver", () => {

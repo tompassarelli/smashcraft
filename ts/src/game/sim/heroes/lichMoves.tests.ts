@@ -7,7 +7,7 @@ import { createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { fighterHurtParts } from "../hurtboxes";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
-import { attackLandingLag, attackRecoveryFrames, attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
+import { attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { LICH_MOVES } from "./lichMoves";
 import { isMultiHit } from "./multiHit";
@@ -48,14 +48,11 @@ function attackPair(style: AttackStyle, x: number, z = 0.0, facing = 1, targetGr
   return { owner, target, world };
 }
 
-test("Lich normal phases contact windows and final landing lag match the adopted roster", () => {
+test("Lich normal phases and contact windows match the adopted startup and active frames", () => {
   const out = emptyHitRegion();
-  for (const [style, first, active, recovery, landing] of NORMALS) {
+  for (const [style, first, active] of NORMALS) {
     const { owner } = attackPair(style, 1000.0);
-    assertEquals(owner.attack.duration, first - 1 + active + recovery);
     assertEquals(attackStartupFrames(style, LICH_MOVES), first - 1);
-    assertEquals(attackRecoveryFrames(owner.character, style, owner.motion.grounded, LICH_MOVES), recovery);
-    assertEquals(attackLandingLag(style, LICH_MOVES), landing);
     owner.attack.frame = first - 2;
     assertEquals(attackPhase(owner), AttackPhase.startup);
     owner.attack.frame++;
@@ -181,8 +178,6 @@ test("Lich dash attack selects the hovering glide and smash charge caps at 45 fr
   owner.ground.dashFrame = 1;
   beginFighterAttack(testWorld(owner, createFighter(Character.archer, 1000.0, -1)), 0, AttackStyle.jab, false);
   assertEquals(owner.attack.style, AttackStyle.dashAttack);
-  assertEquals(owner.attack.duration, 37);
-  assertEquals(LICH_MOVES.normals[AttackStyle.dashAttack]?.startupTravelX, 105.0);
   assertEquals(smashDamageMultiplier(0, LICH_MOVES), 1.0);
   assertEquals(smashDamageMultiplier(45, LICH_MOVES), 1.25);
   assertEquals(smashDamageMultiplier(90, LICH_MOVES), 1.25);

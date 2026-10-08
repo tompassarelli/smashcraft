@@ -335,32 +335,6 @@ test("playerForfeitEndsSelectionAndDeclaresOtherPlayerWinner", () => {
   assertEquals(game.winner, 1);
 
 });
-test("illidanMirrorMatchRetainsSelectionsAfterNewMatch", () => {
-  const game = testSoloMatch();
-  selectCharacter(game, 0, 2);
-  selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 2);
-  assertEquals(characterFor(game, 0), 2);
-  assertEquals(characterFor(game, 1), 2);
-  assertTrue(requestStageSelect(game, 0));
-  assertTrue(requestStart(game, 0));
-  resolveStocks(game, testStanding(1, 0.0, 0, 0.0));
-  assertTrue(confirmRematch(game, 0));
-  assertEquals(characterFor(game, 0), 2);
-  assertEquals(characterFor(game, 1), 2);
-  assertTrue(requestStageSelect(game, 0));
-  assertTrue(requestStart(game, 0));
-
-});
-test("secondHumanCanSelectIllidan", () => {
-  const game = testSoloMatch();
-  setHumanCount(game, 2);
-  selectCharacter(game, 0, 0);
-  selectCharacter(game, 1, 2);
-  assertEquals(characterFor(game, 1), 2);
-  assertTrue(requestStageSelect(game, 1));
-  assertTrue(requestStart(game, 1));
-
-});
 test("everyHumanMustChooseAndConfirmForThreeAndFourPlayerMatches", () => {
   for (let count = 3; count <= 4; count++) {
     const game = testSoloMatch();

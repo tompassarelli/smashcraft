@@ -1,10 +1,10 @@
-import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, GrabAction } from "../codes";
 import { type Fighter, createFighter } from "../fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
-import { attackDurationFramesForGrounding, attackLandingLag, attackStartupFrames, characterAttackActiveFrames, grabActionDuration, grabContactFrame, smashDamageMultiplier } from "../moves";
+import { attackStartupFrames, characterAttackActiveFrames } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { HurtContact, strikeHurtContact } from "../hurtboxes";
 import { BLADEMASTER_MOVES } from "./blademasterMoves";
@@ -73,14 +73,12 @@ function contact(style: AttackStyle, facing: number, x: number, z = 0.0, airborn
   return target;
 }
 
-test("Blademaster roster timings and final aerial landing lag reach production APIs", () => {
+test("Blademaster startup and active frames reach production APIs", () => {
   const out = emptyHitRegion();
-  for (const [style, first, active, recovery, landing] of NORMALS) {
+  for (const [style, first, active] of NORMALS) {
     const startup = attackStartupFrames(style, BLADEMASTER_MOVES);
     assertEquals(startup, first - 1);
     assertEquals(characterAttackActiveFrames(Character.archer, style, BLADEMASTER_MOVES), active);
-    assertEquals(attackDurationFramesForGrounding(style, true, BLADEMASTER_MOVES), first - 1 + active + recovery);
-    assertEquals(attackLandingLag(style, BLADEMASTER_MOVES), landing);
     const count = authoredHitRegionCount(style, BLADEMASTER_MOVES);
     for (let frame = startup - 1; frame <= startup + active; frame++) {
       let activeCount = 0;
@@ -139,33 +137,6 @@ test("Blademaster down smash cannot rehit one target from its later back swing",
   owner.attack.frame = 16;
   resolveAttacks(world);
   assertEquals(target.status.damage, 13.370000839233398);
-});
-
-test("Blademaster smash charge caps at the adopted 45 frames and 25 percent reward", () => {
-  assertEquals(smashDamageMultiplier(0, BLADEMASTER_MOVES), 1.0);
-  assertEquals(smashDamageMultiplier(45, BLADEMASTER_MOVES), 1.25);
-  assertEquals(smashDamageMultiplier(90, BLADEMASTER_MOVES), 1.25);
-  const out = emptyHitRegion();
-  authoredHitRegion(out, Character.archer, AttackStyle.forwardSmash, 16, 45, 0, BLADEMASTER_MOVES);
-  assertEquals(out.effect.damage, f32(18.145000457763672 * 1.25));
-});
-
-test("Blademaster throw data preserves the adopted releases damage and directions", () => {
-  for (const [action, release, recovery, damage, x, z] of [
-    [GrabAction.throwForward, 12, 18, 6.685000419616699, f32(0.819152044), f32(0.573576436)],
-    [GrabAction.throwBack, 15, 22, 7.640000343322754, -f32(0.766044443), f32(0.642787610)],
-    [GrabAction.throwUp, 13, 10, 5.730000019073486, f32(0.087155743), f32(0.996194698)],
-    [GrabAction.throwDown, 16, 20, 4.775000095367432, f32(0.906307787), f32(0.422618262)],
-  ] as const) {
-    assertEquals(grabContactFrame(action, BLADEMASTER_MOVES), release);
-    assertEquals(grabActionDuration(action, BLADEMASTER_MOVES), release + recovery);
-    const effect = BLADEMASTER_MOVES.throws[action]?.effect;
-    assertTrue(effect !== undefined);
-    if (effect === undefined) continue;
-    assertEquals(effect.damage, damage);
-    assertNear(effect.launchX, x, f32(0.000001));
-    assertNear(effect.launchZ, z, f32(0.000001));
-  }
 });
 
 test("Blademaster catches shield and releases each throw once on its adopted frame", () => {

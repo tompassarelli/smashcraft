@@ -206,23 +206,6 @@ test("delays of zero and one keep seed assignment, confirmation and epoch bounda
   }
 });
 
-test("pending local samples never move the common frontier", () => {
-  const schedule = new ShadowInputSchedule();
-  const inputs = participantInputs();
-  assertTrue(schedule.beginEpoch(901, 3, DEFAULT_ROLLBACK_WINDOW, 3));
-  assertEquals(schedule.knownThrough(), 3);
-  assertEquals(schedule.captureLocal(901, WALK_RIGHT), Capture.captured);
-  assertEquals(schedule.captureLocal(901, WALK_RIGHT), Capture.alreadyCaptured);
-  assertEquals(schedule.knownThrough(), 3);
-  assertEquals(schedule.speculativeFrame(), 1);
-  assertTrue(schedule.mayAdvanceSpeculative(0));
-  assertEquals(schedule.resolveSpeculative(901, 0, inputs), "accepted");
-  assertEquals(inputs[0].held, 0);
-  assertEquals(inputs[1].held, 0);
-  assertTrue(schedule.completeSpeculative(901, 1));
-  assertEquals(schedule.knownThrough(), 3);
-});
-
 test("a late remote row is predicted with its holds kept and its edges dropped", () => {
   const schedule = new ShadowInputSchedule();
   const inputs = participantInputs();

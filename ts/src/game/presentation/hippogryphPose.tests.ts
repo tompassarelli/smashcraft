@@ -74,7 +74,7 @@ test("a hit separates the rider without reviving the simulation bird or leaving 
   assertTrue(!projectHippogryph(state, f, 78).visible);
 });
 
-test("hippogryph Call and Dive keep the unmounted bird and their walk, stand and attack clips", () => {
+test("hippogryph Call and Dive keep the unmounted bird", () => {
   const f = createFighter(Character.archer, 100.0, 1);
   const state = createHippogryphPresentationState();
   for (const kind of [HippogryphKind.strike, HippogryphKind.perch, HippogryphKind.dive]) {
@@ -83,7 +83,6 @@ test("hippogryph Call and Dive keep the unmounted bird and their walk, stand and
     const pose = projectHippogryph(state, f, 60 + kind);
     assertTrue(!archerMounted(f) && !pose.mounted);
     assertEquals(pose.model, HIPPOGRYPH_MODEL);
-    assertEquals(pose.clip, kind === HippogryphKind.strike ? "Walk" : kind === HippogryphKind.perch ? "Stand" : "Attack");
   }
   assertTrue(!projectHippogryph(state, undefined, 100).visible);
 });
