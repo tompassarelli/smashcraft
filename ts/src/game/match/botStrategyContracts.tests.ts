@@ -16,7 +16,7 @@ import { createMatchState, Phase } from "./rules";
 import { createBotStrategy, copyBotStrategy, learnBotHabit, prepareBotRead, pressBotRead, botStrategyValues, restoredBotStrategy, savedBotStrategy } from "./botStrategy";
 import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
 import { cpuProfile } from "./cpuProfiles";
-import { chooseAttack } from "./botMoves";
+import { VARIETY_FRAMES, chooseAttack } from "./botMoves";
 import { useMatchSeed } from "./botRandom";
 import { cpuSkill } from "./cpuSkill";
 import { produceComputerInput } from "./botPlay";
@@ -246,4 +246,32 @@ test("independent decision profiles change observed smash repetition and variety
   assertGreaterThan(simple.repeats, thoughtful.repeats);
   assertGreaterThan(simple.smashes, thoughtful.smashes);
   assertGreaterThan(thoughtful.variety, 5);
+});
+
+test("a computer whose every option in reach was started within the variety span passes, then repeats once the span lapses [spec #279]", () => {
+  const policy = EXPERT;
+  const skill = cpuSkill("wren", "expert");
+  const game = createMatchState();
+  const startsAt = (character: Character) => {
+    const own = createFighter(character, 0.0, 1);
+    // Out of every normal's reach: only ranged specials reach.
+    const target = createFighter(Character.archer, 300.0, -1);
+    const strategy = createBotStrategy();
+    const input = neutralControls();
+    const commands = attackBuffer(6);
+    const starts: { readonly frame: number; readonly option: number }[] = [];
+    for (let frame = 1; frame <= 2 * VARIETY_FRAMES + 1; frame++) {
+      clearAttackBuffer(commands);
+      if (chooseAttack(own, target, 0, frame, frame, true, input, commands, 0, -1, skill, 0, { strategy, policy, game })) starts.push({ frame, option: strategy.lastOption });
+    }
+    return starts;
+  };
+  // Sylvanas's lone shot: once a span, not every free frame.
+  const shots = startsAt(Character.sylvanas);
+  assertEquals(shots.map(start => start.frame).join(","), `1,${1 + VARIETY_FRAMES},${1 + 2 * VARIETY_FRAMES}`);
+  assertEquals(new Set(shots.map(start => start.option)).size, 1);
+  // Jaina's three spells in reach: each is cast before the chooser passes.
+  const spells = startsAt(Character.jaina).filter(start => start.frame < VARIETY_FRAMES).map(start => start.option);
+  assertEquals([...new Set(spells)].sort().join(","), "30,31,33");
+  assertLessThan(spells.length, 6);
 });

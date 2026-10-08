@@ -25,6 +25,7 @@ import { passivePips, passiveSpec } from "../sim/passives";
 import type { FighterGameplan, GameplanMove } from "../sim/gameplan";
 import { type CpuSkill, FULL_SKILL } from "./cpuSkill";
 import { type AttackDecision, familiarOption, moveValueMultiplier } from "./botMoveValue";
+import { type BotStrategy, VARIETY_STARTS } from "./botStrategy";
 
 const GROUND_MOVES = [
   AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt,
@@ -324,6 +325,51 @@ function gameplanMoveOf(f: Readonly<Fighter>, option: number): GameplanMove {
 /** A ready passive's landing move weighs this many times its gameplan weight. */
 const PASSIVE_WEIGHT = 8;
 
+// Move variety (#279, #275, #280, #281): an option the chooser started
+// among the last VARIETY_STARTS starts, within VARIETY_FRAMES, weighs less
+// for each such start; when every option in reach is such a repeat, the
+// chooser passes, so the computer moves instead of cycling its ranged
+// answers.
+/** The span, in match frames, a start counts against its option. */
+export const VARIETY_FRAMES = 600;
+/** Weights are scaled by this before a repeat divides them, keeping them whole and above zero. */
+const VARIETY_SCALE = 12;
+/** When every option in reach was started this many times in the span, the chooser passes. */
+export const VARIETY_PASS_STARTS = 1;
+
+/** How many times `option` was started in the last VARIETY_FRAMES frames. */
+export function recentStarts(strategy: Readonly<BotStrategy>, option: number, frame: number): number {
+  if (option < NEUTRAL_SPECIAL) return 0;
+  let starts = 0;
+  for (let index = 0; index < 2 * VARIETY_STARTS; index += 2) {
+    const started = at(strategy.recentOptions, index + 1);
+    if (at(strategy.recentOptions, index) === option && started >= 0 && started <= frame && frame - started < VARIETY_FRAMES) starts++;
+  }
+  return starts;
+}
+
+// Set by the last chooseAttack call and read by its caller in the same frame: no state outlives the decision.
+let passedForVariety = false;
+/** Whether the last chooseAttack passed because nothing fresh was in reach; the computer then closes in instead of holding its spacing. */
+export const lastChoicePassedForVariety = (): boolean => passedForVariety;
+
+/** Each recent start divides an option's weight further: by 1, 4, 9, 16... for none, one, two, three starts. */
+const varietyDivisor = (starts: number): number => (1 + starts) * (1 + starts);
+
+/** Records a start, dropping the oldest. */
+function rememberStart(strategy: BotStrategy, option: number, frame: number): void {
+  const recent = strategy.recentOptions;
+  for (let index = 0; index < 2 * VARIETY_STARTS - 2; index++) recent[index] = at(recent, index + 2);
+  recent[2 * VARIETY_STARTS - 2] = option;
+  recent[2 * VARIETY_STARTS - 1] = frame;
+}
+
+/** Whether every one of the first `count` options was already started enough in the span to be passed over: nothing fresh is in reach. */
+function nothingFresh(strategy: Readonly<BotStrategy>, count: number, frame: number): boolean {
+  for (let index = 0; index < count; index++) if (recentStarts(strategy, at(options, index), frame) < VARIETY_PASS_STARTS) return false;
+  return true;
+}
+
 /**
  * One of the first `count` options, each as likely as its gameplan weight;
  * with `cashing` set, the move that cashes the ready passive weighs more.
@@ -333,7 +379,8 @@ function weightedOption(gameplan: Readonly<FighterGameplan> | undefined, planInd
   for (let index = 0; index < count; index++) {
     const move = gameplanMoveOf(f, at(options, index));
     const base = gameplan === undefined ? 1 : moveWeight(gameplan, planIndex, f, slot, target, move) * (passiveLandingMove(gameplan, cashing, move) ? PASSIVE_WEIGHT : 1);
-    const weight = base * (decision === undefined ? 1 : moveValueMultiplier(f, target, at(options, index), decision));
+    const weight = decision === undefined ? base
+      : Math.max(1, floorDiv(base * moveValueMultiplier(f, target, at(options, index), decision) * VARIETY_SCALE, varietyDivisor(recentStarts(decision.strategy, at(options, index), frame))));
     weights[index] = weight;
     total += weight;
   }
@@ -351,6 +398,7 @@ function weightedOption(gameplan: Readonly<FighterGameplan> | undefined, planInd
  * with nothing in reach but a special take it. False when it chose nothing.
  */
 export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, ranged: boolean, input: Controls, commands: AttackBuffer, slot = -1, planIndex: number = SPACE_PLAN, skill: CpuSkill = FULL_SKILL, observationAge = 0, decision?: AttackDecision): boolean {
+  passedForVariety = false;
   const gameplan = gameplanOf(f.character);
   const dx = aheadX(f, target, 0, undefined, observationAge);
   const gap = Math.abs(dx);
@@ -406,6 +454,10 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
   const close = count;
   if (canAttack(f)) count = addShots(f, target, stage, count, observationAge);
   if (count === 0 || (close === 0 && !ranged)) return false;
+  if (decision !== undefined && nothingFresh(decision.strategy, count, frame)) {
+    passedForVariety = true;
+    return false;
+  }
   const grabbing = skill.grabsShields && target.shield.raised && f.motion.grounded && grabReaches;
   // Running in, the dash attack when it reaches; a ready passive's landing move, never into a shield, which spends it.
   const kit = botChance(frame, f.attack.serial * 13 + f.character + 3, skill.kitTenths, 10);
@@ -415,7 +467,10 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
   const option = grabbing ? AttackStyle.grab
     : dashIn ? AttackStyle.jab
     : familiar ?? weightedOption(skill.gameplanWeights ? gameplan : undefined, planIndex, f, slot, target, count, frame, cashing, decision);
-  if (decision !== undefined) decision.strategy.lastOption = option;
+  if (decision !== undefined) {
+    decision.strategy.lastOption = option;
+    rememberStart(decision.strategy, option, frame);
+  }
   perform(f, target, option, frame, input, commands, observationAge);
   return true;
 }

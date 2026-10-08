@@ -17,7 +17,7 @@ import { surfacePass } from "../sim/stage";
 import { type FighterGameplan, GameplanThrow } from "../sim/gameplan";
 import { SPACE_PLAN, avoids, gameplanGoal, gameplanOf, gameplanPlan, gameplanThrow, jumpsIn, keptGap, onAnotherDeck, plansRanged, spacingAerialAt } from "./botGameplan";
 import { steerInAir, steerOnGround } from "./botFooting";
-import { chooseAttack, smashChargeGoal } from "./botMoves";
+import { chooseAttack, lastChoicePassedForVariety, smashChargeGoal } from "./botMoves";
 import { botChance, botChoice, useMatchSeed } from "./botRandom";
 import { type CpuSkill, cpuSkill, perceivedCpuSkill } from "./cpuSkill";
 import { type BotMemory, observeOpponents, perceivedOpponent, perceivedHeldFighter, commitBotDirection } from "./botPerception";
@@ -237,5 +237,6 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
     if (!fighter.motion.grounded) steerInAir(fighter, stage, gameplanGoal(gameplan, fighter, target, stage, 0.0), input);
     return;
   }
-  approachByGameplan(fighter, target, stage, gameplan, slot, planIndex, frame, input, skill);
+  if (delay <= 0 && lastChoicePassedForVariety()) approach(fighter, target, stage, Plan.ground, frame, input);
+  else approachByGameplan(fighter, target, stage, gameplan, slot, planIndex, frame, input, skill);
 }

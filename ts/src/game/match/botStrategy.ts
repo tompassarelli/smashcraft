@@ -67,13 +67,19 @@ export interface BotStrategy {
   readActionStyle: number;
   readActionFacing: Direction;
   lastOption: number;
+  /** The attack chooser's last VARIETY_STARTS options, oldest first, as option and match-frame pairs; -1 where none yet. */
+  readonly recentOptions: number[];
 }
+
+/** Starts the move-variety rule remembers (botMoves.ts, "Move variety"). */
+export const VARIETY_STARTS = 6;
+const noRecentOptions = (): number[] => Array.from({ length: 2 * VARIETY_STARTS }, () => -1);
 
 export function createBotStrategy(): BotStrategy {
-  return { history: [], historyKey: "", observedFrame: -1, opponent: -1, lastChoice: HabitChoice.none, lastContext: 0, lastSerial: -1, events: 0, readActive: false, readChoice: HabitChoice.none, readContext: 0, readExpectedFrame: 0, readExpires: 0, readConfidence: 0, readActed: false, readActionFrame: -1, readActionSerial: -1, readActionStyle: -1, readActionFacing: 0, lastOption: -1 };
+  return { history: [], historyKey: "", observedFrame: -1, opponent: -1, lastChoice: HabitChoice.none, lastContext: 0, lastSerial: -1, events: 0, readActive: false, readChoice: HabitChoice.none, readContext: 0, readExpectedFrame: 0, readExpires: 0, readConfidence: 0, readActed: false, readActionFrame: -1, readActionSerial: -1, readActionStyle: -1, readActionFacing: 0, lastOption: -1, recentOptions: noRecentOptions() };
 }
 
-export type SavedBotStrategy = Pick<BotStrategy, "observedFrame" | "opponent" | "lastChoice" | "lastContext" | "lastSerial" | "events" | "lastOption"> & {
+export type SavedBotStrategy = Pick<BotStrategy, "observedFrame" | "opponent" | "lastChoice" | "lastContext" | "lastSerial" | "events" | "lastOption" | "recentOptions"> & {
   readonly history: readonly SavedBotHabit[];
   readonly read: SavedBotRead | undefined;
 };
@@ -96,7 +102,7 @@ export function savedBotStrategy(state: Readonly<BotStrategy>): SavedBotStrategy
     actionStyle: state.readActionStyle,
     actionFacing: state.readActionFacing,
   } : undefined;
-  return { history, observedFrame: state.observedFrame, opponent: state.opponent, lastChoice: state.lastChoice, lastContext: state.lastContext, lastSerial: state.lastSerial, events: state.events, read, lastOption: state.lastOption };
+  return { history, observedFrame: state.observedFrame, opponent: state.opponent, lastChoice: state.lastChoice, lastContext: state.lastContext, lastSerial: state.lastSerial, events: state.events, read, lastOption: state.lastOption, recentOptions: [...state.recentOptions] };
 }
 
 export function restoredBotStrategy(saved: Readonly<SavedBotStrategy>): BotStrategy {
@@ -110,6 +116,7 @@ export function restoredBotStrategy(saved: Readonly<SavedBotStrategy>): BotStrat
   state.lastSerial = saved.lastSerial;
   state.events = saved.events;
   state.lastOption = saved.lastOption;
+  for (let index = 0; index < state.recentOptions.length; index++) state.recentOptions[index] = at(saved.recentOptions, index);
   if (saved.read !== undefined) {
     state.readActive = true;
     state.readChoice = saved.read.choice;
@@ -139,6 +146,7 @@ export function copyBotStrategy(target: BotStrategy, source: Readonly<BotStrateg
   target.lastSerial = source.lastSerial;
   target.events = source.events;
   target.lastOption = source.lastOption;
+  for (let index = 0; index < source.recentOptions.length; index++) target.recentOptions[index] = at(source.recentOptions, index);
   target.readActive = source.readActive;
   target.readChoice = source.readChoice;
   target.readContext = source.readContext;
@@ -161,6 +169,7 @@ export function botStrategyValues(state: Readonly<BotStrategy>): number[] {
   const values = [state.observedFrame, state.opponent, state.lastChoice, state.lastContext, state.lastSerial, state.events, state.lastOption,
     state.readActive ? 1 : 0, state.readActive ? state.readChoice : 0, state.readActive ? state.readContext : 0, state.readActive ? state.readExpectedFrame : 0, state.readActive ? state.readExpires : 0, state.readActive ? state.readConfidence : 0, state.readActive && state.readActed ? 1 : 0,
     state.readActive ? state.readActionFrame : -1, state.readActive ? state.readActionSerial : -1, state.readActive ? state.readActionStyle : -1, state.readActive ? state.readActionFacing : 0, floorDiv(state.history.length, HABIT_FIELDS)];
+  for (const value of state.recentOptions) values.push(value);
   for (const value of state.history) values.push(value);
   return values;
 }
