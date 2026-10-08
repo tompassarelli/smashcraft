@@ -70,7 +70,7 @@ src/game/netcode/journal/vocabulary.tests.ts	1	0.000
 src/game/netcode/ledger.tests.ts	8	0.026
 src/game/netcode/shadowSchedule.tests.ts	14	0.058
 src/game/physics/techInput.tests.ts	3	0.000
-src/game/presentation/attackClipFamilies.tests.ts	21	0.002
+src/game/presentation/attackClipFamilies.tests.ts	25	0.002
 src/game/presentation/attackCues.tests.ts	1	0.005
 src/game/presentation/bearFeedback.tests.ts	2	0.000
 src/game/presentation/blademasterClips.tests.ts	1	0.000
