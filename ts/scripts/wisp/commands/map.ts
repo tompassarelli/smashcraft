@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Console, Effect, Layer } from "effect";
 import { type Command, UsageFailure } from "wisp/scripts/wisp/command";
-import { type ArchiveEntry, MapBuild, MapBuildFailure, runProcess } from "wisp/scripts/wisp/mapBuild";
+import { type ArchiveEntry, type GeneratedFile, MapBuild, MapBuildFailure, runProcess } from "wisp/scripts/wisp/mapBuild";
 import { checkoutInputs } from "../buildInputs";
 import { step } from "wisp/scripts/wisp/timings";
 import { decodeBuildOptions, importedAssets, rebuildMap } from "../mapInputs";
@@ -13,6 +13,7 @@ import { buildProject, gameFilesLayer, profileOption, projectRoot, sourceErrorsL
 import { describeMapSize, mapGrowthProblem, type MapSize, readMapBaseline, readTables, storedBytes, writeMapBaseline } from "../../mapSize";
 import { SMASHCRAFT_MAP } from "../../mapInfo";
 import { fighterUnits, fileIoAbility } from "../../objectData";
+import { POST_PROCESSING_FILE } from "../../postProcessing";
 
 /** `--profile NAME` removed from the arguments, and that profile's map services. */
 export const profileOptions = (args: readonly string[]) => Effect.gen(function*() {
@@ -20,6 +21,13 @@ export const profileOptions = (args: readonly string[]) => Effect.gen(function*(
   const services = MapBuild.layer(buildProject(profile)).pipe(Layer.provideMerge(sourceErrorsLayer), Layer.provideMerge(gameFilesLayer));
   return { profile, args: remaining, services };
 });
+
+/** The map's generated root files, which the build writes over the base map's. */
+export const generatedFiles = (): readonly GeneratedFile[] => [
+  { entry: "war3map.w3u", contents: fighterUnits() },
+  { entry: "war3map.w3a", contents: fileIoAbility() },
+  POST_PROCESSING_FILE,
+];
 
 const MAP_SIZE_BASELINE = join(projectRoot, "ts/map-size-baseline.tsv");
 
@@ -82,10 +90,7 @@ export const build: Command = (args) => Effect.gen(function*() {
         ? { base, container, assets, summon }
         : yield* checkoutInputs().pipe(step("verify build inputs"));
       const imports = yield* importedAssets(assets ?? declared.assets, summon ?? declared.summon);
-      return yield* MapBuild.use((maps) => maps.build({ ...map, base: base ?? declared.base, container: container ?? declared.container, ...(packager === undefined ? {} : { packager }), declaration: SMASHCRAFT_MAP, imports, objectData: [
-        { entry: "war3map.w3u", contents: fighterUnits() },
-        { entry: "war3map.w3a", contents: fileIoAbility() },
-      ] })).pipe(Effect.andThen(checkMapSize(map.out, imports, bounded)));
+      return yield* MapBuild.use((maps) => maps.build({ ...map, base: base ?? declared.base, container: container ?? declared.container, ...(packager === undefined ? {} : { packager }), declaration: SMASHCRAFT_MAP, imports, objectData: generatedFiles() })).pipe(Effect.andThen(checkMapSize(map.out, imports, bounded)));
     })),
     Effect.provide(options.services),
   );
