@@ -464,7 +464,9 @@ code. From smashcraft:ts/:
   `bun wisp farm balance [--ref REF] [--wait]` plays the
   balance gate's computer field (Wren Expert, 400 a pair; `--opponent`, `--tier`,
   `--per-pair`, `--seeds`) on GitHub's free hosted runners, a `cpuField
-  --pairs` process a core over about 17 jobs, and with `--wait` prints the
+  --pairs` process a core, eight pairs a job and at most 8 jobs at once (the
+  account runs 20 jobs at once; wisp:docs/ci.md, "Runner capacity and
+  waiting"), and with `--wait` prints the
   verdict and field table. A Wren Expert run with at least 400 matches per pair
   fails when the balance gate fails, after publishing the report artifact;
   lower-tier or smaller exploratory fields remain reports.

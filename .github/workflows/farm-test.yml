@@ -29,9 +29,11 @@ permissions:
   contents: read
 
 env:
-  BUN_SHARDS: 6
+  # The account runs 20 jobs at once across every repository: a run holds at
+  # most BUN_SHARDS + LUA_JOBS of them, so several farm runs start together.
+  BUN_SHARDS: 4
   # Lua runs one core a process: each Lua job runs LUA_PER_JOB shards at once.
-  LUA_JOBS: 8
+  LUA_JOBS: 4
   LUA_PER_JOB: 4
 
 jobs:

@@ -29,6 +29,8 @@ jobs:
     timeout-minutes: 40
     strategy:
       fail-fast: false
+      # The account runs 20 jobs at once across every repository.
+      max-parallel: 4
       matrix:
         run: ${{ fromJSON(inputs.runs) }}
     steps:
