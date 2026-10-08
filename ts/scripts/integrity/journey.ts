@@ -750,9 +750,17 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       const traceAfterNs = yield* rig.realtimeNs;
       // Ctrl+G only enables the diagnostic trace; the pads choose, start and rematch.
       if (!playable && diagnosticBuild) yield* rig.key(0, "ctrl+g");
-      if (!bot || epoch === firstEpoch) yield* menuButton(0, BTN_START, `menu-match-${epoch}-start`);
       const start = (client: Slot) => controlName("start", epoch, client);
-      yield* rig.until(`epoch ${epoch}: game-controlled start absent`, Effect.forEach(SLOTS, (client) => rig.file(client, start(client))).pipe(Effect.map((files) => files.every(complete))));
+      const startsShown = Effect.forEach(SLOTS, (client) => rig.file(client, start(client))).pipe(Effect.map((files) => files.every(complete)));
+      if (!bot || epoch === firstEpoch) {
+        yield* menuButton(0, BTN_START, `menu-match-${epoch}-start`);
+        // Start on fighter selection opens stage selection; Start there starts the match.
+        yield* rig.until(`epoch ${epoch}: stage selection absent`, Effect.gen(function*() {
+          return (yield* menusShow("phase=STAGE")) || (yield* startsShown);
+        }));
+        if (yield* menusShow("phase=STAGE")) yield* menuButton(0, BTN_START, `menu-match-${epoch}-stage`);
+      }
+      yield* rig.until(`epoch ${epoch}: game-controlled start absent`, startsShown);
       const started = yield* boundaries(start);
       yield* rig.record({ event: "start", epoch, publications: started, observed_monotonic_ns: yield* rig.monotonicNs });
       if (bot && (options.botFour === true || options.botPerf === true) && !odd) {
