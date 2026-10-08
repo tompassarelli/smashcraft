@@ -27,7 +27,7 @@ import { showBackdrop, showStageLighting } from "./stageScenery";
 import { clearCapturedInputs } from "./inputs";
 import { journalEpoch, journalIdentity } from "./journal";
 import { chatBusy, requestPause } from "./journalPause";
-import { Key } from "./keyEvents";
+import { Key, syncKeyEvents } from "./keyEvents";
 import { startBodyFit } from "./bodyFit";
 import { startAgencyFixture } from "./agencyFixture";
 import { clearVisualCapture, configureVisualCapture } from "../../game/shell/visualCapture";
@@ -67,6 +67,7 @@ export function startDown(s: ShellState, slot: ParticipantSlot): void {
     else {
       clearCapturedInputs(s);
       pauseMatchPresentation(s, s.session.paused);
+      syncKeyEvents(s);
       setStatus(s, s.session.paused ? pausedMessage("Y") : "Resumed.", s.session.paused ? LASTING : 1.0);
     }
   } else if (action === "confirm") confirm(s, slot);

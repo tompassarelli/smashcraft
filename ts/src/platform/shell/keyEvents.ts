@@ -46,8 +46,8 @@ export function removeKeyEvents(s: ShellState): void {
   keyEvents.up = undefined;
 }
 
-/** Called after anything that changes the phase or the rollback session. */
+/** Called after anything that changes the phase, the pause or the rollback session; a paused match reads Escape to leave. */
 export function syncKeyEvents(s: ShellState): void {
-  if (activeRollback(s) !== undefined && s.game.phase === Phase.match) removeKeyEvents(s);
+  if (activeRollback(s) !== undefined && s.game.phase === Phase.match && !s.session.paused) removeKeyEvents(s);
   else registerAllKeys(s);
 }

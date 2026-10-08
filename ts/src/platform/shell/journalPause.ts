@@ -14,6 +14,7 @@ import { readChunk } from "wisp/src/platform/fileio";
 import { releaseMessage } from "../keyboardJournal";
 import { consumeEditbox, failJournal, journalEpoch, journalIdentity, mailboxMessage, peekEditbox, setAsideRows, writeJournalFile } from "./journal";
 import { type Journal, type Rollback, type ShellState, localSlot, playsOnKeyboard } from "./state";
+import { syncKeyEvents } from "./keyEvents";
 import { traceInput } from "./trace";
 import { LASTING, pauseMatchPresentation, setStatus, startControl } from "./view";
 
@@ -130,6 +131,7 @@ export function commitPauseAtFrame(s: ShellState, rollback: Rollback, journal: J
   s.session.paused = paused;
   if (!paused) paceResume(journal.barrier, rollback.schedule.speculativeFrame());
   pauseMatchPresentation(s, paused);
+  syncKeyEvents(s);
   setStatus(s, paused ? pausedMessage(startControl(s)) : "Resumed.", paused ? LASTING : 1.0);
   journal.barrier.request = undefined;
 }
