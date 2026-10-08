@@ -58,7 +58,7 @@ export const readClientsFile = (clientsFile = clientState) => Schema.decodeUnkno
 const launcherCommand = (name: string, run: string, client: { readonly compatData: string; readonly appId: number; readonly gameId: string }) => {
   const read = (file: string) => readFileSync(join(run, file), "utf8").trim();
   return [
-    process.execPath, capacity, "session", "--class", "moderate", "--owner", `native-client-${name}`, "--",
+    process.execPath, capacity, "session", "--class", "native", "--owner", `native-client-${name}`, "--",
     "env", "-i", `HOME=${homedir()}`, `USER=${userInfo().username}`, "PATH=/run/current-system/sw/bin",
     `DISPLAY=${read("display")}`, `WAYLAND_DISPLAY=${read("wayland-display")}`, `XDG_RUNTIME_DIR=${join(run, "runtime")}`, "XAUTHORITY=",
     "dbus-run-session", "--", "steam-run", "env",
