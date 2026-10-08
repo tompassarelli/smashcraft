@@ -1,0 +1,18 @@
+Change: borrow corrected history within each confirmed callback batch; copy only its final state.
+Before: 07b13e804dc687d290c55addfe4e01cad661981c, farm 37744417707
+After: 46c8d1f191ed9fa00e87b8a93ea8061daa63b4a7, farm 37745011968
+Command: bun wisp farm perf 'playable-bot-four --samples'
+Both: 1800 frames, 0 problems; delay 2, rollback window 24, repair budget 6 unchanged.
+
+Player 0: predicted milliseconds p50 5.884 -> 5.841; p95 17.261 -> 16.865;
+p99 21.34 -> 20.74; worst 24.711 -> 24.110. Mean instructions 308465 -> 300259.
+Player 1: predicted milliseconds p50 5.832 -> 5.773; p95 16.766 -> 16.569;
+p99 20.68 -> 20.11; worst 25.139 -> 24.540. Mean instructions 302987 -> 294780.
+Mean allocation: both players 68 KB/frame before and after.
+Adjacent perf compare: PASS. Original 10 ms p99 / 14 ms worst budget: FAIL.
+
+Checks: 9/9 affected history tests; type check passed.
+Parity tapes: 24 tapes, 19310 frames, 0 divergences in Lua32 and toward-zero Lua32.
+Headless quick match: 600 frames, both clients checksum 1364670365; no desync.
+Headless reports eight existing unmodeled native calls (CreateTextTag,
+SetTextTagPermanent, SetTextTagVisibility, BlzShowTerrain, each client).
