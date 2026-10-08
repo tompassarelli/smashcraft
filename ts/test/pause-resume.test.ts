@@ -183,3 +183,41 @@ test("pause-dash: the first draw after resuming shows every fighter where it pau
   for (const [index, frame] of last.entries()) expect(frame).toBeGreaterThan((pausedAt[index] ?? 0) + 30);
   expectSynchronized(clients);
 }, 30_000);
+
+test("Start pressed again while the pause is still settling resumes it, both players from the paused frame [repro #206]", () => {
+  const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
+  const { clients, frames, clientA: a, clientB: b } = startPlayableMatch(headless, helpers, false);
+  const paused = () => clients.clients.map(client => value(client, () => shell().session.paused));
+  const predicted = (client: HeadlessClient) => value(client, () => shell().rollback?.speculative.runtime.simulationFrame ?? -1);
+  for (let i = 0; i < 240 && value(a, () => holdingStart(shell().game)); i++) frames(1);
+  frames(30);
+  // As natively on 9 Oct under load: B's helper answers the pause seconds late,
+  // and A's resume Start lands after A's helper prepared but before the commit.
+  helpers.silent.add(1);
+  helpers.pressStart(0);
+  frames(30);
+  expect(paused()).toEqual([false, false]);
+  helpers.pressStart(0);
+  frames(30);
+  helpers.silent.clear();
+  let pausedAt: number[] | undefined;
+  let stopped: number[] | undefined;
+  let waited = 0;
+  for (; waited < 120 && (pausedAt === undefined || paused().some(Boolean)); waited++) {
+    frames(1);
+    if (pausedAt === undefined && paused().every(Boolean)) {
+      pausedAt = clients.clients.map(predicted);
+      stopped = [confirmedFrame(a), confirmedFrame(b)];
+    }
+  }
+  expect(pausedAt).toBeDefined();
+  expect(paused()).toEqual([false, false]);
+  expect(waited).toBeLessThanOrEqual(60);
+  // The first draw after resuming shows the paused frame on both players.
+  expect(clients.clients.map(predicted)).toEqual(pausedAt ?? []);
+  expect([confirmedFrame(a), confirmedFrame(b)]).toEqual(stopped ?? []);
+  frames(60);
+  for (const client of [a, b]) expect(confirmedFrame(client)).toBeGreaterThan((stopped?.[0] ?? 0) + 30);
+  expectSynchronized(clients);
+  expect([...a.errors, ...b.errors]).toEqual([]);
+}, 30_000);

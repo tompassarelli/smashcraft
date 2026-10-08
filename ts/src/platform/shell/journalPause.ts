@@ -134,6 +134,9 @@ export function commitPauseAtFrame(s: ShellState, rollback: Rollback, journal: J
   syncKeyEvents(s);
   setStatus(s, paused ? pausedMessage(startControl(s)) : "Resumed.", paused ? LASTING : 1.0);
   journal.barrier.request = undefined;
+  const resume = paused && journal.barrier.resumeQueued;
+  journal.barrier.resumeQueued = false;
+  if (resume) requestPause(s, rollback, journal, false);
 }
 
 /** Custom frame events synchronize the triggering player: Enter in the edit box asks to chat. */
@@ -180,12 +183,19 @@ export function pauseRequestEvent(s: ShellState): void {
   const epoch = journalEpoch(s);
   if (epoch === undefined) return;
   const { rollback, journal } = epoch;
-  if (s.game.phase !== Phase.match || journal.barrier.request !== undefined || journal.failed || journal.source === undefined) return;
+  if (s.game.phase !== Phase.match || journal.failed || journal.source === undefined) return;
   if (!humanActive(s.game, GetPlayerId(GetTriggerPlayer()))) return;
+  const wire = BlzGetTriggerSyncData();
+  const epochPrefix = `JP1${padDecimal(rollback.epoch, 10)}`;
+  if (journal.barrier.request !== undefined) {
+    // A resume pressed before the pause commits (a slow helper can hold the
+    // commit for seconds) resumes right after it, on every client alike.
+    if (pausing(journal.barrier) && wire.length === epochPrefix.length + 11 && wire.startsWith(epochPrefix) && wire.endsWith("R")) journal.barrier.resumeQueued = true;
+    return;
+  }
   const paused = s.session.paused;
   // The epoch and control sequence discard delayed or simultaneous requests.
-  const expected = `JP1${padDecimal(rollback.epoch, 10)}${padDecimal(journal.source.controlSequenceNumber(), 10)}${paused ? "R" : "P"}`;
-  const wire = BlzGetTriggerSyncData();
+  const expected = `${epochPrefix}${padDecimal(journal.source.controlSequenceNumber(), 10)}${paused ? "R" : "P"}`;
   if (paused) {
     if (wire === expected) requestPause(s, rollback, journal, false);
     return;

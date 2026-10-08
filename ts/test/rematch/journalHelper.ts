@@ -87,6 +87,8 @@ interface Helper {
   control: number;
   /** While a pause is prepared or in effect, the last frame to journal. */
   limit: number | undefined;
+  /** Its Start asked to pause and the map's request hasn't reached it yet. */
+  sealed: boolean;
 }
 
 export class JournalHelpers {
@@ -118,7 +120,7 @@ export class JournalHelpers {
   private helper(slot: number): Helper {
     let helper = this.helpers.get(slot);
     if (helper === undefined) {
-      helper = { epoch: 0, sequence: 0, typed: [], state: "idle", queue: [], journaled: 0, started: 0, control: 1, limit: undefined };
+      helper = { epoch: 0, sequence: 0, typed: [], state: "idle", queue: [], journaled: 0, started: 0, control: 1, limit: undefined, sealed: false };
       this.helpers.set(slot, helper);
     }
     return helper;
@@ -132,12 +134,15 @@ export class JournalHelpers {
 
   /**
    * Slot's controller presses Start, as the companion types it among the rows:
-   * a pause at the next frame it journals, or a resume while paused.
+   * a pause at the next frame it journals, or a resume while paused or
+   * while its pause is still settling.
    */
   pressStart(slot: number): void {
     const helper = this.helper(slot);
     const request = `JP1${padDecimal(helper.epoch, 10)}${padDecimal(helper.control, 10)}`;
-    helper.queue.push(helper.limit === undefined ? `${request}P${padDecimal(helper.journaled + 1, 10)}` : `${request}R`);
+    const pause = helper.limit === undefined && !helper.sealed;
+    helper.sealed ||= pause;
+    helper.queue.push(pause ? `${request}P${padDecimal(helper.journaled + 1, 10)}` : `${request}R`);
   }
 
   /** Frames a slot's helper has journaled this match; undefined while it isn't journaling. */
@@ -159,6 +164,7 @@ export class JournalHelpers {
         helper.state = "ready";
         helper.control = 1;
         helper.limit = undefined;
+        helper.sealed = false;
         helper.queue.length = 0;
         helper.typed.length = 0;
         helper.queue.push(`JR1${next}`);
@@ -188,6 +194,7 @@ export class JournalHelpers {
       if (request === "PAUSE") {
         acknowledge("PREPARE", helper.journaled + 1);
         helper.limit = helper.journaled;
+        helper.sealed = false;
       } else if (request === "PAUSE_COMMIT") {
         committed = Number(frame);
         helper.limit = committed - 1;
