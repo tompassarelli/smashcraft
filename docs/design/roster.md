@@ -1473,6 +1473,35 @@ kill power on the moves that take his stocks. Forward tilt growth 90→108 and
 dash attack 95→114 moved him from 38% (run 37736380119) to 46%
 (run 37741496717); his move mix held (blaster 34% of moves, bear 25% of damage).
 
+#250's shared field is all 21 fighters, computer level Wren Expert, 210
+pairs at 408 games a pair (85,680 matches, 8,160 a fighter), build
+07b13e80, run 37743744018. Win rate counts decisive matches; every fighter
+is inside the 40–60% gate.
+
+| Fighter | Wins | Losses | Win rate |
+| --- | ---: | ---: | ---: |
+| Archer | 3823 | 4337 | 46.85% |
+| Rifleman | 3766 | 4394 | 46.15% |
+| Illidan | 4760 | 3400 | 58.33% |
+| Blademaster | 3776 | 4384 | 46.27% |
+| Mountain King | 4374 | 3785 | 53.61% |
+| Warden | 3419 | 4740 | 41.90% |
+| Lich | 4018 | 4141 | 49.25% |
+| Forsaken Paladin | 3979 | 4181 | 48.76% |
+| Dreadlord | 4477 | 3683 | 54.87% |
+| Shadow Hunter | 4188 | 3972 | 51.32% |
+| Pit Lord | 3323 | 4837 | 40.72% |
+| Beastmaster | 3891 | 4268 | 47.69% |
+| Lich King | 4128 | 4032 | 50.59% |
+| Thrall | 3907 | 4253 | 47.88% |
+| Jaina Proudmoore | 4421 | 3739 | 54.18% |
+| Sylvanas Windrunner | 4096 | 4064 | 50.20% |
+| Cairne Bloodhoof | 4758 | 3402 | 58.31% |
+| Chen Stormstout | 4307 | 3853 | 52.78% |
+| Peon | 3875 | 4285 | 47.49% |
+| Goblin Tinker | 4185 | 3975 | 51.29% |
+| Kael'thas Sunstrider | 4207 | 3953 | 51.56% |
+
 ## Implementation details for the overnight agent
 
 ### Read the real project first
