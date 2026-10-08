@@ -239,6 +239,7 @@ sweep("a match and its three-fighter rematch show each pooled fighter whole wher
   const selectionAfterFirst = retainedEffects();
   // The slot change of #26's rematch: slot C goes from EMPTY to a human fighter, then to a computer.
   for (let click = 0; click < 2; click++) clients.everywhere(() => panelActions().selection.cycleMode(0, 2));
+  clients.everywhere(() => panelActions().selection.selectCpuChoice(0, 2, Character.demonHunter));
   expect(read(() => [shell().game.humanFighterMask, shell().game.computerMask, shell().game.characterChoices[2]])).toEqual([3, 4, Character.demonHunter]);
   const rematch = play({ denseCycles: 1, walkers: [0, 1] });
 
