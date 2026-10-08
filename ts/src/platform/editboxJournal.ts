@@ -216,7 +216,6 @@ export class EditboxIngress {
 
   updatePauseHint(paused: boolean, pending: boolean, targetPaused: boolean, hideHud: boolean): void {
     if (this.session === undefined) return;
-    BlzFrameSetAlpha(this.box, 0);
     BlzFrameSetVisible(this.hint, !hideHud);
     BlzFrameSetText(this.hint, pauseLabel(this.session.chat, paused, pending, targetPaused));
   }
