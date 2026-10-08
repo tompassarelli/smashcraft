@@ -7,11 +7,12 @@ import { Effect, Schema } from "effect";
 import { ChildProcess } from "effect/process";
 import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
 import { FIGHTER_OBJECTS } from "../../src/game/objectData";
-import { heroModelSource } from "../heroModelSource";
+import { heroModelSource, importedModelFile } from "../heroModelSource";
 import { INPUTS_STORE, assetsView, readManifest } from "./buildInputs";
 import { importedAssets } from "./mapInputs";
 import { runProcess } from "../hostProcess";
 
+type Graphics = "classic" | "reforged";
 const key = (path: string) => path.replaceAll("\\", "/").toLowerCase().replace(/\.mdl$/, ".mdx");
 const PRIVATE = join(homedir(), ".local/share/smashcraft-render-assets");
 
@@ -57,10 +58,14 @@ export function headlessRender(options: RenderAssetOptions = {}) {
     const imports = options.imports ?? (yield* importedAssets(assets, join(INPUTS_STORE, "summon", manifest.summon)));
     const paths = new Map(imports.map(({ entry, source }) => [key(entry), source]));
     for (const { presentation } of HERO_ROSTER) {
-      if (!paths.has(key(presentation.model))) paths.set(key(presentation.model), join(assets, heroModelSource(presentation.model)));
+      if (paths.has(key(presentation.model))) continue;
+      paths.set(key(presentation.model), join(assets, heroModelSource(presentation.model)));
+      if (importedModelFile(presentation.model) === undefined) stockFallback.add(key(presentation.model));
     }
     return paths;
   }).pipe(Effect.mapError((cause) => cause instanceof RenderAssetFailure ? cause : new RenderAssetFailure({ problem: `read the map's imports: ${cause.message}` })))));
+  // Stock hero models copied under --assets: the game's own Classic files, which Reforged replaces with HD ones.
+  const stockFallback = new Set<string>();
   let extractedTextures: Map<string, string> | undefined;
   const pending = new Map<string, Promise<Uint8Array | undefined>>();
   const read = (path: string) => attempt(`read ${path}`, async () => {
@@ -70,13 +75,40 @@ export function headlessRender(options: RenderAssetOptions = {}) {
   /** Runs a tool in its own scope: true when it exited 0. Interrupting the read stops it. */
   const succeeds = (program: string, args: readonly string[]) =>
     runProcess(ChildProcess.make(program, args, { stdin: "ignore" })).pipe(Effect.as(true), Effect.catchTag("ProcessFailure", () => Effect.succeed(false)));
-  const resolve = (path: string) => Effect.gen(function*() {
+  /** The game's _hd.w3mod file for a stock path, a DDS texture converted to PNG; undefined when Reforged has none. */
+  const stockHd = (normalized: string) => Effect.gen(function*() {
+    const directory = join(yield* stockCache, "_hd.w3mod");
+    const texture = /\.(blp|tga|png|dds|tif)$/.test(normalized);
+    const target = texture ? normalized.replace(/\.[^.]+$/, ".png") : normalized;
+    const cached = yield* read(join(directory, target));
+    if (cached !== undefined) return cached;
+    const extractor = options.extractor ?? process.env.CASC_EXTRACTOR ?? Bun.which("casc-extract")
+      ?? Array.from(new Bun.Glob("*/build/animation-assets/casc-extract").scanSync({ cwd: dirname(INPUTS_STORE), absolute: true }))[0];
+    if (extractor === null || extractor === undefined) return yield* new RenderAssetFailure({ problem: `stock asset ${normalized} needs CASC_EXTRACTOR (tools/animations/extract.sh builds it)` });
+    mkdirSync(dirname(join(directory, target)), { recursive: true });
+    if (!texture) return (yield* succeeds(extractor, [storage, `war3.w3mod:_hd.w3mod:${normalized}`, join(directory, target)])) ? yield* read(join(directory, target)) : undefined;
+    const dds = join(directory, normalized.replace(/\.[^.]+$/, ".dds"));
+    if (!(yield* succeeds(extractor, [storage, `war3.w3mod:_hd.w3mod:${normalized.replace(/\.[^.]+$/, ".dds")}`, dds]))) return undefined;
+    yield* runProcess(ChildProcess.make("magick", [`${dds}[0]`, join(directory, target)], { stdin: "ignore" })).pipe(
+      Effect.mapError((failure) => new RenderAssetFailure({ problem: `cannot convert stock HD texture ${normalized}: ${failure.problem}` })));
+    return yield* read(join(directory, target));
+  });
+  const resolve = (path: string, graphics: Graphics) => Effect.gen(function*() {
     const normalized = key(path);
     if (normalized.split("/").some((part) => part === "..") || normalized.startsWith("/")) return yield* new RenderAssetFailure({ problem: `invalid map asset path: ${path}` });
-    const source = (yield* sources).get(normalized);
-    if (source !== undefined) return yield* read(source);
+    const imported = yield* sources;
+    // Reforged draws a path's _hd.w3mod import, then the map's own import, then the game's HD file.
+    const hdSource = graphics === "reforged" ? imported.get(`_hd.w3mod/${normalized}`) : undefined;
+    if (hdSource !== undefined) return yield* read(hdSource);
+    const source = imported.get(normalized);
+    if (source !== undefined && (graphics === "classic" || !stockFallback.has(normalized))) return yield* read(source);
     if (normalized.startsWith("war3mapimported/")) return undefined;
-    const texture = /\.(blp|tga|png|dds)$/.test(normalized);
+    if (graphics === "reforged") {
+      const hd = yield* stockHd(normalized);
+      if (hd !== undefined) return hd;
+    }
+    if (source !== undefined) return yield* read(source);
+    const texture = /\.(blp|tga|png|dds|tif)$/.test(normalized);
     const pngName = normalized.replace(/\.[^.]+$/, ".png");
     const textures = options.textures ?? process.env.WC3_TEXTURES;
     if (texture && textures !== undefined) {
@@ -109,11 +141,11 @@ export function headlessRender(options: RenderAssetOptions = {}) {
   });
   return {
     unitModels: Object.fromEntries(Object.values(FIGHTER_OBJECTS).map(({ id, model }) => [id, model])),
-    readAsset(path: string): Promise<Uint8Array | undefined> {
-      const normalized = key(path);
+    readAsset(path: string, graphics: Graphics = "classic"): Promise<Uint8Array | undefined> {
+      const normalized = graphics === "classic" ? key(path) : `${graphics}:${key(path)}`;
       let promise = pending.get(normalized);
       // Wisp's renderer reads assets through promises: this is the one runtime boundary.
-      if (promise === undefined) pending.set(normalized, promise = Effect.runPromise(resolve(path).pipe(Effect.provide(BunServices.layer))).then((bytes) => {
+      if (promise === undefined) pending.set(normalized, promise = Effect.runPromise(resolve(path, graphics).pipe(Effect.provide(BunServices.layer))).then((bytes) => {
         if (bytes !== undefined && manifestPath !== undefined) {
           used.set(normalized, { sha256: createHash("sha256").update(bytes).digest("hex"), bytes: bytes.length });
           mkdirSync(dirname(manifestPath), { recursive: true });
