@@ -28,6 +28,7 @@ import { Capture } from "../netcode/capture";
 import { DEFAULT_ROLLBACK_WINDOW, ShadowInputSchedule } from "../netcode/shadowSchedule";
 import { AttackStyle, Character } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
+import { createReferenceFighter } from "../sim/referenceRig";
 import { createRoster, fighterAt } from "../sim/roster";
 import { stateChecksum } from "./canonical";
 import { firstStateDifference } from "./difference";
@@ -145,6 +146,7 @@ test("a late jump correction re-adapts a later attack against the air state [inv
   const confirmedHistory = new ReplayHistory();
   const speculative = shadowWorld();
   const confirmed = shadowWorld();
+  for (const world of [speculative, confirmed]) world.live.world.fighters[1] = createReferenceFighter(Character.sylvanas, 100.0, -1);
   assertTrue(schedule.beginEpoch(epoch, 2, DEFAULT_ROLLBACK_WINDOW, 3));
   assertTrue(playback.beginEpoch(epoch));
   assertEquals(playback.epoch(), epoch);

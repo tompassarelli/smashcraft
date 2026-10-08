@@ -17,7 +17,7 @@ test("a quick match readies every present human's default fighter and starts wit
     assertEquals(game.stageChoice, 0);
     assertEquals(game.stockCount, 1);
     assertEquals(game.characterChoices[0], Character.rifleman);
-    assertEquals(game.characterChoices[1], Character.rifleman);
+    assertEquals(game.characterChoices[1], Character.demonHunter);
     assertEquals(fighterMask(game), 0b111);
   }
   const playing = createMatchState();
@@ -47,7 +47,7 @@ test("a solo quick stage match has an opponent instead of immediately returning 
   assertEquals(game.humanFighterMask, 1);
   assertEquals(game.computerMask, 2);
   assertEquals(fighterMask(game), 3);
-  assertEquals(game.characterChoices[1], Character.rifleman);
+  assertEquals(game.characterChoices[1], Character.demonHunter);
 });
 
 test("recovery capture commands select every fighter by name without changing ordinary quick commands [spec AGENTS.md]", () => {

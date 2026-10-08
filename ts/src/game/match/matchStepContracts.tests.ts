@@ -18,7 +18,7 @@ import { stepMatch } from "./step";
 import { SHIELD_MIN_HOLD_FRAMES, SHIELD_RELEASE_LAG_FRAMES, digitalShieldDamage } from "../sim/shield";
 import { ATTACK_BUFFER_FRAMES } from "../input/attackBuffer";
 import { DASH_GUARD_EARLY_FRAMES } from "../sim/groundMovement";
-import { attackDurationFramesForGrounding, attackStartupFrames } from "../sim/moves";
+import { attackDamage, attackDurationFramesForGrounding, attackStartupFrames } from "../sim/moves";
 import { authoredTuning, INITIAL_DASH_FRAMES, NTSC_FOX_DASH_GRAB_RULES, NTSC_FOX_GROUND_MOVEMENT_RULES } from "../sim/tuning";
 
 function testRoster(first: Fighter, second: Fighter) {
@@ -205,7 +205,7 @@ test("shieldBreakBoundaryDamageAtZeroStillGuardsThenRestoresThirty [reference]",
   mutableProjectile(first, 0)!.direction = 1;
   mutableProjectile(first, 0)!.kind = ProjectileKind.blaster;
   second.shield.raised = true;
-  second.shield.energy = digitalShieldDamage(5.0);
+  second.shield.energy = digitalShieldDamage(attackDamage(AttackStyle.shot));
   second.launch.hitlag = 4;
   secondInput.shield = true;
   stepMatch(game, testRoster(first, second), testFrameControls(firstInput, secondInput, firstCommands, secondCommands), 1);

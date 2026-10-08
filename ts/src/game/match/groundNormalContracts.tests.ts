@@ -23,12 +23,12 @@ import { stepMatch } from "./step";
 
 /** Fighters whose ground normals tilts.md designs; Illidan's belong to his own kit. */
 const DESIGNED: readonly Character[] = [
-  Character.rifleman, Character.rifleman, Character.blademaster, Character.mountainKing, Character.warden, Character.lich, Character.forsakenPaladin, Character.dreadlord, Character.shadowHunter,
+  Character.rifleman, Character.blademaster, Character.mountainKing, Character.warden, Character.lich, Character.forsakenPaladin, Character.dreadlord, Character.shadowHunter,
   Character.pitLord, Character.beastmaster,
 ];
 const GROUND = [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack] as const;
 /** Forward airs that outreach the forward tilt on purpose (tilts.md, "Reach versus aerials"). */
-const LONGER_AERIAL: readonly Character[] = [Character.lich, Character.dreadlord, Character.rifleman];
+const LONGER_AERIAL: readonly Character[] = [Character.lich, Character.dreadlord];
 /** Forward tilts that sweep vertical ground, so a diagonal input plays the plain tilt. */
 const UNANGLED: readonly Character[] = [Character.blademaster, Character.forsakenPaladin, Character.pitLord];
 
@@ -312,7 +312,7 @@ test("Rifleman's down tilt pops the victim straight up at 0% without a tumble, a
   }
 });
 
-test("Rifleman's and Rifleman's dashing jab is a dash attack: her sliding kick pops up, his lunge reaches farther [spec docs/design/tilts.md]", () => {
+test("Rifleman's dashing jab is a dash attack: his lunge pops up and reaches farther than his jab [spec docs/design/tilts.md]", () => {
   const kick = duel(Character.rifleman, 160.0);
   press(kick, AttackStyle.dashAttack);
   let rose = false;
@@ -322,7 +322,7 @@ test("Rifleman's and Rifleman's dashing jab is a dash attack: her sliding kick p
   }
   assertGreaterThan(target(kick).status.damage, 0.0);
   assertTrue(rose);
-  assertGreaterThan(forwardReach(Character.rifleman, AttackStyle.dashAttack), forwardReach(Character.rifleman, AttackStyle.dashAttack));
+  assertGreaterThan(forwardReach(Character.rifleman, AttackStyle.dashAttack), forwardReach(Character.rifleman, AttackStyle.jab));
 });
 
 test("Pit Lord's down tilt sends an airborne fighter at his front low and outward, below the horizontal [spec docs/design/tilts.md]", () => {

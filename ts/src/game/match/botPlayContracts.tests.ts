@@ -131,10 +131,10 @@ function heroUsage(game: ReturnType<typeof computerMatch>, slot: number, frames:
 }
 
 test("computer Forsaken Paladin uses Righteous Fury in range and regular specials at zero meter [spec #155] [spec #335]", () => {
-  const game = computerMatch([Character.rifleman, Character.forsakenPaladin], [-200.0, 200.0], 0, 2);
+  const game = computerMatch([Character.rifleman, Character.forsakenPaladin], [-50.0, 50.0], 0, 2);
   const { specials } = heroUsage(game, 1, 900);
   assertGreaterThan(specials[1] ?? 0, 0);
-  const broke = computerMatch([Character.rifleman, Character.forsakenPaladin], [-200.0, 200.0], 0, 2);
+  const broke = computerMatch([Character.rifleman, Character.forsakenPaladin], [-50.0, 50.0], 0, 2);
   const forsakenPaladin = fighterAt(broke.world, 1);
   let pressedWithoutMana = 0;
   for (let frame = 1; frame <= 600; frame++) {

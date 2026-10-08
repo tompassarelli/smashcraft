@@ -14,7 +14,7 @@ test("a delayed visible shot is defended at its predicted position without seein
   target.motion.grounded = true;
   const projectile = mutableProjectile(target, 0);
   projectile.life = 60;
-  projectile.serial = 6;
+  projectile.serial = 8;
   projectile.direction = -1;
   projectile.velocityX = -36.0;
   projectile.velocityZ = 0.0;

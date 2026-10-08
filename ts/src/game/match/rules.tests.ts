@@ -3,6 +3,7 @@
 import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { imod } from "wisp/src/sim/intMath";
 import { createFighter } from "../sim/fighter";
+import { Character } from "../sim/codes";
 import { createRoster, fighterAt } from "../sim/roster";
 import { Phase, advanceClock, allCharactersReady, characterReady, confirmRematch, cpuSlot, createMatchState, cycleSlotMode, recallCharacter, requestStageSelect, requestStart, returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setCpuOpponent, setCpuTier, setHumanCount, setParticipants, setStocks, setTimeLimit } from "./rules";
 
@@ -85,7 +86,7 @@ test("everyHumanMustChooseAndConfirmForThreeAndFourPlayerMatches [spec #234]", (
     setHumanCount(game, count);
     assertEquals(game.humanCount, count);
     for (let slot = 0; slot <= count - 2; slot++) {
-      selectCharacter(game, slot, imod(slot, 3));
+      selectCharacter(game, slot, [Character.rifleman, Character.demonHunter, Character.blademaster][imod(slot, 3)]!);
     }
     assertFalse(requestStageSelect(game, count - 1));
     selectCharacter(game, count - 1, 2);
