@@ -1,9 +1,10 @@
-// Training's readout (#120) in the top-left corner: the last move's frames,
+// Training's readout (#120) in the top-left corner, or the tutorial's lesson (#306): the last move's frames,
 // the advantage after the last hit or shielded hit, and the combo, on a dark
 // panel so the text stays legible over bright sky.
 import { f32 } from "wisp/src/sim/f32";
 import { type TrainingState, copyTrainingState, createTrainingState } from "../match/trainingState";
 import { trainingReadout } from "../shell/messages";
+import { tutorialOn, tutorialText } from "../match/tutorial";
 import { createBackdrop, createText, gameUi, placeTopLeft } from "./frames";
 import { MENU_FONT } from "./hudLayout";
 import { TRAINING_READOUT_BOX, TRAINING_READOUT_PANEL, TRAINING_READOUT_PANEL_ALPHA } from "./hudLayout";
@@ -50,10 +51,12 @@ export class TrainingReadout {
     if (!(this.built && last.moveStyle === state.moveStyle && last.moveSpecial === state.moveSpecial && last.moveForm === state.moveForm
       && last.moveCharacter === state.moveCharacter && last.moveStartup === state.moveStartup && last.moveActive === state.moveActive
       && last.moveTotal === state.moveTotal && last.advantageKind === state.advantageKind && last.advantage === state.advantage
-      && last.comboHits === state.comboHits && last.comboDamage === state.comboDamage)) {
+      && last.comboHits === state.comboHits && last.comboDamage === state.comboDamage
+      && last.lesson === state.lesson && last.lessonCount === state.lessonCount && (last.lessonCheer > 0) === (state.lessonCheer > 0))) {
       copyTrainingState(last, state);
       this.built = true;
-      const text = trainingReadout(state);
+      // The tutorial's lesson takes the readout's place.
+      const text = tutorialOn(state) ? tutorialText(state) : trainingReadout(state);
       this.empty = text === "";
       BlzFrameSetText(this.label, text);
     }

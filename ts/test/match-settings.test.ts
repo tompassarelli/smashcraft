@@ -123,7 +123,7 @@ sweep("endless survives repeated knockouts past the selected time limit [spec #7
   expect(read(() => shell().game.timedOut)).toBe(false);
   expectSynchronized(clients);
 }, 30_000);
-test("the stage menu's hazards toggle turns hazards off for both players and the match keeps the stage at rest [spec #194] [invariant]", () => {
+test("the stage menu's hazards toggle turns hazards off for both players and the match keeps the stage at rest [spec #194] [repro #242] [invariant]", () => {
   const { clients, frames, read } = session(false, true);
   frames(120);
   expect(read(() => shell().game.hazards)).toBe(false);
@@ -160,4 +160,3 @@ test("item switches sync between players and keep their choices at match start [
   expectSettings(true, itemBit(ItemKind.extraJump));
   expectSynchronized(clients);
 });
-

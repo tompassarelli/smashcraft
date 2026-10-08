@@ -6,7 +6,7 @@ import { PARTICIPANT_SLOTS, type ParticipantSlot, isParticipantSlot } from "../.
 import {
   Phase, changeStagePoolMode, changeStagePoolStage, canChooseComputer, cancelRematchCountdown, firstHumanSlot, characterFor, confirmRematch, cycleSlotMode, humanActive, recallCharacter,
   requestStageSelect, requestStart, setAutomaticRematch, setCpuOpponent, setCpuTier, setEndless, setHitAreas, setPartnerDamage, setTraining, setItemsOn, toggleItemKind, stepPartnerBehaviour,
-  stepPartnerEscape, stepPartnerTech, stepTrainingSpeed, tickRematchCountdown,
+  stepPartnerEscape, stepPartnerTech, stepTrainingSpeed, setTutorialLesson, tickRematchCountdown,
   returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setHazards, setStocks, setTimeLimit, updateConnectedHumans,
   type MatchState, copyMatchState, createMatchState, setParticipants,
 } from "../../game/match/rules";
@@ -17,6 +17,7 @@ import { clearAttackBuffer } from "../../game/input/attackBuffer";
 import { copyControls, neutralControls } from "../../game/sim/roster";
 import { chooseScenarioCharacters } from "../../game/shell/scenarios";
 import { PARTNER_DAMAGE_STEP } from "../../game/match/trainingState";
+import { LESSONS, NO_LESSON, prepareTutorial, stepTutorialLesson } from "../../game/match/tutorial";
 import { prepareQuickMatch } from "../../game/shell/devSettings";
 import type { Scenario } from "../../game/shell/build";
 import type { Character } from "../../game/sim/codes";
@@ -196,6 +197,20 @@ export function panelActions(): PanelActions {
       }),
       stepSpeed: participant => withSlot(participant, (s, slot) => {
         if (controlsAvailable(s, slot)) stepTrainingSpeed(s.game, slot, 1);
+      }),
+      stepTutorial: (participant, direction) => withSlot(participant, (s, slot) => {
+        if (controlsAvailable(s, slot)) stepTutorialLesson(s.game, slot, direction);
+      }),
+      startTutorial: participant => withSlot(participant, (s, slot) => {
+        if (!controlsAvailable(s, slot) || stageLoading(s)) return;
+        cancelPendingPlaytest();
+        if (!prepareTutorial(s.game, slot)) return;
+        for (const panel of views(s).settings) panel.close();
+        makePreview(s);
+        requestStageLoad(s, slot);
+      }),
+      closeTutorial: participant => withSlot(participant, (s, slot) => {
+        if (controlsAvailable(s, slot)) setTutorialLesson(s.game, slot, NO_LESSON, LESSONS.length);
       }),
     },
     stage: {

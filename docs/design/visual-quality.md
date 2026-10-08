@@ -567,6 +567,60 @@ The other levers, for every stage:
   terrain), HD water (no terrain water), cinematic filter and depth of field
   (whole-screen, can't separate fighters from backdrop *(guess)*).
 
+## White body flash: can the engine do it? (#308)
+
+The flash (smashcraft:ts/src/game/presentation/whiteGlow.ts) shows a white
+copy of the fighter's body over the real one, on exact frames: alpha 220 and
+100 alternating during heavy hitlag, 190 on and off during smash charge. The
+copies (smashcraft:tools/animations/white-flash-models.ts) are unshaded,
+textured pure white with each texture's alpha kept, so a pixel of base
+colour B reads `0.86·255 + 0.14·B` at alpha 220 (B = 100 gives 234). That
+is the bar below. Fighters are drawn as special effects (the clip pools,
+smashcraft:ts/src/game/render/fighterPool.ts), already coloured with
+`BlzSetSpecialEffectColorByPlayer(model, Player(slot))`; a unit body is only
+the fallback, and units have no native to seek an animation to an exact
+time.
+
+Where the copies' bytes are: of the 21 white models' 61.0 MB uncompressed,
+bones and helpers are 59.3 MB, meshes 1.03 MB, materials 0.06 MB; the 50
+white textures add 12.0 MB raw (0.69 MB in the map). So 97% of the 19.31 MB
+is animation keys, not mesh. Any fix that keeps a second timeline of keys
+keeps nearly all of the cost.
+
+Natives checked: every name with colour, alpha, emissive, material,
+texture, skin, glow, vertex, tint or model in the 3.0.1.24342 common.j read
+from storage, plus the unit tint fields. No native brightens a unit or
+effect, sets its emissive or material, or swaps an effect's texture; 3.0.0
+and 3.0.1 added none ([3.0.1 presentation changes](#301-presentation-changes)).
+No game constant colours the ethereal look: Units\MiscData.txt,
+UI\MiscData.txt and Units\MiscGame.txt hold only ethereal damage and heal
+bonuses. Nothing here can be rendered headless: the headless renderer
+draws model files only, ignores material alpha, and models neither buffs
+nor player-colour textures, so brightness is computed from the blend rules
+and left to the native plan.
+
+| Candidate | Classic / Reforged / Definitive | On and off on the frame | How white | Side effects | Cost | Verdict |
+| --- | --- | --- | --- | --- | --- | --- |
+| `SetUnitVertexColor`, `BlzSetSpecialEffectColor`, `UNIT_IF_TINTING_COLOR_*` | all | yes | none: multiplies by at most 1 | none | none | no. Values above 255 are a native question (step 4 below) *(guess: stored as a byte, so they wrap)* |
+| `BlzSetSpecialEffectAlpha` | all | yes | none: fades only | none | none | no |
+| Ethereal: `Aetl` added and removed, or Banish `AHbn` cast by a hidden dummy | units only; Classic draws a translucent tinted ghost *(guess: greenish, not white)*; HD Spirit Walker uses a separate ethereal model, so the HD look is unknown | `Aetl` add and remove *(guess: same frame)*; Banish needs an order and a cast, so at least a frame late on, and removing its buff is immediate | unmeasured; no constant or vertex colour can push a tint past 1 | ethereal flags (no attacks, physical immunity, ×1.66 magic damage) on a Warcraft unit the sim ignores; Banish plays its buff art and sound | the body must be a unit, which can't seek to an exact pose, or a unit copy, which is the copy again | no |
+| Invulnerability (`SetUnitInvulnerable`, `Avul`), Divine Shield `AHds` | all | Avul yes; Divine Shield is a cast | none: Avul has no look (bodies already call `SetUnitInvulnerable(true)`); Divine Shield attaches a gold bubble model, not a white body | Divine Shield art and sound | units only | no |
+| Hero glow (`AllowHeroGlowOnUnit`), team glow (`BlzShowUnitTeamGlow`) | all | yes | none: a coloured decal under the unit, not on the body | none | units only | no |
+| Skins: `BlzSetUnitSkin`, `BlzCreateUnitWithSkin` | all | swap is immediate *(guess: restarts the animation)* | only as white as the swapped-in model; no stock fighter has a white model | units only | the white model must still ship | no |
+| Cinematic filter, model omni lights, map post-processing | all; lights HD only | filter yes; post-processing is per map | the filter covers the whole screen; a light brightens everything near it, not one body | — | — | no |
+| Second timeline in the body model: a white layer keyed visible on a mirrored half (t + T), or an alternate sequence picked with `BlzSpecialEffectAddSubAnimation` | all | yes: same effect, same time seek | as the copy, or whiter | none | every bone and helper key twice again (97% of the copies' bytes), so it saves at most about 1 MB (mesh and white textures); three flash levels need three halves | no |
+| **Player-colour overlay**: one unshaded Additive layer on each body material whose texture is replaceable ID 2 (team glow); the map imports ReplaceableTextures\TeamGlow files that are black for the slot colours and grey 220, 100, 190 for three unused colours, and a white TeamColor file for those three. Flash on: `BlzSetSpecialEffectColorByPlayer(body, Player(q))` for the level's player q; off: `Player(slot)` | Classic expected; Reforged and Definitive unknown: whether HD honours imported team-colour textures on a classic-material model | expected yes: the call sets the effect's own state, as alpha does | `min(255, B + g)`: at g = 220 every pixel reaches at least the copy's 234 for B = 100, and saturates to 255 for B ≥ 35 | team-colour patches turn white during a flash (wanted); stock team-glow cards on bodies go dark unless baked to fixed textures; alpha-cutout geometry (hair, cloth fringes) shows solid overlay unless the layer skips those materials; slot colours on the HUD and cards are unaffected (they use TeamColor files, not TeamGlow) | removes 19.31 MB; adds one layer per body material (the 21 models' materials are 0.06 MB raw in all) and about ten tiny textures; one extra additive pass over each visible body all the time | **test natively** |
+
+**Recommendation: keep the copies, and test the player-colour overlay
+natively.** No engine feature, buff or native brightens a body to white:
+everything Warcraft offers multiplies or fades, belongs to units the
+fighters aren't, or lands off the frame. The one candidate that can replace
+the copies is a model change driven by the effect's player colour. If one
+native capture in each of the three modes shows it on and off on the frame
+and at least as white as the copy, it replaces the white models; if HD
+ignores the imported textures, keep the copies, trimmed to flashable poses
+([map size](map-size.md)). The capture plan is on #308.
+
 ## How the numbers are taken
 
 Fighter contrast is measured on native captures of the offline LAN pool

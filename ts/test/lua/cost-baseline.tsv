@@ -45,6 +45,7 @@ src/game/match/stageHazardContracts.tests.ts	4	1.390
 src/game/match/stageHazardTracks.tests.ts	7	4.593
 src/game/match/startHold.tests.ts	3	0.094
 src/game/match/training.tests.ts	10	0.665
+src/game/match/tutorial.tests.ts	11	4.619
 src/game/match/upSpecialRecovery.tests.ts	3	2.244
 src/game/match/wallTechInputContracts.tests.ts	8	2.646
 src/game/match/wardenRecoveryContracts.tests.ts	1	0.976

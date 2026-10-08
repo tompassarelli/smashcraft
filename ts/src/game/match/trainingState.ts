@@ -89,6 +89,10 @@ export interface TrainingState {
   comboOpen: boolean;
   comboHits: number;
   comboDamage: number;
+  /** The tutorial (match/tutorial.ts, #306): the lesson (-1 none, past the last when finished), its count, and frames of "well done" left. */
+  lesson: number;
+  lessonCount: number;
+  lessonCheer: number;
 }
 
 export function createTrainingState(): TrainingState {
@@ -98,6 +102,7 @@ export function createTrainingState(): TrainingState {
     moveStyle: -1, moveSpecial: -1, moveForm: 0, moveCharacter: 0, moveSlot: -1, moveStartup: 0, moveActive: 0, moveTotal: 0,
     measureFrames: -1, measureAttacker: -1, measureDefender: -1, measureKind: Advantage.none, attackerReady: -1, defenderReady: -1,
     advantage: 0, advantageKind: Advantage.none, comboDefender: -1, comboOpen: false, comboHits: 0, comboDamage: 0.0,
+    lesson: -1, lessonCount: 0, lessonCheer: 0,
   };
 }
 
@@ -106,6 +111,8 @@ const INT_FIELDS = [
   "measureFrames", "measureAttacker", "measureDefender", "measureKind", "attackerReady", "defenderReady",
   "advantage", "advantageKind", "comboDefender", "comboHits",
 ] as const;
+/** Folded only while a tutorial runs, so ordinary training keeps its checksum. */
+const TUTORIAL_FIELDS = ["lesson", "lessonCount", "lessonCheer"] as const;
 
 export function copyTrainingState(target: TrainingState, source: Readonly<TrainingState>): void {
   target.speed = source.speed;
@@ -136,6 +143,9 @@ export function copyTrainingState(target: TrainingState, source: Readonly<Traini
   target.comboOpen = source.comboOpen;
   target.comboHits = source.comboHits;
   target.comboDamage = source.comboDamage;
+  target.lesson = source.lesson;
+  target.lessonCount = source.lessonCount;
+  target.lessonCheer = source.lessonCheer;
 }
 
 /** Writes every field through the checksum's writers, in a fixed order. */
@@ -144,6 +154,7 @@ export function writeTrainingState(state: Readonly<TrainingState>, int: (name: s
   bool("match.trainer.showHitAreas", state.showHitAreas);
   bool("match.trainer.comboOpen", state.comboOpen);
   real("match.trainer.comboDamage", state.comboDamage);
+  if (state.lesson !== -1) for (const key of TUTORIAL_FIELDS) int(`match.trainer.${key}`, state[key]);
   for (const slot of PARTICIPANT_SLOTS) for (const key of LATCH_FIELDS) int(`match.trainer.latch${slot}.${key}`, state.latches[slot][key]);
 }
 
@@ -152,6 +163,7 @@ export function firstTrainingDifference(expected: Readonly<TrainingState>, actua
   if (expected.showHitAreas !== actual.showHitAreas) return "match.trainer.showHitAreas";
   if (expected.comboOpen !== actual.comboOpen) return "match.trainer.comboOpen";
   if (expected.comboDamage !== actual.comboDamage) return "match.trainer.comboDamage";
+  for (const key of TUTORIAL_FIELDS) if (expected[key] !== actual[key]) return `match.trainer.${key}`;
   for (const slot of PARTICIPANT_SLOTS) for (const key of LATCH_FIELDS) if (expected.latches[slot][key] !== actual.latches[slot][key]) return `match.trainer.latch${slot}.${key}`;
   return undefined;
 }

@@ -54,6 +54,7 @@ import {
 import { Character, ItemKind, itemBit } from "../sim/codes";
 import { TILE_PORTRAIT_SLOT, tilePortrait } from "./portraitFrames";
 import { slotColor } from "./slotColors";
+import { type TutorialButton, type TutorialMenuFrames, createTutorialMenu, markTutorialSeen, showTutorialLesson, tutorialSeen } from "./tutorialMenu";
 import { ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
 
 /** What a participant's panel asks the game to do; each call comes from a synchronized event. */
@@ -76,12 +77,15 @@ export interface SelectionActions {
   stepSpeed(participantId: number): void;
   changeCpuOpponent(actorId: number, cpuSlot: number, direction: -1 | 1): void;
   changeCpuTier(actorId: number, cpuSlot: number, direction: -1 | 1): void;
+  stepTutorial(participantId: number, direction: -1 | 1): void;
+  startTutorial(participantId: number): void;
+  closeTutorial(participantId: number): void;
 }
 
 type RuleButton = { kind: "stocks"; direction: -1 | 1 } | { kind: "time"; direction: -1 | 1 } | { kind: "endless" } | { kind: "automaticRematch" }
   | { kind: "items" } | { kind: "itemKind"; item: ItemKind } | { kind: "training" } | { kind: "partner"; setting: TrainingSetting; direction: -1 | 1 } | { kind: "hitAreas" } | { kind: "speed" };
 type SelectionButton = { kind: "mode"; slot: number } | { kind: "cpuSettings"; slot: number } | { kind: "cpuStep"; row: 0 | 1; direction: -1 | 1 } | { kind: "cpuClose" } | { kind: "start" } | { kind: "settings" } | RuleButton
-  | { kind: "moves" } | { kind: "movesBack" } | { kind: "movesStep"; direction: -1 | 1 };
+  | { kind: "moves" } | { kind: "movesBack" } | { kind: "movesStep"; direction: -1 | 1 } | TutorialButton;
 
 type MenuFocus = { readonly kind: "fighter" | "settings"; readonly slot: number };
 const titleCase = (value: string): string => value.charAt(0).toUpperCase() + value.slice(1);
@@ -199,6 +203,10 @@ export class SelectionPanel {
   private readonly cpuDone: framehandle;
   private readonly cpuSteps: framehandle[] = [];
   private menuPrompt = "";
+  private readonly tutorial: TutorialMenuFrames;
+  /** The tutorial menu: presentation only, opened by the owner's click or, once, by itself for a new player. */
+  private tutorialOpen = false;
+  private tutorialOffered = false;
 
   constructor(
     private actions: SelectionActions,
@@ -350,6 +358,8 @@ export class SelectionPanel {
       partnerFrames.push(value);
       return value;
     });
+    this.tutorial = createTutorialMenu(gameUi(), root, suffix, (frame, target) => this.clicks.add(frame, target));
+    partnerFrames.push(this.tutorial.open);
     this.trainingFrames = partnerFrames;
     this.matchRuleFrames = [...this.steps, this.stockValue, this.timeValue, this.endlessToggle, this.rematchToggle, this.itemsToggle, ...this.itemToggles];
     const owner = [participantId];
@@ -377,6 +387,7 @@ export class SelectionPanel {
     for (const trigger of this.syncTriggers) DestroyTrigger(trigger);
     for (const frame of this.movesFrames) BlzDestroyFrame(frame);
     BlzDestroyFrame(this.modeLabel);
+    BlzDestroyFrame(this.tutorial.root);
     if (this.cpuRoot !== undefined) BlzDestroyFrame(this.cpuRoot);
     BlzDestroyFrame(this.root);
     BlzDestroyFrame(this.backdrop);
@@ -403,6 +414,14 @@ export class SelectionPanel {
     else if (button.kind === "cpuSettings") this.openCpuSettings(button.slot);
     else if (button.kind === "cpuStep") this.stepCpu(button.row, button.direction);
     else if (button.kind === "cpuClose") this.closeCpuSettings();
+    else if (button.kind === "tutorialOpen") this.tutorialOpen = true;
+    else if (button.kind === "tutorialStep") this.actions.stepTutorial(this.participantId, button.direction);
+    else if (button.kind === "tutorialStart" || button.kind === "tutorialClose") {
+      this.tutorialOpen = false;
+      if (this.ownsLocalClient()) markTutorialSeen();
+      if (button.kind === "tutorialStart") this.actions.startTutorial(this.participantId);
+      else this.actions.closeTutorial(this.participantId);
+    }
     else this.actions.toggleAutomaticRematch(this.participantId);
   }
 
@@ -447,7 +466,7 @@ export class SelectionPanel {
 
   /** A retained panel from before the CPU settings frame existed must be rebuilt. */
   hasCpuSettingsFrames(): boolean {
-    return this.cpuRoot !== undefined;
+    return this.cpuRoot !== undefined && this.tutorial !== undefined;
   }
 
   /** Participant-local focus, updated by the existing synchronized menu events. */
@@ -579,6 +598,13 @@ export class SelectionPanel {
     const { participantId, drag } = this;
     const visible = this.choosing() !== undefined;
     const cpuOpen = visible && this.cpuSlot !== undefined;
+    // A match started: this player needs no offer any more.
+    if (game.phase === Phase.match) markTutorialSeen();
+    if (visible && !this.tutorialOffered) {
+      this.tutorialOffered = true;
+      if (!tutorialSeen()) this.tutorialOpen = true;
+    }
+    BlzFrameSetVisible(this.tutorial.root, visible && this.tutorialOpen && !cpuOpen && !this.movesOpen);
     BlzFrameSetVisible(this.cpuRoot, cpuOpen);
     BlzFrameSetVisible(this.root, visible);
     BlzFrameSetVisible(this.backdrop, visible);
@@ -685,7 +711,7 @@ export class SelectionPanel {
 
   private showRules(game: Readonly<MatchState>): void {
     const { stockCount, timeLimitMinutes, endless, automaticRematch, training, trainer, items } = game;
-    const rules = `${I2S(stockCount)} ${I2S(timeLimitMinutes)} ${endless ? "1" : "0"} ${automaticRematch ? "1" : "0"} ${training ? "1" : "0"} ${I2S(trainer.behaviour)} ${I2S(trainer.escape)} ${I2S(trainer.tech)} ${I2S(trainer.damage)} ${trainer.showHitAreas ? "1" : "0"} ${I2S(trainer.speed)} ${items.on ? "1" : "0"} ${I2S(items.enabledMask)}`;
+    const rules = `${I2S(stockCount)} ${I2S(timeLimitMinutes)} ${endless ? "1" : "0"} ${automaticRematch ? "1" : "0"} ${training ? "1" : "0"} ${I2S(trainer.behaviour)} ${I2S(trainer.escape)} ${I2S(trainer.tech)} ${I2S(trainer.damage)} ${trainer.showHitAreas ? "1" : "0"} ${I2S(trainer.speed)} ${items.on ? "1" : "0"} ${I2S(items.enabledMask)} ${I2S(trainer.lesson)}`;
     if (rules === this.shownRules) return;
     this.shownRules = rules;
     BlzFrameSetText(this.stockValue, stockSetting(stockCount));
@@ -701,6 +727,7 @@ export class SelectionPanel {
       BlzFrameSetText(frame, itemKindSetting(kind, (items.enabledMask & itemBit(kind)) !== 0));
     }
     BlzFrameSetText(this.trainingToggle, trainingSetting(training));
+    showTutorialLesson(this.tutorial, trainer.lesson);
     BlzFrameSetText(this.hitAreasToggle, hitAreasSetting(trainer.showHitAreas));
     BlzFrameSetText(this.speedToggle, trainingSpeedSetting(trainer.speed));
     const [behaviour, escape, tech, damage] = this.partnerValues;

@@ -1,75 +1,168 @@
-# smashcraft#82 box 2: each mapped cue's Warcraft effect, made by `-dev effects N` at stage
+# smashcraft#82 box 2: each mapped cue's Warcraft effect and sound, made by `-dev effects N` at stage
 # centre (smashcraft:ts/src/game/shell/hitPresentationCases.ts) and held 2, 8 and 20 frames
-# later with the effects frozen. Native captures only (bun scripts/nativeCapture.ts): chat
-# lines are the native driver's; pad parity runs don't read this folder.
+# later with the effects frozen; every case, so the run's audio.wav holds every sound. Native
+# captures only (bun scripts/nativeCapture.ts): chat lines are the native driver's; pad parity
+# runs don't read this folder. `#! cue` lines are checked by `bun scripts/nativeCapture.ts plan`.
 #! chat -dev quick
-# case 2
-60 a chat -dev effects 2
+# case 0
+#! cue 60-62 case 0: sound=WoodLightBashFlesh1 effect=StampedeMissileDeath
+60 a chat -dev effects 0
 62 a capture
 68 a capture
 80 a capture
-# case 4
-120 a chat -dev effects 4
+# case 1
+#! cue 120-122 case 1: sound=WoodHeavyBashFlesh1 effect=StampedeMissileDeath
+120 a chat -dev effects 1
 122 a capture
 128 a capture
 140 a capture
-# case 5
-180 a chat -dev effects 5
+# case 2
+#! cue 180-182 case 2: sound=LightningBolt effect=LightningShieldTarget
+180 a chat -dev effects 2
 182 a capture
 188 a capture
 200 a capture
-# case 6
-240 a chat -dev effects 6
+# case 3
+#! cue 240-242 case 3: sound=Fireball effect=FireLordDeathExplode
+240 a chat -dev effects 3
 242 a capture
 248 a capture
 260 a capture
-# case 7
-300 a chat -dev effects 7
+# case 4
+#! cue 300-302 case 4: sound=MetalLightSliceFlesh1 effect=ImpactHit-
+300 a chat -dev effects 4
 302 a capture
 308 a capture
 320 a capture
-# case 9
-360 a chat -dev effects 9
+# case 5
+#! cue 360-362 case 5: sound=FrostNova effect=FrostNovaTarget
+360 a chat -dev effects 5
 362 a capture
 368 a capture
 380 a capture
-# case 11
-420 a chat -dev effects 11
+# case 6
+#! cue 420-422 case 6: sound=Defend effect=ImpactShield-
+420 a chat -dev effects 6
 422 a capture
 428 a capture
 440 a capture
-# case 12
-480 a chat -dev effects 12
+# case 7
+#! cue 480-482 case 7: sound=LightningBolt effect=LightningShieldTarget
+480 a chat -dev effects 7
 482 a capture
 488 a capture
 500 a capture
-# case 13
-540 a chat -dev effects 13
+# case 8
+#! cue 540-542 case 8: sound=Defend effect=ImpactShield-
+540 a chat -dev effects 8
 542 a capture
 548 a capture
 560 a capture
-# case 14
-600 a chat -dev effects 14
+# case 9
+#! cue 600-602 case 9: sound=ThunderClap effect=ImpactShield-
+600 a chat -dev effects 9
 602 a capture
 608 a capture
 620 a capture
-# case 15
-660 a chat -dev effects 15
+# case 10
+#! cue 660-662 case 10: sound=Warstomp effect=WarStompCaster
+660 a chat -dev effects 10
 662 a capture
 668 a capture
 680 a capture
-# case 24
-720 a chat -dev effects 24
+# case 11
+#! cue 720-722 case 11: sound=DispelMagic effect=ImpactTech-
+720 a chat -dev effects 11
 722 a capture
 728 a capture
 740 a capture
-# case 25
-780 a chat -dev effects 25
+# case 12
+#! cue 780-782 case 12: sound=DispelMagic effect=ImpactTech-
+780 a chat -dev effects 12
 782 a capture
 788 a capture
 800 a capture
-# case 26
-840 a chat -dev effects 26
+# case 13
+#! cue 840-842 case 13: sound=DispelMagic effect=ImpactTech-
+840 a chat -dev effects 13
 842 a capture
 848 a capture
 860 a capture
+# case 14
+#! cue 900-902 case 14: sound=BlinkTarget effect=ImpactShield-
+900 a chat -dev effects 14
+902 a capture
+908 a capture
+920 a capture
+# case 15
+#! cue 960-962 case 15: sound=BlinkTarget effect=ImpaleTargetDust
+960 a chat -dev effects 15
+962 a capture
+968 a capture
+980 a capture
+# case 16
+#! cue 1020-1022 case 16: sound=EntanglingRoots effect=ImpactShield-
+1020 a chat -dev effects 16
+1022 a capture
+1028 a capture
+1040 a capture
+# case 17
+#! cue 1080-1082 case 17: sound=Defend effect=StampedeMissileDeath
+1080 a chat -dev effects 17
+1082 a capture
+1088 a capture
+1100 a capture
+# case 18
+#! cue 1140-1142 case 18: sound=BlinkTarget effect=BlinkTarget
+1140 a chat -dev effects 18
+1142 a capture
+1148 a capture
+1160 a capture
+# case 19
+#! cue 1200-1202 case 19: sound=ThunderClap effect=ThunderClapCaster
+1200 a chat -dev effects 19
+1202 a capture
+1208 a capture
+1220 a capture
+# case 20
+#! cue 1260-1262 case 20: sound=DeepFootstep effect=ImpactDust-
+1260 a chat -dev effects 20
+1262 a capture
+1268 a capture
+1280 a capture
+# case 21
+#! cue 1320-1322 case 21: sound=DeepFootstep2 effect=ImpactDust-
+1320 a chat -dev effects 21
+1322 a capture
+1328 a capture
+1340 a capture
+# case 22
+#! cue 1380-1382 case 22: sound=DeepFootstep2 effect=ImpactDust-
+1380 a chat -dev effects 22
+1382 a capture
+1388 a capture
+1400 a capture
+# case 23
+#! cue 1440-1442 case 23: sound=BlinkTarget effect=ImpactDust-
+1440 a chat -dev effects 23
+1442 a capture
+1448 a capture
+1460 a capture
+# case 24
+#! cue 1500-1502 case 24: sound=BlinkTarget effect=ImpactJump-
+1500 a chat -dev effects 24
+1502 a capture
+1508 a capture
+1520 a capture
+# case 25
+#! cue 1560-1562 case 25: sound=BlinkTarget effect=ImpactJump-
+1560 a chat -dev effects 25
+1562 a capture
+1568 a capture
+1580 a capture
+# case 26
+#! cue 1620-1622 case 26: sound=DeepFootstep effect=ImpactDust-
+1620 a chat -dev effects 26
+1622 a capture
+1628 a capture
+1640 a capture
