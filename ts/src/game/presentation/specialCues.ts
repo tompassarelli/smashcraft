@@ -188,6 +188,12 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     up: { spell: "Tide Spout", startup: MURGUL, active: cue("Objects\\Spawnmodels\\Naga\\NagaDeath\\NagaDeath.mdx", "feet", 0.75) },
     down: { spell: "Disease Cloud", startup: MURGUL, active: cue("Abilities\\Spells\\Undead\\PlagueCloud\\PlagueCloudCaster.mdx", "feet", 0.75) },
   },
+  [Character.medivh]: {
+    neutral: { spell: "Arcane Omen", startup: ARCANE, active: cue("Abilities\\Weapons\\PriestMissile\\PriestMissile.mdl", "hand", 0.5) },
+    side: { spell: "Vanishing Act", startup: ARCANE, active: cue("Abilities\\Spells\\NightElf\\Blink\\BlinkTarget.mdx", "body", 0.75) },
+    up: { spell: "Raven Flight", startup: ARCANE, active: cue("Abilities\\Weapons\\AvengerMissile\\AvengerMissile.mdx", "body", 0.75) },
+    down: { spell: "Last Word", startup: ARCANE, active: cue("Abilities\\Spells\\Human\\Invisibility\\InvisibilityTarget.mdx", "body", 0.75) },
+  },
   [Character.grom]: {
     neutral: { spell: "Warsong Cry", startup: BLOODLUST, active: cue("Abilities\\Spells\\NightElf\\BattleRoar\\RoarTarget.mdx", "body", 0.75) },
     side: { spell: "Gorehowl Rush", startup: BLOODLUST, active: BLOODLUST },
