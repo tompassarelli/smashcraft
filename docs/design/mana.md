@@ -162,7 +162,6 @@ its active time. Status durations and healing caps stay unchanged.
 
 | Fighter | Neutral EX | Side EX | Up EX | Down EX |
 |---|---|---|---|---|
-| Archer | Arrow deals 25% more damage. | Homing Arrow deals 25% more damage. | Hippogryph Ride rises and steers 25% farther. | Hippogryph's call/dive strike deals 25% more damage. |
 | Rifleman | Blaster deals 25% more damage. | Bear's strike deals 25% more damage. | Recoil travels 25% farther, including its second shot. | Freeze Trap has 25% more trigger reach, with the same freeze and f22 placement/f38 end. |
 | Illidan | Mana Burn orb has 25% more reach; its resource denial follows #335. | Fel Rush and its branches deal 25% more damage. | Wing Ascent rises 25% farther; glide choices stay intact. | Immolation/Flame Crash deals 25% more damage. |
 | Blademaster | Wind Cutter deals 25% more damage. | Wind Walk's Backstab deals 25% more damage. | Rising Whirlwind travels 25% farther. | Mirror Image has twice the durability; Image Swap deals 25% more damage. |
@@ -174,7 +173,7 @@ its active time. Status durations and healing caps stay unchanged.
 | Shadow Hunter | Spirit Glaive deals 25% more damage in both directions. | Serpent Ward shots deal 25% more damage; recall gains four protected entry frames. | Loa Vault travels 25% farther. | Hex orb has 25% more reach, with unchanged Hex and immunity. |
 | Pit Lord | Howl of Terror has 25% more reach. | Ruin Charge deals 25% more damage. | Abyssal Leap travels 25% farther. | Rain of Fire deals 25% more damage. |
 | Beastmaster | Wild Axes deal 25% more damage. | Bear has 25% more durability and bite damage; Stampede deals 25% more damage. | Hawk has 25% more durability; Hawk Lift travels 25% farther; grounded dive command gains four protected entry frames. | Quilbeast has 25% more durability and shot damage; volley command gains four protected entry frames. |
-| Lich King | Howling Blast, including the soul form, deals 25% more damage. | Val'kyr Shadowguard deals 25% more damage. | Ascension of the Damned travels 25% farther. | Defile has 25% more reach; its tick rate and growth limit scale together. |
+| Lich King | Howling Blast, including the soul form, deals 25% more damage. | Val'kyr Shadowguard deals 25% more damage. | Ascension of the Damned travels 25% farther. | Defile's radius, radial growth and maximum radius increase 25%; its tick rate stays unchanged. |
 | Thrall | Chain Lightning deals 25% more damage. | Feral Spirit wolves deal 25% more damage. | Far Sight travels 25% farther. | Earthquake has 25% more reach. |
 | Jaina | Frostbolt deals 25% more damage. | Blizzard deals 25% more damage. | Blink travels 25% farther. | Water Elemental has 25% more durability and shot damage; recall gains four protected entry frames. |
 | Sylvanas | Black Arrow deals 25% more damage. | Silence has 25% more reach, with unchanged silence duration. | Banshee Flight travels 25% farther. | Life Drain deals 25% more damage, with the same heal cap. |
