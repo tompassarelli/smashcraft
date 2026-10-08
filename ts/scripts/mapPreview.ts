@@ -2,12 +2,33 @@
  * The map's preview in Warcraft's custom-game list and lobby (#317): a
  * line-up of stock-model fighters on a floating stage under the Smashcraft
  * name, drawn from the fighter cards tools/selection/render-fighters.ts
- * renders. Warcraft reads war3mapPreview.tga from the map root.
+ * renders. Warcraft 3.0.1 displays war3mapMap.blp in the lobby (#317).
  */
 import type { Rgba } from "./blp";
 
-export const PREVIEW_ENTRY = "war3mapPreview.tga";
+export const PREVIEW_ENTRY = "war3mapMap.blp";
 export const PREVIEW_SIZE = 256;
+
+/** The opaque 3-3-2 palette used by the Classic and Definitive reference candidate. */
+export function encodePreview(image: Rgba): Uint8Array {
+  const pixels = image.width * image.height;
+  const out = new Uint8Array(156 + 1024 + pixels), view = new DataView(out.buffer);
+  out.set([66, 76, 80, 49]);
+  view.setUint32(4, 1, true);
+  view.setUint32(12, image.width, true);
+  view.setUint32(16, image.height, true);
+  view.setUint32(20, 5, true);
+  view.setUint32(28, 1180, true);
+  view.setUint32(92, pixels, true);
+  for (let i = 0; i < 256; i++) {
+    out[156 + i * 4] = (i & 3) * 85;
+    out[157 + i * 4] = Math.round(((i >> 2) & 7) * 255 / 7);
+    out[158 + i * 4] = Math.round((i >> 5) * 255 / 7);
+  }
+  for (let i = 0; i < pixels; i++) out[1180 + i] = ((image.data[i * 4] ?? 0) >> 5) << 5
+    | ((image.data[i * 4 + 1] ?? 0) >> 5) << 2 | ((image.data[i * 4 + 2] ?? 0) >> 6);
+  return out;
+}
 
 /**
  * The fighters in the line-up, back row first; `x` is the centre of the feet.

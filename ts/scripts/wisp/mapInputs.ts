@@ -25,7 +25,7 @@ import { HERO_ROSTER, PORTRAIT_KINDS, RENDERED_FIGHTERS, fighterPortrait } from 
 import { PARTICIPANT_SLOTS } from "../../src/game/input/participants";
 import { PORTRAIT_QUALITY, encodeBlp, readTga } from "../blp";
 import { importedModelFile } from "../heroModelSource";
-import { PREVIEW_ENTRY, composePreview, encodeTga } from "../mapPreview";
+import { PREVIEW_ENTRY, composePreview, encodePreview } from "../mapPreview";
 import { regenerateCommand } from "../stageThumbnailSpec";
 import { stageCardPath } from "./buildInputs";
 import { buildProject, projectRoot as PROJECT } from "./project";
@@ -234,12 +234,12 @@ const portraitImports = (assets: string) => Effect.forEach(
 );
 
 /** The custom-game list's preview (#317), composed from the fighter cards and kept by its hash. */
-const previewImport = (assets: string) => Effect.gen(function*() {
+export const previewImport = (assets: string) => Effect.gen(function*() {
   const renders = join(assets, "fighter-renders");
-  const tga = yield* tryMapSync("compose map preview", renders, () => encodeTga(composePreview((file) => readTga(readFileSync(join(renders, file))))));
-  const source = join(PREVIEW_CACHE, `${new Bun.CryptoHasher("sha256").update(tga).digest("hex")}.tga`);
+  const blp = yield* tryMapSync("compose map preview", renders, () => encodePreview(composePreview((file) => readTga(readFileSync(join(renders, file))))));
+  const source = join(PREVIEW_CACHE, `${new Bun.CryptoHasher("sha256").update(blp).digest("hex")}.blp`);
   if (!(yield* tryMapPromise("check preview cache", source, () => Bun.file(source).exists()))) {
-    yield* tryMapPromise("write map preview", source, () => Bun.write(source, tga));
+    yield* tryMapPromise("write map preview", source, () => Bun.write(source, blp));
   }
   return { entry: PREVIEW_ENTRY, source } satisfies ArchiveEntry;
 });
