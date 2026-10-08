@@ -60,7 +60,7 @@ export async function createStandaloneSession(options: { readonly script?: strin
     const { applyDeveloperCommand }: { applyDeveloperCommand(state: State, slot: number, text: string): void } = await import(join(platform, "shell/keys.ts"));
     const { drawnFrame }: { drawnFrame(state: State): { readonly frame: number } } = await import(join(platform, "shell/drawnFrame.ts"));
     const { botBeatKeys }: { botBeatKeys(frame: number): readonly [tap: number, held: number] } = await import(join(import.meta.dir, "botMatch.ts"));
-    const { startQuickMatch }: { startQuickMatch(state: State, stage: number, scenario: undefined, character: undefined, stocks: number): void } = await import(join(platform, "shell/menus.ts"));
+    const { startQuickMatch }: { startQuickMatch(state: State, stage: number, scenario: undefined, character: Character | undefined, stocks: number): void } = await import(join(platform, "shell/menus.ts"));
     const build = { ...PLAYABLE_BUILD, devConsole: true, ...(presentation === undefined ? {} : { presentation }) };
     const main: { install(build: MapBuild): void; startBuild(build: MapBuild): void } = await import(join(platform, "main.ts"));
     const driverApi: { nativeDriverCommand(text: string): void; installSmashcraftNativeDriver(): void; startSmashcraftNativeDriver(): void } | undefined = script === undefined ? undefined : await import(join(platform, "nativeDriver.ts"));
