@@ -28,9 +28,9 @@ await Effect.runPromise(Effect.tryPromise({ try: async () => {
         const pool = new DrawnModel(await Bun.file(join(assets, 'original-clips-static-lights/imports/war3mapImported', clip.filename)).arrayBuffer(), 1);
         const duration = (sequence.Interval[1] - sequence.Interval[0]) / 1000;
         for (let frame = 0; frame <= Math.ceil(duration * 60); frame++) for (const facing of [-1, 1]) {
-            const local = Math.min(duration, frame / 60);
-            const expected = pool.triangles(0, (clip.timeline ? sequence.Interval[0] / 1000 : 0) + local, facing);
-            const actual = timeline.triangles(0, sequence.Interval[0] / 1000 + local, facing);
+            const localMilliseconds = Math.min(sequence.Interval[1] - sequence.Interval[0], frame * 1000 / 60);
+            const expected = pool.triangles(0, ((clip.timeline ? sequence.Interval[0] : 0) + localMilliseconds) / 1000, facing);
+            const actual = timeline.triangles(0, (sequence.Interval[0] + localMilliseconds) / 1000, facing);
             if (actual.length !== expected.length) throw new Error(`${fighter.name}/${index} frame ${frame}: visible triangle count changed`);
             for (let coordinate = 0; coordinate < actual.length; coordinate++) maximumDifference = Math.max(maximumDifference, Math.abs(actual[coordinate] - expected[coordinate]));
             if (maximumDifference > 0.001) throw new Error(`${fighter.name}/${index} frame ${frame}: drawn pose differs by ${maximumDifference}`);
