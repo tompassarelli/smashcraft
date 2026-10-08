@@ -140,7 +140,7 @@ test("EX Hawk Dive, Quill Volley and Water Elemental recall protect their first 
       protection.push(owner.status.invincible > 0);
       advanceSpecials(world, 0, frame);
     }
-    assertEquals(protection.slice(0, 4).filter(Boolean).length, 4);
+    assertEquals(protection.slice(0, 4).filter(protectedFrame => protectedFrame).length, 4);
     assertEquals(protection[4], false);
   }
 });

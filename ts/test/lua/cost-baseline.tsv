@@ -137,6 +137,7 @@ src/game/sim/dodgesAndStocks.tests.ts	25	0.139
 src/game/sim/downAir.tests.ts	21	0.002
 src/game/sim/downSmashes.tests.ts	13	5.700
 src/game/sim/downThrows.tests.ts	13	4.246
+src/game/sim/exCommandHeroes.tests.ts	6	0.045
 src/game/sim/exSpecials.tests.ts	6	0.032
 src/game/sim/felRush.tests.ts	9	0.164
 src/game/sim/floorFriction.tests.ts	5	0.016
