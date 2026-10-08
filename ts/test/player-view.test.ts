@@ -88,28 +88,55 @@ test("Frozen Throne: a selectable match draws four platforms and the winter back
   }
 });
 
-test("Tomb's Temple of Tides draws on the right at both camera extremes [repro #263]", () => {
+const TEMPLE_OF_TIDES = "Buildings\\Naga\\TempleOfTides\\TempleOfTides.mdx";
+/**
+ * Where a scenery model draws while it stands, for models whose facts box also holds
+ * geosets other sequences show (scenery plays Stand: src/platform/shell/stageScenery.ts).
+ * TempleOfTides.mdx: vertices of geosets 0, 2, 3 and 5, the only ones with alpha in Stand;
+ * geoset 1 (Portrait only) stretches its facts box to z -573..803.
+ */
+const STAND_BOUNDS: Readonly<Record<string, { readonly min: readonly [number, number, number]; readonly max: readonly [number, number, number] }>> = {
+  [TEMPLE_OF_TIDES]: { min: [-180.0, -170.0, -91.0], max: [176.0, 183.0, 374.0] },
+};
+
+test("Tomb's Temple of Tides draws its whole standing body and roof above the deck's top edge on the right third at both camera extremes [repro #263]", () => {
   const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
   clients.start();
   clients.frames(30);
   clients.chat(0, "-dev quick stage 7");
   const client = clients.client(0);
-  const piece = stageScenery(7).pieces.find(({ model }) => model.includes("TempleOfTides"));
-  if (piece === undefined) throw new Error("missing Tomb landmark");
+  const piece = stageScenery(7).pieces.find(({ model }) => model === TEMPLE_OF_TIDES);
+  const drawn = STAND_BOUNDS[TEMPLE_OF_TIDES];
+  if (piece === undefined || drawn === undefined) throw new Error("missing Tomb landmark");
+  const turn = (piece.yaw * Math.PI) / 180;
+  const corners = [drawn.min[0], drawn.max[0]].flatMap(x => [drawn.min[1], drawn.max[1]].flatMap(y => [drawn.min[2], drawn.max[2]].map(z => [
+    piece.x + piece.scale * (x * Math.cos(turn) - y * Math.sin(turn)), piece.y + piece.scale * (x * Math.sin(turn) + y * Math.cos(turn)), piece.z + piece.scale * z,
+  ] as const)));
+  const tilt = (10 * Math.PI) / 180;
   for (const extreme of ["near", "far"] as const) {
     const camera = createMatchCamera();
     extremeCamera(camera, 7, MATCH_CAMERA_ASPECT, extreme);
-    const tilt = 10 * Math.PI / 180;
-    const depth = camera.distance + piece.y * Math.cos(tilt) - (piece.z - camera.z) * Math.sin(tilt);
-    expect(depth, extreme).toBeLessThan(ARENA_CAMERA.farZ);
-    const column = 0.5 + (piece.x - camera.x) / (2 * depth * camera.tangent * MATCH_CAMERA_ASPECT);
-    expect(column, extreme).toBeGreaterThanOrEqual(2 / 3);
-    expect(column, extreme).toBeLessThan(1);
-    expect(piece.y * Math.sin(tilt) + piece.z * Math.cos(tilt), `${extreme}: landmark clears the deck`).toBeGreaterThan(0);
+    const depth = (y: number, z: number) => camera.distance + y * Math.cos(tilt) - (z - camera.z) * Math.sin(tilt);
+    const project = (x: number, y: number, z: number) => [
+      0.5 + (x - camera.x) / (2 * depth(y, z) * camera.tangent * MATCH_CAMERA_ASPECT),
+      0.5 - (y * Math.sin(tilt) + (z - camera.z) * Math.cos(tilt)) / (2 * depth(y, z) * camera.tangent),
+    ] as const;
+    // The deck's top back edge is its highest line on screen at both extremes; the temple must clear it.
+    const deckTop = Math.min(...[-600, 600].map(x => project(x, MAIN_DECK_HALF_DEPTH, 0)[1]));
+    for (const [x, y, z] of corners) {
+      expect(depth(y, z), extreme).toBeLessThan(ARENA_CAMERA.farZ);
+      const [column, row] = project(x, y, z);
+      expect(column, extreme).toBeGreaterThan(0);
+      expect(column, extreme).toBeLessThan(1);
+      expect(row, extreme).toBeGreaterThan(0);
+      expect(row, extreme).toBeLessThan(deckTop);
+    }
+    const centre = corners.reduce((sum, [x, y, z]) => [sum[0] + x / 8, sum[1] + y / 8, sum[2] + z / 8], [0, 0, 0]);
+    expect(project(centre[0], centre[1], centre[2])[0], extreme).toBeGreaterThanOrEqual(2 / 3);
     clients.chat(0, `-dev view ${extreme}`);
     clients.frames(1);
     client.run(() => trampoline("scene.report")());
-    const temple = sceneReport(client).models.find(({ model }) => model === reportedModel("Buildings\\Naga\\TempleOfTides\\TempleOfTides.mdx"));
+    const temple = sceneReport(client).models.find(({ model }) => model === reportedModel(TEMPLE_OF_TIDES));
     expect(temple, extreme).toMatchObject({ live: 1, inView: 1, drawn: 1 });
   }
   expect(client.errors).toEqual([]);
@@ -162,7 +189,7 @@ test("no stage shows a scenery piece's base below the deck at either camera extr
   const problems: string[] = [];
   for (const stage of STAGE_CATALOG) {
     const placed = stageScenery(stage.id).pieces.flatMap((piece) => {
-      const bounds = MODEL_FACTS[piece.model]?.bounds;
+      const bounds = STAND_BOUNDS[piece.model] ?? MODEL_FACTS[piece.model]?.bounds;
       if (bounds === undefined) return [];
       const turn = (piece.yaw * Math.PI) / 180;
       const flat = [bounds.min[0], bounds.max[0]].flatMap(x => [bounds.min[1], bounds.max[1]].map(y => [x * Math.cos(turn) - y * Math.sin(turn), x * Math.sin(turn) + y * Math.cos(turn)] as const));

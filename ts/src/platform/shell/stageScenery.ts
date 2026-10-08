@@ -47,6 +47,8 @@ export function drawStageScenery(s: ShellState): void {
     BlzSetSpecialEffectScale(effect, piece.scale);
     if (piece.matrixScale !== undefined) BlzSetSpecialEffectMatrixScale(effect, piece.matrixScale[0], piece.matrixScale[1], piece.matrixScale[2]);
     BlzSetSpecialEffectYaw(effect, piece.yaw * (Math.PI / 180.0));
+    // An effect plays Birth first; the Temple of Tides' 60-second construction Birth hides its whole body (#263).
+    BlzPlaySpecialEffect(effect, ANIM_TYPE_STAND);
     effects.push(effect);
   }
   s.stageScenery = effects;
