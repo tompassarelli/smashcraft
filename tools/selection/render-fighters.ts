@@ -167,6 +167,22 @@ for (const character of RENDERED_FIGHTERS) {
       continue;
     }
     await standingModel(model);
+    if (slots && name === 'Medivh') {
+      const portrait = parseMDL(await Bun.file(model).text());
+      const robe = portrait.Materials[portrait.Geosets[0]!.MaterialID]!;
+      const painted = robe.Layers[0]!;
+      const original = portrait.Textures[Number(painted.TextureID)]!.Image;
+      extractTexture(original);
+      const target = join(resources, 'war3mapImported/MedivhPortraitRobe.png');
+      mkdirSync(dirname(target), { recursive: true });
+      run(['magick', join(resources, original.replaceAll('\\', '/').replace(/\.blp$/i, '.png')), '-channel', 'A', '-fx', '((i/w<0.52&&j/h>0.59)||(i/w>0.35&&i/w<0.56&&j/h<0.40))&&r<0.65&&g<0.50 ? 0.18 : a', '+channel', target]);
+      const index = portrait.Textures.length;
+      portrait.Textures.push({ Image: 'war3mapImported\\MedivhPortraitRobe.blp', ReplaceableId: 0, Flags: 0 });
+      const team = portrait.Textures.findIndex(texture => texture.ReplaceableId === 1);
+      painted.TextureID = index; painted.FilterMode = 2;
+      robe.Layers.unshift({ ...painted, TextureID: team, FilterMode: 0, Alpha: 1, Shading: 1 });
+      await Bun.write(model, generateMDL(portrait));
+    }
     const images = [...(await Bun.file(model).text()).matchAll(/Image "([^"]+)"/g)].map((match) => match[1]!);
     for (const texture of [...images, ...TEAM_TEXTURES]) if (!texture.toLowerCase().startsWith('war3mapimported')) extractTexture(texture);
     await Bun.write(logFile, run(['blender', '--background', '--threads', '6', '--python-exit-code', '1', '--python', join(project, 'tools/selection/render-fighter.py'), '--', model, resources, join(work, `${name}.png`), addon, String(slots ? 0 : team), ...(slots ? ['--slots'] : []), ...(reuse ? ['--reuse'] : [])]));
