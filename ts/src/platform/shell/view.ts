@@ -377,6 +377,11 @@ export function renderUi(s: ShellState): void {
   const { game } = s;
   const ui = views(s);
   const selecting = game.phase === Phase.characterMenu || game.phase === Phase.stageMenu;
+  const menu = s.pauseMenu ??= { choice: 0, shown: false, title: false };
+  const paused = game.phase === Phase.match && s.session.paused;
+  if (paused && !menu.shown) menu.choice = 0;
+  menu.shown = paused;
+  ui.pause.update(paused, menu.choice, menu.title);
   const local = localParticipantSlot(s);
   const localFighter = local !== undefined && s.participants[local].body !== undefined && isActive(s.world, local) ? fighterAt(s.world, local) : undefined;
   const showMatch = !selecting && !(local !== undefined && ui.settings[local].isOpen());

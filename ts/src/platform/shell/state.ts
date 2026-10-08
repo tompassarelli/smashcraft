@@ -230,6 +230,7 @@ interface KeyEvents {
 }
 
 export interface ShellState {
+  pauseMenu?: { choice: number; shown: boolean; title: boolean };
   menuPublication?: { phase: MenuPhase; ticks: number };
   readonly pad: NativePadCapture | undefined;
   /** Synchronized menu callbacks salt the random stage draw; retained across reloads. */

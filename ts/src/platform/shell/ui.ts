@@ -39,6 +39,7 @@ import { bindPrototype } from "../rebind";
 import { ItemPresentation } from "../../game/render/itemPresentation";
 import { BodyFlash } from "../../game/render/bodyFlash";
 import { ClassicPresentation } from "../../game/render/classicPresentation";
+import { PauseMenu } from "../../game/ui/pauseMenu";
 
 /** A fighter's renderers for one match; the pool only in pooled presentation. */
 interface FighterRenderers {
@@ -57,6 +58,7 @@ interface FighterRenderers {
 }
 
 export interface UiObjects {
+  pause: PauseMenu;
   items: ItemPresentation;
   readonly clock: MatchClock;
   readonly training: TrainingReadout;
@@ -119,6 +121,7 @@ function menuControls(s: Readonly<ShellState>): MenuControls {
 export function createUi(s: ShellState, actions: PanelActions): UiObjects {
   const controls = menuControls(s);
   const ui: UiObjects = {
+    pause: new PauseMenu(),
     items: new ItemPresentation(s.origin),
     clock: new MatchClock(),
     training: new TrainingReadout(),
@@ -191,6 +194,8 @@ export function layoutHuds(s: ShellState): void {
 export function recreateUi(s: ShellState, actions: PanelActions): void {
   const ui = s.ui;
   if (ui === undefined) return;
+  if (ui.pause === undefined) ui.pause = new PauseMenu();
+  else bindPrototype(ui.pause, PauseMenu.prototype);
   const retainedItems: { readonly items?: ItemPresentation } = ui;
   if (retainedItems.items === undefined) ui.items = new ItemPresentation(s.origin);
   else bindPrototype(ui.items, ItemPresentation.prototype);
