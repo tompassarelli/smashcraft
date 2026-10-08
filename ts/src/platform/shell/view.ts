@@ -25,7 +25,7 @@ import { escapeMeterView, readEscapeMeter } from "../../game/presentation/escape
 import { lavaPiece } from "../../game/presentation/stageScenery";
 import { hasLava, lavaSide } from "../../game/sim/lava";
 import type { Fighter } from "../../game/sim/fighter";
-import { type MapBuild, journalIngress } from "../../game/shell/build";
+import { journalIngress } from "../../game/shell/build";
 import { type StartControl, matchHelp, resultNotice } from "../../game/shell/messages";
 import { isIntangible } from "../../game/sim/conditions";
 import { type Roster, fighterAt, isActive } from "../../game/sim/roster";
@@ -81,11 +81,10 @@ function frameText(name: string, x: number, y: number, width: number, height: nu
   return frame;
 }
 
-export function createStatusFrames(build: Readonly<MapBuild>): StatusFrames {
+export function createStatusFrames(): StatusFrames {
   return {
     help: frameText("MeleeHelp", MATCH_HELP_BOX.left, MATCH_HELP_BOX.top, MATCH_HELP_BOX.width, MATCH_HELP_BOX.height, f32(0.01)),
     notice: frameText("MeleeNotice", MATCH_NOTICE_BOX.left, MATCH_NOTICE_BOX.top, MATCH_NOTICE_BOX.width, MATCH_NOTICE_BOX.height, f32(0.019)),
-    developer: build.devConsole ? frameText("MeleeDeveloper", f32(0.06), f32(0.012), f32(0.72), f32(0.01), f32(0.007)) : undefined,
   };
 }
 
@@ -369,7 +368,7 @@ export function lockArenaCamera(s: ShellState): void {
   }
 }
 
-/** HUD, panels, help, notice and the developer line, for the local player. */
+/** HUD, panels, help and results, for the local player. */
 export function renderUi(s: ShellState): void {
   if (resumePresentationHeld(s)) return;
   const { game } = s;
@@ -401,11 +400,10 @@ export function renderUi(s: ShellState): void {
   ui.classic?.updateCard(game);
   const cleared = game.lore && game.phase === Phase.result && game.run.active && game.run.cleared ? game.run.current : undefined;
   if (cleared !== undefined && localSlot() === game.run.player) loreClears().mark(cleared.id);
-  const { help, notice, developer } = s.frames;
+  const { help, notice } = s.frames;
   const teaching = game.phase === Phase.match && game.training && s.trainingHints === true && !paused;
   BlzFrameSetVisible(help, showMatch && (game.phase === Phase.result || teaching));
   BlzFrameSetVisible(notice, showMatch && game.phase === Phase.result);
-  if (developer !== undefined) BlzFrameSetVisible(developer, false);
   if (!selecting) {
     BlzFrameSetText(help, matchHelp(game, s.session.paused, startControl(s), localFighter, game.phase === Phase.match));
     const waiting = game.phase === Phase.match ? activeRollback(s)?.waitingFor ?? 0 : 0;
@@ -413,13 +411,4 @@ export function renderUi(s: ShellState): void {
     BlzFrameSetText(notice, game.phase === Phase.result ? resultNotice(game, s.status.text) : "");
   }
   ui.stage.update(game);
-  if (developer === undefined || local === undefined || localFighter === undefined) return;
-  const participant = s.participants[local];
-  const rollback = activeRollback(s);
-  const f = localFighter;
-  BlzFrameSetText(developer, `Developer test: ${s.build.id} | player=${local + 1} | phase=${game.phase} | x=${R2I(f.motion.x)} z=${R2I(f.motion.z)}`
-    + ` | input=${participant.lastInputAction ?? -1} mode=${rollback !== undefined ? `${s.build.inputProfile} ${s.build.presentation}` : "callback"}`
-    + ` normal=${participant.lastNormalStyle ?? -1} move=${f.attack.style ?? -1} attack-frame=${f.attack.frame} simulation=${s.runtime.simulationFrame}`
-    + ` predicted=${rollback !== undefined ? rollback.schedule.speculativeFrame() : s.runtime.simulationFrame} serial=${f.attack.serial}`
-    + ` down=${f.down.state}:${f.down.frame} DI=${f.launch.diSerial}:${R2I(f.launch.diAngleDegrees)} S=${f.launch.sdiSerial} A=${f.launch.asdiSerial} | Ctrl+R restart`);
 }

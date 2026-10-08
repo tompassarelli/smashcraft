@@ -2,7 +2,7 @@
 // its entry through fighter selection, a one-stock match that ends when
 // Player 1 walks off, and the results, on the keyboard alone.
 // No text a frame shows and no message the map displays may contain what the
-// developer line prints; the development and integrity builds still show it.
+// former developer line printed.
 // Neither may it show a runtime error report, which the error file keeps.
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";

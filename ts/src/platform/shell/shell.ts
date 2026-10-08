@@ -302,7 +302,7 @@ function initialize(): void {
   // slot N in player N's colour, and effects coloured by Player(N) take its colour when created.
   for (const slot of PARTICIPANT_SLOTS) SetPlayerColor(Player(slot), ConvertPlayerColor(slot));
   const s = createShellState(build, {
-    origin, frames: view.createStatusFrames(build), persistence: bindingFiles, playback: pending.playback,
+    origin, frames: view.createStatusFrames(), persistence: bindingFiles, playback: pending.playback,
     editbox: journalIngress(build) === "editbox" ? new EditboxIngress() : undefined,
   });
   copyMatchState(s.game, startingSelection(build.scenario));
