@@ -92,7 +92,8 @@ test("playable: selection creates no effect and reads no file; match start creat
   };
   frames(30);
   // Both humans move to Illidan and select; the host adds two computer Illidans.
-  for (const [slot, presses] of [[0, 2], [1, 1]] as const) {
+  selection.push(work(() => clients.press(1, Key.w)));
+  for (const [slot, presses] of [[0, 1], [1, 1]] as const) {
     for (let press = 0; press < presses; press++) selection.push(work(() => clients.press(slot, Key.r)));
     selection.push(work(() => clients.press(slot, Key.n)));
   }

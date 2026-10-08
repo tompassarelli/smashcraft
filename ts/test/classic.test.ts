@@ -72,7 +72,7 @@ test("the mode button reaches Classic on both clients, and Start plays the first
 test("-dev classic boss starts Archimonde's battle on Nordrassil on both clients, and his strikes play without errors [spec #284] [invariant]", () => {
   const { clients, frames, until, read } = classicClients(true);
   clients.start(); frames(30);
-  clients.chat(0, "-dev classic boss Rifleman");
+  clients.chat(0, "-dev classic boss Blademaster");
   until("the boss match", () => read(() => shell().game.phase) === Phase.match, 240);
   // Past GO! and the opening into the first strikes.
   frames(380);
@@ -81,7 +81,7 @@ test("-dev classic boss starts Archimonde's battle on Nordrassil on both clients
     expect(value(client, () => {
       const { game } = shell();
       return [game.phase, game.run.boss.kind, game.stageChoice, game.run.fighter, game.run.boss.strike >= 1];
-    })).toEqual([Phase.match, BossKind.archimonde, 10, Character.rifleman, true]);
+    })).toEqual([Phase.match, BossKind.archimonde, 10, Character.blademaster, true]);
   }
   expectSynchronized(clients);
 });

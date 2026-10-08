@@ -5,8 +5,12 @@ import { DRAWN_STRIDES } from "../src/game/presentation/drawnStrideInfo";
 import { SELECTABLE_CHARACTERS, heroDefinition } from "../src/game/sim/heroes/registry";
 import { RIFLEMAN_MODEL_FILE } from "../src/game/presentation/fighterAssetInfo";
 import { DEMON_HUNTER_MODEL_FILE } from "../src/game/presentation/demonHunterAssetInfo";
+import { Character } from "../src/game/sim/codes";
 
-const ORIGINALS = [RIFLEMAN_MODEL_FILE, DEMON_HUNTER_MODEL_FILE];
+const ORIGINALS: Partial<Record<Character, string>> = {
+  [Character.rifleman]: RIFLEMAN_MODEL_FILE,
+  [Character.demonHunter]: DEMON_HUNTER_MODEL_FILE,
+};
 
 test("all selectable fighters have a measured movement and recovery audit [spec #171]", () => {
   expect(DRAWN_MOTION.map((row) => `${row.character}/${row.state}`)).toEqual(SELECTABLE_CHARACTERS.flatMap((character) => MOTION_STATES.map((state) => `${character}/${state}`)));
