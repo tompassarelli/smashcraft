@@ -6,12 +6,14 @@ import { type MatchFrameInput, borrowMatchFrame, captureFrame, captureNetworkFra
 import { participantInputs } from "../input/participants";
 import { Action, bit } from "../input/actions";
 import { type ImpactEvents } from "../presentation/impactEvents";
-import { type Controls, fighterAt, neutralControls } from "../sim/roster";
+import { type Controls, createRoster, fighterAt, neutralControls } from "../sim/roster";
 import { firstStateDifference } from "./difference";
 import { ReplayCorrections, ReplayHistory } from "./history";
 import { REPLAY_HISTORY_CAPACITY, REPLAY_MAX_CORRECTION_FRAMES } from "./limits";
 import { copyReplayState, createReplaySnapshot } from "./snapshot";
 import { type TapeWorld, captureTape, createTapeWorld, executeTapeRow, runRecordedTape } from "./tapeWorld";
+import { Character } from "../sim/codes";
+import { createFighter } from "../sim/fighter";
 
 function frameControls(first: Controls, second: Controls, firstCommands: AttackBuffer, secondCommands: AttackBuffer): FrameControls {
   return { inputs: [first, second, neutralControls(), neutralControls()], commands: [firstCommands, secondCommands, attackBuffer(0), attackBuffer(0)] };
@@ -451,4 +453,78 @@ test("#206 a client that predicted past the pause frame returns to the state bef
   assertEquals(firstStateDifference(beforePause ?? captureTape(tape), captureTape(tape)), undefined);
   assertTrue(captureFrame(row, 4, 3, controls, live.runtime));
   assertTrue(history.saveSpeculative(4, row, live));
+});
+
+/**
+ * Four humans; slot 0's stick turns every 15 frames and its rows arrive 4
+ * frames late, so each turn is mispredicted and repaired. Slot 1 jabs every
+ * 12 frames from `jabberX`. Returns the scoped steps the repairs took and
+ * the first difference from the same match repaired whole, frame by frame.
+ */
+function scopedAgainstWhole(mode: "auto" | "force", jabberX: number): { scoped: number; difference: string | undefined } {
+  const late = 4;
+  const world = (): TapeWorld => {
+    const tape = createTapeWorld({ stocks: 99, humans: 4 });
+    const fighters = [createFighter(Character.demonHunter, -300.0, 1), createFighter(Character.rifleman, jabberX, -1), createFighter(Character.rifleman, 250.0, -1), createFighter(Character.demonHunter, 400.0, -1)];
+    for (const fighter of fighters) fighter.status.stocks = 99;
+    const live = { ...tape.live, world: createRoster(15, fighters) };
+    for (const slot of [0, 1, 2, 3] as const) live.controls.commands[slot] = attackBuffer(4);
+    return { live, snapshot: tape.snapshot };
+  };
+  const scoped = world();
+  const whole = world();
+  const histories = [new ReplayHistory(), new ReplayHistory()] as const;
+  histories[0].scopedRepair = mode;
+  histories[1].scopedRepair = "off";
+  const corrections = new ReplayCorrections();
+  for (const history of histories) assertTrue(history.beginEpoch(1, 1, REPLAY_MAX_CORRECTION_FRAMES));
+  assertTrue(corrections.beginEpoch(1));
+  const actual = participantInputs();
+  const predicted = participantInputs();
+  const actualAt = (frame: number) => {
+    actual[0].axisX = floorMod(floorDiv(frame, 15), 2) === 0 ? 100 : -100;
+    actual[1].held = floorMod(frame, 12) < 2 ? bit(Action.attack) : 0;
+    actual[1].pressed = floorMod(frame, 12) === 0 ? bit(Action.attack) : 0;
+    return actual;
+  };
+  const row = createMatchFrameInput();
+  let difference: string | undefined;
+  const confirm = (frame: number) => {
+    resetMatchFrameInput(row);
+    assertTrue(captureNetworkFrame(row, frame, actualAt(frame), scoped.live.world, 15));
+    corrections.clear();
+    assertTrue(corrections.add(row));
+    assertTrue(histories[0].correct(1, corrections, scoped.live) !== "rejected");
+    assertTrue(histories[1].correct(1, corrections, whole.live) !== "rejected");
+    difference ??= tapeDifference(whole, scoped);
+  };
+  const last = 180;
+  for (let frame = 1; frame <= last; frame++) {
+    // Every row but slot 0's is known; slot 0's repeats the last one that arrived.
+    const now = actualAt(frame);
+    for (const slot of [1, 2, 3] as const) Object.assign(predicted[slot], now[slot]);
+    predicted[0].axisX = actualAt(Math.max(1, frame - late))[0].axisX;
+    for (const [index, tape] of [scoped, whole].entries()) {
+      resetMatchFrameInput(row);
+      assertTrue(captureNetworkFrame(row, frame, predicted, tape.live.world, 15));
+      assertTrue(histories[index === 0 ? 0 : 1].saveSpeculative(1, row, tape.live));
+      execute(tape, row);
+    }
+    if (frame > late) confirm(frame - late);
+  }
+  for (let frame = last - late + 1; frame <= last; frame++) confirm(frame);
+  assertEquals(histories[1].scopedRepairSteps(), 0);
+  return { scoped: histories[0].scopedRepairSteps(), difference };
+}
+
+test("a fighter-scoped repair of a mispredicted input ends on the same state as repairing every fighter [invariant]", () => {
+  // The jabber strikes the air 600 units from the corrected fighter.
+  const far = scopedAgainstWhole("auto", 300.0);
+  assertGreaterThan(far.scoped, 100);
+  assertEquals(far.difference, undefined);
+  // In range, its jabs reach the corrected fighter, so those frames repair whole.
+  const near = scopedAgainstWhole("auto", -260.0);
+  assertEquals(near.difference, undefined);
+  // Scoping them anyway loses the hits: the comparison above catches broken eligibility.
+  assertTrue(scopedAgainstWhole("force", -260.0).difference !== undefined);
 });

@@ -12,7 +12,7 @@ import { type FrameControls, createFrameControls } from "./controls";
 import type { PacingAndPresentation } from "./pacingAndPresentation";
 import { type MatchState, Phase, computerActive } from "./rules";
 import { produceComputerInput, repeatComputerInput } from "./botPlay";
-import { observedFrameLegalActions, observedFrameStartedActions, stepMatch } from "./step";
+import { type StepScope, observedFrameLegalActions, observedFrameStartedActions, stepMatch } from "./step";
 import { latchPresses, releasePresses } from "./training";
 import { type ReplayState, copyReplayState } from "../replay/snapshot";
 import { type BotMemory, clearBotMemory, copyBotMemory, createBotMemory, firstBotMemoryDifference } from "./botPerception";
@@ -181,7 +181,12 @@ function prepareMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster
   return true;
 }
 
-export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number, repeated?: RepeatedComputers): boolean {
+/** A scoped step's other fighters end as `after` holds them, with the observations that run made. */
+export interface ScopedFrame extends StepScope {
+  after: Readonly<ReplayState>;
+}
+
+export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number, repeated?: RepeatedComputers, scope?: Readonly<ScopedFrame>): boolean {
   if (!prepareMatchFrame(row, game, world, controls, runtime, frame, repeated)) return false;
   if (game.phase === Phase.match && game.training) {
     // Slow motion: the match runs on the last of every `speed` input frames, with the presses made on the ones it skips.
@@ -199,8 +204,12 @@ export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world:
     }
   }
   advanceImpacts(runtime.impacts);
-  stepMatch(game, world, row.scratch, frame);
+  stepMatch(game, world, row.scratch, frame, scope);
   for (const slot of PARTICIPANT_SLOTS) {
+    if (scope !== undefined && slot !== scope.slot) {
+      observedFrameLegalActions[slot] = scope.after.runtime.observedLegal[slot];
+      observedFrameStartedActions[slot] = scope.after.runtime.observedStarted[slot];
+    }
     runtime.observedLegal[slot] = observedFrameLegalActions[slot];
     runtime.observedStarted[slot] = observedFrameStartedActions[slot];
   }

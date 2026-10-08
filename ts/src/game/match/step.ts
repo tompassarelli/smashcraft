@@ -1,4 +1,4 @@
-import { clearAttackBuffer, hasPendingAttack, holdAttack, takeAttack } from "../input/attackBuffer";
+import { clearAttackBuffer, copyAttackBuffer, hasPendingAttack, holdAttack, takeAttack } from "../input/attackBuffer";
 import { attackStyleForGrounding } from "../input/combat";
 import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS, type Slots, participantActive } from "../input/participants";
@@ -32,6 +32,7 @@ import { advanceMatchCamera } from "../sim/matchCamera";
 import { nextJab } from "../sim/moves";
 import { advanceOffscreenDamage } from "../sim/offscreenDamage";
 import type { FrameControls } from "./controls";
+import { copyFighterState } from "../replay/fighterState";
 import { type MatchState, Phase, advanceClock, holdingStart, humanFighterActive, keepsStocks, resolveStocks, stageClock } from "./rules";
 import { advanceItems } from "./centreItem";
 
@@ -113,7 +114,18 @@ function requestedStyle(style: number | undefined): AttackStyle | undefined {
   }
 }
 
-export function stepMatch(game: MatchState, world: Roster, controls: FrameControls, frame: number): void {
+/**
+ * A step that plays only `slot`: every other fighter and its commands end as
+ * `after` holds them, the state an earlier run of the same frame reached.
+ * Valid only while nothing `slot` does reaches another fighter
+ * (smashcraft:ts/src/game/replay/history.ts, scopedStep).
+ */
+export interface StepScope {
+  slot: number;
+  after: Readonly<{ world: Roster; controls: FrameControls }>;
+}
+
+export function stepMatch(game: MatchState, world: Roster, controls: FrameControls, frame: number, scope?: Readonly<StepScope>): void {
   if (game.phase !== Phase.match) return;
   game.matchFrame++;
   const stage = game.stageChoice;
@@ -138,6 +150,8 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
       captureTutorialBefore(world);
     }
   }
+  const mask = world.mask;
+  if (scope !== undefined) world.mask = 1 << scope.slot;
   carryOnMovingDecks(world, stage, stageFrame);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
@@ -241,10 +255,18 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
       f.status.respawn = 60;
     }
   }
+  if (scope !== undefined) {
+    world.mask = mask;
+    for (const slot of PARTICIPANT_SLOTS) {
+      if (slot === scope.slot || !isActive(world, slot)) continue;
+      copyFighterState(fighterAt(world, slot), fighterAt(scope.after.world, slot), mask);
+      copyAttackBuffer(controls.commands[slot], scope.after.controls.commands[slot]);
+    }
+  }
   if (bossFight) resolveBossFight(game, world);
   else resolveStocks(game, world);
   advanceMatchCamera(game.camera, world, game.stageChoice);
-  advanceOffscreenDamage(world, game.camera, game.practice || game.training);
+  advanceOffscreenDamage(world, game.camera, game.practice || game.training, scope === undefined ? mask : 1 << scope.slot);
   if (game.training) advanceTrainingReadout(game.trainer, world, game.humanFighterMask, game.computerMask);
   if (game.training && tutorialOn(game.trainer)) advanceTutorial(game.trainer, world, game.humanFighterMask, game.computerMask);
   advanceClock(game, world);

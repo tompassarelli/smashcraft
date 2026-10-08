@@ -75,9 +75,10 @@ export const CATCH_UP_FRAMES = 6;
  * correction 24 frames deep took one Lua32 callback 23 ms, with a message's
  * 6 confirmed frames and up to 6 predicted ones beside it
  * (smashcraft:docs/warcraft-api-netcode-findings.md, "What a callback costs").
- * A deep correction now shows a few callbacks later.
+ * A deep correction now shows a few callbacks later; 4 keeps the worst
+ * callback inside #168's frame budget.
  */
-export const REPAIR_FRAMES = 6;
+export const REPAIR_FRAMES = 4;
 
 /**
  * Confirmed frames one callback runs: a message's frames 3 a callback, so its

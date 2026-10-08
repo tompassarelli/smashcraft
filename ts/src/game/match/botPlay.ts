@@ -166,8 +166,9 @@ const negativeZero = (value: number): boolean => value === 0 && 1 / value < 0;
  * slot's identity and tier, training, the stage and its clock, the time
  * limit, the slot's own fighter, its perceived sample and committed
  * direction, its strategy and its attack delay; a new read joins this list.
+ * `fighterSame` says the slot's fighter is known to equal the earlier one.
  */
-export function sameComputerInputs(game: Readonly<MatchState>, world: Readonly<Roster>, runtime: Readonly<BotRuntime>, before: Readonly<MatchState>, beforeWorld: Readonly<Roster>, beforeRuntime: Readonly<BotRuntime>, slot: ParticipantSlot, frame: number): boolean {
+export function sameComputerInputs(game: Readonly<MatchState>, world: Readonly<Roster>, runtime: Readonly<BotRuntime>, before: Readonly<MatchState>, beforeWorld: Readonly<Roster>, beforeRuntime: Readonly<BotRuntime>, slot: ParticipantSlot, frame: number, fighterSame = false): boolean {
   if (game.training || before.training || world.mask !== beforeWorld.mask) return false;
   const opponent = game.cpuResolvedOpponents[slot];
   const tier = game.cpuTiers[slot];
@@ -182,6 +183,7 @@ export function sameComputerInputs(game: Readonly<MatchState>, world: Readonly<R
   if (attackDelay !== beforeDelay || negativeZero(attackDelay) !== negativeZero(beforeDelay)) return false;
   if (!sameBotStrategy(runtime.botStrategies[slot], beforeRuntime.botStrategies[slot])) return false;
   if (!samePerception(runtime.botMemory, beforeRuntime.botMemory, slot, frame, delay)) return false;
+  if (fighterSame) return true;
   const fighter = fighterAt(world, slot);
   const earlier = fighterAt(beforeWorld, slot);
   return sameFighterState(fighter, earlier);
