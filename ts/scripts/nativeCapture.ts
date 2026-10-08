@@ -7,7 +7,8 @@
 //   bun scripts/nativeCapture.ts plan PAD|DIR...
 //     plays the scripts headlessly on the capture map's schedule and checks each
 //     `#! cue` line against the held frames (smashcraft:ts/scripts/nativeCapturePlan.ts);
-//   bun scripts/nativeCapture.ts run --clients-file FILE --client NAME --manifest MAP.captures.json --out DIR [--audio-sink SINK | --no-audio]
+//   bun scripts/nativeCapture.ts run --clients-file FILE --client NAME --manifest MAP.captures.json --out DIR [--crop X,Y,W,H] [--audio-sink SINK | --no-audio]
+//     (--crop: a windowed client's game area within the desktop capture, e.g. 5,44,1280,720)
 //     with that map hosted on the client (`bun wisp fresh MAP --no-quick`), keeps
 //     capturing the screen and saves each capture whose drawn stamp names a
 //     requested fixture and frame (smashcraft:ts/src/runtime/drawnStamp.ts) as
@@ -153,13 +154,24 @@ const recordAudio = (sink: string, file: string, started: number) => Effect.gen(
   return { file: basename(file), sink, serial: chosen.serial, startedMs };
 });
 
+/** The game area of a windowed client, cut out of the whole-desktop capture. */
+function cropFrame(frame: Frame, [x0, y0, width, height]: readonly [number, number, number, number]): Frame {
+  const rgb = new Uint8Array(width * height * 3);
+  for (let y = 0; y < height; y++) rgb.set(frame.rgb.subarray(((y + y0) * frame.width + x0) * 3, ((y + y0) * frame.width + x0 + width) * 3), y * width * 3);
+  return { width, height, rgb };
+}
+
 const runCaptures = (args: readonly string[]) => Effect.scoped(Effect.gen(function*() {
   const clientsFile = option(args, "--clients-file");
   const clientName = option(args, "--client");
   const manifestPath = option(args, "--manifest");
   const out = option(args, "--out");
   const minutes = Number(option(args, "--minutes") ?? "60");
-  if (clientsFile === undefined || clientName === undefined || manifestPath === undefined || out === undefined) return yield* new CaptureFailure({ problem: "usage: run --clients-file FILE --client NAME --manifest MAP.captures.json --out DIR [--minutes M] [--audio-sink SINK | --no-audio]" });
+  const cropText = option(args, "--crop");
+  const [cx, cy, cw, ch, ...extra] = cropText?.split(",").map(Number) ?? [];
+  const crop = cx !== undefined && cy !== undefined && cw !== undefined && ch !== undefined ? [cx, cy, cw, ch] as const : undefined;
+  if (cropText !== undefined && (crop === undefined || extra.length > 0 || !crop.every(Number.isInteger))) return yield* new CaptureFailure({ problem: "--crop takes X,Y,W,H in whole pixels" });
+  if (clientsFile === undefined || clientName === undefined || manifestPath === undefined || out === undefined) return yield* new CaptureFailure({ problem: "usage: run --clients-file FILE --client NAME --manifest MAP.captures.json --out DIR [--minutes M] [--crop X,Y,W,H] [--audio-sink SINK | --no-audio]" });
   const text = yield* attempt("read the manifest", () => readFileSync(manifestPath, "utf8"));
   const manifest = yield* Schema.decodeEffect(Manifest)(text).pipe(Effect.mapError(cause => new CaptureFailure({ problem: `${manifestPath}: ${String(cause)}` })));
   const client = (yield* loadClients(clientsFile).pipe(Effect.mapError(failure => new CaptureFailure({ problem: `${failure.operation}: ${failure.cause}` })))).find(row => row.name === clientName);
@@ -178,7 +190,8 @@ const runCaptures = (args: readonly string[]) => Effect.scoped(Effect.gen(functi
     const status = existsSync(statusPath) && statSync(statusPath).mtimeMs >= started ? preloadLines(readFileSync(statusPath, "latin1"))?.[0] ?? "" : "";
     if (status !== lastStatus) { lastStatus = status; console.log(status); }
     const before = Date.now();
-    const shot = yield* capture(client).pipe(Effect.mapError(failure => new CaptureFailure({ problem: `${failure.operation}: ${failure.cause}` })));
+    const whole = yield* capture(client).pipe(Effect.mapError(failure => new CaptureFailure({ problem: `${failure.operation}: ${failure.cause}` })));
+    const shot = crop === undefined ? whole : cropFrame(whole, crop);
     const stamp = frameStamp(shot);
     log.push({ ms: before - started, captureMs: Date.now() - before, stamp: stamp === undefined ? "unreadable" : `${stamp.script}/${stamp.frame}` });
     const fixture = stamp === undefined ? undefined : manifest.fixtures[stamp.script - 1];
