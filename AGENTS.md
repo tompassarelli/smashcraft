@@ -311,21 +311,6 @@ code. From smashcraft:ts/:
   log, crash reports, match receipts and processes, never its screen. Run it
   before clicking or reading a client; `bun wisp client watch CLIENT --once` and
   `bun wisp client wait CLIENT STATE...` read or wait on one (wisp:docs/watch.md).
-- Native script driver: `bun wisp map build --profile native-driver --name NAME --out MAP.w3x`
-  packages a callback match driven by `bun wisp engine drive SCRIPT --client lan0a,lan0b`.
-  `engine drive reset`, `capture`, `pause`, `step N`, and `resume` control the whole map callback;
-  `engine drive FILE` accepts a pad script with its `#! chat` setup, starts at
-  frame 0 paused, and uses the normal input-row adapter. A command file containing
-  `capture` holds and saves the current frame, and pad `capture` lines save the
-  named client's moment at their frame. VIEW held 60 frames saves its normal moment;
-  START uses the normal pause action, and a driver resume continues that pause. `resume N` runs until frame N, while `step N` advances N frames from the current
-  frame. Holds write the canonical checksum and saved moments for `bun wisp repro`.
-  `bun scripts/nativeDriverAcceptance.ts --clients-file FILE --client lan0a,lan0b
-  --script test/native/pads/archer-neutral.pad --frames 460 --runs 50 --out DIR`
-  measures 50 full pad runs plus one stepped control, compares both clients and
-  replays each hold. `--game-start-ms N` records launch-to-first-check time from the
-  timestamp before hosting the map.
-  This diagnostic path measures native script delivery, not hardware pad timing.
 - One-client look captures (clone-a, or any single signed-in client):
   `bun scripts/nativeCapture.ts build --out MAP.w3x --control PAD|DIR...` bakes
   the scripts and their `capture` frames into a native-capture map that plays
@@ -344,18 +329,6 @@ code. From smashcraft:ts/:
   PAD|DIR...` plays the scripts headlessly on the map's schedule and checks
   each `#! cue FROM[-TO] NAME: sound=… effect=… tint=b shake=b recoil=b` line
   against the held capture frames, without a Warcraft client.
-- Engine debugger: a native desync? `bun wisp engine desync A B` names the
-  first differing turn and checksum section of the clients' Desync.log
-  dumps; `bun wisp engine poll --client a,b` during a repro and `bun wisp
-  engine diff A.log B.log` name the agent (handle, code callback) one client
-  made on another turn; `engine watch` (offline clients) gives each birth's
-  game stack, `engine locate` re-finds offsets after a Warcraft update. Dev
-  clients from clients.json only, never Tom's install. Two tiers: passive
-  reads (`desync`, `poll`, `diff`, `locate`) may follow signed-in A/B;
-  anything that traps, stops or writes (`watch`, `locate --watch`) runs only on
-  verifiably offline clients and refuses otherwise. A read tries first; when
-  it fails it prints the ptrace_scope commands, which only Tom runs
-  (wisp:docs/engine.md).
 - Offline LAN pool, the default for native testing (see "Native testing and
   UI"): `bun wisp lan setup --from INSTALL [--pairs N]` creates throwaway
   clients with no account once; `bun wisp lan pool --pairs N [--pool-profile
@@ -363,9 +336,9 @@ code. From smashcraft:ts/:
   only loopback (foreground, admitted by the capacity helper); `bun wisp lan
   fresh MAP.w3x [--pair K]` hosts and starts a LAN match on Wisp's own host;
   `lan status`, `lan end --pair K`. The host logs every turn's actions and
-  compares checksums each turn: `bun wisp engine actions --client lan0a,lan0b
-  [--follow]`. The pool's clients file is ~/.local/state/wisp/lan/clients.json;
-  the full engine tier runs there (wisp:docs/lan.md).
+  compares checksums each turn. Joining LAN games needs Wisp's private LAN
+  plugin in ~/.local/share/wisp-private/lan/. The pool's clients file is
+  ~/.local/state/wisp/lan/clients.json (wisp:docs/lan.md).
 - Client recovery: `bun wisp client doctor [CLIENT...]` brings clients A and B to a
   ready state: it recovers a client that dropped from Battle.net, crashed
   with its error dialog up, sits at the empty login shell, a stale lobby or
@@ -379,12 +352,6 @@ code. From smashcraft:ts/:
   `integrity capture` (bot sessions included), `play` and `accept` run it before
   they start and once after a failure; run it instead of driving a client by
   hand.
-- Desync autopsy: `client doctor`, `client watch`, `pad`, `integrity capture` (bot sessions
-  included), `fresh` and `accept` run inside Wisp's desync autopsy. On a new
-  desync report they print "first divergent birth #N Class at turn T on
-  client X" and save the evidence under ~/.local/state/wisp/autopsy/
-  (wisp:docs/autopsy.md). The class needs memory reads
-  (`kernel.yama.ptrace_scope`); without them, one line says so.
 - Client driver: `bun wisp client look|read|click|keys CLIENT ...` reads and
   drives a client. Session values live in ~/.local/state/smashcraft/clients.json.
 - Menus: `bun wisp menus host|join|start|leave` drives lobbies through Wisp's
@@ -793,8 +760,7 @@ Each result records `load_average` and `capacity_lease` (#311).
 Signed-in A and B are only for tests that need Battle.net itself: real
 netplay or latency, direct play (#142), spectating. Tom's install (account a,
 display :0) is Tom's. A run during which a client wrote a desync report or
-crashed is invalid; read the autopsy line it printed
-(wisp:docs/autopsy.md), rerun, and debug the desync with `bun wisp engine`.
+crashed is invalid; rerun it.
 
 Read warcraft-modding and its off-monitor dependency,
 private-desktop-development, before controlling the game. Default automation off-monitor; use the primary display

@@ -7,7 +7,6 @@ import { loadClients, readClientsFile, desktopSession, windowPid, keys, typeText
 import { preloadLines } from "wisp/scripts/wisp/boundary";
 import { Clients } from "wisp/scripts/wisp/clients";
 import { ClientWatch } from "wisp/scripts/wisp/watch";
-import { withAutopsy } from "wisp/scripts/wisp/engine/autopsy";
 import { freshMatch } from "./wisp/commands/fresh";
 import { gameFilesLayer } from "./wisp/project";
 import { Phase } from "../src/game/match/rules";
@@ -77,7 +76,7 @@ if (values.plan) {
 }
 mkdirSync(out, { recursive: true });
 await Bun.write(join(out, "plan.json"), JSON.stringify(plan, null, 2));
-// Like every native session, inside the desync autopsy, which also records the session for the corpus (wisp#69); never Tom's own game.
+// Never Tom's own game.
 const session = Effect.promise(async () => {
 async function command(args: readonly string[]) {
   const child = Bun.spawn([process.execPath, "scripts/wisp.ts", ...args], { cwd: join(import.meta.dir, ".."), stdout: "inherit", stderr: "inherit" });
@@ -235,7 +234,7 @@ try {
 }
 await command(["client", "watch", "--once", "--clients-file", clientsFile]);
 });
-await Effect.runPromise(single ? session : withAutopsy({ clientsFile }, session));
+await Effect.runPromise(session);
 }
 
 if (import.meta.main) await main();
