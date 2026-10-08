@@ -288,7 +288,8 @@ if fighter == 'archer':
         follow={'step': (5, 0), 'lean': 6, 'hand_R': (40, -18, 62), 'hand_L': (-18, 12, 58), 'aim_L': (-24, 12, 120), 'cloth': .7},
         settle=(14, {'step': (1, 0), 'hand_R': (14, -18, 62), 'cloth': .2})))
     # Forward tilts (5/2/28): a lunging side kick with the camera-side leg,
-    # level, rising to head height, or skimming the floor.
+    # level, rising to head height, or skimming the floor. The floor-skimming
+    # kick is also the sliding dash attack's clip.
     chamber = {'step': (-4, -4), 'foot_R': (8, -12, 34), 'hand_L': (10, 6, 58), 'cloth': .5}
     for name, foot, lean, step, wind in [('Forward Tilt', (90, -12, 48), -26, (24, 2), {**chamber, 'step': (-8, -2), 'lean': -10}),
                                          ('Forward Tilt Up', (68, -12, 116), -38, (18, 2), {**chamber, 'step': (-8, -6), 'lean': 4}),
@@ -308,7 +309,7 @@ if fighter == 'archer':
         strike={'step': (6, 4), 'lean': -14, 'hand_L': (26, 0, 100), 'aim_L': (150, 0, 124), 'hand_R': (-14, -18, 64), 'cloth': 1},
         follow={'step': (6, 0), 'lean': 8, 'hand_L': (34, 0, 70), 'aim_L': (90, 0, 10), 'cloth': .7},
         wind_at=3, settle=(19, {'step': (2, 0), 'hand_L': (36, -4, 70), 'aim_L': (60, 0, 130), 'cloth': .2})))
-    # Down tilt (5/2/28), also the sliding dash attack's clip: she drops into
+    # Down tilt (5/2/28), also the second jab's low kick: she drops into
     # a crouch and sweeps the camera-side leg along the floor.
     author('Down Tilt', swing(5, 2, 28,
         wind={'step': (-10, -6), 'lean': -8, 'foot_R': (-8, -12, 20), 'hand_L': (4, 6, 60), 'cloth': .5},
