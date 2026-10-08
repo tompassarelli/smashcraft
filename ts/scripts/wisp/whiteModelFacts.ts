@@ -414,5 +414,23 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
       ]
     },
     "emitters": []
+  },
+  "war3mapimported/medivhwhite-7e2dd74d63f47d16f75ec1bcf040af5ced7aaa4448d6b55d0d0271bfa73e4ec7.mdx": {
+    "geosets": 3,
+    "triangles": 716,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -113.552001953125,
+        -126.41500091552734,
+        -88.20590209960938
+      ],
+      "max": [
+        129.7550048828125,
+        123.14800262451172,
+        431.1839904785156
+      ]
+    },
+    "emitters": []
   }
 };
