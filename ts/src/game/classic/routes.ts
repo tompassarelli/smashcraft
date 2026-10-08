@@ -281,6 +281,18 @@ export const CLASSIC_ROUTES: readonly ClassicRoute[] = [
     ],
     ending: ["Mrglglglgl! MRGLGLGL!", "(The murloc has claimed the Tomb of Sargeras as its tide pool.)"],
   },
+  {
+    fighter: C.kobold, boss: BossKind.archimonde,
+    story: "One kobold follows his stolen candle from the gold mines to Hyjal, where a demon wants to burn every last wick.",
+    fights: [
+      fight(C.rifleman, 11, "The mine's closed, little fella. Hand over that candle."),
+      fight(C.tinker, 3, "A candle-powered drill! Relax, pal. I'll give it back after testing."),
+      fight(C.mountainKing, 12, "Ye dug into Ironforge's vault! Put that gold back!"),
+      fight([C.lich, C.dreadlord], 4, "The dead need no candlelight. Neither will you."),
+      fight(C.peon, 12, "Me found candle in mine! Finders keepers!"),
+    ],
+    ending: ["Big demon take world tree. Kobold take candle back.", "You no take candle! ...You want borrow? One copper."],
+  },
 ];
 
 export const CLASSIC_CHARACTERS: readonly Character[] = CLASSIC_ROUTES.map(route => route.fighter);
