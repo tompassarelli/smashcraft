@@ -1737,7 +1737,7 @@ All four ordinary specials are free. Shield + any Special spends the full univer
 | Neutral — **Impale** | Stamp at f18; a floor-level spine line travels at 10 units/frame for 36 frames, 9%, upward launch; end f48. Air cast sends the same line forward at foot height, L24. | Wider line, 13%, stronger upward launch; same end. | Jump over the low line, shield or punish the stamp |
 | Side — **Burrow Hunt** | Coil f1–9, burrow f10–25 while moving 10 units/frame, erupt with a 12% launcher f26–29; end f56. Ground only. | Burrow f10–29 at 13 units/frame; wider 16% eruption f30–33, end f64. | Track the moving mound and meet the slow eruption with shield or a jump |
 | Up — **Crypt Eruption** | Charge aim f1–8, launch along the chosen direction for 28 frames over a 400-unit route; narrow 8% horn hit f9–16, stop then fall helpless; end f46. | 640-unit route and 12% wider horn, same helpless finish. | The broad shell is exposed before launch and during helpless fall |
-| Down — **Carrion Beetle** | Plant a beetle nest f22, end f46; one fragile 24-HP nest lasts 180 frames and sends three floor-running beetles (5% each) at ages 12/60/108. Down again recalls it. | 36-HP nest, four 7% beetles at ages 12/48/84/120; same 180-frame life. | Destroy the nest, jump the beetles or reflect a beetle back |
+| Down — **Carrion Beetle** | Plant a beetle nest f22, end f46; one fragile 24-HP nest lasts 180 frames and sends three floor-running beetles (5% each) at ages 1/49/97. Down again recalls it. | 36-HP nest, four 7% beetles at ages 1/37/73/109; same 180-frame life. | Destroy the nest, jump the beetles or reflect a beetle back; block the first beetle up close and punish the cast |
 
 ### Grab and throws
 

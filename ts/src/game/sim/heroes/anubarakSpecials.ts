@@ -6,7 +6,7 @@ import { anubarakHit } from "./anubarakMoves";
 const impale = (air: boolean, ex: boolean): AuthoredSpecial => ({
   endFrame: 48, landingLag: air ? 24 : undefined,
   projectiles: [{ model: "Abilities\\Spells\\Undead\\Impale\\ImpaleMissTarget.mdl",
-    spawnFrame: 18, offsetX: 40.0, offsetZ: 16.0, velocityX: 10.0, velocityZ: 0.0,
+    spawnFrame: 18, offsetX: 40.0, offsetZ: 32.0, velocityX: 10.0, velocityZ: 0.0,
     life: 36, radius: ex ? 28.0 : 18.0, effect: anubarakHit(ex ? 13.0 : 9.0, 80, ex ? 92.0 : 76.0, 40.0), reflectable: true, limit: 1,
   }],
   ...(ex ? {} : { ex: impale(air, true) }),
@@ -27,8 +27,8 @@ const eruption = (ex: boolean): AuthoredSpecial => ({
 const beetles = (ex: boolean): AuthoredSpecial => ({
   endFrame: 46, groundOnly: true,
   placement: { frame: 22, offsetX: 55.0, radius: 24.0, height: 35.0, durability: ex ? 36.0 : 24.0, life: 180,
-    fireAges: ex ? [12, 48, 84, 120] : [12, 60, 108],
-    shot: { model: "Units\\Undead\\Scarab\\Scarab.mdl", spawnFrame: 0, offsetX: 24.0, offsetZ: 12.0,
+    fireAges: ex ? [1, 37, 73, 109] : [1, 49, 97],
+    shot: { model: "Units\\Undead\\Scarab\\Scarab.mdl", spawnFrame: 0, offsetX: 24.0, offsetZ: 32.0,
       velocityX: 7.0, velocityZ: 0.0, life: 55, radius: 16.0, effect: anubarakHit(ex ? 7.0 : 5.0, 35, 65.0, 20.0), reflectable: true, limit: 4 },
   },
   ...(ex ? {} : { ex: beetles(true) }),
