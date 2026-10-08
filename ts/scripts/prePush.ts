@@ -48,18 +48,52 @@ export function checksFor(paths: readonly string[]): Check[] {
   ];
 }
 
-/** Runs a child to completion and captures its output; interruption kills and reaps it. */
-const run = (command: readonly string[], cwd: string, stdout: "pipe" | "ignore" = "pipe") => Effect.acquireUseRelease(
+/** Process groups of the children still running; the hook kills them when a signal ends it early. */
+const liveGroups = new Set<number>();
+
+const signalGroup = (group: number, signal: NodeJS.Signals) => {
+  try {
+    process.kill(-group, signal);
+  } catch {
+    // ESRCH: the group has no members left.
+  }
+};
+
+/** Kills every child's process group; the hook calls it on SIGINT, SIGTERM and SIGHUP. */
+export function killChildren(): void {
+  for (const group of liveGroups) signalGroup(group, "SIGKILL");
+  liveGroups.clear();
+}
+
+/**
+ * Runs a child in its own process group to completion and captures its output.
+ * Whatever it started dies with it: anything left holding its pipes would keep
+ * git waiting for EOF. Interruption sends the group SIGTERM, so a queued
+ * capacity request withdraws itself, then SIGKILL after a second.
+ */
+export const run = (command: readonly string[], cwd: string, stdout: "pipe" | "ignore" = "pipe") => Effect.acquireUseRelease(
   Effect.try({
-    try: () => Bun.spawn([...command], { cwd, stdin: "ignore", stdout, stderr: "pipe" }),
+    try: () => {
+      const child = Bun.spawn([...command], { cwd, stdin: "ignore", stdout, stderr: "pipe", detached: true });
+      liveGroups.add(child.pid);
+      return child;
+    },
     catch: (cause) => new PrePushRefusal({ problem: `pre-push: could not start ${command[0]}: ${String(cause)}` }),
   }),
   (child) => Effect.promise(async () => {
-    const [exitCode, out, err] = await Promise.all([child.exited, child.stdout === null ? "" : new Response(child.stdout).text(), new Response(child.stderr).text()]);
+    const output = Promise.all([child.stdout === null ? "" : new Response(child.stdout).text(), new Response(child.stderr).text()]);
+    const exitCode = await child.exited;
+    signalGroup(child.pid, "SIGKILL");
+    const [out, err] = await output;
     return { exitCode, stdout: out, stderr: err };
   }),
   (child) => Effect.promise(async () => {
-    if (child.exitCode === null) child.kill("SIGKILL");
+    if (child.exitCode === null && child.signalCode === null) {
+      signalGroup(child.pid, "SIGTERM");
+      await Promise.race([child.exited, Bun.sleep(1000)]);
+    }
+    signalGroup(child.pid, "SIGKILL");
+    liveGroups.delete(child.pid);
     await child.exited;
   }),
 );

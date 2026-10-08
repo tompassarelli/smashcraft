@@ -1,4 +1,7 @@
 import { expect, test } from "bun:test";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { checksFor } from "../scripts/prePush";
 import { newFailures, refusal } from "../scripts/newFailures";
 
@@ -38,4 +41,29 @@ test("a push to main is refused for an affected test that main's CI run doesn't 
   expect(newFailures([{ command: game, exitCode: 1, output: output(x) }], known)).toEqual([]);
   // A crash that names no test is new.
   expect(newFailures([{ command: game, exitCode: 134, output: "Segmentation fault" }], known).map(({ test }) => test)).toEqual([`process: ${game} exited 134`]);
+});
+
+test("a gate step past its budget dies with everything it started, so git's push isn't held open by an orphan on the hook's pipe [spec #240]", async () => {
+  // #240: the capacity helper outlived the timed-out affected-test runner and kept the pipe open; git waited 11 minutes.
+  const directory = mkdtempSync(join(tmpdir(), "pre-push-reap-"));
+  const pidFile = join(directory, "grandchild.pid");
+  const step = ["sh", "-c", `sleep 30 & echo $! > ${pidFile}; sleep 30`];
+  const hook = `import { Effect } from "effect"; import { run } from ${JSON.stringify(join(import.meta.dir, "../scripts/prePush.ts"))};
+    await Effect.runPromise(run(${JSON.stringify(step)}, ".").pipe(Effect.timeoutOption("1 second")));`;
+  const started = performance.now();
+  const gate = Bun.spawn([process.execPath, "-e", hook], { cwd: join(import.meta.dir, ".."), stdin: "ignore", stdout: "pipe", stderr: "pipe" });
+  const alive = (pid: number) => existsSync(`/proc/${pid}`) && !/^\d+ \(.*\) Z/.test(readFileSync(`/proc/${pid}/stat`, "utf8"));
+  let grandchild = 0;
+  try {
+    const ended = await Promise.race([gate.exited.then(() => true), Bun.sleep(3000).then(() => false)]);
+    grandchild = Number(readFileSync(pidFile, "utf8"));
+    expect(ended).toBe(true);
+    expect(performance.now() - started).toBeLessThan(3000);
+    await Bun.sleep(100);
+    expect(alive(grandchild)).toBe(false);
+  } finally {
+    gate.kill("SIGKILL");
+    if (grandchild > 0 && alive(grandchild)) process.kill(grandchild, "SIGKILL");
+    rmSync(directory, { recursive: true, force: true });
+  }
 });

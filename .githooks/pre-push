@@ -1,7 +1,14 @@
 #!/usr/bin/env bun
 // Git's pre-push hook; the gate is smashcraft:ts/scripts/prePush.ts.
 import { Effect } from "effect";
-import { PrePushRefusal, prePush } from "../ts/scripts/prePush.ts";
+import { PrePushRefusal, killChildren, prePush } from "../ts/scripts/prePush.ts";
+
+for (const [signal, code] of [["SIGINT", 130], ["SIGTERM", 143], ["SIGHUP", 129]] as const) {
+  process.on(signal, () => {
+    killChildren();
+    process.exit(code);
+  });
+}
 
 const refused = await Effect.runPromise(prePush(await Bun.stdin.text()).pipe(
   Effect.as(undefined),
