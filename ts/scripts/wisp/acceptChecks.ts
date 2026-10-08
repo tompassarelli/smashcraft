@@ -37,6 +37,8 @@ export const MAP_PROFILES: Readonly<Record<string, SmashcraftMapProfile>> = {
   ...STAGE_ENTRY_MAPS,
   ...FLOATING_STAGE_MAPS,
   "unlit-contact": { describe: "retained 5a1815b4 map, tech spark without the contact light", path: join(inputs, "stage-presentation-r3-20261008/5a1815b4.w3x"), quick: "-dev quick" },
+  "slash-unlit": { describe: "integrity map built at f9d0fbf3, slash hit spark without its contact light", path: join(inputs, "particles-192-20261008/before.w3x"), quick: "-dev quick" },
+  "slash-lit": { describe: "integrity map built with the slash hit spark's contact light", path: join(inputs, "particles-192-20261008/after.w3x"), quick: "-dev quick" },
   presentation: { describe: "development map rebuilt from this checkout, `-dev quick` (Archer and Rifleman idle on the default stage)", path: PRESENTATION, rebuild: "main", quick: "-dev quick" },
   // smashcraft:docs/player-view.md: CURRENT_BUILD's scenario set to underside, built as a development map.
   // smashcraft#166: the playable build's keyboard input and pooled fighters (native-perf adds only developer setup and the frame meter).
@@ -146,6 +148,15 @@ const contactLightChecks: NativeCheck[] = (["before", "after"] as const).map((ph
   capture: [{ kind: "frames", name: "contact", client: "a", count: 6, everyMs: 50 }],
   pass: [NO_IMPORT_FAILURES, NO_ERRORS, DEV_RECEIPT],
   look: `Tech contact ${phase}: compare the same chest-height spark, fighter surface and team colours at 50 ms intervals. The contact light must make the contact easier to read in HD; Classic retains the complete spark. Record graphics mode and native frame cost alongside the original #168 budget.`,
+}));
+
+/** Case 4 is a slash hit: the authored Hit spark, whose contact light is the 3.0 fighter-effect feature. */
+const slashLightChecks: NativeCheck[] = (["before", "after"] as const).map((phase): NativeCheck => ({
+  id: `192-slash-${phase}`, closes: "smashcraft#192 box 3", map: phase === "before" ? "slash-unlit" : "slash-lit", session: `slash-${phase}`,
+  setup: [{ chat: "-dev reset" }, { chat: "-dev quick" }, { chat: "-dev view off" }, { waitMs: 5000 }, { chat: "-dev effects 4" }, { receipt: "^SMASHCRAFT DEV v=1 ", seconds: 4 }],
+  capture: [{ kind: "frames", name: "contact", client: "a", count: 6, everyMs: 25 }, { kind: "reading", name: "label", pattern: "dev: effects 4 (\\S+ \\S+)" }],
+  pass: [NO_IMPORT_FAILURES, NO_ERRORS, DEV_RECEIPT, { kind: "reading", name: "label", pattern: "ImpactHit- MetalLightSliceFlesh1", orLook: true }],
+  look: `Slash hit ${phase}: the same chest-height spark at 25 ms intervals over its 150 ms life. After must light the nearer fighter's surface warm white and fade by 140 ms in Reforged/Definitive; Classic shows the identical spark with no light. Record graphics mode and native frame cost against the #168 budget.`,
 }));
 
 export const SMASHCRAFT_ACCEPT: AcceptSuite = {
@@ -272,6 +283,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
     ...FLOATING_STAGE_CHECKS,
     ...STAGE_FOG_CHECKS,
     ...contactLightChecks,
+    ...slashLightChecks,
     {
       id: "57-underside",
       closes: "smashcraft#57 box 2",
