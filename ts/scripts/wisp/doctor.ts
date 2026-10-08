@@ -25,7 +25,7 @@ const CLIENTS: Readonly<Record<string, { readonly compatData: string; readonly a
 /**
  * The account each client signs in with (nixos-config:secrets/bnet.yaml; Tom
  * authorized autonomous sign-in for a, b and c on 7 Oct). Account a is Tom's
- * own, on his main-desktop install, so no test client uses it.
+ * own: play signs it in on his main install (Tom, 8 Oct), and no test client uses it.
  */
 const ACCOUNTS: Readonly<Record<string, string>> = { a: "c", b: "b" };
 const SECRETS = join(homedir(), "code/nixos-config/main/secrets/bnet.yaml");
@@ -35,7 +35,7 @@ const SECRETS = join(homedir(), "code/nixos-config/main/secrets/bnet.yaml");
  * sops-nix file /run/secrets/bnet-ACCOUNT-FIELD when the system declares it,
  * else a decryption with the machine's sops key through passwordless sudo.
  */
-const accountField = (account: string, field: "username" | "password") => {
+export const accountField = (account: string, field: "username" | "password") => {
   const runtime = `/run/secrets/bnet-${account}-${field}`;
   return existsSync(runtime)
     ? ["cat", runtime]

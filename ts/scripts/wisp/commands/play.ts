@@ -5,13 +5,14 @@
 // start and starts the match on the go-ahead
 // (src/platform/shell/playtest.ts). The map, its helper and the computer's
 // slot are declared here and change with each candidate.
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { Clock, Effect, Option, Schema } from "effect";
 import { linePreloadFile } from "wisp/scripts/wisp/boundary";
 import { makePlay } from "wisp/scripts/wisp/commands/play";
-import { documentsFolder } from "wisp/scripts/warcraft/battleNet";
+import { documentsFolder, launcherHealth, launcherLogDirectory, newestLauncherLog } from "wisp/scripts/warcraft/battleNet";
+import { type Client, enterLoginField, findWindows } from "wisp/scripts/warcraft/desktop";
 import { GameFiles, dataDirectory, readGameFile } from "wisp/scripts/wisp/gameFiles";
 import { type PlayDeclaration, type PlayGame, PlayProblem } from "wisp/scripts/wisp/play";
 import { CPU_OPPONENT_DEFAULT, CPU_TIER_DEFAULT, type CpuOpponentChoice, type CpuTier } from "../../../src/game/match/cpuProfiles";
@@ -19,7 +20,7 @@ import { playtestRequest } from "../../../src/game/shell/playtest";
 import { MeleeReady, PLAYTEST_GO_FILE, PLAYTEST_REQUEST_FILE, playtestReceiptFile } from "../boundary";
 import { MELEE_READY_FILE } from "../../../src/runtime/gameFiles";
 import { clientState, gameFilesLayer } from "../project";
-import { smashcraftWatch } from "../doctor";
+import { accountField, smashcraftWatch } from "../doctor";
 import { currentPlaytest } from "../currentPlaytest";
 import { optionalController } from "../controllerService";
 import { pollUntil } from "../../hostPoll";
@@ -156,12 +157,78 @@ function clientTools(): Partial<PlayTools> {
 }
 
 const tools = clientTools();
-// Doctor checks the prefix before play and once after a failure (wisp:docs/doctor.md).
+
+/** The clients file's tool paths that typing into a sign-in form uses. */
+const LoginTools = Schema.Struct({ tools: Schema.Struct({ grim: Schema.String, xdotool: Schema.String, wlrctl: Schema.String, tesseract: Schema.String }) });
+
+/** Seconds Battle.net has to move from one sign-in page to the next. */
+const SIGN_IN_PAGE_SECONDS = 30;
+
+/** Battle.net's state on Tom's install by its newest log. */
+const launcherNow = Effect.try({
+  try: () => {
+    const logs = launcherLogDirectory(PLAYTEST_PREFIX);
+    const log = newestLauncherLog(readdirSync(logs));
+    return log === undefined ? undefined : launcherHealth(readFileSync(join(logs, log), "utf8"));
+  },
+  catch: (cause) => new PlayProblem({ problem: `can't read Battle.net's log: ${String(cause)}` }),
+});
+
+/**
+ * Account a, Tom's own, typed into his Battle.net's sign-in form on display :0
+ * when it shows one (Tom, 8 Oct): the account page, then the password page.
+ * The fields come from accountField's command straight to xdotool, never printed.
+ */
+const signInTom = Effect.gen(function*() {
+  let health = yield* launcherNow;
+  if (health?.kind !== "sign-in form") return;
+  const fileTools = yield* Effect.try({
+    try: () => Schema.decodeUnknownSync(LoginTools)(JSON.parse(readFileSync(clientState, "utf8"))).tools,
+    catch: (cause) => new PlayProblem({ problem: `can't read the sign-in tools from ${clientState}: ${String(cause)}` }),
+  });
+  const x11 = { DISPLAY: ":0" };
+  const title = "Battle.net Login";
+  // A form in the log of a launcher that isn't running: play starts it and waits for its sign-in.
+  if ((yield* findWindows(fileTools, "tom", x11, title).pipe(Effect.mapError(problem))).length === 0) return;
+  const enter = (field: "username" | "password") => Effect.gen(function*() {
+    const [window] = yield* findWindows(fileTools, "tom", x11, title).pipe(Effect.mapError(problem));
+    if (window === undefined) return yield* new PlayProblem({ problem: `Battle.net's "${title}" window closed on display :0` });
+    const command = accountField("a", field);
+    const printed = Bun.spawnSync(command, { stdin: "ignore", stdout: "pipe", stderr: "ignore" });
+    const bytes = new Uint8Array(printed.stdout);
+    if (printed.exitCode !== 0) {
+      bytes.fill(0);
+      return yield* new PlayProblem({ problem: `account a's ${field} command (${command[0]}) exited ${printed.exitCode}` });
+    }
+    let end = bytes.length;
+    while (end > 0 && (bytes[end - 1] === 0x0a || bytes[end - 1] === 0x0d)) end--;
+    const secret = bytes.slice(0, end);
+    bytes.fill(0);
+    if (secret.length === 0) return yield* new PlayProblem({ problem: `account a's ${field} command printed nothing` });
+    const desktop: Client = { name: "tom", documents: documentsFolder(PLAYTEST_PREFIX), tools: fileTools, x11, wayland: {}, window };
+    yield* enterLoginField(desktop, title, field === "password" ? /^Password$/ : undefined, secret).pipe(Effect.mapError(problem));
+  });
+  const next = (wanted: (now: typeof health) => boolean, after: string) => until(SIGN_IN_PAGE_SECONDS, launcherNow.pipe(Effect.map((now) => (wanted(now) ? now : undefined))), after);
+  if (health.form === "Login") {
+    console.log("Battle.net: typing Tom's account name");
+    yield* enter("username");
+    health = yield* next((now) => (now?.kind === "sign-in form" && now.form === "LoginCredential") || now?.kind === "signed in",
+      `Battle.net didn't show its password page within ${SIGN_IN_PAGE_SECONDS} s of the account name`);
+  }
+  if (health?.kind === "sign-in form" && health.form === "LoginCredential") {
+    console.log("Battle.net: typing Tom's password");
+    yield* enter("password");
+    yield* next((now) => now?.kind === "signed in", `Battle.net didn't sign in within ${SIGN_IN_PAGE_SECONDS} s of the password; check its sign-in window on display :0`);
+  }
+  console.log("Battle.net: signed in");
+});
+
 export const play: Command = (args) => Effect.gen(function*() {
   if (args.includes("--standalone")) {
     const { standalonePlay } = yield* Effect.tryPromise({ try: () => import("../standalone"), catch: (cause) => new PlayProblem({ problem: String(cause) }) });
     return yield* standalonePlay(args);
   }
+  yield* signInTom;
   const current = yield* currentPlaytest(join(documentsFolder(PLAYTEST_PREFIX), "Maps/00-Smashcraft"));
   const declaration = playtest({ ...PLAYTEST, ...current });
   yield* Effect.try({ try: () => installLatest(documentsFolder(declaration.prefix), current.map.source), catch: (cause) => new PlayProblem({ problem: String(cause) }) });
