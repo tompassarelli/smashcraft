@@ -113,7 +113,7 @@ export function openDamageContacts(): boolean {
 export function collectDamageContact(
   world: Roster, sourceSlot: number, targetSlot: number, effect: Readonly<HitEffect>, facing: number,
   kind: ContactKind, direct: boolean, throwInput: Readonly<Controls> | undefined, shieldContact: boolean,
-  status?: Readonly<AppliedStatus>, contactZ?: number, terrain = false,
+  status?: Readonly<AppliedStatus>, contactZ?: number,
 ): void {
   const source = fighterAt(world, sourceSlot);
   const target = fighterAt(world, targetSlot);
@@ -168,7 +168,7 @@ export function collectDamageContact(
 
 /** Terrain shares ordinary body-hit resolution, without a fighter earning damage. */
 export function collectTerrainContact(world: Roster, targetSlot: number, effect: Readonly<HitEffect>): void {
-  collectDamageContact(world, targetSlot, targetSlot, effect, 1, ContactKind.launch, false, undefined, false, undefined, undefined, true);
+  collectDamageContact(world, targetSlot, targetSlot, effect, 1, ContactKind.launch, false, undefined, false, undefined, undefined);
 }
 
 /** Adds a contact that the target's raised shield blocks. */
@@ -258,7 +258,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
       drainMana(target, stolen);
       gainMana(source, stolen);
     }
-    if (damage > 0) {
+    if (damage > 0 && contact.source !== contact.target) {
       gainMana(source, dealtManaGain(damage));
       gainMana(target, takenManaGain(damage));
     }

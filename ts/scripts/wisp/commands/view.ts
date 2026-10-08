@@ -80,7 +80,7 @@ const models = (args: readonly string[]) => Effect.scoped(Effect.gen(function*()
     const source = yield* Effect.tryPromise({ try: () => Bun.file(MODEL_TABLE).text(), catch: cause => new MapBuildFailure({ operation: "read model facts", path: MODEL_TABLE, cause }) });
     const kept = source.split("\n").filter(line => {
       const key = /^  ("(?:[^"\\]|\\.)*"):/.exec(line)?.[1];
-      return key === undefined || named.has(JSON.parse(key) as string);
+      return key === undefined || named.has(JSON.parse(key));
     }).join("\n");
     yield* Effect.tryPromise({ try: () => Bun.write(MODEL_TABLE, kept), catch: cause => new MapBuildFailure({ operation: "write model facts", path: MODEL_TABLE, cause }) });
     yield* Console.log(`Kept ${named.size} measured models: ${MODEL_TABLE}`);

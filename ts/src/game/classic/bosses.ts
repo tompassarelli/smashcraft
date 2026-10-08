@@ -242,7 +242,7 @@ export function collectBossContacts(state: BossState, world: Roster, clock: numb
       if (!inZone(strike, zone, state.aimX, motion.x, motion.z)) continue;
       state.hitMask |= 1 << slot;
       const facing = strike.away ? (motion.x < zoneCenter(strike, zone, state.aimX) ? -1 : 1) : 1;
-      collectDamageContact(world, slot, slot, strike.effect, facing, ContactKind.launch, false, undefined, fighter.shield.raised, undefined, undefined, true);
+      collectDamageContact(world, slot, slot, strike.effect, facing, ContactKind.launch, false, undefined, fighter.shield.raised, undefined, undefined);
       break;
     }
   }
