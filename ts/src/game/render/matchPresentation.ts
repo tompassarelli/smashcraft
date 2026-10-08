@@ -234,11 +234,13 @@ export class MatchPresentation {
     playFile(warcryVoice(winner));
     this.posing = view.rows[0]?.slot;
     // The last hit can leave the winner behind the panel; pose beside the current camera centre.
-    this.victory = this.pose(winner, GetCameraTargetPositionX() - this.origin.x - 240.0, 0.0);
+    this.victory = this.pose(winner, view.winnerSlot, GetCameraTargetPositionX() - this.origin.x - 240.0, 0.0);
   }
 
-  private pose(winner: Character, x: number, z: number): effect {
+  private pose(winner: Character, slot: number | undefined, x: number, z: number): effect {
     const model = AddSpecialEffect(fighterModel(winner), this.origin.x + x, this.origin.y);
+    // An effect has no owner: without this the pose keeps the default colour, not the winner's.
+    if (slot !== undefined) BlzSetSpecialEffectColorByPlayer(model, Player(slot));
     BlzSetSpecialEffectZ(model, this.origin.z + z);
     BlzSetSpecialEffectScale(model, characterModelScale(winner));
     BlzSetSpecialEffectYaw(model, FACING_CAMERA);

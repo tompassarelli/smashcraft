@@ -168,6 +168,8 @@ export function menuFrameCues(before: MenuObservation, game: Readonly<MatchState
 export interface ResultsView {
   readonly rows: readonly ResultRow[];
   readonly winner: Character | undefined;
+  /** The winner's slot: its pose wears that player's colour, as its match body did. */
+  readonly winnerSlot: ParticipantSlot | undefined;
   readonly x: number;
   readonly z: number;
 }
@@ -175,5 +177,5 @@ export interface ResultsView {
 export function resultsView(game: Readonly<MatchState>, world: Readonly<Roster>, tally: Readonly<MatchTally>): ResultsView {
   const { winner } = game;
   const fighter = winner !== undefined && isActive(world, winner) ? fighterAt(world, winner) : undefined;
-  return { rows: resultRows(game, world, tally), winner: fighter?.character, x: fighter?.motion.x ?? 0.0, z: fighter === undefined ? 0.0 : Math.max(0.0, fighter.motion.z) };
+  return { rows: resultRows(game, world, tally), winner: fighter?.character, winnerSlot: fighter === undefined ? undefined : winner, x: fighter?.motion.x ?? 0.0, z: fighter === undefined ? 0.0 : Math.max(0.0, fighter.motion.z) };
 }

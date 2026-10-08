@@ -158,6 +158,7 @@ function shownClipProblems(client: HeadlessClient, parkedBelow: number, seen: Ma
       const place = [s.origin.x + fitted.x, s.origin.y, s.origin.z + fitted.z].map(Math.fround);
       if (pose.x !== place[0] || pose.y !== place[1] || pose.z !== place[2]) problems.push(`slot ${slot} clip at ${pose.x} ${pose.y} ${pose.z}, fighter at ${place.join(" ")}`);
       if (pose.scale !== characterModelScale(character) || (pose.alpha !== 255 && pose.alpha !== 140)) problems.push(`slot ${slot} clip scale ${pose.scale} alpha ${pose.alpha}`);
+      if (pose.teamColor !== slot) problems.push(`slot ${slot} clip wears player ${pose.teamColor}'s colour`);
       const mesh = MODEL_FACTS[pose.model];
       const whole = MODEL_FACTS[FIGHTER_OBJECTS[character].model];
       if (mesh === undefined || whole === undefined || mesh.geosets !== whole.geosets || mesh.triangles !== whole.triangles) {
