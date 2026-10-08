@@ -22,8 +22,9 @@ export interface StageLight {
 /** Each selectable stage's light; the first is the neutral one, the classic midday light. */
 export const STAGE_LIGHTS: readonly { readonly stage: number; readonly theme: string; readonly light: StageLight }[] = [
   { stage: 0, theme: "Sky", light: { key: [255, 255, 255], ambient: [214, 214, 250] } },
-  // Pale glacier daylight, blue fill.
-  { stage: FROZEN_THRONE_STAGE, theme: "Icecrown", light: { key: [226, 240, 255], ambient: [150, 172, 220] } },
+  // Pale glacier daylight, blue fill, at 0.8: at full strength fighters rose
+  // 12 L* toward the bright glacier backdrop (#265).
+  { stage: FROZEN_THRONE_STAGE, theme: "Icecrown", light: { key: [226, 240, 255], ambient: [150, 172, 220], intensity: 0.8 } },
   // Moonlit silver key, moonwell-teal fill.
   { stage: WIND_TEST_STAGE, theme: "Nordrassil", light: { key: [236, 246, 232], ambient: [136, 178, 172] } },
   // High mountain sun, sky-blue fill.

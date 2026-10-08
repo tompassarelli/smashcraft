@@ -179,7 +179,11 @@ smashcraft:ts/src/game/assets/stageLighting.tests.ts enforces them:
    tinted light never repaints the team colours.
 5. A light's intensity, which scales key and fill together, is above 0 and at
    most 1. Ahn'Qiraj's is 0.5, pinned, so fighters stay darker than its bright
-   sandstone ring (#267).
+   sandstone ring (#267). Frozen Throne's is 0.8, pinned, so its lit key sits
+   below the dimmest stock noon key, Reforged's 0.92 × (0.84, 0.84, 0.98),
+   against its bright glacier backdrop (#265). Both follow "light the play,
+   not the backdrop" ([stage art](stage-art.md), CEDEC 2019): fighters must
+   neither dominate nor vanish.
 
 Rules 2 and 3 hold fighters bright. The measurement below shows that is only
 right where the backdrop behind the fighters is darker than they are.
@@ -256,7 +260,7 @@ right. Re-capture the stock/mask/stage triple after every change.
 | Stage | Light (key / fill) | Sky | Measured | Recommendation |
 | --- | --- | --- | --- | --- |
 | Sky Deck (0) | Classic noon (255 / 214, 214, 250) | authored | session failed; #178 ΔE00 22.8 | Keep as the neutral baseline; capture the triple |
-| Frozen Throne (2) | 226, 240, 255 / 150, 172, 220 | authored | contrast falls (ΔE00 −2.2, −0.8) | Darken key and fill toward stock, or darken the band behind the deck; re-capture |
+| Frozen Throne (2) | 226, 240, 255 / 150, 172, 220 at intensity 0.8 (#265) | authored | at intensity 1, contrast fell (ΔE00 −2.2, −0.8) | Re-capture the triple at 0.8 |
 | Durotar (3) | 255, 226, 180 / 190, 152, 134, intensity 0.65 (#266) | authored | contrast fell at intensity 1 (ΔE00 −3.3, −3.5) | Re-capture the triple at 0.65 |
 | Naxxramas (4) | 222, 230, 255 / 150, 136, 196 | authored | contrast rises (ΔE00 +2.3, +1.9) | Keep; pin the light |
 | Stratholme (6) | 255, 214, 180 / 170, 140, 150 | authored | added after the batch | Capture the triple first |

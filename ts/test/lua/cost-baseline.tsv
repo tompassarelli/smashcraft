@@ -1,5 +1,5 @@
 unit	tests	cpu_s
-src/game/assets/stageLighting.tests.ts	2	0.000
+src/game/assets/stageLighting.tests.ts	5	0.000
 src/game/assets/stagePalette.tests.ts	3	0.000
 src/game/input/adapter.tests.ts	8	0.002
 src/game/input/attackBuffer.tests.ts	6	0.000
