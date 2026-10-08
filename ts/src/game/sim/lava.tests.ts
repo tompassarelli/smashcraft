@@ -100,7 +100,7 @@ test("lava burns only its erupting patch and respects hazards off and invincibil
     if (scenario.z !== undefined) fighter.motion.z = scenario.z;
     if (scenario.invincible !== undefined) fighter.status.invincible = scenario.invincible;
     beginDamageContacts(); collectLavaContacts(world, scenario.stage ?? CANNON_TEST_STAGE, scenario.frame ?? FIRST_ERUPTION); finishDamageContacts(world);
-    assertEquals(`${scenario.name} ${fighter.status.damage}`, `${scenario.name} 0`);
+    assertEquals(fighter.status.damage, 0.0, scenario.name);
   }
 });
 
