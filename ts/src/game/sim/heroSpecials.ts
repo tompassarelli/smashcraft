@@ -14,7 +14,7 @@ export const SpecialSlot = { neutral: 0, side: 1, up: 2, down: 3 } as const;
 export type SpecialSlot = (typeof SpecialSlot)[keyof typeof SpecialSlot];
 
 /** Which authored form of a special is running; captured on entry. */
-export const SpecialForm = { ground: 0, air: 1, free: 2, recall: 3, marked: 4 } as const;
+export const SpecialForm = { ground: 0, air: 1, recall: 3, marked: 4 } as const;
 export type SpecialForm = (typeof SpecialForm)[keyof typeof SpecialForm];
 /**
  * A running follow-up records its base form plus this offset times one more
@@ -260,8 +260,6 @@ export interface AuthoredSpecial {
    * Hammerfall, Dark Ritual); a form without one goes by its kit's `name`.
    */
   readonly name?: string | undefined;
-  /** Mana spent once, on entry. */
-  readonly cost: number;
   /** The last frame of the action. */
   readonly endFrame: number;
   /** Minimum frames between entries of this special input, counted from entry; replayed with the fighter's cooldowns. */
@@ -309,7 +307,7 @@ export interface AuthoredSpecial {
    * Branches after the press: the first whose `window` (brief frames) holds
    * the next frame and whose input was freshly pressed replaces the rest of
    * this action with its `special`, whose frame 1 is the press tick. It
-   * spends `special.cost` and is captured once; it cannot itself branch.
+   * is captured once; it cannot itself branch.
    */
   readonly followUps?: readonly SpecialFollowUp[] | undefined;
   /**
@@ -331,7 +329,7 @@ export interface SpecialFollowUp {
   readonly facesStick?: boolean | undefined;
 }
 
-/** One special input: its grounded form, its airborne form and its zero-mana form. */
+/** One special input and its context-dependent forms. */
 export interface SpecialKit {
   /** The special's official name; smashcraft:docs/move-list.md and the Moves page read it here. */
   readonly name: string;
@@ -340,11 +338,6 @@ export interface SpecialKit {
   readonly ground: AuthoredSpecial;
   /** The airborne form; the grounded form when absent. */
   readonly air?: AuthoredSpecial | undefined;
-  /**
-   * Chosen instead of failing when mana is below the full form's cost. Every up
-   * special has one (the roster's weaker zero-mana recovery); it costs nothing.
-   */
-  readonly free?: AuthoredSpecial | undefined;
   /** Chosen instead of every other form while `recallWhile` holds. */
   readonly recall?: AuthoredSpecial | undefined;
   /**
@@ -379,8 +372,7 @@ export function specialForm(kit: Readonly<SpecialKit>, form: number, ex = false)
     const base = specialForm(kit, imod(form, FOLLOW_UP_FORM), ex);
     return base.followUps?.[idiv(form, FOLLOW_UP_FORM) - 1]?.special ?? base;
   }
-  const move = form === SpecialForm.free ? kit.free ?? kit.ground
-    : form === SpecialForm.recall ? kit.recall ?? kit.ground
+  const move = form === SpecialForm.recall ? kit.recall ?? kit.ground
     : form === SpecialForm.marked ? kit.marked?.special ?? kit.ground
     : form === SpecialForm.air ? kit.air ?? kit.ground : kit.ground;
   return ex ? move.ex ?? move : move;

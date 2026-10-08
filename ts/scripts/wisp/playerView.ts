@@ -66,7 +66,7 @@ for (const hero of HERO_ROSTER) {
   if (hero.specials === undefined) continue;
   for (const slot of SPECIAL_SLOTS) {
     const kit = hero.specials[slot];
-    for (const form of [kit.ground, kit.air, kit.free, kit.recall, kit.marked?.special]) {
+    for (const form of [kit.ground, kit.air, kit.recall, kit.marked?.special]) {
       recordPlacement(form, hero.presentation.placedModel?.path ?? WARD_MODEL);
     }
   }

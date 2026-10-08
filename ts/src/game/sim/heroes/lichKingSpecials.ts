@@ -27,7 +27,6 @@ const blastProjectile = (radius: number, damage: number, status: AppliedStatus |
 });
 const HOWLING_BLAST = blastProjectile(h(f32(0.22)), 6.0, undefined);
 const howlingBlast = (projectile: SpecialProjectile, landingLag: number | undefined): AuthoredSpecial => ({
-  cost: 15,
   endFrame: 44,
   landingLag,
   projectiles: [projectile],
@@ -53,7 +52,6 @@ const valkyrProjectile = (speed: number): SpecialProjectile => ({
 });
 const VALKYR = valkyrProjectile(5.0);
 const shadowguard = (projectile: SpecialProjectile, landingLag: number | undefined): AuthoredSpecial => ({
-  cost: 20,
   endFrame: 40,
   landingLag,
   projectiles: [projectile],
@@ -64,15 +62,14 @@ const ASCENT_FRAMES = 23;
 /**
  * Ascension of the Damned, a guided rise (#189): an ice column lifts him over frames 8-30, steered
  * up to `steer` sideways by the held stick, inside a Remorseless Winter vortex that strikes each
- * opponent once; then a helpless fall. The free form rises lower with no vortex.
+ * opponent once; then a helpless fall.
  */
-function ascension(cost: number, height: number, steer: number, vortex: boolean): AuthoredSpecial {
+function ascension(height: number, steer: number): AuthoredSpecial {
   return {
-    cost,
     endFrame: 46,
     facesStick: true,
     motion: [{ ...frames(8, 30), velocityX: 0.0, velocityZ: f32(h(height) / ASCENT_FRAMES), driftSpeed: f32(h(steer) / ASCENT_FRAMES) }],
-    regions: vortex ? [heroRegion(8, 30, capsule(0.0, 50.0, 0.0, 110.0, 62.0), hit(9.0, "LAUNCH", 80))] : undefined,
+    regions: [heroRegion(8, 30, capsule(0.0, 50.0, 0.0, 110.0, 62.0), hit(9.0, "LAUNCH", 80))],
     oncePerAirtime: true,
     helpless: true,
   };
@@ -95,7 +92,6 @@ const DEFILE_POOL: SpecialProjectile = {
   pool: { every: 36, growth: 6.0, maxRadius: h(f32(0.6)) },
 };
 const DEFILE: AuthoredSpecial = {
-  cost: 20,
   endFrame: 50,
   cooldownFrames: 320,
   groundOnly: true,
@@ -118,8 +114,8 @@ export const LICH_KING_SPECIALS: FighterSpecials = {
   up: withExKit({
     name: "Ascension of the Damned",
     description: "An ice column lifts him in a frost vortex, then a helpless fall.",
-    ground: ascension(15, f32(2.7), f32(1.15), true),
-    free: ascension(0, f32(2.0), f32(0.8), false),
+    ground: ascension(f32(2.7), f32(1.15)),
+
   }, { travel: 1.25 }),
   down: withExKit({
     name: "Defile",

@@ -74,7 +74,7 @@ export function withExKit(kit: SpecialKit, upgrade: ExUpgrade): SpecialKit {
     move === undefined ? undefined : { ...move, ex: exMove(move, recall) };
   return {
     ...kit, ground: { ...kit.ground, ex: exMove(kit.ground, false) },
-    air: form(kit.air), free: form(kit.free), recall: form(kit.recall, true),
+    air: form(kit.air), recall: form(kit.recall, true),
     marked: kit.marked === undefined ? undefined : { ...kit.marked, special: { ...kit.marked.special, ex: exMove(kit.marked.special, false) } },
   };
 }

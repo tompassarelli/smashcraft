@@ -25,21 +25,20 @@ import { firstFighterDifference } from "../replay/difference";
 const hit = (damage: number) => ({ damage, growth: 80.0, base: 20.0, launchX: f32(0.8), launchZ: f32(0.6), electric: false });
 
 const NEUTRAL: AuthoredSpecial = {
-  cost: 0, endFrame: 20,
+  endFrame: 20,
   projectiles: [{ spawnFrame: 5, offsetX: 40.0, offsetZ: 60.0, velocityX: 12.0, velocityZ: 0.0, life: 40, radius: 15.0, effect: hit(6.0), reflectable: true, limit: 1 }],
 };
 const SIDE: AuthoredSpecial = {
-  cost: 18, endFrame: 30,
+  endFrame: 30,
   regions: [heroRegion(10, 12, { x1: 10.0, z1: 50.0, x2: 90.0, z2: 50.0, radius: 12.0 }, hit(10.0))],
 };
-const UP: AuthoredSpecial = { cost: 15, endFrame: 25, helpless: true, oncePerAirtime: true, motion: [{ ...frames(5, 20), velocityX: 0.0, velocityZ: 12.0 }] };
-const UP_FREE: AuthoredSpecial = { ...UP, cost: 0, motion: [{ ...frames(5, 20), velocityX: 0.0, velocityZ: 8.0 }] };
-const DOWN: AuthoredSpecial = { cost: 25, endFrame: 30, groundOnly: true, intangible: frames(5, 8), armor: { ...frames(10, 20), maxDamage: 6.0 } };
+const UP: AuthoredSpecial = { endFrame: 25, helpless: true, oncePerAirtime: true, motion: [{ ...frames(5, 20), velocityX: 0.0, velocityZ: 12.0 }] };
+const DOWN: AuthoredSpecial = { endFrame: 30, groundOnly: true, intangible: frames(5, 8), armor: { ...frames(10, 20), maxDamage: 6.0 } };
 
 const KIT: FighterSpecials = {
   neutral: { name: "Test Bolt", description: "", ground: NEUTRAL },
   side: { name: "Test Dash", description: "", ground: SIDE },
-  up: { name: "Test Rise", description: "", ground: UP, free: UP_FREE },
+  up: { name: "Test Rise", description: "", ground: UP },
   down: { name: "Test Guard", description: "", ground: DOWN },
 };
 
@@ -207,7 +206,7 @@ test("replaying a hero special from a restored snapshot reproduces every fighter
 });
 
 test("a stopsAtBody dash special ends short of an exposed body and a raised shield, and an unmarked one carries through [spec docs/design/roster.md]", () => {
-  const dash = (stopsAtBody: boolean): AuthoredSpecial => ({ cost: 0, endFrame: 20, motion: [{ ...frames(2, 16), velocityX: 20.0, velocityZ: 0.0, stopsAtBody }] });
+  const dash = (stopsAtBody: boolean): AuthoredSpecial => ({ endFrame: 20, motion: [{ ...frames(2, 16), velocityX: 20.0, velocityZ: 0.0, stopsAtBody }] });
   for (const facing of [-1, 1]) {
     for (const [stops, shielded] of [[true, false], [true, true], [false, false]] as const) {
       const owner = hero(0.0, facing);
@@ -297,8 +296,8 @@ test("hero projectiles end on walls, undersides and solid deck tops, and pass th
 
 
 test("a second press inside a follow-up window starts the follow-up once without spending meter; presses outside it change nothing [spec docs/design/roster.md] [spec #335]", () => {
-  const slash: AuthoredSpecial = { cost: 0, endFrame: 37, regions: [heroRegion(10, 12, { x1: 10.0, z1: 50.0, x2: 110.0, z2: 50.0, radius: 12.0 }, hit(10.0))] };
-  const feint: AuthoredSpecial = { cost: 15, endFrame: 24, followUps: [{ window: frames(8, 19), special: slash }] };
+  const slash: AuthoredSpecial = { endFrame: 37, regions: [heroRegion(10, 12, { x1: 10.0, z1: 50.0, x2: 110.0, z2: 50.0, radius: 12.0 }, hit(10.0))] };
+  const feint: AuthoredSpecial = { endFrame: 24, followUps: [{ window: frames(8, 19), special: slash }] };
   const run = (pressAt: number) => {
     const owner = hero(0.0, 1);
     owner.tuning = { ...owner.tuning, specials: { ...KIT, down: { ...KIT.down, ground: feint } } };

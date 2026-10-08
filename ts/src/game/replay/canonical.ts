@@ -333,7 +333,7 @@ export function fighterSpecialsCanonical(specials: Readonly<FighterSpecials> | u
     const kit = at(kits, slot);
     if (kit.recallGroundOnly === true) result.push(canonicalInt(`${prefix}.kit[${slot}].recallGroundOnly`, 1));
     if (kit.recallWhile !== undefined) result.push(canonicalInt(`${prefix}.kit[${slot}].recallWhile`, kit.recallWhile === "armor" ? 2 : 1));
-    const forms = [kit.ground, kit.air, kit.free, kit.recall, kit.marked?.special];
+    const forms = [kit.ground, kit.air, kit.recall, kit.marked?.special];
     // A fixed count: the list holds undefined forms, which a Lua length would skip.
     for (let form = 0; form < 6; form++) {
       const move = forms[form];
@@ -351,7 +351,6 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
   if (move.ex !== undefined) result.push(specialMoveCanonical(move.ex, `${name}.ex`));
   const int = (field: string, value: number) => { result.push(canonicalInt(`${name}.${field}`, value)); };
   const real = (field: string, value: number) => { result.push(canonicalRealField(`${name}.${field}`, value)); };
-  int("cost", move.cost);
   int("end", move.endFrame);
   int("groundOnly", move.groundOnly === true ? 1 : 0);
   int("oncePerAirtime", move.oncePerAirtime === true ? 1 : 0);
@@ -1220,7 +1219,6 @@ export function prepareKitDigests(): void {
       // Only the forms a kit has: in Lua a list holding a missing form (nil) would end there.
       const forms: AuthoredSpecial[] = [kit.ground];
       if (kit.air !== undefined) forms.push(kit.air);
-      if (kit.free !== undefined) forms.push(kit.free);
       if (kit.recall !== undefined) forms.push(kit.recall);
       if (kit.marked !== undefined) forms.push(kit.marked.special);
       for (const branch of kit.ground.followUps ?? []) forms.push(branch.special);

@@ -17,7 +17,7 @@ const axe = (spawnFrame: number, height: number): SpecialProjectile => ({
 });
 export const WILD_AXES = [axe(16, f32(0.35)), axe(20, f32(0.65))];
 const wildAxes = (air: boolean): AuthoredSpecial => ({
-  cost: 0, endFrame: 35, projectiles: WILD_AXES,
+  endFrame: 35, projectiles: WILD_AXES,
   landingLag: air ? AIR_SPECIAL_LANDING_LAG : undefined,
 });
 export const BEAR: SpecialCompanion = {
@@ -38,8 +38,8 @@ const stampede = (spawnFrame: number): SpecialProjectile => ({
   model: "Abilities\\Spells\\Other\\Stampede\\StampedeMissile.mdx",
 });
 export const STAMPEDE = [stampede(12), stampede(20)];
-const SUMMON_BEAR: AuthoredSpecial = { cost: 20, endFrame: 44, groundOnly: true, placement: BEAR_PLACEMENT };
-const BEAR_COMMAND: AuthoredSpecial = { name: "Stampede", cost: 12, endFrame: 32, command: { frame: 4, order: CompanionOrder.lunge }, projectiles: STAMPEDE };
+const SUMMON_BEAR: AuthoredSpecial = { endFrame: 44, groundOnly: true, placement: BEAR_PLACEMENT };
+const BEAR_COMMAND: AuthoredSpecial = { name: "Stampede", endFrame: 32, command: { frame: 4, order: CompanionOrder.lunge }, projectiles: STAMPEDE };
 export const QUILL: SpecialProjectile = {
   spawnFrame: 0, offsetX: h(f32(0.25)), offsetZ: h(f32(0.3)),
   velocityX: h(f32(0.14)), velocityZ: 0.0, life: 24, radius: h(f32(0.09)),
@@ -55,8 +55,8 @@ export const QUILBEAST_PLACEMENT: SpecialPlacement = {
   durability: 18.0, life: 600, fireAges: [18, 108, 198, 288, 378, 468, 558], shot: QUILL, companion: QUILBEAST,
   model: { path: "units\\creeps\\QuillBeast\\QuillBeast.mdl", height: 120.0, alpha: 255 },
 };
-const SUMMON_QUILBEAST: AuthoredSpecial = { cost: 12, endFrame: 32, groundOnly: true, placement: QUILBEAST_PLACEMENT };
-const QUILL_VOLLEY: AuthoredSpecial = { name: "Quill Volley", cost: 6, endFrame: 24, facesStick: true, command: { frame: 3, order: CompanionOrder.lunge, slot: 1 } };
+const SUMMON_QUILBEAST: AuthoredSpecial = { endFrame: 32, groundOnly: true, placement: QUILBEAST_PLACEMENT };
+const QUILL_VOLLEY: AuthoredSpecial = { name: "Quill Volley", endFrame: 24, facesStick: true, command: { frame: 3, order: CompanionOrder.lunge, slot: 1 } };
 export const HAWK: SpecialCompanion = {
   ...BEAR, behavior: "flying", followSpeed: h(f32(0.07)), followBehind: -h(f32(0.6)), followHeight: h(f32(1.2)),
   lungeStartup: 8, lungeActive: 8, lungeRecovery: 28, lungeTravel: h(f32(1.5)), lungeDrop: h(f32(1.6)),
@@ -67,8 +67,8 @@ export const HAWK_PLACEMENT: SpecialPlacement = {
   durability: 12.0, life: 600, fireAges: [], companion: HAWK, keepExisting: true,
   model: { path: "units\\creeps\\WarEagle\\WarEagle.mdl", height: 80.0, alpha: 255 },
 };
-const SUMMON_HAWK: AuthoredSpecial = { cost: 10, endFrame: 26, groundOnly: true, placement: HAWK_PLACEMENT };
-const HAWK_DIVE: AuthoredSpecial = { name: "Hawk Dive", cost: 6, endFrame: 24, facesStick: true, command: { frame: 3, order: CompanionOrder.lunge, slot: 2 } };
+const SUMMON_HAWK: AuthoredSpecial = { endFrame: 26, groundOnly: true, placement: HAWK_PLACEMENT };
+const HAWK_DIVE: AuthoredSpecial = { name: "Hawk Dive", endFrame: 24, facesStick: true, command: { frame: 3, order: CompanionOrder.lunge, slot: 2 } };
 const lift = (rise: number, drift: number, steer: number): SpecialMotion[] => {
   const segment = (first: number, last: number, share: number): SpecialMotion =>
     ({
@@ -77,13 +77,13 @@ const lift = (rise: number, drift: number, steer: number): SpecialMotion[] => {
     });
   return [segment(10, 15, 0.5), segment(16, 27, f32(0.46)), segment(28, 32, f32(0.04))];
 };
-const hawkLift = (cost: number, rise: number, drift: number, steer: number): AuthoredSpecial => ({
-  name: "Hawk Lift", cost, endFrame: 32, motion: lift(rise, drift, steer), facesStick: true, oncePerAirtime: true, helpless: true,
+const hawkLift = (rise: number, drift: number, steer: number): AuthoredSpecial => ({
+  name: "Hawk Lift", endFrame: 32, motion: lift(rise, drift, steer), facesStick: true, oncePerAirtime: true, helpless: true,
   placement: { ...HAWK_PLACEMENT, frame: 10 },
 });
 export const BEASTMASTER_SPECIALS: FighterSpecials = {
   neutral: withExKit({ name: "Wild Axes", description: "Throw two axes; move to guide their return through the enemy.", ground: wildAxes(false), air: wildAxes(true) }, { damage: 1.25 }),
   side: withExKit({ name: "Summon Bear", description: "Call Bear, then press again for its lunge and a Stampede.", ground: SUMMON_BEAR, recall: BEAR_COMMAND }, { damage: 1.25, durability: 1.25 }),
-  up: withExKit({ name: "Summon Hawk", description: "Call Hawk, then command a dive. In the air, Hawk carries him up.", ground: SUMMON_HAWK, recall: HAWK_DIVE, recallGroundOnly: true, air: hawkLift(15, h(f32(3.6)), h(f32(0.3)), h(f32(3.4))), free: hawkLift(0, h(f32(2.5)), h(f32(0.2)), h(f32(1.0))) }, { travel: 1.25, durability: 1.25, recallProtection: 4 }),
+  up: withExKit({ name: "Summon Hawk", description: "Call Hawk, then command a dive. In the air, Hawk carries him up.", ground: SUMMON_HAWK, recall: HAWK_DIVE, recallGroundOnly: true, air: hawkLift(h(f32(3.6)), h(f32(0.3)), h(f32(3.4))) }, { travel: 1.25, durability: 1.25, recallProtection: 4 }),
   down: withExKit({ name: "Summon Quilbeast", description: "Set a Quilbeast firing position; press again for a three-quill volley.", ground: SUMMON_QUILBEAST, recall: QUILL_VOLLEY }, { damage: 1.25, durability: 1.25, recallProtection: 4 }),
 };

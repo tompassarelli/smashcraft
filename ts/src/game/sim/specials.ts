@@ -461,7 +461,7 @@ function startDemonHunterSpecial(owner: Fighter, action: SpecialAction, moveX: n
 }
 
 // Preallocated: a refused hero press reports why, and an airborne side press retries as neutral.
-const heroRefusal = { manaShort: false, groundOnly: false };
+const heroRefusal = { groundOnly: false };
 const neutralPress = neutralControls();
 
 /**
@@ -492,10 +492,7 @@ function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>, worl
     neutralPress.specialX = 0;
     chosen = chooseHeroSpecial(owner, specials, neutralPress, heroRefusal, world);
   }
-  if (chosen === undefined) {
-    if (heroRefusal.manaShort) owner.visuals.manaDenied++;
-    return false;
-  }
+  if (chosen === undefined) return false;
   observeActionDecision(SPECIAL_ACTION_BIT);
   turnForSpecial(owner, input);
   const move = heroSpecialMove(specials, chosen);

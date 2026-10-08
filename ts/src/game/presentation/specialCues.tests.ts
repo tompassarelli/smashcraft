@@ -75,7 +75,7 @@ test("every hero special form's cue windows lie in its action: startup from fram
     for (const slot of SPECIAL_SLOTS) {
       const kit = specials[slot];
       const all: AuthoredSpecial[] = [];
-      const kitForms = [kit.ground, kit.air, kit.free, kit.recall, kit.marked?.special];
+      const kitForms = [kit.ground, kit.air, kit.recall, kit.marked?.special];
       for (let form = 0; form < 5; form++) forms(kitForms[form], all);
       for (const move of all) {
         const { startup, active } = heroCueWindows(move);
@@ -131,7 +131,7 @@ test("every hero branch (recall, marked form, follow-up) names its cue [spec #14
         assertEquals(named?.marked !== undefined, true, `${hero.name} ${slot} marked`);
         branches++;
       }
-      const kitForms = [kit.ground, kit.air, kit.free, kit.recall, kit.marked?.special];
+      const kitForms = [kit.ground, kit.air, kit.recall, kit.marked?.special];
       for (let form = 0; form < 5; form++) {
         const followUps = kitForms[form]?.followUps ?? [];
         for (let index = 0; index < followUps.length; index++) {

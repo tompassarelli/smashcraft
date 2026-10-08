@@ -389,7 +389,6 @@ function authoredParts(specials: Readonly<FighterSpecials>, projectiles: Map<str
   for (const kit of [specials.neutral, specials.side, specials.up, specials.down]) {
     move(kit.ground);
     move(kit.air);
-    move(kit.free);
     move(kit.recall);
     move(kit.marked?.special);
   }

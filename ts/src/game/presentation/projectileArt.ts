@@ -51,7 +51,7 @@ export function heroProjectileArt(specials: Readonly<FighterSpecials>): HeroProj
   for (const slot of SPECIAL_SLOTS) {
     const kit = specials[slot];
     const specs: SpecialProjectile[] = [];
-    const forms = [kit.ground, kit.air, kit.free, kit.recall, kit.marked?.special];
+    const forms = [kit.ground, kit.air, kit.recall, kit.marked?.special];
     // A fixed count: the list holds undefined forms, which Lua iteration would stop at.
     for (let form = 0; form < 5; form++) formProjectiles(forms[form], specs);
     for (const spec of specs) if (!art.some((known) => known.spec === spec)) art.push({ slot, spec });

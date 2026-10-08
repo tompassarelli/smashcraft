@@ -16,7 +16,6 @@ const AIR_LANDING_LAG = 20;
 
 /** Wind Cutter: one short reflectable blade wave; free. Spawn f18, end f40. */
 const windCutter: AuthoredSpecial = {
-  cost: 0,
   endFrame: 40,
   hurt: [hurtPose(16, 24, LOW_CUT_ARM)],
   projectiles: [{
@@ -46,14 +45,13 @@ const walkMotion = [{ ...frames(8, 31), velocityX: WALK_SPEED, velocityZ: 0.0, s
 const WALK_BRANCHES = frames(10, 31);
 
 /** Backstab: active f6-8 from its press, 12% EDGE at 40 degrees, ends f28. */
-const backstab: AuthoredSpecial = { name: "Backstab", cost: 0, endFrame: 30, hurt: [hurtPose(4, 12, LOW_CUT_ARM)], motion: [{ ...frames(1, 1), ...STOP }], regions: cut(6, [52.0, 45.0, 38.0], L, hit(11.460000038146973, "EDGE", 40)) };
+const backstab: AuthoredSpecial = { name: "Backstab", endFrame: 30, hurt: [hurtPose(4, 12, LOW_CUT_ARM)], motion: [{ ...frames(1, 1), ...STOP }], regions: cut(6, [52.0, 45.0, 38.0], L, hit(11.460000038146973, "EDGE", 40)) };
 /** Step out: the walk stops and the action ends 8 frames later. */
-const stepOut: AuthoredSpecial = { name: "Step Out", cost: 0, endFrame: 8, motion: [{ ...frames(1, 1), ...STOP }] };
+const stepOut: AuthoredSpecial = { name: "Step Out", endFrame: 8, motion: [{ ...frames(1, 1), ...STOP }] };
 
 const windWalk = (air: boolean): AuthoredSpecial => {
   const finish = (special: AuthoredSpecial): AuthoredSpecial => (air ? { ...special, helpless: true } : special);
   return finish({
-    cost: 18,
     endFrame: 44,
     motion: walkMotion,
     oncePerAirtime: air ? true : undefined,
@@ -72,9 +70,8 @@ const RISE_FRAMES = 14;
 const rise = (distance: number) => chargedAngleMotion(length(distance), RISE_FRAMES);
 const BLADE_TOP = f32(M - BLADE_RADIUS);
 
-/** Rising Whirlwind: a 2.8H charged-angle dash, one 9-damage hit f9-14, then helpless; 15 mana; no intangibility. */
+/** Rising Whirlwind: a 2.8H charged-angle dash, one 9-damage hit f9-14, then helpless; no intangibility. */
 const risingBlade: AuthoredSpecial = {
-  cost: 15,
   endFrame: 24,
   aimFrames: CHARGED_AIM_FRAMES,
   motion: rise(f32(4.1)),
@@ -91,23 +88,12 @@ const risingBlade: AuthoredSpecial = {
   helpless: true,
 };
 
-/** The zero-mana recovery: 1.9H of the same aimed dash and no attack. */
-const risingBladeFree: AuthoredSpecial = {
-  cost: 0,
-  endFrame: 24,
-  aimFrames: CHARGED_AIM_FRAMES,
-  motion: rise(f32(2.8)),
-  oncePerAirtime: true,
-  helpless: true,
-};
-
 // Mirror Image (#124): a tell, then on f8 an image stays where he stood (one
 // hit shatters it; 150 frames) while he steps 1.0H back over f8-11; ends f24.
 // Down with a side turns him to that side first, so he steps away from it.
 const IMAGE_STEP_SPEED = f32(-f32(length(f32(1.0)) / 4));
 const MIRROR_IMAGE_OBJECT: SpecialPlacement = { frame: 8, offsetX: 0.0, radius: 22.0, height: f32(length(f32(1.05))), durability: 1.0, life: 150, fireAges: [] };
 const mirrorImage: AuthoredSpecial = {
-  cost: 15,
   endFrame: 24,
   facesStick: true,
   placement: MIRROR_IMAGE_OBJECT,
@@ -124,7 +110,7 @@ const mirrorImage: AuthoredSpecial = {
  */
 const imageSwap: AuthoredSpecial = {
   name: "Image Swap",
-  cost: 0,
+
   endFrame: 30,
   hurt: [hurtPose(6, 14, LOW_CUT_ARM)],
   motion: [{ ...frames(6, 6), ...STOP, relocate: Relocation.placed }],
@@ -134,8 +120,8 @@ const imageSwap: AuthoredSpecial = {
 const inAir = (special: AuthoredSpecial): AuthoredSpecial => ({ ...special, landingLag: AIR_LANDING_LAG });
 
 export const BLADEMASTER_SPECIALS: FighterSpecials = {
-  neutral: withExKit({ name: "Wind Cutter", description: "A short blade wave that costs no mana.", ground: windCutter, air: inAir(windCutter) }, { damage: 1.25 }),
+  neutral: withExKit({ name: "Wind Cutter", description: "A short blade wave.", ground: windCutter, air: inAir(windCutter) }, { damage: 1.25 }),
   side: withExKit({ name: "Wind Walk", description: "Fade and walk through bodies; attack to Backstab on either side, special to step out.", ground: windWalk(false), air: windWalk(true) }, { damage: 1.25 }),
-  up: withExKit({ name: "Rising Whirlwind", description: "Hold a direction as he gathers, then a slashing dash that way and a helpless fall.", ground: risingBlade, free: risingBladeFree }, { travel: 1.25 }),
+  up: withExKit({ name: "Rising Whirlwind", description: "Hold a direction as he gathers, then a slashing dash that way and a helpless fall.", ground: risingBlade }, { travel: 1.25 }),
   down: withExKit({ name: "Mirror Image", description: "Step back and leave an image; press again to swap to it with a slash. One hit breaks it.", ground: mirrorImage, air: inAir(mirrorImage), recall: imageSwap }, { damage: 1.25, durability: 2.0 }),
 };

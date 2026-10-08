@@ -99,9 +99,8 @@ function recallHolds(f: Readonly<Fighter>, kit: Readonly<SpecialKit>): boolean {
   return (kit.recallGroundOnly !== true || f.motion.grounded) && placedObject(f, kit.ground.placement?.slot).life > 0;
 }
 
-/** Why a press was refused: below its cost without a free form, or a ground-only form in the air. */
+/** Whether the press requested a ground-only form in the air. */
 export interface SpecialRefusal {
-  manaShort: boolean;
   groundOnly: boolean;
 }
 
@@ -118,7 +117,6 @@ const choice: HeroSpecialChoice = { slot: SpecialSlot.neutral, form: SpecialForm
  * the air, already used this airtime, or past an entity limit.
  */
 export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<FighterSpecials>, input: Readonly<Controls>, out: SpecialRefusal, world?: Roster): HeroSpecialChoice | undefined {
-  out.manaShort = false;
   out.groundOnly = false;
   const slot = requestedSlot(input);
   if ((f.special.cooldowns[SpecialAction.heroNeutral + slot] ?? 0) > 0) return undefined;

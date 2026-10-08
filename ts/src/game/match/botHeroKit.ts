@@ -22,7 +22,7 @@ export type HeroSpecialUse = (typeof HeroSpecialUse)[keyof typeof HeroSpecialUse
 
 // Preallocated: the computer weighs every special each frame, rollback replays included.
 const press = neutralControls();
-const refusal = { manaShort: false, groundOnly: false };
+const refusal = { groundOnly: false };
 
 /** The form a press of `slot` would start now, or undefined when the rules refuse it. */
 export function startableForm(f: Readonly<Fighter>, specials: Readonly<FighterSpecials>, slot: SpecialSlot): AuthoredSpecial | undefined {

@@ -75,8 +75,8 @@ test("EX Backstab, Image Swap, Storm Rush, Hammerfall and marked or air Pursuit 
   }
 });
 
-test("all four EX recoveries execute 25% farther including steering and free forms [spec #329]", () => {
-  for (const hero of heroes) for (const form of [SpecialForm.ground, SpecialForm.free]) {
+test("all four EX recoveries execute 25% farther including steering and airborne forms [spec #329]", () => {
+  for (const hero of heroes) for (const form of [SpecialForm.ground, SpecialForm.air]) {
     const travel = (ex: boolean) => {
       const fighter = cast(hero, SpecialSlot.up, form, ex);
       fighter.motion.z = 300.0;

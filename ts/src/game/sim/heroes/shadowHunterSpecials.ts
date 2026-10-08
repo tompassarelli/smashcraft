@@ -28,7 +28,7 @@ const SPIRIT_GLAIVE_SHOT: SpecialProjectile = {
 };
 
 const spiritGlaive = (air: boolean): AuthoredSpecial => ({
-  cost: 0, endFrame: 40, projectiles: [SPIRIT_GLAIVE_SHOT],
+  endFrame: 40, projectiles: [SPIRIT_GLAIVE_SHOT],
   landingLag: air ? AIR_SPECIAL_LANDING_LAG : undefined,
 });
 
@@ -36,11 +36,11 @@ const spiritGlaive = (air: boolean): AuthoredSpecial => ({
  * Loa Vault, the roster's charged-angle rule (#189): the spirits hold him
  * through f8 while the stick picks one of eight directions (straight up when
  * neutral), vault him that way evenly over f9-24 and stop on f25; then
- * helpless. Full form 2.9H, free form 2.0H: his recovery is an angle choice,
+ * helpless. His recovery is an angle choice,
  * like his wards.
  */
-const loaVault = (cost: number, distance: number): AuthoredSpecial => ({
-  cost, endFrame: 26, aimFrames: CHARGED_AIM_FRAMES,
+const loaVault = (distance: number): AuthoredSpecial => ({
+  endFrame: 26, aimFrames: CHARGED_AIM_FRAMES,
   motion: chargedAngleMotion(h(distance), 16),
   oncePerAirtime: true, helpless: true,
 });
@@ -62,7 +62,7 @@ const HEX_ORB: SpecialProjectile = {
 };
 
 const hex = (air: boolean): AuthoredSpecial => ({
-  cost: 25, endFrame: 40, projectiles: [HEX_ORB],
+  endFrame: 40, projectiles: [HEX_ORB],
   landingLag: air ? AIR_SPECIAL_LANDING_LAG : undefined,
 });
 
@@ -83,16 +83,16 @@ const SERPENT_WARD: SpecialPlacement = {
 };
 
 /**
- * The ward's cast: ground-only, 20 mana, the ward appears f26, the action ends
- * f52. Recasting while it stands plays the same vulnerable cast for free and
+ * The ward's cast: ground-only, the ward appears f26, the action ends
+ * f52. Recasting while it stands plays the same vulnerable cast and
  * removes the ward when it completes; nothing is refunded.
  */
-const SERPENT_WARD_CAST: AuthoredSpecial = { cost: 20, endFrame: 52, groundOnly: true, placement: SERPENT_WARD };
-const SERPENT_WARD_RECALL: AuthoredSpecial = { cost: 0, endFrame: 52, groundOnly: true, recall: true };
+const SERPENT_WARD_CAST: AuthoredSpecial = { endFrame: 52, groundOnly: true, placement: SERPENT_WARD };
+const SERPENT_WARD_RECALL: AuthoredSpecial = { endFrame: 52, groundOnly: true, recall: true };
 
 export const SHADOW_HUNTER_SPECIALS: FighterSpecials = {
   neutral: withExKit({ name: "Spirit Glaive", description: "A glaive that flies out and back, pulling its target toward him on the return.", ground: spiritGlaive(false), air: spiritGlaive(true) }, { damage: 1.25 }),
   side: withExKit({ name: "Serpent Ward", description: "Place a ward that fires on its own; press again to recall it.", ground: SERPENT_WARD_CAST, recall: SERPENT_WARD_RECALL }, { damage: 1.25, recallProtection: 4 }),
-  up: withExKit({ name: "Loa Vault", description: "Hold a direction as the spirits gather, then a vault that way and a helpless fall.", ground: loaVault(15, f32(3.55)), free: loaVault(0, f32(2.0)) }, { travel: 1.25 }),
+  up: withExKit({ name: "Loa Vault", description: "Hold a direction as the spirits gather, then a vault that way and a helpless fall.", ground: loaVault(f32(3.55)) }, { travel: 1.25 }),
   down: withExKit({ name: "Hex", description: "A short orb that stops its target attacking, grabbing or casting until it mashes out.", ground: hex(false), air: hex(true) }, { reach: 1.25 }),
 };

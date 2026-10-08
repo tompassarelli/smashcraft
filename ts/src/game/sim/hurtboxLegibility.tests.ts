@@ -93,7 +93,6 @@ function everyFighter(): FighterBodies[] {
         const kit = specialKit(hero.specials, slot);
         specialBodies(kit.ground, SLOT_NAMES[slot] ?? "special", moves);
         if (kit.air !== undefined) specialBodies(kit.air, `${SLOT_NAMES[slot] ?? "special"} (air)`, moves);
-        if (kit.free !== undefined) specialBodies(kit.free, `${SLOT_NAMES[slot] ?? "special"} (free)`, moves);
       }
     }
     fighters.push({ name: hero.name, set, moves });

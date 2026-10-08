@@ -9,6 +9,7 @@ export const ISOLATED_TEST_GROUPS: readonly (readonly string[])[] = [
   ["test/standalone.test.ts"],
   ["scripts/platformAdvantage.tests.ts"],
   ["test/game.test.ts"],
+  ["test/native-chat-entry.test.ts"],
   ["test/desync-guard.test.ts", "test/desync-guard-integrity.test.ts", "test/input-stall.test.ts", "test/bot-selection.test.ts", "test/session-setup.test.ts"],
   ["test/visual-lifecycle.test.ts", "test/player-view.test.ts", "test/selection-load.test.ts", "test/player-text.test.ts", "test/stack-trace.test.ts"],
   // source-shapes only reads files; the groups are balanced by measured CPU, so the last two finish together.

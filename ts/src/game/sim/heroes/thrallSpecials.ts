@@ -16,17 +16,17 @@ const wolf = (spawnFrame: number, air: boolean): SpecialProjectile => ({
   life: 28, radius: 20.0, effect: thrallHit(4.0, 55, 65.0, 28.0), reflectable: false, limit: 2,
   model: "units\\orc\\SpiritWolf\\SpiritWolf.mdx",
 });
-const wolves = (air: boolean): AuthoredSpecial => ({ cost: 18, endFrame: 44, cooldownFrames: 90, projectiles: [wolf(16, air), wolf(24, air)], landingLag: air ? 20 : undefined });
-const sight = (cost: number, height: number): AuthoredSpecial => ({
-  cost, endFrame: 40, facesStick: true, oncePerAirtime: true, helpless: true,
+const wolves = (air: boolean): AuthoredSpecial => ({ endFrame: 44, cooldownFrames: 90, projectiles: [wolf(16, air), wolf(24, air)], landingLag: air ? 20 : undefined });
+const sight = (height: number): AuthoredSpecial => ({
+  endFrame: 40, facesStick: true, oncePerAirtime: true, helpless: true,
   motion: [{ ...frames(1, 8), velocityX: 0.0, velocityZ: 0.0 }, { ...frames(9, 32), velocityX: 0.0, velocityZ: f32(h(height) / 24.0), driftSpeed: f32(h(f32(1.5)) / 24.0) }],
 });
 export const THRALL_SPECIALS: FighterSpecials = {
-  neutral: withExKit({ name: "Chain Lightning", description: "Cast a quick lightning bolt to cover the hammer's approach.", ground: { cost: 10, endFrame: 44, projectiles: [bolt], landingLag: 18 } }, { damage: 1.25 }),
+  neutral: withExKit({ name: "Chain Lightning", description: "Cast a quick lightning bolt to cover the hammer's approach.", ground: { endFrame: 44, projectiles: [bolt], landingLag: 18 } }, { damage: 1.25 }),
   side: withExKit({ name: "Feral Spirit", description: "Send two spirit wolves running low, one after the other.", ground: wolves(false), air: wolves(true) }, { damage: 1.25 }),
-  up: withExKit({ name: "Far Sight", description: "Let the spirits guide a rising leap; steer toward the ledge, then fall helpless.", ground: sight(12, f32(3.1)), free: sight(0, f32(1.75)) }, { travel: 1.25 }),
+  up: withExKit({ name: "Far Sight", description: "Let the spirits guide a rising leap; steer toward the ledge, then fall helpless.", ground: sight(f32(3.1)) }, { travel: 1.25 }),
   down: withExKit({ name: "Earthquake", description: "Slam the ground on both sides to launch nearby foes; a jump clears it.", ground: {
-    cost: 20, endFrame: 50, cooldownFrames: 90, groundOnly: true,
+    endFrame: 50, cooldownFrames: 90, groundOnly: true,
     regions: [heroRegion(18, 21, capsule(0.0, 12.0, 119.0, 12.0, 16.0), thrallHit(11.0, 75, 70.0, 36.0)), heroRegion(18, 21, capsule(0.0, 12.0, -119.0, 12.0, 16.0), thrallHit(11.0, 75, 70.0, 36.0, true))],
   } }, { reach: 1.25 }),
 };

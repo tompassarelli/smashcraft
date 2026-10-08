@@ -16,7 +16,6 @@ const AIR_LANDING_LAG = 20;
 
 // Neutral B, Carrion Swarm: one short reflectable bat cloud.
 const CARRION_SWARM: AuthoredSpecial = {
-  cost: 5,
   endFrame: 45,
   projectiles: [{
     model: "Abilities\\Spells\\Undead\\CarrionSwarm\\CarrionSwarmMissile.mdx",
@@ -30,7 +29,6 @@ const CARRION_SWARM: AuthoredSpecial = {
 // out (never before frame 24, sim/heroStatus.ts), any damaging hit wakes it,
 // and then it is immune to sleep for 240; a shield stops it.
 const SLEEP_ORB: AuthoredSpecial = {
-  cost: 25,
   endFrame: 58,
   projectiles: [{
     model: "Abilities\\Weapons\\VoidWalkerMissile\\VoidWalkerMissile.mdx",
@@ -46,7 +44,6 @@ const SLEEP_ORB: AuthoredSpecial = {
 const POUNCE_GRAB: StrikeCapsule = { x1: 14.0, z1: 40.0, x2: f32(h(f32(0.45)) - 12.0), z2: 40.0, radius: 12.0 };
 const POUNCE_BITE = dreadlordHit(10.000250816345215, "EDGE", 40);
 const NIGHT_POUNCE: AuthoredSpecial = {
-  cost: 20,
   endFrame: 53,
   motion: [{ ...frames(1, 16), velocityX: h(f32(0.14)), velocityZ: 0.0, stopsAtBody: true }, { ...frames(17, 17), velocityX: 0.0, velocityZ: 0.0 }],
   commandGrab: { ...frames(17, 19), strike: POUNCE_GRAB, holdFrames: 16, effect: POUNCE_BITE, recovery: 28, heal: { heal: 4.0 } },
@@ -61,16 +58,14 @@ const NIGHT_POUNCE_AIR: AuthoredSpecial = {
 
 // Up B, Bat Ascension, a guided rise (#189): steered by the held stick,
 // with no hitbox, wings spread as part
-// of his body throughout and no intangibility; helpless after. The free form
-// rises 2.0H and steers 0.6H instead of 2.8H and 1.0H.
+// of his body throughout and no intangibility; helpless after.
 const SPREAD_WINGS = [hurtPose(9, 32, [
   ...DREADLORD_STAND,
   hurtPart(-14.0, 85.0, -60.0, 125.0, 16.0),
   hurtPart(14.0, 85.0, 44.0, 125.0, 14.0),
 ])];
-function batAscension(cost: number, rise: number, across: number): AuthoredSpecial {
+function batAscension(rise: number, across: number): AuthoredSpecial {
   return {
-    cost,
     endFrame: 32,
     motion: [{ ...frames(9, 32), velocityX: 0.0, velocityZ: perFrame(h(rise), 24), driftSpeed: perFrame(h(across), 24) }],
     oncePerAirtime: true,
@@ -82,6 +77,6 @@ function batAscension(cost: number, rise: number, across: number): AuthoredSpeci
 export const DREADLORD_SPECIALS: FighterSpecials = {
   neutral: withExKit({ name: "Carrion Swarm", description: "A short, slow cloud of bats.", ground: CARRION_SWARM, air: { ...CARRION_SWARM, landingLag: AIR_LANDING_LAG } }, { reach: 1.25 }),
   side: withExKit({ name: "Vampiric Pounce", description: "Corkscrew forward with trailing bats; bite and heal on a catch, recover on a miss.", ground: NIGHT_POUNCE, air: NIGHT_POUNCE_AIR }, { damage: 1.25 }),
-  up: withExKit({ name: "Bat Ascension", description: "A steerable rise on bat wings, then a helpless fall.", ground: batAscension(15, f32(2.9), f32(2.2)), free: batAscension(0, f32(2.1), f32(0.8)) }, { travel: 1.25 }),
+  up: withExKit({ name: "Bat Ascension", description: "A steerable rise on bat wings, then a helpless fall.", ground: batAscension(f32(2.9), f32(2.2)) }, { travel: 1.25 }),
   down: withExKit({ name: "Sleep", description: "A slow orb that puts a grounded target to sleep until it mashes out or is hit.", ground: SLEEP_ORB, air: { ...SLEEP_ORB, landingLag: AIR_LANDING_LAG } }, { reach: 1.25 }),
 };
