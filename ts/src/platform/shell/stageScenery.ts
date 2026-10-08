@@ -3,6 +3,23 @@ import { placedPieces, shadowCastingLights, stageLightModel, stageScenery } from
 import { hideEffect } from "../../game/render/effects";
 import type { ShellState } from "./state";
 
+function drawStageFog(s: ShellState): void {
+  const scenery = stageScenery(s.game.stageChoice);
+  // Fog settings persist between stages and contrast-mask captures.
+  BlzSetTerrainFogMaxLinearDensity(1.0);
+  BlzSetTerrainFogDrawOverSky(false);
+  const fog = scenery.fog;
+  if (fog === undefined) { ResetTerrainFog(); return; }
+  SetTerrainFogEx(0, fog.start, fog.end, 0.0, fog.red, fog.green, fog.blue);
+  const height = scenery.heightFog;
+  if (height === undefined) return;
+  SetTerrainFogExV(3, height.start, height.end, height.density,
+    s.origin.z + height.heightStart, s.origin.z + height.heightEnd,
+    fog.start, fog.end, fog.red, fog.green, fog.blue);
+  BlzSetTerrainFogMaxLinearDensity(height.maxDensity);
+  BlzSetTerrainFogDrawOverSky(height.drawOverSky);
+}
+
 /** Shared handle lifetimes, with purely visual sky, light, fog and backdrop settings. */
 export function drawStageScenery(s: ShellState): void {
   for (const effect of s.stageScenery ?? []) {
@@ -16,11 +33,7 @@ export function drawStageScenery(s: ShellState): void {
   SetSkyModel(scenery.sky);
   const light = stageLightModel(s.game.stageChoice);
   SetDayNightModels(light, light);
-  if (scenery.fog === undefined) ResetTerrainFog();
-  else {
-    const { start, end, red, green, blue } = scenery.fog;
-    SetTerrainFogEx(0, start, end, 0.0, red, green, blue);
-  }
+  drawStageFog(s);
   // Set only once a stage with a shadow-casting light has raised it, then back to none.
   const shadows = shadowCastingLights(s.game.stageChoice);
   if (shadows > 0 || s.shadowLightsRaised) BlzSetMinShadowCastingPointLightCount(shadows);
@@ -70,10 +83,12 @@ export function showBackdrop(s: ShellState, visible: boolean): void {
     }
   }
   for (const deck of [...s.stageDecks, ...s.stageDeckParts]) BlzSetSpecialEffectAlpha(deck, alpha);
-  const fog = stageScenery(s.game.stageChoice).fog;
-  if (visible && fog !== undefined) SetTerrainFogEx(0, fog.start, fog.end, 0.0, fog.red, fog.green, fog.blue);
-  else if (visible) ResetTerrainFog();
-  else SetTerrainFogEx(0, 100000.0, 200000.0, 0.0, 0.0, 0.0, 0.0);
+  if (visible) drawStageFog(s);
+  else {
+    BlzSetTerrainFogMaxLinearDensity(1.0);
+    BlzSetTerrainFogDrawOverSky(false);
+    SetTerrainFogEx(0, 100000.0, 200000.0, 0.0, 0.0, 0.0, 0.0);
+  }
 }
 
 /** Same paused scene, old stock lighting versus the stage's authored lighting. */
