@@ -1,4 +1,4 @@
-# Kit review 2: Lich, Uther, Dreadlord and Shadow Hunter
+# Kit review 2: Lich, Forsaken Paladin, Dreadlord and Shadow Hunter
 
 Owner direction (Tom, 6-7 Oct 2026): Archer's up and down specials and
 Illidan's neutral special were dull and were redesigned
@@ -126,10 +126,10 @@ press gives the same decision with no new input.
 hitstun reward standing still and reward Lich for hiding; two strikes with a
 reaction are visible and leaveable.
 
-## Uther (#131)
+## Forsaken Paladin (#131)
 
 Warcraft III anchors: **Holy Light** (heals an ally, or damages the undead),
-**Divine Shield** (invulnerability, Uther cannot be harmed), **Devotion
+**Divine Shield** (invulnerability, Forsaken Paladin cannot be harmed), **Devotion
 Aura**, **Resurrection**.
 
 ### Review
@@ -151,20 +151,20 @@ heal-or-harm spell.
 
 - 10 mana, the orb leaves on frame 20, action ends frame 44 (air form lands
   with 20 frames of lag). It flies out at 0.11H a frame for 26 frames, then
-  turns and flies back toward Uther's chest at the same speed; it lives 80
+  turns and flies back toward Forsaken Paladin's chest at the same speed; it lives 80
   frames in all, radius 0.17H.
 - Outbound it strikes the first opponent: 7%, POKE at 40 degrees. Returning,
-  it strikes the first opponent between it and Uther: 5%, pushing that
-  opponent toward Uther (a sandwich). If it reaches Uther untouched it
+  it strikes the first opponent between it and Forsaken Paladin: 5%, pushing that
+  opponent toward Forsaken Paladin (a sandwich). If it reaches Forsaken Paladin untouched it
   **heals him 3%**, at most 9% a stock.
 - **Decisions:** the opponent must answer the orb twice. Jumping it lets
-  it come back as a heal; standing between Uther and the returning orb takes
+  it come back as a heal; standing between Forsaken Paladin and the returning orb takes
   the hit; shielding it outbound denies the heal; a powershield reflects it
   straight back (a reflected orb never returns or heals).
 
 **Down B: Divine Shield (picked).** The guard window stays (intangible
 frames 6-9, 25 mana, ground only, action ends frame 36, grabs beat it). A
-damaging strike or projectile overlapping Uther in the window now **raises
+damaging strike or projectile overlapping Forsaken Paladin in the window now **raises
 Divine Shield** in place of the 3% heal: 45 frames in which strikes and
 projectiles pass through him. He keeps every action; starting an attack, a
 special or a grab ends the shield. A correct read becomes a free walk
@@ -174,10 +174,10 @@ during the shield (grabs ignore it, as in the guard), or shield and wait out
 the 45 frames: his first attack drops it. Kaclang (Hero) is the reference:
 invulnerable, but the opponent waits it out.
 
-**Rejected: Devotion Aura as a placed zone that armors Uther.** Strong
+**Rejected: Devotion Aura as a placed zone that armors Forsaken Paladin.** Strong
 identity, but armor zones reward planting and waiting: a #98 camping
 pattern. **Rejected: an automatic smite on a successful guard.** That is a
-counter special (Illidan's Parry Step); Uther's guard stays a non-strike
+counter special (Illidan's Parry Step); Forsaken Paladin's guard stays a non-strike
 reward ([guard specials](../gameplay-design.md#powershield-counter-specials-and-guard-specials)).
 
 ## Dreadlord (#132)
@@ -260,7 +260,7 @@ rule, never before frame 20; 240 frames of immunity afterwards. Shadow
 Hunter's window is real (no challenges), the victim's answer is real (run,
 shield, mash). Counterplay: jump or shield the orb; powershield reflects it.
 
-**Rejected: Healing Wave on the glaive.** Uther owns the returning heal
+**Rejected: Healing Wave on the glaive.** Forsaken Paladin owns the returning heal
 (Holy Light); two returning heals would blur both identities.
 **Rejected: Big Bad Voodoo on the ward recall.** Invulnerability around a
 placed ward is camping; it stays the optional ultimate.

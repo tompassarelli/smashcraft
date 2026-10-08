@@ -106,7 +106,7 @@ only the warning while the flame already hits. The casting gesture ends at f43.
 Archer and Rifleman fire repeatedly from farther away; Kael sends one
 costly flame at a time. Illidan drains while rushing; Kael risks a stationary
 Siphon. Blademaster and Warden win through weapon approach and escape routes;
-Kael commits to casting. Mountain King and Uther survive trades better.
+Kael commits to casting. Mountain King and Forsaken Paladin survive trades better.
 Lich is slower and controls wider space; Kael moves faster with a
 single flame that ends on one contact. Dreadlord has a command grab and healing; Kael's drain
 loses to shield. Shadow Hunter maintains a ward, Pit Lord owns wider melee

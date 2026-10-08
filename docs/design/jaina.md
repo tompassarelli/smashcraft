@@ -100,7 +100,7 @@ projectile/placement limits, mana and snapshot state.
 
 Unlike Archer and Rifleman, Jaina pays for persistent positional threats.
 Unlike Illidan, Blademaster and Warden, she cannot chase on foot. Mountain
-King and Uther survive close exchanges; Jaina must escape them. Lich detonates
+King and Forsaken Paladin survive close exchanges; Jaina must escape them. Lich detonates
 an orb and manages a shell; Jaina layers a straight shot with an independent,
 destructible elemental. Dreadlord grabs, Shadow Hunter debuffs, Pit Lord
 pressures with size, Beastmaster commands a melee companion and Lich King

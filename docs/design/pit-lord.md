@@ -59,7 +59,7 @@ launchers into reads and tech chases. No new guaranteed string is designed.
 
 Compared with Archer and Rifleman he commits to a falling lane rather than
 firing fast horizontal shots; compared with Illidan, Blademaster and Warden
-he trades pursuit for space. Mountain King and Uther are compact brawlers;
+he trades pursuit for space. Mountain King and Forsaken Paladin are compact brawlers;
 Pit Lord exposes a much larger target. Lich and Shadow Hunter can sustain
 ranged pressure; Pit Lord must finish with his body and cleaver. Dreadlord's
 deception, Beastmaster's partner and Lich King's growing pool each persist

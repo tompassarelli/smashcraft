@@ -315,7 +315,7 @@ test("paired hero throws reach contact on the actual holder's frame across every
 });
 
 test("a hero holder's contact gesture also freezes when only the held fighter stops", () => {
-  const owner = createFighter(Character.uther, 0.0, 1), victim = createFighter(Character.mountainKing, 50.0, -1);
+  const owner = createFighter(Character.forsakenPaladin, 0.0, 1), victim = createFighter(Character.mountainKing, 50.0, -1);
   const world = testWorld(owner, victim), pose = createFighterPose();
   owner.grab.target = 1;
   owner.grab.action = GrabAction.throwUp;

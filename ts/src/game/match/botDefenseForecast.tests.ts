@@ -110,9 +110,9 @@ test("a visible shot expected to have expired or passed does not keep the comput
   assertFalse(chooseDefense(own, target, 0, neutralControls(), skill, 12));
 });
 
-test("Uther defends his approach to a delayed shot without treating Consecration as a guard", () => {
-  const own = createFighter(Character.uther, 0.0, 1);
-  const target = createFighter(Character.uther, 500.0, -1);
+test("Forsaken Paladin defends his approach to a delayed shot without treating Consecration as a guard", () => {
+  const own = createFighter(Character.forsakenPaladin, 0.0, 1);
+  const target = createFighter(Character.forsakenPaladin, 500.0, -1);
   own.motion.vx = 10.0;
   const projectile = at(target.projectiles, 0);
   projectile.life = 60;

@@ -142,7 +142,7 @@ const HELPER_DEADZONE = f32(0.28);
 const HELPER_DIGITAL = 7000 / 32767;
 const ROSTER: readonly Character[] = [
   Character.archer, Character.rifleman, Character.demonHunter, Character.blademaster, Character.mountainKing, Character.warden,
-  Character.lich, Character.uther, Character.dreadlord, Character.shadowHunter, Character.pitLord, Character.beastmaster, Character.lichKing,
+  Character.lich, Character.forsakenPaladin, Character.dreadlord, Character.shadowHunter, Character.pitLord, Character.beastmaster, Character.lichKing,
 ];
 const DanceInput = { stick: 0, keyOverlap: 1, keyGap: 2 } as const;
 type DanceInput = (typeof DanceInput)[keyof typeof DanceInput];

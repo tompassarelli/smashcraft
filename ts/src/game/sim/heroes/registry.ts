@@ -13,7 +13,7 @@ import { JAINA_HERO } from "./jainaHero";
 import { MOUNTAIN_KING_HERO } from "./mountainKingHero";
 import { PIT_LORD_HERO } from "./pitLordHero";
 import { SHADOW_HUNTER_HERO } from "./shadowHunterHero";
-import { UTHER_HERO } from "./utherHero";
+import { FORSAKEN_PALADIN_HERO } from "./forsakenPaladinHero";
 import { WARDEN_HERO } from "./wardenHero";
 import { SYLVANAS_HERO } from "./sylvanasHero";
 import { THRALL_HERO } from "./thrallHero";
@@ -24,7 +24,7 @@ import { KAELTHAS_HERO } from "./kaelthasHero";
 import { HIDDEN_FIGHTERS } from "./releaseRoster";
 
 export const HERO_ROSTER: readonly HeroDefinition[] = [
-  BLADEMASTER_HERO, MOUNTAIN_KING_HERO, WARDEN_HERO, LICH_HERO, UTHER_HERO, DREADLORD_HERO, SHADOW_HUNTER_HERO, PIT_LORD_HERO, BEASTMASTER_HERO, LICH_KING_HERO, THRALL_HERO, JAINA_HERO, SYLVANAS_HERO,
+  BLADEMASTER_HERO, MOUNTAIN_KING_HERO, WARDEN_HERO, LICH_HERO, FORSAKEN_PALADIN_HERO, DREADLORD_HERO, SHADOW_HUNTER_HERO, PIT_LORD_HERO, BEASTMASTER_HERO, LICH_KING_HERO, THRALL_HERO, JAINA_HERO, SYLVANAS_HERO,
   CAIRNE_HERO, CHEN_HERO, PEON_HERO, TINKER_HERO, KAELTHAS_HERO,
 ];
 
@@ -34,7 +34,7 @@ const BY_CHARACTER: { readonly [character: number]: HeroDefinition | undefined }
   [Character.mountainKing]: MOUNTAIN_KING_HERO,
   [Character.warden]: WARDEN_HERO,
   [Character.lich]: LICH_HERO,
-  [Character.uther]: UTHER_HERO,
+  [Character.forsakenPaladin]: FORSAKEN_PALADIN_HERO,
   [Character.dreadlord]: DREADLORD_HERO,
   [Character.shadowHunter]: SHADOW_HUNTER_HERO,
   [Character.pitLord]: PIT_LORD_HERO,
@@ -96,7 +96,7 @@ export function nextSelectableCharacter(current: number | undefined, direction: 
  */
 export const RENDERED_FIGHTERS: readonly Character[] = [
   Character.archer, Character.rifleman, Character.demonHunter, Character.blademaster, Character.mountainKing, Character.warden,
-  Character.lich, Character.uther, Character.dreadlord, Character.shadowHunter, Character.pitLord, Character.beastmaster, Character.lichKing,
+  Character.lich, Character.forsakenPaladin, Character.dreadlord, Character.shadowHunter, Character.pitLord, Character.beastmaster, Character.lichKing,
 ];
 
 /** The name a fighter's rendered portraits are filed under: "MountainKing". */

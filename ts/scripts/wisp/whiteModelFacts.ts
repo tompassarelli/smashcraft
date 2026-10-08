@@ -127,7 +127,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/utherwhite-a7b30297345a9e36f45a8f13f8ac7f712400a41de3936cc0a837e12bb498d0ba.mdx": {
+  "war3mapimported/forsakenpaladinwhite-a7b30297345a9e36f45a8f13f8ac7f712400a41de3936cc0a837e12bb498d0ba.mdx": {
     "geosets": 5,
     "triangles": 3217,
     "lights": 0,

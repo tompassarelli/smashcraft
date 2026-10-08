@@ -462,7 +462,7 @@ interface Status {
   poisonFrames: number;
   poisonEvery: number;
   poisonDamage: number;
-  /** Frames of Divine Shield left: intangible to strikes and projectiles, not grabs, until the fighter attacks (Uther, #131). */
+  /** Frames of Divine Shield left: intangible to strikes and projectiles, not grabs, until the fighter attacks (Forsaken Paladin, #131). */
   divineFrames: number;
   /** Damage percent hero guards and returning projectiles restored this stock. */
   guardHealed: number;

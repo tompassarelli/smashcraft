@@ -97,7 +97,7 @@ Normals, inspired by:
 | Passive | Frost Aura | The third melee hit he takes in a short time chills the attacker. |
 | Ultimate | Frost Wyrm | He summons a frost wyrm. |
 
-## Uther
+## Forsaken Paladin
 
 | Input | Name | What it does |
 | --- | --- | --- |

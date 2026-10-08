@@ -21,7 +21,7 @@ const CRIES: { readonly [character: number]: CryClips | undefined } = {
   [Character.mountainKing]: { cry: 8, standIn: 1 },
   [Character.warden]: { cry: 3, standIn: 4 },
   [Character.lich]: { cry: 8, standIn: 1 },
-  [Character.uther]: { cry: 6, standIn: 10 },
+  [Character.forsakenPaladin]: { cry: 6, standIn: 10 },
   [Character.dreadlord]: { cry: 7, standIn: 1 },
   [Character.shadowHunter]: { cry: 4, standIn: 9 },
   // Pit Lord has neither Stand Hit nor Stand Ready: Stand - 2 stands in.

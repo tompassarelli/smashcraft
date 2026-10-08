@@ -23,14 +23,14 @@ import { stepMatch } from "./step";
 
 /** Fighters whose ground normals tilts.md designs; Illidan's belong to his own kit. */
 const DESIGNED: readonly Character[] = [
-  Character.archer, Character.rifleman, Character.blademaster, Character.mountainKing, Character.warden, Character.lich, Character.uther, Character.dreadlord, Character.shadowHunter,
+  Character.archer, Character.rifleman, Character.blademaster, Character.mountainKing, Character.warden, Character.lich, Character.forsakenPaladin, Character.dreadlord, Character.shadowHunter,
   Character.pitLord, Character.beastmaster,
 ];
 const GROUND = [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack] as const;
 /** Forward airs that outreach the forward tilt on purpose (tilts.md, "Reach versus aerials"). */
 const LONGER_AERIAL: readonly Character[] = [Character.lich, Character.dreadlord, Character.archer];
 /** Forward tilts that sweep vertical ground, so a diagonal input plays the plain tilt. */
-const UNANGLED: readonly Character[] = [Character.blademaster, Character.uther, Character.pitLord];
+const UNANGLED: readonly Character[] = [Character.blademaster, Character.forsakenPaladin, Character.pitLord];
 
 const movesOf = (character: Character): FighterMoves | undefined => authoredTuning(character).moves;
 
@@ -170,8 +170,8 @@ function hitFrames(d: Duel, frames: number, targetShield = false): number[] {
   return hits;
 }
 
-test("Uther's down tilt knocks the victim down at 0%", () => {
-  const d = duel(Character.uther, 90.0);
+test("Forsaken Paladin's down tilt knocks the victim down at 0%", () => {
+  const d = duel(Character.forsakenPaladin, 90.0);
   press(d, AttackStyle.downTilt);
   let downed = false;
   for (let i = 0; i < 90 && !downed; i++) {

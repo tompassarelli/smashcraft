@@ -40,7 +40,7 @@ import { type AppliedStatus, applyHeroStatus, damageEndsHeroStatus } from "./her
 import { contactEarnsMana, dealtManaGain, gainMana, takenManaGain } from "./mana";
 import { EX_ARMOR_DAMAGE, exArmorActive } from "./exSpecials";
 import { PassiveProc, devotionBlocked, devotionLaunchScale, frostArmorStruck, sourcePassiveContact, vampiricHeal, BASH_HITSTUN_FRAMES } from "./passives";
-import { UTHER_DAMAGE_MULTIPLIER, utherHammerContact } from "./heroes/utherHammer";
+import { FORSAKEN_PALADIN_DAMAGE_MULTIPLIER, forsakenPaladinHammerContact } from "./heroes/forsakenPaladinHammer";
 
 /** One contact, with the source's and target's state sampled when it was collected. */
 interface DamageContact {
@@ -143,7 +143,7 @@ export function collectDamageContact(
   contact.facing = facing;
   contact.kind = kind;
   contact.direct = direct;
-  contact.hammerHitlag = kind === ContactKind.launch && utherHammerContact(source, effect.damage, direct) ? 3 : 0;
+  contact.hammerHitlag = kind === ContactKind.launch && forsakenPaladinHammerContact(source, effect.damage, direct) ? 3 : 0;
   contact.blocked = !unblockable && shieldContact;
   contact.crouching = target.motion.crouching;
   contact.grounded = target.motion.grounded;
@@ -178,9 +178,9 @@ export function collectDamageContact(
       : relative >= addFloat32(bottom, multiplyFloat32(span, 0.75)) ? 2 : 1;
   }
   contact.proc = terrain ? PassiveProc.none : sourcePassiveContact(source, targetSlot, contact.origin, direct, contact.blocked, contact.key, contact.effect);
-  // Uther's balance multiplier preserves the original contact freeze.
+  // Forsaken Paladin's balance multiplier preserves the original contact freeze.
   contact.hitlagDamage = contact.effect.damage;
-  if (source.character === Character.uther) contact.effect.damage = multiplyFloat32(contact.effect.damage, UTHER_DAMAGE_MULTIPLIER);
+  if (source.character === Character.forsakenPaladin) contact.effect.damage = multiplyFloat32(contact.effect.damage, FORSAKEN_PALADIN_DAMAGE_MULTIPLIER);
 }
 
 /** Terrain shares ordinary body-hit resolution, without a fighter earning damage or a passive proc. */
@@ -353,7 +353,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
       return;
     }
   }
-  // Uther's Devotion Aura takes a share off a launch it is ready for; throws ignore it.
+  // Forsaken Paladin's Devotion Aura takes a share off a launch it is ready for; throws ignore it.
   if (winner !== undefined) strongest = multiplyFloat32(strongest, devotionLaunchScale(target, contactAt(winner).kind === ContactKind.throw));
   // A later hit replaces both shield-contact motion channels.
   shield.pushbackX = 0.0;

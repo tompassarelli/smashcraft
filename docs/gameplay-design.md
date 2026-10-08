@@ -139,7 +139,7 @@ table (Melee units a frame; takeoffs after 8 dash frames and 24 run frames):
 | Mountain King | 0.82 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 14 |
 | Warden | 1.10 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 22 |
 | Lich | 0.95 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 19 |
-| Uther | 0.88 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 18 |
+| Forsaken Paladin | 0.88 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 18 |
 | Dreadlord | 1.22 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 20 |
 | Shadow Hunter | 1.00 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 16 |
 | Pit Lord | 0.75 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 13 |
@@ -547,8 +547,8 @@ rule over all 13 selectable fighters.
 
 Owner decision, 6 October 2026: adopt the 2 October expansion brief as
 [the roster specification](design/roster.md). Build Blademaster, Mountain King,
-Warden, Lich, Uther, Dreadlord and Shadow Hunter in that order; "shadow shaman"
-means Shadow Hunter (Rokhan), and Uther uses the Paladin identity. The eight
+Warden, Lich, Forsaken Paladin, Dreadlord and Shadow Hunter in that order; "shadow shaman"
+means Shadow Hunter (Rokhan), and Forsaken Paladin uses the Paladin identity. The eight
 Tavern fighters are optional candidates, including Brewmaster; their inclusion
 in the specification is not a commitment to ship them.
 
@@ -611,7 +611,7 @@ every newly registered fighter too.
 | Mountain King | Storm Bolt (33) | Storm Rush (43) | One 8% hit armored on frames 1–6 |
 | Warden | Shadow Strike (30) | Shadow Pursuit (40) | One 8% hit armored on frames 1–6 |
 | Lich | Frost Nova (35) | Death and Decay (50) | One 8% hit armored on frames 1–6 |
-| Uther | Cleansing Hammer (35) | Righteous Fury (50) | One 8% hit armored on frames 1–6 |
+| Forsaken Paladin | Cleansing Hammer (35) | Righteous Fury (50) | One 8% hit armored on frames 1–6 |
 | Dreadlord | Carrion Swarm (30) | Vampiric Pounce (45) | One 8% hit armored on frames 1–6 |
 | Shadow Hunter | Spirit Glaive (25) | Serpent Ward (45) | One 8% hit armored on frames 1–6 |
 | Pit Lord | Howl of Terror (37) | Ruin Charge (47) | One 8% hit armored on frames 1–6 |
@@ -1141,7 +1141,7 @@ smashcraft:docs/hurtboxes.md.
 Two owner principles (6 Oct 2026) frame the rules: **attacking limbs can be
 hit**, so counter-hitting an extended arm, leg or wing is always possible,
 and **weapons are disjoint**: a held weapon (Blademaster's sword, Mountain
-King's and Uther's hammers, Archer's bow, Rifleman's gun) is never part of the
+King's and Forsaken Paladin's hammers, Archer's bow, Rifleman's gun) is never part of the
 hurtbox, so striking the weapon does nothing while the hand and arm holding it
 can be hit. Counter-hit the limb, not the sword.
 
@@ -1189,7 +1189,7 @@ reason. Current departures:
 - **Chen's down air (downward boot), rule 6.** The boot is the strike, so
   the extended leg stays hittable through its full 71-unit downward reach.
   The staff remains disjoint.
-- **Uther's back air (boot kick), rule 6.** The extended leg is the strike,
+- **Forsaken Paladin's back air (boot kick), rule 6.** The extended leg is the strike,
   about 0.78 of his height behind him, and stays hittable to its full length.
 - **Dreadlord's wings and claws, rule 6** (down smash, forward smash, forward
   air, back air, down air). The roster keeps hurtboxes on attached body parts;
@@ -1326,7 +1326,7 @@ kind of defensive special beside the counters:
 
 | | Universal powershield | Counter specials | Guard specials |
 |---|---|---|---|
-| Who | Every fighter, through the shared shield | Fighters whose kit authors one (none since Illidan's Parry Step became Fel Rush, #147) | Fighters whose kit authors one: Uther's Divine Shield (#96, #131) |
+| Who | Every fighter, through the shared shield | Fighters whose kit authors one (none since Illidan's Parry Step became Fel Rush, #147) | Fighters whose kit authors one: Forsaken Paladin's Divine Shield (#96, #131) |
 | Input | The ordinary shield press, timed | A special move | A special move |
 | Commitment | None beyond the shield: a press that parries nothing is an ordinary shield | Startup, a counter window and recovery; a whiff is punishable | Startup, a guard window and recovery; a whiff is punishable, and grabs beat it |
 | Reward | No shieldstun or release lag and next-frame action with the defender's own grounded option, which can still be the wrong choice | An automatic strike authored by the move, such as cancelling the attack and launching the attacker | A non-strike reward and no automatic strike: Divine Shield is intangible through its window, and a successful guard leaves him intangible to strikes and projectiles (not grabs) for 45 frames or until he attacks |
@@ -1538,7 +1538,7 @@ following the launch callback. Distances are rounded to one world unit.
 | Mountain King | Charged angle | 10 | 355 / 359 | 249 / 254 |
 | Warden | Charged angle | 10 | 342 / 346 | 223 / 227 |
 | Lich | Guided | 11 | 369 / 371 | 229 / 261 |
-| Uther | Guided | 9 | 333 / 362 | 214 / 320 |
+| Forsaken Paladin | Guided | 9 | 333 / 362 | 214 / 320 |
 | Dreadlord | Guided | 10 | 370 / 427 | 229 / 276 |
 | Shadow Hunter | Charged angle | 10 | 381 / 386 | 263 / 267 |
 | Pit Lord | Guided | 14 | 339 / 377 | 218 / 237 |

@@ -36,7 +36,7 @@ sounds are stock Warcraft III content: classic models need no import.
 - **Startup cue.** From the special's first frame to the frame before it
   becomes active, a cast flash at the hand or body. Each hero casts in one
   colour (Blademaster's Bloodlust red, Mountain King's storm sparks, Warden's
-  shadow, Lich's frost, Uther's holy light, Dreadlord's unholy frenzy, Shadow
+  shadow, Lich's frost, Forsaken Paladin's holy light, Dreadlord's unholy frenzy, Shadow
   Hunter's troll berserk), with a signature tell where the spell has one
   (Mirror Image, Wind Walk, War Stomp before Thunder Leap).
 - **Active cue.** The move's own Warcraft spell over its active frames: every

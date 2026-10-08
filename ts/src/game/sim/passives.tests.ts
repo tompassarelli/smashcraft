@@ -163,20 +163,20 @@ test("Lich: the third melee hit to reach him chills its striker; projectiles and
   assertEquals(lich.passive.stacks, 0);
 });
 
-test("Uther: three blocked hits ready Devotion, the next launch is 0.8 as strong and throws ignore it", () => {
-  const plain = pair(Character.blademaster, Character.uther);
+test("Forsaken Paladin: three blocked hits ready Devotion, the next launch is 0.8 as strong and throws ignore it", () => {
+  const plain = pair(Character.blademaster, Character.forsakenPaladin);
   plain.target.status.damage = 60.0;
   hit(plain.world, 0, 1, strike(12.0), HitOrigin.melee);
   const baseline = plain.target.launch.hitstun;
-  const { world, target: uther } = pair(Character.blademaster, Character.uther);
+  const { world, target: forsakenPaladin } = pair(Character.blademaster, Character.forsakenPaladin);
   for (let index = 0; index < 3; index++) hit(world, 0, 1, strike(2.0), HitOrigin.melee, true);
-  assertTrue(passivePips(uther).ready);
+  assertTrue(passivePips(forsakenPaladin).ready);
   hit(world, 0, 1, strike(4.0), HitOrigin.throw, false, ContactKind.throw);
-  assertTrue(passivePips(uther).ready);
-  uther.status.damage = 60.0;
+  assertTrue(passivePips(forsakenPaladin).ready);
+  forsakenPaladin.status.damage = 60.0;
   hit(world, 0, 1, strike(12.0), HitOrigin.melee);
-  assertTrue(uther.launch.hitstun < baseline);
-  assertEquals(uther.passive.stacks, 0);
+  assertTrue(forsakenPaladin.launch.hitstun < baseline);
+  assertEquals(forsakenPaladin.passive.stacks, 0);
 });
 
 test("Dreadlord: every third landed melee hit or throw heals him 2%, at most 8% a stock; projectiles give nothing", () => {

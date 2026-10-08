@@ -298,11 +298,11 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
       look: "after the neutral special, the top-left readout's first line names it (for example 'Swift Arrow: 34 total'), not 'Attack' or 'Special'",
     },
-    // #153 box 5, in one Uther mirror in this order, each starting where the last left the fighters (smashcraft:docs/design/mana.md, "The bar"). Keys: W R E move, U special, O grab.
+    // #153 box 5, in one Forsaken Paladin mirror in this order, each starting where the last left the fighters (smashcraft:docs/design/mana.md, "The bar"). Keys: W R E move, U special, O grab.
     {
       id: "153-mana-full",
       closes: "smashcraft#153 box 5 (full bars)",
-      map: heroProfile("Uther"),
+      map: heroProfile("Forsaken Paladin"),
       setup: [{ waitMs: 3000 }],
       capture: [{ kind: "frames", name: "full", client: "a" }, { kind: "frames", name: "full", client: "b" }],
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
@@ -311,8 +311,8 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
     {
       id: "153-mana-spent",
       closes: "smashcraft#153 box 5 (drain on specials)",
-      map: heroProfile("Uther"),
-      // Three Crusader Rushes (20 each) toward the other Uther.
+      map: heroProfile("Forsaken Paladin"),
+      // Three Crusader Rushes (20 each) toward the other Forsaken Paladin.
       setup: [{ keys: ["r+u"] }, { waitMs: 900 }, { keys: ["r+u"] }, { waitMs: 900 }, { keys: ["r+u"] }, { waitMs: 900 }],
       capture: [{ kind: "frames", name: "spent", client: "a" }, { kind: "frames", name: "spent", client: "b" }],
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
@@ -321,7 +321,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
     {
       id: "153-mana-escape",
       closes: "smashcraft#153 box 5 (stacked with the escape meter)",
-      map: heroProfile("Uther"),
+      map: heroProfile("Forsaken Paladin"),
       // After the rushes player 1 stands at player 2, so a grab press catches.
       setup: [{ keys: ["o"] }, { waitMs: 150 }],
       capture: [{ kind: "frames", name: "held", client: "a", count: 4, everyMs: 120 }, { kind: "frames", name: "held", client: "b", count: 4, everyMs: 120 }],
@@ -331,7 +331,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
     {
       id: "153-mana-refused",
       closes: "smashcraft#153 box 5 (refused special)",
-      map: heroProfile("Uther"),
+      map: heroProfile("Forsaken Paladin"),
       // Once the hold ends, rushes until one can't be paid: the refused press flashes both of player 1's bars red.
       setup: [{ waitMs: 1500 }, { keys: ["r+u"] }, { waitMs: 900 }, { keys: ["r+u"] }, { waitMs: 900 }, { keys: ["r+u"] }, { waitMs: 300 }, { keys: ["r+u"] }],
       capture: [{ kind: "frames", name: "refused", client: "a", count: 8, everyMs: 100 }],

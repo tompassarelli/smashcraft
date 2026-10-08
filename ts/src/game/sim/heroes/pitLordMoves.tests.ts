@@ -64,7 +64,7 @@ test("Pit Lord's startup and active frames reach production, one live strike pat
 test("Pit Lord is the roster's largest, heaviest and slowest body", () => {
   const pitLord = heroBody(Character.pitLord);
   assertTrue(pitLord !== undefined);
-  for (const character of [Character.mountainKing, Character.uther, Character.dreadlord]) {
+  for (const character of [Character.mountainKing, Character.forsakenPaladin, Character.dreadlord]) {
     const other = heroBody(character);
     if (pitLord === undefined || other === undefined) return;
     assertGreaterThan(pitLord.weight, other.weight);

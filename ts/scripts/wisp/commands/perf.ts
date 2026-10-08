@@ -3,7 +3,7 @@
 // cost predicted: quick-match, the development build's quick match; bot and
 // bot-four, the native bot session's match with the integrity build
 // (scripts/wisp/botMatch.ts); bot-NAME, that match against one computer of
-// any selectable fighter (bot-uther); playable-bot-four, bot-four with the playable build. `bun wisp perf compare A B` holds run B to run A
+// any selectable fighter (bot-forsaken-paladin); playable-bot-four, bot-four with the playable build. `bun wisp perf compare A B` holds run B to run A
 // (wisp:docs/frame-cost.md#headless). `bun wisp perf census` is the spike census (../perfCensus.ts); `perf budget` holds
 // a run to the frame budget (../perfBudget.ts); `perf profile RUN` names what its
 // worst frames spend (../perfCensus.ts).

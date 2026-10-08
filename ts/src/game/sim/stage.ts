@@ -23,7 +23,7 @@ export const CARRIED_TEST_STAGE = 11;
 export const CANNON_TEST_STAGE = 12;
 export const TIMED_TEST_STAGE = 13;
 export const HELLFIRE_STAGE = 14;
-/** Uther's and Dreadlord's home: a high rooftop over two low balconies, after Ultimate's Lylat Cruise without its tilt. */
+/** Forsaken Paladin's and Dreadlord's home: a high rooftop over two low balconies, after Ultimate's Lylat Cruise without its tilt. */
 export const STRATHOLME_STAGE = 6;
 /** Warden's home: two platforms over the ends, overhanging the ledges, after Ultimate's Northern Cave. */
 export const TOMB_OF_SARGERAS_STAGE = 7;

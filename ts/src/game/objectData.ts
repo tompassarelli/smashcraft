@@ -50,7 +50,7 @@ export const FIGHTER_OBJECTS: Readonly<Record<Character, FighterObject>> = {
   [Character.mountainKing]: heroObject(Character.mountainKing),
   [Character.warden]: heroObject(Character.warden),
   [Character.lich]: heroObject(Character.lich),
-  [Character.uther]: heroObject(Character.uther),
+  [Character.forsakenPaladin]: heroObject(Character.forsakenPaladin),
   [Character.dreadlord]: heroObject(Character.dreadlord),
   [Character.shadowHunter]: heroObject(Character.shadowHunter),
   [Character.pitLord]: heroObject(Character.pitLord),

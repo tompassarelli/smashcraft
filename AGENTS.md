@@ -205,8 +205,8 @@ code. From smashcraft:ts/:
   `bun tools/animations/cairne-clips.ts STOCK_TAUREN.mdx PRIVATE_OUTPUT`
   appends the complete totem kit, recovery, paired grabs and nine pain clips
   to the private classic Tauren Chieftain model, preserving its stock clips.
-- Uther animation authoring (from the repository root):
-  `bun tools/animations/uther-clips.ts STOCK_FORSAKEN_PALADIN.mdx PRIVATE_OUTPUT CLASSIC_PALADIN.mdx`
+- Forsaken Paladin animation authoring (from the repository root):
+  `bun tools/animations/forsaken-paladin-clips.ts STOCK_FORSAKEN_PALADIN.mdx PRIVATE_OUTPUT CLASSIC_PALADIN.mdx`
   keeps the Forsaken body and rig, attaches the classic Paladin hammer, and
   authors his strikes, recovery, paired throws and nine pain poses.
 - Chen animation authoring (from the repository root):

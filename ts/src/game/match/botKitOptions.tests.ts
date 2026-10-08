@@ -210,8 +210,8 @@ sweep("computer Lich bursts Frost Nova, places Death and Decay, arms Frost Armor
   usesEvery(Character.lich, ["recall0", "special1", "special3", "recall3"]);
 });
 
-sweep("computer Uther uses Cleansing Hammer, Righteous Fury, Ascension and Consecration", () => {
-  usesEvery(Character.uther, ["special0", "special1", "special2", "special3"]);
+sweep("computer Forsaken Paladin uses Cleansing Hammer, Righteous Fury, Ascension and Consecration", () => {
+  usesEvery(Character.forsakenPaladin, ["special0", "special1", "special2", "special3"]);
 });
 
 sweep("computer Dreadlord corkscrews with Vampiric Pounce, sleeps a target, mashes out of Sleep and hits a sleeper", () => {

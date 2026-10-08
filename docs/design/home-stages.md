@@ -20,7 +20,7 @@ smashcraft:ts/src/game/menu/stageCatalog.ts.
 | Mountain King | Blackrock | 12 | Blackrock Mountain rises at the edge of Khaz Modan, the dwarves' homeland; its forges are held by their Dark Iron kin. |
 | Warden | Tomb of Sargeras | 7 | TFT's "Terror of the Tides": Maiev hunts Illidan to the Broken Isles and into the Tomb of Sargeras. |
 | Lich | Naxxramas | 4 | Kel'Thuzad, raised as a lich in RoC, rules the Scourge necropolis Naxxramas. |
-| Uther | Stratholme | 6 | RoC's "The Culling": Uther refuses to purge Stratholme and leaves Arthas at its gates. |
+| Forsaken Paladin | Stratholme | 6 | RoC's "The Culling": Lordaeron's paladins refuse to purge Stratholme and leave Arthas at its gates. |
 | Dreadlord | Stratholme | 6 | RoC's "The Culling": the dreadlord Mal'Ganis waits for Arthas in the plagued city. |
 | Shadow Hunter | Durotar Skies | 3 | Vol'jin's Darkspear trolls settle Durotar's coast beside Thrall's orcs. |
 | Pit Lord | Hellfire Citadel | 14 | Magtheridon, the pit lord who holds the citadel until Illidan takes it. |
@@ -39,7 +39,7 @@ smashcraft:ts/src/game/menu/stageCatalog.ts.
 Ahn'Qiraj and Sky Deck (test) are home to no fighter. A stage may host
 several fighters, as Smash's do; Durotar Skies hosts several Horde fighters.
 
-Stratholme (6) and Tomb of Sargeras (7) were added for this table: Uther,
+Stratholme (6) and Tomb of Sargeras (7) were added for this table: Forsaken Paladin,
 Dreadlord and Warden had no stage from their campaigns.
 
 Both stages are selectable. Stratholme uses cobbled slopes and three rooftop

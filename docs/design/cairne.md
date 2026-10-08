@@ -89,7 +89,7 @@ including stock/rematch reset and replay copies.
 Compared with Archer and Rifleman, Cairne gives up repeated ranged pressure
 for one low wave and direct hits. Compared with Illidan, Blademaster and
 Warden, he gives up burst mobility and evasive branches for survival. Compared
-with Mountain King and Uther, he is larger, slower and has broader totem reach.
+with Mountain King and Forsaken Paladin, he is larger, slower and has broader totem reach.
 Compared with Lich and Shadow Hunter, he has no placed control zone. Compared
 with Dreadlord, he has no capture or sleep. Compared with Pit Lord, he is
 heavier and taller, with a low straight wave and launcher rather than an arc

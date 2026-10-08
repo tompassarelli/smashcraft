@@ -172,7 +172,7 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     up: { spell: "Spectral Ascent", startup: FROST, active: cue("Abilities\\Spells\\Undead\\Unsummon\\UnsummonTarget.mdx", "body", f32(0.7)) },
     down: { spell: "Frost Armor", startup: cue("Abilities\\Spells\\Undead\\DarkRitual\\DarkRitualCaster.mdx", "feet", f32(0.6)), active: cue("Abilities\\Spells\\Undead\\FrostArmor\\FrostArmorDamage.mdx", "body", f32(1.2)) },
   },
-  [Character.uther]: {
+  [Character.forsakenPaladin]: {
     neutral: { spell: "Cleansing Hammer", startup: HOLY, active: cue("Abilities\\Spells\\Human\\HolyBolt\\HolyBoltSpecialArt.mdx", "hand", 1.0) },
     side: { spell: "Righteous Fury", startup: cue("Abilities\\Spells\\Human\\InnerFire\\InnerFireTarget.mdx", "body", f32(0.8)), active: cue("Abilities\\Spells\\Other\\Stampede\\StampedeMissileDeath.mdx", "ahead", 1.0) },
     up: { spell: "Ascension", startup: HOLY, active: cue("Abilities\\Spells\\Human\\Resurrect\\ResurrectTarget.mdx", "feet", 0.25) },

@@ -202,8 +202,8 @@ sweep("computer Shadow Hunter throws the glaive drill, angled forward tilts, his
   playsPassives(counts);
 });
 
-sweep("computer Uther throws his down tilt and dash attack", () => {
-  throws(played(Character.uther), [downTilt, dashAttack]);
+sweep("computer Forsaken Paladin throws his down tilt and dash attack", () => {
+  throws(played(Character.forsakenPaladin), [downTilt, dashAttack]);
 });
 
 sweep("computer Illidan charges Eye Blast and throws Shear, Flames of Azzinoth and the two-hit forward air", () => {

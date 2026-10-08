@@ -27,7 +27,7 @@ interface TierDeparture {
 export const TIER_DEPARTURES: readonly TierDeparture[] = [
   ...[AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt, AttackStyle.downTilt,
     AttackStyle.dashAttack, AttackStyle.neutralAir, AttackStyle.forwardAir, AttackStyle.upAir, AttackStyle.downAir].map((style) => ({
-    character: Character.uther, style, tier: SoundTier.large, why: "Uther's committed hammer blows use the heavy bash (#216)",
+    character: Character.forsakenPaladin, style, tier: SoundTier.large, why: "Forsaken Paladin's committed hammer blows use the heavy bash (#216)",
   })),
   { character: Character.warden, style: AttackStyle.downTilt, tier: SoundTier.small, why: "her chain poke repeats like a jab (Ness's foot jab)" },
   { character: Character.pitLord, style: AttackStyle.dashAttack, tier: SoundTier.large, why: "Demonic Bulk, the roster's strongest dash attack, hits like a smash" },

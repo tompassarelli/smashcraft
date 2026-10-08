@@ -34,7 +34,7 @@ const SPECS: readonly PassiveSpec[] = [
   { kind: PassiveKind.bash, stacks: 2, window: 120 }, // mountainKing
   { kind: PassiveKind.blink, stacks: 1, window: 0 }, // warden
   { kind: PassiveKind.frostArmor, stacks: 2, window: 180 }, // lich
-  { kind: PassiveKind.devotion, stacks: 3, window: 0 }, // uther
+  { kind: PassiveKind.devotion, stacks: 3, window: 0 }, // forsakenPaladin
   { kind: PassiveKind.vampiric, stacks: 2, window: 240 }, // dreadlord
   { kind: PassiveKind.voodoo, stacks: 2, window: 240 }, // shadowHunter
   { kind: PassiveKind.cleave, stacks: 2, window: 180 }, // pitLord
@@ -258,13 +258,13 @@ export function frostArmorStruck(target: Fighter, sourceSlot: number, origin: Hi
   return true;
 }
 
-/** Uther's Devotion Aura: a hit his shield blocked counts. */
+/** Forsaken Paladin's Devotion Aura: a hit his shield blocked counts. */
 export function devotionBlocked(target: Fighter): void {
   const spec = passiveSpec(target.character);
   if (spec.kind === PassiveKind.devotion) addStack(target, spec);
 }
 
-/** Uther's Devotion Aura: the launch scale for a launching, non-throw hit, spending it. */
+/** Forsaken Paladin's Devotion Aura: the launch scale for a launching, non-throw hit, spending it. */
 export function devotionLaunchScale(target: Fighter, isThrow: boolean): number {
   const spec = passiveSpec(target.character);
   if (spec.kind !== PassiveKind.devotion || isThrow || target.passive.stacks < spec.stacks) return 1.0;

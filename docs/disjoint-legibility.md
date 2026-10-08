@@ -15,7 +15,7 @@ The named Smash moves are visual references, not copied animation assets or shar
 | Mountain King | jab, up smash, down smash, forward smash, forward tilt, up tilt, forward tilt up, forward tilt down, getup attack, forward air, back air, ledge attack, jab2 | Ultimate Hero Kazap |
 | Warden | jab, down smash, forward smash, forward tilt, up tilt, down tilt, forward tilt up, forward tilt down, getup attack, neutral air, forward air, back air, down air, ledge attack, dash attack, jab2, jab3 | Melee Link forward smash |
 | Lich | down smash, forward smash, forward tilt, up tilt, down tilt, forward tilt up, forward tilt down, getup attack, neutral air, forward air, back air, down air, ledge attack, dash attack | Melee Zelda magic aerials / Din’s Fire |
-| Uther | up smash, down smash, forward smash, forward tilt, up tilt, down tilt, forward tilt up, forward tilt down, getup attack, neutral air, forward air, down air, ledge attack, dash attack | Ultimate Hero Flame Slash |
+| Forsaken Paladin | up smash, down smash, forward smash, forward tilt, up tilt, down tilt, forward tilt up, forward tilt down, getup attack, neutral air, forward air, down air, ledge attack, dash attack | Ultimate Hero Flame Slash |
 | Dreadlord | getup attack, ledge attack | Melee Ness PK Fire |
 | Shadow Hunter | jab, down smash, forward smash, forward tilt, up tilt, down tilt, forward tilt up, forward tilt down, getup attack, neutral air, forward air, down air, ledge attack, dash attack, jab2, jab3 | Melee Link boomerang |
 | Pit Lord | up smash, down smash, forward smash, forward tilt, up tilt, forward tilt up, forward tilt down, getup attack, neutral air, forward air, ledge attack, dash attack | Ultimate Hero Flame Slash |
@@ -30,7 +30,7 @@ The named Smash moves are visual references, not copied animation assets or shar
 | Mountain King | Thunder Leap, Thunder Clap, Small Clap, Storm Bolt (traveling spell), Thunder Clap (traveling spell) | Ultimate Hero Kazap |
 | Warden | Pursuit Lunge, Shadow Pursuit, Fan of Knives, Shadow Strike (traveling spell) | Melee Link forward smash |
 | Lich | Dark Ritual, Frost Nova (traveling spell), Frost Nova (placed field / burst), Death and Decay (placed field / burst) | Melee Zelda magic aerials / Din’s Fire |
-| Uther | Hammer of Justice, Holy Radiance, Holy Radiance (traveling spell) | Ultimate Hero Flame Slash |
+| Forsaken Paladin | Hammer of Justice, Holy Radiance, Holy Radiance (traveling spell) | Ultimate Hero Flame Slash |
 | Dreadlord | Carrion Swarm (traveling spell), Sleep (traveling spell) | Melee Ness PK Fire |
 | Shadow Hunter | Spirit Glaive (traveling spell), Serpent Ward (traveling spell), Hex (traveling spell) | Melee Link boomerang |
 | Pit Lord | Howl of Terror, Fel Spit (traveling spell) | Ultimate Hero Flame Slash |

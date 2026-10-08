@@ -30,7 +30,7 @@ import { stageBounds } from "../src/game/sim/stageBounds";
 export const CAMERA_SCENARIOS: readonly { readonly a: string; readonly b: string; readonly stage: number; readonly shift: number }[] = [
   { a: "archer", b: "blademaster", stage: 0, shift: 0.0 },
   { a: "rifleman", b: "mountain-king", stage: 0, shift: -60.0 },
-  { a: "illidan", b: "uther", stage: 1, shift: 0.0 },
+  { a: "illidan", b: "forsaken-paladin", stage: 1, shift: 0.0 },
   { a: "warden", b: "lich", stage: 1, shift: 60.0 },
   { a: "dreadlord", b: "shadow-hunter", stage: 2, shift: 0.0 },
   { a: "blademaster", b: "archer", stage: 2, shift: -60.0 },

@@ -7,7 +7,7 @@ export const WHITE_FIGHTER_MODELS: readonly string[] = [
   "war3mapImported\\MountainKingWhite-b377420d82f9992f7cac6c3a941f88eba74e4f8c44f7c5dabbded482badcfe90.mdx",
   "war3mapImported\\WardenWhite-34b81ee50c632c505b4205029b2fb0eb2dc21c965065362ad309679eb7ccf92e.mdx",
   "war3mapImported\\LichWhite-fe2b0745c45e0948cb717a98f5ebc921e45cb2656031de77b5734c3bb751fa76.mdx",
-  "war3mapImported\\UtherWhite-a7b30297345a9e36f45a8f13f8ac7f712400a41de3936cc0a837e12bb498d0ba.mdx",
+  "war3mapImported\\ForsakenPaladinWhite-a7b30297345a9e36f45a8f13f8ac7f712400a41de3936cc0a837e12bb498d0ba.mdx",
   "war3mapImported\\DreadlordWhite-e7d952d826707e5bc4f32fd1da71e3e5c05c363e38d811fdbb5568828d82b355.mdx",
   "war3mapImported\\ShadowHunterWhite-17bd7063543167cb21372111d1c17776584a6c184bb5356724c965f429f208ee.mdx",
   "war3mapImported\\PitLordWhite-52cb466d1ea4676eec19e954331c3244ffb579a7b73fae08cee459d2995327e0.mdx",

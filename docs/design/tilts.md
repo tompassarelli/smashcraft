@@ -121,7 +121,7 @@ input is never wasted or surprising.
 | Spacing poke | Long, low and thin. On shield, the tip pushes him out of the defender's grab range. | Blademaster |
 | Chain poke | Fastest, with almost no knockback. It repeats before the victim can act. | Warden |
 | Launcher at high percent | A small pop at low percent; vertical tumble from about 90%. | Mountain King |
-| Knockdown | A low sweep that tumbles the victim at 0%. Starts a tech chase. | Uther |
+| Knockdown | A low sweep that tumbles the victim at 0%. Starts a tech chase. | Forsaken Paladin |
 | Pull-in | Drags the victim toward the attacker and onto the ground. Sets up the grab. | Dreadlord |
 | Edge poke | Reaches below the stage's lip. Hits a ledge-hanging or recovering fighter. | Shadow Hunter |
 | Slow space control | Creeping low frost at long range. Late, but long. | Lich |
@@ -193,7 +193,7 @@ frost.
 | Up tilt | 8/8/20 | 9 | 0.50H wide, up to 1.55H | 90, 95/22 | | Zelda up tilt (long overhead arc) |
 | Down tilt | 10/4/19 | 6 | 1.15H, below 0.10H | 30, 70/25 | | Samus down tilt (slow, long) |
 
-### Uther: the defensive hammer
+### Forsaken Paladin: the defensive hammer
 
 His forward tilt is the roster's longest and slowest tilt: an overhead hammer
 arc from above his head to the floor in front, so it is not angled. His down
@@ -347,7 +347,7 @@ each jab cell gives F/A/R, damage, reach and launch (angle, growth/base).
 | Mountain King | Tavern Brawl | 6/3/18, 6, 0.67H, 35 95/24 | |
 | Warden | Crescent Flurry | 2/2/12, 3, 0.56H, 70 30/26 | 4/3/16, 4, 0.73H, 40 90/22 |
 | Lich | Chilling Touch | 6/3/17, 4 ice, 0.55H, 30 85/22 | |
-| Uther | Hammer and Haft | 6/3/18, 6, 0.62H, 30 90/26 | |
+| Forsaken Paladin | Hammer and Haft | 6/3/18, 6, 0.62H, 30 90/26 | |
 | Dreadlord | Vampiric Claws | 4/2/14, 3, 0.61H, 60 30/28 | 6/3/20, 6, 0.74H, 35 100/22 |
 | Shadow Hunter | Glaive Handle | 4/2/13, 3, 0.72H, 60 30/26 | 6/3/18, 5, 0.84H, 40 90/22 |
 | Pit Lord | Haft and Chop | 8/3/22, 7, 0.85H, 40 75/18 | |
@@ -432,7 +432,7 @@ Each now has one role:
 | Mountain King | Launcher, body only | 11/5/26 | 0.60H | 12 | 75, 95/30 | Donkey Kong dash attack |
 | Dreadlord | Cross-up | 7/4/24 | 1.00H, passes through | 9 | 60, 90/22, front then back | Ultimate's pass-through dash attacks |
 | Shadow Hunter | Multi-hit | 8/9/20 | 0.50H | 3 + 3 + 5 | last hit 45, 100/22 | Kirby's and Luigi's multi-hit dash attacks |
-| Uther | Heavy, pushes off shield | 12/3/20 | 0.35H | 12 | 30, 100/26 | Ganondorf dash attack |
+| Forsaken Paladin | Heavy, pushes off shield | 12/3/20 | 0.35H | 12 | 30, 100/26 | Ganondorf dash attack |
 | Lich | Hovering low glide | 10/6/22 | 0.80H | 8 | 25, 90/30 | Mewtwo dash attack (slow, lingering) |
 | Archer | Sliding kick, pops up | 6/4/20 | 0.75H | 6 (8 before #105 pass 4) | 70, 55/38 | Fox dash attack (into up air) |
 | Rifleman | Rifle lunge | 9/3/25 | 0.50H | 11 | 40, 95/22 | Falco dash attack |

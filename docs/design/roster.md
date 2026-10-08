@@ -1,7 +1,7 @@
 # Smashcraft Hero Expansion Specification
 
 Adopted by the owner on 6 October 2026 from the 2 October expansion brief.
-The requested roster is Blademaster, Mountain King, Warden, Lich, Uther,
+The requested roster is Blademaster, Mountain King, Warden, Lich, Forsaken Paladin,
 Dreadlord and Shadow Hunter, in that order. The eight Tavern kits remain
 optional candidates. Their tuning tables are starting values, not shipped
 balance measurements. Existing fighters and newer gameplay decisions remain
@@ -14,7 +14,7 @@ All move designs and numbers below are proposals, not existing implementation fa
 
 ## Scope and priorities
 
-“Shadow shaman” is interpreted as Warcraft III’s Shadow Hunter, with Rokhan as the character reference. If Tom intended a different character, preserve this design under Shadow Hunter rather than silently rename another hero. Uther uses the Paladin identity. The eight Tavern kits are recommended candidates, not a commitment to ship all of them at once.
+“Shadow shaman” is interpreted as Warcraft III’s Shadow Hunter, with Rokhan as the character reference. If Tom intended a different character, preserve this design under Shadow Hunter rather than silently rename another hero. Forsaken Paladin uses the Paladin identity. The eight Tavern kits are recommended candidates, not a commitment to ship all of them at once.
 
 | Order | Hero | Distinct purpose | Main weakness |
 | --- | --- | --- | --- |
@@ -23,7 +23,7 @@ All move designs and numbers below are proposals, not existing implementation fa
 | 3 | Warden | Precision mobility and edge pressure | Light body and punishable teleport endpoints |
 | 4 | Pandaren Brewmaster | Staff brawler with brew and fire combinations | Slow commitments and limited ranged reach |
 | 5 | Lich | Deliberate projectile placement | Frail body and slow attacks at close range |
-| 6 | Uther | Forsaken hammer fighter holding holy ground | Slow feet and committed recovery |
+| 6 | Forsaken Paladin | Forsaken hammer fighter holding holy ground | Slow feet and committed recovery |
 | 7 | Dreadlord | Air movement, grabs, and close pressure | Large hurtbox and no safe long-range approach |
 | 8 | Shadow Hunter | Totem placement and angles | Setup can be destroyed or bypassed |
 | 9 | Pit Lord | Extreme heavy with long cleaves | Very large target and slow recovery |
@@ -109,7 +109,7 @@ Weight is relative to the current reference fighter at 1.00. Run speed is a mult
 | Warden | 0.88 | 1.14 | 1.10 | 0.90 | 1.00 |
 | Brewmaster | 1.13 | 0.98 | 0.90 | 1.20 | 1.10 |
 | Lich | 0.85 | 0.90 | 0.95 | 0.90 | 1.28 |
-| Uther | 1.10 | 0.92 | 0.88 | 1.08 | 1.02 |
+| Forsaken Paladin | 1.10 | 0.92 | 0.88 | 1.08 | 1.02 |
 | Dreadlord | 1.24 | 1.10 | 1.22 | 1.10 | 1.15 |
 | Shadow Hunter | 0.94 | 1.04 | 1.00 | 0.92 | 1.08 |
 | Pit Lord | 1.28 | 0.80 | 0.75 | 1.65 | 1.35 |
@@ -145,7 +145,7 @@ its capsule's top.
 | Mountain King | Hmkg | 1.00 | 1.00 | 1.00 |
 | Warden | Ewar | 1.00 | 1.00 | 1.00 |
 | Lich | Ulic | 1.00 | 1.00 | 0.80 |
-| Uther | Hpal | 1.00 | 1.00 | 1.00 |
+| Forsaken Paladin | Hpal | 1.00 | 1.00 | 1.00 |
 | Dreadlord | Udre | 1.00 | 1.00 | 1.00 |
 | Shadow Hunter | Oshd | 1.00 | 1.00 | 1.00 |
 | Pit Lord | Nplh | 1.00 | 1.00 | 0.95 |
@@ -479,13 +479,13 @@ the tables:
 
 **Gameplan** (smashcraft:ts/src/game/sim/heroes/lichGameplan.ts, #105): he keeps 1.5-2.4H, where Death and Decay lands on the target and Frost Nova still flies, and never runs in: he advances behind his shots and covers a run-in with Ice Spear. A threat close by he mostly answers by backing out to range. Death and Decay, down tilt, up tilt and the down throw start his strings; Ice Spear, Bone Spike and a late Death and Decay finish. He jumps before Spectral Ascent, aims for the ledge, and stays off the edge, out of close range and out from under a target.
 
-## Uther
+## Forsaken Paladin
 
 **Identity:** a Forsaken Paladin with a substantial hammer, a short slowing
 charge and a small holy patch that contests grounded landings. His slow feet
 and deliberate recovery reward spacing and permit a shield or whiff punish.
 The current move identities, sources, contracts and roster distinctions are
-in [Uther](uther.md); production frame data lives in utherMoves.ts.
+in [Forsaken Paladin](forsaken-paladin.md); production frame data lives in forsakenPaladinMoves.ts.
 
 | Input | Move and behavior | Timing and cost |
 | --- | --- | --- |
@@ -501,7 +501,7 @@ armor. There are no ultimates in the adopted mana system.
 Direct hammer hits retain three extra hitlag frames and the volume-127 heavy
 bash. The 0.85 damage multiplier applies after passive bonuses and preserves
 original hitlag strength. Normal hit regions, hurt capsules and throws remain
-in utherMoves.ts; this revision changes Uther specials and their computer use.
+in forsakenPaladinMoves.ts; this revision changes Forsaken Paladin specials and their computer use.
 
 Presentation uses the actual 3.0.1 Forsaken body and rig, replacing its stock
 sword with the classic Paladin hammer mesh. All action clips are authored on
@@ -1228,7 +1228,7 @@ smashcraft:evidence/balance-105-20261007/.
 | Mountain King | close reads over the thrown hammer: Storm Bolt end f48→f58 | 65%, 3% | 50%, 3% |
 | Warden | none | 56%, 13% | 52%, 11% |
 | Lich | projectile placement: Frost Nova 6→8 damage, end f40→f32 (f37 after pass 2: f32 left it safe on shield point blank, #98 rule 2); launch growth +10 (LAUNCH 105, EDGE 110, KILL 120) | 33%, 2% | 48%, 2% |
-| Uther | holds space rather than zoning: Holy Light end f44→f66, outbound 7→5 | 78%, 3% | 55%, 3% |
+| Forsaken Paladin | holds space rather than zoning: Holy Light end f44→f66, outbound 7→5 | 78%, 3% | 55%, 3% |
 | Dreadlord | grabs and air pressure: throws +2 (10/12/9/8), forward air 12→14, back air 13→15, launch growth +10, KILL base 26→28 | 20%, 2% | 27%, 2% |
 | Shadow Hunter | none yet | 39%, 2% | 26%, 2% |
 | Pit Lord | caught inside a whiffed cleave: Cleaving Sweep 14→12 damage, recovery 29→35 | 80%, 5% | 71%, 4% |
@@ -1246,7 +1246,7 @@ Pass 2, same field (after pass 1 → after pass 2):
 | Dreadlord | air movement and close pressure: air speed 1.12→1.22, weight 1.04→1.14, Batwing Turn 3+3+7 (was 2+2+5), Sleep 70→100 frames, Vampiric Pounce 9→13 | 27%, 2% | 39%, 3% |
 | Pit Lord | his KILL and EDGE classes lose some growth (KILL 110→100, base 26→24; EDGE 100→95) | 71%, 4% | 65%, 4% |
 | Archer | arrows can't stop an approach: homing arrow 6→4; her computer now counts both arrows as Trueshot's cashing moves (it already counted the plain arrow) | 85%, 1% | 74%, 1% (her row alone, 100 a pair, after the rest of pass 2) |
-| Rifleman, Illidan, Blademaster, Mountain King, Warden, Lich, Uther | unchanged | 56, 46, 52, 50, 52, 48, 55% | 52, 42, 49, 43, 48, 43, 51% |
+| Rifleman, Illidan, Blademaster, Mountain King, Warden, Lich, Forsaken Paladin | unchanged | 56, 46, 52, 50, 52, 48, 55% | 52, 42, 49, 43, 48, 43, 51% |
 
 Matchups after pass 2 (before the Archer change): 13 of 66 inside 45-55%,
 27 intervals overlapping the band, median distance from 50% 17 points.
@@ -1267,7 +1267,7 @@ lost the most (whiff punish → after pass 3):
 | Illidan | reaches farther, deals less: twin-glaive launcher 5→4, forward smash 12→10 | 67%, 1% | 57%, 1% |
 | Blademaster | whiff punisher, now punished himself: Backstab back to 12 damage, end f30 | 38%, 5% | 46%, 4% |
 | Beastmaster | bear coordination: lunge startup 12→10, bite 14→16 | 38%, 6% | 44%, 5% |
-| Uther | Holy Light end f66→f56 (whiff punish makes the long end costly on its own) | 41%, 4% | 50%, 3% |
+| Forsaken Paladin | Holy Light end f66→f56 (whiff punish makes the long end costly on its own) | 41%, 4% | 50%, 3% |
 | Shadow Hunter | Serpent Ward durability 20→26 | 41%, 1% | 42%, 1% |
 | Archer | her weight is her weakness: 75→68 (heroes keep the 75 reference); homing arrow 4→3 | 73%, 1% | 69%, 1% (her row alone, 40 a pair) |
 
@@ -1295,7 +1295,7 @@ frames, which leaves him at least 20 frames after a point-blank Hex.
 | Dreadlord | close pressure and deceptive aerial approach: run 1.00→1.10, Raking Claw 10→12, Batwing Turn, Talon Reach and Wing Backhand landing lag 14/15/15 → 9/10/10; weight 1.14→1.24 | 33%, 3% | 49%, 3% |
 | Shadow Hunter | glaive angles: thrusts 9→11, Low Crescent 5→7; Hex cashable (cast end f53→f40, mash floor 20→36) | 33%, 1% | 45%, 2% (Hex fix: his row alone, 400 a pair; 44% before it) |
 | Archer | her weight is her weakness: 68→62; her dash attack, a speed tool, 8→6 | 67%, 1% | 56%, 1% |
-| The other nine | unchanged | 43-60% | Rifleman 57, Illidan 53, Blademaster 59, Mountain King 51, Warden 45, Lich 42, Uther 47, Pit Lord 53, Beastmaster 45% |
+| The other nine | unchanged | 43-60% | Rifleman 57, Illidan 53, Blademaster 59, Mountain King 51, Warden 45, Lich 42, Forsaken Paladin 47, Pit Lord 53, Beastmaster 45% |
 
 Matchups after pass 4 (before the Hex fix): 14 of 66 inside 45-55%, 26
 intervals overlapping, median distance from 50% 12.9 points.
@@ -1306,7 +1306,7 @@ field at level 9, 400 matches per pair compares baseline 1c4400e6 with
 100 seeds per pair. The bounded retune reduces the original fighters'
 forward air from 8 to 7, Illidan's forward smash from 10 to 9 and his
 two-hit forward air from 7 to 5. Lich's frost orb gains speed and damage,
-and his forward smash starts four frames earlier. Uther's Holy Light ends
+and his forward smash starts four frames earlier. Forsaken Paladin's Holy Light ends
 six frames earlier; Dreadlord's weight returns from 1.24 to 1.14; Shadow
 Hunter's down tilt gains one damage and his ward's shots gain one. Swift
 Arrow's visible draw and lower shieldable flight (#172), and Defile's
@@ -1322,7 +1322,7 @@ candidate. Archer retains weight 62.
 | Mountain King | 47.15% | 46.04% | 2.98% |
 | Warden | 43.25% | 44.13% | 10.78% |
 | Lich | 29.53% | 45.79% | 2.61% |
-| Uther | 39.00% | 46.42% | 4.23% |
+| Forsaken Paladin | 39.00% | 46.42% | 4.23% |
 | Dreadlord | 60.15% | 56.73% | 2.61% |
 | Shadow Hunter | 39.08% | 47.13% | 1.46% |
 | Pit Lord | 53.73% | 55.08% | 9.20% |
@@ -1408,7 +1408,7 @@ Every model needs a verified animation map: action, native clip/index if availab
 2. **Reusable primitives:** confirm or add frame-defined melee volumes, projectile motion, swept hits, grabs/throws, per-airtime recovery flags, short statuses, and deterministic owned entities. Do not add every future mechanic at once.
 3. **First complete hero:** Blademaster, using the full base kit and basic cosmetic effects. Ultimates stay disabled. Validate normals, shield interaction, throws, recovery, death, replay, and model alignment.
 4. **Second contrasting hero:** Mountain King. Compare a compact heavy against the existing ranged fighters and Blademaster; do not tune only a mirror matchup.
-5. **Mobility and defense:** Warden, Brewmaster, Uther. Exercise teleport endpoints, temporary intangibility, armor, and healing caps.
+5. **Mobility and defense:** Warden, Brewmaster, Forsaken Paladin. Exercise teleport endpoints, temporary intangibility, armor, and healing caps.
 6. **Caster kits:** Lich, Dreadlord, Shadow Hunter, then Pit Lord. Introduce a status or summon only after the required common primitive passes replay checks.
 7. **More complex setup characters:** Tinker, Alchemist, Naga, Beastmaster, Dark Ranger, Firelord. Keep each behind an explicit development toggle until playable and verified.
 8. **Optional ultimates and visual polish:** only after base kits pass. No production-ready label for untested ultimates.

@@ -100,7 +100,7 @@ when built). Each fighter's section names only its differences.
 | Rifleman | Long Rifles | 3 blaster shots fired | 4th shot: 1.5× range, a POKE launch instead of the flinch | Count to four; shield or jump the Long Rifle shot |
 | Illidan | none: his attacks drain mana on hit | (Illidan lane) | | |
 | Lich | Frost Aura (Frost Armor) | 2 melee hits taken, 180-frame window | 3rd melee hit on him chills the striker | Use projectiles or grabs, or space the third hit out |
-| Uther | Devotion Aura | 3 hits blocked by his shield | The next launch he takes: knockback ×0.80 | Grab him (throws ignore it), or spend it with a jab |
+| Forsaken Paladin | Devotion Aura | 3 hits blocked by his shield | The next launch he takes: knockback ×0.80 | Grab him (throws ignore it), or spend it with a jab |
 | Dreadlord | Vampiric Aura | 2 landed melee hits or throws, 240-frame window | 3rd: heals him 2%, at most 8% a stock | Shield and space; projectiles and shields give no pips |
 | Shadow Hunter | Voodoo crossfire (Big Bad Voodoo) | Glaive and ward body hits, up to 2, 240-frame window | His next landed melee hit: +2% per pip | Break the ward, shield shots, shield his normals while lit |
 | Pit Lord | Cleaving Attack | 2 cleaver contacts, hit or blocked, 180-frame window | 3rd: double shield damage on a shield; +3% on a body | Don't shield the third swing: dodge, roll or jump it |
@@ -245,7 +245,7 @@ chase him back out to his range. Down B's Frost Armor shell and its Dark
 Ritual stay the deliberate version; the passive chill doesn't stack with the
 shell's (one condition at a time).
 
-## Uther: Devotion Aura
+## Forsaken Paladin: Devotion Aura
 
 **Rule.** Each hit his shield blocks adds a pip, up to 3, with no window.
 With 3 pips Devotion Aura shows under him. The next hit that **launches**
@@ -304,7 +304,7 @@ lit. He has to come in to cash them.
 
 **Why.** Angles from placed objects, then his functional normals. The
 glaive's return pull into a forward tilt is already his best route, and the
-passive pays it. Rejected: Healing Wave on the glaive (Uther owns the
+passive pays it. Rejected: Healing Wave on the glaive (Forsaken Paladin owns the
 returning heal) and a mark on the target (Warden owns marks).
 
 ## Pit Lord: Cleaving Attack
@@ -360,16 +360,16 @@ state, so the computer reads it directly:
   Hunter's forward tilt, Pit Lord's swing (into a body, or into a shield on
   the third contact), Rifleman's fourth shot at mid range.
 - **Opponent's ready proc:** shield the ready hit (it is spent on shield),
-  except against Pit Lord's third swing (dodge or jump) and Uther's Devotion
+  except against Pit Lord's third swing (dodge or jump) and Forsaken Paladin's Devotion
   (grab, or jab first).
 - **Counters to deny:** don't melee Lich a third time inside 180 frames;
-  stop attacking Uther's shield at two blocks; edge-guard Warden when her
+  stop attacking Forsaken Paladin's shield at two blocks; edge-guard Warden when her
   Blink pip is dark; don't stand between Beastmaster and his bear.
 
 ## Presentation
 
 One pip row sits above each fighter's mana bar: 3 pips for Blademaster,
-Rifleman and Uther, 1 for Warden and Beastmaster, 2 for everyone else. The
+Rifleman and Forsaken Paladin, 1 for Warden and Beastmaster, 2 for everyone else. The
 ready-state effect is attached to the fighter, and the proc effect plays
 once per proc serial. Hierarchy: the proc is louder than the ready state,
 and the ready state is louder than the charging pips.

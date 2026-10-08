@@ -129,27 +129,27 @@ function heroUsage(game: ReturnType<typeof computerMatch>, slot: number, frames:
   return { specials, grabs, computer };
 }
 
-test("computer Uther uses Righteous Fury at a level target in range and never presses what its mana can't pay", () => {
-  const game = computerMatch([Character.archer, Character.uther], [-200.0, 200.0], 0, 2);
+test("computer Forsaken Paladin uses Righteous Fury at a level target in range and never presses what its mana can't pay", () => {
+  const game = computerMatch([Character.archer, Character.forsakenPaladin], [-200.0, 200.0], 0, 2);
   const { specials } = heroUsage(game, 1, 900);
   assertGreaterThan(specials[1] ?? 0, 0);
-  const broke = computerMatch([Character.archer, Character.uther], [-200.0, 200.0], 0, 2);
-  const uther = fighterAt(broke.world, 1);
+  const broke = computerMatch([Character.archer, Character.forsakenPaladin], [-200.0, 200.0], 0, 2);
+  const forsakenPaladin = fighterAt(broke.world, 1);
   let pressedWithoutMana = 0;
   for (let frame = 1; frame <= 600; frame++) {
-    uther.mana.points = 0;
+    forsakenPaladin.mana.points = 0;
     broke.step();
     if (broke.produced.inputs[1].specialPressed && broke.produced.inputs[1].specialZ <= 0) pressedWithoutMana++;
   }
   assertEquals(pressedWithoutMana, 0);
-  assertEquals(uther.visuals.manaDenied, 0);
+  assertEquals(forsakenPaladin.visuals.manaDenied, 0);
 });
 
-test("computer Uther shields or dodges an incoming strike and grabs a shield", () => {
+test("computer Forsaken Paladin shields or dodges an incoming strike and grabs a shield", () => {
   // The hammer kit defends with ordinary shield or dodge.
   let guards = 0;
   for (let serial = 0; serial < 30; serial++) {
-    const world = createRoster(3, [createFighter(Character.archer, -60.0, 1), createFighter(Character.uther, 30.0, -1)]);
+    const world = createRoster(3, [createFighter(Character.archer, -60.0, 1), createFighter(Character.forsakenPaladin, 30.0, -1)]);
     const archer = fighterAt(world, 0);
     beginFighterAttack(world, 0, AttackStyle.forwardSmash, false);
     archer.attack.serial = serial;
@@ -162,7 +162,7 @@ test("computer Uther shields or dodges an incoming strike and grabs a shield", (
     }
   }
   assertGreaterThan(guards, 0);
-  const shielding = computerMatch([Character.archer, Character.uther], [-40.0, 40.0], 0, 2);
+  const shielding = computerMatch([Character.archer, Character.forsakenPaladin], [-40.0, 40.0], 0, 2);
   const grabbed = heroUsage(shielding, 1, 600, (slot) => {
     const input = shielding.produced.inputs[slot];
     input.shield = true;
@@ -171,8 +171,8 @@ test("computer Uther shields or dodges an incoming strike and grabs a shield", (
   assertGreaterThan(grabbed.grabs, 0);
 });
 
-test("Uther uses affordable Righteous Fury in hammer range and refuses its former wave range", () => {
-  const own = createFighter(Character.uther, 0.0, 1);
+test("Forsaken Paladin uses affordable Righteous Fury in hammer range and refuses its former wave range", () => {
+  const own = createFighter(Character.forsakenPaladin, 0.0, 1);
   const target = createFighter(Character.archer, 210.0, -1);
   own.mana.points = 25;
   assertEquals(heroSpecialUse(own, target, 0, SpecialSlot.side), HeroSpecialUse.close);
@@ -201,14 +201,14 @@ for (const hero of HERO_ROSTER) {
 }
 
 test("a computer hero's recovery counts its up special spent once used this airtime, and free below its cost", () => {
-  const uther = createFighter(Character.uther, 0.0, 1);
-  uther.motion.grounded = false;
-  uther.motion.z = 300.0;
-  assertTrue(upSpecialStartable(uther, false));
-  uther.mana.points = 0;
-  assertTrue(upSpecialStartable(uther, false));
-  uther.special.airtimeUses = 1 << SpecialSlot.up;
-  assertFalse(upSpecialStartable(uther, true));
+  const forsakenPaladin = createFighter(Character.forsakenPaladin, 0.0, 1);
+  forsakenPaladin.motion.grounded = false;
+  forsakenPaladin.motion.z = 300.0;
+  assertTrue(upSpecialStartable(forsakenPaladin, false));
+  forsakenPaladin.mana.points = 0;
+  assertTrue(upSpecialStartable(forsakenPaladin, false));
+  forsakenPaladin.special.airtimeUses = 1 << SpecialSlot.up;
+  assertFalse(upSpecialStartable(forsakenPaladin, true));
   const archer = createFighter(Character.archer, 0.0, 1);
   assertTrue(upSpecialStartable(archer, true));
   assertFalse(upSpecialStartable(archer, false));

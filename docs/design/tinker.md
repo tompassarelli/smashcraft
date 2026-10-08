@@ -95,7 +95,7 @@ life limit, and never home toward a fighter. No gadget survives a stock.
 
 Compared with Archer/Rifleman, Tinker gives up fast repeated shooting for
 setup; Illidan/Warden/Blademaster beat his short claws in motion; Mountain
-King/Uther have direct defensive power without maintaining a factory; Lich
+King/Forsaken Paladin have direct defensive power without maintaining a factory; Lich
 and Lich King control space with spells and status rather than breakable
 machinery; Dreadlord's grabs and Shadow Hunter's Hex punish his commitment;
 Pit Lord threatens a larger area with his body; Beastmaster moves a companion

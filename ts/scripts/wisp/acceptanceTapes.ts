@@ -411,9 +411,9 @@ const DREADLORD: MatchScript = {
   predictions: [[150, 162], [384, 396]],
 };
 
-/** Uther's four specials (three rushes drain his mana to the free Ascension), Divine Shield against the Archer's jab, and his hammer normals and throw, replayed across each. */
-const UTHER: MatchScript = {
-  characters: [Character.uther, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 540,
+/** Forsaken Paladin's four specials (three rushes drain his mana to the free Ascension), Divine Shield against the Archer's jab, and his hammer normals and throw, replayed across each. */
+const FORSAKEN_PALADIN: MatchScript = {
+  characters: [Character.forsakenPaladin, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 540,
   holds: [[
     [20, 2, SPECIAL], [80, 4, TOWARD], [81, 2, SPECIAL], [140, 4, DOWN], [141, 2, SPECIAL], [200, 4, TOWARD],
     [201, 2, SPECIAL], [260, 4, AWAY], [261, 2, SPECIAL], [320, 3, JUMP], [332, 4, UP], [333, 2, SPECIAL],
@@ -471,7 +471,7 @@ export function generateTapes(): Map<string, string> {
     ["lich-king", recordTape("The Lich King's blast, soul-banking jabs, a Val'kyr carry mashed against, Defile, Ascension, Harvest Soul and Quake against the Archer, with replays.", [LICH_KING])],
     ["beastmaster", recordTape("Beastmaster's bear summoned, commanded, recalled and followed, his axe, Hawk Lift, normals and a throw against the Archer, with replays.", [BEASTMASTER])],
     ["warden", recordTape("Warden's specials with poison and an aimed Blink, normals and a throw against the Archer, with replays.", [WARDEN])],
-    ["uther", recordTape("Uther's specials, guard, free recovery and normals against the Archer, with replays.", [UTHER])],
+    ["forsaken-paladin", recordTape("Forsaken Paladin's specials, guard, free recovery and normals against the Archer, with replays.", [FORSAKEN_PALADIN])],
     ["moving-platforms", recordTape("Moving decks, jumping, dropping through, predictions and rollback over complete path cycles.", [{
       characters: [Character.archer, Character.rifleman], stage: 3, stocks: 3, minutes: 0, frames: 620,
       holds: [[[1, 20, RIGHT, WALK], [30, 10, JUMP], [180, 3, DOWN], [240, 10, JUMP], [400, 10, JUMP]], [[1, 10, JUMP], [140, 3, DOWN], [300, 10, JUMP]]],

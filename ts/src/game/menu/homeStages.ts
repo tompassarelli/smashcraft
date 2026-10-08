@@ -13,7 +13,7 @@ export const HOME_STAGES: readonly { readonly character: Character; readonly sta
   { character: Character.mountainKing, stage: 12 },
   { character: Character.warden, stage: 7 },
   { character: Character.lich, stage: 4 },
-  { character: Character.uther, stage: 6 },
+  { character: Character.forsakenPaladin, stage: 6 },
   { character: Character.dreadlord, stage: 6 },
   { character: Character.shadowHunter, stage: 3 },
   { character: Character.pitLord, stage: 14 },

@@ -221,7 +221,7 @@ test("a victim mashing 8 or more times a second escapes the pummel; 6 a second o
         const label = `${character} at ${percent}% with ${mash} mashing`;
         assertEquals(owner.grab.pummels, 1, label);
         if (mash === "none" || mash === "slow") {
-          const damage = character === Character.uther ? f32(pummel * f32(0.85)) : pummel;
+          const damage = character === Character.forsakenPaladin ? f32(pummel * f32(0.85)) : pummel;
           assertEquals(target.status.damage, f32(percent + damage), label);
           // No throw input: the pummel's end lets the victim go.
           assertEquals(frame, mash === "none" ? PUMMEL_TOTAL_FRAMES + 1 : MASH_ESCAPE.slow, label);

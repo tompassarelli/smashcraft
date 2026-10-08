@@ -7,7 +7,7 @@ data record; the simulation, replay, selection and object data read it.
 ## Registering a hero
 
 - `ts/src/game/sim/codes.ts` reserves the Character codes: Blademaster 3,
-  Mountain King 4, Warden 5, Lich 6, Uther 7, Dreadlord 8, Shadow Hunter 9, Pit Lord 10, Beastmaster 11, Lich King 12.
+  Mountain King 4, Warden 5, Lich 6, Forsaken Paladin 7, Dreadlord 8, Shadow Hunter 9, Pit Lord 10, Beastmaster 11, Lich King 12.
   Hero specials run under `SpecialAction.heroNeutral`..`heroDown` (13-16) and
   hero projectiles under `ProjectileKind.hero` (5).
 - `ts/src/game/sim/heroes/<hero>Hero.ts` is one hero's `HeroDefinition`

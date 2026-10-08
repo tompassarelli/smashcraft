@@ -38,7 +38,7 @@ not conflated. Damage is shown on the Melee rows only to distinguish them.
 | Mountain King / [Bowser](https://meleeframedata.com/bowser) ([DAT](https://melee.theshoemaker.de/dat-dumps/Bowser.json)) | 0%: 50° / 18 / 30; 12%: 0° / 0 / 100 | 2%: 150° / 40 / 50; 2%: 190° / 40 / 50; 10%: 90° / 40 / 140 | DI mix-up; multi-hit pop-up / edgeguard | 75° / 75 / 40 | 25° / 25 / 100 |
 | Warden / [Sheik](https://meleeframedata.com/sheik) ([DAT](https://melee.theshoemaker.de/dat-dumps/Sheik.json)) | 3%: 80° / 17 / 50; 5%: 361° / 0 / 0 (set 90) | 13%: 40° / 35 / 80; 10%: 50° / 35 / 80 | tech chase on fastfallers, DI mix-up on floaties; tech chase / edgeguard | 70° / 75 / 40 | 25° / 22 / 100 |
 | Lich / [Zelda](https://meleeframedata.com/zelda) ([DAT](https://melee.theshoemaker.de/dat-dumps/Zelda.json)) | 2%: 120° / 20 / 42; 2%: 40° / 0 / 100 (set 25) | 11%: 30° / 20 / 90; 11%: 30° / 20 / 80 | DI mix-up; low tech chase / edgeguard | 75° / 75 / 40 | 25° / 22 / 110 |
-| Uther / [Ganondorf](https://meleeframedata.com/ganondorf) ([DAT](https://melee.theshoemaker.de/dat-dumps/Ganondorf.json)) | 7%: 100° / 18 / 36 | 8%: 160° / 0 / 100 (set 90); 8%: 160° / 0 / 100 (set 130); 14%: 120° / 60 / 110; 12%: 120° / 60 / 110 | DI mix-up / tech chase; link into rising finisher / edgeguard | 70° / 75 / 40 | 25° / 25 / 100 |
+| Forsaken Paladin / [Ganondorf](https://meleeframedata.com/ganondorf) ([DAT](https://melee.theshoemaker.de/dat-dumps/Ganondorf.json)) | 7%: 100° / 18 / 36 | 8%: 160° / 0 / 100 (set 90); 8%: 160° / 0 / 100 (set 130); 14%: 120° / 60 / 110; 12%: 120° / 60 / 110 | DI mix-up / tech chase; link into rising finisher / edgeguard | 70° / 75 / 40 | 25° / 25 / 100 |
 | Dreadlord / [Mewtwo](https://meleeframedata.com/mewtwo) ([DAT](https://melee.theshoemaker.de/dat-dumps/Mewtwo.json)) | 6%: 69° / 16 / 50; 5%: 80° / 40 / 104; 5%: 80° / 40 / 105 | 15%: 361° / 20 / 103 | DI mix-up; tech chase / edgeguard | 65° / 75 / 40 | 25° / 22 / 110 |
 | Shadow Hunter / [Link](https://meleeframedata.com/link) ([DAT](https://melee.theshoemaker.de/dat-dumps/Link.json)) | 4%: 90° / 15 / 50; 2%: 361° / 0 / 0 (set 90) | 13%: 75° / 26 / 90; 16%: 75° / 26 / 90; 17%: 75° / 26 / 90; 11%: 75° / 20 / 90; 16%: 75° / 20 / 90; 17%: 75° / 20 / 90 | DI mix-up; pop-up / edgeguard | 70° / 75 / 40 | 25° / 22 / 110 |
 | Pit Lord / [Bowser](https://meleeframedata.com/bowser) ([DAT](https://melee.theshoemaker.de/dat-dumps/Bowser.json)) | 0%: 50° / 18 / 30; 12%: 0° / 0 / 100 | 2%: 150° / 40 / 50; 2%: 190° / 40 / 50; 10%: 90° / 40 / 140 | DI mix-up; multi-hit pop-up / edgeguard | 65° / 75 / 40 | 25° / 22 / 95 |
@@ -81,7 +81,7 @@ frames after its last active frame, excluding shared hitlag.
 | Mountain King | 25° / 75 / 44.20 | 25° / 75 / 40.00 | 22 |
 | Warden | 25° / 75 / 40.00 | 25° / 75 / 40.00 | 28 |
 | Lich | 25° / 75 / 40.00 | 25° / 75 / 40.00 | 23 |
-| Uther | 25° / 75 / 40.00 | 25° / 75 / 40.00 | 22 |
+| Forsaken Paladin | 25° / 75 / 40.00 | 25° / 75 / 40.00 | 22 |
 | Dreadlord | 25° / 75 / 36.20 | 25° / 75 / 40.00 | 20 |
 | Shadow Hunter | 25° / 75 / 40.00 | 25° / 75 / 40.00 | 21 |
 | Pit Lord | 25° / 75 / 40.00 | 25° / 75 / 40.00 | 28 |

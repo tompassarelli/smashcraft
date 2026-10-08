@@ -90,7 +90,7 @@ shared mana, passive, projectiles and special state.
 
 Relative to today's roster: Archer and Rifleman outrange him; Illidan and
 Warden outrun him; Blademaster has a longer weapon; Mountain King wins single
-heavy commitments; Lich controls farther away; Uther holds longer defensive
+heavy commitments; Lich controls farther away; Forsaken Paladin holds longer defensive
 space; Dreadlord has better air pursuit; Shadow Hunter establishes safer
 ranged pressure; Pit Lord reaches farther with slower swings; Beastmaster
 has independent bodies; Lich King controls zones and banks souls. Chen trades

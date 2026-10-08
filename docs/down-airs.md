@@ -19,7 +19,7 @@ downward contact and recovery poses, fitted to the existing move frames.
 | Mountain King | 0 | -26.8 / 33.7 | Down Air Boot Stomp #66 | Melee Ganondorf double-foot stomp | Fail → Pass: cast replaced by boots driven down |
 | Warden | -37.19…37.19 | -37 / 48.4 | Drill Down Air #38 | Melee Fox drill | Pass → Pass: leading leg down, opposite knee folded |
 | Lich | 0 | -53.8 / 66.88 | Down Air Frost Press #49 | Ultimate Ivysaur burst below body | Fail → Pass: coiled hands and body dive into a downward cast |
-| Uther | -12…17 | -41.8…-32.5 / 45.4 | Down Air Hammer Drop #52 | Melee Link thrust, adapted to hammer | Fail → Pass: hammer down, opposite knee tucked |
+| Forsaken Paladin | -12…17 | -41.8…-32.5 / 45.4 | Down Air Hammer Drop #52 | Melee Link thrust, adapted to hammer | Fail → Pass: hammer down, opposite knee tucked |
 | Dreadlord | 0…12 | -47.8 / 53.5 | Down Air Claw Dive #51 | Melee Ganondorf contact below torso, adapted to claws | Fail → Pass: claws driven down from coil |
 | Shadow Hunter | -45.09…45.09 | -42 / 53.2 | Drill Down Air #40 | Melee Fox drill, adapted to glaive | Pass → Pass: leading leg below torso |
 | Pit Lord | -20…20 | -26 / 53.5 | Down Air Four Hooves #56 | Melee Ganondorf stomp, adapted to four hooves | Fail → Pass: cleave replaced by hoof stomp |

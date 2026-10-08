@@ -28,7 +28,7 @@ extra jumps or armored recovery.
 Compared with the present roster, Thrall trades Archer/Rifleman's sustained
 shooting and Illidan's rush speed for mass; has less sword reach than
 Blademaster, Warden and Lich King; uses a travelling wolf attack rather than
-Beastmaster's controllable animals; lacks Uther's guard, Dreadlord's healing,
+Beastmaster's controllable animals; lacks Forsaken Paladin's guard, Dreadlord's healing,
 Lich's chill, Shadow Hunter's disable, Pit Lord's cleave and Mountain King's
 armored charge. His short air drift makes offstage decisions expensive.
 

@@ -7,7 +7,7 @@ import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 
 // The Lich King (#167): a heavy Frostmourne swordsman. The blade paths, reach
 // and frame data are original and provisional: longer and faster than Pit
-// Lord's cleaver, slower than Uther's hammer, with kill power on the smashes
+// Lord's cleaver, slower than Forsaken Paladin's hammer, with kill power on the smashes
 // and back air. Only Frostmourne past his gauntlets is disjoint.
 const S = f32(HERO_REFERENCE_HEIGHT * f32(0.55));
 const M = f32(HERO_REFERENCE_HEIGHT * f32(0.80));

@@ -17,7 +17,7 @@ export const DISJOINT_MODELS: { readonly [character: number]: string } = {
   [Character.mountainKing]: "Abilities\\Spells\\Other\\FrostBolt\\FrostBoltMissile.mdx",
   [Character.warden]: "Abilities\\Spells\\NightElf\\FanOfKnives\\FanOfKnivesMissile.mdx",
   [Character.lich]: "Abilities\\Spells\\Other\\FrostBolt\\FrostBoltMissile.mdx",
-  [Character.uther]: "Abilities\\Spells\\Human\\HolyBolt\\HolyBoltSpecialArt.mdx",
+  [Character.forsakenPaladin]: "Abilities\\Spells\\Human\\HolyBolt\\HolyBoltSpecialArt.mdx",
   [Character.dreadlord]: "Abilities\\Weapons\\BansheeMissile\\BansheeMissile.mdx",
   [Character.shadowHunter]: "Abilities\\Weapons\\ShadowHunterMissile\\ShadowHunterMissile.mdx",
   [Character.pitLord]: "Abilities\\Weapons\\GreenDragonMissile\\GreenDragonMissile.mdx",

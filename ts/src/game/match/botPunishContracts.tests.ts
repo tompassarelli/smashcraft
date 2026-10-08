@@ -172,7 +172,7 @@ for (const whiff of WHIFFS) {
 
 /** Level-9 computers on both sides of these pairings, MATCH_SEEDS seeded matches each. */
 const PAIRS = [
-  [Character.pitLord, Character.blademaster], [Character.mountainKing, Character.lich], [Character.archer, Character.uther],
+  [Character.pitLord, Character.blademaster], [Character.mountainKing, Character.lich], [Character.archer, Character.forsakenPaladin],
   [Character.dreadlord, Character.warden], [Character.shadowHunter, Character.beastmaster], [Character.demonHunter, Character.rifleman],
 ] as const;
 const MATCH_FRAMES = 1800;

@@ -110,7 +110,7 @@ function articulation(name: string, pose: Gesture, fighter: string): [number, nu
 const generated: string[] = [], evidence = [];
 for (const [character, fighter] of fighters.entries()) {
   // His own rig carries his paired grabs.
-  if (character < 3 || character === Character.uther) continue;
+  if (character < 3 || character === Character.forsakenPaladin) continue;
   const source = parseSource(await Bun.file(join(input, fighter.source)).arrayBuffer());
   const stand = source.Sequences.find(s => /^stand ready$/i.test(s.Name)) ?? source.Sequences.find(s => /^stand(?:\s*-?\s*\d+)?$/i.test(s.Name));
   ensure(stand, `${fighter.name}: standing donor missing`);

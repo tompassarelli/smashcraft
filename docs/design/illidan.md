@@ -133,7 +133,7 @@ gives him two lockdowns.
 **Alternative C, a legible counter stance, Blur (rejected).** Keep a counter,
 but make it stand still with a fel shimmer on frames 4–12 and answer a strike
 with a slash behind the attacker. Rejected: counters ask Illidan to stand
-still when his identity is air speed and glaive reach, and Uther's Divine
+still when his identity is air speed and glaive reach, and Forsaken Paladin's Divine
 Shield (#131) already owns the defensive-special slot in the roster.
 
 ## Drain on hit: what his attacks do

@@ -34,7 +34,7 @@ function frame(world: Roster, input: Readonly<Controls> = controls(), attack?: A
 }
 function pair(gap: number, facing = 1) {
   const owner = createFighter(Character.cairne, f32(-gap * 0.5 * facing), facing);
-  const target = createFighter(Character.uther, f32(gap * 0.5 * facing), -facing);
+  const target = createFighter(Character.forsakenPaladin, f32(gap * 0.5 * facing), -facing);
   const world = createRoster(3, [owner, target]);
   for (let i = 0; i < 3; i++) frame(world);
   owner.mana.points = 100;
@@ -62,7 +62,7 @@ for (const [style, x, z] of NORMAL_CONTACTS) test(`Cairne normal ${style} hits o
   for (const facing of [1, -1]) {
     const owner = createFighter(Character.cairne, 0.0, facing);
     owner.motion.grounded = !isAerialAttack(style);
-    const target = createFighter(Character.uther, x * facing, -facing);
+    const target = createFighter(Character.forsakenPaladin, x * facing, -facing);
     target.motion.z = z;
     const world = testWorld(owner, target);
     beginFighterAttack(world, 0, style, false);

@@ -100,7 +100,7 @@ all ordinary snapshotted fighter state; rematch and stock loss clear them.
 Archer has fast arrows and a trap; Sylvanas must land an arrow and move in to
 cash it out. Rifleman threatens a faster straight line; Sylvanas threatens
 the opponent's special choice. Illidan and Blademaster chase with mobility;
-she retreats and reads. Mountain King and Uther have stronger close trades;
+she retreats and reads. Mountain King and Forsaken Paladin have stronger close trades;
 she keeps them outside Life Drain's whiff range. Warden relocates; Sylvanas
 has a visible, hittable flight. Lich slows movement; Silence leaves it free.
 Dreadlord heals from an advancing catch; Sylvanas stands still for hers.
