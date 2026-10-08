@@ -1,7 +1,7 @@
 import { join, relative, resolve } from 'node:path';
 import { unlink } from 'node:fs/promises';
 import { Effect } from 'effect';
-import { encodeVerified, fighters, hash, parseSource } from './original-clips';
+import { encodeVerified, fighters, hash, parseSource, tracks } from './original-clips';
 import { timelineBody } from './timeline-body';
 import { flashableSequences } from './white-flash-keys';
 import { modelFacts } from '../../ts/node_modules/wisp/scripts/wisp/models';
@@ -18,6 +18,9 @@ await Effect.runPromise(Effect.tryPromise({ try: async () => {
     const source = parseSource(await Bun.file(join(assets, fighter.source)).arrayBuffer());
     const played = flashableSequences(fighters.indexOf(fighter), source.Sequences);
     const bytes = encodeVerified(timelineBody(source, played));
+    tracks(parseSource(bytes), (track, path) => {
+        if (track.Keys.length === 0) throw new Error(`${fighter.name}: timeline body left ${path} without keys`);
+    });
     const baseline = await Bun.file(join(assets, 'original-clips-static-lights/original-clips-evidence.json')).json();
     const reference = baseline.records.find((record: { fighter: string }) => record.fighter === fighter.name);
     if (reference === undefined) throw new Error(`Missing clip-pool reference for ${fighter.name}`);
