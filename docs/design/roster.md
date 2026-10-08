@@ -597,9 +597,9 @@ bash. The 0.80 damage multiplier applies after passive bonuses and preserves
 original hitlag strength. Normal hit regions, hurt capsules and throws remain
 in forsakenPaladinMoves.ts; this revision changes Forsaken Paladin specials and their computer use.
 
-Presentation uses the actual 3.0.1 Forsaken body and rig, replacing its stock
-sword with the classic Paladin hammer mesh. All action clips are authored on
-that rig; the obsolete thirteen-clip Human Paladin table is not reused.
+Presentation uses Blizzard's 3.0.1 Classic Forsaken body, head and sword.
+Its version-1800 skin addresses bone matrices directly. The shipped authored
+actions retain their sequence indices and joint transforms on that stock rig.
 
 **Counterplay:** shield the bonk or charge and punish recovery; jump or step
 out of Consecration; edge-guard Ascension from its exposed sides. Cleansing

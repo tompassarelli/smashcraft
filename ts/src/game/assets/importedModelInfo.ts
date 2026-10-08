@@ -1,4 +1,4 @@
-// Community models and textures the map imports. Their files stay in private
+// Authored stock bodies, community models and textures the map imports. Their files stay in private
 // build inputs (never Git): the map build reads each from --assets's
 // imported-models folder under its archive path's last part. Archive paths are
 // the ones each author's readme names; the model's textures must sit where the
@@ -6,7 +6,7 @@
 
 /** The Lich King's body, by Kwaliti (Hive Workshop). */
 export const LICH_KING_MODEL = "war3mapImported\\LichKing2.mdx";
-/** The Forsaken Paladin rig with Forsaken Paladin's authored hammer actions. */
+/** Blizzard's Classic Forsaken Paladin body and sword with authored actions. */
 export const FORSAKEN_PALADIN_MODEL = "war3mapImported\\ForsakenPaladin.mdx";
 /** His command icon, by Kwaliti. */
 export const LICH_KING_ICON = "ReplaceableTextures\\CommandButtons\\BTNLichKing.blp";
