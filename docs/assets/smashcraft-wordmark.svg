@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 240" role="img" aria-labelledby="t">
+  <title id="t">Smashcraft</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b1f3a"/>
+      <stop offset="1" stop-color="#3a1f4d"/>
+    </linearGradient>
+    <linearGradient id="ink" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff4d6"/>
+      <stop offset="1" stop-color="#ffb347"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="240" rx="24" fill="url(#bg)"/>
+  <g transform="translate(130 120)">
+    <circle r="78" fill="none" stroke="#ffb347" stroke-width="10"/>
+    <path d="M-40 -60 L22 -6 L-6 -6 L40 60 L-22 6 L6 6 Z" fill="url(#ink)"/>
+    <path d="M-62 40 L-28 22 M62 -40 L28 -22" stroke="#ffb347" stroke-width="10" stroke-linecap="round"/>
+  </g>
+  <text x="250" y="150" font-family="Impact, 'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="112" letter-spacing="4" fill="url(#ink)" stroke="#120d1f" stroke-width="3" paint-order="stroke">Smashcraft</text>
+  <text x="254" y="196" font-family="'Helvetica Neue', Arial, sans-serif" font-size="26" letter-spacing="6" fill="#d9cfee">A PLATFORM FIGHTER</text>
+</svg>
