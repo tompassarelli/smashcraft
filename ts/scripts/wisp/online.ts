@@ -8,6 +8,7 @@ import { Clock, Effect, Schedule } from "effect";
 import { dataDirectory, readGameFile } from "wisp/scripts/wisp/gameFiles";
 import { type MenuEvent, MenuFailure, type MenuSocket, type Outcome, hostLobby, joinLobby, startLobby } from "wisp/scripts/wisp/menus";
 import { MELEE_READY_FILE } from "../../src/runtime/gameFiles";
+import { pollUntil } from "../hostPoll";
 import { MeleeReady } from "./boundary";
 import { type JoinCode, newJoinCode } from "./joinCode";
 
@@ -32,17 +33,12 @@ const screen = (event: MenuEvent) => (event.messageType === "SetGlueScreen" ? re
 const CREATE_TRIES = 3;
 
 /** Hosts a lobby of the map under a new code; a refused name (another game has it) gets a new code. */
-export const hostWithCode = (menus: MenuSocket, map: { readonly folder: string; readonly file: string }, makeCode: () => JoinCode = newJoinCode, password?: string) => Effect.gen(function*() {
-  for (let attempt = 1; ; attempt++) {
+export const hostWithCode = (menus: MenuSocket, map: { readonly folder: string; readonly file: string }, makeCode: () => JoinCode = newJoinCode, password?: string) =>
+  Effect.suspend(() => {
     const generated = makeCode();
     const code = password === undefined ? generated : { ...generated, password };
-    const hosted = yield* hostLobby(menus, { folder: map.folder, file: map.file, gameName: code.gameName, password: code.password }).pipe(
-      Effect.as(true),
-      Effect.catchTag("MenuFailure", (failure) => (attempt < CREATE_TRIES && failure.problem.includes("refused") ? Effect.succeed(false) : Effect.fail(failure))),
-    );
-    if (hosted) return code;
-  }
-});
+    return hostLobby(menus, { folder: map.folder, file: map.file, gameName: code.gameName, password: code.password }).pipe(Effect.as(code));
+  }).pipe(Effect.retry({ times: CREATE_TRIES - 1, while: (failure) => failure._tag === "MenuFailure" && failure.problem.includes("refused") }));
 
 /**
  * Starting the game in Warcraft III itself counts too; the lobby closing
@@ -58,29 +54,34 @@ export const hostLoading = (event: MenuEvent): Outcome<"loading"> => {
  * Starts the hosted lobby. The game ignores a start while a player is still
  * downloading the map, so it is asked again until the loading screen shows.
  */
-export const startWhenReady = (menus: MenuSocket, seconds: number, say: Say) => Effect.gen(function*() {
-  const deadline = (yield* Clock.currentTimeMillis) + seconds * 1000;
-  for (let attempt = 0; ; attempt++) {
-    const started = yield* startLobby(menus).pipe(Effect.as(true), Effect.catchTag("MenuFailure", (failure) => Effect.gen(function*() {
-      if (failure.problem.includes("closed the menu socket") || (yield* Clock.currentTimeMillis) >= deadline) return yield* failure;
-      return false;
-    })));
-    if (started) return;
-    if (attempt === 0) yield* say("Waiting for your opponent to finish getting the map");
-  }
-});
+export const startWhenReady = (menus: MenuSocket, seconds: number, say: Say) =>
+  Effect.suspend(() => {
+    let refusals = 0;
+    // Asked again until `seconds` have passed; then the last refusal is the failure.
+    return startLobby(menus).pipe(Effect.retry({
+      schedule: Schedule.during(`${seconds} seconds`),
+      while: (failure) => {
+        if (failure._tag === "MenuFailure" && failure.problem.includes("closed the menu socket")) return false;
+        return ++refusals === 1 ? say("Waiting for your opponent to finish getting the map").pipe(Effect.as(true)) : true;
+      },
+    }));
+  });
 
 /** Waits until this player's Smashcraft writes its ready file after `since`: fighter selection. */
-export const reachMatch = (documents: string, since: number, seconds: number) => Effect.gen(function*() {
+export const reachMatch = (documents: string, since: number, seconds: number) => {
   const path = join(dataDirectory(documents), MELEE_READY_FILE);
-  const deadline = (yield* Clock.currentTimeMillis) + seconds * 1000;
-  while (true) {
-    const ready = yield* readGameFile(path, MeleeReady).pipe(Effect.catchTag("MalformedGameFile", () => Effect.succeed(undefined)));
-    if (ready !== undefined && ready.modified > since) return;
-    if ((yield* Clock.currentTimeMillis) >= deadline) return yield* new MenuFailure({ operation: "reach fighter selection", problem: `no new ${MELEE_READY_FILE} within ${seconds} s of the loading screen` });
-    yield* Effect.sleep("250 millis");
-  }
-});
+  return pollUntil(
+    readGameFile(path, MeleeReady).pipe(
+      Effect.map((ready) => (ready !== undefined && ready.modified > since ? true : undefined)),
+      Effect.catchTag("MalformedGameFile", () => Effect.succeed(undefined)),
+    ),
+    {
+      every: "250 millis",
+      within: `${seconds} seconds`,
+      orElse: () => Effect.fail(new MenuFailure({ operation: "reach fighter selection", problem: `no new ${MELEE_READY_FILE} within ${seconds} s of the loading screen` })),
+    },
+  ).pipe(Effect.asVoid);
+};
 
 /**
  * The host's whole flow: a lobby under a new code, the code shown, then the
