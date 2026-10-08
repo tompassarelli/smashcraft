@@ -3,8 +3,6 @@ import { placedPieces, shadowCastingLights, stageLightModel, stageScenery } from
 import { hideEffect } from "../../game/render/effects";
 import type { ShellState } from "./state";
 
-let shadowLightsRaised = false;
-
 /** Shared handle lifetimes, with purely visual sky, light, fog and backdrop settings. */
 export function drawStageScenery(s: ShellState): void {
   for (const effect of s.stageScenery ?? []) {
@@ -25,8 +23,8 @@ export function drawStageScenery(s: ShellState): void {
   }
   // Set only once a stage with a shadow-casting light has raised it, then back to none.
   const shadows = shadowCastingLights(s.game.stageChoice);
-  if (shadows > 0 || shadowLightsRaised) BlzSetMinShadowCastingPointLightCount(shadows);
-  shadowLightsRaised = shadows > 0;
+  if (shadows > 0 || s.shadowLightsRaised) BlzSetMinShadowCastingPointLightCount(shadows);
+  s.shadowLightsRaised = shadows > 0;
   const effects: effect[] = [];
   for (const piece of placedPieces(s.game.stageChoice, s.game.hazards)) {
     const x = s.origin.x + piece.x;
