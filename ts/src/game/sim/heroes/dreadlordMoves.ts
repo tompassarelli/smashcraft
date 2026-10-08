@@ -92,7 +92,7 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
     [AttackStyle.downSmash]: heroMove(15, 6, 20, 0, [...wingSweep(15, 1.0), ...wingSweep(18, -1.0)]),
     // Batwing Turn (#152): three wing beats around him. The first two drag the
     // target along with him at any percent; the third launches it.
-    [AttackStyle.neutralAir]: heroMove(7, 10, 19, 9, multiHit([
+    [AttackStyle.neutralAir]: heroMove(7, 10, 19, 11, multiHit([
       { first: 7, last: 8, strikes: BATWING_DRAG },
       { first: 10, last: 11, strikes: BATWING_DRAG },
       { first: 14, last: 16, strikes: [

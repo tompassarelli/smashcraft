@@ -593,7 +593,7 @@ then ledge-oriented Ascension for recovery. Coverage counts all four specials.
 | Forward smash — Twin Talons | 18/4/34 | 18 | L, 40, KILL | Two claws act as a single hit |
 | Up smash — Night Ascendant | 16/5/31 | 16 | L, 85, KILL | Wings and claws overhead |
 | Down smash — Wing Sweep | 15/6/32 | 14 | L, 25, EDGE | Broad front/rear body attack |
-| Neutral air — Batwing Turn | 7/10/19; L9 | 3 + 3 + 7 | M, 50, POKE | Three wing beats ([multi-hit](aerials.md)); wide, tradeable |
+| Neutral air — Batwing Turn | 7/10/19; L11 | 3 + 3 + 7 | M, 50, POKE | Three wing beats ([multi-hit](aerials.md)); wide, tradeable |
 | Forward air — Talon Reach | 10/4/24; L10 | 14 | L, 40, EDGE | Forward reach at cost of exposing arm |
 | Back air — Wing Backhand | 9/4/25; L10 | 15 | L, 35, KILL | Wing hurtbox extends too |
 | Up air — Horn Lift | 7/3/21; L12 | 8 | M, 85, LAUNCH | Short upward head attack |
