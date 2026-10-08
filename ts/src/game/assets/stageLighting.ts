@@ -12,6 +12,11 @@ export interface StageLight {
   readonly key: Rgb;
   /** The fill every surface gets, which sets how dark a fighter's shaded side reads. */
   readonly ambient: Rgb;
+  /**
+   * Scales key and fill together, 1 when absent. Under 1 over a backdrop
+   * brighter than the fighters, which the full light lifts toward it.
+   */
+  readonly intensity?: number;
 }
 
 /** Each selectable stage's light; the first is the neutral one, the classic midday light. */
@@ -31,10 +36,11 @@ export const STAGE_LIGHTS: readonly { readonly stage: number; readonly theme: st
   { stage: HELLFIRE_STAGE, theme: "Fel", light: { key: [255, 222, 196], ambient: [140, 172, 120] } },
   // Forge-orange key, ember fill.
   { stage: CANNON_TEST_STAGE, theme: "Blackrock", light: { key: [255, 216, 176], ambient: [170, 124, 112] } },
-  // Bleached sandstone sun, warm sand fill.
   // Firelit dusk key, smoky mauve fill.
   { stage: STRATHOLME_STAGE, theme: "Stratholme", light: { key: [255, 214, 180], ambient: [170, 140, 150] } },
   // Cool sea light, tide-teal fill.
   { stage: TOMB_OF_SARGERAS_STAGE, theme: "Sargeras", light: { key: [226, 244, 255], ambient: [130, 176, 180] } },
-  { stage: TIMED_TEST_STAGE, theme: "Qiraji", light: { key: [255, 240, 204], ambient: [192, 170, 136] } },
+  // Bleached sandstone sun, warm sand fill, at half strength: at full strength
+  // fighters rose 11 L* toward the bright sandstone ring (#267).
+  { stage: TIMED_TEST_STAGE, theme: "Qiraji", light: { key: [255, 240, 204], ambient: [192, 170, 136], intensity: 0.5 } },
 ];

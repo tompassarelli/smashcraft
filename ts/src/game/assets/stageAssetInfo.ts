@@ -31,5 +31,5 @@ export const STAGE_LIGHT_MODELS: Readonly<Record<number, string>> = {
   12: "war3mapImported\\StageLight-3c7409d97ef755664704f86b7c2e8daeacc2ef10007ca72b4d6e1db843ddd733.mdx",
   6: "war3mapImported\\StageLight-72c98875af85ebde417d827ee435f29e5151d6a7b93c13c1e3f7569005990f36.mdx",
   7: "war3mapImported\\StageLight-edf3b5df8d80335a608fe64f09ae146f616bfd1e255338dcf59c73937403957a.mdx",
-  13: "war3mapImported\\StageLight-945e30238c097b91655e082084690a0b0bb1fc180126749f83d67ca4d6829e27.mdx",
+  13: "war3mapImported\\StageLight-ae4432a8c4c7ead2f4655b3f2ee7b8a1457e8d5dc0afd011d537768e7e5d32b9.mdx",
 };
