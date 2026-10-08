@@ -101,7 +101,7 @@ const BIRTH_CUES = new Set([
 ]);
 
 const cue = (model: string, anchor: CueAnchor, scale: number): Cue => {
-  const name = model.slice(model.lastIndexOf("\\") + 1).replace(".mdx", "").replace(".mdl", "");
+  const name = (model.split("\\").pop() ?? model).replace(".mdx", "").replace(".mdl", "");
   const sequence = BIRTH_CUES.has(name) ? "birth" : "stand";
   // Mark of Chaos's flash opens at 0.666 s; Flame Strike's wall at 1.3 s.
   const seconds = name === "MarkOfChaosTarget" || name === "InvisibilityTarget" ? 0.75 : name === "FlameStrike1" ? f32(1.3)
