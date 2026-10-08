@@ -2,6 +2,7 @@ import { clearAttackBuffer, hasPendingAttack, holdAttack, takeAttack } from "../
 import { attackStyleForGrounding } from "../input/combat";
 import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS, type Slots, participantActive } from "../input/participants";
+import { pushFighterBodies } from "../sim/bodyPush";
 import { beginFighterAttack, resolveAttacks } from "../sim/attacks";
 import { AttackStyle, DASH_GRAB_REQUEST } from "../sim/codes";
 import { clearDash } from "../sim/groundMovement";
@@ -151,6 +152,8 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     controls.inputs[slot].attackRequested = hasPendingAttack(controls.commands[slot], frame) && f.status.frozenFrames === 0;
   }
   resolveLedges(world, stage, controls.inputs);
+  pushFighterBodies(world);
+
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
     resetObservedActions();

@@ -64,16 +64,17 @@ interface MatchScript {
   /** Plays with stage hazards off, set at stage selection. */
   readonly hazardsOff?: boolean;
   /** The stage element the tape must exercise on some frame, or recording fails. */
-  readonly exercise?: "pushed" | "carried";
+  readonly exercise?: "pushed" | "carried" | "shieldPush";
 }
 
 /** Whether a stage element moved a fighter on the frame just run: the wind pushed one, or a moving deck carried one. */
-function exercised(session: TapeSession, exercise: "pushed" | "carried"): boolean {
+function exercised(session: TapeSession, exercise: "pushed" | "carried" | "shieldPush"): boolean {
   const { world, match } = session.live;
   const frame = stageClock(match);
   for (const slot of [0, 1]) {
     if (!isActive(world, slot)) continue;
     const { motion } = fighterAt(world, slot);
+    if (exercise === "shieldPush" && fighterAt(world, slot).shield.pushbackX !== 0) return true;
     if (!motion.grounded) continue;
     if (exercise === "pushed" && windPush(match.stageChoice, frame, motion.x, motion.z) !== 0) return true;
     const deck = motion.surface;
@@ -449,6 +450,13 @@ const WARDEN: MatchScript = {
 export function generateTapes(): Map<string, string> {
   const pressed = [new Set<string>(), new Set<string>()];
   const tapes = new Map([
+    ["push-physics", recordTape("Walking overlapping bodies and striking a held shield, with predictions and rollback.", [{
+      placement: "test-air 1 -215 0",
+      characters: [Character.archer, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 180,
+      holds: [[[10, 8, RIGHT, WALK], [24, 1, ATTACK], [70, 1, ATTACK], [100, 8, RIGHT, WALK], [120, 1, ATTACK]], [[1, 180, SHIELD_RIGHT]]],
+      approaches: [[], []], rollbacks: [[1, 60], [65, 90], [95, 140]], predictions: [[10, 18], [24, 32]],
+      exercise: "shieldPush",
+    }])],
     ["short-hop", recordTape("Z short and long holds with late input corrections and rollback.", [{
       characters: [Character.demonHunter, Character.rifleman], stage: 0, stocks: 3, minutes: 0, frames: 180,
       holds: [[[1, 1, SHORT_HOP], [60, 60, SHORT_HOP, JUMP]], [[1, 60, SHORT_HOP], [100, 3, SHORT_HOP]]],
