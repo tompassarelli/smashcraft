@@ -1,7 +1,14 @@
 // The Tomb of Sargeras sea (smashcraft:docs/design/water-stage.md, #277):
 // the tide's timetable and push, floating, swimming, the water jump and the
 // hydra, each pinned to the design's numbers.
-import { assertEquals, assertNear, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertGreaterThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
+import { Phase } from "../match/rules";
+import { stepMatch } from "../match/step";
+import { stateChecksum } from "../replay/canonical";
+import { firstStateDifference } from "../replay/difference";
+import { type ReplayState, copyReplayState, createReplaySnapshot } from "../replay/snapshot";
+import type { Fighter } from "./fighter";
+import { fighterAt } from "./roster";
 import { FROZEN_THRONE_STAGE, TOMB_OF_SARGERAS_STAGE } from "./stage";
 import { SEA_SURFACE_Z, TIDE_SPEED, framesUntilTideTurns, seaLeft, seaRight, tideDirection, tideNextDirection, tidePush } from "./stageHazards";
 
@@ -34,4 +41,51 @@ test("the sea spans blast line to blast line below z -360 on the Tomb only; the 
   assertEquals(tidePush(TOMB, 1, 0.0, SEA_SURFACE_Z + 1.0), 0.0);
   assertEquals(tidePush(TOMB, 1, 0.0, 0.0), 0.0);
   assertEquals(tidePush(FROZEN_THRONE_STAGE, 1, 0.0, UNDER), 0.0);
+});
+
+/** A two-fighter practice match on the Tomb with fighter 0 dropped, airborne, at (x, z). */
+function seaMatch(x: number, z: number): ReplayState {
+  const state = createReplaySnapshot();
+  state.match.phase = Phase.match; state.match.stageChoice = TOMB;
+  state.match.humanMask = 3; state.match.humanFighterMask = 3; state.match.practice = true;
+  const f = fighterAt(state.world, 0);
+  f.motion.x = x; f.motion.z = z; f.motion.grounded = false; f.motion.surface = undefined;
+  return state;
+}
+
+function play(state: ReplayState, from: number, to: number, each?: (frame: number, f: Fighter) => void): void {
+  for (let frame = from; frame <= to; frame++) {
+    stepMatch(state.match, state.world, state.controls, frame);
+    each?.(frame, fighterAt(state.world, 0));
+  }
+}
+
+test("a fighter's water count runs only while it is in the sea, counts one entry and restarts when it lands [spec docs/design/water-stage.md]", () => {
+  const state = seaMatch(0.0, SEA_SURFACE_Z + 2.0);
+  const f = fighterAt(state.world, 0);
+  let wet = 0;
+  play(state, 1, 10, (_frame, fighter) => { if (fighter.motion.z <= SEA_SURFACE_Z) wet++; });
+  assertGreaterThan(wet, 0);
+  assertTrue(f.water.inWater);
+  assertEquals(f.water.frames, wet);
+  assertEquals(f.water.entries, 1);
+  // Standing on the deck again clears the visit.
+  const standing = fighterAt(state.world, 1);
+  standing.water.frames = 40; standing.water.entries = 3;
+  play(state, 11, 11);
+  assertEquals(standing.water.frames, 0);
+  assertEquals(standing.water.entries, 0);
+});
+
+test("a fighter's water state is saved with the match: a rollback into the sea replays 30 frames with no difference [invariant]", () => {
+  const live = seaMatch(-300.0, SEA_SURFACE_Z + 20.0);
+  const saved = createReplaySnapshot(); const replay = createReplaySnapshot();
+  play(live, 1, 6);
+  assertGreaterThan(fighterAt(live.world, 0).water.frames, 0);
+  copyReplayState(saved, live);
+  play(live, 7, 36);
+  copyReplayState(replay, saved);
+  play(replay, 7, 36);
+  assertEquals(firstStateDifference(live, replay), undefined);
+  assertEquals(stateChecksum(live), stateChecksum(replay));
 });

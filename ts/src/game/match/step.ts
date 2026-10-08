@@ -23,6 +23,7 @@ import { advanceFighterMotion } from "../sim/step";
 import { maskHeroStatusControls } from "../sim/heroStatus";
 import { platformSpecialInput } from "../sim/platformMoves";
 import { advanceStageCannon } from "../sim/stageHazards";
+import { advanceWater } from "../sim/water";
 import { surfaceCount, surfaceLine, surfaceZAt } from "../sim/stage";
 import { setWorldMotionValue } from "../sim/motion";
 import { advanceFreezeTraps } from "../sim/summons";
@@ -157,6 +158,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     observedFrameLegalActions[slot] = observedActions.legal;
     observedFrameStartedActions[slot] = observedActions.started;
   }
+  advanceWater(world, stage);
   advanceItems(game, world, controls, frame);
   advanceStageCannon(world, stage, stageFrame, controls.inputs);
 

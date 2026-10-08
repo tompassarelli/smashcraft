@@ -382,6 +382,11 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("cannonHeld", e.cannon.held ?? -1, a.cannon.held ?? -1);
   add("cannonFiring", e.cannon.firing ?? -1, a.cannon.firing ?? -1);
   add("cannonCooldown", e.cannon.cooldown, a.cannon.cooldown);
+  add("waterIn", e.water.inWater, a.water.inWater);
+  add("waterFrames", e.water.frames, a.water.frames);
+  add("waterEntries", e.water.entries, a.water.entries);
+  add("waterHydraFrame", e.water.hydraFrame, a.water.hydraFrame);
+  add("waterHydraX", e.water.hydraX, a.water.hydraX);
   return found;
 }
 
