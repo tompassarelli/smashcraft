@@ -20,7 +20,7 @@ const siphon: AuthoredSpecial = {
 };
 const flight = (cost: number, speed: number): AuthoredSpecial => ({
   cost, endFrame: 36, aimFrames: 10, oncePerAirtime: true, helpless: true, landingLag: 24,
-  motion: [{ ...frames(11, 30), velocityX: 0.0, velocityZ: speed, aimedSpeed: speed }],
+  motion: [{ ...frames(1, 10), velocityX: 0.0, velocityZ: 0.0 }, { ...frames(11, 30), velocityX: 0.0, velocityZ: speed, aimedSpeed: speed }],
   regions: [heroRegion(11, 20, { x1: -18.0, z1: 45.0, x2: 18.0, z2: 45.0, radius: 25.0 }, kaelHit(6.0, 70))],
 });
 const banish: AuthoredSpecial = {
