@@ -25,7 +25,7 @@ const NORMALS = [
   [AttackStyle.backAir, 9, 3, 24, 14],
   [AttackStyle.upAir, 8, 4, 23, 14],
   [AttackStyle.downAir, 16, 4, 32, 22],
-  [AttackStyle.grab, 8, 2, 25, 0],
+  [AttackStyle.grab, 8, 3, 24, 0],
 ] as const;
 
 function pair(style: AttackStyle, frame: number, x: number, facing = 1) {

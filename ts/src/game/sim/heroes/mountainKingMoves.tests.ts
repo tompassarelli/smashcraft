@@ -4,7 +4,7 @@ import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GrabAction } from "../codes";
 import { attackPhase } from "../conditions";
 import { createFighter } from "../fighter";
-import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
+import { SHARED_GRAB_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
 import { attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
@@ -25,7 +25,7 @@ const NORMAL_TIMINGS = [
   [AttackStyle.backAir, 10, 3, 25, 15],
   [AttackStyle.upAir, 7, 4, 22, 13],
   [AttackStyle.downAir, 12, 5, 29, 20],
-  [AttackStyle.grab, 8, 2, 25, 0],
+  [AttackStyle.grab, 8, 3, 24, 0],
 ] as const;
 
 function attackPair(style: AttackStyle, frame: number, targetX: number, targetZ = 0.0, facing = 1, groundedTarget = true) {
@@ -70,7 +70,7 @@ test("Mountain King authored contact paths exist only on their adopted active fr
         if (out.window > 0) {
           live++;
           assertEquals(out.window, 1);
-          assertTrue(out.strike !== undefined);
+          assertTrue(style === AttackStyle.grab ? out.maxX === SHARED_GRAB_REGION.maxX && out.strike === undefined : out.strike !== undefined);
         }
       }
       assertEquals(live > 0, actionFrame >= first - 1 && actionFrame < first - 1 + active);

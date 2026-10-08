@@ -28,6 +28,7 @@ src/game/match/cpuProfileContracts.tests.ts	2	0.801
 src/game/match/cpuProfiles.tests.ts	4	0.320
 src/game/match/edgeRecovery.tests.ts	8	2.578
 src/game/match/frameInput.tests.ts	4	0.013
+src/game/match/grabOptionsContracts.tests.ts	4	0.480
 src/game/match/groundNormalContracts.tests.ts	16	0.131
 src/game/match/hazardsSetting.tests.ts	4	0.919
 src/game/match/itemsContracts.tests.ts	4	0.810

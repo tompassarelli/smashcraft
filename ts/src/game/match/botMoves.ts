@@ -11,7 +11,7 @@ import { attackCapsule, emptyCapsule, hurtCapsule } from "../physics/contactGeom
 import { AttackStyle, Character, LAST_ATTACK_STYLE, PassiveKind, SpecialAction } from "../sim/codes";
 import { canAttack } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
-import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../sim/hitRegions";
+import { SHARED_GRAB_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../sim/hitRegions";
 import { attackStartupFrames } from "../sim/moves";
 import type { FighterMoves } from "../sim/heroMoves";
 import type { Controls } from "../sim/roster";
@@ -75,18 +75,11 @@ function strikeIndex(character: Character, style: AttackStyle, moves?: FighterMo
   for (let part = 0; part < authoredHitRegionCount(style, moves); part++) {
     const region = authoredHitRegion(scratchRegion, character, style, startup, 0, part, moves);
     if (region.window <= 0) continue;
-    let low = region.minX;
-    let high = region.maxX;
-    let bottom = region.minZ;
-    let top = region.maxZ;
-    // An original grab catches a target whose position lies in its region; strikes and kit grabs reach with their capsule.
-    if (style !== AttackStyle.grab || moves?.normals[AttackStyle.grab] !== undefined) {
-      const strike = attackCapsule(scratchCapsule, style, region);
-      low = f32(Math.min(strike.x1, strike.x2) - strike.radius);
-      high = f32(Math.max(strike.x1, strike.x2) + strike.radius);
-      bottom = f32(Math.min(strike.z1, strike.z2) - strike.radius);
-      top = f32(Math.max(strike.z1, strike.z2) + strike.radius);
-    }
+    const strike = attackCapsule(scratchCapsule, style, region);
+    const low = f32(Math.min(strike.x1, strike.x2) - strike.radius);
+    const high = f32(Math.max(strike.x1, strike.x2) + strike.radius);
+    const bottom = f32(Math.min(strike.z1, strike.z2) - strike.radius);
+    const top = f32(Math.max(strike.z1, strike.z2) + strike.radius);
     minX = found ? Math.min(minX, low) : low;
     maxX = found ? Math.max(maxX, high) : high;
     minZ = found ? Math.min(minZ, bottom) : bottom;
@@ -109,8 +102,8 @@ export function moveReaches(character: Character, style: AttackStyle, target: Re
   const maxX = at(strikeBounds, index + 1);
   const minZ = at(strikeBounds, index + 2);
   const maxZ = at(strikeBounds, index + 3);
-  // An original fighter's grab catches a target whose position lies in its region; a kit's grab path takes the body like a strike.
-  if (style === AttackStyle.grab && moves?.normals[AttackStyle.grab] === undefined) return localX >= minX && localX <= maxX && localZ >= minZ && localZ <= maxZ;
+  // A grab box takes the body like a strike but rejects a target whose feet lie behind or beyond its reach (#337).
+  if (style === AttackStyle.grab && (localX < 0 || localX > SHARED_GRAB_REGION.maxX)) return false;
   const hurt = hurtCapsule(target.character);
   return localX >= f32(minX - hurt.radius) && localX <= f32(maxX + hurt.radius)
     && localZ >= f32(f32(minZ - hurt.z2) - hurt.radius) && localZ <= f32(f32(maxZ - hurt.z1) + hurt.radius);
@@ -120,7 +113,8 @@ export function moveReaches(character: Character, style: AttackStyle, target: Re
 /** How far ahead `style` from the attacker strikes a target's position on its first active frame. */
 export function moveReachAhead(character: Character, style: AttackStyle, target: Readonly<Fighter>, moves?: FighterMoves): number {
   const maxX = at(strikeBounds, strikeIndex(character, style, moves) + 1);
-  return style === AttackStyle.grab && moves?.normals[AttackStyle.grab] === undefined ? maxX : f32(maxX + hurtCapsule(target.character).radius);
+  const reach = f32(maxX + hurtCapsule(target.character).radius);
+  return style === AttackStyle.grab ? Math.min(reach, SHARED_GRAB_REGION.maxX) : reach;
 }
 
 /** The delayed target keeps its observed velocity; the attacker starts sliding now. */

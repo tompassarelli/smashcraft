@@ -5,7 +5,7 @@ import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GrabAction } fr
 import { attackPhase } from "../conditions";
 import { createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
-import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
+import { SHARED_GRAB_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
 import { attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { HurtContact, fighterHurtParts, strikeHurtContact } from "../hurtboxes";
@@ -21,7 +21,7 @@ const NORMALS = [
   [AttackStyle.backAir, 7, 3, 22, 12],
   [AttackStyle.upAir, 5, 9, 15, 10],
   [AttackStyle.downAir, 7, 7, 14, 10],
-  [AttackStyle.grab, 6, 2, 22, 0],
+  [AttackStyle.grab, 6, 3, 21, 0],
 ] as const;
 
 function pair(style: AttackStyle, frame: number, x: number, z = 0.0, facing = 1, groundedTarget = true, ownerZ = 0.0) {
@@ -62,7 +62,7 @@ test("Warden roster phases and single-contact paths reach production [spec docs/
         if (out.window > 0) {
           live++;
           assertTrue(out.window === 1 || (isMultiHit(WARDEN_MOVES.normals[style]) && out.window > 1));
-          assertTrue(out.strike !== undefined);
+          assertTrue(style === AttackStyle.grab ? out.maxX === SHARED_GRAB_REGION.maxX && out.strike === undefined : out.strike !== undefined);
         }
       }
       // A multi-hit may pause between its hits; nothing strikes outside its active frames.
