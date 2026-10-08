@@ -10,10 +10,10 @@ const doc = readFileSync(join(import.meta.dir, "../../docs/design/balance.md"), 
 
 test("[spec docs/design/balance.md] the gate, punish and score constants are the doc's initial values", () => {
   // Changing a threshold changes this test, the constant and the doc together (Tom, 8 Oct).
-  expect(BALANCE_SPEC).toEqual({ winLow: 0.4, winHigh: 0.6, spamMax: 0.45, topMoveMax: 0.4, varietyFloor: 0.55, openingsLow: 3, openingsHigh: 4 });
+  expect(BALANCE_SPEC).toEqual({ winLow: 0.4, winHigh: 0.6, spamMax: 0.45, topMoveMax: 0.4, varietyFloor: 0.55, slippiOpeningsLow: 3, slippiOpeningsHigh: 4, openingsLow: 2, openingsHigh: 3, oneHitWarn: 0.5 });
   expect([PUNISH_RESET_FRAMES, DISADVANTAGE_FRAMES]).toEqual([45, 30]);
   expect(SCORE_WEIGHTS).toEqual({ win: 1, profile: 0.5, variety: 1, spam: 1, probe: 1, openings: 10, recovery: 1 });
-  for (const text of ["40% to 60%", "at most 45%", "at most 40%", "**45 frames**", "**30 frames**", "3-4 openings per kill", "0.55 by default", "| 0.5 |", "| 10 |"]) expect(doc).toContain(text);
+  for (const text of ["40% to 60%", "at most 45%", "at most 40%", "**45 frames**", "**30 frames**", "Slippi count: 3-4", "pokes excluded: 2-3", "above 50%", "0.55 by default", "| 0.5 |", "| 10 |"]) expect(doc).toContain(text);
 });
 
 const fighter: Measured = {

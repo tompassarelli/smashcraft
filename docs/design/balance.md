@@ -20,9 +20,10 @@ test and this doc together.
   leans on forward, neutral and down air and approaches; a zoner uses back
   air, retreats and projectiles.
 - Gameplay is explosive: at high-level play a stock falls to about 3-4
-  openings (top Melee, where edgeguard mixups are part of why), about 2 for
-  a fighter whose design calls for it, never anywhere near 10, and a few
-  correct reads can take a stock from zero.
+  openings by Slippi's count, about 1.5-2x as explosive as master-level
+  Melee (edgeguard mixups are part of why); about 2 is fine for a fighter
+  whose design calls for it, never anywhere near 10, and a few correct reads
+  can take a stock from zero.
 - Playtests calibrate the profiles; they are not the primary engine. What
   Tom notices in play becomes a change to a profile or a threshold, and the
   tools then hold every fighter to it.
@@ -90,10 +91,11 @@ read after every frame (deterministic for a given commit and seed):
 Slippi's conversion statistics are the reference
 ([slippi-js stats](https://github.com/project-slippi/slippi-js/tree/master/src/stats)).
 
-- A **punish** starts with a hit and lasts until the opponent has been
-  actionable (out of hitlag, hitstun, a hold, tumble and the floor) for
-  **45 frames** (`PUNISH_RESET_FRAMES`, Slippi's `PUNISH_RESET_FRAMES`), or
-  loses the stock.
+- A **punish** starts with a hit and lasts until the opponent has spent
+  **45 frames** in control, grounded and actionable (out of hitlag, hitstun,
+  a hold, tumble and the floor), without being hit (`PUNISH_RESET_FRAMES`,
+  Slippi's `PUNISH_RESET_FRAMES`), or loses the stock. Being hit or held
+  restarts the count; actionable in the air pauses it.
 - A punish is an **opening** when it leads somewhere: a second hit lands
   within it, or its hit leaves the opponent in a disadvantage state:
   knocked down or tumbling, on the ledge, off the main deck, or unable to
@@ -106,18 +108,34 @@ Slippi's conversion statistics are the reference
 - A **zero-to-death** is a stock taken by one opening that began at that
   stock's first hit.
 
-Reported per fighter: stocks taken, openings per kill (openings over stocks
-taken, self-destructs excluded), pokes per kill and poke damage per kill,
-damage per opening (the average combo's damage), the share of neutral wins
-converted, combo hits (average and most), the most damage in one combo and
-the zero-to-death share of stocks taken. A combo here is an opening's hits.
+Reported per fighter, over **kills ending an opening** (Slippi's kill
+count): openings per kill by **Slippi's count** (every punish, pokes
+included) and **pokes excluded**, the **one-hit share** of punishes, pokes
+per kill and poke damage per kill, damage per opening (the average combo's
+damage), the share of neutral wins converted, combo hits (average and
+most), the most damage in one combo and the zero-to-death share of those
+kills. A combo here is an opening's hits.
 
-**Target: 3-4 openings per kill** (`openingsLow`, `openingsHigh`), as at
-top-level Melee; about 2 is fine where a fighter's design calls for it (its
-profile's `openings-per-kill`), far above 4 is the failure. The target
-applies to **combo potential**, measured by the combo search independent of
-computer skill; the field's realized rate shows whether the computers
-actually convert, and is reported, not scored.
+**Reference.** slippi-js stats on 1,345 master-versus-master ranked Melee
+games (Fox, Falco, Marth, Sheik, Jigglypuff, Captain Falcon and Peach
+mains; measured for this spec on 8 Oct 2026): about **5.9 openings per kill**
+by Slippi's count (Captain Falcon 5.3 to Falco 6.5), about **3 multi-hit
+openings per kill** (2.4-3.8), about 21% damage per opening (30-34% for a
+multi-hit one) and a one-hit share of about 48%.
+
+**Targets (Tom, 8 Oct)**, about 1.5-2x as explosive as that Melee:
+
+| Measure | Target |
+| --- | --- |
+| Openings per kill, Slippi count: 3-4 | `slippiOpeningsLow`, `slippiOpeningsHigh` |
+| Openings per kill, pokes excluded: 2-3 | `openingsLow`, `openingsHigh` |
+| One-hit share of punishes | flagged (!) above 50% (`oneHitWarn`) |
+
+About 2 by Slippi's count is fine where a fighter's design calls for it (its
+profile's `openings-per-kill`); far above 4 is the failure. The Slippi-count
+target applies to **combo potential**, measured by the combo search
+independent of computer skill; the field's realized rates show whether the
+computers actually convert, and are reported, not scored.
 
 ## Play-style profiles
 
@@ -139,7 +157,7 @@ them. Keys, percentages as LOW-HIGH ranges:
 | `variety-floor` | optional; the move-variety floor, 0.55 by default |
 | `top-move-ceiling` | optional; the largest move's damage share, 40 by default |
 | `signature` | optional; `MOVE PERCENT`, the signature move and the damage share it may carry |
-| `openings-per-kill` | optional; the fighter's combo-potential target, 3-4 by default |
+| `openings-per-kill` | optional; the fighter's combo-potential target by Slippi's count, 3-4 by default |
 
 smashcraft:ts/scripts/balance.ts reads every block under docs/design/; a
 fighter without one is scored without profile terms, and the tests require
@@ -158,7 +176,7 @@ report prints the total and each term.
 | Variety | below the variety floor (x100) | 1 |
 | Top move | above the top-move ceiling, or the signature move's allowance | 1 |
 | Probe | spam probe above 45% | 1 |
-| Openings | potential openings per kill outside the profile's range (default 3-4) | 10 |
+| Openings | potential openings per kill (Slippi's count) outside the profile's range (default 3-4) | 10 |
 | Recovery | recovery envelope outside the roster band | 1 |
 
 **Slots for other tools.** `Measured.potentialOpeningsPerKill` takes the

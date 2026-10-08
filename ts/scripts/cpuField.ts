@@ -117,8 +117,9 @@ interface SideRecord {
 /**
  * Its punishes of the opponent, Slippi's conversions (balance.md, "Openings
  * and punishes"): a punish starts with a hit and lasts until the opponent has
- * been actionable PUNISH_RESET_FRAMES frames or loses the stock. One with a
- * second hit or a disadvantage state is an opening; the rest are pokes.
+ * spent PUNISH_RESET_FRAMES frames in control (grounded and actionable) or
+ * loses the stock. One with a second hit or a disadvantage state is an
+ * opening; the rest are pokes. Slippi's count is both.
  */
 export interface PunishTotals {
   openings: number;
@@ -128,6 +129,8 @@ export interface PunishTotals {
   neutralConverted: number;
   pokes: number;
   pokeDamage: number;
+  /** Punishes of one hit, pokes included. */
+  oneHit: number;
   /** Openings that took a stock. */
   kills: number;
   /** Stocks taken by one opening that started at the stock's first hit. */
@@ -223,10 +226,11 @@ function strikingMove(f: Readonly<Fighter>): number | undefined {
 const unactionable = (f: Readonly<Fighter>): boolean =>
   f.launch.hitlag > 0 || f.launch.hitstun > 0 || f.grab.owner !== undefined || f.down.state !== DownState.none;
 
-const emptyPunishes = (): PunishTotals => ({ openings: 0, neutralWins: 0, neutralConverted: 0, pokes: 0, pokeDamage: 0, kills: 0, zeroToDeaths: 0, hits: 0, damage: 0, maxHits: 0, maxDamage: 0 });
+const emptyPunishes = (): PunishTotals => ({ openings: 0, neutralWins: 0, neutralConverted: 0, pokes: 0, pokeDamage: 0, oneHit: 0, kills: 0, zeroToDeaths: 0, hits: 0, damage: 0, maxHits: 0, maxDamage: 0 });
 
 /** Closes a punish into its attacker's totals: an opening, or a poke when it was one hit that left no disadvantage. */
 function closePunish(totals: PunishTotals, punish: Punish, kill: boolean): void {
+  if (punish.hits < 2) totals.oneHit++;
   if (punish.hits < 2 && !punish.disadvantage && !kill) {
     totals.pokes++;
     totals.pokeDamage += punish.damage;
@@ -349,10 +353,11 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
         seen.punish.quiet = 0;
       } else if (seen.punish !== undefined && other !== undefined) {
         const punish = seen.punish;
+        // Slippi's reset: damaged or held restarts the count, in control on the ground counts, actionable in the air waits.
         if (unactionable(f)) {
           punish.quiet = 0;
           if (punish.hits === 1 && ++punish.stunned >= DISADVANTAGE_FRAMES) punish.disadvantage = true;
-        } else if (++punish.quiet >= PUNISH_RESET_FRAMES) {
+        } else if (f.motion.grounded && ++punish.quiet > PUNISH_RESET_FRAMES) {
           closePunish(other.punishes, punish, false);
           seen.punish = undefined;
         }
@@ -488,7 +493,13 @@ export interface StyleSummary {
   readonly specials: Readonly<Record<string, number>>;
   /** Normalized entropy of moves started over the report's REPORTED_MOVES kit: 1 every move alike, 0 one move. */
   readonly variety: number;
+  /** Stocks taken by an opening: the kills ending one. */
   readonly kills: number;
+  /** Slippi's count: every punish, pokes included, over kills. */
+  readonly slippiOpeningsPerKill: number;
+  /** Punishes of one hit over every punish. */
+  readonly oneHitShare: number;
+  /** Openings, pokes excluded, over kills. */
   readonly openingsPerKill: number;
   /** Average damage of an opening: the average combo's damage. */
   readonly damagePerOpening: number;
@@ -554,6 +565,7 @@ export function styleSummary(records: readonly MatchRecord[], fighter: string): 
     punish.neutralConverted += p.neutralConverted;
     punish.pokes += p.pokes;
     punish.pokeDamage += p.pokeDamage;
+    punish.oneHit += p.oneHit;
     punish.kills += p.kills;
     punish.zeroToDeaths += p.zeroToDeaths;
     punish.hits += p.hits;
@@ -566,7 +578,8 @@ export function styleSummary(records: readonly MatchRecord[], fighter: string): 
   const aerialTotal = AERIAL_MOVES.reduce((sum, move) => sum + (started.get(move) ?? 0), 0);
   const normalTotal = [...kit].filter(([move]) => !SPECIAL_MOVES.includes(move)).reduce((sum, [, count]) => sum + count, 0);
   const startedTotal = [...started.values()].reduce((sum, count) => sum + count, 0);
-  const kills = [...kos.values()].reduce((sum, count) => sum + count, 0);
+  const kills = punish.kills;
+  const punishes = punish.openings + punish.pokes;
   return {
     damage: damageShares,
     kos: shares(kos),
@@ -579,6 +592,8 @@ export function styleSummary(records: readonly MatchRecord[], fighter: string): 
     specials: Object.fromEntries(SPECIAL_MOVES.map((move) => [moveName(move), startedTotal === 0 ? 0 : (started.get(move) ?? 0) / startedTotal])),
     variety: moveVariety(kit),
     kills,
+    slippiOpeningsPerKill: ratio(punishes, kills),
+    oneHitShare: ratio(punish.oneHit, punishes),
     openingsPerKill: ratio(punish.openings, kills),
     damagePerOpening: ratio(punish.damage, punish.openings),
     neutralConversion: ratio(punish.neutralConverted, punish.neutralWins),
@@ -838,14 +853,14 @@ function balanceTables(summaries: readonly FighterSummary[], probes: ReadonlyMap
   }
   lines.push(
     "",
-    `Openings and punishes (Slippi's conversions: a punish lasts until the opponent has been actionable ${PUNISH_RESET_FRAMES} frames; a lone hit that left it able to act within ${DISADVANTAGE_FRAMES} frames, on the deck and not on the floor, is a poke, not an opening):`,
+    `Openings and punishes (Slippi's conversions: a punish lasts until the opponent has spent ${PUNISH_RESET_FRAMES} frames in control on the ground; a lone hit that left it able to act within ${DISADVANTAGE_FRAMES} frames, on the deck and not on the floor, is a poke. Targets: Slippi count ${BALANCE_SPEC.slippiOpeningsLow}-${BALANCE_SPEC.slippiOpeningsHigh}, pokes excluded ${BALANCE_SPEC.openingsLow}-${BALANCE_SPEC.openingsHigh}; ! marks a one-hit share over ${share(BALANCE_SPEC.oneHitWarn)}):`,
     "",
-    "| Fighter | Stocks taken | Openings per kill | Pokes per kill | Poke damage per kill | Damage per opening | Neutral wins converted | Combo hits (average / most) | Most combo damage | Zero-to-death share of stocks |",
-    "| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: |",
+    "| Fighter | Stocks taken by an opening | Openings per kill (Slippi count) | Openings per kill (pokes excluded) | One-hit share | Pokes per kill | Poke damage per kill | Damage per opening | Neutral wins converted | Combo hits (average / most) | Most combo damage | Zero-to-death share of stocks |",
+    "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: |",
   );
   for (const summary of summaries) {
     const s = summary.style;
-    lines.push(`| ${summary.fighter} | ${s.kills} | ${fixed(s.openingsPerKill)} | ${fixed(s.pokesPerKill)} | ${fixed(s.pokeDamagePerKill, 0)} | ${fixed(s.damagePerOpening)} | ${share(s.neutralConversion)} | ${fixed(s.averageComboHits)} / ${s.maxComboHits} | ${fixed(s.maxComboDamage, 0)} | ${share(s.zeroToDeathShare)} |`);
+    lines.push(`| ${summary.fighter} | ${s.kills} | ${fixed(s.slippiOpeningsPerKill)} | ${fixed(s.openingsPerKill)} | ${share(s.oneHitShare)}${s.oneHitShare > BALANCE_SPEC.oneHitWarn ? " !" : ""} | ${fixed(s.pokesPerKill)} | ${fixed(s.pokeDamagePerKill, 0)} | ${fixed(s.damagePerOpening)} | ${share(s.neutralConversion)} | ${fixed(s.averageComboHits)} / ${s.maxComboHits} | ${fixed(s.maxComboDamage, 0)} | ${share(s.zeroToDeathShare)} |`);
   }
   const { winLow, winHigh, spamMax, topMoveMax } = BALANCE_SPEC;
   lines.push(

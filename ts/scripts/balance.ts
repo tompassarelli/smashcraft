@@ -17,9 +17,17 @@ export const BALANCE_SPEC = {
   topMoveMax: 0.40,
   /** Default move-variety floor (normalized entropy of moves started). */
   varietyFloor: 0.55,
-  /** Openings per kill a fighter's combo potential should reach (Tom, 8 Oct): 3-4, as at top-level Melee. */
-  openingsLow: 3,
-  openingsHigh: 4,
+  /**
+   * Openings per kill (Tom, 8 Oct), about 1.5-2x as explosive as master-level
+   * Melee (balance.md, "Openings and punishes"): Slippi's count 3-4, the
+   * combo-potential target; pokes excluded 2-3.
+   */
+  slippiOpeningsLow: 3,
+  slippiOpeningsHigh: 4,
+  openingsLow: 2,
+  openingsHigh: 3,
+  /** A one-hit share of punishes above this is flagged. */
+  oneHitWarn: 0.5,
 } as const;
 
 /** A punish ends once its victim has been actionable this many frames: Slippi's PUNISH_RESET_FRAMES. */
@@ -101,7 +109,7 @@ export function parseProfile(block: string, doc: string): PlayStyleProfile {
     varietyFloor: Number(fields.get("variety-floor") ?? BALANCE_SPEC.varietyFloor),
     topMoveMax: Number(fields.get("top-move-ceiling") ?? 100 * BALANCE_SPEC.topMoveMax) / 100,
     ...(signature === undefined ? {} : { signature: { move: signature[0] ?? "", max: Number(signature[1] ?? 100 * BALANCE_SPEC.topMoveMax) / 100 } }),
-    openings: fields.has("openings-per-kill") ? range(fields.get("openings-per-kill") ?? "", 1, where) : { low: BALANCE_SPEC.openingsLow, high: BALANCE_SPEC.openingsHigh },
+    openings: fields.has("openings-per-kill") ? range(fields.get("openings-per-kill") ?? "", 1, where) : { low: BALANCE_SPEC.slippiOpeningsLow, high: BALANCE_SPEC.slippiOpeningsHigh },
   };
 }
 
@@ -143,7 +151,7 @@ export interface Measured {
   readonly variety: number;
   /** The spam probe's win rate against the Expert field, once measured. */
   readonly spamWinRate?: number;
-  /** Openings per kill from the combo search (combo potential), once measured; the realized rate is reported, not scored. */
+  /** Openings per kill (Slippi's count) from the combo search, once measured; the realized rate is reported, not scored. */
   readonly potentialOpeningsPerKill?: number;
   /** Distance outside the roster's recovery band, once measured (0 inside). */
   readonly recoveryDistance?: number;
@@ -197,7 +205,7 @@ export function balanceScore(measured: Measured, profile: PlayStyleProfile | und
     spam: 100 * Math.max(0, measured.topDamageShare - topMoveLimit(profile, measured.topMove)),
     probe: measured.spamWinRate === undefined ? undefined : 100 * Math.max(0, measured.spamWinRate - BALANCE_SPEC.spamMax),
     openings: measured.potentialOpeningsPerKill === undefined ? undefined
-      : outside(measured.potentialOpeningsPerKill, profile?.openings ?? { low: BALANCE_SPEC.openingsLow, high: BALANCE_SPEC.openingsHigh }),
+      : outside(measured.potentialOpeningsPerKill, profile?.openings ?? { low: BALANCE_SPEC.slippiOpeningsLow, high: BALANCE_SPEC.slippiOpeningsHigh }),
     recovery: measured.recoveryDistance,
   };
   const w = SCORE_WEIGHTS;
