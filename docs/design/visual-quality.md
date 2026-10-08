@@ -748,6 +748,28 @@ longest authored particle lifetime is 12 seconds. Restore with
 Use one mask for the stock/stage pair, keeping sky, fog, camera and pose fixed.
 An actual Classic and Reforged draw is needed for the asset fallback claim.
 
+### 3.0.1 headless comparison reference
+
+The shared #287 producer at Smashcraft `5e8ef374` and Wisp `9b821201` uses
+Warcraft 3.0.1.24342 assets, Classic and Definitive, and separate stock/mask/stage
+journeys drawn at frame 410. It pauses at frame 345 (holding match frame 315)
+and fixes the near or far camera before the pause. These views differ from
+the earlier `view off` comparisons. `--look day-night-light,fog,sky` records
+the levers being measured; the native profile's shadows, water and HD
+post-processing remain outside this headless reference.
+
+Hellfire's complete reference, measured with `tools/stage/contrast.ts`:
+
+| Mode / view | Stock \|ΔL\| / ΔE00 | Stage \|ΔL\| / ΔE00 | Neither falls |
+| --- | --- | --- | --- |
+| Classic / near | 5.4 / 9.4 | 5.6 / 9.3 | no |
+| Classic / far | 5.3 / 8.6 | 6.1 / 8.2 | no |
+| Definitive / near | 5.2 / 7.6 | 6.2 / 7.4 | no |
+| Definitive / far | 4.5 / 3.9 | 5.3 / 4.0 | yes |
+
+The failed rows require a lighting adjustment before claiming a contrast
+pass. They do not replace #287's full native capture-profile baseline.
+
 The shared stage batch keeps the original `170-*` contrast checks and `191-*`
 camera extremes in one hosted game. `192-*-linear|height` retains the same
 paused far view before and after a 3.0 height-fog candidate; its values remain
