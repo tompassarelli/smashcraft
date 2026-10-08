@@ -57,11 +57,11 @@ sweep("drawing between simulation frames leaves every confirmed checksum unchang
   expect(smooth.drawnPositions).toBeGreaterThan(plain.drawnPositions);
   expect(smooth.checksums[0]?.length).toBe(MATCH_FRAMES);
   expect(smooth.checksums).toEqual(plain.checksums);
-}, 30000);
+});
 
 sweep("native camera transitions leave every confirmed checksum unchanged [spec #169] [invariant]", () => {
   const plain = quickMatch(0);
   const smooth = quickMatch(0, true);
   expect(smooth.checksums[0]?.length).toBe(MATCH_FRAMES);
   expect(smooth.checksums).toEqual(plain.checksums);
-}, 30000);
+});
