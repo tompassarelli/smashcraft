@@ -13,7 +13,7 @@ import { exportPad } from "../src/platform/shell/analogPad";
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
 
-for (const route of ["keys", "cursor"] as const) test(`analog-${route}: the live rollback capture sends exact pad axes and trigger pressure`, () => {
+for (const route of ["keys", "cursor"] as const) test(`analog-${route}: the live rollback capture sends exact pad axes and trigger pressure [spec docs/controller-platforms.md]`, () => {
   const build = { ...PLAYABLE_BUILD, id: `typescript-analog-${route}`, analogPad: route, analogPadDiagnostic: true, devConsole: true };
   const clients = headless.clients({ start: () => startBuild(build), install }, [0, 1]);
   clients.start();
@@ -54,7 +54,7 @@ for (const route of ["keys", "cursor"] as const) test(`analog-${route}: the live
   expect(clients.clients.flatMap(client => client.errors)).toEqual([]);
 });
 
-test("normal analog keys preserve the side camera and capture rows without diagnostic logs", () => {
+test("normal analog keys preserve the side camera and capture rows without diagnostic logs [spec docs/controller-platforms.md]", () => {
   const build = { ...PLAYABLE_BUILD, analogPad: "keys" as const, devConsole: true };
   const clients = headless.clients({ start: () => startBuild(build), install }, [0, 1]);
   clients.start();

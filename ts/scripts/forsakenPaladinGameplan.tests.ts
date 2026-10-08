@@ -6,7 +6,7 @@ import { gameplanKeyMovesCheck } from "./cpuField";
 
 // #105's original four keys retain its top-eight rule. The #216 patch supports
 // those hammer tools and has a 150-frame cooldown; it must be used, not spammed.
-sweep("Forsaken Paladin's computer favors his four hammer tools and uses Consecration", () => {
+sweep("Forsaken Paladin's computer favors his four hammer tools and uses Consecration [spec #105]", () => {
   const check = gameplanKeyMovesCheck(Character.forsakenPaladin, { key: [
     AttackStyle.forwardTilt,
     GameplanSpecial.neutral,

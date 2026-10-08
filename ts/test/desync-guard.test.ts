@@ -19,7 +19,7 @@ import { type InputTrace, beginInputTrace, finishInputTrace, inputTrace, traceIn
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
-test("desync guard: both clients make the same native calls through a match and a hot reload", () => {
+test("desync guard: both clients make the same native calls through a match and a hot reload [invariant]", () => {
   expect(CURRENT_BUILD.devConsole).toBe(true);
   const clients = playThroughReload(headless, { start, install });
   expectNoDivergence(clients);
@@ -43,7 +43,7 @@ function typeDesync(entry: MapEntry): Lockstep {
 
 const devReceipts = (clients: Lockstep) => clients.clients.map(client => [...client.files.keys()].filter(name => name.startsWith("smashcraft-dev-")));
 
-test("-dev desync creates one more handle on the typing player's client and nothing else differs", () => {
+test("-dev desync creates one more handle on the typing player's client and nothing else differs [invariant]", () => {
   const clients = typeDesync({ start, install });
   for (const client of clients.clients) expect(client.errors).toEqual([]);
   const [host, typist] = clients.clients.map(client => client.log.map(({ name }) => name));
@@ -54,14 +54,14 @@ test("-dev desync creates one more handle on the typing player's client and noth
   expect(devReceipts(clients).map(names => names.length)).toEqual([1, 1]);
 });
 
-test("the playable build ignores -dev desync", () => {
+test("the playable build ignores -dev desync [invariant]", () => {
   expect(PLAYABLE_BUILD.devConsole).toBe(false);
   const clients = typeDesync(entryFor(PLAYABLE_BUILD));
   expectNoDivergence(clients);
   expect(devReceipts(clients)).toEqual([[], []]);
 });
 
-test("an input trace starts and finishes on one client only, as the helper's first row arrives there, without a synchronized native call", () => {
+test("an input trace starts and finishes on one client only, as the helper's first row arrives there, without a synchronized native call [repro #158] [invariant]", () => {
   // A trace starts at this client's own first journal row (journal.ts), a turn the other client reaches at another time;
   // a handle made then is born on different turns on each client, a native tempest-checksum desync (#158).
   const clients = headless.clients({ start: () => {}, install: () => {} });

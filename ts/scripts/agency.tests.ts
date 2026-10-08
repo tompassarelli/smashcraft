@@ -23,14 +23,14 @@ function grabbed(start: ReplayState, attacker: (state: Readonly<ReplayState>, fr
   return state;
 }
 
-test("a standing fighter can act on every frame", () => {
+test("a standing fighter can act on every frame [spec docs/gameplay-design.md]", () => {
   const start = standingMatch(Character.archer, Character.rifleman, 0, 200);
   const report = analyzeAgency({ start, victim: VICTIM, frames: 4, row: () => emptyInput() });
   expect(agencyLetters(report.frames)).toBe("AAAA");
   expect(report.frames[0]?.classes).toContain("jump");
 });
 
-test("a hit's hitlag leaves the victim only the stick, its hitstun nothing, and then it can act", () => {
+test("a hit's hitlag leaves the victim only the stick, its hitstun nothing, and then it can act [spec docs/gameplay-design.md]", () => {
   const start = standingMatch(Character.demonHunter, Character.rifleman, 0, 40);
   const jab = attackerPlan("jab", start.runtime.simulationFrame + 1);
   const state = snapshotOf(start);
@@ -45,7 +45,7 @@ test("a hit's hitlag leaves the victim only the stick, its hitstun nothing, and 
   expect(report.frames.filter(({ agency }) => agency === "di").at(-1)?.classes).toContain("DI up");
 });
 
-test("mashing out of a hold the attacker keeps is acting", () => {
+test("mashing out of a hold the attacker keeps is acting [spec docs/gameplay-design.md]", () => {
   const start = standingMatch(Character.archer, Character.rifleman, 0, 40);
   const grab = attackerPlan("forward throw", start.runtime.simulationFrame + 1);
   const held = grabbed(start, grab);
@@ -56,7 +56,7 @@ test("mashing out of a hold the attacker keeps is acting", () => {
 });
 
 // About 1.2 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
-sweep("the soak's detector flags a loop the victim can't act out of, and passes one it can", () => {
+sweep("the soak's detector flags a loop the victim can't act out of, and passes one it can [spec docs/typescript.md]", () => {
   // Forsaken Paladin regrabs Rifleman after each up throw at 50%: only buttons get the victim out of the cycle.
   const start = standingMatch(Character.forsakenPaladin, Character.rifleman, 50, 40);
   const regrab = attackerPlan("up throw", start.runtime.simulationFrame + 1, 80);

@@ -21,11 +21,11 @@ const capture = (): CaptureEvidence => ({
   producer: [], kernel: [[], []], exports: new Map([[3, [exported(3), exported(3)]], [4, [exported(4), exported(4)]]]),
 });
 
-test("#17 closes from four-fighter results without #26 timing or edge samples", () => {
+test("#17 closes from four-fighter results without #26 timing or edge samples [spec docs/native-four-fighters.md]", () => {
   expect(fourFighterResult(capture())).toMatchObject({ passed: true, failures: [], epochs: [3, 4] });
 });
 
-test("#17 rejects mismatched results and a combat checksum used as a result", () => {
+test("#17 rejects mismatched results and a combat checksum used as a result [spec docs/native-four-fighters.md]", () => {
   const original = capture();
   const mismatch = new Map(original.exports);
   mismatch.set(4, [exported(4), exported(4, "123:457")]);
@@ -35,7 +35,7 @@ test("#17 rejects mismatched results and a combat checksum used as a result", ()
   expect(fourFighterResult({ ...original, exports: combat }).passed).toBe(false);
 });
 
-test("#17 rejects missing native roster, completion or rematch slot change", () => {
+test("#17 rejects missing native roster, completion or rematch slot change [spec docs/native-four-fighters.md]", () => {
   const original = capture();
   const twoFighters = new Map(original.exports);
   twoFighters.set(3, [{ ...exported(3), trace: "connected 3 human-fighters 3 computers 0 fighters 3" }, exported(3)]);

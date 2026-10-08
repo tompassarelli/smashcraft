@@ -190,7 +190,7 @@ interface LockstepFrames {
 }
 
 // About 1.5 s alone; at load 23-29 a host took headless match tests past Bun's 5 s default.
-sweep("#60: every local press starts in the presser's next prediction unless a remote holds prediction back", () => {
+sweep("#60: every local press starts in the presser's next prediction unless a remote holds prediction back [spec #60]", () => {
   const network = syncDelivery(BOT_SESSION_LATENCY, 11);
   let slower = 0;
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: { arrivalFrame: (sender, frame, message) => network.arrivalFrame(sender, frame, message) + (sender === 1 ? slower : 0) } });

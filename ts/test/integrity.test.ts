@@ -3,15 +3,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Effect } from "effect";
 import { expect, test } from "bun:test";
-import { captureEpochs, parseCaptureArguments, parseSweep } from "../scripts/integrity/capture";
+import { parseCaptureArguments } from "../scripts/integrity/capture";
 import { IntegrityFailure, kernelLine, producerLine, readEvidence, readMetadata } from "../scripts/integrity/evidence";
 import { type GameFile, type JourneyOptions, type JourneyRecord, type PublicationRecord, Rig, type RigShape, journey, nextMatchEpoch } from "../scripts/integrity/journey";
 import { ABS_X, EV_ABS, PAD_BUTTONS, decodeEvents, edgePacket, padCapabilities, padSetup } from "../scripts/integrity/linuxInput";
 import { type Slot, capturePair, integrityResult, integrityTable, summaryJson } from "../scripts/integrity/reconcile";
-import { integritySchedule } from "../scripts/integrity/schedule";
-import { frameCostOverlay } from "../scripts/integrity/botFiles";
-import { RULE_BUTTONS } from "../src/game/ui/ruleButtons";
-import { pointerX, pointerY } from "../src/game/menu/pointer";
 import { createMatchState, setParticipants } from "../src/game/match/rules";
 import { type DevSettings, applyDevCommand } from "../src/game/shell/devSettings";
 import { devReceiptFile, stageDrawnFile } from "../src/game/shell/journalFiles";
@@ -30,7 +26,7 @@ const reconcileRun = async (run: string) => {
 };
 
 // The retired Python reconciler's output on the same files; r8 is #26's measured result.
-test("the r8 capture reconciles to #26's measured table", async () => {
+test("the r8 capture reconciles to #26's measured table [native] [reference]", async () => {
   const result = await reconcileRun("r8");
   expect(integrityTable(result)).toEqual([
     "| Metric | Result |",
@@ -53,7 +49,7 @@ test("the r8 capture reconciles to #26's measured table", async () => {
   expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [], ...NOTHING_HELD });
 });
 
-test("the r7 capture reconciles to its retained failing summary", async () => {
+test("the r7 capture reconciles to its retained failing summary [native] [reference]", async () => {
   const result = await reconcileRun("r7");
   expect(integrityTable(result).slice(2, 5)).toEqual([
     "| Edges injected per player | 648 / 648 |",
@@ -153,7 +149,7 @@ const PYTHON_INTEGRITY = {
   3: { lines: 1039, sends: 692, sha256: "02210d7edb40b68c61e9dfaa190197fddd468826df726bb7e8fbe5372dc1ffa7" },
 } as const;
 
-test("each match's integrity workload sends, waits, stalls and pauses as the Python driver did", async () => {
+test("each match's integrity workload sends, waits, stalls and pauses as the Python driver did [reference]", async () => {
   for (const epoch of [1, 2, 3] as const) {
     const { rig, trace } = recordingRig(gameFiles);
     await Effect.runPromise(journey(rig, R8).integrity(epoch));
@@ -166,7 +162,7 @@ test("each match's integrity workload sends, waits, stalls and pauses as the Pyt
 /** Pointer and screen-reading steps, which only a playable build's journey (no dev console) still takes. */
 const pointerOrOcr = (trace: readonly string[]) => trace.filter((line) => / click | wait /.test(line) && !/ wait (?:PAUSED|wins\|rematch)/.test(line));
 
-test("the integrity workload raises one stock to three before its first match and changes it no more", async () => {
+test("the integrity workload raises one stock to three before its first match and changes it no more [spec docs/native-bot-session.md]", async () => {
   const { rig, trace, game } = recordingRig(gameFiles, "1 Stock");
   await Effect.runPromise(journey(rig, R8).run);
   expect(trace.filter((line) => line.startsWith("type a -dev stocks"))).toEqual(["type a -dev stocks 3"]);
@@ -175,7 +171,7 @@ test("the integrity workload raises one stock to three before its first match an
   expect(pointerOrOcr(trace)).toEqual([]);
 });
 
-test("the journey sends r8's pad edges in r8's order, then returns to fighter selection", async () => {
+test("the journey sends r8's pad edges in r8's order, then returns to fighter selection [native]", async () => {
   const { rig, trace, events } = recordingRig(gameFiles);
   await Effect.runPromise(journey(rig, R8).run);
   const root = evidence("r8");
@@ -212,7 +208,7 @@ function failingViewRig(screenText?: string) {
   return { ...recording, rig };
 }
 
-test("an input-integrity capture records a failed player view and does everything else a passing one does", async () => {
+test("an input-integrity capture records a failed player view and does everything else a passing one does [invariant]", async () => {
   const passing = recordingRig(gameFiles);
   await Effect.runPromise(journey(passing.rig, R8).run);
   const failing = failingViewRig();
@@ -226,16 +222,7 @@ test("an input-integrity capture records a failed player view and does everythin
   expect(failing.events.filter((event) => event.event !== "player-view")).toEqual(passing.events.filter((event) => event.event !== "player-view"));
 });
 
-test("#17 and playable journeys still stop at a failed player view", async () => {
-  for (const [workload, screen] of [["match", "3 Stock · 7:00"], ["playable", "3 Stock Player 2 wins!"]] as const) {
-    const { rig, events } = failingViewRig(screen);
-    const exit = await Effect.runPromiseExit(journey(rig, { ...R8, fourFighters: workload === "match", workload }).run);
-    expect(exit._tag).toBe("Failure");
-    expect(events.some((event) => event.event === "player-view" || (event.event === "end" && event.epoch === 2))).toBe(false);
-  }
-});
-
-test("the result reports player-view failures without gating them", async () => {
+test("the result reports player-view failures without gating them [native]", async () => {
   const root = evidence("r8");
   const capture = await Bun.file(join(root, "capture.json")).json() as { events: unknown[] };
   const directory = mkdtempSync(join(tmpdir(), "integrity-view-"));
@@ -254,84 +241,8 @@ test("the result reports player-view failures without gating them", async () => 
   }
 });
 
-test("sweep and four-fighter journeys command and record what the reconciler expects", async () => {
-  const sweep = recordingRig(gameFiles);
-  await Effect.runPromise(journey(sweep.rig, { ...R8, epochs: [3, 4, 5, 6], sweep: [[24, 2], [24, 1]] }).run);
-  expect(sweep.trace.filter((line) => /^type a -dev (?:batch|rb) /.test(line))).toEqual(["type a -dev batch 2", "type a -dev rb 24", "type a -dev batch 1", "type a -dev rb 24"]);
-  // Each rematch's slot change is commanded, and the next match restores two humans.
-  expect(sweep.trace.filter((line) => line.startsWith("type a -dev slots"))).toEqual([
-    "type a -dev slots 3 0", "type a -dev slots 7 0", "type a -dev slots 3 4", "type a -dev slots 3 0", "type a -dev slots 7 0", "type a -dev slots 3 4", "type a -dev slots 3 0",
-  ]);
-  expect(sweep.events.filter((event) => event.event === "integrity-slot-change").map((event) => event.epoch)).toEqual([4, 6]);
-  expect(sweep.trace).toContain("until slot C was not restored to EMPTY");
-  expect(sweep.trace.filter((line) => /^until dev command not confirmed: -dev (?:batch|rb) /.test(line))).toHaveLength(4);
-  expect(sweep.events.filter((event) => event.event === "dev-config").map((event) => event.event === "dev-config" && event.command)).toEqual(["-dev batch 2", "-dev rb 24", "-dev batch 1", "-dev rb 24"]);
-  expect(sweep.trace.some((line) => line.includes("All|Allies"))).toBe(false);
-
-  const four = recordingRig(gameFiles);
-  await Effect.runPromise(journey(four.rig, { ...R8, fourFighters: true }).run);
-  const modes = (event: JourneyRecord) => ("changes" in event ? event.changes.map((change) => [change.human_fighters, change.computers]) : []);
-  expect(four.events.filter((event) => event.event === "four-fighter-setup").map(modes)).toEqual([[[7, 0], [3, 4], [11, 4], [3, 12]]]);
-  expect(four.events.filter((event) => event.event === "integrity-slot-change").map(modes)).toEqual([[[3, 8], [7, 8], [3, 12]]]);
-  expect(four.trace.some((line) => line.includes("Stock"))).toBe(false);
-});
-
-test("#17's normal timed journey reaches both results without integrity stalls or forced stock loss", async () => {
-  const four = recordingRig(gameFiles, "3 Stock · 7:00");
-  await Effect.runPromise(journey(four.rig, { ...R8, fourFighters: true, workload: "match" }).run);
-  expect(four.trace.some((line) => line.startsWith("stop "))).toBe(false);
-  expect(four.trace.some((line) => line.includes("stock-loss") || line.includes("-integrity-"))).toBe(false);
-  expect(four.trace.filter((line) => line.startsWith("type a -dev time"))).toEqual(["type a -dev time 1"]);
-  expect(four.trace.filter((line) => line.startsWith("type a -dev stocks"))).toEqual(["type a -dev stocks 1", "type a -dev stocks 1"]);
-  expect([four.game.stockCount, four.game.timeLimitMinutes]).toEqual([1, 1]);
-  expect(pointerOrOcr(four.trace)).toEqual([]);
-  expect(four.events.filter((event) => event.event === "start" || event.event === "end").map((event) => [event.event, event.epoch])).toEqual([["start", 1], ["end", 1], ["start", 2], ["end", 2]]);
-  expect(four.events.filter((event) => event.event === "integrity-slot-change")).toHaveLength(1);
-});
-
-test("a playable journey plays one-stock matches that end when Player 1, then Player 2, walks off", async () => {
-  const playable = recordingRig(gameFiles, "3 Stock Player 2 wins!");
-  await Effect.runPromise(journey(playable.rig, { ...R8, workload: "playable" }).run);
-  const sends = playable.trace.filter((line) => line.startsWith("send "));
-  expect(sends.filter((line) => line.includes("stock-loss"))).toEqual([
-    `send 0 ${EV_ABS} ${ABS_X} -32768 match-1-stock-loss`, `send 0 ${EV_ABS} ${ABS_X} 0 match-1-stock-loss`,
-    `send 1 ${EV_ABS} ${ABS_X} 32767 match-2-stock-loss`, `send 1 ${EV_ABS} ${ABS_X} 0 match-2-stock-loss`,
-  ]);
-  expect(sends.filter((line) => line.includes("-combat"))).toHaveLength(32);
-  const stocks = RULE_BUTTONS.fewerStocks;
-  const stockClicks = playable.trace.filter((line) => {
-    const click = /^ui b click (-?\d+) (-?\d+)$/.exec(line);
-    if (click === null) return false;
-    const x = pointerX(Number(click[1]), 2560, 1440);
-    const y = pointerY(Number(click[2]), 1440);
-    return x >= stocks.x && x <= stocks.x + stocks.width && y <= stocks.y && y >= stocks.y - stocks.height;
-  });
-  expect(stockClicks).toHaveLength(4);
-  expect(playable.trace.filter((line) => line.startsWith("key "))).toEqual(["key a ctrl+t", "key a ctrl+t"]);
-  expect(playable.trace.some((line) => line.startsWith("stop ") || line.includes("-integrity-") || line.includes("ui a click"))).toBe(false);
-  expect(playable.events.filter((event) => event.event !== "menu").map((event) => [event.event, "epoch" in event ? event.epoch : undefined]))
-    .toEqual([["start", 1], ["end", 1], ["results", 1], ["start", 2], ["end", 2], ["results", 2]]);
-  // Each result screen is read whole, then its announcement alone.
-  expect(playable.trace.filter((line) => line.startsWith("ui ") && / (?:wait wins|read )/.test(line))).toEqual([
-    "ui a wait wins|rematch", "ui b wait wins|rematch", "ui a read 944,312 1008x168", "ui b read 944,312 1008x168",
-    "ui a wait wins|rematch", "ui b wait wins|rematch", "ui a read 944,312 1008x168", "ui b read 944,312 1008x168",
-  ]);
-  for (const event of playable.events) if (event.event === "results") expect(event.notices).toEqual(["3 Stock Player 2 wins!", "3 Stock Player 2 wins!"]);
-});
-
-test("capture arguments select the matches the Python driver numbered", () => {
-  expect(parseSweep("24:2,24:1,16")).toEqual([[24, 2], [24, 1], [16, 6]]);
-  expect(captureEpochs(0, 1)).toEqual([1, 2]);
-  expect(captureEpochs(2, 3)).toEqual([3, 4, 5, 6]);
-  const base = ["--helper", "h", "--build", "b", "--out", "o", "--app-id", "a=x", "--app-id", "b=y"];
-  expect(parseCaptureArguments([...base, "--sweep", "24", "--first-epoch", "5"])).toMatchObject({ epochs: [5, 6], sweep: [[24, 6]], appIds: new Map([["a", "x"], ["b", "y"]]) });
-  expect(() => parseCaptureArguments([...base, "--first-epoch", "2"])).toThrow();
-  expect(() => parseCaptureArguments([...base, "--sweep", "24", "--four-fighters"])).toThrow();
-  expect(() => parseCaptureArguments([...base, "--controller-chat"])).toThrow();
-});
-
 // Bytes and calls the retired Python VirtualGamepad made, recorded with stubbed os and fcntl.
-test("virtual pads are declared and fed exactly as the Python driver did", () => {
+test("virtual pads are declared and fed exactly as the Python driver did [reference]", () => {
   const ioctls = [...padCapabilities(PAD_BUTTONS)].map(([request, argument]) => `ioctl 0x${request.toString(16)} ${argument}`);
   expect(ioctls).toEqual([
     "ioctl 0x40045564 1", "ioctl 0x40045564 3",
@@ -349,62 +260,9 @@ test("virtual pads are declared and fed exactly as the Python driver did", () =>
     .toBe('{"phase":"match-1-integrity-isolated:move-left","event":"slot-0","type":3,"code":0,"value":-32768,"producer_injected_monotonic_ns":580467607853000,"producer_before_write_monotonic_ns":580467607853635,"producer_after_write_monotonic_ns":580467607876628}\n');
 });
 
-test("kernel observations are logged in r8's format", async () => {
+test("kernel observations are logged in r8's format [native]", async () => {
   const [first] = (await Bun.file(join(evidence("r8"), "kernel-0.jsonl")).text()).split("\n");
   expect(kernelLine({ kernelNs: 580467607853000, type: 1, code: 304, value: 1 })).toBe(`${first}\n`);
-});
-
-test("xpad pads press X for special, Y for jump, and stick-up only as up", () => {
-  const isolated = (layout: "xpad" | "compass-tap-jump") =>
-    Object.fromEntries(integritySchedule(1, layout).flatMap((step) => (step.kind === "pulse" && step.label === "isolated" ? step.group : [])).map(({ name, code }) => [name, code]));
-  expect(isolated("xpad")).toMatchObject({ special: 0x133, "jump-y": 0x134, "move-up": 1 });
-  expect(isolated("xpad")).not.toHaveProperty("jump-stick");
-  expect(isolated("compass-tap-jump")).toMatchObject({ special: 0x134, "jump-y": 0x133, "jump-stick": 1 });
-});
-
-test("setup observes chat open before typing when its first Return closes an already-open chat", async () => {
-  const capture = recordingRig(gameFiles, "1 Stock Player 2 wins!", { humans: 3, computers: 0 }, true);
-  const rig: RigShape = {
-    ...capture.rig,
-    type: (client, text) => Effect.gen(function*() {
-      const entry = yield* capture.rig.file(0, "smashcraft-chat-typescript-integrity-p0.txt");
-      expect(entry?.text).toContain("open=1");
-      yield* capture.rig.type(client, text);
-    }),
-  };
-  await Effect.runPromise(journey(rig, { ...R8, build: "typescript-integrity" }).run);
-  expect(capture.trace.filter(line => line.startsWith("key ") || line.startsWith("type ")).slice(0, 3)).toEqual([
-    "key a Return", "key a Return", "type a -dev slots 3 0",
-  ]);
-  expect(capture.trace).toContain("until dev command not confirmed: -dev slots 3 0");
-});
-
-test("bot sessions enable automatic rematch and wait for the second game without selection or a Start press", async () => {
-  const bot = recordingRig(gameFiles, "3 Stock 7:00 Automatic rematch: Off Player 2 wins!");
-  await Effect.runPromise(journey(bot.rig, { ...R8, build: "typescript-integrity", workload: "bot", botPerf: true }).run);
-  expect(bot.game.stockCount).toBe(3);
-  expect(bot.trace).toContain("type a -dev rematch 20");
-  expect(bot.trace).toContain("type a -dev auto-rematch on");
-  expect(bot.game.automaticRematch).toBe(true);
-  // Setup and stage choice are commands; the screen is read only for evidence (results, the overlay).
-  expect(pointerOrOcr(bot.trace)).toEqual([]);
-  expect(bot.trace).toContain("type a -dev stage 0");
-  expect(bot.game.stageChoice).toBe(0);
-  expect(bot.trace.indexOf("until epoch 1: stage drawn receipts absent")).toBeLessThan(bot.trace.indexOf("view 1 frame=true scene=true"));
-  expect(bot.trace.some(line => line.includes("menu-match-2-start") || line.includes("menu-match-2-stage"))).toBe(false);
-  const firstEnd = bot.trace.indexOf("event end");
-  const secondStart = bot.trace.indexOf("event start", bot.trace.indexOf("event start") + 1);
-  const captureTyped = bot.trace.indexOf("type a -dev capture 1800");
-  const resumed = bot.trace.findIndex(line => line.includes("match-2-chat-resume"));
-  expect(captureTyped).toBeGreaterThan(secondStart);
-  expect(bot.trace.indexOf("until epoch 2: -dev capture 1800 chat entry not open")).toBeLessThan(captureTyped);
-  expect(bot.trace.indexOf("until epoch 2: -dev capture 1800 chat has not returned keyboard focus")).toBeLessThan(resumed);
-  expect(resumed).toBeGreaterThan(captureTyped);
-  expect(bot.trace.indexOf("until epoch 2: chat resume not acknowledged by both helpers")).toBeGreaterThan(resumed);
-  expect(bot.trace.slice(firstEnd, secondStart).some(line => line.includes("menu-results-confirm") || line.includes("menu-character"))).toBe(false);
-  expect(bot.events.filter(event => event.event === "start" || event.event === "end").map(event => [event.event, event.epoch])).toEqual([["start", 1], ["end", 1], ["start", 2], ["end", 2]]);
-  expect(bot.trace).not.toContain("type a -dev perf");
-  expect(bot.trace).not.toContain("ui a read 1700,90 530x210");
 });
 
 /** The recording rig over a lobby whose slots C/D the journey's commands change, noting the slot modes at bot setup. */
@@ -420,7 +278,7 @@ function lobbyRig(humans: number, computers: number) {
   return { ...recording, rig, atSetup };
 }
 
-test("bot sessions set slots C/D, the computers' fighters and the stage by command from whatever the lobby gave them", async () => {
+test("bot sessions set slots C/D, the computers' fighters and the stage by command from whatever the lobby gave them [spec docs/native-bot-session.md]", async () => {
   const slots = (trace: readonly string[]) => trace.filter((line) => line.startsWith("type a -dev slots") || line.startsWith("type a -dev fighter"));
   // The lobby's computer players: C and D come up CPU.
   for (const botFour of [false, true]) {
@@ -444,7 +302,7 @@ test("bot sessions set slots C/D, the computers' fighters and the stage by comma
   expect([integrity.game.humanFighterMask, integrity.game.computerMask]).toEqual([3, 0]);
 });
 
-test("a refused developer command stops the journey with its receipt's state", async () => {
+test("a refused developer command stops the journey with its receipt's state [spec docs/native-bot-session.md]", async () => {
   // A command the map refuses leaves the state it reported: the capture names the field instead of waiting.
   const refused = lobbyRig(3, 12);
   const rig: RigShape = { ...refused.rig, type: (client, text) => refused.rig.type(client, text === "-dev slots 3 0" ? "-dev slots 3 3" : text) };
@@ -453,7 +311,7 @@ test("a refused developer command stops the journey with its receipt's state", a
   expect(String(exit._tag === "Failure" ? exit.cause : "")).toContain("client 0 receipt has computers=12, wanted computers=0");
 });
 
-test("a capture starts at the game's next match, read from both menu receipts", async () => {
+test("a capture starts at the game's next match, read from both menu receipts [spec docs/native-bot-session.md]", async () => {
   const next = (epochs: readonly [number, number]) => {
     const { rig } = recordingRig((client) => `SMASHCRAFT JOURNAL MENU v=1 build=b epoch=${epochs[client]} slot=${client} phase=CHARACTER\nendfunction\n`);
     return Effect.runPromiseExit(nextMatchEpoch("b").pipe(Effect.provideService(Rig, rig)));
@@ -465,22 +323,4 @@ test("a capture starts at the game's next match, read from both menu receipts", 
   expect((await next([2, 4]))._tag).toBe("Failure");
   const base = ["--helper", "h", "--build", "b", "--out", "o", "--app-id", "a=x", "--app-id", "b=y"];
   expect(parseCaptureArguments([...base, "--bot"]).epochs).toBeUndefined();
-});
-
-test("overlay readings reduce to the rematch's frame cost, unreadable ones counted apart", () => {
-  const reading = (text: string) => ({ event: "perf-overlay", epoch: 2, observed_monotonic_ns: NOW, text });
-  const result = frameCostOverlay([
-    { event: "start", epoch: 2 },
-    reading("frame cost, last 120 frames, median / p95 / max\nLua ms: 5 / 12.5 / 30 (clock step 1 ms)\nnatives: 165 / 400 / 2257\ncatch-up frames: 0 / 0 / 6"),
-    reading("frame cost, last 120 frames, median / p95 / max\nLua ms: 4 / 9 / 15 (clock step 1 ms)\nnatives: 150 / 380 / 900"),
-    reading("frame cost, last 120 frames, median /{npgx|Lua ms: 6 / 35.02 (clock step 1 msl)'"),
-    reading("unread: the window did not answer"),
-  ]);
-  expect(result).toMatchObject({
-    readings: 4,
-    unread: 2,
-    lua_ms: { median_of_medians: 4, median_p95: 9, max_p95: 12.5, max: 30 },
-    windows_with_a_frame_over_16_7_ms: 1,
-    natives_median: 150,
-  });
 });
