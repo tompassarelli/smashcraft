@@ -107,6 +107,8 @@ export const VERIFIED_STOCK_SOUNDS: Readonly<Record<string, string>> = {
   "Units\\Orc\\HeroTaurenChieftain\\WarStompBirth1.flac": "war3.w3mod:units\\orc\\herotaurenchieftain\\warstompbirth1.ogg",
   "Units\\NightElf\\Furion\\FurionWhat1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\nightelf\\furion\\furionwhat1.ogg",
   "Units\\NightElf\\Furion\\FurionWarcry1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\nightelf\\furion\\furionwarcry1.ogg",
+  "Units\\Creeps\\Kobold\\KoboldWhat1.flac": "war3.w3mod:units\\creeps\\kobold\\koboldwhat1.ogg",
+  "Units\\Creeps\\Kobold\\KoboldYesAttack1.flac": "war3.w3mod:units\\creeps\\kobold\\koboldyesattack1.ogg",
 };
 
 /** Sound labels hit presentation plays, with the script paths the game's sound tables give each; every path is in VERIFIED_STOCK_SOUNDS. */

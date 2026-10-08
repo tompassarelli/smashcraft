@@ -5,6 +5,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
 import { heroBody } from "../sim/heroes/heroBodies";
+import { Character } from "../sim/codes";
 
 /** A segment swept by a radius. */
 export interface Capsule {
@@ -241,11 +242,12 @@ function scaledHurtCapsule(character: number): Readonly<Capsule> | undefined {
 /** The original fighters' capsules, then each hero's by Character code while heroBodies lists one. */
 const HURT_CAPSULES: Readonly<Record<number, Readonly<Capsule>>> = (() => {
   const capsules: Record<number, Readonly<Capsule>> = { ...ORIGINAL_HURT_CAPSULES };
-  for (let character = 3; ; character++) {
+  for (const character of Object.values(Character)) {
     const scaled = scaledHurtCapsule(character);
-    if (scaled === undefined) return capsules;
+    if (scaled === undefined) continue;
     capsules[character] = scaled;
   }
+  return capsules;
 })();
 
 /** A character's facing-relative hurt capsule; characters past the table share its last entry. */

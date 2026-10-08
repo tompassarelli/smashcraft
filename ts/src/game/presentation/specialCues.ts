@@ -194,6 +194,12 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     up: { spell: "Blood Leap", startup: BLOODLUST, active: cue("Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx", "feet", 0.75) },
     down: { spell: "Mannoroth's Bane", startup: BLOODLUST, active: cue("Abilities\\Spells\\Other\\Stampede\\StampedeMissileDeath.mdx", "ahead", 0.75) },
   },
+  [Character.kobold]: {
+    neutral: { spell: "Wick Flick", startup: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "hand", f32(0.3)), active: cue("Abilities\\Weapons\\LavaSpawnMissile\\LavaSpawnMissile.mdx", "hand", f32(0.4)) },
+    side: { spell: "Panic Dig", startup: cue("Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx", "feet", f32(0.3)), active: cue("Abilities\\Spells\\Other\\Tornado\\TornadoElemental.mdx", "feet", f32(0.15)) },
+    up: { spell: "Candle Escape", startup: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "hand", f32(0.3)), active: cue("Abilities\\Weapons\\DemolisherFireMissile\\DemolisherFireMissile.mdx", "feet", f32(0.3)) },
+    down: { spell: "Mine!", startup: cue("Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx", "feet", f32(0.3)), active: timed(cue("Objects\\Spawnmodels\\Human\\FragmentationShards\\FragBoomSpawn.mdx", "feet", f32(0.3)), "birth", 0.0) },
+  },
   [Character.blademaster]: {
     neutral: { spell: "Wind Cutter", startup: BLOODLUST, active: cue("Abilities\\Spells\\Other\\Tornado\\Tornado_Target.mdx", "hand", f32(0.6)) },
     side: { spell: "Wind Walk", startup: cue("Abilities\\Spells\\Human\\Invisibility\\InvisibilityTarget.mdx", "body", f32(0.8)), active: cue("Abilities\\Spells\\Human\\SunderingBlades\\SunderingBlades.mdx", "ahead", f32(0.8)) },
