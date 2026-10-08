@@ -28,8 +28,9 @@ complete scope, and its "Rules for whoever picks this up" govern the work.
 - A problem that doesn't block a box goes in a new `priority:later` issue, not
   into the current one.
 - Don't re-run a passing check unless the code it covers changed.
-- Boxes marked (Tom) need Tom: prepare everything, ask once, keep working on
-  other boxes. Never build automated stand-ins for a human playtest.
+- Agents run every check, playtests included, by script or capture; Tom plays
+  only when he wants to, and anything he notices becomes an issue. Don't write
+  boxes that wait on Tom.
 - After two failed fixes on the same box, or about a day without progress, stop
   and tell Tom what fails, one recommended fix and its cost.
 - Keep each issue's Status section to 5 lines, edited in place, with at most
@@ -62,6 +63,15 @@ drill example; its procedure routes the existing motion audit, paired throws,
 recovery clips and nine-way pain reactions. The project index of sources,
 with URLs, verified timestamps and rights, is
 smashcraft:docs/design/animation-reference.md. Reference pixels remain private.
+
+Host tools that Bun runs (commands, runners, builds, captures, farm jobs) are
+written as Effect programs when they start processes, wait, retry, hold a
+resource or parse outside data. Load the effect-development skill before
+designing one, and follow the existing services in scripts/ (for example
+smashcraft:ts/scripts/wisp/padBatch.ts, smashcraft:ts/scripts/integrity/capture.ts
+and smashcraft:ts/scripts/wisp/commands/accept.ts). Map code compiled to Lua
+stays plain TypeScript; pure calculations stay plain functions.
+smashcraft:ts/test/effect-host-tools.test.ts enforces this.
 
 Effect is the preferred foundation for Wisp's TypeScript tooling.
 Read smashcraft:.agents/skills/effect/SKILL.md for Effect work and for the
