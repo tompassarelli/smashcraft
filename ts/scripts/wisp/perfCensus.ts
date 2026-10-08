@@ -10,7 +10,9 @@
 // profiler on each one's worst frame and baseline, and prints the map
 // functions that frame spent most in beyond a baseline frame.
 import { join } from "node:path";
-import { Console, Effect } from "effect";
+import { BunServices } from "@effect/platform-bun";
+import { Console, Effect, Stream } from "effect";
+import { ChildProcess } from "effect/process";
 import { mapCompiler, report } from "wisp/scripts/compiler";
 import { type Command, UsageFailure, describeCause, flagValues } from "wisp/scripts/wisp/command";
 import { PerfFailure, type PerfProject, measureRun } from "wisp/scripts/wisp/commands/perf";
@@ -192,17 +194,21 @@ const runOf = (entry: CensusEntry) => (entry.group === "stage" ? `census-stage-$
 /** Plays `run` of the perf program in 32-bit Lua with `bundle`'s map; with `profileFrames`, sampled on those frames instead of measured (censusProfile.ts). */
 export const runLua = (program: string, bundle: string, run: string, frames: number, profileFrames?: readonly number[]) => stockLua.pipe(
   Effect.mapError((problem) => new PerfFailure({ problem })),
-  Effect.flatMap((lua) => Effect.tryPromise({
-    try: async () => {
-      const env = profileFrames === undefined ? process.env : { ...process.env, PERF_PROFILE_FRAMES: profileFrames.join(",") };
-      const child = Bun.spawn([lua, program, bundle, join(tsDirectory, "node_modules/wisp/src/natives/warcraft.d.ts"), run, String(frames), "samples"], { stdout: "pipe", stderr: "pipe", env });
-      const [out, err, code] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
-      if (code !== 0) throw new Error(`${run}: ${lua} exited ${code}: ${err}${out.split("\n").filter((line) => !line.startsWith("frame ")).join("\n")}`);
-      return out;
-    },
-    catch: (cause) => new PerfFailure({ problem: describeCause(cause) }),
-  })),
+  // Each child belongs to its own scope, so an interrupted census stops every run in flight.
+  Effect.flatMap((lua) => Effect.scoped(Effect.gen(function*() {
+    const env = profileFrames === undefined ? undefined : { PERF_PROFILE_FRAMES: profileFrames.join(",") };
+    const child = yield* ChildProcess.make(lua, [program, bundle, join(tsDirectory, "node_modules/wisp/src/natives/warcraft.d.ts"), run, String(frames), "samples"], { env, extendEnv: true, stdin: "ignore" });
+    const [out, err, code] = yield* Effect.all([Stream.mkString(Stream.decodeText(child.stdout)), Stream.mkString(Stream.decodeText(child.stderr)), child.exitCode], { concurrency: "unbounded" });
+    if (code !== 0) return yield* new PerfFailure({ problem: `${run}: ${lua} exited ${code}: ${err}${out.split("\n").filter((line) => !line.startsWith("frame ")).join("\n")}` });
+    return out;
+  })).pipe(
+    Effect.catchTag("PlatformError", (cause) => Effect.fail(new PerfFailure({ problem: cause.message }))),
+    Effect.provide(BunServices.layer),
+  )),
 );
+
+/** The text of a compiled bundle. */
+const bundleText = (bundle: string) => Effect.tryPromise({ try: () => Bun.file(bundle).text(), catch: (cause) => new PerfFailure({ problem: `reading ${bundle}: ${describeCause(cause)}` }) });
 
 const runOne = (project: CensusProject, run: string, profileFrames?: readonly number[]) => runLua(project.program.bundle, project.map.bundle, run, 0, profileFrames);
 
@@ -236,7 +242,7 @@ export const census = (project: CensusProject): Command => (args) => Effect.gen(
   if (profile) {
     const shown = entries.filter((entry) => entry.spikeMs > limit);
     const picked = shown.length > 0 ? shown : [...entries].sort((a, b) => b.spikeMs - a.spikeMs).slice(0, 5);
-    const name = functionNamer(yield* Effect.promise(() => Bun.file(project.map.bundle).text()));
+    const name = functionNamer(yield* bundleText(project.map.bundle));
     const byRun = new Map<string, CensusEntry[]>();
     for (const entry of picked) byRun.set(runOf(entry), [...(byRun.get(runOf(entry)) ?? []), entry]);
     for (const [run, items] of byRun) {
@@ -279,7 +285,7 @@ export const profile = (project: PerfProject): Command => (args) => Effect.gen(f
   const worst = [...costs].sort((a, b) => b[1] - a[1]).slice(0, worstCount);
   const base = new Set([...costs].sort((a, b) => Math.abs(a[1] - middle) - Math.abs(b[1] - middle)).slice(0, 30).map(([frame]) => frame));
   const profiled = yield* runLua(project.program.bundle, map.bundle, name, frames, [...worst.map(([frame]) => frame), ...base]);
-  const namer = functionNamer(yield* Effect.promise(() => Bun.file(map.bundle).text()));
+  const namer = functionNamer(yield* bundleText(map.bundle));
   const baseline = [...profileOf(profiled, base)].sort((a, b) => b[1][1] - a[1][1]).slice(0, 30);
   yield* Console.log(`profile ${name}: mean samples across ${base.size} median frames, inclusive / self\n${baseline.map(([line, [self, inclusive]]) =>
     `  ${(inclusive / base.size).toFixed(0).padStart(5)} ${(self / base.size).toFixed(0).padStart(5)}  ${namer(line)}`).join("\n")}`);
