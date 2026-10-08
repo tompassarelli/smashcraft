@@ -18,8 +18,15 @@ export const LICH_KING_STOCK_SCALE = { unit: "LichKing2", scale: 1.0 } as const;
 
 /** Neutral special Howling Blast: the frost wyrm's breath, a travelling blast of frost. */
 export const HOWLING_BLAST_MODEL = "Abilities\\Weapons\\FrostWyrmMissile\\FrostWyrmMissile.mdx";
-/** Side special Val'kyr Shadowguard: a winged spirit of the dead that seizes and carries. */
-export const VALKYR_MODEL = "Units\\Undead\\Banshee\\Banshee.mdx";
+/**
+ * Side special Val'kyr Shadowguard: a winged spirit of the dead that seizes
+ * and carries. It is the game's classic Banshee.mdx, imported unchanged under
+ * its own path (#319): at the stock path HD clients draw the HD Banshee (one
+ * 182-bone skinned mesh), and while it is on screen they draw long dark
+ * bars from both Lich Kings to a point above her. An imported path has no HD
+ * replacement, so every client draws the classic model.
+ */
+export const VALKYR_MODEL = "war3mapImported\\ValkyrBanshee.mdx";
 /** Down special Defile: a dark pool swirling on the ground. */
 export const DEFILE_MODEL = "Abilities\\Spells\\Demon\\DarkPortal\\DarkPortalTarget.mdx";
 
@@ -33,6 +40,7 @@ export const IMPORTED_MODEL_FILES: readonly { readonly entry: string; readonly f
   { entry: "HelmOfDom.BLP", file: "HelmOfDom.BLP" },
   { entry: "FrostmourneNew.blp", file: "FrostmourneNew.blp" },
   { entry: LICH_KING_ICON, file: "BTNLichKing.blp" },
+  { entry: VALKYR_MODEL, file: "ValkyrBanshee.mdx" },
   { entry: "ReplaceableTextures\\CommandButtonsDisabled\\DISBTNLichKing.blp", file: "DISBTNLichKing.blp" },
   { entry: "ReplaceableTextures\\SSCscorescreen-hero-lichking.blp", file: "SSCscorescreen-hero-lichking.blp" },
 ];

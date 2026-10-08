@@ -8,6 +8,7 @@ import { HERO_REFERENCE_HEIGHT, heroRegion } from "../heroMoves";
 import { type AppliedStatus } from "../heroStatus";
 import { type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, frames } from "../heroSpecials";
 import { capsule, hit } from "./lichKingMoves";
+import { VALKYR_MODEL } from "../../assets/importedModelInfo";
 
 const h = (fraction: number): number => f32(HERO_REFERENCE_HEIGHT * fraction);
 /** Chest height, where his casts leave the off hand. */
@@ -45,7 +46,7 @@ const CARRIED: AppliedStatus = { kind: HeroStatusKind.carried, frames: 80, group
  * body it reaches. A shield stops her, and a powershield sends her back.
  */
 const valkyrProjectile = (speed: number): SpecialProjectile => ({
-  model: "Units\\Undead\\Banshee\\Banshee.mdx",
+  model: VALKYR_MODEL,
   spawnFrame: 14, offsetX: 40.0, offsetZ: f32(CHEST + 10.0), velocityX: speed, velocityZ: 0.0,
   life: 40, radius: h(f32(0.2)), effect: { damage: 4.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false, element: HitElement.dark },
   reflectable: true, limit: 1, status: CARRIED,
