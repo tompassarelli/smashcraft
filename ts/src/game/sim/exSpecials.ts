@@ -45,5 +45,5 @@ export function exSpecialCost(f: Readonly<Fighter>, side: boolean): number {
 export function exManaCue(f: Readonly<Fighter>): string {
   const neutral = f.mana.points >= exSpecialCost(f, false);
   const side = f.mana.points >= exSpecialCost(f, true);
-  return neutral && side ? "EX N + S" : neutral ? "EX N" : side ? "EX S" : "";
+  return neutral && side ? "EX Neutral + Side" : neutral ? "EX Neutral" : side ? "EX Side" : "";
 }

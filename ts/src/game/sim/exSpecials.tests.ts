@@ -130,9 +130,9 @@ test("the EX cue names only the specials the current mana can pay", () => {
   f.mana.points = 27;
   assertEquals(exManaCue(f), "");
   f.mana.points = 28;
-  assertEquals(exManaCue(f), "EX N");
+  assertEquals(exManaCue(f), "EX Neutral");
   f.mana.points = 37;
-  assertEquals(exManaCue(f), "EX N + S");
+  assertEquals(exManaCue(f), "EX Neutral + Side");
 });
 
 test("a computer uses its observed nearby attack to upgrade a chosen special, preserving the chosen direction", () => {

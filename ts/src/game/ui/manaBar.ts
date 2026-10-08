@@ -14,6 +14,8 @@ const DARK = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp";
 const FILL = "ReplaceableTextures\\TeamColor\\TeamColor01.blp";
 const FLASH = "ReplaceableTextures\\TeamColor\\TeamColor00.blp";
 const GLOW = "ReplaceableTextures\\TeamColor\\TeamColor02.blp";
+/** Fits "EX Neutral + Side" at the label's scale; the label grows left from the bar's right end. */
+const EX_LABEL_WIDTH = f32(0.12);
 /** Purple: mana burned away by an opponent's hit. */
 const DRAIN = "ReplaceableTextures\\TeamColor\\TeamColor03.blp";
 
@@ -85,7 +87,7 @@ export class ManaBar {
       this.width = width;
       this.shownFill = -1.0;
       BlzFrameSetSize(this.back, width + 2 * this.border, this.height + 2 * this.border);
-      BlzFrameSetSize(this.exLabel, width, f32(0.01));
+      BlzFrameSetSize(this.exLabel, Math.max(width, EX_LABEL_WIDTH), f32(0.01));
       BlzFrameSetSize(this.glow, width, this.height);
       BlzFrameSetSize(this.flash, width, this.height);
       BlzFrameSetSize(this.drain, width + 2 * this.border, this.height + 2 * this.border);

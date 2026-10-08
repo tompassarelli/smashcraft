@@ -79,7 +79,7 @@ who has saved, it is a tax. The read is on the opponent's bar.
 - **Refusal:** both bars blink red for about three quarters of a second.
 - **Gain:** a rise of 3 or more in one update glows the bar briefly. The
   trickle's single points never glow.
-- **EX affordability:** EX N, EX S or EX N + S beside the bar names the neutral/side casts its current mana can pay. Shield + Special requests EX; its normal cost plus 25 buys one 8% hit of armor on frames 1–6.
+- **EX affordability:** EX Neutral, EX Side or EX Neutral + Side beside the bar names the neutral/side casts its current mana can pay. Shield + Special requests EX; its normal cost plus 25 buys one 8% hit of armor on frames 1–6.
 
 The bar's parts hang from its back frame, so following a fighter is one
 native call a frame (playable-bot-four: native calls +1.7%, predicted cost

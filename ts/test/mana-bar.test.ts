@@ -67,7 +67,7 @@ test("every fighter's mana shows as a segmented bar over its head and on its pla
 
 test("both mana bars show a visible EX cue only for affordable neutral and side specials", () => {
   const clients = quickMatch();
-  for (const [points, text] of [[27, ""], [28, "EX N"], [37, "EX N + S"]] as const) {
+  for (const [points, text] of [[27, ""], [28, "EX Neutral"], [37, "EX Neutral + Side"]] as const) {
     forBoth(clients, () => { fighterAt(shell().world, 0).mana.points = points; });
     clients.frames(1);
     for (const client of clients.clients) for (const label of [

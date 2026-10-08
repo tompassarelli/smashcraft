@@ -585,7 +585,7 @@ specials and follow-up inputs retain their ordinary behavior. If the chosen
 form's cost plus 25 is unaffordable, the same press starts its ordinary
 version and pays its ordinary cost; if that is also unaffordable, the
 existing refusal applies. Recalls and alternate forms pay their own cost
-plus 25. The HUD shows **EX N**, **EX S**, or **EX N + S** beside the bar
+plus 25. The HUD shows **EX Neutral**, **EX Side**, or **EX Neutral + Side** beside the bar
 when that ground/air cast can be paid. The match help names the chord.
 
 Every EX neutral/side has one upgrade: one hit of at most 8% can deal its
