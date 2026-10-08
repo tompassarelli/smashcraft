@@ -5,7 +5,8 @@ import { createPacingAndPresentation } from "../match/pacingAndPresentation";
 import { Phase, createMatchState } from "../match/rules";
 import { captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot } from "../replay/snapshot";
 import { Character, ProjectileKind } from "../sim/codes";
-import { PROJECTILE_CAPACITY, type Projectile, createFighter } from "../sim/fighter";
+import { PROJECTILE_CAPACITY, createFighter } from "../sim/fighter";
+import { mutableProjectile } from "../sim/fighterProjectiles";
 import { createRoster } from "../sim/roster";
 import { projectedProjectile } from "./projectilePose";
 import { LICH_KING_SPECIALS } from "../sim/heroes/lichKingSpecials";
@@ -13,7 +14,7 @@ import { heroProjectileRadius } from "../sim/projectiles";
 
 test("Defile's rim follows its danger radius and distinguishes its warning from its armed pool across rollback [spec #174] [invariant]", () => {
   const fighter = createFighter(Character.lichKing, 0.0, 1);
-  const projectile = projectileAt(fighter.projectiles, 0);
+  const projectile = mutableProjectile(fighter, 0);
   const spec = LICH_KING_SPECIALS.down.ground.projectiles?.[0];
   assertTrue(spec !== undefined);
   if (spec === undefined) return;
@@ -44,12 +45,6 @@ test("Defile's rim follows its danger radius and distinguishes its warning from 
   assertEquals(restored.poolPulse, 0.0);
 });
 
-function projectileAt(projectiles: readonly Projectile[], index: number): Projectile {
-  const projectile = projectiles[index];
-  if (projectile === undefined) throw new Error(`no projectile slot ${index}`);
-  return projectile;
-}
-
 test("a sparse restore replaces a speculative projectile and freeze state [invariant]", () => {
   const world = createRoster(9);
   world.fighters[0] = createFighter(Character.archer, -100.0, 1);
@@ -61,8 +56,7 @@ test("a sparse restore replaces a speculative projectile and freeze state [invar
   const runtime = createPacingAndPresentation();
   const snapshot = createReplaySnapshot();
   const index = PROJECTILE_CAPACITY - 1;
-  const last = projectileAt(fighter.projectiles, index);
-  const first = projectileAt(fighter.projectiles, 0);
+  let last = mutableProjectile(fighter, index);
   last.life = 12;
   last.x = 73.0;
   last.z = 92.0;
@@ -77,11 +71,12 @@ test("a sparse restore replaces a speculative projectile and freeze state [invar
   fighter.status.frozenFrames = 11;
   captureReplaySnapshot(snapshot, world, game, inputs, runtime);
   const before = projectedProjectile(fighter, index, true);
+  last = mutableProjectile(fighter, index);
   last.life = 0;
   last.x = 999.0;
   last.velocityX = 30.0;
   last.serial = 8;
-  first.life = 40;
+  mutableProjectile(fighter, 0).life = 40;
   fighter.freezeTrap.life = 0;
   fighter.freezeTrap.arming = 0;
   fighter.freezeTrap.x = 999.0;
@@ -96,8 +91,8 @@ test("a sparse restore replaces a speculative projectile and freeze state [invar
   assertEquals(restored.yaw, before.yaw);
   assertEquals(restored.pitch, before.pitch);
   assertFalse(projectedProjectile(fighter, 0, true).visible);
-  assertEquals(last.serial, 7);
-  assertEquals(last.kind, ProjectileKind.manaBurn);
+  assertEquals(fighter.projectiles[index]?.serial, 7);
+  assertEquals(fighter.projectiles[index]?.kind, ProjectileKind.manaBurn);
   assertEquals(fighter.freezeTrap.life, 25);
   assertEquals(fighter.freezeTrap.arming, 4);
   assertEquals(fighter.freezeTrap.x, 81.0);
