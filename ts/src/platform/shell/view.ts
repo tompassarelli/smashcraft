@@ -15,7 +15,7 @@ import { type MatchState, Phase, remainingSeconds, stageClock, timedMatch } from
 import { ARENA_CAMERA, FLOOR_HEIGHT, cameraFieldOfView, cameraPoint, extremeCamera, localCamera } from "../../game/presentation/arenaCamera";
 
 import { beginPauseCamera, advancePauseCamera, pauseCameraAngle, pauseHudHidden } from "./pauseCamera";
-import { copyMatchCamera } from "../../game/sim/matchCamera";
+import { type MatchCamera, copyMatchCamera } from "../../game/sim/matchCamera";
 
 import { advanceMatchCamera } from "../../game/sim/matchCamera";
 import { stageBounds } from "../../game/sim/stageBounds";
