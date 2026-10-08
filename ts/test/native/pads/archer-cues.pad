@@ -57,7 +57,8 @@
 #! scene a TrueshotAura
 # #144: each special starts on its frame, and its cues and missiles show.
 #! expect a 220 special 2 form 0
-#! expect b 245 damage 23.000
+# [native] 3.0.1, 07b13e80: the #247 homing-arrow buff adds two damage.
+#! expect b 245 damage 25.000
 #! expect a 303 applied jump
 #! expect a 310 special 1 form 0
 #! expect a 400 special 4 form 0
