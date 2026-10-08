@@ -21,7 +21,7 @@ export function padRender(sessionDirectory: string, build: string, steps: readon
   const soundOffsets = new Map<number, number>();
   const sounds: (HeadlessClient["soundLog"][number] & { readonly client: number; readonly matchFrame: number | undefined })[] = [];
   return {
-    afterFrame(clients: readonly HeadlessClient[]): void {
+    afterDraw(clients: readonly HeadlessClient[]): void {
       for (const client of clients) {
         const drawn = readers[client.slot]?.();
         for (const cue of client.soundLog.slice(soundOffsets.get(client.slot) ?? 0)) sounds.push({ ...cue, client: client.slot, matchFrame: drawn?.frame });

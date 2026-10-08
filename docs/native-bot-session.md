@@ -274,6 +274,15 @@ It sends the script through the same helper binary, in two headless clients
 of the integrity build, so both sides translate the pad the same way. Then
 it checks three things:
 
+For pause and resume, `pad --headless` additionally writes
+`pause-draws.jsonl`. It reads the real map's pause menu, records the last
+paused and first resumed drawn-frame timings, and compares every fighter's
+position plus the visible effects' positions and animation clocks. These
+observations run once after all callbacks due before a picture; a callback
+pose alone does not identify the first visible resume picture. Use the
+same helper binary as the reference capture, with its pause commit and
+resume acknowledgments retained (#206, wisp#86).
+
 - Each headless moment replays to every native confirmed-state checksum
   in its frames. A View hold of a second saves a moment of the last ten
   seconds, so scripts hold View twice, near frames 500 and 1000. Native and

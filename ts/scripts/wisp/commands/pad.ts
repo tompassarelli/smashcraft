@@ -58,6 +58,7 @@ import { devCommandReceiptFile } from "../../../src/runtime/gameFiles";
 import { Phase } from "../../../src/game/match/rules";
 import { admitCaptures, captureLoad, requireCaptureLease, timingCheck, timingScripts } from "../captureCapacity";
 import { quickMatchHero, quickMatchStage, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../../src/game/shell/devSettings";
+import { pauseDraws } from "../pauseDraws";
 
 type DevReceipt = Effect.Success<ReturnType<typeof DevCommandReceipt.decode>>;
 
@@ -426,7 +427,7 @@ const scheduled = (worker: Worker, schedule: Schedule) => Effect.callback<readon
  * in real time until the scope closes. The helpers follow every match, so a
  * session can play one script after another (`pad SCRIPT SCRIPT... --headless`).
  */
-export const headlessSession = (dir: string, helper: string, build: string, afterFrame?: (clients: readonly HeadlessClient[]) => void) => Effect.gen(function*() {
+export const headlessSession = (dir: string, helper: string, build: string, afterDraw?: (clients: readonly HeadlessClient[]) => void) => Effect.gen(function*() {
   yield* tryIntegrity("create pad directory", dir, () => mkdirSync(dir, { recursive: true }));
   const entry = yield* loadEntry;
   const runtime = yield* Effect.acquireRelease(Effect.sync(() => installHeadless(PREDICTED_HEADLESS)), (installed) => Effect.sync(installed.restore));
@@ -444,7 +445,11 @@ export const headlessSession = (dir: string, helper: string, build: string, afte
   }
   const worker = yield* scheduleThread;
   const clients = runtime.clients(entry, SLOTS, { files: (slot) => customMapData(at(data, slot)), delivery: syncDelivery(MEASURED_BATTLE_NET, 1), keepCalls: 64 });
-  const realtime = new RealtimeClients(clients, typed, undefined, () => afterFrame?.(clients.clients));
+  const pause = pauseDraws(dir);
+  const realtime = new RealtimeClients(clients, typed, undefined, undefined, timing => {
+    afterDraw?.(clients.clients);
+    pause.afterDraw(clients.clients, timing);
+  });
   const state: { crashed: unknown } = { crashed: undefined };
   yield* tryIntegrity("start headless clients", dir, () => realtime.start());
   yield* Effect.forkScoped(Effect.forever(Effect.suspend(() => Effect.sleep(Math.max(0, realtime.advance())))).pipe(
@@ -496,7 +501,7 @@ const headless = (options: PadOptions) => Effect.gen(function*() {
   const captures = options.chat !== undefined && options.steps.some((step) => step.kind === "capture");
   const frames = !captures ? undefined : (yield* Effect.promise(() => import("../padRender"))).padRender(options.out, options.build, options.steps, token, options.render === undefined ? [] : options.renderFrames);
   const result = yield* Effect.scoped(Effect.gen(function*() {
-    const session = yield* headlessSession(options.out, options.helper, options.build, frames?.afterFrame);
+    const session = yield* headlessSession(options.out, options.helper, options.build, frames?.afterDraw);
     return yield* headlessScript(session, frames === undefined || options.chat === undefined ? options : { ...options, chat: visualCaptureCommand(options.chat, token, options.steps) });
   }));
   if (frames !== undefined && options.render !== undefined) {

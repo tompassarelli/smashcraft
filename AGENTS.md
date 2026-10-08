@@ -169,6 +169,9 @@ code. From smashcraft:ts/:
   starts its response probe at match setup. The first pause and resume emit
   `pause-boundary` rows; resume exports the positions presented in that callback
   automatically, for `ts/test/native/pads/206/pause-dash.pad`.
+  Headless `pad` writes `pause-draws.jsonl` with the last paused picture and
+  first resumed picture, fighter/effect positions and animation clocks,
+  observing once after each real draw's callbacks (#86).
 - Map size: players download the map in the lobby, so prefer Warcraft's own
   assets (reshape, recolour, rescale or recombine stock models, doodads,
   effects and animations) before importing a file. A custom asset is fine
