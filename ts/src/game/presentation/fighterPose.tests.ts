@@ -280,3 +280,18 @@ test("a hero holder's contact gesture also freezes when only the held fighter st
   assertEquals(pose.clipTime, clipFor(Character.forsakenPaladin, "throwUp").contact);
   assertEquals(pose.rate, 0.0);
 });
+
+test("Blademaster overhead tilt reaches its authored contact on the first active frame [repro #151]", () => {
+  const f = createFighter(Character.blademaster, 0.0, 1);
+  const world = soloWorld(f);
+  const input = neutralControls();
+  const pose = createFighterPose();
+  beginFighterAttack(world, 0, AttackStyle.upTilt, false);
+  advanceFighterPose(pose, f, world, input, false, false, true, false);
+  for (let frame = 1; frame <= 5; frame++) {
+    f.attack.frame = frame;
+    advanceFighterPose(pose, f, world, input, false, false, false, false);
+  }
+  assertEquals(pose.clipIndex, clipFor(Character.blademaster, "upTilt").index);
+  assertEquals(Math.abs(pose.clipTime - f32(5.0 / 60.0)) < f32(0.001), true, `contact seconds ${pose.clipTime}, want 5/60`);
+});

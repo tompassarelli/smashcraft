@@ -2,14 +2,14 @@
 import { f32 } from "wisp/src/sim/f32";
 import type { HeroClipTable } from "../sim/heroes/hero";
 export const BLADEMASTER_AUTHORED_CLIPS = {
-  jab: { index: 56, seconds: f32(0.283) },
-  jab2: { index: 57, seconds: f32(0.333) },
-  forwardTilt: { index: 58, seconds: f32(0.483) },
-  forwardTiltUp: { index: 59, seconds: f32(0.483) },
-  forwardTiltDown: { index: 60, seconds: f32(0.483) },
-  upTilt: { index: 61, seconds: f32(0.467) },
-  downTilt: { index: 62, seconds: f32(0.283) },
-  dashAttack: { index: 63, seconds: f32(0.567) },
+  jab: { index: 56, seconds: f32(0.283), aligned: true },
+  jab2: { index: 57, seconds: f32(0.333), aligned: true },
+  forwardTilt: { index: 58, seconds: f32(0.483), aligned: true },
+  forwardTiltUp: { index: 59, seconds: f32(0.483), aligned: true },
+  forwardTiltDown: { index: 60, seconds: f32(0.483), aligned: true },
+  upTilt: { index: 61, seconds: f32(0.467), aligned: true },
+  downTilt: { index: 62, seconds: f32(0.283), aligned: true },
+  dashAttack: { index: 63, seconds: f32(0.567), aligned: true },
   forwardSmash: { index: 64, seconds: f32(0.85) },
   upSmash: { index: 65, seconds: f32(0.8) },
   downSmash: { index: 66, seconds: f32(0.833) },
