@@ -5,7 +5,7 @@
 import { archerMounted } from "../../game/presentation/hippogryphPose";
 import { MATCH_HELP_BOX, MATCH_NOTICE_BOX } from "../../game/ui/hudLayout";
 import { CryDecision, createCryGate, cryStandIn, gateCry } from "../../game/presentation/hurtVoice";
-import { deckModel, texturedPlatforms } from "../../game/presentation/stagePreload";
+import { deckModel } from "../../game/presentation/stagePreload";
 import { type PlatformPart, platformParts } from "../../game/presentation/stockPlatforms";
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
@@ -132,7 +132,7 @@ export function drawStage(s: ShellState): void {
     const deck = AddSpecialEffect(deckModel(stage, index), x, origin.y);
     const z = origin.z + surfaceZ(stage, index, stageFrame);
     BlzSetSpecialEffectPosition(deck, x, origin.y, z);
-    const parts = texturedPlatforms(stage) ? [] : platformParts(stage, index);
+    const parts = platformParts(stage, index);
     if (parts.length > 0) {
       // Stock platforms: the first part stands in for the slab and the rest dress it.
       for (const [order, part] of parts.entries()) {

@@ -13,6 +13,8 @@ import { requestStageSelect, requestStart, selectCharacter, selectStage, setPart
 import { ARENA_CAMERA, FLOOR_HEIGHT, extremeCamera } from "../src/game/presentation/arenaCamera";
 import { CANNON_MODEL } from "../src/game/presentation/stageHazards";
 import { deckModel } from "../src/game/presentation/stagePreload";
+import { platformParts } from "../src/game/presentation/stockPlatforms";
+import { STAGE_DECK_MODELS } from "../src/game/assets/stageAssetInfo";
 import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";
 import { placedPieces, stageScenery } from "../src/game/presentation/stageScenery";
 import { modelReach } from "wisp/scripts/wisp/models";
@@ -25,7 +27,7 @@ import { CombatEffects } from "../src/game/render/combatEffects";
 import { createImpactEvents } from "../src/game/presentation/impactEvents";
 import { Character, DownState, SurfaceContact } from "../src/game/sim/codes";
 import { fighterAt } from "../src/game/sim/roster";
-import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, TIMED_TEST_STAGE, WIND_TEST_STAGE, DRIFTING_DECK_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, MAIN_DECK_UNDERSIDE_Z, solidSurfaceAt, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
+import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, FROZEN_THRONE_STAGE, TIMED_TEST_STAGE, WIND_TEST_STAGE, DRIFTING_DECK_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, MAIN_DECK_UNDERSIDE_Z, solidSurfaceAt, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
 import { stageBounds } from "../src/game/sim/stageBounds";
 import { MATCH_CAMERA_ASPECT, advanceMatchCamera, createMatchCamera } from "../src/game/sim/matchCamera";
 import { initializeScenario } from "../src/game/shell/scenarios";
@@ -305,6 +307,45 @@ test("moving decks are visible and their effects follow the presented match fram
     });
     expect(client.errors).toEqual([]);
   }
+});
+
+test("Frozen Throne's raised decks draw their stock floes, rock and rubble in view, not the packaged slab [repro #290]", () => {
+  const stage = FROZEN_THRONE_STAGE;
+  const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
+  clients.start();
+  clients.frames(30);
+  const client = clients.clients[0];
+  if (client === undefined) throw new Error("missing client");
+  client.run(() => {
+    const s = shell();
+    selectCharacter(s.game, 0, Character.archer);
+    selectCharacter(s.game, 1, Character.rifleman);
+    requestStageSelect(s.game, 0);
+    s.game.stageChoice = stage;
+    requestStart(s.game, 0);
+    startMatch(s);
+    drawStage(s);
+    renderPersistentPresentation(s);
+    lockArenaCamera(s);
+    trampoline("scene.report")();
+  });
+  const expected = new Map<string, number>();
+  for (let deck = 1; deck < surfaceCount(stage); deck++) {
+    const parts = platformParts(stage, deck);
+    expect(parts.length).toBeGreaterThan(0);
+    expect(deckModel(stage, deck)).toBe(parts[0]?.model);
+    for (const { model } of parts) expected.set(reportedModel(model), (expected.get(reportedModel(model)) ?? 0) + 1);
+  }
+  const report = sceneReport(client);
+  const drawn = Object.fromEntries([...expected.keys()].map((model) => {
+    const entry = report.models.find((found) => found.model === model);
+    return [model, { live: entry?.live, inView: entry?.inView, drawn: entry?.drawn }];
+  }));
+  expect(drawn).toEqual(Object.fromEntries([...expected].map(([model, count]) => [model, { live: count, inView: count, drawn: count }])));
+  const slab = STAGE_DECK_MODELS[stage]?.slab;
+  if (slab === undefined) throw new Error("Frozen Throne has no packaged slab");
+  expect(report.models.find(({ model }) => model === reportedModel(slab))).toBeUndefined();
+  expect(client.errors).toEqual([]);
 });
 
 test("every hazard stage shows its warning before acting and declares the cannon players see [spec #194]", () => {
