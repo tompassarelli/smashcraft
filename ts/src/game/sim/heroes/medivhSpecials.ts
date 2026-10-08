@@ -21,7 +21,7 @@ const vanish = (ex: boolean, retreat: boolean): AuthoredSpecial => ({
 const raven = (ex: boolean): AuthoredSpecial => ({
   endFrame: 36, aimFrames: 8, oncePerAirtime: true, helpless: true, landingLag: 24,
   motion: [{ ...frames(1, 8), velocityX: 0.0, velocityZ: 0.0 },
-    { ...frames(9, 28), velocityX: 0.0, velocityZ: ex ? 20.0 : 16.0, aimedSpeed: ex ? 20.0 : 16.0 }],
+    { ...frames(9, 28), velocityX: 0.0, velocityZ: ex ? 20.0 : 15.0, aimedSpeed: ex ? 20.0 : 15.0 }],
   regions: [heroRegion(9, 15, { x1: -25.0, z1: 45.0, x2: 25.0, z2: 65.0, radius: 20.0 }, medivhHit(ex ? 8.0 : 5.0, 70))],
 });
 
