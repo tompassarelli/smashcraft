@@ -64,3 +64,24 @@ test("accept's smoke capture stops the batch on a one-fighter solo quick match, 
   expect(smoke.failed()).toBe("two fighters present: the match has 1 fighter");
   expect([starts, captures]).toEqual([1, 1]);
 });
+
+test("accept's smoke capture passes a live solo match whose earlier replay and own replay parts exist, and still stops a one-fighter match [repro #287]", async () => {
+  const { Effect } = await import("effect");
+  const { smokeProblem } = await import("../scripts/wisp/commands/accept");
+  const { writtenPreloadFile } = await import("wisp/scripts/wisp/headlessInput");
+  const quick = (humanFighters: number, computers: number) => ({
+    name: "smashcraft-dev-playable-0042-p0.txt", modified: 10,
+    text: writtenPreloadFile([
+      "SMASHCRAFT DEV v=1 build=playable-0042 receipt=4 epoch=2 rb=12 delay=0 batch=1 rematchSeconds=5 ",
+      `SETUP phase=2 human-fighters=${humanFighters} computers=${computers} characters=0,1,2,0 stocks=3 minutes=7 automatic-rematch=0 stage=2 `,
+    ]),
+  });
+  const drawn = { width: 4, height: 1, rgb: Uint8Array.from([0, 0, 0, 200, 180, 90, 30, 60, 90, 255, 255, 255]) };
+  const file = (name: string, modified: number) => ({ name, modified, text: "" });
+  const earlier = [file("smashcraft-replay-11.txt", 1), file("smashcraft-replay-11-1.txt", 1)];
+  const live = [...earlier, file("smashcraft-replay-12-1.txt", 20)];
+  expect(await Effect.runPromise(smokeProblem(drawn, [quick(1, 2), ...live], 5))).toBeUndefined();
+  expect(await Effect.runPromise(smokeProblem(drawn, [quick(1, 2), ...live, file("smashcraft-replay-11.txt", 15)], 5))).toBeUndefined();
+  expect(await Effect.runPromise(smokeProblem(drawn, [quick(1, 2), ...live, file("smashcraft-replay-12.txt", 25)], 5))).toBe("match still running: the match had already ended (smashcraft-replay-12.txt)");
+  expect(await Effect.runPromise(smokeProblem(drawn, [quick(1, 0), ...live], 5))).toBe("two fighters present: the match has 1 fighter");
+});

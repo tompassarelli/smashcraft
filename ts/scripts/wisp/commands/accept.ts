@@ -74,6 +74,23 @@ const fighterCount = (mask: number) => {
   return count;
 };
 
+const REPLAY_NAME = /^smashcraft-replay-(\d+)(-\d+)?\.txt$/;
+
+/**
+ * This match's replay manifest, if it ended. Parts (`smashcraft-replay-N-P.txt`)
+ * are written while a match runs; only the manifest (`smashcraft-replay-N.txt`)
+ * marks its end. This match is the newest serial written since `since`, so an
+ * earlier match's manifest, even one written after `since`, doesn't count.
+ */
+const matchEnd = (receipts: readonly ReceiptFile[], since: number) => {
+  const recent = receipts.flatMap(({ name, modified }) => {
+    const match = modified > since ? REPLAY_NAME.exec(name) : null;
+    return match === null ? [] : [{ name, serial: Number(match[1]), manifest: match[2] === undefined }];
+  });
+  const current = Math.max(...recent.map(({ serial }) => serial));
+  return recent.find(({ serial, manifest }) => manifest && serial === current);
+};
+
 /**
  * The failed condition of a run's first capture, or undefined: two fighters
  * present, the match still running since `since`, a drawn frame. A solo quick
@@ -86,7 +103,7 @@ export const smokeProblem = (frame: Frame, receipts: readonly ReceiptFile[], sin
   if (setup._tag === "None") return `two fighters present: ${quick.name} doesn't read as a quick-match receipt`;
   const fighters = fighterCount(setup.value.humanFighters | setup.value.computers);
   if (fighters < 2) return `two fighters present: the match has ${fighters} fighter${fighters === 1 ? "" : "s"}`;
-  const ended = receipts.find(({ name, modified }) => name.startsWith("smashcraft-replay-") && modified > since);
+  const ended = matchEnd(receipts, since);
   if (setup.value.phase !== Phase.match || ended !== undefined) return `match still running: the match had already ended${ended === undefined ? "" : ` (${ended.name})`}`;
   let low = 765;
   let high = 0;
