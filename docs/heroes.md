@@ -11,8 +11,8 @@ data record; the simulation, replay, selection and object data read it.
   Hero specials run under `SpecialAction.heroNeutral`..`heroDown` (13-16) and
   hero projectiles under `ProjectileKind.hero` (5).
 - `ts/src/game/sim/heroes/<hero>Hero.ts` is one hero's `HeroDefinition`
-  (`sim/heroes/hero.ts`): product name, purpose, weakness, `passive` and
-  optional `ultimate` (official name and one line each), `moves`
+  (`sim/heroes/hero.ts`): product name, purpose, weakness, optional `ultimate`
+  (official name and one line), `moves`
   (`FighterMoves`, `sim/heroMoves.ts`), `specials` (`FighterSpecials`,
   `sim/heroSpecials.ts`), presentation (Warcraft model, object
   code, portrait, projectile model, per-pose clips with a fallback) and

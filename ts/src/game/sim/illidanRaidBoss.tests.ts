@@ -26,13 +26,13 @@ function finish(d: Duel, frames: number, first = controls(), second = controls()
   for (let i = 0; i < frames && d.illidan.attack.style !== undefined; i++) d.step(first, second);
 }
 
-test("Shear: forward tilt cuts 12 mana for 9 at a low angle, and a shield stops the drain [spec docs/design/illidan.md]", () => {
+test("Shear: forward tilt deals 9 at a low angle, blocked by shield without draining meter [spec #148] [spec docs/design/illidan.md]", () => {
   const d = duel(110.0);
   d.target.mana.points = 60;
   attack(d, AttackStyle.forwardTilt);
   finish(d, 40);
   assertEquals(d.target.status.damage, 9.0);
-  assertEquals(d.drained, 12);
+  assertEquals(d.target.visuals.manaDrained, 0);
   const blocked = duel(110.0);
   blocked.target.mana.points = 60;
   blocked.run(4, controls(), SHIELD);
@@ -50,7 +50,7 @@ test("Flames of Azzinoth: the glaives strike both sides out to 190 for 14, and t
     attack(d, AttackStyle.downSmash);
     finish(d, 60);
     assertEquals(d.target.status.damage, 14.0);
-    assertEquals(d.drained, 8);
+    assertEquals(d.target.visuals.manaDrained, 0);
   }
   // A fighter who walks into the fire after the glaives burns for 3.
   const late = duel(400.0);
@@ -82,7 +82,7 @@ test("Flames of Azzinoth counterplay: a shield holds both parts and acts with th
   assertEquals(over.target.status.damage, 0.0);
 });
 
-test("Eye Blast: forward smash charged 20 frames becomes a floor beam reaching 400 and draining 10; uncharged it does not reach [spec docs/design/illidan.md]", () => {
+test("Eye Blast: forward smash charged 20 frames becomes a floor beam reaching 400 without draining meter [spec #148]; uncharged it does not reach [spec docs/design/illidan.md]", () => {
   for (const charge of [0, EYE_BLAST_CHARGE_FRAMES + 2]) {
     const d = duel(420.0);
     d.target.mana.points = 50;
@@ -94,7 +94,7 @@ test("Eye Blast: forward smash charged 20 frames becomes a floor beam reaching 4
       assertEquals(d.target.status.damage, 0.0);
     } else {
       assertGreaterThan(d.target.status.damage, 10.0);
-      assertEquals(d.drained, 10);
+      assertEquals(d.target.visuals.manaDrained, 0);
     }
   }
 });

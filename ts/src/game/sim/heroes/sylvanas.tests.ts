@@ -149,14 +149,14 @@ test("Silence leaves movement, normals and recovery available, never passes a sh
   }
 });
 
-test("Life Drain catches a shield, heals at most nine per stock and refuses an airborne cast [spec docs/design/sylvanas.md]", () => {
+test("Life Drain catches a shield, heals three per successful move and refuses an airborne cast [spec #148] [spec docs/design/sylvanas.md]", () => {
   for (const facing of [-1, 1]) {
     const { world, owner, target } = pair(65.0, facing);
     owner.status.damage = 40.0;
     frame(world, controls({ specialPressed: true, specialZ: -1 }), controls({ shield: true }));
     for (let i = 0; i < 85; i++) frame(world, controls(), controls({ shield: true }));
     assertEquals(target.status.damage, 9.0);
-    assertEquals(owner.status.damage, 39.0);
+    assertEquals(owner.status.damage, 37.0);
     assertEquals(owner.grab.target, undefined);
     owner.motion.grounded = false;
     owner.motion.surface = undefined;
