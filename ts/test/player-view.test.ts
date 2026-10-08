@@ -263,7 +263,7 @@ test("development build: a match's scene report shows the stage and declares eve
   expect(client.errors).toEqual([]);
 });
 
-test("moving decks are visible and their effects follow the presented match frame [provisional]", () => {
+test("moving decks are visible and their effects follow the presented match frame [repro #242] [provisional]", () => {
   for (const stage of [DRIFTING_DECK_STAGE, PATTERNED_DECKS_STAGE]) {
     const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
     clients.start();
@@ -279,6 +279,12 @@ test("moving decks are visible and their effects follow the presented match fram
       requestStart(s.game, 0);
       startMatch(s);
       drawStage(s);
+      expect(s.stageDecks).toHaveLength(surfaceCount(stage));
+      const movingModels = new Map<string, number>();
+      for (let deck = 1; deck < surfaceCount(stage); deck++) {
+        const model = reportedModel(deckModel(stage, deck));
+        movingModels.set(model, (movingModels.get(model) ?? 0) + 1);
+      }
       for (const frame of [0, 100, 210, 420, 600]) {
         s.game.matchFrame = frame;
         renderPersistentPresentation(s);
@@ -292,7 +298,9 @@ test("moving decks are visible and their effects follow the presented match fram
         trampoline("scene.report")();
         const report = sceneReport(client);
         expect(sceneProblems(report, SMASHCRAFT_SCENE)).toEqual([]);
-        expect(report.models.find(({ model }) => model === reportedModel(deckModel(stage, 1)))).toMatchObject({ live: stage === DRIFTING_DECK_STAGE ? 1 : 2, drawn: stage === DRIFTING_DECK_STAGE ? 1 : 2 });
+        for (const [model, count] of movingModels) {
+          expect(report.models.find((entry) => entry.model === model)).toMatchObject({ live: count, drawn: count });
+        }
       }
     });
     expect(client.errors).toEqual([]);
