@@ -3,7 +3,7 @@ import { Effect } from "effect";
 import { expect, test } from "bun:test";
 import { verifyToolchain } from "wisp/scripts/wisp/mapBuild";
 import { fileIoAbility } from "../scripts/objectData";
-import { GENERATED_MODELS, MODEL_SOUND_TABLE, SCRIPT_MODELS, soundTableProblem } from "../scripts/wisp/mapInputs";
+import { GENERATED_MODELS, MODEL_SOUND_TABLE, SCRIPT_MODELS, TOMB_WATERFALL_IMPORTS, importProblem, soundTableProblem } from "../scripts/wisp/mapInputs";
 import { STAGE_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
 import { importedModelFile } from "../scripts/heroModelSource";
 import { generatedFiles } from "../scripts/wisp/commands/map";
@@ -26,6 +26,15 @@ test("every imported model the map script names is a distinct content-addressed 
   // A community model keeps the archive path its author's readme names (importedModelInfo.ts); every generated one is content-addressed.
   for (const model of SCRIPT_MODELS) if (importedModelFile(model) === undefined) expect(model).toMatch(/^war3mapImported\\[A-Za-z0-9]+-[0-9a-f]{64}\.mdx$/);
   expect(new Set(SCRIPT_MODELS).size).toBe(SCRIPT_MODELS.length);
+});
+
+test("the map build refuses an archive path imported twice or from a missing file, as Tomb's waterfall was [repro #242]", () => {
+  const waterfall = TOMB_WATERFALL_IMPORTS.map(({ entry, file }) => ({ entry, source: `stage-assets/${file}` }));
+  const present = (path: string) => !path.endsWith("TombWaterfallHD.mdx");
+  expect(importProblem(waterfall, () => true)).toBeUndefined();
+  expect(importProblem(waterfall, present)).toContain("_hd.w3mod\\Doodads\\Terrain\\CliffDoodad\\Waterfall\\Waterfall.mdx's file stage-assets/TombWaterfallHD.mdx is missing");
+  const twice = [...waterfall, { entry: waterfall[0]!.entry.toUpperCase(), source: "other.mdx" }];
+  expect(importProblem(twice, () => true)).toContain("imported twice, from stage-assets/TombWaterfallHD.mdx and other.mdx");
 });
 
 test("every model sound cue names a stock label and keys a pooled clip [invariant]", () => {

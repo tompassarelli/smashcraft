@@ -1,5 +1,5 @@
 // Smashcraft's declared map imports and object data.
-import { mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { Effect, Schema } from "effect";
@@ -274,7 +274,7 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
   if (soundProblem !== undefined) {
     return yield* new MapBuildFailure({ operation: "check model sounds", path: "ts/src/game/assets/modelSoundInfo.ts", cause: `${soundProblem}; export them with tools/animations/export-model-sounds.ts` });
   }
-  return [
+  const entries: ArchiveEntry[] = [
     { entry: ARCHER_MODEL_FILE, source: join(assets, "animation-assets/ArcherFighter.mdx") },
     { entry: RIFLEMAN_MODEL_FILE, source: join(assets, "animation-assets/RiflemanFighter.mdx") },
     { entry: DEMON_HUNTER_MODEL_FILE, source: join(assets, "illidan-animation/DemonHunterFighter.mdx") },
@@ -289,8 +289,27 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
     ...TOMB_WATERFALL_IMPORTS.map(({ entry, file }) => ({ entry, source: join(assets, "stage-assets", file) })),
     ...summonFiles.map((filename) => imported(join(summon, "imports/war3mapImported"), filename)),
     ...clipFiles.map((filename) => imported(join(clipDirectory, "imports/war3mapImported"), filename)),
-  ] satisfies ArchiveEntry[];
+  ];
+  const problem = importProblem(entries);
+  if (problem !== undefined) return yield* new MapBuildFailure({ operation: "check imports", path: assets, cause: problem });
+  return entries;
 });
+
+/**
+ * Why the packer can't write these imports, if it can't: the archive's paths
+ * are case-insensitive and each is written once, from a file that exists.
+ */
+export function importProblem(entries: readonly ArchiveEntry[], exists: (path: string) => boolean = existsSync): string | undefined {
+  const seen = new Map<string, string>();
+  for (const { entry, source } of entries) {
+    const key = entry.toLowerCase();
+    const earlier = seen.get(key);
+    if (earlier !== undefined) return `${entry} is imported twice, from ${earlier} and ${source}`;
+    seen.set(key, source);
+    if (!exists(source)) return `${entry}'s file ${source} is missing; a regenerated asset family must keep it (smashcraft:docs/build-inputs.md)`;
+  }
+  return undefined;
+}
 
 
 const readJson = <S extends Schema.Top & { readonly DecodingServices: never }>(schema: S, path: string) =>
