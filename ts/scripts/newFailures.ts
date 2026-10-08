@@ -136,7 +136,8 @@ export function refusal(failures: readonly Failure[], knownFrom: string): string
 /** The processes a plan runs: Bun file groups, the game registry, and the Lua leg. */
 export function processesFor(plan: Plan): { readonly argv: readonly string[]; readonly env: Readonly<Record<string, string>>; readonly command: string }[] {
   const bun = process.execPath;
-  const testArgs = (files: readonly string[]) => [bun, "test", "--timeout", "120000", ...files];
+  // A bare path is a name filter, which never matches a `.tests.ts` file; `./` makes it a path.
+  const testArgs = (files: readonly string[]) => [bun, "test", "--timeout", "120000", ...files.map((file) => `./${file}`)];
   const isolated = ISOLATED_TEST_GROUPS.map((group) => plan.files.filter((file) => group.includes(file))).filter((group) => group.length > 0);
   const shared = plan.files.filter((file) => !ISOLATED_TEST_GROUPS.flat().includes(file));
   const bins = Array.from({ length: Math.min(SHARED_PROCESSES, shared.length) }, (_, bin) => shared.filter((_, index) => index % SHARED_PROCESSES === bin));
