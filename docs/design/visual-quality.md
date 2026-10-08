@@ -780,6 +780,32 @@ camera distances and fields of view differ even with the same view command.
 The failed rows require a lighting adjustment before claiming a contrast
 pass. They do not replace #287's full native capture-profile baseline.
 
+Ahn'Qiraj at the same frozen build, before the fighter-only tint correction:
+
+| Mode / view / client | Stock \|ΔL\| / ΔE00 | Stage \|ΔL\| / ΔE00 | Neither falls at reported precision |
+| --- | --- | --- | --- |
+| Classic / near / 0 | 4.7 / 8.4 | 4.0 / 8.6 | no |
+| Classic / far / 0 | 2.6 / 7.8 | 1.3 / 7.4 | no |
+| Classic / near / 1 | 4.1 / 8.5 | 3.6 / 8.7 | no |
+| Classic / far / 1 | 1.2 / 6.4 | 0.3 / 5.7 | no |
+| Definitive / near / 0 | 3.3 / 7.0 | 3.5 / 6.7 | no |
+| Definitive / far / 0 | 2.7 / 3.7 | 3.0 / 3.6 | no |
+| Definitive / near / 1 | 3.6 / 6.8 | 4.0 / 6.6 | no |
+| Definitive / far / 1 | 5.2 / 3.4 | 5.1 / 3.4 | no |
+
+Blackrock at the same build, before the right-crag placement correction:
+
+| Mode / view / client | Stock \|ΔL\| / ΔE00 | Stage \|ΔL\| / ΔE00 | Neither falls at reported precision |
+| --- | --- | --- | --- |
+| Classic / near / 0 | 5.5 / 7.8 | 5.7 / 7.7 | no |
+| Classic / far / 0 | 16.3 / 14.9 | 17.6 / 16.1 | yes |
+| Classic / near / 1 | 5.4 / 8.1 | 5.1 / 8.2 | no |
+| Classic / far / 1 | 14.9 / 15.2 | 16.7 / 16.8 | yes |
+| Definitive / near / 0 | 4.2 / 6.2 | 5.2 / 6.0 | no |
+| Definitive / far / 0 | 5.1 / 3.9 | 6.7 / 6.0 | yes |
+| Definitive / near / 1 | 4.8 / 5.9 | 5.8 / 6.0 | yes |
+| Definitive / far / 1 | 5.6 / 6.4 | 7.9 / 9.3 | yes |
+
 The shared stage batch keeps the original `170-*` contrast checks and `191-*`
 camera extremes in one hosted game. `192-*-linear|height` retains the same
 paused far view before and after a 3.0 height-fog candidate; its values remain
