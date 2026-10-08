@@ -2,8 +2,9 @@
 
 [#334](https://github.com/tompassarelli/smashcraft/issues/334) keeps the authored
 moves and Classic bodies, and gives Definitive the stock Definitive body seen on the
-victory screen. Convert Cairne first; only a passing Cairne enables parallel
-conversion of the remaining fighters. No new moves, meshes or textures.
+victory screen. Cairne's dual-alias pilot passed native model loading,
+team colour and a smoke round on Classic and Definitive clients in 3.0.1.
+That establishes the body pipeline for parallel roster conversion.
 
 ## Rig correspondence
 
@@ -37,6 +38,11 @@ must resolve each role to a literal pair of names and reject missing pairs.
 | Goblin Tinker | authored HeroTinker → HeroTinker | goblin arms/legs, pack root, every mechanical arm and claw, Robo-Goblin body |
 | Kael’thas | authored HeroBloodElf → HeroBloodElf | arms, legs, cape → cape, orbiting props → orbiting props |
 | Murloc | authored Murloc → Murloc | arms, legs, weapon → weapon, fins → fins |
+| Grom | authored Hellscream → Hellscream | arms, legs, axe → axe, hair → hair |
+| Anub’arak | authored Crypt Lord → Crypt Lord | root, chest, head, all leg chains, claws → claws, shell → shell |
+| Malfurion | authored Furion → Furion | arms, legs, staff → staff, beard and robe → beard and robe |
+| Medivh | authored Medivh → Medivh | arms, legs, staff → staff, cloak → cloak, raven → raven |
+| Kobold | authored Kobold → Kobold | arms, legs, pick → pick, candle → candle |
 
 Cairne's installed Definitive model (3.0.1) has 91 bones and is 1,726,676 bytes.
 Its 27 literal pairs are `Root → root`, `Bone_Chest → bone_chest`,
@@ -59,7 +65,9 @@ targets, so they retain the authored hand-to-weapon relationship.
 Evaluate the Classic authored source and stock Definitive reference pose. Transfer
 each mapped joint's world-space motion relative to that reference, then solve
 local transforms through the Definitive hierarchy. Preserve Definitive mesh, skin weights,
-materials, bind matrices, and team-colour layers. Different body proportions
+materials, bind matrices, and team-colour layers. Every nonzero SKIN influence
+must address a BONE node, including hold chains added by timeline export;
+helper-node indices are invalid for Definitive skin (#319). Different body proportions
 make raw Classic and Definitive bind positions different: compare the transferred
 motion in the common reference frame, not those different bind positions.
 This registration is fixed per fighter, never fitted per move or sample.
@@ -95,10 +103,11 @@ including TombWaterfallHD and TombWaterfallDE, and other fighters' work.
 
 Keep the [120 MB map budget](map-size.md#proposed-budget-120-mb). The #308 map
 is 53,636,568 bytes; Definitive bodies receive **60,000,000 additional compressed
-bytes**, leaving 6,363,432 bytes below 120,000,000. That is 2.73 MB compressed
-per fighter on average. Cairne's 1.73 MB stock file is a raw input, not a
-compressed-body forecast; his pilot must measure mesh, authored keys and final
-MPQ contribution before fanout. Export one mesh, reuse stock textures, remove
+bytes**, leaving 6,363,432 bytes below 120,000,000. That is 2.31 MB compressed
+per fighter for the 26-fighter roster. Cairne's passing pilot retained all three
+geosets and 11,463 vertices across 85 clips and 3,309 pose samples. Its final
+error was 0.305434 units / 0.281172 degrees, and its thinned timeline occupies
+963,118 compressed bytes per alias. Export one mesh, reuse stock textures, remove
 unused clips, and retain bounded thinning. If the pilot forecast exceeds the
 allocation, stop at the measured miss instead of raising the budget.
 The existing 10% growth gate remains; add an absolute 120,000,000-byte map
