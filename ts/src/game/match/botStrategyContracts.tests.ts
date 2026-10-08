@@ -42,7 +42,7 @@ test("Thrall saves Chain Lightning for a retreat beyond hammer range [repro #279
   assertEquals(casts(300.0, -2.0), 0, "approaching target");
   assertEquals(casts(300.0, 0.0), 0, "standing target");
   assertEquals(casts(80.0, 2.0), 0, "target in hammer range");
-  assertTrue(casts(300.0, 2.0) > 0, "retreating target");
+  assertGreaterThan(casts(300.0, 2.0), 0);
 });
 
 function trained(choice: number, policy: CpuDecisionPolicy = EXPERT, cycles = 8) {
