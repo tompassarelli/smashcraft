@@ -444,7 +444,7 @@ test("Frozen Throne's raised decks draw their stock floes, rock and rubble in vi
   expect(client.errors).toEqual([]);
 });
 
-test("every hazard stage shows its warning before acting and declares the cannon players see [spec #194]", () => {
+test("every hazard stage keeps its warning text off the match screen and draws the cannon and lava glow players see [spec #194] [spec #336]", () => {
   for (const [stage, frame, warning] of [
     [WIND_TEST_STAGE, 601, "Wind pushes right in 45 frames."],
     [CARRIED_TEST_STAGE, 30, "Platform moves in 30 frames."],
@@ -475,7 +475,8 @@ test("every hazard stage shows its warning before acting and declares the cannon
       renderPersistentPresentation(s);
       renderUi(s);
       lockArenaCamera(s);
-      expect(client.frames.shownText()).toContain(warning);
+      // During play the screen shows no hazard text; the stage itself warns (#336).
+      expect(client.frames.shownText()).not.toContain(warning);
       trampoline("scene.report")();
       const report = sceneReport(client);
       expect(sceneProblems(report, SMASHCRAFT_SCENE)).toEqual([]);

@@ -49,7 +49,8 @@ test("a human without a controller helper plays on the keyboard: the match runs,
   // Two seconds after the match began, player 2 plays on the keyboard.
   frames(90);
   expect([shows(a, KEYBOARD_FALLBACK_MESSAGE), shows(b, KEYBOARD_FALLBACK_MESSAGE)]).toEqual([false, false]);
-  expect([shows(a, "Start: pause."), shows(b, "Y: pause.")]).toEqual([true, true]);
+  // The pause control is named in the pause menu, not during play (#336).
+  expect([shows(a, "Start: pause."), shows(b, "Y: pause.")]).toEqual([false, false]);
   // The match runs on every client, with player 2's fighter on neutral input.
   const started = [confirmedFrame(a), confirmedFrame(b)];
   frames(20);

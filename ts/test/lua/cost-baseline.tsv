@@ -184,7 +184,7 @@ src/game/sim/hurtboxLegibility.tests.ts	4	0.006
 src/game/sim/hurtboxes.tests.ts	8	0.056
 src/game/sim/illidanRaidBoss.tests.ts	10	0.153
 src/game/sim/knockdown.tests.ts	17	0.047
-src/game/sim/lava.tests.ts	4	0.101
+src/game/sim/lava.tests.ts	6	0.185
 src/game/sim/ledge.tests.ts	17	0.029
 src/game/sim/mana.tests.ts	5	0.038
 src/game/sim/meleeContact.tests.ts	4	0.001

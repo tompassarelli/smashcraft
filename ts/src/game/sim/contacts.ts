@@ -275,7 +275,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
       gainMana(source, stolen);
     }
     if (damage > 0) {
-      gainMana(source, dealtManaGain(damage));
+      if (source !== target) gainMana(source, dealtManaGain(damage));
       gainMana(target, takenManaGain(damage));
     }
     if (damage > 0 && contact.kind !== ContactKind.pummel) {
