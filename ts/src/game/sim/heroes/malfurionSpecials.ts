@@ -34,7 +34,7 @@ const BRANCH: SpecialProjectile = {
 const TREANT: AuthoredSpecial = {
   endFrame: 80, groundOnly: true, hurt: malfurionCastBody(18, 34),
   placement: { frame: 26, offsetX: 70.0, radius: 25.0, height: 92.0, durability: 20.0,
-    life: 240, fireAges: [36, 84, 132, 180], shot: BRANCH },
+    life: 240, fireAges: [4, 52, 100, 148], shot: BRANCH },
 };
 export const MALFURION_SPECIALS: FighterSpecials = {
   neutral: withExKit({ name: "Entangling Roots", description: "Mark the ground ahead. Jump or shield before the roots close.", ground: ROOTS }, { damage: 1.25, reach: 1.25 }),
