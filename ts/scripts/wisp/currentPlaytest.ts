@@ -6,8 +6,11 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, dirname } from "node:path";
+import { BunServices } from "@effect/platform-bun";
 import { Effect } from "effect";
+import { ChildProcess } from "effect/process";
 import { PlayProblem } from "wisp/scripts/wisp/play";
+import { runProcess } from "../hostProcess";
 import { buildOnce } from "./buildInputs";
 import { withLock } from "./fileLock";
 import { projectRoot } from "./project";
@@ -15,18 +18,17 @@ import { projectRoot } from "./project";
 const inputsRoot = join(homedir(), ".local/share/smashcraft-build-inputs");
 const builds = join(inputsRoot, "play-current");
 const locks = join(inputsRoot, "locks");
-const run = (cwd: string, args: readonly string[]) => Effect.tryPromise({
-  try: async () => {
-    const child = Bun.spawn([...args], { cwd, stdout: "inherit", stderr: "inherit" });
-    if (await child.exited !== 0) throw new Error(`${args[0]} failed while preparing the current build`);
-  },
-  catch: (cause) => new PlayProblem({ problem: String(cause) }),
-});
-const capture = (cwd: string, args: readonly string[]) => {
-  const child = Bun.spawnSync([...args], { cwd, stdout: "pipe", stderr: "pipe" });
-  return child.exitCode === 0 ? child.stdout.toString().trim() : undefined;
-};
-const tryPlay = <A>(run: () => A) => Effect.try({ try: run, catch: (cause) => new PlayProblem({ problem: String(cause) }) });
+const playProblem = (cause: unknown) => new PlayProblem({ problem: String(cause) });
+// Children belong to the caller's scope, so an interrupted play stops them before the revision lock is released.
+const run = (cwd: string, [program = "", ...args]: readonly string[]) =>
+  runProcess(ChildProcess.make(program, args, { cwd, stdin: "ignore", stdout: "inherit", stderr: "inherit" })).pipe(
+    Effect.asVoid,
+    Effect.mapError(() => playProblem(new Error(`${program} failed while preparing the current build`))),
+  );
+/** A program's trimmed stdout, or undefined when it fails. */
+const capture = (cwd: string, [program = "", ...args]: readonly string[]) =>
+  runProcess(ChildProcess.make(program, args, { cwd, stdin: "ignore" })).pipe(Effect.orElseSucceed(() => undefined));
+const tryPlay = <A>(run: () => A) => Effect.try({ try: run, catch: playProblem });
 
 /** A revision's reserved version: `play-current/REVISION.version`. */
 const reservation = (directory: string, revision: string) => join(directory, `${revision}.version`);
@@ -73,18 +75,15 @@ const reserveVersion = (library: string, revision: string) => withLock(join(lock
   }));
 
 /** Main's revision, its companion tree and the main checkout. */
-const resolveMain = Effect.tryPromise({
-  try: async () => {
-    const child = Bun.spawn(["git", "rev-parse", "main", "main:companion"], { cwd: projectRoot, stdout: "pipe", stderr: "pipe" });
-    const [revision, companion] = (await new Response(child.stdout).text()).trim().split("\n");
-    if (await child.exited !== 0 || revision === undefined || companion === undefined || !/^[a-f0-9]{40}$/.test(revision) || !/^[a-f0-9]{40}$/.test(companion)) throw new Error("couldn't resolve Smashcraft main");
-    const registry = Bun.spawn(["git", "worktree", "list", "--porcelain"], { cwd: projectRoot, stdout: "pipe", stderr: "pipe" });
-    const mainBlock = (await new Response(registry.stdout).text()).split("\n\n").find((block) => block.split("\n").includes("branch refs/heads/main"));
-    const mainCheckout = mainBlock?.split("\n").find((line) => line.startsWith("worktree "))?.slice(9);
-    if (await registry.exited !== 0 || mainCheckout === undefined) throw new Error("couldn't locate the main checkout");
-    return { mainCheckout, revision, companion };
-  },
-  catch: (cause) => new PlayProblem({ problem: String(cause) }),
+const resolveMain = Effect.gen(function*() {
+  const resolved = yield* capture(projectRoot, ["git", "rev-parse", "main", "main:companion"]);
+  const [revision, companion] = (resolved ?? "").split("\n");
+  if (resolved === undefined || revision === undefined || companion === undefined || !/^[a-f0-9]{40}$/.test(revision) || !/^[a-f0-9]{40}$/.test(companion)) return yield* playProblem(new Error("couldn't resolve Smashcraft main"));
+  const registry = yield* capture(projectRoot, ["git", "worktree", "list", "--porcelain"]);
+  const mainBlock = registry?.split("\n\n").find((block) => block.split("\n").includes("branch refs/heads/main"));
+  const mainCheckout = mainBlock?.split("\n").find((line) => line.startsWith("worktree "))?.slice(9);
+  if (mainCheckout === undefined) return yield* playProblem(new Error("couldn't locate the main checkout"));
+  return { mainCheckout, revision, companion };
 });
 
 /** The lock held by whoever uses `revision`'s build lane or builds its map. */
@@ -96,19 +95,18 @@ const revisionLock = (revision: string) => join(locks, `play-${revision}.lock`);
  */
 const buildLane = (mainCheckout: string, revision: string) => Effect.gen(function*() {
   const lane = join(dirname(mainCheckout), "worktrees", `play-build-${revision.slice(0, 12)}`);
-  if (existsSync(lane) && capture(lane, ["git", "rev-parse", "HEAD"]) !== revision) {
-    capture(projectRoot, ["git", "worktree", "remove", "--force", lane]);
+  if (existsSync(lane) && (yield* capture(lane, ["git", "rev-parse", "HEAD"])) !== revision) {
+    yield* capture(projectRoot, ["git", "worktree", "remove", "--force", lane]);
     yield* tryPlay(() => rmSync(lane, { recursive: true, force: true }));
-    capture(projectRoot, ["git", "worktree", "prune"]);
+    yield* capture(projectRoot, ["git", "worktree", "prune"]);
   }
   if (!existsSync(lane)) yield* run(projectRoot, ["git", "worktree", "add", "--detach", lane, revision]);
   return lane;
 });
 
 /** The lane is scratch: a finished build removes it. */
-const removeLane = (mainCheckout: string, revision: string) => Effect.sync(() => {
-  capture(projectRoot, ["git", "worktree", "remove", "--force", join(dirname(mainCheckout), "worktrees", `play-build-${revision.slice(0, 12)}`)]);
-});
+const removeLane = (mainCheckout: string, revision: string) =>
+  capture(projectRoot, ["git", "worktree", "remove", "--force", join(dirname(mainCheckout), "worktrees", `play-build-${revision.slice(0, 12)}`)]).pipe(Effect.asVoid);
 
 const helperPath = (companion: string) => join(inputsRoot, "play-helpers", companion, "wc3-journal");
 const helperTarget = join(inputsRoot, "play-helper-target");
@@ -139,7 +137,7 @@ export const currentHelper = Effect.gen(function*() {
     yield* removeLane(mainCheckout, revision);
     return helper;
   }));
-});
+}).pipe(Effect.provide(BunServices.layer));
 
 /**
  * Main's playable map, built once per revision into play-current/REVISION
@@ -165,4 +163,4 @@ export const currentPlaytest = (library: string) => Effect.gen(function*() {
     yield* removeLane(mainCheckout, revision);
   })).pipe(Effect.mapError((cause) => cause instanceof PlayProblem ? cause : new PlayProblem({ problem: cause.message })));
   return { map, helper: existsSync(helper) ? helper : undefined };
-});
+}).pipe(Effect.provide(BunServices.layer));
