@@ -769,6 +769,12 @@ may use more stocks or a longer timer only when its required sample needs it;
 record that reason beside the test (for example, #26's all-binding edge sample).
 Keep ordinary combat completion intact; do not force a win to shorten a test.
 
+A steady 60 fps is unconditional (Tom, 9 Oct): players react to what each
+frame shows, so a repeated frame breaks competitive play. The map's own work
+stays under 10 ms on every frame, worst case included, so Warcraft can draw
+inside 16.7 ms. A frame-cost box that misses this is unfinished work, never a
+target to relax or a choice to put to Tom.
+
 Pick the clients by what the test needs (Tom, 7 Oct). The offline LAN pool
 is the default for native testing: pad parity runs, captures, `accept`
 checks and desync hunts.
