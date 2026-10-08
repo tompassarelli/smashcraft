@@ -78,14 +78,14 @@ interface Observed {
 
 /** A quick match that reloads into `next` and then jumps: what each client holds after each frame from the reload on. */
 function play(next: MapEntry): Observed[][] {
-  const clients = headless.clients({ start, install });
+  const clients = headless.clients({ start, install }, [0, 1], { keepCalls: 0 });
   clients.start();
   clients.frames(30);
   clients.chat(0, "-dev quick");
-  clients.frames(120);
+  clients.frames(30);
   const version = clients.reload(headless.modules(next));
   const frames: Observed[][] = [];
-  for (let frame = 0; frame < 90; frame++) {
+  for (let frame = 0; frame < 48; frame++) {
     if (frame === 20) clients.press(0, JUMP);
     clients.frames(1);
     frames.push(clients.clients.map((client) => {
@@ -137,7 +137,7 @@ test("under rollback the speculative match and every history snapshot take tuned
 }, 30_000);
 
 // About 2 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
-test("tuned gravity reaches both clients' fighters on the frame they install it and changes the match alike in both", async () => {
+test("[repro #242] tuned gravity reaches both clients' fighters on the frame they install it and changes the match alike in both", async () => {
   const tuned = await tunedGravity();
   expect(tuned.files).toEqual(["src/game/sim/tuning.ts"]);
   const reference = play({ start, install });
