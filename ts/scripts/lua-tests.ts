@@ -4,6 +4,7 @@
 // GAME_SOAK=1 runs the long *.soak.ts scenarios instead; SWEEPS=1 runs only
 // the sweeps (src/runtime/sweep.ts). LUA_JOBS=N runs the tests in N Lua
 // processes at once, each taking the tests whose name hashes to its shard.
+// LUA_PARTITION=K/N divides those process shards across N CI jobs.
 // GAME_TESTS includes and GAME_TESTS_EXCLUDE excludes module-path substrings.
 // The remainder (no GAME_TESTS) also runs the memory census and stack checks.
 // The stack plugin instruments a whole bundle, so the stack-trace profile's
@@ -29,6 +30,10 @@ const compile = (config: string) =>
   Bun.spawnSync([process.execPath, "--bun", "node_modules/typescript-to-lua/dist/tstl.js", "-p", config], { stdout: "inherit", stderr: "inherit" }).exitCode ?? 1;
 const run = (bundle: string) => Bun.spawnSync([lua, bundle], { stdout: "inherit", stderr: "inherit" }).exitCode ?? 1;
 const jobs = Math.max(1, Number(process.env.LUA_JOBS ?? "1"));
+const [partition = NaN, partitions = NaN] = (process.env.LUA_PARTITION ?? "0/1").split("/").map(Number);
+if (!Number.isInteger(partition) || !Number.isInteger(partitions) || partition < 0 || partitions <= partition) {
+  throw new Error("LUA_PARTITION must be K/N with 0 <= K < N");
+}
 const only = process.env.LUA_TESTS_STEP;
 const savedCosts = process.env.LUA_TEST_COST_DIR;
 const costDirectory = savedCosts ?? mkdtempSync(join(tmpdir(), "smashcraft-lua-cost-"));
@@ -36,7 +41,7 @@ const costFile = (shard: number) => join(costDirectory, `${shard}.tsv`);
 const runSharded = async (bundle: string) => {
   const codes = await Promise.all(Array.from({ length: jobs }, (_, shard) =>
     Bun.spawn([lua, bundle], {
-      env: { ...process.env, ...(jobs === 1 ? {} : { LUA_SHARD: `${shard}/${jobs}` }), LUA_TEST_COST: costFile(shard) },
+      env: { ...process.env, ...(jobs * partitions === 1 ? {} : { LUA_SHARD: `${partition * jobs + shard}/${jobs * partitions}` }), LUA_TEST_COST: costFile(shard) },
       stdout: "inherit", stderr: "inherit",
     }).exited));
   return codes.find((code) => code !== 0) ?? 0;

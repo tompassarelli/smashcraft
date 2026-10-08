@@ -96,8 +96,10 @@ code. From smashcraft:ts/:
   smashcraft:ts/test/sweep.ts in Bun-only files) and keep its smallest form,
   such as one seeded match, as an ordinary test. The suite skips sweeps;
   `SWEEPS=1 bun run test` and `SWEEPS=1 bun scripts/lua-tests.ts` run only
-  them, and CI's Sweeps (Bun) and Lua32 (sweeps) jobs run them on every push,
+  them, and CI's Sweeps (Bun) and six Lua32 (sweeps) jobs run them on every push,
   so a failing sweep turns main red (#243).
+  `LUA_PARTITION=K/N` divides `LUA_JOBS` name-hash shards across N jobs;
+  CI runs at most six Lua jobs alongside its two Bun jobs.
 - Test cost: one test may use at most 4 s of CPU in Bun and 6 s in 32-bit
   Lua (its process's user plus system time on a GitHub runner;
   smashcraft:ts/scripts/testCost.ts). They were set on 8 Oct from the lean
@@ -556,6 +558,10 @@ code. From smashcraft:ts/:
   each replay's first divergent frame and field; `bun wisp parity corpus keep
   RECORDING...` copies local recordings into smashcraft:ts/test/corpus/, which
   CI and `farm test` replay on every push.
+  A native box in a subsystem with zero corpus divergence is met by its
+  headless check plus the weekly native spot batch. Keep the corpus coverage
+  and replay result for that subsystem in wisp#69; native lanes batch the
+  weekly spot checks with their other pending sessions.
 - Parity: `bun wisp parity numeric` compares the numeric corpus with both Lua32s;
   `bun wisp integrity capture --screen --clients-file FILE --client NAME --out PRIVATE_DIR [--count N] [--region X,Y,WIDTH,HEIGHT]`
   measures serial framebuffer acquisition on the input stimulus clock and saves
