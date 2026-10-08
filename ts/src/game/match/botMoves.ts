@@ -205,6 +205,10 @@ function addHeroSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage:
   let added = count;
   for (let index = 0; index < HERO_SLOTS.length; index++) {
     if (heroSpecialUse(f, target, stage, at(HERO_SLOTS, index), observationAge) !== use) continue;
+    // Fury catches a retreat; an approaching target beyond hammer range must come to the hammer first.
+    if (f.character === Character.forsakenPaladin && at(HERO_SLOTS, index) === SpecialSlot.side
+      && Math.abs(aheadX(f, target, 0, undefined, observationAge)) > moveReachAhead(f.character, AttackStyle.forwardTilt, target, f.tuning.moves)
+      && f32(target.motion.deltaX * f.facing) <= 0.0) continue;
     options[added++] = at(SLOT_OPTIONS, index);
     options[added++] = at(SLOT_OPTIONS, index);
   }
@@ -223,7 +227,9 @@ function addShots(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number
   if (motion.grounded && facing === f.facing && distance >= 160 && distance <= 700 && dz >= SHOT_LOW && dz <= SHOT_HIGH && specialReady(f, NEUTRAL_SPECIAL)) {
     options[added++] = NEUTRAL_SPECIAL;
   }
-  if (f.character === Character.archer && distance >= 140 && distance <= 520 && Math.abs(dz) <= 120 && specialReady(f, SIDE_SPECIAL)) options[added++] = SIDE_SPECIAL;
+  const plan = gameplanOf(f.character);
+  if (f.character === Character.archer && plan !== undefined && spacedAt(plan, SIDE_SPECIAL, distance)
+    && Math.abs(dz) <= 120 && specialReady(f, SIDE_SPECIAL)) options[added++] = SIDE_SPECIAL;
   if (f.character === Character.rifleman && motion.grounded && target.motion.grounded && f.bear.life <= 0 && distance >= 80 && distance <= 450
     && Math.abs(dz) <= 60 && specialReady(f, SIDE_SPECIAL)) options[added++] = SIDE_SPECIAL;
   return added;

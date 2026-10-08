@@ -12,7 +12,7 @@ scripts/meleeOracle.tests.ts	2	5.845
 scripts/padScene.tests.ts	2	0.226
 scripts/projectileRules.tests.ts	6	5.690
 scripts/riflemanBlaster.tests.ts	4	0.728
-src/game/assets/stageLighting.tests.ts	2	0.001
+src/game/assets/stageLighting.tests.ts	5	0.001
 src/game/assets/stagePalette.tests.ts	3	0.002
 src/game/input/adapter.tests.ts	8	0.014
 src/game/input/attackBuffer.tests.ts	6	0.002
@@ -97,7 +97,7 @@ src/game/presentation/impactEvents.tests.ts	8	0.004
 src/game/presentation/impactState.tests.ts	9	0.035
 src/game/presentation/itemLook.tests.ts	2	0.000
 src/game/presentation/jumpClips.tests.ts	1	0.003
-src/game/presentation/matchCues.tests.ts	4	0.009
+src/game/presentation/matchCues.tests.ts	5	0.011
 src/game/presentation/moveTiers.tests.ts	2	0.007
 src/game/presentation/passiveLook.tests.ts	3	0.000
 src/game/presentation/projectileArt.tests.ts	2	0.003

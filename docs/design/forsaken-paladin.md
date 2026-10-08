@@ -157,6 +157,11 @@ His reach is useful but his commitment and weak chase are exploitable.
 
 Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). A heavy hammer spaced around a short, fixed holy patch.
 
+The computer runs in with Hammer Sweep or a grab. Beyond Hammer Sweep's reach,
+it uses Righteous Fury to catch a retreating target; an approaching target comes
+into hammer range first. At close range the charge competes with the hammer
+attacks. This keeps the slow as a read instead of the default approach (#275).
+
 ```balance-profile
 fighter: forsaken-paladin
 archetype: bait-and-punish

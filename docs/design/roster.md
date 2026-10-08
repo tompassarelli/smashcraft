@@ -1203,9 +1203,11 @@ early, her arrows can't stop an approach, and hitting her scares the
 hippogryph off its perch.
 
 **Gameplan:** keeps 180–460 units away. Her spacing tools are forward air at
-110–240, the arrow at 200–700 and the homing arrow at 160–520. Her speed is her
+110–240, the arrow at 200–700 and the homing arrow at 380–520. Her speed is her
 edge: she runs in with grab, down tilt or up tilt or jumps in with forward or
-neutral air (weight 2 each) more than she shoots (weight 1). She answers threats by
+neutral air (weight 2 each) more than she shoots Swift Arrow (weight 1).
+The homing arrow remains available inside its reach, but gets a spacing
+preference only at long range. She answers threats by
 retreating or jumping, and sometimes by shield or spot dodge. Up tilt leads
 into up air or up smash, down tilt into forward air or up tilt, and up throw
 into up air. She kills with forward smash from 90%, up smash from 100% and back
@@ -1215,6 +1217,12 @@ stage control: a dive line through the gap she keeps, or through a recovery
 path while she holds the ledge.
 
 **Balance** (#247, her 20-pair computer field, Wren Expert, 400/pair): homing arrow 3 → 5 damage and dash attack 6 → 8: field win rate 36% (5adb030c) → 47% (02f650a3, run 37741282489; 3804/8160); side special is 23% of her moves, above the zoner profile's 3-15%.
+
+**Side-special play style** (#273): keeping the computer's homing-arrow
+choices in its long-range spacing band reduced side-special starts from
+21.95% (2,769/12,617) to 6.98% (818/11,725) over 120 identical Wren Expert
+matches against Forsaken Paladin (febfa549 → 8b1fcc8e;
+[focused evidence](../../evidence/archer-playstyle-273-20261008/result.md)).
 
 #### Play-style profile
 

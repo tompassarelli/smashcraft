@@ -161,6 +161,19 @@ from the floor (smashcraft:ts/src/game/presentation/stageScenery.ts).
 12. **The sky is one smooth gradient; the horizon sits at or below the deck.**
     The brightest region and the busiest clouds stay out of the deck's height
     band; the lower sky is the abyss colour the atmosphere fades to.
+13. **Hazards are deterministic and trackable** (Tom, 8 Oct, #274). A stage
+    hazard's position, timing and effect are a fixed function of the match
+    clock and the fighters' own state and actions, never of a random draw.
+    It is visible or telegraphed before it can hurt, and its schedule
+    repeats so a player can learn it. Randall the cloud on Yoshi's Story is
+    the model: hard to track, but on a fixed path anyone can learn; so are
+    the Shy Guys, who fly across on a fixed schedule. Corneria's Arwings are
+    the counterexample: they shoot a player out of the sky at moments no one
+    can predict. Chaos is welcome; randomness that happens to a player is
+    not. smashcraft:ts/src/game/match/stageHazardTracks.tests.ts plays every
+    stage with hazards under two match seeds and requires identical hazard
+    tracks, and smashcraft:ts/test/stage-hazard-random.test.ts refuses
+    hazard code that reads the match's random source.
 
 ### Art checklist
 
