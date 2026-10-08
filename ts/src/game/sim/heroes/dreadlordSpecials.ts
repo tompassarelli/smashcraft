@@ -1,6 +1,7 @@
 // Dreadlord's four specials (smashcraft:docs/design/roster.md "Dreadlord"),
 // run by sim/heroSpecialRules.ts. The brief's speeds and reaches are in H, the
 // hero reference height; frames count the entry frame as one.
+import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HeroStatusGroup, HeroStatusKind, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, type StrikeCapsule, heroRegion } from "../heroMoves";
@@ -79,8 +80,8 @@ function batAscension(cost: number, rise: number, across: number): AuthoredSpeci
 }
 
 export const DREADLORD_SPECIALS: FighterSpecials = {
-  neutral: { name: "Carrion Swarm", description: "A short, slow cloud of bats.", ground: CARRION_SWARM, air: { ...CARRION_SWARM, landingLag: AIR_LANDING_LAG } },
-  side: { name: "Vampiric Pounce", description: "Corkscrew forward with trailing bats; bite and heal on a catch, recover on a miss.", ground: NIGHT_POUNCE, air: NIGHT_POUNCE_AIR },
-  up: { name: "Bat Ascension", description: "A steerable rise on bat wings, then a helpless fall.", ground: batAscension(15, f32(2.9), f32(2.2)), free: batAscension(0, f32(2.1), f32(0.8)) },
-  down: { name: "Sleep", description: "A slow orb that puts a grounded target to sleep until it mashes out or is hit.", ground: SLEEP_ORB, air: { ...SLEEP_ORB, landingLag: AIR_LANDING_LAG } },
+  neutral: withExKit({ name: "Carrion Swarm", description: "A short, slow cloud of bats.", ground: CARRION_SWARM, air: { ...CARRION_SWARM, landingLag: AIR_LANDING_LAG } }, { reach: 1.25 }),
+  side: withExKit({ name: "Vampiric Pounce", description: "Corkscrew forward with trailing bats; bite and heal on a catch, recover on a miss.", ground: NIGHT_POUNCE, air: NIGHT_POUNCE_AIR }, { damage: 1.25 }),
+  up: withExKit({ name: "Bat Ascension", description: "A steerable rise on bat wings, then a helpless fall.", ground: batAscension(15, f32(2.9), f32(2.2)), free: batAscension(0, f32(2.1), f32(0.8)) }, { travel: 1.25 }),
+  down: withExKit({ name: "Sleep", description: "A slow orb that puts a grounded target to sleep until it mashes out or is hit.", ground: SLEEP_ORB, air: { ...SLEEP_ORB, landingLag: AIR_LANDING_LAG } }, { reach: 1.25 }),
 };

@@ -1,6 +1,7 @@
 // Pit Lord's four specials as authored data (smashcraft:docs/design/roster.md,
 // "Pit Lord", B specials). The entry tick is frame 1 and "end fN" is the last
 // frame of the action. Distances are in the hero reference height H.
+import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { hurtCapsule } from "../../physics/contactGeometry";
 import { Character, HitElement } from "../codes";
@@ -92,8 +93,8 @@ const howl = (air: boolean): AuthoredSpecial => ({
 });
 
 export const PIT_LORD_SPECIALS: FighterSpecials = {
-  neutral: { name: "Howl of Terror", description: "A close roar pushes enemies away on both sides; a shield stops it.", ground: howl(false), air: howl(true) },
-  side: { name: "Ruin Charge", description: "A slow charge whose armor shrugs off one light hit; it stops at a shield.", ground: RUIN_CHARGE, air: RUIN_CHARGE_AIR },
-  up: { name: "Abyssal Leap", description: "A slow arcing leap you steer, with a hoof strike, then a helpless fall.", ground: abyssalLeap(15, h(f32(3.5)), h(f32(0.5)), h(f32(1.15)), true), free: abyssalLeap(0, h(f32(2.85)), h(f32(0.3)), h(f32(0.8)), false) },
-  down: { name: "Rain of Fire", description: "Three waves of fire fall ahead; rush underneath or tilt your shield up.", ground: rain(false), air: rain(true) },
+  neutral: withExKit({ name: "Howl of Terror", description: "A close roar pushes enemies away on both sides; a shield stops it.", ground: howl(false), air: howl(true) }, { reach: 1.25 }),
+  side: withExKit({ name: "Ruin Charge", description: "A slow charge whose armor shrugs off one light hit; it stops at a shield.", ground: RUIN_CHARGE, air: RUIN_CHARGE_AIR }, { damage: 1.25 }),
+  up: withExKit({ name: "Abyssal Leap", description: "A slow arcing leap you steer, with a hoof strike, then a helpless fall.", ground: abyssalLeap(15, h(f32(3.5)), h(f32(0.5)), h(f32(1.15)), true), free: abyssalLeap(0, h(f32(2.85)), h(f32(0.3)), h(f32(0.8)), false) }, { travel: 1.25 }),
+  down: withExKit({ name: "Rain of Fire", description: "Three waves of fire fall ahead; rush underneath or tilt your shield up.", ground: rain(false), air: rain(true) }, { damage: 1.25 }),
 };

@@ -2,6 +2,7 @@
 // Frames follow the brief: entry is frame 1, windows are inclusive. A motion
 // window sets velocity exactly (no gravity or drag), so each travel is its
 // distance over its frames.
+import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HitElement } from "../codes";
 import { CHILL } from "../chill";
@@ -90,8 +91,8 @@ const CONSECRATION: AuthoredSpecial = {
 };
 
 export const FORSAKEN_PALADIN_SPECIALS: FighterSpecials = {
-  neutral: { name: "Cleansing Hammer", description: "Bonk upward with the hammer; its holy impact cleanses your poison and movement slow.", ground: cleansingHammer(undefined), air: cleansingHammer(18) },
-  side: { name: "Righteous Fury", description: "Charge hammer-first. A body hit briefly slows movement; a blocked charge leaves you exposed.", ground: RIGHTEOUS_FURY, air: RIGHTEOUS_FURY_AIR },
-  up: { name: "Ascension", description: "A rising hammer strike you steer, then a helpless fall.", ground: ascension(15, f32(2.9), true), free: ascension(0, f32(2.25), false) },
-  down: { name: "Consecration", description: "Plant the hammer to bless a small patch of ground. It pulses beneath grounded foes; jumping clears it.", ground: CONSECRATION },
+  neutral: withExKit({ name: "Cleansing Hammer", description: "Bonk upward with the hammer; its holy impact cleanses your poison and movement slow.", ground: cleansingHammer(undefined), air: cleansingHammer(18) }, { damage: 1.25 }),
+  side: withExKit({ name: "Righteous Fury", description: "Charge hammer-first. A body hit briefly slows movement; a blocked charge leaves you exposed.", ground: RIGHTEOUS_FURY, air: RIGHTEOUS_FURY_AIR }, { damage: 1.25 }),
+  up: withExKit({ name: "Ascension", description: "A rising hammer strike you steer, then a helpless fall.", ground: ascension(15, f32(2.9), true), free: ascension(0, f32(2.25), false) }, { travel: 1.25 }),
+  down: withExKit({ name: "Consecration", description: "Plant the hammer to bless a small patch of ground. It pulses beneath grounded foes; jumping clears it.", ground: CONSECRATION }, { reach: 1.25 }),
 };
