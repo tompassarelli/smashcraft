@@ -156,7 +156,7 @@ src/game/sim/heroes/dreadlordMoves.tests.ts	9	0.009
 src/game/sim/heroes/dreadlordSpecials.tests.ts	12	0.208
 src/game/sim/heroes/fighterArt.tests.ts	1	0.000
 src/game/sim/heroes/forsakenPaladinMoves.tests.ts	10	0.011
-src/game/sim/heroes/forsakenPaladinSpecials.tests.ts	13	0.462
+src/game/sim/heroes/forsakenPaladinSpecials.tests.ts	14	1.039
 src/game/sim/heroes/jaina.tests.ts	9	0.051
 src/game/sim/heroes/kaelthas.tests.ts	9	0.189
 src/game/sim/heroes/lichKingSpecials.tests.ts	9	0.207

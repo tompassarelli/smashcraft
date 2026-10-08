@@ -297,6 +297,20 @@ test("Consecration cannot be recast before its cooldown and gives no shield prot
   assertEquals(owner.special.action, SpecialAction.heroDown);
 });
 
+test("Righteous Fury cannot be recast before its 240-frame cooldown [spec docs/design/forsaken-paladin.md]", () => {
+  const { world, owner } = pair(900.0);
+  frame(world, side);
+  assertEquals(owner.special.action, SpecialAction.heroSide);
+  for (let f = 2; f <= 60; f++) frame(world);
+  const mana = owner.mana.points;
+  frame(world, side);
+  assertEquals(owner.special.action, SpecialAction.none);
+  assertEquals(owner.mana.points, mana);
+  for (let f = 62; f <= 245; f++) frame(world);
+  frame(world, side);
+  assertEquals(owner.special.action, SpecialAction.heroSide);
+});
+
 test("replaying Forsaken Paladin's Consecration and Righteous Fury restores every fighter field [invariant]", () => {
   const { world, owner, target } = pair(70.0);
   frame(world, down);

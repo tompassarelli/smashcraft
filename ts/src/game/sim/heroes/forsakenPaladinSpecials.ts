@@ -34,6 +34,7 @@ const furyRegions = [heroRegion(15, 20, capsule(20.0, 58.0, 128.0, 48.0, 18.0), 
 const RIGHTEOUS_FURY: AuthoredSpecial = {
   cost: 25,
   endFrame: 49,
+  cooldownFrames: 240,
   regions: furyRegions,
   strikeStatus: CHILL,
   hurt: [hurtPose(12, 25, forsakenPaladinReach(48.0, 56.0))],
@@ -43,6 +44,7 @@ const RIGHTEOUS_FURY: AuthoredSpecial = {
 const RIGHTEOUS_FURY_AIR: AuthoredSpecial = {
   cost: RIGHTEOUS_FURY.cost,
   endFrame: RIGHTEOUS_FURY.endFrame,
+  cooldownFrames: RIGHTEOUS_FURY.cooldownFrames,
   regions: furyRegions,
   strikeStatus: CHILL,
   hurt: RIGHTEOUS_FURY.hurt,
