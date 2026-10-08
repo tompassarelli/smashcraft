@@ -27,7 +27,7 @@ export function pauseDraws(directory: string) {
         const fighters = (draw: RenderScene) => draw.units.filter(unit => fighterTypes.has(unit.typeId))
           .map(unit => ({ handle: unit.handle.id, x: unit.x, y: unit.y, z: unit.z, animation: unit.animation,
             animationElapsed: unit.animationElapsed, animationClock: unit.animationClock }));
-        const effects = (draw: RenderScene) => draw.effects.map(pose => ({ model: pose.model, x: pose.x, y: pose.y, z: pose.z,
+        const effects = (draw: RenderScene) => draw.effects.filter(pose => pose.timeScale === 0).map(pose => ({ model: pose.model, x: pose.x, y: pose.y, z: pose.z,
           animation: pose.animation, animationElapsed: pose.animationElapsed, animationClock: pose.animationClock }));
         const before = fighters(last.scene), after = fighters(scene);
         const frozenEffects = effects(last.scene), resumedEffects = effects(scene);

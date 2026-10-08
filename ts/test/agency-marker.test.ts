@@ -26,6 +26,7 @@ test("both clients show both locked markers on each fighter and remove them on c
       }
     }
     clients.chat(0, `-dev agency ${character} thaw`);
+    clients.frames(3);
     expect(clients.clients[0]?.effectPoses().filter(pose => pose.model === markerModel && pose.scale > 0).length).toBe(2);
     clients.frames(190);
     for (const client of clients.clients) {

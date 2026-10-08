@@ -277,7 +277,7 @@ it checks three things:
 For pause and resume, `pad --headless` additionally writes
 `pause-draws.jsonl`. It reads the real map's pause menu, records the last
 paused and first resumed drawn-frame timings, and compares every fighter's
-position plus the visible effects' positions and animation clocks. These
+position plus the frozen effects' positions and animation clocks. These
 observations run once after all callbacks due before a picture; a callback
 pose alone does not identify the first visible resume picture. Use the
 same helper binary as the reference capture, with its pause commit and
