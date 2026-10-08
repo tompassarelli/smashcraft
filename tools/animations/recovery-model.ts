@@ -112,8 +112,8 @@ export function jumpBaseModel(source: mdx.Model): mdx.Model | undefined {
 
 export function downAirBaseModel(source: mdx.Model): mdx.Model | undefined {
   const first = source.Sequences.findIndex(s => s.Name.startsWith("Down Air "));
-  if (first < 0) return undefined;
-  ensure(first > 0 && source.Sequences.slice(first).every(s => s.Name.startsWith("Down Air ")), "Down air must be the sequence suffix");
+  // A fighter authored on its own rig names its down air in place; only an appended suffix is a reusable base.
+  if (first <= 0 || !source.Sequences.slice(first).every(s => s.Name.startsWith("Down Air "))) return undefined;
   const cutoff = source.Sequences[first]?.Interval[0];
   ensure(cutoff !== undefined, "Down air has no start");
   const model = structuredClone(source);

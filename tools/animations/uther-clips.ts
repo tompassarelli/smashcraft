@@ -11,6 +11,7 @@ import { DRAWN_STRIDES } from "../../ts/src/game/presentation/drawnStrideInfo";
 import type { HeroPose } from "../../ts/src/game/sim/heroes/hero";
 import { UTHER_MOVES } from "../../ts/src/game/sim/heroes/utherMoves";
 import { UTHER_SPECIALS } from "../../ts/src/game/sim/heroes/utherSpecials";
+import { UTHER_FORSAKEN_MODEL } from "../../ts/src/game/assets/importedModelInfo";
 import { seconds } from "./asset-info";
 import { renumberNodes } from "../../ts/scripts/clipNodes";
 function ensure(ok: unknown, why: string): asserts ok { if (!ok) throw new Error(why); }
@@ -200,7 +201,7 @@ let cursor=Math.max(...source.Sequences.map(s=>s.Interval[1]))+100;
 const bindings:string[]=[],damageBindings:string[]=[],records:{pose:string;index:number;frames:number;contact:number}[]=[];
 for (const [ordinal,action] of [...actions,...damageActions].entries()) {
   const index=model.Sequences.length,start=cursor,end=start+Math.round(action.frames*1000/60);cursor=end+100;
-  const name=action.damage?`Uther Pain ${Math.floor((ordinal-actions.length)/3)} ${(ordinal-actions.length)%3}`:`Uther ${action.pose}`;
+  const name=action.damage?`Forsaken Paladin Pain ${Math.floor((ordinal-actions.length)/3)} ${(ordinal-actions.length)%3}`:action.pose==="downAir"?"Down Air Hammer Drop":`Forsaken Paladin ${action.pose}`;
   model.Sequences.push({...stand,Name:name,Interval:new Uint32Array([start,end]),NonLooping:!action.hold,MoveSpeed:0,Rarity:0,
     MinimumExtent:new Float32Array([-320,-320,-200]),MaximumExtent:new Float32Array([320,320,360]),BoundsRadius:440});
   const coil=blend(ready,action.gesture,-(COIL[action.pose]??0.32));
@@ -285,7 +286,7 @@ await Bun.write(join(project,"ts/src/game/sim/heroes/utherClips.ts"),[
 const before=new DrawnModel(generateMDX(source),1.2),after=new DrawnModel(bytes,1.2);
 const strides:DrawnStride[]=Object.entries(DRAWN_STRIDES).flatMap(([character,row])=>row===undefined||Number(character)===Character.uther?[]:
   (["walk","run"] as const).map(motion=>({character:Number(character) as Character,motion,...row[motion]})));
-for(const motion of ["walk","run"] as const)strides.push(measureDrawnStride(bytes,after,Character.uther,motion,"units\\creeps\\HeroForsakenPaladin\\HeroForsakenPaladin.mdl"));
+for(const motion of ["walk","run"] as const)strides.push(measureDrawnStride(bytes,after,Character.uther,motion,UTHER_FORSAKEN_MODEL));
 await Bun.write(join(project,"ts/src/game/presentation/drawnStrideInfo.ts"),drawnStrideSource(strides));
 let preserved=0;
 for(const [index,sequence]of source.Sequences.entries())for(const part of [0,0.5,1]){const time=(sequence.Interval[1]-sequence.Interval[0])*part/1000,a=before.triangles(index,time,1),b=after.triangles(index,time,1);

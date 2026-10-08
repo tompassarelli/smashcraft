@@ -147,23 +147,23 @@ Generated from the packaged models by `bun wisp view motion --assets DIR` (#171)
 | Uther | walk | 12: Walk 1 | 85.8 | 20.9 | forward; 82.9/75.0 |
 | Uther | dash | 12: Walk 1 | 85.6 | 20.2 | forward; 82.7/74.3 |
 | Uther | run | 12: Walk 1 | 94.3 | 22.2 | forward; 81.3/93.4 |
-| Uther | turn | 50: Uther turn | 226.6 | 29.1 | back; 100.9/225.8 |
-| Uther | brake | 51: Uther stop | 41.8 | 10.4 | in place; 27.6/23.8 |
-| Uther | jump-squat | 52: Uther jumpSquat | 66.0 | 9.4 | down; 33.6/64.4 |
-| Uther | roll-forward | 85: Uther rollForward | 253.6 | 93.2 | forward; 253.2/151.9 |
-| Uther | roll-back | 86: Uther rollBackward | 253.8 | 92.9 | back; 151.8/253.1 |
-| Uther | spot-dodge | 66: Uther spotDodge | 39.8 | 13.1 | in place; 30.6/18.2 |
-| Uther | air-dodge | 48: Uther airDodge | 46.6 | 15.0 | in place; 33.6/16.1 |
-| Uther | tech | 67: Uther tech | 175.7 | 28.6 | in place; 126.2/108.8 |
-| Uther | tech-forward | 87: Uther techForward | 253.7 | 93.8 | forward; 253.2/151.9 |
-| Uther | tech-back | 88: Uther techBackward | 253.7 | 93.8 | back; 151.9/253.1 |
-| Uther | get-up | 64: Uther getUp | 214.8 | 49.7 | up; 93.5/81.3 |
-| Uther | get-up-forward | 89: Uther getUpRollForward | 253.7 | 93.5 | forward; 253.3/151.6 |
-| Uther | get-up-back | 90: Uther getUpRollBackward | 253.6 | 93.3 | back; 151.9/253.2 |
-| Uther | get-up-attack | 65: Uther getUpAttack | 220.0 | 63.5 | both; 173.9/206.2 |
-| Uther | ledge-get-up | 60: Uther ledgeClimb | 160.0 | 27.0 | up; 128.4/71.6 |
-| Uther | ledge-roll | 91: Uther ledgeRoll | 253.8 | 93.5 | forward; 253.3/151.6 |
-| Uther | ledge-attack | 61: Uther ledgeAttack | 49.6 | 9.8 | both; 44.2/19.1 |
+| Uther | turn | 50: Forsaken Paladin turn | 226.6 | 29.1 | back; 100.9/225.8 |
+| Uther | brake | 51: Forsaken Paladin stop | 41.8 | 10.4 | in place; 27.6/23.8 |
+| Uther | jump-squat | 52: Forsaken Paladin jumpSquat | 66.0 | 9.4 | down; 33.6/64.4 |
+| Uther | roll-forward | 85: Forsaken Paladin rollForward | 253.6 | 93.2 | forward; 253.2/151.9 |
+| Uther | roll-back | 86: Forsaken Paladin rollBackward | 253.8 | 92.9 | back; 151.8/253.1 |
+| Uther | spot-dodge | 66: Forsaken Paladin spotDodge | 39.8 | 13.1 | in place; 30.6/18.2 |
+| Uther | air-dodge | 48: Forsaken Paladin airDodge | 46.6 | 15.0 | in place; 33.6/16.1 |
+| Uther | tech | 67: Forsaken Paladin tech | 175.7 | 28.6 | in place; 126.2/108.8 |
+| Uther | tech-forward | 87: Forsaken Paladin techForward | 253.7 | 93.8 | forward; 253.2/151.9 |
+| Uther | tech-back | 88: Forsaken Paladin techBackward | 253.7 | 93.8 | back; 151.9/253.1 |
+| Uther | get-up | 64: Forsaken Paladin getUp | 214.8 | 49.7 | up; 93.5/81.3 |
+| Uther | get-up-forward | 89: Forsaken Paladin getUpRollForward | 253.7 | 93.5 | forward; 253.3/151.6 |
+| Uther | get-up-back | 90: Forsaken Paladin getUpRollBackward | 253.6 | 93.3 | back; 151.9/253.2 |
+| Uther | get-up-attack | 65: Forsaken Paladin getUpAttack | 220.0 | 63.5 | both; 173.9/206.2 |
+| Uther | ledge-get-up | 60: Forsaken Paladin ledgeClimb | 160.0 | 27.0 | up; 128.4/71.6 |
+| Uther | ledge-roll | 91: Forsaken Paladin ledgeRoll | 253.8 | 93.5 | forward; 253.3/151.6 |
+| Uther | ledge-attack | 61: Forsaken Paladin ledgeAttack | 49.6 | 9.8 | both; 44.2/19.1 |
 | Dreadlord | walk | 5: Walk | 115.4 | 38.3 | forward; 115.3/109.0 |
 | Dreadlord | dash | 5: Walk | 115.7 | 38.0 | forward; 115.7/107.5 |
 | Dreadlord | run | 5: Walk | 119.3 | 40.1 | forward; 110.1/107.2 |
