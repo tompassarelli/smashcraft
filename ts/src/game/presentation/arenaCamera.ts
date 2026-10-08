@@ -8,6 +8,14 @@ import { stageBounds } from "../sim/stageBounds";
 /** The arena floor stands this far above the ground at the world origin. */
 export const FLOOR_HEIGHT = 1800.0;
 
+/**
+ * The base map's bounds (smashcraft:build-inputs.json `base`); Wisp's headless world has neither and centres the playable map at 0.
+ * Warcraft draws no effect outside the world bounds (#298), so the terrain runs 32 cells past the playable map's back edge for
+ * scenery up to 7,600 behind the fighters; units stay inside the playable bounds, so the arena and its blast zones stay there.
+ */
+export const WORLD_BOUNDS = { left: -4096.0, right: 4096.0, front: -4096.0, back: 8192.0 } as const;
+export const PLAYABLE_BOUNDS = { left: -3328.0, right: 3328.0, front: -3584.0, back: 3072.0, centreY: -256.0 } as const;
+
 /** The fields the arena camera keeps, in degrees and world units: along +y, ten degrees down. */
 export const ARENA_CAMERA = { rotation: 90.0, angleOfAttack: 350.0, farZ: 8000.0 } as const;
 

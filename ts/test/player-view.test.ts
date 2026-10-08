@@ -10,7 +10,7 @@ import { IMPACT_HIT_MODEL } from "../src/game/assets/impactAssetInfo";
 import { impactModel } from "../src/game/presentation/hitPresentation";
 import { Action, bit } from "../src/game/input/actions";
 import { requestStageSelect, requestStart, selectCharacter, selectStage, setParticipants } from "../src/game/match/rules";
-import { ARENA_CAMERA, FLOOR_HEIGHT, extremeCamera } from "../src/game/presentation/arenaCamera";
+import { ARENA_CAMERA, FLOOR_HEIGHT, PLAYABLE_BOUNDS, WORLD_BOUNDS, extremeCamera } from "../src/game/presentation/arenaCamera";
 import { CANNON_MODEL } from "../src/game/presentation/stageHazards";
 import { deckModel } from "../src/game/presentation/stagePreload";
 import { platformParts } from "../src/game/presentation/stockPlatforms";
@@ -29,6 +29,7 @@ import { Character, DownState, SurfaceContact } from "../src/game/sim/codes";
 import { fighterAt } from "../src/game/sim/roster";
 import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, FROZEN_THRONE_STAGE, TIMED_TEST_STAGE, WIND_TEST_STAGE, DRIFTING_DECK_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, MAIN_DECK_UNDERSIDE_Z, solidSurfaceAt, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
 import { stageBounds } from "../src/game/sim/stageBounds";
+import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "../src/game/sim/knockback";
 import { MATCH_CAMERA_ASPECT, advanceMatchCamera, createMatchCamera } from "../src/game/sim/matchCamera";
 import { initializeScenario } from "../src/game/shell/scenarios";
 import { BODY_HALF_WIDTH, bodyTop } from "../src/game/sim/surfaces";
@@ -38,6 +39,7 @@ import { startMatch } from "../src/platform/shell/matchStart";
 import { startQuickMatch } from "../src/platform/shell/menus";
 import { shell } from "../src/platform/shell/state";
 import { drawStage, lockArenaCamera, renderPersistentPresentation, renderUi } from "../src/platform/shell/view";
+import { drawStageScenery } from "../src/platform/shell/stageScenery";
 import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
 import type { HeadlessClient } from "wisp/src/headless/client";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
@@ -160,6 +162,80 @@ test("Tomb's Temple of Tides draws its whole standing body and roof above the de
     const temple = sceneReport(client).models.find(({ model }) => model === reportedModel(TEMPLE_OF_TIDES));
     expect(temple, extreme).toMatchObject({ live: 1, inView: 1, drawn: 1 });
   }
+  expect(client.errors).toEqual([]);
+});
+
+test("every stage's scenery and the fighting plane stand inside Warcraft's world bounds, outside which no effect draws [repro #298]", () => {
+  // Natively Stratholme's cathedral (y +6,200) and Tomb's temple and waterfall (+5,600) went undrawn from a playable-centre origin.
+  const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
+  clients.start();
+  clients.frames(30);
+  const client = clients.client(0);
+  const outside: string[] = [];
+  client.run(() => {
+    const s = shell();
+    // Headless centres the playable map at 0; the base map centres it at PLAYABLE_BOUNDS.centreY.
+    const inside = (x: number, y: number) => {
+      const nativeY = y + PLAYABLE_BOUNDS.centreY;
+      return x >= WORLD_BOUNDS.left && x <= WORLD_BOUNDS.right && nativeY >= WORLD_BOUNDS.front && nativeY <= WORLD_BOUNDS.back;
+    };
+    if (!inside(s.origin.x, s.origin.y - MAIN_DECK_HALF_DEPTH)) outside.push("the deck's front edge");
+    for (const stage of STAGE_CATALOG) {
+      s.game.stageChoice = stage.id;
+      drawStageScenery(s);
+      const pieces = placedPieces(stage.id, s.game.hazards);
+      for (const [index, effect] of (s.stageScenery ?? []).entries()) {
+        if (!inside(BlzGetLocalSpecialEffectX(effect), BlzGetLocalSpecialEffectY(effect))) outside.push(`${stage.name}: ${pieces[index]?.model}`);
+      }
+    }
+  });
+  expect(outside).toEqual([]);
+  expect(client.errors).toEqual([]);
+});
+
+// Warcraft keeps units inside the playable bounds: an arena moved 3,500 south left fighters short of the blast zones (e2e34176).
+const BLAST_MARGIN = 512.0;
+for (const { id: stage, name } of STAGE_CATALOG) test(`${name}: every blast zone lies ${BLAST_MARGIN} inside the playable bounds, and a fighter launched past each one is KO'd [repro #298]`, () => {
+  const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
+  clients.start();
+  clients.frames(30);
+  const client = clients.client(0);
+  const { blast } = stageBounds(stage);
+  const sides = [
+    { side: "left", x: blast.left - 10.0, z: 0.0, vx: -20.0, vz: 0.0 },
+    { side: "right", x: blast.right + 10.0, z: 0.0, vx: 20.0, vz: 0.0 },
+    { side: "bottom", x: 0.0, z: blast.bottom - 10.0, vx: 0.0, vz: -20.0 },
+    { side: "top", x: 0.0, z: blast.top + 10.0, vx: 0.0, vz: 20.0 },
+  ] as const;
+  const stocks: string[] = [];
+  client.run(() => {
+    const s = shell();
+    // Headless centres the playable map at 0; the base map centres it at PLAYABLE_BOUNDS.centreY.
+    const y = s.origin.y + PLAYABLE_BOUNDS.centreY;
+    expect(s.origin.x + blast.left - BLAST_MARGIN).toBeGreaterThanOrEqual(PLAYABLE_BOUNDS.left);
+    expect(s.origin.x + blast.right + BLAST_MARGIN).toBeLessThanOrEqual(PLAYABLE_BOUNDS.right);
+    expect(y - MAIN_DECK_HALF_DEPTH - BLAST_MARGIN).toBeGreaterThanOrEqual(PLAYABLE_BOUNDS.front);
+    expect(y + MAIN_DECK_HALF_DEPTH + BLAST_MARGIN).toBeLessThanOrEqual(PLAYABLE_BOUNDS.back);
+    startQuickMatch(s, stage, s.build.scenario, undefined, sides.length + 1);
+  });
+  for (const { side, x, z, vx, vz } of sides) {
+    let before = 0;
+    client.run(() => {
+      const fighter = fighterAt(shell().world, 0);
+      before = fighter.status.stocks;
+      fighter.motion.grounded = false;
+      fighter.motion.x = x;
+      fighter.motion.z = z;
+      fighter.motion.vx = vx;
+      fighter.motion.vz = vz;
+      fighter.launch.knockbackZ = vz > 0 ? 2.0 * TOP_KO_MINIMUM_UPWARD_KNOCKBACK : 0.0;
+    });
+    clients.frames(2);
+    client.run(() => stocks.push(`${side}: ${before - fighterAt(shell().world, 0).status.stocks}`));
+    // Past the respawn and its invincibility.
+    clients.frames(160);
+  }
+  expect(stocks).toEqual(sides.map(({ side }) => `${side}: 1`));
   expect(client.errors).toEqual([]);
 });
 

@@ -355,3 +355,15 @@ Only one sky draws at a time. Regenerate all stage art with
 `bun wisp inputs add stage-assets DIR` from smashcraft:ts/, and use a full map
 build when content-addressed sky paths change. Nordrassil remains a stock
 sky so its existing animated aurora is unaffected.
+
+Warcraft draws no effect whose position lies outside the map's world bounds,
+and keeps units inside its playable bounds. The base map's playable area is
+52 x 52 cells (x -3,328..3,328, y -3,584..3,072, centre y -256), and the arena
+and its blast zones stand inside it. Scenery stands up to 7,600 behind the
+fighters (y 7,344), so the terrain runs 40 boundary cells north of the playable
+area instead of the editor's 8 (64 x 96 cells, world y -4,096..8,192; #298).
+The extended base copied the top row of terrain points, pathing and shadow
+into the 32 new rows and raised the top camera-bounds complement in
+war3map.w3i from 8 to 40. smashcraft:ts/test/player-view.test.ts checks every
+placed piece against the world bounds and every blast zone against the
+playable bounds.
