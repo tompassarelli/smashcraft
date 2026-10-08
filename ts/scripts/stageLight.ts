@@ -18,7 +18,9 @@ const SUN_ROTATION = "{ 0.3815, -0.2159, -0.4426, 0.7823 }";
  * A directional light with constant colours over the whole day: the game
  * samples the model at the time of day, which the shell freezes at noon.
  */
-export function stageLightMdl({ key, ambient, intensity = 1 }: StageLight): string {
+export function stageLightMdl({ key, ambient, intensity: binary32 = 1 }: StageLight): string {
+  // Map code writes the intensity as a binary32 value; the model text keeps its shortest decimal.
+  const intensity = Number(binary32.toPrecision(7));
   return `Version { FormatVersion 800, }
 Model "Smashcraft stage light" { BlendTime 150, ${EXTENT} }
 Sequences 1 { Anim "Stand" { Interval { 333, 60333 }, ${EXTENT} } }

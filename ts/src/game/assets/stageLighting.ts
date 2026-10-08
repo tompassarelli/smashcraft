@@ -24,13 +24,13 @@ export const STAGE_LIGHTS: readonly { readonly stage: number; readonly theme: st
   { stage: 0, theme: "Sky", light: { key: [255, 255, 255], ambient: [214, 214, 250] } },
   // Pale glacier daylight, blue fill, at 0.8: at full strength fighters rose
   // 12 L* toward the bright glacier backdrop (#265).
-  { stage: FROZEN_THRONE_STAGE, theme: "Icecrown", light: { key: [226, 240, 255], ambient: [150, 172, 220], intensity: 0.8 } },
+  { stage: FROZEN_THRONE_STAGE, theme: "Icecrown", light: { key: [226, 240, 255], ambient: [150, 172, 220], intensity: 0.800000011920929 } },
   // Moonlit silver key, moonwell-teal fill.
   { stage: WIND_TEST_STAGE, theme: "Nordrassil", light: { key: [236, 246, 232], ambient: [136, 178, 172] } },
   // High mountain sun, sky-blue fill.
   { stage: CARRIED_TEST_STAGE, theme: "Aerie", light: { key: [255, 248, 226], ambient: [164, 182, 220] } },
   // Low desert sun, red-earth fill, dimmed below the bright mesa skyline (#266).
-  { stage: DRIFTING_DECK_STAGE, theme: "Durotar", light: { key: [255, 226, 180], ambient: [190, 152, 134], intensity: 0.65 } },
+  { stage: DRIFTING_DECK_STAGE, theme: "Durotar", light: { key: [255, 226, 180], ambient: [190, 152, 134], intensity: 0.6499999761581421 } },
   // Cold necropolis light, plague-violet fill.
   { stage: PATTERNED_DECKS_STAGE, theme: "Scourge", light: { key: [222, 230, 255], ambient: [150, 136, 196] } },
   // Burning sky key, fel-green fill.

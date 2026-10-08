@@ -68,7 +68,7 @@ export function impactStartSeconds(kind: number): number {
  */
 export function impactModelScale(kind: number): number {
   if (kind === 5) return 1.0;
-  if (kind === IMPACT_ELECTRIC_SHIELD) return 0.6;
+  if (kind === IMPACT_ELECTRIC_SHIELD) return 0.6000000238418579;
   return kind === 0 || kind === IMPACT_PUMMEL ? 1.5 : 1.0;
 }
 
