@@ -16,11 +16,12 @@ import { IMPACT_DEFILE_MODEL } from "../src/game/assets/impactAssetInfo";
 import { SpecialEffects } from "../src/game/render/specialEffects";
 import { FrostEffects } from "../src/game/render/frostEffects";
 import { advanceSummons, createSummonState } from "../src/game/presentation/summonState";
+import { sweep } from "./sweep";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
-test("headless renderer places one visible effect at every live disjoint normal region [spec docs/disjoint-legibility.md]", () => {
+function checkNormalRegions(characters: readonly Character[]): void {
   const clients = headless.clients({ start: () => {}, install: () => {} });
   clients.start();
   const client = clients.clients[0];
@@ -29,7 +30,7 @@ test("headless renderer places one visible effect at every live disjoint normal 
   client.run(() => {
     effectMotion().tracking = true;
     effectMotion().smoothing = true;
-    for (const character of SELECTABLE_CHARACTERS) {
+    for (const character of characters) {
       const fighter = createFighter(character, 417, 1);
       fighter.motion.z = 193;
       const renderer = new HitAreaEffects(character, { x: 0, y: 0, z: 0 });
@@ -62,16 +63,24 @@ test("headless renderer places one visible effect at every live disjoint normal 
     effectMotion().smoothing = false;
   });
   console.log(`disjoint presentation: ${measured} active region frames checked, 0 missing or misplaced`);
+}
+
+test("headless renderer places one visible effect at every live Warden disjoint normal region [spec docs/disjoint-legibility.md]", () => {
+  checkNormalRegions([Character.warden]);
 });
 
-test("headless renderer places special strikes and Warden's outward knife spray on their authored paths [spec docs/disjoint-legibility.md]", () => {
+sweep("headless renderer places one visible effect at every fighter's live disjoint normal region [spec docs/disjoint-legibility.md]", () => {
+  checkNormalRegions(SELECTABLE_CHARACTERS);
+});
+
+function checkSpecialRegions(characters: readonly Character[]): void {
   const clients = headless.clients({ start: () => {}, install: () => {} });
   clients.start();
   const client = clients.clients[0];
   if (client === undefined) throw new Error("missing headless client");
   let measured = 0;
   client.run(() => {
-    for (const character of SELECTABLE_CHARACTERS) {
+    for (const character of characters) {
       const fighter = createFighter(character, 417, 1);
       fighter.motion.z = 193;
       const specials = fighter.tuning.specials;
@@ -115,9 +124,17 @@ test("headless renderer places special strikes and Warden's outward knife spray 
     }
   });
   console.log(`special presentation: ${measured} active region frames checked, 0 missing or misplaced`);
+}
+
+test("headless renderer places Warden's special strikes and outward knife spray on their authored paths [spec docs/disjoint-legibility.md]", () => {
+  checkSpecialRegions([Character.warden]);
 });
 
-test("headless spell models and stationary field rims remain at their live projectile centre [spec docs/disjoint-legibility.md]", () => {
+sweep("headless renderer places every fighter's special strikes and Warden's outward knife spray on their authored paths [spec docs/disjoint-legibility.md]", () => {
+  checkSpecialRegions(SELECTABLE_CHARACTERS);
+});
+
+function checkProjectileRegions(characters: readonly Character[]): void {
   const clients = headless.clients({ start: () => {}, install: () => {} });
   clients.start();
   const client = clients.clients[0];
@@ -126,7 +143,7 @@ test("headless spell models and stationary field rims remain at their live proje
   client.run(() => {
     effectMotion().tracking = true;
     effectMotion().smoothing = true;
-    for (const character of SELECTABLE_CHARACTERS) {
+    for (const character of characters) {
       const fighter = createFighter(character, 417, 1);
       const specials = fighter.tuning.specials;
       const projectile = fighter.projectiles[0];
@@ -167,6 +184,14 @@ test("headless spell models and stationary field rims remain at their live proje
     effectMotion().smoothing = false;
   });
   console.log(`projectile presentation: ${measured} live frames checked, 0 missing or misplaced`);
+}
+
+test("headless spell models and stationary field rims remain at Rifleman and Lich King's live projectile centres [spec docs/disjoint-legibility.md]", () => {
+  checkProjectileRegions([Character.rifleman, Character.lichKing]);
+});
+
+sweep("headless spell models and stationary field rims remain at every fighter's live projectile centre [spec docs/disjoint-legibility.md]", () => {
+  checkProjectileRegions(SELECTABLE_CHARACTERS);
 });
 
 test("existing bear and freeze trap art follows the remote contact centre each frame [spec docs/disjoint-legibility.md]", () => {
