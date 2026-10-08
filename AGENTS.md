@@ -470,7 +470,7 @@ code. From smashcraft:ts/:
   updated game art is extracted again. `WC3_ASSET_MANIFEST=FILE` records the build
   and SHA256 of every returned asset for a comparison. `WC3_TEXTURES` reuses extracted PNGs
   (smashcraft:docs/player-view.md).
-- Frame cost: `LUA=<32-bit lua> bun wisp perf [quick-match|bot|bot-four|playable-bot-four]`
+- Frame cost: `LUA=<32-bit lua> bun wisp perf [quick-match|bot|bot-four|playable-bot-four|playable-duel|playable-human-four]`
   plays a run in 32-bit Lua and prints each client's predicted Warcraft cost
   per frame (p50, p95, worst, typing stall); `bun wisp perf compare A B` fails
   on a rise in predicted cost, allocation or typing stall. Landing gate (#48):
