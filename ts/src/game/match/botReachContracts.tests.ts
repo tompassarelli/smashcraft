@@ -77,6 +77,9 @@ function specialAccountedFor(c: Readonly<Fighter>, o: Readonly<Fighter>): boolea
   const move = runningHeroSpecial(c);
   if (move === undefined) return false;
   if (move.projectiles !== undefined || move.placement !== undefined || move.burst !== undefined || move.command !== undefined || move.recallsProjectiles === true) return true;
+  // Dark Ritual restores mana wherever the target stands: botKitOptions.ts cashes it far away or before the shell lapses.
+  // Move variety (830893eb) first had Lich cash a lapsing shell 344 away.
+  if (move.ritual !== undefined) return true;
   if ((move.regions ?? []).length === 0 && move.commandGrab === undefined && (move.followUps ?? []).length === 0) return true;
   // Shadow Pursuit appears behind its marked target and slashes from there: its reach is the relocation's.
   for (const step of move.motion ?? []) if (step.relocate === Relocation.behindMark && Math.abs(dx) <= (step.relocateReach ?? 0.0) && Math.abs(dz) <= (step.relocateReach ?? 0.0)) return true;
