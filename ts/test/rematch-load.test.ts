@@ -171,6 +171,9 @@ function shownClipProblems(client: HeadlessClient, parkedBelow: number, seen: Ma
 test("a match and its three-fighter rematch show each pooled fighter whole where he stands, read only correctable rollback rows, touch no parked effect and keep nothing between them [repro #242]", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 7) });
   const host = clients.clients[0] as HeadlessClient;
+  // Warcraft retains destroyed models for five game seconds (native wisp#59);
+  // only effects without a DestroyEffect call are still the map's resources.
+  const retainedEffects = () => host.effectPoses().filter(pose => pose.destroyed === undefined).length;
   const lifetimes = countLifetimes(host);
   let parkedBelow = 0;
   const shownProblems: string[] = [];
@@ -216,7 +219,7 @@ test("a match and its three-fighter rematch show each pooled fighter whole where
     parked.on = true;
     parked.calls = 0;
     until("a result", () => phase() !== Phase.match, 900);
-    const played = { lifetimes: Object.fromEntries(lifetimes), rows: Math.max(...rowsRead), corrections, effectsAtResult: host.effectPoses().length };
+    const played = { lifetimes: Object.fromEntries(lifetimes), rows: Math.max(...rowsRead), corrections, effectsAtResult: retainedEffects() };
     // The edit box keeps the keyboard until both helpers have stopped journaling the match.
     until("helpers quiescent", () => read(() => shell().rollback?.journal?.lifecycle?.quiescent() === true), 90);
     parked.on = false;
@@ -231,7 +234,7 @@ test("a match and its three-fighter rematch show each pooled fighter whole where
   parkedBelow = read(() => shell().origin.z - FLOOR_HEIGHT + 1.0);
   const window = read(() => shell().rollback?.window ?? 0);
   const first = play({ denseCycles: 1, walkers: [0] });
-  const selectionAfterFirst = host.effectPoses().length;
+  const selectionAfterFirst = retainedEffects();
   // The slot change of #26's rematch: slot C goes from EMPTY to a human fighter, then to a computer.
   for (let click = 0; click < 2; click++) clients.everywhere(() => panelActions().selection.cycleMode(0, 2));
   expect(read(() => [shell().game.humanFighterMask, shell().game.computerMask, shell().game.characterChoices[2]])).toEqual([3, 4, Character.demonHunter]);
@@ -255,7 +258,7 @@ test("a match and its three-fighter rematch show each pooled fighter whole where
   // selection ends every fighter's renderers, so it then holds exactly what it held after the first match.
   const illidan = originalClipCount(Character.demonHunter) + (originalLightPath(Character.demonHunter) === undefined ? 0 : 1);
   expect(rematch.effectsAtResult - first.effectsAtResult).toBe(illidan + 1 + PROJECTILE_CAPACITY + fighterRenderedCues(Character.demonHunter).length + HIT_AREA_EFFECT_CAPACITY + 2);
-  expect(host.effectPoses().length).toBe(selectionAfterFirst);
+  expect(retainedEffects()).toBe(selectionAfterFirst);
   for (const client of clients.clients) expect(client.errors).toEqual([]);
   // Each client wrote its own player's record of both matches for the Smashcraft client: two fighters, then three.
   clients.clients.forEach((client, index) => {
