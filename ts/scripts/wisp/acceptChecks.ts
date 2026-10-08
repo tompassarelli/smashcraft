@@ -231,7 +231,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       setup: [{ waitMs: 3000 }, { keys: ["e+u"], client }],
       capture: [{ kind: "frames", name: "cast-and-pool", client, count: 16, everyMs: 50 }],
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
-      look: "His free hand presses down to plant the shadow pool ahead while Frostmourne stays raised; its low rim changes from dim to violet when armed, stays at the pool's horizontal danger edge, and faces the other way for player 2. The drawn-frame captures at 50/60, 65 and 77 in smashcraft:ts/test/native/pads/lich-king-defile.pad show the gathering/push, warning and armed edge; that script also checks repeated casts and an unhurt jump escape.",
+      look: "He raises Frostmourne, plants its point in the floor and pulls it back. A dark pool spreads ahead with a crisp glowing danger edge, dim during warning and violet when armed. The edge flashes on each growth. Cast frames 60/380/560/700 in smashcraft:ts/test/native/pads/lich-king-defile.pad show the plant in both facings; 65/77 show warning/armed pool. The growth frames 696/732/768 in 174/growth.pad show three widening flashes. The cast script also checks repeated casts and an unhurt jump escape.",
     })),
     // Keys: W R E move, I jump, N attack, U special, O grab (presetBindings standard).
     // The quick CPU match has a seven-minute limit; allow its ordinary result plus catch-up after loading.
