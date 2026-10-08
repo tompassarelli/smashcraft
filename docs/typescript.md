@@ -1,5 +1,7 @@
 # TypeScript in Smashcraft
 
+Historical fixture notes below retain Archer only where they describe captures before the 9 October 2026 roster cut (#339); she is absent from the current roster.
+
 ## JSON soak results
 
 `bun wisp repro FILE --view` opens a local frame slider for a saved moment.
@@ -225,7 +227,7 @@ missing (missing-input) or stops (input-stall).
 Predicted presentation draws hit, pummel and shield-hit sparks from the
 prediction, and a spark lasts 9 frames. When the prediction misses a hit and
 the correction comes more than 9 frames later, the spark would never show.
-On 7 October 2026, the A+B batch's archer-aerials run had 200-350 ms of own-echo
+On 7 October 2026, the A+B batch's rifleman-aerials run had 200-350 ms of own-echo
 latency, and its up air hits showed no StampedeMissileDeath natively.
 smashcraft:ts/src/game/render/combatEffects.ts now shows such a spark from its
 start when the hit is confirmed, unless it already drew a spark of that kind

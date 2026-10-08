@@ -18,7 +18,7 @@ platform-fighter decisions rather than Warcraft's long disables.
 [King K. Rool in Ultimate](https://www.ssbwiki.com/King_K._Rool_(SSBU)#Stats)
 is the named body counterpart: weight **133**, run speed **1.485**, air speed
 **0.945**. The implementation divides weight by the roster's reference 75,
-run speed by Archer's 2.2 and uses the air speed directly as the hero's air
+run speed by the shared 2.2 baseline and uses the air speed directly as the hero's air
 multiplier. Width **1.75×** and height **1.45×** are original body scales,
 larger than Pit Lord's 1.65/1.35; shield scale is 1.45. Jumps, gravity and
 shared defensive actions retain the roster's common rules.
@@ -85,7 +85,7 @@ including stock/rematch reset and replay copies.
 
 ## Place in the roster and presentation
 
-Compared with Archer and Rifleman, Cairne gives up repeated ranged pressure
+Compared with Rifleman, Cairne gives up repeated ranged pressure
 for one low wave and direct hits. Compared with Illidan, Blademaster and
 Warden, he gives up burst mobility and evasive branches for survival. Compared
 with Mountain King and Forsaken Paladin, he is larger, slower and has broader totem reach.

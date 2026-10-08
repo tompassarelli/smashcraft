@@ -108,7 +108,7 @@ if(only!==undefined)for(const [id,table]of Object.entries(ROSTER_ATTACK_CLIPS))i
 }
 for(const [id,poses]of Object.entries(PLAN)) {
   if(only!==undefined&&Number(id)!==only)continue;
-  const character=Number(id) as Character,f=fighters[character];ensure(f,"missing fighter");
+  const character=Number(id) as Character,f=fighters.get(character)!;ensure(f,"missing fighter");
   // A published model already carries its gestures: author again from the model they were appended to.
   const published=parseSource(await Bun.file(join(input,f.source)).arrayBuffer()),base=attackGestureBaseModel(published);
   const source=base?parseSource(generateMDX(base)):published;

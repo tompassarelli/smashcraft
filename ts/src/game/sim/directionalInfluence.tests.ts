@@ -5,7 +5,7 @@ import { stageBounds } from "./stageBounds";
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { Character, DownState } from "./codes";
-import { createFighter } from "./fighter";
+import { createReferenceFighter } from "./referenceRig";
 import { applyDirectionalInfluence, directionalInfluenceVector, influenceOperands, ordinaryHitKnockback, ordinaryHitlagFrames, ordinaryHitstunFrames } from "./knockback";
 import { setMeleeKnockback, totalVelocityX, totalVelocityZ } from "./motion";
 import { ASDI_DISTANCE, SDI_STEP_DISTANCE } from "./smashDirectionalInfluence";
@@ -16,7 +16,7 @@ import { authoredPhysics } from "./tuning";
 const length = (x: number, z: number) => Math.sqrt(x * x + z * z);
 
 test("a direction held before the hit creates no SDI pulse, and an attacker's freeze doesn't move it [spec docs/gameplay-design.md]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   const input = controls({ direction: 1 });
   advanceSolo(fighter, 0, input, -240.0);
   fighter.motion.x = 300.0;
@@ -31,7 +31,7 @@ test("a direction held before the hit creates no SDI pulse, and an attacker's fr
   assertEquals(fighter.launch.sdiSerial, 0);
   input.sdiPulse = true;
   input.sdiX = 1;
-  const attacker = createFighter(Character.archer, 0.0, 1);
+  const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
   attacker.motion.x = 250.0;
   attacker.motion.z = 400.0;
   attacker.motion.grounded = false;
@@ -42,7 +42,7 @@ test("a direction held before the hit creates no SDI pulse, and an attacker's fr
 });
 
 test("ASDI uses the C-stick while DI still uses the left stick on the release frame [reference] [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.archer, 300.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 300.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.z = 400.0;
   fighter.launch.hitlag = 1;
@@ -60,7 +60,7 @@ test("ASDI uses the C-stick while DI still uses the left stick on the release fr
 });
 
 test("one frame of hitlag allows ASDI but can't produce SDI [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.archer, 300.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 300.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.z = 400.0;
   fighter.launch.hitlag = 1;
@@ -74,7 +74,7 @@ test("one frame of hitlag allows ASDI but can't produce SDI [spec docs/physics.m
 });
 
 test("an ASDI shift into the blast zone costs exactly one stock [spec docs/gameplay-design.md]", () => {
-  const fighter = createFighter(Character.archer, f32(stageBounds(0).blast.right - 10.0), 1);
+  const fighter = createReferenceFighter(Character.sylvanas, f32(stageBounds(0).blast.right - 10.0), 1);
   fighter.motion.grounded = false;
   fighter.motion.z = 400.0;
   fighter.launch.hitlag = 1;
@@ -88,7 +88,7 @@ test("an ASDI shift into the blast zone costs exactly one stock [spec docs/gamep
 });
 
 test("a forbidden down SDI doesn't land, but ASDI down sweeps onto a platform and cancels non-tumble hitstun [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.z = 10.0;
   fighter.launch.hitstun = 20;
@@ -108,7 +108,7 @@ test("a forbidden down SDI doesn't land, but ASDI down sweeps onto a platform an
   assertEquals(fighter.launch.hitstun, 0);
   assertEquals(fighter.launch.asdiSerial, 1);
   assertEquals(fighter.launch.sdiSerial, 0);
-  const airborne = createFighter(Character.archer, 0.0, 1);
+  const airborne = createReferenceFighter(Character.sylvanas, 0.0, 1);
   airborne.motion.grounded = false;
   airborne.motion.z = 400.0;
   airborne.launch.hitlag = 3;
@@ -117,7 +117,7 @@ test("a forbidden down SDI doesn't land, but ASDI down sweeps onto a platform an
   advanceSolo(airborne, 0, controls({ verticalDirection: -1, sdiPulse: true, sdiZ: -1 }), -240.0);
   assertEquals(airborne.motion.z, f32(400 - SDI_STEP_DISTANCE));
   assertEquals(airborne.launch.sdiSerial, 1);
-  const grounded = createFighter(Character.archer, 0.0, 1);
+  const grounded = createReferenceFighter(Character.sylvanas, 0.0, 1);
   grounded.motion.z = 0.0;
   grounded.launch.hitlag = 3;
   grounded.launch.diPending = true;
@@ -130,7 +130,7 @@ test("a forbidden down SDI doesn't land, but ASDI down sweeps onto a platform an
 });
 
 test("an ASDI down landing uses the existing tumble tech window [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.z = 10.0;
   fighter.down.state = DownState.tumble;
@@ -148,7 +148,7 @@ test("an ASDI down landing uses the existing tumble tech window [spec docs/physi
 });
 
 test("knockback decays by vector magnitude and continues after hitstun [reference] [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.archer, 100.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 100.0, 1);
   const input = controls();
   fighter.motion.grounded = false;
   fighter.motion.z = 300.0;
@@ -167,8 +167,8 @@ test("knockback decays by vector magnitude and continues after hitstun [referenc
 });
 
 test("a downward launch exceeds the terminal fall cap, and fast fall uses self descent [spec docs/physics.md]", () => {
-  const falling = createFighter(Character.archer, 0.0, 1);
-  const physics = authoredPhysics(Character.archer);
+  const falling = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const physics = authoredPhysics(Character.sylvanas);
   const input = controls({ down: true });
   falling.motion.grounded = false;
   falling.motion.z = 500.0;
@@ -177,7 +177,7 @@ test("a downward launch exceeds the terminal fall cap, and fast fall uses self d
   advanceSolo(falling, 0, input, -240.0);
   assertLessThan(totalVelocityZ(falling), -physics.terminalSpeed);
   assertNear(falling.motion.vz, -physics.gravity, 0.0010000000474974513);
-  const rising = createFighter(Character.archer, 0.0, 1);
+  const rising = createReferenceFighter(Character.sylvanas, 0.0, 1);
   rising.motion.grounded = false;
   rising.motion.z = 500.0;
   rising.launch.knockbackZ = 40.0;
@@ -192,7 +192,7 @@ test("a downward launch exceeds the terminal fall cap, and fast fall uses self d
 });
 
 test("hitlag freezes the launch vector, then release resumes self velocity and decay [reference] [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.x = 25.0;
   fighter.motion.z = 300.0;
@@ -219,7 +219,7 @@ test("hitlag freezes the launch vector, then release resumes self velocity and d
 });
 
 test("landing preserves horizontal knockback while respawning clears both components [spec docs/physics.md]", () => {
-  const landed = createFighter(Character.archer, 0.0, 1);
+  const landed = createReferenceFighter(Character.sylvanas, 0.0, 1);
   const input = controls();
   landed.motion.grounded = false;
   landed.motion.z = 5.0;
@@ -237,7 +237,7 @@ test("landing preserves horizontal knockback while respawning clears both compon
 });
 
 test("DI reads only the last hitlag frame and preserves launch speed [reference] [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.z = 300.0;
   fighter.launch.knockbackX = 10.0;
@@ -261,7 +261,7 @@ test("DI reads only the last hitlag frame and preserves launch speed [reference]
 
 test("a DI's traced operands repeat its angle exactly [invariant] [provisional]", () => {
   // Fighter 0's DI at frame 375 of the 0.0.49 four-fighter moment f774, whose angle Warcraft made one ulp smaller (#59).
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.motion.grounded = false;
   setMeleeKnockback(fighter, -1.664950966835022, 1.9261585474014282);
   fighter.launch.diPending = true;
@@ -278,7 +278,7 @@ test("a DI's traced operands repeat its angle exactly [invariant] [provisional]"
 });
 
 test("DI normalizes diagonal input and ignores parallel input [reference] [spec docs/physics.md]", () => {
-  const diagonal = createFighter(Character.archer, 0.0, 1);
+  const diagonal = createReferenceFighter(Character.sylvanas, 0.0, 1);
   diagonal.motion.grounded = false;
   diagonal.motion.z = 300.0;
   diagonal.launch.knockbackX = 10.0;
@@ -290,7 +290,7 @@ test("DI normalizes diagonal input and ignores parallel input [reference] [spec 
   assertGreaterThan(diagonal.launch.diAngleDegrees, 8.0);
   assertLessThan(diagonal.launch.diAngleDegrees, 10.0);
   assertNear(length(diagonal.launch.knockbackX, diagonal.launch.knockbackZ), 9.694000244140625, 0.0010000000474974513);
-  const parallel = createFighter(Character.archer, 0.0, 1);
+  const parallel = createReferenceFighter(Character.sylvanas, 0.0, 1);
   parallel.motion.grounded = false;
   parallel.motion.z = 300.0;
   parallel.launch.knockbackX = 10.0;
@@ -305,7 +305,7 @@ test("DI normalizes diagonal input and ignores parallel input [reference] [spec 
 });
 
 test("a held shield drains by the frame-rate amount [reference]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.shield.energy = 0.5;
   const input = controls({ shield: true });
   advanceSolo(fighter, 0, input, -240.0);

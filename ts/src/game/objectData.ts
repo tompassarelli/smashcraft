@@ -1,6 +1,6 @@
 // The build and running map consume these same object definitions.
 import { CHUNKS_PER_FILE, FILE_IO_ABILITY } from "wisp/src/runtime/gameFiles";
-import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "./presentation/fighterAssetInfo";
+import { RIFLEMAN_MODEL_FILE } from "./presentation/fighterAssetInfo";
 import { DEMON_HUNTER_MODEL_FILE } from "./presentation/demonHunterAssetInfo";
 import { characterModelScale } from "./presentation/modelScale";
 import { Character } from "./sim/codes";
@@ -42,7 +42,6 @@ function heroObject(character: Character): FighterObject {
 }
 
 export const FIGHTER_OBJECTS: Readonly<Record<Character, FighterObject>> = {
-  [Character.archer]: { ...fighterFields, base: "earc", id: 0x6d666172, name: "Archer", model: ARCHER_MODEL_FILE, scale: characterModelScale(Character.archer) },
   [Character.rifleman]: { ...fighterFields, base: "hrif", id: 0x6d667266, name: "Rifleman", model: RIFLEMAN_MODEL_FILE, scale: characterModelScale(Character.rifleman) },
   [Character.demonHunter]: { ...fighterFields, base: "earc", id: 0x6d666468, name: "Illidan", model: DEMON_HUNTER_MODEL_FILE, scale: characterModelScale(Character.demonHunter) },
   [Character.chen]: heroObject(Character.chen),
@@ -66,7 +65,7 @@ export const FIGHTER_OBJECTS: Readonly<Record<Character, FighterObject>> = {
   [Character.murloc]: heroObject(Character.murloc),
 };
 
-export const FIGHTER_OBJECT_ORDER: readonly Character[] = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
+export const FIGHTER_OBJECT_ORDER: readonly Character[] = [ Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
 
 /** FileIO's channel ability uses one tooltip per file chunk. */
 export const FILE_IO_OBJECT = {

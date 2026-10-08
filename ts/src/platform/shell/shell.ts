@@ -25,10 +25,7 @@ import { holdPresentedCapture, serviceVisualCapture } from "./visualCapture";
 import { callbackMatchTick } from "./frame";
 import { clearAllInputs, clearParticipantInputs, currentHumanMask } from "./inputs";
 import { INPUT_PREFIX, journalEpoch, publishMenu, serviceJournalEnd } from "./journal";
-import {
-  CHAT_CLOSED_PREFIX, PAUSE_REQUEST_PREFIX, chatClosedEvent, chatEntered, commitPauseAtFrame, pauseRequestEvent,
-  receiveControlAckEvent, sendPauseCommit, serviceChat, serviceControlAck, servicePauseRequest,
-} from "./journalPause";
+import * as journalPause from "./journalPause";
 import { KEY_DOWN, KEY_UP, Key, registerKey, removeKeyEvents, syncKeyEvents } from "./keyEvents";
 import { onDevCommand, onDeveloperRestart, onDeveloperTrace, onKeyDown, onKeyUp, onProbeExport, onProbeStart } from "./keys";
 import { panelActions, serviceAutomaticRematch, startingSelection } from "./menus";
@@ -92,8 +89,8 @@ function gameTick(s: ShellState): void {
   const chatSlot = s.build.devConsole ? localParticipantSlot(s) : undefined;
   if (chatSlot !== undefined) editbox?.publishChat(s.build.id, chatSlot);
   if (epoch !== undefined) {
-    serviceChat(s, epoch.rollback, epoch.journal);
-    servicePauseRequest(s, epoch.rollback, epoch.journal);
+    journalPause.serviceChat(s, epoch.rollback, epoch.journal);
+    journalPause.servicePauseRequest(s, epoch.rollback, epoch.journal);
     serviceMomentRequest(s, epoch.rollback, epoch.journal);
     if (editbox !== undefined && s.game.phase !== Phase.match) serviceJournalEnd(s, epoch.rollback, epoch.journal);
   }
@@ -113,11 +110,11 @@ function gameTick(s: ShellState): void {
   captureNativeDriverInputs(s);
   if (rollback !== undefined && s.game.phase === Phase.match) {
     const { journal } = rollback;
-    if (journal !== undefined) serviceControlAck(s, rollback, journal);
+    if (journal !== undefined) journalPause.serviceControlAck(s, rollback, journal);
     rollbackTick(s, rollback);
     if (journal !== undefined) {
-      sendPauseCommit(s, rollback, journal);
-      commitPauseAtFrame(s, rollback, journal);
+      journalPause.sendPauseCommit(s, rollback, journal);
+      journalPause.commitPauseAtFrame(s, rollback, journal);
     }
   } else if (s.game.phase === Phase.match && !s.session.paused) callbackMatchTick(s);
   if (s.game.phase !== Phase.match) clearAllInputs(s);
@@ -259,8 +256,8 @@ function createTriggers(s: ShellState): void {
   if (rollback !== undefined) syncTrigger(s, INPUT_PREFIX, INPUT, true);
   if (rollback?.journal !== undefined) syncTrigger(s, CONTROL_ACK_PREFIX, CONTROL_ACK, true);
   if (rollback?.journal?.editbox !== undefined) {
-    syncTrigger(s, PAUSE_REQUEST_PREFIX, PAUSE_REQUEST, true);
-    syncTrigger(s, CHAT_CLOSED_PREFIX, CHAT_CLOSED, true);
+    syncTrigger(s, journalPause.PAUSE_REQUEST_PREFIX, PAUSE_REQUEST, true);
+    syncTrigger(s, journalPause.CHAT_CLOSED_PREFIX, CHAT_CLOSED, true);
   }
   if (s.build.devConsole) {
     const chat = CreateTrigger();
@@ -344,10 +341,10 @@ export function installShell(): void {
   on(KEY_DOWN, withShell(onKeyDown));
   on(KEY_UP, withShell(onKeyUp));
   on(INPUT, withShell(receiveInput));
-  on(CONTROL_ACK, withShell(receiveControlAckEvent));
-  on(PAUSE_REQUEST, withShell(pauseRequestEvent));
-  on(CHAT_CLOSED, withShell(chatClosedEvent));
-  on(EDITBOX_ENTER, withShell(chatEntered));
+  on(CONTROL_ACK, withShell(journalPause.receiveControlAckEvent));
+  on(PAUSE_REQUEST, withShell(journalPause.pauseRequestEvent));
+  on(CHAT_CLOSED, withShell(journalPause.chatClosedEvent));
+  on(EDITBOX_ENTER, withShell(journalPause.chatEntered));
   on(DEV_COMMAND, withShell(onDevCommand));
   on(PLAYER_LEFT, withShell(playerLeft));
   on(RESTART, withShell(onDeveloperRestart));

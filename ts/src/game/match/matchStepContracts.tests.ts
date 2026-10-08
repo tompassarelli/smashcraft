@@ -18,7 +18,7 @@ import { stepMatch } from "./step";
 import { SHIELD_MIN_HOLD_FRAMES, SHIELD_RELEASE_LAG_FRAMES, digitalShieldDamage } from "../sim/shield";
 import { ATTACK_BUFFER_FRAMES } from "../input/attackBuffer";
 import { DASH_GUARD_EARLY_FRAMES } from "../sim/groundMovement";
-import { attackDurationFramesForGrounding, attackStartupFrames } from "../sim/moves";
+import { attackDamage, attackDurationFramesForGrounding, attackStartupFrames } from "../sim/moves";
 import { authoredTuning, INITIAL_DASH_FRAMES, NTSC_FOX_DASH_GRAB_RULES, NTSC_FOX_GROUND_MOVEMENT_RULES } from "../sim/tuning";
 
 function testRoster(first: Fighter, second: Fighter) {
@@ -43,7 +43,7 @@ test("heldShieldOrderDepletionPrecedesEveryGuardExit [reference]", () => {
     for (let action = 0; action <= 3; action++) {
       const game = createMatchState();
       game.phase = Phase.match;
-      const first = createFighter(0, 0, 1);
+      const first = createFighter(1, 0, 1);
       const second = createFighter(1, 500, -1);
       const firstInput = neutralControls();
       const secondInput = neutralControls();
@@ -91,7 +91,7 @@ test("heldShieldOrderDepletionPrecedesEveryGuardExit [reference]", () => {
 test("heldShieldOrderEntryDoesNotDrainUntilNextAnimationTick [reference]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
-  const first = createFighter(0, 0, 1);
+  const first = createFighter(1, 0, 1);
   const second = createFighter(1, 500, -1);
   const firstInput = neutralControls();
   const secondInput = neutralControls();
@@ -117,7 +117,7 @@ test("heldShieldOrderHitlagAndShieldstunResumeBeforeActionInputs [reference]", (
   for (let action = 0; action <= 1; action++) {
     const game = createMatchState();
     game.phase = Phase.match;
-    const first = createFighter(0, 0, 1);
+    const first = createFighter(1, 0, 1);
     const second = createFighter(1, 500, -1);
     const firstInput = neutralControls();
     const secondInput = neutralControls();
@@ -171,7 +171,7 @@ test("heldShieldOrderHitlagAndShieldstunResumeBeforeActionInputs [reference]", (
 test("shieldBreakBoundaryDrainRequiresStrictlyNegativeHealth [reference]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
-  const first = createFighter(0, 0, 1);
+  const first = createFighter(1, 0, 1);
   const second = createFighter(1, 500, -1);
   const firstInput = neutralControls();
   const secondInput = neutralControls();
@@ -192,7 +192,7 @@ test("shieldBreakBoundaryDrainRequiresStrictlyNegativeHealth [reference]", () =>
 test("shieldBreakBoundaryDamageAtZeroStillGuardsThenRestoresThirty [reference]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
-  const first = createFighter(0, 0, 1);
+  const first = createFighter(1, 0, 1);
   const second = createFighter(1, 100, -1);
   const firstInput = neutralControls();
   const secondInput = neutralControls();
@@ -203,9 +203,9 @@ test("shieldBreakBoundaryDamageAtZeroStillGuardsThenRestoresThirty [reference]",
   mutableProjectile(first, 0)!.z = 45;
   mutableProjectile(first, 0)!.velocityX = 20;
   mutableProjectile(first, 0)!.direction = 1;
-  mutableProjectile(first, 0)!.kind = ProjectileKind.arrow;
+  mutableProjectile(first, 0)!.kind = ProjectileKind.blaster;
   second.shield.raised = true;
-  second.shield.energy = digitalShieldDamage(5.0);
+  second.shield.energy = digitalShieldDamage(attackDamage(AttackStyle.shot));
   second.launch.hitlag = 4;
   secondInput.shield = true;
   stepMatch(game, testRoster(first, second), testFrameControls(firstInput, secondInput, firstCommands, secondCommands), 1);
@@ -230,7 +230,7 @@ test("shieldRegenMatchContinuesDuringStoppedActions [reference]", () => {
   for (let state = 0; state <= 5; state++) {
     const game = createMatchState();
     game.phase = Phase.match;
-    const first = createFighter(0, 0, 1);
+    const first = createFighter(1, 0, 1);
     const second = createFighter(1, 500, -1);
     const firstInput = neutralControls();
     const secondInput = neutralControls();
@@ -281,7 +281,7 @@ test("shieldRegenMatchContinuesDuringStoppedActions [reference]", () => {
 test("shieldRegenMatchUsesGuardStateAfterGrabInput [reference]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
-  const first = createFighter(0, 0, 1);
+  const first = createFighter(1, 0, 1);
   const second = createFighter(1, 500, -1);
   const firstInput = neutralControls();
   const secondInput = neutralControls();
@@ -309,7 +309,7 @@ test("shieldRegenMatchUsesGuardStateAfterGrabInput [reference]", () => {
 test("shieldRegenMatchFollowsDizzyRestoreExactlyOnce [reference]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
-  const first = createFighter(0, 0, 1);
+  const first = createFighter(1, 0, 1);
   const second = createFighter(1, 500, -1);
   const firstInput = neutralControls();
   const secondInput = neutralControls();
@@ -337,7 +337,7 @@ test("shieldRegenMatchFollowsDizzyRestoreExactlyOnce [reference]", () => {
 test("shieldRegenMatchSeesGuardClearedByCapture [reference]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
-  const first = createFighter(0, 0, 1);
+  const first = createFighter(1, 0, 1);
   const second = createFighter(1, 90, -1);
   const firstInput = neutralControls();
   const secondInput = neutralControls();
@@ -359,11 +359,11 @@ test("humanDirectAttacksReachBothSlotsOnTheNextStep [invariant]", () => {
   for (let style = 1; style <= 5; style++) {
     const game = testSoloMatch();
     setHumanCount(game, 2);
-    selectCharacter(game, 0, 0);
+    selectCharacter(game, 0, 1);
     selectCharacter(game, 1, 1);
     requestStageSelect(game, 0);
     startAtGo(game, 0);
-    const first = createFighter(0, -240, 1);
+    const first = createFighter(1, -240, 1);
     const second = createFighter(1, 240, -1);
     const firstInput = neutralControls();
     const secondInput = neutralControls();
@@ -387,11 +387,11 @@ test("humanDirectAttacksReachBothSlotsOnTheNextStep [invariant]", () => {
 });
 test("activeShieldConsumesGrabButRejectsOrdinaryAttackCommand [spec docs/design/melee/defense.md]", () => {
   const game = testSoloMatch();
-  selectCharacter(game, 0, 0);
+  selectCharacter(game, 0, 1);
   selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
   requestStageSelect(game, 0);
   startAtGo(game, 0);
-  const first = createFighter(0, 0, 1);
+  const first = createFighter(1, 0, 1);
   const second = createFighter(1, 350, -1);
   const firstInput = neutralControls();
   const secondInput = neutralControls();
@@ -411,7 +411,7 @@ test("activeShieldConsumesGrabButRejectsOrdinaryAttackCommand [spec docs/design/
   assertEquals(first.shield.releaseLag, 0);
 });
 test("jumpSquatBuffersBackAirUntilFirstAirborneFrame [spec docs/design/melee/aerials-on-shield.md]", () => {
-  for (let character = 0; character <= 1; character++) {
+  for (const character of [1, 2] as const) {
     for (let facing = -1; facing <= 1; facing++) {
       if (facing !== 0) {
         for (let squatRemaining = 1; squatRemaining <= authoredTuning(character as Character).physics.jumpSquatFrames; squatRemaining++) {
@@ -450,7 +450,7 @@ test("jumpSquatBuffersBackAirUntilFirstAirborneFrame [spec docs/design/melee/aer
 test("dashGrabUsesTestActorTimingAndWindowIsReplayable [reference]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
-  const first = createFighter(0, 0, 1);
+  const first = createFighter(1, 0, 1);
   const second = createFighter(1, 80, -1);
   const firstInput = neutralControls();
   const secondInput = neutralControls();
@@ -482,7 +482,7 @@ test("dashGrabUsesTestActorTimingAndWindowIsReplayable [reference]", () => {
 test("ordinaryDashAttackStaysAnAttackWhileGrabIntentStartsDashGrab [spec docs/design/tilts.md]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
-  const first = createFighter(0, -240, 1);
+  const first = createFighter(1, -240, 1);
   const second = createFighter(1, 240, -1);
   const firstInput = neutralControls();
   const secondInput = neutralControls();
@@ -512,7 +512,7 @@ test("ordinaryDashAttackStaysAnAttackWhileGrabIntentStartsDashGrab [spec docs/de
 test("lateDashGrabGuardEntryOpensCatchDashAndEarlyEntryDoesNot [reference]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
-  const first = createFighter(0, 0, 1);
+  const first = createFighter(1, 0, 1);
   const second = createFighter(1, 500, -1);
   const firstInput = neutralControls();
   const secondInput = neutralControls();
@@ -534,7 +534,7 @@ test("lateDashGrabGuardEntryOpensCatchDashAndEarlyEntryDoesNot [reference]", () 
   assertEquals(first.attack.duration, 40);
   const expiryGame = createMatchState();
   expiryGame.phase = Phase.match;
-  const expiry = createFighter(0, 0, 1);
+  const expiry = createFighter(1, 0, 1);
   const expiryOther = createFighter(1, 500, -1);
   const expiryInput = neutralControls();
   const expiryOtherInput = neutralControls();
@@ -555,7 +555,7 @@ test("lateDashGrabGuardEntryOpensCatchDashAndEarlyEntryDoesNot [reference]", () 
   assertEquals(expiry.ground.dashGrabWindow, 0);
   const earlyGame = createMatchState();
   earlyGame.phase = Phase.match;
-  const early = createFighter(0, 0, 1);
+  const early = createFighter(1, 0, 1);
   const earlyOther = createFighter(1, 500, -1);
   const earlyInput = neutralControls();
   const earlyOtherInput = neutralControls();
@@ -569,7 +569,7 @@ test("lateDashGrabGuardEntryOpensCatchDashAndEarlyEntryDoesNot [reference]", () 
   assertEquals(early.ground.dashGrabWindow, 0);
   const dashLateGame = createMatchState();
   dashLateGame.phase = Phase.match;
-  const dashLate = createFighter(0, 0, 1);
+  const dashLate = createFighter(1, 0, 1);
   const dashLateOther = createFighter(1, 500, -1);
   const dashLateInput = neutralControls();
   const dashLateOtherInput = neutralControls();
@@ -586,7 +586,7 @@ test("lateDashGrabGuardEntryOpensCatchDashAndEarlyEntryDoesNot [reference]", () 
 test("dashGrabWhiffEndsAfterFortySubsequentTicks [reference]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
-  const first = createFighter(0, -240, 1);
+  const first = createFighter(1, -240, 1);
   const second = createFighter(1, -500, -1);
   const firstInput = neutralControls();
   const secondInput = neutralControls();
@@ -623,7 +623,7 @@ test("dashGrabSecondActiveTickCapturesButFollowingTickDoesNot [reference]", () =
   for (let lateByOne = 0; lateByOne <= 1; lateByOne++) {
     const game = createMatchState();
     game.phase = Phase.match;
-    const first = createFighter(0, 0, 1);
+    const first = createFighter(1, 0, 1);
     const second = createFighter(1, 80, -1);
     const firstInput = neutralControls();
     const secondInput = neutralControls();

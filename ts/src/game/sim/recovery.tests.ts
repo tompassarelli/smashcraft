@@ -8,7 +8,8 @@ import {
   canAttack,
 } from "./conditions";
 import { DOWN_DAMAGE_FRAMES } from "./down";
-import { type Fighter, createFighter } from "./fighter";
+import { type Fighter,  } from "./fighter";
+import { createReferenceFighter } from "./referenceRig";
 import { attackStartupFrames } from "./moves";
 import type { Roster } from "./roster";
 import { advanceFighter } from "./step";
@@ -16,7 +17,7 @@ import { advanceSolo, controls, testBeginAttacks, testWorld } from "./testWorld"
 import { AUTHORED_PHYSICS, type FighterPhysics, melee } from "./tuning";
 
 // Test-only grounded-motion profile; no character or move data enters the roster.
-const FLOOR_RECOVERY_REFERENCE_PHYSICS: FighterPhysics = { ...AUTHORED_PHYSICS.archer, traction: melee(0.07999999821186066) };
+const FLOOR_RECOVERY_REFERENCE_PHYSICS: FighterPhysics = { ...AUTHORED_PHYSICS.reference, traction: melee(0.07999999821186066) };
 
 // Read through a call so an earlier assignment's narrowing doesn't hide the attack's effect.
 function downStateOf(fighter: Fighter): DownState {
@@ -31,7 +32,7 @@ const RECORDED_MISSED_TECH_POSITION = [-38.086673736572266, -38.44503402709961, 
 const RECORDED_MISSED_TECH_KNOCKBACK = [-0.4383614957332611, -0.35836151242256165, -0.2783615291118622];
 
 function recordedFloorRecoveryFirstDifference(character: Character, tech: boolean, velocityOffset: number): number {
-  const fighter = createFighter(character, melee(tech ? -41.93229293823242 : -37.648311614990234), 1);
+  const fighter = createReferenceFighter(character, melee(tech ? -41.93229293823242 : -37.648311614990234), 1);
   fighter.tuning.physics = FLOOR_RECOVERY_REFERENCE_PHYSICS;
   fighter.down.state = tech ? DownState.tech : DownState.bound;
   fighter.down.frame = 1;
@@ -57,21 +58,21 @@ function recordedFloorRecoveryFirstDifference(character: Character, tech: boolea
 }
 
 test("recorded floor recovery skids match a tech and a missed tech on both original hosts [reference]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+  for (const character of [Character.sylvanas, Character.rifleman]) {
     assertEquals(recordedFloorRecoveryFirstDifference(character, true, 0.0), 0);
     assertEquals(recordedFloorRecoveryFirstDifference(character, false, 0.0), 0);
   }
 });
 
 test("the recorded floor recovery detects a wrong knockback on its first frame [invariant]", () => {
-  assertEquals(recordedFloorRecoveryFirstDifference(Character.archer, true, 0.05999999865889549), 204);
-  assertEquals(recordedFloorRecoveryFirstDifference(Character.archer, false, 0.05999999865889549), 956);
+  assertEquals(recordedFloorRecoveryFirstDifference(Character.sylvanas, true, 0.05999999865889549), 204);
+  assertEquals(recordedFloorRecoveryFirstDifference(Character.sylvanas, false, 0.05999999865889549), 956);
 });
 
 test("a floor recovery's entry preserves residual horizontal knockback [reference]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+  for (const character of [Character.sylvanas, Character.rifleman]) {
     for (let recovery = 0; recovery <= 2; recovery++) {
-      const fighter = createFighter(character, 0.0, 1);
+      const fighter = createReferenceFighter(character, 0.0, 1);
       fighter.tuning.physics = FLOOR_RECOVERY_REFERENCE_PHYSICS;
       fighter.motion.grounded = false;
       fighter.motion.surface = undefined;
@@ -106,8 +107,8 @@ function weakRecoveryHit(world: Roster, direction: number, attacker: Fighter, ta
 
 test("low damage during either grounded down pose starts down damage, in both facings [reference]", () => {
   for (const direction of [-1, 1]) {
-    const attacker = createFighter(Character.archer, 0.0, direction);
-    const target = createFighter(Character.rifleman, f32(direction * 50.0), -direction);
+    const attacker = createReferenceFighter(Character.sylvanas, 0.0, direction);
+    const target = createReferenceFighter(Character.rifleman, f32(direction * 50.0), -direction);
     weakRecoveryHit(testWorld(attacker, target), direction, attacker, target);
     assertEquals(target.down.state, DownState.damage);
     assertEquals(target.down.frame, 1);
@@ -118,8 +119,8 @@ test("low damage during either grounded down pose starts down damage, in both fa
 });
 
 test("hitlag freezes down damage, then hitstun returns it to a timed down wait [reference]", () => {
-  const attacker = createFighter(Character.archer, 0.0, 1);
-  const target = createFighter(Character.rifleman, 50.0, -1);
+  const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const target = createReferenceFighter(Character.rifleman, 50.0, -1);
   const world = testWorld(attacker, target);
   const input = controls();
   target.status.damage = 80.0;
@@ -141,8 +142,8 @@ test("hitlag freezes down damage, then hitstun returns it to a timed down wait [
 });
 
 test("seven damage interrupts a down recovery and doesn't jab reset [reference]", () => {
-  const attacker = createFighter(Character.archer, 0.0, 1);
-  const target = createFighter(Character.rifleman, 50.0, -1);
+  const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const target = createReferenceFighter(Character.rifleman, 50.0, -1);
   const world = testWorld(attacker, target);
   target.down.state = DownState.wait;
   target.down.waitRemaining = 100;
@@ -155,9 +156,9 @@ test("seven damage interrupts a down recovery and doesn't jab reset [reference]"
 });
 
 test("down damage's completion checks get-up input without waiting another tick [reference]", () => {
-  for (const host of [Character.archer, Character.rifleman]) {
-    const attacker = createFighter(Character.archer, 0.0, 1);
-    const target = createFighter(host, 50.0, -1);
+  for (const host of [Character.sylvanas, Character.rifleman]) {
+    const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
+    const target = createReferenceFighter(host, 50.0, -1);
     const world = testWorld(attacker, target);
     const input = controls();
     target.status.damage = 80.0;
@@ -174,7 +175,7 @@ test("down damage's completion checks get-up input without waiting another tick 
 });
 
 test("down damage ends in a stand when its hitstun expires during the animation [reference]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   const input = controls();
   fighter.motion.surface = 0;
   fighter.motion.grounded = true;
@@ -192,7 +193,7 @@ test("down damage ends in a stand when its hitstun expires during the animation 
 
 test("a prone wait's expiry starts a stand before get-up input [reference]", () => {
   for (const remaining of [1, 2]) {
-    const fighter = createFighter(Character.archer, 0.0, 1);
+    const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
     fighter.motion.surface = 0;
     fighter.motion.grounded = true;
     fighter.down.state = DownState.wait;

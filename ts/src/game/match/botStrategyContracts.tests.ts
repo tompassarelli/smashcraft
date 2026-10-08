@@ -27,7 +27,7 @@ const EXPERT = cpuProfile("wren", "expert");
 
 function trained(choice: number, policy: CpuDecisionPolicy = EXPERT, cycles = 8) {
   const own = createFighter(Character.rifleman, 0.0, 1);
-  const target = createFighter(Character.archer, 60.0, -1);
+  const target = createFighter(Character.rifleman, 60.0, -1);
   const strategy = createBotStrategy();
   for (let frame = 0; frame < cycles * 60; frame++) {
     const action = floorMod(frame, 60) < 8;
@@ -200,7 +200,7 @@ const KILL: MoveEstimate = { damage: 18.0, startup: 24, recovery: 40, effect: { 
 
 test("move value distinguishes percent, punishment and stage position; stock/clock deficit favors a comeback read [spec #182]", () => {
   const own = createFighter(Character.rifleman, 900.0, 1);
-  const target = createFighter(Character.archer, 960.0, -1);
+  const target = createFighter(Character.rifleman, 960.0, -1);
   const match = createMatchState();
   const value = (move: MoveEstimate, pressure = 0) => estimatedMoveValue(move, own, target, 0, 60, EXPERT, pressure);
   const atZero = value(KILL) - value(QUICK);
@@ -222,7 +222,7 @@ test("move value distinguishes percent, punishment and stage position; stock/clo
 
 test("independent decision profiles change observed smash repetition and variety without changing reaction timing [spec #182]", () => {
   const own = createFighter(Character.demonHunter, 0.0, 1);
-  const target = createFighter(Character.archer, 60.0, -1);
+  const target = createFighter(Character.rifleman, 60.0, -1);
   const game = createMatchState();
   const report = (policy: CpuDecisionPolicy) => {
     const strategy = createBotStrategy();
@@ -255,7 +255,7 @@ test("a computer whose every option in reach was started within the variety span
   const startsAt = (character: Character) => {
     const own = createFighter(character, 0.0, 1);
     // Out of every normal's reach: only ranged specials reach.
-    const target = createFighter(Character.archer, 300.0, -1);
+    const target = createFighter(Character.rifleman, 300.0, -1);
     const strategy = createBotStrategy();
     const input = neutralControls();
     const commands = attackBuffer(6);

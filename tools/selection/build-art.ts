@@ -36,7 +36,7 @@ async function render(name: string, svg: string, replacements: { readonly [place
   if (!keep) rmSync(file);
 }
 
-for (const [fighter, label] of [['Archer', 'ARCHER'], ['Rifleman', 'RIFLEMAN'], ['DemonHunter', 'ILLIDAN']] as const) {
+for (const [fighter, label] of [['Rifleman', 'RIFLEMAN'], ['DemonHunter', 'ILLIDAN']] as const) {
   await render(`${fighter}Name`, 'FighterName.svg', { FIGHTER_NAME: label }, true);
 }
 const slots = PLAYER_COLORS.slice(0, PARTICIPANT_CAPACITY);

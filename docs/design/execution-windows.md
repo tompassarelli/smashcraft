@@ -101,7 +101,7 @@ developer statements on buffer lengths. Add them with their source when found.
 | Wall tech startup; wall-tech jump input; wall jump stick flick | 5; 20; 3 | conditions.ts, smashcraft:ts/src/game/sim/fighter.ts |
 | Attack buffer (human) | 6 | smashcraft:ts/src/game/input/attackBuffer.ts |
 | Powershield input; fast-fall input; platform drop input | 2; 4 (age below); 6 | fighter.ts, [physics.md](../physics.md) |
-| Jump squat (Archer, Rifleman); release inside it gives a short hop | 3; 5 | [physics.md](../physics.md) |
+| Jump squat (Rifleman); release inside it gives a short hop | 3; 5 | [physics.md](../physics.md) |
 | Ledge catch intangibility; regrab lock after release or interruption | 30; 30 | smashcraft:ts/src/game/sim/ledge.ts, transitions.ts |
 | Knockdown bound; down wait; get-up attack input age; down recovery intangibility | 26; 220; under 60; 20 to 27 | smashcraft:ts/src/game/sim/down.ts, conditions.ts |
 | Demon Hunter parry | 4 to 9 inclusive | smashcraft:ts/src/game/sim/hits.ts |

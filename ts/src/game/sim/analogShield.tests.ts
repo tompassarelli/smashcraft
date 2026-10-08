@@ -111,7 +111,7 @@ test("observed retail shield pressure [reference]", () => {
 });
 
 test("a light shield enters, drains, changes pressure and keeps its minimum hold [reference]", () => {
-  const f = createFighter(Character.archer, 0.0, 1);
+  const f = createFighter(Character.rifleman, 0.0, 1);
   const input = controls({ shield: true, shieldStrength: analogShieldStrength(128) });
   advanceSolo(f, 0, input, 0.0);
   assertTrue(f.shield.raised);
@@ -137,7 +137,7 @@ test("a light shield enters, drains, changes pressure and keeps its minimum hold
 });
 
 test("a light shield contact uses its strength and freezes it through stun [reference]", () => {
-  const owner = createFighter(Character.archer, -100.0, 1);
+  const owner = createFighter(Character.rifleman, -100.0, 1);
   const target = createFighter(Character.rifleman, 0.0, -1);
   const world = testWorld(owner, target);
   target.shield.raised = true;

@@ -93,7 +93,7 @@ test("table fighters play authored transitions and distinct floor recovery clips
 });
 
 test("replaying rows from a restored frame reproduces each pose's selection and clock [invariant]", () => {
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+  for (const character of [Character.rifleman, Character.demonHunter]) {
     const game = createMatchState();
     game.phase = Phase.match;
     game.timeLimitMinutes = 0;
@@ -129,7 +129,7 @@ test("replaying rows from a restored frame reproduces each pose's selection and 
 });
 
 test("hitlag freezes the reaction clip and a repeated hit restarts it [spec #181]", () => {
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+  for (const character of [Character.rifleman, Character.demonHunter]) {
     const f = createFighter(character, 0.0, 1);
     const world = soloWorld(f);
     const input = neutralControls();

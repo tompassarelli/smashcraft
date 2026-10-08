@@ -17,7 +17,7 @@ import * as shieldModels from "../../src/game/assets/shieldAssetInfo";
 import { STAGE_WATER_MODEL, STAGE_LAVA_MODEL } from "../../src/game/assets/terrainAssetInfo";
 import { STAGE_DECK_MODELS, STAGE_LIGHT_MODELS, STAGE_POINT_LIGHT_MODELS, STAGE_SNOW_MODEL } from "../../src/game/assets/stageAssetInfo";
 import { DEMON_HUNTER_MODEL_FILE } from "../../src/game/presentation/demonHunterAssetInfo";
-import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "../../src/game/presentation/fighterAssetInfo";
+import { RIFLEMAN_MODEL_FILE } from "../../src/game/presentation/fighterAssetInfo";
 import { SUMMON_BEAR, summonClip, summonClipCount } from "../../src/game/presentation/summonClipInfo";
 import { Character } from "../../src/game/sim/codes";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
@@ -91,7 +91,7 @@ const importLines = (path: string) =>
  * under --assets must hold them, and its generator writes both.
  */
 export const GENERATED_MODELS: readonly { readonly list: string; readonly generator: string; readonly models: readonly string[] }[] = [
-  { list: "impact-assets/white-flash-imports.txt", generator: "tools/animations/white-flash-models.ts", models: WHITE_FIGHTER_MODELS },
+  { list: "impact-assets/white-flash-imports.txt", generator: "tools/animations/white-flash-models.ts", models: Object.values(WHITE_FIGHTER_MODELS) },
   { list: "stage-assets/imports.txt", generator: "tools/stage/package.ts", models: [...new Set([...Object.values(STAGE_DECK_MODELS).flatMap(({ main, slab, alternate }) => alternate === undefined ? [main, slab] : [main, slab, alternate]), STAGE_SNOW_MODEL, STAGE_WATER_MODEL, STAGE_LAVA_MODEL, ...Object.values(STAGE_LIGHT_MODELS), ...Object.values(STAGE_POINT_LIGHT_MODELS).flat(), ...Object.values(STAGE_SKY_MODELS)])] },
   { list: "impact-assets/imports.txt", generator: "tools/effects/package.ts", models: Object.values(impactModels) },
   { list: "impact-assets/frost-imports.txt", generator: "tools/effects/trap.ts", models: Object.values(frostModels) },
@@ -116,7 +116,7 @@ const IMPORTED_HERO_MODELS = HERO_ROSTER.map(({ presentation }) => presentation.
 
 /** Every imported model the compiled script names. */
 export const SCRIPT_MODELS: readonly string[] = [
-  ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE, DEMON_HUNTER_MODEL_FILE, ...IMPORTED_HERO_MODELS, ...SUMMON_MODELS, ...ORIGINAL_CLIP_MODELS,
+  RIFLEMAN_MODEL_FILE, DEMON_HUNTER_MODEL_FILE, ...IMPORTED_HERO_MODELS, ...SUMMON_MODELS, ...ORIGINAL_CLIP_MODELS,
   ...GENERATED_MODELS.flatMap(({ models }) => models),
 ];
 
@@ -268,7 +268,7 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
     const path = join(assets, list);
     const files = yield* importLines(path);
     yield* requireListed(path, files, models, `package them with ${generator}`);
-    return files.map((file) => imported(dirname(path), file));
+    return files.filter((file) => !file.toLowerCase().endsWith(".mdx") || models.includes(`war3mapImported\\${file}`)).map((file) => imported(dirname(path), file));
   }));
   const evidencePath = join(summon, "summon-clips-evidence.json");
   const evidence = yield* readJson(SummonEvidence, evidencePath);
@@ -277,7 +277,7 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
   const clipDirectory = join(assets, "original-clips-static-lights");
   const clipEvidencePath = join(clipDirectory, "original-clips-evidence.json");
   const clipEvidence = yield* readJson(OriginalClipEvidence, clipEvidencePath);
-  const clipFiles = [...new Set(clipEvidence.records.flatMap((record) => [...record.clips.map(({ filename }) => filename), ...(record.light === null ? [] : [record.light.filename])]))];
+  const clipFiles = [...new Set(clipEvidence.records.flatMap((record) => [...record.clips.map(({ filename }) => filename), ...(record.light === null ? [] : [record.light.filename])]))].filter((file) => ORIGINAL_CLIP_MODELS.includes(`war3mapImported\\${file}`));
   // A changed fighter clip (a re-authored original, a new hero) needs a new pool in the private inputs too.
   yield* requireListed(clipEvidencePath, clipFiles, ORIGINAL_CLIP_MODELS,
     `this assets folder's clip pool predates the checkout's clips. From the repository root, export a new pool from ${assets} ` +
@@ -289,7 +289,6 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
     return yield* new MapBuildFailure({ operation: "check model sounds", path: "ts/src/game/assets/modelSoundInfo.ts", cause: `${soundProblem}; export them with tools/animations/export-model-sounds.ts` });
   }
   const entries: ArchiveEntry[] = [
-    { entry: ARCHER_MODEL_FILE, source: join(assets, "animation-assets/ArcherFighter.mdx") },
     { entry: RIFLEMAN_MODEL_FILE, source: join(assets, "animation-assets/RiflemanFighter.mdx") },
     { entry: DEMON_HUNTER_MODEL_FILE, source: join(assets, "illidan-animation/DemonHunterFighter.mdx") },
     ...SELECTION_TEXTURES.map((texture) => imported(join(assets, "selection-assets"), `${texture}.tga`)),

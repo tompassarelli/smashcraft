@@ -88,7 +88,7 @@ test("impact projection reads only and clearing empties the pool [invariant]", (
 });
 
 test("a snapshot restores the impact pool and its ring pointers [invariant]", () => {
-  const match = testMatch(9, Character.archer);
+  const match = testMatch(9, Character.rifleman);
   const events = createImpactEvents();
   events.dodge = DodgeCue.spot;
   events.x = 77.0;
@@ -114,7 +114,7 @@ test("a snapshot restores the impact pool and its ring pointers [invariant]", ()
 });
 
 test("a correction removes a predicted impact and restores the accepted one's age [invariant]", () => {
-  const match = testMatch(9, Character.archer);
+  const match = testMatch(9, Character.rifleman);
   const live = replayState(match);
   const history = new ReplayHistory();
   assertTrue(history.beginEpoch(81, 1, 12));
@@ -144,8 +144,8 @@ test("a correction removes a predicted impact and restores the accepted one's ag
 
 test("sparse and four-player matches emit the same impacts whether projected each frame or not [invariant]", () => {
   for (const mask of [9, 15]) {
-    const sequential = testMatch(mask, Character.archer);
-    const catchup = testMatch(mask, Character.archer);
+    const sequential = testMatch(mask, Character.rifleman);
+    const catchup = testMatch(mask, Character.rifleman);
     for (let frame = 1; frame <= 8; frame++) {
       for (const slot of PARTICIPANT_SLOTS) {
         if (!isActive(sequential.world, slot)) continue;
@@ -176,7 +176,7 @@ test("a result, a reset or a menu frame empties the impact pool [spec #82]", () 
     events.x = i * 10.0;
     emitImpacts(pool, events, 0);
   }
-  const match = testMatch(15, Character.archer);
+  const match = testMatch(15, Character.rifleman);
   const empty = createImpactState();
   copyImpactStateInto(match.runtime.impacts, pool);
   match.game.timeLimitMinutes = 1;
@@ -194,7 +194,7 @@ test("a result, a reset or a menu frame empties the impact pool [spec #82]", () 
 });
 
 test("replaying from a snapshot restores accepted grab and throw cues, and projection consumes none [invariant]", () => {
-  const match = testMatch(3, Character.archer);
+  const match = testMatch(3, Character.rifleman);
   const owner = fighterAt(match.world, 0);
   const target = fighterAt(match.world, 1);
   owner.motion.x = 0.0;
@@ -232,7 +232,7 @@ test("replaying from a snapshot restores accepted grab and throw cues, and proje
 });
 
 test("a corrected charge removes its cue [invariant]", () => {
-  const match = testMatch(3, Character.archer);
+  const match = testMatch(3, Character.rifleman);
   const live = replayState(match);
   const history = new ReplayHistory();
   assertTrue(history.beginEpoch(82, 1, 12));
@@ -259,7 +259,7 @@ test("a corrected charge removes its cue [invariant]", () => {
 });
 
 test("replaying a confirmed top KO restores one body and the same stocks [invariant]", () => {
-  const match = testMatch(3, Character.archer);
+  const match = testMatch(3, Character.rifleman);
   const fighter = fighterAt(match.world, 0);
   fighter.motion.z = f32(stageBounds(match.game.stageChoice).blast.top + 1.0);
   fighter.motion.grounded = false;

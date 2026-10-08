@@ -25,7 +25,7 @@ import { createMatchState, Phase, setHumanCount } from "./rules";
 import { stepMatch } from "./step";
 import { sweep } from "../../runtime/sweep";
 
-function gameAtCentre(character: Character = Character.archer) {
+function gameAtCentre(character: Character = Character.rifleman) {
   const game = createMatchState();
   setHumanCount(game, 2);
   game.phase = Phase.match;
@@ -191,7 +191,7 @@ test("Heavy gives every fighter 1.5 weight and 1.3 gravity terminal and fast-fal
     advanceFighter(soloWorld(heavy), 0, 0, controls(), 0.0);
     assertNear(heavy.motion.vz, -f32(heavy.tuning.physics.fastFallSpeed * f32(1.3)), f32(0.0001));
     for (const target of [plain, heavy]) {
-      const attacker = createFighter(Character.archer, 50.0, -1);
+      const attacker = createFighter(Character.rifleman, 50.0, -1);
       const world = testWorld(attacker, target);
       contactBatch(world, () => queueDamageContact(world, 0, 1, hitEffect(10.0, 100.0, 0.0, 1.0, 0.0), 1, ContactKind.launch, false, undefined));
     }

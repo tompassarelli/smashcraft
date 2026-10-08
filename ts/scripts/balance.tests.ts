@@ -54,7 +54,7 @@ test("[invariant] move variety is 0 for one move and 1 for even use of the whole
 });
 
 test("[spec docs/design/balance.md] the spam probe attacks only with its move, recovering with the up special", () => {
-  const record = playCpuMatch(Character.archer, Character.mountainKing, "sky-deck", 0, { stocks: 1, minutes: 1, spam: { archer: AttackStyle.upTilt } });
+  const record = playCpuMatch(Character.rifleman, Character.mountainKing, "sky-deck", 0, { stocks: 1, minutes: 1, spam: { rifleman: AttackStyle.upTilt } });
   const started = Object.keys(record?.sides[0].moves ?? {}).map(Number);
   expect(started).toContain(AttackStyle.upTilt);
   expect(started.filter((move) => move !== AttackStyle.upTilt && move !== SPECIAL_MOVE.up)).toEqual([]);

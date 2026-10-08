@@ -11,7 +11,8 @@ import { AttackStyle, Character } from "./codes";
 import { canAttack } from "./conditions";
 import { AIR_DODGE_LANDING_LAG } from "./down";
 import { squareRoot } from "./warcraftMath";
-import { type Fighter, createFighter } from "./fighter";
+import { type Fighter,  } from "./fighter";
+import { createReferenceFighter } from "./referenceRig";
 import { beginJump } from "./jumpsAndDodges";
 import { SMASH_MAX_CHARGE_FRAMES, SMASH_MAX_DAMAGE_MULTIPLIER, attackStartupFrames, isAerialAttack, smashDamageMultiplier } from "./moves";
 import type { Controls, Roster } from "./roster";
@@ -24,9 +25,9 @@ import { authoredPhysics } from "./tuning";
 const jumpSquatFrames = (character: Character) => authoredPhysics(character).jumpSquatFrames;
 
 test("shielding during jump squat uses the later direction for a first-frame wavedash [spec docs/physics.md]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+  for (const character of [Character.sylvanas, Character.rifleman]) {
     for (const direction of [-1, 1]) {
-      const fighter = createFighter(character, 0.0, 1);
+      const fighter = createReferenceFighter(character, 0.0, 1);
       const input = controls({ jumpPressed: true, jumpHeld: true });
       fighter.motion.surface = 0;
       advanceSolo(fighter, 0, input, 0.0);
@@ -50,8 +51,8 @@ test("shielding during jump squat uses the later direction for a first-frame wav
 });
 
 test("hitting a jump squat cancels its buffered air dodge [spec docs/physics.md]", () => {
-  const attacker = createFighter(Character.rifleman, 0.0, 1);
-  const fighter = createFighter(Character.archer, 70.0, -1);
+  const attacker = createReferenceFighter(Character.rifleman, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 70.0, -1);
   const world = testWorld(attacker, fighter);
   advanceFighter(world, 1, 0, controls({ jumpPressed: true, airDodgePressed: true }), 0.0);
   assertTrue(fighter.jump.dodgeQueued);
@@ -64,10 +65,10 @@ test("hitting a jump squat cancels its buffered air dodge [spec docs/physics.md]
 });
 
 test("leaving the floor without jumping leaves exactly one air jump [spec docs/physics.md]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+  for (const character of [Character.sylvanas, Character.rifleman]) {
     for (const side of [-1, 1]) {
       const edge = side < 0 ? surfaceLeft(0, 0, 0) : surfaceRight(0, 0, 0);
-      const fighter = createFighter(character, f32(edge - side), side);
+      const fighter = createReferenceFighter(character, f32(edge - side), side);
       const input = controls({ direction: side });
       fighter.motion.surface = 0;
       advanceSolo(fighter, 0, input, 0.0);
@@ -88,7 +89,7 @@ test("leaving the floor without jumping leaves exactly one air jump [spec docs/p
 });
 
 test("dropping through a platform leaves exactly one air jump [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.archer, f32(f32(surfaceLeft(1, 1, 0) + surfaceRight(1, 1, 0)) / 2), 1);
+  const fighter = createReferenceFighter(Character.sylvanas, f32(f32(surfaceLeft(1, 1, 0) + surfaceRight(1, 1, 0)) / 2), 1);
   fighter.motion.surface = 1;
   fighter.motion.z = surfaceZ(1, 1, 0);
   advanceSolo(fighter, 1, controls({ down: true }), 0.0);
@@ -106,8 +107,8 @@ function prepareHitRegionAttack(world: Roster, attacker: Fighter, style: AttackS
 
 test("hit regions prioritize the tip and mirror its full hit effect [spec docs/physics.md]", () => {
   for (const direction of [-1, 1]) {
-    const attacker = createFighter(Character.archer, 0.0, direction);
-    const target = createFighter(Character.rifleman, f32(direction * 100.0), -direction);
+    const attacker = createReferenceFighter(Character.sylvanas, 0.0, direction);
+    const target = createReferenceFighter(Character.rifleman, f32(direction * 100.0), -direction);
     const world = testWorld(attacker, target);
     prepareHitRegionAttack(world, attacker, AttackStyle.forwardTilt, 5);
     resolveAttacks(world);
@@ -124,8 +125,8 @@ test("hit regions prioritize the tip and mirror its full hit effect [spec docs/p
 test("hit regions distinguish inner and outer, early and late parameters [spec docs/physics.md]", () => {
   for (const frame of [5, 6]) {
     for (const inner of [false, true]) {
-      const attacker = createFighter(Character.archer, 0.0, 1);
-      const target = createFighter(Character.rifleman, inner ? 50.0 : 120.0, -1);
+      const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
+      const target = createReferenceFighter(Character.rifleman, inner ? 50.0 : 120.0, -1);
       const world = testWorld(attacker, target);
       prepareHitRegionAttack(world, attacker, AttackStyle.forwardTilt, frame);
       resolveAttacks(world);
@@ -148,17 +149,17 @@ test("hit regions distinguish inner and outer, early and late parameters [spec d
 
 test("hit regions respect the active clock and inclusive geometry boundaries [spec docs/physics.md]", () => {
   for (let frame = 4; frame <= 7; frame++) {
-    const attacker = createFighter(Character.archer, 0.0, 1);
+    const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
     // Tip centerline ends at 111; attack/body radii add 10 + 26.
-    const target = createFighter(Character.rifleman, 147.0, -1);
+    const target = createReferenceFighter(Character.rifleman, 147.0, -1);
     const world = testWorld(attacker, target);
     prepareHitRegionAttack(world, attacker, AttackStyle.forwardTilt, frame);
     resolveAttacks(world);
     assertEquals(target.status.damage, frame === 5 ? 10.0 : frame === 6 ? 8.0 : 0.0);
   }
   for (let outside = 0; outside <= 3; outside++) {
-    const attacker = createFighter(Character.archer, 0.0, -1);
-    const target = createFighter(Character.rifleman, outside === 0 ? -148.0 : outside === 1 ? 50.0 : -100.0, 1);
+    const attacker = createReferenceFighter(Character.sylvanas, 0.0, -1);
+    const target = createReferenceFighter(Character.rifleman, outside === 0 ? -148.0 : outside === 1 ? 50.0 : -100.0, 1);
     const world = testWorld(attacker, target);
     target.motion.z = outside === 2 ? -131.0 : outside === 3 ? 131.0 : 0.0;
     prepareHitRegionAttack(world, attacker, AttackStyle.forwardTilt, 5);
@@ -168,8 +169,8 @@ test("hit regions respect the active clock and inclusive geometry boundaries [sp
 });
 
 test("an ordinary hit-region window survives freezes, region changes and re-entry [spec docs/physics.md]", () => {
-  const attacker = createFighter(Character.archer, 0.0, 1);
-  const target = createFighter(Character.rifleman, 100.0, -1);
+  const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const target = createReferenceFighter(Character.rifleman, 100.0, -1);
   const world = testWorld(attacker, target);
   const input = controls();
   prepareHitRegionAttack(world, attacker, AttackStyle.forwardTilt, 5);
@@ -194,9 +195,9 @@ test("an ordinary hit-region window survives freezes, region changes and re-entr
 });
 
 test("hit regions record ordinary contacts per target [spec docs/physics.md]", () => {
-  const attacker = createFighter(Character.archer, 0.0, 1);
-  const firstTarget = createFighter(Character.rifleman, 100.0, -1);
-  const secondTarget = createFighter(Character.rifleman, 50.0, -1);
+  const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const firstTarget = createReferenceFighter(Character.rifleman, 100.0, -1);
+  const secondTarget = createReferenceFighter(Character.rifleman, 50.0, -1);
   prepareHitRegionAttack(testWorld(attacker, firstTarget), attacker, AttackStyle.forwardTilt, 5);
   resolveAttacks(testWorld(attacker, firstTarget));
   attacker.launch.hitlag = 0;
@@ -209,8 +210,8 @@ test("hit regions record ordinary contacts per target [spec docs/physics.md]", (
 });
 
 test("the up aerial explicitly rehits only on its finishing window [spec docs/physics.md]", () => {
-  const attacker = createFighter(Character.archer, 0.0, 1);
-  const target = createFighter(Character.rifleman, 0.0, -1);
+  const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const target = createReferenceFighter(Character.rifleman, 0.0, -1);
   const world = testWorld(attacker, target);
   const input = controls();
   attacker.motion.z = 300.0;
@@ -247,8 +248,8 @@ test("the up aerial explicitly rehits only on its finishing window [spec docs/ph
 });
 
 test("a finisher can connect when the opening window misses [spec docs/physics.md]", () => {
-  const attacker = createFighter(Character.archer, 0.0, -1);
-  const target = createFighter(Character.rifleman, 500.0, 1);
+  const attacker = createReferenceFighter(Character.sylvanas, 0.0, -1);
+  const target = createReferenceFighter(Character.rifleman, 500.0, 1);
   const world = testWorld(attacker, target);
   attacker.motion.z = 300.0;
   target.motion.z = 400.0;
@@ -265,8 +266,8 @@ test("a finisher can connect when the opening window misses [spec docs/physics.m
 
 test("hit regions snapshot different effects before either trade cancels its attack [spec docs/physics.md] [invariant]", () => {
   for (const reverse of [false, true]) {
-    const first = createFighter(Character.archer, 0.0, 1);
-    const second = createFighter(Character.archer, 100.0, -1);
+    const first = createReferenceFighter(Character.sylvanas, 0.0, 1);
+    const second = createReferenceFighter(Character.sylvanas, 100.0, -1);
     testBeginAttacks(testWorld(first, second), AttackStyle.forwardTilt, AttackStyle.forwardTilt);
     first.attack.frame = 5;
     second.attack.frame = 6;
@@ -283,8 +284,8 @@ test("hit regions snapshot different effects before either trade cancels its att
 });
 
 test("a shield consumes the selected hit-region window and hitlag [spec docs/physics.md]", () => {
-  const attacker = createFighter(Character.archer, 0.0, 1);
-  const target = createFighter(Character.rifleman, 100.0, -1);
+  const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const target = createReferenceFighter(Character.rifleman, 100.0, -1);
   const world = testWorld(attacker, target);
   target.shield.raised = true;
   prepareHitRegionAttack(world, attacker, AttackStyle.forwardTilt, 5);
@@ -300,8 +301,8 @@ test("a shield consumes the selected hit-region window and hitlag [spec docs/phy
 });
 
 test("an empty landing recovers once, after four ticks [reference]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
-    const fighter = createFighter(character, 0.0, 1);
+  for (const character of [Character.sylvanas, Character.rifleman]) {
+    const fighter = createReferenceFighter(character, 0.0, 1);
     const input = controls();
     fighter.motion.grounded = false;
     fighter.motion.z = 1.0;
@@ -324,7 +325,7 @@ test("an empty landing recovers once, after four ticks [reference]", () => {
 
 test("a jump accepts the same landing recovery boundary as attacks [spec docs/physics.md]", () => {
   for (let recovery = 4; recovery <= 18; recovery++) {
-    const fighter = createFighter(Character.archer, 0.0, 1);
+    const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
     const input = controls();
     fighter.landing.lag = recovery;
     for (let tick = 1; tick <= recovery - 1; tick++) {
@@ -335,15 +336,15 @@ test("a jump accepts the same landing recovery boundary as attacks [spec docs/ph
     input.jumpHeld = true;
     advanceSolo(fighter, 0, input, 0.0);
     assertEquals(fighter.landing.lag, 0);
-    assertEquals(fighter.jump.squat, jumpSquatFrames(Character.archer));
+    assertEquals(fighter.jump.squat, jumpSquatFrames(Character.sylvanas));
   }
 });
 
 test("a short hop rises less than a full hop, and each jump starts once [reference]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+  for (const character of [Character.sylvanas, Character.rifleman]) {
     let fullHopRise = 0.0;
     for (let jumpKind = 0; jumpKind <= 2; jumpKind++) {
-      const fighter = createFighter(character, 0.0, 1);
+      const fighter = createReferenceFighter(character, 0.0, 1);
       if (jumpKind === 2) {
         fighter.motion.grounded = false;
         fighter.motion.z = 100.0;
@@ -367,10 +368,10 @@ test("a short hop rises less than a full hop, and each jump starts once [referen
 });
 
 function aerialLandingFighter(character: Character, style: AttackStyle): Fighter {
-  const fighter = createFighter(character, 0.0, 1);
+  const fighter = createReferenceFighter(character, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.z = 300.0;
-  testBeginAttacks(testWorld(fighter, createFighter(Character.rifleman, 500.0, -1)), style, undefined);
+  testBeginAttacks(testWorld(fighter, createReferenceFighter(Character.rifleman, 500.0, -1)), style, undefined);
   return fighter;
 }
 
@@ -388,7 +389,7 @@ const SHORT_AERIAL_LANDING_LAG = [
 ] as const;
 
 test("every fighter's aerials land with the short lag, pressed shield or not [spec #54]", () => {
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+  for (const character of [Character.sylvanas, Character.rifleman, Character.demonHunter]) {
     for (const [style, lag] of SHORT_AERIAL_LANDING_LAG) {
       for (const pressed of [false, true]) {
         const fighter = aerialLandingFighter(character, style);
@@ -410,7 +411,7 @@ test("every fighter's aerials land with the short lag, pressed shield or not [sp
 });
 
 test("air dodge and empty landings keep their own landing lag [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.dodge.airDodging = true;
   land(fighter, controls());
@@ -431,8 +432,8 @@ function prepareSmashCharge(world: Roster, fighter: Fighter, target: Fighter, in
 }
 
 test("smash charge pauses the pre-active clock, and release enters the hit frame [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
-  const target = createFighter(Character.rifleman, 100.0, -1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const target = createReferenceFighter(Character.rifleman, 100.0, -1);
   const world = testWorld(fighter, target);
   const input = controls();
   prepareSmashCharge(world, fighter, target, input, AttackStyle.upSmash);
@@ -454,8 +455,8 @@ test("smash charge pauses the pre-active clock, and release enters the hit frame
 });
 
 test("a direct smash doesn't charge, and charge freezes only the fighter's control clock [spec docs/physics.md]", () => {
-  const direct = createFighter(Character.archer, 0.0, 1);
-  const directTarget = createFighter(Character.rifleman, 100.0, -1);
+  const direct = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const directTarget = createReferenceFighter(Character.rifleman, 100.0, -1);
   const directWorld = testWorld(direct, directTarget);
   const directInput = controls({ attackHeld: true });
   testBeginAttacks(directWorld, AttackStyle.forwardSmash, undefined);
@@ -464,8 +465,8 @@ test("a direct smash doesn't charge, and charge freezes only the fighter's contr
   assertEquals(direct.attack.frame, attackStartupFrames(AttackStyle.forwardSmash));
   resolveAttacks(directWorld);
   assertNear(directTarget.status.damage, 18.0, 0.0010000000474974513);
-  const fighter = createFighter(Character.archer, 0.0, 1);
-  const target = createFighter(Character.rifleman, 100.0, -1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const target = createReferenceFighter(Character.rifleman, 100.0, -1);
   const world = testWorld(fighter, target);
   const input = controls();
   prepareSmashCharge(world, fighter, target, input, AttackStyle.downSmash);
@@ -486,8 +487,8 @@ test("a direct smash doesn't charge, and charge freezes only the fighter's contr
 });
 
 test("smash charge stops when the fighter leaves the ground and clears on interruption or stock loss [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
-  const target = createFighter(Character.rifleman, 100.0, -1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const target = createReferenceFighter(Character.rifleman, 100.0, -1);
   const input = controls();
   prepareSmashCharge(testWorld(fighter, target), fighter, target, input, AttackStyle.upSmash);
   fighter.motion.grounded = false;
@@ -495,14 +496,14 @@ test("smash charge stops when the fighter leaves the ground and clears on interr
   assertFalse(fighter.attack.smashCharging);
   assertFalse(fighter.attack.smashChargeAllowed);
   assertEquals(fighter.attack.frame, attackStartupFrames(AttackStyle.upSmash));
-  const attacker = createFighter(Character.rifleman, 100.0, -1);
+  const attacker = createReferenceFighter(Character.rifleman, 100.0, -1);
   attacker.attack.style = AttackStyle.jab;
   attacker.attack.frame = attackStartupFrames(AttackStyle.jab);
   resolveAttacks(testWorld(fighter, attacker));
   assertEquals(fighter.attack.style, undefined);
   assertEquals(fighter.attack.smashChargeFrames, 0);
-  const stockFighter = createFighter(Character.archer, 0.0, 1);
-  const stockTarget = createFighter(Character.rifleman, 100.0, -1);
+  const stockFighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const stockTarget = createReferenceFighter(Character.rifleman, 100.0, -1);
   const stockWorld = testWorld(stockFighter, stockTarget);
   const stockInput = controls();
   prepareSmashCharge(stockWorld, stockFighter, stockTarget, stockInput, AttackStyle.upSmash);
@@ -515,8 +516,8 @@ test("smash charge stops when the fighter leaves the ground and clears on interr
 });
 
 test("a simultaneous charged smash trade snapshots both charge amounts [spec docs/physics.md]", () => {
-  const first = createFighter(Character.archer, 0.0, 1);
-  const second = createFighter(Character.rifleman, 100.0, -1);
+  const first = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const second = createReferenceFighter(Character.rifleman, 100.0, -1);
   const world = testWorld(first, second);
   first.motion.surface = 0;
   second.motion.surface = 0;

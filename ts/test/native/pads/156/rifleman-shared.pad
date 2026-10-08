@@ -1,0 +1,27 @@
+# #156 Rifleman: neutral, up and down air from a jump facing right, then
+#! chat -dev quick hero rifleman
+# neutral air facing left; B stands idle. Each capture is the move's first
+# active frame (tap frame + startup).
+150 a tap Y 2
++8 a tap A 2
++3 a capture
++60 a tap Y 2
++8 a stick 0 0.8
++1 a tap A 2
++5 a capture
++3 a stick 0 0
++60 a tap Y 2
++8 a stick 0 -0.8
++1 a tap A 2
++7 a capture
++3 a stick 0 0
++60 a press LB
++0 a stick -0.6 0
++10 a stick 0 0
++0 a release LB
++10 a tap Y 2
++8 a tap A 2
++3 a capture
+# Save the action sequence for the batch's native/headless replay comparison.
++30 a press VIEW
++70 a release VIEW

@@ -12,7 +12,7 @@ import { encodeVerified, ensure, fighters, onGlobalClock, parseSource, tracks } 
 const [input, output] = process.argv.slice(2, 4).map(p => resolve(p));
 const characterAt = process.argv.indexOf("--character");
 const selectedCharacter = characterAt < 0 ? undefined : Number(process.argv[characterAt + 1]);
-ensure(selectedCharacter === undefined || Number.isInteger(selectedCharacter) && selectedCharacter >= 3 && selectedCharacter < fighters.length,
+ensure(selectedCharacter === undefined || Number.isInteger(selectedCharacter) && selectedCharacter >= 3 && fighters.has(selectedCharacter),
   "--character takes an expansion fighter's character code");
 const project = resolve(import.meta.dir, "../..");
 ensure(input && output && relative(project, output).startsWith(".."), "usage: bun tools/animations/grab-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT [--character ID]");

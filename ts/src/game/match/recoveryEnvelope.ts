@@ -72,7 +72,7 @@ export function recoveryRun(character: Character, mana: number, x: number, z: nu
   match.game.stageChoice = STAGE_CHOICE;
   const fighter = createFighter(character, x, -1);
   match.world.fighters[0] = fighter;
-  match.world.fighters[1] = createFighter(Character.archer, -400.0, 1);
+  match.world.fighters[1] = createFighter(Character.demonHunter, -400.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.surface = undefined;
   fighter.motion.z = z;
@@ -286,7 +286,6 @@ export function recoveryArchetype(character: Character): RecoveryArchetype {
     case Character.jaina:
     case Character.chen:
       return RecoveryArchetype.vertical;
-    case Character.archer:
     case Character.demonHunter:
     case Character.dreadlord:
     case Character.beastmaster:

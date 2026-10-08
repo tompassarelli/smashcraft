@@ -36,7 +36,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
 function match(gap: number, facing = 1): { world: Roster; owner: Fighter; target: Fighter } {
   const owner = createFighter(Character.blademaster, 0.0, facing);
   owner.mana.points = 100;
-  const target = createFighter(Character.archer, f32(gap * facing), -facing);
+  const target = createFighter(Character.rifleman, f32(gap * facing), -facing);
   const world = createRoster(3, [owner, target]);
   for (let i = 0; i < 3; i++) frame(world);
   return { world, owner, target };

@@ -1,0 +1,57 @@
+# Rifleman's native checks by parity: #111 Summon Bear, #117 Blaster, #127 Recoil Shot.
+# Rifleman a against an idle Rifleman b; syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero rifleman
+# #111: the bear toward b, cast frames 1-42; it reaches b.
+60 a stick 1 0
+60 a tap X 2
+61 a stick 0 0
+# #117: ground blaster, then a short-hop blaster.
+150 a tap X 2
+240 a tap B 1
+245 a tap X 2
+# #127: Recoil Shot, second shot on its frame 17.
+330 a stick 0 1
+330 a tap X 2
+331 a stick 0 0
+346 a tap X 2
+# #111 counterplay: b's blaster hits a during the bear's cast, so no bear comes.
+480 b tap X 2
+486 a stick 1 0
+486 a tap X 2
+487 a stick 0 0
+# #111: turn around, and the bear facing left.
+# View held a second: the first of two moments the parity check replays.
+500 a press VIEW
+570 a release VIEW
+640 a stick -1 0
+642 a stick 0 0
+660 a stick -1 0
+660 a tap X 2
+661 a stick 0 0
+# View held again: the second moment.
+# Expected, frame by frame (headless run of this script):
+#! expect a 60 special 5 form 0
+#! expect b 99 damage 9.300
+#! expect a 101 special 0
+#! expect a 150 special 7 form 0
+#! expect b 166 damage 13.020 hitlag 4 hitstun 11
+#! expect a 187 special 0
+#! expect a 245 applied jump
+#! expect a 245 special 7 form 0
+#! expect b 266 damage 15.810 hitlag 3 hitstun 8
+#! expect a 268 special 0
+#! expect a 330 special 6 form 0
+#! expect a 346 special-form 1 action 6
+# #252: first recoil rises 3.5 units faster for 13 frames before the second shot, adding 45.5 height.
+#! expect a 363 special 0 form 1 action-frame 0 x -110.280 z 560.620
+#! expect b 480 special 7
+#! expect a 486 special 5 form 0
+#! expect a 494 damage 3.720
+#! expect a 494 special 0
+#! absent b 496-650 damage
+#! expect a 660 special 5 form 0
+#! expect a 701 special 0
+#! scene a BearOriginalClip
+#! scene a GyroCopterMissile
+1000 a press VIEW
+1070 a release VIEW

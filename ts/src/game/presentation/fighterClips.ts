@@ -6,7 +6,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, LedgeState, PlatformMove, SpecialAction } from "../sim/codes";
 import { type HeroClip, type HeroClipTable, type HeroFollowUpPose, type HeroPose, STOCK_FALLBACK_CLIP } from "../sim/heroes/hero";
 import { heroDefinition } from "../sim/heroes/registry";
-import { ARCHER_GROUND, RIFLEMAN_GROUND, type GroundKit, jabSlice, strikeClip } from "../sim/heroes/groundNormals";
+import { RIFLEMAN_GROUND, type GroundKit, jabSlice, strikeClip } from "../sim/heroes/groundNormals";
 import * as dh from "./demonHunterAssetInfo";
 import * as assets from "./fighterAssetInfo";
 import { RECOVERY_CLIPS } from "./recoveryClipInfo";
@@ -27,60 +27,6 @@ const clip = (index: number, seconds: number): HeroClip => ({ index, seconds });
  */
 const retimed = (index: number, seconds: number, startup: number, total: number, kit: GroundKit, style: AttackStyle): HeroClip =>
   strikeClip({ index }, f32(f32(seconds * startup) / total), kit, style);
-
-// Ledge options: Illidan has his own roll and attack; the others reuse their
-// roll and get-up attack. Only Illidan maps smashes and a dash attack.
-const ARCHER_CLIPS: HeroClipTable = {
-  jab: clip(assets.ARCHER_JAB_INDEX, assets.ARCHER_JAB_SECONDS),
-  // The chain's low kick plays her down tilt's floor sweep.
-  jab2: jabSlice({ index: assets.ARCHER_DOWN_TILT_INDEX }, f32(0.185)),
-  grab: clip(assets.ARCHER_GRAB_INDEX, assets.ARCHER_GRAB_SECONDS),
-  forwardTilt: clip(assets.ARCHER_FORWARD_TILT_INDEX, assets.ARCHER_FORWARD_TILT_SECONDS),
-  upTilt: clip(assets.ARCHER_UP_TILT_INDEX, assets.ARCHER_UP_TILT_SECONDS),
-  downTilt: clip(assets.ARCHER_DOWN_TILT_INDEX, assets.ARCHER_DOWN_TILT_SECONDS),
-  forwardTiltUp: clip(assets.ARCHER_FORWARD_TILT_UP_INDEX, assets.ARCHER_FORWARD_TILT_UP_SECONDS),
-  forwardTiltDown: clip(assets.ARCHER_FORWARD_TILT_DOWN_INDEX, assets.ARCHER_FORWARD_TILT_DOWN_SECONDS),
-  // The sliding kick plays her floor-skimming lunging kick, since the jab chain and down tilt already share the sweep.
-  dashAttack: retimed(assets.ARCHER_FORWARD_TILT_DOWN_INDEX, assets.ARCHER_FORWARD_TILT_DOWN_SECONDS, 5, 28, ARCHER_GROUND, AttackStyle.dashAttack),
-  neutralAir: clip(assets.ARCHER_AERIAL_NEUTRAL_INDEX, assets.ARCHER_AERIAL_NEUTRAL_SECONDS),
-  forwardAir: clip(assets.ARCHER_AERIAL_FORWARD_INDEX, assets.ARCHER_AERIAL_FORWARD_SECONDS),
-  backAir: clip(assets.ARCHER_AERIAL_BACK_INDEX, assets.ARCHER_AERIAL_BACK_SECONDS),
-  upAir: clip(assets.ARCHER_AERIAL_UP_INDEX, assets.ARCHER_AERIAL_UP_SECONDS),
-  downAir: clip(assets.ARCHER_AERIAL_DOWN_INDEX, assets.ARCHER_AERIAL_DOWN_SECONDS),
-  getUpAttack: clip(assets.ARCHER_GET_UP_ATTACK_INDEX, assets.ARCHER_GET_UP_ATTACK_SECONDS),
-  ledgeHang: clip(assets.ARCHER_LEDGE_HANG_INDEX, assets.ARCHER_LEDGE_HANG_SECONDS),
-  ledgeClimb: clip(assets.ARCHER_LEDGE_CLIMB_INDEX, assets.ARCHER_LEDGE_CLIMB_SECONDS),
-  ledgeRoll: clip(assets.ARCHER_ROLL_FORWARD_INDEX, assets.ARCHER_ROLL_FORWARD_SECONDS),
-  ledgeAttack: clip(assets.ARCHER_GET_UP_ATTACK_INDEX, assets.ARCHER_GET_UP_ATTACK_SECONDS),
-  knockdown: clip(assets.ARCHER_KNOCKDOWN_INDEX, assets.ARCHER_KNOCKDOWN_SECONDS),
-  getUp: clip(assets.ARCHER_GET_UP_INDEX, assets.ARCHER_GET_UP_SECONDS),
-  downDamage: clip(assets.ARCHER_DOWN_DAMAGE_INDEX, assets.ARCHER_DOWN_DAMAGE_SECONDS),
-  rollForward: clip(assets.ARCHER_ROLL_FORWARD_INDEX, assets.ARCHER_ROLL_FORWARD_SECONDS),
-  rollBackward: clip(assets.ARCHER_ROLL_BACKWARD_INDEX, assets.ARCHER_ROLL_BACKWARD_SECONDS),
-  spotDodge: clip(assets.ARCHER_SPOT_DODGE_INDEX, assets.ARCHER_SPOT_DODGE_SECONDS),
-  jump: clip(assets.ARCHER_JUMP_INDEX, assets.ARCHER_JUMP_SECONDS),
-  doubleJump: clip(assets.ARCHER_DOUBLE_JUMP_INDEX, assets.ARCHER_DOUBLE_JUMP_SECONDS),
-  // The flip of her double jump kicks off a wall; a wall tech tucks into her forward roll.
-  wallJump: clip(assets.ARCHER_DOUBLE_JUMP_INDEX, assets.ARCHER_DOUBLE_JUMP_SECONDS),
-  wallTech: clip(assets.ARCHER_ROLL_FORWARD_INDEX, assets.ARCHER_ROLL_FORWARD_SECONDS),
-  fallSpecial: clip(assets.ARCHER_FALL_SPECIAL_INDEX, assets.ARCHER_FALL_SPECIAL_SECONDS),
-  damageGround: clip(assets.ARCHER_DAMAGE_GROUND_INDEX, assets.ARCHER_DAMAGE_GROUND_SECONDS),
-  damageAir: clip(assets.ARCHER_DAMAGE_AIR_INDEX, assets.ARCHER_DAMAGE_AIR_SECONDS),
-  damageTumble: clip(assets.ARCHER_DAMAGE_TUMBLE_INDEX, assets.ARCHER_DAMAGE_TUMBLE_SECONDS),
-  damageShield: clip(assets.ARCHER_DAMAGE_SHIELD_INDEX, assets.ARCHER_DAMAGE_SHIELD_SECONDS),
-  grabHold: clip(assets.ARCHER_GRAB_HOLD_INDEX, assets.ARCHER_GRAB_HOLD_SECONDS),
-  grabbed: clip(assets.ARCHER_GRABBED_INDEX, assets.ARCHER_GRABBED_SECONDS),
-  pummel: clip(assets.ARCHER_PUMMEL_INDEX, assets.ARCHER_PUMMEL_SECONDS),
-  throwForward: clip(assets.ARCHER_THROW_FORWARD_INDEX, assets.ARCHER_THROW_FORWARD_SECONDS),
-  throwBack: clip(assets.ARCHER_THROW_BACK_INDEX, assets.ARCHER_THROW_BACK_SECONDS),
-  throwUp: clip(assets.ARCHER_THROW_UP_INDEX, assets.ARCHER_THROW_UP_SECONDS),
-  throwDown: clip(assets.ARCHER_THROW_DOWN_INDEX, assets.ARCHER_THROW_DOWN_SECONDS),
-  victimPummel: clip(assets.ARCHER_VICTIM_PUMMEL_INDEX, assets.ARCHER_VICTIM_PUMMEL_SECONDS),
-  victimThrowForward: clip(assets.ARCHER_VICTIM_THROW_FORWARD_INDEX, assets.ARCHER_VICTIM_THROW_FORWARD_SECONDS),
-  victimThrowBack: clip(assets.ARCHER_VICTIM_THROW_BACK_INDEX, assets.ARCHER_VICTIM_THROW_BACK_SECONDS),
-  victimThrowUp: clip(assets.ARCHER_VICTIM_THROW_UP_INDEX, assets.ARCHER_VICTIM_THROW_UP_SECONDS),
-  victimThrowDown: clip(assets.ARCHER_VICTIM_THROW_DOWN_INDEX, assets.ARCHER_VICTIM_THROW_DOWN_SECONDS),
-};
 
 const RIFLEMAN_CLIPS: HeroClipTable = {
   jab: jabSlice({ index: assets.RIFLEMAN_JAB_INDEX }, f32(0.1)),
@@ -188,7 +134,6 @@ const DEMON_HUNTER_CLIPS: HeroClipTable = {
 };
 
 const ORIGINAL_CLIPS: { readonly [character: number]: HeroClipTable | undefined } = {
-  [Character.archer]: ARCHER_CLIPS,
   [Character.rifleman]: RIFLEMAN_CLIPS,
   [Character.demonHunter]: DEMON_HUNTER_CLIPS,
 };
@@ -366,10 +311,6 @@ const FEL_RUSH: GroundingClips = { grounded: clip(dh.DEMON_HUNTER_SPECIAL_SIDE_I
 const WING_ASCENT: GroundingClips = { grounded: clip(dh.DEMON_HUNTER_SPECIAL_UP_INDEX, dh.DEMON_HUNTER_SPECIAL_UP_SECONDS), air: clip(dh.DEMON_HUNTER_SPECIAL_UP_AIR_INDEX, dh.DEMON_HUNTER_SPECIAL_UP_AIR_SECONDS) };
 const IMMOLATE: GroundingClips = { grounded: clip(dh.DEMON_HUNTER_SPECIAL_DOWN_INDEX, dh.DEMON_HUNTER_SPECIAL_DOWN_SECONDS), air: clip(dh.DEMON_HUNTER_SPECIAL_DOWN_AIR_INDEX, dh.DEMON_HUNTER_SPECIAL_DOWN_AIR_SECONDS) };
 const RIFLEMAN_BLASTER: GroundingClips = { grounded: clip(assets.RIFLEMAN_SPECIAL_NEUTRAL_INDEX, assets.RIFLEMAN_SPECIAL_NEUTRAL_SECONDS), air: clip(assets.RIFLEMAN_SPECIAL_NEUTRAL_AIR_INDEX, assets.RIFLEMAN_SPECIAL_NEUTRAL_AIR_SECONDS) };
-const ARCHER_ARROW = clip(assets.ARCHER_SPECIAL_NEUTRAL_INDEX, assets.ARCHER_SPECIAL_NEUTRAL_SECONDS);
-const ARCHER_HOMING_ARROW = clip(assets.ARCHER_SPECIAL_SIDE_INDEX, assets.ARCHER_SPECIAL_SIDE_SECONDS);
-const ARCHER_DISENGAGE = clip(assets.ARCHER_SPECIAL_DOWN_INDEX, assets.ARCHER_SPECIAL_DOWN_SECONDS);
-const ARCHER_RECOVERY = clip(assets.ARCHER_SPECIAL_UP_INDEX, assets.ARCHER_SPECIAL_UP_SECONDS);
 // The stock Warcraft cast: he rocks back with a raised hand, then points the rifle
 // forward about when the bear appears (60% through, frame 24 of 42).
 const RIFLEMAN_BEAR = clip(assets.RIFLEMAN_SPELL_INDEX, assets.RIFLEMAN_SPELL_SECONDS);
@@ -401,10 +342,6 @@ export function specialClip(character: number, action: SpecialAction, grounded: 
     case SpecialAction.demonHunterFelRush: return byGrounding(FEL_RUSH, grounded);
     case SpecialAction.demonHunterWingAscent: return byGrounding(WING_ASCENT, grounded);
     case SpecialAction.demonHunterImmolate: return byGrounding(IMMOLATE, grounded);
-    case SpecialAction.archerArrow: return ARCHER_ARROW;
-    case SpecialAction.archerHomingArrow: return ARCHER_HOMING_ARROW;
-    case SpecialAction.archerDisengage: return ARCHER_DISENGAGE;
-    case SpecialAction.archerRecovery: return ARCHER_RECOVERY;
     case SpecialAction.riflemanBear: return RIFLEMAN_BEAR;
     case SpecialAction.riflemanTrap: return RIFLEMAN_TRAP;
     case SpecialAction.riflemanRecovery: return RIFLEMAN_RECOVERY;

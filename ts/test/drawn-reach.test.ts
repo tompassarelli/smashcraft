@@ -9,7 +9,7 @@ import { expect, test } from "bun:test";
 import { DRAWN_REACH } from "../scripts/wisp/drawnReachInfo";
 import { REACH_CHECKED } from "../scripts/wisp/drawnReach";
 import { DEMON_HUNTER_MODEL_FILE } from "../src/game/presentation/demonHunterAssetInfo";
-import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "../src/game/presentation/fighterAssetInfo";
+import { RIFLEMAN_MODEL_FILE } from "../src/game/presentation/fighterAssetInfo";
 import { attackPose, clipFor, ownAttackClip } from "../src/game/presentation/fighterClips";
 import { AttackStyle, Character } from "../src/game/sim/codes";
 import { heroDefinition } from "../src/game/sim/heroes/registry";
@@ -19,7 +19,7 @@ const SWING = 30;
 /** Frames the peak may sit before the first or after the last active frame. */
 const SLACK = 2;
 const MODELS: { readonly [character: number]: string } = {
-  [Character.archer]: ARCHER_MODEL_FILE, [Character.rifleman]: RIFLEMAN_MODEL_FILE, [Character.demonHunter]: DEMON_HUNTER_MODEL_FILE,
+  [Character.rifleman]: RIFLEMAN_MODEL_FILE, [Character.demonHunter]: DEMON_HUNTER_MODEL_FILE,
 };
 /** Named departures: the least swing a fighter's model can draw, and why. */
 const DEPARTURES: { readonly [character: number]: { readonly swing: number; readonly why: string } } = {};
@@ -54,5 +54,5 @@ test("every jab draws shorter than its fighter's forward tilt (#163) [spec #163]
   });
   expect(long).toEqual([]);
   // Every chain step is measured.
-  expect(DRAWN_REACH.filter((row) => JABS.includes(row.style)).length).toBeGreaterThanOrEqual(2 * 12);
+  expect(DRAWN_REACH.filter((row) => JABS.includes(row.style)).length).toBeGreaterThanOrEqual(2 * 11);
 });

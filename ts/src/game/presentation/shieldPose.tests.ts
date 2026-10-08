@@ -9,7 +9,7 @@ import { createRoster } from "../sim/roster";
 import { projectedShield } from "./shieldPose";
 
 test("the shield follows its energy and hides on release, KO and outside play [spec docs/design/melee/defense.md]", () => {
-  const fighter = createFighter(Character.archer, 83.0, 1);
+  const fighter = createFighter(Character.rifleman, 83.0, 1);
   assertFalse(projectedShield(fighter, true).visible);
   fighter.shield.raised = true;
   fighter.motion.z = 27.0;
@@ -35,7 +35,7 @@ test("the shield follows its energy and hides on release, KO and outside play [s
 
 test("a corrected shield projects the restored state of a sparse participant [invariant]", () => {
   const world = createRoster(9);
-  world.fighters[0] = createFighter(Character.archer, -100.0, 1);
+  world.fighters[0] = createFighter(Character.rifleman, -100.0, 1);
   const fighter = createFighter(Character.demonHunter, 100.0, -1);
   world.fighters[3] = fighter;
   const game = createMatchState();
@@ -69,7 +69,7 @@ test("a corrected shield projects the restored state of a sparse participant [in
 });
 
 test("shield contact pulses through freeze and stun and returns to its held bubble [spec #82]", () => {
-  const fighter = createFighter(Character.archer, 83.0, 1);
+  const fighter = createFighter(Character.rifleman, 83.0, 1);
   fighter.shield.raised = true;
   const held = projectedShield(fighter, true);
   fighter.shield.stun = 5;

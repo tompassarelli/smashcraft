@@ -57,7 +57,7 @@ Charge punishes a predicted retreat, while Howl creates room after the
 opponent gets inside. The existing down tilt, up tilt and up throw remain
 launchers into reads and tech chases. No new guaranteed string is designed.
 
-Compared with Archer and Rifleman he commits to a falling lane rather than
+Compared with Rifleman he commits to a falling lane rather than
 firing fast horizontal shots; compared with Illidan, Blademaster and Warden
 he trades pursuit for space. Mountain King and Forsaken Paladin are compact brawlers;
 Pit Lord exposes a much larger target. Lich and Shadow Hunter can sustain

@@ -111,8 +111,8 @@ interface CardFrames {
   readonly settings: framehandle;
 }
 
-const portraitTexture = (choice: number | undefined, tile: boolean, slot?: number) => fighterPortrait(choice ?? Character.archer, tile ? "Tile" : "Card", slot);
-const nameText = (choice: number | undefined) => fighterName(choice ?? Character.archer);
+const portraitTexture = (choice: number | undefined, tile: boolean, slot?: number) => fighterPortrait(choice ?? Character.rifleman, tile ? "Tile" : "Card", slot);
+const nameText = (choice: number | undefined) => fighterName(choice ?? Character.rifleman);
 
 function art(parent: framehandle, name: string, texture: string, x: number, y: number, width: number, height: number): framehandle {
   const frame = createBackdrop(name, parent, 0);
@@ -143,7 +143,7 @@ function hotspot(parent: framehandle, x: number, y: number, width: number, heigh
 }
 
 /** Roster tiles are positions in the selectable fighters; a fighter chosen by tile is that character. */
-const characterOfTile = (tile: RosterTile): number => PLAYABLE_CHARACTERS[tile] ?? Character.archer;
+const characterOfTile = (tile: RosterTile): number => PLAYABLE_CHARACTERS[tile] ?? Character.rifleman;
 function tileOfCharacter(character: number): RosterTile {
   for (let tile = 0; tile < PLAYABLE_CHARACTERS.length; tile++) if (PLAYABLE_CHARACTERS[tile] === character) return tile;
   return 0;
@@ -171,7 +171,7 @@ export class SelectionPanel {
   private settingsOpen = false;
   /** The Moves page: presentation only, opened and paged by the owner's clicks; the fighter it shows. */
   private movesOpen = false;
-  private movesCharacter: number = Character.archer;
+  private movesCharacter: number = Character.rifleman;
   private shownMoves = -1;
   private readonly movesFrames: readonly framehandle[];
   private readonly movesTitle: framehandle;
@@ -254,7 +254,7 @@ export class SelectionPanel {
       const mode = this.clicks.add(hotspot(root, x + f32(0.014), f32(0.27), f32(0.132), f32(0.027)), { kind: "mode", slot });
       BlzFrameSetLevel(mode, 1);
       BlzFrameSetLevel(tag, 2);
-      const portrait = art(root, `MeleePortrait${name}`, portraitTexture(Character.archer, false, slot), x + f32(0.029), f32(0.245), f32(0.102), f32(0.102));
+      const portrait = art(root, `MeleePortrait${name}`, portraitTexture(Character.demonHunter, false, slot), x + f32(0.029), f32(0.245), f32(0.102), f32(0.102));
       const name_ = label(root, `MeleeName${name}`, x + f32(0.008), f32(0.102), f32(0.144), f32(0.019), f32(0.011));
       const status = label(root, `MeleeStatus${name}`, x + f32(0.014), f32(0.077), f32(0.132), f32(0.014), f32(0.011));
       const chip = art(root, `MeleeChip${name}`, `war3mapImported\\SelectionChipP${I2S(slot + 1)}.tga`, x + f32(0.06), f32(0.2), f32(0.04), f32(0.04));
@@ -533,7 +533,7 @@ export class SelectionPanel {
       return true;
     }
     if (action === Action.attack && this.menuFocus !== undefined) {
-      const choice = characterFor(game, target.slot) ?? Character.archer;
+      const choice = characterFor(game, target.slot) ?? Character.rifleman;
       if (target.slot === this.participantId) this.actions.selectChoice(this.participantId, choice);
       else this.actions.selectCpuChoice(this.participantId, target.slot, choice);
       return true;
@@ -674,7 +674,7 @@ export class SelectionPanel {
       for (const slot of PARTICIPANT_SLOTS) {
         const chip = this.chips[slot];
         if (chip !== undefined) {
-          chip.choice = tileOfCharacter(characterFor(game, slot) ?? Character.archer);
+          chip.choice = tileOfCharacter(characterFor(game, slot) ?? Character.rifleman);
           chip.placed = characterReady(game, slot);
         }
         if ((slot === participantId && humanFighterActive(game, slot)) || canChooseComputer(game, participantId, slot)) selectable |= 1 << slot;
@@ -712,7 +712,7 @@ export class SelectionPanel {
       BlzFrameSetVisible(frames.chip, active);
       BlzFrameSetTexture(frames.chip, `war3mapImported\\SelectionChip${human ? `P${I2S(slot + 1)}` : "CPU"}.tga`, 0, true);
       const carried = drag.dragging === slot || (!ready && drag.held === slot && drag.hover !== undefined);
-      const chipChoice = tileOfCharacter(choice ?? Character.archer);
+      const chipChoice = tileOfCharacter(choice ?? Character.rifleman);
       BlzFrameSetSize(frames.chip, ready ? f32(0.032) * this.roster.grid.scale : f32(0.04), ready ? f32(0.032) * this.roster.grid.scale : f32(0.04));
       placeTopLeft(
         frames.chip,
@@ -727,7 +727,7 @@ export class SelectionPanel {
   /** Opens on the owner's chosen fighter. */
   private openMoves(): void {
     const game = this.game;
-    this.movesCharacter = (game === undefined ? undefined : characterFor(game, this.participantId)) ?? Character.archer;
+    this.movesCharacter = (game === undefined ? undefined : characterFor(game, this.participantId)) ?? Character.rifleman;
     this.movesOpen = true;
   }
 
@@ -743,7 +743,7 @@ export class SelectionPanel {
   private showRules(game: Readonly<MatchState>): void {
     const { stockCount, timeLimitMinutes, endless, automaticRematch, training, trainer, items, classic, classicTier, lore, loreBattle: battle } = game;
     const clears = loreClears();
-    const fighter = characterFor(game, this.participantId) ?? Character.archer;
+    const fighter = characterFor(game, this.participantId) ?? Character.rifleman;
     const rules = `${lore ? "1" : "0"} ${I2S(battle)} ${I2S(clears.count())} ${classic ? "1" : "0"} ${I2S(classicTier)} ${I2S(fighter)} ${I2S(stockCount)} ${I2S(timeLimitMinutes)} ${endless ? "1" : "0"} ${automaticRematch ? "1" : "0"} ${training ? "1" : "0"} ${I2S(trainer.behaviour)} ${I2S(trainer.escape)} ${I2S(trainer.tech)} ${I2S(trainer.damage)} ${trainer.showHitAreas ? "1" : "0"} ${I2S(trainer.speed)} ${items.on ? "1" : "0"} ${I2S(items.enabledMask)} ${I2S(trainer.lesson)}`;
     if (rules === this.shownRules) return;
     this.shownRules = rules;

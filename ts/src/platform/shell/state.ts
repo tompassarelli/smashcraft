@@ -327,7 +327,7 @@ function participant(slot: ParticipantSlot, persistence: BindingPersistence): Pa
 
 /** Four fighters in stable slots, which each epoch's seed overwrites before any frame runs. */
 function speculativeRoster(): Roster {
-  return createRoster(3, PARTICIPANT_SLOTS.map(slot => createFighter(slot === 3 ? 0 : slot, matchSpawnX(slot), slot === 0 || slot === 2 ? 1 : -1)));
+  return createRoster(3, PARTICIPANT_SLOTS.map(slot => createFighter(slot === 0 ? 1 : slot === 1 ? 2 : slot === 2 ? 3 : 5, matchSpawnX(slot), slot === 0 || slot === 2 ? 1 : -1)));
 }
 
 function journal(ingress: JournalIngress, editbox: EditboxIngress | undefined): Journal {

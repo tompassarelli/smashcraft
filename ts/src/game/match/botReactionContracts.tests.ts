@@ -22,7 +22,7 @@ import { sweep } from "../../runtime/sweep";
 const SURPRISE_FRAME = 50;
 
 function setup(opponent: CpuOpponentId = "wren", tier: CpuTier = "expert") {
-  const own = createFighter(Character.archer, -150.0, 1);
+  const own = createFighter(Character.rifleman, -150.0, 1);
   const target = createFighter(Character.rifleman, 150.0, -1);
   const world = createRoster(3, [own, target]);
   const game = createMatchState();
@@ -124,10 +124,8 @@ sweep("150 surprise-action traces: no computer input responds before its authore
   assertEquals(early, 0);
 });
 
-// Wren Expert's authored idle stretch for this slot and fighter covers frames 60-89, during
-// which it stands still whatever it perceives; this response window precedes it. Its spacing
-// gameplan keeps the same stick direction on either side, so any changed input counts.
-const RESPONSE_SURPRISE_FRAME = 35;
+// The response precedes Rifleman's idle stretch and falls after his direction hold expires.
+const RESPONSE_SURPRISE_FRAME = 39;
 
 test("Wren Expert first responds on frame 12 after a surprise side change [spec #176]", () => {
   const changed = setup();

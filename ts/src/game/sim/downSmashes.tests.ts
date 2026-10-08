@@ -68,6 +68,6 @@ for (const character of SELECTABLE_CHARACTERS) {
     checkDownSmash(character, [Character.rifleman], [40.0], [1]);
   });
   sweep(`${fighterName(character)} down smash gives floor defense at 20/40/60 percent in both facings against three bodies [spec #208]`, () => {
-    checkDownSmash(character, [Character.archer, Character.rifleman, Character.pitLord], [20.0, 40.0, 60.0], [-1, 1]);
+    checkDownSmash(character, [Character.demonHunter, Character.rifleman, Character.pitLord], [20.0, 40.0, 60.0], [-1, 1]);
   });
 }

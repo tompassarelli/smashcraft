@@ -13,7 +13,7 @@ const project = resolve(import.meta.dir, "../..");
 ensure(input && output && relative(project, output).startsWith(".."), "usage: bun tools/animations/dreadlord-pounce-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT");
 mkdirSync(output, { recursive: true });
 cpSync(join(input, "hero-models"), join(output, "hero-models"), { recursive: true, dereference: true });
-const fighter = fighters[Character.dreadlord]; ensure(fighter, "Dreadlord missing");
+const fighter = fighters.get(Character.dreadlord)!; ensure(fighter, "Dreadlord missing");
 const source = parseSource(await Bun.file(join(input, fighter.source)).arrayBuffer());
 ensure(!source.Helpers.some(n => n.Name === "Pounce Motion"), "Pounce already authored");
 const model = structuredClone(source), stand = source.Sequences[1]; ensure(stand, "Stand Ready missing");

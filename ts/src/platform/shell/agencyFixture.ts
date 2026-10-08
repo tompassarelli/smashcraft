@@ -12,12 +12,11 @@ import { writeLines } from "wisp/src/platform/fileio";
 export function startAgencyFixture(s: ShellState, message: string): string | undefined {
   const words = message.split(" ");
   if (words.length !== 4 || words[0] !== "-dev" || words[1] !== "agency") return undefined;
-  const character = words[2] === "archer" ? Character.archer
-    : words[2] === "rifleman" ? Character.rifleman
+  const character =  words[2] === "rifleman" ? Character.rifleman
     : words[2] === "illidan" ? Character.demonHunter : undefined;
   const scenario = words[3] === "none" ? "agency-none" : words[3] === "di" ? "agency-di"
     : words[3] === "act" ? "agency-act" : words[3] === "thaw" ? "agency-thaw" : undefined;
-  if (character === undefined || scenario === undefined) return "dev: agency needs archer, rifleman or illidan, then none, di, act or thaw";
+  if (character === undefined || scenario === undefined) return "dev: agency needs rifleman or illidan, then none, di, act or thaw";
   if (s.game.phase !== Phase.match) return "dev: start a quick match before agency";
   for (const slot of PARTICIPANT_SLOTS) s.game.characterChoices[slot] = character;
   startMatch(s, scenario);

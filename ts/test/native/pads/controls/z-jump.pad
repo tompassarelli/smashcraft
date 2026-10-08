@@ -1,5 +1,5 @@
 # #202: run with WC3_PAD_PRESET=z-jump and the preset-aware journal helper.
-#! chat -dev quick hero archer
+#! chat -dev quick hero rifleman
 # Releasing RB during the jump squat selects the short-hop takeoff.
 60 a tap RB 2
 # Full stick with Tilt held produces a forward tilt without starting a dash.
@@ -8,7 +8,7 @@
 180 a tap A 2
 186 a stick 0 0
 187 a release LB
-# The second Archer approaches for an ordinary standing grab on B.
+# The second Rifleman approaches for an ordinary standing grab on B.
 240 b stick -1 0
 260 b stick 0 0
 350 a tap B 2

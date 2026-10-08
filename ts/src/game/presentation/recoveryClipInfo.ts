@@ -3,17 +3,6 @@ import { f32 } from "wisp/src/sim/f32";
 import { type HeroClipTable } from "../sim/heroes/hero";
 
 export const RECOVERY_CLIPS = {
-  0: {
-    turn: { index: 58, seconds: f32(0.133) },
-    stop: { index: 59, seconds: f32(0.133) },
-    jumpSquat: { index: 60, seconds: f32(0.05) },
-    airDodge: { index: 61, seconds: f32(0.817) },
-    tech: { index: 62, seconds: f32(0.433) },
-    techForward: { index: 63, seconds: f32(0.667) },
-    techBackward: { index: 64, seconds: f32(0.667) },
-    getUpRollForward: { index: 65, seconds: f32(0.583) },
-    getUpRollBackward: { index: 66, seconds: f32(0.583) },
-  },
   1: {
     turn: { index: 55, seconds: f32(0.133) },
     stop: { index: 56, seconds: f32(0.133) },

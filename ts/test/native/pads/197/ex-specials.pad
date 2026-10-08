@@ -1,5 +1,5 @@
 # #197: both human players spend mana on EX neutral and side specials.
-#! chat -dev quick hero archer
+#! chat -dev quick hero rifleman
 60 a shield 1
 60 a tap X 2
 63 a shield 0

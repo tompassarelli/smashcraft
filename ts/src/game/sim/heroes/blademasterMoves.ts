@@ -7,7 +7,7 @@ import { BLADEMASTER_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 import { drillStrikes, linkAt, multiHit } from "./multiHit";
 
-// smashcraft:docs/design/roster.md uses Archer's standing outer capsule height.
+// smashcraft:docs/design/roster.md uses the reference body's standing outer capsule height.
 export const H = HERO_REFERENCE_HEIGHT;
 export const length = (heights: number) => f32(H * heights);
 export const S = length(f32(0.55));
@@ -126,7 +126,7 @@ function authoredThrow(releaseFrame: number, recovery: number, damage: number, k
   return { contactFrame: releaseFrame, totalFrames: releaseFrame + recovery, effect: hit(damage, kind, angle, facing) };
 }
 
-// The body is Archer's capsule at the roster's 1.05 height. The sword arm
+// The body is the reference body's capsule at the roster's 1.05 height. The sword arm
 // reaches toward each strike from late startup into early recovery, so a
 // whiff is punishable at the hand; the blade past the hand is the disjoint.
 // Hand positions follow the stock model's Attack, Attack 2 and Stand - 4

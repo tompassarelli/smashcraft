@@ -31,11 +31,11 @@ export interface TapeWorld {
 }
 
 /**
- * Two fighters in a running match without a time limit, by default an archer
+ * Two fighters in a running match without a time limit, by default an reference
  * at 0 facing right and a rifleman at 100 facing left. Their command buffers
  * keep four grace frames.
  */
-export function createTapeWorld({ stocks, humans = 1, first = createFighter(Character.archer, 0.0, 1), second = createFighter(Character.rifleman, 100.0, -1) }: TapeWorldOptions): TapeWorld {
+export function createTapeWorld({ stocks, humans = 1, first = createFighter(Character.demonHunter, 0.0, 1), second = createFighter(Character.rifleman, 100.0, -1) }: TapeWorldOptions): TapeWorld {
   const match = createMatchState();
   setHumanCount(match, humans);
   match.phase = Phase.match;

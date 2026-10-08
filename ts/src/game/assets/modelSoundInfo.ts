@@ -10,7 +10,6 @@ export interface ModelSoundCue {
 
 /** Stock sound labels by sound index; each owns its variants, pitch, channel and attenuation. */
 const LABELS: readonly string[] = [
-  "ArcherDeath",
   "RiflemanDeath",
   "RiflemanAttack1",
   "HeroDemonHunterAttack1",
@@ -34,34 +33,27 @@ const IS_3D: readonly boolean[] = [
   true,
   true,
   true,
-  true,
 ];
 
 /** Each character's cues, ordered as authored. */
-const CUES: readonly (readonly ModelSoundCue[])[] = [
-  // Archer
-  [
-    { sequenceIndex: 12, seconds: 0.0, soundIndex: 0 },
+const CUES: Readonly<Record<number, (readonly ModelSoundCue[])>> = {
+  1: [
+    { sequenceIndex: 5, seconds: f32(0.167), soundIndex: 1 },
+    { sequenceIndex: 11, seconds: 0.0, soundIndex: 0 },
   ],
-  // Rifleman
-  [
-    { sequenceIndex: 5, seconds: f32(0.167), soundIndex: 2 },
-    { sequenceIndex: 11, seconds: 0.0, soundIndex: 1 },
+  2: [
+    { sequenceIndex: 6, seconds: 0.0, soundIndex: 2 },
+    { sequenceIndex: 7, seconds: 0.0, soundIndex: 3 },
+    { sequenceIndex: 18, seconds: 0.0, soundIndex: 4 },
+    { sequenceIndex: 19, seconds: 0.0, soundIndex: 6 },
+    { sequenceIndex: 20, seconds: 0.0, soundIndex: 7 },
+    { sequenceIndex: 21, seconds: 0.0, soundIndex: 7 },
+    { sequenceIndex: 58, seconds: 0.0, soundIndex: 5 },
+    { sequenceIndex: 59, seconds: 0.0, soundIndex: 5 },
+    { sequenceIndex: 108, seconds: f32(0.133), soundIndex: 8 },
+    { sequenceIndex: 108, seconds: 0.5, soundIndex: 9 },
   ],
-  // Illidan
-  [
-    { sequenceIndex: 6, seconds: 0.0, soundIndex: 3 },
-    { sequenceIndex: 7, seconds: 0.0, soundIndex: 4 },
-    { sequenceIndex: 18, seconds: 0.0, soundIndex: 5 },
-    { sequenceIndex: 19, seconds: 0.0, soundIndex: 7 },
-    { sequenceIndex: 20, seconds: 0.0, soundIndex: 8 },
-    { sequenceIndex: 21, seconds: 0.0, soundIndex: 8 },
-    { sequenceIndex: 58, seconds: 0.0, soundIndex: 6 },
-    { sequenceIndex: 59, seconds: 0.0, soundIndex: 6 },
-    { sequenceIndex: 108, seconds: f32(0.133), soundIndex: 9 },
-    { sequenceIndex: 108, seconds: 0.5, soundIndex: 10 },
-  ],
-];
+};
 
 /** The stock sound label, which owns its variants, pitch, channel and attenuation. */
 export function modelSoundLabel(soundIndex: number): string | undefined {

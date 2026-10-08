@@ -11,7 +11,7 @@ import { encodeVerified, ensure, fighters, onGlobalClock, parseSource, tracks } 
 const [input, output] = process.argv.slice(2).map(p => resolve(p));
 const project = resolve(import.meta.dir, "../..");
 ensure(input && output && relative(project, output).startsWith(".."), "usage: bun tools/animations/blademaster-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT");
-const fighter = fighters[Character.blademaster]; ensure(fighter, "missing Blademaster");
+const fighter = fighters.get(Character.blademaster)!; ensure(fighter, "missing Blademaster");
 const source = parseSource(await Bun.file(join(input, fighter.source)).arrayBuffer());
 ensure(!source.Sequences.some(s => s.Name.startsWith("Sword Gesture ")), "Blademaster gestures already authored");
 const model = structuredClone(source), hero = heroDefinition(Character.blademaster); ensure(hero, "missing moves");

@@ -56,12 +56,12 @@ const FALCO: ReferenceFighter = {
   dashInitialVelocity: 1.899999976158142, runVelocity: 1.5, walkVelocity: 1.399999976158142,
 };
 
-/** Archer and Rifleman borrow Fox's and Falco's movement data; Illidan's is authored. */
+/** reference and Rifleman borrow Fox's and Falco's movement data; Illidan's is authored. */
 function referenceFighter(character: Character): ReferenceFighter | undefined {
-  return character === Character.archer ? FOX : character === Character.rifleman ? FALCO : undefined;
+  return character === Character.rifleman ? FALCO : undefined;
 }
 
-/** Ledge snap data, ftData x44 +0x10/+0x14/+0x18 (Melee units): Archer = Fox, Rifleman = Falco, Illidan = Captain Falcon. */
+/** Ledge snap data, ftData x44 +0x10/+0x14/+0x18 (Melee units): reference = Fox, Rifleman = Falco, Illidan = Captain Falcon. */
 function ledgeSnap(character: Character): { readonly x: number; readonly y: number; readonly height: number } {
   return character === Character.demonHunter ? { x: 9.0, y: 17.0, height: 11.0 } : { x: 11.0, y: 13.0, height: 9.0 };
 }
@@ -138,7 +138,6 @@ interface Scenario {
 }
 
 const FIGHTERS = [
-  { character: Character.archer, name: "Archer" },
   { character: Character.rifleman, name: "Rifleman" },
   { character: Character.demonHunter, name: "Illidan" },
 ] as const;
@@ -815,7 +814,6 @@ function sideCheck(character: Character, depth: number): Check {
  * x 0.96, Falco 12.5 x 1.1, Captain Falcon (Illidan) 19.3585 x 0.97.
  */
 function referenceEcbTop(character: Character): number {
-  if (character === Character.archer) return 11.15999984741211;
   if (character === Character.rifleman) return 13.75;
   return 18.777746200561523;
 }
@@ -887,16 +885,15 @@ function surfaceTech(character: Character, wall: boolean, early: number): string
 /**
  * Wall data, Melee units a frame: ftCo_DatAttrs +0x100 passivewall_vel_x and
  * +0x104/+0x108 wall jump launch from the retail PlFx/PlFc/PlCa.dat
- * (physics-parameters.json). Archer = Fox, Rifleman = Falco, Illidan =
+ * (physics-parameters.json). reference = Fox, Rifleman = Falco, Illidan =
  * Captain Falcon; all three set can_walljump.
  */
 function referenceWall(character: Character): { readonly pushOff: number; readonly jumpX: number; readonly jumpZ: number } {
-  if (character === Character.archer) return { pushOff: 0.5, jumpX: 1.399999976158142, jumpZ: 3.299999952316284 };
   if (character === Character.rifleman) return { pushOff: 0.5, jumpX: 1.2999999523162842, jumpZ: 3.5999999046325684 };
   return { pushOff: 0.5, jumpX: 1.399999976158142, jumpZ: 3.0999999046325684 };
 }
 
-/** The fighter's own air friction and gravity in Melee units: Fox's and Falco's for Archer and Rifleman, Illidan's authored ones. */
+/** The fighter's own air friction and gravity in Melee units: Fox's and Falco's for reference and Rifleman, Illidan's authored ones. */
 function airDrag(character: Character): { readonly friction: number; readonly gravity: number } {
   const { airFriction, gravity } = createFighter(character, 0.0, 1).tuning.physics;
   return { friction: f32(melee(airFriction)), gravity: f32(melee(gravity)) };

@@ -42,7 +42,7 @@ const SHOT_LOW = -5.0;
 const SHOT_HIGH = 60.0;
 /** A misplayed move is thrown only at a target this close. */
 const MISPLAY_GAP = 350.0;
-/** Archer's Disengage hops him about this far back. */
+/** the reference body's Disengage hops him about this far back. */
 const DISENGAGE_ROOM = 420.0;
 /** A spacing tool is thrown as a wall at most this far past its reach: a step the target takes into it. */
 const SPACING_STEP = 30.0;
@@ -178,9 +178,6 @@ function specialAction(character: Character, option: number): SpecialAction {
     default:
       return option === UP_SPECIAL ? SpecialAction.heroUp : option === DOWN_SPECIAL ? SpecialAction.heroDown
         : option === SIDE_SPECIAL ? SpecialAction.heroSide : SpecialAction.heroNeutral;
-    case Character.archer:
-      return option === UP_SPECIAL ? SpecialAction.archerRecovery : option === DOWN_SPECIAL ? SpecialAction.archerDisengage
-        : option === SIDE_SPECIAL ? SpecialAction.archerHomingArrow : SpecialAction.archerArrow;
     case Character.rifleman:
       return option === DOWN_SPECIAL ? SpecialAction.riflemanTrap : option === UP_SPECIAL ? SpecialAction.riflemanRecovery
         : option === SIDE_SPECIAL ? SpecialAction.riflemanBear : SpecialAction.riflemanBlaster;
@@ -208,7 +205,7 @@ function addHeroSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage:
   return added;
 }
 
-/** Appends the specials that strike from range: shots, Archer's homing arrow, the Rifleman's bear, a hero's projectiles. */
+/** Appends the specials that strike from range: shots, the reference body's homing arrow, the Rifleman's bear, a hero's projectiles. */
 function addShots(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, count: number, observationAge: number): number {
   if (f.tuning.specials !== undefined) return addHeroSpecials(f, target, stage, HeroSpecialUse.ranged, count, observationAge);
   const { motion } = f;
@@ -221,8 +218,6 @@ function addShots(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number
     options[added++] = NEUTRAL_SPECIAL;
   }
   const plan = gameplanOf(f.character);
-  if (f.character === Character.archer && plan !== undefined && spacedAt(plan, SIDE_SPECIAL, distance)
-    && Math.abs(dz) <= 120 && specialReady(f, SIDE_SPECIAL)) options[added++] = SIDE_SPECIAL;
   if (f.character === Character.rifleman && motion.grounded && target.motion.grounded && f.bear.life <= 0 && distance >= 80 && distance <= 450
     && Math.abs(dz) <= 60 && specialReady(f, SIDE_SPECIAL)) options[added++] = SIDE_SPECIAL;
   return added;
@@ -237,17 +232,13 @@ function addCloseSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage
   const distance = Math.abs(dx);
   const facing = dx === 0 ? f.facing : dx > 0 ? 1 : -1;
   let added = count;
-  // Archer's mount and Illidan's ascent strike nothing: they chase a target high overhead from the middle of the deck.
+  // the reference body's mount and Illidan's ascent strike nothing: they chase a target high overhead from the middle of the deck.
   const overhead = motion.grounded && dz >= 150 && dz <= 500 && distance <= 150 && safeAt(stage, motion.x, 200.0);
   if (overhead && f.character !== Character.rifleman && specialReady(f, UP_SPECIAL)) {
     options[added++] = UP_SPECIAL;
     options[added++] = UP_SPECIAL;
   }
   switch (f.character) {
-    case Character.archer:
-      if (motion.grounded && facing === f.facing && distance <= 260 && Math.abs(dz) <= 90 && safeAt(stage, f32(motion.x - f32(f.facing * DISENGAGE_ROOM)), 0.0)
-        && specialReady(f, DOWN_SPECIAL)) options[added++] = DOWN_SPECIAL;
-      break;
     case Character.rifleman: {
       if (motion.grounded && target.motion.grounded && target.motion.surface === motion.surface && f.freezeTrap.life <= 0 && f.freezeTrap.cooldown <= 0
         && distance >= 50 && distance <= 260 && specialReady(f, DOWN_SPECIAL)) options[added++] = DOWN_SPECIAL;

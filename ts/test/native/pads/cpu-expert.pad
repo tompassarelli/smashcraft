@@ -1,4 +1,4 @@
-# #134 CPU tiers by parity: a Wren Expert computer (slot c, Illidan) against two humans, Archer a and
+# #134 CPU tiers by parity: a Wren Expert computer (slot c, Illidan) against two humans, Rifleman a and
 # Rifleman b, over three stocks. a shields for two seconds, then both stand, jump and walk off,
 # so the computer must break a shield, chase and punish; syntax: smashcraft:docs/native-bot-session.md.
 #! chat -dev quick cpu wren expert

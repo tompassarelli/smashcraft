@@ -89,7 +89,7 @@ test("trainingIsARuleAtFighterSelectionWithNoClockOrLostStocks [spec #120]", () 
   assertTrue(keepsStocks(game));
   setTraining(game, 0, false);
   assertTrue(game.training);
-  const world = createRoster(3, [createFighter(0, 0, 1), createFighter(1, 0, -1)]);
+  const world = createRoster(3, [createFighter(1, 0, 1), createFighter(1, 0, -1)]);
   fighterAt(world, 1).status.stocks = 0;
   resolveStocks(game, world);
   assertEquals(game.phase, Phase.match);

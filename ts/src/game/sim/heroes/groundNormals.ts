@@ -280,18 +280,6 @@ export const SHADOW_HUNTER_GROUND: GroundKit = {
   },
 };
 
-// Archer keeps the original tables' jab and tilts (moves.ts, hitRegions.ts): a
-// frame-5 jab and a forward tilt with an early tip, already unlike every kit.
-// Her own move is the sliding kick that pops the victim up into her up air.
-const ARCHER = HitElement.normal;
-export const ARCHER_GROUND: GroundKit = {
-  normals: {
-    [AttackStyle.jab2]: heroMove(4, 3, 16, 0, swing(4, [[16.0, 30.0, 96.0, 26.0], [16.0, 28.0, 100.0, 22.0], [16.0, 26.0, 94.0, 20.0]], 10.0, groundHit(5.0, 40, 95.0, 22.0, ARCHER))),
-    [AttackStyle.dashAttack]: heroMove(9, 4, 20, 0, [held(9, 12, [14.0, 14.0, 90.0, 10.0], 10.0, groundHit(6.0, 70, 55.0, 38.0, ARCHER))], 99.0, true),
-  },
-  reaches: {},
-};
-
 // Rifleman: the rifle as a club and a bayonet. A thrust that angles, an
 // overhead swing, a low sweep that pops the victim straight up (Falco's 1.3
 // ratio over the old shared down tilt), and a lunge.

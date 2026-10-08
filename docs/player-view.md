@@ -16,11 +16,11 @@ manifest beside the private captures. `WC3_TEXTURES` remains an explicit overrid
 omit it when the comparison must use the selected installation's textures.
 
 `--journey FILE` replaces the default quick match with capture inputs:
-`{"frames":210,"events":[{"frame":30,"player":0,"chat":"-dev quick hero archer"}]}`.
+`{"frames":210,"events":[{"frame":30,"player":0,"chat":"-dev quick hero rifleman"}]}`.
 Events use Wisp journey chat, key and reload records, in frame order. Keys
 may include `down: true` or `down: false` to hold or release an input.
 Use the same source revision, fighter, inputs and camera as a native capture.
-The existing `test/native/pads/171/` scripts cover Archer, Rifleman, Illidan,
+The existing `test/native/pads/171/` scripts cover Rifleman, Illidan,
 Blademaster and Warden at frame 132 (walk) and 169 (run); their `*-cues.pad`
 scripts supply strike, special and passive examples. Illidan has no passive;
 his Immolation is a special example. These names alone are capture locations,

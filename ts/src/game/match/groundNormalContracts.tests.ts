@@ -23,12 +23,12 @@ import { stepMatch } from "./step";
 
 /** Fighters whose ground normals tilts.md designs; Illidan's belong to his own kit. */
 const DESIGNED: readonly Character[] = [
-  Character.archer, Character.rifleman, Character.blademaster, Character.mountainKing, Character.warden, Character.lich, Character.forsakenPaladin, Character.dreadlord, Character.shadowHunter,
+  Character.rifleman, Character.blademaster, Character.mountainKing, Character.warden, Character.lich, Character.forsakenPaladin, Character.dreadlord, Character.shadowHunter,
   Character.pitLord, Character.beastmaster,
 ];
 const GROUND = [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack] as const;
 /** Forward airs that outreach the forward tilt on purpose (tilts.md, "Reach versus aerials"). */
-const LONGER_AERIAL: readonly Character[] = [Character.lich, Character.dreadlord, Character.archer];
+const LONGER_AERIAL: readonly Character[] = [Character.lich, Character.dreadlord];
 /** Forward tilts that sweep vertical ground, so a diagonal input plays the plain tilt. */
 const UNANGLED: readonly Character[] = [Character.blademaster, Character.forsakenPaladin, Character.pitLord];
 
@@ -136,7 +136,7 @@ test("a diagonal tilt angles a straight strike and plays a vertical swing's plai
       assertEquals(moves?.normals[AttackStyle.forwardTiltUp] === plainMove && moves?.normals[AttackStyle.forwardTiltDown] === plainMove, true, `${fighterName(character)} angles a vertical swing`);
       continue;
     }
-    // Archer's angles come from the original tables, the others from their kits.
+    // Rifleman's angles come from the original tables, the others from their kits.
     const [plain, raised, lowered] = [timing(AttackStyle.forwardTilt), timing(AttackStyle.forwardTiltUp), timing(AttackStyle.forwardTiltDown)];
     // Same timing and damage; the volume moves and the launch follows it.
     const at = (style: AttackStyle) => {
@@ -312,8 +312,8 @@ test("Rifleman's down tilt pops the victim straight up at 0% without a tumble, a
   }
 });
 
-test("Archer's and Rifleman's dashing jab is a dash attack: her sliding kick pops up, his lunge reaches farther [spec docs/design/tilts.md]", () => {
-  const kick = duel(Character.archer, 160.0);
+test("Rifleman's dashing jab is a dash attack: his lunge pops up and reaches farther than his jab [spec docs/design/tilts.md]", () => {
+  const kick = duel(Character.rifleman, 160.0);
   press(kick, AttackStyle.dashAttack);
   let rose = false;
   for (let i = 0; i < 20; i++) {
@@ -322,7 +322,7 @@ test("Archer's and Rifleman's dashing jab is a dash attack: her sliding kick pop
   }
   assertGreaterThan(target(kick).status.damage, 0.0);
   assertTrue(rose);
-  assertGreaterThan(forwardReach(Character.rifleman, AttackStyle.dashAttack), forwardReach(Character.archer, AttackStyle.dashAttack));
+  assertGreaterThan(forwardReach(Character.rifleman, AttackStyle.dashAttack), forwardReach(Character.rifleman, AttackStyle.jab));
 });
 
 test("Pit Lord's down tilt sends an airborne fighter at his front low and outward, below the horizontal [spec docs/design/tilts.md]", () => {

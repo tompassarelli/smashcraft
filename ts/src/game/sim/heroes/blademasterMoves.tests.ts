@@ -3,6 +3,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, GrabAction } from "../codes";
 import { type Fighter, createFighter } from "../fighter";
+import { createReferenceContactFighter } from "../referenceRig";
 import { SHARED_GRAB_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
 import { attackStartupFrames, characterAttackActiveFrames } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
@@ -25,7 +26,7 @@ const NORMALS = [
 ] as const;
 
 function fighter(facing = 1): Fighter {
-  const owner = createFighter(Character.archer, 0.0, facing);
+  const owner = createFighter(Character.rifleman, 0.0, facing);
   owner.tuning.moves = BLADEMASTER_MOVES;
   return owner;
 }
@@ -38,7 +39,7 @@ test("Sword Plunge stops approach drift while startup keeps ordinary gravity [sp
     owner.motion.z = 183.0;
     owner.motion.vx = f32(6.0 * facing);
     owner.motion.vz = -1.0;
-    const world = testWorld(owner, createFighter(Character.archer, 400.0, -facing));
+    const world = testWorld(owner, createFighter(Character.rifleman, 400.0, -facing));
     beginFighterAttack(world, 0, AttackStyle.downAir, false);
     const x = owner.motion.x;
     advanceFighterMotion(world, 0, 0, 1, controls(), 0.0);
@@ -56,7 +57,7 @@ function contact(style: AttackStyle, facing: number, x: number, z = 0.0, airborn
   const owner = fighter(facing);
   owner.motion.grounded = !airborneOwner;
   owner.motion.z = ownerZ;
-  const target = createFighter(Character.archer, f32(x * facing), -facing);
+  const target = createReferenceContactFighter(f32(x * facing), -facing);
   target.motion.z = z;
   target.motion.grounded = !airborneTarget;
   const world = testWorld(owner, target);
@@ -71,12 +72,12 @@ test("Blademaster startup and active frames reach production APIs [spec docs/des
   for (const [style, first, active] of NORMALS) {
     const startup = attackStartupFrames(style, BLADEMASTER_MOVES);
     assertEquals(startup, first - 1);
-    assertEquals(characterAttackActiveFrames(Character.archer, style, BLADEMASTER_MOVES), active);
+    assertEquals(characterAttackActiveFrames(Character.rifleman, style, BLADEMASTER_MOVES), active);
     const count = authoredHitRegionCount(style, BLADEMASTER_MOVES);
     for (let frame = startup - 1; frame <= startup + active; frame++) {
       let activeCount = 0;
       for (let index = 0; index < count; index++) {
-        authoredHitRegion(out, Character.archer, style, frame, 0, index, BLADEMASTER_MOVES);
+        authoredHitRegion(out, Character.rifleman, style, frame, 0, index, BLADEMASTER_MOVES);
         if (out.window > 0) {
           assertTrue(out.window === 1 || (isMultiHit(BLADEMASTER_MOVES.normals[style]) && out.window > 1));
           assertTrue(style === AttackStyle.grab ? out.maxX === SHARED_GRAB_REGION.maxX && out.strike === undefined : out.strike !== undefined);
@@ -112,7 +113,7 @@ test("Blademaster's descending cut is one move for every angle and narrow upward
 
 test("Blademaster down smash cannot rehit one target from its later back swing [spec docs/design/roster.md]", () => {
   const owner = fighter();
-  const target = createFighter(Character.archer, 100.0, -1);
+  const target = createFighter(Character.rifleman, 100.0, -1);
   const world = testWorld(owner, target);
   beginFighterAttack(world, 0, AttackStyle.downSmash, false);
   owner.attack.frame = 13;
@@ -137,7 +138,7 @@ test("Blademaster catches shield and releases each throw once on its adopted fra
       [GrabAction.throwDown, 16],
     ] as const) {
       const owner = fighter(facing);
-      const target = createFighter(Character.archer, f32(60.0 * facing), -facing);
+      const target = createFighter(Character.rifleman, f32(60.0 * facing), -facing);
       target.shield.raised = true;
       const world = testWorld(owner, target);
       beginFighterAttack(world, 0, AttackStyle.grab, false);
@@ -172,7 +173,7 @@ test("Blademaster catches shield and releases each throw once on its adopted fra
 test("Blademaster's sword arm is hittable through a whiffed forward smash while the blade stays disjoint [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
     const owner = fighter(facing);
-    const world = testWorld(owner, createFighter(Character.archer, f32(400.0 * facing), -facing));
+    const world = testWorld(owner, createFighter(Character.rifleman, f32(400.0 * facing), -facing));
     beginFighterAttack(world, 0, AttackStyle.forwardSmash, false);
     const probe = (x: number, z: number) => strikeHurtContact({ x1: f32(x * facing), z1: z, x2: f32(x * facing), z2: z, radius: 4.0 }, owner);
     owner.attack.frame = 5;

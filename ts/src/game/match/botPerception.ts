@@ -12,7 +12,7 @@ export const BOT_DIRECTION_FRAMES = 5;
 // The slowest supported computer style sees events 42 frames later.
 export const BOT_HISTORY_FRAMES = 43;
 // Unobserved input buffers, resource plans and hit registries stay neutral.
-const EMPTY = createFighter(0, 0.0, 1);
+const EMPTY = createFighter(1, 0.0, 1);
 
 export interface BotObservationFrame {
   readonly frame: number;

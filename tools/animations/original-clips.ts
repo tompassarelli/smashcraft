@@ -8,22 +8,19 @@ import {heroModelSource, importedModelFile, stockModelPath} from '../../ts/scrip
 
 /**
  * Each fighter's original model under the private assets directory, in
- * Character order: the original three, then every registered hero's stock
+ * Character order: Rifleman and Illidan, then every registered hero's stock
  * model, which `stock` names in the game's archives, or its community model
  * under imported-models.
  */
-export const fighters: readonly {readonly name: string, readonly source: string, readonly stock?: string}[] = [
-    {name: 'Archer', source: 'animation-assets/ArcherFighter.mdx'},
-    {name: 'Rifleman', source: 'animation-assets/RiflemanFighter.mdx'},
-    {name: 'Illidan', source: 'illidan-animation/DemonHunterFighter.mdx'},
-    ...HERO_ROSTER.toSorted((a, b) => a.character - b.character).map(hero => ({
+export const fighters: ReadonlyMap<number, {readonly name: string, readonly source: string, readonly stock?: string}> = new Map([
+    [1, {name: 'Rifleman', source: 'animation-assets/RiflemanFighter.mdx'}],
+    [2, {name: 'Illidan', source: 'illidan-animation/DemonHunterFighter.mdx'}],
+    ...HERO_ROSTER.toSorted((a, b) => a.character - b.character).map(hero => [hero.character, {
         name: hero.name.replaceAll(/[^A-Za-z]/g, ''),
         source: heroModelSource(hero.presentation.model),
         ...(importedModelFile(hero.presentation.model) === undefined ? {stock: stockModelPath(hero.presentation.model)} : {}),
-    })),
-];
-fighters.forEach((fighter, index) => ensure(index < 3 || HERO_ROSTER.some(hero => hero.character === index),
-    `${fighter.name}: hero Character codes must follow the original three without gaps`));
+    }] as const),
+]);
 export function ensure(ok: unknown, why: string): asserts ok { if (!ok) throw new Error(why); }
 export const hash = (bytes: ArrayBuffer) => new Bun.CryptoHasher('sha256').update(new Uint8Array(bytes)).digest('hex');
 

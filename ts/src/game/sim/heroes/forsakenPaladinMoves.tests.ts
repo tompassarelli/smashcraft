@@ -26,7 +26,7 @@ const NORMAL_TIMINGS = [
 ] as const;
 
 function attackPair(style: AttackStyle, frame: number, targetX: number, targetZ = 0.0, facing = 1, groundedTarget = true) {
-  const owner = createFighter(Character.archer, 0.0, facing);
+  const owner = createFighter(Character.rifleman, 0.0, facing);
   owner.tuning.moves = FORSAKEN_PALADIN_MOVES;
   owner.motion.grounded = !isAerialAttack(style);
   const target = createFighter(Character.rifleman, f32(targetX * facing), -facing);
@@ -66,7 +66,7 @@ test("Forsaken Paladin contact paths cover only the adopted active frames with o
     for (let actionFrame = 0; actionFrame < first + active + recovery; actionFrame++) {
       let contacts = 0;
       for (let index = 0; index < count; index++) {
-        authoredHitRegion(region, Character.archer, style, actionFrame, 0, index, FORSAKEN_PALADIN_MOVES);
+        authoredHitRegion(region, Character.rifleman, style, actionFrame, 0, index, FORSAKEN_PALADIN_MOVES);
         if (region.window > 0) {
           contacts++;
           assertEquals(region.window, 1);
@@ -136,8 +136,8 @@ test("Forsaken Paladin Falling Judgment spikes airborne targets and launches gro
 test("Forsaken Paladin's overhead hammer arc is one move for every angle, from above his head to the floor, and leaves gaps [spec #96]", () => {
   const high = emptyHitRegion();
   const low = emptyHitRegion();
-  authoredHitRegion(high, Character.archer, AttackStyle.forwardTilt, 10, 0, 0, FORSAKEN_PALADIN_MOVES);
-  authoredHitRegion(low, Character.archer, AttackStyle.forwardTilt, 12, 0, 2, FORSAKEN_PALADIN_MOVES);
+  authoredHitRegion(high, Character.rifleman, AttackStyle.forwardTilt, 10, 0, 0, FORSAKEN_PALADIN_MOVES);
+  authoredHitRegion(low, Character.rifleman, AttackStyle.forwardTilt, 12, 0, 2, FORSAKEN_PALADIN_MOVES);
   assertGreaterThan(high.maxZ, 140.0);
   assertLessThan(low.minZ, 0.0);
   const gap = attackPair(AttackStyle.upSmash, 19, 85.0, 0.0);
@@ -158,7 +158,7 @@ const segmentDistance = (px: number, pz: number, part: Readonly<HurtPart>): numb
 test("Forsaken Paladin's gauntlet, boot and grabbing hand strike from inside his own exposed body [spec #96]", () => {
   const region = emptyHitRegion();
   for (const style of [AttackStyle.jab, AttackStyle.backAir, AttackStyle.grab]) {
-    const owner = createFighter(Character.archer, 0.0, 1);
+    const owner = createFighter(Character.rifleman, 0.0, 1);
     owner.tuning.moves = FORSAKEN_PALADIN_MOVES;
     owner.attack.style = style;
     const count = authoredHitRegionCount(style, FORSAKEN_PALADIN_MOVES);
@@ -166,7 +166,7 @@ test("Forsaken Paladin's gauntlet, boot and grabbing hand strike from inside his
       owner.attack.frame = frame;
       const parts = fighterHurtParts(owner);
       for (let index = 0; index < count; index++) {
-        authoredHitRegion(region, Character.archer, style, frame, 0, index, FORSAKEN_PALADIN_MOVES);
+        authoredHitRegion(region, Character.rifleman, style, frame, 0, index, FORSAKEN_PALADIN_MOVES);
         const strike = region.strike;
         if (region.window === 0 || strike === undefined) continue;
         for (const [x, z] of [[strike.x1, strike.z1], [strike.x2, strike.z2]] as const) {
@@ -179,7 +179,7 @@ test("Forsaken Paladin's gauntlet, boot and grabbing hand strike from inside his
 
 test("Forsaken Paladin's extended limbs are hittable at their full reach and gone once he stands [spec #96]", () => {
   const reach = (style: AttackStyle, frame: number, x: number, z: number, facing: number): boolean => {
-    const owner = createFighter(Character.archer, 0.0, facing);
+    const owner = createFighter(Character.rifleman, 0.0, facing);
     owner.tuning.moves = FORSAKEN_PALADIN_MOVES;
     if (frame >= 0) {
       owner.attack.style = style;
@@ -209,7 +209,7 @@ test("Forsaken Paladin standing and dash grabs use scaled standing and dash reac
       standing.target.shield.raised = true;
       resolveAttacks(standing.world);
       assertEquals(standing.owner.grab.target !== undefined, caught);
-      const owner = createFighter(Character.archer, 0.0, facing);
+      const owner = createFighter(Character.rifleman, 0.0, facing);
       owner.tuning.moves = FORSAKEN_PALADIN_MOVES;
       owner.ground.dashFrame = 1;
       const target = createFighter(Character.rifleman, f32((x === reach ? 120.0 : 121.0) * facing), -facing);
@@ -227,7 +227,7 @@ test("Forsaken Paladin standing and dash grabs use scaled standing and dash reac
       resolveAttacks(world);
       assertEquals(owner.grab.target !== undefined, caught);
     }
-    const owner = createFighter(Character.archer, 0.0, facing);
+    const owner = createFighter(Character.rifleman, 0.0, facing);
     owner.tuning.moves = FORSAKEN_PALADIN_MOVES;
     owner.ground.dashFrame = 1;
     beginFighterAttack(testWorld(owner, createFighter(Character.rifleman, 1000.0, -facing)), 0, AttackStyle.jab, false);

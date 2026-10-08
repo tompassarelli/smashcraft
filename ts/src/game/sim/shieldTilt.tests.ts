@@ -22,7 +22,7 @@ const CARDINALS = [
 ] as const;
 
 function guarding() {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createFighter(Character.rifleman, 0.0, 1);
   const controls = neutralControls();
   const attacks = attackBuffer(0);
   const row = assertDefined(inputRow({ held: maskOf(Action.rightTrigger), triggerRight: 255 }));
@@ -56,7 +56,7 @@ for (const cardinal of CARDINALS) {
     const pose = projectedShield(fighter, true);
     assertEquals(pose.x, shieldCenterX(fighter));
     assertEquals(pose.z, shieldCenterZ(fighter));
-    const restored = createFighter(Character.archer, 100.0, -1);
+    const restored = createFighter(Character.rifleman, 100.0, -1);
     copyFighterState(restored, fighter, 1);
     assertEquals(projectedShield(restored, true).x, pose.x);
     assertEquals(projectedShield(restored, true).z, pose.z);

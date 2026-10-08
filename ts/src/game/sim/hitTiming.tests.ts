@@ -3,7 +3,7 @@ import { assertEquals, assertGreaterThan, test } from "wisp/src/runtime/testing"
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, ProjectileKind } from "./codes";
 import { canAttack } from "./conditions";
-import { createFighter } from "./fighter";
+import { createReferenceFighter } from "./referenceRig";
 import { ordinaryHitlagFrames, ordinaryHitstunFrames } from "./knockback";
 import { attackStartupFrames } from "./moves";
 import { updateProjectiles } from "./projectiles";
@@ -15,7 +15,7 @@ import { advanceSolo, controls, testBeginAttacks, testWorld } from "./testWorld"
 // 3432-3445: NTSC recording, disc revision unknown. Only release timing is
 // compared here; grounded knockback displacement has its own fixture.
 test("hitlag release allows a jump when hitstun expires on that frame [reference]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   const input = controls({ jumpPressed: true, jumpHeld: true });
   fighter.motion.surface = 0;
   fighter.launch.hitlag = 2;
@@ -31,7 +31,7 @@ test("hitlag release allows a jump when hitstun expires on that frame [reference
 });
 
 test("hitstun expiry allows a jump on the same tick as an attack [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   const input = controls({ jumpPressed: true, jumpHeld: true });
   fighter.motion.surface = 0;
   fighter.launch.hitstun = 2;
@@ -59,8 +59,8 @@ test("hitlag and shieldstun respect Melee integer boundaries [reference] [spec #
 });
 
 test("a shield contact freezes both bodies before shieldstun counts down [reference] [spec docs/physics.md]", () => {
-  const attacker = createFighter(Character.archer, 0.0, 1);
-  const target = createFighter(Character.rifleman, 100.0, -1);
+  const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const target = createReferenceFighter(Character.sylvanas, 100.0, -1);
   const world = testWorld(attacker, target);
   const input = controls({ shield: true });
   target.shield.raised = true;
@@ -80,9 +80,9 @@ test("a shield contact freezes both bodies before shieldstun counts down [refere
 
 test("a detached projectile impact does not freeze its shooter [spec docs/physics.md]", () => {
   for (const shielded of [false, true]) {
-    for (const kind of [ProjectileKind.arrow, ProjectileKind.homingArrow, ProjectileKind.recoil]) {
-      const shooter = createFighter(Character.archer, 0.0, 1);
-      const target = createFighter(Character.rifleman, 100.0, -1);
+    for (const kind of [ProjectileKind.blaster, ProjectileKind.recoil]) {
+      const shooter = createReferenceFighter(Character.sylvanas, 0.0, 1);
+      const target = createReferenceFighter(Character.sylvanas, 100.0, -1);
       target.shield.raised = shielded;
       const projectile = mutableProjectile(shooter, 0)!;
       projectile.life = 2;
@@ -93,13 +93,7 @@ test("a detached projectile impact does not freeze its shooter [spec docs/physic
       projectile.direction = 1;
       updateProjectiles(testWorld(shooter, target));
       assertEquals(shooter.launch.hitlag, 0);
-      if (kind === ProjectileKind.recoil) {
-        assertGreaterThan(target.launch.hitlag, 0);
-      } else {
-        assertEquals(target.launch.hitlag, 0);
-        assertEquals(target.launch.hitstun, 0);
-        assertEquals(target.shield.stun, 0);
-      }
+      assertGreaterThan(target.launch.hitlag, 0);
     }
   }
 });

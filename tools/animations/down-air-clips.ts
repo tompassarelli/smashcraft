@@ -52,7 +52,7 @@ function joint(name:string,g:typeof gestures[number],coil:boolean):number {
 }
 const bindings:string[]=[], records=[];
 for(const g of gestures){
-  const f=fighters[g.character],hero=heroDefinition(g.character),move=hero?.moves.normals[AttackStyle.downAir];ensure(f&&move,"missing fighter move");
+  const f=fighters.get(g.character)!,hero=heroDefinition(g.character),move=hero?.moves.normals[AttackStyle.downAir];ensure(f&&move,"missing fighter move");
   const source=parseSource(await Bun.file(join(input,f.source)).arrayBuffer()),model=structuredClone(source);
   const stand=source.Sequences.find(s=>/^stand(?:\s*-?\s*1)?$/i.test(s.Name))??source.Sequences.find(s=>/^stand ready$/i.test(s.Name));ensure(stand,"missing stand");
   const name=`Down Air ${g.name}`,existing=source.Sequences.findIndex(s=>s.Name===name);

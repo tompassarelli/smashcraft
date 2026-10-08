@@ -103,7 +103,7 @@ asset is needed.
 
 ## Position in the roster
 
-The Murloc is the cast's small rushdown. Archer, Rifleman, Kael'thas and Lich
+The Murloc is the cast's small rushdown. Rifleman, Kael'thas and Lich
 win from range; he closes with dash, Tidal Rush and nets their retreat.
 Blademaster and Warden also rush but with longer weapons; he trades reach for
 the smallest hurt body and the fastest normals. Mountain King, Forsaken

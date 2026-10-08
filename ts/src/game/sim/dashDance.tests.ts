@@ -27,7 +27,7 @@ function dashFor(fighter: Fighter, facing: number, frames: number): void {
 test("dash dancing: authored window accepts thirteen held frames and rejects fourteen [spec docs/gameplay-design.md]", () => {
   for (const facing of [-1, 1]) {
     for (const hold of [13, 14]) {
-      const fighter = createFighter(Character.archer, 0.0, facing);
+      const fighter = createFighter(Character.rifleman, 0.0, facing);
       dashFor(fighter, facing, hold);
       sample(fighter, -facing);
       assertEquals(fighter.ground.action, hold === 13 ? GroundAction.dash : GroundAction.turnRun);
@@ -38,7 +38,7 @@ test("dash dancing: authored window accepts thirteen held frames and rejects fou
 
 test("dash dancing: weak travel gets a second and third sample at the last dash frame [spec docs/gameplay-design.md]", () => {
   for (const facing of [-1, 1]) {
-    const fighter = createFighter(Character.archer, 0.0, facing);
+    const fighter = createFighter(Character.rifleman, 0.0, facing);
     dashFor(fighter, facing, 13);
     sample(fighter, -facing, f32(0.79));
     assertEquals(fighter.facing, facing);
@@ -55,11 +55,11 @@ test("dash dancing: weak travel gets a second and third sample at the last dash 
 
 test("dash dancing: deliberate walking and slow stick turns stay walks [spec docs/gameplay-design.md]", () => {
   for (const facing of [-1, 1]) {
-    const fighter = createFighter(Character.archer, 0.0, facing);
+    const fighter = createFighter(Character.rifleman, 0.0, facing);
     dashFor(fighter, facing, 5);
     sample(fighter, -facing, 1.0, true);
     assertEquals(fighter.ground.action, GroundAction.none);
-    const slow = createFighter(Character.archer, 0.0, facing);
+    const slow = createFighter(Character.rifleman, 0.0, facing);
     dashFor(slow, facing, 5);
     sample(slow, -facing, f32(0.79));
     sample(slow, -facing, f32(0.79));
@@ -69,7 +69,7 @@ test("dash dancing: deliberate walking and slow stick turns stay walks [spec doc
     assertEquals(slow.ground.action, GroundAction.none);
     assertEquals(slow.facing, -facing);
     // Weak travel beginning after the initial frames walks at once, as from standing.
-    const late = createFighter(Character.archer, 0.0, facing);
+    const late = createFighter(Character.rifleman, 0.0, facing);
     dashFor(late, facing, 13);
     for (let frame = 0; frame < 3; frame++) sample(late, 0);
     sample(late, -facing, f32(0.79));
@@ -80,7 +80,7 @@ test("dash dancing: deliberate walking and slow stick turns stay walks [spec doc
 
 test("dash dancing: 512 analog and digital timelines have zero transition or rollback mismatches [spec docs/gameplay-design.md] [invariant]", () => {
   let cases = 0;
-  for (const character of [Character.archer, Character.rifleman]) {
+  for (const character of [Character.demonHunter, Character.rifleman]) {
     for (const facing of [-1, 1]) {
       for (let hold = 1; hold <= 16; hold++) {
         for (const travel of [0, 1]) {
@@ -116,7 +116,7 @@ test("dash dancing: 512 analog and digital timelines have zero transition or rol
 
 test("dash dancing: recorded analog reversal rows replay through the two-sample boundary [invariant]", () => {
   for (const facing of [-1, 1]) {
-    const make = () => createTapeWorld({ stocks: 1, humans: 2, first: createFighter(Character.archer, -240.0, facing), second: createFighter(Character.rifleman, 240.0, -facing) });
+    const make = () => createTapeWorld({ stocks: 1, humans: 2, first: createFighter(Character.rifleman, -240.0, facing), second: createFighter(Character.rifleman, 240.0, -facing) });
     const canonical = make();
     const replayed = make();
     const history = new ReplayHistory();
@@ -142,7 +142,7 @@ const HELPER_DEADZONE = f32(0.28);
 // The helper holds a digital direction beyond 7000 of 32767 raw.
 const HELPER_DIGITAL = 7000 / 32767;
 const ROSTER: readonly Character[] = [
-  Character.archer, Character.rifleman, Character.demonHunter, Character.blademaster, Character.mountainKing, Character.warden,
+  Character.rifleman, Character.rifleman, Character.demonHunter, Character.blademaster, Character.mountainKing, Character.warden,
   Character.lich, Character.forsakenPaladin, Character.dreadlord, Character.shadowHunter, Character.pitLord, Character.beastmaster, Character.lichKing,
 ];
 const DanceInput = { stick: 0, keyOverlap: 1, keyGap: 2 } as const;

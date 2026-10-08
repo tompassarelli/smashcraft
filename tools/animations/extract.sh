@@ -9,7 +9,7 @@ g++ -O2 -I "$casc_dir/src" "$project_dir/tools/animations/casc-extract.cpp" \
     "$casc_dir/build/libcasc.a" -pthread -o "$output_dir/casc-extract"
 cd "$project_dir/tools/animations"
 bun install --frozen-lockfile
-for model in units/nightelf/archer/archer units/human/rifleman/rifleman; do
+for model in units/human/rifleman/rifleman; do
     name=${model##*/}
     "$output_dir/casc-extract" "$storage" "war3.w3mod:$model.mdx" "$output_dir/$name.mdx"
     bun "$project_dir/tools/animations/convert.ts" "$output_dir/$name.mdx" "$output_dir/$name.mdl"

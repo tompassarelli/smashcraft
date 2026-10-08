@@ -1,5 +1,5 @@
 // The roster's physical table (smashcraft:docs/design/roster.md, "Baseline
-// fighter properties"): multipliers on the reference fighter, Archer. Kept
+// fighter properties"): multipliers on the reference, reference. Kept
 // apart from the hero kits so contact geometry and tuning read it without
 // importing move data.
 import { f32 } from "wisp/src/sim/f32";

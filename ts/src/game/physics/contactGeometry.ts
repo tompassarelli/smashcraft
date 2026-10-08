@@ -220,34 +220,35 @@ export function attackCapsule(target: Capsule, style: number | undefined, reach:
 
 // Coarse, pose-independent hurt capsules fitted to each fighter's drawn body
 // at its model scale (presentation/modelScale.ts); they claim no Melee hurtbox
-// or animation parity. Expansion heroes scale Archer's capsule by the roster's
+// or animation parity. Expansion heroes scale the reference body's capsule by the roster's
 // width and height multipliers.
-const ORIGINAL_HURT_CAPSULES: readonly Readonly<Capsule>[] = [
-  { x1: 0.0, z1: 4.0, x2: 0.0, z2: 88.0, radius: 24.0 },
+const REFERENCE_HURT_CAPSULE: Readonly<Capsule> = { x1: 0.0, z1: 4.0, x2: 0.0, z2: 88.0, radius: 24.0 };
+const ORIGINAL_HURT_CAPSULES: Readonly<Record<number, Readonly<Capsule>>> = {
+  1:
   { x1: 0.0, z1: 4.0, x2: 0.0, z2: 61.0, radius: 26.0 },
-  { x1: 0.0, z1: 4.0, x2: 0.0, z2: 133.75, radius: 25.0 },
-];
+  2: { x1: 0.0, z1: 4.0, x2: 0.0, z2: 133.75, radius: 25.0 },
+};
 
 function scaledHurtCapsule(character: number): Readonly<Capsule> | undefined {
   const scale = heroBody(character);
   if (scale === undefined) return undefined;
-  const reference = at(ORIGINAL_HURT_CAPSULES, 0);
+  const reference = REFERENCE_HURT_CAPSULE;
   const radius = f32(reference.radius * scale.width);
   const height = f32(f32(f32(reference.z2 - reference.z1) + f32(2.0 * reference.radius)) * scale.height);
   return { x1: 0.0, z1: reference.z1, x2: 0.0, z2: f32(reference.z1 + f32(height - f32(2.0 * radius))), radius };
 }
 
 /** The original fighters' capsules, then each hero's by Character code while heroBodies lists one. */
-const HURT_CAPSULES: readonly Readonly<Capsule>[] = (() => {
-  const capsules: Readonly<Capsule>[] = [...ORIGINAL_HURT_CAPSULES];
-  for (let character = capsules.length; ; character++) {
+const HURT_CAPSULES: Readonly<Record<number, Readonly<Capsule>>> = (() => {
+  const capsules: Record<number, Readonly<Capsule>> = { ...ORIGINAL_HURT_CAPSULES };
+  for (let character = 3; ; character++) {
     const scaled = scaledHurtCapsule(character);
     if (scaled === undefined) return capsules;
-    capsules.push(scaled);
+    capsules[character] = scaled;
   }
 })();
 
 /** A character's facing-relative hurt capsule; characters past the table share its last entry. */
 export function hurtCapsule(character: number): Readonly<Capsule> {
-  return HURT_CAPSULES[character] ?? at(HURT_CAPSULES, HURT_CAPSULES.length - 1);
+  return HURT_CAPSULES[character] ?? REFERENCE_HURT_CAPSULE;
 }

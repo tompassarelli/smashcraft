@@ -46,7 +46,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
 
 function pair(gap: number, facing = 1): { world: Roster; owner: Fighter; target: Fighter } {
   const owner = mountainKing(f32(-gap * 0.5 * facing), facing);
-  const target = createFighter(Character.archer, f32(gap * 0.5 * facing), -facing);
+  const target = createFighter(Character.rifleman, f32(gap * 0.5 * facing), -facing);
   const world = createRoster(3, [owner, target]);
   for (let i = 0; i < 3; i++) frame(world);
   return { world, owner, target };
@@ -334,7 +334,7 @@ test("Thunder Leap keeps its full rise and strike at every meter level [spec #33
 test("replaying Mountain King's specials from a restored snapshot reproduces every fighter field [invariant]", () => {
   const { world, owner, target } = pair(200.0);
   const savedOwner = createFighter(Character.mountainKing, 0.0, 1);
-  const savedTarget = createFighter(Character.archer, 0.0, 1);
+  const savedTarget = createFighter(Character.rifleman, 0.0, 1);
   frame(world, neutral);
   frame(world);
   copyFighterState(savedOwner, owner, 3);
@@ -346,7 +346,7 @@ test("replaying Mountain King's specials from a restored snapshot reproduces eve
   };
   run();
   const endOwner = createFighter(Character.mountainKing, 0.0, 1);
-  const endTarget = createFighter(Character.archer, 0.0, 1);
+  const endTarget = createFighter(Character.rifleman, 0.0, 1);
   copyFighterState(endOwner, owner, 3);
   copyFighterState(endTarget, target, 3);
   assertGreaterThan(target.status.damage, 0.0);

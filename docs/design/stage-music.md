@@ -23,7 +23,7 @@ path against the installed game.
 | Naxxramas | 4 | Lich, Sylvanas (Scourge, Forsaken) | NaxxramasWalking1 | The game's own Naxxramas music, written for the necropolis. |
 | Stratholme | 6 | Forsaken Paladin, Dreadlord (Alliance, Dreadlords) | ArthasTheme | The prince's theme, for the city where Arthas turned. |
 | Tomb of Sargeras | 7 | Warden (Sentinels) | NagaTheme | The naga hold the Broken Isles where Maiev chases Illidan. |
-| Nordrassil | 10 | Archer (Sentinels) | NightElf1 | The RoC night elf theme, for the Sentinels' defence of the World Tree. |
+| Nordrassil | 10 | Warden (Sentinels) | NightElf1 | The RoC night elf theme, for the Sentinels' defence of the World Tree. |
 | Gryphon Aerie | 11 | Rifleman, Jaina (Alliance) | HumanX1 | The TFT Alliance theme, for Jaina's expedition and its riflemen. |
 | Blackrock | 12 | Mountain King (Alliance) | Human3 | An Alliance campaign theme for the dwarves at the edge of Khaz Modan. |
 | Ahn'Qiraj | 13 | none | NightElf2 | The night elves sealed Ahn'Qiraj's ruins; their theme suits the ancient place. |

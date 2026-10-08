@@ -27,7 +27,7 @@ const HUED = PLAYER_COLORS.map((color) => ({ name: color.name, ...hsv((color.rgb
 /**
  * A lit, coloured pixel; a darker or greyer one shows no player's hue. The
  * renderer's lights keep a team-colour pixel at least this saturated: 99% of the
- * Archer's red team pixels are above 0.71.
+ * The measured red team pixels are above 0.71.
  */
 const MIN_SATURATION = 0.6;
 const MIN_VALUE = 0.15;

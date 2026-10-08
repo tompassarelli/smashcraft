@@ -8,6 +8,7 @@ import { installHeadless } from "wisp/scripts/wisp/headless";
 import { Action } from "../../src/game/input/actions";
 import { keyFor, presetBindings } from "../../src/game/input/keyBindings";
 import { Phase } from "../../src/game/match/rules";
+import { Character } from "../../src/game/sim/codes";
 import { NATIVE_DRIVER_BUILD, PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
 import type { MapBuild } from "../../src/game/shell/build";
 import { PREDICTED_HEADLESS, SMASHCRAFT_HEADLESS } from "./headless";
@@ -39,11 +40,11 @@ function keys(input: StandaloneInput): Set<number> {
 }
 
 /**
- * wisp#48's frame-rate match: Archer on the bot beat's keys against computer
- * Rifleman, Illidan and Archer, 99 stocks and a two-minute clock, so four
+ * wisp#48's frame-rate match: Illidan on the bot beat's keys against computer
+ * Rifleman, Illidan and Warden, 99 stocks and a two-minute clock, so four
  * fighters stay on stage for the whole measurement.
  */
-const FOUR_FIGHTERS = ["-dev slots 1 14", "-dev fighter 2 Rifleman", "-dev fighter 3 Illidan", "-dev fighter 4 Archer", "-dev time 2"];
+const FOUR_FIGHTERS = ["-dev slots 1 14", "-dev fighter 2 Rifleman", "-dev fighter 3 Illidan", "-dev fighter 4 Warden", "-dev time 2"];
 const FOUR_FIGHTER_STOCKS = 99;
 
 /** One map callback per step; scripts share the native driver's exact pad rows. */
@@ -59,7 +60,7 @@ export async function createStandaloneSession(options: { readonly script?: strin
     const { applyDeveloperCommand }: { applyDeveloperCommand(state: State, slot: number, text: string): void } = await import(join(platform, "shell/keys.ts"));
     const { drawnFrame }: { drawnFrame(state: State): { readonly frame: number } } = await import(join(platform, "shell/drawnFrame.ts"));
     const { botBeatKeys }: { botBeatKeys(frame: number): readonly [tap: number, held: number] } = await import(join(import.meta.dir, "botMatch.ts"));
-    const { startQuickMatch }: { startQuickMatch(state: State, stage: number, scenario: undefined, character: undefined, stocks: number): void } = await import(join(platform, "shell/menus.ts"));
+    const { startQuickMatch }: { startQuickMatch(state: State, stage: number, scenario: undefined, character: Character | undefined, stocks: number): void } = await import(join(platform, "shell/menus.ts"));
     const build = { ...PLAYABLE_BUILD, devConsole: true, ...(presentation === undefined ? {} : { presentation }) };
     const main: { install(build: MapBuild): void; startBuild(build: MapBuild): void } = await import(join(platform, "main.ts"));
     const driverApi: { nativeDriverCommand(text: string): void; installSmashcraftNativeDriver(): void; startSmashcraftNativeDriver(): void } | undefined = script === undefined ? undefined : await import(join(platform, "nativeDriver.ts"));
@@ -82,11 +83,11 @@ export async function createStandaloneSession(options: { readonly script?: strin
     if (fourFighters) client.run(() => {
       const state = shell();
       for (const command of FOUR_FIGHTERS) applyDeveloperCommand(state, 0, command);
-      // The menus allow at most nine stocks; the beat's Archer loses about 40 in two minutes.
+      // The menus allow at most nine stocks; the beat's reference loses about 40 in two minutes.
       state.game.stockCount = FOUR_FIGHTER_STOCKS;
-      startQuickMatch(state, 0, undefined, undefined, FOUR_FIGHTER_STOCKS);
+      startQuickMatch(state, 0, undefined, Character.demonHunter, FOUR_FIGHTER_STOCKS);
     });
-    else if (script === undefined) client.run(() => applyDeveloperCommand(shell(), 0, "-dev quick cpu wren expert"));
+    else if (script === undefined) client.run(() => applyDeveloperCommand(shell(), 0, "-dev quick cpu wren expert hero illidan"));
     else clients.everywhere(() => driverCommand?.(script));
     if (value(() => shell().game.phase) !== Phase.match) throw new Error("standalone match did not start");
     if (script !== undefined) clients.everywhere(() => driverCommand?.("resume"));

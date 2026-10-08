@@ -7,6 +7,7 @@ import { copyReplayState, createReplaySnapshot } from "../replay/snapshot";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character } from "./codes";
 import { type Fighter, createFighter } from "./fighter";
+import { createReferenceContactFighter } from "./referenceRig";
 import { f32 } from "wisp/src/sim/f32";
 import { hurtCapsule } from "../physics/contactGeometry";
 import { attackStartupFrames, characterAttackActiveFrames } from "./moves";
@@ -28,7 +29,7 @@ const KIT_BODY: FighterHurtboxes = {
 };
 
 test("a kit's authored body follows its attack frame and its facing decides the extended limb's side [spec docs/hurtboxes.md]", () => {
-  const f = createFighter(Character.archer, 0.0, -1);
+  const f = createFighter(Character.rifleman, 0.0, -1);
   f.tuning.moves = { ...BLADEMASTER_MOVES, hurtboxes: KIT_BODY };
   assertEquals(fighterHurtParts(f), KIT_BODY.stand);
   f.attack.style = AttackStyle.jab;
@@ -41,7 +42,7 @@ test("a kit's authored body follows its attack frame and its facing decides the 
   // An extended limb behind a left-facing fighter is out of reach; in front of it, a strike lands.
   const strike = (targetX: number, facing: number): number => {
     const attacker = createFighter(Character.rifleman, 0.0, 1);
-    const target = createFighter(Character.archer, targetX, facing);
+    const target = createFighter(Character.rifleman, targetX, facing);
     target.tuning.moves = { ...BLADEMASTER_MOVES, hurtboxes: KIT_BODY };
     testBeginAttacks(testWorld(attacker, target), AttackStyle.jab, undefined);
     attacker.attack.frame = 4;
@@ -57,7 +58,7 @@ test("a kit's authored body follows its attack frame and its facing decides the 
 test("intangible parts pass a strike and invincible parts spend it without damage [spec docs/hurtboxes.md]", () => {
   const outcome = (frame: number) => {
     const attacker = createFighter(Character.rifleman, 0.0, 1);
-    const target = createFighter(Character.archer, 60.0, -1);
+    const target = createFighter(Character.rifleman, 60.0, -1);
     target.tuning.moves = { ...BLADEMASTER_MOVES, hurtboxes: KIT_BODY };
     const world = testWorld(attacker, target);
     testBeginAttacks(world, AttackStyle.jab, undefined);
@@ -88,7 +89,7 @@ test("a kit's hurt volumes are part of its rollback record [invariant]", () => {
   assertEquals(stateChecksum(live), authored);
 });
 
-const SHIPPED = [Character.archer, Character.rifleman, Character.demonHunter] as const;
+const SHIPPED = [Character.rifleman, Character.demonHunter] as const;
 
 /** A two-unit probe strike at a point relative to the fighter, along its facing. */
 function probe(f: Fighter, ahead: number, height: number): HurtContact {
@@ -148,8 +149,8 @@ test("every shipped fighter's forward-smash arm is hit [spec docs/hurtboxes.md] 
 });
 
 test("a strike that reaches only an extended down-air leg counter-hits it, and a restored snapshot selects the same body [spec docs/gameplay-design.md] [invariant]", () => {
-  const attacker = createFighter(Character.archer, 0.0, 1);
-  const target = createFighter(Character.archer, 0.0, -1);
+  const attacker = createReferenceContactFighter(0.0, 1);
+  const target = createReferenceContactFighter(0.0, -1);
   attacker.motion.z = 0.0;
   target.motion.grounded = false;
   target.motion.z = 75.0;
@@ -160,12 +161,12 @@ test("a strike that reaches only an extended down-air leg counter-hits it, and a
   target.attack.frame = 0;
   resolveAttacks(world);
   const hitWhileStanding = target.status.damage;
-  const fresh = createFighter(Character.archer, 0.0, -1);
+  const fresh = createReferenceContactFighter(0.0, -1);
   fresh.motion.grounded = false;
   fresh.motion.z = 75.0;
   fresh.attack.style = AttackStyle.downAir;
   fresh.attack.frame = attackStartupFrames(AttackStyle.downAir);
-  const second = createFighter(Character.archer, 0.0, 1);
+  const second = createReferenceContactFighter(0.0, 1);
   const legsWorld = testWorld(second, fresh);
   testBeginAttacks(legsWorld, AttackStyle.jab, undefined);
   second.attack.frame = attackStartupFrames(AttackStyle.jab);
@@ -175,6 +176,8 @@ test("a strike that reaches only an extended down-air leg counter-hits it, and a
   const live = createReplaySnapshot();
   const saved = createReplaySnapshot();
   const f = fighterAt(live.world, 0);
+  f.character = Character.sylvanas;
+  f.tuning = createReferenceContactFighter(0.0, 1).tuning;
   f.attack.style = AttackStyle.downAir;
   f.attack.frame = attackStartupFrames(AttackStyle.downAir);
   const parts = fighterHurtParts(f);

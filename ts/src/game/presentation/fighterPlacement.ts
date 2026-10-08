@@ -19,20 +19,19 @@ interface BodyEnvelope {
 // Rounded outward from visible, skinned vertices across every frame of the
 // standing, jump, fall and airborne damage clips, including held weapons.
 // smashcraft:evidence/fighter-placement-20261006/body-bounds.json
-const BODY_ENVELOPES: readonly BodyEnvelope[] = [
-  { left: -49.0, right: 91.0, bottom: -4.0, top: 106.0 },
-  { left: -53.0, right: 77.0, bottom: -1.0, top: 128.0 },
-  { left: -101.0, right: 100.0, bottom: -6.0, top: 185.0 },
-];
+const BODY_ENVELOPES: Readonly<Record<number, BodyEnvelope>> = {
+  1: { left: -53.0, right: 77.0, bottom: -1.0, top: 128.0 },
+  2: { left: -101.0, right: 100.0, bottom: -6.0, top: 185.0 },
+};
 
 
 
 /**
- * A hero's envelope is Archer's, the roster's reference body, stretched by
+ * A hero's envelope is the reference body's, the roster's reference body, stretched by
  * the hero's width and height multipliers, in its own model's units.
  */
 function heroEnvelope(character: Character): BodyEnvelope {
-  const reference = BODY_ENVELOPES[Character.archer] ?? { left: 0.0, right: 0.0, bottom: 0.0, top: 0.0 };
+  const reference = { left: -49.0, right: 91.0, bottom: -4.0, top: 106.0 };
   const body = heroBody(character);
   const width = (body?.width ?? 1.0) / characterModelScale(character);
   const height = (body?.height ?? 1.0) / characterModelScale(character);

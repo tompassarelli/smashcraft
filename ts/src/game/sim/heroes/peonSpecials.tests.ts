@@ -30,7 +30,7 @@ function frame(world: Roster, input: Controls = controls()): void {
 function pair(gap = 400.0, facing = 1) {
   const owner = createFighter(Character.peon, -gap * 0.5 * facing, facing);
   owner.mana.points = 100;
-  const target = createFighter(Character.archer, gap * 0.5 * facing, -facing);
+  const target = createFighter(Character.rifleman, gap * 0.5 * facing, -facing);
   const world = testWorld(owner, target);
   for (let tick = 0; tick < 3; tick++) frame(world);
   return { world, owner, target };

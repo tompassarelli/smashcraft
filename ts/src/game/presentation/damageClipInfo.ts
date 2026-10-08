@@ -2,17 +2,6 @@
 import { f32 } from "wisp/src/sim/f32";
 import type { HeroClip } from "../sim/heroes/hero";
 export const DAMAGE_CLIPS: Readonly<Record<number, readonly HeroClip[]>> = {
-  0: [
-    { index: 67, seconds: f32(0.4) },
-    { index: 68, seconds: f32(0.4) },
-    { index: 69, seconds: f32(0.4) },
-    { index: 70, seconds: f32(0.4) },
-    { index: 71, seconds: f32(0.4) },
-    { index: 72, seconds: f32(0.4) },
-    { index: 73, seconds: f32(0.4) },
-    { index: 74, seconds: f32(0.4) },
-    { index: 75, seconds: f32(0.4) },
-  ],
   1: [
     { index: 64, seconds: f32(0.4) },
     { index: 65, seconds: f32(0.4) },

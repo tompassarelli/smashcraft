@@ -23,7 +23,7 @@ const STAGE = 1;
 const DECK = 1;
 const DECK_Z = surfaceZ(STAGE, DECK, 0);
 const CENTRE = f32(f32(surfaceLeft(STAGE, DECK, 0) + surfaceRight(STAGE, DECK, 0)) / 2);
-const FIGHTERS: readonly Character[] = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
+const FIGHTERS: readonly Character[] = [Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
 
 const step = (f: Fighter, input: Readonly<Controls>) => advanceSolo(f, STAGE, input, 0.0);
 const height = (f: Fighter) => melee(bodyTop(f.character));

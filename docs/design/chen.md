@@ -87,7 +87,7 @@ Earth against an expected strike, branches its stance when a strike reaches,
 and reserves Storm Rise for recovery. Stock loss and rematch clear the
 shared meter, projectiles and special state.
 
-Relative to today's roster: Archer and Rifleman outrange him; Illidan and
+Relative to today's roster: Rifleman outrange him; Illidan and
 Warden outrun him; Blademaster has a longer weapon; Mountain King wins single
 heavy commitments; Lich controls farther away; Forsaken Paladin holds longer defensive
 space; Dreadlord has better air pursuit; Shadow Hunter establishes safer

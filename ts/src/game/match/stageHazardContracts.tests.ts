@@ -23,7 +23,7 @@ const NEUTRAL: Pad = {};
 
 test("controllers ride a complete carried loop and rising-sinking timetable; every departure is warned 30 frames ahead [spec #79]", () => {
   for (const [stage, period] of [[CARRIED_TEST_STAGE, 920], [TIMED_TEST_STAGE, 420]] as const) {
-    const match = testMatch(3, Character.archer);
+    const match = testMatch(3, Character.rifleman);
     match.game.stageChoice = stage;
     const fighter = fighterAt(match.world, 0);
     fighter.motion.surface = 1;
@@ -49,9 +49,9 @@ test("controllers ride a complete carried loop and rising-sinking timetable; eve
 });
 
 function windMatch(): PadMatch {
-  const match = testMatch(3, Character.archer);
+  const match = testMatch(3, Character.rifleman);
   match.game.stageChoice = WIND_TEST_STAGE;
-  match.world.fighters[0] = createFighter(Character.archer, 240.0, 1);
+  match.world.fighters[0] = createFighter(Character.rifleman, 240.0, 1);
   match.world.fighters[1] = createFighter(Character.rifleman, -300.0, -1);
   return padMatch(match, "wind");
 }
@@ -106,11 +106,11 @@ test("Whispy's wind waits, warns for 45 frames, then pushes standing fighters on
 });
 
 function cannonMatch(): PadMatch & { readonly victim: Fighter; readonly other: Fighter } {
-  const match = testMatch(3, Character.archer);
+  const match = testMatch(3, Character.rifleman);
   match.game.stageChoice = CANNON_TEST_STAGE;
   // Both fall onto the cannon at its left end; it catches only the first in slot order.
   const victim = createFighter(Character.rifleman, cannonX(1), 1);
-  const other = createFighter(Character.archer, f32(cannonX(1) + 20.0), -1);
+  const other = createFighter(Character.rifleman, f32(cannonX(1) + 20.0), -1);
   for (const fighter of [victim, other]) {
     fighter.motion.grounded = false;
     fighter.motion.z = f32(CANNON_Z + 40.0);

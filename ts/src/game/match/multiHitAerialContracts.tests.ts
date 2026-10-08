@@ -74,7 +74,7 @@ function playAttack(setup: Setup): Trace {
   // The flat deck: no raised decks to catch either fighter.
   game.stageChoice = 0;
   const attacker = createFighter(setup.attacker, f32(-setup.offsetX), 1);
-  const victim = createFighter(setup.victim ?? Character.archer, 0.0, -1);
+  const victim = createFighter(setup.victim ?? Character.rifleman, 0.0, -1);
   victim.status.damage = setup.percent ?? 0.0;
   if (setup.height > 0) {
     attacker.motion.grounded = false;
@@ -162,11 +162,11 @@ const AERIALS: readonly Case[] = [
 ];
 
 /**
- * The shared up air Archer and Rifleman already had: both hits link, but its
+ * The shared up air Rifleman and Rifleman already had: both hits link, but its
  * second hit fills the same box as the first, so one hit's smash DI cannot clear it.
  */
 const SHARED_UP_AIRS: readonly Case[] = [
-  { name: "Archer up air", setup: { attacker: Character.archer, style: AttackStyle.upAir, offsetX: 0.0, height: 300.0, victimHeight: 400.0 }, hits: 2 },
+  { name: "Rifleman up air", setup: { attacker: Character.rifleman, style: AttackStyle.upAir, offsetX: 0.0, height: 300.0, victimHeight: 400.0 }, hits: 2 },
   { name: "Rifleman up air", setup: { attacker: Character.rifleman, style: AttackStyle.upAir, offsetX: 0.0, height: 300.0, victimHeight: 400.0 }, hits: 2 },
 ];
 

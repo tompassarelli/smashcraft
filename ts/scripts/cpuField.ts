@@ -74,14 +74,10 @@ export const reportedMove = (move: number): number =>
 
 /** The special slot a running special action belongs to. */
 function specialMove(action: number): number | undefined {
-  switch (action) {
-    case SpecialAction.archerArrow: case SpecialAction.riflemanBlaster: case SpecialAction.demonHunterManaBurn: case SpecialAction.heroNeutral:
-      return SPECIAL_MOVE.neutral;
-    case SpecialAction.archerHomingArrow: case SpecialAction.riflemanBear: case SpecialAction.demonHunterFelRush: case SpecialAction.heroSide:
-      return SPECIAL_MOVE.side;
-    case SpecialAction.archerRecovery: case SpecialAction.riflemanRecovery: case SpecialAction.demonHunterWingAscent: case SpecialAction.heroUp:
-      return SPECIAL_MOVE.up;
-    case SpecialAction.archerDisengage: case SpecialAction.riflemanTrap: case SpecialAction.demonHunterImmolate: case SpecialAction.heroDown:
+  switch (action) { case SpecialAction.riflemanBlaster: case SpecialAction.demonHunterManaBurn: case SpecialAction.heroNeutral:
+      return SPECIAL_MOVE.neutral; case SpecialAction.riflemanBear: case SpecialAction.demonHunterFelRush: case SpecialAction.heroSide:
+      return SPECIAL_MOVE.side; case SpecialAction.riflemanRecovery: case SpecialAction.demonHunterWingAscent: case SpecialAction.heroUp:
+      return SPECIAL_MOVE.up; case SpecialAction.riflemanTrap: case SpecialAction.demonHunterImmolate: case SpecialAction.heroDown:
       return SPECIAL_MOVE.down;
     default:
       return undefined;
@@ -948,7 +944,7 @@ if (import.meta.main) {
   const probePairs = probeFighter === undefined ? undefined : SELECTABLE_CHARACTERS.filter((other) => other !== probeFighter).map((other) => [probeFighter, other] as const);
   const pairs = probePairs ?? values.pairs?.split(",").map((pair) => {
     const [a, b, extra] = pair.split(":");
-    if (a === undefined || b === undefined || extra !== undefined || a === b) throw new Error(`--pairs takes pairs of different fighters, like archer:rifleman; not ${pair}`);
+    if (a === undefined || b === undefined || extra !== undefined || a === b) throw new Error(`--pairs takes pairs of different fighters, like illidan:rifleman; not ${pair}`);
     return [fighterNamed(a), fighterNamed(b)] as const;
   });
   const tierNamed = (value: string): CpuTier => {

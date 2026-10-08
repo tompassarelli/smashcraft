@@ -212,7 +212,7 @@ Training is not ranked: it is expected everywhere and already shipped.
    Warcraft III moment with existing pieces, for example Lich King against
    Illidan on Frozen Throne, Forsaken Paladin against Dreadlord at
    Stratholme, Warden hunting Illidan in the Tomb of Sargeras, Illidan
-   against Pit Lord at Hellfire Citadel, Archer holding Nordrassil. Each is
+   against Pit Lord at Hellfire Citadel, Warden holding Nordrassil. Each is
    one data entry: the player's fighter, the opponent and tier, the stage,
    rule changes from existing settings (stocks, time limit, starting damage),
    one win condition from a small set (KO, survive the clock, win within the

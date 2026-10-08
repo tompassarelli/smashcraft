@@ -19,10 +19,10 @@ function frameControls(first: Controls, second: Controls): FrameControls {
 }
 
 test("computerRecoversFromBothSidesWithAndWithoutJump [spec #184]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+  for (const character of [Character.demonHunter, Character.rifleman]) {
     for (const side of [-1, 1]) for (const jumps of [0, 1]) {
       const fighter = createFighter(character, side * 680.0, -side);
-      const opponent = createFighter(character === Character.archer ? Character.rifleman : Character.archer, 0.0, side);
+      const opponent = createFighter(character === Character.rifleman ? Character.rifleman : Character.rifleman, 0.0, side);
       const input = neutralControls();
       const opponentInput = neutralControls();
       const game = createMatchState();

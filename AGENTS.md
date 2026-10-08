@@ -43,6 +43,16 @@ Answer "what can we claim about input timing?" from #26's integrity table, or
 its Status until the table exists. A status question never starts a new
 investigation.
 
+## Roster
+
+The current roster has 21 fighters. Every fighter needs a pointed personality:
+funny, annoying, menacing, heroic, or another specific character. Never flat or
+generic. Add only Grom (#340), Anub’arak (#341), Malfurion (#342), Medivh (#343)
+and Kobold (#344), then hold at 26, Melee’s size, until every fighter feels good.
+Use Warcraft’s own models before importing new assets.
+Support Classic and Definitive only. Each player chooses their look; gameplay,
+move timing, hitboxes and hurtboxes are identical. Reforged is dropped from the plans.
+
 ## Source and workflow
 
 - smashcraft:ts/src/ owns gameplay, deterministic state/replay, selection and UI.
@@ -220,9 +230,9 @@ code. From smashcraft:ts/:
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
   `-dev quick pair FIRST / SECOND` selects different named fighters in the two human slots.
 - Original strike authoring (from the repository root):
-  `blender --background --python tools/animations/strikes.py -- archer|rifleman|illidan`.
-  `SMASHCRAFT_ANIMATION_ASSETS=PRIVATE_DIR` selects Archer's editable inputs;
-  `SMASHCRAFT_STRIKE_CLIP='Attack Jab'` reauthors only the fist punch.
+  `blender --background --python tools/animations/strikes.py -- rifleman|illidan`.
+  `SMASHCRAFT_ANIMATION_ASSETS=PRIVATE_DIR` selects the editable inputs;
+  `SMASHCRAFT_STRIKE_CLIP='Attack Jab'` reauthors only the jab.
 - Thrall stock-rig animation authoring (from the repository root):
   `bun tools/animations/thrall-clips.ts STOCK_THRALL.mdx PRIVATE_OUTPUT [POSE...]` appends
   mounted hammer, casting, recovery, grab and nine contact-reaction clips,
@@ -286,10 +296,6 @@ code. From smashcraft:ts/:
   appends all 13 fighters' nine articulated contact reactions, checks their
   drawn first poses, and preserves old sequences. Store changed model families
   and refresh the clip pool (smashcraft:docs/fighter-animation-work.md).
-  The native blend diagnostic is `bun tools/animations/damage-blend-probe.ts
-  PRIVATE_ASSETS PRIVATE_OUTPUT`; its `damage-blend-probe` map profile compares
-  frozen/running presentation clocks inside one interrupted Archer model
-  (smashcraft:docs/fighter-animation-work.md, "Native pain blending diagnostic").
 - Fresh match: `bun wisp fresh MAP.w3x [--rebuild]` starts a new game, sends
   `-dev quick`, and waits until every signed-in client writes its receipt.
   `--rebuild` replaces the map script first. Other quick starts for `--chat`
@@ -332,7 +338,7 @@ code. From smashcraft:ts/:
   capture counts only when the drawn stamp in its own pixels (a row of cells
   along the top-left of the 4:3 UI area) names that fixture and frame, so a
   screen that hasn't redrawn can't pass for it. `--control` first plays the
-  checked-in control (the same Archer walk twice around a Mountain King script);
+  checked-in control (the same Rifleman walk twice around a Mountain King script);
   `bun scripts/nativeCapture.ts compare DIR control-walk control-walk-again`
   prints how far the twins' captures differ per frame. `run` also records the
   client's own PipeWire sink to DIR/audio.wav on the captures' clock
@@ -387,7 +393,7 @@ code. From smashcraft:ts/:
   play starts no helper and never needs one.
   When the always-on controller service has a pad, the pad presses the same keys.
 - Standalone play: `bun wisp play --standalone` opens the Wisp browser player
-  with a full three-stock Archer against Wren Expert Rifleman. `--script FILE`
+  with a full three-stock Illidan against Wren Expert Rifleman. `--script FILE`
   runs the native driver's exact pad inputs; `--headless --frames N --out DIR`
   saves frame checksums and captures (`--capture-frames N,N` picks their frames).
   `--presentation native|pool-confirmed|pool-predicted` selects fighter presentation;
@@ -458,7 +464,7 @@ code. From smashcraft:ts/:
   fighter's moves, specials and follow-ups in a playable-build training match
   and every stage's hazards, and fails any entry over 2 ms above its standing
   baseline; `--functions` names the map functions of each worst frame. Run it
-  on the farm (`bun wisp farm perf "census --fighter archer --functions"`).
+  on the farm (`bun wisp farm perf "census --fighter rifleman --functions"`).
 - Soak: `bun wisp soak` plays 200 headless matches, every fighter pair on
   every stage with fuzzed and computer players, in at most four workers
   (run it inside the capacity scope), and writes a repro file per finding;
@@ -538,11 +544,11 @@ code. From smashcraft:ts/:
   A Wren Expert run with at least 400 matches per pair fails when the win-rate
   gate or the balanced gate fails, after publishing the report artifact;
   lower-tier or smaller exploratory fields remain reports.
-  `--matchups archer:chen-stormstout,lich:chen-stormstout` runs only those
+  `--matchups rifleman:chen-stormstout,lich:chen-stormstout` runs only those
   named pairs for a repair comparison; its report is not a full-roster gate.
   `bun wisp farm pads [--ref REF] [--only PATH]... [--wait]` plays
   every top-level smashcraft:ts/test/native/pads/ script (or each issue
-  file or folder named by `--only`, such as `--only 151 --only archer-cues.pad`) headless through the
+  file or folder named by `--only`, such as `--only 151 --only rifleman-cues.pad`) headless through the
   real helper against its own `#!` expectations, for a change that moves hit
   timing or a new issue script on a loaded host; each job uploads its traces
   (`gh run download RUN`), the source of a new script's `#! expect` lines;

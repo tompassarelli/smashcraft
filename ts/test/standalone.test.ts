@@ -17,7 +17,7 @@ async function fourFighterMatch(frames: number): Promise<void> {
     const { client } = session;
     expect(value(client, () => shell().game.stockCount)).toBe(99);
     expect(value(client, () => shell().game.computerMask)).toBe(14);
-    expect(value(client, () => shell().game.characterChoices.slice(0, 4))).toEqual([Character.archer, Character.rifleman, Character.demonHunter, Character.archer]);
+    expect(value(client, () => shell().game.characterChoices.slice(0, 4))).toEqual([Character.demonHunter, Character.rifleman, Character.demonHunter, Character.warden]);
     const x = value(client, () => shell().world.fighters[0]?.motion.x);
     for (let frame = 0; frame < frames; frame++) {
       session.step(NEUTRAL_INPUT);

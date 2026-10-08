@@ -72,7 +72,7 @@ test("the mode button reaches Classic on both clients, and Start plays the first
 test("-dev classic boss starts Archimonde's battle on Nordrassil on both clients, and his strikes play without errors [spec #284] [invariant]", () => {
   const { clients, frames, until, read } = classicClients(true);
   clients.start(); frames(30);
-  clients.chat(0, "-dev classic boss Archer");
+  clients.chat(0, "-dev classic boss Blademaster");
   until("the boss match", () => read(() => shell().game.phase) === Phase.match, 240);
   // Past GO! and the opening into the first strikes.
   frames(380);
@@ -81,7 +81,7 @@ test("-dev classic boss starts Archimonde's battle on Nordrassil on both clients
     expect(value(client, () => {
       const { game } = shell();
       return [game.phase, game.run.boss.kind, game.stageChoice, game.run.fighter, game.run.boss.strike >= 1];
-    })).toEqual([Phase.match, BossKind.archimonde, 10, Character.archer, true]);
+    })).toEqual([Phase.match, BossKind.archimonde, 10, Character.blademaster, true]);
   }
   expectSynchronized(clients);
 });
@@ -119,7 +119,7 @@ for (const boss of BOSSES) {
     const client = clients.client(0);
     const game = createMatchState();
     game.phase = Phase.match; game.run.active = true; game.run.boss.kind = boss.kind; game.run.boss.health = 1000;
-    const fighter = createFighter(Character.archer, 0, 1);
+    const fighter = createFighter(Character.rifleman, 0, 1);
     const world = createRoster(1, [fighter]);
     let presentation: ClassicPresentation;
     client.run(() => {

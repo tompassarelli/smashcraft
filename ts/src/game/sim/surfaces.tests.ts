@@ -10,7 +10,8 @@ import { f32 } from "wisp/src/sim/f32";
 import { Character, DownState, SurfaceContact } from "./codes";
 import { WALL_TECH_STARTUP_FRAMES, canAttack, isIntangible } from "./conditions";
 import { DOWN_DAMAGE_RESET_THRESHOLD, DOWN_WAIT_FRAMES } from "./down";
-import { type Fighter, WALL_JUMP_FLICK_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, createFighter } from "./fighter";
+import { type Fighter, WALL_JUMP_FLICK_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES,  } from "./fighter";
+import { createReferenceFighter } from "./referenceRig";
 import { beginAirDodge, beginJump } from "./jumpsAndDodges";
 import { MAX_GROUNDED_KNOCKBACK_ON_LANDING } from "./knockback";
 import {
@@ -54,14 +55,14 @@ const RAISED_WALL_CONTACT_X = f32(surfaceLeft(SOLID_DECK_TEST_STAGE, 1, 0) - mel
 
 /** That deck's underside, which a fighter meets with its ECB top. */
 const RAISED_UNDERSIDE_Z = solidSurfaceAt(SOLID_DECK_TEST_STAGE, MAIN_DECK_BODY_SURFACES + 2).startZ;
-/** Where an Archer stands when its top meets it: Fox's ECB top below it. */
-const RAISED_UNDERSIDE_CONTACT_Z = f32(RAISED_UNDERSIDE_Z - melee(bodyTop(Character.archer)));
-/** An Archer whose top is 5.7 below that underside. */
+/** Where an Rifleman stands when its top meets it: Fox's ECB top below it. */
+const RAISED_UNDERSIDE_CONTACT_Z = f32(RAISED_UNDERSIDE_Z - melee(bodyTop(Character.sylvanas)));
+/** An Rifleman whose top is 5.7 below that underside. */
 const CEILING_TUMBLER_Z = f32(RAISED_UNDERSIDE_CONTACT_Z - 5.699999809265137);
 
 /** A tumbling fighter 5 units short of that wall, or below that deck's underside. */
 function surfaceTumbler(atCeiling: boolean): Fighter {
-  const fighter = createFighter(Character.archer, atCeiling ? -265.0 : f32(RAISED_WALL_CONTACT_X - 5.0), 1);
+  const fighter = createReferenceFighter(Character.sylvanas, atCeiling ? -265.0 : f32(RAISED_WALL_CONTACT_X - 5.0), 1);
   fighter.motion.grounded = false;
   fighter.motion.z = atCeiling ? CEILING_TUMBLER_Z : 160.0;
   fighter.launch.hitstun = 8;
@@ -144,14 +145,14 @@ test("each shipped stage's main deck has Final Destination's side walls and unde
 // level floor line only while the ECB bottom descends (`ay >= by`),
 // mpCheckCeiling tests ceiling-kind lines only, and mpJointUpdateDynamics
 // disables a platform line that is not floor-kind (melee:src/melee/mp/mplib.c).
-const PLAYABLE_FIGHTERS = [Character.archer, Character.rifleman, Character.demonHunter] as const;
+const PLAYABLE_FIGHTERS = [Character.sylvanas, Character.rifleman, Character.demonHunter] as const;
 
 /**
  * Jumps from the main deck beneath the deck's centre. A short hop tops out far
  * below the raised decks, so it adds its aerial jump on its first falling frame.
  */
 function jumpBeneathDeck(character: Character, stage: number, deck: number, shortHop: boolean): { fighter: Fighter; apex: number } {
-  const fighter = createFighter(character, f32(f32(surfaceLeft(stage, deck, 0) + surfaceRight(stage, deck, 0)) / 2), 1);
+  const fighter = createReferenceFighter(character, f32(f32(surfaceLeft(stage, deck, 0) + surfaceRight(stage, deck, 0)) / 2), 1);
   const input = controls({ jumpPressed: true, jumpHeld: !shortHop });
   let apex = fighter.motion.z;
   let aerialJumped = !shortHop;
@@ -200,7 +201,7 @@ test("a jump under a solid surface still bumps its head [reference]", () => {
     const underside = solidSurfaceAt(1, FLAT_UNDERSIDE).startZ;
     const start = f32(f32(underside - top) - 2.0);
     if (start <= stageBounds(0).blast.bottom) continue;
-    const below = createFighter(character, 0.0, 1);
+    const below = createReferenceFighter(character, 0.0, 1);
     below.motion.grounded = false;
     below.motion.z = start;
     below.jump.remaining = 1;
@@ -219,7 +220,7 @@ test("a jump under a solid surface still bumps its head [reference]", () => {
 test("a launch passes through a pass deck's sides [reference]", () => {
   for (const side of [-1, 1]) {
     const edgeX = side < 0 ? surfaceLeft(1, 1, 0) : surfaceRight(1, 1, 0);
-    const fighter = createFighter(Character.archer, f32(edgeX + side * 5), -side);
+    const fighter = createReferenceFighter(Character.sylvanas, f32(edgeX + side * 5), -side);
     fighter.motion.grounded = false;
     fighter.motion.z = 160.0;
     fighter.launch.hitstun = 8;
@@ -233,7 +234,7 @@ test("a launch passes through a pass deck's sides [reference]", () => {
 
 test("a runoff leaves the main deck and its flank slides off the ledge's corner [reference]", () => {
   for (const side of [-1, 1]) {
-    const fighter = createFighter(Character.archer, f32(side * 599.0), side);
+    const fighter = createReferenceFighter(Character.sylvanas, f32(side * 599.0), side);
     fighter.motion.surface = 0;
     fighter.motion.grounded = true;
     fighter.motion.vx = f32(side * 2.0);
@@ -329,9 +330,9 @@ test("a retail ceiling rebound reports the surface normal [reference]", () => {
 });
 
 test("a retail get-up's completion allows input on its animation end tick [reference]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+  for (const character of [Character.sylvanas, Character.rifleman]) {
     for (let recovery = 0; recovery <= 2; recovery++) {
-      const fighter = createFighter(character, 0.0, 1);
+      const fighter = createReferenceFighter(character, 0.0, 1);
       fighter.down.state = DownState.wait;
       fighter.down.waitRemaining = 200;
       const input = controls({
@@ -509,7 +510,7 @@ test("a retail wall tech's jump input age expires at the twenty-frame boundary [
 
 test("each earlier wall jump since landing lowers a wall jump's rise, and landing resets the count [reference]", () => {
   for (const earlier of [0, 2]) {
-    const fighter = createFighter(Character.archer, f32(RAISED_WALL_CONTACT_X - 4.0), 1);
+    const fighter = createReferenceFighter(Character.sylvanas, f32(RAISED_WALL_CONTACT_X - 4.0), 1);
     fighter.motion.grounded = false;
     fighter.motion.z = 160.0;
     fighter.motion.vx = fighter.tuning.physics.airSpeed;
@@ -532,7 +533,7 @@ test("each earlier wall jump since landing lowers a wall jump's rise, and landin
 });
 
 test("a retail landing caps ground knockback at the decoded common value [reference]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.z = 10.0;
   fighter.launch.knockbackX = 100.0;
@@ -546,7 +547,7 @@ test("a retail landing caps ground knockback at the decoded common value [refere
 });
 
 test("a retail ASDI landing uses the same ground knockback cap [reference]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.z = 10.0;
   fighter.launch.hitlag = 1;
@@ -654,7 +655,7 @@ test("solid raised deck walls reject incoming launches from both exterior sides 
   for (const side of [-1, 1]) {
     const wallX = side < 0 ? surfaceLeft(SOLID_DECK_TEST_STAGE, 1, 0) : surfaceRight(SOLID_DECK_TEST_STAGE, 1, 0);
     const contactX = f32(wallX + f32(side * melee(BODY_HALF_WIDTH)));
-    const fighter = createFighter(Character.archer, f32(contactX + side * 5), -side);
+    const fighter = createReferenceFighter(Character.sylvanas, f32(contactX + side * 5), -side);
     fighter.motion.grounded = false;
     fighter.motion.z = 160.0;
     fighter.launch.hitstun = 8;

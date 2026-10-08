@@ -49,7 +49,7 @@ function offstage(character: Character, mana: number): ReturnType<typeof testMat
   match.game.stageChoice = 0;
   const fighter = createFighter(character, START_X, 1);
   match.world.fighters[0] = fighter;
-  match.world.fighters[1] = createFighter(Character.archer, -400.0, 1);
+  match.world.fighters[1] = createFighter(Character.rifleman, -400.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.surface = undefined;
   fighter.motion.z = START_Z;

@@ -131,7 +131,7 @@ export function fighterAttackCues(character: Character): readonly Cue[] {
 export function allAttackCueModels(): readonly string[] {
   const models: string[] = [];
   for (const model of Object.values(DISJOINT_MODELS)) if (!models.includes(model)) models.push(model);
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)]) {
+  for (const character of [ Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)]) {
     for (const { model } of fighterAttackCues(character)) if (!models.includes(model)) models.push(model);
   }
   return models;

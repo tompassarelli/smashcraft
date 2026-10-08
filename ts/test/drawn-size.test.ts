@@ -15,7 +15,6 @@ import { HERO_ROSTER } from "../src/game/sim/heroes/registry";
  * glow layers left out. A changed idle clip needs a new measurement.
  */
 const IDLE_TOPS: readonly { readonly character: Character; readonly idleClip: number; readonly top: number }[] = [
-  { character: Character.archer, idleClip: 0, top: 120 },
   { character: Character.rifleman, idleClip: 0, top: 87 },
   { character: Character.demonHunter, idleClip: 0, top: 186 },
   { character: Character.blademaster, idleClip: 9, top: 180 },
@@ -63,5 +62,5 @@ test("every fighter's drawn standing height meets its hurt capsule's top [spec #
   });
   expect(off).toEqual([]);
   // The original three and every registered hero.
-  expect(IDLE_TOPS.map(({ character }) => character).sort((a, b) => a - b)).toEqual([Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(({ character }) => character)].sort((a, b) => a - b));
+  expect(IDLE_TOPS.map(({ character }) => character).sort((a, b) => a - b)).toEqual([Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(({ character }) => character)].sort((a, b) => a - b));
 });

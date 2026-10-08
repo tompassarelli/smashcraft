@@ -146,5 +146,5 @@ sweep("computer Illidan charges Eye Blast and throws Shear, Flames of Azzinoth a
 });
 
 sweep("computer Archer and Rifleman never press a special their mana can't pay in a seeded mirror, which replays its counts [spec #155]", () => {
-  for (const character of [Character.archer, Character.rifleman]) assertEquals(played(character, character, 1).manaDenied ?? 0, 0);
+  for (const character of [Character.rifleman, Character.rifleman]) assertEquals(played(character, character, 1).manaDenied ?? 0, 0);
 });

@@ -12,7 +12,6 @@ downward contact and recovery poses, fitted to the existing move frames.
 
 | Fighter | Strike centre x | Strike centre z / waist | Clip | Reference gesture | Before → current |
 | --- | ---: | ---: | --- | --- | --- |
-| Archer | 0 | -95 / 46 | Aerial Down #1 | Melee Ganondorf stomp | Pass → Pass: extended boot |
 | Rifleman | 0 | -95 / 32.5 | Aerial Down #1 | Melee Link thrust, adapted to rifle | Pass → Pass: muzzle-first stamp |
 | Illidan | 0 | -100 / 68.875 | Aerial Down #1 | Melee Link thrust, adapted to glaives | Pass → Pass: blades below torso |
 | Blademaster | -42.24…42.24 | -51 / 49.30 | Down Air Sword Plunge #54 | Melee Link downward sword | Fail → Pass: horizontal spin replaced by downward sword |

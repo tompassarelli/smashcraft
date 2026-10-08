@@ -125,7 +125,7 @@ export function createImpactEvents(): ImpactEvents {
     element: HitElement.normal, strength: 0, tier: 0, swing: -1, variant: 0, pummel: false, shieldElectric: false, footstep: "none",
     shieldHit: false, shieldReflect: false, shieldBreak: false, ordinaryLanding: false,
     movementDust: false, runningDust: false, launchTrail: false, dodgeTrail: false, airDodge: false,
-    respawn: false, jump: JumpCue.none, jumpOriginX: 0.0, jumpOriginZ: 0.0, character: 0, facing: 1,
+    respawn: false, jump: JumpCue.none, jumpOriginX: 0.0, jumpOriginZ: 0.0, character: 1, facing: 1,
     koDirectionX: 0, koDirectionZ: 0, landing: ImpactLanding.none, dodge: DodgeCue.none, direction: 0, x: 0.0, z: 0.0,
     surface: SurfaceContact.none, surfaceMissedTech: false, contactX: 0.0, contactZ: 0.0,
     normalX: 0.0, normalZ: 0.0,

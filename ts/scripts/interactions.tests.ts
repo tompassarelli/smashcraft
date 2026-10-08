@@ -17,20 +17,20 @@ test("required links and unaided precision inputs reject one- and two-frame wind
   }
 });
 
-test("Archer's unspaced down air on shield is punishable out of shield [spec #106]", () => {
-  const row = aerialOnShield("Archer", "down air", "advancing", 48, "unspaced");
+test("Rifleman's unspaced down air on shield is punishable out of shield [spec #106]", () => {
+  const row = aerialOnShield("Rifleman", "down air", "advancing", 48, "unspaced");
   expect(row?.punishes.length).toBeGreaterThan(0);
 });
 
 // One safe and one punishable aerial on shield per fighter (#106): a late, spaced or
 // cross-up landing is safe; an early, high hit landing in front is punished out of shield.
-test("Archer's spaced fade-back forward air on shield is safe [spec #106]", () => {
-  const row = aerialOnShield("Archer", "forward air", "fade-back", 264, "spaced");
+test("Rifleman's spaced fade-back forward air on shield is safe [spec #106]", () => {
+  const row = aerialOnShield("Rifleman", "forward air", "fade-back", 264, "spaced");
   expect(row?.punishes).toEqual([]);
 });
 
-test("Archer's early neutral air landing in front of a shield is shield-grabbed [spec #106]", () => {
-  const row = aerialOnShield("Archer", "neutral air", "early advancing", 48, "unspaced");
+test("Rifleman's early neutral air landing in front of a shield is shield-grabbed [spec #106]", () => {
+  const row = aerialOnShield("Rifleman", "neutral air", "early advancing", 48, "unspaced");
   expect(row?.punishes[0]?.punisher).toBe("shield grab");
 });
 

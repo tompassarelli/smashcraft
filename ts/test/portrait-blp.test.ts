@@ -5,7 +5,7 @@ import { PORTRAIT_QUALITY, encodeBlp } from "../scripts/blp";
 import { readMapBaseline } from "../scripts/mapSize";
 import { MAP_PORTRAITS } from "../scripts/wisp/mapInputs";
 
-/** Built-map bytes the 221 portraits may take; #307's decision on quality versus size sets it. */
+/** Built-map bytes the fighter portraits may take; #307's decision on quality versus size sets it. */
 const PORTRAIT_BUDGET = 12_500_000;
 
 test("portraits are imported as BLP and stay within their map budget in the committed size baseline [spec #307]", () => {
@@ -14,7 +14,7 @@ test("portraits are imported as BLP and stay within their map budget in the comm
   const baseline = readMapBaseline(join(import.meta.dir, "../map-size-baseline.tsv"));
   const rows = [...(baseline?.imports ?? new Map<string, number>())].filter(([entry]) => /Fighter(Card|Bust|Tile|Stock)/.test(entry));
   expect(rows.filter(([entry]) => !entry.endsWith(".blp"))).toEqual([]);
-  expect(rows.length).toBe(names.length);
+  expect(rows.map(([entry]) => entry).sort()).toEqual([...names].sort());
   expect(rows.reduce((sum, [, bytes]) => sum + bytes, 0)).toBeLessThanOrEqual(PORTRAIT_BUDGET);
 });
 

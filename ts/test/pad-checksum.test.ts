@@ -18,7 +18,7 @@ test("headless checksum replay checks every real exported moment and refuses a c
   const clients = runtime.clients({ install, start }, [0, 1]);
   clients.start();
   clients.frames(3);
-  const script = "#! chat -dev quick hero archer\n15 a tap A 2\n40 b tap B 8\n120 a capture\n";
+  const script = "#! chat -dev quick hero rifleman\n15 a tap A 2\n40 b tap B 8\n120 a capture\n";
   clients.everywhere(() => nativeDriverCommand(script));
   clients.everywhere(() => nativeDriverCommand("resume 120"));
   clients.frames(150);

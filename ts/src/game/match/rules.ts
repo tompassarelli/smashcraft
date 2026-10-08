@@ -79,7 +79,7 @@ export interface MatchState {
 }
 
 /** The opening fighter of slot `index`: the release roster's tiles in order, so a hidden fighter is never preselected. */
-const defaultChoice = (index: number): Character => PLAYABLE_CHARACTERS[floorMod(index, PLAYABLE_CHARACTERS.length)] ?? Character.archer;
+const defaultChoice = (index: number): Character => PLAYABLE_CHARACTERS[floorMod(index, PLAYABLE_CHARACTERS.length)] ?? Character.rifleman;
 
 export function createMatchState(): MatchState {
   return {

@@ -16,7 +16,6 @@ export const DOWN_ATTACK_DAMAGE = 7.0;
 // Provisional get-up attack tuning: let the attacker regain control before
 // the opponent's first active wake-up attack. See smashcraft:docs/physics.md.
 export const DOWN_ATTACK_BASE_KNOCKBACK = 75.0;
-const ARCHER_DOWN_ACTIVE_FRAMES = 20;
 // Illidan's raid-boss normals (#147, smashcraft:docs/design/illidan.md): longer active windows inside the shared totals.
 export const DEMON_HUNTER_FORWARD_AIR_ACTIVE = 6;
 export const DEMON_HUNTER_DOWN_SMASH_ACTIVE = 9;
@@ -81,14 +80,14 @@ export function isJab(style: AttackStyle | undefined): boolean {
 /**
  * The attack frame (entry is frame one) from which a fresh jab press
  * continues a jab to the chain's next step; undefined where the chain ends.
- * A kit's steps say it (AuthoredMove.chainsFrom); a shared-table jab (Archer's,
+ * A kit's steps say it (AuthoredMove.chainsFrom); a shared-table jab (the reference body's,
  * Illidan's) opens the frame after its last active frame.
  */
 export function jabChainFrom(character: Character, style: AttackStyle, moves?: FighterMoves): number | undefined {
   const next = nextJab(style);
   if (next === undefined) return undefined;
   const shared = attackStartupFrames(style) + attackActiveFrames(style) + 1;
-  // A kit whose jab is the shared table's (Archer's) opens the shared window.
+  // A kit whose jab is the shared table's (the reference body's) opens the shared window.
   if (moves !== undefined) return moves.normals[next] === undefined ? undefined : moves.normals[style]?.chainsFrom ?? (moves.normals[style] === undefined ? shared : undefined);
   return character === Character.demonHunter ? shared : undefined;
 }
@@ -167,7 +166,7 @@ export function smashDamageMultiplier(chargeFrames: number, moves?: FighterMoves
 
 export function attackReach(style: AttackStyle): number {
   switch (style) {
-    // The shared jab, Archer's and the engine tests' reference attack, reaches short of her forward tilt (#163).
+    // The shared jab, the reference body's and the engine tests' reference attack, reaches short of her forward tilt (#163).
     case AttackStyle.jab:
       return 120.0;
     case AttackStyle.demonHunterDashAttack:
@@ -250,7 +249,6 @@ export function characterAttackActiveFrames(character: Character, style: AttackS
   if (style === AttackStyle.grab) return 3;
   const authored = moves?.normals[style];
   if (authored !== undefined) return authored.activeFrames;
-  if (character === Character.archer && style === AttackStyle.downAir) return ARCHER_DOWN_ACTIVE_FRAMES;
   // Illidan's raid-boss normals (#147): the twin-glaive forward air, Flames of Azzinoth, Eye Blast.
   if (character === Character.demonHunter) {
     if (style === AttackStyle.forwardAir) return DEMON_HUNTER_FORWARD_AIR_ACTIVE;

@@ -14,7 +14,7 @@ import { pad } from "../scripts/wisp/commands/pad";
 test("a native comparison batch rejects missing export before starting references or clients [spec AGENTS.md]", async () => {
   const dir = mkdtempSync(join(tmpdir(), "pad-preflight-"));
   const script = join(dir, "no-export.pad");
-  writeFileSync(script, "#! chat -dev quick hero archer\n150 a tap A 2\n154 a capture\n");
+  writeFileSync(script, "#! chat -dev quick hero rifleman\n150 a tap A 2\n154 a capture\n");
   const out = join(dir, "out");
   await expect(Effect.runPromise(padBatch({ scripts: [script], pairs: [], helper: "/missing-helper", build: "typescript-integrity", out, map: "/missing-map.w3x", retries: 0, freshEach: false, hot: false, headlessJobs: 1 }))).rejects.toThrow("comparison requires a replay export");
   await expect(Effect.runPromise(pad([script, "--headless", "--helper", "/missing-helper", "--out", out, "--compare", "/missing-native"]))).rejects.toThrow("comparison requires a replay export");

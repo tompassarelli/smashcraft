@@ -128,8 +128,6 @@ function upSpecial(character: Character): SpecialAction {
   switch (character) {
     default:
       return SpecialAction.heroUp;
-    case Character.archer:
-      return SpecialAction.archerRecovery;
     case Character.rifleman:
       return SpecialAction.riflemanRecovery;
     case Character.demonHunter:

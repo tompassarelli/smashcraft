@@ -16,7 +16,7 @@ test("every signature normal shows its cue on its hits and none before them [spe
     for (const style of STYLES) {
       const cues = styles[style];
       if (cues === undefined) continue;
-      const f = createFighter(Object.values(Character).find((c) => c === character) ?? Character.archer, 0.0, 1);
+      const f = createFighter(Object.values(Character).find((c) => c === character) ?? Character.rifleman, 0.0, 1);
       f.attack.style = style;
       const startup = attackStartupFrames(style, f.tuning.moves);
       f.attack.frame = 0;

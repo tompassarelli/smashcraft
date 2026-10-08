@@ -1,5 +1,5 @@
 # #203: hold RT shield and LB Tilt; full pushes angle the bubble without escapes.
-#! chat -dev quick hero archer
+#! chat -dev quick hero rifleman
 60 a shield 1
 61 a press LB
 70 a stick 0 1

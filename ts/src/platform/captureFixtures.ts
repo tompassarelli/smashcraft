@@ -9,7 +9,7 @@ export interface CaptureFixture {
   readonly script: string;
 }
 
-const WALK = "#! chat -dev quick hero archer\n40 a stick 1 0\n70 a stick 0 0\n90 b tap X 2\n";
+const WALK = "#! chat -dev quick hero rifleman\n40 a stick 1 0\n70 a stick 0 0\n90 b tap X 2\n";
 const OTHER = "#! chat -dev quick hero mountain king\n40 b stick -1 0\n70 b stick 0 0\n";
 
 export const CAPTURE_FIXTURES: readonly CaptureFixture[] = [

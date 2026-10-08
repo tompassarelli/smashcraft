@@ -145,7 +145,7 @@ let forecast: Forecast | undefined;
 /** Whether the tumbling fighter, holding `direction`, reaches the floor within `frames`. */
 function landsWithin(world: Roster, f: Readonly<Fighter>, stage: number, matchFrame: number, direction: number, frames: number): boolean {
   if (forecast === undefined) {
-    const fighter = createFighter(Character.archer, 0.0, 1);
+    const fighter = createFighter(Character.demonHunter, 0.0, 1);
     forecast = { fighter, world: createRoster(1, [fighter]), input: neutralControls() };
   }
   copyFighterState(forecast.fighter, f, world.mask);

@@ -3,7 +3,8 @@
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { Character, DownState, LedgeState } from "./codes";
-import { type Fighter, createFighter } from "./fighter";
+import { type Fighter,  } from "./fighter";
+import { createReferenceFighter } from "./referenceRig";
 import { LEDGE_CLIMB_FRAMES, resolveLedges } from "./ledge";
 import { setWorldMotionValue } from "./motion";
 import type { Controls } from "./roster";
@@ -16,7 +17,7 @@ const RISE = melee(3.5);
 
 /** A fighter standing on the slope test stage's main deck at `x`. */
 function standing(character: Character, x: number, facing: number): Fighter {
-  const fighter = createFighter(character, x, facing);
+  const fighter = createReferenceFighter(character, x, facing);
   fighter.motion.surface = 0;
   fighter.motion.z = surfaceZAt(STAGE, 0, 0, x);
   setWorldMotionValue(fighter.motion.meleeZ, fighter.motion.z);
@@ -33,7 +34,7 @@ function onLine(fighter: Fighter): void {
 
 test("walking down and back up a slope keeps the fighter on the line, moving ground speed along it [spec #193]", () => {
   for (const side of [-1, 1]) {
-    const fighter = standing(Character.archer, f32(side * 380.0), side);
+    const fighter = standing(Character.sylvanas, f32(side * 380.0), side);
     const input = controls({ direction: side, walking: true });
     let crossedSlope = false;
     for (let frame = 0; frame < 400 && Math.abs(fighter.motion.x) < 540.0; frame++) {
@@ -58,7 +59,7 @@ test("walking down and back up a slope keeps the fighter on the line, moving gro
 });
 
 test("running down a slope never leaves the ground, and running off the ledge falls [spec #193]", () => {
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+  for (const character of [Character.sylvanas, Character.rifleman, Character.demonHunter]) {
     for (const side of [-1, 1]) {
       const fighter = standing(character, f32(side * 200.0), side);
       const input = controls({ direction: side });
@@ -78,7 +79,7 @@ test("running down a slope never leaves the ground, and running off the ledge fa
 
 test("a fighter falling onto a slope lands on the line under it [spec #193]", () => {
   for (const x of [-560.0, -510.0, -450.0, 0.0, 450.0, 510.0, 560.0]) {
-    const fighter = createFighter(Character.archer, x, 1);
+    const fighter = createReferenceFighter(Character.sylvanas, x, 1);
     fighter.motion.grounded = false;
     fighter.motion.z = 120.0;
     setWorldMotionValue(fighter.motion.meleeZ, fighter.motion.z);
@@ -98,7 +99,7 @@ test("a fighter falling onto a slope lands on the line under it [spec #193]", ()
 });
 
 function tumbleOnto(x: number, input: Readonly<Controls>): Fighter {
-  const fighter = createFighter(Character.archer, x, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, x, 1);
   fighter.motion.grounded = false;
   fighter.down.state = DownState.tumble;
   fighter.launch.hitstun = 100;
@@ -128,7 +129,7 @@ test("a floor tech on a slope techs in place or rolls along the line [spec #193]
 });
 
 test("a missed tech on a slope knocks down on the line, and the get-up stands there [spec #193]", () => {
-  const fighter = createFighter(Character.archer, 520.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 520.0, 1);
   fighter.motion.grounded = false;
   fighter.down.state = DownState.tumble;
   fighter.launch.hitstun = 100;
@@ -147,14 +148,14 @@ test("a missed tech on a slope knocks down on the line, and the get-up stands th
 
 test("the ledges at a slope's foot are grabbable corners, and the climb ends on the line [spec #193]", () => {
   for (const side of [-1, 1]) {
-    const fighter = createFighter(Character.archer, f32(side * 620.0), -side);
+    const fighter = createReferenceFighter(Character.sylvanas, f32(side * 620.0), -side);
     fighter.motion.grounded = false;
     fighter.motion.z = -80.0;
     fighter.motion.vz = -2.0;
     fighter.motion.deltaZ = -2.0;
     fighter.jump.remaining = 0;
     const input = controls();
-    resolveLedges(testWorld(fighter, createFighter(Character.rifleman, 0.0, 1)), STAGE, [input, controls()]);
+    resolveLedges(testWorld(fighter, createReferenceFighter(Character.rifleman, 0.0, 1)), STAGE, [input, controls()]);
     assertEquals(fighter.ledge.state, LedgeState.hang);
     advanceSolo(fighter, STAGE, input, 0.0);
     input.getupDirectionPressed = true;
@@ -176,7 +177,7 @@ test("the ledges at a slope's foot are grabbable corners, and the climb ends on 
 });
 
 test("selectable Stratholme's outer slope supports running and landing below its balconies [spec #193]", () => {
-  const fighter = createFighter(Character.archer, 550.0, -1);
+  const fighter = createReferenceFighter(Character.sylvanas, 550.0, -1);
   fighter.motion.grounded = false;
   fighter.motion.z = 80.0;
   setWorldMotionValue(fighter.motion.meleeZ, fighter.motion.z);

@@ -8,7 +8,7 @@ import { padMatch, playPads } from "./helperPads";
 import { testMatch } from "./testMatch";
 
 function onDeck(stage: number, deck: number, frame = 0) {
-  const match = testMatch(3, Character.archer);
+  const match = testMatch(3, Character.rifleman);
   match.game.stageChoice = stage;
   match.game.matchFrame = frame;
   const fighter = fighterAt(match.world, 0);

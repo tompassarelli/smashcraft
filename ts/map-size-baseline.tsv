@@ -8,9 +8,6 @@ ReplaceableTextures\CommandButtons\BTNLichKing.blp	8634
 ReplaceableTextures\SSCscorescreen-hero-lichking.blp	4932
 _de.w3mod\Doodads\Terrain\CliffDoodad\Waterfall\Waterfall.mdx	30002
 _hd.w3mod\Doodads\Terrain\CliffDoodad\Waterfall\Waterfall.mdx	30002
-war3mapImported\ArcherFighter-94cea6218bcaa2977b1e093573899235e00c7d3c31e8e7971edb7663262eba9b.mdx	3167805
-war3mapImported\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx	571462
-war3mapImported\ArcherWhite-f977adeb2f13a2e1741d9caf984e2f02a0c202fee5171b43634ffb15e8e53d19.mdx	2100261
 war3mapImported\BearOriginalClip2-dc33c2ee5ed2a21be58d7b0d76f3bf9f9678a2f7b460fed64c85fbeabea80c6c.mdx	23819
 war3mapImported\BearOriginalClip6-7a4f638b845da28f5cc81b896c4f3be0f8ecd7b5573d869a0f1b82d2743667b8.mdx	24589
 war3mapImported\BeastmasterTimelineBody-5001eba34aab2124036f34a59b6b3ad29ee3f632ba88f2bbab04a1cf8965963c.mdx	189029
@@ -24,10 +21,6 @@ war3mapImported\ChenStormstoutWhite-415cb3c8a6538cacbc22cff573d4affd99acadcb10cb
 war3mapImported\DemonHunterFighter-d586986cd3aa0559c4deed0e5b7c7429c71bc95ecbe32b9df1ad317536316a65.mdx	4035899
 war3mapImported\DreadlordTimelineBody-4923941a8f9a8104f64356b7680ab43806d6f739957e20de268a668f305c7c66.mdx	272047
 war3mapImported\DreadlordWhite-3235f558ac560625b6d16948ed45b709277e54908d3082b9fa465396563bbc0b.mdx	405667
-war3mapImported\FighterBustArcherP1.blp	57295
-war3mapImported\FighterBustArcherP2.blp	57167
-war3mapImported\FighterBustArcherP3.blp	57427
-war3mapImported\FighterBustArcherP4.blp	57032
 war3mapImported\FighterBustBeastmasterP1.blp	51990
 war3mapImported\FighterBustBeastmasterP2.blp	52183
 war3mapImported\FighterBustBeastmasterP3.blp	52553
@@ -76,10 +69,6 @@ war3mapImported\FighterBustWardenP1.blp	56399
 war3mapImported\FighterBustWardenP2.blp	56724
 war3mapImported\FighterBustWardenP3.blp	56836
 war3mapImported\FighterBustWardenP4.blp	56278
-war3mapImported\FighterCardArcherP1.blp	78310
-war3mapImported\FighterCardArcherP2.blp	78307
-war3mapImported\FighterCardArcherP3.blp	78683
-war3mapImported\FighterCardArcherP4.blp	78071
 war3mapImported\FighterCardBeastmasterP1.blp	80840
 war3mapImported\FighterCardBeastmasterP2.blp	81007
 war3mapImported\FighterCardBeastmasterP3.blp	81399
@@ -128,10 +117,6 @@ war3mapImported\FighterCardWardenP1.blp	83863
 war3mapImported\FighterCardWardenP2.blp	84008
 war3mapImported\FighterCardWardenP3.blp	84147
 war3mapImported\FighterCardWardenP4.blp	83812
-war3mapImported\FighterStockArcherP1.blp	7594
-war3mapImported\FighterStockArcherP2.blp	7628
-war3mapImported\FighterStockArcherP3.blp	7648
-war3mapImported\FighterStockArcherP4.blp	7587
 war3mapImported\FighterStockBeastmasterP1.blp	5541
 war3mapImported\FighterStockBeastmasterP2.blp	5561
 war3mapImported\FighterStockBeastmasterP3.blp	5554
@@ -180,11 +165,6 @@ war3mapImported\FighterStockWardenP1.blp	6425
 war3mapImported\FighterStockWardenP2.blp	6466
 war3mapImported\FighterStockWardenP3.blp	6489
 war3mapImported\FighterStockWardenP4.blp	6393
-war3mapImported\FighterTileArcher.blp	45447
-war3mapImported\FighterTileArcherP1.blp	45770
-war3mapImported\FighterTileArcherP2.blp	45530
-war3mapImported\FighterTileArcherP3.blp	45668
-war3mapImported\FighterTileArcherP4.blp	45505
 war3mapImported\FighterTileBeastmaster.blp	45676
 war3mapImported\FighterTileBeastmasterP1.blp	46258
 war3mapImported\FighterTileBeastmasterP2.blp	46441

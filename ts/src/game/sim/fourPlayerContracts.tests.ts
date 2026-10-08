@@ -1,6 +1,6 @@
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { AttackStyle, Character, LedgeState } from "./codes";
-import { createFighter } from "./fighter";
+import { createReferenceFighter } from "./referenceRig";
 import { beginFighterAttack, resolveAttacks } from "./attacks";
 import { attackStartupFrames } from "./moves";
 import { createRoster } from "./roster";
@@ -10,10 +10,10 @@ import { imod } from "wisp/src/sim/intMath";
 
 function fourWorld() {
   return createRoster(15, [
-    createFighter(Character.archer, -300.0, 1),
-    createFighter(Character.archer, -100.0, -1),
-    createFighter(Character.archer, 100.0, 1),
-    createFighter(Character.archer, 300.0, -1),
+    createReferenceFighter(Character.sylvanas, -300.0, 1),
+    createReferenceFighter(Character.sylvanas, -100.0, -1),
+    createReferenceFighter(Character.sylvanas, 100.0, 1),
+    createReferenceFighter(Character.sylvanas, 300.0, -1),
   ]);
 }
 

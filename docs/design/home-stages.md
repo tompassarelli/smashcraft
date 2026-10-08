@@ -13,7 +13,6 @@ smashcraft:ts/src/game/menu/stageCatalog.ts.
 
 | Fighter | Home stage | Stage id | Why |
 | --- | --- | --- | --- |
-| Archer | Nordrassil | 10 | RoC's last mission, "Twilight of the Gods": the Sentinels defend the World Tree from Archimonde at Mount Hyjal. |
 | Rifleman | Gryphon Aerie | 11 | Ironforge riflemen and Wildhammer gryphon riders fight side by side in every Alliance army, the Gryphon Aviary beside the Barracks. |
 | Illidan | Hellfire Citadel | 14 | TFT's "Lord of Outland": Illidan storms Magtheridon's citadel in Outland. |
 | Blademaster | Durotar Skies | 3 | TFT's "The Founding of Durotar": Samuro of the Burning Blade fights for Thrall's new homeland. |

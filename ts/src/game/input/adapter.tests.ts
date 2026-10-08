@@ -13,7 +13,7 @@ import { actionFor, decodeBindings, encodeBindings, presetBindings, rebind } fro
 import { commitEdges, keyboardCapture, sampleKeys } from "./keyboardCapture";
 import { heldActions, playerKeys, pressKey } from "./playerKeys";
 
-function fixture(character: Character = Character.archer, graceFrames = 0) {
+function fixture(character: Character = Character.rifleman, graceFrames = 0) {
   const fighter = createFighter(character, 0, 1);
   const input = neutralControls();
   const attacks = attackBuffer(graceFrames);
@@ -27,7 +27,7 @@ function fixture(character: Character = Character.archer, graceFrames = 0) {
 }
 
 test("Z hold lengths match quick-release jump height and takeoff frame, even with jump held [spec #321]", () => {
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+  for (const character of [Character.rifleman, Character.demonHunter]) {
     for (const jumpHeld of [false, true]) {
     for (const hold of [1, 3, 10, 60]) {
       const reference = fixture(character);
@@ -58,6 +58,7 @@ test("Tilt selects neutral horizontal specials and faces the held direction on k
     for (const x of [-1, 0, 1] as const) for (const z of [-1, 0, 1] as const) {
       const f = fixture();
       f.fighter.motion.grounded = true;
+      f.fighter.motion.surface = 0;
       f.fighter.facing = x === -1 ? 1 : -1;
       const held = maskOf(Action.special) | (tilt ? maskOf(Action.walk) : 0)
         | (x === -1 ? maskOf(Action.moveLeft) : x === 1 ? maskOf(Action.moveRight) : 0)
@@ -68,8 +69,8 @@ test("Tilt selects neutral horizontal specials and faces the held direction on k
         f.adapt(capture.row, 1);
       } else f.adapt({ held, pressed: maskOf(Action.special), axisX: x * 127, axisZ: z * 127, specialX: x, specialZ: z }, 1);
       startFighterSpecial(f.fighter, 0, 0, f.input);
-      const wanted = z > 0 ? SpecialAction.archerRecovery : z < 0 ? SpecialAction.archerDisengage
-        : x !== 0 && !tilt ? SpecialAction.archerHomingArrow : SpecialAction.archerArrow;
+      const wanted = z > 0 ? SpecialAction.riflemanRecovery : z < 0 ? SpecialAction.riflemanTrap
+        : x !== 0 && !tilt ? SpecialAction.riflemanBear : SpecialAction.riflemanBlaster;
       const label = `${keyboard ? "keyboard" : "pad"} tilt ${tilt} x ${x} z ${z}`;
       assertEquals(f.fighter.special.action, wanted, label);
       if (z === 0 && x !== 0) assertEquals(f.fighter.facing, x, `${label} facing`);

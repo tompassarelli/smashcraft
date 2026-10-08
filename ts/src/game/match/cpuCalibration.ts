@@ -56,7 +56,7 @@ const record = (into: DecisionSample, outcome: string) => {
 
 function setup(profile: CpuProfile, seed: number, character: Character = Character.demonHunter, gap = 60.0) {
   const own = createFighter(character, 0.0, 1);
-  const target = createFighter(Character.archer, gap, -1);
+  const target = createFighter(Character.demonHunter, gap, -1);
   const match = createMatchState();
   match.phase = Phase.match;
   match.timeLimitMinutes = 0;
@@ -79,8 +79,8 @@ function setup(profile: CpuProfile, seed: number, character: Character = Charact
 }
 
 function reaction(profile: CpuProfile, seed: number, trial: number, into: CalibrationRow): void {
-  const changed = setup(profile, seed, Character.archer, 300.0);
-  const quiet = setup(profile, seed, Character.archer, 300.0);
+  const changed = setup(profile, seed, Character.rifleman, 300.0);
+  const quiet = setup(profile, seed, Character.rifleman, 300.0);
   const start = 45 + trial;
   let first = -1;
   for (let frame = 1; frame <= start + profile.reactionFrames + 30; frame++) {

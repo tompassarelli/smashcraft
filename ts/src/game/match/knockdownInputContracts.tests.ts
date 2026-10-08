@@ -4,7 +4,8 @@ import { assertDefined, assertEquals, test } from "wisp/src/runtime/testing";
 import { Character, DownState } from "../sim/codes";
 import { isTumbling } from "../sim/conditions";
 import { DOWN_BOUND_FRAMES, DOWN_WAIT_FRAMES } from "../sim/down";
-import { type Fighter, createFighter } from "../sim/fighter";
+import { type Fighter } from "../sim/fighter";
+import { createReferenceFighter } from "../sim/referenceRig";
 import { type Pad, type PadMatch, padMatch, playPads } from "./helperPads";
 import { testMatch } from "./testMatch";
 
@@ -15,11 +16,11 @@ interface Run extends PadMatch {
 const ATTACKER_X = -560.0;
 const VICTIM_X = -460.0;
 
-/** An archer facing a victim of the given character and percent, both reading journals. */
+/** The shared reference combat rig faces a victim, both reading journals. */
 function startRun(victimCharacter: Character, percent: number): Run {
-  const match = testMatch(3, Character.archer);
-  match.world.fighters[0] = createFighter(Character.archer, ATTACKER_X, 1);
-  const victim = createFighter(victimCharacter, VICTIM_X, -1);
+  const match = testMatch(3, Character.sylvanas);
+  match.world.fighters[0] = createReferenceFighter(Character.sylvanas, ATTACKER_X, 1);
+  const victim = createReferenceFighter(victimCharacter, VICTIM_X, -1);
   victim.status.damage = percent;
   match.world.fighters[1] = victim;
   return { ...padMatch(match, "knockdown"), victim };
@@ -44,13 +45,13 @@ interface Knockdown {
   readonly name: string;
   readonly victim: Character;
   readonly percent: number;
-  /** The archer's frame-1 strike: a C-stick forward smash, or a jab for the farther high-percent launch. */
+  /** The reference rig's frame-1 strike: a C-stick forward smash, or a jab for the farther high-percent launch. */
   readonly strike: Pad;
 }
 
 const KNOCKDOWNS: readonly Knockdown[] = [
-  { name: "low", victim: Character.archer, percent: 10.0, strike: { cx: 1.0 } },
-  { name: "mid", victim: Character.rifleman, percent: 50.0, strike: { cx: 1.0 } },
+  { name: "low", victim: Character.sylvanas, percent: 10.0, strike: { cx: 1.0 } },
+  { name: "mid", victim: Character.sylvanas, percent: 50.0, strike: { cx: 1.0 } },
   { name: "high", victim: Character.demonHunter, percent: 100.0, strike: { attack: true } },
 ];
 
@@ -144,14 +145,14 @@ test("a C-stick up flick during the wait starts the get-up attack and a sideways
 
 test("a C-stick flick as Melee's bound ends gets up, and one held through the wait does nothing [reference]", () => {
   for (const [flick, state, direction] of [[{ cy: 1.0 }, DownState.attack, 0], [{ cx: 1.0 }, DownState.roll, 1]] as const) {
-    const run = startRun(Character.archer, 10.0);
+    const run = startRun(Character.sylvanas, 10.0);
     const landing = knockDown(run, { cx: 1.0 }, NEUTRAL);
     const pad = (frame: number): Pad => (frame === boundEnd(landing) ? flick : {});
     playThrough(run, boundEnd(landing), pad);
     assertEquals(run.victim.down.state, state);
     assertEquals(run.victim.down.direction, direction);
   }
-  const run = startRun(Character.archer, 10.0);
+  const run = startRun(Character.sylvanas, 10.0);
   const landing = knockDown(run, { cx: 1.0 }, NEUTRAL);
   const held = (frame: number): Pad => (frame >= landing + 5 ? { cy: 1.0 } : {});
   playThrough(run, boundEnd(landing) + 20, held);

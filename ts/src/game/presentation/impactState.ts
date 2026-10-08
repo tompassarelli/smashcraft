@@ -95,7 +95,7 @@ const EMPTY: Readonly<ImpactState> = {
   drift: filled(IMPACT_COUNT, 0),
   driftZ: filled(IMPACT_COUNT, 0.0),
   pitch: filled(IMPACT_COUNT, 0.0),
-  character: filled<Character>(IMPACT_COUNT, 0),
+  character: filled<Character>(IMPACT_COUNT, 1),
   strength: filled(IMPACT_COUNT, 0.0),
 };
 
@@ -127,7 +127,7 @@ export function clearImpactSlot(state: ImpactState, i: number): void {
   const kind = idiv(i, IMPACTS_PER_KIND);
   state.occupied[kind] = at(state.occupied, kind) & ~(1 << imod(i, IMPACTS_PER_KIND));
   state.ages[i] = undefined;
-  state.character[i] = 0;
+  state.character[i] = 1;
   state.originX[i] = 0.0;
   state.originZ[i] = 0.0;
   state.drift[i] = 0;
@@ -151,7 +151,7 @@ export function copyImpactStateInto(target: ImpactState, source: Readonly<Impact
         continue;
       }
       target.ages[i] = age;
-      target.character[i] = source.character[i] ?? 0;
+      target.character[i] = source.character[i] ?? 1;
       target.originX[i] = source.originX[i] ?? 0.0;
       target.originZ[i] = source.originZ[i] ?? 0.0;
       target.drift[i] = source.drift[i] ?? 0;
@@ -364,7 +364,7 @@ export function projectImpact(state: Readonly<ImpactState>, i: number): Readonly
 }
 
 // Shared and never changed: renderers project every pooled effect on every callback.
-const HIDDEN_KO: Readonly<KoPose> = { visible: false, character: 0, alpha: 0, scale: 0.0, x: 0.0, y: 0.0, z: 0.0, pitch: 0.0, yaw: 0.0, roll: 0.0 };
+const HIDDEN_KO: Readonly<KoPose> = { visible: false, character: 1, alpha: 0, scale: 0.0, x: 0.0, y: 0.0, z: 0.0, pitch: 0.0, yaw: 0.0, roll: 0.0 };
 
 /**
  * A top KO's body: a star KO flies away and spins, a screen KO hits the

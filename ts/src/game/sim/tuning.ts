@@ -129,11 +129,11 @@ const ORIGINAL_ACCELERATION = {
 } as const;
 
 /** The three fighters authored before the roster expansion. */
-type OriginalFighter = "archer" | "rifleman" | "demonHunter";
+type OriginalFighter = "reference" | "rifleman" | "demonHunter";
 
 /** Defaults for the original roster, never a reference-character selector. */
 export const AUTHORED_PHYSICS: { readonly [name in OriginalFighter]: FighterPhysics } = {
-  archer: {
+  reference: {
     weight: 62.0,
     gravity: melee(0.23000000417232513),
     terminalSpeed: melee(2.799999952316284),
@@ -210,8 +210,6 @@ export const AUTHORED_PHYSICS: { readonly [name in OriginalFighter]: FighterPhys
 
 export function authoredPhysics(character: Character): FighterPhysics {
   switch (character) {
-    case Character.archer:
-      return AUTHORED_PHYSICS.archer;
     case Character.rifleman:
       return AUTHORED_PHYSICS.rifleman;
     case Character.demonHunter:
@@ -221,7 +219,7 @@ export function authoredPhysics(character: Character): FighterPhysics {
   }
 }
 
-/** The reference body's weight, 1.00 in the roster's table; Archer herself is lighter (#105). */
+/** The reference body's weight, 1.00 in the roster's table; Fox reference herself is lighter (#105). */
 const REFERENCE_WEIGHT = 75.0;
 /** What a hero's 1.00 air multiplier means: Ultimate's median air speed (#190; smashcraft:docs/gameplay-design.md, "Air drift and jump momentum"). */
 export const REFERENCE_AIR_SPEED = melee(1.0);
@@ -229,13 +227,13 @@ export const REFERENCE_AIR_SPEED = melee(1.0);
 const heroPhysicsRecords: (FighterPhysics | undefined)[] = [];
 
 /**
- * An expansion hero's physics: Archer's, with the roster's weight (of REFERENCE_WEIGHT), run and
+ * An expansion hero's physics: Fox reference's, with the roster's weight (of REFERENCE_WEIGHT), run and
  * air-speed (of REFERENCE_AIR_SPEED) multipliers. Jumps and gravity stay the reference's.
  */
 function heroPhysics(character: Character): FighterPhysics {
   const cached = heroPhysicsRecords[character];
   if (cached !== undefined) return cached;
-  const reference = AUTHORED_PHYSICS.archer;
+  const reference = AUTHORED_PHYSICS.reference;
   const body = heroBody(character);
   if (body === undefined) return reference;
   const physics: FighterPhysics = {
@@ -255,12 +253,12 @@ function heroPhysics(character: Character): FighterPhysics {
  * each fighter's Melee reference: ftCo_DatAttrs +0x100 passivewall_vel_x,
  * +0x104/+0x108 wall jump launch, +0x10C passiveceil_vel_x and +0x148
  * wall_jump_min_approach_speed in the owner's GALE01 revision 2 PlFx.dat
- * (Archer = Fox), PlFc.dat (Rifleman = Falco) and PlCa.dat (Illidan =
+ * (Fox reference = Fox), PlFc.dat (Rifleman = Falco) and PlCa.dat (Illidan =
  * Captain Falcon), all of whom wall jump (can_walljump in ftFx_Init_OnLoad,
  * ftFc_Init_OnLoad, ftCa_Init_OnLoad).
  */
 const AUTHORED_SURFACE_RECOVERY: { readonly [name in OriginalFighter]: SurfaceRecoveryPhysics } = {
-  archer: {
+  reference: {
     passiveWallSpeed: melee(0.5),
     wallJumpHorizontalSpeed: melee(1.399999976158142),
     wallJumpVerticalSpeed: melee(3.299999952316284),
@@ -288,14 +286,12 @@ const AUTHORED_SURFACE_RECOVERY: { readonly [name in OriginalFighter]: SurfaceRe
 
 function authoredSurfaceRecovery(character: Character): SurfaceRecoveryPhysics {
   switch (character) {
-    case Character.archer:
-      return AUTHORED_SURFACE_RECOVERY.archer;
     case Character.rifleman:
       return AUTHORED_SURFACE_RECOVERY.rifleman;
     case Character.demonHunter:
       return AUTHORED_SURFACE_RECOVERY.demonHunter;
     default:
-      return AUTHORED_SURFACE_RECOVERY.archer;
+      return AUTHORED_SURFACE_RECOVERY.reference;
   }
 }
 

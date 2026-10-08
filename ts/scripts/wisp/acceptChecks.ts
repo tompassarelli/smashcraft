@@ -32,14 +32,14 @@ const stageProfile = (name: string) => `stage-${name.toLowerCase().replace(/[^a-
 const heroProfile = (name: string) => `hero-${name.toLowerCase().replace(/\s+/g, "-")}`;
 
 export const MAP_PROFILES: Readonly<Record<string, SmashcraftMapProfile>> = {
-  outfits: { describe: "four-colour portrait candidate, red Archer and blue Rifleman", path: join(inputs, "slot-outfits-161-20261007/Smashcraft diagnostic slot portrait outfits.w3x"), quick: "-dev quick" },
+  outfits: { describe: "four-colour portrait candidate, red Illidan and blue Rifleman", path: join(inputs, "slot-outfits-161-20261007/Smashcraft diagnostic slot portrait outfits.w3x"), quick: "-dev quick" },
   ...STAGE_COMPOSITION_MAPS,
   ...STAGE_ENTRY_MAPS,
   ...FLOATING_STAGE_MAPS,
   "unlit-contact": { describe: "retained 5a1815b4 map, tech spark without the contact light", path: join(inputs, "stage-presentation-r3-20261008/5a1815b4.w3x"), quick: "-dev quick" },
   "slash-unlit": { describe: "integrity map built at f9d0fbf3, slash hit spark without its contact light", path: join(inputs, "particles-192-20261008/before.w3x"), quick: "-dev quick" },
   "slash-lit": { describe: "integrity map built with the slash hit spark's contact light", path: join(inputs, "particles-192-20261008/after.w3x"), quick: "-dev quick" },
-  presentation: { describe: "development map rebuilt from this checkout, `-dev quick` (Archer and Rifleman idle on the default stage)", path: PRESENTATION, rebuild: "main", quick: "-dev quick" },
+  presentation: { describe: "development map rebuilt from this checkout, `-dev quick` (Illidan and Rifleman idle on the default stage)", path: PRESENTATION, rebuild: "main", quick: "-dev quick" },
   // smashcraft:docs/player-view.md: CURRENT_BUILD's scenario set to underside, built as a development map.
   // smashcraft#166: the playable build's keyboard input and pooled fighters (native-perf adds only developer setup and the frame meter).
   keyboard: { describe: "playable input (native-perf profile) rebuilt from this checkout, `-dev quick cpu wren expert` (Wren Expert, three stocks)", path: join(inputs, "keyboard-native-166-20261007/keyboard-native.w3x"), rebuild: "native-perf", quick: `${QUICK_CPU_COMMAND}wren expert` },
@@ -193,7 +193,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       capture: [{ kind: "frames", name: "stage-and-hud", client: "a" }, { kind: "frames", name: "stage-and-hud", client: "b" }],
       // The session start already waits for both clients' -dev quick receipts; this check sends no command of its own.
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
-      look: "In the same frame, Archer's red clothing and Rifleman's blue hood on stage match their HUD busts and stock icons; frames alone are insufficient.",
+      look: "In the same frame, Illidan's red clothing and Rifleman's blue hood on stage match their HUD busts and stock icons; frames alone are insufficient.",
     },
     {
       id: "185-cpu-preview", closes: "smashcraft#185 box 5", map: "presentation", session: "cpu-settings",
@@ -216,12 +216,12 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
     {
       id: "161-neutral-grid-picked-outfits", closes: "smashcraft#161 box 4", map: "outfits",
       setup: [
-        { chat: "-dev reset" }, { chat: "-dev fighter 1 Archer", client: "a" }, { chat: "-dev fighter 2 Rifleman", client: "b" },
+        { chat: "-dev reset" }, { chat: "-dev fighter 1 Illidan", client: "a" }, { chat: "-dev fighter 2 Rifleman", client: "b" },
         { waitMs: 1500 },
       ],
       capture: [{ kind: "frames", name: "grid-and-picked-cards", client: "a" }],
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
-      look: "The roster grid stays neutral; picked player cards show red Archer and blue Rifleman clothing.",
+      look: "The roster grid stays neutral; picked player cards show red Illidan and blue Rifleman clothing.",
     },
     ...(["a", "b"] as const).map((client): NativeCheck => ({
       id: `174-defile-${client}`,

@@ -1,5 +1,7 @@
 # Production and Melee reference comparisons
 
+Historical record: the captures, trial tables and asset measurements below describe their named builds before the 9 October 2026 roster cut (#339). They are not the current roster or asset inventory.
+
 smashcraft:tools/move-data/reference-join.jsonl joins the existing production
 move export to the independently recorded Melee frame-data corpus by **action
 family**, keeping both identities. Archer, Rifleman and Demon Hunter are never

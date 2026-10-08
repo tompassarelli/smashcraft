@@ -1,5 +1,5 @@
 # #203: WC3_TAP_JUMP=on; the real helper turns unmodified stick-up into Jump.
-#! chat -dev quick hero archer
+#! chat -dev quick hero rifleman
 60 a shield 1
 70 a stick 0 1
 80 a stick 0 0

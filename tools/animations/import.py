@@ -14,8 +14,8 @@ preferences = bpy.context.preferences.addons["export_mdl"].preferences
 preferences.resourceFolder = str(project / "build/animation-assets/textures")
 preferences.textureExtension = "png"
 args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
-if len(args) != 1 or args[0] not in ("archer", "rifleman"):
-    raise ValueError("pass -- archer or -- rifleman")
+if len(args) != 1 or args[0] != "rifleman":
+    raise ValueError("pass -- rifleman")
 name = args[0]
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.object.delete(use_global=False)

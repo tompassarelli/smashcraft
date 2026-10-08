@@ -100,8 +100,6 @@ specials.ts and shield.ts.
 
 | Fighter | Projectile | Spawn | Flight | Hit |
 |---|---|---|---|---|
-| Archer | Arrow (neutral special) | special frame 2 | speed 36, 75 frames | 7 damage, damage only: no hitstun or knockback; shields take the damage |
-| Archer | Homing arrow (side special, #112) | one arrow on frame 12, level | speed 22, 75 frames; turns at most 2.5° a frame toward the nearest opponent ahead of it, never steeper than 50°, straight once every opponent is behind it; stops at solid stage | 6, damage only |
 | Rifleman | Blaster shot (neutral special) | grounded: special frame 9, shoulder height; aerial: frame 14, hip height, cancelled by landing (8 frames of landing lag) | speed 36, 60 frames | flinch without knockback, 3 frames of hitstun per damage: grounded 4 (12), aerial 3 (9) |
 | Rifleman | Recoil blast (up special) | frame 4, downward | 8 frames | 5, launches downward |
 | Illidan | Mana Burn (neutral special) | frame 16, one out at a time | speed 12, 90 frames, at the shield's centre height | 5, electric, flinch and a stun of 20-80 frames by percent; cancels an opposing traveling projectile ([roster](roster.md#mana-burn-neutral-special)) |
@@ -111,6 +109,5 @@ raise-timed powershield reflects a projectile during the shield's first 2
 frames inside 0.75 of the shield radius, sending it back at 0.7 speed and half
 damage; a held shield blocks a projectile that meets the shield circle, and a
 projectile that meets exposed body outside the shield hits. Illidan's parry
-answers projectiles as well as strikes. Rifleman's bear, trap and Archer's
-hippogryph are summons, not projectiles (smashcraft:ts/src/game/sim/summons.ts).
+answers projectiles as well as strikes. Rifleman's bear and trap are summons, not projectiles (smashcraft:ts/src/game/sim/summons.ts).
 The [interaction graph](interaction-graph.md) measures each projectile's flight, arrival on a shield, out-of-shield punishes, powershield presses and a standing defender's answers in its projectile situations.

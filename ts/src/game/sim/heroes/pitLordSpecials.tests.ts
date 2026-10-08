@@ -45,7 +45,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   }
 }
 
-function pair(gap: number, facing = 1, opponent: Character = Character.archer): { world: Roster; owner: Fighter; target: Fighter } {
+function pair(gap: number, facing = 1, opponent: Character = Character.rifleman): { world: Roster; owner: Fighter; target: Fighter } {
   const owner = pitLord(f32(-gap * 0.5 * facing), facing);
   const target = createFighter(opponent, f32(gap * 0.5 * facing), -facing);
   const world = createRoster(3, [owner, target]);
@@ -149,8 +149,8 @@ test("Ruin Charge travels 1.5H, armors one small hit on f19-24 only, and the air
   assertTrue(helpless);
 });
 
-test("an Archer jab that meets Ruin Charge's armor deals its damage without a reaction, and the charge still lands [spec docs/design/pit-lord.md]", () => {
-  // The Archer jabs on each frame the charge could meet it; some start trades into the armor.
+test("an Rifleman jab that meets Ruin Charge's armor deals its damage without a reaction, and the charge still lands [spec docs/design/pit-lord.md]", () => {
+  // The Rifleman jabs on each frame the charge could meet it; some start trades into the armor.
   let trades = 0;
   for (let start = 15; start <= 24; start++) {
     const { world, owner, target } = pair(f32(H * f32(1.47)));
@@ -210,12 +210,12 @@ test("rollback restores Pit Lord's falling fire and repeats the same contact [in
   for (let f = 1; f <= 30; f++) frame(world, f === 1 ? down : controls());
   assertTrue(owner.projectiles.some(p => p.life > 0));
   const savedOwner = createFighter(Character.pitLord, 0.0, 1);
-  const savedTarget = createFighter(Character.archer, 0.0, 1);
+  const savedTarget = createFighter(Character.rifleman, 0.0, 1);
   copyFighterState(savedOwner, owner, 3);
   copyFighterState(savedTarget, target, 3);
   for (let f = 0; f < 12; f++) frame(world);
   const expectedOwner = createFighter(Character.pitLord, 0.0, 1);
-  const expectedTarget = createFighter(Character.archer, 0.0, 1);
+  const expectedTarget = createFighter(Character.rifleman, 0.0, 1);
   copyFighterState(expectedOwner, owner, 3);
   copyFighterState(expectedTarget, target, 3);
   copyFighterState(owner, savedOwner, 3);

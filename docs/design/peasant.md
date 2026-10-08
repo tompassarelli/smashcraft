@@ -79,7 +79,7 @@ rules refuse immediate regrabs.
 
 ## Matchup identity
 
-Archer and Rifleman outrange the worker but must respect a built worksite.
+Rifleman outrange the worker but must respect a built worksite.
 Illidan and Warden outmaneuver his slow run and punish failed Repair reads.
 Blademaster's sword and Forsaken Paladin's hammer beat his short tools directly.
 Mountain King wins close heavy trades; Peon instead makes him approach lumber.

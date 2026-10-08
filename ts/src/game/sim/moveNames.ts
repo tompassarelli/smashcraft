@@ -105,7 +105,8 @@ export function fighterKit(character: number): FighterKitText {
       inspiredBy: heroInspirations(hero.moves),
     };
   }
-  const original = ORIGINAL_KITS[character] ?? at(ORIGINAL_KITS, 0);
+  const original = ORIGINAL_KITS[character];
+  if (original === undefined) throw new Error(`Unknown fighter ${character}`);
   return {
     specials: original.specials.map((special) => ({ name: special.name, description: special.description, forms: special.forms ?? [] })),
     trait: original.trait,

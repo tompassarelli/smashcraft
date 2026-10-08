@@ -3,6 +3,7 @@
 import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { imod } from "wisp/src/sim/intMath";
 import { createFighter } from "../sim/fighter";
+import { Character } from "../sim/codes";
 import { createRoster, fighterAt } from "../sim/roster";
 import { Phase, advanceClock, allCharactersReady, characterReady, confirmRematch, cpuSlot, createMatchState, cycleSlotMode, recallCharacter, requestStageSelect, requestStart, returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setCpuOpponent, setCpuTier, setHumanCount, setParticipants, setStocks, setTimeLimit } from "./rules";
 
@@ -14,7 +15,7 @@ function testSoloMatch() {
 }
 
 function testStanding(firstStocks: number, firstDamage: number, secondStocks: number, secondDamage: number) {
-  const world = createRoster(3, [createFighter(0, 0, 1), createFighter(1, 0, -1)]);
+  const world = createRoster(3, [createFighter(1, 0, 1), createFighter(1, 0, -1)]);
   fighterAt(world, 0).status.stocks = firstStocks;
   fighterAt(world, 0).status.damage = firstDamage;
   fighterAt(world, 1).status.stocks = secondStocks;
@@ -27,7 +28,7 @@ test("bothPlayersMustSelectBeforeEitherCanOpenStages [spec #234]", () => {
   selectCharacter(game, 0, 1);
   assertFalse(requestStageSelect(game, 0));
   assertFalse(requestStageSelect(game, 1));
-  selectCharacter(game, 1, 0);
+  selectCharacter(game, 1, 1);
   assertTrue(requestStageSelect(game, 1));
   selectStage(game, 1, 10);
   assertEquals(game.stageChoice, 10);
@@ -61,7 +62,7 @@ test("menuAndUnlimitedMatchesDoNotRunClock [spec docs/design/match-flow.md]", ()
   advanceClock(game, testStanding(0, 0.0, 0, 0.0));
   assertEquals(game.remainingFrames, 25200);
   assertEquals(game.phase, Phase.characterMenu);
-  selectCharacter(game, 0, 0);
+  selectCharacter(game, 0, 1);
   selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 0);
   requestStageSelect(game, 0);
   advanceClock(game, testStanding(0, 0.0, 0, 0.0));
@@ -85,7 +86,7 @@ test("everyHumanMustChooseAndConfirmForThreeAndFourPlayerMatches [spec #234]", (
     setHumanCount(game, count);
     assertEquals(game.humanCount, count);
     for (let slot = 0; slot <= count - 2; slot++) {
-      selectCharacter(game, slot, imod(slot, 3));
+      selectCharacter(game, slot, [Character.rifleman, Character.demonHunter, Character.blademaster][imod(slot, 3)]!);
     }
     assertFalse(requestStageSelect(game, count - 1));
     selectCharacter(game, count - 1, 2);

@@ -16,89 +16,8 @@ export const ORIGINAL_LIGHT_INACTIVE_ANIMATION = "Death";
 export const ORIGINAL_LIGHT_GATE_SECONDS = 0.5;
 
 /** Each character's clips by original sequence index. */
-const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
-  // Archer
-  [
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(0.416), endSeconds: f32(1.958), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: 2.375, endSeconds: f32(3.958), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: 4.375, endSeconds: f32(5.666), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(6.083), endSeconds: f32(7.791), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(8.208), endSeconds: 9.625, looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(10.041), endSeconds: f32(11.041), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(11.458), endSeconds: f32(12.458), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: 12.875, endSeconds: 13.75, looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(14.166), endSeconds: f32(15.166), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(15.583), endSeconds: f32(16.583), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: 17.0, endSeconds: 18.0, looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(18.416), endSeconds: f32(19.416), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(19.833), endSeconds: f32(23.083), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: 23.5, endSeconds: 83.5, looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(83.916), endSeconds: f32(143.916), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(144.333), endSeconds: f32(145.583), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: 146.0, endSeconds: f32(146.541), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(146.958), endSeconds: 148.125, looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(148.541), endSeconds: f32(149.541), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(149.958), endSeconds: 151.125, looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(151.541), endSeconds: f32(152.708), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: 153.125, endSeconds: f32(154.291), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(154.708), endSeconds: f32(155.958), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: 156.375, endSeconds: f32(158.416), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(158.833), endSeconds: f32(160.333), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: 160.75, endSeconds: 161.75, looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(162.166), endSeconds: f32(163.166), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(163.583), endSeconds: f32(164.583), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: 165.0, endSeconds: 165.5, looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(165.916), endSeconds: f32(167.166), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(167.583), endSeconds: f32(168.583), looping: true, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: 169.0, endSeconds: 170.0, looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(170.416), endSeconds: f32(171.708), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: 172.125, endSeconds: f32(173.416), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(173.833), endSeconds: f32(175.083), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: 175.5, endSeconds: 175.625, looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(176.041), endSeconds: f32(176.166), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(176.583), endSeconds: 178.0, looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(178.416), endSeconds: f32(179.416), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(179.833), endSeconds: 180.75, looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(181.166), endSeconds: f32(182.333), looping: true, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: 182.75, endSeconds: 184.75, looping: true, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(185.166), endSeconds: f32(188.166), looping: true, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(188.583), endSeconds: f32(192.291), looping: true, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(192.708), endSeconds: 192.75, looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(193.166), endSeconds: f32(194.291), looping: true, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(194.708), endSeconds: f32(198.458), looping: true, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: 198.875, endSeconds: f32(200.291), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(200.708), endSeconds: f32(202.208), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: 202.625, endSeconds: 203.875, looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(204.291), endSeconds: 205.625, looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(206.041), endSeconds: 207.25, looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(207.666), endSeconds: f32(208.666), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(209.083), endSeconds: 210.5, looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(210.916), endSeconds: f32(212.416), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(212.833), endSeconds: f32(214.083), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: 214.5, endSeconds: f32(215.833), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: 216.25, endSeconds: f32(217.083), looping: true, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(217.183), endSeconds: f32(217.316), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(217.416), endSeconds: f32(217.549), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(217.649), endSeconds: f32(217.699), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(217.799), endSeconds: f32(218.616), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(218.716), endSeconds: f32(219.149), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(219.249), endSeconds: f32(219.916), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(220.016), endSeconds: f32(220.683), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(220.783), endSeconds: f32(221.366), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(221.466), endSeconds: f32(222.049), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(222.149), endSeconds: f32(222.549), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(222.649), endSeconds: f32(223.049), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(223.149), endSeconds: f32(223.549), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(223.649), endSeconds: f32(224.049), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(224.149), endSeconds: f32(224.549), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(224.649), endSeconds: f32(225.049), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(225.149), endSeconds: f32(225.549), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(225.649), endSeconds: f32(226.049), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(226.149), endSeconds: f32(226.549), looping: false, timeline: true },
-    { modelPath: "war3mapImported\\ArcherTimelineBody-d83a820e43dbdb44fa000db1a77c720ee48efd638375a33765cd23f0c807ce37.mdx", startSeconds: f32(226.649), endSeconds: f32(227.132), looping: false, timeline: true },
-  ],
-  // Rifleman
-  [
+const CLIPS: Readonly<Record<number, (readonly FighterOriginalClip[])>> = {
+  1: [
     { modelPath: "war3mapImported\\RiflemanTimelineBody-6ff19a146160dca82f89c5a36f8f813b380e882f8db2ff81e597b81b0a89b5a3.mdx", startSeconds: f32(0.416), endSeconds: f32(1.958), looping: false, timeline: true },
     { modelPath: "war3mapImported\\RiflemanTimelineBody-6ff19a146160dca82f89c5a36f8f813b380e882f8db2ff81e597b81b0a89b5a3.mdx", startSeconds: 2.375, endSeconds: f32(3.958), looping: false, timeline: true },
     { modelPath: "war3mapImported\\RiflemanTimelineBody-6ff19a146160dca82f89c5a36f8f813b380e882f8db2ff81e597b81b0a89b5a3.mdx", startSeconds: 4.375, endSeconds: f32(5.666), looping: false, timeline: true },
@@ -173,8 +92,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\RiflemanTimelineBody-6ff19a146160dca82f89c5a36f8f813b380e882f8db2ff81e597b81b0a89b5a3.mdx", startSeconds: f32(157.64), endSeconds: f32(158.04), looping: false, timeline: true },
     { modelPath: "war3mapImported\\RiflemanTimelineBody-6ff19a146160dca82f89c5a36f8f813b380e882f8db2ff81e597b81b0a89b5a3.mdx", startSeconds: f32(158.14), endSeconds: f32(158.54), looping: false, timeline: true },
   ],
-  // Illidan
-  [
+  2: [
     { modelPath: "war3mapImported\\IllidanTimelineBody-d9e892ba2e92a62573611a686d1c33fb1cd31a7cdf0d7f7f55ca8df5cb48ecc3.mdx", startSeconds: f32(0.416), endSeconds: f32(1.958), looping: false, timeline: true },
     { modelPath: "war3mapImported\\IllidanTimelineBody-d9e892ba2e92a62573611a686d1c33fb1cd31a7cdf0d7f7f55ca8df5cb48ecc3.mdx", startSeconds: 2.375, endSeconds: f32(3.958), looping: false, timeline: true },
     { modelPath: "war3mapImported\\IllidanTimelineBody-d9e892ba2e92a62573611a686d1c33fb1cd31a7cdf0d7f7f55ca8df5cb48ecc3.mdx", startSeconds: 4.375, endSeconds: f32(5.666), looping: false, timeline: true },
@@ -299,8 +217,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\IllidanTimelineBody-d9e892ba2e92a62573611a686d1c33fb1cd31a7cdf0d7f7f55ca8df5cb48ecc3.mdx", startSeconds: f32(186.496), endSeconds: f32(186.663), looping: false, timeline: true },
     { modelPath: "war3mapImported\\IllidanTimelineBody-d9e892ba2e92a62573611a686d1c33fb1cd31a7cdf0d7f7f55ca8df5cb48ecc3.mdx", startSeconds: f32(186.763), endSeconds: f32(187.23), looping: false, timeline: true },
   ],
-  // Blademaster
-  [
+  3: [
     { modelPath: "war3mapImported\\BlademasterTimelineBody-96e145efd2122ae7f28f0131781b2db3c094f6d62c3c748843219a90a7ffbcd2.mdx", startSeconds: f32(2.333), endSeconds: f32(5.867), looping: true, timeline: true },
     { modelPath: "war3mapImported\\BlademasterTimelineBody-96e145efd2122ae7f28f0131781b2db3c094f6d62c3c748843219a90a7ffbcd2.mdx", startSeconds: 6.0, endSeconds: f32(11.467), looping: true, timeline: true },
     { modelPath: "war3mapImported\\BlademasterTimelineBody-96e145efd2122ae7f28f0131781b2db3c094f6d62c3c748843219a90a7ffbcd2.mdx", startSeconds: f32(14.333), endSeconds: 15.5, looping: false, timeline: true },
@@ -374,8 +291,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\BlademasterTimelineBody-96e145efd2122ae7f28f0131781b2db3c094f6d62c3c748843219a90a7ffbcd2.mdx", startSeconds: f32(97.417), endSeconds: f32(97.867), looping: false, timeline: true },
     { modelPath: "war3mapImported\\BlademasterTimelineBody-96e145efd2122ae7f28f0131781b2db3c094f6d62c3c748843219a90a7ffbcd2.mdx", startSeconds: f32(97.967), endSeconds: f32(98.584), looping: false, timeline: true },
   ],
-  // MountainKing
-  [
+  4: [
     { modelPath: "war3mapImported\\MountainKingTimelineBody-3656d5d6dbbd1605f6174afa9d31b08b0aa2253cb165d5edb1d5dedcbf22ea82.mdx", startSeconds: f32(0.167), endSeconds: f32(1.667), looping: true, timeline: true },
     { modelPath: "war3mapImported\\MountainKingTimelineBody-3656d5d6dbbd1605f6174afa9d31b08b0aa2253cb165d5edb1d5dedcbf22ea82.mdx", startSeconds: 2.0, endSeconds: 3.5, looping: true, timeline: true },
     { modelPath: "war3mapImported\\MountainKingTimelineBody-3656d5d6dbbd1605f6174afa9d31b08b0aa2253cb165d5edb1d5dedcbf22ea82.mdx", startSeconds: f32(3.667), endSeconds: f32(5.967), looping: true, timeline: true },
@@ -453,8 +369,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\MountainKingTimelineBody-3656d5d6dbbd1605f6174afa9d31b08b0aa2253cb165d5edb1d5dedcbf22ea82.mdx", startSeconds: f32(134.584), endSeconds: f32(135.267), looping: false, timeline: true },
     { modelPath: "war3mapImported\\MountainKingTimelineBody-3656d5d6dbbd1605f6174afa9d31b08b0aa2253cb165d5edb1d5dedcbf22ea82.mdx", startSeconds: f32(135.367), endSeconds: f32(136.167), looping: false, timeline: true },
   ],
-  // Warden
-  [
+  5: [
     { modelPath: "war3mapImported\\WardenTimelineBody-8ccc169ef8a0b5437feda1770d5d9266298b97601a3ce6417d44261671c92e11.mdx", startSeconds: f32(3.333), endSeconds: f32(4.667), looping: true, timeline: true },
     { modelPath: "war3mapImported\\WardenTimelineBody-8ccc169ef8a0b5437feda1770d5d9266298b97601a3ce6417d44261671c92e11.mdx", startSeconds: f32(13.333), endSeconds: f32(17.767), looping: true, timeline: true },
     { modelPath: "war3mapImported\\WardenTimelineBody-8ccc169ef8a0b5437feda1770d5d9266298b97601a3ce6417d44261671c92e11.mdx", startSeconds: f32(26.667), endSeconds: f32(27.833), looping: true, timeline: true },
@@ -521,8 +436,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\WardenTimelineBody-8ccc169ef8a0b5437feda1770d5d9266298b97601a3ce6417d44261671c92e11.mdx", startSeconds: f32(238.085), endSeconds: f32(238.802), looping: false, timeline: true },
     { modelPath: "war3mapImported\\WardenTimelineBody-8ccc169ef8a0b5437feda1770d5d9266298b97601a3ce6417d44261671c92e11.mdx", startSeconds: f32(238.902), endSeconds: f32(239.369), looping: false, timeline: true },
   ],
-  // Lich
-  [
+  6: [
     { modelPath: "war3mapImported\\LichTimelineBody-68bce0cd32cd03233abcc5c038cf7877bf4617d07228f8740894ea148ad14029.mdx", startSeconds: f32(0.167), endSeconds: f32(1.667), looping: true, timeline: true },
     { modelPath: "war3mapImported\\LichTimelineBody-68bce0cd32cd03233abcc5c038cf7877bf4617d07228f8740894ea148ad14029.mdx", startSeconds: 2.0, endSeconds: 3.5, looping: true, timeline: true },
     { modelPath: "war3mapImported\\LichTimelineBody-68bce0cd32cd03233abcc5c038cf7877bf4617d07228f8740894ea148ad14029.mdx", startSeconds: f32(3.667), endSeconds: f32(8.167), looping: true, timeline: true },
@@ -588,8 +502,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\LichTimelineBody-68bce0cd32cd03233abcc5c038cf7877bf4617d07228f8740894ea148ad14029.mdx", startSeconds: f32(86.336), endSeconds: f32(87.019), looping: false, timeline: true },
     { modelPath: "war3mapImported\\LichTimelineBody-68bce0cd32cd03233abcc5c038cf7877bf4617d07228f8740894ea148ad14029.mdx", startSeconds: f32(87.119), endSeconds: f32(87.686), looping: false, timeline: true },
   ],
-  // ForsakenPaladin
-  [
+  7: [
     { modelPath: "war3mapImported\\ForsakenPaladinTimelineBody-d5ad7cc2f691f7c25d4b1bc0164444cb44a8230e77654c70410c18b418de11b6.mdx", startSeconds: f32(4.733), endSeconds: f32(5.733), looping: false, timeline: true },
     { modelPath: "war3mapImported\\ForsakenPaladinTimelineBody-d5ad7cc2f691f7c25d4b1bc0164444cb44a8230e77654c70410c18b418de11b6.mdx", startSeconds: 0.0, endSeconds: 3.0, looping: true, timeline: true },
     { modelPath: "war3mapImported\\ForsakenPaladinTimelineBody-d5ad7cc2f691f7c25d4b1bc0164444cb44a8230e77654c70410c18b418de11b6.mdx", startSeconds: 0.0, endSeconds: 3.0, looping: true, timeline: true },
@@ -700,8 +613,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\ForsakenPaladinTimelineBody-d5ad7cc2f691f7c25d4b1bc0164444cb44a8230e77654c70410c18b418de11b6.mdx", startSeconds: f32(98.15), endSeconds: f32(98.55), looping: true, timeline: true },
     { modelPath: "war3mapImported\\ForsakenPaladinTimelineBody-d5ad7cc2f691f7c25d4b1bc0164444cb44a8230e77654c70410c18b418de11b6.mdx", startSeconds: f32(98.65), endSeconds: f32(99.05), looping: true, timeline: true },
   ],
-  // Dreadlord
-  [
+  8: [
     { modelPath: "war3mapImported\\DreadlordTimelineBody-4923941a8f9a8104f64356b7680ab43806d6f739957e20de268a668f305c7c66.mdx", startSeconds: f32(0.167), endSeconds: f32(1.667), looping: true, timeline: true },
     { modelPath: "war3mapImported\\DreadlordTimelineBody-4923941a8f9a8104f64356b7680ab43806d6f739957e20de268a668f305c7c66.mdx", startSeconds: 2.0, endSeconds: 3.5, looping: true, timeline: true },
     { modelPath: "war3mapImported\\DreadlordTimelineBody-4923941a8f9a8104f64356b7680ab43806d6f739957e20de268a668f305c7c66.mdx", startSeconds: f32(3.667), endSeconds: f32(6.6), looping: true, timeline: true },
@@ -769,8 +681,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\DreadlordTimelineBody-4923941a8f9a8104f64356b7680ab43806d6f739957e20de268a668f305c7c66.mdx", startSeconds: f32(93.271), endSeconds: f32(93.771), looping: false, timeline: true },
     { modelPath: "war3mapImported\\DreadlordTimelineBody-4923941a8f9a8104f64356b7680ab43806d6f739957e20de268a668f305c7c66.mdx", startSeconds: f32(93.871), endSeconds: f32(94.454), looping: false, timeline: true },
   ],
-  // ShadowHunter
-  [
+  9: [
     { modelPath: "war3mapImported\\ShadowHunterTimelineBody-f2ca3840abf9b6478027277993c9118b64429ec391efd1983f429c7ea727856f.mdx", startSeconds: f32(0.333), endSeconds: f32(1.133), looping: true, timeline: true },
     { modelPath: "war3mapImported\\ShadowHunterTimelineBody-f2ca3840abf9b6478027277993c9118b64429ec391efd1983f429c7ea727856f.mdx", startSeconds: f32(2.133), endSeconds: f32(3.133), looping: true, timeline: true },
     { modelPath: "war3mapImported\\ShadowHunterTimelineBody-f2ca3840abf9b6478027277993c9118b64429ec391efd1983f429c7ea727856f.mdx", startSeconds: f32(3.8), endSeconds: f32(7.033), looping: true, timeline: true },
@@ -837,8 +748,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\ShadowHunterTimelineBody-f2ca3840abf9b6478027277993c9118b64429ec391efd1983f429c7ea727856f.mdx", startSeconds: f32(124.986), endSeconds: f32(125.486), looping: false, timeline: true },
     { modelPath: "war3mapImported\\ShadowHunterTimelineBody-f2ca3840abf9b6478027277993c9118b64429ec391efd1983f429c7ea727856f.mdx", startSeconds: f32(125.586), endSeconds: f32(126.503), looping: false, timeline: true },
   ],
-  // PitLord
-  [
+  10: [
     { modelPath: "war3mapImported\\PitLordTimelineBody-2d96b471b81f9183c9d48380bc47fc557beecd4193a475a60b0ad748b7f00e93.mdx", startSeconds: 10.0, endSeconds: f32(12.833), looping: true, timeline: true },
     { modelPath: "war3mapImported\\PitLordTimelineBody-2d96b471b81f9183c9d48380bc47fc557beecd4193a475a60b0ad748b7f00e93.mdx", startSeconds: 165.0, endSeconds: f32(166.333), looping: true, timeline: true },
     { modelPath: "war3mapImported\\PitLordTimelineBody-2d96b471b81f9183c9d48380bc47fc557beecd4193a475a60b0ad748b7f00e93.mdx", startSeconds: f32(167.333), endSeconds: 170.0, looping: true, timeline: true },
@@ -905,8 +815,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\PitLordTimelineBody-2d96b471b81f9183c9d48380bc47fc557beecd4193a475a60b0ad748b7f00e93.mdx", startSeconds: f32(384.152), endSeconds: f32(384.852), looping: false, timeline: true },
     { modelPath: "war3mapImported\\PitLordTimelineBody-2d96b471b81f9183c9d48380bc47fc557beecd4193a475a60b0ad748b7f00e93.mdx", startSeconds: f32(384.952), endSeconds: f32(385.735), looping: false, timeline: true },
   ],
-  // Beastmaster
-  [
+  11: [
     { modelPath: "war3mapImported\\BeastmasterTimelineBody-5001eba34aab2124036f34a59b6b3ad29ee3f632ba88f2bbab04a1cf8965963c.mdx", startSeconds: f32(0.667), endSeconds: f32(1.667), looping: true, timeline: true },
     { modelPath: "war3mapImported\\BeastmasterTimelineBody-5001eba34aab2124036f34a59b6b3ad29ee3f632ba88f2bbab04a1cf8965963c.mdx", startSeconds: f32(1.833), endSeconds: f32(4.833), looping: true, timeline: true },
     { modelPath: "war3mapImported\\BeastmasterTimelineBody-5001eba34aab2124036f34a59b6b3ad29ee3f632ba88f2bbab04a1cf8965963c.mdx", startSeconds: f32(6.667), endSeconds: f32(9.667), looping: true, timeline: true },
@@ -970,8 +879,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\BeastmasterTimelineBody-5001eba34aab2124036f34a59b6b3ad29ee3f632ba88f2bbab04a1cf8965963c.mdx", startSeconds: f32(71.201), endSeconds: f32(71.934), looping: false, timeline: true },
     { modelPath: "war3mapImported\\BeastmasterTimelineBody-5001eba34aab2124036f34a59b6b3ad29ee3f632ba88f2bbab04a1cf8965963c.mdx", startSeconds: f32(72.034), endSeconds: f32(72.567), looping: false, timeline: true },
   ],
-  // LichKing
-  [
+  12: [
     { modelPath: "war3mapImported\\LichKingTimelineBody-2f070aeb446777b32d58308574f6ffde7291d408ba4c0a348283229ed3304b9b.mdx", startSeconds: f32(0.416), endSeconds: f32(3.416), looping: true, timeline: true },
     { modelPath: "war3mapImported\\LichKingTimelineBody-2f070aeb446777b32d58308574f6ffde7291d408ba4c0a348283229ed3304b9b.mdx", startSeconds: 3.75, endSeconds: 5.875, looping: true, timeline: true },
     { modelPath: "war3mapImported\\LichKingTimelineBody-2f070aeb446777b32d58308574f6ffde7291d408ba4c0a348283229ed3304b9b.mdx", startSeconds: 6.25, endSeconds: 7.5, looping: true, timeline: true },
@@ -1070,8 +978,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\LichKingTimelineBody-2f070aeb446777b32d58308574f6ffde7291d408ba4c0a348283229ed3304b9b.mdx", startSeconds: f32(90.503), endSeconds: f32(91.503), looping: false, timeline: true },
     { modelPath: "war3mapImported\\LichKingTimelineBody-2f070aeb446777b32d58308574f6ffde7291d408ba4c0a348283229ed3304b9b.mdx", startSeconds: f32(91.603), endSeconds: f32(92.236), looping: false, timeline: true },
   ],
-  // Thrall
-  [
+  13: [
     { modelPath: "war3mapImported\\ThrallTimelineBody-2e06a22cd757877458dc7ef06e40822bf27cd4958747f6ebde30d39727538bd9.mdx", startSeconds: f32(0.333), endSeconds: f32(1.7), looping: true, timeline: true },
     { modelPath: "war3mapImported\\ThrallTimelineBody-2e06a22cd757877458dc7ef06e40822bf27cd4958747f6ebde30d39727538bd9.mdx", startSeconds: f32(2.833), endSeconds: f32(6.167), looping: true, timeline: true },
     { modelPath: "war3mapImported\\ThrallTimelineBody-2e06a22cd757877458dc7ef06e40822bf27cd4958747f6ebde30d39727538bd9.mdx", startSeconds: 7.5, endSeconds: f32(8.4), looping: true, timeline: true },
@@ -1161,8 +1068,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\ThrallTimelineBody-2e06a22cd757877458dc7ef06e40822bf27cd4958747f6ebde30d39727538bd9.mdx", startSeconds: f32(104.433), endSeconds: f32(104.833), looping: false, timeline: true },
     { modelPath: "war3mapImported\\ThrallTimelineBody-2e06a22cd757877458dc7ef06e40822bf27cd4958747f6ebde30d39727538bd9.mdx", startSeconds: f32(104.933), endSeconds: f32(105.333), looping: false, timeline: true },
   ],
-  // JainaProudmoore
-  [
+  14: [
     { modelPath: "war3mapImported\\JainaProudmooreTimelineBody-d21a8f6e11119adf36437500edad1cf52a40415a253a144388bdc267603155ee.mdx", startSeconds: f32(3.333), endSeconds: f32(4.667), looping: true, timeline: true },
     { modelPath: "war3mapImported\\JainaProudmooreTimelineBody-d21a8f6e11119adf36437500edad1cf52a40415a253a144388bdc267603155ee.mdx", startSeconds: f32(5.333), endSeconds: f32(8.333), looping: true, timeline: true },
     { modelPath: "war3mapImported\\JainaProudmooreTimelineBody-d21a8f6e11119adf36437500edad1cf52a40415a253a144388bdc267603155ee.mdx", startSeconds: f32(9.667), endSeconds: f32(12.333), looping: true, timeline: true },
@@ -1254,8 +1160,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\JainaProudmooreTimelineBody-d21a8f6e11119adf36437500edad1cf52a40415a253a144388bdc267603155ee.mdx", startSeconds: f32(99.52), endSeconds: f32(99.92), looping: false, timeline: true },
     { modelPath: "war3mapImported\\JainaProudmooreTimelineBody-d21a8f6e11119adf36437500edad1cf52a40415a253a144388bdc267603155ee.mdx", startSeconds: f32(100.02), endSeconds: f32(100.42), looping: false, timeline: true },
   ],
-  // SylvanasWindrunner
-  [
+  15: [
     { modelPath: "war3mapImported\\SylvanasWindrunnerTimelineBody-8fb6b792544ddad353007a0a9c0f84b8659fd9c6afca4ad6fd3475826a57e6eb.mdx", startSeconds: f32(0.167), endSeconds: f32(1.333), looping: true, timeline: true },
     { modelPath: "war3mapImported\\SylvanasWindrunnerTimelineBody-8fb6b792544ddad353007a0a9c0f84b8659fd9c6afca4ad6fd3475826a57e6eb.mdx", startSeconds: 1.5, endSeconds: 3.5, looping: true, timeline: true },
     { modelPath: "war3mapImported\\SylvanasWindrunnerTimelineBody-8fb6b792544ddad353007a0a9c0f84b8659fd9c6afca4ad6fd3475826a57e6eb.mdx", startSeconds: f32(3.667), endSeconds: f32(6.667), looping: true, timeline: true },
@@ -1335,8 +1240,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\SylvanasWindrunnerTimelineBody-8fb6b792544ddad353007a0a9c0f84b8659fd9c6afca4ad6fd3475826a57e6eb.mdx", startSeconds: f32(116.053), endSeconds: f32(116.453), looping: false, timeline: true },
     { modelPath: "war3mapImported\\SylvanasWindrunnerTimelineBody-8fb6b792544ddad353007a0a9c0f84b8659fd9c6afca4ad6fd3475826a57e6eb.mdx", startSeconds: f32(116.553), endSeconds: f32(116.953), looping: false, timeline: true },
   ],
-  // CairneBloodhoof
-  [
+  16: [
     { modelPath: "war3mapImported\\CairneBloodhoofTimelineBody-cdabfc97054c033307928763bb707ef5c871eb96f59349e9365cead07be00249.mdx", startSeconds: f32(3.333), endSeconds: 6.0, looping: true, timeline: true },
     { modelPath: "war3mapImported\\CairneBloodhoofTimelineBody-cdabfc97054c033307928763bb707ef5c871eb96f59349e9365cead07be00249.mdx", startSeconds: f32(7.333), endSeconds: f32(15.567), looping: true, timeline: true },
     { modelPath: "war3mapImported\\CairneBloodhoofTimelineBody-cdabfc97054c033307928763bb707ef5c871eb96f59349e9365cead07be00249.mdx", startSeconds: 20.0, endSeconds: f32(27.733), looping: true, timeline: true },
@@ -1431,8 +1335,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\CairneBloodhoofTimelineBody-cdabfc97054c033307928763bb707ef5c871eb96f59349e9365cead07be00249.mdx", startSeconds: f32(179.55), endSeconds: f32(179.95), looping: true, timeline: true },
     { modelPath: "war3mapImported\\CairneBloodhoofTimelineBody-cdabfc97054c033307928763bb707ef5c871eb96f59349e9365cead07be00249.mdx", startSeconds: f32(180.05), endSeconds: f32(180.45), looping: true, timeline: true },
   ],
-  // ChenStormstout
-  [
+  17: [
     { modelPath: "war3mapImported\\ChenStormstoutTimelineBody-82a09c3705040d59e0a8b86b47e6072077e43a41705198b8f9c30686f52fcbf2.mdx", startSeconds: f32(0.667), endSeconds: f32(1.333), looping: true, timeline: true },
     { modelPath: "war3mapImported\\ChenStormstoutTimelineBody-82a09c3705040d59e0a8b86b47e6072077e43a41705198b8f9c30686f52fcbf2.mdx", startSeconds: f32(1.833), endSeconds: f32(4.833), looping: true, timeline: true },
     { modelPath: "war3mapImported\\ChenStormstoutTimelineBody-82a09c3705040d59e0a8b86b47e6072077e43a41705198b8f9c30686f52fcbf2.mdx", startSeconds: f32(6.667), endSeconds: f32(9.667), looping: true, timeline: true },
@@ -1531,8 +1434,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\ChenStormstoutTimelineBody-82a09c3705040d59e0a8b86b47e6072077e43a41705198b8f9c30686f52fcbf2.mdx", startSeconds: f32(88.301), endSeconds: f32(88.701), looping: true, timeline: true },
     { modelPath: "war3mapImported\\ChenStormstoutTimelineBody-82a09c3705040d59e0a8b86b47e6072077e43a41705198b8f9c30686f52fcbf2.mdx", startSeconds: f32(88.801), endSeconds: f32(89.201), looping: true, timeline: true },
   ],
-  // Peon
-  [
+  18: [
     { modelPath: "war3mapImported\\PeonTimelineBody-a28e59486f079a9d4cacf2f03a3f22855cf4bbbfe5cff4706349a814a6d57485.mdx", startSeconds: f32(0.6), endSeconds: f32(3.933), looping: true, timeline: true },
     { modelPath: "war3mapImported\\PeonTimelineBody-a28e59486f079a9d4cacf2f03a3f22855cf4bbbfe5cff4706349a814a6d57485.mdx", startSeconds: f32(5.6), endSeconds: f32(6.2), looping: true, timeline: true },
     { modelPath: "war3mapImported\\PeonTimelineBody-a28e59486f079a9d4cacf2f03a3f22855cf4bbbfe5cff4706349a814a6d57485.mdx", startSeconds: f32(7.2), endSeconds: f32(8.2), looping: false, timeline: true },
@@ -1622,8 +1524,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\PeonTimelineBody-a28e59486f079a9d4cacf2f03a3f22855cf4bbbfe5cff4706349a814a6d57485.mdx", startSeconds: f32(209.833), endSeconds: f32(210.233), looping: false, timeline: true },
     { modelPath: "war3mapImported\\PeonTimelineBody-a28e59486f079a9d4cacf2f03a3f22855cf4bbbfe5cff4706349a814a6d57485.mdx", startSeconds: f32(210.333), endSeconds: f32(210.733), looping: false, timeline: true },
   ],
-  // GoblinTinker
-  [
+  19: [
     { modelPath: "war3mapImported\\GoblinTinkerTimelineBody-207fe548e87fbf8e4e9df4872211f997c687e826864daa1ea84366ebed3ea7e3.mdx", startSeconds: f32(3.333), endSeconds: f32(4.333), looping: true, timeline: true },
     { modelPath: "war3mapImported\\GoblinTinkerTimelineBody-207fe548e87fbf8e4e9df4872211f997c687e826864daa1ea84366ebed3ea7e3.mdx", startSeconds: f32(5.667), endSeconds: 7.0, looping: true, timeline: true },
     { modelPath: "war3mapImported\\GoblinTinkerTimelineBody-207fe548e87fbf8e4e9df4872211f997c687e826864daa1ea84366ebed3ea7e3.mdx", startSeconds: f32(10.333), endSeconds: f32(11.667), looping: true, timeline: true },
@@ -1723,8 +1624,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\GoblinTinkerTimelineBody-207fe548e87fbf8e4e9df4872211f997c687e826864daa1ea84366ebed3ea7e3.mdx", startSeconds: f32(153.883), endSeconds: f32(154.883), looping: false, timeline: true },
     { modelPath: "war3mapImported\\GoblinTinkerTimelineBody-207fe548e87fbf8e4e9df4872211f997c687e826864daa1ea84366ebed3ea7e3.mdx", startSeconds: f32(149.083), endSeconds: f32(149.383), looping: false, timeline: true },
   ],
-  // KaelthasSunstrider
-  [
+  20: [
     { modelPath: "war3mapImported\\KaelthasSunstriderTimelineBody-2207736997acd15b5461fda03e27b85a9788ff8b6bb8922b51b7ee115e1b8dbf.mdx", startSeconds: 1.5, endSeconds: 3.0, looping: true, timeline: true },
     { modelPath: "war3mapImported\\KaelthasSunstriderTimelineBody-2207736997acd15b5461fda03e27b85a9788ff8b6bb8922b51b7ee115e1b8dbf.mdx", startSeconds: f32(3.333), endSeconds: f32(6.667), looping: true, timeline: true },
     { modelPath: "war3mapImported\\KaelthasSunstriderTimelineBody-2207736997acd15b5461fda03e27b85a9788ff8b6bb8922b51b7ee115e1b8dbf.mdx", startSeconds: f32(9.667), endSeconds: f32(10.6), looping: true, timeline: true },
@@ -1818,8 +1718,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\KaelthasSunstriderTimelineBody-2207736997acd15b5461fda03e27b85a9788ff8b6bb8922b51b7ee115e1b8dbf.mdx", startSeconds: f32(95.054), endSeconds: f32(95.454), looping: false, timeline: true },
     { modelPath: "war3mapImported\\KaelthasSunstriderTimelineBody-2207736997acd15b5461fda03e27b85a9788ff8b6bb8922b51b7ee115e1b8dbf.mdx", startSeconds: f32(95.554), endSeconds: f32(95.954), looping: false, timeline: true },
   ],
-  // Murloc
-  [
+  21: [
     { modelPath: "war3mapImported\\MurlocTimelineBody-555f6ed74845b4475829bfbbf62afd0f894c924f253d06a02c628202f683c4b0.mdx", startSeconds: f32(0.667), endSeconds: f32(1.667), looping: true, timeline: true },
     { modelPath: "war3mapImported\\MurlocTimelineBody-555f6ed74845b4475829bfbbf62afd0f894c924f253d06a02c628202f683c4b0.mdx", startSeconds: 2.0, endSeconds: f32(2.667), looping: true, timeline: true },
     { modelPath: "war3mapImported\\MurlocTimelineBody-555f6ed74845b4475829bfbbf62afd0f894c924f253d06a02c628202f683c4b0.mdx", startSeconds: f32(3.333), endSeconds: f32(4.333), looping: true, timeline: true },
@@ -1911,93 +1810,11 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\MurlocTimelineBody-555f6ed74845b4475829bfbbf62afd0f894c924f253d06a02c628202f683c4b0.mdx", startSeconds: f32(184.784), endSeconds: f32(185.184), looping: false, timeline: true },
     { modelPath: "war3mapImported\\MurlocTimelineBody-555f6ed74845b4475829bfbbf62afd0f894c924f253d06a02c628202f683c4b0.mdx", startSeconds: f32(185.284), endSeconds: f32(185.684), looping: false, timeline: true },
   ],
-];
+};
 
 /** Each character's lowercase original sequence names; a name without its numeric variant selects the first variant. */
-const NAMED: readonly ReadonlyMap<string, number>[] = [
-  // Archer
-  new Map<string, number>([
-    ["aerial back", 0],
-    ["aerial down", 1],
-    ["aerial forward", 2],
-    ["aerial neutral", 3],
-    ["aerial up", 4],
-    ["attack - 1", 5],
-    ["attack - 2", 6],
-    ["attack jab", 7],
-    ["damage air", 8],
-    ["damage ground", 9],
-    ["damage shield", 10],
-    ["damage tumble", 11],
-    ["death", 12],
-    ["decay bone", 13],
-    ["decay flesh", 14],
-    ["double jump", 15],
-    ["down damage", 16],
-    ["down tilt", 17],
-    ["fall special", 18],
-    ["forward tilt", 19],
-    ["forward tilt down", 20],
-    ["forward tilt up", 21],
-    ["get up", 22],
-    ["get up attack", 23],
-    ["grab", 24],
-    ["grab hold", 25],
-    ["grabbed", 26],
-    ["jump", 27],
-    ["knockdown", 28],
-    ["ledge climb", 29],
-    ["ledge hang", 30],
-    ["pummel", 31],
-    ["roll backward", 32],
-    ["roll forward", 33],
-    ["special down", 34],
-    ["special neutral", 35],
-    ["special neutral air", 36],
-    ["special side", 37],
-    ["special up", 38],
-    ["spot dodge", 39],
-    ["stand", 40],
-    ["stand - 2", 41],
-    ["stand - 3", 42],
-    ["stand - 5", 43],
-    ["stand hit", 44],
-    ["stand ready", 45],
-    ["stand victory", 46],
-    ["throw back", 47],
-    ["throw down", 48],
-    ["throw forward", 49],
-    ["throw up", 50],
-    ["up tilt", 51],
-    ["victim pummel", 52],
-    ["victim throw back", 53],
-    ["victim throw down", 54],
-    ["victim throw forward", 55],
-    ["victim throw up", 56],
-    ["walk", 57],
-    ["recovery turn", 58],
-    ["recovery stop", 59],
-    ["recovery jumpsquat", 60],
-    ["recovery airdodge", 61],
-    ["recovery tech", 62],
-    ["recovery techforward", 63],
-    ["recovery techbackward", 64],
-    ["recovery getuprollforward", 65],
-    ["recovery getuprollbackward", 66],
-    ["damage grid low small", 67],
-    ["damage grid low medium", 68],
-    ["damage grid low large", 69],
-    ["damage grid mid small", 70],
-    ["damage grid mid medium", 71],
-    ["damage grid mid large", 72],
-    ["damage grid high small", 73],
-    ["damage grid high medium", 74],
-    ["damage grid high large", 75],
-    ["attack gesture dashattack", 76],
-    ["attack", 5],
-  ]),
-  // Rifleman
-  new Map<string, number>([
+const NAMED: Readonly<Record<number, ReadonlyMap<string, number>>> = {
+  1: new Map<string, number>([
     ["aerial back", 0],
     ["aerial down", 1],
     ["aerial forward", 2],
@@ -2072,8 +1889,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["damage grid high medium", 71],
     ["damage grid high large", 72],
   ]),
-  // Illidan
-  new Map<string, number>([
+  2: new Map<string, number>([
     ["aerial back", 0],
     ["aerial down", 1],
     ["aerial forward", 2],
@@ -2199,8 +2015,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["attack gesture jab3", 122],
     ["attack gesture jab", 122],
   ]),
-  // Blademaster
-  new Map<string, number>([
+  3: new Map<string, number>([
     ["stand - 2", 0],
     ["stand cinematic", 1],
     ["attack", 2],
@@ -2275,8 +2090,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["sword gesture throw back heave", 71],
     ["portrait", 12],
   ]),
-  // MountainKing
-  new Map<string, number>([
+  4: new Map<string, number>([
     ["stand - 1", 0],
     ["stand ready", 1],
     ["stand - 2", 2],
@@ -2358,8 +2172,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["alternate stand", 13],
     ["alternate attack", 18],
   ]),
-  // Warden
-  new Map<string, number>([
+  5: new Map<string, number>([
     ["stand - 1", 0],
     ["stand - 2", 1],
     ["walk", 2],
@@ -2429,8 +2242,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["attack", 5],
     ["attack gesture jab", 55],
   ]),
-  // Lich
-  new Map<string, number>([
+  6: new Map<string, number>([
     ["stand", 0],
     ["stand ready", 1],
     ["stand - 2", 2],
@@ -2496,8 +2308,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["attack gesture forwardair", 62],
     ["attack gesture upair", 63],
   ]),
-  // ForsakenPaladin
-  new Map<string, number>([
+  7: new Map<string, number>([
     ["base", 0],
     ["stand 1", 1],
     ["stand 2", 2],
@@ -2618,8 +2429,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["forsaken paladin pain 1", 103],
     ["forsaken paladin pain 2", 106],
   ]),
-  // Dreadlord
-  new Map<string, number>([
+  8: new Map<string, number>([
     ["stand", 0],
     ["stand ready", 1],
     ["stand - 2", 2],
@@ -2689,8 +2499,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["attack", 9],
     ["attack gesture jab", 57],
   ]),
-  // ShadowHunter
-  new Map<string, number>([
+  9: new Map<string, number>([
     ["walk", 0],
     ["stand -1", 1],
     ["stand -2", 2],
@@ -2759,8 +2568,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["stand", 1],
     ["attack gesture jab", 56],
   ]),
-  // PitLord
-  new Map<string, number>([
+  10: new Map<string, number>([
     ["stand - 3", 0],
     ["walk", 1],
     ["stand", 2],
@@ -2828,8 +2636,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["attack gesture neutralair", 64],
     ["attack slam", 5],
   ]),
-  // Beastmaster
-  new Map<string, number>([
+  11: new Map<string, number>([
     ["walk", 0],
     ["stand - 1", 1],
     ["stand - 2", 2],
@@ -2895,8 +2702,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["stand", 1],
     ["attack gesture jab", 50],
   ]),
-  // LichKing
-  new Map<string, number>([
+  12: new Map<string, number>([
     ["stand - 1", 0],
     ["stand - 2", 1],
     ["walk", 2],
@@ -2997,8 +2803,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["stand", 0],
     ["attack", 4],
   ]),
-  // Thrall
-  new Map<string, number>([
+  13: new Map<string, number>([
     ["stand", 0],
     ["stand - 2", 1],
     ["walk", 2],
@@ -3092,8 +2897,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["thrall damage 1", 82],
     ["thrall damage 2", 85],
   ]),
-  // JainaProudmoore
-  new Map<string, number>([
+  14: new Map<string, number>([
     ["stand -1", 0],
     ["stand second", 1],
     ["stand victory", 2],
@@ -3191,8 +2995,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["jaina damage 1", 84],
     ["jaina damage 2", 87],
   ]),
-  // SylvanasWindrunner
-  new Map<string, number>([
+  15: new Map<string, number>([
     ["stand", 0],
     ["stand - 2", 1],
     ["stand - 3", 2],
@@ -3274,8 +3077,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["attack", 6],
     ["sylvanas pain", 69],
   ]),
-  // CairneBloodhoof
-  new Map<string, number>([
+  16: new Map<string, number>([
     ["stand -1", 0],
     ["stand - 2", 1],
     ["stand - 3", 2],
@@ -3375,8 +3177,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["cairne pain 1", 87],
     ["cairne pain 2", 90],
   ]),
-  // ChenStormstout
-  new Map<string, number>([
+  17: new Map<string, number>([
     ["walk", 0],
     ["stand - 1", 1],
     ["stand - 2", 2],
@@ -3479,8 +3280,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["chen damage 1", 91],
     ["chen damage 2", 94],
   ]),
-  // Peon
-  new Map<string, number>([
+  18: new Map<string, number>([
     ["stand", 0],
     ["walk", 1],
     ["attack", 2],
@@ -3571,8 +3371,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["peon pain22", 87],
     ["peon pain", 79],
   ]),
-  // GoblinTinker
-  new Map<string, number>([
+  19: new Map<string, number>([
     ["walk", 0],
     ["stand", 1],
     ["stand - 2", 2],
@@ -3674,8 +3473,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["attack", 5],
     ["attack alternate", 16],
   ]),
-  // KaelthasSunstrider
-  new Map<string, number>([
+  20: new Map<string, number>([
     ["stand", 0],
     ["stand - 3", 1],
     ["walk", 2],
@@ -3772,8 +3570,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["kaelthas damage 1", 86],
     ["kaelthas damage 2", 89],
   ]),
-  // Murloc
-  new Map<string, number>([
+  21: new Map<string, number>([
     ["stand 2", 0],
     ["walk", 1],
     ["stand", 2],
@@ -3869,7 +3666,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["murloc damage 1", 84],
     ["murloc damage 2", 87],
   ]),
-];
+};
 
 /** Clips 0 to count - 1 exist for this character. */
 export function originalClipCount(character: number): number {

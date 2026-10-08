@@ -17,7 +17,7 @@ function offscreenX(stage: number): number {
 }
 
 function magnifier() {
-  const run = padMatch(testMatch(3, 0), "magnifier");
+  const run = padMatch(testMatch(3, 1), "magnifier");
   const fighter = fighterAt(run.match.world, 0);
   fighter.motion.x = offscreenX(run.match.game.stageChoice);
   fighter.motion.z = 300.0;
@@ -59,7 +59,7 @@ test("magnifier damage is 1% per 60 consecutive offscreen frames, stops at 150%,
 });
 
 test("a fighter that outruns the current camera counts magnifier frames inside the stage camera limits [spec #80]", () => {
-  const run = padMatch(testMatch(3, 0), "camera-outrun");
+  const run = padMatch(testMatch(3, 1), "camera-outrun");
   for (let frame = 1; frame <= 60; frame++) playPads(run, {}, {});
   const fighter = fighterAt(run.match.world, 0);
   fighter.motion.x = 1000.0;

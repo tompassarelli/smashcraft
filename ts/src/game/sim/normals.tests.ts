@@ -30,7 +30,7 @@ test("every fighter has a grounded close strike against an overlapping standing 
     let connects = false;
     for (const style of [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.forwardTiltDown, AttackStyle.upTilt, AttackStyle.downTilt]) {
       const owner = createFighter(character, 0.0, facing);
-      const target = createFighter(Character.archer, 0.0, -facing);
+      const target = createFighter(Character.rifleman, 0.0, -facing);
       owner.motion.grounded = true;
       target.motion.grounded = true;
       const world = testWorld(owner, target);
@@ -48,7 +48,7 @@ test("angled forward tilts share the flat forward tilt's timing, damage and reco
     assertEquals(attackStartupFrames(style), attackStartupFrames(AttackStyle.forwardTilt));
     assertEquals(attackActiveFrames(style), attackActiveFrames(AttackStyle.forwardTilt));
     assertEquals(attackDurationFrames(style), attackDurationFrames(AttackStyle.forwardTilt));
-    assertEquals(attackRecoveryFrames(Character.archer, style, true), attackRecoveryFrames(Character.archer, AttackStyle.forwardTilt, true));
+    assertEquals(attackRecoveryFrames(Character.rifleman, style, true), attackRecoveryFrames(Character.rifleman, AttackStyle.forwardTilt, true));
   }
 });
 
@@ -66,7 +66,7 @@ test("aerial lingering windows match the reference frame boundaries [reference]"
     const lastActive = neutral ? 31 : 19;
     const interruptible = neutral ? 42 : 38;
     for (let referenceFrame = 1; referenceFrame <= interruptible - 1; referenceFrame++) {
-      const attacker = createFighter(Character.archer, 0.0, 1);
+      const attacker = createFighter(Character.rifleman, 0.0, 1);
       const target = createFighter(Character.rifleman, -60.0, -1);
       const world = testWorld(attacker, target);
       prepareHitRegionAttack(world, attacker, style, referenceFrame - 1);
@@ -82,7 +82,7 @@ test("the aerial lingering clock starts at zero and unlocks on the reference fra
     const neutral = style === AttackStyle.neutralAir;
     const duration = neutral ? 41 : 37;
     const lastActiveIndex = neutral ? 30 : 18;
-    const attacker = createFighter(Character.archer, 0.0, 1);
+    const attacker = createFighter(Character.rifleman, 0.0, 1);
     const world = testWorld(attacker, createFighter(Character.rifleman, 1000.0, -1));
     const input = controls();
     attacker.motion.z = 740.0;
@@ -103,8 +103,8 @@ test("the aerial lingering clock starts at zero and unlocks on the reference fra
 test("an aerial's lingering transition retains its single hit through freeze and re-entry [spec docs/physics.md]", () => {
   for (const style of LINGERING_AERIALS) {
     const attacker = createFighter(Character.rifleman, 0.0, -1);
-    const target = createFighter(Character.archer, 60.0, 1);
-    const lateTarget = createFighter(Character.archer, 60.0, 1);
+    const target = createFighter(Character.rifleman, 60.0, 1);
+    const lateTarget = createFighter(Character.rifleman, 60.0, 1);
     const world = testWorld(attacker, target);
     const input = controls();
     attacker.motion.z = 500.0;
@@ -136,17 +136,17 @@ test("ground normals and grab can't start in the air, but the shot can [spec doc
     AttackStyle.jab, AttackStyle.upSmash, AttackStyle.downSmash, AttackStyle.forwardSmash, AttackStyle.grab,
     AttackStyle.forwardTilt, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown,
   ]) {
-    const fighter = createFighter(Character.archer, 0.0, 1);
+    const fighter = createFighter(Character.rifleman, 0.0, 1);
     fighter.motion.grounded = false;
     fighter.motion.z = 100.0;
     testBeginAttacks(testWorld(fighter, createFighter(Character.rifleman, 1000.0, -1)), style, undefined);
     assertEquals(fighter.attack.style, undefined);
   }
   const groundTarget = createFighter(Character.rifleman, 1000.0, -1);
-  const grounded = createFighter(Character.archer, 0.0, 1);
+  const grounded = createFighter(Character.rifleman, 0.0, 1);
   testBeginAttacks(testWorld(grounded, groundTarget), AttackStyle.neutralAir, undefined);
   assertEquals(grounded.attack.style, undefined);
-  const airborne = createFighter(Character.archer, 0.0, 1);
+  const airborne = createFighter(Character.rifleman, 0.0, 1);
   airborne.motion.grounded = false;
   airborne.motion.z = 100.0;
   testBeginAttacks(testWorld(airborne, groundTarget), AttackStyle.shot, undefined);
@@ -154,7 +154,7 @@ test("ground normals and grab can't start in the air, but the shot can [spec doc
 });
 
 function aerialAt(style: AttackStyle, facing: number, targetX: number, targetZ: number): Fighter {
-  const attacker = createFighter(Character.archer, 0.0, facing);
+  const attacker = createFighter(Character.rifleman, 0.0, facing);
   const target = createFighter(Character.rifleman, targetX, -facing);
   const world = testWorld(attacker, target);
   attacker.motion.grounded = false;
@@ -180,7 +180,7 @@ test("aerial normals use directional shapes and launch directions [spec docs/phy
 
 test("landing cancels an aerial's active window and applies move-specific lag [spec docs/physics.md]", () => {
   for (const style of AERIALS) {
-    const fighter = createFighter(Character.archer, 0.0, 1);
+    const fighter = createFighter(Character.rifleman, 0.0, 1);
     const target = createFighter(Character.rifleman, 50.0, -1);
     const world = testWorld(fighter, target);
     fighter.motion.grounded = false;
@@ -199,11 +199,11 @@ test("landing cancels an aerial's active window and applies move-specific lag [s
 });
 
 test("a C-stick down air preserves normal aerial momentum for both fighters [spec docs/physics.md]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+  for (const character of [Character.demonHunter, Character.rifleman]) {
     for (const verticalSign of [-1, 1]) {
       const fighter = createFighter(character, 0.0, 1);
       const falling = createFighter(character, 0.0, 1);
-      const world = testWorld(fighter, createFighter(character === Character.archer ? Character.rifleman : Character.archer, 500.0, -1));
+      const world = testWorld(fighter, createFighter(character === Character.rifleman ? Character.rifleman : Character.rifleman, 500.0, -1));
       const input = controls({ cStickZ: -1 });
       const neutralInput = controls();
       for (const f of [fighter, falling]) {
@@ -226,7 +226,7 @@ test("a C-stick down air preserves normal aerial momentum for both fighters [spe
 });
 
 test("common ground dodge frame data applies to both characters [spec docs/gameplay-design.md]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+  for (const character of [Character.demonHunter, Character.rifleman]) {
     for (const direction of [-1, 0, 1]) {
       const fighter = createFighter(character, 0.0, 1);
       const input = controls({ shield: true, groundDodgePressed: true, groundDodgeDirection: direction });
@@ -246,7 +246,7 @@ test("common ground dodge frame data applies to both characters [spec docs/gamep
 });
 
 test("air drift changes velocity without turning the fighter [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+  const fighter = createFighter(Character.rifleman, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.z = 100.0;
   advanceSolo(fighter, 0, controls({ direction: -1 }), -240.0);
@@ -255,7 +255,7 @@ test("air drift changes velocity without turning the fighter [spec docs/physics.
 });
 
 test("the walking modifier uses the character's walk speed and releases to a dash [spec docs/physics.md]", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+  for (const character of [Character.demonHunter, Character.rifleman]) {
     for (const direction of [-1, 1]) {
       const fighter = createFighter(character, 0.0, direction);
       const input = controls({ direction, walking: true });

@@ -9,6 +9,7 @@ import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, HeroStatusKind, ProjectileKind, SpecialAction } from "../codes";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
+import { createReferenceContactFighter } from "../referenceRig";
 import { advanceGrabs, captureGrabPauses, resolveGrabs } from "../grabs";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { advanceHeroStatus } from "../heroSpecialRules";
@@ -43,10 +44,10 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   resolveGrabs(world);
 }
 
-function pair(gap: number, target = Character.archer): { world: Roster; owner: Fighter; victim: Fighter } {
+function pair(gap: number, target: Character = Character.sylvanas): { world: Roster; owner: Fighter; victim: Fighter } {
   const owner = createFighter(Character.dreadlord, -gap * 0.5, 1);
   owner.mana.points = 100;
-  const victim = createFighter(target, gap * 0.5, -1);
+  const victim = target === Character.sylvanas ? createReferenceContactFighter(gap * 0.5, -1) : createFighter(target, gap * 0.5, -1);
   const world = createRoster(3, [owner, victim]);
   for (let i = 0; i < 3; i++) frame(world);
   return { world, owner, victim };
@@ -157,7 +158,7 @@ test("the sleeper mashes out sooner, never before its frame 24, and a damaging h
 });
 
 test("Vampiric Pounce grabs through a shield, bites 16 frames after the catch and recovers 28 frames [spec docs/design/roster.md]", () => {
-  const { world, owner, victim } = pair(H, Character.archer);
+  const { world, owner, victim } = pair(H, Character.rifleman);
   frame(world, side, shield);
   let caught = 0;
   for (let f = 2; f <= 19 && caught === 0; f++) {
@@ -256,7 +257,7 @@ test("Bat Ascension keeps its full rise and steering at every meter level [spec 
 test("replaying Vampiric Pounce from a restored snapshot reproduces both fighters [invariant]", () => {
   const { world, owner, victim } = pair(H);
   const savedOwner = createFighter(Character.dreadlord, 0.0, 1);
-  const savedVictim = createFighter(Character.archer, 0.0, 1);
+  const savedVictim = createFighter(Character.rifleman, 0.0, 1);
   copyFighterState(savedOwner, owner, 3);
   copyFighterState(savedVictim, victim, 3);
   const run = () => {
@@ -265,7 +266,7 @@ test("replaying Vampiric Pounce from a restored snapshot reproduces both fighter
   };
   run();
   const endOwner = createFighter(Character.dreadlord, 0.0, 1);
-  const endVictim = createFighter(Character.archer, 0.0, 1);
+  const endVictim = createFighter(Character.rifleman, 0.0, 1);
   copyFighterState(endOwner, owner, 3);
   copyFighterState(endVictim, victim, 3);
   assertEquals(victim.status.damage, 10.000250816345215);
@@ -318,7 +319,7 @@ test("Vampiric Pounce corkscrews forward in both facings and air forms; another 
 });
 
 test("Vampiric Pounce's successful bite heals Dreadlord 4 percent [spec #148] [spec docs/design/roster.md]", () => {
-  const { world, owner, victim } = pair(H, Character.archer);
+  const { world, owner, victim } = pair(H, Character.rifleman);
   owner.status.damage = 30.0;
   for (let pounce = 0; pounce < 4; pounce++) {
     owner.mana.points = 100;

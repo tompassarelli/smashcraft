@@ -10,7 +10,7 @@ import type { Tunable } from "wisp/scripts/wisp/tune";
 const TUNING = "src/game/sim/tuning.ts";
 const KNOCKBACK = "src/game/sim/knockback.ts";
 
-type Character = "archer" | "rifleman" | "demonHunter";
+type Character = "rifleman" | "demonHunter";
 
 const real = (group: string, name: string, path: readonly string[], min: number, max: number, step: number, file = TUNING): Tunable =>
   ({ name, group, file, path, kind: "f32", min, max, step });
@@ -34,7 +34,6 @@ function movement(character: Character, group: string): Tunable[] {
 }
 
 export const SMASHCRAFT_TUNABLES: readonly Tunable[] = [
-  ...movement("archer", "Archer"),
   ...movement("rifleman", "Rifleman"),
   ...movement("demonHunter", "Demon Hunter"),
   real("Knockback", "Knockback growth (percent)", ["ORDINARY_HIT_GROWTH_PERCENT"], 25.0, 300.0, 1.0, KNOCKBACK),

@@ -5,7 +5,7 @@ import { hurtCapsule } from "../physics/contactGeometry";
 import { Character } from "./codes";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPose } from "./hurtboxes";
 
-const referenceBody = hurtCapsule(Character.archer);
+const referenceBody = { radius: 24.0, z1: 4.0, z2: 88.0 };
 export const HERO_REFERENCE_HEIGHT = f32(f32(referenceBody.z2 - referenceBody.z1) + f32(2.0 * referenceBody.radius));
 
 /** Authored facing-relative strike path; only the weapon can extend beyond the body. */

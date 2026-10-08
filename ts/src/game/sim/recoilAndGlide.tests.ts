@@ -32,7 +32,7 @@ const run = (world: Roster, frames: number, first: Readonly<Controls> = controls
 /** The owner airborne at `z`, the target `gap` ahead of it on the deck (or at `targetZ`). */
 function airborne(character: Character, z: number, gap = 900.0, targetZ = 0.0): { world: Roster; owner: Fighter; target: Fighter } {
   const owner = createFighter(character, 0.0, 1);
-  const target = createFighter(Character.archer, gap, -1);
+  const target = createFighter(Character.rifleman, gap, -1);
   const world = createRoster(3, [owner, target]);
   for (let i = 0; i < 3; i++) frame(world);
   owner.motion.grounded = false;
@@ -137,7 +137,7 @@ const jump = controls({ jumpPressed: true, jumpHeld: true });
 /** Grounded Illidan with the target `gap` ahead. */
 function grounded(gap: number): { world: Roster; owner: Fighter; target: Fighter } {
   const owner = createFighter(Character.demonHunter, 0.0, 1);
-  const target = createFighter(Character.archer, gap, -1);
+  const target = createFighter(Character.rifleman, gap, -1);
   const world = createRoster(3, [owner, target]);
   for (let i = 0; i < 3; i++) frame(world);
   return { world, owner, target };

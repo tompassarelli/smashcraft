@@ -29,8 +29,8 @@ function assertSameMatch(expected: TestMatch, actual: TestMatch): void {
 }
 
 test("a captured row is detached from the controls that produced it [invariant]", () => {
-  const recorded = testMatch(3, Character.archer);
-  const expected = testMatch(3, Character.archer);
+  const recorded = testMatch(3, Character.rifleman);
+  const expected = testMatch(3, Character.rifleman);
   const producer = recorded.inputs;
   queueAttack(producer.commands[0], { style: 0, facing: 0, frame: 1, mayCharge: false });
   producer.inputs[1].shield = true;
@@ -90,7 +90,7 @@ test("a copied row executes as its source [invariant]", () => {
 });
 
 test("a network row adapts again from the world it replays into [invariant]", () => {
-  const match = testMatch(3, Character.archer);
+  const match = testMatch(3, Character.rifleman);
   const source = participantInputs();
   Object.assign(source[0], row({ held: maskOf(Action.moveRight), pressed: maskOf(Action.moveRight), axisX: 127 }));
   Object.assign(source[1], row({ held: maskOf(Action.leftTrigger), pressed: maskOf(Action.leftTrigger), triggerLeft: 255 }));

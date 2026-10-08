@@ -28,6 +28,7 @@ import { Capture } from "../netcode/capture";
 import { DEFAULT_ROLLBACK_WINDOW, ShadowInputSchedule } from "../netcode/shadowSchedule";
 import { AttackStyle, Character } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
+import { createReferenceFighter } from "../sim/referenceRig";
 import { createRoster, fighterAt } from "../sim/roster";
 import { stateChecksum } from "./canonical";
 import { firstStateDifference } from "./difference";
@@ -42,11 +43,11 @@ const SHIELD = row({ held: bit(Action.leftTrigger), pressed: bit(Action.leftTrig
 const JUMP = row({ held: bit(Action.jump), pressed: bit(Action.jump) });
 const ATTACK = row({ pressed: bit(Action.attack) });
 const WALK_RIGHT = row({ held: bit(Action.moveRight), pressed: bit(Action.moveRight) });
-const SLOT_CHARACTERS = [Character.archer, Character.rifleman, Character.demonHunter, Character.archer] as const;
+const SLOT_CHARACTERS = [Character.rifleman, Character.demonHunter, Character.blademaster, Character.rifleman] as const;
 
-/** Two archers 200 apart for two connected humans. */
+/** Two riflemans 200 apart for two connected humans. */
 function shadowWorld(): TapeWorld {
-  return createTapeWorld({ stocks: 99, humans: 2, first: createFighter(Character.archer, -100.0, 1), second: createFighter(Character.archer, 100.0, -1) });
+  return createTapeWorld({ stocks: 99, humans: 2, first: createFighter(Character.rifleman, -100.0, 1), second: createFighter(Character.rifleman, 100.0, -1) });
 }
 
 function deliver(schedule: ShadowInputSchedule, sender: number, epoch: number, frame: number, input: Readonly<InputRow>): void {
@@ -145,6 +146,7 @@ test("a late jump correction re-adapts a later attack against the air state [inv
   const confirmedHistory = new ReplayHistory();
   const speculative = shadowWorld();
   const confirmed = shadowWorld();
+  for (const world of [speculative, confirmed]) world.live.world.fighters[1] = createReferenceFighter(Character.sylvanas, 100.0, -1);
   assertTrue(schedule.beginEpoch(epoch, 2, DEFAULT_ROLLBACK_WINDOW, 3));
   assertTrue(playback.beginEpoch(epoch));
   assertEquals(playback.epoch(), epoch);
@@ -359,7 +361,7 @@ function slotModeJournalOutcome(variant: number, heldInactiveInput: boolean): st
   setParticipants(game, humans, 6);
   assertTrue(cycleSlotMode(game, 0, 0));
   if (variant === 1 || variant === 3) assertTrue(cycleSlotMode(game, 0, 0));
-  if (variant < 2) selectCharacter(game, 3, 0);
+  if (variant < 2) selectCharacter(game, 3, 1);
   assertTrue(requestStageSelect(game, 0));
   assertTrue(requestStart(game, 0));
   game.timeLimitMinutes = 0;

@@ -15,9 +15,7 @@ const ATTACK_POSES: readonly HeroPose[] = [
 test("roster jumps and falls never share an attack or special sequence [spec #230]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const table = characterClips(character);
-    const actions = character === Character.archer
-      ? [SpecialAction.archerArrow, SpecialAction.archerHomingArrow, SpecialAction.archerDisengage, SpecialAction.archerRecovery]
-      : character === Character.rifleman
+    const actions = character === Character.rifleman
         ? [SpecialAction.riflemanBear, SpecialAction.riflemanBlaster, SpecialAction.riflemanTrap, SpecialAction.riflemanRecovery]
         : character === Character.demonHunter
           ? [SpecialAction.demonHunterManaBurn, SpecialAction.demonHunterFelRush, SpecialAction.demonHunterWingAscent, SpecialAction.demonHunterImmolate]

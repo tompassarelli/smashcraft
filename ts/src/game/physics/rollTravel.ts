@@ -15,7 +15,7 @@ type RollDirection = "forward" | "back";
  */
 type RollCurves = Readonly<Record<RollKind, Readonly<Record<RollDirection, readonly number[]>>>>;
 
-/** Fox/Archer (character 0) and Falco/Rifleman (character 1). */
+/** Fox/reference (character 0) and Falco/Rifleman (character 1). */
 const ROLL_TRAVEL: readonly RollCurves[] = [
   {
     roll: {
@@ -172,7 +172,7 @@ const ROLL_TRAVEL: readonly RollCurves[] = [
 /**
  * World units a roll travels on a one-based frame. Frames past the data don't
  * move, which ends a forty-frame tech roll on the dataset's last frame, 39.
- * Heroes use Archer's curve scaled by their body's run multiplier.
+ * Heroes use the reference body's curve scaled by their body's run multiplier.
  */
 export function rollTravel(character: number, kind: RollKind, direction: RollDirection, frame: number): number {
   const curves = ROLL_TRAVEL[character] ?? ROLL_TRAVEL[0];
@@ -183,6 +183,6 @@ export function rollTravel(character: number, kind: RollKind, direction: RollDir
 
 /** The frame a forward roll turns the fighter around, or undefined to turn when it ends. */
 export function forwardRollTurnFrame(character: number): number | undefined {
-  // Only Fox/Archer and Falco/Rifleman adopt the observed orientation event.
+  // Only Fox/reference and Falco/Rifleman adopt the observed orientation event.
   return character === 0 || character === 1 ? 20 : undefined;
 }

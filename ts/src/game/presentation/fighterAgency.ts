@@ -36,13 +36,13 @@ function clearFlight(f: Readonly<Fighter>): boolean {
 }
 
 export class FighterAgencyForecast {
-  private readonly fighter = createFighter(Character.archer, 0.0, 1);
+  private readonly fighter = createFighter(Character.demonHunter, 0.0, 1);
   private readonly world = createRoster(1, [this.fighter]);
   private readonly input = neutralControls();
   private readonly pressedTech = { pressAge: 255, previousPressAge: 255, accumulatedPress: false };
   // A committed throw and its victim, played to the release and the landing after it.
-  private readonly holder = createFighter(Character.archer, 0.0, 1);
-  private readonly thrown = createFighter(Character.archer, 0.0, 1);
+  private readonly holder = createFighter(Character.demonHunter, 0.0, 1);
+  private readonly thrown = createFighter(Character.demonHunter, 0.0, 1);
   private readonly throwWorld = createRoster(3, [this.holder, this.thrown]);
   private readonly throwInputs = [neutralControls(), neutralControls()];
 

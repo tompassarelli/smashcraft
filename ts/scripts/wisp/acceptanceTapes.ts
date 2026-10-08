@@ -203,7 +203,7 @@ const every = (from: number, to: number, stride: number, length: number) => {
 
 /** Each slot presses every bound source, the three jump sources overlapping, mostly within reach of the other. */
 const ACTIONS: MatchScript = {
-  characters: [Character.archer, Character.rifleman], stage: 0, stocks: 3, minutes: 0, frames: 410,
+  characters: [Character.demonHunter, Character.rifleman], stage: 0, stocks: 3, minutes: 0, frames: 410,
   holds: [[
     [1, 20, SHORT_HOP],
     [30, 2, ATTACK], [40, 10, DOWN], [42, 2, ATTACK], [70, 6, WALK, TOWARD], [72, 2, ATTACK], [86, 4, UP],
@@ -256,7 +256,7 @@ const FIRST_MATCH: MatchScript = {
 
 /** The rematch, configured through the menus: other fighters, the raised decks, two stocks and a clock. */
 const SECOND_MATCH: MatchScript = {
-  characters: [Character.archer, Character.demonHunter], stage: 1, stocks: 2, minutes: 1, frames: 140,
+  characters: [Character.demonHunter, Character.demonHunter], stage: 1, stocks: 2, minutes: 1, frames: 140,
   holds: [[
     [20, 2, ATTACK], [30, 3, JUMP_ALT], [36, 2, DOWN], [60, 2, GRAB], [68, 2, UP], [86, 2, SPECIAL],
     [100, 14, SHIELD_LEFT], [126, 2, C_RIGHT],
@@ -272,7 +272,7 @@ const SECOND_MATCH: MatchScript = {
  * back over the computer's choices: each runtime makes them from the match.
  */
 const COMPUTER: MatchScript = {
-  characters: [Character.archer, Character.rifleman], stage: 1, stocks: 3, minutes: 0, frames: 900, computer: true,
+  characters: [Character.demonHunter, Character.rifleman], stage: 1, stocks: 3, minutes: 0, frames: 900, computer: true,
   holds: [[
     [30, 2, ATTACK], [60, 3, JUMP], [64, 2, ATTACK], [100, 20, SHIELD_LEFT], [140, 2, SPECIAL], [180, 2, GRAB],
     [220, 8, TOWARD], [224, 2, C_RIGHT], [300, 3, JUMP], [303, 3, JUMP_ALT], [310, 2, ATTACK], [360, 30, SHIELD_RIGHT],
@@ -283,9 +283,9 @@ const COMPUTER: MatchScript = {
   rollbacks: [...every(120, 840, 120, 8), [837, 900]],
 };
 
-/** Lich's four specials, its free recovery and its frost normals near the Archer, replayed across each. */
+/** Lich's four specials, its free recovery and its frost normals near the Illidan, replayed across each. */
 const LICH: MatchScript = {
-  characters: [Character.lich, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 480,
+  characters: [Character.lich, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 480,
   holds: [[
     [20, 2, SPECIAL], [80, 4, TOWARD], [81, 2, SPECIAL], [150, 4, AWAY], [151, 2, SPECIAL], [220, 4, DOWN],
     [221, 2, SPECIAL], [280, 3, JUMP], [292, 4, UP], [293, 2, SPECIAL], [360, 2, ATTACK], [380, 8, DOWN],
@@ -301,7 +301,7 @@ const LICH: MatchScript = {
 
 /** Mountain King spends his mana through all four specials into the free Thunder Leap, then his normals and a throw. */
 const MOUNTAIN_KING: MatchScript = {
-  characters: [Character.mountainKing, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 600,
+  characters: [Character.mountainKing, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 600,
   holds: [[
     [20, 2, SPECIAL], [80, 4, DOWN], [81, 2, SPECIAL], [150, 4, TOWARD], [151, 2, SPECIAL], [210, 4, DOWN],
     [211, 2, SPECIAL], [275, 4, TOWARD], [276, 2, SPECIAL], [335, 2, SPECIAL], [395, 3, JUMP], [407, 4, UP],
@@ -318,7 +318,7 @@ const MOUNTAIN_KING: MatchScript = {
 
 /** Shadow Hunter's glaive, a ward that fires and is struck, Hex, the ward's recall, Loa Vault and his normals, replayed across each. */
 const SHADOW_HUNTER: MatchScript = {
-  characters: [Character.shadowHunter, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 540,
+  characters: [Character.shadowHunter, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 540,
   holds: [[
     [20, 2, SPECIAL], [70, 4, TOWARD], [71, 2, SPECIAL], [140, 4, DOWN], [141, 2, SPECIAL], [210, 2, ATTACK],
     [230, 8, DOWN], [232, 2, ATTACK], [260, 4, TOWARD], [261, 2, SPECIAL], [330, 3, JUMP], [342, 4, UP],
@@ -333,12 +333,12 @@ const SHADOW_HUNTER: MatchScript = {
 };
 
 /**
- * Beastmaster summons his bear, commands a lunge as the Archer closes, calls
+ * Beastmaster summons his bear, commands a lunge as the Illidan closes, calls
  * it back, throws an axe, rises on Hawk Lift, then axe normals, a grab and a
  * throw, a down air and a second command, with the bear followed throughout.
  */
 const BEASTMASTER: MatchScript = {
-  characters: [Character.beastmaster, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 640,
+  characters: [Character.beastmaster, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 640,
   holds: [[
     [20, 4, TOWARD], [21, 2, SPECIAL], [100, 4, TOWARD], [101, 2, SPECIAL], [180, 4, DOWN], [181, 2, SPECIAL],
     [240, 2, SPECIAL], [290, 2, ATTACK], [320, 8, DOWN], [322, 2, ATTACK], [360, 3, JUMP], [372, 4, UP], [373, 2, SPECIAL],
@@ -354,11 +354,11 @@ const BEASTMASTER: MatchScript = {
 
 /**
  * The Lich King's Howling Blast, a jab chain that banks souls, a soul-spent
- * Val'kyr that carries the Archer while she mashes, Defile under her
+ * Val'kyr that carries the Illidan while she mashes, Defile under her
  * approach, Ascension, a Harvest Soul down throw and a Quake down smash.
  */
 const LICH_KING: MatchScript = {
-  characters: [Character.lichKing, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 640,
+  characters: [Character.lichKing, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 640,
   holds: [[
     [20, 2, SPECIAL], [90, 2, ATTACK], [98, 2, ATTACK], [106, 2, ATTACK], [150, 4, TOWARD], [151, 2, SPECIAL],
     [260, 4, DOWN], [261, 2, SPECIAL], [380, 3, JUMP], [390, 4, UP], [391, 2, SPECIAL], [480, 2, GRAB],
@@ -373,12 +373,12 @@ const LICH_KING: MatchScript = {
 };
 
 /**
- * Pit Lord's Fel Spit arcs at the Archer, Ruin Charge runs in on its armor,
- * Howl of Terror roars and the terrified Archer jabs back, Abyssal Leap
+ * Pit Lord's Fel Spit arcs at the Illidan, Ruin Charge runs in on its armor,
+ * Howl of Terror roars and the terrified Illidan jabs back, Abyssal Leap
  * rises, then the cleaver normals, a grab and a back throw, and a down air.
  */
 const PIT_LORD: MatchScript = {
-  characters: [Character.pitLord, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 600,
+  characters: [Character.pitLord, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 600,
   holds: [[
     [20, 2, SPECIAL], [90, 4, TOWARD], [91, 2, SPECIAL], [170, 4, DOWN], [171, 2, SPECIAL], [250, 2, ATTACK],
     [280, 8, DOWN], [282, 2, ATTACK], [320, 3, JUMP], [332, 4, UP], [333, 2, SPECIAL], [440, 2, GRAB],
@@ -394,11 +394,11 @@ const PIT_LORD: MatchScript = {
 
 /**
  * Dreadlord's Carrion Swarm hits, a Sleep meets a shield and a second one
- * sleeps the Archer, Vampiric Pounce catches and bites, a second whiffs, the free
+ * sleeps the Illidan, Vampiric Pounce catches and bites, a second whiffs, the free
  * Bat Ascension rises on the 5 mana left, then normals and a grab and throw.
  */
 const DREADLORD: MatchScript = {
-  characters: [Character.dreadlord, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 640,
+  characters: [Character.dreadlord, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 640,
   holds: [[
     [20, 2, SPECIAL], [80, 4, DOWN], [81, 2, SPECIAL], [150, 4, TOWARD], [151, 2, SPECIAL], [235, 4, DOWN],
     [236, 2, SPECIAL], [300, 4, TOWARD], [301, 2, SPECIAL], [370, 3, JUMP], [381, 4, UP], [382, 2, SPECIAL],
@@ -413,9 +413,9 @@ const DREADLORD: MatchScript = {
   predictions: [[150, 162], [384, 396]],
 };
 
-/** Forsaken Paladin's four specials (three rushes drain his mana to the free Ascension), Divine Shield against the Archer's jab, and his hammer normals and throw, replayed across each. */
+/** Forsaken Paladin's four specials (three rushes drain his mana to the free Ascension), Divine Shield against the Illidan's jab, and his hammer normals and throw, replayed across each. */
 const FORSAKEN_PALADIN: MatchScript = {
-  characters: [Character.forsakenPaladin, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 540,
+  characters: [Character.forsakenPaladin, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 540,
   holds: [[
     [20, 2, SPECIAL], [80, 4, TOWARD], [81, 2, SPECIAL], [140, 4, DOWN], [141, 2, SPECIAL], [200, 4, TOWARD],
     [201, 2, SPECIAL], [260, 4, AWAY], [261, 2, SPECIAL], [320, 3, JUMP], [332, 4, UP], [333, 2, SPECIAL],
@@ -429,9 +429,9 @@ const FORSAKEN_PALADIN: MatchScript = {
   predictions: [[140, 152], [440, 452]],
 };
 
-/** Warden's Shadow Strike and its poison, Pursuit Lunge, Fan of Knives, an aimed Blink and her blade normals and a throw against the Archer, replayed across each. */
+/** Warden's Shadow Strike and its poison, Pursuit Lunge, Fan of Knives, an aimed Blink and her blade normals and a throw against the Illidan, replayed across each. */
 const WARDEN: MatchScript = {
-  characters: [Character.warden, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 540,
+  characters: [Character.warden, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 540,
   holds: [[
     [20, 2, SPECIAL], [80, 4, TOWARD], [81, 2, SPECIAL], [150, 4, DOWN], [151, 2, SPECIAL], [220, 3, JUMP],
     [232, 4, UP], [233, 2, SPECIAL], [236, 6, TOWARD], [320, 2, ATTACK], [340, 8, DOWN], [342, 2, ATTACK],
@@ -450,15 +450,15 @@ export function generateTapes(): Map<string, string> {
   const pressed = [new Set<string>(), new Set<string>()];
   const tapes = new Map([
     ["short-hop", recordTape("Z short and long holds with late input corrections and rollback.", [{
-      characters: [Character.archer, Character.rifleman], stage: 0, stocks: 3, minutes: 0, frames: 180,
+      characters: [Character.demonHunter, Character.rifleman], stage: 0, stocks: 3, minutes: 0, frames: 180,
       holds: [[[1, 1, SHORT_HOP], [60, 60, SHORT_HOP, JUMP]], [[1, 60, SHORT_HOP], [100, 3, SHORT_HOP]]],
       approaches: [[], []], rollbacks: [[1, 30], [65, 120]], predictions: [[1, 10], [98, 110]],
     }])],
     ["actions", recordTape("Every bound source pressed by both players, with short replays.", [ACTIONS], pressed)],
     ["rollback", recordTape("Combat replayed from one frame up to the whole retained history.", [ROLLBACK])],
     ["rematch", recordTape("A one-stock match ends, both players confirm the rematch, a new match runs.", [FIRST_MATCH, SECOND_MATCH])],
-    ["blademaster", recordTape("Blademaster's specials, follow-up, smashes, aerials and throws against Archer, with replays and corrected predictions.", [{
-      characters: [Character.blademaster, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 480,
+    ["blademaster", recordTape("Blademaster's specials, follow-up, smashes, aerials and throws against Illidan, with replays and corrected predictions.", [{
+      characters: [Character.blademaster, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 480,
       holds: [[
         [20, 2, SPECIAL], [70, 2, DOWN, SPECIAL], [82, 2, SPECIAL], [130, 2, TOWARD, SPECIAL], [190, 2, GRAB], [198, 2, UP],
         [240, 3, JUMP], [246, 2, UP, SPECIAL], [300, 2, C_RIGHT], [330, 2, GRAB], [338, 2, DOWN], [370, 3, JUMP], [374, 2, ATTACK],
@@ -470,27 +470,27 @@ export function generateTapes(): Map<string, string> {
       rollbacks: [...every(30, 470, 40, 8), [76, 100], [244, 290]], predictions: [[70, 86], [126, 140], [436, 450]],
     }])],
     ["computer", recordTape("A player against the computer on the raised decks, with replays.", [COMPUTER])],
-    ["lich", recordTape("Lich's specials, free recovery and normals against the Archer, with replays.", [LICH])],
-    ["dreadlord", recordTape("Dreadlord's specials, sleep, a command grab, free Bat Ascension, normals and a throw against the Archer, with replays.", [DREADLORD])],
-    ["mountain-king", recordTape("Mountain King's specials, free Thunder Leap, normals and a throw against the Archer, with replays.", [MOUNTAIN_KING])],
-    ["shadow-hunter", recordTape("Shadow Hunter's glaive, ward, Hex, recall, vault and normals against the Archer, with replays.", [SHADOW_HUNTER])],
-    ["pit-lord", recordTape("Pit Lord's arcing spit, armored charge, Terror, leap, cleaver normals and a throw against the Archer, with replays.", [PIT_LORD])],
-    ["lich-king", recordTape("The Lich King's blast, soul-banking jabs, a Val'kyr carry mashed against, Defile, Ascension, Harvest Soul and Quake against the Archer, with replays.", [LICH_KING])],
-    ["beastmaster", recordTape("Beastmaster's bear summoned, commanded, recalled and followed, his axe, Hawk Lift, normals and a throw against the Archer, with replays.", [BEASTMASTER])],
-    ["warden", recordTape("Warden's specials with poison and an aimed Blink, normals and a throw against the Archer, with replays.", [WARDEN])],
-    ["forsaken-paladin", recordTape("Forsaken Paladin's specials, guard, free recovery and normals against the Archer, with replays.", [FORSAKEN_PALADIN])],
+    ["lich", recordTape("Lich's specials, free recovery and normals against the Illidan, with replays.", [LICH])],
+    ["dreadlord", recordTape("Dreadlord's specials, sleep, a command grab, free Bat Ascension, normals and a throw against the Illidan, with replays.", [DREADLORD])],
+    ["mountain-king", recordTape("Mountain King's specials, free Thunder Leap, normals and a throw against the Illidan, with replays.", [MOUNTAIN_KING])],
+    ["shadow-hunter", recordTape("Shadow Hunter's glaive, ward, Hex, recall, vault and normals against the Illidan, with replays.", [SHADOW_HUNTER])],
+    ["pit-lord", recordTape("Pit Lord's arcing spit, armored charge, Terror, leap, cleaver normals and a throw against the Illidan, with replays.", [PIT_LORD])],
+    ["lich-king", recordTape("The Lich King's blast, soul-banking jabs, a Val'kyr carry mashed against, Defile, Ascension, Harvest Soul and Quake against the Illidan, with replays.", [LICH_KING])],
+    ["beastmaster", recordTape("Beastmaster's bear summoned, commanded, recalled and followed, his axe, Hawk Lift, normals and a throw against the Illidan, with replays.", [BEASTMASTER])],
+    ["warden", recordTape("Warden's specials with poison and an aimed Blink, normals and a throw against the Illidan, with replays.", [WARDEN])],
+    ["forsaken-paladin", recordTape("Forsaken Paladin's specials, guard, free recovery and normals against the Illidan, with replays.", [FORSAKEN_PALADIN])],
     ["moving-platforms", recordTape("Moving decks, jumping, dropping through, predictions and rollback over complete path cycles.", [{
-      characters: [Character.archer, Character.rifleman], stage: 3, stocks: 3, minutes: 0, frames: 620,
+      characters: [Character.demonHunter, Character.rifleman], stage: 3, stocks: 3, minutes: 0, frames: 620,
       holds: [[[1, 20, RIGHT, WALK], [30, 10, JUMP], [180, 3, DOWN], [240, 10, JUMP], [400, 10, JUMP]], [[1, 10, JUMP], [140, 3, DOWN], [300, 10, JUMP]]],
       approaches: [[], []], rollbacks: [[57, 120], [357, 420], [537, 600]], predictions: [[250, 260]],
     }])],
     ["patterned-platforms", recordTape("Two independently patterned platforms through full loops and lifts with rollback.", [{
-      characters: [Character.archer, Character.demonHunter], stage: 4, stocks: 3, minutes: 0, frames: 520,
+      characters: [Character.demonHunter, Character.demonHunter], stage: 4, stocks: 3, minutes: 0, frames: 520,
       holds: [[[1, 10, JUMP], [140, 3, DOWN], [220, 10, JUMP]], [[1, 10, JUMP], [100, 3, DOWN], [180, 10, JUMP]]],
       approaches: [[], []], rollbacks: [[147, 210], [437, 500]], predictions: [[240, 250]],
     }])],
     ["slopes", recordTape("Running, walking, jumping and landing on Yoshi's Story's sloped main deck, a tech and a fight on the slope, with predictions and rollback.", [{
-      characters: [Character.archer, Character.rifleman], stage: 6, stocks: 3, minutes: 0, frames: 760,
+      characters: [Character.demonHunter, Character.rifleman], stage: 6, stocks: 3, minutes: 0, frames: 760,
       holds: [[
         [185, 40, LEFT, WALK], [228, 3, JUMP], [260, 36, RIGHT, WALK], [300, 3, JUMP], [330, 20, LEFT, WALK], [360, 2, ATTACK],
         [400, 18, RIGHT], [430, 2, ATTACK], [470, 2, GRAB], [520, 3, JUMP], [526, 2, C_DOWN], [600, 2, DOWN, ATTACK],
@@ -507,7 +507,7 @@ export function generateTapes(): Map<string, string> {
       ["cannon", 12, 650, "test-air 0 -760 -350", undefined],
       ["timed-lift", 13, 440, "test-air 0 -330 125", "carried"],
     ] as const).map(([name, stage, frames, placement, exercise]) => [name, recordTape(`Deterministic ${name} hazard, controller presses, corrected predictions and rollback.`, [{
-      characters: [Character.archer, Character.rifleman], stage, stocks: 3, minutes: 0, frames,
+      characters: [Character.demonHunter, Character.rifleman], stage, stocks: 3, minutes: 0, frames,
       ...(placement === undefined ? {} : { placement }), ...(exercise === undefined ? {} : { exercise }),
 
       holds: [[[30, 1, ATTACK], [300, 1, SPECIAL]], []], approaches: [[], []],
@@ -519,7 +519,7 @@ export function generateTapes(): Map<string, string> {
       ["hazards-off-wind", 10, 700, undefined],
       ["hazards-off-cannon", 12, 300, "test-air 0 -760 -350"],
     ] as const).map(([name, stage, frames, placement]) => [name, recordTape(`Stage ${stage} with hazards off, controller presses, corrected predictions and rollback.`, [{
-      characters: [Character.archer, Character.rifleman], stage, stocks: 3, minutes: 0, frames, hazardsOff: true,
+      characters: [Character.demonHunter, Character.rifleman], stage, stocks: 3, minutes: 0, frames, hazardsOff: true,
       ...(placement === undefined ? {} : { placement }),
       holds: [[[30, 1, ATTACK], [200, 1, SPECIAL]], []], approaches: [[], []],
       rollbacks: [[37, 100], [237, 280]], predictions: [[120, 130]],

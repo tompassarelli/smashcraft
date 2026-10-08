@@ -8,7 +8,7 @@ import { sweep } from "../../runtime/sweep";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { clearAttackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
-import { Character, HeroStatusKind, HippogryphKind, SpecialAction } from "../sim/codes";
+import { Character, HeroStatusKind, SpecialAction } from "../sim/codes";
 import { createFighter, type Fighter } from "../sim/fighter";
 import { isHeroSpecialAction } from "../sim/heroSpecialRules";
 import { FOLLOW_UP_FORM, FollowUpInput, SpecialForm } from "../sim/heroSpecials";
@@ -34,7 +34,6 @@ interface Watch {
   form: number;
   frame: number;
   entryFacing: number;
-  bird: number;
   divine: number;
   asleep: boolean;
   hexed: boolean;
@@ -93,12 +92,6 @@ function observe(f: Readonly<Fighter>, watch: Watch, down: boolean, grabMash: bo
     case SpecialAction.demonHunterWingAscent:
       if (special.form === DEMONHUNTER_GLIDE_FORM && watch.form !== special.form) count(counts, "glide");
       break;
-    case SpecialAction.archerHomingArrow:
-      if (started) count(counts, "homingArrow");
-      break;
-    case SpecialAction.archerRecovery:
-      if (down) count(counts, "lowRide");
-      break;
   }
   // A one-frame branch (Thunder Clap's Hold) ends the action on the frame it is taken.
   if (isHeroSpecialAction(watch.action) && special.action === SpecialAction.none && watch.form < FOLLOW_UP_FORM && f.launch.hitstun <= 0 && f.launch.hitlag <= 0
@@ -111,10 +104,7 @@ function observe(f: Readonly<Fighter>, watch: Watch, down: boolean, grabMash: bo
       if (orb.life > 0 && orb.kind === 4 && behind > 30.0 && behind < 120.0 && f.motion.deltaX * orb.direction > 0) count(counts, "behindOrb");
     }
   }
-  if (f.hippogryph.kind !== watch.bird) {
-    if (f.hippogryph.kind === HippogryphKind.released) count(counts, "leapOff");
-    if (f.hippogryph.kind === HippogryphKind.dive) count(counts, "perchDive");
-  }
+
   if (watch.divine > 1 && f.status.divineFrames === 0 && (f.attack.style !== undefined || f.special.action !== SpecialAction.none || f.grab.target !== undefined)) count(counts, "divineAttack");
   if (grabMash && f.grab.owner !== undefined) count(counts, "grabMash");
   if (grabMash && f.status.frozenFrames > 0) count(counts, "freezeMash");
@@ -129,7 +119,6 @@ function observe(f: Readonly<Fighter>, watch: Watch, down: boolean, grabMash: bo
   watch.action = special.action;
   watch.form = special.form;
   watch.frame = special.frame;
-  watch.bird = f.hippogryph.kind;
   watch.divine = f.status.divineFrames;
 }
 
@@ -151,7 +140,7 @@ function computerMatch(character: Character, opponent: Character, seed: number, 
     match.cpuResolvedOpponents[slot] = "wren";
     match.cpuTiers[slot] = "expert";
     fighterAt(world, slot).status.damage = damage;
-    watches.push({ action: 0, form: 0, frame: 0, entryFacing: 1, bird: 0, divine: 0, asleep: false, hexed: false });
+    watches.push({ action: 0, form: 0, frame: 0, entryFacing: 1, divine: 0, asleep: false, hexed: false });
   }
   for (let step = 0; step < FRAMES; step++) {
     const frame = runtime.simulationFrame + 1;
@@ -237,8 +226,4 @@ sweep("computer Rifleman flies level and diagonal recoil routes with a second sh
 sweep("computer Illidan jump-cancels Immolate, glides out of Wing Ascent, runs behind Mana Burn and Fel Rushes into Chaos Strike or Vengeful Retreat [spec #146]", () => {
   // Whiff punishes (botPunish.ts) take most close windows with a normal, so Immolate starts rarely: 16 matches.
   usesEvery(Character.demonHunter, ["immolateJump", "glide", "behindOrb", "felRush", "chaosStrike|chaosCrossUp", "vengefulRetreat"], Character.demonHunter, 2 * MATCHES);
-});
-
-sweep("computer Archer shoots the homing arrow, rides the low line, leaps off and dives from the perch [spec #146]", () => {
-  usesEvery(Character.archer, ["homingArrow", "lowRide", "leapOff", "perchDive", "grabMash"]);
 });

@@ -253,7 +253,7 @@ sweep("a match and its three-fighter rematch show each pooled fighter whole wher
   // Every match frame of both matches showed each pooled fighter in play once, whole, where he stands;
   // the rematch's computer Illidan among them.
   expect(shownProblems).toEqual([]);
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) expect(shownFrames.get(character) ?? 0).toBeGreaterThan(60);
+  for (const character of [Character.demonHunter, Character.rifleman, Character.demonHunter]) expect(shownFrames.get(character) ?? 0).toBeGreaterThan(60);
   // Match frames create and destroy nothing; the result recreates the menu key triggers the match start removed.
   for (const played of [first, rematch]) expect(played.lifetimes).toEqual({ CreateTrigger: 2 });
   // At its result the rematch also holds the computer Illidan's clip pool, shield, projectiles, special cues, hit-area pool, agency halo and body flash; fighter

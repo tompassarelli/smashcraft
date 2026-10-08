@@ -1,7 +1,7 @@
 // Impact sparks, dust and KO bodies. Every handle is created with the match;
 // effects never feed back into combat, and playback creates or destroys none.
 import { DEMON_HUNTER_MODEL_FILE } from "../presentation/demonHunterAssetInfo";
-import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "../presentation/fighterAssetInfo";
+import { RIFLEMAN_MODEL_FILE } from "../presentation/fighterAssetInfo";
 import {
   IMPACT_CHARGE,
   IMPACT_COUNT,
@@ -51,7 +51,7 @@ const DRAWN_FRAMES = 64;
 export function fighterModel(character: number): string {
   const hero = heroDefinition(character);
   if (hero !== undefined) return hero.presentation.model;
-  return character === Character.archer ? ARCHER_MODEL_FILE : character === Character.rifleman ? RIFLEMAN_MODEL_FILE : DEMON_HUNTER_MODEL_FILE;
+  return character === Character.rifleman ? RIFLEMAN_MODEL_FILE : DEMON_HUNTER_MODEL_FILE;
 }
 
 export class CombatEffects {

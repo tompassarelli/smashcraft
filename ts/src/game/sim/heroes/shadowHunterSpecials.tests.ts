@@ -40,7 +40,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
 function pair(gap: number, facing = 1): { world: Roster; owner: Fighter; target: Fighter } {
   const owner = createFighter(Character.shadowHunter, -gap * f32(0.5) * facing, facing);
   owner.mana.points = 100;
-  const target = createFighter(Character.archer, gap * f32(0.5) * facing, -facing);
+  const target = createFighter(Character.rifleman, gap * f32(0.5) * facing, -facing);
   const world = createRoster(3, [owner, target]);
   for (let i = 0; i < 3; i++) frame(world);
   return { world, owner, target };
@@ -213,7 +213,7 @@ test("replaying a ward from a restored snapshot reproduces every fighter field [
   const { world, owner, target } = pair(400.0);
   placeWard(world);
   const savedOwner = createFighter(Character.shadowHunter, 0.0, 1);
-  const savedTarget = createFighter(Character.archer, 0.0, 1);
+  const savedTarget = createFighter(Character.rifleman, 0.0, 1);
   copyFighterState(savedOwner, owner, 3);
   copyFighterState(savedTarget, target, 3);
   const run = () => {
@@ -221,7 +221,7 @@ test("replaying a ward from a restored snapshot reproduces every fighter field [
   };
   run();
   const endOwner = createFighter(Character.shadowHunter, 0.0, 1);
-  const endTarget = createFighter(Character.archer, 0.0, 1);
+  const endTarget = createFighter(Character.rifleman, 0.0, 1);
   copyFighterState(endOwner, owner, 3);
   copyFighterState(endTarget, target, 3);
   assertGreaterThan(target.status.damage, 0.0);

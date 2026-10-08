@@ -17,8 +17,8 @@ for (let index = 0; index < SELECTABLE_CHARACTERS.length; index++) {
 for (let index = 0; index < SELECTABLE_CHARACTERS.length; index++) {
   const character = SELECTABLE_CHARACTERS[index];
   if (character !== Character.pitLord && character !== Character.beastmaster && character !== Character.lichKing) continue;
-  sweep(`CPU drop roster coverage: ${fighterName(character)} moves, attacks and uses specials against Archer for 1800 frames [spec #209]`, () => {
-    const report = fighterCoverage(index, Character.archer);
+  sweep(`CPU drop roster coverage: ${fighterName(character)} moves, attacks and uses specials against Rifleman for 1800 frames [spec #209]`, () => {
+    const report = fighterCoverage(index, Character.rifleman);
     assertEquals(report.matches, 8);
     assertEquals(report.missing.join(", "), "", report.fighter);
     assertGreaterThan(report.movement, 0);

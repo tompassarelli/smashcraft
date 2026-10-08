@@ -193,12 +193,6 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("bearSwipeCooldown", e.bear.swipeCooldown, a.bear.swipeCooldown);
   add("bearHitSerial", e.bear.hitSerial, a.bear.hitSerial);
   add("bearSurface", e.bear.surface, a.bear.surface);
-  add("hippogryphLife", e.hippogryph.life, a.hippogryph.life);
-  add("hippogryphX", e.hippogryph.x, a.hippogryph.x);
-  add("hippogryphZ", e.hippogryph.z, a.hippogryph.z);
-  add("hippogryphVelocityX", e.hippogryph.velocityX, a.hippogryph.velocityX);
-  add("hippogryphVelocityZ", e.hippogryph.velocityZ, a.hippogryph.velocityZ);
-  add("hippogryphKind", e.hippogryph.kind, a.hippogryph.kind);
   add("freezeTrapLife", e.freezeTrap.life, a.freezeTrap.life);
   add("freezeTrapExReach", e.freezeTrap.exReach, a.freezeTrap.exReach);
   add("freezeTrapArming", e.freezeTrap.arming, a.freezeTrap.arming);

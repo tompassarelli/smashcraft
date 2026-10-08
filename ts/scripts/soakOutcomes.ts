@@ -37,7 +37,7 @@ const readOutcome = Schema.decodeSync(Schema.fromJsonString(Outcome));
 
 /**
  * Every move a fighter has, by the soak's move names: normals, aerials, grab
- * and throws, get-up and ledge attacks, and specials (Archer's mount and
+ * and throws, get-up and ledge attacks, and specials (the reference body's mount and
  * Illidan's ascent strike nothing; using one counts).
  */
 const AUTHORED_MOVES = [

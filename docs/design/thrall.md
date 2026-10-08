@@ -25,7 +25,7 @@ His authored mounted silhouette is
 shared one aerial jump, gravity and dodge windows. Unlike Dedede, he has no
 extra jumps or armored recovery.
 
-Compared with the present roster, Thrall trades Archer/Rifleman's sustained
+Compared with the present roster, Thrall trades Rifleman's sustained
 shooting and Illidan's rush speed for mass; has less sword reach than
 Blademaster, Warden and Lich King; uses a travelling wolf attack rather than
 Beastmaster's controllable animals; lacks Forsaken Paladin's guard, Dreadlord's healing,

@@ -370,7 +370,7 @@ test("moving decks are visible and their effects follow the presented match fram
     if (client === undefined) throw new Error("missing client");
     client.run(() => {
       const s = shell();
-      selectCharacter(s.game, 0, Character.archer);
+      selectCharacter(s.game, 0, Character.rifleman);
       selectCharacter(s.game, 1, Character.rifleman);
       requestStageSelect(s.game, 0);
       s.game.stageChoice = stage;
@@ -414,7 +414,7 @@ test("Frozen Throne's raised decks draw their stock floes, rock and rubble in vi
   if (client === undefined) throw new Error("missing client");
   client.run(() => {
     const s = shell();
-    selectCharacter(s.game, 0, Character.archer);
+    selectCharacter(s.game, 0, Character.rifleman);
     selectCharacter(s.game, 1, Character.rifleman);
     requestStageSelect(s.game, 0);
     s.game.stageChoice = stage;
@@ -459,7 +459,7 @@ test("every hazard stage shows its warning before acting and declares the cannon
     if (client === undefined) throw new Error("missing client");
     client.run(() => {
       const s = shell();
-      selectCharacter(s.game, 0, Character.archer);
+      selectCharacter(s.game, 0, Character.rifleman);
       selectCharacter(s.game, 1, Character.rifleman);
       requestStageSelect(s.game, 0);
       s.game.stageChoice = stage;
@@ -488,7 +488,7 @@ test("every hazard stage shows its warning before acting and declares the cannon
 });
 
 /**
- * Dense play's dust: an archer jumping every 9 frames while running back and
+ * Dense play's dust: an rifleman jumping every 9 frames while running back and
  * forth, with two computers chasing it, takes the eight-slot dust pool's next
  * slot before the last dust in it fades. Counted as one stay, a reused slot
  * stayed in view over 180 frames and failed the rematch of #26's clean-folders
@@ -506,7 +506,7 @@ test("a dust slot reused while shown is a new stay each use; a standing spark an
   client.run(() => {
     const s = shell();
     setParticipants(s.game, 1, 6);
-    selectCharacter(s.game, 0, Character.archer);
+    selectCharacter(s.game, 0, Character.rifleman);
     expect(requestStageSelect(s.game, 0)).toBe(true);
     expect(requestStart(s.game, 0)).toBe(true);
     startMatch(s);
@@ -583,7 +583,7 @@ test("a downward offscreen portrait and arrow stay entirely above the HUD at eve
     client.run(() => {
       const s = shell();
       if (s.ui === undefined) throw new Error("missing match UI");
-      s.ui.bubbles[0].update(true, Character.archer, 0.5, 2, aspect);
+      s.ui.bubbles[0].update(true, Character.rifleman, 0.5, 2, aspect);
       for (const [name, context] of [["OffscreenPortrait0", 920], ["OffscreenArrow0", 921]] as const) {
         const frame = client.frames.named(name, context);
         if (frame === undefined) throw new Error(`missing ${name}`);
@@ -707,7 +707,7 @@ test("a fighter within 100 of the main deck's underside shows above the HUD with
   client.run(() => {
     const s = shell();
     setParticipants(s.game, 1, 2);
-    selectCharacter(s.game, 0, Character.archer);
+    selectCharacter(s.game, 0, Character.rifleman);
     expect(requestStageSelect(s.game, 0)).toBe(true);
     selectStage(s.game, 0, 0);
     expect(requestStart(s.game, 0)).toBe(true);
@@ -746,7 +746,7 @@ test("the underside scenario holds a fighter under the main deck, shown above th
   client.run(() => {
     const s = shell();
     setParticipants(s.game, 1, 2);
-    selectCharacter(s.game, 0, Character.archer);
+    selectCharacter(s.game, 0, Character.rifleman);
     expect(requestStageSelect(s.game, 0)).toBe(true);
     // Final Destination's reference underside, which these checks measure.
     selectStage(s.game, 0, 0);
@@ -792,7 +792,7 @@ test("in the underside scenario's match, a fighter rising into the main deck's u
   clients.frames(30);
   const client = clients.clients[0];
   if (client === undefined) throw new Error("missing client");
-  const top = bodyTop(Character.archer) * WORLD_UNITS_PER_MELEE_UNIT;
+  const top = bodyTop(Character.rifleman) * WORLD_UNITS_PER_MELEE_UNIT;
   const flank = BODY_HALF_WIDTH * WORLD_UNITS_PER_MELEE_UNIT;
   // The ECB as collision uses it: the position up to the top, the 2-unit flank each side.
   const ecbInside = (x: number, z: number) =>
@@ -800,7 +800,7 @@ test("in the underside scenario's match, a fighter rising into the main deck's u
   client.run(() => {
     const s = shell();
     setParticipants(s.game, 1, 2);
-    selectCharacter(s.game, 0, Character.archer);
+    selectCharacter(s.game, 0, Character.rifleman);
     expect(requestStageSelect(s.game, 0)).toBe(true);
     // Final Destination's reference underside, which these checks measure.
     selectStage(s.game, 0, 0);
@@ -848,7 +848,7 @@ test("ranked stage lineup: both clients choose all ten stages and draw their dec
     clients.frames(30);
     clients.everywhere(() => {
       const s = shell();
-      selectCharacter(s.game, 0, Character.archer);
+      selectCharacter(s.game, 0, Character.rifleman);
       selectCharacter(s.game, 1, Character.rifleman);
       expect(requestStageSelect(s.game, 0)).toBe(true);
       selectStage(s.game, 0, stage.id);

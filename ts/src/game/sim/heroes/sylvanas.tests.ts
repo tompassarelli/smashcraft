@@ -35,7 +35,7 @@ function frame(world: Roster, press: Readonly<Controls> = controls(), response: 
 function pair(gap = 100.0, facing = 1) {
   const owner = createFighter(Character.sylvanas, f32(-gap * 0.5 * facing), facing);
   owner.mana.points = 100;
-  const target = createFighter(Character.archer, f32(gap * 0.5 * facing), -facing);
+  const target = createFighter(Character.rifleman, f32(gap * 0.5 * facing), -facing);
   const world = testWorld(owner, target);
   for (let i = 0; i < 3; i++) frame(world);
   return { world, owner, target };

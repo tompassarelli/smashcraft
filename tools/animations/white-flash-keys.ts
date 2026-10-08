@@ -20,9 +20,7 @@ export function flashableSequences(character: number, sequences: readonly mdx.Se
     if (index !== undefined) indices.add(index);
   }
   if (character <= Character.demonHunter) {
-    const actions = character === Character.archer
-      ? [SpecialAction.archerArrow, SpecialAction.archerHomingArrow, SpecialAction.archerDisengage, SpecialAction.archerRecovery]
-      : character === Character.rifleman
+    const actions = character === Character.rifleman
         ? [SpecialAction.riflemanBlaster, SpecialAction.riflemanBear, SpecialAction.riflemanTrap, SpecialAction.riflemanRecovery]
         : [SpecialAction.demonHunterManaBurn, SpecialAction.demonHunterFelRush, SpecialAction.demonHunterWingAscent, SpecialAction.demonHunterImmolate];
     for (const action of actions) for (const grounded of [false, true]) {

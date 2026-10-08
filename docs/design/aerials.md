@@ -112,7 +112,7 @@ Frames count from one, as the [roster](roster.md) does.
 | Lich neutral air, Frost Halo | 9–11, 13–15, 17–19 (2 each), 21–22 (4) | a ring that holds a target in place; nothing at its centre | bursts outward at 50° | long, so it is a trap more than an approach |
 | Warden up air, Sky Crescent | 5–6, 8–9 (2 each), 11–13 (5) | lifts with her | launches at 85° | the juggle kick, after Fox's and Falco's |
 
-Illidan's two-hit forward air belongs to his kit. Archer's and Rifleman's
+Illidan's two-hit forward air belongs to his kit. Rifleman's
 shared up air was already two hits (4 then 8, two frames apart); both link,
 but its second hit covers the same box as the first, so one hit's SDI
 cannot clear it.

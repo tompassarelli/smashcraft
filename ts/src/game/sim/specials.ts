@@ -3,7 +3,7 @@
 // gameplay tuning remains provisional.
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, Character, HippogryphKind, ProjectileKind, SPECIAL_ACTION_CAPACITY, SpecialAction, SurfaceContact } from "./codes";
+import { AttackStyle, Character, ProjectileKind, SPECIAL_ACTION_CAPACITY, SpecialAction, SurfaceContact } from "./codes";
 import { canAttack, isIntangible } from "./conditions";
 import { finishDamageContacts, openDamageContacts } from "./contacts";
 import { type Fighter, TURNAROUND_SPECIAL_WINDOW_FRAMES } from "./fighter";
@@ -19,11 +19,11 @@ import { applyAttackHit } from "./hits";
 import { meleeHitIntersectsShield } from "./attacks";
 import { observeActionDecision } from "./observations";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
-import { spawnArcherArrow, spawnBlasterShot, spawnHomingArrow, spawnProjectileMotion } from "./projectiles";
+import { spawnBlasterShot, spawnProjectileMotion } from "./projectiles";
 import { type Controls, type Roster, copyControls, fighterAt, isActive, neutralControls } from "./roster";
 import { surfaceZAt } from "./stage";
 import { advanceCompanion } from "./companions";
-import { HIPPOGRYPH_DIVE_ARRIVAL, HIPPOGRYPH_DIVE_OVERSHOOT, RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, canStartFreezeTrap, startFreezeTrap } from "./summons";
+import { RIFLEMAN_BEAR_LIFETIME, advanceBear, recordSpecialHit, specialAlreadyHit, canStartFreezeTrap, startFreezeTrap } from "./summons";
 import { at } from "wisp/src/runtime/lookup";
 import { travelBeforeBodies } from "./travelStop";
 import { advanceHeroSpecial, chargedAimX, chargedAimZ, chooseHeroSpecial, enterHeroSpecial, followUpHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, relocateHeroSpecial, runningHeroSpecial, resolveHeroGuards, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
@@ -92,32 +92,6 @@ export const FLAME_CRASH_FRAMES = 34;
 export const FLAME_CRASH_SPEED = 24.0;
 export const FLAME_CRASH_LANDING_FRAMES = 24;
 export const FLAME_CRASH_BURST_LAST = 3;
-export const ARCHER_HOMING_WINDUP_FRAMES = 12;
-// Archer's hippogryph ride (up special): a hover, then a steerable ride
-// ending in helpless fall, or a leap off that leaves her actionable.
-export const ARCHER_RIDE_HOVER_FRAMES = 5;
-export const ARCHER_RIDE_FRAMES = 40;
-export const ARCHER_RIDE_LEAP_FIRST = 12;
-const ARCHER_RIDE_HOVER_RISE = 2.0;
-export const ARCHER_RIDE_RISE = 12.0;
-export const ARCHER_RIDE_LOW_RISE = 4.0;
-const ARCHER_RIDE_ANGLED_X = 8.0;
-const ARCHER_RIDE_STEER = 1.0;
-export const ARCHER_RIDE_MAX_X = 12.0;
-export const ARCHER_LEAP_RISE = 14.0;
-const ARCHER_RELEASED_FRAMES = 18;
-const ARCHER_RELEASED_RISE = 18.0;
-/** The ride's bit in airtimeUses: once per airtime, refreshed by landing, a ledge catch or a hit. */
-const ARCHER_RIDE_AIRTIME = 1;
-// Archer's call and dive (down special): one hippogryph swoops to a perch,
-// then dives from it at her on the next press.
-export const ARCHER_CALL_FRAMES = 24;
-export const ARCHER_SWOOP_FRAMES = 18;
-const ARCHER_SWOOP_SPEED = 28.0;
-const ARCHER_DIVE_FRAMES = 16;
-export const ARCHER_DIVE_LAUNCH_FRAME = 6;
-const ARCHER_CALL_FORM = 0;
-export const ARCHER_DIVE_FORM = 1;
 // Rifleman's recoil shot (up special, #127, smashcraft:docs/design/kit-review-1.md),
 // the roster's charged-angle rule (#189): the stick held through frame 4
 // picks one of eight directions he flies (straight up when neutral); the
@@ -133,7 +107,6 @@ const RIFLEMAN_SECOND_SHOT_SPEED = 22.0;
 export const RIFLEMAN_SECOND_SHOT_FORM = 1;
 /** Diagonal aims keep the authored speed. */
 const AIM_DIAGONAL = 0.7071067690849304;
-const ARCHER_HOMING_FRAMES = 34;
 const RIFLEMAN_RECOVERY_FRAMES = 34;
 /** The bear appears this many frames into the cast, past the reaction floor in docs/gameplay-design.md (#69). */
 export const RIFLEMAN_BEAR_CAST_FRAMES = 24;
@@ -141,16 +114,12 @@ export const RIFLEMAN_BEAR_CAST_FRAMES = 24;
 export const RIFLEMAN_BEAR_SUMMON_FRAMES = RIFLEMAN_BEAR_CAST_FRAMES + 18;
 const TRAP_APPEAR_FRAME = 22;
 const TRAP_SET_FRAMES = 38;
-/** The bow release remains two-thirds through its clip; the longer draw is visible before the arrow leaves. */
-export const ARCHER_ARROW_SHOT_FRAME = 16;
-export const ARCHER_ARROW_FRAMES = 24;
-export const ARCHER_ARROW_REPEAT_FRAMES = 30;
 /** The special input bit in action observations. */
 const SPECIAL_ACTION_BIT = 64;
 
 function startSpecialAction(owner: Fighter, action: SpecialAction, duration: number, direction: number): void {
   const { special, attack } = owner;
-  if (action === SpecialAction.archerDisengage || action === SpecialAction.demonHunterImmolate || isHeroSpecialAction(action)) {
+  if (action === SpecialAction.demonHunterImmolate || isHeroSpecialAction(action)) {
     for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
   }
   owner.surfaceRecovery.state = SurfaceContact.none;
@@ -191,8 +160,6 @@ function requestedSpecial(owner: Fighter, input: Readonly<Controls>): SpecialAct
   switch (owner.character) {
     default:
       return up ? SpecialAction.heroUp : down ? SpecialAction.heroDown : side ? SpecialAction.heroSide : SpecialAction.heroNeutral;
-    case Character.archer:
-      return up ? SpecialAction.archerRecovery : down ? SpecialAction.archerDisengage : side ? SpecialAction.archerHomingArrow : SpecialAction.archerArrow;
     case Character.rifleman:
       return down ? SpecialAction.riflemanTrap : up ? SpecialAction.riflemanRecovery : side ? SpecialAction.riflemanBear : SpecialAction.riflemanBlaster;
     case Character.demonHunter:
@@ -211,66 +178,6 @@ function launchUpward(owner: Fighter): void {
   owner.motion.grounded = false;
   owner.motion.surface = undefined;
   owner.jump.remaining = 0;
-}
-
-function startArcherSpecial(owner: Fighter, action: SpecialAction, moveX: number): boolean {
-  const { motion, hippogryph, special } = owner;
-  if (action === SpecialAction.archerRecovery) {
-    if ((special.airtimeUses & ARCHER_RIDE_AIRTIME) !== 0) return false;
-    startSpecialAction(owner, action, ARCHER_RIDE_FRAMES, moveX);
-    special.airtimeUses |= ARCHER_RIDE_AIRTIME;
-    // A perched or flying hippogryph comes to carry her.
-    hippogryph.kind = HippogryphKind.mount;
-    hippogryph.life = ARCHER_RIDE_FRAMES;
-    hippogryph.x = motion.x;
-    hippogryph.z = motion.z;
-    hippogryph.velocityX = 0.0;
-    hippogryph.velocityZ = ARCHER_RIDE_HOVER_RISE;
-    motion.vx = 0.0;
-    motion.vz = ARCHER_RIDE_HOVER_RISE;
-    launchUpward(owner);
-    special.cooldowns[action] = 90;
-    return true;
-  }
-  if (action === SpecialAction.archerDisengage) {
-    if (hippogryph.kind === HippogryphKind.perch) {
-      startSpecialAction(owner, action, ARCHER_DIVE_FRAMES, moveX);
-      special.form = ARCHER_DIVE_FORM;
-      special.hit = false;
-      special.cooldowns[action] = 60;
-      return true;
-    }
-    // One hippogryph: no new call while it is still flying.
-    if (hippogryph.life > 0) return false;
-    // Down with a side faces it: the hippogryph swoops that way and she hops back from it.
-    const disengage = moveX !== 0;
-    if (disengage) owner.facing = moveX;
-    startSpecialAction(owner, action, ARCHER_CALL_FRAMES, moveX);
-    special.form = ARCHER_CALL_FORM;
-    special.hit = false;
-    hippogryph.kind = HippogryphKind.strike;
-    hippogryph.life = ARCHER_SWOOP_FRAMES;
-    hippogryph.x = f32(motion.x - f32(owner.facing * 150));
-    hippogryph.z = f32(motion.z + 40);
-    hippogryph.velocityX = f32(owner.facing * ARCHER_SWOOP_SPEED);
-    hippogryph.velocityZ = 0.0;
-    if (disengage) {
-      motion.vx = f32(-owner.facing * 18.0);
-      motion.vz = 16.0;
-      motion.grounded = false;
-      motion.surface = undefined;
-    }
-    special.cooldowns[action] = 24;
-    return true;
-  }
-  if (action === SpecialAction.archerHomingArrow) {
-    startSpecialAction(owner, action, ARCHER_HOMING_FRAMES, moveX);
-    special.cooldowns[action] = 40;
-    return true;
-  }
-  startSpecialAction(owner, action, ARCHER_ARROW_FRAMES, moveX);
-  special.cooldowns[action] = ARCHER_ARROW_REPEAT_FRAMES;
-  return true;
 }
 
 function startRiflemanSpecial(owner: Fighter, stage: number, matchFrame: number, action: SpecialAction, moveX: number): boolean {
@@ -624,8 +531,6 @@ export function startFighterSpecial(owner: Fighter, stage: number, matchFrame: n
 
 function startOriginalSpecial(owner: Fighter, stage: number, matchFrame: number, requested: SpecialAction, moveX: number): boolean {
   switch (owner.character) {
-    case Character.archer:
-      return startArcherSpecial(owner, requested, moveX);
     case Character.rifleman:
       return startRiflemanSpecial(owner, stage, matchFrame, requested, moveX);
     case Character.demonHunter:
@@ -645,59 +550,6 @@ function endSpecialAction(owner: Fighter, helpless: boolean): void {
   owner.special.frame = 0;
 }
 
-/**
- * The ride after its hover: the stick bends it sideways, down held flies the
- * low line, and jump from its 12th frame leaps off, leaving her actionable
- * while the hippogryph flies on as an upward strike.
- */
-function rideHippogryph(owner: Fighter, input: Readonly<Controls> | undefined): void {
-  const { special, motion, hippogryph } = owner;
-  if (special.frame < ARCHER_RIDE_HOVER_FRAMES) return;
-  if (special.frame >= ARCHER_RIDE_LEAP_FIRST && input?.jumpPressed === true) {
-    leapOffHippogryph(owner);
-    return;
-  }
-  if (special.frame === ARCHER_RIDE_HOVER_FRAMES) motion.vx = f32(special.direction * ARCHER_RIDE_ANGLED_X);
-  const steer = input?.direction ?? 0;
-  if (steer !== 0) {
-    motion.vx = max(-ARCHER_RIDE_MAX_X, min(ARCHER_RIDE_MAX_X, f32(motion.vx + f32(steer * ARCHER_RIDE_STEER))));
-    owner.facing = steer < 0 ? -1 : 1;
-  }
-  motion.vz = input?.down === true ? ARCHER_RIDE_LOW_RISE : ARCHER_RIDE_RISE;
-  hippogryph.velocityX = motion.vx;
-  hippogryph.velocityZ = motion.vz;
-}
-
-function leapOffHippogryph(owner: Fighter): void {
-  const { special, motion, hippogryph } = owner;
-  for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
-  hippogryph.kind = HippogryphKind.released;
-  hippogryph.life = ARCHER_RELEASED_FRAMES;
-  hippogryph.x = motion.x;
-  hippogryph.z = f32(motion.z + 30);
-  hippogryph.velocityX = motion.vx;
-  hippogryph.velocityZ = ARCHER_RELEASED_RISE;
-  special.action = SpecialAction.none;
-  special.frame = 0;
-  special.lockFrames = 0;
-  special.hit = false;
-  owner.attack.cooldown = 0;
-  owner.jump.remaining = 0;
-  motion.vx = f32(motion.vx * 0.5);
-  motion.vz = ARCHER_LEAP_RISE;
-}
-
-/** The perched hippogryph dives at where its archer is, arriving in a fixed time and flying on past her. */
-function startHippogryphDive(owner: Fighter): void {
-  const { special, motion, hippogryph } = owner;
-  if (hippogryph.kind !== HippogryphKind.perch) return;
-  for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
-  hippogryph.kind = HippogryphKind.dive;
-  hippogryph.life = HIPPOGRYPH_DIVE_ARRIVAL + HIPPOGRYPH_DIVE_OVERSHOOT;
-  hippogryph.velocityX = f32(f32(motion.x - hippogryph.x) / HIPPOGRYPH_DIVE_ARRIVAL);
-  hippogryph.velocityZ = f32(f32(f32(motion.z + 40) - hippogryph.z) / HIPPOGRYPH_DIVE_ARRIVAL);
-}
-
 function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number, input: Readonly<Controls> | undefined): void {
   const { special, motion } = owner;
   if (special.action === SpecialAction.none || owner.launch.hitlag > 0) return;
@@ -707,7 +559,6 @@ function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number,
     return;
   }
   const shotSerial = owner.attack.serial + 1;
-  if (special.action === SpecialAction.archerArrow && special.frame === ARCHER_ARROW_SHOT_FRAME) spawnArcherArrow(owner, owner.facing, shotSerial);
   if (special.action === SpecialAction.riflemanBlaster) {
     const grounded = special.duration === RIFLEMAN_BLASTER_GROUND_FRAMES;
     if (special.frame === (grounded ? RIFLEMAN_BLASTER_GROUND_SHOT_FRAME : RIFLEMAN_BLASTER_AIR_SHOT_FRAME)) spawnBlasterShot(owner, shotSerial, grounded);
@@ -716,9 +567,6 @@ function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number,
   if (special.action === SpecialAction.riflemanBear && special.frame === RIFLEMAN_BEAR_CAST_FRAMES) summonBear(owner, stage, matchFrame);
   if (special.action === SpecialAction.demonHunterManaBurn && special.frame === DEMONHUNTER_MANA_BURN_STARTUP) {
     spawnProjectileMotion(owner, ProjectileKind.manaBurn, f32(owner.facing * DEMONHUNTER_MANA_BURN_SPEED), 0.0, DEMONHUNTER_MANA_BURN_LIFETIME, shotSerial, 1.0, DEMONHUNTER_MANA_BURN_HEIGHT);
-  }
-  if (special.action === SpecialAction.archerHomingArrow && special.frame === ARCHER_HOMING_WINDUP_FRAMES) {
-    spawnHomingArrow(owner, special.direction, shotSerial);
   }
   if (special.action === SpecialAction.riflemanRecovery) {
     if (special.frame === RIFLEMAN_RECOVERY_STARTUP_FRAMES) {
@@ -747,18 +595,6 @@ function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number,
     launchUpward(owner);
     owner.status.invincible = max(owner.status.invincible, 4);
   }
-  if (special.action === SpecialAction.archerRecovery) rideHippogryph(owner, input);
-  if (special.action === SpecialAction.archerDisengage && special.form === ARCHER_DIVE_FORM && special.frame === ARCHER_DIVE_LAUNCH_FRAME) {
-    startHippogryphDive(owner);
-  }
-  // Endings run in this order, each seeing the previous one's result.
-  if (special.action === SpecialAction.archerDisengage && special.frame >= special.duration) {
-    special.action = SpecialAction.none;
-    special.frame = 0;
-    special.hit = false;
-  }
-  if (special.action === SpecialAction.archerRecovery && special.frame >= ARCHER_RIDE_FRAMES) endSpecialAction(owner, true);
-  if (special.action === SpecialAction.archerHomingArrow && special.frame >= ARCHER_HOMING_FRAMES) endSpecialAction(owner, false);
   if (special.action === SpecialAction.riflemanBear && special.frame >= RIFLEMAN_BEAR_SUMMON_FRAMES) endSpecialAction(owner, false);
   if (special.action === SpecialAction.riflemanRecovery && special.frame >= RIFLEMAN_RECOVERY_FRAMES) endSpecialAction(owner, true);
   if (special.action === SpecialAction.riflemanTrap && special.frame >= TRAP_SET_FRAMES) endSpecialAction(owner, false);
@@ -770,7 +606,6 @@ function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number,
   }
   if (special.action === SpecialAction.demonHunterWingAscent && special.frame >= special.duration) endSpecialAction(owner, true);
   if (special.action === SpecialAction.demonHunterImmolate && special.frame >= special.duration) endSpecialAction(owner, special.form === FLAME_CRASH_FORM);
-  if (special.action === SpecialAction.archerArrow && special.frame >= ARCHER_ARROW_FRAMES) endSpecialAction(owner, false);
 }
 
 const IMMOLATE_GROUND: Readonly<HitRegion> = {
@@ -937,7 +772,6 @@ export function advanceSpecials(world: Roster, stage: number, matchFrame: number
     if (!isActive(world, slot)) continue;
     advanceBear(world, slot, stage, matchFrame);
     advanceCompanion(world, slot, stage, matchFrame);
-    advanceHippogryph(world, slot);
   }
   if (ownsBatch) finishDamageContacts(world);
 }

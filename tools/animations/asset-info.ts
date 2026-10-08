@@ -10,7 +10,7 @@ interface ClipBinding {
 }
 
 export interface ModelAssetInfo {
-  /** Constant prefix, such as ARCHER. */
+  /** Constant prefix, such as RIFLEMAN. */
   readonly prefix: string;
   readonly modelPath: string;
   readonly clips: readonly ClipBinding[];

@@ -11,7 +11,7 @@ import { surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
 import { padMatch, playPads } from "./helperPads";
 import { testMatch } from "./testMatch";
 
-const ROSTER = [Character.archer, Character.rifleman, Character.demonHunter] as const;
+const ROSTER = [Character.rifleman, Character.demonHunter] as const;
 /** How far inside the ledge the grabber stands: within a grab's reach of the hanger. */
 const GRAB_DISTANCE = 70.0;
 

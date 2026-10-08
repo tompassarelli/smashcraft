@@ -1,6 +1,6 @@
 # #110 camera by parity: the match camera is confirmed state (the canonical checksum holds its
 # position, distance and subject boxes), so a native run equal to the headless one moves the
-# camera exactly as the headless run that `bun scripts/cameraFeel.ts` measures. Archer a and
+# camera exactly as the headless run that `bun scripts/cameraFeel.ts` measures. Rifleman a and
 # Rifleman b spread apart, jump, cross and close in; syntax: smashcraft:docs/native-bot-session.md.
 #! chat -dev quick
 # Spread apart: a dashes left, b right.

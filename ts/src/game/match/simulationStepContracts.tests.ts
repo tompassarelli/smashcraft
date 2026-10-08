@@ -20,7 +20,7 @@ function frameControls(first: Controls, second: Controls, firstCommands: ReturnT
 }
 function testMatch() {
   const game = createMatchState(); setParticipants(game, 1, 2); recallCharacter(game, 0, 1);
-  selectCharacter(game, 0, 0); selectCpuCharacter(game, 0, cpuSlot(game) ?? -1, 1);
+  selectCharacter(game, 0, 1); selectCpuCharacter(game, 0, cpuSlot(game) ?? -1, 1);
   requestStageSelect(game, 0); startAtGo(game, 0); return game;
 }
 function runToAttackActive(game: ReturnType<typeof createMatchState>, first: Fighter, second: Fighter, firstInput: Controls, secondInput: Controls, firstCommands: ReturnType<typeof attackBuffer>, secondCommands: ReturnType<typeof attackBuffer>, style: number, startFrame: number): void {
@@ -31,7 +31,7 @@ function runToAttackActive(game: ReturnType<typeof createMatchState>, first: Fig
 
 test("shieldGrabStartsDirectlyFromActiveGuardAndCanCatchShieldingTarget [spec docs/design/melee/defense.md]", () => {
   const game = testMatch();
-  const attacker = createFighter(0, 0, 1);
+  const attacker = createFighter(1, 0, 1);
   const target = createFighter(1, 90, -1);
   const attackerInput = neutralControls();
   const targetInput = neutralControls();
@@ -54,7 +54,7 @@ test("shieldGrabStartsDirectlyFromActiveGuardAndCanCatchShieldingTarget [spec do
 
 test("shieldstunKeepsTheFighterShieldingAndBlocksActions [reference]", () => {
   const game = testMatch();
-  const attacker = createFighter(0, 0, 1);
+  const attacker = createFighter(1, 0, 1);
   const target = createFighter(1, 100, -1);
   const attackerInput = neutralControls();
   const targetInput = neutralControls();
@@ -81,7 +81,7 @@ test("shieldstunKeepsTheFighterShieldingAndBlocksActions [reference]", () => {
 
 test("simultaneousEligibleAttacksTradeInEitherOrder [invariant]", () => {
   const gameA = testMatch();
-  const leftA = createFighter(0, 0, 1);
+  const leftA = createFighter(1, 0, 1);
   const rightA = createFighter(1, 100, -1);
   const leftInputA = neutralControls();
   const rightInputA = neutralControls();
@@ -100,7 +100,7 @@ test("simultaneousEligibleAttacksTradeInEitherOrder [invariant]", () => {
   assertEquals(leftA.status.damage, 2.7900002002716064);
   assertEquals(rightA.status.damage, 2.7900002002716064);
   const gameB = testMatch();
-  const leftB = createFighter(0, 0, 1);
+  const leftB = createFighter(1, 0, 1);
   const rightB = createFighter(1, 100, -1);
   const leftInputB = neutralControls();
   const rightInputB = neutralControls();
@@ -128,7 +128,7 @@ test("simultaneousEligibleAttacksTradeInEitherOrder [invariant]", () => {
 
 test("successfulGrabHasPriorityOverSimultaneousStrikeInEitherOrder [invariant]", () => {
   const gameA = testMatch();
-  const grabberA = createFighter(0, 0, 1);
+  const grabberA = createFighter(1, 0, 1);
   const strikerA = createFighter(1, 90, -1);
   const grabberInputA = neutralControls();
   const strikerInputA = neutralControls();
@@ -143,7 +143,7 @@ test("successfulGrabHasPriorityOverSimultaneousStrikeInEitherOrder [invariant]",
     stepMatch(gameA, testRoster(grabberA, strikerA), frameControls(grabberInputA, strikerInputA, grabberCommandsA, strikerCommandsA), frame);
   }
   const gameB = testMatch();
-  const grabberB = createFighter(0, 0, 1);
+  const grabberB = createFighter(1, 0, 1);
   const strikerB = createFighter(1, 90, -1);
   const grabberInputB = neutralControls();
   const strikerInputB = neutralControls();
@@ -174,7 +174,7 @@ test("successfulGrabHasPriorityOverSimultaneousStrikeInEitherOrder [invariant]",
 
 test("grabBreaksShieldButHasShortReachAndTimedRelease [spec docs/design/melee/defense.md]", () => {
   const game = testMatch();
-  const attacker = createFighter(0, 0, 1);
+  const attacker = createFighter(1, 0, 1);
   const target = createFighter(1, 90, -1);
   const attackerInput = neutralControls();
   const targetInput = neutralControls();
@@ -190,7 +190,7 @@ test("grabBreaksShieldButHasShortReachAndTimedRelease [spec docs/design/melee/de
   }
   assertEquals(target.grab.grabbedFrames, 0);
   const farTarget = createFighter(1, 150, -1);
-  const farAttacker = createFighter(0, 0, 1);
+  const farAttacker = createFighter(1, 0, 1);
   const farGame = testMatch();
   const farCommands = attackBuffer(0);
   const farTargetCommands = attackBuffer(0);
@@ -198,7 +198,7 @@ test("grabBreaksShieldButHasShortReachAndTimedRelease [spec docs/design/melee/de
   assertEquals(farTarget.grab.grabbedFrames, 0);
   const invincibleTarget = createFighter(1, 50, -1);
   invincibleTarget.status.invincible = 100;
-  const invincibleAttacker = createFighter(0, 0, 1);
+  const invincibleAttacker = createFighter(1, 0, 1);
   const invincibleGame = testMatch();
   const invincibleCommands = attackBuffer(0);
   const invincibleTargetCommands = attackBuffer(0);
@@ -206,7 +206,7 @@ test("grabBreaksShieldButHasShortReachAndTimedRelease [spec docs/design/melee/de
   assertEquals(invincibleTarget.grab.grabbedFrames, 0);
   const outTarget = createFighter(1, 50, -1);
   outTarget.status.out = true;
-  const outAttacker = createFighter(0, 0, 1);
+  const outAttacker = createFighter(1, 0, 1);
   const outGame = testMatch();
   const outCommands = attackBuffer(0);
   const outTargetCommands = attackBuffer(0);
@@ -216,7 +216,7 @@ test("grabBreaksShieldButHasShortReachAndTimedRelease [spec docs/design/melee/de
 });
 
 test("a grab's release, by mashing or after the pummel, leaves the grabber no head start [spec #101]", () => {
-  const characters = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
+  const characters = [Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
   for (const character of characters) {
     for (const release of ["mash", "pummel"] as const) {
       const game = testMatch();

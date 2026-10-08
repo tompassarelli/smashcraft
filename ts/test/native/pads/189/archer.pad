@@ -1,9 +1,0 @@
-# #189: recover from x=700, z=300 on Frozen Throne, jumps spent.
-#! chat -dev quick offstage hero Archer
-15 a stick -1 1
-15 a tap X 2
-45 a stick -1 0
-85 a stick 0 0
-180 a capture
-200 a press VIEW
-270 a release VIEW

@@ -31,7 +31,7 @@ for (const style of [AttackStyle.jab, AttackStyle.jab2, AttackStyle.forwardTilt,
       const owner = createFighter(Character.thrall, 0.0, facing);
   owner.mana.points = 100;
       owner.motion.grounded = !isAerialAttack(style);
-      const target = createFighter(Character.archer, f32((inRange ? strike.x2 : 1000.0) * facing), -facing);
+      const target = createFighter(Character.rifleman, f32((inRange ? strike.x2 : 1000.0) * facing), -facing);
       target.motion.z = f32(strike.z2 - 60.0);
       const world = testWorld(owner, target);
       if (style === AttackStyle.getupAttack) beginDownState(owner, DownState.attack, 0);
@@ -55,7 +55,7 @@ for (const action of [GrabAction.throwForward, GrabAction.throwBack, GrabAction.
     for (const facing of [-1, 1]) {
       const owner = createFighter(Character.thrall, 0.0, facing);
   owner.mana.points = 100;
-      const target = createFighter(Character.archer, f32(50.0 * facing), -facing);
+      const target = createFighter(Character.rifleman, f32(50.0 * facing), -facing);
       const world = testWorld(owner, target);
       beginFighterAttack(world, 0, AttackStyle.grab, false);
       owner.attack.frame = 7;
@@ -86,7 +86,7 @@ function frame(world: Roster, input: Readonly<Controls> = controls()): void {
 function pair(gap: number, facing = 1) {
   const owner = createFighter(Character.thrall, 0.0, facing);
   owner.mana.points = 100;
-  const target = createFighter(Character.archer, f32(gap * facing), -facing);
+  const target = createFighter(Character.rifleman, f32(gap * facing), -facing);
   const world = testWorld(owner, target);
   for (let i = 0; i < 3; i++) frame(world);
   return { owner, target, world };

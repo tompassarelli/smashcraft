@@ -1,5 +1,5 @@
 # #196: seed 0's first Speed item: ten-second warning, spawn, normal attack pickup, expiry.
-#! chat -dev quick hero archer
+#! chat -dev quick hero rifleman
 # A harmless early input anchors both helpers before the warning.
 50 b tap B 2
 1741 a capture

@@ -1,8 +1,10 @@
 # Kit review 2: Lich, Forsaken Paladin, Dreadlord and Shadow Hunter
 
+Historical record: the captures, trial tables and asset measurements below describe their named builds before the 9 October 2026 roster cut (#339). They are not the current roster or asset inventory.
+
 Owner direction (Tom, 6-7 Oct 2026): Archer's up and down specials and
 Illidan's neutral special were dull and were redesigned
-([archer-specials.md](archer-specials.md), #113; #116). "Maximum ambition,
+(retired specials design, #113; #116). "Maximum ambition,
 best Warcraft III map in existence." This review gives the four later
 expansion heroes the same treatment: score every special and the signature
 normals, then redesign the specials that create no decision.

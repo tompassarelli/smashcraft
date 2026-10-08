@@ -2,8 +2,7 @@
 // checksums, so each number is canonical and must equal the Wurst constant.
 
 /** Codes 3 and up are the roster expansion (smashcraft:docs/design/roster.md), defined in sim/heroes/registry.ts. */
-export const Character = {
-  archer: 0, rifleman: 1, demonHunter: 2,
+export const Character = { rifleman: 1, demonHunter: 2,
   blademaster: 3, mountainKing: 4, warden: 5, lich: 6, forsakenPaladin: 7, dreadlord: 8, shadowHunter: 9,
   pitLord: 10, beastmaster: 11, lichKing: 12, thrall: 13, jaina: 14, sylvanas: 15, cairne: 16, chen: 17, peon: 18, tinker: 19, kaelthas: 20, murloc: 21,
 } as const;
@@ -66,10 +65,6 @@ export type PlatformMove = (typeof PlatformMove)[keyof typeof PlatformMove];
  */
 export const SpecialAction = {
   none: 0,
-  archerArrow: 1,
-  archerHomingArrow: 2,
-  archerDisengage: 3,
-  archerRecovery: 4,
   riflemanBear: 5,
   riflemanRecovery: 6,
   riflemanBlaster: 7,
@@ -90,16 +85,10 @@ export type SpecialAction = (typeof SpecialAction)[keyof typeof SpecialAction];
 export const SPECIAL_ACTION_CAPACITY = 17;
 
 /** A hero projectile carries its authored record in Projectile.spec. */
-export const ProjectileKind = { blaster: 0, arrow: 1, homingArrow: 2, recoil: 3, manaBurn: 4, hero: 5 } as const;
+export const ProjectileKind = { blaster: 0, recoil: 3, manaBurn: 4, hero: 5 } as const;
 export type ProjectileKind = (typeof ProjectileKind)[keyof typeof ProjectileKind];
 
-/**
- * Archer's one hippogryph: a swoop strikes each fighter once and ends on a
- * perch; a mount carries its archer and ends with the ride; a dive leaves the
- * perch at its archer; a released hippogryph flies on after a leap-off.
- */
-export const HippogryphKind = { none: 0, strike: 1, mount: 2, perch: 3, dive: 4, released: 5 } as const;
-export type HippogryphKind = (typeof HippogryphKind)[keyof typeof HippogryphKind];
+
 
 /** How an airborne hitstun landing resolves (NTSC 1.02 common +0x1E4/+0x1E0). */
 export const DamageLanding = { retainStun: 1, normal: 2, knockdown: 3 } as const;

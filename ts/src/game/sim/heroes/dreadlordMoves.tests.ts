@@ -26,7 +26,7 @@ const NORMAL_TIMINGS = [
 ] as const;
 
 function attackPair(style: AttackStyle, frame: number, x: number, z = 0.0, facing = 1, groundedTarget = true) {
-  const owner = createFighter(Character.archer, 0.0, facing);
+  const owner = createFighter(Character.rifleman, 0.0, facing);
   owner.tuning.moves = DREADLORD_MOVES;
   owner.motion.grounded = !isAerialAttack(style);
   const target = createFighter(Character.rifleman, f32(x * facing), -facing);
@@ -63,7 +63,7 @@ test("Dreadlord paths are narrow capsules active only on adopted contact frames 
     for (let frame = 0; frame < first + active + recovery; frame++) {
       let live = 0;
       for (let index = 0; index < count; index++) {
-        authoredHitRegion(out, Character.archer, style, frame, 0, index, DREADLORD_MOVES);
+        authoredHitRegion(out, Character.rifleman, style, frame, 0, index, DREADLORD_MOVES);
         if (out.window > 0) {
           live++;
           assertTrue(out.window === 1 || (isMultiHit(DREADLORD_MOVES.normals[style]) && out.window > 1));
@@ -125,9 +125,9 @@ test("Dreadlord angled claws retain separate paths and horn lift leaves a latera
   const straight = emptyHitRegion();
   const up = emptyHitRegion();
   const down = emptyHitRegion();
-  authoredHitRegion(straight, Character.archer, AttackStyle.forwardTilt, 8, 0, 1, DREADLORD_MOVES);
-  authoredHitRegion(up, Character.archer, AttackStyle.forwardTiltUp, 8, 0, 1, DREADLORD_MOVES);
-  authoredHitRegion(down, Character.archer, AttackStyle.forwardTiltDown, 8, 0, 1, DREADLORD_MOVES);
+  authoredHitRegion(straight, Character.rifleman, AttackStyle.forwardTilt, 8, 0, 1, DREADLORD_MOVES);
+  authoredHitRegion(up, Character.rifleman, AttackStyle.forwardTiltUp, 8, 0, 1, DREADLORD_MOVES);
+  authoredHitRegion(down, Character.rifleman, AttackStyle.forwardTiltDown, 8, 0, 1, DREADLORD_MOVES);
   assertGreaterThan(up.maxZ, straight.maxZ);
   assertLessThan(down.minZ, straight.minZ);
   assertGreaterThan(up.effect.launchZ, straight.effect.launchZ);
@@ -142,7 +142,7 @@ test("Dreadlord angled claws retain separate paths and horn lift leaves a latera
 
 test("Dreadlord shield grab and dash grab use scaled reach and whiff timing [spec docs/design/roster.md]", () => {
   const out = emptyHitRegion();
-  authoredHitRegion(out, Character.archer, AttackStyle.grab, 6, 0, 0, DREADLORD_MOVES);
+  authoredHitRegion(out, Character.rifleman, AttackStyle.grab, 6, 0, 0, DREADLORD_MOVES);
   assertNear(out.maxX, 96.0, f32(0.0001));
   for (const facing of [1, -1]) {
     const standing = attackPair(AttackStyle.grab, 6, 85.0, 0.0, facing);
@@ -150,7 +150,7 @@ test("Dreadlord shield grab and dash grab use scaled reach and whiff timing [spe
     resolveAttacks(standing.world);
     assertEquals(standing.owner.grab.target, 1);
     assertEquals(standing.target.status.damage, 0.0);
-    const owner = createFighter(Character.archer, 0.0, facing);
+    const owner = createFighter(Character.rifleman, 0.0, facing);
     owner.tuning.moves = DREADLORD_MOVES;
     owner.ground.dashFrame = 1;
     const target = createFighter(Character.rifleman, f32(85.0 * facing), -facing);
@@ -206,7 +206,7 @@ test("Dreadlord throws hold until the adopted release and launch once in both fa
 /** Damage a Rifleman jab tip deals to a Dreadlord body posed at `style`/`frame`, with its limb pointing toward the jab. */
 function jabIntoDreadlord(style: AttackStyle | undefined, frame: number, gap: number, behind = false): number {
   const attacker = createFighter(Character.rifleman, 0.0, 1);
-  const target = createFighter(Character.archer, gap, behind ? 1 : -1);
+  const target = createFighter(Character.rifleman, gap, behind ? 1 : -1);
   target.tuning.moves = DREADLORD_MOVES;
   const world = testWorld(attacker, target);
   beginFighterAttack(world, 0, AttackStyle.jab, false);

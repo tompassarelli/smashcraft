@@ -56,10 +56,9 @@ const clips = [
     ["LEDGE_CLIMB", "Ledge Climb"],
     ["SPELL", "Spell"],
 ] as const;
-// Clips a fighter's model does not have: Archer has no stock cast; Rifleman summons with his.
-const absent: Record<string, readonly string[]> = { Archer: ["SPELL"], Rifleman: ["SPECIAL_SIDE"] };
+const absent: Record<string, readonly string[]> = { Rifleman: ["SPECIAL_SIDE"] };
 const typescriptModels: ModelAssetInfo[] = [];
-for (const fighter of ["Archer", "Rifleman"]) {
+for (const fighter of ["Rifleman"]) {
     const prefix = fighter.toUpperCase();
     const model = parseMDL(await Bun.file(join(assetDirectory, `${fighter.toLowerCase()}-fighter.mdl`)).text());
     const metadata = clips.filter(([key]) => !absent[fighter]?.includes(key)).map(([key, name]) => {
@@ -77,7 +76,6 @@ for (const fighter of ["Archer", "Rifleman"]) {
     const modelPath = `war3mapImported\\${fighter}Fighter-${modelHash}.mdx`;
     if (!metadataOnly) await Bun.write(join(assetDirectory, `${fighter}Fighter.mdx`), modelBytes);
     typescriptModels.push({ prefix, modelPath, clips: metadata
-        .filter(([key]) => fighter !== "Archer" || key !== "SPECIAL_NEUTRAL_AIR")
         .map(([key, index, seconds]) => ({ key, index, seconds })) });
     console.log(`${fighter} model packaged:`, metadata.map(([key, index, seconds]) => `${key} ${index} ${seconds}s`).join("; "));
     console.log("Texture references:", model.Textures.map(texture => texture.Image));

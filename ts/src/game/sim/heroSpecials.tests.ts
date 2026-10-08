@@ -67,7 +67,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
 
 function pair(gap = 300.0): { world: Roster; owner: Fighter; target: Fighter } {
   const owner = hero(-gap * 0.5, 1);
-  const target = createFighter(Character.archer, gap * 0.5, -1);
+  const target = createFighter(Character.rifleman, gap * 0.5, -1);
   const world = createRoster(3, [owner, target]);
   for (let i = 0; i < 3; i++) frame(world);
   return { world, owner, target };
@@ -184,7 +184,7 @@ test("intangible and armor windows protect exactly their frames [spec docs/desig
 test("replaying a hero special from a restored snapshot reproduces every fighter field [invariant]", () => {
   const { world, owner, target } = pair(200.0);
   const savedOwner = createFighter(Character.blademaster, 0.0, 1);
-  const savedTarget = createFighter(Character.archer, 0.0, 1);
+  const savedTarget = createFighter(Character.rifleman, 0.0, 1);
   frame(world, neutral);
   frame(world);
   copyFighterState(savedOwner, owner, 3);
@@ -195,7 +195,7 @@ test("replaying a hero special from a restored snapshot reproduces every fighter
   };
   run();
   const endOwner = createFighter(Character.blademaster, 0.0, 1);
-  const endTarget = createFighter(Character.archer, 0.0, 1);
+  const endTarget = createFighter(Character.rifleman, 0.0, 1);
   copyFighterState(endOwner, owner, 3);
   copyFighterState(endTarget, target, 3);
   assertGreaterThan(target.status.damage, 0.0);
@@ -212,7 +212,7 @@ test("a stopsAtBody dash special ends short of an exposed body and a raised shie
     for (const [stops, shielded] of [[true, false], [true, true], [false, false]] as const) {
       const owner = hero(0.0, facing);
       owner.tuning = { ...owner.tuning, specials: { ...KIT, side: { ...KIT.side, ground: dash(stops) } } };
-      const target = createFighter(Character.archer, f32(200.0 * facing), -facing);
+      const target = createFighter(Character.rifleman, f32(200.0 * facing), -facing);
       const world = createRoster(3, [owner, target]);
       for (let i = 0; i < 3; i++) frame(world);
       const press = controls({ specialPressed: true, specialX: facing });
@@ -264,7 +264,7 @@ test("a broad hero projectile meets a raised shield before the body behind it [s
 
 test("hero projectiles end on walls, undersides and solid deck tops, and pass through pass decks [spec docs/design/roster.md]", () => {
   const owner = hero(-100.0, 1);
-  const target = createFighter(Character.archer, 2000.0, -1);
+  const target = createFighter(Character.rifleman, 2000.0, -1);
   const world = createRoster(3, [owner, target]);
   const launch = (x: number, z: number, velocityX: number, velocityZ: number) => {
     const projectile = mutableProjectile(owner, 0)!;
@@ -302,7 +302,7 @@ test("a second press inside a follow-up window starts the follow-up once without
   const run = (pressAt: number) => {
     const owner = hero(0.0, 1);
     owner.tuning = { ...owner.tuning, specials: { ...KIT, down: { ...KIT.down, ground: feint } } };
-    const target = createFighter(Character.archer, 100.0, -1);
+    const target = createFighter(Character.rifleman, 100.0, -1);
     const world = createRoster(3, [owner, target]);
     for (let i = 0; i < 3; i++) frame(world);
     frame(world, down);

@@ -14,7 +14,7 @@ test("authored dash attacks travel during startup and stop before a raised shiel
       const move = moves.normals[AttackStyle.dashAttack];
       assertTrue(move !== undefined && move.startupTravelX !== undefined);
       if (move === undefined || move.startupTravelX === undefined) continue;
-      const owner = createFighter(Character.archer, 0.0, facing);
+      const owner = createFighter(Character.rifleman, 0.0, facing);
       owner.tuning.moves = moves;
       owner.motion.vx = 10.0;
       const target = createFighter(Character.rifleman, 1000.0, -facing);
@@ -43,7 +43,7 @@ test("authored dash attacks travel during startup and stop before a raised shiel
 
 test("Warden Pursuit Cut stops at an exposed opponent without passing through [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
-    const owner = createFighter(Character.archer, 0.0, facing);
+    const owner = createFighter(Character.rifleman, 0.0, facing);
     owner.tuning.moves = WARDEN_MOVES;
     const target = createFighter(Character.rifleman, 90.0 * facing, -facing);
     const world = testWorld(owner, target);

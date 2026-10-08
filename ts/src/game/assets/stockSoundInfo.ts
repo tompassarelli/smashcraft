@@ -25,8 +25,6 @@ export const VERIFIED_STOCK_SOUNDS: Readonly<Record<string, string>> = {
   "Sound\\Music\\mp3Music\\ArthasTheme.flac": "war3.w3mod:sound\\music\\mp3music\\arthastheme.mp3",
   "Sound\\Music\\mp3Music\\NagaTheme.flac": "war3.w3mod:sound\\music\\mp3music\\nagatheme.mp3",
   "Sound\\Music\\mp3Music\\Human1.flac": "war3.w3mod:sound\\music\\mp3music\\human1.mp3",
-  "Units\\NightElf\\Archer\\ArcherReady1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\nightelf\\archer\\archerready1.ogg",
-  "Units\\NightElf\\Archer\\ArcherWarcry1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\nightelf\\archer\\archerwarcry1.ogg",
   "Units\\Human\\Rifleman\\RiflemanReady1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\human\\rifleman\\riflemanready1.ogg",
   "Units\\Human\\Rifleman\\RiflemanWarcry1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\human\\rifleman\\riflemanwarcry1.ogg",
   "Units\\NightElf\\HeroDemonHunter\\HeroDemonHunterReady1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\nightelf\\herodemonhunter\\herodemonhunterready1.ogg",

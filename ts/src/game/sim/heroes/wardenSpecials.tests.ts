@@ -41,7 +41,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
 function pair(ownerX: number, targetX: number, facing = 1): { world: Roster; warden: Fighter; target: Fighter } {
   const warden = createFighter(Character.warden, ownerX, facing);
   warden.mana.points = 100;
-  const target = createFighter(Character.archer, targetX, -facing);
+  const target = createFighter(Character.rifleman, targetX, -facing);
   const world = createRoster(3, [warden, target]);
   for (let i = 0; i < 3; i++) frame(world);
   return { world, warden, target };

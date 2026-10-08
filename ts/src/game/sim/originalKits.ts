@@ -4,7 +4,7 @@
 import { AttackStyle, SpecialAction } from "./codes";
 import type { NamedMove } from "./heroes/hero";
 import {
-  ARCHER_DIVE_FORM, CHAOS_STRIKE_AIR_FORM, CHAOS_STRIKE_FORM, DEMONHUNTER_GLIDE_FORM, DEMONHUNTER_GLIDE_SLASH_FORM, RIFLEMAN_SECOND_SHOT_FORM,
+  CHAOS_STRIKE_AIR_FORM, CHAOS_STRIKE_FORM, DEMONHUNTER_GLIDE_FORM, DEMONHUNTER_GLIDE_SLASH_FORM, RIFLEMAN_SECOND_SHOT_FORM,
   FLAME_CRASH_FORM, VENGEFUL_RETREAT_FORM,
 } from "./specials";
 
@@ -25,21 +25,9 @@ export interface OriginalKit {
   readonly inspiredBy?: { readonly [style: number]: string | undefined } | undefined;
 }
 
-/** By Character code: Archer, Rifleman, Illidan. */
-export const ORIGINAL_KITS: readonly OriginalKit[] = [
-  {
-    specials: [
-      { action: SpecialAction.archerArrow, name: "Swift Arrow", description: "Draw and loose an arrow; recover before firing again." },
-      { action: SpecialAction.archerHomingArrow, name: "Seeking Arrow", description: "An arrow that curves toward the nearest opponent." },
-      { action: SpecialAction.archerRecovery, name: "Hippogryph Ride", description: "Ride a hippogryph and steer it; jump off to act again." },
-      {
-        action: SpecialAction.archerDisengage, name: "Hippogryph Call", description: "Send the hippogryph swooping to a perch; press again and it dives at her through anyone in the way.",
-        forms: [{ form: ARCHER_DIVE_FORM, name: "Hippogryph Dive" }],
-      },
-    ],
-    jab: { name: "Fist and Boot", description: "A quick fist punch, then a low kick on a second jab." },
-  },
-  {
+/** By Character code: reference, Rifleman, Illidan. */
+export const ORIGINAL_KITS: Readonly<Record<number, OriginalKit>> = {
+  1: {
     specials: [
       { action: SpecialAction.riflemanBlaster, name: "Blaster", description: "A fast shot that makes its target flinch." },
       { action: SpecialAction.riflemanBear, name: "Summon Bear", description: "Call a bear that fights beside him until it is beaten." },
@@ -51,7 +39,7 @@ export const ORIGINAL_KITS: readonly OriginalKit[] = [
     ],
     jab: { name: "Rifle Butt", description: "A push of the barrel, then the stock driven in on a second jab." },
   },
-  {
+  2: {
     specials: [
       { action: SpecialAction.demonHunterManaBurn, name: "Mana Burn", description: "A slow orb that burns mana and stuns; the emptier it leaves the target, the longer the stun." },
       {
@@ -76,4 +64,4 @@ export const ORIGINAL_KITS: readonly OriginalKit[] = [
     },
     ultimate: { name: "Metamorphosis", description: "He becomes a demon for a while: heavier, with a fast bolt and a draining aura." },
   },
-];
+};

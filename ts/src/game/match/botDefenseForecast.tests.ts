@@ -8,13 +8,13 @@ import { chooseDefense } from "./botDefense";
 import { cpuSkill } from "./cpuSkill";
 
 test("a delayed visible shot is defended at its predicted position without seeing a newer sample [invariant]", () => {
-  const own = createFighter(Character.archer, 0.0, 1);
+  const own = createFighter(Character.rifleman, 0.0, 1);
   const target = createFighter(Character.rifleman, 700.0, -1);
   own.motion.grounded = true;
   target.motion.grounded = true;
   const projectile = mutableProjectile(target, 0);
   projectile.life = 60;
-  projectile.serial = 6;
+  projectile.serial = 8;
   projectile.direction = -1;
   projectile.velocityX = -36.0;
   projectile.velocityZ = 0.0;

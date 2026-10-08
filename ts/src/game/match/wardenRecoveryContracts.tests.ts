@@ -20,7 +20,7 @@ test("the computer's Warden blinks back to the stage from every spot in reach [s
     for (const [out, z, jumps] of spots) {
       const x = f32(out * side);
       const warden = createFighter(Character.warden, x, -side);
-      const opponent = createFighter(Character.archer, f32(-300.0 * side), side);
+      const opponent = createFighter(Character.rifleman, f32(-300.0 * side), side);
       warden.motion.z = z;
       setWorldMotionValue(warden.motion.meleeZ, z);
       warden.motion.grounded = false;

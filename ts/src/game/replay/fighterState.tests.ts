@@ -55,7 +55,7 @@ function changed(value: unknown, seed: number): unknown {
 }
 
 test("fighter replay copies preserve every field and detach mutable records [invariant]", () => {
-  const source = createFighter(Character.archer, -12.0, 1);
+  const source = createFighter(Character.rifleman, -12.0, 1);
   const target = createFighter(Character.rifleman, 4.0, -1);
   const { leaves } = fighterLeaves(target, source);
   leaves.forEach((leaf, index) => leaf.setRight(changed(leaf.right(), index + 1)));
@@ -70,8 +70,8 @@ test("fighter replay copies preserve every field and detach mutable records [inv
 
 test("fighter replay copies carry every special hit target, absent ones included, into a fresh fighter [repro #59]", () => {
   // The walk above sees absent targets only in Bun: in Lua a table of nils has no keys.
-  const source = createFighter(Character.archer, 0.0, 1);
-  const target = createFighter(Character.archer, 0.0, 1);
+  const source = createFighter(Character.rifleman, 0.0, 1);
+  const target = createFighter(Character.rifleman, 0.0, 1);
   source.special.hitTargets[0] = 2;
   source.special.hitTargets[2] = 3;
   copyFighterState(target, source, 15);
@@ -83,8 +83,8 @@ test("fighter replay copies carry every special hit target, absent ones included
 });
 
 test("every mutable fighter field participates in replay equality [invariant]", () => {
-  const expected = createFighter(Character.archer, 0.0, 1);
-  const actual = createFighter(Character.archer, 0.0, 1);
+  const expected = createFighter(Character.rifleman, 0.0, 1);
+  const actual = createFighter(Character.rifleman, 0.0, 1);
   const { leaves } = fighterLeaves(expected, actual);
   assertEquals(firstFighterDifference(expected, actual, 15, 15), undefined);
   for (const leaf of leaves) {

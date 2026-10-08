@@ -1,20 +1,23 @@
-# Smashcraft Hero Expansion Specification
+# Smashcraft roster
+
+Tom’s roster decision (9 October 2026, #339): 21 fighters remain. Every fighter needs a strong, pointed personality: funny, annoying, menacing, heroic, or something equally specific. Never flat or generic. The roster holds at 26 fighters, Melee’s size, until every fighter feels good. The only planned additions are [Grom Hellscream (#340)](https://github.com/tompassarelli/smashcraft/issues/340), [Anub’arak (#341)](https://github.com/tompassarelli/smashcraft/issues/341), [Malfurion (#342)](https://github.com/tompassarelli/smashcraft/issues/342), [Medivh (#343)](https://github.com/tompassarelli/smashcraft/issues/343), and [Kobold (#344)](https://github.com/tompassarelli/smashcraft/issues/344). No further additions are planned.
+
+Smashcraft supports Classic and Definitive graphics. Each player chooses their look; moves, timing, hitboxes, hurtboxes and match results are identical across both. Reforged is dropped from the plans.
 
 Adopted by the owner on 6 October 2026 from the 2 October expansion brief.
 The requested roster is Blademaster, Mountain King, Warden, Lich, Forsaken Paladin,
-Dreadlord and Shadow Hunter, in that order. The eight Tavern kits remain
-optional candidates. Their tuning tables are starting values, not shipped
+Dreadlord and Shadow Hunter, in that order. The Tavern kits below record the earlier expansion brief. Their tuning tables are starting values, not shipped
 balance measurements. Existing fighters and newer gameplay decisions remain
 authoritative; in particular, the throw-hitstun regrab rule adopted in #85
 replaces this brief's earlier fixed protection timer.
 
 This is a proposed expansion roster and implementation brief for Tom Passarelli’s Smashcraft, a Warcraft III platform fighter. It defines complete initial movesets for the seven requested heroes and all eight Tavern candidates, with a recommended build order. The goal is distinct, readable fighters with measurable counterplay and moves that can be replayed correctly by the custom simulation.
 
-All move designs and numbers below are proposals, not existing implementation facts, copied Melee frame data, or a claim of proven balance. Preserve the existing Rifleman, Archer, and any implemented Illidan. The current source tree was not inspected for this document; the implementation agent must map this specification onto the real project rather than assume module or animation names.
+All move designs and numbers below are proposals, not existing implementation facts, copied Melee frame data, or a claim of proven balance. Preserve the existing Rifleman and Illidan. The current source tree was not inspected for this document; the implementation agent must map this specification onto the real project rather than assume module or animation names.
 
 ## Scope and priorities
 
-“Shadow shaman” is interpreted as Warcraft III’s Shadow Hunter, with Rokhan as the character reference. If Tom intended a different character, preserve this design under Shadow Hunter rather than silently rename another hero. Forsaken Paladin uses the Paladin identity. The eight Tavern kits are recommended candidates, not a commitment to ship all of them at once.
+“Shadow shaman” is interpreted as Warcraft III’s Shadow Hunter, with Rokhan as the character reference. If Tom intended a different character, preserve this design under Shadow Hunter rather than silently rename another hero. Forsaken Paladin uses the Paladin identity. The eight Tavern kits are historical candidates from the expansion brief; the five additions named above are the current plan.
 
 | Order | Hero | Distinct purpose | Main weakness |
 | --- | --- | --- | --- |
@@ -31,7 +34,7 @@ All move designs and numbers below are proposals, not existing implementation fa
 | 11 | Goblin Alchemist | Ogre brawler with potion preparation | Slow body and buffs that require commitment |
 | 12 | Naga Sea Witch | Ground control and arcing projectiles | Slow air movement and exposed recovery |
 | 13 | Beastmaster | Three-animal pack coordination | Shared resources and punishable pet commands |
-| 14 | Dark Ranger | Marked targets and a single skeletal helper | Requires setup and cannot replace Archer’s neutral game |
+| 14 | Dark Ranger | Marked targets and a single skeletal helper | Requires setup and must approach to cash in marks |
 | 15 | Firelord | Fire zones and one short-lived summon | Zones have startup and can be escaped vertically |
 
 Murloc ([#262](https://github.com/tompassarelli/smashcraft/issues/262)),
@@ -176,7 +179,6 @@ its capsule's top.
 
 | Fighter | Stock unit | Stock model scale | Draw scale | Before #162 |
 | --- | --- | ---: | ---: | ---: |
-| Archer | earc | 1.00 | 1.00 | 1.00 |
 | Rifleman | hrif | 1.00 | 1.00 | 1.40 |
 | Illidan | Edem | 1.00 | 1.00 | 0.80 |
 | Blademaster | Obla | 1.00 | 1.00 | 1.00 |
@@ -681,7 +683,7 @@ specials: neutral 1-10, side 2-12, up 0-8, down 1-10
 
 ## Shadow Hunter
 
-**Identity:** Rokhan-inspired trap and angle specialist with a glaive, a destructible serpent ward, and brief hex pressure. His zoning is built from placed objects rather than another Archer moveset. He retains functional normals when his setup is gone.
+**Identity:** Rokhan-inspired trap and angle specialist with a glaive, a destructible serpent ward, and brief hex pressure. His zoning is built from placed threats and traps. He retains functional normals when his setup is gone.
 
 ### Normals
 
@@ -922,7 +924,7 @@ Standing grab 9/3/29, reach 0.70H. Pummel: ogre squeeze, standard 3 damage.
 
 ## Naga Sea Witch
 
-**Identity:** a serpentine midrange caster using her bow, tail, and water. Distinct from Archer through grounded space control and a vulnerable water recovery, not simply stronger arrows. Her tail remains a hittable body part when extended.
+**Identity:** a serpentine midrange caster using her bow, tail, and water. Grounded space control and a vulnerable water recovery define her game. Her tail remains a hittable body part when extended.
 
 ### Normals
 
@@ -1019,7 +1021,7 @@ same four inputs and animal commands as the player.
 
 ## Dark Ranger
 
-**Identity:** a deliberate archer-necromancer built around one marked target and one fragile skeleton. Preserve Archer’s faster direct arrow identity: Dark Ranger gets slower shots, curse pressure, and setup. No permanent possession of another fighter.
+**Identity:** a deliberate bow-wielding necromancer built around one marked target and one fragile skeleton. Dark Ranger gets slower shots, curse pressure, and setup. No permanent possession of another fighter.
 
 ### Normals
 
@@ -1063,7 +1065,7 @@ Standing grab 7/2/23, reach 0.50H. Pummel: dagger hilt, never lifesteal.
 
 **Ultimate — Banshee’s Wail:** replaces literal Charm. f36 visible ground startup, a 70-degree frontal cone reaching 1.5H, active 4 frames, 18 damage, KILL at 45 degrees, R42. Shieldable, no control reversal, mind control, full-screen silence, or unavoidable hit. Spectral faces make the startup easy to read.
 
-**Required counterplay test:** her basic arrow must not dominate Archer on startup, rate, and angle coverage simultaneously. Skeleton destruction meaningfully removes pressure; silence cannot take away recovery or create a permanent status loop.
+**Required counterplay test:** her basic arrow must leave time to approach between shots. Skeleton destruction meaningfully removes pressure; silence cannot take away recovery or create a permanent status loop.
 
 ## Firelord
 
@@ -1206,68 +1208,17 @@ specials: neutral 2-12, side 2-12, up 0-8, down 2-12
 
 ## Original fighters
 
-Archer and Rifleman were built before this specification. Their kits live in
+Rifleman and Illidan were built before this specification. Their kits live in
 the shared move tables (smashcraft:ts/src/game/sim/hitRegions.ts,
 smashcraft:ts/src/game/sim/specials.ts, smashcraft:ts/src/game/sim/summons.ts)
 and their gameplans (#105) in smashcraft:ts/src/game/sim/originalGameplans.ts.
 Their normals still share one set of frame data and hitboxes (Rifleman's down
 tilt is the exception), so physics and specials carry their identities.
 
-### Archer
-
-**Identity:** a hit-and-run archer: the fastest run (13.20) and jump start
-(3 frames) on the lightest body (weight 62; the roster table's 1.00 is 75). Arrows and the homing arrow add damage
-from range without hitstun or interruption. Her spaced fade-back forward air
-is safe on shield. One hippogryph serves both remaining specials
-([Archer's hippogryph specials](archer-specials.md)): her down special calls
-it swooping through the gap to a perch (with a side, she hops back from it,
-the old Disengage), and her next down special dives it from the perch at
-her, through anyone between; her up special is a steerable ride with a high
-or low line, ending helpless or leaping off to act, which leaves the
-hippogryph flying on as a strike. **Weakness:** her weight loses stocks
-early, her arrows can't stop an approach, and hitting her scares the
-hippogryph off its perch.
-
-**Gameplan:** keeps 180–460 units away. Her spacing tools are forward air at
-110–240, the arrow at 200–700 and the homing arrow at 380–520. Her speed is her
-edge: she runs in with grab, down tilt or up tilt or jumps in with forward or
-neutral air (weight 2 each) more than she shoots Swift Arrow (weight 1).
-The homing arrow remains available inside its reach, but gets a spacing
-preference only at long range. She answers threats by
-retreating or jumping, and sometimes by shield or spot dodge. Up tilt leads
-into up air or up smash, down tilt into forward air or up tilt, and up throw
-into up air. She kills with forward smash from 90%, up smash from 100% and back
-air from 110%. She returns to the ledge or the deck and keeps the hippogryph
-ride until her jump is gone. She avoids the edge. The perch and dive are her
-stage control: a dive line through the gap she keeps, or through a recovery
-path while she holds the ledge.
-
-**Balance** (#247, her 20-pair computer field, Wren Expert, 400/pair): homing arrow 3 → 5 damage and dash attack 6 → 8: field win rate 36% (5adb030c) → 47% (02f650a3, run 37741282489; 3804/8160); side special is 23% of her moves, above the zoner profile's 3-15%.
-
-**Side-special play style** (#273): keeping the computer's homing-arrow
-choices in its long-range spacing band reduced side-special starts from
-21.95% (2,769/12,617) to 6.98% (818/11,725) over 120 identical Wren Expert
-matches against Forsaken Paladin (febfa549 → 8b1fcc8e;
-[focused evidence](../../evidence/archer-playstyle-273-20261008/result.md)).
-
-#### Play-style profile
-
-Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). Distance is her identity: arrows and back air keep the gap.
-
-```balance-profile
-fighter: archer
-archetype: zoner
-aerials: nair 10-35, fair 10-35, bair 20-50, uair 5-30, dair 0-25
-air-share: 15-45
-approach: 25-55
-ranged: 25-65
-specials: neutral 8-30, side 3-15, up 0-8, down 2-12
-```
-
 ### Rifleman
 
 **Identity:** a gunner who holds ground. He is slow on the ground (run 9.00)
-and late off it (5-frame jump squat), but floaty, heavier than Archer (80) and
+and late off it (5-frame jump squat), but floaty, weight 80 and
 harder-hitting: his down tilt deals 10. The blaster shoots with hitstun from
 range, but a grounded shot leaves on frame 9 and holds him until frame 39, and a short-hop shot (#117) costs a landing,
 so his wall costs a commitment his slow body can't cover. The bear walks ahead as cover. The freezing trap guards the gap in
@@ -1362,192 +1313,6 @@ Source: smashcraft:ts/src/game/sim/specials.ts and projectiles.ts (stun
 `MANA_BURN_STUN`), and the contract tests in
 smashcraft:ts/src/game/sim/demonHunterContracts.tests.ts.
 
-### Balance record
-
-Measured with `bun scripts/cpuField.ts` (both fighters computers, every
-ordered pair with a different fighter, every soak stage, 3 stocks, 4-minute
-clock, one spawn variant: 180 matches for each of Archer and Rifleman). The
-win rate counts decisive matches against the field. A no-hit loss is a stock
-lost with no hit taken in the previous 3 s.
-
-| Change (build) | Archer win rate / no-hit losses | Rifleman win rate / no-hit losses |
-| --- | --- | --- |
-| Before gameplans (9e57c43a) | 82% / 21% | 88% / 31% |
-| Gameplans declared | 54% / 26% | 82% / 27% |
-
-From #105's balance pass the field is every pair of the ten fighters, both
-computers, every soak stage, 3 stocks: before at 100 matches a pair, tuning
-steps at 20 a pair (spawn variant 0). A self-destruct is a stock lost with no
-hit taken since the fighter last stood on a deck or held the ledge.
-
-| Change (build) | Archer | Rifleman | Illidan |
-| --- | --- | --- | --- |
-| Before the pass (b2ed6109, 100/pair) | 27%, self-destructs 1% | 85%, 0% | 82%, 1% |
-| Archer runs in on his speed; blaster 32/20 frames (was 24/15); Illidan's glaives deal less (forward/back air 8→6, forward smash 15→12, growth 100→85, smash base 28→20); Storm Bolt 7→5 | 51%, 1% | 74%, 0% | 58%, 0% |
-
-After the kit redesigns, mana, expressive hero actions, the field is twelve
-fighters (66 pairs) at computer level 9, 100 matches a pair (spawn variant
-0, seeds 0-4, every soak stage, both orders). Each change works a fighter's
-own strength or weakness lever. Cells are the win rate against the field,
-then self-destructs as a share of stocks lost. Matrices:
-smashcraft:evidence/balance-105-20261007/.
-
-| Fighter | Lever (identity) | Before (d5994278) | After |
-| --- | --- | --- | --- |
-| Archer | none yet | 79%, 1% | 85%, 1% |
-| Rifleman | bear as cover: swipe 6→10 every 14 frames (was 18), lifetime 100→150 | 17%, 3% | 56%, 6% |
-| Illidan | none | 42%, 5% | 46%, 5% |
-| Blademaster | Backstab punishable on shield: 12→10 damage, end f28→f38 | 66%, 4% | 52%, 4% |
-| Mountain King | close reads over the thrown hammer: Storm Bolt end f48→f58 | 65%, 3% | 50%, 3% |
-| Warden | none | 56%, 13% | 52%, 11% |
-| Lich | projectile placement: Frost Nova 6→8 damage, end f40→f32 (f37 after pass 2: f32 left it safe on shield point blank, #98 rule 2); launch growth +10 (LAUNCH 105, EDGE 110, KILL 120) | 33%, 2% | 48%, 2% |
-| Forsaken Paladin | holds space rather than zoning: Holy Light end f44→f66, outbound 7→5 | 78%, 3% | 55%, 3% |
-| Dreadlord | grabs and air pressure: throws +2 (10/12/9/8), forward air 12→14, back air 13→15, launch growth +10, KILL base 26→28 | 20%, 2% | 27%, 2% |
-| Shadow Hunter | none yet | 39%, 2% | 26%, 2% |
-| Pit Lord | caught inside a whiffed cleave: Cleaving Sweep 14→12 damage, recovery 29→35 | 80%, 5% | 71%, 4% |
-| Beastmaster | bear coordination: lunge startup 16→12, bite 8→11, bear durability 22→30; launch growth +10 | 23%, 5% | 32%, 6% |
-
-Matchups: 5 of 66 inside 45-55% before, 10 after; 95% intervals
-overlapping the band 13 → 19; median distance from 50% 33.5 → 22 points.
-
-Pass 2, same field (after pass 1 → after pass 2):
-
-| Fighter | Lever (identity) | After pass 1 | After pass 2 |
-| --- | --- | --- | --- |
-| Shadow Hunter | totem placement: Serpent Ward fires 5 shots of 6 (ages 45-205, was 3 of 4), shot life 24→36, ward durability 12→20; launch growth +10 | 26%, 2% | 40%, 2% |
-| Beastmaster | bear coordination: lunge travel 0.9H→1.2H, bite 11→14; Throwing Axe 7→9, end f44→f39 (f36 measured; f39 keeps it punishable on shield point blank, #98 rule 2) | 32%, 6% | 48%, 6% |
-| Dreadlord | air movement and close pressure: air speed 1.12→1.22, weight 1.04→1.14, Batwing Turn 3+3+7 (was 2+2+5), Sleep 70→100 frames, Vampiric Pounce 9→13 | 27%, 2% | 39%, 3% |
-| Pit Lord | his KILL and EDGE classes lose some growth (KILL 110→100, base 26→24; EDGE 100→95) | 71%, 4% | 65%, 4% |
-| Archer | arrows can't stop an approach: homing arrow 6→4; her computer now counts both arrows as Trueshot's cashing moves (it already counted the plain arrow) | 85%, 1% | 74%, 1% (her row alone, 100 a pair, after the rest of pass 2) |
-| Rifleman, Illidan, Blademaster, Mountain King, Warden, Lich, Forsaken Paladin | unchanged | 56, 46, 52, 50, 52, 48, 55% | 52, 42, 49, 43, 48, 43, 51% |
-
-Matchups after pass 2 (before the Archer change): 13 of 66 inside 45-55%,
-27 intervals overlapping the band, median distance from 50% 17 points.
-
-Pit Lord's rate barely moves with his own recovery: Annihilating Cleave
-4 frames slower and 7 longer, or Ruin Charge 10 frames longer with less
-armor, each left him at 70% in row probes. The computer answers threats
-but never times an attack into an opponent's recovery, so a slow swing
-costs nothing against it; his CPU rate measures that gap as much as his kit.
-
-Pass 3, after the computer learned to punish whiffs (#157, measured on its
-first version 5de334c9, 100 a pair). Whiff punishing reshuffled the field:
-Illidan's long glaives punish from range, and Blademaster and Beastmaster
-lost the most (whiff punish → after pass 3):
-
-| Fighter | Lever (identity) | Whiff punish | After pass 3 |
-| --- | --- | --- | --- |
-| Illidan | reaches farther, deals less: twin-glaive launcher 5→4, forward smash 12→10 | 67%, 1% | 57%, 1% |
-| Blademaster | whiff punisher, now punished himself: Backstab back to 12 damage, end f30 | 38%, 5% | 46%, 4% |
-| Beastmaster | bear coordination: lunge startup 12→10, bite 14→16 | 38%, 6% | 44%, 5% |
-| Forsaken Paladin | Holy Light end f66→f56 (whiff punish makes the long end costly on its own) | 41%, 4% | 50%, 3% |
-| Shadow Hunter | Serpent Ward durability 20→26 | 41%, 1% | 42%, 1% |
-| Archer | her weight is her weakness: 75→68 (heroes keep the 75 reference); homing arrow 4→3 | 73%, 1% | 69%, 1% (her row alone, 40 a pair) |
-
-Matchups: whiff punish alone 9 of 66 inside 45-55%, 31 intervals
-overlapping, median 16.5 points; after pass 3 (before the Archer change)
-11, 27, 17.0. Field rates moved toward even (mean distance from 50%
-9.8 → 7.1 points) while the matchup median stayed put: at level 9 the
-computers turn a small edge in one matchup into a lopsided result.
-
-Pass 4 brings every fighter inside 40-60% against the field at 400 a pair
-(main 4776861a, after pass 3, → after pass 4). Dreadlord and Shadow Hunter
-were first checked for computer skill. Dreadlord's computer converted only a
-quarter of his Sleeps, because whiff punishing didn't count a sleeper as a
-window. It does now, for any grounded fighter asleep or stunned
-(smashcraft:ts/src/game/match/botPunish.ts), and conversion rose to 42%, but
-his rate barely moved. Both fighters lost on damage per hit (Dreadlord 6.8,
-Shadow Hunter 5.9, against 7.5-9 for their opponents), so the kit changes
-follow. Shadow Hunter's Hex had a kit defect: the target mashed out at frame
-20 while he was still in his 53-frame cast, so no one, human or computer,
-could cash it. The cast now ends on frame 40 and Hex holds at least 36
-frames, which leaves him at least 20 frames after a point-blank Hex.
-
-| Fighter | Lever (identity) | After pass 3 | After pass 4 |
-| --- | --- | --- | --- |
-| Dreadlord | close pressure and deceptive aerial approach: run 1.00→1.10, Raking Claw 10→12, Batwing Turn, Talon Reach and Wing Backhand landing lag 14/15/15 → 9/10/10; weight 1.14→1.24 | 33%, 3% | 49%, 3% |
-| Shadow Hunter | glaive angles: thrusts 9→11, Low Crescent 5→7; Hex cashable (cast end f53→f40, mash floor 20→36) | 33%, 1% | 45%, 2% (Hex fix: his row alone, 400 a pair; 44% before it) |
-| Archer | her weight is her weakness: 68→62; her dash attack, a speed tool, 8→6 | 67%, 1% | 56%, 1% |
-| The other nine | unchanged | 43-60% | Rifleman 57, Illidan 53, Blademaster 59, Mountain King 51, Warden 45, Lich 42, Forsaken Paladin 47, Pit Lord 53, Beastmaster 45% |
-
-Matchups after pass 4 (before the Hex fix): 14 of 66 inside 45-55%, 26
-intervals overlapping, median distance from 50% 12.9 points.
-
-After the model-scale and approach changes (#162, #160), the 13-fighter
-field at level 9, 400 matches per pair compares baseline 1c4400e6 with
-0484f7f6. Both contain the Lich King; each run plays 31,200 matches over
-100 seeds per pair. The bounded retune reduces the original fighters'
-forward air from 8 to 7, Illidan's forward smash from 10 to 9 and his
-two-hit forward air from 7 to 5. Lich's frost orb gains speed and damage,
-and his forward smash starts four frames earlier. Forsaken Paladin's Holy Light ends
-six frames earlier; Dreadlord's weight returns from 1.24 to 1.14; Shadow
-Hunter's down tilt gains one damage and his ward's shots gain one. Swift
-Arrow's visible draw and lower shieldable flight (#172), and Defile's
-shorter, weaker pool with a longer empty interval (#174), complete the
-candidate. Archer retains weight 62.
-
-| Fighter | Before | After | After self-destruct share |
-| --- | ---: | ---: | ---: |
-| Archer | 61.23% | 42.48% | 0.53% |
-| Rifleman | 57.19% | 54.58% | 6.63% |
-| Illidan | 67.04% | 58.02% | 1.14% |
-| Blademaster | 55.23% | 57.17% | 4.97% |
-| Mountain King | 47.15% | 46.04% | 2.98% |
-| Warden | 43.25% | 44.13% | 10.78% |
-| Lich | 29.53% | 45.79% | 2.61% |
-| Forsaken Paladin | 39.00% | 46.42% | 4.23% |
-| Dreadlord | 60.15% | 56.73% | 2.61% |
-| Shadow Hunter | 39.08% | 47.13% | 1.46% |
-| Pit Lord | 53.73% | 55.08% | 9.20% |
-| Beastmaster | 44.36% | 45.02% | 5.52% |
-| Lich King | 53.06% | 51.42% | 1.85% |
-
-All 13 pass the field gate. Matchups: 22/78 inside 45-55%, 39/78 confidence
-intervals overlapping it, median distance from 50% 10 points. Raw tables:
-smashcraft:evidence/balance-105-20261007/n400-before-arrow-defile.md and
-smashcraft:evidence/balance-105-20261007/n400-after-arrow-defile.md. These
-results measure the combined candidate, not each lever separately.
-
-The projectile contracts subsequently exposed the cost of the stronger
-Frost Nova's shieldstun and Defile's later arming: point-blank shield grabs
-could no longer land. Frost Nova's end moves from 37 to 39, and Defile's
-from 46 to 50, restoring shield grabs in their 60-unit mirror situations.
-
-Rifleman (#248, 8 Oct, his 20 pairs at Wren Expert, 400 a pair): he dealt
-191 damage per stock taken against a field median near 140, so his lever is
-kill power on the moves that take his stocks. Forward tilt growth 90→108 and
-dash attack 95→114 moved him from 38% (run 37736380119) to 46%
-(run 37741496717); his move mix held (blaster 34% of moves, bear 25% of damage).
-
-#250's shared field is all 21 fighters, computer level Wren Expert, 210
-pairs at 408 games a pair (85,680 matches, 8,160 a fighter), build
-07b13e80, run 37743744018. Win rate counts decisive matches; every fighter
-is inside the 40–60% gate.
-
-| Fighter | Wins | Losses | Win rate |
-| --- | ---: | ---: | ---: |
-| Archer | 3823 | 4337 | 46.85% |
-| Rifleman | 3766 | 4394 | 46.15% |
-| Illidan | 4760 | 3400 | 58.33% |
-| Blademaster | 3776 | 4384 | 46.27% |
-| Mountain King | 4374 | 3785 | 53.61% |
-| Warden | 3419 | 4740 | 41.90% |
-| Lich | 4018 | 4141 | 49.25% |
-| Forsaken Paladin | 3979 | 4181 | 48.76% |
-| Dreadlord | 4477 | 3683 | 54.87% |
-| Shadow Hunter | 4188 | 3972 | 51.32% |
-| Pit Lord | 3323 | 4837 | 40.72% |
-| Beastmaster | 3891 | 4268 | 47.69% |
-| Lich King | 4128 | 4032 | 50.59% |
-| Thrall | 3907 | 4253 | 47.88% |
-| Jaina Proudmoore | 4421 | 3739 | 54.18% |
-| Sylvanas Windrunner | 4096 | 4064 | 50.20% |
-| Cairne Bloodhoof | 4758 | 3402 | 58.31% |
-| Chen Stormstout | 4307 | 3853 | 52.78% |
-| Peon | 3875 | 4285 | 47.49% |
-| Goblin Tinker | 4185 | 3975 | 51.29% |
-| Kael'thas Sunstrider | 4207 | 3953 | 51.56% |
-
 ## Implementation details for the overnight agent
 
 ### Read the real project first
@@ -1556,7 +1321,7 @@ Read the repository’s applicable AGENTS.md and active implementation notes, in
 
 The earlier CODEX_IMPLEMENTATION_BRIEF.md and SMASHCRAFT_NETCODE_PROPOSAL.md remain architecture references. The user’s newer source and measured capability reports take precedence on current implementation status. Specifically, an observed early local polling transition is not proof that visible rollback, exact animation phase restoration, physical latency, or fairness has passed. Keep the hero rollout separate from those claims.
 
-Preserve existing characters and established controls. If a hero already exists, compare its kit before adding a duplicate. Illidan is outside this expansion spec; integrate through the same interfaces but do not replace his moves or change Rifleman/Archer without a concrete shared-system need. Never disrupt another running development session merely to build this roster. The user is requesting this specification here; no unattended agent has been launched by writing it.
+Preserve existing characters and established controls. If a hero already exists, compare its kit before adding a duplicate. Illidan is outside this expansion spec; integrate through the same interfaces but do not replace his moves or change Rifleman without a concrete shared-system need. Never disrupt another running development session merely to build this roster. The user is requesting this specification here; no unattended agent has been launched by writing it.
 
 ### Data required for each move
 

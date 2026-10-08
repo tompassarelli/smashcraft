@@ -44,7 +44,6 @@ mkdirSync(resources, { recursive: true });
 
 /** The original fighters' generated models; heroes use the game's own. */
 const ORIGINAL_MODELS: { readonly [character: number]: string | undefined } = {
-  [Character.archer]: 'animation-assets/archer-fighter.mdl',
   [Character.rifleman]: 'animation-assets/rifleman-fighter.mdl',
   [Character.demonHunter]: 'illidan-animation/demonhunter-fighter.mdl',
 };

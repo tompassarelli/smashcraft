@@ -21,9 +21,9 @@ data record; the simulation, replay, selection and object data read it.
   air-speed, width and height multipliers. An optional `shield` scale grows the
   reference shield's centre height and radius for a body that would stand
   outside it (Pit Lord 1.35). `sim/tuning.ts` derives a hero's
-  physics from Archer's (weight, dash/run/walk speed, air speed; jumps and
-  gravity unchanged) and `physics/contactGeometry.ts` scales Archer's hurt
-  capsule by width and height. Ledge, wall and roll data use Archer's.
+  physics from the shared baseline (weight, dash/run/walk speed, air speed; jumps and
+  gravity unchanged) and `physics/contactGeometry.ts` scales the reference hurt
+  capsule by width and height. Ledge, wall and roll data use the shared Fox reference.
 - `ts/src/game/sim/heroes/registry.ts` lists the heroes in build order.
   `SELECTABLE_CHARACTERS` is the original three plus every hero whose
   `complete` is true; selection rules, menu cycling and the map's fighter
@@ -197,7 +197,7 @@ The shared contracts are in `ts/src/game/sim/heroSpecials.tests.ts`.
   leaves out plays `fallback`, except the `HeroStatePose` states (dash, run,
   crouch, fall, landing, shield, air dodge, smash charge, KO, dizzy), which
   keep the original fighters' pose for that state.
-- The drawn body keeps clear of stage faces with Archer's body envelope
+- The drawn body keeps clear of stage faces with the reference body envelope
   stretched by the hero's width and height (`presentation/fighterPlacement.ts`).
 - Star KOs fly the hero's own model off; there is one KO body per star-KO
   impact and selectable fighter (`render/combatEffects.ts`).
