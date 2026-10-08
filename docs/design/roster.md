@@ -1507,6 +1507,72 @@ Relevant Blizzard character references:
 Architecture reference: the project’s CODEX_IMPLEMENTATION_BRIEF.md and SMASHCRAFT_NETCODE_PROPOSAL.md dated 30 September 2026, read for this handoff, plus the current implementation agent’s actual source, logs, and tests. This expansion document does not certify those earlier technical claims or supersede newer measured findings.
 
 
+## Grom Hellscream
+
+**Identity:** reckless, furious, tragic. Grom runs into the fight with Gorehowl
+raised and commits his whole body to killing swings. He earns pressure by
+closing distance; his recovery and missed axe swings leave him exposed. He
+has no rage meter, counted bonus or hidden passive. Unlike Thrall he fights
+on foot with no wolves or lightning; unlike Blademaster he never vanishes,
+leaves images or plays a safe outer-blade spacing game.
+
+Initial values are original, provisional tuning: weight 1.16H, run 1.04H,
+air drift 0.92H, width 1.12H, height 1.10H. Normal axe reach is 95–132 world
+units; fast hilt checks reach 52. His upward leap travels 280 units before
+gravity, costs his aerial jump and ends helpless. Predictable recovery is
+his edge-guard weakness.
+
+### Normals
+
+| Input | Action and decision | Startup / active / total | Damage |
+|---|---|---|---|
+| Jab, jab 2 | Hilt check, then a short axe chop; keep a close foe honest | 4/2/14; 6/2/20 | 3; 6 |
+| Forward tilt, angled | Gorehowl chop, with the chosen high or low contact | 9/3/28 | 11 |
+| Up tilt | Haul the axe overhead to start a juggle | 8/4/26 | 9 |
+| Down tilt | Low haft sweep; a launcher into a chase | 7/3/24 | 8 |
+| Dash attack | Shoulder-first entry; shield stops its reward | 9/5/32 | 11 |
+| Forward smash | Planted execution chop; punish the long miss | 18/4/46 | 20 |
+| Up smash | Two-handed rising axe swing | 14/4/42 | 17 |
+| Down smash | Low front-and-back sweep | 15/6/44 | 16 |
+| Neutral air | Broad turning axe cut | 8/6/28, landing 16 | 10 |
+| Forward air | Heavy overhead cleave | 12/3/34, landing 20 | 14 |
+| Back air | Furious reverse chop | 10/3/30, landing 18 | 13 |
+| Up air | Axe held overhead, upward cut | 8/4/26, landing 16 | 10 |
+| Down air | Gorehowl downward spike, with a grounded launch instead | 15/3/38, landing 24 | 15 |
+
+### B specials
+
+All four base specials are free. A full universal bar buys any one EX;
+there is no Grom-specific resource or cooldown.
+
+| Input | Base move | EX |
+|---|---|---|
+| Neutral | **Warsong Cry:** brace and roar; a close body burst at frames 12–15 launches foes upward for a chase, ending frame 34. Air version lands with 20 lag. | 25% stronger burst and 15% greater reach |
+| Side | **Gorehowl Rush:** run axe-first on frames 8–20, hit at 10–17, stop at shields and recover through frame 40. Air version is once per airtime and ends helpless. | 25% more travel and damage |
+| Up | **Blood Leap:** spring upward on frames 7–22, axe rising through 7–14; ends frame 36 in helpless fall. No invulnerability. | 25% more travel |
+| Down | **Mannoroth's Bane:** visible two-handed execution, active 20–23, recovery through frame 50; ground and air cleave, 24 landing lag. | 25% more damage |
+
+### Grab and throws
+
+Reach the empty hand at frame 8, ending frame 27 on a miss. One headbutt
+pummel deals 3. Forward throw is a 9-damage bodily shove at frame 14;
+back throw is an 11-damage heave at frame 16; up throw is an 8-damage axe-haft
+lift at frame 14; down throw is a 7-damage slam at frame 18 that starts a tech
+chase. Shared mash escape, regrab protection, DI and techs apply. Follow-ups
+are chase opportunities, with the victim's DI and defensive inputs active.
+
+### Play-style profile
+
+Rush-down bruiser: ground approach 65%, aerial approach 35%, ranged damage
+0%, special damage target 20–35%. Signature is Gorehowl Rush into a committed
+cleave. No single move should exceed 40% of damage. Low sweep, up tilt and
+Warsong Cry open launch-and-chase play; execution chops finish it. The issue's
+one balance probe must place him at 40–60% against the field.
+
+Stock campaign Grom model, textures, portrait, cries and Orc spell effects
+are the first inputs. Authored clips reshape that stock rig to make each
+contact point readable in Classic and Definitive; no third-party model.
+
 ## Fighter identity audit (#148, Tom 9 Oct 2026)
 
 The old counted effects are cut. Existing standard actions carry these identities;
