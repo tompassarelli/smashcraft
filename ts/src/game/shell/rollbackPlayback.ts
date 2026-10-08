@@ -39,9 +39,9 @@ class ReplayHistoryPlayback implements RollbackPlayback {
     return correction(result);
   }
 
-  repair(epoch: number, match: SpeculativeMatch, budget: number): number | "rejected" {
+  repair(epoch: number, match: SpeculativeMatch, budget: number, cost?: number): number | "rejected" {
     if (epoch !== this.current) return "rejected";
-    return this.history.repair(epoch, budget, this.bind(match));
+    return this.history.repair(epoch, budget, this.bind(match), cost);
   }
 
   catchUp(

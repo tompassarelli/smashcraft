@@ -2,6 +2,7 @@
 // on local and predicted rows, and replays from history when accepted rows
 // differ from what it ran. The replay code owns the history ring.
 import type { InputRow } from "../input/inputRow";
+import { REPAIR_WHOLE_COST } from "../replay/history";
 import type { FrameControls } from "../match/controls";
 import type { PacingAndPresentation } from "../match/pacingAndPresentation";
 import type { MatchFrameInput } from "../match/frameInput";
@@ -33,11 +34,12 @@ export interface RollbackPlayback {
    */
   reconcile(schedule: ShadowInputSchedule, epoch: number, localPlayer: number, match: SpeculativeMatch): Reconciliation;
   /**
-   * Replays at most `budget` changed frames apart from the speculative match,
-   * which keeps running local rows; when the replay reaches its present, the
-   * corrected state replaces it. Returns the frames it replayed.
+   * Replays at most `budget` changed frames, and `cost` units of them
+   * (ReplayHistory.repair), apart from the speculative match, which keeps
+   * running local rows; when the replay reaches its present, the corrected
+   * state replaces it. Returns the frames it replayed.
    */
-  repair(epoch: number, match: SpeculativeMatch, budget: number): number | "rejected";
+  repair(epoch: number, match: SpeculativeMatch, budget: number, cost?: number): number | "rejected";
   /**
    * Runs already-assigned speculative frames, at most `budget`, stopping
    * before `stopBefore` when given. False when a frame could not run.
@@ -79,6 +81,22 @@ export const CATCH_UP_FRAMES = 6;
  * callback inside #168's frame budget.
  */
 export const REPAIR_FRAMES = 4;
+
+/**
+ * Repair units one callback spends (ReplayHistory.repair): a whole frame
+ * costs REPAIR_WHOLE_COST, a fighter-scoped one 1.
+ */
+export const REPAIR_COST = 4;
+
+/**
+ * Frames and units of repair one callback may spend when it may also run
+ * `speculative` frames: a repair must gain on the speculative cursor, or its
+ * first frame leaves the history ring while a stalled journal catches up.
+ */
+export function repairBudget(speculative: number): { readonly frames: number; readonly cost: number } {
+  const frames = Math.max(REPAIR_FRAMES, speculative + 1);
+  return { frames, cost: Math.max(REPAIR_COST, (speculative + 1) * REPAIR_WHOLE_COST) };
+}
 
 /**
  * Confirmed frames one callback runs: a message's frames 3 a callback, so its

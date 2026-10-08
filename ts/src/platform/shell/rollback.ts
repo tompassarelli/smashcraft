@@ -23,7 +23,7 @@ import { JournalInputSource } from "../../game/netcode/journal/source";
 import { decodeTransport } from "../../game/netcode/journal/transport";
 import { captureReplaySnapshot, restoreReplaySnapshot } from "../../game/replay/snapshot";
 import { pacedStop, resetPauseBarrier, settlePace, stopFrame } from "../../game/shell/pauseBarrier";
-import { REPAIR_FRAMES, confirmedBudget, speculativeBudget } from "../../game/shell/playback";
+import { confirmedBudget, repairBudget, speculativeBudget } from "../../game/shell/playback";
 import { queueLocalRows } from "../../game/shell/localInput";
 import { applyFrame } from "./frame";
 import { ownConfirmedState } from "./confirmedState";
@@ -285,7 +285,8 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
     }
     probeIntegrity(probe, `rollback ${epoch} ${depth}`);
   }
-  const repaired = rollback.playback.repair(epoch, speculative, REPAIR_FRAMES);
+  const repair = repairBudget(speculativeBudget(journal !== undefined));
+  const repaired = rollback.playback.repair(epoch, speculative, repair.frames, repair.cost);
   if (repaired === "rejected") {
     setStatus(s, "The match could not catch up. Restart the match.", LASTING);
     return;

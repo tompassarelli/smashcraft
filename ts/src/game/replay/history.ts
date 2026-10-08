@@ -27,6 +27,9 @@ import { copyPacingAndPresentation } from "../match/pacingAndPresentation";
 import { copyFighterState, sameFighterState } from "./fighterState";
 import { apartFromOthers, matchScopable, scopedStepHeld } from "./scopedRepair";
 
+/** A whole repaired frame's cost against a repair's budget, where a fighter-scoped one costs 1. */
+export const REPAIR_WHOLE_COST = 2;
+
 /** How repairs choose fighter-scoped steps: by the eligibility tests, never, or always (a test's broken eligibility). */
 export type ScopedRepair = "auto" | "off" | "force";
 
@@ -335,17 +338,18 @@ export class ReplayHistory {
 
   /**
    * Replays a pending amendment in the history's own state, at most budget
-   * frames, refreshing each snapshot it passes. Live state keeps running the
-   * present meanwhile; once the repair reaches it, the corrected state
-   * replaces live state. Returns the frames it replayed.
+   * frames and `cost` units (a whole frame REPAIR_WHOLE_COST, a scoped one
+   * 1, and always at least one frame), refreshing each snapshot it passes.
+   * Live state keeps running the present meanwhile; once the repair reaches
+   * it, the corrected state replaces live state. Returns the frames it replayed.
    */
-  repair(epoch: number, budget: number, live: ReplayState): number | "rejected" {
+  repair(epoch: number, budget: number, live: ReplayState, cost = Number.POSITIVE_INFINITY): number | "rejected" {
     if (this.current === undefined || epoch !== this.current) return "rejected";
     const start = this.repairNext;
     if (start === undefined) return 0;
     if (live.runtime.simulationFrame !== this.nextFrame - 1 || !this.contains(epoch, start)) return "rejected";
-    // A repair that reaches the present in this call replays in live state, which it replaces anyway.
-    const direct = !this.repairPositioned && this.nextFrame - start <= budget;
+    // A repair that surely reaches the present in this call replays in live state, which it replaces anyway.
+    const direct = !this.repairPositioned && this.nextFrame - start <= budget && (this.nextFrame - start) * REPAIR_WHOLE_COST <= cost;
     const state = direct ? live : this.repairState;
     // Positioning copies the start's snapshot, so the first frame needn't write it back onto itself.
     let restored = false;
@@ -357,14 +361,20 @@ export class ReplayHistory {
       restored = true;
     }
     let frame = start;
+    let spent = 0;
     for (let steps = 0; steps < budget && frame < this.nextFrame; steps++) {
       const first = restored && frame === start;
       const slot = this.slotOf(frame);
       const unchanged = state.world.mask & ~this.repairDirty;
-      this.repairDirty |= at(this.changed, slot);
-      this.repairInputs |= at(this.changed, slot);
+      const dirty = this.repairDirty | at(this.changed, slot);
       const repeated = this.repeatedComputers(frame, state, first, unchanged);
-      const scoped = this.scopedSlot(frame, state, repeated);
+      const scoped = this.scopedSlot(frame, state, repeated, dirty);
+      const price = scoped === undefined ? REPAIR_WHOLE_COST : 1;
+      if (steps > 0 && spent + price > cost) break;
+      spent += price;
+      this.repairDirty = dirty;
+      this.repairInputs |= at(this.changed, slot);
+      if (repeated !== undefined) for (const computer of PARTICIPANT_SLOTS) if (participantActive(repeated.mask, computer)) this.repeatedDecisions++;
       if (!first) {
         // Fighters the repair hasn't changed already match the snapshot.
         this.copySnapshot(frame, state, unchanged);
@@ -408,10 +418,10 @@ export class ReplayHistory {
    * repeats its decision, and in neither run can it touch another fighter.
    * Reads the frame's snapshot before the repair rewrites it.
    */
-  private scopedSlot(frame: number, state: Readonly<ReplayState>, repeated: RepeatedComputers | undefined): number | undefined {
+  private scopedSlot(frame: number, state: Readonly<ReplayState>, repeated: RepeatedComputers | undefined, dirty: number): number | undefined {
     if (this.scopedRepair === "off" || frame + 1 >= this.nextFrame || !this.follows[this.slotOf(frame + 1)]) return undefined;
     // With no fighter changed yet, any human may play the frame.
-    const slot = this.repairDirty === 0 ? firstHuman(state) : soleSlot(this.repairDirty);
+    const slot = dirty === 0 ? firstHuman(state) : soleSlot(dirty);
     if (slot === undefined || !isActive(state.world, slot) || !matchScopable(state.match)) return undefined;
     for (const other of PARTICIPANT_SLOTS) {
       if (other === slot || !isActive(state.world, other) || !computerActive(state.match, other)) continue;
@@ -484,7 +494,6 @@ export class ReplayHistory {
       if (same || sameComputerInputs(state.match, state.world, state.runtime, before.match, before.world, before.runtime, slot, frame, participantActive(unchanged, slot))) mask |= 1 << slot;
     }
     if (mask === 0) return undefined;
-    for (const slot of PARTICIPANT_SLOTS) if (participantActive(mask, slot)) this.repeatedDecisions++;
     this.repeated.mask = mask;
     this.repeated.after = after;
     return this.repeated;
