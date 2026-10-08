@@ -263,7 +263,7 @@ test/model-facts.test.ts	1	0.011
 test/model-scale.test.ts	1	0.097
 test/native-capture.test.ts	2	0.030
 test/native-chat-entry.test.ts	2	0.076
-test/native-driver.test.ts	2	3.111
+test/native-driver.test.ts	3	4.649
 test/native-perf.test.ts	1	1.192
 test/object-data.test.ts	1	0.015
 test/online.test.ts	5	0.229
