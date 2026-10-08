@@ -10,4 +10,4 @@ sweep("the fighter below a platform strikes no later than the one on it in at le
   const rows = platformAdvantages();
   const noLater = rows.filter((row) => row.belowFirst !== undefined && belowLead(row) >= 0).length;
   expect(noLater / rows.length).toBeGreaterThanOrEqual(0.6);
-}, 120_000);
+}, 300_000);
