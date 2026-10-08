@@ -166,7 +166,7 @@ src/game/sim/heroes/kobold.tests.ts	6	0.062
 src/game/sim/heroes/lichKingSpecials.tests.ts	6	0.167
 src/game/sim/heroes/lichMoves.tests.ts	9	0.035
 src/game/sim/heroes/lichSpecials.tests.ts	13	0.180
-src/game/sim/heroes/malfurion.tests.ts	8	2.137
+src/game/sim/heroes/malfurion.tests.ts	9	1.592
 src/game/sim/heroes/mountainKingMoves.tests.ts	10	0.011
 src/game/sim/heroes/mountainKingSpecials.tests.ts	15	0.354
 src/game/sim/heroes/murloc.tests.ts	5	0.051
