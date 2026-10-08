@@ -296,8 +296,8 @@ Material set:
 
 | Part | Material | Source |
 | --- | --- | --- |
-| Deck top | Outland cracked earth and flat stone | `TerrainArt\Outland\Outland_FlatStones.blp` |
-| Edge | Fel-rune band, green tint | a rune region of `Textures\DemonRune1.blp`–`6`, or `TerrainArt\BlackCitadel\Citadel_DarkTiles.blp` tinted |
+| Deck top | Light Outland cracked earth and flat stone | `TerrainArt\Outland\Outland_FlatStonesLight.blp`, first 64×64 cell of its 512×256 sheet |
+| Edge | Fel-rune band, green tint | `Textures\DemonRune1.blp`; its white runes preserve the green tint without scene lighting |
 | Body and underside | Charred stone walls, broad blunt base | `TerrainArt\Outland\Outland_Rock.blp` walls, `TerrainArt\Outland\Outland_Abyss.blp` underside |
 | Platforms | Black Citadel brick slabs | `TerrainArt\BlackCitadel\Citadel_LargeBricks.blp` |
 

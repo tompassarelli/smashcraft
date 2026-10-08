@@ -90,18 +90,18 @@ export const STAGE_DECK_PALETTES: readonly { readonly stage: number; readonly th
   { stage: DRIFTING_DECK_STAGE, theme: "Durotar", palette: { top: [214, 180, 130], lip: [140, 62, 40], body: [70, 46, 34], underside: [96, 66, 46] }, materials: {"top":{"texture":"TerrainArt\\Barrens\\Barrens_Dirt.blp"},"lip":{"texture":"Textures\\Watchtower.blp","crop":[0.09375,0.3125,0.3125,0.41015625]},"body":{"texture":"TerrainArt\\Barrens\\Barrens_Rock.blp"},"underside":{"texture":"Textures\\BarrensNatural02.blp"},"platform":{"top":{"texture":"Textures\\Watchtower.blp","crop":[0.09375,0.3125,0.3125,0.41015625]},"lip":{"texture":"Textures\\Watchtower.blp","crop":[0.09375,0.3125,0.3125,0.41015625]},"body":{"texture":"TerrainArt\\Barrens\\Barrens_DirtRough.blp"},"underside":{"texture":"TerrainArt\\Barrens\\Barrens_DirtRough.blp"},"tint":[218,166,100]}} },
   // Scourge stone over black iron, plague-green lip.
   { stage: PATTERNED_DECKS_STAGE, theme: "Scourge", palette: { top: [160, 168, 176], lip: [100, 170, 110], body: [54, 60, 74], underside: [76, 84, 100] }, materials: {"top":{"texture":"TerrainArt\\Icecrown\\Ice_BlackSquares.blp"},"lip":{"texture":"TerrainArt\\Icecrown\\Ice_RuneBricks.blp"},"body":{"texture":"Textures\\NewZigguratscarycreepytex.blp","crop":[0,0,0.5,0.5]},"underside":{"texture":"TerrainArt\\Icecrown\\Ice_BlackBricks.blp"},"platform":{"top":{"texture":"Textures\\CreepyNecropolis.blp","crop":[0,0,0.5,0.5]},"lip":{"texture":"TerrainArt\\Icecrown\\Ice_RuneBricks.blp"},"body":{"texture":"TerrainArt\\Icecrown\\Ice_BlackBricks.blp"},"underside":{"texture":"TerrainArt\\Icecrown\\Ice_BlackBricks.blp"},"tint":[136,202,154]},"alternatePlatform":{"top":{"texture":"Textures\\CreepyNecropolis.blp","crop":[0,0,0.5,0.5]},"lip":{"texture":"TerrainArt\\Icecrown\\Ice_RuneBricks.blp"},"body":{"texture":"TerrainArt\\Icecrown\\Ice_BlackBricks.blp"},"underside":{"texture":"TerrainArt\\Icecrown\\Ice_BlackBricks.blp"},"tint":[146,168,216]}} },
-  // Red fel stone, charred body, fel-green lip.
-  { stage: HELLFIRE_STAGE, theme: "Fel", palette: { top: [176, 140, 124], lip: [120, 190, 60], body: [80, 50, 46], underside: [106, 68, 60] }, materials: {
-    top: { texture: "TerrainArt\\Outland\\Outland_FlatStones.blp" },
-    lip: { texture: "TerrainArt\\BlackCitadel\\Citadel_DarkTiles.blp" },
+  // HF-1/HF-2: light red stone preserves texture detail; white stock runes take the fel-green tint.
+  { stage: HELLFIRE_STAGE, theme: "Fel", palette: { top: [255, 240, 216], lip: [96, 255, 40], body: [180, 136, 116], underside: [106, 68, 60] }, materials: {
+    top: { texture: "TerrainArt\\Outland\\Outland_FlatStonesLight.blp", crop: [0, 0, 0.125, 0.25] },
+    lip: { texture: "Textures\\DemonRune1.blp" },
     body: { texture: "TerrainArt\\Outland\\Outland_Rock.blp" },
     underside: { texture: "TerrainArt\\Outland\\Outland_Abyss.blp" },
     platform: {
       top: { texture: "TerrainArt\\BlackCitadel\\Citadel_LargeBricks.blp" },
-      lip: { texture: "TerrainArt\\BlackCitadel\\Citadel_DarkTiles.blp" },
+      lip: { texture: "Textures\\DemonRune1.blp" },
       body: { texture: "TerrainArt\\Outland\\Outland_Rock.blp" },
       underside: { texture: "TerrainArt\\Outland\\Outland_Abyss.blp" },
-      tint: [154, 100, 86],
+      tint: [240, 204, 180],
     },
   } },
   // Basalt over black rock, molten lip.

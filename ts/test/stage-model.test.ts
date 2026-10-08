@@ -10,6 +10,9 @@ import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";
 import { pointLightPieces, shadowCastingLights, stageScenery } from "../src/game/presentation/stageScenery";
 import { STAGE_DECK_PALETTES } from "../src/game/assets/stagePalette";
 import { texturedDeckMdl } from "../scripts/stageMaterials";
+import { parseMDL } from "war3-model";
+import { ARENA_CAMERA, extremeCamera } from "../src/game/presentation/arenaCamera";
+import { createMatchCamera, MATCH_CAMERA_ASPECT } from "../src/game/sim/matchCamera";
 import { CANNON_TEST_STAGE, HELLFIRE_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt, solidSurfaceCount, surfaceLine } from "../src/game/sim/stage";
 
 /** The stages whose main deck has walls and an underside, each drawn from its own outline. */
@@ -153,10 +156,10 @@ test("Hellfire recesses fel flames and green lights into haze under the stock Ou
   expect(scenery.sky).toBe("Environment\\Sky\\Outland_Sky\\Outland_Sky.mdl");
   expect(scenery.fog).toEqual({ start: 5000, end: 11000, red: 0.25, green: 0.5, blue: 0.125 });
   const gate = scenery.pieces.find(({ model }) => model.includes("DemonGate"));
-  expect([gate?.x, gate?.y, gate?.scale]).toEqual([-1450, 6000, 1.25]);
+  expect([gate?.x, gate?.y, gate?.scale]).toEqual([-1850, 4500, 1.5]);
   const lights = STAGE_POINT_LIGHTS.find(({ stage }) => stage === HELLFIRE_STAGE)?.lights ?? [];
   expect(lights.map(({ x, y, z, color, intensity, flicker, loopMs, radius, castsShadow }) => `${x},${y},${z} ${color.join(",")}@${intensity}±${flicker}/${loopMs}ms r${radius}${castsShadow ? " shadow" : ""}`)).toEqual([
-    "-1450,6000,-1400 96,255,40@0.875±0.125/2400ms r950 shadow",
+    "-1850,4500,-1100 96,255,40@0.875±0.125/2400ms r950 shadow",
     "2150,3700,-1450 80,255,32@0.625±0.125/2800ms r450",
   ]);
   const flames = scenery.pieces.filter(({ model }) => model.includes("ImmolationTarget"));
@@ -166,6 +169,41 @@ test("Hellfire recesses fel flames and green lights into haze under the stock Ou
     expect(flames.some(({ x, y, z }) => x === light.x && y === light.y && z === light.z)).toBe(true);
   }
   expect(shadowCastingLights(HELLFIRE_STAGE)).toBe(1);
+});
+
+test("Hellfire's fel trim uses neutral stock runes with a green tint even without scene lighting [repro #293]", () => {
+  const deck = STAGE_DECK_PALETTES.find(({ stage }) => stage === HELLFIRE_STAGE);
+  if (deck?.materials === undefined) throw new Error("Hellfire has no stock materials");
+  const model = parseMDL(texturedDeckMdl(mainDeckFaces(HELLFIRE_STAGE), deck.materials, deck.palette));
+  expect(model.Textures[1]?.Image).toBe("Textures\\DemonRune1.blp");
+  const tint = model.GeosetAnims[1]?.Color;
+  if (!(tint instanceof Float32Array)) throw new Error("Hellfire's trim has no static tint");
+  expect(tint[1]).toBeGreaterThan(2 * (tint[0] ?? 0));
+  expect(tint[1]).toBeGreaterThan(2 * (tint[2] ?? 0));
+  expect(model.Materials[1]?.Layers[0]?.Shading).toBe(1);
+  const uv = model.Geosets[0]?.TVertices[0];
+  if (uv === undefined) throw new Error("Hellfire's top has no tile coordinates");
+  for (let i = 0; i < uv.length; i += 2) {
+    expect(uv[i]).toBeLessThanOrEqual(64 / 512);
+    expect(uv[i + 1]).toBeLessThanOrEqual(64 / 256);
+  }
+});
+
+test("Hellfire's Demon Gate projects inside the left third at the far camera [spec stage-boards HF-c]", () => {
+  const gate = stageScenery(HELLFIRE_STAGE).pieces.find(({ model }) => model.includes("DemonGate"));
+  if (gate === undefined) throw new Error("Hellfire has no Demon Gate");
+  const camera = createMatchCamera();
+  extremeCamera(camera, HELLFIRE_STAGE, MATCH_CAMERA_ASPECT, "far");
+  const angle = 10 * Math.PI / 180;
+  const dz = gate.z - camera.z;
+  const depth = camera.distance + gate.y * Math.cos(angle) - dz * Math.sin(angle);
+  const column = 0.5 + (gate.x - camera.x) / (2 * depth * camera.tangent * MATCH_CAMERA_ASPECT);
+  const row = 0.5 - (dz * Math.cos(angle) + gate.y * Math.sin(angle)) / (2 * depth * camera.tangent);
+  expect(depth).toBeLessThan(ARENA_CAMERA.farZ);
+  expect(column).toBeGreaterThan(0);
+  expect(column).toBeLessThan(1 / 3);
+  expect(row).toBeGreaterThan(0);
+  expect(row).toBeLessThan(1);
 });
 
 test("Naxxramas's cold green light frames the necropolis with one shadow and leaves fighters outside its reach [spec #296]", () => {
