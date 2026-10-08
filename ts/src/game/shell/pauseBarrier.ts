@@ -33,6 +33,8 @@ export interface PauseBarrier {
   readonly frames: Slots<number | undefined>;
   /** After a resume, until prediction catches up, the frame the speculative cursor stops before. */
   paced: number | undefined;
+  /** A resume Start arrived while the pause was still settling: it resumes as soon as the pause commits. */
+  resumeQueued: boolean;
 }
 
 /**
@@ -43,7 +45,7 @@ export interface PauseBarrier {
 export const RESUME_PACE_FRAMES = 2;
 
 export function pauseBarrier(): PauseBarrier {
-  return { request: undefined, sequences: [0, 0, 0, 0], frames: [undefined, undefined, undefined, undefined], paced: undefined };
+  return { request: undefined, sequences: [0, 0, 0, 0], frames: [undefined, undefined, undefined, undefined], paced: undefined, resumeQueued: false };
 }
 
 export function resetPauseBarrier(barrier: PauseBarrier): void {
@@ -51,6 +53,7 @@ export function resetPauseBarrier(barrier: PauseBarrier): void {
   barrier.sequences.fill(0);
   for (const slot of PARTICIPANT_SLOTS) barrier.frames[slot] = undefined;
   barrier.paced = undefined;
+  barrier.resumeQueued = false;
 }
 
 /** The match resumed with the speculative cursor at `frame`: the callback that resumes it shows the paused picture. */

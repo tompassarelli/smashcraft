@@ -29,7 +29,6 @@ const CUE_SOUNDS: readonly string[] = [
 
 export const cueSound = (cue: MatchCue): string => at(CUE_SOUNDS, cue);
 
-/** Each cue's on-screen call; empty for cues that are only heard. */
 
 
 const MUSIC = "Sound\\Music\\mp3Music\\";
