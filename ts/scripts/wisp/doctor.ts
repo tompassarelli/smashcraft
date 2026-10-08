@@ -69,6 +69,18 @@ const launcherCommand = (name: string, run: string, client: { readonly compatDat
   ];
 };
 
+/**
+ * The signed-in 3.0.1 clones (wisp:docs/lan.md, "Signed-in 3.0.1 clients"):
+ * clients named clone-a, clone-b or clone-c start only through their own
+ * launch script, which keeps clone-a (Tom's account) off while he plays. They
+ * keep their own sign-in, so doctor types no account into them.
+ */
+const CLONE_LAUNCH = join(homedir(), ".local/share/wisp/online/launch.sh");
+const cloneLauncher = (name: string, run: string) => {
+  const clone = /^clone-([abc])$/.exec(name)?.[1];
+  return clone === undefined ? undefined : { kind: "command" as const, command: [CLONE_LAUNCH, clone, run], log: join(homedir(), `.local/share/wisp/online/${name}-launch.log`) };
+};
+
 /** The doctor declaration for the clients file as it stands now (its desktops' displays are read from their run folders). */
 export const smashcraftDoctor = (clientsFile = clientState): DoctorDeclaration => {
   const file = readClientsFile(clientsFile);
@@ -76,6 +88,8 @@ export const smashcraftDoctor = (clientsFile = clientState): DoctorDeclaration =
   const accounts: Record<string, NonNullable<DoctorDeclaration["accounts"]>[string]> = {};
   for (const { name, run, offline } of file.clients) {
     if (offline === true) continue;
+    const clone = cloneLauncher(name, run);
+    if (clone !== undefined) start[name] = clone;
     const client = CLIENTS[name];
     if (client !== undefined) {
       start[name] = { kind: "command", command: launcherCommand(name, run, client), log: join(homedir(), `.local/state/smashcraft/client-${name}-launcher.log`) };

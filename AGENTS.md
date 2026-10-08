@@ -288,7 +288,9 @@ code. From smashcraft:ts/:
   a stuck loading screen, or shares its prefix with a second runtime, and
   signs a launcher at its Battle.net sign-in form in with the client's account
   (A: account c, B: account b; smashcraft:ts/scripts/wisp/doctor.ts), so Tom
-  never signs in by hand (wisp:docs/doctor.md). `bun wisp client sign-out
+  never signs in by hand (wisp:docs/doctor.md). Clients named clone-a, clone-b
+  or clone-c start only through ~/.local/share/wisp/online/launch.sh and keep
+  their own sign-in (wisp:docs/lan.md, "Clone-a"). `bun wisp client sign-out
   CLIENT...` signs a client out; the next doctor run signs it in. `fresh`,
   `integrity capture` (bot sessions included), `play` and `accept` run it before
   they start and once after a failure; run it instead of driving a client by

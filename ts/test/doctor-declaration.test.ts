@@ -12,3 +12,15 @@ test("offline pair aliases a and b never construct the signed-in clients' launch
     expect(smashcraftDoctor(path)).toEqual({ clientsFile: path, start: {} });
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
+
+test("a clone starts through its launch script and signs nothing in", () => {
+  const dir = mkdtempSync(join(tmpdir(), "smashcraft-doctor-"));
+  try {
+    const path = join(dir, "clients.json");
+    const run = join(dir, "desktop");
+    writeFileSync(path, JSON.stringify({ clients: [{ name: "clone-a", run, documents: `${dir}/clone-a/pfx/drive_c/users/steamuser/Documents/Warcraft III` }] }));
+    const declaration = smashcraftDoctor(path);
+    expect(declaration.start["clone-a"]).toMatchObject({ kind: "command", command: [expect.stringMatching(/\/\.local\/share\/wisp\/online\/launch\.sh$/), "a", run] });
+    expect(declaration.accounts).toBeUndefined();
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
