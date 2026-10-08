@@ -1,0 +1,21 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "smashcraft-replay-part 63 5" )
+	call Preload( "checkpoint 2400 25190:42587" )
+	call Preload( "rows 120:3:0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" )
+	call Preload( "digests 2fdxyq 3zqo8i j8e2yx yh2hgh 0aa7q9 1unxr6 h3bchl wbzr3y xwchdq zgp7ni ey8m52 u6w0vh vr9qwe xkpmwn 3nvj62 9i6y50 fchdct l6s9m8 r13ol6 linvl5 g07jvl wne37f r4ya7e lmih7d olpss9 rvqszy 8xbidq" )
+	call Preload( "digests pq15ys t027z7 wa386w lk8rl1 puwl6u gporyx 1keqgf kro2qc 0pb21j w45flh j0mykc s7ier5 6f626f xbk4tx prpb53 2x9qn0 21pfde 38zu81 92rkft obzq94 8gktii 20ls37 07408b bo7nn1 fkp8hd 1v98uy xce7sg" )
+	call Preload( "digests cv3pyy 2kkwdo nxxaz7 fza8sa mshqln 2i9s5h 2ifs6k 2ils7n 0axcpt xuewz4 vmqhha tf21zg r7em8r ozq6qx 77q0l2 ik78i6 twogfa 5i0oce guhw9i s6y4fh ofu1uu assabd gr5uzx z2xjws tocq07 pad41x brxxdk" )
+	call Preload( "digests i2ozpw 7lvjqj 3wm1e3 9nzf5x oq3cr4 locnbe 80vmvl 7na92w o9cmdn si7m9k v38nky ywh97i 8p1uoi 68lfap j02ad9 8am2va 10baw6 9jhv45 lfdqjg qgn4zz sym55i eex8tn 38lzde yx1k1d qxsqfq ptjlga v4ppp6" )
+	call Preload( "digests ax0kwa 74jso4 yabtju 6jmhsm p46u4k aa95tr r6zv3z ixxiln 9yr51j 0un4d9 02sa78 urteyt" )
+	call Preload( "checkpoint 2520 17078:38353" )
+	call Preload( "rows 15:3:0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" )
+	call Preload( "digests h38e66 d0sw9l d0ijxl d087ll 8xspk7 05fuaq dqb0sn ccdmzn 25xq34 rzfwe0 ysju4i m4fean y1aymr qi8cka 9bfks0" )
+	call Preload( "checkpoint 2535 26033:35895" )
+	call Preload( "end 11" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "/home/tom/code/smashcraft/worktrees/native-corpus70-fix-20261008/build/four70.ts"
+  ],
+  "cwd": "/home/tom/code/smashcraft/worktrees/native-corpus70-fix-20261008/ts",
+  "started": "2026-10-08T09:06:50.158Z",
+  "ended": "2026-10-08T09:09:06.407Z",
+  "clients": [
+    "clone-a",
+    "clone-d"
+  ],
+  "git": {
+    "commit": "24c6d57af2d8cf7834bd8fe0c0a1c4356d85ac4e",
+    "dirty": false
+  },
+  "desyncs": []
+}
