@@ -1,3 +1,4 @@
+import { createFighter } from "./fighter";
 import { stageBounds } from "./stageBounds";
 // Dodge intangibility, swept landing and blast-zone loss share the frame
 // executor; these contracts retain that interaction through recovery and stocks.
