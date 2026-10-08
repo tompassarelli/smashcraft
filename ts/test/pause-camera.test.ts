@@ -6,6 +6,8 @@ import { install, startBuild } from "../src/platform/main";
 import { shell } from "../src/platform/shell/state";
 import { Key } from "../src/platform/shell/keyEvents";
 import { advancePauseCamera } from "../src/platform/shell/pauseCamera";
+import { surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
+import { stageClock } from "../src/game/match/rules";
 import { stageBounds } from "../src/game/sim/stageBounds";
 import { WORLD_BOUNDS } from "../src/game/presentation/arenaCamera";
 import { confirmedChecksum } from "../src/platform/shell/diagnostics";
@@ -72,7 +74,7 @@ test("paused camera pans, zooms, tilts, hides the HUD and restores the exact mat
   }
 });
 
-test("paused camera cannot pan outside the stage or world or zoom through the stage [spec #332]", () => {
+test("paused camera keeps the stage visible inside world bounds when panning, zooming or tilting [spec #332]", () => {
   const clients = headless.clients({ start: () => startBuild({ ...PLAYABLE_BUILD, devConsole: true }), install }, [0]);
   const client = clients.client(0);
   clients.start(); clients.frames(30); clients.chat(0, "-dev quick"); clients.frames(60);
@@ -95,6 +97,17 @@ test("paused camera cannot pan outside the stage or world or zoom through the st
       expect(s.camera.distance).toBeGreaterThanOrEqual(498);
       expect(camera.tilt).toBeGreaterThanOrEqual(-25);
       expect(camera.tilt).toBeLessThanOrEqual(15);
+      const stageFrame = stageClock(s.game);
+      const deckX = Math.max(surfaceLeft(s.game.stageChoice, 0, stageFrame), Math.min(surfaceRight(s.game.stageChoice, 0, stageFrame), s.camera.x));
+      const dz = surfaceZ(s.game.stageChoice, 0, stageFrame) - s.camera.z;
+      const angle = (10 - camera.tilt) * Math.PI / 180;
+      const depth = s.camera.distance - dz * Math.sin(angle);
+      const column = 0.5 + (deckX - s.camera.x) / (2 * depth * s.camera.tangent * camera.aspect);
+      const row = 0.5 - dz * Math.cos(angle) / (2 * depth * s.camera.tangent);
+      expect(column).toBeGreaterThanOrEqual(0);
+      expect(column).toBeLessThanOrEqual(1);
+      expect(row).toBeGreaterThanOrEqual(0);
+      expect(row).toBeLessThanOrEqual(1);
     }
   });
   expect(client.errors).toEqual([]);
@@ -119,6 +132,7 @@ test("controller camera text stays local while both paused journal clients keep 
   clients.type(0, "h");
   frames(1);
   expect(value(a, () => shell().pauseCamera?.hideHud)).toBe(true);
+  expect(a.frames.snapshot({ visibleOnly: true }).some(frame => frame.name === "JournalControllerInput" || frame.name === "JournalPauseHelp")).toBe(false);
   clients.type(0, "e");
   frames(1);
   expect(overlay()).toBe(true);

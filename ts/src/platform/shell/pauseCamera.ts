@@ -2,7 +2,8 @@ import { f32 } from "wisp/src/sim/f32";
 import { ARENA_CAMERA, WORLD_BOUNDS } from "../../game/presentation/arenaCamera";
 import { copyMatchCamera, createMatchCamera, limitCamera, type MatchCamera } from "../../game/sim/matchCamera";
 import { stageBounds } from "../../game/sim/stageBounds";
-import { Phase } from "../../game/match/rules";
+import { surfaceLeft, surfaceRight, surfaceZ } from "../../game/sim/stage";
+import { Phase, stageClock } from "../../game/match/rules";
 import type { ShellState } from "./state";
 
 export interface PauseCamera {
@@ -55,12 +56,28 @@ export function advancePauseCamera(s: ShellState, aspect: number): void {
   const z = held(0x49) - held(0x4b);
   const zoom = held(0xbd) + held(0x6d) - held(0xbb) - held(0x6b);
   const tilt = held(0x4f) - held(0x50);
+  if (x === 0 && z === 0 && zoom === 0 && tilt === 0) return;
   s.camera.x = f32(s.camera.x + x * 12.0);
   s.camera.z = f32(s.camera.z + z * 12.0);
   s.camera.distance = Math.max(498.0, f32(s.camera.distance + zoom * 24.0));
   camera.tilt = Math.min(15.0, Math.max(-25.0, f32(camera.tilt + tilt * 0.5)));
   const bounds = stageBounds(s.game.stageChoice);
   limitCamera(s.camera, bounds.camera, aspect, bounds.blast.bottom);
+  const stageFrame = stageClock(s.game);
+  const deck = surfaceZ(s.game.stageChoice, 0, stageFrame);
+  const angle = (10.0 - camera.tilt) * Math.PI / 180.0;
+  const sine = Math.sin(angle);
+  const cosine = Math.cos(angle);
+  const reach = f32(s.camera.distance * s.camera.tangent);
+  const pitch = f32(s.camera.tangent * sine);
+  const above = f32(reach / f32(cosine + pitch));
+  const below = f32(reach / f32(cosine - pitch));
+  s.camera.z = Math.min(f32(f32(deck + below) - 24.0), Math.max(f32(f32(deck - above) + 24.0), s.camera.z));
+  const depth = f32(s.camera.distance - f32(f32(deck - s.camera.z) * sine));
+  const width = f32(f32(depth * s.camera.tangent) * aspect);
+  const left = surfaceLeft(s.game.stageChoice, 0, stageFrame);
+  const right = surfaceRight(s.game.stageChoice, 0, stageFrame);
+  s.camera.x = Math.min(f32(f32(right + width) - 24.0), Math.max(f32(f32(left - width) + 24.0), s.camera.x));
   s.camera.x = Math.min(WORLD_BOUNDS.right - s.origin.x, Math.max(WORLD_BOUNDS.left - s.origin.x, s.camera.x));
 }
 

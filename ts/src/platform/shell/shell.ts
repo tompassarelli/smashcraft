@@ -1,4 +1,4 @@
-import { servicePauseCameraControls } from "./pauseCamera";
+import { servicePauseCameraControls, pauseHudHidden } from "./pauseCamera";
 // The native shell's lifecycle: start creates the state and every handle
 // once, install registers every callback by name (and after a hot reload
 // recreates the UI objects, which keep their creation code), and the game
@@ -132,7 +132,7 @@ function gameTick(s: ShellState): void {
   const journal = s.rollback?.journal;
   if (editbox !== undefined && journal !== undefined) {
     const { barrier } = journal;
-    editbox.updatePauseHint(s.session.paused, barrier.request !== undefined, pausing(barrier));
+    editbox.updatePauseHint(s.session.paused, barrier.request !== undefined, pausing(barrier), pauseHudHidden(s));
   }
   if (s.game.phase === Phase.characterMenu || s.game.phase === Phase.stageMenu) s.menuFrames = ((s.menuFrames ?? 0) + 1) & 1048575;
   servicePlaytestRequest(s);

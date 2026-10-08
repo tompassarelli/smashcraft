@@ -52,6 +52,7 @@ export class EditboxIngress {
     BlzFrameSetAbsPoint(this.box, FRAMEPOINT_TOPLEFT, 0.03999999910593033, 0.550000011920929);
     BlzFrameSetSize(this.box, 0.7200000286102295, 0.03500000014901161);
     BlzFrameSetTextSizeLimit(this.box, EDITBOX_CAPACITY);
+    BlzFrameSetAlpha(this.box, 0);
     BlzFrameSetVisible(this.box, false);
     this.hint = BlzCreateFrameByType("TEXT", "JournalPauseHelp", gameUi, "", 970);
     BlzFrameSetAbsPoint(this.hint, FRAMEPOINT_TOPLEFT, 0.6100000143051147, 0.49000000953674316);
@@ -213,7 +214,10 @@ export class EditboxIngress {
     if (this.session !== undefined) this.writeReceipt(this.session);
   }
 
-  updatePauseHint(paused: boolean, pending: boolean, targetPaused: boolean): void {
-    if (this.session !== undefined) BlzFrameSetText(this.hint, pauseLabel(this.session.chat, paused, pending, targetPaused));
+  updatePauseHint(paused: boolean, pending: boolean, targetPaused: boolean, hideHud: boolean): void {
+    if (this.session === undefined) return;
+    BlzFrameSetAlpha(this.box, 0);
+    BlzFrameSetVisible(this.hint, !hideHud);
+    BlzFrameSetText(this.hint, pauseLabel(this.session.chat, paused, pending, targetPaused));
   }
 }
