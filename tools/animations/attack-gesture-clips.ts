@@ -13,6 +13,7 @@ import { heroCueWindows } from "../../ts/src/game/presentation/specialCues";
 import { ROSTER_ATTACK_CLIPS } from "../../ts/src/game/presentation/rosterAttackClipInfo";
 import { seconds } from "./asset-info";
 import { encodeVerified, ensure, fighters, onGlobalClock, parseSource, tracks } from "./original-clips";
+import { attackGestureBaseModel } from "./recovery-model";
 
 const PLAN: Readonly<Record<number, readonly HeroPose[]>> = {
   2: ["jab3"],
@@ -45,8 +46,25 @@ function rotate(q: Float32Array | Int32Array, degrees: number, axis = 1): Float3
   const norm=Math.hypot(...out); for(let i=0;i<4;i++)out[i]=out[i]!/norm;return out;
 }
 
+// A rig whose shared profile draws too little toward the strike, or a jab as long as its forward tilt (#163), gets its own.
+const FIGHTER_CONTACT: Readonly<Record<number, Readonly<Record<string, readonly number[]>>>> = {
+  8: { jab2: [-12, -48, -42, 38, -20, 18, -8, 10], jab3: [3, -75, 80, -52, 25, 6, 35, 5], downTilt: [15, 35, 50, -15, -60, -83, 95, 10] },
+  9: { jab3: [23, -75, 45, -2, 25, -24, 35, 5], forwardTilt: [50, -75, 35, -15, 65, -18, 22, -20], dashAttack: [48, -75, 65, -22, 50, -65, 100, -5] },
+  10: { forwardTilt: [32, -95, 35, -48, -22, -18, 22, 20] },
+  11: {
+    jab2: [-57, -48, -42, 38, -20, 18, -8, 0], jab3: [-17, -75, 45, -42, 25, -24, 35, 0], forwardTilt: [32, -55, 35, 12, 18, -18, 22, 0],
+    forwardTiltDown: [33, -10, -60, -32, -45, -35, 48, 0], dashAttack: [48, -65, 65, -2, 15, -65, 100, 0],
+  },
+  12: { forwardTiltDown: [8, 15, -30, -32, -45, -35, 48, 0] },
+};
+// How far the fighter draws back before the strike, as a fraction of the contact pose (0.3 unless named).
+const DRAW_BACK: Readonly<Record<number, Readonly<Record<string, number>>>> = {
+  8: { downTilt: 0.4 }, 11: { jab2: 0.4 },
+};
+const contactProfile=(pose: HeroPose, character: number)=>FIGHTER_CONTACT[character]?.[pose]??CONTACT[pose];
+
 function joint(name: string, pose: HeroPose, character: number): number {
-  const p=CONTACT[pose];ensure(p,`missing contact profile ${pose}`);
+  const p=contactProfile(pose,character);ensure(p,`missing contact profile ${pose}`);
   const left=/(?:_L|ArmL|HandL|LegL|^L(?:hip|knee|shoulder|elbow|hand))$/i.test(name);
   const heavy=character===4||character===7||character===10, scale=heavy?0.8:character===9?1.12:1;
   if(/^(Bone_Chest|Chest|Bone NECK|Stomach)$/.test(name))return p[0]!*scale;
@@ -72,17 +90,21 @@ const [inputArg,outputArg,...options]=process.argv.slice(2),input=resolve(inputA
 const only=options[0]==="--character"?Number(options[1]):undefined;
 ensure(input&&output&&relative(project,output).startsWith(".."),"usage: bun tools/animations/attack-gesture-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT");
 mkdirSync(output,{recursive:true});
+// A retained binding is written as the shortest decimal of its f32 seconds, as a freshly authored one is.
+const authoredSeconds=(value:number)=>{for(let digits=1;digits<17;digits++){const decimal=Number(value.toPrecision(digits));if(Math.fround(decimal)===value)return decimal;}return value;};
 const bindings:string[]=[],records:object[]=only!==undefined&&await Bun.file(join(output,"attack-gestures.json")).exists()
   ? (await Bun.file(join(output,"attack-gestures.json")).json() as {character:number}[]).filter(r=>r.character!==only) : [];
 if(only!==undefined)for(const [id,table]of Object.entries(ROSTER_ATTACK_CLIPS))if(Number(id)!==only) {
   bindings.push(`  ${id}: {`);
-  for(const [pose,clip]of Object.entries(table))if(clip)bindings.push(`    ${pose}: { index: ${clip.index}, seconds: ${seconds(clip.seconds)} },`);
+  for(const [pose,clip]of Object.entries(table))if(clip)bindings.push(`    ${pose}: { index: ${clip.index}, seconds: ${seconds(authoredSeconds(clip.seconds))} },`);
   bindings.push("  },");
 }
 for(const [id,poses]of Object.entries(PLAN)) {
   if(only!==undefined&&Number(id)!==only)continue;
   const character=Number(id) as Character,f=fighters[character];ensure(f,"missing fighter");
-  const source=parseSource(await Bun.file(join(input,f.source)).arrayBuffer());
+  // A published model already carries its gestures: author again from the model they were appended to.
+  const published=parseSource(await Bun.file(join(input,f.source)).arrayBuffer()),base=attackGestureBaseModel(published);
+  const source=base?parseSource(generateMDX(base)):published;
   ensure(!source.Sequences.some(s=>s.Name.startsWith("Attack Gesture ")),`${f.name}: input already has roster gestures`);
   const model=structuredClone(source),stand=source.Sequences.find(s=>/^stand ready$/i.test(s.Name))??source.Sequences.find(s=>/^stand(?:\s*-?\s*1)?$/i.test(s.Name));
   ensure(stand,`${f.name}: missing stand`);
@@ -102,7 +124,7 @@ for(const [id,poses]of Object.entries(PLAN)) {
     ensure(contact>0&&total>contact,`${f.name}/${pose}: invalid timing`);
     const start=cursor,end=start+Math.round(total*1000/60),index=model.Sequences.length;cursor=end+100;
     model.Sequences.push({...stand,Name:`Attack Gesture ${pose}`,Interval:new Uint32Array([start,end]),NonLooping:true,MoveSpeed:0,Rarity:0,MinimumExtent:new Float32Array([-300,-300,-200]),MaximumExtent:new Float32Array([300,300,350]),BoundsRadius:400});
-    let articulated=0;
+    let articulated=0;const back=DRAW_BACK[character]?.[pose]??0.3;
     tracks(model,(track,path)=>{
       const donor=originals.get(path);if(!donor||onGlobalClock(donor))return;
       const key=donor.Keys.find(k=>k.Frame>=stand.Interval[0]&&k.Frame<=stand.Interval[1]);if(!key)return;
@@ -110,7 +132,7 @@ for(const [id,poses]of Object.entries(PLAN)) {
       const amount=node?joint(node.Name,pose,character):0;if(amount)articulated++;
       for(let frame=0;frame<=total;frame++) {
         const anticipation=Math.max(1,contact-2);
-        const amountAt=frame<anticipation?-0.3*Math.sin(frame/anticipation*Math.PI/2):frame<=contact?-0.3+1.3*(frame-anticipation)/(contact-anticipation):frame<contact+3?1+0.18*(frame-contact)/3:1.18*Math.max(0,1-(frame-contact-3)/(total-contact-3));
+        const amountAt=frame<anticipation?-back*Math.sin(frame/anticipation*Math.PI/2):frame<=contact?-back+(1+back)*(frame-anticipation)/(contact-anticipation):frame<contact+3?1+0.18*(frame-contact)/3:1.18*Math.max(0,1-(frame-contact-3)/(total-contact-3));
         const Vector=amount?rotate(key.Vector,amount*amountAt):key.Vector.slice();
         track.Keys.push({...key,Frame:start+Math.round(frame*1000/60),Vector,...key.InTan?{InTan:Vector.slice(),OutTan:Vector.slice()}: {}});
       }
@@ -118,7 +140,7 @@ for(const [id,poses]of Object.entries(PLAN)) {
     ensure(articulated>=4,`${f.name}/${pose}: only ${articulated} moving joints`);
     for(let frame=0;frame<=total;frame++) {
       const arc=frame<=contact?Math.sin(frame/contact*Math.PI/2):Math.max(0,1-(frame-contact)/(total-contact));
-      helper.Rotation?.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:rotate(new Float32Array([0,0,0,1]),CONTACT[pose]![7]!*arc)});
+      helper.Rotation?.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:rotate(new Float32Array([0,0,0,1]),contactProfile(pose,character)![7]!*arc)});
     }
     const binding=`{ index: ${index}, seconds: ${seconds((end-start)/1000)} }`;
     bindings.push(`    ${pose}: ${binding},`);
@@ -137,5 +159,7 @@ for(const [id,poses]of Object.entries(PLAN)) {
   await Bun.write(join(output,`${f.name}-attack-gestures.png`),sheet(f.name,new DrawnModel(bytes,characterModelScale(character)),drawnFrames,6).png);
   console.log(`ATTACK_GESTURES_PASS ${f.name}: ${poses.length} gestures, ${source.Sequences.length} old clips preserved`);
 }
-await Bun.write(join(project,"ts/src/game/presentation/rosterAttackClipInfo.ts"),["// Generated by tools/animations/attack-gesture-clips.ts; regenerate instead of editing.",'import { f32 } from "wisp/src/sim/f32";','import type { HeroClipTable } from "../sim/heroes/hero";',"export const ROSTER_ATTACK_CLIPS = {",...bindings,"} as const satisfies Readonly<Record<number, HeroClipTable>>;",""].join("\n"));
+// Fighters stay in Character order whichever one --character regenerated.
+function byFighter(lines:readonly string[]):string[]{const blocks:string[][]=[];for(const line of lines){if(/^  \d+: \{$/.test(line))blocks.push([]);blocks.at(-1)?.push(line);}return blocks.sort((a,b)=>parseInt(a[0]??"")-parseInt(b[0]??"")).flat();}
+await Bun.write(join(project,"ts/src/game/presentation/rosterAttackClipInfo.ts"),["// Generated by tools/animations/attack-gesture-clips.ts; regenerate instead of editing.",'import { f32 } from "wisp/src/sim/f32";','import type { HeroClipTable } from "../sim/heroes/hero";',"export const ROSTER_ATTACK_CLIPS = {",...byFighter(bindings),"} as const satisfies Readonly<Record<number, HeroClipTable>>;",""].join("\n"));
 await Bun.write(join(output,"attack-gestures.json"),JSON.stringify(records,null,2)+"\n");

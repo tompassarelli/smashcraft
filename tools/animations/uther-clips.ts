@@ -101,11 +101,13 @@ const back: Gesture = { ...reach, chest: -10, yaw: 130, arm: -110, free: -60 };
 const brace: Gesture = { chest: 28, arm: -24, elbow: 40, free: -35, hip: -35, knee: 55, head: -12 };
 const held: Gesture = { chest: 8, arm: -25, elbow: 20, free: -78, freeElbow: 12, hip: -8, knee: 12 };
 const captive: Gesture = { chest: -25, head: -28, arm: 25, elbow: 55, free: 20, freeElbow: 45, hip: -30, knee: 38 };
+// How far a swing coils away from its strike first, as a fraction of the strike pose: a jab or low poke draws back to read at gameplay zoom (#163).
+const COIL: Partial<Record<HeroPose, number>> = { jab: 1.5, jab2: 1, downTilt: 1, dashAttack: 1 };
 const actions: Action[] = [];
 const normals: readonly [HeroPose, AttackStyle, Gesture][] = [
   ["jab", AttackStyle.jab, {...reach, chest: 12, arm: -55}], ["jab2", AttackStyle.jab2, reach],
   ["forwardTilt", AttackStyle.forwardTilt, reach], ["forwardTiltUp", AttackStyle.forwardTiltUp, reach], ["forwardTiltDown", AttackStyle.forwardTiltDown, reach],
-  ["upTilt", AttackStyle.upTilt, high], ["downTilt", AttackStyle.downTilt, low], ["dashAttack", AttackStyle.dashAttack, {...reach, lean: 24, chest: 32}],
+  ["upTilt", AttackStyle.upTilt, high], ["downTilt", AttackStyle.downTilt, {...low, chest: 70, lean: 15}], ["dashAttack", AttackStyle.dashAttack, {...reach, lean: 24, chest: 32}],
   ["forwardSmash", AttackStyle.forwardSmash, {...reach, chest: 38, hip: -24}], ["upSmash", AttackStyle.upSmash, {...high, chest: -30}], ["downSmash", AttackStyle.downSmash, low],
   ["neutralAir", AttackStyle.neutralAir, reach], ["forwardAir", AttackStyle.forwardAir, {...reach, chest: 32}], ["backAir", AttackStyle.backAir, back],
   ["upAir", AttackStyle.upAir, {chest:-22,head:-38,arm:15,free:10,hip:28,knee:40}], ["downAir", AttackStyle.downAir, {...low, chest: 38, arm: -55}],
@@ -201,7 +203,7 @@ for (const [ordinal,action] of [...actions,...damageActions].entries()) {
   const name=action.damage?`Uther Pain ${Math.floor((ordinal-actions.length)/3)} ${(ordinal-actions.length)%3}`:`Uther ${action.pose}`;
   model.Sequences.push({...stand,Name:name,Interval:new Uint32Array([start,end]),NonLooping:!action.hold,MoveSpeed:0,Rarity:0,
     MinimumExtent:new Float32Array([-320,-320,-200]),MaximumExtent:new Float32Array([320,320,360]),BoundsRadius:440});
-  const coil=blend(ready,action.gesture,-0.32);
+  const coil=blend(ready,action.gesture,-(COIL[action.pose]??0.32));
   const phases:Phase[]=action.roll ? [0,0.12,0.25,0.5,0.75,0.9,1].map(t=>({frame:Math.round(t*action.frames),gesture:{...blend(ready,brace,t===0||t===1?0:1),lean:t*360*action.roll!}})) : action.hold ? [{frame:0,gesture:action.gesture},{frame:action.frames,gesture:action.gesture}] : [
     {frame:0,gesture:action.first??ready},{frame:Math.max(1,action.contact-3),gesture:blend(action.first??ready,coil,0.75)},
     ...(action.phases ?? [{frame:action.contact,gesture:action.gesture,target:action.target},{frame:Math.min(action.frames-1,action.contact+4),gesture:action.gesture,target:action.target}]),

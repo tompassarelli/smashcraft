@@ -27,10 +27,10 @@ const low: Gesture = {chest:10,waist:5,arm:-25,wrist:0,leftArm:-35,head:-15,wolf
 const back: Gesture = {chest:-15,waist:-20,arm:55,wrist:35,leftArm:-40,head:15,yaw:150,neck:-10};
 const cast: Gesture = {chest:-20,waist:8,arm:-115,wrist:20,leftArm:-120,head:-20,neck:-10,front:-10};
 const brace: Gesture = {chest:35,waist:10,arm:-45,wrist:25,leftArm:-60,head:-20,wolf:6,front:35,back:35};
-const headAnticipation: Partial<Record<HeroPose, number>> = { forwardTilt: 15, forwardTiltDown: 45, downTilt: 45, dashAttack: 75 };
+const headAnticipation: Partial<Record<HeroPose, number>> = { jab: 30, jab2: 30, forwardTilt: 15, forwardTiltDown: 45, downTilt: 45, dashAttack: 75 };
 const actions: Action[] = [];
 const normals: readonly [HeroPose, AttackStyle, Gesture][] = [
- ["jab",AttackStyle.jab,{...forward,arm:-60,chest:10}], ["jab2",AttackStyle.jab2,{...forward,arm:-80}],
+ ["jab",AttackStyle.jab,{...forward,arm:-60,chest:10,neck:-35}], ["jab2",AttackStyle.jab2,{...forward,arm:-80,neck:-35}],
  ["forwardTilt",AttackStyle.forwardTilt,{...forward,chest:50,waist:-30}], ["forwardTiltUp",AttackStyle.forwardTiltUp,{...overhead,arm:-130}], ["forwardTiltDown",AttackStyle.forwardTiltDown,{...low,arm:-70}],
  ["upTilt",AttackStyle.upTilt,overhead], ["downTilt",AttackStyle.downTilt,low], ["dashAttack",AttackStyle.dashAttack,{...forward,lean:12,wolf:10}],
  ["forwardSmash",AttackStyle.forwardSmash,{...forward,chest:35,waist:-20,arm:-115,wrist:60}], ["upSmash",AttackStyle.upSmash,{...overhead,chest:-30,arm:-175}], ["downSmash",AttackStyle.downSmash,{...low,chest:70,yaw:45}],
