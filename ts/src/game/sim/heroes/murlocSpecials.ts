@@ -15,7 +15,7 @@ const ensnare = (air: boolean): AuthoredSpecial => ({
   }],
 });
 const tidalRush = (air: boolean): AuthoredSpecial => ({
-  cost: 10, endFrame: 40, landingLag: air ? 20 : undefined,
+  cost: 10, endFrame: 32, landingLag: air ? 20 : undefined,
   motion: [{ ...frames(8, 22), velocityX: 11.0, velocityZ: 0.0, stopsAtShield: true }],
   regions: [heroRegion(8, 22, { x1: 10.0, z1: 22.0, x2: 46.0, z2: 22.0, radius: 18.0 }, murlocHit(8.0, 40, 80.0, 22.0))],
 });

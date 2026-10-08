@@ -13,7 +13,7 @@ export const MURLOC_GAMEPLAN: FighterGameplan = {
   approach: [
     { via: "run", moves: [AttackStyle.dashAttack, AttackStyle.downTilt, AttackStyle.grab], weight: 3 },
     { via: "jump", moves: [AttackStyle.neutralAir, AttackStyle.forwardAir, AttackStyle.backAir], weight: 2 },
-    { via: "shoot", moves: [GameplanSpecial.neutral, GameplanSpecial.side], weight: 1 },
+    { via: "shoot", moves: [GameplanSpecial.neutral], weight: 1 },
   ],
   defense: ["shield", "roll", "jump", "retreat"],
   combos: [

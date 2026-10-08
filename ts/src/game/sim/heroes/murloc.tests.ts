@@ -15,13 +15,13 @@ import { MURLOC_MOVES } from "./murlocMoves";
 // [style, target x, target z, damage]
 const normalCases = [
   [AttackStyle.jab, 45.0, 0.0, 2.0], [AttackStyle.jab2, 50.0, 0.0, 4.0],
-  [AttackStyle.forwardTilt, 70.0, 0.0, 7.0], [AttackStyle.forwardTiltUp, 70.0, 0.0, 7.0],
-  [AttackStyle.forwardTiltDown, 70.0, 0.0, 7.0], [AttackStyle.upTilt, 30.0, 60.0, 6.0],
-  [AttackStyle.downTilt, 65.0, 0.0, 5.0], [AttackStyle.dashAttack, 70.0, 0.0, 8.0],
-  [AttackStyle.forwardSmash, 95.0, 0.0, 15.0], [AttackStyle.upSmash, 0.0, 90.0, 14.0],
-  [AttackStyle.downSmash, 80.0, 0.0, 12.0], [AttackStyle.neutralAir, 40.0, 0.0, 7.0],
-  [AttackStyle.forwardAir, 80.0, 0.0, 9.0], [AttackStyle.backAir, -80.0, 0.0, 11.0],
-  [AttackStyle.upAir, 0.0, 80.0, 8.0], [AttackStyle.downAir, 0.0, -90.0, 10.0],
+  [AttackStyle.forwardTilt, 70.0, 0.0, 8.0], [AttackStyle.forwardTiltUp, 70.0, 0.0, 8.0],
+  [AttackStyle.forwardTiltDown, 70.0, 0.0, 8.0], [AttackStyle.upTilt, 30.0, 60.0, 7.0],
+  [AttackStyle.downTilt, 65.0, 0.0, 6.0], [AttackStyle.dashAttack, 70.0, 0.0, 9.0],
+  [AttackStyle.forwardSmash, 95.0, 0.0, 16.0], [AttackStyle.upSmash, 0.0, 90.0, 15.0],
+  [AttackStyle.downSmash, 80.0, 0.0, 13.0], [AttackStyle.neutralAir, 40.0, 0.0, 8.0],
+  [AttackStyle.forwardAir, 80.0, 0.0, 10.0], [AttackStyle.backAir, -80.0, 0.0, 12.0],
+  [AttackStyle.upAir, 0.0, 80.0, 9.0], [AttackStyle.downAir, 0.0, -90.0, 11.0],
   [AttackStyle.getupAttack, -50.0, 0.0, 6.0], [AttackStyle.ledgeAttack, 70.0, 0.0, 6.0],
 ] as const;
 

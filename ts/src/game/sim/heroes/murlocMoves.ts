@@ -18,7 +18,7 @@ const body = hurtCapsule(Character.murloc);
 const torso = hurtPart(0.0, 4.0, 0.0, body.z2, body.radius);
 const arm = (x: number, z: number) => hurtPart(8.0, 40.0, x, z, 8.0);
 const reach = (first: number, last: number, x: number, z: number) => [heroHurtPose(first, last, [torso, arm(x, z)])];
-const tilt = (z: number, angle: 25 | 35 | 55) => heroMove(6, 3, 19, 0, [heroRegion(6, 8, claw(20.0, 40.0, 66.0, z), ordinary(7.0, angle))]);
+const tilt = (z: number, angle: 25 | 35 | 55) => heroMove(6, 3, 19, 0, [heroRegion(6, 8, claw(20.0, 40.0, 66.0, z), ordinary(8.0, angle))]);
 
 export const MURLOC_MOVES: FighterMoves = {
   dashAttack: AttackStyle.dashAttack, smashMaxChargeFrames: 45, smashMaxDamageMultiplier: 1.25, maxPummels: 1,
@@ -40,20 +40,20 @@ export const MURLOC_MOVES: FighterMoves = {
     [AttackStyle.jab]: jabStep(heroMove(3, 2, 11, 0, [heroRegion(3, 4, claw(16.0, 40.0, 40.0, 40.0, 8.0), ordinary(2.0, 25, 50.0, 14.0))])),
     [AttackStyle.jab2]: heroMove(5, 2, 15, 0, [heroRegion(5, 6, claw(18.0, 40.0, 46.0, 42.0), ordinary(4.0, 35))]),
     [AttackStyle.forwardTilt]: tilt(40.0, 35), [AttackStyle.forwardTiltUp]: tilt(64.0, 55), [AttackStyle.forwardTiltDown]: tilt(14.0, 25),
-    [AttackStyle.upTilt]: heroMove(5, 4, 18, 0, [heroRegion(5, 8, claw(14.0, 50.0, 6.0, 90.0, 14.0), ordinary(6.0, 90, 90.0, 22.0))]),
-    [AttackStyle.downTilt]: heroMove(5, 3, 16, 0, [heroRegion(5, 7, claw(18.0, 8.0, 60.0, 8.0), ordinary(5.0, 80, 90.0, 22.0))]),
-    [AttackStyle.dashAttack]: heroMove(7, 5, 26, 0, [heroRegion(7, 11, claw(16.0, 26.0, 64.0, 26.0, 14.0), ordinary(8.0, 55))], 48.0, true),
-    [AttackStyle.forwardSmash]: heroMove(14, 3, 36, 0, [heroRegion(14, 16, claw(24.0, 40.0, 86.0, 40.0, 12.0), ordinary(15.0, 35, 105.0, 26.0))]),
-    [AttackStyle.upSmash]: heroMove(11, 4, 34, 0, [heroRegion(11, 14, claw(0.0, 40.0, 0.0, 114.0, 16.0), ordinary(14.0, 90, 105.0, 26.0))]),
+    [AttackStyle.upTilt]: heroMove(5, 4, 18, 0, [heroRegion(5, 8, claw(14.0, 50.0, 6.0, 90.0, 14.0), ordinary(7.0, 90, 90.0, 22.0))]),
+    [AttackStyle.downTilt]: heroMove(5, 3, 16, 0, [heroRegion(5, 7, claw(18.0, 8.0, 60.0, 8.0), ordinary(6.0, 80, 90.0, 22.0))]),
+    [AttackStyle.dashAttack]: heroMove(7, 5, 26, 0, [heroRegion(7, 11, claw(16.0, 26.0, 64.0, 26.0, 14.0), ordinary(9.0, 55))], 48.0, true),
+    [AttackStyle.forwardSmash]: heroMove(14, 3, 36, 0, [heroRegion(14, 16, claw(24.0, 40.0, 86.0, 40.0, 12.0), ordinary(16.0, 35, 112.0, 26.0))]),
+    [AttackStyle.upSmash]: heroMove(11, 4, 34, 0, [heroRegion(11, 14, claw(0.0, 40.0, 0.0, 114.0, 16.0), ordinary(15.0, 90, 105.0, 26.0))]),
     [AttackStyle.downSmash]: heroMove(12, 4, 34, 0, [
-      heroRegion(12, 15, claw(18.0, 10.0, 74.0, 10.0, 12.0), ordinary(12.0, 25, 105.0, 26.0)),
-      heroRegion(12, 15, claw(-18.0, 10.0, -74.0, 10.0, 12.0), ordinary(12.0, 25, 105.0, 26.0, true)),
+      heroRegion(12, 15, claw(18.0, 10.0, 74.0, 10.0, 12.0), ordinary(13.0, 25, 105.0, 26.0)),
+      heroRegion(12, 15, claw(-18.0, 10.0, -74.0, 10.0, 12.0), ordinary(13.0, 25, 105.0, 26.0, true)),
     ]),
-    [AttackStyle.neutralAir]: heroMove(5, 6, 20, 12, [heroRegion(5, 10, claw(-28.0, 40.0, 28.0, 40.0, 20.0), ordinary(7.0, 55))]),
-    [AttackStyle.forwardAir]: heroMove(7, 3, 24, 14, [heroRegion(7, 9, claw(18.0, 44.0, 70.0, 40.0), ordinary(9.0, 40, 90.0, 22.0))]),
-    [AttackStyle.backAir]: heroMove(8, 3, 24, 14, [heroRegion(8, 10, claw(-18.0, 40.0, -72.0, 40.0, 12.0), ordinary(11.0, 35, 105.0, 26.0, true))]),
-    [AttackStyle.upAir]: heroMove(6, 4, 20, 12, [heroRegion(6, 9, claw(-18.0, 92.0, 18.0, 92.0, 16.0), ordinary(8.0, 90, 90.0, 22.0))]),
-    [AttackStyle.downAir]: heroMove(12, 3, 28, 18, [heroRegion(12, 14, claw(0.0, 10.0, 0.0, -46.0, 12.0), { ...ordinary(10.0, 90, 90.0, 22.0), launchZ: -1.0 }, ordinary(10.0, 70, 90.0, 22.0))]),
+    [AttackStyle.neutralAir]: heroMove(5, 6, 20, 12, [heroRegion(5, 10, claw(-28.0, 40.0, 28.0, 40.0, 20.0), ordinary(8.0, 55))]),
+    [AttackStyle.forwardAir]: heroMove(7, 3, 24, 14, [heroRegion(7, 9, claw(18.0, 44.0, 70.0, 40.0), ordinary(10.0, 40, 90.0, 22.0))]),
+    [AttackStyle.backAir]: heroMove(8, 3, 24, 14, [heroRegion(8, 10, claw(-18.0, 40.0, -72.0, 40.0, 12.0), ordinary(12.0, 35, 110.0, 26.0, true))]),
+    [AttackStyle.upAir]: heroMove(6, 4, 20, 12, [heroRegion(6, 9, claw(-18.0, 92.0, 18.0, 92.0, 16.0), ordinary(9.0, 90, 90.0, 22.0))]),
+    [AttackStyle.downAir]: heroMove(12, 3, 28, 18, [heroRegion(12, 14, claw(0.0, 10.0, 0.0, -46.0, 12.0), { ...ordinary(11.0, 90, 90.0, 22.0), launchZ: -1.0 }, ordinary(11.0, 70, 90.0, 22.0))]),
     [AttackStyle.grab]: heroMove(7, 2, 24, 0, [heroRegion(7, 8, claw(16.0, 38.0, 44.0, 38.0), murlocHit(0.0, 35, 0.0, 0.0))]),
     [AttackStyle.getupAttack]: heroMove(17, 3, 30, 0, [heroRegion(17, 19, claw(-56.0, 14.0, 56.0, 14.0, 14.0), ordinary(6.0, 35))]),
     [AttackStyle.ledgeAttack]: heroMove(17, 3, 21, 0, [heroRegion(17, 19, claw(16.0, 36.0, 70.0, 36.0), ordinary(6.0, 35))]),
