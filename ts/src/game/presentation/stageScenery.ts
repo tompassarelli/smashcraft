@@ -39,12 +39,13 @@ const FROZEN_THRONE: StageScenery = {
   fog: { start: 5000.0, end: 11000.0, red: 0.375, green: 0.625, blue: 0.875 },
   pieces: [
     // Landmark on the right third; a broad glacier wall counterweights it on the left.
-    { model: "Doodads\\Cinematic\\FrozenThrone\\FrozenThrone.mdx", x: 1900.0, y: 6500.0, z: -1700.0, scale: 0.5, yaw: 250.0 },
-    { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier0.mdx", x: -1900.0, y: 3700.0, z: -1300.0, scale: 3.5, yaw: 20.0 },
-    { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier5.mdx", x: 2300.0, y: 2900.0, z: -1200.0, scale: 2.25, yaw: 140.0 },
-    { model: "Doodads\\Icecrown\\Rocks\\Icecrown_Crystal\\Icecrown_Crystal0.mdx", x: -1750.0, y: 2700.0, z: -1000.0, scale: 1.5, yaw: 300.0 },
-    { model: "Doodads\\Icecrown\\Rocks\\Icecrown_Crystal\\Icecrown_Crystal3.mdx", x: 500.0, y: 4300.0, z: -900.0, scale: 1.5, yaw: 75.0 },
+    { model: "Doodads\\Cinematic\\FrozenThrone\\FrozenThrone.mdx", x: 1900.0, y: 6500.0, z: -2620.0, scale: 0.5, yaw: 250.0, matrixScale: [1.0, 1.0, 1.763] },
+    { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier0.mdx", x: -1900.0, y: 3700.0, z: -2560.0, scale: 3.5, yaw: 20.0, matrixScale: [1.0, 1.0, 1.788] },
+    { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier5.mdx", x: 2300.0, y: 2900.0, z: -2300.0, scale: 2.25, yaw: 140.0, matrixScale: [1.0, 1.0, 3.206] },
+    { model: "Doodads\\Icecrown\\Rocks\\Icecrown_Crystal\\Icecrown_Crystal0.mdx", x: -1750.0, y: 2700.0, z: -2290.0, scale: 1.5, yaw: 300.0, matrixScale: [1.0, 1.0, 3.187] },
+    { model: "Doodads\\Icecrown\\Rocks\\Icecrown_Crystal\\Icecrown_Crystal3.mdx", x: 500.0, y: 4300.0, z: -3195.0, scale: 1.7, yaw: 75.0, matrixScale: [1.0, 1.0, 6.933] },
     { model: "Doodads\\Icecrown\\Props\\IceTorch\\IceTorch.mdx", x: -2200.0, y: 3000.0, z: -1000.0, scale: 1.25, yaw: 270.0 },
+    { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier5.mdx", x: -2185.0, y: 3000.0, z: -2500.0, scale: 1.05, yaw: 307.0, matrixScale: [1.0, 1.0, 6.489] },
     { model: STAGE_SNOW_MODEL, x: 0.0, y: 4000.0, z: 0.0, scale: 1.0, yaw: 0.0 },
   ],
 };

@@ -157,7 +157,15 @@ from the floor (smashcraft:ts/src/game/presentation/stageScenery.ts).
     the sky and the stage's low atmosphere. Background pieces that would
     stand on the ground fade into that atmosphere before their bases show,
     so nothing beneath the deck reads as a place to land, at either camera
-    extreme (`-dev view near|far`).
+    extreme (`-dev view near|far`). Fog alone can't do it: the near band sits
+    inside the fog start. So, as on Ultimate's Battlefield, where background
+    towns stand on cliffs and waterfalls that fall out of the frame, every
+    piece reaches below the frame bottom of the far extreme or hides its base
+    behind the deck or the rock it stands on. Natural forms (rock, ice, coral,
+    trees, obelisks, the waterfall) are stretched downward with
+    `matrixScale`; buildings and props stand on a stretched stock rock of the
+    stage's kind (Barrens rock, Icecrown glacier, Ruins rock).
+    smashcraft:ts/test/player-view.test.ts enforces it for every stage.
 12. **The sky is one smooth gradient; the horizon sits at or below the deck.**
     The brightest region and the busiest clouds stay out of the deck's height
     band; the lower sky is the abyss colour the atmosphere fades to.

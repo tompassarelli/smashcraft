@@ -13,10 +13,13 @@ export function startMatchSceneReport(): void {
   startSceneReport({
     // The confirmed frame stands still in menus, results and a pause.
     frame: () => shellState()?.runtime.simulationFrame ?? 0,
-    // hideEffect parks effects on the ground beneath the floor, where AddSpecialEffect also creates them.
+    // AddSpecialEffect creates effects on the ground and hideEffect parks them 4096 below it;
+    // stage scenery stands between the two, reaching below the frame (smashcraft:docs/design/stage-art.md, rule 11).
     parked: (_x, _y, z) => {
       const s = shellState();
-      return s !== undefined && z < s.origin.z - FLOOR_HEIGHT + 1.0;
+      if (s === undefined) return false;
+      const ground = s.origin.z - FLOOR_HEIGHT;
+      return Math.abs(z - ground) < 1.0 || z < ground - 4096.0 + 1.0;
     },
     // Heroes draw with their fighter unit (shell/fighterBody.ts), the original fighters with effects.
     unitModel: (unitType) => HERO_ROSTER.find(({ presentation }) => presentation.objectId === unitType)?.presentation.model,
