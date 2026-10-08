@@ -52,6 +52,7 @@ export function startPlayableMatch(headless: HeadlessRuntime, helpers: JournalHe
   if (withComputer) {
     // Slot C goes from empty to a human fighter, then to a computer.
     for (let click = 0; click < 2; click++) clients.everywhere(() => panelActions().selection.cycleMode(0, 2));
+    clients.everywhere(() => panelActions().selection.selectCpuChoice(0, 2, Character.demonHunter));
     expect(value(host, () => [shell().game.humanFighterMask, shell().game.computerMask, shell().game.characterChoices[2]])).toEqual([3, 4, Character.demonHunter]);
   }
   clients.press(0, Key.y);
