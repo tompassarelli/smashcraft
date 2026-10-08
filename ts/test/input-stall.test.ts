@@ -1,5 +1,5 @@
 // Issue #46: a player's controller input stops mid-match. Every client names
-// the player the match waits for, without text over play (#336), and the
+// the player the match waits for during the stall (#348), and the
 // match goes on when the input returns. Two simulated clients of the journal (integrity) build, with Battle.net's
 // measured sync latency.
 import { afterAll, expect, test } from "bun:test";
@@ -17,7 +17,7 @@ import { value } from "./rematch/playableMatch";
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
 
-test("a helper that stops mid-match names on every client who the match waits for within a second, shows no waiting text, and the match resumes when it types again [spec #46] [spec #336]", () => {
+test("a helper that stops mid-match shows who every client waits for within a second and clears on resume [spec #46] [spec #348]", () => {
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
   helpers.workload = { denseCycles: 2, walkers: [] };
   const { clients, frames, clientA: a, clientB: b } = startPlayableMatch(headless, helpers, false);
@@ -38,8 +38,8 @@ test("a helper that stops mid-match names on every client who the match waits fo
   for (let frame = 0; frame < 120; frame++) {
     frames(1);
     for (const client of [a, b]) {
-      if (!shown.has(client) && named(client)) shown.set(client, clients.frame - cut);
-      expect(shows(client, WAITING)).toBe(false);
+      if (!shown.has(client) && shows(client, WAITING)) shown.set(client, clients.frame - cut);
+      expect(shows(client, WAITING)).toBe(named(client));
     }
   }
   // Within one second (60 frames) of player 2's input stopping, on both clients.

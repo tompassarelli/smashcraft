@@ -43,11 +43,11 @@ test("a human without a controller helper plays on the keyboard: the match runs,
   const { clients, frames, clientA: a, clientB: b } = startPlayableMatch(headless, helpers, true);
   const player2X = (client: typeof a) => value(client, () => fighterAt(shell().world, 1).motion.x);
   const paused = () => clients.clients.map(client => value(client, () => shell().session.paused));
-  // A missing input waits without text over the fighters (#336).
+  // A stall names the missing player while normal play remains text-free (#348).
   frames(60);
-  expect([shows(a, WAITING), shows(b, WAITING)]).toEqual([false, false]);
+  expect([shows(a, WAITING), shows(b, WAITING)]).toEqual([true, true]);
   // Two seconds after the match began, player 2 plays on the keyboard.
-  frames(90);
+  frames(60);
   expect([shows(a, KEYBOARD_FALLBACK_MESSAGE), shows(b, KEYBOARD_FALLBACK_MESSAGE)]).toEqual([false, false]);
   // The pause control is named in the pause menu, not during play (#336).
   expect([shows(a, "Start: pause."), shows(b, "Y: pause.")]).toEqual([false, false]);
@@ -82,5 +82,5 @@ test("a human without a controller helper plays on the keyboard: the match runs,
   expect(paused()).toEqual([false, false]);
   for (const client of [a, b]) expect(confirmedFrame(client)).toBeGreaterThan(stopped + 5);
   expectSynchronized(clients);
-  console.log(`no helper: match running from confirmed frame ${started.join("/")} at 150 frames, +${running.join("/")} in the next 60; player 2 moved ${player2X(a) - before} right; paused at ${stopped}`);
+  console.log(`no helper: match running from confirmed frame ${started.join("/")} at 120 frames, +${running.join("/")} in the next 60; player 2 moved ${player2X(a) - before} right; paused at ${stopped}`);
 });

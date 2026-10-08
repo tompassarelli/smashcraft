@@ -5,13 +5,27 @@ import { bossNotice } from "../classic/classicText";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { CARRIED_TEST_STAGE, TIMED_TEST_STAGE, surfaceWaitFrames } from "../sim/stage";
 import { LAVA_CALM_FRAMES, LAVA_CYCLE_FRAMES, LAVA_SIDE_FRAMES, LAVA_WARNING_FRAMES, LavaPhase, framesUntilLava, lavaPhase, lavaSide } from "../sim/lava";
-import { floorMod } from "wisp/src/sim/intMath";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import {
   CANNON_HOLD_FRAMES, CANNON_SHOT_FRAMES, WindPhase, cannonOn, framesUntilTideTurns, framesUntilWind, hasTide, tideNextDirection, windDirection, windOn, windPhase,
 } from "../sim/stageHazards";
 
 /** Classic Warcraft barrel, also listed in smashcraft:docs/design/stages.md. */
 export const CANNON_MODEL = "Units\\Other\\TNTBarrel\\TNTBarrel.mdx";
+export const WIND_STREAK_MODEL = "Abilities\\Spells\\Other\\Tornado\\Tornado_Target.mdx";
+export const WIND_STREAK_COUNT = 6;
+
+export interface WindStreak { x: number; z: number; direction: -1 | 1 }
+const streak: WindStreak = { x: 0.0, z: 0.0, direction: 1 };
+
+/** Moving stock ribbons announce the upcoming push without touching the fighters. */
+export function windStreak(stage: number, frame: number, index: number): Readonly<WindStreak> | undefined {
+  if (!windOn(stage, frame) || windPhase(frame) === WindPhase.calm) return undefined;
+  streak.direction = windDirection(frame);
+  streak.x = streak.direction * (floorMod(frame * 12 + index * 200, 1200) - 600);
+  streak.z = 100 + floorMod(index, 3) * 100 + floorDiv(index, 3) * 40;
+  return streak;
+}
 /** Half a second's amber warning before a stationary platform departs. */
 export const PLATFORM_CUE_FRAMES = 30;
 

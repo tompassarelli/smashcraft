@@ -12,7 +12,7 @@ import { impactModel } from "../src/game/presentation/hitPresentation";
 import { Action, bit } from "../src/game/input/actions";
 import { requestStageSelect, requestStart, selectCharacter, selectStage, setParticipants } from "../src/game/match/rules";
 import { ARENA_CAMERA, FLOOR_HEIGHT, PLAYABLE_BOUNDS, WORLD_BOUNDS, extremeCamera } from "../src/game/presentation/arenaCamera";
-import { CANNON_MODEL } from "../src/game/presentation/stageHazards";
+import { CANNON_MODEL, WIND_STREAK_MODEL } from "../src/game/presentation/stageHazards";
 import { deckModel } from "../src/game/presentation/stagePreload";
 import { platformParts } from "../src/game/presentation/stockPlatforms";
 import { STAGE_DECK_MODELS } from "../src/game/assets/stageAssetInfo";
@@ -444,9 +444,12 @@ test("Frozen Throne's raised decks draw their stock floes, rock and rubble in vi
   expect(client.errors).toEqual([]);
 });
 
-test("every hazard stage keeps its warning text off the match screen and draws the cannon and lava glow players see [spec #194] [spec #336]", () => {
+test("every hazard stage keeps warning text off the match screen and draws wind, cannon and lava cues [spec #194] [spec #336] [spec #348]", () => {
   for (const [stage, frame, warning] of [
     [WIND_TEST_STAGE, 601, "Wind pushes right in 45 frames."],
+    [WIND_TEST_STAGE, 645, "Wind pushes right in 1 frames."],
+    [WIND_TEST_STAGE, 1520, "Wind pushes left in 45 frames."],
+    [WIND_TEST_STAGE, 600, "Wind pushes right in 46 frames."],
     [CARRIED_TEST_STAGE, 30, "Platform moves in 30 frames."],
     [TIMED_TEST_STAGE, 60, "Platform moves in 30 frames."],
     [CANNON_TEST_STAGE, 31, "Cannon fires in 10 frames."],
@@ -480,6 +483,11 @@ test("every hazard stage keeps its warning text off the match screen and draws t
       trampoline("scene.report")();
       const report = sceneReport(client);
       expect(sceneProblems(report, SMASHCRAFT_SCENE)).toEqual([]);
+      if (stage === WIND_TEST_STAGE) {
+        const wind = report.models.find(({ model }) => model === reportedModel(WIND_STREAK_MODEL));
+        if (frame === 600) expect(wind?.drawn ?? 0).toBe(0);
+        else expect(wind).toMatchObject({ live: 6, drawn: 6 });
+      }
       if (stage === CANNON_TEST_STAGE) expect(report.models.find(({ model }) => model === reportedModel(CANNON_MODEL))).toMatchObject({ live: 1, drawn: 1 });
       // The warning glows at the lava's own spot.
       if (!cannonShot && stage === CANNON_TEST_STAGE) expect(report.models.find(({ model }) => model === reportedModel(STAGE_LAVA_MODEL))).toMatchObject({ live: 1, drawn: 1 });

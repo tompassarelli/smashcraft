@@ -20,17 +20,17 @@ import { damageTint } from "../../game/presentation/hitPresentation";
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import { hideEffect } from "../../game/render/effects";
 import { FRAME_SECONDS, type FighterPose } from "../../game/presentation/fighterPose";
-import { CANNON_MODEL, PLATFORM_CUE_FRAMES, framesUntilPlatformMoves, lavaLook } from "../../game/presentation/stageHazards";
+import { CANNON_MODEL, PLATFORM_CUE_FRAMES, WIND_STREAK_COUNT, WIND_STREAK_MODEL, framesUntilPlatformMoves, lavaLook, windStreak } from "../../game/presentation/stageHazards";
 import { escapeMeterView, readEscapeMeter } from "../../game/presentation/escapeMeter";
 import { lavaPiece } from "../../game/presentation/stageScenery";
 import { hasLava, lavaSide } from "../../game/sim/lava";
 import type { Fighter } from "../../game/sim/fighter";
 import { journalIngress } from "../../game/shell/build";
-import { type StartControl, matchHelp, resultNotice } from "../../game/shell/messages";
+import { type StartControl, matchHelp, resultNotice, waitingMessage } from "../../game/shell/messages";
 import { isIntangible } from "../../game/sim/conditions";
 import { type Roster, fighterAt, isActive } from "../../game/sim/roster";
 import { surfaceCount, surfaceLeft, surfaceMoves, surfaceRight, surfaceZ } from "../../game/sim/stage";
-import { CANNON_Z, cannonAim, cannonOn, cannonX } from "../../game/sim/stageHazards";
+import { CANNON_Z, cannonAim, cannonOn, cannonX, hasWind } from "../../game/sim/stageHazards";
 import { localParticipantSlot, traceParticipant } from "./diagnostics";
 import { placeFighterBody, renderDizzy } from "./fighterBody";
 import { type ShellState, type StatusFrames, activeRollback, localSlot, playsOnKeyboard } from "./state";
@@ -90,6 +90,11 @@ export function createStatusFrames(): StatusFrames {
 }
 
 function clearStageDecks(s: ShellState): void {
+  for (const effect of s.stageWind) {
+    hideEffect(effect, s.origin);
+    DestroyEffect(effect);
+  }
+  s.stageWind.length = 0;
   if (s.stageCannon !== undefined) {
     hideEffect(s.stageCannon, s.origin);
     DestroyEffect(s.stageCannon);
@@ -161,6 +166,27 @@ export function drawStage(s: ShellState): void {
     presentLava(s, stage, stageFrame);
   }
   s.drawnStage = stage;
+  if (hasWind(stage)) {
+    for (let index = 0; index < WIND_STREAK_COUNT; index++) {
+      const effect = AddSpecialEffect(WIND_STREAK_MODEL, origin.x, origin.y);
+      hideEffect(effect, origin);
+      s.stageWind.push(effect);
+    }
+  }
+  presentWind(s, stage, stageFrame);
+}
+
+function presentWind(s: ShellState, stage: number, frame: number): void {
+  for (const [index, effect] of s.stageWind.entries()) {
+    const streak = windStreak(stage, frame, index);
+    if (streak === undefined) {
+      hideEffect(effect, s.origin);
+      continue;
+    }
+    BlzSetSpecialEffectScale(effect, 2.0);
+    BlzSetSpecialEffectPosition(effect, s.origin.x + streak.x, s.origin.y, s.origin.z + streak.z);
+    BlzSetSpecialEffectYaw(effect, streak.direction > 0 ? 0.0 : Math.PI);
+  }
 }
 
 /** Blackrock's lava on its frame's side: hidden while calm, a growing glow through the warning, then full lava. */
@@ -295,6 +321,7 @@ export function renderPersistentPresentation(s: ShellState): void {
     BlzSetSpecialEffectColor(s.stageCannon, 255, firing ? 70 : 255, firing ? 40 : 255);
   }
   presentLava(s, drawn, matchFrame);
+  presentWind(s, drawn, matchFrame);
   const ui = views(s);
   ui.classic?.present(game);
   ui.combat.present(runtime.impacts, runtime.simulationFrame, s.runtime.impacts, playing);
@@ -430,12 +457,12 @@ export function renderUi(s: ShellState): void {
   const { help, notice } = s.frames;
   const teaching = game.phase === Phase.match && game.training && s.trainingHints === true && !paused;
   BlzFrameSetVisible(help, showMatch && (game.phase === Phase.result || teaching));
-  BlzFrameSetVisible(notice, showMatch && game.phase === Phase.result);
+  const waiting = game.phase === Phase.match ? activeRollback(s)?.waitingFor ?? 0 : 0;
+  BlzFrameSetVisible(notice, showMatch && (game.phase === Phase.result || waiting !== 0));
   if (!selecting) {
     BlzFrameSetText(help, matchHelp(game, s.session.paused, startControl(s), localFighter, game.phase === Phase.match));
-    const waiting = game.phase === Phase.match ? activeRollback(s)?.waitingFor ?? 0 : 0;
     probeWaiting(s.probe, waiting, localSlot());
-    BlzFrameSetText(notice, game.phase === Phase.result ? resultNotice(game, s.status.text) : "");
+    BlzFrameSetText(notice, game.phase === Phase.result ? resultNotice(game, s.status.text) : waiting !== 0 ? waitingMessage(waiting) : "");
   }
   ui.stage.update(game);
 }

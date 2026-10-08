@@ -4,7 +4,7 @@ The hidden test stages are wind (10), carried loop (11), barrel cannon (12),
 and timed lift (13). They are exercised by controller rows, replay tapes and
 the headless soak. Their schedules use the match frame, reset each match and
 replay with the fighters; none uses randomness or changes its path in response
-to a fighter. Hazards show no text during play (#336); platforms, the cannon and
+to a fighter. Hazards show no text during play (#336); wind, platforms, the cannon and
 the lava warn on the stage itself. The loop and lift use smashcraft:ts/src/game/sim/stage.ts's moving
 platform paths, with the carry and landing rules in smashcraft:docs/physics.md.
 
@@ -14,6 +14,10 @@ frames pushing 0.2 Melee units per frame, alternating right and left. Its box
 has Melee's inner offsets from center, outer offsets from the ledges and
 height −10 to 40 Melee units above the floor. Ground dodges skip it, as in
 `Fighter_procUpdate` in melee:src/melee/ft/fighter.c.
+Six stock Warcraft `Tornado_Target.mdx` ribbons sweep across the stage in the
+upcoming push direction throughout all 45 warning frames and the gust (#348).
+They stay collapsed beneath the scene while calm or with hazards off. This
+adds no imported assets and no warning text.
 
 The carried platform waits 60 frames at each corner, then follows a rectangle
 at 3 world units per frame: x −420 to 420, z 120 to 300, a 920-frame lap.
