@@ -140,10 +140,10 @@ test("Dreadlord angled claws retain separate paths and horn lift leaves a latera
   assertEquals(smashDamageMultiplier(100, DREADLORD_MOVES), 1.25);
 });
 
-test("Dreadlord shield grab and dash grab retain adopted reach and whiff timing [spec docs/design/roster.md]", () => {
+test("Dreadlord shield grab and dash grab use scaled reach and whiff timing [spec docs/design/roster.md]", () => {
   const out = emptyHitRegion();
   authoredHitRegion(out, Character.archer, AttackStyle.grab, 6, 0, 0, DREADLORD_MOVES);
-  assertNear(out.maxX, f32(HERO_REFERENCE_HEIGHT * f32(0.65)), f32(0.0001));
+  assertNear(out.maxX, 96.0, f32(0.0001));
   for (const facing of [1, -1]) {
     const standing = attackPair(AttackStyle.grab, 6, 85.0, 0.0, facing);
     standing.target.shield.raised = true;

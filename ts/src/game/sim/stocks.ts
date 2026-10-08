@@ -86,6 +86,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   motion.crouching = false;
   f.ground.dashGrabWindow = 0;
   attack.dashGrab = false;
+  attack.pivotGrab = false;
   jump.dodgeQueued = false;
   jump.dodgeX = 0;
   jump.dodgeZ = 0;

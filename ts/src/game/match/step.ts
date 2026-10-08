@@ -4,6 +4,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS, type Slots, participantActive } from "../input/participants";
 import { beginFighterAttack, resolveAttacks } from "../sim/attacks";
 import { AttackStyle, DASH_GRAB_REQUEST } from "../sim/codes";
+import { clearDash } from "../sim/groundMovement";
 import { canStartAttackStyle, inGrabContext } from "../sim/conditions";
 import { collectLavaContacts } from "../sim/lava";
 import { beginDamageContacts, finishDamageContacts } from "../sim/contacts";
@@ -154,7 +155,20 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
     resetObservedActions();
+    const f = fighterAt(world, slot);
+    const pending = controls.commands[slot].pending;
+    const jumpCancel = pending?.style === AttackStyle.grab && hasPendingAttack(controls.commands[slot], frame) && f.motion.grounded && canStartAttackStyle(f, AttackStyle.grab) && (f.jump.squat > 0 || controls.inputs[slot].jumpPressed);
+    if (jumpCancel) {
+      f.jump.squat = 0;
+      f.jump.dodgeQueued = false;
+      f.jump.dodgeX = 0;
+      f.jump.dodgeZ = 0;
+      clearDash(f);
+      f.ground.dashGrabWindow = 0;
+      controls.inputs[slot].jumpPressed = false;
+    }
     advanceFighterMotion(world, slot, stage, stageFrame, controls.inputs[slot], matchSpawnX(slot));
+    if (jumpCancel) clearDash(f);
     observedFrameLegalActions[slot] = observedActions.legal;
     observedFrameStartedActions[slot] = observedActions.started;
   }
@@ -188,6 +202,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     if (f.launch.hitlag > 0 && f.shield.perfectActionFrames > 0) holdAttack(commands, frame);
     // A jab pressed during a chaining jab's hitlag waits for its window, as Melee latches it (#163).
     if (f.launch.hitlag > 0 && commands.pending?.style === AttackStyle.jab && nextJab(f.attack.style) !== undefined) holdAttack(commands, frame);
+    if (commands.pending?.style === AttackStyle.grab && f.shield.raised && (f.launch.hitlag > 0 || f.shield.stun > 0)) holdAttack(commands, frame);
     const command = takeAttack(commands, frame, canStartAttackStyle(f, requestedStyle(commands.pending?.style)));
     const dashGrabInput = f.motion.grounded && f.ground.dashFrame > 0 && f.tuning.dashGrab.startupFrames > 0 && command?.style === AttackStyle.grab;
     const catchDash = f.ground.dashGrabWindow > 0 && command?.style === AttackStyle.grab && f.tuning.dashGrab.startupFrames > 0;

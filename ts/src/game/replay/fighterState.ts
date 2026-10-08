@@ -148,6 +148,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   attack.serial = sourceAttack.serial;
   attack.hit = sourceAttack.hit;
   attack.dashGrab = sourceAttack.dashGrab;
+  attack.pivotGrab = sourceAttack.pivotGrab;
   attack.cooldown = sourceAttack.cooldown;
   attack.smashCharging = sourceAttack.smashCharging;
   attack.smashChargeFrames = sourceAttack.smashChargeFrames;
@@ -562,6 +563,7 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
   if (attack.serial !== sourceAttack.serial || (attack.serial === 0 && 1 / attack.serial !== 1 / sourceAttack.serial)) return false;
   if (attack.hit !== sourceAttack.hit) return false;
   if (attack.dashGrab !== sourceAttack.dashGrab) return false;
+  if (attack.pivotGrab !== sourceAttack.pivotGrab) return false;
   if (attack.cooldown !== sourceAttack.cooldown || (attack.cooldown === 0 && 1 / attack.cooldown !== 1 / sourceAttack.cooldown)) return false;
   if (attack.smashCharging !== sourceAttack.smashCharging) return false;
   if (attack.smashChargeFrames !== sourceAttack.smashChargeFrames || (attack.smashChargeFrames === 0 && 1 / attack.smashChargeFrames !== 1 / sourceAttack.smashChargeFrames)) return false;

@@ -746,6 +746,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("dashGrabTiming.activeFrames", t.dashGrab.activeFrames);
   int("dashGrabTiming.totalFrames", t.dashGrab.totalFrames);
   bool("dashGrabAttack", a.dashGrab);
+  bool("pivotGrabAttack", a.pivotGrab);
   bool("groundTurnRunFacingCommandLatched", g.turnRunFacingCommandLatched);
   bool("groundTurnRunPausePending", g.turnRunPausePending);
   int("character", fighter.character);

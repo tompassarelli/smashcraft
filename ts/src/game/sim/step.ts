@@ -195,6 +195,7 @@ function advanceActionClocks(f: Fighter, input: Readonly<Controls>): boolean {
       attack.frame = 0;
       attack.hit = false;
       attack.dashGrab = false;
+      attack.pivotGrab = false;
       attack.smashCharging = false;
       attack.smashChargeFrames = 0;
       attack.smashChargeAllowed = false;

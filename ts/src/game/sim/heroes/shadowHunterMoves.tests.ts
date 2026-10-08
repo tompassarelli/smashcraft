@@ -118,13 +118,13 @@ test("Shadow Hunter Twin Totems cannot rehit across their later rear burst [spec
   }
 });
 
-test("Shadow Hunter standing and dash grabs cover both active frames and stop at adopted reach [spec docs/design/roster.md]", () => {
-  const reach = f32(HERO_REFERENCE_HEIGHT * f32(0.55));
+test("Shadow Hunter standing and dash grabs cover both active frames and stop at scaled standing and dash reach [spec #337]", () => {
+  const reach = 96.0;
   for (const facing of [-1, 1]) {
     for (const dash of [false, true]) {
       for (const frame of [7, 8]) {
         for (const caught of [true, false]) {
-          const { owner, target, world } = pair(AttackStyle.grab, 0, caught ? reach : f32(reach + 1.0), 0.0, facing);
+          const { owner, target, world } = pair(AttackStyle.grab, 0, caught ? (dash ? 120.0 : reach) : (dash ? 121.0 : f32(reach + 1.0)), 0.0, facing);
           target.shield.raised = true;
           if (dash) {
             owner.attack.cooldown = 0;

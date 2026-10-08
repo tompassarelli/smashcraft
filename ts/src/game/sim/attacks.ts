@@ -2,14 +2,14 @@
 // against the same pre-hit state before grabs or parries can interrupt an
 // attacker; mutual catches clash and competing catches take the nearest victim.
 import { f32 } from "wisp/src/sim/f32";
-import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST } from "./codes";
-import { attackPhase, canBeGrabbed, canStartAttackStyle, inEarlyAscent, inGrabContext, isIntangible, jabChainStep } from "./conditions";
+import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GroundAction } from "./codes";
+import { attackPhase, attackStartup, attackActive, canBeGrabbed, canStartAttackStyle, inEarlyAscent, inGrabContext, isIntangible, jabChainStep } from "./conditions";
 import { finishDamageContacts, openDamageContacts } from "./contacts";
 import type { Fighter } from "./fighter";
-import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, copyHitEffect, copyHitRegion, emptyHitRegion } from "./hitRegions";
+import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, copyHitEffect, copyHitRegion, emptyHitRegion, SHARED_GRAB_REGION } from "./hitRegions";
 import { applyAttackHit } from "./hits";
 import { hangsOnLedge } from "./ledge";
-import { attackReach, isAerialAttack, isJab } from "./moves";
+import { isAerialAttack, isJab } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { spawnProjectile } from "./projectiles";
 import { type Roster, fighterAt, isActive } from "./roster";
@@ -20,15 +20,8 @@ import { HurtContact, grabTouchesBody, strikeHurtContact } from "./hurtboxes";
 import { beginAttack } from "./transitions";
 import { at } from "wisp/src/runtime/lookup";
 
-const GRAB_REACH = attackReach(AttackStyle.grab);
-const DASH_GRAB_REGION: Readonly<HitRegion> = {
-  minX: 0.0,
-  maxX: GRAB_REACH,
-  minZ: -130.0,
-  maxZ: 130.0,
-  effect: { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false },
-  window: 1,
-};
+const DASH_GRAB_REGION: Readonly<HitRegion> = { ...SHARED_GRAB_REGION, maxX: 120.0 };
+const PIVOT_GRAB_REGION: Readonly<HitRegion> = { ...SHARED_GRAB_REGION, maxX: 144.0 };
 
 // Preallocated: hit selection builds these capsules for every pair every frame.
 const strikeCapsule = emptyCapsule();
@@ -83,18 +76,6 @@ function grabTargetZ(attacker: Readonly<Fighter>, target: Readonly<Fighter>): nu
   return inEarlyAscent(target) && target.motion.z > attacker.motion.z ? attacker.motion.z : target.motion.z;
 }
 
-function selectAuthoredGrabRegion(attacker: Fighter, target: Fighter, frame: number, out: HitRegion): void {
-  const moves = attacker.tuning.moves;
-  const localX = facingOffsetX(attacker, target);
-  for (let index = 0; index < authoredHitRegionCount(AttackStyle.grab, moves); index++) {
-    authoredHitRegion(out, attacker.character, AttackStyle.grab, frame, 0, index, moves);
-    if (out.window <= 0 || localX < 0 || localX > out.maxX) continue;
-    placeStrikeCapsule(attacker, out);
-    if (grabTouchesBody(strikeCapsule, target, grabTargetZ(attacker, target))) return;
-  }
-  copyHitRegion(out, NO_HIT_REGION);
-}
-
 /**
  * Writes the region of the attacker's current attack that reaches the target
  * into out, or NO_HIT_REGION's values. True when that region touched only
@@ -109,34 +90,16 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
   const grabsDivine = attack.style === AttackStyle.grab && target.status.divineFrames > 0;
   if (attacker.status.out || attacker.launch.hitlag > 0 || target.status.out || (isIntangible(target) && !grabsDivine)) return false;
   if (attack.style === AttackStyle.grab && !canBeGrabbed(target)) return false;
-  // Only grabs read the target's offset, so ordinary hits skip its exact arithmetic.
-  if (attack.dashGrab) {
-    const moves = attacker.tuning.moves;
-    if (moves?.normals[AttackStyle.grab] !== undefined) {
-      selectAuthoredGrabRegion(attacker, target, attack.frame - 3, out);
-      return false;
-    }
-    const { startupFrames, activeFrames } = attacker.tuning.dashGrab;
-    if (attack.frame >= startupFrames && attack.frame < startupFrames + activeFrames) {
-      const localX = facingOffsetX(attacker, target);
-      const localZ = f32(grabTargetZ(attacker, target) - attacker.motion.z);
-      if (localX >= 0 && localX <= GRAB_REACH && localZ >= -130 && localZ <= 130) copyHitRegion(out, DASH_GRAB_REGION);
-    }
-    return false;
-  }
   if (attack.style === AttackStyle.grab) {
-    authoredHitRegion(out, attacker.character, attack.style, attack.frame, attack.smashChargeFrames, 0, attacker.tuning.moves);
-    const { hits } = target;
-    const alreadyHit = hits.lastAttacker === attackerSlot && hits.lastAttackSerial === attack.serial && hits.lastWindow >= out.window;
-    if (attacker.tuning.moves?.normals[AttackStyle.grab] !== undefined) {
-      selectAuthoredGrabRegion(attacker, target, attack.frame, out);
-      if (alreadyHit) copyHitRegion(out, NO_HIT_REGION);
-      return false;
-    }
+    const startup = attackStartup(attacker, attack.style);
+    const active = attackActive(attacker, attack.style);
+    const region = attack.pivotGrab ? PIVOT_GRAB_REGION : attack.dashGrab ? DASH_GRAB_REGION : SHARED_GRAB_REGION;
+    const hits = target.hits;
+    if (attack.frame < startup || attack.frame >= startup + active || (hits.lastAttacker === attackerSlot && hits.lastAttackSerial === attack.serial && hits.lastWindow >= region.window)) return false;
     const localX = facingOffsetX(attacker, target);
-    const localZ = f32(grabTargetZ(attacker, target) - attacker.motion.z);
-    const inside = localX >= out.minX && localX <= out.maxX && localZ >= out.minZ && localZ <= out.maxZ;
-    if (out.window <= 0 || alreadyHit || !inside) copyHitRegion(out, NO_HIT_REGION);
+    if (localX < 0 || localX > region.maxX) return false;
+    placeStrikeCapsule(attacker, region);
+    if (grabTouchesBody(strikeCapsule, target, grabTargetZ(attacker, target))) copyHitRegion(out, region);
     return false;
   }
   // A fighter not attacking strikes nothing: out stays empty.
@@ -177,7 +140,9 @@ export function beginFighterAttack(world: Roster, slot: number, style: AttackSty
   const groundAttack = (action <= DASH_GRAB_REQUEST && action !== AttackStyle.shot) || action === AttackStyle.demonHunterDashAttack || action === AttackStyle.dashAttack || isJab(action);
   const aerial = isAerialAttack(action);
   if (((groundAttack && grounded) || action === AttackStyle.shot || (aerial && !grounded)) && canStartAttackStyle(fighter, action)) {
-    beginAttack(fighter, action, mayCharge);
+    const pivot = action === AttackStyle.grab && fighter.ground.action === GroundAction.turnRun;
+    beginAttack(fighter, pivot ? DASH_GRAB_REQUEST : action, mayCharge);
+    fighter.attack.pivotGrab = pivot;
   }
 }
 

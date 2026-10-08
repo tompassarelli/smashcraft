@@ -93,6 +93,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   record("dashGrabTiming", expectedTuning.dashGrab, actualTuning.dashGrab, DASH_GRAB_KEYS);
   add("dashGrabWindow", e.ground.dashGrabWindow, a.ground.dashGrabWindow);
   add("dashGrabAttack", e.attack.dashGrab, a.attack.dashGrab);
+  add("pivotGrabAttack", e.attack.pivotGrab, a.attack.pivotGrab);
   add("groundAction", e.ground.action, a.ground.action);
   add("groundActionFrame", e.ground.actionFrame, a.ground.actionFrame);
   add("groundRunBrakeFramesRemaining", e.ground.runBrakeFramesRemaining, a.ground.runBrakeFramesRemaining);

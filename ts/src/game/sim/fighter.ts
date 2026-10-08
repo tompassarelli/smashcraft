@@ -185,6 +185,7 @@ interface Attack {
   serial: number;
   hit: boolean;
   dashGrab: boolean;
+  pivotGrab: boolean;
   /** Frames before any new action, set by attacks, specials and traps. */
   cooldown: number;
   smashCharging: boolean;
@@ -713,6 +714,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       serial: 0,
       hit: false,
       dashGrab: false,
+      pivotGrab: false,
       cooldown: 0,
       smashCharging: false,
       smashChargeFrames: 0,

@@ -180,6 +180,8 @@ function reachRegion(style: AttackStyle): Readonly<HitRegion> {
   return ordinary(0.0, attackReach(style), minZ, maxZ, attackDamage(style));
 }
 
+export const SHARED_GRAB_REGION: Readonly<HitRegion> = region(0.0, 96.0, 20.0, 70.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+
 const REACH_REGIONS: { readonly [style: number]: Readonly<HitRegion> } = {
   [AttackStyle.jab]: reachRegion(AttackStyle.jab),
   [AttackStyle.upSmash]: reachRegion(AttackStyle.upSmash),
@@ -220,6 +222,7 @@ const ARCHER_UP_SMASH: Readonly<HitRegion> = { ...SHARED_UP_SMASH, effect: { ...
 
 export function authoredHitRegionCount(style: AttackStyle | undefined, moves?: FighterMoves): number {
   const authored = style === undefined ? undefined : moves?.normals[style];
+  if (style === AttackStyle.grab) return 1;
   if (authored !== undefined) return authored.regions.length;
   return style === AttackStyle.forwardTilt ? 2 : 1;
 }
@@ -264,6 +267,11 @@ function activeRegion(character: Character, style: AttackStyle, frame: number, i
  * with charge.
  */
 export function authoredHitRegion(out: HitRegion, character: Character, style: AttackStyle | undefined, frame: number, chargeFrames: number, index: number, moves?: FighterMoves): HitRegion {
+  if (style === AttackStyle.grab) {
+    const startup = attackStartupFrames(style, moves);
+    copyHitRegion(out, index === 0 && frame >= startup && frame < startup + 3 ? SHARED_GRAB_REGION : NO_HIT_REGION);
+    return out;
+  }
   const authored = style === undefined ? undefined : moves?.normals[style];
   if (authored !== undefined) {
     const region = authored.regions[index];
@@ -281,7 +289,7 @@ export function authoredHitRegion(out: HitRegion, character: Character, style: A
     return out;
   }
   copyHitRegion(out, activeRegion(character, style, frame, index, chargeFrames));
-  if (character === Character.demonHunter && style !== AttackStyle.grab) out.effect.element = HitElement.slash;
+  if (character === Character.demonHunter) out.effect.element = HitElement.slash;
   if (isSmashAttack(style)) out.effect.damage = f32(out.effect.damage * smashDamageMultiplier(chargeFrames));
   return out;
 }

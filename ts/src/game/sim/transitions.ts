@@ -81,6 +81,7 @@ export function cancelAttack(f: Fighter): void {
   const { attack } = f;
   f.motion.crouching = false;
   attack.dashGrab = false;
+  attack.pivotGrab = false;
   attack.style = undefined;
   attack.frame = 0;
   attack.duration = 0;
@@ -275,6 +276,7 @@ export function beginDownState(f: Fighter, state: DownState, direction: number):
   motion.crouching = false;
   f.ground.dashGrabWindow = 0;
   attack.dashGrab = false;
+  attack.pivotGrab = false;
   clearSurfaceRecovery(f);
   down.state = state;
   down.frame = 1;
@@ -341,8 +343,15 @@ export function beginAttack(attacker: Fighter, style: AttackStyle, mayCharge: bo
     shield.raised = false;
     shield.heldFrames = 0;
   }
+  if (resolvedStyle === AttackStyle.grab) {
+    attacker.jump.squat = 0;
+    attacker.jump.dodgeQueued = false;
+    attacker.jump.dodgeX = 0;
+    attacker.jump.dodgeZ = 0;
+  }
   attack.style = resolvedStyle;
   attack.dashGrab = isDashGrab;
+  attack.pivotGrab = false;
   attack.frame = 0;
   const authoredGrab = attacker.tuning.moves?.normals[AttackStyle.grab];
   attack.duration = isDashGrab

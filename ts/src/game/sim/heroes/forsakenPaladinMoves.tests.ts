@@ -201,8 +201,8 @@ test("Forsaken Paladin's extended limbs are hittable at their full reach and gon
   }
 });
 
-test("Forsaken Paladin standing and dash grabs preserve 0.55H reach and dash recovery additions [spec #96]", () => {
-  const reach = f32(HERO_REFERENCE_HEIGHT * f32(0.55));
+test("Forsaken Paladin standing and dash grabs use scaled standing and dash reach with authored whiff timing [spec #337]", () => {
+  const reach = 96.0;
   for (const facing of [1, -1]) {
     for (const [x, caught] of [[reach, true], [f32(reach + 1.0), false]] as const) {
       const standing = attackPair(AttackStyle.grab, 7, x, 0.0, facing);
@@ -212,7 +212,7 @@ test("Forsaken Paladin standing and dash grabs preserve 0.55H reach and dash rec
       const owner = createFighter(Character.archer, 0.0, facing);
       owner.tuning.moves = FORSAKEN_PALADIN_MOVES;
       owner.ground.dashFrame = 1;
-      const target = createFighter(Character.rifleman, f32(x * facing), -facing);
+      const target = createFighter(Character.rifleman, f32((x === reach ? 120.0 : 121.0) * facing), -facing);
       const world = testWorld(owner, target);
       beginFighterAttack(world, 0, DASH_GRAB_REQUEST, false);
       assertEquals(owner.attack.style, AttackStyle.grab);
