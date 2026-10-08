@@ -47,7 +47,7 @@ export interface MapBuild {
   readonly analogPad?: "keys" | "cursor";
   /** Fixed comparison camera, calibration receipts and recorded pad rows. */
   readonly analogPadDiagnostic?: boolean;
-  /** The `-dev` chat commands and the developer status line; players of a playable build see neither. */
+  /** The `-dev` chat commands; playable builds register none. */
   readonly devConsole: boolean;
   /**
    * Displays runtime error reports (`error in HANDLER: ...`: handler names, TypeScript
