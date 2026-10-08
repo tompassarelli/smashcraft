@@ -19,7 +19,10 @@
 import { copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync, writeSync, closeSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { Effect, Fiber, Option, Schema } from "effect";
+import { BunServices } from "@effect/platform-bun";
+import { Effect, Fiber, Option, Schedule as EffectSchedule, Schema } from "effect";
+import { ChildProcess } from "effect/process";
+import { pollUntil } from "../../hostPoll";
 import { linePreloadFile, preloadLines } from "wisp/scripts/wisp/boundary";
 import { at } from "wisp/src/runtime/lookup";
 import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/command";
@@ -110,14 +113,21 @@ const until = (targetNs: number) => Effect.gen(function*() {
 
 /** Both helpers' match start, written after this run began. */
 const matchEpochs = (logs: () => [string, string], startedNs: number, out: string) => Effect.gen(function*() {
-  const deadline = Date.now() + 60_000;
-  for (;;) {
+  return yield* pollUntil(tryIntegrity("wait for match start", out, () => {
     const starts = logs().map(matchStart);
-    if (starts.every((start) => start !== undefined && start.epochNs > startedNs)) return [starts[0]?.frameOneNs ?? 0, starts[1]?.frameOneNs ?? 0] as const;
-    if (Date.now() > deadline) return yield* new IntegrityFailure({ operation: "wait for match start", path: out, cause: "a helper reported no match start within 60 s" });
-    yield* Effect.sleep("20 millis");
-  }
+    return starts.every((start) => start !== undefined && start.epochNs > startedNs) ? [starts[0]?.frameOneNs ?? 0, starts[1]?.frameOneNs ?? 0] as const : undefined;
+  }), { every: "20 millis", within: "60 seconds", orElse: () => Effect.fail(new IntegrityFailure({ operation: "wait for match start", path: out, cause: "a helper reported no match start within 60 s" })) });
 });
+
+export class PadReplayFailure extends Schema.TaggedError<PadReplayFailure>()("PadReplayFailure", {
+  operation: Schema.String,
+  path: Schema.String,
+  cause: Schema.String,
+  offFrame: Schema.Int,
+  helpersStopped: Schema.Int,
+}) {
+  override get message(): string { return `${this.operation} failed for ${this.path}: ${this.cause}`; }
+}
 
 /** The helpers report the match a few frames after it starts: an edge meant for an earlier frame can't land on it. */
 const checkFirstEdge = (steps: readonly PadStep[], epochs: readonly [number, number], scriptPath: string) => Effect.gen(function*() {
@@ -144,7 +154,7 @@ const finish = (out: string, scriptPath: string, build: string, epochs: readonly
   yield* tryIntegrity("write result", out, () => writeFileSync(join(out, "result.json"), json({ ...captureLoad(), script: scriptPath, build, frame_one_ns: epochs, match_starts: final.map(matchStart), edges: results, off_frame: off.length, written_late: lateWrites, helpers_stopped: stopped })));
   for (const edge of results) console.log(`line ${edge.line} ${edge.slot === 0 ? "a" : "b"} planned ${edge.planned} written ${edge.written} landed ${edge.frame} (${edge.confirmedBy}): ${edge.text}`);
   console.log(`${results.length} edges, ${off.length} off their frame (${lateWrites} of them written late)${stopped.length > 0 ? `; ${stopped.join("; ")}` : ""}; ${join(out, "result.json")}`);
-  if (off.length > 0 || stopped.length > 0) return yield* new IntegrityFailure({ operation: "replay pad script", path: out, cause: `${off.length} edges off their frame, ${stopped.length} helpers stopped` });
+  if (off.length > 0 || stopped.length > 0) return yield* new PadReplayFailure({ operation: "replay pad script", path: out, cause: `${off.length} edges off their frame, ${stopped.length} helpers stopped`, offFrame: off.length, helpersStopped: stopped.length });
 });
 
 /**
@@ -152,10 +162,12 @@ const finish = (out: string, scriptPath: string, build: string, epochs: readonly
  * it saved since `sinceMs` beside the result, waiting for the traces the
  * integrity build writes after its complete recording.
  */
-const collect = (data: readonly [string, string], out: string, sinceMs: number) => Effect.gen(function*() {
+export const collect = (data: readonly [string, string], out: string, sinceMs: number) => Effect.gen(function*() {
   const fresh = (path: string) => existsSync(path) && statSync(path).mtimeMs >= sinceMs;
-  const deadline = Date.now() + TRACE_WAIT_MS;
-  while (!data.every((dir) => fresh(join(dir, TRACE_FILE))) && Date.now() < deadline) yield* Effect.sleep("250 millis");
+  const waited = yield* Effect.exit(pollUntil(tryIntegrity("collect traces and moments", out, () => data.every((dir) => fresh(join(dir, TRACE_FILE))) ? true : undefined), {
+    every: "250 millis", within: TRACE_WAIT_MS,
+    orElse: () => Effect.fail(new IntegrityFailure({ operation: "collect traces and moments", path: out, cause: "no input trace written since the run began" })),
+  }));
   yield* tryIntegrity("collect traces and moments", out, () => {
     for (const name of readdirSync(out)) if (MATCH_REPLAY_NAME.test(name)) rmSync(join(out, name));
     data.forEach((dir, slot) => {
@@ -176,6 +188,7 @@ const collect = (data: readonly [string, string], out: string, sinceMs: number) 
       }
     });
   });
+  yield* waited;
 });
 
 export interface PadOptions {
@@ -257,13 +270,10 @@ export const nativeChat = (session: NativeSession, text: string) => setupCommand
   const before = receipt();
   if (before === undefined || before.epoch !== epoch || before.chatState !== 0) return yield* new IntegrityFailure({ operation: "open chat", path, cause: "journal is not receiving input" });
   yield* batch(host, [{ kind: "wait", millis: 250 }, { kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
-  const deadline = Date.now() + 8000;
-  for (;;) {
+  yield* pollUntil(tryIntegrity("open chat", path, () => {
     const current = receipt();
-    if (current !== undefined && current.epoch === epoch && current.revision > before.revision && current.chat > before.chat && current.chatState === 3) break;
-    if (Date.now() > deadline) return yield* new IntegrityFailure({ operation: "open chat", path, cause: "no chatting receipt within 8 s of Return" });
-    yield* Effect.sleep("20 millis");
-  }
+    return current !== undefined && current.epoch === epoch && current.revision > before.revision && current.chat > before.chat && current.chatState === 3 ? true : undefined;
+  }), { every: "20 millis", within: "8 seconds", orElse: () => Effect.fail(new IntegrityFailure({ operation: "open chat", path, cause: "no chatting receipt within 8 s of Return" })) });
   yield* batch(host, [{ kind: "text", text, delayMillis: 35 }, { kind: "keys", keys: ["Return"], settleMillis: 0 }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
 }));
 
@@ -348,10 +358,11 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
   const invalid = [...captureFailures.sort((a, b) => a.frame - b.frame).map(({ message }) => message), ...invalidRun(clients.map((client) => client.name), clients.map((client) => client.documents), data, startedMs)];
   if (captures.length > 0) console.log(`captures ${invalid.length === 0 ? "PASS" : "INVALID"}: ${captures.length - captureFailures.length}/${captures.length} retained; ${join(out, "captures.json")}`);
   if (invalid.length > 0) {
-    yield* tryIntegrity("mark result invalid", out, () => {
+    yield* Effect.gen(function*() {
       const path = join(out, "result.json");
-      const result: unknown = existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : {};
-      writeFileSync(path, json({ ...(typeof result === "object" && result !== null ? result : {}), invalid }));
+      const stored = yield* tryIntegrity("mark result invalid", out, () => existsSync(path) ? readFileSync(path, "utf8") : "{}");
+      const result = yield* Schema.decodeEffect(Schema.fromJsonString(Schema.Record(Schema.String, Schema.Unknown)))(stored).pipe(Effect.mapError((cause) => new IntegrityFailure({ operation: "mark result invalid", path: out, cause })));
+      yield* tryIntegrity("mark result invalid", out, () => writeFileSync(path, json({ ...result, invalid })));
     });
     console.log(`INVALID: ${invalid[0]}; retained evidence: ${out}`);
     return "invalid" as const;
@@ -369,6 +380,8 @@ export const native = (options: PadOptions, appIds: ReadonlyMap<string, string>,
 /** A native run that proves nothing either way: the game desynced, a client crashed, or the match ended early. */
 const INVALID_RUN = "invalid native run";
 
+class InvalidNativeRun extends Schema.TaggedError<InvalidNativeRun>()("InvalidNativeRun", { attempts: Schema.Int }) {}
+
 /** Why a native run is invalid: a desync report or crash in a client's Errors folder, or a match record (the match reached its results) since `sinceMs`. */
 function invalidRun(names: readonly string[], documents: readonly string[], data: readonly string[], sinceMs: number): string[] {
   const reasons: string[] = [];
@@ -384,11 +397,12 @@ function invalidRun(names: readonly string[], documents: readonly string[], data
 }
 
 /** `bun wisp fresh MAP --no-quick`: a new game at fighter selection after a desynced run. */
-const freshGame = (map: string, clientsFile: string) => Effect.gen(function*() {
+export const freshGame = (map: string, clientsFile: string) => Effect.scoped(Effect.gen(function*() {
   console.log(`starting a new game of ${map} for the rerun`);
-  const code = yield* Effect.promise(() => Bun.spawn(["bun", join(import.meta.dir, "../../wisp.ts"), "fresh", map, "--no-quick", "--clients-file", clientsFile], { stdout: "inherit", stderr: "inherit" }).exited);
+  const child = yield* ChildProcess.make("bun", [join(import.meta.dir, "../../wisp.ts"), "fresh", map, "--no-quick", "--clients-file", clientsFile], { stdout: "inherit", stderr: "inherit", forceKillAfter: "1 second" });
+  const code = yield* child.exitCode;
   if (code !== 0) return yield* new IntegrityFailure({ operation: "start a new game", path: map, cause: `bun wisp fresh exited ${code}` });
-});
+})).pipe(Effect.catchTag("PlatformError", (cause) => Effect.fail(new IntegrityFailure({ operation: "start a new game", path: map, cause }))), Effect.provide(BunServices.layer));
 
 /** The thread padScheduleWorker.ts runs in, started before the match so its module has loaded by the first edge. */
 const scheduleThread = Effect.acquireRelease(
@@ -542,15 +556,20 @@ export const pad: Command = (args) => Effect.gen(function*() {
     }
     const retries = Number(parsed.values.retries ?? "3");
     const map = parsed.values.map;
-    for (let attempt = 0; ; attempt++) {
+    let attempt = 0;
+    return yield* Effect.gen(function*() {
+      if (attempt > 0 && map !== undefined) {
+        console.log(`rerun ${attempt} of ${retries}`);
+        yield* freshGame(map, clientsFile);
+      }
+      attempt++;
       const ran = yield* onHealthyClients(native(options, appIds, clientsFile).pipe(step("pad script")), { retry: false, clientsFile });
       if (ran === "valid") return;
-      if (map === undefined || attempt >= retries) {
-        return yield* new IntegrityFailure({ operation: INVALID_RUN, path: out, cause: `desynced, rerun (${attempt + 1} attempt${attempt === 0 ? "" : "s"}${map === undefined ? "; --map MAP.w3x reruns it automatically" : ""})` });
-      }
-      console.log(`rerun ${attempt + 1} of ${retries}`);
-      yield* freshGame(map, clientsFile);
-    }
+      return yield* new InvalidNativeRun({ attempts: attempt });
+    }).pipe(
+      Effect.retry({ schedule: EffectSchedule.recurs(map === undefined ? 0 : Math.max(0, Math.ceil(retries))), while: (failure) => failure instanceof InvalidNativeRun }),
+      Effect.catchIf((failure): failure is InvalidNativeRun => failure instanceof InvalidNativeRun, (failure) => Effect.fail(new IntegrityFailure({ operation: INVALID_RUN, path: out, cause: `desynced, rerun (${failure.attempts} attempt${failure.attempts === 1 ? "" : "s"}${map === undefined ? "; --map MAP.w3x reruns it automatically" : ""})` }))),
+    );
   }
   const ran = yield* Effect.exit(headless(options).pipe(step("headless pad script")));
   if (compare !== undefined) {
