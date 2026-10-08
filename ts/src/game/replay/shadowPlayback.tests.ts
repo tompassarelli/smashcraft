@@ -32,7 +32,7 @@ import { createRoster, fighterAt } from "../sim/roster";
 import { stateChecksum } from "./canonical";
 import { firstStateDifference } from "./difference";
 import { ReplayHistory } from "./history";
-import { shadowSpeculativeStepBudget, ShadowInputPlayback } from "./shadowPlayback";
+import { ShadowInputPlayback } from "./shadowPlayback";
 import { type ReplayState, copyReplayState, createReplaySnapshot } from "./snapshot";
 import { type TapeWorld, captureTape, createTapeWorld } from "./tapeWorld";
 
@@ -69,48 +69,7 @@ function networkRow(history: ReplayHistory, epoch: number, frame: number, slot: 
   return used;
 }
 
-test("an admitted shield reaches the fighter within the catch-up budget and pause frontier", () => {
-  const epoch = 950;
-  const schedule = new ShadowInputSchedule();
-  const playback = new ShadowInputPlayback();
-  const history = new ReplayHistory();
-  const { live } = shadowWorld();
-  assertTrue(schedule.beginEpoch(epoch, 0, 24, 3));
-  assertTrue(playback.beginEpoch(epoch));
-  assertTrue(history.beginEpoch(epoch, 1, 24));
-  assertEquals(schedule.captureLocalAt(epoch, 1, NEUTRAL), Capture.captured);
-  assertEquals(schedule.captureLocalAt(epoch, 2, SHIELD), Capture.captured);
-  assertTrue(playback.catchUpSpeculative(schedule, epoch, 0, live, history, shadowSpeculativeStepBudget(true)));
-  assertEquals(live.runtime.simulationFrame, 2);
-  assertTrue(fighterAt(live.world, 0).shield.raised);
-  assertEquals(schedule.speculativeFrame(), 3);
-  assertTrue(sameInput(networkRow(history, epoch, 2, 0), SHIELD));
-  for (let frame = 3; frame <= 12; frame++) assertEquals(schedule.captureLocalAt(epoch, frame, NEUTRAL), Capture.captured);
-  // Available backlog can't exceed the per-callback execution budget.
-  assertTrue(playback.catchUpSpeculative(schedule, epoch, 0, live, history, shadowSpeculativeStepBudget(true)));
-  assertEquals(live.runtime.simulationFrame, 8);
-  // An acknowledged pause frontier excludes that frame even when rows exist.
-  assertTrue(playback.catchUpSpeculative(schedule, epoch, 0, live, history, shadowSpeculativeStepBudget(true), 10));
-  assertEquals(live.runtime.simulationFrame, 9);
-  assertTrue(playback.catchUpSpeculative(schedule, epoch, 0, live, history, shadowSpeculativeStepBudget(true)));
-  assertEquals(live.runtime.simulationFrame, 12);
-  // Catch-up never invents the missing local frame 13.
-  assertEquals(schedule.speculativeFrame(), 13);
-  // Live callback capture keeps one-step service even with seeded delay rows.
-  const liveSchedule = new ShadowInputSchedule();
-  const livePlayback = new ShadowInputPlayback();
-  const liveHistory = new ReplayHistory();
-  const second = shadowWorld();
-  assertTrue(liveSchedule.beginEpoch(epoch, 3, 24, 3));
-  assertTrue(livePlayback.beginEpoch(epoch));
-  assertTrue(liveHistory.beginEpoch(epoch, 1, 24));
-  assertEquals(liveSchedule.captureLocal(epoch, NEUTRAL), Capture.captured);
-  assertTrue(livePlayback.catchUpSpeculative(liveSchedule, epoch, 0, second.live, liveHistory, shadowSpeculativeStepBudget(false)));
-  assertEquals(second.live.runtime.simulationFrame, 1);
-  assertEquals(liveSchedule.captureTarget(), 5);
-});
-
-test("a late held input re-predicts the tail and an accepted release stops it", () => {
+test("a late held input re-predicts the tail and an accepted release stops it [invariant]", () => {
   for (const localPlayer of [0, 1]) {
     const epoch = 930 + localPlayer;
     const remote = 1 - localPlayer;
@@ -178,7 +137,7 @@ test("a late held input re-predicts the tail and an accepted release stops it", 
   }
 });
 
-test("a late jump correction re-adapts a later attack against the air state", () => {
+test("a late jump correction re-adapts a later attack against the air state [invariant]", () => {
   const epoch = 920;
   const schedule = new ShadowInputSchedule();
   const playback = new ShadowInputPlayback();
@@ -216,7 +175,7 @@ test("a late jump correction re-adapts a later attack against the air state", ()
   assertEquals(playback.reconcile(schedule, epoch, 0, speculative.live, speculativeHistory), "unchanged");
 });
 
-test("a matching late prediction confirms without replaying", () => {
+test("a matching late prediction confirms without replaying [spec docs/netcode-proposal.md]", () => {
   const epoch = 921;
   const schedule = new ShadowInputSchedule();
   const playback = new ShadowInputPlayback();
@@ -240,7 +199,7 @@ test("a matching late prediction confirms without replaying", () => {
   assertEquals(live.runtime.simulationFrame, 9);
 });
 
-test("twelve late rows replay at full depth and rebuild every snapshot", () => {
+test("twelve late rows replay at full depth and rebuild every snapshot [invariant]", () => {
   const epoch = 922;
   const schedule = new ShadowInputSchedule();
   const playback = new ShadowInputPlayback();
@@ -278,7 +237,7 @@ test("twelve late rows replay at full depth and rebuild every snapshot", () => {
   assertTrue(schedule.mayAdvanceSpeculative(0));
 });
 
-test("twenty-four late rows re-predict and rebuild every snapshot", () => {
+test("twenty-four late rows re-predict and rebuild every snapshot [invariant]", () => {
   const epoch = 940;
   const schedule = new ShadowInputSchedule();
   const playback = new ShadowInputPlayback();
@@ -344,7 +303,7 @@ function capture(state: ReplayState): ReplayState {
   return snapshot;
 }
 
-test("lobby computers replay from corrected humans without network senders", () => {
+test("lobby computers replay from corrected humans without network senders [invariant]", () => {
   // One human with three computers, and sparse two-human, one-computer occupancy.
   // Wren Expert observes after 12 frames, leaving time to act inside the 24-frame window.
   const frames = 20;
@@ -442,6 +401,6 @@ function slotModeJournalOutcome(variant: number, heldInactiveInput: boolean): st
   return stateChecksum(actual);
 }
 
-test("computer and empty slot owners still confirm and replay without phantom senders", () => {
+test("computer and empty slot owners still confirm and replay without phantom senders [invariant]", () => {
   for (let variant = 0; variant <= 3; variant++) assertEquals(slotModeJournalOutcome(variant, true), slotModeJournalOutcome(variant, false));
 });

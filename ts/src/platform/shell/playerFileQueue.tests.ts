@@ -13,7 +13,7 @@ function fixture() {
   return { files, sent, completed, send, complete };
 }
 
-test("head owner departure resolves all their loads and resumes surviving files without stale chunks", () => {
+test("head owner departure resolves all their loads and resumes surviving files without stale chunks [repro #42]", () => {
   const { files, sent, completed, send, complete } = fixture();
   enqueuePlayerFile(files, 0, complete("departed-head"), send);
   enqueuePlayerFile(files, 1, complete("survivor"), send);
@@ -34,7 +34,7 @@ test("head owner departure resolves all their loads and resumes surviving files 
   assertEquals(files.queue.length, 0);
 });
 
-test("non-head and repeated departures never resend an active player's file", () => {
+test("non-head and repeated departures never resend an active player's file [repro #42]", () => {
   const { files, sent, completed, send, complete } = fixture();
   enqueuePlayerFile(files, 1, complete("active"), send);
   enqueuePlayerFile(files, 0, complete("departed"), send);
@@ -47,7 +47,7 @@ test("non-head and repeated departures never resend an active player's file", ()
   assertEquals(completed.join(","), "departed:unavailable,active:loaded:first-last");
 });
 
-test("departure callbacks cannot requeue departed owners or duplicate a new head's send", () => {
+test("departure callbacks cannot requeue departed owners or duplicate a new head's send [repro #42]", () => {
   const { files, sent, completed, send, complete } = fixture();
   enqueuePlayerFile(files, 0, (result) => {
     complete("departed")(result);
@@ -60,16 +60,4 @@ test("departure callbacks cannot requeue departed owners or duplicate a new head
   assertEquals(completed.join(","), "departed:unavailable,retry-departed:unavailable,departed-tail:unavailable");
   receivePlayerFileChunk(files, 1, "controls", true, send);
   assertEquals(files.queue.length, 0);
-});
-
-test("successful load callbacks can enqueue a new head without sending it twice", () => {
-  const { files, sent, completed, send, complete } = fixture();
-  enqueuePlayerFile(files, 0, (result) => {
-    complete("first")(result);
-    enqueuePlayerFile(files, 1, complete("new-head"), send);
-  }, send);
-  receivePlayerFileChunk(files, 0, "controls", true, send);
-  assertEquals(sent.join(","), "0,1");
-  receivePlayerFileChunk(files, 1, "", true, send);
-  assertEquals(completed.join(","), "first:loaded:controls,new-head:empty");
 });

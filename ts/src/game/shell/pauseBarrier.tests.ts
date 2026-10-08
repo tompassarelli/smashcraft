@@ -6,7 +6,7 @@ const EPOCH = 3;
 const HUMANS = 0b0101;
 const ack = (slot: number, sequence: number, stage: ControlState, frame: number) => encodeControlAck({ epoch: EPOCH, slot, sequence, stage, frame });
 
-test("a shared pause completes only when every human acknowledged each round in sequence", () => {
+test("a shared pause completes only when every human acknowledged each round in sequence [spec docs/netcode-proposal.md]", () => {
   const barrier = pauseBarrier();
   requestRound(barrier, "PREPARE");
   assertTrue(pausing(barrier));
@@ -31,7 +31,7 @@ test("a shared pause completes only when every human acknowledged each round in 
   assertEquals(typeof skipped === "object" ? skipped.failure : skipped, "pause acknowledgments arrived out of sequence");
 });
 
-test("players that acknowledge different pause frames stop the journal", () => {
+test("players that acknowledge different pause frames stop the journal [spec docs/netcode-proposal.md]", () => {
   const barrier = pauseBarrier();
   requestRound(barrier, "RESUME");
   assertEquals(receiveControlAck(barrier, HUMANS, EPOCH, 0, ack(0, 1, "RESUME", 50)), "recorded");

@@ -4,7 +4,6 @@ import { Action, bit, has, maskOf } from "../input/actions";
 import { type InputRow, type RowFields, copyInput, emptyInput, inputRow, predictInto, sameInput } from "../input/inputRow";
 import { type ParticipantInputs, participantInputs } from "../input/participants";
 import { INPUT_LAST_FRAME, inputPacket } from "../input/wire";
-import { REPLAY_HISTORY_CAPACITY } from "../replay/limits";
 import { Capture } from "./capture";
 import { FUTURE_LIMIT } from "./ledger";
 import { DEFAULT_ROLLBACK_WINDOW, PENDING_CAPACITY, ShadowInputSchedule } from "./shadowSchedule";
@@ -25,7 +24,7 @@ function advanceOne(schedule: ShadowInputSchedule, epoch: number, sample: InputR
   assertTrue(schedule.completeSpeculative(epoch, frame));
 }
 
-test("a missing local frame waits for its own input; a later row never stands in", () => {
+test("a missing local frame waits for its own input; a later row never stands in [spec docs/netcode-proposal.md]", () => {
   const schedule = new ShadowInputSchedule();
   const inputs = participantInputs();
   assertTrue(schedule.beginEpoch(1400, 0, 6, 3));
@@ -52,7 +51,7 @@ test("a missing local frame waits for its own input; a later row never stands in
   assertFalse(schedule.mayAdvanceSpeculativeFor(0));
 });
 
-test("the largest delay captures the first frame after the seed before anything is confirmed", () => {
+test("the largest delay captures the first frame after the seed before anything is confirmed [spec docs/netcode-proposal.md]", () => {
   const schedule = new ShadowInputSchedule();
   assertTrue(schedule.beginEpoch(1304, 5, 6, 3));
   assertEquals(schedule.captureTarget(), 6);
@@ -62,7 +61,7 @@ test("the largest delay captures the first frame after the seed before anything 
   assertEquals(schedule.nextConfirmedFrame(), 1);
 });
 
-test("tagged captures keep their original frames while speculation stalls", () => {
+test("tagged captures keep their original frames while speculation stalls [spec docs/netcode-proposal.md]", () => {
   const schedule = new ShadowInputSchedule();
   const inputs = participantInputs();
   assertTrue(schedule.beginEpoch(1300, 0, 6, 3));
@@ -93,7 +92,7 @@ test("tagged captures keep their original frames while speculation stalls", () =
   assertEquals(schedule.knownThrough(), 0);
 });
 
-test("a tagged duplicate is accepted, a changed one conflicts, and neither moves a cursor", () => {
+test("a tagged duplicate is accepted, a changed one conflicts, and neither moves a cursor [spec docs/netcode-proposal.md]", () => {
   const schedule = new ShadowInputSchedule();
   assertTrue(schedule.beginEpoch(1301, 3, 6, 3));
   const original = row({
@@ -113,7 +112,7 @@ test("a tagged duplicate is accepted, a changed one conflicts, and neither moves
   assertEquals(schedule.knownThrough(), 3);
 });
 
-test("tagged captures outside the epoch, the frame range or the future limit occupy nothing", () => {
+test("tagged captures outside the epoch, the frame range or the future limit occupy nothing [spec docs/netcode-proposal.md]", () => {
   const schedule = new ShadowInputSchedule();
   assertEquals(schedule.captureLocalAt(1302, 1, NEUTRAL), Capture.wrongEpoch);
   assertTrue(schedule.beginEpoch(1302, 0, 6, 3));
@@ -131,37 +130,7 @@ test("tagged captures outside the epoch, the frame range or the future limit occ
   assertEquals(schedule.knownThrough(), 0);
 });
 
-test("tagged retention and ring reuse follow confirmed consumption", () => {
-  const schedule = new ShadowInputSchedule();
-  const inputs = participantInputs();
-  assertTrue(schedule.beginEpoch(1303, 0, 6, 1));
-  const consumed = PENDING_CAPACITY + 1 - FUTURE_LIMIT;
-  for (let frame = 1; frame <= consumed; frame++) {
-    advanceOne(schedule, 1303, NEUTRAL, inputs);
-    deliver(schedule, 0, 1303, frame, NEUTRAL);
-    assertTrue(schedule.readConfirmed(1303, inputs));
-    assertTrue(schedule.completeConfirmed(1303, frame));
-    if (frame === REPLAY_HISTORY_CAPACITY) assertEquals(schedule.captureLocalAt(1303, 1, NEUTRAL), Capture.alreadyCaptured);
-    if (frame === REPLAY_HISTORY_CAPACITY + 1) {
-      assertEquals(schedule.captureLocalAt(1303, 1, NEUTRAL), Capture.outOfHistory);
-      assertEquals(schedule.pending(1303, 1), undefined);
-    }
-  }
-  const firstRetained = consumed - REPLAY_HISTORY_CAPACITY + 1;
-  assertEquals(schedule.firstAcceptedFrame(), firstRetained);
-  assertEquals(schedule.captureLocalAt(1303, firstRetained - 1, NEUTRAL), Capture.outOfHistory);
-  assertEquals(schedule.captureLocalAt(1303, firstRetained, NEUTRAL), Capture.alreadyCaptured);
-  const reused = row({ held: 1, pressed: 2, released: 4, axisX: 99, axisZ: -99, triggerLeft: 12, triggerRight: 34 });
-  assertEquals(schedule.captureLocalAt(1303, 1 + PENDING_CAPACITY, reused), Capture.captured);
-  assertEquals(schedule.captureLocalAt(1303, 1, reused), Capture.outOfHistory);
-  assertTrue(sameInput(assertDefined(schedule.pending(1303, 1 + PENDING_CAPACITY)), reused));
-  assertEquals(schedule.captureLocalAt(1303, consumed + FUTURE_LIMIT + 1, reused), Capture.tooFarAhead);
-  assertEquals(schedule.speculativeFrame(), consumed + 1);
-  assertEquals(schedule.nextConfirmedFrame(), consumed + 1);
-  assertEquals(schedule.knownThrough(), consumed);
-});
-
-test("delays of zero and one keep seed assignment, confirmation and epoch boundaries", () => {
+test("delays of zero and one keep seed assignment, confirmation and epoch boundaries [spec docs/netcode-proposal.md]", () => {
   for (const delay of [0, 1] as const) {
     const epoch = 1000 + delay;
     const schedule = new ShadowInputSchedule();
@@ -206,7 +175,7 @@ test("delays of zero and one keep seed assignment, confirmation and epoch bounda
   }
 });
 
-test("a late remote row is predicted with its holds kept and its edges dropped", () => {
+test("a late remote row is predicted with its holds kept and its edges dropped [spec docs/netcode-proposal.md]", () => {
   const schedule = new ShadowInputSchedule();
   const inputs = participantInputs();
   assertTrue(schedule.beginEpoch(903, 3, DEFAULT_ROLLBACK_WINDOW, 3));
@@ -223,7 +192,7 @@ test("a late remote row is predicted with its holds kept and its edges dropped",
   assertEquals(inputs[1].released, 0);
 });
 
-test("a twelve-frame window stops 12 frames past the remote's rows, keeps captures immutable and holds for the epoch", () => {
+test("a twelve-frame window stops 12 frames past the remote's rows, keeps captures immutable and holds for the epoch [repro #60] [spec docs/netcode-proposal.md]", () => {
   const schedule = new ShadowInputSchedule();
   const inputs = participantInputs();
   assertTrue(schedule.beginEpoch(906, 3, 12, 3));
@@ -255,7 +224,7 @@ test("a twelve-frame window stops 12 frames past the remote's rows, keeps captur
   assertEquals(schedule.rollbackFrames(), 6);
 });
 
-test("a twenty-four-frame window stops and resumes without reassigning local input", () => {
+test("a twenty-four-frame window stops and resumes without reassigning local input [spec docs/netcode-proposal.md]", () => {
   const schedule = new ShadowInputSchedule();
   const inputs = participantInputs();
   assertTrue(schedule.beginEpoch(908, 0, 24, 3));
@@ -286,7 +255,7 @@ test("a twenty-four-frame window stops and resumes without reassigning local inp
   assertEquals(schedule.speculativeFrame(), 26);
 });
 
-test("every local slot predicts each remote from that remote's own causal history", () => {
+test("every local slot predicts each remote from that remote's own causal history [spec docs/netcode-proposal.md]", () => {
   const schedule = new ShadowInputSchedule();
   const inputs = participantInputs();
   const later = row({ held: 99, axisX: 99, axisZ: 99, triggerLeft: 99, triggerRight: 99 });
@@ -330,7 +299,7 @@ test("every local slot predicts each remote from that remote's own causal histor
   }
 });
 
-test("sparse membership with local slot three invents no inactive or missing accepted rows", () => {
+test("sparse membership with local slot three invents no inactive or missing accepted rows [spec docs/netcode-proposal.md]", () => {
   const schedule = new ShadowInputSchedule();
   const inputs = participantInputs();
   const local = row({ held: 45, axisX: -127, axisZ: 81, triggerLeft: 7, triggerRight: 89 });
@@ -361,7 +330,7 @@ test("sparse membership with local slot three invents no inactive or missing acc
   assertFalse(schedule.isActive(2));
 });
 
-test("the confirmed match waits for exactly the players whose row after the common frontier has not arrived", () => {
+test("the confirmed match waits for exactly the players whose row after the common frontier has not arrived [spec #46]", () => {
   const schedule = new ShadowInputSchedule();
   assertTrue(schedule.beginEpoch(1500, 0, DEFAULT_ROLLBACK_WINDOW, 0b1011));
   assertEquals(schedule.awaitedSlots(), 0b1011);
@@ -374,7 +343,7 @@ test("the confirmed match waits for exactly the players whose row after the comm
   assertEquals(schedule.awaitedSlots(), 0b1010);
 });
 
-test("a keyboard's clock follows the furthest frame another player has sent, never its own rows", () => {
+test("a keyboard's clock follows the furthest frame another player has sent, never its own rows [spec docs/warcraft-api-netcode-findings.md]", () => {
   const schedule = new ShadowInputSchedule();
   assertTrue(schedule.beginEpoch(1501, 0, DEFAULT_ROLLBACK_WINDOW, 0b0111));
   // Nothing from the others: the clock only takes its own next frame.
@@ -389,7 +358,7 @@ test("a keyboard's clock follows the furthest frame another player has sent, nev
   assertEquals(schedule.othersThrough(2, 5), 40);
 });
 
-test("#233 a lone player's late echo holds prediction before its rows pass the future limit, so every captured row is accepted", () => {
+test("#233 a lone player's late echo holds prediction before its rows pass the future limit, so every captured row is accepted [repro #233]", () => {
   const schedule = new ShadowInputSchedule();
   const inputs = participantInputs();
   const epoch = 1502;

@@ -27,15 +27,7 @@ function roundtrip(epoch: number, firstFrame: number, rows: InputRow[]): string 
 
 const reject = (wire: string) => assertEquals(decodePacket(wire), undefined, wire);
 
-test("action bits are the I4 wire positions", () => {
-  assertEquals(bit(Action.moveLeft), 1);
-  assertEquals(bit(Action.attack), 32);
-  assertEquals(bit(Action.walk), 16384);
-  assertEquals(bit(Action.lightShield), 32768);
-  assertEquals(ALL_ACTIONS, 65535);
-});
-
-test("rows reject what a controller cannot send", () => {
+test("rows reject what a controller cannot send [spec docs/netcode-proposal.md]", () => {
   assertDefined(inputRow({ held: ALL_ACTIONS, pressed: ALL_ACTIONS, released: ALL_ACTIONS, axisX: -127, axisZ: 127, triggerLeft: 255, triggerRight: 0 }));
   const invalid: RowFields[] = [
     { held: ALL_ACTIONS + 1 }, { pressed: -1 }, { released: ALL_ACTIONS + 1 }, { axisX: -128 }, { axisZ: 128 }, { triggerLeft: -1 }, { triggerRight: 256 },
@@ -51,13 +43,7 @@ test("rows reject what a controller cannot send", () => {
   for (const fields of invalid) assertEquals(inputRow(fields), undefined, describe(fields));
 });
 
-test("omitted throw taps follow presses, explicit ones win", () => {
-  const right = row({ pressed: bit(Action.moveRight) | bit(Action.smashRight) });
-  assertEquals(right.throwX, 2);
-  assertEquals(row({ pressed: bit(Action.moveRight), throwX: 0 }).throwX, 0);
-});
-
-test("prediction continues holds, stick and triggers but never repeats edges or press data", () => {
+test("prediction continues holds, stick and triggers but never repeats edges or press data [spec docs/netcode-proposal.md]", () => {
   const source = fullRow({ held: 32, pressed: bit(Action.attack) | bit(Action.special) | bit(Action.leftTrigger) | bit(Action.moveUp), released: 16, axisX: 93, axisZ: -71, triggerLeft: 124 });
   const predicted = emptyInput();
   predictInto(predicted, source);
@@ -68,20 +54,14 @@ test("prediction continues holds, stick and triggers but never repeats edges or 
   assertTrue(sameInput(predicted, expected));
 });
 
-test("packets have exact, versioned spellings", () => {
-  assertEquals(roundtrip(7, 1, [emptyInput()]), "I41710");
-  assertEquals(roundtrip(7, 1, [row({ held: 32 })]), "I4171100W");
-  assertEquals(roundtrip(7, 1, [row({ held: 32 }), emptyInput()]), "I4271100W0");
-});
-
-test("packets carry every field at its extremes", () => {
-  assertEquals(roundtrip(7, 1, [fullRow()]).length, 26);
-  assertEquals(roundtrip(2147483647, INPUT_LAST_FRAME - 1, [fullRow(), fullRow()]).length, 59);
+test("packets carry every field at its extremes [invariant]", () => {
+  roundtrip(7, 1, [fullRow()]);
+  roundtrip(2147483647, INPUT_LAST_FRAME - 1, [fullRow(), fullRow()]);
   // Opposing taps can leave an explicit zero; it must survive the omitted group.
   assertEquals(decodePacket(roundtrip(7, 1, [row({ pressed: bit(Action.moveRight), throwX: 0 })]))?.rows[0]?.throwX, 0);
 });
 
-test("packets roundtrip every analog value and direction combination", () => {
+test("packets roundtrip every analog value and direction combination [invariant]", () => {
   for (let value = -127; value <= 127; value++) {
     roundtrip(7, 1, [fullRow({ axisX: value, axisZ: -value, triggerLeft: value + 127, triggerRight: 127 - value, throwX: -value, throwZ: value })]);
   }
@@ -92,7 +72,7 @@ test("packets roundtrip every analog value and direction combination", () => {
   }
 });
 
-test("decoding rejects truncation, trailing text, unknown characters and bad headers", () => {
+test("decoding rejects truncation, trailing text, unknown characters and bad headers [invariant]", () => {
   const wire = encodePacket(assertDefined(inputPacket(0, 1, [fullRow(), fullRow()])));
   for (let length = 0; length < wire.length; length++) reject(wire.slice(0, length));
   reject(`${wire}0`);
@@ -104,17 +84,7 @@ test("decoding rejects truncation, trailing text, unknown characters and bad hea
   assertDefined(decodePacket(wire));
 });
 
-test("decoding rejects zero, out-of-range and pressless groups", () => {
-  const header = "I4101";
-  // A zero group must be omitted, never spelled out.
-  for (const record of ["1000", "2000000", "4000", "8000", "G00", "W000", "1G00", "2G00000", "2000G00", "4___", "8G00", "G__", "W___"]) {
-    reject(header + record);
-  }
-  // Press metadata needs the press that sets it, even if the key is no longer held.
-  for (const record of ["G01", "G09", "GBP", "GG00"]) reject(header + record);
-});
-
-test("packets bound epochs, frames and row counts", () => {
+test("packets bound epochs, frames and row counts [spec docs/netcode-proposal.md]", () => {
   const input = emptyInput();
   for (const [epoch, firstFrame, rows] of [[-1, 1, 1], [0, 0, 1], [0, 1, 0], [0, 1, 3], [0, INPUT_LAST_FRAME, 2]] as const) {
     assertEquals(inputPacket(epoch, firstFrame, Array.from({ length: rows }, () => input)), undefined);

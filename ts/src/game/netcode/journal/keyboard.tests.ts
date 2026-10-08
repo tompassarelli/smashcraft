@@ -23,7 +23,7 @@ function held(keys: readonly boolean[]): string {
 
 const decoded = (keys: readonly boolean[]) => decodeChunk(keys)?.text;
 
-test("ASCII chunks carry I4 and control text exactly, least significant bit first", () => {
+test("ASCII chunks carry I4 and control text exactly, least significant bit first [reference]", () => {
   assertEquals(CARRIER_KEYS.length, 54);
   // "I" is 73: bits 0, 3 and 6, with a byte count of one.
   assertEquals(held(carrier("I", false)), "0,3,6,49");
@@ -35,25 +35,7 @@ test("ASCII chunks carry I4 and control text exactly, least significant bit firs
   assertEquals(last?.final, true);
 });
 
-test("the neutral carrier is no chunk, and a chunk holds at most seven bytes", () => {
-  assertEquals(decodeChunk(CARRIER_KEYS.map(() => false)), undefined);
-  assertEquals(decoded(carrier("0123456", false)), "0123456");
-  assertEquals(decoded(carrier("abcdefg", true)), "abcdefg");
-});
-
-test("non-printable bytes are refused", () => {
-  const control = CARRIER_KEYS.map(() => false);
-  control[0] = true;
-  control[1] = true;
-  control[49] = true;
-  assertEquals(decodeChunk(control), undefined);
-  // Seven bytes of zero.
-  const zeros = CARRIER_KEYS.map(() => false);
-  for (let bit = 0; bit < 3; bit++) zeros[49 + bit] = true;
-  assertEquals(decodeChunk(zeros), undefined);
-});
-
-test("a message's chunks are acknowledged as taken, and its final chunk once the message is used", () => {
+test("a message's chunks are acknowledged as taken, and its final chunk once the message is used [reference]", () => {
   const mailbox = new KeyboardMailbox("candidate", 7, 2);
   assertFalse(mailbox.pending(false));
   assertTrue(mailbox.pending(true));

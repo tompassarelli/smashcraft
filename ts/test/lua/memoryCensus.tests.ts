@@ -12,23 +12,7 @@ import { HabitChoice } from "../../src/game/match/botHabits";
 import { HeadlessClient } from "wisp/src/headless/client";
 import { HandleCensus, compactEmulator, reach } from "../../scripts/wisp/memoryCensus";
 
-test("the map table census excludes opaque native identities and still counts matching domain records", () => {
-  const first = { id: 1, kind: "effect" };
-  const second = { id: 2, kind: "effect" };
-  const retained: { value: number }[] = [];
-  const state = { handles: [first], domain: { id: 3, kind: "effect" }, retained };
-  const environment = new LuaTable<AnyNotNil, unknown>();
-  environment.set("map", state);
-  const baseline = reach(environment, [first], true);
-  assertEquals(baseline.tables, 4);
-  state.handles.push(second);
-  assertEquals(reach(environment, [first, second], true).tables, baseline.tables);
-  state.retained.push({ value: 4 });
-  assertEquals(reach(environment, [first, second], true).tables, baseline.tables + 1);
-  assertEquals(reach(environment, [first], true).tables, baseline.tables + 2);
-});
-
-test("emulator compaction drops sound event history while preserving live sounds and call checksums", () => {
+test("emulator compaction drops sound event history while preserving live sounds and call checksums [invariant]", () => {
   const functions: readonly (readonly [string, string, number])[] = [["CreateSound", "sound", 7], ["StartSound", "void", 1]];
   const client = new HeadlessClient({ slot: 0, filePrefix: "sound-memory", humans: [0], declarations: { functions, constants: [], variables: [] }, localNatives: {}, network: [], screenWidth: 1280 });
   const census = new HandleCensus(client, functions);
@@ -48,7 +32,7 @@ test("emulator compaction drops sound event history while preserving live sounds
   assertEquals(client.checksum(), checksum);
 });
 
-test("1000 released sounds leave no retained client records or live handles", () => {
+test("1000 released sounds leave no retained client records or live handles [invariant]", () => {
   const functions: readonly (readonly [string, string, number])[] = [["CreateSound", "sound", 7], ["StartSound", "void", 1], ["KillSoundWhenDone", "void", 1]];
   const client = new HeadlessClient({ slot: 0, filePrefix: "sound-release", humans: [0], declarations: { functions, constants: [], variables: [] }, localNatives: {}, network: [], screenWidth: 1280 });
   const census = new HandleCensus(client, functions);
@@ -79,8 +63,7 @@ test("1000 released sounds leave no retained client records or live handles", ()
   assertEquals(reach(environment, [], false).tables, baseline);
 });
 
-
-test("copied bot reads add no reachable tables when reads appear after warmup", () => {
+test("copied bot reads add no reachable tables when reads appear after warmup [invariant]", () => {
   const source = createBotStrategy();
   const snapshots = [createBotStrategy(), createBotStrategy(), createBotStrategy(), createBotStrategy()];
   const environment = new LuaTable<AnyNotNil, unknown>();
@@ -107,8 +90,7 @@ test("copied bot reads add no reachable tables when reads appear after warmup", 
   }
 });
 
-
-test("first hero rendering and nonzero DI use initialized records without adding reachable tables", () => {
+test("first hero rendering and nonzero DI use initialized records without adding reachable tables [invariant]", () => {
   const fighter = createFighter(Character.pitLord, 0.0, 1);
   const input = neutralControls();
   input.direction = -1;

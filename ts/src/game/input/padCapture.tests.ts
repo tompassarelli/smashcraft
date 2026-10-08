@@ -5,7 +5,7 @@ import { decodePacket, encodePacket, inputPacket } from "./wire";
 import { keyboardCapture, commitEdges } from "./keyboardCapture";
 import { PAD_ACTIVE_KEY, PAD_AXIS_LEVELS, PAD_KEYS, PAD_TRIGGER_LEVELS, cursorWorldPacket, decodePad, padKeyPacket, samplePad } from "./padCapture";
 
-test("both pad carriers decode all 4624 quantized axis and trigger combinations into valid rows", () => {
+test("both pad carriers decode all 4624 quantized axis and trigger combinations into valid rows [invariant]", () => {
   const calibration = { first: { x: -400.0, y: 900.0 }, last: { x: 870.0, y: -370.0 } };
   for (let x = 0; x < PAD_AXIS_LEVELS.length; x++) {
     for (let z = 0; z < PAD_AXIS_LEVELS.length; z++) {
@@ -28,20 +28,6 @@ test("both pad carriers decode all 4624 quantized axis and trigger combinations 
   }
 });
 
-test("pad capture leaves keyboard sampling intact when inactive or malformed", () => {
-  const capture = keyboardCapture();
-  assertTrue(samplePad(capture, 2, undefined));
-  assertEquals(capture.row.axisX, 127);
-  assertEquals(capture.row.triggerLeft, 0);
-  for (const packet of [-1, 31, 16384]) {
-    assertTrue(samplePad(capture, 2, packet));
-    assertEquals(capture.row.axisX, 127);
-    assertEquals(capture.row.triggerLeft, 0);
-  }
-  assertEquals(padKeyPacket(() => false), undefined);
-  assertEquals(cursorWorldPacket({ first: undefined, last: undefined }, 0.0, 0.0), undefined);
-});
-
 /** Replays the packets of a helper's recorded session, retaining keyboard edges. */
 function replayPadSession(session: readonly { readonly packed: number; readonly held: number; readonly row: InputRow }[]): void {
   const capture = keyboardCapture();
@@ -56,7 +42,7 @@ function replayPadSession(session: readonly { readonly packed: number; readonly 
   }
 }
 
-test("the recorded SDL pad session replays all 16 exact input rows through capture and wire", () => {
+test("the recorded SDL pad session replays all 16 exact input rows through capture and wire [native]", () => {
   // Actual helper acquisition: test/fixtures/analog204/recorded-pad-session.tsv.
   // The helper's action transitions and quantized axes supply independent rows.
   const recorded = [

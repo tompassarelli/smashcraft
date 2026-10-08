@@ -11,7 +11,7 @@ const ready = () => {
   return game;
 };
 
-test("stage pools: include/exclude keep the same active stages and never allow an empty pool", () => {
+test("stage pools: include/exclude keep the same active stages and never allow an empty pool [spec #198]", () => {
   const pool = createStagePool();
   assertEquals(stagePoolCount(pool), STAGE_CATALOG.length);
   togglePoolMode(pool);
@@ -26,7 +26,7 @@ test("stage pools: include/exclude keep the same active stages and never allow a
   assertEquals(stagePoolCount(pool), 1);
 });
 
-test("stage pools: 500 seeded cycles stay inside the pool, cover it before repeating and reshuffle", () => {
+test("stage pools: 500 seeded cycles stay inside the pool, cover it before repeating and reshuffle [spec #198]", () => {
   const pool = createStagePool();
   for (const stage of STAGE_CATALOG) if (stage.id !== 2 && stage.id !== 10 && stage.id !== 11) togglePoolStage(pool, stage.id);
   let changed = false;
@@ -48,7 +48,7 @@ test("stage pools: 500 seeded cycles stay inside the pool, cover it before repea
   assertTrue(changed);
 });
 
-test("stage pools: Start uses Random, a picked stage overrides the pool, and rematches/endless keep rotation", () => {
+test("stage pools: Start uses Random, a picked stage overrides the pool, and rematches/endless keep rotation [spec #198]", () => {
   const game = ready();
   assertTrue(requestStageSelect(game, 0));
   assertEquals(game.stageChoice, RANDOM_STAGE);
@@ -77,7 +77,7 @@ test("stage pools: Start uses Random, a picked stage overrides the pool, and rem
   assertEquals(stagePoolCount(game.stagePool), 3);
 });
 
-test("stage pools: copied replay state draws exactly the same next 27 stages", () => {
+test("stage pools: copied replay state draws exactly the same next 27 stages [spec #198] [invariant]", () => {
   const original = ready();
   requestStageSelect(original, 0);
   for (const stage of STAGE_CATALOG) if (stage.id !== 2 && stage.id !== 10 && stage.id !== 11) changeStagePoolStage(original, 0, stage.id);
@@ -105,8 +105,7 @@ test("stage pools: copied replay state draws exactly the same next 27 stages", (
   }
 });
 
-
-test("stage pools: three endless matches use the remaining pool between leaves", () => {
+test("stage pools: three endless matches use the remaining pool between leaves [spec #198]", () => {
   const game = ready();
   game.endless = true;
   requestStageSelect(game, 0);

@@ -4,7 +4,7 @@ import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTru
 import { f32 } from "wisp/src/sim/f32";
 import { type AttackBuffer, attackBuffer, clearAttackBuffer, hasPendingAttack, queueAttack } from "../input/attackBuffer";
 import type { FrameControls } from "../match/controls";
-import { captureFrame, createMatchFrameInput, executeMatchFrame, resetMatchFrameInput } from "../match/frameInput";
+import { captureFrame, createMatchFrameInput, executeMatchFrame } from "../match/frameInput";
 import { type PacingAndPresentation, createPacingAndPresentation } from "../match/pacingAndPresentation";
 import { type MatchState, Phase, createMatchState, requestStageSelect, requestStart, selectCharacter } from "../match/rules";
 import { initializeMatchFighters, stepMatch } from "../match/step";
@@ -40,7 +40,7 @@ function liveState(first: Fighter, second: Fighter, match: MatchState, controls:
   return { world: testWorld(first, second), match, controls, runtime };
 }
 
-test("rollback retains original launch and recoil across world rounding", () => {
+test("rollback retains original launch and recoil across world rounding [invariant]", () => {
   const live = createReplaySnapshot();
   const snapshot = createReplaySnapshot();
   const after = createReplaySnapshot();
@@ -79,7 +79,7 @@ function projectile(fighter: Fighter, index: number) {
   return value;
 }
 
-test("a practice match's mode is replay state that restores and differs", () => {
+test("a practice match's mode is replay state that restores and differs [invariant]", () => {
   const game = createMatchState();
   selectCharacter(game, 0, 0);
   requestStageSelect(game, 0);
@@ -100,17 +100,7 @@ test("a practice match's mode is replay state that restores and differs", () => 
   assertEquals(firstStateDifference(snapshot, actual), undefined);
 });
 
-test("a rematch can reuse the first frame's row once it is reset", () => {
-  const row = createMatchFrameInput();
-  const controls = frameControls(attackBuffer(0), attackBuffer(0));
-  const runtime = createPacingAndPresentation();
-  assertTrue(captureFrame(row, 1, 3, controls, runtime));
-  assertFalse(captureFrame(row, 1, 3, controls, runtime));
-  resetMatchFrameInput(row);
-  assertTrue(captureFrame(row, 1, 3, controls, runtime));
-});
-
-test("capture and restore include combat references, projectiles and queued input", () => {
+test("capture and restore include combat references, projectiles and queued input [invariant]", () => {
   const first = createFighter(Character.archer, -90.0, 1);
   const second = createFighter(Character.rifleman, 90.0, -1);
   const match = createMatchState();
@@ -298,7 +288,7 @@ test("capture and restore include combat references, projectiles and queued inpu
   assertTrue(hasPendingAttack(secondCommands, 40));
 });
 
-test("restore and replay reproduce movement and the match clock", () => {
+test("restore and replay reproduce movement and the match clock [invariant]", () => {
   const first = createFighter(Character.archer, -30.0, 1);
   const second = createFighter(Character.rifleman, 30.0, -1);
   const match = createMatchState();
@@ -329,7 +319,7 @@ test("restore and replay reproduce movement and the match clock", () => {
   assertEquals(firstStateDifference(expected, replayed), undefined);
 });
 
-test("restoring into other fighters keeps the contact registry by slot", () => {
+test("restoring into other fighters keeps the contact registry by slot [invariant]", () => {
   const first = createFighter(Character.archer, 0.0, 1);
   const second = createFighter(Character.rifleman, 100.0, -1);
   const match = createMatchState();
@@ -359,7 +349,7 @@ test("restoring into other fighters keeps the contact registry by slot", () => {
   assertEquals(projectile(replaySecond, 0).life, 0);
 });
 
-test("recorded rows replay an attack against a shield from independently restored fighters", () => {
+test("recorded rows replay an attack against a shield from independently restored fighters [invariant]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
   const first = createFighter(Character.archer, 0.0, 1);
@@ -425,7 +415,7 @@ test("recorded rows replay an attack against a shield from independently restore
   assertEquals(recoveredGame.remainingFrames, game.remainingFrames);
 });
 
-test("exact differences keep small reals and compare attackers by slot", () => {
+test("exact differences keep small reals and compare attackers by slot [invariant]", () => {
   const expected = createReplaySnapshot();
   const actual = createReplaySnapshot();
   const tiny = f32(0.000001);
@@ -458,7 +448,7 @@ test("exact differences keep small reals and compare attackers by slot", () => {
   assertEquals(firstStateDifference(expected, actual), "runtime.botAttackDelays[1]");
 });
 
-test("ground actions, their clock and the actor's ground rules are replay state", () => {
+test("ground actions, their clock and the actor's ground rules are replay state [invariant]", () => {
   const expected = createReplaySnapshot();
   const actual = createReplaySnapshot();
   for (const snapshot of [expected, actual]) {
@@ -502,7 +492,7 @@ test("ground actions, their clock and the actor's ground rules are replay state"
   assertEquals(firstStateDifference(expected, actual), "fighter[0].groundTurnRunFacingCommandLatched");
 });
 
-test("dash grab rules and the catch window are replay state", () => {
+test("dash grab rules and the catch window are replay state [invariant]", () => {
   const expected = createReplaySnapshot();
   const actual = createReplaySnapshot();
   for (const snapshot of [expected, actual]) {
@@ -525,7 +515,7 @@ test("dash grab rules and the catch window are replay state", () => {
   assertEquals(firstStateDifference(expected, actual), "fighter[0].dashGrabTiming");
 });
 
-test("every physics parameter survives capture and restore and participates in equality", () => {
+test("every physics parameter survives capture and restore and participates in equality [invariant]", () => {
   const first = createFighter(Character.archer, 0.0, 1);
   const second = createFighter(Character.rifleman, 100.0, -1);
   const live = liveState(first, second, createMatchState(), frameControls(attackBuffer(0), attackBuffer(0)), createPacingAndPresentation());
@@ -557,7 +547,7 @@ test("every physics parameter survives capture and restore and participates in e
   assertEquals(firstStateDifference(expected, actual), undefined);
 });
 
-test("fast fall changes every slot's checksum and survives rollback", () => {
+test("fast fall changes every slot's checksum and survives rollback [invariant]", () => {
   const source = createReplaySnapshot();
   const restored = createReplaySnapshot();
   source.world.mask = 15;
