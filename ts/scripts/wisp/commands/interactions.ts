@@ -39,53 +39,29 @@ class InteractionsFailure extends Schema.TaggedError<InteractionsFailure>()("Int
 
 const failure = (cause: unknown): InteractionsFailure => new InteractionsFailure({ problems: [describeCause(cause)] });
 
+/** One worker thread's reply to `message`; the thread ends with the scope, on a reply, a failure or an interrupt. */
+const playWorker = <A>(label: string, message: unknown): Effect.Effect<A, InteractionsFailure> => Effect.scoped(Effect.gen(function* () {
+  const worker = yield* Effect.acquireRelease(
+    Effect.sync(() => new Worker(new URL("../../interactionsWorker.ts", import.meta.url).href)),
+    (thread) => Effect.sync(() => thread.terminate()),
+  );
+  return yield* Effect.callback<A, InteractionsFailure>((resume) => {
+    worker.onmessage = (event: MessageEvent<A>) => resume(Effect.succeed(event.data));
+    worker.onerror = (event) => resume(Effect.fail(failure(new Error(`${label}: ${event.message}`))));
+    worker.postMessage(message);
+  });
+}));
+
 /** Each named fighter's rows, every fighter on its own worker thread. */
 const playFighters = (names: readonly string[], combos = true): Effect.Effect<FighterRows[], InteractionsFailure> =>
-  Effect.tryPromise({
-    try: () => Promise.all(names.map((name) => new Promise<FighterRows>((resolve, reject) => {
-      const worker = new Worker(new URL("../../interactionsWorker.ts", import.meta.url).href);
-      worker.onmessage = (event: MessageEvent<FighterRows>) => {
-        resolve(event.data);
-        worker.terminate();
-      };
-      worker.onerror = (event) => {
-        reject(new Error(`${name}: ${event.message}`));
-        worker.terminate();
-      };
-      worker.postMessage({ fighter: name, combos });
-    }))),
-    catch: failure,
-  });
+  Effect.forEach(names, (name) => playWorker<FighterRows>(name, { fighter: name, combos }), { concurrency: "unbounded" });
 
 /** Every selectable fighter's throw-role rows, THROW_WORKERS fighters at a time, in roster order. */
-const playThrowRoles: Effect.Effect<ThrowRoleRow[], InteractionsFailure> = Effect.tryPromise({
-  try: async () => {
-    const results: ThrowRoleRow[][] = [];
-    let next = 0;
-    const runner = async () => {
-      while (next < THROW_FIGHTERS.length) {
-        const index = next++;
-        const entry = THROW_FIGHTERS[index];
-        if (entry === undefined) return;
-        results[index] = await new Promise<ThrowRoleRow[]>((resolve, reject) => {
-          const worker = new Worker(new URL("../../interactionsWorker.ts", import.meta.url).href);
-          worker.onmessage = (event: MessageEvent<ThrowRoleRow[]>) => {
-            resolve(event.data);
-            worker.terminate();
-          };
-          worker.onerror = (event) => {
-            reject(new Error(`${entry.name} throw roles: ${event.message}`));
-            worker.terminate();
-          };
-          worker.postMessage({ throwRoles: entry.name });
-        });
-      }
-    };
-    await Promise.all(Array.from({ length: THROW_WORKERS }, runner));
-    return results.flat();
-  },
-  catch: failure,
-});
+const playThrowRoles: Effect.Effect<ThrowRoleRow[], InteractionsFailure> = Effect.forEach(
+  THROW_FIGHTERS,
+  (entry) => playWorker<ThrowRoleRow[]>(`${entry.name} throw roles`, { throwRoles: entry.name }),
+  { concurrency: THROW_WORKERS },
+).pipe(Effect.map((results) => results.flat()));
 
 const jsonl = (rows: readonly (Row | ComboRow | ThrowRoleRow)[]): string => rows.map((row) => JSON.stringify(row)).join("\n") + "\n";
 
