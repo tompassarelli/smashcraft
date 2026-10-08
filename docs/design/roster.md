@@ -92,7 +92,8 @@ Murloc's sustained claw pressure, Kobold pokes, ducks underneath a reply and
 punishes a missed swing. No passive or second resource. Use the stock Kobold
 creep body, portrait, voice and fire/dirt effects in Classic and Definitive.
 
-Provisional body: weight 0.90, run multiplier 1.10, air 1.02, width 0.78,
+Provisional body: weight 0.90, walk multiplier 1.10, run 13.78 and dash 11.95
+world units/frame within the shared speed ceiling; air 1.02, width 0.78,
 height 0.66. Short pick reach and low weight punish careless approaches;
 recovery rises for 20 frames at 16 units/frame, then becomes helpless.
 The four ordinary specials cost zero; full-meter EX uses the shared rules
