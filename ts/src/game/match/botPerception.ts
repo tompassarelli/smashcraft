@@ -479,6 +479,15 @@ export function settleObservationChecksum(sample: BotObservationFrame): void {
   sample.checksumSecond = checksumSecond;
 }
 
+/**
+ * Settles the sample a confirmed frame just observed, one a frame, so a
+ * replay checkpoint, which folds all BOT_HISTORY_FRAMES, finds them settled.
+ */
+export function settleNewestObservation(memory: Readonly<BotMemory>): void {
+  const newest = memory.history[memory.history.length - 1];
+  if (newest !== undefined) settleObservationChecksum(newest);
+}
+
 /** Settles every retained sample's checksum, before a memory is written out as text. */
 export function settleBotMemoryChecksums(memory: Readonly<BotMemory>): void {
   for (const sample of memory.history) settleObservationChecksum(sample);

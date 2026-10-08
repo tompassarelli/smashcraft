@@ -7,6 +7,7 @@ import { commitEdges } from "../../game/input/keyboardCapture";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, participantActive } from "../../game/input/participants";
 import { captureFrame, executeMatchFrame, hasNetworkRows, restoreMatchFrame } from "../../game/match/frameInput";
 import { beginMomentFrame, keepMomentEnd, momentFrameRan, recordMomentRow } from "../../game/replay/moment";
+import { settleNewestObservation } from "../../game/match/botPerception";
 import { Phase, beginRematchCountdown, computerActive, humanFighterActive } from "../../game/match/rules";
 import { resultMessage, aerialName, fighterLabel } from "../../game/shell/messages";
 import { produceScenarioComputerInput } from "../../game/shell/scenarios";
@@ -127,6 +128,7 @@ export function applyFrame(s: ShellState, recorded = false): void {
     for (const slot of PARTICIPANT_SLOTS) if (participantActive(s.frameInput.networkMask, slot)) recordMomentRow(recorder, frame, slot, s.frameInput.network[slot]);
   }
   momentFrameRan(recorder, frame);
+  settleNewestObservation(s.runtime.botMemory);
   replayFrameRan(s, frame);
   const ui = views(s);
   for (const slot of PARTICIPANT_SLOTS) {
