@@ -5,6 +5,7 @@ import { dlopen, ptr, read } from "bun:ffi";
 import { closeSync, constants, existsSync, openSync, readFileSync, readSync, readdirSync, writeSync } from "node:fs";
 import { join } from "node:path";
 import { Effect, Predicate } from "effect";
+import { pollUntil } from "../hostPoll";
 import { IntegrityFailure, kernelLine, tryIntegrity } from "./evidence";
 import {
   CLOCK_MONOTONIC, CLOCK_REALTIME, EVIOCSCLOCKID, INPUT_EVENT_BYTES, type Injection, type SourceEdge, UI_DEV_CREATE, UI_DEV_DESTROY, UI_GET_SYSNAME,
@@ -178,14 +179,19 @@ function processState(pid: number): string | undefined {
 export const stopProcess = (pid: number) =>
   Effect.gen(function*() {
     yield* tryIntegrity("stop process", String(pid), () => process.kill(pid, "SIGSTOP"));
-    const deadline = performance.now() + 2000;
-    for (;;) {
-      const state = processState(pid);
-      if (state === "T" || state === "t") return;
-      if (state === undefined) return yield* new IntegrityFailure({ operation: "stop process", path: String(pid), cause: "process exited" });
-      if (performance.now() > deadline) return yield* new IntegrityFailure({ operation: "stop process", path: String(pid), cause: `state ${state}, not stopped` });
-      yield* Effect.sleep("5 millis");
-    }
+    yield* pollUntil(
+      Effect.gen(function*() {
+        const state = processState(pid);
+        if (state === "T" || state === "t") return true;
+        if (state === undefined) return yield* new IntegrityFailure({ operation: "stop process", path: String(pid), cause: "process exited" });
+        return undefined;
+      }),
+      {
+        every: "5 millis",
+        within: "2 seconds",
+        orElse: () => Effect.fail(new IntegrityFailure({ operation: "stop process", path: String(pid), cause: `state ${processState(pid)}, not stopped` })),
+      },
+    );
   }).pipe(Effect.onError(() => continueProcess(pid)));
 
 export const continueProcess = (pid: number) =>
