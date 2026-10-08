@@ -1,0 +1,36 @@
+export const character = 15;
+export const fighter = "SylvanasWindrunner";
+export const stockPath = "war3.w3mod:_de.w3mod:units/undead/evilsylvanas/evilsylvanas.mdx";
+export const visibilityPairs: readonly (readonly [number, number])[] = [[5, 0]];
+export const pairs: readonly (readonly [string, string])[] = [
+    ["Sylvanas Motion", "local_C0_0_jnt"],
+    ["Bone_Pelvis", "spine_C0_0_jnt"],
+    ["Bone_Chest", "spine_C0_1_jnt"],
+    ["Bone_Chest", "bone_chest"],
+    ["Bone_Head", "neck_C0_0_jnt"],
+    ["Bone_Head", "bone_head"],
+    ["Bone_Arm1_L", "shoulder_L0_shoulder_jnt"],
+    ["Bone_Arm1_L", "arm_L0_0_jnt"],
+    ["Bone_Arm2_L", "arm_L0_2_jnt"],
+    ["Bone_Hand_L", "arm_L0_end_jnt"],
+    ["Bone_Arm1_R", "shoulder_R0_shoulder_jnt"],
+    ["Bone_Arm1_R", "arm_R0_0_jnt"],
+    ["Bone_Arm2_R", "arm_R0_2_jnt"],
+    ["Bone_Arm2_R", "arm_R0_end_jnt"],
+    ["Bone_Leg1_L", "leg_L0_0_jnt"],
+    ["Bone_Leg2_L", "leg_L0_2_jnt"],
+    ["Bone_Foot_L", "leg_L0_end_jnt"],
+    ["Bone_Foot_L", "foot_L0_0_jnt"],
+    ["Bone_Leg1_R", "leg_R0_0_jnt"],
+    ["Bone_Leg2_R", "leg_R0_2_jnt"],
+    ["Bone_Foot_R", "leg_R0_end_jnt"],
+    ["Bone_Foot_R", "foot_R0_0_jnt"],
+    ["Cylinder02", "Wep01_C0_0_jnt"],
+    ["Arrow", "WepArrow_C0_0_jnt"],
+    ["Arrow01", "WepArrow_C1_0_jnt"],
+    ["Mesh18", "cloak_C0_0_jnt"],
+    ["Mesh17", "cloak_C0_1_jnt"],
+    ["Mesh01", "cloak_C0_2_jnt"],
+    ["Object05", "cloak_C0_3_jnt"],
+    ["Object05", "cloak_C0_4_jnt"],
+];
