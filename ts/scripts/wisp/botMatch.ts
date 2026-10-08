@@ -19,8 +19,10 @@ import { Key } from "../../src/platform/shell/keyEvents";
 import { JournalHelpers } from "../../test/rematch/journalHelper";
 
 interface BotMatch {
-  /** Computer fighters by slot; slots 0 and 1 are the two players. */
+  /** Computer fighters by slot; the other slots are the clients' players. */
   readonly computers: readonly (readonly [slot: number, character: Character])[];
+  /** Frames each later player's beat runs behind the one before, so their inputs change on different frames. */
+  readonly stagger?: number;
 }
 
 /** `integrity capture --bot`: a computer Illidan. */
@@ -29,6 +31,10 @@ export const BOT_THREE: BotMatch = { computers: [[2, Character.demonHunter]] };
 export const BOT_FOUR: BotMatch = { computers: [[2, Character.demonHunter], [3, Character.warden]] };
 /** `perf bot-NAME`: one computer of any selectable fighter, by its slug (sim/heroes/registry.ts). */
 export const botMatchAgainst = (character: Character): BotMatch => ({ computers: [[2, character]] });
+/** `perf playable-duel`: the normal online match, two players and no computers, their beats 7 frames apart. */
+export const HUMAN_DUEL: BotMatch = { computers: [], stagger: 7 };
+/** `perf playable-human-four`: four players on four clients and no computers, their beats 7 frames apart. */
+export const HUMAN_FOUR: BotMatch = { computers: [], stagger: 7 };
 
 /** Frames between beats: 400 ms. */
 const REST = 24;
@@ -120,26 +126,32 @@ export function playBotMatch(clients: Lockstep, match: BotMatch, frames: number,
   // The beat starts with the match; before it, menus take the keys.
   let beating = false;
   let beat = 0;
-  let held = 0;
-  let tapped = 0;
+  const stagger = match.stagger ?? 0;
+  const held = clients.clients.map(() => 0);
+  const tapped = clients.clients.map(() => 0);
   const pressBeat = () => {
     if (!keyboard || !beating || gameOf(host).phase !== Phase.match) return;
-    const [tap, hold] = botBeatKeys(++beat);
-    tapped = tap;
-    for (const player of clients.clients) {
-      if (hold !== held && held !== 0) for (const client of clients.clients) client.key(player.slot, held, 0, false);
-      if (hold !== held && hold !== 0) for (const client of clients.clients) client.key(player.slot, hold, 0, true);
+    beat++;
+    clients.clients.forEach((player, index) => {
+      const at = beat - index * stagger;
+      const [tap, hold] = at < 1 ? [0, 0] : botBeatKeys(at);
+      tapped[index] = tap;
+      const last = held[index] ?? 0;
+      if (hold !== last && last !== 0) for (const client of clients.clients) client.key(player.slot, last, 0, false);
+      if (hold !== last && hold !== 0) for (const client of clients.clients) client.key(player.slot, hold, 0, true);
       if (tap !== 0) for (const client of clients.clients) client.key(player.slot, tap, 0, true);
-    }
-    held = hold;
+      held[index] = hold;
+    });
   };
   const frame = () => {
     pressBeat();
     clients.frames(1);
-    if (tapped !== 0) {
-      for (const player of clients.clients) for (const client of clients.clients) client.key(player.slot, tapped, 0, false);
-      tapped = 0;
-    }
+    clients.clients.forEach((player, index) => {
+      const tap = tapped[index] ?? 0;
+      if (tap === 0) return;
+      for (const client of clients.clients) client.key(player.slot, tap, 0, false);
+      tapped[index] = 0;
+    });
     if (!keyboard) helpers.service(clients);
     helpers.typed.forEach((characters, slot) => {
       if (characters > 0) measure.typed(slot, characters);

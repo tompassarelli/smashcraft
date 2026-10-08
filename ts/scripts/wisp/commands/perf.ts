@@ -3,7 +3,8 @@
 // cost predicted: quick-match, the development build's quick match; bot and
 // bot-four, the native bot session's match with the integrity build
 // (scripts/wisp/botMatch.ts); bot-NAME, that match against one computer of
-// any selectable fighter (bot-forsaken-paladin); playable-bot-four, bot-four with the playable build. `bun wisp perf compare A B` holds run B to run A
+// any selectable fighter (bot-forsaken-paladin); playable-bot-four, bot-four with the playable build; playable-duel and
+// playable-human-four, two and four players on their own clients with no computers. `bun wisp perf compare A B` holds run B to run A
 // (wisp:docs/frame-cost.md#headless). `bun wisp perf census` is the spike census (../perfCensus.ts); `perf budget` holds
 // a run to the frame budget (../perfBudget.ts); `perf profile RUN` names what its
 // worst frames spend (../perfCensus.ts).
@@ -25,7 +26,7 @@ export const SMASHCRAFT_PERF: PerfProject = {
   map: { config: main.configPath, bundle: main.bundlePath },
   program: { config: join(tsDirectory, "tsconfig.perf.json"), bundle: join(tsDirectory, "build/perf.lua") },
   defaultRun: "quick-match",
-  runs: { bot: integrityMap, "bot-four": integrityMap, "playable-bot-four": playableMap, ...Object.fromEntries(SELECTABLE_CHARACTERS.map((character) => [`bot-${fighterSlug(character)}`, integrityMap])) },
+  runs: { bot: integrityMap, "bot-four": integrityMap, "playable-bot-four": playableMap, "playable-duel": playableMap, "playable-human-four": playableMap, ...Object.fromEntries(SELECTABLE_CHARACTERS.map((character) => [`bot-${fighterSlug(character)}`, integrityMap])) },
 };
 
 const measure = makePerf(SMASHCRAFT_PERF);
