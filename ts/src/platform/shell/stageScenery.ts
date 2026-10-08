@@ -71,7 +71,7 @@ export function showBackdrop(s: ShellState, visible: boolean): void {
       if (piece.matrixScale !== undefined) BlzSetSpecialEffectMatrixScale(effect, piece.matrixScale[0], piece.matrixScale[1], piece.matrixScale[2]);
     }
   }
-  for (const deck of s.stageDecks) BlzSetSpecialEffectAlpha(deck, alpha);
+  for (const deck of [...s.stageDecks, ...s.stageDeckParts]) BlzSetSpecialEffectAlpha(deck, alpha);
   const fog = stageScenery(s.game.stageChoice).fog;
   if (visible && fog !== undefined) SetTerrainFogEx(0, fog.start, fog.end, 0.0, fog.red, fog.green, fog.blue);
   else if (visible) ResetTerrainFog();

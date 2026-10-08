@@ -18,6 +18,7 @@ import {
 } from "../../src/game/assets/impactAssetInfo";
 import { SHIELD_P1_MODEL, SHIELD_P2_MODEL, SHIELD_P3_MODEL, SHIELD_P4_MODEL } from "../../src/game/assets/shieldAssetInfo";
 import { STAGE_DECK_MODELS } from "../../src/game/assets/stageAssetInfo";
+import { STOCK_PLATFORM_MODELS } from "../../src/game/presentation/stockPlatforms";
 import { STAGE_DECK_PALETTES } from "../../src/game/assets/stagePalette";
 import { DEMON_HUNTER_MODEL_FILE } from "../../src/game/presentation/demonHunterAssetInfo";
 import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "../../src/game/presentation/fighterAssetInfo";
@@ -104,7 +105,7 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
   // Half a second into the match the decks are drawn and the camera has framed the fighters.
   settledFrame: 30,
   kinds: [
-    { name: "stage deck", models: Object.values(STAGE_DECK_MODELS).flatMap(({ main, slab }) => [main, slab]) },
+    { name: "stage deck", models: [...Object.values(STAGE_DECK_MODELS).flatMap(({ main, slab }) => [main, slab]), ...STOCK_PLATFORM_MODELS] },
     { name: "stage cannon", models: [CANNON_MODEL] },
     { name: "stage scenery", models: [...new Set(STAGE_CATALOG.flatMap(({ id }) => placedPieces(id, true).map(({ model }) => model)))] },
     { name: "pooled fighter", models: fighterModels },
