@@ -5,7 +5,7 @@
 // held one core per client in the first match and fell behind real time in
 // the rematch, whose slot change adds a computer fighter that every client
 // simulates.
-import { afterAll, expect, test } from "bun:test";
+import { afterAll, expect } from "bun:test";
 import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
 import type { EffectPose, HeadlessClient } from "wisp/src/headless/client";
@@ -33,6 +33,7 @@ import { views } from "../src/platform/shell/ui";
 import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { JournalHelpers, type Workload } from "./rematch/journalHelper";
+import { sweep } from "./sweep";
 
 const declarations = readNativeDeclarations();
 // Desyncs are the desync guard's to find; unlogged natives keep these frames fast.
@@ -168,7 +169,7 @@ function shownClipProblems(client: HeadlessClient, parkedBelow: number, seen: Ma
 }
 
 // About 2.3 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
-test("a match and its three-fighter rematch show each pooled fighter whole where he stands, read only correctable rollback rows, touch no parked effect and keep nothing between them [repro #242]", () => {
+sweep("a match and its three-fighter rematch show each pooled fighter whole where he stands, read only correctable rollback rows, touch no parked effect and keep nothing between them [repro #242]", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 7) });
   const host = clients.clients[0] as HeadlessClient;
   // Warcraft retains destroyed models for five game seconds (native wisp#59);
