@@ -34,6 +34,7 @@ function frame(world: Roster, input: Readonly<Controls> = controls(), attack?: A
 }
 function pair(gap: number, facing = 1) {
   const owner = createFighter(Character.cairne, f32(-gap * 0.5 * facing), facing);
+  owner.mana.points = 100;
   const target = createFighter(Character.forsakenPaladin, f32(gap * 0.5 * facing), -facing);
   const world = createRoster(3, [owner, target]);
   for (let i = 0; i < 3; i++) frame(world);
@@ -61,6 +62,7 @@ const NORMAL_CONTACTS = [
 for (const [style, x, z] of NORMAL_CONTACTS) test(`Cairne normal ${style} hits once in both facings and has no startup contact [spec docs/design/cairne.md]`, () => {
   for (const facing of [1, -1]) {
     const owner = createFighter(Character.cairne, 0.0, facing);
+  owner.mana.points = 100;
     owner.motion.grounded = !isAerialAttack(style);
     const target = createFighter(Character.forsakenPaladin, x * facing, -facing);
     target.motion.z = z;
@@ -101,12 +103,12 @@ test("Cairne's four throws release once toward their chosen direction after a no
   }
 });
 
-test("Cairne Shockwave and War Stomp hit once, respect shields and spend their mana [spec docs/design/cairne.md]", () => {
+test("Cairne Shockwave and War Stomp hit once, respect shields and preserve the super meter [spec #335]", () => {
   for (const facing of [1, -1]) for (const shield of [false, true]) for (const side of [false, true]) {
     const { owner, target, world } = pair(side ? 160.0 : 330.0, facing);
     const defended = controls({ shield });
     frame(world, controls({ specialPressed: true, specialX: side ? facing : 0 }), undefined, defended);
-    assertEquals(owner.mana.points, side ? 80 : 85);
+    assertEquals(owner.mana.points, 100);
     for (let i = 0; i < 100; i++) frame(world, controls(), undefined, defended);
     assertEquals(target.status.damage, shield ? 0.0 : side ? 13.0 : 10.0);
     assertEquals(owner.special.action, SpecialAction.none);
@@ -125,11 +127,11 @@ test("Cairne Spirit Lift rises, spends his aerial jump and ends helpless even wi
     assertGreaterThan(highest, 460.0);
     assertTrue(owner.special.fall);
     assertEquals(owner.jump.remaining, 0);
-    assertEquals(owner.mana.points, mana === 0 ? 0 : 85);
+    assertEquals(owner.mana.points, mana);
   }
 });
 
-test("Cairne Spirit Lift's totem strikes above him only in its paid form [spec docs/design/cairne.md]", () => {
+test("Cairne Spirit Lift's totem strikes above him at every meter level [spec #335]", () => {
   for (const facing of [1, -1]) for (const mana of [0, 100]) {
     const { owner, target, world } = pair(0.0, facing);
     owner.motion.grounded = false; owner.motion.surface = undefined; owner.motion.z = 300.0;
@@ -137,7 +139,7 @@ test("Cairne Spirit Lift's totem strikes above him only in its paid form [spec d
     owner.mana.points = mana;
     frame(world, controls({ specialPressed: true, specialZ: 1 }));
     for (let i = 0; i < 50; i++) frame(world);
-    assertEquals(target.status.damage, mana === 0 ? 0.0 : 9.0);
+    assertEquals(target.status.damage, 9.0);
   }
 });
 
@@ -183,7 +185,7 @@ test("Cairne Endurance Aura needs two distinct body hits, survives replay and ex
   assertEquals(enduranceGroundSpeed(restored, 10.0), 10.0);
 });
 
-test("Cairne air specials keep finite commitment and an airborne Reincarnation press spends nothing [spec docs/design/cairne.md]", () => {
+test("Cairne air specials keep finite commitment and an airborne Reincarnation press spends nothing [spec #335]", () => {
   for (const slot of [0, 1, -1]) {
     const { owner, world } = pair(1000.0);
     owner.motion.grounded = false; owner.motion.surface = undefined; owner.motion.z = 800.0;
@@ -193,7 +195,7 @@ test("Cairne air specials keep finite commitment and an airborne Reincarnation p
       assertEquals(owner.mana.points, 100);
     } else {
       assertEquals(owner.special.action, slot === 0 ? SpecialAction.heroNeutral : SpecialAction.heroSide);
-      assertEquals(owner.mana.points, slot === 0 ? 85 : 80);
+      assertEquals(owner.mana.points, 100);
       for (let i = 0; i < 100; i++) frame(world);
       assertEquals(owner.special.action, SpecialAction.none);
     }

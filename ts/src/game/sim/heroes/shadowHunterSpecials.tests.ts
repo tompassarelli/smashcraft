@@ -11,7 +11,6 @@ import { attackBuffer } from "../../input/attackBuffer";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { advanceHeroStatus } from "../heroSpecialRules";
-import { regenerateMana } from "../mana";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { advancePlacedObjects } from "../placedObjects";
 import { updateProjectiles } from "../projectiles";
@@ -34,13 +33,13 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   advancePlacedObjects(world);
   finishDamageContacts(world);
   for (let slot = 0; slot < 2; slot++) {
-    regenerateMana(world.fighters[slot]!);
     advanceHeroStatus(world.fighters[slot]!);
   }
 }
 
 function pair(gap: number, facing = 1): { world: Roster; owner: Fighter; target: Fighter } {
   const owner = createFighter(Character.shadowHunter, -gap * f32(0.5) * facing, facing);
+  owner.mana.points = 100;
   const target = createFighter(Character.archer, gap * f32(0.5) * facing, -facing);
   const world = createRoster(3, [owner, target]);
   for (let i = 0; i < 3; i++) frame(world);
@@ -54,7 +53,7 @@ const side = controls({ specialPressed: true, specialX: 1 });
 const down = controls({ specialPressed: true, specialZ: -1 });
 const near = (value: number, expected: number) => Math.abs(value - expected) <= f32(0.05);
 
-test("Loa Vault vaults its listed 2.9H straight up by default, and its free form spends nothing for 2.0H [spec #189] [spec docs/design/roster.md]", () => {
+test("Loa Vault keeps its full upward vault at every meter level [spec #335]", () => {
   for (const [points, , drift, spent] of [[100, f32(2.9), 0.0, 15], [14, f32(2.0), 0.0, 0]] as const) {
     const { world, owner } = pair(900.0);
     owner.mana.points = points;
@@ -62,7 +61,7 @@ test("Loa Vault vaults its listed 2.9H straight up by default, and its free form
     const z0 = owner.motion.z;
     let top = z0;
     frame(world, up);
-    assertEquals(owner.mana.points, points - spent);
+    assertEquals(owner.mana.points, points);
     for (let f = 2; f <= 30; f++) {
       frame(world);
       top = Math.max(top, owner.motion.z);
@@ -74,7 +73,7 @@ test("Loa Vault vaults its listed 2.9H straight up by default, and its free form
   }
 });
 
-test("Spirit Glaive is free, leaves on frame 18, strikes once and frees the hunter after frame 40 [spec docs/design/roster.md]", () => {
+test("Spirit Glaive is free, leaves on frame 18, strikes once and frees the hunter after frame 40 [spec #335]", () => {
   const { world, owner, target } = pair(300.0);
   frame(world, neutral);
   for (let f = 2; f <= 17; f++) frame(world);
@@ -119,10 +118,10 @@ test("the returning Spirit Glaive strikes a fighter between it and Shadow Hunter
   assertLessThan(target.launch.knockbackX, 0.0);
 });
 
-test("Hex costs 25 and its orb leaves on frame 24 and strikes for 2 [spec docs/design/roster.md]", () => {
+test("Hex is free and its orb leaves on frame 24 and strikes for 2 [spec #335]", () => {
   const { world, owner, target } = pair(200.0);
   frame(world, down);
-  assertEquals(owner.mana.points, 75);
+  assertEquals(owner.mana.points, 100);
   for (let f = 2; f <= 23; f++) frame(world);
   assertEquals(owner.projectiles.filter(p => p.life > 0).length, 0);
   for (let f = 24; f <= 53; f++) frame(world);
@@ -136,7 +135,7 @@ function placeWard(world: Roster): void {
   for (let f = 2; f <= 26; f++) frame(world);
 }
 
-test("Serpent Ward is ground-only (an airborne side press throws Spirit Glaive), costs 20, stands 0.65H ahead from frame 26 and fires straight at ages 45, 85, 125, 165 and 205 [spec docs/design/roster.md]", () => {
+test("Serpent Ward is ground-only (an airborne side press throws Spirit Glaive), is free, stands 0.65H ahead from frame 26 and fires straight at ages 45, 85, 125, 165 and 205 [spec #335]", () => {
   const { world, owner, target } = pair(300.0);
   owner.motion.grounded = false;
   owner.motion.z = 200.0;
@@ -150,7 +149,7 @@ test("Serpent Ward is ground-only (an airborne side press throws Spirit Glaive),
   for (let f = 2; f <= 25; f++) frame(world);
   assertEquals(owner.placed.life, 0);
   frame(world);
-  assertEquals(owner.mana.points, 80);
+  assertEquals(owner.mana.points, 100);
   // The appearance frame is its age 1; it stands 240 frames.
   assertEquals(owner.placed.age, 1);
   assertEquals(owner.placed.life, 239);
@@ -187,7 +186,7 @@ test("two intentional forward smashes clear a ward, each striking it once [spec 
   assertTrue(strikes >= 1 && strikes <= 2);
 });
 
-test("recasting with a ward standing recalls it for free once the same cast completes [spec docs/design/roster.md]", () => {
+test("recasting with a ward standing recalls it for free once the same cast completes [spec #335]", () => {
   const { world, owner } = pair(600.0);
   placeWard(world);
   for (let f = 27; f <= 60; f++) frame(world);
@@ -200,7 +199,7 @@ test("recasting with a ward standing recalls it for free once the same cast comp
   frame(world);
   assertEquals(owner.placed.life, 0);
   frame(world, side);
-  assertEquals(owner.mana.points, mana - 20);
+  assertEquals(owner.mana.points, mana);
 });
 
 test("a lost stock removes the ward [spec docs/design/roster.md]", () => {

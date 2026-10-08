@@ -21,7 +21,7 @@ import {
 } from "./transitions";
 
 import { stageBounds } from "./stageBounds";
-import { refillMana } from "./heroSpecialRules";
+import { resetSpecialOnStock } from "./heroSpecialRules";
 import { resetPassive } from "./passives";
 import { clearHeroStatus } from "./heroStatus";
 import { endItemBuff, groundedJumps } from "./itemBuffs";
@@ -93,7 +93,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   clearGrabLinks(world, slot);
   clearSpecialOnStock(f);
   f.visuals.manaDrained = 0;
-  refillMana(f);
+  resetSpecialOnStock(f);
   resetPassive(f);
   f.status.armorFrames = 0;
   f.status.armorChills = false;

@@ -12,7 +12,6 @@ import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { advanceHeroStatus } from "../heroSpecialRules";
-import { regenerateMana } from "../mana";
 import { updateProjectiles } from "../projectiles";
 import { type Controls, type Roster, createRoster } from "../roster";
 import { advanceSpecials, startFighterSpecial } from "../specials";
@@ -34,13 +33,13 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   updateProjectiles(world);
   finishDamageContacts(world);
   for (let slot = 0; slot < 2; slot++) {
-    regenerateMana(world.fighters[slot]!);
     advanceHeroStatus(world.fighters[slot]!);
   }
 }
 
 function lichPair(gap: number, opponent: Character = Character.archer): { world: Roster; lich: Fighter; target: Fighter } {
   const lich = createFighter(Character.lich, f32(-gap * 0.5), 1);
+  lich.mana.points = 100;
   const target = createFighter(opponent, f32(gap * 0.5), -1);
   const world = createRoster(3, [lich, target]);
   for (let i = 0; i < 3; i++) frame(world);
@@ -57,11 +56,11 @@ const down = controls({ specialPressed: true, specialZ: -1 });
 const shield = controls({ shield: true, shieldStrength: 1.0 });
 const chilled = (f: Readonly<Fighter>) => f.status.condition === HeroStatusKind.chill;
 
-test("Frost Nova costs 10, its slow orb leaves the hand on frame 18 and chills a body it reaches [spec docs/design/roster.md]", () => {
+test("Frost Nova is free, its slow orb leaves the hand on frame 18 and chills a body it reaches [spec #335]", () => {
   const { world, lich, target } = lichPair(400.0);
   frame(world, neutral);
   assertEquals(lich.special.action, SpecialAction.heroNeutral);
-  assertEquals(lich.mana.points, 90);
+  assertEquals(lich.mana.points, 100);
   for (let f = 2; f <= 17; f++) frame(world);
   assertEquals(live(lich).length, 0);
   frame(world);
@@ -80,7 +79,7 @@ test("a second Frost Nova press stops the orb on its frame 4 and bursts it 6 fra
   const orb = live(lich)[0]!;
   frame(world, neutral);
   assertEquals(lich.special.action, SpecialAction.heroNeutral);
-  assertEquals(lich.mana.points, 90);
+  assertEquals(lich.mana.points, 100);
   for (let f = 2; f <= 4; f++) frame(world);
   const x = orb.x;
   frame(world);
@@ -130,11 +129,11 @@ test("Chill lowers run and air drift speed, stops at a shield and cannot chain i
   assertFalse(chilled(target));
 });
 
-test("Death and Decay costs 25 and strikes a fighter standing in it on frame 30 and again from frame 70 [spec docs/design/roster.md]", () => {
+test("Death and Decay is free and strikes a fighter standing in it on frame 30 and again from frame 70 [spec #335]", () => {
   const ahead = f32(H * f32(1.5));
   const { world, lich, target } = lichPair(ahead);
   frame(world, sideForward);
-  assertEquals(lich.mana.points, 75);
+  assertEquals(lich.mana.points, 100);
   for (let f = 2; f <= 8; f++) frame(world);
   assertEquals(live(lich).length, 2);
   assertNear(live(lich)[0]!.x, f32(lich.motion.x + ahead), 1.0);
@@ -203,9 +202,9 @@ function armoredLich(): { world: Roster; lich: Fighter; target: Fighter } {
   return pair;
 }
 
-test("Frost Armor costs 20, its shell lasts 240 frames, takes one small hit's reaction and chills the striker [spec docs/design/roster.md]", () => {
+test("Frost Armor is free, its shell lasts 240 frames, takes one small hit's reaction and chills the striker [spec #335]", () => {
   const { world, lich, target } = armoredLich();
-  assertEquals(lich.mana.points, 80);
+  assertEquals(lich.mana.points, 100);
   assertGreaterThan(lich.status.armorFrames, 0);
   // A 3% Bone Knuckle: damage applies, the reaction does not, the shell is spent and the striker chilled.
   beginFighterAttack(world, 1, AttackStyle.jab, false);
@@ -230,7 +229,7 @@ test("a grab ignores Frost Armor and leaves the shell [spec docs/design/roster.m
   assertTrue(inGrabContext(lich));
 });
 
-test("Dark Ritual: down special while the shell holds shatters it on frame 6 into a 5% burst and restores 30 mana [spec docs/design/roster.md]", () => {
+test("Dark Ritual: down special while the shell holds shatters it on frame 6 into a 5% burst and restores 30 mana [spec #335]", () => {
   const { world, lich, target } = armoredLich();
   lich.mana.points = 50;
   frame(world, down);
@@ -240,7 +239,7 @@ test("Dark Ritual: down special while the shell holds shatters it on frame 6 int
   assertGreaterThan(lich.status.armorFrames, 0);
   frame(world);
   assertEquals(lich.status.armorFrames, 0);
-  assertEquals(lich.mana.points, 80);
+  assertEquals(lich.mana.points, 85);
   for (let f = 7; f <= 9; f++) frame(world);
   assertEquals(target.status.damage, 5.0);
   // The burst's hitlag holds the ritual a few frames.
@@ -249,10 +248,10 @@ test("Dark Ritual: down special while the shell holds shatters it on frame 6 int
   // Without a shell, down special casts Frost Armor again.
   const before = lich.mana.points;
   frame(world, down);
-  assertEquals(lich.mana.points, before - 20);
+  assertEquals(lich.mana.points, before);
 });
 
-test("Spectral Ascent rises 2.9H and steers at most 1.0H; the zero-mana form rises 2.1H and steers 0.7H for free [spec #189] [spec docs/design/roster.md]", () => {
+test("Spectral Ascent keeps its full rise and steering at zero meter [spec #335]", () => {
   const ascend = (mana: number, stick: number) => {
     const { world, lich } = lichPair(600.0);
     lich.mana.points = mana;
@@ -266,7 +265,7 @@ test("Spectral Ascent rises 2.9H and steers at most 1.0H; the zero-mana form ris
     return { rise: f32(lich.motion.z - z), drift: f32(lich.motion.x - x), mana: lich.mana.points, helpless: lich.special.fall };
   };
   const full = ascend(100, 0);
-  assertEquals(full.mana, 85);
+  assertEquals(full.mana, 100);
   assertTrue(full.helpless);
   assertLessThan(Math.abs(full.drift), 1.0);
   const steered = ascend(100, -1);

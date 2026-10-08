@@ -17,7 +17,7 @@ import { HERO_REFERENCE_HEIGHT } from "../sim/heroMoves";
 import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 import { captureNetworkFrame, executeMatchFrame } from "./frameInput";
 import { type PadMatch, padMatch, playPads } from "./helperPads";
-import { FREE_ROUTE_MIN, RECOVERY_BANDS, recoveryArchetype, upSpecialRoute } from "./recoveryEnvelope";
+import { RECOVERY_BANDS, recoveryArchetype, upSpecialRoute } from "./recoveryEnvelope";
 import { testMatch } from "./testMatch";
 import { sweep } from "../../runtime/sweep";
 
@@ -95,7 +95,7 @@ function keysDriver(character: Character, mana: number): Driver {
 
 const DRIVERS = [stickDriver, keysDriver] as const;
 
-sweep("every fighter's up special recovers within its archetype's band, and its zero-mana form above the floor [spec #252]", () => {
+sweep("every fighter's full up special recovers within its archetype's band equally at zero and full meter [spec #252] [spec #335]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const band = assertDefined(RECOVERY_BANDS[recoveryArchetype(character)], "band");
     const name = `${fighterName(character)} (${band.name})`;
@@ -103,7 +103,7 @@ sweep("every fighter's up special recovers within its archetype's band, and its 
     check(full.rise >= band.riseMin && full.rise <= band.riseMax, `${name} rise ${full.rise}`);
     check(full.reach >= band.reachMin && full.reach <= band.reachMax, `${name} reach ${full.reach}`);
     const free = upSpecialRoute(character, 0);
-    check(free.rise >= FREE_ROUTE_MIN && free.reach >= FREE_ROUTE_MIN, `${name} free ${free.rise} ${free.reach}`);
+    check(free.rise === full.rise && free.reach === full.reach, `${name} zero meter ${free.rise}/${free.reach}, full ${full.rise}/${full.reach}`);
   }
 });
 

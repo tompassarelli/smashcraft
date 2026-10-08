@@ -1,4 +1,5 @@
 // The pack's authored values: smashcraft:docs/design/beastmaster.md.
+import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
@@ -81,8 +82,8 @@ const hawkLift = (cost: number, rise: number, drift: number, steer: number): Aut
   placement: { ...HAWK_PLACEMENT, frame: 10 },
 });
 export const BEASTMASTER_SPECIALS: FighterSpecials = {
-  neutral: { name: "Wild Axes", description: "Throw two axes; move to guide their return through the enemy.", ground: wildAxes(false), air: wildAxes(true) },
-  side: { name: "Summon Bear", description: "Call Bear, then press again for its lunge and a Stampede.", ground: SUMMON_BEAR, recall: BEAR_COMMAND },
-  up: { name: "Summon Hawk", description: "Call Hawk, then command a dive. In the air, Hawk carries him up.", ground: SUMMON_HAWK, recall: HAWK_DIVE, recallGroundOnly: true, air: hawkLift(15, h(f32(3.6)), h(f32(0.3)), h(f32(3.4))), free: hawkLift(0, h(f32(2.5)), h(f32(0.2)), h(f32(1.0))) },
-  down: { name: "Summon Quilbeast", description: "Set a Quilbeast firing position; press again for a three-quill volley.", ground: SUMMON_QUILBEAST, recall: QUILL_VOLLEY },
+  neutral: withExKit({ name: "Wild Axes", description: "Throw two axes; move to guide their return through the enemy.", ground: wildAxes(false), air: wildAxes(true) }, { damage: 1.25 }),
+  side: withExKit({ name: "Summon Bear", description: "Call Bear, then press again for its lunge and a Stampede.", ground: SUMMON_BEAR, recall: BEAR_COMMAND }, { damage: 1.25, durability: 1.25 }),
+  up: withExKit({ name: "Summon Hawk", description: "Call Hawk, then command a dive. In the air, Hawk carries him up.", ground: SUMMON_HAWK, recall: HAWK_DIVE, recallGroundOnly: true, air: hawkLift(15, h(f32(3.6)), h(f32(0.3)), h(f32(3.4))), free: hawkLift(0, h(f32(2.5)), h(f32(0.2)), h(f32(1.0))) }, { travel: 1.25, durability: 1.25, recallProtection: 4 }),
+  down: withExKit({ name: "Summon Quilbeast", description: "Set a Quilbeast firing position; press again for a three-quill volley.", ground: SUMMON_QUILBEAST, recall: QUILL_VOLLEY }, { damage: 1.25, durability: 1.25, recallProtection: 4 }),
 };

@@ -19,7 +19,6 @@ import { regenerateShield } from "../sim/shield";
 import { advanceSpecials, startFighterSpecial } from "../sim/specials";
 import { advanceHeroStatus } from "../sim/heroSpecialRules";
 import { advanceItemBuff } from "../sim/itemBuffs";
-import { regenerateMana } from "../sim/mana";
 import { advanceFighterMotion } from "../sim/step";
 import { maskHeroStatusControls } from "../sim/heroStatus";
 import { platformSpecialInput } from "../sim/platformMoves";
@@ -225,7 +224,6 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     if (!isActive(world, slot)) continue;
     const f = fighterAt(world, slot);
     regenerateShield(f);
-    regenerateMana(f);
     advanceHeroStatus(f);
     advanceItemBuff(f);
   }

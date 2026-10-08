@@ -8,7 +8,6 @@ import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { advanceHeroStatus } from "../heroSpecialRules";
-import { regenerateMana } from "../mana";
 import { HurtContact, strikeHurtContact } from "../hurtboxes";
 import { advancePlacedObjects } from "../placedObjects";
 import { updateProjectiles } from "../projectiles";
@@ -30,13 +29,13 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   advancePlacedObjects(world);
   finishDamageContacts(world);
   for (let slot = 0; slot < 2; slot++) {
-    regenerateMana(world.fighters[slot]!);
     advanceHeroStatus(world.fighters[slot]!);
   }
 }
 
 function match(gap: number, facing = 1): { world: Roster; owner: Fighter; target: Fighter } {
   const owner = createFighter(Character.blademaster, 0.0, facing);
+  owner.mana.points = 100;
   const target = createFighter(Character.archer, f32(gap * facing), -facing);
   const world = createRoster(3, [owner, target]);
   for (let i = 0; i < 3; i++) frame(world);
@@ -68,10 +67,10 @@ function risingBlade(mana: number, gap = 60.0, aimX = 0, aimZ = 0): { rise: numb
   return { rise: f32(top - startZ), drift, mana: spent, damage: target.status.damage };
 }
 
-test("Rising Whirlwind charges through f8, dashes f9–22 in the chosen direction, stops f23 and falls helpless; paid rise is 480–640, free at least 240 with no hit [spec #252] [spec docs/design/roster.md]", () => {
+test("Rising Whirlwind charges through f8, dashes f9–22 in the chosen direction, stops f23 and falls helpless; rise is 480–640 and strikes at every meter level [spec #335]", () => {
   const tolerance = f32(f32(0.02) * H);
   const full = risingBlade(100, 900.0);
-  assertEquals(full.mana, 85);
+  assertEquals(full.mana, 100);
   assertTrue(full.rise >= 480.0 && full.rise <= 640.0);
   assertNear(full.drift, 0.0, tolerance);
   const diagonal = risingBlade(100, 900.0, 1, 1);
@@ -82,9 +81,9 @@ test("Rising Whirlwind charges through f8, dashes f9–22 in the chosen directio
   const free = risingBlade(14, 900.0);
   assertEquals(free.mana, 14);
   assertTrue(free.rise >= 240.0);
-  assertLessThan(free.rise, full.rise);
+  assertNear(free.rise, full.rise, tolerance);
   assertNear(free.drift, 0.0, tolerance);
-  assertEquals(risingBlade(14).damage, 0.0);
+  assertEquals(risingBlade(14).damage, risingBlade(100).damage);
 });
 
 test("Wind Cutter sends one reflectable wave at frame 18 and refuses a second while it lives [spec docs/design/roster.md]", () => {
@@ -106,11 +105,11 @@ const run = (world: Roster, frames: number, first: Readonly<Controls> = controls
 };
 const ahead = (owner: Fighter, target: Fighter, facing: number) => f32(f32(target.motion.x - owner.motion.x) * facing);
 
-test("Wind Walk costs 18, walks 2.2H through a body without striking and recovers through frame 44 [spec docs/design/roster.md]", () => {
+test("Wind Walk is free, walks 2.2H through a body without striking and recovers through frame 44 [spec #335]", () => {
   for (const facing of [-1, 1]) {
     const { world, owner, target } = match(150.0, facing);
     frame(world, press(facing, 0));
-    assertEquals(owner.mana.points, 82);
+    assertEquals(owner.mana.points, 100);
     run(world, 31);
     assertTrue(Math.abs(f32(f32(owner.motion.x * facing) - f32(f32(2.2) * H))) <= 2.0);
     assertLessThan(ahead(owner, target, facing), 0.0);
@@ -165,7 +164,7 @@ test("Step out: a special press in the walk stops it and ends the action 8 frame
   run(world, 7);
   assertEquals(owner.special.action, SpecialAction.none);
   assertTrue(Math.abs(f32(owner.motion.x - x)) <= f32(f32(0.1) * H));
-  assertEquals(owner.mana.points, 82);
+  assertEquals(owner.mana.points, 100);
   assertEquals(target.status.damage, 0.0);
   run(world, 1);
   assertEquals(owner.attack.cooldown, 0);
@@ -189,14 +188,14 @@ test("Mirror Image leaves an image and steps 1.0H away; down special again swaps
   for (const facing of [-1, 1]) {
     const { world, owner, target } = match(70.0, facing);
     frame(world, press(0, -1));
-    assertEquals(owner.mana.points, 85);
+    assertEquals(owner.mana.points, 100);
     run(world, 23);
     assertEquals(owner.special.action, SpecialAction.none);
     assertTrue(owner.placed.life > 0);
     assertEquals(owner.placed.x, 0.0);
     assertTrue(Math.abs(f32(f32(owner.motion.x * facing) + f32(1.0 * H))) <= 2.0);
     frame(world, press(0, -1));
-    assertEquals(owner.mana.points, 85);
+    assertEquals(owner.mana.points, 100);
     run(world, 5);
     assertEquals(owner.motion.x, 0.0);
     assertEquals(owner.placed.life, 0);
@@ -215,7 +214,7 @@ test("Mirror Image counterplay: a hit shatters the image, so the next press is a
   assertEquals(owner.placed.life, 0);
   const before = owner.mana.points;
   frame(world, press(0, -1));
-  assertEquals(owner.mana.points, before - 15);
+  assertEquals(owner.mana.points, before);
   const guarded = match(70.0);
   const guard = controls({ shield: true, shieldTriggerActive: true });
   frame(guarded.world, press(0, -1));

@@ -37,7 +37,7 @@ import { CHILL } from "./chill";
 import { fighterHurtParts } from "./hurtboxes";
 import { knockbackWeight } from "./itemBuffs";
 import { type AppliedStatus, applyHeroStatus, damageEndsHeroStatus } from "./heroStatus";
-import { contactEarnsMana, dealtManaGain, gainMana, takenManaGain } from "./mana";
+import { dealtManaGain, gainMana, takenManaGain } from "./mana";
 import { EX_ARMOR_DAMAGE, exArmorActive } from "./exSpecials";
 import { PassiveProc, devotionBlocked, devotionLaunchScale, frostArmorStruck, sourcePassiveContact, vampiricHeal, BASH_HITSTUN_FRAMES } from "./passives";
 import { FORSAKEN_PALADIN_DAMAGE_MULTIPLIER, forsakenPaladinHammerContact } from "./heroes/forsakenPaladinHammer";
@@ -68,8 +68,6 @@ interface DamageContact {
   down: boolean;
   smashCharging: boolean;
   throwInput: Readonly<Controls> | undefined;
-  /** A normal or throw: reaching a body earns its source mana. */
-  earnsMana: boolean;
   /** A hero status the contact applies if it reaches the body. */
   status: Readonly<AppliedStatus> | undefined;
   /** What delivered it, as passives count it, and the attack it belongs to (-1: each contact its own). */
@@ -84,7 +82,7 @@ function emptyContact(): DamageContact {
   return {
     source: 0, target: 0, effect: emptyHitEffect(), facing: 0, kind: ContactKind.launch, direct: false, hammerHitlag: 0, hitlagDamage: 0.0, blocked: false,
     crouching: false, grounded: false, sourceGrounded: false, sourceAerial: false, sourceDeltaX: 0.0, sourceDeltaZ: 0.0, sourceVelocityX: 0.0, sourceVelocityZ: 0.0, targetDeltaX: 0.0,
-    targetDeltaZ: 0.0, down: false, smashCharging: false, throwInput: undefined, status: undefined, earnsMana: false,
+    targetDeltaZ: 0.0, down: false, smashCharging: false, throwInput: undefined, status: undefined,
     origin: HitOrigin.melee, key: -1, proc: PassiveProc.none, height: 1,
   };
 }
@@ -159,7 +157,6 @@ export function collectDamageContact(
   contact.smashCharging = target.attack.smashCharging;
   contact.throwInput = throwInput;
   contact.status = status;
-  contact.earnsMana = !terrain && contactEarnsMana(source, kind, direct);
   contact.origin = origin ?? defaultOrigin(kind, direct);
   contact.key = contact.origin === HitOrigin.melee && source.attack.style !== undefined ? source.attack.serial : -1;
   // Authored strike/projectile geometry supplies a height; throws and other
@@ -277,11 +274,13 @@ function resolveDamageContacts(world: Roster, slot: number): void {
       drainMana(target, stolen);
       gainMana(source, stolen);
     }
+    if (damage > 0) {
+      gainMana(source, dealtManaGain(damage));
+      gainMana(target, takenManaGain(damage));
+    }
     if (damage > 0 && contact.kind !== ContactKind.pummel) {
       thawFighter(target);
       damageEndsHeroStatus(target);
-      if (contact.earnsMana) gainMana(source, dealtManaGain(damage));
-      gainMana(target, takenManaGain(damage));
     }
     if (contact.kind !== ContactKind.damageOnly && contact.kind !== ContactKind.throw) {
       hitlagDamage = max(hitlagDamage, contact.hitlagDamage);

@@ -9,7 +9,7 @@ import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../input/pa
 import { DownState, GrabAction, ShieldBreak } from "../sim/codes";
 import { heroStatusBlocksActions, heroStatusMashes } from "../sim/heroStatus";
 import type { Fighter } from "../sim/fighter";
-import { exSpecialCost } from "../sim/exSpecials";
+import { exSpecialAffordable } from "../sim/exSpecials";
 import { SpecialAction } from "../sim/codes";
 import { isSmashAttack } from "../sim/moves";
 import { type Controls, type Roster, copyControls, fighterAt, neutralControls } from "../sim/roster";
@@ -207,9 +207,9 @@ export function repeatComputerInput(world: Readonly<Roster>, runtime: BotRuntime
 
 /** The delayed opponent observation decides whether a cast needs startup armor. */
 export function upgradeThreatenedSpecial(fighter: Readonly<Fighter>, target: Readonly<Fighter> | undefined, input: Controls): void {
-  if (target === undefined || !input.specialPressed || input.specialZ !== 0 || fighter.special.action !== SpecialAction.none
+  if (target === undefined || !input.specialPressed || fighter.special.action !== SpecialAction.none
     || target.attack.style === undefined || Math.abs(f32(target.motion.x - fighter.motion.x)) > 140.0
-    || Math.abs(f32(target.motion.z - fighter.motion.z)) > 140.0 || fighter.mana.points < exSpecialCost(fighter, input.specialX !== 0)) return;
+    || Math.abs(f32(target.motion.z - fighter.motion.z)) > 140.0 || !exSpecialAffordable(fighter)) return;
   input.shield = true;
 }
 

@@ -8,7 +8,6 @@ import { createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { updateProjectiles } from "../projectiles";
 import { advancePlacedObjects } from "../placedObjects";
-import { regenerateMana } from "../mana";
 import { isAerialAttack } from "../moves";
 import { cancelSpecialState } from "../transitions";
 import { type Controls, type Roster, createRoster } from "../roster";
@@ -43,6 +42,7 @@ const NORMALS = [
 test("Jaina every normal hits once in both facings, never in startup [spec docs/design/jaina.md]", () => {
   for (const facing of [-1, 1]) for (const [style, first, x, z, damage] of NORMALS) {
     const owner = createFighter(Character.jaina, 0.0, facing);
+  owner.mana.points = 100;
     const victim = createFighter(Character.rifleman, f32(x * facing), -facing);
     owner.motion.grounded = !isAerialAttack(style);
     victim.motion.z = z;
@@ -64,6 +64,7 @@ test("Jaina every normal hits once in both facings, never in startup [spec docs/
 test("Jaina grabs shields and all four throws release once toward their chosen direction [spec docs/design/jaina.md]", () => {
   for (const facing of [-1, 1]) for (const action of [GrabAction.throwForward, GrabAction.throwBack, GrabAction.throwUp, GrabAction.throwDown]) {
     const owner = createFighter(Character.jaina, 0.0, facing);
+  owner.mana.points = 100;
     const victim = createFighter(Character.rifleman, f32(48.0 * facing), -facing);
     owner.motion.grounded = true;
     victim.motion.grounded = true;
@@ -95,6 +96,7 @@ test("Jaina grabs shields and all four throws release once toward their chosen d
 
 test("Jaina pummel uses the shared escape window and releases after one strike [spec docs/design/jaina.md]", () => {
   const owner = createFighter(Character.jaina, 0.0, 1);
+  owner.mana.points = 100;
   const victim = createFighter(Character.rifleman, 48.0, -1);
   owner.motion.grounded = true;
   victim.motion.grounded = true;
@@ -127,17 +129,18 @@ function frame(world: Roster, input: Controls = controls()): void {
 }
 function pair(distance: number) {
   const jaina = createFighter(Character.jaina, -200.0, 1);
+  jaina.mana.points = 100;
   const victim = createFighter(Character.rifleman, f32(-200.0 + distance), -1);
   const world = createRoster(3, [jaina, victim]);
   for (let tick = 0; tick < 3; tick++) frame(world);
   return { jaina, victim, world };
 }
 
-test("Jaina Frostbolt spends six mana, spawns on frame 17 and hits a distant body once [spec docs/design/jaina.md]", () => {
+test("Jaina Frostbolt preserves the super meter, spawns on frame 17 and hits a distant body once [spec #335]", () => {
   const { jaina, victim, world } = pair(350.0);
   frame(world, controls({ specialPressed: true }));
   assertEquals(jaina.special.action, SpecialAction.heroNeutral);
-  assertEquals(jaina.mana.points, 94);
+  assertEquals(jaina.mana.points, 100);
   for (let tick = 2; tick < 17; tick++) frame(world);
   assertEquals(jaina.projectiles.filter(p => p.life > 0).length, 0);
   frame(world);
@@ -149,7 +152,7 @@ test("Jaina Frostbolt spends six mana, spawns on frame 17 and hits a distant bod
 test("Jaina Blizzard telegraphs twenty frames, hits its patch and vanishes when interrupted [spec docs/design/jaina.md]", () => {
   const { jaina, victim, world } = pair(f32(HERO_REFERENCE_HEIGHT * f32(1.6)));
   frame(world, controls({ specialPressed: true, specialX: 1 }));
-  assertEquals(jaina.mana.points, 82);
+  assertEquals(jaina.mana.points, 100);
   for (let tick = 2; tick <= 27; tick++) frame(world);
   assertEquals(victim.status.damage, 0.0);
   frame(world);
@@ -164,7 +167,7 @@ test("Jaina Blizzard telegraphs twenty frames, hits its patch and vanishes when 
   assertEquals(interrupted.jaina.projectiles.filter(p => p.life > 0).length, 0);
 });
 
-test("Jaina Blink gives paid and empty-mana aimed recovery then helpless fall [spec docs/design/jaina.md]", () => {
+test("Jaina Blink gives full aimed recovery at every meter level then helpless fall [spec #335]", () => {
   for (const mana of [100, 0]) for (const direction of [-1, 1]) {
     const { jaina, world } = pair(800.0);
     jaina.motion.grounded = false;
@@ -177,7 +180,7 @@ test("Jaina Blink gives paid and empty-mana aimed recovery then helpless fall [s
     const before = jaina.motion.x;
     frame(world, controls({ direction, verticalDirection: 1 }));
     frame(world, controls({ direction, verticalDirection: 1 }));
-    assertGreaterThan(f32(f32(jaina.motion.x - before) * direction), mana === 0 ? 120.0 : 190.0);
+    assertGreaterThan(f32(f32(jaina.motion.x - before) * direction), 190.0);
     for (let tick = 16; tick <= 36; tick++) frame(world);
     assertTrue(jaina.special.fall);
     assertEquals(jaina.jump.remaining, 0);
@@ -187,7 +190,7 @@ test("Jaina Blink gives paid and empty-mana aimed recovery then helpless fall [s
 test("Jaina Water Elemental is placed on frame 27, fires, restores in snapshots and recalls [spec docs/design/jaina.md] [invariant]", () => {
   const { jaina, victim, world } = pair(360.0);
   frame(world, controls({ specialPressed: true, specialZ: -1 }));
-  assertEquals(jaina.mana.points, 76);
+  assertEquals(jaina.mana.points, 100);
   for (let tick = 2; tick < 27; tick++) frame(world);
   assertEquals(jaina.placed.life, 0);
   frame(world);
@@ -201,19 +204,6 @@ test("Jaina Water Elemental is placed on frame 27, fires, restores in snapshots 
   frame(world, controls({ specialPressed: true, specialZ: -1 }));
   for (let tick = 2; tick <= 27; tick++) frame(world);
   assertEquals(jaina.placed.life, 0);
-});
-
-test("Jaina Brilliance regenerates six grounded and two aerial mana per second but stops during casting [spec docs/design/jaina.md]", () => {
-  for (const grounded of [true, false]) {
-    const jaina = createFighter(Character.jaina, 0.0, 1);
-    jaina.motion.grounded = grounded;
-    jaina.mana.points = 40;
-    for (let tick = 0; tick < 60; tick++) regenerateMana(jaina);
-    assertEquals(jaina.mana.points, grounded ? 46 : 42);
-    jaina.special.action = SpecialAction.heroNeutral;
-    for (let tick = 0; tick < 60; tick++) regenerateMana(jaina);
-    assertEquals(jaina.mana.points, grounded ? 46 : 42);
-  }
 });
 
 sweep("Jaina computer uses all four spells in eight Wren Expert matches before roster publication [spec docs/design/jaina.md]", () => {

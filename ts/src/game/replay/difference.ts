@@ -221,7 +221,6 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("poisonEvery", e.status.poisonEvery, a.status.poisonEvery);
   add("poisonDamage", e.status.poisonDamage, a.status.poisonDamage);
   add("manaPoints", e.mana.points, a.mana.points);
-  add("manaProgress", e.mana.progress, a.mana.progress);
   add("manaDeniedSerial", e.visuals.manaDenied, a.visuals.manaDenied);
   add("specialForm", e.special.form, a.special.form);
   add("specialAimX", e.special.aimX, a.special.aimX);
