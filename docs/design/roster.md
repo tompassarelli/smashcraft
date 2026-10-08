@@ -555,7 +555,7 @@ Shared EX neutral/side costs 25 extra mana for six startup frames of one-hit
 armor. There are no ultimates in the adopted mana system.
 
 Direct hammer hits retain three extra hitlag frames and the volume-127 heavy
-bash. The 0.85 damage multiplier applies after passive bonuses and preserves
+bash. The 0.80 damage multiplier applies after passive bonuses and preserves
 original hitlag strength. Normal hit regions, hurt capsules and throws remain
 in forsakenPaladinMoves.ts; this revision changes Forsaken Paladin specials and their computer use.
 
