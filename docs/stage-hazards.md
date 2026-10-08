@@ -38,7 +38,8 @@ legality (smashcraft:docs/design/stages.md).
 
 The stage menu's **Hazards: On/Off** button is synchronized match state.
 Off holds all moving platforms at their frame-zero rest poses and removes
-wind, the cannon, and Blackrock's lava. The setting is copied and hashed with
+wind, the cannon, Blackrock's lava and the Tomb of Sargeras hydra; the
+Tomb's tide stays, as Ultimate keeps Jungle Japes' river. The setting is copied and hashed with
 replays. Gryphon Aerie (11) and Ahn'Qiraj (13) expose the carried loop and
 lift above; neither deals damage. One complete neutral ride (920 and 420
 frames) retains all three stocks at 0% and replays to its full checksum.
@@ -52,3 +53,52 @@ Shields do not protect feet in lava; invincibility and dodge intangibility do.
 Its two animated surface strips are exactly the contact width. The stage's
 centre and raised platform are safe. No extra cooldown state is needed:
 hitlag prevents a second hit while frozen and the upward launch leaves it.
+
+## The Tomb of Sargeras sea (#277)
+
+smashcraft:docs/design/water-stage.md has the references and the design;
+smashcraft:ts/src/game/sim/stageHazards.ts (tide) and
+smashcraft:ts/src/game/sim/water.ts (floating, swimming, the water jump and
+the hydra) implement it, pinned by smashcraft:ts/src/game/sim/water.tests.ts.
+
+- **The sea** fills the stage from blast line to blast line (±1,562.6) below
+  its surface at z −360, 60 below the deck's deepest underside. A position
+  at or below the surface is in the water.
+- **The tide** runs on a 1,200-frame cycle of the match's own frame, not the
+  stage clock, so it runs with hazards off: 4.8 world units a frame
+  (0.8 Melee units) right on frames 1–540, slack 541–600, left 601–1,140,
+  slack 1,141–1,200. During each slack the notice reads "Tide turns left
+  (right) in N frames." The push is a position offset after the fighter's
+  own motion, the same `moveMeleeX` offset the wind uses, applied in the
+  match step's water pass after the fighters move, so hitlag and hitstun
+  don't stop it. From the ledge a floating fighter passes the side blast
+  line in 201 frames, from under the deck's centre in 326.
+- **Floating.** Out of hitstun, a fighter in the water gains 0.6 a frame
+  upward in place of gravity (at most 18) and floats at the surface; a
+  helpless fighter recovers its actions there, as at a ledge. In hitstun it
+  falls as in the air, so spikes and the hydra still carry it through the
+  bottom blast line.
+- **Swimming.** Left and right swim at up to 3.6 a frame, gaining 0.3;
+  against the tide that still loses 1.2 a frame.
+- **The water jump.** Jump in the water is the full ground jump with no
+  squat, scaled by 0.91 for each re-entry since the fighter last landed (at
+  most four times, 0.686), and keeps the double jump and air dodge. Every
+  selectable fighter's water jump and double jump from the surface reach
+  above the deck.
+- **Water state** is per fighter and saved in rollback snapshots and the
+  canonical state: in the water, frames there since landing (paused out of
+  it, reset on landing), entries since landing, and the hydra's tell frame
+  and mark. A lost stock clears it.
+- **The hydra.** On a fighter's 150th frame in the water its 45-frame tell
+  starts at the fighter's x; the mark then drifts with the tide at the
+  current's speed and never steers. On the tell's frame 46 (the 195th in the
+  water if the fighter stayed) every fighter within 90 of the mark, from
+  the surface to 150 above it, takes 15% and a straight-down launch of base
+  knockback 120 with no growth, through the body-hit batch the lava uses:
+  shields don't help, invincibility and dodge intangibility do. Then the
+  hydra submerges and that fighter's count restarts. Jumping out or
+  swimming against the tide through the tell escapes it.
+- **Cost.** Off the Tomb the water pass and the hydra are two early returns
+  per frame and the motion step one stage check per fighter. On the Tomb,
+  Bun measured 0.8 µs a frame for two fighters in the sea (water pass and
+  hydra check together, 1,000,000 frames).
