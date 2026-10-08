@@ -577,6 +577,8 @@ code. From smashcraft:ts/:
   [--compare NATIVE_DIR] [--render DIR --frames N...]` plays the same script through the same helper into
   headless integrity clients. `--render` draws the script captures after the
   session stops; `--frames` selects their comma-separated frame numbers.
+  Headless checks hold the script's capture frames even without `--render`,
+  so brief spell cues are observed before play resumes.
   It passes a native run when checksums, fighter
   lines and the script's `#!` expectations match (smashcraft:docs/native-bot-session.md,
   "Native checks by parity"; issue scripts in smashcraft:ts/test/native/pads/).

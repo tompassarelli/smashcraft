@@ -2,6 +2,7 @@
 // and mana functions (smashcraft:docs/design/forsaken-paladin.md).
 import { assertEquals, assertNear, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
+import { upSpecialRoute } from "../../match/recoveryEnvelope";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
 import { fighterSpecialsCanonical } from "../../replay/canonical";
@@ -172,8 +173,11 @@ test("air Righteous Fury has no armor, spends its one airborne use and ends help
   assertEquals(air.owner.special.action, SpecialAction.none);
 });
 
-test("Ascension rises 2.9H with one hit, its free form 2.0H without one, both drifting 0.2H forward plus up to 1.6H steered into a helpless fall", () => {
-  for (const [mana, rise, damage] of [[100, f32(2.9), 8.0], [14, f32(2.0), 0.0]] as const) {
+test("Ascension keeps its heavy recovery band and free 240-unit route, paid hammer hit, 0.2H drift plus 1.6H steering and helpless fall [spec #252] [spec docs/design/forsaken-paladin.md]", () => {
+  for (const [mana, damage] of [[100, 8.0], [14, 0.0]] as const) {
+    const route = upSpecialRoute(Character.forsakenPaladin, mana);
+    assertTrue(mana === 100 ? route.rise >= 320.0 && route.rise <= 440.0 : route.rise >= 240.0);
+    assertTrue(mana === 100 ? route.reach >= 320.0 && route.reach <= 480.0 : route.reach >= 240.0);
     const { world, owner } = pair(900.0);
     owner.mana.points = mana;
     const x = owner.motion.x;
@@ -185,7 +189,8 @@ test("Ascension rises 2.9H with one hit, its free form 2.0H without one, both dr
       frame(world);
       top = Math.max(top, owner.motion.z);
     }
-    near(f32(top - z) / H, rise, f32(0.03));
+    if (mana === 100) near(f32(top - z) / H, f32(2.9), f32(0.03));
+    else assertLessThan(f32(top - z) / H, f32(2.9));
     near(f32(owner.motion.x - x) / H, f32(0.2), f32(0.03));
     assertTrue(owner.special.fall);
     const steered = pair(900.0);

@@ -2,6 +2,7 @@
 // contact, status and resource path, against smashcraft:docs/design/roster.md.
 import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
+import { upSpecialRoute } from "../../match/recoveryEnvelope";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, HeroStatusKind, ProjectileKind, SpecialAction } from "../codes";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
@@ -169,8 +170,11 @@ test("an Archer jab that meets Ruin Charge's armor deals its damage without a re
   assertGreaterThan(trades, 0);
 });
 
-test("Abyssal Leap peaks near 3.5H; on less than 15 mana the free leap peaks near 2.6H with no hit", () => {
-  for (const [mana, rise] of [[100, f32(3.5)], [10, f32(2.6)]] as const) {
+test("Abyssal Leap keeps its heavy recovery band and free 240-unit route, below its paid 3.5H grounded peak [spec #252] [spec docs/design/pit-lord.md]", () => {
+  for (const mana of [100, 10]) {
+    const route = upSpecialRoute(Character.pitLord, mana);
+    assertTrue(mana === 100 ? route.rise >= 320.0 && route.rise <= 440.0 : route.rise >= 240.0);
+    assertTrue(mana === 100 ? route.reach >= 320.0 && route.reach <= 480.0 : route.reach >= 240.0);
     const { world, owner } = pair(1000.0);
     owner.mana.points = mana;
     const ground = owner.motion.z;
@@ -182,7 +186,8 @@ test("Abyssal Leap peaks near 3.5H; on less than 15 mana the free leap peaks nea
       frame(world);
       peak = Math.max(peak, owner.motion.z);
     }
-    assertNear(f32(peak - ground), f32(H * f32(rise)), f32(H * f32(0.1)));
+    if (mana === 100) assertNear(f32(peak - ground), f32(H * f32(3.5)), f32(H * f32(0.1)));
+    else assertLessThan(f32(peak - ground), f32(H * f32(3.5)));
   }
 });
 

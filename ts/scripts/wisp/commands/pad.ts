@@ -477,7 +477,8 @@ export const headlessScript = (session: HeadlessSession, options: PadOptions) =>
 const headless = (options: PadOptions) => Effect.gen(function*() {
   const token = visualCaptureToken();
   if (options.render !== undefined && options.chat === undefined) return yield* new UsageFailure({ problem: "rendered pad scripts need a #! chat setup command" });
-  const frames = options.render === undefined ? undefined : (yield* Effect.promise(() => import("../padRender"))).padRender(options.out, options.build, options.steps, token, options.renderFrames);
+  const captures = options.chat !== undefined && options.steps.some((step) => step.kind === "capture");
+  const frames = !captures ? undefined : (yield* Effect.promise(() => import("../padRender"))).padRender(options.out, options.build, options.steps, token, options.render === undefined ? [] : options.renderFrames);
   const result = yield* Effect.scoped(Effect.gen(function*() {
     const session = yield* headlessSession(options.out, options.helper, options.build, frames?.afterFrame);
     return yield* headlessScript(session, frames === undefined || options.chat === undefined ? options : { ...options, chat: visualCaptureCommand(options.chat, token, options.steps) });
