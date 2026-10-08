@@ -20,7 +20,7 @@ function bounds(frame: Frame, region: readonly number[]) { const [left = 0, top 
 export function changedPixels(frame: Frame, baseline: Frame, region: readonly number[], tolerance: number): number {
   if (frame.width !== baseline.width || frame.height !== baseline.height) throw new Error("capture dimensions differ");
   const [left, top, right, bottom] = bounds(frame, region); let count = 0;
-  for (let y = top; y < bottom; y++) for (let x = left; x < right; x++) { const i = (y * frame.width + x) * 3; if ([0, 1, 2].some(channel => Math.abs(frame.rgb[i + channel]! - baseline.rgb[i + channel]!) > tolerance)) count++; }
+  for (let y = top; y < bottom; y++) for (let x = left; x < right; x++) { const i = (y * frame.width + x) * 3; if ([0, 1, 2].some(channel => Math.abs((frame.rgb[i + channel] ?? 0) - (baseline.rgb[i + channel] ?? 0)) > tolerance)) count++; }
   return count;
 }
 function crop(frame: Frame, region: readonly number[]): Frame { const [left, top, right, bottom] = bounds(frame, region); const width = right - left, height = bottom - top, rgb = new Uint8Array(width * height * 3); for (let y = 0; y < height; y++) rgb.set(frame.rgb.subarray(((top + y) * frame.width + left) * 3, ((top + y) * frame.width + right) * 3), y * width * 3); return { width, height, rgb }; }
@@ -44,7 +44,10 @@ export const judge: Command = args => Effect.gen(function* () {
         const file = join(directory, entry.fixture, `frame-${frameNumber}.ppm`); captures.add(file);
         const frame = yield* load(file), stamp = frameStamp(frame); const stamped = stamp?.frame === frameNumber && stamp.script === entry.script; valid &&= stamped;
         let value = stamped ? 1 : 0;
-        if (line.metric === "pixels" && baseline !== undefined) value = yield* Effect.try({ try: () => changedPixels(frame, baseline!, line.region ?? [0, 0, 1, 1], line.tolerance ?? 20), catch: cause => new JudgeFailure({ problem: String(cause) }) });
+        if (line.metric === "pixels" && baseline !== undefined) {
+          const reference = baseline;
+          value = yield* Effect.try({ try: () => changedPixels(frame, reference, line.region ?? [0, 0, 1, 1], line.tolerance ?? 20), catch: cause => new JudgeFailure({ problem: String(cause) }) });
+        }
         if (line.metric === "contrast") {
           if (line.mask === undefined) return yield* new JudgeFailure({ problem: `${entry.name}/${line.name}: contrast requires mask` });
           const output = yield* runProcess(ChildProcess.make(process.execPath, [join(projectRoot, "tools/stage/contrast.ts"), resolve(directory, line.mask), file]));
