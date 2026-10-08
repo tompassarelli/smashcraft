@@ -17,9 +17,9 @@ export const Key = {
 } as const;
 
 /** Registers the key, with no modifier, for every human. */
-export function registerKey(s: Readonly<ShellState>, trigger: trigger, key: number, down: boolean): void {
+export function registerKey(s: Readonly<ShellState>, trigger: trigger, key: number, down: boolean, meta: number = 0): void {
   for (const slot of PARTICIPANT_SLOTS) {
-    if (humanActive(s.game, slot)) BlzTriggerRegisterPlayerKeyEvent(trigger, Player(slot), ConvertOsKeyType(key), 0, down);
+    if (humanActive(s.game, slot)) BlzTriggerRegisterPlayerKeyEvent(trigger, Player(slot), ConvertOsKeyType(key), meta, down);
   }
 }
 
@@ -37,6 +37,10 @@ function registerKeys(s: ShellState, escapeOnly: boolean): void {
     if (key === Key.y || (!escapeOnly && key === Key.enter) || (escapeOnly && !pauseKey)) continue;
     registerKey(s, down, key, true);
     registerKey(s, up, key, false);
+    if (key === 0xbb) {
+      registerKey(s, down, key, true, 1);
+      registerKey(s, up, key, false, 1);
+    }
   }
   TriggerAddAction(down, trampoline(KEY_DOWN));
   TriggerAddAction(up, trampoline(KEY_UP));

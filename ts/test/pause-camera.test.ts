@@ -36,6 +36,10 @@ test("paused camera pans, zooms, tilts, hides the HUD and restores the exact mat
       clients.frames(1);
       expect((value(client, () => shell().camera[field]) - from) * direction).toBeGreaterThan(0);
     }
+    const distance = value(client, () => shell().camera.distance);
+    clients.press(0, 0xbb, 1);
+    clients.frames(1);
+    expect(value(client, () => shell().camera.distance)).toBeLessThan(distance);
     clients.press(0, 0x4f);
     clients.frames(1);
     expect(value(client, () => shell().pauseCamera?.tilt)).toBeGreaterThan(0);
