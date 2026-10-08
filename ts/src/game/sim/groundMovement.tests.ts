@@ -6,7 +6,7 @@ import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GroundAction } from "./codes";
 import { type Fighter,  } from "./fighter";
-import { createReferenceFighter } from "./referenceRig";
+import { createReferenceContactFighter, createReferenceFighter } from "./referenceRig";
 import { advanceFighter } from "./step";
 import { respawnFighter } from "./stocks";
 import { stageBounds } from "./stageBounds";
@@ -330,7 +330,7 @@ test("hitlag freezes an initial dash, then a reversal resumes [spec docs/physics
 
 test("an initial dash clears on a jump, shield, attack and respawn [spec docs/physics.md]", () => {
   for (let interruption = 0; interruption <= 3; interruption++) {
-    const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
+    const fighter = createReferenceContactFighter(0.0, 1);
     const world = testWorld(fighter, createReferenceFighter(Character.rifleman, 300.0, -1));
     const input = controls({ direction: 1 });
     advanceFighter(world, 0, 0, input, 0.0);

@@ -20,5 +20,5 @@ test("helper-facing journal files keep the names and lines the helper parses [re
   assertEquals(menu.lines.join("\n"), "SMASHCRAFT JOURNAL MENU v=1 build=playable-0042 epoch=2 slot=1 phase=STAGE\nconnected=3 human-fighters=3 computers=4 fighters=7");
   const receipt = devReceiptFile(identity, 4, { rollback: 12, delay: 0, batch: 1, rematchSeconds: 5 }, createMatchState());
   assertEquals(receipt.name, "smashcraft-dev-playable-0042-p1.txt");
-  assertEquals(receipt.lines.join("\n"), "SMASHCRAFT DEV v=1 build=playable-0042 receipt=4 epoch=2 rb=12 delay=0 batch=1 rematchSeconds=5 \nSETUP phase=0 human-fighters=1 computers=0 characters=0,1,2,0 stocks=3 minutes=7 automatic-rematch=0 stage=2 ");
+  assertEquals(receipt.lines.join("\n"), "SMASHCRAFT DEV v=1 build=playable-0042 receipt=4 epoch=2 rb=12 delay=0 batch=1 rematchSeconds=5 \nSETUP phase=0 human-fighters=1 computers=0 characters=1,2,3,1 stocks=3 minutes=7 automatic-rematch=0 stage=2 ");
 });
