@@ -177,14 +177,14 @@ not claims that Warcraft renders Melee's artwork or exact animation programs.
 | Ordinary hit / pummel | Stampede missile impact | StampedeHit; pummel uses higher, quieter Defend |
 | Fire hit | Incinerate / Fire Lord explosion | Fireball |
 | Electric hit / electric shield | Forked Lightning target | LightningBolt |
-| Slash hit | Cleave target, drawn 7.5 times larger | Sound\Units\Combat\MetalHeavySliceFlesh1 (heavy sword on flesh, by path) |
+| Slash hit | Smashcraft hit burst (authored 16-ray star) | Sound\Units\Combat\MetalHeavySliceFlesh1 (heavy sword on flesh, by path) |
 | Ice / freeze begins | Frost Nova target | FrostNova |
-| Shield / powershield | Defend caster | Defend, powershield higher |
+| Shield / powershield / shield break | Smashcraft shield star (authored 10-ray star; break draws it twice as large) | Defend, powershield higher |
 | Missed floor/wall/ceiling tech | War Stomp impact and dust | Warstomp |
 | Successful tech | Dispel Magic target | DispelMagic |
-| Grab | Defend flash | EntanglingRoots |
+| Grab | Smashcraft shield star | EntanglingRoots |
 | Throw release | Blink target | BlinkTarget |
-| Ledge catch / recovery | Defend flash (Melee's contact spark at the lip) / Impale target dust (climb dust) | quiet BlinkTarget |
+| Ledge catch / recovery | Smashcraft shield star (Melee's contact spark at the lip) / Impale target dust (climb dust) | quiet BlinkTarget |
 | Ground jump / aerial jump | dust / Blink | quiet BlinkTarget |
 | Walk / run / dash / ordinary landing | Impale target dust | DeepFootstep / DeepFootstep2; distinct volume and pitch |
 | Blast KO / star close / respawn | Thunder Clap / Dispel Magic / Resurrection | ThunderClap for KO; original fighter death cues remain |
@@ -223,9 +223,14 @@ keys (`impactStartSeconds` in hitPresentation.ts):
   most 45 px natively, so ledge catch uses the Defend flash, which draws from
   0 s (2,233 px as the shield-hit control).
 - Cleave target emits only for its first 0.17 s, and its sparks are 0-12
-  units across at scale 1 (the side camera recorded 2 pixels); at four times
-  larger it showed 440 px over five frames. Slash now draws at 7.5x and
-  normal contact at 1.5x to keep both readable at gameplay zoom.
+  units across at scale 1. Normal contact draws at 1.5x to stay readable at
+  gameplay zoom.
+- In the stamp-verified frozen capture of main 2f1115cd, Defend caster drew
+  nothing in all three of its standalone cases (shield hit, shield break,
+  ledge catch) and Cleave target drew nothing for slash, while the authored
+  Tech star drew at the same points. Shield contact, grab, charge and ledge
+  catch therefore use the authored Shield star and slash the authored Hit
+  burst (tools/effects/package.ts), both static "Stand" geometry like Tech.
 
 The diagnostic's ledge cues spawn at the stage centre (ledge point 0, 50),
 not at a ledge, so a stage-centre capture covers them.

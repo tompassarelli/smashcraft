@@ -1,6 +1,7 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
+import { BunRuntime } from "@effect/platform-bun";
 import { Effect } from "effect";
 import { selectClients, watchedClients } from "wisp/scripts/wisp/clientWatchCommand";
 import { EngineFailure } from "wisp/scripts/wisp/commands/engine";
@@ -13,6 +14,7 @@ import { preloadLines } from "wisp/scripts/wisp/boundary";
 import { TRACE_FILE, parseExpectations, parseTrace, unmetExpectations } from "./integrity/padParity";
 import { parsePadScript } from "./integrity/padScript";
 import { replayRepro } from "../src/game/replay/moment";
+import { pollUntil } from "./hostPoll";
 
 const { values } = parseArgs({ options: {
   "clients-file": { type: "string" }, client: { type: "string" }, script: { type: "string" },
@@ -42,19 +44,18 @@ const program = Effect.gen(function*() {
   if (selected.length !== 2) return yield* new EngineFailure({ problem: "native acceptance requires exactly one offline pair" });
   const clients = selected.map(client => ({ ...client, prefix: prefixOfDocuments(client.documents) }));
   yield* attempt("prepare driver folders", () => clients.forEach(client => mkdirSync(join(dataDirectory(client.documents), "smashcraft-hot"), { recursive: true })));
-  yield* Effect.tryPromise({ try: async () => {
-    const deadline = performance.now() + 30000;
-    let observed = "no startup receipt";
-    while (performance.now() < deadline) {
-      try {
-        const statuses = clients.map(client => readDriverStatus(client, "smashcraft"));
-        if (statuses.every((status, index) => status.frame === 0 && status.paused && !status.refused && (gameStartedMs === undefined || statSync(join(dataDirectory(clients[index]?.documents ?? ""), "smashcraft-hot/driver-status.txt")).mtimeMs >= gameStartedMs))) return;
-        observed = JSON.stringify(statuses);
-      } catch (cause) { observed = String(cause); }
-      await Bun.sleep(10);
-    }
-    throw new Error(`driver startup timed out: ${observed}; create smashcraft-hot on both clients before starting the map`);
-  }, catch: cause => new EngineFailure({ problem: String(cause) }) });
+  let observed = "no startup receipt";
+  const started = Effect.sync(() => {
+    try {
+      const statuses = clients.map(client => readDriverStatus(client, "smashcraft"));
+      if (statuses.every((status, index) => status.frame === 0 && status.paused && !status.refused && (gameStartedMs === undefined || statSync(join(dataDirectory(clients[index]?.documents ?? ""), "smashcraft-hot/driver-status.txt")).mtimeMs >= gameStartedMs))) return true;
+      observed = JSON.stringify(statuses);
+    } catch (cause) { observed = String(cause); }
+    return undefined;
+  });
+  yield* pollUntil(started, { every: "10 millis", within: "30 seconds", orElse: () => Effect.fail(new EngineFailure({
+    problem: `driver startup timed out: ${observed}; create smashcraft-hot on both clients before starting the map`,
+  })) });
   const payload = yield* attempt("read pad script", () => readFileSync(script, "utf8"));
   if (parsePadScript(payload).some(step => step.frame > frames)) return yield* new EngineFailure({ problem: `--frames ${frames} truncates the pad script` });
   yield* attempt("create result folder", () => mkdirSync(out, { recursive: true }));
@@ -117,4 +118,5 @@ const program = Effect.gen(function*() {
   yield* attempt("write final result", () => writeFileSync(join(out, "result.json"), `${JSON.stringify(summary, null, 2)}\n`));
   console.log(`PASS: ${summary.runs} full pad runs plus one stepped control, ${summary.replays} native moments match headless; setup p50 ${summary.setupP50Ms.toFixed(1)} ms, p95 ${summary.setupP95Ms.toFixed(1)} ms`);
 });
-await Effect.runPromise(withAutopsy({ clientsFile }, program));
+// One runtime boundary: SIGINT or SIGTERM runs every finalizer before exit.
+BunRuntime.runMain(withAutopsy({ clientsFile }, program));

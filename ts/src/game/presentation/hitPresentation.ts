@@ -7,7 +7,7 @@ import { SWING_SOUND, TIER_HIT_VOLUME, TIER_SWING_PITCH, TIER_SWING_VOLUME, tier
 import { at } from "wisp/src/runtime/lookup";
 import { type ImpactEvents, ImpactLanding, JumpCue } from "./impactEvents";
 import { IMPACT_FIRE_HIT, IMPACT_SLASH_HIT, IMPACT_ICE_HIT, IMPACT_ELECTRIC_SHIELD, IMPACT_PUMMEL } from "./impactState";
-import { IMPACT_DUST_MODEL, IMPACT_ROLL_MODEL, IMPACT_TECH_MODEL, IMPACT_JUMP_MODEL } from "../assets/impactAssetInfo";
+import { IMPACT_DUST_MODEL, IMPACT_ROLL_MODEL, IMPACT_TECH_MODEL, IMPACT_JUMP_MODEL, IMPACT_SHIELD_MODEL, IMPACT_HIT_MODEL } from "../assets/impactAssetInfo";
 
 /** Movement uses small authored geometry so pooled dust respects scale and fading. */
 export function impactModel(kind: number): string {
@@ -20,7 +20,8 @@ export function impactModel(kind: number): string {
     case 4: return IMPACT_ROLL_MODEL;
     case 5: case IMPACT_ELECTRIC_SHIELD: return "Abilities\\Spells\\Other\\ForkedLightning\\ForkedLightningTarget.mdx";
     // Ledge catch is Melee's contact spark at the lip, the same spark shield contact uses.
-    case 6: case 10: case 12: case 14: return "Abilities\\Spells\\Human\\Defend\\DefendCaster.mdx";
+    // Defend caster and Cleave target drew nothing as standalone effects in native capture (2f1115cd).
+    case 6: case 10: case 12: case 14: return IMPACT_SHIELD_MODEL;
     case 7: return IMPACT_JUMP_MODEL;
     case 11: return "Abilities\\Spells\\NightElf\\Blink\\BlinkTarget.mdx";
     // Ledge recovery is Melee's climb dust.
@@ -28,7 +29,7 @@ export function impactModel(kind: number): string {
     case 8: return "Abilities\\Spells\\Human\\Thunderclap\\ThunderClapCaster.mdx";
     case 9: return "Abilities\\Spells\\Human\\Resurrect\\ResurrectTarget.mdx";
     case IMPACT_FIRE_HIT: return "Abilities\\Spells\\Other\\Incinerate\\FireLordDeathExplode.mdx";
-    case IMPACT_SLASH_HIT: return "Abilities\\Spells\\Other\\Cleave\\CleaveDamageTarget.mdx";
+    case IMPACT_SLASH_HIT: return IMPACT_HIT_MODEL;
     case IMPACT_ICE_HIT: return "Abilities\\Spells\\Undead\\FrostNova\\FrostNovaTarget.mdx";
     default: return "Abilities\\Spells\\Human\\DispelMagic\\DispelMagicTarget.mdx";
   }
@@ -36,7 +37,8 @@ export function impactModel(kind: number): string {
 
 /** These stock impacts name their only visible sequence Stand, rather than Birth. */
 export function impactAnimation(kind: number): string {
-  return kind === 1 || kind === 2 || kind === 3 || kind === 4 || kind === 7 || kind === 8 || kind === 9 ? "Stand" : "Birth";
+  return kind === 1 || kind === 2 || kind === 3 || kind === 4 || kind === 6 || kind === 7 || kind === 8 || kind === 9 || kind === 10
+    || kind === 12 || kind === 14 || kind === IMPACT_SLASH_HIT ? "Stand" : "Birth";
 }
 
 /**
@@ -58,14 +60,12 @@ export function impactStartSeconds(kind: number): number {
 }
 
 /**
- * Cleave target's sparks are a few units across at scale 1, too small to read
- * as a hit; slash draws them 7.5 times larger. Normal contact draws at 1.5
- * so even the small tier reads at gameplay zoom. An electric hit draws Forked
+ * Normal contact draws at 1.5 so even the small tier reads at gameplay zoom. An electric hit draws Forked
  * Lightning at least as large as an electric shield hit's (scale 1), which
  * showed natively where a hit's 0.75 lasted one frame.
  */
 export function impactModelScale(kind: number): number {
-  return kind === IMPACT_SLASH_HIT ? 7.5 : kind === 0 || kind === IMPACT_PUMMEL || kind === 5 ? 1.5 : 1.0;
+  return kind === 0 || kind === IMPACT_PUMMEL || kind === 5 ? 1.5 : 1.0;
 }
 
 /** Plays a sound label, or with `file` a sound file by path, at a position. */

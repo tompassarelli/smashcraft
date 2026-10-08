@@ -101,8 +101,6 @@ test("hit event language: 26 event cases reach stock effects and confirmed sound
       renderer.presentConfirmed(index, 0, events);
       expect(client.log.length).toBe(after);
     }
-    // A slash's stock sparks are tiny at scale 1; they draw at least five times an ordinary hit's spark.
-    expect(shownScale[4]).toBeGreaterThanOrEqual(5 * (shownScale[0] ?? 0));
     // An electric hit's flash draws at least as large as an electric shield hit's.
     expect(shownScale[2]).toBeGreaterThanOrEqual(shownScale[7] ?? 0);
     renderer.destroy();
