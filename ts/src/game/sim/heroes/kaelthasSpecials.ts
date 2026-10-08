@@ -3,7 +3,7 @@ import { frames, type AuthoredSpecial, type FighterSpecials } from "../heroSpeci
 import { kaelCastBody, kaelHit } from "./kaelthasMoves";
 
 const flameStrike: AuthoredSpecial = {
-  cost: 20, endFrame: 43, landingLag: 20,
+  cost: 25, endFrame: 43, landingLag: 20,
   hurt: kaelCastBody(5, 26, 38.0, 66.0),
   projectiles: [{
     model: "Abilities\\Spells\\Human\\FlameStrike\\FlameStrike1.mdx",

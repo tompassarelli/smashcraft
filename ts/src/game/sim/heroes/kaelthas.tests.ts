@@ -76,12 +76,12 @@ function frame(world: Roster, input: Readonly<Controls> = controls(), targetInpu
 test("Kaelthas Flame Strike leaves the hand on frame 12 and launches the first body it reaches once [spec docs/design/kaelthas.md]", () => {
   for (const facing of [-1, 1]) for (const [x, contact] of [[120.0, 12], [180.0, 19], [300.0, 32], [400.0, 43]] as const) {
     const { owner, target, world } = pair(x, facing);
-    frame(world, controls({ specialPressed: true })); assertEquals(owner.special.action, SpecialAction.heroNeutral); assertEquals(owner.mana.points, 20);
+    frame(world, controls({ specialPressed: true })); assertEquals(owner.special.action, SpecialAction.heroNeutral); assertEquals(owner.mana.points, 15);
     for (let tick = 2; tick < contact; tick++) frame(world);
     assertEquals(target.status.damage, 0.0, `before ${x}`);
     frame(world); assertEquals(target.status.damage, 12.0, `at ${x}`); assertGreaterThan(target.launch.knockbackZ, 0.0);
     for (let tick = contact + 1; tick <= 60; tick++) frame(world);
-    assertEquals(target.status.damage, 12.0); assertEquals(owner.mana.points, 20);
+    assertEquals(target.status.damage, 12.0); assertEquals(owner.mana.points, 15);
   }
 });
 
@@ -111,7 +111,7 @@ test("Kaelthas Flame Strike stops at a shield, misses after its life and keeps t
     for (let tick = 2; tick <= 19; tick++) frame(blocked.world, controls(), defense);
     assertTrue(!projectedProjectile(blocked.owner, 0, true).visible);
     for (let tick = 20; tick <= 60; tick++) frame(blocked.world, controls(), defense);
-    assertEquals(blocked.target.status.damage, 0.0); assertEquals(blocked.owner.mana.points, 20);
+    assertEquals(blocked.target.status.damage, 0.0); assertEquals(blocked.owner.mana.points, 15);
 
     const late = pair(1000.0, facing);
     frame(late.world, controls({ specialPressed: true }));
@@ -127,7 +127,7 @@ test("Kaelthas Flame Strike stops at a shield, misses after its life and keeps t
     assertTrue(projectedProjectile(interrupted.owner, 0, true).visible);
     cancelSpecialState(interrupted.owner);
     for (let tick = 14; tick <= 60; tick++) frame(interrupted.world);
-    assertEquals(interrupted.target.status.damage, 12.0); assertEquals(interrupted.owner.mana.points, 20);
+    assertEquals(interrupted.target.status.damage, 12.0); assertEquals(interrupted.owner.mana.points, 15);
 
     const early = pair(180.0, facing);
     frame(early.world, controls({ specialPressed: true }));
