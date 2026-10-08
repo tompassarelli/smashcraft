@@ -716,3 +716,18 @@ matching workload on the hosted farm. GPU frame intervals and #165 profile
 comparisons come from the native owner's capture tooling; they are distinct
 from Lua/native-call cost predictions. `-dev render-clock` is a #169 probe
 of candidate callback clocks, not an established rendering-frame-rate meter.
+
+### Stratholme presentation (#297)
+
+ST-3 uses the stock `Environment\Sky\LordaeronFallSky\LordaeronFallSky.mdx`
+against the existing right-third ruined cathedral. The dusk fog stays at
+5,000–11,000 with RGB (0.5, 0.28125, 0.1875). A destroyed Androhal clock tower
+in the far city band adds a stock HD silhouette; Classic keeps the cathedral,
+gate and ruined halls because the tower has no Classic copy.
+
+ST-1 places two warm omni lights on the existing town fires, with radii 1,100
+and 900; both stop at least 1,550 units behind the fighting band. Their slow
+1,600/2,100 ms loops follow stage-art rule 8. One casts shadows. The models
+reuse Blackrock's two shipped light-only models: zero new imported bytes.
+The native stock tower is 1,428,524 bytes in Reforged storage, not a map import.
+ST-2's roofs and brick surfaces are the separate #276 material work.

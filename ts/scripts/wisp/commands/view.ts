@@ -85,8 +85,11 @@ const models = (args: readonly string[]) => Effect.scoped(Effect.gen(function*()
   const lines = yield* Effect.forEach(named, (model, index) => Effect.gen(function*() {
     let file = imports.get(model.toLowerCase());
     if (file === undefined) {
-      file = join(scratch, `stock-${index}.mdx`);
-      yield* runProcess("extract stock model", model, [extractor, storage, stockModelPath(model), file]);
+      const stockFile = join(scratch, `stock-${index}.mdx`);
+      file = stockFile;
+      yield* runProcess("extract stock model", model, [extractor, storage, stockModelPath(model), stockFile]).pipe(
+        Effect.catch(() => runProcess("extract HD-only stock model", model, [extractor, storage, stockModelPath(model).replace("war3.w3mod:", "war3.w3mod:_hd.w3mod:"), stockFile])),
+      );
     }
     const path = file;
     const facts = yield* Effect.tryPromise({

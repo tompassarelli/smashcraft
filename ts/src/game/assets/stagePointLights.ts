@@ -1,6 +1,6 @@
 // Backdrop omni lights, which tools/stage/package.ts writes into light-only
 // models that the stage's scenery places (smashcraft:docs/design/visual-quality.md).
-import { CANNON_TEST_STAGE, HELLFIRE_STAGE } from "../sim/stage";
+import { CANNON_TEST_STAGE, HELLFIRE_STAGE, STRATHOLME_STAGE } from "../sim/stage";
 
 type Rgb = readonly [red: number, green: number, blue: number];
 
@@ -46,6 +46,13 @@ export const STAGE_POINT_LIGHTS: readonly { readonly stage: number; readonly the
       { x: -2100.0, y: 4600.0, z: -1250.0, color: [255, 150, 70], intensity: 1.25, flicker: 0.125, loopMs: 1600, radius: 1100.0, castsShadow: true },
       // The fire trap at the foot of the right landmark crag.
       { x: 2050.0, y: 6000.0, z: -1300.0, color: [255, 132, 56], intensity: 0.875, flicker: 0.125, loopMs: 2100, radius: 900.0, castsShadow: false },
+    ],
+  },
+  {
+    stage: STRATHOLME_STAGE, theme: "Stratholme", lights: [
+      // ST-1: town fires light their buildings, beyond the ledges' fighting band.
+      { x: 1250.0, y: 6000.0, z: -900.0, color: [255, 150, 70], intensity: 1.25, flicker: 0.125, loopMs: 1600, radius: 1100.0, castsShadow: true },
+      { x: -2250.0, y: 2650.0, z: -1000.0, color: [255, 132, 56], intensity: 0.875, flicker: 0.125, loopMs: 2100, radius: 900.0, castsShadow: false },
     ],
   },
 ];
