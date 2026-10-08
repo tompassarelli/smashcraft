@@ -74,6 +74,39 @@ test("a full match shows only fighter HUD fields and the clock, with results aft
   for (const client of clients.clients) expect(client.errors).toEqual([]);
 });
 
+test("training hints opt in from pause, whose controls name full shield, light shield, tilt and short hop [spec #336]", () => {
+  const clients = headless.clients({ install: installPlayable, start: startPlayable });
+  clients.start();
+  clients.frames(30);
+  clients.everywhere(() => { shell().game.training = true; });
+  for (const slot of [0, 1]) clients.press(slot, Key.r);
+  clients.frames(10);
+  clients.press(0, Key.y);
+  clients.frames(20);
+  clients.press(0, Key.y);
+  clients.frames(30);
+  const host = clients.client(0);
+  expect(value(host, () => shell().game.phase)).toBe(Phase.match);
+  expect(host.frames.shownText().some(text => text.includes("pause. Tap Shield"))).toBe(false);
+  clients.press(0, Key.y);
+  clients.frames(1);
+  const pauseText = host.frames.shownText().join("\n");
+  for (const control of ["Q: full shield", "T: light shield", "P: tilt", "Z / L3: short hop", "F2: training hints Off"]) expect(pauseText).toContain(control);
+  clients.press(0, Key.f2);
+  clients.frames(1);
+  expect(host.frames.shownText().join("\n")).toContain("F2: training hints On");
+  clients.press(0, Key.y);
+  clients.frames(3);
+  expect(host.frames.shownText().some(text => text.includes("pause. Tap Shield"))).toBe(true);
+  clients.press(0, Key.y);
+  clients.frames(1);
+  clients.press(0, Key.f2);
+  clients.press(0, Key.y);
+  clients.frames(3);
+  expect(host.frames.shownText().some(text => text.includes("pause. Tap Shield"))).toBe(false);
+  expect(clients.firstDivergence()).toBeUndefined();
+});
+
 /** Every field the developer line prints, by its label. */
 const DEVELOPER_LINE_TERMS = [
   "Developer test", "player=", "phase=", "x=", "z=", "input=", "mode=", "normal=", "move=", "attack-frame=",
