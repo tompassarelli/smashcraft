@@ -251,12 +251,24 @@ How a map uses a newer feature safely:
      ([forum](https://us.forums.blizzard.com/en/warcraft3/t/cant-select-definitive-graphics/38432)).
 3. **Player options are the player's.** Point Light Shadows, Water,
    Environment Shadows, Ambient Occlusion and Supersampling can't be turned on
-   by a map. Pool pair 2's War3Preferences (7 Oct) has `hd=1`, `shadowquality=0`,
-   `pointlightshadowquality=0`, `waterquality=0` and `assao=0`. Tom's profile
-   has every quality setting at its lowest except lighting
-   (wisp:docs/doctor.md). So no current capture can show shadows, AO or
-   water. A capture of those levers needs a visual profile that turns them on
-   and records them.
+   by a map. The old pool pair 2 baseline (7 Oct) disabled those settings.
+   Wisp's `capture-classic` and `capture-definitive` profiles now set
+   `lightingquality=2`, `texquality=1`, `shadowquality=2`,
+   `pointlightshadowquality=2`, `waterquality=2` and `assao=1`; each records
+   its graphics mode (wisp:docs/lan.md, "Profiles"). #287's first box used
+   those profiles on 3.0.1; its complete stage baseline still needs the
+   stock/mask/stage sets.
+
+   Wisp's headless Classic and Definitive profiles are separate from these
+   native client preferences. At Wisp 9b821201, they draw day/night light,
+   fog and sky; Definitive also draws model point lights and PBR materials.
+   Shadows, water, ambient occlusion, bloom and point-light shadows require
+   the native renderer or the corresponding Wisp renderer fix. A requested
+   unsupported lever fails `--look` before drawing; a supported-lever
+   contrast triple cannot tick #287's full capture-profile box
+   (wisp:docs/headless.md, "Graphics profiles"). Take each stock, mask and
+   stage frame at the same pose and camera: separate headless journeys at
+   the same frame, rather than three different simulation frames.
 
 ### 3.0.1 presentation changes
 
