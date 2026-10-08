@@ -28,7 +28,7 @@ must resolve each role to a literal pair of names and reject missing pairs.
 | Shadow Hunter | HeroShadowHunter → HeroShadowHunter | arms, legs, glaive → glaive, mask → mask |
 | Pit Lord | HeroPitLord → HeroPitLord | arms, all four leg chains, polearm → polearm, wings → wings |
 | Beastmaster | Beastmaster → Beastmaster | arms, legs, both axes → both axes |
-| Lich King | authored LichKing2 → stock Lich King | arms, legs, sword → sword, cape → cape; verify stock identity before export |
+| Lich King | authored LichKing2 → same approved Classic body | approved exception: helmet, cape and Frostmourne retain the existing custom identity in both graphics modes |
 | Thrall | authored Thrall → Thrall | rider arms, hammer; rider pelvis → rider pelvis, mount root and all four legs → mount joints |
 | Jaina | authored Jaina → Jaina | arms, legs, staff → staff, robe → robe |
 | Sylvanas | authored EvilSylvanas → EvilSylvanas | arms, legs, bow → bow, cape → cape |
@@ -40,9 +40,16 @@ must resolve each role to a literal pair of names and reject missing pairs.
 | Murloc | authored Murloc → Murloc | arms, legs, weapon → weapon, fins → fins |
 | Grom | authored Hellscream → Hellscream | arms, legs, axe → axe, hair → hair |
 | Anub’arak | authored Crypt Lord → Crypt Lord | root, chest, head, all leg chains, claws → claws, shell → shell |
-| Malfurion | authored Furion → Furion | arms, legs, staff → staff, beard and robe → beard and robe |
+| Malfurion | authored walking Furion → same approved Classic body | approved exception: walking staff fighter in both graphics modes |
 | Medivh | authored Medivh → Medivh | arms, legs, staff → staff, cloak → cloak, raven → raven |
 | Kobold | authored Kobold → Kobold | arms, legs, pick → pick, candle → candle |
+
+The two approved exceptions keep their existing body in Definitive. The installed
+stock model named Lich King is a one-bone frozen throne scene; playable stock
+Arthas lacks the approved helmeted identity. The installed Definitive Malfurion
+model includes a visible stag even under its `MalfurionNoStag` name, while the
+approved fighter walks. Neither receives a replacement alias. These identity
+choices may be revisited separately when a matching stock body is available.
 
 Cairne's installed Definitive model (3.0.1) has 91 bones and is 1,726,676 bytes.
 Its 27 literal pairs are `Root → root`, `Bone_Chest → bone_chest`,
