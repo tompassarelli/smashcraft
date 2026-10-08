@@ -20,7 +20,7 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { Effect } from "effect";
 import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/command";
-import { FarmFailure, type RunState, currentRepo, deleteScratch, dispatch, farmTest, resolveRef, run, runTag, waitFor } from "wisp/scripts/wisp/farm";
+import { FarmFailure, type RunState, currentRepo, dispatch, farmTest, resolveRef, run, runTag, waitFor } from "wisp/scripts/wisp/farm";
 
 const WORKFLOWS = { balance: "balance.yml", pads: "headless-pads.yml", perf: "perf.yml", memory: "memory-soak.yml" } as const;
 type Job = keyof typeof WORKFLOWS;
@@ -93,13 +93,14 @@ export const farm: Command = (args) => Effect.gen(function*() {
   const runs = perfRuns.length > 0 ? perfRuns : ["playable-bot-four"];
   const workflow = WORKFLOWS[job satisfies Job];
   const repo = yield* currentRepo;
-  const { ref, scratch } = yield* resolveRef(parsed.values.ref, repo);
-  const tag = runTag();
-  const inputs = job === "balance"
-    ? { ref, opponent: parsed.values.opponent ?? "wren", tier: parsed.values.tier ?? "expert", "per-pair": parsed.values["per-pair"] ?? "400", seeds: parsed.values.seeds ?? "100", matchups: parsed.values.matchups ?? "", tag }
-    : job === "perf" ? { ref, runs: JSON.stringify(runs), tag } : job === "memory" ? { ref, minutes: parsed.values.minutes ?? "30", tag } : { ref, dirs: parsed.values.only?.join(" ") ?? ".", tag };
-  const started = performance.now();
-  const work = Effect.gen(function*() {
+  // Closing the scope deletes the scratch branch resolveRef pushed.
+  yield* Effect.scoped(Effect.gen(function*() {
+    const { ref, scratch } = yield* resolveRef(parsed.values.ref, repo);
+    const tag = runTag();
+    const inputs = job === "balance"
+      ? { ref, opponent: parsed.values.opponent ?? "wren", tier: parsed.values.tier ?? "expert", "per-pair": parsed.values["per-pair"] ?? "400", seeds: parsed.values.seeds ?? "100", matchups: parsed.values.matchups ?? "", tag }
+      : job === "perf" ? { ref, runs: JSON.stringify(runs), tag } : job === "memory" ? { ref, minutes: parsed.values.minutes ?? "30", tag } : { ref, dirs: parsed.values.only?.join(" ") ?? ".", tag };
+    const started = performance.now();
     const found = yield* dispatch(repo, workflow, inputs);
     if (parsed.values.wait !== true && scratch === undefined && job !== "perf") return;
     const state = yield* waitFor(repo, found.databaseId);
@@ -108,6 +109,5 @@ export const farm: Command = (args) => Effect.gen(function*() {
     else if (job === "perf") yield* perfResult(repo, found.databaseId, state, runs, parsed.values.out);
     else if (job === "pads") yield* padsResult(repo, found.databaseId, state);
     else yield* memoryResult(repo, found.databaseId, state);
-  });
-  yield* work.pipe(Effect.ensuring(deleteScratch(repo, scratch)));
+  }));
 });
