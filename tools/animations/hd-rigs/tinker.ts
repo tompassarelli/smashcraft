@@ -1,4 +1,9 @@
 export const stockPath = 'war3.w3mod:_de.w3mod:units\\creeps\\herotinker\\herotinker.mdx';
+export const visibilityPairs: readonly (readonly [number, number])[] = [
+    [0, 0], [0, 4], [0, 5],
+    [9, 2], [2, 3],
+    [15, 6], [15, 7], [15, 8], [15, 9], [15, 10], [15, 11],
+];
 export const pairs: readonly (readonly [string, string])[] = [
     ['Bone_Pelvis01', 'spine_C0_0_jnt'],
     ['Bone_Chest01', 'bone_chest'],
@@ -46,6 +51,7 @@ export const pairs: readonly (readonly [string, string])[] = [
     ['Bone_BackPack_ArmRight07_Tank', 'tankarm_L0_0_jnt'],
     ['Bone_BackPack_ArmRight08_Tank', 'tankarm_L0_2_jnt'],
     ['Bone_BackPack_ArmRight09_Tank', 'tankarm_L0_end_jnt'],
+    ['Bone_BackPack_ArmRight09_Tank', 'Wep_C1_0_jnt'],
     ['Bone_BackPack_ArmLeft07_Tank', 'tankarm_R0_0_jnt'],
     ['Bone_BackPack_ArmLeft08_Tank', 'tankarm_R0_2_jnt'],
     ['Bone_BackPack_ArmLeft09_Tank', 'tankarm_R0_end_jnt'],
