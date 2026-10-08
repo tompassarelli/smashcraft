@@ -7,7 +7,7 @@ import { HOME_STAGES } from "../menu/homeStages";
 import { selectableStage } from "../menu/stageCatalog";
 import { createFrameControls } from "../match/controls";
 import { CPU_TIERS } from "../match/cpuProfiles";
-import { type MatchState, Phase, createMatchState, fighterMask, requestStart, setParticipants } from "../match/rules";
+import { type MatchState, Phase, createMatchState, fighterMask, requestStart, setParticipants, selectCharacter, nextMatchCharacter } from "../match/rules";
 import { initializeMatchFighters, matchSpawnX, stepMatch } from "../match/step";
 import { createPacingAndPresentation } from "../match/pacingAndPresentation";
 import { stateChecksum } from "../replay/canonical";
@@ -15,13 +15,13 @@ import { firstStateDifference } from "../replay/difference";
 import { type ReplayState, copyReplayState, createReplaySnapshot } from "../replay/snapshot";
 import { Character } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
-import { PLAYABLE_CHARACTERS, SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
+import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 import { type Roster, createRoster, fighterAt, isActive } from "../sim/roster";
 import { BOSSES, BOSS_OPENING_FRAMES, bossCycleFrames } from "./bosses";
 import { CLASSIC_FIGHTS, ClassicStep, continueClassic, quitClassic, startClassic } from "./classic";
 import { classicEnding, classicResults } from "./classicText";
 import { applyConfiguredMatch, beginConfiguredRun, settleConfiguredMatch } from "./configuredMatch";
-import { CLASSIC_ROUTES, classicRoute } from "./routes";
+import { CLASSIC_CHARACTERS, CLASSIC_ROUTES, classicRoute } from "./routes";
 import { BossKind, type ConfiguredMatch, RunOutcome, WinCondition } from "./runState";
 
 /** Arrays compare by their items. */
@@ -73,8 +73,8 @@ function finish(game: MatchState, world: Roster, won: boolean): void {
   settleConfiguredMatch(game, world);
 }
 
-test("every selectable fighter has one Classic route: five rival fights, the fifth on its home stage, then a lore boss and a two-or-three-line ending [spec docs/design/classic-mode.md]", () => {
-  for (const fighter of SELECTABLE_CHARACTERS) {
+test("every fighter in the Classic selector has one Classic route: five rival fights, the fifth on its home stage, then a lore boss and a two-or-three-line ending [spec docs/design/classic-mode.md]", () => {
+  for (const fighter of CLASSIC_CHARACTERS) {
     const routes = CLASSIC_ROUTES.filter(route => route.fighter === fighter);
     assertEquals(routes.length, 1, `${fighterName(fighter)} routes`);
     const route = routes[0];
@@ -94,7 +94,7 @@ test("every selectable fighter has one Classic route: five rival fights, the fif
 });
 
 test("a Classic run plays every fighter's route in order, climbing the tiers, through its boss to the ending card and results line, and restores the menu [spec docs/design/classic-mode.md]", () => {
-  for (const fighter of PLAYABLE_CHARACTERS) {
+  for (const fighter of CLASSIC_CHARACTERS) {
     const name = fighterName(fighter);
     const route = classicRoute(fighter);
     if (route === undefined) throw new Error(`${name} has no route`);
@@ -224,5 +224,29 @@ test("a Lore Battles entry built from data alone plays through the configured-ma
     same([game.phase, game.timedOut], [Phase.result, true]);
     assertEquals(game.run.outcome, expected, `win condition ${win}`);
     assertTrue(game.run.cleared === (expected === RunOutcome.won));
+  }
+});
+
+test("[repro #345] Classic selection reaches all 21 finished fighters and rejects the five pending stories while Versus keeps them", () => {
+  const game = classicSelection(Character.rifleman, 1);
+  const reached = new Set<number>();
+  for (let step = 0; step < 21; step++) {
+    const choice = nextMatchCharacter(game, game.characterChoices[0], 1);
+    selectCharacter(game, 0, choice);
+    reached.add(game.characterChoices[0]);
+  }
+  assertEquals(reached.size, 21);
+  for (let fighter = 1; fighter <= 21; fighter++) assertEquals(reached.has(fighter), true, `finished fighter ${fighter}`);
+  for (const fighter of [22, 23, 24, 25, 26]) {
+    const before = game.characterChoices[0];
+    selectCharacter(game, 0, fighter);
+    assertEquals(game.characterChoices[0], before, `pending story ${fighter}`);
+    assertEquals(reached.has(fighter), false);
+    if (SELECTABLE_CHARACTERS.includes(fighter as Character)) {
+      game.classic = false;
+      selectCharacter(game, 0, fighter);
+      assertEquals(game.characterChoices[0], fighter, `Versus fighter ${fighter}`);
+      game.classic = true;
+    }
   }
 });

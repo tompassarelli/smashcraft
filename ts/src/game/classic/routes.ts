@@ -283,7 +283,9 @@ export const CLASSIC_ROUTES: readonly ClassicRoute[] = [
   },
 ];
 
-/** The route of `fighter`, or undefined when it has none (a test fails on that). */
+export const CLASSIC_CHARACTERS: readonly Character[] = CLASSIC_ROUTES.map(route => route.fighter);
+
+/** The finished route of `fighter`, or undefined while its story is pending. */
 export function classicRoute(fighter: number): ClassicRoute | undefined {
   for (const route of CLASSIC_ROUTES) if (route.fighter === fighter) return route;
   return undefined;

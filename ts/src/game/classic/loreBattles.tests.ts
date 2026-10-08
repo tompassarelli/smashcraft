@@ -11,6 +11,7 @@ import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { createFighter } from "../sim/fighter";
 import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 import { type Roster, createRoster, fighterAt, isActive } from "../sim/roster";
+import { CLASSIC_CHARACTERS } from "./routes";
 import { bossDefinition, bossHealth } from "./bosses";
 import { settleConfiguredMatch } from "./configuredMatch";
 import { LORE_BATTLES, LoreStep, continueLore, startLore } from "./loreBattles";
@@ -78,7 +79,8 @@ test("twenty Lore Battles, each a valid fighter, opponents, stage, clock, win co
     }
     if (index > 0) assertEquals(battleTier(index) >= battleTier(index - 1), true, `${name} is no easier than the battle before`);
   }
-  assertEquals(fighters.size, SELECTABLE_CHARACTERS.length, "fighters used");
+  assertEquals(fighters.size, 21, "finished fighters used");
+  for (const fighter of CLASSIC_CHARACTERS) assertEquals(fighters.has(fighter), true, `${fighterName(fighter)} has Lore coverage`);
   assertEquals(stages.size, STAGE_CATALOG.length, "stages used");
   assertEquals(wins.size, 4, "win conditions used");
   assertEquals(battleTier(0), 0);

@@ -1,3 +1,4 @@
+import { nextMatchCharacter, selectableMatchCharacter } from "../match/rules";
 import { RULE_BUTTONS, RULE_HEIGHT, type RuleBox, type TrainingSetting, cpuSettingsBox } from "./ruleButtons";
 // The character panel of one participant. Every client builds all four panels;
 // only the owner's client shows its own and reads its pointer, and a placed or
@@ -156,6 +157,7 @@ const decodeTile = (data: string): RosterTile | undefined => {
 const decodeSlot = (data: string): number | undefined => (data === "0" ? 0 : data === "1" ? 1 : data === "2" ? 2 : data === "3" ? 3 : undefined);
 
 export class SelectionPanel {
+  private readonly tiles: framehandle[][] = [];
   private readonly root: framehandle;
   private readonly backdrop: framehandle;
   private readonly confirm: framehandle;
@@ -240,11 +242,13 @@ export class SelectionPanel {
       const x = f32(left);
       const y = f32(top);
       const name = `${suffix}_${I2S(choice)}`;
-      art(root, `MeleeTile${name}`, "war3mapImported\\SelectionTileFrame.tga", x, y, f32(grid.cellWidth), f32(grid.cellHeight));
+      const tileFrame = art(root, `MeleeTile${name}`, "war3mapImported\\SelectionTileFrame.tga", x, y, f32(grid.cellWidth), f32(grid.cellHeight));
       const portrait = tilePortrait(scale);
       const inset = (TILE_PORTRAIT_SLOT * scale - portrait) / 2;
-      art(root, `MeleeTilePortrait${name}`, portraitTexture(PLAYABLE_CHARACTERS[choice], true), x + f32(0.0125) * scale + inset, y - f32(0.013) * scale - inset, portrait, portrait);
-      BlzFrameSetText(label(root, `MeleeTileName${name}`, x + f32(0.004) * scale, y - f32(0.108) * scale, f32(0.103) * scale, f32(0.018) * scale, f32(0.0078) * scale), nameText(PLAYABLE_CHARACTERS[choice]));
+      const tilePortraitFrame = art(root, `MeleeTilePortrait${name}`, portraitTexture(PLAYABLE_CHARACTERS[choice], true), x + f32(0.0125) * scale + inset, y - f32(0.013) * scale - inset, portrait, portrait);
+      const tileName = label(root, `MeleeTileName${name}`, x + f32(0.004) * scale, y - f32(0.108) * scale, f32(0.103) * scale, f32(0.018) * scale, f32(0.0078) * scale);
+      BlzFrameSetText(tileName, nameText(PLAYABLE_CHARACTERS[choice]));
+      this.tiles.push([tileFrame, tilePortraitFrame, tileName]);
     }
     this.cards = PARTICIPANT_SLOTS.map((slot) => {
       const x = cardX(slot);
@@ -527,7 +531,7 @@ export class SelectionPanel {
       return action === Action.attack || action === Action.moveLeft || action === Action.moveRight;
     }
     if (action === Action.moveLeft || action === Action.moveRight) {
-      const choice = nextSelectableCharacter(characterFor(game, target.slot), action === Action.moveLeft ? -1 : 1);
+      const choice = nextMatchCharacter(game, characterFor(game, target.slot), action === Action.moveLeft ? -1 : 1);
       if (target.slot === this.participantId) this.actions.selectChoice(this.participantId, choice);
       else this.actions.selectCpuChoice(this.participantId, target.slot, choice);
       return true;
@@ -661,6 +665,9 @@ export class SelectionPanel {
       clearSelectionDrag(drag);
       this.showMoves();
       return;
+    }
+    for (let tile = 0; tile < this.tiles.length; tile++) {
+      for (const frame of this.tiles[tile] ?? []) BlzFrameSetVisible(frame, selectableMatchCharacter(game, characterOfTile(tile)));
     }
     if (drag.held === undefined && humanFighterActive(game, participantId)) drag.held = participantId;
     let x = 0.0;

@@ -1,5 +1,6 @@
+import { CLASSIC_CHARACTERS, classicRoute } from "../classic/routes";
 import { type StagePool, createStagePool, copyStagePool, nextPoolStage, consumePoolStage, togglePoolMode, togglePoolStage } from "../menu/stagePool";
-import { PLAYABLE_CHARACTERS, isSelectableCharacter } from "../sim/heroes/registry";
+import { PLAYABLE_CHARACTERS, isSelectableCharacter, nextCharacterIn } from "../sim/heroes/registry";
 import { RANDOM_STAGE, selectableStageChoice } from "../menu/stageCatalog";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { type MatchCamera, createMatchCamera, copyMatchCamera } from "../sim/matchCamera";
@@ -223,14 +224,22 @@ export function characterReady(game: Readonly<MatchState>, slot: number): boolea
   return isParticipantSlot(slot) && fighterActive(game, slot) && game.characterReadiness[slot] && (computerActive(game, slot) || humanPresent(game, slot));
 }
 
+export function selectableMatchCharacter(game: Readonly<MatchState>, choice: number): choice is Character {
+  return isSelectableCharacter(choice) && (!game.classic || classicRoute(choice) !== undefined);
+}
+
+export function nextMatchCharacter(game: Readonly<MatchState>, current: number | undefined, direction: number): Character {
+  return nextCharacterIn(game.classic ? CLASSIC_CHARACTERS.filter(character => PLAYABLE_CHARACTERS.includes(character)) : PLAYABLE_CHARACTERS, current, direction);
+}
+
 export function selectCharacter(game: MatchState, slot: number, choice: number): void {
-  if (game.phase !== Phase.characterMenu || !isParticipantSlot(slot) || !humanPresent(game, slot) || !humanFighterActive(game, slot) || !isSelectableCharacter(choice)) return;
+  if (game.phase !== Phase.characterMenu || !isParticipantSlot(slot) || !humanPresent(game, slot) || !humanFighterActive(game, slot) || !selectableMatchCharacter(game, choice)) return;
   game.characterChoices[slot] = choice;
   game.characterReadiness[slot] = true;
 }
 
 export function selectCpuCharacter(game: MatchState, actor: number, slot: number, choice: number): void {
-  if (game.phase !== Phase.characterMenu || !isParticipantSlot(slot) || !canChooseComputer(game, actor, slot) || !isSelectableCharacter(choice)) return;
+  if (game.phase !== Phase.characterMenu || !isParticipantSlot(slot) || !canChooseComputer(game, actor, slot) || !selectableMatchCharacter(game, choice)) return;
   game.characterChoices[slot] = choice;
   game.characterReadiness[slot] = true;
 }
@@ -333,6 +342,12 @@ export function cycleMatchMode(game: MatchState, slot: number): void {
   } else if (game.training) {
     game.training = false;
     game.classic = true;
+    for (const player of PARTICIPANT_SLOTS) {
+      if (classicRoute(game.characterChoices[player]) === undefined) {
+        game.characterChoices[player] = nextMatchCharacter(game, undefined, 1);
+        game.characterReadiness[player] = false;
+      }
+    }
   } else game.training = true;
 }
 

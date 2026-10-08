@@ -23,7 +23,7 @@ import type { Scenario } from "../../game/shell/build";
 import type { Character } from "../../game/sim/codes";
 import { type PlaytestRequest, preparePlaytest } from "../../game/shell/playtest";
 import { nextStage } from "../../game/menu/stageCatalog";
-import { nextSelectableCharacter } from "../../game/sim/heroes/registry";
+import { nextMatchCharacter } from "../../game/match/rules";
 import { stepCpuOpponent, stepCpuTier } from "../../game/match/cpuProfiles";
 import { traceSelectionState } from "./diagnostics";
 import { ClassicStep, continueClassic, quitClassic, skipToClassicBoss, startClassic } from "../../game/classic/classic";
@@ -44,7 +44,7 @@ export function choose(s: ShellState, slot: ParticipantSlot, direction: -1 | 1):
   if (!controlsAvailable(s, slot) || stageLoading(s)) return;
   if (s.game.phase === Phase.characterMenu) {
     cancelPendingPlaytest();
-    selectCharacter(s.game, slot, nextSelectableCharacter(characterFor(s.game, slot), direction));
+    selectCharacter(s.game, slot, nextMatchCharacter(s.game, characterFor(s.game, slot), direction));
     makePreview(s);
   } else if (s.game.phase === Phase.stageMenu) selectStage(s.game, slot, nextStage(s.game.stageChoice, direction));
 }

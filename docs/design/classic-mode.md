@@ -9,9 +9,13 @@ smashcraft:docs/design/single-player-modes.md. The tournament opening that
 frames it is [#269](https://github.com/tompassarelli/smashcraft/issues/269).
 Researched 8 Oct 2026.
 
+Classic offers the 21 fighters with finished routes. Grom, Anub’arak,
+Malfurion, Medivh and Kobold remain available in other modes while their
+Classic routes and Lore Battles are pending.
+
 The source of truth for the routes is smashcraft:ts/src/game/classic/routes.ts;
-smashcraft:ts/src/game/classic/classic.tests.ts checks that every selectable
-fighter has exactly one route and that its fifth fight is on its home stage
+smashcraft:ts/src/game/classic/classic.tests.ts checks that every fighter in the Classic selector
+has exactly one route and that its fifth fight is on its home stage
 (smashcraft:docs/design/home-stages.md). Statements marked **Judgement** are
 reasoning, not findings.
 
