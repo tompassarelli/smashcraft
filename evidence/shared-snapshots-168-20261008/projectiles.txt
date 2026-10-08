@@ -1,0 +1,27 @@
+Change: snapshots share unchanged fighter projectile records. A projectile's
+first write after capture detaches its value; empty slots retain their records.
+Source: bb69c796b047e07c58f1aa862ee3f84255d4de82
+Baseline: e48c222a, measured source 1cab9e85e026d6319b98a1df320a71810ff20d4e
+Baseline farm: 37749639667; candidate farm: 37754210655
+Command: bun wisp farm perf 'playable-bot-four --samples'
+Both: 1800 frames, 0 problems. Delay 2, rollback window 24, repair slice 6.
+
+Player 0 predicted milliseconds: p95 15.458 -> 15.189;
+p99 18.540 -> 18.262; worst 21.656 -> 21.354.
+Player 1 predicted milliseconds: p95 15.112 -> 14.827;
+p99 18.200 -> 17.830; worst 22.091 -> 21.800.
+Mean instructions: 276742/271808 -> 273404/268587 (-1.2%).
+Mean allocation: 68 KB/frame for both traces, unchanged.
+Adjacent perf compare: PASS. Original fixture compare: FAIL.
+Original 10 ms p99 / 14 ms worst budget: FAIL; neither limit changed.
+
+Checks: 208 affected Bun tests, followed by 24 rollback/snapshot tests after
+the scan correction; 12/12 Lua32 state tests. Type-check and source-shape
+checks passed. Parity: 24 tapes, 19310 frames, 0 divergent frames in stock
+Lua32 and toward-zero Lua32, using the same tapes as the baseline.
+
+First measured candidate 816cad7c, farm 37753623185, regressed:
+p95 15.687/15.302, p99 18.754/18.392, worst 21.859/22.307 ms.
+Its numeric loops repeatedly looked up empty slots. Direct iteration and
+skipping shared-record bookkeeping when a target holds the same value
+produced the final numbers above. Only the improved combined change lands.

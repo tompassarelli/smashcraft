@@ -1,3 +1,4 @@
+import { mutableProjectile } from "../fighterProjectiles";
 import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { upSpecialRoute } from "../../match/recoveryEnvelope";
@@ -162,7 +163,7 @@ test("Beastmaster Quilbeast fires from its own location, then a command gives th
     }
   }
   assertEquals(shots, 3);
-  for (const p of owner.projectiles) p.life = 0;
+  for (let index = 0; index < owner.projectiles.length; index++) mutableProjectile(owner, index).life = 0;
   quil.mode = CompanionMode.stunned;
   quil.modeFrame = 0;
   quil.age = 107;

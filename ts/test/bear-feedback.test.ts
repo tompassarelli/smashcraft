@@ -3,8 +3,8 @@ import { installHeadless } from "wisp/scripts/wisp/headless";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { PlacedObjectEffects } from "../src/game/render/placedObjectEffects";
 import { Character } from "../src/game/sim/codes";
-import { createFighter } from "../src/game/sim/fighter";
-import { BEAR_PLACEMENT } from "../src/game/sim/heroes/beastmasterSpecials";
+import { createFighter, placedObject } from "../src/game/sim/fighter";
+import { BEAR_PLACEMENT, QUILBEAST_PLACEMENT, HAWK_PLACEMENT } from "../src/game/sim/heroes/beastmasterSpecials";
 import { CompanionMode } from "../src/game/sim/heroSpecials";
 
 const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: {} });
@@ -22,6 +22,7 @@ test("Bear command draws a large rear-up, four state labels, one roar and a bite
     bear.spec = BEAR_PLACEMENT;
     bear.life = 600;
     bear.durability = 30.0;
+    effects.presentConfirmed(0, fighter, 0);
     effects.present(fighter, 0);
     const body = () => client.effectPoses().find(pose => pose.model.includes("GrizzlyBear"));
     const followingScale = body()?.scale ?? 0.0;
@@ -54,6 +55,36 @@ test("Bear command draws a large rear-up, four state labels, one roar and a bite
     effects.present(fighter, 0);
     expect(body()?.scale).toBe(0);
     expect(client.log.filter(call => call.name === "SetTextTagVisibility").at(-1)?.args[1]).toBe(false);
+    effects.destroy();
+  });
+});
+
+test("predicted Beastmaster summons create no effects before their confirmed frame [repro #69]", () => {
+  const clients = headless.clients({ install() {}, start() {} });
+  clients.start();
+  const client = clients.clients[0];
+  if (client === undefined) throw new Error("missing client");
+  client.run(() => {
+    const effects = new PlacedObjectEffects({ x: 0.0, y: 0.0, z: 0.0 });
+    const fighter = createFighter(Character.beastmaster, 0.0, 1);
+    effects.presentConfirmed(0, fighter, 0);
+    effects.present(fighter, 0);
+    for (const [animal, spec] of [[1, QUILBEAST_PLACEMENT], [2, HAWK_PLACEMENT]] as const) {
+      const placed = placedObject(fighter, animal);
+      placed.spec = spec;
+      placed.life = 600;
+      placed.durability = spec.durability;
+    }
+    const count = () => client.log.filter(call => call.name === "AddSpecialEffect" || call.name === "DestroyEffect").length;
+    const before = count();
+    effects.present(fighter, 0);
+    expect(count()).toBe(before);
+    effects.presentConfirmed(1, fighter, 0);
+    const confirmed = count();
+    expect(confirmed).toBeGreaterThan(before);
+    effects.present(fighter, 0);
+    expect(count()).toBe(confirmed);
+    for (const name of ["QuillBeast", "WarEagle"]) expect(client.effectPoses().some(pose => pose.model.includes(name) && pose.scale > 0)).toBe(true);
     effects.destroy();
   });
 });

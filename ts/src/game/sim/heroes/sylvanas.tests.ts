@@ -118,12 +118,12 @@ test("Sylvanas specials spend once and finish their whiffs on the designed frame
   }
 });
 
-test("Black Arrow deals damage and banks Black Quiver; the next melee spends it and shields waste it [spec docs/design/sylvanas.md]", () => {
+test("Black Arrow deals nine damage and banks Black Quiver; the next melee spends it and shields waste it [spec #259] [spec docs/design/sylvanas.md]", () => {
   for (const facing of [-1, 1]) for (const blocked of [false, true]) {
     const { world, owner, target } = pair(300.0, facing);
     frame(world, controls({ specialPressed: true }));
     for (let i = 0; i < 70; i++) frame(world);
-    assertEquals(target.status.damage, 11.0);
+    assertEquals(target.status.damage, 9.0);
     assertEquals(owner.passive.stacks, 1);
     target.motion.x = f32(owner.motion.x + 40.0 * facing);
     target.motion.z = 0.0;
@@ -133,7 +133,7 @@ test("Black Arrow deals damage and banks Black Quiver; the next melee spends it 
     beginFighterAttack(world, 0, AttackStyle.jab, false);
     owner.attack.frame = attackStartupFrames(AttackStyle.jab, SYLVANAS_MOVES);
     resolveAttacks(world);
-    assertEquals(target.status.damage, blocked ? 11.0 : 16.0);
+    assertEquals(target.status.damage, blocked ? 9.0 : 14.0);
     assertEquals(owner.passive.stacks, 0);
   }
 });

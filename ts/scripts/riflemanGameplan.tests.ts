@@ -6,7 +6,7 @@ import { sweep } from "../test/sweep";
 import { Character } from "../src/game/sim/codes";
 import { gameplanKeyMovesCheck } from "./cpuField";
 
-sweep("Rifleman's computer leans on his declared spacing tools [spec #105]", () => {
+sweep("Rifleman's computer leans on his declared spacing tools [spec #105] [repro #242]", () => {
   const check = gameplanKeyMovesCheck(Character.rifleman);
   expect(check.missingNames).toEqual([]);
 }, 60000);

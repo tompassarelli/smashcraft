@@ -1,3 +1,4 @@
+import { mutableProjectile } from "../sim/fighterProjectiles";
 // Snapshot copy, equality and restoration cover the same complete replay
 // record; keeping the cases together exposes fields missing from any operation.
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
@@ -9,9 +10,10 @@ import { type PacingAndPresentation, createPacingAndPresentation } from "../matc
 import { type MatchState, Phase, createMatchState, requestStageSelect, requestStart, selectCharacter } from "../match/rules";
 import { initializeMatchFighters, stepMatch } from "../match/step";
 import { resolveAttacks } from "../sim/attacks";
-import { AttackStyle, Character, GroundAction, ShieldBreak } from "../sim/codes";
+import { AttackStyle, Character, GroundAction, ProjectileKind, ShieldBreak } from "../sim/codes";
 import { type Fighter, PROJECTILE_CAPACITY, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, createFighter } from "../sim/fighter";
 import { attackStartupFrames } from "../sim/moves";
+import { spawnProjectileMotion, updateProjectiles } from "../sim/projectiles";
 import { setMeleeKnockback, setMeleeRecoil } from "../sim/motion";
 import { advanceFighter } from "../sim/step";
 import { fighterAt, neutralControls } from "../sim/roster";
@@ -74,10 +76,28 @@ test("rollback retains original launch and recoil across world rounding [invaria
 });
 
 function projectile(fighter: Fighter, index: number) {
-  const value = fighter.projectiles[index];
+  const value = mutableProjectile(fighter, index);
   if (value === undefined) throw new Error(`no projectile ${index}`);
   return value;
 }
+
+test("captured projectiles survive expiry, slot reuse and rollback [invariant]", () => {
+  const live = createReplaySnapshot();
+  const saved = createReplaySnapshot();
+  const owner = fighterAt(live.world, 0);
+  fighterAt(live.world, 1).motion.x = 2000.0;
+  spawnProjectileMotion(owner, ProjectileKind.arrow, 8.0, 0.0, 1, 11);
+  copyReplayState(saved, live);
+  const savedChecksum = stateChecksum(saved);
+  updateProjectiles(live.world);
+  const expiredChecksum = stateChecksum(live);
+  spawnProjectileMotion(owner, ProjectileKind.blaster, -12.0, 0.0, 20, 12);
+  assertEquals(stateChecksum(saved), savedChecksum);
+  copyReplayState(live, saved);
+  updateProjectiles(live.world);
+  assertEquals(stateChecksum(live), expiredChecksum);
+  assertEquals(stateChecksum(saved), savedChecksum);
+});
 
 test("a practice match's mode is replay state that restores and differs [invariant]", () => {
   const game = createMatchState();
@@ -110,7 +130,7 @@ test("capture and restore include combat references, projectiles and queued inpu
   const live = liveState(first, second, match, frameControls(firstCommands, secondCommands), runtime);
   const snapshot = createReplaySnapshot();
   const actual = createReplaySnapshot();
-  const arrow = projectile(first, 3);
+  let arrow = projectile(first, 3);
 
   first.motion.x = -123.5;
   first.motion.deltaX = 0.125;
@@ -195,6 +215,7 @@ test("capture and restore include combat references, projectiles and queued inpu
   first.tech.pressAge = 255;
   first.tech.previousPressAge = 255;
   first.tech.accumulatedPress = false;
+  arrow = projectile(first, 3);
   arrow.life = 0;
   arrow.x = 0.0;
   arrow.z = 0.0;
@@ -268,6 +289,7 @@ test("capture and restore include combat references, projectiles and queued inpu
   assertEquals(differenceAfter(() => { first.surfaceRecovery.wallJumpQueued = false; }, () => { first.surfaceRecovery.wallJumpQueued = true; }), "fighter[0].surfaceWallJumpQueued");
   assertEquals(differenceAfter(() => { first.jump.inputAge = 8; }, () => { first.jump.inputAge = 7; }), "fighter[0].jumpInputAge");
   assertEquals(first.tech.window, 11);
+  arrow = projectile(first, 3);
   assertEquals(arrow.life, 27);
   assertEquals(arrow.x, -44.25);
   assertEquals(arrow.z, 81.5);

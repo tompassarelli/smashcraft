@@ -166,6 +166,8 @@ test("[spec #252] Warden's recovery envelope meets the vertical band's floors", 
   }
 });
 
-sweep("[spec #252] every fighter's recovery envelope meets its archetype's floors, full and empty mana", () => {
-  for (const character of SELECTABLE_CHARACTERS) meetsEnvelope(character);
-});
+for (const character of SELECTABLE_CHARACTERS) {
+  sweep(`[spec #252] ${fighterName(character)}'s recovery envelope meets its archetype's floors, full and empty mana`, () => {
+    meetsEnvelope(character);
+  });
+}

@@ -146,6 +146,26 @@ test("a capture ignores another match's drawn frames and fails after its wait [s
   expect(String(exit)).toContain("hadn't drawn match 2 frame 40");
 });
 
+test("a local visual capture creates the same confirmed combat sounds on both clients [repro #69]", () => {
+  for (const slot of [0, 1]) clearVisualCapture(slot);
+  const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1]);
+  const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
+  helpers.workload = { denseCycles: 4, walkers: [] };
+  const frames = (n: number) => { for (let i = 0; i < n; i++) { clients.frames(1); helpers.service(clients); } };
+  clients.start();
+  frames(30);
+  clients.chat(0, `${QUICK_MATCH_COMMAND} |capture sounds 19 -`);
+  frames(180);
+  const sounds = (slot: number) => clients.client(slot).soundLog.filter(cue => cue.event === "start").map(cue => cue.source);
+  try {
+    expect(heldVisualFrame(0)).toEqual({ epoch: 1, frame: 19 });
+    expect(sounds(1).length).toBeGreaterThan(0);
+    expect(sounds(0)).toEqual(sounds(1));
+  } finally {
+    for (const slot of [0, 1]) clearVisualCapture(slot);
+  }
+});
+
 test("the integrity build writes the predicted frame it drew, in its match's epoch [invariant]", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1]);
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);

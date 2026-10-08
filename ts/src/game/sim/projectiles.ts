@@ -9,6 +9,7 @@ import type { AppliedStatus } from "./heroStatus";
 import { isIntangible } from "./conditions";
 import { collectDamageContact, finishDamageContacts, openDamageContacts } from "./contacts";
 import { type Fighter, PROJECTILE_CAPACITY, type Projectile } from "./fighter";
+import { mutableProjectile } from "./fighterProjectiles";
 import { type HitEffect, HitElement, copyHitEffect, emptyHitEffect } from "./hitRegions";
 import type { SpecialProjectile } from "./heroSpecials";
 import { capsulesIntersect, emptyCapsule, hurtCapsule, placeCapsule, segmentBoxesOverlap } from "../physics/contactGeometry";
@@ -59,8 +60,11 @@ export function projectileActive(f: Fighter, index: number): boolean {
 /** Launches from the owner's hand in the first free slot, `height` above its feet; a full owner fires nothing. */
 export function spawnProjectileMotion(owner: Fighter, kind: ProjectileKind, velocityX: number, velocityZ: number, lifetime: number, serial: number,
   damageMultiplier = 1.0, height = BLASTER_PROJECTILE_HEIGHT): Projectile | undefined {
-  for (const projectile of owner.projectiles) {
-    if (projectile.life > 0) continue;
+  let index = -1;
+  for (const before of owner.projectiles) {
+    index++;
+    if (before.life > 0) continue;
+    const projectile = mutableProjectile(owner, index);
     const direction = velocityX < 0 ? -1 : 1;
     projectile.direction = direction;
     projectile.kind = kind;
@@ -192,8 +196,11 @@ function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number
 
 /** Sends the projectile back from a reflecting shield, slower and weaker; false when the reflector has no free slot. */
 function reflectProjectile(target: Fighter, source: Projectile): boolean {
-  for (const reflected of target.projectiles) {
-    if (reflected.life > 0) continue;
+  let index = -1;
+  for (const before of target.projectiles) {
+    index++;
+    if (before.life > 0) continue;
+    const reflected = mutableProjectile(target, index);
     reflected.x = source.x;
     reflected.z = source.z;
     reflected.velocityX = roundToFloat32(-f32(source.velocityX * SHIELD_PROJECTILE_SPEED_MULTIPLIER));
@@ -464,14 +471,22 @@ function projectilesMeet(a: Readonly<Projectile>, b: Readonly<Projectile>): bool
 function clashManaBurns(world: Roster): void {
   for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
     if (!isActive(world, ownerSlot)) continue;
-    for (const orb of fighterAt(world, ownerSlot).projectiles) {
+    const owner = fighterAt(world, ownerSlot);
+    let index = -1;
+    for (const orb of owner.projectiles) {
+      index++;
       if (orb.life <= 0 || orb.kind !== ProjectileKind.manaBurn) continue;
-      for (let otherSlot = 0; otherSlot < PARTICIPANT_CAPACITY && orb.life > 0; otherSlot++) {
+      let clashed = false;
+      for (let otherSlot = 0; otherSlot < PARTICIPANT_CAPACITY && !clashed; otherSlot++) {
         if (otherSlot === ownerSlot || !isActive(world, otherSlot)) continue;
-        for (const other of fighterAt(world, otherSlot).projectiles) {
+        const opponent = fighterAt(world, otherSlot);
+        let otherIndex = -1;
+        for (const other of opponent.projectiles) {
+          otherIndex++;
           if (other.life <= 0 || (other.spec !== undefined && !other.spec.reflectable) || !projectilesMeet(orb, other)) continue;
-          orb.life = 0;
-          other.life = 0;
+          mutableProjectile(owner, index).life = 0;
+          mutableProjectile(opponent, otherIndex).life = 0;
+          clashed = true;
           break;
         }
       }
@@ -502,8 +517,11 @@ export function updateProjectiles(world: Roster, stage?: number, matchFrame = 0)
   for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
     if (!isActive(world, ownerSlot)) continue;
     const owner = fighterAt(world, ownerSlot);
-    for (const projectile of owner.projectiles) {
-      if (projectile.life <= 0 || projectile.newlyReflected) continue;
+    let index = -1;
+    for (const before of owner.projectiles) {
+      index++;
+      if (before.life <= 0 || before.newlyReflected) continue;
+      const projectile = mutableProjectile(owner, index);
       selected.reflector = false;
       selected.shield = false;
       const fromX = projectile.x;
@@ -535,7 +553,12 @@ export function updateProjectiles(world: Roster, stage?: number, matchFrame = 0)
   }
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (!isActive(world, slot)) continue;
-    for (const projectile of fighterAt(world, slot).projectiles) projectile.newlyReflected = false;
+    const fighter = fighterAt(world, slot);
+    let index = -1;
+    for (const projectile of fighter.projectiles) {
+      index++;
+      if (projectile.newlyReflected) mutableProjectile(fighter, index).newlyReflected = false;
+    }
   }
   if (ownsBatch) finishDamageContacts(world);
 }
