@@ -1,3 +1,4 @@
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { type AttackBuffer, attackBuffer, clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import type { FrameControls } from "../match/controls";
@@ -386,9 +387,9 @@ test("a repair that repeats unchanged computer decisions reaches the state of pl
   const predicted = participantInputs();
   const actualAt = (frame: number) => {
     const human = actual[0];
-    human.axisX = Math.floor(frame / 15) % 2 === 0 ? 100 : -100;
-    human.held = frame % 9 < 2 ? bit(Action.attack) : 0;
-    human.pressed = frame % 9 === 0 ? bit(Action.attack) : 0;
+    human.axisX = floorMod(floorDiv(frame, 15), 2) === 0 ? 100 : -100;
+    human.held = floorMod(frame, 9) < 2 ? bit(Action.attack) : 0;
+    human.pressed = floorMod(frame, 9) === 0 ? bit(Action.attack) : 0;
     return actual;
   };
   const row = createMatchFrameInput();
