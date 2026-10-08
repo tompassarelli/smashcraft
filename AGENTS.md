@@ -43,6 +43,14 @@ Answer "what can we claim about input timing?" from #26's integrity table, or
 its Status until the table exists. A status question never starts a new
 investigation.
 
+## Roster
+
+The current roster has 21 fighters. Every fighter needs a pointed personality:
+funny, annoying, menacing, heroic, or another specific character. Never flat or
+generic. Add only Grom (#340), Anub’arak (#341), Malfurion (#342), Medivh (#343)
+and Kobold (#344), then hold at 26, Melee’s size, until every fighter feels good.
+Use Warcraft’s own models before importing new assets.
+
 ## Source and workflow
 
 - smashcraft:ts/src/ owns gameplay, deterministic state/replay, selection and UI.

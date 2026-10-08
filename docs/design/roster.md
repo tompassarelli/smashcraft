@@ -15,7 +15,7 @@ All move designs and numbers below are proposals, not existing implementation fa
 
 ## Scope and priorities
 
-“Shadow shaman” is interpreted as Warcraft III’s Shadow Hunter, with Rokhan as the character reference. If Tom intended a different character, preserve this design under Shadow Hunter rather than silently rename another hero. Forsaken Paladin uses the Paladin identity. The eight Tavern kits are recommended candidates, not a commitment to ship all of them at once.
+“Shadow shaman” is interpreted as Warcraft III’s Shadow Hunter, with Rokhan as the character reference. If Tom intended a different character, preserve this design under Shadow Hunter rather than silently rename another hero. Forsaken Paladin uses the Paladin identity. The eight Tavern kits are historical candidates from the expansion brief; the five additions named above are the current plan.
 
 | Order | Hero | Distinct purpose | Main weakness |
 | --- | --- | --- | --- |
