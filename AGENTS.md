@@ -231,6 +231,8 @@ code. From smashcraft:ts/:
   Murloc's normal, special, paired throw, recovery and nine pain gestures to the
   stock Tiderunner, preserves its nine sequences and writes both-facing sheets;
   run it twice for a fresh clip table, since its reach search reads the table.
+  Add `--kobold` with the stock Kobold input to author Kobold's pick, candle,
+  recovery, throw and nine pain gestures and refresh only his clip/stride rows.
   `bun tools/animations/grab-pads.ts` generates the #180 mirror and unlike-height capture batch:
   ten expansion heroes, four throws, both facings, with ordinary catch/pummel
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
@@ -425,7 +427,7 @@ code. From smashcraft:ts/:
   the model facts they read (smashcraft:docs/player-view.md); `view strikes --assets DIR`
   rewrites the hero strike moments swings and specials align to
   (smashcraft:docs/fighter-animation-work.md, "Hero swing alignment");
-  `view motion --assets DIR` measures every fighter's movement and recovery
+  `view motion --assets DIR [--character ID]` measures every fighter's movement and recovery
   clips and rewrites their foot cadence and audit (smashcraft:docs/fighter-motion.md);
   `view reach --assets DIR [--character ID]` rewrites how far fighters' swings
   draw toward their strikes (smashcraft:docs/hurtboxes.md).

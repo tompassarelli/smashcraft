@@ -424,5 +424,25 @@ Generated from the packaged models by `bun wisp view motion --assets DIR` (#171)
 | Murloc | ledge-get-up | 41: Murloc ledgeClimb | 107.1 | 26.3 | up; 76.0/89.8 |
 | Murloc | ledge-roll | 69: Murloc ledgeRoll | 167.3 | 71.7 | forward; 71.6/157.2 |
 | Murloc | ledge-attack | 42: Murloc ledgeAttack | 77.2 | 15.7 | both; 22.0/75.7 |
+| Kobold | walk | 1: Walk | 71.4 | 23.9 | forward; 60.8/62.4 |
+| Kobold | dash | 1: Walk | 70.7 | 23.4 | forward; 59.4/59.2 |
+| Kobold | run | 1: Walk | 69.7 | 20.8 | forward; 61.8/61.5 |
+| Kobold | turn | 31: Kobold turn | 79.4 | 25.8 | back; 79.0/58.8 |
+| Kobold | brake | 32: Kobold stop | 59.8 | 17.0 | in place; 37.0/20.4 |
+| Kobold | jump-squat | 33: Kobold jumpSquat | 37.2 | 11.1 | down; 8.5/37.2 |
+| Kobold | roll-forward | 66: Kobold rollForward | 129.3 | 53.0 | forward; 103.6/88.9 |
+| Kobold | roll-back | 70: Kobold rollBackward | 129.8 | 50.5 | back; 88.9/103.5 |
+| Kobold | spot-dodge | 47: Kobold spotDodge | 74.1 | 24.7 | in place; 39.9/31.9 |
+| Kobold | air-dodge | 28: Kobold airDodge | 58.4 | 12.7 | in place; 38.8/27.1 |
+| Kobold | tech | 48: Kobold tech | 62.4 | 24.9 | in place; 48.0/32.5 |
+| Kobold | tech-forward | 67: Kobold techForward | 129.5 | 53.2 | forward; 103.6/89.1 |
+| Kobold | tech-back | 71: Kobold techBackward | 128.9 | 52.2 | back; 89.1/103.6 |
+| Kobold | get-up | 45: Kobold getUp | 77.8 | 33.1 | up; 57.1/75.7 |
+| Kobold | get-up-forward | 68: Kobold getUpRollForward | 107.7 | 54.8 | forward; 87.6/87.6 |
+| Kobold | get-up-back | 72: Kobold getUpRollBackward | 107.4 | 50.7 | back; 90.5/87.6 |
+| Kobold | get-up-attack | 46: Kobold getUpAttack | 97.6 | 40.0 | both; 57.3/67.8 |
+| Kobold | ledge-get-up | 41: Kobold ledgeClimb | 96.5 | 26.5 | up; 88.2/33.6 |
+| Kobold | ledge-roll | 69: Kobold ledgeRoll | 129.2 | 52.9 | forward; 103.6/89.1 |
+| Kobold | ledge-attack | 42: Kobold ledgeAttack | 76.2 | 14.8 | both; 23.5/29.0 |
 
 Walking/running cadence uses grounded vertices' horizontal excursion twice per cycle. The Lich floats and uses the stock sequence's movement speed. Both measurements use the fighter's displayed model scale.

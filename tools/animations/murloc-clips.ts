@@ -8,9 +8,14 @@ import { AttackStyle, AttackPhase, GrabAction } from "../../ts/src/game/sim/code
 import type { HeroPose } from "../../ts/src/game/sim/heroes/hero";
 import { MURLOC_MOVES } from "../../ts/src/game/sim/heroes/murlocMoves";
 import { MURLOC_SPECIALS } from "../../ts/src/game/sim/heroes/murlocSpecials";
+import { KOBOLD_MOVES } from "../../ts/src/game/sim/heroes/koboldMoves";
+import { KOBOLD_SPECIALS } from "../../ts/src/game/sim/heroes/koboldSpecials";
 import { seconds } from "./asset-info";
 import { measureDrawnReach } from "../../ts/scripts/wisp/drawnReach";
 import { characterModelScale } from "../../ts/src/game/presentation/modelScale";
+import { drawnStrideSource, measureDrawnStride, type DrawnStride } from "../../ts/scripts/wisp/drawnMotion";
+import { DRAWN_STRIDES } from "../../ts/src/game/presentation/drawnStrideInfo";
+import type { Character } from "../../ts/src/game/sim/codes";
 
 function ensure(ok: unknown, message: string): asserts ok { if (!ok) throw new Error(message); }
 function tracks(value: unknown, visit: (track: mdx.AnimVector, path: string) => void, path = "") {
@@ -19,13 +24,19 @@ function tracks(value: unknown, visit: (track: mdx.AnimVector, path: string) => 
   for (const [key, child] of Object.entries(value)) if (key !== "Nodes") tracks(child, visit, `${path}.${key}`);
 }
 const globalClock = (track: mdx.AnimVector) => track.GlobalSeqId != null && track.GlobalSeqId !== -1 && track.GlobalSeqId !== 0xffffffff;
-const [input, output] = process.argv.slice(2).map(p => resolve(p));
+const kobold = process.argv.includes("--kobold");
+const character = kobold ? 26 : 21;
+const fighterName = kobold ? "Kobold" : "Murloc";
+const slug = fighterName.toLowerCase();
+const kitMoves = kobold ? KOBOLD_MOVES : MURLOC_MOVES;
+const kitSpecials = kobold ? KOBOLD_SPECIALS : MURLOC_SPECIALS;
+const [input, output] = process.argv.slice(2, 4).map(p => resolve(p));
 const project = resolve(import.meta.dir, "../..");
 ensure(input && output && relative(project, output).startsWith(".."), "usage: bun tools/animations/murloc-clips.ts STOCK_MURLOC.mdx PRIVATE_OUTPUT");
 const originalBytes = await Bun.file(input).arrayBuffer();
 const source = parseMDX(originalBytes), model = structuredClone(source);
 ensure(source.Sequences.length === 9 && source.Helpers.some(b => b.Name === "Bone_Hand_R"), "Expected original classic Murloc Tiderunner");
-const stand = source.Sequences[2]!;
+const stand = source.Sequences[kobold ? 0 : 2]!;
 interface Gesture { chest?: number; pelvis?: number; arm?: number; elbow?: number; hand?: number; leftArm?: number; leftElbow?: number; head?: number; thigh?: number; knee?: number; leftThigh?: number; yaw?: number; lean?: number; }
 interface Action { pose: HeroPose; frames: number; contact: number; gesture: Gesture; hold?: boolean; air?: boolean; roll?: number; target?: readonly [number, number]; paired?: boolean; pain?: boolean; }
 const forward: Gesture = { chest: 15, pelvis: -8, arm: -95, elbow: 15, leftArm: -35, leftElbow: -20, head: -8, thigh: 12, leftThigh: -8 };
@@ -54,7 +65,7 @@ const normals: readonly [HeroPose, AttackStyle, Gesture, readonly [number, numbe
   ["downAir", AttackStyle.downAir, { ...low, chest: 28, lean: -10, thigh: 40, leftThigh: -25 }, [16, 13]],
 ];
 for (const [pose, style, gesture, target] of normals) {
-  const move = MURLOC_MOVES.normals[style]; ensure(move, `${pose}: missing timing`);
+  const move = kitMoves.normals[style]; ensure(move, `${pose}: missing timing`);
   actions.push({ pose, frames: move.totalFrames, contact: move.startupFrames, gesture, target, air: pose.endsWith("Air") });
 }
 const extra: readonly [HeroPose, number, number, Gesture][] = [
@@ -77,7 +88,7 @@ const extra: readonly [HeroPose, number, number, Gesture][] = [
 for (const [pose, frames, contact, gesture] of extra) actions.push({ pose, frames, contact, gesture,
   hold: ["shield", "smashCharge", "crouch", "ledgeHang"].includes(pose),
   air: ["airDodge", "jump", "doubleJump", "wallJump", "fall", "fallSpecial", "damageAir", "damageTumble", "ledgeHang"].includes(pose) });
-const grab = MURLOC_MOVES.normals[AttackStyle.grab]!;
+const grab = kitMoves.normals[AttackStyle.grab]!;
 actions.push({ pose: "grab", frames: grab.totalFrames, contact: grab.startupFrames, gesture: { ...forward, arm: -105 }, target: [48, 48], paired: true });
 actions.push({ pose: "grabHold", frames: 30, contact: 1, gesture: { ...forward, arm: -100 }, target: [42, 51], hold: true, paired: true });
 actions.push({ pose: "grabbed", frames: 30, contact: 1, gesture: { chest: -35, pelvis: 20, head: 30, arm: 30, leftArm: 35 }, hold: true, paired: true });
@@ -88,7 +99,7 @@ for (const [pose, code, gesture, target] of [
   ["throwUp", GrabAction.throwUp, overhead, [6, 102]],
   ["throwDown", GrabAction.throwDown, low, [35, 13]],
 ] as const) {
-  const timing = MURLOC_MOVES.throws[code]!;
+  const timing = kitMoves.throws[code]!;
   const frames = pose === "pummel" ? 24 : timing.totalFrames, contact = pose === "pummel" ? 8 : timing.contactFrame;
   actions.push({ pose, frames, contact, gesture, target, paired: true });
   const victimPose = pose === "pummel" ? "victimPummel" : `victim${pose[0]!.toUpperCase()}${pose.slice(1)}` as HeroPose;
@@ -102,12 +113,13 @@ for (const [pose, key, gesture, contact, target] of [
   ["upSpecial", "up", { ...overhead, thigh: -50, leftThigh: 40, lean: -15 }, 11, [3, 102]],
   ["downSpecial", "down", { ...brace, leftArm: 70, arm: -100, yaw: 30 }, 13, [45, 45]],
 ] as const) {
-  const special = MURLOC_SPECIALS[key]!;
+  const special = kitSpecials[key]!;
   for (const air of [false, true]) {
     const form = air ? special.air ?? special.ground : special.ground;
     const projectile = key === "neutral" ? form.projectiles?.[0] : undefined;
     const release = projectile === undefined ? contact : projectile.spawnFrame + (projectile.activeFrom ?? 1) - 1;
-    actions.push({ pose: (air ? `${pose}Air` : pose) as HeroPose, frames: form.endFrame, contact: release, gesture: air ? { ...gesture, thigh: 30, leftThigh: -35 } : gesture, target, air });
+    const characterGesture = kobold && key === "down" ? { ...low, yaw: 150, leftArm: 70, head: -25 } : kobold && key === "side" ? { ...low, lean: 30, leftArm: -90 } : gesture;
+    actions.push({ pose: (air ? `${pose}Air` : pose) as HeroPose, frames: form.endFrame, contact: kobold && key === "down" ? 10 : release, gesture: air ? { ...characterGesture, thigh: 30, leftThigh: -35 } : characterGesture, target, air });
   }
 }
 const damageActions: Action[] = [];
@@ -146,7 +158,7 @@ const cutoff = cursor, bindings: string[] = [], damageBindings: string[] = [];
 const records: { pose: string; index: number; frames: number; contact: number }[] = [];
 for (const [ordinal, action] of [...actions, ...damageActions].entries()) {
   const index = model.Sequences.length, start = cursor, end = start + Math.round(action.frames * 1000 / 60); cursor = end + 100;
-  const name = ordinal < actions.length ? `Murloc ${action.pose}` : `Murloc Damage ${Math.floor((ordinal - actions.length) / 3)} ${(ordinal - actions.length) % 3}`;
+  const name = ordinal < actions.length ? `${fighterName} ${action.pose}` : `${fighterName} Damage ${Math.floor((ordinal - actions.length) / 3)} ${(ordinal - actions.length) % 3}`;
   model.Sequences.push({ ...stand, Name: name, Interval: new Uint32Array([start, end]), NonLooping: true, MoveSpeed: 0, Rarity: 0,
     MinimumExtent: new Float32Array([-300, -300, -200]), MaximumExtent: new Float32Array([300, 300, 350]), BoundsRadius: 400 });
   const phaseFrames = [...new Set([0, Math.max(1, action.contact - 3), action.contact, Math.min(action.frames - 1, action.contact + 4), action.frames,
@@ -209,13 +221,13 @@ for (const [ordinal, action] of actions.entries()) if (/^victim(Pummel|Throw)/.t
   records[ordinal]!.frames = 60; records[ordinal]!.contact = 30;
 }
 // The reach search reads this table through the fighter's clips, so it is written first; a fresh table needs a second run.
-await Bun.write(join(project, "ts/src/game/sim/heroes/murlocClips.ts"), [
-  "// Generated by tools/animations/murloc-clips.ts from the stock classic Murloc Tiderunner rig.",
+await Bun.write(join(project, `ts/src/game/sim/heroes/${slug}Clips.ts`), [
+  `// Generated by tools/animations/murloc-clips.ts from the stock classic ${fighterName} rig.`,
   'import { f32 } from "wisp/src/sim/f32";', 'import type { HeroClip, HeroClipTable } from "./hero";',
-  'export const MURLOC_MODEL_FILE = "units\\\\creeps\\\\Murloc\\\\Murloc.mdl";',
-  'export const MURLOC_FALLBACK: HeroClip = { index: 2, seconds: 1.0 };',
-  'export const MURLOC_CLIPS = { idle: MURLOC_FALLBACK, walk: { index: 1, seconds: f32(0.667) }, dash: { index: 1, seconds: f32(0.667) }, run: { index: 1, seconds: f32(0.667) }, ko: { index: 6, seconds: f32(1.667) },',
-  ...bindings, '} as const satisfies HeroClipTable;', 'export const MURLOC_DAMAGE_CLIPS: readonly HeroClip[] = [', ...damageBindings, '];', "",
+  `export const ${fighterName.toUpperCase()}_MODEL_FILE = ${JSON.stringify(["units", "creeps", fighterName, `${fighterName}.mdl`].join(String.fromCharCode(92)))};`,
+  `export const ${fighterName.toUpperCase()}_FALLBACK: HeroClip = { index: ${kobold ? 0 : 2}, seconds: 1.0 };`,
+  `export const ${fighterName.toUpperCase()}_CLIPS = { idle: ${fighterName.toUpperCase()}_FALLBACK, walk: { index: 1, seconds: ${kobold ? "1.0" : "f32(0.667)"} }, dash: { index: 1, seconds: ${kobold ? "1.0" : "f32(0.667)"} }, run: { index: 1, seconds: ${kobold ? "1.0" : "f32(0.667)"} }, ko: { index: ${kobold ? 5 : 6}, seconds: f32(1.667) },`,
+  ...bindings, '} as const satisfies HeroClipTable;', `export const ${fighterName.toUpperCase()}_DAMAGE_CLIPS: readonly HeroClip[] = [`, ...damageBindings, '];', "",
 ].join("\n"));
 const normalReach = [];
 let tiltForward = 0;
@@ -257,7 +269,7 @@ for (const style of [AttackStyle.forwardTilt, AttackStyle.jab, AttackStyle.jab2,
           key.Vector[2] = key.Vector[2]! - lowest;
           if (key.InTan) { key.InTan = root.Translation!.LineType === mdx.LineType.Bezier ? key.Vector.slice() : new Float32Array(3); key.OutTan = key.InTan.slice(); }
         }
-        const row = measureDrawnReach(new DrawnModel(generateMDX(model), characterModelScale(21)), 21, style);
+        const row = measureDrawnReach(new DrawnModel(generateMDX(model), characterModelScale(character)), character, style);
         if (row.swing < 30 || row.peakFrame < row.firstActive - slack || row.peakFrame > row.lastActive + slack) continue;
         if (style === AttackStyle.forwardTilt && row.forward < 45) continue;
         if ((style === AttackStyle.jab || style === AttackStyle.jab2) && row.forward >= tiltForward) continue;
@@ -274,7 +286,7 @@ tracks(stripped, track => { if (!globalClock(track)) track.Keys = track.Keys.fil
 ensure(isDeepStrictEqual(stripped, source), "Authored suffix changed original body or animation");
 const bytes = generateMDX(model), decoded = parseMDX(bytes);
 ensure(isDeepStrictEqual(parseMDX(generateMDX(decoded)), decoded), "MDX round trip changed model");
-mkdirSync(output, { recursive: true }); await Bun.write(join(output, "murloc.mdx"), bytes);
+mkdirSync(output, { recursive: true }); await Bun.write(join(output, `${slug}.mdx`), bytes);
 
 const finalDrawn = new DrawnModel(bytes, 0.62);
 const distance = (a: Float32Array, b: Float32Array) => { ensure(a.length === b.length && a.length > 0, "Missing drawn body"); let maximum = 0; for (let i = 0; i < a.length; i += 2) maximum = Math.max(maximum, Math.hypot(a[i]! - b[i]!, a[i + 1]! - b[i + 1]!)); return maximum; };
@@ -286,6 +298,12 @@ for (const [i, action] of [...actions, ...damageActions].entries()) {
   const panels: PoseFrame[] = [1, -1].flatMap(facing => [0, Math.max(1, action.contact - 3), action.contact, Math.min(action.frames, action.contact + 4), action.frames].map(frame => ({ frame, phase: frame < action.contact ? AttackPhase.startup : frame <= action.contact + 4 ? AttackPhase.active : AttackPhase.recovery, x: 0, z: 0, facing, parts: [], strikes: [], clip: index, seconds: frame / 60 })));
   await Bun.write(join(output, `${records[i]!.pose.replaceAll(" ", "-")}.png`), sheet(records[i]!.pose, finalDrawn, panels, 5).png); measured++;
 }
-await Bun.write(join(output, "murloc-clips.json"), JSON.stringify({ stockSequences: source.Sequences.length, appended: records.length, measuredBothFacings: measured, records }, null, 2) + "\n");
+await Bun.write(join(output, `${slug}-clips.json`), JSON.stringify({ stockSequences: source.Sequences.length, appended: records.length, measuredBothFacings: measured, records }, null, 2) + "\n");
 await Bun.write(join(output, "normal-reach.json"), JSON.stringify(normalReach, null, 2) + "\n");
+if (kobold) {
+  const strides: DrawnStride[] = Object.entries(DRAWN_STRIDES).flatMap(([id, row]) => row === undefined || Number(id) === character ? [] :
+    (["walk", "run"] as const).map(motion => ({ character: Number(id) as Character, motion, ...row[motion] })));
+  for (const motion of ["walk", "run"] as const) strides.push(measureDrawnStride(bytes, new DrawnModel(bytes, 1), character, motion, `units\\creeps\\${fighterName}\\${fighterName}.mdl`));
+  await Bun.write(join(project, "ts/src/game/presentation/drawnStrideInfo.ts"), drawnStrideSource(strides));
+}
 console.log(`MURLOC_CLIPS_PASS ${records.length} authored clips; ${source.Sequences.length} stock sequences retained; ${measured} both-facing sheets; private output ${output}`);

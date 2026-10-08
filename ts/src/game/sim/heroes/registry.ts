@@ -21,12 +21,13 @@ import { CHEN_HERO } from "./chenHero";
 import { PEON_HERO } from "./peonHero";
 import { TINKER_HERO } from "./tinkerHero";
 import { KAELTHAS_HERO } from "./kaelthasHero";
+import { KOBOLD_HERO } from "./koboldHero";
 import { MURLOC_HERO } from "./murlocHero";
 import { HIDDEN_FIGHTERS } from "./releaseRoster";
 
 export const HERO_ROSTER: readonly HeroDefinition[] = [
   BLADEMASTER_HERO, MOUNTAIN_KING_HERO, WARDEN_HERO, LICH_HERO, FORSAKEN_PALADIN_HERO, DREADLORD_HERO, SHADOW_HUNTER_HERO, PIT_LORD_HERO, BEASTMASTER_HERO, LICH_KING_HERO, THRALL_HERO, JAINA_HERO, SYLVANAS_HERO,
-  CAIRNE_HERO, CHEN_HERO, PEON_HERO, TINKER_HERO, KAELTHAS_HERO, MURLOC_HERO,
+  CAIRNE_HERO, CHEN_HERO, PEON_HERO, TINKER_HERO, KAELTHAS_HERO, MURLOC_HERO, KOBOLD_HERO,
 ];
 
 const BY_CHARACTER: { readonly [character: number]: HeroDefinition | undefined } = {
@@ -49,6 +50,7 @@ const BY_CHARACTER: { readonly [character: number]: HeroDefinition | undefined }
   [Character.tinker]: TINKER_HERO,
   [Character.kaelthas]: KAELTHAS_HERO,
   [Character.murloc]: MURLOC_HERO,
+  [Character.kobold]: KOBOLD_HERO,
 };
 
 export function heroDefinition(character: number): HeroDefinition | undefined {
@@ -97,7 +99,7 @@ export function nextSelectableCharacter(current: number | undefined, direction: 
  * Warcraft command icon.
  */
 export const RENDERED_FIGHTERS: readonly Character[] = [ Character.rifleman, Character.demonHunter, Character.blademaster, Character.mountainKing, Character.warden,
-  Character.lich, Character.forsakenPaladin, Character.dreadlord, Character.shadowHunter, Character.pitLord, Character.beastmaster, Character.lichKing,
+  Character.lich, Character.forsakenPaladin, Character.dreadlord, Character.shadowHunter, Character.pitLord, Character.beastmaster, Character.lichKing, Character.kobold,
 ];
 
 /** The name a fighter's rendered portraits are filed under: "MountainKing". */

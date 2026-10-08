@@ -193,7 +193,7 @@ for (const character of RENDERED_FIGHTERS) {
     // A crouching fighter (Shadow Hunter) keeps at least half its height in frame.
     const crop = Math.round(Math.max(256, 0.55 * silhouetteHeight, Math.min(1024, 0.8 * (silhouetteBottom - headY))));
     const left = Math.max(0, Math.min(1024 - crop, Math.round(headX - crop / 2)));
-    const cropTop = Math.max(0, Math.min(1024 - crop, Math.round(headY - crop * 0.38)));
+    const cropTop = Math.max(0, Math.min(1024 - crop, character === Character.kobold ? silhouetteTop : Math.round(headY - crop * 0.38)));
     const tile = join(output, `FighterTile${name}${suffix}.tga`);
     run(['magick', ...TILE_BACKGROUND, '(', raw, '-crop', `${crop}x${crop}+${left}+${cropTop}`, '+repage', '-resize', `${TILE_TEXTURE_PX}x${TILE_TEXTURE_PX}`, ')', '-composite', '-alpha', 'off', '-depth', '8', '-compress', 'none', tile]);
     // The HUD bust: the tile's crop on a clear background, breaking out of the plate.

@@ -161,6 +161,7 @@ src/game/sim/heroes/forsakenPaladinMoves.tests.ts	10	0.011
 src/game/sim/heroes/forsakenPaladinSpecials.tests.ts	14	1.039
 src/game/sim/heroes/jaina.tests.ts	8	0.057
 src/game/sim/heroes/kaelthas.tests.ts	9	0.189
+src/game/sim/heroes/kobold.tests.ts	6	0.062
 src/game/sim/heroes/lichKingSpecials.tests.ts	6	0.167
 src/game/sim/heroes/lichMoves.tests.ts	9	0.035
 src/game/sim/heroes/lichSpecials.tests.ts	13	0.180

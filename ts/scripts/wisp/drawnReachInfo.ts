@@ -192,4 +192,12 @@ export const DRAWN_REACH: readonly { readonly character: number; readonly style:
   { character: 21, style: 7, model: "units\\creeps\\Murloc\\Murloc.mdl", clip: 14, swing: 32.0, peakFrame: 5, firstActive: 4, lastActive: 7, forward: 48.5 },
   { character: 21, style: 8, model: "units\\creeps\\Murloc\\Murloc.mdl", clip: 15, swing: 41.9, peakFrame: 3, firstActive: 4, lastActive: 6, forward: 69.9 },
   { character: 21, style: 19, model: "units\\creeps\\Murloc\\Murloc.mdl", clip: 16, swing: 36.0, peakFrame: 4, firstActive: 6, lastActive: 10, forward: 23.1 },
+  { character: 26, style: 0, model: "units\\creeps\\Kobold\\Kobold.mdl", clip: 9, swing: 31.2, peakFrame: 2, firstActive: 2, lastActive: 3, forward: 61.1 },
+  { character: 26, style: 20, model: "units\\creeps\\Kobold\\Kobold.mdl", clip: 10, swing: 30.2, peakFrame: 4, firstActive: 4, lastActive: 5, forward: 60.9 },
+  { character: 26, style: 6, model: "units\\creeps\\Kobold\\Kobold.mdl", clip: 11, swing: 35.1, peakFrame: 5, firstActive: 5, lastActive: 7, forward: 61.8 },
+  { character: 26, style: 9, model: "units\\creeps\\Kobold\\Kobold.mdl", clip: 12, swing: 37.8, peakFrame: 5, firstActive: 5, lastActive: 7, forward: 64.5 },
+  { character: 26, style: 10, model: "units\\creeps\\Kobold\\Kobold.mdl", clip: 13, swing: 32.0, peakFrame: 5, firstActive: 5, lastActive: 7, forward: 61.1 },
+  { character: 26, style: 7, model: "units\\creeps\\Kobold\\Kobold.mdl", clip: 14, swing: 42.0, peakFrame: 4, firstActive: 4, lastActive: 7, forward: 38.2 },
+  { character: 26, style: 8, model: "units\\creeps\\Kobold\\Kobold.mdl", clip: 15, swing: 38.5, peakFrame: 4, firstActive: 4, lastActive: 6, forward: 60.2 },
+  { character: 26, style: 19, model: "units\\creeps\\Kobold\\Kobold.mdl", clip: 16, swing: 31.3, peakFrame: 6, firstActive: 6, lastActive: 10, forward: 68.1 },
 ];

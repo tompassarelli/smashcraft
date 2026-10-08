@@ -378,5 +378,23 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
       ]
     },
     "emitters": []
+  },
+  "war3mapimported/koboldwhite-0bf396557cf08b5b05002e314ebf29b22d31be85a8496997cb32bb0ba24c9738.mdx": {
+    "geosets": 7,
+    "triangles": 394,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -116.58000183105469,
+        -105.26000213623047,
+        -65.2791976928711
+      ],
+      "max": [
+        83.89910125732422,
+        101.71800231933594,
+        129.94700622558594
+      ]
+    },
+    "emitters": []
   }
 };

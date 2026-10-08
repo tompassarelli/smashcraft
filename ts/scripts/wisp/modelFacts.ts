@@ -314,4 +314,7 @@ export const MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
   "war3mapImported\\ForsakenPaladin.mdx": {"geosets":5,"triangles":3424,"lights":0,"bounds":{"min":[-320,-320,-200],"max":[320,320,391.706]},"emitters":[]},
   "war3mapImported\\ForsakenPaladinTimelineBody-5c677d503516e465b73decf2f6796f9deccff26b2a42acc29c8eb8f81f9da7c6.mdx": {"geosets":5,"triangles":3424,"lights":0,"bounds":{"min":[-320,-320,-200],"max":[320,320,391.706]},"emitters":[]},
   "war3mapImported\\ForsakenPaladinWhite-47300af24b7ed7c1b568d6676f227da01076ac9c434e59d2b9d931a9f789411e.mdx": {"geosets":5,"triangles":3424,"lights":0,"bounds":{"min":[-320,-320,-200],"max":[320,320,391.706]},"emitters":[]},
+  "units\\creeps\\Kobold\\Kobold.mdl": {"geosets":7,"triangles":394,"lights":0,"bounds":{"min":[-300,-300,-200],"max":[300,300,350]},"emitters":[{"kind":"particle","name":"BlizParticle01","whileShown":true,"onDeath":true,"visible":true,"rate":35,"lifespan":0.19,"reach":[{"min":[-27.771,-36.1,39.24],"max":[44.229,35.9,111.24]}]}]},
+  "war3mapImported\\KoboldTimelineBody-a1d6159adbe545b1661641d2931ba9ce3743bf5806d9874418416eccd8efb86a.mdx": {"geosets":7,"triangles":394,"lights":0,"bounds":{"min":[-300,-300,-200],"max":[300,300,350]},"emitters":[]},
+  "war3mapImported\\KoboldWhite-0bf396557cf08b5b05002e314ebf29b22d31be85a8496997cb32bb0ba24c9738.mdx": {"geosets":7,"triangles":394,"lights":0,"bounds":{"min":[-116.58,-105.26,-65.279],"max":[83.899,101.718,129.947]},"emitters":[]},
 };

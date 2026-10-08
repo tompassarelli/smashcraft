@@ -23,6 +23,7 @@ export const DISJOINT_MODELS: { readonly [character: number]: string } = {
   [Character.beastmaster]: "Abilities\\Weapons\\Axe\\AxeMissile.mdx",
   [Character.lichKing]: "Abilities\\Spells\\Undead\\FreezingBreath\\FreezingBreathMissile.mdx",
   [Character.kaelthas]: "Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile.mdx",
+  [Character.kobold]: "Abilities\\Weapons\\Axe\\AxeMissile.mdx",
 };
 
 /** Beyond the current body by more than half its standing width, along either gameplay axis. */

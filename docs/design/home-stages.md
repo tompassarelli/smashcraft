@@ -35,6 +35,7 @@ smashcraft:ts/src/game/menu/stageCatalog.ts.
 | Goblin Tinker | Durotar Skies | 3 | Goblin engineers supply the Horde with machinery. |
 | Kael'thas Sunstrider | Hellfire Citadel | 14 | Kael follows Illidan into Outland. |
 | Murloc | Tomb of Sargeras | 7 | TFT's "Terror of the Tides": murlocs and the naga's mur'gul thralls hold the Broken Isles' shores around the tomb; its tide floor is their water. |
+| Kobold | Blackrock | 12 | A candle-hoarding miner belongs in the tunnels beneath the mountain. |
 
 Ahn'Qiraj and Sky Deck (test) are home to no fighter. A stage may host
 several fighters, as Smash's do; Durotar Skies hosts several Horde fighters.

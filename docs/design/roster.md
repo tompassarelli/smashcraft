@@ -130,6 +130,17 @@ Play-style profile: scrappy ground skirmisher; approach 50% run / 35% jump /
 pick smashes and back aerial; short range prevents safe long-range zoning.
 The first balance probe records actual shares and field win rate on #344.
 
+```balance-profile
+fighter: kobold
+archetype: skirmisher
+aerials: nair 10-35, fair 15-40, bair 15-40, uair 10-35, dair 0-20
+air-share: 25-35
+approach: 50-70
+ranged: 5-15
+specials: neutral 3-15, side 5-20, up 0-10, down 3-15
+signature: side-special 40
+```
+
 Build order is a recommendation, not permission to delete or overwrite ongoing work. Finish or checkpoint the current synchronization milestone before integrating new gameplay into that branch. A first overnight pass should finish one or two complete heroes and reusable move primitives; it should not report all fifteen finished because character-select entries exist.
 
 ## Shared combat contract
