@@ -189,7 +189,7 @@ test("Hellfire's fel trim uses neutral stock runes with a green tint even withou
   }
 });
 
-test("Hellfire's Demon Gate projects inside the left third at the far camera [spec stage-boards HF-c]", () => {
+test("Hellfire's Demon Gate projects inside the left third at the far camera [spec docs/design/stage-boards.md]", () => {
   const gate = stageScenery(HELLFIRE_STAGE).pieces.find(({ model }) => model.includes("DemonGate"));
   if (gate === undefined) throw new Error("Hellfire has no Demon Gate");
   const camera = createMatchCamera();
