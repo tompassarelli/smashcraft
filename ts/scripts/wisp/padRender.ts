@@ -3,6 +3,7 @@ import { renameSync, writeFileSync } from "node:fs";
 import { Effect } from "effect";
 import { linePreloadFile } from "wisp/scripts/wisp/boundary";
 import { captureScene, renderScenes, RenderFailure, type RenderScene } from "wisp/scripts/wisp/headlessRender";
+import type { Graphics } from "wisp/scripts/wisp/graphicsProfiles";
 import { drawnFrameFile } from "../../src/runtime/gameFiles";
 import { visualReleaseFile } from "../../src/game/shell/visualCapture";
 import { drawnFrom } from "../integrity/drawnCapture";
@@ -37,10 +38,12 @@ export function padRender(sessionDirectory: string, build: string, steps: readon
         }
       }
     },
-    render(directory: string) {
+    render(directory: string, graphics: readonly Graphics[] = ["classic"]) {
       const missing = [...wanted].filter((key) => !scenes.has(key));
       if (missing.length > 0) return Effect.fail(new RenderFailure({ cause: `headless pad did not draw requested capture frames: ${missing.join(", ")}` }));
-      return renderScenes(headlessRender(), [...scenes.values()].sort((a, b) => a.frame - b.frame || a.client - b.client), directory).pipe(
+      const frames = [...scenes.values()].sort((a, b) => a.frame - b.frame || a.client - b.client);
+      const project = headlessRender();
+      return Effect.forEach(graphics, (profile) => renderScenes(project, frames, graphics.length === 1 ? directory : join(directory, profile), profile)).pipe(
         Effect.tap(() => Effect.tryPromise({
           try: () => Bun.write(join(directory, "sound-cues.json"), JSON.stringify(sounds, null, 2) + "\n"),
           catch: (cause) => new RenderFailure({ cause }),

@@ -638,9 +638,10 @@ code. From smashcraft:ts/:
   while inputs and simulation continue; `held visual` images are not timing evidence;
   a desynced, crashed or early-ended run is INVALID and, with --map, rerun.
   `bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT]
-  [--compare NATIVE_DIR] [--render DIR --frames N...]` plays the same script through the same helper into
+  [--compare NATIVE_DIR] [--render DIR --frames N... --graphics classic|definitive]` plays the same script through the same helper into
   headless integrity clients. `--render` draws the script captures after the
   session stops; `--frames` selects their comma-separated frame numbers.
+  Repeat `--graphics classic --graphics definitive` to draw the same captured scenes in both profiles, in `DIR/classic` and `DIR/definitive`.
   Headless checks hold the script's capture frames even without `--render`,
   so brief spell cues are observed before play resumes.
   It passes a native run when checksums, fighter

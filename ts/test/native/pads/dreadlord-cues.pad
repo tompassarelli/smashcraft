@@ -82,7 +82,7 @@
 2331 a stick 0 0
 2332 a capture
 2347 a capture
-# #144: Bat Ascension, free.
+# #144: Bat Ascension after the earlier casts.
 2410 a stick 0 1
 2410 a tap X 2
 2411 a stick 0 0
@@ -97,7 +97,7 @@
 #! expect a 2200 special 13 form 1
 #! expect a 2260 special 16 form 1
 #! expect a 2330 special 14 form 1
-#! expect a 2410 special 15 form 2
+#! expect a 2410 special 15 form 0
 #! scene a UnholyFrenzyTarget
 #! scene a CarrionSwarmDamage
 #! scene a CarrionSwarmMissile

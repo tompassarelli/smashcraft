@@ -33,6 +33,7 @@ import { ClientWatch } from "wisp/scripts/wisp/watch";
 import { confirmedCommand, openObservedChat } from "wisp/scripts/wisp/chatSetup";
 import { encodePpm } from "wisp/scripts/wisp/frameProbe";
 import { installHeadless, type HeadlessRuntime } from "wisp/scripts/wisp/headless";
+import { parseGraphics, type Graphics } from "wisp/scripts/wisp/graphicsProfiles";
 import { readReplay } from "../replayFiles";
 import { RealtimeClients, type TypedInput, customMapData, typedFile } from "wisp/scripts/wisp/headlessInput";
 import { step } from "wisp/scripts/wisp/timings";
@@ -205,6 +206,7 @@ export interface PadOptions {
   readonly candidate?: string | undefined;
   readonly render?: string | undefined;
   readonly renderFrames?: readonly number[] | undefined;
+  readonly graphics?: readonly Graphics[] | undefined;
   /** Headless: replay this native run's measured pause-control arrivals (--replay-arrivals NATIVE_DIR). */
   readonly arrivals?: PauseArrivals | undefined;
 }
@@ -511,7 +513,7 @@ const headless = (options: PadOptions) => Effect.gen(function*() {
     return yield* headlessScript(session, frames === undefined || options.chat === undefined ? options : { ...options, chat: visualCaptureCommand(options.chat, token, options.steps) });
   }));
   if (frames !== undefined && options.render !== undefined) {
-    yield* Effect.suspend(() => frames.render(options.render ?? options.out)).pipe(
+    yield* Effect.suspend(() => frames.render(options.render ?? options.out, options.graphics)).pipe(
       Effect.mapError((cause) => new IntegrityFailure({ operation: "render pad frames", path: options.render ?? options.out, cause: describeCause(cause) })),
     );
   }
@@ -523,7 +525,7 @@ export const pad: Command = (args) => Effect.gen(function*() {
     try: () => parseArgs({ args: [...args], allowPositionals: true, options: {
       helper: { type: "string" }, build: { type: "string" }, out: { type: "string" }, chat: { type: "string" }, "app-id": { type: "string", multiple: true },
       headless: { type: "boolean" }, compare: { type: "string" }, "replay-arrivals": { type: "string" }, retries: { type: "string" }, map: { type: "string" },
-      render: { type: "string" }, frames: { type: "string" },
+      render: { type: "string" }, frames: { type: "string" }, graphics: { type: "string", multiple: true },
       pairs: { type: "string" }, pair: { type: "string", multiple: true }, pool: { type: "string" }, "fresh-each": { type: "boolean" }, hot: { type: "boolean" }, "headless-jobs": { type: "string" },
       "clients-file": { type: "string" },
     } }),
@@ -545,6 +547,8 @@ export const pad: Command = (args) => Effect.gen(function*() {
   const { helper, out, chat, compare } = parsed.values;
   const clientsFile = parsed.values["clients-file"] ?? clientState;
   const renderFrames = parsed.values.frames?.split(",").map(Number);
+  const graphics = yield* Effect.try({ try: () => [...new Set(parsed.values.graphics?.map(parseGraphics) ?? ["classic" as const])], catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
+  if (parsed.values.graphics !== undefined && parsed.values.render === undefined) return yield* new UsageFailure({ problem: "--graphics chooses what --render draws" });
   if (renderFrames !== undefined && (parsed.values.render === undefined || renderFrames.length === 0 || renderFrames.some((frame) => !Number.isInteger(frame) || frame < 0))) return yield* new UsageFailure({ problem: "--frames takes comma-separated whole frame numbers and needs --render DIR" });
   if (parsed.values.render !== undefined && (parsed.values.headless !== true || parsed.values.pairs !== undefined || (parsed.values.pair?.length ?? 0) > 0 || parsed.positionals.length !== 1 || parsed.positionals[0] === undefined || !existsSync(parsed.positionals[0]) || statSync(parsed.positionals[0]).isDirectory())) return yield* new UsageFailure({ problem: "pad --render DIR takes one existing script with --headless" });
   // Several scripts, or a folder of them, are one batch: one game per pair (scripts/wisp/padBatch.ts).
@@ -561,7 +565,7 @@ export const pad: Command = (args) => Effect.gen(function*() {
   const replay = parsed.values["replay-arrivals"];
   if (replay !== undefined && !isHeadless) return yield* new UsageFailure({ problem: "--replay-arrivals NATIVE_DIR goes with --headless" });
   const arrivals = replay === undefined ? undefined : yield* Effect.try({ try: () => measuredPauseArrivals(replay), catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
-  const options: PadOptions = { scriptPath, steps, helper, build, out, chat: chat ?? scriptChat(script), candidate: parsed.values.map, render: parsed.values.render, renderFrames, arrivals };
+  const options: PadOptions = { scriptPath, steps, helper, build, out, chat: chat ?? scriptChat(script), candidate: parsed.values.map, render: parsed.values.render, renderFrames, graphics, arrivals };
   if (!isHeadless) {
     const appIds = new Map<string, string>();
     for (const entry of parsed.values["app-id"] ?? []) {
