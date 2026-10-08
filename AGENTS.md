@@ -238,6 +238,9 @@ code. From smashcraft:ts/:
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
   `-dev quick pair FIRST / SECOND` selects different named fighters in the two human slots.
 - Original strike authoring (from the repository root):
+  `bun tools/animations/grom-clips.ts STOCK_GROM.mdx PRIVATE_OUTPUT` authors
+  Grom's axe attacks, war cry, rush, leap, throws, recovery and nine pain
+  poses on his stock campaign rig and writes both-facing sheets.
   `blender --background --python tools/animations/strikes.py -- rifleman|illidan`.
   `SMASHCRAFT_ANIMATION_ASSETS=PRIVATE_DIR` selects the editable inputs;
   `SMASHCRAFT_STRIKE_CLIP='Attack Jab'` reauthors only the jab.

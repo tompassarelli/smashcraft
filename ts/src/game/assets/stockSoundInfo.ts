@@ -67,6 +67,8 @@ export const VERIFIED_STOCK_SOUNDS: Readonly<Record<string, string>> = {
   "Units\\Human\\Kael\\KaelWarcry1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\human\\kael\\kaelwarcry1.ogg",
   "Units\\Creeps\\Murloc\\MurlocReady1.flac": "war3.w3mod:units\\creeps\\murloc\\murlocready1.ogg",
   "Units\\Creeps\\Murloc\\MurlocYesAttack1.flac": "war3.w3mod:units\\creeps\\murloc\\murlocyesattack1.ogg",
+  "Units\\Orc\\Hellscream\\GromReady1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\orc\\hellscream\\gromready1.ogg",
+  "Units\\Orc\\Hellscream\\GromWarcry1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\orc\\hellscream\\gromwarcry1.ogg",
   "Sound\\Units\\Combat\\MetalLightSliceFlesh1.flac": "war3.w3mod:sound\\units\\combat\\metallightsliceflesh1.ogg",
   "Sound\\Units\\Combat\\MetalLightSliceFlesh2.flac": "war3.w3mod:sound\\units\\combat\\metallightsliceflesh2.ogg",
   "Sound\\Units\\Combat\\MetalLightSliceFlesh3.flac": "war3.w3mod:sound\\units\\combat\\metallightsliceflesh3.ogg",

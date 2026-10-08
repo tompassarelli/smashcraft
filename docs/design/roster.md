@@ -1670,6 +1670,16 @@ cleave. No single move should exceed 40% of damage. Low sweep, up tilt and
 Warsong Cry open launch-and-chase play; execution chops finish it. The issue's
 one balance probe must place him at 40–60% against the field.
 
+```balance-profile
+fighter: grom-hellscream
+archetype: rushdown
+aerials: nair 10-40, fair 15-45, bair 10-40, uair 5-35, dair 0-25
+air-share: 20-40
+approach: 55-80
+ranged: 0-0
+specials: neutral 2-15, side 10-30, up 0-10, down 2-15
+```
+
 Stock campaign Grom model, textures, portrait, cries and Orc spell effects
 are the first inputs. Authored clips reshape that stock rig to make each
 contact point readable in Classic and Definitive; no third-party model.

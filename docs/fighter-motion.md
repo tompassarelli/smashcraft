@@ -424,6 +424,26 @@ Generated from the packaged models by `bun wisp view motion --assets DIR` (#171)
 | Murloc | ledge-get-up | 41: Murloc ledgeClimb | 107.1 | 26.3 | up; 76.0/89.8 |
 | Murloc | ledge-roll | 69: Murloc ledgeRoll | 167.3 | 71.7 | forward; 71.6/157.2 |
 | Murloc | ledge-attack | 42: Murloc ledgeAttack | 77.2 | 15.7 | both; 22.0/75.7 |
+| Grom Hellscream | walk | 5: Walk | 121.9 | 50.3 | forward; 118.7/111.0 |
+| Grom Hellscream | dash | 5: Walk | 121.9 | 49.0 | forward; 118.7/109.6 |
+| Grom Hellscream | run | 5: Walk | 135.0 | 39.9 | forward; 129.6/134.9 |
+| Grom Hellscream | turn | 38: Grom turn | 138.7 | 28.0 | back; 66.8/137.9 |
+| Grom Hellscream | brake | 39: Grom stop | 107.4 | 18.9 | in place; 104.3/28.8 |
+| Grom Hellscream | jump-squat | 40: Grom jumpSquat | 70.9 | 20.1 | down; 12.7/49.3 |
+| Grom Hellscream | roll-forward | 73: Grom rollForward | 252.1 | 108.6 | forward; 182.0/114.2 |
+| Grom Hellscream | roll-back | 77: Grom rollBackward | 251.3 | 99.7 | back; 110.7/187.9 |
+| Grom Hellscream | spot-dodge | 54: Grom spotDodge | 116.7 | 18.1 | in place; 111.9/42.8 |
+| Grom Hellscream | air-dodge | 35: Grom airDodge | 113.2 | 15.8 | in place; 109.1/37.0 |
+| Grom Hellscream | tech | 55: Grom tech | 157.0 | 48.5 | in place; 155.3/54.9 |
+| Grom Hellscream | tech-forward | 74: Grom techForward | 251.1 | 104.1 | forward; 188.1/110.8 |
+| Grom Hellscream | tech-back | 78: Grom techBackward | 250.8 | 104.0 | back; 110.9/188.0 |
+| Grom Hellscream | get-up | 52: Grom getUp | 194.8 | 77.7 | up; 101.4/87.4 |
+| Grom Hellscream | get-up-forward | 75: Grom getUpRollForward | 258.9 | 113.1 | forward; 146.9/253.8 |
+| Grom Hellscream | get-up-back | 79: Grom getUpRollBackward | 258.4 | 110.2 | back; 253.1/138.5 |
+| Grom Hellscream | get-up-attack | 53: Grom getUpAttack | 204.7 | 85.4 | both; 103.0/188.5 |
+| Grom Hellscream | ledge-get-up | 48: Grom ledgeClimb | 112.9 | 31.5 | up; 112.9/61.4 |
+| Grom Hellscream | ledge-roll | 76: Grom ledgeRoll | 253.0 | 106.6 | forward; 187.6/117.0 |
+| Grom Hellscream | ledge-attack | 49: Grom ledgeAttack | 86.3 | 20.0 | both; 33.0/13.0 |
 | Kobold | walk | 1: Walk | 71.4 | 23.9 | forward; 60.8/62.4 |
 | Kobold | dash | 1: Walk | 70.7 | 23.4 | forward; 59.4/59.2 |
 | Kobold | run | 1: Walk | 69.7 | 20.8 | forward; 61.8/61.5 |

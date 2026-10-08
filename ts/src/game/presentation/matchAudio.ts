@@ -84,6 +84,7 @@ const RACES: Readonly<Record<Character, Race>> = {
   20: Race.human,
   21: Race.nightElf,
   26: Race.human,
+  22: Race.orc,
 };
 
 export const characterRace = (character: Character): Race => RACES[character];
@@ -125,6 +126,7 @@ const VOICES: Readonly<Record<Character, readonly [string, string, string?, stri
   20: ["Units\\Human\\Kael\\","Kael"],
   21: ["Units\\Creeps\\Murloc\\", "Murloc", "Ready", "YesAttack"],
   26: ["Units\\Creeps\\Kobold\\", "Kobold", "What", "YesAttack"],
+  22: ["Units\\Orc\\Hellscream\\", "Grom"],
 };
 
 function voice(character: Character, line: string): string {

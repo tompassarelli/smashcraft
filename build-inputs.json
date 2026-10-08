@@ -5,11 +5,11 @@
   "animation-assets": "389658365a47b7614fc1f3ae74e6cac07d4d356ca94f6136b8b9f74ee4dc3101",
   "illidan-animation": "d279608afedf8759cfaa0a807501920a404e80c6826580600b3fefab74e339af",
   "selection-assets": "0e3f236ed0bbdfcb83d7768c48fbc12cd1bf1634f57eebec6c48c3f90cd80b44",
-  "fighter-renders": "7961d1e3916e99da6c07eb747d8f2ebb6465ee895c893746edc28a26b7bb1036",
+  "fighter-renders": "bacad80ddb0f43ce48434fd990712af799d6ee16028979646e096f028dd415da",
   "stage-assets": "cdc2af5577f377b1b6ae2231c5f2a95d7d1977b48311f2810b0f236d4e0883ed",
   "impact-assets": "a78bdf91399a9983842dc642a07d5d129f960585d569069b997fefe66ffdf057",
   "imported-models": "e48b09239d025f302de6ef660f7af3c984556abdeacfa5f1864d409f9b4487e2",
-  "original-clips-static-lights": "06c32054d4d5d047cd0ba501f492602c0ea846ff1bbc761f78e4076747374866",
-  "hero-models": "34be0220b311d923a35e1a1f1f10d66f1de4090ec8cdfc16e44223532843f480",
+  "original-clips-static-lights": "df6e037af5c352e935758dc4bfab9a7cb6cc5b89f9a40a7dffa4a94d86a58456",
+  "hero-models": "4e95554e1b5209fb1f8ffa97671c97a8c21ad6818d0c869122c6657f785e4508",
   "model-sounds": "38449de88adca15b3984f6d883b356123296c0780d8a6d6f7590c025a7897a3d"
 }
