@@ -37,7 +37,7 @@ export const BLACKROCK_SCENERY: StageScenery = {
   fog: { start: 5000.0, end: 10000.0, red: 0.5, green: 0.125, blue: 0.0625 },
   pieces: [
     // Brinstar's quiet upper cavern and luminous basin: basalt reads above low forge glow.
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 2000.0, y: 6100.0, z: -4040.0, scale: f32(5.2), yaw: 210.0, matrixScale: [1.0, 1.0, f32(6.994)] },
+    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 2000.0, y: 5200.0, z: -2200.0, scale: f32(5.2), yaw: 210.0, matrixScale: [1.0, 1.0, f32(6.994)] },
     { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -2300.0, y: 3800.0, z: -2845.0, scale: f32(3.15), yaw: 35.0, matrixScale: [1.0, 1.0, f32(6.202)] },
     // Both fires carry warm omni lights (stagePointLights.ts, #292).
     { model: "Doodads\\Cinematic\\FireTrapUp\\FireTrapUp.mdx", x: 2050.0, y: 6000.0, z: -1500.0, scale: 1.5, yaw: 0.0 },
