@@ -105,17 +105,17 @@ export const STAGE_DECK_PALETTES: readonly { readonly stage: number; readonly th
     },
   } },
   // Basalt over black rock, molten lip.
-  { stage: CANNON_TEST_STAGE, theme: "Blackrock", palette: { top: [132, 126, 122], lip: [210, 112, 40], body: [72, 64, 60], underside: [90, 80, 74] }, materials: {
+  { stage: CANNON_TEST_STAGE, theme: "Blackrock", palette: { top: [132, 126, 122], lip: [255, 255, 255], body: [72, 64, 60], underside: [90, 80, 74] }, materials: {
     top: { texture: "TerrainArt\\Dungeon\\Cave_SquareTiles.blp" },
-    lip: { texture: "TerrainArt\\Dungeon\\Cave_LavaCracks.blp" },
+    lip: { texture: "TerrainArt\\Dungeon\\Cave_LavaCracks.blp", crop: [0, 0, 0.125, 0.25] },
     body: { texture: "TerrainArt\\Dungeon\\Cave_DarkRocks.blp" },
     underside: { texture: "TerrainArt\\Dungeon\\Cave_DarkRocks.blp" },
     platform: {
-      top: { texture: "TerrainArt\\Dungeon\\Cave_Brick.blp" },
+      top: { texture: "TerrainArt\\Dungeon\\Cave_Brick.blp", crop: [0, 0, 0.125, 0.25] },
       lip: { texture: "Textures\\Minecart.blp", crop: [0, 0, 1, 0.5] },
       body: { texture: "TerrainArt\\Dungeon\\Cave_DarkRocks.blp" },
       underside: { texture: "TerrainArt\\Dungeon\\Cave_DarkRocks.blp" },
-      tint: [158, 132, 112],
+      tint: [255, 240, 216],
     },
   } },
   // Pale sandstone, scarab-gold lip.
