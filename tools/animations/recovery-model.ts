@@ -45,12 +45,12 @@ export function attackGestureBaseModel(source: mdx.Model): mdx.Model | undefined
   ensure(first > 0 && source.Sequences.slice(first).every(s => s.Name.startsWith("Attack Gesture ")), "Attack gestures must be the sequence suffix");
   const helper = source.Helpers.find(n => n.Name === "Attack Gesture");
   ensure(helper && helper.ObjectId === source.Nodes.length - 1 && helper.Parent == null && helper.Flags === 0, "Attack gesture helper must be final ordinary root");
-  const rotation = helper.Rotation;
-  ensure(rotation && !onGlobalClock(rotation) && !helper.Translation && !helper.Scaling, "Attack gesture parent must rotate locally");
-  for (const sequence of source.Sequences.slice(0, first)) {
-    const keys = rotation.Keys.filter(k => k.Frame >= sequence.Interval[0] && k.Frame <= sequence.Interval[1]);
+  const rotation = helper.Rotation, hop = helper.Translation;
+  ensure(rotation && !onGlobalClock(rotation) && (!hop || !onGlobalClock(hop)) && !helper.Scaling, "Attack gesture parent must rotate and hop locally");
+  for (const sequence of source.Sequences.slice(0, first)) for (const track of hop ? [rotation, hop] : [rotation]) {
+    const keys = track.Keys.filter(k => k.Frame >= sequence.Interval[0] && k.Frame <= sequence.Interval[1]);
     ensure(keys.length >= 2 && keys[0]?.Frame === sequence.Interval[0] && keys.at(-1)?.Frame === sequence.Interval[1]
-      && keys.every(k => k.Vector.every((v, i) => v === (i === 3 ? 1 : 0))), `${sequence.Name}: attack gesture changes the old parent`);
+      && keys.every(k => k.Vector.every((v, i) => v === (track === rotation && i === 3 ? 1 : 0))), `${sequence.Name}: attack gesture changes the old parent`);
   }
   const cutoff = source.Sequences[first]?.Interval[0];
   ensure(cutoff !== undefined, "Attack gestures have no start");

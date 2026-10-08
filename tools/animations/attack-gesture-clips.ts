@@ -48,6 +48,9 @@ function rotate(q: Float32Array | Int32Array, degrees: number, axis = 1): Float3
 
 // A rig whose shared profile draws too little toward the strike, or a jab as long as its forward tilt (#163), gets its own.
 const FIGHTER_CONTACT: Readonly<Record<number, Readonly<Record<string, readonly number[]>>>> = {
+  2: { jab3: [-17, -69, 0, 3, 25, 1, -2, 40] },
+  4: { jab: [-7, 1, 78, -1, -90, 15, 10, 1], jab2: [70, -2, -91, -18, -90, -13, 5, -25], upTilt: [34, -145, -103, 15, 35, -5, -1, 0], dashAttack: [30, 10, -60, -40, 0, 15, 20, 12] },
+  6: { forwardTilt: [-10, -45, 5, -2, -1, 0, 0, 10], forwardTiltDown: [25, -70, 10, 0, 0, 0, 0, 12], downTilt: [20, -68, 15, -10, -10, 0, 0, 25], dashAttack: [28, -84, -5, 1, 2, 0, 0, 10] },
   8: { jab2: [-12, -48, -42, 38, -20, 18, -8, 10], jab3: [3, -75, 80, -52, 25, 6, 35, 5], downTilt: [15, 35, 50, -15, -60, -83, 95, 10] },
   9: { jab3: [23, -75, 45, -2, 25, -24, 35, 5], forwardTilt: [50, -75, 35, -15, 65, -18, 22, -20], dashAttack: [48, -75, 65, -22, 50, -65, 100, -5] },
   10: { forwardTilt: [32, -95, 35, -48, -22, -18, 22, 20] },
@@ -59,9 +62,13 @@ const FIGHTER_CONTACT: Readonly<Record<number, Readonly<Record<string, readonly 
 };
 // How far the fighter draws back before the strike, as a fraction of the contact pose (0.3 unless named).
 const DRAW_BACK: Readonly<Record<number, Readonly<Record<string, number>>>> = {
-  8: { downTilt: 0.4 }, 11: { jab2: 0.4 },
+  4: { jab: 0.5, upTilt: 1 }, 8: { downTilt: 0.4 }, 11: { jab2: 0.4 },
 };
 const contactProfile=(pose: HeroPose, character: number)=>FIGHTER_CONTACT[character]?.[pose]??CONTACT[pose];
+// A strike centred on the body draws by leaving the floor: the hop's height, landing on the contact frame.
+const HOP: Readonly<Record<number, Readonly<Record<string, number>>>> = {
+  4: { dashAttack: 36 },
+};
 
 function joint(name: string, pose: HeroPose, character: number): number {
   const p=contactProfile(pose,character);ensure(p,`missing contact profile ${pose}`);
@@ -112,7 +119,11 @@ for(const [id,poses]of Object.entries(PLAN)) {
   const root=model.Nodes.length,helper:mdx.Helper={Name:"Attack Gesture",ObjectId:root,Parent:null,Flags:0,PivotPoint:new Float32Array([0,0,60]),Rotation:{LineType:1,GlobalSeqId:-1,Keys:[]}};
   for(const node of [...model.Bones,...model.Helpers,...model.Attachments])if(node.Parent==null)node.Parent=root;
   model.Helpers.push(helper);model.Nodes.push(helper);model.PivotPoints.push(helper.PivotPoint);
-  for(const sequence of source.Sequences)for(const Frame of sequence.Interval)helper.Rotation?.Keys.push({Frame,Vector:new Float32Array([0,0,0,1])});
+  const hops=HOP[character]??{},hop:mdx.AnimVector|undefined=Object.keys(hops).length?{LineType:1,GlobalSeqId:-1,Keys:[]}:undefined;if(hop)helper.Translation=hop;
+  for(const sequence of source.Sequences)for(const Frame of sequence.Interval) {
+    helper.Rotation?.Keys.push({Frame,Vector:new Float32Array([0,0,0,1])});
+    hop?.Keys.push({Frame,Vector:new Float32Array([0,0,0])});
+  }
   let cursor=Math.max(...source.Sequences.map(s=>s.Interval[1]))+100;
   const drawnFrames=[];bindings.push(`  ${id}: {`);
   for(const pose of poses) {
@@ -142,6 +153,7 @@ for(const [id,poses]of Object.entries(PLAN)) {
       const arc=frame<=contact?Math.sin(frame/contact*Math.PI/2):Math.max(0,1-(frame-contact)/(total-contact));
       helper.Rotation?.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:rotate(new Float32Array([0,0,0,1]),contactProfile(pose,character)![7]!*arc)});
     }
+    if(hop)for(let frame=0;frame<=total;frame++)hop.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([0,0,frame<contact?(hops[pose]??0)*Math.sin(Math.PI*frame/contact):0])});
     const binding=`{ index: ${index}, seconds: ${seconds((end-start)/1000)} }`;
     bindings.push(`    ${pose}: ${binding},`);
     if(special)for(const suffix of ["Air","FollowUp","FollowUpAir"])bindings.push(`    ${pose}${suffix}: ${binding},`);

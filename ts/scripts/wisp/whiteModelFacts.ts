@@ -37,7 +37,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/illidanwhite-8610cc68d48737332900988a04923b19382458968aabda9ed8ea442573b3f265.mdx": {
+  "war3mapimported/illidanwhite-7299c2907eb3eae4675e0e4f7eff9cc581558d6177b5453f3a2e74d5b6a6a0b6.mdx": {
     "geosets": 18,
     "triangles": 1295,
     "lights": 0,
@@ -73,7 +73,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/mountainkingwhite-b377420d82f9992f7cac6c3a941f88eba74e4f8c44f7c5dabbded482badcfe90.mdx": {
+  "war3mapimported/mountainkingwhite-ba7b1175ed1f3cac417104e2fcee6309055cf316970edecad8843f6660eebd26.mdx": {
     "geosets": 8,
     "triangles": 570,
     "lights": 0,
@@ -109,7 +109,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/lichwhite-fe2b0745c45e0948cb717a98f5ebc921e45cb2656031de77b5734c3bb751fa76.mdx": {
+  "war3mapimported/lichwhite-0d90f03543217d6c87442e8d0c5edc777f34d0299d276465a1fe66cb13e5fb75.mdx": {
     "geosets": 12,
     "triangles": 596,
     "lights": 0,
