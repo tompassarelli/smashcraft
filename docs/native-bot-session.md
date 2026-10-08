@@ -331,6 +331,19 @@ require. Other cases use the helper's normal off and standard settings.
 
 ### Many scripts in one game
 
+Native pad commands acquire an exclusive machine-capacity lease before client
+input, wait with the helper's `QUEUED` report when busy, and release after the
+whole command ends. Each `result.json` records the three load averages in
+`load_average` and the lease in `capacity_lease`; `batch.json` records the load
+at batch start. The maximum quiet window is 15 minutes.
+
+Four solo client lanes share a window by running their foreground coordinator
+inside one `machine-capacity run --class exclusive --timeout-seconds 900 -- ...`
+command. Pad children verify their actual cgroup's exclusive lease and reuse
+it. A pad launched from another batch class stops before input; start the
+coordinator outside that scope. Independent exclusive commands queue rather
+than sharing another process's lease.
+
 Native acceptance also selects an offline pair with
 `bun wisp accept --pair K --only ID...`. Its captures, player-position labels,
 receipts and new LAN matches all follow that pair. `--dry-run` prints the same

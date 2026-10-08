@@ -53,6 +53,7 @@ import { onHealthyClients } from "../doctor";
 import { DevCommandReceipt } from "../boundary";
 import { devCommandReceiptFile } from "../../../src/runtime/gameFiles";
 import { Phase } from "../../../src/game/match/rules";
+import { admitCaptures, captureLoad, requireCaptureLease } from "../captureCapacity";
 import { quickMatchHero, quickMatchStage, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../../src/game/shell/devSettings";
 
 type DevReceipt = Effect.Success<ReturnType<typeof DevCommandReceipt.decode>>;
@@ -140,7 +141,7 @@ const finish = (out: string, scriptPath: string, build: string, epochs: readonly
   const stopped = final.flatMap((log, slot) => (/late kernel event|journal stopped/.test(log) ? [`helper ${slot}: ${/^wc3-journal: .*$/m.exec(log)?.[0] ?? "stopped"}`] : []));
   const off = results.filter((edge) => edge.frame !== edge.planned);
   const lateWrites = off.filter((edge) => edge.written !== edge.planned).length;
-  yield* tryIntegrity("write result", out, () => writeFileSync(join(out, "result.json"), json({ script: scriptPath, build, frame_one_ns: epochs, match_starts: final.map(matchStart), edges: results, off_frame: off.length, written_late: lateWrites, helpers_stopped: stopped })));
+  yield* tryIntegrity("write result", out, () => writeFileSync(join(out, "result.json"), json({ ...captureLoad(), script: scriptPath, build, frame_one_ns: epochs, match_starts: final.map(matchStart), edges: results, off_frame: off.length, written_late: lateWrites, helpers_stopped: stopped })));
   for (const edge of results) console.log(`line ${edge.line} ${edge.slot === 0 ? "a" : "b"} planned ${edge.planned} written ${edge.written} landed ${edge.frame} (${edge.confirmedBy}): ${edge.text}`);
   console.log(`${results.length} edges, ${off.length} off their frame (${lateWrites} of them written late)${stopped.length > 0 ? `; ${stopped.join("; ")}` : ""}; ${join(out, "result.json")}`);
   if (off.length > 0 || stopped.length > 0) return yield* new IntegrityFailure({ operation: "replay pad script", path: out, cause: `${off.length} edges off their frame, ${stopped.length} helpers stopped` });
@@ -191,6 +192,7 @@ export interface PadOptions {
 
 /** Helpers and virtual pads belong to one game, across all of its scripted matches. */
 export const nativeSession = (out: string, helper: string, build: string, appIds: ReadonlyMap<string, string>, clientsFile: string = clientState) => Effect.gen(function*() {
+  yield* requireCaptureLease;
   const startedMs = Date.now();
   const loaded = yield* loadClients(clientsFile).pipe(Effect.mapError(fromDesktop));
   if (loaded.length !== 2) return yield* new IntegrityFailure({ operation: "load clients", path: clientsFile, cause: `${loaded.length} clients, need 2` });
@@ -269,6 +271,7 @@ export const nativeChat = (session: NativeSession, text: string) => setupCommand
 /** One script in the persistent native session's next match. */
 export const nativeScript = (session: NativeSession, options: PadOptions) => Effect.scoped(Effect.gen(function*() {
   const { scriptPath, steps, build, out, chat } = options;
+  yield* requireCaptureLease;
   const { clients, data, pads } = session;
   yield* tryIntegrity("create pad directory", out, () => {
     mkdirSync(out, { recursive: true });
@@ -288,7 +291,7 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
     const setup = yield* Effect.exit(selectionChat(session, command));
     if (setup._tag === "Failure") {
       const boundary = describeCause(setup.cause);
-      yield* tryIntegrity("write invalid setup", out, () => writeFileSync(join(out, "result.json"), json({ status: "INVALID", script: scriptPath, build, invalid: [boundary], setup: { command: chat, clients: clients.map((client) => client.name), boundary }, edges: [] })));
+      yield* tryIntegrity("write invalid setup", out, () => writeFileSync(join(out, "result.json"), json({ ...captureLoad(), status: "INVALID", script: scriptPath, build, invalid: [boundary], setup: { command: chat, clients: clients.map((client) => client.name), boundary }, edges: [] })));
       console.log(`INVALID setup: ${boundary}; ${out}`);
       return "invalid" as const;
     }
@@ -502,6 +505,7 @@ export const pad: Command = (args) => Effect.gen(function*() {
     } }),
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
+  if (parsed.values.headless !== true && (yield* admitCaptures(args))) return;
   const { helper, out, chat, compare } = parsed.values;
   const clientsFile = parsed.values["clients-file"] ?? clientState;
   const renderFrames = parsed.values.frames?.split(",").map(Number);

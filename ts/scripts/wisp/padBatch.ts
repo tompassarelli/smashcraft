@@ -17,6 +17,7 @@ import { preloadLines } from "wisp/scripts/wisp/boundary";
 import { UsageFailure, describeCause } from "wisp/scripts/wisp/command";
 import { loadClients } from "wisp/scripts/warcraft/desktop";
 import { readyAfter } from "./commands/fresh";
+import { captureLoad, requireCaptureLease } from "./captureCapacity";
 import { gameFilesLayer } from "./project";
 import { RESET_COMMAND } from "../../src/game/shell/devSettings";
 import { devCommandReceiptFile } from "../../src/runtime/gameFiles";
@@ -287,6 +288,8 @@ const summarize = (out: string, runs: readonly ScriptRun[], reports: ScriptRepor
 
 /** Native scripts on every pair at once, each pair taking the next script when it is free. */
 export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() {
+  yield* requireCaptureLease;
+  const quietWindow = captureLoad();
   const { pairs, build, map, retries, freshEach } = options;
   const started = performance.now();
   mkdirSync(options.out, { recursive: true });
@@ -366,7 +369,7 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
   }));
   yield* Effect.forEach(pairs, worker, { concurrency: "unbounded", discard: true });
   yield* Effect.promise(() => Promise.all(compares));
-  yield* summarize(options.out, runs, reports, pairs.map((pair) => pair.name), started, { fresh_each: freshEach });
+  yield* summarize(options.out, runs, reports, pairs.map((pair) => pair.name), started, { fresh_each: freshEach, ...quietWindow });
 });
 
 /**

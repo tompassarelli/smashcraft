@@ -774,6 +774,12 @@ running match with `bun wisp hot --data ... --watch` between captures; rebuild
 the map only for imports, object data or art. Batch captures by build: one map
 build serves every capture that needs it. Record captures per hour per lane in
 the status.
+Native `bun wisp pad` commands wait for an exclusive machine-capacity window
+before client input and keep it through the whole batch (maximum 15 minutes).
+To run four lanes together, start their foreground batch runner inside one
+`machine-capacity run --class exclusive --timeout-seconds 900 -- ...` command;
+pad children reuse that window. Separate exclusive commands queue in turn.
+Each result records `load_average` and `capacity_lease` (#311).
 Signed-in A and B are only for tests that need Battle.net itself: real
 netplay or latency, direct play (#142), spectating. Tom's install (account a,
 display :0) is Tom's. A run during which a client wrote a desync report or
