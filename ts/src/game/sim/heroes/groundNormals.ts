@@ -211,12 +211,12 @@ export const FORSAKEN_PALADIN_GROUND: GroundKit = {
   normals: {
     [AttackStyle.jab]: jabStep(heroMove(5, 3, 15, 0, swing(5, [[24.0, 64.0, 62.0, 60.0], [24.0, 64.0, 62.0, 60.0], [24.0, 62.0, 58.0, 58.0]], 10.0, groundHit(4.0, 20, 40.0, 24.0, FORSAKEN_PALADIN)))),
     [AttackStyle.jab2]: heroMove(6, 3, 18, 0, swing(6, [[24.0, 60.0, 70.0, 58.0], [24.0, 58.0, 72.0, 54.0], [24.0, 56.0, 66.0, 50.0]], 10.0, groundHit(6.0, 30, 90.0, 26.0, FORSAKEN_PALADIN))),
-    ...unangled(heroMove(11, 3, 24, 0, swing(11, [[20.0, 100.0, 120.0, 140.0], [20.0, 70.0, 159.0, 60.0], [20.0, 40.0, 140.0, 8.0]], 12.0, groundHit(12.0, 35, 100.0, 25.0, FORSAKEN_PALADIN)))),
+    ...unangled(heroMove(11, 3, 24, 0, swing(11, [[20.0, 100.0, 120.0, 140.0], [20.0, 70.0, 159.0, 60.0], [20.0, 40.0, 140.0, 8.0]], 12.0, groundHit(13.5, 35, 100.0, 25.0, FORSAKEN_PALADIN)))),
     [AttackStyle.upTilt]: heroMove(10, 4, 22, 0, swing(10, [[20.0, 60.0, 70.0, 96.0], [12.0, 72.0, 30.0, 120.0], [4.0, 76.0, -10.0, 120.0], [-6.0, 70.0, -34.0, 98.0]], 14.0,
-      groundHit(11.0, 85, 105.0, 28.0, FORSAKEN_PALADIN))),
-    [AttackStyle.downTilt]: heroMove(9, 3, 20, 0, swing(9, [[14.0, 10.0, 124.0, 10.0], [14.0, 8.0, 124.0, 6.0], [14.0, 6.0, 110.0, 2.0]], 8.0, groundHit(8.0, 10, 40.0, 72.0, FORSAKEN_PALADIN))),
+      groundHit(12.0, 85, 105.0, 28.0, FORSAKEN_PALADIN))),
+    [AttackStyle.downTilt]: heroMove(9, 3, 20, 0, swing(9, [[14.0, 10.0, 124.0, 10.0], [14.0, 8.0, 124.0, 6.0], [14.0, 6.0, 110.0, 2.0]], 8.0, groundHit(9.0, 10, 40.0, 72.0, FORSAKEN_PALADIN))),
     [AttackStyle.dashAttack]: heroMove(12, 3, 20, 0, swing(12, [[20.0, 90.0, 120.0, 60.0], [20.0, 60.0, 125.0, 20.0], [20.0, 40.0, 115.0, 6.0]], 12.0,
-      groundHit(12.0, 30, 100.0, 26.0, FORSAKEN_PALADIN)), 46.0, true),
+      groundHit(13.5, 30, 100.0, 26.0, FORSAKEN_PALADIN)), 46.0, true),
   },
   reaches: {
     [AttackStyle.forwardTilt]: [48.0, 64.0], [AttackStyle.forwardTiltUp]: [48.0, 64.0], [AttackStyle.forwardTiltDown]: [48.0, 64.0],

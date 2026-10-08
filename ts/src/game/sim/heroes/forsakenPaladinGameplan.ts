@@ -5,14 +5,14 @@ import { type FighterGameplan, GameplanSpecial, GameplanThrow } from "../gamepla
 export const FORSAKEN_PALADIN_GAMEPLAN: FighterGameplan = {
   range: { near: 120.0, far: 175.0 },
   spacing: [
-    { move: AttackStyle.forwardTilt, near: 100.0, far: 170.0 },
+    { move: AttackStyle.forwardTilt, near: 100.0, far: 200.0 },
     { move: GameplanSpecial.neutral, near: 50.0, far: 150.0 },
     { move: GameplanSpecial.down, near: 45.0, far: 130.0 },
     { move: AttackStyle.downTilt, near: 60.0, far: 110.0 },
   ],
   approach: [
     { via: "shoot", moves: [GameplanSpecial.down], weight: 1 },
-    { via: "run", moves: [AttackStyle.forwardTilt, AttackStyle.grab], weight: 4 },
+    { via: "run", moves: [AttackStyle.forwardTilt, AttackStyle.grab], weight: 8 },
   ],
   defense: ["shield", "spotDodge"],
   combos: [

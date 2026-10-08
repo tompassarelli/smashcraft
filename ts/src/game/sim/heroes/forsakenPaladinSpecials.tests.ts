@@ -107,9 +107,9 @@ test("Forsaken Paladin's balanced hammer normal keeps its original hitlag while 
   beginFighterAttack(world, 0, AttackStyle.forwardTilt, false);
   owner.attack.frame = 11;
   resolveAttacks(world);
-  assertEquals(target.status.damage, f32(12.0 * f32(0.8)));
-  assertEquals(owner.launch.hitlag, ordinaryHitlagFrames(12.0) + 3);
-  assertEquals(target.launch.hitlag, ordinaryHitlagFrames(12.0) + 3);
+  assertEquals(target.status.damage, f32(13.5 * f32(0.8)));
+  assertEquals(owner.launch.hitlag, ordinaryHitlagFrames(13.5) + 3);
+  assertEquals(target.launch.hitlag, ordinaryHitlagFrames(13.5) + 3);
 });
 
 test("Righteous Fury advances with the hammer, hits once up close, slows movement and cannot hit at range [spec docs/design/forsaken-paladin.md]", () => {
