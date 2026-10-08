@@ -81,7 +81,12 @@ export function showBackdrop(s: ShellState, visible: boolean): void {
     else {
       BlzSetSpecialEffectPosition(effect, s.origin.x + piece.x, s.origin.y + piece.y, s.origin.z + piece.z);
       BlzSetSpecialEffectScale(effect, piece.scale);
-      if (piece.matrixScale !== undefined) BlzSetSpecialEffectMatrixScale(effect, piece.matrixScale[0], piece.matrixScale[1], piece.matrixScale[2]);
+      // Matrix scales multiply: reset before reapplying, or each toggle stacks the stretch.
+      if (piece.matrixScale !== undefined) {
+        BlzResetSpecialEffectMatrix(effect);
+        BlzSetSpecialEffectMatrixScale(effect, piece.matrixScale[0], piece.matrixScale[1], piece.matrixScale[2]);
+        BlzSetSpecialEffectYaw(effect, piece.yaw * (Math.PI / 180.0));
+      }
     }
   }
   for (const deck of [...s.stageDecks, ...s.stageDeckParts]) BlzSetSpecialEffectAlpha(deck, alpha);

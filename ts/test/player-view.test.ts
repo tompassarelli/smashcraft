@@ -72,6 +72,25 @@ const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: unlogge
 const seconds = (value: number) => value * SMASHCRAFT_SCENE.framesPerSecond;
 afterAll(headless.restore);
 
+test("Durotar: turning the backdrop off and on twice leaves every scenery piece at its authored stretch [repro wisp#40]", () => {
+  // Warcraft multiplies matrix scales, so reapplying a stretch without a reset stacks it.
+  const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
+  clients.start();
+  clients.frames(30);
+  clients.chat(0, "-dev quick stage 3");
+  clients.frames(5);
+  const client = clients.client(0);
+  const stretches = () => client.effectPoses().filter(({ model }) => model.includes("Barrens_Rocks")).map(({ matrixScale }) => matrixScale[2]);
+  const authored = stretches();
+  expect(authored.filter(stretch => stretch > 1).length).toBeGreaterThan(0);
+  for (let round = 0; round < 2; round++) {
+    clients.chat(0, "-dev backdrop off"); clients.frames(1);
+    clients.chat(0, "-dev backdrop on"); clients.frames(1);
+  }
+  expect(stretches()).toEqual(authored);
+  expect(client.errors).toEqual([]);
+});
+
 test("Frozen Throne: a selectable match draws four platforms and the winter background without scene problems [provisional]", () => {
   const clients = headless.clients({ start: startDevelopment, install: installDevelopment });
   clients.start();
