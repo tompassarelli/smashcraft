@@ -234,7 +234,16 @@ export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, m
     input.direction = f32(x - lavaLeft(matchFrame)) < f32(lavaRight(matchFrame) - x) ? -1 : 1;
     return true;
   }
-  if (grounded || (x >= left && x <= right && z >= floor)) return false;
+  if (grounded || (x >= left && x <= right && z >= floor)) {
+    const move = fighter.special.action === SpecialAction.heroUp ? runningHeroSpecial(fighter) : undefined;
+    if (move?.aimFrames !== undefined && fighter.special.frame < move.aimFrames) {
+      // The attack chooser measures the upward dash; ordinary approach steering must not turn its charge sideways.
+      input.direction = 0;
+      input.verticalDirection = 1;
+      return true;
+    }
+    return false;
+  }
   const side = x < 0 ? -1 : 1;
   const outside = f32(f32(x - (side < 0 ? left : right)) * side);
   const ledge = outside > 0 && aimsForLedge(fighter, side, target, skill.mixesUp);
