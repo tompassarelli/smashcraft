@@ -43,7 +43,10 @@ export function checksFor(paths: readonly string[]): Check[] {
       { name: "type-check ts", directory: "ts", args: ["run", "check"] },
       { name: "type escapes and source shapes", directory: "ts", args: ["test", "test/source-shapes.test.ts"] },
     ] : []),
-    ...(models ? [{ name: "model facts fresh", directory: "ts", args: ["test", "test/model-facts.test.ts"], fix: `refresh them with: ${MODEL_FACTS_REFRESH}` }] : []),
+    ...(models ? [
+      { name: "model facts fresh", directory: "ts", args: ["test", "test/model-facts.test.ts"], fix: `refresh them with: ${MODEL_FACTS_REFRESH}` },
+      { name: "generated models stored", directory: "ts", args: ["scripts/storedModels.ts"], fix: "store the regenerated family (smashcraft:docs/build-inputs.md, \"Change art\")." },
+    ] : []),
     ...(client ? [{ name: "type-check client/ui", directory: "client/ui", args: ["run", "check"] }] : []),
   ];
 }

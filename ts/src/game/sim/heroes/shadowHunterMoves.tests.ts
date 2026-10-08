@@ -4,7 +4,7 @@ import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, DASH_GRAB_REQUEST, GrabAction } from "../codes";
 import { createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
-import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
+import { SHARED_GRAB_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
 import { attackStartupFrames, characterAttackActiveFrames, grabActionDuration, grabContactFrame, isAerialAttack } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { HurtContact, strikeHurtContact } from "../hurtboxes";
@@ -21,7 +21,7 @@ const NORMALS = [
   [AttackStyle.backAir, 8, 3, 23, 13],
   [AttackStyle.upAir, 7, 3, 21, 12],
   [AttackStyle.downAir, 9, 14, 15, 14],
-  [AttackStyle.grab, 8, 2, 24, 0],
+  [AttackStyle.grab, 8, 3, 23, 0],
 ] as const;
 
 function pair(style: AttackStyle, frame: number, x: number, z = 0.0, facing = 1, groundedTarget = true, ownerZ = 0.0) {
@@ -52,7 +52,7 @@ test("Shadow Hunter adopted phases and narrow single-contact regions reach produ
         if (out.window > 0) {
           live++;
           assertTrue(out.window === 1 || (isMultiHit(SHADOW_HUNTER_MOVES.normals[style]) && out.window > 1));
-          assertTrue(out.strike !== undefined);
+          assertTrue(style === AttackStyle.grab ? out.maxX === SHARED_GRAB_REGION.maxX && out.strike === undefined : out.strike !== undefined);
         }
       }
       // A multi-hit may pause between its hits; nothing strikes outside its active frames.

@@ -28,6 +28,7 @@ src/game/match/cpuProfileContracts.tests.ts	2	0.801
 src/game/match/cpuProfiles.tests.ts	4	0.320
 src/game/match/edgeRecovery.tests.ts	8	2.578
 src/game/match/frameInput.tests.ts	4	0.013
+src/game/match/grabOptionsContracts.tests.ts	4	0.480
 src/game/match/groundNormalContracts.tests.ts	16	0.131
 src/game/match/hazardsSetting.tests.ts	4	0.919
 src/game/match/itemsContracts.tests.ts	4	0.810
@@ -136,6 +137,7 @@ src/game/sim/dodgesAndStocks.tests.ts	25	0.139
 src/game/sim/downAir.tests.ts	21	0.002
 src/game/sim/downSmashes.tests.ts	13	5.700
 src/game/sim/downThrows.tests.ts	13	4.246
+src/game/sim/exCommandHeroes.tests.ts	6	0.045
 src/game/sim/exSpecials.tests.ts	6	0.032
 src/game/sim/felRush.tests.ts	8	0.221
 src/game/sim/floorFriction.tests.ts	5	0.016

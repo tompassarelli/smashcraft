@@ -109,7 +109,7 @@ export function canAttack(attacker: Fighter): boolean {
 }
 
 export function canShieldGrab(attacker: Fighter): boolean {
-  return canStartAttack(attacker) && attacker.shield.raised && attacker.motion.grounded;
+  return canStartAttack(attacker) && attacker.shield.raised && attacker.motion.grounded && !attacker.shield.drainResumePending;
 }
 
 /**

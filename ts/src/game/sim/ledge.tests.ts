@@ -7,7 +7,7 @@ import { AttackPhase, AttackStyle, Character, DownState, LedgeState, ShieldBreak
 import { attackPhase, canAttack, isIntangible } from "./conditions";
 import { type Fighter, createFighter } from "./fighter";
 import { AIR_DODGE_ANIMATION_FRAMES } from "./jumpsAndDodges";
-import { advanceLedge, LEDGE_CLIMB_FRAMES, LEDGE_INTANGIBLE_FRAMES, LEDGE_ROLL_FRAMES, ledgeCatchBox, ledgeSnap, resolveLedges } from "./ledge";
+import { advanceLedge, LEDGE_CLIMB_FRAMES, LEDGE_HANG_DEPTH, LEDGE_INTANGIBLE_FRAMES, LEDGE_ROLL_FRAMES, ledgeCatchBox, ledgeSnap, resolveLedges } from "./ledge";
 import { SpecialSlot } from "./heroSpecials";
 import { startFighterSpecial } from "./specials";
 import { LEDGE_ATTACK_FRAMES, attackStartupFrames, GRAB_HOLD_FRAMES } from "./moves";
@@ -410,6 +410,8 @@ test("ledge hits and grabs interrupt, and a respawn clears ledge ownership [spec
       catchTestLedge(fighter, input);
       fighter.ledge.state = phase;
       fighter.ledge.intangible = 0;
+      // The #337 grab box starts 20 units above the deck, so a grab meets a get-up halfway through its rise.
+      if (mode === 1 && phase !== LedgeState.hang) fighter.motion.z = f32(fighter.motion.z + f32(LEDGE_HANG_DEPTH * 0.5));
       if (mode < 2) {
         const attacker = createFighter(Character.rifleman, -570.0, -1);
         const world = testWorld(attacker, fighter);

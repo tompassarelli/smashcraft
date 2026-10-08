@@ -3,7 +3,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, GrabAction } from "../codes";
 import { type Fighter, createFighter } from "../fighter";
-import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
+import { SHARED_GRAB_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
 import { attackStartupFrames, characterAttackActiveFrames } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { HurtContact, strikeHurtContact } from "../hurtboxes";
@@ -21,7 +21,7 @@ const NORMALS = [
   [AttackStyle.backAir, 8, 3, 23, 13],
   [AttackStyle.upAir, 6, 3, 19, 11],
   [AttackStyle.downAir, 10, 25, 12, 20],
-  [AttackStyle.grab, 7, 2, 22, 0],
+  [AttackStyle.grab, 7, 3, 21, 0],
 ] as const;
 
 function fighter(facing = 1): Fighter {
@@ -79,7 +79,7 @@ test("Blademaster startup and active frames reach production APIs [spec docs/des
         authoredHitRegion(out, Character.archer, style, frame, 0, index, BLADEMASTER_MOVES);
         if (out.window > 0) {
           assertTrue(out.window === 1 || (isMultiHit(BLADEMASTER_MOVES.normals[style]) && out.window > 1));
-          assertTrue(out.strike !== undefined);
+          assertTrue(style === AttackStyle.grab ? out.maxX === SHARED_GRAB_REGION.maxX && out.strike === undefined : out.strike !== undefined);
           activeCount++;
         }
       }

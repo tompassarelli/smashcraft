@@ -5,7 +5,7 @@ import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GrabAction, Hit
 import { attackPhase } from "../conditions";
 import { createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
-import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
+import { SHARED_GRAB_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
 import { attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { DREADLORD_MOVES } from "./dreadlordMoves";
@@ -67,7 +67,7 @@ test("Dreadlord paths are narrow capsules active only on adopted contact frames 
         if (out.window > 0) {
           live++;
           assertTrue(out.window === 1 || (isMultiHit(DREADLORD_MOVES.normals[style]) && out.window > 1));
-          assertTrue(out.strike !== undefined);
+          assertTrue(style === AttackStyle.grab ? out.maxX === SHARED_GRAB_REGION.maxX && out.strike === undefined : out.strike !== undefined);
         }
       }
       // A multi-hit may pause between its hits; nothing strikes outside its active frames.

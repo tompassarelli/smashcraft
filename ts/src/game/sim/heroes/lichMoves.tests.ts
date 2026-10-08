@@ -6,7 +6,7 @@ import { attackPhase } from "../conditions";
 import { createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { fighterHurtParts } from "../hurtboxes";
-import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
+import { SHARED_GRAB_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
 import { attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { LICH_MOVES } from "./lichMoves";
@@ -22,7 +22,7 @@ const NORMALS = [
   [AttackStyle.backAir, 10, 3, 25, 15],
   [AttackStyle.upAir, 8, 4, 23, 14],
   [AttackStyle.downAir, 16, 4, 31, 22],
-  [AttackStyle.grab, 10, 2, 28, 0],
+  [AttackStyle.grab, 10, 3, 27, 0],
 ] as const;
 
 // Existing actors exercise the production move seam without depending on
@@ -63,7 +63,7 @@ test("Lich normal phases and contact windows match the adopted startup and activ
         if (out.window <= 0) continue;
         live++;
         assertTrue(out.window === 1 || (isMultiHit(LICH_MOVES.normals[style]) && out.window > 1));
-        assertTrue(out.strike !== undefined);
+        assertTrue(style === AttackStyle.grab ? out.maxX === SHARED_GRAB_REGION.maxX && out.strike === undefined : out.strike !== undefined);
       }
       // A multi-hit may pause between its hits; nothing strikes outside its active frames.
       if (live > 0 || !isMultiHit(LICH_MOVES.normals[style])) assertEquals(live > 0, tick >= first - 1 && tick < first - 1 + active);

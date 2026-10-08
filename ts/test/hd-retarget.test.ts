@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test';
 import { model as mdx, parseMDL } from 'war3-model';
 import { stageSkyMdl } from '../scripts/stageSky';
 import { retargetHd, checkRetarget, parseHdBody, generateHdBody, checkBodySkin } from '../../tools/animations/hd-retarget';
+import { encodeVerified, parseSource } from '../../tools/animations/original-clips';
 
 test('authored translations survive out-of-order sequence intervals after HD export [repro #334]', () => {
     const classic = parseMDL(stageSkyMdl('stock.blp'));
@@ -55,6 +56,8 @@ test('version 1800 retains four skin IDs and four weights stored as uint16 [repr
     expect(Array.from({ length: 8 }, (_, i) => raw.getUint16(skin + 8 + i * 2, true))).toEqual([0, 0, 0, 0, 128, 127, 0, 0]);
     const restored = parseHdBody(bytes);
     expect(restored.Geosets.map(geoset => geoset.SkinWeights)).toEqual(model.Geosets.map(geoset => geoset.SkinWeights));
+    const source = parseSource(bytes);
+    expect(new Uint8Array(encodeVerified(source))).toEqual(new Uint8Array(bytes));
 });
 
 test('skin IDs address bones independently of matrix-group order [repro #334]', () => {

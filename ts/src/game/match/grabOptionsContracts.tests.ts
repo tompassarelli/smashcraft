@@ -82,7 +82,7 @@ test("standing dash and pivot grabs catch Rifleman at their scaled limit for thr
   }
 });
 
-test("a grab buffered during ordinary shield stun starts on the first free frame and catches before attack recovery [repro #337]", () => {
+test("a grab buffered during ordinary shield stun starts with jump out of shield, after the drain-resume frame, and catches before attack recovery [repro #337]", () => {
   const d = duel(Character.rifleman);
   const defender = fighterAt(d.world, 0);
   const attacker = fighterAt(d.world, 1);
@@ -96,12 +96,14 @@ test("a grab buffered during ordinary shield stun starts on the first free frame
   while (frame < 40 && defender.shield.stun === 0) stepMatch(d.game, d.world, d.inputs, ++frame);
   assertTrue(defender.shield.stun > 0);
   queueAttack(d.inputs.commands[0], { style: AttackStyle.grab, facing: 0, frame: frame + 1, mayCharge: false });
+  // A held shield resumes its drain on the frame stun ends; actions start on the next (heldShieldOrderHitlagAndShieldstunResumeBeforeActionInputs).
+  let free = -1;
   while (frame < 80 && defender.attack.style !== AttackStyle.grab) {
-    const stun = defender.shield.stun;
-    const frozen = defender.launch.hitlag;
     stepMatch(d.game, d.world, d.inputs, ++frame);
-    if (frozen <= 1 && stun === 1) assertEquals(defender.attack.style, AttackStyle.grab, "first frame after stun");
+    if (free < 0 && defender.launch.hitlag === 0 && defender.shield.stun === 0) free = frame + 1;
+    if (frame < free || free < 0) assertEquals(defender.attack.style, undefined, "grab waits for shield stun and the drain resume");
   }
+  assertEquals(frame, free, "first free frame after the drain resume");
   assertEquals(defender.attack.style, AttackStyle.grab);
   while (frame < 100 && defender.grab.target === undefined && attacker.attack.cooldown > 0) stepMatch(d.game, d.world, d.inputs, ++frame);
   assertEquals(defender.grab.target, 1, "recovering attacker caught");

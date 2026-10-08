@@ -17,7 +17,11 @@ test("a push that changes clips or model build inputs checks the model facts, an
   const checks = checksFor(["build-inputs.json", "tools/animations/thrall-clips.ts", "ts/src/game/presentation/heroes/thrallClips.ts"]);
   expect(checks.map(({ name }) => name)).toContain("model facts fresh");
   expect(checks.find(({ name }) => name === "model facts fresh")?.fix).toContain("bun wisp view models");
-  expect(checksFor(["build-inputs.json"]).map(({ name }) => name)).toEqual(["clean room", "model facts fresh"]);
+  expect(checksFor(["build-inputs.json"]).map(({ name }) => name)).toEqual(["clean room", "model facts fresh", "generated models stored"]);
+});
+
+test("a push that regenerates stage decks checks the stored family holds them (#338: 350ade3d1 landed a deck the store lacked) [spec AGENTS.md]", () => {
+  expect(checksFor(["ts/src/game/assets/stageAssetInfo.ts"]).map(({ name }) => name)).toContain("generated models stored");
 });
 
 
