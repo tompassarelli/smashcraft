@@ -459,6 +459,18 @@ the body stays under the stock bloom threshold of 0.72, so the map-wide bloom
 (#288) catches only the veins. Blackrock's AO is #288's map-wide ASSAO.
 smashcraft:ts/test/stage-model.test.ts pins these values.
 
+Hellfire's #293 choices follow HF-2/HF-3 in `stage-boards.md`: stock
+`Outland_Sky` in all modes, green linear haze beginning at 5,000, and two
+small stock Immolation flames beside the distant gate and the right rock.
+Their additive fel accents use #288's map-wide bloom in HD; Classic retains
+the stock flames and sky. Two light-only omni models add green to the rocks
+in HD, one shadow-casting, with slow ±12.5% loops and no reach within 3,000
+units of the fighters. The gate and its support move to depth 6,000 so the
+far camera can retain the HF-c landmark within its 8,000-unit clip distance.
+The directional fighter light stays the board's warm key and green ambient.
+Stage tests pin the sky, haze, accents and light values; #287 captures judge
+their drawn contrast and bloom.
+
 For fighters on every stage: AO and point-light shadows give contact shading
 in HD when the player turns them on. `DisallowHeroGlowOnUnit` and
 `BlzShowUnitTeamGlow(false)` remove ground glows that a floating arena can

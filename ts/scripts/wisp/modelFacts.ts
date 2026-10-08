@@ -2135,4 +2135,6 @@ export const MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
   "war3mapImported\\WardenOriginalClip8-3ad1b720391b6ee140652b66bbf89f4d2d498e4639361289d0d23169087aa7c6.mdx": {"geosets":5,"triangles":685,"lights":0,"bounds":{"min":[-156.195,-144.205,-54.452],"max":[143.658,141.6,442.065]},"emitters":[]},
   "war3mapImported\\WardenOriginalClip9-4c14192927fd6a766e8bfcab9c60edbda507b25ec50c168fc59bfef19bf54983.mdx": {"geosets":5,"triangles":685,"lights":0,"bounds":{"min":[-156.195,-144.205,-54.452],"max":[143.658,141.6,442.065]},"emitters":[]},
   "war3mapImported\\WardenWhite-34b81ee50c632c505b4205029b2fb0eb2dc21c965065362ad309679eb7ccf92e.mdx": {"geosets":5,"triangles":685,"lights":0,"bounds":{"min":[-156.195,-144.205,-54.452],"max":[143.658,141.6,442.065]},"emitters":[]},
+  "war3mapImported\\StagePointLight-a80bf58f5aab59d642ab911bc6ae05f69654de09308907c907d76de24c2fd479.mdx": {"geosets":0,"triangles":0,"lights":1,"emitters":[]},
+  "war3mapImported\\StagePointLight-e40b69be1b897ad6f33fb53f05e23630f4af667ba227af8a3da1b3ea270dfb6f.mdx": {"geosets":0,"triangles":0,"lights":1,"emitters":[]},
 };

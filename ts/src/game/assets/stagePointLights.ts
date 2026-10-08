@@ -1,6 +1,6 @@
 // Backdrop omni lights, which tools/stage/package.ts writes into light-only
 // models that the stage's scenery places (smashcraft:docs/design/visual-quality.md).
-import { CANNON_TEST_STAGE } from "../sim/stage";
+import { CANNON_TEST_STAGE, HELLFIRE_STAGE } from "../sim/stage";
 
 type Rgb = readonly [red: number, green: number, blue: number];
 
@@ -33,6 +33,13 @@ export interface StagePointLight {
  * contrast of any stage (#178, ΔE00 21.2).
  */
 export const STAGE_POINT_LIGHTS: readonly { readonly stage: number; readonly theme: string; readonly lights: readonly StagePointLight[] }[] = [
+  {
+    // HF-2/HF-3: fel green stays in the recessed rocks; no light reaches the fight.
+    stage: HELLFIRE_STAGE, theme: "Hellfire", lights: [
+      { x: -1450.0, y: 6000.0, z: -1400.0, color: [96, 255, 40], intensity: 0.875, flicker: 0.125, loopMs: 2400, radius: 950.0, castsShadow: true },
+      { x: 2150.0, y: 3700.0, z: -1450.0, color: [80, 255, 32], intensity: 0.625, flicker: 0.125, loopMs: 2800, radius: 450.0, castsShadow: false },
+    ],
+  },
   {
     stage: CANNON_TEST_STAGE, theme: "Blackrock", lights: [
       // The fire pillar on the left lights the near crag; its shadow gives the left band depth.

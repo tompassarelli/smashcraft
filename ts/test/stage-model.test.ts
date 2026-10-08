@@ -9,7 +9,7 @@ import { luma } from "../src/game/assets/stagePalette";
 import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";
 import { pointLightPieces, shadowCastingLights, stageScenery } from "../src/game/presentation/stageScenery";
 import { STAGE_DECK_PALETTES } from "../src/game/assets/stagePalette";
-import { CANNON_TEST_STAGE, MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt, solidSurfaceCount, surfaceLine } from "../src/game/sim/stage";
+import { CANNON_TEST_STAGE, HELLFIRE_STAGE, MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt, solidSurfaceCount, surfaceLine } from "../src/game/sim/stage";
 
 /** The stages whose main deck has walls and an underside, each drawn from its own outline. */
 const SHIPPED_STAGES = [1, ...STAGE_DECK_PALETTES.map(({ stage }) => stage).filter((stage) => solidSurfaceCount(stage) > 0)];
@@ -144,7 +144,27 @@ test("Blackrock's forge fires carry two warm omni lights, one shadow-casting, th
   // Rule 8: the flicker loops slower than once a second, far below three flashes a second.
   for (const light of lights) expect(light.loopMs).toBeGreaterThanOrEqual(1000);
   expect(shadowCastingLights(CANNON_TEST_STAGE)).toBe(1);
-  for (const { id } of STAGE_CATALOG) if (id !== CANNON_TEST_STAGE) expect(pointLightPieces(id)).toEqual([]);
+  for (const { id } of STAGE_CATALOG) if (!STAGE_POINT_LIGHTS.some(({ stage }) => stage === id)) expect(pointLightPieces(id)).toEqual([]);
+});
+
+test("Hellfire recesses fel flames and green lights into haze under the stock Outland sky [spec #293]", () => {
+  const scenery = stageScenery(HELLFIRE_STAGE);
+  expect(scenery.sky).toBe("Environment\\Sky\\Outland_Sky\\Outland_Sky.mdl");
+  expect(scenery.fog).toEqual({ start: 5000, end: 11000, red: 0.25, green: 0.5, blue: 0.125 });
+  const gate = scenery.pieces.find(({ model }) => model.includes("DemonGate"));
+  expect([gate?.x, gate?.y, gate?.scale]).toEqual([-1450, 6000, 1.25]);
+  const lights = STAGE_POINT_LIGHTS.find(({ stage }) => stage === HELLFIRE_STAGE)?.lights ?? [];
+  expect(lights.map(({ x, y, z, color, intensity, flicker, loopMs, radius, castsShadow }) => `${x},${y},${z} ${color.join(",")}@${intensity}±${flicker}/${loopMs}ms r${radius}${castsShadow ? " shadow" : ""}`)).toEqual([
+    "-1450,6000,-1400 96,255,40@0.875±0.125/2400ms r950 shadow",
+    "2150,3700,-1450 80,255,32@0.625±0.125/2800ms r450",
+  ]);
+  const flames = scenery.pieces.filter(({ model }) => model.includes("ImmolationTarget"));
+  expect(flames.map(({ scale }) => scale)).toEqual([0.75, 0.5]);
+  for (const light of lights) {
+    expect(light.y - light.radius - 200).toBeGreaterThan(3000);
+    expect(flames.some(({ x, y, z }) => x === light.x && y === light.y && z === light.z)).toBe(true);
+  }
+  expect(shadowCastingLights(HELLFIRE_STAGE)).toBe(1);
 });
 
 test("the map ships each point light model its light declares [invariant]", () => {
