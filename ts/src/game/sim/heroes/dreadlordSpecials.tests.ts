@@ -45,7 +45,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   resolveGrabs(world);
 }
 
-function pair(gap: number, target = Character.sylvanas): { world: Roster; owner: Fighter; victim: Fighter } {
+function pair(gap: number, target: Character = Character.sylvanas): { world: Roster; owner: Fighter; victim: Fighter } {
   const owner = createFighter(Character.dreadlord, -gap * 0.5, 1);
   owner.mana.points = 100;
   const victim = target === Character.sylvanas ? createReferenceContactFighter(gap * 0.5, -1) : createFighter(target, gap * 0.5, -1);

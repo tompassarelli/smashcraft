@@ -12,7 +12,7 @@ import { firstFighterDifference } from "../replay/difference";
 
 const roster: readonly Character[] = [Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(hero => hero.character)];
 
-test("all 88 regular specials start in their full form at zero meter [spec #335]", () => {
+test("all 84 regular specials start in their full form at zero meter [spec #335]", () => {
   let count = 0;
   for (const character of roster) for (const [x, z] of [[0, 0], [1, 0], [0, 1], [0, -1]] as const) {
     const fighter = createFighter(character, 0.0, 1);
@@ -25,7 +25,7 @@ test("all 88 regular specials start in their full form at zero meter [spec #335]
     assertEquals(fighter.visuals.manaDenied, 0);
     count++;
   }
-  assertEquals(count, 88);
+  assertEquals(count, 84);
 });
 
 test("body damage earns 1 meter per whole percent dealt capped at 12 and half as much taken capped at 6 [spec #335]", () => {

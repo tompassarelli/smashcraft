@@ -75,7 +75,7 @@ function rightWallX(stage: number, z: number): number | undefined {
 
 /**
  * Both airborne beside the right side, below the ledge's catch boxes; the
- * victim faces the Archer outside it. Stage 0 holds Final Destination's
+ * victim faces the opposing fighter outside it. Stage 0 holds Final Destination's
  * reference walls, which these contracts measure against; another stage
  * keeps the same gap to its own wall at that height (none: stage 0's place).
  */

@@ -68,8 +68,8 @@ test("Tilt selects neutral horizontal specials and faces the held direction on k
         f.adapt(capture.row, 1);
       } else f.adapt({ held, pressed: maskOf(Action.special), axisX: x * 127, axisZ: z * 127, specialX: x, specialZ: z }, 1);
       startFighterSpecial(f.fighter, 0, 0, f.input);
-      const wanted = z > 0 ? SpecialAction.archerRecovery : z < 0 ? SpecialAction.archerDisengage
-        : x !== 0 && !tilt ? SpecialAction.archerHomingArrow : SpecialAction.archerArrow;
+      const wanted = z > 0 ? SpecialAction.riflemanRecovery : z < 0 ? SpecialAction.riflemanTrap
+        : x !== 0 && !tilt ? SpecialAction.riflemanBear : SpecialAction.riflemanBlaster;
       const label = `${keyboard ? "keyboard" : "pad"} tilt ${tilt} x ${x} z ${z}`;
       assertEquals(f.fighter.special.action, wanted, label);
       if (z === 0 && x !== 0) assertEquals(f.fighter.facing, x, `${label} facing`);

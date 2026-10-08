@@ -1,5 +1,4 @@
-// Summons that act on their own: the Rifleman's bear and freeze trap, and the
-// the reference body's hippogryph.
+// Summons that act on their own: the Rifleman's bear and freeze trap.
 import { max } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, HitOrigin, SpecialAction } from "./codes";
