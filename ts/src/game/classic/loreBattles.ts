@@ -153,6 +153,8 @@ export const LORE_BATTLES: readonly LoreBattle[] = [
     win: koWithinClock, minutes: 3, playerStocks: 1, opponentStocks: 2, playerDamage: 40,
     speaker: "Grom Hellscream", intro: "Mannoroth, you chained the Warsong with your blood. Gorehowl will cut us free!",
   }),
+  bossBattle("hyjal-malfurion", "Mount Hyjal: The Horn of Cenarius", C.malfurion, BossKind.archimonde, 4, 5, 2,
+    "Come to the World Tree, Archimonde. The spirits of this forest have been waiting for you."),
 ];
 
 export const loreBattle = (index: number): LoreBattle | undefined => LORE_BATTLES[index];

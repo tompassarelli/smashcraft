@@ -305,6 +305,18 @@ export const CLASSIC_ROUTES: readonly ClassicRoute[] = [
     ],
     ending: ["Gorehowl broke the Legion's grip. No demon commands the Warsong now.", "Thrall, tell our people: we are free.", "And if another demon comes looking for us, let him hear my name."],
   },
+  {
+    fighter: C.malfurion, boss: BossKind.archimonde,
+    story: "Malfurion wakes to a wounded Ashenvale, rallies unlikely allies, and calls the forest against Archimonde.",
+    fights: [
+      fight(C.peon, 3, "Me chop only little sacred tree!"),
+      fight(C.pitLord, 14, "Your forests will feed the Legion's fires, druid."),
+      fight(C.dreadlord, 6, "Sleep again, Stormrage. This time the nightmare will keep you."),
+      fight([C.thrall, C.jaina], 10, "Our armies need time, Malfurion. Show us the forest can hold."),
+      fight(C.demonHunter, 7, "You would banish your own brother to save your precious trees?"),
+    ],
+    ending: ["Nordrassil's spirits answered. Archimonde heard them too late.", "Our immortality is gone, but the forest lives. That is enough.", "Illidan, if you are listening: stay out of my moonwells."],
+  },
 ];
 
 export const CLASSIC_CHARACTERS: readonly Character[] = CLASSIC_ROUTES.map(route => route.fighter);
