@@ -18,6 +18,7 @@ import { RealtimeClients, type TypedInput, customMapData, typedFile } from "wisp
 import { readSceneLines, sceneProblems } from "wisp/scripts/wisp/scene";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
 import { INTEGRITY_BUILD } from "../../src/game/shell/currentBuild";
+import { pollUntil } from "../hostPoll";
 import { PREDICTED_HEADLESS, SMASHCRAFT_HEADLESS } from "../wisp/headless";
 import { SMASHCRAFT_SCENE } from "../wisp/playerView";
 import { tsDirectory } from "../wisp/project";
@@ -185,22 +186,24 @@ export const captureHeadless = (options: HeadlessCaptureOptions) =>
           }),
         resume: ({ target, pid }) => target.kind === "helper" ? continueProcess(pid) : Effect.sync(() => realtime.release(target.slot)),
         waitText: (client, pattern) =>
-          Effect.gen(function*() {
-            const deadline = performance.now() + UI_WAIT_MILLIS;
-            for (;;) {
+          pollUntil(
+            Effect.gen(function*() {
               const text = screen(client);
               if (pattern.test(text.split(/\s+/).join(" ")) || pattern.test(text)) {
                 yield* logUi(client, "wait", `${pattern.source}\n${text}`);
                 return text;
               }
               yield* shared.healthy;
-              if (performance.now() > deadline) {
-                yield* logUi(client, "wait expired", `${pattern.source}\n${text}`);
-                return yield* new IntegrityFailure({ operation: `text ${pattern.source}`, path: names[client], cause: `not shown within ${UI_WAIT_MILLIS / 1000} s` });
-              }
-              yield* Effect.sleep(POLL_MILLIS);
-            }
-          }),
+              return undefined;
+            }),
+            {
+              every: POLL_MILLIS,
+              within: UI_WAIT_MILLIS,
+              orElse: () => logUi(client, "wait expired", `${pattern.source}\n${screen(client)}`).pipe(
+                Effect.andThen(new IntegrityFailure({ operation: `text ${pattern.source}`, path: names[client], cause: `not shown within ${UI_WAIT_MILLIS / 1000} s` })),
+              ),
+            },
+          ),
         // The headless screen is the client's whole shown text; a region narrows nothing.
         readText: (client, region) =>
           Effect.sync(() => screen(client)).pipe(
