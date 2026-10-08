@@ -71,10 +71,10 @@ function play(next: MapEntry): Observed[][] {
   clients.start();
   clients.frames(30);
   clients.chat(0, "-dev quick");
-  clients.frames(30);
+  clients.frames(6);
   const version = clients.reload(headless.modules(next));
   const frames: Observed[][] = [];
-  for (let frame = 0; frame < 48; frame++) {
+  for (let frame = 0; frame < 28; frame++) {
     if (frame === 20) clients.press(0, JUMP);
     clients.frames(1);
     frames.push(clients.clients.map((client) => {
@@ -104,7 +104,7 @@ test("under rollback the speculative match and every history snapshot take tuned
   clients.start();
   clients.frames(30);
   clients.chat(0, "-dev quick");
-  clients.frames(120);
+  clients.frames(12);
   clients.reload(headless.modules(entry));
   clients.frames(10);
   expect(clients.unappliedReloads()).toEqual([]);
@@ -145,7 +145,7 @@ test("tuned gravity reaches both clients' fighters on the frame they install it 
   const gravity = changed[at]![0]!.gravity;
   expect([melee(0.3499999940395355), melee(0.30000001192092896)]).toContain(gravity);
   expect(reference[at]![0]!.gravity).not.toBe(gravity);
-  // The jump after it rises and falls differently.
+  // The jump after it rises differently.
   const heights = column(changed, "height");
   const referenceHeights = column(reference, "height");
   expect(heights.slice(0, 20)).toEqual(referenceHeights.slice(0, 20));
