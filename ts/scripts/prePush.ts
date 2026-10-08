@@ -1,5 +1,6 @@
 // The pre-push gate. Git runs smashcraft:.githooks/pre-push (core.hooksPath
-// .githooks) on every push, safe-push's included; it names the open "main is
+// .githooks) on every push; safe-push runs it itself before taking its
+// landing lock, then pushes with it skipped. It names the open "main is
 // red" issue's failing tests (smashcraft:ts/scripts/mainRed.ts) and runs the
 // clean-room check (smashcraft:ts/scripts/cleanRoom.ts) and the fast checks
 // for the projects the pushed commits change, so no lane lands a
