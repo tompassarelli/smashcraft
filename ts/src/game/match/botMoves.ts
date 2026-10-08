@@ -165,9 +165,12 @@ function wallsOff(f: Readonly<Fighter>, style: AttackStyle, target: Readonly<Fig
 /** Whether an airborne fighter lands on a deck within `frames` frames, cancelling an aerial started now before it strikes. */
 function landsWithin(f: Readonly<Fighter>, frames: number, stage: number, matchFrame: number): boolean {
   if (f.motion.grounded) return false;
-  // A pass-through deck it rises through catches it on the way down: the decks under its arc's top count.
+  // A pass-through deck it rises through or drifts over catches it on the way down: the decks under its arc's top, where it is and where it drifts, count.
   const rising = f.motion.deltaZ > 0.0 ? Math.min(frames, Math.floor(f32(f.motion.deltaZ / f.tuning.physics.gravity))) : 0;
-  const deck = deckUnder(stage, matchFrame, f.motion.x, heightAhead(f, rising, -1, matchFrame));
+  const peak = heightAhead(f, rising, -1, matchFrame);
+  const here = deckUnder(stage, matchFrame, f.motion.x, peak);
+  const there = deckUnder(stage, matchFrame, f32(f.motion.x + f32(f.motion.deltaX * frames)), peak);
+  const deck = here === undefined ? there : there === undefined ? here : Math.max(here, there);
   return deck !== undefined && heightAhead(f, frames, -1, matchFrame) <= deck;
 }
 
