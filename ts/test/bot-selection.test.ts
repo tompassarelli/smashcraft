@@ -94,4 +94,4 @@ sweep("bot session: selection with computers in C and D steps to every stage and
   }
   expect(errors()).toEqual([]);
   expect(clients.firstDivergence()).toBeUndefined();
-}, 15000);
+});
