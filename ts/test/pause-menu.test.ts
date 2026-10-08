@@ -80,7 +80,7 @@ for (const mode of ["cpu", "classic", "training", "practice", "tutorial"] as con
     clients.frames(5);
     expect(value(first, () => shell().pauseMenu?.title)).toBe(true);
     expect(shows(first, "Smashcraft")).toBe(true);
-    clients.press(0, Key.n);
+    clients.press(0, mode === "cpu" ? Key.enter : Key.n);
     clients.frames(1);
     expect(value(first, () => shell().pauseMenu?.title)).toBe(false);
     for (const client of clients.clients) expect(client.errors).toEqual([]);
