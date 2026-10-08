@@ -1813,90 +1813,8 @@ const CLIPS: Readonly<Record<number, (readonly FighterOriginalClip[])>> = {
 };
 
 /** Each character's lowercase original sequence names; a name without its numeric variant selects the first variant. */
-const NAMED: readonly ReadonlyMap<string, number>[] = [
-  // reference
-  new Map<string, number>([
-    ["aerial back", 0],
-    ["aerial down", 1],
-    ["aerial forward", 2],
-    ["aerial neutral", 3],
-    ["aerial up", 4],
-    ["attack - 1", 5],
-    ["attack - 2", 6],
-    ["attack jab", 7],
-    ["damage air", 8],
-    ["damage ground", 9],
-    ["damage shield", 10],
-    ["damage tumble", 11],
-    ["death", 12],
-    ["decay bone", 13],
-    ["decay flesh", 14],
-    ["double jump", 15],
-    ["down damage", 16],
-    ["down tilt", 17],
-    ["fall special", 18],
-    ["forward tilt", 19],
-    ["forward tilt down", 20],
-    ["forward tilt up", 21],
-    ["get up", 22],
-    ["get up attack", 23],
-    ["grab", 24],
-    ["grab hold", 25],
-    ["grabbed", 26],
-    ["jump", 27],
-    ["knockdown", 28],
-    ["ledge climb", 29],
-    ["ledge hang", 30],
-    ["pummel", 31],
-    ["roll backward", 32],
-    ["roll forward", 33],
-    ["special down", 34],
-    ["special neutral", 35],
-    ["special neutral air", 36],
-    ["special side", 37],
-    ["special up", 38],
-    ["spot dodge", 39],
-    ["stand", 40],
-    ["stand - 2", 41],
-    ["stand - 3", 42],
-    ["stand - 5", 43],
-    ["stand hit", 44],
-    ["stand ready", 45],
-    ["stand victory", 46],
-    ["throw back", 47],
-    ["throw down", 48],
-    ["throw forward", 49],
-    ["throw up", 50],
-    ["up tilt", 51],
-    ["victim pummel", 52],
-    ["victim throw back", 53],
-    ["victim throw down", 54],
-    ["victim throw forward", 55],
-    ["victim throw up", 56],
-    ["walk", 57],
-    ["recovery turn", 58],
-    ["recovery stop", 59],
-    ["recovery jumpsquat", 60],
-    ["recovery airdodge", 61],
-    ["recovery tech", 62],
-    ["recovery techforward", 63],
-    ["recovery techbackward", 64],
-    ["recovery getuprollforward", 65],
-    ["recovery getuprollbackward", 66],
-    ["damage grid low small", 67],
-    ["damage grid low medium", 68],
-    ["damage grid low large", 69],
-    ["damage grid mid small", 70],
-    ["damage grid mid medium", 71],
-    ["damage grid mid large", 72],
-    ["damage grid high small", 73],
-    ["damage grid high medium", 74],
-    ["damage grid high large", 75],
-    ["attack gesture dashattack", 76],
-    ["attack", 5],
-  ]),
-  // Rifleman
-  new Map<string, number>([
+const NAMED: Readonly<Record<number, ReadonlyMap<string, number>>> = {
+  1: new Map<string, number>([
     ["aerial back", 0],
     ["aerial down", 1],
     ["aerial forward", 2],
@@ -1971,8 +1889,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["damage grid high medium", 71],
     ["damage grid high large", 72],
   ]),
-  // Illidan
-  new Map<string, number>([
+  2: new Map<string, number>([
     ["aerial back", 0],
     ["aerial down", 1],
     ["aerial forward", 2],
@@ -2098,8 +2015,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["attack gesture jab3", 122],
     ["attack gesture jab", 122],
   ]),
-  // Blademaster
-  new Map<string, number>([
+  3: new Map<string, number>([
     ["stand - 2", 0],
     ["stand cinematic", 1],
     ["attack", 2],
@@ -2174,8 +2090,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["sword gesture throw back heave", 71],
     ["portrait", 12],
   ]),
-  // MountainKing
-  new Map<string, number>([
+  4: new Map<string, number>([
     ["stand - 1", 0],
     ["stand ready", 1],
     ["stand - 2", 2],
@@ -2257,8 +2172,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["alternate stand", 13],
     ["alternate attack", 18],
   ]),
-  // Warden
-  new Map<string, number>([
+  5: new Map<string, number>([
     ["stand - 1", 0],
     ["stand - 2", 1],
     ["walk", 2],
@@ -2328,8 +2242,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["attack", 5],
     ["attack gesture jab", 55],
   ]),
-  // Lich
-  new Map<string, number>([
+  6: new Map<string, number>([
     ["stand", 0],
     ["stand ready", 1],
     ["stand - 2", 2],
@@ -2395,8 +2308,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["attack gesture forwardair", 62],
     ["attack gesture upair", 63],
   ]),
-  // ForsakenPaladin
-  new Map<string, number>([
+  7: new Map<string, number>([
     ["base", 0],
     ["stand 1", 1],
     ["stand 2", 2],
@@ -2517,8 +2429,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["forsaken paladin pain 1", 103],
     ["forsaken paladin pain 2", 106],
   ]),
-  // Dreadlord
-  new Map<string, number>([
+  8: new Map<string, number>([
     ["stand", 0],
     ["stand ready", 1],
     ["stand - 2", 2],
@@ -2588,8 +2499,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["attack", 9],
     ["attack gesture jab", 57],
   ]),
-  // ShadowHunter
-  new Map<string, number>([
+  9: new Map<string, number>([
     ["walk", 0],
     ["stand -1", 1],
     ["stand -2", 2],
@@ -2658,8 +2568,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["stand", 1],
     ["attack gesture jab", 56],
   ]),
-  // PitLord
-  new Map<string, number>([
+  10: new Map<string, number>([
     ["stand - 3", 0],
     ["walk", 1],
     ["stand", 2],
@@ -2727,8 +2636,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["attack gesture neutralair", 64],
     ["attack slam", 5],
   ]),
-  // Beastmaster
-  new Map<string, number>([
+  11: new Map<string, number>([
     ["walk", 0],
     ["stand - 1", 1],
     ["stand - 2", 2],
@@ -2794,8 +2702,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["stand", 1],
     ["attack gesture jab", 50],
   ]),
-  // LichKing
-  new Map<string, number>([
+  12: new Map<string, number>([
     ["stand - 1", 0],
     ["stand - 2", 1],
     ["walk", 2],
@@ -2896,8 +2803,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["stand", 0],
     ["attack", 4],
   ]),
-  // Thrall
-  new Map<string, number>([
+  13: new Map<string, number>([
     ["stand", 0],
     ["stand - 2", 1],
     ["walk", 2],
@@ -2991,8 +2897,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["thrall damage 1", 82],
     ["thrall damage 2", 85],
   ]),
-  // JainaProudmoore
-  new Map<string, number>([
+  14: new Map<string, number>([
     ["stand -1", 0],
     ["stand second", 1],
     ["stand victory", 2],
@@ -3090,8 +2995,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["jaina damage 1", 84],
     ["jaina damage 2", 87],
   ]),
-  // SylvanasWindrunner
-  new Map<string, number>([
+  15: new Map<string, number>([
     ["stand", 0],
     ["stand - 2", 1],
     ["stand - 3", 2],
@@ -3173,8 +3077,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["attack", 6],
     ["sylvanas pain", 69],
   ]),
-  // CairneBloodhoof
-  new Map<string, number>([
+  16: new Map<string, number>([
     ["stand -1", 0],
     ["stand - 2", 1],
     ["stand - 3", 2],
@@ -3274,8 +3177,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["cairne pain 1", 87],
     ["cairne pain 2", 90],
   ]),
-  // ChenStormstout
-  new Map<string, number>([
+  17: new Map<string, number>([
     ["walk", 0],
     ["stand - 1", 1],
     ["stand - 2", 2],
@@ -3378,8 +3280,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["chen damage 1", 91],
     ["chen damage 2", 94],
   ]),
-  // Peon
-  new Map<string, number>([
+  18: new Map<string, number>([
     ["stand", 0],
     ["walk", 1],
     ["attack", 2],
@@ -3470,8 +3371,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["peon pain22", 87],
     ["peon pain", 79],
   ]),
-  // GoblinTinker
-  new Map<string, number>([
+  19: new Map<string, number>([
     ["walk", 0],
     ["stand", 1],
     ["stand - 2", 2],
@@ -3573,8 +3473,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["attack", 5],
     ["attack alternate", 16],
   ]),
-  // KaelthasSunstrider
-  new Map<string, number>([
+  20: new Map<string, number>([
     ["stand", 0],
     ["stand - 3", 1],
     ["walk", 2],
@@ -3671,8 +3570,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["kaelthas damage 1", 86],
     ["kaelthas damage 2", 89],
   ]),
-  // Murloc
-  new Map<string, number>([
+  21: new Map<string, number>([
     ["stand 2", 0],
     ["walk", 1],
     ["stand", 2],
@@ -3768,7 +3666,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["murloc damage 1", 84],
     ["murloc damage 2", 87],
   ]),
-];
+};
 
 /** Clips 0 to count - 1 exist for this character. */
 export function originalClipCount(character: number): number {
