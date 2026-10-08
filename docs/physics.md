@@ -2435,8 +2435,9 @@ measured Melee values.
 The owner's digital controls (smashcraft:docs/gameplay-design.md, "Controls"):
 a horizontal-only air dodge uses an angle
 of 18 degrees below horizontal for either fighter, mirrored for left/right.
-Its initial vector uses the retail 18.59999942779541-world-unit magnitude,
-approximately (+/-17.68965066, -5.74771592), before retail air-dodge decay. This is the default,
+Its initial vector uses 3.4 Melee units (20.4 world units), deliberately about
+9.7% faster than Melee's 3.1 (#347), before the unchanged 0.9 air-dodge decay.
+The 10-frame landing lag, intangibility, and per-fighter traction are unchanged. This is the default,
 with no modifier or toggle. Explicit up/down/diagonal input retains its
 previous direction and normalized speed; neutral retains zero initial velocity.
 A dodge started too high may still expire before reaching the ground. The angle

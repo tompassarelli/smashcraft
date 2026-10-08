@@ -44,7 +44,7 @@ test("shielding during jump squat uses the later direction for a first-frame wav
       assertFalse(fighter.jump.dodgeQueued);
       assertTrue(fighter.motion.grounded);
       assertEquals(fighter.landing.lag, AIR_DODGE_LANDING_LAG);
-      assertNear(fighter.motion.vx, direction * 15.920684814453125, 0.0010000000474974513);
+      assertNear(fighter.motion.vx, direction * 17.461397171020508, 0.0010000000474974513);
     }
   }
 });

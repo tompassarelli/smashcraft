@@ -10,7 +10,8 @@ import { observeActionDecision, observeActionStart } from "./observations";
 import { clearDownState } from "./transitions";
 import { melee } from "./tuning";
 
-const AIR_DODGE_SPEED = melee(3.0999999046325684);
+// #347 deliberately exceeds Melee’s 3.1 by about 10%; decay and dodge timing stay shared.
+const AIR_DODGE_SPEED = melee(f32(3.4));
 export const AIR_DODGE_DECAY = 0.8999999761581421;
 // EscapeAir processes animation frame one before entry physics; frame 30 resumes air physics.
 const AIR_DODGE_DECAY_FRAMES = 29;
