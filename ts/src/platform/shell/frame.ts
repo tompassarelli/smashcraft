@@ -28,7 +28,7 @@ import { probeRecording } from "./responseProbe";
 import { MatchCue } from "../../game/presentation/matchAudio";
 import { resultsView } from "../../game/presentation/matchCues";
 import { RESULTS_DELAY_FRAMES } from "../../game/render/matchPresentation";
-import { LASTING, announce, renderFighter, setStatus } from "./view";
+import { LASTING, announce, renderFighter, resumePresentationHeld, setStatus } from "./view";
 import { writeMatchRecord } from "./matchRecords";
 import { beginReplayFrame, endReplaySegment, replayFrameRan } from "./replays";
 
@@ -148,7 +148,7 @@ export function applyFrame(s: ShellState, recorded = false): void {
     if (participant.pooled && !confirmModelSounds(s.sounds, s.sounds.epoch ?? 0, runtime.simulationFrame, slot, fighter, runtime.poses[slot], ui.sounds)) {
       traceInput(s.trace, `model sound rejected confirmed frame ${runtime.simulationFrame} slot ${slot}`);
     }
-    const held = heldVisualFrame(localSlot()) !== undefined;
+    const held = heldVisualFrame(localSlot()) !== undefined || resumePresentationHeld(s);
     ui.combat.presentConfirmed(runtime.simulationFrame, slot, runtime.frameImpacts[slot], s.trace.active
       ? (sound, volume, pitch) => traceInput(s.trace, `participant ${slot} frame ${runtime.simulationFrame} sound ${sound} volume ${volume} pitch ${canonicalReal(pitch)}`)
       : undefined);

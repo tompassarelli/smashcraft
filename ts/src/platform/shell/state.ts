@@ -229,6 +229,8 @@ export interface ShellState {
   menuFrames?: number;
   readonly camera: MatchCamera;
   cameraTween?: boolean;
+  /** Local clock deadline: resume keeps the paused picture across batched callbacks. */
+  resumePresentationUntil?: number | undefined;
   readonly build: MapBuild;
   /** The world point the simulation's origin maps to: stage center and floor height. */
   readonly origin: WorldOrigin;
