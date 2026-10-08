@@ -13,7 +13,7 @@ export const CHEN_GAMEPLAN: FighterGameplan = {
     { via: "run", moves: [AttackStyle.forwardTilt, AttackStyle.grab, AttackStyle.dashAttack], weight: 5 },
     { via: "jump", moves: [AttackStyle.neutralAir, AttackStyle.forwardAir], weight: 3 },
   ],
-  defense: ["stance", "shield", "spotDodge", "jump"],
+  defense: ["stance"],
   combos: [
     { starter: AttackStyle.downTilt, followUps: [AttackStyle.upTilt, AttackStyle.upAir] },
     { starter: AttackStyle.upTilt, followUps: [AttackStyle.upAir, AttackStyle.neutralAir] },
