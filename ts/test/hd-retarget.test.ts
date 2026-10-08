@@ -1,10 +1,11 @@
 import { expect, test } from 'bun:test';
 import { model as mdx, parseMDL } from 'war3-model';
 import { stageSkyMdl } from '../scripts/stageSky';
-import { retargetHd, checkRetarget, parseHdBody, generateHdBody, checkBodySkin } from '../../tools/animations/hd-retarget';
+import { retargetHd, checkRetarget, rotationError, parseHdBody, generateHdBody, checkBodySkin } from '../../tools/animations/hd-retarget';
 import { encodeVerified, parseSource } from '../../tools/animations/original-clips';
 import { DrawnModel } from '../scripts/wisp/hurtboxView';
 import { timelineBody } from '../../tools/animations/timeline-body';
+import { mat4, quat } from 'gl-matrix';
 
 test('registered alternate meshes retain authored hide and show keys in the Definitive timeline [spec #334]', () => {
     const source = parseMDL(stageSkyMdl('stock.blp'));
@@ -127,6 +128,17 @@ test('a sheared Stand registration retains its fixed stretch through authored mo
     const measured = checkRetarget({ ...result, samples: result.samples.map(sample => ({ ...sample, sequence: 0 })) }, bytes);
     expect(measured.units).toBeLessThanOrEqual(0.5);
     expect(measured.degrees).toBeLessThanOrEqual(0.5);
+});
+
+test('a 0.2 degree turn of a joint sheared by its Stand registration measures 0.2 degrees [repro #334]', () => {
+    // Rifleman arm_L0_end_jnt, Up Tilt: thinning turned the hand 0.23 degrees, but quaternions read off
+    // the sheared pose matrices differed by 3.6 degrees. This stretch and pose make that read jump 75 degrees.
+    const turn = (axis: [number, number, number], degrees: number) =>
+        mat4.fromQuat(mat4.create(), quat.setAxisAngle(quat.create(), axis, degrees * Math.PI / 180));
+    const sheared = mat4.multiply(mat4.create(), mat4.fromScaling(mat4.create(), [1, 0.25, 1]), turn([Math.SQRT1_2, Math.SQRT1_2, 0], 240));
+    const expected = mat4.multiply(mat4.create(), turn([0, 0, 1], 30), sheared);
+    const actual = mat4.multiply(mat4.create(), turn([1, 0, 0], 0.2), expected);
+    expect(rotationError(expected, actual)).toBeCloseTo(0.2, 2);
 });
 
 test('an absent required HD joint rejects the export [spec #334]', () => {

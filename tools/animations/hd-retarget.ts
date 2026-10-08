@@ -244,6 +244,14 @@ export function retargetHd(source: mdx.Model, hd: mdx.Model, pairs: readonly (re
     return { model, samples, mapped: correspondence.size };
 }
 
+/** Degrees `actual` is turned from `expected` in world space. */
+export function rotationError(expected: mat4, actual: mat4): number {
+    // A registration stretch leaves the pose matrix sheared, and a quaternion read off a sheared matrix can
+    // jump tens of degrees for a fraction-of-a-degree turn; actual * expected^-1 cancels the shared stretch.
+    const turn = quat.normalize(quat.create(), mat4.getRotation(quat.create(), mat4.multiply(mat4.create(), actual, inverse(expected))));
+    return 2 * Math.acos(Math.min(1, Math.abs(turn[3]))) * 180 / Math.PI;
+}
+
 export function checkRetarget(result: RetargetResult, bytes = generateHdBody(result.model)) {
     const model = parseHdBody(bytes), at = evaluator(model);
     let units = 0, degrees = 0, worst = '';
@@ -252,9 +260,7 @@ export function checkRetarget(result: RetargetResult, bytes = generateHdBody(res
         for (const [id, expected] of sample.expected) {
             const pivot = model.Nodes[id].PivotPoint;
             const distance = vec3.distance(vec3.transformMat4(vec3.create(), pivot, expected), vec3.transformMat4(vec3.create(), pivot, actual[id]));
-            const left = quat.normalize(quat.create(), mat4.getRotation(quat.create(), expected));
-            const right = quat.normalize(quat.create(), mat4.getRotation(quat.create(), actual[id]));
-            const angle = 2 * Math.acos(Math.min(1, Math.abs(quat.dot(left, right)))) * 180 / Math.PI;
+            const angle = rotationError(expected, actual[id]);
             if (!Number.isFinite(distance + angle)) throw new Error('Non-finite HD pose');
             if (distance > units || angle > degrees) worst = `${model.Sequences[sample.sequence].Name}/${model.Nodes[id].Name}@${sample.frame}`;
             units = Math.max(units, distance); degrees = Math.max(degrees, angle);
