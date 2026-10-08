@@ -1,5 +1,6 @@
 import { join } from "node:path";
 import { generateMDX, parseMDL } from "../animations/node_modules/war3-model";
+import { lavaGlowTexel, liquidTexel, liquidTga } from "../../ts/scripts/stageLiquid";
 
 const hash = (bytes: Uint8Array) => new Bun.CryptoHasher("sha256").update(bytes).digest("hex");
 
@@ -7,22 +8,18 @@ export async function packageLiquids(output: string): Promise<readonly string[]>
   const names: string[] = [];
   const models: string[] = [];
   for (const kind of ["Water", "Lava"] as const) {
-    const size = 64;
-    const texture = new Uint8Array(18 + size * size * 4);
-    texture[2] = 2; texture[12] = size; texture[14] = size; texture[16] = 32; texture[17] = 0x28;
-    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
-      const ripple = Math.sin((x + 5 * Math.sin(y * Math.PI / 16)) * Math.PI / 8) * 0.5 + 0.5;
-      const rgb = kind === "Water" ? [90 + 45 * ripple, 161 + 40 * ripple, 172 + 42 * ripple] : [190 + 52 * ripple, 63 + 63 * ripple, 18 + 19 * ripple];
-      texture.set([Math.round(rgb[2] ?? 0), Math.round(rgb[1] ?? 0), Math.round(rgb[0] ?? 0), kind === "Water" ? 110 : 235], 18 + (y * size + x) * 4);
-    }
+    const texture = liquidTga((x, y) => liquidTexel(kind, x, y));
     const textureName = `Stage${kind}-${hash(texture)}.tga`;
+    // Lava adds its glow layer (Blackrock, #292); water keeps one layer.
+    const glow = kind === "Lava" ? liquidTga(lavaGlowTexel) : undefined;
+    const glowName = glow === undefined ? undefined : `Stage${kind}Glow-${hash(glow)}.tga`;
     const extent = 'MinimumExtent { -50, -60, 0 }, MaximumExtent { 50, 60, 0 }, BoundsRadius 80,';
     const mdl = `Version { FormatVersion 800, }
 Model "Smashcraft ${kind}" { NumGeosets 1, NumBones 1, BlendTime 0, ${extent} }
 Sequences 1 { Anim "Stand" { Interval { 0, 12000 }, ${extent} } }
-Textures 1 { Bitmap { Image "war3mapImported\\${textureName}", WrapWidth, WrapHeight, } }
+Textures ${glowName === undefined ? 1 : 2} { Bitmap { Image "war3mapImported\\${textureName}", WrapWidth, WrapHeight, } ${glowName === undefined ? "" : `Bitmap { Image "war3mapImported\\${glowName}", WrapWidth, WrapHeight, }`} }
 TextureAnims 1 { TVertexAnim { Translation 2 { Linear, 0: { 0, 0, 0 }, 12000: { 1, 0, 0 }, } } }
-Materials 1 { Material { Layer { FilterMode Blend, Unshaded, TwoSided, static TextureID 0, TVertexAnimId 0, static Alpha 1, } } }
+Materials 1 { Material { Layer { FilterMode Blend, Unshaded, TwoSided, static TextureID 0, TVertexAnimId 0, static Alpha 1, } ${glowName === undefined ? "" : "Layer { FilterMode Additive, Unshaded, TwoSided, static TextureID 1, TVertexAnimId 0, static Alpha 1, }"} } }
 Geoset {
 Vertices 4 { { -50, -60, 0 }, { 50, -60, 0 }, { 50, 60, 0 }, { -50, 60, 0 }, }
 Normals 4 { { 0, 0, 1 }, { 0, 0, 1 }, { 0, 0, 1 }, { 0, 0, 1 }, }
@@ -39,6 +36,10 @@ PivotPoints 1 { { 0, 0, 0 }, }
     const modelName = `Stage${kind}-${hash(bytes)}.mdx`;
     await Bun.write(join(output, textureName), texture);
     await Bun.write(join(output, modelName), bytes);
+    if (glow !== undefined && glowName !== undefined) {
+      await Bun.write(join(output, glowName), glow);
+      names.push(glowName);
+    }
     names.push(textureName, modelName);
     models.push(`export const STAGE_${kind.toUpperCase()}_MODEL = ${JSON.stringify(`war3mapImported\\${modelName}`)};`);
   }

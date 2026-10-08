@@ -447,6 +447,18 @@ Per stage (backdrop facts from [Per-stage recommendations](#per-stage-recommenda
 | Ahn'Qiraj (13) | bright sandstone; light at 0.5 | Dusk-ochre height fog below the deck; the G3 Definitive light copy | — |
 | Hellfire (14) | dark haze *(guess)* | Fel-green omni lights from imported effects; bloom on fel fire. Outland_Sky is available in every mode | — |
 
+Blackrock's row is in place (#292). Its two forge fires carry light-only
+omni models (smashcraft:ts/src/game/assets/stagePointLights.ts): warm orange,
+a slow flicker of ±12.5%, and a reach that ends at least 3,000 units behind
+the fight, so they light the basalt by the fires and no fighter. The fire
+pillar's light casts shadows (`BlzSetMinShadowCastingPointLightCount(1)`
+while Blackrock is drawn). Classic draws no model omni lights, so there it
+shows the stage as before. The lava gains an additive crest layer
+(smashcraft:ts/scripts/stageLiquid.ts). The crests peak above luma 0.9 and
+the body stays under the stock bloom threshold of 0.72, so the map-wide bloom
+(#288) catches only the veins. Blackrock's AO is #288's map-wide ASSAO.
+smashcraft:ts/test/stage-model.test.ts pins these values.
+
 For fighters on every stage: AO and point-light shadows give contact shading
 in HD when the player turns them on. `DisallowHeroGlowOnUnit` and
 `BlzShowUnitTeamGlow(false)` remove ground glows that a floating arena can

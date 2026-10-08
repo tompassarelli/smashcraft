@@ -1,7 +1,9 @@
 import { preloadLights, preloadModels, preloadSkies } from "../../game/presentation/stagePreload";
-import { stageLightModel, stageScenery, terrainPieces } from "../../game/presentation/stageScenery";
+import { placedPieces, shadowCastingLights, stageLightModel, stageScenery } from "../../game/presentation/stageScenery";
 import { hideEffect } from "../../game/render/effects";
 import type { ShellState } from "./state";
+
+let shadowLightsRaised = false;
 
 /** Shared handle lifetimes, with purely visual sky, light, fog and backdrop settings. */
 export function drawStageScenery(s: ShellState): void {
@@ -21,8 +23,12 @@ export function drawStageScenery(s: ShellState): void {
     const { start, end, red, green, blue } = scenery.fog;
     SetTerrainFogEx(0, start, end, 0.0, red, green, blue);
   }
+  // Set only once a stage with a shadow-casting light has raised it, then back to none.
+  const shadows = shadowCastingLights(s.game.stageChoice);
+  if (shadows > 0 || shadowLightsRaised) BlzSetMinShadowCastingPointLightCount(shadows);
+  shadowLightsRaised = shadows > 0;
   const effects: effect[] = [];
-  for (const piece of [...scenery.pieces, ...terrainPieces(s.game.stageChoice, s.game.hazards)]) {
+  for (const piece of placedPieces(s.game.stageChoice, s.game.hazards)) {
     const x = s.origin.x + piece.x;
     const y = s.origin.y + piece.y;
     const effect = AddSpecialEffect(piece.model, x, y);
@@ -55,9 +61,9 @@ export function preloadStageAssets(s: ShellState): void {
 export function showBackdrop(s: ShellState, visible: boolean): void {
   BlzShowSkyBox(visible);
   const alpha = visible ? 255 : 0;
-  const scenery = stageScenery(s.game.stageChoice);
+  const pieces = placedPieces(s.game.stageChoice, s.game.hazards);
   for (const [index, effect] of (s.stageScenery ?? []).entries()) {
-    const piece = [...scenery.pieces, ...terrainPieces(s.game.stageChoice, s.game.hazards)][index];
+    const piece = pieces[index];
     if (!visible || piece === undefined) hideEffect(effect, s.origin);
     else {
       BlzSetSpecialEffectPosition(effect, s.origin.x + piece.x, s.origin.y + piece.y, s.origin.z + piece.z);
