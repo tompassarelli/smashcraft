@@ -39,7 +39,7 @@ const HERO_BODIES: { readonly [character: number]: HeroBody | undefined } = {
   [Character.sylvanas]: body(f32(96.0 / 75.0), f32(f32(1.828) / f32(2.2)), f32(0.935), f32(0.90), 1.0),
   [Character.cairne]: { ...body(f32(133.0 / 75.0), f32(f32(1.485) / f32(2.2)), f32(0.945), f32(1.75), f32(1.45)), shield: f32(1.45) },
   [Character.peon]: body(f32(92.0 / 75.0), f32(f32(1.6) / f32(2.2)), f32(0.987), f32(0.88), f32(0.80)),
-  [Character.murloc]: { ...body(f32(0.94), f32(1.12), f32(1.06), f32(0.90), f32(0.72)), runSpeed: f32(13.78), dashSpeed: f32(11.964) },
+  [Character.murloc]: { ...body(f32(0.94), f32(1.12), f32(1.06), f32(0.90), f32(0.72)), runSpeed: 13.79999828338623, dashSpeed: 11.999999046325684 },
   [Character.tinker]: body(f32(106.0 / 75.0), f32(f32(1.725) / f32(2.2)), f32(1.134), f32(1.12), f32(0.95)),
 };
 

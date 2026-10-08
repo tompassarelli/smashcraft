@@ -132,7 +132,7 @@ multiplier and all other movement properties.
 | --- | ---: | ---: |
 | Blademaster | 14.256 → 13.74 | 12.312 → 11.892 |
 | Dreadlord | 14.520 → 13.76 | 12.540 → 11.928 |
-| Murloc | 14.784 → 13.78 | 12.768 → 11.964 |
+| Murloc | 14.784 → 13.79999828338623 | 12.768 → 11.999999046325684 |
 | Warden | 15.048 → 13.799999237060547 | 12.996 → 12 |
 
 Values in this table other than the ceiling are rounded for readability.
