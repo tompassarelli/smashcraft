@@ -401,7 +401,7 @@ function burstProjectiles(f: Fighter, from: Readonly<SpecialProjectile>, into: R
     index++;
     if (before.life <= 0 || before.kind !== ProjectileKind.hero
       || (before.spec !== from && before.spec !== ordinary?.from && before.spec !== upgraded?.from)) continue;
-    const result = before.spec === upgraded?.from ? upgraded.into : into;
+    const result = upgraded !== undefined && before.spec === upgraded.from ? upgraded.into : into;
     const projectile = mutableProjectile(f, index);
     projectile.spec = result;
     projectile.velocityX = 0.0;
