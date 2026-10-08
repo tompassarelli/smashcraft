@@ -205,6 +205,10 @@ function addHeroSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage:
   let added = count;
   for (let index = 0; index < HERO_SLOTS.length; index++) {
     if (heroSpecialUse(f, target, stage, at(HERO_SLOTS, index), observationAge) !== use) continue;
+    // Fury catches a retreat; an approaching target beyond hammer range must come to the hammer first.
+    if (f.character === Character.forsakenPaladin && at(HERO_SLOTS, index) === SpecialSlot.side
+      && Math.abs(aheadX(f, target, 0, undefined, observationAge)) > moveReachAhead(f.character, AttackStyle.forwardTilt, target, f.tuning.moves)
+      && f32(target.motion.deltaX * f.facing) <= 0.0) continue;
     options[added++] = at(SLOT_OPTIONS, index);
     options[added++] = at(SLOT_OPTIONS, index);
   }

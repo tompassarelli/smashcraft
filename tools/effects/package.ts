@@ -75,6 +75,16 @@ for (let i = 0; i < 64; i++) {
 defile.push({points:[[-1,0],[-1,.20],[-.91,.20],[-.91,0]],tile:0},
     {points:[[.91,0],[.91,.20],[1,.20],[1,0]],tile:0});
 models.push(["Defile",defile]);
+/**
+ * HD modes draw a model's omni lights without a cap (3.0); Classic keeps the
+ * spark geometry alone. Each light fades out within its spark's pooled
+ * lifetime (tech 15 frames, a contact spark 9), so a parked spark is unlit.
+ */
+type ContactLight = { radius: number, peak: number, mid: number, fadeMs: number, color: [number, number, number] };
+const contactLights: Record<string, ContactLight | undefined> = {
+    Tech: { radius: 320, peak: 0.55, mid: 0.25, fadeMs: 180, color: [.65, .8, 1] },
+    Hit: { radius: 380, peak: 0.9, mid: 0.35, fadeMs: 140, color: [1, .9, .7] },
+};
 const imports = [textureName];
 const assetInfo: string[] = [];
 let preview = `<svg xmlns="http://www.w3.org/2000/svg" width="${models.length*200}" height="210"><defs><radialGradient id="dust"><stop stop-color="white"/><stop offset=".55" stop-color="white" stop-opacity=".65"/><stop offset="1" stop-color="white" stop-opacity="0"/></radialGradient></defs><rect width="${models.length*200}" height="210" fill="#18202c"/>`;
@@ -93,6 +103,7 @@ for (const [index,[name,shapes]] of models.entries()) {
             ${extent} Anim { ${extent} } MaterialID ${dark ? 2 : soft ? 1 : 0}, SelectionGroup 0,
         }`;
     }).join("\n");
+    const light = contactLights[name];
     const mdl = `Version { FormatVersion 800, }
         Model "Smashcraft ${name}" { NumGeosets ${shapes.length}, NumBones 1, BlendTime 0, ${extent} }
         Sequences 1 { Anim "Stand" { Interval { 0, 1000 }, ${extent} } }
@@ -105,18 +116,18 @@ for (const [index,[name,shapes]] of models.entries()) {
         ${geometry}
         ${name === "Defile" ? 'GeosetAnim { static Alpha 1, static Color { 0.045, 0.025, 0.065 }, GeosetId 0, }' : ''}
         Bone "Impact" { ObjectId 0, GeosetId Multiple, GeosetAnimId None, }
-        ${name === "Tech" ? `Light "ContactFlash" {
+        ${light === undefined ? "" : `Light "ContactFlash" {
             ObjectId 1, Omnidirectional,
-            static AttenuationStart 0, static AttenuationEnd 320,
-            Intensity 3 { Linear, 0: 0.55, 90: 0.25, 180: 0, }
-            static Color { 0.65, 0.8, 1 },
+            static AttenuationStart 0, static AttenuationEnd ${light.radius},
+            Intensity 3 { Linear, 0: ${light.peak}, ${light.fadeMs / 2}: ${light.mid}, ${light.fadeMs}: 0, }
+            static Color ${vector(light.color)},
             static AmbIntensity 0, static AmbColor { 0, 0, 0 },
-        }` : ""}
-        PivotPoints ${name === "Tech" ? 2 : 1} { { 0, 0, 0 }, ${name === "Tech" ? "{ 0, -12, 20 }," : ""} }`;
+        }`}
+        PivotPoints ${light === undefined ? 1 : 2} { { 0, 0, 0 }, ${light === undefined ? "" : "{ 0, -12, 20 },"} }`;
     const bytes = new Uint8Array(generateMDX(parseMDL(mdl)));
     const decoded = parseMDX(bytes.buffer);
     if (decoded.Geosets.length !== shapes.length || decoded.Sequences.length !== 1) throw new Error(`${name}: lost effect geometry`);
-    if (decoded.Lights.length !== (name === "Tech" ? 1 : 0)) throw new Error(`${name}: lost contact light`);
+    if (decoded.Lights.length !== (light === undefined ? 0 : 1)) throw new Error(`${name}: lost contact light`);
     for (const geoset of decoded.Geosets) {
         if (!Array.from(geoset.Vertices).every(Number.isFinite)) throw new Error(`${name}: invalid vertex`);
     }

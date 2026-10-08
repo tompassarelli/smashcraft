@@ -1,4 +1,4 @@
-import { assertEquals, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertGreaterThan, test } from "wisp/src/runtime/testing";
 import { attackBuffer } from "../input/attackBuffer";
 import { Character } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
@@ -60,4 +60,26 @@ test("hero special reach from a delayed moving target matches its current-positi
       assertEquals(delayed.motion.x, x);
     }
   }
+});
+
+test("Forsaken Paladin catches a retreat with Fury and waits for an approach beyond hammer range [spec #275]", () => {
+  const own = createFighter(Character.forsakenPaladin, 0.0, 1);
+  const target = createFighter(Character.archer, 240.0, -1);
+  const skill = { ...perceivedCpuSkill("wren", "expert"), misplay: 0 };
+  for (const velocity of [-1.0, 0.0, 1.0]) {
+    target.motion.deltaX = velocity;
+    const input = neutralControls();
+    const commands = attackBuffer(6);
+    chooseAttack(own, target, 0, 1, 1, true, input, commands, 0, -1, skill);
+    assertEquals(input.specialPressed && input.specialX !== 0, velocity > 0.0);
+  }
+  target.motion.x = 100.0;
+  target.motion.deltaX = 0.0;
+  let closeCharges = 0;
+  for (let frame = 1; frame <= 64; frame++) {
+    const input = neutralControls();
+    chooseAttack(own, target, 0, frame, frame, true, input, attackBuffer(6), 0, -1, skill);
+    if (input.specialPressed && input.specialX !== 0) closeCharges++;
+  }
+  assertGreaterThan(closeCharges, 0);
 });

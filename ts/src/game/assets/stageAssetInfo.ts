@@ -22,14 +22,14 @@ export const STAGE_SNOW_MODEL = "war3mapImported\\StageSnow-917b74168e66aca04673
 /** Each selectable stage's day/night lighting model, from its light in stageLighting.ts. */
 export const STAGE_LIGHT_MODELS: Readonly<Record<number, string>> = {
   0: "war3mapImported\\StageLight-58aa70a31b10f62d7bb32417f729569e4b05db2baa78efd264754cca6e604be6.mdx",
-  2: "war3mapImported\\StageLight-0c26737873df1314a927484c7b4de405d36d0448c4049dc3b1a919d407d01c88.mdx",
+  2: "war3mapImported\\StageLight-1ad8299ee23d76791423ad6ef47e0c1efe055f732fbf692f5eea764c7bf0f738.mdx",
   10: "war3mapImported\\StageLight-237830eeeab84963d9a926cef8a7feaa72a71cb011309292ea8ad44f5ca69774.mdx",
   11: "war3mapImported\\StageLight-360d39b12a093ba6739003209b2befc84a674055b6c7880de97be29839c4437f.mdx",
-  3: "war3mapImported\\StageLight-62e688dbe8d35858476e27c948a86172be4f8041c21192a00a895fbcffbad471.mdx",
+  3: "war3mapImported\\StageLight-b3cd66205183a43d279fbcf8a8509a1c788dbdfe45def136a8ef2ebe3cc6ade0.mdx",
   4: "war3mapImported\\StageLight-a1cf0295f1d9682a4ecb95d75eefa97bea7d6ce9877241c9cfd424288b5b8586.mdx",
   14: "war3mapImported\\StageLight-e2e9386a7685323a61c636f8d97042435961a2254e369c4af27061e382c12990.mdx",
   12: "war3mapImported\\StageLight-3c7409d97ef755664704f86b7c2e8daeacc2ef10007ca72b4d6e1db843ddd733.mdx",
   6: "war3mapImported\\StageLight-72c98875af85ebde417d827ee435f29e5151d6a7b93c13c1e3f7569005990f36.mdx",
   7: "war3mapImported\\StageLight-edf3b5df8d80335a608fe64f09ae146f616bfd1e255338dcf59c73937403957a.mdx",
-  13: "war3mapImported\\StageLight-945e30238c097b91655e082084690a0b0bb1fc180126749f83d67ca4d6829e27.mdx",
+  13: "war3mapImported\\StageLight-ae4432a8c4c7ead2f4655b3f2ee7b8a1457e8d5dc0afd011d537768e7e5d32b9.mdx",
 };

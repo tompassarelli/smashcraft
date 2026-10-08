@@ -20,6 +20,8 @@ Dated trial records live in [evidence](../evidence/README.md).
 - [Execution and reaction windows](design/execution-windows.md): windows other games use, human limits, and proposed bounds.
 - [Stages](design/stages.md): what Melee and Ultimate players pick and why, accepted variance and hazards, Warcraft places and built-in assets per race, and an evaluation of the draft stage list.
 - [Home stages](design/home-stages.md): every fighter's home stage from their Warcraft campaign, with the lore reason.
+- [Stage music](design/stage-music.md): each stage's stock Warcraft track, chosen for its home fighters, and the music the client ships.
+- [Water stage](design/water-stage.md): how Jungle Japes' river and Sandover Village's Lurker Shark work, with frame data and sources, and the Tomb of Sargeras tide and hydra built on them.
 - [Stage art](design/stage-art.md): research-based rules for stage backgrounds, skies and scenery: readable fight plane, symmetric decks with asymmetric dressing, depth bands, fog, motion budget, floating stages with no ground below, and the per-stage art checklist.
 - [Warcraft features since Reforged](design/warcraft-features.md): index of every lighting, fog, sky, water, particle, material, terrain and camera feature from 1.32 through 3.0 Forsaken Kingdom, with natives, script access, graphics modes and cost.
 - [Move legibility](design/move-legibility.md): how platform fighters make specials readable (effect restraint, colour per element, victim element effects) and the startup cue, active spell, missile and element each Smashcraft special shows.

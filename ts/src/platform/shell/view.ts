@@ -41,6 +41,23 @@ import { pauseEffects, views } from "./ui";
 import { drawStageScenery } from "./stageScenery";
 import { probeCamera, probeWaiting } from "./responseProbe";
 
+declare const os: { readonly clock?: (this: void) => number } | undefined;
+
+/** Two 60 Hz display intervals; callback counts cannot identify a real draw. */
+const RESUME_PRESENTATION_SECONDS = f32(1.0 / 30.0);
+
+export function resumePresentationHeld(s: Readonly<ShellState>): boolean {
+  return s.resumePresentationUntil !== undefined;
+}
+
+/** Presentation alone waits for the local clock; input and match frames keep running. */
+export function serviceResumePresentation(s: ShellState): void {
+  if (s.resumePresentationUntil === undefined) return;
+  if (s.game.phase === Phase.match && typeof os === "object" && typeof os.clock === "function" && os.clock() < s.resumePresentationUntil) return;
+  s.resumePresentationUntil = undefined;
+  setMatchPresentationPaused(s, s.session.paused);
+}
+
 /** Text that waits for the players stays this long. */
 export const LASTING = 3600.0;
 
@@ -115,6 +132,7 @@ export function drawStage(s: ShellState): void {
 
 /** The unit's view of a confirmed frame: visibility, clip, rate, position and tint. */
 export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readonly<FighterPose>, wasOut: boolean): void {
+  if (resumePresentationHeld(s)) return;
   const participant = s.participants[slot];
   const { body } = participant;
   if (body === undefined || !isActive(s.world, slot)) return;
@@ -160,6 +178,15 @@ export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readon
 
 /** Freezes or resumes the units, effects and projectiles. */
 export function pauseMatchPresentation(s: ShellState, paused: boolean): void {
+  s.resumePresentationUntil = undefined;
+  if (!paused && s.game.phase === Phase.match && typeof os === "object" && typeof os.clock === "function") {
+    s.resumePresentationUntil = os.clock() + RESUME_PRESENTATION_SECONDS;
+    return;
+  }
+  setMatchPresentationPaused(s, paused);
+}
+
+function setMatchPresentationPaused(s: ShellState, paused: boolean): void {
   for (const slot of PARTICIPANT_SLOTS) {
     const { body } = s.participants[slot];
     if (body === undefined || !isActive(s.world, slot)) continue;
@@ -189,6 +216,7 @@ function presentedMatch(s: ShellState): PresentedMatch {
 
 /** Runs once per callback, after confirmed catch-up and any replay. */
 export function renderPersistentPresentation(s: ShellState): void {
+  if (resumePresentationHeld(s)) return;
   const { game, world, runtime, playing } = presentedMatch(s);
   const stage = game.stageChoice;
   const matchFrame = stageClock(game);
@@ -265,6 +293,7 @@ function presentOverheadMana(bar: ManaBar, pips: PassivePips, fighter: Readonly<
 
 /** Frames the live fighters of the presented match from the side. */
 export function lockArenaCamera(s: ShellState): void {
+  if (resumePresentationHeld(s)) return;
   const { world, game } = presentedMatch(s);
   // Menus have no simulation camera yet; this temporary view never enters replay state.
   if (!game.camera.initialized) advanceMatchCamera(s.camera, world, game.stageChoice);
@@ -318,6 +347,7 @@ export function lockArenaCamera(s: ShellState): void {
 
 /** HUD, panels, help, notice and the developer line, for the local player. */
 export function renderUi(s: ShellState): void {
+  if (resumePresentationHeld(s)) return;
   const { game } = s;
   const ui = views(s);
   const selecting = game.phase === Phase.characterMenu || game.phase === Phase.stageMenu;

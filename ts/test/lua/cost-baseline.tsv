@@ -1,5 +1,5 @@
 unit	tests	cpu_s
-src/game/assets/stageLighting.tests.ts	2	0.000
+src/game/assets/stageLighting.tests.ts	5	0.000
 src/game/assets/stagePalette.tests.ts	3	0.000
 src/game/input/adapter.tests.ts	8	0.002
 src/game/input/attackBuffer.tests.ts	6	0.000
@@ -42,6 +42,7 @@ src/game/match/parryContracts.tests.ts	2	2.551
 src/game/match/rules.tests.ts	5	0.010
 src/game/match/simulationStepContracts.tests.ts	6	0.484
 src/game/match/stageHazardContracts.tests.ts	4	1.390
+src/game/match/stageHazardTracks.tests.ts	7	4.593
 src/game/match/startHold.tests.ts	3	0.094
 src/game/match/training.tests.ts	10	0.665
 src/game/match/upSpecialRecovery.tests.ts	3	2.244
@@ -84,7 +85,7 @@ src/game/presentation/impactEvents.tests.ts	8	0.002
 src/game/presentation/impactState.tests.ts	9	0.149
 src/game/presentation/itemLook.tests.ts	2	0.000
 src/game/presentation/jumpClips.tests.ts	1	0.002
-src/game/presentation/matchCues.tests.ts	4	0.020
+src/game/presentation/matchCues.tests.ts	5	0.046
 src/game/presentation/moveTiers.tests.ts	2	0.029
 src/game/presentation/passiveLook.tests.ts	3	0.000
 src/game/presentation/projectileArt.tests.ts	2	0.003

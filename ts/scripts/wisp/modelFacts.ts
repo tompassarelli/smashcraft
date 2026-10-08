@@ -1039,7 +1039,7 @@ export const MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
   "war3mapImported\\IllidanWhite-7299c2907eb3eae4675e0e4f7eff9cc581558d6177b5453f3a2e74d5b6a6a0b6.mdx": {"geosets":18,"triangles":1295,"lights":0,"bounds":{"min":[-204.415,-202.222,-99.907],"max":[199.402,201.595,267.773]},"emitters":[]},
   "war3mapImported\\ImpactDust-203c5231debda1f1be87bee7ea942bb77b953c077731f33b78409144da9a3778.mdx": {"geosets":5,"triangles":10,"lights":0,"bounds":{"min":[-100,-1,-100],"max":[100,1,100]},"emitters":[]},
   "war3mapImported\\ImpactElectric-9dbba329f6eab3916fd4fa90199d077d11a7cc6992c2f008c080e26d7c372acf.mdx": {"geosets":6,"triangles":24,"lights":0,"bounds":{"min":[-100,-1,-100],"max":[100,1,100]},"emitters":[]},
-  "war3mapImported\\ImpactHit-14ab984c85a771b2c9feb68275c44577ceb14d0f5c5f2e3801cbc00c2decd594.mdx": {"geosets":33,"triangles":78,"lights":0,"bounds":{"min":[-100,-1,-100],"max":[100,1,100]},"emitters":[]},
+  "war3mapImported\\ImpactHit-62592fbfab277201dd66093d95282de50557b534957f04c3754c2c727b3b9b5d.mdx": {"geosets":33,"triangles":78,"lights":1,"bounds":{"min":[-100,-1,-100],"max":[100,1,100]},"emitters":[]},
   "war3mapImported\\ImpactJump-2819c9b61c83f2dd214fa7ece4262c69abfb4cd90d7efaf8687544253577869f.mdx": {"geosets":24,"triangles":48,"lights":0,"bounds":{"min":[-100,-1,-100],"max":[100,1,100]},"emitters":[]},
   "war3mapImported\\ImpactKO-3f455594c218cda43d93f025b3997bced37c0e224cc1cd1ec40b8806899f5bf4.mdx": {"geosets":41,"triangles":94,"lights":0,"bounds":{"min":[-100.3,-1,-100],"max":[100.3,1,100]},"emitters":[]},
   "war3mapImported\\ImpactMiss-50c0e9d040c9afb26b09d79bb05d4b7ab26bfb0beca733025071288db725e412.mdx": {"geosets":14,"triangles":14,"lights":0,"bounds":{"min":[-100,-1,-100],"max":[100,1,100]},"emitters":[]},

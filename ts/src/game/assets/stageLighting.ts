@@ -12,29 +12,36 @@ export interface StageLight {
   readonly key: Rgb;
   /** The fill every surface gets, which sets how dark a fighter's shaded side reads. */
   readonly ambient: Rgb;
+  /**
+   * Scales key and fill together, 1 when absent. Under 1 over a backdrop
+   * brighter than the fighters, which the full light lifts toward it.
+   */
+  readonly intensity?: number;
 }
 
 /** Each selectable stage's light; the first is the neutral one, the classic midday light. */
 export const STAGE_LIGHTS: readonly { readonly stage: number; readonly theme: string; readonly light: StageLight }[] = [
   { stage: 0, theme: "Sky", light: { key: [255, 255, 255], ambient: [214, 214, 250] } },
-  // Pale glacier daylight, blue fill.
-  { stage: FROZEN_THRONE_STAGE, theme: "Icecrown", light: { key: [226, 240, 255], ambient: [150, 172, 220] } },
+  // Pale glacier daylight, blue fill, at 0.8: at full strength fighters rose
+  // 12 L* toward the bright glacier backdrop (#265).
+  { stage: FROZEN_THRONE_STAGE, theme: "Icecrown", light: { key: [226, 240, 255], ambient: [150, 172, 220], intensity: 0.8 } },
   // Moonlit silver key, moonwell-teal fill.
   { stage: WIND_TEST_STAGE, theme: "Nordrassil", light: { key: [236, 246, 232], ambient: [136, 178, 172] } },
   // High mountain sun, sky-blue fill.
   { stage: CARRIED_TEST_STAGE, theme: "Aerie", light: { key: [255, 248, 226], ambient: [164, 182, 220] } },
-  // Low desert sun, red-earth fill.
-  { stage: DRIFTING_DECK_STAGE, theme: "Durotar", light: { key: [255, 226, 180], ambient: [190, 152, 134] } },
+  // Low desert sun, red-earth fill, dimmed below the bright mesa skyline (#266).
+  { stage: DRIFTING_DECK_STAGE, theme: "Durotar", light: { key: [255, 226, 180], ambient: [190, 152, 134], intensity: 0.65 } },
   // Cold necropolis light, plague-violet fill.
   { stage: PATTERNED_DECKS_STAGE, theme: "Scourge", light: { key: [222, 230, 255], ambient: [150, 136, 196] } },
   // Burning sky key, fel-green fill.
   { stage: HELLFIRE_STAGE, theme: "Fel", light: { key: [255, 222, 196], ambient: [140, 172, 120] } },
   // Forge-orange key, ember fill.
   { stage: CANNON_TEST_STAGE, theme: "Blackrock", light: { key: [255, 216, 176], ambient: [170, 124, 112] } },
-  // Bleached sandstone sun, warm sand fill.
   // Firelit dusk key, smoky mauve fill.
   { stage: STRATHOLME_STAGE, theme: "Stratholme", light: { key: [255, 214, 180], ambient: [170, 140, 150] } },
   // Cool sea light, tide-teal fill.
   { stage: TOMB_OF_SARGERAS_STAGE, theme: "Sargeras", light: { key: [226, 244, 255], ambient: [130, 176, 180] } },
-  { stage: TIMED_TEST_STAGE, theme: "Qiraji", light: { key: [255, 240, 204], ambient: [192, 170, 136] } },
+  // Bleached sandstone sun, warm sand fill, at half strength: at full strength
+  // fighters rose 11 L* toward the bright sandstone ring (#267).
+  { stage: TIMED_TEST_STAGE, theme: "Qiraji", light: { key: [255, 240, 204], ambient: [192, 170, 136], intensity: 0.5 } },
 ];
