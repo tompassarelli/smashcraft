@@ -7,8 +7,21 @@ import { GENERATED_MODELS, MODEL_SOUND_TABLE, SCRIPT_MODELS, TOMB_WATERFALL_IMPO
 import { STAGE_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
 import { importedModelFile } from "../scripts/heroModelSource";
 import { generatedFiles } from "../scripts/wisp/commands/map";
+import { unresolvedHdTexture } from "../scripts/hdBodyTextures";
 
 const project = join(import.meta.dir, "../..");
+
+test("an imported HD body cannot depend on a missing Definitive stock texture [repro #334]", () => {
+  const bytes = new Uint8Array(4 + 8 + 268);
+  bytes.set(new TextEncoder().encode("MDLXTEXS"));
+  new DataView(bytes.buffer).setUint32(8, 268, true);
+  const path = "Units/Orc/HeroTaurenChieftain/Tauren_Chieftain_Diffuse.tif";
+  bytes.set(new TextEncoder().encode(path), 16);
+  expect(unresolvedHdTexture(bytes, new Set())).toBe(path);
+  expect(unresolvedHdTexture(bytes, new Set([path.replaceAll("/", "\\").toLowerCase()]))).toBeUndefined();
+  new DataView(bytes.buffer).setUint32(12, 1, true);
+  expect(unresolvedHdTexture(bytes, new Set())).toBeUndefined();
+});
 
 test("the installed TypeScript toolchain matches typescript-toolchain.lock [spec AGENTS.md]", async () => {
   await Effect.runPromise(verifyToolchain(join(project, "typescript-toolchain.lock"), join(project, "ts")));

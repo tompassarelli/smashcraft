@@ -140,7 +140,17 @@ export function headlessRender(options: RenderAssetOptions = {}) {
       const name = key(entry);
       if (graphics !== "classic" && stockFallback.has(name)) return undefined;
       const source = imported.get(name);
-      return source === undefined ? undefined : yield* read(source);
+      if (source === undefined) return undefined;
+      const bytes = yield* read(source);
+      if (bytes === undefined || !name.endsWith(".dds")) return bytes;
+      const directory = join(options.cache ?? PRIVATE, "map-textures");
+      const decoded = join(directory, `${createHash("sha256").update(bytes).digest("hex")}.png`);
+      const cached = yield* read(decoded);
+      if (cached !== undefined) return cached;
+      mkdirSync(directory, { recursive: true });
+      yield* runProcess(ChildProcess.make("magick", [`${source}[0]`, decoded], { stdin: "ignore" })).pipe(
+        Effect.mapError((failure) => new RenderAssetFailure({ problem: `cannot decode imported DDS ${entry}: ${failure.problem}` })));
+      return yield* read(decoded);
     });
     const readers = {
       map: (entry: string) => Effect.runPromise(resolveMap(entry).pipe(Effect.provide(BunServices.layer))),

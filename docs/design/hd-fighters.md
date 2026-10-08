@@ -6,6 +6,21 @@ victory screen. Cairne's dual-alias pilot passed native model loading,
 team colour and a smoke round on Classic and Definitive clients in 3.0.1.
 That establishes the body pipeline for parallel roster conversion.
 
+## Texture imports
+
+An imported `_hd.w3mod` body cannot rely on its Definitive-only stock texture
+paths. On native 3.0.1, Cairne's stock diffuse exists in `_de.w3mod` but not
+`_hd.w3mod`; the final body drew solid team colours. Importing its five textures
+under exact HD paths restored fur, totem and axe on client B ([native comparison](https://github.com/tompassarelli/smashcraft/issues/334#issuecomment-6071233652)).
+
+`tools/animations/hd-textures.ts` packages stock textures with unique DDS names
+and updates only each body's TEXS name fields. It keeps the existing compressed
+stock mipchain starting at no more than 512 pixels, without reencoding or changing
+alpha. Geometry, materials, skin and animation bytes remain unchanged. The map
+build checks that the imported HD bodies' nonreplaceable texture names resolve
+to exact HD imports. Wisp's independent DE-first stock lookup hid this native
+failure; [wisp#91](https://github.com/tompassarelli/wisp/issues/91) tracks that gap.
+
 ## Rig correspondence
 
 Map anatomical roles, never bone indices or similar-looking names alone.
