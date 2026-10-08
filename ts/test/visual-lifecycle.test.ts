@@ -446,7 +446,7 @@ test("pooled fighters: unchanged poses keep their appearance and a returning fad
     pose.clipTime = 0.25;
     const changed = draw(3);
     expect(changed.some(call => call.name === "BlzSetSpecialEffectYaw" && Number(call.args[1]) > 3)).toBe(true);
-    expect(changed.some(call => call.name === "BlzSetSpecialEffectTime" && call.args[1] === 0.25)).toBe(true);
+    expect(changed.some(call => call.name === "BlzSetSpecialEffectTime" && call.args[1] === clip.startSeconds + 0.25)).toBe(true);
     expect(changed.some(call => call.name === "BlzSetSpecialEffectColor" && call.args.slice(1).join(",") === "155,210,255")).toBe(true);
     fighter.status.frozenFrames = 0;
     fighter.status.invincible = 5;
