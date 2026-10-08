@@ -1,6 +1,6 @@
 # Visual quality: the renderer levers a map has
 
-What Warcraft III 3.0 lets a map change about how the game looks, what each
+What Warcraft III 3.0 and 3.0.1 let a map change about how the game looks, what each
 lever does and costs on the native clients (Warcraft under Wine), and which
 ones Smashcraft uses on which stage. Stage composition (scenery, depth bands,
 deck palettes) is in [stage art](stage-art.md); this page is about light,
@@ -53,8 +53,8 @@ measurements are in [Measured on 3.0](#measured-on-30-under-wine).
 | Depth of field | `CAMERA_FIELD_DEPTH_OF_FIELD_DISTANCE`, `…_SCALE`, `CameraSetFocalDistance` | A full-screen blur by distance | HD | Unused, **unmeasured** |
 | HD water | `SetHDWaterParams*`, `BlzSetHDWater*` | HD water's colour, opacity, reflectivity, emissivity, waves | HD modes | Unusable: water is terrain, and the terrain is hidden |
 | Point-light shadows | `BlzSetMinShadowCastingPointLightCount` | How many model point lights cast shadows | HD modes | Unused, **unmeasured** |
-| Lighting editor, omni lights | World Editor 3.0 (map file data) | Map-placed omni lights and shadow-casting omni lights | HD modes; placed once per map, not per stage | Unused |
-| Map post-processing | World Editor 3.0 (map file data) | The patch notes explicitly add a tool for post-processing at map level | — | No post-processing native appears in the pinned common.j; the editor's exported data is the boundary to inspect |
+| Lighting editor, omni lights | World Editor 3.0 (`war3map.w3l`, imported DNC models) | The map's own terrain and unit DNC models; map-placed omni lights and shadow-casting omni lights | HD modes; placed once per map, not per stage | Unused; file format in [Lighting editor output](#lighting-editor-output-war3mapw3l) |
+| Map post-processing | World Editor 3.0 (`war3mapPostProcessing.txt`) | Ambient occlusion, bloom, portrait bloom, tone-map exposure and normal-map strength for the whole map | HD *(guess)* | Unused; fields in [Map-level post-processing](#map-level-post-processing-what-the-editor-writes); no native changes them |
 | HD materials | stock asset paths | Reforged and Definitive draw the HD PBR copy of a stock path | HD | **Measured** availability: all 25 stock scenery and sky paths resolve in all three modes; the HD draw itself is unmeasured |
 
 ### What is impossible
@@ -65,10 +65,11 @@ exposure from script, creating or moving omni lights at run time (except by
 placing effects whose models carry lights), driving PopcornFX particles, and
 reading or choosing the player's graphics mode or options
 ([features index](warcraft-features.md#impossible-for-a-map)).
-Editor-level post-processing is available in 3.0; its exact controls and
-serialized map data need an editor export to establish. Do not infer that
-bloom, colour grading or depth of field are separately controllable until
-that export demonstrates them. The player's own settings are theirs (#165).
+Editor-level post-processing is available in 3.0 as one file per map:
+ambient occlusion, bloom and tone-map exposure are map-wide settings, not
+script levers, and there is still no colour grading or LUT
+([below](#map-level-post-processing-what-the-editor-writes)). The player's
+own settings are theirs (#165).
 In 3.0, Point Light Shadows, Water and Supersampling were added, Shadows
 became Environment Shadows, and the player-facing Ambient Occlusion, Bloom,
 Portrait Bloom, Particles and Spells options were removed.
@@ -187,6 +188,269 @@ smashcraft:ts/src/game/assets/stageLighting.tests.ts enforces them:
 
 Rules 2 and 3 hold fighters bright. The measurement below shows that is only
 right where the backdrop behind the fighters is darker than they are.
+
+## 3.0.1 and Forsaken Kingdom: what came after the table
+
+There is no Warcraft III 3.1. Forsaken Kingdom is 3.0.0 (build 24268, 12 Sep
+2026), the release the tables above already cover. Its only follow-up is
+3.0.1 (build 24342, 7 Oct 2026). This section covers what 3.0.1 and the
+expansion's art add, read on 8 Oct 2026 from
+[Blizzard's 3.0.1 notes](https://us.forums.blizzard.com/en/warcraft3/t/warcraft-iii-reforged-forsaken-kingdom-patch-notes/38400/4)
+("PN301"), Blizzard's patch servers, Hive Workshop, and the installed
+3.0.1.24342 storage. The storage was read with the CascLib extractor
+(smashcraft:tools/animations/casc-extract.cpp) and a CascLib file listing
+(175,416 entries).
+
+### Which version runs where
+
+| Who | Version | Evidence |
+| --- | --- | --- |
+| Battle.net players, every region | 3.0.1.24342 | `http://us.patch.battle.net:1119/w3/versions` on 8 Oct: us, eu and kr all list `3.0.1.24342`. [BlizzTrack](https://blizztrack.com/view/w3?type=versions) indexed it on 7 Oct at 16:33 UTC, replacing 3.0.0.24268 |
+| Public test realm | 3.0.1.24332 | `…/w3t/versions` on 8 Oct: one build older than live. No 3.1 test build exists, and no 3.1 topic appears in the [forum's latest topics](https://us.forums.blizzard.com/en/warcraft3/latest) |
+| Our test clients | 3.0.1.24342 | The `.build.info` of all 34 offline pool clients (~/.local/share/wisp/lan/clients/), the signed-in clones a–d and Tom's install, all written 8 Oct 00:41 +0800 |
+| Our base map | saved by the 3.0.0.24268 editor | The base input's war3map.w3i: format 39, editor 7000, game version 3.0.0.24268, Lua, graphics-modes field 3, game data version 2 (*(guess)* 2 is the Forsaken Kingdom data set that the [Hive bugs thread](https://www.hiveworkshop.com/threads/warcraft-iii-3-0-bugs-issues.374131/) says unversioned maps fall into) |
+
+The #170 lighting captures (7 Oct, 08:11–08:22 UTC) ran before 3.0.1 went
+live, so they were taken on 3.0.0. The stock light decode above was read from
+3.0.1.
+
+Since 3.0 the Reforged client must stay online (PN3), and Battle.net serves
+one live build, so every player who can join a Smashcraft lobby runs
+3.0.1.24342. *(guess)* A client on an older build can't join, because
+Battle.net has always required the current build. The offline Classic Client
+has no Lua and can't run Smashcraft.
+
+How a map uses a newer feature safely:
+
+1. **Engine features (natives): require the live build.** Battle.net forces
+   it, so no older build reaches a lobby. A rollout is the one exception: a
+   native added after 3.0.1 can be ready before every client updates. In
+   Lua each native is a global, so `BlzNewNative ~= nil` detects it; call it
+   through a nil-checked Wisp declaration and keep the 3.0 call as the
+   fallback until the lane's clients run the new build. Both clients must
+   take the same branch, which they do when they run the same build. No
+   native returns the patch number: `VersionGet` reports only Reign of Chaos
+   or Frozen Throne (common.j).
+2. **Graphics-mode features: build in a fallback, because the map can't
+   detect the mode.** Most new presentation is mode-dependent.
+   - A stock path resolves per mode ([Assets and graphics modes](#assets-and-graphics-modes)).
+   - A map can ship its own per-mode copies. Blizzard's Silverpine Sprint
+     scenario imports `_DE.w3mod\terrainart\…` files beside its root files,
+     so Definitive loads the `_DE` copy and the other modes load the root
+     one. *(guess)* `_HD.w3mod\` works the same way for Reforged, as it does
+     in stock storage. **Unmeasured** in Smashcraft. With this, a stage light
+     could carry Definitive-tuned values while Classic keeps today's.
+   - HD-only effects (point lights, depth of field, AO, bloom) only add to the
+     picture. The Classic draw without them must already read.
+   - Requiring a mode: the w3i graphics-modes field is 3 in Smashcraft's base.
+     Both Forsaken Kingdom scenario maps set it to 4 and use Definitive-only
+     art. *(guess)* The field is a bitmask: 1 Classic, 2 Reforged,
+     4 Definitive. What the client does when the player's mode isn't
+     supported is **unmeasured**. Don't require a mode: Mac players report
+     that Definitive can't be selected
+     ([forum](https://us.forums.blizzard.com/en/warcraft3/t/cant-select-definitive-graphics/38432)).
+3. **Player options are the player's.** Point Light Shadows, Water,
+   Environment Shadows, Ambient Occlusion and Supersampling can't be turned on
+   by a map. Pool pair 2's War3Preferences (7 Oct) has `hd=1`, `shadowquality=0`,
+   `pointlightshadowquality=0`, `waterquality=0` and `assao=0`. Tom's profile
+   has every quality setting at its lowest except lighting
+   (wisp:docs/doctor.md). So no current capture can show shadows, AO or
+   water. A capture of those levers needs a visual profile that turns them on
+   and records them.
+
+### 3.0.1 presentation changes
+
+From PN301 (art, world editor and bug fix lists):
+
+| Change | Effect on Smashcraft |
+| --- | --- |
+| Ambient Occlusion is a player option again (`assao` in War3Preferences); it "may result in reduced performance" and no longer affects terrain or close-up cinematic shots | When a player turns it on, AO darkens the creases on fighters and scenery. A map tunes it through its post-processing file (below). Hidden terrain makes the terrain exclusion moot |
+| Daytime lighting on Lordaeron Summer biomes is 10% dimmer | This may move the stock baseline `-dev lighting stock` uses (DNCLordaeron). *(guess)* The Reforged noon key intensity of 0.92 read from 3.0.1 may already be the dimmed value. Re-capture stock baselines on 3.0.1. Authored stage lights are imported and don't change |
+| About 35 spell effects retuned (Blizzard, Divine Shield, Starfall, Death Coil, Breath of Fire, Banish and others); Pandaren Brewmaster and Orc Grunt reanimated; tint or scale changed on turtles, wildkin, golems and wolves | Re-take reference captures of any stock effect used as a hit or special effect. Chen's private model comes from the stock Brewmaster rig, so re-check his clips against 3.0.1 *(guess: extracted before 3.0.1)* |
+| `Doodads\Terrain\CliffDoodad\Waterfall\WaterfallNoMist` added | A waterfall without its mist cloud. HD and Definitive only: storage has no Classic copy |
+| Aura effects tilt to the terrain angle; Lordaeron short grass overhauled | No effect: the terrain is hidden and the floor is flat |
+| Dynamic portrait animation in Definitive; better lip sync | No effect: Smashcraft draws renders, not unit portraits ([fighter portraits](fighter-portraits.md)) |
+| Fixes for imported assets: custom assets and test-map textures load, model paths with periods load, geosets with vertices but no faces no longer crash, item lights no longer stay after pickup, the post-processing dialog keeps its sliders, a second open map keeps its lighting | Imported art behaves as it did in 2.0 |
+
+**Natives: none new for presentation.** The 3.0.1 common.j, read from storage,
+was compared with Wisp's generated declarations
+(wisp:src/natives/warcraft.d.ts, from 3.0.0). It has exactly 19 names Wisp
+lacks, all unprefixed item-equipment natives that 3.0.1 keeps beside their new
+`Blz` copies. The 3.0 fog and water natives already had the `Blz` prefix. The
+new 3.0.1 natives (`BlzUnitHeal`, `BlzRemoveEffect`, `BlzResetUnitTalents`,
+`BlzSetCameraAllowsHotkeyTargetLock`, `SetThematicMusicAbsoluteVolume`) aren't
+presentation. Every graphics native a map has on 3.0.1 is in the
+[levers table](#the-levers) or the
+[features index](warcraft-features.md#300-forsaken-kingdom-september-2026-the-priority-features).
+The same file also lists `BlzSetCinematicEnabledDE`, `EnableOcclusion`,
+`SetPortraitLight`, `BlzShowUnitTeamGlow`, the per-unit hero-glow natives and
+the effect animation natives (`BlzSetSpecialEffectAnimation`,
+`BlzQueueSpecialEffectAnimation`, `BlzSetSpecialEffectAnimationBlendTime`).
+
+### Map-level post-processing: what the editor writes
+
+The 3.0 post-processing tool writes `war3mapPostProcessing.txt` into the map
+(World Editor.exe names that file and a `CPostProcessingData` type). The file
+overrides the game's own `PostProcessingConfig.txt`. Its sections, keys and
+stock values, from `war3.w3mod:PostProcessingConfig.txt` in 3.0.1.24342:
+
+| Section | Keys and stock values |
+| --- | --- |
+| `[ASSAO]` ambient occlusion | Enabled 1, Radius 40, ShadowMultiplier 1.2, ShadowPower 5, ShadowClamp 1, HorizonAngleThreshold 0.5, FadeOutFrom 1300, FadeOutTo 0, DetailShadowStrength 1, PortraitDetailShadowStrength 5, QualityLevel 3, AdaptiveQualityLimit 0.45, BlurPassCount 2, Sharpness 1, TemporalSupersamplingAngleOffset 0, TemporalSupersamplingRadiusOffset 0.5 |
+| `[Bloom]` | **Enabled 0**, BloomThreshold 0.72, BloomIntensity 0.9, BloomSaturation 1, BaseIntensity 1, BaseSaturation 1, BlurAmount 3.75, BlurSampleCount 12 |
+| `[PortraitBloom]` | BloomThreshold 0.71, BloomIntensity 1.18, BloomSaturation 1.3, BaseIntensity 1, BaseSaturation 1, BlurAmount 1.5 |
+| `[Tonemap]` | **Enabled 0**, Exposure 1.0 |
+| `[Texture]` | NormalMapStrength 0.8 |
+
+The editor's dialog controls (World Editor.exe) match these fields. They also
+include fog (ZStart, ZEnd, Density, HeightStart, HeightEnd, LinearStart,
+LinearEnd, MaxLinearDensity), ShadowCastStart and ShadowCastEnd, and the water
+EnvMapStrength. *(guess)* The fog and water controls belong to the lighting
+editor and are written into `main` as `SetTerrainFogExV` and
+`SetHDWaterParamsEx`. Blizzard's Forgotten Hollow scenario ships
+`[ASSAO] Radius=6, ShadowMultiplier=3`: tighter and darker contact shadows
+than stock.
+
+So bloom, tone-map exposure and AO strength are map-wide. One file serves
+every stage, and no native changes it during a match. *(guess)* They apply in
+HD modes only, since Classic has no bloom or ASSAO pass, and the player's AO
+option gates ASSAO. Whether `[Bloom] Enabled=1` in a map turns bloom on, now
+that the player's Bloom option is gone, is **unmeasured**. It is the largest
+untested lever for glowing hit sparks and fel or arcane stages.
+
+### Lighting editor output (war3map.w3l)
+
+The 3.0 lighting editor writes `war3map.w3l` (magic `W3L!`, version 3). In
+Silverpine Sprint and Forgotten Hollow it holds two GUID-named `.mdl` paths
+and some flag bytes. The paths are the map's own terrain and unit lighting
+models, imported into the map: Silverpine's `02fbcd95-….mdx` is in its file
+list. Smashcraft's base map has an empty one (22 bytes). So the lighting
+editor is a lighting-model authoring tool. It makes the same kind of model
+smashcraft:ts/scripts/stageLight.ts writes, chosen once per map; script swaps
+models with `SetDayNightModels`, as Silverpine does for its cinematics.
+Silverpine also imports `OmniLightCar.mdx`, `OmniLightLantern.mdx` and
+`OmniLightWithDeath.mdx`, and Forgotten Hollow imports `omnicustom13.mdx`,
+`omnicustom14.mdx` and `omnilightorange5.mdx`. *(guess)* These are placed
+light-carrying models, the same mechanism as an effect with a light, which
+script can create at run time (the tech-contact and slash sparks).
+
+Blizzard's Definitive campaign lighting models, decoded from storage the way
+[the stock light](#lighting-models) was (colours RGB; KLAC key colour, KLAI
+key intensity, KLBC fill colour, KLBI fill intensity):
+
+| Model (Definitive only) | Noon key | Noon fill | Notes |
+| --- | --- | --- | --- |
+| `Environment\DNC\DNCCampaign\Act2OutdoorDNC` | (1.0, 0.93, 0.80) at intensity 3.6 | (0.6, 0.6, 0.6) at about 0.93 | dawn key (1.0, 0.42, 0.16); a second light at most 0.065 |
+| `…\CloudyDNC` | (0.75, 0.75, 0.73) at 1.6–1.8 | (0.76, 0.76, 0.76) | the same timeline as Act2Outdoor, desaturated |
+| `…\DNCUndercityFinal` | (0.09, 0.11, 0.26) at 0.05 | — | a grey second light at intensity 0: nearly unlit, so the scene's light comes from placed point lights |
+| `Environment\DNC\DNCLordaeron\DNCLordaeronUnit` (stock, for comparison) | (1.0, 1.0, 1.0) at 1.0 | — | Reforged's copy: 0.92 |
+
+Definitive lighting is authored at high dynamic range, with key intensities
+up to 3.6. Smashcraft's lights cap intensity at 1 (stage light rule 5).
+*(guess)* Classic clamps lit colour, so a light tuned for Definitive needs its
+own `_DE.w3mod` copy rather than one light for every mode.
+
+### Forsaken Kingdom art: what exists in which mode
+
+`.mdx` counts in the installed 3.0.1.24342 storage by prefix (root is Classic,
+`_hd` Reforged, `_de` Definitive):
+
+| Set | Classic | Reforged | Definitive | Contents |
+| --- | --- | --- | --- | --- |
+| `Doodads\Undercity` | 0 | 39 | 228 | Reforged: sewer pipes, walls, arches, path tiles. Definitive adds lanterns, banners, alchemy sets, bones, coffins, ceiling chains, gates, pillars, Naxx decor and `NaxxramasBeam` |
+| `Doodads\LordaeronFall` | 0 | 35 | 41 | Lordaeron City spire, dome, main gate and walls, the Andorhal, Brill and Strahnbrad clock towers, Hearthglen Abbey, Strahnbrad trees and a lion statue, many with `_destroyed` variants |
+| `Environment\Foliage\LordaeronFall` | 0 | 10 | 10 | fall grass |
+| `Doodads\Cityscape` | 96 | 141 | 186 | city props; *(guess)* partly new in 3.0 |
+| `Units\Forsaken` | 0 | 0 | 31 | campaign heroes and Forsaken units |
+| `Units\Creeps\HeroForsakenPaladin` | 2 | 2 | 2 | the tavern hero; Smashcraft's Forsaken Paladin is built on it |
+| UndercitySky, NaxxNightSky, ArcaneSky | 0 | 0 | 1 each | Definitive-only skies |
+| LordaeronFallSky, Outland_Sky | 1 | 1 | 1 | in every mode |
+| `WaterfallNoMist` | 0 | 1 | 1 | 3.0.1 |
+| Campaign lighting models (above) | 0 | 0 | 1 each | — |
+
+A stock path the player's mode lacks draws nothing, as with the HD-only skies.
+Map makers report the same for the new models, which are "locked to one
+graphics mode and invisible in the others"
+([forum](https://us.forums.blizzard.com/en/warcraft3/t/newmodelsshouldusedeversion-onallgraphicsforcustommaps/39520)).
+The [Hive 3.0 bugs thread](https://www.hiveworkshop.com/threads/warcraft-iii-3-0-bugs-issues.374131/)
+reports these 3.0 rendering defects:
+
+- some rocks draw as shrubs in Definitive;
+- Replaceable ID 1 textures flicker in Definitive and Reforged;
+- glows and fires draw below units;
+- some new models ignore `BlzSetSpecialEffectYaw`;
+- older-format models lose their portrait omni lights.
+
+`NaxxramasBeam` carries a PopcornFX emitter (a `CORN` chunk), so script
+can't drive its particles. The Undercity lanterns carry no light (no `LITE`
+chunk), which matches the Hive report that their light "will have 0".
+
+Forsaken Kingdom art can go on a stage only as garnish whose absence in
+Classic, and often in Reforged, still reads. Whether a stage may look richer
+in Definitive than in Classic is Tom's product decision.
+
+### What Blizzard's 3.0.1 maps do with the levers
+
+From the Lua and w3i of the two standalone scenarios
+(`Maps\ForsakenKingdom\Scenario\(1)SilverpineSprint.w3x` and
+`(1)ForgottenHollow.w3x`, saved by builds 24329 and 24324, graphics-modes
+field 4):
+
+- **Silverpine Sprint:**
+  - imported terrain and unit lighting models, swapped per shot (seven
+    `SetDayNightModels` calls);
+  - height fog in its w3i (style 3, 50–5,500, density 0.25, colour (50, 70,
+    70), maximum opacity 0.5), with nine `SetTerrainFogExV` calls and
+    `BlzSetTerrainFogDrawOverSky`;
+  - ten `AddWeatherEffect` calls;
+  - `EnableOcclusion` toggles and `BlzSetCinematicEnabledDE`;
+  - a hit effect on damage, for the local player only. The depth-of-field
+    scale rises by 15 × √damage, capped at 50, over 0.15 s and fades over
+    0.6 s. A white `MODULATE_2X` cinematic filter flashes with it, its alpha
+    rising by 50 × √damage, capped at 255.
+- **Forgotten Hollow:** the stock DNCUnderground lighting,
+  `SetHDWaterParamsEx`, the ASSAO override above and a local cinematic
+  filter.
+
+The depth-of-field flash runs only for the local player and creates no
+handles, so it can't desync. *(guess)* It also blurs the fighters, so it
+suits KOs and the heaviest hits, not ordinary contact.
+
+### Levers worth using, per stage
+
+For every stage first: the profile, baseline and map-wide rows (G1–G4). Each
+row is written to open as an issue. Its check runs on a capture profile that
+turns on Environment Shadows, Point Light Shadows and AO and records the mode.
+
+| # | Lever | Done when |
+| --- | --- | --- |
+| G1 | A visual capture profile (shadows, point-light shadows and AO on, mode recorded), then re-capture the stock/mask/stage triple of every stage on 3.0.1 in Classic, Reforged and Definitive | 11 stages × 3 modes of triples exist, each recording its mode |
+| G2 | `war3mapPostProcessing.txt`: bloom on with a high threshold, so only additive sparks and emissive accents bloom, and a tighter ASSAO for fighter contact shadows (Forgotten Hollow uses radius 6, multiplier 3) | Reforged and Definitive captures of `-dev effects 12` show bloom on the sparks, and fighter ΔE00 against the ring falls on no stage |
+| G3 | Definitive copies of the stage lights at `_DE.w3mod\war3mapImported\StageLight-*.mdx` with high-range intensities; Classic and Reforged keep the current files | A Definitive capture shows the copy loaded (a distinct test colour), and contrast holds on the four measured stages |
+| G4 | KO punctuation: a local depth-of-field pulse and cinematic-filter flash on KO only, after Silverpine's pattern | A native KO capture shows the pulse, and the two clients' checksums stay equal over a full match |
+
+Per stage (backdrop facts from [Per-stage recommendations](#per-stage-recommendations)):
+
+| Stage | Backdrop | 3.0.1 / Forsaken Kingdom levers worth using | Skip |
+| --- | --- | --- | --- |
+| Sky Deck (0) | neutral; #178 ΔE00 22.8 | The control for G1–G3: capture it first in all three modes, AO on and off | Forsaken Kingdom art |
+| Frozen Throne (2) | bright ring (L\* 52–54); contrast falls | Height fog (style 3) in deep blue below the deck with a `MaxLinearDensity` cap, to darken the bright lower band instead of dimming the fighters. `DrawOverSky` to pull the sky's horizon into the same tint. Bloom (G2) on the ice's emissive layers | NorthrendSky and IcecrownGlacierSky (HD-only); weather |
+| Durotar (3) | bright ring; contrast falls | Height fog in warm dust below the deck. The bloom threshold must leave sunlit sandstone unbloomed | Forsaken Kingdom art |
+| Naxxramas (4) | dark ring (L\* 31–33); contrast rises | A cold green omni light from an imported effect by the necropolis (unlimited in HD) with `BlzSetMinShadowCastingPointLightCount(1)`. Undercity and Naxx decor (`naxxdeco0/1`, ceiling chains, Forsaken banners) only as Definitive garnish | NaxxNightSky (Definitive only, one sky slot); DNCUndercityFinal (too dark for fighters) |
+| Stratholme (6) | not yet captured | Compare LordaeronFallSky (stock in every mode) with the authored sky. The fall city art (spire, gate, clock towers, Hearthglen Abbey, `_destroyed` variants) exists only in Reforged and Definitive: use it only if Tom accepts a richer HD backdrop. Distant fires as light-carrying effects | — |
+| Tomb of Sargeras (7) | not yet captured | `WaterfallNoMist` for the distant waterfall in HD, only with a Classic stock waterfall in its place, so it can't cover the backdrop with mist. Teal height fog over the tide floor | HD water (the terrain is hidden) |
+| Nordrassil (10) | stock FelwoodSky aurora | Bloom (G2) on the aurora and wisp emissives; teal-green height fog below the deck | — |
+| Gryphon Aerie (11) | pale clouds *(guess)* | Height fog darkening the cloud field below the deck, as on Frozen Throne | — |
+| Blackrock (12) | lowest #178 ΔE00 (21.2) | Forge-fire effects carrying warm omni lights, one shadow-casting; bloom on lava; the G2 ASSAO for fighter contact shadows. Check it first | — |
+| Ahn'Qiraj (13) | bright sandstone; light at 0.5 | Dusk-ochre height fog below the deck; the G3 Definitive light copy | — |
+| Hellfire (14) | dark haze *(guess)* | Fel-green omni lights from imported effects; bloom on fel fire. Outland_Sky is available in every mode | — |
+
+For fighters on every stage: AO and point-light shadows give contact shading
+in HD when the player turns them on. `DisallowHeroGlowOnUnit` and
+`BlzShowUnitTeamGlow(false)` remove ground glows that a floating arena can
+misplace. *(guess)* The 3.0 HD air-to-ground indicators may draw under
+fighters, since fighters use fly height (smashcraft:ts/src/platform/shell/fighterBody.ts);
+check one HD capture before any stage issue.
 
 ## Measured on 3.0 under Wine
 
