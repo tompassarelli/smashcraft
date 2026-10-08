@@ -209,7 +209,7 @@ function specialAction(character: Character, option: number): SpecialAction {
 const HERO_SLOTS = [SpecialSlot.neutral, SpecialSlot.side, SpecialSlot.up, SpecialSlot.down] as const;
 const SLOT_OPTIONS = [NEUTRAL_SPECIAL, SIDE_SPECIAL, UP_SPECIAL, DOWN_SPECIAL] as const;
 
-/** Appends, twice each so a kit's specials compete with its many normals, the hero specials that suit this frame as `use`. */
+/** Appends the hero specials that suit this frame as `use`, doubling all but Thrall's retreat check. */
 function addHeroSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, use: HeroSpecialUse, count: number, observationAge: number): number {
   let added = count;
   const gameplan = gameplanOf(f.character);
@@ -225,7 +225,7 @@ function addHeroSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage:
       && Math.abs(aheadX(f, target, 0, undefined, observationAge)) > moveReachAhead(f.character, AttackStyle.forwardTilt, target, f.tuning.moves)
       && f32(target.motion.deltaX * f.facing) <= 0.0) continue;
     options[added++] = at(SLOT_OPTIONS, index);
-    options[added++] = at(SLOT_OPTIONS, index);
+    if (f.character !== Character.thrall || at(HERO_SLOTS, index) !== SpecialSlot.neutral) options[added++] = at(SLOT_OPTIONS, index);
   }
   return added;
 }
