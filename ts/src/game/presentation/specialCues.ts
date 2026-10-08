@@ -34,7 +34,9 @@ import {
   FEL_RUSH_LAST,
   RIFLEMAN_BEAR_CAST_FRAMES,
   RIFLEMAN_RECOVERY_STARTUP_FRAMES,
+  RIFLEMAN_SECOND_SHOT_FIRST,
   RIFLEMAN_SECOND_SHOT_FORM,
+  RIFLEMAN_SECOND_SHOT_LAST,
   VENGEFUL_RETREAT_FORM,
   VENGEFUL_RETREAT_MOVE_LAST,
 } from "../sim/specials";
@@ -331,7 +333,7 @@ export const ORIGINAL_BRANCH_CUES: { readonly [action: number]: { readonly [form
     [ARCHER_DIVE_FORM]: { cues: branch("Hippogryph dive", cue("Abilities\\Spells\\NightElf\\Taunt\\TauntCaster.mdx", "body", 0.5), cue("Abilities\\Weapons\\DruidOfTheTalonMissile\\DruidOfTheTalonMissile.mdx", "feet", 1.0)), first: ARCHER_DIVE_LAUNCH_FRAME, last: ARCHER_DIVE_LAUNCH_FRAME },
   },
   [SpecialAction.riflemanRecovery]: {
-    [RIFLEMAN_SECOND_SHOT_FORM]: { cues: branch("Second recoil shot", cue("Abilities\\Spells\\Human\\FlakCannons\\FlakTarget.mdx", "feet", f32(0.8)), cue("Abilities\\Weapons\\SteamTank\\SteamTankImpact.mdx", "feet", 1.0)), first: 1, last: 1 },
+    [RIFLEMAN_SECOND_SHOT_FORM]: { cues: branch("Second recoil shot", cue("Abilities\\Spells\\Human\\FlakCannons\\FlakTarget.mdx", "feet", f32(0.8)), cue("Abilities\\Weapons\\SteamTank\\SteamTankImpact.mdx", "feet", 1.0)), first: RIFLEMAN_SECOND_SHOT_FIRST, last: RIFLEMAN_SECOND_SHOT_LAST },
   },
 };
 

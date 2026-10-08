@@ -10,6 +10,7 @@ import { SHADOW_HUNTER_SPECIALS } from "../sim/heroes/shadowHunterSpecials";
 import { MOUNTAIN_KING_SPECIALS } from "../sim/heroes/mountainKingSpecials";
 import { SPECIAL_SLOTS } from "./projectileArt";
 import { RIFLEMAN_BLASTER_AIR_SHOT_FRAME, RIFLEMAN_BLASTER_GROUND_SHOT_FRAME } from "../sim/moves";
+import { RIFLEMAN_SECOND_SHOT_FORM } from "../sim/specials";
 import { HERO_BRANCH_CUES, HERO_CUES, ORIGINAL_CUES, fighterBranchCues, fighterMoveCues, heroCueWindows, specialCueState } from "./specialCues";
 
 /** The original three and every registered hero, so a new hero needs its cues. */
@@ -24,6 +25,16 @@ test("Rifleman's blaster cue readies on startup and flashes on the shot frame", 
     assertEquals(specialCueState(fighter).phase, "startup");
     fighter.special.frame = grounded ? RIFLEMAN_BLASTER_GROUND_SHOT_FRAME : RIFLEMAN_BLASTER_AIR_SHOT_FRAME;
     assertEquals(specialCueState(fighter).phase, "active");
+  }
+});
+
+test("[repro #251] the second recoil shot shows its cue at both ends of the legal input window", () => {
+  const fighter = createFighter(Character.rifleman, 0.0, 1);
+  fighter.special.action = SpecialAction.riflemanRecovery;
+  fighter.special.form = RIFLEMAN_SECOND_SHOT_FORM;
+  for (const frame of [12, 24]) {
+    fighter.special.frame = frame;
+    assertEquals(specialCueState(fighter).phase, "active", `second shot on action frame ${frame}`);
   }
 });
 
