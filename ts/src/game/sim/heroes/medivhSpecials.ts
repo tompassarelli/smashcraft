@@ -16,7 +16,7 @@ const vanish = (ex: boolean, retreat: boolean): AuthoredSpecial => ({
     { ...frames(11, 38), velocityX: 0.0, velocityZ: 0.0 }],
   regions: [heroRegion(retreat ? 13 : 12, retreat ? 15 : 14,
     { x1: retreat ? -35.0 : 15.0, z1: 50.0, x2: retreat ? 35.0 : 100.0, z2: 50.0, radius: retreat ? (ex ? 40.0 : 28.0) : 14.0 },
-    medivhHit(retreat ? (ex ? 9.0 : 5.0) : (ex ? 11.0 : 7.0), 80, 45.0, 85.0))],
+    medivhHit(retreat ? (ex ? 9.0 : 5.0) : (ex ? 11.0 : 7.0), 80, 45.0, 106.25))],
 });
 const raven = (ex: boolean): AuthoredSpecial => ({
   endFrame: 36, aimFrames: 8, oncePerAirtime: true, helpless: true, landingLag: 24,
