@@ -7,6 +7,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { sweep } from "../../runtime/sweep";
 import { Character, LedgeState, SpecialAction } from "../sim/codes";
 import { ledgeCatchBox } from "../sim/ledge";
+import { WARDEN_SPECIALS } from "../sim/heroes/wardenSpecials";
 import { mainDeckRight } from "../sim/stage";
 import { insideMainDeckBody } from "../sim/surfaces";
 import { TELEPORT_LEDGE_INSET, TELEPORT_LIP_DEPTH } from "../sim/edgeRecovery";
@@ -17,6 +18,8 @@ import {
 } from "./recoveryEnvelope";
 
 const LEDGE = mainDeckRight(0);
+const BLINK_STEP = assertDefined(WARDEN_SPECIALS.up.ground.motion?.find((segment) => segment.throughEdge), "Blink step");
+const BLINK_DIAGONAL = f32(assertDefined(BLINK_STEP.aimedSpeed, "Blink distance") * f32(0.707106781));
 
 /** Fails naming `label` when `ok` is false. */
 const check = (ok: boolean, label: string): void => assertEquals(ok ? "" : label, "");
@@ -34,7 +37,7 @@ function upSpecial(run: RecoveryRun, aim: number, frames: number, each?: (frame:
   }
 }
 
-test("[spec] an up special that meets the stage wall level rides up it and gets back", () => {
+test("[spec #252] an up special that meets the stage wall level rides up it and gets back", () => {
   // Blademaster's charged dash aimed level at the wall beside the lip would stop dead and fall without the ride.
   const run = recoveryRun(Character.blademaster, 100, 700.0, -45.0);
   let rose = false;
@@ -68,16 +71,16 @@ function blink(x: number, z: number, aim: number, hogged = false): RecoveryRun {
     hog.ledge.state = LedgeState.hang;
     hog.ledge.side = 1;
   }
-  upSpecial(run, aim, 9);
+  upSpecial(run, aim, BLINK_STEP.last + 1);
   return run;
 }
 
-test("[spec] a Blink that enters the stage through its lip passes it: above the deck, onto the ledge or onto the deck", () => {
+test("[spec #252] a Blink that enters the stage through its lip passes it: above the deck, onto the ledge or onto the deck", () => {
   // Up and in from 150 below: the path meets the lip 50 below the top and ends above the deck.
   const over = blink(700.0, -150.0, TOWARD | UP).fighter;
   check(over.motion.z > 0.0 && over.motion.x < LEDGE && !insideMainDeckBody(0, over.motion.x, over.motion.z), `over ${over.motion.x},${over.motion.z}`);
   // Ending 20 below the top and 30 in from the ledge: it catches the ledge.
-  const hang = blink(f32(570.0 + 242.5), f32(-20.0 - 242.5), TOWARD | UP).fighter;
+  const hang = blink(f32(570.0 + BLINK_DIAGONAL), f32(-20.0 - BLINK_DIAGONAL), TOWARD | UP).fighter;
   assertEquals(hang.ledge.state, LedgeState.hang);
   assertEquals(hang.special.action, SpecialAction.none);
   // Level from 30 below, ending far in from the ledge: it stands on the deck.
@@ -85,16 +88,16 @@ test("[spec] a Blink that enters the stage through its lip passes it: above the 
   check(land.motion.grounded && land.motion.z === 0.0 && land.motion.x < f32(LEDGE - TELEPORT_LEDGE_INSET), `land ${land.motion.x},${land.motion.z}`);
 });
 
-test("[spec] a Blink that meets the stage below its lip stops there, and a taken ledge leaves it outside the lip", () => {
+test("[spec #252] a Blink that meets the stage below its lip stops there, and a taken ledge leaves it outside the lip", () => {
   const deep = blink(700.0, -300.0, TOWARD | UP).fighter;
   check(!deep.motion.grounded && deep.ledge.state === LedgeState.none && deep.motion.z < f32(-TELEPORT_LIP_DEPTH), `deep ${deep.motion.x},${deep.motion.z}`);
   check(!insideMainDeckBody(0, deep.motion.x, deep.motion.z), "deep ended inside the stage");
-  const hogged = blink(f32(570.0 + 242.5), f32(-20.0 - 242.5), TOWARD | UP, true).fighter;
+  const hogged = blink(f32(570.0 + BLINK_DIAGONAL), f32(-20.0 - BLINK_DIAGONAL), TOWARD | UP, true).fighter;
   assertEquals(hogged.ledge.state, LedgeState.none);
   check(hogged.motion.x > LEDGE && hogged.motion.z < 0.0, `hogged ${hogged.motion.x},${hogged.motion.z}`);
 });
 
-test("[spec] an up special that comes down beside the ledge catches it before its helpless fall", () => {
+test("[spec #252] an up special that comes down beside the ledge catches it before its helpless fall", () => {
   // Kael'thas's flight aimed down and in from above and outside the ledge.
   const run = recoveryRun(Character.kaelthas, 100, 760.0, 160.0);
   let caughtDuringSpecial = false;
@@ -103,9 +106,11 @@ test("[spec] an up special that comes down beside the ledge catches it before it
     if (f.ledge.state === LedgeState.hang && !f.special.fall) caughtDuringSpecial = true;
   });
   check(caughtDuringSpecial, `ended at ${run.fighter.motion.x},${run.fighter.motion.z}`);
+  assertEquals(run.fighter.special.lockFrames, 0);
+  assertEquals(run.fighter.attack.cooldown, 0);
 });
 
-test("[spec] a hero taller than the reference catches a ledge higher above its feet", () => {
+test("[spec #252] a hero taller than the reference catches a ledge higher above its feet", () => {
   const tall = ledgeCatchBox(Character.cairne);
   const reference = ledgeCatchBox(Character.archer);
   check(tall.highest > reference.highest && tall.reach > reference.reach, `${tall.highest} ${tall.reach}`);
@@ -151,10 +156,10 @@ function meetsEnvelope(character: Character): void {
   check(free.height >= FREE_HEIGHT_MIN && free.reach >= FREE_REACH_MIN, `${name} free ${free.height}/${free.reach}`);
 }
 
-test("[spec] Warden's recovery envelope meets the vertical band's floors", () => {
+test("[spec #252] Warden's recovery envelope meets the vertical band's floors", () => {
   meetsEnvelope(Character.warden);
 });
 
-sweep("[spec] every fighter's recovery envelope meets its archetype's floors, full and empty mana", () => {
+sweep("[spec #252] every fighter's recovery envelope meets its archetype's floors, full and empty mana", () => {
   for (const character of SELECTABLE_CHARACTERS) meetsEnvelope(character);
 });

@@ -1507,44 +1507,87 @@ above:
 - **Heavy** (Metal Box): weight x1.5 against knockback; gravity and fall speed
   x1.3; nothing else changes.
 
-## Up specials
+## Recovery and edgeguarding
 
-Tom decided, 7 Oct (delegated in #189): each fighter uses guided steering or a
-charged angle. Guided moves answer the held stick or keys during travel.
-Charged-angle moves pick one of eight directions during startup, then commit
-to that direction. Rifleman charges for four frames; the other charged-angle
-fighters charge for eight. A neutral aim launches upward.
+[spec #252] Each fighter has a recovery archetype with a distinct strength and
+edgeguarding weakness. These bands adapt the relations in the
+[Melee recovery reference](design/melee/recovery.md) to Smashcraft's larger
+bodies; they are authored gameplay targets. The physics scale remains
+6 world units per Melee unit.
 
-Recovery bands are 320–480 world units vertically and 320–900 horizontally at
-full mana. The zero-mana form reaches at least 200 units on either axis. Original
-fighters do not spend mana, so their full and free distances are identical.
-These bands cover each up special's full route, including Illidan's glide jump;
-they do not require every possible aim to reach both limits.
+Tom decided, 7 Oct (delegated in #189): guided up specials answer held input
+during travel. Charged-angle up specials choose one of eight directions during
+startup, then commit; Rifleman charges four frames, the others eight. Neutral
+aim launches upward. An up special spends the aerial jump and ends helpless.
 
-`GAME_TESTS=upSpecialRecovery bun test test/game.test.ts` measures the entire
-13-fighter roster from x=700, z=300 on Frozen Throne, facing away from the stage,
-with jumps spent. Vertical distance holds up; horizontal distance takes the
-best of level, diagonal-up, and a glide jump at frame 20, counting travel while
-within 10 units below the starting height. Startup below is the number of game
-frames from the press to the first upward step, including the movement update
-following the launch callback. Distances are rounded to one world unit.
+| Archetype | Fighters | Up-special rise | Up-special reach | Envelope height minimum | Envelope reach minimum |
+|---|---|---:|---:|---:|---:|
+| Long, committed route | Rifleman, Blademaster, Tinker, Kael'thas | 480–640 | 480–900 | 780 | 920 |
+| Vertical, route mixups | Warden, Lich, Shadow Hunter, Thrall, Jaina, Chen | 400–560 | 320–600 | 700 | 840 |
+| Drifting, wide approach | Archer, Illidan, Dreadlord, Beastmaster, Sylvanas | 380–520 | 600–900 | 680 | 920 |
+| Heavy, exposed approach | Mountain King, Forsaken Paladin, Pit Lord, Lich King, Cairne, Peon | 320–440 | 320–480 | 620 | 740 |
 
-| Fighter | Style | Startup (frames) | Full up / across | Free up / across |
-|---|---|---:|---:|---:|
-| Archer | Guided | 2 | 473 / 756 | 473 / 756 |
-| Rifleman | Charged angle | 5 | 416 / 753 | 416 / 753 |
-| Illidan | Guided | 2 | 435 / 871 | 435 / 871 |
-| Blademaster | Charged angle | 10 | 368 / 372 | 249 / 254 |
-| Mountain King | Charged angle | 10 | 355 / 359 | 249 / 254 |
-| Warden | Charged angle | 10 | 342 / 346 | 223 / 227 |
-| Lich | Guided | 11 | 369 / 371 | 229 / 261 |
-| Forsaken Paladin | Guided | 9 | 333 / 362 | 214 / 320 |
-| Dreadlord | Guided | 10 | 370 / 427 | 229 / 276 |
-| Shadow Hunter | Charged angle | 10 | 381 / 386 | 263 / 267 |
-| Pit Lord | Guided | 14 | 339 / 377 | 218 / 237 |
-| Beastmaster | Guided | 11 | 346 / 359 | 226 / 247 |
-| Lich King | Guided | 9 | 386 / 380 | 256 / 269 |
+[spec #252] With empty mana, an up special reaches at least 240 units on each
+axis, and the full recovery envelope reaches at least 500 units deep and 640
+units out. Original fighters spend no mana. The up-special bands describe the
+best route, including Illidan's glide jump; every aim need not reach both limits.
 
-The same headless test checks both keyboard and stick: all five charged-angle
-fighters in all eight directions (80 cases), fifteen off-axis stick aims, and
-steering left and right for all eight guided fighters with both input methods.
+An envelope measures recovery from rest with one aerial jump, combining the
+jump, air dodge, side special and up special through 21 timing/aim plans. Its
+height starts 120 units outside the right ledge; its reach starts 150 units
+below it. A catch or landing counts as recovery. Searches resolve to 8 units
+and stop at 820 deep or 940 out, just inside the blast zones. Values at either
+limit mean the fighter recovers from that tested start.
+
+[spec #252] A running up special moving level or up into a solid wall turns
+the travel stopped by that wall upward along it. The wall ride spends the same
+move and grants no new jump or special. A descending up special may catch a
+free ledge while still running, ending the move there. Holding down declines
+the normal catch; facing, the catch box, regrab lock and occupied ledges still
+apply. Heroes taller than the reference body use Fox's ledge box scaled by
+body height; shorter bodies retain the reference box.
+
+[spec #252] Warden's and Jaina's Blink may pass a main-deck edge when the path
+enters within 0.5 body-reference heights (66 units) below the deck. Ending
+above the deck keeps that endpoint. Ending inside this lip within 66 units of
+a free ledge catches it; farther in, the fighter lands above its endpoint.
+An occupied ledge or regrab lock leaves the fighter just outside the lip.
+A path entering deeper than the lip stops against the solid stage.
+
+The before/after record below is the full-mana envelope (height / reach, world
+units) from the recorded main baseline and recovery branch `28c15a07` in
+[evidence/recovery-envelope-20261008](../evidence/recovery-envelope-20261008/).
+The branch's up-special and empty-mana measurements are kept there too.
+
+| Fighter | Before height / reach | After height / reach |
+|---|---:|---:|
+| Archer | 692 / 940 | 820 / 940 |
+| Rifleman | 685 / 940 | 820 / 940 |
+| Illidan | 762 / 940 | 762 / 940 |
+| Blademaster | 660 / 793 | 820 / 940 |
+| Mountain King | 692 / 749 | 692 / 749 |
+| Warden | 609 / 786 | 730 / 903 |
+| Lich | 628 / 793 | 801 / 889 |
+| Forsaken Paladin | 352 / 764 | 647 / 764 |
+| Dreadlord | 609 / 903 | 685 / 940 |
+| Shadow Hunter | 673 / 808 | 762 / 903 |
+| Pit Lord | 615 / 749 | 634 / 786 |
+| Beastmaster | 621 / 764 | 743 / 940 |
+| Lich King | 609 / 778 | 685 / 800 |
+| Thrall | 602 / 793 | 820 / 867 |
+| Jaina Proudmoore | 634 / 749 | 724 / 845 |
+| Sylvanas Windrunner | 609 / 771 | 698 / 940 |
+| Cairne Bloodhoof | 583 / 764 | 647 / 808 |
+| Chen Stormstout | 583 / 815 | 820 / 918 |
+| Peon | 621 / 793 | 653 / 793 |
+| Goblin Tinker | 647 / 830 | 820 / 940 |
+| Kael'thas Sunstrider | 621 / 889 | 794 / 940 |
+
+`GAME_TESTS=upSpecialRecovery bun test test/game.test.ts` measures each
+selectable fighter's up-special route from (700, 300), facing away from the
+stage with jumps spent: vertical holds up; horizontal takes the best of level,
+diagonal-up and a glide jump at frame 20 while within 10 units below the start.
+The same tests check charged angles and guided steering through keyboard and
+controller input. `GAME_TESTS=edgeRecovery bun test test/game.test.ts` checks
+wall rides, Blink lip outcomes and descending up-special catches. The farm
+sweeps check every fighter's envelope and all eight aims against the stage.
