@@ -10,6 +10,7 @@
 // (wisp:docs/watch.md).
 import { basename, join } from "node:path";
 import { Clock, Console, Effect, Layer, Schedule } from "effect";
+import { MENU_SECONDS } from "wisp/scripts/wisp/lobby";
 import { QUICK_MATCH_COMMAND } from "../../../src/game/shell/devSettings";
 import { devCommandReceiptFile, MELEE_READY_FILE } from "../../../src/runtime/gameFiles";
 import { DevCommandReceipt, MeleeReady } from "../boundary";
@@ -89,7 +90,8 @@ export const freshMatch = (map: string) => Effect.scoped(Effect.gen(function*() 
     if (state.kind === "lobby") return;
     yield* Effect.sleep("2 seconds");
     yield* clients.keys(client, "Escape");
-    yield* waitForState(client, inState("menus"), { what: "the menus", seconds: 20 });
+    yield* Console.log(`${client.name}: waiting for the menus (up to ${MENU_SECONDS} s)`);
+    yield* waitForState(client, inState("menus"), { what: "the menus", seconds: MENU_SECONDS });
   }).pipe(step(`${client.name} at the menus`));
 
   // The hot folder exists before the match does: a map without it reads all of CustomMapData to look for a reload.
