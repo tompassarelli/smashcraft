@@ -121,7 +121,7 @@ src/game/shell/localInput.tests.ts	1	0.051
 src/game/shell/matchRecord.tests.ts	3	0.001
 src/game/shell/pauseBarrier.tests.ts	4	0.000
 src/game/shell/playtest.tests.ts	1	0.000
-src/game/shell/rollbackPlayback.tests.ts	2	0.043
+src/game/shell/rollbackPlayback.tests.ts	3	0.138
 src/game/shell/scenarios.tests.ts	1	0.015
 src/game/shell/sessionSetup.tests.ts	2	0.000
 src/game/shell/stageLoad.tests.ts	1	0.000
