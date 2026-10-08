@@ -447,6 +447,19 @@ Per stage (backdrop facts from [Per-stage recommendations](#per-stage-recommenda
 | Ahn'Qiraj (13) | bright sandstone; light at 0.5 | Dusk-ochre height fog below the deck; the G3 Definitive light copy | — |
 | Hellfire (14) | dark haze *(guess)* | Fel-green omni lights from imported effects; bloom on fel fire. Outland_Sky is available in every mode | — |
 
+Tomb's row is in place (#298), following TS-1/TS-2: teal height fog uses
+style 3, distance 5,000–11,000, density 0.25, heights −1,800 to −100 relative
+to the arena, maximum opacity 0.375 and leaves the sky clear. Classic retains
+the existing teal linear fog. TS-c keeps the waterfall on the left: two native
+stock `WaterfallNoMist` copies override the ordinary waterfall only under
+`_hd.w3mod` and `_de.w3mod`; Classic uses its installed ordinary waterfall.
+The private stage-assets files `TombWaterfallHD.mdx` and `TombWaterfallDE.mdx`
+are 124,468 bytes each. Preserve these two stock files when regenerating
+stage-assets, or re-extract the HD/DE `WaterfallNoMist.mdx` paths with
+`tools/animations/casc-extract.cpp`. The ordinary stock waterfall is misty;
+the new model is missing in Classic. The three native mode captures decide
+whether the mode-specific map overrides draw as intended.
+
 Blackrock's row is in place (#292). Its two forge fires carry light-only
 omni models (smashcraft:ts/src/game/assets/stagePointLights.ts): warm orange,
 a slow flicker of ±12.5%, and a reach that ends at least 3,000 units behind

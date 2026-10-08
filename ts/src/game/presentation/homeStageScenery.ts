@@ -30,10 +30,12 @@ export const STRATHOLME_SCENERY: StageScenery = {
 export const TOMB_OF_SARGERAS_SCENERY: StageScenery = {
   sky: STAGE_SKY_MODELS[7] ?? "",
   fog: { start: 5000.0, end: 11000.0, red: 0.25, green: 0.4375, blue: 0.46875 },
+  // TS-1/TS-2: teal haze below the bright tide floor leaves the fighting plane clear.
+  heightFog: { start: 5000.0, end: 11000.0, density: 0.25, heightStart: -1800.0, heightEnd: -100.0, maxDensity: 0.375, drawOverSky: false },
   pieces: [
     { model: "Buildings\\Naga\\TempleOfTides\\TempleOfTides.mdx", x: 1600.0, y: 6400.0, z: -1400.0, scale: 1.25, yaw: 250.0 },
     { model: "Doodads\\Ruins\\Rocks\\Ruins_Rock\\Ruins_Rock0.mdx", x: 1760.0, y: 6400.0, z: -4080.0, scale: f32(9.05), yaw: 287.0, matrixScale: [1.0, 1.0, f32(1.55)] },
-    // The waterfall stays between the left ledge and centre at both camera extremes, its pool hidden behind the deck body.
+    // TS-c: the waterfall stays on the left; HD/DE imports replace only its misty model, keeping Classic stock.
     { model: "Doodads\\Terrain\\CliffDoodad\\Waterfall\\Waterfall.mdx", x: -1500.0, y: 5600.0, z: -1515.0, scale: 3.5, yaw: 270.0, matrixScale: [1.0, 1.0, f32(2.498)] },
     { model: "Doodads\\Ruins\\Structures\\SRuinArch\\SRuinArch.mdx", x: -1500.0, y: 3600.0, z: -1350.0, scale: 2.0, yaw: 15.0 },
     { model: "Doodads\\Ruins\\Rocks\\Ruins_Rock\\Ruins_Rock0.mdx", x: -1510.0, y: 3180.0, z: -2435.0, scale: f32(5.9), yaw: 52.0, matrixScale: [1.0, 1.0, f32(1.294)] },

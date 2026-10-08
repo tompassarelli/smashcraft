@@ -30,6 +30,11 @@ import { UI_FRAMES } from "./uiFrames";
 const tryMapPromise = <A>(operation: string, path: string, run: () => PromiseLike<A>) => Effect.tryPromise({ try: run, catch: (cause) => new MapBuildFailure({ operation, path, cause }) });
 const tryMapSync = <A>(operation: string, path: string, run: () => A) => Effect.try({ try: run, catch: (cause) => new MapBuildFailure({ operation, path, cause }) });
 const EMPTY_MODEL = "the map script names an empty model path";
+/** #298 / TS-c: mode-specific stock no-mist replacements; Classic keeps the installed waterfall. */
+export const TOMB_WATERFALL_IMPORTS = [
+  { entry: "_hd.w3mod\\Doodads\\Terrain\\CliffDoodad\\Waterfall\\Waterfall.mdx", file: "TombWaterfallHD.mdx" },
+  { entry: "_de.w3mod\\Doodads\\Terrain\\CliffDoodad\\Waterfall\\Waterfall.mdx", file: "TombWaterfallDE.mdx" },
+] as const;
 const BuildOptions = Schema.Struct({
   // Each input left out resolves from the checkout's build-inputs.json (buildInputs.ts).
   base: Schema.optional(Schema.NonEmptyString),
@@ -259,6 +264,7 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
     // Community models, textures and icons at the archive paths their authors' readmes name.
     ...IMPORTED_MODEL_FILES.map(({ entry, file }) => ({ entry, source: join(assets, "imported-models", file) })),
     ...generated.flat(),
+    ...TOMB_WATERFALL_IMPORTS.map(({ entry, file }) => ({ entry, source: join(assets, "stage-assets", file) })),
     ...summonFiles.map((filename) => imported(join(summon, "imports/war3mapImported"), filename)),
     ...clipFiles.map((filename) => imported(join(clipDirectory, "imports/war3mapImported"), filename)),
   ] satisfies ArchiveEntry[];

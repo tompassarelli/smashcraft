@@ -9,9 +9,32 @@ import { drawStageScenery, preloadStageAssets, showBackdrop } from "../src/platf
 import { STAGE_LIGHTS } from "../src/game/assets/stageLighting";
 import { pointLightPieces } from "../src/game/presentation/stageScenery";
 import { POST_PROCESSING } from "../scripts/postProcessing";
+import { TOMB_WATERFALL_IMPORTS } from "../scripts/wisp/mapInputs";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
+
+test("Tomb draws teal fog below its tide floor and replaces mist only in HD modes [spec #298]", () => {
+  const clients = headless.clients({ start, install });
+  clients.start(); clients.frames(30);
+  const client = clients.client(0);
+  client.run(() => {
+    const s = shell();
+    s.game.stageChoice = 7;
+    const before = client.log.length;
+    drawStageScenery(s);
+    expect(client.log.slice(before).find(call => call.name === "SetTerrainFogExV")?.args).toEqual([3, 5000, 11000, 0.25, s.origin.z - 1800, s.origin.z - 100, 5000, 11000, 0.25, 0.4375, 0.46875]);
+    expect(client.log.slice(before).filter(call => call.name === "BlzSetTerrainFogMaxLinearDensity").at(-1)?.args).toEqual([0.375]);
+    expect(client.log.slice(before).filter(call => call.name === "BlzSetTerrainFogDrawOverSky").at(-1)?.args).toEqual([false]);
+    const waterfall = stageScenery(7).pieces.find(piece => piece.model.includes("Waterfall"));
+    expect(waterfall?.model).toBe("Doodads\\Terrain\\CliffDoodad\\Waterfall\\Waterfall.mdx");
+    expect(waterfall?.x).toBeLessThan(0);
+    expect(TOMB_WATERFALL_IMPORTS).toEqual([
+      { entry: "_hd.w3mod\\Doodads\\Terrain\\CliffDoodad\\Waterfall\\Waterfall.mdx", file: "TombWaterfallHD.mdx" },
+      { entry: "_de.w3mod\\Doodads\\Terrain\\CliffDoodad\\Waterfall\\Waterfall.mdx", file: "TombWaterfallDE.mdx" },
+    ]);
+  });
+});
 
 test("Nordrassil draws teal mist below the deck, preserves its aurora and restores fog after a mask [spec #294]", () => {
   const clients = headless.clients({ start, install });
