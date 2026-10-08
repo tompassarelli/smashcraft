@@ -49,9 +49,9 @@ test("Sylvanas has Pit's weight, run and air speed in world units [reference] [s
 
 const contacts = [
   [AttackStyle.jab, 42.0, 0.0, 3.0], [AttackStyle.jab2, 46.0, 0.0, 3.0], [AttackStyle.jab3, 52.0, 0.0, 5.0],
-  [AttackStyle.forwardTilt, 95.0, 0.0, 8.0], [AttackStyle.forwardTiltUp, 95.0, 30.0, 8.0], [AttackStyle.forwardTiltDown, 90.0, 0.0, 8.0],
-  [AttackStyle.upTilt, 12.0, 90.0, 7.0], [AttackStyle.downTilt, 80.0, 0.0, 6.0], [AttackStyle.dashAttack, 100.0, 0.0, 9.0],
-  [AttackStyle.forwardSmash, 130.0, 0.0, 15.0], [AttackStyle.upSmash, 0.0, 120.0, 13.0], [AttackStyle.downSmash, 95.0, 0.0, 12.0],
+  [AttackStyle.forwardTilt, 95.0, 0.0, 9.0], [AttackStyle.forwardTiltUp, 95.0, 30.0, 9.0], [AttackStyle.forwardTiltDown, 90.0, 0.0, 9.0],
+  [AttackStyle.upTilt, 12.0, 90.0, 7.0], [AttackStyle.downTilt, 80.0, 0.0, 7.0], [AttackStyle.dashAttack, 100.0, 0.0, 10.0],
+  [AttackStyle.forwardSmash, 130.0, 0.0, 16.5], [AttackStyle.upSmash, 0.0, 120.0, 13.0], [AttackStyle.downSmash, 95.0, 0.0, 12.0],
   [AttackStyle.neutralAir, 70.0, 0.0, 7.0], [AttackStyle.forwardAir, 110.0, 0.0, 10.0], [AttackStyle.backAir, -95.0, 0.0, 11.0],
   [AttackStyle.upAir, 0.0, 85.0, 8.0], [AttackStyle.downAir, 8.0, -100.0, 11.0],
 ] as const;
