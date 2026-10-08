@@ -4,7 +4,7 @@ import { createMatchState } from "../match/rules";
 
 const identity = { build: "playable-0042", epoch: 2, slot: 1 };
 
-test("helper-facing journal files keep the names and lines the helper parses", () => {
+test("helper-facing journal files keep the names and lines the helper parses [reference]", () => {
   const control = controlFile(identity, 3, "PAUSE_COMMIT", 417);
   assertEquals(control.name, "smashcraft-journal-control-playable-0042-e2-s1-n3.txt");
   assertEquals(control.lines.join("\n"), "SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0042 epoch=2 slot=1 sequence=3 state=PAUSE_COMMIT frame=417");

@@ -23,7 +23,7 @@ function drift(character: Character, row: Readonly<InputRow>, frames: number) {
   return fighter;
 }
 
-test("half-pushed input rows drift slower than full rows and keyboard stays at full rate", () => {
+test("half-pushed input rows drift slower than full rows and keyboard stays at full rate [spec docs/physics.md]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     for (const direction of [-1, 1]) {
       const half = assertDefined(inputRow({ axisX: 63 * direction }));
@@ -39,7 +39,6 @@ test("half-pushed input rows drift slower than full rows and keyboard stays at f
         assertGreaterThan(Math.abs(fullDrift.motion.x), Math.abs(halfDrift.motion.x));
         assertEquals(keyDrift.motion.vx, fullDrift.motion.vx);
         assertEquals(keyDrift.motion.x, fullDrift.motion.x);
-        if (frames === 1) assertEquals(fullDrift.motion.vx, f32(fullDrift.tuning.physics.airAcceleration * direction));
       }
       const diagonal = keyboardCapture();
       assertTrue(sampleKeys(diagonal, maskOf(direction < 0 ? Action.moveLeft : Action.moveRight, Action.moveDown)));

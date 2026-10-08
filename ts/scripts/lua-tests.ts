@@ -21,9 +21,8 @@ import { BUSY_PRESSURE, INCONCLUSIVE_EXIT, withPressure } from "wisp/scripts/wis
 import { runAdmitted } from "./heavyCapacity";
 import { LUA_TEST_CEILING_S, addCost, judge, type Costs } from "./testCost";
 import { stockLua } from "./wisp/luaRuntimes";
+import { refuseUntagged } from "./oracleTags";
 
-await runAdmitted("moderate", "smashcraft:lua-tests", 1800);
-const lua = await Effect.runPromise(stockLua);
 const compile = (config: string) =>
   Bun.spawnSync([process.execPath, "--bun", "node_modules/typescript-to-lua/dist/tstl.js", "-p", config], { stdout: "inherit", stderr: "inherit" }).exitCode ?? 1;
 const run = (bundle: string) => Bun.spawnSync([lua, bundle], { stdout: "inherit", stderr: "inherit" }).exitCode ?? 1;
@@ -52,6 +51,9 @@ if (modules.length === 0) throw new Error("No Lua test modules match GAME_TESTS 
 // with require and records the registry length before it: entry.ts charges
 // each test's CPU to the module that registered it.
 const loaded = [...modules, ...(remainder ? ["test/lua/memoryCensus.tests.ts"] : [])];
+refuseUntagged(".", loaded);
+await runAdmitted("moderate", "smashcraft:lua-tests", 1800);
+const lua = await Effect.runPromise(stockLua);
 await Bun.write("test/lua/index.ts", [
   'import { registeredTests } from "wisp/src/runtime/testing";',
   "export const testModules: [number, string][] = [];",
@@ -104,4 +106,3 @@ for (const step of steps) {
   const exitCode = await step();
   if (exitCode !== 0) process.exit(exitCode);
 }
-

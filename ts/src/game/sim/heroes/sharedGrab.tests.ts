@@ -5,7 +5,7 @@ import { createFighter } from "../fighter";
 import { testWorld } from "../testWorld";
 import { BLADEMASTER_MOVES } from "./blademasterMoves";
 
-test("Blademaster standing grab can catch on either of its separately authored active poses", () => {
+test("Blademaster standing grab can catch on either of its separately authored active poses [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
     for (const attackFrame of [6, 7]) {
       const owner = createFighter(Character.archer, 0.0, facing);

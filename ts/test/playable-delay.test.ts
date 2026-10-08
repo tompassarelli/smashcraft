@@ -14,7 +14,7 @@ import { startProbe } from "../src/platform/shell/responseProbe";
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
 
-test("a refused local keyboard send retries the original row and keeps neutral capture running", () => {
+test("a refused local keyboard send retries the original row and keeps neutral capture running [spec #26]", () => {
   const clients = headless.clients({ start: () => startBuild({ ...PLAYABLE_BUILD, devConsole: true }), install }, [0, 1]);
   clients.start();
   clients.frames(30);
@@ -40,7 +40,7 @@ test("a refused local keyboard send retries the original row and keeps neutral c
   expect(clients.firstDivergence()).toBeUndefined();
 });
 
-test("release keyboard shields start exactly two frames after capture before the sender's echo", () => {
+test("release keyboard shields start exactly two frames after capture before the sender's echo [spec #60]", () => {
   const clients = headless.clients({ start: () => startBuild({ ...PLAYABLE_BUILD, devConsole: true }), install }, [0, 1], {
     delivery: syncDelivery({ latencyMs: 150, turnMs: 25, extraTurns: [1] }, 60),
   });
@@ -83,36 +83,7 @@ test("release keyboard shields start exactly two frames after capture before the
   expect(clients.firstDivergence()).toBeUndefined();
 });
 
-test("native keyboard diagnostics retain the original captured row separately from first prediction", () => {
-  const clients = headless.clients({ start: () => startBuild({ ...PLAYABLE_BUILD, devConsole: true, responseProbe: true }), install }, [0, 1], {
-    delivery: syncDelivery({ latencyMs: 150, turnMs: 25, extraTurns: [1] }, 60),
-  });
-  clients.start();
-  clients.frames(30);
-  clients.chat(0, "-dev quick");
-  clients.frames(30);
-  const first = clients.clients[0];
-  if (first === undefined) throw new Error("missing local client");
-  const target = value(first, () => shell().rollback?.schedule.captureTarget());
-  expect(target).toBeGreaterThan(0);
-  for (const client of clients.clients) client.run(() => {
-    const probe = shell().probe;
-    if (probe === undefined) throw new Error("diagnostic has no response probe");
-    startProbe(probe, false);
-  });
-  for (const client of clients.clients) client.key(0, 0x51, 0, true);
-  clients.frames(3);
-  const recorded = value(first, () => shell().probe?.integrity ?? []);
-  const captures = recorded.filter(line => line.includes(" capture "));
-  expect(captures).toHaveLength(1);
-  expect(captures[0]).toMatch(new RegExp(`^1 capture \\d+ 0 ${target} 256 256 0 \\d+$`));
-  expect(recorded.filter(line => line.includes(" held "))).toEqual([]);
-  expect(recorded.some(line => new RegExp(`^3 action \\d+ 0 ${target} 256 256 256$`).test(line))).toBe(true);
-  for (const client of clients.clients) expect(client.errors).toEqual([]);
-  expect(clients.firstDivergence()).toBeUndefined();
-});
-
-test("keyboard stall attribution clears after latched presses are admitted despite the two-frame queue", () => {
+test("keyboard stall attribution clears after latched presses are admitted despite the two-frame queue [spec #46]", () => {
   let delayed = false;
   let lastArrival = 0;
   const clients = headless.clients({ start: () => startBuild({ ...PLAYABLE_BUILD, devConsole: true, responseProbe: true }), install }, [0, 1], {

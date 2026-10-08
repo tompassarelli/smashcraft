@@ -9,7 +9,7 @@ import { MOVES_BODY_BOX, MOVES_BUTTON_HEIGHT, MOVES_BUTTON_TOP, MOVES_TITLE_BOX,
 const overlaps = (a: TextBox, b: TextBox): boolean =>
   a.left < b.left + b.width && b.left < a.left + a.width && a.top - a.height < b.top && b.top - b.height < a.top;
 
-test("the Moves page stays below the selection header and its parts keep apart", () => {
+test("the Moves page stays below the selection header and its parts keep apart [repro #150]", () => {
   for (const box of [MOVES_TITLE_BOX, MOVES_BODY_BOX]) {
     assertTrue(box.top <= SELECTION_HEADER_FLOOR);
     assertTrue(box.top - box.height >= MOVES_BUTTON_TOP);
@@ -18,7 +18,7 @@ test("the Moves page stays below the selection header and its parts keep apart",
   assertTrue(MOVES_BUTTON_TOP - MOVES_BUTTON_HEIGHT >= 0.0);
 });
 
-test("the mode label sits inside the header's title box on 4:3, 16:10, 16:9 and 21:9 screens", () => {
+test("the mode label sits inside the header's title box on 4:3, 16:10, 16:9 and 21:9 screens [repro #150]", () => {
   for (const aspect of [4.0 / 3.0, 16.0 / 10.0, 16.0 / 9.0, 21.0 / 9.0]) {
     const box = selectionTitleBox(aspect);
     assertTrue(box.width > f32(0.2) && box.height >= f32(0.025));

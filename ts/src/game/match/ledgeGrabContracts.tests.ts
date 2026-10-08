@@ -15,7 +15,7 @@ const ROSTER = [Character.archer, Character.rifleman, Character.demonHunter] as 
 /** How far inside the ledge the grabber stands: within a grab's reach of the hanger. */
 const GRAB_DISTANCE = 70.0;
 
-test("a standing grab from the stage cannot catch a fighter hanging on the ledge after its intangible frames", () => {
+test("a standing grab from the stage cannot catch a fighter hanging on the ledge after its intangible frames [reference]", () => {
   for (const character of ROSTER) {
     for (const side of [-1, 1]) {
       const match = testMatch(3, character);

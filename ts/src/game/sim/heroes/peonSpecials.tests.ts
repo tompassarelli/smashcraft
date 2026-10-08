@@ -39,7 +39,7 @@ const side = controls({ specialPressed: true, specialX: 1 });
 const up = controls({ specialPressed: true, specialZ: 1 });
 const down = controls({ specialPressed: true, specialZ: -1 });
 
-test("Peon four special inputs spend once and finish on the authored frame", () => {
+test("Peon four special inputs spend once and finish on the authored frame [spec docs/design/peasant.md]", () => {
   for (const [input, action, cost, end] of [
     [neutral, SpecialAction.heroNeutral, 0, 40], [side, SpecialAction.heroSide, 20, 52],
     [up, SpecialAction.heroUp, 15, 28], [down, SpecialAction.heroDown, 20, 38],
@@ -54,7 +54,7 @@ test("Peon four special inputs spend once and finish on the authored frame", () 
   }
 });
 
-test("Peon Lumber Toss strikes once in both facings and never creates a second live log", () => {
+test("Peon Lumber Toss strikes once in both facings and never creates a second live log [spec docs/design/peasant.md]", () => {
   for (const facing of [-1, 1]) {
     const { world, owner, target } = pair(280.0, facing);
     frame(world, neutral);
@@ -67,7 +67,7 @@ test("Peon Lumber Toss strikes once in both facings and never creates a second l
   }
 });
 
-test("Peon Burrow fires its scheduled spear, packs away, and clears on stock loss", () => {
+test("Peon Burrow fires its scheduled spear, packs away, and clears on stock loss [spec docs/design/peasant.md]", () => {
   const { world, owner, target } = pair(360.0);
   frame(world, side);
   for (let tick = 2; tick <= 26; tick++) frame(world);
@@ -86,7 +86,7 @@ test("Peon Burrow fires its scheduled spear, packs away, and clears on stock los
   assertEquals(owner.placed.life, 0);
 });
 
-test("Peon Worksite Launch offers paid and free recovery, spends the jump and ends helpless", () => {
+test("Peon Worksite Launch offers paid and free recovery, spends the jump and ends helpless [spec docs/design/peasant.md]", () => {
   for (const mana of [100, 0]) {
     const { world, owner } = pair(900.0);
     owner.mana.points = mana;
@@ -105,7 +105,7 @@ test("Peon Worksite Launch offers paid and free recovery, spends the jump and en
   }
 });
 
-test("Peon Repair heals only a timed contact and leaves a missed read punishable", () => {
+test("Peon Repair heals only a timed contact and leaves a missed read punishable [spec docs/design/peasant.md]", () => {
   const { world, owner, target } = pair(45.0);
   owner.status.damage = 30.0;
   frame(world, down);

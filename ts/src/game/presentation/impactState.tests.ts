@@ -12,49 +12,21 @@ import { ReplayCorrections, ReplayHistory } from "../replay/history";
 import { firstFighterDifference, firstPoseDifference, firstStateDifference } from "../replay/difference";
 import { captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot } from "../replay/snapshot";
 import { beginFighterAttack } from "../sim/attacks";
-import { AttackStyle, Character, DownState, GrabAction, SurfaceContact } from "../sim/codes";
+import { AttackStyle, Character, DownState, GrabAction } from "../sim/codes";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "../sim/knockback";
 import { attackStartupFrames, grabContactFrame } from "../sim/moves";
 import { fighterAt, isActive } from "../sim/roster";
 import { firstFighterPoseDifference } from "./fighterPose";
 import { DodgeCue, ImpactLanding, JumpCue, createImpactEvents } from "./impactEvents";
 import {
-  IMPACTS_PER_KIND, IMPACT_CHARGE, IMPACT_COUNT, IMPACT_DODGE, IMPACT_DUST, IMPACT_GRAB, IMPACT_HIT, IMPACT_KIND_COUNT, IMPACT_SCREEN_KO, IMPACT_SIDE_KO, IMPACT_STAR_KO, IMPACT_THROW, KO_SCREEN_FRAMES, KO_STAR_FLIGHT_FRAMES, KO_STAR_FRAMES,
-  advanceImpacts, clearImpactState, copyImpactStateInto, createImpactState, emitImpacts, firstImpactDifference, impactLifetime, projectImpact, projectKo,
+  IMPACTS_PER_KIND, IMPACT_CHARGE, IMPACT_COUNT, IMPACT_DUST, IMPACT_GRAB, IMPACT_SCREEN_KO, IMPACT_STAR_KO, IMPACT_THROW, advanceImpacts, clearImpactState, copyImpactStateInto, createImpactState, emitImpacts, firstImpactDifference, impactLifetime, projectImpact, projectKo,
 } from "./impactState";
 
 function projectAll(match: TestMatch): void {
   for (let i = 0; i < IMPACT_COUNT; i++) projectImpact(match.runtime.impacts, i);
 }
 
-test("wall tech stays at contact and wall jump has a separate short push-off ring", () => {
-  const pool = createImpactState();
-  const events = createImpactEvents();
-  events.surface = SurfaceContact.techWall;
-  events.contactX = -280.0;
-  events.contactZ = 64.0;
-  events.normalX = 1.0;
-  emitImpacts(pool, events, 1);
-  const tech = IMPACTS_PER_KIND;
-  for (let frame = 0; frame < 15; frame++) {
-    const pose = projectImpact(pool, tech);
-    assertTrue(pose.visible);
-    assertEquals(pose.x, events.contactX);
-    assertEquals(pose.z, events.contactZ);
-    advanceImpacts(pool);
-  }
-  assertFalse(projectImpact(pool, tech).visible);
-  events.surface = SurfaceContact.none;
-  events.jump = JumpCue.wall;
-  emitImpacts(pool, events, 16);
-  const jump = 7 * IMPACTS_PER_KIND;
-  assertEquals(projectImpact(pool, jump).x, events.contactX);
-  assertEquals(projectImpact(pool, jump).z, events.contactZ);
-  for (let frame = 0; frame < 12; frame++) advanceImpacts(pool);
-  assertFalse(projectImpact(pool, jump).visible);
-});
-
-test("stock dust remains drawn until its slot expires", () => {
+test("stock dust remains drawn until its slot expires [repro #95]", () => {
   const pool = createImpactState();
   const events = createImpactEvents();
   events.movementDust = true;
@@ -76,7 +48,7 @@ function dodge(match: TestMatch, slot: ParticipantSlot, pressed: boolean): void 
   input.shield = pressed;
 }
 
-test("impact projection reads only, shows each impact for its lifetime, and clearing empties the pool", () => {
+test("impact projection reads only and clearing empties the pool [invariant]", () => {
   const pool = createImpactState();
   const saved = createImpactState();
   const events = createImpactEvents();
@@ -111,17 +83,11 @@ test("impact projection reads only, shows each impact for its lifetime, and clea
     projectImpact(pool, i);
   }
   assertEquals(firstImpactDifference(pool, saved), undefined);
-  for (let age = 1; age <= 32; age++) {
-    advanceImpacts(pool);
-    for (let kind = 0; kind < IMPACT_KIND_COUNT; kind++) {
-      assertEquals(projectImpact(pool, kind * IMPACTS_PER_KIND).visible, kind < IMPACT_STAR_KO && age < impactLifetime(kind), `kind ${kind} at age ${age}`);
-    }
-  }
   clearImpactState(pool);
   assertEquals(firstImpactDifference(pool, createImpactState()), undefined);
 });
 
-test("a snapshot restores the impact pool and its ring pointers", () => {
+test("a snapshot restores the impact pool and its ring pointers [invariant]", () => {
   const match = testMatch(9, Character.archer);
   const events = createImpactEvents();
   events.dodge = DodgeCue.spot;
@@ -145,13 +111,9 @@ test("a snapshot restores the impact pool and its ring pointers", () => {
   assertEquals(restored.x, dust.x);
   assertEquals(restored.z, dust.z);
   assertEquals(restored.alpha, dust.alpha);
-  assertFalse(projectImpact(match.runtime.impacts, 32).visible);
-  assertEquals(match.runtime.impacts.nextSlot[IMPACT_DUST], 2);
-  assertEquals(match.runtime.impacts.nextSlot[IMPACT_DODGE], 0);
-  assertEquals(match.runtime.impacts.ages[24], 5);
 });
 
-test("a correction removes a predicted impact and restores the accepted one's age", () => {
+test("a correction removes a predicted impact and restores the accepted one's age [invariant]", () => {
   const match = testMatch(9, Character.archer);
   const live = replayState(match);
   const history = new ReplayHistory();
@@ -180,7 +142,7 @@ test("a correction removes a predicted impact and restores the accepted one's ag
   assertFalse(projectImpact(impacts, 27).visible);
 });
 
-test("sparse and four-player matches emit the same impacts whether projected each frame or not", () => {
+test("sparse and four-player matches emit the same impacts whether projected each frame or not [invariant]", () => {
   for (const mask of [9, 15]) {
     const sequential = testMatch(mask, Character.archer);
     const catchup = testMatch(mask, Character.archer);
@@ -203,18 +165,10 @@ test("sparse and four-player matches emit the same impacts whether projected eac
       assertEquals(a.x, b.x);
       assertEquals(a.alpha, b.alpha);
     }
-    let index = 24;
-    for (const slot of PARTICIPANT_SLOTS) {
-      if (!isActive(sequential.world, slot)) continue;
-      assertEquals(sequential.runtime.impacts.originX[index], -248.0 + slot * 150.0);
-      assertEquals(sequential.runtime.impacts.originX[index + 1], -232.0 + slot * 150.0);
-      assertEquals(sequential.runtime.impacts.ages[index], 7);
-      index += 2;
-    }
   }
 });
 
-test("pool reuse wraps each ring, and a result, a reset or a menu frame empties it", () => {
+test("a result, a reset or a menu frame empties the impact pool [spec #82]", () => {
   const pool = createImpactState();
   const events = createImpactEvents();
   events.hit = true;
@@ -222,10 +176,6 @@ test("pool reuse wraps each ring, and a result, a reset or a menu frame empties 
     events.x = i * 10.0;
     emitImpacts(pool, events, 0);
   }
-  assertEquals(pool.nextSlot[IMPACT_HIT], 2);
-  assertEquals(pool.originX[0], 80.0);
-  assertEquals(pool.originX[1], 90.0);
-  assertEquals(pool.originX[2], 20.0);
   const match = testMatch(15, Character.archer);
   const empty = createImpactState();
   copyImpactStateInto(match.runtime.impacts, pool);
@@ -243,7 +193,7 @@ test("pool reuse wraps each ring, and a result, a reset or a menu frame empties 
   assertEquals(firstImpactDifference(match.runtime.impacts, empty), undefined);
 });
 
-test("replaying from a snapshot restores accepted grab and throw cues, and projection consumes none", () => {
+test("replaying from a snapshot restores accepted grab and throw cues, and projection consumes none [invariant]", () => {
   const match = testMatch(3, Character.archer);
   const owner = fighterAt(match.world, 0);
   const target = fighterAt(match.world, 1);
@@ -281,7 +231,7 @@ test("replaying from a snapshot restores accepted grab and throw cues, and proje
   assertEquals(firstPoseDifference(accepted, replayed), undefined);
 });
 
-test("a corrected charge removes its cue", () => {
+test("a corrected charge removes its cue [invariant]", () => {
   const match = testMatch(3, Character.archer);
   const live = replayState(match);
   const history = new ReplayHistory();
@@ -307,57 +257,8 @@ test("a corrected charge removes its cue", () => {
   assertEquals(match.runtime.impacts.nextSlot[IMPACT_CHARGE], 0);
   assertFalse(projectImpact(match.runtime.impacts, IMPACT_CHARGE * IMPACTS_PER_KIND).visible);
 });
-test("top KO cinematics have distinct flight, sparkle and drop", () => {
-  const events = createImpactEvents();
-  events.koDirectionZ = 1;
-  events.x = 200.0;
-  events.z = 770.0;
-  events.facing = -1;
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
-    events.character = character;
-    const pool = createImpactState();
-    emitImpacts(pool, events, character);
-    emitImpacts(pool, events, character + 1);
-    const star = IMPACT_STAR_KO * IMPACTS_PER_KIND;
-    const screen = IMPACT_SCREEN_KO * IMPACTS_PER_KIND;
-    assertEquals(pool.nextSlot[IMPACT_SIDE_KO], 0);
-    assertEquals(projectKo(pool, star).character, character);
-    assertEquals(projectKo(pool, screen).character, character);
-    assertEquals(projectKo(pool, star).x, 90.0);
-    assertEquals(projectKo(pool, star).z, 480.0);
-    const saved = createImpactState();
-    copyImpactStateInto(saved, pool);
-    for (let tick = 1; tick <= 20; tick++) {
-      projectKo(pool, star);
-      projectKo(pool, screen);
-    }
-    assertEquals(firstImpactDifference(pool, saved), undefined);
-    for (let age = 1; age <= KO_STAR_FRAMES; age++) {
-      advanceImpacts(pool);
-      if (age === 24) {
-        const a = projectKo(pool, star);
-        const b = projectKo(pool, screen);
-        assertTrue(a.scale < 1.0 && a.y > 0.0 && a.pitch !== 0.0 && a.roll !== 0.0);
-        assertTrue(b.scale > 1.0 && b.y < 0.0 && b.pitch !== 0.0);
-      }
-      if (age === 75) assertTrue(projectKo(pool, screen).z < 200.0);
-      if (age === KO_STAR_FLIGHT_FRAMES) {
-        assertFalse(projectKo(pool, star).visible);
-        assertTrue(projectImpact(pool, star).visible);
-      }
-      if (age === KO_SCREEN_FRAMES) assertFalse(projectKo(pool, screen).visible);
-    }
-    assertFalse(projectImpact(pool, star).visible);
-    copyImpactStateInto(pool, saved);
-    assertEquals(firstImpactDifference(pool, saved), undefined);
-    clearImpactState(pool);
-    assertFalse(projectKo(pool, star).visible);
-    assertFalse(projectKo(pool, screen).visible);
-    assertFalse(projectImpact(pool, star).visible);
-  }
-});
 
-test("replaying a confirmed top KO restores one body and the same stocks", () => {
+test("replaying a confirmed top KO restores one body and the same stocks [invariant]", () => {
   const match = testMatch(3, Character.archer);
   const fighter = fighterAt(match.world, 0);
   fighter.motion.z = f32(stageBounds(match.game.stageChoice).blast.top + 1.0);

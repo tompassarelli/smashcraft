@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { BALANCE_GATE, SPECIAL_MOVE, balanceVerdict, fighterMoveUsage, keyMovesAmongMostUsed, matchupReport } from "./cpuField";
 
-test("a fighter's computer move usage is counted, ranked and repeatable", () => {
+test("a fighter's computer move usage is counted, ranked and repeatable [invariant]", () => {
   const options = { fighters: [Character.archer, Character.rifleman], stages: ["sky-deck"], stocks: 1, minutes: 1 } as const;
   const usage = fighterMoveUsage(Character.archer, options);
   expect(usage.length).toBeGreaterThan(3);
@@ -17,7 +17,7 @@ test("a fighter's computer move usage is counted, ranked and repeatable", () => 
   if (unused !== undefined) expect(keyMovesAmongMostUsed(usage, [leading, unused], usage.length).missing).toEqual([unused]);
 });
 
-test("the matchup report counts 95% intervals overlapping 45-55% and the median distance from even", () => {
+test("the matchup report counts 95% intervals overlapping 45-55% and the median distance from even [spec #105]", () => {
   const row = (fighter: string, against: Record<string, number>, n: number) => ({
     fighter, against, played: Object.fromEntries(Object.keys(against).map((k) => [k, n])), decisive: Object.fromEntries(Object.keys(against).map((k) => [k, n])),
   });
@@ -27,7 +27,7 @@ test("the matchup report counts 95% intervals overlapping 45-55% and the median 
   expect(report.medianDeviation).toBeCloseTo(0.09, 6);
 });
 
-test("the balance gate is 40-60% against the field with Wren Expert and 400 a pair, and roster.md's Balance gate states the same numbers", () => {
+test("the balance gate is 40-60% against the field with Wren Expert and 400 a pair, and roster.md's Balance gate states the same numbers [spec #105]", () => {
   // Changing the gate changes this test, the constant and the doc together (Tom, 7 Oct).
   expect(BALANCE_GATE).toEqual({ fieldLow: 0.4, fieldHigh: 0.6, opponent: "wren", tier: "expert", perPair: 400 });
   const doc = readFileSync(join(import.meta.dir, "../../docs/design/roster.md"), "utf8");
@@ -37,7 +37,7 @@ test("the balance gate is 40-60% against the field with Wren Expert and 400 a pa
   for (const text of ["BALANCE_GATE", "40%", "60%", "Wren Expert", "400 matches a pair"]) expect(section).toContain(text);
 });
 
-test("the balance verdict passes a gate run with every fighter inside 40-60%, and only a gate run", () => {
+test("the balance verdict passes a gate run with every fighter inside 40-60%, and only a gate run [spec #105]", () => {
   const field = [{ fighter: "a", winRate: 0.4 }, { fighter: "b", winRate: 0.6 }];
   expect(balanceVerdict(field, [{ opponent: "wren", tier: "expert" }], 400)).toEqual({ outside: [], gateRun: true, passes: true });
   expect(balanceVerdict([...field, { fighter: "c", winRate: 0.61 }], [{ opponent: "wren", tier: "expert" }], 400)).toEqual({ outside: ["c 61%"], gateRun: true, passes: false });

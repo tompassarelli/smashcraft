@@ -10,7 +10,7 @@ import { stageScenery } from "./stageScenery";
  */
 const FIGURE_WORDS = ["statue", "totem", "idol", "effigy", "corpse", "skeleton"];
 
-test("no stage's scenery pairs a piece with its mirror twin", () => {
+test("no stage's scenery pairs a piece with its mirror twin [spec docs/design/stage-art.md]", () => {
   for (const { id, name } of STAGE_CATALOG) {
     const pieces = stageScenery(id).pieces;
     for (const [index, a] of pieces.entries()) {
@@ -24,7 +24,7 @@ test("no stage's scenery pairs a piece with its mirror twin", () => {
   }
 });
 
-test("stage scenery shows no creatures", () => {
+test("stage scenery shows no creatures [spec docs/design/stage-art.md]", () => {
   for (const { id, name } of STAGE_CATALOG) {
     for (const { model } of stageScenery(id).pieces) {
       const creature = model.toLowerCase().startsWith("units\\") || FIGURE_WORDS.some((word) => model.toLowerCase().includes(word));

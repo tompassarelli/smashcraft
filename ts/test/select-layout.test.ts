@@ -18,7 +18,7 @@ const overlaps = (a: FrameSnapshot, b: FrameSnapshot) => {
   return al < br - 0.000001 && bl < ar - 0.000001 && ab < bt - 0.000001 && bb < at - 0.000001;
 };
 
-for (const width of [1920, 1620]) test(`both selection screens at ${width}: text and buttons fit their frames and keep apart`, async () => {
+for (const width of [1920, 1620]) test(`both selection screens at ${width}: text and buttons fit their frames and keep apart [spec #221]`, async () => {
   const fonts = new Map<number, number>();
   const runtime = installHeadless({ ...SMASHCRAFT_HEADLESS, natives: client => ({ ...SMASHCRAFT_HEADLESS.natives?.(client),
     BlzGetLocalClientWidth: () => width,

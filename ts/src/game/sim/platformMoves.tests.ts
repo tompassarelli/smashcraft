@@ -52,7 +52,7 @@ function finishMove(f: Fighter, input: Readonly<Controls>): number {
   return frames - 1;
 }
 
-test("a full hop under a platform ascends it for the jump squat, carrying its rise, then lands on it", () => {
+test("a full hop under a platform ascends it for the jump squat, carrying its rise, then lands on it [spec #103]", () => {
   for (const character of FIGHTERS) {
     const f = createFighter(character, CENTRE, 1);
     const input = controls({ jumpPressed: true, jumpHeld: true });
@@ -75,7 +75,7 @@ test("a full hop under a platform ascends it for the jump squat, carrying its ri
   }
 });
 
-test("an ascent carries momentum by default; jump or up past the tap-jump threshold sustains it", () => {
+test("an ascent carries momentum by default; jump or up past the tap-jump threshold sustains it [spec #103]", () => {
   for (const character of FIGHTERS) {
     for (const sustain of ["none", "jump", "up"]) {
       const f = risingUnder(character);
@@ -91,7 +91,7 @@ test("an ascent carries momentum by default; jump or up past the tap-jump thresh
   }
 });
 
-test("an ascent cancels an aerial's remaining recovery after it hits", () => {
+test("an ascent cancels an aerial's remaining recovery after it hits [spec #103]", () => {
   for (const character of FIGHTERS) {
     const f = risingUnder(character);
     f.attack.style = AttackStyle.upAir;
@@ -108,7 +108,7 @@ test("an ascent cancels an aerial's remaining recovery after it hits", () => {
   }
 });
 
-test("an aerial in its startup or active frames carries on through the platform; the ascent begins as they end", () => {
+test("an aerial in its startup or active frames carries on through the platform; the ascent begins as they end [spec #103]", () => {
   for (const character of FIGHTERS) {
     const f = risingUnder(character);
     // Sustained, so the body still straddles the platform when the aerial's active frames end.
@@ -130,7 +130,7 @@ test("an aerial in its startup or active frames carries on through the platform;
   }
 });
 
-test("down held or pressed during an ascent ends it standing; held down crouches without descending", () => {
+test("down held or pressed during an ascent ends it standing; held down crouches without descending [spec #103]", () => {
   for (const character of FIGHTERS) {
     const held = risingUnder(character);
     const down = controls({ down: true, verticalDirection: -1 });
@@ -155,7 +155,7 @@ test("down held or pressed during an ascent ends it standing; held down crouches
   }
 });
 
-test("shield held or pressed during an ascent ends it shielding on the platform", () => {
+test("shield held or pressed during an ascent ends it shielding on the platform [spec #103]", () => {
   for (const character of FIGHTERS) {
     for (const press of [false, true]) {
       const f = risingUnder(character);
@@ -171,7 +171,7 @@ test("shield held or pressed during an ascent ends it shielding on the platform"
   }
 });
 
-test("a fresh down on a platform descends it for the jump squat; the tilt modifier crouches instead", () => {
+test("a fresh down on a platform descends it for the jump squat; the tilt modifier crouches instead [spec #103]", () => {
   for (const character of FIGHTERS) {
     const f = standingOnDeck(character);
     const down = controls({ down: true, verticalDirection: -1 });
@@ -194,7 +194,7 @@ test("a fresh down on a platform descends it for the jump squat; the tilt modifi
   }
 });
 
-test("there is no platform shield drop: down while shielding stays on the platform", () => {
+test("there is no platform shield drop: down while shielding stays on the platform [spec #103]", () => {
   for (const character of FIGHTERS) {
     const f = standingOnDeck(character);
     for (let frame = 1; frame <= 10; frame++) step(f, controls({ shield: true, shieldStrength: 1.0 }));
@@ -206,7 +206,7 @@ test("there is no platform shield drop: down while shielding stays on the platfo
   }
 });
 
-test("a fighter is vulnerable throughout every platform move, and a hit ends the move", () => {
+test("a fighter is vulnerable throughout every platform move, and a hit ends the move [spec #103]", () => {
   for (const character of FIGHTERS) {
     const ascent = risingUnder(character);
     // An upward air dodge into the platform ascends it without its intangibility.
@@ -229,7 +229,7 @@ test("a fighter is vulnerable throughout every platform move, and a hit ends the
   }
 });
 
-test("an air dodge or special pressed during a descent comes out on its first free frame", () => {
+test("an air dodge or special pressed during a descent comes out on its first free frame [spec #103]", () => {
   for (const character of FIGHTERS) {
     const dodge = standingOnDeck(character);
     step(dodge, controls({ down: true, verticalDirection: -1 }));
@@ -256,7 +256,7 @@ const TOWARD_RIGHT = controls({ direction: 1 });
 const DOWN_LEFT = controls({ direction: -1, down: true, verticalDirection: -1 });
 const DOWN_RIGHT = controls({ direction: 1, down: true, verticalDirection: -1 });
 
-test("a half-circle during an ascent wraps over onto the platform toward its side, facing reversed", () => {
+test("a half-circle during an ascent wraps over onto the platform toward its side, facing reversed [spec #103]", () => {
   for (const character of FIGHTERS) {
     const f = risingUnder(character);
     step(f, controls());
@@ -287,7 +287,7 @@ test("a half-circle during an ascent wraps over onto the platform toward its sid
   }
 });
 
-test("a half-circle onto a falling contact wraps under the platform toward its side, facing reversed", () => {
+test("a half-circle onto a falling contact wraps under the platform toward its side, facing reversed [spec #103]", () => {
   for (const character of FIGHTERS) {
     const falling = (): Fighter => {
       const f = createFighter(character, CENTRE, 1);
@@ -321,7 +321,7 @@ test("a half-circle onto a falling contact wraps under the platform toward its s
   }
 });
 
-test("a platform move survives a snapshot copy mid-move", () => {
+test("a platform move survives a snapshot copy mid-move [invariant]", () => {
   const original = risingUnder(Character.rifleman);
   step(original, controls());
   step(original, AWAY_LEFT);

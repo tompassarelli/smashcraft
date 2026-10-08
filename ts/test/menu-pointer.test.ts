@@ -15,7 +15,7 @@ import { value } from "./rematch/playableMatch";
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
-test("the CPU settings screen publishes pointer permission and its clicked difficulty reaches the match", () => {
+test("the CPU settings screen publishes pointer permission and its clicked difficulty reaches the match [spec #214]", () => {
   const clients = headless.clients(playable);
   const host = clients.client(0);
   const menu = () => host.files.get(journalMenuFile(PLAYABLE_BUILD.id, 0))?.[0];
@@ -48,7 +48,7 @@ test("the CPU settings screen publishes pointer permission and its clicked diffi
   expect(clients.firstDivergence()).toBeUndefined();
 });
 
-test("the playable keyboard build publishes pointer menus and blocks the pointer during a match", () => {
+test("the playable keyboard build publishes pointer menus and blocks the pointer during a match [spec #214]", () => {
   const clients = headless.clients(playable);
   const menu = (phase: string) => {
     for (const client of clients.clients) {

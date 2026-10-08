@@ -32,7 +32,7 @@ function contact(world: ReturnType<typeof pair>["world"], effect: typeof TAP | t
   finishDamageContacts(world);
 }
 
-test("a body hit applies its status, a shield stops it and the hit that applies it does not end it", () => {
+test("a body hit applies its status, a shield stops it and the hit that applies it does not end it [spec docs/design/roster.md]", () => {
   const blocked = pair();
   contact(blocked.world, TAP, SLEEP, true);
   assertEquals(blocked.target.status.condition, HeroStatusKind.none);
@@ -43,7 +43,7 @@ test("a body hit applies its status, a shield stops it and the hit that applies 
   assertEquals(target.status.damage, 2.0);
 });
 
-test("a status lasts its frames, then its group's immunity refuses a reapplication until it runs out", () => {
+test("a status lasts its frames, then its group's immunity refuses a reapplication until it runs out [spec docs/design/roster.md]", () => {
   const { world, target } = pair();
   contact(world, TAP, SLEEP);
   for (let frame = 1; frame < 20; frame++) advanceHeroStatus(target);
@@ -59,7 +59,7 @@ test("a status lasts its frames, then its group's immunity refuses a reapplicati
   assertEquals(target.status.condition, HeroStatusKind.sleep);
 });
 
-test("the next damaging hit ends sleep and the same orb cannot put the target back to sleep", () => {
+test("the next damaging hit ends sleep and the same orb cannot put the target back to sleep [spec docs/design/roster.md]", () => {
   const { world, target } = pair();
   contact(world, TAP, SLEEP);
   advanceHeroStatus(target);
@@ -72,7 +72,7 @@ test("the next damaging hit ends sleep and the same orb cannot put the target ba
   assertEquals(chained.target.status.condition, HeroStatusKind.none);
 });
 
-test("a sleeping fighter's inputs are discarded while its motion continues", () => {
+test("a sleeping fighter's inputs are discarded while its motion continues [spec docs/design/roster.md]", () => {
   const { target } = pair();
   target.motion.grounded = false;
   target.motion.vx = 3.0;
@@ -93,7 +93,7 @@ test("a sleeping fighter's inputs are discarded while its motion continues", () 
   assertTrue(free.jumpPressed);
 });
 
-test("a status and its immunity are rollback state and enter the canonical record only while live", () => {
+test("a status and its immunity are rollback state and enter the canonical record only while live [invariant] [spec docs/design/roster.md]", () => {
   const live = createReplaySnapshot();
   const target = fighterAt(live.world, 1);
   const quiet = stateChecksum(live);

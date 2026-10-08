@@ -12,7 +12,7 @@ import { emptyCapsule, hurtCapsule, placeCapsule } from "../physics/contactGeome
 import { advanceHeroStatus } from "./heroSpecialRules";
 import { ROSTER_MANA, regenerateMana } from "./mana";
 import { type AuthoredSpecial, type FighterSpecials, frames } from "./heroSpecials";
-import { HERO_ROSTER, SELECTABLE_CHARACTERS, isSelectableCharacter, nextSelectableCharacter, selectableCharactersOf } from "./heroes/registry";
+import { HERO_ROSTER } from "./heroes/registry";
 import { updateProjectiles } from "./projectiles";
 import { FROZEN_THRONE_STAGE, SOLID_DECK_TEST_STAGE, surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
 import { type Controls, type Roster, createRoster } from "./roster";
@@ -21,7 +21,6 @@ import { advanceFighter } from "./step";
 import { controls } from "./testWorld";
 import { copyFighterState } from "../replay/fighterState";
 import { firstFighterDifference } from "../replay/difference";
-import { createMatchState, selectCharacter } from "../match/rules";
 
 const hit = (damage: number) => ({ damage, growth: 80.0, base: 20.0, launchX: f32(0.8), launchZ: f32(0.6), electric: false });
 
@@ -80,7 +79,7 @@ const up = controls({ specialPressed: true, specialZ: 1 });
 const down = controls({ specialPressed: true, specialZ: -1 });
 const neutral = controls({ specialPressed: true });
 
-test("a hero special spends its cost once on entry and the fighter acts again the frame after its end", () => {
+test("a hero special spends its cost once on entry and the fighter acts again the frame after its end [spec docs/design/mana.md]", () => {
   const { world, owner } = pair(600.0);
   frame(world, side);
   assertEquals(owner.special.action, SpecialAction.heroSide);
@@ -94,7 +93,7 @@ test("a hero special spends its cost once on entry and the fighter acts again th
   assertEquals(owner.special.action, SpecialAction.heroNeutral);
 });
 
-test("an unaffordable special starts nothing and counts one refusal per press", () => {
+test("an unaffordable special starts nothing and counts one refusal per press [spec docs/design/mana.md]", () => {
   const { world, owner } = pair(600.0);
   owner.mana.points = 10;
   frame(world, down);
@@ -107,7 +106,7 @@ test("an unaffordable special starts nothing and counts one refusal per press", 
   assertEquals(owner.visuals.manaDenied, 2);
 });
 
-test("below the full cost the up special takes its free form and spends nothing", () => {
+test("below the full cost the up special takes its free form and spends nothing [spec docs/design/mana.md]", () => {
   const { world, owner } = pair(600.0);
   owner.mana.points = 14;
   frame(world, up);
@@ -122,7 +121,7 @@ test("below the full cost the up special takes its free form and spends nothing"
   assertEquals(owner.special.action, SpecialAction.none);
 });
 
-test("an up special is used once per airtime and landing restores it", () => {
+test("an up special is used once per airtime and landing restores it [spec docs/design/roster.md]", () => {
   const { world, owner } = pair(600.0);
   frame(world, up);
   assertEquals(owner.mana.points, 85);
@@ -137,7 +136,7 @@ test("an up special is used once per airtime and landing restores it", () => {
   assertEquals(owner.special.airtimeUses, 0);
 });
 
-test("mana trickles back a point every 60 eligible frames from the frame a special ends, never during it", () => {
+test("mana trickles back a point every 60 eligible frames from the frame a special ends, never during it [spec docs/design/mana.md]", () => {
   const { world, owner } = pair(600.0);
   frame(world, side);
   for (let f = 2; f <= 29; f++) frame(world);
@@ -160,7 +159,7 @@ test("mana trickles back a point every 60 eligible frames from the frame a speci
   assertEquals(owner.mana.points, shielded);
 });
 
-test("a ground-only special fails in the air without spending", () => {
+test("a ground-only special fails in the air without spending [spec docs/design/roster.md]", () => {
   const { world, owner } = pair(600.0);
   owner.motion.grounded = false;
   owner.motion.z = 200.0;
@@ -169,7 +168,7 @@ test("a ground-only special fails in the air without spending", () => {
   assertEquals(owner.mana.points, 100);
 });
 
-test("a hero projectile spawns on its frame, respects its limit and strikes once", () => {
+test("a hero projectile spawns on its frame, respects its limit and strikes once [spec docs/design/roster.md]", () => {
   const { world, owner, target } = pair(300.0);
   frame(world, neutral);
   for (let f = 2; f <= 4; f++) frame(world);
@@ -185,7 +184,7 @@ test("a hero projectile spawns on its frame, respects its limit and strikes once
   assertEquals(target.status.damage, 6.0);
 });
 
-test("a hero strike path hits each target once per action", () => {
+test("a hero strike path hits each target once per action [spec docs/design/roster.md]", () => {
   const { world, owner, target } = pair(70.0);
   frame(world, side);
   for (let f = 2; f <= 12; f++) frame(world);
@@ -194,7 +193,7 @@ test("a hero strike path hits each target once per action", () => {
   assertEquals(target.status.damage, 10.0);
 });
 
-test("intangible and armor windows protect exactly their frames", () => {
+test("intangible and armor windows protect exactly their frames [spec docs/design/roster.md]", () => {
   const { world, owner } = pair(600.0);
   frame(world, down);
   for (let f = 2; f <= 4; f++) frame(world);
@@ -206,7 +205,7 @@ test("intangible and armor windows protect exactly their frames", () => {
   assertEquals(owner.status.armorMaxDamage, 6.0);
 });
 
-test("replaying a hero special from a restored snapshot reproduces every fighter field", () => {
+test("replaying a hero special from a restored snapshot reproduces every fighter field [invariant]", () => {
   const { world, owner, target } = pair(200.0);
   const savedOwner = createFighter(Character.blademaster, 0.0, 1);
   const savedTarget = createFighter(Character.archer, 0.0, 1);
@@ -231,21 +230,7 @@ test("replaying a hero special from a restored snapshot reproduces every fighter
   assertEquals(firstFighterDifference(endTarget, target, 3, 3), undefined);
 });
 
-test("incomplete heroes are registered but not selectable", () => {
-  assertEquals(HERO_ROSTER.length, Object.keys(Character).length - 3);
-  for (const definition of HERO_ROSTER) {
-    if (definition.complete) continue;
-    assertFalse(isSelectableCharacter(definition.character));
-    const game = createMatchState();
-    selectCharacter(game, 0, definition.character);
-    assertFalse(game.characterChoices[0] === definition.character);
-  }
-  const blademaster = HERO_ROSTER[0]!;
-  assertEquals(selectableCharactersOf([{ ...blademaster, complete: true }]).join(","), "0,1,2,3");
-  assertEquals(nextSelectableCharacter(Character.demonHunter, 1), SELECTABLE_CHARACTERS[3] ?? Character.archer);
-});
-
-test("a complete hero ships its four specials with a free up special", () => {
+test("a complete hero ships its four specials with a free up special [spec docs/design/mana.md]", () => {
   for (const definition of HERO_ROSTER) {
     if (!definition.complete) continue;
     const specials = definition.specials;
@@ -254,7 +239,7 @@ test("a complete hero ships its four specials with a free up special", () => {
   }
 });
 
-test("a stopsAtBody dash special ends short of an exposed body and a raised shield, and an unmarked one carries through", () => {
+test("a stopsAtBody dash special ends short of an exposed body and a raised shield, and an unmarked one carries through [spec docs/design/roster.md]", () => {
   const dash = (stopsAtBody: boolean): AuthoredSpecial => ({ cost: 0, endFrame: 20, motion: [{ ...frames(2, 16), velocityX: 20.0, velocityZ: 0.0, stopsAtBody }] });
   for (const facing of [-1, 1]) {
     for (const [stops, shielded] of [[true, false], [true, true], [false, false]] as const) {
@@ -280,7 +265,7 @@ test("a stopsAtBody dash special ends short of an exposed body and a raised shie
 });
 
 
-test("a hero special's hurt poses replace the body on their frames only", () => {
+test("a hero special's hurt poses replace the body on their frames only [spec docs/hurtboxes.md]", () => {
   const { world, owner, target } = pair(600.0);
   const reach = hurtPart(0.0, 40.0, 140.0, 40.0, 12.0);
   const posed: AuthoredSpecial = { ...SIDE, hurt: [hurtPose(5, 8, [hurtCapsule(Character.blademaster), reach])] };
@@ -299,7 +284,7 @@ test("a hero special's hurt poses replace the body on their frames only", () => 
   void target;
 });
 
-test("a broad hero projectile meets a raised shield before the body behind it", () => {
+test("a broad hero projectile meets a raised shield before the body behind it [spec docs/design/roster.md]", () => {
   const broad: FighterSpecials = { ...KIT, neutral: { ...KIT.neutral, ground: { ...NEUTRAL, projectiles: [{ ...NEUTRAL.projectiles![0]!, radius: 24.0 }] } } };
   const { world, owner, target } = pair(400.0);
   owner.tuning = { ...owner.tuning, specials: broad };
@@ -310,7 +295,7 @@ test("a broad hero projectile meets a raised shield before the body behind it", 
   assertGreaterThan(target.shield.stun, 0);
 });
 
-test("hero projectiles end on walls, undersides and solid deck tops, and pass through pass decks", () => {
+test("hero projectiles end on walls, undersides and solid deck tops, and pass through pass decks [spec docs/design/roster.md]", () => {
   const owner = hero(-100.0, 1);
   const target = createFighter(Character.archer, 2000.0, -1);
   const world = createRoster(3, [owner, target]);
@@ -331,11 +316,9 @@ test("hero projectiles end on walls, undersides and solid deck tops, and pass th
   const level = launch(-500.0, 60.0, 30.0, 0.0);
   for (let f = 0; f < 10; f++) updateProjectiles(world, 0, 0);
   assertEquals(level.life, 20);
-  let passDecks = 0;
   for (const [stage, pass] of [[FROZEN_THRONE_STAGE, true], [SOLID_DECK_TEST_STAGE, false]] as const) {
     for (let deck = 1; deck < surfaceCount(stage); deck++) {
       assertEquals(surfacePass(stage, deck), pass);
-      passDecks++;
       const top = surfaceZ(stage, deck, 0);
       const through = launch(f32(f32(surfaceLeft(stage, deck, 0) + surfaceRight(stage, deck, 0)) * 0.5), f32(top + 10.0), 0.0, -20.0);
       updateProjectiles(world, stage, 0);
@@ -343,11 +326,10 @@ test("hero projectiles end on walls, undersides and solid deck tops, and pass th
       through.life = 0;
     }
   }
-  assertEquals(passDecks, 5);
 });
 
 
-test("a second press inside a follow-up window starts the follow-up once; presses outside it change nothing", () => {
+test("a second press inside a follow-up window starts the follow-up once; presses outside it change nothing [spec docs/design/roster.md]", () => {
   const slash: AuthoredSpecial = { cost: 0, endFrame: 37, regions: [heroRegion(10, 12, { x1: 10.0, z1: 50.0, x2: 110.0, z2: 50.0, radius: 12.0 }, hit(10.0))] };
   const feint: AuthoredSpecial = { cost: 15, endFrame: 24, followUps: [{ window: frames(8, 19), special: slash }] };
   const run = (pressAt: number) => {

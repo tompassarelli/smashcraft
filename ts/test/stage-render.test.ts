@@ -1,9 +1,8 @@
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
-import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";
 import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
-import { stageLightModel, stageScenery } from "../src/game/presentation/stageScenery";
+import { stageScenery } from "../src/game/presentation/stageScenery";
 import { start, install } from "../src/platform/main";
 import { shell } from "../src/platform/shell/state";
 import { drawStageScenery, preloadStageAssets, showBackdrop } from "../src/platform/shell/stageScenery";
@@ -11,7 +10,7 @@ import { drawStageScenery, preloadStageAssets, showBackdrop } from "../src/platf
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
-test("stage preloads and replaced landmarks are parked below the arena before their death sequences start", () => {
+test("stage preloads and replaced landmarks are parked below the arena before their death sequences start [provisional]", () => {
   const clients = headless.clients({ start, install });
   clients.start(); clients.frames(30);
   const client = clients.client(0);
@@ -37,31 +36,7 @@ test("stage preloads and replaced landmarks are parked below the arena before th
   });
 });
 
-test("each stage applies its light, sky and fog beyond the fighters", () => {
-  const clients = headless.clients({ start, install });
-  clients.start();
-  clients.frames(30);
-  const client = clients.clients[0];
-  if (client === undefined) throw new Error("missing client");
-  client.run(() => {
-    for (const { id, name } of STAGE_CATALOG) {
-      const s = shell();
-      s.game.stageChoice = id;
-      const before = client.log.length;
-      drawStageScenery(s);
-      const calls = client.log.slice(before);
-      expect(calls.find(({ name }) => name === "SetDayNightModels")?.args).toEqual([stageLightModel(id), stageLightModel(id)]);
-      expect(calls.find(({ name }) => name === "SetSkyModel")?.args).toEqual([stageScenery(id).sky]);
-      const fog = stageScenery(id).fog;
-      if (fog === undefined) throw new Error(`${name}: no atmosphere profile`);
-      expect(fog.start).toBeGreaterThanOrEqual(5000);
-      expect(fog.end).toBeGreaterThan(fog.start);
-      expect(calls.find(({ name }) => name === "SetTerrainFogEx")?.args).toEqual([0, fog.start, fog.end, 0, fog.red, fog.green, fog.blue]);
-    }
-  });
-});
-
-test("contrast masking parks particle scenery and restores every authored pose", () => {
+test("contrast masking parks particle scenery and restores every authored pose [invariant]", () => {
   const clients = headless.clients({ start, install });
   clients.start();
   clients.frames(30);

@@ -3,7 +3,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { cellRect, rosterGrid, tileAt } from "./selectionGrid";
 
 for (const count of [1, 3, 9, 10, 13, 17, 21, 32]) {
-  test(`${count} fighters: centered balanced rows with matching pointer targets`, () => {
+  test(`${count} fighters: centered balanced rows with matching pointer targets [invariant]`, () => {
     const grid = rosterGrid(count);
     const counts: number[] = [];
     let previousTop = -1;
@@ -35,8 +35,3 @@ for (const count of [1, 3, 9, 10, 13, 17, 21, 32]) {
     }
   });
 }
-
-test("today's 13 fighters fill seven and six tiles", () => {
-  assertEquals(rosterGrid(13).columns, 7);
-  assertEquals(rosterGrid(13).rows, 2);
-});

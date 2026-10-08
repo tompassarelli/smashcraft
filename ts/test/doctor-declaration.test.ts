@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { smashcraftDoctor } from "../scripts/wisp/doctor";
 
-test("offline pair aliases a and b never construct the signed-in clients' launcher commands", () => {
+test("offline pair aliases a and b never construct the signed-in clients' launcher commands [spec AGENTS.md]", () => {
   const dir = mkdtempSync(join(tmpdir(), "smashcraft-doctor-"));
   try {
     const path = join(dir, "clients.json");
@@ -13,7 +13,7 @@ test("offline pair aliases a and b never construct the signed-in clients' launch
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
-test("a clone starts through its launch script and signs nothing in", () => {
+test("a clone starts through its launch script and signs nothing in [spec AGENTS.md]", () => {
   const dir = mkdtempSync(join(tmpdir(), "smashcraft-doctor-"));
   try {
     const path = join(dir, "clients.json");

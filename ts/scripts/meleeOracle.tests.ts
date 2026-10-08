@@ -4,11 +4,11 @@ import { oracleProblems, runOracle } from "./meleeOracle";
 
 const rows = runOracle();
 
-test("the Melee oracle's mismatches with the decompilation are exactly the known ones", () => {
+test("the Melee oracle's mismatches with the decompilation are exactly the known ones [reference]", () => {
   expect(oracleProblems(rows)).toEqual([]);
 });
 
-test("every oracle departure names a row of gameplay-design.md's deviations table", async () => {
+test("every oracle departure names a row of gameplay-design.md's deviations table [spec docs/gameplay-design.md]", async () => {
   const design = await Bun.file(join(import.meta.dir, "../../docs/gameplay-design.md")).text();
   const section = design.split("## Deviations from Melee")[1]?.split("\n## ")[0] ?? "";
   const mechanics = new Set(section.split("\n").filter((line) => line.startsWith("| ") && !line.startsWith("| Mechanic"))

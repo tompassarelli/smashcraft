@@ -16,7 +16,7 @@ const CASES = [
   [AttackStyle.upAir, 10.0, 80.0, 10.0], [AttackStyle.downAir, 12.0, -95.0, 15.0],
 ] as const;
 
-test("Chen's authored normals connect once in both facings and miss outside their reach", () => {
+test("Chen's authored normals connect once in both facings and miss outside their reach [spec docs/design/chen.md]", () => {
   for (const facing of [-1, 1]) for (const [style, x, z, damage] of CASES) {
     const owner = createFighter(Character.chen, 0.0, facing);
     const target = createFighter(Character.archer, f32(x * facing), -facing);
@@ -38,7 +38,7 @@ test("Chen's authored normals connect once in both facings and miss outside thei
   }
 });
 
-test("Chen's grab and all four throws release with their authored damage and direction", () => {
+test("Chen's grab and all four throws release with their authored damage and direction [spec docs/design/chen.md]", () => {
   for (const facing of [-1, 1]) for (const [action, x, z, damage] of [
     [GrabAction.throwForward, facing, 0, 10.0], [GrabAction.throwBack, -facing, 0, 11.25],
     [GrabAction.throwUp, 0, 1, 8.75], [GrabAction.throwDown, 0, -1, 7.5],
@@ -62,7 +62,7 @@ test("Chen's grab and all four throws release with their authored damage and dir
   }
 });
 
-test("Chen takes his measured body from Ultimate Ryu", () => {
+test("Chen takes his measured body from Ultimate Ryu [reference] [spec docs/design/chen.md]", () => {
   const body = authoredPhysics(Character.chen);
   assertEquals(body.weight, 103.0);
   assertTrue(Math.abs(body.runSpeed - melee(f32(1.6))) < f32(0.00001));

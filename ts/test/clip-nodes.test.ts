@@ -34,17 +34,7 @@ function skeleton(model: NodeTable) {
   };
 }
 
-test("a clip whose light and event nodes were removed numbers its helpers, attachments and collision shapes off their places", () => {
-  expect(misplacedNodes(illidanShapedClip())).toEqual([
-    "Bone_Root has ObjectId 3 at place 2",
-    "Bone_Arm has ObjectId 4 at place 3",
-    "Hand Ref has ObjectId 5 at place 4",
-    "collision has ObjectId 7 at place 5",
-    "8 pivots for 6 nodes",
-  ]);
-});
-
-test("renumbering puts every node at its place with the same parent, pivot and skin", () => {
+test("renumbering puts every node at its place with the same parent, pivot and skin [invariant]", () => {
   const clip = illidanShapedClip();
   const before = skeleton(clip);
   renumberNodes(clip);

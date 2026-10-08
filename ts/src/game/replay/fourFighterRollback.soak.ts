@@ -68,7 +68,7 @@ function lobby(game: ReturnType<typeof createMatchState>): ReplayState {
   return { world, match: game, controls: createFrameControls(), runtime: createPacingAndPresentation() };
 }
 
-test("four fighters: speculative history matches the confirmed world through late rows", () => {
+test("four fighters: speculative history matches the confirmed world through late rows [invariant]", () => {
   const frames = 1200;
   const epoch = 5;
   const game = createMatchState();

@@ -20,7 +20,7 @@ function insideDeck(x: number, z: number): boolean {
   return inside;
 }
 
-test("each fighter's visible envelope clears the main underside and every side face at its unchanged ECB contact, both facings", () => {
+test("each fighter's visible envelope clears the main underside and every side face at its unchanged ECB contact, both facings [spec #81]", () => {
   // Every registered fighter, heroes included, whether or not it is selectable yet.
   for (const character of Object.values(Character)) {
     for (const facing of [-1, 1]) {
@@ -54,7 +54,7 @@ test("each fighter's visible envelope clears the main underside and every side f
   }
 });
 
-test("body fitting preserves grounded and deliberately attached ledge poses", () => {
+test("body fitting preserves grounded and deliberately attached ledge poses [spec #81]", () => {
   const fighter = createFighter(Character.archer, mainDeckRight(0) - 1.0, -1);
   const placement = { x: 0.0, z: 0.0 };
   fitFighterPlacement(placement, fighter, 0);

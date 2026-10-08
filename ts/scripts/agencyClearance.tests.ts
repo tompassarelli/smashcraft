@@ -72,14 +72,14 @@ function compareForecasts(stages: readonly (readonly [string, number])[]): { mis
 
 const STAGES = Object.entries(FIELD_STAGES);
 
-test("the bounded agency forecast agrees with the full one on every frame of computer matches on one stage", () => {
+test("the bounded agency forecast agrees with the full one on every frame of computer matches on one stage [invariant]", () => {
   const { mismatches, tumbling } = compareForecasts(STAGES.slice(0, 1));
   expect(mismatches).toEqual([]);
   // The comparison saw the tumbles the bound shortens.
   expect(tumbling).toBeGreaterThan(0);
 }, 120_000);
 
-sweep("the bounded agency forecast agrees with the full one on every frame of computer matches on every other stage", () => {
+sweep("the bounded agency forecast agrees with the full one on every frame of computer matches on every other stage [invariant]", () => {
   const { mismatches, tumbling, compared } = compareForecasts(STAGES.slice(1));
   expect(mismatches).toEqual([]);
   expect(tumbling).toBeGreaterThan(500);

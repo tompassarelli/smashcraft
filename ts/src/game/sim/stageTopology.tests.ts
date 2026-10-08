@@ -20,7 +20,7 @@ const outline = (stage: number): string => {
   return points.join(" ");
 };
 
-test("each ranked stage's main deck has its own outline", () => {
+test("each ranked stage's main deck has its own outline [spec docs/design/stages.md]", () => {
   const seen: string[] = [outline(0)];
   for (const { id, name } of BODIED) {
     assertEquals(solidSurfaceCount(id) >= MAIN_DECK_BODY_SURFACES, true, `${name} has no main deck body`);
@@ -30,7 +30,7 @@ test("each ranked stage's main deck has its own outline", () => {
   }
 });
 
-test("each main deck is mirror-symmetric, hangs from two ledges and stays under its ledges", () => {
+test("each main deck is mirror-symmetric, hangs from two ledges and stays under its ledges [spec docs/design/stages.md]", () => {
   for (const { id, name } of [{ id: 0, name: "Sky Deck" }, ...BODIED]) {
     const lines = Array.from({ length: MAIN_DECK_BODY_SURFACES }, (_, index) => solidSurfaceAt(id, index));
     const center = (mainDeckLeft(id) + mainDeckRight(id)) / 2;
@@ -73,7 +73,7 @@ const platformLayout = (stage: number): string => {
   return parts.join(" ");
 };
 
-test("each ranked stage has its own platform layout", () => {
+test("each ranked stage has its own platform layout [spec #154]", () => {
   const seen: string[] = [platformLayout(0)];
   for (const { id, name } of STAGE_CATALOG.filter(stage => stage.id !== 0)) {
     const layout = platformLayout(id);
@@ -99,7 +99,7 @@ function doubleJumpApex(character: Character): number {
   return apex;
 }
 
-test("every fighter reaches every ranked stage's static platforms with a jump and a double jump", () => {
+test("every fighter reaches every ranked stage's static platforms with a jump and a double jump [spec #154]", () => {
   let lowest = Number.POSITIVE_INFINITY;
   for (const character of SELECTABLE_CHARACTERS) lowest = Math.min(lowest, doubleJumpApex(character));
   for (const { id, name } of STAGE_CATALOG) {

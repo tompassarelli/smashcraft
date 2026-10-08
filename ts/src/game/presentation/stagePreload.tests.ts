@@ -3,7 +3,7 @@ import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { preloadModels, preloadSkies, stageModels } from "./stagePreload";
 import { stageScenery } from "./stageScenery";
 
-test("preload covers every model and sky each selectable stage draws", () => {
+test("preload covers every model and sky each selectable stage draws [invariant]", () => {
   const models = preloadModels();
   const skies = preloadSkies();
   for (const { id, name } of STAGE_CATALOG) {

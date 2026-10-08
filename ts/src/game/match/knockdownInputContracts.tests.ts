@@ -67,7 +67,7 @@ function missedTechLanding(knockdown: Knockdown): number {
 /** The bound's last frame and the frame Melee's DownBound ends, after landing (melee:src/melee/ft/kinds/ftCommon/ftCo_DownBound.c ftCo_DownBound_Anim). */
 const boundEnd = (landing: number) => landing + DOWN_BOUND_FRAMES;
 
-test("a trigger press before a tumble landing techs through the journal path at low, medium and high percent", () => {
+test("a trigger press before a tumble landing techs through the journal path at low, medium and high percent [reference]", () => {
   for (const knockdown of KNOCKDOWNS) {
     const landing = missedTechLanding(knockdown);
     const run = startRun(knockdown.victim, knockdown.percent);
@@ -77,7 +77,7 @@ test("a trigger press before a tumble landing techs through the journal path at 
   }
 });
 
-test("an attack pressed during the bound starts the get-up attack as Melee's bound ends", () => {
+test("an attack pressed during the bound starts the get-up attack as Melee's bound ends [reference]", () => {
   for (const knockdown of KNOCKDOWNS) {
     const run = startRun(knockdown.victim, knockdown.percent);
     const landing = knockDown(run, knockdown.strike, NEUTRAL);
@@ -89,7 +89,7 @@ test("an attack pressed during the bound starts the get-up attack as Melee's bou
   }
 });
 
-test("a stick held sideways rolls forward or back, and held up stands, as Melee's bound ends", () => {
+test("a stick held sideways rolls forward or back, and held up stands, as Melee's bound ends [reference]", () => {
   for (const knockdown of KNOCKDOWNS) {
     for (const [stick, state, direction] of [[{ x: -1.0 }, DownState.roll, -1], [{ x: 1.0 }, DownState.roll, 1], [{ y: 1.0 }, DownState.stand, 0]] as const) {
       const run = startRun(knockdown.victim, knockdown.percent);
@@ -104,7 +104,7 @@ test("a stick held sideways rolls forward or back, and held up stands, as Melee'
   }
 });
 
-test("the down wait takes Special, takes a trigger press, and stands by itself after Melee's 220 frames", () => {
+test("the down wait takes Special, takes a trigger press, and stands by itself after Melee's 220 frames [reference]", () => {
   // Common +0x424 = 220 (ftCo_DownBound.c ftCo_80097E8C, ftCo_DownWait_Anim); A or B strikes (ftCo_DownAttack.c), L or R stands (ftCo_DownStand.c).
   const [low, mid, high] = [assertDefined(KNOCKDOWNS[0]), assertDefined(KNOCKDOWNS[1]), assertDefined(KNOCKDOWNS[2])];
   for (const [knockdown, pad, state] of [[low, { special: true }, DownState.attack], [mid, { trigger: true }, DownState.stand]] as const) {
@@ -124,7 +124,7 @@ test("the down wait takes Special, takes a trigger press, and stands by itself a
   assertEquals(run.victim.down.state, DownState.stand);
 });
 
-test("a C-stick up flick during the wait starts the get-up attack and a sideways flick rolls that way", () => {
+test("a C-stick up flick during the wait starts the get-up attack and a sideways flick rolls that way [reference]", () => {
   // melee:src/melee/ft/kinds/ftCommon/ftCo_Down.c ftCo_Down_CheckInput (sideways cstick, ftCo_800DF678) and
   // ftCo_DownAttack.c ftCo_800984D4 (up flick, ftCo_800DF644 against common +0x7F4) read the C-stick edge.
   for (const knockdown of KNOCKDOWNS) {
@@ -142,7 +142,7 @@ test("a C-stick up flick during the wait starts the get-up attack and a sideways
   }
 });
 
-test("a C-stick flick as Melee's bound ends gets up, and one held through the wait does nothing", () => {
+test("a C-stick flick as Melee's bound ends gets up, and one held through the wait does nothing [reference]", () => {
   for (const [flick, state, direction] of [[{ cy: 1.0 }, DownState.attack, 0], [{ cx: 1.0 }, DownState.roll, 1]] as const) {
     const run = startRun(Character.archer, 10.0);
     const landing = knockDown(run, { cx: 1.0 }, NEUTRAL);

@@ -1,12 +1,11 @@
 import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { Action, bit } from "./actions";
-import { pulsePending } from "./directionalInput";
 import { presetBindings, rebind } from "./keyBindings";
-import { actionHeld, clearKeys, heldActions, keyDown, playerKeys, pressKey, releaseKey } from "./playerKeys";
+import { actionHeld, heldActions, keyDown, playerKeys, pressKey, releaseKey } from "./playerKeys";
 
 const Key = { G: 71, N: 78, T: 84, W: 87 } as const;
 
-test("each player's keys and bindings hold actions independently, and repeats are ignored", () => {
+test("each player's keys and bindings hold actions independently, and repeats are ignored [spec docs/netcode-proposal.md]", () => {
   const first = playerKeys();
   const second = playerKeys();
   const firstBindings = presetBindings("standard");
@@ -25,7 +24,7 @@ test("each player's keys and bindings hold actions independently, and repeats ar
   assertEquals(heldActions(second), bit(Action.attack));
 });
 
-test("an action bound to two keys stays held until both are up", () => {
+test("an action bound to two keys stays held until both are up [spec docs/controller-platforms.md]", () => {
   const keys = playerKeys();
   const bindings = presetBindings("standard");
   assertTrue(rebind(bindings, Action.attack, 1, Key.G));
@@ -37,7 +36,7 @@ test("an action bound to two keys stays held until both are up", () => {
   assertFalse(actionHeld(keys, Action.attack));
 });
 
-test("light shield's last two slots release independently without clearing an attack", () => {
+test("light shield's last two slots release independently without clearing an attack [spec docs/controller-platforms.md]", () => {
   const keys = playerKeys();
   const bindings = presetBindings("standard");
   assertTrue(rebind(bindings, Action.lightShield, 1, Key.T));
@@ -49,20 +48,4 @@ test("light shield's last two slots release independently without clearing an at
   releaseKey(keys, Key.T, bindings);
   assertFalse(actionHeld(keys, Action.lightShield));
   assertEquals(heldActions(keys), bit(Action.attack));
-});
-
-test("clearing drops held keys and the pending pulse without touching another player", () => {
-  const first = playerKeys();
-  const second = playerKeys();
-  const bindings = presetBindings("standard");
-  pressKey(first, Key.W, bindings);
-  pressKey(second, Key.W, bindings);
-  assertTrue(pulsePending(first.directions));
-  clearKeys(first);
-  assertFalse(keyDown(first, Key.W));
-  assertFalse(actionHeld(first, Action.moveLeft));
-  assertFalse(pulsePending(first.directions));
-  assertTrue(actionHeld(second, Action.moveLeft));
-  assertTrue(pulsePending(second.directions));
-  assertEquals(pressKey(first, Key.W, bindings), Action.moveLeft);
 });

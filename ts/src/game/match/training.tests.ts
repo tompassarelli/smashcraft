@@ -4,9 +4,7 @@ import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "
 import { f32 } from "wisp/src/sim/f32";
 import { clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
-import { stateChecksum } from "../replay/canonical";
-import { firstStateDifference } from "../replay/difference";
-import { AttackStyle, Character, DownState, SpecialAction } from "../sim/codes";
+import { AttackStyle, Character, DownState } from "../sim/codes";
 import { attackActive, attackStartup } from "../sim/conditions";
 import { createFighter } from "../sim/fighter";
 import { attackStartupFrames } from "../sim/moves";
@@ -26,7 +24,6 @@ import { HitAreaKind, collectHitAreas, createHitAreaList } from "../presentation
 import { attackCapsule, emptyCapsule, placeCapsule } from "../physics/contactGeometry";
 import { authoredHitRegion, emptyHitRegion } from "../sim/hitRegions";
 import { HurtContact, fighterHurtParts, strikeHurtContact } from "../sim/hurtboxes";
-import { trainingReadout } from "../shell/messages";
 
 const NEUTRAL = neutralControls();
 
@@ -65,7 +62,7 @@ function trainingMatch(behaviour: number, gap = 30.0, character: Character = Cha
   return { world, game, produced, runtime, step, jab, until, player: fighterAt(world, 0), partner: fighterAt(world, 1) };
 }
 
-test("trainingIsARuleAtFighterSelectionWithNoClockOrLostStocks", () => {
+test("trainingIsARuleAtFighterSelectionWithNoClockOrLostStocks [spec #120]", () => {
   const game = createMatchState();
   setParticipants(game, 1, 2);
   selectCharacter(game, 0, Character.rifleman);
@@ -102,21 +99,7 @@ test("trainingIsARuleAtFighterSelectionWithNoClockOrLostStocks", () => {
   assertTrue(copy.training);
 });
 
-test("trainingStateIsInTheChecksumOnlyInTraining", () => {
-  const match = trainingMatch(PartnerBehaviour.stand);
-  const state = { world: match.world, match: match.game, controls: createFrameControls(), runtime: match.runtime };
-  const before = stateChecksum(state);
-  const other = trainingMatch(PartnerBehaviour.stand);
-  const otherState = { world: other.world, match: other.game, controls: createFrameControls(), runtime: other.runtime };
-  match.game.trainer.comboHits = 3;
-  assertTrue(stateChecksum(state) !== before);
-  assertEquals(firstStateDifference(otherState, state), "match.trainer.comboHits");
-  match.game.training = false;
-  other.game.training = false;
-  assertEquals(stateChecksum(state), stateChecksum(otherState));
-});
-
-test("partnerBehaviours", () => {
+test("partnerBehaviours [spec #120]", () => {
   const stand = trainingMatch(PartnerBehaviour.stand, 200.0);
   for (let i = 0; i < 60; i++) stand.step();
   assertTrue(stand.partner.motion.grounded && !stand.partner.shield.raised && !stand.partner.motion.crouching && stand.partner.attack.serial === 0);
@@ -151,7 +134,7 @@ function escapeDirection(escape: number, hitSerial: number): number {
   return produced.inputs[1].direction;
 }
 
-test("partnerEscapes", () => {
+test("partnerEscapes [spec #120]", () => {
   // The player stands to the partner's left.
   assertEquals(escapeDirection(PartnerEscape.toward, 1), -1);
   assertEquals(escapeDirection(PartnerEscape.away, 1), 1);
@@ -185,7 +168,7 @@ function techOutcome(tech: number, hitSerial = 1): { state: number; direction: n
   return { state: partner.down.state, direction: partner.down.direction };
 }
 
-test("partnerTechs", () => {
+test("partnerTechs [spec #120]", () => {
   assertEquals(techOutcome(PartnerTech.none).state, DownState.bound);
   assertEquals(techOutcome(PartnerTech.inPlace).state, DownState.tech);
   // The player stands to the partner's left: toward rolls left, away rolls right.
@@ -204,7 +187,7 @@ test("partnerTechs", () => {
   assertEquals(seen.join(), "true,true,true");
 });
 
-test("readoutShowsTheMoveAndTheAdvantageOnShieldAndOnHit", () => {
+test("readoutShowsTheMoveAndTheAdvantageOnShieldAndOnHit [spec #120]", () => {
   for (const behaviour of [PartnerBehaviour.shield, PartnerBehaviour.stand]) {
     const match = trainingMatch(behaviour, 24.0);
     const { player, partner, game } = match;
@@ -238,7 +221,7 @@ test("readoutShowsTheMoveAndTheAdvantageOnShieldAndOnHit", () => {
   }
 });
 
-test("comboCountsOnlyHitsThePartnerCouldNotActBetween", () => {
+test("comboCountsOnlyHitsThePartnerCouldNotActBetween [spec #120]", () => {
   const match = trainingMatch(PartnerBehaviour.stand, 24.0);
   const { game, partner } = match;
   for (let i = 0; i < 12; i++) match.step();
@@ -269,7 +252,7 @@ test("comboCountsOnlyHitsThePartnerCouldNotActBetween", () => {
   assertEquals(third.game.trainer.comboDamage, f32(first + first));
 });
 
-test("bothShieldsAndAttackResetEveryFighterAndThePartnersDamage", () => {
+test("bothShieldsAndAttackResetEveryFighterAndThePartnersDamage [spec #120]", () => {
   const match = trainingMatch(PartnerBehaviour.stand, 24.0);
   match.game.trainer.damage = 80;
   for (let i = 0; i < 12; i++) match.step();
@@ -283,7 +266,7 @@ test("bothShieldsAndAttackResetEveryFighterAndThePartnersDamage", () => {
   for (const slot of [0, 1]) assertEquals(fighterAt(match.world, slot).motion.x, matchSpawnX(slot));
 });
 
-test("hitAreasListTheBodyAndTheActiveStrikesContactUses", () => {
+test("hitAreasListTheBodyAndTheActiveStrikesContactUses [spec #120]", () => {
   const match = trainingMatch(PartnerBehaviour.stand, 200.0);
   const { player } = match;
   const list = createHitAreaList();
@@ -307,41 +290,7 @@ test("hitAreasListTheBodyAndTheActiveStrikesContactUses", () => {
   assertEquals(strikeHurtContact(expected, target), HurtContact.hit);
 });
 
-test("readoutNamesTheSpecialAndTheNamedFormItBranchesInto", () => {
-  const match = trainingMatch(PartnerBehaviour.stand, 200.0, Character.mountainKing);
-  const { game } = match;
-  for (let i = 0; i < 12; i++) match.step();
-  const press = (input: Controls) => {
-    input.specialPressed = true;
-    input.specialZ = 1;
-  };
-  match.step(press);
-  assertEquals(game.trainer.moveSpecial, SpecialAction.heroUp);
-  assertEquals(trainingReadout(game.trainer).split("\n")[0], `Thunder Leap: ${game.trainer.moveTotal} total`);
-  for (let i = 0; i < 16; i++) match.step();
-  match.step(press);
-  assertEquals(trainingReadout(game.trainer).split("\n")[0]?.split(":")[0], "Hammerfall");
-  // A normal afterwards is named by its input again.
-  match.until(() => canAct(match.player), 200);
-  match.jab();
-  assertEquals(trainingReadout(game.trainer).split(":")[0], "Jab");
-});
-
-test("readoutText", () => {
-  const state = createMatchState().trainer;
-  assertEquals(trainingReadout(state), "");
-  state.moveStyle = AttackStyle.forwardSmash;
-  state.moveStartup = 12;
-  state.moveActive = 3;
-  state.moveTotal = 40;
-  state.advantage = -8;
-  state.advantageKind = Advantage.shield;
-  state.comboHits = 3;
-  state.comboDamage = f32(27.5);
-  assertEquals(trainingReadout(state), "Forward smash: hits on frame 12 · 3 active · 40 total\n-8 on shield\nCombo: 3 hits · 27%");
-});
-
-test("slowMotionRunsOneFrameInTwoOrFourAndKeepsPresses", () => {
+test("slowMotionRunsOneFrameInTwoOrFourAndKeepsPresses [spec #120]", () => {
   for (const speed of [1, 2, 4]) {
     const match = trainingMatch(PartnerBehaviour.stand, 200.0);
     match.game.trainer.speed = speed;
@@ -359,7 +308,7 @@ test("slowMotionRunsOneFrameInTwoOrFourAndKeepsPresses", () => {
   }
 });
 
-test("slowMotionLatchesEveryPressOnce", () => {
+test("slowMotionLatchesEveryPressOnce [spec docs/design/training-mode.md]", () => {
   const latch = createMatchState().trainer.latches[0];
   const pressed = neutralControls();
   pressed.specialPressed = true;

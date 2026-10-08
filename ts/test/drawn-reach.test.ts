@@ -29,7 +29,7 @@ const JAB_DEPARTURES: { readonly [character: number]: { readonly swing: number; 
 };
 const JABS: readonly number[] = [AttackStyle.jab, AttackStyle.jab2, AttackStyle.jab3];
 
-test("every checked swing draws toward its strike on its active frames", () => {
+test("every checked swing draws toward its strike on its active frames [spec #156]", () => {
   const off = DRAWN_REACH.flatMap((row) => {
     const pose = row.style === AttackStyle.ledgeAttack ? "ledgeAttack" : attackPose(row.style);
     const clip = ownAttackClip(row.character, row.style) ?? (pose === undefined ? undefined : clipFor(row.character, pose));
@@ -45,7 +45,7 @@ test("every checked swing draws toward its strike on its active frames", () => {
   expect(DRAWN_REACH.map(({ character, style }) => `${character}/${style}`)).toEqual(REACH_CHECKED.flatMap(({ character, styles }) => styles.map((style) => `${character}/${style}`)));
 });
 
-test("every jab draws shorter than its fighter's forward tilt (#163)", () => {
+test("every jab draws shorter than its fighter's forward tilt (#163) [spec #163]", () => {
   const forward = (character: number, style: number) => DRAWN_REACH.find((row) => row.character === character && row.style === style)?.forward;
   const long = DRAWN_REACH.flatMap(({ character, style, forward: jab }) => {
     const tilt = forward(character, AttackStyle.forwardTilt);

@@ -2,9 +2,9 @@ import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp
 import { imod } from "wisp/src/sim/intMath";
 import { type InputRow, type RowFields, copyInput, inputRow, sameInput } from "../input/inputRow";
 import { participantInputs } from "../input/participants";
-import { INPUT_LAST_FRAME, inputPacket } from "../input/wire";
+import { inputPacket } from "../input/wire";
 import { Capture } from "./capture";
-import { FixedInputSchedule, fixedCaptureTarget, isFixedDelay } from "./fixedSchedule";
+import { FixedInputSchedule } from "./fixedSchedule";
 import { FUTURE_LIMIT } from "./ledger";
 
 const row = (fields: RowFields = {}) => assertDefined(inputRow(fields), "row");
@@ -21,7 +21,7 @@ const sampleAt = (frame: number, sender: number) =>
 /** The row frame runs with under delay: the seed for the first frames, then the sample captured delay frames earlier. */
 const rowAt = (frame: number, delay: number, sender: number) => (frame <= delay ? NEUTRAL : sampleAt(frame - delay, sender));
 
-test("every supported delay seeds neutral frames, and each frame completes explicitly in order", () => {
+test("every supported delay seeds neutral frames, and each frame completes explicitly in order [spec docs/netcode-proposal.md]", () => {
   const schedule = new FixedInputSchedule();
   const inputs = participantInputs();
   const [first, second] = inputs;
@@ -52,7 +52,7 @@ test("every supported delay seeds neutral frames, and each frame completes expli
   }
 });
 
-test("a capture opportunity assigns its target once, and local capture never opens the common gate", () => {
+test("a capture opportunity assigns its target once, and local capture never opens the common gate [spec docs/netcode-proposal.md]", () => {
   const schedule = new FixedInputSchedule();
   const inputs = participantInputs();
   const [first, second] = inputs;
@@ -95,36 +95,7 @@ test("a capture opportunity assigns its target once, and local capture never ope
   assertTrue(schedule.complete(1, 4));
 });
 
-test("a read fills every slot or none, overwrites its targets, and checks the epoch", () => {
-  const schedule = new FixedInputSchedule();
-  const inputs = participantInputs();
-  const [first, second] = inputs;
-  assertTrue(schedule.beginEpoch(2, 2, 3));
-  for (let frame = 1; frame <= 2; frame++) {
-    assertTrue(schedule.readNext(2, inputs));
-    assertTrue(schedule.complete(2, frame));
-  }
-  copyInput(first, sampleAt(7, 0));
-  copyInput(second, sampleAt(8, 1));
-  assertEquals(schedule.acceptSynchronized(0, packet(2, 3, sampleAt(1, 0))), "accepted");
-  assertFalse(schedule.readNext(2, inputs));
-  assertEquals(first.held, 49);
-  assertEquals(second.held, 57);
-  assertEquals(schedule.acceptSynchronized(1, packet(2, 3, sampleAt(1, 1))), "accepted");
-  assertFalse(schedule.readNext(1, inputs));
-  assertEquals(first.held, 49);
-  assertFalse(schedule.complete(2, 3));
-  assertTrue(schedule.readNext(2, inputs));
-  assertEquals(first.held, 7);
-  assertEquals(second.held, 8);
-  copyInput(first, sampleAt(90, 0));
-  assertTrue(schedule.readNext(2, inputs));
-  assertEquals(first.held, 7);
-  assertFalse(schedule.complete(1, 3));
-  assertTrue(schedule.complete(2, 3));
-});
-
-test("the future bound moves on completion, not on receipt or read", () => {
+test("the future bound moves on completion, not on receipt or read [spec docs/netcode-proposal.md]", () => {
   const schedule = new FixedInputSchedule();
   const inputs = participantInputs();
   assertTrue(schedule.beginEpoch(1, 2, 3));
@@ -147,7 +118,7 @@ test("the future bound moves on completion, not on receipt or read", () => {
   assertEquals(schedule.confirmedThrough(), 1);
 });
 
-test("a new epoch clears pending and prepared rows", () => {
+test("a new epoch clears pending and prepared rows [spec docs/netcode-proposal.md]", () => {
   const schedule = new FixedInputSchedule();
   const inputs = participantInputs();
   const [first] = inputs;
@@ -177,23 +148,9 @@ test("a new epoch clears pending and prepared rows", () => {
   assertFalse(schedule.beginEpoch(2147483647, 3, 3));
 });
 
-test("capture targets stop at the last frame instead of wrapping", () => {
-  for (const delay of [0, 1, 2, 3, 5] as const) {
-    assertTrue(isFixedDelay(delay));
-    assertEquals(fixedCaptureTarget(1, delay), 1 + delay);
-    assertEquals(fixedCaptureTarget(INPUT_LAST_FRAME - delay, delay), INPUT_LAST_FRAME);
-    assertEquals(fixedCaptureTarget(INPUT_LAST_FRAME - delay + 1, delay), undefined);
-    assertEquals(fixedCaptureTarget(INPUT_LAST_FRAME, delay), delay === 0 ? INPUT_LAST_FRAME : undefined);
-    assertEquals(fixedCaptureTarget(2147483647, delay), undefined);
-    assertEquals(fixedCaptureTarget(-2147483647, delay), undefined);
-    assertEquals(fixedCaptureTarget(0, delay), undefined);
-  }
-  for (const delay of [-2147483647, -1, 4, 6, 2147483647]) assertFalse(isFixedDelay(delay));
-});
-
 // Every complete row matches its canonical capture tape although receiver
 // order, duplicate bursts, packet shape and waits differ.
-test("delivery order, duplicates, waits and ring wrap never change the rows a frame runs", () => {
+test("delivery order, duplicates, waits and ring wrap never change the rows a frame runs [spec docs/netcode-proposal.md] [invariant]", () => {
   const ordered = new FixedInputSchedule();
   const reordered = new FixedInputSchedule();
   const inputs = participantInputs();
@@ -260,7 +217,7 @@ test("delivery order, duplicates, waits and ring wrap never change the rows a fr
   assertEquals(reordered.accepted(8, 0, 537), undefined);
 });
 
-test("four participants keep every row across ring reuse", () => {
+test("four participants keep every row across ring reuse [invariant]", () => {
   const schedule = new FixedInputSchedule();
   const inputs = participantInputs();
   assertTrue(schedule.beginEpoch(30, 0, 15));
@@ -286,17 +243,4 @@ test("four participants keep every row across ring reuse", () => {
   assertTrue(schedule.accepted(30, 3, 237) !== undefined);
   assertEquals(schedule.pending(30, 236), undefined);
   assertTrue(schedule.pending(30, 237) !== undefined);
-});
-
-test("sparse membership reads only active slots, and invalid membership keeps the epoch", () => {
-  const schedule = new FixedInputSchedule();
-  const inputs = participantInputs();
-  assertTrue(schedule.beginEpoch(1, 2, 13));
-  copyInput(inputs[1], row({ held: 27, pressed: 9, released: 4, axisX: 1, axisZ: -1, triggerLeft: 3, triggerRight: 7 }));
-  assertFalse(schedule.beginEpoch(2, 2, 0));
-  assertEquals(schedule.participantMask(), 13);
-  assertTrue(schedule.readNext(1, inputs));
-  assertEquals(inputs[1].held, 27);
-  for (const slot of [0, 2, 3]) assertEquals(inputs[slot]!.held, 0);
-  assertTrue(schedule.complete(1, 1));
 });

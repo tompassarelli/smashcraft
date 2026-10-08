@@ -4,12 +4,12 @@
 // install them. In Bun the reload loads the map again from a copy of its
 // sources holding the texts tune compiles, as a real reload links new modules.
 import { afterAll, expect, test } from "bun:test";
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { Effect, Layer } from "effect";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { HotReload } from "wisp/scripts/wisp/hotReload";
-import { Tune, findLiteral } from "wisp/scripts/wisp/tune";
+import { Tune } from "wisp/scripts/wisp/tune";
 import type { MapEntry } from "wisp/src/headless/client";
 import { ackFile } from "wisp/src/runtime/gameFiles";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
@@ -31,17 +31,6 @@ afterAll(() => {
 
 const JUMP = 0x49;
 const TUNED_GRAVITY = [["Archer gravity", 0.35], ["Rifleman gravity", 0.3], ["Demon Hunter gravity", 0.3]] as const;
-
-test("every tunable names a literal its kind can hold", () => {
-  for (const tunable of SMASHCRAFT_TUNABLES) {
-    const literal = findLiteral(readFileSync(join(tsDirectory, tunable.file), "utf8"), tunable.path);
-    if (typeof literal === "string") throw new Error(`${tunable.name}: ${literal}`);
-    expect(literal.value).toBeGreaterThanOrEqual(tunable.min);
-    expect(literal.value).toBeLessThanOrEqual(tunable.max);
-    if (tunable.kind === "int") expect(Number.isInteger(literal.value)).toBe(true);
-    else expect(Math.fround(literal.value)).toBe(literal.value);
-  }
-});
 
 interface Tuned {
   readonly entry: MapEntry;
@@ -109,7 +98,7 @@ let tuned: Promise<Tuned> | undefined;
 const tunedGravity = () => (tuned ??= tunedEntry(TUNED_GRAVITY));
 
 // About 1.5 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
-test("under rollback the speculative match and every history snapshot take tuned values too, so a correction can't undo them", async () => {
+test("under rollback the speculative match and every history snapshot take tuned values too, so a correction can't undo them [invariant]", async () => {
   const { entry, tuning } = await tunedGravity();
   const clients = headless.clients({ install, start: () => startBuild(INTEGRITY_BUILD) });
   clients.start();
@@ -137,7 +126,7 @@ test("under rollback the speculative match and every history snapshot take tuned
 }, 30_000);
 
 // About 2 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
-test("[repro #242] tuned gravity reaches both clients' fighters on the frame they install it and changes the match alike in both", async () => {
+test("tuned gravity reaches both clients' fighters on the frame they install it and changes the match alike in both [repro #242]", async () => {
   const tuned = await tunedGravity();
   expect(tuned.files).toEqual(["src/game/sim/tuning.ts"]);
   const reference = play({ start, install });

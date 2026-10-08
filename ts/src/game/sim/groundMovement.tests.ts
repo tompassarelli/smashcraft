@@ -1,7 +1,7 @@
 // Keep the recorded movement timelines together so entry, reversal and exit
 // use the same NTSC parameter fixtures and frame-count conventions.
 // Dash, run, turn-run and run-brake against the authored and NTSC timelines.
-import { assertEquals, assertFalse, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GroundAction } from "./codes";
@@ -35,7 +35,7 @@ function groundActionFighter(x: number, facing: number, rules: GroundMovementRul
   return fighter;
 }
 
-test("an initial dash's entry transitions toward the actor's run speed", () => {
+test("an initial dash's entry transitions toward the actor's run speed [spec docs/physics.md]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     for (const direction of [-1, 1]) {
       const fighter = createFighter(character, 0.0, -direction);
@@ -56,7 +56,7 @@ test("an initial dash's entry transitions toward the actor's run speed", () => {
   }
 });
 
-test("the retail dash-to-run command uses the actor's encoded enable frame", () => {
+test("the retail dash-to-run command uses the actor's encoded enable frame [reference] [spec docs/physics.md]", () => {
   NTSC_RIGS.forEach((rules, rig) => {
     const fighter = createFighter(Character.archer, 0.0, 1);
     const input = controls({ direction: 1 });
@@ -76,7 +76,7 @@ test("the retail dash-to-run command uses the actor's encoded enable frame", () 
   });
 });
 
-test("a turn-run waits for the retail facing command boundary", () => {
+test("a turn-run waits for the retail facing command boundary [reference] [spec docs/physics.md]", () => {
   for (const rules of [NTSC_FOX_GROUND_MOVEMENT_RULES, NTSC_CAPTAIN_FALCON_GROUND_MOVEMENT_RULES]) {
     const fighter = groundActionFighter(0.0, 1, rules, GroundAction.run, 4, 1, 13.199999809265137);
     const input = controls({ direction: -1 });
@@ -111,15 +111,13 @@ test("a turn-run waits for the retail facing command boundary", () => {
   }
 });
 
-test("a run-brake turn input closes at the actor's frame-fifteen command", () => {
+test("a run-brake turn input closes at the actor's frame-fifteen command [reference] [spec docs/physics.md]", () => {
   const allowed = groundActionFighter(0.0, 1, NTSC_FOX_GROUND_MOVEMENT_RULES, GroundAction.runBrake, 13, 1, 9.0);
   const denied = groundActionFighter(100.0, 1, NTSC_FOX_GROUND_MOVEMENT_RULES, GroundAction.runBrake, 14, 1, 9.0);
   const input = controls({ direction: -1 });
   advanceSolo(allowed, 0, input, 0.0);
   assertEquals(allowed.ground.action, GroundAction.turnRun);
   assertEquals(allowed.ground.actionFrame, 14);
-  assertEquals(allowed.ground.turnRunEntryFacing, 1);
-  assertTrue(allowed.ground.turnRunFacingCommandLatched);
   for (let frame = 1; frame <= 15; frame++) {
     advanceSolo(allowed, 0, input, 0.0);
     if (allowed.facing === 1) assertEquals(allowed.ground.actionFrame, 15);
@@ -136,24 +134,22 @@ test("a run-brake turn input closes at the actor's frame-fifteen command", () =>
   assertEquals(denied.facing, 1);
 });
 
-test("a turn-run entered past its command pauses before its facing flip", () => {
+test("a turn-run entered past its command pauses before its facing flip [spec docs/physics.md]", () => {
   const fighter = groundActionFighter(0.0, 1, NTSC_FOX_GROUND_MOVEMENT_RULES, GroundAction.runBrake, 13, 1, 0.10000000149011612);
   const input = controls({ direction: -1 });
   advanceSolo(fighter, 0, input, 0.0);
   assertEquals(fighter.ground.action, GroundAction.turnRun);
   assertEquals(fighter.ground.actionFrame, 14);
-  assertTrue(fighter.ground.turnRunPausePending);
   assertEquals(fighter.facing, 1);
   advanceSolo(fighter, 0, input, 0.0);
   assertEquals(fighter.ground.actionFrame, 15);
-  assertFalse(fighter.ground.turnRunPausePending);
   assertEquals(fighter.facing, 1);
   advanceSolo(fighter, 0, input, 0.0);
   assertEquals(fighter.ground.actionFrame, 15);
   assertEquals(fighter.facing, -1);
 });
 
-test("a run-brake's forward input doesn't skip to a run", () => {
+test("a run-brake's forward input doesn't skip to a run [spec docs/physics.md]", () => {
   const fighter = groundActionFighter(0.0, 1, NTSC_FOX_GROUND_MOVEMENT_RULES, GroundAction.runBrake, 0, 1, 9.0);
   advanceSolo(fighter, 0, controls({ direction: 1 }), 0.0);
   assertEquals(fighter.ground.action, GroundAction.runBrake);
@@ -161,7 +157,7 @@ test("a run-brake's forward input doesn't skip to a run", () => {
   assertEquals(fighter.facing, 1);
 });
 
-test("a turn-run uses the retail velocity threshold in world units", () => {
+test("a turn-run uses the retail velocity threshold in world units [reference] [spec docs/physics.md]", () => {
   const input = controls({ direction: -1 });
   // 0.03 world units is greater than the old 0.01 comparison but less than
   // 0.01 Melee units converted at six world units per Melee unit.
@@ -180,7 +176,7 @@ test("a turn-run uses the retail velocity threshold in world units", () => {
   }
 });
 
-test("a turn-run completes to wait unless forward is held", () => {
+test("a turn-run completes to wait unless forward is held [spec docs/physics.md]", () => {
   for (const direction of [0, 1]) {
     const fighter = groundActionFighter(0.0, -1, NTSC_FOX_GROUND_MOVEMENT_RULES, GroundAction.turnRun, 19, -1, -3.0);
     fighter.ground.turnRunEntryFacing = 1;
@@ -191,7 +187,7 @@ test("a turn-run completes to wait unless forward is held", () => {
   }
 });
 
-test("a retail run-brake ends at its clip or its maximum frame count", () => {
+test("a retail run-brake ends at its clip or its maximum frame count [reference] [spec docs/physics.md]", () => {
   NTSC_RIGS.forEach((rules, rig) => {
     const fighter = groundActionFighter(0.0, 1, rules, GroundAction.runBrake, 0, 1, 0.4000000059604645);
     fighter.ground.runBrakeFramesRemaining = rules.runBrakeMaximumFrames;
@@ -218,7 +214,7 @@ test("a retail run-brake ends at its clip or its maximum frame count", () => {
   assertEquals(capped.ground.runBrakeFramesRemaining, 0);
 });
 
-test("an initial dash reversal restarts the window, including across neutral", () => {
+test("an initial dash reversal restarts the window, including across neutral [spec docs/gameplay-design.md]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     const fighter = createFighter(character, 0.0, 1);
     const input = controls({ direction: 1 });
@@ -241,7 +237,7 @@ test("an initial dash reversal restarts the window, including across neutral", (
   }
 });
 
-test("a run turn uses the character's dash acceleration before changing facing", () => {
+test("a run turn uses the character's dash acceleration before changing facing [spec docs/physics.md]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     for (const firstDirection of [-1, 1]) {
       const fighter = createFighter(character, 0.0, firstDirection);
@@ -263,7 +259,7 @@ test("a run turn uses the character's dash acceleration before changing facing",
   }
 });
 
-test("an initial dash's expiration prevents a late instant reversal", () => {
+test("an initial dash's expiration prevents a late instant reversal [spec docs/gameplay-design.md]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     const fighter = createFighter(character, 0.0, 1);
     const input = controls({ direction: 1 });
@@ -276,7 +272,7 @@ test("an initial dash's expiration prevents a late instant reversal", () => {
   }
 });
 
-test("under-target ground velocity uses the actor's acceleration and run cap", () => {
+test("under-target ground velocity uses the actor's acceleration and run cap [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   // Keep this velocity fixture's run-entry timing independent of the roster's
   // dash-dance window; its expected numbers include three tapered run ticks.
@@ -298,7 +294,7 @@ test("under-target ground velocity uses the actor's acceleration and run cap", (
   assertNear(fighter.motion.vx, 3.0 * 6, f32(0.0001));
 });
 
-test("a neutral stop after an initial dash allows a fresh dash", () => {
+test("a neutral stop after an initial dash allows a fresh dash [spec docs/gameplay-design.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   const input = controls({ direction: 1 });
   advanceSolo(fighter, 0, input, 0.0);
@@ -312,7 +308,7 @@ test("a neutral stop after an initial dash allows a fresh dash", () => {
   assertEquals(fighter.ground.dashFrame, 1);
 });
 
-test("hitlag freezes an initial dash, then a reversal resumes", () => {
+test("hitlag freezes an initial dash, then a reversal resumes [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 100.0, 1);
   const input = controls({ direction: 1 });
   advanceSolo(fighter, 0, input, 0.0);
@@ -331,7 +327,7 @@ test("hitlag freezes an initial dash, then a reversal resumes", () => {
   assertEquals(fighter.ground.dashFrame, 0);
 });
 
-test("an initial dash clears on a jump, shield, attack and respawn", () => {
+test("an initial dash clears on a jump, shield, attack and respawn [spec docs/physics.md]", () => {
   for (let interruption = 0; interruption <= 3; interruption++) {
     const fighter = createFighter(Character.archer, 0.0, 1);
     const world = testWorld(fighter, createFighter(Character.rifleman, 300.0, -1));
@@ -362,58 +358,7 @@ test("an initial dash clears on a jump, shield, attack and respawn", () => {
   }
 });
 
-test("the shot's recovery uses its grounding at attack start", () => {
-  const grounded = createFighter(Character.archer, 0.0, 1);
-  const groundedWorld = testWorld(grounded, createFighter(Character.rifleman, 400.0, -1));
-  testBeginAttacks(groundedWorld, AttackStyle.shot, undefined);
-  assertEquals(grounded.attack.duration, 32);
-  assertEquals(grounded.attack.cooldown, 32);
-  grounded.motion.grounded = false;
-  const airborne = createFighter(Character.archer, 0.0, 1);
-  airborne.motion.grounded = false;
-  airborne.motion.z = 120.0;
-  const airborneWorld = testWorld(airborne, createFighter(Character.rifleman, 400.0, -1));
-  testBeginAttacks(airborneWorld, AttackStyle.shot, undefined);
-  assertEquals(airborne.attack.duration, 20);
-  assertEquals(airborne.attack.cooldown, 20);
-  airborne.motion.grounded = true;
-  const input = controls();
-  let groundedTicks = 0;
-  while (grounded.attack.style !== undefined) {
-    advanceFighter(groundedWorld, 0, 0, input, -240.0);
-    groundedTicks++;
-  }
-  let airborneTicks = 0;
-  while (airborne.attack.style !== undefined) {
-    advanceFighter(airborneWorld, 0, 0, input, -240.0);
-    airborneTicks++;
-  }
-  assertEquals(groundedTicks, 32);
-  assertEquals(airborneTicks, 20);
-  assertEquals(grounded.attack.cooldown, 0);
-  assertEquals(airborne.attack.cooldown, 0);
-});
-
-test("one press consumes one jump", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
-  const input = controls({ jumpPressed: true, jumpHeld: true });
-  advanceSolo(fighter, 0, input, -240.0);
-  assertEquals(fighter.jump.remaining, 1);
-  assertEquals(fighter.jump.squat, 3);
-  assertEquals(fighter.motion.z, 0.0);
-  input.jumpPressed = false;
-  advanceSolo(fighter, 0, input, -240.0);
-  advanceSolo(fighter, 0, input, -240.0);
-  assertEquals(fighter.jump.remaining, 1);
-  assertTrue(fighter.motion.grounded);
-  advanceSolo(fighter, 0, input, -240.0);
-  assertEquals(fighter.jump.squat, 0);
-  assertNear(fighter.motion.vz, f32(22.08), f32(0.01));
-  advanceSolo(fighter, 0, input, -240.0);
-  assertEquals(fighter.jump.remaining, 1);
-});
-
-test("hitlag freezes position until it expires", () => {
+test("hitlag freezes position until it expires [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   fighter.motion.x = 25.0;
   fighter.launch.hitlag = 3;

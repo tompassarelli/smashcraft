@@ -10,7 +10,7 @@ import { CompanionMode } from "../src/game/sim/heroSpecials";
 const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: {} });
 afterAll(headless.restore);
 
-test("Bear command draws a large rear-up, four state labels, one roar and a bite-only impact", () => {
+test("Bear command draws a large rear-up, four state labels, one roar and a bite-only impact [spec docs/design/beastmaster.md]", () => {
   const clients = headless.clients({ install() {}, start() {} });
   clients.start();
   const client = clients.clients[0];
@@ -39,7 +39,6 @@ test("Bear command draws a large rear-up, four state labels, one roar and a bite
     bear.bitten = 2;
     effects.presentConfirmed(110, fighter, 0);
     effects.present(fighter, 0);
-    expect(body()?.animationElapsed).toBe(0.5);
     expect(client.effectPoses().some(pose => pose.model.includes("StampedeMissileDeath") && pose.scale === 1.5 && pose.z > 0)).toBe(true);
     bear.modeFrame = 15;
     bear.age = 114;

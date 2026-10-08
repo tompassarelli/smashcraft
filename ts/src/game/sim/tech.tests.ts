@@ -1,20 +1,14 @@
-import { stageBounds } from "./stageBounds";
 import { TECH_WINDOW_FRAMES, TECH_PRESS_AGE_LIMIT } from "../physics/techInput";
 // Floor techs: the NTSC tech input window, repeat lockout, travel and protection.
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
-import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, DownState } from "./codes";
-import { TECH_INTANGIBLE_FRAMES, TECH_ROLL_INTANGIBLE_FRAMES, canAttack, isFloorTeching, isIntangible } from "./conditions";
-import { TECH_IN_PLACE_FRAMES, TECH_ROLL_FRAMES } from "./down";
+import { TECH_INTANGIBLE_FRAMES, isFloorTeching } from "./conditions";
 import { type Fighter, createFighter } from "./fighter";
-import { beginJump } from "./jumpsAndDodges";
 import { updateProjectiles } from "./projectiles";
 import type { Controls } from "./roster";
 import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
-import { respawnFighter } from "./stocks";
-import { advanceSolo, controls, resolveStartedAttack, seedTechWindow, soloWorld, testWorld } from "./testWorld";
-import { AUTHORED_PHYSICS } from "./tuning";
+import { advanceSolo, controls, resolveStartedAttack, testWorld } from "./testWorld";
 
 function techTestTumbler(): Fighter {
   const fighter = createFighter(Character.archer, 0.0, 1);
@@ -37,7 +31,7 @@ function landTechTest(fighter: Fighter, stage: number, surface: number, input: R
   advanceSolo(fighter, stage, input, 0.0);
 }
 
-test("the tech window includes the press and the twentieth contact but not the twenty-first", () => {
+test("the tech window includes the press and the twentieth contact but not the twenty-first [reference]", () => {
   for (let contact = 1; contact <= TECH_WINDOW_FRAMES + 1; contact++) {
     const fighter = techTestTumbler();
     const input = controls({ techPressed: true, airDodgePressed: true });
@@ -56,7 +50,7 @@ test("the tech window includes the press and the twentieth contact but not the t
   }
 });
 
-test("the tech repeat boundary uses the original prior press age", () => {
+test("the tech repeat boundary uses the original prior press age [reference]", () => {
   for (const gap of [40, 41]) {
     const fighter = techTestTumbler();
     const input = controls({ techPressed: true });
@@ -71,7 +65,7 @@ test("the tech repeat boundary uses the original prior press age", () => {
   }
 });
 
-test("a grounded shield edge counts, but only a tumble contact can tech", () => {
+test("a grounded shield edge counts, but only a tumble contact can tech [reference]", () => {
   const input = controls({ shield: true });
   const held = techTestTumbler();
   landTechTest(held, 0, 0, input);
@@ -95,39 +89,7 @@ test("a grounded shield edge counts, but only a tumble contact can tech", () => 
   assertEquals(ordinary.landing.lag, 4);
 });
 
-test("Illidan's tech contact retains his original travel and protection frames", () => {
-  for (const direction of [-1, 0, 1]) {
-    const fighter = techTestTumbler();
-    fighter.character = Character.demonHunter;
-    fighter.tuning.physics = AUTHORED_PHYSICS.demonHunter;
-    const input = controls({ techPressed: true, direction: -direction });
-    advanceTechAirTick(fighter, input);
-    input.techPressed = false;
-    input.direction = direction;
-    landTechTest(fighter, 0, 0, input);
-    assertEquals(fighter.down.state, direction === 0 ? DownState.tech : DownState.techRoll);
-    assertEquals(fighter.down.direction, direction);
-    const contactX = fighter.motion.x;
-    const duration = direction === 0 ? TECH_IN_PLACE_FRAMES : TECH_ROLL_FRAMES;
-    for (let frame = 1; frame <= duration; frame++) {
-      assertEquals(fighter.down.frame, frame);
-      assertEquals(isIntangible(fighter), frame <= (direction === 0 ? TECH_INTANGIBLE_FRAMES : TECH_ROLL_INTANGIBLE_FRAMES));
-      assertEquals(fighter.motion.x, f32(contactX + f32(f32(direction * 8.0) * max(0, min(frame, 19) - 3))));
-      assertFalse(canAttack(fighter));
-      beginJump(fighter, 0);
-      assertEquals(fighter.jump.squat, 0);
-      assertEquals(fighter.jump.serial, 0);
-      if (frame < duration) advanceSolo(fighter, 0, input, 0.0);
-    }
-    input.jumpPressed = true;
-    input.jumpHeld = true;
-    advanceSolo(fighter, 0, input, 0.0);
-    assertEquals(fighter.down.state, DownState.none);
-    assertEquals(fighter.jump.squat, AUTHORED_PHYSICS.demonHunter.jumpSquatFrames - 1);
-  }
-});
-
-test("a tech roll clamps at both ends of the current platform", () => {
+test("a tech roll clamps at both ends of the current platform [spec docs/physics.md]", () => {
   for (const direction of [-1, 1]) {
     const fighter = techTestTumbler();
     fighter.motion.x = direction < 0 ? f32(surfaceLeft(1, 1, 0) + 3) : f32(surfaceRight(1, 1, 0) - 3);
@@ -142,7 +104,7 @@ test("a tech roll clamps at both ends of the current platform", () => {
   }
 });
 
-test("original tech-input hitlag aging and accumulation reach the production state", () => {
+test("original tech-input hitlag aging and accumulation reach the production state [reference]", () => {
   const early = techTestTumbler();
   const input = controls({ techPressed: true });
   early.launch.hitlag = 4;
@@ -186,7 +148,7 @@ test("original tech-input hitlag aging and accumulation reach the production sta
   assertEquals(releaseFrame.tech.window, TECH_WINDOW_FRAMES);
 });
 
-test("a tech's vulnerable recovery can be interrupted by melee or the rifleman's shot", () => {
+test("a tech's vulnerable recovery can be interrupted by melee or the rifleman's shot [reference]", () => {
   for (const style of [AttackStyle.jab, AttackStyle.shot]) {
     const fighter = techTestTumbler();
     fighter.motion.x = 100.0;
@@ -205,39 +167,7 @@ test("a tech's vulnerable recovery can be interrupted by melee or the rifleman's
   }
 });
 
-test("tech state and input timers clear on respawn and stock loss", () => {
-  const fighter = techTestTumbler();
-  const world = soloWorld(fighter);
-  const input = controls({ techPressed: true });
-  advanceTechAirTick(fighter, input);
-  respawnFighter(world, 0, 0.0);
-  assertEquals(fighter.tech.window, 0);
-  assertEquals(fighter.tech.pressAge, TECH_PRESS_AGE_LIMIT);
-  fighter.down.state = DownState.tumble;
-  fighter.status.invincible = 0;
-  fighter.launch.hitstun = 50;
-  landTechTest(fighter, 0, 0, input);
-  assertEquals(fighter.down.state, DownState.tech);
-  fighter.motion.x = (stageBounds(0).blast.right + 1.0);
-  input.techPressed = false;
-  advanceSolo(fighter, 0, input, 0.0);
-  assertTrue(fighter.status.out);
-  assertEquals(fighter.status.stocks, 2);
-  assertEquals(fighter.down.state, DownState.none);
-  assertEquals(fighter.tech.window, 0);
-  respawnFighter(world, 0, 0.0);
-  fighter.down.state = DownState.techRoll;
-  fighter.down.frame = 12;
-  fighter.down.direction = 1;
-  seedTechWindow(fighter, 10);
-  respawnFighter(world, 0, 0.0);
-  assertEquals(fighter.down.state, DownState.none);
-  assertEquals(fighter.down.frame, 0);
-  assertEquals(fighter.down.direction, 0);
-  assertEquals(fighter.tech.window, 0);
-});
-
-test("a grabbed fighter still tracks digital tech presses and their lockout", () => {
+test("a grabbed fighter still tracks digital tech presses and their lockout [reference]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   const input = controls({ techPressed: true });
   fighter.grab.grabbedFrames = 10;

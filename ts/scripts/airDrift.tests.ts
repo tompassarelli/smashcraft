@@ -11,7 +11,7 @@ import { AIR_ACCELERATION_BAND, AIR_SPEED_BAND, CROSS_UP_DASH_FRAMES, HELD_AFTER
 /** Fighters allowed to miss the dash -> jump -> aerial cross-up, each a deliberate design choice; none today. */
 const CROSS_UP_EXCEPTIONS: readonly Character[] = [];
 
-test("every fighter's air speed and air acceleration sit inside the documented band", () => {
+test("every fighter's air speed and air acceleration sit inside the documented band [spec #190]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const p = authoredPhysics(character);
     const name = fighterName(character);
@@ -23,7 +23,7 @@ test("every fighter's air speed and air acceleration sit inside the documented b
 // Melee's ground-jump rule: ground velocity × the momentum multiplier, plus the
 // held direction × the jump's initial horizontal speed, capped. Illidan's
 // immediate jump physics drift him one frame on takeoff.
-test("a jump out of a dash or a run keeps its horizontal momentum by the shared rule on every fighter", () => {
+test("a jump out of a dash or a run keeps its horizontal momentum by the shared rule on every fighter [spec #190]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const p = authoredPhysics(character);
     for (const groundFrames of [CROSS_UP_DASH_FRAMES, 24]) {
@@ -40,7 +40,7 @@ test("a jump out of a dash or a run keeps its horizontal momentum by the shared 
   }
 });
 
-test("a dash, jump and aerial crosses over a shielding opponent and meets the shield from behind", () => {
+test("a dash, jump and aerial crosses over a shielding opponent and meets the shield from behind [spec #190]", () => {
   const missed = SELECTABLE_CHARACTERS.filter((character) => crossUp(character) === undefined);
   expect(missed.map(fighterName)).toEqual(CROSS_UP_EXCEPTIONS.map(fighterName));
   expect(SELECTABLE_CHARACTERS.length - missed.length).toBeGreaterThanOrEqual(10);

@@ -36,7 +36,7 @@ function rushTo(d: Duel, frame: number, side = 1, second: Readonly<Controls> = c
   d.run(frame - 1, controls(), second);
 }
 
-test("Fel Rush: still through the tell, 200 units on frames 6-15 the way the stick points, acting again on frame 30", () => {
+test("Fel Rush: still through the tell, 200 units on frames 6-15 the way the stick points, acting again on frame 30 [spec docs/design/illidan.md]", () => {
   for (const side of [-1, 1]) {
     const d = duel(420.0);
     const start = d.illidan.motion.x;
@@ -53,7 +53,7 @@ test("Fel Rush: still through the tell, 200 units on frames 6-15 the way the sti
   }
 });
 
-test("Fel Rush in the air: level through the rush, once per airtime, never helpless", () => {
+test("Fel Rush in the air: level through the rush, once per airtime, never helpless [spec docs/design/illidan.md]", () => {
   const d = duel(420.0);
   d.step(controls({ jumpPressed: true, jumpHeld: true }));
   d.run(14, controls({ jumpHeld: true }));
@@ -74,7 +74,7 @@ test("Fel Rush in the air: level through the rush, once per airtime, never helpl
   assertEquals(d.illidan.special.action, SpecialAction.demonHunterFelRush);
 });
 
-test("Fel Rush passes through a body, popping it up for 6 and draining 4 mana", () => {
+test("Fel Rush passes through a body, popping it up for 6 and draining 4 mana [spec docs/design/illidan.md]", () => {
   const d = duel(120.0);
   d.target.mana.points = 50;
   d.step(sideB(1));
@@ -87,7 +87,7 @@ test("Fel Rush passes through a body, popping it up for 6 and draining 4 mana", 
   assertTrue(d.illidan.special.hit);
 });
 
-test("Fel Rush counterplay: a raised shield stops it short, takes no drain, and the rush with no branch is punished", () => {
+test("Fel Rush counterplay: a raised shield stops it short, takes no drain, and the rush with no branch is punished [spec docs/design/illidan.md]", () => {
   const d = duel(170.0);
   d.target.mana.points = 50;
   d.run(4, controls(), SHIELD);
@@ -105,7 +105,7 @@ test("Fel Rush counterplay: a raised shield stops it short, takes no drain, and 
   assertGreaterThan(d.illidan.status.damage, 0.0);
 });
 
-test("Fel Rush counterplay: a hit during the tell stops it before it moves", () => {
+test("Fel Rush counterplay: a hit during the tell stops it before it moves [spec docs/design/illidan.md]", () => {
   const d = duel(60.0);
   const start = d.illidan.motion.x;
   const frame = d.step(sideB(1));
@@ -117,7 +117,7 @@ test("Fel Rush counterplay: a hit during the tell stops it before it moves", () 
   assertLessThan(Math.abs(f32(d.illidan.motion.x - start)), 60.0);
 });
 
-test("Vengeful Retreat: a special press in frames 10-24 vaults back, acting on its frame 17; outside the window nothing", () => {
+test("Vengeful Retreat: a special press in frames 10-24 vaults back, acting on its frame 17; outside the window nothing [spec docs/design/illidan.md]", () => {
   for (const press of [FEL_RUSH_BRANCH_FIRST - 1, FEL_RUSH_BRANCH_FIRST, FEL_RUSH_BRANCH_LAST, FEL_RUSH_BRANCH_LAST + 1]) {
     const d = duel(420.0);
     rushTo(d, press - 1);
@@ -133,7 +133,7 @@ test("Vengeful Retreat: a special press in frames 10-24 vaults back, acting on i
   }
 });
 
-test("Vengeful Retreat counterplay: no intangibility, so a chasing hit lands during the vault", () => {
+test("Vengeful Retreat counterplay: no intangibility, so a chasing hit lands during the vault [spec docs/design/illidan.md]", () => {
   const d = duel(420.0);
   rushTo(d, 11);
   d.step(sideB(1));
@@ -144,7 +144,7 @@ test("Vengeful Retreat counterplay: no intangibility, so a chasing hit lands dur
   }
 });
 
-test("Chaos Strike: an attack press slashes toward the held stick for 10 and drains 10; the other side misses", () => {
+test("Chaos Strike: an attack press slashes toward the held stick for 10 and drains 10; the other side misses [spec docs/design/illidan.md]", () => {
   for (const back of [false, true]) for (const held of [1, -1]) {
     const d = duel(420.0);
     d.target.mana.points = 50;
@@ -160,7 +160,7 @@ test("Chaos Strike: an attack press slashes toward the held stick for 10 and dra
   }
 });
 
-test("Drain on hit: a normal and a throw drain their authored amounts, a shield none, and mana floors at 0", () => {
+test("Drain on hit: a normal and a throw drain their authored amounts, a shield none, and mana floors at 0 [spec docs/design/illidan.md]", () => {
   const jab = duel(70.0);
   jab.target.mana.points = 50;
   queueAttack(jab.commands[0], { style: AttackStyle.jab, facing: 1, frame: jab.step(), mayCharge: false });

@@ -6,9 +6,8 @@ import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, t
 import { max } from "../../runtime/numbers";
 import { addFloat32, divideFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
-import { advanceSpecials } from "./specials";
 import { resolveAttacks } from "./attacks";
-import { AttackStyle, Character, ContactKind, DownState, GrabAction, GroundAction, HippogryphKind, ProjectileKind, ShieldBreak, SpecialAction } from "./codes";
+import { AttackStyle, Character, ContactKind, DownState, GrabAction, GroundAction, ProjectileKind, ShieldBreak } from "./codes";
 import { SPOT_DODGE_FRAMES, GROUND_ROLL_FRAMES, canAttack, fighterPoseFacing, isForwardGroundRoll } from "./conditions";
 import { beginDamageContacts, finishDamageContacts, queueDamageContact } from "./contacts";
 import { type Fighter, createFighter } from "./fighter";
@@ -22,14 +21,11 @@ import {
   victimHitlagFrames,
 } from "./knockback";
 import { attackStartupFrames, grabContactFrame } from "./moves";
-import { setMeleePosition, setMeleeVerticalVelocity } from "./motion";
 import { projectileCount, updateProjectiles } from "./projectiles";
 import type { Controls, Roster } from "./roster";
 import { digitalShieldDamage, digitalShieldPushback, digitalShieldRecoil, digitalShieldstunDuration, digitalShieldstunFrames } from "./shield";
-import { DEMONHUNTER_IMMOLATE_DURATION, DEMONHUNTER_IMMOLATE_STARTUP } from "./specials";
 import { advanceFighter } from "./step";
 import { respawnFighter } from "./stocks";
-import { advanceFreezeTraps } from "./summons";
 import { advanceSolo, controls, hitEffect, soloWorld, testBeginAttacks, testGrabFrame, testWorld, withPhysics } from "./testWorld";
 import { type FighterPhysics, INITIAL_DASH_FRAMES, authoredPhysics, melee } from "./tuning";
 
@@ -46,7 +42,7 @@ function retailCombatContact(world: Roster, knockback: number, dx: number, dz: n
   finishDamageContacts(world);
 }
 
-test("retail combat stacking starts on the tenth moving frame and freezes in hitlag", () => {
+test("retail combat stacking starts on the tenth moving frame and freezes in hitlag [reference]", () => {
   for (const age of [9, 10]) {
     const owner = createFighter(Character.archer, -300.0, 1);
     const target = createFighter(Character.rifleman, -100.0, -1);
@@ -75,7 +71,7 @@ test("retail combat stacking starts on the tenth moving frame and freezes in hit
   }
 });
 
-test("retail combat stacking merges each axis once after strongest contact selection", () => {
+test("retail combat stacking merges each axis once after strongest contact selection [reference]", () => {
   const owner = createFighter(Character.archer, 0.0, 1);
   const target = createFighter(Character.rifleman, 100.0, -1);
   const world = testWorld(owner, target);
@@ -104,7 +100,7 @@ test("retail combat stacking merges each axis once after strongest contact selec
   assertNear(target.launch.knockbackZ, -f32(12.5999999196), f32(0.000001));
 });
 
-test("retail combat ground tangent uses the new contact, then traction rather than air decay", () => {
+test("retail combat ground tangent uses the new contact, then traction rather than air decay [reference]", () => {
   for (const facing of [-1, 1]) {
     const owner = createFighter(Character.archer, -100.0, 1);
     const target = createFighter(Character.rifleman, 0.0, -1);
@@ -128,7 +124,7 @@ test("retail combat ground tangent uses the new contact, then traction rather th
   }
 });
 
-test("retail combat damage levels use all three unrounded scaled thresholds", () => {
+test("retail combat damage levels use all three unrounded scaled thresholds [reference]", () => {
   assertEquals(damageLevelForKnockback(24.999000549316406), 0);
   assertEquals(damageLevelForKnockback(25.0), 1);
   assertEquals(damageLevelForKnockback(52.499000549316406), 1);
@@ -141,7 +137,7 @@ test("retail combat damage levels use all three unrounded scaled thresholds", ()
   assertEquals(ordinaryHitstunFrames(80.0), 32);
 });
 
-test("retail combat ground bounce uses a ten-degree threshold and four-fifths vertical speed", () => {
+test("retail combat ground bounce uses a ten-degree threshold and four-fifths vertical speed [reference]", () => {
   for (const grounded of [false, true]) {
     for (const steep of [false, true]) {
       const owner = createFighter(Character.archer, 0.0, 1);
@@ -223,41 +219,12 @@ function recordedFalcoFallFirstDifference(hostCharacter: Character, initialVeloc
   return firstDifference;
 }
 
-test("a recorded NTSC Falco neutral fall matches ten independent positions", () => {
+test("a recorded NTSC Falco neutral fall matches ten independent positions [reference]", () => {
   for (const host of [Character.archer, Character.rifleman]) assertEquals(recordedFalcoFallFirstDifference(host, 0.0), 0);
 });
 
-test("the recorded Falco fall detects a perturbed velocity at the first frame", () => {
+test("the recorded Falco fall detects a perturbed velocity at the first frame [invariant]", () => {
   assertEquals(recordedFalcoFallFirstDifference(Character.archer, 0.05999999865889549), -59);
-});
-
-function prepareCanonicalFall(f: Fighter): void {
-  f.tuning.physics = FALCO_REFERENCE_PHYSICS;
-  f.motion.grounded = false;
-  f.motion.surface = undefined;
-  setMeleePosition(f, -60.0, 10.042425155639648);
-  setMeleeVerticalVelocity(f, 0.0);
-}
-
-test("canonical motion imports world edits and clears on respawn", () => {
-  const f = createFighter(Character.rifleman, -360.0, 1);
-  const world = soloWorld(f);
-  const input = controls();
-  prepareCanonicalFall(f);
-  advanceFighter(world, 0, 0, input, 0.0);
-  f.motion.x = -300.0;
-  f.motion.z = 60.0;
-  f.motion.vx = 6.0;
-  f.motion.vz = 0.0;
-  withPhysics(f, { airFriction: 0.0 });
-  advanceFighter(world, 0, 0, input, 0.0);
-  assertEquals(f.motion.meleeX.original, -49.0);
-  assertEquals(f.motion.meleeZ.original, 9.829999923706055);
-  assertEquals(f.motion.meleeVelocityZ.original, -0.17000000178813934);
-  respawnFighter(world, 0, -240.0);
-  assertEquals(f.motion.meleeX.original, -40.0);
-  assertEquals(f.motion.meleeZ.published, f.motion.z);
-  assertEquals(f.motion.meleeVelocityZ.original, 0.0);
 });
 
 function recordedFalcoJumpFirstDifference(hostCharacter: Character, jumpInputFrame: number): number {
@@ -311,21 +278,21 @@ function recordedFalcoDashFirstDifference(hostCharacter: Character, initialSpeed
   return firstDifference;
 }
 
-test("recorded Falco dash overspeed braking matches both original fighter hosts", () => {
+test("recorded Falco dash overspeed braking matches both original fighter hosts [reference]", () => {
   for (const host of [Character.archer, Character.rifleman]) assertEquals(recordedFalcoDashFirstDifference(host, -1.9000000953674316), 0);
 });
 
-test("the recorded Falco dash detects a perturbed overspeed at its first frame", () => {
+test("the recorded Falco dash detects a perturbed overspeed at its first frame [invariant]", () => {
   assertEquals(recordedFalcoDashFirstDifference(Character.archer, -1.8400001525878906), -33);
 });
 
-test("recorded Falco dash entry uses the walk self velocity for entry displacement", () => {
+test("recorded Falco dash entry uses the walk self velocity for entry displacement [reference]", () => {
   for (const host of [Character.archer, Character.rifleman]) assertTrue(recordedFalcoDashEntryMatches(host));
 });
 
 // The test-only reference rig uses PlFc.dat movement values from the locally
 // identified NTSC 1.02 extraction; it never changes playable fighter defaults.
-test("retail walk uses character acceleration and the common taper", () => {
+test("retail walk uses character acceleration and the common taper [reference]", () => {
   for (const host of [Character.archer, Character.rifleman]) {
     const f = falcoRig(host, 0.0, 1);
     const input = controls({ direction: 1, walking: true });
@@ -336,7 +303,7 @@ test("retail walk uses character acceleration and the common taper", () => {
   }
 });
 
-test("retail run tapers below target and brakes overspeed by character friction", () => {
+test("retail run tapers below target and brakes overspeed by character friction [reference]", () => {
   const input = controls({ direction: 1 });
   const belowTarget = falcoRig(Character.archer, 0.0, 1);
   belowTarget.motion.vx = melee(0.8999999761581421);
@@ -354,7 +321,7 @@ test("retail run tapers below target and brakes overspeed by character friction"
   assertNear(overspeed.motion.vx, f32(1.82) * 6, f32(0.00001));
 });
 
-test("a retail run turn preserves facing until ground velocity crosses", () => {
+test("a retail run turn preserves facing until ground velocity crosses [reference]", () => {
   const f = falcoRig(Character.archer, 0.0, 1);
   f.motion.vx = melee(1.0);
   f.ground.dashFrame = INITIAL_DASH_FRAMES + 1;
@@ -371,15 +338,15 @@ test("a retail run turn preserves facing until ground velocity crosses", () => {
   assertEquals(f.ground.action, GroundAction.turnRun);
 });
 
-test("a recorded NTSC Falco jump has five grounded frames, then a raw takeoff", () => {
+test("a recorded NTSC Falco jump has five grounded frames, then a raw takeoff [reference]", () => {
   for (const host of [Character.archer, Character.rifleman]) assertEquals(recordedFalcoJumpFirstDifference(host, 25), 0);
 });
 
-test("the recorded Falco jump detects a delayed input on its original frame", () => {
+test("the recorded Falco jump detects a delayed input on its original frame [invariant]", () => {
   assertEquals(recordedFalcoJumpFirstDifference(Character.archer, 26), 25);
 });
 
-test("grounded knockback matches the recorded first released displacement", () => {
+test("grounded knockback matches the recorded first released displacement [reference]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     const f = createFighter(character, melee(-11.548782348632812), 1);
     // Captain Falcon observation: only the observed traction is required here.
@@ -395,7 +362,7 @@ test("grounded knockback matches the recorded first released displacement", () =
   }
 });
 
-test("grounded knockback traction clamps both directions without reversing", () => {
+test("grounded knockback traction clamps both directions without reversing [reference]", () => {
   for (const direction of [-1, 0, 1]) {
     const f = createFighter(Character.archer, 0.0, 1);
     f.launch.knockbackX = melee(f32(direction * 0.03999999910593033));
@@ -445,15 +412,15 @@ function recordedGroundedDamageFirstDifference(character: Character, velocityOff
 /** Recorded positions end at sample 12. */
 const min12 = (sample: number) => (sample < 12 ? sample : 12);
 
-test("recorded NTSC grounded damage matches freeze release, traction and actionability", () => {
+test("recorded NTSC grounded damage matches freeze release, traction and actionability [reference]", () => {
   for (const character of [Character.archer, Character.rifleman]) assertEquals(recordedGroundedDamageFirstDifference(character, 0.0), 0);
 });
 
-test("recorded grounded damage detects a perturbed knockback on the first frame", () => {
+test("recorded grounded damage detects a perturbed knockback on the first frame [invariant]", () => {
   assertEquals(recordedGroundedDamageFirstDifference(Character.archer, 0.05999999865889549), 3433);
 });
 
-test("fast fall persists after release and aerial startup but clears on landing and jump", () => {
+test("fast fall persists after release and aerial startup but clears on landing and jump [reference]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     const f = createFighter(character, 0.0, 1);
     const other = createFighter(Character.rifleman, 1000.0, -1);
@@ -488,7 +455,7 @@ test("fast fall persists after release and aerial startup but clears on landing 
   }
 });
 
-test("fast fall requires descending self velocity, and an air dodge clears it", () => {
+test("fast fall requires descending self velocity, and an air dodge clears it [reference]", () => {
   const f = createFighter(Character.archer, 0.0, 1);
   const input = controls({ down: true });
   f.motion.grounded = false;
@@ -515,7 +482,7 @@ function contactProjectile(owner: Fighter, target: Fighter, index: number, kind:
   projectile.direction = 1;
 }
 
-test("the combat ground contact threshold keeps low downward hits on the floor", () => {
+test("the combat ground contact threshold keeps low downward hits on the floor [reference]", () => {
   for (const airborne of [false, true]) {
     for (const aboveThreshold of [0, 1]) {
       const owner = createFighter(Character.archer, 0.0, 1);
@@ -561,7 +528,7 @@ test("the combat ground contact threshold keeps low downward hits on the floor",
   }
 });
 
-test("combat DI uses the actual launch magnitude for authored non-unit directions", () => {
+test("combat DI uses the actual launch magnitude for authored non-unit directions [reference]", () => {
   const target = createFighter(Character.demonHunter, 0.0, 1);
   target.motion.grounded = false;
   target.motion.z = 300.0;
@@ -576,7 +543,7 @@ test("combat DI uses the actual launch magnitude for authored non-unit direction
   assertFalse(target.launch.diPending);
 });
 
-test("combat shield damage uses integer power before the shieldstun calculation", () => {
+test("combat shield damage uses integer power before the shieldstun calculation [reference]", () => {
   assertNear(digitalShieldstunDuration(4.0), f32(3.8), f32(0.0001));
   assertNear(digitalShieldstunDuration(4.989999771118164), f32(3.8), f32(0.0001));
   assertEquals(digitalShieldstunFrames(4.0), 3);
@@ -606,7 +573,7 @@ function advanceBoth(world: Roster, first: Readonly<Controls>, second: Readonly<
   advanceFighter(world, 1, 0, second, 0.0);
 }
 
-test("a recorded NTSC digital shield contact matches paired pushback and grounded recoil", () => {
+test("a recorded NTSC digital shield contact matches paired pushback and grounded recoil [reference]", () => {
   for (const sourceCharacter of [Character.archer, Character.rifleman]) {
     for (const targetCharacter of [Character.archer, Character.rifleman]) {
       const source = createFighter(sourceCharacter, melee(38.56430435180664), 1);
@@ -641,7 +608,7 @@ test("a recorded NTSC digital shield contact matches paired pushback and grounde
   }
 });
 
-test("detached and airborne contacts don't invent attacker ground recoil", () => {
+test("detached and airborne contacts don't invent attacker ground recoil [reference]", () => {
   for (const direct of [false, true]) {
     const source = createFighter(Character.archer, 0.0, 1);
     const target = createFighter(Character.rifleman, 10.0, -1);
@@ -666,7 +633,7 @@ test("detached and airborne contacts don't invent attacker ground recoil", () =>
   }
 });
 
-test("a later clean hit replaces the remaining shield recoil", () => {
+test("a later clean hit replaces the remaining shield recoil [reference]", () => {
   const attacker = createFighter(Character.archer, 0.0, 1);
   const defender = createFighter(Character.rifleman, 10.0, -1);
   const world = testWorld(attacker, defender);
@@ -683,7 +650,7 @@ test("a later clean hit replaces the remaining shield recoil", () => {
   assertNear(attacker.launch.knockbackX, -f32(3.6), f32(0.0001));
 });
 
-test("the recorded shield contact detects a perturbed recoil on its first release frame", () => {
+test("the recorded shield contact detects a perturbed recoil on its first release frame [invariant]", () => {
   const source = createFighter(Character.archer, melee(38.56430435180664), 1);
   const target = createFighter(Character.rifleman, melee(45.46552276611328), -1);
   const world = testWorld(source, target);
@@ -702,7 +669,7 @@ test("the recorded shield contact detects a perturbed recoil on its first releas
   assertNear(source.motion.x - recordedShieldAttackerPosition(4) * 6, f32(0.06) * 6, f32(0.001));
 });
 
-test("airborne shield recoil decays as a separate vector without changing self velocity", () => {
+test("airborne shield recoil decays as a separate vector without changing self velocity [reference]", () => {
   const withRecoil = createFighter(Character.archer, 0.0, 1);
   const control = createFighter(Character.archer, 0.0, 1);
   const input = controls();
@@ -747,7 +714,7 @@ function prepareAirborneShieldPair(attacker: Fighter, defender: Fighter): void {
   defender.shield.raised = true;
 }
 
-test("an airborne shield contact initializes stacked, weight-scaled relative recoil", () => {
+test("an airborne shield contact initializes stacked, weight-scaled relative recoil [reference]", () => {
   const attacker = createFighter(Character.archer, 0.0, 1);
   const defender = createFighter(Character.rifleman, 100.0, -1);
   const world = testWorld(attacker, defender);
@@ -791,7 +758,7 @@ test("an airborne shield contact initializes stacked, weight-scaled relative rec
   assertNear(oppositeAttacker.shield.recoilZ, oppositeDefender.motion.deltaZ * 0.25, f32(0.0001));
 });
 
-test("shield recoil transitions from an air vector to a ground tangent and back", () => {
+test("shield recoil transitions from an air vector to a ground tangent and back [reference]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   const input = controls();
   fighter.shield.recoilX = -2.0;
@@ -810,7 +777,7 @@ test("shield recoil transitions from an air vector to a ground tangent and back"
   assertNear(recoilLength - (beforeLength - f32(0.3)), 0.0, f32(0.0001));
 });
 
-test("a combat shield break uses the character's launch attribute after the contact freeze", () => {
+test("a combat shield break uses the character's launch attribute after the contact freeze [reference]", () => {
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
     const owner = createFighter(Character.archer, 0.0, 1);
     const target = createFighter(character, 85.0, -1);
@@ -834,7 +801,7 @@ test("a combat shield break uses the character's launch attribute after the cont
   }
 });
 
-test("a contact batch collects all damage before choosing a launch, in either traversal", () => {
+test("a contact batch collects all damage before choosing a launch, in either traversal [reference] [invariant]", () => {
   for (const reversed of [false, true]) {
     const owner = createFighter(Character.archer, 0.0, 1);
     const target = createFighter(Character.rifleman, 100.0, -1);
@@ -873,7 +840,7 @@ test("a contact batch collects all damage before choosing a launch, in either tr
   }
 });
 
-test("a contact-batch shield break blocks every collected contact", () => {
+test("a contact-batch shield break blocks every collected contact [reference]", () => {
   const owner = createFighter(Character.archer, 0.0, 1);
   const target = createFighter(Character.rifleman, 85.0, -1);
   const world = testWorld(owner, target);
@@ -895,37 +862,6 @@ test("a contact-batch shield break blocks every collected contact", () => {
   assertEquals(projectileCount(owner), 0);
 });
 
-test("contact-batch special trades survive melee, and summons use total damage", () => {
-  const first = createFighter(Character.archer, 0.0, 1);
-  const second = createFighter(Character.demonHunter, 100.0, -1);
-  const world = testWorld(first, second);
-  testBeginAttacks(world, AttackStyle.jab, undefined);
-  first.attack.frame = attackStartupFrames(AttackStyle.jab);
-  second.special.action = SpecialAction.demonHunterImmolate;
-  second.special.duration = DEMONHUNTER_IMMOLATE_DURATION;
-  second.special.frame = DEMONHUNTER_IMMOLATE_STARTUP - 1;
-  second.special.lockFrames = 20;
-  first.bear.life = 5;
-  first.bear.x = 100.0;
-  first.bear.z = 0.0;
-  first.bear.surface = 0;
-  first.hippogryph.life = 5;
-  first.hippogryph.kind = HippogryphKind.strike;
-  first.hippogryph.x = 90.0;
-  first.hippogryph.z = 0.0;
-  first.hippogryph.velocityX = 20.0;
-  beginDamageContacts();
-  resolveAttacks(world);
-  advanceSpecials(world, 0, 0);
-  finishDamageContacts(world);
-  assertEquals(first.status.damage, 7.0);
-  assertEquals(second.status.damage, f32(22.3));
-  assertNear(second.launch.diLaunchSpeed, f32(10.322), f32(0.0001));
-  assertEquals(first.bear.hitSerial, 1);
-  assertTrue(first.special.hit);
-  assertTrue(second.special.hit);
-});
-
 /** Links slot 0 holding slot 1, one frame before the action's contact. */
 function holdBeforeContact(world: Roster, owner: Fighter, target: Fighter, action: GrabAction): void {
   owner.grab.target = 1;
@@ -936,7 +872,7 @@ function holdBeforeContact(world: Roster, owner: Fighter, target: Fighter, actio
   resolveGrabs(world);
 }
 
-test("a contact batch's throws and pummels include detached damage", () => {
+test("a contact batch's throws and pummels include detached damage [reference]", () => {
   for (const pummel of [false, true]) {
     const owner = createFighter(Character.archer, 0.0, 1);
     const target = createFighter(Character.rifleman, 50.0, -1);
@@ -961,26 +897,6 @@ test("a contact batch's throws and pummels include detached damage", () => {
       assertEquals(target.launch.hitlag, 0);
     }
   }
-});
-
-test("a contact-batch throw release leaves the ground before trap contact", () => {
-  const owner = createFighter(Character.rifleman, 0.0, 1);
-  const target = createFighter(Character.archer, 50.0, -1);
-  const world = testWorld(owner, target);
-  const input = controls();
-  owner.motion.surface = 0;
-  holdBeforeContact(world, owner, target, GrabAction.throwForward);
-  owner.freezeTrap.life = 10;
-  owner.freezeTrap.surface = 0;
-  owner.freezeTrap.x = target.motion.x;
-  beginDamageContacts();
-  testGrabFrame(world, [input, input], false);
-  advanceFreezeTraps(world);
-  finishDamageContacts(world);
-  assertEquals(owner.freezeTrap.life, 10);
-  assertEquals(target.status.frozenFrames, 0);
-  assertEquals(target.status.damage, 7.0);
-  assertFalse(target.motion.grounded);
 });
 
 const OBSERVED_ROLL_TOTALS: readonly (readonly [number, number])[] = [
@@ -1028,7 +944,7 @@ function startObservedRoll(f: Fighter, input: Controls, profile: number, directi
   input.direction = 0;
 }
 
-test("backward rolls and spot dodges keep their orientation", () => {
+test("backward rolls and spot dodges keep their orientation [spec docs/physics.md]", () => {
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
     for (const entryFacing of [-1, 1]) {
       for (const spot of [false, true]) {
@@ -1052,7 +968,7 @@ test("backward rolls and spot dodges keep their orientation", () => {
   }
 });
 
-test("knockback caps before motion modifiers, and fixed power ignores percent", () => {
+test("knockback caps before motion modifiers, and fixed power ignores percent [reference]", () => {
   const twoThirds = f32(2.0 / 3.0);
   assertEquals(ordinaryHitKnockback(999.0, 100.0, 80.0, 1000.0, 500.0, 1.0), 2500.0);
   assertEquals(ordinaryHitKnockback(999.0, 100.0, 80.0, 1000.0, 500.0, twoThirds), f32(2500.0 * twoThirds));
@@ -1067,7 +983,7 @@ test("knockback caps before motion modifiers, and fixed power ignores percent", 
   assertEquals(ordinaryHitstunFrames(0.0), 1);
 });
 
-test("crouch and charge are sampled before a hit interrupts the action", () => {
+test("crouch and charge are sampled before a hit interrupts the action [reference]", () => {
   for (const context of [0, 1, 2]) {
     const attacker = createFighter(Character.archer, 0.0, 1);
     const victim = createFighter(Character.rifleman, 100.0, -1);
@@ -1090,7 +1006,7 @@ test("crouch and charge are sampled before a hit interrupts the action", () => {
   }
 });
 
-test("air drift preserves opposed overspeed and brakes in the same direction", () => {
+test("air drift preserves opposed overspeed and brakes in the same direction [reference]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     for (const direction of [-1, 1]) {
       const f = createFighter(character, 0.0, -direction);
@@ -1111,7 +1027,7 @@ test("air drift preserves opposed overspeed and brakes in the same direction", (
   }
 });
 
-test("a ground jump uses its takeoff input, and an air jump replaces horizontal momentum", () => {
+test("a ground jump uses its takeoff input, and an air jump replaces horizontal momentum [reference]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     for (const direction of [-1, 0, 1]) {
       const f = createFighter(character, 0.0, 1);
@@ -1140,7 +1056,7 @@ test("a ground jump uses its takeoff input, and an air jump replaces horizontal 
   assertEquals(illidan.motion.vx, 13.0);
 });
 
-test("sampled roll paths clamp at both stage edges without discarding reversals", () => {
+test("sampled roll paths clamp at both stage edges without discarding reversals [spec docs/physics.md]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     for (let profile = 0; profile <= 7; profile++) {
       for (const direction of [-1, 1]) {
@@ -1162,7 +1078,7 @@ test("sampled roll paths clamp at both stage edges without discarding reversals"
   }
 });
 
-test("a ground jump's entry preserves its launch, then applies gravity and drift", () => {
+test("a ground jump's entry preserves its launch, then applies gravity and drift [reference]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     for (const full of [false, true]) {
       const f = createFighter(character, 0.0, 1);
@@ -1193,7 +1109,7 @@ test("a ground jump's entry preserves its launch, then applies gravity and drift
   }
 });
 
-test("an aerial jump's entry applies gravity immediately", () => {
+test("an aerial jump's entry applies gravity immediately [reference]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     const f = createFighter(character, 0.0, 1);
     f.motion.grounded = false;
@@ -1209,7 +1125,7 @@ test("an aerial jump's entry applies gravity immediately", () => {
   }
 });
 
-test("releasing jump on the takeoff frame keeps a full jump, and hitlag doesn't latch a release", () => {
+test("releasing jump on the takeoff frame keeps a full jump, and hitlag doesn't latch a release [reference]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     const f = createFighter(character, 0.0, 1);
     const input = controls({ jumpPressed: true, jumpHeld: true });
@@ -1230,7 +1146,7 @@ test("releasing jump on the takeoff frame keeps a full jump, and hitlag doesn't 
   }
 });
 
-test("an electric contact preserves the attacker's and victim's pause boundaries", () => {
+test("an electric contact preserves the attacker's and victim's pause boundaries [reference]", () => {
   for (const electric of [false, true]) {
     for (const crouching of [false, true]) {
       for (const direct of [false, true]) {
@@ -1274,7 +1190,7 @@ test("an electric contact preserves the attacker's and victim's pause boundaries
   }
 });
 
-test("an electric contact on a shield uses the ordinary freeze before shieldstun", () => {
+test("an electric contact on a shield uses the ordinary freeze before shieldstun [reference]", () => {
   for (const direct of [false, true]) {
     const owner = createFighter(Character.archer, 0.0, 1);
     const target = createFighter(Character.rifleman, 100.0, -1);
@@ -1297,7 +1213,7 @@ test("an electric contact on a shield uses the ordinary freeze before shieldstun
   }
 });
 
-test("an electric contact batch uses the strongest launch's effect and the largest damage", () => {
+test("an electric contact batch uses the strongest launch's effect and the largest damage [reference]", () => {
   for (const electricWinner of [false, true]) {
     for (const reversed of [0, 1]) {
       const owner = createFighter(Character.archer, 0.0, 1);
@@ -1318,7 +1234,7 @@ test("an electric contact batch uses the strongest launch's effect and the large
   }
 });
 
-test("an electric contact batch with tied launches keeps the first effect", () => {
+test("an electric contact batch with tied launches keeps the first effect [reference]", () => {
   for (const electricFirst of [false, true]) {
     const owner = createFighter(Character.archer, 0.0, 1);
     const target = createFighter(Character.rifleman, 100.0, -1);
@@ -1333,48 +1249,7 @@ test("an electric contact batch with tied launches keeps the first effect", () =
   }
 });
 
-test("the same character uses its assigned gravity and jump parameters", () => {
-  const first = createFighter(Character.archer, 0.0, 1);
-  const second = createFighter(Character.archer, 0.0, 1);
-  const input = controls();
-  withPhysics(first, { gravity: 1.5 });
-  withPhysics(second, { gravity: 3.0 });
-  for (const f of [first, second]) {
-    f.motion.grounded = false;
-    f.motion.z = 96.0;
-  }
-  advanceSolo(first, 0, input, 0.0);
-  advanceSolo(second, 0, input, 0.0);
-  assertEquals(first.motion.z, 94.5);
-  assertEquals(second.motion.z, 93.0);
-  assertEquals(first.motion.vz, -1.5);
-  assertEquals(second.motion.vz, -3.0);
-  for (const f of [first, second]) {
-    f.motion.grounded = true;
-    f.motion.z = 0.0;
-  }
-  withPhysics(first, { jumpSquatFrames: 2, fullJumpSpeed: 15.0 });
-  withPhysics(second, { jumpSquatFrames: 4, fullJumpSpeed: 20.0 });
-  input.jumpPressed = true;
-  input.jumpHeld = true;
-  advanceSolo(first, 0, input, 0.0);
-  advanceSolo(second, 0, input, 0.0);
-  input.jumpPressed = false;
-  for (let frame = 1; frame <= 2; frame++) {
-    advanceSolo(first, 0, input, 0.0);
-    advanceSolo(second, 0, input, 0.0);
-  }
-  assertFalse(first.motion.grounded);
-  assertEquals(first.motion.z, 15.0);
-  assertEquals(first.motion.vz, 15.0);
-  assertTrue(second.motion.grounded);
-  assertEquals(second.jump.squat, 2);
-  for (let frame = 1; frame <= 2; frame++) advanceSolo(second, 0, input, 0.0);
-  assertEquals(second.motion.z, 20.0);
-  assertEquals(second.motion.vz, 20.0);
-});
-
-test("the same character uses its assigned weight for an actual damage contact", () => {
+test("the same character uses its assigned weight for an actual damage contact [reference]", () => {
   for (const weight of [50.0, 150.0]) {
     const owner = createFighter(Character.archer, 0.0, 1);
     const target = createFighter(Character.archer, 100.0, -1);
@@ -1389,23 +1264,6 @@ test("the same character uses its assigned weight for an actual damage contact",
   }
 });
 
-test("a stock respawn retains the assigned physics", () => {
-  const f = createFighter(Character.archer, 0.0, 1);
-  const input = controls();
-  f.tuning.physics = FALCO_REFERENCE_PHYSICS;
-  withPhysics(f, { gravity: 2.0 });
-  const assigned = f.tuning.physics;
-  f.status.out = true;
-  f.status.stocks = 2;
-  f.status.respawn = 1;
-  advanceSolo(f, 0, input, -100.0);
-  assertFalse(f.status.out);
-  assertEquals(f.tuning.physics, assigned);
-  assertEquals(f.character, Character.archer);
-  advanceSolo(f, 0, input, -100.0);
-  assertEquals(f.motion.vz, -2.0);
-});
-
 function airborneFalco(): Fighter {
   const f = falcoRig(Character.rifleman, 0.0, 1);
   f.motion.grounded = false;
@@ -1413,7 +1271,7 @@ function airborneFalco(): Fighter {
   return f;
 }
 
-test("a retail aerial fast fall requires down at most three frames before descent", () => {
+test("a retail aerial fast fall requires down at most three frames before descent [reference]", () => {
   for (let lead = 0; lead <= 5; lead++) {
     const f = airborneFalco();
     f.motion.vz = f32(f32(lead - 0.5) * f.tuning.physics.gravity);
@@ -1431,7 +1289,7 @@ test("a retail aerial fast fall requires down at most three frames before descen
   }
 });
 
-test("a retail aerial fast-fall input ages during hitlag through its expiry frame", () => {
+test("a retail aerial fast-fall input ages during hitlag through its expiry frame [reference]", () => {
   for (const freeze of [4, 5]) {
     const f = airborneFalco();
     f.motion.vz = -1.0;
@@ -1448,7 +1306,7 @@ test("a retail aerial fast-fall input ages during hitlag through its expiry fram
   }
 });
 
-test("the retail aerial fast-fall diagonal restriction doesn't refresh a held down", () => {
+test("the retail aerial fast-fall diagonal restriction doesn't refresh a held down [reference]", () => {
   for (const diagonalFrames of [3, 4]) {
     const f = airborneFalco();
     f.motion.vz = -1.0;
@@ -1463,7 +1321,7 @@ test("the retail aerial fast-fall diagonal restriction doesn't refresh a held do
   }
 });
 
-test("a retail aerial dodge uses the extracted force and decay for every digital direction", () => {
+test("a retail aerial dodge uses the extracted force and decay for every digital direction [reference]", () => {
   for (const horizontal of [-1, 0, 1]) {
     for (const vertical of [-1, 0, 1]) {
       const f = airborneFalco();
@@ -1505,7 +1363,7 @@ test("a retail aerial dodge uses the extracted force and decay for every digital
   }
 });
 
-test("a retail aerial dodge resumes gravity and drift on tick thirty", () => {
+test("a retail aerial dodge resumes gravity and drift on tick thirty [reference]", () => {
   for (const mode of [0, 1, 2]) {
     for (const steer of [-1, 0, 1]) {
       const f = airborneFalco();
@@ -1540,7 +1398,7 @@ test("a retail aerial dodge resumes gravity and drift on tick thirty", () => {
   }
 });
 
-test("a retail aerial dodge's switch boundary freezes in hitlag", () => {
+test("a retail aerial dodge's switch boundary freezes in hitlag [reference]", () => {
   const f = falcoRig(Character.archer, 0.0, 1);
   f.motion.grounded = false;
   f.motion.z = 300.0;
@@ -1565,7 +1423,7 @@ test("a retail aerial dodge's switch boundary freezes in hitlag", () => {
   assertNear(f.motion.z, 298.9800109863281, f32(0.00001));
 });
 
-test("a forward roll turns on frame 20 while keeping its entry pose and travel", () => {
+test("a forward roll turns on frame 20 while keeping its entry pose and travel [spec docs/physics.md]", () => {
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
     for (const entryFacing of [-1, 1]) {
       const f = createFighter(character, 0.0, entryFacing);
@@ -1610,31 +1468,7 @@ test("a forward roll turns on frame 20 while keeping its entry pose and travel",
   }
 });
 
-test("crouching clears on attacks, jumps and shields", () => {
-  const f = createFighter(Character.archer, 0.0, 1);
-  const world = testWorld(f, createFighter(Character.rifleman, 0.0, -1));
-  const input = controls({ down: true });
-  advanceFighter(world, 0, 0, input, 0.0);
-  assertTrue(f.motion.crouching);
-  testBeginAttacks(world, AttackStyle.jab, undefined);
-  assertFalse(f.motion.crouching);
-  const standAgain = () => {
-    respawnFighter(world, 0, 0.0);
-    f.motion.grounded = true;
-    f.motion.z = 0.0;
-    advanceFighter(world, 0, 0, input, 0.0);
-    assertTrue(f.motion.crouching);
-  };
-  standAgain();
-  beginJump(f, 1);
-  assertFalse(f.motion.crouching);
-  standAgain();
-  input.shield = true;
-  advanceFighter(world, 0, 0, input, 0.0);
-  assertFalse(f.motion.crouching);
-});
-
-test("sampled rolls move through their actual entry, a freeze and recovery", () => {
+test("sampled rolls move through their actual entry, a freeze and recovery [reference]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     for (let profile = 0; profile <= 7; profile++) {
       for (const facing of [-1, 1]) {

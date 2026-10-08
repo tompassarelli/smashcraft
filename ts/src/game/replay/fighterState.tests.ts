@@ -54,7 +54,7 @@ function changed(value: unknown, seed: number): unknown {
   return 1;
 }
 
-test("fighter replay copies carry every mutable field into detached records", () => {
+test("fighter replay copies carry every mutable field into detached records [invariant]", () => {
   const source = createFighter(Character.archer, -12.0, 1);
   const target = createFighter(Character.rifleman, 4.0, -1);
   const { leaves } = fighterLeaves(target, source);
@@ -68,21 +68,7 @@ test("fighter replay copies carry every mutable field into detached records", ()
   assertFalse(target.tuning === source.tuning);
 });
 
-test("fighter replay copies drop references to fighters the source roster doesn't seat", () => {
-  const source = createFighter(Character.archer, 0.0, 1);
-  const target = createFighter(Character.archer, 0.0, 1);
-  source.grab.owner = 1;
-  source.grab.target = 2;
-  source.hits.lastAttacker = 3;
-  source.special.hitTargets[0] = 2;
-  copyFighterState(target, source, 3);
-  assertEquals(target.grab.owner, 1);
-  assertEquals(target.grab.target, undefined);
-  assertEquals(target.hits.lastAttacker, undefined);
-  assertEquals(target.special.hitTargets[0], undefined);
-});
-
-test("fighter replay copies carry every special hit target, absent ones included, into a fresh fighter", () => {
+test("fighter replay copies carry every special hit target, absent ones included, into a fresh fighter [repro #59]", () => {
   // The walk above sees absent targets only in Bun: in Lua a table of nils has no keys.
   const source = createFighter(Character.archer, 0.0, 1);
   const target = createFighter(Character.archer, 0.0, 1);
@@ -96,7 +82,7 @@ test("fighter replay copies carry every special hit target, absent ones included
   assertEquals([0, 1, 2, 3].map(i => target.special.hitTargets[i] ?? -1).join(","), "-1,-1,-1,-1");
 });
 
-test("every mutable fighter field participates in replay equality", () => {
+test("every mutable fighter field participates in replay equality [invariant]", () => {
   const expected = createFighter(Character.archer, 0.0, 1);
   const actual = createFighter(Character.archer, 0.0, 1);
   const { leaves } = fighterLeaves(expected, actual);

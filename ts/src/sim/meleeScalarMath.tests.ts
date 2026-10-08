@@ -29,7 +29,7 @@ const diAngles: [angle: number, cos: number, sin: number][] = [
   [-0.314159274101257324218750000000, 0.951056540012359619140625000000, -0.309017032384872436523437500000],
 ];
 
-test("atan2, cos and sin reproduce the recorded retail values exactly", () => {
+test("atan2, cos and sin reproduce the recorded retail values exactly [reference]", () => {
   for (const [y, x, angle, cos, sin] of vectors) {
     assertEquals(meleeAtan2(y, x), angle);
     assertEquals(meleeCos(angle), cos);
@@ -37,7 +37,7 @@ test("atan2, cos and sin reproduce the recorded retail values exactly", () => {
   }
 });
 
-test("cos and sin are exact across the pi boundary DI angles reach", () => {
+test("cos and sin are exact across the pi boundary DI angles reach [reference]", () => {
   for (const [angle, cos, sin] of diAngles) {
     assertEquals(meleeCos(angle), cos);
     assertEquals(meleeSin(angle), sin);

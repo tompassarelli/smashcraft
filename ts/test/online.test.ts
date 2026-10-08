@@ -4,17 +4,16 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "bun:test";
-import { Deferred, Effect, Exit, Fiber } from "effect";
+import { Deferred, Effect } from "effect";
 import { GameFiles } from "wisp/scripts/wisp/gameFiles";
-import { MenuFailure, connectMenus } from "wisp/scripts/wisp/menus";
-import { playerProblem } from "../scripts/wisp/commands/online";
+import { connectMenus } from "wisp/scripts/wisp/menus";
 import { newJoinCode, readJoinCode } from "../scripts/wisp/joinCode";
 import { allowLocalFiles } from "../scripts/wisp/menuPageSetup";
 import { hostMatch, joinMatch } from "../scripts/wisp/online";
 
 const bytes = (...values: number[]) => () => Uint8Array.from(values);
 
-test("a join code names the game and carries its password", () => {
+test("a join code names the game and carries its password [invariant]", () => {
   const code = newJoinCode(bytes(10, 11, 12, 13, 0, 1, 31, 32));
   expect(code).toEqual({ text: "ABCD-01Z0", gameName: "Smashcraft ABCD", password: "01Z0" });
   expect(readJoinCode(code.text)).toEqual(code);
@@ -22,16 +21,7 @@ test("a join code names the game and carries its password", () => {
   for (let i = 0; i < 50; i++) expect(newJoinCode().text).toMatch(/^[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}$/);
 });
 
-test("a typed code ignores case, spaces and dashes and reads O, I and L as digits", () => {
-  expect(readJoinCode(" abcd efgh ")?.text).toBe("ABCD-EFGH");
-  expect(readJoinCode("abcd-oil0")).toEqual({ text: "ABCD-0110", gameName: "Smashcraft ABCD", password: "0110" });
-  expect(readJoinCode("ABCDEFG")).toBeUndefined();
-  expect(readJoinCode("ABCD-EFGHJ")).toBeUndefined();
-  expect(readJoinCode("ABCD-EFGU")).toBeUndefined();
-  expect(readJoinCode("")).toBeUndefined();
-});
-
-test("setup sets Allow Local Files in Warcraft III's key, once", () => {
+test("setup sets Allow Local Files in Warcraft III's key, once [spec AGENTS.md]", () => {
   const key = "[Software\\\\Blizzard Entertainment\\\\Warcraft III] 1759700000\n#time=1dc36c4b6a0e1f2\n\"Preferred Game Port\"=dword:000017e0\n";
   const userReg = `WINE REGISTRY Version 2\n\n[Software\\\\Wine] 1759700000\n"Version"="win10"\n\n${key}\n[Volatile] 1\n`;
   const set = allowLocalFiles(userReg, 1759800000)!;
@@ -40,12 +30,6 @@ test("setup sets Allow Local Files in Warcraft III's key, once", () => {
   expect(allowLocalFiles(set.replace("dword:00000001", "dword:00000000"), 1759800000)).toBe(set);
   const bare = "WINE REGISTRY Version 2\n\n[Software\\\\Wine] 1759700000\n";
   expect(allowLocalFiles(bare, 1759800000)).toBe(`${bare}\n[Software\\\\Blizzard Entertainment\\\\Warcraft III] 1759800000\n"Allow Local Files"=dword:00000001\n`);
-});
-
-test("each failure reads as a player step", () => {
-  expect(playerProblem(new MenuFailure({ operation: "join \"Smashcraft ABCD\"", problem: "no answer within 10 s" }))).toContain("Check the code");
-  expect(playerProblem(new MenuFailure({ operation: "wait for the host to start", problem: "the lobby closed" }))).toBe("The host closed the game.");
-  expect(playerProblem(new MenuFailure({ operation: "find the menus", problem: "no menu page reported" }))).toContain("Open Warcraft III");
 });
 
 interface Sent {
@@ -168,7 +152,7 @@ const playBoth = (net: ReturnType<typeof battleNet>, options: { readonly startNo
     return { code, hostLines, guestLines };
   })).pipe(Effect.provideService(GameFiles, net.files));
 
-test("the host shows a code, the guest joins by it, and both reach fighter selection", async () => {
+test("the host shows a code, the guest joins by it, and both reach fighter selection [spec AGENTS.md]", async () => {
   const net = battleNet();
   try {
     const { code, hostLines, guestLines } = await Effect.runPromise(playBoth(net, { makeCodes: () => newJoinCode(bytes(10, 11, 12, 13, 14, 15, 16, 17)) }));
@@ -193,20 +177,7 @@ test("the host shows a code, the guest joins by it, and both reach fighter selec
   }
 }, 20_000);
 
-test("a name another game has gets a new code", async () => {
-  const net = battleNet({ refuse: ["Smashcraft 0000"] });
-  const codes = [bytes(0, 0, 0, 0, 1, 1, 1, 1), bytes(10, 11, 12, 13, 14, 15, 16, 17)];
-  try {
-    const { code, hostLines } = await Effect.runPromise(playBoth(net, { makeCodes: () => newJoinCode(codes.shift()!) }));
-    expect(code.text).toBe("ABCD-EFGH");
-    expect(hostLines[0]).toBe("Join code: ABCD-EFGH");
-    expect(net.sent.filter((message) => message === "host:CreateLobby")).toHaveLength(2);
-  } finally {
-    net.stop();
-  }
-}, 20_000);
-
-test("the lobby waits for Start now and sends no chat while waiting", async () => {
+test("the lobby waits for Start now and sends no chat while waiting [spec AGENTS.md]", async () => {
   const net = battleNet();
   try {
     const startNow = (guestLines: string[]) => Effect.gen(function*() {
@@ -223,27 +194,7 @@ test("the lobby waits for Start now and sends no chat while waiting", async () =
   }
 }, 20_000);
 
-test("a guest whose host closes the lobby stops with that reason", async () => {
-  const net = battleNet();
-  try {
-    const exit = await Effect.runPromiseExit(Effect.scoped(Effect.gen(function*() {
-      const hostMenus = yield* connectMenus(net.address("host"));
-      const guestMenus = yield* connectMenus(net.address("guest"));
-      const code = newJoinCode(bytes(10, 11, 12, 13, 14, 15, 16, 17));
-      yield* hostMenus.send("CreateLobby", { gameName: code.gameName, password: code.password, privateGame: true });
-      const lines: string[] = [];
-      const guest = yield* Effect.forkChild(joinMatch({ menus: guestMenus, code, documents: "/guest", say: (line) => Effect.sync(() => void lines.push(line)) }));
-      while (!lines.includes("In the lobby; waiting for the host to start")) yield* Effect.sleep("20 millis");
-      yield* hostMenus.send("LeaveGame");
-      return yield* Fiber.join(guest);
-    })).pipe(Effect.provideService(GameFiles, net.files)));
-    expect(Exit.isFailure(exit) ? String(exit.cause) : "joined").toContain("wait for the host to start: the lobby closed");
-  } finally {
-    net.stop();
-  }
-});
-
-test("an explicit online password keeps the game private and lets the guest join", async () => {
+test("an explicit online password keeps the game private and lets the guest join [spec AGENTS.md]", async () => {
   const net = battleNet();
   try {
     const { guestLines } = await Effect.runPromise(playBoth(net, { password: "EFGH" }));

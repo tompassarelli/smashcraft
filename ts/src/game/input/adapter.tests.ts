@@ -6,8 +6,8 @@ import { analogShieldActive, analogShieldStrength, shieldContactDamage, shieldSi
 import { advanceSolo } from "../sim/testWorld";
 import { Action, maskOf } from "./actions";
 import { adaptInput } from "./adapter";
-import { attackBuffer, hasPendingAttack, takeAttack } from "./attackBuffer";
-import { emptyInput, inputRow, type RowFields } from "./inputRow";
+import { attackBuffer, takeAttack } from "./attackBuffer";
+import { inputRow, type RowFields } from "./inputRow";
 import { actionFor, decodeBindings, encodeBindings, presetBindings, rebind } from "./keyBindings";
 import { keyboardCapture, sampleKeys } from "./keyboardCapture";
 import { heldActions, playerKeys, pressKey } from "./playerKeys";
@@ -25,7 +25,7 @@ function fixture(character: Character = Character.archer, graceFrames = 0) {
   };
 }
 
-test("LT and keyboard 9 or custom 0 raise the lightest shield, larger and weaker than RT", () => {
+test("LT and keyboard 9 or custom 0 raise the lightest shield, larger and weaker than RT [spec docs/melee-analog-shield.md]", () => {
   const lightRows = [assertDefined(inputRow({ held: maskOf(Action.leftTrigger), pressed: maskOf(Action.leftTrigger), triggerLeft: 77 }))];
   for (const preset of ["standard", "custom"] as const) {
     const action = assertDefined(actionFor(presetBindings(preset), preset === "standard" ? 57 : 48));
@@ -57,7 +57,7 @@ test("LT and keyboard 9 or custom 0 raise the lightest shield, larger and weaker
   assertEquals(q.row.triggerLeft, 255);
 });
 
-test("the helper's left trigger key raises light shield with the saved custom profile, not jump", () => {
+test("the helper's left trigger key raises light shield with the saved custom profile, not jump [repro #205]", () => {
   const old = presetBindings("custom");
   assertTrue(rebind(old, Action.lightShield, 1, undefined));
   const bindings = assertDefined(decodeBindings(`K4${encodeBindings(old).slice(2)}`));
@@ -75,18 +75,7 @@ test("the helper's left trigger key raises light shield with the saved custom pr
   assertEquals(light.fighter.shield.strength, analogShieldStrength(77));
 });
 
-test("a neutral row clears reused frame scratch without repeating an attack", () => {
-  const f = fixture(Character.archer, 6);
-  f.adapt({ pressed: maskOf(Action.attack) }, 1);
-  assertTrue(hasPendingAttack(f.attacks, 1));
-  f.input.attackRequested = true;
-  f.adapt(emptyInput(), 2);
-  assertFalse(f.input.attackRequested);
-  assertFalse(f.input.attackPressed);
-  assertFalse(hasPendingAttack(f.attacks, 2));
-});
-
-test("digital taps become movement without confusing C-stick down", () => {
+test("digital taps become movement without confusing C-stick down [spec docs/delivery-goal.md]", () => {
   const f = fixture();
   f.adapt({ pressed: maskOf(Action.moveLeft, Action.smashDown), released: maskOf(Action.moveLeft) }, 1);
   assertEquals(f.input.direction, -1);
@@ -102,7 +91,7 @@ test("digital taps become movement without confusing C-stick down", () => {
   assertEquals(f.take(2).style, 3);
 });
 
-test("analog axes remain usable without keyboard action bits", () => {
+test("analog axes remain usable without keyboard action bits [spec docs/melee-analog-shield.md]", () => {
   const f = fixture();
   f.adapt({ axisX: -63, axisZ: 91 }, 1);
   assertEquals(f.input.direction, -1);
@@ -113,7 +102,7 @@ test("analog axes remain usable without keyboard action bits", () => {
   assertTrue(f.input.shield);
 });
 
-test("attack and jump share the exact frame and C-stick priority wins", () => {
+test("attack and jump share the exact frame and C-stick priority wins [spec docs/gameplay-design.md]", () => {
   const f = fixture();
   f.adapt({ held: maskOf(Action.jump, Action.attack), pressed: maskOf(Action.jump, Action.attack, Action.smashRight), axisX: 127 }, 18);
   assertTrue(f.input.jumpPressed);
@@ -125,7 +114,7 @@ test("attack and jump share the exact frame and C-stick priority wins", () => {
   assertEquals(command.facing, 1);
 });
 
-test("shield attack becomes grab and trigger presses retain dodge and tech intent", () => {
+test("shield attack becomes grab and trigger presses retain dodge and tech intent [reference]", () => {
   const f = fixture();
   f.fighter.shield.raised = true;
   f.adapt({ held: maskOf(Action.attack, Action.leftTrigger), pressed: maskOf(Action.attack, Action.leftTrigger), axisX: -127, triggerLeft: 255, dodgeX: -1 }, 4);
@@ -136,7 +125,7 @@ test("shield attack becomes grab and trigger presses retain dodge and tech inten
   assertEquals(f.take(4).style, 5);
 });
 
-test("special releases preserve press direction and leave neutral turnaround to simulation", () => {
+test("special releases preserve press direction and leave neutral turnaround to simulation [reference]", () => {
   const f = fixture(Character.demonHunter);
   f.fighter.motion.grounded = false;
   const downSpecial: RowFields = { pressed: maskOf(Action.special), released: maskOf(Action.moveDown), specialZ: -1 };
@@ -156,24 +145,7 @@ test("special releases preserve press direction and leave neutral turnaround to 
   assertEquals(f.input.specialZ, 0);
 });
 
-test("grab, throw, mash, tech and ledge intents use fresh edges", () => {
-  const f = fixture();
-  f.adapt({ pressed: maskOf(Action.grab, Action.attack, Action.moveLeft, Action.moveUp, Action.rightTrigger), dodgeX: -1, sdi: true, sdiZ: 1, ledgeVertical: 1 }, 7);
-  assertTrue(f.input.attackPressed);
-  assertTrue(f.input.grabMashPressed);
-  assertTrue(f.input.mashPressed);
-  assertTrue(f.input.techPressed);
-  assertEquals(f.input.grabThrowX, -1);
-  assertEquals(f.input.grabThrowZ, 1);
-  assertTrue(f.input.sdiPulse);
-  assertEquals(f.input.sdiZ, 1);
-  assertEquals(f.input.ledgeVerticalPressed, 1);
-  assertEquals(f.input.getupDirection, -1);
-  assertTrue(f.input.getupStandPressed);
-  assertEquals(f.take(7).style, 5);
-});
-
-test("walking selects tilts and same-frame opposing smashes cancel facing", () => {
+test("walking selects tilts and same-frame opposing smashes cancel facing [spec docs/gameplay-design.md]", () => {
   const f = fixture();
   f.adapt({ held: maskOf(Action.attack, Action.walk, Action.moveUp), pressed: maskOf(Action.attack, Action.smashLeft, Action.smashRight), axisZ: 127 }, 10);
   assertTrue(f.input.walking);

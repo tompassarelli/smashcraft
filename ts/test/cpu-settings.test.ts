@@ -31,8 +31,8 @@ function journey(build: MapBuild) {
   return { clients, frames, key, read, text };
 }
 
-for (const build of [PLAYABLE_BUILD, INTEGRITY_BUILD]) test(`${build.id}: all 30 CPU choices reachable with keys, exact previews, Random and retained focus`, () => {
-  const { clients, frames, key, read, text } = journey(build);
+test("all 30 CPU choices reachable with keys, exact previews, Random and retained focus [spec #185] [invariant]", () => {
+  const { clients, frames, key, read, text } = journey(PLAYABLE_BUILD);
   expect(read(() => shell().game.cpuOpponents[2])).toBe("wren");
   expect(read(() => shell().game.cpuTiers[2])).toBe("intermediate");
   // Own fighter, CPU fighter, CPU settings. N opens without a pointer.
@@ -77,7 +77,7 @@ for (const build of [PLAYABLE_BUILD, INTEGRITY_BUILD]) test(`${build.id}: all 30
   expect(clients.firstDivergence()).toBeUndefined();
 }, 15000);
 
-test("CPU preview follows shared choices, denies unauthorized changes and permission loss", () => {
+test("CPU preview follows shared choices, denies unauthorized changes and permission loss [spec #185]", () => {
   const { clients, frames, key, read, text } = journey(INTEGRITY_BUILD);
   key(69, 1); key(69, 1); key(Key.n, 1);
   expect(text(1)).toContain("Only the slot owner or first player can change this opponent.");

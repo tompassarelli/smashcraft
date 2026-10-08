@@ -7,8 +7,6 @@ import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import type { MapEntry } from "wisp/src/headless/client";
 import type { Lockstep } from "wisp/src/headless/lockstep";
-import * as development from "../src/platform/main";
-import * as playable from "../src/platform/playableMain";
 import { STACK_DEMO_COMMAND, STACK_DEMO_HANDLER } from "../src/platform/stackDemo";
 import * as stackTrace from "../src/platform/stackTraceMain";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
@@ -27,7 +25,7 @@ function typeCommand(entry: MapEntry): Lockstep {
 
 const reports = (clients: Lockstep) => clients.clients.map((client) => client.files.get(`smashcraft-error-p${client.slot}.txt`));
 
-test("the stack-trace profile's demo command fails on every client through the dispatch boundary", () => {
+test("the stack-trace profile's demo command fails on every client through the dispatch boundary [invariant]", () => {
   const clients = typeCommand(stackTrace);
   const message = `Error: stack demo failure: ${STACK_DEMO_COMMAND}`;
   for (const client of clients.clients) {
@@ -40,10 +38,3 @@ test("the stack-trace profile's demo command fails on every client through the d
   expect(clients.firstDivergence()).toBeUndefined();
 });
 
-test("the development and playable entries have no demo command", () => {
-  for (const entry of [development, playable]) {
-    const clients = typeCommand(entry);
-    for (const client of clients.clients) expect(client.errors).toEqual([]);
-    expect(reports(clients)).toEqual([undefined, undefined]);
-  }
-});

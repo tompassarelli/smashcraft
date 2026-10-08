@@ -8,11 +8,11 @@ import { DEMON_HUNTER_MODEL_FILE } from "../src/game/presentation/demonHunterAss
 
 const ORIGINALS = [ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE, DEMON_HUNTER_MODEL_FILE];
 
-test("all selectable fighters have a measured movement and recovery audit", () => {
+test("all selectable fighters have a measured movement and recovery audit [spec #171]", () => {
   expect(DRAWN_MOTION.map((row) => `${row.character}/${row.state}`)).toEqual(SELECTABLE_CHARACTERS.flatMap((character) => MOTION_STATES.map((state) => `${character}/${state}`)));
 });
 
-test("walking, running and initial dashes visibly move the body and keep their measured sequences", () => {
+test("walking, running and initial dashes visibly move the body and keep their measured sequences [spec #171]", () => {
   const off = DRAWN_MOTION.filter((row) => row.state === "walk" || row.state === "run" || row.state === "dash").flatMap((row) => {
     const model = ORIGINALS[row.character] ?? heroDefinition(row.character)?.presentation.model;
     const clips = [...new Set(sampleMotion(row.character, row.state).map((frame) => frame.clip ?? -1))];
@@ -29,7 +29,7 @@ test("walking, running and initial dashes visibly move the body and keep their m
 
 const RECOVERY_STATES = ["roll-forward", "roll-back", "spot-dodge", "air-dodge", "tech", "tech-forward", "tech-back", "get-up", "get-up-forward", "get-up-back", "get-up-attack"] as const;
 
-test("every fighter plays distinct, visibly moving recovery actions and swings its get-up attack both ways", () => {
+test("every fighter plays distinct, visibly moving recovery actions and swings its get-up attack both ways [spec #171]", () => {
   const off: string[] = [];
   for (const character of SELECTABLE_CHARACTERS) {
     const selected: number[] = [];

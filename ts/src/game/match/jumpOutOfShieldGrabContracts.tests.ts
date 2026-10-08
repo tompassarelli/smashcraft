@@ -50,7 +50,7 @@ const shield = (): Controls => controls({ shield: true, shieldTriggerActive: tru
 const jumpOutOfShield = (): Controls => controls({ ...shield(), jumpPressed: true, jumpHeld: true });
 const holdJump = (): Controls => controls({ jumpHeld: true });
 
-test("a grab started as a shielding opponent jumps catches it early in the ascent", () => {
+test("a grab started as a shielding opponent jumps catches it early in the ascent [spec #107]", () => {
   for (const grabber of SELECTABLE_CHARACTERS) {
     for (const defender of SELECTABLE_CHARACTERS) {
       const d = duel(grabber, defender);
@@ -66,7 +66,7 @@ test("a grab started as a shielding opponent jumps catches it early in the ascen
   }
 });
 
-test("the early-ascent window ends after its last frame, so a late grab misses the jumper", () => {
+test("the early-ascent window ends after its last frame, so a late grab misses the jumper [spec #107]", () => {
   for (const grabber of SELECTABLE_CHARACTERS) {
     for (const defender of SELECTABLE_CHARACTERS) {
       for (const lastFrame of [true, false]) {

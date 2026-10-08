@@ -42,7 +42,7 @@ function readUnits(bytes: Uint8Array): Map<number, Map<string, string | number>>
   return objects;
 }
 
-test("the fighter archive encodes the shared runtime declaration", () => {
+test("the fighter archive encodes the shared runtime declaration [invariant]", () => {
   const objects = readUnits(fighterUnits());
   expect(objects.size).toBe(FIGHTER_OBJECT_ORDER.length);
   for (const character of FIGHTER_OBJECT_ORDER) {

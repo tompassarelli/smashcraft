@@ -3,7 +3,7 @@ import { type AttackBuffer, ATTACK_BUFFER_FRAMES, attackBuffer } from "../input/
 import { type FrameControls, createFrameControls } from "../match/controls";
 import { Phase, createMatchState } from "../match/rules";
 import { stepMatch } from "../match/step";
-import { Character, SpecialAction } from "../sim/codes";
+import { Character } from "../sim/codes";
 import { type Fighter, createFighter } from "../sim/fighter";
 import { type Controls, copyControls, createRoster, neutralControls } from "../sim/roster";
 import { initializeSpikeScenario } from "./scenarios";
@@ -17,7 +17,7 @@ function frameControls(first: Controls, second: Controls, firstCommands: AttackB
   return controls;
 }
 
-test("an offstage Flame Crash spikes downward through the ordinary match step", () => {
+test("an offstage Flame Crash spikes downward through the ordinary match step [spec docs/design/illidan.md]", () => {
   for (const side of [-1, 1] as const) {
     const game = createMatchState();
     game.phase = Phase.match;

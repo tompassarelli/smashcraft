@@ -10,7 +10,7 @@ import { Key } from "../src/platform/shell/keyEvents";
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
 
-test("an unfocused keyboard keeps sixty neutral rows and resumes without waiting for itself", () => {
+test("an unfocused keyboard keeps sixty neutral rows and resumes without waiting for itself [spec docs/controller-platforms.md] [invariant]", () => {
   const clients = headless.clients({ start: () => startBuild({ ...PLAYABLE_BUILD, devConsole: true }), install }, [0, 1]);
   clients.start();
   clients.frames(30);
@@ -42,7 +42,7 @@ test("an unfocused keyboard keeps sixty neutral rows and resumes without waiting
   expect(clients.firstDivergence()).toBeUndefined();
 });
 
-test("pause samples neutral keys, holds the agreed frame and resumes local rows", () => {
+test("pause samples neutral keys, holds the agreed frame and resumes local rows [invariant]", () => {
   const clients = headless.clients({ start: () => startBuild({ ...PLAYABLE_BUILD, devConsole: true }), install }, [0, 1]);
   clients.start();
   clients.frames(30);

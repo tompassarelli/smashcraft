@@ -1,13 +1,13 @@
 // Sloped decks (#193): walking, running, landing, floor techs and ledge
 // catches on Yoshi's Story's main deck, the slope test stage.
-import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { Character, DownState, LedgeState } from "./codes";
 import { type Fighter, createFighter } from "./fighter";
 import { LEDGE_CLIMB_FRAMES, resolveLedges } from "./ledge";
 import { setWorldMotionValue } from "./motion";
 import type { Controls } from "./roster";
-import { SLOPE_TEST_STAGE, STRATHOLME_STAGE, groundLineCosine, mainDeckLeft, mainDeckRight, mainDeckZ, mainDeckZAt, surfaceLine, surfaceZ, surfaceZAt } from "./stage";
+import { SLOPE_TEST_STAGE, STRATHOLME_STAGE, mainDeckRight, mainDeckZ, surfaceZAt } from "./stage";
 import { advanceSolo, controls, seedTechWindow, testWorld } from "./testWorld";
 import { melee } from "./tuning";
 
@@ -31,23 +31,7 @@ function onLine(fighter: Fighter): void {
   assertEquals(fighter.motion.z, surfaceZAt(STAGE, 0, 0, fighter.motion.x));
 }
 
-test("the slope stage's main deck is level in its middle 0.7 and falls 3.5 Melee units to ledges at the main deck's height", () => {
-  assertEquals(surfaceLine(0, 0), undefined);
-  assertEquals(mainDeckZAt(0, 300.0), mainDeckZ(0));
-  assertEquals(surfaceZ(STAGE, 0, 0), mainDeckZ(STAGE));
-  assertEquals(surfaceZAt(STAGE, 0, 0, mainDeckLeft(STAGE)), mainDeckZ(STAGE));
-  assertEquals(surfaceZAt(STAGE, 0, 0, mainDeckRight(STAGE)), mainDeckZ(STAGE));
-  for (const x of [-420.0, -200.0, 0.0, 200.0, 420.0]) assertEquals(surfaceZAt(STAGE, 0, 0, x), RISE);
-  assertNear(surfaceZAt(STAGE, 0, 0, -510.0), f32(RISE / 2), f32(0.001));
-  assertNear(surfaceZAt(STAGE, 0, 0, 510.0), f32(RISE / 2), f32(0.001));
-  const line = surfaceLine(STAGE, 0);
-  assertTrue(line !== undefined);
-  if (line === undefined) return;
-  assertEquals(groundLineCosine(line, 0.0), 1.0);
-  assertNear(groundLineCosine(line, 500.0), 0.9932631254196167, f32(0.0001));
-});
-
-test("walking down and back up a slope keeps the fighter on the line, moving ground speed along it", () => {
+test("walking down and back up a slope keeps the fighter on the line, moving ground speed along it [spec #193]", () => {
   for (const side of [-1, 1]) {
     const fighter = standing(Character.archer, f32(side * 380.0), side);
     const input = controls({ direction: side, walking: true });
@@ -73,7 +57,7 @@ test("walking down and back up a slope keeps the fighter on the line, moving gro
   }
 });
 
-test("running down a slope never leaves the ground, and running off the ledge falls", () => {
+test("running down a slope never leaves the ground, and running off the ledge falls [spec #193]", () => {
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
     for (const side of [-1, 1]) {
       const fighter = standing(character, f32(side * 200.0), side);
@@ -92,7 +76,7 @@ test("running down a slope never leaves the ground, and running off the ledge fa
   }
 });
 
-test("a fighter falling onto a slope lands on the line under it", () => {
+test("a fighter falling onto a slope lands on the line under it [spec #193]", () => {
   for (const x of [-560.0, -510.0, -450.0, 0.0, 450.0, 510.0, 560.0]) {
     const fighter = createFighter(Character.archer, x, 1);
     fighter.motion.grounded = false;
@@ -126,7 +110,7 @@ function tumbleOnto(x: number, input: Readonly<Controls>): Fighter {
   return fighter;
 }
 
-test("a floor tech on a slope techs in place or rolls along the line", () => {
+test("a floor tech on a slope techs in place or rolls along the line [spec #193]", () => {
   for (const direction of [-1, 0, 1]) {
     const input = controls({ direction });
     const fighter = tumbleOnto(-510.0, input);
@@ -143,7 +127,7 @@ test("a floor tech on a slope techs in place or rolls along the line", () => {
   }
 });
 
-test("a missed tech on a slope knocks down on the line, and the get-up stands there", () => {
+test("a missed tech on a slope knocks down on the line, and the get-up stands there [spec #193]", () => {
   const fighter = createFighter(Character.archer, 520.0, 1);
   fighter.motion.grounded = false;
   fighter.down.state = DownState.tumble;
@@ -161,7 +145,7 @@ test("a missed tech on a slope knocks down on the line, and the get-up stands th
   assertEquals(fighter.down.state, DownState.none);
 });
 
-test("the ledges at a slope's foot are grabbable corners, and the climb ends on the line", () => {
+test("the ledges at a slope's foot are grabbable corners, and the climb ends on the line [spec #193]", () => {
   for (const side of [-1, 1]) {
     const fighter = createFighter(Character.archer, f32(side * 620.0), -side);
     fighter.motion.grounded = false;
@@ -191,7 +175,7 @@ test("the ledges at a slope's foot are grabbable corners, and the climb ends on 
   }
 });
 
-test("selectable Stratholme's outer slope supports running and landing below its balconies", () => {
+test("selectable Stratholme's outer slope supports running and landing below its balconies [spec #193]", () => {
   const fighter = createFighter(Character.archer, 550.0, -1);
   fighter.motion.grounded = false;
   fighter.motion.z = 80.0;

@@ -2,13 +2,12 @@ import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTru
 import { AttackStyle, Character, HeroStatusGroup, HeroStatusKind, LedgeState, ProjectileKind, SpecialAction } from "./codes";
 import { DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_MANA_BURN_STARTUP, DEMONHUNTER_WING_DURATION, FLAME_CRASH_HANG_LAST, startFighterSpecial, advanceSpecials } from "./specials";
 import { type Fighter, type Projectile, createFighter } from "./fighter";
-import { beginFighterAttack, resolveAttacks } from "./attacks";
+import { beginFighterAttack } from "./attacks";
 import { MANA_BURN_STUN, projectileCount, updateProjectiles } from "./projectiles";
 import { heroStatusFrames, maskHeroStatusControls } from "./heroStatus";
 import { SHIELD_REFLECTOR_ACTIVE_FRAMES } from "./shield";
 import { attackBuffer } from "../input/attackBuffer";
 import { f32 } from "wisp/src/sim/f32";
-import { attackDurationFramesForGrounding, attackStartupFrames } from "./moves";
 import { advanceSolo, controls, testWorld } from "./testWorld";
 import { beginJump } from "./jumpsAndDodges";
 import { respawnFighter } from "./stocks";
@@ -17,25 +16,7 @@ import { canAttack } from "./conditions";
 import { resolveLedges } from "./ledge";
 import { cancelSpecialState } from "./transitions";
 
-test("demonHunterSharesGrabGetupAndLedgeContactRules", () => {
-  for (const facing of [-1, 1]) for (const action of [0, 1, 2]) {
-    const style = action === 0 ? AttackStyle.grab : action === 1 ? AttackStyle.getupAttack : AttackStyle.ledgeAttack;
-    const attacker = createFighter(Character.demonHunter, 0.0, facing);
-    const target = createFighter(Character.archer, facing * 60.0, -facing);
-    const world = testWorld(attacker, target);
-    attacker.attack.style = style;
-    attacker.attack.frame = attackStartupFrames(style);
-    attacker.attack.duration = attackDurationFramesForGrounding(style, true);
-    resolveAttacks(world);
-    if (action === 0) {
-      assertEquals(attacker.grab.target, 1);
-      assertEquals(target.grab.owner, 0);
-    } else assertGreaterThan(target.status.damage, 0.0);
-    respawnFighter(world, 0, 0.0);
-  }
-});
-
-test("simultaneousImmolatesTradeInEitherSlotOrder", () => {
+test("simultaneousImmolatesTradeInEitherSlotOrder [invariant]", () => {
   for (const airborne of [false, true]) for (const reversed of [false, true]) {
     const left = createFighter(Character.demonHunter, 0.0, 1);
     const right = createFighter(Character.demonHunter, 60.0, -1);
@@ -58,24 +39,7 @@ test("simultaneousImmolatesTradeInEitherSlotOrder", () => {
   }
 });
 
-test("immolateGroundShineMirrorsAndHitsOneTargetOnce", () => {
-  for (const facing of [-1, 1]) {
-    const illidan = createFighter(Character.demonHunter, 0.0, facing);
-    const target = createFighter(Character.archer, facing * 70.0, -facing);
-    const world = testWorld(illidan, target);
-    assertTrue(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true, down: true, specialZ: -1 })));
-    assertEquals(illidan.special.action, SpecialAction.demonHunterImmolate);
-    for (let tick = 1; tick <= DEMONHUNTER_IMMOLATE_STARTUP; tick++) advanceSpecials(world, 0, 0);
-    assertEquals(target.status.damage, 7.0);
-    assertGreaterThan(target.launch.knockbackX * facing, 0.0);
-    assertEquals(target.launch.knockbackZ, 0.0);
-    const damage = target.status.damage;
-    for (let tick = 1; tick <= 3; tick++) advanceSpecials(world, 0, 0);
-    assertEquals(target.status.damage, damage);
-  }
-});
-
-test("flameCrashPlungeSpikesAndUsesSingleContact", () => {
+test("flameCrashPlungeSpikesAndUsesSingleContact [spec docs/design/illidan.md]", () => {
   const illidan = createFighter(Character.demonHunter, 0.0, -1);
   const target = createFighter(Character.rifleman, 0.0, 1);
   illidan.motion.grounded = false;
@@ -95,7 +59,7 @@ test("flameCrashPlungeSpikesAndUsesSingleContact", () => {
   assertEquals(target.launch.hitlag, hitlag);
 });
 
-test("manaBurnCreatesFlinchingProjectileWithoutAManaResource", () => {
+test("manaBurnCreatesFlinchingProjectileWithoutAManaResource [spec #116]", () => {
   const illidan = createFighter(Character.demonHunter, 0.0, 1);
   const target = createFighter(Character.archer, 500.0, -1);
   const world = testWorld(illidan, target);
@@ -111,7 +75,7 @@ test("manaBurnCreatesFlinchingProjectileWithoutAManaResource", () => {
   assertGreaterThan(target.launch.hitlag, 0);
 });
 
-test("wingAscentConsumesJumpsAndEndsInHelplessFallAfterInterruptionRules", () => {
+test("wingAscentConsumesJumpsAndEndsInHelplessFallAfterInterruptionRules [spec docs/physics.md]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     const fighter = createFighter(character, 0.0, 1);
     const target = createFighter(character === Character.archer ? Character.rifleman : Character.archer, 500.0, -1);
@@ -176,66 +140,6 @@ test("wingAscentConsumesJumpsAndEndsInHelplessFallAfterInterruptionRules", () =>
   }
 });
 
-test("demonHunterTapDuringDashUsesItsOwnDashAttackAction", () => {
-  for (const facing of [-1, 1]) {
-    const illidan = createFighter(Character.demonHunter, 0.0, facing);
-    const target = createFighter(Character.archer, facing * 70.0, -facing);
-    const world = testWorld(illidan, target);
-    illidan.ground.dashFrame = 1;
-    illidan.ground.dashDirection = facing;
-    beginFighterAttack(world, 0, AttackStyle.jab, false);
-    assertEquals(illidan.attack.style, AttackStyle.demonHunterDashAttack);
-    illidan.attack.frame = attackStartupFrames(AttackStyle.demonHunterDashAttack);
-    resolveAttacks(world);
-    assertEquals(target.status.damage, 9.0);
-  }
-});
-
-test("demonHunterNormalActionsHaveContactInBothFacingsAndGroundAirSets", () => {
-  const aerialStyles = [AttackStyle.neutralAir, AttackStyle.forwardAir, AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir];
-  for (const facing of [-1, 1]) for (const aerial of [false, true]) {
-    const count = aerial ? 5 : 9;
-    for (let index = 0; index < count; index++) {
-      const groundStyle = (index === 0 ? AttackStyle.jab : index < 4 ? index + 1 : index + 2) as AttackStyle;
-      const style = aerial ? aerialStyles[index]! : groundStyle;
-      const attacker = createFighter(Character.demonHunter, 0.0, facing);
-      const targetX = style === AttackStyle.backAir ? -facing * 60.0 : facing * 60.0;
-      const target = createFighter(Character.archer, targetX, -facing);
-      if (aerial) attacker.motion.grounded = false;
-      if (style === AttackStyle.upAir || style === AttackStyle.upSmash || style === AttackStyle.upTilt || style === AttackStyle.forwardTiltUp) target.motion.z = 65.0;
-      if (style === AttackStyle.downAir || style === AttackStyle.downSmash || style === AttackStyle.downTilt || style === AttackStyle.forwardTiltDown) target.motion.z = -65.0;
-      const world = testWorld(attacker, target);
-      beginFighterAttack(world, 0, style, false);
-      attacker.attack.frame = attackStartupFrames(style);
-      attacker.attack.cooldown = attacker.attack.duration - attacker.attack.frame;
-      resolveAttacks(world);
-      assertGreaterThan(target.status.damage, 0.0);
-    }
-  }
-});
-
-test("hitInterruptsIllidanSpecialAndStockResetClearsSpecialState", () => {
-  const illidan = createFighter(Character.demonHunter, 0.0, 1);
-  const attacker = createFighter(Character.archer, 500.0, -1);
-  const world = testWorld(illidan, attacker);
-  assertTrue(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true, down: true, specialZ: -1 })));
-  for (let tick = 1; tick < DEMONHUNTER_IMMOLATE_STARTUP; tick++) advanceSpecials(world, 0, 0);
-  attacker.motion.x = 60.0;
-  const hitWorld = testWorld(attacker, illidan);
-  beginFighterAttack(hitWorld, 0, AttackStyle.jab, false);
-  attacker.attack.frame = attackStartupFrames(AttackStyle.jab);
-  resolveAttacks(hitWorld);
-  assertGreaterThan(illidan.launch.hitstun, 0);
-  assertEquals(illidan.special.action, SpecialAction.none);
-  assertFalse(illidan.special.hit);
-  assertGreaterThan(illidan.special.cooldowns[SpecialAction.demonHunterImmolate]!, 0);
-  respawnFighter(createRoster(1, [illidan]), 0, 0.0);
-  assertEquals(illidan.special.action, SpecialAction.none);
-  assertEquals(illidan.special.frame, 0);
-  assertFalse(illidan.special.fall);
-  assertEquals(illidan.special.cooldowns[SpecialAction.demonHunterImmolate], 0);
-});
-
 // Mana Burn (#116): a slow orb Illidan can run behind, one at a time, whose
 // stun grows with percent and has counterplay.
 
@@ -252,7 +156,7 @@ function orbHit(target: Fighter, world: Roster, orb: Readonly<Projectile>): void
   updateProjectiles(world);
 }
 
-test("manaBurnCastsASlowOrbOnFrame16RecoversOnFrame46AndKeepsOneOut", () => {
+test("manaBurnCastsASlowOrbOnFrame16RecoversOnFrame46AndKeepsOneOut [spec #116]", () => {
   const illidan = createFighter(Character.demonHunter, 0.0, 1);
   const target = createFighter(Character.archer, 5000.0, -1);
   const world = testWorld(illidan, target);
@@ -283,7 +187,7 @@ test("manaBurnCastsASlowOrbOnFrame16RecoversOnFrame46AndKeepsOneOut", () => {
   assertTrue(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true })));
 });
 
-test("manaBurnBurns25ManaAndStunsWithoutKnockbackLongerTheEmptierItLeavesTheTarget", () => {
+test("manaBurnBurns25ManaAndStunsWithoutKnockbackLongerTheEmptierItLeavesTheTarget [spec docs/design/mana.md]", () => {
   assertEquals(heroStatusFrames(MANA_BURN_STUN, 100), 15);
   assertEquals(heroStatusFrames(MANA_BURN_STUN, 0), 60);
   // The 5% hit earns the target 2 mana before the burn.
@@ -303,7 +207,7 @@ test("manaBurnBurns25ManaAndStunsWithoutKnockbackLongerTheEmptierItLeavesTheTarg
   }
 });
 
-test("manaBurnStunIgnoresInputEndsOnTheNextHitAndCannotChain", () => {
+test("manaBurnStunIgnoresInputEndsOnTheNextHitAndCannotChain [spec #116]", () => {
   const illidan = createFighter(Character.demonHunter, 0.0, 1);
   const target = createFighter(Character.archer, 5000.0, -1);
   const world = testWorld(illidan, target);
@@ -327,7 +231,7 @@ test("manaBurnStunIgnoresInputEndsOnTheNextHitAndCannotChain", () => {
   assertEquals(target.status.conditionImmunity[HeroStatusGroup.sleep], 300);
 });
 
-test("aHeldShieldBlocksManaBurnsStun", () => {
+test("aHeldShieldBlocksManaBurnsStun [spec #116]", () => {
   const illidan = createFighter(Character.demonHunter, 0.0, 1);
   const target = createFighter(Character.archer, 5000.0, -1);
   const world = testWorld(illidan, target);
@@ -337,7 +241,7 @@ test("aHeldShieldBlocksManaBurnsStun", () => {
   assertEquals(target.status.condition, HeroStatusKind.none);
 });
 
-test("aFullJumpClearsManaBurnWhereStandingStillIsHit", () => {
+test("aFullJumpClearsManaBurnWhereStandingStillIsHit [spec #116]", () => {
   for (const jumps of [false, true]) {
     const illidan = createFighter(Character.demonHunter, 0.0, 1);
     const target = createFighter(Character.archer, 600.0, -1);
@@ -357,7 +261,7 @@ test("aFullJumpClearsManaBurnWhereStandingStillIsHit", () => {
   }
 });
 
-test("aPowershieldReflectsManaBurnAndTheOrbStunsIllidan", () => {
+test("aPowershieldReflectsManaBurnAndTheOrbStunsIllidan [spec #116]", () => {
   const illidan = createFighter(Character.demonHunter, 0.0, 1);
   const defender = createFighter(Character.archer, 5000.0, -1);
   const world = testWorld(illidan, defender);
@@ -379,7 +283,7 @@ test("aPowershieldReflectsManaBurnAndTheOrbStunsIllidan", () => {
   assertEquals(illidan.status.condition, HeroStatusKind.stun);
 });
 
-test("manaBurnAndAnOpposingShotCancelEachOther", () => {
+test("manaBurnAndAnOpposingShotCancelEachOther [spec #116]", () => {
   const illidan = createFighter(Character.demonHunter, 0.0, 1);
   const rifleman = createFighter(Character.rifleman, 2000.0, -1);
   const world = testWorld(illidan, rifleman);

@@ -40,7 +40,7 @@ function pair(gap = 100.0, facing = 1) {
   return { world, owner, target };
 }
 
-test("Sylvanas has Pit's weight, run and air speed in world units", () => {
+test("Sylvanas has Pit's weight, run and air speed in world units [reference] [spec docs/design/sylvanas.md]", () => {
   const { owner } = pair();
   assertNear(owner.tuning.physics.weight, 96.0, f32(0.00002));
   assertNear(owner.tuning.physics.runSpeed, f32(10.968), f32(0.00002));
@@ -55,7 +55,7 @@ const contacts = [
   [AttackStyle.neutralAir, 70.0, 0.0, 7.0], [AttackStyle.forwardAir, 110.0, 0.0, 10.0], [AttackStyle.backAir, -95.0, 0.0, 11.0],
   [AttackStyle.upAir, 0.0, 85.0, 8.0], [AttackStyle.downAir, 8.0, -100.0, 11.0],
 ] as const;
-for (const [style, x, z, damage] of contacts) test(`Sylvanas normal ${style} connects once in either facing and misses beyond its reach`, () => {
+for (const [style, x, z, damage] of contacts) test(`Sylvanas normal ${style} connects once in either facing and misses beyond its reach [spec docs/design/sylvanas.md]`, () => {
   for (const facing of [-1, 1]) for (const distant of [false, true]) {
     const { world, owner, target } = pair();
     owner.motion.x = 0.0;
@@ -75,7 +75,7 @@ for (const [style, x, z, damage] of contacts) test(`Sylvanas normal ${style} con
   }
 });
 
-test("Sylvanas catches through the ordinary grab and releases each throw once in both facings", () => {
+test("Sylvanas catches through the ordinary grab and releases each throw once in both facings [spec docs/design/sylvanas.md]", () => {
   for (const facing of [-1, 1]) for (const [action, damage, direction, vertical] of [
     [GrabAction.throwForward, 7.0, 1, 0], [GrabAction.throwBack, 8.0, -1, 0], [GrabAction.throwUp, 6.0, 0, 1], [GrabAction.throwDown, 6.0, 0, -1],
   ] as const) {
@@ -94,7 +94,7 @@ test("Sylvanas catches through the ordinary grab and releases each throw once in
   }
 });
 
-test("Sylvanas pummel is one slow Life Drain squeeze and never repeats in one hold", () => {
+test("Sylvanas pummel is one slow Life Drain squeeze and never repeats in one hold [spec docs/design/sylvanas.md]", () => {
   const { world, owner, target } = pair(48.0);
   beginFighterAttack(world, 0, AttackStyle.grab, false);
   owner.attack.frame = attackStartupFrames(AttackStyle.grab, SYLVANAS_MOVES);
@@ -106,7 +106,7 @@ test("Sylvanas pummel is one slow Life Drain squeeze and never repeats in one ho
   assertEquals(target.status.damage, 3.0);
 });
 
-test("Sylvanas specials spend once and finish their whiffs on the designed frame", () => {
+test("Sylvanas specials spend once and finish their whiffs on the designed frame [spec docs/design/sylvanas.md]", () => {
   for (const [x, z, action, mana, end] of [[0, 0, SpecialAction.heroNeutral, 8, 40], [1, 0, SpecialAction.heroSide, 20, 48], [0, 1, SpecialAction.heroUp, 15, 31], [0, -1, SpecialAction.heroDown, 20, 52]] as const) {
     const { world, owner } = pair(900.0);
     frame(world, controls({ specialPressed: true, specialX: x, specialZ: z }));
@@ -118,7 +118,7 @@ test("Sylvanas specials spend once and finish their whiffs on the designed frame
   }
 });
 
-test("Black Arrow deals damage and banks Black Quiver; the next melee spends it and shields waste it", () => {
+test("Black Arrow deals damage and banks Black Quiver; the next melee spends it and shields waste it [spec docs/design/sylvanas.md]", () => {
   for (const facing of [-1, 1]) for (const blocked of [false, true]) {
     const { world, owner, target } = pair(300.0, facing);
     frame(world, controls({ specialPressed: true }));
@@ -138,7 +138,7 @@ test("Black Arrow deals damage and banks Black Quiver; the next melee spends it 
   }
 });
 
-test("Silence leaves movement, normals and recovery available, never passes a shield", () => {
+test("Silence leaves movement, normals and recovery available, never passes a shield [spec docs/design/sylvanas.md]", () => {
   for (const facing of [-1, 1]) for (const blocked of [false, true]) {
     const { world, target } = pair(130.0, facing);
     frame(world, controls({ specialPressed: true, specialX: facing }), controls({ shield: blocked }));
@@ -159,7 +159,7 @@ test("Silence leaves movement, normals and recovery available, never passes a sh
   }
 });
 
-test("Life Drain catches a shield, heals at most nine per stock and refuses an airborne cast", () => {
+test("Life Drain catches a shield, heals at most nine per stock and refuses an airborne cast [spec docs/design/sylvanas.md]", () => {
   for (const facing of [-1, 1]) {
     const { world, owner, target } = pair(65.0, facing);
     owner.status.damage = 40.0;
@@ -179,7 +179,7 @@ test("Life Drain catches a shield, heals at most nine per stock and refuses an a
   }
 });
 
-test("Banshee Flight steers in both directions, spends her jump and has a weaker free recovery", () => {
+test("Banshee Flight steers in both directions, spends her jump and has a weaker free recovery [spec docs/design/sylvanas.md]", () => {
   for (const direction of [-1, 1]) {
     let fullRise = 0.0;
     for (const mana of [100, 0]) {
@@ -200,7 +200,7 @@ test("Banshee Flight steers in both directions, spends her jump and has a weaker
   }
 });
 
-test("Sylvanas projectile and charge replay state restores exactly", () => {
+test("Sylvanas projectile and charge replay state restores exactly [invariant]", () => {
   const { world, owner } = pair(300.0);
   frame(world, controls({ specialPressed: true }));
   for (let i = 0; i < 19; i++) frame(world);

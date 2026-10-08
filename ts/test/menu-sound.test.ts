@@ -8,7 +8,7 @@ import { views } from "../src/platform/shell/ui";
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
-test("local roster hover reuses a shared sound handle without creating or retiring agents", () => {
+test("local roster hover reuses a shared sound handle without creating or retiring agents [invariant]", () => {
   const clients = headless.clients({ start, install });
   clients.start(); clients.frames(30);
   const client = clients.client(0);

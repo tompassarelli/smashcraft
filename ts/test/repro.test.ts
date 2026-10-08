@@ -37,7 +37,7 @@ function expectReplays(lines: readonly string[] | undefined, checksum: string): 
 }
 
 // About 1.9 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
-test("K in the development build's match saves its last ten seconds on that player's client, which replay to its checksum", () => {
+test("K in the development build's match saves its last ten seconds on that player's client, which replay to its checksum [spec wisp#15] [invariant]", () => {
   const clients = headless.clients({ start, install }, [0, 1]);
   const hold = (player: number, key: number, down: boolean) => {
     for (const client of clients.clients) client.key(player, key, 0, down);
@@ -73,7 +73,7 @@ test("K in the development build's match saves its last ten seconds on that play
   expectReplays(a.files.get(name), checksum);
 }, 30_000);
 
-test("in the integrity build's rollback match, a controller helper's request and K each save the moment on their own client", () => {
+test("in the integrity build's rollback match, a controller helper's request and K each save the moment on their own client [spec wisp#15] [invariant]", () => {
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
   helpers.workload = { denseCycles: 2, walkers: [1] };
   const { clients, frames, clientA: a, clientB: b } = startPlayableMatch(headless, helpers, true);

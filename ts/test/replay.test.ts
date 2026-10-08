@@ -51,7 +51,7 @@ const TAPS = [KEYS.jump, KEYS.attack, KEYS.special, KEYS.grab, KEYS.shield, KEYS
 
 // Three stocks, one minute: after their taps the players walk off their own
 // sides, which ends the match in about ten seconds.
-test("a one-minute keyboard match in the playable build reaches its result and replays to every recorded checksum", async () => {
+test("a one-minute keyboard match in the playable build reaches its result and replays to every recorded checksum [invariant]", async () => {
   const clients = headless.clients({ start: () => startBuild(PLAYABLE_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 141), keepCalls: 64 });
   const read = <T>(body: () => T) => value(clients.client(0), body);
   const frames = (n: number) => clients.frames(n);
@@ -142,7 +142,7 @@ test("a one-minute keyboard match in the playable build reaches its result and r
 // build, whose computers choose their controls on the game callback, replayed
 // to 1 of 5 checksums: the record began after the computer had changed its
 // attack delay for the first frame, so the replay changed it twice.
-test("a callback match against a computer replays to every recorded checksum", () => {
+test("a callback match against a computer replays to every recorded checksum [invariant]", () => {
   const clients = headless.clients({ start: startDev, install: installDev }, [0]);
   const client = clients.client(0);
   clients.start();

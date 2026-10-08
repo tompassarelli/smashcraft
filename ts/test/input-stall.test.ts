@@ -16,7 +16,7 @@ import { value } from "./rematch/playableMatch";
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
 
-test("a helper that stops mid-match shows every client who the match waits for within a second, and the match resumes when it types again", () => {
+test("a helper that stops mid-match shows every client who the match waits for within a second, and the match resumes when it types again [spec #46]", () => {
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
   helpers.workload = { denseCycles: 2, walkers: [] };
   const { clients, frames, clientA: a, clientB: b } = startPlayableMatch(headless, helpers, false);

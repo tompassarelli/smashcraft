@@ -142,7 +142,7 @@ const EXPECTED: Readonly<Record<string, readonly [number, number, number, number
   "cap-wiggle": [72, Math.sqrt(WIGGLE_NET_X * WIGGLE_NET_X + WIGGLE_NET_Z * WIGGLE_NET_Z), 3, 1],
 };
 
-test("the ten teleport fixtures now stay within 72 world units per hit, 144 per string and 18 per tick", () => {
+test("the ten teleport fixtures now stay within 72 world units per hit, 144 per string and 18 per tick [spec #70]", () => {
   for (const fixture of SDI_FIXTURES) {
     const measured = measureSdiFixture(fixture);
     const [path, net, sdi, asdi] = EXPECTED[fixture.name] ?? [-1, -1, -1, -1];
@@ -160,7 +160,7 @@ test("the ten teleport fixtures now stay within 72 world units per hit, 144 per 
   }
 });
 
-test("a fresh pulse spends its 6 units as two 3-unit steps, and the hit admits at most 9 units of SDI", () => {
+test("a fresh pulse spends its 6 units as two 3-unit steps, and the hit admits at most 9 units of SDI [spec #70]", () => {
   const f = isolatedVictim();
   seedHit(f, 8);
   const pulse = (sdiX: number, sdiZ: number) => advanceSolo(f, 0, controls({ sdiPulse: sdiX !== 0 || sdiZ !== 0, sdiX, sdiZ }), -240.0);
@@ -182,7 +182,7 @@ test("a fresh pulse spends its 6 units as two 3-unit steps, and the hit admits a
   assertEquals(f.launch.sdiSerial, 3);
 });
 
-test("queued requests count against the hit, and release discards the unfinished request for ASDI", () => {
+test("queued requests count against the hit, and release discards the unfinished request for ASDI [spec #70]", () => {
   const f = isolatedVictim();
   seedHit(f, 3);
   // Right then left on consecutive ticks: 6 right and 3 left are queued, 3 right spent.
@@ -200,7 +200,7 @@ test("queued requests count against the hit, and release discards the unfinished
   assertEquals(f.motion.x, f32(f32(STEP + STEP) + ASDI_DISTANCE));
 });
 
-test("a replacement hit renews the hit allowance and drops queued travel, but not the string", () => {
+test("a replacement hit renews the hit allowance and drops queued travel, but not the string [spec #70]", () => {
   const attacker = createFighter(Character.archer, -60.0, 1);
   const victim = isolatedVictim();
   victim.motion.x = 0.0;
@@ -226,7 +226,7 @@ function spendHit(f: Fighter): void {
   for (let tick = 0; tick < 4; tick++) advanceSolo(f, 0, controls({ direction: 1, sdiPulse: true, sdiX: 1 }), -240.0);
 }
 
-test("a held gap between hits keeps the string, so a third hit moves nothing", () => {
+test("a held gap between hits keeps the string, so a third hit moves nothing [spec #70]", () => {
   const f = isolatedVictim();
   spendHit(f);
   for (let tick = 0; tick < 10; tick++) advanceSolo(f, 0, controls(), -240.0);
@@ -238,7 +238,7 @@ test("a held gap between hits keeps the string, so a third hit moves nothing", (
   assertEquals(f.motion.x, x);
 });
 
-test("one complete actionable tick renews the string; the tick that ends hitstun does not", () => {
+test("one complete actionable tick renews the string; the tick that ends hitstun does not [spec #70]", () => {
   const f = isolatedVictim();
   spendHit(f);
   spendHit(f);
@@ -260,7 +260,7 @@ test("one complete actionable tick renews the string; the tick that ends hitstun
   assertEquals(f.launch.sdiStringTravel, HIT_TRAVEL);
 });
 
-test("respawn clears the string and any queued travel", () => {
+test("respawn clears the string and any queued travel [spec #70]", () => {
   const f = isolatedVictim();
   spendHit(f);
   seedHit(f, 8);
@@ -271,7 +271,7 @@ test("respawn clears the string and any queued travel", () => {
   assertEquals(f.launch.sdiStepTravel, 0);
 });
 
-test("an exhausted string withholds ASDI, and a blocked step still charges its length", () => {
+test("an exhausted string withholds ASDI, and a blocked step still charges its length [spec #70]", () => {
   const f = isolatedVictim();
   spendHit(f);
   spendHit(f);
@@ -288,7 +288,7 @@ test("an exhausted string withholds ASDI, and a blocked step still charges its l
   assertEquals(floored.launch.sdiHitTravel, 3);
 });
 
-test("a restored snapshot continues queued SDI identically", () => {
+test("a restored snapshot continues queued SDI identically [invariant]", () => {
   const original = isolatedVictim();
   seedHit(original, 6);
   advanceSolo(original, 0, controls({ direction: 1, sdiPulse: true, sdiX: 1 }), -240.0);

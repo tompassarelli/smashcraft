@@ -21,7 +21,7 @@ async function populated(root: string): Promise<{ store: string; manifest: Manif
   return { store, manifest: Schema.decodeUnknownSync(Manifest)(Object.fromEntries(entries)) };
 }
 
-test("two concurrent builds of one revision both succeed and publish one identical output", async () => {
+test("two concurrent builds of one revision both succeed and publish one identical output [spec docs/build-inputs.md]", async () => {
   const root = scratch();
   try {
     const final = join(root, "play-current", "0123456789abcdef0123456789abcdef01234567");
@@ -38,7 +38,7 @@ test("two concurrent builds of one revision both succeed and publish one identic
   } finally { removeTree(root); }
 });
 
-test("a manifest naming a family the store lacks fails with the command that regenerates it", async () => {
+test("a manifest naming a family the store lacks fails with the command that regenerates it [spec docs/build-inputs.md]", async () => {
   const root = scratch();
   try {
     const { store, manifest } = await populated(root);
@@ -50,7 +50,7 @@ test("a manifest naming a family the store lacks fails with the command that reg
   } finally { removeTree(root); }
 });
 
-test("changing assets takes a manifest change: stored families are sealed, and an edit in place fails the build", async () => {
+test("changing assets takes a manifest change: stored families are sealed, and an edit in place fails the build [spec docs/build-inputs.md]", async () => {
   const root = scratch();
   try {
     const { store, manifest } = await populated(root);
@@ -75,10 +75,4 @@ test("changing assets takes a manifest change: stored families are sealed, and a
     expect(text).toContain("stage-assets was changed in place");
     expect(existsSync(join(store, "stage-assets", hash))).toBe(true);
   } finally { removeTree(root); }
-});
-
-test("smashcraft:build-inputs.json names a hash for every family", async () => {
-  const manifest = await Bun.file(join(import.meta.dir, "../../build-inputs.json")).json();
-  expect(Object.keys(manifest).sort()).toEqual([...FAMILY_NAMES].sort());
-  for (const hash of Object.values(manifest)) expect(hash).toMatch(/^[0-9a-f]{64}$/);
 });

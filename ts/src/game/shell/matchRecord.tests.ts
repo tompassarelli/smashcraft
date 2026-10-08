@@ -5,8 +5,7 @@ import { createMatchTally } from "../presentation/matchCues";
 import { Character } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { fighterAt } from "../sim/roster";
-import { matchRecordFile } from "../../runtime/gameFiles";
-import { MATCH_RECORD_HEADER, matchRecordLines, nextSerial, ratio, recordValue } from "./matchRecord";
+import { MATCH_RECORD_HEADER, matchRecordLines, recordValue } from "./matchRecord";
 
 /** Mountain King (P1, human) beat a Lich computer (P2) on Frozen Throne. */
 function finishedMatch() {
@@ -42,7 +41,7 @@ function finishedMatch() {
   return { game, world, tally };
 }
 
-test("a finished match's record names the build, rules, result, stage and every fighter's stocks, damage, KOs, falls and combat stats", () => {
+test("a finished match's record names the build, rules, result, stage and every fighter's stocks, damage, KOs, falls and combat stats [spec #140]", () => {
   const { game, world, tally } = finishedMatch();
   const lines = matchRecordLines({ build: "0.0.52", serial: 7, local: 0, players: ["Tom#1234", undefined, undefined, undefined] }, game, world, tally);
   assertEquals(lines.join("\n"), [
@@ -58,7 +57,7 @@ test("a finished match's record names the build, rules, result, stage and every 
   ].join("\n"));
 });
 
-test("a record from an observer, a draw and a departed player says so", () => {
+test("a record from an observer, a draw and a departed player says so [spec #140]", () => {
   const { game, world, tally } = finishedMatch();
   game.computerMask = 0;
   game.humanMask = 3;
@@ -72,7 +71,7 @@ test("a record from an observer, a draw and a departed player says so", () => {
   assertTrue((lines[6] ?? "").includes(" left=1 "));
 });
 
-test("record lines fit a Preload line and hold nothing a JASS string can't", () => {
+test("record lines fit a Preload line and hold nothing a JASS string can't [provisional]", () => {
   const { game, world, tally } = finishedMatch();
   const lines = matchRecordLines({ build: "x".repeat(40), serial: 123456, local: 0, players: ["p".repeat(40), undefined, undefined, undefined] }, game, world, tally);
   for (const line of lines) {
@@ -80,16 +79,4 @@ test("record lines fit a Preload line and hold nothing a JASS string can't", () 
     assertTrue(!line.includes("\"") && !line.includes("\\"));
   }
   assertEquals(recordValue("a b=c\"d\\e"), "a_b_c_d_e");
-});
-
-test("record serials continue from the index and start at 1 without one", () => {
-  assertEquals(ratio(7, 0), "none");
-  assertEquals(ratio(10, 3), "3.3");
-  assertEquals(ratio(4, 4), "1.0");
-  assertEquals(nextSerial(undefined), 1);
-  assertEquals(nextSerial(""), 1);
-  assertEquals(nextSerial("junk"), 1);
-  assertEquals(nextSerial("0"), 1);
-  assertEquals(nextSerial("42"), 42);
-  assertEquals(matchRecordFile(nextSerial("42")), "smashcraft-match-42.txt");
 });

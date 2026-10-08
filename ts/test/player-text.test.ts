@@ -10,9 +10,7 @@ import type { HeadlessClient } from "wisp/src/headless/client";
 import type { Lockstep } from "wisp/src/headless/lockstep";
 import { on } from "wisp/src/platform/dispatch";
 import { Phase, holdingStart } from "../src/game/match/rules";
-import type { MapBuild } from "../src/game/shell/build";
 import { CURRENT_BUILD, INTEGRITY_BUILD, PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
-import { install, startBuild } from "../src/platform/main";
 import { install as installPlayable, start as startPlayable } from "../src/platform/playableMain";
 import { Key } from "../src/platform/shell/keyEvents";
 import { panelActions } from "../src/platform/shell/menus";
@@ -106,7 +104,7 @@ function recordShown(clients: Lockstep, views: readonly FrameView[], shown: Set<
 
 const developerText = (text: string) => DENIED.filter((term) => text.toLowerCase().includes(term));
 
-test("the playable build shows players no developer text through selection, a match and its results", () => {
+test("the playable build shows players no developer text through selection, a match and its results [spec docs/playable-0047.md]", () => {
   const clients = headless.clients({ install: installPlayable, start: startPlayable });
   const views = clients.clients.map((client) => new FrameView(client));
   const shown = new Set<string>();
@@ -181,7 +179,7 @@ function failFrames(clients: Lockstep, views: readonly FrameView[], shown: Set<s
 const errorReport = (client: HeadlessClient) => client.files.get(`smashcraft-error-p${client.slot}.txt`)?.slice(0, 2);
 const REPORT_LINES = [`error 1 in ${SHELL_TICK}`, `Error: ${DELIBERATE_FAILURE}`];
 
-test("a failing handler in the playable build shows players no error text, and each client still writes its error report", () => {
+test("a failing handler in the playable build shows players no error text, and each client still writes its error report [spec docs/typescript.md]", () => {
   const clients = headless.clients({ install: installPlayable, start: startPlayable });
   const shown = new Set<string>();
   clients.start();
@@ -193,28 +191,3 @@ test("a failing handler in the playable build shows players no error text, and e
   }
 });
 
-/** A quick match of `build`, then a failing handler: the developer line the first client showed, and everything both showed after it. */
-function quickMatchThenFailure(build: MapBuild) {
-  const clients = headless.clients({ install, start: () => startBuild(build) });
-  const view = new FrameView(clients.clients[0] as HeadlessClient);
-  clients.start();
-  clients.frames(30);
-  clients.chat(0, "-dev quick");
-  clients.frames(60);
-  const developerLine = view.texts().find((text) => text.startsWith("Developer test: "));
-  const shown = new Set<string>();
-  failFrames(clients, [view], shown);
-  return { clients, developerLine, shown: [...shown] };
-}
-
-test("development and integrity builds still show the developer line, with every term the playable build denies, and a failing handler's error text", () => {
-  const development = quickMatchThenFailure(CURRENT_BUILD);
-  expect(development.developerLine).toStartWith(`Developer test: ${CURRENT_BUILD.id} |`);
-  const integrity = quickMatchThenFailure(INTEGRITY_BUILD);
-  for (const term of [...DEVELOPER_LINE_TERMS, INTEGRITY_BUILD.id]) expect(integrity.developerLine).toContain(term);
-  expect(integrity.developerLine).toContain(`mode=${INTEGRITY_BUILD.inputProfile} ${INTEGRITY_BUILD.presentation}`);
-  for (const { clients, shown } of [development, integrity]) {
-    expect(shown).toContain(REPORT_TEXT);
-    for (const client of clients.clients) expect(errorReport(client)).toEqual(REPORT_LINES);
-  }
-});

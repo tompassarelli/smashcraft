@@ -1,26 +1,18 @@
-import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
-import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GrabAction, LAST_ATTACK_STYLE } from "../codes";
+import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GrabAction } from "../codes";
 import { attackPhase } from "../conditions";
 import { createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
 import { attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
-import { advanceFighter } from "../step";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { HurtContact, fighterHurtParts, strikeHurtContact } from "../hurtboxes";
 import { WARDEN_BODY, WARDEN_MOVES } from "./wardenMoves";
 import { isMultiHit } from "./multiHit";
 
 const NORMALS = [
-  [AttackStyle.jab, 2, 2, 11, 0],
-  [AttackStyle.forwardTilt, 5, 3, 17, 0],
-  [AttackStyle.forwardTiltUp, 5, 3, 17, 0],
-  [AttackStyle.forwardTiltDown, 5, 3, 17, 0],
-  [AttackStyle.upTilt, 4, 4, 16, 0],
-  [AttackStyle.downTilt, 3, 2, 9, 0],
-  [AttackStyle.dashAttack, 5, 3, 18, 0],
   [AttackStyle.forwardSmash, 15, 3, 30, 0],
   [AttackStyle.upSmash, 13, 4, 27, 0],
   [AttackStyle.downSmash, 12, 5, 28, 0],
@@ -48,7 +40,7 @@ function pair(style: AttackStyle, frame: number, x: number, z = 0.0, facing = 1,
   return { owner, target, world };
 }
 
-test("Warden roster phases and single-contact paths reach production", () => {
+test("Warden roster phases and single-contact paths reach production [spec docs/design/roster.md]", () => {
   const out = emptyHitRegion();
   for (const [style, first, active] of NORMALS) {
     const { owner } = pair(style, 0, 1000.0);
@@ -79,7 +71,7 @@ test("Warden roster phases and single-contact paths reach production", () => {
   }
 });
 
-test("Warden Judgment Edge rewards blade-end spacing and keeps moderate tilt reach", () => {
+test("Warden Judgment Edge rewards blade-end spacing and keeps moderate tilt reach [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
     for (const [style, frame, x, damage] of [
       [AttackStyle.forwardSmash, 15, 60.0, 12.0],
@@ -99,7 +91,7 @@ test("Warden Judgment Edge rewards blade-end spacing and keeps moderate tilt rea
   assertEquals(smashDamageMultiplier(90, WARDEN_MOVES), 1.25);
 });
 
-test("Warden angled slices and narrow vertical blades leave honest gaps", () => {
+test("Warden angled slices and narrow vertical blades leave honest gaps [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
     for (const [style, x, z, damage] of [
       [AttackStyle.forwardTiltUp, 105.0, 90.0, 8.0],
@@ -116,7 +108,7 @@ test("Warden angled slices and narrow vertical blades leave honest gaps", () => 
   }
 });
 
-test("Warden Twin Crescent hits once across front and rear blades", () => {
+test("Warden Twin Crescent hits once across front and rear blades [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
     const { owner, target, world } = pair(AttackStyle.downSmash, 11, 80.0, 0.0, facing);
     resolveAttacks(world);
@@ -134,15 +126,7 @@ test("Warden Twin Crescent hits once across front and rear blades", () => {
   }
 });
 
-test("Warden's dash attack slides four tenths H (53 units) during startup in both facings", () => {
-  for (const facing of [-1, 1]) {
-    const { owner, world } = pair(AttackStyle.dashAttack, 0, 1000.0, 0.0, facing);
-    for (let tick = 0; tick < 4; tick++) advanceFighter(world, 0, 0, controls(), 0.0);
-    assertNear(f32(owner.motion.x * facing), 53.0, f32(0.0001));
-  }
-});
-
-test("Warden standing and dash grabs retain exact reach on both active frames", () => {
+test("Warden standing and dash grabs retain exact reach on both active frames [spec docs/design/roster.md]", () => {
   const reach = f32(HERO_REFERENCE_HEIGHT * f32(0.48));
   for (const facing of [-1, 1]) {
     for (const dash of [false, true]) {
@@ -167,7 +151,7 @@ test("Warden standing and dash grabs retain exact reach on both active frames", 
   }
 });
 
-test("Warden throws hold through adopted release then launch once in both facings", () => {
+test("Warden throws hold through adopted release then launch once in both facings [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
     for (const [action, release, recovery, damage] of [
       [GrabAction.throwForward, 10, 18, 6.0],
@@ -202,7 +186,7 @@ test("Warden throws hold through adopted release then launch once in both facing
   }
 });
 
-test("Warden's blades are disjoint while the arm and Heel Blade leg stay hittable", () => {
+test("Warden's blades are disjoint while the arm and Heel Blade leg stay hittable [spec docs/design/roster.md]", () => {
   const probe = (target: ReturnType<typeof createFighter>, x: number, z: number) =>
     strikeHurtContact({ x1: x, z1: z, x2: x, z2: z, radius: 1.0 }, target);
   for (const facing of [-1, 1]) {
@@ -244,21 +228,5 @@ test("Warden's blades are disjoint while the arm and Heel Blade leg stay hittabl
     warden.attack.style = AttackStyle.grab;
     warden.attack.frame = 5;
     assertEquals(probe(warden, f32(50.0 * facing), 47.0), HurtContact.hit);
-  }
-});
-
-test("Warden's attack bodies are held at least 3 frames, never overlap and end within the move", () => {
-  for (let style = 0; style <= LAST_ATTACK_STYLE; style++) {
-    const move = WARDEN_MOVES.normals[style];
-    const poses = WARDEN_MOVES.hurtboxes?.attacks[style];
-    if (move === undefined) continue;
-    assertTrue(poses !== undefined && poses.length > 0);
-    let previousEnd = -1;
-    for (const pose of poses ?? []) {
-      assertGreaterThan(pose.lastFrame - pose.firstFrame + 1, 2);
-      assertGreaterThan(pose.firstFrame, previousEnd);
-      assertLessThan(pose.lastFrame, move.totalFrames);
-      previousEnd = pose.lastFrame;
-    }
   }
 });

@@ -20,7 +20,7 @@ import { advanceSummons, createSummonState } from "../src/game/presentation/summ
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
-test("headless renderer places one visible effect at every live disjoint normal region", () => {
+test("headless renderer places one visible effect at every live disjoint normal region [spec docs/disjoint-legibility.md]", () => {
   const clients = headless.clients({ start: () => {}, install: () => {} });
   clients.start();
   const client = clients.clients[0];
@@ -64,7 +64,7 @@ test("headless renderer places one visible effect at every live disjoint normal 
   console.log(`disjoint presentation: ${measured} active region frames checked, 0 missing or misplaced`);
 });
 
-test("headless renderer places special strikes and Warden's outward knife spray on their authored paths", () => {
+test("headless renderer places special strikes and Warden's outward knife spray on their authored paths [spec docs/disjoint-legibility.md]", () => {
   const clients = headless.clients({ start: () => {}, install: () => {} });
   clients.start();
   const client = clients.clients[0];
@@ -117,7 +117,7 @@ test("headless renderer places special strikes and Warden's outward knife spray 
   console.log(`special presentation: ${measured} active region frames checked, 0 missing or misplaced`);
 });
 
-test("headless spell models and stationary field rims remain at their live projectile centre", () => {
+test("headless spell models and stationary field rims remain at their live projectile centre [spec docs/disjoint-legibility.md]", () => {
   const clients = headless.clients({ start: () => {}, install: () => {} });
   clients.start();
   const client = clients.clients[0];
@@ -169,7 +169,7 @@ test("headless spell models and stationary field rims remain at their live proje
   console.log(`projectile presentation: ${measured} live frames checked, 0 missing or misplaced`);
 });
 
-test("existing bear, hippogryph and freeze trap art follows the remote contact centre each frame", () => {
+test("existing bear, hippogryph and freeze trap art follows the remote contact centre each frame [spec docs/disjoint-legibility.md]", () => {
   const clients = headless.clients({ start: () => {}, install: () => {} });
   clients.start();
   const client = clients.clients[0];
