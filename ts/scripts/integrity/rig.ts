@@ -14,6 +14,7 @@ import type { GameFile, JourneyRecord, PublicationRecord, RigShape, Stopped } fr
 import type { StallTarget } from "./schedule";
 import { type Observer, type Pad, continueProcess, inject, monotonicNs, realtimeNs, stopProcess } from "./linux";
 import { SLOTS, type Slot } from "./reconcile";
+import { pollUntil } from "../hostPoll";
 import { INPUT_TRACE_FILE, responsePageFile, decodeWrittenGameFile } from "../wisp/boundary";
 import { smashcraftPlayerView } from "../wisp/playerView";
 import { gameFilesLayer } from "../wisp/project";
@@ -139,14 +140,14 @@ export function fileRig(parts: FileRigParts): Omit<RigShape, "stop" | "resume" |
     realtimeNs: Effect.sync(realtimeNs),
     startedNs,
     until: (what, check, seconds = 30) =>
-      Effect.gen(function*() {
-        const deadline = performance.now() + seconds * 1000;
-        while (!(yield* check)) {
+      pollUntil(
+        Effect.gen(function*() {
+          if (yield* check) return true;
           yield* healthy;
-          if (performance.now() > deadline) return yield* new IntegrityFailure({ operation: what, path: out, cause: `not observed within ${seconds} s` });
-          yield* Effect.sleep(POLL_MILLIS);
-        }
-      }),
+          return undefined;
+        }),
+        { every: POLL_MILLIS, within: seconds * 1000, orElse: () => Effect.fail(new IntegrityFailure({ operation: what, path: out, cause: `not observed within ${seconds} s` })) },
+      ).pipe(Effect.asVoid),
     healthy,
     file,
     files: (client, pattern) =>
