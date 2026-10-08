@@ -192,11 +192,11 @@ export interface CensusProject {
 const runOf = (entry: CensusEntry) => (entry.group === "stage" ? `census-stage-${entry.name}` : `census-${entry.group}`);
 
 /** Plays `run` of the perf program in 32-bit Lua with `bundle`'s map; with `profileFrames`, sampled on those frames instead of measured (censusProfile.ts). */
-export const runLua = (program: string, bundle: string, run: string, frames: number, profileFrames?: readonly number[]) => stockLua.pipe(
+export const runLua = (program: string, bundle: string, run: string, frames: number, profileFrames?: readonly number[], phases = false) => stockLua.pipe(
   Effect.mapError((problem) => new PerfFailure({ problem })),
   // Each child belongs to its own scope, so an interrupted census stops every run in flight.
   Effect.flatMap((lua) => Effect.scoped(Effect.gen(function*() {
-    const env = profileFrames === undefined ? undefined : { PERF_PROFILE_FRAMES: profileFrames.join(",") };
+    const env = profileFrames === undefined ? undefined : { PERF_PROFILE_FRAMES: profileFrames.join(","), PERF_PROFILE_PHASES: phases ? "1" : "0" };
     const child = yield* ChildProcess.make(lua, [program, bundle, join(tsDirectory, "node_modules/wisp/src/natives/warcraft.d.ts"), run, String(frames), "samples"], { env, extendEnv: true, stdin: "ignore" });
     const [out, err, code] = yield* Effect.all([Stream.mkString(Stream.decodeText(child.stdout)), Stream.mkString(Stream.decodeText(child.stderr)), child.exitCode], { concurrency: "unbounded" });
     if (code !== 0) return yield* new PerfFailure({ problem: `${run}: ${lua} exited ${code}: ${err}${out.split("\n").filter((line) => !line.startsWith("frame ")).join("\n")}` });
@@ -269,6 +269,8 @@ export const census = (project: CensusProject): Command => (args) => Effect.gen(
 export const profile = (project: PerfProject): Command => (args) => Effect.gen(function*() {
   const [worstText = "3"] = flagValues(args, "worst-frames");
   const [framesText = "1800"] = flagValues(args, "frames");
+  const [out] = flagValues(args, "out");
+  const phases = args.includes("--phases");
   const named = args.filter((arg, index) => !arg.startsWith("--") && !["--worst-frames", "--frames", "--out"].includes(args[index - 1] ?? ""));
   const [name = project.defaultRun ?? "journey"] = named;
   const map = name === (project.defaultRun ?? "journey") ? project.map : project.runs?.[name];
@@ -284,7 +286,24 @@ export const profile = (project: PerfProject): Command => (args) => Effect.gen(f
   const middle = median(costs.map(([, ms]) => ms));
   const worst = [...costs].sort((a, b) => b[1] - a[1]).slice(0, worstCount);
   const base = new Set([...costs].sort((a, b) => Math.abs(a[1] - middle) - Math.abs(b[1] - middle)).slice(0, 30).map(([frame]) => frame));
-  const profiled = yield* runLua(project.program.bundle, map.bundle, name, frames, [...worst.map(([frame]) => frame), ...base]);
+  const selected = new Set([...worst.map(([frame]) => frame), ...base]);
+  if (phases) {
+    const bySlot = new Map<number, [number, number][]>();
+    for (const text of output.split("\n")) {
+      const match = /^frame (\d+) p(\d+) instructions=(\d+) lua-us=\d+ natives=(\d+) alloc-bytes=(\d+) typed=\d+$/.exec(text);
+      if (match === null) continue;
+      const slot = Number(match[2]);
+      const rows = bySlot.get(slot) ?? [];
+      rows.push([Number(match[1]), predictedMs({ instructions: Number(match[3]), natives: Number(match[4]), allocatedKb: Number(match[5]) / 1024 })]);
+      bySlot.set(slot, rows);
+    }
+    for (const rows of bySlot.values()) {
+      rows.sort((a, b) => a[1] - b[1]);
+      for (const [frame] of rows.slice(Math.ceil(rows.length * 0.95) - 1)) selected.add(frame);
+    }
+  }
+  const profiled = yield* runLua(project.program.bundle, map.bundle, name, frames, [...selected], phases);
+  if (out !== undefined) yield* Effect.tryPromise({ try: () => Bun.write(out, `${output}\n${profiled}`), catch: (cause) => new PerfFailure({ problem: `writing ${out}: ${describeCause(cause)}` }) });
   const namer = functionNamer(yield* bundleText(map.bundle));
   const baseline = [...profileOf(profiled, base)].sort((a, b) => b[1][1] - a[1][1]).slice(0, 30);
   yield* Console.log(`profile ${name}: mean samples across ${base.size} median frames, inclusive / self\n${baseline.map(([line, [self, inclusive]]) =>

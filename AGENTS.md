@@ -443,7 +443,10 @@ code. From smashcraft:ts/:
   CI holds `playable-bot-four` to smashcraft:ts/test/fixtures/perf/playable-bot-four.perf;
   after an intended rise or a cut, rewrite that file with `--out` and commit it.
   `bun wisp perf budget RUN_FILE` holds a `--samples` run to #168's frame
-  budget (p99 10 ms, worst 14 ms predicted). Spike census (#168): `bun wisp
+  budget (p99 10 ms, worst 14 ms predicted). `bun wisp perf profile
+  playable-bot-four --phases --out FILE` preserves measured samples and each
+  client's slow-frame phase samples and simulation/repair step counts;
+  profiling is a separate replay, excluded from measured costs. Spike census (#168): `bun wisp
   perf census [--fighter NAME] [--stage ID] [--functions]` plays every
   fighter's moves, specials and follow-ups in a playable-build training match
   and every stage's hazards, and fails any entry over 2 ms above its standing
