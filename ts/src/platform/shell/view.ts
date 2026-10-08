@@ -162,8 +162,8 @@ export function drawStage(s: ShellState): void {
   for (let index = 0; index < 6; index++) {
     const light = stageEdgeLight(stage, index, stageFrame);
     if (light === undefined) break;
-    const effect = AddSpecialEffect(STAGE_EDGE_LIGHT_MODEL, origin.x + light.x, origin.y - 45.0);
-    BlzSetSpecialEffectPosition(effect, origin.x + light.x, origin.y - 45.0, origin.z + light.z);
+    const effect = AddSpecialEffect(STAGE_EDGE_LIGHT_MODEL, origin.x + light.x, origin.y + light.y);
+    BlzSetSpecialEffectPosition(effect, origin.x + light.x, origin.y + light.y, origin.z + light.z);
     BlzSetSpecialEffectScale(effect, 0.75);
     BlzSetSpecialEffectColor(effect, 96, 255, 64);
     BlzPlaySpecialEffect(effect, ANIM_TYPE_STAND);
@@ -321,7 +321,7 @@ export function renderPersistentPresentation(s: ShellState): void {
   for (let index = 0; index < s.stageDeckParts.length; index++) {
     const light = stageEdgeLight(drawn, index, matchFrame);
     if (light === undefined) break;
-    BlzSetSpecialEffectPosition(at(s.stageDeckParts, index), s.origin.x + light.x, s.origin.y - 45.0, s.origin.z + light.z);
+    BlzSetSpecialEffectPosition(at(s.stageDeckParts, index), s.origin.x + light.x, s.origin.y + light.y, s.origin.z + light.z);
   }
   for (let index = 1; index < s.stageDecks.length; index++) {
     if (!surfaceMoves(drawn, index)) continue;
