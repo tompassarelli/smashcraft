@@ -3,14 +3,14 @@ import { frames, type AuthoredSpecial, type FighterSpecials } from "../heroSpeci
 import { medivhHit } from "./medivhMoves";
 
 const omen = (ex: boolean): AuthoredSpecial => ({
-  cost: 0, endFrame: 40, landingLag: 18,
+  endFrame: 40, landingLag: 18,
   projectiles: [{ spawnFrame: 12, offsetX: 40.0, offsetZ: 55.0,
     velocityX: ex ? 11.0 : 8.0, velocityZ: 0.0, life: 40, radius: ex ? 23.0 : 17.0,
     effect: medivhHit(ex ? 12.0 : 8.0, 55, 85.0, 22.0), reflectable: true, limit: 1,
     model: "Abilities\\Weapons\\PriestMissile\\PriestMissile.mdl" }],
 });
 const vanish = (ex: boolean, retreat: boolean): AuthoredSpecial => ({
-  cost: 0, endFrame: 38, landingLag: 20, intangible: frames(9, 10), defensiveUse: retreat,
+  endFrame: 38, landingLag: 20, intangible: frames(9, 10), defensiveUse: retreat,
   motion: [{ ...frames(1, 9), velocityX: 0.0, velocityZ: 0.0 },
     { ...frames(10, 10), velocityX: retreat ? (ex ? -160.0 : -120.0) : (ex ? 250.0 : 180.0), velocityZ: 0.0, throughEdge: true },
     { ...frames(11, 38), velocityX: 0.0, velocityZ: 0.0 }],
@@ -19,7 +19,7 @@ const vanish = (ex: boolean, retreat: boolean): AuthoredSpecial => ({
     medivhHit(retreat ? (ex ? 9.0 : 5.0) : (ex ? 11.0 : 7.0), 55, 80.0, 22.0))],
 });
 const raven = (ex: boolean): AuthoredSpecial => ({
-  cost: 0, endFrame: 36, aimFrames: 8, oncePerAirtime: true, helpless: true, landingLag: 24,
+  endFrame: 36, aimFrames: 8, oncePerAirtime: true, helpless: true, landingLag: 24,
   motion: [{ ...frames(1, 8), velocityX: 0.0, velocityZ: 0.0 },
     { ...frames(9, 28), velocityX: 0.0, velocityZ: ex ? 20.0 : 16.0, aimedSpeed: ex ? 20.0 : 16.0 }],
   regions: [heroRegion(9, 15, { x1: -25.0, z1: 45.0, x2: 25.0, z2: 65.0, radius: 20.0 }, medivhHit(ex ? 8.0 : 5.0, 70))],
