@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { MAIN_DECK_HALF_DEPTH, STAGE_PALETTE_TEXTURE, type DeckFace, type OutlinePoint, mainDeckFaces, mainDeckMdl, mainDeckModelFile, mainDeckOutlineStage, paletteTexture } from "../scripts/stageDeck";
+import { MAIN_DECK_HALF_DEPTH, type DeckFace, type OutlinePoint, mainDeckFaces, mainDeckMdl, mainDeckModelFile, mainDeckOutlineStage, paletteTexture } from "../scripts/stageDeck";
 import { STAGE_DECK_MODELS, STAGE_LIGHT_MODELS, STAGE_MAIN_DECK_MODEL, STAGE_POINT_LIGHT_MODELS } from "../src/game/assets/stageAssetInfo";
 import { STAGE_LIGHTS } from "../src/game/assets/stageLighting";
 import { STAGE_POINT_LIGHTS } from "../src/game/assets/stagePointLights";
@@ -9,12 +9,11 @@ import { luma } from "../src/game/assets/stagePalette";
 import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";
 import { pointLightPieces, shadowCastingLights, stageScenery } from "../src/game/presentation/stageScenery";
 import { STAGE_DECK_PALETTES } from "../src/game/assets/stagePalette";
+import { texturedDeckMdl } from "../scripts/stageMaterials";
 import { CANNON_TEST_STAGE, HELLFIRE_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt, solidSurfaceCount, surfaceLine } from "../src/game/sim/stage";
 
 /** The stages whose main deck has walls and an underside, each drawn from its own outline. */
 const SHIPPED_STAGES = [1, ...STAGE_DECK_PALETTES.map(({ stage }) => stage).filter((stage) => solidSurfaceCount(stage) > 0)];
-/** The neutral main deck model, which stages without a profile of their own draw. */
-const MAIN_DECK = mainDeckFaces(0);
 
 /** The main deck's collision corners on `stage`, from its left ledge along the walking line, then down its walls and underside, in model units. */
 function collisionCorners(stage: number): OutlinePoint[] {
@@ -75,9 +74,11 @@ const area = (points: readonly OutlinePoint[]) => Math.abs(points.reduce((sum, [
 }, 0)) / 2;
 
 test("the map ships the main deck model drawn from the collision [invariant]", () => {
-  expect(STAGE_MAIN_DECK_MODEL).toBe(`war3mapImported\\${mainDeckModelFile(mainDeckMdl(MAIN_DECK, STAGE_PALETTE_TEXTURE.name))}`);
-  for (const { stage, palette } of STAGE_DECK_PALETTES) {
-    expect(STAGE_DECK_MODELS[stage]?.main).toBe(`war3mapImported\\${mainDeckModelFile(mainDeckMdl(mainDeckFaces(mainDeckOutlineStage(stage)), paletteTexture(palette).name))}`);
+  expect(STAGE_MAIN_DECK_MODEL).toBe(STAGE_DECK_MODELS[0]?.main);
+  for (const { stage, palette, materials } of STAGE_DECK_PALETTES) {
+    const faces = mainDeckFaces(mainDeckOutlineStage(stage));
+    const mdl = materials === undefined ? mainDeckMdl(faces, paletteTexture(palette).name) : texturedDeckMdl(faces, materials, palette);
+    expect(STAGE_DECK_MODELS[stage]?.main).toBe(`war3mapImported\\${mainDeckModelFile(mdl)}`);
   }
 });
 
