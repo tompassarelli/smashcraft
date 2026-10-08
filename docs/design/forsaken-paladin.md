@@ -143,7 +143,7 @@ His reach is useful but his commitment and weak chase are exploitable.
 | Shadow Hunter | Forsaken Paladin has no ward or polymorph; his defensive read sets up a chosen hammer punish. |
 | Pit Lord | Forsaken Paladin's narrow hammer head and short holy patch replace a giant body, spit and broad cleaves. |
 | Beastmaster | Forsaken Paladin has no companion or summoned crossfire; the decisive contact is his own weapon. |
-| Lich King | His patch never grows or spends souls; a direct slow sets up hammer reads. |
+| Lich King | His patch never grows or uses frost zones; a direct slow sets up hammer reads. |
 | Thrall | Held hammer and short holy patch instead of lightning and spirit crossfire. |
 | Jaina | Close weapon contact instead of aimed spell rain. |
 | Sylvanas | A hammer slow instead of ranged silence or possession. |

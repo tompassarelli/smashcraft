@@ -1,6 +1,6 @@
 // The Lich King's gameplan (#105, #167): a heavy swordsman who holds
 // Frostmourne's tip spacing, makes the target act with Howling Blast and
-// Defile, banks souls with clean normals, and kills with the smashes, his
+// Defile, spaces with clean normals, and kills with the smashes, his
 // back air and a Val'kyr carry toward the ledge. Fast pressure and juggles
 // are his weakness, so he backs out of close range and keeps to the ground.
 // Gaps are centre to centre: his forward tilt reaches about 178 and a
@@ -28,7 +28,7 @@ export const LICH_KING_GAMEPLAN: FighterGameplan = {
     { starter: AttackStyle.downTilt, followUps: [AttackStyle.forwardTilt, AttackStyle.grab] },
     { starter: AttackStyle.upTilt, followUps: [AttackStyle.upAir, AttackStyle.upTilt] },
     { starter: GameplanThrow.up, followUps: [AttackStyle.upAir] },
-    // Harvest Soul banks a soul and starts a tech chase into Defile or the sweep.
+    // Harvest Soul starts a tech chase into Defile or the sweep.
     { starter: GameplanThrow.down, followUps: [AttackStyle.forwardTilt, GameplanSpecial.down] },
   ],
   kills: [

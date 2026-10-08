@@ -103,7 +103,7 @@ King and Forsaken Paladin survive close exchanges; Jaina must escape them. Lich 
 an orb and manages a shell; Jaina layers a straight shot with an independent,
 destructible elemental. Dreadlord grabs, Shadow Hunter debuffs, Pit Lord
 pressures with size, Beastmaster commands a melee companion and Lich King
-spends souls; Jaina does none of those. Her gains come from occupying space
+uses frost zones; Jaina does none of those. Her gains come from occupying space
 before the opponent enters it, not trapping input or winning trades.
 
 [archmage]: https://wowpedia.fandom.com/wiki/Archmage_(Warcraft_III)

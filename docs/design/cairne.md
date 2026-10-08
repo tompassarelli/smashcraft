@@ -93,7 +93,7 @@ Compared with Lich and Shadow Hunter, he has no placed control zone. Compared
 with Dreadlord, he has no capture or sleep. Compared with Pit Lord, he is
 heavier and taller, with a low straight wave and launcher rather than an arc
 projectile and armored charge. Compared with Beastmaster, he fights with one
-body. Compared with the Lich King, he has no soul resource or persistent pool.
+body. Compared with the Lich King, he has no frost-zone kit or persistent pool.
 
 Use the base-game Tauren Chieftain model and command portrait, stock Warcraft
 impact sounds, a spirit-blue Crushing Wave missile and a small stock ground

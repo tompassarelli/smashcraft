@@ -333,7 +333,7 @@ export function fighterSpecialsCanonical(specials: Readonly<FighterSpecials> | u
     const kit = at(kits, slot);
     if (kit.recallGroundOnly === true) result.push(canonicalInt(`${prefix}.kit[${slot}].recallGroundOnly`, 1));
     if (kit.recallWhile !== undefined) result.push(canonicalInt(`${prefix}.kit[${slot}].recallWhile`, kit.recallWhile === "armor" ? 2 : 1));
-    const forms = [kit.ground, kit.air, kit.free, kit.recall, kit.marked?.special, kit.soul];
+    const forms = [kit.ground, kit.air, kit.free, kit.recall, kit.marked?.special];
     // A fixed count: the list holds undefined forms, which a Lua length would skip.
     for (let form = 0; form < 6; form++) {
       const move = forms[form];
@@ -1229,7 +1229,6 @@ export function prepareKitDigests(): void {
       if (kit.free !== undefined) forms.push(kit.free);
       if (kit.recall !== undefined) forms.push(kit.recall);
       if (kit.marked !== undefined) forms.push(kit.marked.special);
-      if (kit.soul !== undefined) forms.push(kit.soul);
       for (const branch of kit.ground.followUps ?? []) forms.push(branch.special);
       for (const branch of kit.air?.followUps ?? []) forms.push(branch.special);
       for (const form of forms) {

@@ -6,7 +6,6 @@ import { f32 } from "wisp/src/sim/f32";
 import { queueAttack } from "../input/attackBuffer";
 import { AttackStyle, Character, SpecialAction } from "./codes";
 import { canAttack } from "./conditions";
-import { DEMON_HUNTER_THROW_DRAIN } from "./hitRegions";
 import type { Controls } from "./roster";
 import {
   CHAOS_STRIKE_FORM, FEL_RUSH_BRANCH_FIRST, FEL_RUSH_BRANCH_LAST, FEL_RUSH_FRAMES, FEL_RUSH_SPEED, FEL_RUSH_TELL_LAST,

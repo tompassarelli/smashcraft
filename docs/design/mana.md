@@ -86,7 +86,7 @@ its active time. Status durations and healing caps stay unchanged.
 | Shadow Hunter | Spirit Glaive deals 25% more damage in both directions. | Serpent Ward shots deal 25% more damage; recall gains four protected entry frames. | Loa Vault travels 25% farther. | Hex orb has 25% more reach, with unchanged Hex and immunity. |
 | Pit Lord | Howl of Terror has 25% more reach. | Ruin Charge deals 25% more damage. | Abyssal Leap travels 25% farther. | Rain of Fire deals 25% more damage. |
 | Beastmaster | Wild Axes deal 25% more damage. | Bear has 25% more durability and bite damage; Stampede deals 25% more damage. | Hawk has 25% more durability; Hawk Lift travels 25% farther; grounded dive command gains four protected entry frames. | Quilbeast has 25% more durability and shot damage; volley command gains four protected entry frames. |
-| Lich King | Howling Blast, including the soul form, deals 25% more damage. | Val'kyr Shadowguard deals 25% more damage. | Ascension of the Damned travels 25% farther. | Defile's radius, radial growth and maximum radius increase 25%; its tick rate stays unchanged. |
+| Lich King | Howling Blast, deals 25% more damage. | Val'kyr Shadowguard deals 25% more damage. | Ascension of the Damned travels 25% farther. | Defile's radius, radial growth and maximum radius increase 25%; its tick rate stays unchanged. |
 | Thrall | Chain Lightning deals 25% more damage. | Feral Spirit wolves deal 25% more damage. | Far Sight travels 25% farther. | Earthquake has 25% more reach. |
 | Jaina | Frostbolt deals 25% more damage. | Blizzard deals 25% more damage. | Blink travels 25% farther. | Water Elemental has 25% more durability and shot damage; recall gains four protected entry frames. |
 | Sylvanas | Black Arrow deals 25% more damage. | Silence has 25% more reach, with unchanged silence duration. | Banshee Flight travels 25% farther. | Life Drain deals 25% more damage, with the same heal cap. |
@@ -97,7 +97,7 @@ its active time. Status durations and healing caps stay unchanged.
 | Kael'thas | Flame Strike deals 25% more damage. | Siphon has 25% more reach; its resource interaction follows #335. | Phoenix Flight travels 25% farther. | Banish's push has 25% more reach. |
 | Murloc | Ensnare has 25% more reach, with unchanged slow. | Tidal Rush deals 25% more damage. | Tide Spout travels 25% farther. | Disease Cloud has 25% more reach, with unchanged poison duration and tick rate. |
 
-Ground, air, marked, soul and recall forms use their matching upgrade. A
+Ground, air, marked and recall forms use their matching upgrade. A
 follow-up keeps the EX cast's upgrade and never buys a second EX. Authored EX
 data is immutable; the existing replayed `special.ex` selects it. Projectiles
 and placed objects retain the selected authored data after the cast ends.

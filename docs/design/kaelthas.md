@@ -110,7 +110,7 @@ Lich is slower and controls wider space; Kael moves faster with a
 single flame that ends on one contact. Dreadlord has a command grab and healing; Kael's drain
 loses to shield. Shadow Hunter maintains a ward, Pit Lord owns wider melee
 space, and Beastmaster fights beside a ground partner. Lich King holds a
-heavier body and soul resource. Kael pays for mobility with a tall hurt body,
+heavier body and frost-zone kit. Kael pays for mobility with a tall hurt body,
 cast recovery, and a recovery path that cannot turn after startup.
 
 The computer contests medium range with Flame Strike, uses Siphon inside its

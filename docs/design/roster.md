@@ -1155,8 +1155,7 @@ Grab 9/2/30. Throws: forward 10 (EDGE), back 12 (KILL), up 8 (JUGGLE), and
 ### B specials
 
 - **Howling Blast** (neutral, 15 mana): a wide frost gust leaves on frame 16
-  and travels about 2.9H; reflectable. With a soul it is wider, deals 8
-  instead of 6 and chills.
+  and travels about 2.9H; reflectable.
 - **Val'kyr Shadowguard** (side, 20 mana): a Val'kyr flies out on frame 14
   and seizes the first body she reaches (a shield stops her; she can't be
   reflected). The victim is carried 3 units a frame the way she flew, rising,
@@ -1718,7 +1717,7 @@ Required checks for each completed hero:
 - Hitboxes and hurtboxes match visible weapon/body movement at startup, active, and recovery frames.
 - Shields, trades, grabs, throw escape, regrab protection, DI, and techs still follow shared rules.
 - No unlimited air stall, recovery refresh, teleport through solid terrain, or free ledge invulnerability.
-- No negative mana, duplicated resource spending on replay, healing above stock cap, orphaned grab, or retained old-stock entities.
+- No negative mana, duplicated resource spending on replay, orphaned grab, or retained old-stock entities.
 - Replaying the same input tape produces the same confirmed state, including summons, statuses, and entity allocation state.
 - A delayed-input replay with a correction around the new move converges to the complete-input result. For a purely cosmetic unsupported feature, report the presentation gap separately.
 - Two-client runtime evidence covers the completed hero when the current networking build is available. If it is not available, label the hero locally tested only; do not invent a multiplayer result.

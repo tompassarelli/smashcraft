@@ -92,7 +92,7 @@ Warden outrun him; Blademaster has a longer weapon; Mountain King wins single
 heavy commitments; Lich controls farther away; Forsaken Paladin holds longer defensive
 space; Dreadlord has better air pursuit; Shadow Hunter establishes safer
 ranged pressure; Pit Lord reaches farther with slower swings; Beastmaster
-has independent bodies; Lich King controls zones and banks souls. Chen trades
+has independent bodies; Lich King controls zones and controls frost zones. Chen trades
 those tools for fast short checks, staff finishers and a branching defensive
 stance.
 

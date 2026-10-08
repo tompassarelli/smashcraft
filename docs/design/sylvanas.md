@@ -105,7 +105,7 @@ has a visible, hittable flight. Lich slows movement; Silence leaves it free.
 Dreadlord heals from an advancing catch; Sylvanas stands still for hers.
 Shadow Hunter and Beastmaster place allies; Sylvanas has no persistent body.
 Pit Lord wins broad collisions; her bow uses narrower deliberate lines.
-Lich King banks souls for specials; Black Quiver spends on a normal.
+Lich King controls frost zones for specials; Sylvanas follows her arrow with dagger pressure.
 
 Use the stock Warcraft III Sylvanas Dark Ranger model and command portrait,
 stock dark-arrow and banshee effects, and stock model sound cues. The bow

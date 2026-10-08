@@ -317,7 +317,7 @@ test("Vampiric Pounce corkscrews forward in both facings and air forms; another 
   }
 });
 
-test("Vampiric Pounce's bite heals Dreadlord 4 percent, at most 12 a stock [spec docs/design/roster.md]", () => {
+test("Vampiric Pounce's successful bite heals Dreadlord 4 percent [spec #148] [spec docs/design/roster.md]", () => {
   const { world, owner, victim } = pair(H, Character.archer);
   owner.status.damage = 30.0;
   for (let pounce = 0; pounce < 4; pounce++) {
@@ -328,6 +328,6 @@ test("Vampiric Pounce's bite heals Dreadlord 4 percent, at most 12 a stock [spec
     frame(world, side);
     for (let f = 0; f < 120 && owner.special.action === SpecialAction.heroSide; f++) frame(world);
     for (let f = 0; f < 60; f++) frame(world);
-    assertEquals(owner.status.damage, f32(30.0 - Math.min(12.0, 4.0 * (pounce + 1))));
+    assertEquals(owner.status.damage, f32(30.0 - 4.0 * (pounce + 1)));
   }
 });

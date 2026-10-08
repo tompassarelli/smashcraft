@@ -77,7 +77,7 @@ function emptyContact(): DamageContact {
     source: 0, target: 0, effect: emptyHitEffect(), facing: 0, kind: ContactKind.launch, direct: false, hammerHitlag: 0, hitlagDamage: 0.0, blocked: false,
     crouching: false, grounded: false, sourceGrounded: false, sourceAerial: false, sourceDeltaX: 0.0, sourceDeltaZ: 0.0, sourceVelocityX: 0.0, sourceVelocityZ: 0.0, targetDeltaX: 0.0,
     targetDeltaZ: 0.0, down: false, smashCharging: false, throwInput: undefined, status: undefined,
-    origin: HitOrigin.melee, key: -1, proc: PassiveProc.none, height: 1,
+    height: 1,
   };
 }
 
@@ -146,8 +146,6 @@ export function collectDamageContact(
   contact.smashCharging = target.attack.smashCharging;
   contact.throwInput = throwInput;
   contact.status = status;
-  contact.origin = origin ?? defaultOrigin(kind, direct);
-  contact.key = contact.origin === HitOrigin.melee && source.attack.style !== undefined ? source.attack.serial : -1;
   // Authored strike/projectile geometry supplies a height; throws and other
   // contacts without a point use the middle band. This never feeds combat.
   contact.height = 1;
@@ -227,7 +225,6 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     if (contact.blocked) {
       blockedContact = true;
       shieldElectric ||= contact.effect.electric || contact.effect.element === HitElement.electric;
-      // Pit Lord's Cleaving Attack on a shield deals its shield damage twice.
       if (!perfectShield) shieldDamage = addFloat32(shieldDamage, contact.effect.damage);
     } else {
       totalDamage = addFloat32(totalDamage, roundToFloat32(contact.effect.damage));

@@ -392,7 +392,6 @@ function authoredParts(specials: Readonly<FighterSpecials>, projectiles: Map<str
     move(kit.free);
     move(kit.recall);
     move(kit.marked?.special);
-    move(kit.soul);
   }
 }
 

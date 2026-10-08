@@ -48,7 +48,7 @@ export function normalName(style: number): string {
   return NORMAL_NAMES[style] ?? "Attack";
 }
 
-const BASE_FORMS = [SpecialForm.ground, SpecialForm.air, SpecialForm.free, SpecialForm.recall, SpecialForm.marked, SpecialForm.soul] as const;
+const BASE_FORMS = [SpecialForm.ground, SpecialForm.air, SpecialForm.free, SpecialForm.recall, SpecialForm.marked] as const;
 
 function namedForms(kit: Readonly<SpecialKit>): NamedForm[] {
   const forms: NamedForm[] = [];
