@@ -7,17 +7,20 @@ import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots, isParticipantMask,
 import { Character, ItemKind, itemBit } from "../sim/codes";
 import { scheduleMatchItems } from "./centreItem";
 import { nextMatchSeed } from "./botRandom";
-import { CPU_OPPONENT_DEFAULT, CPU_TIER_DEFAULT, type CpuOpponentChoice, type CpuOpponentId, type CpuTier, isCpuOpponentChoice, isCpuTier, resolveCpuOpponent } from "./cpuProfiles";
+import { CPU_OPPONENT_DEFAULT, CPU_TIERS, CPU_TIER_DEFAULT, type CpuOpponentChoice, type CpuOpponentId, type CpuTier, isCpuOpponentChoice, isCpuTier, resolveCpuOpponent } from "./cpuProfiles";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { type MatchItems, copyMatchItems, createMatchItems } from "./items";
 import { STAGE_AT_REST } from "../sim/stage";
 
+import { type ConfiguredRun, copyConfiguredRun, createConfiguredRun } from "../classic/runState";
 import { PARTNER_BEHAVIOURS, PARTNER_DAMAGE_MAX, PARTNER_DAMAGE_STEP, PARTNER_ESCAPES, PARTNER_TECHS, TRAINING_SPEEDS, type TrainingState, clearTrainingReadout, copyTrainingState, createTrainingState } from "./trainingState";
 
 /** Phase numbers are part of the canonical replay checksum. */
 export const Phase = { characterMenu: 0, stageMenu: 1, match: 2, result: 3 } as const;
 export type Phase = (typeof Phase)[keyof typeof Phase];
 export const MATCH_TICKS_PER_SECOND = 60;
+/** Classic's starting difficulty unless a player picks another: Beginner. */
+export const CLASSIC_TIER_DEFAULT = 1;
 
 export interface MatchState {
   readonly camera: MatchCamera;
@@ -65,6 +68,11 @@ export interface MatchState {
   readonly trainer: TrainingState;
   /** Competitive pickups: the two settings and the centre item (match/items.ts, #196). */
   readonly items: MatchItems;
+  /** Classic (#284) is the chosen mode at fighter selection, and the difficulty its run starts at (an index into CPU_TIERS). */
+  classic: boolean;
+  classicTier: number;
+  /** The configured match being played and the run around it (smashcraft:ts/src/game/classic/runState.ts). */
+  readonly run: ConfiguredRun;
 }
 
 /** The opening fighter of slot `index`: the release roster's tiles in order, so a hidden fighter is never preselected. */
@@ -83,6 +91,7 @@ export function createMatchState(): MatchState {
 
     remainingFrames: 7 * 60 * MATCH_TICKS_PER_SECOND, startHold: 0, matchFrame: 0, timedOut: false, practice: false,
     training: false, trainer: createTrainingState(), items: createMatchItems(),
+    classic: false, classicTier: CLASSIC_TIER_DEFAULT, run: createConfiguredRun(),
   };
 }
 
@@ -188,6 +197,9 @@ export function copyMatchState(target: MatchState, source: Readonly<MatchState>)
   target.training = source.training;
   copyTrainingState(target.trainer, source.trainer);
   copyMatchItems(target.items, source.items);
+  target.classic = source.classic;
+  target.classicTier = source.classicTier;
+  copyConfiguredRun(target.run, source.run);
   for (const slot of PARTICIPANT_SLOTS) {
     target.characterChoices[slot] = source.characterChoices[slot];
     target.cpuOpponents[slot] = source.cpuOpponents[slot];
@@ -294,12 +306,45 @@ export function setEndless(game: MatchState, slot: number, endless: boolean): vo
 export function setTraining(game: MatchState, slot: number, training: boolean): void {
   if (!settingRules(game, slot)) return;
   game.training = training;
+  if (training) game.classic = false;
   if (!training) game.trainer.lesson = -1;
 }
 
 /** The tutorial's lesson (match/tutorial.ts, #306), -1 for none; it runs in a training match. */
 export function setTutorialLesson(game: MatchState, slot: number, lesson: number, lessons: number): void {
   if (settingRules(game, slot) && lesson >= -1 && lesson < lessons) game.trainer.lesson = lesson;
+}
+
+/** The mode button steps Versus, Training, Classic. */
+export function cycleMatchMode(game: MatchState, slot: number): void {
+  if (!settingRules(game, slot)) return;
+  if (game.classic) game.classic = false;
+  else if (game.training) {
+    game.training = false;
+    game.classic = true;
+  } else game.training = true;
+}
+
+/** Classic's starting difficulty steps through the five computer tiers. */
+export function stepClassicTier(game: MatchState, slot: number, direction: number): void {
+  if (settingRules(game, slot) && game.classic) game.classicTier = Math.max(0, Math.min(CPU_TIERS.length - 1, game.classicTier + direction));
+}
+
+/** Ends a configured run: the menu's own settings come back and play returns to fighter selection. */
+export function endConfiguredRun(game: MatchState): void {
+  const { run } = game;
+  if (!run.active) return;
+  run.active = false;
+  run.current = undefined;
+  game.humanFighterMask = run.savedHumanFighters;
+  game.computerMask = run.savedComputers;
+  game.stockCount = run.savedStocks;
+  game.timeLimitMinutes = run.savedMinutes;
+  game.hazards = run.savedHazards;
+  game.items.on = run.savedItems;
+  game.rematchReadiness.fill(false);
+  for (const slot of PARTICIPANT_SLOTS) if (computerActive(game, slot)) game.characterReadiness[slot] = true;
+  game.phase = Phase.characterMenu;
 }
 
 const cycle = (value: number, count: number, direction: number): number => floorMod(value + direction, count);
@@ -374,7 +419,7 @@ function beginMatch(game: MatchState): void {
   game.departedMask = 0;
   game.timedOut = false;
   game.rematchCountdown = 0;
-  game.practice = !game.training && practiceSelected(game);
+  game.practice = !game.training && !game.run.active && practiceSelected(game);
   clearTrainingReadout(game.trainer);
   game.remainingFrames = timedMatch(game) ? game.timeLimitMinutes * 60 * MATCH_TICKS_PER_SECOND : 0;
   // A match has run since the boot: this one plays the next seed.
@@ -423,7 +468,7 @@ export const REMATCH_COUNTDOWN_SECONDS = 5;
 
 /** At a result, the automatic rematch counts down `seconds`; none after a player left. */
 export function beginRematchCountdown(game: MatchState, seconds: number): void {
-  game.rematchCountdown = game.phase === Phase.result && game.automaticRematch && !game.interrupted ? seconds * MATCH_TICKS_PER_SECOND : 0;
+  game.rematchCountdown = game.phase === Phase.result && game.automaticRematch && !game.interrupted && !game.run.active ? seconds * MATCH_TICKS_PER_SECOND : 0;
 }
 
 /** Any player's press during the countdown stops the automatic rematch; true when one was counting. */

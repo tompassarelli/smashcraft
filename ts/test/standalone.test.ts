@@ -19,17 +19,18 @@ async function fourFighterMatch(frames: number): Promise<void> {
     expect(value(client, () => shell().game.computerMask)).toBe(14);
     expect(value(client, () => shell().game.characterChoices.slice(0, 4))).toEqual([Character.archer, Character.rifleman, Character.demonHunter, Character.archer]);
     const x = value(client, () => shell().world.fighters[0]?.motion.x);
-    for (let frame = 0; frame < 132; frame++) session.step(NEUTRAL_INPUT);
+    const firstDash = 110;
+    for (let frame = 0; frame < firstDash; frame++) session.step(NEUTRAL_INPUT);
     // A later stock loss may legitimately put the human back at this spawn.
     expect(value(client, () => shell().world.fighters[0]?.motion.x)).not.toBe(x);
-    for (let frame = 132; frame < frames; frame++) session.step(NEUTRAL_INPUT);
+    for (let frame = firstDash; frame < frames; frame++) session.step(NEUTRAL_INPUT);
     expect(value(client, () => shell().world.fighters.filter(fighter => fighter !== undefined && fighter.status.stocks > 0).length)).toBe(4);
     expect(session.finished()).toBe(false);
     expect(client.errors).toEqual([]);
   } finally { session.close(); }
 }
 
-test("standalone four-fighter match moves the human on its first dash and keeps three computers on stage [repro #242]", () => fourFighterMatch(132));
+test("standalone four-fighter match moves the human on its first dash and keeps three computers on stage [repro #242]", () => fourFighterMatch(110));
 
 sweep("standalone four-fighter match keeps all four fighters playing for 600 frames [repro #242]", () => fourFighterMatch(600));
 

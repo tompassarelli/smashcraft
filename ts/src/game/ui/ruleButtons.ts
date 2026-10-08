@@ -36,6 +36,8 @@ export const RULE_BUTTONS = {
   moreDamage: stepBox(f32(0.72), f32(0.551)),
   hitAreas: toggleBox(f32(0.38), f32(0.517)),
   speed: toggleBox(f32(0.055), f32(0.519)),
+  easierClassic: stepBox(f32(0.38), f32(0.585)),
+  harderClassic: stepBox(f32(0.72), f32(0.585)),
 } as const;
 
 /** The partner choices training steps through. */

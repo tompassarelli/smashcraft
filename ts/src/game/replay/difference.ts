@@ -16,6 +16,7 @@ import type { DashGrabRules, FighterPhysics, GroundMovementRules, ShieldGeometry
 import { at } from "wisp/src/runtime/lookup";
 import { canonicalSlot, fighterMovesCanonical, fighterSpecialsCanonical } from "./canonical";
 import { firstTrainingDifference } from "../match/trainingState";
+import { firstRunDifference } from "../classic/runState";
 import { firstItemsDifference } from "../match/items";
 import { firstBotMemoryDifference } from "../match/botPerception";
 import { botStrategyValues } from "../match/botStrategy";
@@ -436,6 +437,10 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
   if (e.training !== a.training) return "match.training";
   const training = firstTrainingDifference(e.trainer, a.trainer);
   if (training !== undefined) return training;
+  if (e.classic !== a.classic) return "match.classic";
+  if (e.classicTier !== a.classicTier) return "match.classicTier";
+  const run = firstRunDifference(e.run, a.run);
+  if (run !== undefined) return run;
   if (e.stockCount !== a.stockCount) return "match.stockCount";
   if (e.timeLimitMinutes !== a.timeLimitMinutes) return "match.timeLimitMinutes";
   if (e.endless !== a.endless) return "match.endless";

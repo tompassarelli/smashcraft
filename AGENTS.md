@@ -285,6 +285,7 @@ code. From smashcraft:ts/:
   and pad scripts: `-dev quick hero NAME`, `-dev quick recovery hero NAME`
   (starts tumbling above the floor for recovery captures), and `-dev quick cpu OPPONENT DIFFICULTY [hero NAME]`,
   a quick match against a named computer at the selected difficulty over three stocks.
+  `-dev classic NAME` starts that fighter's Classic run and `-dev classic boss NAME` its boss battle (smashcraft:docs/design/classic-mode.md).
   `-dev quick offstage hero NAME` starts the #189 recovery check at x=700, z=300 on Frozen Throne with jumps spent.
   The named variant uses the normal CPU selection rule.
   `-dev pain HEIGHT STRENGTH FIGHTER` starts the #181 mirror capture fixture:
@@ -683,6 +684,11 @@ code. From smashcraft:ts/:
   maps expose `-dev view near|far|off` for those framings and
   `-dev fogv STYLE ZSTART ZEND DENSITY HEIGHTSTART HEIGHTEND LINEARSTART LINEAREND R G B OVER_SKY`
   for the existing 3.0 fog comparison; these affect only local presentation.
+- Stage-select cards: `bun scripts/stageThumbnails.ts` (from ts/, through the
+  capacity helper) regenerates every stage's layout silhouette and the hero
+  renders of stages without Warcraft zone art, stores them and records their
+  input hashes; run it after any stage or stage-art change, or
+  ts/test/stage-thumbnails.test.ts fails (smashcraft:docs/design/stage-select.md).
 - Melee oracle: `bun wisp oracle` plays Melee situations for every fighter
   and prints each outcome beside the value cited from the decompilation; the
   test suite fails on any mismatch it doesn't list as known

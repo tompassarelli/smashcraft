@@ -8,23 +8,28 @@ export type StageChoice = StageTile | typeof RANDOM_STAGE;
 export interface StageInfo<Choice extends StageChoice = StageTile> {
   readonly id: Choice;
   readonly name: string;
+  /**
+   * The card's picture, square: Warcraft's own campaign loading art for the
+   * stage's zone, or for a stage with none, its hero-camera render
+   * (scripts/stageThumbnails.ts; smashcraft:docs/design/stage-select.md).
+   */
   readonly texture: string;
   readonly description: string;
 }
 
 /** The ranked ten, followed by the flat testing arena. */
 export const STAGE_CATALOG: readonly StageInfo[] = [
-  { id: 2, name: "Frozen Throne", texture: "war3mapImported\\SelectionFrozenThrone.tga", description: "Three icy platforms above Icecrown.\nFight beneath the Frozen Throne." },
-  { id: 10, name: "Nordrassil", texture: "war3mapImported\\SelectionNordrassil.tga", description: "Three platforms beneath the World Tree.\nThe Ancients breathe alternating gusts." },
-  { id: 11, name: "Gryphon Aerie", texture: "war3mapImported\\SelectionGryphon.tga", description: "Close quarters above Aerie Peak.\nA carried platform circles the arena." },
-  { id: 3, name: "Durotar Skies", texture: "war3mapImported\\SelectionDurotar.tga", description: "Fight over Durotar's rocky spires.\nOne platform drifts from side to side." },
-  { id: 4, name: "Naxxramas", texture: "war3mapImported\\SelectionNaxxramas.tga", description: "The Scourge citadel looms overhead.\nTwo platforms patrol their own routes." },
-  { id: 14, name: "Hellfire Citadel", texture: "war3mapImported\\SelectionHellfire.tga", description: "Two steady platforms before the demon gate.\nHold your ground against the Legion." },
-  { id: 12, name: "Blackrock", texture: "war3mapImported\\SelectionBlackrock.tga", description: "One forge platform above the molten depths.\nA swinging cannon offers a way back." },
-  { id: 13, name: "Ahn'Qiraj", texture: "war3mapImported\\SelectionAhnQiraj.tga", description: "An open arena among ancient Qiraji ruins.\nA rising platform breaks the silence." },
-  { id: 6, name: "Stratholme", texture: "war3mapImported\\SelectionStratholme.tga", description: "Rooftops over a burning city at dusk.\nTwo low balconies, one high roof." },
-  { id: 7, name: "Tomb of Sargeras", texture: "war3mapImported\\SelectionTombOfSargeras.tga", description: "Sunken ruins awash in the tide.\nTwo platforms reach out past the edges." },
-  { id: 0, name: "Sky Deck (test)", texture: "war3mapImported\\SelectionSkyDeck.tga", description: "One open platform for practice and testing.\nRoom to fight, nowhere to hide." },
+  { id: 2, name: "Frozen Throne", texture: "UI\\Glues\\Loading\\Backgrounds\\Campaigns\\IcecrownExpansion-TopLeft.blp", description: "Three icy platforms above Icecrown.\nFight beneath the Frozen Throne." },
+  { id: 10, name: "Nordrassil", texture: "UI\\Glues\\Loading\\Backgrounds\\Campaigns\\AshenvaleExpansion-TopLeft.blp", description: "Three platforms beneath the World Tree.\nThe Ancients breathe alternating gusts." },
+  { id: 11, name: "Gryphon Aerie", texture: "war3mapImported\\StageCardGryphon.blp", description: "Close quarters above Aerie Peak.\nA carried platform circles the arena." },
+  { id: 3, name: "Durotar Skies", texture: "UI\\Glues\\Loading\\Backgrounds\\Campaigns\\BarrensExpansion-TopLeft.blp", description: "Fight over Durotar's rocky spires.\nOne platform drifts from side to side." },
+  { id: 4, name: "Naxxramas", texture: "UI\\Glues\\Loading\\Backgrounds\\Campaigns\\LordaeronExpansion-TopLeft.blp", description: "The Scourge citadel looms overhead.\nTwo platforms patrol their own routes." },
+  { id: 14, name: "Hellfire Citadel", texture: "UI\\Glues\\Loading\\Backgrounds\\Campaigns\\OutlandExpansion-TopLeft.blp", description: "Two steady platforms before the demon gate.\nHold your ground against the Legion." },
+  { id: 12, name: "Blackrock", texture: "war3mapImported\\StageCardBlackrock.blp", description: "One forge platform above the molten depths.\nA swinging cannon offers a way back." },
+  { id: 13, name: "Ahn'Qiraj", texture: "war3mapImported\\StageCardAhnQiraj.blp", description: "An open arena among ancient Qiraji ruins.\nA rising platform breaks the silence." },
+  { id: 6, name: "Stratholme", texture: "UI\\Glues\\Loading\\Backgrounds\\Campaigns\\Lordaeron-TopLeft.blp", description: "Rooftops over a burning city at dusk.\nTwo low balconies, one high roof." },
+  { id: 7, name: "Tomb of Sargeras", texture: "UI\\Glues\\Loading\\Backgrounds\\Campaigns\\DrownedRuinsExpansion-TopLeft.blp", description: "Sunken ruins awash in the tide.\nTwo platforms reach out past the edges." },
+  { id: 0, name: "Sky Deck (test)", texture: "war3mapImported\\StageCardSkyDeck.blp", description: "One open platform for practice and testing.\nRoom to fight, nowhere to hide." },
 ];
 
 export function stageTileIndex(choice: number): number {
