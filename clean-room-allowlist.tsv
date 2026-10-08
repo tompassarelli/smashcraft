@@ -8,3 +8,6 @@ tools/selection/art/OpponentSettings.fdf	generated	bun scripts/wisp/uiFrames.ts 
 tools/selection/art/OpponentSettings.toc	generated	bun scripts/wisp/uiFrames.ts (from ts/)
 tools/selection/art/SmashcraftHUD.fdf	generated	bun scripts/wisp/uiFrames.ts (from ts/)
 tools/selection/art/SmashcraftHUD.toc	generated	bun scripts/wisp/uiFrames.ts (from ts/)
+tools/selection/art/CueGraphics.fdf	original	Authored local graphics-mode string for Classic spell cue timing (#144).
+tools/selection/art/CueGraphics.toc	original	Authored loader for the local graphics-mode string (#144).
+tools/selection/art/CueGraphicsDE.fdf	original	Authored Definitive override of the local graphics-mode string (#144).
