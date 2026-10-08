@@ -43,14 +43,14 @@ describes the three phases. Landing figures are the automatic final lag.
 
 | Input | Gesture and decision | Frames | Damage; direction | Landing |
 | --- | --- | --- | --- | --- |
-| Jab, jab 2 | Hammer butt then short hook; close escape, not a ranged poke | 5/2/14; 7/3/18 | 4; 45°, then 6; 40° | — |
-| Forward tilt, angled up/down | Waist-height hammer hook; aim over or under a shield | 10/3/21 | 10; 35°/55°/20° | — |
+| Jab, jab 2 | Hammer butt then short hook; close escape, not a ranged poke | 4/2/14; 7/3/18 | 5; 45°, then 6; 40° | — |
+| Forward tilt, angled up/down | Waist-height hammer hook; aim over or under a shield | 8/3/21 | 12.5; 35°/55°/20° | — |
 | Up tilt | Lift hammer over the rider; starts a juggle | 8/4/20 | 8; 85° | — |
-| Down tilt | Wolf's low paw swipe; tech-chase starter | 8/3/19 | 7; 70° | — |
-| Dash attack | Wolf shoulder with rider braced; exposed body travels 65 units | 11/4/25 | 10; 55° | — |
+| Down tilt | Wolf's low paw swipe; tech-chase starter | 6/3/19 | 8.75; 70° | — |
+| Dash attack | Wolf shoulder with rider braced; exposed body travels 65 units | 11/4/25 | 12.5; 55° | — |
 | Forward smash | Planted Doomhammer hook; strongest close punish | 20/3/34 | 18; 40° | — |
 | Up smash | Hammer crown sweep; catches a landing | 17/4/29 | 15; 85° | — |
-| Down smash | Wolf swipes front then back; covers a roll with commitment | 16/6/30 | 13; 25° outward | — |
+| Down smash | Wolf swipes front then back; covers a roll with commitment | 14/6/30 | 16.25; 25° outward | — |
 | Neutral air | Compact hammer/body turn; stops a close approach | 8/5/20 | 8; 50° | 14 |
 | Forward air | Hammer across the front; spacing and edge guard | 13/3/25 | 12; 45° | 18 |
 | Back air | Reverse hammer hook; heavier rear finisher | 11/3/25 | 13; 35° backward | 17 |
