@@ -338,7 +338,7 @@ maxima of the last 120 frames. After each hot reload every client writes the
 `bun wisp hot --watch` and `bun wisp dev --data` print the change and flag a
 rise over 20%. The playable entry never imports the meter.
 
-`LUA=<32-bit lua> bun wisp perf [quick-match|bot|bot-four] [--frames N]`
+`bun wisp perf [quick-match|bot|bot-four] [--frames N]`
 plays a run in 32-bit Lua and prints each client's Lua instructions, Lua
 time, native calls, allocation and typed text per frame, and the frame's
 predicted cost in Warcraft (p50, p95, worst; [Wisp's model](https://github.com/tompassarelli/wisp/blob/main/docs/frame-cost.md#predicted-native-cost)).
@@ -577,15 +577,16 @@ From smashcraft:ts/:
   and the game's receipt writer, then
   restores the source in `finally` and checks it again. Cold startup has no
   latency gate; every check still fails CI on unexpected compiler errors.
-- `LUA=<32-bit lua> bun wisp parity numeric`: emitted Lua against Bun on
+- `bun wisp parity numeric`: emitted Lua against Bun on
   the numeric corpus, in that stock Lua32 and in one whose raw float `+ - *`
-  round toward zero (`TOWARD_ZERO_LUA`, or built in build/toward-zero-lua
-  with nix). The corpus includes `f32(a + b)`, `f32(a - b)` and `f32(a * b)`
+  round toward zero. `LUA` and `TOWARD_ZERO_LUA` name them; unset, each is
+  Wisp's pinned build, made once per user in ~/.cache/wisp/lua32
+  (wisp:scripts/wisp/lua32.ts). The corpus includes `f32(a + b)`, `f32(a - b)` and `f32(a * b)`
   as the compiler emits them.
 - `GAME_SOAK=1 bun test test/game.test.ts`: the long `*.soak.ts` scenarios,
   such as the 100000-frame replay tape, which the default suite leaves out.
   `GAME_SOAK=1` selects the same modules for `scripts/lua-tests.ts`.
-- Set `LUA=<32-bit lua>`, then run `bun wisp parity tapes` for replay acceptance
+- `bun wisp parity tapes` runs replay acceptance
   tapes. It records cases for every bound action, corrected predictions and a
   rematch, then compares canonical replay state and fighter poses after every
   frame in Bun and emitted Lua32, in the stock Lua32 and the toward-zero one
@@ -752,7 +753,7 @@ normal bundle's size and costs CPU
 (wisp:docs/stack-traces.md), so keep it out of playable and
 measurement builds. Frames cover this repository's TypeScript; Wisp's
 precompiled dispatch and reporter, and Warcraft natives, add none.
-`LUA=<32-bit lua> bun scripts/lua-tests.ts` compiles
+`bun scripts/lua-tests.ts` compiles
 smashcraft:ts/test/stack/entry.ts with the plugin and checks that the demo's
 report names its frames at the lines that executed them.
 

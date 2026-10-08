@@ -87,22 +87,10 @@ jobs:
           key: bun-install-${{ hashFiles('ts/bun.lock') }}
       - run: bun install --frozen-lockfile
         working-directory: ts
-      - id: lua
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
         with:
-          path: ts/build/lua
-          key: lua-5.3.6-32-fc5fd69bb873-${{ hashFiles('ts/node_modules/wisp/native/toward-zero.h') }}
-      - name: Build stock and toward-zero 32-bit Luas
-        if: steps.lua.outputs.cache-hit != 'true'
-        working-directory: ts
-        run: |
-          mkdir -p build/lua/stock build/lua/toward-zero
-          curl -fsSL https://www.lua.org/ftp/lua-5.3.6.tar.gz -o build/lua-5.3.6.tar.gz
-          echo 'fc5fd69bb8736323f026672b1b7235da613d7177e72558893a0bdcd320466d60  build/lua-5.3.6.tar.gz' | sha256sum --check
-          tar -xzf build/lua-5.3.6.tar.gz -C build/lua/stock
-          tar -xzf build/lua-5.3.6.tar.gz -C build/lua/toward-zero
-          make -C build/lua/stock/lua-5.3.6 -j4 generic MYCFLAGS=-DLUA_32BITS
-          make -C build/lua/toward-zero/lua-5.3.6 -j4 generic "MYCFLAGS=-DLUA_32BITS -include $PWD/node_modules/wisp/native/toward-zero.h"
+          path: ~/.cache/wisp/lua32
+          key: wisp-lua32-${{ hashFiles('ts/node_modules/wisp/scripts/wisp/lua32.ts', 'ts/node_modules/wisp/native/toward-zero.h') }}
       - uses: actions/download-artifact@v4
         with:
           name: farm-test-plan
@@ -118,8 +106,6 @@ jobs:
           exit "$code"
         env:
           TEST_JUNIT_DIR: build/junit
-          LUA: ${{ github.workspace }}/ts/build/lua/stock/lua-5.3.6/src/lua
-          TOWARD_ZERO_LUA: ${{ github.workspace }}/ts/build/lua/toward-zero/lua-5.3.6/src/lua
       - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
@@ -149,22 +135,10 @@ jobs:
           key: bun-install-${{ hashFiles('ts/bun.lock') }}
       - run: bun install --frozen-lockfile
         working-directory: ts
-      - id: lua
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
         with:
-          path: ts/build/lua
-          key: lua-5.3.6-32-fc5fd69bb873-${{ hashFiles('ts/node_modules/wisp/native/toward-zero.h') }}
-      - name: Build stock and toward-zero 32-bit Luas
-        if: steps.lua.outputs.cache-hit != 'true'
-        working-directory: ts
-        run: |
-          mkdir -p build/lua/stock build/lua/toward-zero
-          curl -fsSL https://www.lua.org/ftp/lua-5.3.6.tar.gz -o build/lua-5.3.6.tar.gz
-          echo 'fc5fd69bb8736323f026672b1b7235da613d7177e72558893a0bdcd320466d60  build/lua-5.3.6.tar.gz' | sha256sum --check
-          tar -xzf build/lua-5.3.6.tar.gz -C build/lua/stock
-          tar -xzf build/lua-5.3.6.tar.gz -C build/lua/toward-zero
-          make -C build/lua/stock/lua-5.3.6 -j4 generic MYCFLAGS=-DLUA_32BITS
-          make -C build/lua/toward-zero/lua-5.3.6 -j4 generic "MYCFLAGS=-DLUA_32BITS -include $PWD/node_modules/wisp/native/toward-zero.h"
+          path: ~/.cache/wisp/lua32
+          key: wisp-lua32-${{ hashFiles('ts/node_modules/wisp/scripts/wisp/lua32.ts', 'ts/node_modules/wisp/native/toward-zero.h') }}
       - uses: actions/download-artifact@v4
         with:
           name: farm-test-plan
@@ -178,6 +152,7 @@ jobs:
       - name: Test shards
         working-directory: ts
         run: |
+          LUA=$(bun node_modules/wisp/scripts/wisp/lua32.ts stock)
           set +e
           bun node_modules/wisp/scripts/wisp/farmShards.ts lua-plan plan.json > build/lua-plan.tsv
           count=$((LUA_JOBS * LUA_PER_JOB))
@@ -201,8 +176,6 @@ jobs:
           for pid in "${pids[@]}"; do wait "$pid" || failed=1; done
           for log in build/lua-*.log; do echo "== $log"; cat "$log"; done
           exit "$failed"
-        env:
-          LUA: ${{ github.workspace }}/ts/build/lua/stock/lua-5.3.6/src/lua
       - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:

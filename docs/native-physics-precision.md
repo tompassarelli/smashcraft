@@ -17,7 +17,7 @@ that diagnostic's script. Neither command installs a map or controls a client.
 
 For the headless fixtures, run
 `GAME_TESTS=physicsPrecision bun test test/game.test.ts`, then
-`LUA=<32-bit lua> bun scripts/lua-tests.ts`. Reference disagreements remain
+`bun scripts/lua-tests.ts`. Reference disagreements remain
 failed tests and failed native groups; they must not be turned into passing
 reports by changing the fixture. The required native report is still all
 sixteen groups, the three zero mismatch counts, `MESSAGES 19`, and

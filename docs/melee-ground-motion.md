@@ -55,7 +55,7 @@ the previous velocity, without claiming a newly verified contact magnitude.
 smashcraft:ts/src/game/sim/physicsPrecisionMotion.tests.ts checks these facts
 through production contact handling and movement. From smashcraft:ts/, run
 `GAME_TESTS=physicsPrecisionMotion bun test test/game.test.ts` for the focused
-checks and `LUA=<32-bit lua> bun scripts/lua-tests.ts` for the emitted Lua.
+checks and `bun scripts/lua-tests.ts` for the emitted Lua.
 The native profile is documented in smashcraft:docs/native-physics-precision.md.
 
 The historical Wurst pre-fix comparison reported 30 mismatches: 14 positions, ten recoil

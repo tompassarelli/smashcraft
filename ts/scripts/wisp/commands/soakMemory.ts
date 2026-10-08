@@ -10,6 +10,7 @@ import { mapCompiler, report } from "wisp/scripts/compiler";
 import { type Command, UsageFailure, describeCause, flagValues } from "wisp/scripts/wisp/command";
 import { step } from "wisp/scripts/wisp/timings";
 import { MEMORY_LIMITS, checkMemory, parseMemoryRun } from "../memorySoak";
+import { stockLua } from "../luaRuntimes";
 import { buildProject, tsDirectory } from "../project";
 
 class MemorySoakFailure extends Schema.TaggedError<MemorySoakFailure>()("MemorySoakFailure", { problem: Schema.String }) {
@@ -37,7 +38,7 @@ export const soakMemory: Command = (args) => Effect.gen(function*() {
   const playable = buildProject("playable");
   yield* compile(playable.configPath).pipe(step("compile the playable build"));
   yield* compile(join(tsDirectory, "tsconfig.memory.json")).pipe(step("compile the memory soak"));
-  const lua = process.env.LUA ?? "lua";
+  const lua = yield* stockLua.pipe(Effect.mapError((problem) => new MemorySoakFailure({ problem })));
   const declarations = join(tsDirectory, "node_modules/wisp/src/natives/warcraft.d.ts");
   const text = yield* Effect.tryPromise({
     try: async () => {

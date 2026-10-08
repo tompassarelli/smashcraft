@@ -2,19 +2,21 @@
 // it (smashcraft:client/src-tauri/src/mapsim.rs): its Lua glue loads a map
 // bundle without starting it, adds viewer.lua's modules and drives the viewer.
 // Here the map is a TypeScriptToLua bundle compiled as maps are, wrapped as
-// war3map.lua holds it, in the 32-bit Lua that LUA names (CI's Lua step).
+// war3map.lua holds it, in the 32-bit Lua that LUA names, else Wisp's cached pinned build.
 import { expect, test } from "bun:test";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { Effect } from "effect";
 import { joinReplay, parseReplayHeader, parseReplayPart } from "../src/game/replay/matchReplay";
 import { TAPE_REPLAY_SERIAL, recordTapeReplay } from "../src/game/replay/tapeReplay";
 import { buildViewerLua } from "../scripts/viewerLua";
+import { stockLua } from "../scripts/wisp/luaRuntimes";
 
 const ts = join(import.meta.dir, "..");
-const lua = process.env.LUA;
+const lua = await Effect.runPromise(stockLua);
 
-test.skipIf(lua === undefined)("a replay plays in a map bundle's own simulation with the viewer's modules added", () => {
+test("a replay plays in a map bundle's own simulation with the viewer's modules added", () => {
   const viewer = buildViewerLua(ts);
   const bundle = readFileSync(join(ts, "build/viewer-lua/viewer.lua"), "utf8");
   const recorded = recordTapeReplay(700, 401);
@@ -35,7 +37,7 @@ test.skipIf(lua === undefined)("a replay plays in a map bundle's own simulation 
     "print(smashcraft_seek('120'))",
     "print(smashcraft_advance('1000'))",
   ].join("\n"));
-  const run = Bun.spawnSync([lua ?? "lua", join(folder, "run.lua"), folder, join(ts, "../client/src-tauri/src/mapsim.lua")], { stdout: "pipe", stderr: "pipe" });
+  const run = Bun.spawnSync([lua, join(folder, "run.lua"), folder, join(ts, "../client/src-tauri/src/mapsim.lua")], { stdout: "pipe", stderr: "pipe" });
   expect(run.stderr.toString()).toBe("");
   const [opened, advanced, sought, ended] = run.stdout.toString().trim().split("\n").map((line) => JSON.parse(line));
   expect(opened).toEqual({ first: 0, last: 700, frame: 0 });

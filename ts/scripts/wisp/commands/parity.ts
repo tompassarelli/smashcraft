@@ -39,7 +39,7 @@ export const parity: Command = ([mode, ...args]) => {
       // Supplied native results need no Lua; otherwise the corpus runs in a stock and a toward-zero Lua32.
       const luas: Effect.Effect<readonly (readonly [string, string])[], string> = args.length > 0
         ? Effect.succeed([])
-        : luaRuntimes(tsDirectory).pipe(Effect.map(({ nearest, towardZero }) => [["stock Lua32", nearest], ["toward-zero Lua32", towardZero]]));
+        : luaRuntimes.pipe(Effect.map(({ nearest, towardZero }) => [["stock Lua32", nearest], ["toward-zero Lua32", towardZero]]));
       return luas.pipe(
         Effect.mapError((cause) => new IntegrityFailure({ operation: "find the 32-bit Luas", path: "LUA, TOWARD_ZERO_LUA", cause })),
         Effect.flatMap((runtimes) => Effect.tryPromise({

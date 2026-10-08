@@ -1,8 +1,8 @@
 // #141, #166: every client records the playable build's match as a replay
 // while it runs (parts during the match, the manifest at its result, under
 // its match record's serial), and the replay plays the whole match back to
-// every checksum it recorded: in Bun always, and in 32-bit Lua when LUA names
-// one (CI's Lua step runs this file with it). The playable build's match is
+// every checksum it recorded, in Bun and in 32-bit Lua (LUA, else Wisp's
+// cached pinned build). The playable build's match is
 // played on the keyboard alone, through locally sampled rollback rows.
 import { afterAll, expect, test } from "bun:test";
 import { mkdtempSync, writeFileSync } from "node:fs";
@@ -131,11 +131,9 @@ test("a one-minute keyboard match in the playable build reaches its result and r
   expect(bun.frames).toBe(header.repro.frame);
   expect(bun.reached).toBe(bun.recorded);
   expect(bun.recorded).toBeGreaterThan(header.repro.frame / 120);
-  const lua = process.env.LUA;
-  if (lua === undefined) return;
   const file = join(folder, "joined.txt");
   writeFileSync(file, `${first.join("\n")}\n`);
-  const inLua = await Effect.runPromise(replayInLua(file, lua));
+  const inLua = await Effect.runPromise(replayInLua(file));
   expect(inLua.problems).toEqual([]);
   expect(inLua).toMatchObject({ frames: bun.frames, reached: bun.recorded, recorded: bun.recorded, checksum: bun.checksum });
 }, 120_000);

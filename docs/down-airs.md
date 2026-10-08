@@ -44,7 +44,7 @@ facings. The Lich casts through a 60-degree body dive at contact, with the exist
 
 From ts/, `GAME_TESTS=downAir bun test test/game.test.ts` checks every selectable
 fighter's active strike centres and exact downward clip. Both checks also run
-in `LUA=PATH bun scripts/lua-tests.ts`. This repair changes no combat values.
+in `bun scripts/lua-tests.ts`. This repair changes no combat values.
 
 From the root, `bun tools/animations/down-air-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
 appends seven clips and generates downAirClipInfo.ts. Store hero-models, then
