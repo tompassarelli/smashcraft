@@ -41,7 +41,7 @@ export const STOCK_MODEL_SCALES: Readonly<Record<Character, { readonly unit: str
   [Character.kobold]: { unit: "nkob", scale: 1.0 },
   [Character.medivh]: { unit: "nmed", scale: 1.0 },
   [Character.murloc]: { unit: "nmrl", scale: 1.0 },
-  [Character.grom]: { unit: "Ogro", scale: 1.0 },
+  [Character.grom]: { unit: "Ogrh", scale: 1.0 },
 };
 
 /** The scale each fighter model is drawn at; effects attached to it scale with it. */

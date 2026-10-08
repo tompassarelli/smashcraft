@@ -15,6 +15,7 @@ const UNITSKIN_MODEL_SCALE: Readonly<Record<string, number>> = {
   earc: 1.0, hrif: 1.0, Edem: 1.0, Obla: 1.0, Hmkg: 1.0, Ewar: 1.0,
   Ulic: 1.0, Hpal: 1.0, Npal: Math.fround(1.2), Udre: 1.0, Oshd: 1.0, Nplh: 1.0, Nbst: 1.0, Usyl: 1.0,
   Othr: 1.0, Hjai: 1.0, Otch: 1.0, Npbm: 1.0, opeo: 1.0, Ntin: 1.0, Hblm: 1.0, nmrl: 1.0, nkob: 1.0,
+  Ogrh: 1.0, nmed: 1.0,
   // A community model has no unit behind it, so no unit scale: drawn at 1.0 (#167).
   LichKing2: 1.0,
   Efur: Math.fround(1.1),
