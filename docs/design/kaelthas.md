@@ -1,7 +1,7 @@
 # Kael’thas Sunstrider
 
-Kael’thas is a mobile fire caster who wants the opponent to cross a delayed
-flame pillar. He buys another cast by risking a close Siphon Mana, or spends
+Kael’thas is a mobile fire caster who sends a wall of flame along the ground
+at an approaching opponent. He buys another cast by risking a close Siphon Mana, or spends
 mana on a brief Banish dodge. His recovery is a committed phoenix flight.
 All geometry, damage and timings below are original provisional Smashcraft
 values. Smash references explain roles and trade-offs, not copied hitboxes.
@@ -26,15 +26,20 @@ jumps and dodge timing stay the roster's. Unlike Mewtwo's tail, his disjoint
 flames are not part of his hurt body; his extended casting arm is.
 
 [Robin's Arcfire](https://www.ssbwiki.com/Arcfire) supplies Flame Strike's
-medium-range approach stop and persistent pillar into a launcher.
+role: a fire projectile that travels out to stop an approach and launches.
 [Ultimate Robin's side-special timing](https://www.ssbwiki.com/Robin_(SSBU)/Side_special)
 lists the initial projectile at frames 17–76 and the caster interruptible at
-frame 64. These support a delayed threat that persists beyond its caster's
-commitment. The [Warcraft III Blood Mage](https://classic.battle.net/war3/human/units/bloodmage.shtml)
-likewise leaves fire in a target area over time. Kael's 36-frame live window
-is original Smashcraft tuning, not Arcfire's projectile or pillar duration.
-His flame ends on its first body or shield contact, so it cannot hold a victim
-in repeated flame hits.
+frame 64: the fire keeps its threat after the caster's commitment ends. The
+[Warcraft III Blood Mage](https://classic.battle.net/war3/human/units/bloodmage.shtml)
+burns a target area. Kael's flame leaves the hand on frame 12 and travels
+along the ground for 33 frames; this is original Smashcraft tuning, not
+Arcfire's projectile or pillar duration. His flame ends on its first body or
+shield contact, so it cannot hold a victim in repeated flame hits.
+
+A fixed pillar placed 180 units ahead and live from frame 17 lost most of
+the computer field (1,611 of 8,160 games at 5af7b159): opponents crossed it
+in the air before it erupted or after it went out. The travelling flame meets
+an approach at any distance up to about 420 units.
 [Ridley's Wing Blitz](https://www.ssbwiki.com/Wing_Blitz) supplies the recovery
 commitment: choose a heading before flight, then punish the helpless landing.
 [Mewtwo's moves](https://www.ssbwiki.com/Mewtwo_(SSBU)#Moveset) supply the
@@ -54,7 +59,7 @@ Every ordinary contact is one hit per target and action.
 | Up tilt | Raised sphere; starts a juggle above the hand | 8/4/20; 8%; height 136 | [Verdant Spheres][wc] | [Mewtwo up tilt][mw] |
 | Down tilt | Low hand sweep; launcher | 7/3/18; 6%; 106 | [Verdant Spheres][wc] | [Mewtwo down tilt][mw] |
 | Dash attack | Forward palm with a 64-unit approach | 10/4/24; 9%; 108 | [Verdant Spheres][wc] | [Mewtwo dash attack][mw] |
-| Forward smash | Two-hand fire lance; committed finisher | 19/3/31; 16%; 150 | [Flame Strike][wc] | [Mewtwo forward smash][mw] |
+| Forward smash | Two-hand fire lance; committed finisher | 13/3/31; 16%; 150 | [Flame Strike][wc] | [Mewtwo forward smash][mw] |
 | Up smash | Narrow overhead eruption; catches descent | 18/5/31; 15%; height 175 | [Flame Strike][wc] | [Mewtwo up smash][mw] |
 | Down smash | Low flames ahead and behind; roll read | 20/4/32; 14%; ±125 | [Flame Strike][wc] | [Mewtwo down smash][mw] |
 | Neutral air | One circular sphere burst; close escape | 8/6/22, land 14; 7%; ±65 | [Verdant Spheres][wc] | [Mewtwo neutral air][mw] |
@@ -79,7 +84,7 @@ apply. No guaranteed repeat-grab or flame loop is designed.
 
 | Input | Decision and counterplay | Original values | Warcraft / Smash reference |
 |---|---|---|---|
-| Neutral: Flame Strike | Mark space in front, then leave a flame that launches once. Opponent can shield, leave the marked space or interrupt the caster before eruption. An untouched flame persists after the caster recovers. Ground and air use the same placed flame at cast height. | 20 mana; appear f8 at x180/z45, radius65; first active f17, last active f52 (36 frames); 10%, upward launch; action ends f43; air landing20; one live flame; one body or shield contact consumes it; no reflection; interrupted startup cancels | [Flame Strike][flame], [Arcfire][arc], [Robin's timing][arcframes] |
+| Neutral: Flame Strike | Send a wall of flame along the ground that launches the first enemy it reaches. Opponent can shield it, jump over it or interrupt the caster before it leaves the hand. A flame already sent keeps travelling if the caster is hit. Ground and air send the same flame at cast height. | 20 mana; appears f12 at x50/z45, radius40, travels 9/frame; live f12–44, reaching about 420 units from his centre; 12%, upward launch; action ends f43; air landing20; one live flame; one body or shield contact consumes it; no reflection; an interrupt before f12 sends nothing | [Flame Strike][flame], [Arcfire][arc], [Robin's timing][arcframes] |
 | Side: Siphon Mana | Short reaching cast trades fire damage for mana. Shield or space it; a whiff leaves the hand exposed. | 5 mana; strike f15–17 to x145; 4%; steal up to25 mana; action ends f42; air landing20; one contact | [Siphon Mana][wc], [Mewtwo Confusion][mw] |
 | Up: Phoenix Flight | Aim during startup, then fly in that heading. Opponent attacks the startup or catches the helpless descent. | 15 mana; aim through f10; f11–30 travel at14/frame, 280 units; free version9/frame, 180 units; 6% flame contact f11–20; end f36; spends aerial jump, once per airtime, helpless; landing24 | [Phoenix][wc], [Wing Blitz][wing] |
 | Down: Banish | Briefly phase the caster, then push nearby opponents away. This is self-Banish, not a long victim stun. | 15 mana; intangible f5–12; burst f13–15, radius65; 5%; ends f38; air landing20 | [Banish][wc], [Mewtwo Disable's evasive startup][mw] |
@@ -91,21 +96,19 @@ aerial jump and ends helpless. Walking off a ledge retains the aerial jump.
 The computer jumps first and aims Phoenix Flight at the ledge when needed.
 The stock Blood Mage and Phoenix/effect models and existing Warcraft sounds
 supply all presentation; no downloaded art or recordings are needed.
-The Flame Strike model's birth sequence draws its warning before its fire:
-presentation samples 0.5 seconds at placement and 1.5 seconds at the first
-active frame, then advances from each sample with the projectile clock.
-The warning lasts f8–16; fire is live f17–52 unless it has already hit.
-Both ground and air casting gestures peak at the f17 eruption and end at f43.
-Playing the stock sequence from zero would leave its first hit invisible.
+The travelling flame draws the Flame Strike model's birth sequence from its
+1.5-second fire sample, advancing with the projectile clock, so it is live
+fire from its first frame. Playing the stock sequence from zero would show
+only the warning while the flame already hits. The casting gesture ends at f43.
 
 ## Position in the roster
 
-Archer and Rifleman fire repeatedly from farther away; Kael threatens one
-fixed delayed zone. Illidan drains while rushing; Kael risks a stationary
+Archer and Rifleman fire repeatedly from farther away; Kael sends one
+costly flame at a time. Illidan drains while rushing; Kael risks a stationary
 Siphon. Blademaster and Warden win through weapon approach and escape routes;
 Kael commits to casting. Mountain King and Uther survive trades better.
 Lich is slower and controls wider space; Kael moves faster with a
-fixed flame that ends on one contact. Dreadlord has a command grab and healing; Kael's drain
+single flame that ends on one contact. Dreadlord has a command grab and healing; Kael's drain
 loses to shield. Shadow Hunter maintains a ward, Pit Lord owns wider melee
 space, and Beastmaster fights beside a ground partner. Lich King holds a
 heavier body and soul resource. Kael pays for mobility with a tall hurt body,
@@ -115,6 +118,9 @@ The computer contests medium range with Flame Strike, uses Siphon inside its
 reach, Banishes close pressure, and uses every directional aerial and throw
 through the shared matchup planner. Down tilt and Flame Strike launch toward
 up air; DI, airdodge and tech choices decide the follow-up.
+Forward smash starts on frame 13: at frame 19, in a 48-game probe against
+Dreadlord and Illidan, the computer was hit out of it
+about seven times a match while landing it twice.
 The computer may use Banish against a threat that arrives during its f5–12
 protection when it has 15 mana and can act. For a threat farther away it can
 wait to time Banish; for one arriving before f5 it chooses another defense. Banish

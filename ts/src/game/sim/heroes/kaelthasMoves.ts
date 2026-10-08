@@ -27,7 +27,7 @@ export const KAELTHAS_MOVES: FighterMoves = {
       [AttackStyle.forwardTilt]: reach(7, 13, 38.0, 58.0), [AttackStyle.forwardTiltUp]: reach(7, 13, 38.0, 88.0),
       [AttackStyle.forwardTiltDown]: reach(7, 13, 38.0, 20.0), [AttackStyle.upTilt]: reach(6, 13, 18.0, 114.0),
       [AttackStyle.downTilt]: reach(5, 11, 42.0, 18.0), [AttackStyle.dashAttack]: reach(8, 15, 42.0, 48.0),
-      [AttackStyle.forwardSmash]: reach(16, 25, 42.0, 60.0), [AttackStyle.upSmash]: reach(15, 25, 16.0, 122.0),
+      [AttackStyle.forwardSmash]: reach(10, 19, 42.0, 60.0), [AttackStyle.upSmash]: reach(15, 25, 16.0, 122.0),
       [AttackStyle.downSmash]: reach(17, 26, 42.0, 20.0), [AttackStyle.neutralAir]: reach(6, 16, 34.0, 64.0),
       [AttackStyle.forwardAir]: reach(6, 12, 42.0, 62.0), [AttackStyle.backAir]: reach(10, 16, -44.0, 62.0),
       [AttackStyle.upAir]: reach(8, 15, 12.0, 120.0), [AttackStyle.downAir]: reach(12, 20, 12.0, -20.0),
@@ -41,7 +41,7 @@ export const KAELTHAS_MOVES: FighterMoves = {
     [AttackStyle.upTilt]: heroMove(8, 4, 20, 0, [heroRegion(8, 11, capsule(18.0, 62.0, 18.0, 120.0, 16.0), ordinary(8.0, 90, 95.0, 24.0))]),
     [AttackStyle.downTilt]: heroMove(7, 3, 18, 0, [heroRegion(7, 9, capsule(20.0, 12.0, 94.0, 10.0), ordinary(6.0, 80, 95.0, 24.0))]),
     [AttackStyle.dashAttack]: heroMove(10, 4, 24, 0, [heroRegion(10, 13, capsule(26.0, 46.0, 94.0, 46.0, 14.0), ordinary(9.0, 55))], 64.0, true),
-    [AttackStyle.forwardSmash]: heroMove(19, 3, 31, 0, [heroRegion(19, 21, capsule(30.0, 60.0, 138.0, 60.0), ordinary(16.0, 35, 110.0, 28.0))]),
+    [AttackStyle.forwardSmash]: heroMove(13, 3, 31, 0, [heroRegion(13, 15, capsule(30.0, 60.0, 138.0, 60.0), ordinary(16.0, 35, 110.0, 28.0))]),
     [AttackStyle.upSmash]: heroMove(18, 5, 31, 0, [heroRegion(18, 22, capsule(0.0, 36.0, 0.0, 157.0, 18.0), ordinary(15.0, 90, 110.0, 28.0))]),
     [AttackStyle.downSmash]: heroMove(20, 4, 32, 0, [
       heroRegion(20, 23, capsule(28.0, 14.0, 111.0, 14.0, 14.0), ordinary(14.0, 25, 110.0, 28.0)),

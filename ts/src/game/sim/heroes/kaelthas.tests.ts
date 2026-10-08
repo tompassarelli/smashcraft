@@ -73,61 +73,68 @@ function frame(world: Roster, input: Readonly<Controls> = controls(), targetInpu
   resolveAttacks(world); advanceSpecials(world, 0, 0, rows); updateProjectiles(world); finishDamageContacts(world);
 }
 
-test("Kaelthas Flame Strike first hits on frame 17, lands one launcher and spends once", () => {
-  for (const facing of [-1, 1]) {
-    const { owner, target, world } = pair(180.0, facing);
+test("Kaelthas Flame Strike leaves the hand on frame 12 and launches the first body it reaches once", () => {
+  for (const facing of [-1, 1]) for (const [x, contact] of [[120.0, 12], [180.0, 19], [300.0, 32], [400.0, 43]] as const) {
+    const { owner, target, world } = pair(x, facing);
     frame(world, controls({ specialPressed: true })); assertEquals(owner.special.action, SpecialAction.heroNeutral); assertEquals(owner.mana.points, 20);
-    for (let tick = 2; tick <= 16; tick++) frame(world); assertEquals(target.status.damage, 0.0);
-    frame(world); assertEquals(target.status.damage, 10.0); assertGreaterThan(target.launch.knockbackZ, 0.0);
-    for (let tick = 18; tick <= 60; tick++) frame(world); assertEquals(target.status.damage, 10.0); assertEquals(owner.mana.points, 20);
+    for (let tick = 2; tick < contact; tick++) frame(world);
+    assertEquals(target.status.damage, 0.0, `before ${x}`);
+    frame(world); assertEquals(target.status.damage, 12.0, `at ${x}`); assertGreaterThan(target.launch.knockbackZ, 0.0);
+    for (let tick = contact + 1; tick <= 60; tick++) frame(world);
+    assertEquals(target.status.damage, 12.0); assertEquals(owner.mana.points, 20);
   }
 });
 
-test("Kaelthas Flame Strike shows its warning before the live fire pose", () => {
-  const { owner, world } = pair(1000.0);
-  frame(world, controls({ specialPressed: true }));
-  for (let tick = 2; tick <= 8; tick++) frame(world);
-  const warning = projectedProjectile(owner, 0, true);
-  assertTrue(warning.visible); assertTrue(!warning.armed);
-  assertEquals(warning.animationSequence, "birth"); assertEquals(warning.animationSeconds, 0.5);
-  for (let tick = 9; tick <= 16; tick++) frame(world);
-  assertTrue(!projectedProjectile(owner, 0, true).armed);
-  frame(world);
-  const flame = projectedProjectile(owner, 0, true);
-  assertTrue(flame.armed); assertEquals(flame.animationSeconds, 1.5);
+test("Kaelthas Flame Strike shows live fire travelling ahead from frame 12 to frame 44", () => {
+  for (const facing of [-1, 1]) {
+    const { owner, world } = pair(1000.0, facing);
+    frame(world, controls({ specialPressed: true }));
+    for (let tick = 2; tick <= 11; tick++) frame(world);
+    assertTrue(!projectedProjectile(owner, 0, true).visible);
+    frame(world);
+    const flame = projectedProjectile(owner, 0, true);
+    assertTrue(flame.visible); assertTrue(flame.armed);
+    assertEquals(flame.animationSequence, "birth"); assertEquals(flame.animationSeconds, f32(1.5 + f32(1 / 60)));
+    const start = flame.x;
+    for (let tick = 13; tick <= 44; tick++) frame(world);
+    const last = projectedProjectile(owner, 0, true);
+    assertTrue(last.visible); assertGreaterThan(f32((last.x - start) * facing), 250.0);
+    frame(world); assertTrue(!projectedProjectile(owner, 0, true).visible);
+  }
 });
 
-test("Kaelthas Flame Strike catches late entrants through frame 52 and respects shield and startup interruption", () => {
+test("Kaelthas Flame Strike stops at a shield, misses after its life and keeps travelling when the caster is interrupted", () => {
   for (const facing of [-1, 1]) {
-    for (const enterFrame of [40, 52, 53]) {
-      const { owner, target, world } = pair(1000.0, facing);
-      frame(world, controls({ specialPressed: true }));
-      for (let tick = 2; tick < enterFrame; tick++) frame(world);
-      assertEquals(target.status.damage, 0.0);
-      if (enterFrame <= 52) assertTrue(projectedProjectile(owner, 0, true).armed);
-      target.motion.x = f32(180.0 * facing);
-      target.motion.z = 0.0; target.motion.vz = 0.0; target.motion.grounded = true; target.motion.surface = 0;
-      frame(world); assertEquals(target.status.damage, enterFrame <= 52 ? 10.0 : 0.0);
-      for (let tick = enterFrame + 1; tick <= 60; tick++) frame(world);
-      assertEquals(target.status.damage, enterFrame <= 52 ? 10.0 : 0.0);
-      assertTrue(!projectedProjectile(owner, 0, true).visible); assertEquals(owner.mana.points, 20);
-    }
     const blocked = pair(180.0, facing);
     const defense = controls({ shield: true, shieldStrength: 1.0 });
     frame(blocked.world, controls({ specialPressed: true }), defense);
-    for (let tick = 2; tick <= 60; tick++) frame(blocked.world, controls(), defense);
+    for (let tick = 2; tick <= 19; tick++) frame(blocked.world, controls(), defense);
+    assertTrue(!projectedProjectile(blocked.owner, 0, true).visible);
+    for (let tick = 20; tick <= 60; tick++) frame(blocked.world, controls(), defense);
     assertEquals(blocked.target.status.damage, 0.0); assertEquals(blocked.owner.mana.points, 20);
 
-    const interrupted = pair(1000.0, facing);
+    const late = pair(1000.0, facing);
+    frame(late.world, controls({ specialPressed: true }));
+    for (let tick = 2; tick <= 45; tick++) frame(late.world);
+    late.target.motion.x = f32(400.0 * facing);
+    late.target.motion.z = 0.0; late.target.motion.vz = 0.0; late.target.motion.grounded = true; late.target.motion.surface = 0;
+    for (let tick = 46; tick <= 60; tick++) frame(late.world);
+    assertEquals(late.target.status.damage, 0.0);
+
+    const interrupted = pair(180.0, facing);
     frame(interrupted.world, controls({ specialPressed: true }));
-    for (let tick = 2; tick <= 16; tick++) frame(interrupted.world);
+    for (let tick = 2; tick <= 13; tick++) frame(interrupted.world);
     assertTrue(projectedProjectile(interrupted.owner, 0, true).visible);
     cancelSpecialState(interrupted.owner);
-    interrupted.target.motion.x = f32(180.0 * facing);
-    interrupted.target.motion.z = 0.0; interrupted.target.motion.vz = 0.0; interrupted.target.motion.grounded = true; interrupted.target.motion.surface = 0;
-    for (let tick = 17; tick <= 60; tick++) frame(interrupted.world);
-    assertEquals(interrupted.target.status.damage, 0.0); assertEquals(interrupted.owner.mana.points, 20);
-    assertTrue(!projectedProjectile(interrupted.owner, 0, true).visible);
+    for (let tick = 14; tick <= 60; tick++) frame(interrupted.world);
+    assertEquals(interrupted.target.status.damage, 12.0); assertEquals(interrupted.owner.mana.points, 20);
+
+    const early = pair(180.0, facing);
+    frame(early.world, controls({ specialPressed: true }));
+    for (let tick = 2; tick <= 11; tick++) frame(early.world);
+    cancelSpecialState(early.owner);
+    for (let tick = 12; tick <= 60; tick++) frame(early.world);
+    assertEquals(early.target.status.damage, 0.0); assertTrue(!projectedProjectile(early.owner, 0, true).visible);
   }
 });
 
