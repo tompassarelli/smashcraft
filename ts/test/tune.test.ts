@@ -100,7 +100,7 @@ const tunedGravity = () => (tuned ??= tunedEntry(TUNED_GRAVITY));
 // About 1.5 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
 test("under rollback the speculative match and every history snapshot take tuned values too, so a correction can't undo them [invariant]", async () => {
   const { entry, tuning } = await tunedGravity();
-  const clients = headless.clients({ install, start: () => startBuild(INTEGRITY_BUILD) });
+  const clients = headless.clients({ install, start: () => startBuild(INTEGRITY_BUILD) }, [0, 1], { keepCalls: 0 });
   clients.start();
   clients.frames(30);
   clients.chat(0, "-dev quick");
