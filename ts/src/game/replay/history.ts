@@ -250,20 +250,25 @@ export class ReplayHistory {
     const start = this.repairNext;
     if (start === undefined) return 0;
     if (live.runtime.simulationFrame !== this.nextFrame - 1 || !this.contains(epoch, start)) return "rejected";
-    const state = this.repairState;
+    // A repair that reaches the present in this call replays in live state, which it replaces anyway.
+    const direct = !this.repairPositioned && this.nextFrame - start <= budget;
+    const state = direct ? live : this.repairState;
+    // Positioning copies the start's snapshot, so the first frame needn't write it back onto itself.
+    let restored = false;
     if (!this.repairPositioned) {
       copyReplayState(state, this.snapshotAt(start));
-      this.repairPositioned = true;
+      this.repairPositioned = !direct;
+      restored = true;
     }
     let frame = start;
     for (let steps = 0; steps < budget && frame < this.nextFrame; steps++) {
-      copyReplayState(this.snapshotAt(frame), state);
+      if (!restored || frame !== start) copyReplayState(this.snapshotAt(frame), state);
       if (!this.executeRecorded(frame, state)) return "rejected";
       frame++;
       this.repairNext = frame;
     }
     if (frame < this.nextFrame) return frame - start;
-    copyReplayState(live, state);
+    if (!direct) copyReplayState(live, state);
     this.repairNext = undefined;
     this.repairPositioned = false;
     return frame - start;

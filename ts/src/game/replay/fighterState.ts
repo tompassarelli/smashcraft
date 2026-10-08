@@ -154,9 +154,11 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
 
   const hits = target.hits;
   const sourceHits = source.hits;
-  for (let i = 0; i < hits.entries.length; i++) {
-    const to = at(hits.entries, i);
-    const from = at(sourceHits.entries, i);
+  // Paired walks index the source directly: a snapshot copies four fighters' tables every frame.
+  let hit = 0;
+  for (const to of hits.entries) {
+    const from = sourceHits.entries[hit++];
+    if (from === undefined) throw new Error(`no hit entry ${hit - 1} to copy`);
     to.attacker = retained(activeMask, from.attacker);
     to.attackSerial = from.attackSerial;
     to.window = from.window;
@@ -201,9 +203,10 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   special.grabFrame = sourceSpecial.grabFrame;
   special.guarded = sourceSpecial.guarded;
 
-  for (let i = 0; i < target.projectiles.length; i++) {
-    const to = at(target.projectiles, i);
-    const from = at(source.projectiles, i);
+  let projectile = 0;
+  for (const to of target.projectiles) {
+    const from = source.projectiles[projectile++];
+    if (from === undefined) throw new Error(`no projectile ${projectile - 1} to copy`);
     to.life = from.life;
     to.x = from.x;
     to.z = from.z;

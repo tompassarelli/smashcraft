@@ -15,7 +15,7 @@ import { produceComputerInput } from "./botPlay";
 import { observedFrameLegalActions, observedFrameStartedActions, stepMatch } from "./step";
 import { latchPresses, releasePresses } from "./training";
 import { type ReplayState, copyReplayState } from "../replay/snapshot";
-import { type BotMemory, copyBotMemory, createBotMemory, firstBotMemoryDifference } from "./botPerception";
+import { type BotMemory, clearBotMemory, copyBotMemory, createBotMemory, firstBotMemoryDifference } from "./botPerception";
 import { type BotStrategy, copyBotStrategy, createBotStrategy, botStrategyValues } from "./botStrategy";
 
 /** Detached source rows. Every execution adapts again from the world being replayed. */
@@ -100,10 +100,12 @@ export function copyMatchFrameInput(target: MatchFrameInput, source: Readonly<Ma
   target.mask = source.mask;
   target.networkMask = source.networkMask;
   target.source = source.source;
-  copyBotMemory(target.botMemoryAfterInput, source.botMemoryAfterInput);
   const adapted = source.source !== "network";
+  // Only adapted rows carry the computers' state; a network row's computers decide again when it runs.
+  if (adapted) copyBotMemory(target.botMemoryAfterInput, source.botMemoryAfterInput);
+  else if (target.botMemoryAfterInput.history.length > 0) clearBotMemory(target.botMemoryAfterInput);
   for (const slot of PARTICIPANT_SLOTS) {
-    copyBotStrategy(target.botStrategiesAfterInput[slot], source.botStrategiesAfterInput[slot]);
+    if (adapted) copyBotStrategy(target.botStrategiesAfterInput[slot], source.botStrategiesAfterInput[slot]);
     if (adapted && participantActive(source.mask, slot)) {
       copyControls(target.values.inputs[slot], source.values.inputs[slot]);
       copyAttackBuffer(target.values.commands[slot], source.values.commands[slot]);

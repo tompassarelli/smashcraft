@@ -96,16 +96,25 @@ export function copyBotMemory(target: BotMemory, source: Readonly<BotMemory>): v
   if (target === source) return;
   const from = storageFor(source);
   const into = storageFor(target);
-  for (const entry of into.entries) release(entry);
-  into.entries.length = 0;
-  into.history.length = 0;
-  into.arena = from.arena;
-  for (const entry of from.entries) {
-    entry.references++;
-    into.entries.push(entry);
-    into.history.push(entry.sample);
+  // Retained before released, so a sample both hold never reaches the free list.
+  for (const entry of from.entries) entry.references++;
+  for (const entry of into.entries) {
+    entry.references--;
+    if (entry.references === 0) entry.arena.free.push(entry);
   }
-  target.history = into.history;
+  into.arena = from.arena;
+  const { entries, history } = into;
+  let count = 0;
+  for (const entry of from.entries) {
+    entries[count] = entry;
+    history[count] = entry.sample;
+    count++;
+  }
+  if (entries.length > count) {
+    entries.length = count;
+    history.length = count;
+  }
+  target.history = history;
   for (const slot of PARTICIPANT_SLOTS) {
     target.directions[slot] = source.directions[slot];
     target.directionFrames[slot] = source.directionFrames[slot];
