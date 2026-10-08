@@ -15,7 +15,10 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
-import { Cause, Context, Effect, Exit, Fiber, Layer, Option, Schema, Scope } from "effect";
+import { Cause, Context, Deferred, Effect, Exit, Fiber, Layer, Option, Schedule, Schema, Scope } from "effect";
+import { BunServices } from "@effect/platform-bun";
+import { ChildProcess } from "effect/process";
+import { spawnLogged } from "wisp/scripts/wisp/hostProcess";
 import { preloadLines } from "wisp/scripts/wisp/boundary";
 import { UsageFailure, describeCause } from "wisp/scripts/wisp/command";
 import { loadClients } from "wisp/scripts/warcraft/desktop";
@@ -28,6 +31,7 @@ import { INTEGRITY_BUILD } from "../../src/game/shell/currentBuild";
 import { RESET_COMMAND } from "../../src/game/shell/devSettings";
 import { devCommandReceiptFile } from "../../src/runtime/gameFiles";
 import { IntegrityFailure } from "../integrity/evidence";
+import { pollUntil } from "../hostPoll";
 import { monotonicNs } from "../integrity/linux";
 import { compareRuns, comparisonSteps, scriptChat } from "../integrity/padParity";
 import { parsePadScript } from "../integrity/padScript";
@@ -54,7 +58,7 @@ const LanPool = Schema.Struct({ pairs: Schema.Array(Schema.Struct({ id: Schema.F
  * (`--pair K`, for a share of the pool other runners also use).
  */
 export function lanPairs(poolFile: string, select: { readonly count: number } | { readonly ids: readonly number[] }): PadPair[] {
-  const pool = Schema.decodeUnknownSync(LanPool)(JSON.parse(readFileSync(poolFile, "utf8")));
+  const pool = Schema.decodeSync(Schema.fromJsonString(LanPool))(readFileSync(poolFile, "utf8"));
   const parsed = pool.pairs.map((pair): PadPair => ({ name: `lan-${pair.id}`, clients: pair.clients, appIds: new Map(Object.entries(pair.appIds ?? {})), lan: pair.id }));
   if ("ids" in select) {
     const missing = select.ids.filter((id) => !parsed.some((pair) => pair.lan === id));
@@ -72,9 +76,9 @@ const ToolsOnly = Schema.Struct({ tools: Schema.Record(Schema.String, Schema.Str
  * taken from `toolsFrom` (Smashcraft's clients.json) when the pair's file has none.
  */
 export function withTools(pair: PadPair, toolsFrom: string, dir: string): PadPair {
-  const clients: unknown = JSON.parse(readFileSync(pair.clients, "utf8"));
+  const clients = Schema.decodeSync(Schema.fromJsonString(Schema.Unknown))(readFileSync(pair.clients, "utf8"));
   if (typeof clients === "object" && clients !== null && "tools" in clients) return pair;
-  const { tools } = Schema.decodeUnknownSync(ToolsOnly)(JSON.parse(readFileSync(toolsFrom, "utf8")));
+  const { tools } = Schema.decodeSync(Schema.fromJsonString(ToolsOnly))(readFileSync(toolsFrom, "utf8"));
   mkdirSync(dir, { recursive: true });
   const path = join(dir, `${pair.name}-clients.json`);
   writeFileSync(path, `${JSON.stringify({ ...(typeof clients === "object" ? clients : {}), tools }, null, 2)}\n`);
@@ -100,43 +104,39 @@ export function needsNewGame(previous: "none" | "valid" | "failed" | "invalid" |
 
 const seconds = (since: number) => (performance.now() - since) / 1000;
 
-/** At most `limit` of the tasks run at once, in the order they were asked for. */
-function limiter(limit: number) {
-  let running = 0;
-  const waiting: (() => void)[] = [];
-  return async <T>(task: () => Promise<T>): Promise<T> => {
-    if (running >= limit) await new Promise<void>((resolve) => waiting.push(resolve));
-    running++;
-    try {
-      return await task();
-    } finally {
-      running--;
-      waiting.shift()?.();
-    }
-  };
-}
-
 const wispProgram = join(import.meta.dir, "../wisp.ts");
 
-/** Runs `bun wisp ARGS`, its output into `log`; resolves with the exit code. */
-async function wisp(args: readonly string[], log: string): Promise<number> {
-  const file = Bun.file(log);
-  const child = Bun.spawn([process.execPath, wispProgram, ...args], { stdout: file, stderr: file, cwd: join(import.meta.dir, "../..") });
-  return child.exited;
+export class BatchProcessFailure extends Schema.TaggedError<BatchProcessFailure>()("BatchProcessFailure", {
+  command: Schema.String, log: Schema.String, code: Schema.Int, problem: Schema.String,
+}) {
+  override get message(): string { return `${this.command} ${this.problem}; see ${this.log}`; }
 }
+
+class BatchRetry extends Schema.TaggedError<BatchRetry>()("BatchRetry", { script: Schema.String }) {}
+
+/** The batch's logged child, stopped and reaped when its step is interrupted. */
+export const runBatchProcess = (command: string, args: readonly string[], log: string) => Effect.scoped(Effect.gen(function*() {
+  const { handle, written } = yield* spawnLogged(ChildProcess.make(command, args, { cwd: join(import.meta.dir, "../.."), stdin: "ignore", forceKillAfter: "1 second" }), { stdout: log, stderr: `${log}.err` });
+  const code = yield* handle.exitCode;
+  yield* written;
+  if (code !== 0) return yield* new BatchProcessFailure({ command, log, code, problem: `exited ${code}` });
+})).pipe(
+  Effect.catchTag("PlatformError", (cause) => Effect.fail(new BatchProcessFailure({ command, log, code: 1, problem: cause.message }))),
+  Effect.provide(BunServices.layer),
+);
+
+const wisp = (args: readonly string[], log: string) => runBatchProcess(process.execPath, [wispProgram, ...args], log);
 
 /** A new game on the pair, stopped at fighter selection: `bun wisp fresh MAP --no-quick`, or `bun wisp lan fresh MAP --pair K`. */
 const newGame = (pair: PadPair, map: string, log: string) => Effect.gen(function*() {
   const args = pair.lan === undefined ? ["fresh", map, "--no-quick", "--clients-file", pair.clients] : ["lan", "fresh", map, "--pair", String(pair.lan)];
-  for (let attempt = 0; attempt < 2; attempt++) {
+  let attempt = 0;
+  yield* Effect.suspend(() => Effect.gen(function*() {
     const started = Date.now();
-    if ((yield* Effect.promise(() => wisp(args, `${log}.${attempt}`))) === 0) {
-      const clients = yield* loadClients(pair.clients).pipe(Effect.mapError((cause) => new IntegrityFailure({ operation: "binding-ready clients", path: pair.name, cause })));
-      yield* Effect.forEach(clients, (client) => readyAfter(client, started), { concurrency: "unbounded" }).pipe(Effect.provide(gameFilesLayer), Effect.mapError((cause) => new IntegrityFailure({ operation: "binding-ready receipt", path: pair.name, cause })));
-      return;
-    }
-  }
-  return yield* new IntegrityFailure({ operation: "start a new game", path: map, cause: `bun wisp ${args.join(" ")} failed twice on ${pair.name} (${log}.1)` });
+    yield* wisp(args, `${log}.${attempt++}`);
+    const clients = yield* loadClients(pair.clients).pipe(Effect.mapError((cause) => new IntegrityFailure({ operation: "binding-ready clients", path: pair.name, cause })));
+    yield* Effect.forEach(clients, (client) => readyAfter(client, started), { concurrency: "unbounded" }).pipe(Effect.provide(gameFilesLayer), Effect.mapError((cause) => new IntegrityFailure({ operation: "binding-ready receipt", path: pair.name, cause })));
+  })).pipe(Effect.retry({ schedule: Schedule.recurs(1), while: (failure) => failure._tag === "BatchProcessFailure" }), Effect.mapError((cause) => new IntegrityFailure({ operation: "start a new game", path: map, cause })));
 });
 
 
@@ -144,11 +144,7 @@ const newGame = (pair: PadPair, map: string, log: string) => Effect.gen(function
 const atSelection = (receipts: readonly string[], sinceMs: number) => Effect.gen(function*() {
   const reset = (path: string) => existsSync(path) && statSync(path).mtimeMs >= sinceMs
     && (preloadLines(readFileSync(path, "latin1")) ?? []).some((line) => line.startsWith("SETUP phase=0 "));
-  const deadline = Date.now() + 8000;
-  while (!receipts.every(reset)) {
-    if (Date.now() > deadline) return yield* new IntegrityFailure({ operation: "reset", path: receipts.join(", "), cause: `no fighter-selection receipt from every client within 8 s of ${RESET_COMMAND}` });
-    yield* Effect.sleep("50 millis");
-  }
+  yield* pollUntil(Effect.try({ try: () => receipts.every(reset) ? true : undefined, catch: (cause) => new IntegrityFailure({ operation: "reset", path: receipts.join(", "), cause }) }), { every: "50 millis", within: "8 seconds", orElse: () => Effect.fail(new IntegrityFailure({ operation: "reset", path: receipts.join(", "), cause: `no fighter-selection receipt from every client within 8 s of ${RESET_COMMAND}` })) });
 });
 
 /** Types `-dev reset` into the pair's client A and waits for both clients' receipts. */
@@ -228,6 +224,7 @@ const label = (script: string, taken: Set<string>) => {
  * time: they need nothing from the side they are compared with.
  */
 const prepare = (options: BatchOptions, native = false) => Effect.gen(function*() {
+  const batchScope = yield* Effect.scope;
   const taken = new Set<string>();
   const runs = yield* Effect.try({
     try: () => options.scripts.map((script): ScriptRun => {
@@ -243,45 +240,50 @@ const prepare = (options: BatchOptions, native = false) => Effect.gen(function*(
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
   if (native) yield* requireCaptureLease(timingCheck(runs.map(({ steps }) => steps)));
-  const limit = limiter(options.headlessJobs);
   // A reference that slipped (an edge written late on a loaded host, a helper that
   // saw the match late) proves nothing about the other side: it runs again, twice at most.
-  const references = new Map(runs.map((run) => [run.label, limit(async () => {
+  const references = new Map<string, Deferred.Deferred<{ code: number; seconds: number; ended: number }, IntegrityFailure>>();
+  for (const run of runs) references.set(run.label, yield* Deferred.make<{ code: number; seconds: number; ended: number }, IntegrityFailure>());
+  yield* Effect.forkScoped(Effect.forEach(runs, (run) => Effect.gen(function*() {
     const at = performance.now();
-    let code = 1;
-    for (let attempt = 0; attempt < 3 && code !== 0; attempt++) {
-      if (attempt > 0 && existsSync(join(run.dir, "headless"))) renameSync(join(run.dir, "headless"), join(run.dir, `headless-invalid-${attempt - 1}`));
-      code = await wisp(["pad", run.script, "--headless", "--helper", options.helper, "--out", join(run.dir, "headless"), `--chat=${run.chat}`], join(run.dir, attempt === 0 ? "headless.log" : `headless-${attempt}.log`));
-    }
-    return { code, seconds: seconds(at), ended: performance.now() };
-  })] as const));
+    let attempt = 0;
+    const result = yield* Effect.exit(Effect.suspend(() => Effect.gen(function*() {
+      const current = attempt++;
+      yield* Effect.try({ try: () => { if (current > 0 && existsSync(join(run.dir, "headless"))) renameSync(join(run.dir, "headless"), join(run.dir, `headless-invalid-${current - 1}`)); }, catch: (cause) => new IntegrityFailure({ operation: "archive reference", path: run.dir, cause }) });
+      yield* wisp(["pad", run.script, "--headless", "--helper", options.helper, "--out", join(run.dir, "headless"), `--chat=${run.chat}`], join(run.dir, current === 0 ? "headless.log" : `headless-${current}.log`));
+      return 0;
+    })).pipe(Effect.retry({ schedule: Schedule.recurs(2), while: (failure) => failure._tag === "BatchProcessFailure" }), Effect.catchTag("BatchProcessFailure", (failure) => Effect.succeed(failure.code)), Effect.map((code) => ({ code, seconds: seconds(at), ended: performance.now() }))));
+    const reference = references.get(run.label);
+    if (reference !== undefined) yield* Deferred.done(reference, result);
+  }), { concurrency: options.headlessJobs, discard: true }));
   const reports: ScriptReport[] = [];
-  const compares: Promise<void>[] = [];
+  const compares: Fiber.Fiber<void, IntegrityFailure>[] = [];
   const report = (run: ScriptRun, pair: string): ScriptReport => {
     const made: ScriptReport = { label: run.label, script: run.script, pair, game: 0, reset: 0, reload: 0, run: 0, attempts: 0, headless: 0, waited: 0, compare: 0, verdict: "INVALID", summary: "" };
     reports.push(made);
     return made;
   };
   /** Compares `side` with the script's reference run once that has ended, in the background. */
-  const compareLater = (run: ScriptRun, made: ScriptReport, side: string, valid: boolean) => {
+  const compareLater = (run: ScriptRun, made: ScriptReport, side: string, valid: boolean) => Effect.gen(function*() {
     const ended = performance.now();
-    compares.push((async () => {
-      const reference = await (references.get(run.label) ?? Promise.resolve({ code: 1, seconds: 0, ended: ended }));
+    compares.push(yield* Effect.forkScoped(Effect.gen(function*() {
+      const ready = references.get(run.label);
+      const reference = ready === undefined ? { code: 1, seconds: 0, ended } : yield* Deferred.await(ready);
       made.headless = reference.seconds;
       made.waited = Math.max(0, (reference.ended - ended) / 1000);
       const at = performance.now();
-      try {
+      yield* Effect.try({ try: () => {
         const parity = compareRuns(side, join(run.dir, "headless"), run.text);
         writeFileSync(join(run.dir, "compare.log"), `${parity.lines.join("\n")}\n`);
         made.verdict = parity.passed && valid ? "PASS" : parity.invalid === true ? "INVALID" : "FAIL";
         made.summary = parity.lines.slice(-2).join(" ");
-      } catch (cause) {
+      }, catch: (cause) => new IntegrityFailure({ operation: "compare batch", path: side, cause }) }).pipe(Effect.catch((failure) => Effect.sync(() => {
         made.verdict = "FAIL";
-        made.summary = `compare failed: ${describeCause(cause)} (reference exit ${reference.code}, ${join(run.dir, "headless.log")})`;
-      }
+        made.summary = `compare failed: ${describeCause(failure.cause)} (reference exit ${reference.code}, ${join(run.dir, "headless.log")})`;
+      })));
       made.compare = seconds(at);
-    })());
-  };
+    })).pipe(Scope.provide(batchScope)));
+  });
   return { runs, report, compareLater, reports, compares };
 });
 
@@ -358,8 +360,8 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
       const made = report(run, pair.name);
       const padOptions: PadOptions = { scriptPath: run.script, steps: run.steps, helper: options.helper, build, out: join(run.dir, "native"), chat: run.chat, candidate: options.map };
       let outcome: "valid" | "invalid" | "failed" | "broken" = "invalid";
-      for (let attempt = 0; attempt <= retries; attempt++) {
-        made.attempts = attempt + 1;
+      yield* Effect.suspend(() => Effect.gen(function*() {
+        const attempt = made.attempts++;
         if (!needsNewGame(previous, freshEach)) {
           // The reset runs in the reloaded code, as the next script's match will.
           if (!(yield* timedReload(made, run.dir))) previous = "broken";
@@ -386,7 +388,7 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
           if (made_._tag === "Failure") {
             outcome = "broken";
             made.summary = `no new game on ${pair.name}: ${log}.1`;
-            break;
+            return;
           }
           gameScope = yield* Effect.acquireRelease(Scope.make(), (scope) => Scope.close(scope, Exit.void));
         }
@@ -394,7 +396,7 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
         if (freshGame && !(yield* timedReload(made, run.dir))) {
           outcome = "broken";
           previous = "broken";
-          continue;
+          return yield* new BatchRetry({ script: run.script });
         }
         const at = performance.now();
         const play = Effect.gen(function*() {
@@ -403,35 +405,34 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
         const ran = yield* Effect.exit(pair.lan === undefined ? onHealthyClients(play, { retry: false, clientsFile: pair.clients }) : play);
         made.run += seconds(at);
         // An edge off its frame or a stopped helper still leaves a match the next script can reset; anything else may not.
-        outcome = ran._tag === "Success" ? ran.value : Cause.pretty(ran.cause).includes("edges off their frame") ? "failed" : "broken";
+        outcome = ran._tag === "Success" ? ran.value : replayFailure(ran.cause) ? "failed" : "broken";
         if (outcome === "broken" && ran._tag === "Failure") made.summary = Cause.pretty(ran.cause);
         previous = outcome;
         if (outcome === "invalid") {
           const resultPath = join(padOptions.out, "result.json");
-          const setup = existsSync(resultPath) ? Option.getOrUndefined(Schema.decodeUnknownOption(Schema.Struct({ setup: Schema.Struct({ boundary: Schema.String }) }))(JSON.parse(readFileSync(resultPath, "utf8")))) : undefined;
-          if (setup !== undefined) {
-            made.summary = `INVALID setup: ${setup.setup.boundary}`;
-            break;
+          const result = yield* readResult(resultPath);
+          if (result?.setup !== undefined) {
+            made.summary = `INVALID setup: ${result.setup.boundary}`;
+            return;
           }
         }
         // Edges written late are the harness's slip on a loaded host, not the game's: reset and play the script again.
-        if (outcome === "failed" && slipped(padOptions.out) && attempt < retries) continue;
-        if (outcome !== "invalid") break;
-      }
+        if (outcome === "invalid" || (outcome === "failed" && (yield* slipped(padOptions.out)) && attempt < retries)) return yield* new BatchRetry({ script: run.script });
+      })).pipe(Effect.retry({ schedule: Schedule.recurs(retries), while: (failure) => failure._tag === "BatchRetry" }), Effect.catchTag("BatchRetry", () => Effect.void));
       if (outcome === "invalid" || outcome === "broken") {
         if (outcome === "invalid") {
-          const result = JSON.parse(readFileSync(join(padOptions.out, "result.json"), "utf8"));
-          made.summary ||= Schema.decodeUnknownSync(Schema.Struct({ invalid: Schema.Array(Schema.String) }))(result).invalid[0] ?? `invalid on all ${made.attempts} attempts`;
+          const result = yield* readResult(join(padOptions.out, "result.json"));
+          made.summary ||= result?.invalid?.[0] ?? `invalid on all ${made.attempts} attempts`;
         } else made.summary ||= `the native run broke on ${pair.name}`;
         continue;
       }
-      compareLater(run, made, join(run.dir, "native"), outcome === "valid");
+      yield* compareLater(run, made, join(run.dir, "native"), outcome === "valid");
     }
   }));
-  yield* Effect.forEach(pairs, worker, { concurrency: "unbounded", discard: true });
-  yield* Effect.promise(() => Promise.all(compares));
+  yield* Effect.forEach(pairs, worker, { concurrency: Math.max(1, pairs.length), discard: true });
+  yield* Effect.forEach(compares, Fiber.join, { concurrency: options.headlessJobs, discard: true });
   yield* summarize(options.out, runs, reports, pairs.map((pair) => pair.name), started, { fresh_each: freshEach, hot, ...quietWindow });
-});
+}).pipe(Effect.scoped);
 
 /**
  * `pad --batch --headless`: the native batch's flow in headless clients. One
@@ -456,50 +457,66 @@ export const headlessBatch = (options: BatchOptions) => Effect.gen(function*() {
       const row = made[index];
       if (run === undefined || row === undefined) break;
       const out = join(run.dir, "session");
-      if (index > start || row.attempts > 0) {
+      const restart = yield* Effect.suspend(() => Effect.gen(function*() {
+        if (index > start || row.attempts > 0) {
+          const at = performance.now();
+          const typedMs = Date.now();
+          clients.clients.chat(0, RESET_COMMAND);
+          yield* atSelection(clients.data.map((dir, slot) => join(dir, devCommandReceiptFile(options.build, slot))), typedMs);
+          row.reset += seconds(at);
+        }
+        row.attempts++;
         const at = performance.now();
-        const typedMs = Date.now();
-        clients.clients.chat(0, RESET_COMMAND);
-        yield* atSelection(clients.data.map((dir, slot) => join(dir, devCommandReceiptFile(options.build, slot))), typedMs);
-        row.reset += seconds(at);
-      }
-      row.attempts++;
-      const at = performance.now();
-      const ran = yield* Effect.exit(headlessScript(clients, { scriptPath: run.script, steps: run.steps, helper: options.helper, build: options.build, out, chat: run.chat }));
-      row.run += seconds(at);
-      const offFrame = ran._tag === "Failure" && Cause.pretty(ran.cause).includes("edges off their frame");
-      const again = row.attempts <= options.retries;
-      if (ran._tag === "Failure" && !offFrame) {
-        row.summary = `the session run broke: ${Cause.pretty(ran.cause).split("\n")[0]}`;
-        return again ? index : index + 1;
-      }
-      if (helperStopped(out)) return again ? index : (compareLater(run, row, out, false), index + 1);
-      if (offFrame && slipped(out) && again) {
-        index--;
-        continue;
-      }
-      compareLater(run, row, out, ran._tag === "Success");
+        const ran = yield* Effect.exit(headlessScript(clients, { scriptPath: run.script, steps: run.steps, helper: options.helper, build: options.build, out, chat: run.chat }));
+        row.run += seconds(at);
+        const offFrame = ran._tag === "Failure" && replayFailure(ran.cause);
+        const again = row.attempts <= options.retries;
+        if (ran._tag === "Failure" && !offFrame) {
+          row.summary = `the session run broke: ${Cause.pretty(ran.cause).split("\n")[0]}`;
+          return again ? index : index + 1;
+        }
+        if (yield* helperStopped(out)) {
+          if (!again) yield* compareLater(run, row, out, false);
+          return again ? index : index + 1;
+        }
+        if (offFrame && (yield* slipped(out)) && again) {
+          return yield* new BatchRetry({ script: run.script });
+        }
+        yield* compareLater(run, row, out, ran._tag === "Success");
+        return undefined;
+      })).pipe(Effect.retry({ schedule: Schedule.recurs(options.retries), while: (failure) => failure._tag === "BatchRetry" }));
+      if (restart !== undefined) return restart;
     }
     return runs.length;
   }));
-  for (let next = 0, number = 0; next < runs.length; number++) next = yield* session(next, number);
-  yield* Effect.promise(() => Promise.all(compares));
+  let next = 0;
+  let number = 0;
+  if (runs.length > 0) yield* Effect.suspend(() => session(next, number++).pipe(Effect.tap((index) => Effect.sync(() => { next = index; })))).pipe(Effect.repeat({ until: () => next >= runs.length }));
+  yield* Effect.forEach(compares, Fiber.join, { concurrency: options.headlessJobs, discard: true });
   yield* summarize(options.out, runs, reports, ["session"], started, { headless_session: true });
-});
+}).pipe(Effect.scoped);
 
 /** Whether a helper's journal stopped during the run (result.json helpers_stopped): it plays no later match. */
-function helperStopped(dir: string): boolean {
-  const path = join(dir, "result.json");
-  if (!existsSync(path)) return false;
-  const result: unknown = JSON.parse(readFileSync(path, "utf8"));
-  return typeof result === "object" && result !== null && "helpers_stopped" in result && Array.isArray(result.helpers_stopped) && result.helpers_stopped.length > 0;
-}
+const helperStopped = (dir: string) => readResult(join(dir, "result.json")).pipe(Effect.map((result) => (result?.helpers_stopped?.length ?? 0) > 0));
 
 /** Whether a run's off-frame edges were all written late: the producer slipped on a loaded host, not the game. */
-function slipped(dir: string): boolean {
-  const path = join(dir, "result.json");
-  if (!existsSync(path)) return false;
-  const result: unknown = JSON.parse(readFileSync(path, "utf8"));
-  return typeof result === "object" && result !== null && "written_late" in result && "off_frame" in result
-    && typeof result.written_late === "number" && result.written_late > 0 && result.written_late === result.off_frame;
-}
+const slipped = (dir: string) => readResult(join(dir, "result.json")).pipe(Effect.map((result) => result?.written_late !== undefined && result.written_late > 0 && result.written_late === result.off_frame));
+
+const BatchResult = Schema.Struct({
+  setup: Schema.optional(Schema.Struct({ boundary: Schema.String })),
+  invalid: Schema.optional(Schema.Array(Schema.String)),
+  helpers_stopped: Schema.optional(Schema.Array(Schema.Unknown)),
+  written_late: Schema.optional(Schema.Int),
+  off_frame: Schema.optional(Schema.Int),
+});
+
+const readResult = (path: string) => Effect.gen(function*() {
+  const text = yield* Effect.try({ try: () => existsSync(path) ? readFileSync(path, "utf8") : undefined, catch: (cause) => new IntegrityFailure({ operation: "read batch result", path, cause }) });
+  if (text === undefined) return undefined;
+  return yield* Schema.decodeEffect(Schema.fromJsonString(BatchResult))(text).pipe(Effect.mapError((cause) => new IntegrityFailure({ operation: "decode batch result", path, cause })));
+});
+
+const replayFailure = (cause: Cause.Cause<unknown>) => {
+  const error = Option.getOrUndefined(Cause.findErrorOption(cause));
+  return typeof error === "object" && error !== null && "_tag" in error && error._tag === "PadReplayFailure";
+};
