@@ -324,7 +324,7 @@ test("a hero holder's contact gesture also freezes when only the held fighter st
   victim.grab.grabbedFrames = 120;
   victim.launch.hitlag = 4;
   advanceFighterPose(pose, owner, world, neutralControls(), false, false, false, false);
-  assertEquals(pose.clipTime, f32(0.5));
+  assertEquals(pose.clipTime, clipFor(Character.forsakenPaladin, "throwUp").contact);
   assertEquals(pose.rate, 0.0);
 });
 
