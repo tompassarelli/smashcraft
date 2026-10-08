@@ -134,5 +134,4 @@
 #! scene a EnsnareMissile
 #! scene a StampedeMissile
 #! scene a CommandAuraTarget
-#! scene a StampedeMissileDeath
 #! scene a QuillSprayMissile
