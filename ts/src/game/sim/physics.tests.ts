@@ -29,6 +29,7 @@ import { digitalShieldDamage, digitalShieldPushback, digitalShieldRecoil, digita
 import { advanceFighter } from "./step";
 import { respawnFighter } from "./stocks";
 import { advanceSolo, controls, hitEffect, soloWorld, testBeginAttacks, testGrabFrame, testWorld, withPhysics } from "./testWorld";
+import { heroBody } from "./heroes/heroBodies";
 import { type FighterPhysics, INITIAL_DASH_FRAMES, authoredPhysics, melee } from "./tuning";
 
 const TOLERANCE_4 = 0.00009999999747378752;
@@ -913,7 +914,7 @@ const OBSERVED_ROLL_TOTALS: readonly (readonly [number, number])[] = [
 ];
 
 function observedRollTotal(character: Character, profile: number): number {
-  return OBSERVED_ROLL_TOTALS[profile]![character === Character.sylvanas ? 0 : 1];
+  return f32(OBSERVED_ROLL_TOTALS[profile]![character === Character.sylvanas ? 0 : 1] * (heroBody(character)?.run ?? 1.0));
 }
 
 /** Starts a roll of a profile: 0-1 ground roll, 2-5 getup roll from face up or down, 6-7 tech roll. */
@@ -1425,7 +1426,7 @@ test("a retail aerial dodge's switch boundary freezes in hitlag [reference]", ()
   assertNear(f.motion.z, 298.9800109863281, f32(0.00001));
 });
 
-test("a forward roll turns on frame 20 while keeping its entry pose and travel [spec docs/physics.md]", () => {
+test("Rifleman turns on roll frame 20 and other fighters at recovery while keeping their entry pose and travel [spec docs/physics.md]", () => {
   for (const character of [Character.sylvanas, Character.rifleman, Character.demonHunter]) {
     for (const entryFacing of [-1, 1]) {
       const f = createReferenceFighter(character, 0.0, entryFacing);
@@ -1445,10 +1446,10 @@ test("a forward roll turns on frame 20 while keeping its entry pose and travel [
       const before = f.motion.x;
       advanceFighter(world, 0, 0, input, 0.0);
       assertEquals(f.dodge.groundFrame, 20);
-      assertEquals(f.facing, character === Character.demonHunter ? entryFacing : -entryFacing);
+      assertEquals(f.facing, character === Character.rifleman ? -entryFacing : entryFacing);
       assertEquals(fighterPoseFacing(f), entryFacing);
       assertTrue(isForwardGroundRoll(f));
-      const travel20 = character === Character.sylvanas ? f32(9.6163101198) : character === Character.rifleman ? f32(11.0186805726) : 0.0;
+      const travel20 = character === Character.sylvanas ? f32(f32(9.6163101198) * (heroBody(character)?.run ?? 1.0)) : character === Character.rifleman ? f32(11.0186805726) : 0.0;
       assertNear(f.motion.x - before, entryFacing * travel20, f32(0.0001));
       for (let frame = 21; frame <= 31; frame++) {
         advanceFighter(world, 0, 0, input, 0.0);
@@ -1486,7 +1487,7 @@ test("sampled rolls move through their actual entry, a freeze and recovery [refe
           if (profile < 2 && frame === 6) assertEquals(f.motion.x, 0.0);
           if (profile < 2 && frame === 9) {
             const ninth = profile === 0 ? (character === Character.sylvanas ? f32(69.12) : f32(79.2)) : character === Character.sylvanas ? f32(23.04) : f32(26.4);
-            assertNear(f.motion.x, direction * ninth, f32(0.0001));
+            assertNear(f.motion.x, direction * f32(ninth * (heroBody(character)?.run ?? 1.0)), f32(0.0001));
           }
         }
         const frozenX = f.motion.x;

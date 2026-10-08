@@ -3,6 +3,7 @@ import { stageBounds } from "./stageBounds";
 // executor; these contracts retain that interaction through recovery and stocks.
 // Air dodges, ground dodges and blast zones.
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
+import { heroBody } from "./heroes/heroBodies";
 import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character } from "./codes";
@@ -17,7 +18,8 @@ import {
   isIntangible,
 } from "./conditions";
 import { AIR_DODGE_LANDING_LAG } from "./down";
-import { type Fighter, createFighter } from "./fighter";
+import { type Fighter,  } from "./fighter";
+import { createReferenceFighter } from "./referenceRig";
 import { AIR_DODGE_ANIMATION_FRAMES, beginAirDodge } from "./jumpsAndDodges";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "./knockback";
 import { attackStartupFrames } from "./moves";
@@ -26,7 +28,7 @@ import { advanceSolo, controls, testWorld } from "./testWorld";
 import { GROUND_TRACTION, authoredPhysics } from "./tuning";
 
 test("an air dodge changes velocity, and landing restores jumps [reference] [spec docs/gameplay-design.md]", () => {
-  const fighter = createFighter(Character.rifleman, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.z = 20.0;
   const input = controls({ airDodgePressed: true, dodgeX: 1, dodgeZ: -1 });
@@ -83,7 +85,7 @@ test("Rifleman's wavedash carries the stronger dodge through landing traction [s
 
 /** A fighter of `character` high above the stage that air dodges down-right this frame. */
 function airDodgedFighter(character: Character): Fighter {
-  const fighter = createFighter(character, 0.0, 1);
+  const fighter = createReferenceFighter(character, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.z = 3000.0;
   fighter.jump.remaining = 1;
@@ -134,7 +136,7 @@ test("landing after the dodge ends uses ordinary landing and refreshes the air d
 
 test("a waveland during the dodge keeps its special landing and refreshes the dodge for every fighter [spec docs/gameplay-design.md]", () => {
   for (const character of ALL_FIGHTERS) {
-    const fighter = createFighter(character, 0.0, 1);
+    const fighter = createReferenceFighter(character, 0.0, 1);
     fighter.motion.grounded = false;
     fighter.motion.z = 6.0;
     advanceSolo(fighter, 0, controls({ airDodgePressed: true, dodgeX: 1 }), -240.0);
@@ -155,7 +157,7 @@ test("a hit refreshes a spent air dodge for every fighter [spec docs/gameplay-de
     const fighter = airDodgedFighter(character);
     for (let frame = 2; frame <= AIR_DODGE_ANIMATION_FRAMES; frame++) advanceSolo(fighter, 0, controls(), -240.0);
     fighter.status.invincible = 0;
-    const attacker = createFighter(Character.rifleman, fighter.motion.x - 40.0, 1);
+    const attacker = createReferenceFighter(Character.sylvanas, fighter.motion.x - 40.0, 1);
     attacker.motion.grounded = false;
     attacker.motion.z = fighter.motion.z;
     attacker.attack.style = AttackStyle.neutralAir;
@@ -168,7 +170,7 @@ test("a hit refreshes a spent air dodge for every fighter [spec docs/gameplay-de
 
 test("an air dodge replaces prior movement and launch momentum [reference] [spec docs/gameplay-design.md]", () => {
   for (const direction of [0, 1]) {
-    const fighter = createFighter(Character.rifleman, 0.0, 1);
+    const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
     fighter.motion.grounded = false;
     fighter.motion.z = 300.0;
     fighter.motion.vx = -30.0;
@@ -191,9 +193,9 @@ test("an air dodge replaces prior movement and launch momentum [reference] [spec
 });
 
 test("a horizontal air dodge defaults to a shallow wavedash on both sides [reference] [spec docs/gameplay-design.md]", () => {
-  for (const character of [Character.demonHunter, Character.rifleman]) {
+  for (const character of [Character.sylvanas, Character.rifleman]) {
     for (const direction of [-1, 1]) {
-      const fighter = createFighter(character, 0.0, -direction);
+      const fighter = createReferenceFighter(character, 0.0, -direction);
       fighter.motion.grounded = false;
       fighter.motion.z = 1.0;
       beginAirDodge(fighter, direction, 0);
@@ -213,9 +215,9 @@ test("a horizontal air dodge defaults to a shallow wavedash on both sides [refer
 });
 
 test("diagonal down doesn't trigger a fast fall, but straight down does [spec docs/gameplay-design.md]", () => {
-  for (const character of [Character.demonHunter, Character.rifleman]) {
+  for (const character of [Character.sylvanas, Character.rifleman]) {
     for (const direction of [-1, 0, 1]) {
-      const fighter = createFighter(character, 0.0, 1);
+      const fighter = createReferenceFighter(character, 0.0, 1);
       fighter.motion.grounded = false;
       fighter.motion.z = 300.0;
       fighter.motion.vz = -1.0;
@@ -233,7 +235,7 @@ test("diagonal down doesn't trigger a fast fall, but straight down does [spec do
 
 test("a diagonal air dodge displaces both axes with the same decayed vector [reference]", () => {
   for (const direction of [-1, 1]) {
-    const fighter = createFighter(Character.rifleman, 0.0, 1);
+    const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
     fighter.motion.grounded = false;
     fighter.motion.z = 300.0;
     beginAirDodge(fighter, 1, direction);
@@ -254,7 +256,7 @@ test("a diagonal air dodge displaces both axes with the same decayed vector [ref
 
 test("a fast air dodge uses the swept platform crossing [spec docs/physics.md]", () => {
   for (const entersTooLate of [false, true]) {
-    const fighter = createFighter(Character.rifleman, entersTooLate ? -440.0 : -350.0, 1);
+    const fighter = createReferenceFighter(Character.sylvanas, entersTooLate ? -440.0 : -350.0, 1);
     fighter.motion.grounded = false;
     fighter.motion.z = 200.0;
     beginAirDodge(fighter, 1, -1);
@@ -271,8 +273,8 @@ test("a fast air dodge uses the swept platform crossing [spec docs/physics.md]",
 });
 
 test("an air dodge landing slides and restores actions after ten ticks [reference] [spec docs/gameplay-design.md]", () => {
-  for (const character of [Character.demonHunter, Character.rifleman]) {
-    const fighter = createFighter(character, 0.0, 1);
+  for (const character of [Character.sylvanas, Character.rifleman]) {
+    const fighter = createReferenceFighter(character, 0.0, 1);
     fighter.motion.grounded = false;
     fighter.motion.z = 1.0;
     beginAirDodge(fighter, 1, -1);
@@ -300,10 +302,10 @@ test("an air dodge landing slides and restores actions after ten ticks [referenc
 });
 
 test("a delayed jump air dodge lands during its motion and slides [spec docs/gameplay-design.md]", () => {
-  for (const character of [Character.demonHunter, Character.rifleman]) {
+  for (const character of [Character.sylvanas, Character.rifleman]) {
     for (const fullJump of [false, true]) {
       for (const direction of [-1, 1]) {
-        const fighter = createFighter(character, 0.0, direction);
+        const fighter = createReferenceFighter(character, 0.0, direction);
         const input = controls({ jumpPressed: true, jumpHeld: true });
         for (let tick = 1; tick <= 6; tick++) {
           advanceSolo(fighter, 0, input, 0.0);
@@ -334,7 +336,7 @@ test("a delayed jump air dodge lands during its motion and slides [spec docs/gam
 });
 
 test("an air dodge landing uses ground friction even while the air timer remains [spec docs/gameplay-design.md]", () => {
-  const fighter = createFighter(Character.rifleman, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.motion.grounded = true;
   fighter.dodge.airDodging = true;
   fighter.dodge.airMotionFrames = 20;
@@ -351,7 +353,7 @@ test("an air dodge landing uses ground friction even while the air timer remains
 });
 
 test("a spot dodge starts at frame one, stays in place and uses provisional intangibility [spec docs/gameplay-design.md] [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.rifleman, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.motion.surface = 0;
   const input = controls({ shield: true, groundDodgePressed: true, groundDodgeDirection: 0 });
   advanceSolo(fighter, 0, input, -240.0);
@@ -379,7 +381,7 @@ test("a spot dodge starts at frame one, stays in place and uses provisional inta
 });
 
 test("a roll has bounded, locked motion and turns before its recovery ends [spec docs/gameplay-design.md] [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.rifleman, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.motion.surface = 0;
   const input = controls({ shield: true, groundDodgePressed: true, groundDodgeDirection: 1, direction: -1 });
   advanceSolo(fighter, 0, input, -240.0);
@@ -393,7 +395,7 @@ test("a roll has bounded, locked motion and turns before its recovery ends [spec
   advanceSolo(fighter, 0, input, -240.0);
   assertTrue(isIntangible(fighter));
   for (let frame = GROUND_ROLL_INTANGIBLE_START + 1; frame <= GROUND_ROLL_FRAMES; frame++) advanceSolo(fighter, 0, input, -240.0);
-  assertNear(fighter.motion.x, 201.60000610351562, 0.00009999999747378752);
+  assertNear(fighter.motion.x, f32(201.60000610351562 * (heroBody(fighter.character)?.run ?? 1.0)), 0.00009999999747378752);
   assertEquals(fighter.facing, -1);
   assertTrue(fighter.motion.grounded);
   assertEquals(fighter.dodge.groundFrame, GROUND_ROLL_FRAMES);
@@ -407,7 +409,7 @@ test("a roll has bounded, locked motion and turns before its recovery ends [spec
 });
 
 test("a backward roll keeps facing, and a roll can't leave its platform [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.rifleman, 590.0, -1);
+  const fighter = createReferenceFighter(Character.sylvanas, 590.0, -1);
   fighter.motion.surface = 0;
   const input = controls({ shield: true, groundDodgePressed: true, groundDodgeDirection: 1 });
   advanceSolo(fighter, 0, input, -240.0);
@@ -420,7 +422,7 @@ test("a backward roll keeps facing, and a roll can't leave its platform [spec do
 
 test("a ground dodge rejects hitlag, shieldstun, landing lag and unshielded presses [spec docs/physics.md]", () => {
   const input = controls({ shield: true, groundDodgePressed: true, groundDodgeDirection: -1 });
-  const hitlagged = createFighter(Character.rifleman, 0.0, 1);
+  const hitlagged = createReferenceFighter(Character.sylvanas, 0.0, 1);
   hitlagged.launch.hitlag = 2;
   advanceSolo(hitlagged, 0, input, -240.0);
   assertEquals(hitlagged.dodge.groundFrame, 0);
@@ -434,19 +436,19 @@ test("a ground dodge rejects hitlag, shieldstun, landing lag and unshielded pres
     (f: Fighter) => (f.shield.releaseLag = 5),
   ];
   for (const block of blocked) {
-    const fighter = createFighter(Character.rifleman, 0.0, 1);
+    const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
     block(fighter);
     advanceSolo(fighter, 0, input, -240.0);
     assertEquals(fighter.dodge.groundFrame, 0);
   }
-  const unshielded = createFighter(Character.rifleman, 0.0, 1);
+  const unshielded = createReferenceFighter(Character.sylvanas, 0.0, 1);
   input.shield = false;
   advanceSolo(unshielded, 0, input, -240.0);
   assertEquals(unshielded.dodge.groundFrame, 0);
 });
 
 test("a spot dodge doesn't drop through a pass-through platform [spec docs/physics.md] [spec docs/gameplay-design.md]", () => {
-  const fighter = createFighter(Character.rifleman, -200.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, -200.0, 1);
   fighter.motion.surface = 1;
   fighter.motion.z = surfaceZ(1, 1, 0);
   advanceSolo(fighter, 1, controls({ shield: true, down: true, groundDodgePressed: true, groundDodgeDirection: 0 }), -240.0);
@@ -457,15 +459,15 @@ test("a spot dodge doesn't drop through a pass-through platform [spec docs/physi
 });
 
 test("a jump takes priority over a starting ground dodge [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.rifleman, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   advanceSolo(fighter, 0, controls({ shield: true, groundDodgePressed: true, groundDodgeDirection: -1, jumpPressed: true }), -240.0);
   assertEquals(fighter.dodge.groundFrame, 0);
   assertEquals(fighter.jump.remaining, 1);
-  assertEquals(fighter.jump.squat, authoredPhysics(Character.rifleman).jumpSquatFrames);
+  assertEquals(fighter.jump.squat, authoredPhysics(Character.sylvanas).jumpSquatFrames);
 });
 
 test("crossing a platform from below doesn't land [spec docs/gameplay-design.md]", () => {
-  const fighter = createFighter(Character.rifleman, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.x = -250.0;
   fighter.motion.z = 100.0;
@@ -476,7 +478,7 @@ test("crossing a platform from below doesn't land [spec docs/gameplay-design.md]
 });
 
 test("a blast zone removes exactly one stock [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.rifleman, (stageBounds(0).blast.right - 2.0), 1);
+  const fighter = createReferenceFighter(Character.sylvanas, (stageBounds(0).blast.right - 2.0), 1);
   fighter.motion.vx = 100.0;
   const input = controls({ direction: 1 });
   const step = () => advanceSolo(fighter, 0, input, -240.0);
@@ -501,7 +503,7 @@ test("a blast zone removes exactly one stock [spec docs/physics.md]", () => {
 
 test("the top blast zone requires launch knockback rather than jump speed [reference] [spec docs/physics.md]", () => {
   for (const mode of [0, 1, 2]) {
-    const fighter = createFighter(Character.rifleman, 0.0, 1);
+    const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
     fighter.motion.grounded = false;
     fighter.motion.z = (stageBounds(0).blast.top + 1.0);
     fighter.motion.vz = 30.0;
@@ -513,7 +515,7 @@ test("the top blast zone requires launch knockback rather than jump speed [refer
 });
 
 test("the top blast zone boundary doesn't consume a stock until crossed [reference] [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.rifleman, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.z = stageBounds(0).blast.top;
   fighter.motion.vz = -50.0;
@@ -525,7 +527,7 @@ test("the top blast zone boundary doesn't consume a stock until crossed [referen
 
 test("the side blast zone boundaries require a strict crossing [reference] [spec docs/physics.md]", () => {
   for (const direction of [-1, 1]) {
-    const fighter = createFighter(Character.rifleman, f32(direction * stageBounds(0).blast.right), direction);
+    const fighter = createReferenceFighter(Character.sylvanas, f32(direction * stageBounds(0).blast.right), direction);
     const input = controls();
     fighter.motion.grounded = false;
     fighter.motion.z = 400.0;
@@ -539,7 +541,7 @@ test("the side blast zone boundaries require a strict crossing [reference] [spec
 });
 
 test("the bottom blast zone boundary requires a strict crossing [reference] [spec docs/physics.md]", () => {
-  const fighter = createFighter(Character.rifleman, 0.0, 1);
+  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   const input = controls();
   fighter.motion.grounded = false;
   fighter.motion.z = stageBounds(0).blast.bottom;

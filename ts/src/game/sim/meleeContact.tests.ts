@@ -1,7 +1,8 @@
 import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character } from "./codes";
-import { type Fighter, SHIELD_MAX, createFighter } from "./fighter";
+import { type Fighter, SHIELD_MAX,  } from "./fighter";
+import { createReferenceFighter } from "./referenceRig";
 import { attackStartupFrames } from "./moves";
 import type { Roster } from "./roster";
 import { testBeginAttacks, testWorld } from "./testWorld";
@@ -13,8 +14,8 @@ function prepareJab(world: Roster, attacker: Fighter, facing: number): void {
 }
 
 test("a melee capsule blocks and damages a shield only when it reaches the circle [spec docs/physics.md]", () => {
-  const attacker = createFighter(Character.rifleman, 0.0, 1);
-  const shielded = createFighter(Character.rifleman, 70.0, -1);
+  const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const shielded = createReferenceFighter(Character.sylvanas, 70.0, -1);
   const world = testWorld(attacker, shielded);
   shielded.shield.raised = true;
   prepareJab(world, attacker, 1);
@@ -25,8 +26,8 @@ test("a melee capsule blocks and damages a shield only when it reaches the circl
 });
 
 test("a drained shield leaves a real melee poke at the exposed body edge [spec docs/physics.md]", () => {
-  const attacker = createFighter(Character.rifleman, 0.0, 1);
-  const defender = createFighter(Character.rifleman, 100.0, -1);
+  const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
+  const defender = createReferenceFighter(Character.sylvanas, 100.0, -1);
   const world = testWorld(attacker, defender);
   defender.shield.raised = true;
   defender.shield.energy = 0.0;
@@ -39,8 +40,8 @@ test("a drained shield leaves a real melee poke at the exposed body edge [spec d
 
 test("melee can reach a shield before the body, and facing mirrors its volume [spec docs/physics.md] [invariant]", () => {
   for (const direction of [-1, 1]) {
-    const attacker = createFighter(Character.rifleman, 0.0, direction);
-    const defender = createFighter(Character.rifleman, direction * 110.0, -direction);
+    const attacker = createReferenceFighter(Character.sylvanas, 0.0, direction);
+    const defender = createReferenceFighter(Character.sylvanas, direction * 110.0, -direction);
     const world = testWorld(attacker, defender);
     defender.shield.raised = true;
     prepareJab(world, attacker, direction);
@@ -51,8 +52,8 @@ test("melee can reach a shield before the body, and facing mirrors its volume [s
 });
 
 test("melee trades queue both contacts before either hit resolves [spec docs/gameplay-design.md]", () => {
-  const first = createFighter(Character.rifleman, -35.0, 1);
-  const second = createFighter(Character.rifleman, 35.0, -1);
+  const first = createReferenceFighter(Character.sylvanas, -35.0, 1);
+  const second = createReferenceFighter(Character.sylvanas, 35.0, -1);
   const world = testWorld(first, second);
   testBeginAttacks(world, AttackStyle.jab, AttackStyle.jab);
   first.attack.frame = attackStartupFrames(AttackStyle.jab);
