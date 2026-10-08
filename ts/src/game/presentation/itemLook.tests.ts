@@ -1,17 +1,6 @@
 import { test, assertEquals } from "wisp/src/runtime/testing";
 import { createMatchItems } from "../match/items";
-import { ItemKind } from "../sim/codes";
-import { centreItemText, confirmedItemCues, createItemCueObservation, observeItemCues } from "./itemLook";
-
-test("Item warning counts 10 to 1 and names each kind [spec #196]", () => {
-  const items = createMatchItems();
-  items.nextSpawnFrame = 3600;
-  for (const [kind, name] of [[ItemKind.speed, "Speed"], [ItemKind.extraJump, "Extra Jump"], [ItemKind.heavy, "Heavy"]] as const) {
-    items.nextKind = kind;
-    assertEquals(centreItemText(items, 2999), "");
-    for (let second = 10; second >= 1; second--) assertEquals(centreItemText(items, 3600 - second * 60), `${name} in ${second}`);
-  }
-});
+import { confirmedItemCues, createItemCueObservation, observeItemCues } from "./itemLook";
 
 test("Item sounds start once on confirmed warning, spawn and pickup transitions [spec #196]", () => {
   const items = createMatchItems();

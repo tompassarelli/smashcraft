@@ -8,7 +8,7 @@ import type { MatchState } from "../match/rules";
 import type { Character } from "../sim/codes";
 import type { Roster } from "../sim/roster";
 import { characterModelScale } from "../presentation/modelScale";
-import { MatchCue, MENU_MUSIC, cueSound, cueText, presentationSoundPaths, readyVoice, victoryAnimation, victoryMusic, warcryVoice } from "../presentation/matchAudio";
+import { MatchCue, MENU_MUSIC, cueSound, presentationSoundPaths, readyVoice, victoryAnimation, victoryMusic, warcryVoice } from "../presentation/matchAudio";
 import {
   type ResultsView, clearMatchTally, confirmedFrameCues, createCueObservation, createMatchTally, createMenuCues, createMenuObservation,
   menuFrameCues, observeForCues,
@@ -25,9 +25,6 @@ import { fighterModel } from "./combatEffects";
 const PANEL_TEXTURE = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp";
 /** Frames between "GAME!" and the results screen, as Smash holds on the final hit. */
 export const RESULTS_DELAY_FRAMES = 90;
-/** How long a countdown call stays up. */
-const CALL_FRAMES = 50;
-const CALL_SCALE = 3.0;
 /** Facing the arena camera, which looks along +y. */
 const FACING_CAMERA = f32(-1.5707963705062866);
 
@@ -66,9 +63,6 @@ export class MatchPresentation {
   private readonly panel: framehandle;
   private readonly title: framehandle;
   private readonly lines: readonly framehandle[];
-  /** The big centered call: "3", "2", "1", "GO!", "GAME!", "TIME!". */
-  private readonly call: framehandle;
-  private callFrames = 0;
   private victory: effect | undefined;
   private shown = false;
   private pending: ResultsView | undefined;
@@ -103,15 +97,6 @@ export class MatchPresentation {
     }
     this.lines = lines;
     BlzFrameSetVisible(this.panel, false);
-    this.call = createText("MatchCall", parent, 0);
-    BlzFrameSetAbsPoint(this.call, FRAMEPOINT_CENTER, f32(0.4), f32(0.36));
-    // Natively a 0.045 font drew no larger than the 0.016 results title, so the call is scaled up instead (#123).
-    BlzFrameSetSize(this.call, f32(0.14), f32(0.03));
-    BlzFrameSetFont(this.call, MENU_FONT, f32(0.016), 0);
-    BlzFrameSetScale(this.call, CALL_SCALE);
-    BlzFrameSetTextAlignment(this.call, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER);
-    BlzFrameSetEnable(this.call, false);
-    BlzFrameSetVisible(this.call, false);
   }
 
   cue(cue: MatchCue): void {
@@ -179,17 +164,8 @@ export class MatchPresentation {
     }
     for (const cue of this.cues) {
       this.cue(cue);
-      const text = cueText(cue);
-      if (text !== "") this.showCall(text, cue === MatchCue.game || cue === MatchCue.time ? RESULTS_DELAY_FRAMES : CALL_FRAMES);
     }
     return this.cues;
-  }
-
-  /** Shows `text` as the big call for `frames` local frames. */
-  showCall(text: string, frames: number): void {
-    BlzFrameSetText(this.call, text);
-    BlzFrameSetVisible(this.call, true);
-    this.callFrames = frames;
   }
 
   /** The match ended: the results screen follows after `delay` local frames. */
@@ -200,10 +176,6 @@ export class MatchPresentation {
 
   /** One local frame; true on the frame the results screen appears. */
   tick(): boolean {
-    if (this.callFrames > 0) {
-      this.callFrames--;
-      if (this.callFrames === 0) BlzFrameSetVisible(this.call, false);
-    }
     if (this.pending === undefined) return false;
     if (this.delay > 0) {
       this.delay--;
@@ -302,10 +274,6 @@ export class MatchPresentation {
   /** Fighter selection: menu music, no results. */
   enterMenus(): void {
     this.hideResults();
-    if (this.callFrames > 0) {
-      this.callFrames = 0;
-      BlzFrameSetVisible(this.call, false);
-    }
     this.playMusic(MENU_MUSIC);
   }
 }

@@ -33,10 +33,10 @@ export const LESSONS: readonly Lesson[] = [
   { name: "Move and dash", instruction: "Push left or right to walk. Tap it quickly to dash.", counted: "Dashes", action: LessonAction.dash, goal: 3, partnerDamage: 0 },
   { name: "Jump and double jump", instruction: "Press jump, then press it again in the air to jump a second time. Z or left-stick click (L3) always short hops, even held.", counted: "Double jumps", action: LessonAction.doubleJump, goal: 3, partnerDamage: 0 },
   { name: "Attacks", instruction: "Walk up to your partner and press attack. Hold a direction to change the attack.", counted: "Hits", action: LessonAction.hit, goal: 5, partnerDamage: 0 },
-  { name: "Specials", instruction: "Press special to use your fighter's special moves. Hold a direction to change which one.", counted: "Specials", action: LessonAction.special, goal: 3, partnerDamage: 0 },
-  { name: "Shield and dodge", instruction: "Hold shield to block. While shielding, push left or right to roll, or down to dodge in place.", counted: "Dodges", action: LessonAction.dodge, goal: 3, partnerDamage: 0 },
+  { name: "Specials", instruction: "Press special; hold a direction to change the move. Shield + neutral/side Special uses EX for 25 extra meter.", counted: "Specials", action: LessonAction.special, goal: 3, partnerDamage: 0 },
+  { name: "Shield and dodge", instruction: "Q: full shield; T: light shield. Shield + left/right rolls; down dodges. Tap Shield before landing to tech; hold left/right to tech roll.", counted: "Dodges", action: LessonAction.dodge, goal: 3, partnerDamage: 0 },
   { name: "Grab and throw", instruction: "Stand next to your partner and press grab. Then push a direction to throw.", counted: "Throws", action: LessonAction.throw, goal: 2, partnerDamage: 0 },
-  { name: "Get back to the ledge", instruction: "Jump off the side of the stage, then use your second jump and up special to reach the ledge.", counted: "Ledge grabs", action: LessonAction.ledge, goal: 2, partnerDamage: 0 },
+  { name: "Get back to the ledge", instruction: "Jump off, then double jump and up special to the ledge. Up/toward stage climbs; Jump leaps; Shield rolls; Attack strikes; Down/away lets go.", counted: "Ledge grabs", action: LessonAction.ledge, goal: 2, partnerDamage: 0 },
   { name: "Knock out your partner", instruction: "Your partner is badly hurt. Hit it hard to knock it off the screen.", counted: "Knockouts", action: LessonAction.knockout, goal: 1, partnerDamage: 150 },
 ];
 

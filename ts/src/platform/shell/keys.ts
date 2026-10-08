@@ -144,7 +144,8 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
     }
     if (GetTriggerPlayer() === GetLocalPlayer()) returnPauseMenu(s);
     const menu = s.pauseMenu ??= { choice: 0, shown: true, title: false };
-    if (key === 0x26 || key === 32) menu.choice = menu.choice === 0 ? 2 : menu.choice - 1;
+    if (key === Key.f2 && s.game.training) s.trainingHints = !s.trainingHints;
+    else if (key === 0x26 || key === 32) menu.choice = menu.choice === 0 ? 2 : menu.choice - 1;
     else if (key === 0x28 || key === 69) menu.choice = menu.choice === 2 ? 0 : menu.choice + 1;
     else if (key === Key.escape || key === Key.u) exitPausedMatch(s, false);
     else if (key === Key.enter || key === Key.n) {

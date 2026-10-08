@@ -23,7 +23,7 @@ test("CPU choices survive fighter/stage changes, New Match and the automatic rem
   assertTrue(summary.includes("CPU 3 · ") && summary.endsWith(" · Advanced"));
   assertTrue(!summary.includes("Random"));
   game.startHold = 180;
-  assertEquals(resultNotice(game, ""), summary);
+  assertEquals(resultNotice(game, ""), "");
   game.phase = Phase.result;
   game.matchFrame = 120;
   confirmRematch(game, 0);

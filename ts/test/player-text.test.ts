@@ -16,9 +16,63 @@ import { Key } from "../src/platform/shell/keyEvents";
 import { panelActions } from "../src/platform/shell/menus";
 import { shell } from "../src/platform/shell/state";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
+import { fighterAt } from "../src/game/sim/roster";
+import { ItemKind } from "../src/game/sim/codes";
+import { value } from "./rematch/playableMatch";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
+
+test("a full match shows only fighter HUD fields and the clock, with results after play [spec #336]", () => {
+  const clients = headless.clients({ install: installPlayable, start: startPlayable });
+  clients.start();
+  clients.frames(30);
+  for (const slot of [0, 1]) clients.press(slot, Key.r);
+  clients.frames(10);
+  clients.everywhere(() => {
+    panelActions().selection.changeStocks(0, -1);
+    panelActions().selection.changeStocks(0, -1);
+  });
+  clients.press(0, Key.y);
+  clients.frames(20);
+  clients.press(0, Key.y);
+  const host = clients.client(0);
+  for (let frame = 0; frame < 120 && value(host, () => shell().game.phase) !== Phase.match; frame++) clients.frames(1);
+  expect(value(host, () => shell().game.phase)).toBe(Phase.match);
+  clients.everywhere(() => {
+    const s = shell();
+    s.game.items.on = true;
+    s.game.items.kind = ItemKind.speed;
+    s.game.items.nextSpawnFrame = s.game.matchFrame + 120;
+    const f = fighterAt(s.world, 0);
+    f.status.buff = ItemKind.speed;
+    f.status.buffFrames = 120;
+  });
+  clients.frames(1);
+  const textLog = new Set<string>();
+  const forbidden = new Set<string>();
+  let matchFrames = 0;
+  for (let frame = 0; frame < 1200 && value(host, () => shell().game.phase) === Phase.match; frame++) {
+    if (frame === 210) for (const client of clients.clients) client.key(0, Key.w, 0, true);
+    for (const client of clients.clients) {
+      for (const shown of client.frames.snapshot({ visibleOnly: true })) {
+        if (shown.text === "") continue;
+        textLog.add(`${shown.name}: ${shown.text}`);
+        if (!/^(MatchClock|SmashcraftDamage|FighterHUD(Name|Slot|Tenths|StockCount)[0-3]|OffscreenArrow[0-3])$/.test(shown.name)) forbidden.add(`${shown.name}: ${shown.text}`);
+      }
+      for (const message of client.messages) forbidden.add(`message: ${message}`);
+      for (const call of client.log) if (call.name === "SetTextTagText") forbidden.add(`floating text: ${String(call.args[1])}`);
+    }
+    matchFrames++;
+    clients.frames(1);
+  }
+  console.log(`#336 full-match text log (${matchFrames} match frames, ${textLog.size} distinct rows):\n${[...textLog].join("\n")}`);
+  expect([...forbidden]).toEqual([]);
+  expect(value(host, () => shell().game.phase)).toBe(Phase.result);
+  expect(host.frames.shownText().some(text => text.includes("Player 2 wins!"))).toBe(true);
+  expect(clients.firstDivergence()).toBeUndefined();
+  for (const client of clients.clients) expect(client.errors).toEqual([]);
+});
 
 /** Every field the developer line prints, by its label. */
 const DEVELOPER_LINE_TERMS = [
@@ -190,4 +244,3 @@ test("a failing handler in the playable build shows players no error text, and e
     expect(client.errors).toEqual([REPORT_TEXT]);
   }
 });
-

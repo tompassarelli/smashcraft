@@ -13,7 +13,7 @@ export const KEY_UP = "shell.keyUp";
 
 /** Warcraft OS key codes the shell reads by name. */
 export const Key = {
-  enter: 0x0d, escape: 0x1b, g: 0x47, h: 0x48, j: 0x4a, k: 0x4b, n: 0x4e, r: 0x52, t: 0x54, u: 0x55, w: 0x57, y: 0x59, f1: 0x70,
+  enter: 0x0d, escape: 0x1b, g: 0x47, h: 0x48, j: 0x4a, k: 0x4b, n: 0x4e, r: 0x52, t: 0x54, u: 0x55, w: 0x57, y: 0x59, f1: 0x70, f2: 0x71,
 } as const;
 
 /** Registers the key, with no modifier, for every human. */
@@ -33,7 +33,7 @@ function registerKeys(s: ShellState, escapeOnly: boolean): void {
   const up = CreateTrigger();
   for (let key = 1; key <= 255; key++) {
     // Return belongs to Warcraft chat while playing, and to the pause menu while paused.
-    const pauseKey = pauseCameraKey(key) || key === Key.escape || key === Key.enter || key === 0x26 || key === 0x28 || key === 32 || key === 69 || key === Key.n || key === Key.u;
+    const pauseKey = pauseCameraKey(key) || key === Key.escape || key === Key.enter || key === Key.f2 || key === 0x26 || key === 0x28 || key === 32 || key === 69 || key === Key.n || key === Key.u;
     if (key === Key.y || (!escapeOnly && key === Key.enter) || (escapeOnly && !pauseKey)) continue;
     registerKey(s, down, key, true);
     registerKey(s, up, key, false);

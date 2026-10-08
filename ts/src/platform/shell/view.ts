@@ -23,18 +23,14 @@ import { damageTint } from "../../game/presentation/hitPresentation";
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import { hideEffect } from "../../game/render/effects";
 import { FRAME_SECONDS, type FighterPose } from "../../game/presentation/fighterPose";
-import { CANNON_MODEL, PLATFORM_CUE_FRAMES, framesUntilPlatformMoves, lavaLook, stageWarning } from "../../game/presentation/stageHazards";
+import { CANNON_MODEL, PLATFORM_CUE_FRAMES, framesUntilPlatformMoves, lavaLook } from "../../game/presentation/stageHazards";
 import { lavaPiece } from "../../game/presentation/stageScenery";
 import { hasLava, lavaSide } from "../../game/sim/lava";
-import { escapeMeterView, overheadAnchorZ, readEscapeMeter } from "../../game/presentation/escapeMeter";
-import { OVERHEAD_MANA_BORDER, OVERHEAD_MANA_HEIGHT, OVERHEAD_MANA_WIDTH, overheadManaLift } from "../../game/presentation/manaBar";
-import { NO_PIPS, PASSIVE_PIP_LIFT, type PassivePips } from "../../game/ui/passivePips";
-import { passivePips } from "../../game/sim/passives";
-import type { ManaBar } from "../../game/ui/manaBar";
-import type { Fighter } from "../../game/sim/fighter";
+import { escapeMeterView, readEscapeMeter } from "../../game/presentation/escapeMeter";
 import type { MatchCamera } from "../../game/sim/matchCamera";
+import type { Fighter } from "../../game/sim/fighter";
 import { type MapBuild, journalIngress } from "../../game/shell/build";
-import { MOMENT_SAVED_MESSAGE, type StartControl, matchHelp, resultNotice, stockLossMessage, waitingMessage } from "../../game/shell/messages";
+import { type StartControl, matchHelp, resultNotice } from "../../game/shell/messages";
 import { isIntangible } from "../../game/sim/conditions";
 import { type Roster, fighterAt, isActive } from "../../game/sim/roster";
 import { surfaceCount, surfaceLeft, surfaceMoves, surfaceRight, surfaceZ } from "../../game/sim/stage";
@@ -193,7 +189,6 @@ export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readon
   if (wasOut && !fighter.status.out) ShowUnit(body.unit, true);
   else if (!wasOut && fighter.status.out) {
     ShowUnit(body.unit, false);
-    if (fighter.status.stocks > 0) announce(s, stockLossMessage(s.game, slot, fighter.status.stocks));
   }
   const { pooled } = participant;
   ShowUnit(body.unit, !pooled && !fighter.status.out && !archerMounted(fighter));
@@ -336,25 +331,6 @@ export function renderPersistentPresentation(s: ShellState): void {
 // Preallocated scratch for each slot's escape meter.
 const meter = escapeMeterView();
 
-/** A fighter's overhead mana bar: over its head, stacked above its escape meter when that shows. */
-function presentOverheadMana(bar: ManaBar, pips: PassivePips, fighter: Readonly<Fighter> | undefined, escapeShown: boolean, framing: Readonly<MatchCamera>, aspect: number): void {
-  if (fighter === undefined || fighter.status.out) {
-    bar.update(false, fighter?.mana.points ?? 0, fighter?.visuals.manaDenied ?? 0, fighter?.visuals.manaDrained ?? 0);
-    pips.update(false, NO_PIPS, 0.0, 0.0);
-    return;
-  }
-  const point = cameraPoint(framing, aspect, fighter.motion.x, overheadAnchorZ(fighter));
-  const onScreen = point.column >= 0.0 && point.column <= 1.0 && point.row >= 0.0 && point.row <= 1.0;
-  if (onScreen) {
-    const centerX = f32(0.4) + (point.column - 0.5) * aspect * f32(0.6);
-    const manaY = (1.0 - point.row) * f32(0.6) + overheadManaLift(escapeShown);
-    bar.place(centerX - OVERHEAD_MANA_WIDTH / 2.0, manaY, OVERHEAD_MANA_WIDTH);
-    // The passive's pips sit just above the bar (#148).
-    pips.update(true, passivePips(fighter), centerX, manaY + OVERHEAD_MANA_HEIGHT / 2.0 + OVERHEAD_MANA_BORDER + PASSIVE_PIP_LIFT);
-  } else pips.update(false, NO_PIPS, 0.0, 0.0);
-  bar.update(onScreen, fighter.mana.points, fighter.visuals.manaDenied, fighter.visuals.manaDrained);
-}
-
 function applyArenaCamera(s: ShellState, framing: Readonly<MatchCamera>, aspect: number, angle: number, duration: number): void {
   const { x: centerX, y: centerY } = s.origin;
   const targetX = centerX + framing.x;
@@ -401,7 +377,7 @@ export function lockArenaCamera(s: ShellState): void {
     SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, 70.0, 0.0);
     SetCameraPosition(centerX, centerY);
   }
-  views(s).items.present(game, world, framing, aspect);
+  views(s).items.present(game, world);
   for (const slot of PARTICIPANT_SLOTS) {
     const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
     const point = cameraPoint(framing, aspect, fighter?.motion.x ?? 0.0, (fighter?.motion.z ?? 0.0) + 60.0);
@@ -411,7 +387,6 @@ export function lockArenaCamera(s: ShellState): void {
     if (game.phase !== Phase.match || pauseHudHidden(s)) meter.shown = false;
     const meterPoint = cameraPoint(framing, aspect, meter.x, meter.z);
     views(s).escapeMeters[slot].update(meter, meterPoint.column, meterPoint.row, aspect);
-    presentOverheadMana(views(s).manaBars[slot].overhead, views(s).passivePips[slot], game.phase === Phase.match && !pauseHudHidden(s) ? fighter : undefined, meter.shown, framing, aspect);
   }
 }
 
@@ -425,7 +400,7 @@ export function renderUi(s: ShellState): void {
   const paused = game.phase === Phase.match && s.session.paused;
   if (paused && !menu.shown) menu.choice = 0;
   menu.shown = paused;
-  ui.pause.update(paused && s.pauseCamera?.using !== true, menu.choice, menu.title);
+  ui.pause.update(paused && s.pauseCamera?.using !== true, menu.choice, menu.title, game.training, s.trainingHints === true);
   const local = localParticipantSlot(s);
   const localFighter = local !== undefined && s.participants[local].body !== undefined && isActive(s.world, local) ? fighterAt(s.world, local) : undefined;
   const showMatch = !pauseHudHidden(s) && !selecting && !(local !== undefined && ui.settings[local].isOpen());
@@ -443,22 +418,20 @@ export function renderUi(s: ShellState): void {
     ui.settings[slot].update();
   }
   ui.clock.update(showMatch && timedMatch(game), remainingSeconds(game));
-  ui.items.hud(game, showMatch);
   ui.training.update(showMatch && game.training && game.phase === Phase.match, game.trainer);
   ui.classic?.updateCard(game);
   const cleared = game.lore && game.phase === Phase.result && game.run.active && game.run.cleared ? game.run.current : undefined;
   if (cleared !== undefined && localSlot() === game.run.player) loreClears().mark(cleared.id);
   const { help, notice, developer } = s.frames;
-  BlzFrameSetVisible(help, showMatch);
-  BlzFrameSetVisible(notice, showMatch);
-  if (developer !== undefined) BlzFrameSetVisible(developer, showMatch);
+  const teaching = game.phase === Phase.match && game.training && s.trainingHints === true && !paused;
+  BlzFrameSetVisible(help, showMatch && (game.phase === Phase.result || teaching));
+  BlzFrameSetVisible(notice, showMatch && game.phase === Phase.result);
+  if (developer !== undefined) BlzFrameSetVisible(developer, false);
   if (!selecting) {
     BlzFrameSetText(help, matchHelp(game, s.session.paused, startControl(s), localFighter, game.phase === Phase.match));
     const waiting = game.phase === Phase.match ? activeRollback(s)?.waitingFor ?? 0 : 0;
     probeWaiting(s.probe, waiting, localSlot());
-    BlzFrameSetText(notice, waiting !== 0 ? waitingMessage(waiting)
-      : localFighter?.attack.smashCharging === true ? "Charging smash: release Attack to strike."
-      : s.moment.notice > 0 ? MOMENT_SAVED_MESSAGE : resultNotice(game, s.status.seconds > 0 ? s.status.text : stageWarning(game, s.world)));
+    BlzFrameSetText(notice, game.phase === Phase.result ? resultNotice(game, s.status.text) : "");
   }
   ui.stage.update(game);
   if (developer === undefined || local === undefined || localFighter === undefined) return;
