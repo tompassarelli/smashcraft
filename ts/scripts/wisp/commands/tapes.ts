@@ -10,7 +10,9 @@
 // Environment: LUA and TOWARD_ZERO_LUA, optional (scripts/wisp/luaRuntimes.ts).
 import "../../../test/host-natives";
 import { join } from "node:path";
+import { BunServices } from "@effect/platform-bun";
 import { Console, Effect, Schema } from "effect";
+import { ChildProcess } from "effect/process";
 import { decodeTape } from "../../../src/game/replay/tape";
 import { runTape } from "../../../src/game/replay/tapeRunner";
 import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/command";
@@ -18,6 +20,7 @@ import { step } from "wisp/scripts/wisp/timings";
 import { captureProcess } from "wisp/scripts/wisp/mapBuild";
 import { generateTapes } from "../acceptanceTapes";
 import { luaRuntimes } from "../luaRuntimes";
+import { runProcess } from "../../hostProcess";
 
 const ts = join(import.meta.dir, "../../..");
 const build = join(ts, "build", "tapes");
@@ -28,12 +31,6 @@ const build = join(ts, "build", "tapes");
 interface Run {
   readonly records: string[];
   readonly error: string | undefined;
-}
-
-function command(argv: string[], cwd = ts): { output: string; error: string | undefined } {
-  const result = Bun.spawnSync(argv, { cwd, stdout: "pipe", stderr: "pipe" });
-  const stderr = result.stderr.toString().trim();
-  return { output: result.stdout.toString(), error: result.exitCode === 0 ? undefined : stderr || `exit ${result.exitCode}` };
 }
 
 const recordsOf = (output: string) => output.split("\n").filter(line => line.length > 0);
@@ -56,28 +53,29 @@ async function inputsHash(paths: readonly string[], extra: string): Promise<stri
   return hasher.digest("hex");
 }
 
-/** Rebuilds `output` only when the hash of its inputs changed. Returns build seconds, 0 when cached. */
-async function cachedBuild(output: string, hash: string, buildIt: () => string | undefined): Promise<number> {
+/** Rebuilds `output` with `buildIt` only when the hash of its inputs changed. Returns build seconds, 0 when cached. */
+const cachedBuild = <E, R>(output: string, hash: string, buildIt: Effect.Effect<unknown, E, R>) => Effect.gen(function*() {
   const stamp = Bun.file(`${output}.inputs`);
-  if (await Bun.file(output).exists() && await stamp.exists() && await stamp.text() === hash) return 0;
+  if (yield* attempt("read the build stamp", async () => await Bun.file(output).exists() && await stamp.exists() && await stamp.text() === hash)) return 0;
   const started = performance.now();
-  const failure = buildIt();
-  if (failure !== undefined) throw new Error(failure);
-  await Bun.write(stamp, hash);
+  yield* buildIt;
+  yield* attempt("write the build stamp", () => Bun.write(stamp, hash));
   return (performance.now() - started) / 1000;
-}
+});
 
 const tapesLua = join(ts, "build", "lua-tapes", "tapes.lua");
 
-async function compileTypeScriptLua(): Promise<number> {
+const compileTypeScriptLua = Effect.gen(function*() {
   const sources = ["src", "test/tapes"].flatMap(dir => [...new Bun.Glob(`${dir}/**/*.ts`).scanSync(ts)]).sort().map(path => join(ts, path));
   const config = join(ts, "tsconfig.lua-tapes.json");
   const framework = [...new Bun.Glob("src/**/*.{ts,lua}").scanSync(join(ts, "node_modules/wisp"))]
     .map((file) => join(ts, "node_modules/wisp", file));
-  return cachedBuild(tapesLua, await inputsHash([...sources, ...framework,
-    join(ts, "node_modules/wisp/plugins/warcraft-numbers.ts"), config], "tstl"), () =>
-    command([process.execPath, "--bun", join(ts, "node_modules/typescript-to-lua/dist/tstl.js"), "-p", config]).error);
-}
+  const hash = yield* attempt("hash the Lua inputs", () => inputsHash([...sources, ...framework,
+    join(ts, "node_modules/wisp/plugins/warcraft-numbers.ts"), config], "tstl"));
+  return yield* cachedBuild(tapesLua, hash,
+    runProcess(ChildProcess.make(process.execPath, ["--bun", join(ts, "node_modules/typescript-to-lua/dist/tstl.js"), "-p", config], { cwd: ts })).pipe(
+      Effect.mapError((failure) => new TapesFailure({ problem: `compile TypeScript Lua: ${failure.message}` }))));
+});
 
 /** Two replay children bound pipe buffers while Bun replays on this thread. */
 export const replayInLua = (files: readonly string[], executable: string) =>
@@ -143,7 +141,7 @@ export const tapes: Command = (args) => Effect.gen(function*() {
     for (const { file, text } of recorded) await Bun.write(file, text);
     return recorded;
   }).pipe(step("record tapes"));
-  yield* attempt("compile TypeScript Lua", compileTypeScriptLua).pipe(step("compile TypeScript Lua"));
+  yield* compileTypeScriptLua.pipe(Effect.provide(BunServices.layer), step("compile TypeScript Lua"));
   // Lua processes start before the in-process Bun runs occupy this thread.
   const files = tapes.map(({ file }) => file);
   const replays = yield* Effect.all({
