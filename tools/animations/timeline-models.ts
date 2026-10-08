@@ -18,7 +18,7 @@ if (fighter === undefined) throw new Error(`Unknown fighter ${fighterName}`);
 await Effect.runPromise(Effect.tryPromise({ try: async () => {
     // The same key thinning the clip pool was cut with (#314).
     const source = thinKeys(parseSource(await Bun.file(join(assets, fighter.source)).arrayBuffer())).model;
-    const played = flashableSequences(fighters.indexOf(fighter), source.Sequences);
+    const played = flashableSequences([...fighters].find(([, item]) => item === fighter)![0], source.Sequences);
     const bytes = encodeVerified(timelineBody(source, played));
     tracks(parseSource(bytes), (track, path) => {
         if (track.Keys.length === 0) throw new Error(`${fighter.name}: timeline body left ${path} without keys`);

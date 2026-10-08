@@ -16,7 +16,7 @@ import { WHITE_MODEL_FACTS } from "../../ts/scripts/wisp/whiteModelFacts";
 const [assetsArg, outputArg, option, characterArg] = process.argv.slice(2);
 if (assetsArg === undefined || outputArg === undefined || (option !== undefined && (option !== "--character" || characterArg === undefined))) throw new Error("usage: bun tools/animations/white-flash-models.ts PRIVATE_ASSETS PRIVATE_OUTPUT [--character ID]");
 const selected = characterArg === undefined ? undefined : Number(characterArg);
-if (selected !== undefined && (!Number.isInteger(selected) || selected < 0 || selected >= fighters.length)) throw new Error("Choose a fighter number from the roster");
+if (selected !== undefined && (!Number.isInteger(selected) || !fighters.has(selected))) throw new Error("Choose a fighter number from the roster");
 const assets = resolve(assetsArg), output = resolve(outputArg);
 if (!relative(resolve(import.meta.dir, "../.."), output).startsWith("..")) throw new Error("White fighter models must stay in private storage");
 const hash = (bytes: Uint8Array) => new Bun.CryptoHasher("sha256").update(bytes).digest("hex");
