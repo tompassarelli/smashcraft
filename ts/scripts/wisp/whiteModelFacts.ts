@@ -217,24 +217,6 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/lichkingwhite-5ea9196a306f4cce8f33d17f1218658b30a29474abe2551f7825c9d3aa019d2b.mdx": {
-    "geosets": 7,
-    "triangles": 1931,
-    "lights": 0,
-    "bounds": {
-      "min": [
-        -39.135101318359375,
-        -64.08399963378906,
-        0.4492189884185791
-      ],
-      "max": [
-        215.11300659179688,
-        44.51449966430664,
-        161.04100036621094
-      ]
-    },
-    "emitters": []
-  },
   "war3mapimported/thrallwhite-41212047b06ce5bb5cc39cadf3c89ac1a25ab1705f822c6d72dba29736665b7c.mdx": {
     "geosets": 3,
     "triangles": 557,
@@ -325,24 +307,6 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/peonwhite-fadacdf53a6498af38d39625902e7eac01d4edea0808805e92a95bcddedf8700.mdx": {
-    "geosets": 5,
-    "triangles": 372,
-    "lights": 0,
-    "bounds": {
-      "min": [
-        -81.0353012084961,
-        -76.47509765625,
-        -29.07939910888672
-      ],
-      "max": [
-        96.0802001953125,
-        77.04409790039062,
-        135.59800720214844
-      ]
-    },
-    "emitters": []
-  },
   "war3mapimported/goblintinkerwhite-22ff99a0a01fae555cd84b29acd72ebd7bf42d8c2b34d8ef14146196c5d3c5d6.mdx": {
     "geosets": 24,
     "triangles": 2412,
@@ -393,6 +357,42 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
         141.2010040283203,
         103.33699798583984,
         171.29800415039062
+      ]
+    },
+    "emitters": []
+  },
+  "war3mapimported/lichkingwhite-a16ceeed09605d40c93b3115bf29bb1dabe99127f4e1d4ffd1045f2c18af4ae0.mdx": {
+    "geosets": 7,
+    "triangles": 1931,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -39.135101318359375,
+        -64.08399963378906,
+        0.4492189884185791
+      ],
+      "max": [
+        215.11300659179688,
+        44.51449966430664,
+        161.04100036621094
+      ]
+    },
+    "emitters": []
+  },
+  "war3mapimported/peonwhite-a0521b910cff476c2f22a8ba9142ad91f87e9f31610c03c91cf0c638f651c2c0.mdx": {
+    "geosets": 5,
+    "triangles": 372,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -81.0353012084961,
+        -76.47509765625,
+        -29.07939910888672
+      ],
+      "max": [
+        96.0802001953125,
+        77.04409790039062,
+        135.59800720214844
       ]
     },
     "emitters": []
