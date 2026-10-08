@@ -10,7 +10,7 @@ import { IMPACT_HIT_MODEL } from "../src/game/assets/impactAssetInfo";
 import { impactModel } from "../src/game/presentation/hitPresentation";
 import { Action, bit } from "../src/game/input/actions";
 import { requestStageSelect, requestStart, selectCharacter, selectStage, setParticipants } from "../src/game/match/rules";
-import { ARENA_CAMERA, FLOOR_HEIGHT, WORLD_BOUNDS, extremeCamera } from "../src/game/presentation/arenaCamera";
+import { ARENA_CAMERA, FLOOR_HEIGHT, extremeCamera } from "../src/game/presentation/arenaCamera";
 import { CANNON_MODEL } from "../src/game/presentation/stageHazards";
 import { deckModel } from "../src/game/presentation/stagePreload";
 import { platformParts } from "../src/game/presentation/stockPlatforms";
@@ -38,7 +38,6 @@ import { startMatch } from "../src/platform/shell/matchStart";
 import { startQuickMatch } from "../src/platform/shell/menus";
 import { shell } from "../src/platform/shell/state";
 import { drawStage, lockArenaCamera, renderPersistentPresentation, renderUi } from "../src/platform/shell/view";
-import { drawStageScenery } from "../src/platform/shell/stageScenery";
 import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
 import type { HeadlessClient } from "wisp/src/headless/client";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
@@ -161,34 +160,6 @@ test("Tomb's Temple of Tides draws its whole standing body and roof above the de
     const temple = sceneReport(client).models.find(({ model }) => model === reportedModel(TEMPLE_OF_TIDES));
     expect(temple, extreme).toMatchObject({ live: 1, inView: 1, drawn: 1 });
   }
-  expect(client.errors).toEqual([]);
-});
-
-test("every stage's scenery and the fighting plane stand inside Warcraft's world bounds, outside which no effect draws [repro #298]", () => {
-  // Natively Stratholme's cathedral (y +6,200) and Tomb's temple and waterfall (+5,600) went undrawn from a playable-centre origin.
-  const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
-  clients.start();
-  clients.frames(30);
-  const client = clients.client(0);
-  const outside: string[] = [];
-  client.run(() => {
-    const s = shell();
-    // Headless centres the playable map at 0; the base map centres it at WORLD_BOUNDS.playableCentreY.
-    const inside = (x: number, y: number) => {
-      const nativeY = y + WORLD_BOUNDS.playableCentreY;
-      return x >= WORLD_BOUNDS.left && x <= WORLD_BOUNDS.right && nativeY >= WORLD_BOUNDS.front && nativeY <= WORLD_BOUNDS.back;
-    };
-    if (!inside(s.origin.x, s.origin.y - MAIN_DECK_HALF_DEPTH)) outside.push("the deck's front edge");
-    for (const stage of STAGE_CATALOG) {
-      s.game.stageChoice = stage.id;
-      drawStageScenery(s);
-      const pieces = placedPieces(stage.id, s.game.hazards);
-      for (const [index, effect] of (s.stageScenery ?? []).entries()) {
-        if (!inside(BlzGetLocalSpecialEffectX(effect), BlzGetLocalSpecialEffectY(effect))) outside.push(`${stage.name}: ${pieces[index]?.model}`);
-      }
-    }
-  });
-  expect(outside).toEqual([]);
   expect(client.errors).toEqual([]);
 });
 

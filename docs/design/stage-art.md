@@ -355,12 +355,3 @@ Only one sky draws at a time. Regenerate all stage art with
 `bun wisp inputs add stage-assets DIR` from smashcraft:ts/, and use a full map
 build when content-addressed sky paths change. Nordrassil remains a stock
 sky so its existing animated aurora is unaffected.
-
-Warcraft draws no effect whose position lies outside the map's world bounds
-(base map: 64 x 64 cells, x and y -4,096..4,096, playable centre at y -256).
-From a playable-centre arena, every piece deeper than about y 4,350 went
-undrawn natively (Stratholme's cathedral, Tomb's temple and waterfall, 41
-pieces and lights in all, on 91d8a1b7, #298), while headless, which has no
-world bounds, drew them. The arena therefore stands `ARENA_SOUTH` (3,500) south
-of the playable centre, so pieces up to y 7,850 stay inside;
-smashcraft:ts/test/player-view.test.ts checks every placed piece.
