@@ -9,6 +9,7 @@ import { SPECIAL_INPUTS, fighterKit, normalName, specialName } from "../sim/move
 import { fighterName } from "../sim/heroes/registry";
 import { CPU_OPPONENT_DEFAULT, CPU_TIER_DEFAULT } from "../match/cpuProfiles";
 import { classicResultHelp, classicResultMessage, tierName } from "../classic/classicText";
+import { loreBattle, loreResultHelp, loreResultMessage } from "../classic/loreBattles";
 
 /** The control that starts, pauses and resumes: a controller's Start, or Y on a keyboard. */
 export type StartControl = "Start" | "Y";
@@ -44,7 +45,7 @@ export function aerialName(style: AttackStyle): string | undefined {
 }
 
 export function resultMessage(game: Readonly<MatchState>): string {
-  if (game.run.active) return classicResultMessage(game);
+  if (game.run.active) return game.lore ? loreResultMessage(game) : classicResultMessage(game);
   const winner = game.winner === undefined ? undefined : fighterLabel(game, game.winner);
   if (game.interrupted) return winner === undefined ? "Match ended because a player left." : `${winner} wins by forfeit.`;
   if (winner !== undefined) return `${winner} wins!`;
@@ -54,7 +55,7 @@ export function resultMessage(game: Readonly<MatchState>): string {
 const confirmControl = (start: StartControl) => (start === "Start" ? "A or Start" : "Y");
 
 function rematchStatus(game: Readonly<MatchState>, start: StartControl): string {
-  if (game.run.active) return classicResultHelp(game, confirmControl(start));
+  if (game.run.active) return game.lore ? loreResultHelp(game, confirmControl(start)) : classicResultHelp(game, confirmControl(start));
   if (game.rematchCountdown > 0) return "Press any button to stop the rematch.";
   const present = PARTICIPANT_SLOTS.filter(slot => humanPresent(game, slot));
   const ready = present.filter(slot => game.rematchReadiness[slot]);
@@ -78,8 +79,8 @@ export const hazardsSetting = (on: boolean) => `Hazards: ${on ? "On" : "Off"}`;
 export const itemsSetting = (on: boolean) => `Items: ${on ? "On" : "Off"}`;
 export const itemKindSetting = (kind: ItemKind, on: boolean) => `${kind === ItemKind.speed ? "Speed" : kind === ItemKind.extraJump ? "Extra jump" : "Heavy"}: ${on ? "On" : "Off"}`;
 
-/** The mode button: Versus, Training or Classic. */
-export const modeSetting = (game: Readonly<MatchState>) => `Mode: ${game.classic ? "Classic" : game.training ? "Training" : "Versus"}`;
+/** The mode button: Versus, Training, Classic or Lore Battles. */
+export const modeSetting = (game: Readonly<MatchState>) => `Mode: ${game.lore ? "Lore Battles" : game.classic ? "Classic" : game.training ? "Training" : "Versus"}`;
 const BEHAVIOUR_NAMES = ["Stand", "Shield", "Crouch", "Jump", "Attack", "Fight"];
 const ESCAPE_NAMES = ["None", "Toward you", "Away", "Random"];
 const TECH_NAMES = ["None", "In place", "Toward you", "Away", "Random"];
@@ -93,6 +94,7 @@ export const trainingSpeedSetting = (speed: number) => `Speed: ${speed === 4 ? "
 /** The rules the next match plays by, as the stage screen shows them. */
 export function rulesSummary(game: Readonly<MatchState>): string {
   if (game.classic) return `Classic · starts at ${tierName(game.classicTier)}`;
+  if (game.lore) return `Lore Battle · ${loreBattle(game.loreBattle)?.title ?? ""}`;
   if (game.training) return "Training · No time limit";
   if (practiceSelected(game)) return "Practice · No time limit";
   const rules = game.endless ? "Endless" : `${stockSetting(game.stockCount)}  ·  ${timeSetting(game.timeLimitMinutes)}`;
@@ -139,7 +141,7 @@ export function trainingReadout(state: Readonly<TrainingState>): string {
 
 /** The selection header's title: the match mode, or the Moves page while it is open. */
 export function selectionModeLabel(game: Readonly<MatchState>): string {
-  return game.classic ? "CLASSIC" : game.training ? "TRAINING" : "VERSUS";
+  return game.lore ? "LORE BATTLES" : game.classic ? "CLASSIC" : game.training ? "TRAINING" : "VERSUS";
 }
 export const MOVES_HEADER = "MOVES";
 

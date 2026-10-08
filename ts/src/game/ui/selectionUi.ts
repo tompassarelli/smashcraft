@@ -52,6 +52,8 @@ import {
   partnerTechSetting, stockSetting, timeSetting, modeSetting, trainingSpeedSetting,
 } from "../shell/messages";
 import { classicRouteSummary, classicTierSetting } from "../classic/classicText";
+import { loreBattle, loreBattleSetting, loreBattleSummary } from "../classic/loreBattles";
+import { loreClears } from "../classic/loreClears";
 import { Character, ItemKind, itemBit } from "../sim/codes";
 import { TILE_PORTRAIT_SLOT, tilePortrait } from "./portraitFrames";
 import { slotColor } from "./slotColors";
@@ -726,9 +728,10 @@ export class SelectionPanel {
   }
 
   private showRules(game: Readonly<MatchState>): void {
-    const { stockCount, timeLimitMinutes, endless, automaticRematch, training, trainer, items, classic, classicTier } = game;
+    const { stockCount, timeLimitMinutes, endless, automaticRematch, training, trainer, items, classic, classicTier, lore, loreBattle: battle } = game;
+    const clears = loreClears();
     const fighter = characterFor(game, this.participantId) ?? Character.archer;
-    const rules = `${classic ? "1" : "0"} ${I2S(classicTier)} ${I2S(fighter)} ${I2S(stockCount)} ${I2S(timeLimitMinutes)} ${endless ? "1" : "0"} ${automaticRematch ? "1" : "0"} ${training ? "1" : "0"} ${I2S(trainer.behaviour)} ${I2S(trainer.escape)} ${I2S(trainer.tech)} ${I2S(trainer.damage)} ${trainer.showHitAreas ? "1" : "0"} ${I2S(trainer.speed)} ${items.on ? "1" : "0"} ${I2S(items.enabledMask)} ${I2S(trainer.lesson)}`;
+    const rules = `${lore ? "1" : "0"} ${I2S(battle)} ${I2S(clears.count())} ${classic ? "1" : "0"} ${I2S(classicTier)} ${I2S(fighter)} ${I2S(stockCount)} ${I2S(timeLimitMinutes)} ${endless ? "1" : "0"} ${automaticRematch ? "1" : "0"} ${training ? "1" : "0"} ${I2S(trainer.behaviour)} ${I2S(trainer.escape)} ${I2S(trainer.tech)} ${I2S(trainer.damage)} ${trainer.showHitAreas ? "1" : "0"} ${I2S(trainer.speed)} ${items.on ? "1" : "0"} ${I2S(items.enabledMask)} ${I2S(trainer.lesson)}`;
     if (rules === this.shownRules) return;
     this.shownRules = rules;
     BlzFrameSetText(this.stockValue, stockSetting(stockCount));
@@ -744,8 +747,9 @@ export class SelectionPanel {
       BlzFrameSetText(frame, itemKindSetting(kind, (items.enabledMask & itemBit(kind)) !== 0));
     }
     BlzFrameSetText(this.trainingToggle, modeSetting(game));
-    BlzFrameSetText(this.classicTierValue, classicTierSetting(classicTier));
-    BlzFrameSetText(this.classicRoute, classicRouteSummary(fighter));
+    const chosen = loreBattle(battle);
+    BlzFrameSetText(this.classicTierValue, lore ? loreBattleSetting(battle, chosen !== undefined && clears.has(chosen.id)) : classicTierSetting(classicTier));
+    BlzFrameSetText(this.classicRoute, lore ? loreBattleSummary(battle, clears.count()) : classicRouteSummary(fighter));
     showTutorialLesson(this.tutorial, trainer.lesson);
     BlzFrameSetText(this.hitAreasToggle, hitAreasSetting(trainer.showHitAreas));
     BlzFrameSetText(this.speedToggle, trainingSpeedSetting(trainer.speed));
@@ -754,9 +758,9 @@ export class SelectionPanel {
     if (escape !== undefined) BlzFrameSetText(escape, partnerEscapeSetting(trainer.escape));
     if (tech !== undefined) BlzFrameSetText(tech, partnerTechSetting(trainer.tech));
     if (damage !== undefined) BlzFrameSetText(damage, partnerDamageSetting(trainer.damage));
-    for (const frame of this.matchRuleFrames) BlzFrameSetVisible(frame, !training && !classic);
+    for (const frame of this.matchRuleFrames) BlzFrameSetVisible(frame, !training && !classic && !lore);
     for (const frame of this.trainingFrames) BlzFrameSetVisible(frame, training);
-    for (const frame of this.classicFrames) BlzFrameSetVisible(frame, classic);
+    for (const frame of this.classicFrames) BlzFrameSetVisible(frame, classic || lore);
   }
 
   private confirmText(game: Readonly<MatchState>): string {

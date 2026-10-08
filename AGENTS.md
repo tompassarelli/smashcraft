@@ -286,6 +286,7 @@ code. From smashcraft:ts/:
   (starts tumbling above the floor for recovery captures), and `-dev quick cpu OPPONENT DIFFICULTY [hero NAME]`,
   a quick match against a named computer at the selected difficulty over three stocks.
   `-dev classic NAME` starts that fighter's Classic run and `-dev classic boss NAME` its boss battle (smashcraft:docs/design/classic-mode.md).
+  `-dev lore N` starts Lore Battle N (1-20, smashcraft:ts/src/game/classic/loreBattles.ts) for the first player.
   `-dev quick offstage hero NAME` starts the #189 recovery check at x=700, z=300 on Frozen Throne with jumps spent.
   The named variant uses the normal CPU selection rule.
   `-dev pain HEIGHT STRENGTH FIGHTER` starts the #181 mirror capture fixture:

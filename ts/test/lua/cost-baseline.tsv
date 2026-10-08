@@ -2,6 +2,7 @@ unit	tests	cpu_s
 src/game/assets/stageLighting.tests.ts	5	0.000
 src/game/assets/stagePalette.tests.ts	3	0.000
 src/game/classic/classic.tests.ts	7	4.135
+src/game/classic/loreBattles.tests.ts	4	0.004
 src/game/input/adapter.tests.ts	8	0.002
 src/game/input/attackBuffer.tests.ts	6	0.000
 src/game/input/input.tests.ts	6	0.018

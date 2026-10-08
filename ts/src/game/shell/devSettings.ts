@@ -182,6 +182,15 @@ export function classicDevRequest(message: string): { readonly character: Charac
   return character === undefined ? undefined : { character, boss: false };
 }
 
+/** Lore Battles' native check (#305): `-dev lore N` starts battle N of the list, from 1. */
+export const LORE_COMMAND = "-dev lore ";
+
+export function loreDevRequest(message: string, battles: number): number | undefined {
+  if (!message.startsWith(LORE_COMMAND)) return undefined;
+  const battle = commandInteger(message.substring(LORE_COMMAND.length));
+  return battle !== undefined && battle >= 1 && battle <= battles ? battle : undefined;
+}
+
 /** Training's native check (#120): a computer partner shielding at 40%, hit areas on, then the quick match. */
 export const QUICK_TRAINING_COMMAND = "-dev quick training";
 

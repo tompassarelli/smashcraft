@@ -71,6 +71,9 @@ export interface MatchState {
   /** Classic (#284) is the chosen mode at fighter selection, and the difficulty its run starts at (an index into CPU_TIERS). */
   classic: boolean;
   classicTier: number;
+  /** Lore Battles (#305) is the chosen mode, and the battle chosen in its list (an index into LORE_BATTLES). */
+  lore: boolean;
+  loreBattle: number;
   /** The configured match being played and the run around it (smashcraft:ts/src/game/classic/runState.ts). */
   readonly run: ConfiguredRun;
 }
@@ -91,7 +94,7 @@ export function createMatchState(): MatchState {
 
     remainingFrames: 7 * 60 * MATCH_TICKS_PER_SECOND, startHold: 0, matchFrame: 0, timedOut: false, practice: false,
     training: false, trainer: createTrainingState(), items: createMatchItems(),
-    classic: false, classicTier: CLASSIC_TIER_DEFAULT, run: createConfiguredRun(),
+    classic: false, classicTier: CLASSIC_TIER_DEFAULT, lore: false, loreBattle: 0, run: createConfiguredRun(),
   };
 }
 
@@ -199,6 +202,8 @@ export function copyMatchState(target: MatchState, source: Readonly<MatchState>)
   copyMatchItems(target.items, source.items);
   target.classic = source.classic;
   target.classicTier = source.classicTier;
+  target.lore = source.lore;
+  target.loreBattle = source.loreBattle;
   copyConfiguredRun(target.run, source.run);
   for (const slot of PARTICIPANT_SLOTS) {
     target.characterChoices[slot] = source.characterChoices[slot];
@@ -306,7 +311,10 @@ export function setEndless(game: MatchState, slot: number, endless: boolean): vo
 export function setTraining(game: MatchState, slot: number, training: boolean): void {
   if (!settingRules(game, slot)) return;
   game.training = training;
-  if (training) game.classic = false;
+  if (training) {
+    game.classic = false;
+    game.lore = false;
+  }
   if (!training) game.trainer.lesson = -1;
 }
 
@@ -315,11 +323,14 @@ export function setTutorialLesson(game: MatchState, slot: number, lesson: number
   if (settingRules(game, slot) && lesson >= -1 && lesson < lessons) game.trainer.lesson = lesson;
 }
 
-/** The mode button steps Versus, Training, Classic. */
+/** The mode button steps Versus, Training, Classic, Lore Battles. */
 export function cycleMatchMode(game: MatchState, slot: number): void {
   if (!settingRules(game, slot)) return;
-  if (game.classic) game.classic = false;
-  else if (game.training) {
+  if (game.lore) game.lore = false;
+  else if (game.classic) {
+    game.classic = false;
+    game.lore = true;
+  } else if (game.training) {
     game.training = false;
     game.classic = true;
   } else game.training = true;
@@ -328,6 +339,11 @@ export function cycleMatchMode(game: MatchState, slot: number): void {
 /** Classic's starting difficulty steps through the five computer tiers. */
 export function stepClassicTier(game: MatchState, slot: number, direction: number): void {
   if (settingRules(game, slot) && game.classic) game.classicTier = Math.max(0, Math.min(CPU_TIERS.length - 1, game.classicTier + direction));
+}
+
+/** Lore Battles' stepper walks the list of `battles`, wrapping at either end. */
+export function stepLoreBattle(game: MatchState, slot: number, direction: number, battles: number): void {
+  if (settingRules(game, slot) && game.lore) game.loreBattle = floorMod(game.loreBattle + direction, battles);
 }
 
 /** Ends a configured run: the menu's own settings come back and play returns to fighter selection. */

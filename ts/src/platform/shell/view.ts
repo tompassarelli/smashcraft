@@ -39,6 +39,7 @@ import { localParticipantSlot, traceParticipant } from "./diagnostics";
 import { placeFighterBody, renderDizzy } from "./fighterBody";
 import { type ShellState, type StatusFrames, activeRollback, localSlot, playsOnKeyboard } from "./state";
 import { pauseEffects, views } from "./ui";
+import { loreClears } from "../../game/classic/loreClears";
 import { drawStageScenery } from "./stageScenery";
 import { probeCamera, probeWaiting } from "./responseProbe";
 
@@ -396,6 +397,8 @@ export function renderUi(s: ShellState): void {
   ui.items.hud(game, showMatch);
   ui.training.update(showMatch && game.training && game.phase === Phase.match, game.trainer);
   ui.classic?.updateCard(game);
+  const cleared = game.lore && game.phase === Phase.result && game.run.active && game.run.cleared ? game.run.current : undefined;
+  if (cleared !== undefined && localSlot() === game.run.player) loreClears().mark(cleared.id);
   const { help, notice, developer } = s.frames;
   BlzFrameSetVisible(help, showMatch);
   BlzFrameSetVisible(notice, showMatch);

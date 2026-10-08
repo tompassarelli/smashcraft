@@ -444,6 +444,8 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
   if (training !== undefined) return training;
   if (e.classic !== a.classic) return "match.classic";
   if (e.classicTier !== a.classicTier) return "match.classicTier";
+  if (e.lore !== a.lore) return "match.lore";
+  if (e.loreBattle !== a.loreBattle) return "match.loreBattle";
   const run = firstRunDifference(e.run, a.run);
   if (run !== undefined) return run;
   if (e.stockCount !== a.stockCount) return "match.stockCount";

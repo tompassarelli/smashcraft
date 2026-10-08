@@ -1167,6 +1167,10 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
     bool("match.classic", true);
     int("match.classicTier", match.classicTier);
   }
+  if (match.lore) {
+    bool("match.lore", true);
+    int("match.loreBattle", match.loreBattle);
+  }
   if (match.run.active) writeConfiguredRun(match.run, int, bool, (name, value) => emit(canonicalRealField(name, value)), (name, value) => emit(`|${name}=${value}`));
   int("runtime.simulationFrame", runtime.simulationFrame);
   for (const slot of PARTICIPANT_SLOTS) emit(canonicalRealField(`runtime.botAttackDelays[${slot}]`, runtime.botAttackDelays[slot]));

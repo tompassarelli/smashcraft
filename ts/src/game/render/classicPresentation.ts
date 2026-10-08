@@ -134,7 +134,7 @@ export class ClassicPresentation {
 
   /** The ending card over a cleared run's result. */
   updateCard(game: Readonly<MatchState>): void {
-    const shown = game.phase === Phase.result && game.run.active && game.run.cleared;
+    const shown = game.phase === Phase.result && game.run.active && game.run.cleared && !game.lore;
     BlzFrameSetVisible(this.card, shown);
     if (!shown) return;
     const ending = classicEnding(game);
