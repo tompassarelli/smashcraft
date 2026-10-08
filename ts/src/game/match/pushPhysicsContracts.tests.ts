@@ -10,7 +10,7 @@ import { executeNext, testMatch } from "./testMatch";
 const epsilon = f32(0.001);
 
 test("idle overlapping bodies separate by 1.8 world units per fighter per frame [spec #338]", () => {
-  const m = testMatch(3, Character.archer);
+  const m = testMatch(3, Character.rifleman);
   const a = fighterAt(m.world, 0), b = fighterAt(m.world, 1);
   a.motion.x = 0.0; b.motion.x = 20.0;
   executeNext(m);
@@ -20,7 +20,7 @@ test("idle overlapping bodies separate by 1.8 world units per fighter per frame 
 
 test("walking pushes a shielding opponent off the ledge within two frames [spec #338]", () => {
   for (const direction of [-1, 1]) {
-    const m = testMatch(3, Character.archer);
+    const m = testMatch(3, Character.rifleman);
     const a = fighterAt(m.world, 0), b = fighterAt(m.world, 1);
     const edge = direction * mainDeckRight(0);
     a.motion.x = f32(edge - direction * 30.0); b.motion.x = f32(edge - direction * 3.0);
@@ -38,7 +38,7 @@ test("walking pushes a shielding opponent off the ledge within two frames [spec 
 
 test("dash and run cross an overlapping fighter rather than stopping at its body [spec #338]", () => {
   for (const run of [false, true]) {
-    const m = testMatch(3, Character.archer);
+    const m = testMatch(3, Character.rifleman);
     const a = fighterAt(m.world, 0), b = fighterAt(m.world, 1);
     a.motion.x = -20.0; b.motion.x = 0.0;
     m.inputs.inputs[0].direction = 1; m.inputs.inputs[0].driftStickX = 1.0;
@@ -54,7 +54,7 @@ test("dash and run cross an overlapping fighter rather than stopping at its body
 });
 
 test("four-damage shield contact moves defender 2.196 and attacker 1.272 after hitlag [reference]", () => {
-  const m = testMatch(3, Character.archer);
+  const m = testMatch(3, Character.rifleman);
   const a = fighterAt(m.world, 0), b = fighterAt(m.world, 1);
   a.motion.x = 0.0; b.motion.x = 90.0;
   a.tuning = { ...a.tuning, physics: { ...a.tuning.physics, traction: f32(f32(0.08) * 6.0) } };

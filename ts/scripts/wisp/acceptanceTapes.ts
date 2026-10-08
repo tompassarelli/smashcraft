@@ -452,7 +452,7 @@ export function generateTapes(): Map<string, string> {
   const tapes = new Map([
     ["push-physics", recordTape("Walking overlapping bodies and striking a held shield, with predictions and rollback.", [{
       placement: "test-air 1 -215 0",
-      characters: [Character.archer, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 180,
+      characters: [Character.rifleman, Character.rifleman], stage: 0, stocks: 3, minutes: 0, frames: 180,
       holds: [[[10, 8, RIGHT, WALK], [24, 1, ATTACK], [70, 1, ATTACK], [100, 8, RIGHT, WALK], [120, 1, ATTACK]], [[1, 180, SHIELD_RIGHT]]],
       approaches: [[], []], rollbacks: [[1, 60], [65, 90], [95, 140]], predictions: [[10, 18], [24, 32]],
       exercise: "shieldPush",

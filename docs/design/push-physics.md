@@ -31,7 +31,7 @@ radii overlap. Each overlapping opponent contributes PlCo.dat common +0x450,
 The rate is the same for idle, walking, shielding, dash and run. It adds a
 small displacement and never clamps fighters against one another: a dash or
 run moves faster and can cross through. Walking can keep nudging a shielding
-opponent until it leaves the deck. The contract starts an Archer 30 units
+opponent until it leaves the deck. The contract starts a Rifleman 30 units
 inside the edge and its shielded opponent 3 units inside; two walking frames
 push the opponent past either edge without damage.
 
