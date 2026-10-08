@@ -61,20 +61,31 @@ export const Race = { human: 0, orc: 1, nightElf: 2, undead: 3 } as const;
 export type Race = (typeof Race)[keyof typeof Race];
 
 /** By Character. */
-const RACES: readonly Race[] = [
-  Race.nightElf, Race.human, Race.nightElf, Race.orc, Race.human, Race.nightElf, Race.undead, Race.human, Race.undead, Race.orc,
-  // Pit Lord: the game lists him as undead.
-  Race.undead,
-  // Beastmaster: the orcish Rexxar.
-  Race.orc,
-  // The Lich King: the Scourge.
-  Race.undead,
-  Race.orc, Race.human, Race.undead, Race.orc, Race.orc, Race.orc, Race.orc, Race.human,
-  // Murloc: a Broken Isles creep, fought there in the night elves' Terror of the Tides.
-  Race.nightElf,
-];
+const RACES: Readonly<Record<Character, Race>> = {
+  1: Race.human,
+  2: Race.nightElf,
+  3: Race.orc,
+  4: Race.human,
+  5: Race.nightElf,
+  6: Race.undead,
+  7: Race.human,
+  8: Race.undead,
+  9: Race.orc,
+  10: Race.undead,
+  11: Race.orc,
+  12: Race.undead,
+  13: Race.orc,
+  14: Race.human,
+  15: Race.undead,
+  16: Race.orc,
+  17: Race.orc,
+  18: Race.orc,
+  19: Race.orc,
+  20: Race.human,
+  21: Race.nightElf,
+};
 
-export const characterRace = (character: Character): Race => at(RACES, character);
+export const characterRace = (character: Character): Race => RACES[character];
 
 /** By Race: the stinger Warcraft III plays when that race wins. */
 const VICTORY_MUSIC: readonly string[] = [
@@ -90,33 +101,32 @@ export const victoryMusic = (winner: Character | undefined): string | undefined 
  * the line it says when chosen where the unit has no Ready line (a campaign hero),
  * and its battle cry where it has no Warcry line (a creep).
  */
-const VOICES: readonly (readonly [string, string, string?, string?])[] = [
-  ["Units\\Human\\Rifleman\\", "Rifleman"],
-  ["Units\\NightElf\\HeroDemonHunter\\", "HeroDemonHunter"],
-  ["Units\\Orc\\HeroBladeMaster\\", "HeroBladeMaster"],
-  ["Units\\Human\\HeroMountainKing\\", "HeroMountainKing"],
-  ["Units\\NightElf\\HeroWarden\\", "HeroWarden"],
-  ["Units\\Undead\\HeroLich\\", "HeroLich"],
-  ["Units\\Human\\Uther\\", "Uther"],
-  ["Units\\Undead\\HeroDreadLord\\", "HeroDreadLord"],
-  ["Units\\Orc\\HeroShadowHunter\\", "ShadowHunter"],
-  ["Units\\Demon\\HeroPitLord\\", "HPitLord"],
-  ["Units\\Creeps\\BeastMaster\\", "OgreBeastMaster"],
-  // Evil Arthas, the Lich King's own voice; a campaign hero with no Ready line.
-  ["Units\\Undead\\EvilArthas\\", "EvilArthas", "What"],
-  ["Units\\Orc\\Thrall\\", "Thrall"],
-  ["Units\\Human\\Jaina\\","Jaina","What"],
-  ["Units\\Undead\\EvilSylvanas\\","EvilSylvanas"],
-  ["Units\\Orc\\Cairne\\","Cairne"],
-  ["Units\\Creeps\\PandarenBrewmaster\\","PandarenBrewmaster"],
-  ["Units\\Orc\\Peon\\","Peon"],
-  ["Units\\Creeps\\HeroTinker\\","HeroTinker"],
-  ["Units\\Human\\Kael\\","Kael"],
-  ["Units\\Creeps\\Murloc\\", "Murloc", "Ready", "YesAttack"],
-];
+const VOICES: Readonly<Record<Character, readonly [string, string, string?, string?]>> = {
+  1: ["Units\\Human\\Rifleman\\", "Rifleman"],
+  2: ["Units\\NightElf\\HeroDemonHunter\\", "HeroDemonHunter"],
+  3: ["Units\\Orc\\HeroBladeMaster\\", "HeroBladeMaster"],
+  4: ["Units\\Human\\HeroMountainKing\\", "HeroMountainKing"],
+  5: ["Units\\NightElf\\HeroWarden\\", "HeroWarden"],
+  6: ["Units\\Undead\\HeroLich\\", "HeroLich"],
+  7: ["Units\\Human\\Uther\\", "Uther"],
+  8: ["Units\\Undead\\HeroDreadLord\\", "HeroDreadLord"],
+  9: ["Units\\Orc\\HeroShadowHunter\\", "ShadowHunter"],
+  10: ["Units\\Demon\\HeroPitLord\\", "HPitLord"],
+  11: ["Units\\Creeps\\BeastMaster\\", "OgreBeastMaster"],
+  12: ["Units\\Undead\\EvilArthas\\", "EvilArthas", "What"],
+  13: ["Units\\Orc\\Thrall\\", "Thrall"],
+  14: ["Units\\Human\\Jaina\\","Jaina","What"],
+  15: ["Units\\Undead\\EvilSylvanas\\","EvilSylvanas"],
+  16: ["Units\\Orc\\Cairne\\","Cairne"],
+  17: ["Units\\Creeps\\PandarenBrewmaster\\","PandarenBrewmaster"],
+  18: ["Units\\Orc\\Peon\\","Peon"],
+  19: ["Units\\Creeps\\HeroTinker\\","HeroTinker"],
+  20: ["Units\\Human\\Kael\\","Kael"],
+  21: ["Units\\Creeps\\Murloc\\", "Murloc", "Ready", "YesAttack"],
+};
 
 function voice(character: Character, line: string): string {
-  const [directory, prefix, ready, warcry] = at(VOICES, character);
+  const [directory, prefix, ready, warcry] = VOICES[character];
   const spoken = line === "Ready" ? ready ?? line : line === "Warcry" ? warcry ?? line : line;
   return `${directory}${prefix}${spoken}1.flac`;
 }
