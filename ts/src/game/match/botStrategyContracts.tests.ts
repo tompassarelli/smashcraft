@@ -42,6 +42,7 @@ test("Thrall saves Chain Lightning for a retreat beyond hammer range [repro #279
   assertEquals(casts(300.0, -2.0), 0, "approaching target");
   assertEquals(casts(300.0, 0.0), 0, "standing target");
   assertEquals(casts(80.0, 2.0), 0, "target in hammer range");
+  assertEquals(casts(520.0, 2.0), 0, "retreat beyond the spacing band");
   assertGreaterThan(casts(300.0, 2.0), 0);
 });
 
