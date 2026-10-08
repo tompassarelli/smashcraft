@@ -23,7 +23,7 @@ must resolve each role to a literal pair of names and reject missing pairs.
 | Mountain King | HeroMountainKing → HeroMountainKing | arms, legs, hammer → hammer, axe → axe |
 | Warden | HeroWarden → HeroWarden | arms, legs, blade → blade, cape → cape |
 | Lich | HeroLich → HeroLich | arms, floating pelvis, robe → robe |
-| Forsaken Paladin | authored ForsakenPaladin → stock Forsaken Paladin | arms, legs, added hammer → stock hammer; verify stock identity before export |
+| Forsaken Paladin | authored Classic Forsaken Paladin → stock Definitive Forsaken Paladin | 121 common bones of 125 with identical parents; pivots differ, so preserve stock sword and verify the reference transforms |
 | Dreadlord | HeroDreadLord → HeroDreadLord | arms, legs, each wing chain → wing chain |
 | Shadow Hunter | HeroShadowHunter → HeroShadowHunter | arms, legs, glaive → glaive, mask → mask |
 | Pit Lord | HeroPitLord → HeroPitLord | arms, all four leg chains, polearm → polearm, wings → wings |
