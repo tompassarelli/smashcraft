@@ -102,9 +102,8 @@ function usableCpus(): number {
   return Math.max(1, Math.floor(cpus));
 }
 
-// JSC's compiler threads share the quota with test bodies. At 22 processes,
-// the exclusive run reached 37% CPU pressure; eight leave compiler headroom.
-const slots = Math.min(groups.length, 8, Math.max(1, usableCpus() - 1));
+// Each Bun process also runs compiler threads; leave half the CPUs for them.
+const slots = Math.min(groups.length, 8, Math.max(1, Math.floor(usableCpus() / 2)));
 const costDirectory = mkdtempSync(join(tmpdir(), "smashcraft-test-cost-"));
 const costFile = (group: Group) => join(costDirectory, `${groups.indexOf(group)}.jsonl`);
 /** One line of test/testCost.ts's output. */
