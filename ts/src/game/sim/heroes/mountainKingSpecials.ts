@@ -26,7 +26,7 @@ const STORM_BOLT = hit(5.524999618530273, "LAUNCH", 65, false, HitElement.electr
 // Storm Rush: 1.2H of shoulder travel over its six active frames, then a dead stop.
 const RUSH_FRAMES = 6;
 const RUSH_SPEED = f32(heights(f32(1.2)) / RUSH_FRAMES);
-const STORM_RUSH = hit(13.25999927520752, "EDGE", 35);
+const STORM_RUSH = { ...hit(13.25999927520752, "EDGE", 35), growth: f32(88.4) };
 const RUSH: readonly SpecialMotion[] = [{ ...frames(13, 18), velocityX: RUSH_SPEED, velocityZ: 0.0, stopsAtBody: true }, { ...frames(19, 19), velocityX: 0.0, velocityZ: 0.0 }];
 const RUSH_BODY = capsule(0.0, 14.0, 12.0, 60.0, 26.0);
 // The lowered shoulder is body, so it carries its own hurt volume while it strikes.

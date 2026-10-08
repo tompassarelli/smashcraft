@@ -136,7 +136,7 @@ export const BLADEMASTER_GROUND: GroundKit = {
 // axe that only bumps at low percent and tumbles vertically at high percent;
 // a shoulder charge that launches.
 const MK = HitElement.normal;
-const mkHook = (angle: Angle) => groundHit(13.25999927520752, angle, 110.5, 25.0, MK);
+const mkHook = (angle: Angle) => groundHit(13.25999927520752, angle, f32(88.4), 25.0, MK);
 export const MOUNTAIN_KING_GROUND: GroundKit = {
   normals: {
     [AttackStyle.jab]: jabStep(heroMove(5, 2, 16, 0, swing(5, [[18.0, 40.0, 70.0, 42.0], [18.0, 42.0, 70.0, 38.0]], 12.0, groundHit(5.524999618530273, 30, 60.77499771118164, 16.0, MK)))),
