@@ -258,5 +258,5 @@ export function encodeBlp(image: Rgba, quality: number): Uint8Array {
   return out;
 }
 
-/** JPEG quality of the fighter portraits (#307). */
-export const PORTRAIT_QUALITY = 90;
+/** #323 keeps the complete 26-fighter render set within #307's 15 MB budget. */
+export const PORTRAIT_QUALITY = 78;

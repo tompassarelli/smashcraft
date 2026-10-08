@@ -13,7 +13,7 @@
 // (tools/animations/extract.sh builds CASC_EXTRACT into build/animation-assets/.)
 import { existsSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { parseMDL, generateMDL } from 'war3-model';
+import { parseMDL, generateMDL, generateMDX } from 'war3-model';
 import { originalBodyClip, splitStaticLights } from '../animations/original-clips';
 import { PARTICIPANT_SLOTS } from '../../ts/src/game/input/participants';
 import { Character } from '../../ts/src/game/sim/codes';
@@ -185,7 +185,12 @@ for (const character of RENDERED_FIGHTERS) {
     }
     const images = [...(await Bun.file(model).text()).matchAll(/Image "([^"]+)"/g)].map((match) => match[1]!);
     for (const texture of [...images, ...TEAM_TEXTURES]) if (!texture.toLowerCase().startsWith('war3mapimported')) extractTexture(texture);
-    await Bun.write(logFile, run(['blender', '--background', '--threads', '6', '--python-exit-code', '1', '--python', join(project, 'tools/selection/render-fighter.py'), '--', model, resources, join(work, `${name}.png`), addon, String(slots ? 0 : team), ...(slots ? ['--slots'] : []), ...(reuse ? ['--reuse'] : [])]));
+    const standing = parseMDL(await Bun.file(model).text());
+    // Blender's MDL reader rejects the stock Forsaken skin; its MDX reader preserves it.
+    const blenderModel = standing.Geosets.some(geoset => geoset.SkinWeights !== undefined)
+      ? join(models, `${name}-portrait.mdx`) : model;
+    if (blenderModel !== model) await Bun.write(blenderModel, generateMDX(standing));
+    await Bun.write(logFile, run(['blender', '--background', '--threads', '6', '--python-exit-code', '1', '--python', join(project, 'tools/selection/render-fighter.py'), '--', blenderModel, resources, join(work, `${name}.png`), addon, String(slots ? 0 : team), ...(slots ? ['--slots'] : []), ...(reuse ? ['--reuse'] : [])]));
   }
   for (const { suffix, slot } of variants) {
     const raw = join(work, `${name}${suffix}.png`);
@@ -224,7 +229,10 @@ for (const character of RENDERED_FIGHTERS) {
     console.log(`${name}: ${pose ?? '?'}; head ${head ? `${head[1]},${head[2]}` : 'none'}; ${card}, ${tile}, ${bust}, ${stock}`);
     if (slot !== undefined) {
       const result = teamLayerPixels(readRgba(join(work, `${name}${suffix}-team.png`)), slotColor(slot).name);
-      const hasTeam = /ReplaceableId 1\b/.test(await Bun.file(join(models, `${name}.mdl`)).text());
+      // A declared team texture can contribute no pixels in the portrait camera.
+      const neutralLayer = join(work, `${name}-team.png`);
+      const hasTeam = existsSync(neutralLayer) ? teamLayerPixels(readRgba(neutralLayer)).masked > 0
+        : /ReplaceableId 1\b/.test(await Bun.file(join(models, `${name}.mdl`)).text());
       if (Object.keys(result.found).length > 0 || (hasTeam && result.masked === 0)) throw new Error(`${name}${suffix}: wrong outfit colour ${JSON.stringify(result)}`);
       console.log(`${name}${suffix}: ${result.masked} team pixels match ${slotColor(slot).name}`);
     }

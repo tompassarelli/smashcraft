@@ -1,5 +1,7 @@
 # Fighter portraits
 
+Every selectable fighter uses cut-out 3D renders of its match model with the shared Rifleman camera and crops; cards, HUD busts and round stock icons come from the same pose (#323).
+
 Character select, the player cards, the HUD plates and the off-screen bubble
 show each fighter as a render of its own model, like Smash Ultimate's select
 screen: a head-and-shoulders crop on one shared background for the grid, and

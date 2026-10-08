@@ -106,10 +106,7 @@ export function nextSelectableCharacter(current: number | undefined, direction: 
  * the map imports each one's tile and card. A fighter missing here shows its
  * Warcraft command icon.
  */
-export const RENDERED_FIGHTERS: readonly Character[] = [ Character.medivh, Character.rifleman, Character.demonHunter, Character.blademaster, Character.mountainKing, Character.warden,
-  Character.lich, Character.forsakenPaladin, Character.dreadlord, Character.shadowHunter, Character.pitLord, Character.beastmaster, Character.lichKing, Character.kobold,
-  Character.grom, Character.malfurion, Character.anubarak,
-];
+export const RENDERED_FIGHTERS: readonly Character[] = SELECTABLE_CHARACTERS;
 
 /** The name a fighter's rendered portraits are filed under: "MountainKing". */
 export const fighterRenderName = (character: number): string => fighterName(character).split(" ").join("");

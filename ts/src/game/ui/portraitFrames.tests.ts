@@ -1,6 +1,6 @@
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { rosterGrid } from "../menu/selectionGrid";
-import { RENDERED_FIGHTERS, SELECTABLE_CHARACTERS, fighterIcon, fighterPortrait } from "../sim/heroes/registry";
+import { RENDERED_FIGHTERS, SELECTABLE_CHARACTERS, fighterPortrait } from "../sim/heroes/registry";
 import { CARD_PORTRAIT, CARD_TEXTURE_PX, HUD_PORTRAIT, OFFSCREEN_PORTRAIT, TILE_TEXTURE_PX, pixelsForUnits, tilePortrait } from "./portraitFrames";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 
@@ -21,12 +21,11 @@ test("roster tile portraits never stretch the tile render past its pixels, for a
   }
 });
 
-test("every rendered fighter shows its render; any other fighter shows its command icon [spec #138]", () => {
+test("every selectable fighter uses cut-out renders in the HUD and selection [spec #323]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
-    const rendered = RENDERED_FIGHTERS.includes(character);
-    const card = fighterPortrait(character, "Card");
-    assertTrue(rendered ? card.startsWith("war3mapImported\\FighterCard") : card === fighterIcon(character));
-    assertTrue(!rendered || fighterPortrait(character, "Tile").startsWith("war3mapImported\\FighterTile"));
+    for (const kind of ["Card", "Bust", "Stock", "Tile"] as const) {
+      assertTrue(fighterPortrait(character, kind).startsWith(`war3mapImported\\Fighter${kind}`));
+    }
   }
 });
 
