@@ -27,7 +27,7 @@ await Effect.runPromise(Effect.tryPromise({ try: async () => {
     const pairs = rig.pairs as readonly (readonly [string, string])[];
     if (!Array.isArray(pairs) || pairs.length === 0) throw new Error('Rig module must export a nonempty pairs array');
     const skin = checkBodySkin(hd);
-    const normalize = (name: string) => name.replaceAll(/\s+/g, '').toLowerCase();
+    const normalize = (name: string) => name.replace(/\s+\d+$/, '').replaceAll(/\s+/g, '').toLowerCase();
     const victory = normalize(victoryAnimation(character));
     const selected = new Set(flashableSequences(character, source.Sequences));
     for (const sequence of source.Sequences) if (normalize(sequence.Name) === victory) selected.add(sequence);
