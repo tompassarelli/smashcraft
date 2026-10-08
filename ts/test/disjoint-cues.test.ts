@@ -51,7 +51,7 @@ function checkNormalRegions(characters: readonly Character[]): void {
           expect(actual).toHaveLength(expected.length);
           for (const [index, effect] of actual.entries()) {
             expect(effect.x).toBeCloseTo(expected[index]?.[0] ?? 0, 3);
-            expect(effect.z).toBeCloseTo(expected[index]?.[1] ?? 0, 3);
+            expect(effect.z, `character ${character}, style ${style}, facing ${facing}, frame ${frame}, region ${index}`).toBeCloseTo(expected[index]?.[1] ?? 0, 3);
             expect(effect.alpha).toBe(255);
             measured++;
           }
@@ -67,6 +67,10 @@ function checkNormalRegions(characters: readonly Character[]): void {
 
 test("headless renderer places one visible effect at every live Warden disjoint normal region [spec docs/disjoint-legibility.md]", () => {
   checkNormalRegions([Character.warden]);
+});
+
+test("Shadow Hunter's low strike accent stays on its live normal region centre [repro #345]", () => {
+  checkNormalRegions([Character.shadowHunter]);
 });
 
 sweep("headless renderer places one visible effect at every fighter's live disjoint normal region [spec docs/disjoint-legibility.md]", () => {
