@@ -64,9 +64,16 @@ jobs:
           - partition: bot
             game-tests: game/match/bot
             game-tests-exclude: ""
+            sweeps: ""
           - partition: remainder
             game-tests: ""
             game-tests-exclude: game/match/bot
+            sweeps: ""
+          # The sweeps the suite skips (src/runtime/sweep.ts), every module.
+          - partition: sweeps
+            game-tests: ""
+            game-tests-exclude: ""
+            sweeps: "1"
     name: Lua32 (${{ matrix.partition }})
     steps:
       - uses: actions/checkout@v4
@@ -76,9 +83,30 @@ jobs:
       - run: bun install --frozen-lockfile
         working-directory: ts
       # These disjoint partitions run every original module; auxiliary memory
-      # and stack checks run once with the remainder.
+      # and stack checks run once with the remainder. Each runs four Lua
+      # processes at once, one a runner core.
       - run: bun scripts/lua-tests.ts
         working-directory: ts
         env:
           GAME_TESTS: ${{ matrix.game-tests }}
           GAME_TESTS_EXCLUDE: ${{ matrix.game-tests-exclude }}
+          SWEEPS: ${{ matrix.sweeps }}
+          LUA_JOBS: 4
+
+  # Sweeps (many matches, whole-roster measurements) that the suite skips run
+  # here on every push, so a failure still turns main red (#243).
+  sweeps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    name: Sweeps (Bun)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+        working-directory: ts
+      - run: bun run test
+        working-directory: ts
+        env:
+          SWEEPS: "1"

@@ -28,13 +28,27 @@ const only = [first, ...rest].filter((arg) => arg !== undefined).map((arg) => ar
 if (only.length > 0) files.splice(0, files.length, ...files.filter((file) => only.includes(file)));
 const junitDirectory = process.env.TEST_JUNIT_DIR;
 
-// Each isolated group gets its own process and the rest share one. CI's 6
-// CPUs bound the suite, so a process more only repeats module loading and JIT
-// warm-up: six measured no faster than five.
+// Each isolated group gets its own process. The game registry and the other
+// files are each spread over a few processes, so no one process bounds the
+// run; a process more than that only repeats module loading and JIT warm-up.
+// SWEEPS=1 runs only the sweeps (src/runtime/sweep.ts) in the same processes.
+const GAME_SHARDS = 3;
+const REST_SHARDS = 3;
+const sweeps = process.env.SWEEPS === "1";
+const hasSweeps = (file: string) => /(^|[^\w.])sweep\)?\(/m.test(readFileSync(resolve(project, file), "utf8"));
+type Group = { readonly files: readonly string[]; readonly env?: Readonly<Record<string, string>> };
 const isolated = ISOLATED_TEST_GROUPS;
-const groups: { readonly files: readonly string[] }[] = [
-  ...isolated.map((names) => ({ files: files.filter((file) => names.includes(file)) })),
-  { files: files.filter((file) => !isolated.flat().includes(file)) },
+const testFiles = files.filter((file) => file !== "test/game.test.ts" && (!sweeps || hasSweeps(file)));
+const shared = testFiles.filter((file) => !isolated.flat().includes(file));
+const gameModules = files.includes("test/game.test.ts")
+  ? [...new Bun.Glob("**/*.tests.ts").scanSync(resolve(project, "src"))].sort().filter((module) => !sweeps || hasSweeps(`src/${module}`))
+  : [];
+const groups: Group[] = [
+  ...Array.from({ length: GAME_SHARDS }, (_, shard) => gameModules.filter((_, index) => index % GAME_SHARDS === shard))
+    .filter((modules) => modules.length > 0)
+    .map((modules) => ({ files: ["test/game.test.ts"], env: { GAME_MODULES: modules.join(",") } })),
+  ...Array.from({ length: REST_SHARDS }, (_, shard) => ({ files: shared.filter((_, index) => index % REST_SHARDS === shard) })),
+  ...isolated.map((names) => ({ files: testFiles.filter((file) => names.includes(file)) })),
 ].filter((group) => group.files.length > 0);
 /**
  * The CPUs this process may use: the tightest cgroup v2 `cpu.max` quota on its
@@ -64,11 +78,13 @@ function usableCpus(): number {
 const slots = Math.min(groups.length, Math.max(1, usableCpus() - 1));
 const started = performance.now();
 const codes: number[] = [];
-const runGroup = async (group: { readonly files: readonly string[] }): Promise<void> => {
+const runGroup = async (group: Group): Promise<void> => {
   const junit = junitDirectory === undefined ? [] : ["--reporter=junit", `--reporter-outfile=${resolve(junitDirectory, `${groups.indexOf(group)}.xml`)}`];
-  const child = Bun.spawn([process.execPath, "test", ...junit, ...group.files.map((file) => resolve(project, file))], {
+  // Bun matches the pattern against the name with its describe blocks.
+  const sweepFilter = sweeps ? ["-t", "\\(sweep\\) "] : [];
+  const child = Bun.spawn([process.execPath, "test", ...junit, ...sweepFilter, ...group.files.map((file) => resolve(project, file))], {
     cwd: project,
-    env: { ...process.env, ...testWorkerEnvironment(group.files) },
+    env: { ...process.env, ...testWorkerEnvironment(group.files), ...group.env },
     stdout: "inherit",
     stderr: "inherit",
   });
@@ -76,7 +92,7 @@ const runGroup = async (group: { readonly files: readonly string[] }): Promise<v
 };
 const standalone = groups.find((group) => group.files.includes("test/standalone.test.ts"));
 if (standalone !== undefined) await runGroup(standalone);
-const queue = groups.filter((group) => group !== standalone).reverse();
+const queue = groups.filter((group) => group !== standalone);
 await Promise.all(Array.from({ length: slots }, async () => {
   for (let group = queue.shift(); group !== undefined; group = queue.shift()) {
     await runGroup(group);

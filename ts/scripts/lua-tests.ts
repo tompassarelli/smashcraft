@@ -1,7 +1,9 @@
 // Runs the game's tests in Lua with Warcraft's number model (32-bit integers,
 // binary32 numbers). Usage: bun scripts/lua-tests.ts; LUA names the Lua32,
 // else Wisp's cached pinned build (wisp:scripts/wisp/lua32.ts).
-// GAME_SOAK=1 runs the long *.soak.ts scenarios instead.
+// GAME_SOAK=1 runs the long *.soak.ts scenarios instead; SWEEPS=1 runs only
+// the sweeps (src/runtime/sweep.ts). LUA_JOBS=N runs the tests in N Lua
+// processes at once, each taking the tests whose name hashes to its shard.
 // GAME_TESTS includes and GAME_TESTS_EXCLUDE excludes module-path substrings.
 // The remainder (no GAME_TESTS) also runs the memory census and stack checks.
 // The stack plugin instruments a whole bundle, so the stack-trace profile's
@@ -18,8 +20,16 @@ const lua = await Effect.runPromise(stockLua);
 const compile = (config: string) =>
   Bun.spawnSync([process.execPath, "--bun", "node_modules/typescript-to-lua/dist/tstl.js", "-p", config], { stdout: "inherit", stderr: "inherit" }).exitCode ?? 1;
 const run = (bundle: string) => Bun.spawnSync([lua, bundle], { stdout: "inherit", stderr: "inherit" }).exitCode ?? 1;
+const jobs = Math.max(1, Number(process.env.LUA_JOBS ?? "1"));
+const runSharded = async (bundle: string) => {
+  if (jobs === 1) return run(bundle);
+  const codes = await Promise.all(Array.from({ length: jobs }, (_, shard) =>
+    Bun.spawn([lua, bundle], { env: { ...process.env, LUA_SHARD: `${shard}/${jobs}` }, stdout: "inherit", stderr: "inherit" }).exited));
+  return codes.find((code) => code !== 0) ?? 0;
+};
 
 const soak = process.env.GAME_SOAK === "1";
+const sweeps = process.env.SWEEPS === "1";
 const include = process.env.GAME_TESTS ?? "";
 const exclude = process.env.GAME_TESTS_EXCLUDE ?? "";
 const remainder = include === "";
@@ -35,11 +45,11 @@ const steps = only === "compile" ? [() => compile("tsconfig.lua-tests.json")]
   : only === "stack" ? [() => compile("tsconfig.lua-stack.json"), () => run("build/lua-stack/stack.lua")]
   : [
     () => compile("tsconfig.lua-tests.json"),
-    () => run("build/lua-tests/tests.lua"),
-    ...(soak || !remainder ? [] : [() => compile("tsconfig.lua-stack.json"), () => run("build/lua-stack/stack.lua")]),
+    () => runSharded("build/lua-tests/tests.lua"),
+    ...(soak || sweeps || !remainder ? [] : [() => compile("tsconfig.lua-stack.json"), () => run("build/lua-stack/stack.lua")]),
   ];
 for (const step of steps) {
-  const exitCode = step();
+  const exitCode = await step();
   if (exitCode !== 0) process.exit(exitCode);
 }
 

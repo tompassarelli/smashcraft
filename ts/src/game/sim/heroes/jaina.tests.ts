@@ -1,4 +1,5 @@
 import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
+import { sweep } from "../../../runtime/sweep";
 import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, GrabAction, ProjectileKind, SpecialAction } from "../codes";
@@ -215,7 +216,7 @@ test("Jaina Brilliance regenerates six grounded and two aerial mana per second b
   }
 });
 
-test("Jaina computer uses all four spells in eight Wren Expert matches before roster publication", () => {
+sweep("Jaina computer uses all four spells in eight Wren Expert matches before roster publication", () => {
   const choices: Character[] = SELECTABLE_CHARACTERS.filter(character => character !== Character.jaina);
   choices.push(Character.jaina);
   const report = fighterCoverage(choices.length - 1, undefined, choices);

@@ -1,4 +1,5 @@
-import { expect, test } from "bun:test";
+import { expect } from "bun:test";
+import { sweep } from "./sweep";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Effect } from "effect";
@@ -11,7 +12,7 @@ import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { createReproViewer, serveReproViewer } from "wisp/scripts/wisp/reproViewer";
 import { readRepro } from "wisp/scripts/wisp/commands/repro";
 
-test("the local viewer's frame endpoint scrubs a saved Smashcraft moment", async () => {
+sweep("the local viewer's frame endpoint scrubs a saved Smashcraft moment", async () => {
   const repro = savedInspectionFixture();
   const directory = join(import.meta.dir, "../build/repro-viewer");
   mkdirSync(directory, { recursive: true });
@@ -38,7 +39,7 @@ test("the local viewer's frame endpoint scrubs a saved Smashcraft moment", async
   } finally { await server.stop(true); }
 }, 60_000);
 
-test("the repro command inspects a saved gameplay fixture and diffs its previous frame", async () => {
+sweep("the repro command inspects a saved gameplay fixture and diffs its previous frame", async () => {
   const repro = savedInspectionFixture();
   const directory = join(import.meta.dir, "../build/repro-inspection");
   mkdirSync(directory, { recursive: true });

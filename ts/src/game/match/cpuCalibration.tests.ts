@@ -1,9 +1,11 @@
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { CPU_PROFILES, cpuProfile } from "./cpuProfiles";
 import { calibrationFailures, collectCalibrationRow } from "./cpuCalibration";
+import { sweep } from "../../runtime/sweep";
 
+// The suite measures one row; every named profile's row runs as a sweep.
 for (const profile of CPU_PROFILES) {
-  test(`calibration ${profile.opponent}/${profile.tier}: 100 eligible decisions, zero early reactions/reversals/replay differences`, () => {
+  (profile.opponent === "wren" && profile.tier === "expert" ? test : sweep)(`calibration ${profile.opponent}/${profile.tier}: 100 eligible decisions, zero early reactions/reversals/replay differences`, () => {
     const row = collectCalibrationRow(profile);
     assertEquals(calibrationFailures(row).join("; "), "");
   });

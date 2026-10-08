@@ -5,6 +5,7 @@
 // favours the move that cashes it, against a ready opponent it shields
 // more, and Archer and Rifleman never press a special their mana can't pay.
 import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { sweep } from "../../runtime/sweep";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { clearAttackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
@@ -165,7 +166,7 @@ function shieldsReady(counts: Counts): void {
 
 const { forwardTiltUp, forwardTiltDown, downTilt, dashAttack, neutralAir, upAir, downAir, forwardAir, forwardTilt, downSmash } = AttackStyle;
 
-test("computer Blademaster throws Bladestorm, Blade Wheel, his down tilt and dash attack, and cashes Critical Strike", () => {
+sweep("computer Blademaster throws Bladestorm, Blade Wheel, his down tilt and dash attack, and cashes Critical Strike", () => {
   // Shields are rare (about 2% of his mirror's attacks) and whiff punishes reshuffle the mirror: 16 matches give the shares a sample.
   const counts = played(Character.blademaster, Character.blademaster, 2 * MATCHES);
   throws(counts, [downAir, neutralAir, downTilt, dashAttack]);
@@ -173,48 +174,52 @@ test("computer Blademaster throws Bladestorm, Blade Wheel, his down tilt and das
   shieldsReady(counts);
 });
 
-test("computer Mountain King angles his forward tilt, throws his down tilt and dash attack, and cashes Bash", () => {
+sweep("computer Mountain King angles his forward tilt, throws his down tilt and dash attack, and cashes Bash", () => {
   const counts = played(Character.mountainKing);
   throws(counts, [forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
   playsPassives(counts);
 });
 
-test("computer Warden throws Falling Knives, Sky Crescent, angled forward tilts, her down tilt and dash attack", () => {
+sweep("computer Warden throws Falling Knives, Sky Crescent, angled forward tilts, her down tilt and dash attack", () => {
   throws(played(Character.warden), [downAir, upAir, forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
 });
 
-test("computer Lich throws Frost Halo, angled forward tilts, his down tilt and dash attack", () => {
+sweep("computer Lich throws Frost Halo, angled forward tilts, his down tilt and dash attack", () => {
   // A Lich mirror keeps its range; Warden, who jumps and runs in, brings his close moves out. Frost Halo
   // answers her jump-ins only, a few a match since she stopped spacing with forward air (#160): 16 matches give it a sample.
   throws(played(Character.lich, Character.warden, 2 * MATCHES), [neutralAir, forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
 });
 
-test("computer Dreadlord throws Batwing Turn, angled forward tilts, his down tilt and dash attack, and cashes Vampiric Aura", () => {
+sweep("computer Dreadlord throws Batwing Turn, angled forward tilts, his down tilt and dash attack, and cashes Vampiric Aura", () => {
   const counts = played(Character.dreadlord);
   throws(counts, [neutralAir, forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
   playsPassives(counts);
 });
 
-test("computer Shadow Hunter throws the glaive drill, angled forward tilts, his down tilt and dash attack, and cashes Voodoo", () => {
+sweep("computer Shadow Hunter throws the glaive drill, angled forward tilts, his down tilt and dash attack, and cashes Voodoo", () => {
   const counts = played(Character.shadowHunter);
   throws(counts, [downAir, forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
   playsPassives(counts);
 });
 
-test("computer Uther throws his down tilt and dash attack", () => {
+sweep("computer Uther throws his down tilt and dash attack", () => {
   throws(played(Character.uther), [downTilt, dashAttack]);
 });
 
-test("computer Illidan charges Eye Blast and throws Shear, Flames of Azzinoth and the two-hit forward air", () => {
+sweep("computer Illidan charges Eye Blast and throws Shear, Flames of Azzinoth and the two-hit forward air", () => {
   const counts = played(Character.demonHunter);
   throws(counts, [forwardTilt, downSmash, forwardAir]);
   assertGreaterThan(counts.eyeBlast ?? 0, 0);
 });
 
-test("computer Archer and Rifleman never press a special their mana can't pay, and cash Trueshot and Long Rifles", () => {
+sweep("computer Archer and Rifleman never press a special their mana can't pay, and cash Trueshot and Long Rifles", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     const counts = played(character);
     assertEquals(counts.manaDenied ?? 0, 0);
     playsPassives(counts);
   }
+});
+
+test("computer Archer and Rifleman never press a special their mana can't pay in a seeded mirror, which replays its counts", () => {
+  for (const character of [Character.archer, Character.rifleman]) assertEquals(played(character, character, 1).manaDenied ?? 0, 0);
 });

@@ -16,6 +16,7 @@ import { Character, DownState } from "../src/game/sim/codes";
 import { createFighter } from "../src/game/sim/fighter";
 import { copyControls, createRoster, fighterAt, neutralControls } from "../src/game/sim/roster";
 import { FIELD_STAGES } from "./cpuField";
+import { sweep } from "../test/sweep";
 
 const PAIRS: readonly (readonly [Character, Character])[] = [
   [Character.mountainKing, Character.blademaster],
@@ -24,13 +25,14 @@ const PAIRS: readonly (readonly [Character, Character])[] = [
 ];
 const FRAMES = 2400;
 
-test("the bounded agency forecast agrees with the full one on every frame of computer matches on every stage", () => {
+/** Compares the bounded and full forecasts on every frame of each pair's computer match on each stage. */
+function compareForecasts(stages: readonly (readonly [string, number])[]): { mismatches: string[]; tumbling: number; compared: number } {
   const bounded = new FighterAgencyForecast();
   const full = new FighterAgencyForecast(false);
   let compared = 0;
   let tumbling = 0;
   const mismatches: string[] = [];
-  for (const [stageName, stage] of Object.entries(FIELD_STAGES)) {
+  for (const [stageName, stage] of stages) {
     for (const [seed, [a, b]] of PAIRS.entries()) {
       const match = createMatchState();
       setParticipants(match, 0, 3);
@@ -65,8 +67,21 @@ test("the bounded agency forecast agrees with the full one on every frame of com
       }
     }
   }
+  return { mismatches, tumbling, compared };
+}
+
+const STAGES = Object.entries(FIELD_STAGES);
+
+test("the bounded agency forecast agrees with the full one on every frame of computer matches on one stage", () => {
+  const { mismatches, tumbling } = compareForecasts(STAGES.slice(0, 1));
   expect(mismatches).toEqual([]);
   // The comparison saw the tumbles the bound shortens.
+  expect(tumbling).toBeGreaterThan(0);
+}, 120_000);
+
+sweep("the bounded agency forecast agrees with the full one on every frame of computer matches on every other stage", () => {
+  const { mismatches, tumbling, compared } = compareForecasts(STAGES.slice(1));
+  expect(mismatches).toEqual([]);
   expect(tumbling).toBeGreaterThan(500);
   expect(compared).toBeGreaterThan(50000);
 }, 600_000);

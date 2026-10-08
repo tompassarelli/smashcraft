@@ -2,7 +2,7 @@
 
 | Workflow | Runs | Does |
 | --- | --- | --- |
-| CI (smashcraft:.github/workflows/ci.yml) | every push except `farm/**`, pull requests, dispatch | development loop, perf gate, Lua32 suites |
+| CI (smashcraft:.github/workflows/ci.yml) | every push except `farm/**`, pull requests, dispatch | development loop, perf gate, Lua32 suites, and the sweeps the suites skip (Sweeps (Bun), Lua32 (sweeps)) |
 | Main is red (smashcraft:.github/workflows/main-red.yml) | after each CI run on main | opens, updates or closes the "main is red" issue (smashcraft:AGENTS.md) |
 | Farm test (smashcraft:.github/workflows/farm-test.yml) | `bun wisp farm test`, autoland | full Bun and Lua32 suites, sharded (wisp:docs/farm.md) |
 | Autoland (smashcraft:.github/workflows/autoland.yml) | push to `claude/**`, dispatch with `branch` | lands the branch on main when it passes |

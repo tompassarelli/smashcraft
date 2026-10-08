@@ -2,6 +2,7 @@
 // an opponent who stands on it, it gets up from jab resets, and the same
 // start plays the same match.
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { sweep } from "../../runtime/sweep";
 import { clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../input/participants";
 import { stateChecksum } from "../replay/canonical";
@@ -183,9 +184,11 @@ test("Uther uses affordable Righteous Fury in hammer range and refuses its forme
 });
 
 // One test a hero: the roster grows, and each hero's two 3600-frame matches take 0.3-0.5 s alone.
+// The suite plays the first complete hero; the others run as sweeps.
+const firstCompleteHero = HERO_ROSTER.find((hero) => hero.complete);
 for (const hero of HERO_ROSTER) {
   if (!hero.complete) continue;
-  test(`${hero.name}'s computer uses its specials and grabs in a match against another computer, the same each time`, () => {
+  (hero === firstCompleteHero ? test : sweep)(`${hero.name}'s computer uses its specials and grabs in a match against another computer, the same each time`, () => {
     const checksums: string[] = [];
     for (let run = 0; run < 2; run++) {
       const game = computerMatch([Character.archer, hero.character], [-240.0, 240.0], 0, 3);

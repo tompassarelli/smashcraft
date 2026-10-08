@@ -4,6 +4,7 @@
 // Wren Rookie computer usually lets the window pass. In ordinary computer matches
 // the computer punishes windows as they come up.
 import { assertEquals, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { sweep } from "../../runtime/sweep";
 import { f32 } from "wisp/src/sim/f32";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { clearAttackBuffer, queueAttack } from "../input/attackBuffer";
@@ -155,7 +156,10 @@ function punishCount(whiff: Whiff, character: Character, tier: CpuTier, seeds: n
 
 for (const whiff of WHIFFS) {
   const name = whiff === Whiff.forwardSmash ? "whiffed forward smash" : whiff === Whiff.grab ? "missed grab" : "landing lag";
-  test(`a Wren Expert computer of every fighter punishes Pit Lord's ${name} within the window; a Wren Rookie computer usually doesn't`, () => {
+  test(`a Wren Expert Archer computer punishes Pit Lord's ${name} within the window`, () => {
+    assertEquals(punishCount(whiff, Character.archer, "expert", HARD_SEEDS), HARD_SEEDS);
+  });
+  sweep(`a Wren Expert computer of every fighter punishes Pit Lord's ${name} within the window; a Wren Rookie computer usually doesn't`, () => {
     let easy = 0;
     for (const character of SELECTABLE_CHARACTERS) {
       assertEquals(punishCount(whiff, character, "expert", HARD_SEEDS), HARD_SEEDS);
@@ -174,7 +178,7 @@ const PAIRS = [
 const MATCH_FRAMES = 1800;
 const MATCH_SEEDS = 4;
 
-test("computers punish in ordinary Wren Expert matches: they attack into open windows and land in more of them than without the punish", () => {
+sweep("computers punish in ordinary Wren Expert matches: they attack into open windows and land in more of them than without the punish", () => {
   // Windows each computer saw open, the ones it attacked into, and the ones it hit or grabbed in.
   let windowsSeen = 0;
   let attempts = 0;

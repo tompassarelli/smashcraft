@@ -1,9 +1,10 @@
-import { assertEquals, assertGreaterThan, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertGreaterThan } from "wisp/src/runtime/testing";
+import { sweep } from "../../runtime/sweep";
 import { Character } from "../sim/codes";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { fighterCoverage } from "./botCoverage";
 
-test("Peon CPU uses all four specials in eight seeded Wren Expert matches", () => {
+sweep("Peon CPU uses all four specials in eight seeded Wren Expert matches", () => {
   const choices: Character[] = SELECTABLE_CHARACTERS.filter(character => character !== Character.peon);
   choices.push(Character.peon);
   const report = fighterCoverage(choices.length - 1, undefined, choices);

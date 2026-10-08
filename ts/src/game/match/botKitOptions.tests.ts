@@ -4,6 +4,7 @@
 // matches start both fighters at a high percent, so launches send them off
 // the stage and the returns' options come up too.
 import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { sweep } from "../../runtime/sweep";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { clearAttackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
@@ -193,51 +194,51 @@ test("every named profile can take legal kit options, with greater reliability a
   assertTrue(cpuSkill("wren", "expert").kitTenths > cpuSkill("wren", "rookie").kitTenths);
 });
 
-test("computer Blademaster backstabs from Wind Walk in front and crossed up, feints, and swaps onto Mirror Image", () => {
+sweep("computer Blademaster backstabs from Wind Walk in front and crossed up, feints, and swaps onto Mirror Image", () => {
   usesEvery(Character.blademaster, ["followUp1.0", "crossUp1", "followUp1.1", "special3", "recall3"]);
 });
 
-test("computer Mountain King claps small, full and as bait, recalls Storm Bolt and spikes with Hammerfall", () => {
+sweep("computer Mountain King claps small, full and as bait, recalls Storm Bolt and spikes with Hammerfall", () => {
   usesEvery(Character.mountainKing, ["followUp3.0", "followUp3.1|runOut3", "dropped3", "recall0", "followUp2.0"]);
 });
 
-test("computer Warden marks and follows with Shadow Pursuit", () => {
+sweep("computer Warden marks and follows with Shadow Pursuit", () => {
   usesEvery(Character.warden, ["special0", "marked1"]);
 });
 
-test("computer Lich bursts Frost Nova, places Death and Decay, arms Frost Armor and cashes Dark Ritual", () => {
+sweep("computer Lich bursts Frost Nova, places Death and Decay, arms Frost Armor and cashes Dark Ritual", () => {
   usesEvery(Character.lich, ["recall0", "special1", "special3", "recall3"]);
 });
 
-test("computer Uther uses Cleansing Hammer, Righteous Fury, Ascension and Consecration", () => {
+sweep("computer Uther uses Cleansing Hammer, Righteous Fury, Ascension and Consecration", () => {
   usesEvery(Character.uther, ["special0", "special1", "special2", "special3"]);
 });
 
-test("computer Dreadlord corkscrews with Vampiric Pounce, sleeps a target, mashes out of Sleep and hits a sleeper", () => {
+sweep("computer Dreadlord corkscrews with Vampiric Pounce, sleeps a target, mashes out of Sleep and hits a sleeper", () => {
   usesEvery(Character.dreadlord, ["special1", "special3", "sleepMash", "sleptHit"]);
 });
 
-test("computer Shadow Hunter throws Spirit Glaive, hexes, presses a hexed target and mashes out of a Hex", () => {
+sweep("computer Shadow Hunter throws Spirit Glaive, hexes, presses a hexed target and mashes out of a Hex", () => {
   usesEvery(Character.shadowHunter, ["special0", "special3", "hexedHit", "hexMash"]);
 });
 
-test("computer Pit Lord roars, charges, leaps and calls Rain of Fire", () => {
+sweep("computer Pit Lord roars, charges, leaps and calls Rain of Fire", () => {
   usesEvery(Character.pitLord, ["special0", "special1", "special2", "special3"]);
 });
 
-test("computer Beastmaster summons the pack, commands Stampede, Hawk Dive and Quill Volley", () => {
+sweep("computer Beastmaster summons the pack, commands Stampede, Hawk Dive and Quill Volley", () => {
   usesEvery(Character.beastmaster, ["special0", "special1", "special2", "special3", "recall1", "recall2", "recall3"]);
 });
 
-test("computer Rifleman flies level and diagonal recoil routes with a second shot, short-hops and grounds the blaster, calls the bear", () => {
+sweep("computer Rifleman flies level and diagonal recoil routes with a second shot, short-hops and grounds the blaster, calls the bear", () => {
   usesEvery(Character.rifleman, ["levelRoute", "diagonalRoute", "secondShot", "airBlaster", "groundBlaster", "bear"]);
 });
 
-test("computer Illidan jump-cancels Immolate, glides out of Wing Ascent, runs behind Mana Burn and Fel Rushes into Chaos Strike or Vengeful Retreat", () => {
+sweep("computer Illidan jump-cancels Immolate, glides out of Wing Ascent, runs behind Mana Burn and Fel Rushes into Chaos Strike or Vengeful Retreat", () => {
   // Whiff punishes (botPunish.ts) take most close windows with a normal, so Immolate starts rarely: 16 matches.
   usesEvery(Character.demonHunter, ["immolateJump", "glide", "behindOrb", "felRush", "chaosStrike|chaosCrossUp", "vengefulRetreat"], Character.demonHunter, 2 * MATCHES);
 });
 
-test("computer Archer shoots the homing arrow, rides the low line, leaps off and dives from the perch", () => {
+sweep("computer Archer shoots the homing arrow, rides the low line, leaps off and dives from the perch", () => {
   usesEvery(Character.archer, ["homingArrow", "lowRide", "leapOff", "perchDive", "grabMash"]);
 });

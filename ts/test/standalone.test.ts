@@ -10,6 +10,7 @@ import { confirmedChecksum } from "../src/platform/shell/diagnostics";
 import { activeRollback, shell } from "../src/platform/shell/state";
 import { Character } from "../src/game/sim/codes";
 import { value } from "./rematch/playableMatch";
+import { sweep } from "./sweep";
 
 test("standalone keyboard play runs a full three-stock Archer versus CPU Rifleman match with scene and sound", async () => {
   const session = await createStandaloneSession();
@@ -31,12 +32,13 @@ test("standalone keyboard play runs a full three-stock Archer versus CPU Riflema
   } finally { session.close(); }
 });
 
-test("standalone CPU fixture matches the native pad driver at all 1070 frames", async () => {
+/** The standalone CPU fixture's confirmed checksum equals the native pad driver's on each of the first `frames` frames. */
+async function matchesNativeDriver(frames: number): Promise<void> {
   const script = readFileSync(new URL("./native/pads/cpu-expert.pad", import.meta.url), "utf8");
   const checksums: string[] = [];
   const session = await createStandaloneSession({ script });
   try {
-    for (let frame = 1; frame <= 1070; frame++) {
+    for (let frame = 1; frame <= frames; frame++) {
       session.step(NEUTRAL_INPUT);
       expect(session.frame()).toBe(frame);
       checksums.push(session.checksum());
@@ -49,13 +51,17 @@ test("standalone CPU fixture matches the native pad driver at all 1070 frames", 
     clients.frames(30);
     clients.everywhere(() => nativeDriverCommand(script));
     clients.everywhere(() => nativeDriverCommand("resume"));
-    for (let frame = 1; frame <= 1070; frame++) {
+    for (let frame = 1; frame <= frames; frame++) {
       clients.frames(1);
       for (const client of clients.clients) expect(value(client, () => confirmedChecksum(shell())), `frame ${frame} p${client.slot}`).toBe(checksums[frame - 1]);
     }
     for (const client of clients.clients) expect(client.errors).toEqual([]);
   } finally { runtime.restore(); }
-}, 120000);
+}
+
+test("standalone CPU fixture matches the native pad driver over its first 300 frames", () => matchesNativeDriver(300), 120000);
+
+sweep("standalone CPU fixture matches the native pad driver at all 1070 frames", () => matchesNativeDriver(1070), 120000);
 
 test("standalone arguments require a complete headless capture", () => {
   expect(standaloneArguments(["--standalone", "--headless", "--frames", "1070", "--out", "build/cpu", "--capture-frames", "200,600,1000"])).toEqual({ headless: true, frames: 1070, out: "build/cpu", captureFrames: [200, 600, 1000] });

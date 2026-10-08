@@ -91,6 +91,13 @@ code. From smashcraft:ts/:
   for HEAD on GitHub's free runners and prints the counts and each failing
   test (wisp:docs/farm.md). Don't run the full suites on this machine.
   `bun run check` type-checks.
+- Sweeps: a test that plays many matches, a whole roster or every stage is a
+  sweep: register it with `sweep()` (smashcraft:ts/src/runtime/sweep.ts, or
+  smashcraft:ts/test/sweep.ts in Bun-only files) and keep its smallest form,
+  such as one seeded match, as an ordinary test. The suite skips sweeps;
+  `SWEEPS=1 bun run test` and `SWEEPS=1 bun scripts/lua-tests.ts` run only
+  them, and CI's Sweeps (Bun) and Lua32 (sweeps) jobs run them on every push,
+  so a failing sweep turns main red (#243).
 - Every save: leave `bun wisp dev` running. It prints the saved files' type
   errors, the affected unit tests, the journeys (the quick match in two
   simulated clients and the affected journey tests) and the whole check, each
@@ -431,8 +438,9 @@ code. From smashcraft:ts/:
   rows and event counts for the physical route comparison.
 - Roster AI coverage: `bun scripts/cpuCoverage.ts` prints movement, attacks,
   kit use, defense and recovery for all 13 selectable fighters over eight
-  seeded Wren Expert matches each; `GAME_TESTS=botCoverage bun test test/game.test.ts`
-  checks the same report, also included in the emitted-Lua32 suite.
+  seeded Wren Expert matches each; `SWEEPS=1 GAME_TESTS=botCoverage bun test test/game.test.ts`
+  checks the same report as a sweep (in Bun and Lua32), and the suite plays
+  one seeded match a fighter.
 - CPU reads and move value: smashcraft:docs/design/cpu-profiles.md describes
   bounded contextual habits, anticipatory commitments and risk-aware move
   choice; smashcraft:ts/src/game/match/botStrategyContracts.tests.ts checks

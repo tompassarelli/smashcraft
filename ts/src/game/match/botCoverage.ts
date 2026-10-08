@@ -33,8 +33,8 @@ export interface BotCoverage {
   readonly missing: string[];
 }
 
-/** Eight distinct seeds, 1800 frames each, half starting at launch-prone damage. */
-export function fighterCoverage(index: number, opponent?: Character, choices: readonly Character[] = SELECTABLE_CHARACTERS): BotCoverage {
+/** `seeds` distinct seeds (eight by default), 1800 frames each, from the fifth on starting at launch-prone damage. */
+export function fighterCoverage(index: number, opponent?: Character, choices: readonly Character[] = SELECTABLE_CHARACTERS, seeds = 8): BotCoverage {
   const character = at(choices, index);
   const result: BotCoverage = { fighter: fighterName(character), matches: 0, movement: 0, attacks: 0, kit: 0, specials: { neutral: 0, side: 0, up: 0, down: 0 }, defense: 0, recovery: 0, manaDenied: 0, defenseDecisions: 0, recoveryDecisions: 0, companions: { bear: 0, quilbeast: 0, hawk: 0 }, missing: [] };
   const plan = gameplanOf(character);
@@ -64,7 +64,7 @@ export function fighterCoverage(index: number, opponent?: Character, choices: re
     const input = neutralControls();
     if (chooseRecoveryInput(returning, 0, 0, input) && input.direction === -side && (input.jumpPressed || input.specialPressed)) result.recoveryDecisions++;
   }
-  for (let seed = 0; seed < 8; seed++) {
+  for (let seed = 0; seed < seeds; seed++) {
     const world = createRoster(3, [createFighter(character, -240.0, 1), createFighter(opponent ?? at(choices, floorMod(index + seed + 1, choices.length)), 240.0, -1)]);
     const game = createMatchState();
     for (const slot of PARTICIPANT_SLOTS) {

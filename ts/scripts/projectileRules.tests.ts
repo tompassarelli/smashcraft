@@ -4,6 +4,7 @@
 // situations (interactions.ts). A fighter that breaks a rule on purpose names a
 // departure below and in that section.
 import { expect, test } from "bun:test";
+import { sweep } from "../test/sweep";
 import { Character } from "../src/game/sim/codes";
 import { HERO_ROSTER } from "../src/game/sim/heroes/registry";
 import { SHIELD_REFLECTOR_ACTIVE_FRAMES } from "../src/game/sim/shield";
@@ -47,9 +48,10 @@ test("the powershield's reflector stays inside the accepted 2-4 frame window", (
   expect(SHIELD_REFLECTOR_ACTIVE_FRAMES).toBeLessThanOrEqual(4);
 });
 
-for (const fighter of FIGHTERS) {
+// The original three fighters run in the suite; every hero's rules run as sweeps.
+for (const [index, fighter] of FIGHTERS.entries()) {
   // About 2-3 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
-  test(`${fighter.name}'s projectiles follow the projectile rules or name a departure`, () => {
+  (index < 3 ? test : sweep)(`${fighter.name}'s projectiles follow the projectile rules or name a departure`, () => {
     const found = violations(fighter.character, fighter.name);
     const unexpected = [...found].filter(([key]) => DEPARTURES[key] === undefined).map(([key, detail]) => `${key}: ${detail}`);
     expect(unexpected).toEqual([]);

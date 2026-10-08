@@ -4,6 +4,7 @@
 // whose name hashes to K; LUA_TEST_RESULT gets STATUS<TAB>SECONDS<TAB>NAME a test.
 import { imod } from "wisp/src/sim/intMath";
 import { AssertionFailure, registeredTests } from "wisp/src/runtime/testing";
+import { isSweep } from "../../src/runtime/sweep";
 import "./index";
 
 const readText = (path: string | undefined): string => {
@@ -32,7 +33,10 @@ const hashShard = (name: string): number => {
 const resultPath = os.getenv("LUA_TEST_RESULT");
 const [results] = resultPath === undefined ? [undefined] : io.open(resultPath, "w");
 
-const mine = registeredTests.filter(({ name }) => shardSpec === undefined || (planned.get(name) ?? hashShard(name)) === shard);
+// SWEEPS=1 runs only the sweeps (src/runtime/sweep.ts); the suite skips them.
+const sweeps = os.getenv("SWEEPS") === "1";
+const mine = registeredTests.filter(({ name }) => isSweep(name) === sweeps
+  && (shardSpec === undefined || (planned.get(name) ?? hashShard(name)) === shard));
 let failures = 0;
 for (const { name, run } of mine) {
   const started = os.clock();
