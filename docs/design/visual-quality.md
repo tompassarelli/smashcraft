@@ -154,7 +154,7 @@ were read by their chunk tags.
 Smashcraft authors one lighting model per stage (smashcraft:ts/src/game/assets/stageLighting.ts;
 smashcraft:ts/scripts/stageLight.ts writes the MDL, smashcraft:tools/stage/package.ts
 compiles it into the stage-assets family): a directional light with constant
-key and fill colours at intensity 1 and the classic sun's rotation, so the
+key and fill colours at intensity 1 (a stage's light may set a lower one) and the classic sun's rotation, so the
 time of day can't move it. The shell sets it with the sky and fog when a
 stage is drawn (smashcraft:ts/src/platform/shell/stageScenery.ts) and loads
 them all at map start.
@@ -177,6 +177,9 @@ smashcraft:ts/src/game/assets/stageLighting.tests.ts enforces them:
    shaded side stays readable against the dark lower backdrop.
 4. Neither colour's chroma (largest channel minus smallest) exceeds 80, so a
    tinted light never repaints the team colours.
+5. A light's intensity, which scales key and fill together, is above 0 and at
+   most 1. Ahn'Qiraj's is 0.5, pinned, so fighters stay darker than its bright
+   sandstone ring (#267).
 
 Rules 2 and 3 hold fighters bright. The measurement below shows that is only
 right where the backdrop behind the fighters is darker than they are.
@@ -261,7 +264,7 @@ right. Re-capture the stock/mask/stage triple after every change.
 | Nordrassil (10) | 236, 246, 232 / 136, 178, 172 | stock FelwoodSky | no stock capture | Capture; *(guess)* its dark aurora backdrop favours the lift, as Naxxramas |
 | Gryphon Aerie (11) | 255, 248, 226 / 164, 182, 220 | authored | no mask capture | Capture; *(guess)* its pale cloud field behaves like Frozen Throne |
 | Blackrock (12) | 255, 216, 176 / 170, 124, 112 | authored | stock and stage failed | Capture; lowest #178 ΔE00 (21.2), so check it first |
-| Ahn'Qiraj (13) | 255, 240, 204 / 192, 170, 136 | authored | contrast falls (abs ΔL 33.5 → 22.9, 14.6 → 3.8) | Same as Frozen Throne |
+| Ahn'Qiraj (13) | 255, 240, 204 / 192, 170, 136 at intensity 0.5 (#267) | authored | at intensity 1, contrast fell (abs ΔL 33.5 → 22.9, 14.6 → 3.8) | Re-capture the triple at 0.5 |
 | Hellfire (14) | 255, 222, 196 / 140, 172, 120 | authored | stock capture only | Capture; *(guess)* dark haze favours the lift |
 
 The other levers, for every stage:
