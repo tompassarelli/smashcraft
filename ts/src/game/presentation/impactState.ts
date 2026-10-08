@@ -72,6 +72,7 @@ interface KoPose {
  */
 export interface ImpactState {
   readonly ages: (number | undefined)[];
+  readonly occupied: number[];
   readonly nextSlot: number[];
   readonly originX: number[];
   readonly originZ: number[];
@@ -87,6 +88,7 @@ const filled = <T>(length: number, value: T): T[] => Array.from({ length }, () =
 /** An empty pool, copied for each new state: a snapshot ring creates one per frame it keeps. */
 const EMPTY: Readonly<ImpactState> = {
   ages: filled<number | undefined>(IMPACT_COUNT, undefined),
+  occupied: filled(IMPACT_KIND_COUNT, 0),
   nextSlot: filled(IMPACT_KIND_COUNT, 0),
   originX: filled(IMPACT_COUNT, 0.0),
   originZ: filled(IMPACT_COUNT, 0.0),
@@ -101,6 +103,7 @@ export function createImpactState(): ImpactState {
   return {
     // Every slot free: read by slot, and in Lua a list of nils is the empty table anyway.
     ages: [],
+    occupied: EMPTY.occupied.slice(),
     nextSlot: EMPTY.nextSlot.slice(),
     originX: EMPTY.originX.slice(),
     originZ: EMPTY.originZ.slice(),
@@ -120,7 +123,9 @@ function at<T>(values: readonly T[], index: number): T {
 }
 
 /** Frees a slot and restores the empty pool's values. */
-function freeSlot(state: ImpactState, i: number): void {
+export function clearImpactSlot(state: ImpactState, i: number): void {
+  const kind = idiv(i, IMPACTS_PER_KIND);
+  state.occupied[kind] = at(state.occupied, kind) & ~(1 << imod(i, IMPACTS_PER_KIND));
   state.ages[i] = undefined;
   state.character[i] = 0;
   state.originX[i] = 0.0;
@@ -133,22 +138,29 @@ function freeSlot(state: ImpactState, i: number): void {
 
 /** Every snapshot save and every replayed frame copies the pool: its live slots, and those it frees. */
 export function copyImpactStateInto(target: ImpactState, source: Readonly<ImpactState>): void {
-  for (let i = 0; i < IMPACT_COUNT; i++) {
-    const age = source.ages[i];
-    if (age === undefined) {
-      if (target.ages[i] !== undefined) freeSlot(target, i);
-      continue;
+  for (let kind = 0; kind < IMPACT_KIND_COUNT; kind++) {
+    const occupied = at(source.occupied, kind) | at(target.occupied, kind);
+    target.nextSlot[kind] = source.nextSlot[kind] ?? 0;
+    if (occupied === 0) continue;
+    for (let slot = 0; slot < IMPACTS_PER_KIND; slot++) {
+      if ((occupied & (1 << slot)) === 0) continue;
+      const i = kind * IMPACTS_PER_KIND + slot;
+      const age = source.ages[i];
+      if (age === undefined) {
+        clearImpactSlot(target, i);
+        continue;
+      }
+      target.ages[i] = age;
+      target.character[i] = source.character[i] ?? 0;
+      target.originX[i] = source.originX[i] ?? 0.0;
+      target.originZ[i] = source.originZ[i] ?? 0.0;
+      target.drift[i] = source.drift[i] ?? 0;
+      target.driftZ[i] = source.driftZ[i] ?? 0.0;
+      target.pitch[i] = source.pitch[i] ?? 0.0;
+      target.strength[i] = source.strength[i] ?? 0.0;
     }
-    target.ages[i] = age;
-    target.character[i] = source.character[i] ?? 0;
-    target.originX[i] = source.originX[i] ?? 0.0;
-    target.originZ[i] = source.originZ[i] ?? 0.0;
-    target.drift[i] = source.drift[i] ?? 0;
-    target.driftZ[i] = source.driftZ[i] ?? 0.0;
-    target.pitch[i] = source.pitch[i] ?? 0.0;
-    target.strength[i] = source.strength[i] ?? 0.0;
+    target.occupied[kind] = at(source.occupied, kind);
   }
-  for (let kind = 0; kind < IMPACT_KIND_COUNT; kind++) target.nextSlot[kind] = source.nextSlot[kind] ?? 0;
 }
 
 export function firstImpactDifference(expected: Readonly<ImpactState>, actual: Readonly<ImpactState>): string | undefined {
@@ -170,7 +182,7 @@ export function firstImpactDifference(expected: Readonly<ImpactState>, actual: R
 }
 
 export function clearImpactState(state: ImpactState): void {
-  for (let i = 0; i < IMPACT_COUNT; i++) freeSlot(state, i);
+  for (let i = 0; i < IMPACT_COUNT; i++) clearImpactSlot(state, i);
   for (let kind = 0; kind < IMPACT_KIND_COUNT; kind++) state.nextSlot[kind] = 0;
 }
 
@@ -202,11 +214,17 @@ export const isContactImpact = (kind: number): boolean => impactLifetime(kind) =
 
 /** Ages every live impact by one executed frame. */
 export function advanceImpacts(state: ImpactState): void {
-  for (let i = 0; i < IMPACT_COUNT; i++) {
-    const age = state.ages[i];
-    if (age === undefined) continue;
-    if (age + 1 >= impactLifetime(idiv(i, IMPACTS_PER_KIND))) freeSlot(state, i);
-    else state.ages[i] = age + 1;
+  for (let kind = 0; kind < IMPACT_KIND_COUNT; kind++) {
+    const occupied = at(state.occupied, kind);
+    if (occupied === 0) continue;
+    for (let slot = 0; slot < IMPACTS_PER_KIND; slot++) {
+      if ((occupied & (1 << slot)) === 0) continue;
+      const i = kind * IMPACTS_PER_KIND + slot;
+      const age = state.ages[i];
+      if (age === undefined) continue;
+      if (age + 1 >= impactLifetime(kind)) clearImpactSlot(state, i);
+      else state.ages[i] = age + 1;
+    }
   }
 }
 
@@ -216,6 +234,7 @@ function spawn(state: ImpactState, kind: number, x: number, z: number, direction
   const slot = kind * IMPACTS_PER_KIND + next;
   state.nextSlot[kind] = imod(next + 1, IMPACTS_PER_KIND);
   state.ages[slot] = 0;
+  state.occupied[kind] = at(state.occupied, kind) | (1 << next);
   state.originX[slot] = x;
   state.originZ[slot] = z;
   state.drift[slot] = direction;
