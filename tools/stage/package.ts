@@ -192,5 +192,5 @@ for (const { stage, theme, lights } of STAGE_POINT_LIGHTS) {
 await Bun.write(infoPath, `${await Bun.file(infoPath).text()}/** Each stage's backdrop omni light models, in the order of its lights in stagePointLights.ts. */\nexport const STAGE_POINT_LIGHT_MODELS: Readonly<Record<number, readonly string[]>> = {\n${pointLights.join("\n")}\n};\n`);
 const skyNames = await packageSkies(output);
 const liquidNames = await packageLiquids(output);
-await Bun.write(join(output, "imports.txt"), `${[...imports, snowName, ...lightNames, ...pointLightNames, ...skyNames, ...liquidNames].join("\n")}\n`);
+await Bun.write(join(output, "imports.txt"), `${[...new Set([...imports, snowName, ...lightNames, ...pointLightNames, ...skyNames, ...liquidNames])].join("\n")}\n`);
 console.log(`Stage lights: ${STAGE_LIGHTS.length} lighting models`);
