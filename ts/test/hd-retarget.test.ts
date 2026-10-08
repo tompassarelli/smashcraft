@@ -106,6 +106,29 @@ test('authored translations survive out-of-order sequence intervals after HD exp
     expect(checkRetarget(result).units).toBeGreaterThan(0.5);
 });
 
+test('a sheared Stand registration retains its fixed stretch through authored motion [repro #334]', () => {
+    const classic = parseMDL(stageSkyMdl('stock.blp'));
+    classic.Sequences[0]!.Name = 'Stand';
+    classic.Sequences[0]!.Interval = new Uint32Array([0, 100]);
+    const hd = structuredClone(classic);
+    const node = classic.Bones[0]!, target = hd.Bones[0]!;
+    target.Rotation = { LineType: mdx.LineType.Linear, GlobalSeqId: null, Keys: [
+        { Frame: 0, Vector: new Float32Array([0, Math.sin(Math.PI / 8), 0, Math.cos(Math.PI / 8)]) },
+    ] };
+    classic.Sequences.push({ ...structuredClone(classic.Sequences[0]!), Name: 'Authored move', Interval: new Uint32Array([200, 300]) });
+    node.Scaling = { LineType: mdx.LineType.Linear, GlobalSeqId: null, Keys: [
+        { Frame: 0, Vector: new Float32Array([1, 1, 0.15]) },
+        { Frame: 200, Vector: new Float32Array([1, 1, 1]) },
+        { Frame: 300, Vector: new Float32Array([1, 1, 1]) },
+    ] };
+    const sequences = classic.Sequences.slice(1);
+    const result = retargetHd(classic, hd, [[node.Name, target.Name]], sequences);
+    const bytes = generateHdBody(timelineBody(result.model, sequences));
+    const measured = checkRetarget({ ...result, samples: result.samples.map(sample => ({ ...sample, sequence: 0 })) }, bytes);
+    expect(measured.units).toBeLessThanOrEqual(0.5);
+    expect(measured.degrees).toBeLessThanOrEqual(0.5);
+});
+
 test('an absent required HD joint rejects the export [spec #334]', () => {
     const source = parseMDL(stageSkyMdl('stock.blp'));
     source.Sequences[0]!.Name = 'Stand';

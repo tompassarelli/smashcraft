@@ -71,6 +71,52 @@ function inverse(matrix: mat4): mat4 {
     return result;
 }
 
+function registrationFactors(matrix: mat4): readonly [mat4, mat4, mat4] {
+    const a = Array.from({ length: 3 }, (_, row) => Array.from({ length: 3 }, (_, column) => matrix[column * 4 + row]));
+    const stretchSquared = Array.from({ length: 3 }, (_, row) => Array.from({ length: 3 }, (_, column) =>
+        a.reduce((sum, values) => sum + values[row] * values[column], 0)));
+    const basis = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+    for (let iteration = 0; iteration < 32; iteration++) {
+        let p = 0, q = 1;
+        for (const [row, column] of [[0, 2], [1, 2]])
+            if (Math.abs(stretchSquared[row][column]) > Math.abs(stretchSquared[p][q])) { p = row; q = column; }
+        if (Math.abs(stretchSquared[p][q]) < 1e-12) break;
+        const angle = 0.5 * Math.atan2(2 * stretchSquared[p][q], stretchSquared[q][q] - stretchSquared[p][p]);
+        const c = Math.cos(angle), s = Math.sin(angle);
+        const pp = stretchSquared[p][p], qq = stretchSquared[q][q], pq = stretchSquared[p][q];
+        stretchSquared[p][p] = c * c * pp - 2 * c * s * pq + s * s * qq;
+        stretchSquared[q][q] = s * s * pp + 2 * c * s * pq + c * c * qq;
+        stretchSquared[p][q] = stretchSquared[q][p] = 0;
+        for (let row = 0; row < 3; row++) {
+            if (row !== p && row !== q) {
+                const rp = stretchSquared[row][p], rq = stretchSquared[row][q];
+                stretchSquared[row][p] = stretchSquared[p][row] = c * rp - s * rq;
+                stretchSquared[row][q] = stretchSquared[q][row] = s * rp + c * rq;
+            }
+            const bp = basis[row][p], bq = basis[row][q];
+            basis[row][p] = c * bp - s * bq;
+            basis[row][q] = s * bp + c * bq;
+        }
+    }
+    const scales = stretchSquared.map((row, index) => Math.sqrt(row[index]));
+    if (scales.some(value => !Number.isFinite(value) || value < 1e-8)) throw new Error('Singular Stand registration');
+    const left = mat4.create(), diagonal = mat4.create(), right = mat4.create();
+    for (let row = 0; row < 3; row++) for (let column = 0; column < 3; column++) {
+        left[column * 4 + row] = a[row].reduce((sum, value, index) => sum + value * basis[index][column], 0) / scales[column];
+        right[column * 4 + row] = basis[column][row];
+    }
+    if (mat4.determinant(left) < 0) {
+        for (let row = 0; row < 3; row++) left[8 + row] *= -1;
+        scales[2] *= -1;
+    }
+    for (let axis = 0; axis < 3; axis++) {
+        left[12 + axis] = matrix[12 + axis];
+        diagonal[axis * 5] = scales[axis];
+    }
+    // R*S = (R*Q)*D*Q^-1. Only D stretches; all three factors stay constant.
+    return [left, diagonal, right];
+}
+
 function appendTransform(node: mdx.Node, matrix: mat4, frame: number): void {
     const rotation = mat4.getRotation(quat.create(), matrix);
     quat.normalize(rotation, rotation);
@@ -140,9 +186,26 @@ export function retargetHd(source: mdx.Model, hd: mdx.Model, pairs: readonly (re
         sourceNodes.set(id, ObjectId);
         return ObjectId;
     };
-    // A recovery squash followed by a registered rotation can shear. Keep its original
-    // local transform chain instead of reducing that world matrix to one lossy TRS.
-    for (const [to, from] of correspondence) model.Nodes[to].Parent = copyAncestor(from);
+    const constantTransforms = new Map(referenceLocal);
+    for (const [to, from] of correspondence) {
+        let parent = copyAncestor(from);
+        const factors = registrationFactors(registration.get(to)!);
+        for (const [index, factor] of factors.entries()) {
+            if (index === 2) {
+                model.Nodes[to].Parent = parent;
+                constantTransforms.set(to, factor);
+                continue;
+            }
+            const ObjectId = model.Nodes.length;
+            const node: mdx.Bone = {
+                Name: `Registration ${index} ${model.Nodes[to].Name}`, ObjectId, Parent: parent, Flags: 0,
+                PivotPoint: new Float32Array(3), GeosetId: null, GeosetAnimId: null,
+            };
+            model.Bones.push(node); model.Nodes.push(node); model.PivotPoints.push(node.PivotPoint);
+            constantTransforms.set(ObjectId, factor);
+            parent = ObjectId;
+        }
+    }
     const samples: RetargetSample[] = [];
     for (const sequence of sequences) {
         const index = source.Sequences.indexOf(sequence), [start, end] = sequence.Interval;
@@ -150,8 +213,8 @@ export function retargetHd(source: mdx.Model, hd: mdx.Model, pairs: readonly (re
         tracks(source, track => { if (!onGlobalClock(track)) for (const key of track.Keys) if (key.Frame >= start && key.Frame <= end) frames.add(key.Frame); });
         for (const frame of [...frames].sort((a, b) => a - b)) {
             const reference = sourceAt(index, frame);
-            if (frame === start || frame === end) for (const node of hdBones)
-                appendTransform(node, registration.get(node.ObjectId) ?? referenceLocal.get(node.ObjectId)!, frame);
+            if (frame === start || frame === end) for (const [id, matrix] of constantTransforms)
+                appendTransform(model.Nodes[id], matrix, frame);
             samples.push({ sequence: index, frame, expected: new Map([...correspondence].map(([id, from]) =>
                 [id, mat4.multiply(mat4.create(), reference[from], registration.get(id)!)])) });
         }
