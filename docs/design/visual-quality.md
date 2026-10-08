@@ -154,7 +154,7 @@ were read by their chunk tags.
 Smashcraft authors one lighting model per stage (smashcraft:ts/src/game/assets/stageLighting.ts;
 smashcraft:ts/scripts/stageLight.ts writes the MDL, smashcraft:tools/stage/package.ts
 compiles it into the stage-assets family): a directional light with constant
-key and fill colours at intensity 1 and the classic sun's rotation, so the
+key and fill colours at intensity 1 (a stage's light may set a lower one) and the classic sun's rotation, so the
 time of day can't move it. The shell sets it with the sky and fog when a
 stage is drawn (smashcraft:ts/src/platform/shell/stageScenery.ts) and loads
 them all at map start.
@@ -177,6 +177,9 @@ smashcraft:ts/src/game/assets/stageLighting.tests.ts enforces them:
    shaded side stays readable against the dark lower backdrop.
 4. Neither colour's chroma (largest channel minus smallest) exceeds 80, so a
    tinted light never repaints the team colours.
+5. A light's intensity, which scales key and fill together, is above 0 and at
+   most 1. Ahn'Qiraj's is 0.5, pinned, so fighters stay darker than its bright
+   sandstone ring (#267).
 
 Rules 2 and 3 hold fighters bright. The measurement below shows that is only
 right where the backdrop behind the fighters is darker than they are.
@@ -254,14 +257,14 @@ right. Re-capture the stock/mask/stage triple after every change.
 | --- | --- | --- | --- | --- |
 | Sky Deck (0) | Classic noon (255 / 214, 214, 250) | authored | session failed; #178 ΔE00 22.8 | Keep as the neutral baseline; capture the triple |
 | Frozen Throne (2) | 226, 240, 255 / 150, 172, 220 | authored | contrast falls (ΔE00 −2.2, −0.8) | Darken key and fill toward stock, or darken the band behind the deck; re-capture |
-| Durotar (3) | 255, 226, 180 / 190, 152, 134 | authored | contrast falls (ΔE00 −3.3, −3.5) | Same as Frozen Throne |
+| Durotar (3) | 255, 226, 180 / 190, 152, 134, intensity 0.65 (#266) | authored | contrast fell at intensity 1 (ΔE00 −3.3, −3.5) | Re-capture the triple at 0.65 |
 | Naxxramas (4) | 222, 230, 255 / 150, 136, 196 | authored | contrast rises (ΔE00 +2.3, +1.9) | Keep; pin the light |
 | Stratholme (6) | 255, 214, 180 / 170, 140, 150 | authored | added after the batch | Capture the triple first |
 | Tomb of Sargeras (7) | 226, 244, 255 / 130, 176, 180 | authored | added after the batch | Capture the triple first |
 | Nordrassil (10) | 236, 246, 232 / 136, 178, 172 | stock FelwoodSky | no stock capture | Capture; *(guess)* its dark aurora backdrop favours the lift, as Naxxramas |
 | Gryphon Aerie (11) | 255, 248, 226 / 164, 182, 220 | authored | no mask capture | Capture; *(guess)* its pale cloud field behaves like Frozen Throne |
 | Blackrock (12) | 255, 216, 176 / 170, 124, 112 | authored | stock and stage failed | Capture; lowest #178 ΔE00 (21.2), so check it first |
-| Ahn'Qiraj (13) | 255, 240, 204 / 192, 170, 136 | authored | contrast falls (abs ΔL 33.5 → 22.9, 14.6 → 3.8) | Same as Frozen Throne |
+| Ahn'Qiraj (13) | 255, 240, 204 / 192, 170, 136 at intensity 0.5 (#267) | authored | at intensity 1, contrast fell (abs ΔL 33.5 → 22.9, 14.6 → 3.8) | Re-capture the triple at 0.5 |
 | Hellfire (14) | 255, 222, 196 / 140, 172, 120 | authored | stock capture only | Capture; *(guess)* dark haze favours the lift |
 
 The other levers, for every stage:
@@ -322,6 +325,14 @@ HD modes can draw that contact light through their point-light renderer;
 Classic retains the spark geometry. Compare `-dev effects 12` at the same
 50 ms capture intervals in the retained unlit and lit maps before claiming
 improved contact readability. The model adds no script calls per frame.
+
+Slash hit sparks (the authored Hit model, every `HitElement.slash` contact)
+carry the same kind of light: warm white `{1, 0.9, 0.7}`, radius 380,
+intensity 0.9 → 0.35 at 70 ms → 0 at 140 ms, inside the spark's 9-frame
+pooled life. It adds 204 bytes to the existing imported model and no new
+file: no stock contact spark carries a light of that colour and length, and a
+second stock effect per hit would add a pool and script calls. Checks
+`192-slash-before|after` compare it against the f9d0fbf3 build.
 
 The #168 gate is the measured predicted frame cost (p99 ≤10 ms, worst ≤14 ms)
 from a `--samples` run checked with `bun wisp perf budget RUN_FILE`. Run the

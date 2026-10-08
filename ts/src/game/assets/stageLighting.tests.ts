@@ -2,6 +2,7 @@ import { assertEquals, test } from "wisp/src/runtime/testing";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { luma } from "./stagePalette";
 import { STAGE_LIGHTS } from "./stageLighting";
+import { DRIFTING_DECK_STAGE, TIMED_TEST_STAGE } from "../sim/stage";
 
 // smashcraft:docs/design/visual-quality.md, "Stage light rules".
 test("every selectable stage has its own light [spec docs/design/visual-quality.md]", () => {
@@ -24,4 +25,20 @@ test("each stage's light keeps fighters bright, shaded sides readable and team c
       assertEquals(chroma <= 80, true, `${theme}: ${part} light chroma ${chroma} exceeds 80`);
     }
   }
+});
+
+// #267: over Ahn'Qiraj's bright sandstone ring the full light cut fighter contrast (abs ΔL 33.5 → 22.9, 14.6 → 3.8).
+test("Ahn'Qiraj's light shines at half strength so fighters stay darker than the bright ring [spec docs/design/visual-quality.md]", () => {
+  const qiraji = STAGE_LIGHTS.find(({ stage }) => stage === TIMED_TEST_STAGE)?.light;
+  assertEquals(`${qiraji?.key.join(",")}/${qiraji?.ambient.join(",")}@${qiraji?.intensity}`, "255,240,204/192,170,136@0.5");
+  for (const { theme, light } of STAGE_LIGHTS) {
+    const intensity = light.intensity ?? 1;
+    assertEquals(intensity > 0 && intensity <= 1, true, `${theme}: intensity ${intensity} is outside (0, 1]`);
+  }
+});
+
+// #170 measured Durotar's full-intensity light lifting fighters toward its bright ring (ΔE00 −3.3, −3.5); #266 dims it.
+test("Durotar's key and fill stay dimmed to 0.65 so fighters keep their contrast against its bright backdrop [spec docs/design/visual-quality.md]", () => {
+  const durotar = STAGE_LIGHTS.find(({ stage }) => stage === DRIFTING_DECK_STAGE)?.light;
+  assertEquals(`${durotar?.key.join(",")}/${durotar?.ambient.join(",")}@${durotar?.intensity}`, "255,226,180/190,152,134@0.65");
 });

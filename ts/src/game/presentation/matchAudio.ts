@@ -39,20 +39,20 @@ const MUSIC = "Sound\\Music\\mp3Music\\";
 export const MENU_MUSIC = `${MUSIC}War3XMainScreen.flac`;
 
 /**
- * Each stage's theme from the Warcraft III soundtrack, by its setting
- * (docs/design/match-flow.md, "Sound and music").
+ * Each stage's theme from the Warcraft III soundtrack, chosen for the
+ * fighters who call it home (smashcraft:docs/design/stage-music.md).
  */
 const STAGE_MUSIC: Readonly<Record<StageTile, string>> = {
   0: `${MUSIC}Human1.flac`,
   2: `${MUSIC}LichKingTheme.flac`,
-  3: `${MUSIC}Orc1.flac`,
-  4: `${MUSIC}Undead3.flac`,
-  6: `${MUSIC}Human2.flac`,
+  3: `${MUSIC}OrcX1.flac`,
+  4: `${MUSIC}NaxxramasWalking1.flac`,
+  6: `${MUSIC}ArthasTheme.flac`,
   7: `${MUSIC}NagaTheme.flac`,
   10: `${MUSIC}NightElf1.flac`,
   11: `${MUSIC}HumanX1.flac`,
-  12: `${MUSIC}OrcX1.flac`,
-  13: `${MUSIC}NagaTheme.flac`,
+  12: `${MUSIC}Human3.flac`,
+  13: `${MUSIC}NightElf2.flac`,
   14: `${MUSIC}IllidansTheme.flac`,
 };
 

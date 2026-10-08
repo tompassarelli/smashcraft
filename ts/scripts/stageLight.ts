@@ -17,7 +17,7 @@ const SUN_ROTATION = "{ 0.3815, -0.2159, -0.4426, 0.7823 }";
  * A directional light with constant colours over the whole day: the game
  * samples the model at the time of day, which the shell freezes at noon.
  */
-export function stageLightMdl({ key, ambient }: StageLight): string {
+export function stageLightMdl({ key, ambient, intensity = 1 }: StageLight): string {
   return `Version { FormatVersion 800, }
 Model "Smashcraft stage light" { BlendTime 150, ${EXTENT} }
 Sequences 1 { Anim "Stand" { Interval { 333, 60333 }, ${EXTENT} } }
@@ -26,9 +26,9 @@ Light "StageSun" {
   Directional,
   static AttenuationStart 80,
   static AttenuationEnd 200,
-  static Intensity 1,
+  static Intensity ${intensity},
   static Color ${colour(key)},
-  static AmbIntensity 1,
+  static AmbIntensity ${intensity},
   static AmbColor ${colour(ambient)},
   Rotation 1 { DontInterp, 333: ${SUN_ROTATION}, }
 }

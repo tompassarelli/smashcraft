@@ -82,6 +82,7 @@ function gameTick(s: ShellState): void {
   if (!beforeNativeDriverTick(s)) return;
   if (s.build.pausePositionProbe && s.game.phase === Phase.match && s.probe?.run === 0) startProbe(s.probe, false);
   const pausedBefore = s.session.paused;
+  view.serviceResumePresentation(s);
   serviceVisualCapture(s);
   const epoch = journalEpoch(s);
   const editbox = s.rollback?.journal?.editbox;
@@ -120,7 +121,7 @@ function gameTick(s: ShellState): void {
   if (s.game.phase !== Phase.match) clearAllInputs(s);
   else for (const slot of PARTICIPANT_SLOTS) clearPulse(s.participants[slot].keys.directions);
   syncKeyEvents(s);
-  const held = heldVisualFrame(localSlot()) !== undefined;
+  const held = heldVisualFrame(localSlot()) !== undefined || view.resumePresentationHeld(s);
   beginPresentedFrame(s.game.phase === Phase.match && !s.session.paused && !held);
   if (!held) {
     view.renderPersistentPresentation(s);
