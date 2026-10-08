@@ -10,7 +10,8 @@ import { Cause, Effect, Exit, Schema } from "effect";
 import { BUSY_PRESSURE, INCONCLUSIVE_EXIT, TEST_TIMEOUT_MS, timingTestFiles, timingTests, withPressure } from "wisp/scripts/wisp/testRunner";
 import { TEST_PHASE_ENV } from "wisp/scripts/wisp/timingTest";
 import { ISOLATED_TEST_GROUPS, testWorkerEnvironment } from "./testWorkers";
-import { runAdmitted } from "./heavyCapacity";
+import { admit } from "./heavyCapacity";
+import { runMeasuredProcess } from "./hostProcess";
 import { BUN_TEST_CEILING_S, addCost, judge, readBaseline, type Costs } from "./testCost";
 import { refuseUntagged } from "./oracleTags";
 
@@ -64,7 +65,6 @@ const groups: Group[] = [
   ...isolated.map((names) => ({ files: testFiles.filter((file) => names.includes(file)) })),
 ].filter((group) => group.files.length > 0);
 refuseUntagged(project, [...testFiles, ...gameModules.map((module) => `src/${module}`)]);
-await runAdmitted("heavy", "smashcraft:test", 1800);
 /** Spreads files over `count` processes, heaviest first onto the lightest. */
 function balance(names: readonly string[], count: number): string[][] {
   const bins = Array.from({ length: count }, () => ({ files: new Array<string>(), cpu: 0 }));
@@ -118,27 +118,17 @@ const decodeCostRow = Schema.decodeUnknownEffect(Schema.fromJsonString(CostRow))
 const percent = (value: number | undefined) => (value === undefined ? "unknown" : `${Math.round(value)}%`);
 
 /** One group's process; its exit code and CPU seconds (rusage, with its waited-for children). */
-const runGroup = (group: Group) => Effect.acquireUseRelease(
-  Effect.sync(() => {
-    const junit = junitDirectory === undefined ? [] : ["--reporter=junit", `--reporter-outfile=${resolve(junitDirectory, `${groups.indexOf(group)}.xml`)}`];
-    // Bun matches the pattern against the name with its describe blocks.
-    const sweepFilter = sweeps ? ["-t", "\\(sweep\\) "] : [];
-    const cost = sweeps ? {} : { TEST_COST_OUT: costFile(group), TEST_COST_CEILING_S: String(BUN_TEST_CEILING_S), TEST_COST_BUSY: String(BUSY_PRESSURE) };
-    return Bun.spawn([process.execPath, "test", "--timeout", String(TEST_TIMEOUT_MS), ...junit, ...sweepFilter, ...group.files.map((file) => resolve(project, file))], {
-      cwd: project,
-      env: { ...process.env, ...testWorkerEnvironment(group.files), ...group.env, [TEST_PHASE_ENV]: "correctness", ...cost },
-      stdout: "inherit",
-      stderr: "inherit",
-    });
-  }),
-  (child) => Effect.promise(() => child.exited).pipe(Effect.map((code) => {
-    const usage = child.resourceUsage()?.cpuTime;
-    return { code, cpu: usage === undefined ? 0 : (Number(usage.user) + Number(usage.system)) / 1e6 };
-  })),
-  (child) => Effect.sync(() => {
-    if (child.exitCode === null) child.kill();
-  }),
-);
+const runGroup = (group: Group) => Effect.suspend(() => {
+  const junit = junitDirectory === undefined ? [] : ["--reporter=junit", `--reporter-outfile=${resolve(junitDirectory, `${groups.indexOf(group)}.xml`)}`];
+  // Bun matches the pattern against the name with its describe blocks.
+  const sweepFilter = sweeps ? ["-t", "\\(sweep\\) "] : [];
+  const cost = sweeps ? {} : { TEST_COST_OUT: costFile(group), TEST_COST_CEILING_S: String(BUN_TEST_CEILING_S), TEST_COST_BUSY: String(BUSY_PRESSURE) };
+  return runMeasuredProcess(
+    [process.execPath, "test", "--timeout", String(TEST_TIMEOUT_MS), ...junit, ...sweepFilter, ...group.files.map((file) => resolve(project, file))],
+    project,
+    { ...process.env, ...testWorkerEnvironment(group.files), ...group.env, [TEST_PHASE_ENV]: "correctness", ...cost },
+  );
+});
 
 const suite = Effect.gen(function*() {
   const started = performance.now();
@@ -151,6 +141,8 @@ const suite = Effect.gen(function*() {
 });
 
 const program = Effect.gen(function*() {
+  const admitted = yield* admit("heavy", "smashcraft:test", 1800);
+  if (admitted !== undefined) return admitted;
   const { value: { results, verdicts }, pressure } = yield* withPressure(suite);
   const failed = results.some((result) => result.code !== 0) || verdicts.includes("failed");
   let inconclusive = verdicts.includes("inconclusive");

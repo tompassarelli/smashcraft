@@ -3,6 +3,28 @@
 import { Effect, Schema, Stream } from "effect";
 import type { ChildProcess } from "effect/process";
 
+/** Bun's rusage includes waited-for children; the platform handle has no rusage. */
+export const runMeasuredProcess = (command: readonly string[], cwd: string, env: Record<string, string | undefined>) =>
+  Effect.acquireUseRelease(
+    Effect.try({
+      try: () => Bun.spawn([...command], { cwd, env, stdout: "inherit", stderr: "inherit" }),
+      catch: (cause) => new ProcessFailure({ command: command[0] ?? "", problem: `could not start: ${String(cause)}` }),
+    }),
+    (child) => Effect.promise(() => child.exited).pipe(Effect.map((code) => {
+      const usage = child.resourceUsage()?.cpuTime;
+      return { code, cpu: usage === undefined ? 0 : (Number(usage.user) + Number(usage.system)) / 1e6 };
+    })),
+    (child) => Effect.gen(function*() {
+      if (child.exitCode !== null) return;
+      child.kill("SIGINT");
+      const stopped = yield* Effect.promise(() => child.exited).pipe(Effect.timeoutOption("1 second"));
+      if (stopped._tag === "None") {
+        child.kill("SIGKILL");
+        yield* Effect.promise(() => child.exited);
+      }
+    }),
+  );
+
 /** A program that couldn't start, was killed, or exited nonzero. */
 export class ProcessFailure extends Schema.TaggedError<ProcessFailure>()("ProcessFailure", {
   command: Schema.String,
