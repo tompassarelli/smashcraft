@@ -1,6 +1,5 @@
-import { ModelRenderer } from 'war3-model';
-import { mat4, quat, vec3 } from 'gl-matrix';
-import { model as mdx, parseMDX, generateMDX } from '../../ts/scripts/clipNodes';
+import { mat4, quat, vec3 } from '../../ts/node_modules/gl-matrix';
+import { ModelRenderer, model as mdx, parseMDX, generateMDX } from '../../ts/scripts/clipNodes';
 import { skinChunks } from '../../ts/scripts/mdxCodec';
 import { tracks, onGlobalClock } from './original-clips';
 
