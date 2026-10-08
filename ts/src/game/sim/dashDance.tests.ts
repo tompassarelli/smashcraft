@@ -14,6 +14,7 @@ import { fighterAt } from "./roster";
 import { Character, GroundAction } from "./codes";
 import { createFighter, type Fighter } from "./fighter";
 import { advanceSolo, controls } from "./testWorld";
+import { sweep } from "../../runtime/sweep";
 
 function sample(fighter: Fighter, direction: number, amplitude = 1.0, walking = false): void {
   advanceSolo(fighter, 0, controls({ direction, diStickValid: true, diStickX: f32(direction * amplitude), walking }), 0.0);
@@ -218,7 +219,7 @@ function travelSample(driver: DanceDriver, input: DanceInput, to: number, transi
   return false;
 }
 
-test("dash dancing: 9,984 scripted dash-backs over the roster, stick and keyboard, 1-4 frame flicks: 0 misreads", () => {
+sweep("dash dancing: 9,984 scripted dash-backs over the roster, stick and keyboard, 1-4 frame flicks: 0 misreads", () => {
   let dashbacks = 0;
   let misreads = 0;
   const failures: string[] = [];

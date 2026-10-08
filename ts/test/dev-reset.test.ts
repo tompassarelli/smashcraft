@@ -5,7 +5,7 @@
 // first quick match and, after a reset typed mid-match, in the next one; the
 // integrity trace's confirmed-state checksums and fighter lines, which native
 // parity compares, are the same.
-import { afterAll, expect, test } from "bun:test";
+import { afterAll, expect } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { Phase } from "../src/game/match/rules";
 import { clearObservedActions } from "../src/game/match/step";
@@ -17,11 +17,12 @@ import { TRACE_FILE, parseTrace } from "../scripts/integrity/padParity";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { JournalHelpers } from "./rematch/journalHelper";
 import { value } from "./rematch/playableMatch";
+import { sweep } from "./sweep";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
-test("a match after -dev reset equals the first match of the game: same trace checksums and fighter lines on both clients", () => {
+sweep("a match after -dev reset equals the first match of the game: same trace checksums and fighter lines on both clients", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1]);
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
   helpers.workload = { denseCycles: 6, walkers: [] };

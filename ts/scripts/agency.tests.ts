@@ -7,6 +7,7 @@ import { fighterAt } from "../src/game/sim/roster";
 import { INPUT_CLASSES, agencyLetters, analyzeAgency, runFrame, snapshotOf } from "./agency";
 import { attackerPlan, standingMatch } from "./agencySweep";
 import { LockWatch } from "./lockWatch";
+import { sweep } from "../test/sweep";
 
 const ATTACKER = 0;
 const VICTIM = 1;
@@ -55,7 +56,7 @@ test("mashing out of a hold the attacker keeps is acting", () => {
 });
 
 // About 1.2 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
-test("the soak's detector flags a loop the victim can't act out of, and passes one it can", () => {
+sweep("the soak's detector flags a loop the victim can't act out of, and passes one it can", () => {
   // Forsaken Paladin regrabs Rifleman after each up throw at 50%: only buttons get the victim out of the cycle.
   const start = standingMatch(Character.forsakenPaladin, Character.rifleman, 50, 40);
   const regrab = attackerPlan("up throw", start.runtime.simulationFrame + 1, 80);

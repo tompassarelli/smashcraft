@@ -16,6 +16,7 @@ import { replayChecksum } from "../replay/matchReplay";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
 import { createPacingAndPresentation } from "./pacingAndPresentation";
 import { Phase, createMatchState, requestStart, setParticipants } from "./rules";
+import { sweep } from "../../runtime/sweep";
 
 const NEUTRAL = neutralControls();
 
@@ -66,7 +67,7 @@ test("the same seed and named profile play the same match; changed seed or profi
   assertFalse(checksumAfter("ember", "expert", 3) === played);
 });
 
-test("150 named profile and seed combinations replay restored gameplay with zero state differences", () => {
+sweep("150 named profile and seed combinations replay restored gameplay with zero state differences", () => {
   let restored = 0;
   for (const profile of CPU_PROFILES) for (let seed = 0; seed < 5; seed++) {
     const game = computerMatch(profile.opponent, profile.tier, seed);

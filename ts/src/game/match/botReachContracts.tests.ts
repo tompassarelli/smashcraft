@@ -25,6 +25,7 @@ import { createFrameControls } from "./controls";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
 import { createPacingAndPresentation } from "./pacingAndPresentation";
 import { MATCH_TICKS_PER_SECOND, Phase, createMatchState } from "./rules";
+import { sweep } from "../../runtime/sweep";
 
 const NEUTRAL = neutralControls();
 
@@ -159,7 +160,7 @@ function playIdleOpponent(character: Character, cx: number, cz: number, surface:
   return result;
 }
 
-test("computerApproachesAnOpponentOutOfReachInsteadOfAttacking", () => {
+sweep("computerApproachesAnOpponentOutOfReachInsteadOfAttacking", () => {
   const failures: string[] = [];
   let idleStarts = 0;
   for (const character of SELECTABLE_CHARACTERS) {

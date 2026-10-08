@@ -15,7 +15,7 @@
 // its input stayed 15-25 frames late for 5 s. #60's gate holds here too: every
 // press starts within a callback of its capture unless a game was stopped or
 // prediction waited beyond the rollback window when it was made.
-import { afterAll, expect, test } from "bun:test";
+import { afterAll, expect } from "bun:test";
 import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
 import { WARCRAFT_COST } from "wisp/src/headless/nativeCost";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
@@ -34,6 +34,7 @@ import { panelActions } from "../src/platform/shell/menus";
 import { shell } from "../src/platform/shell/state";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { JournalHelpers, rowFor } from "./rematch/journalHelper";
+import { sweep } from "./sweep";
 
 const declarations = readNativeDeclarations();
 // Desyncs are the desync guard's to find; unlogged natives keep these frames fast.
@@ -106,7 +107,7 @@ const TYPING_FRAMES_PER_CHARACTER_SQUARED = WARCRAFT_COST.typingUsPerCharacterSq
 const CATCH_UP_CALLBACKS = 10;
 
 // About 1.5 s alone; at load 23-29 a host took headless match tests past Bun's 5 s default.
-test("after a 2 s stall of one or both games, each client catches up within a second, a bounded number of frames a callback", () => {
+sweep("after a 2 s stall of one or both games, each client catches up within a second, a bounded number of frames a callback", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 7) });
   const host = clients.clients[0] as HeadlessClient;
   const read = <T>(client: HeadlessClient, body: () => T): T => {

@@ -12,7 +12,7 @@ import { Character } from "../src/game/sim/codes";
 import { value } from "./rematch/playableMatch";
 import { sweep } from "./sweep";
 
-test("standalone keyboard play runs a full three-stock Archer versus CPU Rifleman match with scene and sound", async () => {
+sweep("standalone keyboard play runs a full three-stock Archer versus CPU Rifleman match with scene and sound", async () => {
   const session = await createStandaloneSession();
   try {
     const { client } = session;
@@ -75,7 +75,7 @@ async function matchesNativeDriver(frames: number): Promise<void> {
   } finally { runtime.restore(); }
 }
 
-test("standalone CPU fixture matches the native pad driver over its first 300 frames", () => matchesNativeDriver(300), 120000);
+sweep("standalone CPU fixture matches the native pad driver over its first 300 frames", () => matchesNativeDriver(300), 120000);
 
 sweep("standalone CPU fixture matches the native pad driver at all 1070 frames", () => matchesNativeDriver(1070), 120000);
 

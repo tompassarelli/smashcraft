@@ -4,7 +4,7 @@
 // forward tilts, down tilts and dash attacks; with its passive ready it
 // favours the move that cashes it, against a ready opponent it shields
 // more, and Archer and Rifleman never press a special their mana can't pay.
-import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertGreaterThan, assertTrue } from "wisp/src/runtime/testing";
 import { sweep } from "../../runtime/sweep";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { clearAttackBuffer } from "../input/attackBuffer";
@@ -220,6 +220,6 @@ sweep("computer Archer and Rifleman never press a special their mana can't pay, 
   }
 });
 
-test("computer Archer and Rifleman never press a special their mana can't pay in a seeded mirror, which replays its counts", () => {
+sweep("computer Archer and Rifleman never press a special their mana can't pay in a seeded mirror, which replays its counts", () => {
   for (const character of [Character.archer, Character.rifleman]) assertEquals(played(character, character, 1).manaDenied ?? 0, 0);
 });

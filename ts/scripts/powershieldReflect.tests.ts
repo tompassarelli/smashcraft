@@ -6,7 +6,7 @@
 // reflects inside the reflector's frames and not after them (a later frame of
 // the 4-frame hit parry may still parry it); a marker, zone or summon is never
 // reflected. `bun test ./scripts/powershieldReflect.tests.ts` prints the table.
-import { expect, test } from "bun:test";
+import { expect } from "bun:test";
 import { Action } from "../src/game/input/actions";
 import { Character } from "../src/game/sim/codes";
 import { type Fighter, SHIELD_MAX } from "../src/game/sim/fighter";
@@ -14,6 +14,7 @@ import { HERO_ROSTER } from "../src/game/sim/heroes/registry";
 import { SHIELD_REFLECTOR_ACTIVE_FRAMES } from "../src/game/sim/shield";
 import { fighter, frame, projectileShieldActions, scene } from "./frameScene";
 import { isProjectileSummon } from "./interactions";
+import { sweep } from "../test/sweep";
 
 type Held = readonly Action[];
 type Outcome = "reflected" | "parried" | "blocked" | "hit";
@@ -174,7 +175,7 @@ function table(all: readonly Row[]): string {
   return lines.join("\n");
 }
 
-test("a powershield reflects every traveling projectile on the reflector's frames and only then", () => {
+sweep("a powershield reflects every traveling projectile on the reflector's frames and only then", () => {
   const all = rows();
   console.log(table(all));
   expect(new Set(all.map((row) => row.fighter)).size).toBe(FIGHTERS.length);

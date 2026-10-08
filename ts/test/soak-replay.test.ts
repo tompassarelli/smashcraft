@@ -11,6 +11,7 @@ import game from "./soak/game";
 import { Phase } from "../src/game/match/rules";
 import { shell } from "../src/platform/shell/state";
 import phaseRepro from "../../evidence/camera-blastzones-20261006/match-72.json";
+import { sweep } from "./sweep";
 
 const runtime = installHeadless(project.map);
 afterAll(runtime.restore);
@@ -18,7 +19,7 @@ afterAll(runtime.restore);
 const match: SoakMatch = { index: 0, seed: 96542, fighters: ["archer", "archer"], stage: "sky-deck", policies: ["fuzz", "cpu"], frames: 30 };
 const quiet: SoakInputs = { edges: [], silences: [], hitches: [], slow: [] };
 
-test("offscreen indicators follow the presented result while confirmation is still finishing the match", () => {
+sweep("offscreen indicators follow the presented result while confirmation is still finishing the match", () => {
   const repro = readSoakRepro(JSON.stringify(phaseRepro));
   let sawResultAhead = false;
   const cameraFindings: string[] = [];

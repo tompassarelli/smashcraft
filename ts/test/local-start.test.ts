@@ -27,6 +27,7 @@ import { panelActions } from "../src/platform/shell/menus";
 import { shell } from "../src/platform/shell/state";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { JournalHelpers } from "./rematch/journalHelper";
+import { sweep } from "./sweep";
 
 /** The session's beats: an action's bits, frames held (0 for a 5 ms tap), what its press also carries; 24 frames apart. */
 const BEATS: readonly (readonly [mask: number, held: number, press: RowFields])[] = [
@@ -189,7 +190,7 @@ interface LockstepFrames {
 }
 
 // About 1.5 s alone; at load 23-29 a host took headless match tests past Bun's 5 s default.
-test("#60: every local press starts in the presser's next prediction unless a remote holds prediction back", () => {
+sweep("#60: every local press starts in the presser's next prediction unless a remote holds prediction back", () => {
   const network = syncDelivery(BOT_SESSION_LATENCY, 11);
   let slower = 0;
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: { arrivalFrame: (sender, frame, message) => network.arrivalFrame(sender, frame, message) + (sender === 1 ? slower : 0) } });

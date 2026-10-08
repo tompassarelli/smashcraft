@@ -1,4 +1,4 @@
-import { assertEquals, test } from "wisp/src/runtime/testing";
+import { assertEquals } from "wisp/src/runtime/testing";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { createFighter } from "../sim/fighter";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
@@ -8,10 +8,11 @@ import { chooseRecoveryInput } from "./botRecovery";
 import { createFrameControls } from "./controls";
 import { Phase, createMatchState } from "./rules";
 import { stepMatch } from "./step";
+import { sweep } from "../../runtime/sweep";
 
 // Every main-deck profile (smashcraft:docs/design/stages.md, "Main-deck topology")
 // must let every fighter back onto the stage from below either ledge.
-test("every fighter recovers onto every stage's main deck from below either ledge", () => {
+sweep("every fighter recovers onto every stage's main deck from below either ledge", () => {
   for (const { id: stage, name } of STAGE_CATALOG) {
     for (const character of SELECTABLE_CHARACTERS) {
       for (const side of [-1, 1]) for (const [z, jumps] of [[-40.0, 0], [-120.0, 1]] as const) {

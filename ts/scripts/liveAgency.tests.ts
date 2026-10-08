@@ -1,4 +1,4 @@
-import { expect, test } from "bun:test";
+import { expect } from "bun:test";
 import { emptyInput } from "../src/game/input/inputRow";
 import { FighterAgencyForecast } from "../src/game/presentation/fighterAgency";
 import { Character, DownState, GrabAction } from "../src/game/sim/codes";
@@ -82,7 +82,7 @@ function compareLiveAgency(victims: readonly Character[], throws: readonly GrabA
   expect(failures).toEqual([]);
 }
 
-test("live locked marker matches the agency replay for buffers, tech, grabs, release, hitlag, freeze and forced stand", () => {
+sweep("live locked marker matches the agency replay for buffers, tech, grabs, release, hitlag, freeze and forced stand", () => {
   compareLiveAgency([Character.archer], [GrabAction.throwForward]);
 }, 120_000);
 

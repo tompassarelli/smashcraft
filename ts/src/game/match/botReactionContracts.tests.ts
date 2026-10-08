@@ -16,6 +16,7 @@ import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
 import { replayChecksum } from "../replay/matchReplay";
 import { botObservationCanonical, canonicalState, writeCanonicalNumber } from "../replay/canonical";
+import { sweep } from "../../runtime/sweep";
 
 const SURPRISE_FRAME = 50;
 
@@ -172,7 +173,7 @@ test("replay state checks detect delayed observations and direction commitment i
   assertTrue(checksum(expected) !== checksum(changed));
 });
 
-test("150 surprise-action traces: no computer input responds before its authored observation delay", () => {
+sweep("150 surprise-action traces: no computer input responds before its authored observation delay", () => {
   let early = 0;
   for (const profile of CPU_PROFILES) {
     const delay = cpuSkill(profile.opponent, profile.tier).reactionFrames;
@@ -235,7 +236,7 @@ test("rapid grounded and airborne requests, including neutral braking, have zero
   assertEquals(early, 0);
 });
 
-test("all 21 fighters' approach, retreat, air steering and recovery traces have zero early direction reversals", () => {
+sweep("all 21 fighters' approach, retreat, air steering and recovery traces have zero early direction reversals", () => {
   let frames = 0;
   let reversals = 0;
   let early = 0;

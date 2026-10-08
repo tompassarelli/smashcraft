@@ -23,6 +23,7 @@ import { itemWarningFrames, scheduleMatchItems } from "./centreItem";
 import { createFrameControls } from "./controls";
 import { createMatchState, Phase, setHumanCount } from "./rules";
 import { stepMatch } from "./step";
+import { sweep } from "../../runtime/sweep";
 
 function gameAtCentre(character: Character = Character.archer) {
   const game = createMatchState();
@@ -73,7 +74,7 @@ test("centre items spawn 30–60 seconds after GO and warn exactly ten seconds a
   }
 });
 
-test("every fighter takes every item with a normal attack or grab; expiry includes the pickup frame", () => {
+sweep("every fighter takes every item with a normal attack or grab; expiry includes the pickup frame", () => {
   for (const character of Object.values(Character)) for (const kind of [ItemKind.speed, ItemKind.extraJump, ItemKind.heavy]) for (const style of [AttackStyle.jab, AttackStyle.grab]) {
     const { game, first, world, input } = pickup(character, kind, style);
     assertEquals(first.status.buffFrames, 599);
@@ -208,7 +209,7 @@ test("Speed composes with Cairne's Endurance Aura and Lich's Chill", () => {
   assertEquals(fighter.motion.vx, f32(f32(f32(fighter.tuning.physics.dashSpeed * f32(1.1)) * f32(0.6)) * f32(1.3)));
 });
 
-test("five minutes of seeded spawns pickups and expiry replay from a saved snapshot exactly", () => {
+sweep("five minutes of seeded spawns pickups and expiry replay from a saved snapshot exactly", () => {
   const live = createReplaySnapshot();
   live.match.phase = Phase.match;
   live.match.stageChoice = 0;

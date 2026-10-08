@@ -5,6 +5,7 @@ import { createFighter } from "../sim/fighter";
 import { createRoster, neutralControls } from "../sim/roster";
 import { advanceFighterMotion } from "../sim/step";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
+import { sweep } from "../../runtime/sweep";
 
 test("locked input boundaries agree with the replay agency references in Lua32", () => {
   // Reference strings: smashcraft:ts/scripts/liveAgency.tests.ts's replay oracle.
@@ -32,7 +33,7 @@ test("locked input boundaries agree with the replay agency references in Lua32",
   }
 });
 
-test("clearance shortcuts preserve full contact forecasts near stage geometry in Lua32", () => {
+sweep("clearance shortcuts preserve full contact forecasts near stage geometry in Lua32", () => {
   const bounded = new FighterAgencyForecast();
   const full = new FighterAgencyForecast(false);
   const input = neutralControls();

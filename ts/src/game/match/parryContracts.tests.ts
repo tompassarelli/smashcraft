@@ -15,6 +15,7 @@ import { controls } from "../sim/testWorld";
 import { type FrameControls, createBufferedFrameControls } from "./controls";
 import { type MatchState, Phase, createMatchState } from "./rules";
 import { stepMatch } from "./step";
+import { sweep } from "../../runtime/sweep";
 
 interface Duel {
   readonly game: MatchState;
@@ -179,7 +180,7 @@ function shotOnShield(character: Character, raise: number): { readonly duel: Due
   return undefined;
 }
 
-test("after a parried projectile every grounded option starts on the next frame", () => {
+sweep("after a parried projectile every grounded option starts on the next frame", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const name = fighterName(character);
     for (const option of OPTIONS) {

@@ -188,7 +188,7 @@ test("Forsaken Paladin uses affordable Righteous Fury in hammer range and refuse
 const firstCompleteHero = HERO_ROSTER.find((hero) => hero.complete);
 for (const hero of HERO_ROSTER) {
   if (!hero.complete) continue;
-  (hero === firstCompleteHero ? test : sweep)(`${hero.name}'s computer uses its specials and grabs in a match against another computer, the same each time`, () => {
+  sweep(`${hero.name}'s computer uses its specials and grabs in a match against another computer, the same each time`, () => {
     const checksums: string[] = [];
     for (let run = 0; run < 2; run++) {
       const game = computerMatch([Character.archer, hero.character], [-240.0, 240.0], 0, 3);

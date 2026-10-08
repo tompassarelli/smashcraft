@@ -5,7 +5,7 @@ import { sweep } from "../../runtime/sweep";
 
 // The suite measures one row; every named profile's row runs as a sweep.
 for (const profile of CPU_PROFILES) {
-  (profile.opponent === "wren" && profile.tier === "expert" ? test : sweep)(`calibration ${profile.opponent}/${profile.tier}: 100 eligible decisions, zero early reactions/reversals/replay differences`, () => {
+  sweep(`calibration ${profile.opponent}/${profile.tier}: 100 eligible decisions, zero early reactions/reversals/replay differences`, () => {
     const row = collectCalibrationRow(profile);
     assertEquals(calibrationFailures(row).join("; "), "");
   });

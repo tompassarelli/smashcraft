@@ -19,6 +19,7 @@ import { shell } from "../src/platform/shell/state";
 import { PREDICTED_HEADLESS } from "../scripts/wisp/headless";
 import { JournalHelpers } from "./rematch/journalHelper";
 import { expectSynchronized, shows, value } from "./rematch/playableMatch";
+import { sweep } from "./sweep";
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
 function session(endless = false, hazardsOff = false) {
@@ -91,7 +92,7 @@ test("rules agree on both clients and the last countdown frame starts the next s
   expectSynchronized(clients);
 });
 // About 1.5 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
-test("either player's press cancels the automatic rematch", () => {
+sweep("either player's press cancels the automatic rematch", () => {
   for (const actor of [0, 1]) {
     for (const key of [Key.n, Key.u, Key.y]) {
     const { clients, frames, read, until } = session();
@@ -107,7 +108,7 @@ test("either player's press cancels the automatic rematch", () => {
   }
 }, 30_000);
 // About 2.4 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
-test("endless survives repeated knockouts past the selected time limit", () => {
+sweep("endless survives repeated knockouts past the selected time limit", () => {
   const { clients, frames, read } = session(true);
   let respawns = 0; let out = false;
   for (let i = 0; i < 3800; i++) {

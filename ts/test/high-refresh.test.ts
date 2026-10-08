@@ -3,7 +3,7 @@
 // with smoothing on, reaches the same confirmed checksums on every frame as
 // the same match drawn once a frame, and both clients still make the same
 // synchronized native calls.
-import { afterAll, expect, test } from "bun:test";
+import { afterAll, expect } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { install, start } from "../src/platform/main";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
@@ -12,6 +12,7 @@ import { shellState } from "../src/platform/shell/state";
 import { drawBetweenFrames } from "../src/platform/shell/betweenFrames";
 import { effectMotion } from "../src/game/render/effects";
 import { expectNoDivergence } from "./desync/journeys";
+import { sweep } from "./sweep";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
@@ -47,7 +48,7 @@ function quickMatch(extraDraws: number, cameraTween = false): { checksums: strin
   return { checksums, smoothed, drawnPositions };
 }
 
-test("drawing between simulation frames leaves every confirmed checksum unchanged", () => {
+sweep("drawing between simulation frames leaves every confirmed checksum unchanged", () => {
   const plain = quickMatch(0);
   const smooth = quickMatch(2);
   expect(plain.smoothed).toBe(0);
@@ -58,7 +59,7 @@ test("drawing between simulation frames leaves every confirmed checksum unchange
   expect(smooth.checksums).toEqual(plain.checksums);
 }, 30000);
 
-test("native camera transitions leave every confirmed checksum unchanged", () => {
+sweep("native camera transitions leave every confirmed checksum unchanged", () => {
   const plain = quickMatch(0);
   const smooth = quickMatch(0, true);
   expect(smooth.checksums[0]?.length).toBe(MATCH_FRAMES);

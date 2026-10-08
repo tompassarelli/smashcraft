@@ -3,7 +3,7 @@
 // Archer in D, through fighter and stage selection on the integrity build.
 // Stepping back from Random Stage wraps to Sky Deck, a stage with fewer
 // decks than the arena still draws until the match starts.
-import { afterAll, expect, test } from "bun:test";
+import { afterAll, expect } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { Phase } from "../src/game/match/rules";
 import { RANDOM_STAGE, STAGE_CATALOG, STAGE_CHOICES } from "../src/game/menu/stageCatalog";
@@ -16,11 +16,12 @@ import { BOT_FOUR } from "../scripts/wisp/botMatch";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { JournalHelpers } from "./rematch/journalHelper";
 import { value } from "./rematch/playableMatch";
+import { sweep } from "./sweep";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
-test("bot session: selection with computers in C and D steps to every stage and starts without errors", () => {
+sweep("bot session: selection with computers in C and D steps to every stage and starts without errors", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1]);
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
   const frames = (n: number) => { for (let i = 0; i < n; i++) { clients.frames(1); helpers.service(clients); } };

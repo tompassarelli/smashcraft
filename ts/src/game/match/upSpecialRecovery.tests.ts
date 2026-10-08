@@ -17,6 +17,7 @@ import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 import { captureNetworkFrame, executeMatchFrame } from "./frameInput";
 import { type PadMatch, padMatch, playPads } from "./helperPads";
 import { testMatch } from "./testMatch";
+import { sweep } from "../../runtime/sweep";
 
 /** The documented band, world units from where the up special starts. */
 const VERTICAL_MIN = 320.0;
@@ -134,7 +135,7 @@ function band(character: Character, mana: number): { vertical: number; horizonta
   return { vertical, horizontal };
 }
 
-test("every fighter's up special recovers within the documented band, and its zero-mana form above the floor", () => {
+sweep("every fighter's up special recovers within the documented band, and its zero-mana form above the floor", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const full = band(character, 100);
     const name = fighterName(character);
