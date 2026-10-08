@@ -1,4 +1,5 @@
 import { f32 } from "wisp/src/sim/f32";
+import { withExKit } from "../exSpecialAuthoring";
 import { HeroStatusGroup, HeroStatusKind, HitElement } from "../codes";
 import { CHILL } from "../chill";
 import { heroRegion } from "../heroMoves";
@@ -38,8 +39,8 @@ const DISEASE_CLOUD: AuthoredSpecial = {
 };
 
 export const MURLOC_SPECIALS: FighterSpecials = {
-  neutral: { name: "Ensnare", description: "Throw a net that slows the first enemy it reaches. Shield it or jump it.", ground: ensnare(false), air: ensnare(true) },
-  side: { name: "Tidal Rush", description: "Belly-slide forward into a hit. A raised shield stops the slide.", ground: tidalRush(false), air: tidalRush(true) },
-  up: { name: "Tide Spout", description: "Ride a water spout upward and steer it, then fall helpless.", ground: tideSpout(15, 17.0, 6.0), free: tideSpout(0, 12.5, 5.0) },
-  down: { name: "Disease Cloud", description: "Leave a small plague cloud that poisons enemies standing in it; jumping clears it.", ground: DISEASE_CLOUD },
+  neutral: withExKit({ name: "Ensnare", description: "Throw a net that slows the first enemy it reaches. Shield it or jump it.", ground: ensnare(false), air: ensnare(true) }, { reach: 1.25 }),
+  side: withExKit({ name: "Tidal Rush", description: "Belly-slide forward into a hit. A raised shield stops the slide.", ground: tidalRush(false), air: tidalRush(true) }, { damage: 1.25 }),
+  up: withExKit({ name: "Tide Spout", description: "Ride a water spout upward and steer it, then fall helpless.", ground: tideSpout(15, 17.0, 6.0), free: tideSpout(0, 12.5, 5.0) }, { travel: 1.25 }),
+  down: withExKit({ name: "Disease Cloud", description: "Leave a small plague cloud that poisons enemies standing in it; jumping clears it.", ground: DISEASE_CLOUD }, { reach: 1.25 }),
 };

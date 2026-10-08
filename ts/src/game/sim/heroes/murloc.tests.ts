@@ -92,3 +92,25 @@ test("Murloc Disease Cloud poisons a grounded foe standing in it [spec docs/desi
   for (let tick = 0; tick < 30 && target.status.poisonFrames === 0; tick++) frame(world);
   assertGreaterThan(target.status.poisonFrames, 0); assertGreaterThan(target.status.damage, 0.0);
 });
+
+test("Murloc EX Tidal Rush deals a quarter more damage in both facings [spec #329]", () => {
+  for (const facing of [-1, 1]) {
+    const { owner, target, world } = pair(140.0, facing);
+    owner.mana.points = 100;
+    frame(world, controls({ specialPressed: true, specialX: facing, shield: true }));
+    assertEquals(owner.mana.points, 0);
+    for (let tick = 2; tick <= 40; tick++) frame(world);
+    assertEquals(target.status.damage, 10.0);
+  }
+});
+
+test("Murloc EX Disease Cloud reaches farther while retaining the poison duration [spec #329]", () => {
+  for (const ex of [false, true]) {
+    const { owner, target, world } = pair(125.0);
+    owner.mana.points = 100;
+    frame(world, controls({ specialPressed: true, specialZ: -1, shield: ex }));
+    for (let tick = 2; tick <= 40 && target.status.poisonFrames === 0; tick++) frame(world);
+    assertEquals(target.status.poisonFrames, ex ? 180 : 0);
+    assertEquals(target.status.damage, ex ? 2.0 : 0.0);
+  }
+});

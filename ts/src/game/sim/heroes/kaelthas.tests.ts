@@ -173,3 +173,28 @@ test("Kaelthas intentionally adapts Ultimate Mewtwo with the roster air-speed ca
   assertNear(fighter.tuning.physics.weight, 79.0, f32(0.0001)); assertNear(fighter.tuning.physics.runSpeed, f32(13.53), f32(0.0001));
   assertNear(fighter.tuning.physics.airSpeed, 7.5, f32(0.0001));
 });
+
+test("Kaelthas EX Flame Strike keeps travelling after interruption with a quarter more damage [spec #329]", () => {
+  for (const facing of [-1, 1]) {
+    const { owner, target, world } = pair(180.0, facing);
+    owner.mana.points = 100;
+    frame(world, controls({ specialPressed: true, shield: true }));
+    assertEquals(owner.mana.points, 0);
+    for (let tick = 2; tick <= 13; tick++) frame(world);
+    cancelSpecialState(owner);
+    for (let tick = 14; tick <= 60; tick++) frame(world);
+    assertEquals(target.status.damage, 15.0);
+  }
+});
+
+test("Kaelthas EX Siphon reaches beyond the ordinary beam without increasing its steal [spec #329]", () => {
+  for (const ex of [false, true]) for (const facing of [-1, 1]) {
+    const { owner, target, world } = pair(175.0, facing);
+    owner.mana.points = 100;
+    target.mana.points = 60;
+    frame(world, controls({ specialPressed: true, specialX: facing, shield: ex }));
+    for (let tick = 2; tick <= 44; tick++) frame(world);
+    assertEquals(target.status.damage, ex ? 4.0 : 0.0);
+    assertEquals(target.mana.points, ex ? 37 : 60);
+  }
+});

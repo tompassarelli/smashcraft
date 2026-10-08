@@ -1,4 +1,5 @@
 import { heroRegion } from "../heroMoves";
+import { withExKit } from "../exSpecialAuthoring";
 import { frames, type AuthoredSpecial, type FighterSpecials } from "../heroSpecials";
 import { kaelCastBody, kaelHit } from "./kaelthasMoves";
 
@@ -29,8 +30,8 @@ const banish: AuthoredSpecial = {
 };
 
 export const KAELTHAS_SPECIALS: FighterSpecials = {
-  neutral: { name: "Flame Strike", description: "Send a wall of flame along the ground that launches the first enemy it reaches. Shield it or jump over it.", ground: flameStrike },
-  side: { name: "Siphon Mana", description: "Reach ahead to take mana from an enemy. Shields stop it.", ground: siphon },
-  up: { name: "Phoenix Flight", description: "Aim, then ride a burst of fire. You fall helpless after the flight.", ground: flight(15, 20.0), free: flight(0, 11.0) },
-  down: { name: "Banish", description: "Briefly turn ethereal, then push nearby enemies away.", ground: banish },
+  neutral: withExKit({ name: "Flame Strike", description: "Send a wall of flame along the ground that launches the first enemy it reaches. Shield it or jump over it.", ground: flameStrike }, { damage: 1.25 }),
+  side: withExKit({ name: "Siphon Mana", description: "Reach ahead to take mana from an enemy. Shields stop it.", ground: siphon }, { reach: 1.25 }),
+  up: withExKit({ name: "Phoenix Flight", description: "Aim, then ride a burst of fire. You fall helpless after the flight.", ground: flight(15, 20.0), free: flight(0, 11.0) }, { travel: 1.25 }),
+  down: withExKit({ name: "Banish", description: "Briefly turn ethereal, then push nearby enemies away.", ground: banish }, { reach: 1.25 }),
 };

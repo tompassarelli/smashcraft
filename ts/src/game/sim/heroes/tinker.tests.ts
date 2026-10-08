@@ -3,6 +3,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, GrabAction, SpecialAction } from "../codes";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
+import { isIntangible } from "../conditions";
 import { createFighter } from "../fighter";
 import { AUTHORED_PHYSICS } from "../tuning";
 import { advanceHeroStatus } from "../heroSpecialRules";
@@ -215,4 +216,31 @@ test("Tinker pummel strikes once [spec docs/design/tinker.md]", () => {
   for (let tick = 0; tick < 80; tick++) testGrabFrame(world, [controls(), controls()], false);
   assertEquals(target.status.damage, 3.0);
 
+});
+
+test("Tinker EX Robo-Goblin deals a quarter more damage in both facings [spec #329]", () => {
+  for (const facing of [-1, 1]) {
+    const { owner, target, world } = pair(120.0, facing);
+    frame(world, controls({ specialPressed: true, specialZ: -1, shield: true }));
+    assertTrue(owner.special.ex);
+    assertEquals(owner.mana.points, 0);
+    for (let tick = 2; tick <= 18; tick++) frame(world);
+    assertEquals(target.status.damage, 16.25);
+  }
+});
+
+test("Tinker EX factory retains its extra durability after casting and EX recall protects four entry frames [spec #329]", () => {
+  const { owner, world } = pair();
+  frame(world, controls({ specialPressed: true, specialX: 1, shield: true }));
+  for (let tick = 2; tick <= 48; tick++) frame(world);
+  assertEquals(owner.placed.durability, 30.0);
+  owner.mana.points = 100;
+  frame(world, controls({ specialPressed: true, specialX: 1, shield: true }));
+  assertTrue(isIntangible(owner));
+  assertEquals(owner.mana.points, 0);
+  for (let tick = 2; tick <= 4; tick++) { frame(world); assertTrue(isIntangible(owner)); }
+  frame(world);
+  assertFalse(isIntangible(owner));
+  for (let tick = 6; tick <= 36; tick++) frame(world);
+  assertEquals(owner.placed.life, 0);
 });

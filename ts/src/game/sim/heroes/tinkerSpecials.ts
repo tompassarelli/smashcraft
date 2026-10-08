@@ -1,4 +1,5 @@
 import { f32 } from "wisp/src/sim/f32";
+import { withExKit } from "../exSpecialAuthoring";
 import { HitElement } from "../codes";
 import { heroRegion } from "../heroMoves";
 import { frames, type AuthoredSpecial, type FighterSpecials, type SpecialProjectile } from "../heroSpecials";
@@ -24,8 +25,8 @@ const robo = (air: boolean): AuthoredSpecial => ({
 });
 
 export const TINKER_SPECIALS: FighterSpecials = {
-  neutral: { name: "Cluster Rockets", description: "Three rockets cover the approach and charge the next claw hit.", ground: rockets(false), air: rockets(true) },
-  side: {
+  neutral: withExKit({ name: "Cluster Rockets", description: "Three rockets cover the approach and charge the next claw hit.", ground: rockets(false), air: rockets(true) }, { damage: 1.25 }),
+  side: withExKit({
     name: "Pocket Factory", description: "Build a breakable factory that sends out Clockwerk Goblins; press again to recall it.",
     ground: { cost: 20, endFrame: 48, groundOnly: true, placement: {
       frame: 24, offsetX: 88.0, radius: 24.0, height: 65.0, durability: 24.0, life: 240,
@@ -36,7 +37,7 @@ export const TINKER_SPECIALS: FighterSpecials = {
       },
     } },
     recall: { cost: 0, endFrame: 36, groundOnly: true, recall: true },
-  },
-  up: { name: "Rocket Boots", description: "Blast off, burn upward and steer left or right, then fall helplessly.", ground: boots(15, 18.0, 7.0), free: boots(0, 11.0, 5.0) },
-  down: { name: "Robo-Goblin", description: "Transform for an armored hammer-tank charge; grabs and heavy hits beat the armor.", ground: robo(false), air: robo(true) },
+  }, { damage: 1.25, durability: 1.25, recallProtection: 4 }),
+  up: withExKit({ name: "Rocket Boots", description: "Blast off, burn upward and steer left or right, then fall helplessly.", ground: boots(15, 18.0, 7.0), free: boots(0, 11.0, 5.0) }, { travel: 1.25 }),
+  down: withExKit({ name: "Robo-Goblin", description: "Transform for an armored hammer-tank charge; grabs and heavy hits beat the armor.", ground: robo(false), air: robo(true) }, { damage: 1.25 }),
 };
