@@ -758,7 +758,7 @@ the earlier `view off` comparisons. `--look day-night-light,fog,sky` records
 the levers being measured; the native profile's shadows, water and HD
 post-processing remain outside this headless reference.
 
-Hellfire's complete reference for both clients, measured with
+Hellfire's saved reference for both clients, measured with
 `tools/stage/contrast.ts`:
 
 | Mode / view / client | Stock \|ΔL\| / ΔE00 | Stage \|ΔL\| / ΔE00 | Neither falls at reported precision |
@@ -767,10 +767,15 @@ Hellfire's complete reference for both clients, measured with
 | Classic / far / 0 | 5.3 / 8.6 | 6.1 / 8.2 | no |
 | Definitive / near / 0 | 5.2 / 7.6 | 6.2 / 7.4 | no |
 | Definitive / far / 0 | 4.5 / 3.9 | 5.3 / 4.0 | yes |
-| Classic / near / 1 | 4.7 / 9.8 | 5.0 / 9.8 | yes |
-| Classic / far / 1 | 5.5 / 8.1 | 6.6 / 8.5 | yes |
-| Definitive / near / 1 | 5.2 / 7.2 | 6.3 / 7.0 | no |
-| Definitive / far / 1 | 4.3 / 2.7 | 4.3 / 2.7 | yes |
+| Classic / default (client 0 near) / 1 | 4.7 / 9.8 | 5.0 / 9.8 | yes |
+| Classic / default (client 0 far) / 1 | 5.5 / 8.1 | 6.6 / 8.5 | yes |
+| Definitive / default (client 0 near) / 1 | 5.2 / 7.2 | 6.3 / 7.0 | no |
+| Definitive / default (client 0 far) / 1 | 4.3 / 2.7 | 4.3 / 2.7 | yes |
+
+The first producer sent the view command only from player 0, so client 1
+retained its default camera. These client-1 rows cannot cover the near/far
+camera check. Send the local view command from both players for that check;
+retain the existing client-0 frames as the reference.
 
 The failed rows require a lighting adjustment before claiming a contrast
 pass. They do not replace #287's full native capture-profile baseline.
