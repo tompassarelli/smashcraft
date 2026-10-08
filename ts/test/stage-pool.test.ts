@@ -1,4 +1,4 @@
-import { afterAll, expect, test } from "bun:test";
+import { afterAll, expect } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { captureScene } from "wisp/scripts/wisp/headlessRender";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
@@ -11,6 +11,7 @@ import { Key } from "../src/platform/shell/keyEvents";
 import * as playable from "../src/platform/playableMain";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { value } from "./rematch/playableMatch";
+import { sweep } from "./sweep";
 
 const fonts = new Map<number, number>();
 const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, natives: client => ({ ...SMASHCRAFT_HEADLESS.natives?.(client),
@@ -19,7 +20,7 @@ const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, natives: client => ({
 }) });
 afterAll(headless.restore);
 
-test("two clients edit the pool, Start without a stage pick, and play two rotating rematches [spec #198] [invariant]", async () => {
+sweep("two clients edit the pool, Start without a stage pick, and play two rotating rematches [spec #198] [invariant]", async () => {
   const clients = headless.clients(playable, [0, 1]);
   const host = clients.client(0);
   const read = <T>(body: () => T) => value(host, body);
