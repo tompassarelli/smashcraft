@@ -7,9 +7,12 @@
 import { existsSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { BunServices } from "@effect/platform-bun";
 import { Clock, Effect, Layer } from "effect";
+import { ChildProcess } from "effect/process";
 import { AcceptDriver, AcceptFailure, type AcceptSuite } from "wisp/scripts/wisp/accept";
 import { liveAcceptDriver } from "wisp/scripts/wisp/acceptLive";
+import { spawnLogged } from "wisp/scripts/wisp/hostProcess";
 import { Clients } from "wisp/scripts/wisp/clients";
 import { type Command, UsageFailure, flagValues, describeCause } from "wisp/scripts/wisp/command";
 import { makeAccept } from "wisp/scripts/wisp/commands/accept";
@@ -81,17 +84,23 @@ const prebuild = (maps: readonly string[], profiles: Readonly<Record<string, Sma
   yield* rebuildMap(path).pipe(step(`map rebuilt (${path})`), Effect.provide(options.services));
 }), { discard: true });
 
-/** One shard: this command on pool pair `pair`, as its own process, so every pair keeps its own clients and driver. */
-const runShard = (pair: string, ids: readonly string[], directory: string, map?: string) => Effect.tryPromise({
-  try: async () => {
-    mkdirSync(directory, { recursive: true });
-    const child = Bun.spawn([process.execPath, join(import.meta.dir, "../../wisp.ts"), "accept", "--only", ids.join(","), "--pair", pair, "--out", directory, ...(map === undefined ? [] : ["--map", map])], {
-      env: { ...process.env, [PREBUILT]: "1" }, stdout: Bun.file(`${directory}.log`), stderr: Bun.file(`${directory}.err`),
-    });
-    await child.exited;
-  },
-  catch: (cause) => new UsageFailure({ problem: `pair ${pair}: ${describeCause(cause)}` }),
-});
+/**
+ * One shard: this command on pool pair `pair`, as its own process, so every pair keeps its own clients and driver.
+ * The child belongs to this effect's scope, so an interrupted run stops every shard.
+ * A shard that exits nonzero fails with its exit code, so a crash shows beside its missing report.
+ */
+export const runShard = (pair: string, ids: readonly string[], directory: string, map?: string) => Effect.scoped(Effect.gen(function*() {
+  yield* Effect.try({ try: () => mkdirSync(directory, { recursive: true }), catch: (cause) => new AcceptFailure({ operation: `pair ${pair}`, problem: describeCause(cause) }) });
+  const { handle, written } = yield* spawnLogged(ChildProcess.make(process.execPath, [join(import.meta.dir, "../../wisp.ts"), "accept", "--only", ids.join(","), "--pair", pair, "--out", directory, ...(map === undefined ? [] : ["--map", map])], {
+    env: { ...process.env, [PREBUILT]: "1" }, stdin: "ignore",
+  }), { stdout: `${directory}.log`, stderr: `${directory}.err` });
+  const code = yield* handle.exitCode;
+  yield* written;
+  if (code !== 0) return yield* new AcceptFailure({ operation: `pair ${pair}`, problem: `its accept run exited ${code}; see ${directory}.err` });
+})).pipe(
+  Effect.catchTag("PlatformError", (cause) => Effect.fail(new AcceptFailure({ operation: `pair ${pair}`, problem: cause.message }))),
+  Effect.provide(BunServices.layer),
+);
 
 export const accept: Command = (rawArgs) => Effect.gen(function*() {
   const { clientsFile, args } = yield* Effect.try({ try: () => clientArguments(rawArgs), catch: (cause) => cause instanceof UsageFailure ? cause : new UsageFailure({ problem: String(cause) }) });
