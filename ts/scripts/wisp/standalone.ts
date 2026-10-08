@@ -39,8 +39,8 @@ function keys(input: StandaloneInput): Set<number> {
 }
 
 /**
- * wisp#48's frame-rate match: Archer on the bot beat's keys against computer
- * Rifleman, Illidan and Archer, 99 stocks and a two-minute clock, so four
+ * wisp#48's frame-rate match: reference on the bot beat's keys against computer
+ * Rifleman, Illidan and reference, 99 stocks and a two-minute clock, so four
  * fighters stay on stage for the whole measurement.
  */
 const FOUR_FIGHTERS = ["-dev slots 1 14", "-dev fighter 2 Rifleman", "-dev fighter 3 Illidan", "-dev fighter 4 Archer", "-dev time 2"];
@@ -82,7 +82,7 @@ export async function createStandaloneSession(options: { readonly script?: strin
     if (fourFighters) client.run(() => {
       const state = shell();
       for (const command of FOUR_FIGHTERS) applyDeveloperCommand(state, 0, command);
-      // The menus allow at most nine stocks; the beat's Archer loses about 40 in two minutes.
+      // The menus allow at most nine stocks; the beat's reference loses about 40 in two minutes.
       state.game.stockCount = FOUR_FIGHTER_STOCKS;
       startQuickMatch(state, 0, undefined, undefined, FOUR_FIGHTER_STOCKS);
     });

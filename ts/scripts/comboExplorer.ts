@@ -29,7 +29,7 @@ const STAGE = 0;
 /** Percents an opener is measured at; a kill confirm is reported at this resolution. */
 export const PERCENTS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180] as const;
 /** Light and fast-falling, middle-weight and floaty, heaviest: the roster's spread of weight and fall speed. */
-export const OPPONENTS: readonly Character[] = [Character.archer, Character.rifleman, Character.cairne];
+export const OPPONENTS: readonly Character[] = [ Character.rifleman, Character.cairne];
 export const POSITIONS = ["centre", "ledge"] as const;
 export type Position = (typeof POSITIONS)[number];
 /** Held during hitlag, hitstun and a grab: in and out are toward and away from the attacker. */

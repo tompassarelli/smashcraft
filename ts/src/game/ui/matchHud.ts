@@ -117,7 +117,7 @@ export class FighterHud {
     BlzFrameSetEnable(this.stockCount, false);
     this.body = [this.plate, this.portrait, this.damage, this.tenths, this.name, this.slotLabel];
     this.layout(slot, count);
-    this.update(false, Character.archer, 0.0, 0);
+    this.update(false, Character.rifleman, 0.0, 0);
   }
 
   destroy(): void {

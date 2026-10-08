@@ -41,7 +41,7 @@ interface LedgeCatchBox {
   readonly highest: number;
 }
 
-// Archer, Rifleman and Illidan catch with Fox's, Falco's and Captain Falcon's data.
+// reference, Rifleman and Illidan catch with Fox's, Falco's and Captain Falcon's data.
 const FOX_LEDGE_SNAP: LedgeSnap = { x: 11.0, y: 13.0, height: 9.0 };
 const FALCO_LEDGE_SNAP: LedgeSnap = { x: 11.0, y: 13.0, height: 9.0 };
 const CAPTAIN_FALCON_LEDGE_SNAP: LedgeSnap = { x: 9.0, y: 17.0, height: 11.0 };
@@ -67,8 +67,6 @@ export function ledgeSnap(character: Character): LedgeSnap {
   switch (character) {
     default:
       return heroSnap(character);
-    case Character.archer:
-      return FOX_LEDGE_SNAP;
     case Character.rifleman:
       return FALCO_LEDGE_SNAP;
     case Character.demonHunter:
@@ -85,8 +83,6 @@ function catchBox(snap: LedgeSnap): LedgeCatchBox {
     highest: melee(f32(snap.y + half)),
   };
 }
-
-const ARCHER_CATCH_BOX = catchBox(FOX_LEDGE_SNAP);
 const RIFLEMAN_CATCH_BOX = catchBox(FALCO_LEDGE_SNAP);
 const DEMON_HUNTER_CATCH_BOX = catchBox(CAPTAIN_FALCON_LEDGE_SNAP);
 
@@ -101,8 +97,6 @@ export function ledgeCatchBox(character: Character): LedgeCatchBox {
       heroCatchBoxes[character] = box;
       return box;
     }
-    case Character.archer:
-      return ARCHER_CATCH_BOX;
     case Character.rifleman:
       return RIFLEMAN_CATCH_BOX;
     case Character.demonHunter:
@@ -129,7 +123,7 @@ function ledgeX(stage: number, side: number): number {
 
 /** The four up specials, which spend the aerial jump and end in a helpless fall. */
 export function isUpSpecialAction(action: number): boolean {
-  return action === SpecialAction.heroUp || action === SpecialAction.archerRecovery
+  return action === SpecialAction.heroUp
     || action === SpecialAction.riflemanRecovery || action === SpecialAction.demonHunterWingAscent;
 }
 

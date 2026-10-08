@@ -10,10 +10,8 @@ import type { AuthoredSpecial, FighterSpecials, SpecialProjectile } from "../sim
 
 /** The original fighters' projectiles, one stock missile per kind. */
 export const ORIGINAL_PROJECTILE_MODELS = {
-  /** Archer's arrow. */
-  [ProjectileKind.arrow]: "Abilities\\Weapons\\Arrow\\ArrowMissile.mdx",
-  /** Archer's homing arrow: the Priestess of the Moon's glowing arrow. */
-  [ProjectileKind.homingArrow]: "Abilities\\Weapons\\MoonPriestessMissile\\MoonPriestessMissile.mdx",
+  /** the reference body's arrow. */
+  /** the reference body's homing arrow: the Priestess of the Moon's glowing arrow. */
   /** Rifleman's blaster: the gyrocopter's tracer. */
   [ProjectileKind.blaster]: "Abilities\\Weapons\\GyroCopter\\GyroCopterMissile.mdx",
   /** Rifleman's recoil shot: a dwarven mortar shell blasting downward. */
@@ -24,7 +22,6 @@ export const ORIGINAL_PROJECTILE_MODELS = {
 
 /** Each original fighter's projectile kinds, its most common first. */
 const ORIGINAL_KINDS: { readonly [character: number]: readonly Exclude<ProjectileKind, typeof ProjectileKind.hero>[] } = {
-  [Character.archer]: [ProjectileKind.arrow, ProjectileKind.homingArrow],
   [Character.rifleman]: [ProjectileKind.blaster, ProjectileKind.recoil],
   [Character.demonHunter]: [ProjectileKind.manaBurn],
 };

@@ -1,8 +1,4 @@
-// What each client shows: fighter units, stage decks, status text, the HUD
-// and the camera. Everything here is presentation; with predicted
-// presentation, persistent visuals follow the speculative match and event
-// effects, audio, results and HUD follow the confirmed one.
-import { archerMounted } from "../../game/presentation/hippogryphPose";
+
 import { MATCH_HELP_BOX, MATCH_NOTICE_BOX } from "../../game/ui/hudLayout";
 import { CryDecision, createCryGate, cryStandIn, gateCry } from "../../game/presentation/hurtVoice";
 import { deckModel, slabScale } from "../../game/presentation/stagePreload";
@@ -190,7 +186,7 @@ export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readon
     ShowUnit(body.unit, false);
   }
   const { pooled } = participant;
-  ShowUnit(body.unit, !pooled && !fighter.status.out && !archerMounted(fighter));
+  ShowUnit(body.unit, !pooled && !fighter.status.out);
   if (body.renderedSelection !== pose.selectionSerial) {
     if (!pooled) {
       // Starting a hero's Death sequence plays its death cry: only strong hits and knockouts may.
@@ -310,7 +306,6 @@ export function renderPersistentPresentation(s: ShellState): void {
       const agency = live === undefined ? "act" : renderers.agency.forecast.classify(world, slot, stage, matchFrame, s.controls.commands[slot].graceFrames);
       renderers.agency.present(live, agency);
     }
-    ui.special.presentHippogryph(live, slot, runtime.simulationFrame);
     ui.special.presentStatic(runtime.specials, live, slot);
     ui.special.presentSummons(runtime.summons, live, slot);
     if (live !== undefined) ui.frost.present(live, slot);
@@ -380,7 +375,7 @@ export function lockArenaCamera(s: ShellState): void {
     const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
     const point = cameraPoint(framing, aspect, fighter?.motion.x ?? 0.0, (fighter?.motion.z ?? 0.0) + 60.0);
     const outside = point.column < 0.0 || point.column > 1.0 || point.row < 0.0 || point.row > 1.0;
-    views(s).bubbles[slot].update(!pauseHudHidden(s) && game.phase === Phase.match && fighter !== undefined && !fighter.status.out && outside, fighter?.character ?? 0, point.column, point.row, aspect);
+    views(s).bubbles[slot].update(!pauseHudHidden(s) && game.phase === Phase.match && fighter !== undefined && !fighter.status.out && outside, fighter?.character ?? Character.rifleman, point.column, point.row, aspect);
     readEscapeMeter(world, slot, meter);
     if (game.phase !== Phase.match || pauseHudHidden(s)) meter.shown = false;
     const meterPoint = cameraPoint(framing, aspect, meter.x, meter.z);
@@ -408,7 +403,7 @@ export function renderUi(s: ShellState): void {
       ui.huds[slot].update(showMatch, fighter.character, fighter.status.damage, s.game.endless ? 0 : fighter.status.stocks);
       ui.manaBars[slot].hud.update(showMatch, fighter.mana.points, fighter.visuals.manaDenied, fighter.visuals.manaDrained);
     } else {
-      ui.huds[slot].update(false, 0, 0.0, 0);
+      ui.huds[slot].update(false, Character.rifleman, 0.0, 0);
       ui.manaBars[slot].hud.update(false, 0, 0, 0);
     }
     ui.selections[slot].menuBindings(s.participants[slot].bindings.bindings);

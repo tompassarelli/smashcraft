@@ -24,7 +24,7 @@ import { CPU_OPPONENT_CHOICES, CPU_OPPONENT_IDS, CPU_TIERS } from "../match/cpuP
 import { botStrategyValues } from "../match/botStrategy";
 import type { ReplayState } from "./snapshot";
 import { HERO_ROSTER } from "../sim/heroes/registry";
-import { ARCHER_MOVES, RIFLEMAN_MOVES } from "../sim/originalMoves";
+import { RIFLEMAN_MOVES } from "../sim/originalMoves";
 
 const REPLAY_CHECKSUM_MODULUS = 1_000_003;
 
@@ -882,12 +882,6 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("bearSwipeCooldown", fighter.bear.swipeCooldown);
   int("bearHitSerial", fighter.bear.hitSerial);
   int("bearSurface", fighter.bear.surface ?? -1);
-  int("hippogryphLife", fighter.hippogryph.life);
-  real("hippogryphX", fighter.hippogryph.x);
-  real("hippogryphZ", fighter.hippogryph.z);
-  real("hippogryphVelocityX", fighter.hippogryph.velocityX);
-  real("hippogryphVelocityZ", fighter.hippogryph.velocityZ);
-  int("hippogryphKind", fighter.hippogryph.kind);
   int("freezeTrapLife", fighter.freezeTrap.life);
   if (fighter.freezeTrap.exReach) int("freezeTrapExReach", 1);
   int("freezeTrapArming", fighter.freezeTrap.arming);
@@ -1236,7 +1230,7 @@ export function foldStateChecksum(fold: StateChecksumFold, characters: number): 
 
 /** Folds every registered hero kit's digest; map load calls it before any match frame. */
 export function prepareKitDigests(): void {
-  for (const moves of [ARCHER_MOVES, RIFLEMAN_MOVES]) kitDigestField("moves", moves, MOVES_DIGESTS, fighterMovesCanonical);
+  for (const moves of [RIFLEMAN_MOVES]) kitDigestField("moves", moves, MOVES_DIGESTS, fighterMovesCanonical);
   for (const hero of HERO_ROSTER) {
     kitDigestField("moves", hero.moves, MOVES_DIGESTS, fighterMovesCanonical);
     kitDigestField("specials", hero.specials, SPECIALS_DIGESTS, fighterSpecialsCanonical);

@@ -164,7 +164,7 @@ function key(character: number, category: number, spacing: number, percent: numb
 export function exportComparisons(): string[] {
   const rows: string[] = [];
   rows.push(json({ kind: "context", schema: 1, roster: ["Archer", "Rifleman", "Demon Hunter"], defender: "Rifleman with production weight", horizon: HORIZON, timeOrigin: "contact checkpoint, zero-based ticks; -1 means unobserved or unavailable", grounding: "smash/normal grounded; late neutral aerial at attack frame 20, z20, vz-2", facing: [1, -1], stage: 0, charge: 0, shield: "full digital shield held before checkpoint, released afterwards; no powershield", DI: "neutral, no SDI or ASDI displacement", actionable: "canAttack for a normal action; not a universal earliest escape oracle", optionPolicy: "jab or forward tilt attempted at normal-ready + delay 0..12; optional approach only during delay; target otherwise neutral", limits: ["contact-state experiment, not complete approach safety", "strictly earlier contact required; same-tick response is not certified", "bounded true links exclude DI/SDI/escape-policy variation", "no read or human reaction likelihood inferred", "no reference-character equivalence", "no native or balance acceptance"] }));
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) for (const spacing of [60, 140]) {
+  for (const character of [ Character.rifleman, Character.demonHunter]) for (const spacing of [60, 140]) {
     const normal = compareContact(character, 1, spacing, 0, true);
     const smash = compareContact(character, 0, spacing, 0, true);
     const mutant = compareContact(character, 0, spacing, 0, true, true);

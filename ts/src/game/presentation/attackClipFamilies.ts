@@ -18,7 +18,7 @@ export function attackClipFamilies(character: Character): { pose: HeroPose; fami
   }
   for (const [slot, pose] of SPECIAL_POSES.entries()) {
     if (character <= Character.demonHunter) {
-      const actions: readonly SpecialAction[] = character === Character.archer ? [1, 2, 4, 3] : character === Character.rifleman ? [7, 5, 6, 8] : [9, 10, 11, 12];
+      const actions: readonly SpecialAction[] = character === Character.rifleman ? [7, 5, 6, 8] : [9, 10, 11, 12];
       const action = actions[slot];
       if (action !== undefined) for (const grounded of [true, false]) result.push({ pose, family: pose, index: specialClip(character, action, grounded, !grounded).index });
     } else {

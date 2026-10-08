@@ -126,7 +126,7 @@ const hurtboxes = (args: readonly string[]) => Effect.gen(function*() {
   yield* Effect.tryPromise({
     try: async () => {
       mkdirSync(out, { recursive: true });
-      for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+      for (const character of [ Character.rifleman, Character.demonHunter]) {
         const model = await loadDrawnModel(assets, character);
         const name = CHARACTER_NAMES[character] ?? `${character}`;
         const sheets = [sheet(`${name} stand-crouch`, model, [sampleState(character, false), sampleState(character, true), sampleState(character, false, -1), sampleState(character, true, -1)], 4)];
@@ -241,7 +241,7 @@ const motion = (args: readonly string[]) => Effect.gen(function*() {
       const strides: DrawnStride[] = [];
       const rows: DrawnMotionRow[] = [];
       const models: { character: Character; drawn: DrawnModel; model: string }[] = [];
-      const characters = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
+      const characters = [ Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
       for (const character of characters) {
         const hero = HERO_ROSTER.find((candidate) => candidate.character === character);
         const relative = hero === undefined ? FIGHTER_MODELS[character] ?? "" : heroModelSource(hero.presentation.model);

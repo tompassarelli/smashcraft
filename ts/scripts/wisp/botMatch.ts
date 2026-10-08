@@ -25,8 +25,8 @@ interface BotMatch {
 
 /** `integrity capture --bot`: a computer Illidan. */
 export const BOT_THREE: BotMatch = { computers: [[2, Character.demonHunter]] };
-/** `--bot-four`: a computer Illidan and a computer Archer. */
-export const BOT_FOUR: BotMatch = { computers: [[2, Character.demonHunter], [3, Character.archer]] };
+/** `--bot-four`: a computer Illidan and a computer reference. */
+export const BOT_FOUR: BotMatch = { computers: [[2, Character.demonHunter], [3, Character.warden]] };
 /** `perf bot-NAME`: one computer of any selectable fighter, by its slug (sim/heroes/registry.ts). */
 export const botMatchAgainst = (character: Character): BotMatch => ({ computers: [[2, character]] });
 

@@ -213,12 +213,9 @@ const UP_AIR = region(-105.0, 105.0, 20.0, 190.0, 4.0, 60.0, 14.0, 0.25, 0.96824
 const UP_AIR_FINISHER = region(-105.0, 105.0, 20.0, 190.0, 8.0, 110.0, 24.0, 0.25, 0.968245804309845, 2);
 const downAir = (minX: number, maxX: number, damage: number) =>
   region(minX, maxX, -180.0, -10.0, damage, ORDINARY_HIT_GROWTH_PERCENT, ORDINARY_HIT_BASE_KNOCKBACK, 0.25, -0.968245804309845);
-const ARCHER_DOWN_AIR_DIVE = downAir(-55.0, 55.0, attackDamage(AttackStyle.downAir));
-const ARCHER_DOWN_AIR_LATE = downAir(-55.0, 55.0, 6.0);
 const DOWN_AIR = downAir(-95.0, 95.0, attackDamage(AttackStyle.downAir));
-// Archer's up smash keeps the shared reach and damage with 80 growth: her kill power is her weak side (#279).
+// the reference body's up smash keeps the shared reach and damage with 80 growth: her kill power is her weak side (#279).
 const SHARED_UP_SMASH = reachRegion(AttackStyle.upSmash);
-const ARCHER_UP_SMASH: Readonly<HitRegion> = { ...SHARED_UP_SMASH, effect: { ...SHARED_UP_SMASH.effect, growth: 80.0 } };
 
 export function authoredHitRegionCount(style: AttackStyle | undefined, moves?: FighterMoves): number {
   const authored = style === undefined ? undefined : moves?.normals[style];
@@ -252,10 +249,9 @@ function activeRegion(character: Character, style: AttackStyle, frame: number, i
     case AttackStyle.upAir:
       return frame === startup + 2 ? UP_AIR_FINISHER : UP_AIR;
     case AttackStyle.downAir:
-      if (character === Character.archer) return frame < startup + 3 ? ARCHER_DOWN_AIR_DIVE : ARCHER_DOWN_AIR_LATE;
       return DOWN_AIR;
     case AttackStyle.upSmash:
-      return character === Character.archer ? ARCHER_UP_SMASH : REACH_REGIONS[style] ?? NO_HIT_REGION;
+      return REACH_REGIONS[style] ?? NO_HIT_REGION;
     default:
       return REACH_REGIONS[style] ?? NO_HIT_REGION;
   }

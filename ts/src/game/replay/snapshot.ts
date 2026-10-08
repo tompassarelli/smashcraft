@@ -22,7 +22,7 @@ export interface ReplayState {
 /** Detached storage with a fighter in every slot, so any participant mask can be captured into it. */
 export function createReplaySnapshot(): ReplayState {
   return {
-    world: createRoster(3, [createFighter(0, 0.0, 1), createFighter(1, 0.0, -1), createFighter(2, 0.0, 1), createFighter(0, 0.0, -1)]),
+    world: createRoster(3, [createFighter(1, 0.0, 1), createFighter(1, 0.0, -1), createFighter(2, 0.0, 1), createFighter(1, 0.0, -1)]),
     match: createMatchState(),
     controls: createFrameControls(),
     runtime: createPacingAndPresentation(),

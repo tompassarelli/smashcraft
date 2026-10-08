@@ -8,7 +8,7 @@ import { AttackPhase, AttackStyle, Character } from "../../src/game/sim/codes";
 import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
 import { type DrawnModel, type PoseFrame, sampleAttack } from "./hurtboxView";
 
-/** Chest height of the reference fighter, the point a strike's direction is taken from. */
+/** Chest height of the reference, the point a strike's direction is taken from. */
 const CHEST = 50.0;
 /** A later frame within this much of the farthest reach still counts as the peak. */
 const PEAK = 0.5;
@@ -77,7 +77,6 @@ const HERO_GROUND: readonly AttackStyle[] = [AttackStyle.jab, AttackStyle.jab2, 
 
 /** The moves #156 re-authored or re-chose a sequence for, and every hero's ground normals. */
 export const REACH_CHECKED: readonly { readonly character: Character; readonly styles: readonly AttackStyle[] }[] = [
-  { character: Character.archer, styles: [AttackStyle.jab, AttackStyle.jab2, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack, AttackStyle.getupAttack] },
   { character: Character.rifleman, styles: [AttackStyle.jab, AttackStyle.jab2, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack, AttackStyle.neutralAir, AttackStyle.upAir, AttackStyle.downAir] },
   { character: Character.demonHunter, styles: [AttackStyle.jab, AttackStyle.jab2, AttackStyle.jab3, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.downTilt, AttackStyle.downSmash] },
   // A hero's chain has two or three jabs.

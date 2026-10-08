@@ -21,7 +21,7 @@ import { STAGE_DECK_MODELS } from "../../src/game/assets/stageAssetInfo";
 import { STOCK_PLATFORM_MODELS } from "../../src/game/presentation/stockPlatforms";
 import { STAGE_DECK_PALETTES } from "../../src/game/assets/stagePalette";
 import { DEMON_HUNTER_MODEL_FILE } from "../../src/game/presentation/demonHunterAssetInfo";
-import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "../../src/game/presentation/fighterAssetInfo";
+import { RIFLEMAN_MODEL_FILE } from "../../src/game/presentation/fighterAssetInfo";
 import { ARENA_CAMERA, FLOOR_HEIGHT, arenaFraming } from "../../src/game/presentation/arenaCamera";
 import { SUMMON_BEAR, summonClip, summonClipCount } from "../../src/game/presentation/summonClipInfo";
 import { CANNON_MODEL } from "../../src/game/presentation/stageHazards";
@@ -111,7 +111,7 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
     { name: "stage lava", models: [STAGE_LAVA_MODEL] },
     { name: "stage scenery", models: [...new Set(STAGE_CATALOG.flatMap(({ id }) => placedPieces(id).map(({ model }) => model)))] },
     { name: "pooled fighter", models: fighterModels },
-    { name: "body flash", models: WHITE_FIGHTER_MODELS },
+    { name: "body flash", models: Object.values(WHITE_FIGHTER_MODELS) },
     // Heroes draw with their fighter unit, shown while the hero is in play.
     { name: "hero body", models: HERO_ROSTER.map(({ presentation }) => presentation.model) },
     // Sparks and dust last under half a second; a star-KO sparkle, about two.
@@ -123,7 +123,7 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
       ],
     },
     // A star KO flies the fighter off for under two seconds.
-    { name: "KO body", lifetime: seconds(3), models: [ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE, DEMON_HUNTER_MODEL_FILE, ...HERO_ROSTER.map(({ presentation }) => presentation.model)] },
+    { name: "KO body", lifetime: seconds(3), models: [RIFLEMAN_MODEL_FILE, DEMON_HUNTER_MODEL_FILE, ...HERO_ROSTER.map(({ presentation }) => presentation.model)] },
     // The lightest press drains a full shield in about 72 s.
     { name: "shield bubble", lifetime: seconds(75), models: [SHIELD_P1_MODEL, SHIELD_P2_MODEL, SHIELD_P3_MODEL, SHIELD_P4_MODEL] },
     // An unsprung trap waits 30 s; a frozen fighter thaws within 5 s.

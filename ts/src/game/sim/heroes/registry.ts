@@ -57,7 +57,7 @@ export function heroDefinition(character: number): HeroDefinition | undefined {
 
 /** The original fighters first, then every complete hero in build order. */
 export function selectableCharactersOf(roster: readonly HeroDefinition[]): readonly Character[] {
-  const choices: Character[] = [Character.archer, Character.rifleman, Character.demonHunter];
+  const choices: Character[] = [ Character.rifleman, Character.demonHunter];
   for (const hero of roster) if (hero.complete) choices.push(hero.character);
   return choices;
 }
@@ -70,11 +70,11 @@ export function isSelectableCharacter(choice: number): choice is Character {
   return false;
 }
 
-const ORIGINAL_NAMES = ["Archer", "Rifleman", "Illidan"] as const;
+const ORIGINAL_NAMES: Readonly<Record<number, string>> = { [Character.rifleman]: "Rifleman", [Character.demonHunter]: "Illidan" };
 
 /** The fighter's name as players see it. */
 export function fighterName(character: number): string {
-  return heroDefinition(character)?.name ?? ORIGINAL_NAMES[character] ?? "Archer";
+  return heroDefinition(character)?.name ?? ORIGINAL_NAMES[character] ?? "Rifleman";
 }
 
 /** The fighter in `choices` that `direction` steps from `current`, wrapping; from a fighter not in `choices`, the first or last. */
@@ -82,8 +82,8 @@ export function nextCharacterIn(choices: readonly Character[], current: number |
   const count = choices.length;
   let index = -1;
   for (let i = 0; i < count; i++) if (choices[i] === current) index = i;
-  if (index < 0) return choices[direction < 0 ? count - 1 : 0] ?? Character.archer;
-  return choices[floorMod(index + direction, count)] ?? Character.archer;
+  if (index < 0) return choices[direction < 0 ? count - 1 : 0] ?? Character.rifleman;
+  return choices[floorMod(index + direction, count)] ?? Character.rifleman;
 }
 
 /** The playable fighter `direction` steps from `current` in tile order, wrapping. */
@@ -96,8 +96,7 @@ export function nextSelectableCharacter(current: number | undefined, direction: 
  * the map imports each one's tile and card. A fighter missing here shows its
  * Warcraft command icon.
  */
-export const RENDERED_FIGHTERS: readonly Character[] = [
-  Character.archer, Character.rifleman, Character.demonHunter, Character.blademaster, Character.mountainKing, Character.warden,
+export const RENDERED_FIGHTERS: readonly Character[] = [ Character.rifleman, Character.demonHunter, Character.blademaster, Character.mountainKing, Character.warden,
   Character.lich, Character.forsakenPaladin, Character.dreadlord, Character.shadowHunter, Character.pitLord, Character.beastmaster, Character.lichKing,
 ];
 
@@ -120,19 +119,19 @@ export function fighterPortrait(character: number, kind: PortraitKind, slot?: nu
   return fighterIcon(character);
 }
 
-const ORIGINAL_ICONS = ["BTNArcher", "BTNRifleman", "BTNHeroDemonHunter"] as const;
+const ORIGINAL_ICONS: Readonly<Record<number, string>> = { [Character.rifleman]: "BTNRifleman", [Character.demonHunter]: "BTNHeroDemonHunter" };
 
 /** The fighter's Warcraft command icon. */
 export function fighterIcon(character: number): string {
-  return heroDefinition(character)?.presentation.portrait ?? `ReplaceableTextures\\CommandButtons\\${ORIGINAL_ICONS[character] ?? "BTNArcher"}.blp`;
+  return heroDefinition(character)?.presentation.portrait ?? `ReplaceableTextures\\CommandButtons\\${ORIGINAL_ICONS[character] ?? "BTNRifleman"}.blp`;
 }
 
-const ORIGINAL_SLUGS = ["archer", "rifleman", "illidan"] as const;
+const ORIGINAL_SLUGS: Readonly<Record<number, string>> = { [Character.rifleman]: "rifleman", [Character.demonHunter]: "illidan" };
 
-/** The fighter's name in commands and soak records: "archer", "illidan", "mountain-king". */
+/** The fighter's name in commands and soak records: "rifleman", "illidan", "mountain-king". */
 export function fighterSlug(character: number): string {
   const hero = heroDefinition(character);
-  return hero === undefined ? ORIGINAL_SLUGS[character] ?? "archer" : hero.name.toLowerCase().split(" ").join("-");
+  return hero === undefined ? ORIGINAL_SLUGS[character] ?? "rifleman" : hero.name.toLowerCase().split(" ").join("-");
 }
 
 /** The selectable fighters by slug, for tools that name fighters on the command line. */

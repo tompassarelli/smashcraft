@@ -12,7 +12,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { toInt } from "../../runtime/numbers";
 import { hurtCapsule } from "../physics/contactGeometry";
-import { AttackStyle, Character, DownState, HeroStatusKind, PassiveKind, HippogryphKind, ProjectileKind, SpecialAction } from "../sim/codes";
+import { AttackStyle, Character, DownState, HeroStatusKind, PassiveKind, ProjectileKind, SpecialAction } from "../sim/codes";
 import { canAttack } from "../sim/conditions";
 import { type Fighter, placedObject } from "../sim/fighter";
 import { type AttackBuffer, queueAttack } from "../input/attackBuffer";
@@ -23,7 +23,7 @@ import { heroStatusBlocksActions } from "../sim/heroStatus";
 import { type AuthoredSpecial, type SpecialFollowUp, type SpecialProjectile, CompanionOrder, FOLLOW_UP_FORM, FollowUpInput, SpecialSlot, specialKit } from "../sim/heroSpecials";
 import type { Controls } from "../sim/roster";
 import {
-  ARCHER_RIDE_LEAP_FIRST, FEL_RUSH_BRANCH_FIRST, FEL_RUSH_BRANCH_LAST, FEL_RUSH_SPEED, FEL_RUSH_FIRST, FEL_RUSH_LAST, DEMONHUNTER_GLIDE_FIRST, DEMONHUNTER_GLIDE_FORM, DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_WING_DURATION,
+  FEL_RUSH_BRANCH_FIRST, FEL_RUSH_BRANCH_LAST, FEL_RUSH_SPEED, FEL_RUSH_FIRST, FEL_RUSH_LAST, DEMONHUNTER_GLIDE_FIRST, DEMONHUNTER_GLIDE_FORM, DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_WING_DURATION,
   RIFLEMAN_RECOVERY_STARTUP_FRAMES, RIFLEMAN_SECOND_SHOT_FIRST, RIFLEMAN_SECOND_SHOT_FORM, RIFLEMAN_SECOND_SHOT_LAST,
 } from "../sim/specials";
 import { mainDeckLeft, mainDeckRight, mainDeckZ } from "../sim/stage";
@@ -339,18 +339,6 @@ export function pressKitOption(f: Readonly<Fighter>, target: Readonly<Fighter>, 
   const toward = towardOf(f, target.motion.x);
   const free = canAttack(f) && f.special.action === SpecialAction.none;
   switch (f.character) {
-    case Character.archer: {
-      // The perched hippogryph dives at her: a target on its path is struck.
-      const bird = f.hippogryph;
-      if (!free || bird.kind !== HippogryphKind.perch || !affords(f, SpecialAction.archerDisengage)) return false;
-      const span = f32(motion.x - bird.x);
-      const along = f32(target.motion.x - bird.x);
-      if (span === 0.0 || along * span < 0 || Math.abs(along) > f32(Math.abs(span) + DIVE_REACH_X)) return false;
-      const lineZ = f32(bird.z + f32(f32(f32(f32(motion.z + 40.0) - bird.z) * Math.min(1.0, f32(along / span)))));
-      if (Math.abs(f32(target.motion.z - lineZ)) > DIVE_REACH_Z || !takes(skill, floorDiv(frame, 20), f.character * 7 + 13)) return false;
-      pressSlot(input, SpecialSlot.down, 0);
-      return true;
-    }
     case Character.rifleman: {
       // Long Rifles ready (passives.ts): the next shot flies half again as far, so it shoots from further and whenever a shot suits.
       const rifles = passivePips(f).ready;
@@ -479,21 +467,6 @@ export function steerRunningSpecial(f: Readonly<Fighter>, target: Readonly<Fight
       input.verticalDirection = below > 40.0 ? -1 : 0;
       input.attackPressed = ahead >= 0.0 && ahead <= SLASH_REACH && Math.abs(below) <= 70.0;
       return true;
-    }
-    case SpecialAction.archerRecovery: {
-      if (next >= ARCHER_RIDE_LEAP_FIRST) {
-        // Off the hippogryph over the deck, or under a target just above, where the bird flies on into it.
-        const over = motion.x >= f32(left + 40.0) && motion.x <= f32(right - 40.0) && motion.z >= f32(floor + 20.0);
-        const under = target !== undefined && Math.abs(f32(target.motion.x - motion.x)) <= 80.0 && f32(target.motion.z - motion.z) >= 0.0 && f32(target.motion.z - motion.z) <= 150.0;
-        if (over || under) {
-          input.jumpPressed = true;
-          input.jumpHeld = true;
-          return true;
-        }
-      }
-      // The low line carries her across from high and far out.
-      input.down = outside > LEVEL_REACH && motion.z > f32(floor + LEVEL_ABOVE);
-      return false;
     }
   }
   return false;

@@ -91,7 +91,6 @@ export const victoryMusic = (winner: Character | undefined): string | undefined 
  * and its battle cry where it has no Warcry line (a creep).
  */
 const VOICES: readonly (readonly [string, string, string?, string?])[] = [
-  ["Units\\NightElf\\Archer\\", "Archer"],
   ["Units\\Human\\Rifleman\\", "Rifleman"],
   ["Units\\NightElf\\HeroDemonHunter\\", "HeroDemonHunter"],
   ["Units\\Orc\\HeroBladeMaster\\", "HeroBladeMaster"],
@@ -130,8 +129,7 @@ export const warcryVoice = (character: Character): string => voice(character, "W
 
 /** The model animation the winner plays at the results; models without one stand ready. */
 export function victoryAnimation(character: Character): string {
-  switch (character) {
-    case Character.archer: case Character.blademaster: case Character.forsakenPaladin: case Character.shadowHunter:
+  switch (character) { case Character.blademaster: case Character.forsakenPaladin: case Character.shadowHunter:
       return "stand victory";
     // Pit Lord has no ready stance; he roars.
     case Character.lich: case Character.pitLord:

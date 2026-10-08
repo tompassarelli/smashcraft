@@ -38,18 +38,12 @@ const IS_3D: readonly boolean[] = [
 ];
 
 /** Each character's cues, ordered as authored. */
-const CUES: readonly (readonly ModelSoundCue[])[] = [
-  // Archer
-  [
-    { sequenceIndex: 12, seconds: 0.0, soundIndex: 0 },
-  ],
-  // Rifleman
-  [
+const CUES: Readonly<Record<number, (readonly ModelSoundCue[])>> = {
+  1: [
     { sequenceIndex: 5, seconds: f32(0.167), soundIndex: 2 },
     { sequenceIndex: 11, seconds: 0.0, soundIndex: 1 },
   ],
-  // Illidan
-  [
+  2: [
     { sequenceIndex: 6, seconds: 0.0, soundIndex: 3 },
     { sequenceIndex: 7, seconds: 0.0, soundIndex: 4 },
     { sequenceIndex: 18, seconds: 0.0, soundIndex: 5 },
@@ -61,7 +55,7 @@ const CUES: readonly (readonly ModelSoundCue[])[] = [
     { sequenceIndex: 108, seconds: f32(0.133), soundIndex: 9 },
     { sequenceIndex: 108, seconds: 0.5, soundIndex: 10 },
   ],
-];
+};
 
 /** The stock sound label, which owns its variants, pitch, channel and attenuation. */
 export function modelSoundLabel(soundIndex: number): string | undefined {

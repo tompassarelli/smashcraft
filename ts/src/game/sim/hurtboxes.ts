@@ -86,9 +86,7 @@ export function shippedHurtboxes(character: Character, moves?: FighterMoves): Fi
       [AttackStyle.jab]: reaching(AttackStyle.jab, [torso(4.0), hurtPart(8.0, h(f32(0.68)), 40.0, h(f32(0.6)), 9.0)]),
       // The chain's later jabs reach the same arm, or a kicking leg low.
       ...(moves?.normals[AttackStyle.jab2] === undefined && character !== Character.demonHunter ? {} : {
-        [AttackStyle.jab2]: reaching(AttackStyle.jab2, character === Character.archer
-          ? [torso(4.0), hurtPart(8.0, h(f32(0.3)), 44.0, h(f32(0.2)), 10.0)]
-          : [torso(4.0), hurtPart(8.0, h(f32(0.68)), 42.0, h(f32(0.62)), 9.0)]),
+        [AttackStyle.jab2]: reaching(AttackStyle.jab2,  [torso(4.0), hurtPart(8.0, h(f32(0.68)), 42.0, h(f32(0.62)), 9.0)]),
       }),
       ...(moves?.normals[AttackStyle.jab3] === undefined && character !== Character.demonHunter ? {} : {
         [AttackStyle.jab3]: reaching(AttackStyle.jab3, [torso(6.0), hurtPart(8.0, h(f32(0.66)), 46.0, h(f32(0.6)), 9.0)]),
@@ -107,17 +105,16 @@ export function shippedHurtboxes(character: Character, moves?: FighterMoves): Fi
   };
 }
 
-const CHARACTER_HURTBOXES: readonly FighterHurtboxes[] = [
-  shippedHurtboxes(Character.archer),
-  shippedHurtboxes(Character.rifleman),
-  shippedHurtboxes(Character.demonHunter),
-];
+const CHARACTER_HURTBOXES: Readonly<Record<number, FighterHurtboxes>> = {
+  1: shippedHurtboxes(Character.rifleman),
+  2: shippedHurtboxes(Character.demonHunter),
+};
 
 /** The authored body set a fighter uses: its hero kit's, or its character's. */
 export function fighterHurtboxes(f: Readonly<Fighter>): Readonly<FighterHurtboxes> {
   const moves = f.tuning.moves;
   if (moves !== undefined) return moves.hurtboxes ?? defaultHurtboxes(f.character);
-  return CHARACTER_HURTBOXES[f.character] ?? at(CHARACTER_HURTBOXES, CHARACTER_HURTBOXES.length - 1);
+  return CHARACTER_HURTBOXES[f.character] ?? CHARACTER_HURTBOXES[Character.demonHunter] as FighterHurtboxes;
 }
 
 const DEFAULTS: FighterHurtboxes[] = [];

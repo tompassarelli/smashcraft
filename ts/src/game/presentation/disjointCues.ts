@@ -10,7 +10,6 @@ import { DEMONHUNTER_GLIDE_SLASH_FIRST, DEMONHUNTER_GLIDE_SLASH_LAST, DEMONHUNTE
 
 /** Warcraft's own moving spell/weapon art, used as a held contact accent. */
 export const DISJOINT_MODELS: { readonly [character: number]: string } = {
-  [Character.archer]: "Abilities\\Weapons\\Arrow\\ArrowMissile.mdx",
   [Character.rifleman]: "Abilities\\Weapons\\GyroCopter\\GyroCopterMissile.mdx",
   [Character.demonHunter]: "Abilities\\Weapons\\DemonHunterMissile\\DemonHunterMissile.mdx",
   [Character.blademaster]: "Abilities\\Weapons\\SentinelMissile\\SentinelMissile.mdx",

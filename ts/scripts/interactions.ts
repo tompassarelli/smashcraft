@@ -417,7 +417,6 @@ const AFTER_AERIAL: readonly Option[] = [WAIT, JAB, GRAB, SHIELD, SPOT_DODGE, RO
 // ------------------------------------------------------------------ rows
 
 export const FIGHTERS = [
-  { character: Character.archer, name: "Archer", slug: "archer" },
   { character: Character.rifleman, name: "Rifleman", slug: "rifleman" },
   { character: Character.demonHunter, name: "Illidan", slug: "illidan" },
 ] as const;
@@ -568,7 +567,7 @@ type Drift = (typeof DRIFTS)[number];
 
 /** The shielding defender stands here, facing left; the attacker starts `distance` to its left. */
 const DEFENDER_X = 150.0;
-/** Start distances swept for each aerial, outward from 48, where two Archers' hurt capsules (radius 24) touch. */
+/** Start distances swept for each aerial, outward from 48, where two references' hurt capsules (radius 24) touch. */
 const APPROACH_STEP = 6;
 const APPROACH_DISTANCES = Array.from({ length: 43 }, (_, index) => 48 + APPROACH_STEP * index);
 /** Frames after the contact that the options, cells and punishes are played. */

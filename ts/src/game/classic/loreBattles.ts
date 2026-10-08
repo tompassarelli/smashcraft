@@ -129,7 +129,7 @@ export const LORE_BATTLES: readonly LoreBattle[] = [
     id: "maiev", title: "The Hunt for Illidan", player: C.warden, against: [C.demonHunter], tier: "advanced", stage: 7,
     win: koWithinClock, minutes: 3, playerStocks: 2, opponentStocks: 2, speaker: "Maiev Shadowsong", intro: "You will not escape me this time, Illidan.",
   }),
-  bossBattle("archimonde", "The Battle of Mount Hyjal", C.archer, BossKind.archimonde, 3, 5, 2,
+  bossBattle("archimonde", "The Battle of Mount Hyjal", C.warden, BossKind.archimonde, 3, 5, 2,
     "The World Tree is mine. Your feeble races will burn with this world!"),
   battle({
     id: "magtheridon", title: "Lord of Outland", player: C.kaelthas, against: [C.pitLord], tier: "expert", stage: 14,

@@ -26,21 +26,20 @@ const PILLAGE: PassiveSpec = { kind: PassiveKind.pillage, stacks: 2, window: 0 }
 const ENGINEERING_UPGRADE: PassiveSpec = { kind: PassiveKind.voodoo, stacks: 2, window: 240 };
 
 /** By Character code. Illidan has none: his attacks drain mana on hit (his kit data). */
-const SPECS: readonly PassiveSpec[] = [
-  { kind: PassiveKind.trueshot, stacks: 2, window: 240 }, // archer
-  { kind: PassiveKind.longRifles, stacks: 3, window: 0 }, // rifleman
-  NONE, // demonHunter
-  { kind: PassiveKind.criticalStrike, stacks: 3, window: 180 }, // blademaster
-  { kind: PassiveKind.bash, stacks: 2, window: 120 }, // mountainKing
-  { kind: PassiveKind.blink, stacks: 1, window: 0 }, // warden
-  { kind: PassiveKind.frostArmor, stacks: 2, window: 180 }, // lich
-  { kind: PassiveKind.devotion, stacks: 3, window: 0 }, // forsakenPaladin
-  { kind: PassiveKind.vampiric, stacks: 2, window: 240 }, // dreadlord
-  { kind: PassiveKind.voodoo, stacks: 2, window: 240 }, // shadowHunter
-  { kind: PassiveKind.cleave, stacks: 2, window: 180 }, // pitLord
-  { kind: PassiveKind.packHunt, stacks: 1, window: 0 }, // beastmaster
-  { kind: PassiveKind.souls, stacks: 3, window: 0 }, // lichKing
-];
+const SPECS: Readonly<Record<number, PassiveSpec>> = {
+  1: { kind: PassiveKind.longRifles, stacks: 3, window: 0 },
+  2: NONE,
+  3: { kind: PassiveKind.criticalStrike, stacks: 3, window: 180 },
+  4: { kind: PassiveKind.bash, stacks: 2, window: 120 },
+  5: { kind: PassiveKind.blink, stacks: 1, window: 0 },
+  6: { kind: PassiveKind.frostArmor, stacks: 2, window: 180 },
+  7: { kind: PassiveKind.devotion, stacks: 3, window: 0 },
+  8: { kind: PassiveKind.vampiric, stacks: 2, window: 240 },
+  9: { kind: PassiveKind.voodoo, stacks: 2, window: 240 },
+  10: { kind: PassiveKind.cleave, stacks: 2, window: 180 },
+  11: { kind: PassiveKind.packHunt, stacks: 1, window: 0 },
+  12: { kind: PassiveKind.souls, stacks: 3, window: 0 },
+};
 
 const DRUNKEN_BRAWLER: PassiveSpec = { kind: PassiveKind.criticalStrike, stacks: 3, window: 180 };
 
@@ -315,8 +314,6 @@ export function passivePips(f: Readonly<Fighter>, out: PassivePipsState = scratc
 export function projectileOrigin(owner: Readonly<Fighter>, projectile: Readonly<Projectile>): HitOrigin {
   if (projectile.visualFamily !== owner.character) return HitOrigin.foreign;
   switch (projectile.kind) {
-    case ProjectileKind.arrow:
-    case ProjectileKind.homingArrow: return HitOrigin.arrow;
     case ProjectileKind.blaster: return HitOrigin.blaster;
     default: return projectile.spec?.feedsPassive === true ? HitOrigin.voodoo : HitOrigin.projectile;
   }

@@ -9,10 +9,10 @@ import { canAttack } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { attackStartupFrames, characterAttackActiveFrames, RIFLEMAN_BLASTER_AIR_SHOT_FRAME, RIFLEMAN_BLASTER_GROUND_FRAMES, RIFLEMAN_BLASTER_GROUND_SHOT_FRAME } from "../sim/moves";
 import type { Controls } from "../sim/roster";
-import { ARCHER_ARROW_SHOT_FRAME, ARCHER_HOMING_WINDUP_FRAMES, DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_MANA_BURN_HEIGHT, DEMONHUNTER_MANA_BURN_LIFETIME, DEMONHUNTER_MANA_BURN_SPEED, DEMONHUNTER_MANA_BURN_STARTUP } from "../sim/specials";
+import { DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_MANA_BURN_HEIGHT, DEMONHUNTER_MANA_BURN_LIFETIME, DEMONHUNTER_MANA_BURN_SPEED, DEMONHUNTER_MANA_BURN_STARTUP } from "../sim/specials";
 import { SpecialSlot } from "../sim/heroSpecials";
 import { runningHeroSpecial } from "../sim/heroSpecialRules";
-import { ARCHER_ARROW_HEIGHT, ARCHER_ARROW_LIFETIME, ARCHER_ARROW_SPEED, BLASTER_AIR_SHOT_HEIGHT, BLASTER_PROJECTILE_HEIGHT, BLASTER_PROJECTILE_LIFETIME, BLASTER_PROJECTILE_RADIUS, BLASTER_PROJECTILE_SPAWN_OFFSET, BLASTER_PROJECTILE_SPEED, HOMING_ARROW_LIFETIME, HOMING_ARROW_SPEED } from "../sim/projectiles";
+import { BLASTER_AIR_SHOT_HEIGHT, BLASTER_PROJECTILE_HEIGHT, BLASTER_PROJECTILE_LIFETIME, BLASTER_PROJECTILE_RADIUS, BLASTER_PROJECTILE_SPAWN_OFFSET, BLASTER_PROJECTILE_SPEED, } from "../sim/projectiles";
 import { hurtCapsule } from "../physics/contactGeometry";
 import { deckUnder, heightAhead, safeAt } from "./botFooting";
 import { heroStanceLater, heroStanceSlot } from "./botHeroKit";
@@ -69,8 +69,6 @@ interface ShotWindup {
 
 const BLASTER_GROUND: ShotWindup = { spawnFrame: RIFLEMAN_BLASTER_GROUND_SHOT_FRAME, offsetX: BLASTER_PROJECTILE_SPAWN_OFFSET, offsetZ: BLASTER_PROJECTILE_HEIGHT, velocityX: BLASTER_PROJECTILE_SPEED, velocityZ: 0.0, life: BLASTER_PROJECTILE_LIFETIME, radius: BLASTER_PROJECTILE_RADIUS };
 const BLASTER_AIR: ShotWindup = { ...BLASTER_GROUND, spawnFrame: RIFLEMAN_BLASTER_AIR_SHOT_FRAME, offsetZ: BLASTER_AIR_SHOT_HEIGHT };
-const ARROW: ShotWindup = { ...BLASTER_GROUND, spawnFrame: ARCHER_ARROW_SHOT_FRAME, offsetZ: ARCHER_ARROW_HEIGHT, velocityX: ARCHER_ARROW_SPEED, life: ARCHER_ARROW_LIFETIME };
-const HOMING: ShotWindup = { ...BLASTER_GROUND, spawnFrame: ARCHER_HOMING_WINDUP_FRAMES, velocityX: HOMING_ARROW_SPEED, life: HOMING_ARROW_LIFETIME };
 const MANA_BURN: ShotWindup = { ...BLASTER_GROUND, spawnFrame: DEMONHUNTER_MANA_BURN_STARTUP, offsetZ: DEMONHUNTER_MANA_BURN_HEIGHT, velocityX: DEMONHUNTER_MANA_BURN_SPEED, life: DEMONHUNTER_MANA_BURN_LIFETIME };
 
 /** A visible windup can have fired during the observation delay, before the shot itself is visible. */
@@ -112,10 +110,6 @@ function specialShotComing(f: Readonly<Fighter>, target: Readonly<Fighter>, stag
   switch (target.special.action) {
     case SpecialAction.riflemanBlaster:
       return shotFromWindup(f, target, target.special.duration === RIFLEMAN_BLASTER_GROUND_FRAMES ? BLASTER_GROUND : BLASTER_AIR, stage, observationAge, true);
-    case SpecialAction.archerArrow:
-      return shotFromWindup(f, target, ARROW, stage, observationAge);
-    case SpecialAction.archerHomingArrow:
-      return shotFromWindup(f, target, HOMING, stage, observationAge);
     case SpecialAction.demonHunterManaBurn:
       return shotFromWindup(f, target, MANA_BURN, stage, observationAge);
   }

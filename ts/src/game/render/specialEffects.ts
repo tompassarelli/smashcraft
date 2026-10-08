@@ -23,14 +23,10 @@ import { type ParkedFlags, STOCK_MODELS, type WorldOrigin, facingYaw, parkOnce, 
 import { characterModelScale } from "../presentation/modelScale";
 import { IMMOLATE_SOUNDS } from "../presentation/elementLooks";
 import { SummonPresentation } from "./summonPresentation";
-import { createHippogryphPresentationState, projectHippogryph, HIPPOGRYPH_MODEL, HIPPOGRYPH_RIDER_MODEL, type HippogryphPresentationState } from "../presentation/hippogryphPose";
 import { bindPrototype } from "../../platform/rebind";
 
 interface SpecialSlot {
   readonly bear: SummonPresentation;
-  readonly hippogryph: effect;
-  readonly rider: effect;
-  readonly hippogryphState: HippogryphPresentationState;
   readonly aura: effect;
   readonly felFlames: effect;
   readonly manaHand: effect;
@@ -46,13 +42,11 @@ interface SpecialSlot {
 }
 
 /** A slot's effects in its parked flags, after eight times the slot. */
-const HIPPOGRYPH = 0;
 const AURA = 1;
 const FEL_FLAMES = 2;
 const MANA_HAND = 3;
 const WING_TRAIL = 4;
 const DRAIN_FLASH = 5;
-const RIDER = 6;
 const SILENCE = 7;
 const SLOT_EFFECTS = 8;
 
@@ -68,13 +62,6 @@ export class SpecialEffects {
     this.slots = PARTICIPANT_SLOTS.map((participant) => {
       const cursor = createImpactPresentationCursor();
       const bear = new SummonPresentation(SUMMON_BEAR, origin);
-      const hippogryph = AddSpecialEffect(HIPPOGRYPH_MODEL, x, y);
-      const rider = AddSpecialEffect(HIPPOGRYPH_RIDER_MODEL, x, y);
-      BlzSetSpecialEffectColorByPlayer(rider, Player(participant));
-      const hippogryphState = createHippogryphPresentationState();
-      BlzSetSpecialEffectAnimationBlendTime(rider, 0.0);
-      BlzSetSpecialEffectTimeScale(rider, 0.0);
-      BlzSetSpecialEffectTimeScale(hippogryph, 0.0);
       const aura = AddSpecialEffect(IMPACT_ROLL_MODEL, x, y);
       const felFlames = AddSpecialEffect(STOCK_MODELS.immolationTarget, x, y);
       const manaHand = AddSpecialEffect(STOCK_MODELS.manaBurnTarget, x, y);
@@ -84,9 +71,8 @@ export class SpecialEffects {
       BlzSetSpecialEffectTimeScale(aura, 0.0);
       BlzSetSpecialEffectTimeScale(wingTrail, 0.0);
       BlzSetSpecialEffectTimeScale(drainFlash, 0.0);
-      BlzSetSpecialEffectAnimationBlendTime(hippogryph, 0.0);
       return {
-        bear, hippogryph, rider, hippogryphState, aura, felFlames, manaHand, wingTrail, drainFlash, silence, cursor,
+        bear, aura, felFlames, manaHand, wingTrail, drainFlash, silence, cursor,
         previousSpecial: SpecialAction.none, previousSpecialFrame: 0,
       };
     });
@@ -103,10 +89,9 @@ export class SpecialEffects {
       resetImpactPresentationCursor(slot.cursor);
       slot.bear.hide();
       // In flag order.
-      [slot.hippogryph, slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.drainFlash, slot.rider, slot.silence].forEach((model, effect) => this.park(model, index, effect));
+      [slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.drainFlash, slot.silence].forEach((model, effect) => this.park(model, index, effect));
       slot.previousSpecial = SpecialAction.none;
       slot.previousSpecialFrame = 0;
-      projectHippogryph(slot.hippogryphState, undefined, 0);
       this.releaseImmolationLoop(slot);
     });
   }
@@ -234,29 +219,6 @@ export class SpecialEffects {
     this.slots[slot]?.bear.present(projectBear(state, fighter, slot));
   }
 
-  /** Uses the same presented frame as the fighter body, including predicted ride entry and exit. */
-  presentHippogryph(fighter: Readonly<Fighter> | undefined, slot: number, frame: number): void {
-    const effects = this.slots[slot];
-    if (effects === undefined) return;
-    const pose = projectHippogryph(effects.hippogryphState, fighter, frame);
-    const model = pose.mounted ? effects.rider : effects.hippogryph;
-    const index = pose.mounted ? RIDER : HIPPOGRYPH;
-    this.park(pose.mounted ? effects.hippogryph : effects.rider, slot, pose.mounted ? HIPPOGRYPH : RIDER);
-    if (!pose.visible) {
-      this.park(model, slot, index);
-      return;
-    }
-    this.placed(slot, index);
-    placeEffect(model, this.origin.x + pose.x, this.origin.y, this.origin.z + pose.z);
-    BlzSetSpecialEffectYaw(model, facingYaw(pose.facing));
-    BlzSetSpecialEffectPitch(model, pose.pitch);
-    BlzSetSpecialEffectRoll(model, pose.roll);
-    BlzSetSpecialEffectScale(model, f32(0.7));
-    BlzSetSpecialEffectAlpha(model, 255);
-    BlzSetSpecialEffectAnimation(model, pose.clip);
-    BlzSetSpecialEffectTime(model, pose.seconds);
-  }
-
   /** Animated effects that restart on an event: once per confirmed frame, never from a speculative one. */
   presentConfirmedAnimated(frame: number, fighter: Readonly<Fighter>, slot: number): void {
     const effects = this.slots[slot];
@@ -268,7 +230,7 @@ export class SpecialEffects {
     for (const slot of this.slots) {
       this.releaseImmolationLoop(slot);
       slot.bear.destroy();
-      for (const model of [slot.hippogryph, slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.drainFlash, slot.rider, slot.silence]) DestroyEffect(model);
+      for (const model of [slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.drainFlash, slot.silence]) DestroyEffect(model);
     }
   }
 }

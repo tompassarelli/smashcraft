@@ -136,7 +136,7 @@ export interface JourneyOptions {
    * complete input workload.
    */
   readonly workload?: "match" | "playable" | "bot";
-  /** A bot session with a second computer, an Archer in slot D, recording raw frame costs in an undisturbed rematch. */
+  /** A bot session with a second computer, an reference in slot D, recording raw frame costs in an undisturbed rematch. */
   readonly botFour?: boolean;
   /** A bot session whose three-fighter rematch records raw frame costs, as --bot-four's does. */
   readonly botPerf?: boolean;
@@ -212,8 +212,8 @@ const stocks = (count: number) => new RegExp(`${count} Stock`, "i");
 const signature = (humans: number, computers: number) => `connected=3 human-fighters=${humans} computers=${computers} fighters=${humans + computers}`;
 /** The calibrated bot workload's stage, Sky Deck (smashcraft:ts/src/game/menu/stageCatalog.ts), whatever the catalog lists first. */
 const BOT_STAGE = 0;
-/** A bot session's computers by player number: an Illidan in C, and with --bot-four an Archer in D (scripts/wisp/botMatch.ts). */
-const BOT_COMPUTERS = [[3, Character.demonHunter], [4, Character.archer]] as const;
+/** A bot session's computers by player number: an Illidan in C, and with --bot-four an reference in D (scripts/wisp/botMatch.ts). */
+const BOT_COMPUTERS = [[3, Character.demonHunter], [4, Character.warden]] as const;
 /** A developer receipt's `name=value` fields, from both its lines (journalFiles.ts devReceiptFile). */
 export const receiptFields = (text: string): ReadonlyMap<string, string> => new Map([...text.matchAll(/([A-Za-z-]+)=([^\s"]+)/g)].map(([, name, value]) => [name ?? "", value ?? ""]));
 const both = <A, E>(each: (client: Slot) => Effect.Effect<A, E>) => Effect.forEach(SLOTS, each, { concurrency: 2 });

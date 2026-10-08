@@ -22,13 +22,11 @@ import { beginAttack, beginDownState } from "../../src/game/sim/transitions";
 
 /** Each fighter's packaged model under a build's --assets directory. */
 export const FIGHTER_MODELS: Readonly<Record<number, string>> = {
-  [Character.archer]: "animation-assets/ArcherFighter.mdx",
   [Character.rifleman]: "animation-assets/RiflemanFighter.mdx",
   [Character.demonHunter]: "illidan-animation/DemonHunterFighter.mdx",
 };
 
-export const CHARACTER_NAMES: Readonly<Record<number, string>> = {
-  [Character.archer]: "archer", [Character.rifleman]: "rifleman", [Character.demonHunter]: "illidan",
+export const CHARACTER_NAMES: Readonly<Record<number, string>> = { [Character.rifleman]: "rifleman", [Character.demonHunter]: "illidan",
 };
 
 interface PlacedPart extends Capsule {

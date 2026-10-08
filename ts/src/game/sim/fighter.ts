@@ -12,7 +12,6 @@ import {
   DownState,
   GrabAction,
   GroundAction,
-  HippogryphKind,
   LedgeState,
   ParryBuffer,
   PlatformMove,
@@ -292,15 +291,6 @@ interface Bear {
   surface: number | undefined;
 }
 
-interface Hippogryph {
-  life: number;
-  x: number;
-  z: number;
-  velocityX: number;
-  velocityZ: number;
-  kind: HippogryphKind;
-}
-
 interface FreezeTrap {
   exReach: boolean;
   life: number;
@@ -556,7 +546,6 @@ export interface Fighter {
   readonly special: Special;
   readonly projectiles: Readonly<Projectile>[];
   readonly bear: Bear;
-  readonly hippogryph: Hippogryph;
   readonly freezeTrap: FreezeTrap;
   readonly dodge: Dodge;
   readonly landing: Landing;
@@ -585,7 +574,7 @@ function emptyProjectile(): Projectile {
     z: 0.0,
     direction: 0,
     kind: ProjectileKind.blaster,
-    visualFamily: Character.archer,
+    visualFamily: Character.rifleman,
     velocityX: 0.0,
     velocityZ: 0.0,
     serial: 0,
@@ -747,7 +736,6 @@ export function createFighter(character: Character, startX: number, facing: numb
     },
     projectiles: repeat(PROJECTILE_CAPACITY, () => emptyProjectile()),
     bear: { exDamage: false, life: 0, x: 0.0, z: 0.0, velocityX: 0.0, velocityZ: 0.0, swipeCooldown: 0, hitSerial: 0, surface: undefined },
-    hippogryph: { life: 0, x: 0.0, z: 0.0, velocityX: 0.0, velocityZ: 0.0, kind: HippogryphKind.none },
     freezeTrap: { exReach: false, life: 0, arming: 0, x: 0.0, z: 0.0, surface: undefined, serial: 0, cooldown: 0 },
     dodge: { airDodging: false, airFrame: 0, airUsed: false, airMotionFrames: 0, groundFrame: 0, groundDirection: 0, groundEntryFacing: 0 },
     landing: { lag: 0 },

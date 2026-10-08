@@ -74,14 +74,10 @@ export const reportedMove = (move: number): number =>
 
 /** The special slot a running special action belongs to. */
 function specialMove(action: number): number | undefined {
-  switch (action) {
-    case SpecialAction.archerArrow: case SpecialAction.riflemanBlaster: case SpecialAction.demonHunterManaBurn: case SpecialAction.heroNeutral:
-      return SPECIAL_MOVE.neutral;
-    case SpecialAction.archerHomingArrow: case SpecialAction.riflemanBear: case SpecialAction.demonHunterFelRush: case SpecialAction.heroSide:
-      return SPECIAL_MOVE.side;
-    case SpecialAction.archerRecovery: case SpecialAction.riflemanRecovery: case SpecialAction.demonHunterWingAscent: case SpecialAction.heroUp:
-      return SPECIAL_MOVE.up;
-    case SpecialAction.archerDisengage: case SpecialAction.riflemanTrap: case SpecialAction.demonHunterImmolate: case SpecialAction.heroDown:
+  switch (action) { case SpecialAction.riflemanBlaster: case SpecialAction.demonHunterManaBurn: case SpecialAction.heroNeutral:
+      return SPECIAL_MOVE.neutral; case SpecialAction.riflemanBear: case SpecialAction.demonHunterFelRush: case SpecialAction.heroSide:
+      return SPECIAL_MOVE.side; case SpecialAction.riflemanRecovery: case SpecialAction.demonHunterWingAscent: case SpecialAction.heroUp:
+      return SPECIAL_MOVE.up; case SpecialAction.riflemanTrap: case SpecialAction.demonHunterImmolate: case SpecialAction.heroDown:
       return SPECIAL_MOVE.down;
     default:
       return undefined;

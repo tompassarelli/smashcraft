@@ -14,7 +14,9 @@ const named = (character: Character, name: string): HeroClip | undefined => {
   return index === undefined || source === undefined ? undefined : { index, seconds: f32(source.endSeconds - source.startSeconds) };
 };
 
-const ORIGINAL_WALKS: readonly (HeroClip | undefined)[] = [named(Character.archer, "walk"), named(Character.rifleman, "walk")];
+const ORIGINAL_WALKS: Readonly<Record<number, (HeroClip | undefined)>> = {
+  1: named(Character.rifleman, "walk"),
+};
 const ILLIDAN_WALK: HeroClip = { index: dh.DEMON_HUNTER_WALK_FORWARD_INDEX, seconds: 1.0 };
 const ILLIDAN_RUN: HeroClip = { index: dh.DEMON_HUNTER_RUN_FORWARD_INDEX, seconds: f32(0.6) };
 const ILLIDAN_DASH: HeroClip = { index: dh.DEMON_HUNTER_INITIAL_DASH_BURST_INDEX, seconds: dh.DEMON_HUNTER_INITIAL_DASH_BURST_SECONDS };

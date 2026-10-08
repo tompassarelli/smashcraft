@@ -12,7 +12,7 @@ import { AttackStyle } from "../../src/game/sim/codes";
 import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
 import { DrawnModel } from "./hurtboxView";
 
-/** The body centre a strike's direction is taken from: chest height of the reference fighter. */
+/** The body centre a strike's direction is taken from: chest height of the reference. */
 const CHEST = 50.0;
 /** Steps of clip time the measurement samples, a sixtieth of a second each. */
 const STEP = 1.0 / 60.0;

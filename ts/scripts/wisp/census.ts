@@ -89,7 +89,7 @@ const STAGE_FRAMES = 1200;
 /** The Sky Deck: one platform, no hazards. */
 export const CENSUS_STAGE = 0;
 /** The partner every fighter's moves land on, and the fighter that watches each stage. */
-const PARTNER = Character.archer;
+const PARTNER = Character.rifleman;
 
 interface Shell {
   readonly game: MatchState;

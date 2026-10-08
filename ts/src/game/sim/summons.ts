@@ -1,8 +1,8 @@
 // Summons that act on their own: the Rifleman's bear and freeze trap, and the
-// Archer's hippogryph.
+// the reference body's hippogryph.
 import { max } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, Character, HippogryphKind, HitOrigin, SpecialAction } from "./codes";
+import { AttackStyle, Character, HitOrigin, SpecialAction } from "./codes";
 import { canAttack, isIntangible } from "./conditions";
 import type { Fighter } from "./fighter";
 import { applyAttackHit } from "./hits";
@@ -17,23 +17,7 @@ export const RIFLEMAN_BEAR_LIFETIME = 150;
 const RIFLEMAN_BEAR_SWIPE_INTERVAL = 14;
 const FREEZE_TRAP_ARMING_FRAMES = 20;
 const FREEZE_TRAP_LIFETIME_FRAMES = 480;
-/** A freeze no one mashes out of lasts this long. */
-export const FREEZE_TRAP_FREEZE_FRAMES = 300;
-const FREEZE_TRAP_COOLDOWN_FRAMES = 90;
-const FREEZE_TRAP_TRIGGER_RADIUS = 42.0;
-
-const BEAR_SWIPE = { damage: 9.300000190734863, growth: 83.70000457763672, base: 18.0, launchX: DIAGONAL_UNIT, launchZ: 0.3499999940395355, electric: false } as const;
-const HIPPOGRYPH_STRIKE = { damage: 8.0, growth: 100.0, base: 22.0, launchX: DIAGONAL_UNIT, launchZ: DIAGONAL_UNIT, electric: false } as const;
-/** The dive launches low along its path: 20 degrees. */
-const HIPPOGRYPH_DIVE = { damage: 9.0, growth: 95.0, base: 26.0, launchX: 0.9396926164627075, launchZ: 0.3420201539993286, electric: false } as const;
-/** Flying on after a leap-off, it launches nearly straight up: 80 degrees. */
-const HIPPOGRYPH_RELEASED = { damage: 6.0, growth: 80.0, base: 30.0, launchX: 0.1736481785774231, launchZ: 0.9848077297210693, electric: false } as const;
 const BEAR_SWIPE_EX = { ...BEAR_SWIPE, damage: f32(BEAR_SWIPE.damage * 1.25) } as const;
-/** A perch waits 4 s for its dive. */
-const HIPPOGRYPH_PERCH_FRAMES = 240;
-/** A dive reaches its archer this many frames after leaving the perch, then flies on. */
-export const HIPPOGRYPH_DIVE_ARRIVAL = 18;
-export const HIPPOGRYPH_DIVE_OVERSHOOT = 6;
 
 export function specialAlreadyHit(owner: Fighter, targetSlot: number): boolean {
   for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) {
@@ -190,58 +174,4 @@ export function advanceBear(world: Roster, ownerSlot: number, stage: number, mat
     }
   }
   if (bear.life <= 0 || bear.x < f32(mainDeckLeft(stage) - 100) || bear.x > f32(mainDeckRight(stage) + 100)) bear.life = 0;
-}
-
-function hippogryphEffect(kind: HippogryphKind): Readonly<HitEffect> {
-  return kind === HippogryphKind.dive ? HIPPOGRYPH_DIVE : kind === HippogryphKind.released ? HIPPOGRYPH_RELEASED : HIPPOGRYPH_STRIKE;
-}
-
-/** A flying hippogryph strikes each target it reaches or passes once, launching it along its flight. */
-function hippogryphContacts(world: Roster, ownerSlot: number, oldX: number): void {
-  const owner = fighterAt(world, ownerSlot);
-  const { hippogryph } = owner;
-  const direction = hippogryph.velocityX < 0 ? -1 : hippogryph.velocityX > 0 ? 1 : owner.facing;
-  for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
-    if (!isActive(world, targetSlot) || targetSlot === ownerSlot) continue;
-    const target = fighterAt(world, targetSlot);
-    if (specialAlreadyHit(owner, targetSlot) || target.status.out || isIntangible(target)) continue;
-    const crossedTarget = f32(f32(target.motion.x - oldX) * direction) >= 0 && f32(f32(target.motion.x - hippogryph.x) * direction) <= 0;
-    if ((crossedTarget || Math.abs(f32(target.motion.x - hippogryph.x)) <= 60) && Math.abs(f32(target.motion.z - hippogryph.z)) <= 100) {
-      recordSpecialHit(owner, targetSlot);
-      applyAttackHit(world, ownerSlot, targetSlot, AttackStyle.jab, direction, hippogryphEffect(hippogryph.kind), false, target.shield.raised, undefined, HitOrigin.summon);
-    }
-  }
-}
-
-/**
- * A mount rides above its archer. A swoop flies ahead, striking, and ends on
- * a perch that waits for a dive; hitting or grabbing the archer scares it
- * away. A dive or a released hippogryph strikes along its flight and leaves.
- */
-export function advanceHippogryph(world: Roster, ownerSlot: number): void {
-  const owner = fighterAt(world, ownerSlot);
-  const { hippogryph } = owner;
-  if (hippogryph.life <= 0) return;
-  hippogryph.life--;
-  if (hippogryph.kind === HippogryphKind.mount) {
-    hippogryph.x = owner.motion.x;
-    hippogryph.z = f32(owner.motion.z + 30);
-  } else if (hippogryph.kind === HippogryphKind.perch) {
-    if (owner.launch.hitstun > 0 || owner.grab.owner !== undefined) hippogryph.life = 0;
-  } else {
-    const oldX = hippogryph.x;
-    hippogryph.x = f32(hippogryph.x + hippogryph.velocityX);
-    hippogryph.z = f32(hippogryph.z + hippogryph.velocityZ);
-    hippogryphContacts(world, ownerSlot, oldX);
-  }
-  if (hippogryph.life > 0) return;
-  if (hippogryph.kind === HippogryphKind.strike) {
-    hippogryph.kind = HippogryphKind.perch;
-    hippogryph.life = HIPPOGRYPH_PERCH_FRAMES;
-    hippogryph.velocityX = 0.0;
-    hippogryph.velocityZ = 0.0;
-    return;
-  }
-  hippogryph.kind = HippogryphKind.none;
-  if (owner.special.action === SpecialAction.archerDisengage) owner.special.hit = false;
 }

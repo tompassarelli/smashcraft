@@ -20,7 +20,7 @@ import { exportComparisons } from "./moveComparisons";
 
 const root = resolve(import.meta.dir, "../..");
 const styleList = [0, 2, 3, 4, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16] as const;
-const charList = [Character.archer, Character.rifleman, Character.demonHunter] as const;
+const charList = [ Character.rifleman, Character.demonHunter] as const;
 const names: Record<number, string> = {
   0: "jab", 2: "up-smash", 3: "down-smash", 4: "forward-smash", 6: "forward-tilt", 7: "up-tilt",
   8: "down-tilt", 9: "forward-tilt-up", 10: "forward-tilt-down", 12: "neutral-air", 13: "forward-air",
@@ -76,7 +76,7 @@ function emitMoves(): void {
     rows.push(json({ kind: "context", schema: 1, roster: ["Archer", "Rifleman", "Demon Hunter"], units: "simulation world units; frames are zero-based attack ticks, excluding charge/hitlag pauses", derivedContext: { preHitPercent: 0, victimWeight: 100, contextScale: 1, shieldStrength: 1, crouching: false, di: "none; launch vector is authored before DI", simultaneousContacts: false }, motionContext: { stage: 0, x: 0, groundStartZ: 0, aerialStartZ: 700, initialVelocity: [0, 0], facing: 1, input: "neutral", contacts: false, chargeFrames: 0 }, conditions: { selection: "lowest contacting region index wins; body capsule intersection or shield intersection", rehit: "one hit per attacker/attack serial/window; a higher window permits another hit", smashCharge: "grounded held attack pauses before first active frame; endpoints exported", start: "beginFighterAttack enforces grounding and canStartAttackStyle; motion fixture starts idle", landing: "aerial landing cancels attack; no autocancel window represented" }, unknown: ["reference corpus mapping", "reachable punishments", "DI/contact/spacing dependent matchup outcomes", "animation-specific hurtboxes", "autocancel windows"], maxChargeFrames: SMASH_MAX_CHARGE_FRAMES }));
   for (const character of charList) for (const style of styleList) {
     if (!names[style]) continue;
-    // Each fighter's own kit, where it has one (Archer's dash attack, Rifleman's ground normals).
+    // Each fighter's own kit, where it has one (the reference body's dash attack, Rifleman's ground normals).
     const moves = authoredTuning(character).moves;
     const charges = isSmashAttack(style) ? [0, SMASH_MAX_CHARGE_FRAMES] : [0];
     for (const charge of charges) {

@@ -46,8 +46,6 @@ const BODY_REACH = melee(BODY_HALF_WIDTH);
 export function bodyTop(character: Character): number {
   switch (character) {
     default:
-    case Character.archer:
-      return 11.15999984741211;
     case Character.rifleman:
       return 13.75;
     case Character.demonHunter:

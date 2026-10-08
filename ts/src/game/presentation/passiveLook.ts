@@ -45,7 +45,6 @@ export function passiveLook(character: Character): PassiveLook {
     case Character.warden: return { ready: PASSIVE_MODELS.trueshot, proc: PASSIVE_MODELS.blink, onVictim: false };
     case Character.rifleman: return { ready: PASSIVE_MODELS.trueshot, proc: PASSIVE_MODELS.longRifle, onVictim: false };
     case Character.tinker: return { proc: PASSIVE_MODELS.longRifle, onVictim: true };
-    case Character.archer: return { ready: PASSIVE_MODELS.trueshot, proc: PASSIVE_MODELS.longRifle, onVictim: true };
     case Character.lich: return { ready: PASSIVE_MODELS.frostArmor, proc: PASSIVE_MODELS.frostProc, onVictim: true };
     case Character.forsakenPaladin: return { ready: PASSIVE_MODELS.devotion, proc: PASSIVE_MODELS.devotion, onVictim: false };
     case Character.dreadlord: return { ready: PASSIVE_MODELS.vampiric, proc: PASSIVE_MODELS.heal, onVictim: false };

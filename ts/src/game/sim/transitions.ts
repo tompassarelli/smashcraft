@@ -5,7 +5,7 @@ import { clearTechInput } from "../physics/techInput";
 import { at } from "wisp/src/runtime/lookup";
 import { mutableProjectile } from "./fighterProjectiles";
 import { max } from "../../runtime/numbers";
-import { AttackStyle, DASH_GRAB_REQUEST, DownState, GrabAction, HippogryphKind, LedgeState, PlatformMove, ProjectileKind, SpecialAction, SurfaceContact } from "./codes";
+import { AttackStyle, DASH_GRAB_REQUEST, DownState, GrabAction, LedgeState, PlatformMove, ProjectileKind, SpecialAction, SurfaceContact } from "./codes";
 import { isTumbling } from "./conditions";
 import { type Fighter, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES } from "./fighter";
 import { clearDash } from "./groundMovement";
@@ -94,7 +94,7 @@ export function cancelAttack(f: Fighter): void {
 
 /** Ends the special action; spawned cover and bears outlive it, a mount does not. */
 export function cancelSpecialState(f: Fighter): void {
-  const { special, hippogryph } = f;
+  const { special } = f;
   // A hero marker that has not become active ends with its interrupted cast.
   if (special.action >= SpecialAction.heroNeutral) {
     for (let index = 0; index < f.projectiles.length; index++) {
@@ -110,16 +110,12 @@ export function cancelSpecialState(f: Fighter): void {
   special.frame = 0;
   special.duration = 0;
   special.lockFrames = 0;
-  if (hippogryph.kind === HippogryphKind.mount) {
-    hippogryph.life = 0;
-    hippogryph.kind = HippogryphKind.none;
-  }
 }
 
 /** Losing a stock removes every special, summon and projectile the fighter owns. */
 export function clearSpecialOnStock(f: Fighter): void {
   cancelSpecialState(f);
-  const { special, bear, hippogryph } = f;
+  const { special, bear } = f;
   special.fall = false;
   special.hit = false;
   bear.life = 0;
@@ -127,8 +123,6 @@ export function clearSpecialOnStock(f: Fighter): void {
   f.placed.life = 0;
   for (const animal of f.pack) animal.life = 0;
   bear.swipeCooldown = 0;
-  hippogryph.life = 0;
-  hippogryph.kind = HippogryphKind.none;
   for (let action = 0; action < special.cooldowns.length; action++) special.cooldowns[action] = 0;
   special.direction = 0;
   bear.x = 0.0;
@@ -137,10 +131,6 @@ export function clearSpecialOnStock(f: Fighter): void {
   bear.velocityZ = 0.0;
   bear.hitSerial = 0;
   bear.surface = undefined;
-  hippogryph.x = 0.0;
-  hippogryph.z = 0.0;
-  hippogryph.velocityX = 0.0;
-  hippogryph.velocityZ = 0.0;
   for (let index = 0; index < f.projectiles.length; index++) {
     const projectile = mutableProjectile(f, index);
     projectile.life = 0;
@@ -227,7 +217,7 @@ export function interruptJumpOrDodge(f: Fighter): void {
   dodge.groundEntryFacing = 0;
 }
 
-/** A hit, grab or ledge catch lets an original fighter use its once-per-airtime specials again (Archer's ride). */
+/** A hit, grab or ledge catch lets an original fighter use its once-per-airtime specials again (the reference body's ride). */
 export function refreshOriginalAirtime(f: Fighter): void {
   if (f.tuning.specials === undefined) f.special.airtimeUses = 0;
 }

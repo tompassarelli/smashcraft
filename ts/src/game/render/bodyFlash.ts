@@ -9,7 +9,6 @@ import { fighterPoseFacing } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { facingYaw, hideEffect, placeEffect, type WorldOrigin } from "./effects";
 import { at } from "wisp/src/runtime/lookup";
-import { archerMounted } from "../presentation/hippogryphPose";
 
 export class BodyFlash {
   private readonly model: effect;
@@ -18,7 +17,7 @@ export class BodyFlash {
   private shown = false;
 
   constructor(private readonly character: Character, private readonly origin: WorldOrigin) {
-    this.model = AddSpecialEffect(at(WHITE_FIGHTER_MODELS, character), origin.x, origin.y);
+    this.model = AddSpecialEffect(WHITE_FIGHTER_MODELS[character] ?? "", origin.x, origin.y);
     BlzSetSpecialEffectAnimationBlendTime(this.model, 0.0);
     BlzSetSpecialEffectAnimation(this.model, "Stand");
     BlzSetSpecialEffectTimeScale(this.model, 0.0);
@@ -26,7 +25,7 @@ export class BodyFlash {
   }
 
   present(fighter: Readonly<Fighter> | undefined, pose: Readonly<FighterPose>, stage: number, frame: number): void {
-    const alpha = fighter === undefined || archerMounted(fighter) ? 0 : whiteGlowAlpha(this.state, fighter, frame);
+    const alpha = fighter === undefined ? 0 : whiteGlowAlpha(this.state, fighter, frame);
     const index = pose.clipIndex ?? originalClipNamed(this.character, pose.clipName);
     const clip = index === undefined ? undefined : originalClip(this.character, index);
     if (fighter === undefined || alpha === 0 || index === undefined || clip === undefined) {

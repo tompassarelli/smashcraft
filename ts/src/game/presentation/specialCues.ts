@@ -12,11 +12,6 @@ import { idiv } from "wisp/src/sim/intMath";
 import { runningHeroSpecial } from "../sim/heroSpecialRules";
 import { HERO_ROSTER } from "../sim/heroes/registry";
 import {
-  ARCHER_DIVE_FORM,
-  ARCHER_ARROW_SHOT_FRAME,
-  ARCHER_DIVE_LAUNCH_FRAME,
-  ARCHER_HOMING_WINDUP_FRAMES,
-  ARCHER_RIDE_HOVER_FRAMES,
   CHAOS_STRIKE_AIR_FORM,
   CHAOS_STRIKE_FIRST,
   CHAOS_STRIKE_FORM,
@@ -260,10 +255,6 @@ const FEL_FLAMES = "Abilities\\Spells\\NightElf\\Immolation\\ImmolationTarget.md
 
 /** The original fighters' specials, by action. */
 export const ORIGINAL_CUES: { readonly [action: number]: MoveCues } = {
-  [SpecialAction.archerArrow]: { spell: "Arrow", startup: cue("Abilities\\Spells\\NightElf\\Starfall\\StarfallTarget.mdx", "hand", 0.5), active: cue("Abilities\\Spells\\NightElf\\FaerieFire\\FaerieFireTarget.mdx", "hand", f32(0.6)) },
-  [SpecialAction.archerHomingArrow]: { spell: "Searing homing arrow", startup: cue("Abilities\\Spells\\NightElf\\MoonWell\\MoonWellCasterArt.mdx", "feet", 1.0), active: cue("Abilities\\Spells\\NightElf\\Starfall\\StarfallTarget.mdx", "hand", f32(0.7)) },
-  [SpecialAction.archerDisengage]: { spell: "Hippogryph call", startup: cue("Abilities\\Spells\\NightElf\\Taunt\\TauntCaster.mdx", "body", 0.5), active: cue("Abilities\\Spells\\NightElf\\Starfall\\StarfallCaster.mdx", "feet", f32(0.4)) },
-  [SpecialAction.archerRecovery]: { spell: "Hippogryph ride", startup: cue("Abilities\\Spells\\NightElf\\Taunt\\TauntCaster.mdx", "body", 0.5), active: cue("Abilities\\Spells\\NightElf\\Tranquility\\TranquilityTarget.mdx", "feet", 0.5) },
   [SpecialAction.riflemanBlaster]: { spell: "Blaster", startup: drawn(RIFLEMAN_MODEL_FILE, "barrel"), active: cue("Abilities\\Weapons\\GyroCopter\\GyroCopterImpact.mdx", "barrel", 0.5) },
   [SpecialAction.riflemanBear]: { spell: "Summon Bear", startup: cue("Abilities\\Spells\\NightElf\\BattleRoar\\RoarTarget.mdx", "body", f32(0.7)), active: cue("Abilities\\Spells\\Orc\\FeralSpirit\\FeralSpiritTarget.mdx", "ahead", f32(0.8)) },
   [SpecialAction.riflemanRecovery]: { spell: "Recoil Shot", startup: cue("Abilities\\Spells\\Human\\FlakCannons\\FlakTarget.mdx", "feet", f32(0.8)), active: cue("Abilities\\Spells\\Other\\Incinerate\\FireLordDeathExplode.mdx", "feet", f32(0.4)) },
@@ -363,9 +354,6 @@ export const ORIGINAL_BRANCH_CUES: { readonly [action: number]: { readonly [form
   [SpecialAction.demonHunterWingAscent]: {
     [DEMONHUNTER_GLIDE_SLASH_FORM]: { cues: branch("Glide slash", FEL_TELL, cue("Abilities\\Spells\\Undead\\Impale\\ImpaleHitTarget.mdx", "ahead", f32(0.8))), first: 1, last: 1 },
   },
-  [SpecialAction.archerDisengage]: {
-    [ARCHER_DIVE_FORM]: { cues: branch("Hippogryph dive", cue("Abilities\\Spells\\NightElf\\Taunt\\TauntCaster.mdx", "body", 0.5), cue("Abilities\\Weapons\\DruidOfTheTalonMissile\\DruidOfTheTalonMissile.mdx", "feet", 1.0)), first: ARCHER_DIVE_LAUNCH_FRAME, last: ARCHER_DIVE_LAUNCH_FRAME },
-  },
   [SpecialAction.riflemanRecovery]: {
     [RIFLEMAN_SECOND_SHOT_FORM]: { cues: branch("Second recoil shot", cue("Abilities\\Spells\\Human\\FlakCannons\\FlakTarget.mdx", "feet", f32(0.8)), cue("Abilities\\Weapons\\SteamTank\\SteamTankImpact.mdx", "feet", 1.0)), first: RIFLEMAN_SECOND_SHOT_FIRST, last: RIFLEMAN_SECOND_SHOT_LAST },
   },
@@ -416,10 +404,6 @@ export function heroCueWindows(move: Readonly<AuthoredSpecial>, minimumActive = 
 /** The frame an original special releases or starts its effect, by action. */
 function originalActiveFrame(action: number, grounded: boolean): number {
   switch (action) {
-    case SpecialAction.archerArrow: return ARCHER_ARROW_SHOT_FRAME;
-    case SpecialAction.archerHomingArrow: return ARCHER_HOMING_WINDUP_FRAMES;
-    case SpecialAction.archerDisengage: return ARCHER_DIVE_LAUNCH_FRAME;
-    case SpecialAction.archerRecovery: return ARCHER_RIDE_HOVER_FRAMES;
     case SpecialAction.riflemanBlaster: return grounded ? RIFLEMAN_BLASTER_GROUND_SHOT_FRAME : RIFLEMAN_BLASTER_AIR_SHOT_FRAME;
     case SpecialAction.riflemanBear: return RIFLEMAN_BEAR_CAST_FRAMES;
     case SpecialAction.riflemanRecovery: return RIFLEMAN_RECOVERY_STARTUP_FRAMES;
@@ -477,7 +461,6 @@ export function specialCueState(fighter: Readonly<Fighter>): CueState {
 
 /** The original fighters' special actions. */
 const ORIGINAL_ACTIONS: { readonly [character: number]: readonly SpecialAction[] } = {
-  [Character.archer]: [SpecialAction.archerArrow, SpecialAction.archerHomingArrow, SpecialAction.archerDisengage, SpecialAction.archerRecovery],
   [Character.rifleman]: [SpecialAction.riflemanBlaster, SpecialAction.riflemanBear, SpecialAction.riflemanRecovery, SpecialAction.riflemanTrap],
   [Character.demonHunter]: [SpecialAction.demonHunterManaBurn, SpecialAction.demonHunterFelRush, SpecialAction.demonHunterWingAscent, SpecialAction.demonHunterImmolate],
 };
@@ -513,7 +496,7 @@ export function fighterBranchCues(character: Character): readonly MoveCues[] {
 /** Every model a cue draws itself, every fighter's. */
 export function allCueModels(): readonly string[] {
   const models: string[] = [];
-  const characters: readonly Character[] = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(({ character }) => character)];
+  const characters: readonly Character[] = [ Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(({ character }) => character)];
   for (const character of characters) for (const cue of fighterCueList(character)) if (cue.drawn !== true && !models.includes(cue.model)) models.push(cue.model);
   return models;
 }
