@@ -3,6 +3,7 @@ import { unlink } from 'node:fs/promises';
 import { Effect } from 'effect';
 import { encodeVerified, fighters, hash, parseSource, tracks } from './original-clips';
 import { timelineBody } from './timeline-body';
+import { thinKeys } from '../../ts/scripts/keyThin';
 import { flashableSequences } from './white-flash-keys';
 import { modelFacts } from '../../ts/node_modules/wisp/scripts/wisp/models';
 import { MODEL_FACTS } from '../../ts/scripts/wisp/modelFacts';
@@ -15,7 +16,8 @@ if (!relative(resolve(import.meta.dir, '../..'), output).startsWith('..')) throw
 const fighter = fighters.find(fighter => fighter.name === fighterName);
 if (fighter === undefined) throw new Error(`Unknown fighter ${fighterName}`);
 await Effect.runPromise(Effect.tryPromise({ try: async () => {
-    const source = parseSource(await Bun.file(join(assets, fighter.source)).arrayBuffer());
+    // The same key thinning the clip pool was cut with (#314).
+    const source = thinKeys(parseSource(await Bun.file(join(assets, fighter.source)).arrayBuffer())).model;
     const played = flashableSequences(fighters.indexOf(fighter), source.Sequences);
     const bytes = encodeVerified(timelineBody(source, played));
     tracks(parseSource(bytes), (track, path) => {

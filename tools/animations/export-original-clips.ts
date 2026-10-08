@@ -17,6 +17,7 @@ import {mkdirSync} from 'node:fs';
 import {fighters, ensure, hash, parseSource, encodeVerified, tracks, verifyPreservedBody, removeBodyEffects,
     originalBodyClip, splitStaticLights, staticLightGate, onGlobalClock} from './original-clips';
 import {misplacedNodes} from '../../ts/scripts/clipNodes';
+import {KEY_BOUND, savedKeyBytes, thinKeys, type KeyThinReport} from '../../ts/scripts/keyThin';
 
 const project = resolve(import.meta.dir, '../..');
 const option = (name: string) => { const index = process.argv.indexOf(name); return index < 0 ? undefined : process.argv[index + 1]; };
@@ -28,14 +29,17 @@ const assets = resolve(assetsOption), output = resolve(outputOption);
 ensure(relative(project, output).startsWith('..'), 'Clips derive from the original models: write them outside the checkout');
 const metadataOnly = process.argv.includes('--metadata-only');
 const keepUnchanged = process.argv.includes('--keep-unchanged');
+// --only A,B exports just those fighters' clips and evidence, for parallel exports merged by a later --keep-unchanged run.
+const only = option('--only')?.split(',');
 const retained = metadataOnly || keepUnchanged ? await Bun.file(join(output, 'original-clips-evidence.json')).json() : null;
 const moduleClips: string[][] = [], moduleNames: string[][] = [], moduleLights: (string | null)[] = [];
 const clipLiteral = (modelPath: string, interval: readonly number[], looping: boolean, timeline = false) =>
     `{ modelPath: ${JSON.stringify(modelPath)}, startSeconds: ${seconds(Number((interval[0] / 1000).toFixed(3)))}, endSeconds: ${seconds(Number((interval[1] / 1000).toFixed(3)))}, looping: ${looping}${timeline ? ", timeline: true" : ""} },`;
-const records = [];
+const records = [], keyThinRows: string[] = [];
 let totalBytes = 0, theoreticalFullSourceBytes = 0, theoreticalUntrimmedBodyBytes = 0;
 const started = performance.now();
 for (const fighter of fighters) {
+    if (only !== undefined && !only.includes(fighter.name)) continue;
     const sourcePath = join(assets, fighter.source);
     if (fighter.stock !== undefined && !await Bun.file(sourcePath).exists()) {
         ensure(extractor !== undefined && storage !== undefined, `${fighter.name}: ${sourcePath} is missing; pass --extractor and --storage to extract ${fighter.stock}`);
@@ -44,14 +48,18 @@ for (const fighter of fighters) {
         ensure(run.exitCode === 0, `${fighter.name}: extracting ${fighter.stock} failed: ${run.stderr.toString().trim()}`);
     }
     const bytes = await Bun.file(join(assets, fighter.source)).arrayBuffer();
-    const sourceSha256 = hash(bytes), source = parseSource(bytes);
+    const sourceSha256 = hash(bytes), original = parseSource(bytes);
     const retainedRecord = retained?.records.find((record: {fighter: string}) => record.fighter === fighter.name);
-    if (metadataOnly) ensure(retainedRecord?.sourceSha256 === sourceSha256, `${fighter.name}: retained clips have a different source`);
-    const reuse = metadataOnly || (keepUnchanged && retainedRecord?.sourceSha256 === sourceSha256);
+    const retainedThin = isDeepStrictEqual(retainedRecord?.keyThin?.bound, KEY_BOUND);
+    if (metadataOnly) ensure(retainedRecord?.sourceSha256 === sourceSha256 && retainedThin, `${fighter.name}: retained clips have a different source or key bound`);
+    const reuse = metadataOnly || (keepUnchanged && retainedThin && retainedRecord?.sourceSha256 === sourceSha256);
+    // Clips are cut from the source with redundant transform keys removed (#314).
+    const thin = reuse ? {model: original, report: retainedRecord.keyThin.report as KeyThinReport} : thinKeys(original);
+    const source = thin.model;
     // An additive recovery pass leaves old clips unchanged. Admit the cache
     // only when removing its identity helper/suffix reconstructs the exact
     // previously exported input bytes; changed base art takes the full path.
-    const base = !reuse && keepUnchanged && retainedRecord ? attackGestureBaseModel(source) ?? swordGestureBaseModel(source) ?? locomotionBaseModel(source) ?? pounceBaseModel(source) ?? wardenFanBaseModel(source) ?? pitLordSpecialBaseModel(source) ?? jumpBaseModel(source) ?? downAirBaseModel(source) ?? grabBaseModel(source) ?? drillBaseModel(source) ?? damageBaseModel(source) ?? recoveryBaseModel(source) : undefined;
+    const base = !reuse && keepUnchanged && retainedThin && retainedRecord ? attackGestureBaseModel(original) ?? swordGestureBaseModel(original) ?? locomotionBaseModel(original) ?? pounceBaseModel(original) ?? wardenFanBaseModel(original) ?? pitLordSpecialBaseModel(original) ?? jumpBaseModel(original) ?? downAirBaseModel(original) ?? grabBaseModel(original) ?? drillBaseModel(original) ?? damageBaseModel(original) ?? recoveryBaseModel(original) : undefined;
     const reusePrefix = base && hash(generateMDX(base)) === retainedRecord.sourceSha256 ? base.Sequences.length : 0;
     if (reusePrefix) console.log(`${fighter.name}: exact base SHA retained, exporting ${source.Sequences.length - reusePrefix} added clips`);
     const components = splitStaticLights(source);
@@ -77,7 +85,7 @@ for (const fighter of fighters) {
     theoreticalFullSourceBytes += bytes.byteLength * source.Sequences.length;
     theoreticalUntrimmedBodyBytes += untrimmedBytes * source.Sequences.length;
     const clips = [];
-    let fighterBytes = light?.bytes ?? 0;
+    let fighterBytes = light?.bytes ?? 0, unthinnedBytes = light?.bytes ?? 0;
     const fighterClips: string[] = [];
     const countedClips = new Set<string>();
     moduleClips.push(fighterClips);
@@ -93,6 +101,7 @@ for (const fighter of fighters) {
             clips.push(clip);
             if (!countedClips.has(clip.filename)) {
                 fighterBytes += clip.bytes;
+                unthinnedBytes += clip.unthinnedBytes;
                 countedClips.add(clip.filename);
             }
             continue;
@@ -134,9 +143,11 @@ for (const fighter of fighters) {
         const filename = `${fighter.name}OriginalClip${index}-${sha256}.mdx`;
         const modelPath = `war3mapImported\\${filename}`;
         await Bun.write(join(output, 'imports/war3mapImported', filename), encoded);
+        const clipUnthinnedBytes = encoded.byteLength + savedKeyBytes(original, source, result.interval);
         fighterBytes += encoded.byteLength;
+        unthinnedBytes += clipUnthinnedBytes;
         fighterClips.push(clipLiteral(modelPath, result.interval, result.looping));
-        clips.push({...stats, filename, modelPath, sha256, bytes: encoded.byteLength});
+        clips.push({...stats, filename, modelPath, sha256, bytes: encoded.byteLength, unthinnedBytes: clipUnthinnedBytes});
     }
     // Names without a numeric variant choose the first authored variant. This
     // makes rollback selection stable; native random variant parity is separate.
@@ -150,8 +161,11 @@ for (const fighter of fighters) {
     ensure(hash(await Bun.file(join(assets, fighter.source)).arrayBuffer()) === sourceSha256, `${fighter.name}: source changed during export`);
     totalBytes += fighterBytes;
     records.push({fighter: fighter.name, source: fighter.source, sourceSha256, sourceBytes: bytes.byteLength,
-        untrimmedSelectedBodyBytes: untrimmedBytes, bytes: fighterBytes, trackFamilies,
+        untrimmedSelectedBodyBytes: untrimmedBytes, bytes: fighterBytes, unthinnedBytes, keyThin: {bound: KEY_BOUND, report: thin.report}, trackFamilies,
         omittedTrackFamilies: reuse ? retainedRecord.omittedTrackFamilies : [...omittedTrackFamilies], light, clips});
+    const r = thin.report;
+    keyThinRows.push([fighter.name, r.keysBefore, r.keysAfter, unthinnedBytes, fighterBytes, r.maxPosition.toFixed(4), r.maxRotationDegrees.toFixed(4)].join('\t'));
+    console.log(`${fighter.name}: keys ${r.keysBefore} -> ${r.keysAfter}, ${unthinnedBytes - fighterBytes} bytes saved (${unthinnedBytes} -> ${fighterBytes}), max ${r.maxPosition.toFixed(3)} units, ${r.maxRotationDegrees.toFixed(3)} deg`);
     console.log(`${fighter.name}: ${clips.length} clips, ${fighterBytes} bytes; ${reuse ? 'retained source/clip hashes' : 'exact original-key and MDX checks'} PASS`);
 }
 const lightCases = moduleLights.flatMap((path, character) => path === null ? [] : [`  if (character === ${character}) return ${JSON.stringify(path)};`]);
@@ -204,7 +218,9 @@ const typescript = [
     '  return NAMED[character]?.get(name);',
     '}',
 ];
-await Bun.write(join(project, 'ts/src/game/assets/fighterOriginalClipInfo.ts'), typescript.join('\n') + '\n');
+if (only === undefined) await Bun.write(join(project, 'ts/src/game/assets/fighterOriginalClipInfo.ts'), typescript.join('\n') + '\n');
+if (only === undefined) await Bun.write(join(project, 'ts/test/fixtures/key-thin.tsv'), ['# Generated by tools/animations/export-original-clips.ts: each fighter\'s clip keys and bytes before and after key thinning (#314), and the posed skeleton\'s largest drift.',
+    'fighter\tkeysBefore\tkeysAfter\tbytesBefore\tbytesAfter\tmaxPosition\tmaxRotationDegrees', ...keyThinRows].join('\n') + '\n');
 if (!metadataOnly) await Bun.write(join(output, 'original-clips-evidence.json'), JSON.stringify({
     status: 'full-roster-structural-checks-pass-static-light-visibility-gate-native-pending',
     policy: 'Out-of-interval keys and emptied animation chunks removed; retained keys, order, tangents, interpolation, sequence flags and times unchanged. Required original static backing retained. Zero-key chunks require an explicit diagnostic mode. Global-clock tracks kept whole; unsupported empty-channel backing semantics rejected. Events, particles and ribbons omitted. Independent static lights extracted once per fighter with original illumination and remapped node/pivot tables; reversible visibility gate added. Animated or parented lights rejected.',
