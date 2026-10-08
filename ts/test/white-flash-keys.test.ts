@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { model as mdx } from "war3-model";
-import { keepFlashableKeys, preservesFlashKey } from "../../tools/animations/white-flash-keys";
+import { keepFlashableKeys, preservesFlashKey, trimFlashTracks } from "../../tools/animations/white-flash-keys";
 
 const sequence: mdx.Sequence = {
   Name: "Attack", Interval: new Uint32Array([100, 200]), NonLooping: true,
@@ -37,4 +37,13 @@ test("white flash removes constant linear keys while preserving the held pose an
   keepFlashableKeys(animation, [sequence]);
   expect(animation.Keys.map(key => key.Frame)).toEqual([100, 200]);
   for (const key of original.slice(1, 4)) expect(preservesFlashKey(animation, key)).toBe(true);
+});
+
+test("white flash removes a track whose keys all lie outside flashable clips, because Warcraft crashes loading an empty track [repro #284]", () => {
+  // Peon's attachment visibility keys only outside his flashable clips crashed every match he joined.
+  const hidden: mdx.AnimVector = { LineType: mdx.LineType.DontInterp, GlobalSeqId: -1, Keys: [{ Frame: 20, Vector: new Float32Array([0]) }, { Frame: 300, Vector: new Float32Array([1]) }] };
+  const attachment = { Name: "Weapon", Visibility: hidden, Translation: track() };
+  trimFlashTracks({ Attachments: [attachment], Nodes: [attachment] }, [sequence]);
+  expect("Visibility" in attachment).toBe(false);
+  expect(attachment.Translation.Keys.map(key => key.Frame)).toEqual([100, 150, 200]);
 });

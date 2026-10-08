@@ -3,7 +3,11 @@
 // strikes, with both clients agreeing throughout.
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
+import { bossDefinition } from "../src/game/classic/bosses";
 import { classicRoute } from "../src/game/classic/routes";
+import { extremeCamera } from "../src/game/presentation/arenaCamera";
+import { MATCH_CAMERA_ASPECT, createMatchCamera } from "../src/game/sim/matchCamera";
+import { MAIN_DECK_HALF_DEPTH } from "../scripts/stageDeck";
 import { BossKind } from "../src/game/classic/runState";
 import { Phase } from "../src/game/match/rules";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
@@ -76,4 +80,31 @@ test("-dev classic boss starts Archimonde's battle on Nordrassil on both clients
     })).toEqual([Phase.match, BossKind.archimonde, 10, Character.archer, true]);
   }
   expectSynchronized(clients);
+});
+
+test("every boss's whole drawn body stands behind the deck and inside the view at both camera extremes, wherever its strikes move it [repro #284]", () => {
+  // Natively Archimonde stood in front of the fighters and the Lich King and Kil'jaeden drew off the top of the screen.
+  const tilt = Math.PI / 18;
+  for (const kind of [BossKind.archimonde, BossKind.lichKing, BossKind.kiljaeden]) {
+    const boss = bossDefinition(kind);
+    if (boss === undefined) throw new Error(`missing boss ${kind}`);
+    const { min, max } = boss.drawn;
+    // The body is turned a quarter right to face the camera: model x points toward the viewer (-y), model y along +x.
+    const corners = boss.strikes.flatMap(({ x }) => [min[0], max[0]].flatMap(forward => [min[1], max[1]].flatMap(side => [min[2], max[2]].map(up =>
+      [x + boss.scale * side, boss.depth - boss.scale * forward, boss.standZ + boss.scale * up] as const))));
+    for (const [, y] of corners) expect(y, `${boss.name} behind the deck`).toBeGreaterThan(MAIN_DECK_HALF_DEPTH);
+    for (const extreme of ["near", "far"] as const) {
+      const camera = createMatchCamera();
+      extremeCamera(camera, boss.stage, MATCH_CAMERA_ASPECT, extreme);
+      for (const [x, y, z] of corners) {
+        const depth = camera.distance + y * Math.cos(tilt) - (z - camera.z) * Math.sin(tilt);
+        const column = 0.5 + (x - camera.x) / (2 * depth * camera.tangent * MATCH_CAMERA_ASPECT);
+        const row = 0.5 - (y * Math.sin(tilt) + (z - camera.z) * Math.cos(tilt)) / (2 * depth * camera.tangent);
+        expect(column, `${boss.name} ${extreme}`).toBeGreaterThan(0.05);
+        expect(column, `${boss.name} ${extreme}`).toBeLessThan(0.95);
+        expect(row, `${boss.name} ${extreme} top`).toBeGreaterThan(0.05);
+        expect(row, `${boss.name} ${extreme}`).toBeLessThan(1);
+      }
+    }
+  }
 });

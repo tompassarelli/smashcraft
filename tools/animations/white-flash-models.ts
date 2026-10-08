@@ -7,7 +7,7 @@ import { modelFacts } from "../../ts/node_modules/wisp/scripts/wisp/models";
 import { headlessRender } from "../../ts/scripts/wisp/headlessRender";
 import { IMPORTED_MODEL_FILES } from "../../ts/src/game/assets/importedModelInfo";
 import { renumberNodes } from "../../ts/scripts/clipNodes";
-import { flashableSequences, keepFlashableKeys, preservesFlashKey } from "./white-flash-keys";
+import { flashableSequences, preservesFlashKey, trimFlashTracks } from "./white-flash-keys";
 import { MODEL_FACTS } from "../../ts/scripts/wisp/modelFacts";
 import { whiteModelFactsSource } from "../../ts/scripts/wisp/whiteModelFactsSource";
 import { WHITE_FIGHTER_MODELS } from "../../ts/src/game/assets/whiteFighterModels";
@@ -91,7 +91,7 @@ for (const [character, fighter] of fighters.entries()) {
     }
     track.Keys = [...keys, ...added].sort((a, b) => a.Frame - b.Frame);
   });
-  tracks(model, track => keepFlashableKeys(track, sequences));
+  trimFlashTracks(model, sequences);
   model.Sequences = [{ ...sequence, Name: "Stand", Interval: new Uint32Array([0, lastFrame]), NonLooping: true }];
   removeBodyEffects(model);
   model.Lights = [];
@@ -127,7 +127,10 @@ for (const [character, fighter] of fighters.entries()) {
     if (!isDeepStrictEqual(hierarchy(decoded[key]), hierarchy(original[key]))) throw new Error(`${fighter.name}: white overlay changed ${key} hierarchy`);
   }
   const decodedTracks = new Map<string, mdx.AnimVector>();
-  tracks(decoded, (track, path) => decodedTracks.set(path, track));
+  tracks(decoded, (track, path) => {
+    if (track.Keys.length === 0) throw new Error(`${fighter.name}: white overlay left ${path} without keys`);
+    decodedTracks.set(path, track);
+  });
   tracks(original, (track, path) => {
     if (!/^\.(Bones|Helpers)\./.test(path)) return;
     const kept = decodedTracks.get(path);

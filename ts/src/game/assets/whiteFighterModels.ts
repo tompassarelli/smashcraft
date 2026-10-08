@@ -10,16 +10,16 @@ export const WHITE_FIGHTER_MODELS: readonly string[] = [
   "war3mapImported\\ForsakenPaladinWhite-2cf8bb48a71e296e060f8fa148ffb910d32f7ea344b78d616c4e9358971775d4.mdx",
   "war3mapImported\\DreadlordWhite-3235f558ac560625b6d16948ed45b709277e54908d3082b9fa465396563bbc0b.mdx",
   "war3mapImported\\ShadowHunterWhite-6babaf54b99ccec7fca04c384162c1d3e69ac609b1413bde6435d8961bcff6a0.mdx",
-  "war3mapImported\\PitLordWhite-556cfdcd7f3afe92b030fe59b5b44abcc057a203fc73b3dfce4eb5ddd3485a4e.mdx",
+  "war3mapImported\\PitLordWhite-9237e6ad85ea0cf77325da0e05e83d8f1d822f90f0112c551c9727229894f565.mdx",
   "war3mapImported\\BeastmasterWhite-15b2d61c3beb00d5efcd19ff4b2c5d9f78c6701110a8be8f9c99dbaec85f9f2d.mdx",
   "war3mapImported\\LichKingWhite-a16ceeed09605d40c93b3115bf29bb1dabe99127f4e1d4ffd1045f2c18af4ae0.mdx",
   "war3mapImported\\ThrallWhite-41212047b06ce5bb5cc39cadf3c89ac1a25ab1705f822c6d72dba29736665b7c.mdx",
   "war3mapImported\\JainaProudmooreWhite-aad7b9552a8f2c7a91aff46ee20bb796f3ed66323ea9668c1637772410e01825.mdx",
   "war3mapImported\\SylvanasWindrunnerWhite-ee42a9723beb9fbdda001a563ed21b2b11982c5d61d28d9dc8b3d2d76443107f.mdx",
   "war3mapImported\\CairneBloodhoofWhite-0d5aadbb03a96d712236d7ef667a6aeaba25f1e2e53ad273d21db75e43e51592.mdx",
-  "war3mapImported\\ChenStormstoutWhite-003f44ffba8bd138dfa873b0ffeede083d413120cb0fa6bc1a5e951d8e117c12.mdx",
-  "war3mapImported\\PeonWhite-a0521b910cff476c2f22a8ba9142ad91f87e9f31610c03c91cf0c638f651c2c0.mdx",
+  "war3mapImported\\ChenStormstoutWhite-415cb3c8a6538cacbc22cff573d4affd99acadcb10cb4fa604c16eff3495d2be.mdx",
+  "war3mapImported\\PeonWhite-2b75c00ae6b2a58e8b23ed153d3cebc07e619a517d7080229b11ae4737c01084.mdx",
   "war3mapImported\\GoblinTinkerWhite-22ff99a0a01fae555cd84b29acd72ebd7bf42d8c2b34d8ef14146196c5d3c5d6.mdx",
-  "war3mapImported\\KaelthasSunstriderWhite-1b2a31a66d29a3790f35ee7e57e0c12faea6e1094e3527d70675988f90129571.mdx",
-  "war3mapImported\\MurlocWhite-8cedb7766cee6ec23429e8b2a7f13522b171fbf9fefac4c2c2a37a64933318f2.mdx"
+  "war3mapImported\\KaelthasSunstriderWhite-1c566a70c15cc15f0f512b3251a49454705c31ecf6c43fe2f1cb445c94fbf4cf.mdx",
+  "war3mapImported\\MurlocWhite-9f5a31abfdca348c872e41e00e89a367d2d4eafca99ede0a26057634164497c5.mdx"
 ];

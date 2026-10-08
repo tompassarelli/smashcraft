@@ -14,8 +14,6 @@ import { type ParkedFlags, type WorldOrigin, parkOnce } from "./effects";
 
 /** Strike art per zone; no strike has more zones than this. */
 const ZONE_EFFECTS = 4;
-/** The boss stands this far behind the fighters' plane, so it never covers them. */
-const BOSS_DEPTH = 260.0;
 const QUARTER_TURN = f32(1.5707963);
 const PANEL_TEXTURE = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp";
 
@@ -68,7 +66,7 @@ export class ClassicPresentation {
     if (boss === undefined) return;
     this.boss = boss;
     const { x, y, z } = this.origin;
-    this.body = AddSpecialEffect(boss.model, x, y + BOSS_DEPTH);
+    this.body = AddSpecialEffect(boss.model, x, y + boss.depth);
     BlzSetSpecialEffectScale(this.body, boss.scale);
     BlzSetSpecialEffectColor(this.body, boss.tint[0], boss.tint[1], boss.tint[2]);
     BlzSetSpecialEffectYaw(this.body, -QUARTER_TURN);
@@ -79,7 +77,7 @@ export class ClassicPresentation {
     for (let index = 0; index < ZONE_EFFECTS * 2; index++) this.parked[index] = false;
     this.lastStrike = -1;
     this.lastPhase = BossPhase.opening;
-    BlzSetSpecialEffectPosition(this.body, x, y + BOSS_DEPTH, z + 300.0);
+    BlzSetSpecialEffectPosition(this.body, x, y + boss.depth, z + boss.standZ);
   }
 
   /** When the match ends: the boss and its art go. */
@@ -98,9 +96,9 @@ export class ClassicPresentation {
     const { boss, body } = this;
     if (boss === undefined || body === undefined || game.phase !== Phase.match || game.run.boss.kind === BossKind.none) return;
     const clock = bossClock(game.matchFrame, game.startHold);
-    const { x, z } = bossPosition(boss, clock);
     const { origin } = this;
-    BlzSetSpecialEffectPosition(body, origin.x + x, origin.y + BOSS_DEPTH, origin.z + z - 120.0);
+    // The body follows the strike's hover sideways only; its height stays where its drawn box fits the view.
+    BlzSetSpecialEffectPosition(body, origin.x + bossPosition(boss, clock).x, origin.y + boss.depth, origin.z + boss.standZ);
     const flash = game.run.boss.flash > 0;
     BlzSetSpecialEffectColor(body, flash ? 255 : boss.tint[0], flash ? 90 : boss.tint[1], flash ? 90 : boss.tint[2]);
     const now = bossMoment(boss, clock, moment);

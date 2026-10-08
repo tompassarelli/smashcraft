@@ -74,6 +74,27 @@ export function keepFlashableKeys(track: mdx.AnimVector, sequences: readonly mdx
   });
 }
 
+/**
+ * Trims every animated track to the flashable clips. A track left with no keys
+ * is removed, so the channel holds its static default: Warcraft 3.0.1 crashes
+ * loading a model with an empty track (#284).
+ */
+export function trimFlashTracks(value: unknown, sequences: readonly mdx.Sequence[]): void {
+  if (typeof value !== "object" || value === null || ArrayBuffer.isView(value)) return;
+  const owner = value as Record<string, unknown>;
+  // Nodes aliases Bones, Helpers and the rest; visiting it would trim each node twice.
+  for (const [name, child] of Object.entries(owner)) {
+    if (name === "Nodes" || typeof child !== "object" || child === null) continue;
+    if (!("Keys" in child) || !Array.isArray(child.Keys)) {
+      trimFlashTracks(child, sequences);
+      continue;
+    }
+    const track = child as mdx.AnimVector;
+    keepFlashableKeys(track, sequences);
+    if (track.Keys.length === 0) delete owner[name];
+  }
+}
+
 export function preservesFlashKey(track: mdx.AnimVector | undefined, key: mdx.AnimKeyframe): boolean {
   if (track === undefined) return false;
   if (track.Keys.some(item => isDeepStrictEqual(item, key))) return true;

@@ -181,24 +181,6 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/pitlordwhite-556cfdcd7f3afe92b030fe59b5b44abcc057a203fc73b3dfce4eb5ddd3485a4e.mdx": {
-    "geosets": 5,
-    "triangles": 705,
-    "lights": 0,
-    "bounds": {
-      "min": [
-        -254.47000122070312,
-        -258.81500244140625,
-        -132.87399291992188
-      ],
-      "max": [
-        288.1029968261719,
-        196.4770050048828,
-        688.5919799804688
-      ]
-    },
-    "emitters": []
-  },
   "war3mapimported/beastmasterwhite-15b2d61c3beb00d5efcd19ff4b2c5d9f78c6701110a8be8f9c99dbaec85f9f2d.mdx": {
     "geosets": 7,
     "triangles": 681,
@@ -289,24 +271,6 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/chenstormstoutwhite-003f44ffba8bd138dfa873b0ffeede083d413120cb0fa6bc1a5e951d8e117c12.mdx": {
-    "geosets": 7,
-    "triangles": 607,
-    "lights": 0,
-    "bounds": {
-      "min": [
-        -188.97000122070312,
-        -167.5469970703125,
-        -73.79879760742188
-      ],
-      "max": [
-        319.62701416015625,
-        242.29600524902344,
-        751.739013671875
-      ]
-    },
-    "emitters": []
-  },
   "war3mapimported/goblintinkerwhite-22ff99a0a01fae555cd84b29acd72ebd7bf42d8c2b34d8ef14146196c5d3c5d6.mdx": {
     "geosets": 24,
     "triangles": 2412,
@@ -321,42 +285,6 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
         256.92999267578125,
         264.24798583984375,
         366.3789978027344
-      ]
-    },
-    "emitters": []
-  },
-  "war3mapimported/kaelthassunstriderwhite-1b2a31a66d29a3790f35ee7e57e0c12faea6e1094e3527d70675988f90129571.mdx": {
-    "geosets": 9,
-    "triangles": 603,
-    "lights": 0,
-    "bounds": {
-      "min": [
-        -208.4720001220703,
-        -139.51699829101562,
-        -16.336200714111328
-      ],
-      "max": [
-        155.91799926757812,
-        131.17999267578125,
-        644.5029907226562
-      ]
-    },
-    "emitters": []
-  },
-  "war3mapimported/murlocwhite-8cedb7766cee6ec23429e8b2a7f13522b171fbf9fefac4c2c2a37a64933318f2.mdx": {
-    "geosets": 3,
-    "triangles": 384,
-    "lights": 0,
-    "bounds": {
-      "min": [
-        -99.72979736328125,
-        -55.29079818725586,
-        -42.34320068359375
-      ],
-      "max": [
-        141.2010040283203,
-        103.33699798583984,
-        171.29800415039062
       ]
     },
     "emitters": []
@@ -379,7 +307,43 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/peonwhite-a0521b910cff476c2f22a8ba9142ad91f87e9f31610c03c91cf0c638f651c2c0.mdx": {
+  "war3mapimported/pitlordwhite-9237e6ad85ea0cf77325da0e05e83d8f1d822f90f0112c551c9727229894f565.mdx": {
+    "geosets": 5,
+    "triangles": 705,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -254.47000122070312,
+        -258.81500244140625,
+        -132.87399291992188
+      ],
+      "max": [
+        288.1029968261719,
+        196.4770050048828,
+        688.5919799804688
+      ]
+    },
+    "emitters": []
+  },
+  "war3mapimported/chenstormstoutwhite-415cb3c8a6538cacbc22cff573d4affd99acadcb10cb4fa604c16eff3495d2be.mdx": {
+    "geosets": 7,
+    "triangles": 607,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -188.97000122070312,
+        -167.5469970703125,
+        -73.79879760742188
+      ],
+      "max": [
+        319.62701416015625,
+        242.29600524902344,
+        751.739013671875
+      ]
+    },
+    "emitters": []
+  },
+  "war3mapimported/peonwhite-2b75c00ae6b2a58e8b23ed153d3cebc07e619a517d7080229b11ae4737c01084.mdx": {
     "geosets": 5,
     "triangles": 372,
     "lights": 0,
@@ -393,6 +357,42 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
         96.0802001953125,
         77.04409790039062,
         135.59800720214844
+      ]
+    },
+    "emitters": []
+  },
+  "war3mapimported/kaelthassunstriderwhite-1c566a70c15cc15f0f512b3251a49454705c31ecf6c43fe2f1cb445c94fbf4cf.mdx": {
+    "geosets": 9,
+    "triangles": 603,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -208.4720001220703,
+        -139.51699829101562,
+        -16.336200714111328
+      ],
+      "max": [
+        155.91799926757812,
+        131.17999267578125,
+        644.5029907226562
+      ]
+    },
+    "emitters": []
+  },
+  "war3mapimported/murlocwhite-9f5a31abfdca348c872e41e00e89a367d2d4eafca99ede0a26057634164497c5.mdx": {
+    "geosets": 3,
+    "triangles": 384,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -99.72979736328125,
+        -55.29079818725586,
+        -42.34320068359375
+      ],
+      "max": [
+        141.2010040283203,
+        103.33699798583984,
+        171.29800415039062
       ]
     },
     "emitters": []

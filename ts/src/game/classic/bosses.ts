@@ -51,6 +51,11 @@ export interface BossDefinition {
   readonly model: string;
   readonly scale: number;
   readonly tint: readonly [number, number, number];
+  /** The model's drawn box while it stands, in model units (x forward, z up), from its visible geosets' vertices. */
+  readonly drawn: Readonly<{ min: readonly [number, number, number]; max: readonly [number, number, number] }>;
+  /** Where the body stands from the stage origin: this far behind the fighters' plane and this high, so the whole drawn box sits behind the deck inside both camera extremes. */
+  readonly depth: number;
+  readonly standZ: number;
   /** Health at Rookie; each tier above adds BOSS_HEALTH_PER_TIER. */
   readonly health: number;
   /** The boss's hurt circle around its hover point. */
@@ -61,6 +66,11 @@ export interface BossDefinition {
   readonly hitArt: string;
   readonly intro: string;
 }
+
+/** Warlock.mdx: body geosets 0-2 and its ground ring 3-4. */
+const WARLOCK_DRAWN = { min: [-135.0, -127.0, 0.0], max: [118.0, 127.0, 145.0] } as const;
+/** LichKing2.mdx: every geoset, Frostmourne reaching forward to x 143. */
+const LICH_KING_DRAWN = { min: [-35.0, -45.0, 0.0], max: [143.0, 45.0, 161.0] } as const;
 
 /** Frames between GO! and the boss's first tell. */
 export const BOSS_OPENING_FRAMES = 90;
@@ -77,7 +87,7 @@ const band = (left: number, right: number, bottom: number, top: number): BossZon
 /** Frost: a column at the player, a low sweep to jump over, then a cleave across each half in turn. */
 const LICH_KING: BossDefinition = {
   kind: BossKind.lichKing, name: "The Lich King", stage: 2,
-  model: "war3mapImported\\LichKing2.mdx", scale: f32(3.2), tint: [190, 220, 255],
+  model: "war3mapImported\\LichKing2.mdx", scale: f32(2.6), tint: [190, 220, 255], drawn: LICH_KING_DRAWN, depth: 480.0, standZ: -20.0,
   health: 210, radius: 120.0, tellArt: "Abilities\\Spells\\Undead\\FrostNova\\FrostNovaTarget.mdx", hitArt: "Abilities\\Spells\\Human\\Blizzard\\BlizzardTarget.mdx",
   intro: "Champions of Azeroth. Kneel before the Frozen Throne.",
   strikes: [
@@ -92,7 +102,7 @@ const LICH_KING: BossDefinition = {
 /** Fire: two staggered rains of fire, a Finger of Death at the player, then a ground shockwave to jump. */
 const ARCHIMONDE: BossDefinition = {
   kind: BossKind.archimonde, name: "Archimonde", stage: 10,
-  model: "Units\\Demon\\Warlock\\Warlock.mdx", scale: f32(2.6), tint: [255, 255, 255],
+  model: "Units\\Demon\\Warlock\\Warlock.mdx", scale: f32(2.2), tint: [255, 255, 255], drawn: WARLOCK_DRAWN, depth: 400.0, standZ: -60.0,
   health: 240, radius: 130.0, tellArt: "Abilities\\Spells\\Human\\MarkOfChaos\\MarkOfChaosTarget.mdx", hitArt: "Abilities\\Spells\\Other\\Incinerate\\FireLordDeathExplode.mdx",
   intro: "The World Tree will burn, and your little tournament with it.",
   strikes: [
@@ -106,7 +116,7 @@ const ARCHIMONDE: BossDefinition = {
 /** Shadow: three Shadow Spikes at the player, Legion Lightning across the air, then Darkness around himself. */
 const KILJAEDEN: BossDefinition = {
   kind: BossKind.kiljaeden, name: "Kil'jaeden", stage: 7,
-  model: "Units\\Demon\\Warlock\\Warlock.mdx", scale: f32(2.8), tint: [255, 120, 150],
+  model: "Units\\Demon\\Warlock\\Warlock.mdx", scale: f32(2.4), tint: [255, 120, 150], drawn: WARLOCK_DRAWN, depth: 420.0, standZ: -60.0,
   health: 270, radius: 130.0, tellArt: "Abilities\\Spells\\Undead\\DeathAndDecay\\DeathAndDecayTarget.mdx", hitArt: "Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilSpecialArt.mdx",
   intro: "Illidan failed me. You will not even be a disappointment.",
   strikes: [
