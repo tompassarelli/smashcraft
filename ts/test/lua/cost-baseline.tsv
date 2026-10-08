@@ -82,7 +82,6 @@ src/game/presentation/fighterClips.tests.ts	22	0.021
 src/game/presentation/fighterPlacement.tests.ts	2	0.107
 src/game/presentation/fighterPose.tests.ts	8	0.314
 src/game/presentation/heroStrikeMoments.tests.ts	2	0.002
-src/game/presentation/hippogryphPose.tests.ts	4	0.000
 src/game/presentation/hitPresentation.tests.ts	2	0.002
 src/game/presentation/hurtVoice.tests.ts	2	0.000
 src/game/presentation/illidanCues.tests.ts	3	0.000
@@ -129,8 +128,6 @@ src/game/shell/stageLoad.tests.ts	1	0.000
 src/game/sim/actionLocks.tests.ts	19	0.086
 src/game/sim/analogAirDrift.tests.ts	1	0.103
 src/game/sim/analogShield.tests.ts	8	0.002
-src/game/sim/archerArrow.tests.ts	4	0.133
-src/game/sim/archerSpecials.tests.ts	12	0.069
 src/game/sim/dashDance.tests.ts	6	1.584
 src/game/sim/demonHunterContracts.tests.ts	11	0.017
 src/game/sim/directionalInfluence.tests.ts	17	0.003

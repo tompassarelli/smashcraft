@@ -2,7 +2,6 @@ unit	tests	cpu_s
 scripts/agency.tests.ts	3	1.928
 scripts/agencyClearance.tests.ts	1	4.422
 scripts/airDrift.tests.ts	3	2.889
-scripts/archerHomingArrow.tests.ts	5	2.315
 scripts/balance.tests.ts	6	1.514
 scripts/comboExplorer.tests.ts	1	0.339
 scripts/comboTrees.tests.ts	2	0.015
@@ -89,7 +88,6 @@ src/game/presentation/fighterClips.tests.ts	21	0.002
 src/game/presentation/fighterPlacement.tests.ts	2	0.026
 src/game/presentation/fighterPose.tests.ts	8	0.190
 src/game/presentation/heroStrikeMoments.tests.ts	2	0.002
-src/game/presentation/hippogryphPose.tests.ts	4	0.001
 src/game/presentation/hitPresentation.tests.ts	2	0.003
 src/game/presentation/hurtVoice.tests.ts	2	0.001
 src/game/presentation/illidanCues.tests.ts	3	0.000
@@ -135,8 +133,6 @@ src/game/shell/stageLoad.tests.ts	1	0.000
 src/game/sim/actionLocks.tests.ts	19	0.047
 src/game/sim/analogAirDrift.tests.ts	1	0.037
 src/game/sim/analogShield.tests.ts	8	0.002
-src/game/sim/archerArrow.tests.ts	4	0.072
-src/game/sim/archerSpecials.tests.ts	12	0.022
 src/game/sim/dashDance.tests.ts	6	0.344
 src/game/sim/demonHunterContracts.tests.ts	11	0.012
 src/game/sim/directionalInfluence.tests.ts	17	0.004
@@ -250,7 +246,6 @@ test/escape-meter.test.ts	2	1.597
 test/fourFighters.test.ts	3	0.018
 test/game-boundary.test.ts	1	0.012
 test/game.test.ts	1445	1.382
-test/hippogryph-render.test.ts	3	1.366
 test/home-stages.test.ts	1	0.003
 test/host-tools.test.ts	2	0.299
 test/input-stall.test.ts	1	1.583

@@ -17,7 +17,7 @@ test("comparison preflight requires the consumer's View export without changing 
   }
   const pads = join(import.meta.dir, "native", "pads");
   const scripts = [
-    ...["rifleman", "illidan", "rifleman"].map((name) => join(pads, "156", `${name}.pad`)),
+    ...["rifleman-shared", "illidan", "rifleman"].map((name) => join(pads, "156", `${name}.pad`)),
     ...readdirSync(join(pads, "163")).filter((name) => name.endsWith(".pad")).map((name) => join(pads, "163", name)),
   ];
   for (const path of scripts) {

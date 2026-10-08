@@ -3,7 +3,6 @@ import { stageBounds } from "./stageBounds";
 // executor; these contracts retain that interaction through recovery and stocks.
 // Air dodges, ground dodges and blast zones.
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
-import { heroBody } from "./heroes/heroBodies";
 import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character } from "./codes";
@@ -380,8 +379,8 @@ test("a spot dodge starts at frame one, stays in place and uses provisional inta
   assertEquals(fighter.jump.remaining, jumpsBefore);
 });
 
-test("a roll has bounded, locked motion and turns before its recovery ends [spec docs/gameplay-design.md] [spec docs/physics.md]", () => {
-  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
+test("Rifleman’s roll has bounded, locked motion and turns before its recovery ends [spec docs/gameplay-design.md] [spec docs/physics.md]", () => {
+  const fighter = createReferenceFighter(Character.rifleman, 0.0, 1);
   fighter.motion.surface = 0;
   const input = controls({ shield: true, groundDodgePressed: true, groundDodgeDirection: 1, direction: -1 });
   advanceSolo(fighter, 0, input, -240.0);
@@ -395,7 +394,7 @@ test("a roll has bounded, locked motion and turns before its recovery ends [spec
   advanceSolo(fighter, 0, input, -240.0);
   assertTrue(isIntangible(fighter));
   for (let frame = GROUND_ROLL_INTANGIBLE_START + 1; frame <= GROUND_ROLL_FRAMES; frame++) advanceSolo(fighter, 0, input, -240.0);
-  assertNear(fighter.motion.x, f32(201.60000610351562 * (heroBody(fighter.character)?.run ?? 1.0)), 0.00009999999747378752);
+  assertNear(fighter.motion.x, 231.0, 0.00009999999747378752);
   assertEquals(fighter.facing, -1);
   assertTrue(fighter.motion.grounded);
   assertEquals(fighter.dodge.groundFrame, GROUND_ROLL_FRAMES);
