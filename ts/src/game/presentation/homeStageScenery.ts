@@ -25,7 +25,8 @@ export const TOMB_OF_SARGERAS_SCENERY: StageScenery = {
   fog: { start: 5000.0, end: 11000.0, red: 0.25, green: 0.4375, blue: 0.46875 },
   pieces: [
     { model: "Buildings\\Naga\\TempleOfTides\\TempleOfTides.mdx", x: 1600.0, y: 6400.0, z: -1400.0, scale: 1.25, yaw: 250.0 },
-    { model: "Doodads\\Terrain\\CliffDoodad\\Waterfall\\Waterfall.mdx", x: -2200.0, y: 4800.0, z: -900.0, scale: 4.0, yaw: 270.0 },
+    // The waterfall stays between the left ledge and centre at both camera extremes, its pool hidden behind the deck body.
+    { model: "Doodads\\Terrain\\CliffDoodad\\Waterfall\\Waterfall.mdx", x: -1500.0, y: 5600.0, z: -450.0, scale: 3.5, yaw: 270.0 },
     { model: "Doodads\\Ruins\\Structures\\SRuinArch\\SRuinArch.mdx", x: -1500.0, y: 3600.0, z: -1350.0, scale: 2.0, yaw: 15.0 },
     { model: "Doodads\\Ruins\\Water\\Coral\\Coral0.mdx", x: -1700.0, y: 2500.0, z: -1250.0, scale: 2.0, yaw: 300.0 },
     { model: "Doodads\\Ruins\\Rocks\\Ruins_Spires\\Ruins_Spires0.mdx", x: 2300.0, y: 2700.0, z: -1400.0, scale: 2.0, yaw: 140.0 },
