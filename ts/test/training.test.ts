@@ -24,7 +24,7 @@ import { expectSynchronized, shows, value } from "./rematch/playableMatch";
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
 
-const RESET_FRAME = 150;
+const RESET_FRAME = 60;
 const BOTH_SHIELDS = bit(Action.leftTrigger) | bit(Action.rightTrigger);
 
 test("training settings agree on both clients and both shields with attack reset the match on both [spec #120] [invariant]", () => {
@@ -77,7 +77,7 @@ test("training settings agree on both clients and both shields with attack reset
       return [game.phase, fighterAt(world, 2).status.damage, Math.abs(fighterAt(world, 0).motion.x - matchSpawnX(0)) < 5.0, fighterAt(world, 1).motion.x];
     })).toEqual([Phase.match, 40, true, matchSpawnX(1)]);
   }
-  frames(60);
+  until("partner raises its shield after reset", () => read(() => fighterAt(shell().world, 2).shield.raised), 60);
   expect(read(() => shell().game.phase)).toBe(Phase.match);
   expect(read(() => fighterAt(shell().world, 2).shield.raised)).toBe(true);
   expectSynchronized(clients);
@@ -90,7 +90,7 @@ test("-dev quick training starts a training match with a shielding partner at 40
   clients.start();
   frames(30);
   clients.chat(0, QUICK_TRAINING_COMMAND);
-  frames(240);
+  for (let frame = 0; frame < 240 && !value(clients.client(0), () => shell().game.phase === Phase.match); frame++) frames(1);
   for (const client of clients.clients) {
     expect(client.errors).toEqual([]);
     expect(value(client, () => {

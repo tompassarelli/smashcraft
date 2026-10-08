@@ -76,16 +76,12 @@ test("the homing arrow flies straight once its target is behind it [spec #112]",
 
 for (const [character, name] of DEFENDERS) {
   test(`the homing arrow hits a standing ${name}, a shield blocks it and a timed jump avoids it [spec #112]`, () => {
-    const report: string[] = [];
     for (const spacing of SPACINGS) {
       const standing = fired(character, spacing, "stand");
       expect(standing.hit).toBe(true);
       expect(fired(character, spacing, "shield").shield).toBe(true);
-      const dodges = JUMP_PRESSES.filter((press) => !fired(character, spacing, press).hit);
-      expect(dodges.length).toBeGreaterThan(0);
+      expect(JUMP_PRESSES.some((press) => !fired(character, spacing, press).hit)).toBe(true);
       for (let late = 1; late <= LATE_JUMP_FRAMES; late++) expect(fired(character, spacing, standing.frame - late).hit).toBe(true);
-      report.push(`${spacing}: ${dodges.length}/${JUMP_PRESSES.length} jump presses dodge, ${dodges[0]! - FIRE}-${dodges.at(-1)! - FIRE} after the press`);
     }
-    console.log(`${name}: ${report.join("; ")}`);
   }, 60000);
 }
