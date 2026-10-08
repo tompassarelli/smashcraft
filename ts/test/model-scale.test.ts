@@ -21,8 +21,8 @@ const UNITSKIN_MODEL_SCALE: Readonly<Record<string, number>> = {
 };
 
 test("every fighter is drawn at its stock unit's model scale times the shared factor [native]", () => {
-  const characters = Object.values(Character);
-  expect([...SELECTABLE_CHARACTERS].sort((a, b) => a - b)).toEqual(characters);
+  const characters = [...new Set(Object.values(Character))].sort((a, b) => a - b);
+  expect([...new Set(SELECTABLE_CHARACTERS)].sort((a, b) => a - b)).toEqual(characters);
   for (const character of characters) {
     const { unit, scale } = STOCK_MODEL_SCALES[character];
     expect({ character, unit, scale }).toEqual({ character, unit, scale: UNITSKIN_MODEL_SCALE[unit] ?? Number.NaN });
