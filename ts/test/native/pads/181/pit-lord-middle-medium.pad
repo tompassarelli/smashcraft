@@ -22,5 +22,7 @@
 180 b capture
 200 a press VIEW
 270 a release VIEW
+290 a capture
+290 b capture
 #! expect a 150 damage 8.000 hitlag 5 hitstun 40 height 1 strength 1 clip 38
 #! expect b 150 damage 8.000 hitlag 5 hitstun 40 height 1 strength 1 clip 38

@@ -1,0 +1,28 @@
+# #181: interrupted jab, contact, entry dissolve, held pain and release in both facings.
+#! chat -dev pain high medium kael'thas sunstrider
+146 a tap A 2
+146 b tap A 2
+149 a capture
+149 b capture
+150 a capture
+150 b capture
+151 a capture
+151 b capture
+153 a capture
+153 b capture
+154 a capture
+154 b capture
+155 a capture
+155 b capture
+159 a capture
+159 b capture
+165 a capture
+165 b capture
+180 a capture
+180 b capture
+200 a press VIEW
+270 a release VIEW
+290 a capture
+290 b capture
+#! expect a 150 damage 8.000 hitlag 5 hitstun 40 height 2 strength 1 clip 90
+#! expect b 150 damage 8.000 hitlag 5 hitstun 40 height 2 strength 1 clip 90
