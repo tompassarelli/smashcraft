@@ -105,7 +105,7 @@ export const victoryMusic = (winner: Character | undefined): string | undefined 
  * the line it says when chosen where the unit has no Ready line (a campaign hero),
  * and its battle cry where it has no Warcry line (a creep).
  */
-const VOICES: Readonly<Record<Character, readonly [string, string, string?, string?]>> = {
+const VOICES: Readonly<Record<Exclude<Character, Character.medivh>, readonly [string, string, string?, string?]>> = {
   1: ["Units\\Human\\Rifleman\\", "Rifleman"],
   2: ["Units\\NightElf\\HeroDemonHunter\\", "HeroDemonHunter"],
   3: ["Units\\Orc\\HeroBladeMaster\\", "HeroBladeMaster"],
@@ -126,7 +126,6 @@ const VOICES: Readonly<Record<Character, readonly [string, string, string?, stri
   18: ["Units\\Orc\\Peon\\","Peon"],
   19: ["Units\\Creeps\\HeroTinker\\","HeroTinker"],
   20: ["Units\\Human\\Kael\\","Kael"],
-  25: ["Units\\Creeps\\Medivh\\", "Medivh", "What"],
   21: ["Units\\Creeps\\Murloc\\", "Murloc", "Ready", "YesAttack"],
   26: ["Units\\Creeps\\Kobold\\", "Kobold", "What", "YesAttack"],
   22: ["Units\\Orc\\Hellscream\\", "Grom"],
@@ -134,6 +133,7 @@ const VOICES: Readonly<Record<Character, readonly [string, string, string?, stri
 };
 
 function voice(character: Character, line: string): string {
+  if (character === Character.medivh) return `Sound\\Dialogue\\TutorialCampaign\\Tutorial01\\T01Medivh${line === "Ready" ? "02" : "59"}.flac`;
   const [directory, prefix, ready, warcry] = VOICES[character];
   const spoken = line === "Ready" ? ready ?? line : line === "Warcry" ? warcry ?? line : line;
   return `${directory}${prefix}${spoken}1.flac`;
