@@ -147,6 +147,11 @@ export interface Journal {
   readonly chatSerial: Slots<number>;
   readonly barrier: PauseBarrier;
   readonly editbox: EditboxIngress | undefined;
+  /**
+   * Edit box rows taken out of the box in order while a pause round waits for
+   * the acknowledgment typed after them; they are admitted before the box's next text.
+   */
+  readonly setAside: string[];
   mailbox: KeyboardMailbox | undefined;
 }
 
@@ -324,7 +329,7 @@ function journal(ingress: JournalIngress, editbox: EditboxIngress | undefined): 
     ingress, source: undefined, failed: false, outgoing: new OutgoingInput(), readyMask: 0, keyboardMask: 0, readyWait: 0, keys,
     keyClock: 0, keyStop: undefined, keyAnswered: undefined, keyPacket: { epoch: 0, firstFrame: 1, rows: [keys.row] }, startSent: false, lifecycle: undefined,
     endSent: false, endReceived: false, quiescent: false, chatRequested: [false, false, false, false], chatSerial: [0, 0, 0, 0],
-    barrier: pauseBarrier(), editbox, mailbox: undefined,
+    barrier: pauseBarrier(), editbox, setAside: [], mailbox: undefined,
   };
 }
 

@@ -1,0 +1,354 @@
+{
+  "cases": [
+    {
+      "name": "2: Electric hit",
+      "fixture": "82-effects",
+      "script": 4,
+      "lines": [
+        {
+          "name": "visible cue",
+          "metric": "pixels",
+          "frames": [
+            62,
+            68
+          ],
+          "baseline": 80,
+          "region": [
+            0.44,
+            0.36,
+            0.58,
+            0.72
+          ],
+          "min": 1000,
+          "tolerance": 20,
+          "borderline": 100
+        }
+      ]
+    },
+    {
+      "name": "4: Slash spark",
+      "fixture": "82-effects",
+      "script": 4,
+      "lines": [
+        {
+          "name": "visible cue",
+          "metric": "pixels",
+          "frames": [
+            122,
+            128
+          ],
+          "baseline": 140,
+          "region": [
+            0.44,
+            0.36,
+            0.58,
+            0.72
+          ],
+          "min": 1000,
+          "tolerance": 20,
+          "borderline": 100
+        }
+      ]
+    },
+    {
+      "name": "5: Ice spark",
+      "fixture": "82-effects",
+      "script": 4,
+      "lines": [
+        {
+          "name": "visible cue",
+          "metric": "pixels",
+          "frames": [
+            182,
+            188
+          ],
+          "baseline": 200,
+          "region": [
+            0.44,
+            0.36,
+            0.58,
+            0.72
+          ],
+          "min": 1000,
+          "tolerance": 20,
+          "borderline": 100
+        }
+      ]
+    },
+    {
+      "name": "6: Shield hit",
+      "fixture": "82-effects",
+      "script": 4,
+      "lines": [
+        {
+          "name": "visible cue",
+          "metric": "pixels",
+          "frames": [
+            242,
+            248
+          ],
+          "baseline": 260,
+          "region": [
+            0.44,
+            0.36,
+            0.58,
+            0.72
+          ],
+          "min": 1000,
+          "tolerance": 20,
+          "borderline": 100
+        }
+      ]
+    },
+    {
+      "name": "7: Electric shield",
+      "fixture": "82-effects",
+      "script": 4,
+      "lines": [
+        {
+          "name": "visible cue",
+          "metric": "pixels",
+          "frames": [
+            302,
+            308
+          ],
+          "baseline": 320,
+          "region": [
+            0.44,
+            0.36,
+            0.58,
+            0.72
+          ],
+          "min": 1000,
+          "tolerance": 20,
+          "borderline": 100
+        }
+      ]
+    },
+    {
+      "name": "9: Shield break",
+      "fixture": "82-effects",
+      "script": 4,
+      "lines": [
+        {
+          "name": "visible cue",
+          "metric": "pixels",
+          "frames": [
+            362,
+            368
+          ],
+          "baseline": 380,
+          "region": [
+            0.44,
+            0.36,
+            0.58,
+            0.72
+          ],
+          "min": 1000,
+          "tolerance": 20,
+          "borderline": 100
+        }
+      ]
+    },
+    {
+      "name": "11: Floor tech",
+      "fixture": "82-effects",
+      "script": 4,
+      "lines": [
+        {
+          "name": "visible cue",
+          "metric": "pixels",
+          "frames": [
+            422,
+            428
+          ],
+          "baseline": 440,
+          "region": [
+            0.44,
+            0.36,
+            0.58,
+            0.72
+          ],
+          "min": 1000,
+          "tolerance": 20,
+          "borderline": 100
+        }
+      ]
+    },
+    {
+      "name": "12: Wall tech",
+      "fixture": "82-effects",
+      "script": 4,
+      "lines": [
+        {
+          "name": "visible cue",
+          "metric": "pixels",
+          "frames": [
+            482,
+            488
+          ],
+          "baseline": 500,
+          "region": [
+            0.44,
+            0.36,
+            0.58,
+            0.72
+          ],
+          "min": 1000,
+          "tolerance": 20,
+          "borderline": 100
+        }
+      ]
+    },
+    {
+      "name": "13: Ceiling tech",
+      "fixture": "82-effects",
+      "script": 4,
+      "lines": [
+        {
+          "name": "visible cue",
+          "metric": "pixels",
+          "frames": [
+            542,
+            548
+          ],
+          "baseline": 560,
+          "region": [
+            0.44,
+            0.36,
+            0.58,
+            0.72
+          ],
+          "min": 1000,
+          "tolerance": 20,
+          "borderline": 100
+        }
+      ]
+    },
+    {
+      "name": "14: Ledge catch",
+      "fixture": "82-effects",
+      "script": 4,
+      "lines": [
+        {
+          "name": "visible cue",
+          "metric": "pixels",
+          "frames": [
+            602,
+            608
+          ],
+          "baseline": 620,
+          "region": [
+            0.44,
+            0.36,
+            0.58,
+            0.72
+          ],
+          "min": 1000,
+          "tolerance": 20,
+          "borderline": 100
+        }
+      ]
+    },
+    {
+      "name": "15: Ledge dust",
+      "fixture": "82-effects",
+      "script": 4,
+      "lines": [
+        {
+          "name": "visible cue",
+          "metric": "pixels",
+          "frames": [
+            662,
+            668
+          ],
+          "baseline": 680,
+          "region": [
+            0.44,
+            0.36,
+            0.58,
+            0.72
+          ],
+          "min": 1000,
+          "tolerance": 20,
+          "borderline": 100
+        }
+      ]
+    },
+    {
+      "name": "24: Double jump",
+      "fixture": "82-effects",
+      "script": 4,
+      "lines": [
+        {
+          "name": "visible cue",
+          "metric": "pixels",
+          "frames": [
+            722,
+            728
+          ],
+          "baseline": 740,
+          "region": [
+            0.44,
+            0.36,
+            0.58,
+            0.72
+          ],
+          "min": 1000,
+          "tolerance": 20,
+          "borderline": 100
+        }
+      ]
+    },
+    {
+      "name": "25: Wall jump",
+      "fixture": "82-effects",
+      "script": 4,
+      "lines": [
+        {
+          "name": "visible cue",
+          "metric": "pixels",
+          "frames": [
+            782,
+            788
+          ],
+          "baseline": 800,
+          "region": [
+            0.44,
+            0.36,
+            0.58,
+            0.72
+          ],
+          "min": 1000,
+          "tolerance": 20,
+          "borderline": 100
+        }
+      ]
+    },
+    {
+      "name": "26: Landing",
+      "fixture": "82-effects",
+      "script": 4,
+      "lines": [
+        {
+          "name": "visible cue",
+          "metric": "pixels",
+          "frames": [
+            842,
+            848
+          ],
+          "baseline": 860,
+          "region": [
+            0.44,
+            0.36,
+            0.58,
+            0.72
+          ],
+          "min": 1000,
+          "tolerance": 20,
+          "borderline": 100
+        }
+      ]
+    }
+  ]
+}

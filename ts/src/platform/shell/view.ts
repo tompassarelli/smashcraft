@@ -5,7 +5,7 @@
 import { archerMounted } from "../../game/presentation/hippogryphPose";
 import { MATCH_HELP_BOX, MATCH_NOTICE_BOX } from "../../game/ui/hudLayout";
 import { CryDecision, createCryGate, cryStandIn, gateCry } from "../../game/presentation/hurtVoice";
-import { deckModel } from "../../game/presentation/stagePreload";
+import { deckModel, texturedPlatforms } from "../../game/presentation/stagePreload";
 import { type PlatformPart, platformParts } from "../../game/presentation/stockPlatforms";
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
@@ -39,6 +39,7 @@ import { localParticipantSlot, traceParticipant } from "./diagnostics";
 import { placeFighterBody, renderDizzy } from "./fighterBody";
 import { type ShellState, type StatusFrames, activeRollback, localSlot, playsOnKeyboard } from "./state";
 import { pauseEffects, views } from "./ui";
+import { loreClears } from "../../game/classic/loreClears";
 import { drawStageScenery } from "./stageScenery";
 import { probeCamera, probeWaiting } from "./responseProbe";
 
@@ -131,7 +132,7 @@ export function drawStage(s: ShellState): void {
     const deck = AddSpecialEffect(deckModel(stage, index), x, origin.y);
     const z = origin.z + surfaceZ(stage, index, stageFrame);
     BlzSetSpecialEffectPosition(deck, x, origin.y, z);
-    const parts = platformParts(stage, index);
+    const parts = texturedPlatforms(stage) ? [] : platformParts(stage, index);
     if (parts.length > 0) {
       // Stock platforms: the first part stands in for the slab and the rest dress it.
       for (const [order, part] of parts.entries()) {
@@ -262,6 +263,7 @@ export function renderPersistentPresentation(s: ShellState): void {
     BlzSetSpecialEffectColor(s.stageCannon, 255, firing ? 70 : 255, firing ? 40 : 255);
   }
   const ui = views(s);
+  ui.classic?.present(game);
   ui.combat.present(runtime.impacts, runtime.simulationFrame, s.runtime.impacts, playing);
   for (const slot of PARTICIPANT_SLOTS) {
     const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
@@ -394,6 +396,9 @@ export function renderUi(s: ShellState): void {
   ui.clock.update(showMatch && timedMatch(game), remainingSeconds(game));
   ui.items.hud(game, showMatch);
   ui.training.update(showMatch && game.training && game.phase === Phase.match, game.trainer);
+  ui.classic?.updateCard(game);
+  const cleared = game.lore && game.phase === Phase.result && game.run.active && game.run.cleared ? game.run.current : undefined;
+  if (cleared !== undefined && localSlot() === game.run.player) loreClears().mark(cleared.id);
   const { help, notice, developer } = s.frames;
   BlzFrameSetVisible(help, showMatch);
   BlzFrameSetVisible(notice, showMatch);

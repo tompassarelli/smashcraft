@@ -2,7 +2,7 @@ import { assertEquals, test } from "wisp/src/runtime/testing";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { stageScenery } from "../presentation/stageScenery";
 import { f32 } from "wisp/src/sim/f32";
-import { STAGE_DECK_PALETTES, luma } from "./stagePalette";
+import { STAGE_DECK_PALETTES, STAGE_PALETTE, luma, type PlatformMaterialSet } from "./stagePalette";
 
 // smashcraft:docs/design/stage-art.md, rule 10.
 test("every selectable stage has its own deck palette [spec docs/design/stage-art.md]", () => {
@@ -11,6 +11,29 @@ test("every selectable stage has its own deck palette [spec docs/design/stage-ar
   }
   const tops = STAGE_DECK_PALETTES.map(({ palette }) => palette.top.join(","));
   assertEquals(new Set(tops).size, tops.length, "two stages share a deck top");
+  const completeSets: string[] = [];
+  const names: string[] = [];
+  for (const { stage, theme, palette, materials } of STAGE_DECK_PALETTES) {
+    const name = STAGE_CATALOG.find(entry => entry.id === stage)?.name ?? theme;
+    assertEquals(materials !== undefined, true, `${name}: uses the default flat material`);
+    if (materials === undefined) continue;
+    if (stage !== 0) assertEquals(palette.top.some((channel, i) => Math.abs(channel - (STAGE_PALETTE.slate[i] ?? 0)) > 10), true, `${name}: uses default grey`);
+    const signature: string[] = [];
+    const sets: readonly PlatformMaterialSet[] = [materials, materials.platform, materials.alternatePlatform ?? materials.platform];
+    for (const set of sets) {
+      for (const part of ["top", "lip", "body", "underside"] as const) {
+        const material = set[part];
+        assertEquals(material.texture.endsWith(".blp"), true, `${name}: ${part} is not textured`);
+        signature.push(material.texture, (material.crop ?? []).join(","));
+      }
+      signature.push((set.tint ?? palette.top).join(","));
+    }
+    signature.push(palette.top.join(","), palette.lip.join(","), palette.body.join(","), palette.underside.join(","));
+    const key = signature.join("|");
+    const previous = completeSets.indexOf(key);
+    assertEquals(previous, -1, `${name}: shares its complete deck/platform material set with ${names[previous] ?? "another stage"}`);
+    completeSets.push(key); names.push(name);
+  }
 });
 
 test("each deck's top stands apart from its fog in value and its body is darker than its top [spec docs/design/stage-art.md]", () => {

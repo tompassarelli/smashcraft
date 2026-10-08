@@ -10,7 +10,7 @@ import { type ParticipantSlot, isParticipantSlot } from "../../game/input/partic
 import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/playerKeys";
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
 import { Phase, cancelRematchCountdown, characterFor, firstHumanSlot, humanActive, leaveMatch, recallCharacter, selectCharacter } from "../../game/match/rules";
-import { DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchPair, quickMatchStage, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../game/shell/devSettings";
+import { classicDevRequest, loreDevRequest, DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchPair, quickMatchStage, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../game/shell/devSettings";
 import { fighterName } from "../../game/sim/heroes/registry";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { endReplaySegment } from "./replays";
@@ -31,7 +31,8 @@ import { Key } from "./keyEvents";
 import { startBodyFit } from "./bodyFit";
 import { startAgencyFixture } from "./agencyFixture";
 import { clearVisualCapture, configureVisualCapture } from "../../game/shell/visualCapture";
-import { back, choose, confirm, openSettingsScreen, resetToStartingSelection, startQuickMatch } from "./menus";
+import { back, choose, confirm, openSettingsScreen, resetToStartingSelection, startDevClassic, startDevLore, startQuickMatch } from "./menus";
+import { LORE_BATTLES } from "../../game/classic/loreBattles";
 import { makePreview } from "./preview";
 import { exportProbe, probeIntegrity, probeRecording, startProbe } from "./responseProbe";
 import { type ShellState, activeRollback, cancelPendingPlaytest, localSlot, playsOnKeyboard } from "./state";
@@ -245,7 +246,15 @@ export function applyDeveloperCommand(s: ShellState, actor: number, original: st
   // Session setup (sessionSetup.ts) changes the menus only for its own spellings.
   const setup = applySetupCommand(s.game, actor, message);
   if (setup === `dev: stage ${s.game.stageChoice}` && s.game.phase === Phase.characterMenu) s.dev.stageChoice = s.game.stageChoice;
-  if (message === QUICK_TRAINING_COMMAND) {
+  const classic = classicDevRequest(message);
+  const lore = loreDevRequest(message, LORE_BATTLES.length);
+  if (lore !== undefined) {
+    receipt = `dev: lore ${lore}`;
+    startDevLore(s, lore);
+  } else if (classic !== undefined) {
+    receipt = `dev: classic ${fighterName(classic.character)}${classic.boss ? " boss" : ""}`;
+    startDevClassic(s, classic.character, classic.boss);
+  } else if (message === QUICK_TRAINING_COMMAND) {
     receipt = "dev: quick training";
     prepareQuickTraining(s.game);
     startQuickMatch(s, 0);

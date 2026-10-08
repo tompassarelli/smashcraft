@@ -242,7 +242,7 @@ for (const style of [AttackStyle.forwardTilt, AttackStyle.jab, AttackStyle.jab2,
   // Prefer a pose that peaks inside the active frames; allow the two-frame slack only when none does.
   selection: for (const slack of [0, 2]) for (const activeRoot of [0, 20, -20, 40, -40, 60, -60])
     for (const activeChest of [action.gesture.chest ?? 0, 20, -20, 40, -40, 60, -60, 80, -80, 100, -100])
-      for (const recoilRoot of [60, -60, 30, -30, 0, 80, -80]) {
+      for (const recoilRoot of [60, -60, 30, -30, 0, 80, -80, 120, -120, 160, -160]) {
         set(rootKeys, rootBase, activeRoot, recoilRoot);
         set(chestKeys, chestBase, activeChest, 35);
         for (const [i, key] of translation.entries()) {
@@ -258,8 +258,7 @@ for (const style of [AttackStyle.forwardTilt, AttackStyle.jab, AttackStyle.jab2,
           if (key.InTan) { key.InTan = root.Translation!.LineType === mdx.LineType.Bezier ? key.Vector.slice() : new Float32Array(3); key.OutTan = key.InTan.slice(); }
         }
         const row = measureDrawnReach(new DrawnModel(generateMDX(model), characterModelScale(21)), 21, style);
-        // Gates scaled to his body, about 0.6 of the roster's height.
-        if (row.swing < 18 || row.peakFrame < row.firstActive - slack || row.peakFrame > row.lastActive + slack) continue;
+        if (row.swing < 30 || row.peakFrame < row.firstActive - slack || row.peakFrame > row.lastActive + slack) continue;
         if (style === AttackStyle.forwardTilt && row.forward < 45) continue;
         if ((style === AttackStyle.jab || style === AttackStyle.jab2) && row.forward >= tiltForward) continue;
         selected = row;

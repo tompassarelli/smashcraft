@@ -118,26 +118,32 @@ function optionStart(d: Duel, option: Option, horizon: number): number | undefin
   return undefined;
 }
 
-test("after a parried hit every grounded option starts on the first actionable frame, pressed during the freeze [spec #102]", () => {
-  for (const character of SELECTABLE_CHARACTERS) {
-    const name = fighterName(character);
-    const late = jabOnShield(character, 0).contact;
-    for (const option of OPTIONS) {
-      const parry = jabOnShield(character, late - 1);
-      const defender = defenderOf(parry.duel);
-      assertEquals(defender.visuals.shieldReflect, 1, `${name}: the jab is parried`);
-      assertEquals(defender.shield.stun, 0, `${name}: no shieldstun`);
-      const freeze = defender.launch.hitlag;
-      assertEquals(freeze > 1, true, `${name}: the parried hit freezes`);
-      // The freeze's last frame is the first the defender can act on.
-      assertEquals(optionStart(parry.duel, option, 40), parry.contact + freeze, `${name} ${option.name} out of a parry`);
-      const block = jabOnShield(character, 0);
-      const blocked = defenderOf(block.duel);
-      assertEquals(blocked.shield.stun > 0, true, `${name}: an ordinary block has shieldstun`);
-      const start = optionStart(block.duel, option, 40);
-      assertEquals(start === undefined || start > block.contact + freeze, true, `${name} ${option.name} waits out shieldstun after a block`);
-    }
+function checkParriedHit(character: Character): void {
+  const name = fighterName(character);
+  const late = jabOnShield(character, 0).contact;
+  for (const option of OPTIONS) {
+    const parry = jabOnShield(character, late - 1);
+    const defender = defenderOf(parry.duel);
+    assertEquals(defender.visuals.shieldReflect, 1, `${name}: the jab is parried`);
+    assertEquals(defender.shield.stun, 0, `${name}: no shieldstun`);
+    const freeze = defender.launch.hitlag;
+    assertEquals(freeze > 1, true, `${name}: the parried hit freezes`);
+    // The freeze's last frame is the first the defender can act on.
+    assertEquals(optionStart(parry.duel, option, 40), parry.contact + freeze, `${name} ${option.name} out of a parry`);
+    const block = jabOnShield(character, 0);
+    const blocked = defenderOf(block.duel);
+    assertEquals(blocked.shield.stun > 0, true, `${name}: an ordinary block has shieldstun`);
+    const start = optionStart(block.duel, option, 40);
+    assertEquals(start === undefined || start > block.contact + freeze, true, `${name} ${option.name} waits out shieldstun after a block`);
   }
+}
+
+test("after a parried hit every grounded option starts on the first actionable frame, pressed during the freeze [spec #102]", () => {
+  checkParriedHit(Character.archer);
+});
+
+sweep("every fighter starts every grounded option on the first actionable frame after a parried hit [spec #102]", () => {
+  for (const character of SELECTABLE_CHARACTERS) checkParriedHit(character);
 });
 
 test("a late shield keeps its shieldstun and release lag [spec #102]", () => {

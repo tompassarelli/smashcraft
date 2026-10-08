@@ -49,8 +49,11 @@ import { MOVES_BODY_BOX, MOVES_BUTTON_HEIGHT, MOVES_BUTTON_TOP, MOVES_TITLE_BOX,
 import { PLAYABLE_CHARACTERS, fighterName, fighterPortrait, nextSelectableCharacter } from "../sim/heroes/registry";
 import {
   MOVES_HEADER, itemsSetting, itemKindSetting, automaticRematchSetting, movesPage, selectionModeLabel, endlessSetting, hitAreasSetting, partnerBehaviourSetting, partnerDamageSetting, partnerEscapeSetting,
-  partnerTechSetting, stockSetting, timeSetting, trainingSetting, trainingSpeedSetting,
+  partnerTechSetting, stockSetting, timeSetting, modeSetting, trainingSpeedSetting,
 } from "../shell/messages";
+import { classicRouteSummary, classicTierSetting } from "../classic/classicText";
+import { loreBattle, loreBattleSetting, loreBattleSummary } from "../classic/loreBattles";
+import { loreClears } from "../classic/loreClears";
 import { Character, ItemKind, itemBit } from "../sim/codes";
 import { TILE_PORTRAIT_SLOT, tilePortrait } from "./portraitFrames";
 import { slotColor } from "./slotColors";
@@ -71,7 +74,8 @@ export interface SelectionActions {
   toggleAutomaticRematch(participantId: number): void;
   toggleItems(participantId: number): void;
   toggleItemKind(participantId: number, kind: ItemKind): void;
-  toggleTraining(participantId: number): void;
+  cycleMatchMode(participantId: number): void;
+  stepClassicTier(participantId: number, direction: -1 | 1): void;
   stepTraining(participantId: number, setting: TrainingSetting, direction: -1 | 1): void;
   toggleHitAreas(participantId: number): void;
   stepSpeed(participantId: number): void;
@@ -83,7 +87,8 @@ export interface SelectionActions {
 }
 
 type RuleButton = { kind: "stocks"; direction: -1 | 1 } | { kind: "time"; direction: -1 | 1 } | { kind: "endless" } | { kind: "automaticRematch" }
-  | { kind: "items" } | { kind: "itemKind"; item: ItemKind } | { kind: "training" } | { kind: "partner"; setting: TrainingSetting; direction: -1 | 1 } | { kind: "hitAreas" } | { kind: "speed" };
+  | { kind: "items" } | { kind: "itemKind"; item: ItemKind } | { kind: "training" } | { kind: "partner"; setting: TrainingSetting; direction: -1 | 1 } | { kind: "hitAreas" } | { kind: "speed" }
+  | { kind: "classicTier"; direction: -1 | 1 };
 type SelectionButton = { kind: "mode"; slot: number } | { kind: "cpuSettings"; slot: number } | { kind: "cpuStep"; row: 0 | 1; direction: -1 | 1 } | { kind: "cpuClose" } | { kind: "start" } | { kind: "settings" } | RuleButton
   | { kind: "moves" } | { kind: "movesBack" } | { kind: "movesStep"; direction: -1 | 1 } | TutorialButton;
 
@@ -188,6 +193,10 @@ export class SelectionPanel {
   /** The match rules training has no use for, and the partner choices that replace them. */
   private readonly matchRuleFrames: readonly framehandle[];
   private readonly trainingFrames: readonly framehandle[];
+  /** Classic's difficulty stepper, its value and the chosen fighter's route. */
+  private readonly classicFrames: readonly framehandle[];
+  private readonly classicTierValue: framehandle;
+  private readonly classicRoute: framehandle;
   /** The stock and time buttons, which endless play leaves unused. */
   private readonly steps: readonly framehandle[];
   /** The rules the panel last showed. */
@@ -361,6 +370,14 @@ export class SelectionPanel {
     this.tutorial = createTutorialMenu(gameUi(), root, suffix, (frame, target) => this.clicks.add(frame, target));
     partnerFrames.push(this.tutorial.open);
     this.trainingFrames = partnerFrames;
+    const { easierClassic, harderClassic } = RULE_BUTTONS;
+    this.classicTierValue = label(root, `MeleeClassicTier${suffix}`, easierClassic.x + easierClassic.width, easierClassic.y, harderClassic.x - easierClassic.x - easierClassic.width, RULE_HEIGHT, f32(0.011));
+    this.classicRoute = label(root, `MeleeClassicRoute${suffix}`, f32(0.38), f32(0.553), f32(0.37), f32(0.034), f32(0.0085));
+    this.classicFrames = [
+      ruleButton(easierClassic, { kind: "classicTier", direction: -1 }, "−"),
+      ruleButton(harderClassic, { kind: "classicTier", direction: 1 }, "+"),
+      this.classicTierValue, this.classicRoute,
+    ];
     this.matchRuleFrames = [...this.steps, this.stockValue, this.timeValue, this.endlessToggle, this.rematchToggle, this.itemsToggle, ...this.itemToggles];
     const owner = [participantId];
     this.syncTriggers = [
@@ -407,7 +424,8 @@ export class SelectionPanel {
     else if (button.kind === "endless") this.actions.toggleEndless(this.participantId);
     else if (button.kind === "items") this.actions.toggleItems(this.participantId);
     else if (button.kind === "itemKind") this.actions.toggleItemKind(this.participantId, button.item);
-    else if (button.kind === "training") this.actions.toggleTraining(this.participantId);
+    else if (button.kind === "training") this.actions.cycleMatchMode(this.participantId);
+    else if (button.kind === "classicTier") this.actions.stepClassicTier(this.participantId, button.direction);
     else if (button.kind === "partner") this.actions.stepTraining(this.participantId, button.setting, button.direction);
     else if (button.kind === "hitAreas") this.actions.toggleHitAreas(this.participantId);
     else if (button.kind === "speed") this.actions.stepSpeed(this.participantId);
@@ -610,7 +628,7 @@ export class SelectionPanel {
     BlzFrameSetVisible(this.backdrop, visible);
     for (const frame of this.movesFrames) BlzFrameSetVisible(frame, visible && this.movesOpen);
     BlzFrameSetVisible(this.modeLabel, visible);
-    const mode = this.movesOpen ? MOVES_HEADER : selectionModeLabel(game.training);
+    const mode = this.movesOpen ? MOVES_HEADER : selectionModeLabel(game);
     if (mode !== this.shownMode) {
       this.shownMode = mode;
       BlzFrameSetText(this.modeLabel, mode);
@@ -710,8 +728,10 @@ export class SelectionPanel {
   }
 
   private showRules(game: Readonly<MatchState>): void {
-    const { stockCount, timeLimitMinutes, endless, automaticRematch, training, trainer, items } = game;
-    const rules = `${I2S(stockCount)} ${I2S(timeLimitMinutes)} ${endless ? "1" : "0"} ${automaticRematch ? "1" : "0"} ${training ? "1" : "0"} ${I2S(trainer.behaviour)} ${I2S(trainer.escape)} ${I2S(trainer.tech)} ${I2S(trainer.damage)} ${trainer.showHitAreas ? "1" : "0"} ${I2S(trainer.speed)} ${items.on ? "1" : "0"} ${I2S(items.enabledMask)} ${I2S(trainer.lesson)}`;
+    const { stockCount, timeLimitMinutes, endless, automaticRematch, training, trainer, items, classic, classicTier, lore, loreBattle: battle } = game;
+    const clears = loreClears();
+    const fighter = characterFor(game, this.participantId) ?? Character.archer;
+    const rules = `${lore ? "1" : "0"} ${I2S(battle)} ${I2S(clears.count())} ${classic ? "1" : "0"} ${I2S(classicTier)} ${I2S(fighter)} ${I2S(stockCount)} ${I2S(timeLimitMinutes)} ${endless ? "1" : "0"} ${automaticRematch ? "1" : "0"} ${training ? "1" : "0"} ${I2S(trainer.behaviour)} ${I2S(trainer.escape)} ${I2S(trainer.tech)} ${I2S(trainer.damage)} ${trainer.showHitAreas ? "1" : "0"} ${I2S(trainer.speed)} ${items.on ? "1" : "0"} ${I2S(items.enabledMask)} ${I2S(trainer.lesson)}`;
     if (rules === this.shownRules) return;
     this.shownRules = rules;
     BlzFrameSetText(this.stockValue, stockSetting(stockCount));
@@ -726,7 +746,10 @@ export class SelectionPanel {
       const kind = index === 0 ? ItemKind.speed : index === 1 ? ItemKind.extraJump : ItemKind.heavy;
       BlzFrameSetText(frame, itemKindSetting(kind, (items.enabledMask & itemBit(kind)) !== 0));
     }
-    BlzFrameSetText(this.trainingToggle, trainingSetting(training));
+    BlzFrameSetText(this.trainingToggle, modeSetting(game));
+    const chosen = loreBattle(battle);
+    BlzFrameSetText(this.classicTierValue, lore ? loreBattleSetting(battle, chosen !== undefined && clears.has(chosen.id)) : classicTierSetting(classicTier));
+    BlzFrameSetText(this.classicRoute, lore ? loreBattleSummary(battle, clears.count()) : classicRouteSummary(fighter));
     showTutorialLesson(this.tutorial, trainer.lesson);
     BlzFrameSetText(this.hitAreasToggle, hitAreasSetting(trainer.showHitAreas));
     BlzFrameSetText(this.speedToggle, trainingSpeedSetting(trainer.speed));
@@ -735,8 +758,9 @@ export class SelectionPanel {
     if (escape !== undefined) BlzFrameSetText(escape, partnerEscapeSetting(trainer.escape));
     if (tech !== undefined) BlzFrameSetText(tech, partnerTechSetting(trainer.tech));
     if (damage !== undefined) BlzFrameSetText(damage, partnerDamageSetting(trainer.damage));
-    for (const frame of this.matchRuleFrames) BlzFrameSetVisible(frame, !training);
+    for (const frame of this.matchRuleFrames) BlzFrameSetVisible(frame, !training && !classic && !lore);
     for (const frame of this.trainingFrames) BlzFrameSetVisible(frame, training);
+    for (const frame of this.classicFrames) BlzFrameSetVisible(frame, classic || lore);
   }
 
   private confirmText(game: Readonly<MatchState>): string {

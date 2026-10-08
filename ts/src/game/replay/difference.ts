@@ -16,6 +16,7 @@ import type { DashGrabRules, FighterPhysics, GroundMovementRules, ShieldGeometry
 import { at } from "wisp/src/runtime/lookup";
 import { canonicalSlot, fighterMovesCanonical, fighterSpecialsCanonical } from "./canonical";
 import { firstTrainingDifference } from "../match/trainingState";
+import { firstRunDifference } from "../classic/runState";
 import { firstItemsDifference } from "../match/items";
 import { firstBotMemoryDifference } from "../match/botPerception";
 import { botStrategyValues } from "../match/botStrategy";
@@ -381,6 +382,11 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("cannonHeld", e.cannon.held ?? -1, a.cannon.held ?? -1);
   add("cannonFiring", e.cannon.firing ?? -1, a.cannon.firing ?? -1);
   add("cannonCooldown", e.cannon.cooldown, a.cannon.cooldown);
+  add("waterIn", e.water.inWater, a.water.inWater);
+  add("waterFrames", e.water.frames, a.water.frames);
+  add("waterEntries", e.water.entries, a.water.entries);
+  add("waterHydraFrame", e.water.hydraFrame, a.water.hydraFrame);
+  add("waterHydraX", e.water.hydraX, a.water.hydraX);
   return found;
 }
 
@@ -436,6 +442,12 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
   if (e.training !== a.training) return "match.training";
   const training = firstTrainingDifference(e.trainer, a.trainer);
   if (training !== undefined) return training;
+  if (e.classic !== a.classic) return "match.classic";
+  if (e.classicTier !== a.classicTier) return "match.classicTier";
+  if (e.lore !== a.lore) return "match.lore";
+  if (e.loreBattle !== a.loreBattle) return "match.loreBattle";
+  const run = firstRunDifference(e.run, a.run);
+  if (run !== undefined) return run;
   if (e.stockCount !== a.stockCount) return "match.stockCount";
   if (e.timeLimitMinutes !== a.timeLimitMinutes) return "match.timeLimitMinutes";
   if (e.endless !== a.endless) return "match.endless";

@@ -38,6 +38,7 @@ import type { ShellState } from "./state";
 import { bindPrototype } from "../rebind";
 import { ItemPresentation } from "../../game/render/itemPresentation";
 import { BodyFlash } from "../../game/render/bodyFlash";
+import { ClassicPresentation } from "../../game/render/classicPresentation";
 
 /** A fighter's renderers for one match; the pool only in pooled presentation. */
 interface FighterRenderers {
@@ -79,6 +80,8 @@ export interface UiObjects {
   match: MatchPresentation;
   /** Each victim's hit element; created on reload by a bundle that predates it. */
   elements: ElementEffects;
+  /** Classic's boss and ending card; created on reload by a bundle that predates it. */
+  classic?: ClassicPresentation;
 }
 
 /** What the panels ask the game to do; menus.ts implements them over the shell. */
@@ -135,6 +138,7 @@ export function createUi(s: ShellState, actions: PanelActions): UiObjects {
     sounds: modelSoundPresentation(s.origin),
     match: new MatchPresentation(s.origin),
     elements: new ElementEffects(s.origin),
+    classic: new ClassicPresentation(s.origin),
   };
   s.ui = ui;
   return ui;
@@ -233,6 +237,8 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
     ui.elements.destroy();
     ui.elements = new ElementEffects(s.origin);
   } else bindPrototype(ui.elements, ElementEffects.prototype);
+  if (ui.classic === undefined) ui.classic = new ClassicPresentation(s.origin);
+  else bindPrototype(ui.classic, ClassicPresentation.prototype);
   for (const slot of PARTICIPANT_SLOTS) {
     const renderers = ui.fighters[slot];
     if (renderers === undefined) continue;
@@ -262,6 +268,7 @@ export function clearMatchEffects(s: ShellState): void {
   ui.special.clear();
   for (const slot of PARTICIPANT_SLOTS) ui.fighters[slot]?.projectiles.clear();
   for (const slot of PARTICIPANT_SLOTS) ui.fighters[slot]?.cues?.clear();
+  ui.classic?.endMatch();
 }
 
 export function pauseEffects(s: ShellState, paused: boolean): void {

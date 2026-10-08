@@ -18,10 +18,13 @@ export const DUROTAR_SCENERY: StageScenery = {
 
 export const NAXXRAMAS_SCENERY: StageScenery = {
   sky: STAGE_SKY_MODELS[4] ?? "",
+  // NX-1's slate-to-teal sky; NX-3's distant citadel fades after the fighting plane.
   fog: { start: 5000.0, end: 11000.0, red: 0.25, green: 0.5, blue: 0.625 },
   pieces: [
     // One floating citadel above a low ruined approach; the central sky stays open.
     { model: "buildings\\undead\\Necropolis\\Necropolis.mdx", x: 1450.0, y: 6200.0, z: -1050.0, scale: 1.5, yaw: 250.0 },
+    // NX-3: low Definitive-only stock garnish beside the citadel, invisible in Classic and Reforged.
+    { model: "Doodads\\Undercity\\Props\\NaxxDeco\\NaxxDeco0.mdx", x: 1700.0, y: 5900.0, z: -1250.0, scale: 0.5, yaw: 250.0 },
     { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier5.mdx", x: 1490.0, y: 6200.0, z: -3665.0, scale: f32(7.1), yaw: 287.0, matrixScale: [1.0, 1.0, f32(1.317)] },
     { model: "buildings\\undead\\Ziggurat\\Ziggurat.mdx", x: -1800.0, y: 3900.0, z: -1150.0, scale: 0.75, yaw: 25.0 },
     { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier5.mdx", x: -2085.0, y: 3900.0, z: -2770.0, scale: f32(3.3), yaw: 62.0, matrixScale: [1.0, 1.0, f32(1.69)] },
@@ -31,14 +34,18 @@ export const NAXXRAMAS_SCENERY: StageScenery = {
 };
 
 export const HELLFIRE_SCENERY: StageScenery = {
-  sky: STAGE_SKY_MODELS[14] ?? "",
+  // HF-2/HF-3: Outland's stock sky draws in Classic, Reforged and Definitive.
+  sky: "Environment\\Sky\\Outland_Sky\\Outland_Sky.mdl",
   fog: { start: 5000.0, end: 11000.0, red: 0.25, green: 0.5, blue: 0.125 },
   pieces: [
     // A remote portal on its rock faces a broken shelf; thin spires rise only on the far right.
-    { model: "buildings\\demon\\DemonGate\\DemonGate.mdx", x: -1450.0, y: 6500.0, z: -1350.0, scale: 1.25, yaw: 280.0 },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -1370.0, y: 6500.0, z: -4175.0, scale: f32(7.8), yaw: 317.0, matrixScale: [1.0, 1.0, f32(3.792)] },
+    { model: "buildings\\demon\\DemonGate\\DemonGate.mdx", x: -1450.0, y: 6000.0, z: -1350.0, scale: 1.25, yaw: 280.0 },
+    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -1370.0, y: 6000.0, z: -4175.0, scale: f32(7.8), yaw: 317.0, matrixScale: [1.0, 1.0, f32(3.792)] },
     { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -2250.0, y: 2600.0, z: -2220.0, scale: 2.75, yaw: 80.0, matrixScale: [1.0, 1.0, f32(5.572)] },
     { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 2150.0, y: 3700.0, z: -2870.0, scale: f32(2.7), yaw: 205.0, matrixScale: [1.0, 1.0, f32(8.124)] },
     { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 1750.0, y: 5400.0, z: -3835.0, scale: f32(3.15), yaw: 330.0, matrixScale: [1.0, 1.0, f32(12.54)] },
+    // HF-2/HF-3: two stock additive fel flames, small enough to remain accents in the haze.
+    { model: "Abilities\\Spells\\NightElf\\Immolation\\ImmolationTarget.mdx", x: -1450.0, y: 6000.0, z: -1400.0, scale: 0.75, yaw: 0.0 },
+    { model: "Abilities\\Spells\\NightElf\\Immolation\\ImmolationTarget.mdx", x: 2150.0, y: 3700.0, z: -1450.0, scale: 0.5, yaw: 0.0 },
   ],
 };

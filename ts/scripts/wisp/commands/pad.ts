@@ -53,6 +53,7 @@ import { onHealthyClients } from "../doctor";
 import { DevCommandReceipt } from "../boundary";
 import { devCommandReceiptFile } from "../../../src/runtime/gameFiles";
 import { Phase } from "../../../src/game/match/rules";
+import { admitCaptures, captureLoad, requireCaptureLease } from "../captureCapacity";
 import { quickMatchHero, quickMatchStage, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../../src/game/shell/devSettings";
 
 type DevReceipt = Effect.Success<ReturnType<typeof DevCommandReceipt.decode>>;
@@ -89,7 +90,7 @@ const setupCommand = (session: NativeSession, command: string, send: Effect.Effe
 
 const USAGE = "pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat=TEXT] [--map MAP.w3x [--retries N]] [--clients-file FILE]\n"
   + "       bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT] [--compare NATIVE_DIR] [--render DIR --frames N...]\n"
-  + "       bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR --map MAP.w3x [--pairs N | --pair K... | --app-id a=ID --app-id b=ID] [--headless-jobs N] [--fresh-each] [--clients-file FILE]\n"
+  + "       bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR --map MAP.w3x [--pairs N | --pair K... | --app-id a=ID --app-id b=ID] [--headless-jobs N] [--fresh-each] [--hot] [--clients-file FILE]\n"
   + "       bun wisp pad SCRIPT|DIR... --headless --helper BINARY --out DIR [--headless-jobs N]";
 
 /** How long a capture waits for its client to draw its frame: about 3 s behind the helper's clock, past #156's worst lag (88 frames). */
@@ -140,7 +141,7 @@ const finish = (out: string, scriptPath: string, build: string, epochs: readonly
   const stopped = final.flatMap((log, slot) => (/late kernel event|journal stopped/.test(log) ? [`helper ${slot}: ${/^wc3-journal: .*$/m.exec(log)?.[0] ?? "stopped"}`] : []));
   const off = results.filter((edge) => edge.frame !== edge.planned);
   const lateWrites = off.filter((edge) => edge.written !== edge.planned).length;
-  yield* tryIntegrity("write result", out, () => writeFileSync(join(out, "result.json"), json({ script: scriptPath, build, frame_one_ns: epochs, match_starts: final.map(matchStart), edges: results, off_frame: off.length, written_late: lateWrites, helpers_stopped: stopped })));
+  yield* tryIntegrity("write result", out, () => writeFileSync(join(out, "result.json"), json({ ...captureLoad(), script: scriptPath, build, frame_one_ns: epochs, match_starts: final.map(matchStart), edges: results, off_frame: off.length, written_late: lateWrites, helpers_stopped: stopped })));
   for (const edge of results) console.log(`line ${edge.line} ${edge.slot === 0 ? "a" : "b"} planned ${edge.planned} written ${edge.written} landed ${edge.frame} (${edge.confirmedBy}): ${edge.text}`);
   console.log(`${results.length} edges, ${off.length} off their frame (${lateWrites} of them written late)${stopped.length > 0 ? `; ${stopped.join("; ")}` : ""}; ${join(out, "result.json")}`);
   if (off.length > 0 || stopped.length > 0) return yield* new IntegrityFailure({ operation: "replay pad script", path: out, cause: `${off.length} edges off their frame, ${stopped.length} helpers stopped` });
@@ -191,6 +192,7 @@ export interface PadOptions {
 
 /** Helpers and virtual pads belong to one game, across all of its scripted matches. */
 export const nativeSession = (out: string, helper: string, build: string, appIds: ReadonlyMap<string, string>, clientsFile: string = clientState) => Effect.gen(function*() {
+  yield* requireCaptureLease;
   const startedMs = Date.now();
   const loaded = yield* loadClients(clientsFile).pipe(Effect.mapError(fromDesktop));
   if (loaded.length !== 2) return yield* new IntegrityFailure({ operation: "load clients", path: clientsFile, cause: `${loaded.length} clients, need 2` });
@@ -269,6 +271,7 @@ export const nativeChat = (session: NativeSession, text: string) => setupCommand
 /** One script in the persistent native session's next match. */
 export const nativeScript = (session: NativeSession, options: PadOptions) => Effect.scoped(Effect.gen(function*() {
   const { scriptPath, steps, build, out, chat } = options;
+  yield* requireCaptureLease;
   const { clients, data, pads } = session;
   yield* tryIntegrity("create pad directory", out, () => {
     mkdirSync(out, { recursive: true });
@@ -288,7 +291,7 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
     const setup = yield* Effect.exit(selectionChat(session, command));
     if (setup._tag === "Failure") {
       const boundary = describeCause(setup.cause);
-      yield* tryIntegrity("write invalid setup", out, () => writeFileSync(join(out, "result.json"), json({ status: "INVALID", script: scriptPath, build, invalid: [boundary], setup: { command: chat, clients: clients.map((client) => client.name), boundary }, edges: [] })));
+      yield* tryIntegrity("write invalid setup", out, () => writeFileSync(join(out, "result.json"), json({ ...captureLoad(), status: "INVALID", script: scriptPath, build, invalid: [boundary], setup: { command: chat, clients: clients.map((client) => client.name), boundary }, edges: [] })));
       console.log(`INVALID setup: ${boundary}; ${out}`);
       return "invalid" as const;
     }
@@ -497,11 +500,12 @@ export const pad: Command = (args) => Effect.gen(function*() {
       helper: { type: "string" }, build: { type: "string" }, out: { type: "string" }, chat: { type: "string" }, "app-id": { type: "string", multiple: true },
       headless: { type: "boolean" }, compare: { type: "string" }, retries: { type: "string" }, map: { type: "string" },
       render: { type: "string" }, frames: { type: "string" },
-      pairs: { type: "string" }, pair: { type: "string", multiple: true }, pool: { type: "string" }, "fresh-each": { type: "boolean" }, "headless-jobs": { type: "string" },
+      pairs: { type: "string" }, pair: { type: "string", multiple: true }, pool: { type: "string" }, "fresh-each": { type: "boolean" }, hot: { type: "boolean" }, "headless-jobs": { type: "string" },
       "clients-file": { type: "string" },
     } }),
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
+  if (parsed.values.headless !== true && (yield* admitCaptures(args))) return;
   const { helper, out, chat, compare } = parsed.values;
   const clientsFile = parsed.values["clients-file"] ?? clientState;
   const renderFrames = parsed.values.frames?.split(",").map(Number);
@@ -565,7 +569,7 @@ const scriptBatch = (values: { readonly [name: string]: string | boolean | reado
     return yield* headlessBatch({ scripts, helper, build, out, headlessJobs, retries: Number(text("retries") ?? "2") });
   }
   if (helper === undefined || out === undefined || map === undefined || positionals.length === 0) {
-    return yield* new UsageFailure({ problem: "usage: bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR (--map MAP.w3x | --headless) [--build BUILD] [--pairs N | --pair K... [--pool POOL.json] | --app-id a=ID --app-id b=ID] [--clients-file FILE] [--retries N] [--headless-jobs N] [--fresh-each]" });
+    return yield* new UsageFailure({ problem: "usage: bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR (--map MAP.w3x | --headless) [--build BUILD] [--pairs N | --pair K... [--pool POOL.json] | --app-id a=ID --app-id b=ID] [--clients-file FILE] [--retries N] [--headless-jobs N] [--fresh-each] [--hot]" });
   }
   const pairCount = text("pairs");
   const clientsFile = text("clients-file") ?? clientState;
@@ -585,6 +589,6 @@ const scriptBatch = (values: { readonly [name: string]: string | boolean | reado
   const scripts = yield* Effect.try({ try: () => batchScripts(positionals), catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
   return yield* padBatch({
     scripts, pairs, helper, build, out, map,
-    retries: Number(text("retries") ?? "2"), freshEach: values["fresh-each"] === true, headlessJobs,
+    retries: Number(text("retries") ?? "2"), freshEach: values["fresh-each"] === true, hot: values.hot === true, headlessJobs,
   });
 });

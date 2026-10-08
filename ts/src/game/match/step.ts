@@ -23,6 +23,7 @@ import { advanceFighterMotion } from "../sim/step";
 import { maskHeroStatusControls } from "../sim/heroStatus";
 import { platformSpecialInput } from "../sim/platformMoves";
 import { advanceStageCannon } from "../sim/stageHazards";
+import { advanceWater, collectHydraContacts } from "../sim/water";
 import { surfaceCount, surfaceLine, surfaceZAt } from "../sim/stage";
 import { setWorldMotionValue } from "../sim/motion";
 import { advanceFreezeTraps } from "../sim/summons";
@@ -33,6 +34,9 @@ import type { FrameControls } from "./controls";
 import { type MatchState, Phase, advanceClock, holdingStart, humanFighterActive, keepsStocks, resolveStocks, stageClock } from "./rules";
 import { advanceItems } from "./centreItem";
 
+import { bossClock, collectBossContacts, strikeBoss } from "../classic/bosses";
+import { applyConfiguredStart, settleConfiguredMatch, trackConfiguredFrame } from "../classic/configuredMatch";
+import { BossKind } from "../classic/runState";
 import { advanceTrainingReadout, captureTrainingBefore, resetTrainingPositions } from "./training";
 import { advanceTutorial, beginLesson, captureTutorialBefore, tutorialOn } from "./tutorial";
 
@@ -68,6 +72,20 @@ export function initializeMatchFighters(game: Readonly<MatchState>, world: Roste
       setWorldMotionValue(motion.meleeZ, motion.z);
     }
   }
+  applyConfiguredStart(game, world);
+}
+
+/** Whether the frame's rules ended the match. */
+const matchEnded = (game: Readonly<MatchState>): boolean => game.phase === Phase.result;
+
+/** A boss fight ends when the boss's health is gone or the player's stocks are. */
+function resolveBossFight(game: MatchState, world: Roster): void {
+  const { run } = game;
+  if (game.phase !== Phase.match) return;
+  const playerOut = !isActive(world, run.player) || fighterAt(world, run.player).status.stocks <= 0;
+  if (run.boss.health > 0 && !playerOut) return;
+  game.winner = run.boss.health <= 0 && !playerOut ? run.player : undefined;
+  game.phase = Phase.result;
 }
 
 export function matchSpawnX(slot: number, participantMask = 0): number {
@@ -140,6 +158,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     observedFrameLegalActions[slot] = observedActions.legal;
     observedFrameStartedActions[slot] = observedActions.started;
   }
+  advanceWater(world, stage, game.matchFrame, game.hazards);
   advanceItems(game, world, controls, frame);
   advanceStageCannon(world, stage, stageFrame, controls.inputs);
 
@@ -147,6 +166,9 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   resolveGrabs(world);
   beginDamageContacts();
   collectLavaContacts(world, stage, game.hazards);
+  collectHydraContacts(world, stage);
+  const bossFight = game.run.active && game.run.boss.kind !== BossKind.none;
+  if (bossFight && !holdingStart(game)) collectBossContacts(game.run.boss, world, bossClock(game.matchFrame, game.startHold), game.run.player);
   advanceGrabs(world, controls.inputs);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot) || wasGrabbed[slot]) continue;
@@ -180,6 +202,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     if (hadDashGrabWindow[slot] && f.ground.dashGrabWindow > 0 && !f.attack.dashGrab) f.ground.dashGrabWindow = Math.max(0, f.ground.dashGrabWindow - 1);
   }
   resolveAttacks(world);
+  if (bossFight) strikeBoss(game.run.boss, world, bossClock(game.matchFrame, game.startHold), game.run.player);
   advanceSpecials(world, stage, stageFrame, controls.inputs);
   updateProjectiles(world, stage, stageFrame);
   advancePlacedObjects(world);
@@ -202,10 +225,15 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
       f.status.respawn = 60;
     }
   }
-  resolveStocks(game, world);
+  if (bossFight) resolveBossFight(game, world);
+  else resolveStocks(game, world);
   advanceMatchCamera(game.camera, world, game.stageChoice);
   advanceOffscreenDamage(world, game.camera, game.practice || game.training);
   if (game.training) advanceTrainingReadout(game.trainer, world, game.humanFighterMask, game.computerMask);
   if (game.training && tutorialOn(game.trainer)) advanceTutorial(game.trainer, world, game.humanFighterMask, game.computerMask);
   advanceClock(game, world);
+  if (game.run.active) {
+    trackConfiguredFrame(game, world);
+    if (matchEnded(game)) settleConfiguredMatch(game, world);
+  }
 }

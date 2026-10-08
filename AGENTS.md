@@ -285,6 +285,8 @@ code. From smashcraft:ts/:
   and pad scripts: `-dev quick hero NAME`, `-dev quick recovery hero NAME`
   (starts tumbling above the floor for recovery captures), and `-dev quick cpu OPPONENT DIFFICULTY [hero NAME]`,
   a quick match against a named computer at the selected difficulty over three stocks.
+  `-dev classic NAME` starts that fighter's Classic run and `-dev classic boss NAME` its boss battle (smashcraft:docs/design/classic-mode.md).
+  `-dev lore N` starts Lore Battle N (1-20, smashcraft:ts/src/game/classic/loreBattles.ts) for the first player.
   `-dev quick offstage hero NAME` starts the #189 recovery check at x=700, z=300 on Frozen Throne with jumps spent.
   The named variant uses the normal CPU selection rule.
   `-dev pain HEIGHT STRENGTH FIGHTER` starts the #181 mirror capture fixture:
@@ -636,7 +638,8 @@ code. From smashcraft:ts/:
   Several scripts are one batch, and the batch is how native parity runs:
   `bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR --map MAP.w3x
   [--pairs N | --pair K... | --app-id a=ID --app-id b=ID]` starts ONE game per client pair,
-  types `-dev reset` between scripts (a new game only after an invalid run),
+  types `-dev reset` between scripts (a new game only after an invalid run;
+  `--hot` also hot-reloads the current TypeScript before each script),
   runs every headless side alongside (`--headless-jobs N`) and compares as
   each native run ends; `--pairs N` (the first N) or `--pair K` (a share) shards over the offline LAN pool.
   Never loop `bun wisp fresh` + `bun wisp pad` per script (about a minute a
@@ -675,6 +678,7 @@ code. From smashcraft:ts/:
   `-dev capture 18000` writes every client's raw callback samples; read full-run
   median/p95/p99/worst with Wisp's capture reader. Procedure and limits:
   smashcraft:docs/native-bot-session.md, "Raw playable cost captures".
+- Capture judge: `bun wisp judge DIR --rubric FILE` writes `DIR/judge.json` with each case and measurement line, checks drawn frame stamps, and lists only crops near a rubric threshold for model inspection. Rubric format and #82 reference: `docs/capture-judge.md`, `ts/test/native/rubrics/82-f9d0fbf3.json`.
 - Stage lighting: `bun wisp accept --only '170-*'` captures stock lighting, a
   fighter mask and stage lighting in one paused scene per stage. From the
   repository root, `bun tools/stage/contrast.ts MASK.png STOCK.png STAGE.png`
@@ -686,6 +690,11 @@ code. From smashcraft:ts/:
   maps expose `-dev view near|far|off` for those framings and
   `-dev fogv STYLE ZSTART ZEND DENSITY HEIGHTSTART HEIGHTEND LINEARSTART LINEAREND R G B OVER_SKY`
   for the existing 3.0 fog comparison; these affect only local presentation.
+- Stage-select cards: `bun scripts/stageThumbnails.ts` (from ts/, through the
+  capacity helper) regenerates every stage's layout silhouette and the hero
+  renders of stages without Warcraft zone art, stores them and records their
+  input hashes; run it after any stage or stage-art change, or
+  ts/test/stage-thumbnails.test.ts fails (smashcraft:docs/design/stage-select.md).
 - Melee oracle: `bun wisp oracle` plays Melee situations for every fighter
   and prints each outcome beside the value cited from the decompilation; the
   test suite fails on any mismatch it doesn't list as known
@@ -716,6 +725,8 @@ See smashcraft:docs/design/fighter-portraits.md.
 
 Every push runs the pre-push gate (smashcraft:.githooks/pre-push, enabled for
 the repository with `git config core.hooksPath .githooks`; safe-push runs it):
+the clean-room check (smashcraft:ts/scripts/cleanRoom.ts: no game files or
+copied game scripts outside smashcraft:clean-room-allowlist.tsv; wisp:docs/clean-room.md),
 `bun run check` and the type-escape audit (smashcraft:ts/test/source-shapes.test.ts)
 when the pushed commits change ts/, the model facts check
 (smashcraft:ts/test/model-facts.test.ts; it refuses with the `bun wisp view models`
@@ -763,6 +774,20 @@ Keep ordinary combat completion intact; do not force a win to shorten a test.
 Pick the clients by what the test needs (Tom, 7 Oct). The offline LAN pool
 is the default for native testing: pad parity runs, captures, `accept`
 checks and desync hunts.
+
+Native lanes: four solo-profile lanes, one per client (a, b, c, d), share
+the visual queue; pairs are only for sync and EX checks. A TypeScript-only
+change (presentation values, effects, menus, CPU tuning) hot-reloads into one
+running match with `bun wisp hot --data ... --watch` between captures; rebuild
+the map only for imports, object data or art. Batch captures by build: one map
+build serves every capture that needs it. Record captures per hour per lane in
+the status.
+Native `bun wisp pad` commands wait for an exclusive machine-capacity window
+before client input and keep it through the whole batch (maximum 15 minutes).
+To run four lanes together, start their foreground batch runner inside one
+`machine-capacity run --class exclusive --timeout-seconds 900 -- ...` command;
+pad children reuse that window. Separate exclusive commands queue in turn.
+Each result records `load_average` and `capacity_lease` (#311).
 Signed-in A and B are only for tests that need Battle.net itself: real
 netplay or latency, direct play (#142), spectating. Tom's install (account a,
 display :0) is Tom's. A run during which a client wrote a desync report or

@@ -19,6 +19,7 @@ import { writeMatchItems } from "../match/items";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
 import { writeTrainingState } from "../match/trainingState";
+import { writeConfiguredRun } from "../classic/runState";
 import { CPU_OPPONENT_CHOICES, CPU_OPPONENT_IDS, CPU_TIERS } from "../match/cpuProfiles";
 import { botStrategyValues } from "../match/botStrategy";
 import type { ReplayState } from "./snapshot";
@@ -980,6 +981,11 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("cannonHeld", fighter.cannon.held ?? -1);
   int("cannonFiring", fighter.cannon.firing ?? -1);
   int("cannonCooldown", fighter.cannon.cooldown);
+  bool("waterIn", fighter.water.inWater);
+  int("waterFrames", fighter.water.frames);
+  int("waterEntries", fighter.water.entries);
+  int("waterHydraFrame", fighter.water.hydraFrame);
+  real("waterHydraX", fighter.water.hydraX);
 
   real("physics.walkAccelerationMultiplier", t.physics.walkAccelerationMultiplier);
   real("physics.walkAccelerationBase", t.physics.walkAccelerationBase);
@@ -1156,6 +1162,16 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
     bool("match.training", true);
     writeTrainingState(match.trainer, int, bool, (name, value) => emit(canonicalRealField(name, value)));
   }
+  // Only Classic selection and configured runs carry their state, so every other match keeps its checksum.
+  if (match.classic) {
+    bool("match.classic", true);
+    int("match.classicTier", match.classicTier);
+  }
+  if (match.lore) {
+    bool("match.lore", true);
+    int("match.loreBattle", match.loreBattle);
+  }
+  if (match.run.active) writeConfiguredRun(match.run, int, bool, (name, value) => emit(canonicalRealField(name, value)), (name, value) => emit(`|${name}=${value}`));
   int("runtime.simulationFrame", runtime.simulationFrame);
   for (const slot of PARTICIPANT_SLOTS) emit(canonicalRealField(`runtime.botAttackDelays[${slot}]`, runtime.botAttackDelays[slot]));
   const memory = runtime.botMemory;

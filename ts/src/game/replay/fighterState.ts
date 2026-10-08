@@ -328,6 +328,13 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   cannon.held = sourceCannon.held;
   cannon.firing = sourceCannon.firing;
   cannon.cooldown = sourceCannon.cooldown;
+  const water = target.water;
+  const sourceWater = source.water;
+  water.inWater = sourceWater.inWater;
+  water.frames = sourceWater.frames;
+  water.entries = sourceWater.entries;
+  water.hydraFrame = sourceWater.hydraFrame;
+  water.hydraX = sourceWater.hydraX;
   const status = target.status;
   const sourceStatus = source.status;
   status.damage = sourceStatus.damage;

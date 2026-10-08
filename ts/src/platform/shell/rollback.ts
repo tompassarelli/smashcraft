@@ -100,6 +100,7 @@ export function beginRollbackEpoch(s: ShellState, rollback: Rollback): boolean {
     journal.chatRequested.fill(false);
     journal.chatSerial.fill(0);
     resetPauseBarrier(journal.barrier);
+    journal.setAside.length = 0;
     journal.source = JournalInputSource.open(s.build.id, rollback.epoch, slot, rollback.delay);
     if (journal.source === undefined) failJournal(s, rollback, journal, "epoch could not be initialized");
     if (journal.editbox !== undefined) {

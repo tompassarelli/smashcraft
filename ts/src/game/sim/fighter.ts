@@ -436,6 +436,20 @@ interface StageCannon {
   cooldown: number;
 }
 
+/** The Tomb's sea (water.ts): this fighter's visit and the hydra rising under it. */
+interface Water {
+  /** Whether its position was in the sea at the end of its last frame. */
+  inWater: boolean;
+  /** Frames in the sea since it last landed on a deck; paused out of the water, restarted by a hydra strike. */
+  frames: number;
+  /** Times it entered the sea since it last landed; every entry after the first is a re-entry. */
+  entries: number;
+  /** Frames since the hydra's tell began under it, or zero. */
+  hydraFrame: number;
+  /** The hydra's mark, drifting with the tide through the tell. */
+  hydraX: number;
+}
+
 interface Status {
   offscreenFrames: number;
   damage: number;
@@ -550,6 +564,7 @@ export interface Fighter {
   readonly ledge: Ledge;
   readonly platform: PlatformTransit;
   readonly cannon: StageCannon;
+  readonly water: Water;
   readonly status: Status;
   readonly mana: Mana;
   readonly placed: PlacedObject;
@@ -759,6 +774,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       stand: false, shield: false, wrapLeft: 0, wrapLeftAge: 0, wrapRight: 0, wrapRightAge: 0, dodgeQueued: false, dodgeX: 0, dodgeZ: 0, specialQueued: false, specialX: 0, specialZ: 0,
     },
     cannon: { held: undefined, firing: undefined, cooldown: 0 },
+    water: { inWater: false, frames: 0, entries: 0, hydraFrame: 0, hydraX: 0.0 },
     status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0, armorChills: false, condition: 0, conditionFrames: 0, conditionGroup: 0, conditionImmunityFrames: 0, conditionImmunity: [0, 0, 0], guardHealed: 0.0, divineFrames: 0, poisonFrames: 0, poisonEvery: 0, poisonDamage: 0.0, buff: 0, buffFrames: 0 },
     mana: { points: ROSTER_MANA.max, progress: 0 },
     placed: createPlacedObject(),

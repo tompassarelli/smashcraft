@@ -5,7 +5,7 @@
 import { PARTICIPANT_SLOTS, type ParticipantSlot, isParticipantSlot } from "../../game/input/participants";
 import {
   Phase, changeStagePoolMode, changeStagePoolStage, canChooseComputer, cancelRematchCountdown, firstHumanSlot, characterFor, confirmRematch, cycleSlotMode, humanActive, recallCharacter,
-  requestStageSelect, requestStart, setAutomaticRematch, setCpuOpponent, setCpuTier, setEndless, setHitAreas, setPartnerDamage, setTraining, setItemsOn, toggleItemKind, stepPartnerBehaviour,
+  requestStageSelect, requestStart, setAutomaticRematch, setCpuOpponent, setCpuTier, setEndless, setHitAreas, setPartnerDamage, setTraining, cycleMatchMode, stepClassicTier, stepLoreBattle, setItemsOn, toggleItemKind, stepPartnerBehaviour,
   stepPartnerEscape, stepPartnerTech, stepTrainingSpeed, setTutorialLesson, tickRematchCountdown,
   returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setHazards, setStocks, setTimeLimit, updateConnectedHumans,
   type MatchState, copyMatchState, createMatchState, setParticipants,
@@ -26,6 +26,9 @@ import { nextStage } from "../../game/menu/stageCatalog";
 import { nextSelectableCharacter } from "../../game/sim/heroes/registry";
 import { stepCpuOpponent, stepCpuTier } from "../../game/match/cpuProfiles";
 import { traceSelectionState } from "./diagnostics";
+import { ClassicStep, continueClassic, quitClassic, skipToClassicBoss, startClassic } from "../../game/classic/classic";
+import { beforeClassicRun } from "./classicOpening";
+import { LORE_BATTLES, LoreStep, continueLore, startLore } from "../../game/classic/loreBattles";
 import { clearParticipantInputs, controlsAvailable, currentComputerMask, currentHumanMask } from "./inputs";
 import { startMatch } from "./matchStart";
 import { cancelStageLoad, requestStageLoad, stageLoading } from "./stageLoad";
@@ -54,7 +57,15 @@ export function confirm(s: ShellState, slot: ParticipantSlot): void {
   }
   const { game } = s;
   if (stageLoading(s)) return;
-  if (game.phase === Phase.characterMenu) {
+  if (game.phase === Phase.characterMenu && game.lore) {
+    if (!startLore(game, slot)) return;
+    for (const panel of views(s).settings) panel.close();
+    requestStageLoad(s, slot);
+  } else if (game.phase === Phase.characterMenu && game.classic) {
+    if (!startClassic(game, slot)) return;
+    for (const panel of views(s).settings) panel.close();
+    beforeClassicRun(s, () => requestStageLoad(s, slot));
+  } else if (game.phase === Phase.characterMenu) {
     if (requestStageSelect(game, slot)) {
       if (s.dev.stageChoice !== undefined) selectStage(game, slot, s.dev.stageChoice);
       s.dev.stageChoice = undefined;
@@ -62,6 +73,24 @@ export function confirm(s: ShellState, slot: ParticipantSlot): void {
     }
   } else if (game.phase === Phase.stageMenu) {
     requestStageLoad(s, slot);
+  } else if (game.phase === Phase.result && game.run.active && game.lore) {
+    const step = continueLore(game, slot);
+    if (step === LoreStep.none) return;
+    setStatus(s, "", 0.0);
+    if (step === LoreStep.retry) requestStageLoad(s, slot);
+    else {
+      updateConnectedHumans(game, currentHumanMask(game.departedMask));
+      makePreview(s);
+    }
+  } else if (game.phase === Phase.result && game.run.active) {
+    const step = continueClassic(game, slot);
+    if (step === ClassicStep.none) return;
+    setStatus(s, "", 0.0);
+    if (step === ClassicStep.fight) requestStageLoad(s, slot);
+    else {
+      updateConnectedHumans(game, currentHumanMask(game.departedMask));
+      makePreview(s);
+    }
   } else if (game.phase === Phase.result) {
     if (cancelRematchCountdown(game, slot)) return;
     if (!confirmRematch(game, slot)) return;
@@ -75,7 +104,10 @@ export function back(s: ShellState, slot: ParticipantSlot): void {
   if (!controlsAvailable(s, slot) || stageLoading(s)) return;
   if (s.game.phase === Phase.characterMenu) views(s).selections[slot].recallHeld();
   else if (s.game.phase === Phase.stageMenu) returnToCharacters(s.game, slot);
-  else if (s.game.phase === Phase.result) cancelRematchCountdown(s.game, slot);
+  else if (s.game.phase === Phase.result && quitClassic(s.game, slot)) {
+    setStatus(s, "", 0.0);
+    makePreview(s);
+  } else if (s.game.phase === Phase.result) cancelRematchCountdown(s.game, slot);
 }
 
 /**
@@ -107,6 +139,32 @@ export function startQuickMatch(s: ShellState, stage = 0, scenario: Scenario = s
     for (const panel of views(s).settings) panel.close();
     startMatch(s, scenario);
   }
+}
+
+/** `-dev classic`: the first player's run on `character`'s route, from its first fight or its boss. */
+export function startDevClassic(s: ShellState, character: Character, boss: boolean): void {
+  const first = firstHumanSlot(s.game);
+  if (first === undefined || s.game.phase !== Phase.characterMenu || stageLoading(s)) return;
+  selectCharacter(s.game, first, character);
+  s.game.training = false;
+  s.game.classic = true;
+  if (!startClassic(s.game, first)) return;
+  if (boss) skipToClassicBoss(s.game);
+  for (const panel of views(s).settings) panel.close();
+  requestStageLoad(s, first);
+}
+
+/** `-dev lore N`: the first player's Lore Battle N, counted from 1. */
+export function startDevLore(s: ShellState, battle: number): void {
+  const first = firstHumanSlot(s.game);
+  if (first === undefined || s.game.phase !== Phase.characterMenu || stageLoading(s)) return;
+  s.game.training = false;
+  s.game.classic = false;
+  s.game.lore = true;
+  s.game.loreBattle = battle - 1;
+  if (!startLore(s.game, first)) return;
+  for (const panel of views(s).settings) panel.close();
+  requestStageLoad(s, first);
 }
 
 /** A playtest request: its computers at its level, then the match, past both menus. */
@@ -182,8 +240,13 @@ export function panelActions(): PanelActions {
       toggleItemKind: (participant, kind) => withSlot(participant, (s, slot) => {
         if (controlsAvailable(s, slot)) toggleItemKind(s.game, slot, kind);
       }),
-      toggleTraining: participant => withSlot(participant, (s, slot) => {
-        if (controlsAvailable(s, slot)) setTraining(s.game, slot, !s.game.training);
+      cycleMatchMode: participant => withSlot(participant, (s, slot) => {
+        if (controlsAvailable(s, slot)) cycleMatchMode(s.game, slot);
+      }),
+      stepClassicTier: (participant, direction) => withSlot(participant, (s, slot) => {
+        if (!controlsAvailable(s, slot)) return;
+        if (s.game.lore) stepLoreBattle(s.game, slot, direction, LORE_BATTLES.length);
+        else stepClassicTier(s.game, slot, direction);
       }),
       stepTraining: (participant, setting, direction) => withSlot(participant, (s, slot) => {
         if (!controlsAvailable(s, slot)) return;

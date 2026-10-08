@@ -4,9 +4,14 @@
 // integrity-build clients on journal helpers play the same workload in the
 // first quick match and, after a reset typed mid-match, in the next one; the
 // integrity trace's confirmed-state checksums and fighter lines, which native
-// parity compares, are the same.
+// parity compares, are the same. A `--hot` batch also hot-reloads the map
+// before each reset (#312); in Bun the reload loads the map again from a copy
+// of its sources, as a real reload links new modules with fresh locals.
 import { afterAll, expect } from "bun:test";
+import { cpSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { join } from "node:path";
 import { installHeadless } from "wisp/scripts/wisp/headless";
+import type { MapEntry } from "wisp/src/headless/client";
 import { Phase } from "../src/game/match/rules";
 import { clearObservedActions } from "../src/game/match/step";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
@@ -19,10 +24,18 @@ import { JournalHelpers } from "./rematch/journalHelper";
 import { value } from "./rematch/playableMatch";
 import { sweep } from "./sweep";
 
+const tsDirectory = join(import.meta.dir, "..");
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
-afterAll(headless.restore);
+const copies: string[] = [];
+afterAll(() => {
+  headless.restore();
+  for (const copy of copies) rmSync(copy, { recursive: true });
+});
 
-sweep("a match after -dev reset equals the first match of the game: same trace checksums and fighter lines on both clients [invariant]", () => {
+type Played = ReturnType<ReturnType<typeof session>["play"]>;
+
+/** Two integrity-build clients on journal helpers, started and at fighter selection. */
+function session() {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1]);
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
   helpers.workload = { denseCycles: 6, walkers: [] };
@@ -53,12 +66,7 @@ sweep("a match after -dev reset equals the first match of the game: same trace c
   clients.start();
   frames(30);
   const boot = value(clients.client(0), () => structuredClone({ game: shell().game, controls: shell().controls }));
-  const first = play("first match");
-  expect(first.traces[0]?.checksums.length).toBeGreaterThan(10);
-  expect(first.traces[0]?.events.length).toBeGreaterThan(10);
-  expect(first.traces[1]).toEqual(first.traces[0]);
-  // The batch types the reset while the last script's match still runs; scripts between
-  // add a computer (slot C) and play the camera scenario, which must leave nothing behind.
+  // The batch types the reset while the last script's match still runs.
   const reset = () => {
     frames(120);
     clients.chat(0, RESET_COMMAND);
@@ -67,12 +75,22 @@ sweep("a match after -dev reset equals the first match of the game: same trace c
       expect(value(client, () => ({ game: shell().game, controls: shell().controls }))).toEqual(boot);
     }
   };
-  reset();
-  play("computer match", "-dev quick cpu wren expert");
-  reset();
-  play("camera match", "-dev camera");
-  reset();
-  const second = play("match after the reset");
+  /** Hot-reloads the map into `entry` mid-match and plays until both clients run it. */
+  const reload = (entry: MapEntry) => {
+    clients.reload(headless.modules(entry));
+    for (let i = 0; i < 120 && clients.unappliedReloads().length > 0; i++) frames(1);
+    expect(clients.unappliedReloads()).toEqual([]);
+  };
+  return { clients, play, reset, reload };
+}
+
+function expectFirstMatch(first: Played) {
+  expect(first.traces[0]?.checksums.length).toBeGreaterThan(10);
+  expect(first.traces[0]?.events.length).toBeGreaterThan(10);
+  expect(first.traces[1]).toEqual(first.traces[0]);
+}
+
+function expectSameMatch(first: Played, second: Played) {
   // The trace takes a checksum once a second of game callbacks, and Warcraft's binary32
   // game clock (wisp#56) runs a different number of callbacks a frame later in a game, so
   // the frames it lands on may shift; at every frame both matches hold, the state is equal.
@@ -85,5 +103,33 @@ sweep("a match after -dev reset equals the first match of the game: same trace c
     expect(shared.length).toBeGreaterThan(10);
     expect(shared).toEqual(shared.map(([frame]) => [frame, before.get(frame)]));
   }
+}
+
+sweep("a match after -dev reset equals the first match of the game: same trace checksums and fighter lines on both clients [invariant]", () => {
+  const { clients, play, reset } = session();
+  const first = play("first match");
+  expectFirstMatch(first);
+  // Scripts between add a computer (slot C) and play the camera scenario, which must leave nothing behind.
+  reset();
+  play("computer match", "-dev quick cpu wren expert");
+  reset();
+  play("camera match", "-dev camera");
+  reset();
+  expectSameMatch(first, play("match after the reset"));
   expect(value(clients.client(0), () => shell().game.phase)).toBe(Phase.match);
-}, 60_000);
+}, 180_000);
+
+sweep("a match after a hot reload and -dev reset equals the first match of the game: same trace checksums and fighter lines on both clients [invariant]", async () => {
+  mkdirSync(join(tsDirectory, "build"), { recursive: true });
+  const copy = mkdtempSync(join(tsDirectory, "build/reset-reload-"));
+  copies.push(copy);
+  cpSync(join(tsDirectory, "src"), join(copy, "src"), { recursive: true });
+  const reloaded: MapEntry = await import(join(copy, "src/platform/main.ts"));
+  const { clients, play, reset, reload } = session();
+  const first = play("first match");
+  expectFirstMatch(first);
+  reload(reloaded);
+  reset();
+  expectSameMatch(first, play("match after the reload and reset"));
+  expect(value(clients.client(0), () => shell().game.phase)).toBe(Phase.match);
+}, 180_000);

@@ -1,7 +1,8 @@
 // The pre-push gate. Git runs smashcraft:.githooks/pre-push (core.hooksPath
 // .githooks) on every push, safe-push's included; it names the open "main is
 // red" issue's failing tests (smashcraft:ts/scripts/mainRed.ts) and runs the
-// fast checks for the projects the pushed commits change, so no lane lands a
+// clean-room check (smashcraft:ts/scripts/cleanRoom.ts) and the fast checks
+// for the projects the pushed commits change, so no lane lands a
 // compile break, a type escape or stale model facts. CI runs the full suite on
 // main. The checks read the working tree, so the gate refuses a push whose
 // commit isn't the clean checkout.
@@ -33,6 +34,7 @@ export function checksFor(paths: readonly string[]): Check[] {
   const client = paths.some((path) => path.startsWith("client/ui/"));
   const models = paths.some((path) => MODEL_INPUTS.some((input) => path === input || input.endsWith("/") && path.startsWith(input)));
   return [
+    ...(paths.length > 0 ? [{ name: "clean room", directory: "ts", args: ["scripts/cleanRoom.ts"], fix: "follow wisp:docs/clean-room.md and the line above." }] : []),
     ...(ts ? [
       { name: "type-check ts", directory: "ts", args: ["run", "check"] },
       { name: "type escapes and source shapes", directory: "ts", args: ["test", "test/source-shapes.test.ts"] },

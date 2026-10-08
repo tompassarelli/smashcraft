@@ -19,13 +19,13 @@ export const AIR_DODGE_ANIMATION_FRAMES = 49;
 const SHALLOW_DODGE_COS = 0.9510565996170044;
 const SHALLOW_DODGE_SIN = 0.30901676416397095;
 /** Action bits in decision observations. */
-const JUMP_BIT = 16;
+export const JUMP_BIT = 16;
 const DODGE_BITS = 768;
 
 const sign = (value: number) => (value === 0 ? 0 : value > 0 ? 1 : -1);
 
 /** Whether an ongoing state blocks jumps and air dodges alike. */
-function lockedOut(f: Fighter): boolean {
+export function lockedOut(f: Fighter): boolean {
   return inSurfaceTechStartup(f) || inGrabContext(f) || f.ledge.state !== LedgeState.none || f.status.out || f.special.fall
     || f.shield.breakState !== ShieldBreak.none || (f.down.state !== DownState.none && !isTumbling(f))
     || f.launch.hitlag > 0 || f.launch.hitstun > 0 || f.shield.stun > 0 || f.landing.lag > 0 || f.attack.cooldown > 0

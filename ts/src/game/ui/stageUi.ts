@@ -10,10 +10,11 @@ import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type MatchState, Phase, humanActive } from "../match/rules";
 import { pointerX, pointerY } from "../menu/pointer";
 import { type StageChoice, clearStageDrag, stageDrag, stageTileLeft, stageTileTop, updateStageDrag } from "../menu/stageSelection";
-import { STAGE_CATALOG, STAGE_CHOICES, selectableStageChoice, stageInfo } from "../menu/stageCatalog";
+import { RANDOM_STAGE, STAGE_CATALOG, STAGE_CHOICES, selectableStageChoice, stageInfo } from "../menu/stageCatalog";
 import { hazardsSetting, rulesSummary } from "../shell/messages";
 import { ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
 import { MENU_FONT } from "./hudLayout";
+import { StageCard } from "./stageCard";
 
 
 /** What the stage panel asks the game to do; each call comes from a synchronized event. */
@@ -53,7 +54,7 @@ function stageButton(parent: framehandle, x: number, y: number, width: number, h
 export class StagePanel {
   private readonly root: framehandle;
   private readonly backdrop: framehandle;
-  private readonly preview: framehandle;
+  private readonly preview: StageCard;
   private readonly previewName: framehandle;
   private readonly previewDescription: framehandle;
   private readonly ruleLabel: framehandle;
@@ -84,15 +85,16 @@ export class StagePanel {
     BlzFrameSetTexture(this.backdrop, "war3mapImported\\StageBackdrop.tga", 0, false);
     coverScreen(this.backdrop);
     this.ruleLabel = stageText(root, "MeleeStageRules", f32(0.41), f32(0.575), f32(0.35), f32(0.025), f32(0.012), "");
-    this.preview = createBackdrop("MeleeStagePreview", root, 0);
-    placeTopLeft(this.preview, f32(0.042), f32(0.445));
-    BlzFrameSetSize(this.preview, f32(0.372), 0.25);
-    BlzFrameSetEnable(this.preview, false);
+    this.preview = new StageCard(root, "MeleeStagePreview", f32(0.042), f32(0.445), f32(0.372), 0.25, false);
     this.previewName = stageText(root, "MeleeStagePreviewName", f32(0.045), f32(0.19), f32(0.37), f32(0.036), f32(0.022), "");
     this.previewDescription = stageText(root, "MeleeStageDescription", f32(0.045), f32(0.148), f32(0.36), f32(0.05), f32(0.011), "");
     stageText(root, "MeleeStageGridTitle", f32(0.454), f32(0.48), f32(0.3), f32(0.022), f32(0.012), "CHOOSE A STAGE");
     for (const stage of STAGE_CHOICES) {
       const choice = stage.id;
+      if (choice !== RANDOM_STAGE) {
+        new StageCard(root, `MeleeStageTile${I2S(choice)}`, stageTileLeft(choice), stageTileTop(choice), f32(0.094), f32(0.059), true).show(choice);
+        continue;
+      }
       const tile = createBackdrop(`MeleeStageTile${I2S(choice)}`, root, choice);
       BlzFrameSetTexture(tile, stageInfo(choice).texture, 0, true);
       placeTopLeft(tile, stageTileLeft(choice), stageTileTop(choice));
@@ -140,6 +142,7 @@ export class StagePanel {
   bindActions(actions: StageActions): void {
     this.actions = actions;
     bindPrototype(this.clicks, ButtonClicks.prototype);
+    bindPrototype(this.preview, StageCard.prototype);
     this.clicks.bindHandler((button, clicker) => this.click(button, GetPlayerId(clicker)));
     bindSyncHandler("ui.stage.drop", (sender, data) => {
       const choice = S2I(data);
@@ -181,7 +184,7 @@ export class StagePanel {
     }
     if (this.lastChoice !== game.stageChoice) {
       const stage = stageInfo(game.stageChoice);
-      BlzFrameSetTexture(this.preview, stage.texture, 0, true);
+      this.preview.show(game.stageChoice);
       BlzFrameSetText(this.previewName, stage.name);
       BlzFrameSetText(this.previewDescription, stage.description);
       this.lastChoice = game.stageChoice;

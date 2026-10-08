@@ -20,6 +20,7 @@ import { DEMON_HUNTER_MODEL_FILE } from "../../src/game/presentation/demonHunter
 import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "../../src/game/presentation/fighterAssetInfo";
 import { SUMMON_BEAR, summonClip, summonClipCount } from "../../src/game/presentation/summonClipInfo";
 import { Character } from "../../src/game/sim/codes";
+import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
 import { HERO_ROSTER, PORTRAIT_KINDS, RENDERED_FIGHTERS, fighterPortrait } from "../../src/game/sim/heroes/registry";
 import { PARTICIPANT_SLOTS } from "../../src/game/input/participants";
 import { PORTRAIT_QUALITY, encodeBlp, readTga } from "../blp";
@@ -29,11 +30,16 @@ import { UI_FRAMES } from "./uiFrames";
 const tryMapPromise = <A>(operation: string, path: string, run: () => PromiseLike<A>) => Effect.tryPromise({ try: run, catch: (cause) => new MapBuildFailure({ operation, path, cause }) });
 const tryMapSync = <A>(operation: string, path: string, run: () => A) => Effect.try({ try: run, catch: (cause) => new MapBuildFailure({ operation, path, cause }) });
 const EMPTY_MODEL = "the map script names an empty model path";
+/** #298 / TS-c: mode-specific stock no-mist replacements; Classic keeps the installed waterfall. */
+export const TOMB_WATERFALL_IMPORTS = [
+  { entry: "_hd.w3mod\\Doodads\\Terrain\\CliffDoodad\\Waterfall\\Waterfall.mdx", file: "TombWaterfallHD.mdx" },
+  { entry: "_de.w3mod\\Doodads\\Terrain\\CliffDoodad\\Waterfall\\Waterfall.mdx", file: "TombWaterfallDE.mdx" },
+] as const;
 const BuildOptions = Schema.Struct({
   // Each input left out resolves from the checkout's build-inputs.json (buildInputs.ts).
   base: Schema.optional(Schema.NonEmptyString),
   container: Schema.optional(Schema.NonEmptyString),
-  /** Holds animation-assets, illidan-animation, selection-assets, fighter-renders, stage-assets, impact-assets, imported-models and original-clips-static-lights. */
+  /** Holds animation-assets, illidan-animation, selection-assets, fighter-renders, stage-assets, stage-thumbnails, impact-assets, imported-models and original-clips-static-lights. */
   assets: Schema.optional(Schema.NonEmptyString),
   summon: Schema.optional(Schema.NonEmptyString),
   name: Schema.String.check(Schema.isPattern(/^[\x20-\x7e]{1,200}$/)),
@@ -55,7 +61,7 @@ export const decodeBuildOptions = (args: readonly string[]) => {
 const SELECTION_TEXTURES = [
   "SelectionBackdrop",
   "SelectionTileFrame", "SelectionCardRed", "SelectionCardBlue", "SelectionCardTeal", "SelectionCardPurple",
-  "SelectionCardGray", "SelectionAction", "StageBackdrop", "StageChip", "SelectionSkyDeck", "SelectionThreeBridges", "SelectionFrozenThrone", "SelectionNordrassil", "SelectionGryphon", "SelectionDurotar", "SelectionNaxxramas", "SelectionHellfire", "SelectionBlackrock", "SelectionAhnQiraj", "SelectionStratholme", "SelectionTombOfSargeras",
+  "SelectionCardGray", "SelectionAction", "StageBackdrop", "StageChip",
   "SelectionChipP1", "SelectionChipP2", "SelectionChipP3", "SelectionChipP4", "SelectionChipCPU",
   "HudPlate0", "HudPlate1", "HudPlate2", "HudPlate3",
 ] as const;
@@ -83,7 +89,7 @@ const importLines = (path: string) =>
  */
 export const GENERATED_MODELS: readonly { readonly list: string; readonly generator: string; readonly models: readonly string[] }[] = [
   { list: "impact-assets/white-flash-imports.txt", generator: "tools/animations/white-flash-models.ts", models: WHITE_FIGHTER_MODELS },
-  { list: "stage-assets/imports.txt", generator: "tools/stage/package.ts", models: [...Object.values(STAGE_DECK_MODELS).flatMap(({ main, slab }) => [main, slab]), STAGE_SNOW_MODEL, STAGE_WATER_MODEL, STAGE_LAVA_MODEL, ...Object.values(STAGE_LIGHT_MODELS), ...Object.values(STAGE_POINT_LIGHT_MODELS).flat(), ...Object.values(STAGE_SKY_MODELS)] },
+  { list: "stage-assets/imports.txt", generator: "tools/stage/package.ts", models: [...new Set([...Object.values(STAGE_DECK_MODELS).flatMap(({ main, slab, alternate }) => alternate === undefined ? [main, slab] : [main, slab, alternate]), STAGE_SNOW_MODEL, STAGE_WATER_MODEL, STAGE_LAVA_MODEL, ...Object.values(STAGE_LIGHT_MODELS), ...Object.values(STAGE_POINT_LIGHT_MODELS).flat(), ...Object.values(STAGE_SKY_MODELS)])] },
   { list: "impact-assets/imports.txt", generator: "tools/effects/package.ts", models: Object.values(impactModels) },
   { list: "impact-assets/frost-imports.txt", generator: "tools/effects/trap.ts", models: Object.values(frostModels) },
   { list: "impact-assets/shield-imports.txt", generator: "tools/effects/shield.ts", models: Object.values(shieldModels) },
@@ -206,8 +212,12 @@ const PORTRAIT_CACHE = join(process.env.XDG_CACHE_HOME ?? join(homedir(), ".cach
  * The fighter portraits as BLP (#307), encoded from the TGAs
  * tools/selection/render-fighters.ts renders.
  */
+/** The portraits the map script names: the grid tile also without a slot, the card, bust and stock icon only in a slot's outfit (#286). */
+export const MAP_PORTRAITS: readonly string[] = RENDERED_FIGHTERS.flatMap((character) => PORTRAIT_KINDS.flatMap((kind) =>
+  [...(kind === "Tile" ? [undefined] : []), ...PARTICIPANT_SLOTS].map((slot) => fighterPortrait(character, kind, slot))));
+
 const portraitImports = (assets: string) => Effect.forEach(
-  RENDERED_FIGHTERS.flatMap((character) => PORTRAIT_KINDS.flatMap((kind) => [undefined, ...PARTICIPANT_SLOTS].map((slot) => fighterPortrait(character, kind, slot)))),
+  MAP_PORTRAITS,
   (entry) => Effect.gen(function*() {
     const source = join(assets, "fighter-renders", entry.replace("war3mapImported\\", "").replace(/\.blp$/, ".tga"));
     const bytes = yield* tryMapPromise("read portrait", source, () => Bun.file(source).bytes());
@@ -252,10 +262,13 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
     { entry: DEMON_HUNTER_MODEL_FILE, source: join(assets, "illidan-animation/DemonHunterFighter.mdx") },
     ...SELECTION_TEXTURES.map((texture) => imported(join(assets, "selection-assets"), `${texture}.tga`)),
     ...(yield* portraitImports(assets)),
+    // Generated by scripts/stageThumbnails.ts (docs/design/stage-select.md).
+    ...STAGE_CATALOG.filter(({ texture }) => texture.startsWith("war3mapImported\\")).map(({ texture }) => ({ entry: texture, source: join(assets, "stage-thumbnails", texture.replace("war3mapImported\\", "")) })),
     ...["SmashcraftHUD.fdf", "SmashcraftHUD.toc", ...UI_FRAME_FILES].map((file) => imported(join(PROJECT, "tools/selection/art"), file)),
     // Community models, textures and icons at the archive paths their authors' readmes name.
     ...IMPORTED_MODEL_FILES.map(({ entry, file }) => ({ entry, source: join(assets, "imported-models", file) })),
     ...generated.flat(),
+    ...TOMB_WATERFALL_IMPORTS.map(({ entry, file }) => ({ entry, source: join(assets, "stage-assets", file) })),
     ...summonFiles.map((filename) => imported(join(summon, "imports/war3mapImported"), filename)),
     ...clipFiles.map((filename) => imported(join(clipDirectory, "imports/war3mapImported"), filename)),
   ] satisfies ArchiveEntry[];

@@ -442,10 +442,35 @@ Per stage (backdrop facts from [Per-stage recommendations](#per-stage-recommenda
 | Stratholme (6) | not yet captured | Compare LordaeronFallSky (stock in every mode) with the authored sky. The fall city art (spire, gate, clock towers, Hearthglen Abbey, `_destroyed` variants) exists only in Reforged and Definitive: use it only if Tom accepts a richer HD backdrop. Distant fires as light-carrying effects | — |
 | Tomb of Sargeras (7) | not yet captured | `WaterfallNoMist` for the distant waterfall in HD, only with a Classic stock waterfall in its place, so it can't cover the backdrop with mist. Teal height fog over the tide floor | HD water (the terrain is hidden) |
 | Nordrassil (10) | stock FelwoodSky aurora | Bloom (G2) on the aurora and wisp emissives; teal-green height fog below the deck | — |
-| Gryphon Aerie (11) | pale clouds *(guess)* | Height fog darkening the cloud field below the deck, as on Frozen Throne | — |
+| Gryphon Aerie (11) | pale clouds *(guess)* | GA-4: desaturated blue height fog darkening the cloud field below the deck. Style 3, start/end 5,500/11,500, density 0.25, height -1,800 to -500 relative to the deck origin, cap 0.5, drawn over sky. RGB (0.25, 0.375, 0.5); Classic keeps that tint in distance fog beyond the fight. Existing sky and daylight preserve the airy skyline and Alliance deck accents (GA-1, GA-3) | — |
 | Blackrock (12) | lowest #178 ΔE00 (21.2) | Forge-fire effects carrying warm omni lights, one shadow-casting; bloom on lava; the G2 ASSAO for fighter contact shadows. Check it first | — |
 | Ahn'Qiraj (13) | bright sandstone; light at 0.5 | Dusk-ochre height fog below the deck; the G3 Definitive light copy | — |
 | Hellfire (14) | dark haze *(guess)* | Fel-green omni lights from imported effects; bloom on fel fire. Outland_Sky is available in every mode | — |
+
+Naxxramas's row is in place (#296). NX-1's cold plague-green omni light
+frames NX-3's lone necropolis at (1450, 6000, -900), with radius 1400,
+intensity 0.875 and no flicker. Its reach ends 4400 units behind the fighter
+volume; the one shadow caster adds depth around the citadel. NX-1's teal fog
+starts at 5000 and ends at 11000, preserving the clear fighting plane.
+One half-scale stock `NaxxDeco0` at (1700, 5900, -1250) is low Definitive-only
+garnish. Classic and Reforged keep the stock Necropolis and ruined approach
+when that prop is absent; Classic also draws no model omni light. The authored
+light-only model is 756 bytes: stock green spell effects add particles and
+geometry, while Undercity lanterns have no light, so neither supplies this
+steady isolated glow. No stock art is imported.
+
+Tomb's row is in place (#298), following TS-1/TS-2: teal height fog uses
+style 3, distance 5,000–11,000, density 0.25, heights −1,800 to −100 relative
+to the arena, maximum opacity 0.375 and leaves the sky clear. Classic retains
+the existing teal linear fog. TS-c keeps the waterfall on the left: two native
+stock `WaterfallNoMist` copies override the ordinary waterfall only under
+`_hd.w3mod` and `_de.w3mod`; Classic uses its installed ordinary waterfall.
+The private stage-assets files `TombWaterfallHD.mdx` and `TombWaterfallDE.mdx`
+are 124,468 bytes each. Preserve these two stock files when regenerating
+stage-assets, or re-extract the HD/DE `WaterfallNoMist.mdx` paths with
+`tools/animations/casc-extract.cpp`. The ordinary stock waterfall is misty;
+the new model is missing in Classic. The three native mode captures decide
+whether the mode-specific map overrides draw as intended.
 
 Blackrock's row is in place (#292). Its two forge fires carry light-only
 omni models (smashcraft:ts/src/game/assets/stagePointLights.ts): warm orange,
@@ -458,6 +483,18 @@ shows the stage as before. The lava gains an additive crest layer
 the body stays under the stock bloom threshold of 0.72, so the map-wide bloom
 (#288) catches only the veins. Blackrock's AO is #288's map-wide ASSAO.
 smashcraft:ts/test/stage-model.test.ts pins these values.
+
+Hellfire's #293 choices follow HF-2/HF-3 in `stage-boards.md`: stock
+`Outland_Sky` in all modes, green linear haze beginning at 5,000, and two
+small stock Immolation flames beside the distant gate and the right rock.
+Their additive fel accents use #288's map-wide bloom in HD; Classic retains
+the stock flames and sky. Two light-only omni models add green to the rocks
+in HD, one shadow-casting, with slow ±12.5% loops and no reach within 3,000
+units of the fighters. The gate and its support move to depth 6,000 so the
+far camera can retain the HF-c landmark within its 8,000-unit clip distance.
+The directional fighter light stays the board's warm key and green ambient.
+Stage tests pin the sky, haze, accents and light values; #287 captures judge
+their drawn contrast and bloom.
 
 For fighters on every stage: AO and point-light shadows give contact shading
 in HD when the player turns them on. `DisallowHeroGlowOnUnit` and
@@ -512,6 +549,21 @@ Ahn'Qiraj 27.4, Hellfire 25.5). Its integrated farm budget run read p99
 9.88 ms and worst 13.73 ms, inside #168's bound. With `-dev backdrop off`
 (sky, fog, scenery and decks hidden) the empty screen read rgb(4,4,4) in all
 eight masks measured from the #170 batch.
+
+### Nordrassil atmosphere (#294)
+
+NO-3 softens the far World Tree's roots with teal-green height fog: style 3,
+distance 5,500–11,000, density 0.25, height −2,600 to −600 relative to the
+arena origin, maximum linear density 0.5, colour (0.25, 0.5, 0.375). The upper
+height stays below the deck. `DrawOverSky` stays off for NO-4: the preserved
+stock FelwoodSky aurora fills the upper frame, with #288's map bloom enabled
+at threshold 0.9 in HD. Classic retains the stock sky and Moon Well glow
+geometry; the old linear fog distances and colour remain the fallback fields.
+NO-4's only luminous scenery accents are the two stock Moon Wells; no wisp
+or extra point light is added. The existing silver key (236, 246, 232) and
+teal fill (136, 178, 172) retain their intensity of 1. No new imports.
+The #287 batch must establish the three-mode draw, aurora bloom, rubric,
+fighter contrast and frame cost before #294 closes.
 
 ### Not yet measured on 3.0
 
@@ -676,3 +728,18 @@ matching workload on the hosted farm. GPU frame intervals and #165 profile
 comparisons come from the native owner's capture tooling; they are distinct
 from Lua/native-call cost predictions. `-dev render-clock` is a #169 probe
 of candidate callback clocks, not an established rendering-frame-rate meter.
+
+### Stratholme presentation (#297)
+
+ST-3 uses the stock `Environment\Sky\LordaeronFallSky\LordaeronFallSky.mdx`
+against the existing right-third ruined cathedral. The dusk fog stays at
+5,000–11,000 with RGB (0.5, 0.28125, 0.1875). A destroyed Androhal clock tower
+in the far city band adds a stock HD silhouette; Classic keeps the cathedral,
+gate and ruined halls because the tower has no Classic copy.
+
+ST-1 places two warm omni lights on the existing town fires, with radii 1,100
+and 900; both stop at least 1,550 units behind the fighting band. Their slow
+1,600/2,100 ms loops follow stage-art rule 8. One casts shadows. The models
+reuse Blackrock's two shipped light-only models: zero new imported bytes.
+The native stock tower is 1,428,524 bytes in Reforged storage, not a map import.
+ST-2's roofs and brick surfaces are the separate #276 material work.

@@ -6,9 +6,67 @@ import { stageScenery } from "../src/game/presentation/stageScenery";
 import { start, install } from "../src/platform/main";
 import { shell } from "../src/platform/shell/state";
 import { drawStageScenery, preloadStageAssets, showBackdrop } from "../src/platform/shell/stageScenery";
+import { STAGE_LIGHTS } from "../src/game/assets/stageLighting";
+import { pointLightPieces } from "../src/game/presentation/stageScenery";
+import { POST_PROCESSING } from "../scripts/postProcessing";
+import { TOMB_WATERFALL_IMPORTS } from "../scripts/wisp/mapInputs";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
+
+test("Tomb draws teal fog below its tide floor and replaces mist only in HD modes [spec #298]", () => {
+  const clients = headless.clients({ start, install });
+  clients.start(); clients.frames(30);
+  const client = clients.client(0);
+  client.run(() => {
+    const s = shell();
+    s.game.stageChoice = 7;
+    const before = client.log.length;
+    drawStageScenery(s);
+    expect(client.log.slice(before).find(call => call.name === "SetTerrainFogExV")?.args).toEqual([3, 5000, 11000, 0.25, s.origin.z - 1800, s.origin.z - 100, 5000, 11000, 0.25, 0.4375, 0.46875]);
+    expect(client.log.slice(before).filter(call => call.name === "BlzSetTerrainFogMaxLinearDensity").at(-1)?.args).toEqual([0.375]);
+    expect(client.log.slice(before).filter(call => call.name === "BlzSetTerrainFogDrawOverSky").at(-1)?.args).toEqual([false]);
+    const waterfall = stageScenery(7).pieces.find(piece => piece.model.includes("Waterfall"));
+    expect(waterfall?.model).toBe("Doodads\\Terrain\\CliffDoodad\\Waterfall\\Waterfall.mdx");
+    expect(waterfall?.x).toBeLessThan(0);
+    expect(TOMB_WATERFALL_IMPORTS).toEqual([
+      { entry: "_hd.w3mod\\Doodads\\Terrain\\CliffDoodad\\Waterfall\\Waterfall.mdx", file: "TombWaterfallHD.mdx" },
+      { entry: "_de.w3mod\\Doodads\\Terrain\\CliffDoodad\\Waterfall\\Waterfall.mdx", file: "TombWaterfallDE.mdx" },
+    ]);
+  });
+});
+
+test("Nordrassil draws teal mist below the deck, preserves its aurora and restores fog after a mask [spec #294]", () => {
+  const clients = headless.clients({ start, install });
+  clients.start(); clients.frames(30);
+  const client = clients.client(0);
+  client.run(() => {
+    const s = shell();
+    s.game.stageChoice = 10;
+    const before = client.log.length;
+    drawStageScenery(s);
+    const fog = client.log.slice(before).find(call => call.name === "SetTerrainFogExV");
+    expect(fog?.args).toEqual([3, 5500, 11000, 0.25, s.origin.z - 2600, s.origin.z - 600, 5500, 11000, 0.25, 0.5, 0.375]);
+    expect(client.log.slice(before).find(call => call.name === "SetTerrainFogEx")?.args).toEqual([0, 5500, 11000, 0, 0.25, 0.5, 0.375]);
+    expect(client.log.slice(before).filter(call => call.name === "BlzSetTerrainFogMaxLinearDensity").at(-1)?.args).toEqual([0.5]);
+    expect(client.log.slice(before).filter(call => call.name === "BlzSetTerrainFogDrawOverSky").at(-1)?.args).toEqual([false]);
+    expect(client.log.slice(before).find(call => call.name === "SetSkyModel")?.args).toEqual(["Environment\\Sky\\FelwoodSky\\FelwoodSky.mdl"]);
+    expect(stageScenery(10).pieces.filter(piece => piece.model.includes("MoonWell"))).toHaveLength(2);
+    expect(pointLightPieces(10)).toHaveLength(0);
+    expect(STAGE_LIGHTS.find(entry => entry.stage === 10)?.light).toEqual({ key: [236, 246, 232], ambient: [136, 178, 172] });
+    expect(POST_PROCESSING.Bloom).toEqual({ Enabled: "1", BloomThreshold: "0.900000" });
+    showBackdrop(s, false);
+    const restore = client.log.length;
+    showBackdrop(s, true);
+    expect(client.log.slice(restore).find(call => call.name === "SetTerrainFogExV")?.args).toEqual(fog?.args);
+    s.game.stageChoice = 0;
+    const reset = client.log.length;
+    drawStageScenery(s);
+    expect(client.log.slice(reset).some(call => call.name === "SetTerrainFogExV")).toBe(false);
+    expect(client.log.slice(reset).find(call => call.name === "BlzSetTerrainFogMaxLinearDensity")?.args).toEqual([1]);
+    expect(client.log.slice(reset).find(call => call.name === "BlzSetTerrainFogDrawOverSky")?.args).toEqual([false]);
+  });
+});
 
 test("stage preloads and replaced landmarks are parked below the arena before their death sequences start [provisional]", () => {
   const clients = headless.clients({ start, install });

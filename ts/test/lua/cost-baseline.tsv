@@ -1,6 +1,8 @@
 unit	tests	cpu_s
 src/game/assets/stageLighting.tests.ts	5	0.000
 src/game/assets/stagePalette.tests.ts	3	0.000
+src/game/classic/classic.tests.ts	7	4.135
+src/game/classic/loreBattles.tests.ts	4	0.004
 src/game/input/adapter.tests.ts	8	0.002
 src/game/input/attackBuffer.tests.ts	6	0.000
 src/game/input/input.tests.ts	6	0.018
@@ -42,7 +44,7 @@ src/game/match/parryContracts.tests.ts	2	2.551
 src/game/match/rules.tests.ts	5	0.010
 src/game/match/simulationStepContracts.tests.ts	6	0.484
 src/game/match/stageHazardContracts.tests.ts	4	1.390
-src/game/match/stageHazardTracks.tests.ts	7	4.593
+src/game/match/stageHazardTracks.tests.ts	8	3.746
 src/game/match/startHold.tests.ts	3	0.094
 src/game/match/training.tests.ts	10	0.665
 src/game/match/tutorial.tests.ts	11	4.619
@@ -206,6 +208,7 @@ src/game/sim/surfaces.tests.ts	26	0.093
 src/game/sim/tech.tests.ts	7	0.011
 src/game/sim/tumbleLandings.tests.ts	1	0.858
 src/game/sim/turnaroundSpecials.tests.ts	3	0.413
+src/game/sim/water.tests.ts	13	0.790
 src/game/ui/cpuSettings.tests.ts	1	0.000
 src/game/ui/cpuSettingsLayout.tests.ts	2	0.000
 src/game/ui/hudLayout.tests.ts	2	0.000

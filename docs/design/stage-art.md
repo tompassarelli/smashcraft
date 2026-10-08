@@ -197,6 +197,11 @@ from the floor (smashcraft:ts/src/game/presentation/stageScenery.ts).
    dwarf), so no unit model appears, and no doodad named for a figure
    (statue, totem, idol). Use ruins, obelisks, walls and doodad props such
    as the dungeon mine cart. The scenery test enforces both. This also keeps every fighter-shaped thing on screen a fighter.
+   A stage hazard that is a creature is not background: it may appear only
+   while it warns and strikes, inside the fight, and is gone otherwise. The
+   Tomb of Sargeras hydra is allowed under this rule (Claude, with Tom's
+   delegated authority, 8 Oct, #277): it shows only in its 45-frame tell and
+   its bite (smashcraft:docs/stage-hazards.md).
 8. **Motion budget.** Ambient motion only: fire, water, glow and weather that
    loop in place, never flashing and never crossing the fighting area.
    Gameplay motion (moving platforms, cannon, wind cues) stays the most

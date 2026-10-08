@@ -9,15 +9,22 @@
 // at a time, so the native runs never wait for them; each compare runs as
 // soon as both sides of its script exist. `--pairs N` shards the scripts
 // over the first N pairs of Wisp's offline LAN pool (`wisp lan pool`).
+// `--hot` publishes the current TypeScript into the pair's clients (wisp hot)
+// before every script, after a new game and before each reset, so one game
+// serves a batch of TypeScript-only changes (#312).
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
-import { Cause, Effect, Exit, Option, Schema, Scope } from "effect";
+import { Cause, Context, Effect, Exit, Fiber, Layer, Option, Schema, Scope } from "effect";
 import { preloadLines } from "wisp/scripts/wisp/boundary";
 import { UsageFailure, describeCause } from "wisp/scripts/wisp/command";
 import { loadClients } from "wisp/scripts/warcraft/desktop";
+import { HotReload } from "wisp/scripts/wisp/hotReload";
+import { MapBuild } from "wisp/scripts/wisp/mapBuild";
 import { readyAfter } from "./commands/fresh";
-import { gameFilesLayer } from "./project";
+import { captureLoad, requireCaptureLease } from "./captureCapacity";
+import { buildProject, gameFilesLayer, sourceErrorsLayer } from "./project";
+import { INTEGRITY_BUILD } from "../../src/game/shell/currentBuild";
 import { RESET_COMMAND } from "../../src/game/shell/devSettings";
 import { devCommandReceiptFile } from "../../src/runtime/gameFiles";
 import { IntegrityFailure } from "../integrity/evidence";
@@ -152,6 +159,13 @@ const reset = (session: NativeSession, build: string) => Effect.gen(function*() 
   return { command: RESET_COMMAND, clients: received, confirmed_monotonic_ns: monotonicNs() };
 });
 
+/** The integrity map's compiler, kept warm for a pair's whole batch, and the files and source maps a reload writes. */
+const hotServices = Layer.build(MapBuild.layer(buildProject("integrity")).pipe(Layer.provideMerge(sourceErrorsLayer), Layer.provideMerge(gameFilesLayer)));
+
+/** A reloader into one game's clients; versions continue from the manifests already in their hot folders. */
+const hotReloader = (services: Effect.Success<typeof hotServices>, data: readonly [string, string]) =>
+  Layer.build(HotReload.layer(data, "smashcraft").pipe(Layer.provide(Layer.succeedContext(services)))).pipe(Effect.map((context) => Context.get(context, HotReload)));
+
 export interface BatchOptions {
   readonly scripts: readonly string[];
   readonly helper: string;
@@ -167,6 +181,8 @@ export interface NativeBatchOptions extends BatchOptions {
   readonly pairs: readonly PadPair[];
   readonly map: string;
   readonly freshEach: boolean;
+  /** Hot-reload the current TypeScript into the game before every script. */
+  readonly hot: boolean;
 }
 
 /** Seconds of each phase of one script, and its verdict. */
@@ -176,6 +192,8 @@ interface ScriptReport {
   readonly pair: string;
   game: number;
   reset: number;
+  /** Seconds publishing the current TypeScript until both clients ran it (`--hot`). */
+  reload: number;
   /** The script's own run: native, or the headless session's. */
   run: number;
   attempts: number;
@@ -239,7 +257,7 @@ const prepare = (options: BatchOptions) => Effect.gen(function*() {
   const reports: ScriptReport[] = [];
   const compares: Promise<void>[] = [];
   const report = (run: ScriptRun, pair: string): ScriptReport => {
-    const made: ScriptReport = { label: run.label, script: run.script, pair, game: 0, reset: 0, run: 0, attempts: 0, headless: 0, waited: 0, compare: 0, verdict: "INVALID", summary: "" };
+    const made: ScriptReport = { label: run.label, script: run.script, pair, game: 0, reset: 0, reload: 0, run: 0, attempts: 0, headless: 0, waited: 0, compare: 0, verdict: "INVALID", summary: "" };
     reports.push(made);
     return made;
   };
@@ -272,22 +290,25 @@ const summarize = (out: string, runs: readonly ScriptRun[], reports: ScriptRepor
   const order = new Map(runs.map((run, index) => [run.label, index]));
   reports.sort((a, b) => (order.get(a.label) ?? 0) - (order.get(b.label) ?? 0));
   const f = (value: number) => value.toFixed(1);
-  const header = ["script", "pair", "new_game_s", "reset_s", "run_s", "attempts", "headless_s", "waited_for_headless_s", "compare_s", "verdict", "summary"];
-  const rows = reports.map((r) => [r.label, r.pair, f(r.game), f(r.reset), f(r.run), String(r.attempts), f(r.headless), f(r.waited), f(r.compare), r.verdict, r.summary].join("\t"));
+  const header = ["script", "pair", "new_game_s", "reload_s", "reset_s", "run_s", "attempts", "headless_s", "waited_for_headless_s", "compare_s", "verdict", "summary"];
+  const rows = reports.map((r) => [r.label, r.pair, f(r.game), f(r.reload), f(r.reset), f(r.run), String(r.attempts), f(r.headless), f(r.waited), f(r.compare), r.verdict, r.summary].join("\t"));
   writeFileSync(join(out, "batch.tsv"), `${header.join("\t")}\n${rows.join("\n")}\n`);
   writeFileSync(join(out, "batch.json"), `${JSON.stringify({ total_s: total, pairs, ...extra, scripts: reports }, null, 2)}\n`);
   for (const r of reports) {
-    console.log(`${r.verdict.padEnd(7)} ${r.label.padEnd(22)} ${r.pair.padEnd(7)} game ${f(r.game).padStart(5)} s  reset ${f(r.reset).padStart(4)} s  run ${f(r.run).padStart(5)} s  headless ${f(r.headless).padStart(5)} s (waited ${f(r.waited)} s)  ${r.summary}`);
+    console.log(`${r.verdict.padEnd(7)} ${r.label.padEnd(22)} ${r.pair.padEnd(7)} game ${f(r.game).padStart(5)} s  reload ${f(r.reload).padStart(4)} s  reset ${f(r.reset).padStart(4)} s  run ${f(r.run).padStart(5)} s  headless ${f(r.headless).padStart(5)} s (waited ${f(r.waited)} s)  ${r.summary}`);
   }
-  const sum = (key: "game" | "reset" | "run") => f(reports.reduce((all, r) => all + r[key], 0));
+  const sum = (key: "game" | "reload" | "reset" | "run") => f(reports.reduce((all, r) => all + r[key], 0));
   const count = (verdict: ScriptReport["verdict"]) => reports.filter((r) => r.verdict === verdict).length;
-  console.log(`${reports.length} scripts on ${pairs.length} pair(s) in ${f(total)} s: new games ${sum("game")} s, resets ${sum("reset")} s, runs ${sum("run")} s; ${count("PASS")} PASS, ${count("FAIL")} FAIL, ${count("INVALID")} INVALID; ${join(out, "batch.tsv")}`);
+  console.log(`${reports.length} scripts on ${pairs.length} pair(s) in ${f(total)} s: new games ${sum("game")} s, reloads ${sum("reload")} s, resets ${sum("reset")} s, runs ${sum("run")} s; ${count("PASS")} PASS, ${count("FAIL")} FAIL, ${count("INVALID")} INVALID; ${join(out, "batch.tsv")}`);
   if (count("PASS") !== reports.length) return yield* new IntegrityFailure({ operation: "pad batch", path: out, cause: "not every script passed" });
 });
 
 /** Native scripts on every pair at once, each pair taking the next script when it is free. */
 export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() {
-  const { pairs, build, map, retries, freshEach } = options;
+  yield* requireCaptureLease;
+  const quietWindow = captureLoad();
+  const { pairs, build, map, retries, freshEach, hot } = options;
+  if (hot && build !== INTEGRITY_BUILD.id) return yield* new UsageFailure({ problem: `--hot reloads the integrity map's TypeScript; --build ${build} is another map` });
   const started = performance.now();
   mkdirSync(options.out, { recursive: true });
   const { runs, report, compareLater, reports, compares } = yield* prepare(options);
@@ -297,6 +318,40 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
     let session: NativeSession | undefined;
     let gameScope: Scope.Closeable | undefined;
     let gameNumber = 0;
+    const services = hot ? yield* hotServices : undefined;
+    // The first compile (about a minute on a loaded host) runs while the pair's first game loads.
+    const warm = services === undefined ? undefined : yield* Effect.forkScoped(Context.get(services, MapBuild).compile.pipe(Effect.ignore));
+    let reloader: HotReload["Service"] | undefined;
+    /** The pair's game, with its helpers, started once its new game is at fighter selection. */
+    const ensureSession = Effect.gen(function*() {
+      if (session !== undefined) return session;
+      if (gameScope === undefined) return yield* new IntegrityFailure({ operation: "start native session", path: pair.name, cause: "no game scope" });
+      session = yield* nativeSession(join(options.out, `${pair.name}-session-${gameNumber++}`), options.helper, build, pair.appIds, pair.clients).pipe(Scope.provide(gameScope));
+      return session;
+    });
+    /** Publishes the current TypeScript into the game and waits until both clients run it; returns its version. */
+    const reload = Effect.gen(function*() {
+      if (services === undefined) return 0;
+      if (warm !== undefined) yield* Fiber.join(warm);
+      const current = yield* ensureSession;
+      if (reloader === undefined) {
+        if (gameScope === undefined) return yield* new IntegrityFailure({ operation: "hot reload", path: pair.name, cause: "no game scope" });
+        reloader = yield* hotReloader(services, current.data).pipe(Scope.provide(gameScope));
+      }
+      return yield* reloader.publish.pipe(Effect.mapError((cause) => new IntegrityFailure({ operation: "hot reload", path: pair.name, cause: cause.message })));
+    });
+    const timedReload = (made: ScriptReport, dir: string) => Effect.gen(function*() {
+      if (!hot) return true;
+      const at = performance.now();
+      const done = yield* Effect.exit(reload);
+      made.reload += seconds(at);
+      if (done._tag === "Failure") {
+        made.summary = `hot reload failed on ${pair.name}: ${Cause.pretty(done.cause).split("\n")[0]}`;
+        return false;
+      }
+      writeFileSync(join(dir, "reload.json"), `${JSON.stringify({ version: done.value, seconds: seconds(at) }, null, 2)}\n`);
+      return true;
+    });
     for (let index = next++; index < runs.length; index = next++) {
       const run = runs[index];
       if (run === undefined) break;
@@ -306,17 +361,24 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
       for (let attempt = 0; attempt <= retries; attempt++) {
         made.attempts = attempt + 1;
         if (!needsNewGame(previous, freshEach)) {
-          const at = performance.now();
-          const done = yield* Effect.exit(session === undefined ? Effect.fail(new IntegrityFailure({ operation: "reset", path: pair.name, cause: "no native session" })) : reset(session, build));
-          made.reset += seconds(at);
-          // A pair that didn't reset gets a new game for the same attempt.
-          if (done._tag === "Failure") previous = "broken";
-          else writeFileSync(join(run.dir, "reset.json"), `${JSON.stringify(done.value, null, 2)}\n`);
+          // The reset runs in the reloaded code, as the next script's match will.
+          if (!(yield* timedReload(made, run.dir))) previous = "broken";
+          else {
+            const at = performance.now();
+            const done = yield* Effect.exit(session === undefined ? Effect.fail(new IntegrityFailure({ operation: "reset", path: pair.name, cause: "no native session" })) : reset(session, build));
+            made.reset += seconds(at);
+            // A pair that didn't reset gets a new game for the same attempt.
+            if (done._tag === "Failure") previous = "broken";
+            else writeFileSync(join(run.dir, "reset.json"), `${JSON.stringify(done.value, null, 2)}\n`);
+          }
         }
+        let freshGame = false;
         if (needsNewGame(previous, freshEach)) {
+          freshGame = true;
           if (gameScope !== undefined) yield* Scope.close(gameScope, Exit.void);
           gameScope = undefined;
           session = undefined;
+          reloader = undefined;
           const at = performance.now();
           const log = join(run.dir, `game-${attempt}.log`);
           const made_ = yield* Effect.exit(newGame(pair, map, log));
@@ -328,13 +390,15 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
           }
           gameScope = yield* Effect.acquireRelease(Scope.make(), (scope) => Scope.close(scope, Exit.void));
         }
+        // A new game runs the map's own bundle; the current TypeScript replaces it before the script.
+        if (freshGame && !(yield* timedReload(made, run.dir))) {
+          outcome = "broken";
+          previous = "broken";
+          continue;
+        }
         const at = performance.now();
         const play = Effect.gen(function*() {
-          if (session === undefined) {
-            if (gameScope === undefined) return yield* new IntegrityFailure({ operation: "start native session", path: pair.name, cause: "no game scope" });
-            session = yield* nativeSession(join(options.out, `${pair.name}-session-${gameNumber++}`), options.helper, build, pair.appIds, pair.clients).pipe(Scope.provide(gameScope));
-          }
-          return yield* nativeScript(session, padOptions);
+          return yield* nativeScript(yield* ensureSession, padOptions);
         });
         const ran = yield* Effect.exit(pair.lan === undefined ? onHealthyClients(play, { retry: false, clientsFile: pair.clients }) : play);
         made.run += seconds(at);
@@ -366,7 +430,7 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
   }));
   yield* Effect.forEach(pairs, worker, { concurrency: "unbounded", discard: true });
   yield* Effect.promise(() => Promise.all(compares));
-  yield* summarize(options.out, runs, reports, pairs.map((pair) => pair.name), started, { fresh_each: freshEach });
+  yield* summarize(options.out, runs, reports, pairs.map((pair) => pair.name), started, { fresh_each: freshEach, hot, ...quietWindow });
 });
 
 /**
