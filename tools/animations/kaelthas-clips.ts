@@ -9,6 +9,8 @@ import type { HeroPose } from "../../ts/src/game/sim/heroes/hero";
 import { KAELTHAS_MOVES } from "../../ts/src/game/sim/heroes/kaelthasMoves";
 import { KAELTHAS_SPECIALS } from "../../ts/src/game/sim/heroes/kaelthasSpecials";
 import { seconds } from "./asset-info";
+import { measureDrawnReach } from "../../ts/scripts/wisp/drawnReach";
+import { characterModelScale } from "../../ts/src/game/presentation/modelScale";
 
 function ensure(ok: unknown, message: string): asserts ok { if (!ok) throw new Error(message); }
 function tracks(value: unknown, visit: (track: mdx.AnimVector, path: string) => void, path = "") {
@@ -206,6 +208,58 @@ for (const [ordinal, action] of actions.entries()) if (/^victim(Pummel|Throw)/.t
   action.frames = 60; action.contact = 30;
   records[ordinal]!.frames = 60; records[ordinal]!.contact = 30;
 }
+const normalReach = [];
+let tiltForward = 0;
+for (const style of [AttackStyle.forwardTilt, AttackStyle.jab, AttackStyle.jab2, AttackStyle.forwardTiltUp,
+  AttackStyle.forwardTiltDown, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack]) {
+  const ordinal = normals.findIndex(normal => normal[1] === style), action = actions[ordinal]!;
+  const index = source.Sequences.length + ordinal, [start, end] = model.Sequences[index]!.Interval;
+  const root = model.Nodes.find(node => node.Name === "Bone_Root")!, chest = model.Nodes.find(node => node.Name === "Bone_Chest")!;
+  const donor = (node: mdx.Node) => source.Nodes[node.ObjectId]!.Rotation!.Keys.find(key => key.Frame >= stand.Interval[0] && key.Frame <= stand.Interval[1])!.Vector;
+  const rootBase = donor(root), chestBase = donor(chest);
+  const translation = root.Translation!.Keys.filter(key => key.Frame >= start! && key.Frame <= end!);
+  const translationBase = translation.map(key => key.Vector.slice());
+  const rotationKeys = (node: mdx.Node) => node.Rotation!.Keys.filter(key => key.Frame >= start! && key.Frame <= end!);
+  const rootKeys = rotationKeys(root), chestKeys = rotationKeys(chest);
+  const set = (keys: typeof rootKeys, base: ArrayLike<number>, active: number, recoil: number) => {
+    for (const key of keys) {
+      const frame = Math.round((key.Frame - start!) * 60 / 1000);
+      const angle = frame === 0 || frame === action.frames ? 0 : frame < action.contact ? recoil : active;
+      key.Vector = rotated(base, angle);
+      if (key.InTan) { key.InTan = key.Vector.slice(); key.OutTan = key.Vector.slice(); }
+    }
+  };
+  let selected: ReturnType<typeof measureDrawnReach> | undefined;
+  // Prefer a pose that peaks inside the active frames; allow the two-frame slack only when none does.
+  selection: for (const slack of [0, 2]) for (const activeRoot of [0, 20, -20, 40, -40, 60, -60])
+    for (const activeChest of [action.gesture.chest ?? 0, 20, -20, 40, -40, 60, -60, 80, -80, 100, -100])
+      for (const recoilRoot of [60, -60, 30, -30, 0, 80, -80]) {
+        set(rootKeys, rootBase, activeRoot, recoilRoot);
+        set(chestKeys, chestBase, activeChest, 35);
+        for (const [i, key] of translation.entries()) {
+          key.Vector = translationBase[i]!.slice();
+          if (key.InTan) { key.InTan = root.Translation!.LineType === mdx.LineType.Bezier ? key.Vector.slice() : new Float32Array(3); key.OutTan = key.InTan.slice(); }
+        }
+        const floor = new DrawnModel(generateMDX(model), 1);
+        for (const key of translation) {
+          const triangles = floor.triangles(index, (key.Frame - start!) / 1000, 1);
+          let lowest = Infinity;
+          for (let vertex = 1; vertex < triangles.length; vertex += 2) lowest = Math.min(lowest, triangles[vertex]!);
+          key.Vector[2] = key.Vector[2]! - lowest;
+          if (key.InTan) { key.InTan = root.Translation!.LineType === mdx.LineType.Bezier ? key.Vector.slice() : new Float32Array(3); key.OutTan = key.InTan.slice(); }
+        }
+        const row = measureDrawnReach(new DrawnModel(generateMDX(model), characterModelScale(20)), 20, style);
+        if (row.swing < 30 || row.peakFrame < row.firstActive - slack || row.peakFrame > row.lastActive + slack) continue;
+        if (style === AttackStyle.forwardTilt && row.forward < 70) continue;
+        if ((style === AttackStyle.jab || style === AttackStyle.jab2) && row.forward >= tiltForward) continue;
+        selected = row;
+        if (style === AttackStyle.forwardTilt) tiltForward = row.forward;
+        normalReach.push({ style, activeRoot, activeChest, recoilRoot, ...row });
+        console.log(`KAELTHAS_NORMAL_REACH_PASS ${style} ${JSON.stringify(normalReach.at(-1))}`);
+        break selection;
+      }
+  ensure(selected, `${action.pose}: no skinned recoil/contact pose meets original reach gates`);
+}
 const stripped = structuredClone(model); stripped.Sequences = stripped.Sequences.slice(0, source.Sequences.length);
 tracks(stripped, track => { if (!globalClock(track)) track.Keys = track.Keys.filter(k => k.Frame < cutoff); });
 ensure(isDeepStrictEqual(stripped, source), "Authored suffix changed original body or animation");
@@ -231,4 +285,5 @@ for (const [i, action] of [...actions, ...damageActions].entries()) {
   await Bun.write(join(output, `${records[i]!.pose.replaceAll(" ", "-")}.png`), sheet(records[i]!.pose, finalDrawn, panels, 5).png); measured++;
 }
 await Bun.write(join(output, "kaelthas-clips.json"), JSON.stringify({ stockSequences: source.Sequences.length, appended: records.length, measuredBothFacings: measured, records }, null, 2) + "\n");
+await Bun.write(join(output, "normal-reach.json"), JSON.stringify(normalReach, null, 2) + "\n");
 console.log(`KAELTHAS_CLIPS_PASS ${records.length} authored clips; ${source.Sequences.length} stock sequences retained; ${measured} both-facing sheets; private output ${output}`);

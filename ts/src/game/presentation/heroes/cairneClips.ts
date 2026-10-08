@@ -47,7 +47,7 @@ export const CAIRNE_CLIPS = { idle: { index: 0, seconds: f32(2.667) }, walk: { i
   damageAir: { index: 53, seconds: f32(0.4), aligned: true },
   damageTumble: { index: 54, seconds: 0.5, aligned: true },
   damageShield: { index: 55, seconds: f32(0.4), aligned: true },
-  grab: { index: 56, seconds: f32(0.733), aligned: true },
+  grab: { index: 56, seconds: f32(0.717), aligned: true },
   grabHold: { index: 57, seconds: 0.5, aligned: true },
   grabbed: { index: 58, seconds: 0.5, aligned: true },
   pummel: { index: 59, seconds: f32(1.133), aligned: true, contact: 1.0 },

@@ -31,15 +31,16 @@ const strike = (name: string, frames: number, first: number, last: number, coil:
   add(name, frames, [phase(0), phase(Math.max(0, first - 3), coil), phase(first, hit), phase(last, { ...hit, bow: (hit.bow ?? 0) + 12 }), phase(Math.min(frames - 1, last + 9), exit), phase(frames)], { air });
 
 // The left hand carries the bow; the free right hand casts and drains.
-strike("jab", 18, 3, 4, { bow: 15, chest: -6 }, { bow: -28, elbow: -8, chest: 8, knee: 6 });
-strike("jab2", 20, 4, 5, { bow: 24, chest: -9 }, { bow: -34, elbow: -10, chest: 12, twist: 10, knee: 8 });
-strike("jab3", 24, 5, 6, { bow: 30, chest: -12 }, { bow: -44, elbow: -14, chest: 16, twist: 18, knee: 10 });
-strike("forwardTilt", 31, 8, 10, { bow: 35, chest: -12, twist: -20 }, { bow: -68, elbow: -16, chest: 18, twist: 24, knee: 12 });
-strike("forwardTiltUp", 31, 8, 10, { bow: 25, chest: 8 }, { bow: -105, elbow: -18, chest: -15, knee: 12 });
-strike("forwardTiltDown", 31, 8, 10, { bow: -55, chest: -10 }, { bow: -28, elbow: 12, chest: 38, knee: 34, tuck: 0.12 });
+const LEAN_JAB = 8, LEAN_TILT = 16;
+strike("jab", 18, 3, 4, { bow: 85, grip: 75, elbow: 30, chest: -25, twist: -18, knee: -40 }, { bow: -62, elbow: -12, chest: 18, knee: 8, yaw: 15, lean: LEAN_JAB });
+strike("jab2", 20, 4, 5, { bow: 85, grip: 75, elbow: 30, chest: -25, twist: -18, knee: -40 }, { bow: -66, elbow: -14, chest: 20, twist: 10, knee: 10, yaw: 30, lean: LEAN_JAB });
+strike("jab3", 24, 5, 6, { bow: 85, grip: 75, elbow: 30, chest: -25, twist: -18 }, { bow: -58, elbow: -16, chest: 20, twist: 18, knee: 10 });
+strike("forwardTilt", 31, 8, 10, { bow: 85, grip: 75, elbow: 30, chest: -25, twist: -18, knee: -40 }, { bow: -88, elbow: -16, chest: 26, twist: 28, knee: 22, yaw: 10, lean: LEAN_TILT });
+strike("forwardTiltUp", 31, 8, 10, { bow: 60, grip: 70, elbow: 25, chest: -18, yaw: -60 }, { bow: -85, elbow: -18, chest: 14, grip: 30, knee: 12, yaw: 25 });
+strike("forwardTiltDown", 31, 8, 10, { bow: 70, grip: 70, elbow: 25, chest: -18, knee: -20, yaw: -60 }, { bow: -28, elbow: 18, chest: 55, knee: 50, tuck: 0.18 });
 strike("upTilt", 30, 7, 10, { bow: 28, chest: 20, knee: 18 }, { bow: -160, elbow: -20, chest: -22, grip: -25, knee: 6 });
-strike("downTilt", 27, 6, 8, { bow: -80, chest: -12 }, { bow: -15, elbow: 12, chest: 48, knee: 44, tuck: 0.18 });
-strike("dashAttack", 35, 9, 11, { bow: 35, chest: -18, knee: 28 }, { bow: -60, elbow: -20, chest: 28, lean: 12, knee: 24 });
+strike("downTilt", 27, 6, 8, { bow: 75, grip: 70, elbow: 20, chest: -15, yaw: 90 }, { bow: -28, elbow: 18, chest: 55, knee: 50, tuck: 0.18 });
+strike("dashAttack", 35, 9, 11, { bow: 70, grip: 70, elbow: 25, chest: -25, yaw: -60 }, { bow: -82, elbow: -20, chest: 30, lean: LEAN_TILT + 6, knee: 28, yaw: 35 });
 strike("forwardSmash", 49, 16, 18, { bow: 35, grip: -105, chest: -28, twist: -32, knee: 20 }, { bow: -82, grip: 35, elbow: -24, chest: 25, twist: 34, knee: 16 }, { bow: -72, chest: 14, knee: 12 });
 strike("upSmash", 47, 14, 17, { bow: 20, chest: 30, knee: 38 }, { bow: -180, grip: -135, elbow: -18, chest: -26, knee: 0 });
 add("downSmash", 47, [phase(0), phase(10, { bow: -130, knee: 30, chest: -18 }), phase(13, { bow: -15, chest: 42, knee: 40 }), phase(15, { bow: -15, chest: 42, knee: 40 }), phase(16, { bow: -15, yaw: 180, chest: 42, knee: 40 }), phase(18, { bow: -15, yaw: 180, chest: 42, knee: 40 }), phase(34, { yaw: 300 }), phase(47, { yaw: 360 })]);

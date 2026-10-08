@@ -87,8 +87,10 @@ function aimArm(index:number,start:number,action:Action,phases:readonly Phase[],
  for(const {frame,amount}of phases){set(arm,frame,rotated(armBase,angles[0]!*amount,angles[1]!*amount));set(elbow,frame,rotated(elbowBase,angles[2]!*amount,angles[3]!*amount));if(direction)set(hand,frame,multiply(scaledRotation(handDelta,amount),handBase));}
 }
 function contactAim(pose:HeroPose):{hand:Point;direction:Point}|undefined {
+ if(pose==="jab2")return {hand:[18,-18,62],direction:[1,0,0]};
  if(pose==="downAir")return {hand:[18,-18,30],direction:[0,0,-1]};
- if(pose==="upTilt"||pose==="upAir")return {hand:[8,-18,115],direction:[1,0,0]};
+ if(pose==="upTilt")return {hand:[10,-18,124],direction:[1,0,0]};
+ if(pose==="upAir")return {hand:[8,-18,115],direction:[1,0,0]};
  if(pose==="upSmash"||pose==="throwUp"||pose==="upSpecial"||pose==="upSpecialAir")return {hand:[8,-18,113],direction:[0,0,1]};
  if(pose==="forwardTiltUp")return {hand:[32,-18,72],direction:[1,0,0.5]};
  if(pose==="forwardTiltDown")return {hand:[33,-18,47],direction:[1,0,-0.6]};
@@ -152,6 +154,22 @@ for(const [ordinal,action]of [...actions,...damageActions].entries()){
  if(ordinal<actions.length)bindings.push(`  ${action.pose}: ${binding},`);else damageBindings.push(`  ${binding},`);
  records.push({pose:name,index,frames:victimContact?60:action.frames,contact:victimContact?30:action.contact});
 }
+// Preserve the grounded strike while the knees compress its wind-up and the staff recovers beside the active window.
+const upTiltOrdinal=actions.findIndex(action=>action.pose==="upTilt"),upTiltAction=actions[upTiltOrdinal]!,upTiltIndex=source.Sequences.length+upTiltOrdinal;
+const upTiltSequence=model.Sequences[upTiltIndex]!,upTiltStart=upTiltSequence.Interval[0],upTiltEnd=upTiltSequence.Interval[1];
+const upTiltFrame=(frame:number)=>upTiltStart+Math.round(frame*1000/60),upTiltCoil=upTiltFrame(upTiltAction.contact-3);
+tracks(model,(track,path)=>{
+ if(onGlobalClock(track))return;
+ const first=track.Keys.find(key=>key.Frame===upTiltStart),coil=track.Keys.find(key=>key.Frame===upTiltCoil),hold=track.Keys.find(key=>key.Frame===upTiltFrame(upTiltAction.contact+4)),last=track.Keys.find(key=>key.Frame===upTiltEnd);
+ const match=/^\.(Bones|Helpers)\.(\d+)\.Rotation$/.exec(path),node=match?model[match[1] as "Bones"|"Helpers"][Number(match[2])]:undefined;
+ if(first&&coil&&node&&/^Bone_Leg[12]_[LR]ArchDruid$/.test(node.Name)){coil.Vector=rotated(first.Vector,node.Name.startsWith("Bone_Leg1")?-35:90);if(coil.InTan){coil.InTan=coil.Vector.slice();coil.OutTan=coil.Vector.slice();}}
+ if(hold)hold.Frame=upTiltFrame(upTiltAction.contact+3);
+ if(last)track.Keys.push({...structuredClone(last),Frame:upTiltFrame(upTiltAction.contact+7)});
+ track.Keys.sort((a,b)=>a.Frame-b.Frame);
+});
+const upTiltDrawn=new DrawnModel(generateMDX(model),1),upTiltTriangles=upTiltDrawn.triangles(upTiltIndex,(upTiltCoil-upTiltStart)/1000,1);
+let upTiltFloor=Infinity;for(let i=1;i<upTiltTriangles.length;i+=2)upTiltFloor=Math.min(upTiltFloor,upTiltTriangles[i]!);
+const upTiltRoot=model.Nodes.find(node=>node?.Name==="Bone_RootArchDruid")!.Translation!.Keys.find(key=>key.Frame===upTiltCoil)!;upTiltRoot.Vector[2]!-=upTiltFloor;
 // Paired victims share a half-second contact; separate intervals preserve every other clip's keys.
 for(const [ordinal,action]of actions.entries())if(/^victim(Pummel|Throw)/.test(action.pose)){
  const sequence=model.Sequences[source.Sequences.length+ordinal]!,[first,last]=sequence.Interval,contact=first!+Math.round(action.contact*1000/60),start=cursor;cursor=start+1100;

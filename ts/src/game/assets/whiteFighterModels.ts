@@ -14,11 +14,11 @@ export const WHITE_FIGHTER_MODELS: readonly string[] = [
   "war3mapImported\\BeastmasterWhite-81dcc9ec58560d83c063ab16287f838324c32619bbf5597c70bcdf7ec8cee591.mdx",
   "war3mapImported\\LichKingWhite-df9bb39f789d9db1acf411e0c77bf427467b2d8d5e2177a92c070df8e90a99d5.mdx",
   "war3mapImported\\ThrallWhite-f48c5827d242ea18ff7e70783f279a2135f6ba7edd18379315db5e8861f53d56.mdx",
-  "war3mapImported\\JainaProudmooreWhite-d77767dbcfa883fe50de520dd75fbf7ba16fb4c6532695403d70a5db4fa8d67f.mdx",
-  "war3mapImported\\SylvanasWindrunnerWhite-330bdba5e9a9c81d2c49b88f9794e933bd8ef227da1a686bdb7aaaf64328ee89.mdx",
-  "war3mapImported\\CairneBloodhoofWhite-e8a79cabd0728cbc06aef7b51118aaba130dc890aa094e98f46badbd3c41b849.mdx",
-  "war3mapImported\\ChenStormstoutWhite-7616242edaf863fe849fdb2da1bd2a09807009c7e572560cecb954c56951cffe.mdx",
-  "war3mapImported\\PeonWhite-ae510e6141b40f49d6ab2ffd7807a2c0ebdb4dbe5df93f9314e03925f38dbe0d.mdx",
-  "war3mapImported\\GoblinTinkerWhite-c1e74366b9b47e8bead377281384cc12c7ff633841a2ea7ba5eb2f47aee48f30.mdx",
-  "war3mapImported\\KaelthasSunstriderWhite-acde58742944f8cde0c3aa97b8da2c7fbc5f6c23b5c6c8eba72dcee5ed672107.mdx"
+  "war3mapImported\\JainaProudmooreWhite-d5220d66417c066bc591b1f5c759cfdda984282c17a7d07cfbef3ce8c994dcb4.mdx",
+  "war3mapImported\\SylvanasWindrunnerWhite-8a02fe2068ca0ca51cfa49ef53d3a9b37086d6e5630bacf804be59ff57d7b530.mdx",
+  "war3mapImported\\CairneBloodhoofWhite-6fc92f3376a01304a24ed9806e5bf459ca9132f597d30c060da2392414a2135e.mdx",
+  "war3mapImported\\ChenStormstoutWhite-33d0c250588260d20ebf7886d61f42f5de4a0abf19acfb2b9848eb97e7ae6fd4.mdx",
+  "war3mapImported\\PeonWhite-e694edc1cde755471e9bac4ccc8e3b4b55df7116efcaa5600f52fbb95a17643f.mdx",
+  "war3mapImported\\GoblinTinkerWhite-294c635df5fed4534d22e5e2b84be78e91c2fdd9404adb4c6a51ac499cbc0614.mdx",
+  "war3mapImported\\KaelthasSunstriderWhite-e5cfc4b4750f950f917b61b2c4b83bec0b7aa0a0cebe94eadf06229952378d70.mdx"
 ];

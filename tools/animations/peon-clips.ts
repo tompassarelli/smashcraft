@@ -30,14 +30,14 @@ const strike = (name: string, frames: number, first: number, last: number, coil:
 
 // The stock axe is attached to the right hand. Its free left hand handles
 // lumber and grips; each attack moves the shoulders, chest and support legs.
-strike("jab", 17, 3, 4, { axe: -25, chest: -8 }, { axe: -58, elbow: -18, chest: 14, knee: 8 });
+strike("jab", 17, 3, 4, { axe: -135, chest: -12, twist: -18 }, { axe: -35, elbow: -10, chest: 8, knee: 8 });
 strike("jab2", 25, 5, 6, { axe: -100, chest: -12 }, { axe: 24, elbow: 30, chest: 24, knee: 16 });
 strike("forwardTilt", 29, 7, 9, { axe: -135, chest: -12, twist: -18 }, { axe: -30, elbow: -20, chest: 18, twist: 20, knee: 12 });
 strike("forwardTiltUp", 29, 7, 9, { axe: -45, chest: 16 }, { axe: -155, elbow: -18, chest: -15, knee: 12 });
-strike("forwardTiltDown", 29, 7, 9, { axe: -110, chest: -10 }, { axe: 35, elbow: 28, chest: 38, knee: 30 });
-strike("upTilt", 30, 6, 9, { axe: 18, chest: 20, knee: 15 }, { axe: -170, elbow: -18, chest: -20, grip: -75, knee: 5 });
-strike("downTilt", 27, 5, 7, { axe: -85, chest: -15 }, { axe: 50, elbow: 18, chest: 42, knee: 42, tuck: 0.16 });
-strike("dashAttack", 38, 9, 12, { axe: -45, chest: -16, knee: 30 }, { axe: -75, elbow: -25, chest: 38, lean: 15, knee: 28 });
+strike("forwardTiltDown", 29, 7, 9, { axe: -110, chest: -20 }, { axe: -25, elbow: 0, chest: 32, knee: 30 });
+strike("upTilt", 30, 6, 9, { axe: 18, chest: 20, knee: 15 }, { axe: -105, elbow: -10, chest: -10, grip: -80, knee: 0 });
+strike("downTilt", 27, 5, 7, { axe: -155, chest: -15, yaw: 60 }, { axe: -45, elbow: -15, chest: 35, knee: 42, tuck: 0.16 });
+strike("dashAttack", 38, 9, 12, { axe: -145, chest: -22, knee: 30 }, { axe: -75, elbow: -25, chest: 38, lean: 15, knee: 28 });
 strike("forwardSmash", 59, 21, 23, { axe: -175, grip: -120, chest: -24, knee: 26 }, { axe: 35, grip: -25, elbow: 28, chest: 40, knee: 28 }, { axe: 40, chest: 28, knee: 20 });
 strike("upSmash", 51, 16, 19, { axe: 10, chest: 30, knee: 35 }, { axe: -175, grip: -155, elbow: -22, chest: -26, knee: 0 });
 add("downSmash", 54, [phase(0), phase(14, { axe: -160, knee: 25, chest: -15 }), phase(17, { axe: 45, chest: 40, knee: 35 }), phase(19, { axe: -130, yaw: 90, knee: 30 }), phase(20, { axe: 45, yaw: 180, chest: 40, knee: 35 }), phase(24, { axe: 65, yaw: 180, knee: 20 }), phase(40, { yaw: 300 }), phase(54, { yaw: 360 })]);
