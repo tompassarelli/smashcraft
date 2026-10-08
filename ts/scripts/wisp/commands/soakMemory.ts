@@ -5,7 +5,9 @@
 // or what the maps' globals reach grow after warm-up.
 import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { Console, Effect, Schema } from "effect";
+import { BunServices } from "@effect/platform-bun";
+import { Console, Effect, Schema, Stream } from "effect";
+import { ChildProcess } from "effect/process";
 import { mapCompiler, report } from "wisp/scripts/compiler";
 import { type Command, UsageFailure, describeCause, flagValues } from "wisp/scripts/wisp/command";
 import { step } from "wisp/scripts/wisp/timings";
@@ -40,25 +42,35 @@ export const soakMemory: Command = (args) => Effect.gen(function*() {
   yield* compile(join(tsDirectory, "tsconfig.memory.json")).pipe(step("compile the memory soak"));
   const lua = yield* stockLua.pipe(Effect.mapError((problem) => new MemorySoakFailure({ problem })));
   const declarations = join(tsDirectory, "node_modules/wisp/src/natives/warcraft.d.ts");
-  const text = yield* Effect.tryPromise({
-    try: async () => {
-      const child = Bun.spawn([lua, join(tsDirectory, "build/memory.lua"), playable.bundlePath, declarations, String(minutes)], { stdout: "pipe", stderr: "pipe" });
-      let output = "";
-      const decoder = new TextDecoder();
-      for await (const chunk of child.stdout) {
-        const piece = decoder.decode(chunk, { stream: true });
-        output += piece;
+  // The child belongs to this scope, so an interrupted soak stops the Lua run.
+  const text = yield* Effect.scoped(Effect.gen(function*() {
+    const child = yield* ChildProcess.make(lua, [join(tsDirectory, "build/memory.lua"), playable.bundlePath, declarations, String(minutes)], { stdin: "ignore" });
+    const [output, stderr, code] = yield* Effect.all([
+      child.stdout.pipe(
+        Stream.decodeText,
         // A line a game minute, so a long run shows it is moving.
-        for (const line of piece.split("\n")) if (line.startsWith("sample kind=minute")) console.error(line.split(" | ")[0]);
-      }
-      const [stderr, code] = await Promise.all([new Response(child.stderr).text(), child.exited]);
-      if (code !== 0 && !output.includes("\ndone ")) throw new Error(`${lua} exited ${code}: ${stderr.trim()}`);
-      return output;
+        Stream.tap((piece) => Effect.sync(() => {
+          for (const line of piece.split("\n")) if (line.startsWith("sample kind=minute")) console.error(line.split(" | ")[0]);
+        })),
+        Stream.mkString,
+      ),
+      Stream.mkString(Stream.decodeText(child.stderr)),
+      child.exitCode,
+    ], { concurrency: "unbounded" });
+    if (code !== 0 && !output.includes("\ndone ")) return yield* new MemorySoakFailure({ problem: `the memory soak in ${lua}: ${lua} exited ${code}: ${stderr.trim()}` });
+    return output;
+  })).pipe(
+    Effect.catchTag("PlatformError", (cause) => Effect.fail(new MemorySoakFailure({ problem: `the memory soak in ${lua}: ${cause.message}` }))),
+    Effect.provide(BunServices.layer),
+    step(`${minutes} game minutes in 32-bit Lua`),
+  );
+  yield* Effect.tryPromise({
+    try: async () => {
+      mkdirSync(dirname(out), { recursive: true });
+      await Bun.write(out, text);
     },
-    catch: (cause) => new MemorySoakFailure({ problem: `the memory soak in ${lua}: ${describeCause(cause)}` }),
-  }).pipe(step(`${minutes} game minutes in 32-bit Lua`));
-  mkdirSync(dirname(out), { recursive: true });
-  yield* Effect.promise(() => Bun.write(out, text));
+    catch: (cause) => new MemorySoakFailure({ problem: `writing ${out}: ${describeCause(cause)}` }),
+  });
   const run = yield* Effect.try({ try: () => parseMemoryRun(text), catch: (cause) => new MemorySoakFailure({ problem: `${out}: ${describeCause(cause)}` }) });
   const verdict = checkMemory(run);
   yield* Console.log([...verdict.lines, `samples: ${out}`].join("\n"));
