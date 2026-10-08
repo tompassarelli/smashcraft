@@ -22,7 +22,6 @@ import { companionReady, isHeroSpecialAction, runningHeroSpecial, specialCooldow
 import { heroStatusBlocksActions } from "../sim/heroStatus";
 import { type AuthoredSpecial, type SpecialFollowUp, type SpecialProjectile, CompanionOrder, FOLLOW_UP_FORM, FollowUpInput, SpecialSlot, specialKit } from "../sim/heroSpecials";
 import type { Controls } from "../sim/roster";
-import { originalSpecialCost } from "../sim/mana";
 import {
   ARCHER_RIDE_LEAP_FIRST, FEL_RUSH_BRANCH_FIRST, FEL_RUSH_BRANCH_LAST, FEL_RUSH_SPEED, FEL_RUSH_FIRST, FEL_RUSH_LAST, DEMONHUNTER_GLIDE_FIRST, DEMONHUNTER_GLIDE_FORM, DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_WING_DURATION,
   RIFLEMAN_RECOVERY_STARTUP_FRAMES, RIFLEMAN_SECOND_SHOT_FIRST, RIFLEMAN_SECOND_SHOT_FORM, RIFLEMAN_SECOND_SHOT_LAST,
@@ -44,7 +43,6 @@ const IMAGE_FAR = 330.0;
 const IMAGE_ROOM = 160.0;
 /** Frost Armor is cast with the target at least this far away and this much mana to spare past its cost. */
 const ARMOR_GAP = 240.0;
-const ARMOR_SPARE = 15;
 /** A partner's bite reaches about this far past its lunge; it is called back past this share of its leash. */
 const PARTNER_BITE_REACH = 60.0;
 const PARTNER_STRAY = f32(0.2);
@@ -83,7 +81,7 @@ const ANTI_AIR_RISE = 160.0;
 const DASH_IN_FAR = 300.0;
 
 /** Whether an original fighter can pay for a special now (sim/mana.ts): an unpaid press is refused. */
-const affords = (f: Readonly<Fighter>, action: SpecialAction): boolean => originalSpecialCost(action) <= f.mana.points && specialCooldownReady(f, action);
+const affords = (f: Readonly<Fighter>, action: SpecialAction): boolean => specialCooldownReady(f, action);
 
 /** The perched hippogryph's dive strikes a target this close to its path (sim/summons.ts). */
 const DIVE_REACH_X = 60.0;
@@ -287,7 +285,7 @@ function pressHeroOption(f: Readonly<Fighter>, target: Readonly<Fighter>, stage:
     // A marked opponent in reach: Shadow Pursuit appears behind it, on the deck.
     const marked = kit.marked;
     if (marked !== undefined && ready && target.status.poisonFrames > 0 && gap <= marked.range && Math.abs(f32(target.motion.z - f.motion.z)) <= marked.range
-      && f.mana.points >= marked.special.cost && safeAt(stage, f32(target.motion.x - f32(target.facing * BEHIND_MARK_ROOM)), 0.0)
+      && safeAt(stage, f32(target.motion.x - f32(target.facing * BEHIND_MARK_ROOM)), 0.0)
       && takes(skill, floorDiv(frame, 20), f.character * 7 + 8)) {
       pressSlot(input, slot, toward);
       return true;
@@ -307,7 +305,7 @@ function pressHeroOption(f: Readonly<Fighter>, target: Readonly<Fighter>, stage:
       return true;
     }
     // A shell of armor, cast while the target is far.
-    if (move.armor?.shell === true && (move.regions ?? []).length === 0 && f.status.armorFrames <= 0 && gap >= ARMOR_GAP && f.mana.points >= move.cost + ARMOR_SPARE
+    if (move.armor?.shell === true && (move.regions ?? []).length === 0 && f.status.armorFrames <= 0 && gap >= ARMOR_GAP
       && botChoice(floorDiv(frame, 45), f.character * 7 + 11, 3) === 0 && takes(skill, floorDiv(frame, 45), f.character * 7 + 12)) {
       pressSlot(input, slot, 0);
       return true;

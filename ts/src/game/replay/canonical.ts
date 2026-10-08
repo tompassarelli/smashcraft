@@ -1043,7 +1043,6 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   bool("surfacePhysics.canWallJump", t.surface.canWallJump);
   emit(kitDigestField(`${prefix}.specials`, t.specials, SPECIALS_DIGESTS, fighterSpecialsCanonical));
   int("manaPoints", fighter.mana.points);
-  int("manaProgress", fighter.mana.progress);
   int("manaDeniedSerial", v.manaDenied);
   // Other hero state is written only where a hero kit or hero projectile exists.
   if (t.specials !== undefined) {

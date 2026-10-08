@@ -368,7 +368,6 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   const mana = target.mana;
   const sourceMana = source.mana;
   mana.points = sourceMana.points;
-  mana.progress = sourceMana.progress;
 
   const passive = target.passive;
   const sourcePassive = source.passive;
@@ -792,7 +791,6 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
   const mana = target.mana;
   const sourceMana = source.mana;
   if (mana.points !== sourceMana.points || (mana.points === 0 && 1 / mana.points !== 1 / sourceMana.points)) return false;
-  if (mana.progress !== sourceMana.progress || (mana.progress === 0 && 1 / mana.progress !== 1 / sourceMana.progress)) return false;
 
   const passive = target.passive;
   const sourcePassive = source.passive;

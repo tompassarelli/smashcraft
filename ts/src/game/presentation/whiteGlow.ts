@@ -1,4 +1,5 @@
 import { floorMod } from "wisp/src/sim/intMath";
+import { ROSTER_MANA } from "../sim/mana";
 import type { Fighter } from "../sim/fighter";
 
 export const WHITE_GLOW_PERIOD = 12;
@@ -9,21 +10,26 @@ export interface WhiteGlowState {
   remaining: number;
   total: number;
   frame: number;
+  meter: number;
+  readyUntil: number;
 }
 
 export function createWhiteGlowState(): WhiteGlowState {
-  return { hit: 0, remaining: 0, total: 0, frame: -1 };
+  return { hit: 0, remaining: 0, total: 0, frame: -1, meter: 0, readyUntil: -1 };
 }
 
 /** Remember the contact's full freeze so its last seven frames stay heavy. */
 export function whiteGlowAlpha(state: WhiteGlowState, fighter: Readonly<Fighter>, frame: number): number {
   const remaining = fighter.launch.hitlag;
+  if (fighter.mana.points >= ROSTER_MANA.max && state.meter < ROSTER_MANA.max) state.readyUntil = frame + 12;
+  state.meter = fighter.mana.points;
   if (remaining <= 0 || fighter.status.out) state.total = 0;
   else if (state.hit !== fighter.visuals.hit || remaining > state.remaining || frame < state.frame) state.total = remaining;
   state.hit = fighter.visuals.hit;
   state.remaining = remaining;
   state.frame = frame;
   if (fighter.status.out) return 0;
+  if (frame < state.readyUntil) return 230;
   if (remaining > 0 && state.total >= HEAVY_HITLAG_FRAMES) {
     return floorMod(state.total - remaining, 4) < 2 ? 220 : 100;
   }

@@ -7,7 +7,7 @@ import { type StageTile, selectableStage } from "../menu/stageCatalog";
 
 /** Moments the match calls out; each plays one stock sound. */
 export const MatchCue = {
-  three: 0, two: 1, one: 2, go: 3, game: 4, time: 5, stockLost: 6, lastStock: 7, hover: 8, confirm: 9, cheer: 10,
+  three: 0, two: 1, one: 2, go: 3, game: 4, time: 5, stockLost: 6, lastStock: 7, hover: 8, confirm: 9, cheer: 10, meterReady: 11,
 } as const;
 export type MatchCue = (typeof MatchCue)[keyof typeof MatchCue];
 
@@ -24,12 +24,13 @@ const CUE_SOUNDS: readonly string[] = [
   "Sound\\Interface\\MouseOver1.flac",
   "Sound\\Interface\\BigButtonClick.flac",
   "Sound\\Cinematics\\CrowdCheer1.flac",
+  "Sound\\Interface\\GameFound.flac",
 ];
 
 export const cueSound = (cue: MatchCue): string => at(CUE_SOUNDS, cue);
 
 /** Each cue's on-screen call; empty for cues that are only heard. */
-const CUE_TEXT: readonly string[] = ["3", "2", "1", "GO!", "GAME!", "TIME!", "", "", "", "", ""];
+const CUE_TEXT: readonly string[] = ["3", "2", "1", "GO!", "GAME!", "TIME!", "", "", "", "", "", ""];
 
 export const cueText = (cue: MatchCue): string => at(CUE_TEXT, cue);
 

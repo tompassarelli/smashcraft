@@ -27,7 +27,6 @@ import { escapeMeterView, overheadAnchorZ, readEscapeMeter } from "../../game/pr
 import { OVERHEAD_MANA_BORDER, OVERHEAD_MANA_HEIGHT, OVERHEAD_MANA_WIDTH, overheadManaLift } from "../../game/presentation/manaBar";
 import { NO_PIPS, PASSIVE_PIP_LIFT, type PassivePips } from "../../game/ui/passivePips";
 import { passivePips } from "../../game/sim/passives";
-import { exManaCue } from "../../game/sim/exSpecials";
 import type { ManaBar } from "../../game/ui/manaBar";
 import type { Fighter } from "../../game/sim/fighter";
 import type { MatchCamera } from "../../game/sim/matchCamera";
@@ -340,7 +339,7 @@ function presentOverheadMana(bar: ManaBar, pips: PassivePips, fighter: Readonly<
     // The passive's pips sit just above the bar (#148).
     pips.update(true, passivePips(fighter), centerX, manaY + OVERHEAD_MANA_HEIGHT / 2.0 + OVERHEAD_MANA_BORDER + PASSIVE_PIP_LIFT);
   } else pips.update(false, NO_PIPS, 0.0, 0.0);
-  bar.update(onScreen, fighter.mana.points, fighter.visuals.manaDenied, fighter.visuals.manaDrained, exManaCue(fighter));
+  bar.update(onScreen, fighter.mana.points, fighter.visuals.manaDenied, fighter.visuals.manaDrained);
 }
 
 /** Frames the live fighters of the presented match from the side. */
@@ -415,7 +414,7 @@ export function renderUi(s: ShellState): void {
     if (s.participants[slot].body !== undefined && isActive(s.world, slot)) {
       const fighter = fighterAt(s.world, slot);
       ui.huds[slot].update(showMatch, fighter.character, fighter.status.damage, s.game.endless ? 0 : fighter.status.stocks);
-      ui.manaBars[slot].hud.update(showMatch, fighter.mana.points, fighter.visuals.manaDenied, fighter.visuals.manaDrained, exManaCue(fighter));
+      ui.manaBars[slot].hud.update(showMatch, fighter.mana.points, fighter.visuals.manaDenied, fighter.visuals.manaDrained);
     } else {
       ui.huds[slot].update(false, 0, 0.0, 0);
       ui.manaBars[slot].hud.update(false, 0, 0, 0);

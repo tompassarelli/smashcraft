@@ -9,7 +9,6 @@ import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { advanceHeroStatus } from "../heroSpecialRules";
-import { regenerateMana } from "../mana";
 import { updateProjectiles } from "../projectiles";
 import { type Controls, type Roster, createRoster } from "../roster";
 import { advanceSpecials, startFighterSpecial } from "../specials";
@@ -42,7 +41,6 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   updateProjectiles(world);
   finishDamageContacts(world);
   for (let slot = 0; slot < 2; slot++) {
-    regenerateMana(world.fighters[slot]!);
     advanceHeroStatus(world.fighters[slot]!);
   }
 }
@@ -65,17 +63,17 @@ function actionLength(world: Roster, owner: Fighter, press: Readonly<Controls>):
   return length;
 }
 
-test("Pit Lord's specials spend their design costs once and end on their design frames [spec docs/design/pit-lord.md]", () => {
+test("Pit Lord's specials preserve their super meter and end on their design frames [spec #335]", () => {
   assertTrue(PIT_LORD_HERO.specials !== undefined);
-  for (const [press, cost, end] of [[neutral, 12, 46], [side, 22, 64], [down, 20, 60]] as const) {
+  for (const [press, end] of [[neutral, 46], [side, 64], [down, 60]] as const) {
     const { world, owner } = pair(1000.0);
     assertEquals(actionLength(world, owner, press), end);
-    assertEquals(owner.mana.points, 100 - cost);
+    assertEquals(owner.mana.points, 100);
   }
   const { world, owner } = pair(1000.0);
   frame(world, up);
   assertEquals(owner.special.action, SpecialAction.heroUp);
-  assertEquals(owner.mana.points, 85);
+  assertEquals(owner.mana.points, 100);
 });
 
 test("Rain of Fire falls through the chosen lane in both facings and each meteor hits once [spec docs/design/pit-lord.md]", () => {
@@ -123,7 +121,7 @@ test("Rain of Fire is shieldable and interrupting the caster cancels the remaini
     for (const p of interrupted.owner.projectiles) if (p.life === 23) laterWaves++;
   }
   assertEquals(laterWaves, 0);
-  assertEquals(owner.mana.points, 80);
+  assertEquals(owner.mana.points, 100);
 });
 
 test("Ruin Charge travels 1.5H, armors one small hit on f19-24 only, and the air form goes 0.8H then helpless [spec docs/design/pit-lord.md]", () => {
@@ -170,24 +168,23 @@ test("an Archer jab that meets Ruin Charge's armor deals its damage without a re
   assertGreaterThan(trades, 0);
 });
 
-test("Abyssal Leap keeps its heavy recovery band and free 240-unit route, below its paid 3.5H grounded peak [spec #252] [spec docs/design/pit-lord.md]", () => {
+test("Abyssal Leap keeps its heavy recovery band and 3.5H grounded peak at every meter level [spec #335]", () => {
   for (const mana of [100, 10]) {
     const route = upSpecialRoute(Character.pitLord, mana);
-    assertTrue(mana === 100 ? route.rise >= 320.0 && route.rise <= 440.0 : route.rise >= 240.0);
-    assertTrue(mana === 100 ? route.reach >= 320.0 && route.reach <= 480.0 : route.reach >= 240.0);
+    assertTrue(route.rise >= 320.0 && route.rise <= 440.0);
+    assertTrue(route.reach >= 320.0 && route.reach <= 480.0);
     const { world, owner } = pair(1000.0);
     owner.mana.points = mana;
     const ground = owner.motion.z;
     let peak = ground;
     frame(world, up);
-    // The full leap spends 15 on entry; the free one spends nothing.
-    assertEquals(owner.mana.points, mana === 100 ? 85 : 10);
+    // Regular leaps preserve the super meter.
+    assertEquals(owner.mana.points, mana);
     for (let f = 2; f <= 60; f++) {
       frame(world);
       peak = Math.max(peak, owner.motion.z);
     }
-    if (mana === 100) assertNear(f32(peak - ground), f32(H * f32(3.5)), f32(H * f32(0.1)));
-    else assertLessThan(f32(peak - ground), f32(H * f32(3.5)));
+    assertNear(f32(peak - ground), f32(H * f32(3.5)), f32(H * f32(0.1)));
   }
 });
 

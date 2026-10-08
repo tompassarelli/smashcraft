@@ -8,6 +8,7 @@ import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { fighterName } from "../sim/heroes/registry";
 import { cpuOpponentSummary, fighterLabel } from "../shell/messages";
 import { MatchCue } from "./matchAudio";
+import { ROSTER_MANA } from "../sim/mana";
 import type { Character } from "../sim/codes";
 import { type CombatObservation, type CombatTally, clearCombatTally, createCombatObservation, createCombatTally, observeCombat, tallyCombat } from "./combatStats";
 
@@ -15,16 +16,18 @@ import { type CombatObservation, type CombatTally, clearCombatTally, createComba
 export interface CueObservation {
   phase: Phase;
   readonly out: Slots<boolean>;
+  readonly meter: Slots<number>;
   readonly combat: CombatObservation;
 }
 
 export function createCueObservation(): CueObservation {
-  return { phase: Phase.characterMenu, out: [false, false, false, false], combat: createCombatObservation() };
+  return { phase: Phase.characterMenu, out: [false, false, false, false], meter: [0, 0, 0, 0], combat: createCombatObservation() };
 }
 
 export function observeForCues(observation: CueObservation, game: Readonly<MatchState>, world: Readonly<Roster>): void {
   observation.phase = game.phase;
   for (const slot of PARTICIPANT_SLOTS) observation.out[slot] = isActive(world, slot) && fighterAt(world, slot).status.out;
+  for (const slot of PARTICIPANT_SLOTS) observation.meter[slot] = isActive(world, slot) ? fighterAt(world, slot).mana.points : 0;
   observeCombat(observation.combat, world);
 }
 
@@ -72,6 +75,9 @@ export function confirmedFrameCues(before: Readonly<CueObservation>, game: Reado
   const countdown = countdownCue(game);
   if (countdown !== undefined) cues.push(countdown);
   tallyCombat(before.combat, world, tally.combat);
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (isActive(world, slot) && before.meter[slot] < ROSTER_MANA.max && fighterAt(world, slot).mana.points >= ROSTER_MANA.max) cues.push(MatchCue.meterReady);
+  }
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot) || before.out[slot]) continue;
     const fighter = fighterAt(world, slot);

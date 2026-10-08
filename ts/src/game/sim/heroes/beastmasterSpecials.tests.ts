@@ -9,7 +9,6 @@ import { type Fighter, createFighter, placedObject } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { CompanionMode } from "../heroSpecials";
 import { advanceHeroStatus } from "../heroSpecialRules";
-import { regenerateMana } from "../mana";
 import { advancePlacedObjects } from "../placedObjects";
 import { updateProjectiles } from "../projectiles";
 import { type Controls, type Roster, createRoster } from "../roster";
@@ -38,13 +37,13 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   finishDamageContacts(world);
   advancePlacedObjects(world);
   for (let slot = 0; slot < 2; slot++) {
-    regenerateMana(world.fighters[slot]!);
     advanceHeroStatus(world.fighters[slot]!);
   }
 }
 
 function pair(gap = 1000.0, facing = 1): { world: Roster; owner: Fighter; target: Fighter } {
   const owner = createFighter(Character.beastmaster, f32(-gap * 0.5 * facing), facing);
+  owner.mana.points = 100;
   const target = createFighter(Character.archer, f32(gap * 0.5 * facing), -facing);
   const world = createRoster(3, [owner, target]);
   for (let i = 0; i < 3; i++) frame(world);
@@ -69,7 +68,7 @@ function withPack() {
 test("Beastmaster summons Bear on frame 24, Quilbeast on 18 and Hawk on 12 without replacing another animal [spec docs/design/beastmaster.md]", () => {
   const { world, owner } = pair();
   run(world, 23, side);
-  assertEquals(owner.mana.points, 80);
+  assertEquals(owner.mana.points, 100);
   assertEquals(owner.placed.life, 0);
   frame(world);
   assertEquals(owner.placed.durability, 30.0);
@@ -153,7 +152,7 @@ test("Beastmaster Quilbeast fires from its own location, then a command gives th
   owner.motion.x = f32(owner.motion.x - 80.0);
   const before = owner.mana.points;
   frame(world, down);
-  assertEquals(owner.mana.points, before - 6);
+  assertEquals(owner.mana.points, before);
   let shots = 0;
   for (let f = 0; f < 48; f++) {
     frame(world);
@@ -188,7 +187,7 @@ test("Beastmaster Hawk Dive leaves its perch and launches a target upward in bot
   }
 });
 
-test("Beastmaster Wild Axes are free, throw twice and return toward the moving owner [spec docs/design/beastmaster.md]", () => {
+test("Beastmaster Wild Axes are free, throw twice and return toward the moving owner [spec #335]", () => {
   const { world, owner, target } = pair();
   frame(world, neutral);
   assertEquals(owner.mana.points, 100);
@@ -209,11 +208,11 @@ test("Beastmaster Wild Axes are free, throw twice and return toward the moving o
   assertTrue(pulled);
 });
 
-test("Beastmaster Hawk Lift rises 380–520 and reaches 600–900, its free route at least 240 on each axis; Hawk survives the helpless fall [spec #252] [spec docs/design/beastmaster.md]", () => {
+test("Beastmaster Hawk Lift rises 380–520 and reaches 600–900, its free route at least 240 on each axis; Hawk survives the helpless fall [spec #335]", () => {
   for (const mana of [100, 10]) {
     const route = upSpecialRoute(Character.beastmaster, mana);
-    assertTrue(mana === 100 ? route.rise >= 380.0 && route.rise <= 520.0 : route.rise >= 240.0);
-    assertTrue(mana === 100 ? route.reach >= 600.0 && route.reach <= 900.0 : route.reach >= 240.0);
+    assertTrue(route.rise >= 380.0 && route.rise <= 520.0);
+    assertTrue(route.reach >= 600.0 && route.reach <= 900.0);
     const { world, owner } = pair();
     owner.motion.grounded = false;
     owner.motion.surface = undefined;
@@ -221,7 +220,7 @@ test("Beastmaster Hawk Lift rises 380–520 and reaches 600–900, its free rout
     owner.motion.vz = 0.0;
     owner.mana.points = mana;
     frame(world, up);
-    assertEquals(owner.mana.points, mana === 100 ? 85 : 10);
+    assertEquals(owner.mana.points, mana);
     for (let f = 2; f <= 33; f++) frame(world);
     assertTrue(owner.special.fall);
     assertEquals(owner.jump.remaining, 0);

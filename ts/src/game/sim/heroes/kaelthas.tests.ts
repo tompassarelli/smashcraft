@@ -76,12 +76,12 @@ function frame(world: Roster, input: Readonly<Controls> = controls(), targetInpu
 test("Kaelthas Flame Strike leaves the hand on frame 12 and launches the first body it reaches once [spec docs/design/kaelthas.md]", () => {
   for (const facing of [-1, 1]) for (const [x, contact] of [[120.0, 12], [180.0, 19], [300.0, 32], [400.0, 43]] as const) {
     const { owner, target, world } = pair(x, facing);
-    frame(world, controls({ specialPressed: true })); assertEquals(owner.special.action, SpecialAction.heroNeutral); assertEquals(owner.mana.points, 12);
+    frame(world, controls({ specialPressed: true })); assertEquals(owner.special.action, SpecialAction.heroNeutral); assertEquals(owner.mana.points, 40);
     for (let tick = 2; tick < contact; tick++) frame(world);
     assertEquals(target.status.damage, 0.0, `before ${x}`);
     frame(world); assertEquals(target.status.damage, 12.0, `at ${x}`); assertGreaterThan(target.launch.knockbackZ, 0.0);
     for (let tick = contact + 1; tick <= 60; tick++) frame(world);
-    assertEquals(target.status.damage, 12.0); assertEquals(owner.mana.points, 12);
+    assertEquals(target.status.damage, 12.0); assertEquals(owner.mana.points, 52);
   }
 });
 
@@ -111,7 +111,7 @@ test("Kaelthas Flame Strike stops at a shield, misses after its life and keeps t
     for (let tick = 2; tick <= 19; tick++) frame(blocked.world, controls(), defense);
     assertTrue(!projectedProjectile(blocked.owner, 0, true).visible);
     for (let tick = 20; tick <= 60; tick++) frame(blocked.world, controls(), defense);
-    assertEquals(blocked.target.status.damage, 0.0); assertEquals(blocked.owner.mana.points, 12);
+    assertEquals(blocked.target.status.damage, 0.0); assertEquals(blocked.owner.mana.points, 40);
 
     const late = pair(1000.0, facing);
     frame(late.world, controls({ specialPressed: true }));
@@ -127,7 +127,7 @@ test("Kaelthas Flame Strike stops at a shield, misses after its life and keeps t
     assertTrue(projectedProjectile(interrupted.owner, 0, true).visible);
     cancelSpecialState(interrupted.owner);
     for (let tick = 14; tick <= 60; tick++) frame(interrupted.world);
-    assertEquals(interrupted.target.status.damage, 12.0); assertEquals(interrupted.owner.mana.points, 12);
+    assertEquals(interrupted.target.status.damage, 12.0); assertEquals(interrupted.owner.mana.points, 52);
 
     const early = pair(180.0, facing);
     frame(early.world, controls({ specialPressed: true }));
@@ -138,32 +138,32 @@ test("Kaelthas Flame Strike stops at a shield, misses after its life and keeps t
   }
 });
 
-test("Kaelthas Siphon transfers available mana only on body contact and shields stop it [spec docs/design/kaelthas.md]", () => {
+test("Kaelthas Siphon transfers available mana only on body contact and shields stop it [spec #335]", () => {
   for (const facing of [-1, 1]) for (const blocked of [false, true]) {
     const { owner, target, world } = pair(115.0, facing); target.mana.points = 12;
     const defense = controls({ shield: blocked, shieldStrength: 1.0 });
     frame(world, controls({ specialPressed: true, specialX: facing }), defense);
     for (let tick = 2; tick <= 44; tick++) frame(world, controls(), defense);
-    assertEquals(target.status.damage, blocked ? 0.0 : 4.0); assertEquals(owner.mana.points, blocked ? 35 : 47);
+    assertEquals(target.status.damage, blocked ? 0.0 : 4.0); assertEquals(owner.mana.points, blocked ? 40 : 56);
     assertEquals(target.mana.points, blocked ? 12 : 2);
   }
 });
 
 test("Kaelthas Banish protects only its authored window then strikes once [spec docs/design/kaelthas.md]", () => {
   const { owner, target, world } = pair(45.0); frame(world, controls({ specialPressed: true, specialZ: -1 }));
-  assertEquals(owner.special.action, SpecialAction.heroDown); assertEquals(owner.mana.points, 25);
+  assertEquals(owner.special.action, SpecialAction.heroDown); assertEquals(owner.mana.points, 40);
   for (let tick = 2; tick <= 12; tick++) { frame(world); if (tick >= 5) assertTrue(isIntangible(owner)); }
   for (let tick = 13; tick <= 50; tick++) frame(world); assertEquals(target.status.damage, 5.0); assertTrue(!isIntangible(owner));
 });
 
-test("Kaelthas paid and free Phoenix Flight consume the jump and finish helpless with snapshot state [spec docs/design/kaelthas.md] [invariant]", () => {
+test("Kaelthas Phoenix Flight at every meter level consumes the jump and finish helpless with snapshot state [spec docs/design/kaelthas.md] [invariant]", () => {
   for (const mana of [40, 0]) {
     const { owner, world } = pair(1000.0); owner.mana.points = mana; owner.motion.grounded = false; owner.motion.surface = undefined; owner.motion.z = 250.0;
     frame(world, controls({ specialPressed: true, specialZ: 1 })); assertEquals(owner.special.action, SpecialAction.heroUp);
     for (let tick = 2; tick <= 20; tick++) frame(world);
     const restored = createFighter(Character.kaelthas, 0.0, 1); copyFighterState(restored, owner, 3); assertEquals(firstFighterDifference(owner, restored, 3, 3), undefined);
     for (let tick = 21; tick <= 40; tick++) frame(world);
-    assertEquals(owner.mana.points, mana === 0 ? 0 : 25); assertTrue(owner.motion.z > 300.0); assertTrue(owner.special.fall);
+    assertEquals(owner.mana.points, mana); assertTrue(owner.motion.z > 300.0); assertTrue(owner.special.fall);
     assertEquals(owner.jump.remaining, 0);
   }
 });

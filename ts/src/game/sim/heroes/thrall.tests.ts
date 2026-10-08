@@ -30,6 +30,7 @@ for (const style of [AttackStyle.jab, AttackStyle.jab2, AttackStyle.forwardTilt,
     if (region === undefined || strike === undefined) return;
     for (const facing of [-1, 1]) for (const inRange of [true, false]) {
       const owner = createFighter(Character.thrall, 0.0, facing);
+  owner.mana.points = 100;
       owner.motion.grounded = !isAerialAttack(style);
       const target = createFighter(Character.archer, f32((inRange ? strike.x2 : 1000.0) * facing), -facing);
       target.motion.z = f32(strike.z2 - 60.0);
@@ -54,6 +55,7 @@ for (const action of [GrabAction.throwForward, GrabAction.throwBack, GrabAction.
     if (spec === undefined) return;
     for (const facing of [-1, 1]) {
       const owner = createFighter(Character.thrall, 0.0, facing);
+  owner.mana.points = 100;
       const target = createFighter(Character.archer, f32(50.0 * facing), -facing);
       const world = testWorld(owner, target);
       beginFighterAttack(world, 0, AttackStyle.grab, false);
@@ -84,6 +86,7 @@ function frame(world: Roster, input: Readonly<Controls> = controls()): void {
 }
 function pair(gap: number, facing = 1) {
   const owner = createFighter(Character.thrall, 0.0, facing);
+  owner.mana.points = 100;
   const target = createFighter(Character.archer, f32(gap * facing), -facing);
   const world = testWorld(owner, target);
   for (let i = 0; i < 3; i++) frame(world);
@@ -94,17 +97,17 @@ const side = controls({ specialPressed: true, specialX: 1 });
 const up = controls({ specialPressed: true, specialZ: 1 });
 const down = controls({ specialPressed: true, specialZ: -1 });
 
-for (const [name, input, action, cost, end] of [
-  ["lightning", neutral, SpecialAction.heroNeutral, 10, 44], ["wolves", side, SpecialAction.heroSide, 18, 44],
-  ["sight", up, SpecialAction.heroUp, 12, 40], ["earthquake", down, SpecialAction.heroDown, 20, 50],
-] as const) test(`Thrall ${name} spends once and ends on its authored frame [spec docs/design/thrall.md]`, () => {
+for (const [name, input, action, end] of [
+  ["lightning", neutral, SpecialAction.heroNeutral, 44], ["wolves", side, SpecialAction.heroSide, 44],
+  ["sight", up, SpecialAction.heroUp, 40], ["earthquake", down, SpecialAction.heroDown, 50],
+] as const) test(`Thrall ${name} preserves the super meter and ends on its authored frame [spec #335]`, () => {
   const { world, owner } = pair(600.0);
   frame(world, input);
   assertEquals(owner.special.action, action);
-  assertEquals(owner.mana.points, 100 - cost);
+  assertEquals(owner.mana.points, 100);
   for (let i = 2; i <= end; i++) frame(world);
   assertEquals(owner.special.action, SpecialAction.none);
-  assertEquals(owner.mana.points, 100 - cost);
+  assertEquals(owner.mana.points, 100);
 });
 
 test("Thrall lightning and both wolves damage an opponent through ordinary projectile contacts [spec docs/design/thrall.md]", () => {
@@ -137,7 +140,7 @@ test("Thrall Far Sight has a free recovery, spends his jump and ends helpless [s
     frame(world, up);
     let top = start;
     for (let i = 0; i < 40; i++) { frame(world); top = Math.max(top, owner.motion.z); }
-    assertGreaterThan(top - start, mana === 0 ? 150.0 : 220.0);
+    assertGreaterThan(top - start, 220.0);
     assertEquals(owner.jump.remaining, 0);
     assertTrue(owner.special.fall);
   }
@@ -145,6 +148,7 @@ test("Thrall Far Sight has a free recovery, spends his jump and ends helpless [s
 
 test("Thrall Windfury counts two hammer hits, spends on shield and survives snapshot replay [spec docs/design/thrall.md] [invariant]", () => {
   const owner = createFighter(Character.thrall, 0.0, 1);
+  owner.mana.points = 100;
   for (let key = 1; key <= 2; key++) sourcePassiveContact(owner, 1, HitOrigin.melee, true, false, key, { damage: 10.0 });
   const saved = createFighter(Character.thrall, 0.0, 1);
   copyFighterState(saved, owner, 3);

@@ -1,7 +1,7 @@
 // Dreadlord's specials through the production special, projectile, grab and
-// contact steps: costs, Carrion Swarm, Sleep (#132), Vampiric Pounce's command
+// contact steps: free specials, Carrion Swarm, Sleep (#132), Vampiric Pounce's command
 // grab, corkscrew travel and bite heal,
-// and Bat Ascension's steerable rise with its free form.
+// and Bat Ascension's full steerable rise at every meter level.
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
@@ -12,7 +12,6 @@ import { type Fighter, createFighter } from "../fighter";
 import { advanceGrabs, captureGrabPauses, resolveGrabs } from "../grabs";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { advanceHeroStatus } from "../heroSpecialRules";
-import { regenerateMana } from "../mana";
 import { maskHeroStatusControls } from "../heroStatus";
 import { attackBuffer } from "../../input/attackBuffer";
 import { updateProjectiles } from "../projectiles";
@@ -39,7 +38,6 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   advanceSpecials(world, 0, 0, inputs);
   updateProjectiles(world);
   for (let slot = 0; slot < 2; slot++) {
-    regenerateMana(world.fighters[slot]!);
     advanceHeroStatus(world.fighters[slot]!);
   }
   finishDamageContacts(world);
@@ -48,6 +46,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
 
 function pair(gap: number, target = Character.archer): { world: Roster; owner: Fighter; victim: Fighter } {
   const owner = createFighter(Character.dreadlord, -gap * 0.5, 1);
+  owner.mana.points = 100;
   const victim = createFighter(target, gap * 0.5, -1);
   const world = createRoster(3, [owner, victim]);
   for (let i = 0; i < 3; i++) frame(world);
@@ -65,14 +64,14 @@ function play(world: Roster, last: number, first = controls(), second = controls
   for (let f = 2; f <= last; f++) frame(world, first, second);
 }
 
-test("Dreadlord's specials spend their listed mana once on entry [spec docs/design/roster.md]", () => {
-  for (const [input, cost] of [[neutral, 5], [side, 20], [up, 15], [down, 25]] as const) {
+test("Dreadlord's specials preserve their super meter on entry [spec #335]", () => {
+  for (const input of [neutral, side, up, down]) {
     const { world, owner } = pair(1000.0);
     frame(world, input);
     assertTrue(owner.special.action !== SpecialAction.none);
-    assertEquals(owner.mana.points, 100 - cost);
+    assertEquals(owner.mana.points, 100);
     play(world, 10);
-    assertEquals(owner.mana.points, 100 - cost);
+    assertEquals(owner.mana.points, 100);
   }
 });
 
@@ -241,11 +240,11 @@ function ascend(points: number, stickSide: number): { rise: number; across: numb
   return { rise: top - startZ, across: owner.motion.x - startX, owner };
 }
 
-test("Bat Ascension rises 2.8H and steers up to 1.0H; below 15 mana the free form rises 2.0H and steers 0.6H [spec #189] [spec docs/design/roster.md]", () => {
+test("Bat Ascension keeps its full rise and steering at every meter level [spec #335]", () => {
   const full = ascend(100, 1);
   assertGreaterThan(full.across, 0.0);
   assertTrue(full.owner.special.fall);
-  assertEquals(full.owner.mana.points, 85);
+  assertEquals(full.owner.mana.points, 100);
   const straight = ascend(100, 0);
   assertLessThan(Math.abs(straight.across), 1.0);
   const back = ascend(100, -1);
@@ -310,7 +309,7 @@ test("Vampiric Pounce corkscrews forward in both facings and air forms; another 
     assertLessThan(travel,f32(f32(2.4)*H));
     if(air) assertLessThan(Math.abs(f32(owner.motion.z-height)),1.0);
     assertEquals(owner.special.form,air?1:0);
-    assertEquals(owner.mana.points,80);
+    assertEquals(owner.mana.points, 100);
     for(let f=18;f<=52;f++) frame(world);
     assertEquals(owner.special.action,SpecialAction.heroSide);
     frame(world);

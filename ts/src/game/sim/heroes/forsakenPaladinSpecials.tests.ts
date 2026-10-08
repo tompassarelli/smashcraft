@@ -15,7 +15,6 @@ import { type Fighter, createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { advanceHeroStatus } from "../heroSpecialRules";
 import { ordinaryHitlagFrames } from "../knockback";
-import { regenerateMana } from "../mana";
 import { updateProjectiles } from "../projectiles";
 import { type Controls, type Roster, createRoster } from "../roster";
 import { advanceSpecials, startFighterSpecial } from "../specials";
@@ -35,13 +34,13 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), strike?: A
   updateProjectiles(world);
   finishDamageContacts(world);
   for (let slot = 0; slot < 2; slot++) {
-    regenerateMana(world.fighters[slot]!);
     advanceHeroStatus(world.fighters[slot]!);
   }
 }
 
 function pair(gap: number, opponent: Character = Character.archer): { world: Roster; owner: Fighter; target: Fighter } {
   const owner = createFighter(Character.forsakenPaladin, f32(-gap * 0.5), 1);
+  owner.mana.points = 100;
   const target = createFighter(opponent, f32(gap * 0.5), -1);
   const world = createRoster(3, [owner, target]);
   for (let i = 0; i < 3; i++) frame(world);
@@ -62,23 +61,23 @@ test("Forsaken Paladin's replay kit identity records the frame of Cleansing Hamm
   assertTrue(fighterSpecialsCanonical(changed) !== fighterSpecialsCanonical(FORSAKEN_PALADIN_SPECIALS));
 });
 
-test("Forsaken Paladin's specials spend their listed mana once and end on their listed frames [spec docs/design/forsaken-paladin.md]", () => {
-  for (const [input, action, cost, end] of [
-    [neutral, SpecialAction.heroNeutral, 10, 38],
-    [side, SpecialAction.heroSide, 25, 49],
-    [up, SpecialAction.heroUp, 15, 29],
-    [down, SpecialAction.heroDown, 20, 42],
+test("Forsaken Paladin's specials preserve their super meter and end on their listed frames [spec #335]", () => {
+  for (const [input, action, end] of [
+    [neutral, SpecialAction.heroNeutral, 38],
+    [side, SpecialAction.heroSide, 49],
+    [up, SpecialAction.heroUp, 29],
+    [down, SpecialAction.heroDown, 42],
   ] as const) {
     const { world, owner } = pair(900.0);
     frame(world, input);
     assertEquals(owner.special.action, action);
-    assertEquals(owner.mana.points, 100 - cost);
+    assertEquals(owner.mana.points, 100);
     for (let f = 2; f <= end; f++) {
       assertEquals(owner.special.action, action);
       frame(world);
     }
     assertEquals(owner.special.action, SpecialAction.none);
-    assertEquals(owner.mana.points, 100 - cost);
+    assertEquals(owner.mana.points, 100);
   }
 });
 
@@ -157,7 +156,7 @@ test("Forsaken Paladin's hammer makes one loud heavy bash and holds a shield con
   assertEquals(shield.target.launch.hitlag, ordinaryHitlagFrames(13.0) + 3);
 });
 
-test("air Righteous Fury has no armor, spends its one airborne use and ends helpless [spec docs/design/forsaken-paladin.md]", () => {
+test("air Righteous Fury has no armor, spends its one airborne use and ends helpless [spec #335]", () => {
   const air = pair(900.0);
   air.owner.motion.grounded = false;
   air.owner.motion.z = 1200.0;
@@ -172,24 +171,23 @@ test("air Righteous Fury has no armor, spends its one airborne use and ends help
   assertEquals(air.owner.special.action, SpecialAction.none);
 });
 
-test("Ascension keeps its heavy recovery band and free 240-unit route, paid hammer hit, 0.2H drift plus 1.6H steering and helpless fall [spec #252] [spec docs/design/forsaken-paladin.md]", () => {
-  for (const [mana, damage] of [[100, 8.0], [14, 0.0]] as const) {
+test("Ascension keeps its heavy recovery band and hammer hit at every meter level, 0.2H drift plus 1.6H steering and helpless fall [spec #335]", () => {
+  for (const [mana, damage] of [[100, 8.0], [14, 8.0]] as const) {
     const route = upSpecialRoute(Character.forsakenPaladin, mana);
-    assertTrue(mana === 100 ? route.rise >= 320.0 && route.rise <= 440.0 : route.rise >= 240.0);
-    assertTrue(mana === 100 ? route.reach >= 320.0 && route.reach <= 480.0 : route.reach >= 240.0);
+    assertTrue(route.rise >= 320.0 && route.rise <= 440.0);
+    assertTrue(route.reach >= 320.0 && route.reach <= 480.0);
     const { world, owner } = pair(900.0);
     owner.mana.points = mana;
     const x = owner.motion.x;
     const z = owner.motion.z;
     frame(world, up);
-    assertEquals(owner.mana.points, mana === 100 ? 85 : 14);
+    assertEquals(owner.mana.points, mana);
     let top = z;
     for (let f = 2; f <= 30; f++) {
       frame(world);
       top = Math.max(top, owner.motion.z);
     }
-    if (mana === 100) near(f32(top - z) / H, f32(2.9), f32(0.03));
-    else assertLessThan(f32(top - z) / H, f32(2.9));
+    near(f32(top - z) / H, f32(2.9), f32(0.03));
     near(f32(owner.motion.x - x) / H, f32(0.2), f32(0.03));
     assertTrue(owner.special.fall);
     const steered = pair(900.0);
@@ -325,7 +323,7 @@ test("replaying Forsaken Paladin's Consecration and Righteous Fury restores ever
   copyFighterState(endOwner, owner, 3);
   copyFighterState(endTarget, target, 3);
   assertGreaterThan(target.status.damage, 0.0);
-  assertLessThan(owner.mana.points, 100);
+  assertEquals(owner.mana.points, 100);
   copyFighterState(owner, savedOwner, 3);
   copyFighterState(target, savedTarget, 3);
   run();

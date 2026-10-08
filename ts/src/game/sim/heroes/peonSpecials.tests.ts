@@ -29,6 +29,7 @@ function frame(world: Roster, input: Controls = controls()): void {
 
 function pair(gap = 400.0, facing = 1) {
   const owner = createFighter(Character.peon, -gap * 0.5 * facing, facing);
+  owner.mana.points = 100;
   const target = createFighter(Character.archer, gap * 0.5 * facing, -facing);
   const world = testWorld(owner, target);
   for (let tick = 0; tick < 3; tick++) frame(world);
@@ -39,18 +40,18 @@ const side = controls({ specialPressed: true, specialX: 1 });
 const up = controls({ specialPressed: true, specialZ: 1 });
 const down = controls({ specialPressed: true, specialZ: -1 });
 
-test("Peon four special inputs spend once and finish on the authored frame [spec docs/design/peasant.md]", () => {
-  for (const [input, action, cost, end] of [
-    [neutral, SpecialAction.heroNeutral, 0, 40], [side, SpecialAction.heroSide, 20, 52],
-    [up, SpecialAction.heroUp, 15, 28], [down, SpecialAction.heroDown, 20, 38],
+test("Peon four regular special inputs preserve the super meter and finish on the authored frame [spec #335]", () => {
+  for (const [input, action, end] of [
+    [neutral, SpecialAction.heroNeutral, 40], [side, SpecialAction.heroSide, 52],
+    [up, SpecialAction.heroUp, 28], [down, SpecialAction.heroDown, 38],
   ] as const) {
     const { world, owner } = pair(900.0);
     frame(world, input);
     assertEquals(owner.special.action, action);
-    assertEquals(owner.mana.points, 100 - cost);
+    assertEquals(owner.mana.points, 100);
     for (let tick = 2; tick <= end; tick++) frame(world);
     assertEquals(owner.special.action, SpecialAction.none);
-    assertEquals(owner.mana.points, 100 - cost);
+    assertEquals(owner.mana.points, 100);
   }
 });
 
@@ -86,7 +87,7 @@ test("Peon Burrow fires its scheduled spear, packs away, and clears on stock los
   assertEquals(owner.placed.life, 0);
 });
 
-test("Peon Worksite Launch offers paid and free recovery, spends the jump and ends helpless [spec docs/design/peasant.md]", () => {
+test("Peon Worksite Launch offers full recovery at every meter level, spends the jump and ends helpless [spec docs/design/peasant.md]", () => {
   for (const mana of [100, 0]) {
     const { world, owner } = pair(900.0);
     owner.mana.points = mana;
@@ -96,10 +97,10 @@ test("Peon Worksite Launch offers paid and free recovery, spends the jump and en
     const start = owner.motion.z;
     frame(world, up);
     for (let tick = 2; tick <= 28; tick++) frame(world);
-    assertGreaterThan(owner.motion.z - start, mana === 0 ? 130.0 : 190.0);
+    assertGreaterThan(owner.motion.z - start, 190.0);
     assertEquals(owner.jump.remaining, 0);
     assertTrue(owner.special.fall);
-    assertEquals(owner.mana.points, mana === 0 ? 0 : 85);
+    assertEquals(owner.mana.points, mana);
     frame(world, up);
     assertEquals(owner.special.action, SpecialAction.none);
   }

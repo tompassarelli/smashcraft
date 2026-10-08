@@ -2,7 +2,6 @@
 // where both will be on the move's first active frame, and the specials that
 // suit the distance, one chosen deterministically among them.
 import { specialCooldownReady } from "../sim/heroSpecialRules";
-import { originalSpecialAffordable } from "../sim/mana";
 import { at } from "wisp/src/runtime/lookup";
 import { f32 } from "wisp/src/sim/f32";
 import { floorDiv } from "wisp/src/sim/intMath";
@@ -178,7 +177,7 @@ function landsWithin(f: Readonly<Fighter>, frames: number, stage: number, matchF
 function specialReady(f: Readonly<Fighter>, option: number): boolean {
   const { special } = f;
   const action = specialAction(f.character, option);
-  return specialCooldownReady(f, action) && originalSpecialAffordable(f, action) && special.lockFrames <= 0 && special.action === SpecialAction.none && canAttack(f);
+  return specialCooldownReady(f, action) && special.lockFrames <= 0 && special.action === SpecialAction.none && canAttack(f);
 }
 
 function specialAction(character: Character, option: number): SpecialAction {

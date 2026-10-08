@@ -14,7 +14,6 @@ import {
 import { HitElement, type HitEffect, type HitRegion, NO_HIT_REGION } from "./hitRegions";
 import { heroSpecialMove } from "./heroSpecials";
 import { advanceHeroCommandGrab } from "./heroCommandGrab";
-import { originalSpecialCost, spendMana } from "./mana";
 import { enterExSpecial } from "./exSpecials";
 import { applyAttackHit } from "./hits";
 import { meleeHitIntersectsShield } from "./attacks";
@@ -573,8 +572,7 @@ function turnForSpecial(owner: Fighter, input: Readonly<Controls>): void {
 }
 
 /**
- * Starts an expansion hero's special through its authored kit. A press it
- * cannot afford starts nothing and counts one refusal for presentation.
+ * Starts an expansion hero's free special through its authored kit.
  */
 function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>, world: Roster | undefined): boolean {
   const specials = owner.tuning.specials;
@@ -597,7 +595,7 @@ function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>, worl
   if (input.specialX !== 0 && input.specialZ !== 0 && move.facesStick === true) owner.facing = input.specialX < 0 ? -1 : 1;
   const action = SpecialAction.heroNeutral + chosen.slot;
   startSpecialAction(owner, heroAction(action), move.endFrame, specialDirection(input, owner.facing));
-  enterExSpecial(owner, input, move.cost);
+  enterExSpecial(owner, input);
   enterHeroSpecial(owner, chosen, input);
   return true;
 }
@@ -612,19 +610,13 @@ export function startFighterSpecial(owner: Fighter, stage: number, matchFrame: n
   if (owner.character === Character.demonHunter && owner.special.action === SpecialAction.demonHunterFelRush) return felRushBranch(owner, input, false);
   const requested = requestedSpecial(owner, input);
   if (!specialCanStart(owner, requested)) return false;
-  const cost = originalSpecialCost(requested);
-  if (cost > owner.mana.points) {
-    owner.visuals.manaDenied++;
-    return false;
-  }
   observeActionDecision(SPECIAL_ACTION_BIT);
   const facing = owner.facing;
   turnForSpecial(owner, input);
   const moveX = specialDirection(input, owner.facing);
   const started = startOriginalSpecial(owner, stage, matchFrame, requested, moveX);
   if (started) {
-    enterExSpecial(owner, input, cost);
-    spendMana(owner, cost);
+    enterExSpecial(owner, input);
   }
   else owner.facing = facing;
   return started;

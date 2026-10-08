@@ -30,6 +30,7 @@ function frame(world: Roster, input: Readonly<Controls> = controls()): void {
 }
 function pair(gap = 900.0, facing = 1) {
   const owner = createFighter(Character.tinker, 0.0, facing);
+  owner.mana.points = 100;
   const target = createFighter(Character.archer, f32(gap * facing), -facing);
   const world = createRoster(3, [owner, target]);
   for (let i = 0; i < 3; i++) frame(world);
@@ -106,15 +107,15 @@ test("Tinker body preserves the named Ultimate ROB weight, run and air speed [re
   assertNear(f.tuning.physics.airSpeed / archer.tuning.physics.airSpeed, f32(f32(1.134) / f32(0.83)), f32(0.00001));
 });
 
-test("Tinker specials spend once, complete their frames and use rockets for an airborne side press [spec docs/design/tinker.md]", () => {
-  for (const [input, action, cost, end] of [[neutral, SpecialAction.heroNeutral, 10, 43], [side, SpecialAction.heroSide, 20, 48], [up, SpecialAction.heroUp, 15, 32], [down, SpecialAction.heroDown, 20, 46]] as const) {
+test("Tinker regular specials preserve the super meter, complete their frames and use rockets for an airborne side press [spec #335]", () => {
+  for (const [input, action, end] of [[neutral, SpecialAction.heroNeutral, 43], [side, SpecialAction.heroSide, 48], [up, SpecialAction.heroUp, 32], [down, SpecialAction.heroDown, 46]] as const) {
     const { owner, world } = pair();
     frame(world, input);
     assertEquals(owner.special.action, action);
-    assertEquals(owner.mana.points, 100 - cost);
+    assertEquals(owner.mana.points, 100);
     for (let tick = 2; tick <= end; tick++) frame(world);
     assertEquals(owner.special.action, SpecialAction.none);
-    assertEquals(owner.mana.points, 100 - cost);
+    assertEquals(owner.mana.points, 100);
   }
   const airborne = pair();
   airborne.owner.motion.grounded = false;
@@ -122,7 +123,7 @@ test("Tinker specials spend once, complete their frames and use rockets for an a
   frame(airborne.world, side);
   assertEquals(airborne.owner.special.action, SpecialAction.heroNeutral);
   assertEquals(airborne.owner.placed.life, 0);
-  assertEquals(airborne.owner.mana.points, 90);
+  assertEquals(airborne.owner.mana.points, 100);
 });
 
 test("Tinker rockets fire three staggered contacts and charge Engineering Upgrade [spec docs/design/tinker.md]", () => {
@@ -150,7 +151,7 @@ test("Tinker factory fires Clockwerk Goblins, recalls and resets with the stock 
   for (let tick = 25; tick <= 59; tick++) frame(world);
   assertTrue(owner.projectiles.some(p => p.life > 0 && p.spec?.model?.includes("HeroTinkerRobot") === true));
   frame(world, side);
-  assertEquals(owner.mana.points, 80);
+  assertEquals(owner.mana.points, 100);
   for (let tick = 2; tick <= 36; tick++) frame(world);
   assertEquals(owner.placed.life, 0);
   clearSpecialOnStock(owner);
@@ -163,11 +164,11 @@ test("Tinker boots steer both ways, have a free recovery and end helpless withou
     owner.mana.points = points;
     frame(world, up);
     for (let tick = 2; tick <= 32; tick++) frame(world, controls({ direction }));
-    assertGreaterThan(owner.motion.z, points === 0 ? 170.0 : 235.0);
+    assertGreaterThan(owner.motion.z, 235.0);
     assertGreaterThan(owner.motion.x * direction, 30.0);
     assertEquals(owner.jump.remaining, 0);
     assertTrue(owner.special.fall);
-    assertEquals(owner.mana.points, points === 0 ? 0 : 85);
+    assertEquals(owner.mana.points, points);
     frame(world, up);
     assertEquals(owner.special.action, SpecialAction.none);
   }

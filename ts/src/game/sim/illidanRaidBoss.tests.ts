@@ -45,6 +45,7 @@ test("Shear: forward tilt cuts 12 mana for 9 at a low angle, and a shield stops 
 test("Flames of Azzinoth: the glaives strike both sides out to 190 for 14, and the fire wall burns once more [spec docs/design/illidan.md]", () => {
   for (const side of [-1, 1]) {
     const d = duel(170.0);
+    d.target.mana.points = 50;
     d.target.motion.x = f32(side * 170.0);
     attack(d, AttackStyle.downSmash);
     finish(d, 60);
@@ -84,6 +85,7 @@ test("Flames of Azzinoth counterplay: a shield holds both parts and acts with th
 test("Eye Blast: forward smash charged 20 frames becomes a floor beam reaching 400 and draining 10; uncharged it does not reach [spec docs/design/illidan.md]", () => {
   for (const charge of [0, EYE_BLAST_CHARGE_FRAMES + 2]) {
     const d = duel(420.0);
+    d.target.mana.points = 50;
     const held = controls({ attackHeld: true });
     attack(d, AttackStyle.forwardSmash, true, charge > 0 ? held : controls());
     d.run(charge + 6, charge > 0 ? held : controls());
@@ -166,6 +168,7 @@ test("Flame Crash: hangs, plunges and spikes an airborne fighter below; a ground
 
 test("Flame Crash: landing bursts beside him for 8, and a shielding fighter acts while his landing still runs [spec docs/design/illidan.md]", () => {
   const d = duel(120.0);
+  d.target.mana.points = 50;
   lift(d.illidan, 150.0);
   d.step(downB);
   for (let i = 0; i < 20 && d.illidan.special.form !== FLAME_CRASH_LANDING_FORM; i++) d.step();
