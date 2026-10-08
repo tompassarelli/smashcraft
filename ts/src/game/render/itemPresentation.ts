@@ -1,3 +1,4 @@
+import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { ITEM_HEIGHT } from "../match/centreItem";
 import { type MatchState, Phase } from "../match/rules";
@@ -42,7 +43,7 @@ export class ItemPresentation {
       if (fighter === undefined || fighter.status.out || fighter.status.buffFrames <= 0) hideEffect(cue, this.origin);
       else {
         BlzSetSpecialEffectPosition(cue, this.origin.x + fighter.motion.x, this.origin.y, this.origin.z + fighter.motion.z + 35.0);
-        BlzSetSpecialEffectScale(cue, 0.4);
+        BlzSetSpecialEffectScale(cue, f32(0.4));
         this.tint(cue, fighter.status.buff);
       }
     }
