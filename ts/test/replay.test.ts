@@ -4,7 +4,7 @@
 // every checksum it recorded, in Bun and in 32-bit Lua (LUA, else Wisp's
 // cached pinned build). The playable build's match is
 // played on the keyboard alone, through locally sampled rollback rows.
-import { afterAll, expect, test } from "bun:test";
+import { afterAll, expect } from "bun:test";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -143,7 +143,7 @@ sweep("a one-minute keyboard match in the playable build reaches its result and 
 // build, whose computers choose their controls on the game callback, replayed
 // to 1 of 5 checksums: the record began after the computer had changed its
 // attack delay for the first frame, so the replay changed it twice.
-test("a callback match against a computer replays to every recorded checksum [invariant]", () => {
+sweep("a callback match against a computer replays to every recorded checksum [invariant]", () => {
   const clients = headless.clients({ start: startDev, install: installDev }, [0]);
   const client = clients.client(0);
   clients.start();
