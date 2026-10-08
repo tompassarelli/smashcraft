@@ -4,9 +4,10 @@
 // SWEEPS=1 runs only the sweeps (src/runtime/sweep.ts), which the suite skips.
 // GAME_MODULES=A,B loads only those modules (paths under src/), so the suite
 // can spread the registry over several processes.
-import { describe, test } from "bun:test";
+import { beforeEach, describe, test } from "bun:test";
 import { registeredTests } from "wisp/src/runtime/testing";
 import { isSweep } from "../src/runtime/sweep";
+import { chargeTestsTo } from "./testCost";
 
 const filter = process.env.GAME_TESTS ?? "";
 const soak = process.env.GAME_SOAK === "1";
@@ -25,6 +26,7 @@ for (const module of modules) {
   const added = registeredTests.slice(before).filter((t) => soak || isSweep(t.name) === sweeps);
   if (added.length === 0 && loadError === undefined) continue;
   describe(module.replace(/\.(tests|soak)\.ts$/, ""), () => {
+    beforeEach(() => chargeTestsTo(`src/${module}`));
     if (loadError !== undefined) test("loads", () => { throw loadError; });
     for (const t of added) test(t.name, t.run, soak ? Number.MAX_SAFE_INTEGER : undefined);
   });

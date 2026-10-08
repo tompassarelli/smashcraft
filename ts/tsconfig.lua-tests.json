@@ -21,6 +21,7 @@
     "src/runtime/*.ts",
     "src/sim/*.ts",
     "src/game/**/*.ts",
+    "src/**/*.tests.ts",
     "node_modules/wisp/src/natives/warcraft.d.ts",
     "test/lua/*.ts"
   ],

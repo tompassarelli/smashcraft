@@ -98,6 +98,27 @@ code. From smashcraft:ts/:
   `SWEEPS=1 bun run test` and `SWEEPS=1 bun scripts/lua-tests.ts` run only
   them, and CI's Sweeps (Bun) and Lua32 (sweeps) jobs run them on every push,
   so a failing sweep turns main red (#243).
+- Test cost: one test may use at most 4 s of CPU in Bun and 6 s in 32-bit
+  Lua (its process's user plus system time on a GitHub runner;
+  smashcraft:ts/scripts/testCost.ts). They were set on 8 Oct from the lean
+  suite (#243, #244): the heaviest suite tests then used 3.2 s and 4.5 s, and
+  the 29 tests above moved to the sweeps. Only Tom raises them. `bun run test`
+  and `bun scripts/lua-tests.ts` charge each test's CPU to its file (a game
+  test to its src module) and compare each file with its row in
+  smashcraft:ts/test/cost-baseline.tsv or smashcraft:ts/test/lua/cost-baseline.tsv.
+  A test over the ceiling fails, and on a whole run so does a file whose CPU
+  per test rises more than 25% (and more than 1 s) at the same test count;
+  both name the file and say "shrink it or move it to the farm" (shrink it, or
+  make it a `sweep()`). A new file or a changed test count passes under the
+  ceiling and rewrites its row: commit it with the tests. `TEST_COST_UPDATE=1`
+  rewrites every measured row, after a cut. Rows are scaled by the run's
+  median ratio, so a slower machine compares fairly; a verdict reached while
+  CPU pressure was above Wisp's 30% is inconclusive (exit 75), not a failure.
+  Every run ends with the suite's CPU, test count and CPU per test against
+  the baseline, and its five heaviest tests. Tests get Wisp's two-minute
+  timeout, which only catches hangs; a test that asserts speed is a
+  `timingTest`, which the runner runs alone after the suite
+  (wisp:docs/testing.md).
 - Every save: leave `bun wisp dev` running. It prints the saved files' type
   errors, the affected unit tests, the journeys (the quick match in two
   simulated clients and the affected journey tests) and the whole check, each

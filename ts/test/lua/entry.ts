@@ -2,10 +2,12 @@
 // On the farm (`wisp farm test`), LUA_SHARD=K/N runs only shard K's tests:
 // those LUA_SHARD_PLAN (NAME<TAB>SHARD lines) assigns to K, and unplanned ones
 // whose name hashes to K; LUA_TEST_RESULT gets STATUS<TAB>SECONDS<TAB>NAME a test.
+// LUA_TEST_COST gets MODULE<TAB>CPU SECONDS<TAB>NAME a test for the suite's
+// CPU budget (scripts/testCost.ts); the index records where each module's tests start.
 import { imod } from "wisp/src/sim/intMath";
 import { AssertionFailure, registeredTests } from "wisp/src/runtime/testing";
 import { isSweep } from "../../src/runtime/sweep";
-import "./index";
+import { testModules } from "./index";
 
 const readText = (path: string | undefined): string => {
   if (path === undefined || path === "") return "";
@@ -32,6 +34,14 @@ const hashShard = (name: string): number => {
 };
 const resultPath = os.getenv("LUA_TEST_RESULT");
 const [results] = resultPath === undefined ? [undefined] : io.open(resultPath, "w");
+const costPath = os.getenv("LUA_TEST_COST");
+const [costs] = costPath === undefined ? [undefined] : io.open(costPath, "w");
+const moduleOf = new Map<string, string>();
+registeredTests.forEach(({ name }, index) => {
+  let module = "";
+  for (const [start, path] of testModules) if (start <= index) module = path;
+  moduleOf.set(name, module);
+});
 
 // SWEEPS=1 runs only the sweeps (src/runtime/sweep.ts); the suite skips them.
 const sweeps = os.getenv("SWEEPS") === "1";
@@ -48,11 +58,14 @@ for (const { name, run } of mine) {
     status = "fail";
     print(`fail ${name}: ${error instanceof AssertionFailure ? error.message : String(error)}`);
   }
+  const seconds = os.clock() - started;
   if (results !== undefined) {
-    results.write(`${status}\t${os.clock() - started}\t${name}\n`);
+    results.write(`${status}\t${seconds}\t${name}\n`);
     results.flush();
   }
+  costs?.write(`${moduleOf.get(name) ?? ""}\t${seconds}\t${name}\n`);
 }
 results?.close();
+costs?.close();
 print(`${mine.length - failures} of ${mine.length} passed`);
 if (failures > 0) os.exit(1);
