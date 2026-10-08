@@ -15,7 +15,6 @@ import { modelSoundPresentation } from "../../game/render/modelSoundPresentation
 import type { ModelSoundSink } from "../../game/render/modelSounds";
 import { ProjectilePresentation } from "../../game/render/projectilePresentation";
 import { ShieldPresentation } from "../../game/render/shieldPresentation";
-import { PassivePresentation } from "../../game/render/passivePresentation";
 import { SpecialEffects } from "../../game/render/specialEffects";
 import type { Character } from "../../game/sim/codes";
 import { isActive } from "../../game/sim/roster";
@@ -51,8 +50,6 @@ interface FighterRenderers {
   readonly flash: BodyFlash;
   /** Training's hit areas, when that match shows them. */
   readonly hitAreas: HitAreaPresentation | undefined;
-  /** Its passive's ready and proc effects; a renderer from a bundle before passives has none until rebound. */
-  passive?: PassivePresentation | undefined;
 }
 
 export interface UiObjects {
@@ -147,7 +144,6 @@ function endFighterRenderers(renderers: FighterRenderers | undefined): void {
   renderers?.agency.destroy();
   renderers?.flash.destroy();
   renderers?.hitAreas?.destroy();
-  renderers?.passive?.destroy();
 }
 
 /**
@@ -160,7 +156,6 @@ export function beginFighterRenderers(s: ShellState, slot: ParticipantSlot, char
   const pool = pooled ? new FighterPoolPresentation(character, slot, s.origin) : undefined;
   ui.fighters[slot] = { character, shield: new ShieldPresentation(slot, s.origin), projectiles: new ProjectilePresentation(character, s.origin), cues: new SpecialCueEffects(character, s.origin), pool, agency: new AgencyMarker(s.origin), flash: new BodyFlash(character, s.origin),
     hitAreas: s.game.training && s.game.trainer.showHitAreas ? new HitAreaPresentation(s.origin) : undefined,
-    passive: new PassivePresentation(character, s.origin),
   };
   return pool?.admitted() === true;
 }
@@ -243,8 +238,6 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
     bindPrototype(renderers.flash, BodyFlash.prototype);
     bindPrototype(renderers.agency.forecast, FighterAgencyForecast.prototype);
     if (renderers.hitAreas !== undefined) bindPrototype(renderers.hitAreas, HitAreaPresentation.prototype);
-    if (renderers.passive === undefined) renderers.passive = new PassivePresentation(renderers.character, s.origin);
-    else bindPrototype(renderers.passive, PassivePresentation.prototype);
   }
 }
 

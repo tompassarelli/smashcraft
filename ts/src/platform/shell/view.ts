@@ -323,7 +323,6 @@ export function renderPersistentPresentation(s: ShellState): void {
     renderers?.projectiles.present(fighter, playing, s.session.paused);
     renderers?.cues?.present(fighter, playing, s.session.paused);
     renderers?.hitAreas?.present(live);
-    renderers?.passive?.present(world, slot, playing);
   }
 }
 
