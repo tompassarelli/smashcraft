@@ -3,7 +3,7 @@ src/game/assets/stageLighting.tests.ts	5	0.000
 src/game/assets/stagePalette.tests.ts	3	0.000
 src/game/classic/classic.tests.ts	7	4.135
 src/game/classic/loreBattles.tests.ts	4	0.004
-src/game/input/adapter.tests.ts	8	0.002
+src/game/input/adapter.tests.ts	9	0.009
 src/game/input/attackBuffer.tests.ts	6	0.000
 src/game/input/input.tests.ts	6	0.018
 src/game/input/keyBindings.tests.ts	2	0.001
@@ -12,14 +12,14 @@ src/game/input/padCapture.tests.ts	2	0.123
 src/game/input/playerKeys.tests.ts	3	0.000
 src/game/match/botCoverage.tests.ts	21	32.225
 src/game/match/botDefenseForecast.tests.ts	1	0.000
-src/game/match/botGameplan.tests.ts	4	0.001
-src/game/match/botHorizontalForecast.tests.ts	3	0.341
+src/game/match/botGameplan.tests.ts	8	0.016
+src/game/match/botHorizontalForecast.tests.ts	4	0.201
 src/game/match/botKitOptions.tests.ts	1	0.000
 src/game/match/botPlayContracts.tests.ts	6	5.388
 src/game/match/botPunishContracts.tests.ts	6	0.313
 src/game/match/botReactionContracts.tests.ts	4	0.188
 src/game/match/botRecoveryContracts.tests.ts	1	0.645
-src/game/match/botStrategyContracts.tests.ts	8	0.493
+src/game/match/botStrategyContracts.tests.ts	9	0.681
 src/game/match/combatInputContracts.tests.ts	1	0.011
 src/game/match/comboRoute.tests.ts	1	0.185
 src/game/match/controls.tests.ts	4	0.000
@@ -45,6 +45,7 @@ src/game/match/rules.tests.ts	5	0.010
 src/game/match/simulationStepContracts.tests.ts	6	0.484
 src/game/match/stageHazardContracts.tests.ts	4	1.390
 src/game/match/stageHazardTracks.tests.ts	8	3.746
+src/game/match/stageRecoveryContracts.tests.ts	1	0.005
 src/game/match/startHold.tests.ts	3	0.094
 src/game/match/training.tests.ts	10	0.665
 src/game/match/tutorial.tests.ts	11	4.619
@@ -76,7 +77,7 @@ src/game/presentation/damageBlend.tests.ts	3	0.002
 src/game/presentation/damagePose.tests.ts	1	0.000
 src/game/presentation/disjointCues.tests.ts	5	0.177
 src/game/presentation/fighterAgency.tests.ts	2	0.859
-src/game/presentation/fighterClips.tests.ts	21	0.004
+src/game/presentation/fighterClips.tests.ts	22	0.021
 src/game/presentation/fighterPlacement.tests.ts	2	0.107
 src/game/presentation/fighterPose.tests.ts	8	0.314
 src/game/presentation/heroStrikeMoments.tests.ts	2	0.002
@@ -187,7 +188,7 @@ src/game/sim/lava.tests.ts	4	0.101
 src/game/sim/ledge.tests.ts	17	0.029
 src/game/sim/mana.tests.ts	9	0.001
 src/game/sim/meleeContact.tests.ts	4	0.001
-src/game/sim/normals.tests.ts	11	0.032
+src/game/sim/normals.tests.ts	12	0.062
 src/game/sim/passives.tests.ts	15	0.005
 src/game/sim/physics.tests.ts	57	0.093
 src/game/sim/physicsPrecisionMotion.tests.ts	4	0.009
