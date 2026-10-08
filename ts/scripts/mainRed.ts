@@ -20,7 +20,7 @@ const TESTS_HEADING = "## Failing tests";
 export function failedTest(line: string): string | undefined {
   const text = line.replace(/\x1b\[[0-9;]*m/g, "");
   const bun = /^\(fail\) (.+?)(?: \[[\d.]+m?s\])?$/.exec(text);
-  const lua = /^fail (.+?): /.exec(text);
+  const lua = /^fail (.+?\[[^\]]+\]): /.exec(text) ?? /^fail (.+?): /.exec(text);
   return bun?.[1] ?? (lua?.[1] === undefined ? undefined : `Lua32: ${lua[1]}`);
 }
 

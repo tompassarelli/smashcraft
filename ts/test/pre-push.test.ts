@@ -4,6 +4,21 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { checksFor } from "../scripts/prePush";
 import { newFailures, refusal } from "../scripts/newFailures";
+import { failedTest } from "../scripts/mainRed";
+
+test("Bun and Lua failures share a full title, including colons, while a new title still blocks [repro #345]", () => {
+  const title = "every hero special form's cue windows lie in its action: startup from frame 1, then active [spec #144]";
+  const bun = `game/presentation/specialCues > ${title}`;
+  const lua = `Lua32: ${title}`;
+  const runs = [
+    { command: "bun test test/game.test.ts", exitCode: 1, output: `(fail) ${bun} [1.00ms]` },
+    { command: "bun scripts/lua-tests.ts", exitCode: 1, output: `fail ${title}: expected true: got false` },
+  ];
+  expect(failedTest(runs[1]!.output)).toBe(lua);
+  expect(newFailures(runs, new Set([bun]))).toEqual([]);
+  expect(newFailures(runs, new Set([lua]))).toEqual([]);
+  expect(newFailures([{ ...runs[1]!, output: "fail a newly broken special: stays active [spec #144]: expected true" }], new Set([bun])).map(({ test }) => test)).toEqual(["Lua32: a newly broken special: stays active [spec #144]"]);
+});
 
 test("the pre-push gate type-checks and audits a push that changes TypeScript, and skips one that doesn't [spec AGENTS.md]", () => {
   expect(checksFor(["ts/scripts/wisp/buildInputs.ts"]).map(({ name }) => name)).toEqual(["clean room", "type-check ts", "type escapes and source shapes"]);

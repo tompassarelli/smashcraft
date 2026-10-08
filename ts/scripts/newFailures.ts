@@ -121,7 +121,9 @@ export function processResult(run: ProcessRun): { readonly passed: number; reado
 
 /** The failures `runs` show that `known` (main's failing tests) doesn't list. */
 export function newFailures(runs: readonly ProcessRun[], known: ReadonlySet<string>): Failure[] {
-  return runs.flatMap((run) => processResult(run).failures).filter(({ test }) => !known.has(test));
+  const identity = (test: string) => test.replace(/^Lua32: /, "").replace(/^[^>]+ > /, "");
+  const titles = new Set([...known].map(identity));
+  return runs.flatMap((run) => processResult(run).failures).filter(({ test }) => !titles.has(identity(test)));
 }
 
 /** The refusal that names each new failure and how to reproduce it. */
@@ -198,7 +200,7 @@ export const knownFailing = (cacheDirectory: string) => Effect.gen(function*() {
   const runs = yield* Schema.decodeEffect(Schema.fromJsonString(Runs))(listed.stdout);
   const latest = runs.find(({ conclusion }) => conclusion === "success" || conclusion === "failure");
   if (latest === undefined) return undefined;
-  const cached = join(cacheDirectory, `${latest.headSha}.json`);
+  const cached = join(cacheDirectory, `${latest.headSha}-full-titles.json`);
   if (existsSync(cached)) return yield* Schema.decodeEffect(Schema.fromJsonString(KnownSchema))(readFileSync(cached, "utf8"));
   let tests: readonly string[] = [];
   if (latest.conclusion === "failure") {
