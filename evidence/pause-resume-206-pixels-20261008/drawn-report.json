@@ -1,0 +1,2324 @@
+{
+  "video": "/home/tom/.local/state/smashcraft/pause-capture206-20261008/video/clone-a.mkv",
+  "pages": "/home/tom/.local/state/smashcraft/pause-capture206-20261008/pixels-probe",
+  "slot": 0,
+  "run": 1,
+  "viewport": "7,46,800,600",
+  "capturedFrames": 2285,
+  "durationSeconds": 37.414,
+  "observedCapturedFps": 61.046667023039504,
+  "capturedIntervalMs": {
+    "samples": 2284,
+    "p50": 16.000000000005343,
+    "p95": 17.000000000010118,
+    "p99": 17.000000000010118,
+    "max": 21.999999999998465
+  },
+  "heldMatchFrames": 2233,
+  "multipleMatchAdvances": [
+    {
+      "index": 2680,
+      "seconds": 0.19700000000000273,
+      "marker": {
+        "x": 106,
+        "y": 8.5,
+        "pixels": 6
+      },
+      "row": 20,
+      "matchFrame": 2,
+      "advance": 2,
+      "callback": {
+        "row": 20,
+        "entryMs": 333.336,
+        "confirmedBefore": 0,
+        "confirmedAfter": 0,
+        "predictedBefore": 1,
+        "predictedAfter": 3,
+        "correction": 0,
+        "camera": [
+          0,
+          34.407,
+          1067.398,
+          0.282,
+          0,
+          34.407,
+          1067.398,
+          0.282,
+          0,
+          60.257,
+          765.673,
+          0.861
+        ],
+        "frame": 2,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2685,
+      "seconds": 0.27900000000000347,
+      "marker": {
+        "x": 116,
+        "y": 8.5,
+        "pixels": 6
+      },
+      "row": 23,
+      "matchFrame": 4,
+      "advance": 2,
+      "callback": {
+        "row": 23,
+        "entryMs": 383.331,
+        "confirmedBefore": 2,
+        "confirmedAfter": 2,
+        "predictedBefore": 3,
+        "predictedAfter": 5,
+        "correction": 0,
+        "camera": [
+          0,
+          36.888,
+          1016.052,
+          0.294,
+          0,
+          36.888,
+          1016.052,
+          0.294,
+          0,
+          34.407,
+          1067.398,
+          0.72
+        ],
+        "frame": 4,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2691,
+      "seconds": 0.3760000000000048,
+      "marker": {
+        "x": 132,
+        "y": 8.5,
+        "pixels": 6
+      },
+      "row": 28,
+      "matchFrame": 8,
+      "advance": 4,
+      "callback": {
+        "row": 28,
+        "entryMs": 466.667,
+        "confirmedBefore": 2,
+        "confirmedAfter": 2,
+        "predictedBefore": 9,
+        "predictedAfter": 9,
+        "correction": 0,
+        "camera": [
+          0,
+          41.574,
+          930.032,
+          0.311,
+          0,
+          41.574,
+          930.032,
+          0.311,
+          0,
+          41.574,
+          930.032,
+          0.787
+        ],
+        "frame": 8,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2697,
+      "seconds": 0.47400000000000375,
+      "marker": {
+        "x": 48,
+        "y": 18.5,
+        "pixels": 6
+      },
+      "row": 34,
+      "matchFrame": 14,
+      "advance": 6,
+      "callback": {
+        "row": 34,
+        "entryMs": 566.666,
+        "confirmedBefore": 4,
+        "confirmedAfter": 4,
+        "predictedBefore": 15,
+        "predictedAfter": 15,
+        "correction": 0,
+        "camera": [
+          0,
+          47.544,
+          849.556,
+          0.327,
+          0,
+          47.544,
+          849.556,
+          0.327,
+          0,
+          47.544,
+          849.556,
+          0.822
+        ],
+        "frame": 14,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2702,
+      "seconds": 0.5560000000000045,
+      "marker": {
+        "x": 68,
+        "y": 18.5,
+        "pixels": 6
+      },
+      "row": 40,
+      "matchFrame": 20,
+      "advance": 6,
+      "callback": {
+        "row": 40,
+        "entryMs": 666.664,
+        "confirmedBefore": 4,
+        "confirmedAfter": 4,
+        "predictedBefore": 21,
+        "predictedAfter": 21,
+        "correction": 0,
+        "camera": [
+          0,
+          51.968,
+          808.399,
+          0.335,
+          0,
+          51.968,
+          808.399,
+          0.335,
+          0,
+          51.968,
+          808.399,
+          0.84
+        ],
+        "frame": 20,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2708,
+      "seconds": 0.6540000000000035,
+      "marker": {
+        "x": 80,
+        "y": 18.5,
+        "pixels": 6
+      },
+      "row": 44,
+      "matchFrame": 26,
+      "advance": 6,
+      "callback": {
+        "row": 44,
+        "entryMs": 733.33,
+        "confirmedBefore": 4,
+        "confirmedAfter": 7,
+        "predictedBefore": 27,
+        "predictedAfter": 27,
+        "correction": 0,
+        "camera": [
+          0,
+          55.002,
+          787.689,
+          0.339,
+          0,
+          55.002,
+          787.689,
+          0.339,
+          0,
+          55.002,
+          787.689,
+          0.85
+        ],
+        "frame": 26,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2715,
+      "seconds": 0.7680000000000007,
+      "marker": {
+        "x": 106,
+        "y": 18.5,
+        "pixels": 6
+      },
+      "row": 52,
+      "matchFrame": 30,
+      "advance": 4,
+      "callback": {
+        "row": 52,
+        "entryMs": 866.661,
+        "confirmedBefore": 13,
+        "confirmedAfter": 16,
+        "predictedBefore": 31,
+        "predictedAfter": 31,
+        "correction": 0,
+        "camera": [
+          0,
+          56.422,
+          779.914,
+          0.341,
+          0,
+          56.422,
+          779.914,
+          0.341,
+          0,
+          56.422,
+          779.914,
+          0.854
+        ],
+        "frame": 30,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2720,
+      "seconds": 0.8490000000000038,
+      "marker": {
+        "x": 119,
+        "y": 18.5,
+        "pixels": 6
+      },
+      "row": 56,
+      "matchFrame": 38,
+      "advance": 8,
+      "callback": {
+        "row": 56,
+        "entryMs": 933.327,
+        "confirmedBefore": 18,
+        "confirmedAfter": 18,
+        "predictedBefore": 39,
+        "predictedAfter": 39,
+        "correction": 0,
+        "camera": [
+          0,
+          58.254,
+          771.699,
+          0.343,
+          0,
+          58.254,
+          771.699,
+          0.343,
+          0,
+          58.254,
+          771.699,
+          0.858
+        ],
+        "frame": 38,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2726,
+      "seconds": 0.9470000000000027,
+      "marker": {
+        "x": 138,
+        "y": 18.5,
+        "pixels": 6
+      },
+      "row": 62,
+      "matchFrame": 42,
+      "advance": 4,
+      "callback": {
+        "row": 62,
+        "entryMs": 1033.325,
+        "confirmedBefore": 24,
+        "confirmedAfter": 26,
+        "predictedBefore": 43,
+        "predictedAfter": 43,
+        "correction": 0,
+        "camera": [
+          0,
+          58.82,
+          769.607,
+          0.343,
+          0,
+          58.82,
+          769.607,
+          0.343,
+          0,
+          58.82,
+          769.607,
+          0.859
+        ],
+        "frame": 42,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2730,
+      "seconds": 1.0120000000000005,
+      "marker": {
+        "x": 52,
+        "y": 28.5,
+        "pixels": 6
+      },
+      "row": 67,
+      "matchFrame": 48,
+      "advance": 6,
+      "callback": {
+        "row": 67,
+        "entryMs": 1116.653,
+        "confirmedBefore": 26,
+        "confirmedAfter": 26,
+        "predictedBefore": 49,
+        "predictedAfter": 49,
+        "correction": 0,
+        "camera": [
+          0,
+          59.39,
+          767.754,
+          0.344,
+          0,
+          59.39,
+          767.754,
+          0.344,
+          0,
+          59.39,
+          767.754,
+          0.86
+        ],
+        "frame": 48,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2735,
+      "seconds": 1.0940000000000012,
+      "marker": {
+        "x": 64,
+        "y": 28.5,
+        "pixels": 6
+      },
+      "row": 71,
+      "matchFrame": 52,
+      "advance": 4,
+      "callback": {
+        "row": 71,
+        "entryMs": 1183.319,
+        "confirmedBefore": 35,
+        "confirmedAfter": 36,
+        "predictedBefore": 53,
+        "predictedAfter": 53,
+        "correction": 0,
+        "camera": [
+          0,
+          59.641,
+          767.036,
+          0.344,
+          0,
+          59.641,
+          767.036,
+          0.344,
+          0,
+          59.641,
+          767.036,
+          0.86
+        ],
+        "frame": 52,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2739,
+      "seconds": 1.158999999999999,
+      "marker": {
+        "x": 80,
+        "y": 28.5,
+        "pixels": 6
+      },
+      "row": 76,
+      "matchFrame": 56,
+      "advance": 4,
+      "callback": {
+        "row": 76,
+        "entryMs": 1266.655,
+        "confirmedBefore": 39,
+        "confirmedAfter": 42,
+        "predictedBefore": 57,
+        "predictedAfter": 57,
+        "correction": 0,
+        "camera": [
+          0,
+          59.82,
+          766.566,
+          0.344,
+          0,
+          59.82,
+          766.566,
+          0.344,
+          0,
+          59.82,
+          766.566,
+          0.86
+        ],
+        "frame": 56,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2742,
+      "seconds": 1.2079999999999984,
+      "marker": {
+        "x": 93,
+        "y": 28.5,
+        "pixels": 6
+      },
+      "row": 80,
+      "matchFrame": 60,
+      "advance": 4,
+      "callback": {
+        "row": 80,
+        "entryMs": 1333.321,
+        "confirmedBefore": 44,
+        "confirmedAfter": 44,
+        "predictedBefore": 61,
+        "predictedAfter": 61,
+        "correction": 0,
+        "camera": [
+          0,
+          59.948,
+          766.258,
+          0.344,
+          0,
+          59.948,
+          766.258,
+          0.344,
+          0,
+          59.948,
+          766.258,
+          0.86
+        ],
+        "frame": 60,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2746,
+      "seconds": 1.2730000000000032,
+      "marker": {
+        "x": 103,
+        "y": 28.5,
+        "pixels": 6
+      },
+      "row": 83,
+      "matchFrame": 64,
+      "advance": 4,
+      "callback": {
+        "row": 83,
+        "entryMs": 1383.316,
+        "confirmedBefore": 50,
+        "confirmedAfter": 52,
+        "predictedBefore": 65,
+        "predictedAfter": 65,
+        "correction": 0,
+        "camera": [
+          0,
+          60.039,
+          766.056,
+          0.344,
+          0,
+          60.039,
+          766.056,
+          0.344,
+          0,
+          60.039,
+          766.056,
+          0.861
+        ],
+        "frame": 64,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2747,
+      "seconds": 1.2899999999999991,
+      "marker": {
+        "x": 109,
+        "y": 28.5,
+        "pixels": 6
+      },
+      "row": 85,
+      "matchFrame": 66,
+      "advance": 2,
+      "callback": {
+        "row": 85,
+        "entryMs": 1416.649,
+        "confirmedBefore": 52,
+        "confirmedAfter": 52,
+        "predictedBefore": 67,
+        "predictedAfter": 67,
+        "correction": 0,
+        "camera": [
+          0,
+          60.074,
+          765.983,
+          0.344,
+          0,
+          60.074,
+          765.983,
+          0.344,
+          0,
+          60.074,
+          765.983,
+          0.861
+        ],
+        "frame": 66,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2749,
+      "seconds": 1.3220000000000027,
+      "marker": {
+        "x": 112,
+        "y": 28.5,
+        "pixels": 6
+      },
+      "row": 86,
+      "matchFrame": 68,
+      "advance": 2,
+      "callback": {
+        "row": 86,
+        "entryMs": 1433.319,
+        "confirmedBefore": 52,
+        "confirmedAfter": 52,
+        "predictedBefore": 67,
+        "predictedAfter": 69,
+        "correction": 0,
+        "camera": [
+          0,
+          60.104,
+          765.924,
+          0.344,
+          0,
+          60.104,
+          765.924,
+          0.344,
+          0,
+          60.074,
+          765.983,
+          0.861
+        ],
+        "frame": 68,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2753,
+      "seconds": 1.3870000000000005,
+      "marker": {
+        "x": 128,
+        "y": 28.5,
+        "pixels": 6
+      },
+      "row": 91,
+      "matchFrame": 72,
+      "advance": 4,
+      "callback": {
+        "row": 91,
+        "entryMs": 1516.647,
+        "confirmedBefore": 58,
+        "confirmedAfter": 58,
+        "predictedBefore": 73,
+        "predictedAfter": 73,
+        "correction": 0,
+        "camera": [
+          0,
+          60.149,
+          765.838,
+          0.344,
+          0,
+          60.149,
+          765.838,
+          0.344,
+          0,
+          60.149,
+          765.838,
+          0.861
+        ],
+        "frame": 72,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2755,
+      "seconds": 1.4200000000000017,
+      "marker": {
+        "x": 132,
+        "y": 28.5,
+        "pixels": 6
+      },
+      "row": 92,
+      "matchFrame": 74,
+      "advance": 2,
+      "callback": {
+        "row": 92,
+        "entryMs": 1533.318,
+        "confirmedBefore": 58,
+        "confirmedAfter": 61,
+        "predictedBefore": 73,
+        "predictedAfter": 75,
+        "correction": 0,
+        "camera": [
+          0,
+          60.167,
+          765.806,
+          0.344,
+          0,
+          60.167,
+          765.806,
+          0.344,
+          0,
+          60.149,
+          765.838,
+          0.861
+        ],
+        "frame": 74,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2758,
+      "seconds": 1.4690000000000012,
+      "marker": {
+        "x": 141,
+        "y": 28.5,
+        "pixels": 6
+      },
+      "row": 95,
+      "matchFrame": 76,
+      "advance": 2,
+      "callback": {
+        "row": 95,
+        "entryMs": 1583.313,
+        "confirmedBefore": 64,
+        "confirmedAfter": 64,
+        "predictedBefore": 77,
+        "predictedAfter": 77,
+        "correction": 0,
+        "camera": [
+          0,
+          60.182,
+          765.781,
+          0.344,
+          0,
+          60.182,
+          765.781,
+          0.344,
+          0,
+          60.182,
+          765.781,
+          0.861
+        ],
+        "frame": 76,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2759,
+      "seconds": 1.4849999999999994,
+      "marker": {
+        "x": 45,
+        "y": 38.5,
+        "pixels": 6
+      },
+      "row": 97,
+      "matchFrame": 78,
+      "advance": 2,
+      "callback": {
+        "row": 97,
+        "entryMs": 1616.646,
+        "confirmedBefore": 64,
+        "confirmedAfter": 64,
+        "predictedBefore": 79,
+        "predictedAfter": 79,
+        "correction": 0,
+        "camera": [
+          0,
+          60.194,
+          765.76,
+          0.344,
+          0,
+          60.194,
+          765.76,
+          0.344,
+          0,
+          60.194,
+          765.76,
+          0.861
+        ],
+        "frame": 78,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2762,
+      "seconds": 1.5350000000000037,
+      "marker": {
+        "x": 55,
+        "y": 38.5,
+        "pixels": 6
+      },
+      "row": 100,
+      "matchFrame": 80,
+      "advance": 2,
+      "callback": {
+        "row": 100,
+        "entryMs": 1666.649,
+        "confirmedBefore": 70,
+        "confirmedAfter": 72,
+        "predictedBefore": 81,
+        "predictedAfter": 81,
+        "correction": 0,
+        "camera": [
+          0,
+          60.204,
+          765.744,
+          0.344,
+          0,
+          60.204,
+          765.744,
+          0.344,
+          0,
+          60.204,
+          765.744,
+          0.861
+        ],
+        "frame": 80,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2763,
+      "seconds": 1.551000000000002,
+      "marker": {
+        "x": 58,
+        "y": 38.5,
+        "pixels": 6
+      },
+      "row": 101,
+      "matchFrame": 82,
+      "advance": 2,
+      "callback": {
+        "row": 101,
+        "entryMs": 1683.311,
+        "confirmedBefore": 72,
+        "confirmedAfter": 72,
+        "predictedBefore": 81,
+        "predictedAfter": 83,
+        "correction": 0,
+        "camera": [
+          0,
+          60.213,
+          765.73,
+          0.344,
+          0,
+          60.213,
+          765.73,
+          0.344,
+          0,
+          60.204,
+          765.744,
+          0.861
+        ],
+        "frame": 82,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2765,
+      "seconds": 1.5840000000000032,
+      "marker": {
+        "x": 64,
+        "y": 38.5,
+        "pixels": 6
+      },
+      "row": 103,
+      "matchFrame": 84,
+      "advance": 2,
+      "callback": {
+        "row": 103,
+        "entryMs": 1716.644,
+        "confirmedBefore": 75,
+        "confirmedAfter": 76,
+        "predictedBefore": 85,
+        "predictedAfter": 85,
+        "correction": 0,
+        "camera": [
+          0,
+          60.22,
+          765.719,
+          0.344,
+          0,
+          60.22,
+          765.719,
+          0.344,
+          0,
+          60.22,
+          765.719,
+          0.861
+        ],
+        "frame": 84,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2766,
+      "seconds": 1.6000000000000014,
+      "marker": {
+        "x": 68,
+        "y": 38.5,
+        "pixels": 6
+      },
+      "row": 104,
+      "matchFrame": 86,
+      "advance": 2,
+      "callback": {
+        "row": 104,
+        "entryMs": 1733.314,
+        "confirmedBefore": 76,
+        "confirmedAfter": 76,
+        "predictedBefore": 85,
+        "predictedAfter": 87,
+        "correction": 0,
+        "camera": [
+          0,
+          60.226,
+          765.71,
+          0.344,
+          0,
+          60.226,
+          765.71,
+          0.344,
+          0,
+          60.22,
+          765.719,
+          0.861
+        ],
+        "frame": 86,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2769,
+      "seconds": 1.6499999999999986,
+      "marker": {
+        "x": 77,
+        "y": 38.5,
+        "pixels": 6
+      },
+      "row": 107,
+      "matchFrame": 88,
+      "advance": 2,
+      "callback": {
+        "row": 107,
+        "entryMs": 1783.31,
+        "confirmedBefore": 76,
+        "confirmedAfter": 78,
+        "predictedBefore": 87,
+        "predictedAfter": 89,
+        "correction": 0,
+        "camera": [
+          0,
+          60.232,
+          765.703,
+          0.344,
+          0,
+          60.232,
+          765.703,
+          0.344,
+          0,
+          60.226,
+          765.71,
+          0.861
+        ],
+        "frame": 88,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2771,
+      "seconds": 1.6820000000000022,
+      "marker": {
+        "x": 84,
+        "y": 38.5,
+        "pixels": 6
+      },
+      "row": 109,
+      "matchFrame": 90,
+      "advance": 2,
+      "callback": {
+        "row": 109,
+        "entryMs": 1816.643,
+        "confirmedBefore": 81,
+        "confirmedAfter": 82,
+        "predictedBefore": 91,
+        "predictedAfter": 91,
+        "correction": 0,
+        "camera": [
+          0,
+          60.236,
+          765.697,
+          0.344,
+          0,
+          60.236,
+          765.697,
+          0.344,
+          0,
+          60.236,
+          765.697,
+          0.861
+        ],
+        "frame": 90,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2773,
+      "seconds": 1.7150000000000034,
+      "marker": {
+        "x": 87,
+        "y": 38.5,
+        "pixels": 6
+      },
+      "row": 110,
+      "matchFrame": 92,
+      "advance": 2,
+      "callback": {
+        "row": 110,
+        "entryMs": 1833.313,
+        "confirmedBefore": 82,
+        "confirmedAfter": 82,
+        "predictedBefore": 91,
+        "predictedAfter": 93,
+        "correction": 0,
+        "camera": [
+          0,
+          60.239,
+          765.693,
+          0.344,
+          0,
+          60.239,
+          765.693,
+          0.344,
+          0,
+          60.236,
+          765.697,
+          0.861
+        ],
+        "frame": 92,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2783,
+      "seconds": 1.8780000000000001,
+      "marker": {
+        "x": 96,
+        "y": 38.5,
+        "pixels": 6
+      },
+      "row": 113,
+      "matchFrame": 94,
+      "advance": 2,
+      "callback": {
+        "row": 113,
+        "entryMs": 1883.308,
+        "confirmedBefore": 82,
+        "confirmedAfter": 84,
+        "predictedBefore": 93,
+        "predictedAfter": 95,
+        "correction": 0,
+        "camera": [
+          0,
+          60.242,
+          765.689,
+          0.344,
+          0,
+          60.242,
+          765.689,
+          0.344,
+          0,
+          60.239,
+          765.693,
+          0.861
+        ],
+        "frame": 94,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2789,
+      "seconds": 1.975999999999999,
+      "marker": {
+        "x": 132,
+        "y": 38.5,
+        "pixels": 6
+      },
+      "row": 124,
+      "matchFrame": 100,
+      "advance": 6,
+      "callback": {
+        "row": 124,
+        "entryMs": 2066.643,
+        "confirmedBefore": 88,
+        "confirmedAfter": 88,
+        "predictedBefore": 101,
+        "predictedAfter": 101,
+        "correction": 0,
+        "camera": [
+          0,
+          60.249,
+          765.681,
+          0.344,
+          0,
+          60.249,
+          765.681,
+          0.344,
+          0,
+          60.249,
+          765.681,
+          0.861
+        ],
+        "frame": 100,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2794,
+      "seconds": 2.057000000000002,
+      "marker": {
+        "x": 48,
+        "y": 8.5,
+        "pixels": 6
+      },
+      "row": 130,
+      "matchFrame": 110,
+      "advance": 10,
+      "callback": {
+        "row": 130,
+        "entryMs": 2166.641,
+        "confirmedBefore": 90,
+        "confirmedAfter": 90,
+        "predictedBefore": 111,
+        "predictedAfter": 111,
+        "correction": 0,
+        "camera": [
+          0,
+          60.254,
+          765.675,
+          0.344,
+          0,
+          60.254,
+          765.675,
+          0.344,
+          0,
+          60.254,
+          765.675,
+          0.861
+        ],
+        "frame": 110,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2797,
+      "seconds": 2.1060000000000016,
+      "marker": {
+        "x": 58,
+        "y": 8.5,
+        "pixels": 6
+      },
+      "row": 133,
+      "matchFrame": 114,
+      "advance": 4,
+      "callback": {
+        "row": 133,
+        "entryMs": 2216.636,
+        "confirmedBefore": 90,
+        "confirmedAfter": 90,
+        "predictedBefore": 115,
+        "predictedAfter": 115,
+        "correction": 0,
+        "camera": [
+          0,
+          60.255,
+          765.674,
+          0.344,
+          0,
+          60.255,
+          765.674,
+          0.344,
+          0,
+          60.255,
+          765.674,
+          0.861
+        ],
+        "frame": 114,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2800,
+      "seconds": 2.155000000000001,
+      "marker": {
+        "x": 68,
+        "y": 8.5,
+        "pixels": 6
+      },
+      "row": 136,
+      "matchFrame": 116,
+      "advance": 2,
+      "callback": {
+        "row": 136,
+        "entryMs": 2266.64,
+        "confirmedBefore": 93,
+        "confirmedAfter": 96,
+        "predictedBefore": 117,
+        "predictedAfter": 117,
+        "correction": 0,
+        "camera": [
+          0,
+          60.256,
+          765.674,
+          0.344,
+          0,
+          60.256,
+          765.674,
+          0.344,
+          0,
+          60.255,
+          765.674,
+          0.861
+        ],
+        "frame": 116,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2803,
+      "seconds": 2.2040000000000006,
+      "marker": {
+        "x": 77,
+        "y": 8.5,
+        "pixels": 6
+      },
+      "row": 139,
+      "matchFrame": 120,
+      "advance": 4,
+      "callback": {
+        "row": 139,
+        "entryMs": 2316.635,
+        "confirmedBefore": 100,
+        "confirmedAfter": 100,
+        "predictedBefore": 121,
+        "predictedAfter": 121,
+        "correction": 0,
+        "camera": [
+          0,
+          60.256,
+          765.674,
+          0.344,
+          0,
+          60.256,
+          765.674,
+          0.344,
+          0,
+          60.256,
+          765.674,
+          0.861
+        ],
+        "frame": 120,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2808,
+      "seconds": 2.2850000000000037,
+      "marker": {
+        "x": 90,
+        "y": 8.5,
+        "pixels": 6
+      },
+      "row": 143,
+      "matchFrame": 124,
+      "advance": 4,
+      "callback": {
+        "row": 143,
+        "entryMs": 2383.301,
+        "confirmedBefore": 109,
+        "confirmedAfter": 112,
+        "predictedBefore": 125,
+        "predictedAfter": 125,
+        "correction": 0,
+        "camera": [
+          0,
+          60.257,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.861
+        ],
+        "frame": 124,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2814,
+      "seconds": 2.382000000000005,
+      "marker": {
+        "x": 106,
+        "y": 8.5,
+        "pixels": 6
+      },
+      "row": 148,
+      "matchFrame": 128,
+      "advance": 4,
+      "callback": {
+        "row": 148,
+        "entryMs": 2466.636,
+        "confirmedBefore": 117,
+        "confirmedAfter": 118,
+        "predictedBefore": 129,
+        "predictedAfter": 129,
+        "correction": 0,
+        "camera": [
+          0,
+          60.257,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.861
+        ],
+        "frame": 128,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2818,
+      "seconds": 2.4480000000000004,
+      "marker": {
+        "x": 119,
+        "y": 8.5,
+        "pixels": 6
+      },
+      "row": 152,
+      "matchFrame": 134,
+      "advance": 6,
+      "callback": {
+        "row": 152,
+        "entryMs": 2533.302,
+        "confirmedBefore": 118,
+        "confirmedAfter": 121,
+        "predictedBefore": 135,
+        "predictedAfter": 135,
+        "correction": 0,
+        "camera": [
+          0,
+          60.257,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.861
+        ],
+        "frame": 134,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2821,
+      "seconds": 2.497,
+      "marker": {
+        "x": 135,
+        "y": 8.5,
+        "pixels": 6
+      },
+      "row": 157,
+      "matchFrame": 138,
+      "advance": 4,
+      "callback": {
+        "row": 157,
+        "entryMs": 2616.63,
+        "confirmedBefore": 124,
+        "confirmedAfter": 124,
+        "predictedBefore": 139,
+        "predictedAfter": 139,
+        "correction": 0,
+        "camera": [
+          0,
+          60.257,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.861
+        ],
+        "frame": 138,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2823,
+      "seconds": 2.5290000000000035,
+      "marker": {
+        "x": 42,
+        "y": 18.5,
+        "pixels": 6
+      },
+      "row": 160,
+      "matchFrame": 140,
+      "advance": 2,
+      "callback": {
+        "row": 160,
+        "entryMs": 2666.634,
+        "confirmedBefore": 124,
+        "confirmedAfter": 124,
+        "predictedBefore": 141,
+        "predictedAfter": 141,
+        "correction": 0,
+        "camera": [
+          0,
+          60.257,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.861
+        ],
+        "frame": 140,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2825,
+      "seconds": 2.5620000000000047,
+      "marker": {
+        "x": 45,
+        "y": 18.5,
+        "pixels": 6
+      },
+      "row": 161,
+      "matchFrame": 142,
+      "advance": 2,
+      "callback": {
+        "row": 161,
+        "entryMs": 2683.296,
+        "confirmedBefore": 124,
+        "confirmedAfter": 127,
+        "predictedBefore": 141,
+        "predictedAfter": 143,
+        "correction": 0,
+        "camera": [
+          0,
+          60.257,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.861
+        ],
+        "frame": 142,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2827,
+      "seconds": 2.594999999999999,
+      "marker": {
+        "x": 52,
+        "y": 18.5,
+        "pixels": 6
+      },
+      "row": 163,
+      "matchFrame": 144,
+      "advance": 2,
+      "callback": {
+        "row": 163,
+        "entryMs": 2716.629,
+        "confirmedBefore": 130,
+        "confirmedAfter": 133,
+        "predictedBefore": 145,
+        "predictedAfter": 145,
+        "correction": 0,
+        "camera": [
+          0,
+          60.257,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.861
+        ],
+        "frame": 144,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2830,
+      "seconds": 2.6440000000000055,
+      "marker": {
+        "x": 61,
+        "y": 18.5,
+        "pixels": 6
+      },
+      "row": 166,
+      "matchFrame": 146,
+      "advance": 2,
+      "callback": {
+        "row": 166,
+        "entryMs": 2766.632,
+        "confirmedBefore": 136,
+        "confirmedAfter": 136,
+        "predictedBefore": 147,
+        "predictedAfter": 147,
+        "correction": 0,
+        "camera": [
+          0,
+          60.257,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.861
+        ],
+        "frame": 146,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2832,
+      "seconds": 2.6769999999999996,
+      "marker": {
+        "x": 64,
+        "y": 18.5,
+        "pixels": 6
+      },
+      "row": 167,
+      "matchFrame": 148,
+      "advance": 2,
+      "callback": {
+        "row": 167,
+        "entryMs": 2783.295,
+        "confirmedBefore": 136,
+        "confirmedAfter": 139,
+        "predictedBefore": 147,
+        "predictedAfter": 149,
+        "correction": 0,
+        "camera": [
+          0,
+          60.258,
+          765.673,
+          0.344,
+          0,
+          60.258,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.861
+        ],
+        "frame": 148,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2834,
+      "seconds": 2.710000000000001,
+      "marker": {
+        "x": 74,
+        "y": 18.5,
+        "pixels": 6
+      },
+      "row": 170,
+      "matchFrame": 150,
+      "advance": 2,
+      "callback": {
+        "row": 170,
+        "entryMs": 2833.298,
+        "confirmedBefore": 142,
+        "confirmedAfter": 142,
+        "predictedBefore": 151,
+        "predictedAfter": 151,
+        "correction": 0,
+        "camera": [
+          0,
+          60.258,
+          765.673,
+          0.344,
+          0,
+          60.258,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.861
+        ],
+        "frame": 150,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2835,
+      "seconds": 2.725999999999999,
+      "marker": {
+        "x": 80,
+        "y": 18.5,
+        "pixels": 6
+      },
+      "row": 172,
+      "matchFrame": 152,
+      "advance": 2,
+      "callback": {
+        "row": 172,
+        "entryMs": 2866.63,
+        "confirmedBefore": 142,
+        "confirmedAfter": 142,
+        "predictedBefore": 153,
+        "predictedAfter": 153,
+        "correction": 0,
+        "camera": [
+          0,
+          60.258,
+          765.673,
+          0.344,
+          0,
+          60.258,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.861
+        ],
+        "frame": 152,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2837,
+      "seconds": 2.7590000000000003,
+      "marker": {
+        "x": 84,
+        "y": 18.5,
+        "pixels": 6
+      },
+      "row": 173,
+      "matchFrame": 154,
+      "advance": 2,
+      "callback": {
+        "row": 173,
+        "entryMs": 2883.293,
+        "confirmedBefore": 142,
+        "confirmedAfter": 142,
+        "predictedBefore": 153,
+        "predictedAfter": 155,
+        "correction": 0,
+        "camera": [
+          0,
+          60.258,
+          765.673,
+          0.344,
+          0,
+          60.258,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.861
+        ],
+        "frame": 154,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2839,
+      "seconds": 2.7920000000000016,
+      "marker": {
+        "x": 90,
+        "y": 18.5,
+        "pixels": 6
+      },
+      "row": 175,
+      "matchFrame": 156,
+      "advance": 2,
+      "callback": {
+        "row": 175,
+        "entryMs": 2916.626,
+        "confirmedBefore": 145,
+        "confirmedAfter": 148,
+        "predictedBefore": 157,
+        "predictedAfter": 157,
+        "correction": 0,
+        "camera": [
+          0,
+          60.258,
+          765.673,
+          0.344,
+          0,
+          60.258,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.861
+        ],
+        "frame": 156,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2842,
+      "seconds": 2.841000000000001,
+      "marker": {
+        "x": 100,
+        "y": 18.5,
+        "pixels": 6
+      },
+      "row": 178,
+      "matchFrame": 158,
+      "advance": 2,
+      "callback": {
+        "row": 178,
+        "entryMs": 2966.629,
+        "confirmedBefore": 148,
+        "confirmedAfter": 148,
+        "predictedBefore": 159,
+        "predictedAfter": 159,
+        "correction": 0,
+        "camera": [
+          0,
+          60.258,
+          765.673,
+          0.344,
+          0,
+          60.258,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.861
+        ],
+        "frame": 158,
+        "positions": {
+          "0": {
+            "x": -240,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2846,
+      "seconds": 2.905999999999999,
+      "marker": {
+        "x": 109,
+        "y": 18.5,
+        "pixels": 6
+      },
+      "row": 181,
+      "matchFrame": 162,
+      "advance": 4,
+      "callback": {
+        "row": 181,
+        "entryMs": 3016.624,
+        "confirmedBefore": 154,
+        "confirmedAfter": 154,
+        "predictedBefore": 163,
+        "predictedAfter": 163,
+        "correction": 0,
+        "camera": [
+          1.62,
+          60.258,
+          765.673,
+          0.344,
+          1.62,
+          60.258,
+          765.673,
+          0.344,
+          0,
+          60.257,
+          765.673,
+          0.861
+        ],
+        "frame": 162,
+        "positions": {
+          "0": {
+            "x": -215.04,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2848,
+      "seconds": 2.939,
+      "marker": {
+        "x": 119,
+        "y": 18.5,
+        "pixels": 6
+      },
+      "row": 184,
+      "matchFrame": 164,
+      "advance": 2,
+      "callback": {
+        "row": 184,
+        "entryMs": 3066.627,
+        "confirmedBefore": 154,
+        "confirmedAfter": 154,
+        "predictedBefore": 165,
+        "predictedAfter": 165,
+        "correction": 0,
+        "camera": [
+          5.215,
+          60.258,
+          765.673,
+          0.344,
+          5.215,
+          60.258,
+          765.673,
+          0.344,
+          1.62,
+          60.257,
+          765.673,
+          0.861
+        ],
+        "frame": 164,
+        "positions": {
+          "0": {
+            "x": -188.64,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2852,
+      "seconds": 3.004000000000005,
+      "marker": {
+        "x": 128,
+        "y": 18.5,
+        "pixels": 6
+      },
+      "row": 187,
+      "matchFrame": 166,
+      "advance": 2,
+      "callback": {
+        "row": 187,
+        "entryMs": 3116.623,
+        "confirmedBefore": 154,
+        "confirmedAfter": 154,
+        "predictedBefore": 167,
+        "predictedAfter": 167,
+        "correction": 0,
+        "camera": [
+          10.461,
+          60.258,
+          765.673,
+          0.344,
+          10.461,
+          60.258,
+          765.673,
+          0.344,
+          5.215,
+          60.257,
+          765.673,
+          0.861
+        ],
+        "frame": 166,
+        "positions": {
+          "0": {
+            "x": -162.24,
+            "z": 0
+          },
+          "1": {
+            "x": 240,
+            "z": 0
+          }
+        }
+      }
+    }
+  ],
+  "reversedMatchFrames": [],
+  "callbackCameraSamplesOnly": true,
+  "drawnCameraMeasured": false,
+  "scope": "Original compositor video timestamps and decoded callback marker. Q camera fields are callback samples; drawn camera pan/zoom still require pixel measurement."
+}

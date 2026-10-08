@@ -1,0 +1,128 @@
+{
+  "script": "test/native/pads/206/pause-dash.pad",
+  "build": "typescript-integrity",
+  "frame_one_ns": [
+    175099479935402,
+    175099480935365
+  ],
+  "match_starts": [
+    {
+      "epoch": 1,
+      "epochNs": 175099513268735,
+      "firstFrame": 3,
+      "frameOneNs": 175099479935402
+    },
+    {
+      "epoch": 1,
+      "epochNs": 175099514268698,
+      "firstFrame": 3,
+      "frameOneNs": 175099480935365
+    }
+  ],
+  "edges": [
+    {
+      "line": 2,
+      "text": "160 a stick 1 0",
+      "slot": 0,
+      "planned": 160,
+      "injectedNs": 175102133836000,
+      "landed": 160,
+      "frame": 160,
+      "confirmedBy": "helper event",
+      "written": 160
+    },
+    {
+      "line": 2,
+      "text": "160 a stick 1 0",
+      "slot": 0,
+      "planned": 160,
+      "injectedNs": 175102134491000,
+      "frame": 160,
+      "confirmedBy": "frame rule",
+      "written": 160
+    },
+    {
+      "line": 3,
+      "text": "168 a press START",
+      "slot": 0,
+      "planned": 168,
+      "injectedNs": 175102266658000,
+      "frame": 168,
+      "confirmedBy": "frame rule",
+      "written": 168
+    },
+    {
+      "line": 4,
+      "text": "169 a release START",
+      "slot": 0,
+      "planned": 169,
+      "injectedNs": 175102283304000,
+      "frame": 169,
+      "confirmedBy": "frame rule",
+      "written": 169
+    },
+    {
+      "line": 5,
+      "text": "348 a press START",
+      "slot": 0,
+      "planned": 348,
+      "injectedNs": 175105266689000,
+      "frame": 348,
+      "confirmedBy": "frame rule",
+      "written": 348
+    },
+    {
+      "line": 6,
+      "text": "349 a release START",
+      "slot": 0,
+      "planned": 349,
+      "injectedNs": 175105283318000,
+      "frame": 349,
+      "confirmedBy": "frame rule",
+      "written": 349
+    },
+    {
+      "line": 7,
+      "text": "350 a stick 0 0",
+      "slot": 0,
+      "planned": 350,
+      "injectedNs": 175105300247000,
+      "frame": 350,
+      "confirmedBy": "frame rule",
+      "written": 350
+    },
+    {
+      "line": 7,
+      "text": "350 a stick 0 0",
+      "slot": 0,
+      "planned": 350,
+      "injectedNs": 175105300471000,
+      "frame": 350,
+      "confirmedBy": "frame rule",
+      "written": 350
+    },
+    {
+      "line": 8,
+      "text": "390 a press VIEW",
+      "slot": 0,
+      "planned": 390,
+      "injectedNs": 175105966637000,
+      "frame": 390,
+      "confirmedBy": "frame rule",
+      "written": 390
+    },
+    {
+      "line": 9,
+      "text": "460 a release VIEW",
+      "slot": 0,
+      "planned": 460,
+      "injectedNs": 175107133322000,
+      "frame": 460,
+      "confirmedBy": "frame rule",
+      "written": 460
+    }
+  ],
+  "off_frame": 0,
+  "written_late": 0,
+  "helpers_stopped": []
+}
