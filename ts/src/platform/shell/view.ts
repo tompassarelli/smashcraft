@@ -20,7 +20,9 @@ import { damageTint } from "../../game/presentation/hitPresentation";
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import { hideEffect } from "../../game/render/effects";
 import { FRAME_SECONDS, type FighterPose } from "../../game/presentation/fighterPose";
-import { CANNON_MODEL, PLATFORM_CUE_FRAMES, framesUntilPlatformMoves, stageWarning } from "../../game/presentation/stageHazards";
+import { CANNON_MODEL, PLATFORM_CUE_FRAMES, framesUntilPlatformMoves, lavaLook, stageWarning } from "../../game/presentation/stageHazards";
+import { lavaPiece } from "../../game/presentation/stageScenery";
+import { hasLava, lavaSide } from "../../game/sim/lava";
 import { escapeMeterView, overheadAnchorZ, readEscapeMeter } from "../../game/presentation/escapeMeter";
 import { OVERHEAD_MANA_BORDER, OVERHEAD_MANA_HEIGHT, OVERHEAD_MANA_WIDTH, overheadManaLift } from "../../game/presentation/manaBar";
 import { NO_PIPS, PASSIVE_PIP_LIFT, type PassivePips } from "../../game/ui/passivePips";
@@ -99,6 +101,11 @@ function clearStageDecks(s: ShellState): void {
     DestroyEffect(s.stageCannon);
     s.stageCannon = undefined;
   }
+  if (s.stageLava !== undefined) {
+    hideEffect(s.stageLava, s.origin);
+    DestroyEffect(s.stageLava);
+    s.stageLava = undefined;
+  }
   for (const deck of s.stageDecks) {
     hideEffect(deck, s.origin);
     DestroyEffect(deck);
@@ -151,7 +158,26 @@ export function drawStage(s: ShellState): void {
     BlzSetSpecialEffectPosition(s.stageCannon, origin.x + cannonX(stageFrame), origin.y, origin.z + CANNON_Z);
     BlzSetSpecialEffectScale(s.stageCannon, 1.5);
   }
+  if (hasLava(stage)) {
+    const piece = lavaPiece(lavaSide(stageFrame));
+    s.stageLava = AddSpecialEffect(piece.model, origin.x + piece.x, origin.y + piece.y);
+    BlzSetSpecialEffectPosition(s.stageLava, origin.x + piece.x, origin.y + piece.y, origin.z + piece.z);
+    if (piece.matrixScale !== undefined) BlzSetSpecialEffectMatrixScale(s.stageLava, piece.matrixScale[0], piece.matrixScale[1], piece.matrixScale[2]);
+    BlzPlaySpecialEffect(s.stageLava, ANIM_TYPE_STAND);
+    presentLava(s, stage, stageFrame);
+  }
   s.drawnStage = stage;
+}
+
+/** Blackrock's lava on its frame's side: hidden while calm, a growing glow through the warning, then full lava. */
+function presentLava(s: ShellState, stage: number, frame: number): void {
+  const lava = s.stageLava;
+  if (lava === undefined || !hasLava(stage)) return;
+  const piece = lavaPiece(lavaSide(frame));
+  BlzSetSpecialEffectPosition(lava, s.origin.x + piece.x, s.origin.y + piece.y, s.origin.z + piece.z);
+  const look = lavaLook(stage, frame);
+  BlzSetSpecialEffectAlpha(lava, look.alpha);
+  BlzSetSpecialEffectColor(lava, look.red, look.green, look.blue);
 }
 
 /** The unit's view of a confirmed frame: visibility, clip, rate, position and tint. */
@@ -261,6 +287,7 @@ export function renderPersistentPresentation(s: ShellState): void {
     for (const slot of PARTICIPANT_SLOTS) if (isActive(world, slot) && fighterAt(world, slot).cannon.firing !== undefined) firing = true;
     BlzSetSpecialEffectColor(s.stageCannon, 255, firing ? 70 : 255, firing ? 40 : 255);
   }
+  presentLava(s, drawn, matchFrame);
   const ui = views(s);
   ui.classic?.present(game);
   ui.combat.present(runtime.impacts, runtime.simulationFrame, s.runtime.impacts, playing);

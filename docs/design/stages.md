@@ -520,7 +520,7 @@ from the ledge down, in Melee units, mirrored for the left.
 | Durotar Skies | floating spire | a thin rim undercut to a deep point |
 | Naxxramas | inverted ziggurat | three steps in |
 | Hellfire Citadel | heavy slab | tall straight walls, a broad blunt base |
-| Blackrock | Kongo Jungle | a floor-only deck: no walls or underside to touch |
+| Blackrock | forge anvil | a thick lip over a sheer face, then a stepped, blunt foot; the cannon's shot passes up through it |
 | Ahn'Qiraj | temple | an even trapezoid taper |
 
 Competitive rules every profile keeps:
@@ -540,7 +540,7 @@ Competitive rules every profile keeps:
 Melee-reference contracts (wall techs, the underside scenario, the oracle and
 the interaction graph) measure Final Destination's walls on stage 0; the
 wall bounce, wall tech and wall-tech jump are also played against every
-stage's own side wall, Blackrock's floor-only deck aside
+stage's own side wall, all 11 stages
 (smashcraft:ts/src/game/match/wallTechInputContracts.tests.ts). Each
 stage's drawn main deck is generated from its own outline by
 smashcraft:tools/stage/package.ts.

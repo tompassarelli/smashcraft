@@ -28,9 +28,13 @@ within 15 Melee units, the first eligible fighter in slot order is caught;
 Attack or Special, or a 480-frame timeout, starts an 11-frame shot; the launch
 deals no damage and uses base knockback 180, followed by 16 frames of catch
 immunity (PlCo +0x5E0). Its swing and lean are authored: x ±760 at z −390,
-5 world units per frame, leaning up to 15 degrees toward center. The main
-deck has no wall or ceiling, matching GrOk.dat's floor-only collision, and is
-drawn as a shallow slab. The classic Warcraft TNT barrel shows the cannon;
+5 world units per frame, leaning up to 15 degrees toward center. GrOk.dat's
+main deck is floor-only, so Melee's barrel fires up through it; Blackrock's
+has walls and an underside like every stage (#338), and a shot passes through
+them only while it carries the fighter up: from the shot until the fighter's
+feet are above the deck's top or it lands, its walls, underside and the
+body push-out ignore that fighter. The flag is fighter state, saved with
+rollback and the canonical state. The classic Warcraft TNT barrel shows the cannon;
 it turns red with a countdown during the shot, and a held player sees the
 fire controls and timeout warning. It can assist recovery but changes the
 route and timing; predictable hazards alone do not establish competitive
@@ -44,15 +48,25 @@ replays. Gryphon Aerie (11) and Ahn'Qiraj (13) expose the carried loop and
 lift above; neither deals damage. One complete neutral ride (920 and 420
 frames) retains all three stocks at 0% and replays to its full checksum.
 
-Blackrock's two molten ends cover x −600…−410 and 410…600 on its main
-floor. Contact deals 12% fire damage and base knockback 100 with zero growth,
-straight up, through ordinary body-hit resolution: 40 frames of hitstun,
-ordinary hitlag, action interruption, damage reactions and DI. Percent and
-weight do not increase the launch; ordinary defensive context still applies.
-Shields do not protect feet in lava; invincibility and dodge intangibility do.
-Its two animated surface strips are exactly the contact width. The stage's
-centre and raised platform are safe. No extra cooldown state is needed:
-hitlag prevents a second hit while frozen and the upward launch leaves it.
+Blackrock's lava is one patch, 140 wide, centred 180 to one side of the
+stage's centre (x 110…250, or −250…−110), so it is 350 from the near ledge:
+more than two of any fighter's initial dashes, so it shapes neutral rather
+than edge-guards. It follows the stage clock (smashcraft:ts/src/game/sim/lava.ts):
+a 2,400-frame cycle of a right turn then a left turn, each 300 calm frames,
+300 warning frames and 600 erupting frames. The right patch warns on frames
+301–600 and erupts on 601–1,200; the left warns on 1,501–1,800 and erupts on
+1,801–2,400. During the warning the patch's own spot glows dark red, bubbling
+and brightening, and the notice reads "Lava erupts on the right (left) in N
+frames."; while it erupts the notice reads "Lava on the right (left)." Hazards
+off keep it calm. Contact while it erupts deals 12% fire damage and base
+knockback 100 with zero growth, straight up, through ordinary body-hit
+resolution: 40 frames of hitstun, ordinary hitlag, action interruption,
+damage reactions and DI. Percent and weight do not increase the launch;
+ordinary defensive context still applies. Shields do not protect feet in
+lava; invincibility and dodge intangibility do. Its animated surface strip is
+exactly the contact width. The centre, both ledges and the raised platform
+are safe. No extra cooldown state is needed: hitlag prevents a second hit
+while frozen and the upward launch leaves it.
 
 ## The Tomb of Sargeras sea (#277)
 

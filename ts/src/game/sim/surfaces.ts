@@ -249,7 +249,8 @@ export function resolveSolidSurfaceContacts(f: Fighter, stage: number, oldX: num
   // Every main-deck face is at or below its walking plane, and ceiling
   // contact lowers it by the fighter's height. A step wholly above that
   // plane cannot cross one; retain a unit of room for contact rounding.
-  const first = oldZ > mainDeckZ(stage) + 1 && f.motion.z > mainDeckZ(stage) + 1 ? MAIN_DECK_BODY_SURFACES : 0;
+  // A cannon shot passes the main deck's body (stageHazards.ts, endCannonPass).
+  const first = f.cannon.passing || (oldZ > mainDeckZ(stage) + 1 && f.motion.z > mainDeckZ(stage) + 1) ? MAIN_DECK_BODY_SURFACES : 0;
   for (let i = first; i < surfaces.length; i++) {
     const surface = at(surfaces, i);
     if (!resolveSolidSurfaceContact(f, surface, i, oldX, oldZ, input)) continue;
@@ -344,7 +345,7 @@ export function insideMainDeckBody(stage: number, x: number, z: number): boolean
  */
 export function leaveMainDeckBody(f: Fighter, stage: number): number {
   const { motion } = f;
-  if (solidSurfaceCount(stage) === 0 || motion.z >= mainDeckZ(stage)) return 0;
+  if (f.cannon.passing || solidSurfaceCount(stage) === 0 || motion.z >= mainDeckZ(stage)) return 0;
   const right = mainDeckSideX(stage, 1, motion.z);
   const left = mainDeckSideX(stage, -1, motion.z);
   if (right === undefined || left === undefined || motion.x <= left || motion.x >= right) return 0;

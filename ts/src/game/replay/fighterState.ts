@@ -331,6 +331,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   cannon.held = sourceCannon.held;
   cannon.firing = sourceCannon.firing;
   cannon.cooldown = sourceCannon.cooldown;
+  cannon.passing = sourceCannon.passing;
   const water = target.water;
   const sourceWater = source.water;
   water.inWater = sourceWater.inWater;
@@ -754,6 +755,7 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
   if (cannon.held !== sourceCannon.held || (cannon.held === 0 && sourceCannon.held === 0 && 1 / cannon.held !== 1 / sourceCannon.held)) return false;
   if (cannon.firing !== sourceCannon.firing || (cannon.firing === 0 && sourceCannon.firing === 0 && 1 / cannon.firing !== 1 / sourceCannon.firing)) return false;
   if (cannon.cooldown !== sourceCannon.cooldown || (cannon.cooldown === 0 && 1 / cannon.cooldown !== 1 / sourceCannon.cooldown)) return false;
+  if (cannon.passing !== sourceCannon.passing) return false;
   const water = target.water;
   const sourceWater = source.water;
   if (water.inWater !== sourceWater.inWater) return false;

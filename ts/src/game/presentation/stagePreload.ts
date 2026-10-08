@@ -3,6 +3,8 @@ import { STAGE_DECK_MODEL, STAGE_DECK_MODELS, STAGE_MAIN_DECK_MODEL } from "../a
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { surfaceCount } from "../sim/stage";
 import { hasCannon } from "../sim/stageHazards";
+import { hasLava } from "../sim/lava";
+import { STAGE_LAVA_MODEL } from "../assets/terrainAssetInfo";
 import { CANNON_MODEL } from "./stageHazards";
 import { placedPieces, stageLightModel, stageScenery } from "./stageScenery";
 import { platformParts } from "./stockPlatforms";
@@ -14,7 +16,7 @@ export function deckModel(stage: number, index: number): string {
   const [stock] = platformParts(stage, index);
   if (stock !== undefined) return stock.model;
   const themed = STAGE_DECK_MODELS[stage];
-  if (index === 0 && !hasCannon(stage)) return themed === undefined ? STAGE_MAIN_DECK_MODEL : themed.main;
+  if (index === 0) return themed === undefined ? STAGE_MAIN_DECK_MODEL : themed.main;
   if (themed?.alternate !== undefined && (stage === CARRIED_TEST_STAGE ? index === 1 : index === 2)) return themed.alternate;
   return themed === undefined ? STAGE_DECK_MODEL : themed.slab;
 }
@@ -25,12 +27,12 @@ export function deckModel(stage: number, index: number): string {
  * undefined draws the main deck's own model as built from its collision.
  */
 export function slabScale(stage: number, index: number, width: number): readonly [x: number, y: number, z: number] | undefined {
-  if (index === 0 && !hasCannon(stage)) return undefined;
+  if (index === 0) return undefined;
   const pass = surfacePass(stage, index);
-  return [width / 100, pass ? f32(0.65) : 1.0, pass || hasCannon(stage) ? f32(0.45) : 1.0];
+  return [width / 100, pass ? f32(0.65) : 1.0, pass ? f32(0.45) : 1.0];
 }
 
-/** The effect models a stage's scene draws: decks, cannon and scenery pieces. */
+/** The effect models a stage's scene draws: decks, cannon, lava and scenery pieces. */
 export function stageModels(stage: number): string[] {
   const models: string[] = [];
   for (let index = 0; index < surfaceCount(stage); index++) {
@@ -38,7 +40,8 @@ export function stageModels(stage: number): string[] {
     for (const part of platformParts(stage, index).slice(1)) models.push(part.model);
   }
   if (hasCannon(stage)) models.push(CANNON_MODEL);
-  for (const piece of placedPieces(stage, true)) models.push(piece.model);
+  if (hasLava(stage)) models.push(STAGE_LAVA_MODEL);
+  for (const piece of placedPieces(stage)) models.push(piece.model);
   return models;
 }
 

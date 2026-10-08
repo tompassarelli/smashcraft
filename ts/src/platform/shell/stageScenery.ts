@@ -39,7 +39,7 @@ export function drawStageScenery(s: ShellState): void {
   if (shadows > 0 || s.shadowLightsRaised) BlzSetMinShadowCastingPointLightCount(shadows);
   s.shadowLightsRaised = shadows > 0;
   const effects: effect[] = [];
-  for (const piece of placedPieces(s.game.stageChoice, s.game.hazards)) {
+  for (const piece of placedPieces(s.game.stageChoice)) {
     const x = s.origin.x + piece.x;
     const y = s.origin.y + piece.y;
     const effect = AddSpecialEffect(piece.model, x, y);
@@ -74,7 +74,7 @@ export function preloadStageAssets(s: ShellState): void {
 export function showBackdrop(s: ShellState, visible: boolean): void {
   BlzShowSkyBox(visible);
   const alpha = visible ? 255 : 0;
-  const pieces = placedPieces(s.game.stageChoice, s.game.hazards);
+  const pieces = placedPieces(s.game.stageChoice);
   for (const [index, effect] of (s.stageScenery ?? []).entries()) {
     const piece = pieces[index];
     if (!visible || piece === undefined) hideEffect(effect, s.origin);

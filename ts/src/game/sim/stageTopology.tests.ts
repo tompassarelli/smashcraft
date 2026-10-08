@@ -1,15 +1,15 @@
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { SurfaceContact } from "./codes";
-import { CANNON_TEST_STAGE, MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckUndersideZ, mainDeckZ, solidSurfaceAt, solidSurfaceCount, surfaceCount, surfaceLeft, surfaceMoves, surfaceRight, surfaceZ } from "./stage";
+import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckUndersideZ, mainDeckZ, solidSurfaceAt, solidSurfaceCount, surfaceCount, surfaceLeft, surfaceMoves, surfaceRight, surfaceZ } from "./stage";
 import { type Character } from "./codes";
 import { createFighter } from "./fighter";
 import { SELECTABLE_CHARACTERS } from "./heroes/registry";
 import { advanceSolo, controls } from "./testWorld";
 
 // smashcraft:docs/design/stages.md, "Main-deck topology".
-/** The ranked stages whose main deck has walls and an underside; Blackrock's is a floor, as Kongo Jungle's. */
-const BODIED = STAGE_CATALOG.filter(({ id }) => id !== 0 && id !== CANNON_TEST_STAGE);
+/** The ranked stages besides Sky Deck: every main deck has walls and an underside. */
+const BODIED = STAGE_CATALOG.filter(({ id }) => id !== 0);
 
 const outline = (stage: number): string => {
   const points: string[] = [];

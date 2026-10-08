@@ -123,7 +123,7 @@ export function stageArtInputs(stage: StageTile) {
   }));
   return {
     stage, file: thumbnailFile(stage),
-    scenery: stageScenery(stage), terrain: terrainPieces(stage, true), light: stageLightModel(stage), models: stageModels(stage), cannon: hasCannon(stage), surfaces,
+    scenery: stageScenery(stage), terrain: terrainPieces(stage), light: stageLightModel(stage), models: stageModels(stage), cannon: hasCannon(stage), surfaces,
     camera: HERO_CAMERAS[stage], card: CARD,
   };
 }

@@ -119,6 +119,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   f.cannon.held = undefined;
   f.cannon.firing = undefined;
   f.cannon.cooldown = 0;
+  f.cannon.passing = false;
   f.water.inWater = false;
   f.water.frames = 0;
   f.water.entries = 0;

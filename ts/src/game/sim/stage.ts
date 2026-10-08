@@ -533,6 +533,8 @@ const DECK_PROFILES: Readonly<Record<number, readonly ReferencePoint[]>> = {
   [STRATHOLME_STAGE]: [{ x: 0.0, z: 0.0 }, { x: 0.0, z: -10.0 }, { x: -5.0, z: -12.0 }, { x: -5.0, z: -20.0 }, { x: -10.0, z: -22.0 }, { x: -16.0, z: -44.0 }, { x: -28.0, z: -48.0 }],
   // A sunken plinth: a waterline lip over a sheer drop, stepping out to a broad base.
   [TOMB_OF_SARGERAS_STAGE]: [{ x: 0.0, z: 0.0 }, { x: 0.0, z: -6.0 }, { x: -3.0, z: -8.0 }, { x: -3.0, z: -30.0 }, { x: -18.0, z: -34.0 }, { x: -24.0, z: -48.0 }, { x: -34.0, z: -50.0 }],
+  // A forge's anvil: a thick lip, a sheer face, then a stepped, blunt foot.
+  [CANNON_TEST_STAGE]: [{ x: 0.0, z: 0.0 }, { x: 0.0, z: -12.0 }, { x: -4.0, z: -14.0 }, { x: -4.0, z: -34.0 }, { x: -10.0, z: -40.0 }, { x: -22.0, z: -48.0 }, { x: -36.0, z: -50.0 }],
   // A temple: an even trapezoid taper.
   [TIMED_TEST_STAGE]: [{ x: 0.0, z: 0.0 }, { x: 0.0, z: -6.0 }, { x: -4.0, z: -10.0 }, { x: -12.0, z: -20.0 }, { x: -22.0, z: -32.0 }, { x: -30.0, z: -44.0 }, { x: -36.0, z: -50.0 }],
 };
@@ -586,6 +588,7 @@ const PROFILED_BODIES: Readonly<Record<number, readonly SolidSurface[]>> = {
   [PATTERNED_DECKS_STAGE]: mainDeckBody(deckProfile(PATTERNED_DECKS_STAGE)),
   [HELLFIRE_STAGE]: mainDeckBody(deckProfile(HELLFIRE_STAGE)),
   [TIMED_TEST_STAGE]: mainDeckBody(deckProfile(TIMED_TEST_STAGE)),
+  [CANNON_TEST_STAGE]: mainDeckBody(deckProfile(CANNON_TEST_STAGE)),
   [STRATHOLME_STAGE]: mainDeckBody(deckProfile(STRATHOLME_STAGE)),
   [TOMB_OF_SARGERAS_STAGE]: mainDeckBody(deckProfile(TOMB_OF_SARGERAS_STAGE)),
 };
@@ -639,8 +642,6 @@ function raisedDeckSurfaces(raised: readonly Deck[]): SolidSurface[] {
 const SOLID_DECK_TEST_SURFACES = [...MAIN_DECK_BODY, ...raisedDeckSurfaces(SOLID_RAISED_DECKS)];
 
 function stageSolidSurfaces(stage: number): readonly SolidSurface[] {
-  // Kongo Jungle 64 has a floor-only main deck (GrOk.dat coll_data).
-  if (stage === CANNON_TEST_STAGE) return NO_SOLID_SURFACES;
   if (stage === SOLID_DECK_TEST_STAGE) return SOLID_DECK_TEST_SURFACES;
   return surfaceCount(stage) > 0 ? mainDeckBodyOf(stage) : NO_SOLID_SURFACES;
 }

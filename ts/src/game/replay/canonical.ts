@@ -986,6 +986,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("cannonHeld", fighter.cannon.held ?? -1);
   int("cannonFiring", fighter.cannon.firing ?? -1);
   int("cannonCooldown", fighter.cannon.cooldown);
+  bool("cannonPassing", fighter.cannon.passing);
   bool("waterIn", fighter.water.inWater);
   int("waterFrames", fighter.water.frames);
   int("waterEntries", fighter.water.entries);

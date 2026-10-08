@@ -35,6 +35,7 @@ import type { AuthoredSpecial } from "../../src/game/sim/heroSpecials";
 import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
 import { stageBounds } from "../../src/game/sim/stageBounds";
+import { STAGE_LAVA_MODEL } from "../../src/game/assets/terrainAssetInfo";
 import { placedPieces } from "../../src/game/presentation/stageScenery";
 import { MODEL_FACTS } from "./modelFacts";
 import { WHITE_MODEL_FACTS } from "./whiteModelFacts";
@@ -107,7 +108,8 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
   kinds: [
     { name: "stage deck", models: [...Object.values(STAGE_DECK_MODELS).flatMap(({ main, slab, alternate }) => alternate === undefined ? [main, slab] : [main, slab, alternate]), ...STOCK_PLATFORM_MODELS] },
     { name: "stage cannon", models: [CANNON_MODEL] },
-    { name: "stage scenery", models: [...new Set(STAGE_CATALOG.flatMap(({ id }) => placedPieces(id, true).map(({ model }) => model)))] },
+    { name: "stage lava", models: [STAGE_LAVA_MODEL] },
+    { name: "stage scenery", models: [...new Set(STAGE_CATALOG.flatMap(({ id }) => placedPieces(id).map(({ model }) => model)))] },
     { name: "pooled fighter", models: fighterModels },
     { name: "body flash", models: WHITE_FIGHTER_MODELS },
     // Heroes draw with their fighter unit, shown while the hero is in play.

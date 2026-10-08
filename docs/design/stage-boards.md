@@ -327,10 +327,10 @@ Material set:
 | --- | --- | --- |
 | Deck top | Dark Iron flagstones | `TerrainArt\Dungeon\Cave_SquareTiles.blp` |
 | Edge | Molten lip | `TerrainArt\Dungeon\Cave_LavaCracks.blp` |
-| Body and underside | None (floor-only deck); the floor's front face is dark basalt | `TerrainArt\Dungeon\Cave_DarkRocks.blp` |
+| Body and underside | Dark basalt | `TerrainArt\Dungeon\Cave_DarkRocks.blp` |
 | Platform | Iron-bound forge plate | `TerrainArt\Dungeon\Cave_Brick.blp`, edge `Textures\Minecart.blp` iron region |
 
-Topology: the floor-only deck, with no walls or underside to touch (Kongo Jungle).
+Topology: the forge anvil, with walls and an underside like every stage; the cannon's shot passes up through it (#338).
 
 Rubric:
 
