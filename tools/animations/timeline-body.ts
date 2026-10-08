@@ -87,7 +87,7 @@ export function timelineBody(source: mdx.Model, sequences: readonly mdx.Sequence
     // Missing sequence-local channels use the native static backing, not neighbouring clips.
     tracks(model, (track, path) => {
         if (onGlobalClock(track)) return;
-        const transform = /^\.(Bones|Helpers|Attachments|CollisionShapes)\.\d+\.(Translation|Rotation|Scaling)$/.test(path);
+        const transform = /^\.(Bones|Helpers|Attachments|CollisionShapes|TextureAnims)\.\d+\.(Translation|Rotation|Scaling)$/.test(path);
         const alpha = /^\.(GeosetAnims\.\d+|Materials\.\d+\.Layers\.\d+)\.Alpha$/.test(path);
         const color = /^\.GeosetAnims\.\d+\.Color$/.test(path);
         const visibility = /^\.Attachments\.\d+\.Visibility$/.test(path);

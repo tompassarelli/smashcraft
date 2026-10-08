@@ -93,3 +93,19 @@ test('a nonunit hold skins its vertices to a bone, not a helper, so HD and Defin
     expect(body.Helpers.some(node => node.Name?.endsWith(' hold stretch'))).toBe(true);
     expect(skinned.filter(id => !bones.has(id)).map(id => body.Nodes[id]?.Name)).toEqual([]);
 });
+
+test('Definitive Tinker held texture translation survives every authored timeline interval [repro #334]', () => {
+    const source = parseMDL(stageSkyMdl('test.tga'));
+    const sequence = source.Sequences[0];
+    if (sequence === undefined) throw new Error('Missing authored fixture sequence');
+    sequence.Interval = new Uint32Array([100, 200]);
+    source.Sequences.push({ ...sequence, Name: 'Attack', Interval: new Uint32Array([400, 500]) });
+    source.TextureAnims = [{ Translation: { LineType: mdx.LineType.DontInterp, GlobalSeqId: null,
+        Keys: [{ Frame: 100, Vector: new Float32Array([0.25, 0, 0]) }, { Frame: 400, Vector: new Float32Array([0.25, 0, 0]) }] } }];
+    source.Materials[0].Layers[0].TVertexAnimId = 0;
+    const body = timelineBody(source, source.Sequences);
+    expect(body.TextureAnims[0]?.Translation?.Keys.map(key => [key.Frame, ...key.Vector])).toEqual([
+        [100, 0.25, 0, 0], [200, 0.25, 0, 0], [400, 0.25, 0, 0], [500, 0.25, 0, 0],
+    ]);
+    expect(body.Materials[0].Layers[0].TVertexAnimId).toBe(0);
+});
