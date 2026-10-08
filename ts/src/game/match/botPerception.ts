@@ -241,13 +241,6 @@ function copyObservation(target: ObservationFighter, source: Readonly<Fighter>):
   status.condition = fromStatus.condition;
   status.conditionFrames = fromStatus.conditionFrames;
   status.poisonFrames = fromStatus.poisonFrames;
-  const passive = target.passive;
-  const fromPassive = source.passive;
-  passive.stacks = fromPassive.stacks;
-  passive.window = fromPassive.window;
-  passive.serial = fromPassive.serial;
-  passive.spent = fromPassive.spent;
-  passive.used = fromPassive.used;
   const landing = target.landing;
   const fromLanding = source.landing;
   landing.lag = fromLanding.lag;
