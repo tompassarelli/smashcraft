@@ -35,7 +35,7 @@ const HERO_BODIES: { readonly [character: number]: HeroBody | undefined } = {
   [Character.jaina]: body(f32(1.2), 0.5, f32(0.95), f32(0.9), f32(1.05)),
   [Character.sylvanas]: body(f32(96.0 / 75.0), f32(f32(1.828) / f32(2.2)), f32(0.935), f32(0.90), 1.0),
   [Character.cairne]: { ...body(f32(133.0 / 75.0), f32(f32(1.485) / f32(2.2)), f32(0.945), f32(1.75), f32(1.45)), shield: f32(1.45) },
-  [Character.peon]: body(f32(92.0 / 75.0), f32(f32(1.397) / f32(2.2)), f32(0.987), f32(0.88), f32(0.80)),
+  [Character.peon]: body(f32(92.0 / 75.0), f32(f32(1.6) / f32(2.2)), f32(0.987), f32(0.88), f32(0.80)),
   [Character.tinker]: body(f32(106.0 / 75.0), f32(f32(1.725) / f32(2.2)), f32(1.134), f32(1.12), f32(0.95)),
 };
 

@@ -2,18 +2,18 @@ import { type AuthoredSpecial, type FighterSpecials, frames } from "../heroSpeci
 import { peonHit } from "./peonMoves";
 
 const lumberToss = (air: boolean): AuthoredSpecial => ({
-  cost: 0, endFrame: 48, landingLag: air ? 20 : undefined,
+  cost: 0, endFrame: 40, landingLag: air ? 20 : undefined,
   projectiles: [{
     model: "Abilities\\Weapons\\AncientProtectorMissile\\AncientProtectorMissile.mdl",
-    spawnFrame: 18, offsetX: 34.0, offsetZ: 48.0, velocityX: 9.0, velocityZ: 0.0,
-    life: 70, radius: 18.0, effect: peonHit(7.0, 35, 75.0, 18.0), reflectable: true, limit: 1,
+    spawnFrame: 14, offsetX: 34.0, offsetZ: 48.0, velocityX: 9.0, velocityZ: 0.0,
+    life: 70, radius: 18.0, effect: peonHit(8.0, 35, 75.0, 18.0), reflectable: true, limit: 1,
   }],
 });
 
 const BURROW: AuthoredSpecial = {
   cost: 20, endFrame: 52, groundOnly: true,
   placement: {
-    frame: 26, offsetX: 80.0, radius: 28.0, height: 76.0, durability: 24.0, life: 240,
+    frame: 26, offsetX: 80.0, radius: 28.0, height: 76.0, durability: 32.0, life: 240,
     fireAges: [45, 85, 125, 165, 205],
     shot: {
       model: "Abilities\\Weapons\\HunterMissile\\HunterMissile.mdl",

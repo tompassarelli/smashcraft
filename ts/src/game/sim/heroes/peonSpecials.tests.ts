@@ -41,7 +41,7 @@ const down = controls({ specialPressed: true, specialZ: -1 });
 
 test("Peon four special inputs spend once and finish on the authored frame", () => {
   for (const [input, action, cost, end] of [
-    [neutral, SpecialAction.heroNeutral, 0, 48], [side, SpecialAction.heroSide, 20, 52],
+    [neutral, SpecialAction.heroNeutral, 0, 40], [side, SpecialAction.heroSide, 20, 52],
     [up, SpecialAction.heroUp, 15, 28], [down, SpecialAction.heroDown, 20, 38],
   ] as const) {
     const { world, owner } = pair(900.0);
@@ -62,7 +62,7 @@ test("Peon Lumber Toss strikes once in both facings and never creates a second l
       frame(world, tick === 51 ? neutral : controls());
       assertTrue(owner.projectiles.filter(p => p.life > 0).length <= 1);
     }
-    assertEquals(target.status.damage, 14.0);
+    assertEquals(target.status.damage, 16.0);
     assertTrue(owner.projectiles.filter(p => p.life > 0).length <= 1);
   }
 });
@@ -73,7 +73,7 @@ test("Peon Burrow fires its scheduled spear, packs away, and clears on stock los
   for (let tick = 2; tick <= 26; tick++) frame(world);
   assertEquals(owner.placed.age, 1);
   assertEquals(owner.placed.life, 239);
-  assertEquals(owner.placed.durability, 24.0);
+  assertEquals(owner.placed.durability, 32.0);
   for (let tick = 27; tick <= 100; tick++) frame(world);
   assertGreaterThan(target.status.damage, 0.0);
   frame(world, side);
