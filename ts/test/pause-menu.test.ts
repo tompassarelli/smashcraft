@@ -3,6 +3,7 @@ import { installHeadless } from "wisp/scripts/wisp/headless";
 import { PREDICTED_HEADLESS } from "../scripts/wisp/headless";
 import { Action, bit } from "../src/game/input/actions";
 import { Phase, selectCharacter, setParticipants } from "../src/game/match/rules";
+import { LESSONS, NO_LESSON } from "../src/game/match/tutorial";
 import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
 import { install, startBuild } from "../src/platform/main";
 import { Key } from "../src/platform/shell/keyEvents";
@@ -93,3 +94,21 @@ for (const mode of ["cpu", "classic", "training", "practice", "tutorial"] as con
     expect(clients.firstDivergence()).toBeUndefined();
   });
 }
+
+test("leaving a completed tutorial through the pause menu returns to ordinary Training [repro #331]", () => {
+  const clients = headless.clients({ start: () => startBuild({ ...PLAYABLE_BUILD, devConsole: true }), install }, [0]);
+  const first = clients.client(0);
+  clients.start();
+  clients.frames(30);
+  clients.everywhere(() => panelActions().selection.startTutorial(0));
+  clients.frames(90);
+  expect(value(first, () => shell().game.phase)).toBe(Phase.match);
+  clients.everywhere(() => { shell().game.trainer.lesson = LESSONS.length; });
+  clients.press(0, Key.y);
+  clients.frames(1);
+  expect(value(first, () => shell().session.paused)).toBe(true);
+  clients.press(0, Key.escape);
+  clients.frames(5);
+  expect(value(first, () => [shell().game.phase, shell().game.training, shell().game.trainer.lesson])).toEqual([Phase.characterMenu, true, NO_LESSON]);
+  expect(first.errors).toEqual([]);
+});

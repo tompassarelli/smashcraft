@@ -11,6 +11,7 @@ import { type ParticipantSlot, isParticipantSlot } from "../../game/input/partic
 import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/playerKeys";
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
 import { Phase, cancelRematchCountdown, characterFor, copyMatchState, firstHumanSlot, humanActive, recallCharacter, selectCharacter } from "../../game/match/rules";
+import { NO_LESSON, tutorialFinished } from "../../game/match/tutorial";
 import { classicDevRequest, loreDevRequest, LORE_WIN_COMMAND, winLoreBattle, DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchPair, quickMatchStage, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../game/shell/devSettings";
 import { fighterName } from "../../game/sim/heroes/registry";
 import { keepMomentEnd } from "../../game/replay/moment";
@@ -106,7 +107,7 @@ function exitPausedMatch(s: ShellState, title: boolean): void {
   if (s.game.run.active && s.pauseSelection !== undefined) copyMatchState(s.game, s.pauseSelection);
   s.game.phase = Phase.characterMenu;
   s.game.practice = false;
-  s.game.trainer.lesson = -1;
+  if (tutorialFinished(s.game.trainer)) s.game.trainer.lesson = NO_LESSON;
   s.game.run.active = false;
   s.session.paused = false;
   const menu = s.pauseMenu ??= { choice: 0, shown: false, title: false };
