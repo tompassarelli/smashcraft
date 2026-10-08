@@ -14,6 +14,9 @@ import type { PacingAndPresentation } from "../../game/match/pacingAndPresentati
 import { type MatchState, Phase, remainingSeconds, stageClock, timedMatch } from "../../game/match/rules";
 import { ARENA_CAMERA, FLOOR_HEIGHT, cameraFieldOfView, cameraPoint, extremeCamera, localCamera } from "../../game/presentation/arenaCamera";
 
+import { beginPauseCamera, advancePauseCamera, pauseCameraAngle, pauseHudHidden } from "./pauseCamera";
+import { copyMatchCamera } from "../../game/sim/matchCamera";
+
 import { advanceMatchCamera } from "../../game/sim/matchCamera";
 import { stageBounds } from "../../game/sim/stageBounds";
 import { damageTint } from "../../game/presentation/hitPresentation";
@@ -228,6 +231,16 @@ export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readon
 /** Freezes or resumes the units, effects and projectiles. */
 export function pauseMatchPresentation(s: ShellState, paused: boolean): void {
   s.resumePresentationUntil = undefined;
+  if (paused && s.game.phase === Phase.match) {
+    const height = BlzGetLocalClientHeight();
+    beginPauseCamera(s, height > 0 ? I2R(BlzGetLocalClientWidth()) / I2R(height) : 16.0 / 9.0);
+  } else if (s.pauseCamera !== undefined) {
+    const saved = s.pauseCamera;
+    copyMatchCamera(s.camera, saved.saved);
+    s.pauseCamera = undefined;
+    applyArenaCamera(s, s.camera, saved.aspect, ARENA_CAMERA.angleOfAttack, 0.0);
+    renderUi(s);
+  }
   if (!paused && s.game.phase === Phase.match && typeof os === "object" && typeof os.clock === "function") {
     s.resumePresentationUntil = os.clock() + RESUME_PRESENTATION_SECONDS;
     return;
@@ -342,6 +355,27 @@ function presentOverheadMana(bar: ManaBar, pips: PassivePips, fighter: Readonly<
   bar.update(onScreen, fighter.mana.points, fighter.visuals.manaDenied, fighter.visuals.manaDrained);
 }
 
+function applyArenaCamera(s: ShellState, framing: Readonly<MatchCamera>, aspect: number, angle: number, duration: number): void {
+  const { x: centerX, y: centerY } = s.origin;
+  const targetX = centerX + framing.x;
+  if (duration > 0.0) {
+    // A bound at the new target would snap the pan before its timed movement.
+    const bounds = stageBounds(s.game.stageChoice).camera;
+    const left = centerX + bounds.left;
+    const right = centerX + bounds.right;
+    SetCameraBounds(left, centerY, right, centerY, left, centerY, right, centerY);
+  } else SetCameraBounds(targetX, centerY, targetX, centerY, targetX, centerY, targetX, centerY);
+  SetCameraField(CAMERA_FIELD_ROTATION, ARENA_CAMERA.rotation, 0.0);
+  SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, angle, 0.0);
+  SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, framing.distance, duration);
+  SetCameraField(CAMERA_FIELD_ZOFFSET, FLOOR_HEIGHT + framing.z, duration);
+  SetCameraField(CAMERA_FIELD_ROLL, 0.0, 0.0);
+  SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, cameraFieldOfView(framing, aspect), duration);
+  SetCameraField(CAMERA_FIELD_FARZ, ARENA_CAMERA.farZ, 0.0);
+  if (duration > 0.0) PanCameraToTimed(targetX, centerY, duration);
+  else SetCameraPosition(targetX, centerY);
+}
+
 /** Frames the live fighters of the presented match from the side. */
 export function lockArenaCamera(s: ShellState): void {
   if (resumePresentationHeld(s)) return;
@@ -350,29 +384,14 @@ export function lockArenaCamera(s: ShellState): void {
   if (!game.camera.initialized) advanceMatchCamera(s.camera, world, game.stageChoice);
   const height = BlzGetLocalClientHeight();
   const aspect = height > 0 ? I2R(BlzGetLocalClientWidth()) / I2R(height) : 16.0 / 9.0;
-  localCamera(s.camera, game.camera.initialized ? game.camera : s.camera, game.stageChoice, aspect);
+  if (s.session.paused && s.pauseCamera !== undefined) advancePauseCamera(s, aspect);
+  else localCamera(s.camera, game.camera.initialized ? game.camera : s.camera, game.stageChoice, aspect);
   if (s.viewExtreme !== undefined) extremeCamera(s.camera, game.stageChoice, aspect, s.viewExtreme);
   const { x: centerX, y: centerY } = s.origin;
   const framing = s.camera;
   probeCamera(s.probe, game.camera, framing, centerX, FLOOR_HEIGHT);
-  const targetX = centerX + framing.x;
   const duration = s.cameraTween === true && game.phase === Phase.match && !s.session.paused ? FRAME_SECONDS : 0.0;
-  if (duration > 0.0) {
-    // A bound at the new target would snap the pan before its timed movement.
-    const bounds = stageBounds(game.stageChoice).camera;
-    const left = centerX + bounds.left;
-    const right = centerX + bounds.right;
-    SetCameraBounds(left, centerY, right, centerY, left, centerY, right, centerY);
-  } else SetCameraBounds(targetX, centerY, targetX, centerY, targetX, centerY, targetX, centerY);
-  SetCameraField(CAMERA_FIELD_ROTATION, ARENA_CAMERA.rotation, 0.0);
-  SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, ARENA_CAMERA.angleOfAttack, 0.0);
-  SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, framing.distance, duration);
-  SetCameraField(CAMERA_FIELD_ZOFFSET, FLOOR_HEIGHT + framing.z, duration);
-  SetCameraField(CAMERA_FIELD_ROLL, 0.0, 0.0);
-  SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, cameraFieldOfView(framing, aspect), duration);
-  SetCameraField(CAMERA_FIELD_FARZ, ARENA_CAMERA.farZ, 0.0);
-  if (duration > 0.0) PanCameraToTimed(targetX, centerY, duration);
-  else SetCameraPosition(targetX, centerY);
+  applyArenaCamera(s, framing, aspect, pauseCameraAngle(s), duration);
   if (s.build.analogPadDiagnostic === true) {
     // Calibration stays valid throughout both candidate ingress measurements.
     SetCameraBounds(centerX, centerY, centerX, centerY, centerX, centerY, centerX, centerY);
@@ -387,12 +406,12 @@ export function lockArenaCamera(s: ShellState): void {
     const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
     const point = cameraPoint(framing, aspect, fighter?.motion.x ?? 0.0, (fighter?.motion.z ?? 0.0) + 60.0);
     const outside = point.column < 0.0 || point.column > 1.0 || point.row < 0.0 || point.row > 1.0;
-    views(s).bubbles[slot].update(game.phase === Phase.match && fighter !== undefined && !fighter.status.out && outside, fighter?.character ?? 0, point.column, point.row, aspect);
+    views(s).bubbles[slot].update(!pauseHudHidden(s) && game.phase === Phase.match && fighter !== undefined && !fighter.status.out && outside, fighter?.character ?? 0, point.column, point.row, aspect);
     readEscapeMeter(world, slot, meter);
-    if (game.phase !== Phase.match) meter.shown = false;
+    if (game.phase !== Phase.match || pauseHudHidden(s)) meter.shown = false;
     const meterPoint = cameraPoint(framing, aspect, meter.x, meter.z);
     views(s).escapeMeters[slot].update(meter, meterPoint.column, meterPoint.row, aspect);
-    presentOverheadMana(views(s).manaBars[slot].overhead, views(s).passivePips[slot], game.phase === Phase.match ? fighter : undefined, meter.shown, framing, aspect);
+    presentOverheadMana(views(s).manaBars[slot].overhead, views(s).passivePips[slot], game.phase === Phase.match && !pauseHudHidden(s) ? fighter : undefined, meter.shown, framing, aspect);
   }
 }
 
@@ -406,10 +425,10 @@ export function renderUi(s: ShellState): void {
   const paused = game.phase === Phase.match && s.session.paused;
   if (paused && !menu.shown) menu.choice = 0;
   menu.shown = paused;
-  ui.pause.update(paused, menu.choice, menu.title);
+  ui.pause.update(paused && s.pauseCamera?.using !== true, menu.choice, menu.title);
   const local = localParticipantSlot(s);
   const localFighter = local !== undefined && s.participants[local].body !== undefined && isActive(s.world, local) ? fighterAt(s.world, local) : undefined;
-  const showMatch = !selecting && !(local !== undefined && ui.settings[local].isOpen());
+  const showMatch = !pauseHudHidden(s) && !selecting && !(local !== undefined && ui.settings[local].isOpen());
   for (const slot of PARTICIPANT_SLOTS) {
     if (s.participants[slot].body !== undefined && isActive(s.world, slot)) {
       const fighter = fighterAt(s.world, slot);

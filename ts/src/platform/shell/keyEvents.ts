@@ -6,6 +6,8 @@ import { Phase, humanActive } from "../../game/match/rules";
 import { trampoline } from "wisp/src/platform/dispatch";
 import { type ShellState, activeRollback } from "./state";
 
+import { pauseCameraKey } from "./pauseCamera";
+
 export const KEY_DOWN = "shell.keyDown";
 export const KEY_UP = "shell.keyUp";
 
@@ -31,7 +33,7 @@ function registerKeys(s: ShellState, escapeOnly: boolean): void {
   const up = CreateTrigger();
   for (let key = 1; key <= 255; key++) {
     // Return belongs to Warcraft chat while playing, and to the pause menu while paused.
-    const pauseKey = key === Key.escape || key === Key.enter || key === 0x26 || key === 0x28 || key === 32 || key === 69 || key === Key.n || key === Key.u;
+    const pauseKey = pauseCameraKey(key) || key === Key.escape || key === Key.enter || key === 0x26 || key === 0x28 || key === 32 || key === 69 || key === Key.n || key === Key.u;
     if (key === Key.y || (!escapeOnly && key === Key.enter) || (escapeOnly && !pauseKey)) continue;
     registerKey(s, down, key, true);
     registerKey(s, up, key, false);

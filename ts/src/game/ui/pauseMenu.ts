@@ -34,6 +34,6 @@ export class PauseMenu {
     if (!paused && !title) return;
     BlzFrameSetText(this.heading, title ? "Smashcraft" : "Paused");
     BlzFrameSetText(this.options, title ? "> Play <" : ["Resume", "Character select", "Main menu"].map((text, row) => row === choice ? `|cffffcc00> ${text} <|r` : text).join("\n\n"));
-    BlzFrameSetText(this.help, title ? "A / Enter / Start: play" : "Stick / arrows: choose    A / Enter: select\nStart / Y: resume    Escape: character select");
+    BlzFrameSetText(this.help, title ? "A / Enter / Start: play" : "Stick / arrows: choose    A / Enter: select\nStart / Y: resume    Escape: character select\nIJKL: camera    +/-: zoom    O/P: tilt    H: HUD");
   }
 }

@@ -1,3 +1,4 @@
+import { cameraKey, returnPauseMenu } from "./pauseCamera";
 import { HIT_PRESENTATION_CASES } from "../../game/shell/hitPresentationCases";
 import { createImpactEvents } from "../../game/presentation/impactEvents";
 import { emitImpacts } from "../../game/presentation/impactState";
@@ -136,6 +137,8 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
     return;
   }
   if (s.game.phase === Phase.match && s.session.paused) {
+    if (GetTriggerPlayer() === GetLocalPlayer() && cameraKey(s, key, true)) return;
+    if (GetTriggerPlayer() === GetLocalPlayer()) returnPauseMenu(s);
     const menu = s.pauseMenu ??= { choice: 0, shown: true, title: false };
     if (key === 0x26 || key === 32) menu.choice = menu.choice === 0 ? 2 : menu.choice - 1;
     else if (key === 0x28 || key === 69) menu.choice = menu.choice === 2 ? 0 : menu.choice + 1;
@@ -194,7 +197,10 @@ function participantKeyUp(s: ShellState, slot: ParticipantSlot): void {
     startKeyUp(s.session, slot);
     return;
   }
-  if (s.game.phase === Phase.match && s.session.paused) return;
+  if (s.game.phase === Phase.match && s.session.paused) {
+    if (GetTriggerPlayer() === GetLocalPlayer()) cameraKey(s, key, false);
+    return;
+  }
   if (journalOwnsKey(s, slot, key)) return;
   if (s.trace.active) s.trace.window.keyUp[slot]++;
   traceParticipant(s, slot, `received up ${key}`);
