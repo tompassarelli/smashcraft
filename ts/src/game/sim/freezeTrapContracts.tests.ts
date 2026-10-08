@@ -16,17 +16,22 @@ import { f32 } from "wisp/src/sim/f32";
 import { executeNext, testMatch } from "../match/testMatch";
 import { fighterAt } from "./roster";
 import { startFighterSpecial } from "./specials";
+import { setHumanMask } from "../match/rules";
+import { produceComputerInput } from "../match/botPlay";
 
-test("Frost Trap's laying action releases Rifleman after twenty frames [spec docs/physics.md]", () => {
+test("Frost Trap appears at frame 22 and releases Rifleman at frame 38 [spec #325]", () => {
   const match = testMatch(3, Character.rifleman);
   const owner = fighterAt(match.world, 0);
   owner.motion.surface = 0;
   assertTrue(startFighterSpecial(owner, 0, 0, controls({ specialPressed: true, specialZ: -1 })));
   assertFalse(canStartAttackStyle(owner, AttackStyle.jab));
-  for (let frame = 1; frame < 20; frame++) {
+  assertEquals(owner.freezeTrap.life, 0);
+  for (let frame = 1; frame < 38; frame++) {
     executeNext(match);
     assertEquals(owner.special.action, SpecialAction.riflemanTrap);
     assertFalse(canStartAttackStyle(owner, AttackStyle.jab));
+    if (frame < 22) assertEquals(owner.freezeTrap.life, 0);
+    else assertGreaterThan(owner.freezeTrap.life, 0);
   }
   executeNext(match);
   assertEquals(owner.special.action, SpecialAction.none);
@@ -37,18 +42,43 @@ test("Frost Trap's laying action releases Rifleman after twenty frames [spec doc
   assertEquals(owner.attack.style, AttackStyle.jab);
 });
 
+test("an Intermediate CPU punishes a point-blank trap before Rifleman can act [spec #325]", () => {
+  const match = testMatch(3, Character.rifleman);
+  const owner = fighterAt(match.world, 0);
+  const target = fighterAt(match.world, 1);
+  owner.motion.surface = 0;
+  target.motion.surface = 0;
+  target.motion.x = owner.motion.x + 60.0;
+  target.facing = -1;
+  setHumanMask(match.game, 1);
+  match.game.cpuOpponents[1] = "wren";
+  match.game.cpuResolvedOpponents[1] = "wren";
+  match.game.cpuTiers[1] = "intermediate";
+  assertTrue(startFighterSpecial(owner, 0, 0, controls({ specialPressed: true, specialZ: -1 })));
+  let punished = false;
+  for (let frame = 1; frame < 38; frame++) {
+    produceComputerInput(match.game, match.world, match.runtime, 1, frame, match.inputs.inputs[1], match.inputs.commands[1]);
+    executeNext(match);
+    if (owner.status.damage > 0) { punished = true; break; }
+    assertFalse(canStartAttackStyle(owner, AttackStyle.jab));
+  }
+  assertTrue(punished);
+});
+
 test("an unused Frost Trap expires after eight seconds and can be replaced [spec docs/physics.md]", () => {
   const match = testMatch(3, Character.rifleman);
   const owner = fighterAt(match.world, 0);
   owner.motion.surface = 0;
   const lay = controls({ specialPressed: true, specialZ: -1 });
   assertTrue(startFighterSpecial(owner, 0, 0, lay));
+  for (let frame = 1; frame < 22; frame++) executeNext(match);
+  executeNext(match);
   for (let frame = 1; frame < 480; frame++) executeNext(match);
   assertGreaterThan(owner.freezeTrap.life, 0);
-  assertFalse(startFighterSpecial(owner, 0, 479, lay));
+  assertFalse(startFighterSpecial(owner, 0, 501, lay));
   executeNext(match);
   assertEquals(owner.freezeTrap.life, 0);
-  assertTrue(startFighterSpecial(owner, 0, 480, lay));
+  assertTrue(startFighterSpecial(owner, 0, 502, lay));
 });
 
 test("a jump chosen fifteen frames after thaw leaves before a waiting trap can refreeze any fighter [spec docs/gameplay-design.md]", () => {

@@ -1245,7 +1245,9 @@ and late off it (5-frame jump squat), but floaty, heavier than Archer (80) and
 harder-hitting: his down tilt deals 10. The blaster shoots with hitstun from
 range, but a grounded shot leaves on frame 9 and holds him until frame 39, and a short-hop shot (#117) costs a landing,
 so his wall costs a commitment his slow body can't cover. The bear walks ahead as cover. The freezing trap guards the gap in
-front of him and sets up a smash. **Weakness:** he can't chase, and in close
+front of him and sets up a smash. Down special places it at frame 22 and
+ends at frame 38 (16 frames of recovery). It arms 20 frames after placement,
+lasts 480 frames (8 s), freezes for up to 300 frames, and has a 90-frame cooldown (#325). **Weakness:** he can't chase, and in close
 his slow start loses scrambles.
 
 **Gameplan:** keeps 220–520 units away. His spacing tools are the blaster at

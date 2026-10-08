@@ -24,7 +24,7 @@ import { spawnArcherArrow, spawnBlasterShot, spawnHomingArrow, spawnProjectileMo
 import { type Controls, type Roster, copyControls, fighterAt, isActive, neutralControls } from "./roster";
 import { surfaceZAt } from "./stage";
 import { advanceCompanion } from "./companions";
-import { HIPPOGRYPH_DIVE_ARRIVAL, HIPPOGRYPH_DIVE_OVERSHOOT, RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, startFreezeTrap } from "./summons";
+import { HIPPOGRYPH_DIVE_ARRIVAL, HIPPOGRYPH_DIVE_OVERSHOOT, RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, canStartFreezeTrap, startFreezeTrap } from "./summons";
 import { at } from "wisp/src/runtime/lookup";
 import { travelBeforeBodies } from "./travelStop";
 import { advanceHeroSpecial, chargedAimX, chargedAimZ, chooseHeroSpecial, enterHeroSpecial, followUpHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, relocateHeroSpecial, runningHeroSpecial, resolveHeroGuards, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
@@ -140,7 +140,8 @@ const RIFLEMAN_RECOVERY_FRAMES = 34;
 export const RIFLEMAN_BEAR_CAST_FRAMES = 24;
 /** The cast, then 18 frames after the bear appears. */
 export const RIFLEMAN_BEAR_SUMMON_FRAMES = RIFLEMAN_BEAR_CAST_FRAMES + 18;
-const TRAP_SET_FRAMES = 20;
+const TRAP_APPEAR_FRAME = 22;
+const TRAP_SET_FRAMES = 38;
 /** The bow release remains two-thirds through its clip; the longer draw is visible before the arrow leaves. */
 export const ARCHER_ARROW_SHOT_FRAME = 16;
 export const ARCHER_ARROW_FRAMES = 24;
@@ -276,7 +277,7 @@ function startArcherSpecial(owner: Fighter, action: SpecialAction, moveX: number
 function startRiflemanSpecial(owner: Fighter, stage: number, matchFrame: number, action: SpecialAction, moveX: number): boolean {
   const { motion, bear, special } = owner;
   if (action === SpecialAction.riflemanTrap) {
-    if (!startFreezeTrap(owner, stage, matchFrame)) return false;
+    if (!canStartFreezeTrap(owner)) return false;
     startSpecialAction(owner, action, TRAP_SET_FRAMES, moveX);
     special.cooldowns[action] = 90;
     return true;
@@ -716,6 +717,7 @@ function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number,
     const grounded = special.duration === RIFLEMAN_BLASTER_GROUND_FRAMES;
     if (special.frame === (grounded ? RIFLEMAN_BLASTER_GROUND_SHOT_FRAME : RIFLEMAN_BLASTER_AIR_SHOT_FRAME)) spawnBlasterShot(owner, shotSerial, grounded);
   }
+  if (special.action === SpecialAction.riflemanTrap && special.frame === TRAP_APPEAR_FRAME) startFreezeTrap(owner, stage, matchFrame);
   if (special.action === SpecialAction.riflemanBear && special.frame === RIFLEMAN_BEAR_CAST_FRAMES) summonBear(owner, stage, matchFrame);
   if (special.action === SpecialAction.demonHunterManaBurn && special.frame === DEMONHUNTER_MANA_BURN_STARTUP) {
     spawnProjectileMotion(owner, ProjectileKind.manaBurn, f32(owner.facing * DEMONHUNTER_MANA_BURN_SPEED), 0.0, DEMONHUNTER_MANA_BURN_LIFETIME, shotSerial, 1.0, DEMONHUNTER_MANA_BURN_HEIGHT);

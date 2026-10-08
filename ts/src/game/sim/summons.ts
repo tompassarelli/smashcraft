@@ -53,11 +53,17 @@ export function recordSpecialHit(owner: Fighter, targetSlot: number): void {
   }
 }
 
+export function canStartFreezeTrap(owner: Fighter): boolean {
+  const { motion, freezeTrap } = owner;
+  return owner.character === Character.rifleman && motion.grounded && motion.surface !== undefined
+    && freezeTrap.life === 0 && freezeTrap.cooldown === 0 && canAttack(owner);
+}
+
 /** Places a trap at a grounded Rifleman's feet, one at a time and after its cooldown. */
 export function startFreezeTrap(owner: Fighter, stage: number, matchFrame: number): boolean {
   const { motion } = owner;
   const trap = owner.freezeTrap;
-  if (owner.character !== Character.rifleman || !motion.grounded || motion.surface === undefined || trap.life > 0 || trap.cooldown > 0 || !canAttack(owner)) {
+  if (owner.character !== Character.rifleman || !motion.grounded || motion.surface === undefined || trap.life > 0 || trap.cooldown > 0) {
     return false;
   }
   trap.x = motion.x;
