@@ -99,10 +99,20 @@ export function createMatchState(): MatchState {
   };
 }
 
-export const humanActive = (game: Readonly<MatchState>, slot: number): boolean => participantActive(game.humanMask, slot);
+// participantActive inline, as isActive is: rollback asks these for every slot of every frame.
+export const humanActive = (game: Readonly<MatchState>, slot: number): boolean => {
+  const mask = game.humanMask;
+  return mask > 0 && mask < 16 && slot >= 0 && slot < 4 && (mask & (1 << slot)) !== 0;
+};
 export const humanPresent = (game: Readonly<MatchState>, slot: number): boolean => humanActive(game, slot) && !participantActive(game.departedMask, slot);
-export const humanFighterActive = (game: Readonly<MatchState>, slot: number): boolean => participantActive(game.humanFighterMask, slot);
-export const computerActive = (game: Readonly<MatchState>, slot: number): boolean => participantActive(game.computerMask, slot);
+export const humanFighterActive = (game: Readonly<MatchState>, slot: number): boolean => {
+  const mask = game.humanFighterMask;
+  return mask > 0 && mask < 16 && slot >= 0 && slot < 4 && (mask & (1 << slot)) !== 0;
+};
+export const computerActive = (game: Readonly<MatchState>, slot: number): boolean => {
+  const mask = game.computerMask;
+  return mask > 0 && mask < 16 && slot >= 0 && slot < 4 && (mask & (1 << slot)) !== 0;
+};
 
 export function firstHumanSlot(game: Readonly<MatchState>): ParticipantSlot | undefined {
   return PARTICIPANT_SLOTS.find(slot => humanActive(game, slot));

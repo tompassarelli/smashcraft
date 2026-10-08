@@ -54,7 +54,8 @@ export function copyMatchCamera(target: MatchCamera, source: Readonly<MatchCamer
 }
 
 const clamp = (value: number, low: number, high: number): number => Math.min(high, Math.max(low, value));
-const ease = (current: number, target: number, rate: number): number => f32(current + f32(f32(target - current) * rate));
+// A settled ease keeps its value: a nonzero current equal to its target gives current + 0 exactly.
+const ease = (current: number, target: number, rate: number): number => current === target && current !== 0 ? current : f32(current + f32(f32(target - current) * rate));
 // A settled extent stays put: a nonzero current equal to its target gives current + 0 exactly.
 const extent = (current: number, target: number, step: number): number => current === target && current !== 0 ? current : f32(current + clamp(f32(target - current), -step, step));
 // The eased camera's goal this frame; never part of match state.
@@ -248,8 +249,9 @@ export function advanceMatchCamera(camera: MatchCamera, world: Readonly<Roster>,
     box.top = camera.initialized ? extent(box.top, boxTop, step) : boxTop;
     left = Math.min(left, clamp(f32(x + box.left), bounds.left, bounds.right));
     right = Math.max(right, clamp(f32(x + box.right), bounds.left, bounds.right));
-    bottom = Math.min(bottom, clamp(f32(f32(z + 60.0) + box.bottom), bounds.bottom, bounds.top));
-    top = Math.max(top, clamp(f32(f32(z + 60.0) + box.top), bounds.bottom, bounds.top));
+    const centre = f32(z + 60.0);
+    bottom = Math.min(bottom, clamp(f32(centre + box.bottom), bounds.bottom, bounds.top));
+    top = Math.max(top, clamp(f32(centre + box.top), bounds.bottom, bounds.top));
   }
   camera.left = left;
   camera.right = right;

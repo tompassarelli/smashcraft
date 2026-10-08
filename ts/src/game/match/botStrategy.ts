@@ -144,7 +144,10 @@ export function copyBotStrategy(target: BotStrategy, source: Readonly<BotStrateg
   target.lastSerial = source.lastSerial;
   target.events = source.events;
   target.lastOption = source.lastOption;
-  for (let index = 0; index < source.recentOptions.length; index++) target.recentOptions[index] = at(source.recentOptions, index);
+  // Dense numbers: plain indexing spares a lookup call per option on every copied frame.
+  const recent = source.recentOptions;
+  const into = target.recentOptions;
+  for (let index = 0; index < recent.length; index++) into[index] = recent[index] ?? 0;
   target.readActive = source.readActive;
   target.readChoice = source.readChoice;
   target.readContext = source.readContext;

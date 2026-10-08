@@ -104,13 +104,16 @@ export function copyMatchFrameInput(target: MatchFrameInput, source: Readonly<Ma
   // Only adapted rows carry the computers' state; a network row's computers decide again when it runs.
   if (adapted) copyBotMemory(target.botMemoryAfterInput, source.botMemoryAfterInput);
   else if (target.botMemoryAfterInput.history.length > 0) clearBotMemory(target.botMemoryAfterInput);
+  // participantActive inline: rollback copies rows every frame it saves or reconciles.
+  const mask = source.mask > 0 && source.mask < 16 ? source.mask : 0;
+  const networkMask = source.networkMask > 0 && source.networkMask < 16 ? source.networkMask : 0;
   for (const slot of PARTICIPANT_SLOTS) {
     if (adapted) copyBotStrategy(target.botStrategiesAfterInput[slot], source.botStrategiesAfterInput[slot]);
-    if (adapted && participantActive(source.mask, slot)) {
+    if (adapted && (mask & (1 << slot)) !== 0) {
       copyControls(target.values.inputs[slot], source.values.inputs[slot]);
       copyAttackBuffer(target.values.commands[slot], source.values.commands[slot]);
     }
-    if (participantActive(source.networkMask, slot)) copyInput(target.network[slot], source.network[slot]);
+    if ((networkMask & (1 << slot)) !== 0) copyInput(target.network[slot], source.network[slot]);
     target.botDelaysAfterInput[slot] = source.botDelaysAfterInput[slot];
   }
 }

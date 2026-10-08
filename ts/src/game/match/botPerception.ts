@@ -342,8 +342,9 @@ function flushObservationZeroes(): void {
     zeroFirstPower.push(floorMod(at(zeroFirstPower, previous) * zero.firstPower, 46337));
     zeroSecondPower.push(floorMod(at(zeroSecondPower, previous) * zero.secondPower, 46337));
   }
-  checksumFirst = floorMod(checksumFirst * at(zeroFirstPower, zeroNumbers) + at(zeroFirst, zeroNumbers), 46337);
-  checksumSecond = floorMod(checksumSecond * at(zeroSecondPower, zeroNumbers) + at(zeroSecond, zeroNumbers), 46337);
+  // The loop above filled every table through zeroNumbers.
+  checksumFirst = floorMod(checksumFirst * (zeroFirstPower[zeroNumbers] ?? 0) + (zeroFirst[zeroNumbers] ?? 0), 46337);
+  checksumSecond = floorMod(checksumSecond * (zeroSecondPower[zeroNumbers] ?? 0) + (zeroSecond[zeroNumbers] ?? 0), 46337);
   zeroNumbers = 0;
 }
 
