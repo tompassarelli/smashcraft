@@ -227,17 +227,18 @@ test("a Lore Battles entry built from data alone plays through the configured-ma
   }
 });
 
-test("[repro #345] Classic selection reaches all 21 finished fighters and rejects the five pending stories while Versus keeps them", () => {
+test("[repro #345] Classic selection reaches the original 21 and every finished route and rejects pending stories while Versus keeps them", () => {
   const game = classicSelection(Character.rifleman, 1);
   const reached = new Set<number>();
-  for (let step = 0; step < 21; step++) {
+  for (let step = 0; step < CLASSIC_CHARACTERS.length; step++) {
     const choice = nextMatchCharacter(game, game.characterChoices[0], 1);
     selectCharacter(game, 0, choice);
     reached.add(game.characterChoices[0]);
   }
-  assertEquals(reached.size, 21);
+  assertEquals(reached.size, CLASSIC_CHARACTERS.length);
+  for (const fighter of CLASSIC_CHARACTERS) assertEquals(reached.has(fighter), true, `finished route ${fighter}`);
   for (let fighter = 1; fighter <= 21; fighter++) assertEquals(reached.has(fighter), true, `finished fighter ${fighter}`);
-  for (const fighter of [22, 23, 24, 25, 26]) {
+  for (const fighter of [22, 23, 24, 25, 26].filter(fighter => !CLASSIC_CHARACTERS.includes(fighter as Character))) {
     const before = game.characterChoices[0];
     selectCharacter(game, 0, fighter);
     assertEquals(game.characterChoices[0], before, `pending story ${fighter}`);
