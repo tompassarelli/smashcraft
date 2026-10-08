@@ -399,6 +399,11 @@ function selectTableAction(pose: FighterPose, f: Readonly<Fighter>, table: Reado
     return 1.0;
   }
   const { style } = attack;
+  // Stock Attack - 2 has its own wind-up; swapping to the authored charge
+  // pose and restarting its swing on release jumps Frostmourne backwards.
+  if (f.character === Character.lichKing && style === AttackStyle.forwardSmash) {
+    return attack.smashCharging ? 0.0 : attackRate(f, attackPhase(f));
+  }
   if (attack.smashCharging && table.smashCharge !== undefined) {
     playIndex(pose, "smash-charge", table.smashCharge.index);
     return 0.0;

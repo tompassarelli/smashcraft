@@ -19,6 +19,8 @@
 842 a stick 0 0
 899 a capture
 900 a release A
+900 a capture
+901 a capture
 960 a stick 1 0
 960 a press A
 962 a stick 0 0
@@ -46,6 +48,8 @@
 1502 a stick 0 0
 1559 a capture
 1560 a release A
+1560 a capture
+1561 a capture
 1620 a stick -1 0
 1620 a press A
 1622 a stick 0 0

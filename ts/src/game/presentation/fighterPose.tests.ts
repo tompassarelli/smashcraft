@@ -17,7 +17,7 @@ import { contactDamageClip } from "./damagePose";
 import { createFighter } from "../sim/fighter";
 import { f32 } from "wisp/src/sim/f32";
 import { characterClips, clipFor, grabActionPoses } from "./fighterClips";
-import { grabActionDuration, grabContactFrame } from "../sim/moves";
+import { attackStartupFrames, grabActionDuration, grabContactFrame } from "../sim/moves";
 import { fighterAt, neutralControls } from "../sim/roster";
 import { soloWorld, testWorld } from "../sim/testWorld";
 import * as dh from "./demonHunterAssetInfo";
@@ -25,6 +25,39 @@ import { FRAME_SECONDS, advanceFighterPose, createFighterPose } from "./fighterP
 import { DRAWN_STRIDES } from "./drawnStrideInfo";
 import { groundLocomotionClip } from "./fighterLocomotion";
 import { IllidanLocomotion, TRANSITION_FRAMES } from "./illidanMotion";
+
+test("Lich King's stock forward smash holds and releases the same sword pose in both facings [repro #309]", () => {
+  for (const facing of [-1, 1]) {
+    const f = createFighter(Character.lichKing, 0.0, facing);
+    const world = soloWorld(f), input = neutralControls(), pose = createFighterPose();
+    beginFighterAttack(world, 0, AttackStyle.forwardSmash, false);
+    const startup = attackStartupFrames(AttackStyle.forwardSmash, f.tuning.moves);
+    for (let frame = 0; frame < startup - 1; frame++) {
+      f.attack.frame = frame;
+      advanceFighterPose(pose, f, world, input, false, false, frame === 0, false);
+    }
+    const selected = pose.selectionSerial;
+    f.attack.frame = startup - 1;
+    f.attack.smashCharging = true;
+    advanceFighterPose(pose, f, world, input, false, false, false, false);
+    assertEquals(pose.clipIndex, 9);
+    assertEquals(pose.selectionSerial, selected);
+    const held = pose.clipTime;
+    for (let frame = 1; frame < 40; frame++) {
+      f.attack.smashChargeFrames = frame;
+      advanceFighterPose(pose, f, world, input, false, false, false, false);
+      assertEquals(pose.clipTime, held);
+    }
+    f.attack.smashCharging = false;
+    f.attack.frame = startup;
+    advanceFighterPose(pose, f, world, input, false, false, false, false);
+    assertEquals(pose.selectionSerial, selected);
+    assertEquals(pose.clipIndex, 9);
+    assertEquals(pose.clipTime, held);
+    advanceFighterPose(pose, f, world, input, false, false, false, false);
+    assertGreaterThan(pose.clipTime, held);
+  }
+});
 
 test("every fighter walks and runs with foot cadence following ground speed [spec #171]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
