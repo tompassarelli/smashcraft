@@ -232,13 +232,15 @@ export interface ShellState {
   readonly build: MapBuild;
   /** The world point the simulation's origin maps to: stage center and floor height. */
   readonly origin: WorldOrigin;
-  readonly game: MatchState;
+  game: MatchState;
   /** The confirmed match: the only state synchronized decisions read. */
-  readonly world: Roster;
-  readonly controls: FrameControls;
+  world: Roster;
+  controls: FrameControls;
   /** Callback matches adapt keys into these before a frame captures them. */
   readonly produced: FrameControls;
-  readonly runtime: PacingAndPresentation;
+  runtime: PacingAndPresentation;
+  /** Owned state while this callback presents retained confirmed snapshots. */
+  confirmedBatch?: ReplayState | undefined;
   /** Pause and Start keys; outside replay state, so rollback never undoes a pause. */
   readonly session: MatchControls;
   readonly frameInput: MatchFrameInput;

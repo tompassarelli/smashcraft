@@ -228,3 +228,20 @@ export function restoreMatchFrame(row: MatchFrameInput, game: MatchState, world:
   }
   return runtime.simulationFrame === frame;
 }
+
+/** Presents a retained frame in place; only its per-frame scratch changes. */
+export function borrowMatchFrame(row: MatchFrameInput, world: Roster, runtime: PacingAndPresentation, frame: number, after: Readonly<ReplayState>): boolean {
+  if (row.frame !== frame || frame !== runtime.simulationFrame + 1 || row.mask !== world.mask || after.runtime.simulationFrame !== frame) return false;
+  const scratch = runtime.frameImpacts;
+  runtime.frameImpacts = after.runtime.frameImpacts;
+  after.runtime.frameImpacts = scratch;
+  for (const slot of PARTICIPANT_SLOTS) {
+    observedFrameLegalActions[slot] = after.runtime.observedLegal[slot];
+    observedFrameStartedActions[slot] = after.runtime.observedStarted[slot];
+    if (!isActive(world, slot)) continue;
+    const events = after.runtime.frameImpacts[slot];
+    captureImpactEventsBefore(events, fighterAt(world, slot));
+    finishImpactEventsAfter(events, fighterAt(after.world, slot), after.world);
+  }
+  return true;
+}

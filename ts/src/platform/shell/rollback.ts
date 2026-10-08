@@ -25,7 +25,7 @@ import { captureReplaySnapshot, restoreReplaySnapshot } from "../../game/replay/
 import { resetPauseBarrier, agreedFrame } from "../../game/shell/pauseBarrier";
 import { REPAIR_FRAMES, confirmedBudget, speculativeBudget } from "../../game/shell/playback";
 import { queueLocalRows } from "../../game/shell/localInput";
-import { applyFrame } from "./frame";
+import { applyFrame, finishConfirmedFrames } from "./frame";
 import { pollLocalKeys } from "./inputs";
 import { INPUT_PREFIX, failJournal, flushTransport, receiveLifecycle, serviceJournalInput } from "./journal";
 import { probeAdvance, probeCapture, probeClockMs, probeInput, probeIntegrity, probePoll, probeRecording, probeSendFinished, probeTransportReceive, probeTransportSend } from "./responseProbe";
@@ -293,12 +293,14 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
   const confirmSteps = confirmedBudget(schedule.confirmedFrame() - schedule.nextConfirmedFrame() + 1);
   while (s.game.phase === Phase.match && schedule.mayAdvanceConfirmed() && steps < confirmSteps && (stopAt === undefined || schedule.nextConfirmedFrame() < stopAt)) {
     if (!stepConfirmed(s, rollback)) {
+      finishConfirmedFrames(s);
       setStatus(s, "The match could not advance. Restart the match.", LASTING);
       return;
     }
     steps++;
     if (trace.active) trace.window.confirmedSteps++;
   }
+  finishConfirmedFrames(s);
   if (s.game.phase !== Phase.match && keyboard !== undefined) sendBatch(s, rollback, keyboard);
   if (trace.active && steps === 0 && s.game.phase === Phase.match) trace.window.waitTicks++;
   // Replay stays numerical: persistent visuals show only the completed state;

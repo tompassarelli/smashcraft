@@ -1,7 +1,7 @@
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { type AttackBuffer, attackBuffer, clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import type { FrameControls } from "../match/controls";
-import { type MatchFrameInput, captureFrame, captureNetworkFrame, copyMatchFrameInput, createMatchFrameInput, resetMatchFrameInput, restoreMatchFrame, sameMatchFrameInput } from "../match/frameInput";
+import { type MatchFrameInput, borrowMatchFrame, captureFrame, captureNetworkFrame, copyMatchFrameInput, createMatchFrameInput, resetMatchFrameInput, restoreMatchFrame, sameMatchFrameInput } from "../match/frameInput";
 import { participantInputs } from "../input/participants";
 import { type ImpactEvents } from "../presentation/impactEvents";
 import { createPacingAndPresentation } from "../match/pacingAndPresentation";
@@ -370,11 +370,13 @@ function assertSameFields<T>(expected: T, actual: T): void {
   for (const key in expected) assertEquals(actual[key], expected[key], key);
 }
 
-test("restored network frames preserve CPU state and every confirmed impact event", () => {
+test("[invariant] restored and borrowed network frames preserve CPU state and every confirmed impact event", () => {
   const predicted = createTapeWorld({ stocks: 99 });
   const restored = createTapeWorld({ stocks: 99 });
+  let borrowed = createTapeWorld({ stocks: 99 }).live;
   predicted.live.match.computerMask = 2;
   restored.live.match.computerMask = 2;
+  borrowed.match.computerMask = 2;
   const history = new ReplayHistory();
   assertTrue(history.beginEpoch(1, 1, REPLAY_MAX_CORRECTION_FRAMES));
   const inputs = participantInputs();
@@ -392,12 +394,15 @@ test("restored network frames preserve CPU state and every confirmed impact even
     const after = history.stateAfter(1, frame - 1, restoredRow);
     if (after === undefined) throw new Error("confirmed network frame missing");
     const { match, world, controls, runtime } = restored.live;
+    assertTrue(borrowMatchFrame(restoredRow, borrowed.world, borrowed.runtime, frame - 1, after));
+    borrowed = after;
     assertTrue(restoreMatchFrame(restoredRow, match, world, controls, runtime, frame - 1, after));
     assertEquals(firstStateDifference(restored.live, after), undefined);
     for (const slot of [0, 1] as const) {
       const expected = impacts[frame - 2]?.[slot];
       if (expected === undefined) throw new Error("confirmed impacts missing");
       assertSameFields(expected, runtime.frameImpacts[slot]);
+      assertSameFields(expected, after.runtime.frameImpacts[slot]);
       if (expected.hit || expected.shieldHit) contacts++;
     }
   }

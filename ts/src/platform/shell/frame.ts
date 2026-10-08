@@ -5,7 +5,8 @@ import { hasPendingAttack, clearAttackBuffer } from "../../game/input/attackBuff
 import { adaptInput } from "../../game/input/adapter";
 import { commitEdges } from "../../game/input/keyboardCapture";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, participantActive } from "../../game/input/participants";
-import { captureFrame, executeMatchFrame, hasNetworkRows, restoreMatchFrame } from "../../game/match/frameInput";
+import { borrowMatchFrame, captureFrame, executeMatchFrame, hasNetworkRows } from "../../game/match/frameInput";
+import { copyReplayState } from "../../game/replay/snapshot";
 import { beginMomentFrame, keepMomentEnd, momentFrameRan, recordMomentRow } from "../../game/replay/moment";
 import { settleNewestObservation } from "../../game/match/botPerception";
 import { Phase, beginRematchCountdown, computerActive, humanFighterActive } from "../../game/match/rules";
@@ -112,18 +113,28 @@ function beginRecordedFrame(s: ShellState, frame: number): void {
 
 /** Runs the frame the frame input captured, then presents its confirmed result; `recorded` when the caller began its record. */
 export function applyFrame(s: ShellState, recorded = false): void {
-  const { world, runtime } = s;
-  for (const slot of PARTICIPANT_SLOTS) if (isActive(world, slot)) observe(s.participants[slot].before, fighterAt(world, slot));
+  for (const slot of PARTICIPANT_SLOTS) if (isActive(s.world, slot)) observe(s.participants[slot].before, fighterAt(s.world, slot));
   const frame = s.frameInput.frame;
   if (frame === undefined) return;
   const { recorder } = s.moment;
   if (!recorded) beginRecordedFrame(s, frame);
-  views(s).match.observe(s.game, world);
+  views(s).match.observe(s.game, s.world);
   // The speculative match usually ran this frame on this row already. The
   // response probe and the integrity trace read the step's own observations.
   const rollback = activeRollback(s);
-  const ran = rollback !== undefined && !s.trace.active && !probeRecording(s.probe) ? rollback.playback.confirmedState(rollback.epoch, frame, s.frameInput) : undefined;
-  if (!(ran === undefined ? executeMatchFrame(s.frameInput, s.game, world, s.controls, runtime, frame) : restoreMatchFrame(s.frameInput, s.game, world, s.controls, runtime, frame, ran))) return;
+  const ran = rollback !== undefined && !s.game.training && !s.trace.active && !probeRecording(s.probe) ? rollback.playback.confirmedState(rollback.epoch, frame, s.frameInput) : undefined;
+  if (ran === undefined) {
+    finishConfirmedFrames(s);
+    if (!executeMatchFrame(s.frameInput, s.game, s.world, s.controls, s.runtime, frame)) return;
+  } else {
+    if (!borrowMatchFrame(s.frameInput, s.world, s.runtime, frame, ran)) return;
+    s.confirmedBatch ??= { world: s.world, match: s.game, controls: s.controls, runtime: s.runtime };
+    s.world = ran.world;
+    s.game = ran.match;
+    s.controls = ran.controls;
+    s.runtime = ran.runtime;
+  }
+  const { world, runtime } = s;
   if (hasNetworkRows(s.frameInput)) {
     for (const slot of PARTICIPANT_SLOTS) if (participantActive(s.frameInput.networkMask, slot)) recordMomentRow(recorder, frame, slot, s.frameInput.network[slot]);
   }
@@ -156,11 +167,27 @@ export function applyFrame(s: ShellState, recorded = false): void {
   // The countdown changes the match between frames: the moment keeps it as its last frame left it.
   keepMomentEnd(recorder, world, s.game, s.controls, runtime);
   endReplaySegment(s);
+  finishConfirmedFrames(s);
   beginRematchCountdown(s.game, s.dev.rematchSeconds);
   const call = cues.find(cue => cue === MatchCue.game || cue === MatchCue.time);
   ui.match.beginResults(resultsView(s.game, world, ui.match.tally), call === undefined ? 0 : RESULTS_DELAY_FRAMES);
   writeMatchRecord(s);
   setStatus(s, resultMessage(s.game), LASTING);
+}
+
+/** Return to owned mutable state before another callback or a numerical step. */
+export function finishConfirmedFrames(s: ShellState): void {
+  const owned = s.confirmedBatch;
+  if (owned === undefined) return;
+  copyReplayState(owned, { world: s.world, match: s.game, controls: s.controls, runtime: s.runtime });
+  const scratch = owned.runtime.frameImpacts;
+  owned.runtime.frameImpacts = s.runtime.frameImpacts;
+  s.runtime.frameImpacts = scratch;
+  s.world = owned.world;
+  s.game = owned.match;
+  s.controls = owned.controls;
+  s.runtime = owned.runtime;
+  s.confirmedBatch = undefined;
 }
 
 /** A frame of a callback match: adapt each human's keys, choose the computers' controls, and run it. */
