@@ -2,6 +2,9 @@ import { readFileSync } from "node:fs";
 import { availableParallelism } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { ISOLATED_TEST_GROUPS, testWorkerEnvironment } from "./testWorkers";
+import { runAdmitted } from "./heavyCapacity";
+
+await runAdmitted("heavy", "smashcraft:test", 1800);
 
 const project = resolve(import.meta.dir, "..");
 const files = [

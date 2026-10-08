@@ -5,6 +5,9 @@
 // The remainder (no GAME_TESTS) also runs the memory census and stack checks.
 // The stack plugin instruments a whole bundle, so the stack-trace profile's
 // TypeScript frames are checked in a second bundle, after the tests pass.
+import { runAdmitted } from "./heavyCapacity";
+
+await runAdmitted("moderate", "smashcraft:lua-tests", 1800);
 const lua = process.env.LUA ?? "lua";
 const compile = (config: string) =>
   Bun.spawnSync([process.execPath, "--bun", "node_modules/typescript-to-lua/dist/tstl.js", "-p", config], { stdout: "inherit", stderr: "inherit" }).exitCode ?? 1;
@@ -31,4 +34,3 @@ for (const step of steps) {
   if (exitCode !== 0) process.exit(exitCode);
 }
 
-export {};

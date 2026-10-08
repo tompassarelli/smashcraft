@@ -28,6 +28,7 @@ import { SELECTABLE_CHARACTERS, fighterSlug, selectableCharacterBySlug } from ".
 import { copyControls, createRoster, fighterAt, neutralControls } from "../src/game/sim/roster";
 import { mainDeckLeft, mainDeckRight } from "../src/game/sim/stage";
 import soak from "./wisp/soak";
+import { admitsThroughHelper, runAdmitted } from "./heavyCapacity";
 
 /** The soak's stages by the game's stage numbers (test/soak/game.ts). */
 export const FIELD_STAGES: Readonly<Record<string, number>> = {
@@ -567,6 +568,14 @@ if (import.meta.main) {
     ...(pairs === undefined ? {} : { pairs }),
     ...(values["per-pair"] === undefined ? {} : { perPair: Number(values["per-pair"]) }),
   };
+  if (values.merge === undefined) {
+    const pairCount = pairs?.length ?? ((fighters ?? SELECTABLE_CHARACTERS).length * ((fighters ?? SELECTABLE_CHARACTERS).length - 1)) / 2;
+    if (pairCount > 1 && admitsThroughHelper()) {
+      const sameOf = (two: readonly string[] | undefined, flag: string) => two !== undefined && two[0] === two[1] ? ` ${flag} ${two[0]}` : "";
+      console.error(`GitHub's free runners play this sweep in about 4 minutes and leave this machine free: bun wisp farm balance${pairs === undefined ? "" : ` --matchups ${values.pairs}`}${sameOf(opponents, "--opponent")}${sameOf(tiers, "--tier")}${values["per-pair"] === undefined ? "" : ` --per-pair ${values["per-pair"]}`}${values.seeds === undefined ? "" : ` --seeds ${values.seeds}`} --wait`);
+    }
+    await runAdmitted("moderate", "smashcraft:cpuField", 3600);
+  }
   const started = performance.now();
   let reported = 0;
   // --merge a.json,b.json: summarize the records of earlier --json runs (shards of one field) instead of playing.
