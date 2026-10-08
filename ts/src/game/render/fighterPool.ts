@@ -138,7 +138,8 @@ export class FighterPoolPresentation {
     else if (seconds > duration) seconds = duration;
     fitFighterPlacement(this.placement, fighter, stage);
     const x = this.origin.x + this.placement.x;
-    const y = this.origin.y;
+    // Large captives otherwise hide the holder at the side camera.
+    const y = this.origin.y - (fighter.grab.target === undefined ? 0.0 : 80.0);
     const z = this.origin.z + this.placement.z;
     const yaw = facingYaw(fighterPoseFacing(fighter));
     placeEffect(model, x, y, z);

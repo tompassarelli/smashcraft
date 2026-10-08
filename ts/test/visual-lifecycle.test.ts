@@ -41,6 +41,34 @@ import { createFighter } from "../src/game/sim/fighter";
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
+test("grab holders draw in front of large captives in both facings and return after release [repro #180]", () => {
+  const clients = headless.clients({ start, install });
+  clients.start();
+  const client = clients.clients[0];
+  if (client === undefined) throw new Error("missing host client");
+  client.run(() => {
+    const fighter = createFighter(Character.mountainKing, 0, 1);
+    const pool = new FighterPoolPresentation(fighter.character, 0, { x: 0, y: 0, z: FLOOR_HEIGHT });
+    const pose = createFighterPose();
+    pose.clipIndex = 0;
+    const clip = originalClip(fighter.character, 0);
+    if (clip === undefined) throw new Error("missing standing clip");
+    const shown = () => client.effectPoses().find(effect => effect.model === clip.modelPath);
+    for (const facing of [1, -1]) {
+      fighter.facing = facing;
+      fighter.grab.target = 1;
+      pool.present(fighter, pose, 0, 1);
+      expect(shown()?.y).toBeLessThan(0);
+      expect(fighter.motion.x).toBe(0);
+      fighter.grab.target = undefined;
+      pool.present(fighter, pose, 0, 2);
+      expect(shown()?.y).toBe(0);
+    }
+    pool.destroy();
+  });
+  expect(client.errors).toEqual([]);
+});
+
 test("Immolation loops are released on match reset and presentation destruction [invariant]", () => {
   const clients = headless.clients({ start, install });
   clients.start();
