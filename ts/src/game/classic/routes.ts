@@ -317,6 +317,18 @@ export const CLASSIC_ROUTES: readonly ClassicRoute[] = [
     ],
     ending: ["Nordrassil's spirits answered. Archimonde heard them too late.", "Our immortality is gone, but the forest lives. That is enough.", "Illidan, if you are listening: stay out of my moonwells."],
   },
+  {
+    fighter: C.anubarak, boss: BossKind.kiljaeden,
+    story: "Anub'arak guides Arthas beneath Northrend, crushing the enemies of the Frozen Throne before confronting the demon who sent them.",
+    fights: [
+      fight(C.mountainKing, 12, "These tunnels aren't yours alone, beetle. The dwarves dug here first!"),
+      fight(C.sylvanas, 4, "Another king dragged back to serve Arthas. I know your chains, crypt lord."),
+      fight(C.dreadlord, 6, "Ner'zhul's servants forget who made their master. Let me remind you."),
+      fight([C.kaelthas, C.demonHunter], 14, "The Frozen Throne will fall. Crawl back into your hole, dead king."),
+      fight(C.demonHunter, 2, "Stand aside, crypt lord. Your prince will never reach the summit."),
+    ],
+    ending: ["Kil'jaeden's claws cannot reach the throne. The tunnels belong to me.", "I was king beneath this ice before your kingdoms had names.", "Now tread carefully, little champions. My children are hungry."],
+  },
 ];
 
 export const CLASSIC_CHARACTERS: readonly Character[] = CLASSIC_ROUTES.map(route => route.fighter);

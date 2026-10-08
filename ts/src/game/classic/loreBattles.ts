@@ -155,6 +155,11 @@ export const LORE_BATTLES: readonly LoreBattle[] = [
   }),
   bossBattle("hyjal-malfurion", "Mount Hyjal: The Horn of Cenarius", C.malfurion, BossKind.archimonde, 4, 5, 2,
     "Blow your horn, druid. When I reach Nordrassil, the last refuge of your people will burn."),
+  battle({
+    id: "anubarak-ascent", title: "The Crypt Lord's Passage", player: C.anubarak, against: [C.demonHunter, C.kaelthas], tier: "expert", stage: 2,
+    win: koWithinClock, minutes: 3, playerStocks: 2, opponentStocks: 1,
+    speaker: "Anub'arak", intro: "The usurpers bar the way to Icecrown. Follow me, King Arthas. We shall make a passage through their bones.",
+  }),
 ];
 
 export const loreBattle = (index: number): LoreBattle | undefined => LORE_BATTLES[index];
