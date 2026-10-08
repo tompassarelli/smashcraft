@@ -38,7 +38,7 @@ function atStageSelection(silent: readonly number[] = [], stage = 11) {
   return { clients, frames, phases };
 }
 
-for (const stage of [10, 11, 13]) test(`${stageInfo(stage).name}: entry and rematch retain the scene prepared beneath the loading cover`, () => {
+for (const stage of [10, 11, 13]) test(`${stageInfo(stage).name}: entry and rematch retain the scene prepared beneath the loading cover [spec #129] [invariant]`, () => {
   const { clients, frames, phases } = atStageSelection([], stage);
   clients.press(0, Key.y); frames(1);
   const prepared = clients.clients.map(client => value(client, () => [...shell().stageDecks, ...(shell().stageScenery ?? [])]));
@@ -51,7 +51,7 @@ for (const stage of [10, 11, 13]) test(`${stageInfo(stage).name}: entry and rema
   expectSynchronized(clients);
 });
 
-test("the start press shows the stage's loading screen until every client reports the stage drawn", () => {
+test("the start press shows the stage's loading screen until every client reports the stage drawn [spec #129]", () => {
   const { clients, frames, phases } = atStageSelection();
   clients.press(0, Key.y);
   frames(1);
@@ -68,7 +68,7 @@ test("the start press shows the stage's loading screen until every client report
   expectSynchronized(clients);
 });
 
-test("a client that never reports holds the match only until the timeout, and both start together", () => {
+test("a client that never reports holds the match only until the timeout, and both start together [spec #129]", () => {
   const { clients, frames, phases } = atStageSelection([1]);
   clients.press(0, Key.y);
   frames(STAGE_LOAD_TIMEOUT_FRAMES - 10);

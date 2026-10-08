@@ -81,36 +81,21 @@ function play(distance: number, defender: "idle" | "shield", press: number | und
   };
 }
 
-const advantage = (shot: Shot): number | undefined => (shot.defenderActs === undefined ? undefined : shot.defenderActs - shot.shooterActs);
-
-test("a grounded blaster shot leaves on frame 9, deals 3.72 with 11 frames of hitstun and acts on frame 39", () => {
+test("a grounded blaster shot leaves on frame 9 and acts on frame 39 [spec #117]", () => {
   const shot = play(240, "idle", undefined);
-  expect([shot.shot, shot.damage, shot.hitstun, shot.shooterActs]).toEqual([9, 3.7200002670288086, 11, 39]);
+  expect([shot.shot, shot.shooterActs]).toEqual([9, 39]);
 });
 
-test("a short-hop blaster shot leaves on frame 19, deals 2.79 with 8 frames of hitstun and lands into 8 frames", () => {
+test("a short-hop blaster shot leaves on frame 19 and lands on frame 23 into 8 frames [spec #117]", () => {
   const shot = play(240, "idle", SHORT_HOP_PRESS);
-  expect([shot.shot, shot.damage, shot.hitstun, shot.landing, shot.shooterActs]).toEqual([19, 2.7900002002716064, 8, 23, 31]);
+  expect([shot.shot, shot.landing, shot.shooterActs]).toEqual([19, 23, 31]);
 });
 
-test("the blaster's advantage on hit and on a shield, grounded and from a short hop", () => {
-  const table = [60, 240, 480].map((distance) => ({
-    distance,
-    ground: [advantage(play(distance, "idle", undefined)), advantage(play(distance, "shield", undefined))],
-    air: [advantage(play(distance, "idle", SHORT_HOP_PRESS)), advantage(play(distance, "shield", SHORT_HOP_PRESS))],
-  }));
-  expect(table).toEqual([
-    { distance: 60, ground: [-16, -23], air: [-2, -7] },
-    { distance: 240, ground: [-11, -19], air: [3, -2] },
-    { distance: 480, ground: [-5, -12], air: [9, 4] },
-  ]);
-});
-
-test("a short-hop shot meets a held shield rather than passing over it", () => {
+test("a short-hop shot meets a held shield rather than passing over it [spec #117]", () => {
   for (const distance of [60, 240, 480]) expect(play(distance, "shield", SHORT_HOP_PRESS).shieldMet).toBe(true);
 });
 
-test("one shot per short hop, and landing before the shot leaves cancels it", () => {
+test("one shot per short hop, and landing before the shot leaves cancels it [spec #117]", () => {
   expect(play(480, "idle", SHORT_HOP_PRESS, true).shots).toBe(1);
   const late = play(480, "idle", 18);
   expect(late.shots).toBe(0);

@@ -42,7 +42,7 @@ function pair(style: AttackStyle, frame: number, x: number, facing = 1) {
   return { owner, target, world };
 }
 
-test("Pit Lord's startup and active frames reach production, one live strike path per frame", () => {
+test("Pit Lord's startup and active frames reach production, one live strike path per frame [spec docs/design/roster.md]", () => {
   const out = emptyHitRegion();
   for (const [style, first, active] of NORMALS) {
     assertEquals(attackStartupFrames(style, PIT_LORD_MOVES), first - 1);
@@ -61,7 +61,7 @@ test("Pit Lord's startup and active frames reach production, one live strike pat
   }
 });
 
-test("Pit Lord is the roster's largest, heaviest and slowest body", () => {
+test("Pit Lord is the roster's largest, heaviest and slowest body [spec docs/design/roster.md]", () => {
   const pitLord = heroBody(Character.pitLord);
   assertTrue(pitLord !== undefined);
   for (const character of [Character.mountainKing, Character.forsakenPaladin, Character.dreadlord]) {
@@ -74,7 +74,7 @@ test("Pit Lord is the roster's largest, heaviest and slowest body", () => {
   }
 });
 
-test("Annihilating Cleave's head hits for 25 and its inner blade for 19; Cleaving Sweep claims XL range", () => {
+test("Annihilating Cleave's head hits for 25 and its inner blade for 19; Cleaving Sweep claims XL range [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
     for (const [style, frame, x, damage] of [
       [AttackStyle.forwardSmash, 28, 165.0, 25.0],
@@ -95,7 +95,7 @@ test("Annihilating Cleave's head hits for 25 and its inner blade for 19; Cleavin
   }
 });
 
-test("Pit Lord's tail lengthens with Tail Lash and his hoof is hittable while it kicks; the cleaver stays disjoint", () => {
+test("Pit Lord's tail lengthens with Tail Lash and his hoof is hittable while it kicks; the cleaver stays disjoint [spec docs/design/roster.md]", () => {
   const probe = (x: number, z: number) => ({ x1: x, z1: z, x2: x, z2: z, radius: 4.0 });
   for (const facing of [-1, 1]) {
     const f = createFighter(Character.pitLord, 0.0, facing);

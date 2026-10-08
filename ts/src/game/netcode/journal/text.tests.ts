@@ -8,7 +8,7 @@ const envelope = (epoch: number, sequence: number, payload: string) => assertDef
 const numbered = (sequence: number) => `I42${sequence}100`;
 const widthOf = (inspection: Inspection) => (inspection.kind === "wait" ? undefined : inspection.width);
 
-test("the golden envelope is received once and acknowledged only when consumed", () => {
+test("the golden envelope is received once and acknowledged only when consumed [reference]", () => {
   const stream = new JournalTextStream(1);
   const golden = "@J10000000001000000000102742|I421100;";
   assertEquals(envelope(1, 1, "I421100"), golden);
@@ -25,7 +25,7 @@ test("the golden envelope is received once and acknowledged only when consumed",
   assertEquals(stream.acknowledged(), 1);
 });
 
-test("an interrupted envelope is skipped, and a damaged or contradicting one is never accepted", () => {
+test("an interrupted envelope is skipped, and a damaged or contradicting one is never accepted [spec docs/netcode-proposal.md]", () => {
   const stream = new JournalTextStream(1);
   const whole = envelope(1, 1, "I421100");
   const partial = whole.substring(0, 33);
@@ -42,7 +42,7 @@ test("an interrupted envelope is skipped, and a damaged or contradicting one is 
   assertEquals(stream.acknowledged(), 1);
 });
 
-test("a focus gap replays without retagging frames or applying a record twice", () => {
+test("a focus gap replays without retagging frames or applying a record twice [invariant]", () => {
   const stream = new JournalTextStream(1);
   const journal = assertDefined(JournalInputSource.open("focus", 1, 0, 0));
   const neutral = emptyInput();
@@ -79,7 +79,7 @@ test("a focus gap replays without retagging frames or applying a record twice", 
   assertEquals(stream.acknowledged(), 30);
 });
 
-test("repeated records drain while consumption is blocked, within the receive window", () => {
+test("repeated records drain while consumption is blocked, within the receive window [spec docs/netcode-proposal.md]", () => {
   const stream = new JournalTextStream(1);
   for (let sequence = 1; sequence <= TEXT_WINDOW; sequence++) {
     assertEquals(stream.inspect(envelope(1, sequence, numbered(sequence))).kind, "ready");
@@ -105,7 +105,7 @@ test("repeated records drain while consumption is blocked, within the receive wi
   assertFalse(stream.consume());
 });
 
-test("records after a missing first or middle record wait in the window until it arrives", () => {
+test("records after a missing first or middle record wait in the window until it arrives [invariant]", () => {
   const [first, second, third, fourth] = [1, 2, 3, 4].map((sequence) => envelope(1, sequence, numbered(sequence)));
   const stream = new JournalTextStream(1);
   assertEquals(stream.inspect(second!).kind, "ready");
@@ -142,7 +142,7 @@ test("records after a missing first or middle record wait in the window until it
   assertEquals(gapped.next(), undefined);
 });
 
-test("a stream skips records from other epochs", () => {
+test("a stream skips records from other epochs [spec docs/netcode-proposal.md]", () => {
   const stream = new JournalTextStream(2);
   assertEquals(stream.inspect(envelope(1, 2, "I421300")).kind, "skip");
   assertEquals(stream.acknowledged(), 0);

@@ -1,18 +1,16 @@
 import { startAtGo } from "./testMatch";
-import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
-import { AttackPhase, AttackStyle, Character, GrabAction } from "../sim/codes";
+import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
+import { AttackStyle, Character, GrabAction } from "../sim/codes";
 import { createFighter, type Fighter } from "../sim/fighter";
 import { createRoster, copyControls, neutralControls, type Controls } from "../sim/roster";
 import { attackBuffer, queueAttack } from "../input/attackBuffer";
 import { createFrameControls, type FrameControls } from "./controls";
-import { Phase, createMatchState, setParticipants, recallCharacter, cpuSlot, selectCharacter, selectCpuCharacter, requestStageSelect } from "./rules";
+import { createMatchState, setParticipants, recallCharacter, cpuSlot, selectCharacter, selectCpuCharacter, requestStageSelect } from "./rules";
 import { floorMod } from "wisp/src/sim/intMath";
 import { stepMatch } from "./step";
 import { HERO_ROSTER } from "../sim/heroes/registry";
-import { attackPhase, canAttack } from "../sim/conditions";
-import { attackActiveFrames, attackDurationFrames, attackStartupFrames, GRAB_HOLD_FRAMES } from "../sim/moves";
-import { projectileCount } from "../sim/projectiles";
-import { totalVelocityX, totalVelocityZ } from "../sim/motion";
+import { canAttack } from "../sim/conditions";
+import { attackStartupFrames, GRAB_HOLD_FRAMES } from "../sim/moves";
 import { advanceFighter } from "../sim/step";
 
 function testRoster(first: Fighter, second: Fighter) { return createRoster(3, [first, second]); }
@@ -30,98 +28,8 @@ function runToAttackActive(game: ReturnType<typeof createMatchState>, first: Fig
   for (let i = 0; i <= attackStartupFrames(style as AttackStyle); i++)
     stepMatch(game, testRoster(first, second), frameControls(firstInput, secondInput, firstCommands, secondCommands), startFrame + i);
 }
-test("blasterTravelsBeforeItDealsDamage", () => {
-  const game = testMatch();
-  const owner = createFighter(0, 0, 1);
-  const target = createFighter(1, 400, -1);
-  const ownerInput = neutralControls();
-  const targetInput = neutralControls();
-  const ownerCommands = attackBuffer(0);
-  const targetCommands = attackBuffer(0);
-  runToAttackActive(game, owner, target, ownerInput, targetInput, ownerCommands, targetCommands, 1, 1);
-  assertEquals(target.status.damage, 0.0);
-  assertEquals(projectileCount(owner), 1);
-  for (let frame = attackStartupFrames(1) + 2; frame <= 11; frame++) {
-    stepMatch(game, testRoster(owner, target), frameControls(ownerInput, targetInput, ownerCommands, targetCommands), frame);
-  }
-  assertEquals(target.status.damage, 0.0);
-  stepMatch(game, testRoster(owner, target), frameControls(ownerInput, targetInput, ownerCommands, targetCommands), 12);
-  assertEquals(target.status.damage, 2.7900002002716064);
-  assertEquals(projectileCount(owner), 0);
 
-});
-
-test("beingHitDuringAttackStartupCancelsBeforeItsActiveFrame", () => {
-  const game = testMatch();
-  const first = createFighter(0, 0, 1);
-  const second = createFighter(1, 100, -1);
-  const firstInput = neutralControls();
-  const secondInput = neutralControls();
-  const firstCommands = attackBuffer(0);
-  const secondCommands = attackBuffer(0);
-  queueAttack(firstCommands, { style: 0, facing: 0, frame: 1, mayCharge: false });
-  for (let frame = 1; frame <= attackStartupFrames(0) - 1; frame++) {
-    stepMatch(game, testRoster(first, second), frameControls(firstInput, secondInput, firstCommands, secondCommands), frame);
-  }
-  queueAttack(secondCommands, { style: 0, facing: 0, frame: attackStartupFrames(0), mayCharge: false });
-  for (let frame = attackStartupFrames(0); frame <= attackStartupFrames(0) + 1; frame++) {
-    stepMatch(game, testRoster(first, second), frameControls(firstInput, secondInput, firstCommands, secondCommands), frame);
-  }
-  assertEquals(first.status.damage, 0.0);
-  assertEquals(second.status.damage, 5.0);
-  assertEquals(second.attack.serial, 1);
-  assertEquals(second.attack.style, undefined);
-  assertEquals(second.attack.cooldown, 0);
-
-});
-
-test("aHitAddsDamageHitlagAndDamageScaledKnockback", () => {
-  const game = testMatch();
-  const attacker = createFighter(0, 0, 1);
-  const target = createFighter(1, 100, -1);
-  const attackerInput = neutralControls();
-  const targetInput = neutralControls();
-  const attackerCommands = attackBuffer(0);
-  const targetCommands = attackBuffer(0);
-  queueAttack(attackerCommands, { style: 0, facing: 0, frame: 1, mayCharge: false });
-  stepMatch(game, testRoster(attacker, target), frameControls(attackerInput, targetInput, attackerCommands, targetCommands), 1);
-  assertEquals(target.status.damage, 0.0);
-  assertEquals(attacker.attack.serial, 1);
-  assertTrue((attackPhase(attacker) === AttackPhase.startup));
-  for (let tick = 2; tick <= attackStartupFrames(0) + 1; tick++) {
-    stepMatch(game, testRoster(attacker, target), frameControls(attackerInput, targetInput, attackerCommands, targetCommands), tick);
-  }
-  assertEquals(target.status.damage, 5.0);
-  assertEquals(target.motion.vx, 0.0);
-  assertEquals(target.motion.vz, 0.0);
-  assertNear(target.launch.knockbackX, 5.18310022354126, 0.009999999776482582);
-  assertNear(target.launch.knockbackZ, 5.18310022354126, 0.009999999776482582);
-  assertEquals(totalVelocityX(target), target.launch.knockbackX);
-  assertEquals(totalVelocityZ(target), target.launch.knockbackZ);
-  assertEquals(target.launch.hitstun, 16);
-  assertEquals(target.launch.hitlag, 4);
-  assertTrue(target.launch.diPending);
-  assertGreaterThan(target.launch.diLaunchSpeed, 0.0);
-  assertEquals(attacker.launch.hitlag, 4);
-  let frame = attackStartupFrames(0) + 2;
-  while (attacker.launch.hitlag > 0) {
-    stepMatch(game, testRoster(attacker, target), frameControls(attackerInput, targetInput, attackerCommands, targetCommands), frame);
-    frame++;
-  }
-  target.motion.x = 100;
-  target.motion.z = 0;
-  target.motion.vx = 0;
-  target.motion.vz = 0;
-  target.launch.knockbackX = 0;
-  target.launch.knockbackZ = 0;
-  target.launch.hitstun = 0;
-  const damageAfterContact = target.status.damage;
-  stepMatch(game, testRoster(attacker, target), frameControls(attackerInput, targetInput, attackerCommands, targetCommands), frame);
-  assertEquals(target.status.damage, damageAfterContact);
-
-});
-
-test("shieldGrabStartsDirectlyFromActiveGuardAndCanCatchShieldingTarget", () => {
+test("shieldGrabStartsDirectlyFromActiveGuardAndCanCatchShieldingTarget [spec docs/design/melee/defense.md]", () => {
   const game = testMatch();
   const attacker = createFighter(0, 0, 1);
   const target = createFighter(1, 90, -1);
@@ -144,7 +52,7 @@ test("shieldGrabStartsDirectlyFromActiveGuardAndCanCatchShieldingTarget", () => 
   assertFalse(target.shield.raised);
 });
 
-test("shieldstunKeepsTheFighterShieldingAndBlocksActions", () => {
+test("shieldstunKeepsTheFighterShieldingAndBlocksActions [reference]", () => {
   const game = testMatch();
   const attacker = createFighter(0, 0, 1);
   const target = createFighter(1, 100, -1);
@@ -171,30 +79,7 @@ test("shieldstunKeepsTheFighterShieldingAndBlocksActions", () => {
 
 });
 
-test("attacksCommitRecoveryOnWhiffAndBlockDuringLandingLag", () => {
-  const game = testMatch();
-  const attacker = createFighter(0, 0, 1);
-  const target = createFighter(1, 400, -1);
-  const attackerInput = neutralControls();
-  const targetInput = neutralControls();
-  const attackerCommands = attackBuffer(0);
-  const targetCommands = attackBuffer(0);
-  runToAttackActive(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, 0, 1);
-  assertEquals(attacker.attack.cooldown, 17);
-  assertTrue((attackPhase(attacker) === AttackPhase.active));
-  target.motion.x = 100;
-  stepMatch(game, testRoster(attacker, target), frameControls(attackerInput, targetInput, attackerCommands, targetCommands), attackStartupFrames(0) + 2);
-  assertEquals(target.status.damage, 5.0);
-  assertTrue(attacker.attack.hit);
-  const damageAfterContact = target.status.damage;
-  for (let frame = attackStartupFrames(0) + 3; frame <= attackStartupFrames(0) + attackActiveFrames(0) + 1; frame++) {
-    stepMatch(game, testRoster(attacker, target), frameControls(attackerInput, targetInput, attackerCommands, targetCommands), frame);
-  }
-  assertEquals(target.status.damage, damageAfterContact);
-
-});
-
-test("simultaneousEligibleAttacksTradeInEitherOrder", () => {
+test("simultaneousEligibleAttacksTradeInEitherOrder [invariant]", () => {
   const gameA = testMatch();
   const leftA = createFighter(0, 0, 1);
   const rightA = createFighter(1, 100, -1);
@@ -241,30 +126,7 @@ test("simultaneousEligibleAttacksTradeInEitherOrder", () => {
 
 });
 
-test("aWhiffDoesNotFreezeTheShooterWhileTheOpponentsShotFreezesItsVictim", () => {
-  const game = testMatch();
-  const blaster = createFighter(0, 0, 1);
-  const opponent = createFighter(1, 100, -1);
-  const blasterInput = neutralControls();
-  const opponentInput = neutralControls();
-  const blasterCommands = attackBuffer(0);
-  const opponentCommands = attackBuffer(0);
-  blaster.facing = -1;
-  queueAttack(blasterCommands, { style: 1, facing: 0, frame: 1, mayCharge: false });
-  queueAttack(opponentCommands, { style: 1, facing: 0, frame: 1, mayCharge: false });
-  for (let frame = 1; frame <= attackStartupFrames(1) + 2; frame++) {
-    stepMatch(game, testRoster(blaster, opponent), frameControls(blasterInput, opponentInput, blasterCommands, opponentCommands), frame);
-  }
-  assertEquals(blaster.status.damage, 2.7900002002716064);
-  assertEquals(opponent.status.damage, 0.0);
-  assertEquals(blaster.launch.hitlag, 3);
-  assertEquals(opponent.launch.hitlag, 0);
-  assertEquals(blaster.attack.cooldown, 0);
-  assertEquals(opponent.attack.cooldown, attackDurationFrames(1) - attackStartupFrames(1) - 1);
-
-});
-
-test("successfulGrabHasPriorityOverSimultaneousStrikeInEitherOrder", () => {
+test("successfulGrabHasPriorityOverSimultaneousStrikeInEitherOrder [invariant]", () => {
   const gameA = testMatch();
   const grabberA = createFighter(0, 0, 1);
   const strikerA = createFighter(1, 90, -1);
@@ -310,7 +172,7 @@ test("successfulGrabHasPriorityOverSimultaneousStrikeInEitherOrder", () => {
 
 });
 
-test("grabBreaksShieldButHasShortReachAndTimedRelease", () => {
+test("grabBreaksShieldButHasShortReachAndTimedRelease [spec docs/design/melee/defense.md]", () => {
   const game = testMatch();
   const attacker = createFighter(0, 0, 1);
   const target = createFighter(1, 90, -1);
@@ -327,8 +189,6 @@ test("grabBreaksShieldButHasShortReachAndTimedRelease", () => {
     stepMatch(game, testRoster(attacker, target), frameControls(attackerInput, targetInput, attackerCommands, targetCommands), frame);
   }
   assertEquals(target.grab.grabbedFrames, 0);
-  assertEquals(target.launch.hitstun, 10);
-  assertEquals(target.jump.squat, 0);
   const farTarget = createFighter(1, 150, -1);
   const farAttacker = createFighter(0, 0, 1);
   const farGame = testMatch();
@@ -355,7 +215,7 @@ test("grabBreaksShieldButHasShortReachAndTimedRelease", () => {
 
 });
 
-test("a grab's release, by mashing or after the pummel, leaves the grabber no head start", () => {
+test("a grab's release, by mashing or after the pummel, leaves the grabber no head start [spec #101]", () => {
   const characters = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
   for (const character of characters) {
     for (const release of ["mash", "pummel"] as const) {

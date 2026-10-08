@@ -40,7 +40,7 @@ function land(world: Roster, count: number, effect: HitEffect, origin: HitOrigin
   for (let index = 0; index < count; index++) hit(world, from, to, effect, origin);
 }
 
-test("Blademaster: the fourth landed sword hit is a Critical Strike, x1.5 and at most +6", () => {
+test("Blademaster: the fourth landed sword hit is a Critical Strike, x1.5 and at most +6 [spec docs/design/passives.md]", () => {
   const { world, source, target } = pair(Character.blademaster);
   land(world, 3, strike(8.0), HitOrigin.melee);
   assertEquals(source.passive.stacks, 3);
@@ -56,7 +56,7 @@ test("Blademaster: the fourth landed sword hit is a Critical Strike, x1.5 and at
   assertEquals(target.status.damage - capped, 22.0);
 });
 
-test("Blademaster: a shield spends the ready crit for nothing, Wind Cutter gives no pip and the window clears pips", () => {
+test("Blademaster: a shield spends the ready crit for nothing, Wind Cutter gives no pip and the window clears pips [spec docs/design/passives.md]", () => {
   const { world, source, target } = pair(Character.blademaster);
   land(world, 3, strike(8.0), HitOrigin.melee);
   hit(world, 0, 1, strike(8.0), HitOrigin.melee, true);
@@ -71,7 +71,7 @@ test("Blademaster: a shield spends the ready crit for nothing, Wind Cutter gives
   assertEquals(source.passive.stacks, 0);
 });
 
-test("a multi-hit move counts once per target per attack", () => {
+test("a multi-hit move counts once per target per attack [spec docs/design/passives.md]", () => {
   const { world, source } = pair(Character.blademaster);
   source.attack.style = AttackStyle.jab;
   source.attack.serial = 7;
@@ -83,7 +83,7 @@ test("a multi-hit move counts once per target per attack", () => {
   assertEquals(source.passive.stacks, 1);
 });
 
-test("Mountain King: the third landed hit Bashes for 10 more hitstun frames; a shield spends it", () => {
+test("Mountain King: the third landed hit Bashes for 10 more hitstun frames; a shield spends it [spec docs/design/passives.md]", () => {
   const plain = pair(Character.blademaster);
   hit(plain.world, 0, 1, strike(10.0), HitOrigin.melee);
   const baseline = plain.target.launch.hitstun;
@@ -98,7 +98,7 @@ test("Mountain King: the third landed hit Bashes for 10 more hitstun frames; a s
   assertEquals(source.passive.stacks, 0);
 });
 
-test("Warden: a landed aerial in the air returns one aerial jump, once per airtime, renewed on landing", () => {
+test("Warden: a landed aerial in the air returns one aerial jump, once per airtime, renewed on landing [spec docs/design/passives.md]", () => {
   const { world, source } = pair(Character.warden);
   source.motion.grounded = false;
   source.jump.remaining = 0;
@@ -116,7 +116,7 @@ test("Warden: a landed aerial in the air returns one aerial jump, once per airti
   assertTrue(passivePips(source).ready);
 });
 
-test("Archer: the third landed arrow deals double damage, still without hitstun; a shield spends it", () => {
+test("Archer: the third landed arrow deals double damage, still without hitstun; a shield spends it [spec docs/design/passives.md]", () => {
   const { world, source, target } = pair(Character.archer, Character.blademaster);
   land(world, 2, strike(6.0), HitOrigin.arrow);
   assertEquals(source.passive.stacks, 2);
@@ -130,7 +130,7 @@ test("Archer: the third landed arrow deals double damage, still without hitstun;
   assertEquals(source.passive.stacks, 0);
 });
 
-test("Rifleman: every fourth blaster shot fired is a Long Rifle shot that flies farther", () => {
+test("Rifleman: every fourth blaster shot fired is a Long Rifle shot that flies farther [spec docs/design/passives.md]", () => {
   const rifleman = createFighter(Character.rifleman, 0.0, 1);
   const shots: boolean[] = [];
   for (let index = 0; index < 8; index++) {
@@ -143,14 +143,14 @@ test("Rifleman: every fourth blaster shot fired is a Long Rifle shot that flies 
   assertEquals(shots.join(","), "false,false,false,true,false,false,false,true");
 });
 
-test("Illidan has no passive: his hits count for nothing", () => {
+test("Illidan has no passive: his hits count for nothing [spec docs/design/illidan.md]", () => {
   const { world, source } = pair(Character.demonHunter);
   land(world, 5, strike(8.0), HitOrigin.melee);
   assertEquals(source.passive.stacks, 0);
   assertEquals(passivePips(source).of, 0);
 });
 
-test("Lich: the third melee hit to reach him chills its striker; projectiles and throws add nothing", () => {
+test("Lich: the third melee hit to reach him chills its striker; projectiles and throws add nothing [spec docs/design/passives.md]", () => {
   const { world, source: lich, target: striker } = pair(Character.lich, Character.blademaster);
   land(world, 3, strike(6.0), HitOrigin.projectile, 1, 0);
   hit(world, 1, 0, strike(6.0), HitOrigin.throw, false, ContactKind.throw);
@@ -163,7 +163,7 @@ test("Lich: the third melee hit to reach him chills its striker; projectiles and
   assertEquals(lich.passive.stacks, 0);
 });
 
-test("Forsaken Paladin: three blocked hits ready Devotion, the next launch is 0.8 as strong and throws ignore it", () => {
+test("Forsaken Paladin: three blocked hits ready Devotion, the next launch is 0.8 as strong and throws ignore it [spec docs/design/passives.md]", () => {
   const plain = pair(Character.blademaster, Character.forsakenPaladin);
   plain.target.status.damage = 60.0;
   hit(plain.world, 0, 1, strike(12.0), HitOrigin.melee);
@@ -179,7 +179,7 @@ test("Forsaken Paladin: three blocked hits ready Devotion, the next launch is 0.
   assertEquals(forsakenPaladin.passive.stacks, 0);
 });
 
-test("Dreadlord: every third landed melee hit or throw heals him 2%, at most 8% a stock; projectiles give nothing", () => {
+test("Dreadlord: every third landed melee hit or throw heals him 2%, at most 8% a stock; projectiles give nothing [spec docs/design/passives.md]", () => {
   const { world, source: dreadlord } = pair(Character.dreadlord);
   dreadlord.status.damage = 30.0;
   land(world, 3, strike(6.0), HitOrigin.projectile);
@@ -194,7 +194,7 @@ test("Dreadlord: every third landed melee hit or throw heals him 2%, at most 8% 
   assertEquals(dreadlord.passive.spent, 0.0);
 });
 
-test("Shadow Hunter: glaive and ward hits charge voodoo, his next landed melee hit spends it for +2% a pip", () => {
+test("Shadow Hunter: glaive and ward hits charge voodoo, his next landed melee hit spends it for +2% a pip [spec docs/design/passives.md]", () => {
   const { world, source, target } = pair(Character.shadowHunter);
   land(world, 3, strike(5.0), HitOrigin.voodoo);
   assertEquals(source.passive.stacks, 2);
@@ -206,7 +206,7 @@ test("Shadow Hunter: glaive and ward hits charge voodoo, his next landed melee h
   assertEquals(source.passive.stacks, 0);
 });
 
-test("passive state rides snapshots and clears on a new stock", () => {
+test("passive state rides snapshots and clears on a new stock [spec docs/design/passives.md] [invariant]", () => {
   const { world, source } = pair(Character.blademaster);
   land(world, 2, strike(8.0), HitOrigin.melee);
   const copy = createFighter(Character.blademaster, 0.0, 1);
@@ -219,7 +219,7 @@ test("passive state rides snapshots and clears on a new stock", () => {
   assertEquals(source.passive.window, 0);
 });
 
-test("Pit Lord: the third cleaver contact, hit or blocked, cleaves: +3% on a body, double shield damage on a shield", () => {
+test("Pit Lord: the third cleaver contact, hit or blocked, cleaves: +3% on a body, double shield damage on a shield [spec docs/design/passives.md]", () => {
   const { world, source, target } = pair(Character.pitLord, Character.blademaster);
   hit(world, 0, 1, strike(10.0), HitOrigin.melee, true);
   hit(world, 0, 1, strike(10.0), HitOrigin.melee);
@@ -240,7 +240,7 @@ test("Pit Lord: the third cleaver contact, hit or blocked, cleaves: +3% on a bod
   assertEquals(source.passive.stacks, 0);
 });
 
-test("Beastmaster: his hit and his bear's bite on one target within 40 frames make a pair; the second gets +3%", () => {
+test("Beastmaster: his hit and his bear's bite on one target within 40 frames make a pair; the second gets +3% [spec docs/design/passives.md]", () => {
   const { world, source, target } = pair(Character.beastmaster);
   hit(world, 0, 1, strike(8.0), HitOrigin.melee);
   assertTrue(passivePips(source).ready);

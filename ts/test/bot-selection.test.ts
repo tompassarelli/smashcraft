@@ -21,7 +21,7 @@ import { sweep } from "./sweep";
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
-sweep("bot session: selection with computers in C and D steps to every stage and starts without errors", () => {
+sweep("bot session: selection with computers in C and D steps to every stage and starts without errors [provisional] [invariant]", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1]);
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
   const frames = (n: number) => { for (let i = 0; i < n; i++) { clients.frames(1); helpers.service(clients); } };

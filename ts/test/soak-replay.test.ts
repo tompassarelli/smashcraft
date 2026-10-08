@@ -19,7 +19,7 @@ afterAll(runtime.restore);
 const match: SoakMatch = { index: 0, seed: 96542, fighters: ["archer", "archer"], stage: "sky-deck", policies: ["fuzz", "cpu"], frames: 30 };
 const quiet: SoakInputs = { edges: [], silences: [], hitches: [], slow: [] };
 
-sweep("offscreen indicators follow the presented result while confirmation is still finishing the match", () => {
+sweep("offscreen indicators follow the presented result while confirmation is still finishing the match [native]", () => {
   const repro = readSoakRepro(JSON.stringify(phaseRepro));
   let sawResultAhead = false;
   const cameraFindings: string[] = [];
@@ -39,7 +39,7 @@ sweep("offscreen indicators follow the presented result while confirmation is st
   expect(cameraFindings).toEqual([]);
 }, 30_000);
 
-test("a stick inside its dead zone replays: through the helpers as pad edges the game never sees, through the stand-in as a row", () => {
+test("a stick inside its dead zone replays: through the helpers as pad edges the game never sees, through the stand-in as a row [repro wisp#16]", () => {
   // The native file's first edges: the helper's full-scale stick, inside its 9175 dead zone.
   const helper = playSoakMatch(runtime, game, project, { ...match, typed: true }, {
     ...quiet, edges: [[11, 0, { axis: 1, value: -9083 }], [12, 0, { axis: 1, value: 7396 }]], typed: [], files: [],

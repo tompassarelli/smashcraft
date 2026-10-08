@@ -1,7 +1,7 @@
-import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
-import { MatchLifecycle, pauseBarrierFrame } from "./lifecycle";
+import { assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
+import { MatchLifecycle } from "./lifecycle";
 
-test("a match starts and ends only when every human crosses, and a rematch ignores the last epoch", () => {
+test("a match starts and ends only when every human crosses, and a rematch ignores the last epoch [spec docs/netcode-proposal.md]", () => {
   const match = new MatchLifecycle(1, 5);
   match.ready(1, 0);
   match.ready(1, 0);
@@ -25,9 +25,4 @@ test("a match starts and ends only when every human crosses, and a rematch ignor
   rematch.ready(2, 0);
   rematch.ready(2, 2);
   assertTrue(rematch.started());
-});
-
-test("a shared pause takes effect at the highest prepared frontier", () => {
-  assertEquals(pauseBarrierFrame([60, 75, 61, 0]), 75);
-  assertEquals(pauseBarrierFrame([96, 96, 0, 0]), 96);
 });

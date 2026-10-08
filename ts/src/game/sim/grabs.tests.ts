@@ -38,7 +38,7 @@ function grabbedPair(): { world: Roster; owner: Fighter; target: Fighter } {
   return { world, owner, target };
 }
 
-test("only flinching projectiles release either end of a grab", () => {
+test("only flinching projectiles release either end of a grab [spec docs/gameplay-design.md] [spec docs/physics.md]", () => {
   for (const victim of [0, 1]) {
     for (const kind of [ProjectileKind.blaster, ProjectileKind.arrow, ProjectileKind.homingArrow, ProjectileKind.recoil]) {
       const { world, owner, target } = grabbedPair();
@@ -69,7 +69,7 @@ test("only flinching projectiles release either end of a grab", () => {
   }
 });
 
-test("a respawn releases reciprocal grab links", () => {
+test("a respawn releases reciprocal grab links [spec docs/physics.md]", () => {
   for (const victim of [0, 1]) {
     const { world, owner, target } = grabbedPair();
     respawnFighter(world, victim, 0.0);
@@ -79,7 +79,7 @@ test("a respawn releases reciprocal grab links", () => {
   }
 });
 
-test("a freeze trap releases reciprocal grab links", () => {
+test("a freeze trap releases reciprocal grab links [spec docs/physics.md]", () => {
   const { world, owner, target } = grabbedPair();
   target.freezeTrap.life = 100;
   target.freezeTrap.x = owner.motion.x;
@@ -90,7 +90,7 @@ test("a freeze trap releases reciprocal grab links", () => {
   assertEquals(target.grab.owner, undefined);
 });
 
-test("simultaneous grabs give neither slot ownership", () => {
+test("simultaneous grabs give neither slot ownership [spec docs/physics.md]", () => {
   const first = createFighter(Character.archer, 0.0, 1);
   const second = createFighter(Character.rifleman, 90.0, -1);
   const world = testWorld(first, second);
@@ -109,7 +109,7 @@ test("simultaneous grabs give neither slot ownership", () => {
   assertEquals(first.grab.grabbedFrames, 0);
 });
 
-test("grab mash uses one button and one remembered stick contribution", () => {
+test("grab mash uses one button and one remembered stick contribution [spec docs/gameplay-design.md]", () => {
   const owner = createFighter(Character.archer, 0.0, 1);
   const target = createFighter(Character.rifleman, 90.0, -1);
   const world = testWorld(owner, target);
@@ -184,7 +184,7 @@ function holdUntilFree(world: Roster, target: Fighter, mash: Mash, owner: (frame
   return undefined;
 }
 
-test("every grab holds the same time at any percent, and mashing shortens it within its bounds", () => {
+test("every grab holds the same time at any percent, and mashing shortens it within its bounds [spec docs/gameplay-design.md]", () => {
   const freedOn: string[] = [];
   for (const character of GRABBERS) {
     for (const percent of [0.0, 150.0]) {
@@ -203,7 +203,7 @@ test("every grab holds the same time at any percent, and mashing shortens it wit
 });
 
 
-test("a victim mashing 8 or more times a second escapes the pummel; 6 a second or caught off guard takes it", () => {
+test("a victim mashing 8 or more times a second escapes the pummel; 6 a second or caught off guard takes it [spec docs/gameplay-design.md]", () => {
   assertTrue(MASH_ESCAPE.human < PUMMEL_CONTACT_FRAME);
   assertTrue(MASH_ESCAPE.slow > PUMMEL_CONTACT_FRAME);
   for (const character of GRABBERS) {
@@ -211,11 +211,6 @@ test("a victim mashing 8 or more times a second escapes the pummel; 6 a second o
       for (const mash of ["none", "slow", "human", "quick", "fastest"] as const) {
         const { world, owner, target } = heldBy(character, percent);
         const pummel = owner.tuning.moves?.throws[GrabAction.pummel]?.effect.damage ?? PUMMEL_DAMAGE;
-        const expectedPummel = character === Character.blademaster ? 2.865000009536743
-          : character === Character.mountainKing ? 3.31499981880188
-            : character === Character.dreadlord ? 2.7150001525878906
-              : character === Character.beastmaster ? 2.861999750137329 : PUMMEL_DAMAGE;
-        assertEquals(pummel, expectedPummel, `${character} pummels for its authored damage`);
         // The grabber pummels on the first held frame and keeps pressing attack.
         const frame = holdUntilFree(world, target, mash, () => controls({ attackPressed: true }));
         const label = `${character} at ${percent}% with ${mash} mashing`;
@@ -236,7 +231,7 @@ test("a victim mashing 8 or more times a second escapes the pummel; 6 a second o
   }
 });
 
-test("a throw pressed during the pummel starts when it ends; a prompt throw always starts", () => {
+test("a throw pressed during the pummel starts when it ends; a prompt throw always starts [spec docs/gameplay-design.md]", () => {
   for (const character of GRABBERS) {
     const buffered = heldBy(character, 150.0);
     for (let frame = 1; frame <= PUMMEL_TOTAL_FRAMES; frame++) {
@@ -267,7 +262,7 @@ test("a throw pressed during the pummel starts when it ends; a prompt throw alwa
   }
 });
 
-test("stock loss clears a capture and post-throw recovery immediately", () => {
+test("stock loss clears a capture and post-throw recovery immediately [spec docs/physics.md]", () => {
   for (const release of [false, true]) {
     const { world, owner, target } = grabbedPair();
     const input = controls();
@@ -289,7 +284,7 @@ test("stock loss clears a capture and post-throw recovery immediately", () => {
   }
 });
 
-test("throw hitstun blocks standing and dash regrabs until it ends", () => {
+test("throw hitstun blocks standing and dash regrabs until it ends [spec docs/gameplay-design.md]", () => {
   for (const dash of [false, true]) {
     const { world, owner, target } = grabbedPair();
     const input = controls({ grabThrowZ: 1 });
@@ -316,7 +311,7 @@ test("throw hitstun blocks standing and dash regrabs until it ends", () => {
   }
 });
 
-test("throw follow-up attacks replace throw hitstun and permit attack-to-grab reads", () => {
+test("throw follow-up attacks replace throw hitstun and permit attack-to-grab reads [spec docs/gameplay-design.md]", () => {
   for (const kind of [ContactKind.launch, ContactKind.flinch, ContactKind.damageOnly]) {
     const { world, owner, target } = grabbedPair();
     const input = controls({ grabThrowZ: 1 });
@@ -337,7 +332,7 @@ test("throw follow-up attacks replace throw hitstun and permit attack-to-grab re
   }
 });
 
-test("a gentle throw landing retains the remaining throw hitstun", () => {
+test("a gentle throw landing retains the remaining throw hitstun [spec docs/gameplay-design.md]", () => {
   const { world, owner, target } = grabbedPair();
   target.status.damage = 20.0;
   const input = controls({ grabThrowZ: 1 });

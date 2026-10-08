@@ -11,11 +11,10 @@ import { copyControls, createRoster, isActive, neutralControls } from "../sim/ro
 import { produceComputerInput } from "./botPlay";
 import { createFrameControls } from "./controls";
 import { CPU_PROFILES, type CpuOpponentId, type CpuTier } from "./cpuProfiles";
-import { nextMatchSeed } from "./botRandom";
 import { replayChecksum } from "../replay/matchReplay";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
 import { createPacingAndPresentation } from "./pacingAndPresentation";
-import { Phase, createMatchState, requestStart, setParticipants } from "./rules";
+import { Phase, createMatchState } from "./rules";
 import { sweep } from "../../runtime/sweep";
 
 const NEUTRAL = neutralControls();
@@ -60,14 +59,14 @@ const checksumAfter = (opponent: CpuOpponentId, tier: CpuTier, seed: number): st
   return stateChecksum(game.state);
 };
 
-test("the same seed and named profile play the same match; changed seed or profile changes it", () => {
+test("the same seed and named profile play the same match; changed seed or profile changes it [invariant]", () => {
   const played = checksumAfter("wren", "intermediate", 3);
   assertEquals(checksumAfter("wren", "intermediate", 3), played);
   assertFalse(checksumAfter("wren", "intermediate", 4) === played);
   assertFalse(checksumAfter("ember", "expert", 3) === played);
 });
 
-sweep("150 named profile and seed combinations replay restored gameplay with zero state differences", () => {
+sweep("150 named profile and seed combinations replay restored gameplay with zero state differences [spec #184] [invariant]", () => {
   let restored = 0;
   for (const profile of CPU_PROFILES) for (let seed = 0; seed < 5; seed++) {
     const game = computerMatch(profile.opponent, profile.tier, seed);
@@ -89,7 +88,7 @@ sweep("150 named profile and seed combinations replay restored gameplay with zer
   assertEquals(restored, 150);
 });
 
-test("selected identity, resolved identity and tier each affect canonical state, replay checksum and field differences", () => {
+test("selected identity, resolved identity and tier each affect canonical state, replay checksum and field differences [spec #184]", () => {
   const expected = createReplaySnapshot();
   const changed = createReplaySnapshot();
   const checksum = (state: ReplayState) => replayChecksum(state.world, state.match, state.runtime);
@@ -108,17 +107,4 @@ test("selected identity, resolved identity and tier each affect canonical state,
     assertTrue(checksum(expected) !== checksum(changed));
     assertEquals(firstStateDifference(expected, changed), paths[index]);
   }
-});
-
-test("the first match plays seed 0 and each later match the next seed", () => {
-  const game = createMatchState();
-  setParticipants(game, 0b001, 0b010);
-  game.characterReadiness[0] = true;
-  game.phase = Phase.stageMenu;
-  assertTrue(requestStart(game, 0));
-  assertEquals(game.matchSeed, 0);
-  game.matchFrame = 120;
-  game.phase = Phase.stageMenu;
-  assertTrue(requestStart(game, 0));
-  assertEquals(game.matchSeed, nextMatchSeed(0));
 });

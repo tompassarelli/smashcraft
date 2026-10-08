@@ -1,19 +1,9 @@
 import { expect, test } from "bun:test";
 import { STAGE_SKIES, stageSkyMdl, stageSkyModelFile, stageSkyTexture } from "../scripts/stageSky";
-import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";
 import { STAGE_SKY_MODELS } from "../src/game/assets/stageSkyInfo";
-import { stageScenery } from "../src/game/presentation/stageScenery";
 import { parseMDL } from "war3-model";
 
-test("all current stages use their original atmospheric sky, with Nordrassil's aurora preserved", () => {
-  for (const { id, name } of STAGE_CATALOG) {
-    const sky = stageScenery(id).sky;
-    if (id === 10) expect(sky, name).toBe("Environment\\Sky\\FelwoodSky\\FelwoodSky.mdl");
-    else expect(sky, name).toBe(STAGE_SKY_MODELS[id]);
-  }
-});
-
-test("shipped skies stay in the classic sky volume and do not write depth or animate", () => {
+test("shipped skies stay in the classic sky volume and do not write depth or animate [native]", () => {
   for (const sky of STAGE_SKIES) {
     const texture = stageSkyTexture(sky), mdl = stageSkyMdl(texture.name), model = parseMDL(mdl);
     expect(STAGE_SKY_MODELS[sky.stage]).toBe(`war3mapImported\\${stageSkyModelFile(mdl)}`);

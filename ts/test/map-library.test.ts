@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { installLatest } from "../scripts/wisp/mapLibrary";
 import { playVersion } from "../scripts/wisp/currentPlaytest";
 
-test("latest installation keeps two previous versions and puts diagnostics in tests", () => {
+test("latest installation keeps two previous versions and puts diagnostics in tests [spec docs/play.md]", () => {
   const root = mkdtempSync(join(tmpdir(), "smashcraft-map-library-"));
   try {
     const maps = join(root, "Maps/00-Smashcraft");
@@ -29,7 +29,7 @@ test("latest installation keeps two previous versions and puts diagnostics in te
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-test("a new build of main takes the next version after every one built or in the library; a built one keeps its number", () => {
+test("a new build of main takes the next version after every one built or in the library; a built one keeps its number [spec docs/play.md]", () => {
   const root = mkdtempSync(join(tmpdir(), "smashcraft-play-version-"));
   try {
     const library = join(root, "Maps/00-Smashcraft");

@@ -132,7 +132,7 @@ function assertMetSide(victim: Fighter): void {
   assertLessThan(contactX, surfaceRight(0, 0, 0));
 }
 
-test("a launch into the main deck's side bounces off it without a press", () => {
+test("a launch into the main deck's side bounces off it without a press [spec #52]", () => {
   for (const character of VICTIMS) {
     for (const percent of [60.0, 120.0]) {
       const run = startRun(character, percent);
@@ -151,7 +151,7 @@ test("a launch into the main deck's side bounces off it without a press", () => 
   }
 });
 
-test("a trigger pressed after the hit's hitlag wall techs off the main deck's side", () => {
+test("a trigger pressed after the hit's hitlag wall techs off the main deck's side [spec #52]", () => {
   for (const character of VICTIMS) {
     for (const percent of [60.0, 120.0]) {
       const missed = launch(startRun(character, percent), NEUTRAL);
@@ -192,7 +192,7 @@ test("a trigger pressed after the hit's hitlag wall techs off the main deck's si
   }
 });
 
-test("up on the stick at a wall tech launches each fighter with its reference's wall jump", () => {
+test("up on the stick at a wall tech launches each fighter with its reference's wall jump [reference]", () => {
   for (const character of VICTIMS) {
     const missed = launch(startRun(character, 120.0), NEUTRAL);
     const run = startRun(character, 120.0);
@@ -236,7 +236,7 @@ function flickOffSide(run: Run): void {
   playPads(run, {}, { x: 1.0 });
 }
 
-test("a flick away from the main deck's side wall jumps each fighter off it with its reference's wall jump", () => {
+test("a flick away from the main deck's side wall jumps each fighter off it with its reference's wall jump [reference]", () => {
   for (const character of VICTIMS) {
     const run = startDrift(character);
     const { victim } = run;
@@ -263,7 +263,7 @@ test("a flick away from the main deck's side wall jumps each fighter off it with
   }
 });
 
-test("a fighter without Melee's wall jump trait doesn't wall jump", () => {
+test("a fighter without Melee's wall jump trait doesn't wall jump [reference]", () => {
   const run = startDrift(Character.archer);
   const { victim } = run;
   victim.tuning = { ...victim.tuning, surface: { ...victim.tuning.surface, canWallJump: false } };
@@ -290,7 +290,7 @@ const RAISED_UNDERSIDE_Z = solidSurfaceAt(SOLID_DECK_TEST_STAGE, MAIN_DECK_BODY_
 /** Where the fighter stands when its Melee ECB top (Fox's, Falco's or Captain Falcon's) meets that underside. */
 const underUnderside = (character: Character) => f32(RAISED_UNDERSIDE_Z - melee(bodyTop(character)));
 
-test("a launch into a raised deck's underside meets it with the fighter's ECB top and rebounds from there", () => {
+test("a launch into a raised deck's underside meets it with the fighter's ECB top and rebounds from there [repro #71]", () => {
   for (const character of VICTIMS) {
     // The up smash (C-stick up) launches the victim into the deck's underside.
     const run = startUnderDeck(character);
@@ -303,7 +303,7 @@ test("a launch into a raised deck's underside meets it with the fighter's ECB to
   }
 });
 
-test("a ceiling tech starts at the ECB top's contact and moves each fighter sideways by its reference's impulse on its event frame", () => {
+test("a ceiling tech starts at the ECB top's contact and moves each fighter sideways by its reference's impulse on its event frame [repro #71] [reference]", () => {
   for (const character of VICTIMS) {
     // The up smash launches the victim into the deck's underside; it techs on its first free frame.
     const missed = launch(startUnderDeck(character), NEUTRAL, { cy: 1.0 });
@@ -375,7 +375,7 @@ function passThroughFrames(run: Run): number {
 // from ftCo_800C1D38 and melee:src/melee/ft/ftwalljump.c ftWallJump_8008169C),
 // which ends with ftColl_8007B760(gobj, PlCo +0x764 = 14): each is intangible
 // for 14 frames from wall contact, the frame it enters included.
-test("a wall tech, its jump and a plain wall jump are each intangible for Melee's 14 frames, then hittable", () => {
+test("a wall tech, its jump and a plain wall jump are each intangible for Melee's 14 frames, then hittable [reference]", () => {
   assertEquals(SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES, 14);
   for (const character of VICTIMS) {
     const name = fighterName(character);

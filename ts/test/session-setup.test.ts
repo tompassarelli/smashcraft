@@ -21,7 +21,7 @@ import { value } from "./rematch/playableMatch";
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
-test("bot session setup: slot, fighter, rule and stage commands, each confirmed by both clients' receipts", () => {
+test("bot session setup: slot, fighter, rule and stage commands, each confirmed by both clients' receipts [invariant]", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1]);
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
   const frames = (n: number) => { for (let i = 0; i < n; i++) { clients.frames(1); helpers.service(clients); } };

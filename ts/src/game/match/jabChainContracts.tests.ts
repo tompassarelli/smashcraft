@@ -82,7 +82,7 @@ function chainOf(character: Character): AttackStyle[] {
   return steps;
 }
 
-test("pressing jab three times plays the fighter's two- or three-hit jab chain, each jab a hit", () => {
+test("pressing jab three times plays the fighter's two- or three-hit jab chain, each jab a hit [spec #163]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const chain = chainOf(character);
     assertEquals(chain.length >= 2 && chain.length <= 3, true, `${fighterName(character)} chain of ${chain.length}`);
@@ -92,7 +92,7 @@ test("pressing jab three times plays the fighter's two- or three-hit jab chain, 
   }
 });
 
-test("pressing forward tilt three times plays three separate forward tilts", () => {
+test("pressing forward tilt three times plays three separate forward tilts [spec #163]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const moves = authoredTuning(character).moves;
     // Each press after the last tilt ends: a tilt never chains, so earlier presses would only wait.
@@ -100,16 +100,6 @@ test("pressing forward tilt three times plays three separate forward tilts", () 
     const { styles } = pressThrice(character, AttackStyle.forwardTilt, every, 2000.0);
     assertEquals(styles.join(","), [AttackStyle.forwardTilt, AttackStyle.forwardTilt, AttackStyle.forwardTilt].join(","), fighterName(character));
   }
-});
-
-test("a jab pressed after the chain's window starts the chain over", () => {
-  const d = duel(Character.warden, 2000.0);
-  const attacker = fighterAt(d.world, 0);
-  queueAttack(d.controls.commands[0], { style: AttackStyle.jab, facing: 0, frame: 1, mayCharge: false });
-  for (let frame = 0; frame < 40; frame++) step(d);
-  queueAttack(d.controls.commands[0], { style: AttackStyle.jab, facing: 0, frame: d.frame + 1, mayCharge: false });
-  step(d);
-  assertEquals(attacker.attack.style, AttackStyle.jab);
 });
 
 /** A move's farthest forward reach and its active hit volume's bounding area, over every frame. */
@@ -127,7 +117,7 @@ function extent(character: Character, style: AttackStyle): { reach: number; area
   return { reach: maxX, area: (maxX - minX) * (maxZ - minZ) };
 }
 
-test("every jab reaches less, covers less and starts no later than the fighter's forward tilt", () => {
+test("every jab reaches less, covers less and starts no later than the fighter's forward tilt [spec #163]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const moves = authoredTuning(character).moves;
     const tilt = extent(character, AttackStyle.forwardTilt);

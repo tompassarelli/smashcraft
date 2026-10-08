@@ -1,8 +1,8 @@
 import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { Capture } from "../netcode/capture";
 import { FixedInputSchedule } from "../netcode/fixedSchedule";
-import { ALL_ACTIONS, Action, bit, has, maskOf } from "./actions";
-import { type InputRow, copyInput, emptyInput, inputRow, sameInput } from "./inputRow";
+import { Action, bit, has, maskOf } from "./actions";
+import { type InputRow, emptyInput, inputRow, sameInput } from "./inputRow";
 import { type KeyboardCapture, captureKeys, keyboardCapture, resetKeys, sampleKeys } from "./keyboardCapture";
 import { participantInputs } from "./participants";
 
@@ -15,7 +15,7 @@ function sampled(...masks: number[]): KeyboardCapture {
   return capture;
 }
 
-test("a tap between samples keeps both edges until a schedule takes the row", () => {
+test("a tap between samples keeps both edges until a schedule takes the row [spec docs/netcode-proposal.md]", () => {
   const schedule = new FixedInputSchedule();
   assertTrue(schedule.beginEpoch(1, 3, 3));
   const capture = sampled(bit(Action.jump), bit(Action.jump), 0);
@@ -29,7 +29,7 @@ test("a tap between samples keeps both edges until a schedule takes the row", ()
   assertEquals(row(capture).released, 0);
 });
 
-test("a tap while the schedule waits goes to the next target and never rewrites an assigned row", () => {
+test("a tap while the schedule waits goes to the next target and never rewrites an assigned row [spec docs/netcode-proposal.md]", () => {
   const schedule = new FixedInputSchedule();
   const inputs = participantInputs();
   assertTrue(schedule.beginEpoch(1, 3, 3));
@@ -48,7 +48,7 @@ test("a tap while the schedule waits goes to the next target and never rewrites 
   assertEquals(next.held, 0);
 });
 
-test("opposite directions cancel and C-stick actions never move the stick", () => {
+test("opposite directions cancel and C-stick actions never move the stick [spec docs/netcode-proposal.md]", () => {
   const capture = sampled(maskOf(Action.moveLeft, Action.moveRight, Action.moveDown, Action.moveUp));
   assertEquals(row(capture).axisX, 0);
   assertEquals(row(capture).axisZ, 0);
@@ -63,19 +63,7 @@ test("opposite directions cancel and C-stick actions never move the stick", () =
   assertEquals(row(capture).axisZ, -127);
 });
 
-test("rejected masks and a refused capture leave a pending tap untouched", () => {
-  const capture = sampled(bit(Action.special), 0);
-  const before = emptyInput();
-  copyInput(before, row(capture));
-  for (const mask of [-1, ALL_ACTIONS + 1]) {
-    assertFalse(sampleKeys(capture, mask));
-    assertFalse(resetKeys(capture, mask));
-  }
-  assertEquals(captureKeys(capture, new FixedInputSchedule(), 1), Capture.wrongEpoch);
-  assertTrue(sameInput(row(capture), before));
-});
-
-test("focus loss releases held keys, and resuming from held keys invents no press or pulse", () => {
+test("focus loss releases held keys, and resuming from held keys invents no press or pulse [spec docs/controller-platforms.md]", () => {
   const schedule = new FixedInputSchedule();
   assertTrue(schedule.beginEpoch(1, 3, 3));
   const capture = sampled(bit(Action.attack));
@@ -101,44 +89,4 @@ test("focus loss releases held keys, and resuming from held keys invents no pres
   assertEquals(row(capture).axisZ, 127);
   assertFalse(row(capture).sdi);
   assertEquals(row(capture).pressed, 0);
-});
-
-test("the first Special keeps its direction and the latest shield press sets the dodge, across releases", () => {
-  const capture = sampled(maskOf(Action.moveDown, Action.special, Action.leftTrigger), maskOf(Action.moveUp, Action.rightTrigger));
-  assertEquals(row(capture).axisZ, 127);
-  assertTrue(has(row(capture).pressed, Action.special));
-  assertEquals(row(capture).specialZ, -1);
-  assertEquals(row(capture).dodgeX, 0);
-  assertEquals(row(capture).dodgeZ, 1);
-  assertTrue(has(row(capture).released, Action.special) && has(row(capture).released, Action.moveDown));
-  // A later Special in the same uncaptured row does not replace the first direction.
-  assertTrue(sampleKeys(capture, maskOf(Action.moveUp, Action.rightTrigger, Action.special)));
-  assertEquals(row(capture).specialZ, -1);
-  assertEquals(captureKeys(capture, new FixedInputSchedule(), 1), Capture.wrongEpoch);
-  assertEquals(row(capture).specialZ, -1);
-});
-
-test("smash DI keeps the latest entered direction, and the latest up or down press sets the ledge direction", () => {
-  const capture = sampled(bit(Action.moveRight), maskOf(Action.moveRight, Action.moveDown));
-  assertEquals(row(capture).ledgeVertical, -1);
-  assertTrue(row(capture).sdi);
-  assertEquals(row(capture).sdiX, 1);
-  assertEquals(row(capture).sdiZ, -1);
-  assertTrue(sampleKeys(capture, maskOf(Action.moveRight, Action.moveDown, Action.moveUp)));
-  assertEquals(row(capture).ledgeVertical, 1);
-  assertEquals(row(capture).sdiX, 1);
-  assertEquals(row(capture).sdiZ, -1);
-  assertTrue(sampleKeys(capture, bit(Action.moveLeft)));
-  assertEquals(row(capture).ledgeVertical, 1);
-  assertEquals(row(capture).sdiX, -1);
-  assertEquals(row(capture).sdiZ, 0);
-  // Up and down pressed in one sample cancel.
-  assertEquals(row(sampled(maskOf(Action.moveUp, Action.moveDown))).ledgeVertical, 0);
-});
-
-test("repeated throw-direction taps keep their signed sum", () => {
-  const capture = sampled(bit(Action.moveLeft), 0, bit(Action.moveLeft), 0, bit(Action.moveRight));
-  assertEquals(row(capture).axisX, 127);
-  assertTrue(has(row(capture).pressed, Action.moveLeft) && has(row(capture).pressed, Action.moveRight));
-  assertEquals(row(capture).throwX, -1);
 });

@@ -116,12 +116,12 @@ function roundTrip(callback: boolean, frames: number, row = scriptedRow, fighter
 /** The same saved gameplay fixture for the Bun command path and Bun/Lua32 state comparison. */
 export const savedInspectionFixture = (): Repro => roundTrip(false, 120, scriptedRow, undefined, true);
 
-test("moment inspection: saved gameplay start, middle, end and one frame back equal ordinary canonical states", savedInspectionFixture);
+test("moment inspection: saved gameplay start, middle, end and one frame back equal ordinary canonical states [invariant]", savedInspectionFixture);
 
 // Saved a frame before the record replaces the moment's first snapshot and rows.
-test("moment: a rollback match's last ten seconds replay from their snapshot to the match's checksum", () => roundTrip(false, 839));
+test("moment: a rollback match's last ten seconds replay from their snapshot to the match's checksum [invariant]", () => roundTrip(false, 839));
 
-test("moment: a callback match against a computer replays from frame 0 to the match's checksum", () => roundTrip(true, 300));
+test("moment: a callback match against a computer replays from frame 0 to the match's checksum [invariant]", () => roundTrip(true, 300));
 
 /** Lich a casts Frost Nova on frame 10 and presses again on frame 60, bursting the orb; nobody else moves. */
 function frostNovaRow(slot: number, frame: number): InputRow {
@@ -130,5 +130,5 @@ function frostNovaRow(slot: number, frame: number): InputRow {
 }
 
 // A decoded moment holds a copy of each kit; the burst finds its orb by the kit's own object.
-test("moment: a Frost Nova burst replays from the moment's snapshot to the match's checksum", () =>
+test("moment: a Frost Nova burst replays from the moment's snapshot to the match's checksum [invariant]", () =>
   roundTrip(false, 120, frostNovaRow, { first: createFighter(Character.lich, -240.0, 1), second: createFighter(Character.lich, 600.0, -1) }));

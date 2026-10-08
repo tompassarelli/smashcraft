@@ -16,7 +16,7 @@ import { joinReplay, parseReplayHeader, parseReplayPart, replayMatch } from "../
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
 
-test("pause with a computer keeps its replay continuous and advances one frame per headless draw after resuming", async () => {
+test("pause with a computer keeps its replay continuous and advances one frame per headless draw after resuming [repro #206] [invariant]", async () => {
   const clients = headless.clients({ start: () => startBuild({ ...PLAYABLE_BUILD, devConsole: true, responseProbe: true }), install }, [0]);
   const client = clients.client(0);
   const read = <T>(body: () => T) => value(client, body);

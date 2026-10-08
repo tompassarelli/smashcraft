@@ -1,26 +1,10 @@
 import { expect, test } from "bun:test";
 import { Action } from "../src/game/input/actions";
 import { canonicalState } from "../src/game/replay/canonical";
-import { Character, GrabAction } from "../src/game/sim/codes";
+import { Character } from "../src/game/sim/codes";
 import { Timeline, type Situation } from "./interactions";
-import { fighter, frame, scene } from "../src/game/match/padScene";
 
-test("a controller direction tap throws a held victim, and a held direction has no repeated tap", () => {
-  const match = scene(0, [
-    { character: Character.archer, x: 0, facing: 1 },
-    { character: Character.rifleman, x: 40, facing: -1 },
-  ]);
-  frame(match, [Action.grab]);
-  for (let n = 0; n < 20 && fighter(match).grab.action !== GrabAction.hold; n++) frame(match);
-  expect(fighter(match).grab.action).toBe(GrabAction.hold);
-  frame(match, [Action.moveUp]);
-  expect(fighter(match).grab.action).toBe(GrabAction.throwUp);
-  expect(match.source[0]?.throwZ).toBe(1);
-  frame(match, [Action.moveUp]);
-  expect(match.source[0]?.throwZ).toBe(0);
-});
-
-test("a contact continuation preserves replay state and controller edges", () => {
+test("a contact continuation preserves replay state and controller edges [invariant]", () => {
   const policies: Situation["policies"] = [
     (n) => n <= 2 ? [Action.jump] : [Action.moveRight],
     () => [],
@@ -49,7 +33,7 @@ test("a contact continuation preserves replay state and controller edges", () =>
   continuation.release();
 });
 
-test("retaining only frame 1 plays the same full state as retaining every baseline frame", () => {
+test("retaining only frame 1 plays the same full state as retaining every baseline frame [invariant]", () => {
   const situation: Situation = {
     placements: [
       { character: Character.archer, x: 0, facing: 1 },

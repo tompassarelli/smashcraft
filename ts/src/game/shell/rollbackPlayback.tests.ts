@@ -17,7 +17,7 @@ function accept(schedule: ShadowInputSchedule, sender: number, epoch: number, fr
   assertEquals(schedule.acceptSynchronized(sender, packet), "accepted");
 }
 
-test("shell rollback replaces a predicted remote row and reports executed local frames", () => {
+test("shell rollback replaces a predicted remote row and reports executed local frames [spec docs/netcode-proposal.md]", () => {
   const epoch = 1;
   const localPlayer = 0;
   const remote = 1;
@@ -67,7 +67,7 @@ test("shell rollback replaces a predicted remote row and reports executed local 
   assertEquals(live.runtime.simulationFrame, 4);
 });
 
-test("shell rollback refuses stale epochs without mutating the active history", () => {
+test("shell rollback refuses stale epochs without mutating the active history [spec docs/netcode-proposal.md]", () => {
   const playback = replayHistoryPlayback();
   assertTrue(playback.beginEpoch(5, 6));
   assertFalse(playback.beginEpoch(5, 6));

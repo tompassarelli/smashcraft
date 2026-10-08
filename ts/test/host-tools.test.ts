@@ -27,7 +27,7 @@ const leftovers = (pids: readonly number[]) => pids.filter((pid) => {
   }
 });
 
-test("SIGTERM to bun wisp stops the helper process its command started", async () => {
+test("SIGTERM to bun wisp stops the helper process its command started [spec wisp:docs/host-tools.md]", async () => {
   const dir = mkdtempSync(join(tmpdir(), "host-tools-signal-"));
   try {
     const bin = join(dir, "bin");
@@ -46,7 +46,7 @@ test("SIGTERM to bun wisp stops the helper process its command started", async (
   }
 }, 20_000);
 
-test("runProcess returns a program's output, fails on a nonzero exit, and stops it when interrupted", async () => {
+test("runProcess returns a program's output, fails on a nonzero exit, and stops it when interrupted [spec wisp:docs/host-tools.md]", async () => {
   const dir = mkdtempSync(join(tmpdir(), "host-tools-run-"));
   try {
     const pidFile = join(dir, "child.pid");

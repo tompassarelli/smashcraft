@@ -183,7 +183,7 @@ function advantage(trace: Readonly<Trace>, frames = 90): number {
   return (trace.victimActs < 0 ? frames : trace.victimActs) - trace.attackerActs;
 }
 
-test("every hit of each drill and multi-hit aerial connects in sequence at 0, 50 and 100%", () => {
+test("every hit of each drill and multi-hit aerial connects in sequence at 0, 50 and 100% [spec #152]", () => {
   for (const c of [...DRILLS, ...AERIALS, ...SHARED_UP_AIRS]) {
     for (const percent of PERCENTS) {
       const trace = playAttack({ ...c.setup, percent });
@@ -197,7 +197,7 @@ test("every hit of each drill and multi-hit aerial connects in sequence at 0, 50
   }
 });
 
-test("Bladestorm's landing hit pops the target up and Blademaster acts first", () => {
+test("Bladestorm's landing hit pops the target up and Blademaster acts first [spec #152]", () => {
   for (const percent of PERCENTS) {
     const trace = playAttack({ ...DRILLS[0]!.setup, percent });
     const label = `${percent}%`;
@@ -207,7 +207,7 @@ test("Bladestorm's landing hit pops the target up and Blademaster acts first", (
   }
 });
 
-test("Falling Knives has no landing hit and leaves Warden able to act first", () => {
+test("Falling Knives has no landing hit and leaves Warden able to act first [spec #152]", () => {
   for (const percent of PERCENTS) {
     const trace = playAttack({ ...DRILLS[2]!.setup, percent });
     const label = `${percent}%: ${contactsText(trace)}`;
@@ -216,7 +216,7 @@ test("Falling Knives has no landing hit and leaves Warden able to act first", ()
   }
 });
 
-test("the glaive drill carries its target sideways along Shadow Hunter's facing", () => {
+test("the glaive drill carries its target sideways along Shadow Hunter's facing [spec #152]", () => {
   for (const c of [DRILLS[4]!, DRILLS[5]!]) {
     for (const percent of PERCENTS) {
       const trace = playAttack({ ...c.setup, percent });
@@ -225,7 +225,7 @@ test("the glaive drill carries its target sideways along Shadow Hunter's facing"
   }
 });
 
-test("a shielded Bladestorm is punished by a shield grab", () => {
+test("a shielded Bladestorm is punished by a shield grab [spec #152]", () => {
   for (const percent of PERCENTS) {
     const trace = playAttack({ ...DRILLS[0]!.setup, percent, shielding: true, shieldGrab: true });
     assertEquals(trace.contacts.length > 0 && trace.contacts.every(contact => contact.shielded), true, `${percent}%`);
@@ -233,7 +233,7 @@ test("a shielded Bladestorm is punished by a shield grab", () => {
   }
 });
 
-test("smash DI escapes every drill and new multi-hit aerial before its last hit", () => {
+test("smash DI escapes every drill and new multi-hit aerial before its last hit [spec #152]", () => {
   for (const c of [...DRILLS, ...AERIALS]) {
     for (const percent of PERCENTS) {
       const trace = playAttack({ ...c.setup, percent, victimInput: sdiAway(1) });
@@ -244,7 +244,7 @@ test("smash DI escapes every drill and new multi-hit aerial before its last hit"
   }
 });
 
-test("crouching leaves the attacker better off against each drill than against a single-hit down air", () => {
+test("crouching leaves the attacker better off against each drill than against a single-hit down air [spec #152]", () => {
   const single = advantage(playAttack({ attacker: Character.dreadlord, style: AttackStyle.downAir, offsetX: 0.0, height: 170.0, victimInput: () => crouch() }));
   for (const c of [DRILLS[0]!, DRILLS[2]!, DRILLS[4]!]) {
     for (const percent of PERCENTS) {

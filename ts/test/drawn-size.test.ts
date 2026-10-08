@@ -51,7 +51,7 @@ const DEPARTURES: { readonly [character: number]: string } = {
   [Character.tinker]: "the raised backpack claw extends above the goblin and lower backpack body",
 };
 
-test("every fighter's drawn standing height meets its hurt capsule's top", () => {
+test("every fighter's drawn standing height meets its hurt capsule's top [spec #97]", () => {
   const off = IDLE_TOPS.flatMap(({ character, idleClip, top }) => {
     if (clipFor(character, "idle").index !== idleClip) return [`${character}: idle clip changed, measure again`];
     const capsule = hurtCapsule(character);

@@ -2,6 +2,7 @@
 // contact, status and resource path, against smashcraft:docs/design/roster.md.
 import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
+import { upSpecialRoute } from "../../match/recoveryEnvelope";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, HeroStatusKind, ProjectileKind, SpecialAction } from "../codes";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
@@ -64,7 +65,7 @@ function actionLength(world: Roster, owner: Fighter, press: Readonly<Controls>):
   return length;
 }
 
-test("Pit Lord's specials spend their design costs once and end on their design frames", () => {
+test("Pit Lord's specials spend their design costs once and end on their design frames [spec docs/design/pit-lord.md]", () => {
   assertTrue(PIT_LORD_HERO.specials !== undefined);
   for (const [press, cost, end] of [[neutral, 12, 46], [side, 22, 64], [down, 20, 60]] as const) {
     const { world, owner } = pair(1000.0);
@@ -77,7 +78,7 @@ test("Pit Lord's specials spend their design costs once and end on their design 
   assertEquals(owner.mana.points, 85);
 });
 
-test("Rain of Fire falls through the chosen lane in both facings and each meteor hits once", () => {
+test("Rain of Fire falls through the chosen lane in both facings and each meteor hits once [spec docs/design/pit-lord.md]", () => {
   for (const facing of [1, -1]) {
     const { world, owner, target } = pair(f32(H * f32(1.8)), facing);
     frame(world, down);
@@ -96,7 +97,7 @@ test("Rain of Fire falls through the chosen lane in both facings and each meteor
   }
 });
 
-test("Rain of Fire releases three separate waves and leaves the space under the caster safe", () => {
+test("Rain of Fire releases three separate waves and leaves the space under the caster safe [spec docs/design/pit-lord.md]", () => {
   const { world, owner, target } = pair(0.0);
   const seen: number[] = [];
   for (let f = 1; f <= 60; f++) {
@@ -107,7 +108,7 @@ test("Rain of Fire releases three separate waves and leaves the space under the 
   assertEquals(target.status.damage, 0.0);
 });
 
-test("Rain of Fire is shieldable and interrupting the caster cancels the remaining waves", () => {
+test("Rain of Fire is shieldable and interrupting the caster cancels the remaining waves [spec docs/design/pit-lord.md]", () => {
   const { world, owner, target } = pair(f32(H * f32(1.8)));
   for (let f = 1; f <= 60; f++) frame(world, f === 1 ? down : controls(), controls({ shield: true, diStickValid: true, diStickZ: 1.0 }));
   assertEquals(target.status.damage, 0.0);
@@ -125,7 +126,7 @@ test("Rain of Fire is shieldable and interrupting the caster cancels the remaini
   assertEquals(owner.mana.points, 80);
 });
 
-test("Ruin Charge travels 1.5H, armors one small hit on f19-24 only, and the air form goes 0.8H then helpless", () => {
+test("Ruin Charge travels 1.5H, armors one small hit on f19-24 only, and the air form goes 0.8H then helpless [spec docs/design/pit-lord.md]", () => {
   const { world, owner } = pair(1000.0);
   const start = owner.motion.x;
   for (let f = 1; f <= 64; f++) {
@@ -150,7 +151,7 @@ test("Ruin Charge travels 1.5H, armors one small hit on f19-24 only, and the air
   assertTrue(helpless);
 });
 
-test("an Archer jab that meets Ruin Charge's armor deals its damage without a reaction, and the charge still lands", () => {
+test("an Archer jab that meets Ruin Charge's armor deals its damage without a reaction, and the charge still lands [spec docs/design/pit-lord.md]", () => {
   // The Archer jabs on each frame the charge could meet it; some start trades into the armor.
   let trades = 0;
   for (let start = 15; start <= 24; start++) {
@@ -169,8 +170,11 @@ test("an Archer jab that meets Ruin Charge's armor deals its damage without a re
   assertGreaterThan(trades, 0);
 });
 
-test("Abyssal Leap peaks near 3.5H; on less than 15 mana the free leap peaks near 2.6H with no hit", () => {
-  for (const [mana, rise] of [[100, f32(3.5)], [10, f32(2.6)]] as const) {
+test("Abyssal Leap keeps its heavy recovery band and free 240-unit route, below its paid 3.5H grounded peak [spec #252] [spec docs/design/pit-lord.md]", () => {
+  for (const mana of [100, 10]) {
+    const route = upSpecialRoute(Character.pitLord, mana);
+    assertTrue(mana === 100 ? route.rise >= 320.0 && route.rise <= 440.0 : route.rise >= 240.0);
+    assertTrue(mana === 100 ? route.reach >= 320.0 && route.reach <= 480.0 : route.reach >= 240.0);
     const { world, owner } = pair(1000.0);
     owner.mana.points = mana;
     const ground = owner.motion.z;
@@ -182,11 +186,12 @@ test("Abyssal Leap peaks near 3.5H; on less than 15 mana the free leap peaks nea
       frame(world);
       peak = Math.max(peak, owner.motion.z);
     }
-    assertNear(f32(peak - ground), f32(H * f32(rise)), f32(H * f32(0.1)));
+    if (mana === 100) assertNear(f32(peak - ground), f32(H * f32(3.5)), f32(H * f32(0.1)));
+    else assertLessThan(f32(peak - ground), f32(H * f32(3.5)));
   }
 });
 
-test("Howl of Terror pushes both sides once with no hidden status; a shield stops it", () => {
+test("Howl of Terror pushes both sides once with no hidden status; a shield stops it [spec docs/design/pit-lord.md]", () => {
   for (const behind of [false, true]) {
     const { world, owner, target } = pair(f32(H * f32(0.8)), behind ? -1 : 1);
     owner.facing = 1;
@@ -203,7 +208,7 @@ test("Howl of Terror pushes both sides once with no hidden status; a shield stop
   assertEquals(shielded.target.status.damage, 0.0);
 });
 
-test("rollback restores Pit Lord's falling fire and repeats the same contact", () => {
+test("rollback restores Pit Lord's falling fire and repeats the same contact [invariant]", () => {
   const { world, owner, target } = pair(f32(H * f32(1.8)));
   for (let f = 1; f <= 30; f++) frame(world, f === 1 ? down : controls());
   assertTrue(owner.projectiles.some(p => p.life > 0));

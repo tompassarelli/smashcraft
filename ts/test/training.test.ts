@@ -27,7 +27,7 @@ afterAll(headless.restore);
 const RESET_FRAME = 150;
 const BOTH_SHIELDS = bit(Action.leftTrigger) | bit(Action.rightTrigger);
 
-test("training settings agree on both clients and both shields with attack reset the match on both", () => {
+test("training settings agree on both clients and both shields with attack reset the match on both [spec #120] [invariant]", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 120), keepCalls: 64 });
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id);
   helpers.rows = (slot, frame) => slot === 0 && frame === RESET_FRAME
@@ -83,7 +83,7 @@ test("training settings agree on both clients and both shields with attack reset
   expectSynchronized(clients);
 });
 
-test("-dev quick training starts a training match with a shielding partner at 40% and hit areas on, on both clients", () => {
+test("-dev quick training starts a training match with a shielding partner at 40% and hit areas on, on both clients [spec #120]", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1]);
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
   const frames = (n: number) => { for (let i = 0; i < n; i++) { clients.frames(1); helpers.service(clients); } };

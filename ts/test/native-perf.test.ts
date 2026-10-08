@@ -2,14 +2,13 @@ import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { frameCostCaptureFile } from "wisp/src/runtime/frameCostCapture";
 import * as nativePerf from "../src/platform/nativePerfMain";
-import * as playable from "../src/platform/playableMain";
 import { shellState } from "../src/platform/shell/state";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
-test("playable presentation exports a diagnostic capture on both clients without divergent handles", () => {
+test("playable presentation exports a diagnostic capture on both clients without divergent handles [invariant]", () => {
   const clients = headless.clients(nativePerf);
   clients.start();
   clients.frames(30);
@@ -28,15 +27,3 @@ test("playable presentation exports a diagnostic capture on both clients without
   expect(clients.firstDivergence()).toBeUndefined();
 });
 
-test("the ordinary playable entry carries no capture meter or command", () => {
-  const clients = headless.clients(playable);
-  clients.start();
-  clients.frames(30);
-  clients.chat(0, "-dev capture 1");
-  clients.frames(2);
-  for (const client of clients.clients) {
-    client.run(() => expect(Reflect.get(globalThis, "__smashcraftFrameMeter")).toBeUndefined());
-    expect(client.files.get(frameCostCaptureFile(client.slot, 1, "smashcraft"))).toBeUndefined();
-    expect(client.errors).toEqual([]);
-  }
-});

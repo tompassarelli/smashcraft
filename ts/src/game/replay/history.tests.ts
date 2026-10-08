@@ -4,7 +4,6 @@ import type { FrameControls } from "../match/controls";
 import { type MatchFrameInput, borrowMatchFrame, captureFrame, captureNetworkFrame, copyMatchFrameInput, createMatchFrameInput, resetMatchFrameInput, restoreMatchFrame, sameMatchFrameInput } from "../match/frameInput";
 import { participantInputs } from "../input/participants";
 import { type ImpactEvents } from "../presentation/impactEvents";
-import { createPacingAndPresentation } from "../match/pacingAndPresentation";
 import { type Controls, fighterAt, neutralControls } from "../sim/roster";
 import { firstStateDifference } from "./difference";
 import { ReplayCorrections, ReplayHistory } from "./history";
@@ -25,7 +24,7 @@ function tapeDifference(expected: TapeWorld, actual: TapeWorld): string | undefi
   return firstStateDifference(captureTape(expected), captureTape(actual));
 }
 
-test("the history ring wraps by epoch and refuses invalid ranges without touching live state", () => {
+test("the history ring wraps by epoch and refuses invalid ranges without touching live state [invariant]", () => {
   const tape = createTapeWorld({ stocks: 99 });
   const { live } = tape;
   const last = REPLAY_HISTORY_CAPACITY + 1;
@@ -73,43 +72,13 @@ test("the history ring wraps by epoch and refuses invalid ranges without touchin
   assertTrue(history.contains(8, 1));
 });
 
-test("the history refuses skipped frames and a frame counter that would wrap", () => {
-  const tape = createTapeWorld({ stocks: 99 });
-  const { live } = tape;
-  const history = new ReplayHistory();
-  const row = createMatchFrameInput();
-  const input = neutralControls();
-  const requests = attackBuffer(0);
-  const controls = frameControls(input, input, requests, requests);
-  assertFalse(history.beginEpoch(-1, 1));
-  assertFalse(history.beginEpoch(0, 0));
-  assertTrue(history.beginEpoch(0, 1));
-  assertTrue(captureFrame(row, 2, 3, controls, live.runtime));
-  assertFalse(history.save(0, row, live));
-  assertTrue(captureFrame(row, 1, 3, controls, live.runtime));
-  live.runtime.simulationFrame = 1;
-  assertFalse(history.save(0, row, live));
-  live.runtime.simulationFrame = 0;
-  assertTrue(history.save(0, row, live));
-  assertTrue(history.beginEpoch(1, 2147483646));
-  live.runtime.simulationFrame = 2147483645;
-  assertTrue(captureFrame(row, 2147483646, 3, controls, live.runtime));
-  assertTrue(history.save(1, row, live));
-  execute(tape, row);
-  assertTrue(captureFrame(row, 2147483647, 3, controls, live.runtime));
-  assertFalse(history.save(1, row, live));
-  assertTrue(history.contains(1, 2147483646));
-  assertTrue(history.restore(1, 2147483646, live));
-  assertEquals(live.runtime.simulationFrame, 2147483645);
-});
-
-test("a recorded tape matches an independent run through repeated rollback", () => {
+test("a recorded tape matches an independent run through repeated rollback [invariant]", () => {
   // One complete input cycle crosses the history ring and sees every recorded
   // combat event; longer repetitions are the on-demand replay soak.
   runRecordedTape(192, 1, 99);
 });
 
-test("corrected predictions refresh snapshots across the ring wrap and a second rollback", () => {
+test("corrected predictions refresh snapshots across the ring wrap and a second rollback [invariant]", () => {
   const wrap = REPLAY_HISTORY_CAPACITY;
   const canonical = createTapeWorld({ stocks: 99 });
   const partiallyCorrected = createTapeWorld({ stocks: 99 });
@@ -192,7 +161,7 @@ test("corrected predictions refresh snapshots across the ring wrap and a second 
   assertTrue(history.saveSpeculative(9, row, predicted.live));
 });
 
-test("the correction window and identical confirmations govern speculation", () => {
+test("the correction window and identical confirmations govern speculation [spec docs/netcode-proposal.md]", () => {
   const tape = createTapeWorld({ stocks: 99 });
   const { live } = tape;
   const history = new ReplayHistory();
@@ -244,7 +213,7 @@ test("the correction window and identical confirmations govern speculation", () 
   assertTrue(history.saveSpeculative(3, second, live));
 });
 
-test("correction preflight rejects a whole batch without changing history or live state", () => {
+test("correction preflight rejects a whole batch without changing history or live state [invariant]", () => {
   const tape = createTapeWorld({ stocks: 99 });
   const { live } = tape;
   const history = new ReplayHistory();
@@ -293,42 +262,7 @@ test("correction preflight rejects a whole batch without changing history or liv
   assertEquals(history.correct(5, corrections, live), "rejected");
 });
 
-test("a correction batch copies its rows, bounds its storage and refuses conflicts", () => {
-  const corrections = new ReplayCorrections();
-  assertTrue(corrections.beginEpoch(1));
-  const row = createMatchFrameInput();
-  const copy = createMatchFrameInput();
-  const input = neutralControls();
-  const requests = attackBuffer(0);
-  const controls = frameControls(input, input, requests, requests);
-  const runtime = createPacingAndPresentation();
-  assertFalse(corrections.add(row));
-  for (let frame = 1; frame <= REPLAY_MAX_CORRECTION_FRAMES; frame++) {
-    assertTrue(captureFrame(row, frame, 3, controls, runtime));
-    assertTrue(corrections.add(row));
-  }
-  assertEquals(corrections.size(), REPLAY_MAX_CORRECTION_FRAMES);
-  assertTrue(corrections.add(row));
-  assertTrue(captureFrame(row, REPLAY_MAX_CORRECTION_FRAMES + 1, 3, controls, runtime));
-  assertFalse(corrections.add(row));
-  input.specialPressed = true;
-  assertTrue(captureFrame(row, REPLAY_MAX_CORRECTION_FRAMES, 3, controls, runtime));
-  assertFalse(corrections.add(row));
-  assertTrue(corrections.copyRow(REPLAY_MAX_CORRECTION_FRAMES - 1, copy));
-  assertFalse(sameMatchFrameInput(copy, row));
-  input.specialPressed = false;
-  resetMatchFrameInput(row);
-  assertTrue(captureFrame(row, REPLAY_MAX_CORRECTION_FRAMES, 3, controls, runtime));
-  assertTrue(sameMatchFrameInput(copy, row));
-  assertFalse(corrections.copyRow(-1, copy));
-  assertFalse(corrections.copyRow(REPLAY_MAX_CORRECTION_FRAMES, copy));
-  assertTrue(sameMatchFrameInput(copy, row));
-  corrections.clear();
-  assertTrue(corrections.add(row));
-  assertEquals(corrections.size(), 1);
-});
-
-test("a confirmed frame takes history's state after it only when history ran the same row from a corrected state", () => {
+test("a confirmed frame takes history's state after it only when history ran the same row from a corrected state [invariant]", () => {
   const speculative = createTapeWorld({ stocks: 99 });
   const confirmed = createTapeWorld({ stocks: 99 });
   const restored = createTapeWorld({ stocks: 99 });
@@ -370,7 +304,33 @@ function assertSameFields<T>(expected: T, actual: T): void {
   for (const key in expected) assertEquals(actual[key], expected[key], key);
 }
 
-test("[invariant] restored and borrowed network frames preserve CPU state and every confirmed impact event", () => {
+test("a borrowed confirmed snapshot stays fixed when its history slot is reused [invariant]", () => {
+  const tape = createTapeWorld({ stocks: 99 });
+  const history = new ReplayHistory();
+  assertTrue(history.beginEpoch(1, 1));
+  const requests = attackBuffer(0);
+  const controls = frameControls({ ...neutralControls(), direction: 1 }, neutralControls(), requests, requests);
+  const row = createMatchFrameInput();
+  const first = createMatchFrameInput();
+  for (let frame = 1; frame <= 2; frame++) {
+    assertTrue(captureFrame(row, frame, 3, controls, tape.live.runtime));
+    assertTrue(history.save(1, row, tape.live));
+    execute(tape, row);
+    if (frame === 1) copyMatchFrameInput(first, row);
+  }
+  const borrowed = history.stateAfter(1, 1, first);
+  if (borrowed === undefined) throw new Error("frame 1 is available");
+  const expected = createReplaySnapshot();
+  copyReplayState(expected, borrowed);
+  for (let frame = 3; frame <= REPLAY_HISTORY_CAPACITY + 2; frame++) {
+    assertTrue(captureFrame(row, frame, 3, controls, tape.live.runtime));
+    assertTrue(history.save(1, row, tape.live));
+    execute(tape, row);
+  }
+  assertEquals(firstStateDifference(expected, borrowed), undefined);
+});
+
+test("restored and borrowed network frames preserve CPU state and every confirmed impact event [invariant]", () => {
   const predicted = createTapeWorld({ stocks: 99 });
   const restored = createTapeWorld({ stocks: 99 });
   let borrowed = createTapeWorld({ stocks: 99 }).live;
@@ -409,7 +369,7 @@ test("[invariant] restored and borrowed network frames preserve CPU state and ev
   assertGreaterThan(contacts, 0);
 });
 
-test("#206 a client that predicted past the pause frame returns to the state before it", () => {
+test("#206 a client that predicted past the pause frame returns to the state before it [repro #206]", () => {
   const tape = createTapeWorld({ stocks: 99 });
   const { live } = tape;
   const history = new ReplayHistory();

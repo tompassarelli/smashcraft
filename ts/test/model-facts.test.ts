@@ -4,7 +4,7 @@ import { SMASHCRAFT_SCENE } from "../scripts/wisp/playerView";
 
 // Imported models are named by content hash, so a changed clip or build input
 // renames its model and an unrefreshed table no longer holds it.
-test("the model facts table holds exactly the models the scene names", () => {
+test("the model facts table holds exactly the models the scene names [native]", () => {
   const named = new Set(SMASHCRAFT_SCENE.kinds.flatMap((kind) => kind.models).filter((model) => model !== ""));
   const missing = [...named].filter((model) => !(model in MODEL_FACTS));
   const extra = Object.keys(MODEL_FACTS).filter((model) => !named.has(model));

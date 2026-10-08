@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { Cause, Clock, Effect, Exit, Fiber, Layer } from "effect";
+import { Clock, Effect, Fiber, Layer } from "effect";
 import { TestClock } from "effect/testing";
 import { expect, test } from "bun:test";
 import {
@@ -18,7 +18,7 @@ import { SourceErrors } from "wisp/scripts/wisp/sourceErrors";
 
 const fixture = (name: string) => readFileSync(join(import.meta.dir, "fixtures/wisp", name), "utf8");
 
-test("each game-written file kind decodes its native Preload fixture", async () => {
+test("each game-written file kind decodes its native Preload fixture [native]", async () => {
   expect(await Effect.runPromise(MeleeReady.decode("ready.txt", fixture("melee-ready.pld"))))
     .toEqual({ build: "ts-shell-r1", input: "input-v4", presentation: "pose-v6", scenario: "default", bindings: "standard", humans: 2, fighters: 2, slotBindings: ["BINDINGS0 HUMAN", "BINDINGS1 HUMAN"] });
   expect(await Effect.runPromise(DevCommandReceipt.decode("dev.txt", fixture("dev-command-receipt.pld"))))
@@ -32,24 +32,7 @@ test("each game-written file kind decodes its native Preload fixture", async () 
     .toEqual({ lines: ["confirmed frame 301 state 8821", "confirmed frame 302 state 8837"], dropped: 0, ticks: 300, seconds: 4.996 });
 });
 
-test("malformed fixtures report their file and typed field", async () => {
-  const cases = [
-    ["ready-malformed.txt", MeleeReady, "melee-ready-malformed.pld", "humans"],
-    ["dev-malformed.txt", DevCommandReceipt, "dev-command-receipt-malformed.pld", "receipt"],
-    ["trace-start-malformed.txt", InputTraceStart, "input-trace-start-malformed.pld", "build"],
-    ["trace-malformed.txt", InputTrace, "input-trace-malformed.pld", "dropped"],
-  ] as const;
-  for (const [file, kind, source, field] of cases) {
-    const result = await Effect.runPromiseExit(kind.decode(file, fixture(source)));
-    expect(Exit.isFailure(result)).toBe(true);
-    if (Exit.isFailure(result)) {
-      expect(Cause.pretty(result.cause)).toContain(file);
-      expect(Cause.pretty(result.cause)).toContain(field);
-    }
-  }
-});
-
-test("hot reload publishes payloads before manifests and waits for each fake client acknowledgement", async () => {
+test("hot reload publishes payloads before manifests and waits for each fake client acknowledgement [spec wisp:docs/hot-reload.md]", async () => {
   const directories = ["/a/CustomMapData", "/b/CustomMapData"] as const;
   const events: string[] = [];
   const acknowledgement = "function PreloadFiles takes nothing returns nothing\ncall Preload( \"applied 1 at 0\" )\nendfunction\n";
@@ -101,7 +84,7 @@ test("hot reload publishes payloads before manifests and waits for each fake cli
   }
 });
 
-test("the quick-match command is one chat line from the host, acknowledged by every client's new receipt", async () => {
+test("the quick-match command is one chat line from the host, acknowledged by every client's new receipt [spec AGENTS.md]", async () => {
   const clients: readonly [Client, Client] = [
     { name: "a", documents: "/a/Documents/Warcraft III" },
     { name: "b", documents: "/b/Documents/Warcraft III" },

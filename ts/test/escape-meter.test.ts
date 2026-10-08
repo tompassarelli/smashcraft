@@ -67,7 +67,7 @@ function watch(clients: ReturnType<typeof headless.clients>, frames: number, pre
   return seen;
 }
 
-test("both players see the held fighter's escape meter drain with the simulation's hold and mark the pummel", () => {
+test("both players see the held fighter's escape meter drain with the simulation's hold and mark the pummel [spec docs/gameplay-design.md] [invariant]", () => {
   const clients = headless.clients({ start, install });
   clients.start();
   clients.frames(1);
@@ -87,7 +87,7 @@ test("both players see the held fighter's escape meter drain with the simulation
   expect(clients.firstDivergence()).toBeUndefined();
 });
 
-test("both players see a frozen fighter's escape meter drain with the freeze, faster as it mashes", () => {
+test("both players see a frozen fighter's escape meter drain with the freeze, faster as it mashes [spec docs/gameplay-design.md] [invariant]", () => {
   const clients = headless.clients({ start, install });
   clients.start();
   clients.frames(1);

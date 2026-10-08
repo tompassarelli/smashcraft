@@ -37,7 +37,7 @@ ShadowInputSchedule.prototype.readConfirmed = function (this: ShadowInputSchedul
   return read;
 };
 
-test("a human without a controller helper plays on the keyboard: the match runs, their fighter stands still until a key moves it, and Y pauses", () => {
+test("a human without a controller helper plays on the keyboard: the match runs, their fighter stands still until a key moves it, and Y pauses [repro #46]", () => {
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
   helpers.silent.add(1);
   const { clients, frames, clientA: a, clientB: b } = startPlayableMatch(headless, helpers, true);

@@ -16,7 +16,7 @@ const root = join(import.meta.dir, "..");
 /** Array methods TypeScriptToLua's library runs over `#list`. */
 const ITERATING_METHODS = new Set(["forEach", "map", "flatMap", "filter", "some", "every", "reduce", "reduceRight", "find", "findIndex", "findLast", "findLastIndex", "includes", "indexOf", "lastIndexOf", "join", "entries", "keys", "values", "slice", "concat"]);
 
-sweep("Lua code iterates no list that may hold undefined", () => {
+sweep("Lua code iterates no list that may hold undefined [repro #168]", () => {
   // tsconfig.game.json holds every file compiled to Lua: the map, its emitted-Lua tests and the Lua programs.
   const configPath = join(root, "tsconfig.game.json");
   const config = ts.parseJsonConfigFileContent(ts.readConfigFile(configPath, ts.sys.readFile).config, ts.sys, root);

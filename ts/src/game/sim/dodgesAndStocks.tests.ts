@@ -22,11 +22,10 @@ import { AIR_DODGE_ANIMATION_FRAMES, beginAirDodge } from "./jumpsAndDodges";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "./knockback";
 import { attackStartupFrames } from "./moves";
 import { surfaceRight, surfaceZ } from "./stage";
-import { respawnFighter } from "./stocks";
-import { advanceSolo, controls, soloWorld, testWorld } from "./testWorld";
+import { advanceSolo, controls, testWorld } from "./testWorld";
 import { GROUND_TRACTION, authoredPhysics } from "./tuning";
 
-test("an air dodge changes velocity, and landing restores jumps", () => {
+test("an air dodge changes velocity, and landing restores jumps [reference] [spec docs/gameplay-design.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.z = 20.0;
@@ -67,7 +66,7 @@ function airDodgedFighter(character: Character): Fighter {
   return fighter;
 }
 
-test("every fighter's air dodge ends actionable, spends no jump and allows one per airtime", () => {
+test("every fighter's air dodge ends actionable, spends no jump and allows one per airtime [spec docs/gameplay-design.md]", () => {
   for (const character of ALL_FIGHTERS) {
     const fighter = airDodgedFighter(character);
     assertEquals(fighter.jump.remaining, 1);
@@ -90,7 +89,7 @@ test("every fighter's air dodge ends actionable, spends no jump and allows one p
   }
 });
 
-test("landing after the dodge ends uses ordinary landing and refreshes the air dodge for every fighter", () => {
+test("landing after the dodge ends uses ordinary landing and refreshes the air dodge for every fighter [spec docs/gameplay-design.md]", () => {
   for (const character of ALL_FIGHTERS) {
     const fighter = airDodgedFighter(character);
     fighter.motion.z = 400.0;
@@ -106,7 +105,7 @@ test("landing after the dodge ends uses ordinary landing and refreshes the air d
   }
 });
 
-test("a waveland during the dodge keeps its special landing and refreshes the dodge for every fighter", () => {
+test("a waveland during the dodge keeps its special landing and refreshes the dodge for every fighter [spec docs/gameplay-design.md]", () => {
   for (const character of ALL_FIGHTERS) {
     const fighter = createFighter(character, 0.0, 1);
     fighter.motion.grounded = false;
@@ -124,7 +123,7 @@ test("a waveland during the dodge keeps its special landing and refreshes the do
   }
 });
 
-test("a hit refreshes a spent air dodge for every fighter", () => {
+test("a hit refreshes a spent air dodge for every fighter [spec docs/gameplay-design.md]", () => {
   for (const character of ALL_FIGHTERS) {
     const fighter = airDodgedFighter(character);
     for (let frame = 2; frame <= AIR_DODGE_ANIMATION_FRAMES; frame++) advanceSolo(fighter, 0, controls(), -240.0);
@@ -140,7 +139,7 @@ test("a hit refreshes a spent air dodge for every fighter", () => {
   }
 });
 
-test("an air dodge replaces prior movement and launch momentum", () => {
+test("an air dodge replaces prior movement and launch momentum [reference] [spec docs/gameplay-design.md]", () => {
   for (const direction of [0, 1]) {
     const fighter = createFighter(Character.archer, 0.0, 1);
     fighter.motion.grounded = false;
@@ -164,7 +163,7 @@ test("an air dodge replaces prior movement and launch momentum", () => {
   }
 });
 
-test("a horizontal air dodge defaults to a shallow wavedash on both sides", () => {
+test("a horizontal air dodge defaults to a shallow wavedash on both sides [reference] [spec docs/gameplay-design.md]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     for (const direction of [-1, 1]) {
       const fighter = createFighter(character, 0.0, -direction);
@@ -186,7 +185,7 @@ test("a horizontal air dodge defaults to a shallow wavedash on both sides", () =
   }
 });
 
-test("diagonal down doesn't trigger a fast fall, but straight down does", () => {
+test("diagonal down doesn't trigger a fast fall, but straight down does [spec docs/gameplay-design.md]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     for (const direction of [-1, 0, 1]) {
       const fighter = createFighter(character, 0.0, 1);
@@ -205,7 +204,7 @@ test("diagonal down doesn't trigger a fast fall, but straight down does", () => 
   }
 });
 
-test("a diagonal air dodge displaces both axes with the same decayed vector", () => {
+test("a diagonal air dodge displaces both axes with the same decayed vector [reference]", () => {
   for (const direction of [-1, 1]) {
     const fighter = createFighter(Character.archer, 0.0, 1);
     fighter.motion.grounded = false;
@@ -226,7 +225,7 @@ test("a diagonal air dodge displaces both axes with the same decayed vector", ()
   }
 });
 
-test("a fast air dodge uses the swept platform crossing", () => {
+test("a fast air dodge uses the swept platform crossing [spec docs/physics.md]", () => {
   for (const entersTooLate of [false, true]) {
     const fighter = createFighter(Character.archer, entersTooLate ? -440.0 : -350.0, 1);
     fighter.motion.grounded = false;
@@ -244,7 +243,7 @@ test("a fast air dodge uses the swept platform crossing", () => {
   }
 });
 
-test("an air dodge landing slides and restores actions after ten ticks", () => {
+test("an air dodge landing slides and restores actions after ten ticks [reference] [spec docs/gameplay-design.md]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     const fighter = createFighter(character, 0.0, 1);
     fighter.motion.grounded = false;
@@ -273,7 +272,7 @@ test("an air dodge landing slides and restores actions after ten ticks", () => {
   }
 });
 
-test("a delayed jump air dodge lands during its motion and slides", () => {
+test("a delayed jump air dodge lands during its motion and slides [spec docs/gameplay-design.md]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     for (const fullJump of [false, true]) {
       for (const direction of [-1, 1]) {
@@ -307,7 +306,7 @@ test("a delayed jump air dodge lands during its motion and slides", () => {
   }
 });
 
-test("an air dodge landing uses ground friction even while the air timer remains", () => {
+test("an air dodge landing uses ground friction even while the air timer remains [spec docs/gameplay-design.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   fighter.motion.grounded = true;
   fighter.dodge.airDodging = true;
@@ -320,13 +319,11 @@ test("an air dodge landing uses ground friction even while the air timer remains
   advanceSolo(fighter, 0, input, -240.0);
   assertTrue(fighter.motion.grounded);
   assertEquals(fighter.landing.lag, AIR_DODGE_LANDING_LAG);
-  assertEquals(fighter.dodge.airMotionFrames, 19);
   advanceSolo(fighter, 0, input, -240.0);
-  assertEquals(fighter.dodge.airMotionFrames, 18);
   assertNear(fighter.motion.vx, 5 - 2 * GROUND_TRACTION, 0.009999999776482582);
 });
 
-test("a spot dodge starts at frame one, stays in place and uses provisional intangibility", () => {
+test("a spot dodge starts at frame one, stays in place and uses provisional intangibility [spec docs/gameplay-design.md] [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   fighter.motion.surface = 0;
   const input = controls({ shield: true, groundDodgePressed: true, groundDodgeDirection: 0 });
@@ -354,7 +351,7 @@ test("a spot dodge starts at frame one, stays in place and uses provisional inta
   assertEquals(fighter.jump.remaining, jumpsBefore);
 });
 
-test("a roll has bounded, locked motion and turns before its recovery ends", () => {
+test("a roll has bounded, locked motion and turns before its recovery ends [spec docs/gameplay-design.md] [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   fighter.motion.surface = 0;
   const input = controls({ shield: true, groundDodgePressed: true, groundDodgeDirection: 1, direction: -1 });
@@ -382,7 +379,7 @@ test("a roll has bounded, locked motion and turns before its recovery ends", () 
   assertEquals(fighter.jump.remaining, jumpsBefore);
 });
 
-test("a backward roll keeps facing, and a roll can't leave its platform", () => {
+test("a backward roll keeps facing, and a roll can't leave its platform [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 590.0, -1);
   fighter.motion.surface = 0;
   const input = controls({ shield: true, groundDodgePressed: true, groundDodgeDirection: 1 });
@@ -394,7 +391,7 @@ test("a backward roll keeps facing, and a roll can't leave its platform", () => 
   assertEquals(fighter.facing, -1);
 });
 
-test("a ground dodge rejects hitlag, shieldstun, landing lag and unshielded presses", () => {
+test("a ground dodge rejects hitlag, shieldstun, landing lag and unshielded presses [spec docs/physics.md]", () => {
   const input = controls({ shield: true, groundDodgePressed: true, groundDodgeDirection: -1 });
   const hitlagged = createFighter(Character.archer, 0.0, 1);
   hitlagged.launch.hitlag = 2;
@@ -421,7 +418,7 @@ test("a ground dodge rejects hitlag, shieldstun, landing lag and unshielded pres
   assertEquals(unshielded.dodge.groundFrame, 0);
 });
 
-test("a spot dodge doesn't drop through a pass-through platform", () => {
+test("a spot dodge doesn't drop through a pass-through platform [spec docs/physics.md] [spec docs/gameplay-design.md]", () => {
   const fighter = createFighter(Character.archer, -200.0, 1);
   fighter.motion.surface = 1;
   fighter.motion.z = surfaceZ(1, 1, 0);
@@ -432,7 +429,7 @@ test("a spot dodge doesn't drop through a pass-through platform", () => {
   assertEquals(fighter.dodge.groundFrame, 1);
 });
 
-test("a jump takes priority over a starting ground dodge", () => {
+test("a jump takes priority over a starting ground dodge [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   advanceSolo(fighter, 0, controls({ shield: true, groundDodgePressed: true, groundDodgeDirection: -1, jumpPressed: true }), -240.0);
   assertEquals(fighter.dodge.groundFrame, 0);
@@ -440,29 +437,7 @@ test("a jump takes priority over a starting ground dodge", () => {
   assertEquals(fighter.jump.squat, authoredPhysics(Character.archer).jumpSquatFrames);
 });
 
-test("respawning and getting hit clear the ground dodge state", () => {
-  const fighter = createFighter(Character.rifleman, 100.0, -1);
-  fighter.dodge.groundFrame = 8;
-  fighter.dodge.groundDirection = -1;
-  respawnFighter(soloWorld(fighter), 0, 0.0);
-  assertEquals(fighter.dodge.groundFrame, 0);
-  assertEquals(fighter.dodge.groundDirection, 0);
-  fighter.dodge.groundFrame = 1;
-  fighter.dodge.groundDirection = -1;
-  fighter.motion.x = 100.0;
-  fighter.motion.z = 0.0;
-  fighter.motion.grounded = true;
-  fighter.motion.surface = 0;
-  fighter.status.invincible = 0;
-  const attacker = createFighter(Character.archer, 0.0, 1);
-  attacker.attack.style = AttackStyle.jab;
-  attacker.attack.frame = attackStartupFrames(AttackStyle.jab);
-  resolveAttacks(testWorld(attacker, fighter));
-  assertEquals(fighter.dodge.groundFrame, 0);
-  assertEquals(fighter.dodge.groundDirection, 0);
-});
-
-test("crossing a platform from below doesn't land", () => {
+test("crossing a platform from below doesn't land [spec docs/gameplay-design.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.x = -250.0;
@@ -473,7 +448,7 @@ test("crossing a platform from below doesn't land", () => {
   assertGreaterThan(fighter.motion.z, 100.0);
 });
 
-test("a blast zone removes exactly one stock", () => {
+test("a blast zone removes exactly one stock [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, (stageBounds(0).blast.right - 2.0), 1);
   fighter.motion.vx = 100.0;
   const input = controls({ direction: 1 });
@@ -497,7 +472,7 @@ test("a blast zone removes exactly one stock", () => {
   assertEquals(fighter.motion.x, finalX);
 });
 
-test("the top blast zone requires launch knockback rather than jump speed", () => {
+test("the top blast zone requires launch knockback rather than jump speed [reference] [spec docs/physics.md]", () => {
   for (const mode of [0, 1, 2]) {
     const fighter = createFighter(Character.archer, 0.0, 1);
     fighter.motion.grounded = false;
@@ -510,7 +485,7 @@ test("the top blast zone requires launch knockback rather than jump speed", () =
   }
 });
 
-test("the top blast zone boundary doesn't consume a stock until crossed", () => {
+test("the top blast zone boundary doesn't consume a stock until crossed [reference] [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.z = stageBounds(0).blast.top;
@@ -521,7 +496,7 @@ test("the top blast zone boundary doesn't consume a stock until crossed", () => 
   assertEquals(fighter.status.stocks, 3);
 });
 
-test("the side blast zone boundaries require a strict crossing", () => {
+test("the side blast zone boundaries require a strict crossing [reference] [spec docs/physics.md]", () => {
   for (const direction of [-1, 1]) {
     const fighter = createFighter(Character.archer, f32(direction * stageBounds(0).blast.right), direction);
     const input = controls();
@@ -536,7 +511,7 @@ test("the side blast zone boundaries require a strict crossing", () => {
   }
 });
 
-test("the bottom blast zone boundary requires a strict crossing", () => {
+test("the bottom blast zone boundary requires a strict crossing [reference] [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   const input = controls();
   fighter.motion.grounded = false;

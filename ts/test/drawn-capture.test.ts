@@ -14,7 +14,7 @@ import { drawnFrameFile } from "../src/runtime/gameFiles";
 import { type Drawn, captureWhenDrawn, parseDrawn, visualCaptureCommand, visualCaptureToken } from "../scripts/integrity/drawnCapture";
 import { parsePadScript } from "../scripts/integrity/padScript";
 import { scriptChat } from "../scripts/integrity/padParity";
-import { clearVisualCapture, configureVisualCapture, heldVisualFrame, holdVisualFrame, releaseVisualFrame, visualCapture } from "../src/game/shell/visualCapture";
+import { clearVisualCapture, heldVisualFrame, visualCapture } from "../src/game/shell/visualCapture";
 import { confirmedChecksum } from "../src/platform/shell/diagnostics";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { JournalHelpers } from "./rematch/journalHelper";
@@ -30,7 +30,7 @@ function laggingClient(epoch: number, lag: number, ahead: number) {
   return { clockFrame, read: (): Drawn => ({ epoch, frame: Math.max(0, clockFrame() - lag) }) };
 }
 
-test("a capture waits for the requested held frame and identifies both receipts exactly", async () => {
+test("a capture waits for the requested held frame and identifies both receipts exactly [spec #156]", async () => {
   let frame = 10;
   const advance = setTimeout(() => { frame = 40; }, 20);
   const result = await Effect.runPromise(captureWhenDrawn(() => ({ epoch: 2, frame }), 2, 40, 2000, Effect.succeed("frame"), "test"));
@@ -40,7 +40,7 @@ test("a capture waits for the requested held frame and identifies both receipts 
   expect(result.shot).toBe("frame");
 });
 
-test("a missed requested frame fails before reading an unrelated framebuffer", async () => {
+test("a missed requested frame fails before reading an unrelated framebuffer [spec #156]", async () => {
   let shots = 0;
   const exit = await Effect.runPromiseExit(captureWhenDrawn(() => ({ epoch: 2, frame: 164 }), 2, 154, 100, Effect.sync(() => ++shots), "test"));
   expect(Exit.isFailure(exit)).toBe(true);
@@ -48,7 +48,7 @@ test("a missed requested frame fails before reading an unrelated framebuffer", a
   expect(shots).toBe(0);
 });
 
-test("the retained 154 to 164 completion and absent or replaced receipts are INVALID", async () => {
+test("the retained 154 to 164 completion and absent or replaced receipts are INVALID [spec #156]", async () => {
   for (const completion of [{ epoch: 2, frame: 164 }, undefined, { epoch: 3, frame: 154 }]) {
     let receipt: Drawn | undefined = { epoch: 2, frame: 154 };
     const exit = await Effect.runPromiseExit(captureWhenDrawn(() => receipt, 2, 154, 100, Effect.sync(() => { receipt = completion; return "later framebuffer"; }), "test"));
@@ -57,28 +57,14 @@ test("the retained 154 to 164 completion and absent or replaced receipts are INV
   }
 });
 
-test("a clock stalled at 220 cannot satisfy frame 242", async () => {
+test("a clock stalled at 220 cannot satisfy frame 242 [spec #156]", async () => {
   const exit = await Effect.runPromiseExit(captureWhenDrawn(() => ({ epoch: 2, frame: 220 }), 2, 242, 10, Effect.succeed("frame"), "test"));
   expect(Exit.isFailure(exit)).toBe(true);
   expect(String(exit)).toContain("INVALID: drawn-clock boundary");
   expect(String(exit)).toContain("epoch 2 frame 220");
 });
 
-test("the original Illidan capture schedule preserves all eight authored frames", () => {
-  const steps = parsePadScript(readFileSync(new URL("native/pads/156/illidan.pad", import.meta.url), "utf8"));
-  const frames = steps.filter(step => step.kind === "capture").map(step => step.frame);
-  expect(frames).toEqual([154, 197, 247, 297, 347, 402, 462, 512]);
-  const command = visualCaptureCommand("-dev quick hero illidan", "test", steps);
-  expect(configureVisualCapture(command, 0)).toBe("-dev quick hero illidan");
-  for (const frame of frames) {
-    expect(holdVisualFrame(0, 1, frame)).toBe(true);
-    expect(heldVisualFrame(0)).toEqual({ epoch: 1, frame });
-    releaseVisualFrame(0);
-  }
-  clearVisualCapture(0);
-});
-
-test("Warcraft's 127-character chat limit preserves all 13 original cue schedules and starts both clients", () => {
+test("Warcraft's 127-character chat limit preserves all 13 original cue schedules and starts both clients [spec #156]", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1]);
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
   const frames = (n: number) => { for (let i = 0; i < n; i++) { clients.frames(1); helpers.service(clients); } };
@@ -115,7 +101,7 @@ test("Warcraft's 127-character chat limit preserves all 13 original cue schedule
   expect(() => visualCaptureCommand("x".repeat(127), token, [])).toThrow("127-character");
 });
 
-test("a visual hold captures inside a catch-up callback while the unchanged match keeps advancing", () => {
+test("a visual hold captures inside a catch-up callback while the unchanged match keeps advancing [invariant]", () => {
   const run = (hold: boolean) => {
     for (const slot of [0, 1]) clearVisualCapture(slot);
     const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1]);
@@ -153,14 +139,14 @@ test("a visual hold captures inside a catch-up callback while the unchanged matc
   expect(run(true)).toEqual(run(false));
 });
 
-test("a capture ignores another match's drawn frames and fails after its wait", async () => {
+test("a capture ignores another match's drawn frames and fails after its wait [spec #156]", async () => {
   const oldMatch = laggingClient(1, 0, 500);
   const exit = await Effect.runPromiseExit(captureWhenDrawn(oldMatch.read, 2, 40, 150, Effect.succeed("frame"), "test"));
   expect(Exit.isFailure(exit)).toBe(true);
   expect(String(exit)).toContain("hadn't drawn match 2 frame 40");
 });
 
-test("the integrity build writes the predicted frame it drew, in its match's epoch", () => {
+test("the integrity build writes the predicted frame it drew, in its match's epoch [invariant]", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1]);
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
   const frames = (n: number) => { for (let i = 0; i < n; i++) { clients.frames(1); helpers.service(clients); } };

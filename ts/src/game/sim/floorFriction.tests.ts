@@ -39,7 +39,7 @@ function assertTwiceAsLong(ground: number, water: number): void {
   assertNear(f32(water / ground), f32(1.0 / WATER_FRICTION), f32(0.15));
 }
 
-test("only Tomb of Sargeras's main deck has reduced friction", () => {
+test("only Tomb of Sargeras's main deck has reduced friction [spec docs/physics.md]", () => {
   for (const stage of [FLAT_STAGE, FROZEN_THRONE_STAGE]) {
     for (let surface = 0; surface < surfaceCount(stage); surface++) assertEquals(floorFriction(stage, { grounded: true, surface }), 1.0);
   }
@@ -47,7 +47,7 @@ test("only Tomb of Sargeras's main deck has reduced friction", () => {
   assertEquals(floorFriction(TOMB_OF_SARGERAS_STAGE, { grounded: false, surface: 0 }), 1.0);
 });
 
-test("a run released on water brakes at half traction and slides twice as far", () => {
+test("a run released on water brakes at half traction and slides twice as far [spec docs/physics.md]", () => {
   const ground = runner(FLAT_STAGE);
   const water = runner(TOMB_OF_SARGERAS_STAGE);
   // Running speed and position are the same until the stick is released: acceleration is unchanged.
@@ -62,7 +62,7 @@ test("a run released on water brakes at half traction and slides twice as far", 
   assertTwiceAsLong(slideToRest(ground, FLAT_STAGE, groundSpeed).distance, slideToRest(water, TOMB_OF_SARGERAS_STAGE, groundSpeed).distance);
 });
 
-test("a landing slide (wavedash and waveland) carries twice as far on water", () => {
+test("a landing slide (wavedash and waveland) carries twice as far on water [spec docs/physics.md]", () => {
   const slide = (stage: number) => {
     const f = createFighter(Character.rifleman, -300.0, 1);
     f.motion.vx = 14.0;
@@ -72,7 +72,7 @@ test("a landing slide (wavedash and waveland) carries twice as far on water", ()
   assertTwiceAsLong(slide(FLAT_STAGE), slide(TOMB_OF_SARGERAS_STAGE));
 });
 
-test("ground knockback slides twice as far on water", () => {
+test("ground knockback slides twice as far on water [spec docs/physics.md]", () => {
   const slide = (stage: number) => {
     const f = createFighter(Character.archer, -300.0, 1);
     installDamageLaunch(f, 60.0, 1.0, 0.0, true);
@@ -83,7 +83,7 @@ test("ground knockback slides twice as far on water", () => {
   assertTwiceAsLong(slide(FLAT_STAGE), slide(TOMB_OF_SARGERAS_STAGE));
 });
 
-test("shield pushback slides twice as far on water", () => {
+test("shield pushback slides twice as far on water [spec docs/physics.md]", () => {
   const slide = (stage: number) => {
     const f = createFighter(Character.archer, -300.0, 1);
     const shielding = controls({ shield: true });

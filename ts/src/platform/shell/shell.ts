@@ -4,6 +4,7 @@
 // callback services one frame of menus, input, simulation and presentation.
 import { PARTICIPANT_SLOTS, isParticipantMask, isParticipantSlot } from "../../game/input/participants";
 import { clearPulse } from "../../game/input/directionalInput";
+import { ownConfirmedState } from "./confirmedState";
 import { startKeyUp } from "../../game/match/controls";
 import { Phase, copyMatchState, humanActive, humanPresent, participantLeft, updateConnectedHumans } from "../../game/match/rules";
 import { FRAME_SECONDS } from "../../game/presentation/fighterPose";
@@ -175,6 +176,7 @@ function presentMatchFlow(s: ShellState): void {
 }
 
 function playerLeft(s: ShellState): void {
+  ownConfirmedState(s);
   const slot = GetPlayerId(GetTriggerPlayer());
   playerFilesOwnerLeft(slot);
   if (!humanPresent(s.game, slot)) return;

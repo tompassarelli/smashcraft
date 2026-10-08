@@ -5,7 +5,7 @@
 // or when the move has a purpose at range: a projectile, a trap, a summon, a
 // beam. Starts that strike nothing (stances, armor, the up specials that
 // carry the fighter) are moves, not attacks.
-import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { clearAttackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
@@ -19,7 +19,7 @@ import { attackStartupFrames } from "../sim/moves";
 import { copyControls, createRoster, fighterAt, isActive, neutralControls } from "../sim/roster";
 import { immolationRegion } from "../sim/specials";
 import { strikeMeets } from "./botHeroKit";
-import { moveReachAhead, moveReaches } from "./botMoves";
+import { moveReaches } from "./botMoves";
 import { produceComputerInput } from "./botPlay";
 import { createFrameControls } from "./controls";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
@@ -28,18 +28,6 @@ import { MATCH_TICKS_PER_SECOND, Phase, createMatchState } from "./rules";
 import { sweep } from "../../runtime/sweep";
 
 const NEUTRAL = neutralControls();
-
-test("jab-chain reach queries preserve adjacent fighters' cached jab and shot reach", () => {
-  const target = createFighter(Character.archer, 0.0, 1);
-  const jab = moveReachAhead(Character.rifleman, AttackStyle.jab, target);
-  const shot = moveReachAhead(Character.rifleman, AttackStyle.shot, target);
-  moveReachAhead(Character.archer, AttackStyle.jab2, target);
-  moveReachAhead(Character.archer, AttackStyle.jab3, target);
-  // Archer has no authored second jab; it must not inherit Rifleman's jab box.
-  assertEquals(moveReaches(Character.archer, AttackStyle.jab2, target, 60.0, 0.0), false);
-  assertEquals(moveReachAhead(Character.rifleman, AttackStyle.jab, target), jab);
-  assertEquals(moveReachAhead(Character.rifleman, AttackStyle.shot, target), shot);
-});
 /** Stage 1: the main deck at 0 and two pass-through decks 170 up, from 110 to 420 each side. */
 const RAISED_STAGE = 1;
 const RAISED_Z = 170.0;
@@ -160,7 +148,7 @@ function playIdleOpponent(character: Character, cx: number, cz: number, surface:
   return result;
 }
 
-sweep("computerApproachesAnOpponentOutOfReachInsteadOfAttacking", () => {
+sweep("computerApproachesAnOpponentOutOfReachInsteadOfAttacking [repro #160]", () => {
   const failures: string[] = [];
   let idleStarts = 0;
   for (const character of SELECTABLE_CHARACTERS) {

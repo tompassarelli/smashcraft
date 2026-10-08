@@ -12,8 +12,7 @@ import { TEST_PHASE_ENV } from "wisp/scripts/wisp/timingTest";
 import { ISOLATED_TEST_GROUPS, testWorkerEnvironment } from "./testWorkers";
 import { runAdmitted } from "./heavyCapacity";
 import { BUN_TEST_CEILING_S, addCost, judge, readBaseline, type Costs } from "./testCost";
-
-await runAdmitted("heavy", "smashcraft:test", 1800);
+import { refuseUntagged } from "./oracleTags";
 
 const project = resolve(import.meta.dir, "..");
 process.chdir(project);
@@ -64,6 +63,8 @@ const groups: Group[] = [
   ...balance(shared, Math.max(REST_SHARDS, usableCpus() - 1 - GAME_SHARDS - isolated.length)).map((bin) => ({ files: bin })),
   ...isolated.map((names) => ({ files: testFiles.filter((file) => names.includes(file)) })),
 ].filter((group) => group.files.length > 0);
+refuseUntagged(project, [...testFiles, ...gameModules.map((module) => `src/${module}`)]);
+await runAdmitted("heavy", "smashcraft:test", 1800);
 /** Spreads files over `count` processes, heaviest first onto the lightest. */
 function balance(names: readonly string[], count: number): string[][] {
   const bins = Array.from({ length: count }, () => ({ files: new Array<string>(), cpu: 0 }));

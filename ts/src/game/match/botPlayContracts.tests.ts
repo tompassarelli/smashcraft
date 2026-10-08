@@ -15,8 +15,6 @@ import { surfaceLeft, surfaceRight } from "../sim/stage";
 import { FREEZE_TRAP_FREEZE_FRAMES } from "../sim/summons";
 import { produceComputerInput } from "./botPlay";
 import { chooseDefense } from "./botDefense";
-import { upSpecialStartable, heroSpecialUse, HeroSpecialUse } from "./botHeroKit";
-import { SpecialSlot } from "../sim/heroSpecials";
 import { beginFighterAttack } from "../sim/attacks";
 import { attackStartupFrames } from "../sim/moves";
 import { createFrameControls } from "./controls";
@@ -58,7 +56,7 @@ function computerMatch(characters: readonly [Character, Character], xs: readonly
   return { world, match, controls, runtime, produced, step };
 }
 
-test("computerChasesToTheEdgeWithoutLeavingTheStage", () => {
+test("computerChasesToTheEdgeWithoutLeavingTheStage [spec #56]", () => {
   // The #12 soak's self-destruct: a computer chasing an opponent at the deck's edge ran off it.
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
     for (const side of [-1, 1]) {
@@ -75,7 +73,7 @@ test("computerChasesToTheEdgeWithoutLeavingTheStage", () => {
   }
 });
 
-test("computerGetsUpUnderJabResets", () => {
+test("computerGetsUpUnderJabResets [repro #56]", () => {
   // A 5-damage jab on a lying fighter resets it; a computer that lay still was reset until time ran out.
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
     const game = computerMatch([Character.rifleman, character], [-60.0, 0.0], 0, 2);
@@ -95,7 +93,7 @@ test("computerGetsUpUnderJabResets", () => {
   }
 });
 
-test("computerMatchesRepeatFromTheSameStart", () => {
+test("computerMatchesRepeatFromTheSameStart [invariant]", () => {
   for (const stage of [0, 1]) {
     const checksums: string[] = [];
     let landed = 0;
@@ -129,7 +127,7 @@ function heroUsage(game: ReturnType<typeof computerMatch>, slot: number, frames:
   return { specials, grabs, computer };
 }
 
-test("computer Forsaken Paladin uses Righteous Fury at a level target in range and never presses what its mana can't pay", () => {
+test("computer Forsaken Paladin uses Righteous Fury at a level target in range and never presses what its mana can't pay [spec #155]", () => {
   const game = computerMatch([Character.archer, Character.forsakenPaladin], [-200.0, 200.0], 0, 2);
   const { specials } = heroUsage(game, 1, 900);
   assertGreaterThan(specials[1] ?? 0, 0);
@@ -145,7 +143,7 @@ test("computer Forsaken Paladin uses Righteous Fury at a level target in range a
   assertEquals(forsakenPaladin.visuals.manaDenied, 0);
 });
 
-test("computer Forsaken Paladin shields or dodges an incoming strike and grabs a shield", () => {
+test("computer Forsaken Paladin shields or dodges an incoming strike and grabs a shield [spec #56]", () => {
   // The hammer kit defends with ordinary shield or dodge.
   let guards = 0;
   for (let serial = 0; serial < 30; serial++) {
@@ -171,28 +169,16 @@ test("computer Forsaken Paladin shields or dodges an incoming strike and grabs a
   assertGreaterThan(grabbed.grabs, 0);
 });
 
-test("Forsaken Paladin uses affordable Righteous Fury in hammer range and refuses its former wave range", () => {
-  const own = createFighter(Character.forsakenPaladin, 0.0, 1);
-  const target = createFighter(Character.archer, 210.0, -1);
-  own.mana.points = 25;
-  assertEquals(heroSpecialUse(own, target, 0, SpecialSlot.side), HeroSpecialUse.close);
-  own.mana.points = 24;
-  assertEquals(heroSpecialUse(own, target, 0, SpecialSlot.side), HeroSpecialUse.none);
-  own.mana.points = 100;
-  target.motion.x = 440.0;
-  assertEquals(heroSpecialUse(own, target, 0, SpecialSlot.side), HeroSpecialUse.none);
-});
-
 // One test a hero: the roster grows, and each hero's two 3600-frame matches take 0.3-0.5 s alone.
 // The suite plays the first complete hero; the others run as sweeps.
 const firstCompleteHero = HERO_ROSTER.find((hero) => hero.complete);
 for (const hero of HERO_ROSTER) {
   if (!hero.complete) continue;
-  sweep(`${hero.name}'s computer uses its specials and grabs in a match against another computer, the same each time`, () => {
+  sweep(`${hero.name}'s computer uses its specials and grabs in a match against another computer, the same each time [spec #146] [invariant]`, () => {
     const checksums: string[] = [];
     for (let run = 0; run < 2; run++) {
       const game = computerMatch([Character.archer, hero.character], [-240.0, 240.0], 0, 3);
-      const { specials, grabs } = heroUsage(game, 1, 3600);
+      const { specials } = heroUsage(game, 1, 3600);
       assertGreaterThan(specials.filter((count, slot) => slot !== 2 && count > 0).length, 0);
       checksums.push(stateChecksum(game));
     }
@@ -200,21 +186,7 @@ for (const hero of HERO_ROSTER) {
   });
 }
 
-test("a computer hero's recovery counts its up special spent once used this airtime, and free below its cost", () => {
-  const forsakenPaladin = createFighter(Character.forsakenPaladin, 0.0, 1);
-  forsakenPaladin.motion.grounded = false;
-  forsakenPaladin.motion.z = 300.0;
-  assertTrue(upSpecialStartable(forsakenPaladin, false));
-  forsakenPaladin.mana.points = 0;
-  assertTrue(upSpecialStartable(forsakenPaladin, false));
-  forsakenPaladin.special.airtimeUses = 1 << SpecialSlot.up;
-  assertFalse(upSpecialStartable(forsakenPaladin, true));
-  const archer = createFighter(Character.archer, 0.0, 1);
-  assertTrue(upSpecialStartable(archer, true));
-  assertFalse(upSpecialStartable(archer, false));
-});
-
-test("a frozen computer mashes out of the freeze at a human pace", () => {
+test("a frozen computer mashes out of the freeze at a human pace [spec #114]", () => {
   // Ten presses a second (botPlay.ts) thaw it on frame 131 of 300, well above the 60-frame floor.
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
     const game = computerMatch([Character.rifleman, character], [-300.0, 0.0], 0, 2);

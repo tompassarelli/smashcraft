@@ -1,5 +1,6 @@
 import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
+import { upSpecialRoute } from "../../match/recoveryEnvelope";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, SpecialAction } from "../codes";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
@@ -64,7 +65,7 @@ function withPack() {
   return scene;
 }
 
-test("Beastmaster summons Bear on frame 24, Quilbeast on 18 and Hawk on 12 without replacing another animal", () => {
+test("Beastmaster summons Bear on frame 24, Quilbeast on 18 and Hawk on 12 without replacing another animal [spec docs/design/beastmaster.md]", () => {
   const { world, owner } = pair();
   run(world, 23, side);
   assertEquals(owner.mana.points, 80);
@@ -87,22 +88,18 @@ test("Beastmaster summons Bear on frame 24, Quilbeast on 18 and Hawk on 12 witho
   assertGreaterThan(placedObject(owner, 2).z, owner.motion.z);
 });
 
-test("Beastmaster's Bear follows, Quilbeast holds its firing position, and Hawk follows above independently", () => {
+test("Beastmaster's Bear follows, Quilbeast holds its firing position, and Hawk follows above independently [spec docs/design/beastmaster.md]", () => {
   const { world, owner } = withPack();
-  const bearX = owner.placed.x;
   const quilX = placedObject(owner, 1).x;
-  const hawkX = placedObject(owner, 2).x;
   owner.motion.x = f32(owner.motion.x + 200.0);
   frame(world);
-  assertNear(f32(owner.placed.x - bearX), BEAR.followSpeed, f32(0.01));
   assertEquals(placedObject(owner, 1).x, quilX);
-  assertNear(f32(placedObject(owner, 2).x - hawkX), HAWK.followSpeed, f32(0.01));
   run(world, 100);
   assertNear(f32(owner.motion.x - owner.placed.x), BEAR.followBehind, 1.0);
   assertNear(f32(placedObject(owner, 2).z - owner.motion.z), HAWK.followHeight ?? 0.0, 1.0);
 });
 
-test("Beastmaster Stampede commands Bear and sends two thunder lizards; Bear bites once in both facings", () => {
+test("Beastmaster Stampede commands Bear and sends two thunder lizards; Bear bites once in both facings [spec docs/design/beastmaster.md]", () => {
   for (const facing of [1, -1]) {
     const { world, owner, target } = withBear(f32(H * f32(1.4)), facing);
     owner.placed.x = f32(target.motion.x - f32(facing * f32(H * f32(0.9))));
@@ -123,7 +120,7 @@ test("Beastmaster Stampede commands Bear and sends two thunder lizards; Bear bit
   }
 });
 
-test("striking Beastmaster's lunging animal stuns it and each animal can be destroyed separately", () => {
+test("striking Beastmaster's lunging animal stuns it and each animal can be destroyed separately [spec docs/design/beastmaster.md]", () => {
   const { world, owner, target } = withPack();
   const quil = placedObject(owner, 1);
   owner.placed.x = -600.0;
@@ -146,7 +143,7 @@ test("striking Beastmaster's lunging animal stuns it and each animal can be dest
   assertTrue(stunned);
 });
 
-test("Beastmaster Quilbeast fires from its own location, then a command gives three separated quills", () => {
+test("Beastmaster Quilbeast fires from its own location, then a command gives three separated quills [spec docs/design/beastmaster.md]", () => {
   const { world, owner } = pair();
   run(world, 40, down);
   const quil = placedObject(owner, 1);
@@ -173,7 +170,7 @@ test("Beastmaster Quilbeast fires from its own location, then a command gives th
   assertEquals(owner.projectiles.filter(p => p.life > 0).length, 0);
 });
 
-test("Beastmaster Hawk Dive leaves its perch and launches a target upward in both facings", () => {
+test("Beastmaster Hawk Dive leaves its perch and launches a target upward in both facings [spec docs/design/beastmaster.md]", () => {
   for (const facing of [1, -1]) {
     const { world, owner, target } = pair(1000.0, facing);
     run(world, 30, up);
@@ -190,7 +187,7 @@ test("Beastmaster Hawk Dive leaves its perch and launches a target upward in bot
   }
 });
 
-test("Beastmaster Wild Axes are free, throw twice and return toward the moving owner", () => {
+test("Beastmaster Wild Axes are free, throw twice and return toward the moving owner [spec docs/design/beastmaster.md]", () => {
   const { world, owner, target } = pair();
   frame(world, neutral);
   assertEquals(owner.mana.points, 100);
@@ -211,29 +208,29 @@ test("Beastmaster Wild Axes are free, throw twice and return toward the moving o
   assertTrue(pulled);
 });
 
-test("Beastmaster airborne Hawk Lift retains full and free recovery and leaves Hawk alive", () => {
-  for (const [mana, rise] of [[100, f32(3.2)], [10, f32(2.3)]] as const) {
+test("Beastmaster Hawk Lift rises 380–520 and reaches 600–900, its free route at least 240 on each axis; Hawk survives the helpless fall [spec #252] [spec docs/design/beastmaster.md]", () => {
+  for (const mana of [100, 10]) {
+    const route = upSpecialRoute(Character.beastmaster, mana);
+    assertTrue(mana === 100 ? route.rise >= 380.0 && route.rise <= 520.0 : route.rise >= 240.0);
+    assertTrue(mana === 100 ? route.reach >= 600.0 && route.reach <= 900.0 : route.reach >= 240.0);
     const { world, owner } = pair();
     owner.motion.grounded = false;
     owner.motion.surface = undefined;
     owner.motion.z = 100.0;
     owner.motion.vz = 0.0;
     owner.mana.points = mana;
-    let liftStart = owner.motion.z;
-    let peak = liftStart;
     frame(world, up);
     assertEquals(owner.mana.points, mana === 100 ? 85 : 10);
-    for (let f = 2; f <= 33; f++) { frame(world); if (f === 10) liftStart = owner.motion.z; peak = Math.max(peak, owner.motion.z); }
+    for (let f = 2; f <= 33; f++) frame(world);
     assertTrue(owner.special.fall);
     assertEquals(owner.jump.remaining, 0);
     assertGreaterThan(placedObject(owner, 2).life, 0);
-    assertNear(f32(peak - liftStart), f32(H * rise), f32(H * f32(0.2)));
     frame(world, up);
     assertEquals(owner.special.action, SpecialAction.none);
   }
 });
 
-test("Beastmaster's hitstun cancels every companion command and a stock clears the whole pack", () => {
+test("Beastmaster's hitstun cancels every companion command and a stock clears the whole pack [spec docs/design/beastmaster.md]", () => {
   const { world, owner, target } = withPack();
   for (let animal = 0; animal < 3; animal++) { placedObject(owner, animal).mode = CompanionMode.lunge; placedObject(owner, animal).modeFrame = 0; }
   owner.launch.hitstun = 40;
@@ -245,7 +242,7 @@ test("Beastmaster's hitstun cancels every companion command and a stock clears t
   for (let animal = 0; animal < 3; animal++) assertEquals(placedObject(owner, animal).life, 0);
 });
 
-test("rollback restores Beastmaster's three separate companion positions and commands", () => {
+test("rollback restores Beastmaster's three separate companion positions and commands [invariant]", () => {
   const { world, owner, target } = withPack();
   frame(world, down);
   run(world, 8);

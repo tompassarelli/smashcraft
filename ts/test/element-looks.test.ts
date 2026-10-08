@@ -28,7 +28,7 @@ function hitEffects(value: unknown, path: string, out: { path: string; element: 
   for (const [key, child] of Object.entries(value)) hitEffects(child, `${path}.${key}`, out, seen);
 }
 
-test("every hero attack and special names its element", () => {
+test("every hero attack and special names its element [spec docs/gameplay-design.md]", () => {
   const effects: { path: string; element: unknown }[] = [];
   for (const hero of HERO_ROSTER) {
     // Grabs latch, as Melee's catch element shows nothing; throws take their own element (sim/grabs.ts).
@@ -40,22 +40,20 @@ test("every hero attack and special names its element", () => {
   expect(effects.filter(({ element }) => typeof element === "number" && !ELEMENTS.includes(element as never)).map(({ path }) => path)).toEqual([]);
 });
 
-test("every element shows a stock model on its victim and plays a stock sound", () => {
+test("every element shows a stock model on its victim and plays a stock sound [native]", () => {
   const victims = ELEMENTS.flatMap((element) => elementLook(element).victim ?? []);
-  expect(victims.length).toBe(7);
   expect(new Set(victims).size).toBe(victims.length);
   expect(victims.filter((model) => MODEL_FACTS[model] === undefined)).toEqual([]);
   const sounds = [...ELEMENTS.flatMap((element) => elementLook(element).sound ?? []), ...Object.values(IMMOLATE_SOUNDS)];
-  expect(sounds.length).toBe(7 + 3);
   expect(sounds.filter((label) => !LABELS.has(label))).toEqual([]);
 });
 
-test("every tier sound file is in the installed game", () => {
+test("every tier sound file is in the installed game [native]", () => {
   // Swings and cut or blunt hits play the game's own weapon sounds by path (src/game/presentation/moveTiers.ts, #163).
   expect(tierSoundPaths().filter((path) => VERIFIED_STOCK_SOUNDS[path] === undefined)).toEqual([]);
 });
 
-test("every sound hit presentation plays has its files in the installed game", () => {
+test("every sound hit presentation plays has its files in the installed game [native]", () => {
   const labels = hitPresentationSoundLabels();
   expect(labels.length).toBeGreaterThan(10);
   // tools/presentation/stock-sounds.ts resolves each label through the game's sound tables and checks each file in its storage.

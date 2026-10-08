@@ -1,0 +1,21 @@
+Change: confirmed state keeps a read-only history snapshot between callbacks;
+copy it only before mutation. One spare snapshot protects a borrowed ring slot.
+Before: 1707ad3efb7d798f0517cf3c042d64ca2e6d0604, farm 37745599537
+After: 39b59900b1515894b47d9d88d99a4f59f76d23fa, farm 37746600723
+Command: bun wisp farm perf 'playable-bot-four --samples'
+Both: 1800 frames, 0 problems; delay 2, rollback window 24, repair budget 6 unchanged.
+
+Player 0: predicted milliseconds p50 5.848 -> 5.727; p95 16.912 -> 16.852;
+p99 20.52 after; worst 24.210 -> 23.911. Mean instructions 301466 -> 295708.
+Player 1: predicted milliseconds p50 5.797 -> 5.699; p95 16.654 -> 16.534;
+p99 19.98 after; worst 24.663 -> 24.359. Mean instructions 295972 -> 290211.
+Mean allocation: both players 68 KB/frame before and after.
+Adjacent perf compare: PASS. Original fixture compare and 10/14 ms budget: FAIL.
+
+Checks: history 11/11 in Bun and Lua32, including ring reuse and impact events.
+Recorded playable and callback matches plus rematch: 3/3 tests, 72 assertions.
+Parity tapes: 24 tapes, 19310 frames, 0 divergences in both Lua modes.
+
+Rejected cursor experiment: 0a952380, farm 37745682934, reverted by aba2cb8a.
+It exposed the live repair and speculative cursors to confirmation but did not
+improve p95: p0 16.912 -> 16.976 ms; p1 16.654 -> 16.654 ms. No budget changed.

@@ -40,7 +40,7 @@ function runProbe(source: string): void {
   let diDiscreteFailures = 0;
   for (const passMessage of GROUPS) {
     const group = passMessage.slice(0, passMessage.length - 5);
-    const fixtures = registeredTests.filter(({ name }) => name === `#9 ${passMessage}`);
+    const fixtures = registeredTests.filter(({ name }) => name.split(" [")[0] === `#9 ${passMessage}`);
     if (fixtures.length === 0) {
       failures++;
       message(`${group}_FAIL`);

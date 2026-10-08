@@ -10,7 +10,7 @@ import { DEVELOPMENT_SOURCE, sourceVersion as runtimeVersion } from "../src/game
 
 const ts = join(import.meta.dir, "..");
 
-test("the build replaces the placeholder with the source version, which unstamped code reads as development", () => {
+test("the build replaces the placeholder with the source version, which unstamped code reads as development [spec #141]", () => {
   expect(readFileSync(join(ts, "src/game/shell/sourceVersion.ts"), "utf8")).toContain(`const SOURCE_STAMP = ${SOURCE_STAMP_TEXT};`);
   expect(runtimeVersion()).toBe(DEVELOPMENT_SOURCE);
   const version = sourceVersion(ts);

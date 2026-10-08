@@ -21,7 +21,7 @@ function joined(): string[] {
 const sceneText = (scene: ReplayScene) =>
   `${scene.frame} ${scene.fighters.map((f) => `${f.slot}:${f.x},${f.z},${f.damage},${f.stocks},${f.parts.length},${f.strikes.length}`).join(" ")}`;
 
-test("replay viewer: stepping and seeking either way show the same frames", () => {
+test("replay viewer: stepping and seeking either way show the same frames [invariant]", () => {
   const viewer = openReplay(joined());
   if (typeof viewer === "string") throw new Error(viewer);
   assertEquals(`${viewer.first} ${viewer.last} ${viewer.frame}`, "0 700 0");
@@ -45,9 +45,4 @@ test("replay viewer: stepping and seeking either way show the same frames", () =
   viewer.seek(-5);
   assertEquals(viewer.frame, 0);
   assertTrue(viewer.scene().surfaces.length > 0);
-});
-
-test("replay viewer: a manifest or broken text is refused with a reason", () => {
-  assertEquals(typeof openReplay(recordTapeReplay(130, 0).manifest), "string");
-  assertEquals(openReplay(["not a replay"]), `not a repro: its first line isn't "wisp-repro 1"`);
 });

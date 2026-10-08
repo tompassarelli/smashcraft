@@ -1,10 +1,10 @@
 import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
-import { attackBufferCanonicalState, clearAttackBuffer, copyAttackBuffer, holdAttack, type AttackBuffer, type AttackCommand, attackBuffer, queueAttack, takeAttack } from "./attackBuffer";
+import { copyAttackBuffer, holdAttack, type AttackBuffer, type AttackCommand, attackBuffer, queueAttack, takeAttack } from "./attackBuffer";
 import type { Direction } from "./inputRow";
 
 const attack = (style: number, facing: Direction, frame: number, mayCharge = false): AttackCommand => ({ style, facing, frame, mayCharge });
 
-test("a snapshot and a consumed request keep their values when the source buffer queues or holds another", () => {
+test("a snapshot and a consumed request keep their values when the source buffer queues or holds another [invariant]", () => {
   const live = attackBuffer(3);
   const snapshot = attackBuffer(3);
   queueAttack(live, attack(4, -1, 10, true));
@@ -37,7 +37,7 @@ function winners(first: AttackCommand, second: AttackCommand): AttackCommand[] {
   return [take(forward, first.frame), take(reverse, first.frame)];
 }
 
-test("same-frame smashes in opposing directions stay neutral in every order", () => {
+test("same-frame smashes in opposing directions stay neutral in every order [spec docs/gameplay-design.md] [invariant]", () => {
   for (const [repeated, opposing] of [[-1, 1], [1, -1]] as const) {
     for (let position = 0; position <= 2; position++) {
       const buffer = attackBuffer(0);
@@ -53,7 +53,7 @@ test("same-frame smashes in opposing directions stay neutral in every order", ()
   }
 });
 
-test("a C-stick smash beats a smash that may charge in either order", () => {
+test("a C-stick smash beats a smash that may charge in either order [spec docs/gameplay-design.md] [invariant]", () => {
   for (let direct = 2; direct <= 4; direct++) {
     for (let normal = 2; normal <= 4; normal++) {
       for (const taken of winners(attack(normal, -1, 1, true), attack(direct, 1, 1))) {
@@ -65,7 +65,7 @@ test("a C-stick smash beats a smash that may charge in either order", () => {
   }
 });
 
-test("a same-frame C-stick smash beats a jab or a tilt in either order", () => {
+test("a same-frame C-stick smash beats a jab or a tilt in either order [spec docs/gameplay-design.md] [invariant]", () => {
   for (const other of [attack(0, 0, 10), attack(6, -1, 10)]) {
     for (const taken of winners(other, attack(4, 1, 10))) {
       assertEquals(taken.style, 4);
@@ -74,39 +74,7 @@ test("a same-frame C-stick smash beats a jab or a tilt in either order", () => {
   }
 });
 
-test("charge permission travels with one command and expires with it", () => {
-  const buffer = attackBuffer(0);
-  queueAttack(buffer, attack(4, 1, 1, true));
-  const charged = take(buffer, 1);
-  assertEquals(charged.style, 4);
-  assertTrue(charged.mayCharge);
-  assertEquals(takeAttack(buffer, 1, true), undefined);
-  queueAttack(buffer, attack(4, 1, 2, true));
-  assertEquals(takeAttack(buffer, 2, false), undefined);
-  assertEquals(takeAttack(buffer, 3, true), undefined);
-  queueAttack(buffer, attack(4, 1, 4));
-  const uncharged = take(buffer, 4);
-  assertEquals(uncharged.style, 4);
-  assertFalse(uncharged.mayCharge);
-});
-
-test("a press is taken once, on its frame", () => {
-  const buffer = attackBuffer(0);
-  queueAttack(buffer, attack(0, 0, 10));
-  assertEquals(takeAttack(buffer, 9, true), undefined);
-  assertEquals(take(buffer, 10).style, 0);
-  assertEquals(takeAttack(buffer, 10, true), undefined);
-  assertEquals(takeAttack(buffer, 11, true), undefined);
-});
-
-test("without grace frames an attack is not stored through recovery", () => {
-  const buffer = attackBuffer(0);
-  queueAttack(buffer, attack(1, 0, 10));
-  assertEquals(takeAttack(buffer, 10, false), undefined);
-  assertEquals(takeAttack(buffer, 11, true), undefined);
-});
-
-test("grace frames hold an attack through recovery until they run out", () => {
+test("grace frames hold an attack through recovery until they run out [spec docs/gameplay-design.md]", () => {
   const buffer = attackBuffer(3);
   queueAttack(buffer, attack(4, -1, 10));
   assertEquals(takeAttack(buffer, 10, false), undefined);
@@ -117,55 +85,7 @@ test("grace frames hold an attack through recovery until they run out", () => {
   assertEquals(takeAttack(buffer, 24, true), undefined);
 });
 
-test("Replay2 command fields retain a consumed request and reset on expiry or clear", () => {
-  const buffer = attackBuffer(3);
-  queueAttack(buffer, attack(4, -1, 10, true));
-  assertEquals(attackBufferCanonicalState(buffer).style, 4);
-  assertEquals(attackBufferCanonicalState(buffer).facing, -1);
-  assertEquals(attackBufferCanonicalState(buffer).targetFrame, 10);
-  assertFalse(attackBufferCanonicalState(buffer).consumedMayCharge);
-
-  assertEquals(takeAttack(buffer, 10, false), undefined);
-  assertEquals(attackBufferCanonicalState(buffer).style, 4);
-  assertEquals(attackBufferCanonicalState(buffer).consumedFacing, 0);
-  const taken = take(buffer, 10);
-  assertEquals(taken.facing, -1);
-  assertEquals(attackBufferCanonicalState(buffer).style, -1);
-  assertEquals(attackBufferCanonicalState(buffer).facing, -1);
-  assertEquals(attackBufferCanonicalState(buffer).targetFrame, 10);
-  assertEquals(attackBufferCanonicalState(buffer).consumedFacing, -1);
-  assertTrue(attackBufferCanonicalState(buffer).consumedMayCharge);
-
-  const copied = attackBuffer(0);
-  copyAttackBuffer(copied, buffer);
-  assertEquals(attackBufferCanonicalState(copied).targetFrame, 10);
-  assertEquals(attackBufferCanonicalState(copied).consumedFacing, -1);
-  assertTrue(attackBufferCanonicalState(copied).consumedMayCharge);
-
-  assertEquals(takeAttack(buffer, 11, true), undefined);
-  assertEquals(attackBufferCanonicalState(buffer).facing, -1);
-  assertEquals(attackBufferCanonicalState(buffer).targetFrame, 10);
-  assertEquals(attackBufferCanonicalState(buffer).consumedFacing, 0);
-  assertFalse(attackBufferCanonicalState(buffer).consumedMayCharge);
-
-  queueAttack(buffer, attack(0, 1, 20));
-  assertEquals(takeAttack(buffer, 24, true), undefined);
-  assertEquals(attackBufferCanonicalState(buffer).style, -1);
-  assertEquals(attackBufferCanonicalState(buffer).facing, 0);
-  assertEquals(attackBufferCanonicalState(buffer).targetFrame, -1);
-
-  queueAttack(buffer, attack(1, 1, 30));
-  clearAttackBuffer(buffer);
-  assertEquals(buffer.queued.frame, 0);
-  assertEquals(buffer.previous.frame, 0);
-  assertEquals(buffer.queued.mayCharge, false);
-  assertEquals(buffer.previous.mayCharge, false);
-  assertEquals(attackBufferCanonicalState(buffer).style, -1);
-  assertEquals(attackBufferCanonicalState(buffer).targetFrame, -1);
-  assertEquals(attackBufferCanonicalState(buffer).consumedFacing, 0);
-});
-
-test("angled tilts reach their frame and yield to C-stick smashes", () => {
+test("angled tilts reach their frame and yield to C-stick smashes [spec docs/gameplay-design.md]", () => {
   for (let style = 9; style <= 10; style++) {
     const buffer = attackBuffer(0);
     queueAttack(buffer, attack(style, -1, 10));

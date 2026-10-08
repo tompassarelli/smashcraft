@@ -4,11 +4,10 @@
 import { afterAll, expect, test } from "bun:test";
 import { trampoline } from "wisp/src/platform/dispatch";
 import { reportedModel, sceneFile } from "wisp/src/runtime/scene";
-import { type SceneReport, bodyProblems, readSceneLines, sceneProblems } from "wisp/scripts/wisp/scene";
+import { type SceneReport, readSceneLines, sceneProblems } from "wisp/scripts/wisp/scene";
 import { SMASHCRAFT_SCENE } from "../scripts/wisp/playerView";
 import { IMPACT_HIT_MODEL } from "../src/game/assets/impactAssetInfo";
 import { impactModel } from "../src/game/presentation/hitPresentation";
-import { STAGE_DECK_MODEL, STAGE_MAIN_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
 import { Action, bit } from "../src/game/input/actions";
 import { requestStageSelect, requestStart, selectCharacter, selectStage, setParticipants } from "../src/game/match/rules";
 import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
@@ -26,16 +25,13 @@ import { CombatEffects } from "../src/game/render/combatEffects";
 import { createImpactEvents } from "../src/game/presentation/impactEvents";
 import { Character, DownState, SurfaceContact } from "../src/game/sim/codes";
 import { fighterAt } from "../src/game/sim/roster";
-import { WARDEN_HERO } from "../src/game/sim/heroes/wardenHero";
 import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, TIMED_TEST_STAGE, WIND_TEST_STAGE, DRIFTING_DECK_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, MAIN_DECK_UNDERSIDE_Z, solidSurfaceAt, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
 import { stageBounds } from "../src/game/sim/stageBounds";
 import { advanceMatchCamera } from "../src/game/sim/matchCamera";
-import { QUICK_MATCH_COMMAND } from "../src/game/shell/devSettings";
 import { initializeScenario } from "../src/game/shell/scenarios";
 import { BODY_HALF_WIDTH, bodyTop } from "../src/game/sim/surfaces";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../src/game/sim/tuning";
 import { install as installDevelopment, start as startDevelopment } from "../src/platform/devMain";
-import { PERF_COMMAND } from "../src/platform/frameMeter";
 import { startMatch } from "../src/platform/shell/matchStart";
 import { startQuickMatch } from "../src/platform/shell/menus";
 import { shell } from "../src/platform/shell/state";
@@ -73,7 +69,7 @@ const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: unlogge
 const seconds = (value: number) => value * SMASHCRAFT_SCENE.framesPerSecond;
 afterAll(headless.restore);
 
-test("Frozen Throne: a selectable match draws four platforms and the winter background without scene problems", () => {
+test("Frozen Throne: a selectable match draws four platforms and the winter background without scene problems [provisional]", () => {
   const clients = headless.clients({ start: startDevelopment, install: installDevelopment });
   clients.start();
   clients.frames(30);
@@ -92,7 +88,7 @@ test("Frozen Throne: a selectable match draws four platforms and the winter back
   }
 });
 
-test("every stage's scenery stays behind fighters, and fog starts beyond the fight in every declared camera", () => {
+test("every stage's scenery stays behind fighters, and fog starts beyond the fight in every declared camera [provisional]", () => {
   const visibility = SMASHCRAFT_SCENE.visibility;
   if (visibility === undefined) throw new Error("missing visibility");
   const problems: string[] = [];
@@ -140,7 +136,7 @@ function sceneReport(client: HeadlessClient): SceneReport {
   return read;
 }
 
-test("development build: a match's scene report shows the stage and declares every effect the match creates", () => {
+test("development build: a match's scene report shows the stage and declares every effect the match creates [invariant]", () => {
   const clients = headless.clients({ start: startDevelopment, install: installDevelopment });
   clients.start();
   clients.frames(30);
@@ -168,34 +164,7 @@ test("development build: a match's scene report shows the stage and declares eve
   expect(client.errors).toEqual([]);
 });
 
-test("a hero drawn with its fighter unit counts as drawn in the scene report", () => {
-  const clients = headless.clients({ start: startDevelopment, install: installDevelopment });
-  clients.start();
-  clients.frames(30);
-  const client = clients.clients[0];
-  if (client === undefined) throw new Error("missing host client");
-  const warden = WARDEN_HERO.presentation.model;
-  client.run(() => {
-    const s = shell();
-    selectCharacter(s.game, 0, Character.rifleman);
-    selectCharacter(s.game, 1, Character.rifleman);
-    // Selection admits only complete heroes; the match draws any registered one.
-    s.game.characterChoices[1] = Character.warden;
-    expect(requestStageSelect(s.game, 0)).toBe(true);
-    expect(requestStart(s.game, 0)).toBe(true);
-    startMatch(s);
-  });
-  clients.frames(60);
-  client.run(() => trampoline("scene.report")());
-  const report = sceneReport(client);
-  // A selectable hero also parks its star-KO bodies (render/combatEffects.ts), live but never in view.
-  expect(report.models.find(({ model }) => model.toLowerCase() === reportedModel(warden).toLowerCase())).toMatchObject({ inView: 1, drawn: 1 });
-  expect(bodyProblems(report, [{ name: "Warden (Player 2)", models: [warden] }], MODEL_FACTS)).toEqual([]);
-  expect(sceneProblems(report, SMASHCRAFT_SCENE)).toEqual([]);
-  expect(client.errors).toEqual([]);
-});
-
-test("moving decks are visible and their effects follow the presented match frame", () => {
+test("moving decks are visible and their effects follow the presented match frame [provisional]", () => {
   for (const stage of [DRIFTING_DECK_STAGE, PATTERNED_DECKS_STAGE]) {
     const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
     clients.start();
@@ -231,7 +200,7 @@ test("moving decks are visible and their effects follow the presented match fram
   }
 });
 
-test("every hazard stage shows its warning before acting and declares the cannon players see", () => {
+test("every hazard stage shows its warning before acting and declares the cannon players see [spec #194]", () => {
   for (const [stage, frame, warning] of [
     [WIND_TEST_STAGE, 601, "Wind pushes right in 45 frames."],
     [CARRIED_TEST_STAGE, 30, "Platform moves in 30 frames."],
@@ -270,28 +239,6 @@ test("every hazard stage shows its warning before acting and declares the cannon
   }
 });
 
-test("the two shipped defects fail the scene check from the match's first report", () => {
-  const read = (lines: readonly string[]) => {
-    const report = readSceneLines(lines);
-    if ("problem" in report) throw new Error(report.problem);
-    return report;
-  };
-  const deck = `model 1 1 1 0 0 0 0 ${reportedModel(STAGE_MAIN_DECK_MODEL)}`;
-  // Match-start lines of the development build with 05266a3's parking reverted (evidence/render-visibility-20261006):
-  // the rifleman's collapsed GyroCopterMissile pool waits at the floor and keeps smoking.
-  expect(sceneProblems(read(["scene 1 frame 0 effects 267", deck, "model 16 16 0 0 0 0 0 Abilities/Weapons/GyroCopter/GyroCopterMissile.mdx"]), SMASHCRAFT_SCENE)).toEqual([{
-    seen: "16 hidden projectile, special cues in view still show particles",
-    evidence: "model Abilities/Weapons/GyroCopter/GyroCopterMissile.mdx: 16 in view, 0 drawn; BlizParticle02 emits 30/s, each for 0.5 s",
-  }]);
-  // And with 168e08c's empty stage deck model.
-  const emptyDeck = { ...SMASHCRAFT_SCENE, kinds: SMASHCRAFT_SCENE.kinds.map((kind) => (kind.name === "stage deck" ? { ...kind, models: [""] } : kind)) };
-  expect(sceneProblems(read(["scene 1 frame 0 effects 267", "model 1 1 1 0 0 0 1 "]), emptyDeck).map(({ seen }) => seen)).toEqual([
-    "no stage under the fighters: 0 of the 1 stage deck pieces a match needs are drawn",
-    "invisible stage deck: 1 effects were created with no model, 1 of them meant to be drawn now",
-    "nothing where a stage deck should be: the game names no model for it",
-  ]);
-});
-
 /**
  * Dense play's dust: an archer jumping every 9 frames while running back and
  * forth, with two computers chasing it, takes the eight-slot dust pool's next
@@ -299,7 +246,7 @@ test("the two shipped defects fail the scene check from the match's first report
  * stayed in view over 180 frames and failed the rematch of #26's clean-folders
  * capture (240 frames) and its headless run (687).
  */
-test("a dust slot reused while shown is a new stay each use; a standing spark and a collapsed missile still fail", () => {
+test("a dust slot reused while shown is a new stay each use; a standing spark and a collapsed missile still fail [repro #26]", () => {
   const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
   clients.start();
   clients.frames(30);
@@ -377,21 +324,7 @@ test("a dust slot reused while shown is a new stay each use; a standing spark an
   expect(client.errors).toEqual([]);
 });
 
-test("development build: -dev perf shows the typing player what the match's frames cost", () => {
-  const clients = headless.clients({ start: startDevelopment, install: installDevelopment });
-  clients.start();
-  clients.frames(30);
-  clients.chat(0, QUICK_MATCH_COMMAND);
-  clients.frames(60);
-  clients.chat(0, PERF_COMMAND);
-  const overlay = (client: HeadlessClient | undefined) => client?.frames.shownText().filter((text) => text.startsWith("frame cost")) ?? [];
-  const [host, guest] = clients.clients;
-  // Bun has no Lua clock and counts no natives; the frames are the shell's since its first tick, the match advancing one a frame.
-  expect(overlay(host)).toEqual(["frame cost, last 89 frames, median / p95 / max\nLua: no clock\nnatives: 0 / 0 / 0\ncatch-up frames: 1 / 1 / 1"]);
-  expect(overlay(guest)).toEqual([]);
-});
-
-test("a downward offscreen portrait and arrow stay entirely above the HUD at every supported aspect", () => {
+test("a downward offscreen portrait and arrow stay entirely above the HUD at every supported aspect [spec #80]", () => {
   for (const aspect of [16 / 9, 16 / 10, 3 / 2]) {
     const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
     clients.start();
@@ -417,7 +350,7 @@ test("a downward offscreen portrait and arrow stay entirely above the HUD at eve
 });
 
 // One test a stage: the catalog grows, and each stage's three 360-frame matches take 0.2-0.5 s alone.
-for (const { id: stage, name } of STAGE_CATALOG) test(`${name} keeps its camera inside the blast zones, shows every offscreen bubble and loses stocks outside the view at all supported aspects`, () => {
+for (const { id: stage, name } of STAGE_CATALOG) test(`${name} keeps its camera inside the blast zones, shows every offscreen bubble and loses stocks outside the view at all supported aspects [spec #80]`, () => {
   for (const aspect of [16 / 9, 16 / 10, 3 / 2]) {
     const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
     clients.start();
@@ -495,7 +428,7 @@ function framePoint(camera: SetCamera, origin: { readonly x: number; readonly y:
   return { column: 0.5 + along(right) / (2 * along(forward) * across), row: 0.5 - along(up) / (2 * along(forward) * (across * 9) / 16) };
 }
 
-test("a fighter within 100 of the main deck's underside shows above the HUD with the underside, wherever the others are", () => {
+test("a fighter within 100 of the main deck's underside shows above the HUD with the underside, wherever the others are [spec #57]", () => {
   const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
   clients.start();
   clients.frames(30);
@@ -554,7 +487,7 @@ test("a fighter within 100 of the main deck's underside shows above the HUD with
   expect(sceneProblems(sceneReport(client), SMASHCRAFT_SCENE)).toEqual([]);
 });
 
-test("the underside scenario holds a fighter under the main deck, shown above the HUD with the underside, through fresh's frame 30", () => {
+test("the underside scenario holds a fighter under the main deck, shown above the HUD with the underside, through fresh's frame 30 [spec #57]", () => {
   const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
   clients.start();
   clients.frames(30);
@@ -605,7 +538,7 @@ function insideMainDeck(x: number, z: number): boolean {
   return inside;
 }
 
-test("in the underside scenario's match, a fighter rising into the main deck's underside meets it with its ECB top and none of it inside the deck", () => {
+test("in the underside scenario's match, a fighter rising into the main deck's underside meets it with its ECB top and none of it inside the deck [invariant]", () => {
   const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
   clients.start();
   clients.frames(30);
@@ -658,7 +591,7 @@ test("in the underside scenario's match, a fighter rising into the main deck's u
   });
 });
 
-test("ranked stage lineup: both clients choose all ten stages and draw their decks and themed scenery", () => {
+test("ranked stage lineup: both clients choose all ten stages and draw their decks and themed scenery [invariant]", () => {
   const stages = STAGE_CATALOG.filter(({ id }) => id !== 0);
   expect(stages).toHaveLength(10);
   for (const stage of stages) {

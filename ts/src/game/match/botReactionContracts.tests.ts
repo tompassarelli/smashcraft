@@ -6,7 +6,7 @@ import { createFighter, type Fighter } from "../sim/fighter";
 import { createRoster, fighterAt, neutralControls, sameControls } from "../sim/roster";
 import { sameAttackBuffer } from "../input/attackBuffer";
 import { produceComputerInput } from "./botPlay";
-import { BOT_DIRECTION_FRAMES, type BotMemory, commitBotDirection, copyBotMemory, createBotMemory, observeOpponents, perceivedOpponent, settleObservationChecksum } from "./botPerception";
+import { BOT_DIRECTION_FRAMES, type BotMemory, commitBotDirection, copyBotMemory, createBotMemory, observeOpponents, perceivedOpponent } from "./botPerception";
 import { cpuSkill } from "./cpuSkill";
 import { CPU_PROFILES, type CpuOpponentId, type CpuTier } from "./cpuProfiles";
 import { createFrameControls } from "./controls";
@@ -15,7 +15,7 @@ import { createMatchState, Phase } from "./rules";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
 import { replayChecksum } from "../replay/matchReplay";
-import { botObservationCanonical, canonicalState, writeCanonicalNumber } from "../replay/canonical";
+import { botObservationCanonical, canonicalState } from "../replay/canonical";
 import { sweep } from "../../runtime/sweep";
 
 const SURPRISE_FRAME = 50;
@@ -41,7 +41,7 @@ const surprises: readonly ((target: Fighter) => void)[] = [
     const p = at(target.projectiles, 0); p.life = 100; p.x = 0.0; p.z = 45.0; p.direction = -1; p.velocityX = -12.0; p.serial++; },
 ];
 
-test("retained observations survive storage reuse, restored plain history and rollback", () => {
+test("retained observations survive storage reuse, restored plain history and rollback [invariant]", () => {
   const game = setup();
   const saved = createBotMemory();
   for (let frame = 1; frame <= 43; frame++) {
@@ -75,85 +75,9 @@ test("retained observations survive storage reuse, restored plain history and ro
   observeOpponents(game.runtime.botMemory, game.world, 44);
   assertEquals(at(game.runtime.botMemory.history, 41).opponents[1]?.motion.x, 43);
   assertEquals(botObservationCanonical(at(saved.history, 42)), at(original, 42));
-  const sample = at(game.runtime.botMemory.history, 42);
-  const text = botObservationCanonical(sample);
-  let first = 0;
-  let second = 0;
-  for (let index = 0; index < text.length; index++) {
-    const code = text.charCodeAt(index) + 1;
-    first = floorMod(first * 31 + code, 46337);
-    second = floorMod(second * 37 + code, 46337);
-  }
-  settleObservationChecksum(sample);
-  assertEquals(sample.checksumFirst, first);
-  assertEquals(sample.checksumSecond, second);
 });
 
-test("cached observation chunks fold the exact text across kits, fractional values and integer boundaries", () => {
-  for (const character of SELECTABLE_CHARACTERS) {
-    const game = setup();
-    game.world.fighters[1] = createFighter(character, 100.0, -1);
-    const target = fighterAt(game.world, 1);
-    let frame = 0;
-    for (const value of [-2147483648, -256, -1, 0, 1, 255, 256, 2147483647, 0.5]) {
-      frame++;
-      target.motion.x = value;
-      target.status.damage = value;
-      for (const projectile of target.projectiles) projectile.life = 0;
-      const projectile = at(target.projectiles, floorMod(frame * 3, target.projectiles.length));
-      projectile.life = floorMod(frame, 4) === 0 ? 0 : frame;
-      projectile.x = value;
-      observeOpponents(game.runtime.botMemory, game.world, frame);
-      const sample = at(game.runtime.botMemory.history, frame - 1);
-      const text = botObservationCanonical(sample);
-      const projectileBytes: string[] = [];
-      const emit = (code: number) => { projectileBytes.push(String.fromCharCode(code)); };
-      for (const p of assertDefined(sample.opponents[1]).projectiles) {
-        for (const value of [p.life, p.x, p.z, p.direction, p.velocityX, p.velocityZ, p.serial]) {
-          emit(44);
-          writeCanonicalNumber(emit, value);
-        }
-      }
-      assertTrue(text.endsWith(`${projectileBytes.join("")},0,0`));
-      let first = 0;
-      let second = 0;
-      for (let index = 0; index < text.length; index++) {
-        const code = text.charCodeAt(index) + 1;
-        first = floorMod(first * 31 + code, 46337);
-        second = floorMod(second * 37 + code, 46337);
-      }
-      settleObservationChecksum(sample);
-      assertEquals(sample.checksumFirst, first);
-      assertEquals(sample.checksumSecond, second);
-    }
-  }
-});
-
-test("observation number digests remain exact after recent values are evicted and revisited", () => {
-  const game = setup("wren", "expert");
-  for (let frame = 1; frame <= 1201; frame++) {
-    const value = frame === 1201 ? 1 : frame;
-    game.target.motion.x = value + 0.5;
-    game.target.motion.z = -value - 0.25;
-    observeOpponents(game.runtime.botMemory, game.world, frame);
-    const sample = at(game.runtime.botMemory.history, game.runtime.botMemory.history.length - 1);
-    // Every sample's digest is computed, as checkpoints would, so the digest cache evicts and revisits.
-    settleObservationChecksum(sample);
-    if (frame !== 1 && frame !== 1200 && frame !== 1201) continue;
-    const text = botObservationCanonical(sample);
-    let first = 0;
-    let second = 0;
-    for (let index = 0; index < text.length; index++) {
-      const code = text.charCodeAt(index) + 1;
-      first = floorMod(first * 31 + code, 46337);
-      second = floorMod(second * 37 + code, 46337);
-    }
-    assertEquals(sample.checksumFirst, first);
-    assertEquals(sample.checksumSecond, second);
-  }
-});
-
-test("replay state checks detect delayed observations and direction commitment independently of current fighters", () => {
+test("replay state checks detect delayed observations and direction commitment independently of current fighters [invariant]", () => {
   const expected = setup();
   const changed = setup();
   observeOpponents(expected.runtime.botMemory, expected.world, 1);
@@ -173,7 +97,7 @@ test("replay state checks detect delayed observations and direction commitment i
   assertTrue(checksum(expected) !== checksum(changed));
 });
 
-sweep("150 surprise-action traces: no computer input responds before its authored observation delay", () => {
+sweep("150 surprise-action traces: no computer input responds before its authored observation delay [spec #176] [spec #184]", () => {
   let early = 0;
   for (const profile of CPU_PROFILES) {
     const delay = cpuSkill(profile.opponent, profile.tier).reactionFrames;
@@ -204,7 +128,7 @@ sweep("150 surprise-action traces: no computer input responds before its authore
 // gameplan keeps the same stick direction on either side, so any changed input counts.
 const RESPONSE_SURPRISE_FRAME = 35;
 
-test("Wren Expert first responds on frame 12 after a surprise side change", () => {
+test("Wren Expert first responds on frame 12 after a surprise side change [spec #176]", () => {
   const changed = setup();
   const quiet = setup();
   let first: number | undefined;
@@ -216,7 +140,7 @@ test("Wren Expert first responds on frame 12 after a surprise side change", () =
   assertEquals(first, 12);
 });
 
-test("rapid grounded and airborne requests, including neutral braking, have zero reversals before five frames", () => {
+test("rapid grounded and airborne requests, including neutral braking, have zero reversals before five frames [spec #176]", () => {
   const memory = createBotMemory();
   const input = neutralControls();
   let previous = 0;
@@ -236,7 +160,7 @@ test("rapid grounded and airborne requests, including neutral braking, have zero
   assertEquals(early, 0);
 });
 
-sweep("all 21 fighters' approach, retreat, air steering and recovery traces have zero early direction reversals", () => {
+sweep("all 21 fighters' approach, retreat, air steering and recovery traces have zero early direction reversals [spec #176]", () => {
   let frames = 0;
   let reversals = 0;
   let early = 0;

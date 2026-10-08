@@ -5,7 +5,7 @@ import { BEAR_PLACEMENT } from "../sim/heroes/beastmasterSpecials";
 import { CompanionMode } from "../sim/heroSpecials";
 import { advanceBearFeedback, bearState, createBearFeedbackCursor } from "./bearFeedback";
 
-test("Beastmaster Bear marker shows all four states through one command and disappears on loss", () => {
+test("Beastmaster Bear marker shows all four states through one command and disappears on loss [spec docs/design/beastmaster.md]", () => {
   const fighter = createFighter(Character.beastmaster, 0.0, 1);
   const bear = fighter.placed;
   assertEquals(bearState(fighter), undefined);
@@ -30,7 +30,7 @@ test("Beastmaster Bear marker shows all four states through one command and disa
   assertEquals(bearState(fighter), undefined);
 });
 
-test("Beastmaster Bear roars once per command and sounds only connected bites, with repeated frames ignored", () => {
+test("Beastmaster Bear roars once per command and sounds only connected bites, with repeated frames ignored [spec docs/design/beastmaster.md]", () => {
   const fighter = createFighter(Character.beastmaster, 0.0, 1);
   const bear = fighter.placed;
   bear.spec = BEAR_PLACEMENT;

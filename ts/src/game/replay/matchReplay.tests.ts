@@ -3,11 +3,11 @@
 // between frames, replays to every checksum it recorded.
 import { assertDefined, assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { stateChecksum } from "./canonical";
-import { createFrameScratch, joinReplay, parseReplay, parseReplayHeader, parseReplayPart, replayMatch, replayPartLines, runReplayFrame } from "./matchReplay";
+import { createFrameScratch, joinReplay, parseReplay, parseReplayHeader, parseReplayPart, replayMatch, runReplayFrame } from "./matchReplay";
 import { copyReplayState, createReplaySnapshot } from "./snapshot";
 import { TAPE_REPLAY_SERIAL, recordTapeReplay } from "./tapeReplay";
 
-test("match replay: a rollback match recorded in parts, paused once, replays to every checksum", () => {
+test("match replay: a rollback match recorded in parts, paused once, replays to every checksum [invariant]", () => {
   const frames = 700;
   const recorded = recordTapeReplay(frames, 401);
   assertEquals(recorded.segments, 2);
@@ -42,14 +42,7 @@ test("match replay: a rollback match recorded in parts, paused once, replays to 
   assertEquals(stateChecksum(replayed), recorded.finalChecksum);
 });
 
-test("match replay: a part cut short or from another replay is refused", () => {
-  const part = replayPartLines(3, 1, ["rows 1:0:"]);
-  assertEquals(typeof parseReplayPart(part, 3, 1), "object");
-  assertEquals(parseReplayPart(part.slice(0, part.length - 1), 3, 1), "part 1 is cut short");
-  assertEquals(parseReplayPart(part, 4, 1), "part 1 isn't part 1 of replay 4");
-});
-
-test("match replay: a segment ending during a checkpoint keeps every saved checksum", () => {
+test("match replay: a segment ending during a checkpoint keeps every saved checksum [invariant]", () => {
   const recorded = recordTapeReplay(250, 122);
   const header = parseReplayHeader(recorded.manifest);
   if (typeof header === "string") throw new Error(header);

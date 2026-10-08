@@ -24,7 +24,7 @@ const PRESSURES = [0.4000000059604645, 0.0028011202812194824, 0.2885154485702514
 const HEALTHS = [60.0, 30.0, 1.0];
 const DAMAGES = [3.0, 10.0, 30.0];
 
-test("observed retail shield drain", () => {
+test("observed retail shield drain [reference]", () => {
   const expected = [
     [59.879600524902344, 29.879600524902344, 0.8795999884605408],
     [59.98525619506836, 29.985254287719727, 0.9852548837661743],
@@ -39,7 +39,7 @@ test("observed retail shield drain", () => {
   });
 });
 
-test("observed retail shield stun", () => {
+test("observed retail shield stun [reference]", () => {
   const expected = [
     [5.105000019073486, 12.350000381469727, 33.05000305175781],
     [6.266806602478027, 16.222688674926758, 44.668067932128906],
@@ -54,7 +54,7 @@ test("observed retail shield stun", () => {
   });
 });
 
-test("observed retail shield size", () => {
+test("observed retail shield size [reference]", () => {
   const expected = [
     [0.8300000429153442, 0.49000000953674316, 0.1613333374261856],
     [0.9988095164299011, 0.574404776096344, 0.16414682567119598],
@@ -69,7 +69,7 @@ test("observed retail shield size", () => {
   });
 });
 
-test("observed retail shield damage", () => {
+test("observed retail shield damage [reference]", () => {
   // By pressure, then health, then damage.
   const expected = [
     [[57.540000915527344, 51.79999923706055, 35.400001525878906], [27.540000915527344, 21.799999237060547, 5.399999618530273], [-1.4600000381469727, -7.199999809265137, -23.600000381469727]],
@@ -88,7 +88,7 @@ test("observed retail shield damage", () => {
   });
 });
 
-test("observed retail shield pushback", () => {
+test("observed retail shield pushback [reference]", () => {
   const expected = [
     [0.6126000285148621, 1.4820001125335693, 2.0],
     [0.7520168423652649, 1.9467227458953857, 2.0],
@@ -103,14 +103,14 @@ test("observed retail shield pushback", () => {
   });
 });
 
-test("observed retail shield pressure", () => {
+test("observed retail shield pressure [reference]", () => {
   assertEquals(analogShieldStrength(77), 0.0028011202812194824);
   assertEquals(analogShieldStrength(128), 0.28851544857025146);
   assertEquals(analogShieldStrength(200), 0.6918767690658569);
   assertEquals(analogShieldStrength(255), 1.0);
 });
 
-test("a light shield enters, drains, changes pressure and keeps its minimum hold", () => {
+test("a light shield enters, drains, changes pressure and keeps its minimum hold [reference]", () => {
   const f = createFighter(Character.archer, 0.0, 1);
   const input = controls({ shield: true, shieldStrength: analogShieldStrength(128) });
   advanceSolo(f, 0, input, 0.0);
@@ -136,7 +136,7 @@ test("a light shield enters, drains, changes pressure and keeps its minimum hold
   assertEquals(f.shield.strength, 1.0);
 });
 
-test("a light shield contact uses its strength and freezes it through stun", () => {
+test("a light shield contact uses its strength and freezes it through stun [reference]", () => {
   const owner = createFighter(Character.archer, -100.0, 1);
   const target = createFighter(Character.rifleman, 0.0, -1);
   const world = testWorld(owner, target);

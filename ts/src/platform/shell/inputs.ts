@@ -10,6 +10,7 @@ import { endReplaySegment } from "./replays";
 import { humanFighterActive, humanPresent } from "../../game/match/rules";
 import { type ShellState, localSlot } from "./state";
 import { settingsOpen } from "./ui";
+import { ownConfirmedState } from "./confirmedState";
 
 /** Slots of users in the game, less those who left a match. */
 export function currentHumanMask(departed: number): number {
@@ -43,6 +44,7 @@ export function clearCapturedInputs(s: ShellState): void {
 }
 
 export function clearParticipantInputs(s: ShellState, slot: ParticipantSlot): void {
+  ownConfirmedState(s);
   clearCapturedParticipantInputs(s, slot);
   keepMomentEnd(s.moment.recorder, s.world, s.game, s.controls, s.runtime);
   endReplaySegment(s);

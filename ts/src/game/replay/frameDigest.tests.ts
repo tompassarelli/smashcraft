@@ -53,14 +53,14 @@ function withNativeChange(lines: readonly string[], frame: number, change: (this
   });
 }
 
-test("#69 a test build's replay records every frame's digest and replays with none divergent", () => {
+test("#69 a test build's replay records every frame's digest and replays with none divergent [invariant]", () => {
   const result = replayMatch(joinedTape());
   assertEquals(result.problems.join("; "), "");
   assertEquals(result.digests, FRAMES);
   assertEquals(result.divergent, 0);
 });
 
-test("#69 a native field an ulp off names its first divergent frame and field", () => {
+test("#69 a native field an ulp off names its first divergent frame and field [spec wisp#69]", () => {
   const cases: readonly { name: string; change: (this: void, fighter: ReturnType<typeof fighterAt>) => void; want: string }[] = [
     { name: "one position ulp", change: (fighter) => { fighter.motion.x += significandUnit(fighter.motion.x); }, want: "p0 motion.x +1 ulp" },
     { name: "an attack frame", change: (fighter) => { fighter.attack.frame += 2; }, want: "p0 attack.frame +2" },

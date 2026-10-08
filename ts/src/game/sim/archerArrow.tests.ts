@@ -9,7 +9,7 @@ import { controls } from "./testWorld";
 
 const shield = controls({ shield: true, shieldTriggerActive: true, shieldStrength: 1.0 });
 
-test("Swift Arrow repeats no sooner than 30 frames and cannot jump out of its draw or recovery", () => {
+test("Swift Arrow repeats no sooner than 30 frames and cannot jump out of its draw or recovery [spec docs/design/archer-specials.md]", () => {
   const match = testMatch(3, Character.archer);
   const archer = fighterAt(match.world, 0);
   archer.facing = -1;
@@ -40,7 +40,7 @@ test("Swift Arrow repeats no sooner than 30 frames and cannot jump out of its dr
   assertEquals(starts.join(","), "2,32,62,92,122,152");
 });
 
-test("a held shield stops six repeated Swift Arrows at 240 without shieldstun or body damage", () => {
+test("a held shield stops six repeated Swift Arrows at 240 without shieldstun or body damage [spec docs/design/archer-specials.md]", () => {
   const match = testMatch(3, Character.archer);
   const archer = fighterAt(match.world, 0);
   const defender = fighterAt(match.world, 1);
@@ -57,7 +57,7 @@ test("a held shield stops six repeated Swift Arrows at 240 without shieldstun or
   assertGreaterThan(defender.shield.energy, 0.0);
 });
 
-test("Swift Arrow deals 5 percent without interrupting the defender; a jump during the draw clears it", () => {
+test("Swift Arrow deals 5 percent without interrupting the defender; a jump during the draw clears it [spec docs/design/archer-specials.md]", () => {
   for (const jump of [false, true]) {
     const match = testMatch(3, Character.archer);
     const archer = fighterAt(match.world, 0);
@@ -75,7 +75,7 @@ test("Swift Arrow deals 5 percent without interrupting the defender; a jump duri
   }
 });
 
-test("at 60 units a shield grab after blocking Swift Arrow catches Archer during her recovery", () => {
+test("at 60 units a shield grab after blocking Swift Arrow catches Archer during her recovery [spec docs/design/archer-specials.md]", () => {
   const match = testMatch(3, Character.archer);
   const archer = fighterAt(match.world, 0);
   const defender = fighterAt(match.world, 1);

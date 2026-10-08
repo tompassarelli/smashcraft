@@ -22,7 +22,7 @@ import { sweep } from "./sweep";
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
-sweep("a match after -dev reset equals the first match of the game: same trace checksums and fighter lines on both clients", () => {
+sweep("a match after -dev reset equals the first match of the game: same trace checksums and fighter lines on both clients [invariant]", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1]);
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
   helpers.workload = { denseCycles: 6, walkers: [] };

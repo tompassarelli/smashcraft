@@ -58,7 +58,7 @@ function recover(p: Presented, victim: Fighter): void {
   assertEquals(victim.down.state, DownState.none);
 }
 
-test("a scripted match's combat stats: damage dealt, openings, techs, missed techs, ledge grabs and the record's line", () => {
+test("a scripted match's combat stats: damage dealt, openings, techs, missed techs, ledge grabs and the record's line [spec #140]", () => {
   // The landing frame of the first knockdown, from the same match played without a tech.
   const landing = knockDown(presented(), 1, () => false);
   const p = presented();
@@ -117,7 +117,7 @@ test("a scripted match's combat stats: damage dealt, openings, techs, missed tec
   ].join("\n"));
 });
 
-test("a hit on a fighter already in hitstun adds damage dealt but no opening; one on a free fighter opens", () => {
+test("a hit on a fighter already in hitstun adds damage dealt but no opening; one on a free fighter opens [spec #140]", () => {
   const match = testMatch(3, Character.archer);
   const victim = fighterAt(match.world, 1);
   const before = createCombatObservation();

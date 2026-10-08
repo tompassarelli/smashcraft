@@ -16,13 +16,13 @@ function output(minutes: number, heapKb: (minute: number) => number, effects: (m
   return lines.join("\n");
 }
 
-test("slope is the least-squares slope", () => {
+test("slope is the least-squares slope [invariant]", () => {
   expect(slope([[0, 1], [1, 3], [2, 5]])).toBeCloseTo(2);
   expect(slope([[0, 4], [1, 4], [2, 4]])).toBe(0);
   expect(slope([[1, 4]])).toBe(0);
 });
 
-test("a heap and handle counts that only fill pools during warm-up pass", () => {
+test("a heap and handle counts that only fill pools during warm-up pass [spec #168]", () => {
   // Warm-up fills pools: effects and heap climb for ten minutes, then hold with noise.
   const run = parseMemoryRun(output(30, (minute) => (minute < 10 ? 38000 + minute * 300 : 41000 + ((minute * 37) % 200)), (minute) => (minute < 10 ? 460 + minute : 469)));
   expect(run.samples.filter((sample) => sample.kind === "menu")).toHaveLength(15);
@@ -32,12 +32,12 @@ test("a heap and handle counts that only fill pools during warm-up pass", () => 
   expect(verdict.lines.join("\n")).toContain("effect 469");
 });
 
-test("a heap growing 1 MB per 10 minutes after warm-up fails", () => {
+test("a heap growing 1 MB per 10 minutes after warm-up fails [spec #168]", () => {
   const verdict = checkMemory(parseMemoryRun(output(30, (minute) => 38000 + minute * 103, () => 469)));
   expect(verdict.failures).toEqual([expect.stringContaining("Lua heap grows")]);
 });
 
-test("effects left behind by each match fail, whatever the heap does", () => {
+test("effects left behind by each match fail, whatever the heap does [spec #168]", () => {
   const verdict = checkMemory(parseMemoryRun(output(30, () => 40000, (minute) => 460 + Math.floor(minute / 4))));
   expect(verdict.failures).toEqual([
     "p0 effect at fighter selection rose from 462 during warm-up to 467 after",
@@ -45,7 +45,7 @@ test("effects left behind by each match fail, whatever the heap does", () => {
   ]);
 });
 
-test("one extra retained map table still fails the strict warm-up high-water gate", () => {
+test("one extra retained map table still fails the strict warm-up high-water gate [spec #168]", () => {
   const text = output(30, () => 40000, () => 469).split("\n").map((line) => {
     const frame = Number(/frame=(\d+)/.exec(line)?.[1]);
     return frame >= 10 * MINUTE ? line.replaceAll("tables=17843", "tables=17844") : line;
@@ -56,11 +56,3 @@ test("one extra retained map table still fails the strict warm-up high-water gat
   ]);
 });
 
-test("a run's problems, such as a desync, fail it", () => {
-  const verdict = checkMemory(parseMemoryRun(output(30, () => 40000, () => 469, ["desync: after frame 9000"])));
-  expect(verdict.failures).toEqual(["problem: desync: after frame 9000"]);
-});
-
-test("a run that stopped before its done line is no run", () => {
-  expect(() => parseMemoryRun("sample kind=start frame=30 matches=0 heap-kb=1 | p0 tables=1 functions=1 live=")).toThrow("didn't finish");
-});

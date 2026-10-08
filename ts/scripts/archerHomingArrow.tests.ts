@@ -39,7 +39,7 @@ function fired(defender: Character, spacing: number, defense: Defense): Outcome 
   return { hit: false, shield: false, frame: FIRE + 120 };
 }
 
-test("the homing arrow keeps its speed and turns at most its rate a frame, never past its pitch cap", () => {
+test("the homing arrow keeps its speed and turns at most its rate a frame, never past its pitch cap [spec #112]", () => {
   expect(HOMING_ARROW_SPEED).toBeLessThan(36.0);
   expect(HOMING_ARROW_LIFETIME).toBeLessThanOrEqual(90);
   const owner = createFighter(Character.archer, -400.0, 1);
@@ -64,7 +64,7 @@ test("the homing arrow keeps its speed and turns at most its rate a frame, never
   expect(heading).toBeGreaterThan(HOMING_ARROW_MAX_PITCH_DEGREES - HOMING_ARROW_TURN_DEGREES);
 });
 
-test("the homing arrow flies straight once its target is behind it", () => {
+test("the homing arrow flies straight once its target is behind it [spec #112]", () => {
   const owner = createFighter(Character.archer, -400.0, 1);
   const target = createFighter(Character.rifleman, -300.0, -1);
   const arrow = owner.projectiles[0]!;
@@ -75,7 +75,7 @@ test("the homing arrow flies straight once its target is behind it", () => {
 });
 
 for (const [character, name] of DEFENDERS) {
-  test(`the homing arrow hits a standing ${name}, a shield blocks it and a timed jump avoids it`, () => {
+  test(`the homing arrow hits a standing ${name}, a shield blocks it and a timed jump avoids it [spec #112]`, () => {
     const report: string[] = [];
     for (const spacing of SPACINGS) {
       const standing = fired(character, spacing, "stand");

@@ -43,7 +43,7 @@ function violations(character: Character, name: string): Map<string, string> {
   return found;
 }
 
-test("the powershield's reflector stays inside the accepted 2-4 frame window", () => {
+test("the powershield's reflector stays inside the accepted 2-4 frame window [spec docs/gameplay-design.md]", () => {
   expect(SHIELD_REFLECTOR_ACTIVE_FRAMES).toBeGreaterThanOrEqual(2);
   expect(SHIELD_REFLECTOR_ACTIVE_FRAMES).toBeLessThanOrEqual(4);
 });
@@ -51,7 +51,7 @@ test("the powershield's reflector stays inside the accepted 2-4 frame window", (
 // The original three fighters run in the suite; every hero's rules run as sweeps.
 for (const [index, fighter] of FIGHTERS.entries()) {
   // About 2-3 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
-  (index < 3 ? test : sweep)(`${fighter.name}'s projectiles follow the projectile rules or name a departure`, () => {
+  (index < 3 ? test : sweep)(`${fighter.name}'s projectiles follow the projectile rules or name a departure [spec #98]`, () => {
     const found = violations(fighter.character, fighter.name);
     const unexpected = [...found].filter(([key]) => DEPARTURES[key] === undefined).map(([key, detail]) => `${key}: ${detail}`);
     expect(unexpected).toEqual([]);
@@ -60,13 +60,13 @@ for (const [index, fighter] of FIGHTERS.entries()) {
   }, 30_000);
 }
 
-test("Rifleman's blaster point blank on a shield is punished out of shield and reflected by a powershield", () => {
+test("Rifleman's blaster point blank on a shield is punished out of shield and reflected by a powershield [spec #98]", () => {
   const row = projectileRows(Character.rifleman, "Rifleman").find((candidate) => candidate.variant === `neutral special at ${POINT_BLANK}`);
   expect(row?.punishes.map((entry) => entry.punisher)).toContain("shield grab");
   expect(row?.powershield.length).toBeGreaterThanOrEqual(MIN_POWERSHIELD_PRESSES);
 });
 
-test("Illidan's slow Mana Burn point blank on a shield is punished out of shield, reflected by a powershield and jumped from range (#116)", () => {
+test("Illidan's slow Mana Burn point blank on a shield is punished out of shield, reflected by a powershield and jumped from range (#116) [spec #116]", () => {
   for (const row of projectileRows(Character.demonHunter, "Illidan")) {
     expect(row.pokes).toBe(false);
     expect(row.powershield.length).toBeGreaterThanOrEqual(MIN_POWERSHIELD_PRESSES);

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { expect, test } from "bun:test";
 import { headlessRender } from "../scripts/wisp/headlessRender";
 
-test("a Warcraft update cannot reuse the previous build's stock render bytes", async () => {
+test("a Warcraft update cannot reuse the previous build's stock render bytes [spec AGENTS.md]", async () => {
   const directory = mkdtempSync(join(tmpdir(), "smashcraft-render-assets-"));
   try {
     const extractor = join(directory, "extract.ts"), manifest = join(directory, "used.json");

@@ -7,7 +7,7 @@ import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "./hit
 import { attackStartupFrames, characterAttackActiveFrames } from "./moves";
 import { SELECTABLE_CHARACTERS, fighterName } from "./heroes/registry";
 for (const character of SELECTABLE_CHARACTERS) {
-  test(`${fighterName(character)} down air centres every active strike below the waist`, () => {
+  test(`${fighterName(character)} down air centres every active strike below the waist [spec docs/down-airs.md]`, () => {
     const fighter=createFighter(character,0.0,1),moves=fighter.tuning.moves;
     const body=hurtCapsule(character),waist=f32(f32(body.z1+body.z2)*0.5);
     const first=attackStartupFrames(AttackStyle.downAir,moves);

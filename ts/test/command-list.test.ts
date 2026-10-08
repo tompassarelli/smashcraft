@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 // A command isn't done until AGENTS.md, the command list future agents read,
 // names it as `bun wisp NAME`.
-test("every bun wisp command in scripts/wisp.ts is listed in AGENTS.md", async () => {
+test("every bun wisp command in scripts/wisp.ts is listed in AGENTS.md [spec AGENTS.md]", async () => {
   const program = await Bun.file(join(import.meta.dir, "../scripts/wisp.ts")).text();
   const agents = await Bun.file(join(import.meta.dir, "../../AGENTS.md")).text();
   const commands = [...program.matchAll(/^ {2}"?([\w-]+)"?: \{ usage:/gm)].map((match) => match[1]!);

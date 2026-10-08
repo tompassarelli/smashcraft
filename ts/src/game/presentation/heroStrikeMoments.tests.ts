@@ -12,7 +12,7 @@ import { SPECIAL_KEY } from "./heroStrikeMomentKeys";
 import { SPECIAL_SLOTS } from "./projectileArt";
 import { heroCueWindows } from "./specialCues";
 
-test("a measured hero swing reaches its strike on the first active frame", () => {
+test("a measured hero swing reaches its strike on the first active frame [native]", () => {
   let aligned = 0;
   for (const hero of HERO_ROSTER) {
     for (const style of Object.values(AttackStyle)) {
@@ -36,7 +36,7 @@ test("a measured hero swing reaches its strike on the first active frame", () =>
   assertTrue(aligned >= 60);
 });
 
-test("every measured hero special strikes on its first active frame", () => {
+test("every measured hero special strikes on its first active frame [native]", () => {
   let aligned = 0;
   for (const hero of HERO_ROSTER) {
     const specials = hero.specials;

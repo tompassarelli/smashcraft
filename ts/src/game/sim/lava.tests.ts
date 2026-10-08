@@ -18,7 +18,7 @@ function lavaWorld() {
   return testWorld(createFighter(Character.archer, 510.0, -1), createFighter(Character.rifleman, 0.0, 1));
 }
 
-test("lava produces the same complete victim as an ordinary scripted fire hit", () => {
+test("lava produces the same complete victim as an ordinary scripted fire hit [spec docs/stage-hazards.md] [invariant]", () => {
   for (const damage of [0.0, 80.0, 250.0]) {
     const lava = lavaWorld(); const scripted = lavaWorld();
     const first = fighterAt(lava, 0); const second = fighterAt(scripted, 0);
@@ -33,7 +33,7 @@ test("lava produces the same complete victim as an ordinary scripted fire hit", 
   }
 });
 
-test("lava is confined to Blackrock's molten ends and respects hazards off and invincibility", () => {
+test("lava is confined to Blackrock's molten ends and respects hazards off and invincibility [spec docs/stage-hazards.md]", () => {
   for (const scenario of [0, 1, 2, 3, 4, 5]) {
     const world = lavaWorld(); const fighter = fighterAt(world, 0);
     if (scenario === 2) fighter.motion.x = LAVA_INNER_X - 1.0;
@@ -45,7 +45,7 @@ test("lava is confined to Blackrock's molten ends and respects hazards off and i
   }
 });
 
-test("a lava launch survives rollback and 180 replayed match frames exactly", () => {
+test("a lava launch survives rollback and 180 replayed match frames exactly [invariant]", () => {
   const live = createReplaySnapshot(); const saved = createReplaySnapshot(); const replay = createReplaySnapshot();
   live.match.phase = Phase.match; live.match.stageChoice = CANNON_TEST_STAGE;
   live.match.humanMask = 3; live.match.humanFighterMask = 3; live.match.practice = true;
@@ -59,7 +59,7 @@ test("a lava launch survives rollback and 180 replayed match frames exactly", ()
   assertGreaterThan(fighterAt(live.world, 0).visuals.hit, 0);
 });
 
-test("an ordinary attack picks up the centre item on Stratholme's raised floor", () => {
+test("an ordinary attack picks up the centre item on Stratholme's raised floor [spec docs/gameplay-design.md]", () => {
   const state = createReplaySnapshot();
   state.match.phase = Phase.match; state.match.stageChoice = STRATHOLME_STAGE;
   state.match.items.kind = ItemKind.speed;

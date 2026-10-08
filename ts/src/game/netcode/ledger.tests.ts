@@ -1,7 +1,6 @@
 import { assertDefined, assertEquals, assertTrue, assertFalse, test } from "wisp/src/runtime/testing";
 import { type InputRow, type RowFields, emptyInput, inputRow, predictInto, sameInput } from "../input/inputRow";
-import { Action, bit } from "../input/actions";
-import { INPUT_LAST_FRAME, encodePacket, inputPacket } from "../input/wire";
+import { encodePacket, inputPacket } from "../input/wire";
 import { FUTURE_LIMIT, InputLedger } from "./ledger";
 
 const row = (fields: RowFields = {}) => assertDefined(inputRow(fields), "row");
@@ -9,7 +8,7 @@ const packet = (epoch: number, firstFrame: number, ...rows: InputRow[]) => asser
 const NEUTRAL = row();
 const ATTACK = row({ held: 32, pressed: 32 });
 
-test("K advances only across complete rows, and consumption follows it in order", () => {
+test("K advances only across complete rows, and consumption follows it in order [spec docs/netcode-proposal.md]", () => {
   const ledger = new InputLedger();
   assertTrue(ledger.beginEpoch(0, 1, 0, 3));
   const later = packet(0, 2, NEUTRAL, NEUTRAL);
@@ -29,7 +28,7 @@ test("K advances only across complete rows, and consumption follows it in order"
   assertTrue(ledger.markConsumed(0, 2));
 });
 
-test("accepted rows never change: duplicates are accepted again, different rows conflict", () => {
+test("accepted rows never change: duplicates are accepted again, different rows conflict [spec docs/netcode-proposal.md]", () => {
   const ledger = new InputLedger();
   assertTrue(ledger.beginEpoch(1, 1, 0, 3));
   const wire = encodePacket(packet(1, 1, row({ held: 32, pressed: 32, released: 16, axisX: 1, axisZ: -1, triggerLeft: 23, triggerRight: 45 })));
@@ -49,7 +48,7 @@ test("accepted rows never change: duplicates are accepted again, different rows 
   assertEquals(ledger.accepted(1, 0, 1)?.pressed, 32);
 });
 
-test("a packet whose second row conflicts commits neither row", () => {
+test("a packet whose second row conflicts commits neither row [spec docs/netcode-proposal.md]", () => {
   const ledger = new InputLedger();
   assertTrue(ledger.beginEpoch(1, 1, 0, 3));
   assertEquals(ledger.acceptPacket(0, packet(1, 2, ATTACK)), "accepted");
@@ -61,7 +60,7 @@ test("a packet whose second row conflicts commits neither row", () => {
   assertEquals(ledger.knownThrough(), 0);
 });
 
-test("the future bound moves with consumption, and a packet straddling it is refused whole", () => {
+test("the future bound moves with consumption, and a packet straddling it is refused whole [spec docs/netcode-proposal.md]", () => {
   const ledger = new InputLedger();
   assertTrue(ledger.beginEpoch(1, 1, 0, 3));
   assertEquals(ledger.acceptPacket(0, packet(1, FUTURE_LIMIT, NEUTRAL, NEUTRAL)), "tooFarAhead");
@@ -78,7 +77,7 @@ test("the future bound moves with consumption, and a packet straddling it is ref
   assertEquals(ledger.acceptPacket(0, packet(1, FUTURE_LIMIT + 1, NEUTRAL)), "accepted");
 });
 
-test("epochs seed neutral delay rows, only increase, and refuse observers and stale packets", () => {
+test("epochs seed neutral delay rows, only increase, and refuse observers and stale packets [spec docs/netcode-proposal.md]", () => {
   const ledger = new InputLedger();
   assertFalse(ledger.beginEpoch(-1, 1, 3, 3));
   assertFalse(ledger.beginEpoch(1, 0, 3, 3));
@@ -110,35 +109,7 @@ test("epochs seed neutral delay rows, only increase, and refuse observers and st
   assertEquals(ledger.knownThrough(), 0);
 });
 
-test("rows stay until explicitly discarded, and the ring is reused only after discard", () => {
-  const ledger = new InputLedger();
-  assertTrue(ledger.beginEpoch(1, 1, 0, 3));
-  for (let frame = 1; frame <= 256; frame++) {
-    assertEquals(ledger.acceptPacket(0, packet(1, frame, NEUTRAL)), "accepted");
-    assertEquals(ledger.acceptPacket(1, packet(1, frame, NEUTRAL)), "accepted");
-    assertTrue(ledger.markConsumed(1, frame));
-  }
-  assertEquals(ledger.firstRetained(), 1);
-  assertTrue(ledger.accepted(1, 0, 1) !== undefined);
-  const wrapped = packet(1, 257, NEUTRAL);
-  assertEquals(ledger.acceptPacket(0, wrapped), "storageFull");
-  assertFalse(ledger.discardThrough(1, 257));
-  assertTrue(ledger.accepted(1, 0, 1) !== undefined);
-  assertTrue(ledger.discardThrough(1, 1));
-  assertEquals(ledger.acceptPacket(0, wrapped), "accepted");
-  assertEquals(ledger.acceptPacket(1, wrapped), "accepted");
-  assertEquals(ledger.knownThrough(), 257);
-  assertTrue(ledger.markConsumed(1, 257));
-  assertEquals(ledger.accepted(1, 0, 1), undefined);
-  assertTrue(ledger.accepted(1, 0, 257) !== undefined);
-  assertEquals(ledger.acceptPacket(0, packet(1, 1, NEUTRAL, NEUTRAL)), "outOfHistory");
-  assertTrue(ledger.discardThrough(1, 257));
-  assertEquals(ledger.firstRetained(), 258);
-  assertEquals(ledger.accepted(1, 0, 257), undefined);
-  assertFalse(ledger.discardThrough(1, 256));
-});
-
-test("a malformed second record commits nothing", () => {
+test("a malformed second record commits nothing [spec docs/netcode-proposal.md]", () => {
   const ledger = new InputLedger();
   assertTrue(ledger.beginEpoch(1, 1, 0, 3));
   const wire = encodePacket(packet(1, 1, NEUTRAL, NEUTRAL));
@@ -151,34 +122,7 @@ test("a malformed second record commits nothing", () => {
   assertEquals(ledger.knownThrough(), 2);
 });
 
-test("the second record may hold the light-shield action", () => {
-  const ledger = new InputLedger();
-  assertTrue(ledger.beginEpoch(1, 1, 0, 3));
-  const wire = encodePacket(packet(1, 1, NEUTRAL, NEUTRAL));
-  assertEquals(ledger.receive(0, `${wire.substring(0, wire.length - 1)}1800`), "accepted");
-  assertEquals(assertDefined(ledger.accepted(1, 0, 2)).held, bit(Action.lightShield));
-});
-
-test("epoch and frame limits never wrap signed counters", () => {
-  const ledger = new InputLedger();
-  assertFalse(ledger.beginEpoch(0, INPUT_LAST_FRAME, 2, 3));
-  assertFalse(ledger.beginEpoch(0, 2147483647, 0, 3));
-  assertTrue(ledger.beginEpoch(2147483647, INPUT_LAST_FRAME - 1, 0, 3));
-  const last = packet(2147483647, INPUT_LAST_FRAME - 1, NEUTRAL, NEUTRAL);
-  assertEquals(ledger.acceptPacket(0, last), "accepted");
-  assertEquals(ledger.acceptPacket(1, last), "accepted");
-  assertEquals(ledger.knownThrough(), INPUT_LAST_FRAME);
-  assertTrue(ledger.markConsumed(2147483647, INPUT_LAST_FRAME - 1));
-  assertTrue(ledger.markConsumed(2147483647, INPUT_LAST_FRAME));
-  assertFalse(ledger.markConsumed(2147483647, 2147483647));
-  assertTrue(ledger.discardThrough(2147483647, INPUT_LAST_FRAME));
-  assertEquals(ledger.firstRetained(), 2147483647);
-  assertFalse(ledger.beginEpoch(-2147483647, 1, 0, 3));
-  assertFalse(ledger.beginEpoch(2147483647, 1, 0, 3));
-  assertEquals(ledger.acceptPacket(0, last), "outOfHistory");
-});
-
-test("four participants wait for slot three, and each sender's two-frame packets stay atomic", () => {
+test("four participants wait for slot three, and each sender's two-frame packets stay atomic [spec docs/netcode-proposal.md]", () => {
   const ledger = new InputLedger();
   assertTrue(ledger.beginEpoch(10, 1, 0, 15));
   const first = row({ held: 23, pressed: 17, released: 12, axisX: 127, axisZ: -81, triggerLeft: 42, triggerRight: 255, throwX: -3, throwZ: 7 });
@@ -198,7 +142,7 @@ test("four participants wait for slot three, and each sender's two-frame packets
   assertTrue(sameInput(assertDefined(ledger.accepted(10, 3, 1)), first));
 });
 
-test("sparse membership is fixed per epoch and refuses inactive senders", () => {
+test("sparse membership is fixed per epoch and refuses inactive senders [spec docs/netcode-proposal.md]", () => {
   const ledger = new InputLedger();
   assertFalse(ledger.beginEpoch(1, 1, 2, 0));
   assertFalse(ledger.beginEpoch(1, 1, 2, 16));

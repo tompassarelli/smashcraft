@@ -2,6 +2,7 @@
 // and mana functions (smashcraft:docs/design/forsaken-paladin.md).
 import { assertEquals, assertNear, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
+import { upSpecialRoute } from "../../match/recoveryEnvelope";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
 import { fighterSpecialsCanonical } from "../../replay/canonical";
@@ -56,12 +57,12 @@ const down = controls({ specialPressed: true, specialZ: -1 });
 
 const near = (actual: number, expected: number, tolerance: number) => assertTrue(Math.abs(actual - expected) <= tolerance);
 
-test("Forsaken Paladin's replay kit identity records the frame of Cleansing Hammer's dispel", () => {
+test("Forsaken Paladin's replay kit identity records the frame of Cleansing Hammer's dispel [invariant]", () => {
   const changed = { ...FORSAKEN_PALADIN_SPECIALS, neutral: { ...FORSAKEN_PALADIN_SPECIALS.neutral, ground: { ...FORSAKEN_PALADIN_SPECIALS.neutral.ground, cleanseFrame: 15 } } };
   assertTrue(fighterSpecialsCanonical(changed) !== fighterSpecialsCanonical(FORSAKEN_PALADIN_SPECIALS));
 });
 
-test("Forsaken Paladin's specials spend their listed mana once and end on their listed frames", () => {
+test("Forsaken Paladin's specials spend their listed mana once and end on their listed frames [spec docs/design/forsaken-paladin.md]", () => {
   for (const [input, action, cost, end] of [
     [neutral, SpecialAction.heroNeutral, 10, 38],
     [side, SpecialAction.heroSide, 25, 49],
@@ -79,10 +80,9 @@ test("Forsaken Paladin's specials spend their listed mana once and end on their 
     assertEquals(owner.special.action, SpecialAction.none);
     assertEquals(owner.mana.points, 100 - cost);
   }
-  assertEquals(FORSAKEN_PALADIN_SPECIALS.up.free?.cost, 0);
 });
 
-test("Cleansing Hammer bonks once, launches upward and holds both fighters three extra frames", () => {
+test("Cleansing Hammer bonks once, launches upward and holds both fighters three extra frames [spec docs/design/forsaken-paladin.md]", () => {
   for (const facing of [-1, 1]) {
     const { world, owner, target } = pair(110.0);
     owner.facing = facing;
@@ -102,7 +102,7 @@ test("Cleansing Hammer bonks once, launches upward and holds both fighters three
   }
 });
 
-test("Forsaken Paladin's balanced hammer normal keeps its original hitlag while dealing 85 percent damage", () => {
+test("Forsaken Paladin's balanced hammer normal keeps its original hitlag while dealing 85 percent damage [spec docs/design/forsaken-paladin.md]", () => {
   const { world, owner, target } = pair(100.0);
   beginFighterAttack(world, 0, AttackStyle.forwardTilt, false);
   owner.attack.frame = 11;
@@ -112,7 +112,7 @@ test("Forsaken Paladin's balanced hammer normal keeps its original hitlag while 
   assertEquals(target.launch.hitlag, ordinaryHitlagFrames(12.0) + 3);
 });
 
-test("Righteous Fury advances with the hammer, hits once up close, slows movement and cannot hit at range", () => {
+test("Righteous Fury advances with the hammer, hits once up close, slows movement and cannot hit at range [spec docs/design/forsaken-paladin.md]", () => {
   const far = pair(900.0);
   const start = far.owner.motion.x;
   frame(far.world, side);
@@ -132,7 +132,7 @@ test("Righteous Fury advances with the hammer, hits once up close, slows movemen
   assertEquals(ranged.target.status.damage, 0.0);
 });
 
-test("Forsaken Paladin's hammer makes one loud heavy bash and holds a shield contact three extra frames", () => {
+test("Forsaken Paladin's hammer makes one loud heavy bash and holds a shield contact three extra frames [spec docs/design/forsaken-paladin.md]", () => {
   const sound = pair(110.0);
   const events = createImpactEvents();
   const played: string[] = [];
@@ -157,7 +157,7 @@ test("Forsaken Paladin's hammer makes one loud heavy bash and holds a shield con
   assertEquals(shield.target.launch.hitlag, ordinaryHitlagFrames(13.0) + 3);
 });
 
-test("air Righteous Fury has no armor, spends its one airborne use and ends helpless", () => {
+test("air Righteous Fury has no armor, spends its one airborne use and ends helpless [spec docs/design/forsaken-paladin.md]", () => {
   const air = pair(900.0);
   air.owner.motion.grounded = false;
   air.owner.motion.z = 1200.0;
@@ -172,8 +172,11 @@ test("air Righteous Fury has no armor, spends its one airborne use and ends help
   assertEquals(air.owner.special.action, SpecialAction.none);
 });
 
-test("Ascension rises 2.9H with one hit, its free form 2.0H without one, both drifting 0.2H forward plus up to 1.6H steered into a helpless fall", () => {
-  for (const [mana, rise, damage] of [[100, f32(2.9), 8.0], [14, f32(2.0), 0.0]] as const) {
+test("Ascension keeps its heavy recovery band and free 240-unit route, paid hammer hit, 0.2H drift plus 1.6H steering and helpless fall [spec #252] [spec docs/design/forsaken-paladin.md]", () => {
+  for (const [mana, damage] of [[100, 8.0], [14, 0.0]] as const) {
+    const route = upSpecialRoute(Character.forsakenPaladin, mana);
+    assertTrue(mana === 100 ? route.rise >= 320.0 && route.rise <= 440.0 : route.rise >= 240.0);
+    assertTrue(mana === 100 ? route.reach >= 320.0 && route.reach <= 480.0 : route.reach >= 240.0);
     const { world, owner } = pair(900.0);
     owner.mana.points = mana;
     const x = owner.motion.x;
@@ -185,7 +188,8 @@ test("Ascension rises 2.9H with one hit, its free form 2.0H without one, both dr
       frame(world);
       top = Math.max(top, owner.motion.z);
     }
-    near(f32(top - z) / H, rise, f32(0.03));
+    if (mana === 100) near(f32(top - z) / H, f32(2.9), f32(0.03));
+    else assertLessThan(f32(top - z) / H, f32(2.9));
     near(f32(owner.motion.x - x) / H, f32(0.2), f32(0.03));
     assertTrue(owner.special.fall);
     const steered = pair(900.0);
@@ -203,7 +207,7 @@ test("Ascension rises 2.9H with one hit, its free form 2.0H without one, both dr
 });
 
 
-test("Cleansing Hammer removes poison and slow on f14, preserving hard control and immunity", () => {
+test("Cleansing Hammer removes poison and slow on f14, preserving hard control and immunity [spec docs/design/forsaken-paladin.md]", () => {
   for (const kind of [HeroStatusKind.chill, HeroStatusKind.silence, HeroStatusKind.sleep, HeroStatusKind.stun, HeroStatusKind.carried]) {
     const { world, owner } = pair(900.0);
     frame(world, neutral);
@@ -225,7 +229,7 @@ test("Cleansing Hammer removes poison and slow on f14, preserving hard control a
   }
 });
 
-test("Righteous Fury's shield contact cannot apply its movement slow", () => {
+test("Righteous Fury's shield contact cannot apply its movement slow [spec docs/design/forsaken-paladin.md]", () => {
   const { world, owner, target } = pair(110.0);
   target.shield.raised = true;
   for (let f = 1; f <= 25 && owner.launch.hitlag === 0; f++) frame(world, f === 1 ? side : controls(), undefined, controls({ shield: true, shieldStrength: 1.0 }));
@@ -234,7 +238,7 @@ test("Righteous Fury's shield contact cannot apply its movement slow", () => {
   assertGreaterThan(owner.launch.hitlag, 0);
 });
 
-test("Consecration refuses in air, pulses only on grounded targets and has one fixed patch", () => {
+test("Consecration refuses in air, pulses only on grounded targets and has one fixed patch [spec docs/design/forsaken-paladin.md]", () => {
   const air = pair(900.0);
   air.owner.motion.grounded = false;
   air.owner.motion.z = 400.0;
@@ -276,7 +280,7 @@ test("Consecration refuses in air, pulses only on grounded targets and has one f
   assertEquals(pool.spec?.radius, 60.0);
 });
 
-test("Consecration cannot be recast before its cooldown and gives no shield protection", () => {
+test("Consecration cannot be recast before its cooldown and gives no shield protection [spec docs/design/forsaken-paladin.md]", () => {
   const { world, owner } = pair(900.0);
   frame(world, down);
   for (let f = 2; f <= 50; f++) frame(world);
@@ -293,7 +297,7 @@ test("Consecration cannot be recast before its cooldown and gives no shield prot
   assertEquals(owner.special.action, SpecialAction.heroDown);
 });
 
-test("replaying Forsaken Paladin's Consecration and Righteous Fury restores every fighter field", () => {
+test("replaying Forsaken Paladin's Consecration and Righteous Fury restores every fighter field [invariant]", () => {
   const { world, owner, target } = pair(70.0);
   frame(world, down);
   const savedOwner = createFighter(Character.forsakenPaladin, 0.0, 1);

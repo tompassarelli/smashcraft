@@ -21,14 +21,14 @@ const record = (overrides: Partial<PlayableRecord> = {}): PlayableRecord => ({
   ...overrides,
 });
 
-test("a playable match and rematch pass when both clients agree on winner and confirmed result checksum", () => {
+test("a playable match and rematch pass when both clients agree on winner and confirmed result checksum [spec docs/playable-0047.md]", () => {
   expect(playableResult(capture(), record())).toMatchObject({
     passed: true, failures: [], epochs: [1, 2],
     matches: [{ epoch: 1, winner: "Player 2", winners: ["Player 2", "Player 2"], end_frames: [900, 900] }, { epoch: 2, winner: "Player 1", winners: ["Player 1", "Player 1"] }],
   });
 });
 
-test("a playable capture fails on any disagreement, missing result or in-game error", () => {
+test("a playable capture fails on any disagreement, missing result or in-game error [spec docs/playable-0047.md]", () => {
   const exports = new Map(capture().exports);
   exports.set(2, [exported(), exported("123:457")]);
   expect(playableResult({ ...capture(), exports }, record()).failures).toEqual(["epoch 2: confirmed checksums differ at frames 900, 960"]);
@@ -41,7 +41,7 @@ test("a playable capture fails on any disagreement, missing result or in-game er
   expect(playableResult(capture(), record({ errorReports: ["epoch-1/0-smashcraft-error-p0.txt"] })).passed).toBe(false);
 });
 
-test("end receipts name the winner; a result screen may be unreadable but never name another player", () => {
+test("end receipts name the winner; a result screen may be unreadable but never name another player [spec docs/playable-0047.md]", () => {
   const named = (one: readonly [string, string], two: readonly [string, string]) =>
     capture([boundary("start", 1), boundary("end", 1, [900, 900], one), boundary("start", 2), boundary("end", 2, [900, 900], two)]);
   const agreed = named([" winner=P2", " winner=P2"], [" winner=P1", " winner=P1"]);
@@ -109,7 +109,7 @@ const results = (capture: RecordedCapture, epoch: number) => {
   return event.texts;
 };
 
-test("0.0.45's recorded match and rematch pass: B's rematch screen read \"Player | wins!\" names Player 1", async () => {
+test("0.0.45's recorded match and rematch pass: B's rematch screen read \"Player | wins!\" names Player 1 [native]", async () => {
   expect(await recorded0045()).toMatchObject({
     build: "playable-0045",
     passed: true,
@@ -121,7 +121,7 @@ test("0.0.45's recorded match and rematch pass: B's rematch screen read \"Player
   });
 });
 
-test("the recorded 0.0.45 capture fails when its clients disagree on the winner or the result checksum", async () => {
+test("the recorded 0.0.45 capture fails when its clients disagree on the winner or the result checksum [native]", async () => {
   const otherWinner = await recorded0045((capture) => {
     results(capture, 2)[1] = "Player 2 wins!";
   });

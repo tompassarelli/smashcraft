@@ -1,4 +1,4 @@
 unit	tests	cpu_s
 src/game/match/comboRoute.tests.ts	1	0.185
-src/game/replay/history.tests.ts	10	1.704
+src/game/replay/history.tests.ts	11	2.627
 src/game/shell/pauseBarrier.tests.ts	3	0.000

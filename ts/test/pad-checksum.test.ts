@@ -14,7 +14,7 @@ const runtime = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(runtime.restore);
 const preload = (lines: readonly string[]) => `function PreloadFiles takes nothing returns nothing\n${lines.map(line => `\tcall Preload( "${line}" )\n`).join("")}endfunction\n`;
 
-test("headless checksum replay checks every real exported moment and refuses a changed checksum or broken export", () => {
+test("headless checksum replay checks every real exported moment and refuses a changed checksum or broken export [native]", () => {
   const clients = runtime.clients({ install, start }, [0, 1]);
   clients.start();
   clients.frames(3);
@@ -48,7 +48,7 @@ test("headless checksum replay checks every real exported moment and refuses a c
   }
 });
 
-test("a match ending before the View hold completes checks its full replay, including the final checksum", () => {
+test("a match ending before the View hold completes checks its full replay, including the final checksum [invariant]", () => {
   const clients = runtime.clients({ install: installDev, start: startDev }, [0, 1]);
   clients.start();
   clients.frames(30);

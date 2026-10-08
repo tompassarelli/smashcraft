@@ -37,7 +37,7 @@ function pair(x: number, facing = 1) {
   return { owner, target, world: testWorld(owner, target) };
 }
 
-test("Kaelthas every normal starts after its tell, hits once and steals sphere mana in both facings", () => {
+test("Kaelthas every normal starts after its tell, hits once and steals sphere mana in both facings [spec docs/design/kaelthas.md]", () => {
   for (const facing of [-1, 1]) for (const [style, x, z, damage] of normalCases) {
     const { owner, target, world } = pair(x, facing);
     owner.motion.grounded = !isAerialAttack(style); target.motion.grounded = false; target.motion.z = z;
@@ -50,7 +50,7 @@ test("Kaelthas every normal starts after its tell, hits once and steals sphere m
   }
 });
 
-test("Kaelthas grab catches shield and every directional throw releases once", () => {
+test("Kaelthas grab catches shield and every directional throw releases once [spec docs/design/kaelthas.md]", () => {
   for (const facing of [-1, 1]) for (const [action, release, damage] of [
     [GrabAction.throwForward, 14, 7.0], [GrabAction.throwBack, 17, 9.0], [GrabAction.throwUp, 16, 7.0], [GrabAction.throwDown, 18, 6.0],
   ] as const) {
@@ -73,7 +73,7 @@ function frame(world: Roster, input: Readonly<Controls> = controls(), targetInpu
   resolveAttacks(world); advanceSpecials(world, 0, 0, rows); updateProjectiles(world); finishDamageContacts(world);
 }
 
-test("Kaelthas Flame Strike leaves the hand on frame 12 and launches the first body it reaches once", () => {
+test("Kaelthas Flame Strike leaves the hand on frame 12 and launches the first body it reaches once [spec docs/design/kaelthas.md]", () => {
   for (const facing of [-1, 1]) for (const [x, contact] of [[120.0, 12], [180.0, 19], [300.0, 32], [400.0, 43]] as const) {
     const { owner, target, world } = pair(x, facing);
     frame(world, controls({ specialPressed: true })); assertEquals(owner.special.action, SpecialAction.heroNeutral); assertEquals(owner.mana.points, 20);
@@ -85,7 +85,7 @@ test("Kaelthas Flame Strike leaves the hand on frame 12 and launches the first b
   }
 });
 
-test("Kaelthas Flame Strike shows live fire travelling ahead from frame 12 to frame 44", () => {
+test("Kaelthas Flame Strike shows live fire travelling ahead from frame 12 to frame 44 [spec docs/design/kaelthas.md]", () => {
   for (const facing of [-1, 1]) {
     const { owner, world } = pair(1000.0, facing);
     frame(world, controls({ specialPressed: true }));
@@ -103,7 +103,7 @@ test("Kaelthas Flame Strike shows live fire travelling ahead from frame 12 to fr
   }
 });
 
-test("Kaelthas Flame Strike stops at a shield, misses after its life and keeps travelling when the caster is interrupted", () => {
+test("Kaelthas Flame Strike stops at a shield, misses after its life and keeps travelling when the caster is interrupted [spec docs/design/kaelthas.md]", () => {
   for (const facing of [-1, 1]) {
     const blocked = pair(180.0, facing);
     const defense = controls({ shield: true, shieldStrength: 1.0 });
@@ -138,7 +138,7 @@ test("Kaelthas Flame Strike stops at a shield, misses after its life and keeps t
   }
 });
 
-test("Kaelthas Siphon transfers available mana only on body contact and shields stop it", () => {
+test("Kaelthas Siphon transfers available mana only on body contact and shields stop it [spec docs/design/kaelthas.md]", () => {
   for (const facing of [-1, 1]) for (const blocked of [false, true]) {
     const { owner, target, world } = pair(115.0, facing); target.mana.points = 12;
     const defense = controls({ shield: blocked, shieldStrength: 1.0 });
@@ -149,14 +149,14 @@ test("Kaelthas Siphon transfers available mana only on body contact and shields 
   }
 });
 
-test("Kaelthas Banish protects only its authored window then strikes once", () => {
+test("Kaelthas Banish protects only its authored window then strikes once [spec docs/design/kaelthas.md]", () => {
   const { owner, target, world } = pair(45.0); frame(world, controls({ specialPressed: true, specialZ: -1 }));
   assertEquals(owner.special.action, SpecialAction.heroDown); assertEquals(owner.mana.points, 25);
   for (let tick = 2; tick <= 12; tick++) { frame(world); if (tick >= 5) assertTrue(isIntangible(owner)); }
   for (let tick = 13; tick <= 50; tick++) frame(world); assertEquals(target.status.damage, 5.0); assertTrue(!isIntangible(owner));
 });
 
-test("Kaelthas paid and free Phoenix Flight consume the jump and finish helpless with snapshot state", () => {
+test("Kaelthas paid and free Phoenix Flight consume the jump and finish helpless with snapshot state [spec docs/design/kaelthas.md] [invariant]", () => {
   for (const mana of [40, 0]) {
     const { owner, world } = pair(1000.0); owner.mana.points = mana; owner.motion.grounded = false; owner.motion.surface = undefined; owner.motion.z = 250.0;
     frame(world, controls({ specialPressed: true, specialZ: 1 })); assertEquals(owner.special.action, SpecialAction.heroUp);
@@ -168,7 +168,7 @@ test("Kaelthas paid and free Phoenix Flight consume the jump and finish helpless
   }
 });
 
-test("Kaelthas intentionally adapts Ultimate Mewtwo with the roster air-speed cap", () => {
+test("Kaelthas intentionally adapts Ultimate Mewtwo with the roster air-speed cap [reference] [spec docs/design/kaelthas.md]", () => {
   const fighter = createFighter(Character.kaelthas, 0.0, 1);
   assertNear(fighter.tuning.physics.weight, 79.0, f32(0.0001)); assertNear(fighter.tuning.physics.runSpeed, f32(13.53), f32(0.0001));
   assertNear(fighter.tuning.physics.airSpeed, 7.5, f32(0.0001));

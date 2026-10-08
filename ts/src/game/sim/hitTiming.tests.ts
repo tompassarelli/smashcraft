@@ -13,7 +13,7 @@ import { advanceSolo, controls, testBeginAttacks, testWorld } from "./testWorld"
 // Slippi techTester.slp ff815345e641836a331191320c0f6eae21542a5f, frames
 // 3432-3445: NTSC recording, disc revision unknown. Only release timing is
 // compared here; grounded knockback displacement has its own fixture.
-test("hitlag release allows a jump when hitstun expires on that frame", () => {
+test("hitlag release allows a jump when hitstun expires on that frame [reference]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   const input = controls({ jumpPressed: true, jumpHeld: true });
   fighter.motion.surface = 0;
@@ -29,7 +29,7 @@ test("hitlag release allows a jump when hitstun expires on that frame", () => {
   assertGreaterThan(fighter.jump.squat, 0);
 });
 
-test("hitstun expiry allows a jump on the same tick as an attack", () => {
+test("hitstun expiry allows a jump on the same tick as an attack [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   const input = controls({ jumpPressed: true, jumpHeld: true });
   fighter.motion.surface = 0;
@@ -42,7 +42,7 @@ test("hitstun expiry allows a jump on the same tick as an attack", () => {
   assertGreaterThan(fighter.jump.squat, 0);
 });
 
-test("hitlag and shieldstun respect Melee integer boundaries", () => {
+test("hitlag and shieldstun respect Melee integer boundaries [reference] [spec #106]", () => {
   assertEquals(ordinaryHitlagFrames(0.0), 0);
   assertEquals(ordinaryHitlagFrames(2.999000072479248), 3);
   assertEquals(ordinaryHitlagFrames(3.0), 4);
@@ -57,7 +57,7 @@ test("hitlag and shieldstun respect Melee integer boundaries", () => {
   assertEquals(ordinaryHitstunFrames(100.0), 40);
 });
 
-test("a shield contact freezes both bodies before shieldstun counts down", () => {
+test("a shield contact freezes both bodies before shieldstun counts down [reference] [spec docs/physics.md]", () => {
   const attacker = createFighter(Character.archer, 0.0, 1);
   const target = createFighter(Character.rifleman, 100.0, -1);
   const world = testWorld(attacker, target);
@@ -77,7 +77,7 @@ test("a shield contact freezes both bodies before shieldstun counts down", () =>
   assertEquals(target.shield.stun, 3);
 });
 
-test("a detached projectile impact does not freeze its shooter", () => {
+test("a detached projectile impact does not freeze its shooter [spec docs/physics.md]", () => {
   for (const shielded of [false, true]) {
     for (const kind of [ProjectileKind.arrow, ProjectileKind.homingArrow, ProjectileKind.recoil]) {
       const shooter = createFighter(Character.archer, 0.0, 1);

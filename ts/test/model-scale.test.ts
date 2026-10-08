@@ -19,7 +19,7 @@ const UNITSKIN_MODEL_SCALE: Readonly<Record<string, number>> = {
   LichKing2: 1.0,
 };
 
-test("every fighter is drawn at its stock unit's model scale times the shared factor", () => {
+test("every fighter is drawn at its stock unit's model scale times the shared factor [native]", () => {
   const characters = Object.values(Character);
   expect([...SELECTABLE_CHARACTERS].sort((a, b) => a - b)).toEqual(characters);
   for (const character of characters) {

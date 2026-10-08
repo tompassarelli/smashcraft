@@ -2,7 +2,7 @@ import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { NEUTRAL_TEAM_COLOR, PLAYER_COLORS, slotColor } from "./slotColors";
 
-test("slots 1 to 4 take Warcraft's colours for players 1 to 4, the colours their fighters' models show", () => {
+test("slots 1 to 4 take Warcraft's colours for players 1 to 4, the colours their fighters' models show [native]", () => {
   const expected = [
     ["Red", 0xff0303, "00"],
     ["Blue", 0x0042ff, "01"],
@@ -19,6 +19,6 @@ test("slots 1 to 4 take Warcraft's colours for players 1 to 4, the colours their
   }
 });
 
-test("portrait renders use a team colour no player has", () => {
+test("portrait renders use a team colour no player has [spec #161]", () => {
   assertTrue(NEUTRAL_TEAM_COLOR >= PLAYER_COLORS.length);
 });

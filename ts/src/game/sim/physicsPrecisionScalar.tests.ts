@@ -8,7 +8,7 @@ import { directionalInfluenceVector, damageLevelForKnockback, fixedHitKnockback,
 import { analogShieldStrength, capsuleCircleIntersects, shieldContactDamage, shieldContactPushback, shieldContactPushbackMelee, shieldDrain, shieldPushback, shieldSizeMultiplier, shieldstunDuration } from "./shield";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 
-test("#9 SIGNED_ZERO_SCALARS_EXACT_PASS", () => {
+test("#9 SIGNED_ZERO_SCALARS_EXACT_PASS [reference]", () => {
   const angle0 = meleeAtan2(0, 1);
   assertEquals(angle0, 0);
   assertEquals(1 / angle0 < 0, false);
@@ -69,7 +69,7 @@ test("#9 SIGNED_ZERO_SCALARS_EXACT_PASS", () => {
   assertEquals(1 / meleeSin(-0.0) < 0, false);
 });
 
-test("#9 HITSTUN_BOUNDARIES_EXACT_PASS", () => {
+test("#9 HITSTUN_BOUNDARIES_EXACT_PASS [reference]", () => {
   assertEquals(ordinaryHitstunFrames(0), 1);
   assertEquals(damageLevelForKnockback(0), 0);
   assertEquals(ordinaryHitstunFrames(123.45600128173828), 49);
@@ -118,7 +118,7 @@ test("#9 HITSTUN_BOUNDARIES_EXACT_PASS", () => {
   assertEquals(damageLevelForKnockback(2500.000244140625), 3);
 });
 
-test("#9 LAUNCH_MAGNITUDE_BINARY32_EXACT_PASS", () => {
+test("#9 LAUNCH_MAGNITUDE_BINARY32_EXACT_PASS [reference]", () => {
   assertEquals(ordinaryHitKnockback(0, 4, 75, 100, 20, 1), 39.91999816894531);
   assertEquals(hitContextKnockback(39.91999816894531, true, false), 26.613332748413086);
   assertEquals(hitContextKnockback(39.91999816894531, false, true), 47.90399932861328);
@@ -321,7 +321,7 @@ test("#9 LAUNCH_MAGNITUDE_BINARY32_EXACT_PASS", () => {
   assertEquals(hitContextKnockback(2500, true, true), 2000.0001220703125);
 });
 
-test("#9 HITLAG_SCALARS_EXACT_PASS", () => {
+test("#9 HITLAG_SCALARS_EXACT_PASS [reference]", () => {
   assertEquals(victimHitlagFrames(1, false, false), 3);
   assertEquals(victimHitlagFrames(1, true, false), 4);
   assertEquals(victimHitlagFrames(1, false, true), 2);
@@ -376,7 +376,7 @@ test("#9 HITLAG_SCALARS_EXACT_PASS", () => {
   assertEquals(victimHitlagFrames(90, true, true), 20);
 });
 
-test("#9 ANALOG_SHIELD_BINARY32_EXACT_PASS", () => {
+test("#9 ANALOG_SHIELD_BINARY32_EXACT_PASS [reference]", () => {
   assertEquals(subtractFloat32(60, shieldDrain(0.4000000059604645)), 59.879600524902344);
   assertEquals(shieldstunDuration(3, 0.4000000059604645), 5.105000019073486);
   assertEquals(shieldSizeMultiplier(60, 0.4000000059604645), 0.8300000429153442);
@@ -763,7 +763,7 @@ test("#9 ANALOG_SHIELD_BINARY32_EXACT_PASS", () => {
   assertEquals(shieldContactPushbackMelee(30, 1, true), 2);
 });
 
-test("#9 DIRECTIONAL_INFLUENCE_BINARY32_EXACT_PASS", () => {
+test("#9 DIRECTIONAL_INFLUENCE_BINARY32_EXACT_PASS [reference]", () => {
   const di0 = directionalInfluenceVector(1, 0, 0, 0);
   assertEquals(di0.velocityX, 1);
   assertEquals(di0.velocityZ, 0);
@@ -954,7 +954,7 @@ test("#9 DIRECTIONAL_INFLUENCE_BINARY32_EXACT_PASS", () => {
   assertEquals(1 / di183.velocityZ < 0, false);
 });
 
-test("#9 CAPSULE_SHIELD_CLASSIFICATION_PASS", () => {
+test("#9 CAPSULE_SHIELD_CLASSIFICATION_PASS [reference]", () => {
   assertEquals(capsuleCircleIntersects(0, 0, 0, 0, 1, 0, 0, 1, 1), true);
   assertEquals(capsuleCircleIntersects(2, 0, 2, 0, 1, 0, 0, 1, 1), true);
   assertEquals(capsuleCircleIntersects(2.999999761581421, 0, 2.999999761581421, 0, 1, 0, 0, 1, 1), false);

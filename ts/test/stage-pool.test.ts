@@ -19,7 +19,7 @@ const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, natives: client => ({
 }) });
 afterAll(headless.restore);
 
-test("two clients edit the pool, Start without a stage pick, and play two rotating rematches", async () => {
+test("two clients edit the pool, Start without a stage pick, and play two rotating rematches [spec #198] [invariant]", async () => {
   const clients = headless.clients(playable, [0, 1]);
   const host = clients.client(0);
   const read = <T>(body: () => T) => value(host, body);

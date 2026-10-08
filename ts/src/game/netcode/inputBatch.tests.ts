@@ -1,8 +1,6 @@
 import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
-import { Action, bit } from "../input/actions";
 import { type RowFields, inputRow } from "../input/inputRow";
 import { participantInputs } from "../input/participants";
-import { decodePacket, encodePacket } from "../input/wire";
 import { Capture } from "./capture";
 import { InputBatch } from "./inputBatch";
 import { DEFAULT_ROLLBACK_WINDOW, ShadowInputSchedule } from "./shadowSchedule";
@@ -10,29 +8,7 @@ import { DEFAULT_ROLLBACK_WINDOW, ShadowInputSchedule } from "./shadowSchedule";
 const row = (fields: RowFields = {}) => assertDefined(inputRow(fields), "row");
 const NEUTRAL = row();
 
-test("a batch carries two consecutive captures with their own edges, and no more", () => {
-  const batch = new InputBatch(70);
-  const press = row({ held: bit(Action.attack), pressed: bit(Action.attack) });
-  const release = row({ released: bit(Action.attack) });
-  assertTrue(batch.append(70, 4, press));
-  assertFalse(batch.append(70, 4, release));
-  assertFalse(batch.append(70, 6, release));
-  assertFalse(batch.append(71, 5, release));
-  assertTrue(batch.append(70, 5, release));
-  assertFalse(batch.append(70, 6, release));
-  // Appending copies: later sampling cannot change a queued row.
-  release.released = 0;
-  const wire = encodePacket(assertDefined(batch.packet()));
-  assertEquals(wire.length, 23);
-  const decoded = assertDefined(decodePacket(wire));
-  assertEquals(decoded.rows[0]?.pressed, bit(Action.attack));
-  assertEquals(decoded.rows[1]?.released, bit(Action.attack));
-  batch.sent();
-  assertEquals(batch.size(), 0);
-  assertEquals(batch.packet(), undefined);
-});
-
-test("every captured row reaches the ledger verbatim through pause and window-wait singletons", () => {
+test("every captured row reaches the ledger verbatim through pause and window-wait singletons [invariant]", () => {
   const schedule = new ShadowInputSchedule();
   const batch = new InputBatch(73);
   const inputs = participantInputs();

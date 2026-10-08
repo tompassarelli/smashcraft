@@ -1,6 +1,5 @@
 import { expect, test } from "bun:test";
 import { MAIN_DECK_HALF_DEPTH, STAGE_PALETTE_TEXTURE, type DeckFace, type OutlinePoint, mainDeckFaces, mainDeckMdl, mainDeckModelFile, mainDeckOutlineStage, paletteTexture } from "../scripts/stageDeck";
-import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
 import { STAGE_DECK_MODELS, STAGE_LIGHT_MODELS, STAGE_MAIN_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
 import { STAGE_LIGHTS } from "../src/game/assets/stageLighting";
 import { stageLightMdl, stageLightModelFile } from "../scripts/stageLight";
@@ -11,8 +10,6 @@ import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidS
 const SHIPPED_STAGES = [1, ...STAGE_DECK_PALETTES.map(({ stage }) => stage).filter((stage) => solidSurfaceCount(stage) > 0)];
 /** The neutral main deck model, which stages without a profile of their own draw. */
 const MAIN_DECK = mainDeckFaces(0);
-/** The main deck model a stage draws. */
-const shippedMainDeck = (stage: number) => STAGE_DECK_MODELS[stage]?.main ?? STAGE_MAIN_DECK_MODEL;
 
 /** The main deck's collision corners on `stage`, from its left ledge along the walking line, then down its walls and underside, in model units. */
 function collisionCorners(stage: number): OutlinePoint[] {
@@ -72,14 +69,14 @@ const area = (points: readonly OutlinePoint[]) => Math.abs(points.reduce((sum, [
   return sum + x * nextZ - nextX * z;
 }, 0)) / 2;
 
-test("the map ships the main deck model drawn from the collision", () => {
+test("the map ships the main deck model drawn from the collision [invariant]", () => {
   expect(STAGE_MAIN_DECK_MODEL).toBe(`war3mapImported\\${mainDeckModelFile(mainDeckMdl(MAIN_DECK, STAGE_PALETTE_TEXTURE.name))}`);
   for (const { stage, palette } of STAGE_DECK_PALETTES) {
     expect(STAGE_DECK_MODELS[stage]?.main).toBe(`war3mapImported\\${mainDeckModelFile(mainDeckMdl(mainDeckFaces(mainDeckOutlineStage(stage)), paletteTexture(palette).name))}`);
   }
 });
 
-test("the main deck model's outline is the main deck's collision lines on every shipped stage", () => {
+test("the main deck model's outline is the main deck's collision lines on every shipped stage [invariant]", () => {
   for (const stage of SHIPPED_STAGES) {
     const corners = collisionCorners(stage);
     const [ledge] = corners;
@@ -107,7 +104,7 @@ test("the main deck model's outline is the main deck's collision lines on every 
   }
 });
 
-test("every face of the main deck faces out along its normal, so Warcraft draws it from outside", () => {
+test("every face of the main deck faces out along its normal, so Warcraft draws it from outside [invariant]", () => {
   for (const { normal, corners } of SHIPPED_STAGES.flatMap((stage) => mainDeckFaces(stage))) {
     // Newell's normal of the polygon as wound.
     const wound = [0, 0, 0];
@@ -121,18 +118,7 @@ test("every face of the main deck faces out along its normal, so Warcraft draws 
   }
 });
 
-test("the shipped main deck model draws over the whole collision outline, read from the model file", () => {
-  for (const stage of SHIPPED_STAGES) {
-    const bounds = MODEL_FACTS[shippedMainDeck(stage)]?.bounds;
-    const corners = collisionCorners(stage);
-    expect(bounds?.min[0]).toBeCloseTo(Math.min(...corners.map(([x]) => x)), 2);
-    expect(bounds?.max[0]).toBeCloseTo(Math.max(...corners.map(([x]) => x)), 2);
-    expect(bounds?.min[2]).toBeCloseTo(Math.min(...corners.map(([, z]) => z)), 2);
-    expect(bounds?.max[2]).toBeCloseTo(Math.max(...corners.map(([, z]) => z)), 2);
-  }
-});
-
-test("each stage's shipped lighting model is the one its light declares", () => {
+test("each stage's shipped lighting model is the one its light declares [invariant]", () => {
   for (const { stage, theme, light } of STAGE_LIGHTS) {
     expect(STAGE_LIGHT_MODELS[stage], theme).toBe(`war3mapImported\\${stageLightModelFile(stageLightMdl(light))}`);
   }

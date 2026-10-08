@@ -15,7 +15,7 @@ const script = readFileSync(new URL("./native/pads/232/hippogryph-ride.pad", imp
 const archerClips = new Set(Array.from({ length: originalClipCount(Character.archer) }, (_, index) => originalClip(Character.archer, index)?.modelPath));
 
 for (const presentation of ["native", "pool-confirmed", "pool-predicted"] as const) {
-  test(`${presentation}: mounted ride replaces Archer and bird; jump-off restores two separate bodies`, () => {
+  test(`${presentation}: mounted ride replaces Archer and bird; jump-off restores two separate bodies [spec #232]`, () => {
     const runtime = installHeadless(SMASHCRAFT_HEADLESS);
     try {
       const build = { ...NATIVE_DRIVER_BUILD, presentation };

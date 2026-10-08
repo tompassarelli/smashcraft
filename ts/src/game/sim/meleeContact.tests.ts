@@ -12,7 +12,7 @@ function prepareJab(world: Roster, attacker: Fighter, facing: number): void {
   attacker.attack.frame = attackStartupFrames(AttackStyle.jab);
 }
 
-test("a melee capsule blocks and damages a shield only when it reaches the circle", () => {
+test("a melee capsule blocks and damages a shield only when it reaches the circle [spec docs/physics.md]", () => {
   const attacker = createFighter(Character.archer, 0.0, 1);
   const shielded = createFighter(Character.rifleman, 70.0, -1);
   const world = testWorld(attacker, shielded);
@@ -24,7 +24,7 @@ test("a melee capsule blocks and damages a shield only when it reaches the circl
   assertGreaterThan(shielded.shield.stun, 0);
 });
 
-test("a drained shield leaves a real melee poke at the exposed body edge", () => {
+test("a drained shield leaves a real melee poke at the exposed body edge [spec docs/physics.md]", () => {
   const attacker = createFighter(Character.archer, 0.0, 1);
   const defender = createFighter(Character.rifleman, 100.0, -1);
   const world = testWorld(attacker, defender);
@@ -37,7 +37,7 @@ test("a drained shield leaves a real melee poke at the exposed body edge", () =>
   assertGreaterThan(defender.launch.hitstun, 0);
 });
 
-test("melee can reach a shield before the body, and facing mirrors its volume", () => {
+test("melee can reach a shield before the body, and facing mirrors its volume [spec docs/physics.md] [invariant]", () => {
   for (const direction of [-1, 1]) {
     const attacker = createFighter(Character.archer, 0.0, direction);
     const defender = createFighter(Character.rifleman, direction * 110.0, -direction);
@@ -50,7 +50,7 @@ test("melee can reach a shield before the body, and facing mirrors its volume", 
   }
 });
 
-test("melee trades queue both contacts before either hit resolves", () => {
+test("melee trades queue both contacts before either hit resolves [spec docs/gameplay-design.md]", () => {
   const first = createFighter(Character.archer, -35.0, 1);
   const second = createFighter(Character.rifleman, 35.0, -1);
   const world = testWorld(first, second);

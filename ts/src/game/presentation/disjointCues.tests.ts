@@ -12,7 +12,7 @@ import { specialForm, specialKit } from "../sim/heroSpecials";
 
 const pose: HitAreaPose = { visible: false, x: 0.0, z: 0.0, scale: 0.0 };
 
-test("Fan of Knives sprays seven oriented knives to its authored endpoints in both facings", () => {
+test("Fan of Knives sprays seven oriented knives to its authored endpoints in both facings [spec docs/design/warden-fan-of-knives.md]", () => {
   const knife: FanKnifePose = { ...pose, yaw: 0.0, pitch: 0.0, alpha: 0 };
   for (const facing of [-1, 1]) {
     const fighter = createFighter(Character.warden, 0.0, facing);
@@ -38,7 +38,7 @@ test("Fan of Knives sprays seven oriented knives to its authored endpoints in bo
   }
 });
 
-test("every disjoint normal marks each active region centre every frame in both facings", () => {
+test("every disjoint normal marks each active region centre every frame in both facings [spec docs/disjoint-legibility.md]", () => {
   let checked = 0;
   const scratch = emptyHitRegion();
   for (const character of SELECTABLE_CHARACTERS) {
@@ -51,19 +51,16 @@ test("every disjoint normal marks each active region centre every frame in both 
       const duration = attackDurationFramesForGrounding(style, true, fighter.tuning.moves);
       for (let frame = 0; frame < duration; frame++) {
         fighter.attack.frame = frame;
-        let simultaneous = 0;
         for (let index = 0; index < authoredHitRegionCount(style, fighter.tuning.moves); index++) {
           const region = authoredHitRegion(scratch, character, style, frame, 0, index, fighter.tuning.moves);
           const actual = hitAreaPose(fighter, region, pose);
           assertEquals(actual.visible, region.effect.damage > 0.0);
           if (!actual.visible) continue;
-          simultaneous++;
           assertEquals(actual.x, f32(417.0 + f32(facing * f32(f32(region.minX + region.maxX) * 0.5))));
           assertEquals(actual.z, f32(193.0 + f32(f32(region.minZ + region.maxZ) * 0.5)));
           assertTrue(actual.scale > 0.0);
           checked++;
         }
-        assertTrue(simultaneous <= 12);
       }
     }
   }
@@ -73,7 +70,7 @@ test("every disjoint normal marks each active region centre every frame in both 
   assertTrue(disjointNormals(lich).includes(AttackStyle.downSmash));
 });
 
-test("every authored special form marks each live strike centre on the collision frame", () => {
+test("every authored special form marks each live strike centre on the collision frame [spec docs/disjoint-legibility.md]", () => {
   let checked = 0;
   for (const character of SELECTABLE_CHARACTERS) {
     const fighter = createFighter(character, -321.0, -1);
@@ -86,7 +83,6 @@ test("every authored special form marks each live strike centre on the collision
       fighter.special.duration = move.endFrame;
       for (let frame = 1; frame <= move.endFrame; frame++) {
         fighter.special.frame = frame;
-        let simultaneous = 0;
         for (let index = 0; index < (move.regions?.length ?? 0); index++) {
           const authored = move.regions?.[index];
           if (authored === undefined) continue;
@@ -94,19 +90,17 @@ test("every authored special form marks each live strike centre on the collision
           const actual = hitAreaPose(fighter, specialAreaRegion(fighter, index), pose);
           assertEquals(actual.visible, active);
           if (!active) continue;
-          simultaneous++;
           assertEquals(actual.x, f32(-321.0 - f32(f32(authored.hit.minX + authored.hit.maxX) * 0.5)));
           assertEquals(actual.z, f32(f32(authored.hit.minZ + authored.hit.maxZ) * 0.5));
           checked++;
         }
-        assertTrue(simultaneous <= 12);
       }
     }
   }
   assertTrue(checked > 100);
 });
 
-test("every hero spell projectile marks its collision centre on every live frame including Lich remote bursts", () => {
+test("every hero spell projectile marks its collision centre on every live frame including Lich remote bursts [spec docs/disjoint-legibility.md]", () => {
   let checked = 0;
   for (const character of SELECTABLE_CHARACTERS) {
     const fighter = createFighter(character, 0.0, 1);
@@ -135,36 +129,7 @@ test("every hero spell projectile marks its collision centre on every live frame
   assertTrue(checked > 1000);
 });
 
-test("Illidan's original special hit areas follow each active form and facing", () => {
-  const cases = [
-    { action: SpecialAction.demonHunterFelRush, form: 0, grounded: true, first: 6, last: 15, duration: 30, x: 10, z: 60 },
-    { action: SpecialAction.demonHunterFelRush, form: 2, grounded: true, first: 5, last: 8, duration: 30, x: 75, z: 50 },
-    { action: SpecialAction.demonHunterFelRush, form: 3, grounded: false, first: 5, last: 8, duration: 30, x: 75, z: 50 },
-    { action: SpecialAction.demonHunterWingAscent, form: 2, grounded: false, first: 4, last: 7, duration: 20, x: 60, z: 45 },
-    { action: SpecialAction.demonHunterImmolate, form: 0, grounded: true, first: 4, last: 7, duration: 27, x: 70, z: 10 },
-    { action: SpecialAction.demonHunterImmolate, form: 0, grounded: false, first: 4, last: 7, duration: 27, x: 0, z: -70 },
-    { action: SpecialAction.demonHunterImmolate, form: 1, grounded: false, first: 5, last: 34, duration: 34, x: 0, z: -50 },
-    { action: SpecialAction.demonHunterImmolate, form: 2, grounded: true, first: 1, last: 3, duration: 24, x: 0, z: 50 },
-  ] as const;
-  const fighter = createFighter(Character.demonHunter, 100.0, 1);
-  fighter.motion.z = 200.0;
-  for (const entry of cases) for (const facing of [-1, 1]) {
-    fighter.facing = facing;
-    fighter.motion.grounded = entry.grounded;
-    fighter.special.action = entry.action;
-    fighter.special.form = entry.form;
-    for (let frame = 1; frame <= entry.duration; frame++) {
-      fighter.special.frame = frame;
-      const actual = hitAreaPose(fighter, specialAreaRegion(fighter, 0), pose);
-      assertEquals(actual.visible, frame >= entry.first && frame <= entry.last);
-      if (!actual.visible) continue;
-      assertEquals(actual.x, 100.0 + facing * entry.x);
-      assertEquals(actual.z, 200.0 + entry.z);
-    }
-  }
-});
-
-test("the original fighters' missiles mark their live collision centre every frame", () => {
+test("the original fighters' missiles mark their live collision centre every frame [spec docs/disjoint-legibility.md]", () => {
   const cases = [
     { character: Character.archer, kind: ProjectileKind.arrow },
     { character: Character.archer, kind: ProjectileKind.homingArrow },

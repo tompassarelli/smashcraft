@@ -17,7 +17,7 @@ function painted(width: number, height: number, script: number, frame: number) {
 }
 
 // The map paints what the host reads; a capture without the stamp, or with a cell flipped, names no frame.
-test("a capture's drawn stamp names the fixture and frame the map painted, at 1080 and 1440 lines", () => {
+test("a capture's drawn stamp names the fixture and frame the map painted, at 1080 and 1440 lines [invariant]", () => {
   expect(stampCells(5, 177)).toHaveLength(STAMP_CELLS);
   expect(frameStamp(painted(1920, 1080, 5, 177))).toEqual({ script: 5, frame: 177 });
   expect(frameStamp(painted(2560, 1440, 63, 18000))).toEqual({ script: 63, frame: 18000 });
@@ -30,7 +30,7 @@ test("a capture's drawn stamp names the fixture and frame the map painted, at 10
   expect(frameStamp(flipped)).toBeUndefined();
 });
 
-test("a fixture holds each capture frame of its pad script once", () => {
+test("a fixture holds each capture frame of its pad script once [spec AGENTS.md]", () => {
   const fixture = fixtureOf("test/native/pads/180/lich-back-left.pad", "#! chat -dev quick hero lich\n40 a stick 1 0\n164 a capture\n164 b capture\n+13 a capture\n");
   expect(fixture).toEqual({ name: "180-lich-back-left", frames: [164, 177], script: fixture.script });
 });

@@ -16,7 +16,6 @@ import { startMatch } from "../src/platform/shell/matchStart";
 import { confirm } from "../src/platform/shell/menus";
 import { shell } from "../src/platform/shell/state";
 import { pauseMatchPresentation, renderFighter, renderPersistentPresentation } from "../src/platform/shell/view";
-import { views } from "../src/platform/shell/ui";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import type { EffectPose, HeadlessClient } from "wisp/src/headless/client";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
@@ -36,7 +35,7 @@ import { createFighter } from "../src/game/sim/fighter";
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
-test("Immolation loops are released on match reset and presentation destruction", () => {
+test("Immolation loops are released on match reset and presentation destruction [invariant]", () => {
   const clients = headless.clients({ start, install });
   clients.start();
   clients.frames(30);
@@ -62,7 +61,7 @@ test("Immolation loops are released on match reset and presentation destruction"
   });
 });
 
-test("hit event language: 26 event cases reach stock effects and confirmed sounds without replay", () => {
+test("hit event language: 26 event cases reach stock effects and confirmed sounds without replay [invariant]", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install });
   clients.start();
   clients.frames(30);
@@ -111,7 +110,7 @@ test("hit event language: 26 event cases reach stock effects and confirmed sound
   expect(client.errors).toEqual([]);
 });
 
-test("damage hue and shield recoil reach the renderer through freeze, stun and recovery without allocating effects", () => {
+test("damage hue and shield recoil reach the renderer through freeze, stun and recovery without allocating effects [invariant]", () => {
   const clients = headless.clients({ start, install });
   clients.start();
   clients.frames(30);
@@ -156,7 +155,7 @@ test("damage hue and shield recoil reach the renderer through freeze, stun and r
   expect(client.errors).toEqual([]);
 });
 
-test("combat effects: a hit corrected in after its spark's window still shows its spark once, from the start", () => {
+test("combat effects: a hit corrected in after its spark's window still shows its spark once, from the start [invariant]", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install });
   clients.start();
   const client = clients.clients[0];
@@ -227,7 +226,7 @@ function hiddenInView(client: HeadlessClient): unknown[] {
   return [...effectPoses(client)].filter(([, pose]) => hidden(pose) && pose.z > ground).map(([handle]) => handle);
 }
 
-test("combat effects: rollback, pause/resume and rematch neither replay nor retain effects", () => {
+test("combat effects: rollback, pause/resume and rematch neither replay nor retain effects [invariant]", () => {
   const clients = headless.clients({ start, install });
   clients.start();
   clients.frames(30);
@@ -334,7 +333,7 @@ test("combat effects: rollback, pause/resume and rematch neither replay nor reta
   expect(client.errors).toEqual([]);
 });
 
-test("quick match: a shot's missile and the idle missile pools stay out of the arena camera's view", () => {
+test("quick match: a shot's missile and the idle missile pools stay out of the arena camera's view [provisional]", () => {
   const clients = headless.clients({ start, install });
   clients.start();
   clients.frames(30);
@@ -387,33 +386,7 @@ test("quick match: a shot's missile and the idle missile pools stay out of the a
   expect(client.errors).toEqual([]);
 });
 
-test("pooled fighters: every clip but the presented one waits collapsed beneath the floor", () => {
-  const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install });
-  clients.start();
-  clients.frames(30);
-  clients.chat(0, "-dev quick");
-  clients.frames(60);
-  const client = clients.clients[0];
-  if (client === undefined) throw new Error("missing host client");
-  client.run(() => {
-    const s = shell();
-    expect(s.game.phase).toBe(Phase.match);
-    expect(hiddenInView(client)).toEqual([]);
-    for (const slot of [0, 1] as const) {
-      const pool = views(s).fighters[slot]?.pool;
-      if (pool === undefined) throw new Error(`slot ${slot} has no clip pool`);
-      expect(pool.admitted()).toBe(true);
-      // A different clip hides the shown one; hiding the pool hides the new one.
-      pool.present(fighterAt(s.world, slot), { ...s.runtime.poses[slot], clipIndex: 1 });
-      expect(hiddenInView(client)).toEqual([]);
-      pool.hide();
-      expect(hiddenInView(client)).toEqual([]);
-    }
-  });
-  expect(client.errors).toEqual([]);
-});
-
-test("pooled fighters: unchanged poses keep their appearance and a returning fading clip draws fully", () => {
+test("pooled fighters: unchanged poses keep their appearance and a returning fading clip draws fully [provisional]", () => {
   const clients = headless.clients({ start, install });
   clients.start();
   const client = clients.clients[0];

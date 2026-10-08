@@ -4,7 +4,7 @@ import { luma } from "./stagePalette";
 import { STAGE_LIGHTS } from "./stageLighting";
 
 // smashcraft:docs/design/visual-quality.md, "Stage light rules".
-test("every selectable stage has its own light", () => {
+test("every selectable stage has its own light [spec docs/design/visual-quality.md]", () => {
   for (const { id, name } of STAGE_CATALOG) {
     assertEquals(STAGE_LIGHTS.filter(({ stage }) => stage === id).length, 1, `${name} has no light`);
   }
@@ -12,7 +12,7 @@ test("every selectable stage has its own light", () => {
   assertEquals(new Set(lights).size, lights.length, "two stages share a light");
 });
 
-test("each stage's light keeps fighters bright, shaded sides readable and team colours their own", () => {
+test("each stage's light keeps fighters bright, shaded sides readable and team colours their own [spec docs/design/visual-quality.md]", () => {
   for (const { theme, light } of STAGE_LIGHTS) {
     const key = luma(light.key);
     const ambient = luma(light.ambient);
