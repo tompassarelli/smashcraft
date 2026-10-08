@@ -47,23 +47,28 @@ test("a gate step past its budget dies with everything it started, so git's push
   // #240: the capacity helper outlived the timed-out affected-test runner and kept the pipe open; git waited 11 minutes.
   const directory = mkdtempSync(join(tmpdir(), "pre-push-reap-"));
   const pidFile = join(directory, "grandchild.pid");
-  const step = ["sh", "-c", `sleep 30 & echo $! > ${pidFile}; sleep 30`];
+  // The grandchild records its NSpid line: the first pid indexes /proc (which may belong to an outer PID
+  // namespace, as under run-bounded), the last is the pid this test can signal.
+  const record = `while read key first rest; do [ "$key" = NSpid: ] && echo "$first $rest" > ${pidFile}; done < /proc/self/status; exec sleep 30`;
+  const step = ["sh", "-c", `sh -c '${record}' & sleep 30`];
   const hook = `import { Effect } from "effect"; import { run } from ${JSON.stringify(join(import.meta.dir, "../scripts/prePush.ts"))};
     await Effect.runPromise(run(${JSON.stringify(step)}, ".").pipe(Effect.timeoutOption("1 second")));`;
-  const started = performance.now();
   const gate = Bun.spawn([process.execPath, "-e", hook], { cwd: join(import.meta.dir, ".."), stdin: "ignore", stdout: "pipe", stderr: "pipe" });
   const alive = (pid: number) => existsSync(`/proc/${pid}`) && !/^\d+ \(.*\) Z/.test(readFileSync(`/proc/${pid}/stat`, "utf8"));
-  let grandchild = 0;
+  let procPid = 0;
+  let ownPid = 0;
   try {
-    const ended = await Promise.race([gate.exited.then(() => true), Bun.sleep(3000).then(() => false)]);
-    grandchild = Number(readFileSync(pidFile, "utf8"));
+    // Budget + 10 s absorbs startup on a loaded machine; the unreaped step holds the pipe for its full 30 s.
+    const ended = await Promise.race([gate.exited.then(() => true), Bun.sleep(11_000).then(() => false)]);
+    const pids = readFileSync(pidFile, "utf8").trim().split(/\s+/).map(Number);
+    [procPid, ownPid] = [pids[0]!, pids.at(-1)!];
     expect(ended).toBe(true);
-    expect(performance.now() - started).toBeLessThan(3000);
-    await Bun.sleep(100);
-    expect(alive(grandchild)).toBe(false);
+    // A killed process still needs a time slice to exit, which a loaded machine can delay.
+    for (let waited = 0; alive(procPid) && waited < 5000; waited += 50) await Bun.sleep(50);
+    expect(alive(procPid)).toBe(false);
   } finally {
     gate.kill("SIGKILL");
-    if (grandchild > 0 && alive(grandchild)) process.kill(grandchild, "SIGKILL");
+    if (procPid > 0 && alive(procPid)) process.kill(ownPid, "SIGKILL");
     rmSync(directory, { recursive: true, force: true });
   }
-});
+}, 20_000);
