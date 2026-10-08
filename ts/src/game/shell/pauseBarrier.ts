@@ -31,16 +31,43 @@ export interface PauseBarrier {
   readonly sequences: Slots<number>;
   /** Each slot's frame in the current round. */
   readonly frames: Slots<number | undefined>;
+  /** After a resume, until prediction catches up, the frame the speculative cursor stops before. */
+  paced: number | undefined;
 }
 
+/**
+ * Speculative frames one callback runs after a resume. The helpers' clocks
+ * restart when they read the resume, a round trip before the match resumes,
+ * so rows wait; at the catch-up budget they showed as one jump (#206).
+ */
+export const RESUME_PACE_FRAMES = 2;
+
 export function pauseBarrier(): PauseBarrier {
-  return { request: undefined, sequences: [0, 0, 0, 0], frames: [undefined, undefined, undefined, undefined] };
+  return { request: undefined, sequences: [0, 0, 0, 0], frames: [undefined, undefined, undefined, undefined], paced: undefined };
 }
 
 export function resetPauseBarrier(barrier: PauseBarrier): void {
   barrier.request = undefined;
   barrier.sequences.fill(0);
   for (const slot of PARTICIPANT_SLOTS) barrier.frames[slot] = undefined;
+  barrier.paced = undefined;
+}
+
+/** The match resumed with the speculative cursor at `frame`: the callback that resumes it shows the paused picture. */
+export function paceResume(barrier: PauseBarrier, frame: number): void {
+  barrier.paced = frame;
+}
+
+/** This callback's speculative stop while a resume is paced: RESUME_PACE_FRAMES past the last one. */
+export function pacedStop(barrier: PauseBarrier): number | undefined {
+  if (barrier.paced === undefined) return undefined;
+  barrier.paced += RESUME_PACE_FRAMES;
+  return barrier.paced;
+}
+
+/** Ends the pace once the speculative cursor stopped short of it: no rows wait past it. */
+export function settlePace(barrier: PauseBarrier, speculativeFrame: number): void {
+  if (barrier.paced !== undefined && speculativeFrame < barrier.paced) barrier.paced = undefined;
 }
 
 /** Starts a round; the caller has written the control request the helpers answer. */

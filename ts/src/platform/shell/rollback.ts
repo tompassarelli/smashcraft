@@ -22,7 +22,7 @@ import { MatchLifecycle } from "../../game/netcode/journal/lifecycle";
 import { JournalInputSource } from "../../game/netcode/journal/source";
 import { decodeTransport } from "../../game/netcode/journal/transport";
 import { captureReplaySnapshot, restoreReplaySnapshot } from "../../game/replay/snapshot";
-import { resetPauseBarrier, stopFrame } from "../../game/shell/pauseBarrier";
+import { pacedStop, resetPauseBarrier, settlePace, stopFrame } from "../../game/shell/pauseBarrier";
 import { REPAIR_FRAMES, confirmedBudget, speculativeBudget } from "../../game/shell/playback";
 import { queueLocalRows } from "../../game/shell/localInput";
 import { applyFrame } from "./frame";
@@ -32,7 +32,7 @@ import { INPUT_PREFIX, failJournal, flushTransport, receiveLifecycle, serviceJou
 import { probeAdvance, probeCapture, probeClockMs, probeInput, probeIntegrity, probePoll, probeRecording, probeSendFinished, probeTransportReceive, probeTransportSend } from "./responseProbe";
 import { type KeyboardRollback, type Rollback, type ShellState, localSlot, shell } from "./state";
 import { recordBatchWait, recordEcho, recordSend, resetEchoRing, traceSeconds } from "./trace";
-import { LASTING, setStatus } from "./view";
+import { LASTING, resumePresentationHeld, setStatus } from "./view";
 import { holdPresentedCapture } from "./visualCapture";
 import { samplePad } from "../../game/input/padCapture";
 import { pollPad, recordPadRow } from "./analogPad";
@@ -309,8 +309,12 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
   // replays over several callbacks while local rows keep running.
   if (s.game.phase === Phase.match) {
     const before = schedule.speculativeFrame();
-    const advanced = rollback.playback.catchUp(schedule, epoch, slot, speculative, speculativeBudget(journal !== undefined), stopAt, observeSpeculativeFrame);
+    // While the paused picture is held, the paced cursor waits with it.
+    const paced = journal === undefined ? undefined : resumePresentationHeld(s) ? journal.barrier.paced : pacedStop(journal.barrier);
+    const speculativeStop = stopAt === undefined ? paced : paced === undefined ? stopAt : Math.min(stopAt, paced);
+    const advanced = rollback.playback.catchUp(schedule, epoch, slot, speculative, speculativeBudget(journal !== undefined), speculativeStop, observeSpeculativeFrame);
     const after = schedule.speculativeFrame();
+    if (journal !== undefined) settlePace(journal.barrier, after);
     const halted = schedule.windowHalted(slot);
     const blocked = halted && after === before;
     if (halted) rollback.predictionHeld = true;

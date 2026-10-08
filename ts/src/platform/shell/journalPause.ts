@@ -9,7 +9,7 @@ import type { JournalInputSource } from "../../game/netcode/journal/source";
 import { readVocabularyControlAck } from "../../game/netcode/journal/vocabulary";
 import { controlFile } from "../../game/shell/journalFiles";
 import { pausedMessage } from "../../game/shell/messages";
-import { CONTROL_ACK_PREFIX, agreedFrame, encodeControlAck, pausing, preparedFrame, receiveControlAck, requestRound } from "../../game/shell/pauseBarrier";
+import { CONTROL_ACK_PREFIX, agreedFrame, encodeControlAck, paceResume, pausing, preparedFrame, receiveControlAck, requestRound } from "../../game/shell/pauseBarrier";
 import { readChunk } from "wisp/src/platform/fileio";
 import { releaseMessage } from "../keyboardJournal";
 import { consumeEditbox, failJournal, journalEpoch, journalIdentity, mailboxMessage, peekEditbox, setAsideRows, writeJournalFile } from "./journal";
@@ -128,6 +128,7 @@ export function commitPauseAtFrame(s: ShellState, rollback: Rollback, journal: J
   }
   const paused = pausing(journal.barrier);
   s.session.paused = paused;
+  if (!paused) paceResume(journal.barrier, rollback.schedule.speculativeFrame());
   pauseMatchPresentation(s, paused);
   setStatus(s, paused ? pausedMessage(startControl(s)) : "Resumed.", paused ? LASTING : 1.0);
   journal.barrier.request = undefined;

@@ -1,6 +1,6 @@
 import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import type { ControlState } from "../netcode/journal/source";
-import { agreedFrame, encodeControlAck, pauseBarrier, pausing, preparedFrame, receiveControlAck, requestRound, stopFrame } from "./pauseBarrier";
+import { RESUME_PACE_FRAMES, agreedFrame, encodeControlAck, paceResume, pacedStop, pauseBarrier, pausing, preparedFrame, receiveControlAck, requestRound, resetPauseBarrier, settlePace, stopFrame } from "./pauseBarrier";
 
 const EPOCH = 3;
 const HUMANS = 0b0101;
@@ -58,4 +58,20 @@ test("[repro #206] a Start press pauses at its own frame, however late the other
   assertEquals(agreedFrame(barrier), undefined);
   assertEquals(receiveControlAck(barrier, HUMANS, EPOCH, 2, ack(2, 3, "RESUME", 168)), "complete");
   assertEquals(agreedFrame(barrier), 168);
+});
+
+test("[repro #206] after a resume, prediction runs two frames a callback until it stops short, so waiting rows never show as one jump", () => {
+  const barrier = pauseBarrier();
+  assertEquals(pacedStop(barrier), undefined);
+  paceResume(barrier, 168);
+  assertEquals(RESUME_PACE_FRAMES, 2);
+  assertEquals(pacedStop(barrier), 170);
+  settlePace(barrier, 170);
+  assertEquals(pacedStop(barrier), 172);
+  // The cursor ran out of rows before the stop: it has caught up, and the pace ends.
+  settlePace(barrier, 171);
+  assertEquals(pacedStop(barrier), undefined);
+  paceResume(barrier, 200);
+  resetPauseBarrier(barrier);
+  assertEquals(pacedStop(barrier), undefined);
 });
