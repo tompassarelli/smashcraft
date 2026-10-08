@@ -45,7 +45,7 @@ export function profileRun(
       if (name.startsWith("game.match.step ") && name.includes("stepMatch(")) simulation = true;
       if (name.startsWith("game.replay.history ") && name.includes(".repair(")) phase = 0;
       else if (phase !== 0 && name.startsWith("platform.shell.rollback ") && name.includes("stepConfirmed(")) phase = 1;
-      else if (phase > 1 && name.startsWith("game.replay.shadowPlayback ") && name.includes(".catchUp(")) phase = 2;
+      else if (phase > 1 && name.startsWith("game.replay.shadowPlayback ") && (name.includes(".advanceSpeculative(") || name.includes(".catchUpSpeculative("))) phase = 2;
       else if (phase > 2 && (name.startsWith("platform.shell.view ") || name.startsWith("game.render.") || name.startsWith("game.ui.") || name.startsWith("game.presentation."))) phase = 3;
     }
     return [phase, simulation];
