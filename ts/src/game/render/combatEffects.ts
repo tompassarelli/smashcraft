@@ -16,6 +16,7 @@ import {
   type ImpactState,
   advanceImpacts,
   clearImpactState,
+  clearImpactSlot,
   createImpactState,
   emitImpacts,
   isContactImpact,
@@ -132,7 +133,7 @@ export class CombatEffects {
       if (late.ages[i] === 0 && this.lateConfirmed[i] === undefined) {
         // The events' other cues (dust, jumps, landings) are predicted presentation's alone.
         if (isContactImpact(floorDiv(i, IMPACTS_PER_KIND))) this.lateConfirmed[i] = frame;
-        else late.ages[i] = undefined;
+        else clearImpactSlot(late, i);
       }
       if (late.ages[i] !== undefined) live++;
     }
@@ -257,7 +258,7 @@ export class CombatEffects {
       this.lateConfirmed[i] = undefined;
       const model = this.impacts[i];
       if (!playing || model === undefined || confirmedFrame !== undefined && this.wasDrawn(kind, confirmedFrame)) {
-        late.ages[i] = undefined;
+        clearImpactSlot(late, i);
         if (model !== undefined && state.ages[i] === undefined) parkOnce(model, this, parked, i);
         continue;
       }
