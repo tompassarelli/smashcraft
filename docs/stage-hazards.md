@@ -4,7 +4,8 @@ The hidden test stages are wind (10), carried loop (11), barrel cannon (12),
 and timed lift (13). They are exercised by controller rows, replay tapes and
 the headless soak. Their schedules use the match frame, reset each match and
 replay with the fighters; none uses randomness or changes its path in response
-to a fighter. The loop and lift use smashcraft:ts/src/game/sim/stage.ts's moving
+to a fighter. Hazards show no text during play (#336); platforms, the cannon and
+the lava warn on the stage itself. The loop and lift use smashcraft:ts/src/game/sim/stage.ts's moving
 platform paths, with the carry and landing rules in smashcraft:docs/physics.md.
 
 Wind follows Dream Land 64's Whispy data in Melee's GrOp.dat and
@@ -12,13 +13,12 @@ melee:src/melee/gr/groldpupupu.c: 600 calm frames, a 45-frame warning, then 274
 frames pushing 0.2 Melee units per frame, alternating right and left. Its box
 has Melee's inner offsets from center, outer offsets from the ledges and
 height −10 to 40 Melee units above the floor. Ground dodges skip it, as in
-`Fighter_procUpdate` in melee:src/melee/ft/fighter.c. The notice names the
-direction before and during the gust.
+`Fighter_procUpdate` in melee:src/melee/ft/fighter.c.
 
 The carried platform waits 60 frames at each corner, then follows a rectangle
 at 3 world units per frame: x −420 to 420, z 120 to 300, a 920-frame lap.
 The timed lift follows the published 420-frame lift path: wait 90, rise 120,
-wait 90, sink 120. Both turn amber and show a notice for the last 30 frames
+wait 90, sink 120. Both turn amber for the last 30 frames
 of each authored wait. These are learnable authored schedules inspired by
 Randall and rising platforms; their exact retail movement is not asserted.
 
@@ -56,8 +56,7 @@ a 2,400-frame cycle of a right turn then a left turn, each 300 calm frames,
 300 warning frames and 600 erupting frames. The right patch warns on frames
 301–600 and erupts on 601–1,200; the left warns on 1,501–1,800 and erupts on
 1,801–2,400. During the warning the patch's own spot glows dark red, bubbling
-and brightening, and the notice reads "Lava erupts on the right (left) in N
-frames."; while it erupts the notice reads "Lava on the right (left)." Hazards
+and brightening. Hazards
 off keep it calm. Contact while it erupts deals 12% fire damage and base
 knockback 100 with zero growth, straight up, through ordinary body-hit
 resolution: 40 frames of hitstun, ordinary hitlag, action interruption,
@@ -81,8 +80,7 @@ the hydra) implement it, pinned by smashcraft:ts/src/game/sim/water.tests.ts.
 - **The tide** runs on a 1,200-frame cycle of the match's own frame, not the
   stage clock, so it runs with hazards off: 4.8 world units a frame
   (0.8 Melee units) right on frames 1–540, slack 541–600, left 601–1,140,
-  slack 1,141–1,200. During each slack the notice reads "Tide turns left
-  (right) in N frames." The push is a position offset after the fighter's
+  slack 1,141–1,200. The push is a position offset after the fighter's
   own motion, the same `moveMeleeX` offset the wind uses, applied in the
   match step's water pass after the fighters move, so hitlag and hitstun
   don't stop it. From the ledge a floating fighter passes the side blast

@@ -185,7 +185,7 @@ src/game/sim/hurtboxes.tests.ts	8	0.056
 src/game/sim/identityTraits.tests.ts	15	0.004
 src/game/sim/illidanRaidBoss.tests.ts	10	0.153
 src/game/sim/knockdown.tests.ts	17	0.047
-src/game/sim/lava.tests.ts	6	0.119
+src/game/sim/lava.tests.ts	6	0.185
 src/game/sim/ledge.tests.ts	17	0.029
 src/game/sim/mana.tests.ts	5	0.038
 src/game/sim/meleeContact.tests.ts	4	0.001

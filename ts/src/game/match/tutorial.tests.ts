@@ -60,7 +60,11 @@ const SCRIPTS: Record<LessonAction, { readonly frames: number; readonly script: 
   [LessonAction.dash]: { frames: 240, script: (input, frame) => { input.direction = floorMod(frame, 40) < 12 ? (floorMod(frame, 80) < 40 ? 1 : -1) : 0; } },
   // Jump, then jump again near the top, every second.
   [LessonAction.doubleJump]: { frames: 300, script: (input, frame) => { input.jumpPressed = floorMod(frame, 60) === 0 || floorMod(frame, 60) === 20; input.jumpHeld = floorMod(frame, 60) < 30; } },
-  [LessonAction.hit]: { frames: 300, script: (_, frame, queue) => { if (floorMod(frame, 30) === 0) queue(AttackStyle.jab, 1); } },
+  [LessonAction.hit]: { frames: 300, script: (input, frame, queue, player, partner) => {
+    const toward: Direction = partner.motion.x < player.motion.x ? -1 : 1;
+    if (Math.abs(partner.motion.x - player.motion.x) > 30.0) { input.direction = toward; input.walking = true; }
+    if (floorMod(frame, 30) === 0) queue(AttackStyle.jab, toward);
+  } },
   [LessonAction.special]: { frames: 300, script: (input, frame) => { input.specialPressed = floorMod(frame, 90) === 0; } },
   // Shield held, with a roll pressed every second.
   [LessonAction.dodge]: { frames: 300, script: (input, frame) => {

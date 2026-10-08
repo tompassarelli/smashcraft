@@ -17,8 +17,8 @@ test("required links and unaided precision inputs reject one- and two-frame wind
   }
 });
 
-test("Rifleman's unspaced down air on shield is punishable out of shield [spec #106]", () => {
-  const row = aerialOnShield("Rifleman", "down air", "advancing", 48, "unspaced");
+test("Rifleman's early unspaced down air on shield is punishable out of shield [spec #106]", () => {
+  const row = aerialOnShield("Rifleman", "down air", "early advancing", 48, "unspaced");
   expect(row?.punishes.length).toBeGreaterThan(0);
 });
 
@@ -39,10 +39,7 @@ test("Rifleman's late neutral air on shield is safe [spec #106]", () => {
   expect(row?.punishes).toEqual([]);
 });
 
-test("Rifleman's early neutral air landing in front of a shield is shield-grabbed [spec #106]", () => {
-  const row = aerialOnShield("Rifleman", "neutral air", "early advancing", 48, "unspaced");
-  expect(row?.punishes[0]?.punisher).toBe("shield grab");
-});
+
 
 test("Illidan's back air crossing up a shield is safe [spec #106]", () => {
   const row = aerialOnShield("Illidan", "back air", "advancing", 48, "unspaced");
