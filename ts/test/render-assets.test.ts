@@ -25,3 +25,21 @@ test("a Warcraft update cannot reuse the previous build's stock render bytes [sp
     expect(used.assets["abilities/spell.mdx"].bytes).toBe(13);
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
+
+test("[spec wisp#84] Definitive map body overrides stock while Classic keeps its imported body", async () => {
+  const directory = mkdtempSync(join(tmpdir(), "smashcraft-definitive-assets-"));
+  try {
+    await Bun.write(join(directory, "classic"), "classic body");
+    await Bun.write(join(directory, "definitive"), "definitive body");
+    const renderer = headlessRender({ assets: directory, imports: [
+      { entry: "Unit.mdx", source: join(directory, "classic") },
+      { entry: "_de.w3mod\\Unit.mdx", source: join(directory, "definitive") },
+    ] });
+    const classic = await renderer.resolveAsset("Unit.mdl", "classic");
+    const definitive = await renderer.resolveAsset("Unit.mdl", "definitive");
+    expect(new TextDecoder().decode(classic.bytes)).toBe("classic body");
+    expect(new TextDecoder().decode(definitive.bytes)).toBe("definitive body");
+    expect(definitive.selected).toEqual({ source: "map", layer: "_de.w3mod", path: "_de.w3mod/Unit.mdx" });
+    expect(definitive.attempts).toHaveLength(1);
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});

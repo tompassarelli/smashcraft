@@ -437,7 +437,7 @@ code. From smashcraft:ts/:
   manifest with its parts, or a joined replay, in Bun and 32-bit Lua to every
   recorded checksum; `--out` writes the joined replay to share
   (smashcraft:docs/design/client.md, "Full-match replays").
-- Headless match: `bun wisp headless [quick-match|desync] [--clients N] [--journey FILE] [--render DIR --frames N...]` plays
+- Headless match: `bun wisp headless [quick-match|desync] [--clients N] [--journey FILE] [--render DIR --frames N... --graphics classic|definitive]` plays
   the dev build's quick match in simulated clients in about a second and prints
   desyncs, error reports and scene problems; `--cost` adds its predicted
   Warcraft cost per frame. `--render` draws requested frames using the map's

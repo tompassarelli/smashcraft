@@ -2,7 +2,11 @@
 
 `bun wisp headless --render PRIVATE_DIR --frames 64,132,159,169,206`
 draws the requested frames at 1280×720 using the map's imported assets and
-classic Warcraft models. Asset paths come from this checkout's immutable
+classic Warcraft models. `--graphics definitive` draws Definitive Edition:
+`_de.w3mod` imports, then HD and base imports, followed by the stock layers.
+Each player's look leaves the simulated match unchanged. `render.json` lists
+every attempted layer and the map or stock path selected for each asset.
+Asset paths come from this checkout's immutable
 `build-inputs.json`. Stock textures come from `WC3_TEXTURES`, or are extracted
 with `CASC_EXTRACTOR` and `WC3_STORAGE`. The extractor
 is built by `tools/animations/extract.sh`; DDS textures are converted with
