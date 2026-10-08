@@ -335,10 +335,21 @@ function closest(found: readonly FieldDifference[]): FieldDifference {
   return best;
 }
 
+/** A whole number's decimal digits, alike in Bun and in Lua, which prints a float's ".0". */
+function wholeText(value: number): string {
+  let rest = value < 0 ? -value : value;
+  let text = "";
+  do {
+    text = `${DIGITS.charAt(floorMod(rest, 10))}${text}`;
+    rest = floorDiv(rest, 10);
+  } while (rest > 0);
+  return value < 0 ? `-${text}` : text;
+}
+
 /** `p0 motion.x +1 (replayed 512.25)` for each field; or that no one or two fields of a fighter explain it. */
 export function describeDigestDifference(difference: DigestDifference): string {
   if (difference.fields.length === 0) return "more than one digest field differs";
   return difference.fields.map(({ field, replayed, native, steps }) => typeof replayed === "boolean"
     ? `${field} is ${String(native)} natively, ${String(replayed)} replayed`
-    : `${field} ${steps > 0 ? "+" : ""}${steps}${Math.floor(replayed) === replayed && Math.floor(Number(native)) === native ? "" : " ulp"} natively (replayed ${replayed}, native ${String(native)})`).join("; ");
+    : `${field} ${steps > 0 ? "+" : ""}${Math.floor(steps) === steps ? wholeText(steps) : steps}${Math.floor(replayed) === replayed && Math.floor(Number(native)) === native ? "" : " ulp"} natively (replayed ${replayed}, native ${String(native)})`).join("; ");
 }

@@ -23,7 +23,7 @@ function joinedTape(): string[] {
 }
 
 /** The joined replay with frame `frame`'s recorded digest replaced by the one `change` makes of the replayed match there. */
-function withNativeChange(lines: readonly string[], frame: number, change: (fighter: ReturnType<typeof fighterAt>) => void): string[] {
+function withNativeChange(lines: readonly string[], frame: number, change: (this: void, fighter: ReturnType<typeof fighterAt>) => void): string[] {
   const replay = parseReplay(lines);
   if (typeof replay === "string") throw new Error(replay);
   const state = createReplaySnapshot();
@@ -61,7 +61,7 @@ test("#69 a test build's replay records every frame's digest and replays with no
 });
 
 test("#69 a native field an ulp off names its first divergent frame and field", () => {
-  const cases: readonly { name: string; change: (fighter: ReturnType<typeof fighterAt>) => void; want: string }[] = [
+  const cases: readonly { name: string; change: (this: void, fighter: ReturnType<typeof fighterAt>) => void; want: string }[] = [
     { name: "one position ulp", change: (fighter) => { fighter.motion.x += significandUnit(fighter.motion.x); }, want: "p0 motion.x +1 ulp" },
     { name: "an attack frame", change: (fighter) => { fighter.attack.frame += 2; }, want: "p0 attack.frame +2" },
     { name: "a velocity and the position it moved", change: (fighter) => {
