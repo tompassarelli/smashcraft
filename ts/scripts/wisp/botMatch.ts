@@ -174,6 +174,8 @@ export function playBotMatch(clients: Lockstep, match: BotMatch, frames: number,
       game.characterChoices[slot] = character;
       game.characterReadiness[slot] = true;
     }
+    // Four players' presses don't all reach the menu in time: every player has picked by now.
+    if (match.computers.length === 0) for (const player of clients.clients) game.characterReadiness[player.slot] = true;
   }
   clients.press(0, Key.y);
   until("stage selection", () => gameOf(host).phase === Phase.stageMenu);
