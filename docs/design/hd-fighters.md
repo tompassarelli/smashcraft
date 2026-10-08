@@ -99,9 +99,11 @@ collision and emitter chunks do not belong in a match body; Cairne's version
 
 ## Packaging and size
 
-Place the same Definitive body under both `_de.w3mod/war3mapImported/<Classic timeline name>`
-and `_hd.w3mod/war3mapImported/<Classic timeline name>` until native captures
-confirm Definitive's lookup. Each player's graphics setting chooses the look locally;
+Place one Definitive body under `_hd.w3mod/war3mapImported/<Classic timeline name>`.
+The 3.0.1 native one-alias captures confirmed that Definitive accepts either
+prefix alone; the selected `_hd.w3mod` path keeps one copy per fighter.
+Keep `_de.w3mod` support for installed stock asset reads and unrelated stage
+imports. Each player's graphics setting chooses the look locally;
 the ordinary imported path remains Classic. Use the Definitive stock texture paths
 and material team-colour slots, with no copied texture imports. Keep private
 inputs outside Git; publish through the existing immutable family mechanism.
