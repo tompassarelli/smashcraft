@@ -13,7 +13,10 @@ import { createFighter } from "../sim/fighter";
 import { copyControls, createRoster, fighterAt, isActive, neutralControls } from "../sim/roster";
 import { surfaceLeft, surfaceRight } from "../sim/stage";
 import { FREEZE_TRAP_FREEZE_FRAMES } from "../sim/summons";
-import { produceComputerInput } from "./botPlay";
+import { produceComputerInput, sameComputerInputs } from "./botPlay";
+import { observeOpponents } from "./botPerception";
+import { cpuSkill } from "./cpuSkill";
+import { copyReplayState, createReplaySnapshot } from "../replay/snapshot";
 import { chooseDefense } from "./botDefense";
 import { beginFighterAttack } from "../sim/attacks";
 import { attackStartupFrames } from "../sim/moves";
@@ -200,4 +203,51 @@ test("a frozen computer mashes out of the freeze at a human pace [spec #114]", (
     }
     assertEquals(frames, 131);
   }
+});
+
+test("a computer repeats a decision only from the same state: any change to its fighter, perception, strategy, delay or clock refuses it [invariant]", () => {
+  const game = computerMatch([Character.archer, Character.rifleman], [-100.0, 100.0], 0, 2);
+  for (let frame = 1; frame <= 90; frame++) game.step();
+  const live = { world: game.world, match: game.match, controls: game.controls, runtime: game.runtime };
+  const before = createReplaySnapshot();
+  copyReplayState(before, live);
+  const frame = game.runtime.simulationFrame + 1;
+  const same = () => sameComputerInputs(game.match, game.world, game.runtime, before.match, before.world, before.runtime, 1, frame);
+  assertTrue(same());
+  // Every number and flag of the computer's own fighter that the copy holds apart from live state.
+  let leaves = 0;
+  const visit = (mine: Record<string, unknown>, copy: Record<string, unknown>, depth: number) => {
+    for (const key of Object.keys(copy)) {
+      const value = copy[key];
+      const own = mine[key];
+      if (typeof value === "number" || typeof value === "boolean") {
+        copy[key] = typeof value === "number" ? value + 1 : !value;
+        if (same()) throw new Error(`a changed fighter field ${key} still matched`);
+        copy[key] = value;
+        leaves++;
+      } else if (typeof value === "object" && value !== null && value !== own && typeof own === "object" && own !== null && depth < 4) {
+        visit(own as Record<string, unknown>, value as Record<string, unknown>, depth + 1);
+      }
+    }
+  };
+  visit(fighterAt(game.world, 1) as unknown as Record<string, unknown>, fighterAt(before.world, 1) as unknown as Record<string, unknown>, 0);
+  assertGreaterThan(leaves, 100);
+  assertTrue(same());
+  before.runtime.botAttackDelays[1] += 1.0;
+  assertFalse(same());
+  before.runtime.botAttackDelays[1] -= 1.0;
+  before.runtime.botStrategies[1].events++;
+  assertFalse(same());
+  before.runtime.botStrategies[1].events--;
+  before.runtime.botMemory.directionFrames[1]++;
+  assertFalse(same());
+  before.runtime.botMemory.directionFrames[1]--;
+  before.match.matchFrame++;
+  assertFalse(same());
+  before.match.matchFrame--;
+  // The perceived sample: a memory with one more observation sees a newer one.
+  const seen = frame + cpuSkill("wren", "expert").reactionFrames;
+  assertTrue(sameComputerInputs(game.match, game.world, game.runtime, before.match, before.world, before.runtime, 1, seen));
+  observeOpponents(before.runtime.botMemory, before.world, frame);
+  assertFalse(sameComputerInputs(game.match, game.world, game.runtime, before.match, before.world, before.runtime, 1, seen));
 });

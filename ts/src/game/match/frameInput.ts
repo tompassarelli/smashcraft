@@ -11,7 +11,7 @@ import { type Roster, copyControls, fighterAt, isActive, sameControls } from "..
 import { type FrameControls, createFrameControls } from "./controls";
 import type { PacingAndPresentation } from "./pacingAndPresentation";
 import { type MatchState, Phase, computerActive } from "./rules";
-import { produceComputerInput } from "./botPlay";
+import { produceComputerInput, repeatComputerInput } from "./botPlay";
 import { observedFrameLegalActions, observedFrameStartedActions, stepMatch } from "./step";
 import { latchPresses, releasePresses } from "./training";
 import { type ReplayState, copyReplayState } from "../replay/snapshot";
@@ -136,16 +136,35 @@ const beforeAttack: Slots<number> = [0, 0, 0, 0];
 const beforeDamage: Slots<number> = [0.0, 0.0, 0.0, 0.0];
 const beforeShield: Slots<number> = [0.0, 0.0, 0.0, 0.0];
 
+/**
+ * Computers whose decisions a step takes from an earlier run of the same
+ * frame: `after` is that run's state after it, and sameComputerInputs matched
+ * each slot in `mask` with the state before it.
+ */
+export interface RepeatedComputers {
+  readonly mask: number;
+  readonly after: Readonly<PacingAndPresentation>;
+}
+
 /** The frame's controls from its row and the world before it, and each fighter's state before it for impact events and poses. */
-function prepareMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number): boolean {
+function prepareMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number, repeated: RepeatedComputers | undefined): boolean {
   if (row.frame !== frame || frame !== runtime.simulationFrame + 1 || row.mask !== world.mask) return false;
   if (row.source !== "network") copyBotMemory(runtime.botMemory, row.botMemoryAfterInput);
   if (row.source !== "network") for (const slot of PARTICIPANT_SLOTS) copyBotStrategy(runtime.botStrategies[slot], row.botStrategiesAfterInput[slot]);
   for (const slot of PARTICIPANT_SLOTS) {
+    const decision = runtime.botDecisions[slot];
+    decision.decided = false;
     if (!isActive(world, slot)) continue;
     if (row.source === "network") {
-      if (computerActive(game, slot)) produceComputerInput(game, world, runtime, slot, frame, row.values.inputs[slot], row.values.commands[slot]);
-      else adaptInput(row.network[slot], fighterAt(world, slot), frame, row.values.inputs[slot], row.values.commands[slot]);
+      if (computerActive(game, slot)) {
+        const input = row.values.inputs[slot];
+        const commands = row.values.commands[slot];
+        if (repeated !== undefined && participantActive(repeated.mask, slot)) repeatComputerInput(world, runtime, repeated.after, repeated.after.botDecisions[slot], slot, frame, input, commands);
+        else produceComputerInput(game, world, runtime, slot, frame, input, commands);
+        decision.decided = true;
+        copyControls(decision.input, input);
+        copyAttackBuffer(decision.commands, commands);
+      } else adaptInput(row.network[slot], fighterAt(world, slot), frame, row.values.inputs[slot], row.values.commands[slot]);
     } else runtime.botAttackDelays[slot] = row.botDelaysAfterInput[slot];
     copyControls(row.scratch.inputs[slot], row.values.inputs[slot]);
     row.scratch.commands[slot] = controls.commands[slot];
@@ -162,8 +181,8 @@ function prepareMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster
   return true;
 }
 
-export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number): boolean {
-  if (!prepareMatchFrame(row, game, world, controls, runtime, frame)) return false;
+export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number, repeated?: RepeatedComputers): boolean {
+  if (!prepareMatchFrame(row, game, world, controls, runtime, frame, repeated)) return false;
   if (game.phase === Phase.match && game.training) {
     // Slow motion: the match runs on the last of every `speed` input frames, with the presses made on the ones it skips.
     const trainer = game.trainer;

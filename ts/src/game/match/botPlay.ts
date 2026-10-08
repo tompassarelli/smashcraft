@@ -4,7 +4,7 @@
 // state. Every choice is a function of that state and the frame number.
 import { f32 } from "wisp/src/sim/f32";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
-import { type AttackBuffer, clearAttackBuffer } from "../input/attackBuffer";
+import { type AttackBuffer, clearAttackBuffer, copyAttackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../input/participants";
 import { DownState, GrabAction, ShieldBreak } from "../sim/codes";
 import { heroStatusBlocksActions, heroStatusMashes } from "../sim/heroStatus";
@@ -20,7 +20,7 @@ import { steerInAir, steerOnGround } from "./botFooting";
 import { chooseAttack, lastChoicePassedForVariety, smashChargeGoal } from "./botMoves";
 import { botChance, botChoice, useMatchSeed } from "./botRandom";
 import { type CpuSkill, cpuSkill, perceivedCpuSkill } from "./cpuSkill";
-import { type BotMemory, observeOpponents, perceivedOpponent, perceivedHeldFighter, commitBotDirection } from "./botPerception";
+import { type BotMemory, observeOpponents, perceivedOpponent, perceivedHeldFighter, commitBotDirection, samePerception } from "./botPerception";
 import { chooseDefense } from "./botDefense";
 import { choosePunish } from "./botPunish";
 import { chooseRecoveryInput } from "./botRecovery";
@@ -28,7 +28,8 @@ import { pressHeroFollowUp } from "./botHeroKit";
 import { dashIn, kitChargeGoal, pressKitOption, steerHeroBranches, steerRunningSpecial } from "./botKitOptions";
 import { MATCH_TICKS_PER_SECOND, type MatchState, stageClock } from "./rules";
 import { trainingPartnerInput } from "./training";
-import { type BotStrategy, learnBotHabit, prepareBotRead, pressBotRead } from "./botStrategy";
+import { type BotStrategy, copyBotStrategy, learnBotHabit, prepareBotRead, pressBotRead, sameBotStrategy } from "./botStrategy";
+import type { BotDecision } from "./pacingAndPresentation";
 
 const COMPUTER_NEUTRAL = neutralControls();
 const TICK = f32(1.0 / MATCH_TICKS_PER_SECOND);
@@ -154,6 +155,74 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
   // DI and escape mashing are reactions to the fighter's own state, not steering.
   if (fighter.launch.hitlag <= 0 && fighter.grab.owner === undefined) commitBotDirection(runtime.botMemory, slot, frame, input);
   useMatchSeed(0);
+}
+
+/** Records nested deeper than this are treated as different. */
+const RECORD_DEPTH = 6;
+
+const negativeZero = (value: unknown): boolean => value === 0 && 1 / (typeof value === "number" ? value : 0) < 0;
+
+/** Equal fields all the way down, signed zeros apart; shared records compare by identity. */
+function sameRecord<T extends object>(a: Readonly<T>, b: Readonly<T>, depth: number): boolean {
+  if (depth > RECORD_DEPTH) return false;
+  let fields = 0;
+  for (const key in a) {
+    const x = a[key];
+    if (x === undefined) continue;
+    fields++;
+    const y = b[key];
+    if (x === y) {
+      // Inline, so an equal field costs no call: in a 32-bit Lua repair this check runs over every field of the computer's fighter.
+      if (x === 0 && typeof x === "number" && typeof y === "number" && 1 / x !== 1 / y) return false;
+      continue;
+    }
+    if (typeof x !== "object" || typeof y !== "object" || x === null || y === null || !sameRecord(x, y, depth + 1)) return false;
+  }
+  for (const key in b) if (b[key] !== undefined) fields--;
+  return fields === 0;
+}
+
+/**
+ * Whether produceComputerInput for `slot` at `frame` reads the same state as
+ * it did from `before`, so it decides the same. It reads the match seed, the
+ * slot's identity and tier, training, the stage and its clock, the time
+ * limit, the slot's own fighter, its perceived sample and committed
+ * direction, its strategy and its attack delay; a new read joins this list.
+ */
+export function sameComputerInputs(game: Readonly<MatchState>, world: Readonly<Roster>, runtime: Readonly<BotRuntime>, before: Readonly<MatchState>, beforeWorld: Readonly<Roster>, beforeRuntime: Readonly<BotRuntime>, slot: ParticipantSlot, frame: number): boolean {
+  if (game.training || before.training || world.mask !== beforeWorld.mask) return false;
+  const opponent = game.cpuResolvedOpponents[slot];
+  const tier = game.cpuTiers[slot];
+  if (opponent !== before.cpuResolvedOpponents[slot] || tier !== before.cpuTiers[slot] || game.matchSeed !== before.matchSeed) return false;
+  if (game.stageChoice !== before.stageChoice || stageClock(game) !== stageClock(before)) return false;
+  if (game.timeLimitMinutes !== before.timeLimitMinutes || game.remainingFrames !== before.remainingFrames) return false;
+  const delay = cpuSkill(opponent, tier).reactionFrames;
+  // With no delay the computer sees this frame's observation, which a rollback rewrites.
+  if (delay < 1) return false;
+  const attackDelay = runtime.botAttackDelays[slot];
+  const beforeDelay = beforeRuntime.botAttackDelays[slot];
+  if (attackDelay !== beforeDelay || negativeZero(attackDelay) !== negativeZero(beforeDelay)) return false;
+  if (!sameBotStrategy(runtime.botStrategies[slot], beforeRuntime.botStrategies[slot])) return false;
+  if (!samePerception(runtime.botMemory, beforeRuntime.botMemory, slot, frame, delay)) return false;
+  return sameRecord(fighterAt(world, slot), fighterAt(beforeWorld, slot), 0);
+}
+
+/**
+ * As produceComputerInput, from a state sameComputerInputs matched with the
+ * state before a step that decided `decision`: the computer observes this
+ * frame and takes that step's decision and its strategy, delay and direction.
+ */
+export function repeatComputerInput(world: Readonly<Roster>, runtime: BotRuntime, after: Readonly<BotRuntime>, decision: Readonly<BotDecision>, slot: ParticipantSlot, frame: number, input: Controls, commands: AttackBuffer): void {
+  observeOpponents(runtime.botMemory, world, frame);
+  copyControls(input, decision.input);
+  const grace = commands.graceFrames;
+  clearAttackBuffer(commands);
+  copyAttackBuffer(commands, decision.commands);
+  commands.graceFrames = grace;
+  runtime.botAttackDelays[slot] = after.botAttackDelays[slot];
+  copyBotStrategy(runtime.botStrategies[slot], after.botStrategies[slot]);
+  runtime.botMemory.directions[slot] = after.botMemory.directions[slot];
+  runtime.botMemory.directionFrames[slot] = after.botMemory.directionFrames[slot];
 }
 
 /** The delayed opponent observation decides whether a cast needs startup armor. */

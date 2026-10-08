@@ -3,6 +3,7 @@ import { type AttackBuffer, attackBuffer, clearAttackBuffer, queueAttack } from 
 import type { FrameControls } from "../match/controls";
 import { type MatchFrameInput, borrowMatchFrame, captureFrame, captureNetworkFrame, copyMatchFrameInput, createMatchFrameInput, resetMatchFrameInput, restoreMatchFrame, sameMatchFrameInput } from "../match/frameInput";
 import { participantInputs } from "../input/participants";
+import { Action, bit } from "../input/actions";
 import { type ImpactEvents } from "../presentation/impactEvents";
 import { type Controls, fighterAt, neutralControls } from "../sim/roster";
 import { firstStateDifference } from "./difference";
@@ -367,6 +368,61 @@ test("restored and borrowed network frames preserve CPU state and every confirme
     }
   }
   assertGreaterThan(contacts, 0);
+});
+
+test("a repair that repeats unchanged computer decisions reaches the state of play without rollback [invariant]", () => {
+  // The human's stick turns every 15 frames and its rows arrive 4 frames late,
+  // so each turn is mispredicted; the computer fights it throughout.
+  const late = 4;
+  const straight = createTapeWorld({ stocks: 99 });
+  const rolled = createTapeWorld({ stocks: 99 });
+  straight.live.match.computerMask = 2;
+  rolled.live.match.computerMask = 2;
+  const history = new ReplayHistory();
+  const corrections = new ReplayCorrections();
+  assertTrue(history.beginEpoch(1, 1, REPLAY_MAX_CORRECTION_FRAMES));
+  assertTrue(corrections.beginEpoch(1));
+  const actual = participantInputs();
+  const predicted = participantInputs();
+  const actualAt = (frame: number) => {
+    const human = actual[0];
+    human.axisX = Math.floor(frame / 15) % 2 === 0 ? 100 : -100;
+    human.held = frame % 9 < 2 ? bit(Action.attack) : 0;
+    human.pressed = frame % 9 === 0 ? bit(Action.attack) : 0;
+    return actual;
+  };
+  const row = createMatchFrameInput();
+  const actualRow = createMatchFrameInput();
+  const confirm = (frame: number) => {
+    resetMatchFrameInput(actualRow);
+    assertTrue(captureNetworkFrame(actualRow, frame, actualAt(frame), rolled.live.world, 1));
+    corrections.clear();
+    assertTrue(corrections.add(actualRow));
+    assertTrue(history.correct(1, corrections, rolled.live) !== "rejected");
+  };
+  let diverged = false;
+  const last = 240;
+  for (let frame = 1; frame <= last; frame++) {
+    resetMatchFrameInput(row);
+    assertTrue(captureNetworkFrame(row, frame, actualAt(frame), straight.live.world, 1));
+    execute(straight, row);
+    // The prediction repeats the last row that arrived.
+    const known = actualAt(Math.max(1, frame - late))[0];
+    predicted[0].axisX = known.axisX;
+    predicted[0].held = known.held;
+    predicted[0].pressed = 0;
+    resetMatchFrameInput(row);
+    assertTrue(captureNetworkFrame(row, frame, predicted, rolled.live.world, 1));
+    assertTrue(history.saveSpeculative(1, row, rolled.live));
+    execute(rolled, row);
+    if (tapeDifference(straight, rolled) !== undefined) diverged = true;
+    if (frame > late) confirm(frame - late);
+  }
+  for (let frame = last - late + 1; frame <= last; frame++) confirm(frame);
+  assertTrue(diverged);
+  assertEquals(tapeDifference(straight, rolled), undefined);
+  assertGreaterThan(fighterAt(straight.live.world, 0).status.damage + fighterAt(straight.live.world, 1).status.damage, 0.0);
+  assertGreaterThan(history.repeatedComputerDecisions(), 0);
 });
 
 test("#206 a client that predicted past the pause frame returns to the state before it [repro #206]", () => {

@@ -5,9 +5,19 @@ import { clearSpecialEffectState, copySpecialEffectStateInto, createSpecialEffec
 import { clearSummonState, copySummonStateInto, createSummonState, type SummonState } from "../presentation/summonState";
 import { clearFighterPose, copyFighterPoseInto, createFighterPose, type FighterPose } from "../presentation/fighterPose";
 import type { Roster } from "../sim/roster";
-import { isActive } from "../sim/roster";
+import { type Controls, copyControls, isActive, neutralControls } from "../sim/roster";
 import { type BotMemory, clearBotMemory, copyBotMemory, createBotMemory } from "./botPerception";
 import { type BotStrategy, createBotStrategy, copyBotStrategy, clearBotStrategy } from "./botStrategy";
+import { type AttackBuffer, attackBuffer, copyAttackBuffer } from "../input/attackBuffer";
+
+/** A computer's controls and attack commands from the step that reached a state. */
+export interface BotDecision {
+  decided: boolean;
+  readonly input: Controls;
+  readonly commands: AttackBuffer;
+}
+
+const createBotDecision = (): BotDecision => ({ decided: false, input: neutralControls(), commands: attackBuffer(0) });
 
 /**
  * What a match carries beside its world, game rules and controls: the frame pacing
@@ -19,6 +29,8 @@ export interface PacingAndPresentation {
   botAttackDelays: Slots<number>;
   readonly botMemory: BotMemory;
   readonly botStrategies: Slots<BotStrategy>;
+  /** What each computer decided in the step that reached this state, so a rollback from an equal state can replay it (ReplayHistory.repair). */
+  readonly botDecisions: Slots<BotDecision>;
   impacts: ImpactState;
   specials: SpecialEffectState;
   summons: SummonState;
@@ -36,6 +48,7 @@ export function createPacingAndPresentation(): PacingAndPresentation {
     botAttackDelays: [0.0, 0.0, 0.0, 0.0],
     botMemory: createBotMemory(),
     botStrategies: [createBotStrategy(), createBotStrategy(), createBotStrategy(), createBotStrategy()],
+    botDecisions: [createBotDecision(), createBotDecision(), createBotDecision(), createBotDecision()],
     impacts: createImpactState(),
     specials: createSpecialEffectState(),
     summons: createSummonState(),
@@ -64,10 +77,18 @@ export function copyPacingAndPresentation(target: PacingAndPresentation, source:
   for (const slot of PARTICIPANT_SLOTS) {
     target.botAttackDelays[slot] = source.botAttackDelays[slot];
     copyBotStrategy(target.botStrategies[slot], source.botStrategies[slot]);
+    const decision = source.botDecisions[slot];
+    target.botDecisions[slot].decided = decision.decided;
+    if (decision.decided) copyBotDecision(target.botDecisions[slot], decision);
     target.observedLegal[slot] = source.observedLegal[slot];
     target.observedStarted[slot] = source.observedStarted[slot];
     if (isActive(sourceWorld, slot)) copyFighterPoseInto(target.poses[slot], source.poses[slot], sourceWorld);
   }
+}
+
+export function copyBotDecision(target: BotDecision, source: Readonly<BotDecision>): void {
+  copyControls(target.input, source.input);
+  copyAttackBuffer(target.commands, source.commands);
 }
 
 /**
@@ -81,6 +102,7 @@ export function resetPacingAndPresentation(runtime: PacingAndPresentation): void
   runtime.botAttackDelays.fill(0.0);
   clearBotMemory(runtime.botMemory);
   for (const strategy of runtime.botStrategies) clearBotStrategy(strategy);
+  for (const decision of runtime.botDecisions) decision.decided = false;
   runtime.observedLegal.fill(0);
   runtime.observedStarted.fill(0);
 }

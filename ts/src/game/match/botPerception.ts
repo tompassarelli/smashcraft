@@ -512,6 +512,16 @@ function perceivedFrame(memory: Readonly<BotMemory>, frame: number, delay: numbe
   return undefined;
 }
 
+/**
+ * Whether two memories show a computer in `slot` the same past: the same
+ * sample at its perception delay and the same committed direction. Samples
+ * never change while a history holds them, so the same sample is the same view.
+ */
+export function samePerception(a: Readonly<BotMemory>, b: Readonly<BotMemory>, slot: ParticipantSlot, frame: number, delay: number): boolean {
+  return a.directions[slot] === b.directions[slot] && a.directionFrames[slot] === b.directionFrames[slot]
+    && perceivedFrame(a, frame, delay) === perceivedFrame(b, frame, delay);
+}
+
 /** Own grab ownership selects the held slot, without revealing that opponent's newer state. */
 export function perceivedHeldFighter(memory: Readonly<BotMemory>, heldSlot: number, frame: number, delay: number): Readonly<Fighter> | undefined {
   return perceivedFrame(memory, frame, delay)?.opponents[heldSlot];

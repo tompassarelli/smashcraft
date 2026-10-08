@@ -4,6 +4,7 @@ import { INPUT_LAST_FRAME } from "../input/wire";
 import type { Roster } from "../sim/roster";
 import {
   type MatchFrameInput,
+  type RepeatedComputers,
   copyMatchFrameInput,
   createMatchFrameInput,
   executeMatchFrame,
@@ -11,6 +12,10 @@ import {
   sameMatchFrameInput,
 } from "../match/frameInput";
 import { at } from "wisp/src/runtime/lookup";
+import { PARTICIPANT_SLOTS, participantActive } from "../input/participants";
+import { sameComputerInputs } from "../match/botPlay";
+import { computerActive } from "../match/rules";
+import { isActive } from "../sim/roster";
 import { floorMod } from "wisp/src/sim/intMath";
 import { REPLAY_HISTORY_CAPACITY, REPLAY_MAX_CORRECTION_FRAMES } from "./limits";
 import { type ReplayState, copyReplayState, createReplaySnapshot } from "./snapshot";
@@ -100,6 +105,12 @@ export class ReplayHistory {
   private borrowed: ReplayState | undefined;
   private readonly inputs = repeat(REPLAY_HISTORY_CAPACITY, createMatchFrameInput);
   private readonly speculative = repeat(REPLAY_HISTORY_CAPACITY, () => false);
+  /** Whether a frame's snapshot is the state its previous frame's snapshot reached, so its computers' decisions were made from that one. */
+  private readonly follows = repeat(REPLAY_HISTORY_CAPACITY, () => false);
+  private readonly repeated: { mask: number; after: ReplayState["runtime"] } = { mask: 0, after: createReplaySnapshot().runtime };
+  private repeatedDecisions = 0;
+  /** A frame truncate restored from a snapshot that doesn't follow the one before it. */
+  private unfollowed: number | undefined;
   // The corrected state a repair replays, apart from live state, which keeps running.
   private readonly repairState = createReplaySnapshot();
   /** The next frame a pending repair runs; every snapshot before it is corrected. */
@@ -129,6 +140,8 @@ export class ReplayHistory {
     this.borrowed = undefined;
     for (const row of this.inputs) resetMatchFrameInput(row);
     this.speculative.fill(false);
+    this.follows.fill(false);
+    this.unfollowed = undefined;
     return true;
   }
 
@@ -143,9 +156,16 @@ export class ReplayHistory {
 
   /** Every snapshot's world, retained or not, for a change they must all take, such as authored tuning a reload changed. */
   visitWorlds(visit: (world: Roster) => void): void {
+    // The changed worlds no longer lead to the decisions recorded after them.
+    this.follows.fill(false);
     for (const snapshot of this.snapshots) visit(snapshot.world);
     visit(this.spare.world);
     visit(this.repairState.world);
+  }
+
+  /** Computer decisions repairs took from an earlier run of the same frame instead of deciding again. */
+  repeatedComputerDecisions(): number {
+    return this.repeatedDecisions;
   }
 
   firstRetainedFrame(): number {
@@ -191,6 +211,8 @@ export class ReplayHistory {
     if (this.current === undefined || epoch !== this.current || live.runtime.simulationFrame !== this.nextFrame - 1) return false;
     if (frame >= this.nextFrame) return true;
     if (frame <= this.authoritativeThrough || !this.contains(epoch, frame)) return false;
+    // A positioned repair that stopped at `frame` left its snapshot from the run before the correction.
+    this.unfollowed = this.repairNext === frame && this.repairPositioned ? frame : undefined;
     copyReplayState(live, this.snapshotAt(frame));
     this.count -= this.nextFrame - frame;
     this.nextFrame = frame;
@@ -285,8 +307,15 @@ export class ReplayHistory {
     }
     let frame = start;
     for (let steps = 0; steps < budget && frame < this.nextFrame; steps++) {
-      if (!restored || frame !== start) this.copySnapshot(frame, state);
-      if (!this.executeRecorded(frame, state)) return "rejected";
+      const first = restored && frame === start;
+      const repeated = this.repeatedComputers(frame, state, first);
+      if (!first) {
+        this.copySnapshot(frame, state);
+        // Either the state this repair carried from the frame before or the one its previous call left.
+        this.follows[this.slotOf(frame)] = true;
+      }
+      if (frame + 1 < this.nextFrame) this.follows[this.slotOf(frame + 1)] = false;
+      if (!executeMatchFrame(this.inputAt(frame), state.match, state.world, state.controls, state.runtime, frame, repeated)) return "rejected";
       frame++;
       this.repairNext = frame;
     }
@@ -315,6 +344,29 @@ export class ReplayHistory {
     return this.borrowed;
   }
 
+  /**
+   * The computers whose decisions frame `frame` can take from its earlier run:
+   * that run started from the frame's snapshot, before this repair rewrites it,
+   * and reached the next frame's. `same` says the state is that snapshot.
+   */
+  private repeatedComputers(frame: number, state: Readonly<ReplayState>, same: boolean): RepeatedComputers | undefined {
+    if (frame + 1 >= this.nextFrame || !this.follows[this.slotOf(frame + 1)]) return undefined;
+    const row = this.inputAt(frame);
+    if (row.source !== "network") return undefined;
+    const before = this.snapshotAt(frame);
+    const after = this.snapshotAt(frame + 1).runtime;
+    let mask = 0;
+    for (const slot of PARTICIPANT_SLOTS) {
+      if (!isActive(state.world, slot) || !computerActive(state.match, slot) || !at(after.botDecisions, slot).decided) continue;
+      if (same || sameComputerInputs(state.match, state.world, state.runtime, before.match, before.world, before.runtime, slot, frame)) mask |= 1 << slot;
+    }
+    if (mask === 0) return undefined;
+    for (const slot of PARTICIPANT_SLOTS) if (participantActive(mask, slot)) this.repeatedDecisions++;
+    this.repeated.mask = mask;
+    this.repeated.after = after;
+    return this.repeated;
+  }
+
   private saveRow(epoch: number, row: Readonly<MatchFrameInput>, predicted: boolean, live: Readonly<ReplayState>): boolean {
     if (this.current === undefined || epoch !== this.current || row.mask !== live.world.mask) return false;
     if (row.frame !== this.nextFrame || live.runtime.simulationFrame !== this.nextFrame - 1) return false;
@@ -324,6 +376,9 @@ export class ReplayHistory {
     // The frame counter must not wrap into a different history.
     if (this.nextFrame > INPUT_LAST_FRAME) return false;
     const slot = this.slotOf(this.nextFrame);
+    // Callers save each frame's state after running the frame before from its snapshot.
+    this.follows[slot] = this.contains(epoch, this.nextFrame - 1) && this.unfollowed !== this.nextFrame;
+    this.unfollowed = undefined;
     this.copySnapshot(this.nextFrame, live);
     copyMatchFrameInput(at(this.inputs, slot), row);
     this.speculative[slot] = predicted;

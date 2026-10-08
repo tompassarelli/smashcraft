@@ -158,6 +158,14 @@ export function copyBotStrategy(target: BotStrategy, source: Readonly<BotStrateg
   target.readActionFacing = source.readActionFacing;
 }
 
+export function sameBotStrategy(a: Readonly<BotStrategy>, b: Readonly<BotStrategy>): boolean {
+  return a.historyKey === b.historyKey && a.observedFrame === b.observedFrame && a.opponent === b.opponent && a.lastChoice === b.lastChoice
+    && a.lastContext === b.lastContext && a.lastSerial === b.lastSerial && a.events === b.events && a.lastOption === b.lastOption
+    && a.readActive === b.readActive && a.readChoice === b.readChoice && a.readContext === b.readContext && a.readExpectedFrame === b.readExpectedFrame
+    && a.readExpires === b.readExpires && a.readConfidence === b.readConfidence && a.readActed === b.readActed && a.readActionFrame === b.readActionFrame
+    && a.readActionSerial === b.readActionSerial && a.readActionStyle === b.readActionStyle && a.readActionFacing === b.readActionFacing;
+}
+
 export function clearBotStrategy(state: BotStrategy): void {
   copyBotStrategy(state, createBotStrategy());
 }
