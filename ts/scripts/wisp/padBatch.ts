@@ -22,7 +22,7 @@ import { loadClients } from "wisp/scripts/warcraft/desktop";
 import { HotReload } from "wisp/scripts/wisp/hotReload";
 import { MapBuild } from "wisp/scripts/wisp/mapBuild";
 import { readyAfter } from "./commands/fresh";
-import { captureLoad, requireCaptureLease } from "./captureCapacity";
+import { captureLoad, requireCaptureLease, timingCheck } from "./captureCapacity";
 import { buildProject, gameFilesLayer, sourceErrorsLayer } from "./project";
 import { INTEGRITY_BUILD } from "../../src/game/shell/currentBuild";
 import { RESET_COMMAND } from "../../src/game/shell/devSettings";
@@ -242,7 +242,7 @@ const prepare = (options: BatchOptions, native = false) => Effect.gen(function*(
     }),
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
-  if (native) yield* requireCaptureLease;
+  if (native) yield* requireCaptureLease(timingCheck(runs.map(({ steps }) => steps)));
   const limit = limiter(options.headlessJobs);
   // A reference that slipped (an edge written late on a loaded host, a helper that
   // saw the match late) proves nothing about the other side: it runs again, twice at most.

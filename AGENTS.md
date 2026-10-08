@@ -748,14 +748,16 @@ Native lanes: four solo-profile lanes, one per client (a, b, c, d), share
 the visual queue; pairs are only for sync and EX checks. A TypeScript-only
 change (presentation values, effects, menus, CPU tuning) hot-reloads into one
 running match with `bun wisp hot --data ... --watch` between captures; rebuild
-the map only for imports, object data or art. Batch captures by build: one map
-build serves every capture that needs it. Record captures per hour per lane in
-the status.
-Native `bun wisp pad` commands wait for an exclusive machine-capacity window
-before client input and keep it through the whole batch (maximum 15 minutes).
-To run four lanes together, start their foreground batch runner inside one
-`machine-capacity run --class exclusive --timeout-seconds 900 -- ...` command;
-pad children reuse that window. Separate exclusive commands queue in turn.
+the map only for imports, object data or art. Each lane builds its own
+current-main map (about 90 s) unless one is already built for that commit;
+visual captures take no exclusive lease, timing checks do. Record captures per
+hour per lane in the status.
+A native `bun wisp pad` timing check (a script without a `capture` step) waits
+for an exclusive machine-capacity window before client input and keeps it
+through the whole batch (maximum 15 minutes).
+To run four timing lanes together, start their foreground batch runner inside
+one `machine-capacity run --class exclusive --timeout-seconds 900 -- ...`
+command; pad children reuse that window. Separate exclusive commands queue in turn.
 Each result records `load_average` and `capacity_lease` (#311).
 Signed-in A and B are only for tests that need Battle.net itself: real
 netplay or latency, direct play (#142), spectating. Tom's install (account a,

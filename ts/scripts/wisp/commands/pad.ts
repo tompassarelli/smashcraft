@@ -53,7 +53,7 @@ import { onHealthyClients, readClientsFile } from "../doctor";
 import { DevCommandReceipt } from "../boundary";
 import { devCommandReceiptFile } from "../../../src/runtime/gameFiles";
 import { Phase } from "../../../src/game/match/rules";
-import { admitCaptures, captureLoad, requireCaptureLease } from "../captureCapacity";
+import { admitCaptures, captureLoad, requireCaptureLease, timingCheck, timingScripts } from "../captureCapacity";
 import { quickMatchHero, quickMatchStage, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../../src/game/shell/devSettings";
 
 type DevReceipt = Effect.Success<ReturnType<typeof DevCommandReceipt.decode>>;
@@ -192,7 +192,6 @@ export interface PadOptions {
 
 /** Helpers and virtual pads belong to one game, across all of its scripted matches. */
 export const nativeSession = (out: string, helper: string, build: string, appIds: ReadonlyMap<string, string>, clientsFile: string = clientState) => Effect.gen(function*() {
-  yield* requireCaptureLease;
   const startedMs = Date.now();
   const loaded = yield* loadClients(clientsFile).pipe(Effect.mapError(fromDesktop));
   if (loaded.length !== 2) return yield* new IntegrityFailure({ operation: "load clients", path: clientsFile, cause: `${loaded.length} clients, need 2` });
@@ -237,14 +236,14 @@ export function nativeChatEntryReceipt(text: string) {
 }
 
 /** Selection has no journal epoch: observe Warcraft's own chat entry before sending any text. */
-const selectionChat = (session: NativeSession, text: string) => setupCommand(session, text, Effect.gen(function*() {
+const selectionChat = (session: NativeSession, text: string, timing: boolean) => setupCommand(session, text, Effect.gen(function*() {
   const path = join(session.data[0], nativeChatFile(session.build, 0));
   const receipt = () => existsSync(path) ? nativeChatEntryReceipt(readFileSync(path, "latin1")) : undefined;
   const entry = tryIntegrity("read chat entry", session.clients[0].name, () => {
     const current = receipt();
     return current === undefined ? undefined : { available: current.available === "1", open: current.open === "1", modified: statSync(path).mtimeMs };
   });
-  yield* openObservedChat(session.clients[0], entry, requireCaptureLease.pipe(Effect.andThen(batch(session.clients[0], [{ kind: "wait", millis: 250 }, { kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop))), Effect.asVoid)).pipe(Effect.mapError((cause) => cause instanceof IntegrityFailure ? cause : fromDesktop(cause)));
+  yield* openObservedChat(session.clients[0], entry, requireCaptureLease(timing).pipe(Effect.andThen(batch(session.clients[0], [{ kind: "wait", millis: 250 }, { kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop))), Effect.asVoid)).pipe(Effect.mapError((cause) => cause instanceof IntegrityFailure ? cause : fromDesktop(cause)));
   yield* batch(session.clients[0], [{ kind: "text", text, delayMillis: 35 }, { kind: "keys", keys: ["Return"], settleMillis: 0 }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
 }));
 
@@ -287,7 +286,7 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
   if (chat !== undefined) {
     yield* Effect.sleep("1 second");
     const command = yield* tryIntegrity("prepare visual capture", scriptPath, () => captureToken === undefined ? chat : visualCaptureCommand(chat, captureToken, steps));
-    const setup = yield* Effect.exit(selectionChat(session, command));
+    const setup = yield* Effect.exit(selectionChat(session, command, timingCheck([steps])));
     if (setup._tag === "Failure") {
       const boundary = describeCause(setup.cause);
       yield* tryIntegrity("write invalid setup", out, () => writeFileSync(join(out, "result.json"), json({ ...captureLoad(), status: "INVALID", script: scriptPath, build, invalid: [boundary], setup: { command: chat, clients: clients.map((client) => client.name), boundary }, edges: [] })));
@@ -296,7 +295,7 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
     }
     yield* tryIntegrity("write setup receipts", out, () => writeFileSync(join(out, "setup.json"), json({ command: chat, clients: setup.value, confirmed_monotonic_ns: monotonicNs() })));
   }
-  yield* requireCaptureLease;
+  yield* requireCaptureLease(timingCheck([steps]));
   const epochs = yield* matchEpochs(logs, startedNs, out);
   const matchIds = logs().map((text) => matchStart(text)?.epoch ?? 0);
   const captures: Record<string, unknown>[] = [];
@@ -508,7 +507,15 @@ export const pad: Command = (args) => Effect.gen(function*() {
   if (parsed.values.headless !== true) {
     const clientsFile = parsed.values["clients-file"] ?? clientState;
     yield* Effect.try({ try: () => readClientsFile(clientsFile), catch: (cause) => new UsageFailure({ problem: `can't read the clients from ${clientsFile}: ${describeCause(cause)}` }) });
-    if (yield* admitCaptures(args)) return;
+    const { batchScripts } = yield* Effect.promise(() => import("../padBatch"));
+    const timing = yield* Effect.sync(() => {
+      try {
+        return timingScripts(batchScripts(parsed.positionals));
+      } catch {
+        return true;
+      }
+    });
+    if (yield* admitCaptures(args, timing)) return;
   }
   const { helper, out, chat, compare } = parsed.values;
   const clientsFile = parsed.values["clients-file"] ?? clientState;

@@ -329,8 +329,9 @@ require. Other cases use the helper's normal off and standard settings.
 
 ### Many scripts in one game
 
-Native pad commands acquire an exclusive machine-capacity lease before client
-input, wait with the helper's `QUEUED` report when busy, and release after the
+Visual captures (every script has a `capture` step) take no lease and run
+beside the other lanes. Timing checks (any script without a `capture` step)
+acquire an exclusive machine-capacity lease before client input, wait with the helper's `QUEUED` report when busy, and release after the
 whole command ends. Each `result.json` records the three load averages in
 `load_average` and the lease in `capacity_lease`; `batch.json` records the load
 at batch start. The maximum quiet window is 15 minutes.
