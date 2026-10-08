@@ -1,0 +1,21 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "smashcraft-replay-part 46 8" )
+	call Preload( "checkpoint 4440 12337:8982" )
+	call Preload( "rows 120:3:0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" )
+	call Preload( "digests 1vilkm 1vollp 1vulms 1w0lnv 1w6loy 1wclq1 1wilr4 1wols7 1wulta 1x0lud 1x6lvg 1xclwj 1xilxm 1xolyp 1xulzs 1y0m0v 1y6m1y 1ycm31 1yim44 1yom57 1yum6a 1z0m7d 1z6m8g 1zcm9j 1zimam 1zombp 1zumcs" )
+	call Preload( "digests 200mdv 206mey 20cmg1 20imh4 20omi7 20umja 210mkd 216mlg 21cmmj 21imnm 21omop 21umps 220mqv 226mry 22cmt1 22imu4 22omv7 22umwa 230mxd 236myg 23cmzj 23in0m 23on1p 23un2s 240n3v 246n4y 24cn61" )
+	call Preload( "digests 24in74 24on87 24un9a 250nad 256nbg 25cncj 25indm 25onep 25unfs 260ngv 266nhy 26cnj1 26ink4 26onl7 26unma 270nnd 276nog 27cnpj 27inqm 27onrp 27unss 280ntv 286nuy 28cnw1 28inx4 28ony7 28unza" )
+	call Preload( "digests 290o0d 296o1g 29co2j 29io3m 29oo4p 29uo5s 2a0o6v 2a6o7y 2aco91 2aioa4 2aoob7 2auoca 2b0odd 2b6oeg 2bcofj 2biogm 2boohp 2buois 2c0ojv 2c6oky 2ccom1 2cion4 2cooo7 2cuopa 2d0oqd 2d6org 2dcosj" )
+	call Preload( "digests 2diotm 2dooup 2duovs 2e0owv 2e6oxy 2ecoz1 2eip04 2eop17 2eup2a 2f0p3d 2f6p4g 2fcp5j" )
+	call Preload( "checkpoint 4560 32320:9486" )
+	call Preload( "rows 19:3:0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" )
+	call Preload( "digests 2fip6m 2fop7p 2fup8s 2g0p9v 2g6pay 2gcpc1 2gipd4 2gope7 2gupfa 2h0pgd 2h6phg 2hcpij 2hipjm 2hopkp 2hupls 2i0pmv 2i6pny 2icpp1 2iipq4" )
+	call Preload( "checkpoint 4579 12297:8522" )
+	call Preload( "end 11" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

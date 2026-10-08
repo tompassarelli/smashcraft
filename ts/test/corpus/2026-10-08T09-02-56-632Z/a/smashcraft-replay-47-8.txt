@@ -1,0 +1,21 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "smashcraft-replay-part 47 8" )
+	call Preload( "checkpoint 4440 6290:38707" )
+	call Preload( "rows 120:3:0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" )
+	call Preload( "digests ib96gc ibf6hf ibl6ii ibr6jl ibx6ko ic36lr ic96mu icf6nx icl6p0 icr6q3 icx6r6 id36s9 id96tc idf6uf idl6vi idr6wl idx6xo ie36yr ie96zu ief70x iel720 ier733 iex746 if3759 if976c iff77f ifl78i" )
+	call Preload( "digests ifr79l ifx7ao ig37br ig97cu igf7dx igl7f0 igr7g3 igx7h6 ih37i9 ih97jc ihf7kf ihl7li ihr7ml ihx7no ii37or ii97pu iif7qx iil7s0 iir7t3 iix7u6 ij37v9 ij97wc ijf7xf ijl7yi ijr7zl ijx80o ik381r" )
+	call Preload( "digests ik982u ikf83x ikl850 ikr863 ikx876 il3889 il989c ilf8af ill8bi ilr8cl ilx8do im38er im98fu imf8gx iml8i0 imr8j3 imx8k6 in38l9 in98mc inf8nf inl8oi inr8pl inx8qo io38rr io98su iof8tx iol8v0" )
+	call Preload( "digests ior8w3 iox8x6 ip38y9 ip98zc ipf90f ipl91i ipr92l ipx93o iq394r iq995u iqf96x iql980 iqr993 iqx9a6 ir39b9 ir99cc irf9df irl9ei irr9fl irx9go is39hr is99iu isf9jx isl9l0 isr9m3 isx9n6 it39o9" )
+	call Preload( "digests it99pc itf9qf itl9ri itr9sl itx9to iu39ur iu99vu iuf9wx iul9y0 iur9z3 iuxa06 iv3a19" )
+	call Preload( "checkpoint 4560 1959:8024" )
+	call Preload( "rows 9:3:0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" )
+	call Preload( "digests iv9a2c ivfa3f ivla4i ivra5l ivxa6o iw3a7r iw9a8u iwfa9x iwlab0" )
+	call Preload( "checkpoint 4569 31013:25973" )
+	call Preload( "end 11" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

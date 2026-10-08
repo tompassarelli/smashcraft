@@ -1,0 +1,31 @@
+{
+  "argv": [
+    "/home/tom/code/smashcraft/worktrees/native-corpus70-fix-20261008/ts/scripts/nativePadCut233.ts",
+    "--pair",
+    "online",
+    "--clients-file",
+    "/home/tom/.local/state/wisp/online/corpus70-clients.json",
+    "--helper",
+    "/home/tom/code/smashcraft/worktrees/bc-lane2-20261008/companion/target/debug/wc3-controller",
+    "--map",
+    "/home/tom/.local/share/smashcraft-build-inputs/native-corpus70-fix-20261008/SmashcraftCorpusInputFixed.w3x",
+    "--out",
+    "/home/tom/.local/state/smashcraft/native-corpus70-20261008/stall",
+    "--app-id",
+    "a=steam_app_3775098022",
+    "--app-id",
+    "b=steam_app_3775098022"
+  ],
+  "cwd": "/home/tom/code/smashcraft/worktrees/native-corpus70-fix-20261008/ts",
+  "started": "2026-10-08T09:12:16.140Z",
+  "ended": "2026-10-08T09:13:21.429Z",
+  "clients": [
+    "a",
+    "b"
+  ],
+  "git": {
+    "commit": "24c6d57af2d8cf7834bd8fe0c0a1c4356d85ac4e",
+    "dirty": false
+  },
+  "desyncs": []
+}

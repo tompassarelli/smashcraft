@@ -1,0 +1,26 @@
+{
+  "argv": [
+    "/home/tom/code/smashcraft/worktrees/native-corpus70-fix-20261008/build/nativeOnly70.ts",
+    "/home/tom/.local/state/wisp/online/corpus70-clients.json",
+    "/home/tom/.local/share/smashcraft-build-inputs/native-corpus70-fix-20261008/SmashcraftCorpusFixed.w3x",
+    "/home/tom/.local/state/smashcraft/native-corpus70-20261008/cues-bc-fixed",
+    "/home/tom/.local/state/smashcraft/native-corpus70-20261008/pads-inputs/beastmaster-cues.pad",
+    "/home/tom/.local/state/smashcraft/native-corpus70-20261008/pads-inputs/blademaster-cues.pad",
+    "/home/tom/.local/state/smashcraft/native-corpus70-20261008/pads-inputs/dreadlord-cues.pad",
+    "/home/tom/.local/state/smashcraft/native-corpus70-20261008/pads-inputs/forsaken-paladin-cues.pad",
+    "/home/tom/.local/state/smashcraft/native-corpus70-20261008/pads-inputs/illidan-cues.pad",
+    "/home/tom/.local/state/smashcraft/native-corpus70-20261008/pads-inputs/lich-cues.pad"
+  ],
+  "cwd": "/home/tom/code/smashcraft/worktrees/native-corpus70-fix-20261008/ts",
+  "started": "2026-10-08T09:02:56.632Z",
+  "ended": "2026-10-08T09:11:58.133Z",
+  "clients": [
+    "a",
+    "b"
+  ],
+  "git": {
+    "commit": "24c6d57af2d8cf7834bd8fe0c0a1c4356d85ac4e",
+    "dirty": false
+  },
+  "desyncs": []
+}

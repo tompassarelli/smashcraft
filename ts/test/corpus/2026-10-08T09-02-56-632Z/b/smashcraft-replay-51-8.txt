@@ -1,0 +1,22 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "smashcraft-replay-part 51 8" )
+	call Preload( "checkpoint 4440 25205:20062" )
+	call Preload( "rows 120:3:0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" )
+	call Preload( "digests skck9o skikar skokbu skukcx sl0ke0 sl6kf3 slckg6 slikh9 slokic slukjf sm0kki sm6kll smckmo smiknr smokou smukpx sn0kr0 sn6ks3 snckt6 sniku9 snokvc snukwf so0kxi so6kyl sockzo soil0r sool1u" )
+	call Preload( "digests soul2x sp0l40 sp6l53 spcl66 spil79 spol8c spul9f sq0lai sq6lbl sqclco sqildr sqoleu squlfx sr0lh0 sr6li3 srclj6 srilk9 srollc srulmf ss0lni ss6lol ssclpo ssilqr ssolru ssulsx st0lu0 st6lv3" )
+	call Preload( "digests stclw6 stilx9 stolyc stulzf su0m0i su6m1l sucm2o suim3r suom4u suum5x sv0m70 sv6m83 svcm96 svima9 svombc svumcf sw0mdi sw6mel swcmfo swimgr swomhu swumix sx0mk0 sx6ml3 sxcmm6 sximn9 sxomoc" )
+	call Preload( "digests sxumpf sy0mqi sy6mrl sycmso syimtr syomuu syumvx sz0mx0 sz6my3 szcmz6 szin09 szon1c szun2f t00n3i t06n4l t0cn5o t0in6r t0on7u t0un8x t10na0 t16nb3 t1cnc6 t1ind9 t1onec t1unff t20ngi t26nhl" )
+	call Preload( "digests t2cnio t2injr t2onku t2unlx t30nn0 t36no3 t3cnp6 t3inq9 t3onrc t3unsf t40nti t46nul" )
+	call Preload( "checkpoint 4560 20874:35716" )
+	call Preload( "rows 45:3:0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" )
+	call Preload( "digests t4cnvo t4inwr t4onxu t4unyx t50o00 t56o13 t5co26 t5io39 t5oo4c t5uo5f t60o6i t66o7l t6co8o t6io9r t6ooau t6uobx t70od0 t76oe3 t7cof6 t7iog9 t7oohc t7uoif t80oji t86okl t8colo t8iomr t8oonu" )
+	call Preload( "digests t8uoox t90oq0 t96or3 t9cos6 t9iot9 t9oouc t9uovf ta0owi ta6oxl tacoyo taiozr taop0u taup1x tb0p30 tb6p43 tbcp56 tbip69 tbop7c" )
+	call Preload( "checkpoint 4605 24345:13628" )
+	call Preload( "end 12" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

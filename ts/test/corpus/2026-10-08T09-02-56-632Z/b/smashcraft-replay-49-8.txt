@@ -1,0 +1,14 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "smashcraft-replay-part 49 8" )
+	call Preload( "checkpoint 4560 22132:7917" )
+	call Preload( "rows 5:3:0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" )
+	call Preload( "digests egfp5t eglp6w egrp7z egxp92 eh3pa5" )
+	call Preload( "checkpoint 4565 27976:2443" )
+	call Preload( "end 4" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

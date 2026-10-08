@@ -1,0 +1,21 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "smashcraft-replay-part 48 8" )
+	call Preload( "checkpoint 4440 39720:45904" )
+	call Preload( "rows 120:3:0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" )
+	call Preload( "digests hpxhdh hq3hek hq9hfn hqfhgq hqlhht hqrhiw hqxhjz hr3hl2 hr9hm5 hrfhn8 hrlhob hrrhpe hrxhqh hs3hrk hs9hsn hsfhtq hslhut hsrhvw hsxhwz ht3hy2 ht9hz5 htfi08 htli1b htri2e htxi3h hu3i4k hu9i5n" )
+	call Preload( "digests hufi6q huli7t huri8w huxi9z hv3ib2 hv9ic5 hvfid8 hvlieb hvrife hvxigh hw3ihk hw9iin hwfijq hwlikt hwrilw hwximz hx3io2 hx9ip5 hxfiq8 hxlirb hxrise hxxith hy3iuk hy9ivn hyfiwq hylixt hyriyw" )
+	call Preload( "digests hyxizz hz3j12 hz9j25 hzfj38 hzlj4b hzrj5e hzxj6h i03j7k i09j8n i0fj9q i0ljat i0rjbw i0xjcz i13je2 i19jf5 i1fjg8 i1ljhb i1rjie i1xjjh i23jkk i29jln i2fjmq i2ljnt i2rjow i2xjpz i33jr2 i39js5" )
+	call Preload( "digests i3fjt8 i3ljub i3rjve i3xjwh i43jxk i49jyn i4fjzq i4lk0t i4rk1w i4xk2z i53k42 i59k55 i5fk68 i5lk7b i5rk8e i5xk9h i63kak i69kbn i6fkcq i6lkdt i6rkew i6xkfz i73kh2 i79ki5 i7fkj8 i7lkkb i7rkle" )
+	call Preload( "digests i7xkmh i83knk i89kon i8fkpq i8lkqt i8rkrw i8xksz i93ku2 i99kv5 i9fkw8 i9lkxb i9rkye" )
+	call Preload( "checkpoint 4560 35389:15221" )
+	call Preload( "rows 11:3:0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" )
+	call Preload( "digests i9xkzh ia3l0k ia9l1n iafl2q iall3t iarl4w iaxl5z ib3l72 ib9l85 ibfl98 ibllab" )
+	call Preload( "checkpoint 4571 29711:21713" )
+	call Preload( "end 11" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+
