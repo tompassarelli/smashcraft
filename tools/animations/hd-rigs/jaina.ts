@@ -1,0 +1,33 @@
+export const character = 14;
+export const stockPath = 'war3.w3mod:_de.w3mod:units\\human\\Jaina\\Jaina.mdx';
+
+export const pairs: readonly (readonly [string, string])[] = [
+    ['Bone_RootArchDruid', 'bone_turret'],
+    ['Bone_PelvisArchDruid', 'pelvis_bind_jnt'],
+    ['Bone_Chest', 'bone_chest'],
+    ['Bone_Head', 'neck_bind_jnt'],
+    ['Bone_Head', 'bone_head'],
+    ['Bone_Arm1_LArchDruid', 'L_upr_arm_bind_jnt'],
+    ['Bone_Arm2_LArchDruid', 'L_lwr_arm_bind_jnt'],
+    ['Bone_Hand_LArchDruid', 'bone_hand_left'],
+    ['Bone_Arm1_RArchDruid', 'R_upr_arm_bind_jnt'],
+    ['Bone_Arm2_RArchDruid', 'R_lwr_arm_bind_jnt'],
+    ['Bone_Hand_RArchDruid', 'bone_hand_right'],
+    ['Bone_Staff', 'weapon_bind_jnt'],
+    ['Bone_Leg1_LArchDruid', 'L_leg_01_bind_jnt'],
+    ['Bone_Leg2_LArchDruid', 'L_leg_02_bind_jnt'],
+    ['Bone_Foot_LArchDruid', 'bone_leg_left'],
+    ['Bone_Leg1_RArchDruid', 'R_leg_01_bind_jnt'],
+    ['Bone_Leg2_RArchDruid', 'R_leg_02_bind_jnt'],
+    ['Bone_Foot_RArchDruid', 'bone_leg_right'],
+    ['Bone_Leg1_LArchDruid', 'L_skirt_A_01_bind_jnt'],
+    ['Bone_Leg1_RArchDruid', 'R_skirt_A_01_bind_jnt'],
+    ['Jaina_Cape00', 'M_cape_01_bind_jnt'],
+    ['Jaina_Cape01', 'M_cape_02_bind_jnt'],
+    ['Jaina_Cape01', 'L_cape_01_bind_jnt'],
+    ['Jaina_Cape02', 'L_cape_02_bind_jnt'],
+    ['Jaina_Cape03', 'L_cape_03_bind_jnt'],
+    ['Jaina_Cape01', 'R_cape_01_bind_jnt'],
+    ['Jaina_Cape02', 'R_cape_02_bind_jnt'],
+    ['Jaina_Cape03', 'R_cape_03_bind_jnt'],
+];
