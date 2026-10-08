@@ -44,8 +44,8 @@ export const MEDIVH_MOVES: FighterMoves = {
     [AttackStyle.forwardSmash]: heroMove(13, 3, 31, 0, [heroRegion(13, 15, capsule(30.0, 60.0, 126.0, 60.0), ordinary(15.0, 35, 137.0, 28.0))]),
     [AttackStyle.upSmash]: heroMove(18, 5, 31, 0, [heroRegion(18, 22, capsule(0.0, 36.0, 0.0, 145.0, 18.0), ordinary(14.0, 90, 110.0, 28.0))]),
     [AttackStyle.downSmash]: heroMove(20, 4, 32, 0, [
-      heroRegion(20, 23, capsule(28.0, 14.0, 101.0, 14.0, 14.0), ordinary(13.0, 25, 125.0, 28.0)),
-      heroRegion(20, 23, capsule(-28.0, 14.0, -101.0, 14.0, 14.0), ordinary(13.0, 25, 125.0, 28.0, true)),
+      heroRegion(20, 23, capsule(28.0, 14.0, 101.0, 14.0, 14.0), ordinary(13.0, 25, 137.0, 28.0)),
+      heroRegion(20, 23, capsule(-28.0, 14.0, -101.0, 14.0, 14.0), ordinary(13.0, 25, 137.0, 28.0, true)),
     ]),
     [AttackStyle.neutralAir]: heroMove(8, 6, 22, 14, [heroRegion(8, 13, capsule(-40.0, 55.0, 40.0, 55.0, 25.0), ordinary(6.0, 55))]),
     [AttackStyle.forwardAir]: heroMove(8, 3, 25, 14, [heroRegion(8, 10, capsule(24.0, 60.0, 95.0, 60.0), ordinary(9.0, 40, 95.0, 24.0))]),
