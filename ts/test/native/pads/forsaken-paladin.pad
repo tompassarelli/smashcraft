@@ -18,9 +18,10 @@
 341 a stick 0 0
 351 a capture
 #! expect a 60 special 14 form 0
-#! expect b 74 damage 11.900
+# #249: the 0.80 multiplier applies to Righteous Fury (14) and Cleansing Hammer (13).
+#! expect b 74 damage 11.200
 #! expect a 170 special 13 form 0
-#! expect b 183 damage 22.950
+#! expect b 183 damage 21.600
 #! expect a 270 special 16 form 0
 #! expect a 340 special 15 form 0
 #! scene a HolyBoltSpecialArt

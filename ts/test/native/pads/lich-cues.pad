@@ -62,14 +62,14 @@
 652 a capture
 660 a capture
 # Spend the mana after Spectral Ascent lands and its landing lag ends (#189).
-740 a stick 1 0
-740 a tap X 2
-741 a stick 0 0
-742 a capture
-748 a capture
-790 a tap X 2
-792 a capture
-808 a capture
+750 a stick 1 0
+750 a tap X 2
+751 a stick 0 0
+752 a capture
+758 a capture
+810 a tap X 2
+812 a capture
+828 a capture
 # Let mana recover before the second paid Frost Nova.
 1020 a tap X 2
 1022 a capture
@@ -90,8 +90,8 @@
 #! expect a 470 special 14 form 0
 #! expect a 598 special 13 form 1
 #! expect a 650 special 15 form 0
-#! expect a 740 special 14 form 0
-#! expect a 790 special 13 form 0
+#! expect a 750 special 14 form 0
+#! expect a 810 special 13 form 0
 #! expect a 1020 special 13 form 0
 #! expect a 1062 special 15 form 2
 #! scene a FrostArmorTarget

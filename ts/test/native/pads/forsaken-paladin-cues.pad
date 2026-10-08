@@ -64,7 +64,8 @@
 # the fourth lands with Sacred Aura ready, then every grounded/air form starts.
 # Cleansing Hammer cleanses poison/slow without healing.
 #! absent a 60-260 damage
-#! expect a 261 damage 10.200 hitlag 10 hitstun 16
+# #249: the 0.80 multiplier makes the 12-damage forward tilt deal 9.6.
+#! expect a 261 damage 9.600 hitlag 10 hitstun 16
 #! expect a 300 special 16 form 0
 #! expect a 345 special 13 form 0
 #! expect a 420 special 13 form 1

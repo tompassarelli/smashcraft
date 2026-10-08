@@ -1,0 +1,19 @@
+Change: settle one waiting observation checksum per callback, including waits,
+rather than several together when confirmed frames catch up.
+Before: 033cc44069b8d89bb38441f7378a3b94684731ac, farm 37749133915
+After: 17c0aa2f6d68ea3607d0544ba7b5ca717fa11790, farm 37749056268
+Command: bun wisp farm perf 'playable-bot-four --samples'
+Both: 1800 frames, 0 problems; delay 2, rollback window 24, repair budget 6 unchanged.
+
+Player 0: predicted milliseconds p50 5.463 -> 5.534; p95 16.061 -> 15.869;
+p99 18.98 after; worst 22.778 -> 22.061. Mean instructions 280999 -> 281092.
+Player 1: predicted milliseconds p50 5.423 -> 5.481; p95 15.839 -> 15.509;
+p99 18.61 after; worst 23.136 -> 22.510. Mean instructions 275886 -> 275979.
+Mean allocation: both players 68 KB/frame before and after.
+Adjacent perf compare: PASS. Original 10/14 ms budget: FAIL.
+
+The actual one-minute playable match replays to every recorded checksum;
+the callback computer match and three-fighter rematch pass too: 3/3 tests,
+72 assertions (bun test test/replay.test.ts test/rematch-load.test.ts).
+Checksum values and checkpoint readiness are unchanged: reads still settle
+any remaining samples before folding them.

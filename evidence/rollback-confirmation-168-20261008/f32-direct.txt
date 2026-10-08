@@ -1,0 +1,19 @@
+Change: the compiler calls each exact f32 operation directly.
+Wisp 836cb904d5961effc3d81299d8512e26afec650d.
+Before: 8be600410b40459b8be0ee5f7dda611fb56d3ab4, farm 37748243846
+After: 57408b38f15e9c831ba0b796de992f2ab313220f, farm 37748336597
+Command: bun wisp farm perf 'playable-bot-four --samples'
+Both: 1800 frames, 0 problems; delay 2, rollback window 24, repair budget 6 unchanged.
+
+Player 0: predicted milliseconds p50 5.579 -> 5.472; p95 16.492 -> 16.031;
+p99 19.62 after; worst 23.204 -> 22.779. Mean instructions 287444 -> 281005.
+Player 1: predicted milliseconds p50 5.553 -> 5.427; p95 16.263 -> 15.809;
+p99 19.13 after; worst 23.624 -> 23.136. Mean instructions 282175 -> 275893.
+Mean allocation: both players 68 KB/frame before and after.
+Adjacent perf compare: PASS. Original fixture compare: FAIL.
+Original 10 ms p99 / 14 ms worst budget: FAIL; no budget was changed.
+
+Wisp runtime and binary32 checks: 8 passed, 36227 assertions, including both
+emitted Lua numeric contracts and 5000 randomized oracle cases.
+Consumer numeric parity: 2000 cases, 22000 results, 0 mismatches in each Lua mode.
+Consumer parity tapes: 24 tapes, 19310 frames, 0 divergences in each Lua mode.

@@ -42,7 +42,8 @@
 #! expect a 268 special 0
 #! expect a 330 special 6 form 0
 #! expect a 346 special-form 1 action 6
-#! expect a 363 special 0 form 1 action-frame 0 x -110.280 z 515.120
+# #252: first recoil rises 3.5 units faster for 13 frames before the second shot, adding 45.5 height.
+#! expect a 363 special 0 form 1 action-frame 0 x -110.280 z 560.620
 #! expect b 480 special 7
 #! expect a 486 special 5 form 0
 #! expect a 494 damage 3.720

@@ -1,0 +1,2591 @@
+{
+  "measure": "docs/design/balance.md#combo-potential",
+  "fighters": {
+    "Archer": {
+      "openingsPerKill": 5.666666666666667,
+      "multiHitOpeningsPerKill": 5.666666666666667,
+      "openingsWithReads": 5.666666666666667,
+      "killPercent": 95,
+      "maxDamage": 27,
+      "typicalDamage": 24,
+      "damagePerOpening": 24.705882352941178,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 5,
+          "typicalDamage": 5,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 10,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 18,
+          "typicalDamage": 18,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 16,
+          "typicalDamage": 16,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 16,
+          "typicalDamage": 16,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 18,
+          "typicalDamage": 18,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 25,
+          "typicalDamage": 7,
+          "killPercent": 140
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 25,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 24,
+          "typicalDamage": 24,
+          "killPercent": 95
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 5,
+          "typicalDamage": 5,
+          "killPercent": 140
+        },
+        {
+          "opener": "neutral air",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "forward air",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "back air",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 4,
+          "typicalDamage": 4,
+          "killPercent": null
+        },
+        {
+          "opener": "down air",
+          "maxDamage": 27,
+          "typicalDamage": 9,
+          "killPercent": null
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 5,
+          "typicalDamage": 5,
+          "killPercent": null
+        },
+        {
+          "opener": "side special",
+          "maxDamage": 5,
+          "typicalDamage": 5,
+          "killPercent": null
+        },
+        {
+          "opener": "down special",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        }
+      ]
+    },
+    "Rifleman": {
+      "openingsPerKill": 5.166666666666667,
+      "multiHitOpeningsPerKill": 5.166666666666667,
+      "openingsWithReads": 5.833333333333333,
+      "killPercent": 95,
+      "maxDamage": 33,
+      "typicalDamage": 25.394996643066406,
+      "damagePerOpening": 26.167742083149573,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 3.720001220703125,
+          "typicalDamage": 3.720001220703125,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 9.300003051757812,
+          "typicalDamage": 9.300003051757812,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 7.44000244140625,
+          "typicalDamage": 7.44000244140625,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 9.300003051757812,
+          "typicalDamage": 9.300003051757812,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 18,
+          "typicalDamage": 18,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 16,
+          "typicalDamage": 16,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 16,
+          "typicalDamage": 16,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 18,
+          "typicalDamage": 18,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 25,
+          "typicalDamage": 7,
+          "killPercent": 140
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 25,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 27.720001220703125,
+          "typicalDamage": 24,
+          "killPercent": 95
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 5,
+          "typicalDamage": 5,
+          "killPercent": 140
+        },
+        {
+          "opener": "neutral air",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "forward air",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "back air",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 4,
+          "typicalDamage": 4,
+          "killPercent": null
+        },
+        {
+          "opener": "down air",
+          "maxDamage": 33,
+          "typicalDamage": 9,
+          "killPercent": null
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 3.720001220703125,
+          "typicalDamage": 3.720001220703125,
+          "killPercent": null
+        },
+        {
+          "opener": "side special",
+          "maxDamage": 9.300003051757812,
+          "typicalDamage": 9.300003051757812,
+          "killPercent": null
+        },
+        {
+          "opener": "up special",
+          "maxDamage": 5,
+          "typicalDamage": 5,
+          "killPercent": null
+        }
+      ]
+    },
+    "Illidan": {
+      "openingsPerKill": 8.5,
+      "multiHitOpeningsPerKill": 6.833333333333333,
+      "openingsWithReads": 8.5,
+      "killPercent": 140,
+      "maxDamage": 25,
+      "typicalDamage": 21,
+      "damagePerOpening": 19.568627450980394,
+      "complete": false,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 5,
+          "typicalDamage": 5,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 15,
+          "typicalDamage": 15,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 14,
+          "typicalDamage": 14,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 21,
+          "typicalDamage": 7,
+          "killPercent": 140
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 21,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 22,
+          "typicalDamage": 20,
+          "killPercent": 130
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 5,
+          "typicalDamage": 5,
+          "killPercent": 140
+        },
+        {
+          "opener": "neutral air",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "forward air",
+          "maxDamage": 2,
+          "typicalDamage": 2,
+          "killPercent": null
+        },
+        {
+          "opener": "back air",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": null
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "down air",
+          "maxDamage": 25,
+          "typicalDamage": 9,
+          "killPercent": null
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 5,
+          "typicalDamage": 5,
+          "killPercent": null
+        },
+        {
+          "opener": "side special",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": null
+        },
+        {
+          "opener": "down special",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        }
+      ]
+    },
+    "Blademaster": {
+      "openingsPerKill": 6,
+      "multiHitOpeningsPerKill": 5.833333333333333,
+      "openingsWithReads": 6.833333333333333,
+      "killPercent": 110,
+      "maxDamage": 24.830001831054688,
+      "typicalDamage": 20.05500030517578,
+      "damagePerOpening": 22.357362588246662,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 3.82000732421875,
+          "typicalDamage": 3.8199996948242188,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 7.640000343322754,
+          "typicalDamage": 7.6399993896484375,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 6.685001373291016,
+          "typicalDamage": 6.68499755859375,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 4.775001525878906,
+          "typicalDamage": 4.775001525878906,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 14.325000762939453,
+          "typicalDamage": 14.324996948242188,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 15.280000686645508,
+          "typicalDamage": 15.279998779296875,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 13.370002746582031,
+          "typicalDamage": 13.370002746582031,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 14.325000762939453,
+          "typicalDamage": 14.324996948242188,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 24.830001831054688,
+          "typicalDamage": 6.68499755859375,
+          "killPercent": 130
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 7.640000343322754,
+          "typicalDamage": 7.6399993896484375,
+          "killPercent": null
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 23.875,
+          "typicalDamage": 20.05500030517578,
+          "killPercent": 110
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 4.775001525878906,
+          "typicalDamage": 4.775001525878906,
+          "killPercent": 170
+        },
+        {
+          "opener": "neutral air",
+          "maxDamage": 3,
+          "typicalDamage": 3,
+          "killPercent": null
+        },
+        {
+          "opener": "forward air",
+          "maxDamage": 10.5050048828125,
+          "typicalDamage": 10.505000114440918,
+          "killPercent": null
+        },
+        {
+          "opener": "back air",
+          "maxDamage": 11.460006713867188,
+          "typicalDamage": 11.459999084472656,
+          "killPercent": null
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 7.640000343322754,
+          "typicalDamage": 7.6399993896484375,
+          "killPercent": null
+        },
+        {
+          "opener": "down air",
+          "maxDamage": 16,
+          "typicalDamage": 15,
+          "killPercent": null
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 5.730003356933594,
+          "typicalDamage": 5.730003356933594,
+          "killPercent": null
+        },
+        {
+          "opener": "up special",
+          "maxDamage": 8.595001220703125,
+          "typicalDamage": 8.595001220703125,
+          "killPercent": null
+        }
+      ]
+    },
+    "Mountain King": {
+      "openingsPerKill": 4.833333333333333,
+      "multiHitOpeningsPerKill": 4.833333333333333,
+      "openingsWithReads": 5,
+      "killPercent": 75,
+      "maxDamage": 33.150001525878906,
+      "typicalDamage": 23.204994201660156,
+      "damagePerOpening": 24.992239327266297,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 5.525001525878906,
+          "typicalDamage": 5.525001525878906,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 13.260002136230469,
+          "typicalDamage": 13.25999927520752,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 11.050003051757812,
+          "typicalDamage": 11.050003051757812,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 11.050003051757812,
+          "typicalDamage": 11.050003051757812,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 17.68000030517578,
+          "typicalDamage": 17.68000030517578,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 18.785003662109375,
+          "typicalDamage": 18.785003662109375,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 17.68000030517578,
+          "typicalDamage": 17.68000030517578,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 17.68000030517578,
+          "typicalDamage": 17.68000030517578,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 10.94500732421875,
+          "typicalDamage": 9.944999694824219,
+          "killPercent": 120
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 11.050003051757812,
+          "typicalDamage": 11.050003051757812,
+          "killPercent": 140
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 33.150001525878906,
+          "typicalDamage": 23.204994201660156,
+          "killPercent": 75
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 7.7350006103515625,
+          "typicalDamage": 7.7350006103515625,
+          "killPercent": 135
+        },
+        {
+          "opener": "neutral air",
+          "maxDamage": 11.050003051757812,
+          "typicalDamage": 11.050003051757812,
+          "killPercent": null
+        },
+        {
+          "opener": "back air",
+          "maxDamage": 14.365005493164062,
+          "typicalDamage": 14.364997863769531,
+          "killPercent": null
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 11.050003051757812,
+          "typicalDamage": 11.050003051757812,
+          "killPercent": null
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 5.525001525878906,
+          "typicalDamage": 5.525001525878906,
+          "killPercent": null
+        },
+        {
+          "opener": "side special",
+          "maxDamage": 13.260002136230469,
+          "typicalDamage": 13.25999927520752,
+          "killPercent": null
+        },
+        {
+          "opener": "up special",
+          "maxDamage": 8.84000015258789,
+          "typicalDamage": 8.839996337890625,
+          "killPercent": null
+        },
+        {
+          "opener": "down special",
+          "maxDamage": 13.260002136230469,
+          "typicalDamage": 13.25999927520752,
+          "killPercent": null
+        }
+      ]
+    },
+    "Warden": {
+      "openingsPerKill": 6.666666666666667,
+      "multiHitOpeningsPerKill": 6.666666666666667,
+      "openingsWithReads": 7.5,
+      "killPercent": 115,
+      "maxDamage": 35,
+      "typicalDamage": 17,
+      "damagePerOpening": 21.25,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 3,
+          "typicalDamage": 3,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 35,
+          "typicalDamage": 9,
+          "killPercent": 160
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 12,
+          "typicalDamage": 12,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 14,
+          "typicalDamage": 14,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 12,
+          "typicalDamage": 12,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 12,
+          "typicalDamage": 12,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 22,
+          "typicalDamage": 6,
+          "killPercent": 120
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 21,
+          "typicalDamage": 17,
+          "killPercent": 115
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 4,
+          "typicalDamage": 4,
+          "killPercent": 180
+        },
+        {
+          "opener": "neutral air",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": null
+        },
+        {
+          "opener": "forward air",
+          "maxDamage": 10,
+          "typicalDamage": 10,
+          "killPercent": null
+        },
+        {
+          "opener": "back air",
+          "maxDamage": 11,
+          "typicalDamage": 11,
+          "killPercent": null
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 2,
+          "typicalDamage": 2,
+          "killPercent": null
+        },
+        {
+          "opener": "down air",
+          "maxDamage": 2,
+          "typicalDamage": 2,
+          "killPercent": null
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 5,
+          "typicalDamage": 5,
+          "killPercent": null
+        },
+        {
+          "opener": "side special",
+          "maxDamage": 10,
+          "typicalDamage": 10,
+          "killPercent": null
+        },
+        {
+          "opener": "down special",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        }
+      ]
+    },
+    "Lich": {
+      "openingsPerKill": 5.833333333333333,
+      "multiHitOpeningsPerKill": 1.3333333333333333,
+      "openingsWithReads": 5.833333333333333,
+      "killPercent": 75,
+      "maxDamage": 27,
+      "typicalDamage": 18,
+      "damagePerOpening": 19.34285714285714,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 3,
+          "typicalDamage": 3,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 18,
+          "typicalDamage": 18,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 17,
+          "typicalDamage": 17,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 14,
+          "typicalDamage": 14,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 18,
+          "typicalDamage": 18,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 8,
+          "typicalDamage": 7,
+          "killPercent": 150
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": 180
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 25,
+          "typicalDamage": 17,
+          "killPercent": 80
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": 120
+        },
+        {
+          "opener": "neutral air",
+          "maxDamage": 2,
+          "typicalDamage": 2,
+          "killPercent": null
+        },
+        {
+          "opener": "back air",
+          "maxDamage": 12,
+          "typicalDamage": 12,
+          "killPercent": null
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 27,
+          "typicalDamage": 9,
+          "killPercent": 75
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": null
+        },
+        {
+          "opener": "side special",
+          "maxDamage": 5,
+          "typicalDamage": 5,
+          "killPercent": null
+        }
+      ]
+    },
+    "Forsaken Paladin": {
+      "openingsPerKill": 7,
+      "multiHitOpeningsPerKill": 6,
+      "openingsWithReads": 7.333333333333333,
+      "killPercent": 110,
+      "maxDamage": 28,
+      "typicalDamage": 17.599998474121094,
+      "damagePerOpening": 18.799999327886674,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 3.200000762939453,
+          "typicalDamage": 3.1999998092651367,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 9.600006103515625,
+          "typicalDamage": 9.599998474121094,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 8.800003051757812,
+          "typicalDamage": 8.800003051757812,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 6.400001525878906,
+          "typicalDamage": 6.400001525878906,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 16,
+          "typicalDamage": 12,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 13.600006103515625,
+          "typicalDamage": 13.599998474121094,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 12,
+          "typicalDamage": 12,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 12,
+          "typicalDamage": 12,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 6.400001525878906,
+          "typicalDamage": 6.400001525878906,
+          "killPercent": 180
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 7.200000762939453,
+          "typicalDamage": 7.1999969482421875,
+          "killPercent": null
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 28,
+          "typicalDamage": 17.599998474121094,
+          "killPercent": 110
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 4.8000030517578125,
+          "typicalDamage": 4.8000030517578125,
+          "killPercent": 180
+        },
+        {
+          "opener": "neutral air",
+          "maxDamage": 7.200000762939453,
+          "typicalDamage": 7.1999969482421875,
+          "killPercent": null
+        },
+        {
+          "opener": "back air",
+          "maxDamage": 8.800003051757812,
+          "typicalDamage": 8.800003051757812,
+          "killPercent": null
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 28,
+          "typicalDamage": 7.200000762939453,
+          "killPercent": 110
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 10.400001525878906,
+          "typicalDamage": 10.400001525878906,
+          "killPercent": null
+        },
+        {
+          "opener": "side special",
+          "maxDamage": 11.200000762939453,
+          "typicalDamage": 11.199996948242188,
+          "killPercent": null
+        },
+        {
+          "opener": "up special",
+          "maxDamage": 6.400001525878906,
+          "typicalDamage": 6.400001525878906,
+          "killPercent": null
+        },
+        {
+          "opener": "down special",
+          "maxDamage": 1.600006103515625,
+          "typicalDamage": 1.5999984741210938,
+          "killPercent": null
+        }
+      ]
+    },
+    "Dreadlord": {
+      "openingsPerKill": 5.5,
+      "multiHitOpeningsPerKill": 5.166666666666667,
+      "openingsWithReads": 5.833333333333333,
+      "killPercent": 90,
+      "maxDamage": 24.43500518798828,
+      "typicalDamage": 21.720001220703125,
+      "damagePerOpening": 21.43835061969179,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 3.6200027465820312,
+          "typicalDamage": 3.6200008392333984,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 10.860000610351562,
+          "typicalDamage": 10.860000610351562,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 8.145004272460938,
+          "typicalDamage": 8.145004272460938,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 5.430000305175781,
+          "typicalDamage": 5.430000305175781,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 16.290008544921875,
+          "typicalDamage": 16.290000915527344,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 14.480003356933594,
+          "typicalDamage": 14.480003356933594,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 12.670000076293945,
+          "typicalDamage": 12.669998168945312,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 16.290008544921875,
+          "typicalDamage": 16.290000915527344,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 10.050003051757812,
+          "typicalDamage": 9.050003051757812,
+          "killPercent": 140
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 10.860000610351562,
+          "typicalDamage": 10.860000610351562,
+          "killPercent": 160
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 24.43500518798828,
+          "typicalDamage": 21.720001220703125,
+          "killPercent": 90
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 7.2400054931640625,
+          "typicalDamage": 7.239997863769531,
+          "killPercent": 120
+        },
+        {
+          "opener": "neutral air",
+          "maxDamage": 3,
+          "typicalDamage": 3,
+          "killPercent": null
+        },
+        {
+          "opener": "forward air",
+          "maxDamage": 12.670000076293945,
+          "typicalDamage": 12.669998168945312,
+          "killPercent": null
+        },
+        {
+          "opener": "back air",
+          "maxDamage": 13.575000762939453,
+          "typicalDamage": 13.574996948242188,
+          "killPercent": null
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 7.2400054931640625,
+          "typicalDamage": 7.239997863769531,
+          "killPercent": null
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 6.3350067138671875,
+          "typicalDamage": 6.334999084472656,
+          "killPercent": null
+        },
+        {
+          "opener": "side special",
+          "maxDamage": 11.000251770019531,
+          "typicalDamage": 10.000251770019531,
+          "killPercent": 130
+        },
+        {
+          "opener": "down special",
+          "maxDamage": 1.8100013732910156,
+          "typicalDamage": 1.8099994659423828,
+          "killPercent": null
+        }
+      ]
+    },
+    "Shadow Hunter": {
+      "openingsPerKill": 6.333333333333333,
+      "multiHitOpeningsPerKill": 3.5,
+      "openingsWithReads": 6.333333333333333,
+      "killPercent": 90,
+      "maxDamage": 24,
+      "typicalDamage": 19,
+      "damagePerOpening": 19.57894736842105,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 3,
+          "typicalDamage": 3,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 11,
+          "typicalDamage": 11,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 18,
+          "typicalDamage": 18,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 15,
+          "typicalDamage": 15,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 13,
+          "typicalDamage": 13,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 18,
+          "typicalDamage": 18,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 8,
+          "typicalDamage": 7,
+          "killPercent": 150
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": 180
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 24,
+          "typicalDamage": 19,
+          "killPercent": 90
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 5,
+          "typicalDamage": 5,
+          "killPercent": 140
+        },
+        {
+          "opener": "neutral air",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "forward air",
+          "maxDamage": 11,
+          "typicalDamage": 11,
+          "killPercent": null
+        },
+        {
+          "opener": "back air",
+          "maxDamage": 10,
+          "typicalDamage": 10,
+          "killPercent": null
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "down air",
+          "maxDamage": 14,
+          "typicalDamage": 12,
+          "killPercent": 100
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": null
+        },
+        {
+          "opener": "side special",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "down special",
+          "maxDamage": 2,
+          "typicalDamage": 2,
+          "killPercent": null
+        }
+      ]
+    },
+    "Pit Lord": {
+      "openingsPerKill": 5.333333333333333,
+      "multiHitOpeningsPerKill": 2.8333333333333335,
+      "openingsWithReads": 5.5,
+      "killPercent": 90,
+      "maxDamage": 35,
+      "typicalDamage": 25,
+      "damagePerOpening": 24.71875,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 12,
+          "typicalDamage": 12,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 12,
+          "typicalDamage": 12,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 10,
+          "typicalDamage": 10,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 19,
+          "typicalDamage": 19,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 22,
+          "typicalDamage": 22,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 19,
+          "typicalDamage": 19,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 19,
+          "typicalDamage": 19,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 12,
+          "typicalDamage": 11,
+          "killPercent": 130
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 12,
+          "typicalDamage": 12,
+          "killPercent": 165
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 35,
+          "typicalDamage": 25,
+          "killPercent": 90
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": 140
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 12,
+          "typicalDamage": 12,
+          "killPercent": null
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "side special",
+          "maxDamage": 15,
+          "typicalDamage": 15,
+          "killPercent": null
+        },
+        {
+          "opener": "up special",
+          "maxDamage": 10,
+          "typicalDamage": 10,
+          "killPercent": null
+        },
+        {
+          "opener": "down special",
+          "maxDamage": 5,
+          "typicalDamage": 5,
+          "killPercent": null
+        }
+      ]
+    },
+    "Beastmaster": {
+      "openingsPerKill": 6,
+      "multiHitOpeningsPerKill": 2.5,
+      "openingsWithReads": 6,
+      "killPercent": 80,
+      "maxDamage": 27.666000366210938,
+      "typicalDamage": 20.987998962402344,
+      "damagePerOpening": 20.856776661343044,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 3.8160018920898438,
+          "typicalDamage": 3.815999984741211,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 10.494003295898438,
+          "typicalDamage": 10.494003295898438,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 8.585999488830566,
+          "typicalDamage": 8.58599853515625,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 6.678001403808594,
+          "typicalDamage": 6.678001403808594,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 19.080001831054688,
+          "typicalDamage": 19.080001831054688,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 16.218002319335938,
+          "typicalDamage": 16.218002319335938,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 14.309999465942383,
+          "typicalDamage": 14.30999755859375,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 19.080001831054688,
+          "typicalDamage": 19.080001831054688,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 8.632003784179688,
+          "typicalDamage": 7.631996154785156,
+          "killPercent": 140
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 8.585999488830566,
+          "typicalDamage": 8.58599853515625,
+          "killPercent": 170
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 25.75799560546875,
+          "typicalDamage": 20.987998962402344,
+          "killPercent": 90
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 5.723999500274658,
+          "typicalDamage": 5.7239990234375,
+          "killPercent": 140
+        },
+        {
+          "opener": "neutral air",
+          "maxDamage": 9.540000915527344,
+          "typicalDamage": 9.540000915527344,
+          "killPercent": null
+        },
+        {
+          "opener": "back air",
+          "maxDamage": 10.494003295898438,
+          "typicalDamage": 10.494003295898438,
+          "killPercent": null
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 27.666000366210938,
+          "typicalDamage": 8.58599853515625,
+          "killPercent": 75
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": null
+        },
+        {
+          "opener": "down special",
+          "maxDamage": 2.700000762939453,
+          "typicalDamage": 2.6999998092651367,
+          "killPercent": null
+        }
+      ]
+    },
+    "Lich King": {
+      "openingsPerKill": 6.333333333333333,
+      "multiHitOpeningsPerKill": 3.8333333333333335,
+      "openingsWithReads": 6.666666666666667,
+      "killPercent": 105,
+      "maxDamage": 31,
+      "typicalDamage": 20,
+      "damagePerOpening": 20.5,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 3,
+          "typicalDamage": 3,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 12,
+          "typicalDamage": 12,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 11,
+          "typicalDamage": 11,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 17,
+          "typicalDamage": 17,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 15,
+          "typicalDamage": 15,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 14,
+          "typicalDamage": 14,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 17,
+          "typicalDamage": 17,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 11,
+          "typicalDamage": 10,
+          "killPercent": 135
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 12,
+          "typicalDamage": 12,
+          "killPercent": 165
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 31,
+          "typicalDamage": 20,
+          "killPercent": 110
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": 120
+        },
+        {
+          "opener": "neutral air",
+          "maxDamage": 11,
+          "typicalDamage": 11,
+          "killPercent": null
+        },
+        {
+          "opener": "back air",
+          "maxDamage": 13,
+          "typicalDamage": 13,
+          "killPercent": null
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 12,
+          "typicalDamage": 12,
+          "killPercent": null
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": null
+        },
+        {
+          "opener": "side special",
+          "maxDamage": 4,
+          "typicalDamage": 4,
+          "killPercent": null
+        },
+        {
+          "opener": "up special",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": null
+        },
+        {
+          "opener": "down special",
+          "maxDamage": 2,
+          "typicalDamage": 2,
+          "killPercent": null
+        }
+      ]
+    },
+    "Thrall": {
+      "openingsPerKill": 6.833333333333333,
+      "multiHitOpeningsPerKill": 2.1666666666666665,
+      "openingsWithReads": 7.166666666666667,
+      "killPercent": 115,
+      "maxDamage": 36,
+      "typicalDamage": 18,
+      "damagePerOpening": 19.853658536585368,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 4,
+          "typicalDamage": 4,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 10,
+          "typicalDamage": 10,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 18,
+          "typicalDamage": 18,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 13,
+          "typicalDamage": 13,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 18,
+          "typicalDamage": 18,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 9,
+          "typicalDamage": 8,
+          "killPercent": 170
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 10,
+          "typicalDamage": 10,
+          "killPercent": 170
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 36,
+          "typicalDamage": 17,
+          "killPercent": 115
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": 120
+        },
+        {
+          "opener": "neutral air",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "back air",
+          "maxDamage": 13,
+          "typicalDamage": 13,
+          "killPercent": null
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": null
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 12,
+          "typicalDamage": 12,
+          "killPercent": null
+        },
+        {
+          "opener": "side special",
+          "maxDamage": 4,
+          "typicalDamage": 4,
+          "killPercent": null
+        },
+        {
+          "opener": "down special",
+          "maxDamage": 11,
+          "typicalDamage": 11,
+          "killPercent": null
+        }
+      ]
+    },
+    "Jaina Proudmoore": {
+      "openingsPerKill": 5.166666666666667,
+      "multiHitOpeningsPerKill": 2.8333333333333335,
+      "openingsWithReads": 5.333333333333333,
+      "killPercent": 70,
+      "maxDamage": 29,
+      "typicalDamage": 23,
+      "damagePerOpening": 20.29032258064516,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 3,
+          "typicalDamage": 3,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 17,
+          "typicalDamage": 17,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 16,
+          "typicalDamage": 16,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 13,
+          "typicalDamage": 13,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 17,
+          "typicalDamage": 17,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 10,
+          "typicalDamage": 8,
+          "killPercent": 130
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": 170
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 29,
+          "typicalDamage": 23,
+          "killPercent": 70
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": 110
+        },
+        {
+          "opener": "neutral air",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "back air",
+          "maxDamage": 11,
+          "typicalDamage": 11,
+          "killPercent": null
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 11,
+          "typicalDamage": 11,
+          "killPercent": null
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "side special",
+          "maxDamage": 5,
+          "typicalDamage": 5,
+          "killPercent": null
+        },
+        {
+          "opener": "down special",
+          "maxDamage": 5,
+          "typicalDamage": 5,
+          "killPercent": null
+        }
+      ]
+    },
+    "Sylvanas Windrunner": {
+      "openingsPerKill": 7.833333333333333,
+      "multiHitOpeningsPerKill": 5.5,
+      "openingsWithReads": 8.166666666666666,
+      "killPercent": 115,
+      "maxDamage": 21,
+      "typicalDamage": 18,
+      "damagePerOpening": 18.53191489361702,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 3,
+          "typicalDamage": 3,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 15,
+          "typicalDamage": 15,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 13,
+          "typicalDamage": 13,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 12,
+          "typicalDamage": 12,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 15,
+          "typicalDamage": 15,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": 170
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 21,
+          "typicalDamage": 18,
+          "killPercent": 115
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": 120
+        },
+        {
+          "opener": "neutral air",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "forward air",
+          "maxDamage": 10,
+          "typicalDamage": 10,
+          "killPercent": null
+        },
+        {
+          "opener": "back air",
+          "maxDamage": 11,
+          "typicalDamage": 11,
+          "killPercent": null
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 11,
+          "typicalDamage": 11,
+          "killPercent": null
+        },
+        {
+          "opener": "side special",
+          "maxDamage": 4,
+          "typicalDamage": 4,
+          "killPercent": null
+        },
+        {
+          "opener": "down special",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": 160
+        }
+      ]
+    },
+    "Cairne Bloodhoof": {
+      "openingsPerKill": 5.166666666666667,
+      "multiHitOpeningsPerKill": 2.1666666666666665,
+      "openingsWithReads": 5.333333333333333,
+      "killPercent": 85,
+      "maxDamage": 52,
+      "typicalDamage": 23,
+      "damagePerOpening": 25.774193548387096,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 5,
+          "typicalDamage": 5,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 13,
+          "typicalDamage": 13,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 12,
+          "typicalDamage": 12,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 10,
+          "typicalDamage": 10,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 19,
+          "typicalDamage": 19,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 23,
+          "typicalDamage": 23,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 19,
+          "typicalDamage": 19,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 19,
+          "typicalDamage": 19,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 12,
+          "typicalDamage": 11,
+          "killPercent": 130
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 13,
+          "typicalDamage": 13,
+          "killPercent": 160
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 52,
+          "typicalDamage": 23,
+          "killPercent": 85
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": 125
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 10,
+          "typicalDamage": 10,
+          "killPercent": null
+        },
+        {
+          "opener": "side special",
+          "maxDamage": 13,
+          "typicalDamage": 13,
+          "killPercent": null
+        },
+        {
+          "opener": "up special",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": null
+        }
+      ]
+    },
+    "Chen Stormstout": {
+      "openingsPerKill": 4.5,
+      "multiHitOpeningsPerKill": 2.6666666666666665,
+      "openingsWithReads": 4.5,
+      "killPercent": 70,
+      "maxDamage": 32.5,
+      "typicalDamage": 27.5,
+      "damagePerOpening": 25.77777777777778,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 3.75,
+          "typicalDamage": 3.75,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 11.25,
+          "typicalDamage": 11.25,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 8.75,
+          "typicalDamage": 8.75,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 7.5,
+          "typicalDamage": 7.5,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 22.5,
+          "typicalDamage": 22.5,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 20,
+          "typicalDamage": 20,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 17.5,
+          "typicalDamage": 17.5,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 22.5,
+          "typicalDamage": 22.5,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 12,
+          "typicalDamage": 10,
+          "killPercent": 120
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 11.25,
+          "typicalDamage": 11.25,
+          "killPercent": 155
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 31.25,
+          "typicalDamage": 26.25,
+          "killPercent": 70
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 7.5,
+          "typicalDamage": 7.5,
+          "killPercent": 110
+        },
+        {
+          "opener": "neutral air",
+          "maxDamage": 10,
+          "typicalDamage": 10,
+          "killPercent": null
+        },
+        {
+          "opener": "forward air",
+          "maxDamage": 15,
+          "typicalDamage": 15,
+          "killPercent": null
+        },
+        {
+          "opener": "back air",
+          "maxDamage": 13.75,
+          "typicalDamage": 13.75,
+          "killPercent": null
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 32.5,
+          "typicalDamage": 10,
+          "killPercent": 70
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 12.5,
+          "typicalDamage": 12.5,
+          "killPercent": null
+        },
+        {
+          "opener": "side special",
+          "maxDamage": 3.75,
+          "typicalDamage": 3.75,
+          "killPercent": null
+        },
+        {
+          "opener": "up special",
+          "maxDamage": 10,
+          "typicalDamage": 10,
+          "killPercent": null
+        }
+      ]
+    },
+    "Peon": {
+      "openingsPerKill": 6.833333333333333,
+      "multiHitOpeningsPerKill": 1.6666666666666667,
+      "openingsWithReads": 6.833333333333333,
+      "killPercent": 100,
+      "maxDamage": 25,
+      "typicalDamage": 19,
+      "damagePerOpening": 19.853658536585368,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 3,
+          "typicalDamage": 3,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 19,
+          "typicalDamage": 19,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 16,
+          "typicalDamage": 16,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 14,
+          "typicalDamage": 14,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 19,
+          "typicalDamage": 19,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 8,
+          "typicalDamage": 7,
+          "killPercent": 160
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": 180
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 25,
+          "typicalDamage": 17,
+          "killPercent": 100
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 5,
+          "typicalDamage": 5,
+          "killPercent": 140
+        },
+        {
+          "opener": "neutral air",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": null
+        },
+        {
+          "opener": "forward air",
+          "maxDamage": 13,
+          "typicalDamage": 13,
+          "killPercent": null
+        },
+        {
+          "opener": "back air",
+          "maxDamage": 11,
+          "typicalDamage": 11,
+          "killPercent": null
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": null
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "side special",
+          "maxDamage": 8,
+          "typicalDamage": 5,
+          "killPercent": null
+        }
+      ]
+    },
+    "Goblin Tinker": {
+      "openingsPerKill": 8.166666666666666,
+      "multiHitOpeningsPerKill": 7.833333333333333,
+      "openingsWithReads": 8.166666666666666,
+      "killPercent": 130,
+      "maxDamage": 24,
+      "typicalDamage": 20,
+      "damagePerOpening": 21.306122448979593,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 3,
+          "typicalDamage": 3,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 17,
+          "typicalDamage": 17,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 16,
+          "typicalDamage": 16,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 13,
+          "typicalDamage": 13,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 17,
+          "typicalDamage": 17,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": null
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 24,
+          "typicalDamage": 20,
+          "killPercent": 130
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": 120
+        },
+        {
+          "opener": "neutral air",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": null
+        },
+        {
+          "opener": "forward air",
+          "maxDamage": 10,
+          "typicalDamage": 10,
+          "killPercent": null
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 4,
+          "typicalDamage": 4,
+          "killPercent": null
+        },
+        {
+          "opener": "side special",
+          "maxDamage": 11,
+          "typicalDamage": 6,
+          "killPercent": null
+        },
+        {
+          "opener": "up special",
+          "maxDamage": 5,
+          "typicalDamage": 5,
+          "killPercent": null
+        },
+        {
+          "opener": "down special",
+          "maxDamage": 13,
+          "typicalDamage": 13,
+          "killPercent": null
+        }
+      ]
+    },
+    "Kael'thas Sunstrider": {
+      "openingsPerKill": 6.166666666666667,
+      "multiHitOpeningsPerKill": 2.5,
+      "openingsWithReads": 6.333333333333333,
+      "killPercent": 90,
+      "maxDamage": 43,
+      "typicalDamage": 19,
+      "damagePerOpening": 20.10810810810811,
+      "complete": true,
+      "openers": [
+        {
+          "opener": "jab",
+          "maxDamage": 3,
+          "typicalDamage": 3,
+          "killPercent": null
+        },
+        {
+          "opener": "forward tilt",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "up tilt",
+          "maxDamage": 8,
+          "typicalDamage": 8,
+          "killPercent": null
+        },
+        {
+          "opener": "down tilt",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": null
+        },
+        {
+          "opener": "forward smash",
+          "maxDamage": 16,
+          "typicalDamage": 16,
+          "killPercent": null
+        },
+        {
+          "opener": "up smash",
+          "maxDamage": 15,
+          "typicalDamage": 15,
+          "killPercent": null
+        },
+        {
+          "opener": "down smash",
+          "maxDamage": 14,
+          "typicalDamage": 14,
+          "killPercent": null
+        },
+        {
+          "opener": "dash attack",
+          "maxDamage": 16,
+          "typicalDamage": 16,
+          "killPercent": null
+        },
+        {
+          "opener": "forward throw",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": 180
+        },
+        {
+          "opener": "back throw",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": 170
+        },
+        {
+          "opener": "up throw",
+          "maxDamage": 43,
+          "typicalDamage": 19,
+          "killPercent": 90
+        },
+        {
+          "opener": "down throw",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": 120
+        },
+        {
+          "opener": "neutral air",
+          "maxDamage": 7,
+          "typicalDamage": 7,
+          "killPercent": null
+        },
+        {
+          "opener": "forward air",
+          "maxDamage": 10,
+          "typicalDamage": 10,
+          "killPercent": null
+        },
+        {
+          "opener": "up air",
+          "maxDamage": 9,
+          "typicalDamage": 9,
+          "killPercent": null
+        },
+        {
+          "opener": "neutral special",
+          "maxDamage": 12,
+          "typicalDamage": 12,
+          "killPercent": null
+        },
+        {
+          "opener": "side special",
+          "maxDamage": 4,
+          "typicalDamage": 4,
+          "killPercent": null
+        },
+        {
+          "opener": "up special",
+          "maxDamage": 6,
+          "typicalDamage": 6,
+          "killPercent": null
+        },
+        {
+          "opener": "down special",
+          "maxDamage": 5,
+          "typicalDamage": 5,
+          "killPercent": null
+        }
+      ]
+    }
+  }
+}
