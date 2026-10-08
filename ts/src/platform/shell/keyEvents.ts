@@ -59,5 +59,5 @@ export function removeKeyEvents(s: ShellState): void {
 export function syncKeyEvents(s: ShellState): void {
   const rollbackMatch = activeRollback(s) !== undefined && s.game.phase === Phase.match;
   if (rollbackMatch && !s.session.paused) removeKeyEvents(s);
-  else registerKeys(s, s.session.paused);
+  else registerKeys(s, s.session.paused || s.pauseMenu?.title === true);
 }
