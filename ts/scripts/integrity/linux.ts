@@ -2,7 +2,8 @@
 // clock_gettime (Bun's hrtime counts from process start, not CLOCK_MONOTONIC)
 // and ioctl, uinput pads, evdev observers and stopped-process checks.
 import { dlopen, ptr, read } from "bun:ffi";
-import { closeSync, constants, openSync, readFileSync, readSync, readdirSync, writeSync } from "node:fs";
+import { closeSync, constants, existsSync, openSync, readFileSync, readSync, readdirSync, writeSync } from "node:fs";
+import { join } from "node:path";
 import { Effect, Predicate } from "effect";
 import { IntegrityFailure, kernelLine, tryIntegrity } from "./evidence";
 import {
@@ -35,20 +36,35 @@ function ioctl(fd: number, request: number, argument: number | Uint8Array | Int3
   throw new Error(`ioctl 0x${request.toString(16)} failed with errno ${errno === null ? "unknown" : read.i32(errno, 0)}`);
 }
 
+const UDEV_DATA = "/run/udev/data";
+const TWIN_PROPERTY = "E:SMASHCRAFT_TEST_PAD_NODE=";
+
 export interface Pad {
   readonly fd: number;
-  /** The pad's /dev/input/eventN node. */
+  /** The pad's evdev node: /dev/input/eventN, or its twin where udev hides that one. */
   readonly device: string;
 }
 
-/** The evdev node of a created uinput device, from its sysfs name. */
-function padDevice(fd: number): string {
+/**
+ * The evdev node a helper opens for a created uinput device, once udev has
+ * finished with it. On Tom's machine a udev rule
+ * (nixos-config:native/nix/smashcraft-test-pads.clause) keeps the
+ * /dev/input node root-only, so Steam never sees a test pad, and names a twin
+ * node only the helpers open.
+ */
+function padDevice(fd: number): string | undefined {
   const name = new Uint8Array(80);
   ioctl(fd, UI_GET_SYSNAME, name);
   const node = new TextDecoder().decode(name.subarray(0, name.indexOf(0)));
   const events = readdirSync(`/sys/devices/virtual/input/${node}`).filter((entry) => entry.startsWith("event"));
   if (events.length !== 1) throw new Error(`unexpected virtual device interfaces: ${events.join(", ")}`);
-  return `/dev/input/${events[0]}`;
+  const event = `/dev/input/${events[0]}`;
+  if (!existsSync(UDEV_DATA)) return existsSync(event) ? event : undefined;
+  const record = join(UDEV_DATA, `c${readFileSync(`/sys/class/input/${events[0]}/dev`, "utf8").trim()}`);
+  if (!existsSync(record)) return undefined;
+  const twin = readFileSync(record, "utf8").split("\n").find((line) => line.startsWith(TWIN_PROPERTY))?.slice(TWIN_PROPERTY.length);
+  const device = twin ?? event;
+  return existsSync(device) ? device : undefined;
 }
 
 /** A virtual Xbox 360 pad with these buttons and both sticks and triggers, removed with its scope. */
@@ -79,8 +95,12 @@ export const openPad = (buttons: readonly number[]) =>
       }),
     );
     // udev creates the event node after UI_DEV_CREATE returns.
-    yield* Effect.sleep("250 millis");
-    return { fd, device: yield* tryIntegrity("find virtual pad device", "/dev/uinput", () => padDevice(fd)) } satisfies Pad;
+    for (let waitedMs = 0; ; waitedMs += 25) {
+      yield* Effect.sleep("25 millis");
+      const device = yield* tryIntegrity("find virtual pad device", "/dev/uinput", () => padDevice(fd));
+      if (device !== undefined) return { fd, device } satisfies Pad;
+      if (waitedMs >= 3000) return yield* new IntegrityFailure({ operation: "find virtual pad device", path: "/dev/uinput", cause: "udev did not publish the pad's node within 3 s" });
+    }
   });
 
 /** Publishes an edge and its SYN_REPORT in one write, stamped before the write. */

@@ -214,7 +214,11 @@ integrity and development builds give confirmed states.
 
 `bun wisp pad SCRIPT --helper HELPER --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat=TEXT]`
 plays a script of timed pad states on both clients' virtual pads through
-the real helpers, as the captures do. `--chat=TEXT` types a developer command
+the real helpers, as the captures do. Only the helpers read those pads: on
+Tom's machine a udev rule (nixos-config:native/nix/smashcraft-test-pads.clause)
+keeps their /dev/input nodes root-only, so Steam and the desktop never see a
+test pad appear or disappear, and the helpers open a twin node in
+/dev/smashcraft-pads instead. `--chat=TEXT` types a developer command
 into client A once the helpers run (for example `-dev quick hero lich`, or
 `-dev quick cpu wren expert` for a Wren Expert computer opponent, or
 `-dev quick cpu wren expert hero NAME` to select any roster fighter as that computer
