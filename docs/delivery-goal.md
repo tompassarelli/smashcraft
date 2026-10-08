@@ -1,7 +1,7 @@
 # Smashcraft delivery goal
 
 Deliver a complete, responsive, readable Warcraft III platform fighter in TypeScript:
-first a fully playable Archer–Rifleman game, then playable Demon Hunter
+a fully playable roster, including Rifleman and Demon Hunter
 (Illidan), with a measured and justified multiplayer input architecture.
 Preserve the playable map, authored assets, and agreed custom mechanics while
 finishing missing systems. The owner should refine the game through playtesting,
@@ -21,7 +21,7 @@ stay.
 2. Deliver the complete two-fighter game through real controls, animations,
    character/stage selection, match, KO, and New Match flow in Warcraft.
 3. Add Demon Hunter to the same complete character standard. Roster expansion
-   must not displace missing Archer/Rifleman specials or broken shared rules.
+   must not displace missing Rifleman specials or broken shared rules.
 4. Complete scheduled-input integration and actual two-client comparisons.
    Independent replay and native-feasibility work may continue alongside
    gameplay; unproven networking must not replace the playable baseline.
@@ -53,8 +53,7 @@ them silently absent. Measure getup attack's actual hit advantage, including
 the defender's escape options.
 
 Leaving a ledge without jumping must leave one aerial jump. Up-special recovery
-must enter the appropriate helpless fall and jump lockout; do not generalize
-that restriction to Archer's explicitly jump-cancellable neutral-special.
+must enter the appropriate helpless fall and jump lockout.
 An airborne horizontal tap followed by released-direction neutral-special must
 shoot toward the last tapped side without reversing movement momentum. An
 air-dodge press during jump squat followed by left/right must buffer the shallow
@@ -94,18 +93,9 @@ Directional input selects forward/back/up/down throws. Author coordinated
 holder/victim poses and one defined release/contact event per action; prevent
 grab-context commands from leaking into ordinary attacks after release.
 
-Archer: jump-cancellable neutral arrow; side-special wind-up followed by a
-homing arrow that a well-timed jump avoids (#112); down-special hippogryph call to a perch and a dive from it
-(down with a side keeps the backward hop); up-special steerable hippogryph
-ride with a leap-off (smashcraft:docs/design/archer-specials.md).
-Finish the legible fist jab, directional tilts, extended-leg neutral air,
-Fox/Falco-like back kick and tucked-startup downward dive kick. Running/basic
-arrows are damage-only: no hitstun, hitlag, knockback or move interruption.
-This includes the homing arrow and supersedes the earlier stun request.
-
 Rifleman: recognizable Warcraft-style bullet; running/swiping bear;
 neutral-special bullet impact must briefly flinch the victim, like Falco's
-laser, distinctly from Archer's damage-only arrows;
+laser;
 five-second freezing trap with visible ice entombment and defined release rules;
 aimed recoil-shot recovery: the stick picks up, diagonally up or level and the
 shot fires the opposite way, with one second shot to change route and early

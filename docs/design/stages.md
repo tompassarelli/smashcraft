@@ -575,7 +575,7 @@ layouts and player accounts above:
 Each ranked stage takes a different archetype; the main deck is 1,200 wide on
 every stage (Main-deck topology, above). Heights are above the main deck in
 world units, then in full hops and in a full hop plus double jump of the
-reference fighter (Archer, and every hero: 188 and 429; Rifleman 309 and 559,
+reference fighter (and every hero: 188 and 429; Rifleman 309 and 559,
 Illidan 245 and 517). Ledge to blast zone: Frozen Throne 1,270 sideways, 1,500
 up, 816 down; every other stage 963, 1,128 and 840 (Final Destination's,
 smashcraft:ts/src/game/sim/stageBounds.ts).

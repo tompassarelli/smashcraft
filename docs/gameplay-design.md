@@ -104,7 +104,7 @@ in the air, against Melee Fox's 38%.
 
 **Decision.**
 
-- **One momentum rule for everyone.** Every fighter jumps by Melee's
+Historical fixture before #339: - **One momentum rule for everyone.** Every fighter jumps by Melee's
   ground-jump rule and drifts by its air rule. Illidan used to keep his full
   ground speed and then snap to his 0.88 air speed on his first steer, which
   threw away his dash. He now uses the shared rule with his retained
@@ -132,7 +132,6 @@ table (Melee units a frame; takeoffs after 8 dash frames and 24 run frames):
 
 | Fighter | Air speed | Air acceleration | Air friction | Jump momentum × | Jump initial | Jump cap | Dash-jump takeoff | Run-jump takeoff | Cross-up from 40 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| Archer | 0.83 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 24 |
 | Rifleman | 0.83 | 0.070 | 0.020 | 1.00 | 0.70 | 1.70 | 1.70 | 1.70 | short hop back air, press 30 |
 | Illidan | 0.88 | 0.075 | 0.020 | 1.00 | 0.00 | 1.70 | 1.68 | 1.68 | short hop back air, press 27 |
 | Blademaster | 1.00 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 20 |
@@ -151,7 +150,7 @@ table (Melee units a frame; takeoffs after 8 dash frames and 24 run frames):
 
 Owner decisions, 6 Oct 2026 (#62):
 
-- **Not a Melee clone.** Melee's data is a reference, not a template, and every
+Historical fixture before #339: - **Not a Melee clone.** Melee's data is a reference, not a template, and every
   fighter gets original hitboxes. The owner had already said so for the
   physics (3 Oct): Smashcraft's fighters are original characters; verifying
   Melee's physics concerns its shared equations and state rules, not making
@@ -376,7 +375,7 @@ used, not camped.
   cancels the attack's remaining recovery; contact during recovery, or during a
   special, ascends at once. Rising into a platform after a hit is a lag cancel.
   A helpless fighter stays helpless. The ascent lasts the fighter's jump squat
-  (Archer 3, Rifleman 5, Illidan 4, each hero its own), the honest proxy for
+  (Rifleman 5, Illidan 4, each hero its own), the honest proxy for
   its agility, and carries its feet from where they met the platform to its top.
   - Rising through is the default: the fighter keeps its momentum, with gravity,
     and leaves the top still rising if it has rise left. Holding jump, or up
@@ -412,7 +411,7 @@ used, not camped.
   64 pairs of the 8 selectable fighters at #103's landing, the fighter below
   strikes first in 31, level in 10 and later in 23; its test requires the fighter below to
   strike no later in at least 60% of pairs. The trailing pairs are mostly
-  Archer, Rifleman and Illidan on top, whose descent plus down air is fastest.
+  Rifleman and Illidan on top, whose descent plus down air is fastest.
 - Presentation: ascent plays the fighter's ledge-climb clip, descent its
   ledge-hang clip and both wraps its ledge-roll clip, each stretched over the
   move (smashcraft:ts/src/game/presentation/fighterClips.ts).
@@ -604,7 +603,6 @@ every newly registered fighter too.
 
 | Fighter | EX neutral (mana) | EX side (mana) | Upgrade on both |
 |---|---|---|---|
-| Archer | Swift Arrow (28) | Homing Arrow (37) | One 8% hit armored on frames 1–6 |
 | Rifleman | Blaster (28) | Bear (50) | One 8% hit armored on frames 1–6 |
 | Illidan | Mana Burn (35) | Fel Rush (37) | One 8% hit armored on frames 1–6 |
 | Blademaster | Wind Cutter (25) | Wind Walk (43) | One 8% hit armored on frames 1–6 |
@@ -680,15 +678,10 @@ the infrastructure finish line when integrating new gameplay.
   freeze (its 12 segments are 25 frames each) and empty is the thaw. A frozen
   computer presses 10 times a second and thaws on frame 131.
 
-- **Archer's arrows** (owner correction): normal and running arrows and the homing arrow
-  add damage without hitstun, hitlag, knockback or interruption; shields still
-  take their damage. smashcraft:docs/physics.md, "Archer arrows: damage without
-  interruption", has the rule.
-
-## Character trade-offs and move evaluation
+## Historical character trade-offs and move evaluation
 
 Evaluation model selected under the owner's authorization, 6 Oct 2026 (#62).
-Use the current Archer, Rifleman and Illidan, with jab, down tilt, forward smash,
+Use the current Rifleman and Illidan, with jab, down tilt, forward smash,
 forward air and down air as the first sample. The numerical baseline is
 smashcraft:tools/move-data/gameplay-model.json, derived from the published
 move exports, contextual comparisons, interaction graph and retained bot data;
@@ -705,11 +698,10 @@ lasts 28 frames; forward smash starts on 6 and lasts 36.
 
 | Fighter | Weight | Run / air speed | Jump squat | Down tilt damage / reach | Forward smash damage / reach | Down air active frames |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Archer | 75 | 13.20 / 4.98 | 3 | 8 / 145 | 18 / 121 | 20 |
 | Rifleman | 80 | 9.00 / 4.98 | 5 | 10 / 145 | 18 / 121 | 3 |
 | Illidan | 80 | 11.10 / 5.28 | 4 | 7 / 115 | 15 / 171 | 3 |
 
-Archer pays for the fastest run and jump start with the lowest weight.
+Historical fixture before #339: Archer pays for the fastest run and jump start with the lowest weight.
 Rifleman's down tilt pays more damage at Archer's timing and reach, while his
 run is slower and jump start later. Illidan's forward smash reaches farther
 but deals less, and his down tilt gives up both damage and reach; his air speed
@@ -728,7 +720,7 @@ and the [interaction graph](design/platform-fighters.md#the-interaction-graph).
   tested response (winner, hit/grab/none, blocked). Count distinct groups;
   keep timing and damage alongside them. The neutral mirror fixtures offer
   13 inputs each, but N is 8 at distance 60 for all three, and 6/6/7 at 120
-  for Archer/Rifleman/Illidan. This is a coarse sampled distinction, not a
+  for Rifleman/Illidan. This is a coarse sampled distinction, not a
   count of all strategic choices. Provisional target: at least three distinct
   patterns in each ordinary neutral sample, with each attacking choice denied
   by a reachable block, evasion or counter in that named situation.
@@ -754,13 +746,13 @@ In the grounded first-active, spacing-60, 0% contact fixture against Rifleman,
 Illidan's forward smash deals 15 and is -6 at the normal-action gate after
 shield release. An approaching Rifleman jab starts at 32 and hits at 36 before
 Illidan acts at 37: a 5-damage cost, R/C = 3, break-even 25% for precisely that
-binary branch. Archer and Rifleman deal 18 and are -4; no tested jab reaches
+binary branch. Rifleman deal 18 and are -4; no tested jab reaches
 before recovery, so their ratios remain unknown. These comparisons are not
 the mirror fixture's earliest out-of-shield gate or a full payoff matrix.
 
 ### Predictions and the role of bots
 
-The existing fixtures make three falsifiable predictions for this sample:
+Historical fixture before #339: The existing fixtures make three falsifiable predictions for this sample:
 Archer's long-active down air remains punishable at close advancing spacing
 while his spaced fade-back forward air is safe against the tested responses;
 Rifleman's stronger down tilt produces 18 hitstun frames against weight 100
@@ -771,7 +763,7 @@ interaction commands, then retain its before/after effect on N, P and R/C.
 
 The retained post-down-tilt 540-match bot run supplies historical context:
 CPU-versus-fuzz wins were 118/120, 120/120 and 116/120, and damage per landed
-hit 8.86, 7.03 and 8.32 for Archer, Rifleman and Illidan. Repeated deterministic
+hit 8.86, 7.03 and 8.32 for Rifleman and Illidan. Repeated deterministic
 CPU setups are not independent samples. The Rifleman change moved 118 to 120
 wins, while two unrelated fuzz matches also changed; that run did not resolve
 a balance effect. Its policy, stages and revision are named in
@@ -856,7 +848,7 @@ stay inside 32-bit integers, so Bun and Warcraft's Lua compute it alike.
   would come to rest, braking at traction or air acceleration, with the
   deck's edges less 40 units, and turns back when that point would pass them.
   A ground attack starts only if the slide it leaves ends on the deck it
-  stands on, and specials that move it (Archer's hippogryph hop, Parry Step) only with room
+  stands on, and specials that move it (Parry Step) only with room
   to land.
 - It attacks with whatever reaches: each move's strike at its first active
   frame, from the authored hit regions and contact capsules, against the
@@ -1014,7 +1006,7 @@ The descriptive basis is [fighting-game language](design/fighting-games.md),
 | Wavedash and waveland | Keep air-dodge momentum through landing and the 10-frame dodge landing lag, including the owner-selected shallow digital angle. | An interactive movement option, unlike the removed L-cancel chore. |
 | Offstage air-dodge buffering | Do not add a general held-input air-dodge buffer. Retain fresh dodge presses and the deliberate dodge press queued during jump squat; a fresh offstage press still works when legal. | Avoid accidental automatic dodges while preserving explicit player commands. |
 | Platforms | Ascent, descent and wraps last the fighter's jump squat and leave it vulnerable; no shield drop ([Platforms](#platforms)). | Positions are used, not camped (owner, 6 Oct, #103). |
-| Short hop and jump squat | Keep release-during-squat short hops, without a jump+attack macro or a new mandatory binding. Jump squat remains per fighter within #69's 3–5 frames: Archer 3, Rifleman 5, Illidan 4. | Preserves current controls and physical differences inside the accepted execution bounds. |
+| Short hop and jump squat | Keep release-during-squat short hops, without a jump+attack macro or a new mandatory binding. Jump squat remains per fighter within #69's 3–5 frames: Rifleman 5, Illidan 4. | Preserves current controls and physical differences inside the accepted execution bounds. |
 | Input buffer and priority | Keep the 6-frame human attack grace. Same-frame attack requests prefer grab, unchargeable C-stick smash, chargeable smash, tilt, then the established style ordering; conflicting equal requests leave facing neutral. Existing action locks and fresh-input rules remain authoritative. | Deterministic input intent without a new universal hold buffer or callback-order priority. |
 | Wall movement | Keep existing wall tech and authored wall-jump eligibility. No wall climbing or free refresh of jumps, recovery specials or ledge protection. | Movement should respect the visible stage walls without granting an unlimited recovery loop. |
 | Ledges | Keep exclusive occupancy/edgehogging, first-frame catch intangibility of 30 frames and the 30-frame regrab lock. No trump or extra two-frame catch vulnerability. | Retains the current Melee-derived ledge system within #69's accepted bounds. |
@@ -1139,10 +1131,10 @@ lose to a hurtbox the player could not see. The mechanisms behind Ultimate's
 [hurtbox legibility](design/hurtbox-legibility.md). Authoring is described in
 smashcraft:docs/hurtboxes.md.
 
-Two owner principles (6 Oct 2026) frame the rules: **attacking limbs can be
+Historical fixture before #339: Two owner principles (6 Oct 2026) frame the rules: **attacking limbs can be
 hit**, so counter-hitting an extended arm, leg or wing is always possible,
 and **weapons are disjoint**: a held weapon (Blademaster's sword, Mountain
-King's and Forsaken Paladin's hammers, Archer's bow, Rifleman's gun) is never part of the
+King's and Forsaken Paladin's hammers, Rifleman's gun) is never part of the
 hurtbox, so striking the weapon does nothing while the hand and arm holding it
 can be hit. Counter-hit the limb, not the sword.
 
@@ -1525,7 +1517,7 @@ aim launches upward. An up special spends the aerial jump and ends helpless.
 |---|---|---:|---:|---:|---:|
 | Long, committed route | Rifleman, Blademaster, Tinker, Kael'thas | 480–640 | 480–900 | 780 | 920 |
 | Vertical, route mixups | Warden, Lich, Shadow Hunter, Thrall, Jaina, Chen | 400–560 | 320–600 | 700 | 840 |
-| Drifting, wide approach | Archer, Illidan, Dreadlord, Beastmaster, Sylvanas | 380–520 | 600–900 | 680 | 920 |
+| Drifting, wide approach | Illidan, Dreadlord, Beastmaster, Sylvanas | 380–520 | 600–900 | 680 | 920 |
 | Heavy, exposed approach | Mountain King, Forsaken Paladin, Pit Lord, Lich King, Cairne, Peon, Murloc | 320–440 | 320–480 | 620 | 740 |
 
 [spec #252] With empty mana, an up special reaches at least 240 units on each
@@ -1562,7 +1554,6 @@ The branch's up-special and empty-mana measurements are kept there too.
 
 | Fighter | Before height / reach | After height / reach |
 |---|---:|---:|
-| Archer | 692 / 940 | 820 / 940 |
 | Rifleman | 685 / 940 | 820 / 940 |
 | Illidan | 762 / 940 | 762 / 940 |
 | Blademaster | 660 / 793 | 820 / 940 |

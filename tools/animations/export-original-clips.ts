@@ -38,7 +38,7 @@ const clipLiteral = (modelPath: string, interval: readonly number[], looping: bo
 const records = [], keyThinRows: string[] = [];
 let totalBytes = 0, theoreticalFullSourceBytes = 0, theoreticalUntrimmedBodyBytes = 0;
 const started = performance.now();
-for (const fighter of fighters) {
+for (const [character, fighter] of fighters) {
     if (only !== undefined && !only.includes(fighter.name)) continue;
     const sourcePath = join(assets, fighter.source);
     if (fighter.stock !== undefined && !await Bun.file(sourcePath).exists()) {
@@ -88,8 +88,8 @@ for (const fighter of fighters) {
     let fighterBytes = light?.bytes ?? 0, unthinnedBytes = light?.bytes ?? 0;
     const fighterClips: string[] = [];
     const countedClips = new Set<string>();
-    moduleClips.push(fighterClips);
-    moduleLights.push(light?.modelPath ?? null);
+    moduleClips[character] = fighterClips;
+    moduleLights[character] = light?.modelPath ?? null;
     for (let index = 0; index < source.Sequences.length; index++) {
         if (reuse || index < reusePrefix) {
             const clip = retainedRecord.clips[index];
@@ -157,7 +157,7 @@ for (const fighter of fighters) {
         const family = sequence.Name.toLowerCase().replace(/\s*-?\s*\d+$/, '').trim();
         if (!names.has(family)) names.set(family, index);
     });
-    moduleNames.push([...names].map(([name, index]) => `[${JSON.stringify(name)}, ${index}],`));
+    moduleNames[character] = [...names].map(([name, index]) => `[${JSON.stringify(name)}, ${index}],`);
     ensure(hash(await Bun.file(join(assets, fighter.source)).arrayBuffer()) === sourceSha256, `${fighter.name}: source changed during export`);
     totalBytes += fighterBytes;
     records.push({fighter: fighter.name, source: fighter.source, sourceSha256, sourceBytes: bytes.byteLength,
@@ -188,18 +188,18 @@ const typescript = [
     `export const ORIGINAL_LIGHT_GATE_SECONDS = ${seconds(staticLightGate.seconds)};`,
     '',
     '/** Each character\'s clips by original sequence index. */',
-    'const CLIPS: readonly (readonly FighterOriginalClip[])[] = [',
-    ...moduleClips.flatMap((clips, character) => [`  // ${fighters[character].name}`, '  [', ...clips.map(line => `    ${line}`), '  ],']),
-    '];',
+    'const CLIPS: ReadonlyMap<number, readonly FighterOriginalClip[]> = new Map([',
+    ...moduleClips.flatMap((clips, character) => [`  // ${fighters.get(character)!.name}`, `  [${character}, [`, ...clips.map(line => `    ${line}`), '  ]],' ]),
+    ']);',
     '',
     '/** Each character\'s lowercase original sequence names; a name without its numeric variant selects the first variant. */',
-    'const NAMED: readonly ReadonlyMap<string, number>[] = [',
-    ...moduleNames.flatMap((names, character) => [`  // ${fighters[character].name}`, '  new Map<string, number>([', ...names.map(line => `    ${line}`), '  ]),']),
-    '];',
+    'const NAMED: ReadonlyMap<number, ReadonlyMap<string, number>> = new Map([',
+    ...moduleNames.flatMap((names, character) => [`  // ${fighters.get(character)!.name}`, `  [${character}, new Map<string, number>([`, ...names.map(line => `    ${line}`), '  ])],']),
+    ']);',
     '',
     '/** Clips 0 to count - 1 exist for this character. */',
     'export function originalClipCount(character: number): number {',
-    '  return CLIPS[character]?.length ?? 0;',
+    '  return CLIPS.get(character)?.length ?? 0;',
     '}',
     '',
     '/** The light model that accompanies this character\'s clips, if it has one. */',
@@ -210,12 +210,12 @@ const typescript = [
     '',
     '/** The clip for an original sequence index; times are seconds within the clip. */',
     'export function originalClip(character: number, sequenceIndex: number): FighterOriginalClip | undefined {',
-    '  return CLIPS[character]?.[sequenceIndex];',
+    '  return CLIPS.get(character)?.[sequenceIndex];',
     '}',
     '',
     '/** The sequence index of an original sequence name, such as "walk alternate". */',
     'export function originalClipNamed(character: number, name: string): number | undefined {',
-    '  return NAMED[character]?.get(name);',
+    '  return NAMED.get(character)?.get(name);',
     '}',
 ];
 if (only === undefined) await Bun.write(join(project, 'ts/src/game/assets/fighterOriginalClipInfo.ts'), typescript.join('\n') + '\n');

@@ -1,5 +1,7 @@
 # Interaction graph
 
+Historical fixture notes below retain Archer only where they describe captures before the 9 October 2026 roster cut (#339); she is absent from the current roster.
+
 Smashcraft's interaction graph, computed from its own move data and physics:
 for each situation, the options both players have, which option beats which and
 by how many frames, and the frames in which a punish lands. It is the
@@ -14,7 +16,7 @@ should look like is Tom's stance, written only in
 
 `bun wisp interactions` writes one page per fighter, with every situation's
 tables and a Mermaid graph, to smashcraft:tools/move-data/interactions/FIGHTER.md
-(archer.md, rifleman.md, illidan.md). The same numbers, one JSON row per
+(rifleman.md, illidan.md). The same numbers, one JSON row per
 situation and variant, are in smashcraft:tools/move-data/interactions/interactions.jsonl.
 Both are generated output: never edit them by hand, and never treat them as
 tuning input.
@@ -56,7 +58,7 @@ From smashcraft:ts/:
   `--check` lists what the change moved. smashcraft:tools/move-data/compare.sh
   `--check` runs it after the move comparisons.
 - `bun wisp interactions --move FIGHTER:MOVE` (for example
-  `archer:forward-air`, `rifleman:down-tilt`) plays that fighter's situations
+  `rifleman:forward-air`, `rifleman:down-tilt`) plays that fighter's situations
   and prints every place the move appears, as an aerial on a shield, an out of
   shield option, a punish, a landing or a neutral option, then what changed in
   the fighter's graph since the files were written. This is how a new or

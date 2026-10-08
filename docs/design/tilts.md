@@ -108,7 +108,6 @@ input is never wasted or surprising.
   that fighter's identity:
   - Lich: his frost fan aerial is his committed long poke.
   - Dreadlord: his aerial approach is his deception.
-  - Archer: her fade-back forward air is her spacing tool.
 - **Hurt volumes.** Each tilt's hurt volume follows the striking limb from
   late startup into early recovery, and only a weapon past the hand is
   disjoint ([hurtboxes](../hurtboxes.md), #62). Weaponless strikes such as
@@ -125,7 +124,6 @@ input is never wasted or surprising.
 | Pull-in | Drags the victim toward the attacker and onto the ground. Sets up the grab. | Dreadlord |
 | Edge poke | Reaches below the stage's lip. Hits a ledge-hanging or recovering fighter. | Shadow Hunter |
 | Slow space control | Creeping low frost at long range. Late, but long. | Lich |
-| Shared poke | The original table's even 45-degree poke. | Archer |
 | Edge semi-spike | Sends a fighter at the front low and outward. | Pit Lord |
 | Fixed pop-up | The same small pop at every percent. | Beastmaster |
 | Vertical pop-up | Sends the victim straight up at low percent. A combo starter. | Rifleman |
@@ -261,23 +259,6 @@ the victim over his shoulder and behind him.
 | Up tilt | 9/4/23 | 9 | 0.80H, up to 1.3H | 85, 95/20 | | Axe over the shoulder |
 | Down tilt | 8/3/22 | 7 | 0.80H, below 0.15H | 80, fixed 45 | | Melee Mario's set-knockback down angle |
 
-### Archer: the original tables
-
-Archer keeps the shared tables' jab and tilts (smashcraft:ts/src/game/sim/moves.ts,
-smashcraft:ts/src/game/sim/hitRegions.ts). They are her own now: no other
-fighter uses those timings, and the engine's shared-mechanics tests use them as
-their reference attack. The shared jab reached as far as her forward tilt, so
-it now stops at 120 units (#163); her chain adds an authored low kick. Her forward tilt has an early tip (10 on its first
-active frame, 8 after) and angles. Her forward air outreaches her tilts,
-because spacing from the air is her plan. Her one new move is the sliding kick.
-
-| Normal | F/A/R | Damage | Reach | Launch | Angled | Inspired by |
-| --- | --- | --- | --- | --- | --- | --- |
-| Jab | 5/2/15 | 5 | 0.91H | 45, 100/20 | | Original table, shortened (#163) |
-| Forward tilt | 6/2/21 | 10 tip early, 8 late, 5–7 inner | 1.10H | 37, 110/24 tip | up 55, down 20 | Fox forward tilt (angled kick) |
-| Up tilt | 7/2/21 | 8 | 1.10H | 45, 100/20 | | Original table |
-| Down tilt | 6/2/21 | 8 | 1.10H | 45, 100/20 | | Original table |
-
 ### Rifleman: the rifle butt
 
 His tilts use the rifle as a club; his jab and forward tilt are rifle-butt
@@ -340,7 +321,6 @@ each jab cell gives F/A/R, damage, reach and launch (angle, growth/base).
 
 | Fighter | Chain | Second jab | Third jab |
 | --- | --- | --- | --- |
-| Archer | Bow and Boot | 4/3/16, 5, 0.83H, 40 95/22 (a low kick) | |
 | Rifleman | Rifle Butt | 4/2/18, 5, 0.83H, 30 90/22 | |
 | Illidan | Warglaive Flurry | 5/2/16, 4, 0.73H, 70 30/22 | 6/3/20, 6, 0.83H, 40 95/22 |
 | Blademaster | Swift Cuts | 3/2/16, 5, 0.65H, 40 90/22 | |
@@ -422,7 +402,7 @@ shield. Melee's 25 dash attacks hit from frame 4 to 12 (median 7), with 8 to
 shield: −45 to −20 on the first active frame ([Melee attacks](melee/attacks.md)).
 
 Every hero's dash attack was a launcher between 45 and 60 degrees from frame
-8 to 12. Archer and Rifleman had no dash attack: a dashing jab was a jab.
+8 to 12. Rifleman had no dash attack: a dashing jab was a jab.
 Each now has one role:
 
 | Fighter | Role | F/A/R | Slide | Damage | Launch | Inspired by |
@@ -434,7 +414,6 @@ Each now has one role:
 | Shadow Hunter | Multi-hit | 8/9/20 | 0.50H | 3 + 3 + 5 | last hit 45, 100/22 | Kirby's and Luigi's multi-hit dash attacks |
 | Forsaken Paladin | Heavy, pushes off shield | 12/3/20 | 0.35H | 12 | 30, 100/26 | Ganondorf dash attack |
 | Lich | Hovering low glide | 10/6/22 | 0.80H | 8 | 25, 90/30 | Mewtwo dash attack (slow, lingering) |
-| Archer | Sliding kick, pops up | 9/4/20 | 0.75H | 6 (#279; 8 in #247) | 70, 55/38 | Fox dash attack (into up air) |
 | Rifleman | Rifle lunge | 9/3/25 | 0.50H | 11 | 40, 114/22 | Falco dash attack |
 | Pit Lord | Kill charge, no armor | 15/6/34 | 0.30H | 16 | 40, 110/26 | Ganondorf and Bowser dash attacks |
 | Beastmaster | Heaves the victim behind him | 11/5/28 | 0.50H | 12 | 135, 95/20 | Ultimate's reverse-launch dash attacks |
@@ -462,6 +441,5 @@ smashcraft:ts/src/game/sim/heroes/groundNormals.ts):
   tilt's farthest drawn point. drawn-reach.test.ts checks every chain step
   against the forward tilt's `forward` reach.
 - A chain's finisher may take a longer slice than its opener.
-- Archer's low kick slices her down tilt's floor sweep.
 - Lich's model barely moves before his forward tilt's reach, so his slap is
   the one jab allowed to swing less than 30 units (25-26).

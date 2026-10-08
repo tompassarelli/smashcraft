@@ -4,26 +4,6 @@ Generated from the packaged models by `bun wisp view motion --assets DIR` (#171)
 
 | Fighter | State | Clip | Motion | Body | Direction; toward/against |
 | --- | --- | --- | ---: | ---: | --- |
-| Archer | walk | 57: Walk | 96.2 | 31.2 | forward; 94.3/81.4 |
-| Archer | dash | 57: Walk | 94.3 | 30.3 | forward; 92.6/80.1 |
-| Archer | run | 57: Walk | 83.2 | 28.5 | forward; 81.9/76.7 |
-| Archer | turn | 58: Recovery turn | 113.2 | 27.0 | back; 52.3/113.2 |
-| Archer | brake | 59: Recovery stop | 26.8 | 10.5 | in place; 14.2/26.2 |
-| Archer | jump-squat | 60: Recovery jumpSquat | 31.6 | 14.9 | down; 31.1/19.7 |
-| Archer | roll-forward | 33: Roll Forward | 135.1 | 51.3 | forward; 73.6/123.5 |
-| Archer | roll-back | 32: Roll Backward | 135.0 | 51.3 | back; 123.5/73.0 |
-| Archer | spot-dodge | 39: Spot Dodge | 28.4 | 7.8 | in place; 28.1/20.4 |
-| Archer | air-dodge | 61: Recovery airDodge | 40.3 | 15.0 | in place; 22.8/23.3 |
-| Archer | tech | 62: Recovery tech | 82.2 | 39.7 | in place; 79.4/64.3 |
-| Archer | tech-forward | 63: Recovery techForward | 100.0 | 52.3 | forward; 82.6/86.9 |
-| Archer | tech-back | 64: Recovery techBackward | 100.8 | 47.8 | back; 79.8/89.1 |
-| Archer | get-up | 22: Get Up | 85.1 | 47.8 | up; 83.7/58.1 |
-| Archer | get-up-forward | 65: Recovery getUpRollForward | 100.0 | 52.4 | forward; 82.6/86.8 |
-| Archer | get-up-back | 66: Recovery getUpRollBackward | 100.9 | 48.0 | back; 79.9/89.0 |
-| Archer | get-up-attack | 23: Get Up Attack | 91.2 | 47.3 | both; 77.4/85.2 |
-| Archer | ledge-get-up | 29: Ledge Climb | 95.3 | 13.5 | up; 39.1/78.3 |
-| Archer | ledge-roll | 33: Roll Forward | 135.4 | 51.3 | forward; 73.5/123.3 |
-| Archer | ledge-attack | 23: Get Up Attack | 89.5 | 47.1 | both; 77.4/85.1 |
 | Rifleman | walk | 54: Walk | 75.6 | 23.6 | forward; 66.5/74.8 |
 | Rifleman | dash | 54: Walk | 75.6 | 23.4 | forward; 66.5/74.2 |
 | Rifleman | run | 54: Walk | 85.7 | 18.2 | forward; 85.0/83.9 |

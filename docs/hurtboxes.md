@@ -95,7 +95,7 @@ smashcraft:ts/test/drawn-reach.test.ts requires each swing to travel at least
 
 ## Shipped fighters
 
-Archer, Rifleman and Illidan author poses for the sampled moves: jab, down
+Rifleman and Illidan author poses for the sampled moves: jab, down
 tilt, forward smash, forward air and down air. Each extended pose spans the
 last two startup frames through three recovery frames; heights scale with the
 fighter's standing capsule.

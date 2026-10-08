@@ -16,7 +16,6 @@ must resolve each role to a literal pair of names and reject missing pairs.
 
 | Fighter | Classic → stock Definitive rig | Additional correspondence |
 | --- | --- | --- |
-| Archer | authored Archer → Night Elf Archer | arms, legs, bow → bow, cape → cape |
 | Rifleman | authored Rifleman → Human Rifleman | arms, legs, gun → gun, beard → beard |
 | Illidan | authored Demon Hunter → Demon Hunter | arms, legs, both blades → both blades, wings → wings |
 | Blademaster | HeroBlademaster → HeroBlademaster | arms, legs, sword → sword, banner → banner |

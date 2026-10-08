@@ -8,7 +8,7 @@ import { createFighter } from "../../ts/src/game/sim/fighter";
 import { createRoster, neutralControls } from "../../ts/src/game/sim/roster";
 import { ensure, fighters } from "./original-clips";
 const [assets,output]=process.argv.slice(2).map(p=>resolve(p)); ensure(assets&&output,"usage: bun tools/animations/dreadlord-pounce-captures.ts PRIVATE_ASSETS PRIVATE_OUTPUT");
-const source=fighters[Character.dreadlord]; ensure(source,"Dreadlord source missing");
+const source=fighters.get(Character.dreadlord)!; ensure(source,"Dreadlord source missing");
 const drawn=new DrawnModel(await Bun.file(join(assets,source.source)).arrayBuffer(),characterModelScale(Character.dreadlord));
 for(const phase of ["travel","bite","recovery"] as const) {
  const frames=[];

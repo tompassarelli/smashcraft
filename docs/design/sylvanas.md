@@ -97,7 +97,7 @@ all ordinary snapshotted fighter state; rematch and stock loss clear them.
 
 ## Roster role and presentation
 
-Archer has fast arrows and a trap; Sylvanas must land an arrow and move in to
+Sylvanas must land an arrow and move in to
 cash it out. Rifleman threatens a faster straight line; Sylvanas threatens
 the opponent's special choice. Illidan and Blademaster chase with mobility;
 she retreats and reads. Mountain King and Forsaken Paladin have stronger close trades;

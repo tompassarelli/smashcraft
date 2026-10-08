@@ -7,7 +7,7 @@ from mathutils import Matrix, Vector
 
 assets = Path(__file__).resolve().parents[2] / 'build/animation-assets'
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-for fighter in ('archer', 'rifleman'):
+for fighter in ('rifleman',):
     if os.environ.get('WC3_PREVIEW_FIGHTER', fighter) != fighter:
         continue
     bpy.ops.wm.open_mainfile(filepath=str(assets / f'{fighter}-fighter.blend'))

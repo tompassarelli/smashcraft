@@ -15,7 +15,7 @@ gameplan: whittle mana, then stun.
 Numbers are provisional authoring values, not measured balance. Frames follow
 the roster notation (smashcraft:docs/design/roster.md): the press is frame 1,
 windows are inclusive. H is 132 units. The bar is
-[Archer's specials](archer-specials.md) and [kit review 1](kit-review-1.md): a
+[kit review 1](kit-review-1.md): a
 second decision after the press, a visible setup the opponent can answer, a
 cost, and a guess in the safest route.
 
@@ -292,7 +292,7 @@ knockback barely grows, so both hits connect at 0, 50 and 100%.
 Counterplay: the launcher reaches 25 less than the link, so a fighter caught
 at the tip who SDIs away during the link's freeze slips the launcher
 (bounded SDI, smashcraft:docs/gameplay-design.md); shields take both hits.
-Alternatives: **B, a three-hit drill** (rejected: Archer and the drills
+Alternatives: **B, a three-hit drill** (rejected: existing drills
 lane own multi-hit drills, and a third hit adds lock without a decision);
 **C, a single sweet-spotted slash** (rejected by the owner's direction).
 Neutral air stays single-hit: it is his out-of-shield and landing poke, and a

@@ -21,7 +21,7 @@ for (const character of SELECTABLE_CHARACTERS) {
   const last = first + characterAttackActiveFrames(character, AttackStyle.downAir, moves) - 1;
   const total = attackDurationFramesForGrounding(AttackStyle.downAir, false, moves);
   const clip = clipFor(character, "downAir");
-  const descriptor = fighters[character]; ensure(descriptor, "missing fighter");
+  const descriptor = fighters.get(character)!; ensure(descriptor, "missing fighter");
   const bytes = await Bun.file(join(input, descriptor.source)).arrayBuffer();
   const source = parseSource(bytes), sequence = source.Sequences[clip.index]; ensure(sequence, "missing down air");
   const body = hurtCapsule(character), waist = (body.z1 + body.z2) / 2;

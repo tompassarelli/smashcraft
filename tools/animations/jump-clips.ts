@@ -38,7 +38,7 @@ function tuck(name: string): number {
 }
 const bindings: string[] = [];
 for (const gesture of gestures) {
-  const fighter = fighters[gesture.character]; ensure(fighter, "missing fighter");
+  const fighter = fighters.get(gesture.character)!; ensure(fighter, "missing fighter");
   const source = parseSource(await Bun.file(join(input, fighter.source)).arrayBuffer());
   ensure(!source.Helpers.some(n => n.Name === "Jump Motion"), `${fighter.name}: jump clips already authored`);
   const model = structuredClone(source);

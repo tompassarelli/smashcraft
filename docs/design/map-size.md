@@ -1,5 +1,7 @@
 # Map size
 
+Historical record: the captures, trial tables and asset measurements below describe their named builds before the 9 October 2026 roster cut (#339). They are not the current roster or asset inventory.
+
 Players download the map in the lobby, and a smaller map downloads faster, so
 more of them stay (#264). Prefer Warcraft's built-in assets: reshape, recolour,
 rescale or recombine stock models, doodads, effects and animations before

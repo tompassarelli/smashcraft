@@ -1,5 +1,7 @@
 # Contextual contact comparisons
 
+Historical record: the captures, trial tables and asset measurements below describe their named builds before the 9 October 2026 roster cut (#339). They are not the current roster or asset inventory.
+
 Defile's ground denial (#174) is bounded by a 180-frame pool, five possible
 2-damage pulses at 36-frame intervals, growth of 6 per body hit up to 0.6H,
 and 320 frames between cast entries. Compared with the original 300-frame

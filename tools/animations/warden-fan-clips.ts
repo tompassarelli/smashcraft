@@ -12,7 +12,7 @@ ensure(input && output && relative(project, output).startsWith(".."), "usage: bu
 mkdirSync(output, { recursive: true });
 cpSync(join(input, "hero-models"), join(output, "hero-models"), { recursive: true, dereference: true });
 chmodSync(join(output, "hero-models"), 0o755);
-const fighter = fighters[Character.warden]; ensure(fighter, "missing Warden");
+const fighter = fighters.get(Character.warden)!; ensure(fighter, "missing Warden");
 const source = parseSource(await Bun.file(join(input, fighter.source)).arrayBuffer());
 const model = structuredClone(source);
 const stand = source.Sequences.find(s => /^stand ready$/i.test(s.Name)); ensure(stand, "missing ready stance");

@@ -268,7 +268,7 @@ Replay snapshots copy and compare both channels and the shield-drain transition.
 
 The paired reference below passes through the actual contact queue and
 production `advance`, assigning Jigglypuff traction to the defender and Sheik
-traction to the attacker across all Archer/Rifleman host combinations. It
+traction to the attacker across all Rifleman host combinations. It
 checks contact health/stun/freeze, nine successive positions, guard-transition
 drain timing, contact direction, detached sources and a perturbed recoil that
 is detected at the first released frame. Position tolerance is 0.001 world
@@ -340,7 +340,7 @@ concerns shared equations and state rules (smashcraft:docs/gameplay-design.md,
 smashcraft:wurst/Simulation.wurst now gives each actor a `fighterPhysics` value
 with weight, gravity, terminal/fast-fall speeds, drift and friction/caps,
 ground speeds/traction, jump parameters and shield-break speed. Shared physics
-uses those actor parameters. Named Archer, Rifleman and Demon Hunter defaults
+uses those actor parameters. Named Rifleman and Demon Hunter defaults
 preserve current numerical tuning; this separation makes no new balance choice.
 Character identity continues to select authored moves and presentation. Illidan's
 movement conveniences remain explicit behavior, and roll/move data are
@@ -348,7 +348,7 @@ still their authored, separate mechanics.
 
 The Falco parameter rig exists only in smashcraft:wurst/PhysicsTests.wurst.
 Recorded fall/jump comparisons explicitly assign the original-game values to
-both Archer and Rifleman host actors. They no longer rely on Rifleman's defaults
+both Rifleman host actors. They no longer rely on Rifleman's defaults
 happening to match. Tests also exercise different gravity, jump timing/speeds
 and damage-contact weight on the same host identity. Parameters are copied by
 value in replay snapshots, participate in replay equality, and survive respawn.
@@ -515,7 +515,7 @@ reference is the actual-vector normalization in the same damage module.
 Digital shieldstun truncates incoming hit power before calculating its duration,
 matching the integer damage input of the shield contact path in
 melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c. Shield damage itself remains
-fractional. Archer and Rifleman shield breaks now launch with their mapped
+fractional. Rifleman shield breaks now launch with their mapped
 Fox/Falco character attribute, 3.299999952316284 Melee units/frame (19.7999997139
 world units/frame), instead of the original 24-world-unit tuning. Illidan keeps
 24. The factual parameter is character attribute +0x94 in the public Fox/Falco
@@ -545,7 +545,7 @@ values were guessed, and these gaps remain open.
 
 ## Current correction checkpoint — 2026-10-01
 
-The integrated suite passes 402/402 in
+Historical fixture before #339: The integrated suite passes 402/402 in
 smashcraft:build/physics-aggregate.log. The normal map builds and installs as
 `illidan-physics-complete`; build evidence is smashcraft:build/physics-map.log.
 Native entry showed that build ID, Archer versus Rifleman, and working jump,
@@ -559,7 +559,7 @@ wavedash, neutral-horizontal fast-fall and the absence of stale moves
 (smashcraft:docs/gameplay-design.md).
 Illidan retains original jump tuning and 128-unit roll paths; his drift follows the shared rule since #190.
 
-Full Melee parity is not established. Archer/Rifleman forward-roll logical
+Full Melee parity is not established. Rifleman forward-roll logical
 facing now changes at the observed frame-20 event, with entry-facing travel
 and pose retained throughout the roll (2026-10-02 correction below). Same-frame
 damage now collects in one batch before selecting the strongest launch, as
@@ -631,7 +631,7 @@ one-based frame 20; frame 19 is false. Backward roll (234) remains false.
 Only these factual observations are used; no LGPL library helper implementation
 or unlicensed decompiled gameplay expression is incorporated.
 
-Archer/Rifleman logical facing turns on that event. A stored entry facing selects
+Rifleman logical facing turns on that event. A stored entry facing selects
 the movement profile, animation clip/rate and pose orientation for the whole
 dodge. The authored clips perform a somersault without a horizontal turn;
 rendered orientation therefore stays at entry facing until the clip ends.
@@ -714,7 +714,7 @@ Sources: https://www.ssbwiki.com/Fox_(SSBM) and
 https://www.ssbwiki.com/Falco_(SSBM). Only factual parameters are recorded here;
 no article prose or implementation is reused. Cached pages are build artifacts.
 
-| Parameter | Fox / Archer target | Falco / Rifleman target |
+| Parameter | Fox reference target | Falco / Rifleman target |
 | --- | ---: | ---: |
 | Weight | 75 | 80 |
 | Initial dash speed | 1.9 | 1.9 |
@@ -760,7 +760,7 @@ targets, not initial velocities; verify discrete integration before choosing
 launch velocities. We target 60 logical frames per second independently of
 render cadence.
 
-The `completeJumpTrajectoriesMatchReferenceHeights` test advances each complete
+Historical fixture before #339: The `completeJumpTrajectoriesMatchReferenceHeights` test advances each complete
 trajectory for 120 ticks, starting jumps through input and measuring height
 above takeoff. The six expectations remain Archer full/short/double
 31.28/10.65/40.204 and Rifleman 51.5/11.58/41.778 Melee units, within 0.02
@@ -821,7 +821,7 @@ and 3. A frame-by-frame test begins at frame -35 in Walk with ground velocity
 -0.19, then records Dash at frame -34 with position advanced by -0.19 while
 ground velocity has changed to -1.9. Frame -33 advances by -1.82. Tests match
 this entry sequence and the next five overspeed-braking positions and velocities
-on both Archer and Rifleman hosts; deliberately perturbed starting velocities
+on both Rifleman hosts; deliberately perturbed starting velocities
 are detected at the first sample. This confirms the shared entry displacement
 ordering and the recorded overspeed-braking branch. The recording does not
 verify under-target acceleration, run transitions, turning, analog-stick
@@ -1069,7 +1069,7 @@ jabs and horizontal attacks have horizontal centerlines, angled tilts follow
 diagonal paths, and up/down aerials have vertical centerlines. Grounded upward
 strikes use rising diagonals. The custom reach envelopes calibrate the strike
 span; they are no longer victim-origin rectangles. Radii range from 10 to 40
-world units according to the authored strike. Archer, Rifleman and Demon Hunter
+world units according to the authored strike. Rifleman and Demon Hunter
 use body capsules with radii 24, 26 and 25, extending from local z=4 to
 88, 96 and 102. These are provisional, pose-independent custom tuning values,
 not Melee hitbox or hurtbox measurements. Contact reach changes with this
@@ -1389,7 +1389,7 @@ come from the complete published DAT JSON intake in
 smashcraft:docs/smash-melee-reference/physics-parameters.json. The publisher's
 game revision is unidentified, so these are not certified NTSC 1.02 values.
 
-Behavioral facts from melee:src/melee/ft/kinds/ftCommon/ftCo_Jump.c,
+Historical fixture before #339: Behavioral facts from melee:src/melee/ft/kinds/ftCommon/ftCo_Jump.c,
 melee:src/melee/ft/kinds/ftCommon/ftCo_JumpAerial.c, and
 melee:src/melee/ft/kinds/ftCommon/ftCo_KneeBend.c at
 0296f009f32f710495979d30772d8332af2d411a inform independently authored Wurst.
@@ -1537,7 +1537,7 @@ Neutral N is jab, N plus direction smash, and N plus direction while holding
 the walk modifier tilt: the owner's input scheme (smashcraft:docs/gameplay-design.md,
 "Controls"). C-stick bindings request
 smashes directly. Walking uses the character baseline of 1.6/1.4 Melee units
-per frame (Archer/Rifleman), independently of run speed. Walking changes
+per frame (Rifleman), independently of run speed. Walking changes
 directly to the requested walk speed rather than modeling analog walk
 acceleration. Tilt damage is 10 side / 8 up / 8 down; Rifleman's down tilt
 deals 10 (smashcraft:docs/move-comparisons.md). These damage values
@@ -1592,19 +1592,7 @@ timing, damage, vertical hits/misses, facing and the horizontal range edge.
 
 ## Moving blaster shots
 
-Each accepted blaster action emits one horizontal shot when startup ends.
-Shots advance on simulation ticks independently of the owner's attack clock,
-and persist through owner recovery or interruption. Collision sweeps the
-horizontal distance traveled during a tick, so a beam cannot skip a stationary
-fighter just because its endpoints lie on either side. Intangible or absent
-targets do not absorb a shot. Shields absorb it without freezing the distant
-shooter. Rifleman's neutral-special shot deals 3 damage, applies four frames
-of victim-only hitlag, then at least 11 frames of hitstun, interrupting an
-ordinary attack or special. This is a brief flinch like Falco's laser;
-the 11-frame value is original provisional tuning, not verified Falco parity.
-Archer arrows instead follow the damage-only rules below.
-
-Projectile tuning is 36 Warcraft units per frame and 60 ticks of life
+Historical fixture before #339: Projectile tuning is 36 Warcraft units per frame and 60 ticks of life
 (2,160 units of travel), emitted 35 units ahead and 75 units above the fighter's
 feet. The simplified target center is 45 units above the feet, with 24 units
 of horizontal radius and 36 units of vertical tolerance. These are prototype
@@ -1643,7 +1631,7 @@ animation. No reference implementation is copied. Cached character pages do
 not provide verified dodge timing values; the initial ground-dodge parameters
 are provisional rather than a Melee parity claim.
 
-Roll lasts 31 frames and is intangible on frames 4–19 inclusive. Archer and
+Historical fixture before #339: Roll lasts 31 frames and is intangible on frames 4–19 inclusive. Archer and
 Rifleman use character/action-specific per-frame translation samples from
 smashcraft:wurst/RollTravel.wurst, clamped to the platform edge. Ordinary roll
 totals are approximately 201.6 and 231 world units respectively. Illidan keeps
@@ -1675,7 +1663,7 @@ forward/back relative to facing. These are factual state/input observations;
 no decompiled implementation is copied or translated. Timing values for our
 first recovery pass are provisional rather than extracted animation data.
 
-Tumble starts at knockback 80 (damage level 3). After hitstun it ends on an
+Historical fixture before #339: Tumble starts at knockback 80 (damage level 3). After hitstun it ends on an
 accepted air jump, air dodge or attack, or on a sideways stick flick: at least
 +0x210 = 0.8 on the frame the stick crosses +0x008 = 0.25
 (melee:src/melee/ft/kinds/ftCommon/ftCo_DamageFall.c `ftCo_DamageFall_IASA`).
@@ -1724,7 +1712,7 @@ tech rolls emit a compact blue-white star and one smaller puff moving opposite
 the roll. These use frame-entry events, so sustained invulnerability does not
 repeatedly create the cue.
 
-Archer's down-air uses seven startup ticks and 20 active ticks (indices
+Historical fixture before #339: Archer's down-air uses seven startup ticks and 20 active ticks (indices
 7–26), with 38 total ticks. Its first three active ticks deal 9 damage and
 the lingering kick deals 6, sharing one hit registry window. Its collision
 region remains ±55 horizontally and −180..−10 vertically. Landing cancels
@@ -1765,7 +1753,7 @@ been independently verified against Melee.
 
 An in-place tech lasts 26 ticks with intangibility on 1–20; a directional tech
 lasts 40 with intangibility on 1–34. These totals are shared chosen tuning;
-both leave six vulnerable recovery ticks. Archer/Rifleman use 39 empirical
+both leave six vulnerable recovery ticks. Rifleman use 39 empirical
 motion samples and a stationary final tick; Illidan retains the 128-unit path. Direction at
 contact chooses the roll when the stick is at least +0x254 = 0.2 sideways
 (`ftCo_80098928`); its movement is clamped to the current platform.
@@ -1853,7 +1841,7 @@ name and still shows Melee's value; it fails the test only if it stops
 differing, and the test checks that every departure names a row of the table.
 The aerial landing lag without an L press is such a departure (L-cancelling).
 
-Character data compares only where a fighter borrows it: Archer's and
+Historical fixture before #339: Character data compares only where a fighter borrows it: Archer's and
 Rifleman's movement, landing and action timings are Fox's and Falco's, and
 Illidan's are original, so those rows read n/a for him; Illidan's ledge catch
 box and wall data are Captain Falcon's, as Archer's and Rifleman's are Fox's
@@ -1954,7 +1942,7 @@ model is the one drawn from the current lines, that its front faces' outline
 is those lines on both shipped stages, and that its model facts' bounds reach
 each wall and the underside. Stage 1's raised decks keep the scaled slab.
 
-A fighter meets a wall with its flank: Melee's ECB side touches the wall, and
+Historical fixture before #339: A fighter meets a wall with its flank: Melee's ECB side touches the wall, and
 `mpColl_LoadECB_JObj` (melee:src/melee/mp/mpcoll.c) keeps an airborne ECB at
 least 2 units a side. Smashcraft fighters use that 2-unit half-width
 (`BODY_HALF_WIDTH`, smashcraft:ts/src/game/sim/surfaces.ts), so a fighter
@@ -2101,13 +2089,12 @@ units a frame:
 
 | Fighter | Reference | Push-off | Wall jump sideways | Wall jump up | Minimum approach | Ceiling impulse (frame) |
 | --- | --- | --- | --- | --- | --- | --- |
-| Archer | Fox | 0.5 | 1.4 | 3.3 | 0.5 | 0.7 (14) |
 | Rifleman | Falco | 0.5 | 1.3 | 3.6 | 0.5 | 0.7 (14) |
 | Illidan | Captain Falcon | 0.5 | 1.4 | 3.1 | 0.5 | 2.0 (11) |
 
 All three references wall jump (`ftFx_Init_OnLoad`, `ftFc_Init_OnLoad` and
 `ftCa_Init_OnLoad` set `can_walljump`); a fighter whose tuning lacks
-`canWallJump` never wall jumps. Every hero takes Archer's (Fox's) values, so
+`canWallJump` never wall jumps. Every hero takes Fox's values, so
 every selectable fighter wall techs and wall jumps.
 
 **Intangibility.** The wall tech, the wall tech's jump and the plain wall jump
@@ -2354,7 +2341,6 @@ melee:src/melee/ft/ft_081B.c. Only facts and values are used.
 
 | Fighter | Reference data | Snap x / y / height (Melee units) | Reach (world) | Ledge above feet (world) |
 | --- | --- | --- | --- | --- |
-| Archer | Fox, PlFx.dat | 11 / 13 / 9 | 78 | 51–105 |
 | Rifleman | Falco, PlFc.dat | 11 / 13 / 9 | 78 | 51–105 |
 | Illidan | Captain Falcon, PlCa.dat | 9 / 17 / 11 | 66 | 69–135 |
 
@@ -2449,7 +2435,7 @@ continue air drift without selecting fast-fall speed. Shield dodges, DI, down
 attacks and platform-drop handling retain their separate inputs. Existing
 fast-fall descent/actionability rules remain; native feel needs the new build.
 
-In the air, the latest steerable horizontal direction is remembered without
+Historical fixture before #339: In the air, the latest steerable horizontal direction is remembered without
 changing ordinary facing. After releasing that direction, neutral B turns the
 fighter and fires Archer's arrow or Rifleman's shot toward that remembered
 side, while preserving horizontal momentum. A held horizontal direction still
@@ -2470,16 +2456,12 @@ pass the source tests; actual keyboard timing and slide feel remain unverified.
 
 ## Up-special aerial recovery
 
-Both current up-specials consume the aerial jump budget, and an up-special
+Up-specials consume the aerial jump budget, and an up-special
 that finishes while airborne enters helpless fall. During that fall, steering
 and fast-fall remain available; jumping, air dodge, attacks and further
 specials are locked. Landing or a ledge catch clears the helpless state. A
 flinching hit interrupts the recovery or helpless fall, permitting actions again
-after hitstun, but does not restore jumps already spent. Damage-only arrows
-do not interrupt helplessness. The
-grounded Rifleman up-special spends the budget when its launch begins; Archer's
-move takes off immediately. These are shared initial game rules, not exact
-Melee frame timings.
+after hitstun, but does not restore jumps already spent. Rifleman consumes the jump budget when his grounded launch begins. These are shared game rules, not exact Melee frame timings.
 
 The local reference's `melee:src/melee/ft/kinds/ftCommon/ftCo_FallSpecial.c`
 shows an airborne fall-special entry consuming all jumps; its grounded entry
@@ -2574,17 +2556,6 @@ timing from Wurst; canonical pair state owns translation and release. Native
 pose alignment, real-button use and interruption readability require the
 installed-build check and are not proved by the numerical tests.
 
-### Archer arrows: damage without interruption
-
-Normal/running arrows and the homing arrow (an owner correction,
-smashcraft:docs/gameplay-design.md, "Fighters") add damage without
-hitstun, hitlag, knockback, DI setup or interruption of attacks, grabs, ledges or
-recovery. They do not erase a reaction already in progress. Shield hits retain
-shield-energy damage but add no shieldstun or hitlag; depleting shield energy
-still uses the shared shield-break rule. Unshielded damage still breaks the
-Rifleman trap's ice, as required by that mechanic. Rifleman's projectiles retain
-their separate hit behavior.
-
 ## Demon Hunter combat prototype (original provisional tuning)
 
 Character ID 2 now has explicit simulation mobility and authored contact
@@ -2602,7 +2573,7 @@ existing projectile and grab actions. The remaining attacks use shared
 `attackStartupFrames`, `attackActiveFrames`, and
 `attackDurationFramesForGrounding` tables. The five aerial IDs 12–16 likewise
 use shared action clocks. Illidan supplies distinct facing-relative regions and
-hit effects for each action; no Archer or Rifleman region is used.
+hit effects for each action; no Rifleman region is used.
 
 | Special ID | Action and provisional timing | Contact/effect |
 | --- | --- | --- |

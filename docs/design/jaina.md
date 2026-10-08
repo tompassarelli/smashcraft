@@ -98,7 +98,7 @@ projectile/placement limits, mana and snapshot state.
 
 ## Distinct place in the roster
 
-Unlike Archer and Rifleman, Jaina pays for persistent positional threats.
+Unlike Rifleman, Jaina pays for persistent positional threats.
 Unlike Illidan, Blademaster and Warden, she cannot chase on foot. Mountain
 King and Forsaken Paladin survive close exchanges; Jaina must escape them. Lich detonates
 an orb and manages a shell; Jaina layers a straight shot with an independent,

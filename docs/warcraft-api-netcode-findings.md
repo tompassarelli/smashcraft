@@ -1,5 +1,7 @@
 # Warcraft API and netcode findings
 
+Historical record: the captures, trial tables and asset measurements below describe their named builds before the 9 October 2026 roster cut (#339). They are not the current roster or asset inventory.
+
 Reusable Warcraft API and netcode findings from Smashcraft trials, each with the build it was observed on. Status and open decisions live in roadmap [#16](https://github.com/tompassarelli/smashcraft/issues/16); raw trial records live in smashcraft:evidence/. General Warcraft guidance is in the warcraft-modding skill and its api-gotchas reference.
 
 ## Earlier rejected ingress paths — 4 October

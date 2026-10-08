@@ -142,7 +142,7 @@ computers actually convert, and are reported, not scored.
 `bun wisp combos [--fighter NAME]... [--jobs N]` measures the fighter's
 available punish rather than its computer player's choices. It plays ordinary
 controller inputs through the match frame executor. Each of 21 fighters is
-measured against Archer, Rifleman and Cairne (light, middle and heavy bodies)
+measured against Rifleman and Cairne (light, middle and heavy bodies)
 at the centre and ledge of stage 0: 126 units. Every landing opener is searched
 at 0–180% in 10% steps and five held DI directions: out, up, down, in and none.
 The defender's result is the least damaging of the attacker's best routes

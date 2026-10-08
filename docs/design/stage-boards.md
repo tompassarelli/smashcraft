@@ -165,7 +165,7 @@ Rubric:
 
 ### Nordrassil (10), Dream Land layout
 
-Archer's home: the Sentinels defend the World Tree at Mount Hyjal.
+The Sentinels defend the World Tree at Mount Hyjal.
 
 | Item | Reference | Take |
 | --- | --- | --- |

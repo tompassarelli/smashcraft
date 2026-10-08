@@ -38,7 +38,7 @@ const interval = (sequence: mdx.Sequence): readonly [number, number] => {
 const bindings: string[] = [];
 const evidence: unknown[] = [];
 for (const character of [Character.blademaster, Character.warden, Character.shadowHunter]) {
-  const fighter = fighters[character], hero = heroDefinition(character);
+  const fighter = fighters.get(character)!, hero = heroDefinition(character);
   const move = hero?.moves.normals[AttackStyle.downAir];
   ensure(fighter && hero && move, `${character}: no drill`);
   const source = parseSource(await Bun.file(join(input, fighter.source)).arrayBuffer());

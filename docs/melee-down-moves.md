@@ -10,7 +10,7 @@ Set knockback is shown separately because it replaces ordinary scaling.
 The publisher does not identify a disc revision, so these rows are not a
 claim about PAL/NTSC differences.
 
-Archer/Fox, Rifleman/Falco and Illidan/Captain Falcon follow the established
+Rifleman/Falco and Illidan/Captain Falcon follow the established
 physics references. The expansion comparisons below are design analogies
 chosen by kit (spacing sword, fast blade, heavy hammer, caster, grappler),
 not claims that those original fighters are ports of Melee characters.
@@ -31,7 +31,6 @@ not conflated. Damage is shown on the Melee rows only to distinguish them.
 
 | Smashcraft fighter / Melee comparison | Melee down throw: damage, angle / base / growth | Melee down smash: damage, angle / base / growth | Melee outcome (throw; smash) | Smashcraft down throw angle / base / growth | Smashcraft down smash angle / base / growth |
 | --- | --- | --- | --- | --- | --- |
-| Archer / [Fox](https://meleeframedata.com/fox) ([DAT](https://melee.theshoemaker.de/dat-dumps/Fox.json)) | 1%: 270° / 37 / 40 | 15%: 25° / 20 / 65; 12%: 361° / 20 / 65 | tech chase; low tech chase / edgeguard | 70° / 75 / 40 | 45° / 20 / 100 |
 | Rifleman / [Falco](https://meleeframedata.com/falco) ([DAT](https://melee.theshoemaker.de/dat-dumps/Falco.json)) | 1%: 270° / 37 / 40 | 16%: 25° / 20 / 70; 13%: 80° / 20 / 70 | tech chase; low tech chase / edgeguard | 70° / 75 / 40 | 45° / 20 / 100 |
 | Illidan / [Captain Falcon](https://meleeframedata.com/captainfalcon) ([DAT](https://melee.theshoemaker.de/dat-dumps/Captain%20Falcon.json)) | 7%: 65° / 18 / 34 | 18%: 361° / 30 / 100; 16%: 361° / 20 / 100 | DI mix-up / tech chase; tech chase / edgeguard | 70° / 75 / 40 | 75° / 22 / 95 |
 | Blademaster / [Marth](https://meleeframedata.com/marth) ([DAT](https://melee.theshoemaker.de/dat-dumps/Marth.json)) | 5%: 135° / 16 / 50 | 11%: 75° / 70 / 72; 11%: 361° / 20 / 100; 11%: 361° / 16 / 100; 16%: 70° / 70 / 100; 11%: 361° / 30 / 100; 11%: 361° / 15 / 100; 16%: 75° / 70 / 100 | DI mix-up; tip pop-up / edgeguard | 65° / 75 / 40 | 25° / 22 / 100 |
@@ -64,7 +63,7 @@ length at its existing rate to preserve the first strike's timing.
 
 The tests run production contacts and movement at 20%, 40% and 60%, checking
 tech in place, both tech rolls and missed-tech stand, roll and attack getups,
-both facings, against Archer, Rifleman and Pit Lord.
+both facings, against Rifleman and Pit Lord.
 
 ## Current Smashcraft values
 
@@ -74,7 +73,6 @@ frames after its last active frame, excluding shared hitlag.
 
 | Fighter | Down throw angle / base / growth | Down smash angle / base / growth | Down-smash recovery |
 | --- | --- | --- | --- |
-| Archer | 25° / 75 / 40.00 | 25° / 75 / 40.00 | 31 |
 | Rifleman | 25° / 75 / 40.00 | 25° / 75 / 40.00 | 31 |
 | Illidan | 25° / 75 / 40.00 | 25° / 75 / 40.00 | 25 |
 | Blademaster | 25° / 75 / 38.20 | 25° / 75 / 40.00 | 19 |

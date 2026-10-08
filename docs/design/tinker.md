@@ -93,7 +93,7 @@ aims the burn at a deck or ledge; on the deck it lights the burn under a
 target overhead. Factory shots vanish on walls, decks or their
 life limit, and never home toward a fighter. No gadget survives a stock.
 
-Compared with Archer/Rifleman, Tinker gives up fast repeated shooting for
+Compared with Rifleman, Tinker gives up fast repeated shooting for
 setup; Illidan/Warden/Blademaster beat his short claws in motion; Mountain
 King/Forsaken Paladin have direct defensive power without maintaining a factory; Lich
 and Lich King control space with spells and status rather than breakable

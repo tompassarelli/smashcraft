@@ -1,9 +1,11 @@
 # Kit review 1: Blademaster, Mountain King, Warden, Rifleman, Illidan
 
+Historical record: the captures, trial tables and asset measurements below describe their named builds before the 9 October 2026 roster cut (#339). They are not the current roster or asset inventory.
+
 Owner direction (Tom, 7 Oct 2026): "maximum ambition, no stone unturned, best
 Warcraft III map in existence". Tom found Archer's up and down specials dull
 and Illidan's neutral special uninteresting and had them redesigned
-([Archer's hippogryph specials](archer-specials.md), #113, #116). This review
+(Archer's hippogryph specials (retired design, #113), #113, #116). This review
 gives the same treatment, unasked, to the other kits on main. Moves already
 being redesigned elsewhere are out of scope: Rifleman's bear (#111), blaster
 (#117) and frost trap (#114), and Illidan's Mana Burn (#116).
@@ -16,7 +18,7 @@ Warden 15.0, Mountain King 11.6.
 
 ## The bar
 
-[Archer's specials](archer-specials.md) set it: a second decision after the
+Archer's specials (retired design, #113) set it: a second decision after the
 press, a visible setup the opponent can see and answer, a cost for the setup,
 and a recovery whose safest route still has a guess in it. A Melee or Rivals 2
 player calls a move dull when it is one button with one outcome: a straight

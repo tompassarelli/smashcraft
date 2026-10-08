@@ -7,8 +7,7 @@ shield their attacks, or hit the animals to remove that part of the formation.
 All three may exist together and each has its own position and durability.
 
 The existing axe normals, movement, weight and down-throw chase remain his
-close-range kit. This distinguishes him from Archer's mobile mount, Shadow
-Hunter's stationary ward, and the roster's projectile or rushdown fighters:
+close-range kit. This distinguishes him from Shadow Hunter's stationary ward, and the roster's projectile or rushdown fighters:
 he chooses which independent position to attack from. Losing the formation
 costs time and mana. Animals never block hits intended for Beastmaster.
 

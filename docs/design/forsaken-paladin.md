@@ -132,7 +132,6 @@ His reach is useful but his commitment and weak chase are exploitable.
 
 | Opponent | What makes Forsaken Paladin different |
 | --- | --- |
-| Archer | Forsaken Paladin earns his strongest result by approaching into hammer range; his light is a commitment, not constant arrows. |
 | Rifleman | Forsaken Paladin carries no bear or trap; direct hammer reads replace projectile flinches and freezing setups. |
 | Illidan | Forsaken Paladin plants for individual hits and guards; he has no fast rush branches or jump-cancelled shine. |
 | Blademaster | Forsaken Paladin trades stealth and blade strings for blunt launches and a defensive read. |

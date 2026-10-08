@@ -96,7 +96,6 @@ when built). Each fighter's section names only its differences.
 | Blademaster | Critical Strike | 3 landed sword hits, 180-frame window | 4th sword hit: ×1.5 damage, at most +6 | Shield the glowing blade; whiffs don't spend it |
 | Mountain King | Bash | 2 landed hits, 120-frame window | 3rd hit: +10 hitstun frames | Get out after two hits, or shield the third |
 | Warden | Shadow Step (Blink) | 1 pip, once per airtime | An aerial body hit in the air restores one aerial jump | Shield her off-stage aerials; edge-guard when the pip is dark |
-| Archer | Trueshot Aura | 2 landed arrows, 240-frame window | 3rd arrow: double damage, still no hitstun | Shield or jump the glowing arrow; arrows still don't stop an approach |
 | Rifleman | Long Rifles | 3 blaster shots fired | 4th shot: 1.5× range, a POKE launch instead of the flinch | Count to four; shield or jump the Long Rifle shot |
 | Illidan | none: his attacks drain mana on hit | (Illidan lane) | | |
 | Lich | Frost Aura (Frost Armor) | 2 melee hits taken, 180-frame window | 3rd melee hit on him chills the striker | Use projectiles or grabs, or space the third hit out |
@@ -174,27 +173,6 @@ so that is the moment to edge-guard her. Blink's endpoint stays punishable.
 last". The passive pays the hunter who chases off-stage and lands the hit,
 and the pip tells the edge-guarder exactly when she is out of extra jumps.
 
-## Archer: Trueshot Aura
-
-**Rule.** Each arrow (neutral special, running arrow, homing arrow) that
-lands a body hit adds a pip, up to 2, and refreshes a 240-frame window. With
-2 pips her bow glows. The next arrow that lands deals **double damage**.
-Arrows still deal no hitstun, hitlag or knockback (Tom's owner correction,
-smashcraft:docs/gameplay-design.md "Archer's arrows"), so this is chip, not
-a wall. The pips clear.
-
-**Shows.** Two pips. Ready: `Abilities\Spells\NightElf\TrueshotAura\TrueshotAura.mdx`
-at her feet while ready; the doubled damage is the proc.
-
-**Counterplay.** Shield or jump the glowing arrow, which spends it. Her
-arrows never stop an approach, so running through the chip is still
-the answer.
-
-**Why.** She chips from range and wins by running in. A landed third arrow
-moves the target's percent toward her up smash and forward smash kill
-percents, without arrows stopping anyone. Rejected: a third arrow that
-flinches. It reverses the owner correction and copies Rifleman's blaster.
-
 ## Rifleman: Long Rifles
 
 **Rule.** Counts **shots fired**, not landed: every blaster shot adds a pip,
@@ -211,7 +189,7 @@ spent), or approach between shots. Firing it into nothing spends it.
 
 **Why.** He holds ground and never chases. The Long Rifle shot is the one
 shot that pushes an approacher back out, at a rhythm the approacher can
-count. It is not another flinch, and Archer's arrows never stop anyone.
+count. It is a deliberate launch rather than another brief flinch.
 
 ## Illidan: none
 
@@ -356,7 +334,7 @@ For the bot-new-kits lane (#146). Every passive's state is plain fighter
 state, so the computer reads it directly:
 
 - **Own ready proc:** favour the gameplan's landing move: Blademaster's tip
-  forward smash, Mountain King's follow-up string, Archer's arrow, Shadow
+  forward smash, Mountain King's follow-up string, Shadow
   Hunter's forward tilt, Pit Lord's swing (into a body, or into a shield on
   the third contact), Rifleman's fourth shot at mid range.
 - **Opponent's ready proc:** shield the ready hit (it is spent on shield),
@@ -383,7 +361,6 @@ not make the ready or proc moment readable in the #148 native captures:
 | Mountain King | Devotion Aura | Thunderclap on the target |
 | Warden | Trueshot Aura | Blink on herself |
 | Rifleman | Trueshot Aura | Bolt impact on himself when the shot fires |
-| Archer | Trueshot Aura | Bolt impact on the target |
 | Lich | Frost Armor | Frost Nova on the striker |
 | Forsaken Paladin | Devotion Aura | Devotion Aura burst on himself |
 | Dreadlord | Vampiric Aura | Heal on himself |

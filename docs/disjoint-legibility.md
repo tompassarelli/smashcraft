@@ -8,7 +8,6 @@ The named Smash moves are visual references, not copied animation assets or shar
 
 | Fighter | Every qualifying input | Named reference look |
 | --- | --- | --- |
-| Archer | jab, up smash, down smash, forward smash, forward tilt, up tilt, down tilt, forward tilt up, forward tilt down, getup attack, neutral air, forward air, back air, up air, down air, ledge attack, dash attack, jab2 | Melee Link forward smash / arrow |
 | Rifleman | jab, up smash, down smash, forward smash, forward tilt, up tilt, down tilt, forward tilt up, forward tilt down, getup attack, neutral air, forward air, back air, up air, down air, ledge attack, dash attack, jab2 | Melee Ness forward smash / PK Fire |
 | Illidan | jab, up smash, down smash, forward smash, forward tilt, up tilt, down tilt, forward tilt up, forward tilt down, getup attack, neutral air, forward air, back air, up air, down air, ledge attack, demon hunter dash attack | Ultimate Hero Flame Slash / Kafrizz |
 | Blademaster | jab, down smash, forward smash, forward tilt, up tilt, down tilt, forward tilt up, forward tilt down, getup attack, neutral air, forward air, back air, down air, ledge attack, dash attack, jab2 | Melee Marth forward smash |
@@ -36,7 +35,6 @@ The named Smash moves are visual references, not copied animation assets or shar
 | Pit Lord | Howl of Terror, Fel Spit (traveling spell) | Ultimate Hero Flame Slash |
 | Beastmaster | Wild Axes (traveling spell), Summon Bear (traveling spell), Summon Quilbeast (traveling spell) | Melee Link forward smash |
 | Lich King | Ascension of the Damned, Howling Blast (traveling spell), Val'kyr Shadowguard (traveling spell), Defile (placed field / burst) | Ultimate Hero Flame Slash / Kacrackle Slash |
-| Archer | Arrow, Homing Arrow, Hippogryph swoop / dive / released flight | Melee Link arrow; Ness PK Thunder |
 | Rifleman | Blaster, recoil recovery shot, Summon Bear swipe, Freeze Trap | Melee Ness PK Fire; Ultimate Robin Arcfire |
 | Illidan | Mana Burn, Fel Rush / Chaos Strike, glide slash, Immolation / Flame Crash plunge and landing burst | Ultimate Hero Kafrizz / Flame Slash; Melee Zelda Din’s Fire |
 

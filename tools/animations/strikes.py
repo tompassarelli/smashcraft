@@ -6,7 +6,7 @@ toward the move's strike volume on its first active frame and follows through
 over recovery. A clip is as many frames as its move, so clip frame N is attack
 frame N. Run after the fighter's own authoring scripts:
 
-  blender --background --python tools/animations/strikes.py -- archer|rifleman|illidan
+  blender --background --python tools/animations/strikes.py -- rifleman|illidan
 """
 import json
 import os
@@ -23,12 +23,11 @@ private_assets = Path(os.environ.get('SMASHCRAFT_ANIMATION_ASSETS', project / 'b
 selected_clip = os.environ.get('SMASHCRAFT_STRIKE_CLIP')
 fighter = sys.argv[sys.argv.index('--') + 1] if '--' in sys.argv else ''
 SCENES = {
-    'archer': private_assets / 'archer-fighter',
     'rifleman': project / 'build/animation-assets/rifleman-fighter',
     'illidan': project / 'build/illidan-animation/demonhunter-fighter',
 }
 if fighter not in SCENES:
-    raise ValueError('pass -- archer, rifleman or illidan')
+    raise ValueError('pass -- rifleman or illidan')
 sys.path.insert(0, os.environ.get('WC3_MDL_ADDON', '/home/tom/code/mdl-exporter4/worktrees/blender5'))
 addon_utils.enable('export_mdl', default_set=True)
 preferences = bpy.context.preferences.addons['export_mdl'].preferences
@@ -45,14 +44,8 @@ def update():
 
 
 # Limb chains (upper, lower, end) and the elbow/knee pole side per fighter.
-# The rigs share Warcraft's humanoid names; Archer's right hand ends at its
-# reference node, as her original ground attacks solved it.
-ARMS = {s: (f'Bone_Arm1_{s}', f'Bone_Arm2_{s}', f'Bone_Hand_{s}') for s in 'RL'}
-if fighter == 'archer':
-    ARMS['R'] = ('Bone_Arm1_R', 'Bone_Arm2_R', 'Hand Right Ref ')
-LEGS = {s: (f'Bone_Leg1_{s}', f'Bone_Leg2_{s}', f'Bone_Foot_{s}') for s in 'RL'}
-# The far end of each held weapon, aimed by turning its hand.
-WEAPON_TIPS = {'archer': {'L': 'Box01'}, 'illidan': {'R': 'Plane36', 'L': 'Plane22'}, 'rifleman': {}}[fighter]
+# The rigs share Warcraft's humanoid bone names.
+WEAPON_TIPS = {'illidan': {'R': 'Plane36', 'L': 'Plane22'}, 'rifleman': {}}[fighter]
 # Camera-side lateral offset (the stage camera looks along +Y).
 SIDE = {'R': -1, 'L': 1}
 
@@ -174,19 +167,11 @@ def pose(p, base, standing, plant):
         aim = p.get('aim_' + s)
         if aim is None:
             continue
-        hand = bones[ARMS[s][2] if fighter != 'archer' else 'Bone_Hand_L']
+        hand = bones[ARMS[s][2]]
         point = bones[tip].matrix.translation.copy()
         pivot = hand.matrix.translation.copy()
         q = Quaternion().slerp((point - pivot).rotation_difference(aim[0] - pivot), aim[1])
         hand.matrix = Matrix.Translation(pivot) @ q.to_matrix().to_4x4() @ Matrix.Translation(-pivot) @ hand.matrix
-        update()
-    if fighter == 'archer' and p['cloth']:
-        # The long shoulder cloth hangs from the moving shoulder and trails
-        # behind the strike instead of covering the striking limb.
-        cloth = bones['Object08']
-        location, orientation, scale = cloth.matrix.decompose()
-        orientation = orientation.slerp(Quaternion(Vector((0, 1, 0)), radians(25)) @ cloth_rest, p['cloth'])
-        cloth.matrix = Matrix.LocRotScale(location, orientation, scale)
         update()
 
 
@@ -277,62 +262,7 @@ def swing(startup, active, total, wind, strike, follow, wind_at=None, follow_at=
     return keys
 
 
-if fighter == 'archer':
-    sample(bpy.data.actions['Stand Ready'], 0)
-    cloth_rest = bones['Object08'].matrix.to_quaternion()
-    # The free right fist strikes while the bow stays behind the shoulder.
-    author('Attack Jab', swing(4, 2, 21,
-        wind={'step': (-2, 0), 'lean': -4, 'hand_R': (4, -20, 65), 'hand_L': (-18, 12, 56), 'aim_L': (-24, 12, 120), 'cloth': .4},
-        strike={'step': (8, 0), 'lean': 12, 'hand_R': (66, -18, 64), 'hand_L': (-20, 12, 58), 'aim_L': (-28, 12, 124),
-                'foot_L': (34, 8, 1), 'cloth': 1},
-        follow={'step': (5, 0), 'lean': 6, 'hand_R': (40, -18, 62), 'hand_L': (-18, 12, 58), 'aim_L': (-24, 12, 120), 'cloth': .7},
-        settle=(14, {'step': (1, 0), 'hand_R': (14, -18, 62), 'cloth': .2})))
-    # Forward tilts (5/2/28): a lunging side kick with the camera-side leg,
-    # level, rising to head height, or skimming the floor. The floor-skimming
-    # kick is also the sliding dash attack's clip.
-    chamber = {'step': (-4, -4), 'foot_R': (8, -12, 34), 'hand_L': (10, 6, 58), 'cloth': .5}
-    for name, foot, lean, step, wind in [('Forward Tilt', (90, -12, 48), -26, (24, 2), {**chamber, 'step': (-8, -2), 'lean': -10}),
-                                         ('Forward Tilt Up', (68, -12, 116), -38, (18, 2), {**chamber, 'step': (-8, -6), 'lean': 4}),
-                                         # The low kick chambers high and back so the drop to the floor reads.
-                                         ('Forward Tilt Down', (94, -12, 4), 4, (32, -18), {**chamber, 'step': (-8, 2), 'lean': -14, 'foot_R': (4, -12, 44)})]:
-        author(name, swing(5, 2, 28,
-            wind=wind,
-            strike={'step': step, 'lean': lean, 'foot_R': foot, 'foot_L': (34 + step[0] * .4, 8, 1),
-                    'hand_L': (-18, 10, 66), 'hand_R': (-22, -18, 64), 'cloth': 1},
-            follow={'step': (step[0] * .7, step[1] * .5), 'lean': lean * .6, 'foot_R': ((foot[0] + 20) * .6, -12, foot[2] * .7 + 10),
-                    'foot_L': (34 + step[0] * .4, 8, 1), 'cloth': .7},
-            settle=(18, {'step': (step[0] * .25, 0), 'foot_R': (6, -12, 6), 'cloth': .2})))
-    # Up tilt (6/2/29): the bow sweeps from behind her hip over her head and
-    # chops forward, its upper limb leading.
-    author('Up Tilt', swing(6, 2, 29,
-        wind={'step': (-4, -6), 'lean': -10, 'hand_L': (-22, 8, 50), 'aim_L': (-90, 8, 20), 'cloth': .5},
-        strike={'step': (6, 4), 'lean': -14, 'hand_L': (26, 0, 100), 'aim_L': (150, 0, 124), 'hand_R': (-14, -18, 64), 'cloth': 1},
-        follow={'step': (6, 0), 'lean': 8, 'hand_L': (34, 0, 70), 'aim_L': (90, 0, 10), 'cloth': .7},
-        wind_at=3, settle=(19, {'step': (2, 0), 'hand_L': (36, -4, 70), 'aim_L': (60, 0, 130), 'cloth': .2})))
-    # Down tilt (5/2/28), also the second jab's low kick: she drops into
-    # a crouch and sweeps the camera-side leg along the floor.
-    author('Down Tilt', swing(5, 2, 28,
-        wind={'step': (-10, -6), 'lean': -8, 'foot_R': (-8, -12, 20), 'hand_L': (4, 6, 60), 'cloth': .5},
-        strike={'step': (30, -30), 'lean': 24, 'foot_R': (120, -12, 3), 'foot_L': (40, 8, 1), 'hand_L': (40, 6, 26), 'cloth': 1},
-        follow={'step': (24, -26), 'lean': 18, 'foot_R': (92, -12, 4), 'foot_L': (40, 8, 1), 'hand_L': (34, 6, 30), 'cloth': .7},
-        settle=(19, {'step': (3, -6), 'foot_R': (10, -12, 6), 'cloth': .2})))
-    # Get-up attack (16/3/49): she sits up from her back, sweeps the
-    # camera-side leg out in front at hip height while the bow swings behind
-    # her, then stands. Grounded afterwards like her other recoveries.
-    attack = author('Get Up Attack', {
-        0: {},
-        8: {'rise': .15, 'step': (-12, 0), 'foot_R': (10, -12, 24), 'hand_L': (-8, 4, 40)},
-        16: {'rise': .3, 'step': (22, 6), 'foot_R': (102, -12, 44), 'hand_L': (-46, 4, 52), 'aim_L': (-130, 4, 40)},
-        18: {'rise': .32, 'step': (22, 6), 'foot_R': (102, -12, 44), 'hand_L': (-46, 4, 52), 'aim_L': (-130, 4, 40)},
-        26: {'rise': .55, 'step': (10, 0), 'foot_R': (46, -12, 20)},
-        38: {'rise': .9},
-        49: {'rise': 1.},
-    }, plant=False, standing_from=('Get Up Attack', 45))
-    sys.path.insert(0, str(project / 'tools/animations'))
-    sys.dont_write_bytecode = True
-    from grounding import ground_recovery
-    ground_recovery(rig, attack, 49)
-elif fighter == 'rifleman':
+if fighter == 'rifleman':
     def hold_rifle(action, frame=0):
         # The rifle's chest-relative hold and both grips, from a reference pose.
         global rifle_base, hand_base, grips, grip_center

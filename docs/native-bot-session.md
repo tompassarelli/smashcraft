@@ -45,7 +45,7 @@ on a different turn in each client, as in #158.
 The session has a match and a rematch:
 
 - Slot C becomes a computer Illidan (Demon Hunter). `--bot-four` adds a
-  computer Archer in slot D, for four fighters.
+  computer Warden in slot D, for four fighters.
 - On fighter selection the match is set to three stocks and one minute, with
   Automatic rematch on, on Sky Deck. The match and its automatic rematch play
   with the same fighters and settings, with no menu presses between matches.
@@ -141,7 +141,7 @@ receipt when the map refused the command. A bot session types, in order:
 -dev slots 11 4             # --bot-four: D HMN
 -dev slots 3 12             # --bot-four: D CPU
 -dev fighter 3 Illidan
--dev fighter 4 Archer       # --bot-four
+-dev fighter 4 Warden       # --bot-four
 -dev stage 0                # Sky Deck
 -dev time 1
 -dev stocks 1

@@ -1,5 +1,7 @@
 # Shared Melee visual-effect inventory
 
+Historical fixture notes below retain Archer only where they describe captures before the 9 October 2026 roster cut (#339); she is absent from the current roster.
+
 Scope: common gameplay cues relevant to Smashcraft's original fighters. The
 source index is melee at revision 0296f009f32f710495979d30772d8332af2d411a.
 This is an implementation inventory, not a claim of native visual parity.
@@ -67,7 +69,7 @@ explicit; a proxy effect is not evidence that a cinematic is implemented.
 
 The existing accepted top-blast-zone stock-loss event selects star when
 (completed simulation frame + character index) is even, screen otherwise.
-Archer/Rifleman/Illidan indices are 0/1/2. This deterministic presentation policy
+Rifleman/Illidan indices are 0/1/2. This deterministic presentation policy
 is intentionally different from retail's probability and game/camera flags;
 it neither adds top-death eligibility nor changes stock, protection or respawn.
 Side and bottom deaths retain their directional bursts. Match results and reset
@@ -103,7 +105,7 @@ immediately. Numerical fixture: the focused tests in
 smashcraft:wurst/ImpactStateTests.wurst place an airborne tumbling fighter at
 z=761 with upward knockback TOP_KO_MINIMUM_UPWARD_KNOCKBACK + 10. Build with
 `WC3_SCENARIO=ko` to apply that fixture to all active fighters at match start;
-Archer and Rifleman exercise opposite selection parity.
+Rifleman exercise opposite selection parity.
 
 Source check: 23/23 tests pass with the pinned compiler, zero errors and nine
 indentation and unused-code warnings. The smashcraft:test.sh Impact source set was extended

@@ -1,7 +1,7 @@
 # Play current Smashcraft
 
 `bun wisp play --standalone` opens Smashcraft in the Wisp browser player,
-with Archer against a Wren Expert Rifleman over the normal three stocks and
+with Illidan against a Wren Expert Rifleman over the normal three stocks and
 seven-minute clock. Keyboard controls and the browser's gamepad controls enter
 the playable map's keyboard sampling. The browser draws the map's models,
 camera, effects and HUD from the headless client and plays its sound cues.
@@ -18,7 +18,7 @@ inputs, with stock assets cached outside the repository.
 
 `bun wisp play --standalone --four-fighters --frames 7200 --out DIR` is
 wisp#48's frame-rate measurement. It runs one game copy, as live play does:
-Archer on the bot beat's keys against computer Rifleman, Illidan and Archer,
+Illidan on the bot beat's keys against computer Rifleman, Illidan and Warden,
 99 stocks and a two-minute clock, so four fighters stay on stage. It prints
 the frame timing summary (the target is a p95 frame time of at most 16.7 ms);
 `DIR/standalone.json` keeps every frame's timing. Add `--headless` to run it

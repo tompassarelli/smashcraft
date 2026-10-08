@@ -103,7 +103,7 @@ only the warning while the flame already hits. The casting gesture ends at f43.
 
 ## Position in the roster
 
-Archer and Rifleman fire repeatedly from farther away; Kael sends one
+Rifleman fire repeatedly from farther away; Kael sends one
 costly flame at a time. Illidan drains while rushing; Kael risks a stationary
 Siphon. Blademaster and Warden win through weapon approach and escape routes;
 Kael commits to casting. Mountain King and Forsaken Paladin survive trades better.

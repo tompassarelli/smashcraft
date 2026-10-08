@@ -1,5 +1,7 @@
 # Production move data
 
+Historical record: the captures, trial tables and asset measurements below describe their named builds before the 9 October 2026 roster cut (#339). They are not the current roster or asset inventory.
+
 For executable contact, punish and follow-up comparisons under named conditions,
 see smashcraft:docs/move-comparisons.md.
 

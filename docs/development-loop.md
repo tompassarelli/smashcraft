@@ -1,5 +1,7 @@
 # Development loop
 
+Historical record: the captures, trial tables and asset measurements below describe their named builds before the 9 October 2026 roster cut (#339). They are not the current roster or asset inventory.
+
 Gameplay and host tools live in smashcraft:ts/. From that directory,
 `bun test` checks logic, `bun run check` checks types, and
 `bun scripts/lua-tests.ts` runs the emitted-Lua tests.

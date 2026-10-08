@@ -18,7 +18,7 @@ never changes:
   toward the move's first hit region, and pose selection lands that moment on
   the first active frame (heroStrikeMomentInfo.ts, #144). Then `bun wisp view
   reach --assets DIR --character ID` re-measures the drawn reach test.
-- Archer, Rifleman and Illidan have no measured moments: the entry is
+- Rifleman and Illidan have no measured moments: the entry is
   `aligned` with seconds = strike × total frames ÷ first active frame, the
   same retime as `strikeClip` (smashcraft:ts/src/game/sim/heroes/groundNormals.ts).
 
@@ -37,19 +37,6 @@ sequences (#308 stores each fighter on one timeline).
 ## Audit
 
 "(stock)" marks a sequence the stock model already has.
-
-### Archer
-
-Stock attack and cast sequences: "Attack - 1", "Attack - 2".
-
-| Moves | Clip in use | Verdict |
-| --- | --- | --- |
-| Jabs | jab: attack jab; jab2: down tilt | Keep: a jab strikes short and close (#163, `test/drawn-reach.test.ts`); every stock attack is a full swing |
-| Tilts | f-tilt: forward tilt; f-tilt up: forward tilt up; f-tilt down: forward tilt down; u-tilt: up tilt; d-tilt: down tilt | Keep: "Attack - 1/2" are bow shots; melee tilts need the kick and bow-swing poses |
-| Dash attack, smashes | dash: forward tilt down | Keep: same reason |
-| Aerials | nair: aerial neutral; fair: aerial forward; bair: aerial back; uair: aerial up; dair: aerial down | Keep: every stock sequence stands on the ground; aerials need airborne legs |
-| Grab, pummel, throws | grab: grab; pummel: pummel; f-throw: throw forward; b-throw: throw back; u-throw: throw up; d-throw: throw down | Keep: paired holder and victim gestures meet on a contact frame; no stock sequence holds a victim |
-| Get-up, ledge attacks | get-up: get up attack; ledge: get up attack | Keep: they start lying down or hanging; no stock sequence does |
 
 ### Rifleman
 

@@ -1,5 +1,4 @@
 // Foreign model boundary: contact timing and required ground-attack tracks.
-export const archerGroundReplacements = ['Attack Jab', 'Forward Tilt', 'Forward Tilt Up', 'Forward Tilt Down'];
 
 export function checkGroundClips(model: any, fighter: string) {
     const require = (ok: unknown, message: string) => { if (!ok) throw new Error(`${fighter}: ${message}`); };
@@ -14,7 +13,7 @@ export function checkGroundClips(model: any, fighter: string) {
         require(Math.abs(sequence.Interval[1] - sequence.Interval[0] - duration * 1000 / 24) < 2, `${name} duration`);
         const within = (k: any) => k.Frame >= sequence.Interval[0] && k.Frame <= sequence.Interval[1];
         require(!(root.Translation?.Keys ?? []).some(within), `${name} moves the simulation root`);
-        const limb = bones.find(b => b.Name === (fighter === 'Rifleman' ? 'Rifle01' : name === 'Attack Jab' || name === 'Grab' ? 'Bone_Arm1_R' : 'Bone_Leg1_R'));
+        const limb = bones.find(b => b.Name === 'Rifle01');
         const sample = (frame: number) => {
             const at = sequence.Interval[0] + frame * 1000 / 24;
             const key = limb.Rotation.Keys.filter(within).find((k: any) => Math.abs(k.Frame - at) < 2);
