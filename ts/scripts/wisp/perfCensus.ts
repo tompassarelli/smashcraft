@@ -261,17 +261,19 @@ export const census = (project: CensusProject): Command => (args) => Effect.gen(
 });
 
 /**
- * `perf profile RUN [--worst-frames N] [--frames N]`: plays a perf run measured, then
+ * `perf profile RUN [--worst-frames N] [--frames N] [--top N]`: plays a perf run measured, then
  * again sampled on its N worst frames of p0 (3 by default) and on the 30
  * frames nearest its median, and prints what each worst frame spent beyond a
- * median frame.
+ * median frame, its `--top` functions (12 by default).
  */
 export const profile = (project: PerfProject): Command => (args) => Effect.gen(function*() {
   const [worstText = "3"] = flagValues(args, "worst-frames");
   const [framesText = "1800"] = flagValues(args, "frames");
   const [out] = flagValues(args, "out");
+  const [topText = "12"] = flagValues(args, "top");
+  const top = Number(topText);
   const phases = args.includes("--phases");
-  const named = args.filter((arg, index) => !arg.startsWith("--") && !["--worst-frames", "--frames", "--out"].includes(args[index - 1] ?? ""));
+  const named = args.filter((arg, index) => !arg.startsWith("--") && !["--worst-frames", "--frames", "--out", "--top"].includes(args[index - 1] ?? ""));
   const [name = project.defaultRun ?? "journey"] = named;
   const map = name === (project.defaultRun ?? "journey") ? project.map : project.runs?.[name];
   const worstCount = Number(worstText);
@@ -308,5 +310,5 @@ export const profile = (project: PerfProject): Command => (args) => Effect.gen(f
   const baseline = [...profileOf(profiled, base)].sort((a, b) => b[1][1] - a[1][1]).slice(0, 30);
   yield* Console.log(`profile ${name}: mean samples across ${base.size} median frames, inclusive / self\n${baseline.map(([line, [self, inclusive]]) =>
     `  ${(inclusive / base.size).toFixed(0).padStart(5)} ${(self / base.size).toFixed(0).padStart(5)}  ${namer(line)}`).join("\n")}`);
-  for (const [frame, ms, natives] of worst) yield* Console.log(frameProfileLines(`profile ${name} frame ${frame} (${ms.toFixed(2)} ms, ${natives} natives; median frame ${middle.toFixed(2)} ms)`, frame, base, profiled, namer).join("\n"));
+  for (const [frame, ms, natives] of worst) yield* Console.log(frameProfileLines(`profile ${name} frame ${frame} (${ms.toFixed(2)} ms, ${natives} natives; median frame ${middle.toFixed(2)} ms)`, frame, base, profiled, namer, top).join("\n"));
 });

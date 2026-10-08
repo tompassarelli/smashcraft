@@ -138,6 +138,8 @@ export class ReplayHistory {
   private readonly changed = repeat(REPLAY_HISTORY_CAPACITY, () => 0);
   /** Slots whose state in the pending repair may differ from the snapshot at repairNext. */
   private repairDirty = 0;
+  /** Slots whose rows the pending repair has met changed so far. */
+  private repairInputs = 0;
   private readonly scope: ScopedFrame = { slot: 0, after: createReplaySnapshot() };
   private scopedSteps = 0;
   scopedRepair: ScopedRepair = "auto";
@@ -181,6 +183,7 @@ export class ReplayHistory {
     this.follows.fill(false);
     this.changed.fill(0);
     this.repairDirty = 0;
+    this.repairInputs = 0;
     this.unfollowed = undefined;
     return true;
   }
@@ -350,6 +353,7 @@ export class ReplayHistory {
       copyReplayState(state, this.snapshotAt(start));
       this.repairPositioned = !direct;
       this.repairDirty = 0;
+      this.repairInputs = 0;
       restored = true;
     }
     let frame = start;
@@ -358,6 +362,7 @@ export class ReplayHistory {
       const slot = this.slotOf(frame);
       const unchanged = state.world.mask & ~this.repairDirty;
       this.repairDirty |= at(this.changed, slot);
+      this.repairInputs |= at(this.changed, slot);
       const repeated = this.repeatedComputers(frame, state, first, unchanged);
       const scoped = this.scopedSlot(frame, state, repeated);
       if (!first) {
@@ -439,22 +444,27 @@ export class ReplayHistory {
       copyReplayState(state, this.snapshotAt(frame));
     }
     if (!executeMatchFrame(row, state.match, state.world, state.controls, state.runtime, frame, repeated)) return false;
-    this.repairDirty = this.scopedRepair !== "off" && frame + 2 < this.nextFrame ? this.changedFighters(state, this.snapshotAt(frame + 1)) : state.world.mask;
+    this.repairDirty = this.changedFighters(frame, state);
     return true;
   }
 
-  /** The fighters `state` doesn't hold as `snapshot` does; every fighter once two differ, since no scoped step can follow. */
-  private changedFighters(state: Readonly<ReplayState>, snapshot: Readonly<ReplayState>): number {
+  /**
+   * After a whole step: the corrected fighter, when every other one came out
+   * as the next snapshot holds it, so later frames may scope again; otherwise
+   * every fighter. Comparing fighters costs about a third of a step, so it
+   * runs only while the corrected fighter is clear of the others.
+   */
+  private changedFighters(frame: number, state: Readonly<ReplayState>): number {
     const mask = state.world.mask;
-    if (snapshot.world.mask !== mask) return mask;
-    let changed = 0;
+    const corrected = soleSlot(this.repairInputs);
+    if (this.scopedRepair === "off" || corrected === undefined || frame + 2 >= this.nextFrame || !matchScopable(state.match)) return mask;
+    const snapshot = this.snapshotAt(frame + 1);
+    if (snapshot.world.mask !== mask || !apartFromOthers(corrected, fighterAt(state.world, corrected), state.world)) return mask;
     for (const slot of PARTICIPANT_SLOTS) {
-      if (!isActive(state.world, slot)) continue;
-      if (sameAttackBuffer(state.controls.commands[slot], snapshot.controls.commands[slot]) && sameFighterState(fighterAt(state.world, slot), fighterAt(snapshot.world, slot))) continue;
-      if (changed !== 0) return mask;
-      changed = 1 << slot;
+      if (slot === corrected || !isActive(state.world, slot)) continue;
+      if (!sameAttackBuffer(state.controls.commands[slot], snapshot.controls.commands[slot]) || !sameFighterState(fighterAt(state.world, slot), fighterAt(snapshot.world, slot))) return mask;
     }
-    return changed;
+    return 1 << corrected;
   }
 
   /**
