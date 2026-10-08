@@ -392,15 +392,21 @@ function endHeroSpecial(f: Fighter, move: Readonly<AuthoredSpecial>): void {
 
 /** Stops each of the fighter's live `from` projectiles where it is and makes it `into`, newly aged. */
 function burstProjectiles(f: Fighter, from: Readonly<SpecialProjectile>, into: Readonly<SpecialProjectile>): void {
+  const specials = f.tuning.specials;
+  const kit = specials === undefined ? undefined : specialKit(specials, f.special.action - SpecialAction.heroNeutral);
+  const ordinary = kit === undefined ? undefined : specialForm(kit, f.special.form).burst;
+  const upgraded = kit === undefined ? undefined : specialForm(kit, f.special.form, true).burst;
   let index = -1;
   for (const before of f.projectiles) {
     index++;
-    if (before.life <= 0 || before.kind !== ProjectileKind.hero || before.spec !== from) continue;
+    if (before.life <= 0 || before.kind !== ProjectileKind.hero
+      || (before.spec !== from && before.spec !== ordinary?.from && before.spec !== upgraded?.from)) continue;
+    const result = before.spec === upgraded?.from ? upgraded.into : into;
     const projectile = mutableProjectile(f, index);
-    projectile.spec = into;
+    projectile.spec = result;
     projectile.velocityX = 0.0;
     projectile.velocityZ = 0.0;
-    projectile.life = into.life;
+    projectile.life = result.life;
   }
 }
 
