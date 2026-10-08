@@ -158,7 +158,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     observedFrameLegalActions[slot] = observedActions.legal;
     observedFrameStartedActions[slot] = observedActions.started;
   }
-  advanceWater(world, stage);
+  advanceWater(world, stage, game.matchFrame);
   advanceItems(game, world, controls, frame);
   advanceStageCannon(world, stage, stageFrame, controls.inputs);
 

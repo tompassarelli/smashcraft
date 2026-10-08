@@ -1,7 +1,7 @@
 // The Tomb of Sargeras sea (smashcraft:docs/design/water-stage.md, #277):
 // the tide's timetable and push, floating, swimming, the water jump and the
 // hydra, each pinned to the design's numbers.
-import { assertEquals, assertGreaterThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { Phase } from "../match/rules";
 import { stepMatch } from "../match/step";
 import { stateChecksum } from "../replay/canonical";
@@ -174,4 +174,40 @@ test("every fighter's water jump and double jump from the surface reach above th
     }
     if (!(doubled && highest > mainDeckZ(TOMB))) throw new Error(`fighter ${character} reaches ${highest} from the surface, below the deck at ${mainDeckZ(TOMB)}`);
   }
+});
+
+/** Frames until fighter 0, floating at x from match frame 1, passes the right blast line. */
+function framesToBlastLine(x: number, hazards: boolean): number {
+  const state = seaMatch(x, SEA_SURFACE_Z);
+  state.match.hazards = hazards;
+  const f = fighterAt(state.world, 0);
+  for (let frame = 1; frame <= 400; frame++) {
+    stepMatch(state.match, state.world, state.controls, frame);
+    if (f.status.out || f.motion.x > seaRight(TOMB)) return frame;
+    assertEquals(f.motion.z, SEA_SURFACE_Z);
+  }
+  return -1;
+}
+
+test("the flood carries a floating fighter from the ledge past the side blast line in 201 frames and from under the deck's centre in 326, hazards on or off [spec docs/design/water-stage.md]", () => {
+  assertEquals(framesToBlastLine(600.0, true), 201);
+  assertEquals(framesToBlastLine(0.0, true), 326);
+  assertEquals(framesToBlastLine(600.0, false), 201);
+});
+
+test("swimming against the tide still loses 1.2 a frame; jumping out ends the push that frame [spec docs/design/water-stage.md]", () => {
+  const state = seaMatch(0.0, SEA_SURFACE_Z);
+  const f = fighterAt(state.world, 0);
+  state.controls.inputs[0].direction = -1;
+  play(state, 1, 40);
+  const before = f.motion.x;
+  play(state, 41, 41);
+  assertNear(f32(f.motion.x - before), f32(TIDE_SPEED - SWIM_SPEED), 0.0010000000474974513);
+  state.controls.inputs[0].direction = 0;
+  state.controls.inputs[0].jumpPressed = true;
+  const atJump = f.motion.x;
+  play(state, 42, 42);
+  assertGreaterThan(f.motion.z, SEA_SURFACE_Z);
+  assertFalse(f.water.inWater);
+  assertNear(f.motion.x, atJump, 4.0);
 });

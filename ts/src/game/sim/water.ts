@@ -7,8 +7,8 @@ import { max, min } from "../../runtime/numbers";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import type { Fighter } from "./fighter";
 import { type Roster, fighterAt, isActive } from "./roster";
-import { SEA_SURFACE_Z, hasTide, inSea } from "./stageHazards";
-import { setWorldMotionValue } from "./motion";
+import { SEA_SURFACE_Z, hasTide, inSea, tidePush } from "./stageHazards";
+import { moveMeleeX, setWorldMotionValue } from "./motion";
 import { melee } from "./tuning";
 import { SurfaceContact } from "./codes";
 import { aerialJumps, jumpBuffed } from "./itemBuffs";
@@ -93,14 +93,21 @@ export function clearWater(f: Fighter): void {
   water.hydraX = 0.0;
 }
 
-/** After the fighters move: who is in the sea, for how long, and how often they went back in since landing. */
-export function advanceWater(world: Roster, stage: number): void {
+/**
+ * After the fighters move: the current carries everyone in the sea, as the
+ * wind does, by a position offset after the fighter's own motion; hitlag and
+ * hitstun don't stop it. Then who is in the sea, for how long, and how often
+ * they went back in since landing. `matchFrame` is the match's own frame,
+ * not the stage clock: the tide runs with hazards off.
+ */
+export function advanceWater(world: Roster, stage: number, matchFrame: number): void {
   if (!hasTide(stage)) return;
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
     const f = fighterAt(world, slot);
     if (f.status.out) continue;
     const { motion, water } = f;
+    moveMeleeX(f, tidePush(stage, matchFrame, motion.x, motion.z));
     const now = inSea(stage, motion.x, motion.z);
     if (motion.grounded) {
       water.frames = 0;
