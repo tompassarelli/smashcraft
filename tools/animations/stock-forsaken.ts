@@ -1,5 +1,5 @@
 import { isDeepStrictEqual } from 'node:util';
-import { ModelRenderer, model as mdx } from 'war3-model';
+import { ModelRenderer, model as mdx } from '../../ts/scripts/clipNodes';
 
 export function restoreStockForsaken(stock: mdx.Model, authored: mdx.Model): mdx.Model {
     const model = structuredClone(authored);
