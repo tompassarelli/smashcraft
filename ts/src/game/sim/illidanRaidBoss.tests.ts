@@ -26,7 +26,7 @@ function finish(d: Duel, frames: number, first = controls(), second = controls()
   for (let i = 0; i < frames && d.illidan.attack.style !== undefined; i++) d.step(first, second);
 }
 
-test("Shear: forward tilt cuts 12 mana for 9 at a low angle, and a shield stops the drain", () => {
+test("Shear: forward tilt cuts 12 mana for 9 at a low angle, and a shield stops the drain [spec docs/design/illidan.md]", () => {
   const d = duel(110.0);
   d.target.mana.points = 60;
   attack(d, AttackStyle.forwardTilt);
@@ -42,7 +42,7 @@ test("Shear: forward tilt cuts 12 mana for 9 at a low angle, and a shield stops 
   assertEquals(blocked.target.mana.points, 60);
 });
 
-test("Flames of Azzinoth: the glaives strike both sides out to 190 for 14, and the fire wall burns once more", () => {
+test("Flames of Azzinoth: the glaives strike both sides out to 190 for 14, and the fire wall burns once more [spec docs/design/illidan.md]", () => {
   for (const side of [-1, 1]) {
     const d = duel(170.0);
     d.target.motion.x = f32(side * 170.0);
@@ -60,7 +60,7 @@ test("Flames of Azzinoth: the glaives strike both sides out to 190 for 14, and t
   assertEquals(late.target.status.damage, 3.0);
 });
 
-test("Flames of Azzinoth counterplay: a shield holds both parts and acts with the smash still running; a jump clears the fire", () => {
+test("Flames of Azzinoth counterplay: a shield holds both parts and acts with the smash still running; a jump clears the fire [spec docs/design/illidan.md]", () => {
   const d = duel(90.0);
   d.run(4, controls(), SHIELD);
   attack(d, AttackStyle.downSmash, false, controls(), SHIELD);
@@ -81,7 +81,7 @@ test("Flames of Azzinoth counterplay: a shield holds both parts and acts with th
   assertEquals(over.target.status.damage, 0.0);
 });
 
-test("Eye Blast: forward smash charged 20 frames becomes a floor beam reaching 400 and draining 10; uncharged it does not reach", () => {
+test("Eye Blast: forward smash charged 20 frames becomes a floor beam reaching 400 and draining 10; uncharged it does not reach [spec docs/design/illidan.md]", () => {
   for (const charge of [0, EYE_BLAST_CHARGE_FRAMES + 2]) {
     const d = duel(420.0);
     const held = controls({ attackHeld: true });
@@ -97,7 +97,7 @@ test("Eye Blast: forward smash charged 20 frames becomes a floor beam reaching 4
   }
 });
 
-test("Eye Blast counterplay: the beam runs low along the floor, so a fighter above it is not hit", () => {
+test("Eye Blast counterplay: the beam runs low along the floor, so a fighter above it is not hit [spec docs/design/illidan.md]", () => {
   const d = duel(420.0);
   const held = controls({ attackHeld: true });
   attack(d, AttackStyle.forwardSmash, true, held);
@@ -130,16 +130,16 @@ function forwardAir(percent: number, gap: number, sdi: boolean): number {
   return f32(d.target.status.damage - percent);
 }
 
-test("Twin-glaive forward air: the link and the launcher both connect at 0, 50 and 100 percent", () => {
+test("Twin-glaive forward air: the link and the launcher both connect at 0, 50 and 100 percent [spec docs/design/illidan.md]", () => {
   for (const percent of [0.0, 50.0, 100.0]) assertEquals(forwardAir(percent, 100.0, false), 5.0);
 });
 
-test("Twin-glaive forward air counterplay: SDI away from the link escapes the launcher", () => {
+test("Twin-glaive forward air counterplay: SDI away from the link escapes the launcher [spec docs/design/illidan.md]", () => {
   assertEquals(forwardAir(0.0, 150.0, false), 5.0);
   assertEquals(forwardAir(0.0, 150.0, true), 2.0);
 });
 
-test("Flame Crash: hangs, plunges and spikes an airborne fighter below; a grounded one is launched up", () => {
+test("Flame Crash: hangs, plunges and spikes an airborne fighter below; a grounded one is launched up [spec docs/design/illidan.md]", () => {
   const air = duel(40.0);
   lift(air.illidan, 500.0);
   lift(air.target, 300.0);
@@ -164,7 +164,7 @@ test("Flame Crash: hangs, plunges and spikes an airborne fighter below; a ground
   assertGreaterThan(ground.target.launch.knockbackZ, 0.0);
 });
 
-test("Flame Crash: landing bursts beside him for 8, and a shielding fighter acts while his landing still runs", () => {
+test("Flame Crash: landing bursts beside him for 8, and a shielding fighter acts while his landing still runs [spec docs/design/illidan.md]", () => {
   const d = duel(120.0);
   lift(d.illidan, 150.0);
   d.step(downB);
@@ -189,7 +189,7 @@ test("Flame Crash: landing bursts beside him for 8, and a shielding fighter acts
   assertGreaterThan(blocked.illidan.special.duration - blocked.illidan.special.frame, attackStartupFrames(AttackStyle.jab));
 });
 
-test("Flame Crash counterplay: offstage it never lands and leaves him helpless; it has no jump cancel", () => {
+test("Flame Crash counterplay: offstage it never lands and leaves him helpless; it has no jump cancel [spec docs/design/illidan.md]", () => {
   const d = duel(400.0);
   d.illidan.motion.x = -900.0;
   lift(d.illidan, 2000.0);

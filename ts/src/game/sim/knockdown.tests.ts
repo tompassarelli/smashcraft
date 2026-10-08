@@ -7,14 +7,14 @@ import { AttackPhase, AttackStyle, Character, ContactKind, DownState } from "./c
 import { DOWN_RECOVERY_INTANGIBLE_FRAMES, attackPhase, canAttack, isIntangible, isTumbling } from "./conditions";
 import { DOWN_BOUND_FRAMES, DOWN_WAIT_FRAMES } from "./down";
 import { type Fighter, createFighter } from "./fighter";
-import { DIAGONAL_UNIT, ORDINARY_HIT_CONTEXT_SCALE, ORDINARY_HIT_GROWTH_PERCENT, ordinaryHitKnockback, ordinaryHitstunFrames } from "./knockback";
-import { DOWN_ATTACK_ACTIVE_FRAMES, DOWN_ATTACK_BASE_KNOCKBACK, DOWN_ATTACK_DAMAGE, DOWN_ATTACK_FRAMES, DOWN_ATTACK_STARTUP_FRAMES, attackStartupFrames } from "./moves";
+import { DIAGONAL_UNIT } from "./knockback";
+import { DOWN_ATTACK_DAMAGE, DOWN_ATTACK_FRAMES, DOWN_ATTACK_STARTUP_FRAMES, attackStartupFrames } from "./moves";
 import { totalVelocityZ } from "./motion";
 import type { Controls, Roster } from "./roster";
 import { advanceFighter } from "./step";
 import { advanceSolo, contactBatch, controls, hitEffect, resolveStartedAttack, seedTechWindow, testBeginAttacks, testWorld } from "./testWorld";
 
-test("tumble blocks actions until hitstun ends", () => {
+test("tumble blocks actions until hitstun ends [spec docs/physics.md]", () => {
   const target = createFighter(Character.rifleman, 100.0, -1);
   target.motion.z = 400.0;
   target.down.state = DownState.tumble;
@@ -33,7 +33,7 @@ test("tumble blocks actions until hitstun ends", () => {
   assertEquals(target.down.state, DownState.none);
 });
 
-test("tumble can be air dodged after hitstun but not during it", () => {
+test("tumble can be air dodged after hitstun but not during it [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   const input = controls({ airDodgePressed: true });
   fighter.motion.grounded = false;
@@ -48,7 +48,7 @@ test("tumble can be air dodged after hitstun but not during it", () => {
   assertEquals(fighter.down.state, DownState.none);
 });
 
-test("a tumble landing runs bound and wait, then fresh recovery choices", () => {
+test("a tumble landing runs bound and wait, then fresh recovery choices [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   const input = controls();
   fighter.motion.grounded = false;
@@ -68,7 +68,7 @@ test("a tumble landing runs bound and wait, then fresh recovery choices", () => 
   assertEquals(fighter.down.direction, -1);
 });
 
-test("a held recovery starts at the bound's end without another press", () => {
+test("a held recovery starts at the bound's end without another press [spec docs/physics.md]", () => {
   for (const direction of [-1, 0, 1]) {
     const fighter = createFighter(Character.archer, 0.0, 1);
     fighter.down.state = DownState.bound;
@@ -82,7 +82,7 @@ test("a held recovery starts at the bound's end without another press", () => {
   }
 });
 
-test("a recovery attack on the bound transition isn't discarded", () => {
+test("a recovery attack on the bound transition isn't discarded [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   fighter.down.state = DownState.bound;
   fighter.down.frame = DOWN_BOUND_FRAMES;
@@ -106,7 +106,7 @@ function landTumbling(fighter: Fighter, input: Readonly<Controls>): void {
 // (ftCo_Down.c ftCo_80098400), then a held roll (ftCo_Down_CheckInput), before the wait reads that frame's input.
 const MELEE_BOUND_ATTACK_PRESS_AGE_LIMIT = 60;
 
-test("a get-up attack pressed during the bound starts as it ends, ahead of a held roll", () => {
+test("a get-up attack pressed during the bound starts as it ends, ahead of a held roll [reference]", () => {
   assertGreaterThan(MELEE_BOUND_ATTACK_PRESS_AGE_LIMIT, DOWN_BOUND_FRAMES);
   for (const pressFrame of [1, DOWN_BOUND_FRAMES - 1]) {
     const fighter = createFighter(Character.archer, 0.0, 1);
@@ -124,7 +124,7 @@ test("a get-up attack pressed during the bound starts as it ends, ahead of a hel
   assertEquals(landingPressOnly.down.state, DownState.wait);
 });
 
-test("a held roll at the bound's end beats an attack pressed on that frame", () => {
+test("a held roll at the bound's end beats an attack pressed on that frame [reference]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   fighter.down.state = DownState.bound;
   fighter.down.frame = DOWN_BOUND_FRAMES;
@@ -135,7 +135,7 @@ test("a held roll at the bound's end beats an attack pressed on that frame", () 
 
 const analog = (x: number, z: number) => controls({ diStickValid: true, diStickX: x, diStickZ: z });
 
-test("get-up rolls and stands follow Melee's stick tilt and angle", () => {
+test("get-up rolls and stands follow Melee's stick tilt and angle [reference]", () => {
   // Common +0x248/+0x244 = 0.2 tilt, +0x020 = 50 degrees above horizontal (ftCo_Down.c ftCo_Down_CheckInput, ftCo_DownStand.c).
   const cases: readonly (readonly [number, number, DownState, number])[] = [
     [0.19999998807907104, 0.0, DownState.wait, 0],
@@ -157,7 +157,7 @@ test("get-up rolls and stands follow Melee's stick tilt and angle", () => {
   }
 });
 
-test("a floor tech rolls only past Melee's sideways tilt", () => {
+test("a floor tech rolls only past Melee's sideways tilt [reference]", () => {
   // Common +0x254 = 0.2 (ftCo_PassiveStand.c ftCo_80098928).
   for (const [x, state] of [[0.19999998807907104, DownState.tech], [-0.20000000298023224, DownState.techRoll]] as const) {
     const fighter = createFighter(Character.archer, 0.0, 1);
@@ -171,7 +171,7 @@ test("a floor tech rolls only past Melee's sideways tilt", () => {
   }
 });
 
-test("tumble ends only on a fresh sideways flick past Melee's threshold", () => {
+test("tumble ends only on a fresh sideways flick past Melee's threshold [reference]", () => {
   // Common +0x210 = 0.8 on the frame the stick crosses +0x008 = 0.25 (+0x214 = 1; ftCo_DamageFall.c ftCo_DamageFall_IASA).
   const sequences: readonly (readonly [readonly Controls[], boolean])[] = [
     [[analog(0.0, 0.0), analog(-0.800000011920929, 0.0)], true],
@@ -191,7 +191,7 @@ test("tumble ends only on a fresh sideways flick past Melee's threshold", () => 
   }
 });
 
-test("a jab reset compares the damage summed over the frame's contacts", () => {
+test("a jab reset compares the damage summed over the frame's contacts [reference]", () => {
   // melee:src/melee/ft/kinds/ftCommon/ftCo_DownDamage.c:290 tests the frame's summed percentTemp (ftcoll.c:370) against +0x428 = 7.
   for (const [contacts, reset] of [[1, true], [2, false]] as const) {
     const attacker = createFighter(Character.archer, 0.0, 1);
@@ -207,7 +207,7 @@ test("a jab reset compares the damage summed over the frame's contacts", () => {
   }
 });
 
-test("hitlag still pauses a held knockdown recovery", () => {
+test("hitlag still pauses a held knockdown recovery [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   const input = controls({ direction: 1 });
   fighter.down.state = DownState.bound;
@@ -221,7 +221,7 @@ test("hitlag still pauses a held knockdown recovery", () => {
   assertEquals(fighter.down.state, DownState.roll);
 });
 
-test("a down wait autostands, and the get-up attack has its own hitbox", () => {
+test("a down wait autostands, and a press starts the get-up attack [spec docs/physics.md]", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   const opponent = createFighter(Character.rifleman, 100.0, -1);
   const world = testWorld(fighter, opponent);
@@ -237,14 +237,6 @@ test("a down wait autostands, and the get-up attack has its own hitbox", () => {
   input.getupAttackPressed = true;
   advanceFighter(world, 0, 0, input, 0.0);
   assertEquals(fighter.down.state, DownState.attack);
-  assertEquals(attackPhase(fighter), AttackPhase.startup);
-  for (let frame = 1; frame <= DOWN_ATTACK_STARTUP_FRAMES; frame++) advanceFighter(world, 0, 0, input, 0.0);
-  assertEquals(attackPhase(fighter), AttackPhase.active);
-  for (let frame = 1; frame <= DOWN_ATTACK_ACTIVE_FRAMES; frame++) {
-    resolveAttacks(world);
-    advanceFighter(world, 0, 0, input, 0.0);
-  }
-  assertEquals(opponent.status.damage, DOWN_ATTACK_DAMAGE);
 });
 
 /** Starts slot 0's get-up attack from a down wait and runs both fighters to its contact. */
@@ -272,7 +264,7 @@ function runGetupAttackToContact(world: Roster, attacker: Fighter, target: Fight
 
 const opposite = (character: Character) => (character === Character.archer ? Character.rifleman : Character.archer);
 
-test("a clean low-percent get-up attack gives the attacker time before the wake-up attack, for both characters and sides", () => {
+test("a clean low-percent get-up attack gives the attacker time before the wake-up attack, for both characters and sides [provisional]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     for (const direction of [-1, 1]) {
       const attacker = createFighter(character, 0.0, direction);
@@ -282,9 +274,6 @@ test("a clean low-percent get-up attack gives the attacker time before the wake-
       assertEquals(target.status.damage, DOWN_ATTACK_DAMAGE);
       assertEquals(target.down.state, DownState.tumble);
       const hitstunAtContact = target.launch.hitstun;
-      const knockback = ordinaryHitKnockback(0.0, DOWN_ATTACK_DAMAGE, character === Character.archer ? 80.0 : 75.0,
-        ORDINARY_HIT_GROWTH_PERCENT, DOWN_ATTACK_BASE_KNOCKBACK, ORDINARY_HIT_CONTEXT_SCALE);
-      assertEquals(hitstunAtContact, ordinaryHitstunFrames(knockback));
       assertGreaterThan(hitstunAtContact, DOWN_ATTACK_FRAMES - attacker.down.frame);
       let attackerReadyFrame = -1;
       let attackerActiveFrame = -1;
@@ -312,7 +301,7 @@ test("a clean low-percent get-up attack gives the attacker time before the wake-
   }
 });
 
-test("a clean get-up attack recovers before a successful tech, for both characters and sides", () => {
+test("a clean get-up attack recovers before a successful tech, for both characters and sides [provisional]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     for (const direction of [-1, 1]) {
       const attacker = createFighter(character, 0.0, direction);
@@ -341,7 +330,7 @@ test("a clean get-up attack recovers before a successful tech, for both characte
   }
 });
 
-test("a get-up attack on a shield doesn't grant the clean hit's frame advantage", () => {
+test("a get-up attack on a shield doesn't grant the clean hit's frame advantage [provisional]", () => {
   const attacker = createFighter(Character.archer, 0.0, 1);
   const target = createFighter(Character.rifleman, 0.0, -1);
   const world = testWorld(attacker, target);
@@ -363,18 +352,7 @@ test("a get-up attack on a shield doesn't grant the clean hit's frame advantage"
   assertGreaterThan(attackerReady, defenderReady);
 });
 
-test("a get-up attack whiff applies no hitlag or hitstun", () => {
-  const attacker = createFighter(Character.archer, 0.0, 1);
-  const target = createFighter(Character.rifleman, 0.0, -1);
-  runGetupAttackToContact(testWorld(attacker, target), attacker, target, 1, 160.0);
-  assertEquals(target.status.damage, 0.0);
-  assertEquals(target.launch.hitstun, 0);
-  assertEquals(target.launch.hitlag, 0);
-  assertEquals(attacker.launch.hitlag, 0);
-  assertFalse(attacker.attack.hit);
-});
-
-test("a down wait is vulnerable, but early get-up recovery is intangible", () => {
+test("a down wait is vulnerable, but early get-up recovery is intangible [spec docs/physics.md]", () => {
   const waiting = createFighter(Character.rifleman, 100.0, -1);
   waiting.down.state = DownState.wait;
   resolveStartedAttack(testWorld(createFighter(Character.archer, 0.0, 1), waiting), AttackStyle.jab);

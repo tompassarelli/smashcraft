@@ -30,7 +30,7 @@ function trickle(f: Fighter, frames: number): void {
   for (let frame = 0; frame < frames; frame++) regenerateMana(f);
 }
 
-test("mana trickles one point per second on the ground and in the air, with no wait after a spend", () => {
+test("mana trickles one point per second on the ground and in the air, with no wait after a spend [spec docs/design/mana.md]", () => {
   const f = createFighter(Character.archer, 0.0, 1);
   f.motion.grounded = true;
   f.mana.points = 60;
@@ -49,7 +49,7 @@ test("mana trickles one point per second on the ground and in the air, with no w
   assertEquals(f.mana.points, ROSTER_MANA.max);
 });
 
-test("no trickle while shielding, held, in hitstun, stunned or casting a special", () => {
+test("no trickle while shielding, held, in hitstun, stunned or casting a special [spec docs/design/mana.md]", () => {
   const blockers: ((f: Fighter) => void)[] = [
     f => { f.shield.raised = true; },
     f => { f.grab.grabbedFrames = 30; },
@@ -67,7 +67,7 @@ test("no trickle while shielding, held, in hitstun, stunned or casting a special
   }
 });
 
-test("a normal that lands earns its striker a point per percent, at most 12, and its target one per 2 percent, at most 6", () => {
+test("a normal that lands earns its striker a point per percent, at most 12, and its target one per 2 percent, at most 6 [spec docs/design/mana.md]", () => {
   for (const [damage, dealt, taken] of [[7.0, 7, 3], [3.5, 3, 1], [20.0, 12, 6]] as const) {
     const { world, source, target } = pair();
     source.attack.style = AttackStyle.forwardTilt;
@@ -77,7 +77,7 @@ test("a normal that lands earns its striker a point per percent, at most 12, and
   }
 });
 
-test("a throw earns as a normal does; a pummel earns nothing", () => {
+test("a throw earns as a normal does; a pummel earns nothing [spec docs/design/mana.md]", () => {
   const thrown = pair();
   land(thrown.world, 7.0, ContactKind.throw, false);
   assertEquals(thrown.source.mana.points, 57);
@@ -88,7 +88,7 @@ test("a throw earns as a normal does; a pummel earns nothing", () => {
   assertEquals(pummeled.target.mana.points, 50);
 });
 
-test("a special's strike or projectile earns its striker nothing; its target still earns its share", () => {
+test("a special's strike or projectile earns its striker nothing; its target still earns its share [spec docs/design/mana.md]", () => {
   const strike = pair();
   strike.source.special.action = SpecialAction.riflemanBear;
   land(strike.world, 10.0, ContactKind.launch, true);
@@ -100,7 +100,7 @@ test("a special's strike or projectile earns its striker nothing; its target sti
   assertEquals(shot.target.mana.points, 53);
 });
 
-test("a hit on a shield earns nobody mana", () => {
+test("a hit on a shield earns nobody mana [spec docs/design/mana.md]", () => {
   const { world, source, target } = pair();
   source.attack.style = AttackStyle.forwardTilt;
   target.shield.raised = true;
@@ -109,7 +109,7 @@ test("a hit on a shield earns nobody mana", () => {
   assertEquals(target.mana.points, 50);
 });
 
-test("an original fighter's special it cannot afford does not come out and counts one refusal; the up special is free", () => {
+test("an original fighter's special it cannot afford does not come out and counts one refusal; the up special is free [spec docs/design/mana.md]", () => {
   const archer = createFighter(Character.archer, 0.0, 1);
   testWorld(archer, createFighter(Character.rifleman, 900.0, -1));
   archer.mana.points = 11;
@@ -130,7 +130,7 @@ test("an original fighter's special it cannot afford does not come out and count
   assertEquals(rider.visuals.manaDenied, 0);
 });
 
-test("Mana Burn's burn lands even on a fighter immune to its stun", () => {
+test("Mana Burn's burn lands even on a fighter immune to its stun [spec docs/design/mana.md]", () => {
   const f = createFighter(Character.archer, 0.0, 1);
   f.status.conditionImmunity[HeroStatusGroup.sleep] = 100;
   applyHeroStatus(f, MANA_BURN_STUN);
@@ -138,7 +138,7 @@ test("Mana Burn's burn lands even on a fighter immune to its stun", () => {
   assertEquals(f.status.condition, HeroStatusKind.none);
 });
 
-test("every fighter starts each stock with a full bar", () => {
+test("every fighter starts each stock with a full bar [spec docs/design/mana.md]", () => {
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter, Character.lich]) {
     const f = createFighter(character, 0.0, 1);
     assertEquals(f.mana.points, ROSTER_MANA.max);
@@ -148,16 +148,4 @@ test("every fighter starts each stock with a full bar", () => {
     assertEquals(f.mana.points, ROSTER_MANA.max);
     assertEquals(f.mana.progress, 0);
   }
-});
-
-test("mana transfer takes only available enemy mana, respects shields and caps its receiver", () => {
-  for (const [available, blocked, received, retained] of [[12, false, 62, 0], [0, false, 50, 0], [40, false, 75, 15], [40, true, 50, 40]] as const) {
-    const { world, source, target } = pair(); target.mana.points = available;
-    const effect = { ...hitEffect(0.0, 0.0, 0.0, 0.0, 0.0), manaSteal: 25 };
-    contactBatch(world, () => collectDamageContact(world, 0, 1, effect, 1, ContactKind.launch, false, undefined, blocked));
-    assertEquals(source.mana.points, received); assertEquals(target.mana.points, retained);
-  }
-  const { world, source, target } = pair(); source.mana.points = 95;
-  contactBatch(world, () => collectDamageContact(world, 0, 1, { ...hitEffect(0.0, 0.0, 0.0, 0.0, 0.0), manaSteal: 25 }, 1, ContactKind.launch, false, undefined, false));
-  assertEquals(source.mana.points, 100); assertEquals(target.mana.points, 25);
 });

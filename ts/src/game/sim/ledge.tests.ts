@@ -21,7 +21,7 @@ import { authoredPhysics } from "./tuning";
 
 const LEDGE_PHASES = [LedgeState.hang, LedgeState.climb, LedgeState.roll, LedgeState.attack] as const;
 
-test("hero recovery refreshes on the ledge mount onto the deck, not the catch", () => {
+test("hero recovery refreshes on the ledge mount onto the deck, not the catch [spec docs/design/roster.md]", () => {
   for (const option of [LedgeState.climb, LedgeState.roll, LedgeState.attack]) {
     const fighter = ledgeTestFighter(Character.thrall, 1);
     fighter.special.airtimeUses = 1 << SpecialSlot.up;
@@ -77,7 +77,7 @@ function catchesAfterMovement(character: Character, side: number, outsideBefore:
   return fighter.ledge.state === LedgeState.hang;
 }
 
-test("each fighter catches with its reference fighter's NTSC 1.02 ledge snap data", () => {
+test("each fighter catches with its reference fighter's NTSC 1.02 ledge snap data [reference]", () => {
   // ftData x44 +0x10/+0x14/+0x18 (melee:src/melee/ft/types.h ftData_x44_t), read
   // by melee:src/melee/ft/ft_081B.c into the box of melee:src/melee/mp/mpcoll.c.
   // PlFx.dat (Fox) and PlFc.dat (Falco): 11, 13, 9. PlCa.dat (Captain Falcon): 9, 17, 11.
@@ -106,7 +106,7 @@ test("each fighter catches with its reference fighter's NTSC 1.02 ledge snap dat
   assertEquals(ledgeCatchBox(Character.demonHunter).highest, 135.0);
 });
 
-test("the catch box's edges are strict for every fighter and side", () => {
+test("the catch box's edges are strict for every fighter and side [reference]", () => {
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
     const { reach, lowest, highest } = ledgeCatchBox(character);
     const middle = f32(f32(lowest + highest) * 0.5);
@@ -125,7 +125,7 @@ test("the catch box's edges are strict for every fighter and side", () => {
   }
 });
 
-test("the catch box sweeps the frame's movement, and only a downward movement catches", () => {
+test("the catch box sweeps the frame's movement, and only a downward movement catches [reference]", () => {
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
     const { reach, lowest, highest } = ledgeCatchBox(character);
     const middle = f32(f32(lowest + highest) * 0.5);
@@ -141,7 +141,7 @@ test("the catch box sweeps the frame's movement, and only a downward movement ca
   }
 });
 
-test("[spec #252] falling, running up specials, helpless, post-dodge and tumbling fighters catch; other specials, aerials, air dodges and hitstun don't", () => {
+test("falling, running up specials, helpless, post-dodge and tumbling fighters catch; other specials, aerials, air dodges and hitstun don't [spec #252]", () => {
   const upSpecials = [SpecialAction.archerRecovery, SpecialAction.riflemanRecovery, SpecialAction.demonHunterWingAscent] as const;
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
     const states: readonly (readonly [boolean, (f: Fighter) => void])[] = [
@@ -184,7 +184,7 @@ test("[spec #252] falling, running up specials, helpless, post-dodge and tumblin
   }
 });
 
-test("a ledge catch on either side restores one air jump for every fighter", () => {
+test("a ledge catch on either side restores one air jump for every fighter [spec docs/physics.md]", () => {
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
     for (const side of [-1, 1]) {
       const fighter = ledgeTestFighter(character, side);
@@ -211,7 +211,7 @@ test("a ledge catch on either side restores one air jump for every fighter", () 
   }
 });
 
-test("ledge eligibility rejects locks, wrong facing and positions outside the region", () => {
+test("ledge eligibility rejects locks, wrong facing and positions outside the region [spec docs/physics.md]", () => {
   const rejections: ((fighter: Fighter, input: Controls) => void)[] = [
     (f) => (f.motion.deltaZ = 1.0),
     (f) => (f.motion.deltaZ = 0.0),
@@ -238,7 +238,7 @@ test("ledge eligibility rejects locks, wrong facing and positions outside the re
   }
 });
 
-test("only a full down passes ledges; a slight downward tilt still catches", () => {
+test("only a full down passes ledges; a slight downward tilt still catches [reference]", () => {
   // Melee refuses a catch from stick y -0.66 (ftCliffCommon_80081298, +0x480);
   // the helper reports `down` there, and any tilt past the deadzone as the axis.
   const fighter = ledgeTestFighter(Character.archer, -1);
@@ -248,7 +248,7 @@ test("only a full down passes ledges; a slight downward tilt still catches", () 
   assertEquals(fighter.ledge.state, LedgeState.hang);
 });
 
-test("upper platform ledges can't be caught", () => {
+test("upper platform ledges can't be caught [spec docs/physics.md]", () => {
   const fighter = ledgeTestFighter(Character.rifleman, -1);
   fighter.motion.x = f32(surfaceLeft(1, 1, 0) - 20);
   fighter.motion.z = f32(surfaceZ(1, 1, 0) - 30);
@@ -257,7 +257,7 @@ test("upper platform ledges can't be caught", () => {
   assertEquals(fighter.ledge.state, LedgeState.none);
 });
 
-test("ledge contention uses distance, not argument order, and the owner hogs", () => {
+test("ledge contention uses distance, not argument order, and the owner hogs [spec docs/physics.md] [invariant]", () => {
   for (const reversed of [false, true]) {
     const near = ledgeTestFighter(Character.archer, -1);
     const far = ledgeTestFighter(Character.rifleman, -1);
@@ -274,7 +274,7 @@ test("ledge contention uses distance, not argument order, and the owner hogs", (
   }
 });
 
-test("tied ledge candidates catch neither, and opposite edges are independent", () => {
+test("tied ledge candidates catch neither, and opposite edges are independent [spec docs/physics.md]", () => {
   const first = ledgeTestFighter(Character.archer, 1);
   const second = ledgeTestFighter(Character.rifleman, 1);
   const input = controls();
@@ -288,7 +288,7 @@ test("tied ledge candidates catch neither, and opposite edges are independent", 
   assertEquals(second.ledge.state, LedgeState.hang);
 });
 
-test("ledge options honor priority, locks and exact recovery durations", () => {
+test("ledge options honor priority, locks and exact recovery durations [spec docs/physics.md]", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     for (const side of [-1, 1]) {
       for (let option = 0; option <= 6; option++) {
@@ -346,7 +346,7 @@ test("ledge options honor priority, locks and exact recovery durations", () => {
   }
 });
 
-test("ledge hang protection expires, and hitlag freezes the ledge phase", () => {
+test("ledge hang protection expires, and hitlag freezes the ledge phase [spec docs/gameplay-design.md]", () => {
   const fighter = ledgeTestFighter(Character.archer, -1);
   const input = controls();
   catchTestLedge(fighter, input);
@@ -375,7 +375,7 @@ test("ledge hang protection expires, and hitlag freezes the ledge phase", () => 
   assertEquals(fighter.attack.frame, 1);
 });
 
-test("a ledge attack has startup, an active window that hits once, and recovery", () => {
+test("a ledge attack has startup, an active window that hits once, and recovery [spec docs/physics.md]", () => {
   for (const side of [-1, 1]) {
     const fighter = ledgeTestFighter(Character.archer, side);
     const target = createFighter(Character.rifleman, f32(side * 470.0), side);
@@ -402,7 +402,7 @@ test("a ledge attack has startup, an active window that hits once, and recovery"
   }
 });
 
-test("ledge hits and grabs interrupt, and a respawn clears ledge ownership", () => {
+test("ledge hits and grabs interrupt, and a respawn clears ledge ownership [spec docs/physics.md]", () => {
   for (const phase of LEDGE_PHASES) {
     for (let mode = 0; mode <= 2; mode++) {
       const fighter = ledgeTestFighter(Character.archer, -1);
@@ -446,7 +446,7 @@ test("ledge hits and grabs interrupt, and a respawn clears ledge ownership", () 
   }
 });
 
-test("the ledge release regrab cooldown expires after thirty unfrozen ticks", () => {
+test("the ledge release regrab cooldown expires after thirty unfrozen ticks [spec docs/gameplay-design.md] [reference]", () => {
   const fighter = ledgeTestFighter(Character.archer, -1);
   const input = controls();
   catchTestLedge(fighter, input);
@@ -469,7 +469,7 @@ test("the ledge release regrab cooldown expires after thirty unfrozen ticks", ()
   assertEquals(fighter.ledge.serial, 2);
 });
 
-test("ledge protection blocks strikes until it expires, and a grab never catches the hang", () => {
+test("ledge protection blocks strikes until it expires, and a grab never catches the hang [reference]", () => {
   for (const style of [AttackStyle.downSmash, AttackStyle.grab]) {
     const fighter = ledgeTestFighter(Character.archer, -1);
     const attacker = createFighter(Character.rifleman, -570.0, -1);
