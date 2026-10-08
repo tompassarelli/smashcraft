@@ -18,10 +18,10 @@ const ARCHER: FighterGameplan = {
   spacing: [
     { move: AttackStyle.forwardAir, near: 110.0, far: 240.0 },
     { move: GameplanSpecial.neutral, near: 200.0, far: 700.0 },
-    { move: GameplanSpecial.side, near: 160.0, far: 520.0 },
+    { move: GameplanSpecial.side, near: 380.0, far: 520.0 },
   ],
   approach: [
-    { via: "shoot", moves: [GameplanSpecial.neutral, GameplanSpecial.side], weight: 1 },
+    { via: "shoot", moves: [GameplanSpecial.neutral], weight: 1 },
     { via: "run", moves: [AttackStyle.grab, AttackStyle.downTilt, AttackStyle.upTilt], weight: 2 },
     { via: "jump", moves: [AttackStyle.forwardAir, AttackStyle.neutralAir], weight: 2 },
   ],
