@@ -12,7 +12,7 @@ src/game/input/padCapture.tests.ts	2	0.123
 src/game/input/playerKeys.tests.ts	3	0.000
 src/game/match/botCoverage.tests.ts	21	32.225
 src/game/match/botDefenseForecast.tests.ts	1	0.000
-src/game/match/botGameplan.tests.ts	8	0.016
+src/game/match/botGameplan.tests.ts	6	0.001
 src/game/match/botHorizontalForecast.tests.ts	4	0.201
 src/game/match/botKitOptions.tests.ts	1	0.000
 src/game/match/botPlayContracts.tests.ts	6	5.388
@@ -69,7 +69,7 @@ src/game/netcode/journal/vocabulary.tests.ts	1	0.000
 src/game/netcode/ledger.tests.ts	8	0.026
 src/game/netcode/shadowSchedule.tests.ts	14	0.058
 src/game/physics/techInput.tests.ts	3	0.000
-src/game/presentation/attackClipFamilies.tests.ts	22	0.002
+src/game/presentation/attackClipFamilies.tests.ts	21	0.002
 src/game/presentation/attackCues.tests.ts	1	0.005
 src/game/presentation/bearFeedback.tests.ts	2	0.000
 src/game/presentation/blademasterClips.tests.ts	1	0.000
@@ -78,7 +78,7 @@ src/game/presentation/damageBlend.tests.ts	3	0.002
 src/game/presentation/damagePose.tests.ts	1	0.000
 src/game/presentation/disjointCues.tests.ts	5	0.177
 src/game/presentation/fighterAgency.tests.ts	2	0.859
-src/game/presentation/fighterClips.tests.ts	22	0.021
+src/game/presentation/fighterClips.tests.ts	21	0.005
 src/game/presentation/fighterPlacement.tests.ts	2	0.107
 src/game/presentation/fighterPose.tests.ts	8	0.314
 src/game/presentation/heroStrikeMoments.tests.ts	2	0.002
@@ -131,7 +131,7 @@ src/game/sim/dashDance.tests.ts	6	1.584
 src/game/sim/demonHunterContracts.tests.ts	11	0.017
 src/game/sim/directionalInfluence.tests.ts	17	0.003
 src/game/sim/dodgesAndStocks.tests.ts	27	0.198
-src/game/sim/downAir.tests.ts	22	0.002
+src/game/sim/downAir.tests.ts	21	0.002
 src/game/sim/downSmashes.tests.ts	13	5.700
 src/game/sim/downThrows.tests.ts	13	4.246
 src/game/sim/exCommandHeroes.tests.ts	6	0.045
@@ -204,7 +204,7 @@ src/game/sim/shieldTilt.tests.ts	9	0.005
 src/game/sim/simulation.tests.ts	22	0.047
 src/game/sim/slopes.tests.ts	7	0.041
 src/game/sim/smashDirectionalInfluence.tests.ts	9	0.006
-src/game/sim/specialContracts.tests.ts	4	0.014
+src/game/sim/specialContracts.tests.ts	2	0.018
 src/game/sim/stageTopology.tests.ts	4	0.172
 src/game/sim/surfaces.tests.ts	26	0.093
 src/game/sim/tech.tests.ts	7	0.011
