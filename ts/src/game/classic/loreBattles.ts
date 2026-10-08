@@ -148,6 +148,11 @@ export const LORE_BATTLES: readonly LoreBattle[] = [
     win: koWithinClock, minutes: 3, playerStocks: 3, opponentStocks: 1,
     speaker: "Kobold", intro: "Humans want gold. Dwarves want mine. You no take candle!",
   }),
+  battle({
+    id: "grom-mannoroth", title: "Grom's Last Stand", player: C.grom, against: [C.pitLord], tier: "expert", stage: 3,
+    win: koWithinClock, minutes: 3, playerStocks: 1, opponentStocks: 2, playerDamage: 40,
+    speaker: "Grom Hellscream", intro: "Mannoroth, you chained the Warsong with your blood. Gorehowl will cut us free!",
+  }),
 ];
 
 export const loreBattle = (index: number): LoreBattle | undefined => LORE_BATTLES[index];

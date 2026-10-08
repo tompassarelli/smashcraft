@@ -293,6 +293,18 @@ export const CLASSIC_ROUTES: readonly ClassicRoute[] = [
     ],
     ending: ["Big demon take world tree. Kobold take candle back.", "You no take candle! ...You want borrow? One copper."],
   },
+  {
+    fighter: C.grom, boss: BossKind.archimonde,
+    story: "Grom Hellscream wrestles with the blood curse, then turns Gorehowl on the Legion that enslaved his clan.",
+    fights: [
+      fight(C.rifleman, 11, "The Warsong broke our truce. Lower that axe, Hellscream!"),
+      fight(C.warden, 10, "Your lumber camps bleed Ashenvale. The forest remembers."),
+      fight(C.blademaster, 3, "Warsong or Burning Blade, an orc must master his own rage."),
+      fight([C.dreadlord, C.pitLord], 14, "Drink again, Hellscream. Your clan's strength belongs to us."),
+      fight(C.thrall, 3, "The demons stole your freedom, Grom. Fight beside me and take it back!"),
+    ],
+    ending: ["Gorehowl broke the Legion's grip. No demon commands the Warsong now.", "Thrall, tell our people: we are free.", "And if another demon comes looking for us, let him hear my name."],
+  },
 ];
 
 export const CLASSIC_CHARACTERS: readonly Character[] = CLASSIC_ROUTES.map(route => route.fighter);

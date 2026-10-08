@@ -9,7 +9,8 @@ import { classicRoute } from "../src/game/classic/routes";
 import { extremeCamera } from "../src/game/presentation/arenaCamera";
 import { MATCH_CAMERA_ASPECT, createMatchCamera } from "../src/game/sim/matchCamera";
 import { MAIN_DECK_HALF_DEPTH } from "../scripts/stageDeck";
-import { BossKind } from "../src/game/classic/runState";
+import { BossKind, RunOutcome } from "../src/game/classic/runState";
+import { LORE_BATTLES } from "../src/game/classic/loreBattles";
 import { createMatchState, Phase } from "../src/game/match/rules";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
 import { Character } from "../src/game/sim/codes";
@@ -167,3 +168,53 @@ for (const boss of BOSSES) {
     expect(client.errors).toEqual([]);
   });
 }
+
+
+test("Grom completes six Classic fights, sees his ending and results, and clears his last stand in Lore Battles [spec #349]", () => {
+  const { clients, frames, until, read } = classicClients(true);
+  clients.start(); frames(30);
+  clients.chat(0, "-dev classic Grom Hellscream");
+  const route = classicRoute(Character.grom);
+  if (route === undefined) throw new Error("Grom's route missing");
+  for (let fight = 0; fight < 6; fight++) {
+    until(`Grom fight ${fight + 1}`, () => read(() => shell().game.phase) === Phase.match, 240);
+    expect(read(() => [shell().game.run.fighter, shell().game.run.fight])).toEqual([Character.grom, fight]);
+    expect(read(() => shell().game.stageChoice)).toBe(fight === 5 ? bossDefinition(route.boss)?.stage : route.fights[fight]?.stage);
+    frames(2);
+    // Script the knockout; the running map judges the result and advances on the player's confirm.
+    clients.everywhere(() => {
+      const { game, world } = shell();
+      for (const fighter of world.fighters) {
+        if (fighter !== undefined && fighter.character !== Character.grom) {
+          fighter.status.stocks = 0;
+          fighter.status.out = true;
+        }
+      }
+      game.run.boss.health = 0;
+    });
+    until(`Grom result ${fight + 1}`, () => read(() => shell().game.phase) === Phase.result, 600);
+    expect(read(() => shell().game.run.outcome)).toBe(RunOutcome.won);
+    frames(120);
+    if (fight < 5) { clients.press(0, Key.y); frames(2); }
+  }
+  for (const client of clients.clients) {
+    expect(value(client, () => shell().game.run.cleared)).toBe(true);
+    expect(shows(client, "Grom Hellscream cleared Classic!")).toBe(true);
+    for (const line of route.ending) expect(shows(client, line)).toBe(true);
+    expect(shows(client, "0 continues")).toBe(true);
+  }
+  expectSynchronized(clients);
+  clients.press(0, Key.y);
+  until("Grom returns to selection", () => read(() => shell().game.phase) === Phase.characterMenu);
+  const lore = LORE_BATTLES.findIndex(battle => battle.id === "lore.grom-mannoroth");
+  expect(LORE_BATTLES[lore]?.player).toBe(Character.grom);
+  clients.chat(0, `-dev lore ${lore + 1}`);
+  until("Grom's Mannoroth battle", () => read(() => shell().game.phase) === Phase.match, 240);
+  expect(read(() => [shell().game.run.fighter, shell().game.run.current?.id, shell().game.characterChoices[2]])).toEqual([Character.grom, "lore.grom-mannoroth", Character.pitLord]);
+  frames(2);
+  clients.chat(0, "-dev lore win");
+  until("Grom's Lore clear", () => read(() => shell().game.phase) === Phase.result, 120);
+  frames(2);
+  expect(read(() => shell().game.run.cleared)).toBe(true);
+  expectSynchronized(clients);
+});
