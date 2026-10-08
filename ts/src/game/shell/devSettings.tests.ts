@@ -39,6 +39,17 @@ test("a hero quick match gives every present human the named fighter [spec AGENT
   assertEquals(game.characterChoices[1], Character.demonHunter);
 });
 
+test("a solo quick stage match has an opponent instead of immediately returning to fighter selection [repro #287]", () => {
+  const game = createMatchState();
+  assertTrue(prepareQuickMatch(game, 2));
+  assertEquals(game.phase, Phase.match);
+  assertEquals(game.stageChoice, 2);
+  assertEquals(game.humanFighterMask, 1);
+  assertEquals(game.computerMask, 2);
+  assertEquals(fighterMask(game), 3);
+  assertEquals(game.characterChoices[1], Character.rifleman);
+});
+
 test("recovery capture commands select every fighter by name without changing ordinary quick commands [spec AGENTS.md]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const name = fighterName(character);
