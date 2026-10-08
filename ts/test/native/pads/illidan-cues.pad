@@ -38,8 +38,8 @@
 # View held a second: the first of two moments the parity check replays.
 500 a press VIEW
 570 a release VIEW
-# A rush, then Chaos Strike on the ground (attack on its frame 17).
-600 a stick 1 0
+# A rush left toward b, then Chaos Strike on the ground (attack on its frame 17).
+600 a stick -1 0
 600 a tap X 2
 601 a stick 0 0
 602 a capture

@@ -38,26 +38,26 @@
 # View held a second: the first of two moments the parity check replays.
 500 a press VIEW
 570 a release VIEW
-# #144: Righteous Fury from the air, back toward the middle.
-600 a tap B 8
-610 a stick -1 0
-610 a tap X 2
-611 a stick 0 0
-612 a capture
-622 a capture
+# #144: Righteous Fury from the air after its 240-frame cooldown, back toward the middle.
+750 a tap B 8
+760 a stick -1 0
+760 a tap X 2
+761 a stick 0 0
+762 a capture
+772 a capture
 # #144: Ascension still works after the preceding specials spend its full cost.
-700 a stick 0 1
-700 a tap X 2
-701 a stick 0 0
-702 a capture
-708 a capture
-# Spend the mana: Cleansing Hammer; then Ascension, free.
-780 a tap X 2
-782 a capture
-800 a capture
-845 a stick 0 1
-845 a tap X 2
-846 a stick 0 0
+850 a stick 0 1
+850 a tap X 2
+851 a stick 0 0
+852 a capture
+858 a capture
+# Cleansing Hammer, then Ascension.
+930 a tap X 2
+932 a capture
+950 a capture
+995 a stick 0 1
+995 a tap X 2
+996 a stick 0 0
 # Expected, frame by frame (headless run of this script): a's shield takes three forward tilts unhurt,
 # the fourth lands with Sacred Aura ready, then every grounded/air form starts.
 # Cleansing Hammer cleanses poison/slow without healing.
@@ -67,16 +67,16 @@
 #! expect a 345 special 13 form 0
 #! expect a 420 special 13 form 1
 #! expect a 475 special 14 form 0
-#! expect a 610 special 14 form 1
-#! expect a 700 special 15 form 2
-#! expect a 780 special 13 form 0
-#! expect a 845 special 15 form 2
+#! expect a 760 special 14 form 1
+#! expect a 850 special 15 form 0
+#! expect a 930 special 13 form 0
+#! expect a 995 special 15 form 0
 #! scene a HolyBoltSpecialArt
 #! scene a InnerFireTarget
 #! scene a StampedeMissileDeath
 #! scene a ResurrectTarget
 #! scene a Consecration
-847 a capture
-853 a capture
-1000 a press VIEW
-1070 a release VIEW
+997 a capture
+1003 a capture
+1150 a press VIEW
+1220 a release VIEW

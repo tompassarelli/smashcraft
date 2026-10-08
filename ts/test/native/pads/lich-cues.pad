@@ -72,7 +72,7 @@
 1020 a tap X 2
 1022 a capture
 1038 a capture
-# #144: Spectral Ascent, free.
+# #144: Spectral Ascent after the earlier casts.
 1062 a stick 0 1
 1062 a tap X 2
 1063 a stick 0 0
@@ -88,7 +88,7 @@
 #! expect a 750 special 14 form 0
 #! expect a 810 special 13 form 0
 #! expect a 1020 special 13 form 0
-#! expect a 1062 special 15 form 2
+#! expect a 1062 special 15 form 0
 #! scene a SpiritTouchTarget
 #! scene a FreezingBreathTargetArt
 #! scene a AnimateDeadTarget
