@@ -50,7 +50,7 @@ test("the mode button reaches Lore Battles on both clients, the list steps to th
   for (const client of clients.clients) {
     expect(value(client, () => [shell().game.lore, shell().game.classic, shell().game.loreBattle])).toEqual([true, false, 1]);
     expect(shows(client, "Mode: Lore Battles")).toBe(true);
-    expect(shows(client, `2/20 ${battle?.title}`)).toBe(true);
+    expect(shows(client, `2/${LORE_BATTLES.length} ${battle?.title}`)).toBe(true);
   }
   for (const actor of [0, 1]) clients.press(actor, Key.n);
   frames(5);
@@ -106,7 +106,7 @@ test("-dev lore win ends Lore Battle 1 as a clear on both clients, and the clear
       reloaded.frames(1);
     }
     expect(reloaded.read(() => shell().game.loreBattle)).toBe(0);
-    expect(shows(reloaded.clients.client(0), `1/20 ${LORE_BATTLES[0]?.title} |cff40ff40(cleared)|r`)).toBe(true);
+    expect(shows(reloaded.clients.client(0), `1/${LORE_BATTLES.length} ${LORE_BATTLES[0]?.title} |cff40ff40(cleared)|r`)).toBe(true);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

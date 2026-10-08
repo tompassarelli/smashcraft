@@ -48,8 +48,8 @@ function battleTier(index: number): number {
   return CPU_TIERS.indexOf(battle.opponents[0]?.tier ?? "rookie");
 }
 
-test("twenty Lore Battles, each a valid fighter, opponents, stage, clock, win condition and transmission, together using all 21 fighters and 11 stages and never getting easier down the list [spec #305]", () => {
-  assertEquals(LORE_BATTLES.length, 20);
+test("the original twenty Lore Battles and authored expansion stories keep valid matches, cover finished fighters and all stages, and never get easier down the list [spec #305] [spec #351]", () => {
+  assertTrue(LORE_BATTLES.length >= 20);
   const fighters = new Set<number>();
   const stages = new Set<number>();
   const wins = new Set<number>();
@@ -79,7 +79,7 @@ test("twenty Lore Battles, each a valid fighter, opponents, stage, clock, win co
     }
     if (index > 0) assertEquals(battleTier(index) >= battleTier(index - 1), true, `${name} is no easier than the battle before`);
   }
-  assertEquals(fighters.size, 21, "finished fighters used");
+  for (let fighter = 1; fighter <= 21; fighter++) assertTrue(fighters.has(fighter), `original fighter ${fighter} used`);
   for (const fighter of CLASSIC_CHARACTERS) assertEquals(fighters.has(fighter), true, `${fighterName(fighter)} has Lore coverage`);
   assertEquals(stages.size, STAGE_CATALOG.length, "stages used");
   assertEquals(wins.size, 4, "win conditions used");
