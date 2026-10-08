@@ -7,7 +7,7 @@ const omen = (ex: boolean): AuthoredSpecial => ({
   projectiles: [{ spawnFrame: 12, offsetX: 40.0, offsetZ: 55.0,
     velocityX: ex ? 11.0 : 8.0, velocityZ: 0.0, life: 40, radius: ex ? 23.0 : 17.0,
     effect: medivhHit(ex ? 12.0 : 8.0, 55, 85.0, 22.0), reflectable: true, limit: 1,
-    model: "Abilities\\Spells\\Other\\BlackArrow\\BlackArrowMissile.mdl" }],
+    model: "Abilities\\Weapons\\PriestMissile\\PriestMissile.mdl" }],
 });
 const vanish = (ex: boolean, retreat: boolean): AuthoredSpecial => ({
   cost: 0, endFrame: 38, landingLag: 20, intangible: frames(9, 10), defensiveUse: retreat,

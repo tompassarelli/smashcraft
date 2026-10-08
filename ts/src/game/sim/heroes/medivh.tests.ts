@@ -98,3 +98,12 @@ test("Medivh raven flight consumes the aerial jump and ends helpless [spec #343]
  for(let tick=2;tick<=36;tick++)frame(world);
  assertTrue(owner.motion.z>300.0);assertTrue(owner.special.fall);assertEquals(owner.jump.remaining,0);
 });
+
+test("Medivh all four free specials make real contact and keep the victims bar [spec #343]", () => {
+ for(const [x,z,specialX,specialZ,damage] of [[120.0,0.0,0,0,8.0],[240.0,0.0,1,0,7.0],[-120.0,0.0,0,-1,5.0],[0.0,70.0,0,1,5.0]] as const){
+  const {owner,target,world}=pair(x);target.motion.z=z;
+  frame(world,controls({specialPressed:true,specialX,specialZ}));
+  for(let tick=2;tick<=30;tick++)frame(world);
+  assertEquals(target.status.damage,damage,`special ${specialX}/${specialZ}`);assertEquals(target.visuals.manaDrained,0);
+ }
+});

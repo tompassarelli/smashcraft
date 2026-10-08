@@ -464,5 +464,25 @@ Generated from the packaged models by `bun wisp view motion --assets DIR` (#171)
 | Kobold | ledge-get-up | 41: Kobold ledgeClimb | 96.5 | 26.5 | up; 88.2/33.6 |
 | Kobold | ledge-roll | 69: Kobold ledgeRoll | 129.2 | 52.9 | forward; 103.6/89.1 |
 | Kobold | ledge-attack | 42: Kobold ledgeAttack | 76.2 | 14.8 | both; 23.5/29.0 |
+| Medivh | walk | 1: Walk | 102.3 | 25.6 | forward; 98.7/82.2 |
+| Medivh | dash | 1: Walk | 101.2 | 25.4 | forward; 98.8/81.1 |
+| Medivh | run | 1: Walk | 112.6 | 21.5 | forward; 104.2/111.6 |
+| Medivh | turn | 44: Medivh turn | 80.0 | 28.5 | back; 79.2/67.6 |
+| Medivh | brake | 45: Medivh stop | 58.1 | 9.4 | in place; 51.9/43.3 |
+| Medivh | jump-squat | 46: Medivh jumpSquat | 72.6 | 15.3 | down; 8.8/66.0 |
+| Medivh | roll-forward | 79: Medivh rollForward | 174.1 | 86.3 | forward; 105.5/107.2 |
+| Medivh | roll-back | 83: Medivh rollBackward | 175.5 | 87.8 | back; 107.2/105.5 |
+| Medivh | spot-dodge | 60: Medivh spotDodge | 67.5 | 12.2 | in place; 60.4/61.6 |
+| Medivh | air-dodge | 41: Medivh airDodge | 62.3 | 9.1 | in place; 57.0/54.2 |
+| Medivh | tech | 61: Medivh tech | 89.2 | 43.0 | in place; 56.3/85.3 |
+| Medivh | tech-forward | 80: Medivh techForward | 175.5 | 86.0 | forward; 105.5/107.3 |
+| Medivh | tech-back | 84: Medivh techBackward | 175.5 | 87.0 | back; 107.2/105.6 |
+| Medivh | get-up | 58: Medivh getUp | 129.2 | 65.9 | up; 119.8/58.9 |
+| Medivh | get-up-forward | 81: Medivh getUpRollForward | 174.3 | 86.1 | forward; 105.6/107.3 |
+| Medivh | get-up-back | 85: Medivh getUpRollBackward | 175.6 | 87.6 | back; 107.3/105.6 |
+| Medivh | get-up-attack | 59: Medivh getUpAttack | 200.1 | 83.7 | both; 120.9/197.6 |
+| Medivh | ledge-get-up | 54: Medivh ledgeClimb | 99.7 | 21.8 | up; 68.6/19.8 |
+| Medivh | ledge-roll | 82: Medivh ledgeRoll | 175.5 | 85.4 | forward; 105.5/107.3 |
+| Medivh | ledge-attack | 55: Medivh ledgeAttack | 120.8 | 22.3 | both; 111.0/33.0 |
 
 Walking/running cadence uses grounded vertices' horizontal excursion twice per cycle. The Lich floats and uses the stock sequence's movement speed. Both measurements use the fighter's displayed model scale.

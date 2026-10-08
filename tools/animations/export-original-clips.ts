@@ -163,6 +163,7 @@ for (const [character, fighter] of fighters) {
     records.push({fighter: fighter.name, source: fighter.source, sourceSha256, sourceBytes: bytes.byteLength,
         untrimmedSelectedBodyBytes: untrimmedBytes, bytes: fighterBytes, unthinnedBytes, keyThin: {bound: KEY_BOUND, report: thin.report}, trackFamilies,
         omittedTrackFamilies: reuse ? retainedRecord.omittedTrackFamilies : [...omittedTrackFamilies], light, clips});
+    if (reuse) unthinnedBytes = retainedRecord.unthinnedBytes;
     const r = thin.report;
     keyThinRows.push([fighter.name, r.keysBefore, r.keysAfter, unthinnedBytes, fighterBytes, r.maxPosition.toFixed(4), r.maxRotationDegrees.toFixed(4)].join('\t'));
     console.log(`${fighter.name}: keys ${r.keysBefore} -> ${r.keysAfter}, ${unthinnedBytes - fighterBytes} bytes saved (${unthinnedBytes} -> ${fighterBytes}), max ${r.maxPosition.toFixed(3)} units, ${r.maxRotationDegrees.toFixed(3)} deg`);

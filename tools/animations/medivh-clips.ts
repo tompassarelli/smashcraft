@@ -93,7 +93,7 @@ function aimArm(index:number,start:number,action:Action,phases:readonly Phase[],
 function contactAim(pose:HeroPose):{hand:Point;direction:Point}|undefined {
  if(pose==="jab2")return {hand:[18,-18,62],direction:[1,0,0]};
  if(pose==="downAir")return {hand:[18,-18,30],direction:[0,0,-1]};
- if(pose==="upTilt")return {hand:[10,-18,124],direction:[1,0,0]};
+ if(pose==="upTilt")return {hand:[25,-18,140],direction:[0.4,0,1]};
  if(pose==="upAir")return {hand:[8,-18,115],direction:[1,0,0]};
  if(pose==="upSmash"||pose==="throwUp"||pose==="upSpecial"||pose==="upSpecialAir")return {hand:[8,-18,113],direction:[0,0,1]};
  if(pose==="forwardTiltUp")return {hand:[32,-18,72],direction:[1,0,0.5]};
@@ -180,6 +180,7 @@ tracks(model,(track,path)=>{
  if(last)track.Keys.push({...structuredClone(last),Frame:upTiltFrame(upTiltAction.contact+7)});
  track.Keys.sort((a,b)=>a.Frame-b.Frame);
 });
+for(const frame of [0,upTiltAction.contact-3,upTiltAction.contact+7,upTiltAction.frames]) aimArm(upTiltIndex,upTiltStart,{...upTiltAction,contact:frame},[{frame,amount:1}],true,[32,-18,38],[1,0,-0.5]);
 const upTiltDrawn=new DrawnModel(generateMDX(model),1),upTiltTriangles=upTiltDrawn.triangles(upTiltIndex,(upTiltCoil-upTiltStart)/1000,1);
 let upTiltFloor=Infinity;for(let i=1;i<upTiltTriangles.length;i+=2)upTiltFloor=Math.min(upTiltFloor,upTiltTriangles[i]!);
 const upTiltRoot=model.Nodes.find(node=>node?.Name==="Bone_Root")!.Translation!.Keys.find(key=>key.Frame===upTiltCoil)!;upTiltRoot.Vector[2]!-=upTiltFloor;
