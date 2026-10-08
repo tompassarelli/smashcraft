@@ -1,3 +1,4 @@
+unit	tests	cpu_s
 scripts/agency.tests.ts	3	1.928
 scripts/agencyClearance.tests.ts	1	4.422
 scripts/airDrift.tests.ts	3	2.889
@@ -149,6 +150,8 @@ src/game/sim/fourPlayerContracts.tests.ts	3	0.001
 src/game/sim/freezeTrapContracts.tests.ts	11	0.097
 src/game/sim/grabs.tests.ts	12	0.098
 src/game/sim/groundMovement.tests.ts	17	0.012
+src/game/sim/heroSpecials.tests.ts	16	0.036
+src/game/sim/heroStatus.tests.ts	5	0.005
 src/game/sim/heroes/beastmasterMoves.tests.ts	3	0.002
 src/game/sim/heroes/beastmasterSpecials.tests.ts	10	0.179
 src/game/sim/heroes/blademasterMoves.tests.ts	7	0.004
@@ -181,11 +184,9 @@ src/game/sim/heroes/thrall.tests.ts	30	0.028
 src/game/sim/heroes/tinker.tests.ts	26	0.049
 src/game/sim/heroes/wardenMoves.tests.ts	7	0.006
 src/game/sim/heroes/wardenSpecials.tests.ts	19	0.061
-src/game/sim/heroSpecials.tests.ts	16	0.036
-src/game/sim/heroStatus.tests.ts	5	0.005
 src/game/sim/hitTiming.tests.ts	5	0.001
-src/game/sim/hurtboxes.tests.ts	8	0.016
 src/game/sim/hurtboxLegibility.tests.ts	4	0.009
+src/game/sim/hurtboxes.tests.ts	8	0.016
 src/game/sim/illidanRaidBoss.tests.ts	10	0.072
 src/game/sim/knockdown.tests.ts	17	0.016
 src/game/sim/lava.tests.ts	4	0.026
@@ -306,4 +307,3 @@ test/tune.test.ts	2	4.060
 test/ui-frames.test.ts	1	0.018
 test/visual-lifecycle.test.ts	7	0.672
 test/wisp.test.ts	3	0.032
-unit	tests	cpu_s

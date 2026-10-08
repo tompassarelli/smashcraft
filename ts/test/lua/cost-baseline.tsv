@@ -1,3 +1,4 @@
+unit	tests	cpu_s
 src/game/assets/stageLighting.tests.ts	5	0.000
 src/game/assets/stagePalette.tests.ts	3	0.000
 src/game/classic/classic.tests.ts	7	4.135
@@ -142,6 +143,8 @@ src/game/sim/fourPlayerContracts.tests.ts	3	0.001
 src/game/sim/freezeTrapContracts.tests.ts	11	0.301
 src/game/sim/grabs.tests.ts	12	0.846
 src/game/sim/groundMovement.tests.ts	17	0.025
+src/game/sim/heroSpecials.tests.ts	16	0.117
+src/game/sim/heroStatus.tests.ts	5	0.019
 src/game/sim/heroes/beastmasterMoves.tests.ts	3	0.003
 src/game/sim/heroes/beastmasterSpecials.tests.ts	10	0.602
 src/game/sim/heroes/blademasterMoves.tests.ts	7	0.014
@@ -176,11 +179,9 @@ src/game/sim/heroes/thrall.tests.ts	29	0.169
 src/game/sim/heroes/tinker.tests.ts	26	0.113
 src/game/sim/heroes/wardenMoves.tests.ts	7	0.017
 src/game/sim/heroes/wardenSpecials.tests.ts	19	0.216
-src/game/sim/heroSpecials.tests.ts	16	0.117
-src/game/sim/heroStatus.tests.ts	5	0.019
 src/game/sim/hitTiming.tests.ts	5	0.002
-src/game/sim/hurtboxes.tests.ts	8	0.056
 src/game/sim/hurtboxLegibility.tests.ts	4	0.006
+src/game/sim/hurtboxes.tests.ts	8	0.056
 src/game/sim/identityTraits.tests.ts	15	0.004
 src/game/sim/illidanRaidBoss.tests.ts	10	0.153
 src/game/sim/knockdown.tests.ts	17	0.047
@@ -219,4 +220,3 @@ src/game/ui/slotColors.tests.ts	2	0.000
 src/platform/shell/playerFileQueue.tests.ts	3	0.000
 src/sim/meleeScalarMath.tests.ts	2	0.001
 test/lua/memoryCensus.tests.ts	4	1.621
-unit	tests	cpu_s
