@@ -40,6 +40,8 @@ export interface RollbackPlayback {
    * state replaces it. Returns the frames it replayed.
    */
   repair(epoch: number, match: SpeculativeMatch, budget: number, cost?: number): number | "rejected";
+  /** The next frame a pending repair replays, if one is pending. */
+  pendingRepair(epoch: number): number | undefined;
   /**
    * Runs already-assigned speculative frames, at most `budget`, stopping
    * before `stopBefore` when given. False when a frame could not run.
@@ -77,14 +79,14 @@ export const CATCH_UP_FRAMES = 6;
  * correction 24 frames deep took one Lua32 callback 23 ms, with a message's
  * 6 confirmed frames and up to 6 predicted ones beside it
  * (smashcraft:docs/warcraft-api-netcode-findings.md, "What a callback costs").
- * A deep correction now shows a few callbacks later; 4 keeps the worst
- * callback inside #168's frame budget.
+ * A deep correction now shows a few callbacks later.
  */
 export const REPAIR_FRAMES = 4;
 
 /**
  * Repair units one callback spends (ReplayHistory.repair): a whole frame
- * costs REPAIR_WHOLE_COST, a fighter-scoped one 1.
+ * costs REPAIR_WHOLE_COST, a fighter-scoped one 1. Each whole frame costs a
+ * Lua32 callback about 2.5 ms, so the frame-cost budget (#168) bounds it.
  */
 export const REPAIR_COST = 4;
 

@@ -24,6 +24,7 @@ import { decodeTransport } from "../../game/netcode/journal/transport";
 import { captureReplaySnapshot, restoreReplaySnapshot } from "../../game/replay/snapshot";
 import { pacedStop, resetPauseBarrier, settlePace, stopFrame } from "../../game/shell/pauseBarrier";
 import { confirmedBudget, repairBudget, speculativeBudget } from "../../game/shell/playback";
+import { REPAIR_WHOLE_COST } from "../../game/replay/history";
 import { queueLocalRows } from "../../game/shell/localInput";
 import { applyFrame } from "./frame";
 import { ownConfirmedState } from "./confirmedState";
@@ -285,15 +286,20 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
     }
     probeIntegrity(probe, `rollback ${epoch} ${depth}`);
   }
+  const confirmSteps = confirmedBudget(schedule.confirmedFrame() - schedule.nextConfirmedFrame() + 1);
+  // Confirmation can reuse history only after accepted corrections have
+  // repaired it, through the frame after it: the repair replays the frames
+  // this callback confirms rather than running them twice.
+  const lastConfirmed = Math.min(schedule.confirmedFrame(), schedule.nextConfirmedFrame() + confirmSteps - 1, stopAt === undefined ? Number.POSITIVE_INFINITY : stopAt - 1);
+  const pending = rollback.playback.pendingRepair(epoch);
+  const behind = pending === undefined ? 0 : lastConfirmed + 2 - pending;
   const repair = repairBudget(speculativeBudget(journal !== undefined));
-  const repaired = rollback.playback.repair(epoch, speculative, repair.frames, repair.cost);
+  const repaired = rollback.playback.repair(epoch, speculative, Math.max(repair.frames, behind), Math.max(repair.cost, behind * REPAIR_WHOLE_COST));
   if (repaired === "rejected") {
     setStatus(s, "The match could not catch up. Restart the match.", LASTING);
     return;
   }
-  // Confirmation can reuse history only after accepted corrections have repaired it.
   let steps = 0;
-  const confirmSteps = confirmedBudget(schedule.confirmedFrame() - schedule.nextConfirmedFrame() + 1);
   while (s.game.phase === Phase.match && schedule.mayAdvanceConfirmed() && steps < confirmSteps && (stopAt === undefined || schedule.nextConfirmedFrame() < stopAt)) {
     if (!stepConfirmed(s, rollback)) {
       ownConfirmedState(s);

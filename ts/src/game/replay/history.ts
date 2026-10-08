@@ -214,6 +214,11 @@ export class ReplayHistory {
     return this.repeatedDecisions;
   }
 
+  /** The next frame a pending repair replays; stateAfter refuses it and the frame before it. */
+  pendingRepairFrame(epoch: number): number | undefined {
+    return epoch === this.current ? this.repairNext : undefined;
+  }
+
   /** Repaired frames that played only the corrected fighter. */
   scopedRepairSteps(): number {
     return this.scopedSteps;

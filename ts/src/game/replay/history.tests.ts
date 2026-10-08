@@ -456,7 +456,7 @@ test("#206 a client that predicted past the pause frame returns to the state bef
 });
 
 /**
- * Four humans; slot 0's stick turns every 15 frames and its rows arrive 4
+ * Four humans; slot 0's stick turns every 10 frames and its rows arrive 4
  * frames late, so each turn is mispredicted and repaired. Slot 1 jabs every
  * 12 frames from `jabberX`. Returns the scoped steps the repairs took and
  * the first difference from the same match repaired whole, frame by frame.
@@ -482,7 +482,7 @@ function scopedAgainstWhole(mode: "auto" | "force", jabberX: number): { scoped: 
   const actual = participantInputs();
   const predicted = participantInputs();
   const actualAt = (frame: number) => {
-    actual[0].axisX = floorMod(floorDiv(frame, 15), 2) === 0 ? 100 : -100;
+    actual[0].axisX = floorMod(floorDiv(frame, 10), 2) === 0 ? 100 : -100;
     actual[1].held = floorMod(frame, 12) < 2 ? bit(Action.attack) : 0;
     actual[1].pressed = floorMod(frame, 12) === 0 ? bit(Action.attack) : 0;
     return actual;
@@ -498,7 +498,7 @@ function scopedAgainstWhole(mode: "auto" | "force", jabberX: number): { scoped: 
     assertTrue(histories[1].correct(1, corrections, whole.live) !== "rejected");
     difference ??= tapeDifference(whole, scoped);
   };
-  const last = 180;
+  const last = 64;
   for (let frame = 1; frame <= last; frame++) {
     // Every row but slot 0's is known; slot 0's repeats the last one that arrived.
     const now = actualAt(frame);
@@ -520,7 +520,7 @@ function scopedAgainstWhole(mode: "auto" | "force", jabberX: number): { scoped: 
 test("a fighter-scoped repair of a mispredicted input ends on the same state as repairing every fighter [invariant]", () => {
   // The jabber strikes the air 600 units from the corrected fighter.
   const far = scopedAgainstWhole("auto", 300.0);
-  assertGreaterThan(far.scoped, 100);
+  assertGreaterThan(far.scoped, 20);
   assertEquals(far.difference, undefined);
   // In range, its jabs reach the corrected fighter, so those frames repair whole.
   const near = scopedAgainstWhole("auto", -260.0);

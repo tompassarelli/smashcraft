@@ -113,7 +113,7 @@ src/game/replay/fighterState.tests.ts	3	0.079
 src/game/replay/fixedPlayback.tests.ts	1	0.292
 src/game/replay/frameDigest.tests.ts	2	0.619
 src/game/replay/heroMoves.tests.ts	1	0.067
-src/game/replay/history.tests.ts	9	0.460
+src/game/replay/history.tests.ts	11	1.376
 src/game/replay/matchReplay.tests.ts	2	0.398
 src/game/replay/moment.tests.ts	4	0.637
 src/game/replay/shadowPlayback.tests.ts	7	0.358

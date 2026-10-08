@@ -44,6 +44,10 @@ class ReplayHistoryPlayback implements RollbackPlayback {
     return this.history.repair(epoch, budget, this.bind(match), cost);
   }
 
+  pendingRepair(epoch: number): number | undefined {
+    return epoch === this.current ? this.history.pendingRepairFrame(epoch) : undefined;
+  }
+
   catchUp(
     schedule: Parameters<RollbackPlayback["catchUp"]>[0],
     epoch: number,
