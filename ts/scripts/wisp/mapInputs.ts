@@ -268,7 +268,7 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
     const path = join(assets, list);
     const files = yield* importLines(path);
     yield* requireListed(path, files, models, `package them with ${generator}`);
-    return files.filter((file) => models.includes(`war3mapImported\\${file}`)).map((file) => imported(dirname(path), file));
+    return files.filter((file) => !file.toLowerCase().endsWith(".mdx") || models.includes(`war3mapImported\\${file}`)).map((file) => imported(dirname(path), file));
   }));
   const evidencePath = join(summon, "summon-clips-evidence.json");
   const evidence = yield* readJson(SummonEvidence, evidencePath);

@@ -944,7 +944,7 @@ if (import.meta.main) {
   const probePairs = probeFighter === undefined ? undefined : SELECTABLE_CHARACTERS.filter((other) => other !== probeFighter).map((other) => [probeFighter, other] as const);
   const pairs = probePairs ?? values.pairs?.split(",").map((pair) => {
     const [a, b, extra] = pair.split(":");
-    if (a === undefined || b === undefined || extra !== undefined || a === b) throw new Error(`--pairs takes pairs of different fighters, like archer:rifleman; not ${pair}`);
+    if (a === undefined || b === undefined || extra !== undefined || a === b) throw new Error(`--pairs takes pairs of different fighters, like illidan:rifleman; not ${pair}`);
     return [fighterNamed(a), fighterNamed(b)] as const;
   });
   const tierNamed = (value: string): CpuTier => {

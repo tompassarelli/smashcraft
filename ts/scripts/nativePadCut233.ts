@@ -131,7 +131,7 @@ const note = (event: string) => timeline.push({ event, hostMs: Date.now(), monot
 yield* Effect.gen(function*() {
   yield* Effect.sleep(300);
   for (const client of clients) yield* (keys(client, "ctrl+g"));
-  if (single) for (const setup of ["-dev reset", "-dev slots 1 2", "-dev fighter 2 archer"]) {
+  if (single) for (const setup of ["-dev reset", "-dev slots 1 2", "-dev fighter 2 illidan"]) {
     yield* (keys(host, "Escape", "Return"));
     yield* (typeText(host, setup));
     yield* (keys(host, "Return"));

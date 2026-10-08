@@ -188,9 +188,6 @@ export function passiveLandingMove(plan: Readonly<FighterGameplan>, kind: Passiv
     case PassiveKind.bash:
       for (const route of plan.combos) if (route.starter === move) return true;
       return false;
-    case PassiveKind.trueshot:
-      // Both arrows cash Trueshot: the plain arrow and the homing arrow (sim/passives.ts projectileOrigin).
-      return move === GameplanSpecial.neutral || move === GameplanSpecial.side;
     case PassiveKind.longRifles:
       return move === GameplanSpecial.neutral;
     case PassiveKind.vampiric:

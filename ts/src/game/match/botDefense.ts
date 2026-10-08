@@ -184,7 +184,6 @@ function spentOnShield(kind: PassiveKind): boolean {
   switch (kind) {
     case PassiveKind.criticalStrike:
     case PassiveKind.bash:
-    case PassiveKind.trueshot:
     case PassiveKind.longRifles:
     case PassiveKind.vampiric:
     case PassiveKind.voodoo:

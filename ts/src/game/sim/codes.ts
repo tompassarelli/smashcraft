@@ -169,7 +169,7 @@ export const ALL_ITEMS_MASK = 7;
 
 /** Each fighter's one passive (sim/passives.ts, #148). */
 export const PassiveKind = {
-  none: 0, criticalStrike: 1, bash: 2, blink: 3, trueshot: 4, longRifles: 5, frostArmor: 6, devotion: 7, vampiric: 8, voodoo: 9, cleave: 10, packHunt: 11, souls: 12, endurance: 16, pillage: 18,
+  none: 0, criticalStrike: 1, bash: 2, blink: 3, longRifles: 5, frostArmor: 6, devotion: 7, vampiric: 8, voodoo: 9, cleave: 10, packHunt: 11, souls: 12, endurance: 16, pillage: 18,
 } as const;
 export type PassiveKind = (typeof PassiveKind)[keyof typeof PassiveKind];
 
@@ -179,5 +179,5 @@ export type PassiveKind = (typeof PassiveKind)[keyof typeof PassiveKind];
  * the projectiles a passive feeds on by their own codes), or one the owner
  * didn't fire (a reflection), which no passive counts.
  */
-export const HitOrigin = { melee: 0, throw: 1, pummel: 2, summon: 3, projectile: 4, arrow: 5, blaster: 6, voodoo: 7, foreign: 8 } as const;
+export const HitOrigin = { melee: 0, throw: 1, pummel: 2, summon: 3, projectile: 4, blaster: 6, voodoo: 7, foreign: 8 } as const;
 export type HitOrigin = (typeof HitOrigin)[keyof typeof HitOrigin];

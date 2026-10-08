@@ -498,7 +498,7 @@ export function dashIn(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: n
   if (skill.kitTenths <= 0 || !f.motion.grounded || (f.tuning.moves?.dashAttack === undefined && f.character !== Character.demonHunter)) return;
   // A ready shot passive (Trueshot, Long Rifles) is cashed from range, not by running in.
   const kind = passiveSpec(f.character).kind;
-  if ((kind === PassiveKind.trueshot || kind === PassiveKind.longRifles) && passivePips(f).ready) return;
+  if (kind === PassiveKind.longRifles && passivePips(f).ready) return;
   const dx = f32(target.motion.x - f.motion.x);
   if (Math.abs(dx) > DASH_IN_FAR || Math.abs(f32(target.motion.z - f.motion.z)) > 40.0 || target.shield.raised || !safeAt(stage, target.motion.x, 0.0)) return;
   const stretch = floorDiv(frame, 40);

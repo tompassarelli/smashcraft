@@ -114,7 +114,6 @@ function counts(source: Readonly<Fighter>, kind: PassiveKind, origin: HitOrigin,
     case PassiveKind.criticalStrike: return origin === HitOrigin.melee;
     case PassiveKind.pillage: return origin === HitOrigin.melee;
     case PassiveKind.bash: return origin !== HitOrigin.pummel && origin !== HitOrigin.foreign && origin !== HitOrigin.summon;
-    case PassiveKind.trueshot: return origin === HitOrigin.arrow;
     case PassiveKind.vampiric: return origin === HitOrigin.melee || origin === HitOrigin.throw;
     case PassiveKind.voodoo: return origin === HitOrigin.voodoo || origin === HitOrigin.melee;
     case PassiveKind.blink: return origin === HitOrigin.melee && direct && isAerialAttack(source.attack.style);
@@ -220,9 +219,6 @@ export function sourcePassiveContact(
       effect.damage = roundToFloat32(f32(effect.damage + bonus));
       return PassiveProc.damage;
     }
-    case PassiveKind.trueshot:
-      effect.damage = roundToFloat32(f32(effect.damage * 2.0));
-      return PassiveProc.damage;
     case PassiveKind.bash: return PassiveProc.bash;
     case PassiveKind.vampiric: return PassiveProc.heal;
     case PassiveKind.pillage:

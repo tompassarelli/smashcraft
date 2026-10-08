@@ -4,6 +4,7 @@ import { CryDecision, createCryGate, cryStandIn, gateCry } from "../../game/pres
 import { deckModel, slabScale } from "../../game/presentation/stagePreload";
 import { type PlatformPart, platformParts } from "../../game/presentation/stockPlatforms";
 import { f32 } from "wisp/src/sim/f32";
+import { Character } from "../../game/sim/codes";
 import { at } from "wisp/src/runtime/lookup";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../../game/input/participants";
 import type { PacingAndPresentation } from "../../game/match/pacingAndPresentation";

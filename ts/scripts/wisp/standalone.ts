@@ -39,11 +39,11 @@ function keys(input: StandaloneInput): Set<number> {
 }
 
 /**
- * wisp#48's frame-rate match: reference on the bot beat's keys against computer
- * Rifleman, Illidan and reference, 99 stocks and a two-minute clock, so four
+ * wisp#48's frame-rate match: Illidan on the bot beat's keys against computer
+ * Rifleman, Illidan and Warden, 99 stocks and a two-minute clock, so four
  * fighters stay on stage for the whole measurement.
  */
-const FOUR_FIGHTERS = ["-dev slots 1 14", "-dev fighter 2 Rifleman", "-dev fighter 3 Illidan", "-dev fighter 4 Archer", "-dev time 2"];
+const FOUR_FIGHTERS = ["-dev slots 1 14", "-dev fighter 2 Rifleman", "-dev fighter 3 Illidan", "-dev fighter 4 Warden", "-dev time 2"];
 const FOUR_FIGHTER_STOCKS = 99;
 
 /** One map callback per step; scripts share the native driver's exact pad rows. */
@@ -86,7 +86,7 @@ export async function createStandaloneSession(options: { readonly script?: strin
       state.game.stockCount = FOUR_FIGHTER_STOCKS;
       startQuickMatch(state, 0, undefined, undefined, FOUR_FIGHTER_STOCKS);
     });
-    else if (script === undefined) client.run(() => applyDeveloperCommand(shell(), 0, "-dev quick cpu wren expert"));
+    else if (script === undefined) client.run(() => applyDeveloperCommand(shell(), 0, "-dev quick cpu wren expert hero illidan"));
     else clients.everywhere(() => driverCommand?.(script));
     if (value(() => shell().game.phase) !== Phase.match) throw new Error("standalone match did not start");
     if (script !== undefined) clients.everywhere(() => driverCommand?.("resume"));
