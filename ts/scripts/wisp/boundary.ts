@@ -1,5 +1,5 @@
 // Smashcraft's selection, developer-command and input-trace records.
-import { Effect, Schema } from "effect";
+import { Effect, Option, Schema } from "effect";
 import { preloadLines, preloadRecord, Count, Seconds, type GameFileKind } from "wisp/scripts/wisp/boundary";
 import { MAX_BATCH } from "../../src/game/netcode/journal/transport";
 import * as files from "../../src/runtime/gameFiles";
@@ -197,3 +197,11 @@ export const decodeWrittenGameFile = (name: string, path: string, text: string) 
   const kind = writtenGameFileKind(name);
   return kind === undefined ? Effect.void : kind.decode(path, text).pipe(Effect.asVoid);
 };
+
+const ChatEntryReceipt = Schema.Struct({ revision: Schema.FiniteFromString, available: Schema.Literals(["0", "1"]), open: Schema.Literals(["0", "1"]) });
+
+export function nativeChatEntryReceipt(text: string) {
+  const line = preloadLines(text)?.find((line) => line.startsWith("SMASHCRAFT CHAT v=1 "));
+  if (line === undefined) return undefined;
+  return Option.getOrUndefined(Schema.decodeUnknownOption(ChatEntryReceipt)(Object.fromEntries(line.split(" ").map((field) => field.split("=")))));
+}

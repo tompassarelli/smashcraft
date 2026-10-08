@@ -53,7 +53,7 @@ type HeadlessClient = ReturnType<HeadlessRuntime["clients"]>["clients"][number];
 import { sceneFile } from "wisp/src/runtime/scene";
 import { clientState } from "../project";
 import { onHealthyClients, readClientsFile } from "../doctor";
-import { DevCommandReceipt } from "../boundary";
+import { DevCommandReceipt, nativeChatEntryReceipt } from "../boundary";
 import { devCommandReceiptFile } from "../../../src/runtime/gameFiles";
 import { Phase } from "../../../src/game/match/rules";
 import { admitCaptures, captureLoad, requireCaptureLease, timingCheck, timingScripts } from "../captureCapacity";
@@ -239,14 +239,6 @@ export function nativeChatReceipt(text: string) {
   const line = preloadLines(text)?.find((line) => line.startsWith("SMASHCRAFT TEXT ACK v=1 "));
   if (line === undefined) return undefined;
   return Option.getOrUndefined(Schema.decodeUnknownOption(ChatReceipt)(Object.fromEntries(line.split(" ").map((field) => field.split("=")))));
-}
-
-const ChatEntryReceipt = Schema.Struct({ revision: Schema.FiniteFromString, available: Schema.Literals(["0", "1"]), open: Schema.Literals(["0", "1"]) });
-
-export function nativeChatEntryReceipt(text: string) {
-  const line = preloadLines(text)?.find((line) => line.startsWith("SMASHCRAFT CHAT v=1 "));
-  if (line === undefined) return undefined;
-  return Option.getOrUndefined(Schema.decodeUnknownOption(ChatEntryReceipt)(Object.fromEntries(line.split(" ").map((field) => field.split("=")))));
 }
 
 /** Selection has no journal epoch: observe Warcraft's own chat entry before sending any text. */
