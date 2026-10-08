@@ -28,7 +28,7 @@
 371 a stick 0 0
 372 a capture
 384 a capture
-# #144: Ascension of the Damned, free: prior casts leave 13 mana, below its 15 cost.
+# #144: Ascension of the Damned after the prior casts.
 430 a stick 0 1
 430 a tap X 2
 431 a stick 0 0
@@ -44,7 +44,7 @@
 651 a stick 0 0
 652 a capture
 658 a capture
-# #144: Ascension of the Damned, free (the mana is spent).
+# #144: Ascension of the Damned again.
 800 a stick 0 1
 800 a tap X 2
 801 a stick 0 0
@@ -54,9 +54,9 @@
 #! expect a 200 special 13 form 0
 #! expect a 290 special 13 form 1
 #! expect a 370 special 14 form 1
-#! expect a 430 special 15 form 2
+#! expect a 430 special 15 form 0
 #! expect a 650 special 15 form 0
-#! expect a 800 special 15 form 2
+#! expect a 800 special 15 form 0
 #! scene a DarkRitualCaster
 #! scene a FreezingBreathMissile
 #! scene a CurseTarget

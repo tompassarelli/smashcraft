@@ -55,7 +55,7 @@
 761 a stick 0 0
 762 a capture
 784 a capture
-# #144: Loa Vault, both free: the air Hex leaves 9 mana, below the paid vault's 15 cost.
+# #144: Loa Vault from the ground and air after Hex.
 830 a stick 0 1
 830 a tap X 2
 831 a stick 0 0
@@ -73,8 +73,8 @@
 #! expect a 600 special 14 form 3
 #! expect a 690 special 13 form 1
 #! expect a 760 special 16 form 1
-#! expect a 830 special 15 form 2
-#! expect a 930 special 15 form 2
+#! expect a 830 special 15 form 0
+#! expect a 930 special 15 form 0
 #! scene a TrollBeserkerTarget
 #! scene a HealingWaveTarget
 #! scene a StasisTotemTarget

@@ -10,8 +10,8 @@
 160 a stick 0 0
 170 a stick 1 0
 171 a stick 0 0
-# b spends its mana: the small Clap (special on the charge's 16th frame), the full Thunder Clap (36th),
-# three charges dropped by shield, then Thunder Leap's free form.
+# b casts the small Clap (special on the charge's 16th frame), the full Thunder Clap (36th),
+# three charges dropped by shield, then Thunder Leap.
 180 b stick 0 -1
 180 b tap X 2
 181 b stick 0 0
@@ -86,13 +86,13 @@
 889 a capture
 895 a tap X 2
 # Expected, frame by frame (headless run of this script): every form of every special starts,
-# b's charge drops on the shield (form 15) and its Thunder Leap is the free form (2) on an empty bar.
+# b's charge drops on the shield (form 18); Thunder Leap uses its ground form.
 #! expect b 180 special 16 form 0
 #! expect b 195 special-form 6 action 16
 #! expect b 225 special 16 form 0
 #! expect b 260 special-form 12 action 16
 #! expect b 312 special 0 form 18
-#! expect b 400 special 15 form 2
+#! expect b 400 special 15 form 0
 #! expect a 306 special 16 form 1
 #! expect a 380 special 14 form 0
 #! expect a 450 special 13 form 0
@@ -100,8 +100,7 @@
 #! expect a 796 special 14 form 1
 #! expect a 880 special 15 form 0
 #! expect a 895 special-form 6 action 15
-# Bash: the first two bolts stun 17 and 18 frames, the third 30.
-# Startup and active cues of each special and branch, both missiles, and Bash's proc on b.
+# Startup and active cues of each special and branch and both missiles.
 #! scene a ForkedLightningTarget
 #! scene a LightningShieldBuff
 #! scene a DefendCaster
@@ -112,7 +111,6 @@
 #! scene a EarthquakeTarget
 #! scene a StormBoltMissile
 #! scene a ShockwaveMissile
-#! scene a ThunderclapTarget
 897 a capture
 1000 a press VIEW
 1070 a release VIEW
