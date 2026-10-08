@@ -272,14 +272,14 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     return clipRate(dh.DEMON_HUNTER_GRAB_ESCAPE_SECONDS, ESCAPE_FRAMES);
   }
   if (reaction !== DamagePose.none) {
-    const contact = reaction !== DamagePose.shield && (f.launch.hitlag > 0 || reaction !== DamagePose.tumble);
+    const contact = reaction !== DamagePose.shield && f.launch.hitstun > 0;
     const key = contact ? `damage-contact${f.visuals.hitHeight}:${f.visuals.hitStrength}` : `damage${reaction}`;
     // Every new contact restarts the reaction.
     if (hit || pose.animation !== key) {
       selectFighterClipIndex(pose, (contact ? contactDamageClip(f) : clips.clipFor(character, damageClipPose(reaction))).index);
       pose.animation = key;
     }
-    return contact ? clipRate(contactDamageClip(f).seconds, REACTION_CLIP_FRAMES) : rate;
+    return contact ? 0.0 : rate;
   }
   if (f.special.fall) {
     playIndex(pose, "specialfall", clips.clipFor(character, "fallSpecial").index);

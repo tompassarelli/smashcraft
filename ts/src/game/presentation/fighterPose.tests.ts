@@ -128,7 +128,7 @@ test("replaying rows from a restored frame reproduces each pose's selection and 
   }
 });
 
-test("hitlag freezes the reaction clip and a repeated hit restarts it [spec #181]", () => {
+test("hitstun holds the contact pose and a repeated hit restarts it [spec #181]", () => {
   for (const character of [Character.rifleman, Character.demonHunter]) {
     const f = createFighter(character, 0.0, 1);
     const world = soloWorld(f);
@@ -149,7 +149,7 @@ test("hitlag freezes the reaction clip and a repeated hit restarts it [spec #181
     advanceFighterPose(pose, f, world, input, false, false, false, false);
     assertEquals(pose.selectionSerial, selected);
     advanceFighterPose(pose, f, world, input, false, false, false, false);
-    assertGreaterThan(pose.clipTime, 0.0);
+    assertEquals(pose.clipTime, 0.0);
     f.launch.hitlag = 3;
     advanceFighterPose(pose, f, world, input, false, false, false, true);
     assertEquals(pose.selectionSerial, selected + 1);
@@ -161,7 +161,7 @@ test("hitlag freezes the reaction clip and a repeated hit restarts it [spec #181
   }
 });
 
-test("all 117 contact reactions interrupt the current attack on contact and hold throughout hitlag [spec #181]", () => {
+test("contact reactions interrupt an attack, hold through airborne hitstun and recover after release [spec #181]", () => {
   for (const character of SELECTABLE_CHARACTERS) for (const facing of [-1, 1]) {
     for (let height = 0; height < 3; height++) for (let strength = 0; strength < 3; strength++) {
       const f = createFighter(character, 0.0, facing);
@@ -190,8 +190,18 @@ test("all 117 contact reactions interrupt the current attack on contact and hold
       f.launch.hitlag = 0;
       f.motion.grounded = false;
       advanceFighterPose(pose, f, world, input, false, false, false, false);
-      assertTrue(pose.clipIndex !== contactDamageClip(f).index);
+      assertEquals(pose.clipIndex, contactDamageClip(f).index);
+      assertEquals(pose.clipTime, 0.0);
+      assertEquals(pose.rate, 0.0);
+      for (let held = 0; held < 40; held++) {
+        advanceFighterPose(pose, f, world, input, false, false, false, false);
+        assertEquals(pose.clipIndex, contactDamageClip(f).index);
+        assertEquals(pose.clipTime, 0.0);
+      }
       assertEquals(f.launch.hitstun, 40);
+      f.launch.hitstun = 0;
+      advanceFighterPose(pose, f, world, input, false, false, false, false);
+      assertTrue(pose.clipIndex !== contactDamageClip(f).index);
     }
   }
 });
@@ -270,4 +280,3 @@ test("a hero holder's contact gesture also freezes when only the held fighter st
   assertEquals(pose.clipTime, clipFor(Character.forsakenPaladin, "throwUp").contact);
   assertEquals(pose.rate, 0.0);
 });
-
