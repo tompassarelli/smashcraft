@@ -61,22 +61,23 @@
 651 a stick 0 0
 652 a capture
 660 a capture
-# Spend the mana: Death and Decay, two Frost Novas.
-730 a stick 1 0
-730 a tap X 2
-731 a stick 0 0
-732 a capture
-738 a capture
+# Spend the mana after Spectral Ascent lands and its landing lag ends (#189).
+740 a stick 1 0
+740 a tap X 2
+741 a stick 0 0
+742 a capture
+748 a capture
 790 a tap X 2
 792 a capture
 808 a capture
-840 a tap X 2
-842 a capture
-858 a capture
+# Let mana recover before the second paid Frost Nova.
+1020 a tap X 2
+1022 a capture
+1038 a capture
 # #144: Spectral Ascent, free.
-882 a stick 0 1
-882 a tap X 2
-883 a stick 0 0
+1062 a stick 0 1
+1062 a tap X 2
+1063 a stick 0 0
 # Expected, frame by frame (headless run of this script): every special form starts on its frame,
 # b's first two hits on a fill Frost Armor, and the third (a 183) is taken with it ready.
 #! expect a 125 damage 3.000 hitlag 4 hitstun 10
@@ -89,10 +90,10 @@
 #! expect a 470 special 14 form 0
 #! expect a 598 special 13 form 1
 #! expect a 650 special 15 form 0
-#! expect a 730 special 14 form 0
+#! expect a 740 special 14 form 0
 #! expect a 790 special 13 form 0
-#! expect a 840 special 13 form 0
-#! expect a 882 special 15 form 2
+#! expect a 1020 special 13 form 0
+#! expect a 1062 special 15 form 2
 #! scene a FrostArmorTarget
 #! scene a SpiritTouchTarget
 #! scene a FreezingBreathTargetArt
@@ -105,7 +106,7 @@
 #! scene a FrostBoltMissile
 #! scene a FrostNovaTarget
 #! scene a DeathAndDecayTarget
-884 a capture
-892 a capture
-1000 a press VIEW
-1070 a release VIEW
+1064 a capture
+1072 a capture
+1180 a press VIEW
+1250 a release VIEW
