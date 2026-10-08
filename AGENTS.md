@@ -212,7 +212,7 @@ code. From smashcraft:ts/:
   `bun tools/animations/down-air-captures.ts PRIVATE_ASSETS PRIVATE_OUTPUT` writes
   both-facing down-air sheets from production pose selection and the roster's
   strike-height inventory (smashcraft:docs/down-airs.md).
-  `bun tools/animations/pain-captures.ts PRIVATE_OUTPUT` plays accepted hits through
+  `bun tools/animations/pain-captures.ts PRIVATE_OUTPUT [FIRST_FIGHTER_SLUG]` plays accepted hits through
   the Wisp map, checks held hitstun and recovery, validates the bound pain models,
   and renders interruption, entry, held and recovery frames for the remaining roster.
   `bun tools/animations/grab-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT [--character ID]` appends

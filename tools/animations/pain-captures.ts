@@ -8,11 +8,12 @@ import { originalClip } from "../../ts/src/game/assets/fighterOriginalClipInfo";
 import { contactDamageClip } from "../../ts/src/game/presentation/damagePose";
 import { SELECTABLE_CHARACTERS, fighterName, fighterSlug } from "../../ts/src/game/sim/heroes/registry";
 import { Character } from "../../ts/src/game/sim/codes";
+import { FORSAKEN_PALADIN_DAMAGE_MULTIPLIER } from "../../ts/src/game/sim/heroes/forsakenPaladinHammer";
 import { fighterAt } from "../../ts/src/game/sim/roster";
 import { shell } from "../../ts/src/platform/shell/state";
 import { ensure, parseSource, tracks } from "./original-clips";
 
-const [outputArg] = process.argv.slice(2);
+const [outputArg, from] = process.argv.slice(2);
 ensure(outputArg, "usage: bun tools/animations/pain-captures.ts PRIVATE_OUTPUT");
 const output = resolve(outputArg);
 ensure(relative(resolve(import.meta.dir, "../.."), output).startsWith(".."), "captures stay private");
@@ -20,7 +21,9 @@ ensure(relative(resolve(import.meta.dir, "../.."), output).startsWith(".."), "ca
 await Effect.runPromise(Effect.gen(function*() {
   const assets = assetsView(yield* readManifest());
   const checkedModels = new Set<string>();
-  for (const character of SELECTABLE_CHARACTERS) {
+  const first = from === undefined ? 0 : SELECTABLE_CHARACTERS.findIndex(character => fighterSlug(character) === from);
+  ensure(first >= 0, `Unknown fighter: ${from}`);
+  for (const character of SELECTABLE_CHARACTERS.slice(first)) {
     if (character === Character.archer) continue;
     const session = yield* Effect.tryPromise({
       try: () => createStandaloneSession({ presentation: "pool-confirmed", script: [
@@ -37,7 +40,8 @@ await Effect.runPromise(Effect.gen(function*() {
         session.client.run(() => {
           const state = shell(), fighter = fighterAt(state.world, 0), pose = state.runtime.poses[0];
           if (frame === 150) {
-            ensure(fighter.status.damage === 8 && fighter.launch.hitstun > 0, `${fighterName(character)}: contact missing`);
+            const damage = character === Character.forsakenPaladin ? Math.fround(8 * FORSAKEN_PALADIN_DAMAGE_MULTIPLIER) : 8;
+            ensure(fighter.status.damage === damage && fighter.launch.hitstun > 0, `${fighterName(character)}: contact missing, damage ${fighter.status.damage}, want ${damage}, hitstun ${fighter.launch.hitstun}`);
             selected = contactDamageClip(fighter).index;
             ensure(pose.clipIndex === selected && pose.clipTime === 0 && pose.rate === 0, `${fighterName(character)}: contact pose not held`);
           }
