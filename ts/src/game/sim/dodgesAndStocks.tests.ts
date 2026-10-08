@@ -33,7 +33,7 @@ test("an air dodge changes velocity, and landing restores jumps [reference] [spe
   advanceSolo(fighter, 0, input, -240.0);
   assertTrue(fighter.motion.vx > 0);
   assertTrue(fighter.motion.vz < 0);
-  assertNear(fighter.motion.vx, 11.836966514587402, 0.009999999776482582);
+  assertNear(fighter.motion.vx, 12.982479095458984, 0.009999999776482582);
   let ticks = 0;
   input.airDodgePressed = false;
   input.dodgeX = 0;
@@ -53,6 +53,33 @@ test("an air dodge changes velocity, and landing restores jumps [reference] [spe
 });
 
 const ALL_FIGHTERS = Object.values(Character);
+
+test("air-dodge travel stays above Melee without touching ground [spec #347]", () => {
+  const fighter = createFighter(Character.rifleman, 0.0, 1);
+  fighter.motion.grounded = false;
+  fighter.motion.z = 3000.0;
+  beginAirDodge(fighter, 1, 1);
+  for (let frame = 0; frame < 29; frame++) advanceSolo(fighter, 0, controls(), 0.0);
+  // #347: 3.4 * 6 * diagonal unit * sum(0.9^1 ... 0.9^29).
+  assertNear(fighter.motion.x, f32(123.7098896281836), f32(0.001));
+  assertNear(fighter.motion.z, f32(3123.7098896281836), f32(0.002));
+  assertFalse(fighter.motion.grounded);
+});
+
+test("Rifleman's wavedash carries the stronger dodge through landing traction [spec #347]", () => {
+  const fighter = createFighter(Character.rifleman, 0.0, 1);
+  fighter.motion.grounded = false;
+  fighter.motion.z = 1.0;
+  beginAirDodge(fighter, 1, 0);
+  advanceSolo(fighter, 0, controls(), 0.0);
+  assertTrue(fighter.motion.grounded);
+  assertEquals(fighter.landing.lag, 10);
+  for (let frame = 1; frame < 10; frame++) advanceSolo(fighter, 0, controls(), 0.0);
+  // #347: ten landing ticks at 3.4 * 6 * cos(18) * 0.9, minus 0.48 * sum(1 ... 9).
+  assertNear(fighter.motion.x, f32(153.01399168968203), f32(0.001));
+  assertEquals(fighter.landing.lag, 1);
+  assertFalse(canAttack(fighter));
+});
 
 /** A fighter of `character` high above the stage that air dodges down-right this frame. */
 function airDodgedFighter(character: Character): Fighter {
@@ -152,14 +179,14 @@ test("an air dodge replaces prior movement and launch momentum [reference] [spec
     advanceSolo(fighter, 0, input, 0.0);
     assertEquals(fighter.launch.knockbackX, 0.0);
     assertEquals(fighter.launch.knockbackZ, 0.0);
-    assertNear(fighter.motion.x, direction * 15.920684814453125, 0.0010000000474974513);
-    assertNear(fighter.motion.vx, direction * 15.920684814453125, 0.0010000000474974513);
-    assertNear(fighter.motion.z, 300.0 - direction * 5.172944068908691, 0.0010000000474974513);
-    assertNear(fighter.motion.vz, -direction * 5.172944068908691, 0.0010000000474974513);
+    assertNear(fighter.motion.x, direction * 17.461397171020508, 0.0010000000474974513);
+    assertNear(fighter.motion.vx, direction * 17.461397171020508, 0.0010000000474974513);
+    assertNear(fighter.motion.z, 300.0 - direction * 5.673551559448242, 0.0010000000474974513);
+    assertNear(fighter.motion.vz, -direction * 5.673551559448242, 0.0010000000474974513);
     input.airDodgePressed = false;
     advanceSolo(fighter, 0, input, 0.0);
-    assertNear(fighter.motion.x, direction * 30.24930191040039, 0.0010000000474974513);
-    assertNear(fighter.motion.z, 300.0 - direction * 9.828594207763672, 0.0010000000474974513);
+    assertNear(fighter.motion.x, direction * 33.17665481567383, 0.0010000000474974513);
+    assertNear(fighter.motion.z, 300.0 - direction * 10.779748916625977, 0.0010000000474974513);
   }
 });
 
@@ -170,9 +197,9 @@ test("a horizontal air dodge defaults to a shallow wavedash on both sides [refer
       fighter.motion.grounded = false;
       fighter.motion.z = 1.0;
       beginAirDodge(fighter, direction, 0);
-      assertNear(fighter.motion.vx, direction * 17.689651489257812, 0.00009999999747378752);
-      assertNear(fighter.motion.vz, -5.747715950012207, 0.00009999999747378752);
-      assertNear(f32(f32(fighter.motion.vx * fighter.motion.vx) + f32(fighter.motion.vz * fighter.motion.vz)), 345.9599914550781, 0.0010000000474974513);
+      assertNear(fighter.motion.vx, direction * 19.401554107666016, 0.00009999999747378752);
+      assertNear(fighter.motion.vz, -6.303946495056152, 0.00009999999747378752);
+      assertNear(f32(f32(fighter.motion.vx * fighter.motion.vx) + f32(fighter.motion.vz * fighter.motion.vz)), 416.1600036621094, 0.0010000000474974513);
       const input = controls();
       advanceSolo(fighter, 0, input, 0.0);
       assertTrue(fighter.motion.grounded);
@@ -211,7 +238,7 @@ test("a diagonal air dodge displaces both axes with the same decayed vector [ref
     fighter.motion.z = 300.0;
     beginAirDodge(fighter, 1, direction);
     const input = controls();
-    let displacement = 11.836966514587402;
+    let displacement = 12.982479095458984;
     let distance = 0.0;
     for (let frame = 1; frame <= 29; frame++) {
       advanceSolo(fighter, 0, input, 0.0);

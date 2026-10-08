@@ -1322,14 +1322,14 @@ test("the retail aerial fast-fall diagonal restriction doesn't refresh a held do
   }
 });
 
-test("a retail aerial dodge uses the extracted force and decay for every digital direction [reference]", () => {
+test("a stronger aerial dodge keeps retail decay for every digital direction [spec #347] [reference]", () => {
   for (const horizontal of [-1, 0, 1]) {
     for (const vertical of [-1, 0, 1]) {
       const f = airborneFalco();
       const input = controls();
       beginAirDodge(f, horizontal, vertical);
-      const launchX = horizontal * (vertical === 0 ? f32(17.6896506589) : f32(13.1521857265));
-      const launchZ = horizontal === 0 ? vertical * f32(18.5999994278) : vertical === 0 ? -f32(5.7477159186) : vertical * f32(13.1521857265);
+      const launchX = horizontal * (vertical === 0 ? f32(19.401552200317383) : f32(14.424978256225586));
+      const launchZ = horizontal === 0 ? vertical * f32(20.399999618530273) : vertical === 0 ? -f32(6.303946495056152) : vertical * f32(14.424978256225586);
       assertNear(f.motion.vx, launchX, f32(0.00001));
       assertNear(f.motion.vz, launchZ, f32(0.00001));
       // The launch check above permits approximate native trig; the decay
@@ -1364,7 +1364,7 @@ test("a retail aerial dodge uses the extracted force and decay for every digital
   }
 });
 
-test("a retail aerial dodge resumes gravity and drift on tick thirty [reference]", () => {
+test("a stronger aerial dodge resumes gravity and drift on tick thirty [spec #347] [reference]", () => {
   for (const mode of [0, 1, 2]) {
     for (const steer of [-1, 0, 1]) {
       const f = airborneFalco();
@@ -1376,10 +1376,10 @@ test("a retail aerial dodge resumes gravity and drift on tick thirty [reference]
       }
       const directionZ = mode === 1 ? 1 : -1;
       // Positions accumulate in original units; only assertions project to world units.
-      const beforeX = mode === 0 ? 0.0 : 18.799043655395508;
-      const beforeZ = mode === 0 ? 50.0 : mode === 1 ? 68.79904174804688 : 31.20094871520996;
-      const beforeVX = mode === 0 ? 0.0 : 0.6194844245910645;
-      const beforeVZ = mode === 0 ? 0.0 : f32(directionZ * 0.6194844245910645);
+      const beforeX = mode === 0 ? 0.0 : 20.618309020996094;
+      const beforeZ = mode === 0 ? 50.0 : mode === 1 ? 70.61831665039062 : 29.381690979003906;
+      const beforeVX = mode === 0 ? 0.0 : 0.6794346570968628;
+      const beforeVZ = mode === 0 ? 0.0 : f32(directionZ * 0.6794346570968628);
       assertNear(f.motion.x, melee(beforeX), f32(0.00001));
       assertNear(f.motion.z, melee(beforeZ), f32(0.00001));
       assertNear(f.motion.vx, beforeVX, f32(0.00001));
@@ -1508,4 +1508,3 @@ test("sampled rolls move through their actual entry, a freeze and recovery [refe
     }
   }
 });
-
