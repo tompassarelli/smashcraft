@@ -72,7 +72,7 @@ class ReplayHistoryPlayback implements RollbackPlayback {
   }
 
   confirmedState(epoch: number, frame: number, row: Readonly<MatchFrameInput>): Readonly<ReplayState> | undefined {
-    return epoch === this.current ? this.history.stateAfter(epoch, frame, row, this.state) : undefined;
+    return epoch === this.current ? this.history.stateAfter(epoch, frame, row) : undefined;
   }
 
   visitWorlds(visit: (world: Roster) => void): void {

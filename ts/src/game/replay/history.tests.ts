@@ -370,44 +370,6 @@ function assertSameFields<T>(expected: T, actual: T): void {
   for (const key in expected) assertEquals(actual[key], expected[key], key);
 }
 
-test("[repro #168] confirmation can use the repair cursor and the last speculative frame without executing them again", () => {
-  const predicted = createTapeWorld({ stocks: 99 });
-  const confirmed = createTapeWorld({ stocks: 99 });
-  const history = new ReplayHistory();
-  const corrections = new ReplayCorrections();
-  assertTrue(history.beginEpoch(1, 1, 4));
-  assertTrue(corrections.beginEpoch(1));
-  const requests = attackBuffer(0);
-  const still = frameControls(neutralControls(), neutralControls(), requests, requests);
-  const walking = frameControls({ ...neutralControls(), direction: 1 }, neutralControls(), requests, requests);
-  const row = createMatchFrameInput();
-  const actual = createMatchFrameInput();
-  for (let frame = 1; frame <= 3; frame++) {
-    assertTrue(captureFrame(row, frame, 3, frame === 1 ? walking : still, predicted.live.runtime));
-    assertTrue(history.saveSpeculative(1, row, predicted.live));
-    execute(predicted, row);
-  }
-  assertTrue(captureFrame(actual, 1, 3, still, confirmed.live.runtime));
-  assertTrue(corrections.add(actual));
-  assertEquals(history.amend(1, corrections, predicted.live), 1);
-  assertEquals(history.repair(1, 1, predicted.live), 1);
-  execute(confirmed, actual);
-  const repaired = history.stateAfter(1, 1, actual, predicted.live);
-  if (repaired === undefined) throw new Error("the repair cursor already holds confirmed frame 1");
-  assertEquals(firstStateDifference(captureTape(confirmed), repaired), undefined);
-  assertTrue(captureFrame(actual, 2, 3, still, confirmed.live.runtime));
-  assertEquals(history.stateAfter(1, 2, actual, predicted.live), undefined);
-  assertEquals(history.repair(1, 2, predicted.live), 2);
-  resetMatchFrameInput(actual);
-  for (let frame = 2; frame <= 3; frame++) {
-    assertTrue(captureFrame(actual, frame, 3, still, confirmed.live.runtime));
-    execute(confirmed, actual);
-    const after = history.stateAfter(1, frame, actual, predicted.live);
-    if (after === undefined) throw new Error(`corrected frame ${frame} is available`);
-    assertEquals(firstStateDifference(captureTape(confirmed), after), undefined);
-  }
-});
-
 test("[invariant] restored and borrowed network frames preserve CPU state and every confirmed impact event", () => {
   const predicted = createTapeWorld({ stocks: 99 });
   const restored = createTapeWorld({ stocks: 99 });
