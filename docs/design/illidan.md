@@ -4,13 +4,12 @@ Owner direction (Tom, 7 Oct 2026, after playtesting): "I don't really know
 what his side/forward B does at all. Look at how Demon Hunters work in modern
 World of Warcraft and how Illidan works as a raid boss, and come up with
 interesting design improvements to how he plays and functions." Same day,
-through the orchestrator: keep Mana Burn and make draining mana the core of
-his identity, with mana now a real resource for every fighter (the mana lane,
-smashcraft:docs/design/mana.md once it lands). Tom refined it: no separate
-passive; Illidan's attacks simply drain the target's mana on hit, scaled per
-move, so his big combos drain a lot and that is what limits the opponent's
-options, and Mana Burn's stun grows as the target's mana empties. His
-gameplan: whittle mana, then stun.
+his expressive actions carry the identity: warglaive chains, Fel Rush branches,
+wing glide, plunge and Eye Blast. Tom revised the resource rule on 9 Oct
+(#148/#335): ordinary hits and throws no longer drain another fighter's
+meter; all fighters use the same damage-dealt/taken gain rules. Named spells
+remain deliberate actions. There is no replacement passive quota.
+
 
 Numbers are provisional authoring values, not measured balance. Frames follow
 the roster notation (smashcraft:docs/design/roster.md): the press is frame 1,
