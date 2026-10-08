@@ -5,6 +5,9 @@
 // The remainder (no GAME_TESTS) also runs the memory census and stack checks.
 // The stack plugin instruments a whole bundle, so the stack-trace profile's
 // TypeScript frames are checked in a second bundle, after the tests pass.
+// On the farm (`wisp farm test`), LUA_TESTS_STEP=compile only compiles the
+// remainder's bundle (every module and the census) for sharded runs
+// (test/lua/entry.ts), and LUA_TESTS_STEP=stack runs only the stack check.
 import { runAdmitted } from "./heavyCapacity";
 
 await runAdmitted("moderate", "smashcraft:lua-tests", 1800);
@@ -24,11 +27,14 @@ if (modules.length === 0) throw new Error("No Lua test modules match GAME_TESTS 
 const imports = modules.map((module) => `import "../../${module.replace(/\.ts$/, "")}";`);
 if (remainder) imports.push('import "./memoryCensus.tests";');
 await Bun.write("test/lua/index.ts", `${imports.join("\n")}\n`);
-const steps = [
-  () => compile("tsconfig.lua-tests.json"),
-  () => run("build/lua-tests/tests.lua"),
-  ...(soak || !remainder ? [] : [() => compile("tsconfig.lua-stack.json"), () => run("build/lua-stack/stack.lua")]),
-];
+const only = process.env.LUA_TESTS_STEP;
+const steps = only === "compile" ? [() => compile("tsconfig.lua-tests.json")]
+  : only === "stack" ? [() => compile("tsconfig.lua-stack.json"), () => run("build/lua-stack/stack.lua")]
+  : [
+    () => compile("tsconfig.lua-tests.json"),
+    () => run("build/lua-tests/tests.lua"),
+    ...(soak || !remainder ? [] : [() => compile("tsconfig.lua-stack.json"), () => run("build/lua-stack/stack.lua")]),
+  ];
 for (const step of steps) {
   const exitCode = step();
   if (exitCode !== 0) process.exit(exitCode);

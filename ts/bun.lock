@@ -14,7 +14,7 @@
         "typescript-native": "npm:typescript@7.0.2",
         "typescript-to-lua": "1.37.1",
         "war3-model": "4.0.1",
-        "wisp": "file:vendor/wisp-17204e1cdd4101f9796c267298be70f1fe2f4a2f.tgz",
+        "wisp": "file:vendor/wisp-ad6f830807e77cbcf037a094acc3f31eb92c1d08.tgz",
       },
     },
   },
@@ -131,6 +131,6 @@
 
     "war3-model": ["war3-model@4.0.1", "", { "dependencies": { "gl-matrix": "3.3.0" } }, "sha512-1jzV2756ty16m9XO8bdXsPF4mxvMK/RGed8b9WZ3Slw76kYdrhty8OQ+UAykdIrhlqzEYwyON+pLbXI5a+yURg=="],
 
-    "wisp": ["wisp@vendor/wisp-17204e1cdd4101f9796c267298be70f1fe2f4a2f.tgz", { "dependencies": { "dds-parser": "1.0.1", "effect": "4.0.1", "gl-matrix": "3.3.0", "source-map": "0.7.6", "typescript": "6.0.2", "typescript-native": "npm:typescript@7.0.2", "typescript-to-lua": "1.37.1", "w3gjs": "4.3.0" } }, "sha512-sPFx42QwBqt425rqxMYeXKXw8l9RUstr+eMimzf9LzcEvuZrNOXAiIlLUcBdlnwO/herz+yxKiBzbRoWLYlqew=="],
+    "wisp": ["wisp@vendor/wisp-ad6f830807e77cbcf037a094acc3f31eb92c1d08.tgz", { "dependencies": { "dds-parser": "1.0.1", "effect": "4.0.1", "gl-matrix": "3.3.0", "source-map": "0.7.6", "typescript": "6.0.2", "typescript-native": "npm:typescript@7.0.2", "typescript-to-lua": "1.37.1", "w3gjs": "4.3.0" } }, "sha512-CuCQaVne0F2YIA6mfSMWmGYlqb5aATDt/OwK7VRgoqYddR16dQgvgAiaNRIPr/+FVgjyMRAOvsVZJoPWttHM6w=="],
   }
 }

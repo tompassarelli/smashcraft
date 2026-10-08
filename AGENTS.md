@@ -86,8 +86,12 @@ development loop for Warcraft maps in TypeScript. Read
 warcraft-modding before changing TypeScript
 or code in a running game, and smashcraft:docs/typescript.md before writing map
 code. From smashcraft:ts/:
-- Logic: `bun run test`, plus `LUA=<32-bit lua> bun scripts/lua-tests.ts` for the
-  emitted Lua. `bun run check` type-checks.
+- Logic: run the tests a change affects locally (`bun wisp dev`), full suites
+  on the farm: `bun wisp farm test --wait` runs the full Bun suite (`bun run
+  test`) and the 32-bit Lua suite (`LUA=<32-bit lua> bun scripts/lua-tests.ts`)
+  for HEAD on GitHub's free runners and prints the counts and each failing
+  test (wisp:docs/farm.md). Don't run the full suites on this machine.
+  `bun run check` type-checks.
 - Every save: leave `bun wisp dev` running. It prints the saved files' type
   errors, the affected unit tests, the journeys (the quick match in two
   simulated clients and the affected journey tests) and the whole check, each
@@ -445,7 +449,10 @@ code. From smashcraft:ts/:
   selection (grid, stepping, opening picks) for players and computers, while
   measurement tools and named `-dev` commands keep every fighter. Empty
   unless the balance owner cuts a release build (smashcraft:docs/design/roster.md, "Balance gate").
-- Compute farm: `bun wisp farm balance [--ref REF] [--wait]` plays the
+- Compute farm: `bun wisp farm test [--ref REF] [--wait]` runs the full Bun
+  and 32-bit Lua suites, sharded by measured time
+  (smashcraft:.github/workflows/farm-test.yml).
+  `bun wisp farm balance [--ref REF] [--wait]` plays the
   balance gate's computer field (Wren Expert, 400 a pair; `--opponent`, `--tier`,
   `--per-pair`, `--seeds`) on GitHub's free hosted runners, a `cpuField
   --pairs` process a core over about 17 jobs, and with `--wait` prints the
