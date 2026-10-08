@@ -22,6 +22,22 @@ test("a delayed horizontal attack forecast advances the observed target without 
   assertEquals(delayed.motion.deltaX, -12.0);
 });
 
+test("a delayed airborne target lands on Medivh's raised deck and brakes there instead of drifting behind him [repro #345]", () => {
+  // The frame-136 observation from the raised-deck reach sweep: the target 12 frames ago, falling onto the deck at 170.
+  const own = createFighter(Character.medivh, -341.6878662109375, -1);
+  own.motion.z = 170.0;
+  own.motion.surface = 1;
+  const delayed = createFighter(Character.rifleman, -302.3282165527344, 1);
+  delayed.motion.z = 184.50306701660156;
+  delayed.motion.grounded = false;
+  delayed.motion.surface = undefined;
+  delayed.motion.deltaX = -3.75347900390625;
+  delayed.motion.deltaZ = -0.7594757080078125;
+  // The target actually stood at -309.4, 32 ahead of Medivh; drifting on through the landing put it 5.7 behind him.
+  assertGreaterThan(aheadX(own, delayed, 0, undefined, 12, 1, 136), 0.0);
+  assertEquals(aheadX(own, delayed, 0, undefined, 12), -5.682098388671875);
+});
+
 test("twenty attack choices from a delayed moving target match its current-position reference [invariant]", () => {
   const own = createFighter(Character.rifleman, 0.0, 1);
   const delayed = createFighter(Character.rifleman, 300.0, -1);

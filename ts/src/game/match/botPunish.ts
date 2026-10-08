@@ -211,7 +211,7 @@ export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, st
     // A gameplan's spacing tool that arrives in time is its punish; otherwise the fastest move that does.
     const tool = plan !== undefined && spacingTool(plan, style === move ? move : AttackStyle.dashAttack);
     const better = best === undefined || (tool && !bestTool) || (tool === bestTool && startup < bestStartup);
-    const x = Math.abs(aheadX(f, target, startup, style, observationAge));
+    const x = Math.abs(aheadX(f, target, startup, style, observationAge, stage, matchFrame));
     if (startup <= believed && better && moveReaches(f.character, style, target, x, aheadZ(f, target, startup, stage, matchFrame, observationAge), moves) && grabSure(f, style, target, x)) {
       best = move;
       bestStartup = startup;
@@ -221,10 +221,10 @@ export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, st
     if (shielding || runFits) continue;
     const ran = runningStyle(f, move);
     const ranStartup = attackStartupFrames(ran, moves);
-    const short = f32(Math.abs(aheadX(f, target, ranStartup, undefined, observationAge)) - moveReachAhead(f.character, ran, target, moves));
+    const short = f32(Math.abs(aheadX(f, target, ranStartup, undefined, observationAge, stage, matchFrame)) - moveReachAhead(f.character, ran, target, moves));
     if (short > 0 && short <= RUN_FAR && Math.ceil(f32(short / speed)) + ranStartup <= believed) runFits = true;
   }
-  const dx = aheadX(f, target, 0, undefined, observationAge);
+  const dx = aheadX(f, target, 0, undefined, observationAge, stage, matchFrame);
   const toward = dx === 0 ? (f.facing < 0 ? -1 : 1) : dx > 0 ? 1 : -1;
   if (best !== undefined) {
     queueAttack(commands, { style: best, facing: toward, frame, mayCharge: false });

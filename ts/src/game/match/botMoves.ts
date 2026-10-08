@@ -16,7 +16,7 @@ import { attackStartupFrames } from "../sim/moves";
 import type { FighterMoves } from "../sim/heroMoves";
 import type { Controls } from "../sim/roster";
 import { immolationRegion } from "../sim/specials";
-import { deckUnder, heightAhead, safeAt, slideStaysOnDeck } from "./botFooting";
+import { deckUnder, heightAhead, horizontalAhead, safeAt, slideStaysOnDeck } from "./botFooting";
 import { HeroSpecialUse, heroSpecialUse } from "./botHeroKit";
 import { SpecialSlot } from "../sim/heroSpecials";
 import { SPACE_PLAN, avoids, gameplanOf, moveWeight, spacedAt, toGameplanMove } from "./botGameplan";
@@ -116,14 +116,14 @@ export function moveReachAhead(character: Character, style: AttackStyle, target:
   return style === AttackStyle.grab ? Math.min(reach, SHARED_GRAB_REGION.maxX) : reach;
 }
 
-/** The delayed target keeps its observed velocity; the attacker starts sliding now. */
-export function aheadX(f: Readonly<Fighter>, target: Readonly<Fighter>, frames: number, style?: AttackStyle, observationAge = 0): number {
+/** The delayed target keeps its observed velocity until it lands on a deck of `stage` (none for -1); the attacker starts sliding now. */
+export function aheadX(f: Readonly<Fighter>, target: Readonly<Fighter>, frames: number, style?: AttackStyle, observationAge = 0, stage = -1, matchFrame = 0): number {
   const startupTravel = style === undefined ? undefined : f.tuning.moves?.normals[style]?.startupTravelX;
-  const observedNow = f32(target.motion.x + f32(target.motion.deltaX * observationAge));
+  const observedNow = horizontalAhead(target, observationAge, stage, matchFrame);
   const toward = observedNow < f.motion.x ? -1 : 1;
   // Authored startup travel clears ground velocity when the attack begins.
   const travel = f.motion.grounded && startupTravel !== undefined ? f32(startupTravel * toward) : travelOver(f, frames);
-  return f32(f32(f32(target.motion.x + f32(target.motion.deltaX * (observationAge + frames))) - f.motion.x) - travel);
+  return f32(f32(horizontalAhead(target, observationAge + frames, stage, matchFrame) - f.motion.x) - travel);
 }
 
 /**
@@ -280,8 +280,8 @@ export function smashChargeGoal(f: Readonly<Fighter>): number {
   return choice === 0 ? 0 : choice === 1 ? 10 : choice === 2 ? 25 : 45;
 }
 
-function perform(f: Readonly<Fighter>, target: Readonly<Fighter>, option: number, frame: number, input: Controls, commands: AttackBuffer, observationAge: number): void {
-  const dx = aheadX(f, target, 0, undefined, observationAge);
+function perform(f: Readonly<Fighter>, target: Readonly<Fighter>, option: number, frame: number, input: Controls, commands: AttackBuffer, observationAge: number, stage: number, matchFrame: number): void {
+  const dx = aheadX(f, target, 0, undefined, observationAge, stage, matchFrame);
   const facing = f.facing < 0 ? -1 : 1;
   const toward = dx === 0 ? facing : dx > 0 ? 1 : -1;
   if (option >= NEUTRAL_SPECIAL) {
@@ -388,7 +388,7 @@ function weightedOption(gameplan: Readonly<FighterGameplan> | undefined, planInd
 export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, ranged: boolean, input: Controls, commands: AttackBuffer, slot = -1, planIndex: number = SPACE_PLAN, skill: CpuSkill = FULL_SKILL, observationAge = 0, decision?: AttackDecision): boolean {
   passedForVariety = false;
   const gameplan = gameplanOf(f.character);
-  const dx = aheadX(f, target, 0, undefined, observationAge);
+  const dx = aheadX(f, target, 0, undefined, observationAge, stage, matchFrame);
   const gap = Math.abs(dx);
   const toward = dx === 0 ? f.facing : dx > 0 ? 1 : -1;
   if (!canAttack(f) && !(f.shield.raised && f.motion.grounded)) return false;
@@ -405,7 +405,7 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
         const style = dashing && move === AttackStyle.jab ? f.tuning.moves?.dashAttack ?? AttackStyle.demonHunterDashAttack : move;
         const frames = attackStartupFrames(style, f.tuning.moves);
         // A slide may carry the attacker past its target; the queued facing stays fixed.
-        const x = f32(aheadX(f, target, frames, style, observationAge) * toward);
+        const x = f32(aheadX(f, target, frames, style, observationAge, stage, matchFrame) * toward);
         const z = aheadZ(f, target, frames + 1, stage, matchFrame, observationAge);
         // Grabs need the target's centre inside their reach, as the punish chooser requires.
         if (move === AttackStyle.grab && Math.abs(x) > f32(moveReachAhead(f.character, style, target, f.tuning.moves) - hurtCapsule(target.character).radius)) continue;
@@ -422,7 +422,7 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
         const frames = attackStartupFrames(aerial, f.tuning.moves);
         // The input frame also falls: landing by the first strike cancels the aerial.
         if (landsWithin(f, frames + 1, stage, matchFrame)) continue;
-        if (moveReaches(f.character, aerial, target, f32(aheadX(f, target, frames, undefined, observationAge) * f.facing), aheadZ(f, target, frames + 1, stage, matchFrame, observationAge), f.tuning.moves)) options[count++] = aerial;
+        if (moveReaches(f.character, aerial, target, f32(aheadX(f, target, frames, undefined, observationAge, stage, matchFrame) * f.facing), aheadZ(f, target, frames + 1, stage, matchFrame, observationAge), f.tuning.moves)) options[count++] = aerial;
       }
     }
   }
@@ -435,7 +435,7 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
   // A misplay throws any normal near the target, in reach or not.
   if (canAttack(f) && gap <= MISPLAY_GAP && botChance(frame, f.attack.serial * 11 + f.character + 5, skill.misplay, 100)) {
     const moves = f.motion.grounded ? GROUND_MOVES : AERIALS;
-    perform(f, target, at(moves, botChoice(frame, f.attack.serial * 3 + f.character, moves.length)), frame, input, commands, observationAge);
+    perform(f, target, at(moves, botChoice(frame, f.attack.serial * 3 + f.character, moves.length)), frame, input, commands, observationAge, stage, matchFrame);
     return true;
   }
   if (canAttack(f)) count = addCloseSpecials(f, target, stage, count, observationAge);
@@ -458,6 +458,6 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
     decision.strategy.lastOption = option;
     rememberStart(decision.strategy, option, frame);
   }
-  perform(f, target, option, frame, input, commands, observationAge);
+  perform(f, target, option, frame, input, commands, observationAge, stage, matchFrame);
   return true;
 }

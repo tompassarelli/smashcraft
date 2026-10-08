@@ -121,13 +121,48 @@ export function heightAhead(f: Readonly<Fighter>, frames: number, stage: number,
   return deck !== undefined && ahead < deck ? deck : ahead;
 }
 
-/** The highest deck of `stage` under (x, z) on match frame `matchFrame`, or undefined over the void. */
-export function deckUnder(stage: number, matchFrame: number, x: number, z: number): number | undefined {
-  let top: number | undefined;
+/**
+ * A fighter's horizontal position after `frames` more frames: its last
+ * frame's travel, but an airborne fighter that falls onto the deck under it
+ * within them slides on from the landing, braking by its traction on that
+ * deck, and stops at the deck's edge, as heightAhead holds a fall (#345).
+ */
+export function horizontalAhead(f: Readonly<Fighter>, frames: number, stage: number, matchFrame: number): number {
+  const { x, z, deltaX } = f.motion;
+  const straight = f32(x + f32(deltaX * frames));
+  if (f.motion.grounded || stage < 0 || deltaX === 0.0) return straight;
+  const deck = deckIndexUnder(stage, matchFrame, x, z);
+  if (deck < 0) return straight;
+  const deckZ = surfaceZAt(stage, deck, matchFrame, x);
+  let landing = 1;
+  while (landing <= frames && heightAhead(f, landing, -1, matchFrame) > deckZ) landing++;
+  if (landing > frames) return straight;
+  const traction = floorTraction(f.tuning.physics.traction, floorFriction(stage, { grounded: true, surface: deck }));
+  const speed = Math.abs(deltaX);
+  const braking = Math.min(frames - landing, Math.floor(f32(speed / traction)));
+  const slide = f32(f32(speed * braking) - f32(traction * ((braking * (braking + 1)) / 2)));
+  const landed = f32(x + f32(deltaX * landing));
+  const rest = deltaX < 0 ? f32(landed - slide) : f32(landed + slide);
+  return Math.max(surfaceLeft(stage, deck, matchFrame), Math.min(surfaceRight(stage, deck, matchFrame), rest));
+}
+
+/** The index of the highest deck of `stage` under (x, z) on match frame `matchFrame`, or -1 over the void. */
+function deckIndexUnder(stage: number, matchFrame: number, x: number, z: number): number {
+  let top = -1;
+  let topZ = 0.0;
   for (let index = 0; index < surfaceCount(stage); index++) {
     const deck = surfaceZAt(stage, index, matchFrame, x);
     if (deck > z || x < surfaceLeft(stage, index, matchFrame) || x > surfaceRight(stage, index, matchFrame)) continue;
-    if (top === undefined || deck > top) top = deck;
+    if (top < 0 || deck > topZ) {
+      top = index;
+      topZ = deck;
+    }
   }
   return top;
+}
+
+/** The highest deck of `stage` under (x, z) on match frame `matchFrame`, or undefined over the void. */
+export function deckUnder(stage: number, matchFrame: number, x: number, z: number): number | undefined {
+  const index = deckIndexUnder(stage, matchFrame, x, z);
+  return index < 0 ? undefined : surfaceZAt(stage, index, matchFrame, x);
 }
