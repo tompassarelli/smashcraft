@@ -55,7 +55,7 @@ test("training settings agree on both clients and both shields with attack reset
       const { training, trainer } = shell().game;
       return [training, trainer.behaviour, trainer.escape, trainer.damage, trainer.showHitAreas];
     })).toEqual([true, PartnerBehaviour.shield, PartnerEscape.random, 40, true]);
-    expect(shows(client, "Training: On")).toBe(true);
+    expect(shows(client, "Mode: Training")).toBe(true);
     expect(shows(client, "Partner: Shield")).toBe(true);
     expect(shows(client, "Partner damage: 40%")).toBe(true);
   }

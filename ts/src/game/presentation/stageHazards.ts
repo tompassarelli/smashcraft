@@ -1,5 +1,7 @@
 import { type MatchState, stageClock } from "../match/rules";
 import { PARTICIPANT_SLOTS } from "../input/participants";
+import { BossKind } from "../classic/runState";
+import { bossNotice } from "../classic/classicText";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { CARRIED_TEST_STAGE, TIMED_TEST_STAGE, surfaceWaitFrames } from "../sim/stage";
 import {
@@ -17,6 +19,7 @@ export function framesUntilPlatformMoves(stage: number, frame: number): number |
 
 /** A warning in the players' language, before wind, a turn of the tide, platform motion or a shot. */
 export function stageWarning(game: Readonly<MatchState>, world: Readonly<Roster>): string {
+  if (game.run.active && game.run.boss.kind !== BossKind.none) return bossNotice(game);
   const stage = game.stageChoice;
   const frame = stageClock(game);
   if (windOn(stage, frame)) {

@@ -262,6 +262,7 @@ export function renderPersistentPresentation(s: ShellState): void {
     BlzSetSpecialEffectColor(s.stageCannon, 255, firing ? 70 : 255, firing ? 40 : 255);
   }
   const ui = views(s);
+  ui.classic?.present(game);
   ui.combat.present(runtime.impacts, runtime.simulationFrame, s.runtime.impacts, playing);
   for (const slot of PARTICIPANT_SLOTS) {
     const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
@@ -394,6 +395,7 @@ export function renderUi(s: ShellState): void {
   ui.clock.update(showMatch && timedMatch(game), remainingSeconds(game));
   ui.items.hud(game, showMatch);
   ui.training.update(showMatch && game.training && game.phase === Phase.match, game.trainer);
+  ui.classic?.updateCard(game);
   const { help, notice, developer } = s.frames;
   BlzFrameSetVisible(help, showMatch);
   BlzFrameSetVisible(notice, showMatch);
