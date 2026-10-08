@@ -1,5 +1,5 @@
 import { join, relative, resolve } from "node:path";
-import { Effect } from "../../ts/node_modules/effect";
+import { Effect } from "effect";
 import { captureScene, renderScenes, type RenderScene } from "../../ts/node_modules/wisp/scripts/wisp/headlessRender";
 import { createStandaloneSession, NEUTRAL_INPUT } from "../../ts/scripts/wisp/standalone";
 import { headlessRender } from "../../ts/scripts/wisp/headlessRender";
