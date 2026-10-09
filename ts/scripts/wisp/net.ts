@@ -80,7 +80,7 @@ export async function createNetStandalone(link: LockstepLink, slot: number, opti
   try {
     const platform = join(import.meta.dir, "../../src/platform");
     interface State { readonly game: { readonly phase: number; readonly humanFighterMask: number; readonly computerMask: number } }
-    const { shell }: { shell(): State } = await import(join(platform, "shell/state.ts"));
+    const { shell }: { shell(): State & NetcodeShell } = await import(join(platform, "shell/state.ts"));
     const { confirmedChecksum }: { confirmedChecksum(state: State): string } = await import(join(platform, "shell/diagnostics.ts"));
     const { setHumanCount }: { setHumanCount(game: State["game"], count: number): void } = await import(join(import.meta.dir, "../../src/game/match/rules.ts"));
     const main: { install(build: MapBuild): void; startBuild(build: MapBuild): void } = await import(join(platform, "main.ts"));
@@ -103,8 +103,8 @@ export async function createNetStandalone(link: LockstepLink, slot: number, opti
       step: () => {
         if (lockstep.frame === SETUP_FRAME) {
           client.run(() => {
-            net.attach(shell() as unknown as NetcodeShell, slot);
-            presses.attach(shell() as unknown as NetcodeShell, () => tick);
+            net.attach(shell(), slot);
+            presses.attach(shell(), () => tick);
             setHumanCount(shell().game, 2);
             for (const command of chat) applyDeveloperCommand(shell(), command.startsWith("-dev fighter ") && Number(command.split(" ")[2]) <= 2 ? Number(command.split(" ")[2]) - 1 : 0, command);
           });
@@ -159,7 +159,7 @@ interface NetcodeShell {
       acceptSynchronized(sender: number, packet: { readonly epoch: number; readonly firstFrame: number; readonly rows: readonly { readonly pressed: number }[] }): string;
     };
     readonly playback: {
-      reconcile(...args: unknown[]): "unchanged" | "rejected" | { readonly replayedFrom: number };
+      reconcile(...args: [unknown, unknown, unknown, { readonly runtime: { readonly simulationFrame: number } }]): "unchanged" | "rejected" | { readonly replayedFrom: number };
       catchUp(...args: unknown[]): boolean;
     };
   } | undefined;
@@ -181,10 +181,9 @@ function netcodeStats() {
       if (rollback === undefined) throw new Error("net: the build has no rollback");
       const { playback, schedule } = rollback;
       const reconcile = playback.reconcile.bind(playback), catchUp = playback.catchUp.bind(playback);
-      playback.reconcile = (...args: unknown[]) => {
+      playback.reconcile = (...args) => {
         const result = reconcile(...args);
-        const match = args[3] as { readonly runtime: { readonly simulationFrame: number } };
-        if (typeof result === "object") depths.push(match.runtime.simulationFrame - result.replayedFrom + 1);
+        if (typeof result === "object") depths.push(args[3].runtime.simulationFrame - result.replayedFrom + 1);
         return result;
       };
       playback.catchUp = (...args: unknown[]) => {
@@ -231,12 +230,14 @@ function pressStats(slot: number) {
         const result = captureLocal(epoch, sample);
         if (result === 0 && target !== undefined && sample.pressed !== 0) {
           delay = rollback.delay;
-          const row = { frame: target, pressed: sample.pressed, tick: now(), frontier, drawnTick: -1, pressTicks: [] as number[] };
+          const pressTicks: number[] = [];
+          const row = { frame: target, pressed: sample.pressed, tick: now(), frontier, drawnTick: -1, pressTicks };
           for (let index = 0; index < pending.length;) {
-            const press = pending[index]!;
-            if ((sample.pressed & press.bit) !== 0) { row.pressTicks.push(press.tick); pending.splice(index, 1); } else index++;
+            const press = pending[index];
+            if (press === undefined) break;
+            if ((sample.pressed & press.bit) !== 0) { pressTicks.push(press.tick); pending.splice(index, 1); } else index++;
           }
-          if (row.pressTicks.length === 0) unmatched++;
+          if (pressTicks.length === 0) unmatched++;
           captured.push(row);
         }
         return result;
@@ -260,7 +261,11 @@ function pressStats(slot: number) {
     drawn(tick: number) {
       if (schedule === undefined) return;
       const ran = schedule.speculativeFrame();
-      for (let index = captured.length - 1; index >= 0 && captured[index]!.drawnTick < 0; index--) if (captured[index]!.frame < ran) captured[index]!.drawnTick = tick;
+      for (let index = captured.length - 1; index >= 0; index--) {
+        const row = captured[index];
+        if (row === undefined || row.drawnTick >= 0) break;
+        if (row.frame < ran) row.drawnTick = tick;
+      }
     },
     report: () => ({ slot, delay, conflicts, unmatched, lost: pending.length, lostTicks: pending.map((press) => press.tick), captured, received }),
   };

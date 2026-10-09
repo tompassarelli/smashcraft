@@ -29,7 +29,11 @@ const random = (seed: number) => {
 /** The matches: round trips 0, 60 and 120 ms in turn, each with its own fighters and stage. */
 export function acceptanceMatches(count: number, rtts: readonly number[], seed: number): readonly AcceptanceMatch[] {
   const draw = random(seed);
-  const pick = <T>(items: readonly T[]): T => items[Math.floor(draw() * items.length)] as T;
+  const pick = <T>(items: readonly T[]): T => {
+    const item = items[Math.floor(draw() * items.length)];
+    if (item === undefined) throw new Error("acceptanceMatches: pick from an empty list");
+    return item;
+  };
   return Array.from({ length: count }, (_, index) => ({
     index, rttMs: rtts[index % rtts.length] ?? 0, seed: seed + index,
     fighters: [fighterName(pick(SELECTABLE_CHARACTERS)), fighterName(pick(SELECTABLE_CHARACTERS))],
@@ -164,7 +168,7 @@ export const runAcceptance = (options: { readonly matches: number; readonly fram
 /** One player's presses against the other side: lost or extra presses, rows off their assigned frame or missing remotely, and press-to-drawn ticks. */
 export function pressAccounting(local: SideResult, remote: SideResult) {
   const report = local.presses;
-  if (report === undefined) return { presses: 0, lost: 1, extra: 1, offFrame: 1, remoteMismatch: 1, drawn: [] as number[], delay: 0 };
+  if (report === undefined) return { presses: 0, lost: 1, extra: 1, offFrame: 1, remoteMismatch: 1, drawn: [], delay: 0 };
   const remoteRows = remote.presses?.received[`${report.slot}`] ?? {};
   const ownFrames = new Set(report.captured.map((row) => row.frame));
   const drawn = report.captured.flatMap((row) => row.pressTicks.map((tick) => row.drawnTick < 0 ? Infinity : row.drawnTick - tick));
