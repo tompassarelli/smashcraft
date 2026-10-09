@@ -3,7 +3,7 @@ import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type St
 import { groundHit } from "./groundNormals";
 import { hurtPart } from "../hurtboxes";
 
-export const gromHit = (damage: number, angle: 25 | 35 | 40 | 55 | 70 | 80 | 90, growth = 72.0, base = 19.799999237060547, behind = false) => groundHit(damage, angle, growth, base, HitElement.slash, behind);
+export const gromHit = (damage: number, angle: 25 | 35 | 40 | 55 | 70 | 75 | 80 | 90, growth = 72.0, base = 19.799999237060547, behind = false) => groundHit(damage, angle, growth, base, HitElement.slash, behind);
 const axe = (x1: number, z1: number, x2: number, z2: number, radius = 12.0): StrikeCapsule => ({ x1, z1, x2, z2, radius });
 const move = (first: number, active: number, total: number, landing: number, regions: Parameters<typeof heroMove>[4], travel?: number, stops?: boolean) => heroMove(first, active, total - first + 1 - active, landing, regions, travel, stops);
 const tilt = (z: number, angle: 25 | 35 | 55) => move(9, 3, 28, 0, [heroRegion(9, 11, axe(24.0, 55.0, 104.0, z), gromHit(9.899999618530273, angle))]);
@@ -41,7 +41,7 @@ export const GROM_MOVES: FighterMoves = {
     [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: gromHit(3.0, 35, 0.0, 0.0) },
     [GrabAction.throwForward]: { contactFrame: 14, totalFrames: 34, effect: gromHit(9.0, 40, 92.0, 26.0) },
     [GrabAction.throwBack]: { contactFrame: 16, totalFrames: 38, effect: gromHit(11.0, 40, 108.0, 26.0, true) },
-    [GrabAction.throwUp]: { contactFrame: 14, totalFrames: 28, effect: gromHit(8.0, 90, 60.0, 48.0) },
+    [GrabAction.throwUp]: { contactFrame: 14, totalFrames: 28, effect: gromHit(8.0, 75, 85.0, 60.0, true) },
     [GrabAction.throwDown]: { contactFrame: 18, totalFrames: 40, effect: gromHit(7.0, 25, 40.0, 72.0) },
   },
 };

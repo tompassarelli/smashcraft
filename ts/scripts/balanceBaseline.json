@@ -455,8 +455,8 @@
    "throw.3.effect.damage": 7,
    "throw.3.effect.growth": 70,
    "throw.3.effect.base": 45,
-   "throw.3.effect.launchX": 0.8660249710083008,
-   "throw.3.effect.launchZ": 0.5,
+   "throw.3.effect.launchX": 0.5,
+   "throw.3.effect.launchZ": 0.8660253882408142,
    "throw.3.contactFrame": 12,
    "throw.3.totalFrames": 30,
    "throw.4.effect.damage": 7,
@@ -476,8 +476,8 @@
    "throw.6.effect.damage": 5,
    "throw.6.effect.growth": 40,
    "throw.6.effect.base": 75,
-   "throw.6.effect.launchX": 0.9063078165054321,
-   "throw.6.effect.launchZ": 0.4226182699203491,
+   "throw.6.effect.launchX": 0.3420201241970062,
+   "throw.6.effect.launchZ": 0.9396926164627075,
    "throw.6.contactFrame": 16,
    "throw.6.totalFrames": 36,
    "original.source.specials.ts.0.DEMONHUNTER_MANA_BURN_STARTUP": 16,
@@ -581,10 +581,10 @@
    "original.source.grabs.ts.1.base": 75,
    "original.source.grabs.ts.2.base": 45,
    "original.source.grabs.ts.1.launchX": 0.17364799976348877,
-   "original.source.grabs.ts.2.launchX": 0.9063078165054321,
+   "original.source.grabs.ts.2.launchX": 0.3420201241970062,
    "original.source.grabs.ts.3.launchX": 0.8660249710083008,
    "original.source.grabs.ts.1.launchZ": 0.9848080277442932,
-   "original.source.grabs.ts.2.launchZ": 0.4226182699203491,
+   "original.source.grabs.ts.2.launchZ": 0.9396926164627075,
    "original.source.grabs.ts.3.launchZ": 0.5,
    "original.source.moves.ts.0.SMASH_MAX_CHARGE_FRAMES": 60,
    "original.source.moves.ts.0.LEDGE_ATTACK_FRAMES": 40,
@@ -651,7 +651,14 @@
    "original.moves.RIFLEMAN_BLASTER_GROUND_FRAMES": 38,
    "original.moves.RIFLEMAN_BLASTER_GROUND_SHOT_FRAME": 9,
    "original.moves.RIFLEMAN_BLASTER_LANDING_LAG": 8,
-   "original.moves.SMASH_MAX_CHARGE_FRAMES": 60
+   "original.moves.SMASH_MAX_CHARGE_FRAMES": 60,
+   "authored.moves.throws.3.contactFrame": 12,
+   "authored.moves.throws.3.totalFrames": 30,
+   "authored.moves.throws.3.effect.damage": 7,
+   "authored.moves.throws.3.effect.growth": 70,
+   "authored.moves.throws.3.effect.base": 45,
+   "authored.moves.throws.3.effect.launchX": 0.5,
+   "authored.moves.throws.3.effect.launchZ": 0.8660253882408142
   },
   "play": "{\"range\":{\"near\":220,\"far\":520},\"spacing\":[{\"move\":30,\"near\":200,\"far\":700},{\"move\":31,\"near\":120,\"far\":450},{\"move\":33,\"near\":60,\"far\":260},{\"move\":8,\"near\":0,\"far\":150}],\"approach\":[{\"via\":\"shoot\",\"moves\":[30,31,33,8],\"weight\":3},{\"via\":\"jump\",\"moves\":[13,16]}],\"defense\":[\"shield\",\"shield\",\"spotDodge\",\"jump\"],\"combos\":[{\"starter\":8,\"followUps\":[13,7,8]},{\"starter\":33,\"followUps\":[4,2]},{\"starter\":31,\"followUps\":[30,4]}],\"kills\":[{\"move\":4,\"fromPercent\":80},{\"move\":2,\"fromPercent\":95},{\"move\":32,\"fromPercent\":100}],\"recovery\":{\"aim\":\"ledge\",\"upSpecial\":\"last\"},\"avoid\":[\"close\"]}",
   "feel": {
@@ -783,7 +790,7 @@
    },
    "throw.3": {
     "advantage": 0,
-    "killPercent": 150
+    "killPercent": 196
    },
    "throw.4": {
     "advantage": 0,
@@ -793,8 +800,7 @@
     "advantage": 0
    },
    "throw.6": {
-    "advantage": 0,
-    "killPercent": 229
+    "advantage": 0
    },
    "special.projectile.0": {
     "advantage": -27
@@ -1027,8 +1033,8 @@
    "throw.6.effect.damage": 5,
    "throw.6.effect.growth": 40,
    "throw.6.effect.base": 75,
-   "throw.6.effect.launchX": 0.9063078165054321,
-   "throw.6.effect.launchZ": 0.4226182699203491,
+   "throw.6.effect.launchX": 0.3420201241970062,
+   "throw.6.effect.launchZ": 0.9396926164627075,
    "throw.6.contactFrame": 16,
    "throw.6.totalFrames": 36,
    "original.source.specials.ts.0.DEMONHUNTER_MANA_BURN_STARTUP": 16,
@@ -1132,10 +1138,10 @@
    "original.source.grabs.ts.1.base": 75,
    "original.source.grabs.ts.2.base": 45,
    "original.source.grabs.ts.1.launchX": 0.17364799976348877,
-   "original.source.grabs.ts.2.launchX": 0.9063078165054321,
+   "original.source.grabs.ts.2.launchX": 0.3420201241970062,
    "original.source.grabs.ts.3.launchX": 0.8660249710083008,
    "original.source.grabs.ts.1.launchZ": 0.9848080277442932,
-   "original.source.grabs.ts.2.launchZ": 0.4226182699203491,
+   "original.source.grabs.ts.2.launchZ": 0.9396926164627075,
    "original.source.grabs.ts.3.launchZ": 0.5,
    "original.source.moves.ts.0.SMASH_MAX_CHARGE_FRAMES": 60,
    "original.source.moves.ts.0.LEDGE_ATTACK_FRAMES": 40,
@@ -1296,8 +1302,7 @@
     "advantage": 0
    },
    "throw.6": {
-    "advantage": 0,
-    "killPercent": 229
+    "advantage": 0
    },
    "special.projectile.4": {
     "advantage": -26
@@ -5156,8 +5161,7 @@
     "advantage": 0
    },
    "throw.6": {
-    "advantage": 0,
-    "killPercent": 155
+    "advantage": 0
    }
   }
  },
@@ -8892,8 +8896,7 @@
     "advantage": 0
    },
    "throw.6": {
-    "advantage": 0,
-    "killPercent": 199
+    "advantage": 0
    }
   }
  },
@@ -10434,8 +10437,7 @@
     "advantage": 0
    },
    "throw.6": {
-    "advantage": 0,
-    "killPercent": 199
+    "advantage": 0
    }
   }
  },
@@ -13503,8 +13505,7 @@
     "advantage": 0
    },
    "throw.6": {
-    "advantage": 0,
-    "killPercent": 229
+    "advantage": 0
    }
   }
  },
@@ -15296,8 +15297,7 @@
     "advantage": 0
    },
    "throw.6": {
-    "advantage": 0,
-    "killPercent": 156
+    "advantage": 0
    }
   }
  },
@@ -16850,8 +16850,7 @@
     "advantage": 0
    },
    "throw.6": {
-    "advantage": 0,
-    "killPercent": 213
+    "advantage": 0
    }
   }
  },
@@ -18510,8 +18509,7 @@
     "advantage": 0
    },
    "throw.6": {
-    "advantage": 0,
-    "killPercent": 199
+    "advantage": 0
    }
   }
  },
@@ -18762,10 +18760,10 @@
    "authored.moves.throws.5.contactFrame": 15,
    "authored.moves.throws.5.totalFrames": 28,
    "authored.moves.throws.5.effect.damage": 7,
-   "authored.moves.throws.5.effect.growth": 55,
-   "authored.moves.throws.5.effect.base": 50,
-   "authored.moves.throws.5.effect.launchX": 0,
-   "authored.moves.throws.5.effect.launchZ": 1,
+   "authored.moves.throws.5.effect.growth": 85,
+   "authored.moves.throws.5.effect.base": 60,
+   "authored.moves.throws.5.effect.launchX": -0.258819043636322,
+   "authored.moves.throws.5.effect.launchZ": 0.9659258127212524,
    "authored.moves.throws.6.contactFrame": 19,
    "authored.moves.throws.6.totalFrames": 42,
    "authored.moves.throws.6.effect.damage": 6,
@@ -19074,10 +19072,10 @@
    "throw.4.contactFrame": 18,
    "throw.4.totalFrames": 40,
    "throw.5.effect.damage": 7,
-   "throw.5.effect.growth": 55,
-   "throw.5.effect.base": 50,
-   "throw.5.effect.launchX": 0,
-   "throw.5.effect.launchZ": 1,
+   "throw.5.effect.growth": 85,
+   "throw.5.effect.base": 60,
+   "throw.5.effect.launchX": -0.258819043636322,
+   "throw.5.effect.launchZ": 0.9659258127212524,
    "throw.5.contactFrame": 15,
    "throw.5.totalFrames": 28,
    "throw.6.effect.damage": 6,
@@ -19229,11 +19227,11 @@
     "killPercent": 81
    },
    "throw.5": {
-    "advantage": 0
+    "advantage": 0,
+    "killPercent": 220
    },
    "throw.6": {
-    "advantage": 0,
-    "killPercent": 199
+    "advantage": 0
    }
   }
  },
@@ -19897,8 +19895,7 @@
     "advantage": 0
    },
    "throw.6": {
-    "advantage": 0,
-    "killPercent": 173
+    "advantage": 0
    }
   }
  },
@@ -20145,10 +20142,10 @@
    "authored.moves.throws.5.contactFrame": 14,
    "authored.moves.throws.5.totalFrames": 24,
    "authored.moves.throws.5.effect.damage": 6,
-   "authored.moves.throws.5.effect.growth": 55,
-   "authored.moves.throws.5.effect.base": 45,
-   "authored.moves.throws.5.effect.launchX": 0,
-   "authored.moves.throws.5.effect.launchZ": 1,
+   "authored.moves.throws.5.effect.growth": 85,
+   "authored.moves.throws.5.effect.base": 60,
+   "authored.moves.throws.5.effect.launchX": -0.258819043636322,
+   "authored.moves.throws.5.effect.launchZ": 0.9659258127212524,
    "authored.moves.throws.6.contactFrame": 18,
    "authored.moves.throws.6.totalFrames": 39,
    "authored.moves.throws.6.effect.damage": 6,
@@ -20463,10 +20460,10 @@
    "throw.4.contactFrame": 16,
    "throw.4.totalFrames": 37,
    "throw.5.effect.damage": 6,
-   "throw.5.effect.growth": 55,
-   "throw.5.effect.base": 45,
-   "throw.5.effect.launchX": 0,
-   "throw.5.effect.launchZ": 1,
+   "throw.5.effect.growth": 85,
+   "throw.5.effect.base": 60,
+   "throw.5.effect.launchX": -0.258819043636322,
+   "throw.5.effect.launchZ": 0.9659258127212524,
    "throw.5.contactFrame": 14,
    "throw.5.totalFrames": 24,
    "throw.6.effect.damage": 6,
@@ -20604,11 +20601,11 @@
     "killPercent": 116
    },
    "throw.5": {
-    "advantage": 0
+    "advantage": 0,
+    "killPercent": 249
    },
    "throw.6": {
-    "advantage": 0,
-    "killPercent": 199
+    "advantage": 0
    }
   }
  },
@@ -21738,8 +21735,7 @@
     "advantage": 0
    },
    "throw.6": {
-    "advantage": 0,
-    "killPercent": 140
+    "advantage": 0
    }
   }
  },
@@ -21979,7 +21975,7 @@
    "authored.moves.throws.5.contactFrame": 14,
    "authored.moves.throws.5.totalFrames": 25,
    "authored.moves.throws.5.effect.damage": 8.75,
-   "authored.moves.throws.5.effect.growth": 55,
+   "authored.moves.throws.5.effect.growth": 40,
    "authored.moves.throws.5.effect.base": 50,
    "authored.moves.throws.5.effect.launchX": 0,
    "authored.moves.throws.5.effect.launchZ": 1,
@@ -22352,7 +22348,7 @@
    "throw.4.contactFrame": 16,
    "throw.4.totalFrames": 39,
    "throw.5.effect.damage": 8.75,
-   "throw.5.effect.growth": 55,
+   "throw.5.effect.growth": 40,
    "throw.5.effect.base": 50,
    "throw.5.effect.launchX": 0,
    "throw.5.effect.launchZ": 1,
@@ -22533,8 +22529,7 @@
     "advantage": 0
    },
    "throw.6": {
-    "advantage": 0,
-    "killPercent": 175
+    "advantage": 0
    }
   }
  },
@@ -24478,8 +24473,7 @@
     "advantage": 0
    },
    "throw.6": {
-    "advantage": 0,
-    "killPercent": 199
+    "advantage": 0
    }
   }
  },
@@ -25160,8 +25154,7 @@
     "advantage": 0
    },
    "throw.6": {
-    "advantage": 0,
-    "killPercent": 199
+    "advantage": 0
    }
   }
  },
@@ -26120,10 +26113,10 @@
    "authored.moves.throws.5.contactFrame": 14,
    "authored.moves.throws.5.totalFrames": 28,
    "authored.moves.throws.5.effect.damage": 8,
-   "authored.moves.throws.5.effect.growth": 60,
-   "authored.moves.throws.5.effect.base": 48,
-   "authored.moves.throws.5.effect.launchX": 0,
-   "authored.moves.throws.5.effect.launchZ": 1,
+   "authored.moves.throws.5.effect.growth": 85,
+   "authored.moves.throws.5.effect.base": 60,
+   "authored.moves.throws.5.effect.launchX": -0.258819043636322,
+   "authored.moves.throws.5.effect.launchZ": 0.9659258127212524,
    "authored.moves.throws.6.contactFrame": 18,
    "authored.moves.throws.6.totalFrames": 40,
    "authored.moves.throws.6.effect.damage": 7,
@@ -26450,10 +26443,10 @@
    "throw.4.contactFrame": 16,
    "throw.4.totalFrames": 38,
    "throw.5.effect.damage": 8,
-   "throw.5.effect.growth": 60,
-   "throw.5.effect.base": 48,
-   "throw.5.effect.launchX": 0,
-   "throw.5.effect.launchZ": 1,
+   "throw.5.effect.growth": 85,
+   "throw.5.effect.base": 60,
+   "throw.5.effect.launchX": -0.258819043636322,
+   "throw.5.effect.launchZ": 0.9659258127212524,
    "throw.5.contactFrame": 14,
    "throw.5.totalFrames": 28,
    "throw.6.effect.damage": 7,
@@ -26606,7 +26599,8 @@
     "killPercent": 74
    },
    "throw.5": {
-    "advantage": 0
+    "advantage": 0,
+    "killPercent": 196
    },
    "throw.6": {
     "advantage": 0,
@@ -28106,8 +28100,7 @@
     "advantage": 0
    },
    "throw.6": {
-    "advantage": 0,
-    "killPercent": 199
+    "advantage": 0
    }
   }
  },
@@ -28777,8 +28770,7 @@
     "advantage": 0
    },
    "throw.6": {
-    "advantage": 0,
-    "killPercent": 199
+    "advantage": 0
    }
   }
  },
@@ -29029,10 +29021,10 @@
    "authored.moves.throws.5.contactFrame": 15,
    "authored.moves.throws.5.totalFrames": 36,
    "authored.moves.throws.5.effect.damage": 8,
-   "authored.moves.throws.5.effect.growth": 60,
-   "authored.moves.throws.5.effect.base": 50,
-   "authored.moves.throws.5.effect.launchX": 0,
-   "authored.moves.throws.5.effect.launchZ": 1,
+   "authored.moves.throws.5.effect.growth": 110,
+   "authored.moves.throws.5.effect.base": 65,
+   "authored.moves.throws.5.effect.launchX": -0.1736481785774231,
+   "authored.moves.throws.5.effect.launchZ": 0.9848077297210693,
    "authored.moves.throws.6.contactFrame": 21,
    "authored.moves.throws.6.totalFrames": 48,
    "authored.moves.throws.6.effect.damage": 7,
@@ -29319,10 +29311,10 @@
    "throw.4.contactFrame": 19,
    "throw.4.totalFrames": 46,
    "throw.5.effect.damage": 8,
-   "throw.5.effect.growth": 60,
-   "throw.5.effect.base": 50,
-   "throw.5.effect.launchX": 0,
-   "throw.5.effect.launchZ": 1,
+   "throw.5.effect.growth": 110,
+   "throw.5.effect.base": 65,
+   "throw.5.effect.launchX": -0.1736481785774231,
+   "throw.5.effect.launchZ": 0.9848077297210693,
    "throw.5.contactFrame": 15,
    "throw.5.totalFrames": 36,
    "throw.6.effect.damage": 7,
@@ -29467,7 +29459,8 @@
     "killPercent": 65
    },
    "throw.5": {
-    "advantage": 0
+    "advantage": 0,
+    "killPercent": 176
    },
    "throw.6": {
     "advantage": 0

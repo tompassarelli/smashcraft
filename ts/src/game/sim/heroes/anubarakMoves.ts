@@ -4,7 +4,7 @@ import { heroHurtPose } from "../heroMoves";
 import { hurtPart } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
 
-export const anubarakHit = (damage: number, angle: 25 | 35 | 40 | 55 | 70 | 80 | 90, growth = 90.0, base = 26.0, behind = false) => groundHit(damage, angle, growth, base, HitElement.normal, behind);
+export const anubarakHit = (damage: number, angle: 25 | 35 | 40 | 55 | 70 | 75 | 80 | 90, growth = 90.0, base = 26.0, behind = false) => groundHit(damage, angle, growth, base, HitElement.normal, behind);
 const claw = (x1: number, z1: number, x2: number, z2: number, radius = 15.0): StrikeCapsule => ({ x1, z1, x2, z2, radius });
 const shell = hurtPart(-24.0, 32.0, 18.0, 88.0, 35.0);
 const tilt = (z: number, angle: 25 | 40 | 55) => heroMove(10, 4, 24, 0, [heroRegion(10, 13, claw(32.0, 60.0, 124.0, z), anubarakHit(11.0, angle))]);
@@ -45,7 +45,7 @@ export const ANUBARAK_MOVES: FighterMoves = {
     [GrabAction.pummel]: { contactFrame: 1, totalFrames: 1, effect: anubarakHit(3.0, 35, 0.0, 0.0) },
     [GrabAction.throwForward]: { contactFrame: 16, totalFrames: 40, effect: anubarakHit(9.0, 40, 95.0, 30.0) },
     [GrabAction.throwBack]: { contactFrame: 19, totalFrames: 46, effect: anubarakHit(11.0, 40, 110.0, 34.0, true) },
-    [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 36, effect: anubarakHit(8.0, 90, 60.0, 50.0) },
+    [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 36, effect: anubarakHit(8.0, 80, 110.0, 65.0, true) },
     [GrabAction.throwDown]: { contactFrame: 21, totalFrames: 48, effect: anubarakHit(7.0, 70, 40.0, 75.0) },
   },
 };

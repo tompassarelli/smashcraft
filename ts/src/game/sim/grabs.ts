@@ -75,8 +75,8 @@ export function authoredThrowEffect(action: GrabAction, moves?: FighterMoves): R
 
   throwHit.growth = down ? 40.0 : up ? 55.0 : 70.0;
   throwHit.base = down ? 75.0 : 45.0;
-  throwHit.launchX = up ? 0.17364799976348877 : down ? 0.9063078165054321 : 0.8660249710083008;
-  throwHit.launchZ = up ? 0.9848080277442932 : down ? 0.4226182699203491 : 0.5;
+  throwHit.launchX = up ? 0.17364799976348877 : down ? 0.3420201241970062 : 0.8660249710083008;
+  throwHit.launchZ = up ? 0.9848080277442932 : down ? 0.9396926164627075 : 0.5;
   throwHit.element = undefined;
   throwHit.carry = undefined;
   throwHit.electric = false;

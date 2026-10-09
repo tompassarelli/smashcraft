@@ -57,7 +57,7 @@ export const CHEN_MOVES: FighterMoves = {
     [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: chenHit(3.0, 0.0, 0.0, 0.0, 0.0) },
     [GrabAction.throwForward]: { contactFrame: 12, totalFrames: 33, effect: finish(8.0) },
     [GrabAction.throwBack]: { contactFrame: 16, totalFrames: 39, effect: finish(9.0, true) },
-    [GrabAction.throwUp]: { contactFrame: 14, totalFrames: 25, effect: chenHit(7.0, 55.0, 50.0, 0.0, 1.0) },
+    [GrabAction.throwUp]: { contactFrame: 14, totalFrames: 25, effect: chenHit(7.0, 40.0, 50.0, 0.0, 1.0) },
     [GrabAction.throwDown]: { contactFrame: 18, totalFrames: 42, effect: chenHit(6.0, 40.0, 75.0, f32(0.342020), f32(0.939693)) },
   },
 };
