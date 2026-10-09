@@ -184,6 +184,13 @@ export interface Rollback {
    * probe reports presses captured then apart (#60).
    */
   predictionHeld: boolean;
+  /**
+   * Rows every client had received when the previous callback began. A
+   * callback confirms only through them, so a row's correction is repaired in
+   * the callback after it arrives and confirmed in the next one, the same
+   * callback on every client (#168).
+   */
+  knownBefore: number;
 }
 
 export interface StatusFrames {
@@ -356,7 +363,7 @@ function rollback(mode: ShadowInputMode, playback: RollbackPlayback, editbox: Ed
       }
       : undefined,
     journal: mode.kind === "journal" ? journal(mode.ingress, editbox) : undefined,
-    stalled: 0, waitingFor: 0, predictionHeld: false,
+    stalled: 0, waitingFor: 0, predictionHeld: false, knownBefore: 0,
   };
 }
 

@@ -3,6 +3,7 @@
 // differ from what it ran. The replay code owns the history ring.
 import type { InputRow } from "../input/inputRow";
 import { REPAIR_WHOLE_COST } from "../replay/history";
+import { REPLAY_HISTORY_CAPACITY } from "../replay/limits";
 import type { FrameControls } from "../match/controls";
 import type { PacingAndPresentation } from "../match/pacingAndPresentation";
 import type { MatchFrameInput } from "../match/frameInput";
@@ -86,16 +87,20 @@ export const REPAIR_FRAMES = 4;
 /**
  * Repair units one callback spends (ReplayHistory.repair): a whole frame
  * costs REPAIR_WHOLE_COST, a fighter-scoped one 1. Each whole frame costs a
- * Lua32 callback about 2.5 ms, so the frame-cost budget (#168) bounds it.
+ * Lua32 callback about 2.5 ms, so the frame-cost budget (#168) bounds it to
+ * two whole frames.
  */
-export const REPAIR_COST = 6;
+export const REPAIR_COST = 4;
 
 /**
  * Frames and units of repair one callback may spend when it may also run
- * `speculative` frames: a repair must gain on the speculative cursor, or its
- * first frame leaves the history ring while a stalled journal catches up.
+ * `speculative` frames and the pending repair starts `depth` frames before the
+ * speculative cursor. Past half the history ring the repair must gain on the
+ * speculative cursor, or its first frame leaves the ring while a stalled
+ * journal catches up.
  */
-export function repairBudget(speculative: number): { readonly frames: number; readonly cost: number } {
+export function repairBudget(speculative: number, depth: number): { readonly frames: number; readonly cost: number } {
+  if (depth <= REPLAY_HISTORY_CAPACITY / 2) return { frames: REPAIR_FRAMES, cost: REPAIR_COST };
   const frames = Math.max(REPAIR_FRAMES, speculative + 1);
   return { frames, cost: Math.max(REPAIR_COST, (speculative + 1) * REPAIR_WHOLE_COST) };
 }

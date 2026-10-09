@@ -67,6 +67,7 @@ export function beginRollbackEpoch(s: ShellState, rollback: Rollback): boolean {
   rollback.stalled = 0;
   rollback.waitingFor = 0;
   rollback.predictionHeld = false;
+  rollback.knownBefore = 0;
   speculative.world.mask = s.world.mask;
   captureReplaySnapshot(rollback.seed, s.world, s.game, s.controls, s.runtime);
   restoreReplaySnapshot(rollback.seed, speculative.world, speculative.game, speculative.controls, speculative.runtime);
@@ -251,6 +252,8 @@ function noteWaiting(rollback: Rollback, waiting: number, notice: number): void 
 export function rollbackTick(s: ShellState, rollback: Rollback): void {
   const { schedule, epoch, keyboard, journal, speculative } = rollback;
   const { trace, probe } = s;
+  const known = rollback.knownBefore;
+  rollback.knownBefore = schedule.knownThrough();
   if (s.game.phase !== Phase.match) {
     if (keyboard !== undefined) sendBatch(s, rollback, keyboard);
     noteWaiting(rollback, 0, 0);
@@ -286,21 +289,22 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
     }
     probeIntegrity(probe, `rollback ${epoch} ${depth}`);
   }
-  const confirmSteps = confirmedBudget(schedule.confirmedFrame() - schedule.nextConfirmedFrame() + 1);
+  const confirmable = Math.min(schedule.confirmedFrame(), known);
+  const confirmSteps = confirmedBudget(confirmable - schedule.nextConfirmedFrame() + 1);
   // Confirmation can reuse history only after accepted corrections have
   // repaired it, through the frame after it: the repair replays the frames
   // this callback confirms rather than running them twice.
-  const lastConfirmed = Math.min(schedule.confirmedFrame(), schedule.nextConfirmedFrame() + confirmSteps - 1, stopAt === undefined ? Number.POSITIVE_INFINITY : stopAt - 1);
+  const lastConfirmed = Math.min(confirmable, schedule.nextConfirmedFrame() + confirmSteps - 1, stopAt === undefined ? Number.POSITIVE_INFINITY : stopAt - 1);
   const pending = rollback.playback.pendingRepair(epoch);
   const behind = pending === undefined ? 0 : lastConfirmed + 2 - pending;
-  const repair = repairBudget(speculativeBudget(journal !== undefined));
+  const repair = repairBudget(speculativeBudget(journal !== undefined), pending === undefined ? 0 : schedule.speculativeFrame() - pending);
   const repaired = rollback.playback.repair(epoch, speculative, Math.max(repair.frames, behind), Math.max(repair.cost, behind * REPAIR_WHOLE_COST));
   if (repaired === "rejected") {
     setStatus(s, "The match could not catch up. Restart the match.", LASTING);
     return;
   }
   let steps = 0;
-  while (s.game.phase === Phase.match && schedule.mayAdvanceConfirmed() && steps < confirmSteps && (stopAt === undefined || schedule.nextConfirmedFrame() < stopAt)) {
+  while (s.game.phase === Phase.match && schedule.mayAdvanceConfirmed() && schedule.nextConfirmedFrame() <= known && steps < confirmSteps && (stopAt === undefined || schedule.nextConfirmedFrame() < stopAt)) {
     if (!stepConfirmed(s, rollback)) {
       ownConfirmedState(s);
       setStatus(s, "The match could not advance. Restart the match.", LASTING);
