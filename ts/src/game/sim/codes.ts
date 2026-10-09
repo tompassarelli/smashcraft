@@ -161,9 +161,9 @@ export type HeroStatusGroup = (typeof HeroStatusGroup)[keyof typeof HeroStatusGr
 export const HERO_STATUS_GROUPS = 3;
 
 // Append only: these pickup codes are serialized in replay text.
-export const ItemKind = { none: 0, speed: 1, extraJump: 2, heavy: 3 } as const;
+export const ItemKind = { none: 0, speed: 1, heavy: 3 } as const;
 export type ItemKind = (typeof ItemKind)[keyof typeof ItemKind];
-export const ITEM_KINDS: readonly ItemKind[] = [ItemKind.speed, ItemKind.extraJump, ItemKind.heavy];
+export const ITEM_KINDS: readonly ItemKind[] = [ItemKind.speed, ItemKind.heavy];
 
 export const itemBit = (kind: ItemKind): number => kind === ItemKind.none ? 0 : 1 << (kind - 1);
-export const ALL_ITEMS_MASK = 7;
+export const ALL_ITEMS_MASK = 5;

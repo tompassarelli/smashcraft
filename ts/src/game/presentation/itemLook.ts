@@ -1,4 +1,8 @@
-import { itemWarningFrames } from "../match/centreItem";
+import { f32 } from "wisp/src/sim/f32";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
+import { ITEM_WARNING_FRAMES, itemWarningFrames } from "../match/centreItem";
+import { ItemKind } from "../sim/codes";
+import type { Fighter } from "../sim/fighter";
 import type { MatchItems } from "../match/items";
 
 export interface ItemCueObservation {
@@ -23,3 +27,39 @@ export function confirmedItemCues(before: Readonly<ItemCueObservation>, items: R
   if (before.pickupSerial !== items.pickupSerial) cues |= 4;
   return cues;
 }
+
+
+export interface ItemColor {
+  readonly red: number;
+  readonly green: number;
+  readonly blue: number;
+}
+
+export const SPEED_COLOR: ItemColor = { red: 70, green: 230, blue: 255 };
+export const HEAVY_COLOR: ItemColor = { red: 255, green: 170, blue: 40 };
+const SPEED_BODY: ItemColor = { red: 150, green: 235, blue: 255 };
+const HEAVY_BODY: ItemColor = { red: 135, green: 140, blue: 160 };
+
+export const ITEM_ENDING_FRAMES = 120;
+const BLINK_FRAMES = 8;
+
+export const itemColor = (kind: number): ItemColor => kind === ItemKind.heavy ? HEAVY_COLOR : SPEED_COLOR;
+
+export const itemEnding = (buffFrames: number): boolean => buffFrames > 0 && buffFrames <= ITEM_ENDING_FRAMES;
+
+export const itemBlinkOff = (buffFrames: number): boolean => itemEnding(buffFrames) && floorMod(floorDiv(buffFrames, BLINK_FRAMES), 2) === 0;
+
+
+export function itemBodyTint(fighter: Readonly<Fighter>): ItemColor | undefined {
+  const { buff, buffFrames, out } = fighter.status;
+  if (out || buffFrames <= 0 || itemBlinkOff(buffFrames)) return undefined;
+  return buff === ItemKind.heavy ? HEAVY_BODY : buff === ItemKind.speed ? SPEED_BODY : undefined;
+}
+
+
+export function itemTelegraphScale(left: number): number {
+  const progress = f32(f32(ITEM_WARNING_FRAMES - left) / ITEM_WARNING_FRAMES);
+  return f32(f32(0.8) + f32(f32(0.8) * progress));
+}
+
+export const itemTelegraphAlpha = (left: number): number => floorMod(left, 60) < 30 ? 255 : 120;

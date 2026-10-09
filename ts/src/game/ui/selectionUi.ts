@@ -1,5 +1,6 @@
 import { nextMatchCharacter, selectableMatchCharacter } from "../match/rules";
 import { RULE_BUTTONS, RULE_HEIGHT, type RuleBox, type TrainingSetting, cpuSettingsBox } from "./ruleButtons";
+import { RULE_HELP_HEIGHT, RULE_HELP_WIDTH, hoveredRule, ruleHelp, visibleRuleGroups } from "./ruleHelp";
 
 
 
@@ -207,6 +208,9 @@ export class SelectionPanel {
   private readonly steps: readonly framehandle[];
 
   private shownRules: string | undefined;
+  private readonly help: framehandle;
+  private readonly helpText: framehandle;
+  private shownHelp: string | undefined;
   private cpuSlot: number | undefined;
   private cpuFocus: 0 | 1 | 2 = 0;
   private menuFocus: MenuFocus | undefined;
@@ -361,7 +365,6 @@ export class SelectionPanel {
     this.ultimatesToggle = ruleButton(RULE_BUTTONS.ultimates, { kind: "ultimates" }, "");
     this.itemToggles = [
       ruleButton(RULE_BUTTONS.itemSpeed, { kind: "itemKind", item: ItemKind.speed }, ""),
-      ruleButton(RULE_BUTTONS.itemExtraJump, { kind: "itemKind", item: ItemKind.extraJump }, ""),
       ruleButton(RULE_BUTTONS.itemHeavy, { kind: "itemKind", item: ItemKind.heavy }, ""),
     ];
     this.trainingToggle = ruleButton(RULE_BUTTONS.training, { kind: "training" }, "");
@@ -391,7 +394,19 @@ export class SelectionPanel {
       ruleButton(harderClassic, { kind: "classicTier", direction: 1 }, "+"),
       this.classicTierValue, this.classicRoute,
     ];
-    this.matchRuleFrames = [...this.steps, this.stockValue, this.timeValue, this.endlessToggle, this.rematchToggle, this.itemsToggle, this.ultimatesToggle, ...this.itemToggles];
+    this.matchRuleFrames = [...this.steps, this.stockValue, this.timeValue, this.endlessToggle, this.rematchToggle, this.itemsToggle, this.ultimatesToggle];
+    this.help = createBackdrop(`MeleeRuleHelp${suffix}`, root, 0);
+    BlzFrameSetTexture(this.help, "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp", 0, true);
+    BlzFrameSetSize(this.help, RULE_HELP_WIDTH, RULE_HELP_HEIGHT);
+    BlzFrameSetLevel(this.help, 20);
+    BlzFrameSetEnable(this.help, false);
+    this.helpText = createText(`MeleeRuleHelpText${suffix}`, this.help, 0);
+    BlzFrameSetPoint(this.helpText, FRAMEPOINT_TOPLEFT, this.help, FRAMEPOINT_TOPLEFT, f32(0.008), f32(-0.006));
+    BlzFrameSetPoint(this.helpText, FRAMEPOINT_BOTTOMRIGHT, this.help, FRAMEPOINT_BOTTOMRIGHT, f32(-0.008), f32(0.006));
+    BlzFrameSetFont(this.helpText, MENU_FONT, f32(0.0095), 0);
+    BlzFrameSetTextAlignment(this.helpText, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_LEFT);
+    BlzFrameSetEnable(this.helpText, false);
+    BlzFrameSetVisible(this.help, false);
     const owner = [participantId];
     this.syncTriggers = [
       createSyncTrigger(`ui.selection.${suffix}.drop`, "fighter-drop", owner, (_, data) => this.acceptDrop(data)),
@@ -664,6 +679,7 @@ export class SelectionPanel {
       this.shownMode = mode;
       BlzFrameSetText(this.modeLabel, mode);
     }
+    if (!visible || cpuOpen || this.movesOpen) this.hideHelp();
     if (!visible) {
       clearSelectionDrag(drag);
       return;
@@ -743,8 +759,27 @@ export class SelectionPanel {
     }
     BlzFrameSetText(this.confirm, this.confirmText(game));
     this.showRules(game);
+    this.showHelp(game, x, y);
   }
 
+  private showHelp(game: Readonly<MatchState>, x: number, y: number): void {
+    const name = this.drag.dragging === undefined ? hoveredRule(visibleRuleGroups(game), x, y) : undefined;
+    const text = name === undefined ? "" : ruleHelp(name, game);
+    if (text === this.shownHelp) return;
+    this.shownHelp = text;
+    BlzFrameSetVisible(this.help, name !== undefined);
+    if (name === undefined) return;
+    const box = RULE_BUTTONS[name];
+    placeTopLeft(this.help, Math.min(box.x, f32(0.8 - RULE_HELP_WIDTH - 0.01)), f32(box.y - box.height - 0.003));
+    BlzFrameSetText(this.helpText, text);
+  }
+
+
+  private hideHelp(): void {
+    if (this.shownHelp === "") return;
+    this.shownHelp = "";
+    BlzFrameSetVisible(this.help, false);
+  }
 
   private openMoves(): void {
     const game = this.game;
@@ -778,8 +813,9 @@ export class SelectionPanel {
     for (let index = 0; index < this.itemToggles.length; index++) {
       const frame = this.itemToggles[index];
       if (frame === undefined) continue;
-      const kind = index === 0 ? ItemKind.speed : index === 1 ? ItemKind.extraJump : ItemKind.heavy;
+      const kind = index === 0 ? ItemKind.speed : ItemKind.heavy;
       BlzFrameSetText(frame, itemKindSetting(kind, (items.enabledMask & itemBit(kind)) !== 0));
+      BlzFrameSetVisible(frame, items.on && !training && !classic && !lore);
     }
     BlzFrameSetText(this.trainingToggle, modeSetting(game));
     const chosen = loreBattle(battle);
@@ -794,6 +830,7 @@ export class SelectionPanel {
     if (tech !== undefined) BlzFrameSetText(tech, partnerTechSetting(trainer.tech));
     if (damage !== undefined) BlzFrameSetText(damage, partnerDamageSetting(trainer.damage));
     for (const frame of this.matchRuleFrames) BlzFrameSetVisible(frame, !training && !classic && !lore);
+    for (const frame of this.itemToggles) BlzFrameSetVisible(frame, items.on && !training && !classic && !lore);
     for (const frame of this.trainingFrames) BlzFrameSetVisible(frame, training);
     for (const frame of this.classicFrames) BlzFrameSetVisible(frame, classic || lore);
   }

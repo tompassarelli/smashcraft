@@ -92,7 +92,6 @@ export function itemWarningFrames(items: Readonly<MatchItems>, matchFrame: numbe
 export function itemKindOf(code: number): ItemKind {
   switch (code) {
     case ItemKind.speed: return ItemKind.speed;
-    case ItemKind.extraJump: return ItemKind.extraJump;
     case ItemKind.heavy: return ItemKind.heavy;
     default: return ItemKind.none;
   }

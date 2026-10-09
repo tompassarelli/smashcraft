@@ -22,6 +22,7 @@ import {
   setHitAreas, setItemsOn, setMeterDropsOn, setUltimatesOn, setPartnerDamage, setStocks, setTimeLimit, setTraining, stepTrainingSpeed, toggleItemKind,
 } from "../match/rules";
 import { selectableStage } from "../menu/stageCatalog";
+import { ITEM_WARNING_FRAMES } from "../match/centreItem";
 import { type Character, ItemKind, itemBit } from "../sim/codes";
 import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 
@@ -40,9 +41,10 @@ export const ITEMS_COMMAND = "-dev items ";
 export const ULTIMATES_COMMAND = "-dev ultimates ";
 export const DROPS_COMMAND = "-dev drops ";
 export const ITEM_COMMAND = "-dev item ";
+export const ITEM_DROP_COMMAND = "-dev item drop ";
 
 const itemCommandKind = (name: string | undefined): ItemKind | undefined =>
-  name === "speed" ? ItemKind.speed : name === "jump" ? ItemKind.extraJump : name === "heavy" ? ItemKind.heavy : undefined;
+  name === "speed" ? ItemKind.speed : name === "heavy" ? ItemKind.heavy : undefined;
 
 export const PARTNER_BEHAVIOUR_NAMES = ["stand", "shield", "crouch", "jump", "attack", "fight"];
 export const PARTNER_DRIFT_NAMES = ["none", "toward", "away", "random"];
@@ -128,6 +130,14 @@ export function applySetupCommand(game: MatchState, actor: number, message: stri
   if (message.startsWith(ULTIMATES_COMMAND)) return toggle(ULTIMATES_COMMAND, on => setUltimatesOn(game, actor, on), () => !game.ultimatesOff, "ultimates");
   if (message.startsWith(ITEMS_COMMAND)) return toggle(ITEMS_COMMAND, on => setItemsOn(game, actor, on), () => game.items.on, "items");
   if (message.startsWith(DROPS_COMMAND)) return toggle(DROPS_COMMAND, on => setMeterDropsOn(game, actor, on), () => game.drops.on, "drops");
+  if (message.startsWith(ITEM_DROP_COMMAND)) {
+    const kind = itemCommandKind(message.substring(ITEM_DROP_COMMAND.length));
+    if (kind === undefined || game.phase !== Phase.match) return refused("item drop");
+    game.items.on = true;
+    game.items.nextKind = kind;
+    game.items.nextSpawnFrame = game.matchFrame + ITEM_WARNING_FRAMES;
+    return `dev: item drop ${message.substring(ITEM_DROP_COMMAND.length)}`;
+  }
   if (message.startsWith(ITEM_COMMAND)) {
     const [name, value, extra] = message.substring(ITEM_COMMAND.length).split(" ");
     const kind = itemCommandKind(name);

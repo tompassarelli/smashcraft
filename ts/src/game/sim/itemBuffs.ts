@@ -5,7 +5,6 @@
 
 
 
-import { min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { ItemKind } from "./codes";
 import type { Fighter } from "./fighter";
@@ -47,21 +46,13 @@ export function heavyFall(f: Readonly<Fighter>, value: number): number {
   return f.status.buff === ItemKind.heavy ? f32(value * HEAVY_BUFF_FALL_SCALE) : value;
 }
 
-const extraJumps = (f: Readonly<Fighter>): number => f.status.buff === ItemKind.extraJump ? 1 : 0;
-
-
-export function groundedJumps(f: Readonly<Fighter>): number {
-  return GROUNDED_JUMPS + extraJumps(f);
+export function groundedJumps(_f: Readonly<Fighter>): number {
+  return GROUNDED_JUMPS;
 }
 
 
-export function aerialJumps(f: Readonly<Fighter>): number {
-  return AERIAL_JUMPS + extraJumps(f);
-}
-
-
-function jumpLimit(f: Readonly<Fighter>): number {
-  return f.motion.grounded && f.jump.squat <= 0 ? groundedJumps(f) : aerialJumps(f);
+export function aerialJumps(_f: Readonly<Fighter>): number {
+  return AERIAL_JUMPS;
 }
 
 
@@ -71,17 +62,15 @@ export function applyItemBuff(f: Fighter, kind: ItemKind): void {
 
 
 export function applyItemBuffFor(f: Fighter, kind: number, frames: number): void {
-  if (kind !== ItemKind.speed && kind !== ItemKind.extraJump && kind !== ItemKind.heavy) return;
+  if (kind !== ItemKind.speed && kind !== ItemKind.heavy) return;
   f.status.buff = kind;
   f.status.buffFrames = frames;
-  f.jump.remaining = min(kind === ItemKind.extraJump ? f.jump.remaining + 1 : f.jump.remaining, jumpLimit(f));
 }
 
 
 export function endItemBuff(f: Fighter): void {
   f.status.buff = ItemKind.none;
   f.status.buffFrames = 0;
-  f.jump.remaining = min(f.jump.remaining, jumpLimit(f));
 }
 
 

@@ -54,6 +54,7 @@ test("centre items spawn 30–60 seconds after GO and warn exactly ten seconds a
     const game = createMatchState();
     setHumanCount(game, 2);
     game.matchSeed = seed;
+    game.items.on = true;
     assertTrue(prepareQuickMatch(game));
     const first = game.items.nextSpawnFrame;
     assertTrue(first >= 1801 && first <= 3601);
@@ -75,7 +76,7 @@ test("centre items spawn 30–60 seconds after GO and warn exactly ten seconds a
 });
 
 sweep("every fighter takes every item with a normal attack or grab; expiry includes the pickup frame [spec docs/gameplay-design.md]", () => {
-  for (const character of Object.values(Character)) for (const kind of [ItemKind.speed, ItemKind.extraJump, ItemKind.heavy]) for (const style of [AttackStyle.jab, AttackStyle.grab]) {
+  for (const character of Object.values(Character)) for (const kind of [ItemKind.speed, ItemKind.heavy]) for (const style of [AttackStyle.jab, AttackStyle.grab]) {
     const { game, first, world, input } = pickup(character, kind, style);
     assertEquals(first.status.buffFrames, 599);
     for (let frame = 2; frame < 600; frame++) stepMatch(game, world, input, frame);
@@ -84,7 +85,6 @@ sweep("every fighter takes every item with a normal attack or grab; expiry inclu
     stepMatch(game, world, input, 600);
     assertEquals(first.status.buff, ItemKind.none);
     assertEquals(first.status.buffFrames, 0);
-    assertEquals(first.jump.remaining, 2, "expired extra jump removed");
     applyItemBuff(first, kind);
     first.motion.x = 10000.0;
     checkBlastZone(world, 0);
@@ -150,29 +150,6 @@ test("Speed raises every fighter's walk dash run and ledge/air/ground jump, with
   }
 });
 
-test("Extra Jump grants one immediately, refills on landing and never stacks beyond one [spec docs/gameplay-design.md]", () => {
-  for (const character of Object.values(Character)) {
-    const { first, world, game, input } = pickup(character, ItemKind.extraJump);
-    assertEquals(first.jump.remaining, 3);
-    beginJump(first, 0);
-    while (first.motion.grounded) advanceFighter(world, 0, 0, controls({ jumpHeld: true }), 0.0);
-    assertEquals(first.jump.remaining, 2);
-    beginJump(first, 0);
-    beginJump(first, 0);
-    assertEquals(first.jump.remaining, 0);
-    applyItemBuff(first, ItemKind.extraJump);
-    assertEquals(first.jump.remaining, 1);
-    applyItemBuff(first, ItemKind.extraJump);
-    applyItemBuff(first, ItemKind.extraJump);
-    assertEquals(first.jump.remaining, 2);
-    for (let frame = 2; frame < 180; frame++) stepMatch(game, world, input, frame);
-    assertTrue(first.motion.grounded);
-    assertEquals(first.jump.remaining, 3);
-    applyItemBuff(first, ItemKind.speed);
-    assertEquals(first.jump.remaining, 2);
-  }
-});
-
 test("Heavy gives every fighter 1.5 weight and 1.3 gravity terminal and fast-fall speeds [spec docs/gameplay-design.md]", () => {
   for (const character of Object.values(Character)) {
     const plain = createFighter(character, 0.0, 1);
@@ -205,6 +182,7 @@ sweep("five minutes of seeded spawns pickups and expiry replay from a saved snap
   live.match.stageChoice = 0;
   live.match.endless = true;
   live.match.matchSeed = 196;
+  live.match.items.on = true;
   const first = fighterAt(live.world, 0);
   const second = fighterAt(live.world, 1);
   first.motion.x = 0.0;

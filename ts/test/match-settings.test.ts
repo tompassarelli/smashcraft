@@ -180,21 +180,24 @@ test("item switches sync between players and keep their choices at match start [
     expect(clients.click(actor, box.x + box.width / 2, box.y - box.height / 2)).toBe(true);
     clients.frames(30);
   };
-  expectSettings(true, ALL_ITEMS_MASK);
-  for (const client of clients.clients) for (const label of ["Items: On", "Speed: On", "Extra jump: On", "Heavy: On"]) expect(shows(client, label)).toBe(true);
-  click("items", 1); expectSettings(false, ALL_ITEMS_MASK);
-  click("itemSpeed", 0); expectSettings(false, ALL_ITEMS_MASK ^ itemBit(ItemKind.speed));
-  click("itemExtraJump", 1); expectSettings(false, itemBit(ItemKind.heavy));
-  click("itemHeavy", 0); expectSettings(false, 0);
-  for (const client of clients.clients) for (const label of ["Items: Off", "Speed: Off", "Extra jump: Off", "Heavy: Off"]) expect(shows(client, label)).toBe(true);
-  click("items", 0); click("itemExtraJump", 1);
-  expectSettings(true, itemBit(ItemKind.extraJump));
+  expectSettings(false, ALL_ITEMS_MASK);
+  for (const client of clients.clients) {
+    expect(shows(client, "Items: Off")).toBe(true);
+    for (const label of ["Speed item: On", "Heavy item: On"]) expect(shows(client, label)).toBe(false);
+  }
+  click("items", 1); expectSettings(true, ALL_ITEMS_MASK);
+  for (const client of clients.clients) for (const label of ["Items: On", "Speed item: On", "Heavy item: On"]) expect(shows(client, label)).toBe(true);
+  click("itemSpeed", 0); expectSettings(true, itemBit(ItemKind.heavy));
+  click("itemHeavy", 1); expectSettings(true, 0);
+  for (const client of clients.clients) for (const label of ["Speed item: Off", "Heavy item: Off"]) expect(shows(client, label)).toBe(true);
+  click("itemHeavy", 0);
+  expectSettings(true, itemBit(ItemKind.heavy));
   for (const actor of [0, 1]) clients.press(actor, Key.n);
   clients.frames(30); clients.press(0, Key.y); clients.frames(30);
   expect(value(clients.client(0), () => shell().game.phase)).toBe(Phase.stageMenu);
   clients.press(0, Key.y); clients.frames(120);
   expect(value(clients.client(0), () => shell().game.phase)).toBe(Phase.match);
-  expectSettings(true, itemBit(ItemKind.extraJump));
+  expectSettings(true, itemBit(ItemKind.heavy));
   expectSynchronized(clients);
 });
 

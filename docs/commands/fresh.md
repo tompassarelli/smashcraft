@@ -21,8 +21,10 @@
   from the repository root generates its 117 native parity scripts.
 
 - Item setup at fighter selection: `-dev items on|off` controls whether pickups appear;
-  `-dev item speed|jump|heavy on|off` controls each kind. The normal selection
-  buttons show Items, Speed, Extra jump and Heavy, all on by default.
+  `-dev item speed|heavy on|off` controls each kind. The normal selection
+  buttons show Items (off by default) and, once Items is on, Speed item and
+  Heavy item. In a match, `-dev item drop speed|heavy` starts the 10 s
+  warning for that item at centre stage.
 
 - Meter drop setup at fighter or stage selection: `-dev drops on|off` controls
   whether meter drops appear; the stage menu's Drops button does the same

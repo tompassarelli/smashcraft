@@ -25,7 +25,7 @@ export interface MatchItems {
 }
 
 export function createMatchItems(): MatchItems {
-  return { on: true, enabledMask: ALL_ITEMS_MASK, kind: ItemKind.none, nextSpawnFrame: 0, nextKind: ItemKind.none, draws: 0, spawnSerial: 0, pickupSerial: 0, lastTaker: -1 };
+  return { on: false, enabledMask: ALL_ITEMS_MASK, kind: ItemKind.none, nextSpawnFrame: 0, nextKind: ItemKind.none, draws: 0, spawnSerial: 0, pickupSerial: 0, lastTaker: -1 };
 }
 
 export function copyMatchItems(target: MatchItems, source: Readonly<MatchItems>): void {
@@ -70,7 +70,7 @@ export function firstItemsDifference(e: Readonly<MatchItems>, a: Readonly<MatchI
 
 
 export function writeMatchItems(items: Readonly<MatchItems>, int: (name: string, value: number) => void, bool: (name: string, value: boolean) => void): void {
-  if (!items.on) bool("match.items.on", false);
+  if (items.on) bool("match.items.on", true);
   if (items.enabledMask !== ALL_ITEMS_MASK) int("match.items.enabledMask", items.enabledMask);
   if (items.draws === 0 && items.nextSpawnFrame === 0 && items.kind === ItemKind.none) return;
   int("match.items.kind", items.kind);

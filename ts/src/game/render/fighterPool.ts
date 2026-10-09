@@ -4,6 +4,7 @@
 
 
 
+import { itemBodyTint } from "../presentation/itemLook";
 import {
   ORIGINAL_LIGHT_ACTIVE_ANIMATION,
   ORIGINAL_LIGHT_GATE_SECONDS,
@@ -180,9 +181,14 @@ export class FighterPoolPresentation {
       blue = tint.blue;
     } else {
       const shielded = fighter.shield.raised;
+      const item = shielded ? undefined : itemBodyTint(fighter);
       if (shielded) {
         red = 100;
         green = 160;
+      } else if (item !== undefined) {
+        red = item.red;
+        green = item.green;
+        blue = item.blue;
       }
       if (isIntangible(fighter)) alpha = 140;
     }

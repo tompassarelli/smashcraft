@@ -1,4 +1,5 @@
 
+import { itemBodyTint } from "../../game/presentation/itemLook";
 import { MATCH_HELP_BOX, MATCH_NOTICE_BOX } from "../../game/ui/hudLayout";
 import { CryDecision, createCryGate, cryStandIn, gateCry } from "../../game/presentation/hurtVoice";
 import { deckModel, slabScale } from "../../game/presentation/stagePreload";
@@ -265,9 +266,10 @@ export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readon
   placeFighterBody(body, fighter, s.origin, s.game.stageChoice);
   const tint = damageTint(fighter);
   const frozen = fighter.status.frozenFrames > 0;
-  const red = frozen ? 155 : tint?.red ?? (fighter.shield.raised ? 100 : 255);
-  const green = frozen ? 210 : tint?.green ?? (fighter.shield.raised ? 160 : 255);
-  const blue = frozen ? 255 : tint?.blue ?? 255;
+  const item = fighter.shield.raised ? undefined : itemBodyTint(fighter);
+  const red = frozen ? 155 : tint?.red ?? (fighter.shield.raised ? 100 : item?.red ?? 255);
+  const green = frozen ? 210 : tint?.green ?? (fighter.shield.raised ? 160 : item?.green ?? 255);
+  const blue = frozen ? 255 : tint?.blue ?? item?.blue ?? 255;
   const alpha = !frozen && tint === undefined && isIntangible(fighter) ? 140 : 255;
   SetUnitVertexColor(body.unit, red, green, blue, alpha);
 }
