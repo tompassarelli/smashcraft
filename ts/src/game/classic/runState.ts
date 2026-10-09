@@ -117,7 +117,7 @@ export function createConfiguredRun(): ConfiguredRun {
   return {
     active: false, current: undefined, player: 0, fighter: 1, fight: 0, tier: 0, outcome: RunOutcome.none, cleared: false,
     frames: 0, damageTaken: 0.0, lastDamage: 0.0, continues: 0,
-    savedHumanFighters: 0, savedComputers: 0, savedStocks: 3, savedMinutes: 7, savedHazards: true, savedItems: true,
+    savedHumanFighters: 0, savedComputers: 0, savedStocks: 3, savedMinutes: 7, savedHazards: true, savedItems: false,
     boss: createBossState(),
   };
 }
