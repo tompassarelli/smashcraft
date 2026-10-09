@@ -1,2 +1,3 @@
 [landing]
 	exact = true
+	queue = autoland

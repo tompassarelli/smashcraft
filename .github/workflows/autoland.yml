@@ -1,58 +1,65 @@
 name: Autoland
 
-# A claude/** branch (a cloud worker's) lands on main by itself: rebased onto
-# main, checked, and run through the full suites (farm-test.yml); it lands only
-# when the suites pass on that exact rebased commit (#394). Otherwise the
-# branch stays and the issue its commits reference gets the conflicting files
-# or the failures (smashcraft:docs/ci.md).
+# The one landing queue for main, cloud and local alike (smashcraft:docs/ci.md):
+# a run batches every waiting claude/** branch in arrival order onto main, runs
+# the full suites (farm-test.yml) once on that exact candidate and fast-forwards
+# main to it on green (#394). On red it re-runs each half; a lone failing branch
+# gets a failed `autoland` commit status and a comment on the issues it references.
 on:
   push:
     branches: ["claude/**"]
   workflow_dispatch:
     inputs:
       branch:
-        description: claude/ branch to land
-        required: true
+        description: claude/ branches to land, space-separated; empty lands every waiting branch
+        default: ""
 
-run-name: Autoland ${{ inputs.branch || format('{0} (push)', github.ref_name) }}
+run-name: Autoland ${{ inputs.branch || (github.event_name == 'push' && format('{0} (push)', github.ref_name)) || 'waiting branches' }}
 
 permissions:
   contents: write
   actions: write
   issues: write
+  statuses: write
 
-# One landing at a time; up to 100 branches wait their turn in order. A push
-# only queues the branch, so it never waits here itself.
+# One landing at a time; up to 100 runs wait their turn in order. A push only
+# marks its branch queued and queues a run, so it never waits here itself.
 concurrency:
   group: ${{ github.event_name == 'push' && format('autoland-push-{0}', github.ref) || 'autoland' }}
   cancel-in-progress: false
   queue: max
 
 env:
-  BRANCH: ${{ inputs.branch || github.ref_name }}
   GH_TOKEN: ${{ github.token }}
   GH_REPO: ${{ github.repository }}
+  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
 jobs:
   # A push runs the branch's copy of this file; the landing runs main's.
+  # The `autoland` status on a branch tip is the queue: pending "queued" (its
+  # created_at is the arrival order), pending "bisect", success "landed as SHA"
+  # or failure. `safe-push --to main` waits on it.
   queue:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - run: gh workflow run autoland.yml --ref main -f branch="$BRANCH"
+      - run: |
+          gh api "repos/$GH_REPO/statuses/$GITHUB_SHA" -f state=pending -f context=autoland -f description=queued -f target_url="$RUN_URL" > /dev/null
+          gh workflow run autoland.yml --ref main
 
-  rebase:
+  build:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     outputs:
-      verdict: ${{ steps.rebase.outputs.verdict }}
-      sha: ${{ steps.rebase.outputs.sha }}
-      base: ${{ steps.rebase.outputs.base }}
-      scratch: ${{ steps.rebase.outputs.scratch }}
-      issues: ${{ steps.rebase.outputs.issues }}
-      detail: ${{ steps.rebase.outputs.detail }}
+      verdict: ${{ steps.build.outputs.verdict }}
+      sha: ${{ steps.build.outputs.sha }}
+      base: ${{ steps.build.outputs.base }}
+      scratch: ${{ steps.build.outputs.scratch }}
+      branches: ${{ steps.build.outputs.branches }}
+      tips: ${{ steps.build.outputs.tips }}
+      detail: ${{ steps.build.outputs.detail }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -63,61 +70,110 @@ jobs:
           bun-version: 1.3.13
       - run: bun install --frozen-lockfile
         working-directory: ts
-      # verdict: test (rebased and checked), conflict, check, empty (main holds it) or gone.
-      # Pushing the rebased commit to a scratch farm/ branch runs the pre-push gate.
-      - id: rebase
+      # verdict: test (candidate built and checked), check (the pre-push gate failed on it) or none.
+      # Pushing the candidate to a scratch farm/ branch runs the pre-push gate.
+      - id: build
+        env:
+          REQUESTED: ${{ inputs.branch }}
         run: |
           set +e -uo pipefail
           out() { echo "$1=$2" >> "$GITHUB_OUTPUT"; }
-          detail() { { echo "detail<<AUTOLAND_EOF"; printf '%s\n' "$1"; echo "AUTOLAND_EOF"; } >> "$GITHUB_OUTPUT"; }
+          status() { gh api "repos/$GH_REPO/statuses/$1" -f state="$2" -f context=autoland -f description="${3:0:139}" -f target_url="$RUN_URL" > /dev/null; }
+          refuse() {
+            local branch="$1" tip="$2" issues
+            status "$tip" failure "$3"
+            issues=$(git log --format=%B "origin/main..$tip" | grep -ioE '(refs|fixes|closes) (smashcraft)?#[0-9]+' | grep -oE '[0-9]+$' | sort -un)
+            { echo "Autoland didn't land \`$branch\` (${tip:0:10}): $3"; echo; printf '%s\n' "$4" | head -60
+              echo; echo "Run: $RUN_URL. The branch stays; push a fix to it and it tries again."; } > comment.md
+            cat comment.md >> "$GITHUB_STEP_SUMMARY"
+            for issue in $issues; do gh issue comment "$issue" --body-file comment.md; done
+          }
           git config user.name "github-actions[bot]"
           git config user.email "41898183+github-actions[bot]@users.noreply.github.com"
           git config core.hooksPath .githooks
-          if ! git fetch -q origin "+refs/heads/$BRANCH:refs/remotes/origin/$BRANCH"; then out verdict gone; exit 0; fi
+          git fetch -q origin '+refs/heads/claude/*:refs/remotes/origin/claude/*'
           base=$(git rev-parse origin/main)
           out base "$base"
-          out issues "$(git log --format=%B "origin/main..origin/$BRANCH" | grep -ioE '(refs|fixes|closes) (smashcraft)?#[0-9]+' | grep -oE '[0-9]+$' | sort -un | tr '\n' ' ')"
-          if [ -z "$(git rev-list "origin/main..origin/$BRANCH")" ]; then out verdict empty; exit 0; fi
-          git checkout -q -B autoland "origin/$BRANCH"
-          if ! git rebase -q origin/main > rebase.log 2>&1; then
-            files=$(git diff --name-only --diff-filter=U)
-            git rebase --abort
-            out verdict conflict
-            detail "${files:-$(tail -20 rebase.log)}"
-            exit 0
-          fi
+          : > waiting
+          for branch in $(git for-each-ref --format='%(refname:strip=3)' refs/remotes/origin/claude/); do
+            tip=$(git rev-parse "origin/$branch")
+            if [ -n "$REQUESTED" ]; then
+              tr ' ' '\n' <<< "$REQUESTED" | grep -qx "$branch" || continue
+              arrived=$(git log -1 --format=%ct "$tip")
+            else
+              IFS=$'\t' read -r state description created < <(gh api "repos/$GH_REPO/commits/$tip/status" \
+                --jq '([.statuses[] | select(.context == "autoland")][0] // {}) | [.state // "", .description // "", .created_at // ""] | @tsv')
+              case "$state:$description" in
+                :) arrived=$(git log -1 --format=%ct "$tip") ;;
+                pending:queued) arrived=$(date -d "$created" +%s) ;;
+                *) continue ;;
+              esac
+            fi
+            echo "$arrived $branch $tip" >> waiting
+          done
+          git checkout -q -B autoland "$base"
+          branches=""; tips=""
+          while read -r _ branch tip; do
+            if [ -z "$(git rev-list "$base..$tip")" ]; then
+              git push -q --force-with-lease="refs/heads/$branch:$tip" origin ":refs/heads/$branch"
+              status "$tip" success "landed as $base"
+              echo "main already holds $branch: deleted it" >> "$GITHUB_STEP_SUMMARY"
+              continue
+            fi
+            workflows=$(git diff --name-only "$(git merge-base "$base" "$tip")" "$tip" -- .github/workflows)
+            if [ -n "$workflows" ]; then
+              refuse "$branch" "$tip" "it changes .github/workflows, which the workflow token can't push; land it with safe-push" "$workflows"
+              continue
+            fi
+            git checkout -q --detach "$tip"
+            if ! git rebase -q autoland > rebase.log 2>&1; then
+              files=$(git diff --name-only --diff-filter=U)
+              git rebase --abort
+              git checkout -q autoland
+              refuse "$branch" "$tip" "rebasing onto main and the branches ahead of it conflicts in $(echo $files)" "${files:-$(tail -20 rebase.log)}"
+              continue
+            fi
+            git checkout -q -B autoland
+            branches="$branches $branch"; tips="$tips $tip"
+          done < <(sort -n waiting)
+          out branches "${branches# }"
+          out tips "${tips# }"
+          if [ -z "$branches" ]; then out verdict none; exit 0; fi
           sha=$(git rev-parse HEAD)
           scratch="farm/autoland-${sha:0:12}"
           out sha "$sha"
-          if ! git push origin "HEAD:refs/heads/$scratch" > push.log 2>&1; then
+          echo "Candidate ${sha:0:10} on main ${base:0:10}:$(printf ' `%s`' $branches)" >> "$GITHUB_STEP_SUMMARY"
+          # A branch may move ts/bun.lock (the Wisp pin): check against the candidate's own install.
+          if ! (cd ts && bun install --frozen-lockfile) > push.log 2>&1 \
+              || ! git push origin "HEAD:refs/heads/$scratch" >> push.log 2>&1; then
             cat push.log
             out verdict check
-            detail "$(grep -v '^remote:' push.log | tail -40)"
+            { echo "detail<<AUTOLAND_EOF"; grep -v '^remote:' push.log | tail -40; echo "AUTOLAND_EOF"; } >> "$GITHUB_OUTPUT"
             exit 0
           fi
           out scratch "$scratch"
           out verdict test
 
   suite:
-    needs: rebase
-    if: needs.rebase.outputs.verdict == 'test'
+    needs: build
+    if: needs.build.outputs.verdict == 'test'
     uses: ./.github/workflows/farm-test.yml
     with:
-      ref: ${{ needs.rebase.outputs.sha }}
+      ref: ${{ needs.build.outputs.sha }}
 
   land:
-    needs: [rebase, suite]
-    if: ${{ !cancelled() && needs.rebase.result == 'success' }}
+    needs: [build, suite]
+    if: ${{ !cancelled() && needs.build.result == 'success' && needs.build.outputs.verdict != 'none' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      VERDICT: ${{ needs.rebase.outputs.verdict }}
-      SHA: ${{ needs.rebase.outputs.sha }}
-      BASE: ${{ needs.rebase.outputs.base }}
-      SCRATCH: ${{ needs.rebase.outputs.scratch }}
-      ISSUES: ${{ needs.rebase.outputs.issues }}
-      DETAIL: ${{ needs.rebase.outputs.detail }}
-      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      VERDICT: ${{ needs.build.outputs.verdict }}
+      SHA: ${{ needs.build.outputs.sha }}
+      BASE: ${{ needs.build.outputs.base }}
+      SCRATCH: ${{ needs.build.outputs.scratch }}
+      BRANCHES: ${{ needs.build.outputs.branches }}
+      TIPS: ${{ needs.build.outputs.tips }}
+      DETAIL: ${{ needs.build.outputs.detail }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -134,38 +190,57 @@ jobs:
           set +e -uo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898183+github-actions[bot]@users.noreply.github.com"
-          short=${SHA:0:10}
-          refuse() {
-            { echo "Autoland didn't land \`$BRANCH\`${SHA:+ ($short, rebased onto main ${BASE:0:10})}: $1"; echo; printf '%s\n' "$2" | head -60
+          read -ra branches <<< "$BRANCHES"
+          read -ra tips <<< "$TIPS"
+          status() { gh api "repos/$GH_REPO/statuses/$1" -f state="$2" -f context=autoland -f description="${3:0:139}" -f target_url="$RUN_URL" > /dev/null; }
+          git fetch -q origin '+refs/heads/claude/*:refs/remotes/origin/claude/*'
+          why=""; failed=""
+          if [ "$VERDICT" = check ]; then
+            why="the checks failed"; failed=$(printf '```\n%s\n```' "$DETAIL")
+          elif [ ! -f candidate/summary.json ]; then
+            why="the suite run ended without a result"
+          else
+            failed=$(jq -r '.failures[], .problems[]' candidate/summary.json | sed 's/^/- /')
+            [ -z "$failed" ] || why="$(grep -c . <<< "$failed") failing; main lands only on a green suite, including tests main already fails"
+          fi
+          if [ -n "$why" ] && [ "${#branches[@]}" -gt 1 ]; then
+            half=$(( (${#branches[@]} + 1) / 2 ))
+            for tip in "${tips[@]}"; do status "$tip" pending bisect; done
+            gh workflow run autoland.yml --ref main -f branch="${branches[*]:0:half}"
+            gh workflow run autoland.yml --ref main -f branch="${branches[*]:half}"
+            echo "Candidate ${SHA:0:10} failed ($why): queued its halves" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          if [ -n "$why" ]; then
+            tip=${tips[0]}
+            status "$tip" failure "${SHA:+on ${SHA:0:10}: }$why"
+            { echo "Autoland didn't land \`${branches[0]}\`${SHA:+ (${SHA:0:10}, rebased onto main ${BASE:0:10})}: $why:"; echo; printf '%s\n' "$failed" | head -60
               echo; echo "Run: $RUN_URL. The branch stays; push a fix to it and it tries again."; } > comment.md
             cat comment.md >> "$GITHUB_STEP_SUMMARY"
-            for issue in $ISSUES; do gh issue comment "$issue" --body-file comment.md; done
-            [ -n "$ISSUES" ] || echo "::warning::no Refs smashcraft#N in the commits: nothing to comment on"
+            for issue in $(git log --format=%B "origin/main..$tip" | grep -ioE '(refs|fixes|closes) (smashcraft)?#[0-9]+' | grep -oE '[0-9]+$' | sort -un); do
+              gh issue comment "$issue" --body-file comment.md
+            done
             exit 1
-          }
-          case "$VERDICT" in
-            gone) echo "$BRANCH no longer exists"; exit 0 ;;
-            empty) git push origin --delete "$BRANCH"; echo "main already holds $BRANCH: deleted it" >> "$GITHUB_STEP_SUMMARY"; exit 0 ;;
-            conflict) refuse "rebasing onto main conflicts in these files:" "$DETAIL" ;;
-            check) refuse "the checks failed:" "$(printf '```\n%s\n```' "$DETAIL")" ;;
-          esac
-          [ -f candidate/summary.json ] || refuse "the suite run ended without a result." ""
-          failed=$(jq -r '.failures[], .problems[]' candidate/summary.json)
-          if [ -n "$failed" ]; then
-            refuse "$(grep -c . <<< "$failed") failing on the rebased commit; main lands only on a green suite, including tests main already fails:" "$(printf '%s\n' "$failed" | sed 's/^/- /')"
           fi
-          # Main moved while the suites ran: the tested commit isn't the one that would land, so test again.
+          # Main moved outside the queue while the suites ran: test the new rebase.
           git fetch -q origin main
           if [ "$(git rev-parse origin/main)" != "$BASE" ]; then
-            gh workflow run autoland.yml --ref main -f branch="$BRANCH"
-            echo "main moved during the suites: queued $BRANCH again to test the new rebase" >> "$GITHUB_STEP_SUMMARY"
+            gh workflow run autoland.yml --ref main -f branch="$BRANCHES"
+            echo "main moved during the suites: queued $BRANCHES again" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           git fetch -q origin "$SCRATCH"
-          git push origin "$SHA:refs/heads/main" 2> push.log || refuse "pushing to main failed:" "$(cat push.log)"
-          git push origin --delete "$BRANCH"
+          if ! git push origin "$SHA:refs/heads/main" 2> push.log; then
+            for tip in "${tips[@]}"; do status "$tip" failure "pushing to main failed"; done
+            cat push.log; exit 1
+          fi
+          for i in "${!branches[@]}"; do
+            status "${tips[i]}" success "landed as $SHA"
+            git push -q --force-with-lease="refs/heads/${branches[i]}:${tips[i]}" origin ":refs/heads/${branches[i]}" \
+              || echo "::warning::${branches[i]} moved after it was queued: kept it"
+          done
           # Pushes made with this token start no workflows: start main's CI (main-red follows it).
           gh workflow run ci.yml --ref main || echo "::warning::couldn't start main's CI"
-          echo "Landed $BRANCH on main as $short; deleted the branch." >> "$GITHUB_STEP_SUMMARY"
+          echo "Landed ${SHA:0:10} on main:$(printf ' `%s`' "${branches[@]}")" >> "$GITHUB_STEP_SUMMARY"
       - if: always() && env.SCRATCH != ''
         run: git push origin --delete "$SCRATCH" || true

@@ -46,7 +46,7 @@ when the pushed commits change ts/, the model facts check
 (smashcraft:ts/test/model-facts.test.ts; it refuses with the `bun wisp view models`
 refresh command) when they change clips or model build inputs, in a few seconds (smashcraft:ts/scripts/prePush.ts).
 It checks the working tree, so push from a clean checkout of the commit.
-A push to main then needs a green farm suite (`bun wisp farm test`) on the exact commit it pushes: the gate reuses a farm run already green on that commit, else runs one and waits (about 4 minutes), and refuses on any failure, main's known ones included (#394). The repository's .safe-push sets `landing.exact`, so `safe-push --to main` re-runs the gate whenever main moved during it; the commit that lands is the one the farm tested. Run `bun wisp farm test --wait` before `safe-push` to see failures earlier; the gate then reuses that run if main hasn't moved.
+A push to main then needs a green farm suite (`bun wisp farm test`) on the exact commit it pushes: the gate reuses a farm run already green on that commit, else runs one and waits (about 4 minutes), and refuses on any failure, main's known ones included (#394). The repository's .safe-push sets `landing.queue = autoland`, so `safe-push --to main` runs the local checks, then hands the lane to Autoland's one queue, which farms each batch of waiting lanes once and lands the exact commit it tested (smashcraft:docs/ci.md, "Autoland"); a lane that changes `.github/workflows/` lands directly through the gate.
 
 Main stays green. Each CI run on main opens, updates or closes the one
 "main is red" issue (smashcraft:.github/workflows/main-red.yml), which lists the
