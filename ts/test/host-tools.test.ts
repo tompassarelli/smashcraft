@@ -93,10 +93,13 @@ test("SIGTERM to bun wisp stops the helper process its command started [spec wis
     const bin = join(dir, "bin");
     mkdirSync(bin);
     const pidFile = join(dir, "helper.pid");
-    stub(bin, "gh", `writeFileSync(${JSON.stringify(pidFile)}, String(process.pid));\nsetInterval(() => {}, 1000);`);
+    stub(bin, "gh", `writeFileSync(${JSON.stringify(`${pidFile}.pending`)}, String(process.pid));
+require("node:fs").renameSync(${JSON.stringify(`${pidFile}.pending`)}, ${JSON.stringify(pidFile)});
+setInterval(() => {}, 1000);`);
     const wisp = Bun.spawn([process.execPath, wispEntry, "farm", "pads"], { cwd: dir, env: { ...process.env, PATH: `${bin}:${process.env["PATH"] ?? ""}` }, stdout: "ignore", stderr: "pipe" });
     for (let waited = 0; !existsSync(pidFile) && waited < 10_000; waited += 20) await Bun.sleep(20);
     const helper = Number(readFileSync(pidFile, "utf8"));
+    expect(helper).toBeGreaterThan(0);
     expect(leftovers([helper])).toEqual([helper]);
     wisp.kill("SIGTERM");
     expect(await wisp.exited).toBe(130);
