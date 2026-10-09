@@ -1,14 +1,14 @@
 import { resolve, relative } from 'node:path';
 import { Effect } from 'effect';
 import { parseMDX } from '../../ts/scripts/clipNodes';
-import { CAIRNE_DE_PAIRS, checkBodySkin, checkRetarget, generateHdBody, parseHdBody, retargetHd } from './hd-retarget';
+import { CAIRNE_DE_PAIRS, checkBodySkin, checkRetarget, generateHdBody, parseHdBody, retargetHd, type RetargetOptions } from './hd-retarget';
 import { timelineBody } from './timeline-body';
 import { flashableSequences } from './white-flash-keys';
 import { thinKeys } from '../../ts/scripts/keyThin';
 import { fighters } from './original-clips';
 import { victoryAnimation } from '../../ts/src/game/presentation/matchAudio';
 
-export interface HdRig { readonly pairs: readonly (readonly [string, string])[]; readonly visibilityPairs?: readonly (readonly [number, number])[] }
+export interface HdRig extends RetargetOptions { readonly pairs: readonly (readonly [string, string])[] }
 
 /** One fighter's Definitive timeline body from its authored Classic model and the stock Definitive model. */
 export async function convertHdBody(source: ArrayBuffer, stock: ArrayBuffer, character: number, rig: HdRig) {
@@ -16,6 +16,8 @@ export async function convertHdBody(source: ArrayBuffer, stock: ArrayBuffer, cha
     if (fighter === undefined) throw new Error(`Unknown fighter ${character}`);
     const authored = parseMDX(source);
     const hd = parseHdBody(stock);
+    // The Crypt Lord names a base-only glow; Definitive has the same stock art under this path (#346).
+    for (const texture of hd.Textures) if (texture.Image.replaceAll('\\', '/').replace(/\.(blp|tif|dds|tga)$/i, '').toLowerCase() === 'replaceabletextures/teamglow/teamglow00') texture.Image = 'Textures\\TeamGlow0000.dds';
     const pairs = rig.pairs;
     if (!Array.isArray(pairs) || pairs.length === 0) throw new Error('Rig module must export a nonempty pairs array');
     const skin = checkBodySkin(hd);
@@ -24,7 +26,7 @@ export async function convertHdBody(source: ArrayBuffer, stock: ArrayBuffer, cha
     const selected = new Set(flashableSequences(character, authored.Sequences));
     for (const sequence of authored.Sequences) if (normalize(sequence.Name) === victory) selected.add(sequence);
     const sequences = authored.Sequences.filter(sequence => selected.has(sequence));
-    const result = retargetHd(authored, hd, pairs, sequences, { visibilityPairs: rig.visibilityPairs });
+    const result = retargetHd(authored, hd, pairs, sequences, rig);
     const converted = checkRetarget(result);
     if (converted.units > 0.5 || converted.degrees > 0.5) throw new Error(`${fighter.name} retarget exceeds 0.5/0.5: ${JSON.stringify(converted)}`);
     for (const collision of result.model.CollisionShapes) delete result.model.Nodes[collision.ObjectId];

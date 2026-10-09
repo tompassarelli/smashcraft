@@ -1,4 +1,5 @@
 export const character = 1;
+export const fitScale = 0.5;
 export const stock = 'war3.w3mod:_de.w3mod:units\\human\\rifleman\\rifleman.mdx';
 // The DE limb chains include twist joints between shoulder/elbow and elbow/wrist.
 export const pairs: readonly (readonly [string, string])[] = [

@@ -53,16 +53,17 @@ export function checkBodySkin(model: mdx.Model) {
 }
 
 
-interface RenderState { frame: number; nodes: { matrix: mat4 }[] }
+interface RenderState { frame: number; nodes: { matrix: mat4 }[]; geosetAlpha: number[] }
 function evaluator(model: mdx.Model) {
     const renderer = new ModelRenderer(model);
     const state = Reflect.get(renderer, 'rendererData') as RenderState;
-    return (sequence: number, frame: number) => {
+    const at = (sequence: number, frame: number) => {
         renderer.setSequence(sequence);
         state.frame = frame;
         renderer.update(0);
         return state.nodes.map(node => node && mat4.clone(node.matrix));
     };
+    return Object.assign(at, { visibility: () => state.geosetAlpha });
 }
 
 function inverse(matrix: mat4): mat4 {
@@ -89,6 +90,10 @@ export interface RetargetResult { model: mdx.Model; samples: RetargetSample[]; m
 export interface RetargetOptions {
     /** Classic geoset index → Definitive geoset index whose authored hide/show keys it takes. */
     readonly visibilityPairs?: readonly (readonly [number, number])[];
+    /** Equal limb lengths don't establish a body's head height against the shared hurt capsules. */
+    readonly fitScale?: number;
+    /** A branch's fixed size about its root or a named anchor, including its attached skin. */
+    readonly limbScales?: readonly (readonly [string, number, string?])[];
 }
 
 const rotationOf = (matrix: mat4) => quat.normalize(quat.create(), mat4.getRotation(quat.create(), matrix));
@@ -169,7 +174,7 @@ function propAxis(rig: mdx.Model, pose: readonly mat4[], vertices: readonly { ge
  * copied: the body keeps the stock Definitive node count.
  */
 export function retargetHd(source: mdx.Model, hd: mdx.Model, pairs: readonly (readonly [string, string])[], sequences: readonly mdx.Sequence[], options: RetargetOptions = {}): RetargetResult {
-    return transferMotion(source, hd, registerRig(source, hd, pairs), sequences, options);
+    return transferMotion(source, hd, registerRig(source, hd, pairs, options), sequences, options);
 }
 
 /**
@@ -177,7 +182,7 @@ export function retargetHd(source: mdx.Model, hd: mdx.Model, pairs: readonly (re
  * source joints, each joint's rest alignment, the size fit and the ground height. It is data about the two rest
  * poses only; `transferMotion` applies it to any motion of the source rig.
  */
-export function registerRig(source: mdx.Model, hd: mdx.Model, pairs: readonly (readonly [string, string])[]) {
+export function registerRig(source: mdx.Model, hd: mdx.Model, pairs: readonly (readonly [string, string])[], options: RetargetOptions = {}) {
     const model = hd;
     const referenceSequence = (rig: mdx.Model) => {
         const ready = rig.Sequences.findIndex(sequence => /^Stand Ready(?:\s+\d+)?$/.test(sequence.Name));
@@ -235,7 +240,8 @@ export function registerRig(source: mdx.Model, hd: mdx.Model, pairs: readonly (r
     }
     const limbs = [...children].flatMap(([parent, list]) => list.map(child => [parent, child] as const));
     const proportion = length(legs) ?? length(limbs) ?? 1;
-    const fit = 1 / proportion;
+    const fit = (options.fitScale ?? 1) / proportion;
+    if (!Number.isFinite(fit) || fit <= 0) throw new Error('Retarget size fit must be positive and finite');
     const centroid = (points: vec3[]) => points.reduce((sum, point) => vec3.scaleAndAdd(sum, sum, point, 1 / points.length), vec3.create());
     // Rest alignment per Classic joint: swing the Definitive rest direction onto the Classic one.
     const alignment = new Map<number, quat>();
@@ -281,6 +287,19 @@ export function registerRig(source: mdx.Model, hd: mdx.Model, pairs: readonly (r
     const visited = new Set<number>();
     const visit = (id: number) => { if (visited.has(id)) return; visited.add(id); const parent = logicalParent.get(id); if (parent != null) visit(parent); order.push(id); };
     for (const node of model.Nodes) if (node !== undefined) visit(node.ObjectId);
+    const limbScales = (options.limbScales ?? []).map(([name, scale, anchorName]) => {
+        const root = model.Bones.find(bone => bone.Name === name);
+        if (root === undefined) throw new Error(`Unmapped size-fit limb ${name}`);
+        const anchor = anchorName === undefined ? root : model.Bones.find(bone => bone.Name === anchorName);
+        if (anchor === undefined) throw new Error(`Unknown size-fit anchor ${anchorName}`);
+        if (!Number.isFinite(scale) || scale <= 0) throw new Error(`Invalid size fit for ${name}`);
+        const ids = order.filter(id => {
+            for (let ancestor: number | null | undefined = id; ancestor != null; ancestor = logicalParent.get(ancestor)) if (ancestor === root.ObjectId) return true;
+            return false;
+        });
+        return { root: root.ObjectId, anchor: anchor.ObjectId, scale, ids };
+    });
+    const fittedRoots = new Set(limbScales.map(({ root }) => root));
     // Mapped joints drop the stock stance's slight squash and stretch, so every keyed joint is rigid and keys exactly.
     const rigidReference = new Map([...correspondence.keys()].map(id => {
         const rest = hdRest(id), pivot = model.Nodes[id].PivotPoint;
@@ -291,6 +310,7 @@ export function registerRig(source: mdx.Model, hd: mdx.Model, pairs: readonly (r
     // a squashed parent would shear its turned child, and a node keys no shear.
     const onPath = new Set<number>();
     for (const id of correspondence.keys()) for (let parent = logicalParent.get(id); parent != null; parent = logicalParent.get(parent)) if (!correspondence.has(parent)) onPath.add(parent);
+    for (const id of fittedRoots) onPath.add(id);
     const constantLocal = new Map<number, mat4>();
     const referenceWorld = new Map<number, mat4>();
     for (const id of order) {
@@ -306,12 +326,30 @@ export function registerRig(source: mdx.Model, hd: mdx.Model, pairs: readonly (r
         constantLocal.set(id, local);
         referenceWorld.set(id, mat4.multiply(mat4.create(), referenceWorld.get(parent)!, local));
     }
-    // The skin the mapped joints carry themselves, without dangling cloth or fingers: its lowest point stands on the
-    // floor wherever the Classic body's does, so feet stay planted and a body lying down lies on the floor.
-    const soles = ownedVertices(model, [...correspondence.keys()], new Map());
-    const classicSoles = ownedVertices(source, [...group.keys()], new Map(), true);
+    const drawnVertices = (rig: mdx.Model, vertices: ReturnType<typeof ownedVertices>) => {
+        const used = rig.Geosets.map(mesh => rig.Materials[mesh.MaterialID]?.Layers.some(layer => Number(layer.FilterMode) <= 2) ? new Set(mesh.Faces) : new Set<number>());
+        return vertices.filter(({ geoset, vertex }) => used[geoset].has(vertex));
+    };
+    const classicLegs = [...group.keys()].filter(id => /leg|foot|ankle|shin|toe|paw/i.test(source.Nodes[id].Name)
+        || group.get(id)!.some(target => /leg|foot|ankle|toe|paw|mount_bone_hand/i.test(model.Nodes[target].Name)));
+    const targetLegs = classicLegs.flatMap(id => group.get(id)!);
+    const classicBody = drawnVertices(source, ownedVertices(source, [...group.keys()], group, true));
+    const targetBody = drawnVertices(model, ownedVertices(model, [...correspondence.keys()], correspondence));
+    const classicSoles = classicLegs.length === 0 ? classicBody : drawnVertices(source, ownedVertices(source, classicLegs, group, true));
+    const soles = targetLegs.length === 0 ? targetBody : drawnVertices(model, ownedVertices(model, targetLegs, correspondence));
+    const legSupport = classicLegs.length > 0 && classicSoles.length > 0 && soles.length > 0;
+    const targetVisibility = [...hdAt.visibility()];
+    const visible = (rig: mdx.Model, geoset: number) => {
+        if (rig === source) return (sourceAt.visibility()[geoset] ?? 1) > 0;
+        const from = options.visibilityPairs?.find(([, target]) => target === geoset)?.[0];
+        return (from === undefined ? targetVisibility[geoset] ?? 1 : sourceAt.visibility()[from] ?? 1) > 0;
+    };
     const lowestOf = (rig: mdx.Model, world: (id: number) => mat4, vertices: readonly { geoset: number; vertex: number }[]) =>
-        vertices.reduce((low, { geoset, vertex }) => Math.min(low, skinned(rig, world, geoset, vertex)[2]), Infinity);
+        vertices.reduce((low, { geoset, vertex }) => visible(rig, geoset) ? Math.min(low, skinned(rig, world, geoset, vertex)[2]) : low, Infinity);
+    const supportHeight = (rig: mdx.Model, world: (id: number) => mat4, vertices: typeof soles) => {
+        const low = lowestOf(rig, world, vertices);
+        return Number.isFinite(low) ? low : lowestOf(rig, world, rig === source ? classicBody : targetBody);
+    };
     const pose = (classic: readonly mat4[], ground: number, plant?: number) => {
         const frame = mat4.multiply(mat4.create(), body0, inverse(bodyAt(classic)));
         const world = new Map<number, mat4>();
@@ -335,36 +373,53 @@ export function registerRig(source: mdx.Model, hd: mdx.Model, pairs: readonly (r
             const at = anchored ?? vec3.add(vec3.create(), vec3.scaleAndAdd(vec3.create(), rest, vec3.sub(vec3.create(), pivotOf(local, source.Nodes[from].PivotPoint), classicRest.get(from)!), proportion), [0, 0, ground]);
             world.set(id, turnedAbout(rigidReference.get(id)!, rest, turn, at));
         }
-        // Planting: the lowest Definitive ankle keeps the Classic lowest ankle's height, so feet on the floor stay on it
-        // whatever the two legs' thigh-to-shin proportions.
-        if (plant !== undefined) {
-            const classicLowest = lowestOf(source, id => mat4.multiply(mat4.create(), frame, classic[id]), classicSoles);
-            const hdLowest = lowestOf(model, id => world.get(id)!, soles);
-            const lift = mat4.fromTranslation(mat4.create(), [0, 0, (classicLowest + plant) / fit - hdLowest]);
-            for (const [id, matrix] of world) world.set(id, mat4.multiply(matrix, lift, matrix));
+        for (const { anchor, scale, ids } of limbScales) {
+            const pivot = pivotOf(world.get(anchor)!, model.Nodes[anchor].PivotPoint);
+            const sizing = mat4.fromTranslation(mat4.create(), pivot);
+            mat4.scale(sizing, sizing, [scale, scale, scale]);
+            mat4.translate(sizing, sizing, vec3.negate(vec3.create(), pivot));
+            for (const id of ids) world.set(id, mat4.multiply(mat4.create(), sizing, world.get(id)!));
+        }
+        if (plant !== undefined && !legSupport) {
+            const classicLowest = supportHeight(source, id => mat4.multiply(mat4.create(), frame, classic[id]), classicSoles);
+            const hdLowest = supportHeight(model, id => world.get(id)!, soles);
+            if (Number.isFinite(classicLowest + hdLowest)) {
+                const lift = mat4.fromTranslation(mat4.create(), [0, 0, (classicLowest + plant) / fit - hdLowest]);
+                for (const [id, matrix] of world) world.set(id, mat4.multiply(matrix, lift, matrix));
+            }
         }
         // Fixed size fit: the Definitive limbs draw at the Classic limbs' length, so the body fills the shared hurt capsules
         // and its strikes reach the shared hit regions (#362).
         const toBody = mat4.scale(mat4.create(), mat4.multiply(mat4.create(), bodyAt(classic), inverse(body0)), [fit, fit, fit]);
         for (const [id, matrix] of world) world.set(id, mat4.multiply(matrix, toBody, matrix));
+        // Match visible support after the authored body turn; a hanging weapon or the stock rest height must not lift the feet.
+        if (plant !== undefined && legSupport) {
+            const classicLowest = supportHeight(source, id => classic[id], classicSoles);
+            const hdLowest = supportHeight(model, id => world.get(id)!, soles);
+            if (Number.isFinite(classicLowest + hdLowest)) {
+                const lift = mat4.fromTranslation(mat4.create(), [0, 0, classicLowest + plant - hdLowest]);
+                for (const [id, matrix] of world) world.set(id, mat4.multiply(matrix, lift, matrix));
+            }
+        }
         return world;
     };
     // Ground registration: the aligned rest stance stands its soles where the stock stance does.
     const aligned = pose(sourceReference, 0);
-    const ground = soles.length === 0 ? 0 : (lowestOf(model, id => hdReference[id], soles) - lowestOf(model, id => aligned.get(id)!, soles)) / fit;
+    const stockFloor = supportHeight(model, id => hdReference[id], soles), alignedFloor = supportHeight(model, id => aligned.get(id)!, soles);
+    const ground = Number.isFinite(stockFloor + alignedFloor) ? (stockFloor - alignedFloor) / fit : 0;
     const standing = pose(sourceReference, ground);
-    const plant = soles.length === 0 || classicSoles.length === 0 ? undefined
-        : lowestOf(model, id => standing.get(id)!, soles) - lowestOf(source, id => sourceReference[id], classicSoles);
-    return { sourceStand, hdStand, sourceAt, sourceReference, hdReference, correspondence, logicalParent, alignment, aimed, props, proportion, fit, ground, plant, bodyNode, bodyAt, constantLocal, pose };
+    const targetFloor = supportHeight(model, id => standing.get(id)!, soles), classicFloor = supportHeight(source, id => sourceReference[id], classicSoles);
+    const plant = Number.isFinite(targetFloor + classicFloor) ? legSupport ? 0 : targetFloor - classicFloor : undefined;
+    return { sourceStand, hdStand, sourceAt, sourceReference, hdReference, correspondence, fittedRoots, logicalParent, alignment, aimed, props, proportion, fit, ground, plant, bodyNode, bodyAt, constantLocal, pose };
 }
 export type RigRegistration = ReturnType<typeof registerRig>;
 
 /** Bakes `sequences` of the source rig's motion onto a copy of the target body through `registration`. */
 export function transferMotion(source: mdx.Model, hd: mdx.Model, registration: RigRegistration, sequences: readonly mdx.Sequence[], options: RetargetOptions = {}): RetargetResult {
     const model = structuredClone(hd);
-    const { hdStand, sourceAt, hdReference, correspondence, logicalParent, fit, ground, plant, bodyNode, bodyAt, constantLocal, pose } = registration;
-    const mappedIds = [...correspondence.keys()];
-    const keyed = new Set(model.Bones.filter(bone => correspondence.has(bone.ObjectId) || bone.Parent == null).map(bone => bone.ObjectId));
+    const { hdStand, sourceAt, hdReference, correspondence, fittedRoots, logicalParent, fit, ground, plant, bodyNode, bodyAt, constantLocal, pose } = registration;
+    const mappedIds = [...new Set([...correspondence.keys(), ...fittedRoots])];
+    const keyed = new Set(model.Bones.filter(bone => correspondence.has(bone.ObjectId) || fittedRoots.has(bone.ObjectId) || bone.Parent == null).map(bone => bone.ObjectId));
     const hdBones = [...model.Bones];
     for (const node of hdBones) { delete node.Translation; delete node.Rotation; delete node.Scaling; }
     const globalOffset = model.GlobalSequences.length;

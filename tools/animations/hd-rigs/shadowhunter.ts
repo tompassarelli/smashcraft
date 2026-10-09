@@ -1,6 +1,8 @@
 export const character = 9;
 export const fighter = 'ShadowHunter';
 export const stockPath = 'war3.w3mod:_de.w3mod:units\\orc\\HeroShadowHunter\\HeroShadowHunter.mdx';
+// Leg-only fitting otherwise leaves the hands and glaive below Classic's floor while the feet stay planted (#362).
+export const limbScales = [['arm_L0_0_jnt', 0.635], ['arm_R0_0_jnt', 0.745]] as const;
 export const pairs: readonly (readonly [string, string])[] = [
     ['Bone_Pelvis', 'spine_C0_0_jnt'], ['Bone_Chest', 'spine_C0_1_jnt'],
     ['Bone_Chest', 'bone_chest'], ['Bone_Head', 'bone_head'],

@@ -20,6 +20,9 @@ test('registered alternate meshes retain authored hide and show keys in the Defi
     const hd = structuredClone(source);
     hd.GeosetAnims[0]!.Alpha = 1;
     const result = retargetHd(source, hd, [[source.Bones[0]!.Name, hd.Bones[0]!.Name]], source.Sequences, { visibilityPairs: [[0, 0]] });
+    const exported = checkRetarget(result);
+    expect(exported.units).toBeLessThanOrEqual(0.5);
+    expect(exported.degrees).toBeLessThanOrEqual(0.5);
     const timeline = parseHdBody(generateHdBody(timelineBody(result.model, source.Sequences)));
     const output = timeline.GeosetAnims[0]!.Alpha;
     if (typeof output === 'number') throw new Error('Alternate form lost its animation');
@@ -236,4 +239,57 @@ test('a Definitive body keeps the stock node count and copies only the whole-bod
     classic.Bones[0]!.Parent = 2;
     const result = retargetHd(classic, hd, [['Shoulder', 'Shoulder'], ['Hand', 'Hand']], classic.Sequences);
     expect(result.model.Nodes.filter(node => node !== undefined).map(node => node.Name).sort()).toEqual(['Body Attack Gesture', 'Hand', 'Shoulder']);
+});
+
+test('a floating Definitive body can match the Classic head height without lifting its base [repro #362]', () => {
+    const classic = limb([1, 0, 0], 30);
+    const mesh = classic.Geosets[0]!;
+    mesh.Vertices = new Float32Array([0, 0, 0, 10, 0, 0, 0, 0, 100]);
+    mesh.Normals = new Float32Array(9);
+    mesh.VertexGroup = new Uint8Array(3);
+    mesh.Groups = [[0]];
+    mesh.Faces = new Uint16Array([0, 1, 2]);
+    mesh.TVertices = [new Float32Array(6)];
+    const hd = structuredClone(classic);
+    hd.Geosets[0]!.Vertices[8] = 200;
+    const result = retargetHd(classic, hd, [['Shoulder', 'Shoulder'], ['Hand', 'Hand']], classic.Sequences, { fitScale: 0.5 });
+    const triangles = new DrawnModel(generateHdBody(result.model), 1).triangles(0, 0, 1);
+    const heights = Array.from(triangles).filter((_, index) => index % 2 === 1);
+    // Lich's robe-length fit put the actual head 54% above Classic; the rendered body must fit, not just its bones.
+    expect(Math.min(...heights)).toBeCloseTo(0, 3);
+    expect(Math.max(...heights)).toBeCloseTo(100, 3);
+});
+
+test('fitting a separate Definitive branch around its shoulder keeps the head and feet while its hand meets Classic [repro #362]', () => {
+    const classic = limb([1, 0, 0], 30);
+    const base = classic.Bones[0]!;
+    const joints = [
+        { name: 'Body', parent: null, pivot: [0, 0, 100] },
+        { name: 'Knee', parent: 0, pivot: [0, 0, 50] },
+        { name: 'Foot', parent: 1, pivot: [0, 0, 0] },
+        { name: 'LeftShoulder', parent: 0, pivot: [0, 0, 100] },
+        { name: 'Hand', parent: 3, pivot: [30, 0, 100] },
+    ];
+    classic.Bones = joints.map(({ name, parent, pivot }, ObjectId) => ({ ...structuredClone(base), Name: name, ObjectId, Parent: parent, PivotPoint: new Float32Array(pivot) }));
+    classic.Nodes = [...classic.Bones];
+    classic.PivotPoints = classic.Bones.map(bone => bone.PivotPoint);
+    const mesh = classic.Geosets[0]!;
+    mesh.Vertices = new Float32Array([30, 0, 100, 0, 0, 0, 0, 0, 100]);
+    mesh.Normals = new Float32Array(9);
+    mesh.VertexGroup = new Uint8Array([0, 1, 2]);
+    mesh.Groups = [[4], [2], [0]];
+    mesh.TotalGroupsCount = 3;
+    mesh.Faces = new Uint16Array([0, 1, 2]);
+    mesh.TVertices = [new Float32Array(6)];
+    const hd = structuredClone(classic);
+    hd.Bones[4]!.PivotPoint[0] = 60;
+    hd.Bones[4]!.Parent = 0;
+    hd.Geosets[0]!.Vertices[0] = 60;
+    for (const bone of hd.Bones) bone.PivotPoint[2] += 20;
+    for (let index = 2; index < hd.Geosets[0]!.Vertices.length; index += 3) hd.Geosets[0]!.Vertices[index] += 20;
+    const result = retargetHd(classic, hd, joints.filter(({name}) => name !== 'Hand').map(({ name }) => [name, name] as const), classic.Sequences, { limbScales: [['Hand', 0.5, 'LeftShoulder']] });
+    const expected = new DrawnModel(generateHdBody(classic), 1).triangles(0, 0, 1);
+    const drawn = new DrawnModel(generateHdBody(result.model), 1).triangles(0, 0, 1);
+    expect(Array.from(drawn)).toEqual(Array.from(expected));
+    expect(checkRetarget(result).units).toBeLessThanOrEqual(0.5);
 });

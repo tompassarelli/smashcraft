@@ -32,3 +32,4 @@ export const pairs: readonly (readonly [string, string])[] = [
     ['Mesh11', 'robefront_C0_0_jnt'],
     ['Mesh26', 'robefront_C0_1_jnt'],
 ];
+export const fitScale = 0.8;

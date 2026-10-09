@@ -1,5 +1,11 @@
 export const character = 13;
 export const stockPath = 'war3.w3mod:_de.w3mod:units\\orc\\Thrall\\Thrall.mdx';
+export const limbScales = [
+    ['mount_tail_01_bind_jnt', 0.4],
+    ['mount_tail_scale_01_bind_jnt', 0.4, 'mount_tail_01_bind_jnt'],
+    ['mount_tail_scale_02_bind_jnt', 0.4, 'mount_tail_01_bind_jnt'],
+    ['mount_tail_scale_03_bind_jnt', 0.4, 'mount_tail_01_bind_jnt'],
+] as const;
 
 export const pairs: readonly (readonly [string, string])[] = [
     ['Bone Rider Waist', 'bone_turret'],

@@ -16,7 +16,7 @@ textures (for example `units\orc\herotaurenchieftain\tauren_chieftain_diffuse.dd
 exist only in `_de.w3mod`, so the earlier `_hd.w3mod` bodies drew solid team
 colours ([#334](https://github.com/tompassarelli/smashcraft/issues/334#issuecomment-6071233652)).
 Anub'arak's stock body names the base-only `ReplaceableTextures\TeamGlow\TeamGlow00`;
-its body names the same glow's Definitive copy, `Textures\TeamGlow0000`.
+its body names the same glow's Definitive copy, `Textures\TeamGlow0000.dds`.
 Classic (`hd=0`) ignores `_de.w3mod` and draws the Classic body.
 
 ## Rig correspondence
@@ -111,9 +111,17 @@ levers, tore at the joints and pointed elsewhere: Shadow Hunter's forearm stood
   copied part; it carries the body unchanged. The body keeps the stock node count
   plus that chain, under Warcraft's 255-node limit ([#346](https://github.com/tompassarelli/smashcraft/issues/346)).
 - **Size fit and planting.** A fixed per-fighter scale makes the Definitive legs
-  as long as the Classic legs (all limbs on a rig with no feet). Each frame the
-  lowest skin of the mapped joints stands where the Classic body's does, so planted
-  feet stay on the floor and a body lying down lies on it.
+  as long as the Classic legs (all limbs on a rig with no feet). The rig
+  can additionally calibrate `fitScale` against the rendered head and body:
+  equal limb lengths do not ensure that the torso fills the shared hurt capsules.
+  `limbScales` uniformly fits an arm and its attached hand or weapon about the
+  shoulder when its proportions differ from Classic; it leaves the torso and legs
+  in place. Legged bodies plant visible leg and foot surfaces against Classic after
+  the whole-body turn. Props, glows, unused vertices and hidden meshes do not set
+  foot height; a wholly hidden frame has no support to plant. Floating bodies keep
+  their reference height and authored whole-body squash.
+  An optional named anchor fits sibling skin branches about the same attachment;
+  Thrall's tail and its three scale branches use their common tail base.
 - **Rig pairs.** Map anatomy: clavicles stay with the chest, and the lower
   Definitive spine follows the Classic chest, which bends at the waist.
 

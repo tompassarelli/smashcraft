@@ -1,5 +1,7 @@
 export const character = 4;
 export const stock = 'war3.w3mod:_de.w3mod:units\\human\\heromountainking\\heromountainking.mdx';
+// The stock torso and head are larger relative to the legs than Classic's shared body (#362).
+export const fitScale = 0.65;
 // The axe and hammer are separate root bones in DE, rather than hand children.
 export const pairs: readonly (readonly [string, string])[] = [
     ['Bone_Pelvis', 'spine_C0_0_jnt'], ['Bone_Chest', 'spine_C0_1_jnt'],

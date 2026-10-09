@@ -1,5 +1,7 @@
 export const character = 10;
 export const fighter = 'PitLord';
+export const fitScale = 0.8;
+export const limbScales = [['Wep01_R0_0_jnt', 0.78]] as const;
 export const stockPath = 'war3.w3mod:_de.w3mod:units\\demon\\HeroPitLord\\HeroPitLord.mdx';
 export const pairs: readonly (readonly [string, string])[] = [
     ['Bone Koto Waist01', 'back_C0_0_jnt'], ['Bone Center01', 'back_C0_1_jnt'],

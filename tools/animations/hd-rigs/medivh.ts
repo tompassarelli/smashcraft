@@ -28,3 +28,4 @@ export const visibilityPairs: readonly (readonly [number, number])[] = [
     [0, 20], [0, 21], [0, 22], [0, 23], [0, 24], [0, 25],
     [1, 26], [1, 27], [1, 28], [1, 29], [1, 30], [1, 31],
 ];
+export const fitScale = 0.75;
