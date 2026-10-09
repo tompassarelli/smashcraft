@@ -231,7 +231,7 @@ passes criterion 1 in either look: the source animations are the limit, which
 | 4 | Mountain King | 1/20, 3.04 / 0/20, 2.61 | pass | pass | **fail**: first-active reach 107 → 62 on forward tilt, hammer tucked in | Classic |
 | 5 | Warden | 0/20, 5.34 / 0/20, 5.13 | pass | pass | pass | Definitive |
 | 6 | Lich | 0/18, 6.72 / 0/18, 3.04 | pass | pass | **fail**: jab +6.94 (Classic −7.99), jab 2 +5.04 (−7.72) | Classic |
-| 7 | Forsaken Paladin | 0/20, 2.16 / 0/20, 2.81 | pass | pass | pass (up smash loses its hop) | Definitive |
+| 7 | Forsaken Paladin | 0/20, 2.16 / 0/20, 2.81 | pass | pass | pass (republished in c1d12775; up smash keeps its hop) | Definitive |
 | 8 | Dreadlord | 0/19, 4.63 / 0/19, 4.51 | pass | pass | pass | Definitive |
 | 9 | Shadow Hunter | 0/19, 13.06 / 0/19, 14.44 | pass | pass | pass | Definitive |
 | 10 | Pit Lord | 0/20, 3.53 / 3/20, 3.01 | pass | pass | pass | Definitive |
@@ -251,6 +251,11 @@ passes criterion 1 in either look: the source animations are the limit, which
 | 24 | Malfurion | — | — | — | — | Classic (no Definitive mapping) |
 | 25 | Medivh | 0/20, 7.99 / 0/20, 5.98 | pass | pass | pass (down air +2.65, marginal) | Definitive |
 | 26 | Kobold | 0/20, 3.21 / 0/20, 2.44 | pass | pass | pass | Definitive |
+
+Forsaken Paladin's body in the 690fa4ef family was converted by a reader that ignored the
+Classic model's skin weights. It was republished from the canonical motion in the c1d12775
+family and judged again by a fresh agent on criteria 2–4. Its first-active hit gaps stay within
+about 1 unit of Classic. Its criterion 1 numbers come from the earlier body.
 
 Run and roll sliding was not judged for most fighters, and later active frames were
 not measured. Lich's criterion 4 result overturns #362's pass.
