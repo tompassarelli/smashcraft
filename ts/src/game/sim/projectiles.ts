@@ -291,6 +291,23 @@ function returnToOwner(owner: Fighter, projectile: Projectile, speed: number): b
 
 
 
+/** Turns a projectile's vertical speed toward the nearest opponent ahead of it, by at most `turn` a frame. */
+function homeProjectile(world: Roster, ownerSlot: number, projectile: Projectile, turn: number, maxRise: number): void {
+  const direction = projectile.velocityX < 0 ? -1 : projectile.velocityX > 0 ? 1 : projectile.direction;
+  let aim: number | undefined;
+  let distance = 0.0;
+  for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
+    if (!isActive(world, targetSlot) || targetSlot === ownerSlot || targets.out[targetSlot]) continue;
+    const ahead = f32(f32(at(targets.x, targetSlot) - projectile.x) * direction);
+    if (ahead < 0.0 || (aim !== undefined && ahead >= distance)) continue;
+    aim = f32(at(targets.z, targetSlot) + TARGET_CENTER_HEIGHT);
+    distance = ahead;
+  }
+  if (aim === undefined) return;
+  const desired = min(maxRise, max(-maxRise, f32(f32(aim - projectile.z) * 0.125)));
+  projectile.velocityZ = f32(projectile.velocityZ + min(turn, max(-turn, f32(desired - projectile.velocityZ))));
+}
+
 const heroFlight = emptyCapsule();
 const heroTarget = emptyCapsule();
 function flyHeroProjectile(world: Roster, ownerSlot: number, projectile: Projectile, hit: { reflector: boolean; shield: boolean }): number | undefined {
@@ -299,6 +316,7 @@ function flyHeroProjectile(world: Roster, ownerSlot: number, projectile: Project
   if (spec?.returns !== undefined && projectile.damageMultiplier === 1.0 && spec.life - projectile.life >= spec.returns.age && !returnToOwner(fighterAt(world, ownerSlot), projectile, spec.returns.speed)) return undefined;
   const oldX = projectile.x;
   const oldZ = projectile.z;
+  if (spec?.homing !== undefined) homeProjectile(world, ownerSlot, projectile, spec.homing.turn, spec.homing.maxRise);
   if (spec?.gravity !== undefined) projectile.velocityZ = f32(projectile.velocityZ - spec.gravity);
   projectile.x = f32(oldX + projectile.velocityX);
   projectile.z = f32(oldZ + projectile.velocityZ);
@@ -478,10 +496,18 @@ export function updateProjectiles(world: Roster, stage?: number, matchFrame = 0)
         projectile.poolWait = pool.every - 1;
         if (!selected.shield) projectile.poolHits++;
       } else if (nearest !== undefined) {
+        const burst = projectile.kind === ProjectileKind.hero ? projectile.spec?.burstInto : undefined;
         if (!(selected.reflector && reflectProjectile(fighterAt(world, nearest), projectile))) {
+          if (burst !== undefined) projectile.spec = burst;
           applyProjectileHit(world, ownerSlot, nearest, projectile, selected.shield);
+          if (burst !== undefined) {
+            projectile.velocityX = 0.0;
+            projectile.velocityZ = 0.0;
+            projectile.life = burst.life + 1;
+          }
         }
-        projectile.life = 0;
+        projectile.life--;
+        if (burst === undefined || projectile.spec !== burst) projectile.life = 0;
       }
       if (projectile.life <= 0) {
         projectile.life = 0;

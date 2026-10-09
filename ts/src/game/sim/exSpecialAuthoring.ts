@@ -29,6 +29,7 @@ export function withExKit(kit: SpecialKit, upgrade: ExUpgrade): SpecialKit {
       ...spec, radius: f32(spec.radius * reach), effect: hit(spec.effect),
       returnEffect: spec.returnEffect === undefined ? undefined : hit(spec.returnEffect),
       pool: spec.pool === undefined ? undefined : { ...spec.pool, growth: f32(spec.pool.growth * reach), maxRadius: f32(spec.pool.maxRadius * reach) },
+      burstInto: spec.burstInto === undefined ? undefined : projectile(spec.burstInto),
     };
     originals.push(spec);
     upgraded.push(result);
@@ -53,6 +54,7 @@ export function withExKit(kit: SpecialKit, upgrade: ExUpgrade): SpecialKit {
         velocityX: f32(motion.velocityX * travel), velocityZ: f32(motion.velocityZ * travel),
         aimedSpeed: motion.aimedSpeed === undefined ? undefined : f32(motion.aimedSpeed * travel),
         driftSpeed: motion.driftSpeed === undefined ? undefined : f32(motion.driftSpeed * travel),
+        liftSpeed: motion.liftSpeed === undefined ? undefined : f32(motion.liftSpeed * travel),
         relocateReach: motion.relocateReach === undefined ? undefined : f32(motion.relocateReach * travel),
       })),
       projectiles: move.projectiles?.map((each) => projectile(each)),

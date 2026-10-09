@@ -15,7 +15,7 @@ import {
   originalLightPath,
 } from "../assets/fighterOriginalClipInfo";
 import type { FighterPose } from "../presentation/fighterPose";
-import type { Character } from "../sim/codes";
+import { type Character, HeroStatusKind } from "../sim/codes";
 import { fighterPoseFacing, isIntangible } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { type WorldOrigin, facingYaw, hideEffect, placeEffect } from "./effects";
@@ -191,6 +191,12 @@ export class FighterPoolPresentation {
         blue = item.blue;
       }
       if (isIntangible(fighter)) alpha = 140;
+      // Banish's ethereal victim: green and see-through until the status ends.
+      if (fighter.status.condition === HeroStatusKind.banish) {
+        red = 120;
+        blue = 150;
+        alpha = 165;
+      }
     }
     const transformation = specialCueState(fighter);
     if (transformation.phase === "active" && transformation.cues?.active.replacesBody === true) alpha = 0;

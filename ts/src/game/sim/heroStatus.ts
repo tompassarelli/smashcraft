@@ -41,6 +41,7 @@ const RULES: { readonly [kind: number]: StatusRules | undefined } = {
   [HeroStatusKind.charm]: { blocksActions: false, blocksSpecials: false, endsOnDamage: false, mirrors: true },
   [HeroStatusKind.root]: { blocksActions: false, blocksSpecials: false, endsOnDamage: true },
   [HeroStatusKind.silence]: { blocksActions: false, blocksSpecials: true, endsOnDamage: false },
+  [HeroStatusKind.banish]: { blocksActions: false, blocksSpecials: false, blocksAttacks: true, endsOnDamage: false },
 
   [HeroStatusKind.sleep]: { blocksActions: true, blocksSpecials: true, endsOnDamage: true, mashMinimum: 24 },
 

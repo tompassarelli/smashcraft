@@ -3,7 +3,11 @@
 
 import { max, min, toInt } from "../../runtime/numbers";
 import { addFloat32, divideFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
-import { Character, ContactKind, DownState, HeroStatusKind } from "./codes";
+import { Character, ContactKind, DownState, HeroStatusKind, SpecialAction } from "./codes";
+import { f32 } from "wisp/src/sim/f32";
+
+/** A Banished fighter takes this much more damage from Kael's spells. */
+export const BANISH_SPELL_DAMAGE = f32(1.3);
 import { isDownDamageState } from "./conditions";
 import { DOWN_DAMAGE_RESET_THRESHOLD } from "./down";
 import type { Fighter } from "./fighter";
@@ -127,6 +131,10 @@ export function collectDamageContact(
   contact.source = sourceSlot;
   contact.target = targetSlot;
   copyHitEffect(contact.effect, effect);
+  // Banish: an ethereal fighter takes more from the Blood Mage's spells, as Warcraft's ethereal units take extra magic damage.
+  if (target.status.condition === HeroStatusKind.banish && source.character === Character.kaelthas && (!direct || source.special.action !== SpecialAction.none)) {
+    contact.effect.damage = f32(contact.effect.damage * BANISH_SPELL_DAMAGE);
+  }
   contact.facing = facing;
   contact.kind = kind;
   contact.direct = direct;

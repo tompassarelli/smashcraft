@@ -61,6 +61,7 @@ export interface SpecialMotion extends FrameWindow {
 
 
   readonly driftSpeed?: number | undefined;
+  readonly liftSpeed?: number | undefined;
 
 
 
@@ -154,6 +155,11 @@ export interface SpecialProjectile {
 
   /** What this becomes where it ends when its life runs out or it strikes. */
   readonly expiresInto?: SpecialProjectile | undefined;
+
+  /** Each frame its vertical speed turns by at most `turn` toward the nearest opponent ahead, up to `maxRise`. */
+  readonly homing?: { readonly turn: number; readonly maxRise: number } | undefined;
+  /** On body or shield contact it becomes this projectile where it is, which deals the hit and then only shows. */
+  readonly burstInto?: SpecialProjectile | undefined;
 }
 
 export interface SpecialArmor extends FrameWindow {

@@ -332,6 +332,10 @@ function applyMotion(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number,
       const stick = input.diStickValid ? input.diStickX : input.direction;
       velocityX = f32(velocityX + f32(min(1.0, max(-1.0, stick)) * segment.driftSpeed));
     }
+    if (segment.liftSpeed !== undefined && input !== undefined) {
+      const stick = input.diStickValid ? input.diStickZ : input.verticalDirection;
+      velocityZ = f32(velocityZ + f32(min(1.0, max(-1.0, stick)) * segment.liftSpeed));
+    }
     motion.vx = velocityX;
     motion.vz = velocityZ;
     if (velocityZ > 0 && motion.grounded) {

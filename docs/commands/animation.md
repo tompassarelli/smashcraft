@@ -50,9 +50,11 @@ smashcraft:docs/design/animation-reference.md. Reference pixels remain private.
   to one expansion fighter (smashcraft:docs/fighter-animation-work.md).
   `bun tools/animations/pit-lord-specials.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   authors Pit Lord's four special gestures while preserving all earlier clips.
-  `bun tools/animations/kaelthas-clips.ts STOCK_BLOOD_MAGE.mdx PRIVATE_OUTPUT`
+  `bun tools/animations/kaelthas-clips.ts STOCK_BLOOD_MAGE.mdx PRIVATE_OUTPUT [--look definitive]`
   appends Kael’thas’s normal, special, paired throw, recovery and nine pain
   gestures, preserves all eleven stock sequences, and writes both-facing sheets.
+  `--look definitive` applies the Definitive recovery overrides (robe and cape
+  add travel) to a model that is only the input for the Definitive body transfer.
   `bun tools/animations/murloc-clips.ts STOCK_MURLOC.mdx PRIVATE_OUTPUT` appends the
   Murloc's normal, special, paired throw, recovery and nine pain gestures to the
   stock Tiderunner, preserves its nine sequences and writes both-facing sheets;

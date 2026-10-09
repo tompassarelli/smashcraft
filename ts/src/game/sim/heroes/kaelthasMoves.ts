@@ -5,7 +5,7 @@ import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type St
 import { hurtPart, hurtPose } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
 
-export const kaelHit = (damage: number, angle: 25 | 35 | 40 | 55 | 70 | 80 | 90, growth = 80.0, base = 20.0, behind = false) =>
+export const kaelHit = (damage: number, angle: Parameters<typeof groundHit>[1], growth = 80.0, base = 20.0, behind = false) =>
   groundHit(damage, angle, growth, base, HitElement.fire, behind);
 const ordinary = (damage: number, angle: 25 | 35 | 40 | 55 | 70 | 80 | 90, growth = 80.0, base = 20.0, behind = false) =>
   kaelHit(damage, angle, growth, base, behind);
