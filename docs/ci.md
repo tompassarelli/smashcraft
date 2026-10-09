@@ -3,7 +3,7 @@
 | Workflow | Runs | Does |
 | --- | --- | --- |
 | CI (smashcraft:.github/workflows/ci.yml) | every push except `farm/**`, pull requests, dispatch | development loop, perf gate, Lua32 suites, and the sweeps the suites skip (Sweeps (Bun), Lua32 (sweeps)) |
-| Main is red (smashcraft:.github/workflows/main-red.yml) | after each CI run on main | opens, updates or closes the "main is red" issue (smashcraft:AGENTS.md) |
+| Main is red (smashcraft:.github/workflows/main-red.yml) | after each CI run on main | the sheriff reverts a landing that turned green main red, then opens, updates or closes the "main is red" issue (smashcraft:AGENTS.md) |
 | Farm test (smashcraft:.github/workflows/farm-test.yml) | `bun wisp farm test`, autoland | full Bun and Lua32 suites, sharded (wisp:docs/farm.md) |
 | Autoland (smashcraft:.github/workflows/autoland.yml) | push to `claude/**`, dispatch with `branch` | lands the branch on main when it passes |
 
@@ -45,3 +45,28 @@ Everything runs on GitHub's hosted runners from source: no private build
 inputs, no `.w3x` build. A commit that changes `.github/workflows/` can't
 land this way (the workflow token may not push workflow changes); the run
 says so on the issue, and it lands through a normal `safe-push`.
+
+## Sheriff
+
+Main's last landing doesn't stay on main red. After each CI run on main,
+"Main is red" first runs the sheriff (smashcraft:ts/scripts/sheriff.ts) on it:
+
+- **Revert.** The run failed at a step after setup, and main's previous
+  finished CI run was green on an ancestor. Every commit from that green
+  commit to the run's commit (the landing, or the whole train) is reverted as
+  one `github-actions[bot]` commit on main, carrying `Sheriff-Reverts: SHA...`
+  and the commits' `Refs smashcraft#N`. The sheriff dispatches main's CI for
+  it and reopens and comments on every issue the commits reference
+  (`Refs smashcraft#N` or a subject's `(#N)`) with the failing step and the
+  run. No "main is red" issue opens for the reverted run; the revert's own
+  CI run reports.
+- **Report only.** A cancelled or timed-out run or job, a job without a
+  failing step (runner lost), a failing setup step (checkout, Bun, install),
+  a red parent (whether the same first failing step or a different one), a
+  landing that is itself a revert, one that changes `.github/workflows/`
+  (the workflow token can't push those) or one that doesn't revert cleanly:
+  the job summary says why and "main is red" reports as before.
+
+The decision is a pure function, checked on main's recorded runs of
+2026-10-09 (smashcraft:ts/test/sheriff.test.ts). Rerun it on a run:
+`gh workflow run main-red.yml -f run=RUN_ID`.

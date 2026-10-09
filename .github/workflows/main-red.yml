@@ -1,7 +1,9 @@
 name: Main is red
 
-# Each finished CI run on main opens, updates or closes the one "main is red"
-# issue (smashcraft:ts/scripts/mainRed.ts). Dispatch with a run ID to report
+# Each finished CI run on main first goes to the sheriff, which reverts a
+# landing that turned a green main red (smashcraft:ts/scripts/sheriff.ts); the
+# rest open, update or close the one "main is red" issue
+# (smashcraft:ts/scripts/mainRed.ts). Dispatch with a run ID to report
 # any branch's run, as "BRANCH is red".
 on:
   workflow_run:
@@ -15,8 +17,8 @@ on:
         required: true
 
 permissions:
-  actions: read
-  contents: read
+  actions: write
+  contents: write
   issues: write
 
 # One queue per branch: GitHub keeps one pending run per group and cancels the
@@ -31,6 +33,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.13
@@ -42,7 +46,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-      - run: bun scripts/mainRed.ts "${{ inputs.run || github.event.workflow_run.id }}"
+      - id: sheriff
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898183+github-actions[bot]@users.noreply.github.com"
+          bun scripts/sheriff.ts "${{ inputs.run || github.event.workflow_run.id }}"
+        working-directory: ts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+      # A reverted landing gets no issue: the revert's own CI run reports.
+      - if: ${{ !cancelled() && steps.sheriff.outputs.reverted == '' }}
+        run: bun scripts/mainRed.ts "${{ inputs.run || github.event.workflow_run.id }}"
         working-directory: ts
         env:
           GH_TOKEN: ${{ github.token }}
