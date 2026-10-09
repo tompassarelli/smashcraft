@@ -65,7 +65,7 @@ export function ceilingVerdicts(rows: readonly CeilingRow[]): { rows: CeilingVer
   const sorted = rows.map(row => row.ceilingVsExpert - row.advancedVsExpert).sort((a,b) => a-b);
   const midpoint = Math.floor(sorted.length / 2);
   const medianHeadroom = sorted.length === 0 ? NaN : sorted.length % 2 === 0 ? ((sorted[midpoint - 1] ?? NaN) + (sorted[midpoint] ?? NaN)) / 2 : sorted[midpoint] ?? NaN;
-  const bestFits = Object.fromEntries(CPU_OPPONENT_IDS.map(id => [id, 0])) as Record<CpuOpponentId, number>;
+  const bestFits: Record<CpuOpponentId, number> = { rook: 0, ember: 0, flint: 0, vale: 0, kite: 0, wren: 0 };
   const verdicts = rows.map(row => {
     const rates = CPU_OPPONENT_IDS.map(id => row.panel[id]);
     const best = Math.max(...rates);

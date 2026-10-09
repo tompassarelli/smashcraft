@@ -41,7 +41,8 @@ export function ceilingRows(data: Data): CeilingRow[] {
     const kinds=[...CPU_OPPONENT_IDS,"execution","judgment","ceiling-expert","advanced","ceiling-field"];
     const complete=kinds.every(kind=>slugs.filter(s=>s!==fighter).every(opponent=>(data.pairs[`${kind}/${fighter}/${opponent}`]??0)>=(kind==="wren"?CEILING_SPEC.wrenPerPair:CPU_OPPONENT_IDS.some(id=>id===kind)?CEILING_SPEC.panelPerPair:kind==="ceiling-field"?CEILING_SPEC.finalPerPair:CEILING_SPEC.finalPerPair)))
       && (data.counts[`depth/${fighter}`]?.played??0)>=CEILING_SPEC.depthMatches;
-    return {fighter,path:plan.path,panel:Object.fromEntries(CPU_OPPONENT_IDS.map(id=>[id,rate(data,`${id}/${fighter}`)])) as CeilingRow["panel"],
+    const panel = { rook: rate(data,`rook/${fighter}`), ember: rate(data,`ember/${fighter}`), flint: rate(data,`flint/${fighter}`), vale: rate(data,`vale/${fighter}`), kite: rate(data,`kite/${fighter}`), wren: rate(data,`wren/${fighter}`) };
+    return {fighter,path:plan.path,panel,
       expertVsBasic:rate(data,`depth/${fighter}`),expert:rate(data,`wren/${fighter}`),execution:rate(data,`execution/${fighter}`),judgment:rate(data,`judgment/${fighter}`),
       ceilingVsExpert:rate(data,`ceiling-expert/${fighter}`),advancedVsExpert:rate(data,`advanced/${fighter}`),ceilingVsCeiling:rate(data,`ceiling-field/${fighter}`),complete};
   });
@@ -50,9 +51,10 @@ export function ceilingRows(data: Data): CeilingRow[] {
 if (import.meta.main) await Effect.runPromise(Effect.gen(function*() {
   const {values}=yield* Effect.try({try:()=>parseArgs({args:process.argv.slice(2),options:{pairs:{type:"string"},json:{type:"string"},merge:{type:"string"},baseline:{type:"string"},report:{type:"string"},depth:{type:"string"}}}),catch:cause=>new CeilingFailure({problem:String(cause)})});
   const data=fresh();
-  if(values.merge!==undefined){
+  const merge = values.merge;
+  if(merge!==undefined){
     yield* Effect.try({try:()=>{
-      for(const file of values.merge!.split(",")) {const shard=getData(file);data.cpuSeconds+=shard.cpuSeconds;
+      for(const file of merge.split(",")) {const shard=getData(file);data.cpuSeconds+=shard.cpuSeconds;
         for(const [key,c] of Object.entries(shard.counts)){const before=data.counts[key]??{wins:0,losses:0,ties:0,played:0};data.counts[key]={wins:before.wins+c.wins,losses:before.losses+c.losses,ties:before.ties+c.ties,played:before.played+c.played};}
         for(const [key,n] of Object.entries(shard.pairs))data.pairs[key]=(data.pairs[key]??0)+n;
       }
