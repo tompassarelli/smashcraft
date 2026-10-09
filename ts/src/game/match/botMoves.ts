@@ -194,12 +194,15 @@ function landsWithin(f: Readonly<Fighter>, frames: number, stage: number, matchF
 function climbsWithin(f: Readonly<Fighter>, frames: number, stage: number, matchFrame: number): boolean {
   if (f.motion.grounded || f.motion.deltaZ <= 0.0) return false;
   const { z } = f.motion;
-  const x = f32(f.motion.x + f32(f.motion.deltaX * frames));
-  const top = f32(heightAhead(f, frames, -1, matchFrame) + melee(bodyTop(f.character)));
-  for (let i = 0; i < surfaceCount(stage); i++) {
-    if (!surfacePass(stage, i) || x < surfaceLeft(stage, i, matchFrame) || x > surfaceRight(stage, i, matchFrame)) continue;
-    const deckZ = surfaceZ(stage, i, matchFrame);
-    if (deckZ > z && top >= deckZ) return true;
+  const rising = Math.max(1, Math.min(frames, Math.floor(f32(f.motion.deltaZ / f.tuning.physics.gravity))));
+  for (let ahead = 1; ahead <= rising; ahead++) {
+    const x = f32(f.motion.x + f32(f.motion.deltaX * ahead));
+    const top = f32(heightAhead(f, ahead, -1, matchFrame) + melee(bodyTop(f.character)));
+    for (let i = 0; i < surfaceCount(stage); i++) {
+      if (!surfacePass(stage, i) || x < surfaceLeft(stage, i, matchFrame) || x > surfaceRight(stage, i, matchFrame)) continue;
+      const deckZ = surfaceZ(stage, i, matchFrame);
+      if (deckZ > z && top >= deckZ) return true;
+    }
   }
   return false;
 }
