@@ -134,3 +134,14 @@ export function updateSelectionDrag(drag: SelectionDrag, roster: Readonly<Roster
 export function placeHovered({ held, hover }: Readonly<SelectionDrag>): Placement | undefined {
   return held === undefined || hover === undefined ? undefined : { slot: held, tile: hover };
 }
+
+
+export const HAND_SIZE = f32(0.04);
+
+export const handLeft = (pinching: boolean, x: number): number => x - (pinching ? f32(0.203125) : f32(0.0625)) * HAND_SIZE;
+
+export const handTop = (pinching: boolean, y: number): number => y + (pinching ? f32(0.1640625) : f32(0.0546875)) * HAND_SIZE;
+
+export const carriedChipLeft = (x: number, size: number): number => x - size * f32(0.5);
+
+export const carriedChipTop = (y: number, size: number): number => y + size * f32(0.06);

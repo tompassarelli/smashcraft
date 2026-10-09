@@ -68,6 +68,7 @@ const SELECTION_TEXTURES = [
   "SelectionTileFrame", "SelectionCardRed", "SelectionCardBlue", "SelectionCardTeal", "SelectionCardPurple",
   "SelectionCardGray", "SelectionAction", "StageBackdrop", "StageChip",
   "SelectionChipP1", "SelectionChipP2", "SelectionChipP3", "SelectionChipP4", "SelectionChipCPU",
+  "SelectionHandPoint", "SelectionHandPinch",
   "HudPlate0", "HudPlate1", "HudPlate2", "HudPlate3",
 ] as const;
 

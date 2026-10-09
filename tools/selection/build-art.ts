@@ -46,6 +46,11 @@ for (const [slot, color] of slots.entries()) {
   await render(`HudPlate${slot}`, 'HudPlate.svg', { PLAYER_COLOR: hex(color.rgb) }, true);
 }
 await render('SelectionChipCPU', 'SelectionChip.svg', { CHIP_COLOR: '#626977', CHIP_LABEL: 'P2' }, true);
+const HAND_POSES = {
+  Point: { THUMB: 'M42 66 L34 50 L36 40', INDEX: 'M62 40 L32 22 L13 11', SEAMS: 'M28 25 L36 17 M42 34 L50 25', SHINE: 'M30 18 L15 9' },
+  Pinch: { THUMB: 'M40 66 L30 44 L25 30', INDEX: 'M62 40 L44 20 L28 12', SEAMS: 'M27 47 L36 43 M41 25 L49 17', SHINE: 'M29 40 L25 31 M41 17 L30 12' },
+};
+for (const [pose, fingers] of Object.entries(HAND_POSES)) await render(`SelectionHand${pose}`, 'SelectionHand.svg', fingers, false);
 await render('SelectionCardGray', 'SelectionCard.svg', { CARD_COLOR: '#30353b', CARD_EDGE: '#555d65', CARD_METAL: '#687078' }, false);
 for (const name of ['SelectionBackdrop', 'SelectionTileFrame', 'SelectionAction', 'StageBackdrop', 'StageChip', 'SelectionThreeBridges']) {
   run(['magick', '-background', 'none', join(source, `${name}.svg`), '-depth', '8', `TGA:${join(output, `${name}.tga`)}`]);

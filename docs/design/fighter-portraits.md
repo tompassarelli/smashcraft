@@ -129,3 +129,18 @@ colours, and smashcraft:tools/selection/build-art.ts paints each slot's chip,
 selection card and HUD plate band from them. The portraits themselves are
 neutral, so a fighter's colour appears only on its own slot's card and plate,
 the same on every client.
+
+## Selection cursor
+
+On the fighter select screen the Warcraft cursor is hidden (`BlzEnableCursor`)
+and the local client draws a steel gauntlet instead: pointing while idle and
+pinching while it carries a chip, whose top rim sits between thumb and
+fingertip. Both 128x128 TGAs (`SelectionHandPoint`, `SelectionHandPinch`) are
+original art painted by smashcraft:tools/selection/build-art.ts from
+smashcraft:tools/selection/art/SelectionHand.svg, inspired by Super Smash Bros.
+Ultimate's gauntlet cursor; no Nintendo or Blizzard pixels are used. The hotspot
+is the index fingertip (pointing) or the pinch point (pinching), as fractions of
+the image in smashcraft:ts/src/game/menu/selectionDrag.ts. The stock cursor
+returns when a panel opens over the roster or the screen closes. Warcraft has no
+per-render Lua callback (smashcraft:docs/high-refresh.md), so hand and chip move
+together once per 60 Hz tick from one mouse sample.

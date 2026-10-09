@@ -8,6 +8,7 @@ export const SMASHCRAFT_NOOPS: IntentionalNoops = {
   GetRectCenter: "stage initialization uses the declared zero-centered map origin supplied by location getters",
   RemoveLocation: "the temporary stage-center location holds no state after initialization",
   BlzHideOriginFrames: "the headless UI contains only map-created frames; Warcraft's origin UI is not rendered",
+  BlzEnableCursor: "headless clients have no operating-system cursor; the painted hand frame is captured instead",
   BlzEnableSelections: "the journey drives the map's scripted fighter controls and never Warcraft selection",
   EnableUserControl: "the journey drives scripted input without an operating-system window",
   SetPlayerColor: "the map gives each participant player its own slot's colour, so an effect's recorded player is its colour",
