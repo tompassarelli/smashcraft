@@ -265,7 +265,7 @@ export class SelectionPanel {
       const portrait = art(root, `MeleePortrait${name}`, portraitTexture(Character.demonHunter, false, slot), x + f32(0.029), f32(0.245), f32(0.102), f32(0.102));
       const name_ = label(root, `MeleeName${name}`, x + f32(0.008), f32(0.102), f32(0.144), f32(0.019), f32(0.011));
       const status = label(root, `MeleeStatus${name}`, x + f32(0.014), f32(0.077), f32(0.132), f32(0.014), f32(0.011));
-      const chip = art(root, `MeleeChip${name}`, `war3mapImported\\SelectionChipP${I2S(slot + 1)}.tga`, x + f32(0.06), f32(0.2), f32(0.04), f32(0.04));
+      const chip = art(root, `MeleeChip${name}`, `war3mapImported\\SelectionChipP${I2S(slot + 1)}.tga`, x + f32(0.06), f32(0.2), f32(0.06), f32(0.06));
       BlzFrameSetLevel(chip, 10);
       const box = cpuSettingsBox(slot);
       const settings = BlzCreateFrame("ScriptDialogButton", root, 0, 0);
@@ -734,11 +734,11 @@ export class SelectionPanel {
       BlzFrameSetTexture(frames.chip, `war3mapImported\\SelectionChip${human ? `P${I2S(slot + 1)}` : "CPU"}.tga`, 0, true);
       const carried = drag.dragging === slot || (!ready && drag.held === slot && drag.hover !== undefined);
       const chipChoice = tileOfCharacter(choice ?? Character.rifleman);
-      BlzFrameSetSize(frames.chip, ready ? f32(0.032) * this.roster.grid.scale : f32(0.04), ready ? f32(0.032) * this.roster.grid.scale : f32(0.04));
+      BlzFrameSetSize(frames.chip, ready ? f32(0.048) * this.roster.grid.scale : f32(0.06), ready ? f32(0.048) * this.roster.grid.scale : f32(0.06));
       placeTopLeft(
         frames.chip,
-        carried ? x - f32(0.02) : ready ? chipX(this.roster.grid, slot, chipChoice) : cardX(slot) + f32(0.06),
-        carried ? y + f32(0.02) : ready ? chipY(this.roster.grid, slot, chipChoice) : f32(0.2),
+        carried ? x - f32(0.03) : ready ? chipX(this.roster.grid, slot, chipChoice) : cardX(slot) + f32(0.06),
+        carried ? y + f32(0.03) : ready ? chipY(this.roster.grid, slot, chipChoice) : f32(0.2),
       );
     }
     BlzFrameSetText(this.confirm, this.confirmText(game));

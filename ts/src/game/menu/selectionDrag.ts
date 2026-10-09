@@ -55,12 +55,12 @@ export function decodeCpuPlacement(data: string, count: number): Placement | und
 
 
 export function chipX(grid: RosterGrid, slot: number, choice: number): number {
-  return cellRect(grid, choice).left + (f32(0.017) + floorMod(slot, 2) * f32(0.043)) * grid.scale;
+  return cellRect(grid, choice).left + (f32(0.004) + floorMod(slot, 2) * f32(0.056)) * grid.scale;
 }
 
 
 export function chipY(grid: RosterGrid, slot: number, choice: number): number {
-  return cellRect(grid, choice).top - (slot < 2 ? f32(0.018) : f32(0.061)) * grid.scale;
+  return cellRect(grid, choice).top - (slot < 2 ? f32(0.01) : f32(0.066)) * grid.scale;
 }
 
 export function cardX(slot: number): number {
@@ -69,9 +69,9 @@ export function cardX(slot: number): number {
 
 
 function onChip(grid: RosterGrid, slot: number, choice: number, x: number, y: number): boolean {
-  const dx = x - (chipX(grid, slot, choice) + f32(0.016) * grid.scale);
-  const dy = y - (chipY(grid, slot, choice) - f32(0.016) * grid.scale);
-  return dx * dx + dy * dy <= f32(0.000256) * grid.scale * grid.scale;
+  const dx = x - (chipX(grid, slot, choice) + f32(0.024) * grid.scale);
+  const dy = y - (chipY(grid, slot, choice) - f32(0.024) * grid.scale);
+  return dx * dx + dy * dy <= f32(0.000576) * grid.scale * grid.scale;
 }
 
 
