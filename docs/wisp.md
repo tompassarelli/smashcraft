@@ -29,7 +29,7 @@ and initial launch timings are retained in
 `9c41440^:docs/wurst-toolchain.md`.
 
 smashcraft:typescript-toolchain.lock pins Bun 1.3.13, TypeScript compiler API
-6.0.2, TypeScript checker 7.0.2, TypeScriptToLua 1.37.1, Effect 4.0.1 and Effect
+6.0.2, TypeScript checker 7.0.2, TypeScriptToLua 1.37.1, Effect 4.0.2 and Effect
 tsgo 0.48.0. smashcraft:ts/wisp.lock pins the consumed Wisp archive;
 each dated observation below identifies the Wisp/source revision it ran.
 
