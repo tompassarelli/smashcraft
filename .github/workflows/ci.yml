@@ -22,6 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Install stock texture converter
+        run: sudo apt-get update -q && sudo apt-get install -y -q imagemagick
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:

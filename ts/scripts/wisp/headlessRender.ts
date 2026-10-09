@@ -74,6 +74,12 @@ export function headlessRender(options: RenderAssetOptions = {}) {
     const file = Bun.file(path);
     return await file.exists() ? file.bytes() : undefined;
   });
+  const convertTexture = (source: string, target: string) => Effect.gen(function*() {
+    const converter = Bun.which("magick") ?? Bun.which("convert");
+    if (converter === null) return yield* new RenderAssetFailure({ problem: "textures need ImageMagick installed (magick or convert)" });
+    yield* runProcess(ChildProcess.make(converter, [`${source}[0]`, target], { stdin: "ignore" })).pipe(
+      Effect.mapError((failure) => new RenderAssetFailure({ problem: `cannot convert texture ${source}: ${failure.problem}` })));
+  });
   // The stock extractor can exit 0 without writing a missing asset.
   const succeeds = (program: string, args: readonly string[]) =>
     runProcess(ChildProcess.make(program, args, { stdin: "ignore" })).pipe(
@@ -99,8 +105,7 @@ export function headlessRender(options: RenderAssetOptions = {}) {
       const blp = join(directory, normalized.replace(/\.[^.]+$/, ".blp"));
       return (yield* succeeds(extractor, [storage, `war3.w3mod:${layer}:${normalized.replace(/\.[^.]+$/, ".blp")}`, blp])) ? yield* read(blp) : undefined;
     }
-    yield* runProcess(ChildProcess.make("magick", [`${dds}[0]`, join(directory, target)], { stdin: "ignore" })).pipe(
-      Effect.mapError((failure) => new RenderAssetFailure({ problem: `cannot convert stock texture ${normalized}: ${failure.problem}` })));
+    yield* convertTexture(dds, join(directory, target));
     return yield* read(join(directory, target));
   });
   const stockClassic = (path: string) => Effect.gen(function*() {
@@ -140,8 +145,7 @@ export function headlessRender(options: RenderAssetOptions = {}) {
       const blp = cache.replace(/\.[^.]+$/, ".blp");
       return (yield* succeeds(extractor, [storage, `war3.w3mod:${normalized.replace(/\.[^.]+$/, ".blp")}`, blp])) ? yield* read(blp) : undefined;
     }
-    yield* runProcess(ChildProcess.make("magick", [`${dds}[0]`, png], { stdin: "ignore" })).pipe(
-      Effect.mapError((failure) => new RenderAssetFailure({ problem: `cannot convert stock texture ${path}: ${failure.problem}` })));
+    yield* convertTexture(dds, png);
     return yield* read(png);
   });
   const resolveAsset = (path: string, graphics: Graphics = "classic", body?: AssetLocation): Promise<ResolvedRenderAsset> => {
@@ -162,8 +166,7 @@ export function headlessRender(options: RenderAssetOptions = {}) {
       const cached = yield* read(decoded);
       if (cached !== undefined) return cached;
       mkdirSync(directory, { recursive: true });
-      yield* runProcess(ChildProcess.make("magick", [`${source}[0]`, decoded], { stdin: "ignore" })).pipe(
-        Effect.mapError((failure) => new RenderAssetFailure({ problem: `cannot decode imported DDS ${entry}: ${failure.problem}` })));
+      yield* convertTexture(source, decoded);
       return yield* read(decoded);
     });
     const readers = {

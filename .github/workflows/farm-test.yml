@@ -86,6 +86,8 @@ jobs:
         shard: ${{ fromJSON(needs.plan.outputs.bun) }}
     name: bun ${{ matrix.shard }}
     steps:
+      - name: Install stock texture converter
+        run: sudo apt-get update -q && sudo apt-get install -y -q imagemagick
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.plan.outputs.sha }}

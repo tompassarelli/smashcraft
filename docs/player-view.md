@@ -10,7 +10,9 @@ Asset paths come from this checkout's immutable
 `build-inputs.json`. Stock textures come from `WC3_TEXTURES`, or are extracted
 with `CASC_EXTRACTOR` and `WC3_STORAGE`. The extractor
 is built by `tools/animations/extract.sh`; DDS textures are converted with
-the existing ImageMagick tool. Extracted assets stay in
+ImageMagick (`magick` on version 7, `convert` on version 6). Ubuntu CI
+installs its `imagemagick` package before running the stock-texture tests.
+Extracted assets stay in
 `~/.local/share/smashcraft-render-assets/` outside the repository.
 Stock cache directories use the selected installation's `.build.info` hash;
 updating Warcraft therefore extracts the new stock art. For a native comparison,
