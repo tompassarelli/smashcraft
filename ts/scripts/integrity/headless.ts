@@ -29,6 +29,7 @@ import { type Observer, type Pad, continueProcess, observeDevice, openPad, realt
 import { type Injection, PAD_BUTTONS, type SourceEdge } from "./linuxInput";
 import { SLOTS, type Slot } from "./reconcile";
 import { archiveFiles, fileRig, stopHelperProcess, uiLogger } from "./rig";
+import { padScriptPreset } from "./padScript";
 
 interface HeadlessCaptureOptions {
 
@@ -138,7 +139,7 @@ export const captureHeadless = (options: HeadlessCaptureOptions) =>
         pads.push(pad);
         observers.push(yield* observeDevice(pad.device, join(out, `kernel-${slot}.jsonl`)));
         helpers.push(yield* startHelper([
-          options.helper, "--follow-matches", "--build", build, "--slot", String(slot), "--device", pad.device, "--out", at(data, slot),
+          options.helper, "--follow-matches", ...padScriptPreset(), "--build", build, "--slot", String(slot), "--device", pad.device, "--out", at(data, slot),
           "--text-out", textPath, "--trace",
         ], Bun.env, join(out, `helper-${slot}.log`)));
       }

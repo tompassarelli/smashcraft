@@ -8,7 +8,7 @@ license = "MIT"
 description = "Smashcraft's plug-in for wc3-controller: the map's session and journal helper (wc3-journal)"
 
 [dependencies]
-wc3-controller = { git = "https://github.com/tompassarelli/wc3-controller", tag = "v0.1.0" }
+wc3-controller = { git = "https://github.com/tompassarelli/wc3-controller", tag = "v0.2.1" }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 enigo = { git = "https://github.com/tompassarelli/enigo", rev = "0b7bae348b0ba7108b81bc4c7267e5bb2d6a509b" }

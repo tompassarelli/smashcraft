@@ -17,6 +17,7 @@ import { type Observer, type Pad, observeDevice, openPad, realtimeNs } from "./l
 import { BTN_SELECT, PAD_BUTTONS } from "./linuxInput";
 import { SLOTS, type Slot } from "./reconcile";
 import { archiveFiles, liveRig } from "./rig";
+import { padScriptPreset } from "./padScript";
 
 interface CaptureOptions extends Omit<JourneyOptions, "epochs"> {
 
@@ -194,7 +195,7 @@ export const captureMatches = (options: CaptureOptions) =>
         observers.push(yield* observeDevice(pad.device, join(out, `kernel-${slot}.jsonl`)));
 
         helpers.push(yield* startHelper([
-          options.helper, "--follow-matches", "--build", build, "--slot", String(slot), "--device", pad.device, "--out", data[slot],
+          options.helper, "--follow-matches", ...padScriptPreset(), "--build", build, "--slot", String(slot), "--device", pad.device, "--out", data[slot],
           "--editbox-display", client.x11.DISPLAY ?? "", "--x11-window", client.window, "--pid", String(gamePids[slot]), "--private-wlr-app-id", appIds[slot],
           ...(options.workload === "playable" ? [] : ["--trace"]),
         ], { ...Bun.env, ...client.x11, ...client.wayland }, join(out, `helper-${slot}.log`)));

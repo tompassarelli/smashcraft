@@ -47,7 +47,7 @@ import { type Pad, inject, monotonicNs, openPad } from "../../integrity/linux";
 import { BTN_SELECT, PAD_BUTTONS } from "../../integrity/linuxInput";
 import { MATCH_REPLAY_NAME, REPRO_NAME, TRACE_FILE, checkHeadlessRun, compareRuns, comparisonSteps, scriptChat } from "../../integrity/padParity";
 import type { Schedule, ScheduleReply, ScheduledEdge } from "../../integrity/padScheduleWorker";
-import { type PadStep, type SentEdge, deadlineOrder, frameWriteNs, landEdges, matchStart, parsePadScript, ruleFrame } from "../../integrity/padScript";
+import { type PadStep, type SentEdge, deadlineOrder, frameWriteNs, landEdges, matchStart, padScriptPreset, parsePadScript, ruleFrame } from "../../integrity/padScript";
 import { SLOTS } from "../../integrity/reconcile";
 import { captureWhenDrawn, drawnFrom, visualCaptureCommand, visualCaptureToken } from "../../integrity/drawnCapture";
 import { visualReleaseFile } from "../../../src/game/shell/visualCapture";
@@ -228,7 +228,7 @@ export const nativeSession = (out: string, helper: string, build: string, appIds
     const device = yield* openPad([...PAD_BUTTONS, BTN_SELECT]);
     pads.push(device);
     yield* startHelper([
-      helper, "--follow-matches", "--build", build, "--slot", String(slot), "--device", device.device, "--out", at(data, slot),
+      helper, "--follow-matches", ...padScriptPreset(), "--build", build, "--slot", String(slot), "--device", device.device, "--out", at(data, slot),
       "--editbox-display", client.x11.DISPLAY ?? "", "--x11-window", client.window, "--pid", String(pid), "--private-wlr-app-id", appId, "--trace",
     ], { ...Bun.env, ...client.x11, ...client.wayland }, join(out, `helper-${slot}.log`));
   }
@@ -439,7 +439,7 @@ export const headlessSession = (dir: string, helper: string, build: string, afte
     const device = yield* openPad([...PAD_BUTTONS, BTN_SELECT]);
     pads.push(device);
     yield* startHelper([
-      helper, "--follow-matches", "--build", build, "--slot", String(slot), "--device", device.device, "--out", at(data, slot), "--text-out", textPath, "--trace",
+      helper, "--follow-matches", ...padScriptPreset(), "--build", build, "--slot", String(slot), "--device", device.device, "--out", at(data, slot), "--text-out", textPath, "--trace",
     ], Bun.env, join(dir, `helper-${slot}.log`));
   }
   const worker = yield* scheduleThread;

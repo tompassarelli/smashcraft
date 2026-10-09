@@ -9,7 +9,7 @@ import { loadClients } from "wisp/scripts/warcraft/desktop";
 import { gameProcess } from "./integrity/capture";
 import { monotonicNs } from "./integrity/linux";
 import { ABS_X, ABS_Y, BTN_START, BTN_SELECT, EV_ABS, EV_KEY } from "./integrity/linuxInput";
-import { frameWriteNs, parsePadScript, ruleFrame } from "./integrity/padScript";
+import { frameWriteNs, padScriptPreset, parsePadScript, ruleFrame } from "./integrity/padScript";
 
 export function keyboardPadPlan(script: string) {
   return parsePadScript(script).flatMap(step => {
@@ -55,7 +55,7 @@ const run = (args: readonly string[]) => Effect.gen(function*() {
   const out = values.out;
   const plan = yield* Effect.tryPromise({ try: async () => keyboardPadPlan(await Bun.file(scriptPath).text()), catch: failure });
   if (plan.length === 0) return yield* new KeyboardPadFailure({ problem: "empty pad script" });
-  const helperArgs = [values.helper, "--virtual-pad", "--watch-seconds", "20", "--preset", "standard", "--tap-jump", "off"];
+  const helperArgs = [values.helper, "--virtual-pad", "--watch-seconds", "20", ...padScriptPreset(), "--tap-jump", "off"];
   let environment: Record<string, string | undefined> = { ...Bun.env, SDL_VIDEODRIVER: "dummy" };
   if (!values.observe) {
     if (values["clients-file"] === undefined || values.client === undefined || values["app-id"] === undefined) return yield* new KeyboardPadFailure({ problem: "live timing requires --clients-file FILE --client NAME --app-id ID" });

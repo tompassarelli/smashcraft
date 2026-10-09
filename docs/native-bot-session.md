@@ -334,7 +334,8 @@ requires the authored View export.
 
 The hosted `203/tap-jump.pad` case enables `WC3_TAP_JUMP=on`, and
 `controls/z-jump.pad` selects `WC3_PAD_PRESET=z-jump`, as their original headers
-require. Other cases use the helper's normal off and standard settings.
+require. Other cases use tap jump off and the hidden `script` preset, the
+encoding of every recorded pad script.
 
 ### Many scripts in one game
 

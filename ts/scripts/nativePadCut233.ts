@@ -14,6 +14,7 @@ import { ClientWatch } from "wisp/scripts/wisp/watch";
 import { freshMatch } from "./wisp/commands/fresh";
 import { gameFilesLayer } from "./wisp/project";
 import { Phase } from "../src/game/match/rules";
+import { padScriptPreset } from "./integrity/padScript";
 
 export function validatePadCutClients(clients: readonly Pick<Client, "name" | "documents" | "x11" | "wayland">[], entries: readonly ClientEntry[], appIds: ReadonlyMap<string, string>, pair: string) {
   const count = pair === "tom" ? 1 : 2;
@@ -53,7 +54,7 @@ export const startPadCutProducer = (options: {
   helper: string; client: Pick<Client, "x11" | "wayland" | "window">; pid: number; single: boolean;
   niriWindow?: string | undefined; appId: string; out: string; slot: number;
 }) => {
-  return startInputProcess([options.helper, "--emit", "--virtual-pad", "--display", options.client.x11.DISPLAY ?? "", "--x11-window", options.client.window,
+  return startInputProcess([options.helper, "--emit", "--virtual-pad", ...padScriptPreset(), "--display", options.client.x11.DISPLAY ?? "", "--x11-window", options.client.window,
     "--pid", String(options.pid), ...(options.single ? ["--niri-window", options.niriWindow ?? ""] : ["--private-wlr-app-id", options.appId]), "--watch-seconds", "300"], {
     env: { ...Bun.env, ...options.client.x11, ...options.client.wayland },
     stdout: join(options.out, `helper-p${options.slot}.tsv`), stderr: join(options.out, `helper-p${options.slot}.log`),

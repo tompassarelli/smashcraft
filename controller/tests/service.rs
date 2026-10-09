@@ -176,7 +176,7 @@ fn a_private_pad_script_drives_the_published_menu_pointer() {
                 let next = fresh && matches!(menu.phase.as_str(), "CHARACTER" | "CPU" | "STAGE" | "RESULT");
                 if next != pointing {
                     driver.release(&mut out)?;
-                    driver = if next { Driver::menu(curve, true) } else { Driver::keys(PadPreset::Standard) };
+                    driver = if next { Driver::menu(curve, true) } else { Driver::keys(PadPreset::Melee) };
                     pointing = next;
                 }
                 let now = Instant::now();

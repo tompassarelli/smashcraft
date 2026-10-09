@@ -6,7 +6,8 @@ import { dirname, join } from "node:path";
 import { Effect, Option, Schema } from "effect";
 import { PlayProblem } from "wisp/scripts/wisp/play";
 
-const LayoutSchema = Schema.Literals(["standard", "z-jump"]);
+export const LAYOUTS = ["melee", "z-jump", "tom"] as const;
+const LayoutSchema = Schema.Literals(LAYOUTS);
 const ShieldSchema = Schema.Literals(["full", "light"]);
 const SettingsSchema = Schema.Struct({
   pad_preset: Schema.optionalKey(LayoutSchema),
@@ -15,7 +16,7 @@ const SettingsSchema = Schema.Struct({
 });
 const StatusSchema = Schema.Struct({ status: Schema.Struct({ settings: Schema.Struct({ pad_preset: LayoutSchema }) }) });
 
-export type Layout = "standard" | "z-jump";
+export type Layout = typeof LAYOUTS[number];
 export const controllerSettingsPath = () => join(process.env.XDG_CONFIG_HOME ?? join(homedir(), ".config"), "wc3-controller/settings.json");
 
 const fail = (problem: string) => new PlayProblem({ problem });

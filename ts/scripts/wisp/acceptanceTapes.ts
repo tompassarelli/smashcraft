@@ -537,6 +537,6 @@ export function generateTapes(): Map<string, string> {
     const missing = [...SOURCES.keys()].filter(source => !sources.has(source));
     if (missing.length > 0) throw new Error(`the actions tape never presses ${missing.join(", ")} for slot ${slot}`);
   });
-  if (new Set(SOURCES.values()).size !== ACTION_COUNT) throw new Error("the standard layout no longer binds the sources the tapes press");
+  if (new Set(SOURCES.values()).size !== ACTION_COUNT) throw new Error("the script layout no longer binds the sources the tapes press");
   return tapes;
 }

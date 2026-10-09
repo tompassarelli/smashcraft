@@ -12,10 +12,14 @@ Implementation is tracked in [#18](https://github.com/tompassarelli/smashcraft/i
 
 The deciding evidence is broader than the C# example: SDL's device drivers; Microsoft's XInput/GameInput and SendInput contracts; Apple's foreground/Accessibility APIs; enigo's actual platform implementations; local W3Champions launch/input code; and local Slippi/Dolphin source snapshots plus Melee Unlocked. Each solves a different boundary. **XInput reads controllers; SendInput generates desktop input. Neither is an analog interface into a Warcraft map.** Cross-platform compilation and OS event submission are not native-game acceptance.
 
-Modern pads (Xbox and Switch Pro) set the defaults. GameCube pads remain
-bindable, but do not determine the default layout. The Controller page offers
-Standard (B/Y jump, RB grab) and Z-jump (RB/Y jump, B grab). Both keep A attack,
-X special, LB Tilt (also walks), LT light shield, RT shield and the stick controls.
+The Controller page offers wc3-controller's presets (its README has the
+table): **melee** (default; Melee's buttons by function: A attack, B special,
+X/Y jump, RB grab, both triggers shield, no tilt or short-hop button),
+**z-jump** (RB jumps, X grabs) and **tom** (Tom's own: B and RB grab, X special,
+Y and LB jump, RT tilt, LT shield, L3 short hop). Recorded pad scripts and test
+drivers use the hidden **script** preset (B/Y jump, X special, LB tilt, both
+triggers shield). A GameCube pad maps by its printed letters only in the SDL
+helper; the service reads evdev and does not tell GameCube pads apart yet.
 
 ## 1. Controller acquisition
 
@@ -58,7 +62,7 @@ The real alternative is thin direct OS bindings: Microsoft's `windows` crate for
 
 Sources: [enigo Windows implementation](https://github.com/enigo-rs/enigo/blob/a88d9b7e2cec7043ab5f03e754500a091ea928d1/src/win/win_impl.rs), [macOS implementation](https://github.com/enigo-rs/enigo/blob/a88d9b7e2cec7043ab5f03e754500a091ea928d1/src/macos/macos_impl.rs), [backend/permission documentation](https://github.com/enigo-rs/enigo/blob/a88d9b7e2cec7043ab5f03e754500a091ea928d1/README.md), [SendInput contract](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput), [RemoteDesktop portal](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.RemoteDesktop.html).
 
-Enigo tracks held keys and can release them on drop. This is useful cleanup, not focus-loss handling, not multi-source aggregation, and not crash-proof cleanup. Own the action-state policy once: LT holds light shield and RT holds full shield; releasing one must retain the other shield input until both are up. In the standard preset, B and Y share jump semantics but need individually tracked sources; stick-up is only up. Disconnect/focus loss clears owned state; returning focus does not replay stale held actions. Physical keyboard/controller overlap and modifiers must be tested, not reset indiscriminately. No library can provide an atomic guarantee that foreground focus will remain unchanged between a user-space check and global injection; document this residual race and verify the ordinary focus transition.
+Enigo tracks held keys and can release them on drop. This is useful cleanup, not focus-loss handling, not multi-source aggregation, and not crash-proof cleanup. Own the action-state policy once: LT holds light shield and RT holds full shield; releasing one must retain the other shield input until both are up. In the melee preset, X and Y share jump semantics but need individually tracked sources; stick-up is only up. Disconnect/focus loss clears owned state; returning focus does not replay stale held actions. Physical keyboard/controller overlap and modifiers must be tested, not reset indiscriminately. No library can provide an atomic guarantee that foreground focus will remain unchanged between a user-space check and global injection; document this residual race and verify the ordinary focus transition.
 
 The locally inspected W3Champions launcher independently confirms these API choices: its native hotkey module uses SendInput on Windows, CGEvent on macOS and XTest on Linux. This is behavioral prior art only: no project license was found in the inspected root/package, and its presence does not establish correctness of those implementations or current platform support. No code was translated or copied.
 

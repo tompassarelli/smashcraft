@@ -26,6 +26,7 @@ import project from "../../scripts/wisp/soak";
 import { SMASHCRAFT_SCENE } from "../../scripts/wisp/playerView";
 import { PREDICTED_HEADLESS } from "../../scripts/wisp/headless";
 import { SOAK_ENTRY, beginMatch, matchView } from "./game";
+import { padScriptPreset } from "../../scripts/integrity/padScript";
 
 
 const PAD: SoakController = {
@@ -94,7 +95,7 @@ const playMatch = (runtime: ReturnType<typeof installHeadless>, match: SoakMatch
       const pad = yield* openPad(PAD_BUTTONS);
       pads.push(pad);
       yield* startHelper([
-        options.helper, "--follow-matches", "--build", INTEGRITY_BUILD.id, "--slot", String(slot), "--device", pad.device, "--out", at(data, slot), "--text-out", textPath,
+        options.helper, "--follow-matches", ...padScriptPreset(), "--build", INTEGRITY_BUILD.id, "--slot", String(slot), "--device", pad.device, "--out", at(data, slot), "--text-out", textPath,
       ], Bun.env, join(out, `helper-${slot}.log`));
     }
     const writes = yield* padThread;

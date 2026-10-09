@@ -9,15 +9,16 @@ import { ChildProcess } from "effect/process";
 import type { Command } from "wisp/scripts/wisp/command";
 import { PlayProblem } from "wisp/scripts/wisp/play";
 import { CONTROLLER_STATUS, CONTROLLER_UNIT, SERVICE_ARGS, SERVICE_LAUNCHER, ensureService, pointLaunchers, unitInstalled } from "../controllerService";
-import { setControllerLayout } from "../controllerLayout";
+import { LAYOUTS, setControllerLayout } from "../controllerLayout";
 import { currentHelper } from "../currentPlaytest";
 
 export const controller: Command = (args) => Effect.gen(function*() {
   if (args.length > 0) {
     const [verb, name] = args;
-    if (verb !== "layout" || args.length !== 2 || (name !== "standard" && name !== "zjump")) return yield* new PlayProblem({ problem: "use controller layout standard|zjump" });
-    const result = yield* setControllerLayout(name === "zjump" ? "z-jump" : "standard");
-    console.log(`Controller layout: ${name === "zjump" ? "Z-jump" : "Standard"} (${result === "live" ? "changed live" : "saved for next start"}).`);
+    const layout = LAYOUTS.find((known) => known === name);
+    if (verb !== "layout" || args.length !== 2 || layout === undefined) return yield* new PlayProblem({ problem: `use controller layout ${LAYOUTS.join("|")}` });
+    const result = yield* setControllerLayout(layout);
+    console.log(`Controller layout: ${layout} (${result === "live" ? "changed live" : "saved for next start"}).`);
     return;
   }
   const helper = yield* currentHelper;

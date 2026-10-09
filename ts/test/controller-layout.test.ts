@@ -15,10 +15,12 @@ test("offline layout saves preserve tap jump and both trigger choices [spec docs
   const port = address.port;
   await new Promise<void>((resolve) => server.close(() => resolve()));
   const file = join(scratch, "controller.json");
-  const settings = { pad_preset: "standard", tap_jump: true, triggers: { left: "light", right: "full" } };
+  const settings = { pad_preset: "melee", tap_jump: true, triggers: { left: "light", right: "full" } };
   writeFileSync(file, JSON.stringify(settings));
   expect(await Effect.runPromise(setControllerLayout("z-jump", file, port))).toBe("saved");
   expect(JSON.parse(readFileSync(file, "utf8"))).toEqual({ ...settings, pad_preset: "z-jump" });
-  expect(await Effect.runPromise(setControllerLayout("standard", file, port))).toBe("saved");
+  expect(await Effect.runPromise(setControllerLayout("tom", file, port))).toBe("saved");
+  expect(JSON.parse(readFileSync(file, "utf8"))).toEqual({ ...settings, pad_preset: "tom" });
+  expect(await Effect.runPromise(setControllerLayout("melee", file, port))).toBe("saved");
   expect(JSON.parse(readFileSync(file, "utf8"))).toEqual(settings);
 });

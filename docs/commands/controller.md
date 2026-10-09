@@ -1,6 +1,6 @@
 # Controller
 
-- Controller layout: `bun wisp controller layout standard|zjump` changes the running service live, or saves the choice for its next start. Layout, tap jump and left/right full or light shield are kept in `~/.config/wc3-controller/settings.json` (or `$XDG_CONFIG_HOME/wc3-controller/settings.json`) and editable on the client Controller page.
+- Controller layout: `bun wisp controller layout melee|z-jump|tom` changes the running service live, or saves the choice for its next start. Layout, tap jump and left/right full or light shield are kept in `~/.config/wc3-controller/settings.json` (or `$XDG_CONFIG_HOME/wc3-controller/settings.json`) and editable on the client Controller page.
 
 - Controller: `bun wisp controller` builds main's controller (the pinned
   wc3-controller service and Smashcraft's plug-in `wc3-journal`, from

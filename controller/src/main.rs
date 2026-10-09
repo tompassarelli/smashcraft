@@ -55,6 +55,8 @@ mod linux {
     const SMASH_UP: u32 = 1 << 12;
     const SMASH_DOWN: u32 = 1 << 13;
     const WALK: u32 = 1 << 14;
+    const LT_SOURCE: u32 = 1 << 30;
+    const RT_SOURCE: u32 = 1 << 31;
     const EVIOCSCLOCKID: libc::c_ulong = 0x4004_45a0;
 
     #[derive(Default, Clone, Copy, Debug, PartialEq, Eq)]
@@ -862,7 +864,7 @@ mod linux {
     fn usage() -> &'static str {
         "wc3-journal --plugin\n\
          Smashcraft's map plug-in for wc3-controller --service --plugin wc3-journal: reports the map's sessions and names this helper.\n\
-         wc3-journal --follow-matches --build BUILD --slot N [--epoch N] [--menu-keys all|start] [--preset standard|z-jump] [--tap-jump on|off] [--left-trigger full|light] [--right-trigger full|light] --device /dev/input/eventN --out DIR --editbox-display :N [--trace]\n\
+         wc3-journal --follow-matches --build BUILD --slot N [--epoch N] [--menu-keys all|start] [--preset melee|z-jump|tom|script] [--tap-jump on|off] [--left-trigger full|light] [--right-trigger full|light] --device /dev/input/eventN --out DIR --editbox-display :N [--trace]\n\
          Start in character selection; stick left/right chooses, A selects, X backs, Start confirms. Follows matches and rematches.\n\
          Diagnostic only: wc3-journal --device /dev/input/eventN --out DIR --ready-file PATH --epoch-monotonic-ns NS [--mailbox-display :N | --editbox-display :N] [--first-frame N] [--stop-frame N] [--trace]\n\
          Keyboard output also requires --x11-window DECIMAL_ID --pid PID and exactly one of --niri-window ID / --private-wlr-app-id ID.\n\
@@ -1061,7 +1063,7 @@ mod linux {
                 right: wc3_controller::model::TriggerShield::parse(values.get("--right-trigger").map(String::as_str).unwrap_or("full"))?,
             },
             tap_jump: match values.get("--tap-jump").cloned().or_else(|| env::var("WC3_TAP_JUMP").ok()).as_deref().unwrap_or("off") { "on" => true, "off" => false, _ => return Err("--tap-jump needs on or off".into()) },
-            preset: wc3_controller::model::PadPreset::parse(values.get("--preset").cloned().or_else(|| env::var("WC3_PAD_PRESET").ok()).as_deref().unwrap_or("standard"))?,
+            preset: wc3_controller::model::PadPreset::parse(values.get("--preset").cloned().or_else(|| env::var("WC3_PAD_PRESET").ok()).as_deref().unwrap_or("melee"))?,
             device: take("--device")?.into(),
             out: take("--out")?.into(),
             build,
@@ -1323,7 +1325,7 @@ mod linux {
         assert_eq!(input.press(neutral, left, false, false, 15), Some("w"));
         assert_eq!(input.press(left, left, false, false, 16), None);
         assert_eq!(input.press(left, right, false, false, 17), Some("r"));
-        assert_eq!(input.press(neutral, State { sources: 4, ..neutral }, false, false, 18), Some("u"));
+        assert_eq!(input.press(neutral, State { sources: 2, ..neutral }, false, false, 18), Some("u"));
         assert_eq!(input.press(neutral, neutral, false, true, 19), Some("y"));
         input.observe(Some(MenuPhase::Stage), neutral, true, 20);
         assert_eq!(input.press(neutral, attack, true, true, 21), None);
@@ -2138,29 +2140,36 @@ mod linux {
         }
     }
 
+    /// The preset's buttons and triggers as journal bits, from wc3-controller's shown layout.
+    fn button_bits(preset: wc3_controller::model::PadPreset) -> &'static [(u32, u32)] {
+        use wc3_controller::model::{Control, PadPreset, Press, TriggerShields, fighter_bindings_with};
+        static LAYOUTS: std::sync::OnceLock<Vec<Vec<(u32, u32)>>> = std::sync::OnceLock::new();
+        const PRESETS: [PadPreset; 4] = [PadPreset::Melee, PadPreset::ZJump, PadPreset::Tom, PadPreset::Script];
+        let layouts = LAYOUTS.get_or_init(|| PRESETS.iter().map(|&preset| {
+            fighter_bindings_with(preset, TriggerShields::default()).into_iter().filter_map(|binding| {
+                let source = match binding.control {
+                    Control::A => 1 << 0, Control::B => 1 << 1, Control::X => 1 << 2, Control::Y => 1 << 3,
+                    Control::Lb => 1 << 4, Control::Rb => 1 << 5, Control::LeftStick => 1 << 6,
+                    Control::Lt => LT_SOURCE, Control::Rt => RT_SOURCE, _ => return None,
+                };
+                let Press::Key(key) = binding.press else { return None };
+                let action = match key.as_str() {
+                    "n" => ATTACK, "u" => SPECIAL, "i" => JUMP, "z" => SHORT_HOP, "o" => GRAB, "p" => WALK,
+                    "q" | "t" if source == LT_SOURCE => LEFT_TRIGGER,
+                    "q" | "t" => RIGHT_TRIGGER,
+                    _ => return None,
+                };
+                Some((source, action))
+            }).collect()
+        }).collect());
+        &layouts[PRESETS.iter().position(|&p| p == preset).expect("listed preset")]
+    }
+
     fn action_state(s: State) -> u32 {
-        let mut held = 0;
-        if s.sources & (1 << 6) != 0 {
-            held |= SHORT_HOP;
-        }
-        if s.sources & (1 << 0) != 0 {
-            held |= ATTACK;
-        }
-        let z_jump = s.preset == wc3_controller::model::PadPreset::ZJump;
-        if s.sources & (1 << if z_jump { 5 } else { 1 }) != 0 || s.sources & (1 << 3) != 0 {
-            held |= JUMP;
-        }
-        if s.sources & (1 << 2) != 0 {
-            held |= SPECIAL;
-        }
-        if s.sources & (1 << 4) != 0 {
-            held |= WALK;
-        }
-        if s.sources & (1 << if z_jump { 1 } else { 5 }) != 0 {
-            held |= GRAB;
-        }
+        let sources = s.sources | if s.lt > 4_000 { LT_SOURCE } else { 0 } | if s.rt > 4_000 { RT_SOURCE } else { 0 };
+        let mut held = button_bits(s.preset).iter().filter(|(source, _)| sources & source != 0).fold(0, |held, (_, action)| held | action);
         let (x, y) = melee_stick(s.x, s.y);
-        if wc3_controller::stick::tap_jump(y, s.tap_jump, s.sources & (1 << 4) != 0, s.lt > 4_000 || s.rt > 4_000) {
+        if wc3_controller::stick::tap_jump(y, s.tap_jump, held & WALK != 0, held & (LEFT_TRIGGER | RIGHT_TRIGGER) != 0) {
             held |= JUMP;
         }
         if x < 0 {
@@ -2188,19 +2197,13 @@ mod linux {
         if cy > 0 {
             held |= SMASH_DOWN;
         }
-        if s.lt > 4_000 {
-            held |= LEFT_TRIGGER;
-        }
-        if s.rt > 4_000 {
-            held |= RIGHT_TRIGGER;
-        }
         held
     }
 
     #[test]
     fn left_stick_click_journals_short_hop_press_and_release_spec_321() {
-        for preset in [wc3_controller::model::PadPreset::Standard, wc3_controller::model::PadPreset::ZJump] {
-            let mut state = State { preset, ..State::default() };
+        {
+            let mut state = State { preset: wc3_controller::model::PadPreset::Tom, ..State::default() };
             update_state(&[None; 6], &mut state, evdev::InputEvent::new(evdev::EventType::KEY.0, Key::BTN_THUMBL.0, 1));
             assert_eq!(action_state(state), SHORT_HOP);
             update_state(&[None; 6], &mut state, evdev::InputEvent::new(evdev::EventType::KEY.0, Key::BTN_THUMBL.0, 0));
@@ -2215,46 +2218,56 @@ mod linux {
     #[test]
     fn journal_tap_jump_reads_effective_guard_stick_and_keeps_button_jump() {
         use wc3_controller::model::PadPreset;
-        for preset in [PadPreset::Standard, PadPreset::ZJump] {
-            let state = State { preset, y: -32_767, rt: 20_000, ..State::default() };
-            assert_eq!(action_state(state) & JUMP, 0);
-            let state = State { tap_jump: true, ..state };
-            assert_eq!(action_state(state) & JUMP, JUMP);
-            let state = State { sources: 1 << 4, ..state };
-            assert_eq!(action_state(state) & JUMP, 0);
-            let button = 1 << if preset == PadPreset::ZJump { 5 } else { 1 };
-            assert_eq!(action_state(State { sources: state.sources | button, ..state }) & JUMP, JUMP);
-            assert_eq!(action_state(State { rt: 0, ..state }) & JUMP, JUMP);
-            let mut held = state;
-            release_for_focus_loss(&mut held, &mut BTreeMap::new(), &mut BTreeMap::new(), 1, FrameSegment { epoch_ns: 0, first_frame: 1 }, 0).unwrap();
-            assert!(held.tap_jump);
-            assert_eq!(held.preset, preset);
-        }
+        let state = State { preset: PadPreset::Tom, y: -32_767, lt: 20_000, ..State::default() };
+        assert_eq!(action_state(state) & JUMP, 0);
+        let state = State { tap_jump: true, ..state };
+        assert_eq!(action_state(state) & JUMP, JUMP);
+        let state = State { rt: 20_000, ..state };
+        assert_eq!(action_state(state) & JUMP, 0);
+        assert_eq!(action_state(State { sources: 1 << 4, ..state }) & JUMP, JUMP);
+        assert_eq!(action_state(State { lt: 0, ..state }) & JUMP, JUMP);
+        let mut held = state;
+        release_for_focus_loss(&mut held, &mut BTreeMap::new(), &mut BTreeMap::new(), 1, FrameSegment { epoch_ns: 0, first_frame: 1 }, 0).unwrap();
+        assert!(held.tap_jump);
+        assert_eq!(held.preset, PadPreset::Tom);
     }
 
     #[test]
-    fn journal_presets_map_jump_grab_and_digital_shield_pressure() {
+    fn journal_presets_map_buttons_and_digital_shield_pressure() {
         use wc3_controller::model::{PadPreset, TriggerShield, TriggerShields};
-        for (preset, b, rb) in [(PadPreset::Standard, JUMP, GRAB), (PadPreset::ZJump, GRAB, JUMP)] {
+        let (a, b, x, y, lb, rb, l3) = (1 << 0, 1 << 1, 1 << 2, 1 << 3, 1 << 4, 1 << 5, 1 << 6);
+        for (preset, expected) in [
+            (PadPreset::Melee, [ATTACK, SPECIAL, JUMP, JUMP, 0, GRAB, 0]),
+            (PadPreset::ZJump, [ATTACK, SPECIAL, GRAB, JUMP, 0, JUMP, 0]),
+            (PadPreset::Tom, [ATTACK, GRAB, SPECIAL, JUMP, JUMP, GRAB, SHORT_HOP]),
+            (PadPreset::Script, [ATTACK, JUMP, SPECIAL, JUMP, WALK, GRAB, SHORT_HOP]),
+        ] {
             let state = State { preset, ..State::default() };
-            assert_eq!(action_state(State { sources: 1 << 1, ..state }), b);
-            assert_eq!(action_state(State { sources: 1 << 5, ..state }), rb);
-            assert_eq!(action_state(State { sources: 1 << 3, ..state }), JUMP);
+            for (source, action) in [a, b, x, y, lb, rb, l3].into_iter().zip(expected) {
+                assert_eq!(action_state(State { sources: source, ..state }), action, "{} {source}", preset.name());
+            }
             for left in [TriggerShield::Full, TriggerShield::Light] {
                 for right in [TriggerShield::Full, TriggerShield::Light] {
                     let state = State { triggers: TriggerShields { left, right }, ..state };
                     let (left, right) = (u32::from(left.pressure()), u32::from(right.pressure()));
-                    for (lt, rt, held, pressure) in [(20_000, 0, LEFT_TRIGGER, left * 256), (0, 20_000, RIGHT_TRIGGER, right), (20_000, 20_000, LEFT_TRIGGER | RIGHT_TRIGGER, left * 256 + right)] {
-                        assert_eq!(encode_row(State { lt, rt, ..state }, 0, Edges::default()), format!("B{}{}000{}", compact(held, 3), compact(held, 3), compact(pressure, 3)));
+                    let rows: &[(u16, u16, u32, u32)] = if preset == PadPreset::Tom {
+                        &[(20_000, 0, LEFT_TRIGGER, left * 256), (0, 20_000, WALK, 0)]
+                    } else {
+                        &[(20_000, 0, LEFT_TRIGGER, left * 256), (0, 20_000, RIGHT_TRIGGER, right), (20_000, 20_000, LEFT_TRIGGER | RIGHT_TRIGGER, left * 256 + right)]
+                    };
+                    for &(lt, rt, held, pressure) in rows {
+                        let row = encode_row(State { lt, rt, ..state }, 0, Edges::default());
+                        let (flags, tail) = if pressure == 0 { ("3", String::new()) } else { ("B", compact(pressure, 3)) };
+                        assert_eq!(row, format!("{flags}{}{}000{tail}", compact(held, 3), compact(held, 3)));
                     }
                 }
             }
-            let mut held = State { sources: 1 << 5, ..state };
+            let mut held = State { sources: rb, ..state };
             let mut edges = BTreeMap::new();
             let mut snapshots = BTreeMap::new();
             release_for_focus_loss(&mut held, &mut edges, &mut snapshots, 1, FrameSegment { epoch_ns: 0, first_frame: 1 }, 0).unwrap();
             assert_eq!(held.preset, preset);
-            assert_eq!(action_state(State { sources: 1 << 5, ..held }), rb);
+            assert_eq!(action_state(State { sources: rb, ..held }), expected[5]);
         }
     }
 
@@ -2281,8 +2294,9 @@ mod linux {
             flags |= 4;
             body.push_str(&compact(axes, 3));
         }
-        let lt = if state.lt > 4_000 { u32::from(state.triggers.left.pressure()) } else { 0 };
-        let rt = if state.rt > 4_000 { u32::from(state.triggers.right.pressure()) } else { 0 };
+        let shields = action_state(state);
+        let lt = if shields & LEFT_TRIGGER != 0 { u32::from(state.triggers.left.pressure()) } else { 0 };
+        let rt = if shields & RIGHT_TRIGGER != 0 { u32::from(state.triggers.right.pressure()) } else { 0 };
         let triggers = lt * 256 + rt;
         if triggers != 0 {
             flags |= 8;
@@ -2590,7 +2604,7 @@ mod linux {
     fn journal_jump_sources_retain_hold_until_last_release() {
         let ranges = [None; 6];
         let sources = [
-            (evdev::EventType::KEY.0, Key::BTN_EAST.0, 1),
+            (evdev::EventType::KEY.0, Key::BTN_WEST.0, 1),
             (evdev::EventType::KEY.0, Key::BTN_NORTH.0, 1),
         ];
         for first in 0..sources.len() {
@@ -3794,7 +3808,7 @@ mod linux {
     }
 
     #[test]
-    fn xbox_face_labels_map_x_to_special_and_y_to_jump() {
+    fn xbox_face_labels_map_b_to_special_and_x_and_y_to_jump() {
         // Codes exactly as the kernel's xpad driver reports a wired Xbox One S
         // pad (045e:02ea): A BTN_A, B BTN_B, X BTN_X, Y BTN_Y.
         let xbox = FaceLabels::of(evdev::InputId::new(evdev::BusType::BUS_USB, 0x045e, 0x02ea, 0x0301));
@@ -3815,8 +3829,8 @@ mod linux {
         };
         // BTN_A, BTN_B, BTN_X and BTN_Y in linux/input-event-codes.h.
         assert_eq!(held(0x130), ATTACK);
-        assert_eq!(held(0x131), JUMP);
-        assert_eq!(held(0x133), SPECIAL);
+        assert_eq!(held(0x131), SPECIAL);
+        assert_eq!(held(0x133), JUMP);
         assert_eq!(held(0x134), JUMP);
         // hid-playstation reports positions: square BTN_WEST, triangle BTN_NORTH.
         let sony = FaceLabels::of(evdev::InputId::new(evdev::BusType::BUS_USB, SONY_VENDOR, 0x0ce6, 0x8111));

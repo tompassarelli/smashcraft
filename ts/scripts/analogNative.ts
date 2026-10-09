@@ -8,6 +8,7 @@ import { runProcess, stopBunProcess, startInputProcess } from "./hostProcess";
 import { pollUntil } from "./hostPoll";
 import { loadClients, windowPid } from "wisp/scripts/warcraft/desktop";
 import { preloadLines } from "wisp/scripts/wisp/boundary";
+import { padScriptPreset } from "./integrity/padScript";
 
 export const calibrateCursor = (options: { args: readonly string[]; env: Record<string, string | undefined>; path: string; log: string; corner: string }) => Effect.scoped(Effect.gen(function*() {
     const { path, corner } = options;
@@ -87,7 +88,7 @@ const calibrate = (match: number) => Effect.scoped(Effect.gen(function*() {
 }));
 
 const startHelpers = (match: number) => Effect.forEach(targets, (target, slot) => Effect.gen(function*() {
-  return yield* startInputProcess([...target.args, "--virtual-pad", "--pad-ingress", route], {
+  return yield* startInputProcess([...target.args, "--virtual-pad", ...padScriptPreset(), "--pad-ingress", route], {
     env: { ...Bun.env, ...target.client.x11, ...target.client.wayland },
     stdout: join(plan.out, `helper-match-${match}-p${slot}.tsv`), stderr: join(plan.out, `helper-match-${match}-p${slot}.log`),
   });
