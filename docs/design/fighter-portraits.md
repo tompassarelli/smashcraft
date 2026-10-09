@@ -68,10 +68,23 @@ evaluates: a Definitive Mountain King judged as a back view faces the camera,
 with his face a thin strip between helmet brim and beard. Definitive Murloc
 has no correction yet: across his Stand clips the posed eyes sit about 15
 units above the ground and spread apart, so no turn, time or angle frames a
-face. Classic Anub'arak's face stays dark under his crest. The portrait light is
-the neutral stage light (classic midday key and fill) with its key turned to the camera's side (25 degrees
-toward image left, 30 above), so turned faces take the key in both modes;
-Definitive renders also get a 1.4 gamma lift. The hero glow under the feet is
+face. The portrait is lit in four passes summed after rendering (Classic in display
+values, Definitive in linear light, where each shader adds its lights): the
+neutral stage light's ambient alone, a key from the camera's side (25 degrees
+toward image left, 30 above), a low fill from 40 degrees toward image right and
+a rim from behind, image right and 35 above, so no face falls half into
+shadow (#363). Definitive sums get a 1.4 gamma lift. Three weightings
+(`LIGHT_VARIANTS`) are each exposed so the P1 bust's mean luma reaches 110; the
+one lighting the largest share of the bust above luma 50 lights all five outfits.
+`bun scripts/portraitLight.ts [FIGHTER_RENDERS]` (default: the stored family) checks
+every fighter in both looks: bust mean luma within 85-150, roster max/min at
+most 1.6, lit share at least the calibrated floor, the card render's box
+centred and filling 90-96% of its texture, the chip's mass near its centre line,
+and the player preview's frame centred in its card's preview area (below the
+tag, above the name box, or above the CPU summary). The generator fails when a
+head mesh's centre falls below its silhouette's middle. Definitive Kobold's
+every Stand clip bows his face under his pack, so his portrait holds his rig's
+bind pose. The hero glow under the feet is
 hidden by pointing its additive texture at stock black. Each fighter is drawn
 in Warcraft's Coal team colour (`NEUTRAL_TEAM_COLOR`) for the neutral grid
 tile, and in red, blue, teal and purple for its slot outfits; files append

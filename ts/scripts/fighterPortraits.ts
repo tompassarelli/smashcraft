@@ -23,6 +23,7 @@ import { Character } from '../src/game/sim/codes';
 import { originalClip, originalClipCount } from '../src/game/assets/fighterOriginalClipInfo';
 import { at } from 'wisp/src/runtime/lookup';
 import { STAGE_LIGHTS } from '../src/game/assets/stageLighting';
+import { bustPixels, combine, exposureFor, lightOf } from './portraitLight';
 
 const [outputArg] = process.argv.slice(2);
 const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1]?.split(',') : undefined;
@@ -45,40 +46,56 @@ const ANGLE = 0;
 const MAX_MEET = 35;
 /** The face points at the camera turned 20 degrees toward image left (-x), so the weapon hand and near pauldron sit behind it. */
 const FACE_AZIMUTH = -Math.PI / 2 - 20 * Math.PI / 180;
+const toward = (side: number, up: number, front: number) => {
+  const s = side * Math.PI / 180, u = up * Math.PI / 180;
+  return [Math.sin(s) * Math.cos(u), -front * Math.cos(s) * Math.cos(u), Math.sin(u)] as const;
+};
 /**
- * The portrait's key light, toward the light: from the camera's side, 25 degrees
- * toward image left and 30 above, so the turned face takes the light in both modes.
+ * The portrait's lights, each drawn as its own pass and summed (lit): the
+ * stage's ambient alone, a key from the camera's side 25 degrees toward image
+ * left and 30 above, a low fill from 40 degrees toward image right, and a rim
+ * from behind the fighter, image right and 35 above, so no face falls half
+ * into shadow. `toward` points at the light; image right is +x, the camera -y.
  */
-const KEY_TOWARD = [-Math.sin(25 * Math.PI / 180) * Math.cos(Math.PI / 6), -Math.cos(25 * Math.PI / 180) * Math.cos(Math.PI / 6), Math.sin(Math.PI / 6)] as const;
-/** The portrait's day/night model, served by resolveAsset. */
-const PORTRAIT_LIGHT = 'war3mapImported\\PortraitLight.mdl';
-/** The day/night light model's rotation: its light points down its local z (wisp's dayNightLight), turned onto KEY_TOWARD. */
-const KEY_ROTATION = (() => {
-  const half = Math.acos(KEY_TOWARD[2]) / 2, axis = [-KEY_TOWARD[1], KEY_TOWARD[0], 0], length = Math.hypot(...axis);
+const LIGHT_PASSES = [
+  { name: 'ambient', toward: toward(0, 90, 1), key: false, ambient: true },
+  { name: 'key', toward: toward(-25, 30, 1), key: true, ambient: false },
+  { name: 'fill', toward: toward(40, 10, 1), key: true, ambient: false },
+  { name: 'rim', toward: toward(35, 35, -1), key: true, ambient: false },
+] as const;
+type LightPass = (typeof LIGHT_PASSES)[number];
+/** The weight of each pass in a lighting variant; rendering picks the variant whose busts measure most evenly (portraitLight.ts). */
+const LIGHT_VARIANTS: readonly { readonly name: string; readonly weights: Readonly<Record<LightPass['name'], number>> }[] = [
+  { name: 'balanced', weights: { ambient: 1, key: 1, fill: 0.5, rim: 0.4 } },
+  { name: 'soft', weights: { ambient: 1.1, key: 0.8, fill: 0.8, rim: 0.4 } },
+  { name: 'bright', weights: { ambient: 1.3, key: 1, fill: 0.8, rim: 0.6 } },
+];
+/** A pass's day/night model, served by resolveAsset. */
+const lightPath = (pass: LightPass) => `war3mapImported\\Portrait${pass.name}Light.mdl`;
+/** The day/night light model's rotation: its light points down its local z (wisp's dayNightLight), turned onto the pass's direction. */
+const rotationOf = (direction: readonly number[]) => {
+  const [x = 0, y = 0, z = 1] = direction, half = Math.acos(z) / 2, axis = [-y, x, 0], length = Math.hypot(...axis) || 1;
   return `{ ${[...axis.map((value) => value / length * Math.sin(half)), Math.cos(half)].map((value) => Number(value.toFixed(4))).join(', ')} }`;
-})();
-/**
- * The portrait's light: the neutral stage light (classic midday key and fill)
- * held on KEY_ROTATION, so both looks take the same key on the face.
- */
-const portraitLightMdl = () => {
+};
+/** One pass's light: the neutral stage light's key on its direction, or its ambient alone. */
+const portraitLightMdl = (pass: LightPass) => {
   const { key, ambient } = at(STAGE_LIGHTS, 0).light;
   // war3-model reads MDL colours red first and stores them blue first, as Warcraft reads them.
   const colour = (rgb: readonly number[]) => `{ ${rgb.map((channel) => Number((channel / 255).toFixed(4))).join(", ")} }`;
   const extent = "MinimumExtent { -1, -1, -1 }, MaximumExtent { 1, 1, 1 }, BoundsRadius 1,";
   return `Version { FormatVersion 800, }
-Model "Smashcraft stage light" { BlendTime 150, ${extent} }
+Model "Smashcraft portrait light" { BlendTime 150, ${extent} }
 Sequences 1 { Anim "Stand" { Interval { 333, 60333 }, ${extent} } }
-Light "StageSun" {
+Light "PortraitLight" {
   ObjectId 0,
   Directional,
   static AttenuationStart 80,
   static AttenuationEnd 200,
   static Intensity 1,
-  static Color ${colour(key)},
+  static Color ${colour(pass.key ? key : [0, 0, 0])},
   static AmbIntensity 1,
-  static AmbColor ${colour(ambient)},
-  Rotation 1 { DontInterp, 333: ${KEY_ROTATION}, }
+  static AmbColor ${colour(pass.ambient ? ambient : [0, 0, 0])},
+  Rotation 1 { DontInterp, 333: ${rotationOf(pass.toward)}, }
 }
 PivotPoints 1 { { 0, 0, 0 }, }
 `;
@@ -102,7 +119,7 @@ const portraitScene = (scene: RenderScene, character: number, frame: { x: number
   return {
     ...scene, frame: frameOf(character, variant), client: 0, units: [], ui: [], textTags: [], filter: undefined,
     effects: [{ ...body, x: 0, y: 0, z: 0, yaw: pose?.yaw ?? 0, teamColor: at(VARIANTS, variant).team, ...(pose?.elapsed === undefined ? {} : { animationElapsed: pose.elapsed }) }],
-    environment: { ...withoutFog(scene.environment), skyVisible: false, dayNight: { ...scene.environment.dayNight, unit: PORTRAIT_LIGHT } },
+    environment: { ...withoutFog(scene.environment), skyVisible: false, dayNight: { ...scene.environment.dayNight, unit: lightPath(at(LIGHT_PASSES, 0)) } },
     // The camera's right is (sin rotation, -cos rotation) on the ground.
     camera: { x: frame.x * Math.sin(ROTATION * Math.PI / 180), y: -frame.x * Math.cos(ROTATION * Math.PI / 180), fields: {
       CAMERA_FIELD_ROTATION: ROTATION, CAMERA_FIELD_ANGLE_OF_ATTACK: (360 + (pose?.angle ?? ANGLE)) % 360, CAMERA_FIELD_TARGET_DISTANCE: distance,
@@ -246,7 +263,7 @@ const CORRECTIONS: Readonly<Record<'classic' | 'definitive', Readonly<Record<str
   definitive: {
     MountainKing: { level: true, zoom: 1.5 },
     Illidan: { level: true, zoom: 1.5, turn: 25 },
-    Kobold: { level: true, zoom: 1.5, turn: 180 },
+    Kobold: { rest: true, zoom: 1.5 },
     Rifleman: { zoom: 1.5, turn: 25 },
     Warden: { zoom: 1.5, turn: 25 },
     ShadowHunter: { level: true, zoom: 1.5 },
@@ -439,6 +456,8 @@ const silhouette = (png: string) => {
 /** Neutral for the grid tile, then each slot's outfit for its card, bust and stock icon (docs/design/fighter-portraits.md). */
 const VARIANTS = [{ suffix: '', team: NEUTRAL_TEAM_COLOR }, ...PARTICIPANT_SLOTS.map((slot) => ({ suffix: `P${slot + 1}`, team: slot }))];
 const frameOf = (character: number, variant: number) => character * VARIANTS.length + variant;
+/** The scene under one light pass. */
+const lit = (scene: RenderScene, pass: LightPass): RenderScene => ({ ...scene, environment: { ...scene.environment, dayNight: { ...scene.environment.dayNight, unit: lightPath(pass) } } });
 
 /** Behind every grid tile, so the tiles read as one set. */
 const TILE_BACKGROUND = ['-size', `${TILE_TEXTURE_PX}x${TILE_TEXTURE_PX}`, 'radial-gradient:#3a5378-#0c1422'];
@@ -449,7 +468,7 @@ const fadeAlpha = (mask: string) => ['(', '+clone', '-alpha', 'extract', '(', '+
  * Definitive's physically lit bodies fall mostly into shadow under the match's
  * side light; a gamma lift brings them to the Classic set's brightness.
  */
-const DEFINITIVE_LIFT = ['-gamma', '1.4'];
+const DEFINITIVE_LIFT = 1.4;
 const TGA = ['-depth', '8', '-compress', 'none'];
 
 /**
@@ -457,7 +476,7 @@ const TGA = ['-depth', '8', '-compress', 'none'];
  * tiles and busts frame head and shoulders around the head mesh (headBox), stock
  * icons the head alone; without a head, the silhouette's top sixth stands in.
  */
-function crops(raw: string, directory: string, name: string, suffix: string, kinds: readonly PortraitKind[], found: Head | undefined, zoom: number): void {
+function crops(raw: string, directory: string, name: string, suffix: string, kinds: readonly PortraitKind[], found: Head | undefined, zoom: number): boolean {
   const box = run(['magick', raw, '-alpha', 'extract', '-threshold', '10%', '-format', '%@', 'info:']).trim();
   const bounds = box.match(/(\d+)x(\d+)\+(\d+)\+(\d+)/);
   if (bounds === null) throw new Error(`${raw}: nothing drawn`);
@@ -480,6 +499,8 @@ function crops(raw: string, directory: string, name: string, suffix: string, kin
     const stock = window(1.5 * head.size / zoom, 0.5);
     run(['magick', raw, '-crop', `${stock.size}x${stock.size}+${stock.left}+${stock.top}`, '+repage', '-resize', `${STOCK_ICON_PX}x${STOCK_ICON_PX}`, ...fadeAlpha(STOCK_FADE), ...TGA, file('Stock')]);
   }
+  // Upright: the head mesh's centre sits in the silhouette's upper half.
+  return found === undefined || found.y < y + h / 2;
 }
 
 await Effect.runPromise(Effect.gen(function*() {
@@ -505,7 +526,8 @@ await Effect.runPromise(Effect.gen(function*() {
   const bodies = new Map([...captured].map(([character, scene]) => [at(portraitScene(scene, character, { x: 0, z: 0, height: 1 }, 0).effects, 0).model.toLowerCase(), character]));
   const project = { ...stock, width: DRAWN, height: DRAWN,
     resolveAsset: async (...args: Parameters<typeof stock.resolveAsset>) => {
-      if (args[0] === PORTRAIT_LIGHT) return { requested: PORTRAIT_LIGHT, graphics: args[1] ?? 'classic', attempts: [], selected: { source: 'project' as const, layer: 'base' as const, path: PORTRAIT_LIGHT }, bytes: new TextEncoder().encode(portraitLightMdl()) };
+      const pass = LIGHT_PASSES.find((candidate) => lightPath(candidate) === args[0]);
+      if (pass !== undefined) return { requested: args[0], graphics: args[1] ?? 'classic', attempts: [], selected: { source: 'project' as const, layer: 'base' as const, path: args[0] }, bytes: new TextEncoder().encode(portraitLightMdl(pass)) };
       const body = bodies.get(args[0].toLowerCase());
       const correction = body === undefined ? {} : correctionOf(args[1] === 'definitive' ? 'definitive' : 'classic', body);
       const resolved = await stock.resolveAsset(...args);
@@ -514,6 +536,7 @@ await Effect.runPromise(Effect.gen(function*() {
       return { ...resolved, bytes: withoutGlow(correction.bones === undefined ? posed : withBones(posed, correction.bones)) };
     } };
   const wide0 = { x: 0, z: 120, height: 700 };
+  const upsideDown: string[] = [];
   for (const graphics of graphicsModes) {
     const directory = join(output, graphics);
     const poses = new Map<number, Portrait>();
@@ -543,20 +566,59 @@ await Effect.runPromise(Effect.gen(function*() {
       return VARIANTS.map((_, variant) => portraitScene(required(captured.get(character), 'scene'), character, frame, variant, poses.get(character)));
     });
     const scenes = new Map(fitted.map((scene) => [scene.frame, scene]));
-    const images = yield* renderScenes(project, fitted, join(directory, 'fitted'), graphics);
+    const passes: Record<string, string> = {};
+    let images: readonly { frame: number; image: string }[] = [];
+    for (const pass of LIGHT_PASSES) {
+      images = yield* renderScenes(project, fitted.map((scene) => lit(scene, pass)), join(directory, `fitted-${pass.name}`), graphics);
+      passes[pass.name] = join(directory, `fitted-${pass.name}`);
+    }
     const portraits = join(output, 'fighter-renders', ...(graphics === 'definitive' ? ['de'] : []));
     mkdirSync(portraits, { recursive: true });
-    for (const { frame, image } of images) {
+    const linear = graphics === 'definitive';
+    const gammaOf = (character: number) => (linear ? DEFINITIVE_LIFT : 1) * required(poses.get(character), 'pose').lift;
+    const draw = function*(frame: number, image: string, weights: readonly number[], gamma: number, into: string, kinds?: readonly PortraitKind[]) {
       const character = Math.floor(frame / VARIANTS.length), variant = frame % VARIANTS.length;
       const name = fighterRenderName(character), suffix = at(VARIANTS, variant).suffix;
       const raw = join(directory, `${name}${suffix}.png`);
-      run(['magick', join(directory, 'fitted', image), '(', '+clone', '-fill', 'white', '+opaque', `rgb(${CLEAR.join(',')})`, '-fill', 'black', '-opaque', `rgb(${CLEAR.join(',')})`, ')', '-alpha', 'off', ...(graphics === 'definitive' ? DEFINITIVE_LIFT : []), ...(required(poses.get(character), 'pose').lift === 1 ? [] : ['-gamma', String(required(poses.get(character), 'pose').lift)]), '-compose', 'CopyOpacity', '-composite', '-resize', `${RESOLUTION}x${RESOLUTION}`, `PNG32:${raw}.tmp`]);
+      // Classic lights in display space and Definitive in linear space, so each sums its passes where its shader adds them.
+      const space = linear ? ['-colorspace', 'RGB'] : [];
+      const summed = LIGHT_PASSES.flatMap((pass, index) => ['(', join(required(passes[pass.name], 'pass'), image), '-alpha', 'off', ...space, '-evaluate', 'multiply', String(weights[index] ?? 0), ')', ...(index === 0 ? [] : ['-compose', 'plus', '-composite'])]);
+      const masks = LIGHT_PASSES.flatMap((pass, index) => ['(', join(required(passes[pass.name], 'pass'), image), '-alpha', 'off', '-fill', 'white', '+opaque', `rgb(${CLEAR.join(',')})`, '-fill', 'black', '-opaque', `rgb(${CLEAR.join(',')})`, ')', ...(index === 0 ? [] : ['-compose', 'lighten', '-composite'])]);
+      run(['magick', ...summed, ...(linear ? ['-colorspace', 'sRGB'] : []), ...(gamma === 1 ? [] : ['-gamma', String(gamma)]), '(', ...masks, ')', '-compose', 'CopyOpacity', '-composite', '-resize', `${RESOLUTION}x${RESOLUTION}`, `PNG32:${raw}.tmp`]);
       renameSync(`${raw}.tmp`, raw);
       // The grid keeps the neutral tile; the slot outfits carry every kind (MAP_PORTRAITS).
       const scene = required(scenes.get(frame), 'scene'), body = at(scene.effects, 0);
       const bytes = (yield* Effect.promise(() => project.resolveAsset(body.model, graphics))).bytes;
-      crops(raw, portraits, name, suffix, variant === 0 ? ['Tile'] : PORTRAIT_KINDS, bytes === undefined || required(poses.get(character), 'pose').body ? undefined : headBox(bytes, scene, required(heights.get(character), 'height')), required(poses.get(character), 'pose').zoom);
-      console.log(`${graphics} ${name}${suffix}: ${raw}`);
+      if (!crops(raw, into, name, suffix, kinds ?? (variant === 0 ? ['Tile'] : PORTRAIT_KINDS), bytes === undefined || required(poses.get(character), 'pose').body ? undefined : headBox(bytes, scene, required(heights.get(character), 'height')), required(poses.get(character), 'pose').zoom)) upsideDown.push(`${graphics} ${name}${suffix}`);
+      return raw;
+    };
+    // Each pass's P1 bust is drawn alone; every lighting variant, exposed to the
+    // target luma, is measured on their sum, and the one lighting most of the bust lights every outfit.
+    const lighting = new Map<number, readonly number[]>();
+    for (const { frame, image } of images) {
+      if (at(VARIANTS, frame % VARIANTS.length).suffix !== 'P1') continue;
+      const character = Math.floor(frame / VARIANTS.length), name = fighterRenderName(character);
+      const busts: Uint8Array[] = [];
+      for (const [index, pass] of LIGHT_PASSES.entries()) {
+        const into = join(directory, `pass-${pass.name}`);
+        mkdirSync(into, { recursive: true });
+        yield* draw(frame, image, LIGHT_PASSES.map((_, other) => other === index ? 1 : 0), 1, into, ['Bust']);
+        busts.push(bustPixels(join(into, `FighterBust${name}P1.tga`)));
+      }
+      const lightAt = (weights: readonly number[], scale: number) => lightOf(combine(busts, weights.map((weight) => weight * scale), linear, gammaOf(character)));
+      const options = LIGHT_VARIANTS.map((light) => {
+        const weights = LIGHT_PASSES.map((pass) => light.weights[pass.name]);
+        const scale = exposureFor((value) => lightAt(weights, value).mean);
+        return { light, weights: weights.map((weight) => weight * scale), scale, measured: lightAt(weights, scale) };
+      });
+      const chosen = required([...options].sort((a, b) => b.measured.lit - a.measured.lit)[0], 'light');
+      console.log(`${graphics} ${name} light: ${options.map((option) => `${option.light.name} x${option.scale.toFixed(2)} mean ${option.measured.mean.toFixed(1)} lit ${option.measured.lit.toFixed(2)}`).join(', ')}; chose ${chosen.light.name}`);
+      lighting.set(character, chosen.weights);
+    }
+    for (const { frame, image } of images) {
+      const character = Math.floor(frame / VARIANTS.length);
+      console.log(`${graphics}: ${yield* draw(frame, image, required(lighting.get(character), 'lighting'), gammaOf(character), portraits)}`);
     }
   }
+  if (upsideDown.length > 0) { console.log(`FAIL head below the body's middle: ${[...new Set(upsideDown)].join(', ')}`); process.exitCode = 1; }
 }));

@@ -62,7 +62,7 @@ import { classicRouteSummary, classicTierSetting } from "../classic/classicText"
 import { loreBattle, loreBattleSetting, loreBattleSummary } from "../classic/loreBattles";
 import { loreClears } from "../classic/loreClears";
 import { Character, ItemKind, itemBit } from "../sim/codes";
-import { TILE_PORTRAIT_SLOT, tilePortrait } from "./portraitFrames";
+import { TILE_PORTRAIT_SLOT, cardPortrait, tilePortrait } from "./portraitFrames";
 import { slotColor } from "./slotColors";
 import { type TutorialButton, type TutorialMenuFrames, createTutorialMenu, markTutorialSeen, showTutorialLesson, tutorialSeen } from "./tutorialMenu";
 import { ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
@@ -762,6 +762,9 @@ export class SelectionPanel {
         BlzFrameSetText(frames.name, nameText(choice));
       }
       const computer = active && !human;
+      const preview = cardPortrait(computer);
+      placeTopLeft(frames.portrait, cardX(slot) + (f32(0.16) - preview.size) / 2, preview.top);
+      BlzFrameSetSize(frames.portrait, preview.size, preview.size);
       BlzFrameSetVisible(frames.summary, computer);
       BlzFrameSetVisible(frames.settings, computer);
       if (computer) {
