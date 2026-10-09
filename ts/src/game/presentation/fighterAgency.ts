@@ -21,6 +21,9 @@ export type FighterAgency = "none" | "di" | "act";
  * rules for the button buffer and tech window. It runs no attacks, opponent
  * plan or alternative input replays, and never advances the live match.
  */
+/** A marker may show a forecast at most this many frames old, while its fighter stays in the same hit. */
+export const MAX_REUSE_AGE = 3;
+
 /** Forecast frames between clearance checks while a tumble is still near something. */
 const CLEARANCE_RECHECK = 3;
 
@@ -46,10 +49,20 @@ export class FighterAgencyForecast {
   private readonly throwWorld = createRoster(3, [this.holder, this.thrown]);
   private readonly throwInputs = [neutralControls(), neutralControls()];
 
+  // The last forecast(): its frame, the hit it ran on and whether a press counted. Absent on a reloaded instance.
+  private forecastFrame?: number;
+  private forecastHit?: number;
+  private forecastButtons?: boolean;
+
   /** `bounded`: stop a forecast once the tumble surely touches nothing for the rest of the window (agencyClearance.ts); off, every frame is simulated. */
   constructor(private readonly bounded = true) {}
 
   classify(world: Readonly<Roster>, slot: number, stage: number, frame: number, bufferFrames = ATTACK_BUFFER_FRAMES): FighterAgency {
+    return this.immediate(world, slot, stage, frame) ?? this.forecast(world, slot, stage, frame, bufferFrames);
+  }
+
+  /** The answer current state alone gives, or undefined when it takes forecast(). */
+  immediate(world: Readonly<Roster>, slot: number, stage: number, frame: number): FighterAgency | undefined {
     const f = fighterAt(world, slot);
     if (f.status.out) return "act";
     if (f.status.frozenFrames > 1) return "none";
@@ -70,7 +83,30 @@ export class FighterAgencyForecast {
     const controlled = f.launch.hitlag > 0 || f.launch.hitstun > 0 || f.status.frozenFrames > 0
       || f.down.state !== DownState.none || f.shield.breakState !== ShieldBreak.none || f.shield.stun > 0;
     if (!controlled) return "act";
+    return undefined;
+  }
 
+  /**
+   * How many frames ago this forecast last ran on the hit `slot` is still in,
+   * so reused() may stand for forecast(); undefined after a new hit.
+   */
+  reuseAge(world: Readonly<Roster>, slot: number, frame: number): number | undefined {
+    const f = fighterAt(world, slot);
+    const last = this.forecastFrame;
+    if (last === undefined || this.forecastHit !== f.visuals.hit || this.fighter.visuals.hit !== f.visuals.hit || frame < last || frame - last > MAX_REUSE_AGE) return undefined;
+    return frame - last;
+  }
+
+  /** The last forecast's answer with the current hitlag's DI. */
+  reused(world: Readonly<Roster>, slot: number): FighterAgency {
+    const f = fighterAt(world, slot);
+    if (this.forecastButtons === true) return "act";
+    return f.launch.hitlag > 0 && f.launch.diPending ? "di" : "none";
+  }
+
+  /** The motion forecast for a controlled fighter, after immediate() gave no answer. */
+  forecast(world: Readonly<Roster>, slot: number, stage: number, frame: number, bufferFrames = ATTACK_BUFFER_FRAMES): FighterAgency {
+    const f = fighterAt(world, slot);
     const freshHit = this.fighter.visuals.hit !== f.visuals.hit;
     copyFighterState(this.fighter, f, world.mask);
     this.fighter.grab.owner = undefined;
@@ -120,6 +156,9 @@ export class FighterAgencyForecast {
       observedActions.legal = legal;
       observedActions.started = started;
     }
+    this.forecastFrame = frame;
+    this.forecastHit = f.visuals.hit;
+    this.forecastButtons = buttons;
     if (buttons) return "act";
     return f.launch.hitlag > 0 && f.launch.diPending ? "di" : "none";
   }

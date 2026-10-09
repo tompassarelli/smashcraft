@@ -7,7 +7,9 @@ import { stageEdgeLight, STAGE_EDGE_LIGHT_MODEL } from "../../game/presentation/
 import { f32 } from "wisp/src/sim/f32";
 import { Character } from "../../game/sim/codes";
 import { at } from "wisp/src/runtime/lookup";
-import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../../game/input/participants";
+import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../../game/input/participants";
+import type { FighterAgency } from "../../game/presentation/fighterAgency";
+import type { FrameControls } from "../../game/match/controls";
 import type { PacingAndPresentation } from "../../game/match/pacingAndPresentation";
 import { type MatchState, Phase, remainingSeconds, stageClock, timedMatch } from "../../game/match/rules";
 import { ARENA_CAMERA, FLOOR_HEIGHT, cameraFieldOfView, cameraPoint, extremeCamera, localCamera } from "../../game/presentation/arenaCamera";
@@ -36,7 +38,7 @@ import { CANNON_Z, SEA_SURFACE_Z, cannonAim, cannonOn, cannonX, hasTide, hasWind
 import { localParticipantSlot, traceParticipant } from "./diagnostics";
 import { placeFighterBody, renderDizzy } from "./fighterBody";
 import { type ShellState, type StatusFrames, activeRollback, localSlot, playsOnKeyboard } from "./state";
-import { pauseEffects, views } from "./ui";
+import { type UiObjects, pauseEffects, views } from "./ui";
 import { loreClears } from "../../game/classic/loreClears";
 import { drawStageScenery } from "./stageScenery";
 import { probeCamera, probeWaiting } from "./responseProbe";
@@ -319,6 +321,40 @@ function presentedMatch(s: ShellState): PresentedMatch {
   return { game: s.game, world: s.world, runtime: s.runtime, playing: confirmedPlaying };
 }
 
+// Preallocated: each live fighter's marker, written by markAgency every callback before it is drawn.
+const agencyMarks: Slots<FighterAgency> = ["act", "act", "act", "act"];
+
+/**
+ * Each live fighter's marker. A motion forecast costs up to a few fighter
+ * steps, so a callback runs at most one for fighters still in the hit their
+ * last forecast covered, the stalest; the others show that forecast, at most
+ * MAX_REUSE_AGE frames old. A new hit or an older forecast always runs (#168).
+ */
+function markAgency(ui: UiObjects, world: Readonly<Roster>, stage: number, matchFrame: number, controls: Readonly<FrameControls>): void {
+  let stalest = -1;
+  let stalestAge = -1;
+  for (const slot of PARTICIPANT_SLOTS) {
+    const forecast = ui.fighters[slot]?.agency.forecast;
+    if (forecast === undefined || !isActive(world, slot)) continue;
+    const immediate = forecast.immediate(world, slot, stage, matchFrame);
+    if (immediate !== undefined) {
+      agencyMarks[slot] = immediate;
+      continue;
+    }
+    const age = forecast.reuseAge(world, slot, matchFrame);
+    if (age === undefined) agencyMarks[slot] = forecast.forecast(world, slot, stage, matchFrame, controls.commands[slot].graceFrames);
+    else {
+      agencyMarks[slot] = forecast.reused(world, slot);
+      if (age > stalestAge) {
+        stalest = slot;
+        stalestAge = age;
+      }
+    }
+  }
+  const forecast = stalest < 0 ? undefined : at(ui.fighters, stalest)?.agency.forecast;
+  if (forecast !== undefined && stalestAge > 0) agencyMarks[stalest] = forecast.forecast(world, stalest, stage, matchFrame, at(controls.commands, stalest).graceFrames);
+}
+
 /** Runs once per callback, after confirmed catch-up and any replay. */
 export function renderPersistentPresentation(s: ShellState): void {
   if (resumePresentationHeld(s)) return;
@@ -374,6 +410,7 @@ export function renderPersistentPresentation(s: ShellState): void {
     BlzSetSpecialEffectTimeScale(crest, 0.0);
   }
   const ui = views(s);
+  if (playing) markAgency(ui, world, stage, matchFrame, s.controls);
   ui.classic?.present(game);
   ui.combat.present(runtime.impacts, runtime.simulationFrame, s.runtime.impacts, playing);
   for (const slot of PARTICIPANT_SLOTS) {
@@ -385,10 +422,7 @@ export function renderPersistentPresentation(s: ShellState): void {
     }
     const live = playing ? fighter : undefined;
     renderers?.flash.present(ui.match.posing === slot ? undefined : live, runtime.poses[slot], stage, runtime.simulationFrame, !s.stockLighting);
-    if (renderers !== undefined) {
-      const agency = live === undefined ? "act" : renderers.agency.forecast.classify(world, slot, stage, matchFrame, s.controls.commands[slot].graceFrames);
-      renderers.agency.present(live, agency);
-    }
+    if (renderers !== undefined) renderers.agency.present(live, live === undefined ? "act" : agencyMarks[slot]);
     ui.special.presentStatic(runtime.specials, live, slot);
     ui.special.presentSummons(runtime.summons, live, slot);
     if (live !== undefined) ui.frost.present(live, slot);
