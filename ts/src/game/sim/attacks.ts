@@ -45,6 +45,11 @@ export function meleeHitIntersectsShield(attacker: Fighter, target: Fighter, reg
 }
 
 
+function meleeStrikeBlockedByShield(attacker: Fighter, target: Fighter, region: Readonly<HitRegion>): boolean {
+  return meleeHitIntersectsShield(attacker, target, region) || (target.shield.raised && target.shield.energy > 0.0 && strikeHurtContact(strikeCapsule, target) === HurtContact.hit);
+}
+
+
 function alreadyHitRegion(attackerSlot: number, attacker: Fighter, target: Fighter, window: number): boolean {
   for (const entry of target.hits.entries) {
     if (entry.attacker === attackerSlot && entry.attackSerial === attacker.attack.serial && entry.window >= window) return true;
@@ -285,7 +290,7 @@ export function resolveAttacks(world: Roster): void {
       if (at(spent, source * PARTICIPANT_CAPACITY + target)) continue;
       attackCapsule(strikeCapsule, style, contact);
       const contactZ = f32(f.motion.z + f32(f32(strikeCapsule.z1 + strikeCapsule.z2) * 0.5));
-      applyAttackHit(world, source, target, style, at(facings, source), contact.effect, true, meleeHitIntersectsShield(f, victim, contact), undefined, contactZ);
+      applyAttackHit(world, source, target, style, at(facings, source), contact.effect, true, meleeStrikeBlockedByShield(f, victim, contact), undefined, contactZ);
     }
   }
   if (ownsBatch) finishDamageContacts(world);
