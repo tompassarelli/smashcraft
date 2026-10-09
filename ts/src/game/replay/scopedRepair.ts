@@ -14,10 +14,15 @@ import { countsOffscreen } from "../sim/offscreenDamage";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { cannonOn, hasTide } from "../sim/stageHazards";
 import { firstMeterDropsDifference } from "../match/meterDrops";
-import { LAST_ATTACK_STYLE } from "../sim/codes";
+import { AttackStyle, LAST_ATTACK_STYLE } from "../sim/codes";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { authoredTuning } from "../sim/tuning";
-import type { FighterMoves } from "../sim/heroMoves";
+import type { FighterMoves, StrikeCapsule } from "../sim/heroMoves";
+import { attackCapsule, emptyCapsule, hurtCapsule } from "../physics/contactGeometry";
+import { type HitRegion, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../sim/hitRegions";
+import { type HurtPart, type HurtPose, shippedHurtboxes } from "../sim/hurtboxes";
+import type { AuthoredSpecial } from "../sim/heroSpecials";
+import { SMASH_MAX_CHARGE_FRAMES, attackStartupFrames, characterAttackActiveFrames } from "../sim/moves";
 import { felLungeStep } from "../sim/moves";
 import { EYE_BLAST_FORM, EYE_BLAST_REACH } from "../sim/specials";
 
@@ -66,18 +71,110 @@ function authoredStartupStep(fighter: Readonly<Fighter>): number {
   return f32(f32(at(positions, frame + 1) - at(positions, frame)) * fighter.facing);
 }
 
+interface Extent { x: number; z: number }
+
+const reachCapsule = emptyCapsule();
+const reachRegion = emptyHitRegion();
+
+function widen(extent: Extent, minX: number, maxX: number, minZ: number, maxZ: number): void {
+  extent.x = Math.max(extent.x, Math.abs(minX), Math.abs(maxX));
+  extent.z = Math.max(extent.z, Math.abs(minZ), Math.abs(maxZ));
+}
+
+function widenCapsule(extent: Extent, c: Readonly<StrikeCapsule>): void {
+  widen(extent, f32(Math.min(c.x1, c.x2) - c.radius), f32(Math.max(c.x1, c.x2) + c.radius), f32(Math.min(c.z1, c.z2) - c.radius), f32(Math.max(c.z1, c.z2) + c.radius));
+}
+
+function widenRegion(extent: Extent, style: number | undefined, region: Readonly<HitRegion>): void {
+  widen(extent, region.minX, region.maxX, region.minZ, region.maxZ);
+  widenCapsule(extent, attackCapsule(reachCapsule, style, region));
+}
+
+function widenSpecial(extent: Extent, special: Readonly<AuthoredSpecial> | undefined): void {
+  if (special === undefined) return;
+  for (const region of special.regions ?? []) widenRegion(extent, undefined, region.hit);
+  if (special.commandGrab !== undefined) widenCapsule(extent, special.commandGrab.strike);
+  widenSpecial(extent, special.ex);
+  for (const followUp of special.followUps ?? []) widenSpecial(extent, followUp.special);
+}
+
+function widenHurt(extent: Extent, parts: readonly Readonly<HurtPart>[] | undefined): void {
+  for (const part of parts ?? []) widenCapsule(extent, part);
+}
+
+function widenHurtPoses(extent: Extent, poses: readonly HurtPose[] | undefined): void {
+  for (const pose of poses ?? []) widenHurt(extent, pose.parts);
+}
+
+/** The roster's authored reach: widest strike, largest hurt body and both fighters' fastest travel, on each axis. */
+function rosterReach(): Extent {
+  const strike = { x: 0.0, z: 0.0 };
+  const body = { x: 0.0, z: 0.0 };
+  let travel = 0.0;
+  for (const character of SELECTABLE_CHARACTERS) {
+    const tuning = authoredTuning(character);
+    const { moves, specials, physics } = tuning;
+    const charges = [0, moves?.smashMaxChargeFrames ?? SMASH_MAX_CHARGE_FRAMES];
+    for (const style of Object.values(AttackStyle)) {
+      const authored = style === AttackStyle.grab ? undefined : moves?.normals[style];
+      if (authored !== undefined) {
+        for (const region of authored.regions) widenRegion(strike, style, region.hit);
+        continue;
+      }
+      const last = attackStartupFrames(style, moves) + characterAttackActiveFrames(character, style, moves);
+      for (let index = 0; index < authoredHitRegionCount(style, moves); index++) {
+        for (let frame = 0; frame <= last; frame++) {
+          for (const charge of charges) {
+            const region = authoredHitRegion(reachRegion, character, style, frame, charge, index, moves);
+            if (region.window > 0) widenRegion(strike, style, region);
+          }
+        }
+      }
+    }
+    if (specials !== undefined) {
+      for (const kit of [specials.neutral, specials.side, specials.up, specials.down]) {
+        widenSpecial(strike, kit.ground);
+        widenSpecial(strike, kit.air);
+        widenSpecial(strike, kit.recall);
+        widenSpecial(strike, kit.marked?.special);
+        widenHurtPoses(body, kit.ground.hurt);
+        widenHurtPoses(body, kit.air?.hurt);
+        widenHurtPoses(body, kit.recall?.hurt);
+        widenHurtPoses(body, kit.marked?.special.hurt);
+      }
+    }
+    const hurtboxes = moves?.hurtboxes ?? shippedHurtboxes(character, moves);
+    widenCapsule(body, hurtCapsule(character));
+    widenHurt(body, hurtboxes.stand);
+    widenHurt(body, hurtboxes.crouch);
+    for (const style of Object.values(AttackStyle)) widenHurtPoses(body, hurtboxes.attacks[style]);
+    travel = Math.max(travel, physics.terminalSpeed, physics.fastFallSpeed, physics.airSpeed, physics.airCap, physics.dashSpeed, physics.runSpeed,
+      physics.walkSpeed, physics.fullJumpSpeed, physics.shortJumpSpeed, physics.aerialJumpSpeed, physics.jumpHorizontalCap,
+      physics.aerialJumpHorizontalSpeed, physics.shieldBreakSpeed, physics.groundSpeedCap);
+  }
+  const both = f32(2.0 * travel);
+  return { x: f32(f32(strike.x + body.x) + both), z: f32(f32(strike.z + body.z) + both) };
+}
+
 /**
- * Farther apart than this on either axis, a fighter's strikes, specials,
- * grabs and summons can't reach another this frame, except Eye Blast's beam
+ * Farther apart than this on an axis, a fighter's strikes, specials, grabs
+ * and summons can't reach another this frame, except Eye Blast's beam
  * (`strikeReach`). A special that moves its caster next to another fighter is
  * caught by the same test on the states after the frame.
  */
-export const SCOPE_REACH = 300.0;
+export const SCOPE_REACH: Readonly<Extent> = rosterReach();
 /** Two fighters doing nothing that strikes still push each other within this. */
 const SCOPE_BODY = 150.0;
 
-const apart = (ax: number, az: number, bx: number, bz: number, distance: number): boolean =>
-  Math.abs(f32(ax - bx)) >= distance || Math.abs(f32(az - bz)) >= distance;
+const BODY_EXTENT: Readonly<Extent> = { x: SCOPE_BODY, z: SCOPE_BODY };
+
+const EYE_BLAST_EXTENT: Readonly<Extent> = { x: Math.max(EYE_BLAST_REACH, SCOPE_REACH.x), z: Math.max(EYE_BLAST_REACH, SCOPE_REACH.z) };
+
+const apart = (ax: number, az: number, bx: number, bz: number, distance: Readonly<Extent>): boolean =>
+  Math.abs(f32(ax - bx)) >= distance.x || Math.abs(f32(az - bz)) >= distance.z;
+
+const apartPair = (ax: number, az: number, bx: number, bz: number, a: Readonly<Extent>, b: Readonly<Extent>): boolean =>
+  Math.abs(f32(ax - bx)) >= Math.max(a.x, b.x) || Math.abs(f32(az - bz)) >= Math.max(a.z, b.z);
 
 /** Strikes, casts, holds or is held, hangs on a ledge or rides a cannon: it may act on a fighter near it. */
 function reaching(f: Readonly<Fighter>): boolean {
@@ -86,9 +183,9 @@ function reaching(f: Readonly<Fighter>): boolean {
 }
 
 /** How far `f` may act on another fighter this frame: Eye Blast's whole beam, any other reaching action, or a body push. */
-function strikeReach(f: Readonly<Fighter>): number {
-  if (f.special.action === SpecialAction.demonHunterManaBurn && f.special.form === EYE_BLAST_FORM) return EYE_BLAST_REACH;
-  return reaching(f) ? SCOPE_REACH : SCOPE_BODY;
+function strikeReach(f: Readonly<Fighter>): Readonly<Extent> {
+  if (f.special.action === SpecialAction.demonHunterManaBurn && f.special.form === EYE_BLAST_FORM) return EYE_BLAST_EXTENT;
+  return reaching(f) ? SCOPE_REACH : BODY_EXTENT;
 }
 
 /** Every live projectile, summon and placed object of `owner` is beyond reach of `other`'s body. */
@@ -105,7 +202,7 @@ function objectsApart(owner: Readonly<Fighter>, other: Readonly<Fighter>): boole
 /** Neither fighter can touch the other this frame: far apart, or close with neither doing anything that reaches. */
 export function fightersApart(a: Readonly<Fighter>, b: Readonly<Fighter>): boolean {
   if (!objectsApart(a, b) || !objectsApart(b, a)) return false;
-  return apart(a.motion.x, a.motion.z, b.motion.x, b.motion.z, Math.max(strikeReach(a), strikeReach(b)));
+  return apartPair(a.motion.x, a.motion.z, b.motion.x, b.motion.z, strikeReach(a), strikeReach(b));
 }
 
 /** `slot` is apart from every other active fighter of `others`. */
@@ -124,7 +221,7 @@ export function authoredMotionApartFromOthers(slot: number, fighter: Readonly<Fi
   for (const other of PARTICIPANT_SLOTS) {
     if (other === slot || !isActive(others, other)) continue;
     const target = fighterAt(others, other);
-    if (!apart(x, fighter.motion.z, target.motion.x, target.motion.z, Math.max(strikeReach(fighter), strikeReach(target)))) return false;
+    if (!apartPair(x, fighter.motion.z, target.motion.x, target.motion.z, strikeReach(fighter), strikeReach(target))) return false;
   }
   return true;
 }

@@ -13,7 +13,11 @@ import { ReplayCorrections, ReplayHistory } from "./history";
 import { REPLAY_HISTORY_CAPACITY, REPLAY_MAX_CORRECTION_FRAMES } from "./limits";
 import { copyReplayState, createReplaySnapshot } from "./snapshot";
 import { type TapeWorld, captureTape, createTapeWorld, executeTapeRow, runRecordedTape } from "./tapeWorld";
-import { Character } from "../sim/codes";
+import { ALL_ITEMS_MASK, Character } from "../sim/codes";
+import { type InputRow, copyInput, emptyInput, inputRow, predictInto } from "../input/inputRow";
+import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
+import { matchSpawnX } from "../match/step";
+import { scheduleMatchItems } from "../match/centreItem";
 import { createFighter } from "../sim/fighter";
 import { sweep } from "../../runtime/sweep";
 
@@ -543,6 +547,119 @@ test("a fighter-scoped repair of a mispredicted input ends on the same state as 
   assertEquals(blast.difference, undefined);
   assertTrue(scopedAgainstWhole("force", 300.0, 2).difference !== undefined);
 });
+
+const seededHash = (a: number, b: number): number => floorMod(floorMod(a * 7919 + b * 104729 + 12345, 2147483647) * 48271, 2147483647);
+
+function beatRow(fields: Parameters<typeof inputRow>[0]): InputRow {
+  const row = inputRow(fields);
+  assertTrue(row !== undefined);
+  return row ?? emptyInput();
+}
+
+/** Slot `slot`'s seeded beat: runs, taps of attack, jump, special or shield, walks and rests in 70-frame segments. */
+function seededBeat(slot: number, frame: number, seed: number): InputRow {
+  const right = bit(Action.moveRight) | bit(Action.smashRight);
+  const left = bit(Action.moveLeft) | bit(Action.smashLeft);
+  const segment = floorDiv(frame + slot * 17, 70);
+  const at = floorMod(frame + slot * 17, 70);
+  const pick = floorMod(seededHash(segment + seed * 1000, slot), 8);
+  const hold = 4 + floorMod(seededHash(segment, slot + seed), 60);
+  const bits = floorMod(segment, 2) === 0 ? right : left;
+  if (pick <= 3) {
+    if (at < hold) return beatRow({ held: bits, pressed: at === 0 ? bits : 0, axisX: bits === right ? 127 : -127 });
+    return beatRow({ released: at === hold ? bits : 0 });
+  }
+  if (pick <= 5 && at === 0) {
+    const tap = bit([Action.attack, Action.jump, Action.special, Action.leftTrigger][floorMod(segment, 4)] ?? Action.attack);
+    return beatRow({ pressed: tap, released: tap });
+  }
+  if (pick === 6) return beatRow({ held: bits, pressed: at === 0 ? bits : 0, axisX: bits === right ? 60 : -60 });
+  return emptyInput();
+}
+
+/**
+ * Two humans and two computers with items on stage 6; slot 1's rows arrive
+ * 2 to 8 frames late, in order, so the history repairs (scoping where it
+ * may) as each one lands. Returns the first difference of a confirmed state
+ * from the same match played straight on the actual rows.
+ */
+function confirmedAgainstStraight(seed: number, frames: number): string | undefined {
+  const world = (): TapeWorld => {
+    const tape = createTapeWorld({ stocks: 3, humans: 2 });
+    const fighters = [24, 25, 0, 1].map((index, slot) => createFighter(SELECTABLE_CHARACTERS[index] ?? Character.rifleman, matchSpawnX(slot), slot % 2 === 0 ? 1 : -1));
+    for (const fighter of fighters) fighter.status.stocks = 3;
+    const match = tape.live.match;
+    match.stageChoice = 6;
+    match.computerMask = 12;
+    match.matchSeed = seed;
+    match.startHold = 180;
+    match.items.on = true;
+    match.items.enabledMask = ALL_ITEMS_MASK;
+    scheduleMatchItems(match);
+    const live = { ...tape.live, world: createRoster(15, fighters) };
+    for (const slot of [0, 1, 2, 3] as const) live.controls.commands[slot] = attackBuffer(4);
+    return { live, snapshot: tape.snapshot };
+  };
+  const rolled = world();
+  const straight = world();
+  const history = new ReplayHistory();
+  const corrections = new ReplayCorrections();
+  assertTrue(history.beginEpoch(1, 1, REPLAY_MAX_CORRECTION_FRAMES));
+  assertTrue(corrections.beginEpoch(1));
+  const actual = participantInputs();
+  const predicted = participantInputs();
+  const actualAt = (frame: number) => {
+    for (const slot of [0, 1] as const) copyInput(actual[slot], seededBeat(slot, frame, seed));
+    return actual;
+  };
+  const arrival = [0];
+  for (let frame = 1; frame <= frames; frame++) arrival.push(Math.max(arrival[frame - 1] ?? 0, frame + 2 + floorMod(seededHash(frame, seed), 7)));
+  const row = createMatchFrameInput();
+  const confirmed = createReplaySnapshot();
+  let known = 0;
+  let settled = 0;
+  for (let frame = 1; frame <= frames; frame++) {
+    copyInput(predicted[0], actualAt(frame)[0]);
+    predictInto(predicted[1], known > 0 ? seededBeat(1, known, seed) : emptyInput());
+    resetMatchFrameInput(row);
+    assertTrue(captureNetworkFrame(row, frame, predicted, rolled.live.world, 3));
+    assertTrue(history.saveSpeculative(1, row, rolled.live));
+    execute(rolled, row);
+    while (known < frames && (arrival[known + 1] ?? frames + 1) <= frame) {
+      known++;
+      resetMatchFrameInput(row);
+      assertTrue(captureNetworkFrame(row, known, actualAt(known), rolled.live.world, 3));
+      corrections.clear();
+      assertTrue(corrections.add(row));
+      assertTrue(history.amend(1, corrections, rolled.live) !== "rejected");
+      assertTrue(history.repair(1, 4, rolled.live, 4) !== "rejected");
+    }
+    for (; settled < known; settled++) {
+      const next = settled + 1;
+      const input = history.inputRow(1, next);
+      const after = input === undefined ? undefined : history.stateAfter(1, next, input);
+      if (after === undefined) break;
+      copyReplayState(confirmed, after);
+      resetMatchFrameInput(row);
+      assertTrue(captureNetworkFrame(row, next, actualAt(next), straight.live.world, 3));
+      execute(straight, row);
+      const difference = firstStateDifference(captureTape(straight), confirmed);
+      if (difference !== undefined) return `seed ${seed}: confirmed frame ${next} differs: ${difference}`;
+    }
+  }
+  return undefined;
+}
+
+test("every confirmed state of a seeded match with late rows equals its straight run [invariant]", () => {
+  assertEquals(confirmedAgainstStraight(76, 120), undefined);
+});
+
+// At the old 300 reach (#168), seeds 76 and 105 diverged on an earlier main and seed 107 on this one: a strike outran the scoped repair's eligibility distance.
+for (const [seed, frames] of [[107, 760], [76, 1500], [105, 1500]] as const) {
+  sweep(`every confirmed state of seed ${seed}'s match with late rows, scoped repairs among them, equals the straight run [invariant]`, () => {
+    assertEquals(confirmedAgainstStraight(seed, frames), undefined);
+  });
+}
 
 /**
  * Two humans far apart; slot 0's Illidan crouches for 3 frames every 16 and
