@@ -806,6 +806,37 @@ Blackrock at the same build, before the right-crag placement correction:
 | Definitive / near / 1 | 4.8 / 5.9 | 5.8 / 6.0 | yes |
 | Definitive / far / 1 | 5.6 / 6.4 | 7.9 / 9.3 | yes |
 
+Sky Deck's control at the same build:
+
+| Mode / view / client | Stock \|ΔL\| / ΔE00 | Stage \|ΔL\| / ΔE00 | Neither falls at reported precision |
+| --- | --- | --- | --- |
+| Classic / near / 0 | 4.5 / 5.9 | 4.8 / 5.5 | no |
+| Classic / far / 0 | 3.2 / 3.6 | 4.2 / 3.5 | no |
+| Classic / near / 1 | 3.7 / 6.0 | 4.1 / 5.9 | no |
+| Classic / far / 1 | 1.6 / 2.8 | 3.1 / 2.7 | no |
+| Definitive / near / 0 | 3.2 / 5.0 | 4.4 / 4.9 | no |
+| Definitive / far / 0 | 3.7 / 2.8 | 4.5 / 3.2 | yes |
+| Definitive / near / 1 | 3.8 / 4.7 | 4.9 / 4.7 | yes |
+| Definitive / far / 1 | 4.2 / 2.8 | 4.2 / 2.8 | yes |
+
+Frozen Throne at the same build:
+
+| Mode / view / client | Stock \|ΔL\| / ΔE00 | Stage \|ΔL\| / ΔE00 | Neither falls at reported precision |
+| --- | --- | --- | --- |
+| Classic / near / 0 | 4.6 / 6.1 | 4.7 / 6.0 | no |
+| Classic / far / 0 | 4.5 / 5.2 | 4.8 / 5.3 | yes |
+| Classic / near / 1 | 3.7 / 6.2 | 3.8 / 6.1 | no |
+| Classic / far / 1 | 4.6 / 5.0 | 4.9 / 5.0 | yes |
+| Definitive / near / 0 | 3.7 / 5.3 | 4.5 / 5.3 | yes |
+| Definitive / near / 1 | 4.0 / 5.0 | 4.9 / 5.0 | yes |
+| Definitive / far / 0 | render timed out | 2.9 / 2.2 | not graded |
+| Definitive / far / 1 | render timed out | 4.5 / 3.1 | not graded |
+
+Three concurrent Definitive renders reached Wisp's two-minute render limit.
+Serializing only the failed cases recovered the near stock and stage frames;
+far stock still timed out. Preserve the passed frames and repair that render
+path before grading the far pair.
+
 The shared stage batch keeps the original `170-*` contrast checks and `191-*`
 camera extremes in one hosted game. `192-*-linear|height` retains the same
 paused far view before and after a 3.0 height-fog candidate; its values remain
