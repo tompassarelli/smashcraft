@@ -137,6 +137,50 @@ function withoutGlow(bytes: Uint8Array): Uint8Array {
 
 
 /**
+ * A portrait-only turn of named joints (degrees about x, y, z in the parent's
+ * frame), so a limb clears the face without touching the match's animation.
+ * Patched in place: rewriting the model would re-encode the version-1800 skins.
+ */
+function withBones(bytes: Uint8Array, bones: Readonly<Record<string, readonly [number, number, number]>>): Uint8Array {
+  const out = bytes.slice(), view = new DataView(out.buffer), text = new TextDecoder();
+  const turnOf = ([x, y, z]: readonly [number, number, number]) => {
+    const half = (degrees: number) => degrees * Math.PI / 360;
+    const qx = [Math.sin(half(x)), 0, 0, Math.cos(half(x))], qy = [0, Math.sin(half(y)), 0, Math.cos(half(y))], qz = [0, 0, Math.sin(half(z)), Math.cos(half(z))];
+    return times(qz, times(qy, qx));
+  };
+  const found = new Set<string>();
+  for (let at = 4; at + 8 <= out.length; at += 8 + view.getUint32(at + 4, true)) {
+    const tag = text.decode(out.subarray(at, at + 4));
+    if (tag !== 'BONE' && tag !== 'HELP') continue;
+    for (let node = at + 8; node < at + 8 + view.getUint32(at + 4, true);) {
+      const size = view.getUint32(node, true), name = text.decode(out.subarray(node + 4, node + 84)).replace(/\0.*$/s, '');
+      const turn = bones[name];
+      if (turn !== undefined) for (let track = node + 96; track < node + size;) {
+        const count = view.getUint32(track + 4, true), interpolation = view.getUint32(track + 8, true);
+        const width = text.decode(out.subarray(track, track + 4)) === 'KGRT' ? 4 : 3, stride = 4 + 4 * width * (interpolation > 1 ? 3 : 1);
+        if (width === 4) {
+          found.add(name);
+          const r = turnOf(turn);
+          for (let key = 0; key < count; key++) for (let part = 0; part < (interpolation > 1 ? 3 : 1); part++) {
+            const q = track + 16 + key * stride + 4 + part * 16, value = [0, 1, 2, 3].map((i) => view.getFloat32(q + 4 * i, true));
+            times(r, value).forEach((v, i) => view.setFloat32(q + 4 * i, v, true));
+          }
+        }
+        track += 16 + count * stride;
+      }
+      node += size + (tag === 'BONE' ? 8 : 0);
+    }
+  }
+  for (const name of Object.keys(bones)) if (!found.has(name)) throw new Error(`no rotation track on joint ${name}`);
+  return out;
+}
+const times = (a: readonly number[], b: readonly number[]) => {
+  const ax = item(a, 0), ay = item(a, 1), az = item(a, 2), aw = item(a, 3);
+  const bx = item(b, 0), by = item(b, 1), bz = item(b, 2), bw = item(b, 3);
+  return [aw * bx + ax * bw + ay * bz - az * by, aw * by - ax * bz + ay * bw + az * bx, aw * bz + ax * by - ay * bx + az * bw, aw * bw - ax * bx - ay * by - az * bz];
+};
+
+/**
  * Classic Murloc and Kobold (the 3.0 stock models their bodies keep) hang their
  * old mesh bones, every pivot collapsed to one point, under a second Bone_* rig.
  * Posed through that rig, war3-model's evaluator (Wisp's renderer, and the
@@ -171,20 +215,23 @@ function posedAt(model: Model, sequence: number, ms: number) {
 }
 
 /** A portrait's pose: the Stand time it shows and the body's yaw that turns its face to the camera. */
-interface Portrait { readonly elapsed: number; readonly yaw: number; readonly angle: number; readonly zoom: number }
+interface Portrait { readonly elapsed: number; readonly yaw: number; readonly angle: number; readonly zoom: number; readonly lift: number; readonly body: boolean }
 
 /**
  * Per-fighter corrections where the measured pose still hides the face: `turn`
  * (degrees added to the face's yaw), `elapsed` (the Stand time, seconds),
- * `angle` (the camera's angle of attack, degrees; positive looks up from below)
+ * `angle` (the camera's angle of attack, degrees; positive looks down from above)
  * `zoom` (the head crop's magnification) and `level` (pose at the Stand frame
  * whose face is closest to level, the camera raised or lowered to meet what
- * tilt remains).
+ * tilt remains), `lift` (a gamma lift of the portrait's shadows, a fill for a
+ * face in shadow that leaves the match's lighting alone), `body` (turn and
+ * frame by the body, as for heads too small to place a face) and `bones`
+ * (joints turned for the portrait only, withBones).
  */
-interface Correction { readonly turn?: number; readonly elapsed?: number; readonly angle?: number; readonly zoom?: number; readonly level?: boolean }
+interface Correction { readonly turn?: number; readonly elapsed?: number; readonly angle?: number; readonly zoom?: number; readonly level?: boolean; readonly lift?: number; readonly body?: boolean; readonly bones?: Readonly<Record<string, readonly [number, number, number]>> }
 const CORRECTIONS: Readonly<Record<'classic' | 'definitive', Readonly<Record<string, Correction>>>> = {
   classic: {
-    "Anub'arak": { zoom: 0.5 },
+    "Anub'arak": { zoom: 0.6, lift: 2.6, angle: -30 },
   },
   definitive: {
     MountainKing: { level: true, zoom: 1.5 },
@@ -195,8 +242,10 @@ const CORRECTIONS: Readonly<Record<'classic' | 'definitive', Readonly<Record<str
     ShadowHunter: { level: true, zoom: 1.5 },
     "Kael'thasSunstrider": { angle: 15, turn: 30 },
     CairneBloodhoof: { elapsed: 30.5, angle: 20, zoom: 1.5 },
+    Murloc: { body: true, zoom: 0.4, turn: 225, bones: { arm_L0_0_jnt: [60, 0, 0], arm_R0_0_jnt: [-60, 0, 0] } },
   },
 };
+const correctionOf = (graphics: 'classic' | 'definitive', character: number): Correction => CORRECTIONS[graphics][fighterRenderName(character)] ?? {};
 
 type Vector = [number, number, number];
 /** A node matrix's linear part (w 0) or affine map (w 1) applied to v. */
@@ -322,7 +371,7 @@ function portraitPose(bytes: Uint8Array, character: number, animation: string | 
   const tilt = heading.pitch(pose(best)) ?? 0;
   const angle = correction.angle ?? (correction.level === true ? Math.max(-MAX_MEET, Math.min(MAX_MEET, -tilt * 180 / Math.PI)) : ANGLE);
   const azimuth = heading.heading(pose(best));
-  return azimuth === undefined ? undefined : { elapsed: best / 1000, yaw: FACE_AZIMUTH - azimuth + (correction.turn ?? 0) * Math.PI / 180, angle, zoom: correction.zoom ?? 1 };
+  return azimuth === undefined ? undefined : { elapsed: best / 1000, yaw: FACE_AZIMUTH - azimuth + (correction.turn ?? 0) * Math.PI / 180, angle, zoom: correction.zoom ?? 1, lift: correction.lift ?? 1, body: false };
 }
 
 /** A fighter's head in the 1024 px render: the centre and larger side of its projected mesh. */
@@ -451,7 +500,8 @@ await Effect.runPromise(Effect.gen(function*() {
       const body = bodies.get(args[0].toLowerCase());
       if (body === undefined || resolved.bytes === undefined) return resolved;
       const posed = args[1] === 'classic' && CLASSIC_REST_POSE.includes(body) ? restPose(resolved.bytes) : resolved.bytes;
-      return { ...resolved, bytes: withoutGlow(posed) };
+      const bones = correctionOf(args[1] === 'definitive' ? 'definitive' : 'classic', body).bones;
+      return { ...resolved, bytes: withoutGlow(bones === undefined ? posed : withBones(posed, bones)) };
     } };
   const wide0 = { x: 0, z: 120, height: 700 };
   for (const graphics of graphicsModes) {
@@ -460,9 +510,9 @@ await Effect.runPromise(Effect.gen(function*() {
     for (const character of fighters) {
       const body = at(portraitScene(required(captured.get(character), 'scene'), character, wide0, 0).effects, 0);
       const bytes = (yield* Effect.promise(() => project.resolveAsset(body.model, graphics))).bytes;
-      const correction = CORRECTIONS[graphics][fighterRenderName(character)] ?? {};
-      const found = bytes === undefined ? undefined : portraitPose(bytes, character, body.animation, body.animationElapsed, correction);
-      const pose = found ?? { elapsed: correction.elapsed ?? body.animationElapsed, yaw: FACE_AZIMUTH + (correction.turn ?? 0) * Math.PI / 180, angle: correction.angle ?? ANGLE, zoom: correction.zoom ?? 1 };
+      const correction = correctionOf(graphics, character);
+      const found = bytes === undefined || correction.body === true ? undefined : portraitPose(bytes, character, body.animation, body.animationElapsed, correction);
+      const pose = found ?? { elapsed: correction.elapsed ?? body.animationElapsed, yaw: FACE_AZIMUTH + (correction.turn ?? 0) * Math.PI / 180, angle: correction.angle ?? ANGLE, zoom: correction.zoom ?? 1, lift: correction.lift ?? 1, body: correction.body === true };
       poses.set(character, pose);
       const degrees = (angle: number) => (angle * 180 / Math.PI).toFixed(1);
       console.log(`${graphics} ${fighterRenderName(character)}: ${found === undefined ? 'no head geometry, ' : ''}Stand at ${pose.elapsed} s, yaw ${degrees(pose.yaw)}, angle ${pose.angle}, zoom ${pose.zoom}`);
@@ -490,12 +540,12 @@ await Effect.runPromise(Effect.gen(function*() {
       const character = Math.floor(frame / VARIANTS.length), variant = frame % VARIANTS.length;
       const name = fighterRenderName(character), suffix = at(VARIANTS, variant).suffix;
       const raw = join(directory, `${name}${suffix}.png`);
-      run(['magick', join(directory, 'fitted', image), '(', '+clone', '-fill', 'white', '+opaque', `rgb(${CLEAR.join(',')})`, '-fill', 'black', '-opaque', `rgb(${CLEAR.join(',')})`, ')', '-alpha', 'off', ...(graphics === 'definitive' ? DEFINITIVE_LIFT : []), '-compose', 'CopyOpacity', '-composite', '-resize', `${RESOLUTION}x${RESOLUTION}`, `PNG32:${raw}.tmp`]);
+      run(['magick', join(directory, 'fitted', image), '(', '+clone', '-fill', 'white', '+opaque', `rgb(${CLEAR.join(',')})`, '-fill', 'black', '-opaque', `rgb(${CLEAR.join(',')})`, ')', '-alpha', 'off', ...(graphics === 'definitive' ? DEFINITIVE_LIFT : []), ...(required(poses.get(character), 'pose').lift === 1 ? [] : ['-gamma', String(required(poses.get(character), 'pose').lift)]), '-compose', 'CopyOpacity', '-composite', '-resize', `${RESOLUTION}x${RESOLUTION}`, `PNG32:${raw}.tmp`]);
       renameSync(`${raw}.tmp`, raw);
       // The grid keeps the neutral tile; the slot outfits carry every kind (MAP_PORTRAITS).
       const scene = required(scenes.get(frame), 'scene'), body = at(scene.effects, 0);
       const bytes = (yield* Effect.promise(() => project.resolveAsset(body.model, graphics))).bytes;
-      crops(raw, portraits, name, suffix, variant === 0 ? ['Tile'] : PORTRAIT_KINDS, bytes === undefined ? undefined : headBox(bytes, scene, required(heights.get(character), 'height')), required(poses.get(character), 'pose').zoom);
+      crops(raw, portraits, name, suffix, variant === 0 ? ['Tile'] : PORTRAIT_KINDS, bytes === undefined || required(poses.get(character), 'pose').body ? undefined : headBox(bytes, scene, required(heights.get(character), 'height')), required(poses.get(character), 'pose').zoom);
       console.log(`${graphics} ${name}${suffix}: ${raw}`);
     }
   }
