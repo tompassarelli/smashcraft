@@ -151,6 +151,13 @@ function playIdleOpponent(character: Character, cx: number, cz: number, surface:
   return result;
 }
 
+test("Blademaster approaches the raised deck without drifting a stationary drill into reach [repro #345]", () => {
+  const run = playIdleOpponent(Character.blademaster, 450.0, 0.0, 0, -265.0, RAISED_Z, 1);
+  if (run.outOfReach.length > 0) throw new Error(run.outOfReach.join("\n"));
+  assertTrue(run.arrival >= 0 && run.arrival <= ARRIVAL_FRAMES);
+  assertGreaterThan(run.hits, 0);
+});
+
 sweep("computerApproachesAnOpponentOutOfReachInsteadOfAttacking [repro #160]", () => {
   const failures: string[] = [];
   let idleStarts = 0;

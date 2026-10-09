@@ -125,7 +125,7 @@ export function aheadX(f: Readonly<Fighter>, target: Readonly<Fighter>, frames: 
   const observedNow = horizontalAhead(target, observationAge, stage, matchFrame);
   const toward = observedNow < f.motion.x ? -1 : 1;
   // Authored startup travel clears ground velocity when the attack begins.
-  const travel = f.motion.grounded && startupTravel !== undefined ? f32(startupTravel * toward) : travelOver(f, frames);
+  const travel = f.motion.grounded && startupTravel !== undefined ? f32(startupTravel * toward) : travelOver(f, frames, style);
   return f32(f32(horizontalAhead(target, observationAge + frames, stage, matchFrame) - f.motion.x) - travel);
 }
 
@@ -134,8 +134,24 @@ export function aheadX(f: Readonly<Fighter>, target: Readonly<Fighter>, frames: 
  * travel, but on the ground no further than its slide once the attack stops
  * its steering, so a run doesn't carry a slow smash into reach (#160).
  */
-function travelOver(f: Readonly<Fighter>, frames: number): number {
-  if (!f.motion.grounded) return f32(f.motion.deltaX * frames);
+function travelOver(f: Readonly<Fighter>, frames: number, style?: AttackStyle): number {
+  if (!f.motion.grounded) {
+    const fall = style === undefined ? undefined : f.tuning.moves?.normals[style]?.fall;
+    if (fall === undefined) return f32(f.motion.deltaX * frames);
+    let travel = 0.0;
+    let speed = f.motion.deltaX;
+    let elapsed = 0;
+    for (const phase of fall) {
+      if (phase.speedX === undefined || phase.firstFrame >= frames) continue;
+      const before = Math.max(0, phase.firstFrame - elapsed);
+      travel = f32(travel + f32(speed * before));
+      speed = f32(phase.speedX * f.facing);
+      const end = Math.min(frames, phase.lastFrame + 1);
+      travel = f32(travel + f32(speed * (end - elapsed - before)));
+      elapsed = end;
+    }
+    return f32(travel + f32(speed * (frames - elapsed)));
+  }
   // A dash reversal changes velocity before the last frame's travel catches up.
   const straight = f32(f.motion.vx * frames);
   const speed = Math.abs(f.motion.vx);
@@ -442,7 +458,7 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
         const frames = attackStartupFrames(aerial, f.tuning.moves);
         // The input frame also falls: landing by the first strike cancels the aerial.
         if (landsWithin(f, frames + 1, stage, matchFrame)) continue;
-        if (moveReaches(f.character, aerial, target, f32(aheadX(f, target, frames, undefined, observationAge, stage, matchFrame) * f.facing), aheadZ(f, target, frames + 1, stage, matchFrame, observationAge), f.tuning.moves)) options[count++] = aerial;
+        if (moveReaches(f.character, aerial, target, f32(aheadX(f, target, frames, aerial, observationAge, stage, matchFrame) * f.facing), aheadZ(f, target, frames + 1, stage, matchFrame, observationAge), f.tuning.moves)) options[count++] = aerial;
       }
     }
   }
