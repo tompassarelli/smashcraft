@@ -123,8 +123,18 @@ export function quickStageSettings(message: string): QuickStageSettings | undefi
 
 export const QUICK_HERO_COMMAND = "-dev quick hero ";
 
+const QUICK_STOCKS_SUFFIX = " stocks ";
+
+export function quickMatchStocks(message: string): number {
+  const at = message.indexOf(QUICK_STOCKS_SUFFIX);
+  if (at < 0) return 1;
+  const stocks = commandInteger(message.substring(at + QUICK_STOCKS_SUFFIX.length));
+  return stocks !== undefined && stocks >= 1 && stocks <= 9 ? stocks : 1;
+}
+
 export function quickMatchHero(message: string): Character | undefined {
-  return heroAfter(message, QUICK_HERO_COMMAND);
+  const at = message.indexOf(QUICK_STOCKS_SUFFIX);
+  return heroAfter(at < 0 ? message : message.substring(0, at), QUICK_HERO_COMMAND);
 }
 
 export function quickMatchPair(message: string): readonly [Character, Character] | undefined {

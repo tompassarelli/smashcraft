@@ -1,7 +1,7 @@
 import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { Phase, createMatchState, fighterMask, selectCharacter, setParticipants } from "../match/rules";
 import { Character } from "../sim/codes";
-import { QUICK_CPU_STOCKS, prepareQuickCpu, prepareQuickMatch, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickRecoveryHero, quickOffstageHero } from "./devSettings";
+import { QUICK_CPU_STOCKS, prepareQuickCpu, prepareQuickMatch, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchStocks, quickRecoveryHero, quickOffstageHero } from "./devSettings";
 import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 
 test("a quick match readies every present human's default fighter and starts with one stock on the default stage, with a computer opponent when solo [spec docs/native-bot-session.md]", () => {
@@ -38,6 +38,9 @@ test("a hero quick match gives every present human the named fighter [spec AGENT
   assertEquals(quickMatchHero("-dev quick hero ILLIDAN"), Character.demonHunter);
   assertEquals(quickMatchHero("-dev quick hero nobody"), undefined);
   assertEquals(quickMatchHero("-dev quick"), undefined);
+  assertEquals(quickMatchHero("-dev quick hero lich stocks 9"), Character.lich);
+  assertEquals(quickMatchStocks("-dev quick hero lich stocks 9"), 9);
+  assertEquals(quickMatchStocks("-dev quick hero lich"), 1);
   const game = createMatchState();
   setParticipants(game, 0b011, 0b100);
   game.phase = Phase.characterMenu;

@@ -15,7 +15,7 @@ import { Phase, cancelRematchCountdown, characterFor, copyMatchState, firstHuman
 import { ROSTER_MANA } from "../../game/sim/mana";
 import { fighterAt, isActive } from "../../game/sim/roster";
 import { NO_LESSON, tutorialFinished } from "../../game/match/tutorial";
-import { METER_COMMAND, classicDevRequest, loreDevRequest, LORE_WIN_COMMAND, winLoreBattle, DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchPair, quickPromoRequest, prepareQuickPromo, quickStageSettings, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../game/shell/devSettings";
+import { METER_COMMAND, classicDevRequest, loreDevRequest, LORE_WIN_COMMAND, winLoreBattle, DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchStocks, quickMatchPair, quickPromoRequest, prepareQuickPromo, quickStageSettings, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../game/shell/devSettings";
 import { fighterName } from "../../game/sim/heroes/registry";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { endReplaySegment } from "./replays";
@@ -344,7 +344,7 @@ export function applyDeveloperCommand(s: ShellState, actor: number, original: st
     startQuickMatch(s, 0, s.build.scenario, quickPair);
   } else if (quickHero !== undefined) {
     receipt = `dev: quick match ${fighterName(quickHero)}`;
-    startQuickMatch(s, 0, s.build.scenario, quickHero);
+    startQuickMatch(s, 0, s.build.scenario, quickHero, quickMatchStocks(message));
   } else if (message.startsWith("-dev effects ")) {
     const index = S2I(message.slice(13));
     const scenario = HIT_PRESENTATION_CASES[index];
