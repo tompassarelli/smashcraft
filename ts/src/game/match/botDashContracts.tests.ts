@@ -62,23 +62,23 @@ sweep("production turns meet human intervals and run rates over 2000 reversals p
     const runsPerMinute = f32(f32(row.runs * 3600.0) / row.frames);
     check(row.intervals.length >= 2000, `${tier}: ${row.intervals.length} reversals`);
     check(minimum >= 4, `${tier}: minimum ${minimum}`);
-    const intendedMedian = at([8.0, 7.0, 6.0, 5.5, 5.0], CPU_TIERS.indexOf(tier));
+    const intendedMedian = at([8.0, 7.0, 7.0, 7.0, 6.0], CPU_TIERS.indexOf(tier));
     check(Math.abs(median - intendedMedian) <= 0.5, `${tier}: median ${median}, wanted ${intendedMedian} ± 0.5`);
     check(median <= previousMedian, `${tier}: median ${median} above ${previousMedian}`);
     check(runsPerMinute <= previousRuns, `${tier}: run rate ${runsPerMinute} above ${previousRuns}`);
     if (tier === "rookie") assertTrue(runsPerMinute <= 4.0);
     if (tier === "expert") {
-      assertTrue(median >= 4.5 && median <= 5.5);
-      check(runsPerMinute >= 0.699999988079071 && runsPerMinute <= 1.5, `Expert: ${runsPerMinute} unintended runs/minute`);
+      assertTrue(median >= 5.5 && median <= 6.5);
+      check(runsPerMinute >= 0.4000000059604645 && runsPerMinute <= 0.800000011920929, `Expert: ${runsPerMinute} unintended runs/minute`);
     }
     previousMedian = median;
     previousRuns = runsPerMinute;
   }
 });
 
-sweep("Expert technical slips stay at 2–5 percent and include wrong options through production input [spec #356]", () => {
+sweep("Expert frame-tight technical slips stay at 10–15 percent and include wrong options [spec #356]", () => {
   const row = collectTechnicalCalibration("expert");
   check(row.inputs >= 2000, `${row.inputs} technical inputs`);
-  check(row.slips * 100 >= row.inputs * 2 && row.slips * 100 <= row.inputs * 5, `${row.slips}/${row.inputs} slips`);
+  check(row.slips * 100 >= row.inputs * 10 && row.slips * 100 <= row.inputs * 15, `${row.slips}/${row.inputs} slips`);
   assertTrue(row.wrongOptions > 0);
 });

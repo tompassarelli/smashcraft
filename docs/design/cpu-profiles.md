@@ -127,20 +127,21 @@ attack. The slower authored tier delay still applies. Each observed cue draws
 0–2 additional frames from the shared match seed; every client and replay draws
 the same delay. Horizontal reversals are at least four frames apart.
 [#356](https://github.com/tompassarelli/smashcraft/issues/356) draws each turn’s
-interval from the match seed and the last committed turn. The intended medians
-are Rookie 8, Beginner 7, Intermediate 6, Advanced 5.5 and Expert 5 frames;
-lower tiers have wider spreads. Rookie’s intended 10th–90th percentiles are
-5–12 frames; Expert normally takes 4–6 frames. Faster intended turns incur
-more late-turn noise, scaled by `100 − Execute`. Rare overshoots hold long
-enough to enter run. The targets are about 3, 2.5, 2, 1.5 and 1 unintended
-run per minute from Rookie through Expert; Expert’s acceptance range is
-0.7–1.5 and Rookie stays at or below 4. Each turn overshoots with chance 40, 23, 16, 10
-and 8 in 10,000 from Rookie through Expert. Measured 9 Oct: 3.51, 2.43, 2.07,
-1.17 and 0.90 runs per minute, medians 8, 7, 6, 6 and 5 frames, and Expert
-slips on 2.73% of technical inputs (83 wrong options). Braking to neutral remains immediate.
-The computer calibration report measures at least 2,000 real input-path
-reversals per tier, actual entries into run per minute of controlled match
-frames, and at least 2,000 Expert technical inputs including wrong options.
+interval from the match seed and the last committed turn. Targets come from
+master, diamond and platinum Slippi replays for Expert, Advanced and
+Intermediate (smashcraft:docs/design/human-input-consistency.md); Beginner and
+Rookie are guesses. Intended medians are Rookie 8, Beginner 7, Intermediate 7,
+Advanced 7 and Expert 6 frames, and no intended turn holds past 12 frames, since
+a 13-frame hold enters run. Faster intended turns incur more late-turn noise,
+scaled by `100 − Execute`. Each turn overshoots into run with chance 44, 32, 11,
+7 and 6 in 10,000 from Rookie through Expert. Expert’s acceptance range is
+0.4–0.8 unintended runs per minute; each lower tier is at least as high and
+Rookie stays at or below 4. Measured 9 Oct over 120,000 controlled frames a
+tier: 2.85, 2.46, 0.84, 0.78 and 0.63 runs per minute, medians 8, 7, 7, 7 and 6.
+Frame-tight presses (landing aerials, wavedash air dodges) miss 9 points more
+often than Execute: Expert Wren slips on 11.8% of 6,000 of them (361 wrong
+options), against measured masters’ 12.5–13%. Braking to neutral remains
+immediate. The computer calibration report prints these tables.
 Prepared sequences and fallible reads can act before a predicted action occurs.
 Delayed observations, bounded history and move-value logic are owned by
 [#182](https://github.com/tompassarelli/smashcraft/issues/182).

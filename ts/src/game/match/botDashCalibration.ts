@@ -1,8 +1,12 @@
 import { floorDiv } from "wisp/src/sim/intMath";
 import { at } from "wisp/src/runtime/lookup";
-import { Character, GroundAction } from "../sim/codes";
+import { AttackStyle, Character, GroundAction } from "../sim/codes";
+import { attackBuffer, clearAttackBuffer, queueAttack } from "../input/attackBuffer";
+import { cpuSkill } from "./cpuSkill";
+import { useMatchSeed } from "./botRandom";
+import { executeBotTechnique, isFrameTight } from "./botTechnicalExecution";
 import { createFighter } from "../sim/fighter";
-import { createRoster } from "../sim/roster";
+import { createRoster, neutralControls } from "../sim/roster";
 import { clearDash } from "../sim/groundMovement";
 import { advanceFighterMotion } from "../sim/step";
 import { createMatchState, Phase } from "./rules";
@@ -23,7 +27,7 @@ export interface DashCalibration {
 }
 
 /** Repeated opposite-side spacing situations request turns through the production input path. */
-export function collectDashCalibration(tier: CpuTier, frames = 40000): DashCalibration {
+export function collectDashCalibration(tier: CpuTier, frames = 120000): DashCalibration {
   const own = createFighter(Character.blademaster, 0.0, 1);
   const target = createFighter(Character.blademaster, 0.0, -1);
   const world = createRoster(3, [own, target]);
@@ -74,29 +78,37 @@ export function dashPercentile(row: DashCalibration, tenths: number): number {
   return at(row.intervals, floorDiv((row.intervals.length - 1) * tenths, 10));
 }
 
-/** Repeated jump opportunities count attempted technical presses before their legal mistakes. */
+/** Alternating wavedash air dodges and landing aerials count frame-tight presses and their legal mistakes. */
 export function collectTechnicalCalibration(tier: CpuTier, frames = 6000): { inputs: number; slips: number; wrongOptions: number } {
   const own = createFighter(Character.rifleman, 0.0, 1);
-  const target = createFighter(Character.blademaster, 150.0, -1);
-  target.motion.z = 220.0;
-  const world = createRoster(3, [own, target]);
-  const game = createMatchState();
-  game.phase = Phase.match;
-  game.cpuResolvedOpponents[0] = "wren";
-  game.cpuTiers[0] = tier;
-  game.matchSeed = 817;
-  const runtime = createPacingAndPresentation();
-  const controls = createFrameControls();
+  const policy = cpuSkill("wren", tier).decision;
+  const input = neutralControls();
+  const commands = attackBuffer(0);
   let inputs = 0;
   let slips = 0;
   let wrongOptions = 0;
+  useMatchSeed(817);
   for (let frame = 1; frame <= frames; frame++) {
-    runtime.botAttackDelays[0] = 999.0;
-    const outcome = produceComputerInput(game, world, runtime, 0, frame, controls.inputs[0], controls.commands[0]);
+    Object.assign(input, neutralControls());
+    clearAttackBuffer(commands);
+    own.motion.grounded = frame % 2 === 0;
+    if (own.motion.grounded) {
+      input.direction = -1;
+      input.jumpPressed = true;
+      input.airDodgePressed = true;
+    } else {
+      queueAttack(commands, { style: AttackStyle.forwardTilt, facing: 1, frame, mayCharge: false });
+    }
+    check(isFrameTight(own, input, commands));
+    const outcome = executeBotTechnique(own, input, commands, frame, 0, policy);
     if (outcome !== "none") inputs++;
     if (outcome === "dropped" || outcome === "wrongOption") slips++;
     if (outcome === "wrongOption") wrongOptions++;
   }
-  clearBotMemory(runtime.botMemory);
+  useMatchSeed(0);
   return { inputs, slips, wrongOptions };
+}
+
+function check(condition: boolean): void {
+  if (!condition) throw new Error("calibration press is not frame-tight");
 }

@@ -6,6 +6,11 @@ import { botChoice } from "./botRandom";
 import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
 
 export type TechnicalOutcome = "none" | "executed" | "dropped" | "wrongOption";
+/** Frame-tight presses (aerial landings, wavedash air dodges) miss 9 points more often than Execute. */
+export const FRAME_TIGHT_EXTRA_MISS = 9;
+export function isFrameTight(fighter: Readonly<Fighter>, input: Readonly<Controls>, commands: Readonly<AttackBuffer>): boolean {
+  return (!fighter.motion.grounded && commands.pending !== undefined) || input.airDodgePressed;
+}
 
 /** Technical presses can be dropped or replaced by a legal simpler option. */
 export function executeBotTechnique(fighter: Readonly<Fighter>, input: Controls, commands: AttackBuffer, frame: number, slot: number, policy: CpuDecisionPolicy): TechnicalOutcome {
@@ -13,7 +18,7 @@ export function executeBotTechnique(fighter: Readonly<Fighter>, input: Controls,
   const jump = input.jumpPressed || input.airDodgePressed;
   const special = input.specialPressed;
   if (!aerial && !jump && !special) return "none";
-  if (botChoice(frame, slot * 41 + fighter.character * 7 + 887, 100) < policy.executionPercent) return "executed";
+  if (botChoice(frame, slot * 41 + fighter.character * 7 + 887, 100) < policy.executionPercent - (aerial || input.airDodgePressed ? FRAME_TIGHT_EXTRA_MISS : 0)) return "executed";
   const substitute = botChoice(frame, slot * 41 + 907, 2) === 0;
   if (jump) {
     input.jumpPressed = false;

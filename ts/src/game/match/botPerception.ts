@@ -13,12 +13,13 @@ import { CPU_TIERS, type CpuTier } from "./cpuProfiles";
 import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
 
 export const BOT_DIRECTION_MIN_FRAMES = 4;
+// Intended turns stay at most 12 frames: a 13-frame hold enters run; only overshoots run.
 const reversalDeciles: readonly (readonly number[])[] = [
-  [4, 5, 6, 7, 8, 8, 9, 10, 12, 12],
-  [4, 5, 5, 6, 7, 7, 8, 9, 10, 12],
-  [4, 4, 5, 5, 6, 6, 7, 7, 8, 10],
-  [4, 4, 5, 5, 5, 6, 6, 6, 7, 8],
-  [4, 4, 5, 5, 5, 5, 5, 6, 6, 6],
+  [5, 5, 6, 7, 8, 8, 9, 10, 11, 12],
+  [4, 5, 6, 6, 7, 7, 8, 9, 11, 12],
+  [4, 5, 5, 6, 7, 7, 8, 9, 11, 12],
+  [4, 4, 5, 6, 7, 7, 8, 9, 11, 12],
+  [4, 4, 5, 5, 6, 6, 7, 8, 10, 12],
 ];
 
 /** The same committed turn draws the same deadline throughout a replay. */
@@ -29,7 +30,7 @@ export function botReversalFrames(chosenFrame: number, slot: ParticipantSlot, ti
   const speedError = Math.max(0, 7 - intended) * missed;
   const late = botChoice(chosenFrame, slot * 37 + 829, 400) < speedError ? 1 : 0;
   // Rare long holds become actual runs; ordinary timing noise only delays a turn.
-  const runChance = at([40, 23, 16, 10, 8], index);
+  const runChance = at([44, 32, 11, 7, 6], index);
   const overshoot = botChoice(chosenFrame, slot * 37 + 853, 10000) < runChance;
   return overshoot ? 24 + floorDiv(missed, 20) : intended + late;
 }
