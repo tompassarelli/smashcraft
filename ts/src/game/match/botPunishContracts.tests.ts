@@ -86,7 +86,7 @@ type Whiff = (typeof Whiff)[keyof typeof Whiff];
 const WHIFFS = [Whiff.forwardSmash, Whiff.grab, Whiff.landing] as const;
 /**
  * Where the computer stands: behind a forward smash (it swings away), just past the grab's reach, in front of a landing.
- * A Wren Expert computer sees a landing 12 frames late (#176), leaving 8 of its 20 frames: close enough for every fighter's run.
+ * #354's fresh 19–21-frame choice plus input and startup cannot hit a 20-frame landing.
  */
 const COMPUTER_X = [-110.0, 150.0, 90.0] as const;
 
@@ -156,13 +156,15 @@ function punishCount(whiff: Whiff, character: Character, tier: CpuTier, seeds: n
 
 for (const whiff of WHIFFS) {
   const name = whiff === Whiff.forwardSmash ? "whiffed forward smash" : whiff === Whiff.grab ? "missed grab" : "landing lag";
-  test(`a Wren Expert Rifleman computer punishes Pit Lord's ${name} within the window [spec #157]`, () => {
-    assertEquals(punishCount(whiff, Character.rifleman, "expert", HARD_SEEDS), HARD_SEEDS);
+  const expected = whiff === Whiff.landing ? 0 : HARD_SEEDS;
+  const answer = whiff === Whiff.landing ? "cannot react and hit before Pit Lord's 20-frame landing ends" : `punishes Pit Lord's ${name} within the window`;
+  test(`a Wren Expert Rifleman computer ${answer} [spec #157] [spec #354]`, () => {
+    assertEquals(punishCount(whiff, Character.rifleman, "expert", HARD_SEEDS), expected);
   });
-  sweep(`a Wren Expert computer of every fighter punishes Pit Lord's ${name} within the window; a Wren Rookie computer usually doesn't [spec #157]`, () => {
+  sweep(`a Wren Expert computer of every fighter ${answer}; a Wren Rookie computer usually doesn't punish [spec #157] [spec #354]`, () => {
     let easy = 0;
     for (const character of SELECTABLE_CHARACTERS) {
-      assertEquals(punishCount(whiff, character, "expert", HARD_SEEDS), HARD_SEEDS);
+      assertEquals(punishCount(whiff, character, "expert", HARD_SEEDS), expected);
       easy += punishCount(whiff, character, "rookie", EASY_SEEDS);
     }
     // Measured 6, 0 and 6 of 96 at the change; a quarter is the bound.
