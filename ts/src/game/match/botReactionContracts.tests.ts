@@ -3,12 +3,13 @@ import { mutableProjectile } from "../sim/fighterProjectiles";
 import { assertDefined, assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
+import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, SpecialAction } from "../sim/codes";
 import { createFighter, type Fighter } from "../sim/fighter";
 import { createRoster, fighterAt, neutralControls, sameControls } from "../sim/roster";
 import { sameAttackBuffer } from "../input/attackBuffer";
 import { produceComputerInput } from "./botPlay";
-import { BOT_DIRECTION_MIN_FRAMES, type BotMemory, commitBotDirection, copyBotMemory, createBotMemory, clearBotMemory, observeOpponents, perceivedOpponent } from "./botPerception";
+import { BOT_DIRECTION_MIN_FRAMES, BOT_HISTORY_FRAMES, type BotMemory, commitBotDirection, copyBotMemory, createBotMemory, clearBotMemory, observeOpponents, perceivedOpponent } from "./botPerception";
 import { cpuSkill, cpuReactionFloor } from "./cpuSkill";
 import { CPU_PROFILES, type CpuOpponentId, type CpuTier } from "./cpuProfiles";
 import { createFrameControls } from "./controls";
@@ -66,8 +67,8 @@ test("retained observations survive storage reuse, restored plain history and ro
     assertEquals(botObservationCanonical(at(saved.history, index)), at(original, index));
     assertEquals(at(saved.history, index).opponents[1]?.motion.x, index + 1);
   }
-  assertEquals(game.runtime.botMemory.history.length, 43);
-  const latest = at(game.runtime.botMemory.history, 42);
+  assertEquals(game.runtime.botMemory.history.length, BOT_HISTORY_FRAMES);
+  const latest = at(game.runtime.botMemory.history, BOT_HISTORY_FRAMES - 1);
   assertEquals(latest.opponents[1]?.attack.style, undefined);
   assertEquals(mutableProjectile(assertDefined(latest.opponents[1]), 0).life, 0);
   assertEquals(mutableProjectile(assertDefined(latest.opponents[1]), 0).x, 0);
@@ -75,7 +76,7 @@ test("retained observations survive storage reuse, restored plain history and ro
   const plain: BotMemory = { history: saved.history, directions: [0, 0, 0, 0], directionFrames: [0, 0, 0, 0] };
   copyBotMemory(game.runtime.botMemory, plain);
   observeOpponents(game.runtime.botMemory, game.world, 44);
-  assertEquals(at(game.runtime.botMemory.history, 41).opponents[1]?.motion.x, 43);
+  assertEquals(at(game.runtime.botMemory.history, 42).opponents[1]?.motion.x, 43);
   assertEquals(botObservationCanonical(at(saved.history, 42)), at(original, 42));
 });
 
@@ -135,8 +136,8 @@ test("prepared guard and fresh run-in first inputs respect human reaction floors
     for (const game of [changed, quiet]) game.own.shield.raised = trained;
     let first = -1;
     const floor = trained ? 14 : 19;
-    for (let frame = 1; frame <= RESPONSE_SURPRISE_FRAME + 45; frame++) {
-      if (frame === RESPONSE_SURPRISE_FRAME) at(surprises, 3)(changed.target);
+    for (let frame = 1; frame <= RESPONSE_SURPRISE_FRAME + 45 && first < 0; frame++) {
+      if (frame === RESPONSE_SURPRISE_FRAME) changed.target.motion.x = -450.0;
       for (const game of [changed, quiet]) produceComputerInput(game.game, game.world, game.runtime, 0, frame, game.controls.inputs[0], game.controls.commands[0]);
       if (first < 0 && (!sameControls(changed.controls.inputs[0], quiet.controls.inputs[0]) || !sameAttackBuffer(changed.controls.commands[0], quiet.controls.commands[0]))) first = frame - RESPONSE_SURPRISE_FRAME;
     }
@@ -145,33 +146,53 @@ test("prepared guard and fresh run-in first inputs respect human reaction floors
   }
 });
 
-sweep("1000 recorded prepared answers and 1000 fresh choices report actual input reaction distributions [spec #354]", () => {
+for (const tier of ["expert", "advanced", "intermediate"] as const) sweep(`1000 recorded prepared answers and 1000 fresh choices report actual ${tier} input reaction distributions [spec #354]`, () => {
   for (const trained of [true, false]) {
     const distribution: number[] = [];
     for (let frame = 0; frame <= 60; frame++) distribution.push(0);
     let early = 0;
     let measured = 0;
-    for (let seed = 0; seed < 1000; seed++) {
-      const changed = setup();
-      const quiet = setup();
+    let unanswered = 0;
+    for (let seed = 0; seed < 2000 && measured < 1000; seed++) {
+      const changed = setup("wren", tier);
+      const quiet = setup("wren", tier);
       for (const game of [changed, quiet]) { game.game.matchSeed = seed; game.own.shield.raised = trained; }
       const start = 39;
-      const floor = cpuReactionFloor(changed.own, cpuSkill("wren", "expert"));
+      const floor = cpuReactionFloor(changed.own, cpuSkill("wren", tier));
       let first = -1;
-      for (let frame = 1; frame <= start + 60; frame++) {
-        if (frame === start) at(surprises, 3)(changed.target);
+      for (let frame = 1; frame <= start + 60 && first < 0; frame++) {
+        if (frame === start) changed.target.motion.x = -450.0;
         for (const game of [changed, quiet]) produceComputerInput(game.game, game.world, game.runtime, 0, frame, game.controls.inputs[0], game.controls.commands[0]);
         if (first < 0 && (!sameControls(changed.controls.inputs[0], quiet.controls.inputs[0]) || !sameAttackBuffer(changed.controls.commands[0], quiet.controls.commands[0]))) first = frame - start;
       }
-      assertTrue(first >= 0);
+      for (const game of [changed, quiet]) clearBotMemory(game.runtime.botMemory);
+      // A chosen wait is not an observed reaction; retain every responding trial, even early ones.
+      if (first < 0) { unanswered++; continue; }
       if (first < floor) early++;
       distribution[first] = (distribution[first] ?? 0) + 1;
       measured++;
-      for (const game of [changed, quiet]) clearBotMemory(game.runtime.botMemory);
     }
-    console.log(`${trained ? "trained recognition" : "new decision"}: ${measured} actual responses, ${early} early; ${distribution.map((count, frame) => count > 0 ? `${frame}:${count}` : "").filter(row => row !== "").join(" ")}`);
+    console.log(`${tier} ${trained ? "trained recognition" : "new decision"}: ${measured} actual responses, ${unanswered} unanswered, ${early} early; ${distribution.map((count, frame) => count > 0 ? `${frame}:${count}` : "").filter(row => row !== "").join(" ")}`);
     assertEquals(measured, 1000);
     assertEquals(early, 0);
+    let cumulative = 0;
+    let median = 0;
+    let total = 0;
+    let squares = 0;
+    for (let frame = 0; frame < distribution.length; frame++) {
+      const count = at(distribution, frame);
+      cumulative += count;
+      if (median === 0 && cumulative >= 500) median = frame;
+      total += count * frame;
+      squares += count * frame * frame;
+    }
+    const mean = f32(total / measured);
+    const variance = f32(f32(squares / measured) - f32(mean * mean));
+    console.log(`${tier} ${trained ? "trained recognition" : "new decision"}: median ${median}, mean ${mean}, sd ${Math.sqrt(variance)}`);
+    const expectedMedian = tier === "expert" ? 21 : tier === "advanced" ? 22 : 23;
+    assertTrue(median >= expectedMedian - 1 && median <= expectedMedian + 1);
+    // The measured master spread is 6.1 frames; clipping fresh choices removes the fastest tail.
+    assertTrue(variance >= 25 && variance <= 49);
   }
 });
 

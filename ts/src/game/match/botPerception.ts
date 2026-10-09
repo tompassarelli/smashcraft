@@ -34,8 +34,8 @@ export function botReversalFrames(chosenFrame: number, slot: ParticipantSlot, ti
   const overshoot = botChoice(chosenFrame, slot * 37 + 853, 10000) < runChance;
   return overshoot ? 24 + floorDiv(missed, 20) : intended + late;
 }
-// The slowest supported computer style sees events 42 frames later.
-export const BOT_HISTORY_FRAMES = 43;
+// The slowest authored delay is 42, plus the reaction curve’s 24-frame tail.
+export const BOT_HISTORY_FRAMES = 67;
 // Unobserved input buffers, resource plans and hit registries stay neutral.
 const EMPTY = createFighter(1, 0.0, 1);
 

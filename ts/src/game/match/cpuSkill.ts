@@ -86,10 +86,25 @@ export function cpuReactionFloor(fighter: Fighter, skill: CpuSkill): number {
   return Math.max(skill.reactionFrames, 16 + options - 1);
 }
 
-/** Each newly observed cue draws 0–2 extra frames under the shared match seed. */
+// Slippi master tech-chase percentiles: p5=15, p10=16, p25=19, p50=21, p90=33.
+// The p75 and endpoint interpolate the measured 22.7 mean and 6.1-frame deviation.
+const REACTION_PERCENTILES = [0, 14, 5, 15, 10, 16, 25, 19, 50, 21, 75, 26, 90, 33, 100, 39] as const;
+
+/** Measured high-tier reaction curves, clipped to the kind of answer's human floor. */
 export function cpuReactionFrames(fighter: Fighter, skill: CpuSkill, seed: number, slot: number, cue: number): number {
   useMatchSeed(seed);
-  const spread = botChoice(cue, slot * 17 + fighter.character, 3);
+  const percentile = botChoice(cue, slot * 17 + fighter.character, 100);
   useMatchSeed(0);
-  return cpuReactionFloor(fighter, skill) + spread;
+  let reaction = 38;
+  for (let index = 2; index < REACTION_PERCENTILES.length; index += 2) {
+    const end = at(REACTION_PERCENTILES, index);
+    if (percentile >= end) continue;
+    const start = at(REACTION_PERCENTILES, index - 2), low = at(REACTION_PERCENTILES, index - 1), high = at(REACTION_PERCENTILES, index + 1);
+    reaction = low + floorDiv(2 * (percentile - start) * (high - low) + end - start, 2 * (end - start));
+    break;
+  }
+  const tier = skill.decision.tier;
+  const offset = tier === "intermediate" ? 2 : tier === "advanced" ? 1 : 0;
+  const floor = cpuReactionFloor(fighter, skill);
+  return tier === "beginner" || tier === "rookie" ? floor + reaction - 14 : Math.max(floor, reaction + offset);
 }

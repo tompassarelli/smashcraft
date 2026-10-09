@@ -75,33 +75,33 @@ exceed 100. Initiative and variance weight preferences, not capability ceilings.
 | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | --- | ---: |
 | Rook | Rookie | 36 | 45 | 35/55 | 8/4 | 2/60 | 65 | 80 | 25/15 | 15 |
 | Rook | Beginner | 32 | 62 | 52/68 | 12/3 | 3/65 | 50 | 90 | 35/18 | 12 |
-| Rook | Intermediate | 27 | 80 | 75/82 | 20/2 | 4/70 | 35 | 105 | 50/22 | 8 |
-| Rook | Advanced | 21 | 91 | 88/92 | 28/1 | 5/75 | 22 | 115 | 65/28 | 5 |
-| Rook | Expert | 18 | 96 | 96/97 | 32/1 | 5/80 | 15 | 120 | 75/35 | 3 |
+| Rook | Intermediate | 16 | 80 | 75/82 | 20/2 | 4/70 | 35 | 105 | 50/22 | 8 |
+| Rook | Advanced | 15 | 91 | 88/92 | 28/1 | 5/75 | 22 | 115 | 65/28 | 5 |
+| Rook | Expert | 14 | 96 | 96/97 | 32/1 | 5/80 | 15 | 120 | 75/35 | 3 |
 | Ember | Rookie | 30 | 60 | 20/35 | 4/4 | 2/40 | 80 | 35 | 90/70 | 40 |
 | Ember | Beginner | 27 | 72 | 40/52 | 6/3 | 2/50 | 65 | 45 | 90/65 | 30 |
-| Ember | Intermediate | 21 | 84 | 65/72 | 12/2 | 3/60 | 45 | 60 | 90/60 | 20 |
+| Ember | Intermediate | 16 | 84 | 65/72 | 12/2 | 3/60 | 45 | 60 | 90/60 | 20 |
 | Ember | Advanced | 15 | 93 | 82/86 | 20/1 | 4/65 | 32 | 75 | 90/55 | 12 |
 | Ember | Expert | 14 | 97 | 94/95 | 28/1 | 5/75 | 22 | 90 | 88/50 | 8 |
 | Flint | Rookie | 30 | 65 | 25/35 | 4/16 | 2/45 | 80 | 50 | 60/20 | 20 |
 | Flint | Beginner | 27 | 78 | 40/58 | 8/12 | 3/55 | 68 | 65 | 62/22 | 15 |
-| Flint | Intermediate | 21 | 88 | 65/78 | 12/4 | 3/65 | 52 | 80 | 65/25 | 10 |
+| Flint | Intermediate | 16 | 88 | 65/78 | 12/4 | 3/65 | 52 | 80 | 65/25 | 10 |
 | Flint | Advanced | 15 | 95 | 84/90 | 20/2 | 4/70 | 38 | 90 | 70/30 | 7 |
 | Flint | Expert | 14 | 98 | 95/96 | 28/1 | 5/75 | 28 | 100 | 75/35 | 4 |
 | Vale | Rookie | 36 | 50 | 30/45 | 6/4 | 2/65 | 75 | 90 | 15/10 | 10 |
 | Vale | Beginner | 30 | 65 | 50/62 | 10/3 | 3/70 | 60 | 100 | 25/12 | 8 |
-| Vale | Intermediate | 24 | 80 | 72/80 | 16/2 | 4/75 | 42 | 110 | 45/18 | 6 |
-| Vale | Advanced | 18 | 92 | 88/90 | 24/1 | 5/80 | 28 | 115 | 60/25 | 4 |
-| Vale | Expert | 15 | 97 | 96/95 | 32/1 | 5/80 | 20 | 115 | 72/32 | 3 |
+| Vale | Intermediate | 16 | 80 | 72/80 | 16/2 | 4/75 | 42 | 110 | 45/18 | 6 |
+| Vale | Advanced | 15 | 92 | 88/90 | 24/1 | 5/80 | 28 | 115 | 60/25 | 4 |
+| Vale | Expert | 14 | 97 | 96/95 | 32/1 | 5/80 | 20 | 115 | 72/32 | 3 |
 | Kite | Rookie | 36 | 50 | 25/45 | 4/4 | 2/40 | 45 | 40 | 65/90 | 45 |
 | Kite | Beginner | 30 | 65 | 42/60 | 6/3 | 2/50 | 32 | 50 | 65/85 | 35 |
-| Kite | Intermediate | 24 | 82 | 65/75 | 12/2 | 3/60 | 22 | 65 | 68/78 | 25 |
-| Kite | Advanced | 18 | 92 | 84/88 | 20/1 | 4/65 | 12 | 80 | 72/70 | 15 |
+| Kite | Intermediate | 16 | 82 | 65/75 | 12/2 | 3/60 | 22 | 65 | 68/78 | 25 |
+| Kite | Advanced | 15 | 92 | 84/88 | 20/1 | 4/65 | 12 | 80 | 72/70 | 15 |
 | Kite | Expert | 14 | 96 | 95/96 | 28/1 | 5/75 | 8 | 95 | 78/65 | 9 |
 | Wren | Rookie | 36 | 50 | 30/40 | 4/4 | 2/50 | 70 | 55 | 40/25 | 20 |
 | Wren | Beginner | 30 | 67 | 48/58 | 8/3 | 3/60 | 55 | 70 | 48/28 | 15 |
-| Wren | Intermediate | 24 | 82 | 70/74 | 16/2 | 3/65 | 40 | 85 | 60/35 | 10 |
-| Wren | Advanced | 18 | 93 | 87/89 | 24/1 | 4/70 | 27 | 95 | 70/40 | 7 |
+| Wren | Intermediate | 16 | 82 | 70/74 | 16/2 | 3/65 | 40 | 85 | 60/35 | 10 |
+| Wren | Advanced | 15 | 93 | 87/89 | 24/1 | 4/70 | 27 | 95 | 70/40 | 7 |
 | Wren | Expert | 14 | 97 | 96/96 | 32/1 | 5/75 | 20 | 105 | 78/45 | 4 |
 
 An execution miss produces a legal dropped or simpler input, including a roll
@@ -123,9 +123,15 @@ Every combination preserves [#176](https://github.com/tompassarelli/smashcraft/i
 trained recognition (a held guard, tech or ledge answer) waits at least 14 frames
 (233 ms). A new decision waits at least 16 frames (267 ms), plus one frame for
 each additional viable option: retreat, grounded shield, remaining jump and legal
-attack. The slower authored tier delay still applies. Each observed cue draws
-0–2 additional frames from the shared match seed; every client and replay draws
-the same delay. Horizontal reversals are at least four frames apart.
+attack. Expert, Advanced and Intermediate use the measured tech-chase curve
+from [human input consistency](human-input-consistency.md), shifted to medians
+21, 22 and 23 frames. Its Expert p5/p10/p25/p90 are 15/16/19/33, with about
+6 frames of standard deviation; the endpoint and p75 interpolate the measured
+mean and spread. Each cue draws a percentile under the shared match seed,
+clipped to its answer's floor. These measured curves replace the older guessed
+high-tier base delays. Beginner and Rookie retain their slower guessed floors
+and use the curve's spread above them. Every client and replay draws the same
+delay. Horizontal reversals are at least four frames apart.
 [#356](https://github.com/tompassarelli/smashcraft/issues/356) draws each turn’s
 interval from the match seed and the last committed turn. Targets come from
 master, diamond and platinum Slippi replays for Expert, Advanced and
