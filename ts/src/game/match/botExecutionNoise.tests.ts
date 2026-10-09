@@ -49,7 +49,7 @@ export function measureDefenceExecution(opponent: CpuOpponentId, tier: CpuTier, 
     f.launch.knockbackZ = 40.0;
     chooseHitlagInput(f, 0, 2, skill, input);
     applyDirectionalInfluence(f, input);
-    if (f.launch.diAngleDegrees === 0) result.noDi++;
+    if (input.direction === 0 && input.verticalDirection === 0) result.noDi++;
     else if (f.launch.diAngleDegrees < 0) result.wrongDi++;
     for (const followup of [false, true]) {
       copyFighterState(f, base, 1);
@@ -146,7 +146,7 @@ for (const opponent of CPU_OPPONENT_IDS) {
     let previous = { noDi: 2000, wrongDi: 2000, strongSdi: 2000, followupSdi: 2000, wrongSdi: 2000, fullHop: 2000, aerial: 2000 };
     for (const tier of CPU_TIERS) {
       const counts = measureDefenceExecution(opponent, tier, 2000);
-      console.log(`${opponent} ${tier} /2000 noDI=${counts.noDi} wrongDI=${counts.wrongDi} strongSDImissed=${counts.strongSdi} followupSDImissed=${counts.followupSdi} wrongSDI=${counts.wrongSdi} fullHop=${counts.fullHop} aerial=${counts.aerial}`);
+      console.log(`${opponent} ${tier} /2000 noDI=${counts.noDi} wrongDI=${counts.wrongDi} strongSDImissed=${counts.strongSdi} followupSDImissed=${counts.followupSdi} wrongSDI=${counts.wrongSdi}/${2000 - counts.strongSdi} attempts fullHop=${counts.fullHop} aerial=${counts.aerial}`);
       for (const key of ["noDi", "wrongDi", "strongSdi", "followupSdi", "fullHop", "aerial"] as const) assertEquals(counts[key] <= previous[key], true, `${opponent} ${tier} ${key}: ${counts[key]} <= ${previous[key]}`);
       if (tier === "expert") {
         assertEquals(counts.noDi >= 240 && counts.noDi <= 320, true, `no DI ${counts.noDi}/2000`);
