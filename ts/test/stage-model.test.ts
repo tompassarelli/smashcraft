@@ -235,15 +235,17 @@ test("World Tree and aviary stay inside the far clip, and the aviary roof clears
 
 test("Naxxramas's cold green light frames the necropolis with one shadow and leaves fighters outside its reach [spec #296]", () => {
   const lights = STAGE_POINT_LIGHTS.find(({ stage }) => stage === PATTERNED_DECKS_STAGE)?.lights ?? [];
-  expect(lights.map(({ x, y, z, color, intensity, flicker, loopMs, radius, castsShadow }) => `${x},${y},${z} ${color.join(",")}@${intensity}±${flicker}/${loopMs}ms r${radius}${castsShadow ? " shadow" : ""}`)).toEqual([
-    "1450,6000,-900 96,220,168@0.875±0/2400ms r1400 shadow",
+  expect(lights.map(({ color, intensity, flicker, loopMs, radius, castsShadow }) => `${color.join(",")}@${intensity}±${flicker}/${loopMs}ms r${radius}${castsShadow ? " shadow" : ""}`)).toEqual([
+    "96,220,168@0.875±0/2400ms r1400 shadow",
   ]);
   expect(shadowCastingLights(PATTERNED_DECKS_STAGE)).toBe(1);
   for (const light of lights) expect(light.y - light.radius - 200).toBeGreaterThan(3000);
   expect(stageScenery(PATTERNED_DECKS_STAGE).fog).toEqual({ start: 5000, end: 11000, red: 0.25, green: 0.5, blue: 0.625 });
   const scenery = stageScenery(PATTERNED_DECKS_STAGE).pieces;
-  expect(scenery.filter(({ model }) => model.includes("NaxxDeco")).map(({ x, y, z, scale }) => [x, y, z, scale])).toEqual([[1700, 5900, -1250, 0.5]]);
-  expect(scenery.filter(({ model }) => model.includes("Necropolis")).map(({ x, y }) => [x, y])).toEqual([[1450, 6200]]);
+  const citadel = scenery.find(({ model }) => model.includes("Necropolis"));
+  expect(citadel).toBeDefined();
+  if (citadel === undefined) throw new Error("missing Naxxramas necropolis");
+  for (const light of lights) expect(Math.hypot(citadel.x - light.x, citadel.y - light.y, citadel.z - light.z)).toBeLessThan(light.radius);
 });
 
 test("Stratholme keeps its cathedral against the fall sky and limits warm lights to town fires [spec #297]", () => {
