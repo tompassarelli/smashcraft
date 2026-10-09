@@ -62,7 +62,7 @@ jobs:
       - if: ${{ !cancelled() }}
         run: bun wisp perf playable-bot-four --samples --out build/playable-bot-four.perf && bun wisp perf compare test/fixtures/perf/playable-bot-four.perf build/playable-bot-four.perf
         working-directory: ts
-      # Non-gating until #168 meets its absolute budget (p99 <= 10 ms, worst <= 14 ms); then it gates again.
+      # Non-gating until #168 meets its absolute budget (p99 <= 10 ms, mean of the worst 1% of frames <= 14 ms; #394); then it gates again.
       - name: perf target (#168)
         if: ${{ !cancelled() && hashFiles('ts/build/playable-bot-four.perf') != '' }}
         continue-on-error: true

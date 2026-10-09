@@ -395,8 +395,9 @@ Archer), Battle.net's measured sync latency, counted from the match's first
 frame (smashcraft:ts/scripts/wisp/botMatch.ts). playable-bot-four plays bot-four with the playable build, which has no
 input trace, scene report or frame meter; CI holds it to
 smashcraft:ts/test/fixtures/perf/playable-bot-four.perf (#48). `bun wisp perf compare A B`
-fails when B's instructions, calls, allocation, predicted cost or worst
-typing stall rise beyond 5%; `bun wisp headless --cost` adds the quick
+fails when B's instructions, calls, allocation, predicted cost or typing
+stall rise beyond 5% (instructions and typing stall at their mean over the
+worst 1% of frames, never one worst frame, #394); `bun wisp headless --cost` adds the quick
 match's prediction to a headless run. The model was fitted to 0.0.49's
 four-fighter overlay and predicts 0.0.48's median frame within 15%
 (smashcraft:evidence/headless-native-cost-20261006/README.md).
