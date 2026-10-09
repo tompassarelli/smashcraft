@@ -205,6 +205,7 @@ src/game/sim/knockdown.tests.ts	17	5786000	2369
 src/game/sim/lava.tests.ts	6	12643000	4596
 src/game/sim/ledge.tests.ts	22	2461000	14695
 src/game/sim/mana.tests.ts	5	1172000	7980
+src/game/sim/mathTables.tests.ts	2	16133000	2
 src/game/sim/meleeContact.tests.ts	3	108000	349
 src/game/sim/normals.tests.ts	12	5826000	21984
 src/game/sim/physics.tests.ts	57	11319000	11143

@@ -3,8 +3,10 @@
 
 
 
+import { f32 } from "wisp/src/sim/f32";
 import { floorDiv } from "wisp/src/sim/intMath";
 import type { Fighter } from "../sim/fighter";
+import { sineTurns } from "../sim/mathTables";
 import type { ImpactEvents } from "./impactEvents";
 
 
@@ -48,7 +50,7 @@ export function noteKoFlash(flash: KoFlash, frame: number, slot: number, fighter
 }
 
 function pulse(age: number, rise: number, fade: number, peak: number): number {
-  if (age < rise) return peak * Math.sin(age / rise * Math.PI / 2.0);
+  if (age < rise) return peak * sineTurns(f32(f32(age / rise) / 4.0));
   return age >= rise + fade ? 0.0 : (1.0 - (age - rise) / fade) * peak;
 }
 
@@ -60,7 +62,7 @@ export function koFlashLevels(flash: Readonly<KoFlash>, frame: number): KoFlashL
 
 
 
-  const alpha = age < flash.rise ? Math.floor(KO_FLASH_ALPHA * Math.sin(age / flash.rise * Math.PI / 2.0)) : floorDiv(KO_FLASH_ALPHA * left * left, KO_BLUR_FADE_FRAMES * KO_BLUR_FADE_FRAMES);
+  const alpha = age < flash.rise ? Math.floor(KO_FLASH_ALPHA * sineTurns(f32(f32(age / flash.rise) / 4.0))) : floorDiv(KO_FLASH_ALPHA * left * left, KO_BLUR_FADE_FRAMES * KO_BLUR_FADE_FRAMES);
   return {
     alpha,
     blur: pulse(age, flash.rise, KO_BLUR_FADE_FRAMES, KO_BLUR_SCALE),

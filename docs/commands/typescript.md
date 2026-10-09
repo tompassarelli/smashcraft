@@ -26,3 +26,11 @@ release them through `clearBotMemory`; never assign one owner's history to
 another. Observation checks stream canonical bytes, while replay text is
 materialized on request. Keep this route allocation-free and use the unchanged
 `playable-bot-four` performance fixture for whole-frame acceptance.
+
+Map code under ts/src/game takes square roots from `squareRoot`
+(smashcraft:ts/src/game/sim/warcraftMath.ts) and sines, cosines and
+arctangents from smashcraft:ts/src/game/sim/mathTables.ts, which interpolate
+binary32 tables in smashcraft:ts/src/game/sim/mathTableData.ts. Regenerate the
+data with `bun scripts/mathTables.ts` from ts/. A source-shape test refuses
+`Math.sqrt`, `Math.sin`, `Math.cos`, `Math.atan2`, `Math.pow`, the other libm
+functions and `**` in map code, because Bun and Warcraft differ by an ulp on them.

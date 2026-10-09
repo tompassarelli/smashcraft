@@ -3,6 +3,7 @@
 
 import { f32 } from "wisp/src/sim/f32";
 import { copyMatchCamera, createMatchCamera, limitCamera, MATCH_CAMERA_ASPECT, type MatchCamera } from "../sim/matchCamera";
+import { arctangentDegrees } from "../sim/mathTables";
 import { stageBounds } from "../sim/stageBounds";
 
 
@@ -28,7 +29,7 @@ export function localCamera(target: MatchCamera, source: Readonly<MatchCamera>, 
 }
 
 export function cameraFieldOfView(camera: Readonly<MatchCamera>, aspect: number): number {
-  return (Math.atan(camera.tangent * aspect) * 360.0) / Math.PI;
+  return f32(2.0 * arctangentDegrees(f32(camera.tangent * aspect)));
 }
 
 

@@ -234,3 +234,24 @@ test("each map module keeps its top-level locals under Lua 5.3's 200-per-functio
     .filter(({ locals }) => locals > 190);
   expect(over).toEqual([]);
 });
+
+const LIBM_MATH = new Set(["sqrt", "sin", "cos", "tan", "asin", "acos", "atan", "atan2", "pow", "exp", "log", "log2", "log10", "cbrt", "hypot", "sinh", "cosh", "tanh"]);
+
+function libmCalls(paths: readonly string[]): string[] {
+  const found: string[] = [];
+  for (const path of paths) {
+    const { source } = parse(path);
+    const visit = (node: ts.Node): void => {
+      const line = () => `${path}:${source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1}`;
+      if (ts.isPropertyAccessExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "Math" && LIBM_MATH.has(node.name.text)) found.push(`${line()}: Math.${node.name.text}`);
+      if (ts.isBinaryExpression(node) && (node.operatorToken.kind === ts.SyntaxKind.AsteriskAsteriskToken || node.operatorToken.kind === ts.SyntaxKind.AsteriskAsteriskEqualsToken)) found.push(`${line()}: **`);
+      ts.forEachChild(node, visit);
+    };
+    visit(source);
+  }
+  return found;
+}
+
+test("map code takes square roots, sines, cosines and arctangents only from the binary32 tables, never from Math or ** [spec #404]", () => {
+  expect(libmCalls(mapSources.filter((path) => path.startsWith("src/game/") && !/\.(test|tests|soak)\.ts$|\.d\.ts$/.test(path)))).toEqual([]);
+});

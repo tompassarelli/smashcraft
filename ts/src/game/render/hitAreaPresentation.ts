@@ -6,6 +6,8 @@ import { f32 } from "wisp/src/sim/f32";
 import type { Capsule } from "../physics/contactGeometry";
 import { HitAreaKind, type HitAreaList, collectHitAreas, createHitAreaList } from "../presentation/hitAreas";
 import type { Fighter } from "../sim/fighter";
+import { cosineTurns, sineTurns } from "../sim/mathTables";
+import { squareRoot } from "../sim/warcraftMath";
 import type { WorldOrigin } from "./effects";
 
 
@@ -67,25 +69,31 @@ export class HitAreaPresentation {
   private outline(first: number, c: Readonly<Capsule>, kind: HitAreaKind): number {
     const dx = c.x2 - c.x1;
     const dz = c.z2 - c.z1;
-    const length = Math.sqrt(dx * dx + dz * dz);
+    const length = squareRoot(f32(f32(dx * dx) + f32(dz * dz)));
     const ux = length > f32(0.001) ? dx / length : 1.0;
     const uz = length > f32(0.001) ? dz / length : 0.0;
     const nx = -uz * c.radius;
     const nz = ux * c.radius;
     let segment = this.draw(first, c.x1 + nx, c.z1 + nz, c.x2 + nx, c.z2 + nz, kind);
     segment = this.draw(segment, c.x1 - nx, c.z1 - nz, c.x2 - nx, c.z2 - nz, kind);
-    const start = Math.atan2(nz, nx);
-    segment = this.arc(segment, c.x2, c.z2, c.radius, start, -1.0, kind);
-    return this.arc(segment, c.x1, c.z1, c.radius, start, 1.0, kind);
+    segment = this.arc(segment, c.x2, c.z2, nx, nz, -1.0, kind);
+    return this.arc(segment, c.x1, c.z1, nx, nz, 1.0, kind);
   }
 
 
-  private arc(first: number, cx: number, cz: number, radius: number, start: number, turn: number, kind: HitAreaKind): number {
+  private arc(first: number, cx: number, cz: number, nx: number, nz: number, turn: number, kind: HitAreaKind): number {
     let segment = first;
-    for (let step = 0; step < ARC_SEGMENTS; step++) {
-      const a = start + turn * Math.PI * step / ARC_SEGMENTS;
-      const b = start + turn * Math.PI * (step + 1) / ARC_SEGMENTS;
-      segment = this.draw(segment, cx + radius * Math.cos(a), cz + radius * Math.sin(a), cx + radius * Math.cos(b), cz + radius * Math.sin(b), kind);
+    let previousX = nx;
+    let previousZ = nz;
+    for (let step = 1; step <= ARC_SEGMENTS; step++) {
+      const turns = f32(f32(step) / f32(2 * ARC_SEGMENTS));
+      const cosine = cosineTurns(turns);
+      const sine = turn * sineTurns(turns);
+      const x = f32(f32(nx * cosine) - f32(nz * sine));
+      const z = f32(f32(nz * cosine) + f32(nx * sine));
+      segment = this.draw(segment, cx + previousX, cz + previousZ, cx + x, cz + z, kind);
+      previousX = x;
+      previousZ = z;
     }
     return segment;
   }
