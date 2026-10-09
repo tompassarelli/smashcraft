@@ -150,6 +150,58 @@ export class DrawnModel {
     });
   }
 
+  /** The skeleton: each node's name and parent by object id. */
+  nodes(): readonly { readonly name: string; readonly parent: number | undefined }[] {
+    return Array.from(this.model.Nodes, (node) => ({ name: node?.Name ?? "", parent: node?.Parent ?? undefined }));
+  }
+
+  /**
+   * The pose at the clip's time, flattened onto the stage plane like `triangles`:
+   * every body vertex (visible-material geosets) in one stable order, which of them draw, the drawn
+   * triangles over those vertex indices, and each node's pivot by object id.
+   */
+  posed(sequence: number, seconds: number, facing: number): { readonly vertices: Float32Array; readonly drawn: Uint8Array; readonly faces: Uint32Array; readonly nodes: Float32Array } {
+    const data = skinningState(this.renderer);
+    this.renderer.setSequence(sequence);
+    const interval = this.model.Sequences[sequence]?.Interval ?? [0, 0];
+    data.frame = Math.min(interval[1] ?? 0, (interval[0] ?? 0) + seconds * 1000.0);
+    this.renderer.update(0);
+    const vertices: number[] = [], drawn: number[] = [], faces: number[] = [];
+    for (const index of this.visible) {
+      const geoset = this.model.Geosets[index];
+      if (geoset === undefined) continue;
+      const shown = (data.geosetAlpha[index] ?? 1) > 0.0;
+      const base = vertices.length / 2;
+      const skin = geoset.SkinWeights;
+      const source = geoset.Vertices;
+      for (let vertex = 0; vertex < source.length / 3; vertex++) {
+        const group = skin === undefined ? geoset.Groups[geoset.VertexGroup[vertex] ?? 0] ?? [] : Array.from(skin.subarray(vertex * 8, vertex * 8 + 4));
+        const vx = source[vertex * 3] ?? 0, vy = source[vertex * 3 + 1] ?? 0, vz = source[vertex * 3 + 2] ?? 0;
+        let x = 0.0, z = 0.0;
+        for (const [influence, node] of group.entries()) {
+          const m = data.nodes[node]?.matrix;
+          if (m === undefined) continue;
+          const weight = skin === undefined ? 1 : (skin[vertex * 8 + 4 + influence] ?? 0) / 255;
+          x += ((m[0] ?? 0) * vx + (m[4] ?? 0) * vy + (m[8] ?? 0) * vz + (m[12] ?? 0)) * weight;
+          z += ((m[2] ?? 0) * vx + (m[6] ?? 0) * vy + (m[10] ?? 0) * vz + (m[14] ?? 0)) * weight;
+        }
+        const count = skin === undefined ? Math.max(1, group.length) : 1;
+        vertices.push((facing * x * this.scale) / count, (z * this.scale) / count);
+        drawn.push(shown ? 1 : 0);
+      }
+      if (shown) for (const corner of geoset.Faces) faces.push(base + corner);
+    }
+    const nodes = new Float32Array(this.model.Nodes.length * 2);
+    this.model.Nodes.forEach((node, id) => {
+      const m = data.nodes[id]?.matrix, p = node?.PivotPoint;
+      if (m === undefined || p === undefined) return;
+      const [px = 0, py = 0, pz = 0] = p;
+      nodes[id * 2] = facing * ((m[0] ?? 0) * px + (m[4] ?? 0) * py + (m[8] ?? 0) * pz + (m[12] ?? 0)) * this.scale;
+      nodes[id * 2 + 1] = ((m[2] ?? 0) * px + (m[6] ?? 0) * py + (m[10] ?? 0) * pz + (m[14] ?? 0)) * this.scale;
+    });
+    return { vertices: Float32Array.from(vertices), drawn: Uint8Array.from(drawn), faces: Uint32Array.from(faces), nodes };
+  }
+
   sequenceStart(index: number): number | undefined {
     return this.model.Sequences[index]?.Interval[0];
   }
