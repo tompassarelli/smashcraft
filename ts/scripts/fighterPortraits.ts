@@ -194,6 +194,7 @@ const CORRECTIONS: Readonly<Record<'classic' | 'definitive', Readonly<Record<str
     Warden: { zoom: 1.5, turn: 25 },
     ShadowHunter: { level: true, zoom: 1.5 },
     "Kael'thasSunstrider": { angle: 15, turn: 30 },
+    CairneBloodhoof: { elapsed: 30.5, angle: 20, zoom: 1.5 },
   },
 };
 

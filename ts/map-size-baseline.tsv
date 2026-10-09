@@ -1,5 +1,5 @@
 entry	bytes
-(map total)	87895258
+(map total)	87897379
 FrostmourneNew.blp	55754
 HelmOfDom.BLP	48835
 LichKing.BLP	179236
@@ -26,10 +26,10 @@ _de.w3mod\war3mapImported\FighterBustBlademasterP1.blp	29993
 _de.w3mod\war3mapImported\FighterBustBlademasterP2.blp	30167
 _de.w3mod\war3mapImported\FighterBustBlademasterP3.blp	30250
 _de.w3mod\war3mapImported\FighterBustBlademasterP4.blp	30105
-_de.w3mod\war3mapImported\FighterBustCairneBloodhoofP1.blp	40248
-_de.w3mod\war3mapImported\FighterBustCairneBloodhoofP2.blp	40524
-_de.w3mod\war3mapImported\FighterBustCairneBloodhoofP3.blp	41368
-_de.w3mod\war3mapImported\FighterBustCairneBloodhoofP4.blp	40595
+_de.w3mod\war3mapImported\FighterBustCairneBloodhoofP1.blp	39433
+_de.w3mod\war3mapImported\FighterBustCairneBloodhoofP2.blp	39740
+_de.w3mod\war3mapImported\FighterBustCairneBloodhoofP3.blp	40470
+_de.w3mod\war3mapImported\FighterBustCairneBloodhoofP4.blp	39685
 _de.w3mod\war3mapImported\FighterBustChenStormstoutP1.blp	32639
 _de.w3mod\war3mapImported\FighterBustChenStormstoutP2.blp	32681
 _de.w3mod\war3mapImported\FighterBustChenStormstoutP3.blp	32859
@@ -130,10 +130,10 @@ _de.w3mod\war3mapImported\FighterCardBlademasterP1.blp	57905
 _de.w3mod\war3mapImported\FighterCardBlademasterP2.blp	59714
 _de.w3mod\war3mapImported\FighterCardBlademasterP3.blp	61114
 _de.w3mod\war3mapImported\FighterCardBlademasterP4.blp	61952
-_de.w3mod\war3mapImported\FighterCardCairneBloodhoofP1.blp	59024
-_de.w3mod\war3mapImported\FighterCardCairneBloodhoofP2.blp	59562
-_de.w3mod\war3mapImported\FighterCardCairneBloodhoofP3.blp	60650
-_de.w3mod\war3mapImported\FighterCardCairneBloodhoofP4.blp	59473
+_de.w3mod\war3mapImported\FighterCardCairneBloodhoofP1.blp	51867
+_de.w3mod\war3mapImported\FighterCardCairneBloodhoofP2.blp	52412
+_de.w3mod\war3mapImported\FighterCardCairneBloodhoofP3.blp	53578
+_de.w3mod\war3mapImported\FighterCardCairneBloodhoofP4.blp	52255
 _de.w3mod\war3mapImported\FighterCardChenStormstoutP1.blp	50886
 _de.w3mod\war3mapImported\FighterCardChenStormstoutP2.blp	50900
 _de.w3mod\war3mapImported\FighterCardChenStormstoutP3.blp	50979
@@ -234,10 +234,10 @@ _de.w3mod\war3mapImported\FighterStockBlademasterP1.blp	4802
 _de.w3mod\war3mapImported\FighterStockBlademasterP2.blp	4802
 _de.w3mod\war3mapImported\FighterStockBlademasterP3.blp	4802
 _de.w3mod\war3mapImported\FighterStockBlademasterP4.blp	4802
-_de.w3mod\war3mapImported\FighterStockCairneBloodhoofP1.blp	4033
-_de.w3mod\war3mapImported\FighterStockCairneBloodhoofP2.blp	4051
-_de.w3mod\war3mapImported\FighterStockCairneBloodhoofP3.blp	4116
-_de.w3mod\war3mapImported\FighterStockCairneBloodhoofP4.blp	4073
+_de.w3mod\war3mapImported\FighterStockCairneBloodhoofP1.blp	4318
+_de.w3mod\war3mapImported\FighterStockCairneBloodhoofP2.blp	4398
+_de.w3mod\war3mapImported\FighterStockCairneBloodhoofP3.blp	4544
+_de.w3mod\war3mapImported\FighterStockCairneBloodhoofP4.blp	4354
 _de.w3mod\war3mapImported\FighterStockChenStormstoutP1.blp	4085
 _de.w3mod\war3mapImported\FighterStockChenStormstoutP2.blp	4082
 _de.w3mod\war3mapImported\FighterStockChenStormstoutP3.blp	4126
@@ -341,11 +341,11 @@ _de.w3mod\war3mapImported\FighterTileBlademasterP1.blp	25782
 _de.w3mod\war3mapImported\FighterTileBlademasterP2.blp	25936
 _de.w3mod\war3mapImported\FighterTileBlademasterP3.blp	26076
 _de.w3mod\war3mapImported\FighterTileBlademasterP4.blp	25944
-_de.w3mod\war3mapImported\FighterTileCairneBloodhoof.blp	34133
-_de.w3mod\war3mapImported\FighterTileCairneBloodhoofP1.blp	32835
-_de.w3mod\war3mapImported\FighterTileCairneBloodhoofP2.blp	33172
-_de.w3mod\war3mapImported\FighterTileCairneBloodhoofP3.blp	33842
-_de.w3mod\war3mapImported\FighterTileCairneBloodhoofP4.blp	32987
+_de.w3mod\war3mapImported\FighterTileCairneBloodhoof.blp	36729
+_de.w3mod\war3mapImported\FighterTileCairneBloodhoofP1.blp	35196
+_de.w3mod\war3mapImported\FighterTileCairneBloodhoofP2.blp	35530
+_de.w3mod\war3mapImported\FighterTileCairneBloodhoofP3.blp	36290
+_de.w3mod\war3mapImported\FighterTileCairneBloodhoofP4.blp	35458
 _de.w3mod\war3mapImported\FighterTileChenStormstout.blp	26283
 _de.w3mod\war3mapImported\FighterTileChenStormstoutP1.blp	26322
 _de.w3mod\war3mapImported\FighterTileChenStormstoutP2.blp	26323

@@ -65,7 +65,10 @@ per-fighter turn, Stand time, camera angle or crop zoom; `level` poses at the
 Stand frame whose face is closest to level and tilts the camera (at most 35
 degrees) to meet what tilt remains. Wisp draws the same pose the script
 evaluates: a Definitive Mountain King judged as a back view faces the camera,
-with his face a thin strip between helmet brim and beard. The portrait light is
+with his face a thin strip between helmet brim and beard. Definitive Murloc
+has no correction yet: across his Stand clips the posed eyes sit about 15
+units above the ground and spread apart, so no turn, time or angle frames a
+face. Classic Anub'arak's face stays dark under his crest. The portrait light is
 the neutral stage light (classic midday key and fill) with its key turned to the camera's side (25 degrees
 toward image left, 30 above), so turned faces take the key in both modes;
 Definitive renders also get a 1.4 gamma lift. The hero glow under the feet is
