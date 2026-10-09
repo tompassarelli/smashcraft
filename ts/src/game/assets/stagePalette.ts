@@ -52,10 +52,10 @@ export const STAGE_DECK_PALETTES: readonly { readonly stage: number; readonly th
   // Icecrown ice over dark saronite.
   { stage: FROZEN_THRONE_STAGE, theme: "Icecrown", palette: { top: [200, 226, 240], lip: [220, 240, 252], body: [50, 62, 84], underside: [70, 86, 108] }, materials: {"top":{"texture":"TerrainArt\\Icecrown\\Ice_RuneBricks.blp"},"lip":{"texture":"TerrainArt\\Icecrown\\Ice_Ice.blp"},"body":{"texture":"TerrainArt\\Icecrown\\Ice_BlackSquares.blp"},"underside":{"texture":"Textures\\Ice_Natural01.blp"},"platform":{"top":{"texture":"TerrainArt\\Icecrown\\Ice_TiledBricks.blp"},"lip":{"texture":"TerrainArt\\Icecrown\\Ice_Ice.blp"},"body":{"texture":"TerrainArt\\Icecrown\\Ice_BlackBricks.blp"},"underside":{"texture":"TerrainArt\\Icecrown\\Ice_BlackBricks.blp"},"tint":[180,208,224]}} },
   // Ashenvale grass over roots with a moonwell-teal lip.
-  { stage: WIND_TEST_STAGE, theme: "Nordrassil", palette: { top: [142, 182, 104], lip: [110, 170, 160], body: [78, 60, 54], underside: [100, 84, 76] }, materials: {
-    top: { texture: "TerrainArt\\Ashenvale\\Ashen_GrassLumpy.blp" },
+  { stage: WIND_TEST_STAGE, theme: "Nordrassil", palette: { top: [160, 220, 128], lip: [110, 170, 160], body: [150, 132, 120], underside: [100, 84, 76] }, materials: {
+    top: { texture: "TerrainArt\\Ashenvale\\Ashen_GrassLumpy.blp", crop: [0, 0, 0.125, 0.25] },
     lip: { texture: "TerrainArt\\Ashenvale\\Ashen_Vines.blp" },
-    body: { texture: "TerrainArt\\Ashenvale\\Ashen_Rock.blp" },
+    body: { texture: "TerrainArt\\Ashenvale\\Ashen_Rock.blp", crop: [0, 0, 0.125, 0.25] },
     underside: { texture: "TerrainArt\\Ashenvale\\Ashen_DirtRough.blp" },
     platform: {
       top: { texture: "TerrainArt\\Ashenvale\\Ashen_leaves.blp" },
