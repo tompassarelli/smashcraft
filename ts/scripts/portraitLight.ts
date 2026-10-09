@@ -2,7 +2,7 @@
 // bust (FighterBust*P1, the crop the tiles share) in Classic and Definitive.
 // Usage: bun scripts/portraitLight.ts [FIGHTER_RENDERS]  (default: the stored fighter-renders family)
 import { join } from 'node:path';
-import { Effect } from 'effect';
+import { Effect, Schema } from 'effect';
 import { assetsView, readManifest } from './wisp/buildInputs';
 import { RENDERED_FIGHTERS, fighterRenderName } from '../src/game/sim/heroes/registry';
 import { CARD_PREVIEW, CARD_TEXTURE_PX, TILE_TEXTURE_PX, cardPortrait } from '../src/game/ui/portraitFrames';
@@ -110,32 +110,40 @@ export function judge(lights: ReadonlyMap<string, Light>): string[] {
   return problems;
 }
 
-export const pixels = (path: string): Uint8Array => {
-  const result = Bun.spawnSync(['magick', path, '-depth', '8', 'RGBA:-'], { stdout: 'pipe', stderr: 'pipe' });
-  if (result.exitCode !== 0) throw new Error(`${path}: ${result.stderr.toString()}`);
-  return new Uint8Array(result.stdout);
-};
+class PixelsFailure extends Schema.TaggedError<PixelsFailure>()('PixelsFailure', { problem: Schema.String }) {}
+
+export const pixels = (path: string): Effect.Effect<Uint8Array, PixelsFailure> => Effect.try({
+  try: () => {
+    const result = Bun.spawnSync(['magick', path, '-depth', '8', 'RGBA:-'], { stdout: 'pipe', stderr: 'pipe' });
+    if (result.exitCode !== 0) throw new Error(result.stderr.toString());
+    return new Uint8Array(result.stdout);
+  },
+  catch: (cause) => new PixelsFailure({ problem: `${path}: ${String(cause)}` }),
+});
 export const bustPixels = pixels;
 
 const portrait = (renders: string, look: 'classic' | 'definitive', kind: string, name: string) => join(renders, ...(look === 'definitive' ? ['de'] : []), `Fighter${kind}${name}P1.tga`);
 
-export const lookLights = (renders: string, look: 'classic' | 'definitive', names = RENDERED_FIGHTERS.map(fighterRenderName)): Map<string, Light> =>
-  new Map(names.map((name) => [name, lightOf(pixels(portrait(renders, look, 'Bust', name)))]));
+export const lookLights = (renders: string, look: 'classic' | 'definitive', names = RENDERED_FIGHTERS.map(fighterRenderName)): Effect.Effect<Map<string, Light>, PixelsFailure> =>
+  Effect.forEach(names, (name) => Effect.map(pixels(portrait(renders, look, 'Bust', name)), (bytes) => [name, lightOf(bytes)] as const)).pipe(Effect.map((entries) => new Map(entries)));
 
 if (import.meta.main) {
-  const renders = process.argv[2] ?? join(assetsView(await Effect.runPromise(readManifest())), 'fighter-renders');
-  const problems = judgePreview();
-  for (const look of ['classic', 'definitive'] as const) {
-    const lights = lookLights(renders, look);
-    for (const [name, { mean, lit }] of lights) {
-      const card = placementOf(pixels(portrait(renders, look, 'Card', name)), CARD_TEXTURE_PX), chip = placementOf(pixels(portrait(renders, look, 'Bust', name)), TILE_TEXTURE_PX);
-      console.log(`${look} ${name}: mean ${mean.toFixed(1)} lit ${lit.toFixed(2)}; card centre ${(card.box.x + card.box.w / 2).toFixed(3)},${(card.box.y + card.box.h / 2).toFixed(3)} fill ${Math.max(card.box.w, card.box.h).toFixed(2)}; chip centroid ${chip.centroid.x.toFixed(2)} cover ${chip.cover.toFixed(2)}`);
-      problems.push(...[...judgeCard(name, card), ...judgeChip(name, chip)].map((problem) => `${look} ${problem}`));
+  const exitCode = await Effect.runPromise(Effect.gen(function* () {
+    const renders = process.argv[2] ?? join(assetsView(yield* readManifest()), 'fighter-renders');
+    const problems = judgePreview();
+    for (const look of ['classic', 'definitive'] as const) {
+      const lights = yield* lookLights(renders, look);
+      for (const [name, { mean, lit }] of lights) {
+        const card = placementOf(yield* pixels(portrait(renders, look, 'Card', name)), CARD_TEXTURE_PX), chip = placementOf(yield* pixels(portrait(renders, look, 'Bust', name)), TILE_TEXTURE_PX);
+        console.log(`${look} ${name}: mean ${mean.toFixed(1)} lit ${lit.toFixed(2)}; card centre ${(card.box.x + card.box.w / 2).toFixed(3)},${(card.box.y + card.box.h / 2).toFixed(3)} fill ${Math.max(card.box.w, card.box.h).toFixed(2)}; chip centroid ${chip.centroid.x.toFixed(2)} cover ${chip.cover.toFixed(2)}`);
+        problems.push(...[...judgeCard(name, card), ...judgeChip(name, chip)].map((problem) => `${look} ${problem}`));
+      }
+      const means = [...lights.values()].map((light) => light.mean);
+      console.log(`${look}: ${lights.size} fighters, mean ${Math.min(...means).toFixed(1)}-${Math.max(...means).toFixed(1)}, spread ${(Math.max(...means) / Math.min(...means)).toFixed(2)}, lit from ${Math.min(...[...lights.values()].map((light) => light.lit)).toFixed(2)}`);
+      problems.push(...judge(lights).map((problem) => `${look} ${problem}`));
     }
-    const means = [...lights.values()].map((light) => light.mean);
-    console.log(`${look}: ${lights.size} fighters, mean ${Math.min(...means).toFixed(1)}-${Math.max(...means).toFixed(1)}, spread ${(Math.max(...means) / Math.min(...means)).toFixed(2)}, lit from ${Math.min(...[...lights.values()].map((light) => light.lit)).toFixed(2)}`);
-    problems.push(...judge(lights).map((problem) => `${look} ${problem}`));
-  }
-  for (const problem of problems) console.log(`FAIL ${problem}`);
-  process.exit(problems.length > 0 ? 1 : 0);
+    for (const problem of problems) console.log(`FAIL ${problem}`);
+    return problems.length > 0 ? 1 : 0;
+  }));
+  process.exit(exitCode);
 }

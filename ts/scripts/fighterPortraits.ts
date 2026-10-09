@@ -628,7 +628,7 @@ await Effect.runPromise(Effect.gen(function*() {
         const into = join(directory, `pass-${pass.name}`);
         mkdirSync(into, { recursive: true });
         yield* draw(frame, image, LIGHT_PASSES.map((_, other) => other === index ? 1 : 0), 1, into, ['Bust']);
-        busts.push(bustPixels(join(into, `FighterBust${name}P1.tga`)));
+        busts.push(yield* bustPixels(join(into, `FighterBust${name}P1.tga`)));
       }
       const lightAt = (weights: readonly number[], scale: number) => lightOf(combine(busts, weights.map((weight) => weight * scale), linear, gammaOf(character)));
       const options = LIGHT_VARIANTS.map((light) => {
