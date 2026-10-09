@@ -30,6 +30,7 @@ import { MATCH_TICKS_PER_SECOND, type MatchState, stageClock } from "./rules";
 import { trainingPartnerInput } from "./training";
 import { sameFighterState } from "../replay/fighterState";
 import { type BotStrategy, copyBotStrategy, learnBotHabit, prepareBotRead, pressBotRead, sameBotStrategy } from "./botStrategy";
+import { applyAerialExecutionNoise, chooseHitlagInput } from "./botExecutionNoise";
 import type { BotDecision } from "./pacingAndPresentation";
 
 const COMPUTER_NEUTRAL = neutralControls();
@@ -165,6 +166,8 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
   }
   decide(game, world, runtime, slot, frame, input, commands, perceivedCpuSkill(opponent, tier), target, reactionFrames);
   upgradeThreatenedSpecial(fighter, target, input);
+  if (fighter.launch.hitlag <= 0 && fighter.launch.hitstun > 0) chooseHitlagInput(fighter, slot, frame, skill, input);
+  if (!game.training) applyAerialExecutionNoise(fighter, target, slot, skill, input);
   // DI and escape mashing are reactions to the fighter's own state, not steering.
   if (fighter.launch.hitlag <= 0 && fighter.grab.owner === undefined) commitBotDirection(runtime.botMemory, slot, frame, input);
   useMatchSeed(0);
@@ -243,8 +246,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
   const stageFrame = stageClock(game);
   const gameplan = gameplanOf(fighter.character);
   if (fighter.launch.hitlag > 0) {
-    // Hitlag's last frame reads the stick for directional influence: in toward the middle.
-    if (fighter.launch.diPending && botChance(fighter.visuals.hit, fighter.character * 3 + 2, skill.diTenths, 10)) input.direction = fighter.motion.x < 0 ? 1 : -1;
+    chooseHitlagInput(fighter, slot, frame, skill, input);
     return;
   }
   if (fighter.status.frozenFrames > 0 || heroStatusMashes(fighter)) {
@@ -298,7 +300,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
   const planIndex = gameplanPlan(gameplan, fighter, slot, frame, botChoice);
   if (delay <= 0 && chooseAttack(fighter, target, stage, stageFrame, frame, plansRanged(gameplan, planIndex), input, commands, slot, planIndex, skill, observationAge, { strategy: runtime.botStrategies[slot], policy: skill.decision, game })) {
     runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
-    if (!fighter.motion.grounded) steerInAir(fighter, stage, gameplanGoal(gameplan, fighter, target, stage, 0.0), input);
+    if (!fighter.motion.grounded) steerInAir(fighter, stage, gameplanGoal(gameplan, fighter, target, stage, gameplan.range.near), input);
     return;
   }
   if (delay <= 0 && lastChoicePassedForVariety()) approach(fighter, target, stage, Plan.ground, frame, input);

@@ -150,6 +150,38 @@ An active Divine Shield can also fund a ranged attack when the opponent remains
 outside melee reach. Its mana is available for that attack instead of being held
 for a second guard; without active protection, the guard reserve still applies.
 
+## Defence and aerial execution slips
+
+[#357](https://github.com/tompassarelli/smashcraft/issues/357) adds legal seeded
+input errors without changing fighter stats. DI uses the victim’s visible
+knockback angle: side launches turn upward for survival and downward for combo
+escape; vertical launches turn outward for survival and inward for escape.
+Survival takes priority at 80 damage or launch speed 20. A slip drops DI,
+applies it after hitlag has released the launch, or points it the wrong way. Strong hits (at least 20
+hitstun frames) and continuing strings receive an escaping SDI pulse every
+other tick; a missed save drops that pulse or reverses it.
+
+For execution `E`, the initial rates per 1,000 opportunities are
+`DI = 30 + 5 × (100 − E)`, `SDI = 60 + 8 × (100 − E)`,
+`full hop = 3 + floor((100 − E)/2)` and
+`aerial drift = 20 + 4 × (100 − E)`.
+The Expert rows (execution 96–98) therefore request 4–5% DI slips,
+7.6–9.2% SDI misses, 0.4–0.5% accidental full hops and 2.8–3.6% aerial
+spacing errors. Every lower tier increases each rate monotonically.
+A successful intended short hop presses the dedicated short-hop button;
+a mistake holds ordinary jump through squat. A drifting aerial keeps its
+planned gap, but a slip adds 5–11 ticks of inward stick and fast-falls when
+descending, with a seeded 0–2 tick delay after startup. Lower execution also extends the
+inward drift. Hit, jump and attack serials plus slot, character and shared
+match seed keep a choice fixed for its opportunity on every client and replay.
+Only delayed opponent position supplies the drift direction.
+
+The `botExecutionNoise` production-input sweep executes 2,000 of each
+opportunity for every identity and tier, counting launch rotation, SDI travel,
+actual takeoff speed and final aerial position. It checks Expert’s issue
+ranges and monotonic errors at lower tiers. The shield-grab case executes the
+same aerial with correct spacing and an Expert drift mistake.
+
 ## CPU-slot selection
 
 The card retains its fighter portrait/chip and displays a compact summary:

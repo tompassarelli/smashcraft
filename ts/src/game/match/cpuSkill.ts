@@ -8,6 +8,8 @@ import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
 import { CPU_OPPONENT_DEFAULT, CPU_OPPONENT_IDS, CPU_PROFILES, CPU_TIER_DEFAULT, CPU_TIERS, type CpuOpponentId, type CpuProfile, type CpuTier } from "./cpuProfiles";
 
 export interface CpuSkill {
+  /** Debug ceiling experiments disable mistakes without changing the five playable tiers. */
+  readonly executionMistakes?: boolean;
   readonly decision: CpuDecisionPolicy;
   /** Age of the opponent observation used for decisions, in input frames. */
   readonly reactionFrames: number;
@@ -22,8 +24,6 @@ export interface CpuSkill {
   readonly idle: number;
   /** Whether it weighs moves by its fighter's gameplan; below, every move in reach is as likely. */
   readonly gameplanWeights: boolean;
-  /** Hits, in tenths, whose launch it influences toward the middle. */
-  readonly diTenths: number;
   /** Tumbling landings it misses the tech on: techMiss of techOutOf. */
   readonly techMiss: number;
   readonly techOutOf: number;
@@ -52,7 +52,7 @@ function mechanics(profile: CpuProfile): CpuSkill {
     defendTenths: Math.min(7, floorDiv(profile.judgmentPercent * 7 + 99, 100)),
     attackPause: 3 + floorDiv(missed, 2), attackSpread: 8 + floorDiv(missed, 2),
     misplay: floorDiv(Math.max(0, 96 - profile.spacingPercent), 2), idle: floorDiv(Math.max(0, 80 - profile.pressurePercent), 4),
-    gameplanWeights: true, diTenths: floorDiv(profile.executionPercent + 9, 10),
+    gameplanWeights: true,
     techMiss: missed, techOutOf: 100, grabMashFrames: 2 + floorDiv(missed, 5),
     freezeMashFrames: 6 + floorDiv(missed, 5), mixesUp: true, grabsShields: true,
     kitTenths: floorDiv(profile.executionPercent + 9, 10),
