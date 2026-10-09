@@ -218,8 +218,9 @@ region (`surfaceOverlapDistance`, first active frame). Criterion 1 is
 `bun wisp anim score --graphics definitive`
 (smashcraft:tools/move-data/anim-score/definitive.tsv): moves passing lines 1–4, and
 mean shortfall in Definitive and Classic. Line 5 has no judgement yet. No fighter
-passes criterion 1 in either look: the source animations are the limit (#180), so
-the flag currently follows criteria 2–4.
+passes criterion 1 in either look: the source animations are the limit, which
+[#180](https://github.com/tompassarelli/smashcraft/issues/180) tracks. Decision
+(9 October): a fighter is Definitive when it passes criteria 2–4.
 
 | ID | Fighter | 1: Definitive / Classic moves passing, shortfall | 2 | 3 | 4 | Flag |
 |---|---|---|---|---|---|---|
