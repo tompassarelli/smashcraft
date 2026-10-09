@@ -284,12 +284,12 @@ export function moveSoundLabels(characters: readonly Character[]): string[] {
     for (let style = 0; style <= AttackStyle.jab3; style++) {
       const row = moveSound(character, style);
       if (row === undefined) continue;
-      for (const each of [...row.perform, ...row.hit, ...row.strong, ...row.shield, ...(row.voice === undefined ? [] : [row.voice])]) each.sounds.forEach(add);
+      for (const each of [...row.perform, ...row.hit, ...row.strong, ...row.shield, ...(row.voice === undefined ? [] : [row.voice])]) each.sounds.forEach((sound) => add(sound));
     }
     for (let slot = 0; slot < 4; slot++) {
       const row = moveSound(character, specialMove(slot));
       if (row === undefined) continue;
-      for (const each of [...row.perform, ...row.hit, ...row.strong, ...row.shield, ...(row.voice === undefined ? [] : [row.voice])]) each.sounds.forEach(add);
+      for (const each of [...row.perform, ...row.hit, ...row.strong, ...row.shield, ...(row.voice === undefined ? [] : [row.voice])]) each.sounds.forEach((sound) => add(sound));
     }
   }
   return labels;
