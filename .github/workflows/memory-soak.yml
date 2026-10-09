@@ -14,6 +14,9 @@ on:
       minutes:
         description: Game minutes to play
         default: "30"
+      matches:
+        description: All-computer release matches instead of the memory slope check
+        default: ""
       tag:
         description: Names the run so `bun wisp farm` can find the one it dispatched
         default: ""
@@ -27,6 +30,11 @@ permissions:
 
 jobs:
   soak:
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        shard: ${{ fromJSON(inputs.matches == '1' && '[0]' || inputs.matches == '2' && '[0,1]' || inputs.matches == '3' && '[0,1,2]' || inputs.matches && '[0,1,2,3]' || '[0]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -40,13 +48,29 @@ jobs:
         working-directory: ts
       - name: Soak ${{ inputs.minutes || '30' }} game minutes
         working-directory: ts
+        env:
+          RELEASE_MATCHES: ${{ inputs.matches }}
+          RELEASE_SHARD: ${{ matrix.shard }}
         run: |
           set -o pipefail
           mkdir -p memory-out
-          bun wisp soak memory --minutes "${{ inputs.minutes || '30' }}" --out memory-out/samples.txt 2>&1 | tee memory-out/verdict.txt
+          args=()
+          if [[ -n "$RELEASE_MATCHES" ]]; then
+            shards=4
+            if (( RELEASE_MATCHES < shards )); then shards=$RELEASE_MATCHES; fi
+            base=$(( RELEASE_MATCHES / shards ))
+            remainder=$(( RELEASE_MATCHES % shards ))
+            count=$base
+            extra=$RELEASE_SHARD
+            if (( RELEASE_SHARD < remainder )); then count=$(( count + 1 )); else extra=$remainder; fi
+            first=$(( RELEASE_SHARD * base + extra ))
+            args+=(--matches "$count" --first "$first")
+          fi
+          bun wisp soak memory --minutes "${{ inputs.minutes || '30' }}" "${args[@]}" --out memory-out/samples.txt 2>&1 | tee memory-out/verdict.txt
+          if [[ -n "$RELEASE_MATCHES" && "$RELEASE_SHARD" == 0 ]]; then cp build/playable.lua memory-out/playable.lua; fi
       - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: memory-soak
+          name: memory-soak${{ inputs.matches && format('-{0}', matrix.shard) || '' }}
           path: ts/memory-out
           retention-days: 14

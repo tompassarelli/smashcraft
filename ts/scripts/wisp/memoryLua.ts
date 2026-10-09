@@ -24,10 +24,11 @@ import { HandleCensus, compactEmulator, reach } from "./memoryCensus";
 
 declare const arg: Readonly<Record<number, string | undefined>>;
 
-const [bundlePath, declarationsPath, minutesText = "30"] = [arg[1], arg[2], arg[3]];
+const [bundlePath, declarationsPath, minutesText = "30", matchesText, firstText = "0"] = [arg[1], arg[2], arg[3], arg[4], arg[5]];
 if (bundlePath === undefined || declarationsPath === undefined) throw new Error("usage: lua memory.lua MAP_LUA WARCRAFT_D_TS [MINUTES]");
 const FRAMES_PER_MINUTE = 3600;
 const totalFrames = Number(minutesText) * FRAMES_PER_MINUTE;
+const releaseMatches = matchesText === undefined ? undefined : Number(matchesText);
 const declarationsText = readFile(declarationsPath);
 const { functions } = parseNativeDeclarations(declarationsText);
 const clients = luaLockstep({ filePrefix: "smashcraft", localNatives: PREDICTED_LOCAL_NATIVES, intentionalNoops: SMASHCRAFT_NOOPS, natives: smashcraftNativeBehavior }, readFile(bundlePath), declarationsText, undefined, syncDelivery(MEASURED_BATTLE_NET, 7));
@@ -78,7 +79,7 @@ const census = (heading: string) => {
 const frame = () => {
   // The shell starts at the first timer, after the first frame.
   const inMatch = clients.frame > 0 && gameOf(host).phase === Phase.match;
-  const [tap, hold] = inMatch ? botBeatKeys(++beat) : [0, 0];
+  const [tap, hold] = inMatch && releaseMatches === undefined ? botBeatKeys(++beat) : [0, 0];
   for (const player of clients.clients) {
     if (hold !== held && held !== 0) for (const client of clients.clients) client.key(player.slot, held, 0, false);
     if (hold !== held && hold !== 0) for (const client of clients.clients) client.key(player.slot, hold, 0, true);
@@ -89,7 +90,7 @@ const frame = () => {
   if (tap !== 0) for (const player of clients.clients) for (const client of clients.clients) client.key(player.slot, tap, 0, false);
   // Each frame's logged calls fold into the checksum at once: a log kept for a minute would grow the heap by its own array.
   for (const client of clients.clients) client.forget(client.log.length);
-  if (floorMod(clients.frame, FRAMES_PER_MINUTE) === 0) census(`kind=minute minute=${floorDiv(clients.frame, FRAMES_PER_MINUTE)}`);
+  if (releaseMatches === undefined && floorMod(clients.frame, FRAMES_PER_MINUTE) === 0) census(`kind=minute minute=${floorDiv(clients.frame, FRAMES_PER_MINUTE)}`);
 };
 
 const until = (what: string, limit: number, done: () => boolean, each?: (index: number) => void) => {
@@ -105,8 +106,9 @@ const choose = (lineup: number, automaticRematch: boolean) => {
   const stage = STAGE_CATALOG[floorMod(lineup, STAGE_CATALOG.length)]?.id ?? 0;
   for (const client of clients.clients) {
     const game = gameOf(client);
+    if (releaseMatches !== undefined) game.humanFighterMask = 0;
     for (let slot = 0; slot < 4; slot++) {
-      if (slot >= 2) game.computerMask |= 1 << slot;
+      if (slot >= 2 || releaseMatches !== undefined) game.computerMask |= 1 << slot;
       game.characterChoices[slot] = SELECTABLE_CHARACTERS[floorMod(lineup * 4 + slot, SELECTABLE_CHARACTERS.length)] ?? 0;
       game.characterReadiness[slot] = true;
     }
@@ -120,10 +122,10 @@ const choose = (lineup: number, automaticRematch: boolean) => {
 clients.start();
 for (const client of clients.clients) for (const error of client.errors) print(`start p${client.slot}: ${error}`);
 for (let index = 0; index < 30; index++) frame();
-census("kind=start");
-let lineup = 0;
+if (releaseMatches === undefined) census("kind=start");
+let lineup = Number(firstText);
 let rematchNext = false;
-while (clients.frame < totalFrames) {
+while (releaseMatches === undefined ? clients.frame < totalFrames : matches < releaseMatches) {
   const rematch: boolean = rematchNext;
   // Every third match is the automatic rematch of the one before.
   rematchNext = !rematch && floorMod(matches, 3) === 1;
@@ -139,7 +141,15 @@ while (clients.frame < totalFrames) {
   until("the result", 3 * FRAMES_PER_MINUTE, () => gameOf(host).phase === Phase.result);
   matches++;
   for (let index = 0; index < 60; index++) frame();
-  census(`kind=match match=${matches} lineup=${lineup} path=${rematch ? "rematch" : "menus"}`);
+  if (releaseMatches === undefined) census(`kind=match match=${matches} lineup=${lineup} path=${rematch ? "rematch" : "menus"}`);
+  else {
+    clients.clients.forEach((client, index) => {
+      const handles = censuses[index];
+      if (handles !== undefined) for (const error of compactEmulator(client, handles.takeReleased())) errors.push(`p${client.slot}: ${error}`);
+    });
+    print(`release match=${matches} lineup=${lineup} path=${rematch ? "rematch" : "menus"} cpu-mask=${gameOf(host).computerMask}`);
+  }
+  if (releaseMatches !== undefined && matches >= releaseMatches) break;
   if (rematchNext) until("the rematch", 20 * 60, () => gameOf(host).phase === Phase.match);
   else {
     // A press stops a rematch countdown; then each player's readies them for fighter selection.
@@ -148,13 +158,15 @@ while (clients.frame < totalFrames) {
       if (floorMod(index, 30) === 0) clients.press(floorMod(floorDiv(index, 30), 2), Key.y);
     });
     for (let index = 0; index < 60; index++) frame();
-    census(`kind=menu lineup=${lineup}`);
+    if (releaseMatches === undefined) census(`kind=menu lineup=${lineup}`);
     lineup++;
   }
 }
 const divergence = clients.firstDivergence();
 const checksums = clients.clients.map((client) => client.checksum());
 if (divergence !== undefined || checksums.some((checksum) => checksum !== checksums[0])) errors.push(`desync: ${divergence ?? checksums.join(" ")}`);
+for (const client of clients.clients) for (const error of client.errors) errors.push(`p${client.slot}: ${error}`);
 for (const error of errors) print(`problem ${error}`);
+if (releaseMatches !== undefined) print(`release matches=${matches} crashes=${errors.length} desyncs=${divergence === undefined && checksums.every((checksum) => checksum === checksums[0]) ? 0 : 1}`);
 print(`done frames=${clients.frame} matches=${matches} problems=${errors.length}`);
 if (errors.length > 0) os.exit(1);

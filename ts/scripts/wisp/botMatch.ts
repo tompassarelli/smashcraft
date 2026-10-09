@@ -93,6 +93,7 @@ export interface Game {
   stockCount: number;
   timeLimitMinutes: number;
   computerMask: number;
+  humanFighterMask: number;
   stageChoice: number;
   automaticRematch: boolean;
   readonly characterChoices: number[];

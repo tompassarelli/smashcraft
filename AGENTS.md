@@ -593,8 +593,13 @@ code. From smashcraft:ts/:
   counts, so a runner predicts what this machine would; use it instead of a
   local perf run; `bun wisp farm memory [--minutes N] [--wait]` runs the
   30-minute memory soak (also nightly). Without `--ref` it measures the checkout's HEAD (a commit not on
-  main goes to a scratch `farm/` branch, deleted after the run). Use it
-  instead of a local cpuField or pad run: the repository is public, so the
+  main goes to a scratch `farm/` branch, deleted after the run).
+  `bun wisp farm memory --matches 50 --ref FULL_SHA --wait` runs the playable
+  Lua build in two clients per job through 50 all-computer matches across at most
+  four jobs, including rematches,
+  and fails on a crash or desync. `bun wisp soak memory --matches N --bundle FILE`
+  checks an extracted playable Lua bundle locally; its report names every match.
+  Use the farm instead of a local cpuField or pad run: the repository is public, so the
   runners cost nothing, and this machine stays free. Measured 7 Oct on main
   43021d8c: the level-9, 400-a-pair field (26,400 matches) took 4.1 min from
   dispatch to the printed table, against about 25 min locally; all 17 pad

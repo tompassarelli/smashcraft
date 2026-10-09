@@ -75,19 +75,34 @@ const perfResult = (repo: string, id: number, state: RunState, runs: readonly st
   if (state.conclusion !== "success" || failed.length > 0) return yield* new FarmFailure({ problem: `the perf run ended ${state.conclusion} (${[...jobsFailed, ...failed].join(", ")}); gh run view ${id} -R ${repo} --log-failed` });
 });
 
-const memoryResult = (repo: string, id: number, state: RunState) => Effect.gen(function*() {
+const memoryResult = (repo: string, id: number, state: RunState, matches?: number) => Effect.gen(function*() {
   const folder = mkdtempSync(join(tmpdir(), "farm-memory-"));
-  const downloaded = yield* run(["gh", "run", "download", String(id), "-R", repo, "-n", "memory-soak", "-D", folder]).pipe(Effect.as(true), Effect.orElseSucceed(() => false));
-  if (downloaded) console.log(readFileSync(join(folder, "verdict.txt"), "utf8").trimEnd());
+  let completed = 0;
+  let problems = 0;
+  const shards = matches === undefined ? 1 : Math.min(4, matches);
+  for (let shard = 0; shard < shards; shard++) {
+    const name = matches === undefined ? "memory-soak" : `memory-soak-${shard}`;
+    const destination = join(folder, String(shard));
+    const downloaded = yield* run(["gh", "run", "download", String(id), "-R", repo, "-n", name, "-D", destination]).pipe(Effect.as(true), Effect.orElseSucceed(() => false));
+    if (!downloaded) { problems++; continue; }
+    const verdict = readFileSync(join(destination, "verdict.txt"), "utf8");
+    console.log(verdict.trimEnd());
+    if (matches !== undefined) {
+      const result = /^release matches=(\d+) crashes=(\d+) desyncs=(\d+)$/m.exec(verdict);
+      if (result === null) problems++;
+      else { completed += Number(result[1]); problems += Number(result[2]) + Number(result[3]); }
+    }
+  }
   rmSync(folder, { recursive: true });
-  console.log(`Samples: gh run download ${id} -R ${repo} -n memory-soak`);
-  if (state.conclusion !== "success") return yield* new FarmFailure({ problem: `the memory soak ended ${state.conclusion}; gh run view ${id} -R ${repo} --log-failed` });
+  console.log(`Samples: gh run download ${id} -R ${repo}`);
+  if (matches !== undefined) console.log(`release total matches=${completed} crashes-and-desyncs=${problems}`);
+  if (state.conclusion !== "success" || (matches !== undefined && (completed !== matches || problems !== 0))) return yield* new FarmFailure({ problem: `the memory soak ended ${state.conclusion}; gh run view ${id} -R ${repo} --log-failed` });
 });
 
 export const farm: Command = (args) => Effect.gen(function*() {
   const parsed = yield* Effect.try({
     try: () => parseArgs({ args: [...args], allowPositionals: true, options: {
-      ref: { type: "string" }, wait: { type: "boolean" }, out: { type: "string" }, opponent: { type: "string" }, tier: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, matchups: { type: "string" }, probe: { type: "string" }, minutes: { type: "string" }, only: { type: "string", multiple: true },
+      ref: { type: "string" }, wait: { type: "boolean" }, out: { type: "string" }, opponent: { type: "string" }, tier: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, matchups: { type: "string" }, probe: { type: "string" }, minutes: { type: "string" }, matches: { type: "string" }, only: { type: "string", multiple: true },
     } }),
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
@@ -103,7 +118,7 @@ export const farm: Command = (args) => Effect.gen(function*() {
     const tag = runTag();
     const inputs = job === "balance"
       ? { ref, opponent: parsed.values.opponent ?? "wren", tier: parsed.values.tier ?? "expert", "per-pair": parsed.values["per-pair"] ?? "400", seeds: parsed.values.seeds ?? "100", matchups: parsed.values.matchups ?? "", probe: parsed.values.probe ?? "40", tag }
-      : job === "perf" ? { ref, runs: JSON.stringify(runs), tag } : job === "memory" ? { ref, minutes: parsed.values.minutes ?? "30", tag } : { ref, dirs: parsed.values.only?.join(" ") ?? ".", tag };
+      : job === "perf" ? { ref, runs: JSON.stringify(runs), tag } : job === "memory" ? { ref, minutes: parsed.values.minutes ?? "30", matches: parsed.values.matches ?? "", tag } : { ref, dirs: parsed.values.only?.join(" ") ?? ".", tag };
     const started = performance.now();
     const found = yield* dispatch(repo, workflow, inputs);
     if (parsed.values.wait !== true && scratch === undefined && job !== "perf") return;
@@ -112,6 +127,6 @@ export const farm: Command = (args) => Effect.gen(function*() {
     if (job === "balance") yield* balanceResult(repo, found.databaseId, state);
     else if (job === "perf") yield* perfResult(repo, found.databaseId, state, runs, parsed.values.out);
     else if (job === "pads") yield* padsResult(repo, found.databaseId, state);
-    else yield* memoryResult(repo, found.databaseId, state);
+    else yield* memoryResult(repo, found.databaseId, state, parsed.values.matches === undefined ? undefined : Number(parsed.values.matches));
   }));
 });
