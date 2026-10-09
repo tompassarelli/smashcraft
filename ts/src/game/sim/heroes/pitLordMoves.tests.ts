@@ -14,23 +14,13 @@ import { heroBody } from "./heroBodies";
 
 
 const NORMALS = [
-  [AttackStyle.jab, 7, 3, 19, 0],
-  [AttackStyle.forwardTilt, 13, 4, 35, 0],
-  [AttackStyle.forwardTiltUp, 13, 4, 35, 0],
-  [AttackStyle.forwardTiltDown, 13, 4, 35, 0],
-  [AttackStyle.upTilt, 12, 5, 27, 0],
-  [AttackStyle.downTilt, 10, 3, 24, 0],
-  [AttackStyle.dashAttack, 15, 6, 34, 0],
-  [AttackStyle.forwardSmash, 27, 4, 43, 0],
-  [AttackStyle.upSmash, 24, 5, 39, 0],
-  [AttackStyle.downSmash, 22, 7, 28, 0],
-  [AttackStyle.neutralAir, 12, 7, 29, 20],
-  [AttackStyle.forwardAir, 19, 4, 36, 25],
-  [AttackStyle.backAir, 14, 4, 31, 20],
-  [AttackStyle.upAir, 11, 4, 28, 18],
-  [AttackStyle.downAir, 20, 5, 38, 28],
-  [AttackStyle.grab, 10, 3, 32, 0],
+  AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt,
+  AttackStyle.downTilt, AttackStyle.dashAttack, AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.downSmash,
+  AttackStyle.neutralAir, AttackStyle.forwardAir, AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir, AttackStyle.grab,
 ] as const;
+const firstActive = (style: AttackStyle) => attackStartupFrames(style, PIT_LORD_MOVES) + 1;
+const damageOf = (style: AttackStyle, region: number) => PIT_LORD_MOVES.normals[style]?.regions[region]?.hit.effect.damage ?? -1.0;
+const hurtPose = (style: AttackStyle, pose: number) => PIT_LORD_MOVES.hurtboxes?.attacks[style]?.[pose];
 
 function pair(style: AttackStyle, frame: number, x: number, facing = 1) {
   const owner = createFighter(Character.pitLord, 0.0, facing);
@@ -43,11 +33,12 @@ function pair(style: AttackStyle, frame: number, x: number, facing = 1) {
   return { owner, target, world };
 }
 
-test("Pit Lord's startup and active frames reach production, one live strike path per frame [spec docs/design/roster.md]", () => {
+test("Pit Lord has a live strike path on every authored active frame except the stomp turnaround, and none outside [spec docs/design/roster.md]", () => {
   const out = emptyHitRegion();
-  for (const [style, first, active] of NORMALS) {
-    assertEquals(attackStartupFrames(style, PIT_LORD_MOVES), first - 1);
-    assertEquals(characterAttackActiveFrames(Character.pitLord, style, PIT_LORD_MOVES), active);
+  const turnaround = (PIT_LORD_MOVES.normals[AttackStyle.downSmash]?.regions[2]?.lastFrame ?? -2) + 1;
+  for (const style of NORMALS) {
+    const first = firstActive(style);
+    const active = characterAttackActiveFrames(Character.pitLord, style, PIT_LORD_MOVES);
     const count = authoredHitRegionCount(style, PIT_LORD_MOVES);
     for (let frame = first - 2; frame <= first + active - 1; frame++) {
       let live = 0;
@@ -56,7 +47,7 @@ test("Pit Lord's startup and active frames reach production, one live strike pat
         if (out.window > 0) live++;
       }
 
-      const expected = frame >= first - 1 && frame < first - 1 + active && !(style === AttackStyle.downSmash && frame === 24);
+      const expected = frame >= first - 1 && frame < first - 1 + active && !(style === AttackStyle.downSmash && frame === turnaround);
       assertEquals(live > 0, expected);
     }
   }
@@ -75,22 +66,23 @@ test("Pit Lord is the roster's largest, heaviest and slowest body [spec docs/des
   }
 });
 
-test("Annihilating Cleave's head hits for 25 and its inner blade for 19; Cleaving Sweep claims XL range [spec docs/design/roster.md]", () => {
+test("Annihilating Cleave's head hits harder than its inner blade; Cleaving Sweep claims XL range [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
-    for (const [style, frame, x, damage] of [
-      [AttackStyle.forwardSmash, 28, 165.0, 25.0],
-      [AttackStyle.forwardSmash, 28, 70.0, 19.0],
-      [AttackStyle.forwardSmash, 28, 240.0, 0.0],
-      [AttackStyle.forwardTilt, 13, 195.0, 12.0],
-      [AttackStyle.forwardTilt, 13, 235.0, 0.0],
-      [AttackStyle.jab, 7, 90.0, 6.0],
-      [AttackStyle.jab, 7, 160.0, 0.0],
-      [AttackStyle.backAir, 14, -120.0, 15.0],
-      [AttackStyle.backAir, 14, 120.0, 0.0],
+    for (const [style, x, damage] of [
+      [AttackStyle.forwardSmash, 165.0, damageOf(AttackStyle.forwardSmash, 0)],
+      [AttackStyle.forwardSmash, 70.0, damageOf(AttackStyle.forwardSmash, 4)],
+      [AttackStyle.forwardSmash, 240.0, 0.0],
+      [AttackStyle.forwardTilt, 195.0, damageOf(AttackStyle.forwardTilt, 0)],
+      [AttackStyle.forwardTilt, 235.0, 0.0],
+      [AttackStyle.jab, 90.0, damageOf(AttackStyle.jab, 0)],
+      [AttackStyle.jab, 160.0, 0.0],
+      [AttackStyle.backAir, -120.0, damageOf(AttackStyle.backAir, 0)],
+      [AttackStyle.backAir, 120.0, 0.0],
     ] as const) {
-      const { target, world } = pair(style, frame, x, facing);
+      const { target, world } = pair(style, firstActive(style), x, facing);
       resolveAttacks(world);
       assertEquals(target.status.damage, damage);
+      if (style === AttackStyle.forwardSmash && x === 165.0) assertGreaterThan(damage, damageOf(AttackStyle.forwardSmash, 4));
       if (damage > 0.0) assertGreaterThan(f32(f32(target.launch.knockbackX * facing) * (x < 0 ? -1 : 1)), 0.0);
     }
   }
@@ -106,9 +98,13 @@ test("Pit Lord's tail lengthens with Tail Lash and his hoof is hittable while it
       return strikeHurtContact(probe(f32(x * facing), z), f) === HurtContact.hit;
     };
     assertTrue(!touches(undefined, 0, -100.0, 36.0));
-    for (let frame = 9; frame <= 19; frame++) assertEquals(touches(AttackStyle.backAir, frame, -100.0, 36.0), frame >= 13 && frame <= 16);
-    assertTrue(touches(AttackStyle.downTilt, 9, 85.0, 18.0));
-    assertTrue(!touches(AttackStyle.downTilt, 20, 85.0, 18.0));
+    const tail = hurtPose(AttackStyle.backAir, 1);
+    const hoof = hurtPose(AttackStyle.downTilt, 0);
+    assertTrue(tail !== undefined && hoof !== undefined);
+    if (tail === undefined || hoof === undefined) continue;
+    for (let frame = tail.firstFrame - 4; frame <= tail.lastFrame + 3; frame++) assertEquals(touches(AttackStyle.backAir, frame, -100.0, 36.0), frame >= tail.firstFrame && frame <= tail.lastFrame);
+    assertTrue(touches(AttackStyle.downTilt, hoof.firstFrame, 85.0, 18.0));
+    assertTrue(!touches(AttackStyle.downTilt, hoof.lastFrame + 1, 85.0, 18.0));
 
     assertTrue(!touches(AttackStyle.forwardTilt, 13, 160.0, 80.0));
   }

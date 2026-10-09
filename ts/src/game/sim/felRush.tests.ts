@@ -8,8 +8,8 @@ import { AttackStyle, Character, SpecialAction } from "./codes";
 import { canAttack } from "./conditions";
 import type { Controls } from "./roster";
 import {
-  CHAOS_STRIKE_FORM, FEL_RUSH_BRANCH_FIRST, FEL_RUSH_BRANCH_LAST, FEL_RUSH_FRAMES, FEL_RUSH_SPEED, FEL_RUSH_TELL_LAST,
-  VENGEFUL_RETREAT_FORM, VENGEFUL_RETREAT_FRAMES,
+  CHAOS_STRIKE_FORM, FEL_RUSH_BRANCH_FIRST, FEL_RUSH_BRANCH_LAST, FEL_RUSH_FRAMES, FEL_RUSH_LAST, FEL_RUSH_SPEED, FEL_RUSH_TELL_LAST,
+  VENGEFUL_RETREAT_FORM, VENGEFUL_RETREAT_FRAMES, VENGEFUL_RETREAT_MOVE_LAST,
 } from "./specials";
 import { type Duel, duel } from "./testDuel";
 import { controls } from "./testWorld";
@@ -43,10 +43,10 @@ test("Fel Rush: still through the tell, 200 units on frames 6-15 the way the sti
     assertEquals(d.illidan.special.action, SpecialAction.demonHunterFelRush);
     assertEquals(d.illidan.facing, side);
     assertEquals(d.illidan.motion.x, start);
-    d.run(15 - FEL_RUSH_TELL_LAST);
+    d.run(FEL_RUSH_LAST - FEL_RUSH_TELL_LAST);
     assertTrue(Math.abs(f32(f32(d.illidan.motion.x - start) - side * RUSH)) < 1.0);
     const end = d.illidan.motion.x;
-    d.run(FEL_RUSH_FRAMES - 15 - 1);
+    d.run(FEL_RUSH_FRAMES - FEL_RUSH_LAST - 1);
     assertTrue(Math.abs(f32(d.illidan.motion.x - end)) < 1.0);
     actsOnTheNextFrame(d, side);
   }
@@ -59,9 +59,9 @@ test("Fel Rush in the air: level through the rush, once per airtime, never helpl
   assertFalse(d.illidan.motion.grounded);
   d.step(sideB(1));
   const height = d.illidan.motion.z;
-  d.run(14);
+  d.run(FEL_RUSH_LAST - 1);
   assertTrue(Math.abs(f32(d.illidan.motion.z - height)) < f32(0.01));
-  d.run(FEL_RUSH_FRAMES - 15 + 1 + 40);
+  d.run(FEL_RUSH_FRAMES - FEL_RUSH_LAST + 1 + 40);
   assertFalse(d.illidan.special.fall);
   if (!d.illidan.motion.grounded) {
     d.step(sideB(1));
@@ -78,7 +78,7 @@ test("Fel Rush passes through a body, popping it up for 6 and draining 4 mana [s
   d.target.mana.points = 50;
   d.step(sideB(1));
 
-  for (let i = 0; i < 40 && d.illidan.special.frame < 15; i++) d.step();
+  for (let i = 0; i < 40 && d.illidan.special.frame < FEL_RUSH_LAST; i++) d.step();
   assertEquals(d.target.status.damage, 6.0);
   assertEquals(d.drained, 4);
   assertGreaterThan(d.illidan.motion.x, d.target.motion.x);
@@ -91,7 +91,7 @@ test("Fel Rush counterplay: a raised shield stops it short, takes no drain, and 
   d.target.mana.points = 50;
   d.run(4, controls(), SHIELD);
   assertTrue(d.target.shield.raised);
-  rushTo(d, 15, 1, SHIELD);
+  rushTo(d, FEL_RUSH_LAST, 1, SHIELD);
   assertLessThan(d.illidan.motion.x, d.target.motion.x);
   assertEquals(d.target.status.damage, 0.0);
   assertEquals(d.target.mana.points, 50);
@@ -137,7 +137,7 @@ test("Vengeful Retreat counterplay: no intangibility, so a chasing hit lands dur
   rushTo(d, 11);
   d.step(sideB(1));
   assertEquals(d.illidan.special.form, VENGEFUL_RETREAT_FORM);
-  for (let frame = 1; frame <= 10; frame++) {
+  for (let frame = 1; frame <= VENGEFUL_RETREAT_MOVE_LAST; frame++) {
     assertFalse(d.illidan.status.invincible > 0);
     d.step();
   }
@@ -147,7 +147,7 @@ test("Chaos Strike: an attack press slashes toward the held stick for 10 and dra
   for (const back of [false, true]) for (const held of [1, -1]) {
     const d = duel(420.0);
     d.target.mana.points = 50;
-    rushTo(d, 15);
+    rushTo(d, FEL_RUSH_LAST);
     d.target.motion.x = f32(d.illidan.motion.x + (back ? -80.0 : 80.0));
     d.step(controls({ attackPressed: true, direction: held }));
     assertEquals(d.illidan.special.form, CHAOS_STRIKE_FORM);

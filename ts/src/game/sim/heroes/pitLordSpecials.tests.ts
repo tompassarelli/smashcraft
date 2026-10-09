@@ -17,6 +17,7 @@ import { controls } from "../testWorld";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
 import { PIT_LORD_HERO } from "./pitLordHero";
+import { PIT_LORD_SPECIALS, RAIN_OF_FIRE, RUIN_CHARGE } from "./pitLordSpecials";
 
 const H = HERO_REFERENCE_HEIGHT;
 const neutral = controls({ specialPressed: true });
@@ -65,7 +66,7 @@ function actionLength(world: Roster, owner: Fighter, press: Readonly<Controls>):
 
 test("Pit Lord's specials preserve their super meter and end on their design frames [spec #335]", () => {
   assertTrue(PIT_LORD_HERO.specials !== undefined);
-  for (const [press, end] of [[neutral, 46], [side, 64], [down, 60]] as const) {
+  for (const [press, end] of [[neutral, PIT_LORD_SPECIALS.neutral.ground.endFrame], [side, PIT_LORD_SPECIALS.side.ground.endFrame], [down, PIT_LORD_SPECIALS.down.ground.endFrame]] as const) {
     const { world, owner } = pair(1000.0);
     assertEquals(actionLength(world, owner, press), end);
     assertEquals(owner.mana.points, 100);
@@ -89,7 +90,7 @@ test("Rain of Fire falls through the chosen lane in both facings and each meteor
     assertEquals(meteor.velocityX, 0.0);
     assertLessThan(meteor.velocityZ, 0.0);
     for (let f = 0; f < 24 && target.status.damage === 0.0; f++) frame(world);
-    assertEquals(target.status.damage, 5.0);
+    assertEquals(target.status.damage, RAIN_OF_FIRE[0].effect.damage);
     assertEquals(meteor.life, 0);
     assertGreaterThan(target.launch.knockbackX * facing, 0.0);
   }
@@ -100,9 +101,9 @@ test("Rain of Fire releases three separate waves and leaves the space under the 
   const seen: number[] = [];
   for (let f = 1; f <= 60; f++) {
     frame(world, f === 1 ? down : controls());
-    for (const p of owner.projectiles) if (p.life === 23) seen.push(f);
+    for (const p of owner.projectiles) if (p.life === RAIN_OF_FIRE[0].life - 1) seen.push(f);
   }
-  assertEquals(seen.join(","), "25,31,37");
+  assertEquals(seen.join(","), RAIN_OF_FIRE.map(meteor => meteor.spawnFrame).join(","));
   assertEquals(target.status.damage, 0.0);
 });
 
@@ -112,25 +113,26 @@ test("Rain of Fire is shieldable and interrupting the caster cancels the remaini
   assertEquals(target.status.damage, 0.0);
   assertLessThan(target.shield.energy, 60.0);
   const interrupted = pair(1000.0);
-  for (let f = 1; f <= 25; f++) frame(interrupted.world, f === 1 ? down : controls());
+  for (let f = 1; f <= RAIN_OF_FIRE[0].spawnFrame; f++) frame(interrupted.world, f === 1 ? down : controls());
   interrupted.owner.special.action = SpecialAction.none;
   interrupted.owner.special.frame = 0;
   let laterWaves = 0;
   for (let f = 26; f <= 60; f++) {
     frame(interrupted.world);
-    for (const p of interrupted.owner.projectiles) if (p.life === 23) laterWaves++;
+    for (const p of interrupted.owner.projectiles) if (p.life === RAIN_OF_FIRE[0].life - 1) laterWaves++;
   }
   assertEquals(laterWaves, 0);
   assertEquals(owner.mana.points, 100);
 });
 
 test("Ruin Charge travels 1.5H, armors one small hit on f19-24 only, and the air form goes 0.8H then helpless [spec docs/design/pit-lord.md]", () => {
+  const armor = RUIN_CHARGE.armor ?? { first: 0, last: -1, maxDamage: 0.0 };
   const { world, owner } = pair(1000.0);
   const start = owner.motion.x;
   for (let f = 1; f <= 64; f++) {
     frame(world, f === 1 ? side : controls());
 
-    assertEquals(owner.status.armorFrames > 0, f >= 18 && f <= 23);
+    assertEquals(owner.status.armorFrames > 0, f >= armor.first - 1 && f <= armor.last - 1);
   }
   assertNear(f32(owner.motion.x - start), f32(H * f32(1.5)), 1.0);
 
@@ -142,7 +144,7 @@ test("Ruin Charge travels 1.5H, armors one small hit on f19-24 only, and the air
   let helpless = false;
   for (let f = 1; f <= 70 && !air.owner.motion.grounded; f++) {
     frame(air.world, f === 1 ? side : controls());
-    if (f >= 19 && f <= 24) assertEquals(air.owner.status.armorFrames, 0);
+    if (f >= armor.first && f <= armor.last) assertEquals(air.owner.status.armorFrames, 0);
     if (air.owner.special.fall) helpless = true;
   }
   assertLessThan(f32(air.owner.motion.x - airStart), f32(H * f32(1.0)));
@@ -160,7 +162,7 @@ test("an Rifleman jab that meets Ruin Charge's armor deals its damage without a 
       if (f === start) beginFighterAttack(world, 1, AttackStyle.jab, false);
       if (owner.launch.hitstun > 0) reacted = true;
     }
-    if (owner.status.damage > 0.0 && target.status.damage === 15.0) {
+    if (owner.status.damage > 0.0 && target.status.damage === RUIN_CHARGE.regions?.[0]?.hit.effect.damage) {
       assertTrue(!reacted);
       trades++;
     }
@@ -193,7 +195,7 @@ test("Howl of Terror pushes both sides once with no hidden status; a shield stop
     const { world, owner, target } = pair(f32(H * f32(0.8)), behind ? -1 : 1);
     owner.facing = 1;
     for (let f = 1; f <= 18; f++) frame(world, f === 1 ? neutral : controls());
-    assertEquals(target.status.damage, 7.0);
+    assertEquals(target.status.damage, PIT_LORD_SPECIALS.neutral.ground.regions?.[0]?.hit.effect.damage);
     assertEquals(target.status.condition, HeroStatusKind.none);
 
     assertGreaterThan(f32(f32(target.motion.x - owner.motion.x) * target.launch.knockbackX), 0.0);

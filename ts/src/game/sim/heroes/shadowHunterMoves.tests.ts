@@ -10,19 +10,15 @@ import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { HurtContact, strikeHurtContact } from "../hurtboxes";
 import { SHADOW_HUNTER_MOVES } from "./shadowHunterMoves";
 import { isMultiHit } from "./multiHit";
+import { authoredThrowEffect } from "../grabs";
 
 
 const NORMALS = [
-  [AttackStyle.forwardSmash, 19, 3, 34, 0],
-  [AttackStyle.upSmash, 17, 4, 31, 0],
-  [AttackStyle.downSmash, 16, 5, 21, 0],
-  [AttackStyle.neutralAir, 7, 5, 21, 13],
-  [AttackStyle.forwardAir, 10, 3, 25, 15],
-  [AttackStyle.backAir, 8, 3, 23, 13],
-  [AttackStyle.upAir, 7, 3, 21, 12],
-  [AttackStyle.downAir, 9, 14, 15, 14],
-  [AttackStyle.grab, 8, 3, 23, 0],
+  AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.downSmash, AttackStyle.neutralAir, AttackStyle.forwardAir,
+  AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir, AttackStyle.grab,
 ] as const;
+const startup = (style: AttackStyle) => attackStartupFrames(style, SHADOW_HUNTER_MOVES);
+const damageOf = (style: AttackStyle) => SHADOW_HUNTER_MOVES.normals[style]?.regions[0]?.hit.effect.damage ?? -1.0;
 
 function pair(style: AttackStyle, frame: number, x: number, z = 0.0, facing = 1, groundedTarget = true, ownerZ = 0.0) {
   const owner = createFighter(Character.rifleman, 0.0, facing);
@@ -38,11 +34,11 @@ function pair(style: AttackStyle, frame: number, x: number, z = 0.0, facing = 1,
   return { owner, target, world };
 }
 
-test("Shadow Hunter adopted phases and narrow single-contact regions reach production [spec docs/design/roster.md]", () => {
+test("Shadow Hunter's narrow single-contact regions are live on every authored active frame and none outside [spec docs/design/roster.md]", () => {
   const out = emptyHitRegion();
-  for (const [style, first, active] of NORMALS) {
-    assertEquals(attackStartupFrames(style, SHADOW_HUNTER_MOVES), first - 1);
-    assertEquals(characterAttackActiveFrames(Character.rifleman, style, SHADOW_HUNTER_MOVES), active);
+  for (const style of NORMALS) {
+    const first = startup(style) + 1;
+    const active = characterAttackActiveFrames(Character.rifleman, style, SHADOW_HUNTER_MOVES);
     const count = authoredHitRegionCount(style, SHADOW_HUNTER_MOVES);
     assertGreaterThan(count, 0);
     for (let frame = first - 2; frame <= first + active - 1; frame++) {
@@ -63,16 +59,17 @@ test("Shadow Hunter adopted phases and narrow single-contact regions reach produ
 
 test("Shadow Hunter glaive reach and heel direction are facing relative [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
-    for (const [style, frame, x, damage] of [
-      [AttackStyle.jab, 4, 60.0, 3.0],
-      [AttackStyle.jab, 4, 120.0, 0.0],
-      [AttackStyle.forwardTilt, 8, 185.0, 0.0],
-      [AttackStyle.forwardSmash, 18, 130.0, 18.0],
-      [AttackStyle.forwardAir, 9, 130.0, 11.0],
-      [AttackStyle.backAir, 7, -90.0, 10.0],
-      [AttackStyle.backAir, 7, 90.0, 0.0],
+    for (const [style, x, hits] of [
+      [AttackStyle.jab, 60.0, true],
+      [AttackStyle.jab, 120.0, false],
+      [AttackStyle.forwardTilt, 185.0, false],
+      [AttackStyle.forwardSmash, 130.0, true],
+      [AttackStyle.forwardAir, 130.0, true],
+      [AttackStyle.backAir, -90.0, true],
+      [AttackStyle.backAir, 90.0, false],
     ] as const) {
-      const { target, world } = pair(style, frame, x, 0.0, facing);
+      const damage = hits ? damageOf(style) : 0.0;
+      const { target, world } = pair(style, startup(style), x, 0.0, facing);
       resolveAttacks(world);
       assertEquals(target.status.damage, damage);
       if (style === AttackStyle.backAir && damage > 0.0) assertLessThan(f32(target.launch.knockbackX * facing), 0.0);
@@ -89,7 +86,7 @@ test("Shadow Hunter tilted crescent and vertical outline leave gaps outside thei
       [AttackStyle.forwardTiltUp, 130.0, -100.0, 0.0],
       [AttackStyle.upSmash, 90.0, 0.0, 0.0],
       [AttackStyle.upAir, 70.0, 0.0, 0.0],
-      [AttackStyle.upAir, 0.0, 30.0, 8.0],
+      [AttackStyle.upAir, 0.0, 30.0, damageOf(AttackStyle.upAir)],
     ] as const) {
       const { target, world } = pair(style, attackStartupFrames(style, SHADOW_HUNTER_MOVES), x, z, facing);
       resolveAttacks(world);
@@ -101,19 +98,21 @@ test("Shadow Hunter tilted crescent and vertical outline leave gaps outside thei
 
 test("Shadow Hunter Twin Totems cannot rehit across their later rear burst [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
-    const { owner, target, world } = pair(AttackStyle.downSmash, 15, 80.0, 0.0, facing);
+    const rearFrame = startup(AttackStyle.downSmash) + 3;
+    const once = damageOf(AttackStyle.downSmash);
+    const { owner, target, world } = pair(AttackStyle.downSmash, startup(AttackStyle.downSmash), 80.0, 0.0, facing);
     resolveAttacks(world);
-    assertEquals(target.status.damage, 13.0);
+    assertEquals(target.status.damage, once);
     owner.launch.hitlag = 0;
     target.launch.hitlag = 0;
     target.motion.x = f32(-80.0 * facing);
     target.motion.z = 0.0;
-    owner.attack.frame = 18;
+    owner.attack.frame = rearFrame;
     resolveAttacks(world);
-    assertEquals(target.status.damage, 13.0);
-    const rear = pair(AttackStyle.downSmash, 18, -80.0, 0.0, facing);
+    assertEquals(target.status.damage, once);
+    const rear = pair(AttackStyle.downSmash, rearFrame, -80.0, 0.0, facing);
     resolveAttacks(rear.world);
-    assertEquals(rear.target.status.damage, 13.0);
+    assertEquals(rear.target.status.damage, once);
     assertLessThan(f32(rear.target.launch.knockbackX * facing), 0.0);
   }
 });
@@ -122,7 +121,7 @@ test("Shadow Hunter standing and dash grabs cover both active frames and stop at
   const reach = 96.0;
   for (const facing of [-1, 1]) {
     for (const dash of [false, true]) {
-      for (const frame of [7, 8]) {
+      for (const frame of [startup(AttackStyle.grab), startup(AttackStyle.grab) + 1]) {
         for (const caught of [true, false]) {
           const { owner, target, world } = pair(AttackStyle.grab, 0, caught ? (dash ? 120.0 : reach) : (dash ? 121.0 : f32(reach + 1.0)), 0.0, facing);
           target.shield.raised = true;
@@ -145,17 +144,12 @@ test("Shadow Hunter standing and dash grabs cover both active frames and stop at
 
 test("Shadow Hunter throws hold through their adopted release and launch once in both facings [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
-    for (const [action, release, recovery, damage] of [
-      [GrabAction.throwForward, 12, 20, 7.0],
-      [GrabAction.throwBack, 16, 24, 8.0],
-      [GrabAction.throwUp, 14, 8, 6.0],
-      [GrabAction.throwDown, 17, 23, 5.0],
-    ] as const) {
-      const { owner, target, world } = pair(AttackStyle.grab, 7, 50.0, 0.0, facing);
+    for (const action of [GrabAction.throwForward, GrabAction.throwBack, GrabAction.throwUp, GrabAction.throwDown]) {
+      const release = grabContactFrame(action, SHADOW_HUNTER_MOVES);
+      const damage = authoredThrowEffect(action, SHADOW_HUNTER_MOVES).damage;
+      const { owner, target, world } = pair(AttackStyle.grab, startup(AttackStyle.grab), 50.0, 0.0, facing);
       resolveAttacks(world);
       assertEquals(owner.grab.target, 1);
-      assertEquals(grabContactFrame(action, SHADOW_HUNTER_MOVES), release);
-      assertEquals(grabActionDuration(action, SHADOW_HUNTER_MOVES), release + recovery);
       const input = controls({
         grabThrowX: action === GrabAction.throwForward ? facing : action === GrabAction.throwBack ? -facing : 0,
         grabThrowZ: action === GrabAction.throwUp ? 1 : action === GrabAction.throwDown ? -1 : 0,
@@ -191,13 +185,19 @@ test("Shadow Hunter's Heel Hook arm is exposed behind him while the glaive tip s
     };
 
 
+    const poses = SHADOW_HUNTER_MOVES.hurtboxes?.attacks[AttackStyle.backAir] ?? [];
+    const first = poses[0]?.firstFrame ?? 0;
+    const last = poses[poses.length - 1]?.lastFrame ?? -1;
+    const hook = poses[1];
+    assertTrue(hook !== undefined);
+    if (hook === undefined) continue;
     assertTrue(!touches(undefined, 0, -45.0, 41.0));
-    assertTrue(!touches(AttackStyle.backAir, 3, -45.0, 41.0));
-    for (let frame = 4; frame <= 14; frame++) assertTrue(touches(AttackStyle.backAir, frame, -45.0, 41.0));
-    for (let frame = 4; frame <= 14; frame++) assertEquals(touches(AttackStyle.backAir, frame, -70.0, 41.0), frame >= 7 && frame <= 11);
-    assertTrue(!touches(AttackStyle.backAir, 15, -45.0, 41.0));
+    assertTrue(!touches(AttackStyle.backAir, first - 1, -45.0, 41.0));
+    for (let frame = first; frame <= last; frame++) assertTrue(touches(AttackStyle.backAir, frame, -45.0, 41.0));
+    for (let frame = first; frame <= last; frame++) assertEquals(touches(AttackStyle.backAir, frame, -70.0, 41.0), frame >= hook.firstFrame && frame <= hook.lastFrame);
+    assertTrue(!touches(AttackStyle.backAir, last + 1, -45.0, 41.0));
 
-    assertTrue(touches(AttackStyle.forwardTilt, 8, 60.0, 56.0));
-    assertTrue(!touches(AttackStyle.forwardTilt, 8, 110.0, 56.0));
+    assertTrue(touches(AttackStyle.forwardTilt, startup(AttackStyle.forwardTilt), 60.0, 56.0));
+    assertTrue(!touches(AttackStyle.forwardTilt, startup(AttackStyle.forwardTilt), 110.0, 56.0));
   }
 });

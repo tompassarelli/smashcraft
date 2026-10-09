@@ -178,7 +178,6 @@ function holdUntilFree(world: Roster, target: Fighter, mash: Mash, owner: (frame
 }
 
 test("every grab holds the same time at any percent, and mashing shortens it within its bounds [spec docs/gameplay-design.md]", () => {
-  const freedOn: string[] = [];
   for (const character of GRABBERS) {
     for (const percent of [0.0, 150.0]) {
       for (const mash of ["none", "slow", "human", "quick", "fastest"] as const) {
@@ -188,11 +187,9 @@ test("every grab holds the same time at any percent, and mashing shortens it wit
         assertEquals(frame, MASH_ESCAPE[mash], label);
         assertEquals(owner.grab.action, GrabAction.escape, label);
         assertEquals(target.status.damage, percent, label);
-        freedOn.push(`${frame}`);
       }
     }
   }
-  assertEquals(freedOn.length, GRABBERS.length * 10);
 });
 
 

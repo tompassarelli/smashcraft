@@ -15,7 +15,9 @@ import { type Controls, type Roster, fighterAt } from "../roster";
 import { advanceSpecials, startFighterSpecial } from "../specials";
 import { advanceFighter } from "../step";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
+import { authoredThrowEffect } from "../grabs";
 import { SYLVANAS_MOVES } from "./sylvanasMoves";
+import { SYLVANAS_SPECIALS } from "./sylvanasSpecials";
 
 function frame(world: Roster, press: Readonly<Controls> = controls(), response: Readonly<Controls> = controls()): void {
   const inputs = [{ ...press }, { ...response }];
@@ -49,14 +51,15 @@ test("Sylvanas has Pit's weight, run and air speed in world units [reference] [s
 });
 
 const contacts = [
-  [AttackStyle.jab, 42.0, 0.0, 3.0], [AttackStyle.jab2, 46.0, 0.0, 3.0], [AttackStyle.jab3, 52.0, 0.0, 5.0],
-  [AttackStyle.forwardTilt, 95.0, 0.0, 9.0], [AttackStyle.forwardTiltUp, 95.0, 30.0, 9.0], [AttackStyle.forwardTiltDown, 90.0, 0.0, 9.0],
-  [AttackStyle.upTilt, 12.0, 90.0, 7.0], [AttackStyle.downTilt, 80.0, 0.0, 7.0], [AttackStyle.dashAttack, 100.0, 0.0, 10.0],
-  [AttackStyle.forwardSmash, 130.0, 0.0, 16.5], [AttackStyle.upSmash, 0.0, 120.0, 13.0], [AttackStyle.downSmash, 95.0, 0.0, 12.0],
-  [AttackStyle.neutralAir, 70.0, 0.0, 7.0], [AttackStyle.forwardAir, 110.0, 0.0, 10.0], [AttackStyle.backAir, -95.0, 0.0, 11.0],
-  [AttackStyle.upAir, 0.0, 85.0, 8.0], [AttackStyle.downAir, 8.0, -100.0, 11.0],
+  [AttackStyle.jab, 42.0, 0.0], [AttackStyle.jab2, 46.0, 0.0], [AttackStyle.jab3, 52.0, 0.0],
+  [AttackStyle.forwardTilt, 95.0, 0.0], [AttackStyle.forwardTiltUp, 95.0, 30.0], [AttackStyle.forwardTiltDown, 90.0, 0.0],
+  [AttackStyle.upTilt, 12.0, 90.0], [AttackStyle.downTilt, 80.0, 0.0], [AttackStyle.dashAttack, 100.0, 0.0],
+  [AttackStyle.forwardSmash, 130.0, 0.0], [AttackStyle.upSmash, 0.0, 120.0], [AttackStyle.downSmash, 95.0, 0.0],
+  [AttackStyle.neutralAir, 70.0, 0.0], [AttackStyle.forwardAir, 110.0, 0.0], [AttackStyle.backAir, -95.0, 0.0],
+  [AttackStyle.upAir, 0.0, 85.0], [AttackStyle.downAir, 8.0, -100.0],
 ] as const;
-for (const [style, x, z, damage] of contacts) test(`Sylvanas normal ${style} connects once in either facing and misses beyond its reach [spec docs/design/sylvanas.md]`, () => {
+for (const [style, x, z] of contacts) test(`Sylvanas normal ${style} connects once in either facing and misses beyond its reach [spec docs/design/sylvanas.md]`, () => {
+  const damage = SYLVANAS_MOVES.normals[style]?.regions[0]?.hit.effect.damage ?? -1.0;
   for (const facing of [-1, 1]) for (const distant of [false, true]) {
     const { world, owner, target } = pair();
     owner.motion.x = 0.0;
@@ -77,8 +80,8 @@ for (const [style, x, z, damage] of contacts) test(`Sylvanas normal ${style} con
 });
 
 test("Sylvanas catches through the ordinary grab and releases each throw once in both facings [spec docs/design/sylvanas.md]", () => {
-  for (const facing of [-1, 1]) for (const [action, damage, direction, vertical] of [
-    [GrabAction.throwForward, 7.0, 1, 0], [GrabAction.throwBack, 8.0, -1, 0], [GrabAction.throwUp, 6.0, 0, 1], [GrabAction.throwDown, 6.0, 0, -1],
+  for (const facing of [-1, 1]) for (const [action, direction, vertical] of [
+    [GrabAction.throwForward, 1, 0], [GrabAction.throwBack, -1, 0], [GrabAction.throwUp, 0, 1], [GrabAction.throwDown, 0, -1],
   ] as const) {
     const { world, owner, target } = pair(48.0, facing);
     beginFighterAttack(world, 0, AttackStyle.grab, false);
@@ -88,7 +91,7 @@ test("Sylvanas catches through the ordinary grab and releases each throw once in
     testGrabFrame(world, [controls({ grabThrowX: direction * facing, grabThrowZ: vertical }), controls()], false);
     assertEquals(owner.grab.action, action);
     for (let i = 2; i <= grabContactFrame(action, SYLVANAS_MOVES); i++) testGrabFrame(world, [controls(), controls()], false);
-    assertEquals(target.status.damage, damage);
+    assertEquals(target.status.damage, authoredThrowEffect(action, SYLVANAS_MOVES).damage);
     assertEquals(target.grab.owner, undefined);
     assertGreaterThan(target.launch.knockbackZ, 0.0);
     if (direction !== 0) assertGreaterThan(target.launch.knockbackX * direction * facing, 0.0);
@@ -101,14 +104,15 @@ test("Sylvanas pummel is one slow Life Drain squeeze and never repeats in one ho
   owner.attack.frame = attackStartupFrames(AttackStyle.grab, SYLVANAS_MOVES);
   resolveAttacks(world);
   testGrabFrame(world, [controls({ attackPressed: true }), controls()], false);
-  for (let i = 2; i <= 60; i++) testGrabFrame(world, [controls(), controls()], false);
-  assertEquals(target.status.damage, 3.0);
+  const squeeze = authoredThrowEffect(GrabAction.pummel, SYLVANAS_MOVES).damage;
+  for (let i = 2; i <= (SYLVANAS_MOVES.throws[GrabAction.pummel]?.contactFrame ?? 0); i++) testGrabFrame(world, [controls(), controls()], false);
+  assertEquals(target.status.damage, squeeze);
   for (let i = 0; i < 80; i++) testGrabFrame(world, [controls({ attackPressed: true }), controls()], false);
-  assertEquals(target.status.damage, 3.0);
+  assertEquals(target.status.damage, squeeze);
 });
 
 test("Sylvanas regular specials preserve the super meter and finish their whiffs on the designed frame [spec #335]", () => {
-  for (const [x, z, action, mana, end] of [[0, 0, SpecialAction.heroNeutral, 8, 40], [1, 0, SpecialAction.heroSide, 20, 48], [0, 1, SpecialAction.heroUp, 15, 31], [0, -1, SpecialAction.heroDown, 20, 52]] as const) {
+  for (const [x, z, action, end] of [[0, 0, SpecialAction.heroNeutral, SYLVANAS_SPECIALS.neutral.ground.endFrame], [1, 0, SpecialAction.heroSide, SYLVANAS_SPECIALS.side.ground.endFrame], [0, 1, SpecialAction.heroUp, SYLVANAS_SPECIALS.up.ground.endFrame], [0, -1, SpecialAction.heroDown, SYLVANAS_SPECIALS.down.ground.endFrame]] as const) {
     const { world, owner } = pair(900.0);
     frame(world, controls({ specialPressed: true, specialX: x, specialZ: z }));
     assertEquals(owner.special.action, action);
@@ -119,12 +123,12 @@ test("Sylvanas regular specials preserve the super meter and finish their whiffs
   }
 });
 
-test("Black Arrow deals nine damage in both facings [spec #259]", () => {
+test("Black Arrow deals its authored damage in both facings [spec #259]", () => {
   for (const facing of [-1, 1]) {
     const { world, target } = pair(300.0, facing);
     frame(world, controls({ specialPressed: true }));
     for (let i = 0; i < 70; i++) frame(world);
-    assertEquals(target.status.damage, 9.0);
+    assertEquals(target.status.damage, SYLVANAS_SPECIALS.neutral.ground.projectiles?.[0]?.effect.damage);
   }
 });
 
@@ -134,7 +138,7 @@ test("Silence leaves movement, normals and recovery available, never passes a sh
     frame(world, controls({ specialPressed: true, specialX: facing }), controls({ shield: blocked }));
     for (let i = 0; i < 30; i++) frame(world, controls(), controls({ shield: blocked }));
     assertEquals(target.status.condition, blocked ? HeroStatusKind.none : HeroStatusKind.silence);
-    assertEquals(target.status.damage, blocked ? 0.0 : 4.0);
+    assertEquals(target.status.damage, blocked ? 0.0 : SYLVANAS_SPECIALS.side.ground.regions?.[0]?.hit.effect.damage);
     if (blocked) continue;
     const offensive = controls({ specialPressed: true, specialX: 1, direction: 1, attackPressed: true, jumpPressed: true, shield: true });
     maskHeroStatusControls(target, offensive, attackBuffer(0));
@@ -155,8 +159,9 @@ test("Life Drain catches a shield, heals three per successful move and refuses a
     owner.status.damage = 40.0;
     frame(world, controls({ specialPressed: true, specialZ: -1 }), controls({ shield: true }));
     for (let i = 0; i < 85; i++) frame(world, controls(), controls({ shield: true }));
-    assertEquals(target.status.damage, 9.0);
-    assertEquals(owner.status.damage, 37.0);
+    const drain = SYLVANAS_SPECIALS.down.ground.commandGrab;
+    assertEquals(target.status.damage, drain?.effect.damage);
+    assertEquals(owner.status.damage, f32(40.0 - (drain?.heal?.heal ?? 0.0)));
     assertEquals(owner.grab.target, undefined);
     owner.motion.grounded = false;
     owner.motion.surface = undefined;

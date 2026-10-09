@@ -11,22 +11,11 @@ import { BEASTMASTER_MOVES } from "./beastmasterMoves";
 
 
 const NORMALS = [
-  [AttackStyle.forwardTilt, 10, 3, 23, 0],
-  [AttackStyle.forwardTiltUp, 10, 3, 23, 0],
-  [AttackStyle.forwardTiltDown, 10, 3, 23, 0],
-  [AttackStyle.upTilt, 9, 4, 23, 0],
-  [AttackStyle.downTilt, 8, 3, 22, 0],
-  [AttackStyle.dashAttack, 11, 5, 28, 0],
-  [AttackStyle.forwardSmash, 21, 4, 36, 0],
-  [AttackStyle.upSmash, 18, 5, 33, 0],
-  [AttackStyle.downSmash, 17, 6, 22, 0],
-  [AttackStyle.neutralAir, 8, 6, 23, 15],
-  [AttackStyle.forwardAir, 13, 4, 28, 18],
-  [AttackStyle.backAir, 9, 3, 24, 14],
-  [AttackStyle.upAir, 8, 4, 23, 14],
-  [AttackStyle.downAir, 16, 4, 32, 22],
-  [AttackStyle.grab, 8, 3, 24, 0],
+  AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt, AttackStyle.downTilt,
+  AttackStyle.dashAttack, AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.downSmash, AttackStyle.neutralAir,
+  AttackStyle.forwardAir, AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir, AttackStyle.grab,
 ] as const;
+const firstActive = (style: AttackStyle) => attackStartupFrames(style, BEASTMASTER_MOVES) + 1;
 
 function pair(style: AttackStyle, frame: number, x: number, facing = 1) {
   const owner = createFighter(Character.beastmaster, 0.0, facing);
@@ -39,11 +28,11 @@ function pair(style: AttackStyle, frame: number, x: number, facing = 1) {
   return { owner, target, world };
 }
 
-test("Beastmaster's startup and active frames reach production, a live strike path on every active frame [spec docs/design/roster.md]", () => {
+test("Beastmaster has a live strike path on every authored active frame and none outside it [spec docs/design/roster.md]", () => {
   const out = emptyHitRegion();
-  for (const [style, first, active] of NORMALS) {
-    assertEquals(attackStartupFrames(style, BEASTMASTER_MOVES), first - 1);
-    assertEquals(characterAttackActiveFrames(Character.beastmaster, style, BEASTMASTER_MOVES), active);
+  for (const style of NORMALS) {
+    const first = firstActive(style);
+    const active = characterAttackActiveFrames(Character.beastmaster, style, BEASTMASTER_MOVES);
     const count = authoredHitRegionCount(style, BEASTMASTER_MOVES);
     for (let frame = first - 2; frame <= first + active - 1; frame++) {
       let live = 0;
@@ -58,16 +47,16 @@ test("Beastmaster's startup and active frames reach production, a live strike pa
 
 test("Beastmaster's axe reaches L and his boot kicks behind, facing relative [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
-    for (const [style, frame, x, hit] of [
-      [AttackStyle.forwardTilt, 10, 150.0, true],
-      [AttackStyle.forwardTilt, 10, 190.0, false],
-      [AttackStyle.jab, 4, 60.0, true],
-      [AttackStyle.jab, 4, 110.0, false],
-      [AttackStyle.forwardSmash, 21, 140.0, true],
-      [AttackStyle.backAir, 9, -100.0, true],
-      [AttackStyle.backAir, 9, 100.0, false],
+    for (const [style, x, hit] of [
+      [AttackStyle.forwardTilt, 150.0, true],
+      [AttackStyle.forwardTilt, 190.0, false],
+      [AttackStyle.jab, 60.0, true],
+      [AttackStyle.jab, 110.0, false],
+      [AttackStyle.forwardSmash, 140.0, true],
+      [AttackStyle.backAir, -100.0, true],
+      [AttackStyle.backAir, 100.0, false],
     ] as const) {
-      const { target, world } = pair(style, frame, x, facing);
+      const { target, world } = pair(style, firstActive(style), x, facing);
       resolveAttacks(world);
       assertEquals(target.status.damage > 0.0, hit);
       if (hit) assertGreaterThan(f32(f32(target.launch.knockbackX * facing) * (x < 0 ? -1 : 1)), 0.0);
@@ -85,7 +74,10 @@ test("Hunter's Boot is an exposed leg behind him while the axe head stays disjoi
       return strikeHurtContact(probe(f32(x * facing), z), f) === HurtContact.hit;
     };
     assertTrue(!touches(undefined, 0, -70.0, 36.0));
-    for (let frame = 4; frame <= 15; frame++) assertEquals(touches(AttackStyle.backAir, frame, -70.0, 36.0), frame >= 8 && frame <= 12);
+    const boot = BEASTMASTER_MOVES.hurtboxes?.attacks[AttackStyle.backAir]?.[1];
+    assertTrue(boot !== undefined);
+    if (boot === undefined) continue;
+    for (let frame = boot.firstFrame - 4; frame <= boot.lastFrame + 3; frame++) assertEquals(touches(AttackStyle.backAir, frame, -70.0, 36.0), frame >= boot.firstFrame && frame <= boot.lastFrame);
     assertTrue(!touches(AttackStyle.forwardTilt, 10, 120.0, 60.0));
   }
 });

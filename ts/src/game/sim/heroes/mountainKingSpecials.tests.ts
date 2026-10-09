@@ -16,6 +16,9 @@ import { controls } from "../testWorld";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
 import { MOUNTAIN_KING_HERO } from "./mountainKingHero";
+import { MOUNTAIN_KING_SPECIALS } from "./mountainKingSpecials";
+
+const BOLT = MOUNTAIN_KING_SPECIALS.neutral.ground.projectiles![0]!;
 
 const H = HERO_REFERENCE_HEIGHT;
 const neutral = controls({ specialPressed: true });
@@ -65,7 +68,7 @@ function actionLength(world: Roster, owner: Fighter, press: Readonly<Controls>):
 
 test("Mountain King's specials preserve their super meter and end on their roster frames [spec #335]", () => {
   assertTrue(MOUNTAIN_KING_HERO.specials !== undefined);
-  for (const [press, end] of [[neutral, 58], [side, 46], [down, 81]] as const) {
+  for (const [press, end] of [[neutral, MOUNTAIN_KING_SPECIALS.neutral.ground.endFrame], [side, MOUNTAIN_KING_SPECIALS.side.ground.endFrame], [down, MOUNTAIN_KING_SPECIALS.down.ground.endFrame]] as const) {
     const { world, owner } = pair(1200.0);
     assertEquals(actionLength(world, owner, press), end);
     assertEquals(owner.mana.points, 100);
@@ -80,7 +83,7 @@ test("Storm Bolt flies 0.12H a frame from frame 20, one at a time, and hits once
   for (const facing of [1, -1]) {
     const { world, owner, target } = pair(400.0, facing);
     frame(world, neutral);
-    for (let f = 2; f <= 19; f++) frame(world);
+    for (let f = 2; f < BOLT.spawnFrame; f++) frame(world);
     assertEquals(owner.projectiles.filter(p => p.life > 0).length, 0);
     frame(world);
     const bolt = owner.projectiles.find(p => p.life > 0 && p.kind === ProjectileKind.hero);
@@ -201,13 +204,14 @@ test("Thunder Clap counterplay: a jump clears ring and waves, a hit during the c
 test("Storm Bolt turns back after 45 frames and flies to Mountain King, who can throw again once it arrives [spec docs/design/roster.md]", () => {
   const { world, owner } = pair(1200.0);
   frame(world, neutral);
-  run(world, 19);
+  run(world, BOLT.spawnFrame - 1);
   const bolt = owner.projectiles.find(p => p.life > 0 && p.kind === ProjectileKind.hero);
   assertTrue(bolt !== undefined);
   if (bolt === undefined) return;
-  run(world, 44);
+  const turn = BOLT.returns?.age ?? 0;
+  run(world, turn - 1);
   const farthest = bolt.x;
-  assertGreaterThan(farthest, f32(owner.motion.x + f32(f32(H * f32(0.12)) * 43)));
+  assertGreaterThan(farthest, f32(owner.motion.x + f32(BOLT.velocityX * (turn - 2))));
   run(world, 2);
   assertLessThan(bolt.x, farthest);
   for (let f = 0; f < 60 && bolt.life > 0; f++) frame(world);
@@ -220,7 +224,7 @@ test("Storm Bolt recall: neutral special while it flies calls it back at once, a
   const { world, owner, target } = pair(f32(H * f32(1.2)));
   target.motion.x = f32(owner.motion.x + f32(H * f32(2.4)));
   frame(world, neutral);
-  run(world, 19);
+  run(world, BOLT.spawnFrame - 1);
   const bolt = owner.projectiles.find(p => p.life > 0 && p.kind === ProjectileKind.hero);
   if (bolt === undefined) throw new Error("no bolt");
 

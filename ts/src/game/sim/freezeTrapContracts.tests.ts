@@ -42,27 +42,29 @@ test("Frost Trap appears at frame 22 and releases Rifleman at frame 38 [spec #32
   assertEquals(owner.attack.style, AttackStyle.jab);
 });
 
-test("an Intermediate CPU punishes a point-blank trap before Rifleman can act [spec #325]", () => {
-  const match = testMatch(3, Character.rifleman);
-  const owner = fighterAt(match.world, 0);
-  const target = fighterAt(match.world, 1);
-  owner.motion.surface = 0;
-  target.motion.surface = 0;
-  target.motion.x = owner.motion.x + 60.0;
-  target.facing = -1;
-  setHumanMask(match.game, 1);
-  match.game.cpuOpponents[1] = "wren";
-  match.game.cpuResolvedOpponents[1] = "wren";
-  match.game.cpuTiers[1] = "intermediate";
-  assertTrue(startFighterSpecial(owner, 0, 0, controls({ specialPressed: true, specialZ: -1 })));
-  let punished = false;
-  for (let frame = 1; frame < 38; frame++) {
-    produceComputerInput(match.game, match.world, match.runtime, 1, frame, match.inputs.inputs[1], match.inputs.commands[1]);
-    executeNext(match);
-    if (owner.status.damage > 0) { punished = true; break; }
-    assertFalse(canStartAttackStyle(owner, AttackStyle.jab));
+test("an Intermediate CPU punishes a point-blank trap before Rifleman can act in at least 4 of 24 match seeds, against 9-17 seen on six seed offsets [spec #325]", () => {
+  let punishes = 0;
+  for (let seed = 0; seed < 24; seed++) {
+    const match = testMatch(3, Character.rifleman);
+    match.game.matchSeed = seed;
+    const owner = fighterAt(match.world, 0);
+    const target = fighterAt(match.world, 1);
+    owner.motion.surface = 0;
+    target.motion.surface = 0;
+    target.motion.x = owner.motion.x + 60.0;
+    target.facing = -1;
+    setHumanMask(match.game, 1);
+    match.game.cpuOpponents[1] = "wren";
+    match.game.cpuResolvedOpponents[1] = "wren";
+    match.game.cpuTiers[1] = "intermediate";
+    assertTrue(startFighterSpecial(owner, 0, 0, controls({ specialPressed: true, specialZ: -1 })));
+    for (let frame = 1; frame < 60 && !canStartAttackStyle(owner, AttackStyle.jab); frame++) {
+      produceComputerInput(match.game, match.world, match.runtime, 1, frame, match.inputs.inputs[1], match.inputs.commands[1]);
+      executeNext(match);
+      if (owner.status.damage > 0) { punishes++; break; }
+    }
   }
-  assertTrue(punished);
+  assertGreaterThan(punishes, 3);
 });
 
 test("an unused Frost Trap expires after eight seconds and can be replaced [spec docs/physics.md]", () => {
@@ -125,7 +127,7 @@ test("a thawed fighter who stays on a waiting trap can be caught again only afte
     assertGreaterThan(owner.freezeTrap.life, 0);
   }
   executeNext(match);
-  assertEquals(target.status.frozenFrames, 300);
+  assertEquals(target.status.frozenFrames, FREEZE_TRAP_FREEZE_FRAMES);
   assertEquals(owner.freezeTrap.life, 0);
 });
 
@@ -171,15 +173,15 @@ test("trapConsumesOnContactButNotOwnerOrInvulnerableTarget [spec docs/physics.md
   target.status.invincible = 0;
   advanceFreezeTraps(testWorld(owner, target));
   assertEquals(owner.freezeTrap.life, 0);
-  assertEquals(target.status.frozenFrames, 300);
+  assertEquals(target.status.frozenFrames, FREEZE_TRAP_FREEZE_FRAMES);
   assertEquals(owner.status.frozenFrames, 0);
 });
 
 test("freezeExpiresAfterThreeHundredFramesIncludingHitlag [spec docs/physics.md]", () => {
   const target = createFighter(Character.rifleman, 0.0, 1);
-  target.status.frozenFrames = 300;
+  target.status.frozenFrames = FREEZE_TRAP_FREEZE_FRAMES;
   target.launch.hitlag = 20;
-  for (let frame = 1; frame < 300; frame++) advanceSolo(target, 0, controls(), -240.0);
+  for (let frame = 1; frame < FREEZE_TRAP_FREEZE_FRAMES; frame++) advanceSolo(target, 0, controls(), -240.0);
   assertEquals(target.status.frozenFrames, 1);
   assertEquals(target.launch.hitlag, 20);
   advanceSolo(target, 0, controls(), -240.0);

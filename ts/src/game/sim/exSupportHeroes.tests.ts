@@ -9,6 +9,8 @@ import { updateProjectiles } from "./projectiles";
 import { advanceSpecials, startFighterSpecial } from "./specials";
 import { advanceFighter } from "./step";
 import { controls, testWorld } from "./testWorld";
+import { PEON_SPECIALS } from "./heroes/peonSpecials";
+import { SYLVANAS_SPECIALS } from "./heroes/sylvanasSpecials";
 
 function cast(character: Character, slot: SpecialSlot, ex: boolean, air = false) {
   const owner = createFighter(character, 0.0, 1);
@@ -57,7 +59,7 @@ test("Life Drain EX releases 25% more damage while keeping its three point heal 
     assertEquals(owner.grab.target, 1);
     owner.special.frame = 32;
     advanceSpecials(world, 0, 0);
-    assertEquals(owner.status.damage, 27.0);
+    assertEquals(owner.status.damage, f32(30.0 - (SYLVANAS_SPECIALS.down.ground.commandGrab?.heal?.heal ?? 0.0)));
     assertGreaterThan(target.status.damage, 0.0);
     damage.push(target.status.damage);
   }
@@ -108,16 +110,17 @@ test("Reincarnation and Repair EX extend guard and intangibility by four frames 
   }
 });
 
-test("EX Burrow keeps forty physical durability and stronger spears after its cast ends; Pack Up protects four entry frames [spec docs/design/mana.md]", () => {
+test("EX Burrow keeps 25% more physical durability and stronger spears after its cast ends; Pack Up protects four entry frames [spec docs/design/mana.md]", () => {
   const { owner, world } = cast(Character.peon, SpecialSlot.side, true);
   const placement = runningHeroSpecial(owner)?.placement;
   for (let frame = 0; frame < 52; frame++) advanceSpecials(world, 0, frame);
   const burrow = placedObject(owner);
   assertEquals(owner.special.action, SpecialAction.none);
-  assertEquals(burrow.durability, 40.0);
+  const base = PEON_SPECIALS.side.ground.placement;
+  assertEquals(burrow.durability, f32((base?.durability ?? 0.0) * 1.25));
   assertEquals(burrow.spec, placement);
-  assertEquals(placement?.shot?.effect.damage, 6.25);
-  burrow.age = 44;
+  assertEquals(placement?.shot?.effect.damage, f32((base?.shot?.effect.damage ?? 0.0) * 1.25));
+  burrow.age = (placement?.fireAges[0] ?? 0) - 1;
   advancePlacedObjects(world);
   assertTrue(owner.projectiles.some(projectile => projectile.life > 0 && projectile.spec === placement?.shot));
   owner.attack.cooldown = 0;

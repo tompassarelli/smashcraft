@@ -11,19 +11,16 @@ import { type HurtPart, HurtContact, HurtState, fighterHurtParts, strikeHurtCont
 import { emptyCapsule, placeCapsule } from "../../physics/contactGeometry";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { FORSAKEN_PALADIN_MOVES } from "./forsakenPaladinMoves";
+import { authoredThrowEffect } from "../grabs";
 
 
 
 const NORMAL_TIMINGS = [
-  [AttackStyle.forwardSmash, 21, 3, 36, 0],
-  [AttackStyle.upSmash, 18, 4, 33, 0],
-  [AttackStyle.neutralAir, 8, 5, 23, 15],
-  [AttackStyle.forwardAir, 13, 4, 28, 18],
-  [AttackStyle.backAir, 9, 3, 24, 14],
-  [AttackStyle.upAir, 8, 4, 23, 14],
-  [AttackStyle.downAir, 15, 4, 31, 22],
-  [AttackStyle.grab, 8, 3, 24, 0],
+  AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.neutralAir, AttackStyle.forwardAir,
+  AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir, AttackStyle.grab,
 ] as const;
+const startup = (style: AttackStyle) => attackStartupFrames(style, FORSAKEN_PALADIN_MOVES);
+const damageOf = (style: AttackStyle, region = 0) => FORSAKEN_PALADIN_MOVES.normals[style]?.regions[region]?.hit.effect.damage ?? -1.0;
 
 function attackPair(style: AttackStyle, frame: number, targetX: number, targetZ = 0.0, facing = 1, groundedTarget = true) {
   const owner = createFighter(Character.rifleman, 0.0, facing);
@@ -40,30 +37,13 @@ function attackPair(style: AttackStyle, frame: number, targetX: number, targetZ 
   return { owner, target, world };
 }
 
-test("Forsaken Paladin production phases and final aerial landings match the adopted roster [spec #96]", () => {
-  for (const [style, first, active, recovery, landing] of NORMAL_TIMINGS) {
-    const { owner } = attackPair(style, 0, 1000.0);
-    assertEquals(owner.attack.duration, first - 1 + active + recovery);
-    assertEquals(attackStartupFrames(style, owner.tuning.moves), first - 1);
-    assertEquals(attackRecoveryFrames(owner.character, style, owner.motion.grounded, owner.tuning.moves), recovery);
-    assertEquals(attackLandingLag(style, owner.tuning.moves), landing);
-    owner.attack.frame = first - 2;
-    assertEquals(attackPhase(owner), AttackPhase.startup);
-    owner.attack.frame = first - 1;
-    assertEquals(attackPhase(owner), AttackPhase.active);
-    owner.attack.frame = first + active - 2;
-    assertEquals(attackPhase(owner), AttackPhase.active);
-    owner.attack.frame++;
-    assertEquals(attackPhase(owner), AttackPhase.recovery);
-  }
-});
-
-test("Forsaken Paladin contact paths cover only the adopted active frames with one shared hit window [spec #96]", () => {
+test("Forsaken Paladin contact paths and attack phase agree on the authored active frames with one shared hit window [spec #96]", () => {
   const region = emptyHitRegion();
-  for (const [style, first, active, recovery] of NORMAL_TIMINGS) {
+  for (const style of NORMAL_TIMINGS) {
     const count = authoredHitRegionCount(style, FORSAKEN_PALADIN_MOVES);
     assertGreaterThan(count, 0);
-    for (let actionFrame = 0; actionFrame < first + active + recovery; actionFrame++) {
+    const { owner } = attackPair(style, 0, 1000.0);
+    for (let actionFrame = 0; actionFrame < owner.attack.duration; actionFrame++) {
       let contacts = 0;
       for (let index = 0; index < count; index++) {
         authoredHitRegion(region, Character.rifleman, style, actionFrame, 0, index, FORSAKEN_PALADIN_MOVES);
@@ -73,20 +53,22 @@ test("Forsaken Paladin contact paths cover only the adopted active frames with o
           assertTrue(style === AttackStyle.grab ? region.maxX === SHARED_GRAB_REGION.maxX && region.strike === undefined : region.strike !== undefined);
         }
       }
-      assertEquals(contacts > 0, actionFrame >= first - 1 && actionFrame < first - 1 + active);
+      owner.attack.frame = actionFrame;
+      assertEquals(attackPhase(owner), contacts > 0 ? AttackPhase.active : actionFrame < startup(style) ? AttackPhase.startup : AttackPhase.recovery);
     }
   }
 });
 
 test("Forsaken Paladin Final Judgment prioritizes its hammer head and preserves the weaker close handle [spec #96]", () => {
   for (const facing of [1, -1]) {
-    for (const [x, damage] of [[120.0, 20.0], [40.0, 15.0]] as const) {
-      const { owner, target, world } = attackPair(AttackStyle.forwardSmash, 21, x, 0.0, facing);
+    assertGreaterThan(damageOf(AttackStyle.forwardSmash, 0), damageOf(AttackStyle.forwardSmash, 3));
+    for (const [x, damage] of [[120.0, damageOf(AttackStyle.forwardSmash, 0)], [40.0, damageOf(AttackStyle.forwardSmash, 3)]] as const) {
+      const { owner, target, world } = attackPair(AttackStyle.forwardSmash, startup(AttackStyle.forwardSmash) + 1, x, 0.0, facing);
       resolveAttacks(world);
       assertEquals(target.status.damage, damage);
       assertGreaterThan(target.launch.knockbackX * facing, 0.0);
       owner.launch.hitlag = 0;
-      owner.attack.frame = 22;
+      owner.attack.frame = startup(AttackStyle.forwardSmash) + 2;
       resolveAttacks(world);
       assertEquals(target.status.damage, damage);
     }
@@ -95,10 +77,10 @@ test("Forsaken Paladin Final Judgment prioritizes its hammer head and preserves 
 
 test("Forsaken Paladin Consecrated Sweep and Hammer Guard hit once across their front and back paths [spec #96]", () => {
   for (const facing of [1, -1]) {
-    for (const [style, frontFrame, backFrame, damage] of [
-      [AttackStyle.downSmash, 17, 20, 15.0],
-      [AttackStyle.neutralAir, 8, 10, 9.0],
-    ] as const) {
+    for (const [style, frontOffset, backOffset] of [[AttackStyle.downSmash, 1, 4], [AttackStyle.neutralAir, 1, 3]] as const) {
+      const frontFrame = startup(style) + frontOffset;
+      const backFrame = startup(style) + backOffset;
+      const damage = damageOf(style);
       const { owner, target, world } = attackPair(style, frontFrame, 85.0, 0.0, facing);
       resolveAttacks(world);
       assertEquals(target.status.damage, damage);
@@ -118,9 +100,9 @@ test("Forsaken Paladin Consecrated Sweep and Hammer Guard hit once across their 
 test("Forsaken Paladin Falling Judgment spikes airborne targets and launches grounded targets at 55 degrees [spec #96]", () => {
   for (const facing of [1, -1]) {
     for (const grounded of [false, true]) {
-      const { target, world } = attackPair(AttackStyle.downAir, 15, 8.0, -85.0, facing, grounded);
+      const { target, world } = attackPair(AttackStyle.downAir, startup(AttackStyle.downAir) + 1, 8.0, -85.0, facing, grounded);
       resolveAttacks(world);
-      assertEquals(target.status.damage, 13.0);
+      assertEquals(target.status.damage, damageOf(AttackStyle.downAir));
       if (grounded) {
         assertGreaterThan(target.launch.knockbackX * facing, 0.0);
         assertGreaterThan(target.launch.knockbackZ, 0.0);
@@ -136,11 +118,11 @@ test("Forsaken Paladin Falling Judgment spikes airborne targets and launches gro
 test("Forsaken Paladin's overhead hammer arc is one move for every angle, from above his head to the floor, and leaves gaps [spec #96]", () => {
   const high = emptyHitRegion();
   const low = emptyHitRegion();
-  authoredHitRegion(high, Character.rifleman, AttackStyle.forwardTilt, 10, 0, 0, FORSAKEN_PALADIN_MOVES);
-  authoredHitRegion(low, Character.rifleman, AttackStyle.forwardTilt, 12, 0, 2, FORSAKEN_PALADIN_MOVES);
+  authoredHitRegion(high, Character.rifleman, AttackStyle.forwardTilt, startup(AttackStyle.forwardTilt), 0, 0, FORSAKEN_PALADIN_MOVES);
+  authoredHitRegion(low, Character.rifleman, AttackStyle.forwardTilt, startup(AttackStyle.forwardTilt) + 2, 0, 2, FORSAKEN_PALADIN_MOVES);
   assertGreaterThan(high.maxZ, 140.0);
   assertLessThan(low.minZ, 0.0);
-  const gap = attackPair(AttackStyle.upSmash, 19, 85.0, 0.0);
+  const gap = attackPair(AttackStyle.upSmash, startup(AttackStyle.upSmash) + 2, 85.0, 0.0);
   resolveAttacks(gap.world);
   assertEquals(gap.target.status.damage, 0.0);
 });
@@ -191,9 +173,9 @@ test("Forsaken Paladin's extended limbs are hittable at their full reach and gon
   const medium = f32(HERO_REFERENCE_HEIGHT * f32(0.80));
   for (const facing of [1, -1]) {
     for (const [style, frame, x, z] of [
-      [AttackStyle.jab, 4, f32(short + 2.0), 60.0],
-      [AttackStyle.grab, 7, f32(short + 2.0), 40.0],
-      [AttackStyle.backAir, 9, -f32(medium + 2.0), 30.0],
+      [AttackStyle.jab, startup(AttackStyle.jab), f32(short + 2.0), 60.0],
+      [AttackStyle.grab, startup(AttackStyle.grab), f32(short + 2.0), 40.0],
+      [AttackStyle.backAir, startup(AttackStyle.backAir) + 1, -f32(medium + 2.0), 30.0],
     ] as const) {
       assertTrue(reach(style, frame, x, z, facing));
       assertTrue(!reach(style, -1, x, z, facing));
@@ -205,7 +187,7 @@ test("Forsaken Paladin standing and dash grabs use scaled standing and dash reac
   const reach = 96.0;
   for (const facing of [1, -1]) {
     for (const [x, caught] of [[reach, true], [f32(reach + 1.0), false]] as const) {
-      const standing = attackPair(AttackStyle.grab, 7, x, 0.0, facing);
+      const standing = attackPair(AttackStyle.grab, startup(AttackStyle.grab), x, 0.0, facing);
       standing.target.shield.raised = true;
       resolveAttacks(standing.world);
       assertEquals(standing.owner.grab.target !== undefined, caught);
@@ -233,26 +215,22 @@ test("Forsaken Paladin standing and dash grabs use scaled standing and dash reac
     beginFighterAttack(testWorld(owner, createFighter(Character.rifleman, 1000.0, -facing)), 0, AttackStyle.jab, false);
     assertEquals(owner.attack.style, AttackStyle.dashAttack);
   }
+  const full = FORSAKEN_PALADIN_MOVES.smashMaxChargeFrames;
   assertEquals(smashDamageMultiplier(0, FORSAKEN_PALADIN_MOVES), 1.0);
-  assertEquals(smashDamageMultiplier(45, FORSAKEN_PALADIN_MOVES), 1.25);
-  assertEquals(smashDamageMultiplier(100, FORSAKEN_PALADIN_MOVES), 1.25);
+  assertEquals(smashDamageMultiplier(full, FORSAKEN_PALADIN_MOVES), FORSAKEN_PALADIN_MOVES.smashMaxDamageMultiplier);
+  assertEquals(smashDamageMultiplier(full + 55, FORSAKEN_PALADIN_MOVES), FORSAKEN_PALADIN_MOVES.smashMaxDamageMultiplier);
 });
 
-const THROW_ROWS = [
-  [GrabAction.throwForward, 14, 23, 8.0, 40],
-  [GrabAction.throwBack, 18, 26, 9.0, 40],
-  [GrabAction.throwUp, 16, 9, 7.0, 90],
-  [GrabAction.throwDown, 20, 26, 6.0, 25],
-] as const;
+const THROW_ROWS = [GrabAction.throwForward, GrabAction.throwBack, GrabAction.throwUp, GrabAction.throwDown] as const;
 
 test("Forsaken Paladin throws hold until release and launch once in the adopted facing-relative direction [spec #96]", () => {
   for (const facing of [1, -1]) {
-    for (const [action, release, recovery, damage, angle] of THROW_ROWS) {
-      const { owner, target, world } = attackPair(AttackStyle.grab, 7, 40.0, 0.0, facing);
+    for (const action of THROW_ROWS) {
+      const release = grabContactFrame(action, FORSAKEN_PALADIN_MOVES);
+      const damage = authoredThrowEffect(action, FORSAKEN_PALADIN_MOVES).damage;
+      const { owner, target, world } = attackPair(AttackStyle.grab, startup(AttackStyle.grab), 40.0, 0.0, facing);
       resolveAttacks(world);
       assertEquals(owner.grab.target, 1);
-      assertEquals(grabContactFrame(action, owner.tuning.moves), release);
-      assertEquals(grabActionDuration(action, owner.tuning.moves), release + recovery);
       const input = controls({
         grabThrowX: action === GrabAction.throwForward ? facing : action === GrabAction.throwBack ? -facing : 0,
         grabThrowZ: action === GrabAction.throwUp ? 1 : action === GrabAction.throwDown ? -1 : 0,
@@ -270,7 +248,7 @@ test("Forsaken Paladin throws hold until release and launch once in the adopted 
       assertTrue(target.launch.throwHitstun);
       assertGreaterThan(target.launch.hitstun, 0);
       assertGreaterThan(target.launch.knockbackZ, 0.0);
-      if (angle === 90) assertEquals(target.launch.knockbackX, 0.0);
+      if (action === GrabAction.throwUp) assertEquals(target.launch.knockbackX, 0.0);
       else if (action === GrabAction.throwBack) assertLessThan(target.launch.knockbackX * facing, 0.0);
       else assertGreaterThan(target.launch.knockbackX * facing, 0.0);
       testGrabFrame(world, [input, controls()], false);

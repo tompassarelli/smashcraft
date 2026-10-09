@@ -1,9 +1,10 @@
+import { f32 } from "wisp/src/sim/f32";
 import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
 import { resolveAttacks } from "../attacks";
 import { Character, HeroStatusKind, SpecialAction } from "../codes";
-import { chillScaled } from "../chill";
+import { CHILL_SPEED_SCALE, chillScaled } from "../chill";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { createFighter } from "../fighter";
 import { advanceHeroStatus } from "../heroSpecialRules";
@@ -13,6 +14,7 @@ import { advanceSpecials, startFighterSpecial } from "../specials";
 import { advanceFighter } from "../step";
 import { controls } from "../testWorld";
 import { FOLLOW_UP_FORM } from "../heroSpecials";
+import { CHEN_SPECIALS } from "./chenSpecials";
 
 function frame(world: Roster, input: Readonly<Controls> = controls(), defender: Readonly<Controls> = controls()): void {
   const inputs = [input, defender];
@@ -34,9 +36,10 @@ const neutral = controls({ specialPressed: true });
 const side = controls({ specialPressed: true, specialX: 1 });
 const up = controls({ specialPressed: true, specialZ: 1 });
 const down = controls({ specialPressed: true, specialZ: -1 });
+const regionDamage = (special: { readonly regions?: readonly { readonly hit: { readonly effect: { readonly damage: number } } }[] | undefined }) => special.regions?.[0]?.hit.effect.damage ?? -1.0;
 
 test("Chen preserves the super meter on each regular special, recovers on its last frame and snapshots every running action [spec #335][invariant]", () => {
-  for (const [input, action, end] of [[neutral, SpecialAction.heroNeutral, 42], [side, SpecialAction.heroSide, 38], [up, SpecialAction.heroUp, 40], [down, SpecialAction.heroDown, 33]] as const) {
+  for (const [input, action, end] of [[neutral, SpecialAction.heroNeutral, CHEN_SPECIALS.neutral.ground.endFrame], [side, SpecialAction.heroSide, CHEN_SPECIALS.side.ground.endFrame], [up, SpecialAction.heroUp, CHEN_SPECIALS.up.ground.endFrame], [down, SpecialAction.heroDown, CHEN_SPECIALS.down.ground.endFrame]] as const) {
     const { world, owner } = pair(600.0);
     frame(world, input);
     assertEquals(owner.special.action, action); assertEquals(owner.mana.points, 100);
@@ -51,7 +54,7 @@ test("Breath of Fire hits once facing either way and a shield stops body damage 
   for (const facing of [-1, 1]) for (const shielding of [false, true]) {
     const { world, owner, target } = pair(110.0, facing);
     for (let tick = 1; tick <= 65; tick++) frame(world, tick === 1 ? neutral : controls(), controls({ shield: shielding, shieldStrength: 1.0 }));
-    assertEquals(target.status.damage, shielding ? 0.0 : 12.5);
+    assertEquals(target.status.damage, shielding ? 0.0 : regionDamage(CHEN_SPECIALS.neutral.ground));
     assertEquals(owner.special.action, SpecialAction.none);
   }
 });
@@ -60,9 +63,9 @@ test("Drunken Haze reaches a distant body, slows its movement and respects shiel
   for (const shielding of [false, true]) {
     const { world, target } = pair(240.0);
     for (let tick = 1; tick <= 42; tick++) frame(world, tick === 1 ? side : controls(), controls({ shield: shielding, shieldStrength: 1.0 }));
-    assertEquals(target.status.damage, shielding ? 0.0 : 3.75);
+    assertEquals(target.status.damage, shielding ? 0.0 : CHEN_SPECIALS.side.ground.projectiles?.[0]?.effect.damage);
     assertEquals(target.status.condition, shielding ? HeroStatusKind.none : HeroStatusKind.chill);
-    assertEquals(chillScaled(target, 10.0), shielding ? 10.0 : 6.0);
+    assertEquals(chillScaled(target, 10.0), shielding ? 10.0 : f32(10.0 * CHILL_SPEED_SCALE));
   }
 });
 
@@ -89,7 +92,7 @@ test("Earth braces and fresh attack or special chooses the Fire or Storm branch 
     frame(world, controls({ attackPressed: attack, specialPressed: !attack }));
     assertEquals(owner.special.form, FOLLOW_UP_FORM * (attack ? 1 : 2));
     for (let tick = 0; tick < 55; tick++) frame(world);
-    assertEquals(target.status.damage, attack ? 13.75 : 8.75);
+    assertEquals(target.status.damage, regionDamage(CHEN_SPECIALS.down.ground.followUps?.[attack ? 0 : 1]?.special ?? CHEN_SPECIALS.down.ground));
     assertEquals(owner.mana.points, 100);
   }
 });

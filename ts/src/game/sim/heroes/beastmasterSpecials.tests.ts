@@ -18,7 +18,7 @@ import { controls } from "../testWorld";
 import { clearSpecialOnStock } from "../transitions";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
-import { BEAR, HAWK, QUILL, STAMPEDE, WILD_AXES } from "./beastmasterSpecials";
+import { BEAR, BEAR_PLACEMENT, HAWK, HAWK_PLACEMENT, QUILBEAST_PLACEMENT, QUILL, STAMPEDE, WILD_AXES } from "./beastmasterSpecials";
 
 const H = HERO_REFERENCE_HEIGHT;
 const neutral = controls({ specialPressed: true });
@@ -67,22 +67,22 @@ function withPack() {
 
 test("Beastmaster summons Bear on frame 24, Quilbeast on 18 and Hawk on 12 without replacing another animal [spec docs/design/beastmaster.md]", () => {
   const { world, owner } = pair();
-  run(world, 23, side);
+  run(world, BEAR_PLACEMENT.frame - 1, side);
   assertEquals(owner.mana.points, 100);
   assertEquals(owner.placed.life, 0);
   frame(world);
-  assertEquals(owner.placed.durability, 30.0);
+  assertEquals(owner.placed.durability, BEAR_PLACEMENT.durability);
   run(world, 20);
   assertEquals(owner.special.action, SpecialAction.none);
-  run(world, 17, down);
+  run(world, QUILBEAST_PLACEMENT.frame - 1, down);
   assertEquals(placedObject(owner, 1).life, 0);
   frame(world);
-  assertEquals(placedObject(owner, 1).durability, 18.0);
+  assertEquals(placedObject(owner, 1).durability, QUILBEAST_PLACEMENT.durability);
   run(world, 14);
-  run(world, 11, up);
+  run(world, HAWK_PLACEMENT.frame - 1, up);
   assertEquals(placedObject(owner, 2).life, 0);
   frame(world);
-  assertEquals(placedObject(owner, 2).durability, 12.0);
+  assertEquals(placedObject(owner, 2).durability, HAWK_PLACEMENT.durability);
   assertGreaterThan(owner.placed.life, 0);
   assertGreaterThan(placedObject(owner, 1).life, 0);
   assertGreaterThan(placedObject(owner, 2).z, owner.motion.z);
@@ -115,7 +115,7 @@ test("Beastmaster Stampede commands Bear and sends two thunder lizards; Bear bit
     }
     assertEquals(serials, 3);
     assertGreaterThan(lizards, 0);
-    assertGreaterThan(target.status.damage, 11.0);
+    assertGreaterThan(target.status.damage, BEAR.biteEffect.damage);
     assertEquals(owner.placed.mode, CompanionMode.follow);
   }
 });
@@ -165,7 +165,7 @@ test("Beastmaster Quilbeast fires from its own location, then a command gives th
   for (let index = 0; index < owner.projectiles.length; index++) mutableProjectile(owner, index).life = 0;
   quil.mode = CompanionMode.stunned;
   quil.modeFrame = 0;
-  quil.age = 107;
+  quil.age = (QUILBEAST_PLACEMENT.fireAges[1] ?? 0) - 1;
   frame(world);
   assertEquals(owner.projectiles.filter(p => p.life > 0).length, 0);
 });
@@ -182,7 +182,7 @@ test("Beastmaster Hawk Dive leaves its perch and launches a target upward in bot
     assertLessThan(hawk.z, high);
     let rise = 0.0;
     for (let f = 0; f < 30; f++) { frame(world); rise = Math.max(rise, target.launch.knockbackZ); }
-    assertEquals(target.status.damage, 5.399999618530273);
+    assertEquals(target.status.damage, HAWK.biteEffect.damage);
     assertGreaterThan(rise, 0.0);
   }
 });

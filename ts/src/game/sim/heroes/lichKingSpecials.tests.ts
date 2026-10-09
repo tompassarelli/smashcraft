@@ -22,6 +22,7 @@ import { attackBuffer } from "../../input/attackBuffer";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
 import { LICH_KING_MOVES } from "./lichKingMoves";
+import { LICH_KING_SPECIALS } from "./lichKingSpecials";
 
 const H = HERO_REFERENCE_HEIGHT;
 const neutral = controls({ specialPressed: true });
@@ -73,7 +74,7 @@ function actionLength(world: Roster, owner: Fighter, press: Readonly<Controls>):
 const liveHero = (f: Readonly<Fighter>) => f.projectiles.find(p => p.life > 0 && p.kind === ProjectileKind.hero);
 
 test("the Lich King's specials preserve their super meter and end on their authored frames [spec #335]", () => {
-  for (const [press, end] of [[neutral, 44], [side, 40], [down, 50]] as const) {
+  for (const [press, end] of [[neutral, LICH_KING_SPECIALS.neutral.ground.endFrame], [side, LICH_KING_SPECIALS.side.ground.endFrame], [down, LICH_KING_SPECIALS.down.ground.endFrame]] as const) {
     const { world, owner } = pair(1000.0);
     const length = actionLength(world, owner, press);
     if (press === down) assertEquals(length, end);
@@ -170,7 +171,8 @@ test("Defile stays through five 2-damage pulses spaced 36 frames; body hits grow
   for (let f = 2; f <= 30 && liveHero(owner) === undefined; f++) frame(world);
   const pool = liveHero(owner);
   assertTrue(pool !== undefined);
-  if (pool === undefined || pool.spec === undefined) return;
+  if (pool === undefined || pool.spec === undefined || pool.spec.pool === undefined) return;
+  const growth = pool.spec.pool;
   const strikes: number[] = [];
   let last = 0.0;
   let widest = heroProjectileRadius(pool, pool.spec);
@@ -192,13 +194,13 @@ test("Defile stays through five 2-damage pulses spaced 36 frames; body hits grow
     }
   }
   assertEquals(strikes.length, 5);
-  assertEquals(target.status.damage, 10.0);
-  for (let i = 1; i < strikes.length; i++) assertEquals(strikes[i]! - strikes[i - 1]!, 36);
-  assertNear(widest, f32(f32(H * f32(0.3)) + 30.0), f32(0.01));
+  assertEquals(target.status.damage, f32(5.0 * pool.spec.effect.damage));
+  for (let i = 1; i < strikes.length; i++) assertEquals(strikes[i]! - strikes[i - 1]!, growth.every);
+  assertNear(widest, f32(pool.spec.radius + f32(5.0 * growth.growth)), f32(0.01));
   const writablePool = mutableProjectile(owner, owner.projectiles.indexOf(pool));
   writablePool.life = 10;
   writablePool.poolHits = 100;
-  assertNear(heroProjectileRadius(pool, pool.spec), f32(H * f32(0.6)), f32(0.01));
+  assertNear(heroProjectileRadius(pool, pool.spec), growth.maxRadius, f32(0.01));
 
   const copy = lichKing(0.0, 1);
   copyFighterState(copy, owner, 3);

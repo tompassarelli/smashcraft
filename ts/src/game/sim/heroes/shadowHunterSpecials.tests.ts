@@ -21,6 +21,11 @@ import { controls } from "../testWorld";
 import { clearSpecialOnStock } from "../transitions";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
+import { SHADOW_HUNTER_SPECIALS } from "./shadowHunterSpecials";
+
+const GLAIVE = SHADOW_HUNTER_SPECIALS.neutral.ground.projectiles![0]!;
+const HEX_ORB = SHADOW_HUNTER_SPECIALS.down.ground.projectiles![0]!;
+const WARD = SHADOW_HUNTER_SPECIALS.side.ground.placement!;
 
 function frame(world: Roster, first: Readonly<Controls> = controls(), second: Readonly<Controls> = controls()): void {
   const inputs = [first, second];
@@ -76,14 +81,14 @@ test("Loa Vault keeps its full upward vault at every meter level [spec #335]", (
 test("Spirit Glaive is free, leaves on frame 18, strikes once and frees the hunter after frame 40 [spec #335]", () => {
   const { world, owner, target } = pair(300.0);
   frame(world, neutral);
-  for (let f = 2; f <= 17; f++) frame(world);
+  for (let f = 2; f < GLAIVE.spawnFrame; f++) frame(world);
   assertEquals(owner.projectiles.filter(p => p.life > 0).length, 0);
   frame(world);
   assertEquals(owner.projectiles.filter(p => p.life > 0 && p.kind === ProjectileKind.hero).length, 1);
-  for (let f = 19; f <= 40; f++) frame(world);
+  for (let f = GLAIVE.spawnFrame + 1; f <= SHADOW_HUNTER_SPECIALS.neutral.ground.endFrame; f++) frame(world);
   assertEquals(owner.special.action, SpecialAction.none);
   assertEquals(owner.mana.points, 100);
-  assertEquals(target.status.damage, 6.0);
+  assertEquals(target.status.damage, GLAIVE.effect.damage);
 });
 
 const glaives = (f: Readonly<Fighter>) => f.projectiles.filter(p => p.life > 0 && p.kind === ProjectileKind.hero);
@@ -114,7 +119,7 @@ test("the returning Spirit Glaive strikes a fighter between it and Shadow Hunter
   assertLessThan(glaive.velocityX, 0.0);
   target.motion.x = f32(glaive.x - 50.0);
   for (let f = 0; f < 10 && target.status.damage === 0.0; f++) frame(world);
-  assertEquals(target.status.damage, 5.0);
+  assertEquals(target.status.damage, GLAIVE.returnEffect?.damage);
   assertLessThan(target.launch.knockbackX, 0.0);
 });
 
@@ -122,10 +127,10 @@ test("Hex is free and its orb leaves on frame 24 and strikes for 2 [spec #335]",
   const { world, owner, target } = pair(200.0);
   frame(world, down);
   assertEquals(owner.mana.points, 100);
-  for (let f = 2; f <= 23; f++) frame(world);
+  for (let f = 2; f < HEX_ORB.spawnFrame; f++) frame(world);
   assertEquals(owner.projectiles.filter(p => p.life > 0).length, 0);
-  for (let f = 24; f <= 53; f++) frame(world);
-  assertEquals(target.status.damage, 2.0);
+  for (let f = HEX_ORB.spawnFrame; f <= 53; f++) frame(world);
+  assertEquals(target.status.damage, HEX_ORB.effect.damage);
   assertEquals(owner.special.action, SpecialAction.none);
 });
 
@@ -146,24 +151,24 @@ test("Serpent Ward is ground-only (an airborne side press throws Spirit Glaive),
   for (let f = 0; f < 240 && !owner.motion.grounded; f++) frame(world);
   for (let f = 0; f < 30; f++) frame(world);
   frame(world, side);
-  for (let f = 2; f <= 25; f++) frame(world);
+  for (let f = 2; f < WARD.frame; f++) frame(world);
   assertEquals(owner.placed.life, 0);
   frame(world);
   assertEquals(owner.mana.points, 100);
 
   assertEquals(owner.placed.age, 1);
-  assertEquals(owner.placed.life, 239);
+  assertEquals(owner.placed.life, WARD.life - 1);
   assertTrue(near((owner.placed.x - owner.motion.x) / HERO_REFERENCE_HEIGHT, f32(0.65)));
   const fired: number[] = [];
   let wasFlying = 0;
-  for (let age = 2; age <= 240; age++) {
+  for (let age = 2; age <= WARD.life; age++) {
     frame(world);
     const flying = owner.projectiles.filter(p => p.life > 0 && p.kind === ProjectileKind.hero).length;
     if (flying > wasFlying) fired.push(owner.placed.age);
     wasFlying = flying;
-    if (age === 239) assertGreaterThan(owner.placed.life, 0);
+    if (age === WARD.life - 1) assertGreaterThan(owner.placed.life, 0);
   }
-  assertEquals(fired.join(","), "45,85,125,165,205");
+  assertEquals(fired.join(","), WARD.fireAges.join(","));
   assertEquals(owner.placed.life, 0);
   assertGreaterThan(target.status.damage, 0.0);
 });
@@ -268,8 +273,8 @@ test("Hex stops attacks, grabs and neutral, side and down specials for 50 frames
   assertTrue(attack.jumpPressed && attack.shield);
   const fresh = hexed();
 
-  assertEquals(framesHexed(fresh.world, fresh.target, () => controls()), 49);
-  assertEquals(fresh.target.status.conditionImmunity[HeroStatusGroup.silence], 240);
+  assertEquals(framesHexed(fresh.world, fresh.target, () => controls()), (HEX_ORB.status?.frames ?? 0) - 1);
+  assertEquals(fresh.target.status.conditionImmunity[HeroStatusGroup.silence], HEX_ORB.status?.immunityFrames);
 });
 
 test("a hexed fighter mashes out sooner but never before frame 36, and immunity stops a second Hex [spec docs/design/roster.md]", () => {
