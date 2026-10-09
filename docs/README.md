@@ -18,6 +18,7 @@ Dated trial records live in [evidence](../evidence/README.md).
 - [Platform-fighter design language](design/platform-fighters.md): how platform fighters change that language: shield, aerials on shield, ledge, DI and SDI, tech chases, edgeguarding, the interaction graph.
 - [Modern platform-fighter mechanics](design/modern-platform-fighters.md): sourced inventory of mechanics later games added or changed relative to Melee.
 - [Execution and reaction windows](design/execution-windows.md): windows other games use, human limits, and proposed bounds.
+- [Human input consistency](design/human-input-consistency.md): measured Melee input timing, precision, reaction and DI/SDI noise by rank, from 2,083 Slippi ranked games.
 - [Stages](design/stages.md): what Melee and Ultimate players pick and why, accepted variance and hazards, Warcraft places and built-in assets per race, and an evaluation of the draft stage list.
 - [Home stages](design/home-stages.md): every fighter's home stage from their Warcraft campaign, with the lore reason.
 - [Stage music](design/stage-music.md): each stage's stock Warcraft track, chosen for its home fighters, and the music the client ships.

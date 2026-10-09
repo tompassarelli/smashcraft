@@ -1,0 +1,8 @@
+{
+  "name": "smashcraft-slippi-tools",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@slippi/slippi-js": "9.1.3"
+  }
+}
