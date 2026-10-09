@@ -226,7 +226,9 @@ from the floor (smashcraft:ts/src/game/presentation/stageScenery.ts).
    visible motion on screen.
 9. **Theme by silhouette.** One landmark plus two or three supporting props
    tell the place; prefer a few large, readable shapes to many small ones.
-   The practice stage (Sky Deck) stays a plain sky as the neutral baseline.
+   They stand in a full-width band and over a floor, never alone in the sky
+   (visual-quality.md, "Filled match frames"). The practice stage (Sky Deck)
+   stays a plain sky as the neutral baseline, a minimal stage with a floor.
 10. **Decks wear the stage's materials, in fixed value roles.** Owner note
     (6 Oct): each stage's platforms take its place's materials: Icecrown ice
     over saronite, Night Elf bark, Dwarven granite and Alliance gold, Orc hide

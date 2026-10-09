@@ -18,6 +18,37 @@ sky, lighting and fog, with scene objects and UI removed. The measurement ends
 at row 0.76, above the HUD, and treats pixels within CIELAB distance 12 of that
 sky image as empty. Run it for each stage's captured views.
 
+The limit is calibrated on Tom's Smash Ultimate references
+(~/.local/share/smashcraft-stage-references, kept local), cropped to the game
+frame and measured with the same command at horizon row 1/3. Each sky-only
+image stretches the frame's own clear sky band down the frame; the enclosed
+Pokémon Stadium has no sky, so its backdrop is black.
+
+| Reference | Sky-only source | Empty backdrop |
+| --- | --- | --- |
+| Battlefield | top 28% of the frame | 6.66% |
+| Smashville | top 5% | 0.00% |
+| Pokémon Stadium | black void | 7.83% |
+| Final Destination (minimal) | top 25%; its sky is a painted galaxy | 11.59%, or 58% counting every pixel brighter than L* 60 as sky |
+
+The limit is the highest of the three full stages, 7.83%, rounded up to the
+next 5%: 10%. Natural scenery fills the band as well as buildings do: Battlefield's
+cliffs, waterfalls and ruins measure 6.66%.
+
+Stages come in two classes:
+- **Full**, the default, like Battlefield and Smashville: the limit applies.
+  Each stage fills its band from its own place (fortress walls and fel lava,
+  necropolis architecture, canopy and trunks, mountain and forge, a burning
+  city, sand and temple), and the band's density and height vary by stage.
+- **Minimal**, like Final Destination: Sky Deck and Frozen Throne. The limit
+  does not apply, but a minimal stage is not empty. It keeps ground under the
+  deck across the full width, a deliberate backdrop (a plain neutral sky for
+  Sky Deck per stage-art rule 9; aurora and a distant ice shelf for Frozen
+  Throne), its contrast rows and the fighter L* check.
+
+On every stage, minimal included, no scenery floats in the sky with nothing
+beneath it.
+
 Scenery forms a continuous band across the frame, with recognisable shapes at
 least 3% of the frame height. A water stage has one continuous sea at its
 gameplay height, with a readable ripple pattern and supports descending into
