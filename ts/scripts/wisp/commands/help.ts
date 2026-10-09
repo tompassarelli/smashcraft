@@ -11,7 +11,7 @@ export const makeHelp = (usages: readonly string[], print: (line: string) => voi
     catch: (cause) => new UsageFailure({ problem: `Can't read the documentation index: ${String(cause)}` }),
   });
   const topics = [...router.matchAll(/^\| `([\w-]+)` \| \[[^\]]+\]\((commands\/[\w-]+\.md)\) \|$/gm)]
-    .map((match) => ({ name: match[1]!, file: match[2]! }));
+    .flatMap(([, name, file]) => name === undefined || file === undefined ? [] : [{ name, file }]);
   if (args.length === 0) {
     print(`usage: bun wisp COMMAND\n${usages.map((usage) => `  ${usage}`).join("\n")}\n\nhelp: bun wisp help TOPIC\ntopics: ${topics.map(({ name }) => name).join(" ")}\ndocs: docs/README.md`);
     return;
