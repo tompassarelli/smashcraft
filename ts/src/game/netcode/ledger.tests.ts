@@ -113,8 +113,10 @@ test("a malformed second record commits nothing [spec docs/netcode-proposal.md]"
   const ledger = new InputLedger();
   assertTrue(ledger.beginEpoch(1, 1, 0, 3));
   const wire = encodePacket(packet(1, 1, NEUTRAL, NEUTRAL));
+  const held = encodePacket(packet(1, 1, NEUTRAL, row({ held: 1 })));
+  const zeroHeldGroup = `${held.substring(0, held.length - 3)}000`;
 
-  assertEquals(ledger.receive(0, `${wire.substring(0, wire.length - 1)}1W00`), "malformed");
+  assertEquals(ledger.receive(0, zeroHeldGroup), "malformed");
   assertEquals(ledger.accepted(1, 0, 1), undefined);
   assertEquals(ledger.accepted(1, 0, 2), undefined);
   assertEquals(ledger.receive(0, wire), "accepted");
