@@ -72,7 +72,9 @@ export function headlessRender(options: RenderAssetOptions = {}) {
   const pending = new Map<string, Promise<ResolvedRenderAsset>>();
   const read = (path: string) => attempt(`read ${path}`, async () => {
     const file = Bun.file(path);
-    return await file.exists() ? file.bytes() : undefined;
+    if (!await file.exists()) return undefined;
+    const bytes = await file.bytes();
+    return bytes.length > 0 ? bytes : undefined;
   });
   const convertTexture = (source: string, target: string) => Effect.gen(function*() {
     const converter = Bun.which("magick") ?? Bun.which("convert");

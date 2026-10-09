@@ -23,7 +23,7 @@
     "typescript-native": "npm:typescript@7.0.2",
     "typescript-to-lua": "1.37.1",
     "war3-model": "4.0.1",
-    "wisp": "file:vendor/wisp-73b5d221c5114c9f64a03e5c67cf91739d3667c1.tgz"
+    "wisp": "file:vendor/wisp-453c90b2ba362a29be730dcd9c35a7e12e409bad.tgz"
   },
   "overrides": {
     "@effect/platform-node-shared": "4.0.1"

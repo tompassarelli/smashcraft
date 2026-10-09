@@ -44,13 +44,17 @@ test("[spec wisp#84] Definitive map body overrides stock while Classic keeps its
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
-test("stock texture suffixes survive a missing extractor output and keep the body layer [repro wisp#82]", async () => {
+test("stock textures recover empty PNG caches and missing suffixes while keeping the body layer [repro wisp#82]", async () => {
   const directory = mkdtempSync(join(tmpdir(), "smashcraft-stock-suffix-"));
   try {
     const extractor = join(directory, "extract.ts");
     await Bun.write(extractor, '#!/usr/bin/env bun\nimport {join} from "node:path"; const path=process.argv[3]; const source=join(process.argv[2],path === "war3.w3mod:weather/rays.dds" ? "dds" : path.endsWith(":_de.w3mod:cave.blp") ? "blp" : "missing"); if(await Bun.file(source).exists()) await Bun.write(process.argv[4],await Bun.file(source).bytes());\n');
     chmodSync(extractor, 0o755);
-    await Bun.write(join(directory, ".build.info"), "Active!DEC:1\n1\n");
+    const buildInfo = "Active!DEC:1\n1\n";
+    await Bun.write(join(directory, ".build.info"), buildInfo);
+    const cache = join(directory, "cache", "stock", new Bun.CryptoHasher("sha256").update(buildInfo).digest("hex"));
+    await Bun.write(join(cache, "weather/rays.png"), new Uint8Array());
+    await Bun.write(join(cache, "_de.w3mod/cave.png"), new Uint8Array());
     const dds = new Uint8Array(136), header = new DataView(dds.buffer);
     dds.set(new TextEncoder().encode("DDS ")); header.setUint32(4, 124, true);
     for (const [offset, value] of [[8, 0x81007], [12, 4], [16, 4], [20, 8], [76, 32], [80, 4], [108, 0x1000]]) header.setUint32(offset, value, true);
