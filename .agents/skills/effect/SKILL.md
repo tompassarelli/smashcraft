@@ -5,13 +5,10 @@ description: Develop Smashcraft and Wisp with Effect, or maintain their Effect d
 
 # Effect in Smashcraft
 
-Use `effect-development-distilled` for general Effect authoring. This skill
+Use `effect-development` for general Effect authoring. This skill
 owns Smashcraft's source reference and maintenance policy. Read
 smashcraft:repos/effect/LLMS.md and the relevant implementation, examples and
 tests before writing Effect code; those files match the recorded release.
-Use Effect for typed failures, service composition, resource ownership,
-structured concurrency, boundary validation and host observability where the
-code needs those capabilities. Keep pure calculations as plain functions.
 
 Application imports use installed `effect` and related packages. Never import
 from smashcraft:repos/effect/, add it to a workspace, run its install/build
@@ -19,13 +16,10 @@ scripts, or modify its files during application work. Its upstream toolchain
 does not change Smashcraft's Bun workflow. Preserve upstream licenses and
 notices. The exact source identity is in smashcraft:repos/effect.json.
 
-Wisp spans Bun tools and synchronized TSTL/Lua game code. Read
-smashcraft:docs/typescript.md and `warcraft-modding-distilled`
-before changing that boundary. Establish compiler and runtime compatibility
-before moving Effect APIs into map code; host success alone is insufficient.
-Preserve deterministic frame ordering, numeric parity, replay snapshots and
-reload ownership. Do not replace the installed Effect runtime with a local
-imitation to evade an unsupported target.
+Read smashcraft:docs/typescript.md and `warcraft-modding` for the host/map boundary.
+Map code cannot import Effect; preserve deterministic frame ordering, numeric
+parity, replay snapshots and reload ownership. Never replace the installed
+Effect runtime with a local imitation to evade an unsupported target.
 
 ## Weekly update policy
 
@@ -33,8 +27,7 @@ Check for a newer stable Effect release at least once every **7 days**, on the
 first Effect-related work session when smashcraft:repos/effect.json's
 `checkedAt` is older than 7 days. Also check whenever the installed Effect
 version changes, before deriving a new pattern from a different version, or
-when Tom explicitly requests an update. This is an agent maintenance duty;
-there is no unattended scheduler or automatic push implied by this policy.
+when Tom explicitly requests an update.
 
 1. Inspect the installed dependency and lockfile. Query the package registry
    with Bun and upstream's `effect@VERSION` release/tag. GitHub's monorepo

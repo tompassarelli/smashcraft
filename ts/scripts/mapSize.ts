@@ -1,4 +1,4 @@
-// The map's download size (#264, AGENTS.md "Map size"): the bytes each archive
+// The map's download size (#264, docs/commands/map.md): the bytes each archive
 // entry occupies in the built .w3x, read from its MPQ block table, and the
 // committed baseline a default build may not outgrow by more than GROWTH.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
@@ -152,5 +152,5 @@ export function mapGrowthProblem(size: MapSize, baseline: MapSize): string | und
   return `the map is ${mb(size.total)}, more than ${GROWTH * 100}% over its ${mb(baseline.total)} baseline; ` +
     `largest new imports: ${named === "" ? "none (the growth is outside the imports)" : named}. ` +
     "Prefer Warcraft's own assets; if the import is needed, say its size and why stock can't do it in the commit, " +
-    "then rebuild with MAP_SIZE_UPDATE=1 and commit ts/map-size-baseline.tsv (AGENTS.md, \"Map size\")";
+    "then rebuild with MAP_SIZE_UPDATE=1 and commit ts/map-size-baseline.tsv (bun wisp help map)";
 }

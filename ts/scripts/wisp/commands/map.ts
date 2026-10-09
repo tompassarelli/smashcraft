@@ -65,7 +65,7 @@ const measureMap = (out: string, declared: readonly ArchiveEntry[]) => Effect.sc
   });
 }));
 
-/** Prints the map's size; the default build fails when it outgrows the committed baseline (AGENTS.md, "Map size"). */
+/** Prints the map's size; the default build fails when it outgrows the committed baseline (docs/commands/map.md). */
 const checkMapSize = (out: string, imports: readonly ArchiveEntry[], bounded: boolean) => Effect.gen(function*() {
   const size = yield* measureMap(out, imports);
   yield* Console.log(describeMapSize(size));

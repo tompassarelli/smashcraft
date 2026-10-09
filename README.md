@@ -28,7 +28,7 @@ repository.
 
 Where to look next:
 
-- [AGENTS.md](AGENTS.md): workflow rules and the full command list.
+- [AGENTS.md](AGENTS.md): repository rules and task routers; from ts/, run `bun wisp help` for commands.
 - [Documentation index](docs/README.md): how the game and its systems work.
 - [Wisp feature index](https://github.com/tompassarelli/wisp/blob/main/docs/index.md):
   framework capabilities and opt-in diagnostics.

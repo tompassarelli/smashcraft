@@ -6,7 +6,52 @@ Docs hold durable knowledge: how the game and its systems work, design
 decisions and their reasons, reference data, and procedures. Anything that
 changes, such as status, progress, plans, priorities or claim tables, lives in
 GitHub issues under roadmap [#16](https://github.com/tompassarelli/smashcraft/issues/16).
-Dated trial records live in [evidence](../evidence/README.md).
+Status, plans, measured results and run links live in the owning issue.
+
+## Help topics
+
+From ts/, `bun wisp help` lists commands and topics; `bun wisp help TOPIC` prints its usage, rules, options and gotchas from the linked page.
+
+| Topic | File |
+| --- | --- |
+| `hot` | [hot](commands/hot.md) |
+| `map` | [map](commands/map.md) |
+| `inputs` | [inputs](commands/inputs.md) |
+| `fresh` | [fresh](commands/fresh.md) |
+| `judge` | [judge](commands/judge.md) |
+| `oracle` | [oracle](commands/oracle.md) |
+| `agency` | [agency](commands/agency.md) |
+| `interactions` | [interactions](commands/interactions.md) |
+| `combos` | [combos](commands/combos.md) |
+| `parity` | [parity](commands/parity.md) |
+| `integrity` | [integrity](commands/integrity.md) |
+| `client` | [client](commands/client.md) |
+| `lan` | [lan](commands/lan.md) |
+| `menus` | [menus](commands/menus.md) |
+| `online` | [online](commands/online.md) |
+| `view` | [view](commands/view.md) |
+| `headless` | [headless](commands/headless.md) |
+| `soak` | [soak](commands/soak.md) |
+| `dev` | [dev](commands/dev.md) |
+| `play` | [play](commands/play.md) |
+| `controller` | [controller](commands/controller.md) |
+| `tune` | [tune](commands/tune.md) |
+| `repro` | [repro](commands/repro.md) |
+| `replay` | [replay](commands/replay.md) |
+| `pad` | [pad](commands/pad.md) |
+| `accept` | [accept](commands/accept.md) |
+| `farm` | [farm](commands/farm.md) |
+| `perf` | [perf](commands/perf.md) |
+| `anim` | [anim](commands/anim.md) |
+| `workflow` | [workflow](commands/workflow.md) |
+| `typescript` | [typescript](commands/typescript.md) |
+| `animation` | [animation](commands/animation.md) |
+| `testing` | [testing](commands/testing.md) |
+| `ui` | [ui](commands/ui.md) |
+| `native` | [native](commands/native.md) |
+| `physics` | [physics](commands/physics.md) |
+| `cpu` | [cpu](commands/cpu.md) |
+| `stage` | [stage](commands/stage.md) |
 
 ## Game
 
@@ -74,5 +119,5 @@ Dated trial records live in [evidence](../evidence/README.md).
 ## Keeping docs from rotting
 
 - Write a doc only for knowledge that stays true until the code or design changes. Put status, next steps and results-so-far in the owning issue.
-- When a trial teaches something durable, add that fact to the relevant doc above, in a sentence, with the build it was observed on. Keep the trial's raw record in `evidence/`.
+- When a trial teaches something durable, add that fact to the relevant doc above, in a sentence, with the build it was observed on. Keep its table, run link and commit in the owning issue.
 - Don't add "current state", "updated on" or "remaining work" sections to a doc. If a doc needs one, the content belongs in an issue.

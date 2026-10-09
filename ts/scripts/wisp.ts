@@ -42,9 +42,11 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
 };
 
 const [name, ...args] = process.argv.slice(2);
-const entry = name === undefined ? undefined : COMMANDS[name];
+const entry = name === "help"
+  ? { usage: "help [TOPIC]", load: async () => (await import("./wisp/commands/help")).makeHelp(Object.values(COMMANDS).map(({ usage }) => usage)) }
+  : name === undefined ? undefined : COMMANDS[name];
 if (name === undefined || entry === undefined) {
-  console.error(`usage: bun wisp COMMAND\n${Object.values(COMMANDS).map(({ usage }) => `  ${usage}`).join("\n")}`);
+  console.error(`usage: bun wisp COMMAND\nrun bun wisp help for commands and topics`);
   process.exit(2);
 }
 // Play is Tom's path from main and the client's Play button; Bun installs nothing

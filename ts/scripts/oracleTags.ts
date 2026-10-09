@@ -18,7 +18,7 @@ export const ORACLE_TAGS = [
   "  [repro #N]                 reproduces a real defect and fails on the pre-fix code",
   "  [invariant]                holds however the code computes it: same seed twice, equal client checksums, round trips, rollback equals straight play",
   "A headless expectation not yet confirmed natively stays as [provisional] and is listed on wisp#69.",
-  "A test with no oracle restates the code: delete it (AGENTS.md, \"Testing\").",
+  "A test with no oracle restates the code: delete it (bun wisp help testing).",
 ].join("\n");
 
 const REGISTRARS = new Set(["test", "it", "sweep"]);

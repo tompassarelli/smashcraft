@@ -1,6 +1,6 @@
 // `bun run test`: the suite in a few processes, then Wisp's timing phase
 // (wisp:docs/testing.md), then its CPU against the committed baseline
-// (scripts/testCost.ts, AGENTS.md "Test cost").
+// (scripts/testCost.ts, docs/commands/testing.md).
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { availableParallelism, tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";

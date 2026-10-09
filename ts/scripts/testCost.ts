@@ -1,4 +1,4 @@
-// The suite's CPU budget (AGENTS.md, "Test cost"), shared by `bun run test`
+// The suite's CPU budget (ts/AGENTS.md), shared by `bun run test`
 // (scripts/test.ts) and the Lua32 runner (scripts/lua-tests.ts). Each test
 // file (a src module for game tests) has a committed baseline row: its test
 // count and CPU seconds, scaled to the reference machine. A run fails a test

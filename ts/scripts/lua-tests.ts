@@ -14,7 +14,7 @@
 // remainder's bundle (every module and the census) for sharded runs
 // (test/lua/entry.ts), and LUA_TESTS_STEP=stack runs only the stack check.
 // Outside soaks and sweeps the run ends with its CPU against the committed
-// baseline, test/lua/cost-baseline.tsv (scripts/testCost.ts, AGENTS.md "Test cost").
+// baseline, test/lua/cost-baseline.tsv (scripts/testCost.ts, docs/commands/testing.md).
 // LUA_TESTS_STEP=budget checks farm shards' saved LUA_TEST_COST files under
 // LUA_TEST_COST_DIR, after the farm has collected every shard.
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
