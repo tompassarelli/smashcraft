@@ -11,7 +11,7 @@ import { pointLightPieces, shadowCastingLights, stageScenery } from "../src/game
 import { STAGE_DECK_PALETTES } from "../src/game/assets/stagePalette";
 import { platformDeckFaces, texturedDeckMdl } from "../scripts/stageMaterials";
 import { parseMDL } from "war3-model";
-import { ARENA_CAMERA, extremeCamera } from "../src/game/presentation/arenaCamera";
+import { ARENA_CAMERA, cameraFieldOfView, extremeCamera } from "../src/game/presentation/arenaCamera";
 import { createMatchCamera, MATCH_CAMERA_ASPECT } from "../src/game/sim/matchCamera";
 import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
 import { CANNON_TEST_STAGE, HELLFIRE_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt, solidSurfaceCount, surfaceLine } from "../src/game/sim/stage";
@@ -190,7 +190,7 @@ test("Hellfire's fel trim uses neutral stock runes with a green tint even withou
   }
 });
 
-test("Hellfire's Demon Gate projects inside the left third at the far camera [spec docs/design/stage-boards.md]", () => {
+test("Hellfire's Demon Gate clears the deck on the left third at the far camera [repro #191]", () => {
   const gate = stageScenery(HELLFIRE_STAGE).pieces.find(({ model }) => model.includes("DemonGate"));
   if (gate === undefined) throw new Error("Hellfire has no Demon Gate");
   const camera = createMatchCamera();
@@ -204,7 +204,10 @@ test("Hellfire's Demon Gate projects inside the left third at the far camera [sp
   expect(column).toBeGreaterThan(0);
   expect(column).toBeLessThan(1 / 3);
   expect(row).toBeGreaterThan(0);
-  expect(row).toBeLessThan(1);
+  const deckDz = mainDeckZ(HELLFIRE_STAGE) - camera.z;
+  const deckDepth = camera.distance - deckDz * Math.sin(angle);
+  const deckRow = 0.5 - deckDz * Math.cos(angle) / (2 * deckDepth * camera.tangent);
+  expect(row).toBeLessThan(deckRow);
 });
 
 test("World Tree and aviary stay inside the far clip, and the aviary roof clears the deck on the right third [repro #191]", () => {
@@ -230,6 +233,23 @@ test("World Tree and aviary stay inside the far clip, and the aviary roof clears
     expect(column).toBeLessThan(1);
     expect(row).toBeGreaterThan(0);
     expect(row).toBeLessThan(deckRow);
+  }
+});
+
+test("Hellfire rock bases extend below the wide far capture [repro #191]", () => {
+  const aspect = 2560 / 1080;
+  const camera = createMatchCamera();
+  extremeCamera(camera, HELLFIRE_STAGE, aspect, "far");
+  const tilt = 10 * Math.PI / 180;
+  const tangent = Math.tan(cameraFieldOfView(camera, aspect) * Math.PI / 360);
+  for (const piece of stageScenery(HELLFIRE_STAGE).pieces.filter(({ model }) => model.includes("Barrens_Rocks0"))) {
+    const bounds = MODEL_FACTS[piece.model]?.bounds;
+    if (bounds === undefined) throw new Error(`missing rock bounds: ${piece.model}`);
+    const z = piece.z + bounds.min[2] * piece.scale * (piece.matrixScale?.[2] ?? 1);
+    const dz = z - camera.z;
+    const depth = camera.distance + piece.y * Math.cos(tilt) - dz * Math.sin(tilt);
+    const row = 0.5 - (dz * Math.cos(tilt) + piece.y * Math.sin(tilt)) / (2 * depth * tangent);
+    expect(row, `rock at ${piece.x},${piece.y}`).toBeGreaterThan(1);
   }
 });
 
