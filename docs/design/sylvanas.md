@@ -118,7 +118,7 @@ Private derived models and pooled clips stay in the private input store.
 The bot spaces at 110–190 units and fires arrows outside melee, then closes
 for running and jumping attacks. It uses Silence from its near range,
 reads shield with Life Drain and saves flight for returning.
-The issue owns the move contracts, bot coverage, unchanged 40–60% field
+The issue owns the move contracts, bot coverage, unchanged 45–55% field
 measurement and completed roster presentation.
 
 ## Implementation checks

@@ -647,7 +647,7 @@ From smashcraft:ts/:
   `--per-pair N` plays spawn variants and seeds until every pair has at
   least N matches; the matchup matrix shows each win rate with its match
   count. The table ends with the balance gate's verdict (`BALANCE_GATE`:
-  every fighter 40-60% against the field, Wren Expert, 400 a pair;
+  every fighter 45-55% against the field, Wren Expert, 400 a pair;
   smashcraft:docs/design/roster.md, "Balance gate") and the matchup spread,
   reported but not gated.
   `--merge` summarizes earlier `--json` runs instead of playing, so a

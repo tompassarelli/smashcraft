@@ -12,7 +12,7 @@ test and this doc together.
 - Balance is an optimization toward Tom's taste written as numbers, not a
   playtest loop. The numbers are the win band, each fighter's play-style
   profile, move variety, the spam probe and conversion targets below.
-- A fighter may not reach the 40-60% band through a degenerate strategy.
+- A fighter may not reach the 45-55% band through a degenerate strategy.
   A little signature-move dominance is fine (Jigglypuff's back air in
   Smash), but the game must not collapse into one-move spam. An offensive
   fighter spamming back air is a red flag.
@@ -35,12 +35,12 @@ Wren Expert:
 
 | Rule | Initial value |
 | --- | --- |
-| Win rate against the field | 40% to 60% |
+| Win rate against the field | 45% to 55% |
 | Spam probe win rate against the Expert field | at most 45% |
 | Largest single move's share of the fighter's damage | at most 40%, except its signature move |
 
 The win-rate rule is the roster's existing gate (smashcraft:docs/design/roster.md,
-"Balance gate"), unchanged. A **signature move** is named by the
+"Balance gate"). A **signature move** is named by the
 `signature: MOVE PERCENT` line of the fighter's play-style profile in its
 own design doc; that move may carry up to that share of the damage, every
 other move stays under the ceiling. Only a design doc names a signature
@@ -209,7 +209,7 @@ report prints the total and each term.
 
 | Term | Distance | Weight |
 | --- | --- | ---: |
-| Win | outside 40-60% | 1 |
+| Win | outside 45-55% | 1 |
 | Profile | summed over every profile range missed | 0.5 |
 | Variety | below the variety floor (x100) | 1 |
 | Top move | above the top-move ceiling, or the signature move's allowance | 1 |

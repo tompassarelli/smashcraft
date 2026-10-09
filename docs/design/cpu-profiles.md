@@ -275,7 +275,7 @@ whole-roster kit use, balance and native parity retain their separate gates.
 
 Use the existing hosted difficulty and field commands for their original
 thresholds (Expert wins at least 95/100 against Rookie; every fighter lies
-within 40–60% against the Wren Expert field at 400 matches per pair), and the
+within 45–55% against the Wren Expert field at 400 matches per pair), and the
 existing kit/recovery/gameplan contracts for whole-roster coverage. Reuse a
 passing result only while its covered policy is unchanged. Calibration rows
 change one measured behavior at a time; never retune fighter stats or relax a

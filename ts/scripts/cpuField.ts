@@ -47,7 +47,7 @@ const NO_HIT_FRAMES = 3 * MATCH_TICKS_PER_SECOND;
  * fieldHigh], with both computers playing Wren Expert and at least `perPair` matches
  * a pair. The doc states these numbers; cpuField.tests.ts pins both together.
  */
-export const BALANCE_GATE = { fieldLow: 0.40, fieldHigh: 0.60, opponent: "wren", tier: "expert", perPair: 400 } as const;
+export const BALANCE_GATE = { fieldLow: 0.45, fieldHigh: 0.55, opponent: "wren", tier: "expert", perPair: 400 } as const;
 /** The matchup band, reported but not gated (Balance gate). */
 const MATCHUP_LOW = 0.45;
 const MATCHUP_HIGH = 0.55;

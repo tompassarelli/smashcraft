@@ -27,20 +27,20 @@ test("the matchup report counts 95% intervals overlapping 45-55% and the median 
   expect(report.medianDeviation).toBeCloseTo(0.09, 6);
 });
 
-test("the balance gate is 40-60% against the field with Wren Expert and 400 a pair, and roster.md's Balance gate states the same numbers [spec #105]", () => {
+test("the balance gate is 45-55% against the field with Wren Expert and 400 a pair, and roster.md's Balance gate states the same numbers [spec #105]", () => {
   // Changing the gate changes this test, the constant and the doc together (Tom, 7 Oct).
-  expect(BALANCE_GATE).toEqual({ fieldLow: 0.4, fieldHigh: 0.6, opponent: "wren", tier: "expert", perPair: 400 });
+  expect(BALANCE_GATE).toEqual({ fieldLow: 0.45, fieldHigh: 0.55, opponent: "wren", tier: "expert", perPair: 400 });
   const doc = readFileSync(join(import.meta.dir, "../../docs/design/roster.md"), "utf8");
   const start = doc.indexOf("## Balance gate\n");
   expect(start).toBeGreaterThanOrEqual(0);
   const section = doc.slice(start, doc.indexOf("\n## ", start + 1));
-  for (const text of ["BALANCE_GATE", "40%", "60%", "Wren Expert", "400 matches a pair"]) expect(section).toContain(text);
+  for (const text of ["BALANCE_GATE", "45%", "55%", "Wren Expert", "400 matches a pair"]) expect(section).toContain(text);
 });
 
-test("the balance verdict passes a gate run with every fighter inside 40-60%, and only a gate run [spec #105]", () => {
-  const field = [{ fighter: "a", winRate: 0.4 }, { fighter: "b", winRate: 0.6 }];
+test("the balance verdict passes a gate run with every fighter inside 45-55%, and only a gate run [spec #105]", () => {
+  const field = [{ fighter: "a", winRate: 0.45 }, { fighter: "b", winRate: 0.55 }];
   expect(balanceVerdict(field, [{ opponent: "wren", tier: "expert" }], 400)).toEqual({ outside: [], gateRun: true, passes: true });
-  expect(balanceVerdict([...field, { fighter: "c", winRate: 0.61 }], [{ opponent: "wren", tier: "expert" }], 400)).toEqual({ outside: ["c 61%"], gateRun: true, passes: false });
+  expect(balanceVerdict([...field, { fighter: "c", winRate: 0.56 }], [{ opponent: "wren", tier: "expert" }], 400)).toEqual({ outside: ["c 56%"], gateRun: true, passes: false });
   expect(balanceVerdict(field, [{ opponent: "wren", tier: "expert" }], 100).passes).toBe(false);
   expect(balanceVerdict(field, [{ opponent: "wren", tier: "advanced" }], 400).gateRun).toBe(false);
 });

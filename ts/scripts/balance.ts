@@ -9,8 +9,8 @@ import { join } from "node:path";
  * Shares are fractions; balance.test.ts checks the doc states each.
  */
 export const BALANCE_SPEC = {
-  winLow: 0.40,
-  winHigh: 0.60,
+  winLow: 0.45,
+  winHigh: 0.55,
   /** The spam probe may win at most this against the Expert field. */
   spamMax: 0.45,
   /** No move may deal more than this share of a fighter's damage, unless its profile names it the signature move. */
@@ -225,7 +225,7 @@ export interface GateResult {
 
 /**
  * Tom's gate (8 Oct; balance.md, "Gate"): balanced only with a win rate in
- * 40-60%, a spam probe winning at most 45% against Expert, and no move over
+ * 45-55%, a spam probe winning at most 45% against Expert, and no move over
  * 40% of its damage except the signature move its profile names.
  */
 export function balanceGate(measured: Measured, profile: PlayStyleProfile | undefined): GateResult {

@@ -1511,8 +1511,8 @@ If the current source requires a different safe dependency order, retain the des
 
 ## Balance gate
 
-Decided by Tom on 7 Oct 2026 (#105). The roster is balanced when **every
-fighter's win rate against the field is between 40% and 60%**, with both
+Decided by Tom on 7 Oct 2026 (#105); tightened from 40–60% on 9 Oct 2026. The roster is balanced when **every
+fighter's win rate against the field is between 45% and 55%**, with both
 computers at **Wren Expert** and at least **400 matches a pair**: every pair
 of different fighters, both orders, on every soak stage, over seeded
 matches. The numbers live in one constant, `BALANCE_GATE` in
@@ -1688,7 +1688,7 @@ Rush-down bruiser: ground approach 65%, aerial approach 35%, ranged damage
 0%, special damage target 20–35%. Signature is Gorehowl Rush into a committed
 cleave. No single move should exceed 40% of damage. Low sweep, up tilt and
 Warsong Cry open launch-and-chase play; execution chops finish it. The issue's
-one balance probe must place him at 40–60% against the field.
+one balance probe must place him at 45–55% against the field.
 
 ```balance-profile
 fighter: grom-hellscream
@@ -1842,7 +1842,7 @@ f17 for 9; up throw lifts with the staff at f16 for 7 (juggle); down throw
 presses down at f18 for 6 (tech chase). No guaranteed string is assumed; DI,
 air dodge and tech remain the victim's replies.
 
-**Play-style profile:** mobility trickster; target 40–60% field wins, aerial
+**Play-style profile:** mobility trickster; target 45–55% field wins, aerial
 share 35–55%, approach 20–40%, ranged 10–25%, special 20–40%. Signature is
 Vanishing Act's punishable arrival; no move should exceed 40% of total damage,
 and single-move spam should win at most 45%. Explosive openings come from down
