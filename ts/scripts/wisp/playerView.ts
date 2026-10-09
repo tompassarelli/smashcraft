@@ -1,4 +1,5 @@
 import { impactModel } from "../../src/game/presentation/hitPresentation";
+import { HIDDEN_EFFECT_DEPTH } from "../../src/game/render/effects";
 import { IMPACT_KIND_COUNT } from "../../src/game/presentation/impactState";
 // What a player must see in a Smashcraft match (wisp:docs/player-view.md):
 // each kind of effect the map draws, with its models and the longest a player
@@ -102,7 +103,7 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
   framesPerSecond: FRAMES_PER_SECOND,
   stage: { kind: "stage deck", pieces: 1 },
   // hideEffect keeps even tall stock emitters below every arena camera.
-  visibility: { models: { ...MODEL_FACTS, ...WHITE_MODEL_FACTS }, cameras: ARENA_CAMERAS, parking: [[0, 0, -FLOOR_HEIGHT - 4096]] },
+  visibility: { models: { ...MODEL_FACTS, ...WHITE_MODEL_FACTS }, cameras: ARENA_CAMERAS, parking: [[0, 0, -FLOOR_HEIGHT - HIDDEN_EFFECT_DEPTH]] },
   // Half a second into the match the decks are drawn and the camera has framed the fighters.
   settledFrame: 30,
   kinds: [

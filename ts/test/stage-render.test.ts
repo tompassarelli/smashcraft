@@ -11,6 +11,10 @@ import { pointLightPieces } from "../src/game/presentation/stageScenery";
 import { POST_PROCESSING } from "../scripts/postProcessing";
 import { TOMB_WATERFALL_IMPORTS } from "../scripts/wisp/mapInputs";
 import { Phase } from "../src/game/match/rules";
+import { visibilityProblems } from "wisp/scripts/wisp/visibility";
+import { reportedModel } from "wisp/src/runtime/scene";
+import { SMASHCRAFT_SCENE } from "../scripts/wisp/playerView";
+import { STAGE_SNOW_MODEL } from "../src/game/assets/stageAssetInfo";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
@@ -131,7 +135,7 @@ test("stage preloads and replaced landmarks are parked below the arena before th
   });
 });
 
-test("contrast masking parks particle scenery and restores every authored pose [invariant]", () => {
+test("contrast masking hides Frozen snow from every arena camera and restores every authored pose [repro #287]", () => {
   const clients = headless.clients({ start, install });
   clients.start();
   clients.frames(30);
@@ -148,6 +152,17 @@ test("contrast masking parks particle scenery and restores every authored pose [
     for (const effect of effects) {
       expect(client.log.slice(before).some(call => call.name === "BlzSetSpecialEffectPosition" && call.args[0] === effect && Number(call.args[3]) <= s.origin.z - FLOOR_HEIGHT - 4096)).toBe(true);
     }
+    const snowIndex = stageScenery(2).pieces.findIndex(piece => piece.model === STAGE_SNOW_MODEL);
+    const snow = effects[snowIndex];
+    if (snow === undefined || SMASHCRAFT_SCENE.visibility === undefined) throw new Error("missing Frozen snow visibility");
+    const problems = visibilityProblems({
+      serial: 1, frame: 1, effects: 1,
+      models: [{ model: reportedModel(STAGE_SNOW_MODEL), live: 1, inView: 0, drawn: 0, longest: 0, destroyed: 0 }],
+    }, [{ name: "stage snow", models: [STAGE_SNOW_MODEL] }], {
+      ...SMASHCRAFT_SCENE.visibility,
+      parking: [[0, 0, BlzGetLocalSpecialEffectZ(snow) - s.origin.z]],
+    });
+    expect(problems).toEqual([]);
     const restore = client.log.length;
     showBackdrop(s, true);
     for (const [index, effect] of effects.entries()) {

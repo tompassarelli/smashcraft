@@ -22,6 +22,7 @@ export const STOCK_MODELS = {
 } as const;
 
 const HALF_TURN = f32(3.141592654);
+export const HIDDEN_EFFECT_DEPTH = 8192.0;
 
 /** Models face +x at yaw 0; facing -1 turns them around. */
 export function facingYaw(facing: number): number {
@@ -32,13 +33,13 @@ export function facingYaw(facing: number): number {
 /**
  * Hidden effects stay allocated and collapsed, parked on the ground beneath
  * the floor, until presented again. Alpha, scale and time scale do not stop a
- * model's particle emitters. Stock emitters extend over 2000 units above
- * their pivot; the extra depth keeps those particles below every arena camera.
+ * model's particle emitters. Frozen snow reaches 4293 units above its pivot;
+ * its entire reach must stay below the lowest arena camera.
  */
 export function hideEffect(model: effect, origin: Readonly<WorldOrigin>): void {
   effectMotion().release(model);
   BlzSetSpecialEffectScale(model, 0.0);
-  BlzSetSpecialEffectPosition(model, origin.x, origin.y, origin.z - FLOOR_HEIGHT - 4096.0);
+  BlzSetSpecialEffectPosition(model, origin.x, origin.y, origin.z - FLOOR_HEIGHT - HIDDEN_EFFECT_DEPTH);
 }
 
 /**
