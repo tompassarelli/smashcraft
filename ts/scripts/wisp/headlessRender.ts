@@ -145,7 +145,7 @@ export function headlessRender(options: RenderAssetOptions = {}) {
     return yield* read(png);
   });
   const resolveAsset = (path: string, graphics: Graphics = "classic", body?: AssetLocation): Promise<ResolvedRenderAsset> => {
-    const normalized = `${graphics}:${body?.layer ?? ""}:${key(path)}`;
+    const normalized = `${graphics}:${body?.source ?? ""}:${body?.layer ?? ""}:${key(path)}`;
     let promise = pending.get(normalized);
     const resolveMap = (entry: string) => Effect.gen(function*() {
       const imported = yield* sources;

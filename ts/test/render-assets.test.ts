@@ -21,8 +21,8 @@ test("a Warcraft update cannot reuse the previous build's stock render bytes [sp
     expect(new TextDecoder().decode(await headlessRender(options).readAsset("Abilities/Spell.mdx"))).toBe("retuned spell");
     const used = await Bun.file(manifest).json();
     expect(used.stock.fields.Version).toBe("3.0.1.24342");
-    expect(used.assets["classic::abilities/spell.mdx"].sha256).toBe(new Bun.CryptoHasher("sha256").update("retuned spell").digest("hex"));
-    expect(used.assets["classic::abilities/spell.mdx"].bytes).toBe(13);
+    expect(used.assets["classic:::abilities/spell.mdx"].sha256).toBe(new Bun.CryptoHasher("sha256").update("retuned spell").digest("hex"));
+    expect(used.assets["classic:::abilities/spell.mdx"].bytes).toBe(13);
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
@@ -65,5 +65,7 @@ test("stock texture suffixes survive a missing extractor output and keep the bod
     const missing = await renderer.resolveAsset("Weather/Rays.tif", "definitive", { source: "map", layer: "_de.w3mod", path: "Imported.mdx" });
     expect(missing.bytes).toBeUndefined();
     expect(missing.attempts.filter((attempt) => attempt.source === "stock").map((attempt) => attempt.layer)).toEqual(["_de.w3mod"]);
+    const shared = await renderer.resolveAsset("Weather/Rays.tif", "definitive", { source: "stock", layer: "_de.w3mod", path: "Sky.mdx" });
+    expect(shared.bytes?.slice(0, 8)).toEqual(new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]));
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
