@@ -32,13 +32,13 @@ test("older saves gain light shield on T without losing custom bindings [repro #
     const source = presetBindings(preset);
     assertTrue(rebind(source, Action.lightShield, 1, undefined));
     assertTrue(rebind(source, Action.attack, 0, Key.G));
-    for (const saved of [asK1(source), asK2(source), `K3${encodeBindings(source).slice(2, 92)}`, `K4${encodeBindings(source).slice(2)}`]) {
+    for (const saved of [asK1(source), asK2(source), `K3${encodeBindings(source).slice(2, 92)}`, `K4${encodeBindings(source).slice(2, 104)}`]) {
       const restored = decode(saved);
       assertEquals(actionFor(restored, Key.T), Action.lightShield);
       assertEquals(actionFor(restored, Key.G), Action.attack);
     }
     assertTrue(rebind(source, Action.attack, 1, Key.T));
-    const restored = decode(`K4${encodeBindings(source).slice(2)}`);
+    const restored = decode(`K4${encodeBindings(source).slice(2, 104)}`);
     assertEquals(actionFor(restored, Key.T), Action.attack);
     assertEquals(keyFor(restored, Action.lightShield, 1), undefined);
   }

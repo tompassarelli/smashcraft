@@ -71,6 +71,7 @@ export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, 
   destination.shortHopPressed = has(pressed, Action.shortHop);
   destination.jumpPressed = has(pressed, Action.jump) || destination.shortHopPressed;
   destination.jumpHeld = has(held, Action.jump);
+  destination.meter = has(held, Action.meter);
   destination.techPressed = destination.shieldPressed;
   const airborne = (fighter.jump.squat > 0 || !fighter.motion.grounded) && fighter.ledge.state === LedgeState.none;
   const tiltDodge = !destination.shieldPressed && airborne && destination.shieldTriggerActive && has(pressed, Action.walk);

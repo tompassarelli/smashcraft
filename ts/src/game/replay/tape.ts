@@ -28,7 +28,7 @@ type NumberField = FieldOf<number | undefined>;
 
 const FLAG_FIELDS: Readonly<Record<FlagField, true>> = {
   diStickValid: true, sdiPulse: true, attackRequested: true, specialPressed: true, ultimatePressed: true, down: true, shield: true,
-  shieldPressed: true, shieldTriggerActive: true, jumpPressed: true, shortHopPressed: true, airDodgePressed: true, techPressed: true,
+  shieldPressed: true, shieldTriggerActive: true, jumpPressed: true, shortHopPressed: true, meter: true, airDodgePressed: true, techPressed: true,
   mashPressed: true, attackPressed: true, grabMashPressed: true, groundDodgePressed: true,
   getupAttackPressed: true, getupStandPressed: true, getupDirectionPressed: true, cStickUpFlick: true, jumpHeld: true, walking: true,
   attackHeld: true, resetPressed: true,

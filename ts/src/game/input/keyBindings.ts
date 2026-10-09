@@ -58,6 +58,7 @@ export function presetBindings(preset: BindingPreset): KeyBindings {
   bind(Action.walk, code("P"));
   bind(Action.lightShield, code(custom ? "0" : "9"), code("T"));
   bind(Action.shortHop, code("Z"));
+  bind(Action.meter, code("X"));
   return { keys };
 }
 
@@ -91,8 +92,8 @@ export function rebind(bindings: KeyBindings, action: Action, slot: KeySlot, key
 
 
 
-const CURRENT_SAVE = "K5";
-const SAVED_SLOTS: Readonly<Record<string, number>> = { K1: 28, K2: 30, K3: 30, K4: KEY_SLOT_COUNT, [CURRENT_SAVE]: KEY_SLOT_COUNT };
+const CURRENT_SAVE = "K6";
+const SAVED_SLOTS: Readonly<Record<string, number>> = { K1: 28, K2: 30, K3: 30, K4: KEY_SLOT_COUNT - 2, K5: KEY_SLOT_COUNT - 2, [CURRENT_SAVE]: KEY_SLOT_COUNT };
 const DIGITS = "0123456789";
 
 export function encodeBindings({ keys }: Readonly<KeyBindings>): string {
@@ -115,6 +116,7 @@ function upgradeDefaults(bindings: KeyBindings, version: string): void {
   const free = (...candidates: number[]) => candidates.every((key) => !keys.includes(key));
   const first = (action: Action) => keyFor(bindings, action, 0);
   if (keyFor(bindings, Action.lightShield, 1) === undefined && free(code("T"))) rebind(bindings, Action.lightShield, 1, code("T"));
+  if (keyFor(bindings, Action.meter, 0) === undefined && free(code("X"))) rebind(bindings, Action.meter, 0, code("X"));
   if (version === "K1" && free(code("P"))) rebind(bindings, Action.walk, 0, code("P"));
 
   if (first(Action.grab) === code("L") && free(code("O"))) rebind(bindings, Action.grab, 0, code("O"));
@@ -166,7 +168,8 @@ export const ACTION_LABELS: Readonly<Record<Action, string>> = {
   [Action.smashDown]: "C-stick down",
   [Action.walk]: "Tilt",
   [Action.lightShield]: "Light shield",
-  [Action.shortHop]: "Short hop (L3 on pad)",
+  [Action.shortHop]: "Short hop (LB in the tom pad layout)",
+  [Action.meter]: "Meter: + Special for EX (RB in the tom pad layout)",
 };
 
 export function keyLabel(key: number | undefined): string {

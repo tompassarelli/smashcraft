@@ -31,6 +31,8 @@ export interface Pad {
   readonly trigger?: boolean;
   readonly rightTrigger?: boolean;
   readonly tilt?: boolean;
+  readonly shortHop?: boolean;
+  readonly meter?: boolean;
 }
 
 const raw = (value: number | undefined) => Math.trunc((value ?? 0) * RAW);
@@ -47,6 +49,8 @@ function heldActions(pad: Pad): number {
   if (pad.special === true) held |= bit(Action.special);
   if (pad.jump === true) held |= bit(Action.jump);
   if (pad.tilt === true) held |= bit(Action.walk);
+  if (pad.shortHop === true) held |= bit(Action.shortHop);
+  if (pad.meter === true) held |= bit(Action.meter);
   if (x < -STICK_DIGITAL) held |= bit(Action.moveLeft);
   if (x > STICK_DIGITAL) held |= bit(Action.moveRight);
   if (up < -STICK_DIGITAL) held |= bit(Action.moveDown);

@@ -7,7 +7,7 @@ export const EX_ARMOR_DAMAGE = 8.0;
 export const EX_ARMOR_FRAMES = 6;
 
 export function exSpecialPressed(input: Readonly<Controls>): boolean {
-  return input.specialPressed && input.shield;
+  return input.specialPressed && (input.shield || input.meter);
 }
 
 export function exSpecialAffordable(f: Readonly<Fighter>): boolean {

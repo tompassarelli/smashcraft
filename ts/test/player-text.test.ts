@@ -91,7 +91,7 @@ test("training hints opt in from pause, whose controls name full shield, light s
   clients.press(0, Key.y);
   clients.frames(1);
   const pauseText = host.frames.shownText().join("\n");
-  for (const control of ["Q: full shield", "T: light shield", "P: tilt", "Z / L3: short hop", "F2: training hints Off"]) expect(pauseText).toContain(control);
+  for (const control of ["Q: full shield", "T: light shield", "P: tilt", "Z / LB (tom pad): short hop", "F2: training hints Off"]) expect(pauseText).toContain(control);
   clients.press(0, Key.f2);
   clients.frames(1);
   expect(host.frames.shownText().join("\n")).toContain("F2: training hints On");

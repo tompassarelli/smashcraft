@@ -31,7 +31,7 @@ export interface Lesson {
 
 export const LESSONS: readonly Lesson[] = [
   { name: "Move and dash", instruction: "Push left or right to walk. Tap it quickly to dash.", counted: "Dashes", action: LessonAction.dash, goal: 3, partnerDamage: 0 },
-  { name: "Jump and double jump", instruction: "Press jump, then press it again in the air to jump a second time. Z or left-stick click (L3) always short hops, even held.", counted: "Double jumps", action: LessonAction.doubleJump, goal: 3, partnerDamage: 0 },
+  { name: "Jump and double jump", instruction: "Press jump, then press it again in the air to jump a second time. Z, or LB in the tom pad layout, always short hops, even held.", counted: "Double jumps", action: LessonAction.doubleJump, goal: 3, partnerDamage: 0 },
   { name: "Attacks", instruction: "Walk up to your partner and press attack. Hold a direction to change the attack.", counted: "Hits", action: LessonAction.hit, goal: 5, partnerDamage: 0 },
   { name: "Specials", instruction: "Press special; hold a direction to change the move. Specials are free. Shield + Special: EX special (one bar segment). Attack + Special (A + X): Ultimate (full bar).", counted: "Specials", action: LessonAction.special, goal: 3, partnerDamage: 0 },
   { name: "Shield and dodge", instruction: "Q: full shield; T: light shield. Shield + left/right rolls; down dodges. Tap Shield before landing to tech; hold left/right to tech roll.", counted: "Dodges", action: LessonAction.dodge, goal: 3, partnerDamage: 0 },
