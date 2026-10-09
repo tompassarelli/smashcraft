@@ -1,4 +1,4 @@
-import { floorDiv } from "wisp/src/sim/intMath";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { at } from "wisp/src/runtime/lookup";
 import { Character, GroundAction } from "../sim/codes";
 import { attackBuffer, clearAttackBuffer } from "../input/attackBuffer";
@@ -92,7 +92,7 @@ export function collectTechnicalCalibration(tier: CpuTier, frames = 6000): { inp
     Object.assign(input, neutralControls());
     clearAttackBuffer(commands);
     own.motion.grounded = true;
-    input.direction = frame % 2 === 0 ? -1 : 1;
+    input.direction = floorMod(frame, 2) === 0 ? -1 : 1;
     input.jumpPressed = true;
     input.airDodgePressed = true;
     check(isFrameTight(input));
