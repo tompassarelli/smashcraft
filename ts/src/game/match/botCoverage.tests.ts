@@ -17,7 +17,7 @@ for (let index = 0; index < SELECTABLE_CHARACTERS.length; index++) {
 for (let index = 0; index < SELECTABLE_CHARACTERS.length; index++) {
   const character = SELECTABLE_CHARACTERS[index];
   if (character !== Character.pitLord && character !== Character.beastmaster && character !== Character.lichKing) continue;
-  sweep(`CPU drop roster coverage: ${fighterName(character)} moves, attacks and uses specials against Rifleman for 1800 frames [spec #209]`, () => {
+  sweep(`CPU drop roster coverage: ${fighterName(character)} moves, attacks and uses specials against Rifleman for 1800 frames; Pit Lord's fewest of one special seen 4 on four seed offsets [spec #209]`, () => {
     const report = fighterCoverage(index, Character.rifleman);
     assertEquals(report.matches, 8);
     assertEquals(report.missing.join(", "), "", report.fighter);
@@ -30,7 +30,7 @@ for (let index = 0; index < SELECTABLE_CHARACTERS.length; index++) {
 
 for (let index = 0; index < SELECTABLE_CHARACTERS.length; index++) {
   const character = SELECTABLE_CHARACTERS[index];
-  sweep(`roster AI coverage: ${fighterName(character ?? -1)} moves, attacks and uses its kit in eight Wren Expert matches [spec #56]`, () => {
+  sweep(`roster AI coverage: ${fighterName(character ?? -1)} moves, attacks and uses its kit in eight Wren Expert matches; fewest attacks seen 50 on four seed offsets [spec #56]`, () => {
     const report = fighterCoverage(index);
     assertEquals(report.matches, 8);
     assertEquals(report.missing.join(", "), "", report.fighter);

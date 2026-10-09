@@ -57,6 +57,18 @@
   title lacks a tag (smashcraft:ts/scripts/oracleTags.ts), so titles stay
   literal text (#243).
 
+- Literal copies: an expectation reads a tunable constant instead of
+  restating its value, so retuning it breaks no unrelated test (#394).
+  `bun run literal-copies` lists every `assertEquals` whose expected literal
+  equals a numeric constant exported by a module the test imports and named
+  like the asserted value; `bun run test` refuses to run while it lists any.
+
+- Seed offsets: `SWEEP_SEED_OFFSET=N SWEEPS=1 bun test test/game.test.ts`
+  shifts every computer sweep's match seeds by N (`sweepSeed()` in
+  smashcraft:ts/src/runtime/sweep.ts). A computer-behaviour sweep is a
+  property whose title states its threshold and the range seen on three
+  unrelated offsets, or a measurement with a tolerance band (#394).
+
 From ts/, `bun test test/game.test.ts -t NAME` runs focused game tests;
 `bun run check` checks host and map types. Use
 `LUA=<32-bit lua> GAME_TESTS=PATH bun scripts/lua-tests.ts` for affected emitted-Lua tests and

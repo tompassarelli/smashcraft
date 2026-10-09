@@ -19,7 +19,7 @@ import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
 import { replayChecksum } from "../replay/matchReplay";
 import { botObservationCanonical, canonicalState } from "../replay/canonical";
-import { sweep } from "../../runtime/sweep";
+import { sweep, sweepSeed } from "../../runtime/sweep";
 
 const SURPRISE_FRAME = 50;
 
@@ -66,7 +66,8 @@ test("fast computer matches keep their short history and a slower opponent retai
 test("retained observations survive storage reuse, restored plain history and rollback [invariant]", () => {
   const game = setup();
   const saved = createBotMemory();
-  for (let frame = 1; frame <= 43; frame++) {
+  const filled = 43;
+  for (let frame = 1; frame <= filled; frame++) {
     game.target.motion.x = frame;
     game.target.attack.style = AttackStyle.forwardSmash;
     const projectile = mutableProjectile(game.target, 0);
@@ -76,7 +77,7 @@ test("retained observations survive storage reuse, restored plain history and ro
   }
   copyBotMemory(saved, game.runtime.botMemory);
   const original = saved.history.map(sample => botObservationCanonical(sample));
-  for (let frame = 44; frame <= 300; frame++) {
+  for (let frame = filled + 1; frame <= 300; frame++) {
     game.target.motion.x = frame;
     game.target.attack.style = undefined;
     mutableProjectile(game.target, 0).life = 0;
@@ -95,7 +96,7 @@ test("retained observations survive storage reuse, restored plain history and ro
   const plain: BotMemory = { history: saved.history, directions: [0, 0, 0, 0], directionFrames: [0, 0, 0, 0] };
   copyBotMemory(game.runtime.botMemory, plain);
   observeOpponents(game.runtime.botMemory, game.world, 44);
-  assertEquals(at(game.runtime.botMemory.history, 42).opponents[1]?.motion.x, 43);
+  assertEquals(at(game.runtime.botMemory.history, filled - 1).opponents[1]?.motion.x, filled);
   assertEquals(botObservationCanonical(at(saved.history, 42)), at(original, 42));
 });
 
@@ -175,7 +176,7 @@ for (const tier of ["expert", "advanced", "intermediate"] as const) sweep(`1000 
     for (let seed = 0; seed < 2000 && measured < 1000; seed++) {
       const changed = setup("wren", tier);
       const quiet = setup("wren", tier);
-      for (const game of [changed, quiet]) { game.game.matchSeed = seed; game.own.shield.raised = trained; }
+      for (const game of [changed, quiet]) { game.game.matchSeed = sweepSeed(seed); game.own.shield.raised = trained; }
       const start = 39;
       const floor = cpuReactionFloor(changed.own, cpuSkill("wren", tier));
       let first = -1;

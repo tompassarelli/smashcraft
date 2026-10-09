@@ -257,7 +257,7 @@ test("correction preflight rejects a whole batch without changing history or liv
   assertEquals(history.correct(5, corrections, live), "rejected");
   assertEquals(live.runtime.simulationFrame, 65);
   assertTrue(history.replay(5, 66, 66, live));
-  assertEquals(history.correct(5, corrections, live), 64);
+  assertEquals(history.correct(5, corrections, live), changed.frame);
   assertTrue(firstStateDifference(before, captureTape(tape)) !== undefined);
   // A corrected row is authoritative now; a conflicting second value fails.
   input.jumpPressed = false;

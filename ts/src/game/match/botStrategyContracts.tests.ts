@@ -1,3 +1,4 @@
+import { sweepSeed } from "../../runtime/sweep";
 import { HabitChoice } from "./botHabits";
 import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
@@ -135,7 +136,7 @@ test("an anticipatory grab remains buffered through four frames of own recovery,
     const world = createRoster(3, [game.own, game.target]);
     const match = createMatchState();
     match.phase = Phase.match;
-    match.matchSeed = seed * 38;
+    match.matchSeed = sweepSeed(seed * 38);
     match.cpuOpponents[0] = "wren";
     match.cpuResolvedOpponents[0] = "wren";
     match.cpuTiers[0] = "expert";

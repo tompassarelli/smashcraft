@@ -21,6 +21,7 @@
     "postinstall": "git config merge.smashcraft-generated.name 'per-entry merge of generated files' && git config merge.smashcraft-generated.driver 'f=ts/scripts/mergeGenerated.ts; if [ -f \"$f\" ]; then bun \"$f\" %O %A %B %P; else git merge-file -L ours -L base -L theirs %A %O %B; fi' && bun node_modules/@effect/tsgo/dist/effect-tsgo.cjs patch --typescript --typescript-package typescript-native",
     "check": "bun node_modules/typescript-native/bin/tsc --build tsconfig.json tsconfig.game.json",
     "test": "bun scripts/test.ts",
+    "literal-copies": "bun scripts/literalCopies.ts",
     "wisp": "bun scripts/wisp.ts",
     "update:wisp": "bun scripts/update-wisp.ts",
     "parity": "bun wisp parity numeric"

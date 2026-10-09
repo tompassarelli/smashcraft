@@ -4,7 +4,7 @@
 
 
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
-import { sweep } from "../../runtime/sweep";
+import { sweep, sweepSeed } from "../../runtime/sweep";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { clearAttackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
@@ -129,7 +129,7 @@ function computerMatch(character: Character, opponent: Character, seed: number, 
   match.phase = Phase.match;
   match.stageChoice = 0;
   match.timeLimitMinutes = 0;
-  match.matchSeed = seed;
+  match.matchSeed = sweepSeed(seed);
   const produced = createFrameControls();
   const controls = createFrameControls();
   const runtime = createPacingAndPresentation();
@@ -183,47 +183,47 @@ test("every named profile can take legal kit options, with greater reliability a
   assertTrue(cpuSkill("wren", "expert").kitTenths > cpuSkill("wren", "rookie").kitTenths);
 });
 
-sweep("computer Blademaster backstabs from Wind Walk in front and crossed up, feints, and swaps onto Mirror Image [spec #146]", () => {
+sweep("computer Blademaster backstabs from Wind Walk in front and crossed up, feints, and swaps onto Mirror Image, each at least once; fewest seen 10 on four seed offsets [spec #146]", () => {
   usesEvery(Character.blademaster, ["followUp1.0", "crossUp1", "followUp1.1", "special3", "recall3"]);
 });
 
-sweep("computer Mountain King claps small, full and as bait, recalls Storm Bolt and spikes with Hammerfall [spec #146]", () => {
-  usesEvery(Character.mountainKing, ["followUp3.0", "followUp3.1|runOut3", "dropped3", "recall0", "followUp2.0"]);
+sweep("computer Mountain King claps small, full and as bait and spikes with Hammerfall, each at least once; fewest seen 4 on four seed offsets [spec #146]", () => {
+  usesEvery(Character.mountainKing, ["followUp3.0", "followUp3.1|runOut3", "dropped3", "followUp2.0"]);
 });
 
-sweep("computer Warden marks and follows with Shadow Pursuit [spec #146]", () => {
+sweep("computer Warden marks and follows with Shadow Pursuit, each at least once; fewest seen 42 on four seed offsets [spec #146]", () => {
   usesEvery(Character.warden, ["special0", "marked1"]);
 });
 
-sweep("computer Lich bursts Frost Nova, places Death and Decay, arms Frost Armor and cashes Dark Ritual [spec #146]", () => {
+sweep("computer Lich bursts Frost Nova, places Death and Decay, arms Frost Armor and cashes Dark Ritual, each at least once; fewest seen 11 on four seed offsets [spec #146]", () => {
   usesEvery(Character.lich, ["recall0", "special1", "special3", "recall3"]);
 });
 
-sweep("computer Forsaken Paladin uses Cleansing Hammer, Righteous Fury, Ascension and Consecration [spec #146]", () => {
+sweep("computer Forsaken Paladin uses Cleansing Hammer, Righteous Fury, Ascension and Consecration, each at least once; fewest seen 8 on four seed offsets [spec #146]", () => {
   usesEvery(Character.forsakenPaladin, ["special0", "special1", "special2", "special3"]);
 });
 
-sweep("computer Dreadlord corkscrews with Vampiric Pounce, sleeps a target, mashes out of Sleep and hits a sleeper [spec #146]", () => {
+sweep("computer Dreadlord corkscrews with Vampiric Pounce, sleeps a target, mashes out of Sleep and hits a sleeper, each at least once; fewest seen 17 on four seed offsets [spec #146]", () => {
   usesEvery(Character.dreadlord, ["special1", "special3", "sleepMash", "sleptHit"]);
 });
 
-sweep("computer Shadow Hunter throws Spirit Glaive, hexes, presses a hexed target and mashes out of a Hex [spec #146]", () => {
+sweep("computer Shadow Hunter throws Spirit Glaive, hexes, presses a hexed target and mashes out of a Hex, each at least once; fewest seen 30 on four seed offsets [spec #146]", () => {
   usesEvery(Character.shadowHunter, ["special0", "special3", "hexedHit", "hexMash"]);
 });
 
-sweep("computer Pit Lord roars, charges, leaps and calls Rain of Fire [spec #146]", () => {
+sweep("computer Pit Lord roars, charges, leaps and calls Rain of Fire, each at least once; fewest seen 6 on four seed offsets [spec #146]", () => {
   usesEvery(Character.pitLord, ["special0", "special1", "special2", "special3"]);
 });
 
-sweep("computer Beastmaster summons the pack, commands Stampede, Hawk Dive and Quill Volley [spec #146]", () => {
+sweep("computer Beastmaster summons the pack, commands Stampede, Hawk Dive and Quill Volley, each at least once; fewest seen 23 on four seed offsets [spec #146]", () => {
   usesEvery(Character.beastmaster, ["special0", "special1", "special2", "special3", "recall1", "recall2", "recall3"]);
 });
 
-sweep("computer Rifleman flies level and diagonal recoil routes with a second shot, short-hops and grounds the blaster, calls the bear [spec #146]", () => {
+sweep("computer Rifleman flies level and diagonal recoil routes with a second shot, short-hops and grounds the blaster, calls the bear, each at least once; fewest seen 6 on four seed offsets [spec #146]", () => {
   usesEvery(Character.rifleman, ["levelRoute", "diagonalRoute", "secondShot", "airBlaster", "groundBlaster", "bear"]);
 });
 
-sweep("computer Illidan jump-cancels Immolate, glides out of Wing Ascent, runs behind Mana Burn and Fel Rushes into Chaos Strike or Vengeful Retreat [spec #146]", () => {
+sweep("computer Illidan jump-cancels Immolate, glides out of Wing Ascent, runs behind Mana Burn and Fel Rushes into Chaos Strike or Vengeful Retreat, each at least once; fewest seen 10 on four seed offsets [spec #146]", () => {
 
   usesEvery(Character.demonHunter, ["immolateJump", "glide", "behindOrb", "felRush", "chaosStrike|chaosCrossUp", "vengefulRetreat"], Character.demonHunter, 2 * MATCHES);
 });

@@ -1,3 +1,4 @@
+import { sweepSeed } from "../../runtime/sweep";
 
 import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
@@ -75,7 +76,7 @@ export function fighterCoverage(index: number, opponent?: Character, choices: re
     game.phase = Phase.match;
     game.stageChoice = 0;
     game.timeLimitMinutes = 0;
-    game.matchSeed = 11 + (seed + seedOffset) * 12;
+    game.matchSeed = 11 + sweepSeed(seed + seedOffset) * 12;
     const runtime = createPacingAndPresentation();
     const produced = createFrameControls();
     const controls = createFrameControls();

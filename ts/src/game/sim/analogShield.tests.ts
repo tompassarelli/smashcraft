@@ -4,7 +4,7 @@ import { roundToFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
 import { Character, ContactKind } from "./codes";
 import { beginDamageContacts, finishDamageContacts, queueDamageContact } from "./contacts";
-import { createFighter } from "./fighter";
+import { SHIELD_MAX, createFighter } from "./fighter";
 import {
   SHIELD_MIN_HOLD_FRAMES,
   SHIELD_RELEASE_LAG_FRAMES,
@@ -115,7 +115,7 @@ test("a light shield enters, drains, changes pressure and keeps its minimum hold
   const input = controls({ shield: true, shieldStrength: analogShieldStrength(128) });
   advanceSolo(f, 0, input, 0.0);
   assertTrue(f.shield.raised);
-  assertEquals(f.shield.energy, 60.0);
+  assertEquals(f.shield.energy, SHIELD_MAX);
   assertEquals(f.shield.strength, input.shieldStrength);
   advanceSolo(f, 0, input, 0.0);
   assertEquals(f.shield.energy, 59.90925598144531);

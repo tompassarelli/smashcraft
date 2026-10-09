@@ -1,3 +1,4 @@
+import { sweepSeed } from "../../runtime/sweep";
 
 
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
@@ -118,7 +119,7 @@ test("partnerBehaviours [spec #120]", () => {
 
   for (let seed = 0; seed < 6; seed++) {
     const fight = trainingMatch(PartnerBehaviour.fight, 300.0);
-    fight.game.matchSeed = seed * 38;
+    fight.game.matchSeed = sweepSeed(seed * 38);
     const start = fight.partner.motion.x;
     fight.until(() => fight.partner.motion.x < start - 20.0 || fight.partner.attack.serial > 0 || fight.partner.special.action !== SpecialAction.none, 90);
   }

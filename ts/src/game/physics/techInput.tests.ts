@@ -1,5 +1,5 @@
 import { assertEquals, test } from "wisp/src/runtime/testing";
-import { type TechInput, advanceTechInput, emptyTechInput, techContactWindow, techInputEligible } from "./techInput";
+import { TECH_PRESS_AGE_LIMIT, type TechInput, advanceTechInput, emptyTechInput, techContactWindow, techInputEligible } from "./techInput";
 
 function pressedOnce(): TechInput {
   const state = emptyTechInput();
@@ -17,12 +17,12 @@ test("tech input ages through hitlag and repeats a press made while frozen [refe
     assertEquals(existing.pressAge, 10 + tick);
     advanceTechInput(early, tick === 1, frozen);
     assertEquals(early.pressAge, tick < 4 ? 0 : 1);
-    assertEquals(early.previousPressAge, tick === 1 ? 255 : 0);
+    assertEquals(early.previousPressAge, tick === 1 ? TECH_PRESS_AGE_LIMIT : 0);
     assertEquals(techInputEligible(early), tick === 1);
     advanceTechInput(last, tick === 3, frozen);
   }
   assertEquals(last.pressAge, 1);
-  assertEquals(last.previousPressAge, 255);
+  assertEquals(last.previousPressAge, TECH_PRESS_AGE_LIMIT);
   assertEquals(techContactWindow(last), 19);
 });
 

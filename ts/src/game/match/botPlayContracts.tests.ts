@@ -2,7 +2,7 @@
 // an opponent who stands on it, it gets up from jab resets, and the same
 // start plays the same match.
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
-import { sweep } from "../../runtime/sweep";
+import { sweep, sweepSeed } from "../../runtime/sweep";
 import { clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../input/participants";
 import { stateChecksum } from "../replay/canonical";
@@ -34,7 +34,7 @@ function computerMatch(characters: readonly [Character, Character], xs: readonly
   match.phase = Phase.match;
   match.stageChoice = stage;
   match.timeLimitMinutes = 0;
-  match.matchSeed = seed;
+  match.matchSeed = sweepSeed(seed);
   // Strongest-play contracts select Wren Expert explicitly rather than the Intermediate default.
   for (const slot of PARTICIPANT_SLOTS) {
     match.cpuOpponents[slot] = "wren";

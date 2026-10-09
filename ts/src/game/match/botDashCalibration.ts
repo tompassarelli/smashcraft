@@ -1,3 +1,4 @@
+import { sweepSeed } from "../../runtime/sweep";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { at } from "wisp/src/runtime/lookup";
 import { Character, GroundAction } from "../sim/codes";
@@ -35,7 +36,7 @@ export function collectDashCalibration(tier: CpuTier, frames = 120000): DashCali
   game.phase = Phase.match;
   game.cpuResolvedOpponents[0] = "ember";
   game.cpuTiers[0] = tier;
-  game.matchSeed = 817;
+  game.matchSeed = sweepSeed(817);
   const runtime = createPacingAndPresentation();
   const controls = createFrameControls();
   const intervals: number[] = [];

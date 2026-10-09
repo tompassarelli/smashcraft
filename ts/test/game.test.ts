@@ -6,13 +6,14 @@
 
 import { beforeEach, describe, test } from "bun:test";
 import { registeredTests } from "wisp/src/runtime/testing";
-import { isSweep } from "../src/runtime/sweep";
+import { isSweep, setSweepSeedOffset } from "../src/runtime/sweep";
 import { chargeTestsTo } from "./testCost";
 
 const filter = process.env.GAME_TESTS ?? "";
 const soak = process.env.GAME_SOAK === "1";
 const sweeps = process.env.SWEEPS === "1";
 const only = process.env.GAME_MODULES?.split(",");
+setSweepSeedOffset(Number(process.env.SWEEP_SEED_OFFSET ?? 0));
 const modules = [...new Bun.Glob(soak ? "**/*.soak.ts" : "**/*.tests.ts").scanSync(`${import.meta.dir}/../src`)].sort()
   .filter((module) => module.includes(filter) && (only === undefined || only.includes(module)));
 for (const module of modules) {

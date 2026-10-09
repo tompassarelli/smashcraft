@@ -15,7 +15,7 @@ import { replayChecksum } from "../replay/matchReplay";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
 import { createPacingAndPresentation } from "./pacingAndPresentation";
 import { Phase, createMatchState } from "./rules";
-import { sweep } from "../../runtime/sweep";
+import { sweep, sweepSeed } from "../../runtime/sweep";
 
 const NEUTRAL = neutralControls();
 
@@ -30,7 +30,7 @@ function computerMatch(opponent: CpuOpponentId, tier: CpuTier, seed: number) {
     match.cpuResolvedOpponents[slot] = opponent;
     match.cpuTiers[slot] = tier;
   }
-  match.matchSeed = seed;
+  match.matchSeed = sweepSeed(seed);
   const state: ReplayState = {
     world: createRoster(3, [createFighter(Character.rifleman, -200.0, 1), createFighter(Character.rifleman, 200.0, -1)]),
     match, controls: createFrameControls(), runtime: createPacingAndPresentation(),

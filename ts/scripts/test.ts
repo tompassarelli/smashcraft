@@ -14,6 +14,7 @@ import { admit } from "./heavyCapacity";
 import { runMeasuredProcess } from "./hostProcess";
 import { BUN_TEST_CEILING_FRAMES, addCost, cpuReport, readBaseline, type Costs } from "./testCost";
 import { refuseUntagged } from "./oracleTags";
+import { refuseLiteralCopies } from "./literalCopies";
 
 /** The hang timeout per test; cost is bounded by BUN_TEST_CEILING_FRAMES. */
 const TEST_TIMEOUT_MS = 60_000;
@@ -68,6 +69,7 @@ const groups: Group[] = [
   ...isolated.map((names) => ({ files: testFiles.filter((file) => names.includes(file)) })),
 ].filter((group) => group.files.length > 0);
 refuseUntagged(project, [...testFiles, ...gameModules.map((module) => `src/${module}`)]);
+refuseLiteralCopies(project);
 const groupCost = (group: Group) => group.env?.GAME_MODULES === undefined
   ? group.files.reduce((sum, file) => sum + fileCost(file), 0)
   : group.env.GAME_MODULES.split(",").reduce((sum, module) => sum + fileCost(`src/${module}`), 0);

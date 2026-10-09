@@ -1,3 +1,4 @@
+import { sweepSeed } from "../../runtime/sweep";
 import { mutableProjectile } from "../sim/fighterProjectiles";
 import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
@@ -60,7 +61,7 @@ function setup(profile: CpuProfile, seed: number, character: Character = Charact
   const match = createMatchState();
   match.phase = Phase.match;
   match.timeLimitMinutes = 0;
-  match.matchSeed = seed;
+  match.matchSeed = sweepSeed(seed);
   match.cpuOpponents[0] = profile.opponent;
   match.cpuResolvedOpponents[0] = profile.opponent;
   match.cpuTiers[0] = profile.tier;
