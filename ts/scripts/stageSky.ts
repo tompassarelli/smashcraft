@@ -11,7 +11,7 @@ export const STAGE_SKIES: readonly StageSky[] = [
   { stage: 14, theme: "Hellfire", zenith: [27, 24, 42], horizon: [71, 106, 74], nadir: [23, 30, 26], cloud: 6 },
   { stage: 12, theme: "Blackrock", zenith: [20, 18, 22], horizon: [58, 38, 30], nadir: [128, 76, 46], cloud: 7 },
   { stage: 6, theme: "Stratholme", zenith: [40, 28, 52], horizon: [168, 84, 52], nadir: [30, 20, 22], cloud: 10 },
-  { stage: 7, theme: "Sargeras", zenith: [28, 48, 62], horizon: [92, 140, 140], nadir: [16, 30, 34], cloud: 12 },
+  { stage: 7, theme: "Sargeras", zenith: [28, 48, 62], horizon: [28, 48, 52], nadir: [16, 30, 34], cloud: 12 },
   { stage: 13, theme: "AhnQiraj", zenith: [76, 72, 84], horizon: [179, 159, 115], nadir: [41, 35, 37], cloud: 7 },
 ];
 const hash = (value: Uint8Array | string) => new Bun.CryptoHasher("sha256").update(value).digest("hex");

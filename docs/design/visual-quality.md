@@ -510,7 +510,8 @@ light-only model is 756 bytes: stock green spell effects add particles and
 geometry, while Undercity lanterns have no light, so neither supplies this
 steady isolated glow. No stock art is imported.
 
-Tomb's row is in place (#298), following TS-1/TS-2: teal height fog uses
+Tomb's TS-2 hall uses a dark teal sky horizon, RGB (28, 48, 52), behind the
+bright tide floor. Its row is in place (#298), following TS-1/TS-2: teal height fog uses
 style 3, distance 5,000–11,000, density 0.25, heights −1,800 to −100 relative
 to the arena, maximum opacity 0.375 and leaves the sky clear. Classic retains
 the existing teal linear fog. TS-c keeps the waterfall on the left: two native
