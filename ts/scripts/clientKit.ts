@@ -27,13 +27,17 @@ export const writeClientKit = Effect.fn("writeClientKit")(function*(out: string)
   copyFileSync(join(ts, "src/game/replay/clientKitApi.d.ts"), join(out, "sim.d.ts"));
   writeFileSync(join(out, "viewer.lua"), yield* buildViewerLua(ts));
   const tape = recordTapeReplay(700, 401);
-  writeFileSync(join(out, "fixtures/tape-replay.json"), `${JSON.stringify({ serial: TAPE_REPLAY_SERIAL, manifest: tape.manifest, parts: tape.parts })}\n`);
+  const manifest = tape.manifest.map((line) => (line === "version development" ? `version ${version}` : line));
+  writeFileSync(join(out, "fixtures/tape-replay.json"), `${JSON.stringify({ serial: TAPE_REPLAY_SERIAL, manifest, parts: tape.parts })}\n`);
   const header = parseReplayHeader(tape.manifest);
   if (typeof header === "string") return yield* Effect.fail(new KitFailure({ problem: header }));
-  const parts = tape.parts.map((part, index) => parseReplayPart(part, TAPE_REPLAY_SERIAL, index + 1));
-  const bad = parts.find((part) => typeof part === "string");
-  if (typeof bad === "string") return yield* Effect.fail(new KitFailure({ problem: bad }));
-  writeFileSync(join(out, "fixtures/tape-replay.txt"), `${joinReplay(header, parts as string[][]).join("\n")}\n`);
+  const parts: (readonly string[])[] = [];
+  for (const [index, part] of tape.parts.entries()) {
+    const lines = parseReplayPart(part, TAPE_REPLAY_SERIAL, index + 1);
+    if (typeof lines === "string") return yield* Effect.fail(new KitFailure({ problem: lines }));
+    parts.push(lines);
+  }
+  writeFileSync(join(out, "fixtures/tape-replay.txt"), `${joinReplay(header, parts).join("\n")}\n`);
   const bundle = readFileSync(join(ts, "build/viewer-lua/viewer.lua"), "utf8");
   writeFileSync(join(out, "fixtures/map.lua"), `function main() end\nsmashcraftTs = assert(load([=[\n${bundle}\n]=], "=map-test"))()\n`);
   writeFileSync(join(out, "kit.json"), `${JSON.stringify({ kit: CLIENT_KIT, version, viewerApi: 1 }, null, 2)}\n`);

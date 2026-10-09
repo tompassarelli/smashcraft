@@ -19,8 +19,8 @@ repository.
 | `sim.js` | ES module: the replay viewer, the replay files' format and `sourceVersion()`, stamped with `version` |
 | `sim.d.ts` | its types (smashcraft:ts/src/game/replay/clientKitApi.d.ts); `viewerBundle.ts` is checked against them |
 | `viewer.lua` | the viewer's Lua modules, added to an older map's `war3map.lua` to play that version's replays |
-| `fixtures/tape-replay.json` | a recorded two-player replay: `serial`, the manifest's lines and each part's lines |
-| `fixtures/tape-replay.txt` | the same replay joined |
+| `fixtures/tape-replay.json` | a recorded two-player replay of `version`: `serial`, the manifest's lines and each part's lines |
+| `fixtures/tape-replay.txt` | the same replay joined, as version `development`, which `fixtures/map.lua` plays |
 | `fixtures/map.lua` | a stand-in `war3map.lua` holding the viewer's Lua bundle, for testing `viewer.lua` without a map |
 
 `sim.js` exports `VIEWER_API` (1), `sourceVersion`, `openReplay`,
