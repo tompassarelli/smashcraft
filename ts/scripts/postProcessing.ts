@@ -2,7 +2,7 @@
 // "Map-level post-processing"). The game reads it over its own
 // war3.w3mod:PostProcessingConfig.txt, so only the keys listed here change;
 // Blizzard's Forgotten Hollow scenario ships such a partial file. Every value
-// starts from a Blizzard file in the 3.0.1.24342 storage:
+// starts from the checked patch build's installed storage (wisp:docs/builds.md):
 // - [ASSAO] Radius 6, ShadowMultiplier 3: war3.w3mod:maps\forsakenkingdom\scenario\
 //   (1)forgottenhollow.w3x war3mapPostProcessing.txt, the only Blizzard map that
 //   ships one (the 96 Reforged campaign maps and other stock maps ship none).
