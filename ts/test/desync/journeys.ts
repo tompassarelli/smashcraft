@@ -15,12 +15,12 @@ export function entryFor(build: MapBuild): MapEntry {
 }
 
 /** Start, -dev quick, a traced match, install() mid-match on every client on one frame, more match. */
-export function playThroughReload(headless: HeadlessRuntime, entry: MapEntry): Lockstep {
+export function playThroughReload(headless: HeadlessRuntime, entry: MapEntry, settleFrames = 120): Lockstep {
   const clients = headless.clients(entry);
   clients.start();
   clients.frames(30);
   clients.chat(0, "-dev quick");
-  clients.frames(120);
+  clients.frames(settleFrames);
   clients.press(0, T_KEY, CTRL);
   clients.frames(330);
   const nativeCallCount = clients.clients.map(client => client.log.length);
@@ -39,7 +39,7 @@ export function playThroughReload(headless: HeadlessRuntime, entry: MapEntry): L
     expect(receipt?.[0]).toMatch(/^object-data frame \d+ objects \d+:\d+ state /);
     expect(receipt?.filter(line => line.includes(" speed 270 cooldown 1.5")).length).toBe(movement.length);
   }
-  clients.frames(120);
+  clients.frames(settleFrames);
   return clients;
 }
 

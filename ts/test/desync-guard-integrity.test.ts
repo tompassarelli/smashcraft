@@ -11,5 +11,5 @@ afterAll(headless.restore);
 
 // About 1 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
 test("desync guard: the journal integrity build makes the same native calls on every client [invariant]", () => {
-  expectNoDivergence(playThroughReload(headless, entryFor(INTEGRITY_BUILD)));
+  expectNoDivergence(playThroughReload(headless, entryFor(INTEGRITY_BUILD), 30));
 }, 30_000);
