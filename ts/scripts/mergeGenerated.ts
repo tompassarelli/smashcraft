@@ -23,19 +23,23 @@ const parseLines = (kind: Exclude<Kind, "json">, source: string): Entry[] => {
   return unique(lines(source).map((text, index) => {
     if (kind === "tsv") return { key: index === 0 ? "\u0001header" : text.split("\t").slice(0, 2).join("\t"), text };
     if (kind === "facts") {
-      const entry = /^\s*("(?:[^"\\]|\\.)*"):/.exec(text);
-      return { key: entry ? entry[1]! : `\u0001${text}`, text };
+      const name = /^\s*("(?:[^"\\]|\\.)*"):/.exec(text)?.[1];
+      return { key: name !== undefined ? name : `\u0001${text}`, text };
     }
     if (/^#+ /.test(text)) section = text;
-    const row = /^\|([^|]*)\|/.exec(text);
-    return { key: `${section}\u0001${row && !/^\s*-+\s*$/.test(row[1]!) ? row[1]!.trim() : `\u0002${text}`}`, text };
+    const cell = /^\|([^|]*)\|/.exec(text)?.[1];
+    return { key: `${section}\u0001${cell !== undefined && !/^\s*-+\s*$/.test(cell) ? cell.trim() : `\u0002${text}`}`, text };
   }));
 };
 
-const parseJson = (source: string): Entry[] =>
-  Object.entries(JSON.parse(source) as Record<string, unknown>).map(([key, value]) => ({ key, text: JSON.stringify(value) }));
+const parseJson = (source: string): Entry[] => {
+  const value: unknown = JSON.parse(source);
+  if (value === null || value === undefined) throw new TypeError("mergeGenerated: JSON source is null");
+  return Object.entries(value).map(([key, entry]) => ({ key, text: JSON.stringify(entry) }));
+};
 
-type Merged = { readonly key: string; readonly text?: string; readonly conflict?: readonly [string | undefined, string | undefined] };
+type Merged = { readonly key: string; readonly text: string }
+  | { readonly key: string; readonly conflict: readonly [string | undefined, string | undefined] };
 
 export const mergeEntries = (base: Entry[], ours: Entry[], theirs: Entry[]): Merged[] => {
   const b = new Map(base.map((e) => [e.key, e.text]));
@@ -46,7 +50,9 @@ export const mergeEntries = (base: Entry[], ours: Entry[], theirs: Entry[]): Mer
     if (o.has(e.key) || b.has(e.key)) return;
     let at = 0;
     for (let j = i - 1; j >= 0; j--) {
-      const found = order.indexOf(theirs[j]!.key);
+      const prior = theirs[j];
+      if (prior === undefined) throw new RangeError(`mergeEntries: no theirs entry ${j}`);
+      const found = order.indexOf(prior.key);
       if (found >= 0) { at = found + 1; break; }
     }
     order.splice(at, 0, e.key);
@@ -67,18 +73,18 @@ const renderConflict = (ours: string[], theirs: string[]): string[] =>
 export const merge = (kind: Kind, base: string, ours: string, theirs: string): { text: string; conflicts: number } => {
   const parse = kind === "json" ? parseJson : (s: string) => parseLines(kind, s);
   const merged = mergeEntries(parse(base), parse(ours), parse(theirs));
-  const conflicts = merged.filter((m) => m.conflict).length;
+  const conflicts = merged.filter((m) => "conflict" in m).length;
   if (kind !== "json") {
-    const out = merged.flatMap((m) => m.conflict
+    const out = merged.flatMap((m) => "conflict" in m
       ? renderConflict(m.conflict[0] === undefined ? [] : [m.conflict[0]], m.conflict[1] === undefined ? [] : [m.conflict[1]])
-      : [m.text!]);
+      : [m.text]);
     return { text: `${out.join("\n")}\n`, conflicts };
   }
   const field = (key: string, value: string, last: boolean) =>
     `  ${JSON.stringify(key)}: ${JSON.stringify(JSON.parse(value), null, 2).replace(/\n/g, "\n  ")}${last ? "" : ","}`;
   const out = merged.flatMap((m, i) => {
     const last = i === merged.length - 1;
-    if (!m.conflict) return [field(m.key, m.text!, last)];
+    if (!("conflict" in m)) return [field(m.key, m.text, last)];
     const side = (v: string | undefined) => (v === undefined ? [] : [field(m.key, v, last)]);
     return renderConflict(side(m.conflict[0]), side(m.conflict[1]));
   });
