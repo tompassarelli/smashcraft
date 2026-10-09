@@ -242,7 +242,7 @@ code. From smashcraft:ts/:
   Anub'arak's insect gestures, floor burrow, paired throws and nine pain poses,
   preserving all seventeen stock clips and writing both-facing pose sheets.
   `bun tools/animations/grab-pads.ts` generates the #180 mirror and unlike-height capture batch:
-  ten expansion heroes, four throws, both facings, with ordinary catch/pummel
+  every selectable fighter, four throws, both facings, with ordinary catch/pummel
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
   `-dev quick pair FIRST / SECOND` selects different named fighters in the two human slots.
 - Original strike authoring (from the repository root):
