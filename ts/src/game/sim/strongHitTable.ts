@@ -1,6 +1,7 @@
 import { AttackStyle, Character } from "./codes";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "./hitRegions";
 import { authoredTuning } from "./tuning";
+import { squareRoot } from "./warcraftMath";
 
 export const STRONG_HIT_STYLES: readonly AttackStyle[] = [
   AttackStyle.jab, AttackStyle.jab2, AttackStyle.jab3, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown,
@@ -51,7 +52,7 @@ export function strongHitRows(character: Character): StrongHitRow[] {
         if (region.window <= 0 || region.effect.damage <= 0) continue;
         const x = (region.minX + region.maxX) / 2;
         const z = (region.minZ + region.maxZ) / 2 - BODY_CENTRE_Z;
-        const reach = Math.sqrt(x * x + z * z);
+        const reach = squareRoot(x * x + z * z);
         if (region.effect.strong === true) {
           strongNow = true;
           strongDamage = Math.max(strongDamage, region.effect.damage);
