@@ -200,6 +200,14 @@ function sameObservation(a: Readonly<Fighter>, b: Readonly<Fighter>): boolean {
   return true;
 }
 
+// Samples sameBotMemory found equal, keyed by the second. A sample's
+// observations never change while a history holds it, so a pair stays equal
+// until either is reused (observeOpponents); a repair's convergence checks
+// then compare each pair once.
+const reuses = new WeakMap<BotObservationFrame, number>();
+const equalTo = new WeakMap<BotObservationFrame, BotObservationFrame>();
+const equalToReuse = new WeakMap<BotObservationFrame, number>();
+
 /** Whether two memories hold the same samples and directions: firstBotMemoryDifference without building canonical text. */
 export function sameBotMemory(expected: Readonly<BotMemory>, actual: Readonly<BotMemory>): boolean {
   if (expected.history.length !== actual.history.length) return false;
@@ -208,12 +216,16 @@ export function sameBotMemory(expected: Readonly<BotMemory>, actual: Readonly<Bo
     const a = at(actual.history, index);
     if (e === a) continue;
     if (e.frame !== a.frame) return false;
+    const reused = reuses.get(e) ?? 0;
+    if (equalTo.get(a) === e && equalToReuse.get(a) === reused) continue;
     for (const slot of PARTICIPANT_SLOTS) {
       const x = e.opponents[slot];
       const y = a.opponents[slot];
       if (x === y) continue;
       if (x === undefined || y === undefined || !sameObservation(x, y)) return false;
     }
+    equalTo.set(a, e);
+    equalToReuse.set(a, reused);
   }
   for (const slot of PARTICIPANT_SLOTS) {
     if (expected.directions[slot] !== actual.directions[slot] || expected.directionFrames[slot] !== actual.directionFrames[slot]) return false;
@@ -568,6 +580,8 @@ export function observeOpponents(memory: BotMemory, world: Roster, frame: number
   if (entry === undefined) {
     entry = createEntry(storage.arena);
   }
+  reuses.set(entry.sample, (reuses.get(entry.sample) ?? 0) + 1);
+  equalTo.delete(entry.sample);
   entry.references = 1;
   entry.sample.frame = frame;
   for (const slot of PARTICIPANT_SLOTS) {

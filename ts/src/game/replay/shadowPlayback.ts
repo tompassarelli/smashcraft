@@ -173,8 +173,11 @@ export class ShadowInputPlayback {
         allAccepted = false;
         predictInto(actual[slot], actual[slot]);
       }
-      // A row that stays speculative with the inputs it ran on changes nothing in history.amend.
-      if (!allAccepted && networkRowsMatch(stored, actual)) continue;
+      // A row that ran on the inputs it keeps changes nothing in history.amend; one now wholly accepted only stops being correctable.
+      if (networkRowsMatch(stored, actual)) {
+        if (allAccepted && !history.settle(epoch, frame)) return "rejected";
+        continue;
+      }
       copyMatchFrameInput(correctionRow, stored);
       replaceNetworkRows(correctionRow, actual);
       if (!(allAccepted ? corrections.add(correctionRow) : corrections.addSpeculative(correctionRow))) return "rejected";

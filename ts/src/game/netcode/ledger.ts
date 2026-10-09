@@ -151,7 +151,12 @@ export class InputLedger {
     let through = at(this.through, sender);
     while (through < INPUT_LAST_FRAME && ring.row(through + 1) !== undefined) through++;
     this.through[sender] = through;
-    while (this.known < INPUT_LAST_FRAME && this.allPresent(epoch, this.known + 1)) this.known++;
+    // Each sender's rows are present through its own frontier and absent just past it, so K is the lowest frontier.
+    let known = through;
+    for (let other = 0; other < PARTICIPANT_CAPACITY; other++) {
+      if (this.isActive(other) && at(this.through, other) < known) known = at(this.through, other);
+    }
+    if (known > this.known) this.known = known;
     if (firstFrame < this.lowestAccepted) this.lowestAccepted = firstFrame;
     return "accepted";
   }
@@ -181,12 +186,5 @@ export class InputLedger {
     const stored = ring.row(frame);
     if (stored !== undefined) return sameInput(stored, row) ? "accepted" : "conflict";
     return ring.vacant(frame) ? "accepted" : "storageFull";
-  }
-
-  private allPresent(epoch: number, frame: number): boolean {
-    for (let sender = 0; sender < PARTICIPANT_CAPACITY; sender++) {
-      if (this.isActive(sender) && this.accepted(epoch, sender, frame) === undefined) return false;
-    }
-    return true;
   }
 }

@@ -330,6 +330,17 @@ export class ReplayHistory {
   }
 
   /**
+   * Marks speculative `frame`, which ran on exactly its now-authoritative
+   * rows, as no longer correctable, as amending it with those rows would;
+   * the next amend or correct advances past it.
+   */
+  settle(epoch: number, frame: number): boolean {
+    if (this.current === undefined || epoch !== this.current || !this.contains(epoch, frame)) return false;
+    this.speculative[this.slotOf(frame)] = false;
+    return true;
+  }
+
+  /**
    * As correct, but replays nothing yet: the rows change now, and repair()
    * replays from the earliest frame any amendment changed. Returns the
    * earliest frame this batch changed.
