@@ -16,7 +16,7 @@ import { HabitChoice } from "./botHabits";
 import { pressKitOption } from "./botKitOptions";
 import { comebackPressure, estimatedMoveValue, familiarOption, type MoveEstimate } from "./botMoveValue";
 import { chooseAttack, moveReaches } from "./botMoves";
-import { BOT_DIRECTION_FRAMES, clearBotMemory, commitBotDirection, observeOpponents, perceivedOpponent } from "./botPerception";
+import { BOT_DIRECTION_MIN_FRAMES, clearBotMemory, commitBotDirection, observeOpponents, perceivedOpponent } from "./botPerception";
 import { produceComputerInput } from "./botPlay";
 import { choosePunish } from "./botPunish";
 import { useMatchSeed } from "./botRandom";
@@ -372,7 +372,7 @@ function replayAndDirection(profile: CpuProfile, seed: number, trial: number, in
     input.direction = floorMod(frame + trial + seed, 3) === 0 ? 0 : floorMod(frame, 2) === 0 ? -1 : 1;
     commitBotDirection(game.state.runtime.botMemory, 0, frame, input);
     if (input.direction !== 0 && previous !== input.direction) {
-      if (previous !== 0) { into.reversals++; if (frame - chosen < BOT_DIRECTION_FRAMES) into.earlyReversals++; }
+      if (previous !== 0) { into.reversals++; if (frame - chosen < BOT_DIRECTION_MIN_FRAMES) into.earlyReversals++; }
       chosen = frame; previous = input.direction;
     }
   }

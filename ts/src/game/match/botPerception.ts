@@ -8,7 +8,31 @@ import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../input/pa
 import { createFighter, type Fighter, type Projectile } from "../sim/fighter";
 import { fighterAt, isActive, type Controls, type Roster } from "../sim/roster";
 
-export const BOT_DIRECTION_FRAMES = 5;
+import { botChoice } from "./botRandom";
+import { CPU_TIERS, type CpuTier } from "./cpuProfiles";
+import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
+
+export const BOT_DIRECTION_MIN_FRAMES = 4;
+const reversalDeciles: readonly (readonly number[])[] = [
+  [4, 5, 6, 7, 8, 8, 9, 10, 12, 12],
+  [4, 5, 5, 6, 7, 7, 8, 9, 10, 12],
+  [4, 4, 5, 5, 6, 6, 7, 7, 8, 10],
+  [4, 4, 5, 5, 5, 6, 6, 6, 7, 8],
+  [4, 4, 5, 5, 5, 5, 5, 6, 6, 6],
+];
+
+/** The same committed turn draws the same deadline throughout a replay. */
+export function botReversalFrames(chosenFrame: number, slot: ParticipantSlot, tier: CpuTier, executionPercent: number): number {
+  const index = CPU_TIERS.indexOf(tier);
+  const intended = at(at(reversalDeciles, index), botChoice(chosenFrame, slot * 37 + 811, 10));
+  const missed = 100 - executionPercent;
+  const speedError = Math.max(0, 7 - intended) * missed;
+  const late = botChoice(chosenFrame, slot * 37 + 829, 400) < speedError ? 1 : 0;
+  // Rare long holds become actual runs; ordinary timing noise only delays a turn.
+  const runChance = at([25, 23, 16, 10, 6], index);
+  const overshoot = botChoice(chosenFrame, slot * 37 + 853, 10000) < runChance;
+  return overshoot ? 24 + floorDiv(missed, 20) : intended + late;
+}
 // The slowest supported computer style sees events 42 frames later.
 export const BOT_HISTORY_FRAMES = 43;
 // Unobserved input buffers, resource plans and hit registries stay neutral.
@@ -675,11 +699,11 @@ export function perceivedOpponent(memory: Readonly<BotMemory>, own: Readonly<Fig
 }
 
 /** Neutral may brake immediately; it does not shorten the hold before the opposite direction. */
-export function commitBotDirection(memory: BotMemory, slot: ParticipantSlot, frame: number, input: Controls): void {
+export function commitBotDirection(memory: BotMemory, slot: ParticipantSlot, frame: number, input: Controls, tier: CpuTier = "expert", policy?: CpuDecisionPolicy): void {
   const wanted = input.direction;
   const previous = memory.directions[slot];
   if (wanted === 0) return;
-  if (previous !== 0 && wanted !== previous && frame - memory.directionFrames[slot] < BOT_DIRECTION_FRAMES) {
+  if (previous !== 0 && wanted !== previous && frame - memory.directionFrames[slot] < botReversalFrames(memory.directionFrames[slot], slot, tier, policy?.executionPercent ?? 97)) {
     input.direction = previous;
     return;
   }

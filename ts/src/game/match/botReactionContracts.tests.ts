@@ -8,7 +8,7 @@ import { createFighter, type Fighter } from "../sim/fighter";
 import { createRoster, fighterAt, neutralControls, sameControls } from "../sim/roster";
 import { sameAttackBuffer } from "../input/attackBuffer";
 import { produceComputerInput } from "./botPlay";
-import { BOT_DIRECTION_FRAMES, type BotMemory, commitBotDirection, copyBotMemory, createBotMemory, clearBotMemory, observeOpponents, perceivedOpponent } from "./botPerception";
+import { BOT_DIRECTION_MIN_FRAMES, type BotMemory, commitBotDirection, copyBotMemory, createBotMemory, clearBotMemory, observeOpponents, perceivedOpponent } from "./botPerception";
 import { cpuSkill, cpuReactionFloor } from "./cpuSkill";
 import { CPU_PROFILES, type CpuOpponentId, type CpuTier } from "./cpuProfiles";
 import { createFrameControls } from "./controls";
@@ -175,7 +175,7 @@ sweep("1000 recorded prepared answers and 1000 fresh choices report actual input
   }
 });
 
-test("rapid grounded and airborne requests, including neutral braking, have zero reversals before five frames [spec #176]", () => {
+test("rapid grounded and airborne requests, including neutral braking, have zero reversals before four frames [spec #176]", () => {
   const memory = createBotMemory();
   const input = neutralControls();
   let previous = 0;
@@ -186,7 +186,7 @@ test("rapid grounded and airborne requests, including neutral braking, have zero
     input.direction = floorMod(frame, 3) === 0 ? 0 : floorMod(frame, 2) === 0 ? -1 : 1;
     commitBotDirection(memory, 0, frame, input);
     if (input.direction !== 0 && input.direction !== previous) {
-      if (previous !== 0) { reversals++; if (frame - chosen < BOT_DIRECTION_FRAMES) early++; }
+      if (previous !== 0) { reversals++; if (frame - chosen < BOT_DIRECTION_MIN_FRAMES) early++; }
       previous = input.direction;
       chosen = frame;
     }
@@ -214,7 +214,7 @@ sweep("all fighters' approach, retreat, air steering and recovery traces have ze
       produceComputerInput(game.game, game.world, game.runtime, 0, frame, game.controls.inputs[0], game.controls.commands[0]);
       const direction = game.controls.inputs[0].direction;
       if (own.launch.hitlag <= 0 && own.grab.owner === undefined && direction !== 0 && direction !== previous) {
-        if (previous !== 0) { reversals++; if (frame - chosen < BOT_DIRECTION_FRAMES) early++; }
+        if (previous !== 0) { reversals++; if (frame - chosen < BOT_DIRECTION_MIN_FRAMES) early++; }
         previous = direction;
         chosen = frame;
       }

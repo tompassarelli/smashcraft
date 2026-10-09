@@ -31,6 +31,7 @@ import { trainingPartnerInput } from "./training";
 import { sameFighterState } from "../replay/fighterState";
 import { type BotStrategy, copyBotStrategy, learnBotHabit, prepareBotRead, pressBotRead, sameBotStrategy } from "./botStrategy";
 import { applyAerialExecutionNoise, chooseHitlagInput } from "./botExecutionNoise";
+import { executeBotTechnique, type TechnicalOutcome } from "./botTechnicalExecution";
 import type { BotDecision } from "./pacingAndPresentation";
 
 const COMPUTER_NEUTRAL = neutralControls();
@@ -146,7 +147,7 @@ function reactionDelay(game: Readonly<MatchState>, runtime: Readonly<BotRuntime>
  * The computer in `slot` plays its resolved identity and tier under the match seed. Correcting
  * human movement also corrects every computer decision derived from it.
  */
-export function produceComputerInput(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, slot: ParticipantSlot, frame: number, input: Controls, commands: AttackBuffer): void {
+export function produceComputerInput(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, slot: ParticipantSlot, frame: number, input: Controls, commands: AttackBuffer): TechnicalOutcome {
   useMatchSeed(game.matchSeed);
   const opponent = game.cpuResolvedOpponents[slot];
   const tier = game.cpuTiers[slot];
@@ -165,12 +166,14 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
     prepareBotRead(strategy, fighter, target, frame, reactionFrames, skill.decision);
   }
   decide(game, world, runtime, slot, frame, input, commands, perceivedCpuSkill(opponent, tier), target, reactionFrames);
+  const execution = executeBotTechnique(fighter, input, commands, frame, slot, skill.decision);
   upgradeThreatenedSpecial(fighter, target, input);
   if (fighter.launch.hitlag <= 0 && fighter.launch.hitstun > 0) chooseHitlagInput(fighter, slot, frame, skill, input);
   if (!game.training) applyAerialExecutionNoise(fighter, target, slot, skill, input);
   // DI and escape mashing are reactions to the fighter's own state, not steering.
-  if (fighter.launch.hitlag <= 0 && fighter.grab.owner === undefined) commitBotDirection(runtime.botMemory, slot, frame, input);
+  if (fighter.launch.hitlag <= 0 && fighter.grab.owner === undefined) commitBotDirection(runtime.botMemory, slot, frame, input, tier, skill.decision);
   useMatchSeed(0);
+  return execution;
 }
 
 const negativeZero = (value: number): boolean => value === 0 && 1 / value < 0;

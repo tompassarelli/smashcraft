@@ -104,7 +104,10 @@ exceed 100. Initiative and variance weight preferences, not capability ceilings.
 | Wren | Advanced | 18 | 93 | 87/89 | 24/1 | 4/70 | 27 | 95 | 70/40 | 7 |
 | Wren | Expert | 14 | 97 | 96/96 | 32/1 | 5/75 | 20 | 105 | 78/45 | 4 |
 
-An execution miss produces a legal late, dropped or simpler input. A judgment
+An execution miss produces a legal dropped or simpler input, including a roll
+in place of jump/wavedash preparation, a neutral aerial in place of a
+directional aerial, or a jab in place of a special. Expert misses 2–5% of
+eligible technical inputs, following each identity’s Execute percentage. A judgment
 miss considers fewer candidates or misjudges observed spacing; it never
 inspects a future action. Bounded history covers neutral approach,
 shield/escape, landing and ledge choices, partitioned by relevant spacing.
@@ -122,7 +125,19 @@ trained recognition (a held guard, tech or ledge answer) waits at least 14 frame
 each additional viable option: retreat, grounded shield, remaining jump and legal
 attack. The slower authored tier delay still applies. Each observed cue draws
 0–2 additional frames from the shared match seed; every client and replay draws
-the same delay. A horizontal direction holds for at least five frames.
+the same delay. Horizontal reversals are at least four frames apart.
+[#356](https://github.com/tompassarelli/smashcraft/issues/356) draws each turn’s
+interval from the match seed and the last committed turn. The intended medians
+are Rookie 8, Beginner 7, Intermediate 6, Advanced 5.5 and Expert 5 frames;
+lower tiers have wider spreads. Rookie’s intended 10th–90th percentiles are
+5–12 frames; Expert normally takes 4–6 frames. Faster intended turns incur
+more late-turn noise, scaled by `100 − Execute`. Rare overshoots hold long
+enough to enter run. The targets are about 3, 2.5, 2, 1.5 and 1 unintended
+run per minute from Rookie through Expert; Expert’s acceptance range is
+0.7–1.5 and Rookie stays at or below 4. Braking to neutral remains immediate.
+The computer calibration report measures at least 2,000 real input-path
+reversals per tier, actual entries into run per minute of controlled match
+frames, and at least 2,000 Expert technical inputs including wrong options.
 Prepared sequences and fallible reads can act before a predicted action occurs.
 Delayed observations, bounded history and move-value logic are owned by
 [#182](https://github.com/tompassarelli/smashcraft/issues/182).

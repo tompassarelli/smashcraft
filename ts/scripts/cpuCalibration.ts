@@ -1,3 +1,4 @@
+import { collectDashCalibration, collectTechnicalCalibration, dashPercentile } from "../src/game/match/botDashCalibration";
 import { parseArgs } from "node:util";
 import { CALIBRATION_SEEDS, calibrationFailures, collectCalibrationRow, type CalibrationMeasure, type CalibrationRow } from "../src/game/match/cpuCalibration";
 import { CPU_PROFILES, CPU_TIERS, type CpuOpponentId } from "../src/game/match/cpuProfiles";
@@ -62,6 +63,14 @@ export function calibrationReport(revision: string, trials = 10) {
     "Rook faces a jab after passing a speculative opening; Ember faces a shield counter after extending pressure; Flint faces a shield counter to the conditioned forward tilt; Vale faces a jab after a feint; Kite faces a guarded ledge escape; Wren faces a chased uncertain neutral reset. Counters play for 60 simulation frames and count damage or a caught grab, without requiring a player win.",
     ...flawFailures.map(failure => `- ${failure}`), "",
     "Difficulty, whole-roster kit use and fighter balance use their existing acceptance commands and thresholds. This controlled report does not substitute for those results.");
+  lines.push("", "| Tier | Reversals | Min | P10 | Median | P90 | Unintended runs/minute |", "| --- | ---: | ---: | ---: | ---: | ---: | ---: |");
+  for (const tier of CPU_TIERS) {
+    const dash = collectDashCalibration(tier);
+    lines.push(`| ${tier} | ${dash.intervals.length} | ${dashPercentile(dash, 0)} | ${dashPercentile(dash, 1)} | ${dashPercentile(dash, 5)} | ${dashPercentile(dash, 9)} | ${(dash.runs * 3600 / dash.frames).toFixed(2)} |`);
+  }
+  const technical = collectTechnicalCalibration("expert");
+  lines.push("", `Expert technical inputs: ${technical.inputs}; slips: ${technical.slips} (${(technical.slips * 100 / technical.inputs).toFixed(2)}%); wrong options: ${technical.wrongOptions}.`,
+    "Turns use repeated legal opposite-side spacing situations through produceComputerInput and actual ground motion; runs count entries into the simulation's run action per minute of those frames. Technical inputs use repeated legal jump opportunities through produceComputerInput. These are controlled production scenarios.");
   return { rows, failures, text: lines.join("\n") + "\n" };
 }
 
