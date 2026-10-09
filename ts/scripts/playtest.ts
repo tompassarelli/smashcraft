@@ -1,6 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
+import { Schema } from "effect";
 import { CPU_TIERS, isCpuTier } from "../src/game/match/cpuProfiles";
 import { SELECTABLE_CHARACTERS, fighterSlug, selectableCharacterBySlug } from "../src/game/sim/heroes/registry";
 import { FIELD_STAGES, moveName, playCpuMatch } from "./cpuField";
@@ -8,10 +9,22 @@ import { DEFAULT_CONFIG, FINDING_KINDS, classify, issueBody, planMatches, render
 
 const CHECKSUM_EVERY = 600;
 
+const ObservationSchema = Schema.Struct({
+  frames: Schema.Finite, ended: Schema.Boolean, winner: Schema.NullOr(Schema.Finite), timedOut: Schema.Boolean, stockLosses: Schema.Finite,
+  strings: Schema.Array(Schema.Struct({ victim: Schema.Finite, frame: Schema.Finite, hits: Schema.Finite, damage: Schema.Finite })),
+  checksums: Schema.Array(Schema.Tuple([Schema.Finite, Schema.String])),
+  kos: Schema.Array(Schema.Struct({ fighter: Schema.String, move: Schema.String, count: Schema.Finite })),
+});
+const RunsSchema = Schema.Array(Schema.Struct({
+  spec: Schema.Struct({ index: Schema.Finite, seed: Schema.Finite, a: Schema.String, b: Schema.String, stage: Schema.String, tier: Schema.String }),
+  first: ObservationSchema, second: Schema.optional(ObservationSchema), wallMs: Schema.Finite,
+}));
+const readRuns = (file: string): Run[] => Schema.decodeUnknownSync(RunsSchema)(JSON.parse(readFileSync(file, "utf8"))).map((run) => ({ ...run, second: run.second }));
+
 export const ROSTER = {
   fighters: SELECTABLE_CHARACTERS.map(fighterSlug),
   stages: Object.keys(FIELD_STAGES),
-  tiers: [...CPU_TIERS] as string[],
+  tiers: CPU_TIERS.map((tier): string => tier),
 };
 
 export const playReal: Play = (spec: MatchSpec, frameCap: number): Observation => {
@@ -57,7 +70,7 @@ if (import.meta.main) {
     const shards = shardsFor(total, Number(values["ms-per-match"] ?? 0), Number(values.cores ?? 4), Number(values["target-minutes"] ?? 20));
     console.log(JSON.stringify(shardRanges(total, shards)));
   } else if (values.merge !== undefined) {
-    const runs: Run[] = values.merge.split(",").filter(Boolean).flatMap((file) => JSON.parse(readFileSync(file, "utf8")) as Run[]);
+    const runs: Run[] = values.merge.split(",").filter(Boolean).flatMap(readRuns);
     const findings = classify(runs, config);
     const header = values.header ?? "";
     const dir = values["report-dir"] ?? "playtest";
