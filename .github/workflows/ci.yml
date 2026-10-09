@@ -33,6 +33,8 @@ jobs:
       # No game files or copied game scripts outside the allowlist (wisp:docs/clean-room.md).
       - run: bun scripts/cleanRoom.ts
         working-directory: ts
+      - run: git clone --depth 1 https://github.com/tompassarelli/north "$RUNNER_TEMP/north"
+      - run: bun "$RUNNER_TEMP/north/agent-machinery/scripts/effect-kit.mjs" check
       # Hosted runners for this private repository are smaller than the development
       # machine the timing targets describe; integration gates them on that machine.
       - run: bun scripts/ci.ts

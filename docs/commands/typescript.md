@@ -6,7 +6,7 @@ resource or parse outside data. Load the effect-development skill before
 designing one, and follow the four rules and examples in
 smashcraft:docs/typescript.md, "Host tools". Map code compiled to Lua
 stays plain TypeScript; pure calculations stay plain functions.
-Host-tool enforcement: smashcraft:ts/test/effect-host-tools.test.ts.
+Host-tool enforcement: `effect-kit check` (smashcraft:effect-kit.json), run in CI.
 
 Effect is the preferred foundation for Wisp's TypeScript tooling.
 Read smashcraft:.agents/skills/effect/SKILL.md for Effect work and for the

@@ -273,7 +273,6 @@ test/drawn-capture.test.ts	9	5.043
 test/drawn-motion.test.ts	3	0.399
 test/drawn-reach.test.ts	2	0.017
 test/drawn-size.test.ts	1	0.004
-test/effect-host-tools.test.ts	1	2.043
 test/element-looks.test.ts	4	0.028
 test/escape-meter.test.ts	2	1.685
 test/ex-specials.test.ts	27	15.938

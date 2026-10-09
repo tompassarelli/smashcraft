@@ -462,8 +462,8 @@ hot reload, and rollback snapshots hold all gameplay state
 
 For APIs, read smashcraft:repos/effect/LLMS.md and its version-matched source
 and tests. Application imports resolve installed packages, not vendor paths.
-The exact reference identity is smashcraft:repos/effect.json; its update
-procedure and cadence belong to smashcraft:.agents/skills/effect/SKILL.md.
+The exact reference identity is smashcraft:repos/effect.json; `effect-kit`
+keeps it at the installed version (smashcraft:.agents/skills/effect/SKILL.md).
 
 ### Game modules
 

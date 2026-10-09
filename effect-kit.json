@@ -1,0 +1,10 @@
+{
+  "package": "ts",
+  "vendor": "repos/effect",
+  "tsconfig": "tsconfig.json",
+  "typecheck": ["bun", "run", "check"],
+  "hostTools": {
+    "include": ["scripts/**/*.ts"],
+    "exclude": ["**/*.test.ts", "**/*.tests.ts"]
+  }
+}
