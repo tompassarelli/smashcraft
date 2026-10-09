@@ -21,6 +21,7 @@ import { ShadowInputPlayback } from "../src/game/replay/shadowPlayback";
 import { Character } from "../src/game/sim/codes";
 import { PROJECTILE_CAPACITY } from "../src/game/sim/fighter";
 import { fighterRenderedCues } from "../src/game/presentation/attackCues";
+import { DEFINITIVE_CUE_EMITTERS } from "../src/game/presentation/cueEmitterInfo";
 import { HIT_AREA_EFFECT_CAPACITY } from "../src/game/render/hitAreaEffects";
 import { fighterAt, isActive } from "../src/game/sim/roster";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
@@ -260,7 +261,7 @@ sweep("a match and its three-fighter rematch show each pooled fighter whole wher
   // At its result the rematch also holds the computer Illidan's clip pool, shield, projectiles, special cues, hit-area pool, agency halo and body flash; fighter
   // selection ends every fighter's renderers, so it then holds exactly what it held after the first match.
   const illidan = originalClipCount(Character.demonHunter) + (originalLightPath(Character.demonHunter) === undefined ? 0 : 1);
-  expect(rematch.effectsAtResult - first.effectsAtResult).toBe(illidan + 1 + PROJECTILE_CAPACITY + fighterRenderedCues(Character.demonHunter).length + HIT_AREA_EFFECT_CAPACITY + 2);
+  expect(rematch.effectsAtResult - first.effectsAtResult).toBe(illidan + 1 + PROJECTILE_CAPACITY + fighterRenderedCues(Character.demonHunter).filter(cue => DEFINITIVE_CUE_EMITTERS[cue.model] !== true).length + HIT_AREA_EFFECT_CAPACITY + 2);
   expect(retainedEffects()).toBe(selectionAfterFirst);
   for (const client of clients.clients) expect(client.errors).toEqual([]);
   // Each client wrote its own player's record of both matches for the Smashcraft client: two fighters, then three.
