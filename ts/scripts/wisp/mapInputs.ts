@@ -30,7 +30,6 @@ import { regenerateCommand } from "../stageThumbnailSpec";
 import { stageCardPath } from "./buildInputs";
 import { buildProject, projectRoot as PROJECT } from "./project";
 import { UI_FRAMES } from "./uiFrames";
-import { unresolvedHdTexture } from "../hdBodyTextures";
 const tryMapPromise = <A>(operation: string, path: string, run: () => PromiseLike<A>) => Effect.tryPromise({ try: run, catch: (cause) => new MapBuildFailure({ operation, path, cause }) });
 const tryMapSync = <A>(operation: string, path: string, run: () => A) => Effect.try({ try: run, catch: (cause) => new MapBuildFailure({ operation, path, cause }) });
 const EMPTY_MODEL = "the map script names an empty model path";
@@ -282,22 +281,10 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
   const clipEvidence = yield* readJson(OriginalClipEvidence, clipEvidencePath);
   const clipFiles = [...new Set(clipEvidence.records.flatMap((record) => [...record.clips.map(({ filename }) => filename), ...(record.light === null ? [] : [record.light.filename])]))].filter((file) => ORIGINAL_CLIP_MODELS.includes(`war3mapImported\\${file}`));
   const definitiveBodies = ORIGINAL_CLIP_MODELS.filter((model) => model.includes("TimelineBody-")).flatMap((model) => {
-    const entry = `_hd.w3mod\\${model}`;
+    const entry = `_de.w3mod\\${model}`;
     const source = join(clipDirectory, "imports", ...entry.split("\\"));
     return existsSync(source) ? [{ entry, source }] : [];
   });
-  const textureList = join(clipDirectory, "hd-texture-imports.txt");
-  const hdTextures = existsSync(textureList) ? (yield* importLines(textureList)).map((file) => ({
-    entry: `_hd.w3mod\\war3mapImported\\${file}`,
-    source: join(clipDirectory, "imports/_hd.w3mod/war3mapImported", file),
-  })) : [];
-  const suppliedTextures = new Set(hdTextures.map(({ entry }) => entry.replace(/^_hd\.w3mod\\/, "").toLowerCase()));
-  for (const body of definitiveBodies) {
-    const bytes = yield* tryMapPromise("read Definitive body textures", body.source, () => Bun.file(body.source).bytes());
-    const missing = unresolvedHdTexture(bytes, suppliedTextures);
-    if (missing !== undefined) return yield* new MapBuildFailure({ operation: "check Definitive body textures", path: body.entry,
-      cause: `${missing} has no exact HD map import; package stock textures with tools/animations/hd-textures.ts` });
-  }
   // A changed fighter clip (a re-authored original, a new hero) needs a new pool in the private inputs too.
   yield* requireListed(clipEvidencePath, clipFiles, ORIGINAL_CLIP_MODELS,
     `this assets folder's clip pool predates the checkout's clips. From the repository root, export a new pool from ${assets} ` +
@@ -325,7 +312,6 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
     ...summonFiles.map((filename) => imported(join(summon, "imports/war3mapImported"), filename)),
     ...clipFiles.map((filename) => imported(join(clipDirectory, "imports/war3mapImported"), filename)),
     ...definitiveBodies,
-    ...hdTextures,
   ];
   const problem = importProblem(entries);
   if (problem !== undefined) return yield* new MapBuildFailure({ operation: "check imports", path: assets, cause: problem });

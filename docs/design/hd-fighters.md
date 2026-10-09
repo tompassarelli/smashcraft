@@ -6,20 +6,18 @@ victory screen. Cairne's dual-alias pilot passed native model loading,
 team colour and a smoke round on Classic and Definitive clients in 3.0.1.
 That establishes the body pipeline for parallel roster conversion.
 
-## Texture imports
+## Stock textures
 
-An imported `_hd.w3mod` body cannot rely on its Definitive-only stock texture
-paths. On native 3.0.1, Cairne's stock diffuse exists in `_de.w3mod` but not
-`_hd.w3mod`; the final body drew solid team colours. Importing its five textures
-under exact HD paths restored fur, totem and axe on client B ([native comparison](https://github.com/tompassarelli/smashcraft/issues/334#issuecomment-6071233652)).
-
-`tools/animations/hd-textures.ts` packages stock textures with unique DDS names
-and updates only each body's TEXS name fields. It keeps the existing compressed
-stock mipchain starting at no more than 512 pixels, without reencoding or changing
-alpha. Geometry, materials, skin and animation bytes remain unchanged. The map
-build checks that the imported HD bodies' nonreplaceable texture names resolve
-to exact HD imports. Wisp's independent DE-first stock lookup hid this native
-failure; [wisp#91](https://github.com/tompassarelli/wisp/issues/91) tracks that gap.
+Each body is packaged under `_de.w3mod\war3mapImported\<Classic timeline name>`
+and keeps the stock Definitive texture paths, so the map carries no texture
+copies ([#346](https://github.com/tompassarelli/smashcraft/issues/346)). A
+body's stock texture lookup stays in its own layer: the stock Definitive
+textures (for example `units\orc\herotaurenchieftain\tauren_chieftain_diffuse.dds`)
+exist only in `_de.w3mod`, so the earlier `_hd.w3mod` bodies drew solid team
+colours ([#334](https://github.com/tompassarelli/smashcraft/issues/334#issuecomment-6071233652)).
+Anub'arak's stock body names the base-only `ReplaceableTextures\TeamGlow\TeamGlow00`;
+its body names the same glow's Definitive copy, `Textures\TeamGlow0000`.
+Classic (`hd=0`) ignores `_de.w3mod` and draws the Classic body.
 
 ## Rig correspondence
 
@@ -114,11 +112,9 @@ collision and emitter chunks do not belong in a match body; Cairne's version
 
 ## Packaging and size
 
-Place one Definitive body under `_hd.w3mod/war3mapImported/<Classic timeline name>`.
+Place one Definitive body under `_de.w3mod/war3mapImported/<Classic timeline name>`.
 The 3.0.1 native one-alias captures confirmed that Definitive accepts either
-prefix alone; the selected `_hd.w3mod` path keeps one copy per fighter.
-Keep `_de.w3mod` support for installed stock asset reads and unrelated stage
-imports. Each player's graphics setting chooses the look locally;
+prefix alone; only `_de.w3mod` resolves the stock Definitive textures. Each player's graphics setting chooses the look locally;
 the ordinary imported path remains Classic. Use the Definitive stock texture paths
 and material team-colour slots, with no copied texture imports. Keep private
 inputs outside Git; publish through the existing immutable family mechanism.
