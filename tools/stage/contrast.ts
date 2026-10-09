@@ -81,8 +81,11 @@ const LOOK = ["day-night-light", "fog", "height-fog-falloff", "sky", "shadows", 
 const HORIZON = 1 / 3;
 
 async function stockLightCheck(args: readonly string[]): Promise<number> {
-  const out = args[0] === "--out" ? args[1] ?? "" : `${process.env.XDG_STATE_HOME ?? `${process.env.HOME}/.local/state`}/smashcraft/stock-light`;
-  const named = (args[0] === "--out" ? args.slice(2) : args).map(Number);
+  const half = args.includes("--half");
+  const rest = args.filter(arg => arg !== "--half");
+  const out = rest[0] === "--out" ? rest[1] ?? "" : `${process.env.XDG_STATE_HOME ?? `${process.env.HOME}/.local/state`}/smashcraft/stock-light`;
+  const named = (rest[0] === "--out" ? rest.slice(2) : rest).map(Number);
+  const scale = half ? 2 : 1;
   const { Effect } = await import("../../ts/node_modules/effect/dist/index.js");
   const { installHeadless } = await import("../../ts/node_modules/wisp/scripts/wisp/headless");
   const { captureScene, renderScenes } = await import("../../ts/node_modules/wisp/scripts/wisp/headlessRender");
@@ -127,7 +130,7 @@ async function stockLightCheck(args: readonly string[]): Promise<number> {
           { ...common, frame: scene.frame + 4000, environment: { ...common.environment, dayNight: STOCK_LIGHT } },
         ];
       });
-      const undrawn = await Effect.runPromise(renderScenes({ ...headlessRender(), width: 1280, height: client === 0 ? 720 : 540 }, captures, directory, mode, LOOK)).then(() => "", async (failure: unknown) => {
+      const undrawn = await Effect.runPromise(renderScenes({ ...headlessRender(), width: 1280 / scale, height: (client === 0 ? 720 : 540) / scale }, captures, directory, mode, LOOK)).then(() => "", async (failure: unknown) => {
         const drawn = await Promise.all(captures.map(scene => Bun.file(`${directory}/p${client}-frame-${scene.frame}.png`).exists()));
         if (drawn.includes(false) || !String(failure).includes("undrawn")) throw failure;
         return [...new Set(String(failure).match(/undrawn [^\n]*/g) ?? [])].join("; ");
@@ -153,7 +156,7 @@ async function stockLightCheck(args: readonly string[]): Promise<number> {
 if (import.meta.main) {
   const [first, ...rest] = Bun.argv.slice(2);
   if (first === "--stock-light") process.exit(await stockLightCheck(rest));
-  if (first === undefined || rest.length === 0) throw new Error("usage: bun tools/stage/contrast.ts MASK.png FRAME.png... | --stock-light [--out DIR] [STAGE...]");
+  if (first === undefined || rest.length === 0) throw new Error("usage: bun tools/stage/contrast.ts MASK.png FRAME.png... | --stock-light [--half] [--out DIR] [STAGE...]");
   const { summary, rows } = await measure(first, rest);
   console.log(summary);
   console.log("frame\tfighterL\tringL\tabsDL\tdE00\tframeL\tlocalDL");

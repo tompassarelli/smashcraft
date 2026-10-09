@@ -51,6 +51,7 @@ export interface StageScenery {
 const SUMMER: StageScenery = {
   sky: STAGE_SKY_MODELS[0] ?? "",
   fog: { start: 6000.0, end: 12000.0, red: 0.6875, green: 0.8125, blue: 0.9375 },
+  floor: { model: STAGE_SEA_MODEL, z: -1600.0, color: [120, 136, 156] },
   pieces: [],
 };
 
