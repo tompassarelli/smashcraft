@@ -103,7 +103,7 @@ export function cpuReactionFrames(fighter: Fighter, skill: CpuSkill, seed: numbe
     reaction = low + floorDiv(2 * (percentile - start) * (high - low) + end - start, 2 * (end - start));
     break;
   }
-  const tier = skill.decision.tier;
+  const tier = skill.tier;
   const offset = tier === "intermediate" ? 2 : tier === "advanced" ? 1 : 0;
   const floor = cpuReactionFloor(fighter, skill);
   return tier === "beginner" || tier === "rookie" ? floor + reaction - 14 : Math.max(floor, reaction + offset);
