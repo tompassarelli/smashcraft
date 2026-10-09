@@ -42,6 +42,8 @@ const COMPUTER_MATCH: Journey = {
   ],
 };
 
+export const TEXT_JOURNEYS: readonly string[] = ["text-match"];
+
 export const SMASHCRAFT_JOURNEYS: HeadlessProject = {
   map: SMASHCRAFT_HEADLESS,
   entry: join(import.meta.dir, "../../src/platform/devMain.ts"),
