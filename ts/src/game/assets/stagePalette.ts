@@ -141,7 +141,7 @@ export const STAGE_DECK_PALETTES: readonly { readonly stage: number; readonly th
   } },
 
 
-  { stage: STRATHOLME_STAGE, theme: "Stratholme", palette: { top: [168, 160, 150], lip: [70, 110, 180], body: [96, 62, 52], underside: [120, 82, 68] }, materials: {
+  { stage: STRATHOLME_STAGE, theme: "Stratholme", palette: { top: [168, 160, 150], lip: [70, 110, 180], body: [92, 90, 100], underside: [72, 70, 80] }, materials: {
     top: { texture: "TerrainArt\\Village\\Village_CobblePath.blp" },
     lip: { texture: "TerrainArt\\Village\\Village_StonePath.blp" },
     body: { texture: "TerrainArt\\Cityscape\\City_BrickTiles.blp" },

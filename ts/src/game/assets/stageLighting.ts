@@ -42,7 +42,7 @@ export const STAGE_LIGHTS: readonly { readonly stage: number; readonly theme: st
 
   { stage: CANNON_TEST_STAGE, theme: "Blackrock", light: { key: [255, 248, 236], ambient: [176, 160, 170], intensity: 1.25 } },
 
-  { stage: STRATHOLME_STAGE, theme: "Stratholme", light: { key: [255, 214, 180], ambient: [170, 140, 150], intensity: 1.2000000476837158 } },
+  { stage: STRATHOLME_STAGE, theme: "Stratholme", light: { key: [255, 226, 200], ambient: [190, 170, 206], intensity: 1.25 } },
 
   { stage: TOMB_OF_SARGERAS_STAGE, theme: "Sargeras", light: { key: [226, 244, 255], ambient: [130, 176, 180] } },
   { stage: TIMED_TEST_STAGE, theme: "Qiraji", light: { key: [236, 240, 255], ambient: [170, 176, 210], intensity: f32(1.15) } },

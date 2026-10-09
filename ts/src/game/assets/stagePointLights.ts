@@ -57,8 +57,8 @@ export const STAGE_POINT_LIGHTS: readonly { readonly stage: number; readonly the
   {
     stage: STRATHOLME_STAGE, theme: "Stratholme", lights: [
 
-      { x: 1250.0, y: 6000.0, z: -900.0, color: [255, 150, 70], intensity: 1.25, flicker: 0.125, loopMs: 1600, radius: 1100.0, castsShadow: true },
-      { x: -2250.0, y: 2650.0, z: -1000.0, color: [255, 132, 56], intensity: 0.875, flicker: 0.125, loopMs: 2100, radius: 900.0, castsShadow: false },
+      { x: -1280.0, y: 4300.0, z: -200.0, color: [255, 150, 70], intensity: 1.25, flicker: 0.125, loopMs: 1600, radius: 1100.0, castsShadow: true },
+      { x: 2160.0, y: 4500.0, z: -150.0, color: [255, 132, 56], intensity: 0.875, flicker: 0.125, loopMs: 2100, radius: 900.0, castsShadow: false },
     ],
   },
 ];
