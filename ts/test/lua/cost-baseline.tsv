@@ -117,7 +117,7 @@ src/game/replay/fighterState.tests.ts	3	7507000	1335
 src/game/replay/fixedPlayback.tests.ts	1	50959000	15711
 src/game/replay/frameDigest.tests.ts	2	157547000	55007
 src/game/replay/heroMoves.tests.ts	1	31255000	13787
-src/game/replay/history.tests.ts	14	696370000	585775
+src/game/replay/history.tests.ts	15	986671000	853920
 src/game/replay/matchReplay.tests.ts	2	116673000	35499
 src/game/replay/moment.tests.ts	4	208188000	68381
 src/game/replay/shadowPlayback.tests.ts	8	133925000	403691
