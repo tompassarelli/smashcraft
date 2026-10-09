@@ -54,58 +54,9 @@ export function padInputs(edges: readonly PadEdge[], slot: number) {
   };
 }
 
-/**
- * The keyboard build, one slot per process: each process presses its own pad's keys as key events,
- * which Wisp's transport carries to both clients (wisp:docs/network-model.md).
- */
+/** The keyboard build, one slot per process, each pressing its own pad's keys and running its `#! chat` lines at frame 30 (wisp:docs/network-model.md). */
 export function padNetGame(script: string): NetGame {
-  return {
-    create: async (link, slot) => {
-      const runtime = installHeadless(PREDICTED_HEADLESS);
-      try {
-        const platform = join(import.meta.dir, "../../src/platform");
-        interface State { readonly game: { readonly phase: number } }
-        const { shell }: { shell(): State } = await import(join(platform, "shell/state.ts"));
-        const { confirmedChecksum }: { confirmedChecksum(state: State): string } = await import(join(platform, "shell/diagnostics.ts"));
-        const { applyDeveloperCommand }: { applyDeveloperCommand(state: State, slot: number, text: string): void } = await import(join(platform, "shell/keys.ts"));
-        const { setHumanCount }: { setHumanCount(game: State["game"], count: number): void } = await import(join(import.meta.dir, "../../src/game/match/rules.ts"));
-        const main: { install(build: MapBuild): void; startBuild(build: MapBuild): void } = await import(join(platform, "main.ts"));
-        const build: MapBuild = { ...PLAYABLE_BUILD, devConsole: true };
-        const lockstep = runtime.clients({ install: () => main.install(build), start: () => main.startBuild(build) }, [slot], { humans: [0, 1], link, keepCalls: 0 });
-        const client = lockstep.client(slot);
-        const { setup, edges } = padEdges(script);
-        const input = padInputs(edges, slot);
-        let held = new Set<number>();
-        return {
-          start: () => lockstep.start(),
-          step: () => {
-            if (lockstep.frame === SETUP_FRAME) client.run(() => {
-              setHumanCount(shell().game, 2);
-              applyDeveloperCommand(shell(), 0, setup);
-            });
-            if (lockstep.frame >= SETUP_FRAME) {
-              const next = heldKeys(input(lockstep.frame - SETUP_FRAME + 1));
-              for (const key of held) if (!next.has(key)) lockstep.key(slot, key, 0, false);
-              for (const key of next) if (!held.has(key)) lockstep.key(slot, key, 0, true);
-              held = next;
-            }
-            lockstep.frames(1);
-            if (client.errors.length > 0) throw new Error(client.errors.join("\n"));
-          },
-          frame: () => lockstep.frame,
-          checksum: () => {
-            let checksum = "";
-            client.run(() => { checksum = confirmedChecksum(shell()); });
-            return checksum;
-          },
-          close: () => runtime.restore(),
-        };
-      } catch (error) {
-        runtime.restore();
-        throw error;
-      }
-    },
-  };
+  return { create: (link, slot) => createNetStandalone(link, slot, { script }) };
 }
 
 /** sha256 over every map source file, path and content in path order: two players with different sources get different hashes. */
@@ -141,6 +92,7 @@ export async function createNetStandalone(link: LockstepLink, slot: number, opti
     let latest: StandaloneInput = { buttons: [], axisX: 0, axisY: 0 };
     let held = new Set<number>();
     let lastPhase = -1;
+    const net = netcodeStats();
     return {
       client,
       input: (input) => { latest = input; },
@@ -148,10 +100,11 @@ export async function createNetStandalone(link: LockstepLink, slot: number, opti
       step: () => {
         if (lockstep.frame === SETUP_FRAME) {
           client.run(() => {
+            net.attach(shell() as unknown as NetcodeShell, slot);
             setHumanCount(shell().game, 2);
             for (const command of chat) applyDeveloperCommand(shell(), command.startsWith("-dev fighter ") ? Number(command.split(" ")[2]) - 1 : 0, command);
           });
-          console.log(`net: fighter selection with 2 players at frame ${lockstep.frame}`);
+          console.error(`net: fighter selection with 2 players at frame ${lockstep.frame}`);
         }
         if (lockstep.frame >= SETUP_FRAME) {
           const next = heldKeys(scripted === undefined ? latest : scripted(lockstep.frame - SETUP_FRAME + 1));
@@ -163,7 +116,8 @@ export async function createNetStandalone(link: LockstepLink, slot: number, opti
         if (client.errors.length > 0) throw new Error(client.errors.join("\n"));
         client.run(() => {
           const phase = shell().game.phase;
-          if (phase !== lastPhase) console.log(`net: ${PHASE_NAMES.get(phase) ?? phase} at frame ${lockstep.frame}`);
+          if (phase !== lastPhase) console.error(`net: ${PHASE_NAMES.get(phase) ?? phase} at frame ${lockstep.frame}`);
+          if (phase === Phase.match) net.sample();
           lastPhase = phase;
         });
       },
@@ -173,10 +127,72 @@ export async function createNetStandalone(link: LockstepLink, slot: number, opti
         client.run(() => { checksum = confirmedChecksum(shell()); });
         return checksum;
       },
-      close: () => runtime.restore(),
+      close: () => {
+        console.error(`net: rollback ${JSON.stringify(net.report())}`);
+        runtime.restore();
+      },
     };
   } catch (error) {
     runtime.restore();
     throw error;
   }
+}
+
+interface NetcodeShell {
+  readonly rollback: {
+    readonly active: boolean;
+    readonly window: number;
+    readonly delay: number;
+    readonly schedule: { speculativeFrame(): number; remoteThrough(slot: number): number; windowHalted(slot: number): boolean };
+    readonly playback: {
+      reconcile(...args: unknown[]): "unchanged" | "rejected" | { readonly replayedFrom: number };
+      catchUp(...args: unknown[]): boolean;
+    };
+  } | undefined;
+}
+
+const percentiles = (values: readonly number[]) => {
+  const sorted = [...values].sort((a, b) => a - b);
+  const at = (q: number) => sorted.length === 0 ? 0 : sorted[Math.min(sorted.length - 1, Math.ceil(q * sorted.length) - 1)] ?? 0;
+  return { n: sorted.length, p50: at(0.5), p95: at(0.95), p99: at(0.99), max: sorted.at(-1) ?? 0 };
+};
+
+/** Rollback depth per correction, prediction stalls and the remote's lead, read off the map's own rollback playback (wisp#112). */
+function netcodeStats() {
+  const depths: number[] = [], leads: number[] = [];
+  let stalls = 0, window = 0, delay = 0, read: (() => { readonly speculative: number; readonly confirmed: number }) | undefined;
+  return {
+    attach(state: NetcodeShell, slot: number) {
+      const rollback = state.rollback;
+      if (rollback === undefined) throw new Error("net: the build has no rollback");
+      const { playback, schedule } = rollback;
+      const reconcile = playback.reconcile.bind(playback), catchUp = playback.catchUp.bind(playback);
+      playback.reconcile = (...args: unknown[]) => {
+        const result = reconcile(...args);
+        const match = args[3] as { readonly runtime: { readonly simulationFrame: number } };
+        if (typeof result === "object") depths.push(match.runtime.simulationFrame - result.replayedFrom + 1);
+        return result;
+      };
+      playback.catchUp = (...args: unknown[]) => {
+        const before = schedule.speculativeFrame();
+        const advanced = catchUp(...args);
+        if (schedule.windowHalted(slot) && schedule.speculativeFrame() === before) stalls++;
+        return advanced;
+      };
+      read = () => {
+        window = rollback.window;
+        delay = rollback.delay;
+        return { speculative: schedule.speculativeFrame(), confirmed: schedule.remoteThrough(slot) };
+      };
+    },
+    sample() {
+      if (read === undefined) return;
+      const { speculative, confirmed } = read();
+      if (speculative > 0) leads.push(Math.max(0, speculative - confirmed));
+    },
+    report: () => {
+      const insideWindow = leads.filter((lead) => lead <= window).length;
+      return { window, delay, depth: percentiles(depths), lead: percentiles(leads), leadInsideWindow: leads.length === 0 ? 1 : insideWindow / leads.length, stalls };
+    },
+  };
 }

@@ -47,3 +47,11 @@
   `--rtt`/`--loss` add Wisp's delay and loss proxy, `--freeze-at F` and
   `--quit-at F` drill a silent or departing joiner. `net host` and `net join
   ADDRESS:PORT` run one side each (wisp#110).
+- Online acceptance: `bun wisp net-accept --out DIR` plays 20 full three-stock
+  matches as `net pair` runs, 5 at a time, cycling 0, 60 and 120 ms round trip
+  with 1% loss, each with seeded fighters, stage and pad scripts for both
+  players (wisp#112). Per round trip it prints matches that reached the results
+  screen on both sides, checksum mismatches, the map's rollback depth p95/p99/max
+  against its window, the remote's lead and prediction stalls; it fails on a
+  missed result, any mismatch or a p99 depth past the window. Each pad, log and
+  results.json land in DIR.
