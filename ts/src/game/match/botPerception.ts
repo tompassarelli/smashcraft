@@ -29,7 +29,7 @@ export function botReversalFrames(chosenFrame: number, slot: ParticipantSlot, ti
   const speedError = Math.max(0, 7 - intended) * missed;
   const late = botChoice(chosenFrame, slot * 37 + 829, 400) < speedError ? 1 : 0;
   // Rare long holds become actual runs; ordinary timing noise only delays a turn.
-  const runChance = at([25, 23, 16, 10, 6], index);
+  const runChance = at([40, 23, 16, 10, 8], index);
   const overshoot = botChoice(chosenFrame, slot * 37 + 853, 10000) < runChance;
   return overshoot ? 24 + floorDiv(missed, 20) : intended + late;
 }
