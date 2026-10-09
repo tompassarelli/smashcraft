@@ -34,7 +34,7 @@ export interface BotCoverage {
 }
 
 
-export function fighterCoverage(index: number, opponent?: Character, choices: readonly Character[] = SELECTABLE_CHARACTERS, seeds = 8): BotCoverage {
+export function fighterCoverage(index: number, opponent?: Character, choices: readonly Character[] = SELECTABLE_CHARACTERS, seeds = 8, seedOffset = 0): BotCoverage {
   const character = at(choices, index);
   const result: BotCoverage = { fighter: fighterName(character), matches: 0, movement: 0, attacks: 0, kit: 0, specials: { neutral: 0, side: 0, up: 0, down: 0 }, defense: 0, recovery: 0, manaDenied: 0, defenseDecisions: 0, recoveryDecisions: 0, companions: { bear: 0, quilbeast: 0, hawk: 0 }, missing: [] };
   const plan = gameplanOf(character);
@@ -75,7 +75,7 @@ export function fighterCoverage(index: number, opponent?: Character, choices: re
     game.phase = Phase.match;
     game.stageChoice = 0;
     game.timeLimitMinutes = 0;
-    game.matchSeed = 11 + seed * 12;
+    game.matchSeed = 11 + (seed + seedOffset) * 12;
     const runtime = createPacingAndPresentation();
     const produced = createFrameControls();
     const controls = createFrameControls();

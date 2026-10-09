@@ -1,19 +1,16 @@
-// #105 box 2 for Dreadlord and Shadow Hunter: the computer playing each
-// declared gameplan uses its key moves among its most
-// used in its mirror on every soak stage (gameplanKeyMovesCheck's default:
-// top 8, a margin over the four or five tools each declares).
 import { expect } from "bun:test";
 import { sweep } from "../test/sweep";
 import { AttackStyle, Character } from "../src/game/sim/codes";
 import { GameplanSpecial } from "../src/game/sim/gameplan";
 import { gameplanKeyMovesCheck } from "./cpuField";
 
-for (const [name, character] of [["Dreadlord", Character.dreadlord], ["Shadow Hunter", Character.shadowHunter]] as const) {
-  sweep(`${name}'s computer uses his gameplan's key moves most [spec #105]`, () => {
-    // Corkscrew pounce covers the forward approach; Sleep is his setup tool.
-    const check = character === Character.dreadlord
-      ? gameplanKeyMovesCheck(character, { key: [GameplanSpecial.side, GameplanSpecial.down, AttackStyle.grab, AttackStyle.neutralAir] })
-      : gameplanKeyMovesCheck(character);
-    expect(check.missingNames).toEqual([]);
-  }, 60_000);
-}
+sweep("Dreadlord's computer uses each key move above the mean move share over three seeds of mirrors on every soak stage [spec #105] [property #394]", () => {
+  const check = gameplanKeyMovesCheck(Character.dreadlord, {
+    key: [GameplanSpecial.side, GameplanSpecial.down, AttackStyle.grab, AttackStyle.neutralAir], options: { seeds: 3 } });
+  const below = check.keyShares.filter(({ share }) => share < check.meanShare).map(({ name }) => name);
+  expect(below).toEqual([]);
+}, 120_000);
+
+sweep("Shadow Hunter's computer uses his gameplan's key moves most [spec #105]", () => {
+  expect(gameplanKeyMovesCheck(Character.shadowHunter).missingNames).toEqual([]);
+}, 60_000);

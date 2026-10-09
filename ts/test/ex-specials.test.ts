@@ -10,6 +10,7 @@ import { SpecialSlot, specialKit, type AuthoredSpecial } from "../src/game/sim/h
 import { startFighterSpecial } from "../src/game/sim/specials";
 import { controls } from "../src/game/sim/testWorld";
 import { firstFighterDifference } from "../src/game/replay/difference";
+import { ROSTER_MANA } from "../src/game/sim/mana";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
@@ -61,7 +62,7 @@ test.each(SELECTABLE_CHARACTERS)("real Wisp map fires fighter %i's four EX speci
           specialX: slot === SpecialSlot.side ? 1 : 0,
           specialZ: slot === SpecialSlot.up ? 1 : slot === SpecialSlot.down ? -1 : 0 }), world), `${fighterName(character)}:${slot}`).toBe(true);
         expect(owner.special.ex).toBe(true);
-        expect(owner.mana.points).toBe(67);
+        expect(owner.mana.points).toBe(ROSTER_MANA.max - ROSTER_MANA.exCost);
         duration = owner.special.duration;
         observed = owner;
       });

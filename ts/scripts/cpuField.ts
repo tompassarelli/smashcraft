@@ -636,9 +636,9 @@ export function fighterMoveUsage(character: Character, options: FieldOptions = {
   for (const other of fighters) {
 
     if (other === character && fighters.length > 1) continue;
-    for (const stage of stages) for (let variant = 0; variant < (options.variants ?? 1); variant++) {
+    for (let seed = 0; seed < (options.seeds ?? 1); seed++) for (const stage of stages) for (let variant = 0; variant < (options.variants ?? 1); variant++) {
       for (const pair of other === character ? [[character, other] as const] : [[character, other], [other, character]] as const) {
-        const record = playCpuMatch(pair[0], pair[1], stage, variant, options);
+        const record = playCpuMatch(pair[0], pair[1], stage, variant, options, seed + (options.seedOffset ?? 0));
         if (record !== undefined) records.push(record);
       }
     }
@@ -679,7 +679,9 @@ export function gameplanKeyMovesCheck(character: Character, { top = 8, key, opti
   const usage = [...merged.values()].sort((x, y) => y.count - x.count || x.move - y.move);
   const declared = [...new Set((key ?? plan.spacing.map((spaced) => spaced.move)).map((move) => namedAs(countedAs(move))))];
   const result = keyMovesAmongMostUsed(usage, declared, top);
-  return { ...result, missingNames: result.missing.map(moveName), usage };
+  const total = usage.reduce((sum, use) => sum + use.count, 0);
+  const keyShares = declared.map((move) => ({ name: moveName(move), share: total === 0 ? 0 : (merged.get(move)?.count ?? 0) / total }));
+  return { ...result, missingNames: result.missing.map(moveName), usage, keyShares, meanShare: usage.length === 0 ? 0 : 1 / usage.length };
 }
 
 export interface MatchupReport {
