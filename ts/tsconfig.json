@@ -23,7 +23,8 @@
         "name": "@effect/language-service",
         "diagnostics": true,
         "includeSuggestionsInTsc": true,
-        "ignoreEffectSuggestionsInTscExitCode": true,
+        "ignoreEffectSuggestionsInTscExitCode": false,
+        "ignoreEffectWarningsInTscExitCode": false,
         "allowedUnstableApis": ["effect/process", "@effect/platform-bun/BunRuntime", "@effect/platform-bun/BunServices"]
       },
       {

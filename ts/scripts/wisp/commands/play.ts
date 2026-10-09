@@ -88,7 +88,7 @@ const until = <A, R>(seconds: number, observe: Effect.Effect<A | undefined, Play
 export function playtest({ build, map, helper, computerSlot, computerOpponent, computerTier, menuReportPort }: Playtest): PlayDeclaration<GameFiles> {
 
   const ready = (game: PlayGame) => readGameFile(join(dataDirectory(game.documents), MELEE_READY_FILE), MeleeReady).pipe(
-    Effect.catchTag("MalformedGameFile", () => Effect.succeed(undefined)),
+    Effect.catchTag("MalformedGameFile", () => Effect.void),
     Effect.mapError(problem),
   );
   const request = playtestRequest(1 << computerSlot, computerOpponent, computerTier);
@@ -182,10 +182,10 @@ const launcherNow = Effect.try({
 const signInTom = Effect.gen(function*() {
   let health = yield* launcherNow;
   if (health?.kind !== "sign-in form") return;
-  const fileTools = yield* Effect.try({
-    try: () => Schema.decodeUnknownSync(LoginTools)(JSON.parse(readFileSync(clientState, "utf8"))).tools,
-    catch: (cause) => new PlayProblem({ problem: `can't read the sign-in tools from ${clientState}: ${String(cause)}` }),
-  });
+  const unreadable = (cause: unknown) => new PlayProblem({ problem: `can't read the sign-in tools from ${clientState}: ${String(cause)}` });
+  const fileTools = (yield* Effect.try({ try: () => readFileSync(clientState, "utf8"), catch: unreadable }).pipe(
+    Effect.flatMap((text) => Schema.decodeEffect(Schema.fromJsonString(LoginTools))(text).pipe(Effect.mapError(unreadable))),
+  )).tools;
   const x11 = { DISPLAY: ":0" };
   const title = "Battle.net Login";
 
@@ -236,5 +236,5 @@ export const play: Command = (args) => Effect.gen(function*() {
   const current = yield* currentPlaytest(join(documentsFolder(PLAYTEST_PREFIX), "Maps/00-Smashcraft"));
   const declaration = playtest({ ...PLAYTEST, ...current });
   yield* Effect.try({ try: () => installLatest(documentsFolder(declaration.prefix), current.map.source), catch: (cause) => new PlayProblem({ problem: String(cause) }) });
-  return yield* makePlay(declaration, gameFilesLayer, tools, smashcraftWatch())(args);
+  return yield* makePlay(declaration, gameFilesLayer, tools, smashcraftWatch)(args);
 });

@@ -17,15 +17,15 @@ export const calibrateCursor = (options: { args: readonly string[]; env: Record<
       env: options.env, stderr: options.log,
     });
     return yield* pollUntil(Effect.gen(function*() {
-        try {
+        const reading = yield* Effect.try({ try: () => {
           const stat = statSync(path);
           const line = preloadLines(readFileSync(path, "utf8"))?.find(line => line.startsWith(`corner ${corner} `));
           const clock = line?.match(/native-seconds ([\d.]+)/)?.[1];
-          if (stat.mtimeMs >= before && clock !== undefined) {
-            const count = (field: string) => Number(line?.match(new RegExp(`${field} ([\\d.]+)`))?.[1]);
-            return { nativeSeconds: Number(clock), hostPublicationMs: stat.mtimeMs, mouseEvents: count("mouse-events"), syncEvents: count("sync-events") };
-          }
-        } catch {}
+          if (stat.mtimeMs < before || clock === undefined) return undefined;
+          const count = (field: string) => Number(line?.match(new RegExp(`${field} ([\\d.]+)`))?.[1]);
+          return { nativeSeconds: Number(clock), hostPublicationMs: stat.mtimeMs, mouseEvents: count("mouse-events"), syncEvents: count("sync-events") };
+        }, catch: () => undefined }).pipe(Effect.orElseSucceed(() => undefined));
+        if (reading !== undefined) return reading;
         if (calibration.exitCode !== null) return yield* analogFailure(`Cursor calibration helper exited ${calibration.exitCode} before publishing ${corner}`);
         return undefined;
       }), { every: "20 millis", within: "15 seconds", orElse: () => Effect.fail(analogFailure(`Cursor did not observe the ${corner} cursor calibration`)) });
@@ -87,12 +87,10 @@ const calibrate = (match: number) => Effect.scoped(Effect.gen(function*() {
  yield* write("clock-anchors.json", anchors);
 }));
 
-const startHelpers = (match: number) => Effect.forEach(targets, (target, slot) => Effect.gen(function*() {
-  return yield* startInputProcess([...target.args, "--virtual-pad", ...padScriptPreset(), "--pad-ingress", route], {
+const startHelpers = (match: number) => Effect.forEach(targets, (target, slot) => startInputProcess([...target.args, "--virtual-pad", ...padScriptPreset(), "--pad-ingress", route], {
     env: { ...Bun.env, ...target.client.x11, ...target.client.wayland },
     stdout: join(plan.out, `helper-match-${match}-p${slot}.tsv`), stderr: join(plan.out, `helper-match-${match}-p${slot}.log`),
-  });
-}));
+  }));
 const commands: { match: number; beat: number; slot: number; hostMs: number; lines: string[] }[] = [];
 const records: { match: number; slot: number; file: string; seconds: number; networkEvents: number; anchorNativeSeconds: number; anchorHostMs: number }[] = [];
 yield* Effect.gen(function*() {

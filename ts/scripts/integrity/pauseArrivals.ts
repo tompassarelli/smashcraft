@@ -11,7 +11,7 @@ import { CONTROL_ACK_PREFIX, PAUSE_REQUEST_PREFIX } from "../../src/game/shell/p
 
 const START = 315;
 
-const decodeProducerEvent = Schema.decodeUnknownSync(Schema.fromJsonString(Schema.Struct({ type: Schema.Number, code: Schema.Number, value: Schema.Number, producer_injected_monotonic_ns: Schema.Number })));
+const decodeProducerEvent = Schema.decodeUnknownSync(Schema.fromJsonString(Schema.Struct({ type: Schema.Finite, code: Schema.Finite, value: Schema.Finite, producer_injected_monotonic_ns: Schema.Finite })));
 
 
 export interface PauseArrivals {

@@ -8,7 +8,7 @@ import { capacityHelper } from "../heavyCapacity";
 import { IntegrityFailure } from "../integrity/evidence";
 import { type PadStep, parsePadScript } from "../integrity/padScript";
 
-const Lease = Schema.Struct({ id: Schema.String, class: Schema.String, owner: Schema.String, kind: Schema.String, expiresAt: Schema.NullOr(Schema.Number) });
+const Lease = Schema.Struct({ id: Schema.String, class: Schema.String, owner: Schema.String, kind: Schema.String, expiresAt: Schema.NullOr(Schema.Finite) });
 
 
 export function captureLease() {
@@ -16,7 +16,7 @@ export function captureLease() {
   if (compact === undefined) return undefined;
   const id = `${compact.slice(0, 8)}-${compact.slice(8, 12)}-${compact.slice(12, 16)}-${compact.slice(16, 20)}-${compact.slice(20)}`;
   const root = process.env.XDG_RUNTIME_DIR ?? `/run/user/${process.getuid?.()}`;
-  const lease = Schema.decodeUnknownSync(Schema.fromJsonString(Lease))(readFileSync(join(root, "agent-capacity-v1/leases", `${id}.json`), "utf8"));
+  const lease = Schema.decodeSync(Schema.fromJsonString(Lease))(readFileSync(join(root, "agent-capacity-v1/leases", `${id}.json`), "utf8"));
   return lease;
 }
 

@@ -239,12 +239,12 @@ export const accept: Command = (rawArgs) => Effect.gen(function*() {
         yield* Effect.forEach(clients.all, client => readyAfter(client, started), { concurrency: "unbounded" });
       }
       yield* (solo ? sendSoloDevCommand(profile.quick) : sendDevCommand(profile.quick)).pipe(step(profile.quick));
-    }).pipe(Effect.provide(Layer.merge(options.services.pipe(Layer.provideMerge(Clients.layer(selectedClients))), smashcraftWatch())));
+    }).pipe(Effect.provide(Layer.merge(options.services.pipe(Layer.provideMerge(Clients.layer(selectedClients))), smashcraftWatch)));
   });
   const liveDriver = liveAcceptDriver({
     start,
     receipt: (name) => name.startsWith("smashcraft-dev-") || name.startsWith("smashcraft-stage-") || name.startsWith("smashcraft-error-") || name.startsWith("smashcraft-render-clock-") || name.startsWith("smashcraft-replay-"),
-  }).pipe(Layer.provide(Layer.mergeAll(Clients.layer(selectedClients), gameFilesLayer, smashcraftWatch())));
+  }).pipe(Layer.provide(Layer.mergeAll(Clients.layer(selectedClients), gameFilesLayer, smashcraftWatch)));
   let smoke: ReturnType<typeof withSmokeCapture> | undefined;
   const driver = Layer.effect(AcceptDriver, Effect.gen(function*() {
     const live = yield* AcceptDriver;
@@ -254,7 +254,7 @@ export const accept: Command = (rawArgs) => Effect.gen(function*() {
       chat: (name, text) => (solo ? sendSoloDevCommand(text, name) : sendDevCommand(text, name)).pipe(Effect.mapError((cause) => new AcceptFailure({ operation: `chat ${name}`, problem: describeCause(cause) })), Effect.provide(context)),
     }));
     return smoke.driver;
-  })).pipe(Layer.provide(liveDriver), Layer.provide(Layer.mergeAll(Clients.layer(selectedClients), gameFilesLayer, smashcraftWatch())));
+  })).pipe(Layer.provide(liveDriver), Layer.provide(Layer.mergeAll(Clients.layer(selectedClients), gameFilesLayer, smashcraftWatch)));
   const shards = {
     flags: ["--pair", "--pairs"],
     select: () => Effect.succeed(requested),

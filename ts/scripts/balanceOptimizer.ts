@@ -184,14 +184,14 @@ export function optimizeRound(options: {
   const start = current.kits[fighter];
   const reference = baseline[fighter];
   const profile = profiles.get(fighter);
-  if (start === undefined || profile === undefined || reference === undefined) return yield* Effect.fail(new BalanceFailure({ problem: `${fighter} kit/profile missing` }));
-  if (completeFieldFailures(current, roster).length) return yield* Effect.fail(new BalanceFailure({ problem: "Optimizer requires a complete current field" }));
-  if (options.heldOutSeeds.length < 2 || options.confirmationSeeds.length < 2) return yield* Effect.fail(new BalanceFailure({ problem: "Held-out and confirmation runs need independent score samples" }));
+  if (start === undefined || profile === undefined || reference === undefined) return yield* new BalanceFailure({ problem: `${fighter} kit/profile missing` });
+  if (completeFieldFailures(current, roster).length) return yield* new BalanceFailure({ problem: "Optimizer requires a complete current field" });
+  if (options.heldOutSeeds.length < 2 || options.confirmationSeeds.length < 2) return yield* new BalanceFailure({ problem: "Held-out and confirmation runs need independent score samples" });
   const measured = current.fighters.find(row => row.fighter === fighter);
-  if (measured === undefined) return yield* Effect.fail(new BalanceFailure({ problem: `${fighter} not measured` }));
+  if (measured === undefined) return yield* new BalanceFailure({ problem: `${fighter} not measured` });
   if (withinWinTarget(measured) && tuningVerdict(current, baseline, frozen, profiles, usedSeeds).length === 0) return { trainingFields: 0, record: `${fighter}: no change; the 95% win-rate interval includes ${100 * BALANCE_SPEC.winTarget}%.` };
   const fresh = [...options.heldOutSeeds, ...options.confirmationSeeds];
-  if (fresh.length === 0 || new Set(fresh).size !== fresh.length || fresh.some(seed => usedSeeds.has(seed) || current.seeds.includes(seed))) return yield* Effect.fail(new BalanceFailure({ problem: "Held-out and confirmation seeds must be unused and disjoint" }));
+  if (fresh.length === 0 || new Set(fresh).size !== fresh.length || fresh.some(seed => usedSeeds.has(seed) || current.seeds.includes(seed))) return yield* new BalanceFailure({ problem: "Held-out and confirmation seeds must be unused and disjoint" });
   current.seeds.forEach(seed => usedSeeds.add(seed));
   const average = (field: TuningField) => {
     const row = field.fighters.find(row => row.fighter === fighter);

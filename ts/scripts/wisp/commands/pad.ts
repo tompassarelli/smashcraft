@@ -82,7 +82,7 @@ export function requestedSetup(command: string, receipt: DevReceipt): boolean {
 
 
 const setupReceipt = (path: string, clientName: string, sinceMs: number) =>
-  tryIntegrity("read setup receipt", clientName, () => existsSync(path) && statSync(path).mtimeMs >= sinceMs ? { text: readFileSync(path, "latin1"), modified: statSync(path).mtimeMs } : undefined).pipe(Effect.flatMap((stored) => stored === undefined || preloadLines(stored.text) === undefined ? Effect.succeed(undefined) : DevCommandReceipt.decode(path, stored.text).pipe(Effect.map((value) => ({ value, modified: stored.modified })), Effect.mapError((cause) => new IntegrityFailure({ operation: "read setup receipt", path: clientName, cause })))));
+  tryIntegrity("read setup receipt", clientName, () => existsSync(path) && statSync(path).mtimeMs >= sinceMs ? { text: readFileSync(path, "latin1"), modified: statSync(path).mtimeMs } : undefined).pipe(Effect.flatMap((stored) => stored === undefined || preloadLines(stored.text) === undefined ? Effect.undefined : DevCommandReceipt.decode(path, stored.text).pipe(Effect.map((value) => ({ value, modified: stored.modified })), Effect.mapError((cause) => new IntegrityFailure({ operation: "read setup receipt", path: clientName, cause })))));
 
 const setupCommand = (session: NativeSession, command: string, send: Effect.Effect<void, IntegrityFailure>) => Effect.gen(function*() {
   const targets = session.clients.map((client, slot) => {
@@ -117,12 +117,10 @@ const until = (targetNs: number) => Effect.gen(function*() {
 });
 
 
-const matchEpochs = (logs: () => [string, string], startedNs: number, out: string) => Effect.gen(function*() {
-  return yield* pollUntil(tryIntegrity("wait for match start", out, () => {
+const matchEpochs = (logs: () => [string, string], startedNs: number, out: string) => pollUntil(tryIntegrity("wait for match start", out, () => {
     const starts = logs().map(matchStart);
     return starts.every((start) => start !== undefined && start.epochNs > startedNs) ? [starts[0]?.frameOneNs ?? 0, starts[1]?.frameOneNs ?? 0] as const : undefined;
   }), { every: "20 millis", within: "60 seconds", orElse: () => Effect.fail(new IntegrityFailure({ operation: "wait for match start", path: out, cause: "a helper reported no match start within 60 s" })) });
-});
 
 export class PadReplayFailure extends Schema.TaggedError<PadReplayFailure>()("PadReplayFailure", {
   operation: Schema.String,

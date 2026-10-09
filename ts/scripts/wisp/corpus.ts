@@ -138,13 +138,13 @@ function joinedLines(replay: Replay): string[] | string {
 }
 
 const ReplayResult = Schema.Struct({
-  checksum: Schema.String, frames: Schema.Number, problems: Schema.Array(Schema.String),
-  reached: Schema.Number, recorded: Schema.Number, digests: Schema.Number, divergent: Schema.Number,
+  checksum: Schema.String, frames: Schema.Finite, problems: Schema.Array(Schema.String),
+  reached: Schema.Finite, recorded: Schema.Finite, digests: Schema.Finite, divergent: Schema.Finite,
 });
 
 
 const ReplayOutcome = Schema.Struct({
-  recording: Schema.String, client: Schema.String, file: Schema.String, version: Schema.String, frames: Schema.Number,
+  recording: Schema.String, client: Schema.String, file: Schema.String, version: Schema.String, frames: Schema.Finite,
   bun: Schema.optionalKey(ReplayResult), lua: Schema.optionalKey(ReplayResult), skipped: Schema.optionalKey(Schema.String),
 });
 export type ReplayOutcome = typeof ReplayOutcome.Type;

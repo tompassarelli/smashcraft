@@ -11,7 +11,7 @@ import { smashcraftDoctor, smashcraftWatch } from "./doctor";
 
 export const doctorForClients = (clientsFile: string): Command => (names) =>
   Effect.try({ try: () => smashcraftDoctor(clientsFile), catch: (cause) => new DoctorStop({ problem: `can't read the clients from ${clientsFile}: ${String(cause)}` }) }).pipe(
-    Effect.flatMap((declaration) => makeDoctor(declaration, smashcraftWatch())(names)),
+    Effect.flatMap((declaration) => makeDoctor(declaration, smashcraftWatch)(names)),
   );
 
 export const signOutForClients = (clientsFile: string): Command => (names) =>

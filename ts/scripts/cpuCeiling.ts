@@ -10,10 +10,11 @@ import { ceilingTable, readCeilingPlans, type CeilingRow } from "./ceiling";
 import { FIELD_STAGES, playCpuField, playCpuMatch } from "./cpuField";
 import { runAdmitted } from "./heavyCapacity";
 
-const Count = Schema.Struct({ wins: Schema.Number, losses: Schema.Number, ties: Schema.Number, played: Schema.Number });
-const Data = Schema.Struct({ cpuSeconds: Schema.Number, counts: Schema.Record(Schema.String, Count), pairs: Schema.Record(Schema.String, Schema.Number) });
+const Count = Schema.Struct({ wins: Schema.Finite, losses: Schema.Finite, ties: Schema.Finite, played: Schema.Finite });
+const Data = Schema.Struct({ cpuSeconds: Schema.Finite, counts: Schema.Record(Schema.String, Count), pairs: Schema.Record(Schema.String, Schema.Finite) });
 interface Data { cpuSeconds: number; counts: Record<string, { wins: number; losses: number; ties: number; played: number }>; pairs: Record<string,number> }
-const RecordInput = Schema.Struct({ records: Schema.Array(Schema.Struct({ fighters: Schema.Array(Schema.String), winner: Schema.NullOr(Schema.Number), opponents: Schema.Array(Schema.String), tiers: Schema.Array(Schema.String), skillOverrides: Schema.optional(Schema.Unknown) })) });
+const RecordInput = Schema.Struct({ records: Schema.Array(Schema.Struct({ fighters: Schema.Array(Schema.String), winner: Schema.NullOr(Schema.Finite), opponents: Schema.Array(Schema.String), tiers: Schema.Array(Schema.String), skillOverrides: Schema.optional(Schema.Unknown) })) });
+const decodeRecordInput = Schema.decodeUnknownSync(RecordInput);
 class CeilingFailure extends Schema.TaggedError<CeilingFailure>()("CeilingFailure", { problem: Schema.String }) {}
 const getData = (file: string) => Schema.decodeUnknownSync(Data)(JSON.parse(readFileSync(file,"utf8")));
 const fresh = (): Data => ({cpuSeconds:0,counts:{},pairs:{}});
@@ -59,7 +60,7 @@ if (import.meta.main) await Effect.runPromise(Effect.gen(function*() {
         for(const [key,n] of Object.entries(shard.pairs))data.pairs[key]=(data.pairs[key]??0)+n;
       }
       if(values.baseline===undefined)throw new Error("--merge needs the frozen Wren --baseline field");
-      const baseline=Schema.decodeUnknownSync(RecordInput)(JSON.parse(readFileSync(values.baseline,"utf8")));
+      const baseline=decodeRecordInput(JSON.parse(readFileSync(values.baseline,"utf8")));
       if(!baseline.records.every(r=>r.opponents.length===2&&r.opponents.every(id=>id==="wren")&&r.tiers.length===2&&r.tiers.every(tier=>tier==="expert")&&r.skillOverrides===undefined))throw new Error("Baseline must be unmodified Wren Expert on both sides");
       add(data,baseline.records,"wren");
       const table=ceilingTable(ceilingRows(data),data.cpuSeconds);console.log(table);if(values.report!==undefined)writeFileSync(values.report,table+"\n");

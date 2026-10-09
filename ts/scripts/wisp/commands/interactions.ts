@@ -113,7 +113,7 @@ const check = (rows: readonly FighterRows[], throws: readonly ThrowRoleRow[]) =>
       catch: failure,
     });
     const problems = [...changes, ...stalePages];
-    if (problems.length > 0) return yield* Effect.fail(new InteractionsFailure({ problems: [...problems, `${problems.length} differences from ${rowsFile}; inspect them, then run bun wisp interactions to write the new graph`] }));
+    if (problems.length > 0) return yield* new InteractionsFailure({ problems: [...problems, `${problems.length} differences from ${rowsFile}; inspect them, then run bun wisp interactions to write the new graph`] });
     yield* Console.log(`The fresh interaction graph, combo trees and throw roles match ${directory}`);
   });
 
@@ -121,7 +121,7 @@ const profile = (spec: string) =>
   Effect.gen(function* () {
     const [name = "", move = ""] = spec.split(":");
     const entry = fighterNamed(name);
-    if (entry === undefined || move === "") return yield* Effect.fail(new UsageFailure({ problem: `--move takes FIGHTER:MOVE, a fighter of ${FIGHTERS.map((fighter) => fighter.slug).join(", ")}` }));
+    if (entry === undefined || move === "") return yield* new UsageFailure({ problem: `--move takes FIGHTER:MOVE, a fighter of ${FIGHTERS.map((fighter) => fighter.slug).join(", ")}` });
     const moveName = move.replaceAll("-", " ");
     const [played] = yield* playFighters([entry.name], false).pipe(step(`${entry.name}'s situations`));
     const rows = played?.interactions ?? [];
@@ -137,7 +137,7 @@ export const interactions: Command = (args) => {
   if (args.length === 2 && args[0] === "--move") return profile(args[1] ?? "");
   if (args.length > 1 || (args.length === 1 && args[0] !== "--check")) return Effect.fail(new UsageFailure({ problem: "interactions takes --check or --move FIGHTER:MOVE" }));
   return Effect.gen(function* () {
-    if (args[0] === "--check" && !(yield* graphWritten)) return yield* Effect.fail(new InteractionsFailure({ problems: [notWritten] }));
+    if (args[0] === "--check" && !(yield* graphWritten)) return yield* new InteractionsFailure({ problems: [notWritten] });
     const rows = yield* playFighters(FIGHTERS.map((entry) => entry.name)).pipe(step("every fighter's situations"));
     const throws = yield* playThrowRoles.pipe(step("every selectable fighter's throw roles"));
     if (args[0] === "--check") return yield* check(rows, throws);

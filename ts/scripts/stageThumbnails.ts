@@ -38,9 +38,9 @@ const attempt = <A>(problem: string, run: () => A | Promise<A>) =>
   Effect.tryPromise({ try: async () => run(), catch: (cause) => new ThumbnailFailure({ problem: `${problem}: ${cause instanceof Error ? cause.message : String(cause)}` }) });
 
 const SceneShape = Schema.Struct({
-  frame: Schema.Number,
-  client: Schema.Number,
-  camera: Schema.Struct({ x: Schema.Number, y: Schema.Number, fields: Schema.Record(Schema.String, Schema.Number) }),
+  frame: Schema.Finite,
+  client: Schema.Finite,
+  camera: Schema.Struct({ x: Schema.Finite, y: Schema.Finite, fields: Schema.Record(Schema.String, Schema.Finite) }),
   effects: Schema.Array(Schema.Unknown),
 });
 
@@ -64,7 +64,7 @@ const captureStage = (stage: StageTile) => Effect.gen(function*() {
   ] })));
 
   yield* makeHeadless(async () => ({ ...SMASHCRAFT_JOURNEYS, render: renderer }))(["--journey", journey, "--render", directory, "--frames", String(FRAME)])
-    .pipe(Effect.catch(() => Effect.void));
+    .pipe(Effect.ignore);
   const raw = yield* attempt(`read stage ${stage}'s captured scene`, () => Bun.file(join(directory, `p0-frame-${FRAME}.json`)).json());
   if (!isScene(raw)) return yield* new ThumbnailFailure({ problem: `stage ${stage}'s captured scene isn't a render scene` });
   const scene = raw;

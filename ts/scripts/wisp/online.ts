@@ -73,7 +73,7 @@ export const reachMatch = (documents: string, since: number, seconds: number) =>
   return pollUntil(
     readGameFile(path, MeleeReady).pipe(
       Effect.map((ready) => (ready !== undefined && ready.modified > since ? true : undefined)),
-      Effect.catchTag("MalformedGameFile", () => Effect.succeed(undefined)),
+      Effect.catchTag("MalformedGameFile", () => Effect.void),
     ),
     {
       every: "250 millis",

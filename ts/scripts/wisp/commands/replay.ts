@@ -72,7 +72,7 @@ const report = (runtime: string, result: MatchReplayResult) => [
 
 export const replayInLua = (file: string, given?: string) => Effect.gen(function*() {
   const lua = given ?? (yield* stockLua.pipe(Effect.mapError((problem) => new ReplayFailure({ problem }))));
-  yield* compileReplayLua.pipe(Effect.mapError((cause) => new ReplayFailure({ problem: `compiling the Lua replayer: ${describeCause(cause)}` }))).pipe(step("compile Lua replayer"));
+  yield* compileReplayLua.pipe(Effect.mapError((cause) => new ReplayFailure({ problem: `compiling the Lua replayer: ${describeCause(cause)}` })), step("compile Lua replayer"));
   const { stdout, stderr, exitCode } = yield* captureProcess("replay in 32-bit Lua", file, [lua, replayLua], { env: { ...process.env, REPLAY_FILE: file } }).pipe(
     Effect.mapError((cause) => new ReplayFailure({ problem: describeCause(cause) })),
   );

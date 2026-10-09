@@ -5,27 +5,27 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Schema } from "effect";
 
-const Publication = Schema.Struct({ contents: Schema.String, mtime_realtime_ns: Schema.Number, publication_monotonic_estimate_ns: Schema.Number });
+const Publication = Schema.Struct({ contents: Schema.String, mtime_realtime_ns: Schema.Finite, publication_monotonic_estimate_ns: Schema.Finite });
 const Event = Schema.Struct({
   event: Schema.String,
-  epoch: Schema.optional(Schema.Number),
-  trial: Schema.optional(Schema.Number),
-  pid: Schema.optional(Schema.Number),
-  stopped_monotonic_ns: Schema.optional(Schema.Number),
-  continued_monotonic_ns: Schema.optional(Schema.Number),
-  pressed_monotonic_ns: Schema.optional(Schema.Number),
-  observed_monotonic_ns: Schema.optional(Schema.Number),
+  epoch: Schema.optional(Schema.Finite),
+  trial: Schema.optional(Schema.Finite),
+  pid: Schema.optional(Schema.Finite),
+  stopped_monotonic_ns: Schema.optional(Schema.Finite),
+  continued_monotonic_ns: Schema.optional(Schema.Finite),
+  pressed_monotonic_ns: Schema.optional(Schema.Finite),
+  observed_monotonic_ns: Schema.optional(Schema.Finite),
   text: Schema.optional(Schema.String),
   publications: Schema.optional(Schema.Array(Publication)),
 });
-const Settings = Schema.Struct({ clients: Schema.Array(Schema.Struct({ name: Schema.String, pid: Schema.Number })) });
+const Settings = Schema.Struct({ clients: Schema.Array(Schema.Struct({ name: Schema.String, pid: Schema.Finite })) });
 const Edge = Schema.Struct({
   phase: Schema.String,
   event: Schema.String,
-  type: Schema.Number,
-  code: Schema.Number,
-  value: Schema.Number,
-  producer_injected_monotonic_ns: Schema.Number,
+  type: Schema.Finite,
+  code: Schema.Finite,
+  value: Schema.Finite,
+  producer_injected_monotonic_ns: Schema.Finite,
 });
 
 const parse = (path: string): unknown => JSON.parse(readFileSync(path, "utf8"));

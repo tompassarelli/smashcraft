@@ -19,10 +19,10 @@ export const writeClientKit = Effect.fn("writeClientKit")(function*(out: string)
   const sim = yield* Effect.tryPromise(() => Bun.build({
     entrypoints: [join(ts, "src/game/replay/viewerBundle.ts")], outdir: out, naming: "sim.js", target: "browser", format: "esm", minify: true,
   }));
-  if (!sim.success) return yield* Effect.fail(new KitFailure({ problem: sim.logs.map(String).join("\n") }));
+  if (!sim.success) return yield* new KitFailure({ problem: sim.logs.map(String).join("\n") });
   const version = sourceVersion(ts);
   const code = readFileSync(join(out, "sim.js"), "utf8");
-  if (!code.includes(SOURCE_STAMP_TEXT)) return yield* Effect.fail(new KitFailure({ problem: "sim.js holds no source stamp to replace" }));
+  if (!code.includes(SOURCE_STAMP_TEXT)) return yield* new KitFailure({ problem: "sim.js holds no source stamp to replace" });
   writeFileSync(join(out, "sim.js"), code.replaceAll(SOURCE_STAMP_TEXT, JSON.stringify(version)));
   copyFileSync(join(ts, "src/game/replay/clientKitApi.d.ts"), join(out, "sim.d.ts"));
   writeFileSync(join(out, "viewer.lua"), yield* buildViewerLua(ts));
@@ -30,11 +30,11 @@ export const writeClientKit = Effect.fn("writeClientKit")(function*(out: string)
   const manifest = tape.manifest.map((line) => (line === "version development" ? `version ${version}` : line));
   writeFileSync(join(out, "fixtures/tape-replay.json"), `${JSON.stringify({ serial: TAPE_REPLAY_SERIAL, manifest, parts: tape.parts })}\n`);
   const header = parseReplayHeader(tape.manifest);
-  if (typeof header === "string") return yield* Effect.fail(new KitFailure({ problem: header }));
+  if (typeof header === "string") return yield* new KitFailure({ problem: header });
   const parts: (readonly string[])[] = [];
   for (const [index, part] of tape.parts.entries()) {
     const lines = parseReplayPart(part, TAPE_REPLAY_SERIAL, index + 1);
-    if (typeof lines === "string") return yield* Effect.fail(new KitFailure({ problem: lines }));
+    if (typeof lines === "string") return yield* new KitFailure({ problem: lines });
     parts.push(lines);
   }
   writeFileSync(join(out, "fixtures/tape-replay.txt"), `${joinReplay(header, parts).join("\n")}\n`);
