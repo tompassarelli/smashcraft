@@ -44,7 +44,7 @@ export const CHECKPOINT_FRAMES = SNAPSHOT_FRAMES;
 
 export const PART_LINES = 48;
 
-const STATE_TOKENS_PER_CALLBACK = 240;
+const STATE_TOKENS_PER_CALLBACK = 32;
 
 const STATE_PIECE_DEPTH = 2;
 
@@ -126,7 +126,7 @@ function checksumVia(scratch: ReplayState, state: Readonly<ReplayState>): string
 
 
 
-type StatePiece = string | { readonly record: Readonly<Record<string, unknown>>; readonly name: string };
+type StatePiece = string | { readonly record: Readonly<Record<string, unknown>>; readonly name: string } | { readonly record: Readonly<Record<string, unknown>>; readonly name: string; readonly list: readonly unknown[] };
 
 function hasIntegerKeys(record: object): boolean {
   for (const key in record) if (!fieldName(key)) return true;
@@ -150,7 +150,8 @@ function statePieces(pieces: StatePiece[], record: unknown, depth: number, skip 
       pieces.push(`${name}{`);
       statePieces(pieces, value, depth + 1);
       pieces.push("}");
-    } else if (recordList(name, value)) {
+    } else if (!Array.isArray(value) || value.length < STATE_LIST_MINIMUM || KEYED_BY_ACTION.includes(name)) pieces.push({ record, name });
+    else if (recordElements(value)) {
 
       pieces.push(`${name}[`);
       for (let index = 0; index < value.length; index++) {
@@ -159,13 +160,12 @@ function statePieces(pieces: StatePiece[], record: unknown, depth: number, skip 
         pieces.push("}");
       }
       pieces.push("]");
-    } else pieces.push({ record, name });
+    } else pieces.push({ record, name, list: value });
   }
 }
 
 
-function recordList(name: string, value: unknown): value is readonly Readonly<Record<string, unknown>>[] {
-  if (!Array.isArray(value) || value.length < STATE_LIST_MINIMUM || KEYED_BY_ACTION.includes(name)) return false;
+function recordElements(value: readonly unknown[]): value is readonly Readonly<Record<string, unknown>>[] {
   for (let index = 0; index < value.length; index++) {
     const element: unknown = value[index];
     if (!isFields(element) || Array.isArray(element) || hasIntegerKeys(element)) return false;
@@ -178,6 +178,11 @@ function recordList(name: string, value: unknown): value is readonly Readonly<Re
 
 
 
+
+function primitiveList(list: readonly unknown[]): boolean {
+  for (let index = 0; index < list.length; index++) if (isFields(list[index])) return false;
+  return true;
+}
 
 function savedStatePieces(pieces: StatePiece[], state: Readonly<ReplayState>, slot: number): void {
   if (slot === 0) pieces.push(`mask=${state.world.mask}`, "fighters[");
@@ -198,8 +203,31 @@ function savedStatePieces(pieces: StatePiece[], state: Readonly<ReplayState>, sl
 }
 
 
-function pieceTokens(piece: StatePiece): readonly string[] | undefined {
-  if (typeof piece === "string") return [piece];
+function elementTokens(list: readonly unknown[], index: number): readonly string[] | undefined {
+  const tokens = recordTokens({ v: list[index] });
+  if (tokens === undefined) return undefined;
+  const token = tokens[0];
+  return token === undefined ? [] : [`${index}${token.substring(1)}`];
+}
+
+function pieceTokens(piece: StatePiece, text: StateText): readonly string[] | undefined {
+  if (typeof piece === "string") {
+    text.next++;
+    return [piece];
+  }
+  if ("list" in piece) {
+    if (text.element === 0) {
+      text.element = 1;
+      if (primitiveList(piece.list)) return [`${piece.name}[`];
+    } else if (text.element <= piece.list.length) return elementTokens(piece.list, text.element++ - 1);
+    else {
+      text.element = 0;
+      text.next++;
+      return ["]"];
+    }
+    text.element = 0;
+  }
+  text.next++;
   const field: Record<string, unknown> = {};
   field[piece.name] = piece.record[piece.name];
   return recordTokens(field, KEYED_BY_ACTION);
@@ -222,6 +250,7 @@ interface StateText {
   readonly gathered: StatePiece[];
   pieces: readonly StatePiece[] | undefined;
   next: number;
+  element: number;
   readonly tokens: string[];
 }
 
@@ -356,8 +385,7 @@ function continueStateText(recorder: MatchReplayRecorder, budget: number): void 
   }
   let written = 0;
   while (text.next < pieces.length && written < budget) {
-    const tokens = pieceTokens(at(pieces, text.next));
-    text.next++;
+    const tokens = pieceTokens(at(pieces, text.next), text);
     if (tokens === undefined) {
       recorder.failed = true;
       continue;
@@ -384,7 +412,7 @@ function beginSegment(recorder: MatchReplayRecorder, start: number, world: Reado
   recorder.digests = [];
   recorder.last = start;
   recorder.ended = false;
-  recorder.text = { segmentLine: recorder.lines.length, fold: beginFold(recorder.start.world), slot: 0, gathered: [], pieces: undefined, next: 0, tokens: [] };
+  recorder.text = { segmentLine: recorder.lines.length, fold: beginFold(recorder.start.world), slot: 0, gathered: [], pieces: undefined, next: 0, element: 0, tokens: [] };
   recorder.lines.push("segment");
 }
 
