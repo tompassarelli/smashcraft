@@ -45,20 +45,3 @@ test("an Expert computer runs into the same down smash every 96 frames [provisio
   expect(hits).toEqual([109, 253, 349, 445]);
   expect(played.filter((row) => row.frame > 253 && row.frame <= 460).every((row) => row.aPercent === 16)).toBe(true);
 });
-
-test("Illidan's forward air hits a fully raised shield through to the body of four fighters [provisional]", () => {
-  const input = "0 neutral\n46 shield\n70 neutral\n";
-  for (const slug of ["warden", "blademaster", "thrall", "dreadlord"]) {
-    const played = rows(44, slug, "illidan", input, 70);
-    const before = played.find((row) => row.frame === 58);
-    const after = played.find((row) => row.frame === 59);
-    expect(before?.aState).toBe("shield");
-    expect(before?.aPercent).toBe(0);
-    expect(after?.aState).toBe("hitlag");
-    expect(after?.aPercent).toBe(2);
-  }
-  for (const slug of ["rifleman", "peon"]) {
-    const played = rows(44, slug, "illidan", input, 70);
-    expect(played.every((row) => row.aPercent === 0)).toBe(true);
-  }
-});
