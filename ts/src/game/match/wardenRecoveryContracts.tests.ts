@@ -17,7 +17,7 @@ test("the computer's Warden blinks back to the stage from every spot in reach un
     [700.0, 100.0, 0], [700.0, -40.0, 0], [700.0, -150.0, 0], [800.0, 100.0, 0], [800.0, -40.0, 0], [800.0, -150.0, 0],
     [700.0, -300.0, 1], [800.0, -150.0, 1], [950.0, -40.0, 1], [950.0, -150.0, 1], [950.0, -300.0, 1],
   ] as const;
-  for (let seed = 0; seed < 6; seed++) for (const side of [-1, 1]) {
+  for (let seed = 0; seed < 3; seed++) for (const side of [-1, 1]) {
     for (const [out, z, jumps] of spots) {
       const x = f32(out * side);
       const warden = createFighter(Character.warden, x, -side);

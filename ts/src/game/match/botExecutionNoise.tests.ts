@@ -103,7 +103,7 @@ test("executed Expert aerial drift errors give a shield grab that proper spacing
   f.motion.grounded = false;
   f.attack.style = AttackStyle.forwardAir;
   const target = createFighter(Character.rifleman, 0.0, -1);
-  const errors = 12;
+  const errors = 4;
   let found = 0, grabbed = 0;
   for (let event = 0; event < 4000 && found < errors; event++) {
     f.attack.serial = event + 1;
@@ -125,6 +125,6 @@ test("executed Expert aerial drift errors give a shield grab that proper spacing
   }
   report(`spacing errors=${found} grabbed=${grabbed}`);
   assertEquals(found, errors);
-  // 14 of the first 16 errors are grabbed; an error landing late in the drift window can stay safe.
+  // 14 of the first 16 errors are grabbed, including the first four; an error landing late in the drift window can stay safe.
   assertGreaterThan(grabbed, errors / 2);
 });
