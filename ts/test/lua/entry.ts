@@ -47,9 +47,34 @@ registeredTests.forEach(({ name }, index) => {
 const sweeps = os.getenv("SWEEPS") === "1";
 const mine = registeredTests.filter(({ name }) => isSweep(name) === sweeps
   && (shardSpec === undefined || (planned.get(name) ?? hashShard(name)) === shard));
+// Counts are deterministic for one runtime and test order, unlike CPU seconds (#394).
+const HOOK_STEP = 1000;
+const COLLECT_ABOVE_KB = 65536;
+let ticks = 0;
+let heapKb = 0;
+let allocatedKb = 0;
+const sample = () => {
+  const now = collectgarbage("count");
+  if (now > heapKb) allocatedKb += now - heapKb;
+  heapKb = now;
+};
+const tick = () => {
+  ticks++;
+  sample();
+  if (heapKb > COLLECT_ABOVE_KB) {
+    collectgarbage("collect");
+    heapKb = collectgarbage("count");
+  }
+};
 let failures = 0;
 for (const { name, run } of mine) {
+  collectgarbage("collect");
+  collectgarbage("stop");
+  ticks = 0;
+  allocatedKb = 0;
+  heapKb = collectgarbage("count");
   const started = os.clock();
+  debug.sethook(tick, "", HOOK_STEP);
   let status = "pass";
   try {
     run();
@@ -58,12 +83,15 @@ for (const { name, run } of mine) {
     status = "fail";
     print(`fail ${name}: ${error instanceof AssertionFailure ? error.message : String(error)}`);
   }
+  debug.sethook();
+  sample();
+  collectgarbage("restart");
   const seconds = os.clock() - started;
   if (results !== undefined) {
     results.write(`${status}\t${seconds}\t${name}\n`);
     results.flush();
   }
-  costs?.write(`${moduleOf.get(name) ?? ""}\t${seconds}\t${name}\n`);
+  costs?.write(`${moduleOf.get(name) ?? ""}\t${ticks * HOOK_STEP}\t${Math.floor(allocatedKb)}\t${name}\n`);
 }
 results?.close();
 costs?.close();

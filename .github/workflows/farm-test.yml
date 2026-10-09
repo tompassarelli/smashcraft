@@ -270,7 +270,7 @@ jobs:
           path: ts/farm
       - working-directory: ts
         run: bun node_modules/wisp/scripts/wisp/farmShards.ts merge --plan farm/farm-test-plan/plan.json --timings farm-timings.json --out summary.json $(find farm -name 'result*.json')
-      - name: Check Lua32 CPU budget from every shard
+      - name: Check Lua32 instruction and allocation budget from every shard
         working-directory: ts
         env:
           LUA_TESTS_STEP: budget

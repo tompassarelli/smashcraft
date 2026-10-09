@@ -11,7 +11,7 @@ import { TestPlan } from "wisp/scripts/wisp/testSelection";
 import { runAdmitted } from "./heavyCapacity";
 import { failedTest, failingTests } from "./mainRed";
 import { ISOLATED_TEST_GROUPS, TEST_WORKER_ENV, testWorkerEnvironment } from "./testWorkers";
-import { readBaseline } from "./testCost";
+import { LUA_INSTRUCTIONS_PER_S, readBaseline, readLuaBaseline } from "./testCost";
 import { SMASHCRAFT_DEV } from "./wisp/commands/dev";
 
 const tsRoot = resolve(import.meta.dir, "..");
@@ -60,9 +60,14 @@ export function affectedTests(paths: readonly string[]): Plan {
     for (const unit of selection.units) selected.set(unit.path, unit.kind);
   }
   const local = (path: string) => relative(tsRoot, path);
-  const bun = withinBudget([...selected].map(([path, kind]) => ({ path: local(path), kind })), join(tsRoot, "test/cost-baseline.tsv"), BUN_CPU_BUDGET_S);
+  const bunBaseline = readBaseline(join(tsRoot, "test/cost-baseline.tsv"));
+  const luaBaseline = readLuaBaseline(join(tsRoot, "test/lua/cost-baseline.tsv"));
+  const bun = withinBudget([...selected].map(([path, kind]) => ({ path: local(path), kind })), (path) => bunBaseline.get(path)?.cpu, BUN_CPU_BUDGET_S);
   const game = bun.kept.filter(({ kind }) => kind === "registry").map(({ path }) => path).sort();
-  const lua = paths.some(isSim) ? withinBudget(game.map((path) => ({ path, kind: "registry" })), join(tsRoot, "test/lua/cost-baseline.tsv"), LUA_CPU_BUDGET_S) : { kept: [], deferred: [] };
+  const lua = paths.some(isSim) ? withinBudget(game.map((path) => ({ path, kind: "registry" })), (path) => {
+    const instructions = luaBaseline.get(path)?.instructions;
+    return instructions === undefined ? undefined : instructions / LUA_INSTRUCTIONS_PER_S;
+  }, LUA_CPU_BUDGET_S) : { kept: [], deferred: [] };
   return {
     files: bun.kept.filter(({ kind }) => kind === "file").map(({ path }) => path).sort(),
     game,
@@ -73,9 +78,8 @@ export function affectedTests(paths: readonly string[]): Plan {
 }
 
 
-function withinBudget<T extends { readonly path: string }>(units: readonly T[], baselinePath: string, budget: number): { readonly kept: T[]; readonly deferred: string[] } {
-  const baseline = readBaseline(baselinePath);
-  const cost = (path: string) => baseline.get(path)?.cpu ?? 1;
+function withinBudget<T extends { readonly path: string }>(units: readonly T[], seconds: (path: string) => number | undefined, budget: number): { readonly kept: T[]; readonly deferred: string[] } {
+  const cost = (path: string) => seconds(path) ?? 1;
   const kept: T[] = [];
   const deferred: string[] = [];
   let cpu = 0;

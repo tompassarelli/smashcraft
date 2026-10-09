@@ -23,9 +23,8 @@ import { join, resolve } from "node:path";
 import { BunRuntime, BunServices } from "@effect/platform-bun";
 import { Effect } from "effect";
 import { ChildProcess } from "effect/process";
-import { BUSY_PRESSURE, INCONCLUSIVE_EXIT, withPressure } from "wisp/scripts/wisp/testRunner";
 import { runAdmitted } from "./heavyCapacity";
-import { LUA_TEST_CEILING_S, addCost, judge, type Costs } from "./testCost";
+import { LUA_TEST_CEILING_INSTRUCTIONS, LUA_TEST_CEILING_S, addLuaCost, judgeLua, type LuaCosts } from "./testCost";
 import { stockLua } from "./wisp/luaRuntimes";
 import { refuseUntagged } from "./oracleTags";
 
@@ -49,35 +48,30 @@ const runSharded = (bundle: string) => Effect.forEach(Array.from({ length: jobs 
   { concurrency: jobs },
 ).pipe(Effect.map((codes) => codes.find((code) => code !== 0) ?? 0));
 
-let pressure: { readonly peak: number | undefined } = { peak: undefined };
-
 const budget = () => {
-  const measured: Costs = new Map();
+  const measured: LuaCosts = new Map();
   const over: string[] = [];
   const paths = savedCosts === undefined
     ? Array.from({ length: jobs }, (_, shard) => costFile(shard))
     : [...new Bun.Glob("**/lua-cost-*.tsv").scanSync({ cwd: savedCosts, absolute: true })];
-  if (savedCosts !== undefined && paths.length === 0) throw new Error(`No Lua CPU cost rows found in ${savedCosts}`);
+  if (savedCosts !== undefined && paths.length === 0) throw new Error(`No Lua cost rows found in ${savedCosts}`);
   for (const path of paths) {
     if (!existsSync(path)) continue;
     for (const line of readFileSync(path, "utf8").split("\n")) {
-      const [module = "", seconds = "", ...name] = line.split("\t");
+      const [module = "", instructions = "", allocKb = "", ...name] = line.split("\t");
       if (module === "") continue;
-      addCost(measured, module, 1, Number(seconds), Number(seconds));
-      if (Number(seconds) > LUA_TEST_CEILING_S) over.push(`${module}: test "${name.join("\t")}" used ${Number(seconds).toFixed(2)} s CPU, over the ${LUA_TEST_CEILING_S} s ceiling per test; shrink it or move it to the farm`);
+      addLuaCost(measured, module, Number(instructions), Number(allocKb));
+      if (Number(instructions) > LUA_TEST_CEILING_INSTRUCTIONS) over.push(`${module}: test "${name.join("\t")}" ran ${(Number(instructions) / 1e6).toFixed(0)}M Lua instructions, over the ${LUA_TEST_CEILING_INSTRUCTIONS / 1e6}M ceiling per test (${LUA_TEST_CEILING_S} s on the reference runner); shrink it or move it to the farm`);
     }
   }
   if (savedCosts === undefined) rmSync(costDirectory, { recursive: true, force: true });
   const write = process.env.TEST_COST_WRITE !== "0";
-  const judgement = judge({ label: "Lua32", measured, baselinePath: resolve("test/lua/cost-baseline.tsv"), project: resolve("."), write });
-  const busy = pressure.peak !== undefined && pressure.peak > BUSY_PRESSURE;
-  const note = busy ? ` (inconclusive: CPU pressure ${Math.round(pressure.peak ?? 0)}%)` : "";
-  for (const line of [...over, ...judgement.risen]) console.log(`${line}${note}`);
+  const judgement = judgeLua({ measured, baselinePath: resolve("test/lua/cost-baseline.tsv"), project: resolve("."), write });
+  for (const line of [...over, ...judgement.risen]) console.log(line);
   if (judgement.updated > 0) console.log(`test cost baseline: ${judgement.updated} rows ${write ? "updated in" : "differ from (not written: TEST_COST_WRITE=0)"} ts/test/lua/cost-baseline.tsv; commit them with the tests`);
   console.log(judgement.heaviest);
   console.log(judgement.summary);
-  if (over.length + judgement.risen.length === 0) return 0;
-  return busy ? INCONCLUSIVE_EXIT : 1;
+  return over.length + judgement.risen.length === 0 ? 0 : 1;
 };
 if (only === "budget") process.exit(budget());
 
@@ -112,10 +106,7 @@ const steps = only === "compile" ? [compile("tsconfig.lua-tests.json")]
   : only === "stack" ? [compile("tsconfig.lua-stack.json"), run("build/lua-stack/stack.lua")]
   : [
     compile("tsconfig.lua-tests.json"),
-    withPressure(runSharded("build/lua-tests/tests.lua")).pipe(Effect.map((measured) => {
-      pressure = measured.pressure;
-      return measured.value;
-    })),
+    runSharded("build/lua-tests/tests.lua"),
     ...(soak || sweeps || !remainder ? [] : [compile("tsconfig.lua-stack.json"), run("build/lua-stack/stack.lua")]),
     ...(soak || sweeps ? [] : [Effect.sync(budget)]),
   ];
