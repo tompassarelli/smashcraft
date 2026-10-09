@@ -66,7 +66,7 @@ test("Warden roster phases and single-contact paths reach production [spec docs/
           assertTrue(style === AttackStyle.grab ? out.maxX === SHARED_GRAB_REGION.maxX && out.strike === undefined : out.strike !== undefined);
         }
       }
-      // A multi-hit may pause between its hits; nothing strikes outside its active frames.
+
       if (live > 0 || !isMultiHit(WARDEN_MOVES.normals[style])) assertEquals(live > 0, frame >= first - 1 && frame < first - 1 + active);
     }
   }
@@ -193,7 +193,7 @@ test("Warden's blades are disjoint while the arm and Heel Blade leg stay hittabl
   for (const facing of [-1, 1]) {
     const warden = createFighter(Character.rifleman, 0.0, facing);
     warden.tuning.moves = WARDEN_MOVES;
-    // At rest the hand is inside the body.
+
     assertEquals(probe(warden, f32(26.0 * facing), 70.0), HurtContact.none);
     for (const style of [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown,
       AttackStyle.downTilt, AttackStyle.dashAttack, AttackStyle.forwardSmash, AttackStyle.downSmash, AttackStyle.forwardAir]) {
@@ -203,7 +203,7 @@ test("Warden's blades are disjoint while the arm and Heel Blade leg stay hittabl
       warden.attack.style = style;
       for (const region of move.regions) {
         warden.attack.frame = region.firstFrame;
-        // The arm reaches its hand; the farthest blade end of the frame is the disjoint tip.
+
         const arm = fighterHurtParts(warden)[1];
         assertTrue(arm !== undefined);
         if (arm === undefined) continue;

@@ -1,7 +1,7 @@
 import { mutableProjectile } from "./fighterProjectiles";
-// The large fixture set retains independent retail reference values across
-// arithmetic, motion and contact; each group must survive changes to production.
-// Retail physics references: NTSC 1.02 recordings and extracted parameters.
+
+
+
 import { floorMod } from "wisp/src/sim/intMath";
 import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { max } from "../../runtime/numbers";
@@ -36,7 +36,7 @@ const TOLERANCE_4 = 0.00009999999747378752;
 const TOLERANCE_6A = 0.0006000000284984708;
 const TOLERANCE_6B = 0.00005999999848427251;
 
-/** Whether two binary32 values differ by more than delta, computed as the test interpreter computes it. */
+
 const differs = (actual: number, expected: number, delta: number) => Math.abs(f32(actual - expected)) > delta;
 
 function retailCombatContact(world: Roster, knockback: number, dx: number, dz: number): void {
@@ -92,7 +92,7 @@ test("retail combat stacking merges each axis once after strongest contact selec
   assertNear(target.launch.knockbackZ, f32(5.3999996781), f32(0.000001));
   assertEquals(target.launch.damageLevel, 3);
   assertEquals(target.launch.hitstun, 40);
-  // A weaker same-direction axis is retained; an incoming zero cannot erase it.
+
   target.launch.knockbackAge = 10;
   retailCombatContact(world, 20.0, 0.0, 1.0);
   assertNear(target.launch.knockbackX, f32(7.2000002414), f32(0.000001));
@@ -148,7 +148,7 @@ test("retail combat ground bounce uses a ten-degree threshold and four-fifths ve
       const world = testWorld(owner, target);
       target.motion.grounded = grounded;
       target.motion.z = grounded ? 0.0 : 300.0;
-      // Unit launch directions at nine and eleven degrees below horizontal.
+
       const dx = steep ? 0.9816271662712097 : 0.9876883625984192;
       const dz = steep ? -0.1908089965581894 : -0.15643446147441864;
       retailCombatContact(world, 100.0, dx, dz);
@@ -163,8 +163,8 @@ test("retail combat ground bounce uses a ten-degree threshold and four-fifths ve
   }
 });
 
-// Factual original-game inputs from smashcraft:docs/smash-melee-reference/physics-parameters.json.
-// This fixture exercises the production engine without adding a roster character.
+
+
 const FALCO_REFERENCE_PHYSICS: FighterPhysics = {
   weight: 80.0,
   gravity: melee(0.17000000178813934),
@@ -293,8 +293,8 @@ test("recorded Falco dash entry uses the walk self velocity for entry displaceme
   for (const host of [Character.sylvanas, Character.rifleman]) assertTrue(recordedFalcoDashEntryMatches(host));
 });
 
-// The test-only reference rig uses PlFc.dat movement values from the locally
-// identified NTSC 1.02 extraction; it never changes playable fighter defaults.
+
+
 test("retail walk uses character acceleration and the common taper [reference]", () => {
   for (const host of [Character.sylvanas, Character.rifleman]) {
     const f = falcoRig(host, 0.0, 1);
@@ -352,7 +352,7 @@ test("the recorded Falco jump detects a delayed input on its original frame [inv
 test("grounded knockback matches the recorded first released displacement [reference]", () => {
   for (const character of [Character.sylvanas, Character.rifleman]) {
     const f = createReferenceFighter(character, melee(-11.548782348632812), 1);
-    // Captain Falcon observation: only the observed traction is required here.
+
     withPhysics(f, { traction: melee(0.07999999821186066) });
     const input = controls({ down: true, verticalDirection: -1 });
     f.launch.knockbackX = melee(0.7562744617462158);
@@ -388,7 +388,7 @@ const RECORDED_GROUNDED_DAMAGE_VELOCITY = [
 
 function recordedGroundedDamageFirstDifference(character: Character, velocityOffset: number): number {
   const f = createReferenceFighter(character, melee(-11.548782348632812), 1);
-  // Shared grounded-damage rule with the observation's traction, not a full character rig.
+
   withPhysics(f, { traction: melee(0.07999999821186066) });
   const input = controls({ down: true, verticalDirection: -1 });
   f.launch.knockbackX = f32(melee(0.7562744617462158) + velocityOffset);
@@ -412,7 +412,7 @@ function recordedGroundedDamageFirstDifference(character: Character, velocityOff
   return firstDifference;
 }
 
-/** Recorded positions end at sample 12. */
+
 const min12 = (sample: number) => (sample < 12 ? sample : 12);
 
 test("recorded NTSC grounded damage matches freeze release, traction and actionability [reference]", () => {
@@ -474,7 +474,7 @@ test("fast fall requires descending self velocity, and an air dodge clears it [r
   assertFalse(f.motion.fastFalling);
 });
 
-/** Places a projectile just behind the target, flying into it. */
+
 function contactProjectile(owner: Fighter, target: Fighter, index: number, kind: ProjectileKind): void {
   const projectile = mutableProjectile(owner, index)!;
   projectile.life = 3;
@@ -570,7 +570,7 @@ function recordedShieldDefenderPosition(frame: number): number {
   return frame < 4 ? 45.46552276611328 : RECORDED_SHIELD_DEFENDER_POSITION[frame < 8 ? frame - 4 : 4]!;
 }
 
-/** One frame for slots 0 and 1, in slot order. */
+
 function advanceBoth(world: Roster, first: Readonly<Controls>, second: Readonly<Controls>): void {
   advanceFighter(world, 0, 0, first, 0.0);
   advanceFighter(world, 1, 0, second, 0.0);
@@ -584,12 +584,12 @@ test("a recorded NTSC digital shield contact matches paired pushback and grounde
       const world = testWorld(source, target);
       const sourceInput = controls();
       const targetInput = controls({ shield: true });
-      // Puff's published ground-friction attribute supplies the defender decay.
+
       withPhysics(target, { traction: melee(0.09000000357627869) });
       withPhysics(source, { traction: melee(0.07999999821186066) });
       target.shield.raised = true;
       target.shield.energy = 43.90003204345703;
-      // The recorded held-shield drain happens on the contact tick before impact.
+
       advanceBoth(world, sourceInput, targetInput);
       beginDamageContacts();
       queueDamageContact(world, 0, 1, hitEffect(4.0, 0.0, 0.0, 0.0, 0.0), 1, ContactKind.flinch, true, undefined);
@@ -735,8 +735,8 @@ test("an airborne shield contact initializes stacked, weight-scaled relative rec
   queueDamageContact(world, 0, 1, hitEffect(4.0, 0.0, 0.0, 0.0, 0.0), 1, ContactKind.flinch, true, undefined);
   queueDamageContact(world, 0, 1, hitEffect(4.0, 0.0, 0.0, 0.0, 0.0), 1, ContactKind.flinch, true, undefined);
   finishDamageContacts(world);
-  // Same-sign horizontal motion subtracts the attacker's step; sub-1 weight ratio is .5.
-  // Two contacts stack additively before any subsequent-frame decay.
+
+
   assertNear(attacker.shield.recoilX, 2 * (3 - 2) * 0.125, f32(0.0001));
   assertNear(attacker.shield.recoilZ, 0.0, f32(0.0001));
 
@@ -756,7 +756,7 @@ test("an airborne shield contact initializes stacked, weight-scaled relative rec
   beginDamageContacts();
   queueDamageContact(opposite, 0, 1, hitEffect(4.0, 0.0, 0.0, 0.0, 0.0), 1, ContactKind.flinch, true, undefined);
   finishDamageContacts(opposite);
-  // Opposite-sign motion uses only defender movement; heavier defender clamps ratio to 1.
+
   assertNear(oppositeAttacker.shield.recoilX, 3 * 0.25, f32(0.0001));
   assertNear(oppositeAttacker.shield.recoilZ, oppositeDefender.motion.deltaZ * 0.25, f32(0.0001));
 });
@@ -816,7 +816,7 @@ test("a contact batch collects all damage before choosing a launch, in either tr
     contactProjectile(owner, target, 0, ProjectileKind.recoil);
     contactProjectile(owner, target, 2, ProjectileKind.blaster);
     beginDamageContacts();
-    // Fixed detached damage keeps the batching reference independent of fighter balance.
+
     queueDamageContact(world, 0, 1, hitEffect(7.0, 0.0, 0.0, 0.0, 0.0), 1, ContactKind.damageOnly, false, undefined);
     if (reversed) {
       updateProjectiles(world);
@@ -828,8 +828,8 @@ test("a contact batch collects all damage before choosing a launch, in either tr
     assertEquals(target.status.damage, 10.899999618530273);
     finishDamageContacts(world);
     assertNear(target.status.damage, f32(30.69), f32(0.0001));
-    // floor(10.9)+19.79=29.79 percent, jab power 5, weight 80, crouch 2/3.
-    // The later downward recoil and zero-launch laser cannot replace the jab.
+
+
     assertNear(target.launch.diLaunchSpeed, f32(6.50628), f32(0.0001));
     assertNear(target.launch.knockbackX, f32(6.50628) * f32(0.70710678), f32(0.0001));
     assertGreaterThan(target.launch.knockbackZ, 0.0);
@@ -865,7 +865,7 @@ test("a contact-batch shield break blocks every collected contact [reference]", 
   assertEquals(projectileCount(owner), 0);
 });
 
-/** Links slot 0 holding slot 1, one frame before the action's contact. */
+
 function holdBeforeContact(world: Roster, owner: Fighter, target: Fighter, action: GrabAction): void {
   owner.grab.target = 1;
   target.grab.owner = 0;
@@ -917,7 +917,7 @@ function observedRollTotal(character: Character, profile: number): number {
   return f32(OBSERVED_ROLL_TOTALS[profile]![character === Character.sylvanas ? 0 : 1] * (heroBody(character)?.run ?? 1.0));
 }
 
-/** Starts a roll of a profile: 0-1 ground roll, 2-5 getup roll from face up or down, 6-7 tech roll. */
+
 function startObservedRoll(f: Fighter, input: Controls, profile: number, direction: number): void {
   f.motion.surface = 0;
   if (profile < 2) {
@@ -1262,7 +1262,7 @@ test("the same character uses its assigned weight for an actual damage contact [
     owner.attack.frame = attackStartupFrames(AttackStyle.jab);
     resolveAttacks(world);
     assertEquals(target.status.damage, 5.0);
-    // Jab at 5 percent: ((5/10 + 5*5/20)*200/(weight+100)*1.4+18)+20.
+
     assertNear(target.launch.diLaunchSpeed, weight === 50.0 ? f32(7.428) : f32(7.1928), f32(0.00001));
   }
 });
@@ -1334,8 +1334,8 @@ test("a stronger aerial dodge keeps retail decay for every digital direction [sp
       const launchZ = horizontal === 0 ? vertical * f32(20.399999618530273) : vertical === 0 ? -f32(6.303946495056152) : vertical * f32(14.424978256225586);
       assertNear(f.motion.vx, launchX, f32(0.00001));
       assertNear(f.motion.vz, launchZ, f32(0.00001));
-      // The launch check above permits approximate native trig; the decay
-      // and position checks start from that actual launch velocity.
+
+
       let expectedX = f.motion.vx;
       let expectedZ = f.motion.vz;
       let positionX = 0.0;
@@ -1377,7 +1377,7 @@ test("a stronger aerial dodge resumes gravity and drift on tick thirty [spec #34
         assertEquals(f.dodge.airFrame, frame);
       }
       const directionZ = mode === 1 ? 1 : -1;
-      // Positions accumulate in original units; only assertions project to world units.
+
       const beforeX = mode === 0 ? 0.0 : 20.618309020996094;
       const beforeZ = mode === 0 ? 50.0 : mode === 1 ? 70.61831665039062 : 29.381690979003906;
       const beforeVX = mode === 0 ? 0.0 : 0.6794346570968628;

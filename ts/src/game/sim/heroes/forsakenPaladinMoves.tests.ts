@@ -12,8 +12,8 @@ import { emptyCapsule, placeCapsule } from "../../physics/contactGeometry";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { FORSAKEN_PALADIN_MOVES } from "./forsakenPaladinMoves";
 
-// Existing actors exercise the production move-profile seam independently of
-// the parent-owned identity, selection and animation integration.
+
+
 const NORMAL_TIMINGS = [
   [AttackStyle.forwardSmash, 21, 3, 36, 0],
   [AttackStyle.upSmash, 18, 4, 33, 0],

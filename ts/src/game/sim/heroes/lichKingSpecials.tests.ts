@@ -1,7 +1,7 @@
 import { mutableProjectile } from "../fighterProjectiles";
-// The Lich King's kit rules (#167) through the production special,
-// projectile, contact, status and grab paths: Val'kyr Shadowguard carries its catch toward the
-// edge until it is mashed out or struck, and Defile stays and grows on hits.
+
+
+
 import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
@@ -36,7 +36,7 @@ function lichKing(x: number, facing: number): Fighter {
   return f;
 }
 
-/** One match-ordered frame: status masks, motion, special starts, contacts, specials, projectiles, resources. */
+
 function frame(world: Roster, first: Readonly<Controls> = controls(), second: Readonly<Controls> = controls()): void {
   const inputs = [{ ...first }, { ...second }];
   for (let slot = 0; slot < 2; slot++) maskHeroStatusControls(world.fighters[slot]!, inputs[slot]!, buffers[slot]!);
@@ -93,9 +93,9 @@ test("Val'kyr Shadowguard carries its catch toward the edge it flew at for 80 fr
     assertEquals(target.status.condition, HeroStatusKind.carried);
     const startX = target.motion.x;
     const startZ = target.motion.z;
-    // Jumping changes nothing while carried.
+
     for (let f = 0; f < 40; f++) frame(world, controls(), controls({ jumpPressed: f === 5 }));
-    // Three units a frame, less the catch's hitlag.
+
     assertNear(f32(f32(target.motion.x - startX) * facing), 112.0, 9.0);
     assertGreaterThan(target.motion.z, startZ);
     let carried = 40;
@@ -122,7 +122,7 @@ test("a carried fighter mashes free, never before frame 20, and any hit drops th
   const free = mashLength(true);
   assertLessThan(free, mashLength(false) - 30);
   assertGreaterThan(free, 18);
-  // Struck mid-carry, the victim drops.
+
   const { world, owner, target } = pair(f32(H * f32(1.2)));
   frame(world, side);
   for (let f = 0; f < 60 && target.status.condition !== HeroStatusKind.carried; f++) frame(world);
@@ -175,7 +175,7 @@ test("Defile stays through five 2-damage pulses spaced 36 frames; body hits grow
   let last = 0.0;
   let widest = heroProjectileRadius(pool, pool.spec);
   for (let f = 0; f < 300 && pool.life > 0; f++) {
-    // Keep the target standing in the pool's middle.
+
     target.motion.x = pool.x;
     target.motion.vx = 0.0;
     target.motion.z = 0.0;
@@ -199,7 +199,7 @@ test("Defile stays through five 2-damage pulses spaced 36 frames; body hits grow
   writablePool.life = 10;
   writablePool.poolHits = 100;
   assertNear(heroProjectileRadius(pool, pool.spec), f32(H * f32(0.6)), f32(0.01));
-  // A pool's growth and wait are rollback state.
+
   const copy = lichKing(0.0, 1);
   copyFighterState(copy, owner, 3);
   assertEquals(firstFighterDifference(owner, copy, 3, 3), undefined);
@@ -208,7 +208,7 @@ test("Defile stays through five 2-damage pulses spaced 36 frames; body hits grow
   for (let f = 2; f <= 150; f++) frame(shielded.world, controls(), controls({ shield: true }));
   assertEquals(shielded.target.status.damage, 0.0);
   assertEquals(liveHero(shielded.owner)?.poolHits, 0);
-  // In the air Defile doesn't start.
+
   const air = pair(1000.0);
   air.owner.motion.grounded = false;
   air.owner.motion.z = 200.0;

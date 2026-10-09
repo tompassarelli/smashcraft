@@ -1,6 +1,6 @@
-// Bounded smash DI (smashcraft:docs/gameplay-design.md#bounded-sdi): travel per
-// hit and per string, the per-tick step, renewal and discard rules, and the
-// production-harness fixtures that measured the unbounded teleports (#70).
+
+
+
 import { assertEquals, assertFalse, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
@@ -40,7 +40,7 @@ export interface SdiMeasurement extends SdiFixture {
   readonly steps: readonly SdiStep[];
 }
 
-/** The ten fixtures of smashcraft:evidence/sdi-design-20261006.json. */
+
 export const SDI_FIXTURES: readonly SdiFixture[] = [
   { name: "one-frame", hitlag: 1, hits: 1, mode: "reset-right" },
   { name: "two-frame", hitlag: 2, hits: 1, mode: "reset-right" },
@@ -54,7 +54,7 @@ export const SDI_FIXTURES: readonly SdiFixture[] = [
   { name: "cap-wiggle", hitlag: 20, hits: 1, mode: "wiggle" },
 ];
 
-/** An airborne victim with no gravity, drift or launch, so only SDI and ASDI move it. */
+
 function isolatedVictim(): Fighter {
   const f = createFighter(Character.rifleman, 0.0, 1);
   withPhysics(f, { gravity: 0.0, airAcceleration: 0.0, airFriction: 0.0 });
@@ -64,7 +64,7 @@ function isolatedVictim(): Fighter {
   return f;
 }
 
-/** Seeds a hit as contacts install one: hitlag, a DI opportunity, hitstun and a fresh hit allowance. */
+
 function seedHit(f: Fighter, hitlag: number): void {
   f.launch.hitlag = hitlag;
   f.launch.diPending = true;
@@ -82,7 +82,7 @@ function stick(mode: Mode, tick: number): readonly [number, number] {
   }
 }
 
-/** Runs one fixture through production advanceSolo and keyboard-style directional input. */
+
 export function measureSdiFixture(fixture: SdiFixture): SdiMeasurement {
   const f = isolatedVictim();
   const direction = neutralDirections();
@@ -128,7 +128,7 @@ const STEP = SDI_STEP_DISTANCE;
 const WIGGLE_NET_X = f32(f32(STEP + STEP) + f32(f32(DIAGONAL_UNIT * STEP) * 2.0));
 const WIGGLE_NET_Z = f32(f32(DIAGONAL_UNIT * STEP) * 2.0);
 
-/** [path, net, SDI steps, ASDI shifts] at the bounded defaults, in world units. */
+
 const EXPECTED: Readonly<Record<string, readonly [number, number, number, number]>> = {
   "one-frame": [18, 18, 0, 1],
   "two-frame": [36, 36, 1, 1],

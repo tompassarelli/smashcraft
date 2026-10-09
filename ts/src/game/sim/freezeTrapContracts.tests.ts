@@ -223,7 +223,7 @@ test("koRespawnAndResetClearTrapAndFrozenState [spec docs/physics.md]", () => {
   assertEquals(rifleman.status.freezeImmunityFrames, 0);
 });
 
-/** An Rifleman the Rifleman's trap has just frozen, through the real trap contact. */
+
 function trapFrozenRifleman(): Fighter {
   const owner = createFighter(Character.rifleman, 0.0, 1);
   const target = createFighter(Character.rifleman, 0.0, -1);
@@ -242,17 +242,17 @@ test("each fresh press or new stick direction takes eight frames off a freeze, n
   const step = (input: Partial<Controls>) => advanceSolo(target, 0, controls(input), 0.0);
   step({});
   assertEquals(target.status.frozenFrames, FREEZE_TRAP_FREEZE_FRAMES - 1);
-  // A press and a new direction in one frame count once each.
+
   step({ grabMashPressed: true, direction: 1, verticalDirection: 1 });
   assertEquals(target.status.frozenFrames, FREEZE_TRAP_FREEZE_FRAMES - 2 - 2 * MASH_FRAMES);
-  // Holding the stick, or going neutral, keeps the remembered direction: nothing more.
+
   step({ direction: 1, verticalDirection: 1 });
   step({});
   assertEquals(target.status.frozenFrames, FREEZE_TRAP_FREEZE_FRAMES - 4 - 2 * MASH_FRAMES);
-  // Flipping one axis is one new direction.
+
   step({ direction: -1 });
   assertEquals(target.status.frozenFrames, FREEZE_TRAP_FREEZE_FRAMES - 5 - 3 * MASH_FRAMES);
-  // Mashing every frame frees the fighter on frame 60, not before.
+
   let frame = 5;
   while (target.status.frozenFrames > 0) {
     frame++;
@@ -264,7 +264,7 @@ test("each fresh press or new stick direction takes eight frames off a freeze, n
   assertEquals(target.grab.mashX, 0);
 });
 
-/** The frozen frame a mash of `rate` presses a second (first on frame 1) thaws on; `wiggle` flips the stick as often. */
+
 function thawFrame(rate: number, wiggle: boolean): number {
   const target = trapFrozenRifleman();
   let frame = 0;
@@ -278,7 +278,7 @@ function thawFrame(rate: number, wiggle: boolean): number {
 }
 
 test("mashing out of a freeze: the thaw frame by mash rate [spec docs/gameplay-design.md]", () => {
-  // smashcraft:docs/gameplay-design.md, "Rifleman's trap escape", lists these.
+
   assertEquals(thawFrame(0, false), 300);
   assertEquals(thawFrame(4, false), 195);
   assertEquals(thawFrame(8, false), 143);
@@ -289,7 +289,7 @@ test("mashing out of a freeze: the thaw frame by mash rate [spec docs/gameplay-d
 });
 
 test("a held button does not mash a freeze [spec docs/gameplay-design.md]", () => {
-  // grabMashPressed is a fresh press (input/adapter.ts); a held button never sets it again.
+
   const target = trapFrozenRifleman();
   advanceSolo(target, 0, controls({ grabMashPressed: true, attackHeld: true, jumpHeld: true, shield: true }), 0.0);
   for (let frame = 2; frame <= 20; frame++) advanceSolo(target, 0, controls({ attackHeld: true, jumpHeld: true, shield: true }), 0.0);

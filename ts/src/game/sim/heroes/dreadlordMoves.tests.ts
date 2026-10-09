@@ -11,8 +11,8 @@ import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { DREADLORD_MOVES } from "./dreadlordMoves";
 import { isMultiHit } from "./multiHit";
 
-// Existing actors carry the kit so these fixtures exercise production combat
-// independently of selection and asset integration.
+
+
 const NORMAL_TIMINGS = [
   [AttackStyle.forwardSmash, 18, 4, 34, 0],
   [AttackStyle.upSmash, 16, 5, 31, 0],
@@ -70,7 +70,7 @@ test("Dreadlord paths are narrow capsules active only on adopted contact frames 
           assertTrue(style === AttackStyle.grab ? out.maxX === SHARED_GRAB_REGION.maxX && out.strike === undefined : out.strike !== undefined);
         }
       }
-      // A multi-hit may pause between its hits; nothing strikes outside its active frames.
+
       if (live > 0 || !isMultiHit(DREADLORD_MOVES.normals[style])) assertEquals(live > 0, frame >= first - 1 && frame < first - 1 + active);
     }
   }
@@ -203,7 +203,7 @@ test("Dreadlord throws hold until the adopted release and launch once in both fa
   }
 });
 
-/** Damage a Rifleman jab tip deals to a Dreadlord body posed at `style`/`frame`, with its limb pointing toward the jab. */
+
 function jabIntoDreadlord(style: AttackStyle | undefined, frame: number, gap: number, behind = false): number {
   const attacker = createFighter(Character.rifleman, 0.0, 1);
   const target = createFighter(Character.rifleman, gap, behind ? 1 : -1);
@@ -218,14 +218,14 @@ function jabIntoDreadlord(style: AttackStyle | undefined, frame: number, gap: nu
 }
 
 test("Dreadlord's extended arm and wing can be hit where his standing body cannot [spec docs/design/roster.md]", () => {
-  // Rifleman's jab reaches past the standing body at this gap but not to it.
+
   const gap = 150.0;
   assertEquals(jabIntoDreadlord(undefined, 0, gap), 0.0);
   assertGreaterThan(jabIntoDreadlord(AttackStyle.forwardTilt, 8, gap), 0.0);
   assertGreaterThan(jabIntoDreadlord(AttackStyle.forwardAir, 9, gap), 0.0);
-  // Well after recovery begins the arm is folded back.
+
   assertEquals(jabIntoDreadlord(AttackStyle.forwardTilt, 20, gap), 0.0);
-  // Back air exposes the wing behind him.
+
   assertGreaterThan(jabIntoDreadlord(AttackStyle.backAir, 8, gap, true), 0.0);
 });
 

@@ -7,8 +7,8 @@ import { createFighter } from "./fighter";
 import { SELECTABLE_CHARACTERS } from "./heroes/registry";
 import { advanceSolo, controls } from "./testWorld";
 
-// smashcraft:docs/design/stages.md, "Main-deck topology".
-/** The ranked stages besides Sky Deck: every main deck has walls and an underside. */
+
+
 const BODIED = STAGE_CATALOG.filter(({ id }) => id !== 0);
 
 const outline = (stage: number): string => {
@@ -44,14 +44,14 @@ test("each main deck is mirror-symmetric, hangs from two ledges and stays under 
     const first = lines[0];
     const last = lines[lines.length - 1];
     if (first === undefined || last === undefined) throw new Error("empty body");
-    // The body starts at the right ledge and ends at the left one, straight down from each: a grabbable corner.
+
     assertEquals(first.startX, mainDeckRight(id), `${name}: the body leaves the right ledge`);
     assertEquals(first.startZ, mainDeckZ(id), `${name}: the body leaves the right ledge`);
     assertEquals(last.endX, mainDeckLeft(id), `${name}: the body returns to the left ledge`);
     assertEquals(last.endZ, mainDeckZ(id), `${name}: the body returns to the left ledge`);
     assertEquals(first.endX, first.startX, `${name}: a wall drops straight from the right ledge`);
     assertEquals(first.kind, SurfaceContact.wall, `${name}: the ledge's first line is a wall`);
-    // No overhang beyond the ledges and no pocket: every line of the right side descends inside the ledge.
+
     for (let index = 0; index * 2 + 1 < lines.length; index++) {
       const line = lines[index];
       if (line === undefined) continue;
@@ -82,7 +82,7 @@ test("each ranked stage has its own platform layout [spec #154]", () => {
   }
 });
 
-/** The highest a fighter's feet reach from the floor: a full hop, then its double jump at the top. */
+
 function doubleJumpApex(character: Character): number {
   const fighter = createFighter(character, 0.0, 1);
   let apex = 0.0;

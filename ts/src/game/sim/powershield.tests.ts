@@ -1,7 +1,7 @@
 import { mutableProjectile } from "./fighterProjectiles";
-// Powershield: the parry and red parry, the shield bubble, reflect and
-// perfect-shield windows, projectile reflection, and the original
-// capsule-against-shield boundaries.
+
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, ContactKind, ProjectileKind } from "./codes";
@@ -159,7 +159,7 @@ test("perfect-shield pushback matches the original contact observations [referen
 const queueHitOf = (world: Roster, damage: number) => (): void =>
   queueDamageContact(world, 0, 1, hitEffect(damage, 100.0, 20.0, 1.0, 1.0), 1, ContactKind.launch, true, undefined);
 
-/** Slot 1 standing on the main deck with an ordinary held shield. */
+
 function guarding(world: Roster): Fighter {
   respawnFighter(world, 1, 0.0);
   const target = fighterAt(world, 1);
@@ -174,7 +174,7 @@ const held = (): Controls => controls({ shield: true, shieldTriggerActive: true,
 const pressed = (): Controls => controls({ shield: true, shieldPressed: true, shieldTriggerActive: true, shieldStrength: 1.0 });
 const released = (): Controls => controls({ shieldStrength: 1.0 });
 
-/** Plays the freeze's frames up to, not including, the last one: the frame the fighter can act again. */
+
 function untilLastFreezeFrame(f: Fighter, input: Readonly<Controls>): void {
   while (f.launch.hitlag > 1) {
     assertFalse(canAttack(f));
@@ -215,7 +215,7 @@ test("a parry's reward drops the shield with no release lag until holding guard 
     contactBatch(world, queueHitOf(world, 10.0));
     untilLastFreezeFrame(target, held());
     assertEquals(target.shield.perfectActionFrames, SHIELD_PERFECT_POST_CONTACT_FRAMES);
-    // The first held tick is the freeze's last frame, the first the fighter can act on.
+
     for (let tick = 1; tick <= heldTicks; tick++) advanceSolo(target, 0, held(), 0.0);
     assertEquals(target.shield.perfectActionFrames, SHIELD_PERFECT_POST_CONTACT_FRAMES - heldTicks);
     advanceSolo(target, 0, released(), 0.0);
@@ -238,7 +238,7 @@ test("each hit of a string needs its own parry, and the reward follows the last 
     target.shield.perfectFrames = SHIELD_PERFECT_ACTIVE_FRAMES;
     contactBatch(world, queueHitOf(world, 10.0));
     assertEquals(target.visuals.shieldReflect, 1);
-    // One press parries one hit, however much of its window is left.
+
     assertEquals(target.shield.perfectFrames, 0);
     assertEquals(target.shield.reflectFrames, 0);
     untilLastFreezeFrame(target, held());
@@ -268,7 +268,7 @@ test("each hit of a string needs its own parry, and the reward follows the last 
   }
 });
 
-/** A shot `distance` left of the defender's shield centre, flying right at 60 a frame. */
+
 function aimShot(shooter: Fighter, defender: Fighter, index: number, distance: number): void {
   const shot = mutableProjectile(shooter, index)!;
   shot.x = f32(defender.motion.x - distance);
@@ -326,7 +326,7 @@ test("a red parry, a re-press in shieldstun on the next hit's frame or the one b
       assertEquals(target.visuals.shieldReflect, 1);
       assertEquals(target.shield.stun, 0);
       assertEquals(target.shield.energy, energy);
-      // The same reward as a parry from neutral: act on the freeze's last frame with no release lag.
+
       untilLastFreezeFrame(target, held());
       advanceSolo(target, 0, released(), 0.0);
       assertEquals(target.shield.releaseLag, 0);
@@ -370,7 +370,7 @@ test("the shield bubble shrinks as it drains while held, regenerates once releas
     assertGreaterThan(fighter.shield.energy, previous);
   }
   assertEquals(fighter.shield.energy, SHIELD_MAX);
-  // A path 30 above the centre meets a full bubble and passes over a worn one.
+
   fighter.tuning.shield = { centerX: 0.0, centerZ: 45.0, radius: 60.0 };
   fighter.shield.raised = true;
   assertTrue(shieldCircleIntersects(fighter, -100.0, 75.0, 100.0, 75.0, 1.0));

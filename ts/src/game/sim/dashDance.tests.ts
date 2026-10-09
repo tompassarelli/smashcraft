@@ -68,7 +68,7 @@ test("dash dancing: deliberate walking and slow stick turns stay walks [spec doc
     sample(slow, -facing, f32(0.79));
     assertEquals(slow.ground.action, GroundAction.none);
     assertEquals(slow.facing, -facing);
-    // Weak travel beginning after the initial frames walks at once, as from standing.
+
     const late = createFighter(Character.rifleman, 0.0, facing);
     dashFor(late, facing, 13);
     for (let frame = 0; frame < 3; frame++) sample(late, 0);
@@ -85,7 +85,7 @@ test("dash dancing: 512 analog and digital timelines have zero transition or rol
       for (let hold = 1; hold <= 16; hold++) {
         for (const travel of [0, 1]) {
           for (const amplitude of [f32(0.79), f32(0.8), f32(0.81), 1.0]) {
-            // Digital direction is a full-strength sample, with no analog row.
+
             const digital = amplitude === 1.0;
             const fighter = createFighter(character, 0.0, facing);
             dashFor(fighter, facing, hold);
@@ -137,9 +137,9 @@ test("dash dancing: recorded analog reversal rows replay through the two-sample 
   }
 });
 
-// #188 scripted dash dance: alternating flicks through the real input adapter.
+
 const HELPER_DEADZONE = f32(0.28);
-// The helper holds a digital direction beyond 7000 of 32767 raw.
+
 const HELPER_DIGITAL = 7000 / 32767;
 const ROSTER: readonly Character[] = [
   Character.rifleman, Character.rifleman, Character.demonHunter, Character.blademaster, Character.mountainKing, Character.warden,
@@ -147,9 +147,9 @@ const ROSTER: readonly Character[] = [
 ];
 const DanceInput = { stick: 0, keyOverlap: 1, keyGap: 2 } as const;
 type DanceInput = (typeof DanceInput)[keyof typeof DanceInput];
-// Holds before each flick, from a one-frame tap to a flick whose travel reaches the last dash frame.
+
 const DANCE_HOLDS = [1, 3, 6, 9, 2, 5, 10, 4];
-// Stick sample phases within a frame (tenths); keyboard samples have no phase.
+
 const DANCE_INPUTS: readonly (readonly [DanceInput, number])[] = [
   [DanceInput.stick, 0], [DanceInput.stick, 1], [DanceInput.stick, 2], [DanceInput.stick, 3], [DanceInput.stick, 4],
   [DanceInput.stick, 5], [DanceInput.stick, 6], [DanceInput.stick, 7], [DanceInput.stick, 8], [DanceInput.stick, 9],
@@ -174,7 +174,7 @@ function adaptAndAdvance(driver: DanceDriver, row: Readonly<InputRow>): void {
   advanceSolo(driver.fighter, 0, driver.controls, 0.0);
 }
 
-/** One stick sample as the helper quantizes it: Melee's axial deadzone, then the journal's axis byte and digital holds. */
+
 function stickSample(driver: DanceDriver, x: number): void {
   const kept = Math.abs(x) <= HELPER_DEADZONE ? 0 : x;
   const axis = kept < 0 ? -Math.floor(-kept * 127) : Math.floor(kept * 127);
@@ -182,24 +182,24 @@ function stickSample(driver: DanceDriver, x: number): void {
   adaptAndAdvance(driver, assertDefined(inputRow({ held, axisX: axis })));
 }
 
-/** One keyboard sample: the held Warcraft keys reach the row through the keyboard sampler. */
+
 function keySample(driver: DanceDriver, left: boolean, right: boolean): void {
   sampleKeys(driver.keys, (left ? bit(Action.moveLeft) : 0) | (right ? bit(Action.moveRight) : 0));
   adaptAndAdvance(driver, driver.keys.row);
   commitEdges(driver.keys);
 }
 
-/** Full hold toward `to`. */
+
 function holdToward(driver: DanceDriver, input: DanceInput, to: number): void {
   if (input === DanceInput.stick) stickSample(driver, to);
   else keySample(driver, to < 0, to > 0);
 }
 
-/**
- * The samples a flick from -to to `to` takes over `transition` frames, ending
- * with the first full sample. A stick travels linearly between gates, sampled
- * at `phase` within each frame; keys overlap (both held) or gap (none held).
- */
+
+
+
+
+
 function travelSample(driver: DanceDriver, input: DanceInput, to: number, transition: number, phase: number, step: number): boolean {
   if (input === DanceInput.stick) {
     const t = step + phase / 10;

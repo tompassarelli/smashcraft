@@ -13,7 +13,7 @@ import { advanceFighter } from "../step";
 import { fighterAt, type Controls, type Roster } from "../roster";
 import { ANUBARAK_MOVES } from "./anubarakMoves";
 
-// [style, target x, target z, damage]
+
 const normalCases = [
   [AttackStyle.jab, 75.0, 0.0, 4.0], [AttackStyle.jab2, 90.0, 0.0, 6.0],
   [AttackStyle.forwardTilt, 130.0, 0.0, 11.0], [AttackStyle.forwardTiltUp, 130.0, 30.0, 11.0],

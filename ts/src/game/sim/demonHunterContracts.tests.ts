@@ -33,7 +33,7 @@ test("simultaneousImmolatesTradeInEitherSlotOrder [invariant]", () => {
     assertTrue(startFighterSpecial(left, 0, 0, controls({ specialPressed: true, down: true, specialZ: -1 })));
     assertTrue(startFighterSpecial(right, 0, 0, controls({ specialPressed: true, down: true, specialZ: -1 })));
     const world = reversed ? testWorld(right, left) : testWorld(left, right);
-    // In the air, down special is Flame Crash: its plunge strikes from frame 5.
+
     for (let tick = 1; tick <= (airborne ? FLAME_CRASH_HANG_LAST + 1 : DEMONHUNTER_IMMOLATE_STARTUP); tick++) advanceSpecials(world, 0, 0);
     const damage = airborne ? 9.0 : 7.0;
     assertEquals(left.status.damage, damage);
@@ -144,17 +144,17 @@ test("wingAscentConsumesJumpsAndEndsInHelplessFallAfterInterruptionRules [spec d
   }
 });
 
-// Mana Burn (#116): a slow orb Illidan can run behind, one at a time, whose
-// stun grows with percent and has counterplay.
 
-/** Casts Mana Burn and advances to the frame its orb leaves the hand. */
+
+
+
 function castOrb(illidan: Fighter, world: Roster): Projectile {
   assertTrue(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true })));
   for (let tick = 1; tick <= DEMONHUNTER_MANA_BURN_STARTUP; tick++) advanceSpecials(world, 0, 0);
   return mutableProjectile(illidan, 0)!;
 }
 
-/** Flies the orb straight into a target standing just ahead of it. */
+
 function orbHit(target: Fighter, world: Roster, orb: Readonly<Projectile>): void {
   target.motion.x = f32(orb.x + 20.0);
   updateProjectiles(world);
@@ -194,7 +194,7 @@ test("manaBurnCastsASlowOrbOnFrame16RecoversOnFrame46AndKeepsOneOut [spec #116]"
 test("manaBurnBurns25ManaAndStunsWithoutKnockbackLongerTheEmptierItLeavesTheTarget [spec docs/design/mana.md]", () => {
   assertEquals(heroStatusFrames(MANA_BURN_STUN, 100), 15);
   assertEquals(heroStatusFrames(MANA_BURN_STUN, 0), 60);
-  // The 5% hit earns the target 2 mana before the burn.
+
   for (const [before, after, frames] of [[100, 75, 26], [50, 27, 47], [25, 2, 59], [0, 0, 60]] as const) {
     const illidan = createFighter(Character.demonHunter, 0.0, 1);
     const target = createFighter(Character.rifleman, 5000.0, -1);
@@ -223,7 +223,7 @@ test("manaBurnStunIgnoresInputEndsOnTheNextHitAndCannotChain [spec #116]", () =>
   maskHeroStatusControls(target, input, commands);
   for (const pressed of [input.specialPressed, input.jumpPressed, input.jumpHeld, input.shield, input.shieldPressed, input.attackPressed]) assertFalse(pressed);
   assertEquals(input.direction, 0);
-  // A second orb is the next damaging hit: it ends the stun, and the immunity it leaves refuses a new one.
+
   mutableProjectile(illidan, 0)!.life = 0;
   cancelSpecialState(illidan);
   illidan.attack.cooldown = 0;
@@ -270,7 +270,7 @@ test("aPowershieldReflectsManaBurnAndTheOrbStunsIllidan [spec #116]", () => {
   const defender = createFighter(Character.rifleman, 5000.0, -1);
   const world = testWorld(illidan, defender);
   const orb = castOrb(illidan, world);
-  // projectileRules.tests.ts measures the real presses that reflect it (#98 rule 1); this pins what the reflection does.
+
   defender.motion.x = f32(orb.x + 120.0);
   defender.shield.raised = true;
   for (let tick = 0; tick < 20 && projectileCount(illidan) > 0; tick++) {
@@ -303,8 +303,8 @@ test("manaBurnAndAnOpposingShotCancelEachOther [spec #116]", () => {
   assertGreaterThan(orb.x, 0.0);
 });
 
-// #359: a dash attack is a pop-up and a forward smash is the kill move. At 23 degrees
-// his dash attack killed Rifleman from the centre at 115%, before his forward smash (145%).
+
+
 function centreHit(press: (n: number) => number, percent: number, spacing: number): { angle: number; ko: boolean } {
   const match = comboScene({ stage: 0, attacker: Character.demonHunter, defender: Character.rifleman, attackerX: -spacing / 2, defenderX: spacing / 2, facing: 1, attackerZ: 0, defenderZ: 0, percent });
   const target = fighter(match, 1);

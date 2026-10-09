@@ -1,6 +1,6 @@
-// Illidan's raid-boss normals and Flame Crash (#147, smashcraft:docs/design/illidan.md):
-// Shear, Flames of Azzinoth, Eye Blast, the twin-glaive forward air and the
-// aerial down special, each with its counterplay, through the ordinary match step.
+
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { queueAttack } from "../input/attackBuffer";
@@ -14,13 +14,13 @@ import { controls } from "./testWorld";
 const SHIELD = controls({ shield: true, shieldStrength: 1.0 });
 const downB = controls({ specialPressed: true, specialZ: -1, verticalDirection: -1, down: true });
 
-/** Queues an attack for Illidan on the next frame. */
+
 function attack(d: Duel, style: AttackStyle, mayCharge = false, first = controls(), second = controls()): void {
   const frame = d.step(first, second);
   queueAttack(d.commands[0], { style, facing: d.illidan.facing < 0 ? -1 : 1, frame: frame + 1, mayCharge });
 }
 
-/** Steps until Illidan's attack ends (at most `frames`). */
+
 function finish(d: Duel, frames: number, first = controls(), second = controls()): void {
   d.step(first, second);
   for (let i = 0; i < frames && d.illidan.attack.style !== undefined; i++) d.step(first, second);
@@ -52,7 +52,7 @@ test("Flames of Azzinoth: the glaives strike both sides out to 190 for 14, and t
     assertEquals(d.target.status.damage, 14.0);
     assertEquals(d.target.visuals.manaDrained, 0);
   }
-  // A fighter who walks into the fire after the glaives burns for 3.
+
   const late = duel(400.0);
   attack(late, AttackStyle.downSmash);
   for (let i = 0; i < 40 && late.illidan.attack.frame < 8 + 3; i++) late.step();
@@ -67,7 +67,7 @@ test("Flames of Azzinoth counterplay: a shield holds both parts and acts with th
   attack(d, AttackStyle.downSmash, false, controls(), SHIELD);
   for (let i = 0; i < 18; i++) d.step(controls(), SHIELD);
   assertEquals(d.target.status.damage, 0.0);
-  // Dropping the shield, the defender acts with the smash still running: a punish window.
+
   d.step();
   for (let i = 0; i < 20 && !canAttack(d.target); i++) d.step();
   assertEquals(d.illidan.attack.style, AttackStyle.downSmash);
@@ -114,18 +114,18 @@ test("Eye Blast counterplay: the beam runs low along the floor, so a fighter abo
   assertEquals(d.target.status.damage, 0.0);
 });
 
-/** Illidan and the target in the air `gap` apart; forward air on the next frame. Returns the target's damage after the move. */
+
 function forwardAir(percent: number, gap: number, sdi: boolean): number {
   const d = duel(gap);
   d.target.status.damage = percent;
   lift(d.illidan, 650.0);
   lift(d.target, 650.0);
-  // In the air a forward tilt command is the forward air.
+
   attack(d, AttackStyle.forwardTilt);
   const away = controls({ sdiPulse: true, sdiX: 1 });
   for (let i = 0; i < 30; i++) {
     const before = d.target.status.damage;
-    // The victim taps away on every frame of the link's freeze.
+
     d.step(controls(), sdi && d.target.launch.hitlag > 0 ? away : controls());
     if (sdi && d.target.status.damage > before && before === percent) for (let f = 0; f < 12 && d.target.launch.hitlag > 0; f++) d.step(controls(), away);
   }
@@ -186,9 +186,9 @@ test("Flame Crash: landing bursts beside him for 8, and a shielding fighter acts
   assertEquals(blocked.target.status.damage, 0.0);
   blocked.step();
   for (let i = 0; i < 20 && !canAttack(blocked.target); i++) blocked.step();
-  // The defender acts with Flame Crash's landing still running: a punish window.
+
   assertEquals(blocked.illidan.special.action, SpecialAction.demonHunterImmolate);
-  // Even after the shield's release lag, more frames than a jab's 4-frame startup remain.
+
   assertGreaterThan(blocked.illidan.special.duration - blocked.illidan.special.frame, attackStartupFrames(AttackStyle.jab));
 });
 

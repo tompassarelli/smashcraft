@@ -1,6 +1,6 @@
-// Hero statuses: a body hit applies one, a shield stops it, a later damaging
-// hit or its timer ends it, its group's immunity prevents chaining, and
-// rollback and the canonical record carry it.
+
+
+
 import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { attackBuffer } from "../input/attackBuffer";

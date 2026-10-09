@@ -1,5 +1,5 @@
-// Sloped decks (#193): walking, running, landing, floor techs and ledge
-// catches on Yoshi's Story's main deck, the slope test stage.
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { Character, DownState, LedgeState } from "./codes";
@@ -15,7 +15,7 @@ import { melee } from "./tuning";
 const STAGE = SLOPE_TEST_STAGE;
 const RISE = melee(3.5);
 
-/** A fighter standing on the slope test stage's main deck at `x`. */
+
 function standing(character: Character, x: number, facing: number): Fighter {
   const fighter = createReferenceFighter(character, x, facing);
   fighter.motion.surface = 0;
@@ -43,7 +43,7 @@ test("walking down and back up a slope keeps the fighter on the line, moving gro
       onLine(fighter);
       if (Math.abs(before) > 430.0 && fighter.motion.vx !== 0) {
         crossedSlope = true;
-        // Melee moves ground speed along the floor line: the slope takes its horizontal share.
+
         assertLessThan(Math.abs(f32(fighter.motion.x - before)), Math.abs(fighter.motion.vx));
       }
     }
@@ -91,7 +91,7 @@ test("a fighter falling onto a slope lands on the line under it [spec #193]", ()
     }
     onLine(fighter);
     assertEquals(fighter.motion.x, x);
-    // It stays there, standing.
+
     for (let frame = 0; frame < 30; frame++) advanceSolo(fighter, STAGE, input, 0.0);
     onLine(fighter);
     assertEquals(fighter.motion.x, x);
@@ -165,7 +165,7 @@ test("the ledges at a slope's foot are grabbable corners, and the climb ends on 
     const climb = controls();
     for (let tick = 1; tick <= LEDGE_CLIMB_FRAMES; tick++) {
       advanceSolo(fighter, STAGE, climb, 0.0);
-      // The climb never passes into the deck.
+
       assertTrue(fighter.motion.z <= f32(surfaceZAt(STAGE, 0, 0, fighter.motion.x) + f32(0.001)));
     }
     assertEquals(fighter.ledge.state, LedgeState.none);

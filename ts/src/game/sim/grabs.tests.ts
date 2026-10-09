@@ -1,6 +1,6 @@
 import { mutableProjectile } from "./fighterProjectiles";
 import { stageBounds } from "./stageBounds";
-// Grab links: what releases them, mash-out and stock loss.
+
 import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
@@ -19,7 +19,7 @@ import { advanceFreezeTraps } from "./summons";
 import { contactBatch, controls, hitEffect, testBeginAttacks, testGrabFrame, testWorld } from "./testWorld";
 import { MASH_FRAMES } from "./mash";
 
-/** Slot 0 grabs slot 1 on the ground and holds it. */
+
 function catchTarget(world: Roster, owner: Fighter, target: Fighter): void {
   owner.motion.surface = 0;
   target.motion.surface = 0;
@@ -128,17 +128,17 @@ test("grab mash uses one button and one remembered stick contribution [spec docs
   assertEquals(target.grab.grabbedFrames, GRAB_HOLD_FRAMES - 4 - 3 * MASH_FRAMES);
 });
 
-// ------------------------------------------------------------------ legible holds (#101)
+
 
 const GRABBERS = [Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
 
 type Mash = "none" | "slow" | "human" | "quick" | "fastest";
 
-/**
- * The victim's input on held frame `frame` (one-based): "human" presses the
- * button 8 times a second from the catch, "slow" 6 and "quick" 10; "fastest" presses every other frame
- * and flips the stick every frame.
- */
+
+
+
+
+
 function mashInput(mash: Mash, frame: number): Controls {
   if (mash === "none") return controls();
   if (mash === "human" || mash === "quick" || mash === "slow") {
@@ -148,7 +148,7 @@ function mashInput(mash: Mash, frame: number): Controls {
   return controls({ grabMashPressed: floorMod(frame, 2) === 1, direction: floorMod(frame, 2) === 1 ? 1 : -1 });
 }
 
-/** `character` grabs a Rifleman at `percent`: the real catch, through the grabber's own grab timing. */
+
 function heldBy(character: Character, percent: number): { world: Roster; owner: Fighter; target: Fighter } {
   const owner = createFighter(character, 0.0, 1);
   const target = createFighter(Character.rifleman, 50.0, -1);

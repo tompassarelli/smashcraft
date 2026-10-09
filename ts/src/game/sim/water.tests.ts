@@ -1,6 +1,6 @@
-// The Tomb of Sargeras sea (smashcraft:docs/design/water-stage.md, #277):
-// the tide's timetable and push, floating, swimming, the water jump and the
-// hydra, each pinned to the design's numbers.
+
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { Phase } from "../match/rules";
 import { stepMatch } from "../match/step";
@@ -70,7 +70,7 @@ test("the tide pushes 4.8 a frame right through frame 540, is slack from 541, pu
   assertEquals(tidePush(TOMB, 1140, 0.0, UNDER), -TIDE_SPEED);
   assertEquals(tidePush(TOMB, 1141, 0.0, UNDER), 0.0);
   assertEquals(tidePush(TOMB, 1201, 0.0, UNDER), TIDE_SPEED);
-  // The slack names the coming direction and counts down to it.
+
   assertEquals(tideDirection(541), 0);
   assertEquals(tideNextDirection(541), -1);
   assertEquals(framesUntilTideTurns(541), 60);
@@ -88,7 +88,7 @@ test("the sea spans blast line to blast line below z -360 on the Tomb only; the 
   assertEquals(tidePush(FROZEN_THRONE_STAGE, 1, 0.0, UNDER), 0.0);
 });
 
-/** A two-fighter practice match on the Tomb with fighter 0 dropped, airborne, at (x, z). */
+
 function seaMatch(x: number, z: number): ReplayState {
   const state = createReplaySnapshot();
   state.match.phase = Phase.match; state.match.stageChoice = TOMB;
@@ -114,7 +114,7 @@ test("a fighter's water count runs only while it is in the sea, counts one entry
   assertTrue(f.water.inWater);
   assertEquals(f.water.frames, wet);
   assertEquals(f.water.entries, 1);
-  // Standing on the deck again clears the visit.
+
   const standing = fighterAt(state.world, 1);
   standing.water.frames = 40; standing.water.entries = 3;
   play(state, 11, 11);
@@ -139,7 +139,7 @@ const NEUTRAL = controls();
 const JUMP = controls({ jumpPressed: true, jumpHeld: true });
 const OPEN_SEA = 900.0;
 
-/** A fighter of `character` already floating at the surface in open water, beyond the deck. */
+
 function floater(character: Character): Fighter {
   const f = createFighter(character, OPEN_SEA, -1);
   f.motion.grounded = false; f.motion.surface = undefined; f.motion.z = SEA_SURFACE_Z;
@@ -160,7 +160,7 @@ test("a fighter that falls into the sea sinks, rises at most 18 a frame and then
   assertEquals(f.motion.z, SEA_SURFACE_Z);
   assertEquals(f.motion.vz, 0.0);
   assertEquals(f.status.out, false);
-  // Under the deck's centre the sea is 60 below the deck body: nothing there moves a floating fighter.
+
   const under = floater(Character.rifleman);
   under.motion.x = 0.0;
   for (let frame = 0; frame < 60; frame++) advanceSolo(under, TOMB, NEUTRAL, 0.0);

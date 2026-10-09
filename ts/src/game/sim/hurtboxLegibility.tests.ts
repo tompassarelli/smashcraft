@@ -1,7 +1,7 @@
-// The legible-hurtbox rules (smashcraft:docs/gameplay-design.md, "Legible
-// hurtboxes", #97) checked on every fighter's authored bodies: the original
-// three and each registered hero, normals and specials. A fighter that breaks
-// a rule on purpose lists a named departure below and in that section.
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { capsulesIntersect, placeCapsule } from "../physics/contactGeometry";
@@ -13,16 +13,16 @@ import { type AuthoredSpecial, specialKit } from "./heroSpecials";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, HurtContact, HurtState, fighterHurtParts, fighterHurtboxes, strikeHurtContact } from "./hurtboxes";
 import { attackDurationFramesForGrounding } from "./moves";
 
-/** Rule 3: frames every authored pose lasts at least. */
+
 const MIN_POSE_FRAMES = 3;
-/** Rule 4: world units one change may move the body's front, back, top or bottom. */
+
 const MAX_BODY_STEP = 60.0;
-/** Rule 6: a fully extended limb's reach, as fractions of the standing height: sideways from the feet, below the feet and above the head. */
+
 const LIMB_REACH = f32(0.7);
 const BELOW_FEET = 0.25;
 const ABOVE_HEAD = f32(0.3);
 
-/** Dreadlord's wings and claws are body (the roster keeps hurtboxes on attached body parts) and reach past an arm. */
+
 const wings = (moves: readonly string[]): { [key: string]: string } => {
   const out: { [key: string]: string } = {};
   for (const move of moves) out[`Dreadlord ${move} rule 6`] = "wing or claw: attached body, hittable to its full reach";

@@ -18,7 +18,7 @@ import { fighterAt } from "./roster";
 import { SELECTABLE_CHARACTERS } from "./heroes/registry";
 import { INITIAL_DASH_FRAMES } from "./tuning";
 
-/** The first frame of the first eruption, on the right. */
+
 const FIRST_ERUPTION = LAVA_CALM_FRAMES + LAVA_WARNING_FRAMES + 1;
 
 function lavaWorld() {
@@ -40,9 +40,9 @@ test("lava produces the same complete victim as an ordinary scripted fire hit [s
   }
 });
 
-// #193 (Tom, 9 Oct): one lava spot, not two symmetric ones, away from the
-// edges; it switches to the mirrored spot on a fixed timetable, the ground
-// warning there for five seconds before each eruption.
+
+
+
 test("Blackrock's lava warns for five seconds, erupts on the right, then warns and erupts on the mirrored left spot, on a fixed timetable [spec #193]", () => {
   const at = (frame: number) => `${lavaPhase(CANNON_TEST_STAGE, frame)}${lavaSide(frame) > 0 ? "R" : "L"}`;
   const { calm, warning, erupting } = LavaPhase;

@@ -1,4 +1,4 @@
-// Retail NTSC 1.02 analog shield observations; see smashcraft:docs/melee-analog-shield.md.
+
 import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { roundToFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";

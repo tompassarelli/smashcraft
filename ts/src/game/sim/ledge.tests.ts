@@ -1,5 +1,5 @@
 import { stageBounds } from "./stageBounds";
-// Ledge catches, contention, hang options and their protection.
+
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "./attacks";
@@ -47,7 +47,7 @@ test("hero recovery refreshes on the ledge mount onto the deck, not the catch [s
   }
 });
 
-/** A fighter beside a main-deck ledge, facing the stage, whose last movement fell into every fighter's catch box. */
+
 function ledgeTestFighter(character: Character, side: number): Fighter {
   const fighter = createReferenceFighter(character, f32(side * 620.0), -side);
   fighter.motion.grounded = false;
@@ -62,11 +62,11 @@ function catchTestLedge(fighter: Fighter, input: Readonly<Controls>): void {
   resolveLedges(testWorld(fighter, createReferenceFighter(Character.rifleman, 0.0, 1)), 0, [input, controls()]);
 }
 
-/**
- * Whether a fighter of `character` facing the `side` ledge catches it after a
- * movement from (outsideBefore, belowBefore) to (outside, below), measured
- * outward from and down from the ledge.
- */
+
+
+
+
+
 function catchesAfterMovement(character: Character, side: number, outsideBefore: number, belowBefore: number, outside: number, below: number): boolean {
   const fighter = ledgeTestFighter(character, side);
   const edge = side < 0 ? surfaceLeft(0, 0, 0) : surfaceRight(0, 0, 0);
@@ -79,9 +79,9 @@ function catchesAfterMovement(character: Character, side: number, outsideBefore:
 }
 
 test("each fighter catches with its reference fighter's NTSC 1.02 ledge snap data [reference]", () => {
-  // ftData x44 +0x10/+0x14/+0x18 (melee:src/melee/ft/types.h ftData_x44_t), read
-  // by melee:src/melee/ft/ft_081B.c into the box of melee:src/melee/mp/mpcoll.c.
-  // PlFx.dat (Fox) and PlFc.dat (Falco): 11, 13, 9. PlCa.dat (Captain Falcon): 9, 17, 11.
+  // Ledge box ftData x44 +0x10/+0x14/+0x18: PlFx.dat/PlFc.dat = 11,13,9; PlCa.dat = 9,17,11 (ftData_x44_t).
+
+
   const references = [
     [Character.sylvanas, 11.0, 13.0, 9.0],
     [Character.rifleman, 11.0, 13.0, 9.0],
@@ -92,7 +92,7 @@ test("each fighter catches with its reference fighter's NTSC 1.02 ledge snap dat
     assertEquals(snap.x, x);
     assertEquals(snap.y, y);
     assertEquals(snap.height, height);
-    // Reach adds Melee's 2-unit minimum airborne collision half-width; six world units per Melee unit.
+
     const box = ledgeCatchBox(character);
     assertEquals(BODY_HALF_WIDTH, 2.0);
     assertEquals(box.reach, f32(f32(x + 2.0) * 6.0));
@@ -112,12 +112,12 @@ test("the catch box's edges are strict for every fighter and side [reference]", 
     const { reach, lowest, highest } = ledgeCatchBox(character);
     const middle = f32(f32(lowest + highest) * 0.5);
     for (const side of [-1, 1]) {
-      // Ahead of the fighter: strictly beyond the ledge and strictly within reach.
+
       assertTrue(catchesAfterMovement(character, side, f32(reach - 1.0), f32(middle - 1.0), f32(reach - 1.0), middle));
       assertFalse(catchesAfterMovement(character, side, reach, f32(middle - 1.0), reach, middle));
       assertTrue(catchesAfterMovement(character, side, 1.0, f32(middle - 1.0), 1.0, middle));
       assertFalse(catchesAfterMovement(character, side, 0.0, f32(middle - 1.0), 0.0, middle));
-      // Below it: strictly between the lowest and highest ledge heights above the feet.
+
       assertFalse(catchesAfterMovement(character, side, 20.0, f32(lowest - 2.0), 20.0, lowest));
       assertTrue(catchesAfterMovement(character, side, 20.0, f32(lowest - 1.0), 20.0, f32(lowest + 1.0)));
       assertFalse(catchesAfterMovement(character, side, 20.0, highest, 20.0, f32(highest + 2.0)));
@@ -131,11 +131,11 @@ test("the catch box sweeps the frame's movement, and only a downward movement ca
     const { reach, lowest, highest } = ledgeCatchBox(character);
     const middle = f32(f32(lowest + highest) * 0.5);
     for (const side of [-1, 1]) {
-      // A fall through the whole window in one frame, and a drift out of reach, still catch.
+
       assertTrue(catchesAfterMovement(character, side, 20.0, f32(lowest - 10.0), 20.0, f32(highest + 10.0)));
       assertTrue(catchesAfterMovement(character, side, f32(reach - 1.0), f32(middle - 1.0), f32(reach + 10.0), middle));
       assertFalse(catchesAfterMovement(character, side, f32(reach + 10.0), f32(middle - 1.0), f32(reach + 10.0), middle));
-      // Rising or level movement never catches, even inside the box.
+
       assertFalse(catchesAfterMovement(character, side, 20.0, f32(middle + 1.0), 20.0, middle));
       assertFalse(catchesAfterMovement(character, side, 20.0, middle, 20.0, middle));
     }
@@ -239,8 +239,8 @@ test("ledge eligibility rejects locks, wrong facing and positions outside the re
 });
 
 test("only a full down passes ledges; a slight downward tilt still catches [reference]", () => {
-  // Melee refuses a catch from stick y -0.66 (ftCliffCommon_80081298, +0x480);
-  // the helper reports `down` there, and any tilt past the deadzone as the axis.
+  // Melee refuses ledge catches at stick y -0.66 (ftCliffCommon_80081298, common +0x480).
+
   const fighter = ledgeTestFighter(Character.sylvanas, -1);
   const input = controls();
   input.verticalDirection = -1;
@@ -305,7 +305,7 @@ test("ledge options honor priority, locks and exact recovery durations [spec doc
         advanceSolo(fighter, 0, input, 0.0);
         if (option === 0 || option === 2 || option === 4) {
           assertEquals(fighter.ledge.state, LedgeState.none);
-          // Letting go starts the regrab lock; a ledge jump doesn't.
+
           assertEquals(fighter.ledge.regrab, option === 0 ? 0 : LEDGE_REGRAB_FRAMES);
           assertFalse(isIntangible(fighter));
           assertEquals(fighter.jump.remaining, 1);
@@ -410,7 +410,7 @@ test("ledge hits and grabs interrupt, and a respawn clears ledge ownership [spec
       catchTestLedge(fighter, input);
       fighter.ledge.state = phase;
       fighter.ledge.intangible = 0;
-      // The #337 grab box starts 20 units above the deck, so a grab meets a get-up halfway through its rise.
+
       if (mode === 1 && phase !== LedgeState.hang) fighter.motion.z = f32(fighter.motion.z + f32(LEDGE_HANG_DEPTH * 0.5));
       if (mode < 2) {
         const attacker = createReferenceFighter(Character.rifleman, -570.0, -1);

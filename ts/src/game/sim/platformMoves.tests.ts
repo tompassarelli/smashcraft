@@ -1,5 +1,5 @@
-// Platform ascent, descent and wraps (#103) for every fighter, on stage 1's
-// left raised deck (x -420..-110, z 170).
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { addFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
@@ -28,7 +28,7 @@ const FIGHTERS: readonly Character[] = [Character.rifleman, Character.demonHunte
 const step = (f: Fighter, input: Readonly<Controls>) => advanceSolo(f, STAGE, input, 0.0);
 const height = (f: Fighter) => melee(bodyTop(f.character));
 
-/** Airborne below the deck's centre, rising so its body meets the deck on the next frame. */
+
 function risingUnder(character: Character, x = CENTRE): Fighter {
   const f = createFighter(character, x, 1);
   f.motion.grounded = false;
@@ -45,7 +45,7 @@ function standingOnDeck(character: Character, x = CENTRE): Fighter {
   return f;
 }
 
-/** Steps with the input until the move ends; returns the frames it lasted, counting its entry frame. */
+
 function finishMove(f: Fighter, input: Readonly<Controls>): number {
   let frames = 1;
   for (; frames <= 30 && f.platform.move !== PlatformMove.none; frames++) step(f, input);
@@ -64,7 +64,7 @@ test("a full hop under a platform ascends it for the jump squat, carrying its ri
     assertEquals(f.platform.duration, f.tuning.physics.jumpSquatFrames);
     const rise = f.platform.rise;
     assertGreaterThan(rise, 0.0);
-    // The entry frame and the jump squat's remaining frames; holding jump sustains the rise.
+
     assertEquals(finishMove(f, input), f.tuning.physics.jumpSquatFrames);
     assertFalse(f.motion.grounded);
     assertEquals(f.motion.z, DECK_Z);
@@ -111,7 +111,7 @@ test("an ascent cancels an aerial's remaining recovery after it hits [spec #103]
 test("an aerial in its startup or active frames carries on through the platform; the ascent begins as they end [spec #103]", () => {
   for (const character of FIGHTERS) {
     const f = risingUnder(character);
-    // Sustained, so the body still straddles the platform when the aerial's active frames end.
+
     f.motion.z = f32(f32(DECK_Z - height(f)) + 1.0);
     f.attack.style = AttackStyle.upAir;
     f.attack.duration = attackDurationFramesForGrounding(AttackStyle.upAir, false, f.tuning.moves);
@@ -180,7 +180,7 @@ test("a fresh down on a platform descends it for the jump squat; the tilt modifi
     assertEquals(f.motion.z, DECK_Z);
     assertEquals(finishMove(f, down), f.tuning.physics.jumpSquatFrames);
     assertFalse(f.motion.grounded);
-    // Its body has passed below the platform.
+
     assertEquals(f.motion.z, subtractFloat32(DECK_Z, height(f)));
     for (let frame = 1; frame <= 120 && !f.motion.grounded; frame++) step(f, down);
     assertTrue(f.motion.grounded);
@@ -209,7 +209,7 @@ test("there is no platform shield drop: down while shielding stays on the platfo
 test("a fighter is vulnerable throughout every platform move, and a hit ends the move [spec #103]", () => {
   for (const character of FIGHTERS) {
     const ascent = risingUnder(character);
-    // An upward air dodge into the platform ascends it without its intangibility.
+
     beginAirDodge(ascent, 0, 1);
     step(ascent, controls());
     assertEquals(ascent.platform.move, PlatformMove.ascent);
@@ -268,7 +268,7 @@ test("a half-circle during an ascent wraps over onto the platform toward its sid
     assertEquals(f.motion.x, addFloat32(CENTRE, PLATFORM_WRAP_REACH));
     assertEquals(f.facing, -1);
 
-    // Holding down while drifting is not a half-circle: the ascent ends standing, facing unchanged.
+
     const drift = risingUnder(character);
     step(drift, controls());
     for (const input of [DOWN_LEFT, DOWN_RIGHT, DOWN_RIGHT]) step(drift, input);
@@ -277,7 +277,7 @@ test("a half-circle during an ascent wraps over onto the platform toward its sid
     assertEquals(drift.motion.x, CENTRE);
     assertEquals(drift.facing, 1);
 
-    // No platform beyond the fighter on that side: no wrap.
+
     const edge = risingUnder(character, surfaceRight(STAGE, DECK, 0));
     step(edge, controls());
     for (const input of [AWAY_LEFT, DOWN, TOWARD_RIGHT]) step(edge, input);
@@ -293,7 +293,7 @@ test("a half-circle onto a falling contact wraps under the platform toward its s
       const f = createFighter(character, CENTRE, 1);
       const { gravity, fastFallSpeed } = f.tuning.physics;
       f.motion.grounded = false;
-      // Lands on the third frame: one of gravity, then two fast-falling after the half-circle's down.
+
       f.motion.z = f32(DECK_Z + f32(gravity + f32(fastFallSpeed * 1.5)));
       f.jump.remaining = 1;
       return f;
@@ -314,7 +314,7 @@ test("a half-circle onto a falling contact wraps under the platform toward its s
     assertEquals(drift.motion.surface, DECK);
     assertEquals(drift.facing, 1);
 
-    // Standing on the platform there is no wrap: the half-circle's down descends.
+
     const standing = standingOnDeck(character);
     for (const input of [AWAY_LEFT, DOWN, TOWARD_RIGHT]) step(standing, input);
     assertEquals(standing.platform.move, PlatformMove.descent);

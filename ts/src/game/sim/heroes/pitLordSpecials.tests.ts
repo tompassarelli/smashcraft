@@ -1,5 +1,5 @@
-// Pit Lord's four specials through the production special, projectile,
-// contact, status and resource path, against smashcraft:docs/design/roster.md.
+
+
 import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { upSpecialRoute } from "../../match/recoveryEnvelope";
@@ -30,7 +30,7 @@ function pitLord(x: number, facing: number): Fighter {
   return f;
 }
 
-/** One match-ordered frame: motion, special starts, contacts, specials, projectiles, resources. */
+
 function frame(world: Roster, first: Readonly<Controls> = controls(), second: Readonly<Controls> = controls()): void {
   const inputs = [first, second];
   for (let slot = 0; slot < 2; slot++) advanceFighter(world, slot, 0, inputs[slot] ?? controls(), slot === 0 ? -240.0 : 240.0);
@@ -129,7 +129,7 @@ test("Ruin Charge travels 1.5H, armors one small hit on f19-24 only, and the air
   const start = owner.motion.x;
   for (let f = 1; f <= 64; f++) {
     frame(world, f === 1 ? side : controls());
-    // Protection set at the end of a frame covers the next one, which resolves first.
+
     assertEquals(owner.status.armorFrames > 0, f >= 18 && f <= 23);
   }
   assertNear(f32(owner.motion.x - start), f32(H * f32(1.5)), 1.0);
@@ -150,7 +150,7 @@ test("Ruin Charge travels 1.5H, armors one small hit on f19-24 only, and the air
 });
 
 test("an Rifleman jab that meets Ruin Charge's armor deals its damage without a reaction, and the charge still lands [spec docs/design/pit-lord.md]", () => {
-  // The Rifleman jabs on each frame the charge could meet it; some start trades into the armor.
+
   let trades = 0;
   for (let start = 15; start <= 24; start++) {
     const { world, owner, target } = pair(f32(H * f32(1.47)));
@@ -178,7 +178,7 @@ test("Abyssal Leap keeps its heavy recovery band and 3.5H grounded peak at every
     const ground = owner.motion.z;
     let peak = ground;
     frame(world, up);
-    // Regular leaps preserve the super meter.
+
     assertEquals(owner.mana.points, mana);
     for (let f = 2; f <= 60; f++) {
       frame(world);
@@ -195,7 +195,7 @@ test("Howl of Terror pushes both sides once with no hidden status; a shield stop
     for (let f = 1; f <= 18; f++) frame(world, f === 1 ? neutral : controls());
     assertEquals(target.status.damage, 7.0);
     assertEquals(target.status.condition, HeroStatusKind.none);
-    // The roar pushes away on both sides.
+
     assertGreaterThan(f32(f32(target.motion.x - owner.motion.x) * target.launch.knockbackX), 0.0);
   }
   const shielded = pair(f32(H * f32(0.8)));

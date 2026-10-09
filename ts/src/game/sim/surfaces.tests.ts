@@ -1,9 +1,9 @@
-// Floor, wall and ceiling contacts share the surface-recovery fixture and
-// executor; the same-frame transitions are checked together.
+
+
 import { max } from "../../runtime/numbers";
 import { TECH_WINDOW_FRAMES, TECH_REPEAT_MINIMUM_AGE_FRAMES } from "../physics/techInput";
-// Solid stage surfaces, tumble rebounds, wall and ceiling techs, and the
-// decoded common recovery values.
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { roundToFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
@@ -40,7 +40,7 @@ import { stageBounds } from "./stageBounds";
 import { advanceSolo, controls, seedTechWindow, withPhysics } from "./testWorld";
 import { type SurfaceRecoveryPhysics, WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning";
 
-// Reference-only fighter values; playable profiles stay actor-authored.
+
 const MELEE_CAPTAIN_FALCON_SURFACE_RECOVERY_PHYSICS: SurfaceRecoveryPhysics = {
   passiveWallSpeed: melee(0.5),
   wallJumpHorizontalSpeed: melee(1.399999976158142),
@@ -50,17 +50,17 @@ const MELEE_CAPTAIN_FALCON_SURFACE_RECOVERY_PHYSICS: SurfaceRecoveryPhysics = {
   canWallJump: true,
 };
 
-/** Where a fighter meets the solid-deck test stage's left raised deck's left wall (x -420): its flank touches the wall. */
+
 const RAISED_WALL_CONTACT_X = f32(surfaceLeft(SOLID_DECK_TEST_STAGE, 1, 0) - melee(BODY_HALF_WIDTH));
 
-/** That deck's underside, which a fighter meets with its ECB top. */
+
 const RAISED_UNDERSIDE_Z = solidSurfaceAt(SOLID_DECK_TEST_STAGE, MAIN_DECK_BODY_SURFACES + 2).startZ;
-/** Where an Rifleman stands when its top meets it: Fox's ECB top below it. */
+
 const RAISED_UNDERSIDE_CONTACT_Z = f32(RAISED_UNDERSIDE_Z - melee(bodyTop(Character.sylvanas)));
-/** An Rifleman whose top is 5.7 below that underside. */
+
 const CEILING_TUMBLER_Z = f32(RAISED_UNDERSIDE_CONTACT_Z - 5.699999809265137);
 
-/** A tumbling fighter 5 units short of that wall, or below that deck's underside. */
+
 function surfaceTumbler(atCeiling: boolean): Fighter {
   const fighter = createReferenceFighter(Character.sylvanas, atCeiling ? -265.0 : f32(RAISED_WALL_CONTACT_X - 5.0), 1);
   fighter.motion.grounded = false;
@@ -70,7 +70,7 @@ function surfaceTumbler(atCeiling: boolean): Fighter {
   return fighter;
 }
 
-/** A tumbler with an open tech window, moving into the wall or ceiling. */
+
 function techingTumbler(atCeiling: boolean, launch: number): Fighter {
   const fighter = surfaceTumbler(atCeiling);
   seedTechWindow(fighter, 3);
@@ -79,17 +79,17 @@ function techingTumbler(atCeiling: boolean, launch: number): Fighter {
   return fighter;
 }
 
-/** The vertical velocity after a wall jump's first gravity frame. */
+
 const wallJumpVerticalAfterGravity = (fighter: Fighter) =>
   f32(roundToFloat32(f32(roundToFloat32(f32(fighter.tuning.surface.wallJumpVerticalSpeed / 6)) - roundToFloat32(f32(fighter.tuning.physics.gravity / 6)))) * 6);
 
-/**
- * Final Destination's main-stage lines below its floor, in Melee units, as
- * read from the owner's GALE01 revision 2 GrNLa.dat coll_data (ground scale
- * 1; melee:src/melee/mp/types.h MapCollData): rightWall lines 9, 10, 7, 8, 6,
- * ceiling lines 5, 4, 3 and leftWall lines 15, 14, 12, 13, 11, each from its
- * first vertex to its second.
- */
+// GrNLa.dat coll_data scale 1: rightWall 9,10,7,8,6; ceiling 5,4,3; leftWall 15,14,12,13,11 (GALE01 revision 2).
+
+
+
+
+
+
 const REFERENCE_LEDGE_X = 85.5656967163086;
 const REFERENCE_BODY: readonly (readonly [SurfaceContact, number, number, number, number])[] = [
   [SurfaceContact.wall, 85.5656967163086, 0.0, 85.5656967163086, -10.5],
@@ -106,10 +106,10 @@ const REFERENCE_BODY: readonly (readonly [SurfaceContact, number, number, number
   [SurfaceContact.wall, -65.79930114746094, -20.453800201416016, -85.5656967163086, -10.5],
   [SurfaceContact.wall, -85.5656967163086, -10.5, -85.5656967163086, 0.0],
 ];
-/** The main deck's level underside, Final Destination's line 4. */
+
 const FLAT_UNDERSIDE = 6;
 
-/** A reference point's world x on the main deck: as far inside that side's ledge as it lies inside Final Destination's. */
+
 function mainDeckWorldX(referenceX: number): number {
   return referenceX > 0
     ? f32(surfaceRight(0, 0, 0) + f32(f32(referenceX - REFERENCE_LEDGE_X) * WORLD_UNITS_PER_MELEE_UNIT))
@@ -127,30 +127,30 @@ test("each shipped stage's main deck has Final Destination's side walls and unde
       assertNear(surface.startZ, f32(startZ * WORLD_UNITS_PER_MELEE_UNIT), 0.0010000000474974513);
       assertNear(surface.endX, mainDeckWorldX(endX), 0.0010000000474974513);
       assertNear(surface.endZ, f32(endZ * WORLD_UNITS_PER_MELEE_UNIT), 0.0010000000474974513);
-      // A unit normal across the line, facing away from the deck.
+
       const { normalX, normalZ } = surface;
       assertNear(f32(f32(normalX * normalX) + f32(normalZ * normalZ)), 1.0, 9.999999974752427e-7);
       assertNear(f32(f32(normalX * f32(surface.endX - surface.startX)) + f32(normalZ * f32(surface.endZ - surface.startZ))), 0.0, 0.0010000000474974513);
       assertGreaterThan(f32(f32(normalX * f32(surface.startX + surface.endX)) + f32(normalZ * f32(f32(surface.startZ + surface.endZ) + 300.0))), 0.0);
     });
   }
-  // The walls fall from each ledge vertex, which stays the end of the walking deck.
+
   assertEquals(solidSurfaceAt(0, 0).startX, surfaceRight(0, 0, 0));
   assertEquals(solidSurfaceAt(0, MAIN_DECK_BODY_SURFACES - 1).endX, surfaceLeft(0, 0, 0));
   assertEquals(solidSurfaceAt(0, FLAT_UNDERSIDE).startZ, -332.3291931152344);
 });
 
-// Melee's pass-through platforms are floor lines flagged LINE_FLAG_PLATFORM
-// (melee:src/melee/mp/forward.h). At revision 0296f009f, mpCheckFloor hits a
-// level floor line only while the ECB bottom descends (`ay >= by`),
-// mpCheckCeiling tests ceiling-kind lines only, and mpJointUpdateDynamics
-// disables a platform line that is not floor-kind (melee:src/melee/mp/mplib.c).
+
+
+
+
+
 const PLAYABLE_FIGHTERS = [Character.sylvanas, Character.rifleman, Character.demonHunter] as const;
 
-/**
- * Jumps from the main deck beneath the deck's centre. A short hop tops out far
- * below the raised decks, so it adds its aerial jump on its first falling frame.
- */
+
+
+
+
 function jumpBeneathDeck(character: Character, stage: number, deck: number, shortHop: boolean): { fighter: Fighter; apex: number } {
   const fighter = createReferenceFighter(character, f32(f32(surfaceLeft(stage, deck, 0) + surfaceRight(stage, deck, 0)) / 2), 1);
   const input = controls({ jumpPressed: true, jumpHeld: !shortHop });
@@ -175,7 +175,7 @@ test("full and short hops ascend every pass deck and land on top [reference]", (
       for (const shortHop of [false, true]) {
         const { fighter, apex } = jumpBeneathDeck(character, 1, deck, shortHop);
         assertEquals(fighter.surfaceRecovery.contactSerial, 0);
-        // A short hop's aerial jump may spend its rise in the ascent and land as it ends (#103).
+
         if (shortHop) assertTrue(apex >= surfaceZ(1, deck, 0));
         else assertGreaterThan(apex, surfaceZ(1, deck, 0));
         assertTrue(fighter.motion.grounded);
@@ -191,13 +191,13 @@ test("a jump under a solid surface still bumps its head [reference]", () => {
     const { fighter, apex } = jumpBeneathDeck(character, SOLID_DECK_TEST_STAGE, 1, false);
     assertEquals(fighter.surfaceRecovery.contactSerial, 1);
     assertEquals(fighter.surfaceRecovery.contactKind, SurfaceContact.ceiling);
-    // Its ECB top meets the underside.
+
     const top = melee(bodyTop(character));
     assertEquals(apex, f32(RAISED_UNDERSIDE_Z - top));
     assertEquals(fighter.motion.surface, 0);
 
-    // The main deck's underside on the shipped stage, from an aerial jump 2 below it. Illidan's
-    // top doesn't fit between it and the bottom blast zone, which #80 lowers to Final Destination's.
+
+
     const underside = solidSurfaceAt(1, FLAT_UNDERSIDE).startZ;
     const start = f32(f32(underside - top) - 2.0);
     if (start <= stageBounds(0).blast.bottom) continue;
@@ -319,7 +319,7 @@ test("a retail ceiling rebound reports the surface normal [reference]", () => {
   const fighter = surfaceTumbler(true);
   fighter.launch.knockbackZ = 12.0;
   advanceSolo(fighter, SOLID_DECK_TEST_STAGE, controls(), 0.0);
-  // The fighter stops with its ECB top on the underside; the contact is on the underside.
+
   assertNear(fighter.motion.z, RAISED_UNDERSIDE_CONTACT_Z, 0.0010000000474974513);
   assertEquals(fighter.surfaceRecovery.contactKind, SurfaceContact.ceiling);
   assertEquals(fighter.surfaceRecovery.contactX, -265.0);
@@ -424,7 +424,7 @@ test("a retail wall tech completes after its paused startup and selected animati
     advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
     assertEquals(fighter.surfaceRecovery.state, SurfaceContact.techWall);
     for (let tick = 1; tick <= WALL_TECH_STARTUP_FRAMES; tick++) advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
-    // Keep the animation-boundary case airborne, independent of landing.
+
     withPhysics(fighter, { gravity: 0.0 });
     fighter.motion.vz = 0.0;
     input.verticalDirection = 0;
@@ -582,7 +582,7 @@ test("a retail ceiling tech protects until its one-shot actor impulse [reference
     const fighter = techingTumbler(true, 8.0);
     fighter.tuning.surface = MELEE_CAPTAIN_FALCON_SURFACE_RECOVERY_PHYSICS;
     fighter.tuning.tech = { ...fighter.tuning.tech, ceilingImpulseFrame: impulseFrame };
-    // Held airborne: the floor is nearer below the raised deck than the impulse frame's fall.
+
     withPhysics(fighter, { airAcceleration: 0.0, airFriction: 0.0, gravity: 0.0 });
     const input = controls();
     advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
@@ -614,7 +614,7 @@ test("a retail ceiling tech locks actions until its animation completes [referen
   const input = controls();
   advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
   assertEquals(fighter.surfaceRecovery.state, SurfaceContact.techCeiling);
-  // Keep this action-boundary case airborne; landing is a separate exit.
+
   withPhysics(fighter, { gravity: 0.0 });
   fighter.motion.vz = 0.0;
   const jumps = fighter.jump.remaining;

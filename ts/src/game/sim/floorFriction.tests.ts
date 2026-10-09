@@ -1,5 +1,5 @@
-// Shallow water's floor friction against ordinary ground: the same fighter,
-// state and input on each, every traction slide measured to rest.
+
+
 import { assertEquals, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { Character } from "./codes";
@@ -13,7 +13,7 @@ const FLAT_STAGE = 0;
 const RELEASED = controls();
 const HELD_RIGHT = controls({ direction: 1 });
 
-/** Frames the fighter takes to come to rest from its current state with neutral input, and how far it travelled. */
+
 function slideToRest(f: Fighter, stage: number, moving: (f: Fighter) => boolean): { frames: number; distance: number } {
   const startX = f.motion.x;
   let frames = 0;
@@ -25,7 +25,7 @@ function slideToRest(f: Fighter, stage: number, moving: (f: Fighter) => boolean)
   return { frames, distance: f32(f.motion.x - startX) };
 }
 
-/** A fighter that has run right for 40 frames from x -400. */
+
 function runner(stage: number): Fighter {
   const f = createReferenceFighter(Character.sylvanas, -400.0, 1);
   for (let frame = 0; frame < 40; frame++) advanceSolo(f, stage, HELD_RIGHT, 0.0);
@@ -34,7 +34,7 @@ function runner(stage: number): Fighter {
 
 const groundSpeed = (f: Fighter) => f.motion.vx !== 0;
 
-/** The water slide is about 1 / WATER_FRICTION times the ground slide: twice as long, give or take the last frames' rounding. */
+
 function assertTwiceAsLong(ground: number, water: number): void {
   assertTrue(ground > 0);
   assertNear(f32(water / ground), f32(1.0 / WATER_FRICTION), f32(0.15));
@@ -51,7 +51,7 @@ test("only Tomb of Sargeras's main deck has reduced friction [spec docs/physics.
 test("a run released on water brakes at half traction and slides twice as far [spec docs/physics.md]", () => {
   const ground = runner(FLAT_STAGE);
   const water = runner(TOMB_OF_SARGERAS_STAGE);
-  // Running speed and position are the same until the stick is released: acceleration is unchanged.
+
   assertEquals(water.motion.vx, ground.motion.vx);
   assertEquals(water.motion.x, ground.motion.x);
   const speed = ground.motion.vx;

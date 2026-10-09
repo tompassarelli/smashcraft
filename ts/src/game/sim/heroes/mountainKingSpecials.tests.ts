@@ -1,5 +1,5 @@
-// Mountain King's four specials through the production special, projectile,
-// contact and resource path, against smashcraft:docs/design/roster.md.
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "../attacks";
@@ -29,7 +29,7 @@ function mountainKing(x: number, facing: number): Fighter {
   return f;
 }
 
-/** One match-ordered frame: motion, special starts, contacts, specials, projectiles, resources. */
+
 function frame(world: Roster, first: Readonly<Controls> = controls(), second: Readonly<Controls> = controls()): void {
   const inputs = [first, second];
   for (let slot = 0; slot < 2; slot++) advanceFighter(world, slot, 0, inputs[slot] ?? controls(), slot === 0 ? -240.0 : 240.0);
@@ -52,7 +52,7 @@ function pair(gap: number, facing = 1): { world: Roster; owner: Fighter; target:
   return { world, owner, target };
 }
 
-/** Frames from the press (frame 1) through the frame that ends the action; the fighter acts on the next. */
+
 function actionLength(world: Roster, owner: Fighter, press: Readonly<Controls>): number {
   frame(world, press);
   let length = 1;
@@ -106,7 +106,7 @@ test("Storm Bolt flies 0.12H a frame from frame 20, one at a time, and hits once
 });
 
 test("a shielded Storm Bolt at full travel leaves the defender free before Mountain King can run in to grab [spec #335]", () => {
-  // Its outbound flight: 45 frames from frame 20, then it turns back.
+
   const travel = f32(f32(H * f32(0.12)) * 44);
   const { world, owner, target } = pair(f32(travel + 32.0));
   target.shield.raised = true;
@@ -121,7 +121,7 @@ test("a shielded Storm Bolt at full travel leaves the defender free before Mount
   }
   assertGreaterThan(blockedAt, 0);
   assertEquals(target.status.damage, 0.0);
-  // Mountain King acts on frame 49; from there he still has the whole gap less grab reach to run.
+
   const runFrames = Math.ceil(f32(f32(f32(target.motion.x - owner.motion.x) - f32(H * 0.5)) / owner.tuning.physics.runSpeed));
   assertLessThan(blockedAt + stun, 49 + runFrames);
 });
@@ -132,7 +132,7 @@ const run = (world: Roster, frames: number, first: Readonly<Controls> = controls
 const neutralRelease = controls({ specialPressed: true });
 const guard = controls({ shield: true, shieldPressed: true, shieldTriggerActive: true });
 
-/** A Thunder Clap pressed, then released on `release` (undefined: runs out), against a target `gap` away. */
+
 function clap(gap: number, release: number | undefined, facing = 1, ownerFacing = facing): { world: Roster; owner: Fighter; target: Fighter } {
   const match = pair(gap, facing);
   match.owner.facing = ownerFacing;
@@ -223,7 +223,7 @@ test("Storm Bolt recall: neutral special while it flies calls it back at once, a
   run(world, 19);
   const bolt = owner.projectiles.find(p => p.life > 0 && p.kind === ProjectileKind.hero);
   if (bolt === undefined) throw new Error("no bolt");
-  // Let it pass the target's spot, standing the target clear of the outbound path.
+
   const keepClear = () => { target.motion.z = 300.0; target.motion.vz = 0.0; target.motion.grounded = false; };
   for (let f = 0; f < 39; f++) { keepClear(); frame(world); }
   assertGreaterThan(bolt.x, target.motion.x);
@@ -384,7 +384,7 @@ test("a point-blank Storm Bolt on a held shield leaves the defender free well be
   }
   assertEquals(target.status.damage, 0.0);
   assertGreaterThan(blockedAt, 0);
-  // Mountain King acts on frame 49; an out-of-shield grab needs about ten frames.
+
   assertLessThan(blockedAt + stun + 10, 49);
 });
 

@@ -1,5 +1,5 @@
 import { TECH_WINDOW_FRAMES, TECH_PRESS_AGE_LIMIT } from "../physics/techInput";
-// Floor techs: the NTSC tech input window, repeat lockout, travel and protection.
+
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, DownState } from "./codes";

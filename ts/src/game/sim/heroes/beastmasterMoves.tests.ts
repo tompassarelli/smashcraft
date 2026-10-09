@@ -9,7 +9,7 @@ import { attackStartupFrames, characterAttackActiveFrames, isAerialAttack } from
 import { testWorld } from "../testWorld";
 import { BEASTMASTER_MOVES } from "./beastmasterMoves";
 
-// Adopted F/A/R/L values from smashcraft:docs/design/roster.md, "Beastmaster".
+
 const NORMALS = [
   [AttackStyle.forwardTilt, 10, 3, 23, 0],
   [AttackStyle.forwardTiltUp, 10, 3, 23, 0],

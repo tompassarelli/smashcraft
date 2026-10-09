@@ -1,5 +1,5 @@
-// Forsaken Paladin's four specials through the production special, contact, projectile
-// and mana functions (smashcraft:docs/design/forsaken-paladin.md).
+
+
 import { assertEquals, assertNear, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { upSpecialRoute } from "../../match/recoveryEnvelope";
@@ -23,7 +23,7 @@ import { advanceFighter } from "../step";
 import { controls } from "../testWorld";
 import { FORSAKEN_PALADIN_SPECIALS } from "./forsakenPaladinSpecials";
 
-/** One match-ordered frame; `strike` starts the second fighter's attack before contacts. */
+
 function frame(world: Roster, first: Readonly<Controls> = controls(), strike?: AttackStyle, second: Readonly<Controls> = controls()): void {
   const inputs = [first, second];
   for (let slot = 0; slot < 2; slot++) advanceFighter(world, slot, 0, inputs[slot] ?? controls(), slot === 0 ? -240.0 : 240.0);

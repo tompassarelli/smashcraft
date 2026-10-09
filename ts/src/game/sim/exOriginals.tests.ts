@@ -22,7 +22,7 @@ function cast(character: Character, x: number, z: number, ex: boolean, air = fal
   owner.motion.surface = air ? undefined : 0;
   owner.motion.z = air ? 300.0 : 0.0;
   assertTrue(startFighterSpecial(owner, 0, 0, controls({ specialPressed: true, specialX: x, specialZ: z }), world));
-  // Entry selection is covered by exSpecials.tests.ts; these comparisons isolate the authored upgrade.
+
   owner.special.ex = ex;
   const tick = (frames: number) => { for (let frame = 0; frame < frames; frame++) advanceSpecials(world, 0, frame); };
   return { owner, target, world, tick };

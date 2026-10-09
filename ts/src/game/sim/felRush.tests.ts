@@ -1,6 +1,6 @@
-// Illidan's Fel Rush side special with its Vengeful Retreat and Chaos Strike
-// branches, and the mana his hits drain (#147, smashcraft:docs/design/illidan.md),
-// through the ordinary match step: inputs and attack commands in, state out.
+
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { queueAttack } from "../input/attackBuffer";
@@ -16,7 +16,7 @@ import { controls } from "./testWorld";
 
 const RUSH = FEL_RUSH_SPEED * 10;
 
-/** The next frame is the action's last: an attack queued for the frame after it starts there (a jab, or an aerial in the air). */
+
 function actsOnTheNextFrame(d: Duel, facing: number): void {
   const last = d.step();
   assertEquals(d.illidan.special.action, SpecialAction.none);
@@ -29,7 +29,7 @@ function actsOnTheNextFrame(d: Duel, facing: number): void {
 const sideB = (side: number) => controls({ specialPressed: true, specialX: side, direction: side });
 const SHIELD = controls({ shield: true, shieldStrength: 1.0 });
 
-/** Presses Fel Rush (frame 1) and holds nothing through `frame`, the last frame stepped. */
+
 function rushTo(d: Duel, frame: number, side = 1, second: Readonly<Controls> = controls()): void {
   d.step(sideB(side), second);
   d.run(frame - 1, controls(), second);
@@ -77,7 +77,7 @@ test("Fel Rush passes through a body, popping it up for 6 and draining 4 mana [s
   const d = duel(120.0);
   d.target.mana.points = 50;
   d.step(sideB(1));
-  // The hit's freeze holds the rush; it still runs its ten frames.
+
   for (let i = 0; i < 40 && d.illidan.special.frame < 15; i++) d.step();
   assertEquals(d.target.status.damage, 6.0);
   assertEquals(d.drained, 4);
@@ -96,7 +96,7 @@ test("Fel Rush counterplay: a raised shield stops it short, takes no drain, and 
   assertEquals(d.target.status.damage, 0.0);
   assertEquals(d.target.mana.points, 50);
   assertGreaterThan(d.target.visuals.shield, 0);
-  // The defender drops the shield and jabs; Illidan is still in the rush's recovery.
+
   let frame = d.step();
   while (!canAttack(d.target) && frame < 60) frame = d.step();
   queueAttack(d.commands[1], { style: AttackStyle.jab, facing: -1, frame: frame + 1, mayCharge: false });

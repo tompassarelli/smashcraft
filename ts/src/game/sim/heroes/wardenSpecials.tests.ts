@@ -1,5 +1,5 @@
-// Warden's four specials through the production special, contact, projectile
-// and motion functions (smashcraft:docs/design/roster.md, Warden B specials).
+
+
 import { insideMainDeckBody } from "../surfaces";
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
@@ -22,7 +22,7 @@ import { squareRoot } from "../warcraftMath";
 
 const H = HERO_REFERENCE_HEIGHT;
 
-/** One match-ordered frame: motion, special starts, contacts (`atContacts` observes them), specials, projectiles, resources. */
+
 function frame(world: Roster, first: Readonly<Controls> = controls(), second: Readonly<Controls> = controls(), atContacts?: () => void): void {
   const inputs = [first, second];
   for (let slot = 0; slot < 2; slot++) advanceFighter(world, slot, 0, inputs[slot] ?? controls(), slot === 0 ? -240.0 : 240.0);
@@ -143,7 +143,7 @@ test("Blink hovers through f8, then moves 3.5H in the held direction on f9, inta
     for (let f = 2; f <= 9; f++) frame(world, hold(x, z), controls(), observe);
     const beforeX = warden.motion.x;
     const beforeZ = warden.motion.z;
-    // The stick on the displacement frame changes nothing.
+
     frame(world, hold(-x, -z), controls(), observe);
     const movedX = f32(warden.motion.x - beforeX);
     const movedZ = f32(warden.motion.z - beforeZ);
@@ -176,8 +176,8 @@ test("Blink keeps its 3.5H travel and intangibility with a partial meter [spec #
 });
 
 test("Blink stops at the stage below its lip instead of crossing it, and a grounded endpoint stays punishable [spec docs/design/roster.md]", () => {
-  // Beside the main deck's body below its lip, aimed into it: the wall stops the
-  // displacement (a teleport into the lip itself passes it: sim/edgeRecovery.ts).
+
+
   const { world, warden } = pair(0.0, 1500.0, -1);
   place(warden, 700.0, -200.0);
   frame(world, upB);
@@ -186,7 +186,7 @@ test("Blink stops at the stage below its lip instead of crossing it, and a groun
   assertFalse(insideMainDeckBody(0, warden.motion.x, warden.motion.z));
   assertFalse(warden.motion.grounded);
   assertTrue(warden.motion.x > 400.0 && warden.motion.z < 0.0);
-  // Above the deck, aimed down: it lands on the deck and keeps its endpoint recovery.
+
   const down = pair(0.0, 1500.0);
   place(down.warden, 0.0, 120.0);
   frame(down.world, upB);
@@ -266,7 +266,7 @@ test("a point-blank Shadow Strike on a held shield leaves the defender free well
   }
   assertEquals(target.status.damage, 0.0);
   assertGreaterThan(blockedAt, 0);
-  // Warden acts on frame 38; an out-of-shield grab needs about ten frames.
+
   assertLessThan(blockedAt + stun + 10, 38);
 });
 
@@ -285,7 +285,7 @@ test("Fan of Knives on a held shield leaves the defender a punish before Warden 
     }
     assertEquals(target.status.damage, 0.0);
     assertGreaterThan(blockedAt, 0);
-    // Warden acts on frame 39; an out-of-shield grab needs about ten frames.
+
     assertLessThan(blockedAt + stun + 10, 39);
   }
 });
@@ -317,7 +317,7 @@ test("Shadow Strike marks a body hit: poison for three 1-damage ticks over 180 f
     frame(world);
     if (target.status.damage !== before) {
       ticks.push(f);
-      // A tick changes damage only: no new hitstun or hitlag.
+
       assertEquals(target.launch.hitlag, 0);
     }
   }
@@ -355,7 +355,7 @@ test("Fan of Knives marks every body it hits, and never through a shield [spec d
   assertEquals(guarded.target.status.poisonFrames, 0);
 });
 
-/** Warden marks the target with Shadow Strike from 200 away, then both stand still until she acts. */
+
 function marked(facing = 1): { world: Roster; warden: Fighter; target: Fighter } {
   const match = pair(0.0, f32(200.0 * facing), facing);
   frame(match.world, neutralB);

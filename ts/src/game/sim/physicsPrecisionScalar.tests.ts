@@ -1,5 +1,5 @@
-// These explicit binary32 cases are independent recorded fixtures consumed by
-// the native precision gate; deriving or thinning them would change its oracle.
+
+
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { multiplyFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";

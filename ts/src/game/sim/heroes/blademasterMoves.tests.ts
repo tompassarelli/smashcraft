@@ -12,7 +12,7 @@ import { BLADEMASTER_MOVES } from "./blademasterMoves";
 import { isMultiHit } from "./multiHit";
 import { advanceFighterMotion } from "../step";
 
-// The adopted roster's F/A/R/L rows, rather than shared legacy frame data.
+
 const NORMALS = [
   [AttackStyle.forwardSmash, 17, 3, 32, 0],
   [AttackStyle.upSmash, 15, 4, 30, 0],
@@ -84,7 +84,7 @@ test("Blademaster startup and active frames reach production APIs [spec docs/des
           activeCount++;
         }
       }
-      // A multi-hit may pause between its hits; nothing strikes outside its active frames.
+
       if (activeCount > 0 || !isMultiHit(BLADEMASTER_MOVES.normals[style])) assertEquals(activeCount > 0, frame >= startup && frame < startup + active);
     }
   }

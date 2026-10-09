@@ -1,8 +1,8 @@
 import { stageBounds } from "./stageBounds";
-// Keep these action transitions together: buffered inputs, contact windows
-// and landing can resolve on the same production frame.
-// Fighter rules: jumps, landings, smash charge, hit regions and
-// attack phases.
+
+
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { max } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
@@ -112,7 +112,7 @@ test("hit regions prioritize the tip and mirror its full hit effect [spec docs/p
     const world = testWorld(attacker, target);
     prepareHitRegionAttack(world, attacker, AttackStyle.forwardTilt, 5);
     resolveAttacks(world);
-    // x=100 overlaps both regions; only the higher-priority tip applies.
+
     assertEquals(target.status.damage, 10.0);
     assertNear(target.launch.knockbackX, direction * 7.785600185394287, 0.00009999999747378752);
     assertNear(target.launch.knockbackZ, 5.839200019836426, 0.00009999999747378752);
@@ -150,7 +150,7 @@ test("hit regions distinguish inner and outer, early and late parameters [spec d
 test("hit regions respect the active clock and inclusive geometry boundaries [spec docs/physics.md]", () => {
   for (let frame = 4; frame <= 7; frame++) {
     const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
-    // Tip centerline ends at 111; attack/body radii add 10 + 26.
+
     const target = createReferenceFighter(Character.rifleman, 147.0, -1);
     const world = testWorld(attacker, target);
     prepareHitRegionAttack(world, attacker, AttackStyle.forwardTilt, frame);
@@ -235,7 +235,7 @@ test("the up aerial explicitly rehits only on its finishing window [spec docs/ph
   resolveAttacks(world);
   assertEquals(target.status.damage, 12.0);
   assertEquals(target.launch.hitlag, 5);
-  // Finisher: 12 post-hit percent, 8 damage, 110 growth and 24 base.
+
   assertNear(target.launch.knockbackX, 2.433000087738037, 0.00009999999747378752);
   assertNear(target.launch.knockbackZ, 9.422967910766602, 0.00009999999747378752);
   attacker.launch.hitlag = 0;
@@ -381,9 +381,9 @@ function land(fighter: Fighter, input: Readonly<Controls>): void {
   advanceSolo(fighter, 0, input, 0.0);
 }
 
-// Smashcraft omits L-cancelling (smashcraft:docs/gameplay-design.md): every
-// aerial lands with the lag Melee's L-cancel gives, half its authored landing
-// lag (PlCo +0x0E8 = 2), and no button changes it.
+
+// Aerial landing lag uses Melee L-cancel division by 2 (PlCo +0x0E8), independent of button input.
+
 const SHORT_AERIAL_LANDING_LAG = [
   [AttackStyle.neutralAir, 5], [AttackStyle.forwardAir, 7], [AttackStyle.backAir, 8], [AttackStyle.upAir, 7], [AttackStyle.downAir, 9],
 ] as const;
@@ -422,7 +422,7 @@ test("air dodge and empty landings keep their own landing lag [spec docs/physics
   assertEquals(fighter.landing.lag, 4);
 });
 
-/** Starts a chargeable smash with the attack held through its startup. */
+
 function prepareSmashCharge(world: Roster, fighter: Fighter, target: Fighter, input: Controls, style: AttackStyle): void {
   fighter.motion.surface = 0;
   target.motion.x = f32(fighter.motion.x + 100);

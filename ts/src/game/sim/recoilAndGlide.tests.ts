@@ -1,6 +1,6 @@
-// Rifleman's aimed two-stage recoil shot (#127) and Illidan's jump-cancellable
-// Immolate and glide out of Wing Ascent (#128), through the production special,
-// contact and projectile steps (smashcraft:docs/design/kit-review-1.md).
+
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "./attacks";
@@ -29,7 +29,7 @@ const run = (world: Roster, frames: number, first: Readonly<Controls> = controls
   for (let f = 0; f < frames; f++) frame(world, first, second);
 };
 
-/** The owner airborne at `z`, the target `gap` ahead of it on the deck (or at `targetZ`). */
+
 function airborne(character: Character, z: number, gap = 900.0, targetZ = 0.0): { world: Roster; owner: Fighter; target: Fighter } {
   const owner = createFighter(character, 0.0, 1);
   const target = createFighter(Character.rifleman, gap, -1);
@@ -50,7 +50,7 @@ function airborne(character: Character, z: number, gap = 900.0, targetZ = 0.0): 
 const upB = controls({ specialPressed: true, specialZ: 1, verticalDirection: 1 });
 const recoils = (f: Fighter) => f.projectiles.filter((p) => p.life > 0 && p.kind === ProjectileKind.recoil);
 
-/** Velocity right after the first shot (frame 5), holding `stick` through frame 4. */
+
 function firstShot(stick: Readonly<Controls>): { vx: number; vz: number; shotX: number; shotZ: number } {
   const { world, owner } = airborne(Character.rifleman, 400.0);
   frame(world, upB);
@@ -134,7 +134,7 @@ test("Recoil shot: the shot is the edge-guard answer, striking the fighter it is
 const downB = controls({ specialPressed: true, specialZ: -1 });
 const jump = controls({ jumpPressed: true, jumpHeld: true });
 
-/** Grounded Illidan with the target `gap` ahead. */
+
 function grounded(gap: number): { world: Roster; owner: Fighter; target: Fighter } {
   const owner = createFighter(Character.demonHunter, 0.0, 1);
   const target = createFighter(Character.rifleman, gap, -1);

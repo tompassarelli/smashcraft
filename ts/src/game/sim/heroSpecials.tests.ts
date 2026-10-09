@@ -1,6 +1,6 @@
 import { mutableProjectile } from "./fighterProjectiles";
-// Shared hero-special and mana contracts, run through the production special,
-// projectile and contact functions with a test kit.
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "./attacks";
@@ -49,7 +49,7 @@ function hero(x: number, facing: number): Fighter {
   return f;
 }
 
-/** One match-ordered frame for two fighters: motion, special starts, contacts, specials, projectiles, resources. */
+
 function frame(world: Roster, first: Readonly<Controls> = controls(), second: Readonly<Controls> = controls()): void {
   const inputs = [first, second];
   for (let slot = 0; slot < 2; slot++) advanceFighter(world, slot, 0, inputs[slot] ?? controls(), slot === 0 ? -240.0 : 240.0);
@@ -326,7 +326,7 @@ test("a second press inside a follow-up window starts the follow-up once without
     assertEquals(target.status.damage, 0.0);
     frame(world);
     assertEquals(target.status.damage, 10.0);
-    // Hitlag holds the action, so run it out and check its last frame.
+
     let last = owner.special.frame;
     for (let guard = 0; guard < 80 && owner.special.action !== SpecialAction.none; guard++) {
       last = owner.special.frame;

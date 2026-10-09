@@ -1,7 +1,7 @@
-// These normal-attack contracts share authored contact windows and the same
-// production movement step, including landing and defensive interruptions.
-// Normal attacks and projectiles: ranges, phases, lingering aerial windows,
-// landings, ground dodges and walking.
+
+
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "./attacks";

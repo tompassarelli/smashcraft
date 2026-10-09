@@ -7,8 +7,8 @@ import { advanceFighter } from "./step";
 import { digitalShieldDamage, digitalShieldstunDuration } from "./shield";
 import { melee } from "./tuning";
 
-// These are the five state-bearing comparisons from the native #9 arithmetic
-// fixture. Run them through the production fighter and roster simulation.
+
+
 test("#9 GROUNDED_BINARY32_EXACT_PASS [reference]", () => {
   const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   withPhysics(fighter, { traction: melee(0.07999999821186066) });

@@ -13,7 +13,7 @@ import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { LICH_MOVES } from "./lichMoves";
 import { isMultiHit } from "./multiHit";
 
-// Adopted Lich rows from smashcraft:docs/design/roster.md, including final L.
+
 const NORMALS = [
   [AttackStyle.jab, 6, 2, 15, 0],
   [AttackStyle.upSmash, 20, 5, 34, 0],
@@ -26,8 +26,8 @@ const NORMALS = [
   [AttackStyle.grab, 10, 3, 27, 0],
 ] as const;
 
-// Existing actors exercise the production move seam without depending on
-// the parent's character-selection and presentation integration.
+
+
 function attackPair(style: AttackStyle, x: number, z = 0.0, facing = 1, targetGrounded = true) {
   const owner = createFighter(Character.rifleman, 0.0, facing);
   owner.tuning.moves = LICH_MOVES;
@@ -66,7 +66,7 @@ test("Lich normal phases and contact windows match the adopted startup and activ
         assertTrue(out.window === 1 || (isMultiHit(LICH_MOVES.normals[style]) && out.window > 1));
         assertTrue(style === AttackStyle.grab ? out.maxX === SHARED_GRAB_REGION.maxX && out.strike === undefined : out.strike !== undefined);
       }
-      // A multi-hit may pause between its hits; nothing strikes outside its active frames.
+
       if (live > 0 || !isMultiHit(LICH_MOVES.normals[style])) assertEquals(live > 0, tick >= first - 1 && tick < first - 1 + active);
     }
   }
@@ -253,7 +253,7 @@ test("Lich throws release once on their adopted frames with facing-relative dire
 });
 
 test("Lich's casting arm extends the body while the conjured frost beyond the hand stays disjoint [spec docs/design/roster.md]", () => {
-  // A rifleman jab (slot 0) against Lich's forward smash on its first active frame.
+
   const challenge = (x: number, lichFrame: number): number => {
     const attacker = createFighter(Character.rifleman, 0.0, 1);
     const lich = createFighter(Character.rifleman, x, -1);
@@ -275,7 +275,7 @@ test("Lich's casting arm extends the body while the conjured frost beyond the ha
     for (let x = 60.0; x < 400.0; x += 2.0) if (challenge(x, 21) === 0.0) return x;
     return 400.0;
   };
-  // The arm adds reach for the challenger, but far less than the spear's XL tip.
+
   assertGreaterThan(extended(), standing());
   assertLessThan(f32(extended() - standing()), f32(HERO_REFERENCE_HEIGHT * f32(0.5)));
   const lich = createFighter(Character.rifleman, 0.0, 1);

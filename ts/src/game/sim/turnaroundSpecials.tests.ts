@@ -1,6 +1,6 @@
-// Turnaround specials (#187) over every selectable fighter, through recorded
-// match frames: one shared rule turns neutral and side specials, airborne and
-// grounded (smashcraft:docs/gameplay-design.md, "Turnaround specials").
+
+
+
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { executeNext, testMatch } from "../match/testMatch";
 import { Character, SpecialAction } from "./codes";
@@ -15,7 +15,7 @@ const sideBackB = controls({ specialPressed: true, specialX: -1, direction: -1 }
 
 interface Outcome { readonly facing: number; readonly action: number; readonly direction: number }
 
-/** Plays `script` for slot 0 facing right, high in the air or settled on the deck, and reports its special's start. */
+
 function play(character: Character, airborne: boolean, script: readonly Readonly<Controls>[]): Outcome {
   const match = testMatch(3, character);
   const fighter = fighterAt(match.world, 0);

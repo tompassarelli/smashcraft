@@ -1,5 +1,5 @@
-// Floor recovery: recorded tech and missed-tech skids, down damage (jab
-// resets), get-up timing and protection.
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "./attacks";
@@ -16,10 +16,10 @@ import { advanceFighter } from "./step";
 import { advanceSolo, controls, testBeginAttacks, testWorld } from "./testWorld";
 import { AUTHORED_PHYSICS, type FighterPhysics, melee } from "./tuning";
 
-// Test-only grounded-motion profile; no character or move data enters the roster.
+
 const FLOOR_RECOVERY_REFERENCE_PHYSICS: FighterPhysics = { ...AUTHORED_PHYSICS.reference, traction: melee(0.07999999821186066) };
 
-// Read through a call so an earlier assignment's narrowing doesn't hide the attack's effect.
+
 function downStateOf(fighter: Fighter): DownState {
   return fighter.down.state;
 }
@@ -89,7 +89,7 @@ test("a floor recovery's entry preserves residual horizontal knockback [referenc
   }
 });
 
-/** A weak forward-tilt hit on a face-down fighter waiting on the floor. */
+
 function weakRecoveryHit(world: Roster, direction: number, attacker: Fighter, target: Fighter): void {
   attacker.facing = direction;
   target.facing = -direction;

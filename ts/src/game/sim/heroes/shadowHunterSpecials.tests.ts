@@ -1,5 +1,5 @@
-// Shadow Hunter's specials through the production special, projectile and
-// contact path (smashcraft:docs/design/roster.md, "Shadow Hunter").
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
@@ -129,7 +129,7 @@ test("Hex is free and its orb leaves on frame 24 and strikes for 2 [spec #335]",
   assertEquals(owner.special.action, SpecialAction.none);
 });
 
-/** Casts Serpent Ward and runs to its appearance on frame 26. */
+
 function placeWard(world: Roster): void {
   frame(world, side);
   for (let f = 2; f <= 26; f++) frame(world);
@@ -150,7 +150,7 @@ test("Serpent Ward is ground-only (an airborne side press throws Spirit Glaive),
   assertEquals(owner.placed.life, 0);
   frame(world);
   assertEquals(owner.mana.points, 100);
-  // The appearance frame is its age 1; it stands 240 frames.
+
   assertEquals(owner.placed.age, 1);
   assertEquals(owner.placed.life, 239);
   assertTrue(near((owner.placed.x - owner.motion.x) / HERO_REFERENCE_HEIGHT, f32(0.65)));
@@ -232,7 +232,7 @@ test("replaying a ward from a restored snapshot reproduces every fighter field [
   assertEquals(firstFighterDifference(endTarget, target, 3, 3), undefined);
 });
 
-/** Hexes the target with an orb from 200 away. */
+
 function hexed(): { world: Roster; owner: Fighter; target: Fighter } {
   const p = pair(200.0);
   frame(p.world, down);
@@ -241,7 +241,7 @@ function hexed(): { world: Roster; owner: Fighter; target: Fighter } {
   return p;
 }
 
-/** Frames until the hex ends, with the masking and mashing a match applies to the target's input `mash(frame)`. */
+
 function framesHexed(world: Roster, target: Fighter, mash: (frame: number) => Readonly<Controls>): number {
   const commands = attackBuffer(0);
   for (let f = 1; f <= 200; f++) {
@@ -267,7 +267,7 @@ test("Hex stops attacks, grabs and neutral, side and down specials for 50 frames
   assertFalse(attack.attackPressed);
   assertTrue(attack.jumpPressed && attack.shield);
   const fresh = hexed();
-  // The frame that applied it already counted one of its 50.
+
   assertEquals(framesHexed(fresh.world, fresh.target, () => controls()), 49);
   assertEquals(fresh.target.status.conditionImmunity[HeroStatusGroup.silence], 240);
 });
@@ -312,7 +312,7 @@ test("Shadow Hunter cashes a Hex: a point-blank or spaced Hex leaves him time to
   for (const gap of [90.0, 200.0]) {
     const { world, owner, target } = pair(gap);
     const commands = attackBuffer(0);
-    // The target mashes as fast as the rule rewards: a press every other frame and a new stick direction.
+
     const mash = (f: number) => controls({ grabMashPressed: floorMod(f, 2) === 0, direction: floorMod(f, 4) < 2 ? 1 : -1 });
     frame(world, down);
     let f = 1;

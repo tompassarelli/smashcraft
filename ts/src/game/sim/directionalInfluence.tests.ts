@@ -1,7 +1,7 @@
 import { stageBounds } from "./stageBounds";
-// These cases share the same hitlag-to-launch timeline: pulses, automatic
-// smash DI and continuous DI must be checked at their common frame boundaries.
-// Smash DI, automatic smash DI, directional influence and launch decay.
+
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { Character, DownState } from "./codes";
@@ -260,7 +260,7 @@ test("DI reads only the last hitlag frame and preserves launch speed [reference]
 });
 
 test("a DI's traced operands repeat its angle exactly [invariant] [provisional]", () => {
-  // Fighter 0's DI at frame 375 of the 0.0.49 four-fighter moment f774, whose angle Warcraft made one ulp smaller (#59).
+
   const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.motion.grounded = false;
   setMeleeKnockback(fighter, -1.664950966835022, 1.9261585474014282);

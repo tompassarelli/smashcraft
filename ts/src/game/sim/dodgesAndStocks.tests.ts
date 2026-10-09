@@ -1,8 +1,8 @@
 import { createFighter } from "./fighter";
 import { stageBounds } from "./stageBounds";
-// Dodge intangibility, swept landing and blast-zone loss share the frame
-// executor; these contracts retain that interaction through recovery and stocks.
-// Air dodges, ground dodges and blast zones.
+
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "./attacks";
@@ -62,7 +62,7 @@ test("air-dodge travel stays above Melee without touching ground [spec #347]", (
   fighter.motion.z = 3000.0;
   beginAirDodge(fighter, 1, 1);
   for (let frame = 0; frame < 29; frame++) advanceSolo(fighter, 0, controls(), 0.0);
-  // #347: 3.4 * 6 * diagonal unit * sum(0.9^1 ... 0.9^29).
+
   assertNear(fighter.motion.x, f32(123.7098896281836), f32(0.001));
   assertNear(fighter.motion.z, f32(3123.7098896281836), f32(0.002));
   assertFalse(fighter.motion.grounded);
@@ -77,13 +77,13 @@ test("Rifleman's wavedash carries the stronger dodge through landing traction [s
   assertTrue(fighter.motion.grounded);
   assertEquals(fighter.landing.lag, 10);
   for (let frame = 1; frame < 10; frame++) advanceSolo(fighter, 0, controls(), 0.0);
-  // #347: ten landing ticks at 3.4 * 6 * cos(18) * 0.9, minus 0.48 * sum(1 ... 9).
+
   assertNear(fighter.motion.x, f32(153.01399168968203), f32(0.001));
   assertEquals(fighter.landing.lag, 1);
   assertFalse(canAttack(fighter));
 });
 
-/** A fighter of `character` high above the stage that air dodges down-right this frame. */
+
 function airDodgedFighter(character: Character): Fighter {
   const fighter = createReferenceFighter(character, 0.0, 1);
   fighter.motion.grounded = false;
@@ -109,7 +109,7 @@ test("every fighter's air dodge ends actionable, spends no jump and allows one p
     assertFalse(fighter.motion.grounded);
     assertFalse(fighter.dodge.airDodging);
     assertTrue(canAttack(fighter));
-    // A second dodge in the same airtime is refused; the remaining jump still works.
+
     advanceSolo(fighter, 0, controls({ airDodgePressed: true, dodgeX: -1 }), -240.0);
     assertFalse(fighter.dodge.airDodging);
     advanceSolo(fighter, 0, controls({ jumpPressed: true }), -240.0);
@@ -260,7 +260,7 @@ test("a fast air dodge uses the swept platform crossing [spec docs/physics.md]",
     fighter.motion.grounded = false;
     fighter.motion.z = 200.0;
     beginAirDodge(fighter, 1, -1);
-    // Stress the collision sweep independently of provisional dodge speed.
+
     fighter.motion.vx = 100.0;
     fighter.motion.vz = -300.0;
     advanceSolo(fighter, 1, controls(), 0.0);

@@ -1,6 +1,6 @@
 import { mutableProjectile } from "./fighterProjectiles";
 import { stageBounds } from "./stageBounds";
-// Shield break: the launch, landing, standing and dizzy phases and what ends them.
+
 import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { max, toInt } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
@@ -20,7 +20,7 @@ import { SHIELD_BREAK_LAND_FRAMES, SHIELD_BREAK_STAND_FRAMES } from "./tuning";
 
 const BREAK_PHASES = [ShieldBreak.air, ShieldBreak.land, ShieldBreak.stand, ShieldBreak.dizzy] as const;
 
-/** A fighter whose held shield drains out on its first frame. */
+
 function shieldBreakTestFighter(character: Character, percent: number): Fighter {
   const fighter = createReferenceFighter(character, 0.0, 1);
   fighter.status.damage = percent;
@@ -45,7 +45,7 @@ function dizzyShieldBreakTest(fighter: Fighter, input: Readonly<Controls>): void
   assertEquals(fighter.shield.breakFrame, 0);
 }
 
-/** A blaster bolt about to reach a fighter at x = 0. */
+
 function aimShot(shooter: Fighter): void {
   const shot = mutableProjectile(shooter, 0)!;
   shot.life = 2;

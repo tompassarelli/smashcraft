@@ -1,7 +1,7 @@
-// Dreadlord's specials through the production special, projectile, grab and
-// contact steps: free specials, Carrion Swarm, Sleep (#132), Vampiric Pounce's command
-// grab, corkscrew travel and bite heal,
-// and Bat Ascension's full steerable rise at every meter level.
+
+
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
@@ -25,7 +25,7 @@ import { firstFighterDifference } from "../../replay/difference";
 
 const H = HERO_REFERENCE_HEIGHT;
 
-/** One match-ordered frame: motion, grabs, special starts, contacts, specials, projectiles, resources. */
+
 function frame(world: Roster, first: Readonly<Controls> = controls(), second: Readonly<Controls> = controls()): void {
   const inputs = [first, second];
   for (let slot = 0; slot < 2; slot++) advanceFighter(world, slot, 0, inputs[slot] ?? controls(), slot === 0 ? -240.0 : 240.0);
@@ -59,7 +59,7 @@ const up = controls({ specialPressed: true, specialZ: 1, verticalDirection: 1 })
 const down = controls({ specialPressed: true, specialZ: -1 });
 const shield = controls({ shield: true, shieldStrength: 1.0 });
 
-/** Plays frames 2..last of a special the press on frame 1 started. */
+
 function play(world: Roster, last: number, first = controls(), second = controls()): void {
   for (let f = 2; f <= last; f++) frame(world, first, second);
 }
@@ -88,7 +88,7 @@ test("Carrion Swarm releases one reflectable cloud on frame 20 and hits once for
   assertEquals(owner.special.action, SpecialAction.none);
 });
 
-/** Sleeps the victim with an orb from 200 away; returns once it is asleep, and the frame count it took. */
+
 function slept(airborne = false): { world: Roster; owner: Fighter; victim: Fighter } {
   const p = pair(200.0);
   frame(p.world, down);
@@ -107,7 +107,7 @@ function slept(airborne = false): { world: Roster; owner: Fighter; victim: Fight
   return p;
 }
 
-/** Frames until the victim wakes, with the masking and mashing a match applies to its input `mash(frame)`. */
+
 function framesAsleep(world: Roster, victim: Fighter, mash: (frame: number) => Readonly<Controls>): number {
   const commands = attackBuffer(0);
   for (let f = 1; f <= 200; f++) {
@@ -137,7 +137,7 @@ test("Sleep sleeps a grounded body 100 frames and an airborne one 24, then 240 f
 
 test("the sleeper mashes out sooner, never before its frame 24, and a damaging hit wakes it at once [spec docs/design/roster.md]", () => {
   const mashing = slept();
-  // A fresh grab-mash press every other frame and the stick flipping.
+
   const woke = framesAsleep(mashing.world, mashing.victim, (f) => controls({ grabMashPressed: floorMod(f, 2) === 0, direction: floorMod(f, 4) < 2 ? 1 : -1 }));
   assertLessThan(woke, 40);
   assertGreaterThan(woke, 21);
@@ -150,7 +150,7 @@ test("the sleeper mashes out sooner, never before its frame 24, and a damaging h
   for (let f = 0; f < 8; f++) frame(hit.world);
   assertGreaterThan(hit.victim.status.damage, 2.0);
   assertEquals(hit.victim.status.condition, HeroStatusKind.none);
-  // Immune for 240 frames: a second orb does not sleep it again.
+
   hit.owner.mana.points = 100;
   frame(hit.world, down);
   for (let f = 2; f <= 60; f++) frame(hit.world);
@@ -175,7 +175,7 @@ test("Vampiric Pounce grabs through a shield, bites 16 frames after the catch an
   assertEquals(owner.grab.target, undefined);
   assertTrue(victim.launch.throwHitstun);
   assertGreaterThan(victim.launch.knockbackX, 0.0);
-  // The bite's hitlag pauses the timeline; the action's last frame is catch + 16 + 28.
+
   let lastFrame = 0;
   for (let f = 0; f < 120 && owner.special.action === SpecialAction.heroSide; f++) {
     lastFrame = owner.special.frame;
@@ -223,13 +223,13 @@ test("air Vampiric Pounce bites and heals once per airtime and ends helpless [sp
   assertEquals(owner.special.action, SpecialAction.none);
 });
 
-/** Height and drift of a Bat Ascension from the ground with the stick held to one side or neutral. */
+
 function ascend(points: number, stickSide: number): { rise: number; across: number; owner: Fighter } {
   const { world, owner } = pair(600.0);
   owner.mana.points = points;
   const startX = owner.motion.x;
   const startZ = owner.motion.z;
-  // Steering starts with the rise on frame 9; each motion frame's velocity moves the next frame.
+
   const held = controls({ direction: stickSide });
   frame(world, up);
   let top = startZ;

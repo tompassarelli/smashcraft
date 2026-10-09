@@ -1,11 +1,11 @@
-// Which hits tumble, and which landings tech or knock down, for every
-// fighter's authored moves at low, medium and high percent. Melee selects
-// damage level 3 (DamageFly, tumble) when knockback times common +0x154 = 0.4
-// reaches +0x160 = 32 (melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c
-// ftCo_8008DCE0). Tumbling landings tech or enter DownBound
-// (ftCo_Damage.c ftCo_80090184, ftCo_DamageIce.c ftCo_80090984); a weaker
-// airborne hit's landing knocks down only at launch speed +0x1E0 = 5, which
-// no hit below tumble strength reaches (ftCo_Damage.c ftCo_Damage_Coll).
+
+
+// Melee tumble requires knockback × common +0x154 = 0.4 to reach +0x160 = 32 (ftCo_Damage.c ftCo_8008DCE0).
+
+
+
+// Non-tumble knockdown requires landing launch speed common +0x1E0 = 5 (ftCo_Damage.c ftCo_Damage_Coll).
+
 import { assertEquals, assertGreaterThan, test } from "wisp/src/runtime/testing";
 import { multiplyFloat32 } from "wisp/src/sim/binary32";
 import { AttackStyle, Character, ContactKind, DownState } from "./codes";
@@ -23,18 +23,18 @@ import { contactBatch, controls, testWorld } from "./testWorld";
 const MELEE_HITSTUN_PER_KNOCKBACK = 0.4000000059604645;
 const MELEE_TUMBLE_LEVEL = 32.0;
 const PERCENTS = [10.0, 50.0, 100.0] as const;
-/** Each fighter attacks the next one. */
+
 const MATCHUPS = [[Character.sylvanas, Character.rifleman], [Character.rifleman, Character.demonHunter], [Character.demonHunter, Character.sylvanas]] as const;
 const LANDING_LIMIT_FRAMES = 600;
 
 interface Landing {
-  /** Frames after the contact frame; undefined when the fighter left the stage first. */
+
   readonly frame: number | undefined;
   readonly state: DownState;
   readonly everDown: boolean;
 }
 
-/** A target 500 units inside the deck, launched toward its middle. */
+
 function hitTarget(attackerCharacter: Character, targetCharacter: Character, effect: Readonly<HitEffect>, percent: number, airborne: boolean): { world: Roster; target: Fighter } {
   const facing = effect.launchX < 0 ? -1 : 1;
   const attacker = createReferenceFighter(attackerCharacter, -facing * 560.0, facing);
@@ -50,7 +50,7 @@ function hitTarget(attackerCharacter: Character, targetCharacter: Character, eff
   return { world, target };
 }
 
-/** Runs the target until it stands on a deck out of tumble, pressing Shield on techFrame. */
+
 function land(world: Roster, target: Fighter, techFrame: number | undefined): Landing {
   let everDown = false;
   for (let frame = 1; frame <= LANDING_LIMIT_FRAMES; frame++) {

@@ -1,6 +1,6 @@
-// Lich's specials (#130) through the production special, projectile, contact and
-// resource functions: Frost Nova and its burst, Chill, Death and Decay, the
-// free recovery, Frost Armor and Dark Ritual.
+
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
@@ -22,7 +22,7 @@ import { firstFighterDifference } from "../../replay/difference";
 
 const H = HERO_REFERENCE_HEIGHT;
 
-/** One match-ordered frame on `stage`: motion, special starts, contacts, specials, projectiles, resources. */
+
 function frame(world: Roster, first: Readonly<Controls> = controls(), second: Readonly<Controls> = controls(), stage = 0): void {
   const inputs = [first, second];
   for (let slot = 0; slot < 2; slot++) advanceFighter(world, slot, stage, inputs[slot] ?? controls(), slot === 0 ? -240.0 : 240.0);
@@ -84,7 +84,7 @@ test("a second Frost Nova press stops the orb on its frame 4 and bursts it 6 fra
   const x = orb.x;
   frame(world);
   assertEquals(orb.x, x);
-  // Something that jumped the orb sits above it, inside the burst's radius.
+
   target.motion.x = x;
   target.motion.z = f32(lich.motion.z + f32(H * f32(0.5)));
   target.motion.grounded = false;
@@ -96,7 +96,7 @@ test("a second Frost Nova press stops the orb on its frame 4 and bursts it 6 fra
     burstFrame = f;
   }
   assertEquals(target.status.damage, 10.0);
-  // The loop starts on the gesture's frame 6: the burst strikes on frame 10, 6 frames after the stop.
+
   assertEquals(burstFrame, 5);
   assertTrue(chilled(target));
 });
@@ -141,7 +141,7 @@ test("Death and Decay is free and strikes a fighter standing in it on frame 30 a
   assertEquals(target.status.damage, 0.0);
   frame(world);
   assertEquals(target.status.damage, 5.0);
-  // Back in the field after the pop-up, it is struck again once the second strike is live.
+
   for (let f = 31; f <= 69; f++) frame(world);
   assertEquals(target.status.damage, 5.0);
   target.motion.x = f32(lich.motion.x + ahead);
@@ -179,7 +179,7 @@ test("interrupting Lich before Death and Decay's first strike removes the field 
 test("Death and Decay is not placed through solid stage geometry [spec docs/design/roster.md]", () => {
   const placedFrom = (z: number): number => {
     const { world, lich } = lichPair(1600.0);
-    // Below the main deck's top, off its left wall, facing the deck.
+
     lich.motion.x = -680.0;
     lich.motion.z = z;
     lich.motion.grounded = false;
@@ -192,7 +192,7 @@ test("Death and Decay is not placed through solid stage geometry [spec docs/desi
   assertEquals(placedFrom(160.0), 2);
 });
 
-/** Lich with a formed Frost Armor shell, the opponent 70 away facing him. */
+
 function armoredLich(): { world: Roster; lich: Fighter; target: Fighter } {
   const pair = lichPair(70.0, Character.lich);
   pair.lich.facing = 1;
@@ -206,7 +206,7 @@ test("Frost Armor is free, its shell lasts 240 frames, takes one small hit's rea
   const { world, lich, target } = armoredLich();
   assertEquals(lich.mana.points, 100);
   assertGreaterThan(lich.status.armorFrames, 0);
-  // A 3% Bone Knuckle: damage applies, the reaction does not, the shell is spent and the striker chilled.
+
   beginFighterAttack(world, 1, AttackStyle.jab, false);
   for (let f = 0; f < 8; f++) frame(world);
   assertEquals(lich.status.damage, 3.0);
@@ -242,10 +242,10 @@ test("Dark Ritual: down special while the shell holds shatters it on frame 6 int
   assertEquals(lich.mana.points, 85);
   for (let f = 7; f <= 9; f++) frame(world);
   assertEquals(target.status.damage, 5.0);
-  // The burst's hitlag holds the ritual a few frames.
+
   for (let f = 10; f <= 40; f++) frame(world);
   assertEquals(lich.special.action, SpecialAction.none);
-  // Without a shell, down special casts Frost Armor again.
+
   const before = lich.mana.points;
   frame(world, down);
   assertEquals(lich.mana.points, before);
@@ -260,7 +260,7 @@ test("Spectral Ascent keeps its full rise and steering at zero meter [spec #335]
     for (let f = 2; f <= 9; f++) frame(world);
     const x = lich.motion.x;
     const z = lich.motion.z;
-    // Velocity set on frame N moves the fighter on frame N + 1.
+
     for (let f = 10; f <= 35; f++) frame(world, steer);
     return { rise: f32(lich.motion.z - z), drift: f32(lich.motion.x - x), mana: lich.mana.points, helpless: lich.special.fall };
   };

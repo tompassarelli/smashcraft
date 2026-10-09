@@ -12,7 +12,7 @@ import { advanceFighter } from "../step";
 import { fighterAt, type Controls, type Roster } from "../roster";
 import { MURLOC_MOVES } from "./murlocMoves";
 
-// [style, target x, target z, damage]
+
 const normalCases = [
   [AttackStyle.jab, 45.0, 0.0, 2.0], [AttackStyle.jab2, 50.0, 0.0, 4.0],
   [AttackStyle.forwardTilt, 70.0, 0.0, 8.0], [AttackStyle.forwardTiltUp, 70.0, 0.0, 8.0],

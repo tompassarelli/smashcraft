@@ -1,6 +1,6 @@
-// Keep the recorded movement timelines together so entry, reversal and exit
-// use the same NTSC parameter fixtures and frame-count conventions.
-// Dash, run, turn-run and run-brake against the authored and NTSC timelines.
+
+
+
 import { assertEquals, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
@@ -24,7 +24,7 @@ import {
 
 const NTSC_RIGS: readonly GroundMovementRules[] = [NTSC_FOX_GROUND_MOVEMENT_RULES, NTSC_FALCO_GROUND_MOVEMENT_RULES, NTSC_CAPTAIN_FALCON_GROUND_MOVEMENT_RULES];
 
-/** A fighter already in a ground action after its dash, with the given rules and speed. */
+
 function groundActionFighter(x: number, facing: number, rules: GroundMovementRules, action: GroundAction, actionFrame: number, dashDirection: number, vx: number): Fighter {
   const fighter = createReferenceFighter(Character.sylvanas, x, facing);
   fighter.tuning.ground = rules;
@@ -89,8 +89,8 @@ test("a turn-run waits for the retail facing command boundary [reference] [spec 
     for (let frame = 1; frame <= 9; frame++) advanceSolo(fighter, 0, input, 0.0);
     assertEquals(fighter.facing, 1);
     assertEquals(fighter.ground.actionFrame, 9);
-    // The frame-9 command freezes TurnRun while momentum still follows the
-    // old facing. Crossing zero needs a later animation update to flip.
+
+
     for (let frame = 1; frame <= 9; frame++) {
       advanceSolo(fighter, 0, input, 0.0);
       assertEquals(fighter.facing, 1);
@@ -160,8 +160,8 @@ test("a run-brake's forward input doesn't skip to a run [spec docs/physics.md]",
 
 test("a turn-run uses the retail velocity threshold in world units [reference] [spec docs/physics.md]", () => {
   const input = controls({ direction: -1 });
-  // 0.03 world units is greater than the old 0.01 comparison but less than
-  // 0.01 Melee units converted at six world units per Melee unit.
+
+
   for (const [vx, turns] of [[0.029999999329447746, true], [0.05999999865889549, true], [0.07000000029802322, false]] as const) {
     const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
     fighter.ground.action = GroundAction.turnRun;
@@ -275,8 +275,8 @@ test("an initial dash's expiration prevents a late instant reversal [spec docs/g
 
 test("under-target ground velocity uses the actor's acceleration and run cap [spec docs/physics.md]", () => {
   const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
-  // Keep this velocity fixture's run-entry timing independent of the roster's
-  // dash-dance window; its expected numbers include three tapered run ticks.
+
+
   fighter.tuning.ground = { ...fighter.tuning.ground, dashRunEnableFrame: 11 };
   const input = controls({ direction: 1 });
   fighter.motion.vx = 6.0;
@@ -344,7 +344,7 @@ test("an initial dash clears on a jump, shield, attack and respawn [spec docs/ph
       advanceFighter(world, 0, 0, input, 0.0);
       assertTrue(fighter.shield.raised);
     } else if (interruption === 2) {
-      // A dashing jab is the dash attack.
+
       testBeginAttacks(world, AttackStyle.jab, undefined);
       assertEquals(fighter.attack.style, AttackStyle.dashAttack);
     } else {

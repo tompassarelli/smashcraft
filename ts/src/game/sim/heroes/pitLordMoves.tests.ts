@@ -12,7 +12,7 @@ import { testWorld } from "../testWorld";
 import { PIT_LORD_MOVES } from "./pitLordMoves";
 import { heroBody } from "./heroBodies";
 
-// Adopted F/A/R/L values from smashcraft:docs/design/roster.md, "Pit Lord".
+
 const NORMALS = [
   [AttackStyle.jab, 7, 3, 19, 0],
   [AttackStyle.forwardTilt, 13, 4, 35, 0],
@@ -55,7 +55,7 @@ test("Pit Lord's startup and active frames reach production, one live strike pat
         authoredHitRegion(out, Character.pitLord, style, frame, 0, index, PIT_LORD_MOVES);
         if (out.window > 0) live++;
       }
-      // Down smash's front and rear stomps leave its middle frame (f25) empty; the forward smash has a tip and an inner blade.
+
       const expected = frame >= first - 1 && frame < first - 1 + active && !(style === AttackStyle.downSmash && frame === 24);
       assertEquals(live > 0, expected);
     }
@@ -109,7 +109,7 @@ test("Pit Lord's tail lengthens with Tail Lash and his hoof is hittable while it
     for (let frame = 9; frame <= 19; frame++) assertEquals(touches(AttackStyle.backAir, frame, -100.0, 36.0), frame >= 13 && frame <= 16);
     assertTrue(touches(AttackStyle.downTilt, 9, 85.0, 18.0));
     assertTrue(!touches(AttackStyle.downTilt, 20, 85.0, 18.0));
-    // Cleaving Sweep's blade past the hands is not body.
+
     assertTrue(!touches(AttackStyle.forwardTilt, 13, 160.0, 80.0));
   }
 });

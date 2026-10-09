@@ -1,5 +1,5 @@
-// Blademaster's four specials against the roster rows, run through the
-// production special, contact and projectile steps.
+
+
 import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
@@ -44,7 +44,7 @@ function match(gap: number, facing = 1): { world: Roster; owner: Fighter; target
 
 const press = (specialX: number, specialZ: number) => controls({ specialPressed: true, specialX, specialZ });
 
-/** Highest rise and the forward drift over a grounded up special. */
+
 function risingBlade(mana: number, gap = 60.0, aimX = 0, aimZ = 0): { rise: number; drift: number; mana: number; damage: number } {
   const { world, owner, target } = match(gap);
   owner.mana.points = mana;

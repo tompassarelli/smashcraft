@@ -11,9 +11,9 @@ import { digitalShieldstunFrames } from "./shield";
 import { advanceFighter } from "./step";
 import { advanceSolo, controls, testBeginAttacks, testWorld } from "./testWorld";
 
-// Slippi techTester.slp ff815345e641836a331191320c0f6eae21542a5f, frames
-// 3432-3445: NTSC recording, disc revision unknown. Only release timing is
-// compared here; grounded knockback displacement has its own fixture.
+
+
+
 test("hitlag release allows a jump when hitstun expires on that frame [reference]", () => {
   const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   const input = controls({ jumpPressed: true, jumpHeld: true });
@@ -51,7 +51,7 @@ test("hitlag and shieldstun respect Melee integer boundaries [reference] [spec #
   assertEquals(ordinaryHitlagFrames(100.0), 20);
   assertEquals(digitalShieldstunFrames(12.0), 7);
   assertEquals(digitalShieldstunFrames(7.0), 5);
-  // Aerials' tilt toward aggression (#106): 0.6 a damage rather than 0.45.
+
   assertEquals(digitalShieldstunFrames(12.0, true), 9);
   assertEquals(digitalShieldstunFrames(7.0, true), 6);
   assertEquals(digitalShieldstunFrames(5.0, true), 4);

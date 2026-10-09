@@ -1,6 +1,6 @@
-// Authored hurt volumes: poses follow the attack frame and facing, intangible
-// parts pass strikes, invincible parts spend them, and kits carry their
-// bodies through rollback.
+
+
+
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { stateChecksum } from "../replay/canonical";
 import { copyReplayState, createReplaySnapshot } from "../replay/snapshot";
@@ -39,7 +39,7 @@ test("a kit's authored body follows its attack frame and its facing decides the 
   assertEquals(fighterHurtParts(f)[0]?.state, HurtState.intangible);
   f.attack.frame = 20;
   assertEquals(fighterHurtParts(f), KIT_BODY.stand);
-  // An extended limb behind a left-facing fighter is out of reach; in front of it, a strike lands.
+
   const strike = (targetX: number, facing: number): number => {
     const attacker = createFighter(Character.rifleman, 0.0, 1);
     const target = createFighter(Character.rifleman, targetX, facing);

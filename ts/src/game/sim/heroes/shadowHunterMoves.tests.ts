@@ -11,7 +11,7 @@ import { HurtContact, strikeHurtContact } from "../hurtboxes";
 import { SHADOW_HUNTER_MOVES } from "./shadowHunterMoves";
 import { isMultiHit } from "./multiHit";
 
-// Adopted F/A/R/L values from smashcraft:docs/design/roster.md.
+
 const NORMALS = [
   [AttackStyle.forwardSmash, 19, 3, 34, 0],
   [AttackStyle.upSmash, 17, 4, 31, 0],
@@ -55,7 +55,7 @@ test("Shadow Hunter adopted phases and narrow single-contact regions reach produ
           assertTrue(style === AttackStyle.grab ? out.maxX === SHARED_GRAB_REGION.maxX && out.strike === undefined : out.strike !== undefined);
         }
       }
-      // A multi-hit may pause between its hits; nothing strikes outside its active frames.
+
       if (live > 0 || !isMultiHit(SHADOW_HUNTER_MOVES.normals[style])) assertEquals(live > 0, frame >= first - 1 && frame < first - 1 + active);
     }
   }
@@ -179,7 +179,7 @@ test("Shadow Hunter throws hold through their adopted release and launch once in
 });
 
 test("Shadow Hunter's Heel Hook arm is exposed behind him while the glaive tip stays disjoint [spec docs/design/roster.md]", () => {
-  // A small probe placed in world space, as a strike from an opponent would be.
+
   const probe = (x: number, z: number) => ({ x1: x, z1: z, x2: x, z2: z, radius: 4.0 });
   for (const facing of [-1, 1]) {
     const f = createFighter(Character.rifleman, 0.0, facing);
@@ -189,14 +189,14 @@ test("Shadow Hunter's Heel Hook arm is exposed behind him while the glaive tip s
       f.attack.frame = frame;
       return strikeHurtContact(probe(f32(x * facing), z), f) === HurtContact.hit;
     };
-    // The hook ramps out: half extended (45 behind) from zero-based frame 4, fully
-    // (70 behind) over its active frames 7-9 and two after, half again to frame 14.
+
+
     assertTrue(!touches(undefined, 0, -45.0, 41.0));
     assertTrue(!touches(AttackStyle.backAir, 3, -45.0, 41.0));
     for (let frame = 4; frame <= 14; frame++) assertTrue(touches(AttackStyle.backAir, frame, -45.0, 41.0));
     for (let frame = 4; frame <= 14; frame++) assertEquals(touches(AttackStyle.backAir, frame, -70.0, 41.0), frame >= 7 && frame <= 11);
     assertTrue(!touches(AttackStyle.backAir, 15, -45.0, 41.0));
-    // Forward tilt's blade reaches 145; the arm ends near 67, so the blade's outer half is disjoint.
+
     assertTrue(touches(AttackStyle.forwardTilt, 8, 60.0, 56.0));
     assertTrue(!touches(AttackStyle.forwardTilt, 8, 110.0, 56.0));
   }
