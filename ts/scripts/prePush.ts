@@ -40,6 +40,7 @@ export function checksFor(paths: readonly string[]): Check[] {
     ...(ts ? [
       { name: "type-check ts", directory: "ts", args: ["run", "check"] },
       { name: "type escapes and source shapes", directory: "ts", args: ["test", "test/source-shapes.test.ts"] },
+      { name: "oracle tags on tests", directory: "ts", args: ["scripts/oracleTagsCheck.ts"], fix: "tag each refused test title with its oracle (listed above) or delete the test." },
     ] : []),
     ...(models ? [
       { name: "model facts fresh", directory: "ts", args: ["test", "test/model-facts.test.ts"], fix: `refresh them with: ${MODEL_FACTS_REFRESH}` },

@@ -40,7 +40,8 @@ Every push runs the pre-push gate (smashcraft:.githooks/pre-push, enabled for
 the repository with `git config core.hooksPath .githooks`; safe-push runs it):
 the clean-room check (smashcraft:ts/scripts/cleanRoom.ts: no game files or
 copied game scripts outside smashcraft:clean-room-allowlist.tsv; wisp:docs/clean-room.md),
-`bun run check` and the type-escape audit (smashcraft:ts/test/source-shapes.test.ts)
+`bun run check`, the type-escape audit (smashcraft:ts/test/source-shapes.test.ts)
+and the oracle-tag refusal of untagged test titles (smashcraft:ts/scripts/oracleTagsCheck.ts)
 when the pushed commits change ts/, the model facts check
 (smashcraft:ts/test/model-facts.test.ts; it refuses with the `bun wisp view models`
 refresh command) when they change clips or model build inputs, in a few seconds (smashcraft:ts/scripts/prePush.ts).
