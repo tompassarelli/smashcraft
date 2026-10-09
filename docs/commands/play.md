@@ -31,6 +31,13 @@
   `--four-fighters --frames 7200 --out DIR` is wisp#48's 60 FPS measurement
   (one game copy, four fighters; smashcraft:docs/play.md).
   Private map and Warcraft assets stay in the existing local asset store.
+- Host and join: `bun wisp play --standalone --host [--port N]` prints a join
+  code and its direct addresses; the other player runs
+  `bun wisp play --standalone --join CODE` (or `ADDRESS:PORT`). Both meet at
+  fighter selection; a different source tree fails at once with both map
+  hashes (wisp:docs/play.md, Host and join). With `--script`, each player's pad
+  script presses its own slot and its `#! chat` lines run at frame 30, a
+  `-dev fighter N` line as player N.
 
 - Two processes over Wisp's transport: `bun wisp net pair --script PAD --frames N
   [--rtt MS] [--loss P]` plays the playable keyboard build, one slot per process:

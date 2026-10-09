@@ -1,6 +1,8 @@
 import { join } from "node:path";
 import type { NetGame } from "wisp/scripts/wisp/net/peer";
-import type { StandaloneInput } from "wisp/scripts/wisp/standalone";
+import type { StandaloneInput, StandaloneNetSession } from "wisp/scripts/wisp/standalone";
+import type { LockstepLink } from "wisp/src/headless/lockstep";
+import { Phase } from "../../src/game/match/rules";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
 import type { MapBuild } from "../../src/game/shell/build";
@@ -104,4 +106,77 @@ export function padNetGame(script: string): NetGame {
       }
     },
   };
+}
+
+/** sha256 over every map source file, path and content in path order: two players with different sources get different hashes. */
+export async function smashcraftMapHash(): Promise<string> {
+  const root = join(import.meta.dir, "../../src");
+  const paths = [...new Bun.Glob("**/*").scanSync({ cwd: root })].sort();
+  const hash = new Bun.CryptoHasher("sha256");
+  for (const path of paths) {
+    hash.update(`${path}\0`);
+    hash.update(new Uint8Array(await Bun.file(join(root, path)).arrayBuffer()));
+  }
+  return hash.digest("hex");
+}
+
+const PHASE_NAMES = new Map<number, string>(Object.entries(Phase).map(([name, value]) => [value, name]));
+
+/** One player of a hosted or joined match: both humans meet at fighter selection, and each presses its window's input or its pad script. */
+export async function createNetStandalone(link: LockstepLink, slot: number, options: { readonly script?: string } = {}): Promise<StandaloneNetSession> {
+  const runtime = installHeadless(PREDICTED_HEADLESS);
+  try {
+    const platform = join(import.meta.dir, "../../src/platform");
+    interface State { readonly game: { readonly phase: number } }
+    const { shell }: { shell(): State } = await import(join(platform, "shell/state.ts"));
+    const { confirmedChecksum }: { confirmedChecksum(state: State): string } = await import(join(platform, "shell/diagnostics.ts"));
+    const { setHumanCount }: { setHumanCount(game: State["game"], count: number): void } = await import(join(import.meta.dir, "../../src/game/match/rules.ts"));
+    const main: { install(build: MapBuild): void; startBuild(build: MapBuild): void } = await import(join(platform, "main.ts"));
+    const build: MapBuild = { ...PLAYABLE_BUILD, devConsole: true };
+    const lockstep = runtime.clients({ install: () => main.install(build), start: () => main.startBuild(build) }, [slot], { humans: [0, 1], link, keepCalls: 0 });
+    const client = lockstep.client(slot);
+    const { applyDeveloperCommand }: { applyDeveloperCommand(state: State, slot: number, text: string): void } = await import(join(platform, "shell/keys.ts"));
+    const scripted = options.script === undefined ? undefined : padInputs(padEdges(options.script).edges, slot);
+    const chat = (options.script ?? "").split("\n").map((line) => line.trim()).filter((line) => line.startsWith("#! chat ")).map((line) => line.substring(8));
+    let latest: StandaloneInput = { buttons: [], axisX: 0, axisY: 0 };
+    let held = new Set<number>();
+    let lastPhase = -1;
+    return {
+      client,
+      input: (input) => { latest = input; },
+      start: () => lockstep.start(),
+      step: () => {
+        if (lockstep.frame === SETUP_FRAME) {
+          client.run(() => {
+            setHumanCount(shell().game, 2);
+            for (const command of chat) applyDeveloperCommand(shell(), command.startsWith("-dev fighter ") ? Number(command.split(" ")[2]) - 1 : 0, command);
+          });
+          console.log(`net: fighter selection with 2 players at frame ${lockstep.frame}`);
+        }
+        if (lockstep.frame >= SETUP_FRAME) {
+          const next = heldKeys(scripted === undefined ? latest : scripted(lockstep.frame - SETUP_FRAME + 1));
+          for (const key of held) if (!next.has(key)) lockstep.key(slot, key, 0, false);
+          for (const key of next) if (!held.has(key)) lockstep.key(slot, key, 0, true);
+          held = next;
+        }
+        lockstep.frames(1);
+        if (client.errors.length > 0) throw new Error(client.errors.join("\n"));
+        client.run(() => {
+          const phase = shell().game.phase;
+          if (phase !== lastPhase) console.log(`net: ${PHASE_NAMES.get(phase) ?? phase} at frame ${lockstep.frame}`);
+          lastPhase = phase;
+        });
+      },
+      frame: () => lockstep.frame,
+      checksum: () => {
+        let checksum = "";
+        client.run(() => { checksum = confirmedChecksum(shell()); });
+        return checksum;
+      },
+      close: () => runtime.restore(),
+    };
+  } catch (error) {
+    runtime.restore();
+    throw error;
+  }
 }

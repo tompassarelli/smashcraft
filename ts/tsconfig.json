@@ -24,7 +24,7 @@
         "diagnostics": true,
         "includeSuggestionsInTsc": true,
         "ignoreEffectSuggestionsInTscExitCode": true,
-        "allowedUnstableApis": ["effect/process"]
+        "allowedUnstableApis": ["effect/process", "@effect/platform-bun/BunRuntime", "@effect/platform-bun/BunServices"]
       },
       {
         "name": "wisp/plugins/number-rules-service.cjs",

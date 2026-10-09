@@ -13,6 +13,7 @@ import { NATIVE_DRIVER_BUILD, PLAYABLE_BUILD } from "../../src/game/shell/curren
 import type { MapBuild } from "../../src/game/shell/build";
 import { PREDICTED_HEADLESS, SMASHCRAFT_HEADLESS } from "./headless";
 import { headlessRender } from "./headlessRender";
+import { createNetStandalone, smashcraftMapHash } from "./net";
 
 const ACTIONS: Readonly<Record<string, Action>> = {
   attack: Action.attack, special: Action.special, jump: Action.jump,
@@ -131,6 +132,7 @@ export const SMASHCRAFT_STANDALONE: StandaloneGame = {
   title: "Smashcraft",
   render: { ...headlessRender(), preloadModels: ["Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdx"] },
   create: createStandaloneSession,
+  net: { mapHash: smashcraftMapHash, create: createNetStandalone },
 };
 
 export function standaloneArguments(args: readonly string[]) {
@@ -166,7 +168,9 @@ export function standaloneArguments(args: readonly string[]) {
 }
 
 export const standalonePlay: Command = (args) => Effect.gen(function*() {
-  const options = yield* Effect.try({ try: () => standaloneArguments(args), catch: (cause) => new UsageFailure({ problem: String(cause) }) });
-  const { runStandalone } = yield* Effect.tryPromise({ try: () => import("wisp/scripts/wisp/standalone"), catch: (cause) => new RenderFailure({ cause }) });
-  return yield* runStandalone({ ...SMASHCRAFT_STANDALONE, create: (session) => createStandaloneSession({ ...session, ...(options.presentation === undefined ? {} : { presentation: options.presentation }), ...(options.fourFighters === true ? { fourFighters: true } : {}) }) }, options);
+  const { runStandalone, standaloneNetArguments } = yield* Effect.tryPromise({ try: () => import("wisp/scripts/wisp/standalone"), catch: (cause) => new RenderFailure({ cause }) });
+  const net = standaloneNetArguments(args);
+  if (typeof net === "string") return yield* new UsageFailure({ problem: net });
+  const options = yield* Effect.try({ try: () => standaloneArguments(net.rest), catch: (cause) => new UsageFailure({ problem: String(cause) }) });
+  return yield* runStandalone({ ...SMASHCRAFT_STANDALONE, create: (session) => createStandaloneSession({ ...session, ...(options.presentation === undefined ? {} : { presentation: options.presentation }), ...(options.fourFighters === true ? { fourFighters: true } : {}) }) }, { ...options, ...(net.net === undefined ? {} : { net: net.net }) });
 });
