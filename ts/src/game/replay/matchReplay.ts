@@ -47,6 +47,8 @@ export const PART_LINES = 48;
 const STATE_TOKENS_PER_CALLBACK = 240;
 /** Records nested this deep in a starting state are written as one piece. */
 const STATE_PIECE_DEPTH = 2;
+/** Arrays of records at least this long are written an element at a time. */
+const STATE_LIST_MINIMUM = 8;
 
 // ---------------------------------------------------------------- checksum
 
@@ -148,8 +150,27 @@ function statePieces(pieces: StatePiece[], record: unknown, depth: number, skip 
       pieces.push(`${name}{`);
       statePieces(pieces, value, depth + 1);
       pieces.push("}");
+    } else if (recordList(name, value)) {
+      // A long list of records, such as a computer's 43 observed frames, is one piece per element's field.
+      pieces.push(`${name}[`);
+      for (let index = 0; index < value.length; index++) {
+        pieces.push(`${index}{`);
+        statePieces(pieces, value[index], STATE_PIECE_DEPTH);
+        pieces.push("}");
+      }
+      pieces.push("]");
     } else pieces.push({ record, name });
   }
+}
+
+/** An array that recordTokens writes as `name[`, then `0{` and each element's fields, and `]`: plain records, none missing. */
+function recordList(name: string, value: unknown): value is readonly Readonly<Record<string, unknown>>[] {
+  if (!Array.isArray(value) || value.length < STATE_LIST_MINIMUM || KEYED_BY_ACTION.includes(name)) return false;
+  for (let index = 0; index < value.length; index++) {
+    const element: unknown = value[index];
+    if (!isFields(element) || Array.isArray(element) || hasIntegerKeys(element)) return false;
+  }
+  return true;
 }
 
 /**
