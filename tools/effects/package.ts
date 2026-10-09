@@ -62,18 +62,16 @@ for (let i = 0; i < 24; i++) {
 }
 const models: [string,Shape[]][] = [["Hit",rays(16,47,44)], ["Tech",rays(8,60,22)], ["Miss",miss], ["Dust",dust], ["Roll",rays(8,33,30)],
     ["Electric",electric], ["Shield",rays(10,38,38)], ["Jump",ring], ["KO",rays(20,85,85)], ["Respawn",rays(8,45,65)]];
-// The danger edge stays at unit radius; its dark interior leaves the rim crisp.
+// A floor-plane disk stays above the deck at the gameplay camera's downward angle.
 const defile: Shape[] = [{ points: Array.from({length:64}, (_,i) => {
     const angle = i * Math.PI / 32;
-    return [.89 * Math.cos(angle), .12 + .08 * Math.sin(angle)] as Point;
+    return [.89 * Math.cos(angle), .54 * Math.sin(angle)] as Point;
 }), tile:0, dark:true }];
 for (let i = 0; i < 64; i++) {
     const a=i*Math.PI/32, b=(i+1)*Math.PI/32;
-    defile.push({points:[[.91*Math.cos(a),.12+.08*Math.sin(a)],[Math.cos(a),.12+.08*Math.sin(a)],
-        [Math.cos(b),.12+.08*Math.sin(b)],[.965*Math.cos(b),.12+.08*Math.sin(b)]],tile:0});
+    defile.push({points:[[.89*Math.cos(a),.54*Math.sin(a)],[Math.cos(a),.60*Math.sin(a)],
+        [Math.cos(b),.60*Math.sin(b)],[.89*Math.cos(b),.54*Math.sin(b)]],tile:0});
 }
-defile.push({points:[[-1,0],[-1,.20],[-.91,.20],[-.91,0]],tile:0},
-    {points:[[.91,0],[.91,.20],[1,.20],[1,0]],tile:0});
 models.push(["Defile",defile]);
 /**
  * HD modes draw a model's omni lights without a cap (3.0); Classic keeps the
@@ -94,8 +92,8 @@ for (const [index,[name,shapes]] of models.entries()) {
         const faces = Array.from({length:n-2}, (_,i) => [0,i+1,i+2]).flat();
         const uvs = soft ? [[.7501,.001],[.9999,.001],[.9999,.999],[.7501,.999]] : Array(n).fill([(tile+.5)/4,.5]);
         return `Geoset {
-            Vertices ${n} { ${points.map(([x,z]) => vector([x,-id*.002,z])+",").join(" ")} }
-            Normals ${n} { ${Array(n).fill("{ 0, -1, 0 },").join(" ")} }
+            Vertices ${n} { ${points.map(([x,z]) => vector(name === "Defile" ? [x,z,.035] : [x,-id*.002,z])+",").join(" ")} }
+            Normals ${n} { ${Array(n).fill(name === "Defile" ? "{ 0, 0, 1 }," : "{ 0, -1, 0 },").join(" ")} }
             TVertices ${n} { ${uvs.map(v=>vector(v)+",").join(" ")} }
             VertexGroup { ${Array(n).fill("0,").join(" ")} }
             Faces 1 ${faces.length} { Triangles { ${vector(faces)}, } }
