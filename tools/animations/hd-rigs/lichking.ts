@@ -6,6 +6,7 @@ export const dropGeosets = [7, 8, 29, 30, 31, 32, 33, 34];
 // and its L_ bones carry the Classic right side.
 export const mirror = true;
 export const alignRoot = true;
+export const fitScale = 0.834;
 export const classic = {
     root: 'Root',
     pelvis: 'Stomach',
