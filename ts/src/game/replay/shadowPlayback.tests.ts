@@ -55,7 +55,20 @@ function deliver(schedule: ShadowInputSchedule, sender: number, epoch: number, f
 }
 
 function sameTapes(expected: TapeWorld, actual: TapeWorld): void {
-  assertEquals(firstStateDifference(captureTape(expected), captureTape(actual)), undefined);
+  assertEquals(firstStateDifference(expected.live, actual.live), undefined);
+}
+
+function rebuiltSnapshots(epoch: number, from: number, through: number, expected: TapeWorld, expectedHistory: ReplayHistory, actual: TapeWorld, actualHistory: ReplayHistory): void {
+  const final = captureTape(expected);
+  for (let frame = from; frame <= through; frame++) {
+    assertFalse(actualHistory.isSpeculative(epoch, frame));
+    assertTrue(expectedHistory.restore(epoch, frame, expected.live));
+    assertTrue(actualHistory.restore(epoch, frame, actual.live));
+    assertEquals(firstStateDifference(expected.live, actual.live), undefined, `snapshot before frame ${frame}`);
+  }
+  assertTrue(actualHistory.replay(epoch, from, through, actual.live));
+  assertEquals(firstStateDifference(final, actual.live), undefined);
+  copyReplayState(expected.live, final);
 }
 
 function confirmAll(schedule: ShadowInputSchedule, playback: ShadowInputPlayback, epoch: number, live: ReplayState, history: ReplayHistory): void {
@@ -71,13 +84,13 @@ function networkRow(history: ReplayHistory, epoch: number, frame: number, slot: 
 }
 
 test("a late held input re-predicts the tail and an accepted release stops it [invariant]", () => {
+  const schedule = new ShadowInputSchedule();
+  const playback = new ShadowInputPlayback();
+  const history = new ReplayHistory();
+  const confirmedHistory = new ReplayHistory();
   for (const localPlayer of [0, 1]) {
     const epoch = 930 + localPlayer;
     const remote = 1 - localPlayer;
-    const schedule = new ShadowInputSchedule();
-    const playback = new ShadowInputPlayback();
-    const history = new ReplayHistory();
-    const confirmedHistory = new ReplayHistory();
     const world = shadowWorld();
     const confirmed = shadowWorld();
     const special = row({ pressed: bit(Action.special), specialX: -1, specialZ: 1, sdi: true, sdiX: 1, throwX: 1, throwZ: -1 });
@@ -130,11 +143,7 @@ test("a late held input re-predicts the tail and an accepted release stops it [i
     assertEquals(playback.reconcile(schedule, epoch, localPlayer, world.live, history), "unchanged");
     confirmAll(schedule, playback, epoch, confirmed.live, confirmedHistory);
     sameTapes(confirmed, world);
-    for (let frame = 1; frame <= 10; frame++) {
-      assertFalse(history.isSpeculative(epoch, frame));
-      assertTrue(history.replay(epoch, frame, 10, world.live));
-      sameTapes(confirmed, world);
-    }
+    rebuiltSnapshots(epoch, 1, 10, confirmed, confirmedHistory, world, history);
   }
 });
 
@@ -230,11 +239,7 @@ test("twelve late rows replay at full depth and rebuild every snapshot [invarian
   assertEquals(second.attack.style, AttackStyle.neutralAir);
   confirmAll(schedule, playback, epoch, confirmed.live, confirmedHistory);
   sameTapes(confirmed, speculative);
-  for (let frame = 4; frame <= 15; frame++) {
-    assertFalse(speculativeHistory.isSpeculative(epoch, frame));
-    assertTrue(speculativeHistory.replay(epoch, frame, 15, speculative.live));
-    sameTapes(confirmed, speculative);
-  }
+  rebuiltSnapshots(epoch, 4, 15, confirmed, confirmedHistory, speculative, speculativeHistory);
   assertEquals(playback.reconcile(schedule, epoch, 0, speculative.live, speculativeHistory), "unchanged");
   assertTrue(schedule.mayAdvanceSpeculative(0));
 });
@@ -280,11 +285,7 @@ test("twenty-four late rows re-predict and rebuild every snapshot [invariant]", 
   assertFalse(second.shield.raised);
   confirmAll(schedule, playback, epoch, confirmed.live, confirmedHistory);
   sameTapes(confirmed, world);
-  for (let frame = 1; frame <= 24; frame++) {
-    assertFalse(history.isSpeculative(epoch, frame));
-    assertTrue(history.replay(epoch, frame, 24, live));
-    sameTapes(confirmed, world);
-  }
+  rebuiltSnapshots(epoch, 1, 24, confirmed, confirmedHistory, world, history);
   assertEquals(schedule.captureLocal(epoch, NEUTRAL), Capture.captured);
   assertTrue(playback.advanceSpeculative(schedule, epoch, 0, live, history));
   assertEquals(live.runtime.simulationFrame, 25);
@@ -309,14 +310,14 @@ test("lobby computers replay from corrected humans without network senders [inva
   // One human with three computers, and sparse two-human, one-computer occupancy.
   // Wren Expert observes after 12 frames, leaving time to act inside the 24-frame window.
   const frames = 20;
+  const schedule = new ShadowInputSchedule();
+  const playback = new ShadowInputPlayback();
+  const history = new ReplayHistory();
+  const confirmedHistory = new ReplayHistory();
   for (const variant of [0, 1]) {
     const humans = variant === 0 ? 8 : 9;
     const computers = variant === 0 ? 7 : 4;
     const epoch = 970 + variant;
-    const schedule = new ShadowInputSchedule();
-    const playback = new ShadowInputPlayback();
-    const history = new ReplayHistory();
-    const confirmedHistory = new ReplayHistory();
     const game = createMatchState();
     setParticipants(game, humans, computers);
     for (const slot of PARTICIPANT_SLOTS) if (computerActive(game, slot)) game.cpuTiers[slot] = "expert";
@@ -350,13 +351,9 @@ test("lobby computers replay from corrected humans without network senders [inva
   }
 });
 
-function slotModeJournalOutcome(variant: number, heldInactiveInput: boolean): string {
+function slotModeJournalOutcome(variant: number, heldInactiveInput: boolean, schedule: ShadowInputSchedule, playback: ShadowInputPlayback, history: ReplayHistory, confirmedHistory: ReplayHistory): string {
   const humans = variant < 2 ? 9 : 1;
-  const epoch = 990 + variant;
-  const schedule = new ShadowInputSchedule();
-  const playback = new ShadowInputPlayback();
-  const history = new ReplayHistory();
-  const confirmedHistory = new ReplayHistory();
+  const epoch = 990 + variant * 2 + (heldInactiveInput ? 0 : 1);
   const game = createMatchState();
   setParticipants(game, humans, 6);
   assertTrue(cycleSlotMode(game, 0, 0));
@@ -404,5 +401,12 @@ function slotModeJournalOutcome(variant: number, heldInactiveInput: boolean): st
 }
 
 test("computer and empty slot owners still confirm and replay without phantom senders [invariant]", () => {
-  for (let variant = 0; variant <= 3; variant++) assertEquals(slotModeJournalOutcome(variant, true), slotModeJournalOutcome(variant, false));
+  const schedule = new ShadowInputSchedule();
+  const playback = new ShadowInputPlayback();
+  const history = new ReplayHistory();
+  const confirmedHistory = new ReplayHistory();
+  for (let variant = 0; variant <= 3; variant++) assertEquals(
+    slotModeJournalOutcome(variant, true, schedule, playback, history, confirmedHistory),
+    slotModeJournalOutcome(variant, false, schedule, playback, history, confirmedHistory),
+  );
 });

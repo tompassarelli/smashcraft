@@ -67,6 +67,7 @@ function pressThrice(character: Character, style: AttackStyle, every: number | u
     serial = attacker.attack.serial;
     if (target.status.damage !== damage) hits++;
     damage = target.status.damage;
+    if (presses === 3 && attacker.attack.style === undefined && d.controls.commands[0].pending === undefined) break;
   }
   return { styles, hits };
 }

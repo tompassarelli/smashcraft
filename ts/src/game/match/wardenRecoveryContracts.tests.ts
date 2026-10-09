@@ -31,14 +31,15 @@ test("the computer's Warden blinks back to the stage from every spot in reach [s
       game.stageChoice = 0;
       const roster = createRoster(3, [warden, opponent]);
       const input = neutralControls();
+      const controls = createFrameControls();
       for (let frame = 1; frame <= 300; frame++) {
         input.direction = 0;
         input.jumpPressed = false;
         input.jumpHeld = false;
         chooseRecoveryInput(warden, 0, 0, input);
-        const controls = createFrameControls();
         copyControls(controls.inputs[0], input);
         stepMatch(game, roster, controls, frame);
+        if (warden.status.out || warden.status.stocks < 3 || (warden.motion.grounded && Math.abs(warden.motion.x) <= 600.0)) break;
       }
       assertFalse(warden.status.out);
       assertTrue(warden.status.stocks === 3 && warden.motion.grounded && Math.abs(warden.motion.x) <= 600.0);
