@@ -112,8 +112,8 @@ sweep("computer Blademaster throws Bladestorm, Blade Wheel, his down tilt and da
   throws(counts, [downAir, neutralAir, downTilt, dashAttack]);
 });
 
-sweep("computer Mountain King angles his forward tilt, throws his down tilt and dash attack, each at least once; fewest seen 3 on four seed offsets [spec #155]", () => {
-  const counts = played(Character.mountainKing);
+sweep("computer Mountain King angles his forward tilt, throws his down tilt and dash attack, each at least once; fewest seen 4 on four seed offsets [spec #155]", () => {
+  const counts = played(Character.mountainKing, Character.mountainKing, 2 * MATCHES);
   throws(counts, [forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
 });
 
