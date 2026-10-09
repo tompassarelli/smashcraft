@@ -170,11 +170,13 @@ function checkProjectileRegions(characters: readonly Character[]): void {
           expect(actual).toHaveLength(1);
           expect(actual[0]?.x).toBe(projectile.x);
           expect(actual[0]?.z).toBe(projectile.z);
-          if (spec.velocityX === 0 && spec.velocityZ === 0) {
-            const rim = client.effectPoses().find(effect => effect.model === IMPACT_DEFILE_MODEL && effect.scale > 0);
+          const rim = client.effectPoses().find(effect => effect.model === IMPACT_DEFILE_MODEL && effect.scale > 0);
+          if (spec.pool !== undefined && spec.pool.growth > 0) {
             expect(rim?.x).toBe(projectile.x);
             expect(rim?.z).toBe(projectile.z);
             expect(rim?.scale).toBeGreaterThan(0);
+          } else {
+            expect(rim).toBeUndefined();
           }
           measured++;
         }
@@ -190,11 +192,11 @@ function checkProjectileRegions(characters: readonly Character[]): void {
   console.log(`projectile presentation: ${measured} live frames checked, 0 missing or misplaced`);
 }
 
-test("headless spell models and stationary field rims remain at Rifleman and Lich King's live projectile centres [spec docs/disjoint-legibility.md]", () => {
-  checkProjectileRegions([Character.rifleman, Character.lichKing]);
+test("headless spell models remain at Rifleman, Lich King and Malfurion's live projectile centres, and only Defile's growing pool draws a dark rim [spec #364]", () => {
+  checkProjectileRegions([Character.rifleman, Character.lichKing, Character.malfurion]);
 });
 
-sweep("headless spell models and stationary field rims remain at every fighter's live projectile centre [spec docs/disjoint-legibility.md]", () => {
+sweep("headless spell models remain at every fighter's live projectile centre, and only growing pools draw a dark rim [spec #364]", () => {
   checkProjectileRegions(SELECTABLE_CHARACTERS);
 });
 

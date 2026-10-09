@@ -44,7 +44,8 @@ export class ProjectilePresentation {
       const effects: number[] = [];
       const boundaries: number[] = [];
       const specials = heroDefinition(character)?.specials;
-      const groundPool = specials !== undefined && heroProjectileArt(specials).some(({ spec }) => spec.model === path && (spec.pool !== undefined || (spec.velocityX === 0.0 && spec.velocityZ === 0.0)));
+      // Only a growing pool (Defile) draws a danger rim; under other ground effects it read as a stray dark oval (#364).
+      const groundPool = specials !== undefined && heroProjectileArt(specials).some(({ spec }) => spec.model === path && spec.pool !== undefined && spec.pool.growth > 0.0);
       for (let slot = 0; slot < size; slot++) {
         effects.push(this.models.length);
         this.models.push(AddSpecialEffect(path, origin.x, origin.y));
