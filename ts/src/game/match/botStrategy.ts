@@ -15,6 +15,8 @@ import { botChance } from "./botRandom";
 import { steerOnGround, slideStaysOnDeck } from "./botFooting";
 import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
 import { HABIT_FIELDS, HabitChoice, habitContext } from "./botHabits";
+import { gameplanOf } from "./botGameplan";
+import { heroStanceFits, heroStanceSlot, pressHeroStance } from "./botHeroKit";
 
 const HISTORY_LIMIT = 128;
 const READ_CHOICES = [HabitChoice.attack, HabitChoice.shield, HabitChoice.jump, HabitChoice.retreat, HabitChoice.approach, HabitChoice.landing, HabitChoice.ledge] as const;
@@ -293,6 +295,16 @@ export function pressBotRead(state: BotStrategy, own: Readonly<Fighter>, target:
   const toward = dx < 0 ? -1 : 1;
   if (state.readChoice === HabitChoice.attack) {
     if (ahead > 8 || ahead < -8) return false;
+    if (state.readActed && own.special.action !== SpecialAction.none) return false;
+    if (ahead >= 0 && gameplanOf(own.character)?.defense.includes("stance") === true) {
+      const stance = heroStanceSlot(own, ahead);
+      if (stance !== undefined) {
+        pressHeroStance(own, stance, input);
+        state.readActed = true;
+        return true;
+      }
+      if (!own.shield.raised && heroStanceFits(own, ahead - 1) !== undefined) return true;
+    }
     input.shield = true;
     state.readActed = true;
     return true;

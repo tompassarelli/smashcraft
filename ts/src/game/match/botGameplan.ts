@@ -161,7 +161,7 @@ export function moveWeight(plan: Readonly<FighterGameplan>, planIndex: number, f
       weight *= FOLLOW_UP_WEIGHT;
       break;
     }
-    if (!stunned && route.starter === move) {
+    if (!stunned && (route.starter === move || (move === AttackStyle.grab && isThrow(route.starter)))) {
       weight *= STARTER_WEIGHT;
       break;
     }

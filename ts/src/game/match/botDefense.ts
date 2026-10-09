@@ -10,12 +10,11 @@ import type { Fighter } from "../sim/fighter";
 import { attackStartupFrames, characterAttackActiveFrames, RIFLEMAN_BLASTER_AIR_SHOT_FRAME, RIFLEMAN_BLASTER_GROUND_FRAMES, RIFLEMAN_BLASTER_GROUND_SHOT_FRAME } from "../sim/moves";
 import type { Controls } from "../sim/roster";
 import { DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_MANA_BURN_HEIGHT, DEMONHUNTER_MANA_BURN_LIFETIME, DEMONHUNTER_MANA_BURN_SPEED, DEMONHUNTER_MANA_BURN_STARTUP } from "../sim/specials";
-import { SpecialSlot } from "../sim/heroSpecials";
 import { runningHeroSpecial } from "../sim/heroSpecialRules";
 import { BLASTER_AIR_SHOT_HEIGHT, BLASTER_PROJECTILE_HEIGHT, BLASTER_PROJECTILE_LIFETIME, BLASTER_PROJECTILE_RADIUS, BLASTER_PROJECTILE_SPAWN_OFFSET, BLASTER_PROJECTILE_SPEED, } from "../sim/projectiles";
 import { hurtCapsule } from "../physics/contactGeometry";
 import { deckUnder, heightAhead, safeAt } from "./botFooting";
-import { heroStanceLater, heroStanceSlot } from "./botHeroKit";
+import { heroStanceLater, heroStanceSlot, pressHeroStance } from "./botHeroKit";
 import { moveReaches } from "./botMoves";
 import { botChance, botChoice } from "./botRandom";
 import { defenseOption, gameplanOf } from "./botGameplan";
@@ -213,10 +212,7 @@ export function chooseDefense(f: Readonly<Fighter>, target: Readonly<Fighter>, s
       return false;
     case Response.stance: {
       const slot = heroStanceSlot(f, Math.floor(threat.arrival));
-      input.specialPressed = true;
-      input.specialX = slot === SpecialSlot.side ? f.facing : 0;
-      input.specialZ = slot === SpecialSlot.down ? -1 : 0;
-      input.verticalDirection = input.specialZ;
+      if (slot !== undefined) pressHeroStance(f, slot, input);
       return true;
     }
     case Response.roll:

@@ -181,8 +181,13 @@ export function heroSpecialUse(f: Readonly<Fighter>, target: Readonly<Fighter>, 
 
 
 export function heroStanceSlot(f: Readonly<Fighter>, arrival: number): SpecialSlot | undefined {
+  return canAttack(f) ? heroStanceFits(f, arrival) : undefined;
+}
+
+
+export function heroStanceFits(f: Readonly<Fighter>, arrival: number): SpecialSlot | undefined {
   const specials = f.tuning.specials;
-  if (specials === undefined || arrival < 0 || !canAttack(f)) return undefined;
+  if (specials === undefined || arrival < 0) return undefined;
   const frame = arrival + 1;
   for (const slot of STANCE_SLOTS) {
     const move = startableForm(f, specials, slot);
@@ -191,6 +196,14 @@ export function heroStanceSlot(f: Readonly<Fighter>, arrival: number): SpecialSl
     if (window !== undefined && frame >= window.first && frame <= window.last) return slot;
   }
   return undefined;
+}
+
+
+export function pressHeroStance(f: Readonly<Fighter>, slot: SpecialSlot, input: Controls): void {
+  input.specialPressed = true;
+  input.specialX = slot === SpecialSlot.side ? f.facing : 0;
+  input.specialZ = slot === SpecialSlot.down ? -1 : 0;
+  input.verticalDirection = input.specialZ;
 }
 
 
