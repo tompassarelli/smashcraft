@@ -57,8 +57,12 @@ code:
    its hash into your checkout's build-inputs.json.
 3. `bun wisp map build --profile playable --name NAME --out OUT.w3x` from the lane
    checks the change; commit build-inputs.json with the code that needs it and
-   land it. Lanes that changed different families merge like any JSON edit; two
-   lanes that changed the same family conflict in Git, never on disk.
+   land it. Lanes that changed different families merge cleanly, even on
+   adjacent lines: smashcraft:.gitattributes merges build-inputs.json, the
+   anim-score tables, model facts and the move list per entry through
+   smashcraft:ts/scripts/mergeGenerated.ts, which `bun install` (from ts/)
+   registers in the repository's git config. Two lanes that changed the same
+   family or row conflict in Git for that entry only, never on disk.
 
 `bun wisp inputs check` verifies every family of the checkout's manifest.
 Never edit a stored folder; a build reports an edit in place with the command

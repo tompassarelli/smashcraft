@@ -1,0 +1,4 @@
+build-inputs.json merge=smashcraft-generated
+tools/move-data/anim-score/*.tsv merge=smashcraft-generated
+ts/scripts/wisp/modelFacts.ts merge=smashcraft-generated
+docs/move-list.md merge=smashcraft-generated
