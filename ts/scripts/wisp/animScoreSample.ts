@@ -162,19 +162,6 @@ function step(world: Roster, input: Readonly<Controls>): void {
   advanceHeroStatus(f);
 }
 
-function readyPose(model: DrawnModel, character: Character, aerial: boolean): ScoreFrame {
-  const f = createFighter(character, 0.0, 1);
-  const world = createRoster(1, [f]);
-  if (aerial) { f.motion.grounded = false; f.motion.z = 900.0; }
-  const p = createFighterPose();
-  const input = neutralControls();
-  for (let frame = 0; frame < 30; frame++) {
-    advanceFighter(world, 0, 0, input, 0.0);
-    advanceFighterPose(p, f, world, input, false, false, false, false);
-  }
-  return pose(model, character, capture(f, p));
-}
-
 export interface SampledMove {
   readonly move: string;
   readonly sample: MoveSample;
@@ -216,10 +203,12 @@ export function sampleNormal(model: DrawnModel, skeleton: ScoreSkeleton, charact
   if (first === undefined || last === undefined || strike === undefined || contactFrame === undefined) return undefined;
   const local = { x1: strike.x1 - contactFrame.x, z1: strike.z1 - contactFrame.z, x2: strike.x2 - contactFrame.x, z2: strike.z2 - contactFrame.z };
   const posed = frames.map((frame) => pose(model, character, frame));
+  const ready = posed[moveFrames];
+  if (ready === undefined) return undefined;
   const chestZ = skeleton.chest === undefined ? 50 : posed[first]?.nodes[skeleton.chest * 2 + 1] ?? 50;
   return {
     move: entry.move, endFrame: moveFrames - 1, seconds: frames.map((frame) => timelineSeconds(character, frame)), heights: frames.map((frame) => frame.z - (entry.aerial ? 900.0 - 300.0 : 0.0)),
-    sample: { moveClass: entry.moveClass, frames: posed, moveFrames, ready: readyPose(model, character, entry.aerial), skeleton, firstActive: first, lastActive: last, strike: strikeEnd(local, chestZ), pixelsPerUnit },
+    sample: { moveClass: entry.moveClass, frames: posed, moveFrames, ready, skeleton, firstActive: first, lastActive: last, strike: strikeEnd(local, chestZ), pixelsPerUnit },
   };
 }
 
@@ -266,9 +255,11 @@ export function sampleSpecial(model: DrawnModel, skeleton: ScoreSkeleton, charac
   const first = activeFrames[0], last = activeFrames.at(-1);
   if (first === undefined || last === undefined || strike === undefined || frames.some((frame) => frame.clip === undefined)) return undefined;
   const posed = frames.map((frame) => pose(model, character, frame));
+  const ready = posed[moveFrames];
+  if (ready === undefined) return undefined;
   return {
     move: entry.move, endFrame: moveFrames - 1, seconds: frames.map((frame) => timelineSeconds(character, frame)), heights: frames.map((frame) => frame.z),
-    sample: { moveClass: "special", frames: posed, moveFrames, ready: readyPose(model, character, false), skeleton, firstActive: first, lastActive: last, strike, pixelsPerUnit },
+    sample: { moveClass: "special", frames: posed, moveFrames, ready, skeleton, firstActive: first, lastActive: last, strike, pixelsPerUnit },
   };
 }
 

@@ -9,7 +9,8 @@ uses another packaged asset view. A limited run replaces that fighter's rows.
 Each row measures the mesh at the exact animation time chosen by production
 pose selection while the simulation plays the move. Distances are fractions
 of the ready body's height; silhouette masks use the far gameplay camera's
-pixel scale. Aerials return to airborne ready, ground moves to standing ready.
+pixel scale. Ready is the pose production pose selection shows on the frame
+after the move ends, so line 2 measures the transition the game draws.
 
 1. **Body drive:** find the mesh vertex nearest the strike's far end at
    contact. A limb carrying that point is found by its hand/foot attachment;
