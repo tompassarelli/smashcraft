@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { SELECTABLE_CHARACTERS, fighterName } from "../src/game/sim/heroes/registry";
 import { SPECIAL_INPUTS, fighterKit } from "../src/game/sim/moveNames";
 import { WORLD_UNITS_PER_MELEE_UNIT, authoredTuning } from "../src/game/sim/tuning";
+import { EdgeGuardTool, edgeGuardTool } from "../src/game/match/edgeGuardScenarios";
 
 export const MOVE_LIST_PATH = join(import.meta.dir, "../../docs/move-list.md");
 
@@ -35,6 +36,8 @@ export function moveListMarkdown(): string {
       lines.push(`| ${SPECIAL_INPUTS[slot] ?? "Special"} | ${cell(special.name)}${cell(forms)} | ${cell(special.description)} |`);
     });
     lines.push(`| Jab, repeated | ${cell(kit.jab.name)} | ${cell(kit.jab.description)} |`);
+    const tool = edgeGuardTool(character) === EdgeGuardTool.forwardAir ? "Forward air" : "Down air";
+    lines.push(`| Edge-guard tool | ${tool} | Read offstage, it kills this fighter's own predictable recovery at 40% (recorded in edgeGuard.tests.ts). |`);
     if (kit.trait !== undefined) lines.push(`| Trait | | ${cell(kit.trait)} |`);
     if (kit.ultimate !== undefined) lines.push(`| Ultimate | ${cell(kit.ultimate.name)} | ${cell(kit.ultimate.description)} |`);
     const { physics, ground } = authoredTuning(character);
