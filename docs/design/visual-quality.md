@@ -932,8 +932,11 @@ of candidate callback clocks, not an established rendering-frame-rate meter.
 
 ### Stratholme presentation (#297)
 
-ST-3 uses the stock `Environment\Sky\LordaeronFallSky\LordaeronFallSky.mdx`
-against the existing right-third ruined cathedral. The dusk fog stays at
+ST-3 uses the authored dusk sky with a dark ember horizon, RGB (100, 50, 32),
+against the existing right-third ruined cathedral: the stock
+`LordaeronFallSky` and a brighter horizon (168, 84, 52) put the far-view
+backdrop near L* 34, too close to the fighters. The stage key and fill run at
+intensity 1.2. The dusk fog stays at
 5,000–11,000 with RGB (0.5, 0.28125, 0.1875). A destroyed Androhal clock tower
 in the far city band adds a stock HD silhouette; Classic keeps the cathedral,
 gate and ruined halls because the tower has no Classic copy.

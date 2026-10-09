@@ -7,7 +7,7 @@ const TOWN_FIRE = "Doodads\\Cinematic\\TownBurningFireEmitter\\TownBurningFireEm
 
 /** The Culling: Stratholme burns at dusk. */
 export const STRATHOLME_SCENERY: StageScenery = {
-  sky: "Environment\\Sky\\LordaeronFallSky\\LordaeronFallSky.mdx",
+  sky: STAGE_SKY_MODELS[6] ?? "",
   fog: { start: 5000.0, end: 11000.0, red: 0.5, green: 0.28125, blue: 0.1875 },
   pieces: [
     // ST-3: a second skyline band; this stock HD ruin draws nothing in Classic.

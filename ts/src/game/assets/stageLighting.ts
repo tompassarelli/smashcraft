@@ -40,7 +40,7 @@ export const STAGE_LIGHTS: readonly { readonly stage: number; readonly theme: st
   // A warm ivory key separates fighters from the orange forge backdrop (#292).
   { stage: CANNON_TEST_STAGE, theme: "Blackrock", light: { key: [255, 248, 232], ambient: [170, 124, 112], intensity: 1.2000000476837158 } },
   // Firelit dusk key, smoky mauve fill.
-  { stage: STRATHOLME_STAGE, theme: "Stratholme", light: { key: [255, 214, 180], ambient: [170, 140, 150] } },
+  { stage: STRATHOLME_STAGE, theme: "Stratholme", light: { key: [255, 214, 180], ambient: [170, 140, 150], intensity: 1.2000000476837158 } },
   // Cool sea light, tide-teal fill.
   { stage: TOMB_OF_SARGERAS_STAGE, theme: "Sargeras", light: { key: [226, 244, 255], ambient: [130, 176, 180] } },
   // Bleached sandstone sun, warm sand fill, at half strength: at full strength

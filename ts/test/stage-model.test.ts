@@ -2,6 +2,8 @@ import { expect, test } from "bun:test";
 import { MAIN_DECK_HALF_DEPTH, type DeckFace, type OutlinePoint, mainDeckFaces, mainDeckMdl, mainDeckModelFile, mainDeckOutlineStage, paletteTexture } from "../scripts/stageDeck";
 import { STAGE_DECK_MODELS, STAGE_LIGHT_MODELS, STAGE_MAIN_DECK_MODEL, STAGE_POINT_LIGHT_MODELS } from "../src/game/assets/stageAssetInfo";
 import { STAGE_LIGHTS } from "../src/game/assets/stageLighting";
+import { STAGE_SKY_MODELS } from "../src/game/assets/stageSkyInfo";
+import { STAGE_SKIES } from "../scripts/stageSky";
 import { STAGE_POINT_LIGHTS } from "../src/game/assets/stagePointLights";
 import { stageLightMdl, stageLightModelFile, stagePointLightMdl, stagePointLightModelFile } from "../scripts/stageLight";
 import { LAVA_GLOW, LIQUID_TEXTURE_SIZE, STOCK_BLOOM_THRESHOLD, lavaGlowTexel, liquidTexel } from "../scripts/stageLiquid";
@@ -292,9 +294,11 @@ test("Naxxramas's cold green light frames the necropolis with one shadow and lea
   for (const light of lights) expect(Math.hypot(citadel.x - light.x, citadel.y - light.y, citadel.z - light.z)).toBeLessThan(light.radius);
 });
 
-test("Stratholme keeps its cathedral against the fall sky and limits warm lights to town fires [spec #297]", () => {
+test("Stratholme keeps its cathedral against a dark dusk horizon and limits warm lights to town fires [spec #297]", () => {
   const scenery = stageScenery(6);
-  expect(scenery.sky).toBe("Environment\\Sky\\LordaeronFallSky\\LordaeronFallSky.mdx");
+  expect(scenery.sky).toBe(STAGE_SKY_MODELS[6]);
+  // Far-view fighter contrast (#297) needs the horizon behind the deck at or below L* 30.
+  expect(STAGE_SKIES.find(({ stage }) => stage === 6)?.horizon).toEqual([100, 50, 32]);
   expect(scenery.fog).toEqual({ start: 5000, end: 11000, red: 0.5, green: 0.28125, blue: 0.1875 });
   const cathedral = scenery.pieces.find(({ model }) => model.includes("CathedralRuined"));
   expect(cathedral?.x).toBe(1500);
