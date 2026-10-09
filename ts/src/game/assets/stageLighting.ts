@@ -2,6 +2,7 @@
 // the stock light; sceneryColor (presentation/stageScenery.ts) carries this
 // light's ratio to the stock one on the scenery only, never on the fighters.
 // Rules and measurements: smashcraft:docs/design/visual-quality.md.
+import { f32 } from "wisp/src/sim/f32";
 import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, DRIFTING_DECK_STAGE, FROZEN_THRONE_STAGE, HELLFIRE_STAGE, PATTERNED_DECKS_STAGE, STRATHOLME_STAGE, TIMED_TEST_STAGE, TOMB_OF_SARGERAS_STAGE, WIND_TEST_STAGE } from "../sim/stage";
 
 type Rgb = readonly [red: number, green: number, blue: number];
@@ -44,5 +45,5 @@ export const STAGE_LIGHTS: readonly { readonly stage: number; readonly theme: st
   { stage: STRATHOLME_STAGE, theme: "Stratholme", light: { key: [255, 214, 180], ambient: [170, 140, 150], intensity: 1.2000000476837158 } },
 
   { stage: TOMB_OF_SARGERAS_STAGE, theme: "Sargeras", light: { key: [226, 244, 255], ambient: [130, 176, 180] } },
-  { stage: TIMED_TEST_STAGE, theme: "Qiraji", light: { key: [230, 236, 255], ambient: [150, 162, 204], intensity: 0.30000001192092896 } },
+  { stage: TIMED_TEST_STAGE, theme: "Qiraji", light: { key: [236, 240, 255], ambient: [170, 176, 210], intensity: f32(1.15) } },
 ];

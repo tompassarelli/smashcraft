@@ -4,6 +4,10 @@ import { STAGE_SKY_MODELS } from "../assets/stageSkyInfo";
 import { STAGE_LAVA_MODEL, STAGE_SEA_MODEL } from "../assets/terrainAssetInfo";
 
 const MOUND = "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks2.mdx";
+const SPIRE0 = "Doodads\\Ruins\\Rocks\\Ruins_Spires\\Ruins_Spires0.mdx";
+const SPIRE2 = "Doodads\\Ruins\\Rocks\\Ruins_Spires\\Ruins_Spires2.mdx";
+const GATE = "Doodads\\Ruins\\Structures\\RuinsArchway45_\\RuinsArchway45_0.mdx";
+const OBELISK = "Doodads\\Ruins\\Props\\RuinsObelisk\\RuinsObelisk1.mdx";
 const SPIRES0 = "Doodads\\Outland\\Rocks\\Outland_Spires\\Outland_Spires0.mdx";
 const SPIRES2 = "Doodads\\Outland\\Rocks\\Outland_Spires\\Outland_Spires2.mdx";
 const SPIRES7 = "Doodads\\Outland\\Rocks\\Outland_Spires\\Outland_Spires7.mdx";
@@ -94,15 +98,34 @@ export const BLACKROCK_SCENERY: StageScenery = {
 
 export const AHNQIRAJ_SCENERY: StageScenery = {
   sky: STAGE_SKY_MODELS[13] ?? "",
-  fog: { start: 5000.0, end: 10000.0, red: 0.75, green: 0.625, blue: 0.375 },
+  fog: { start: 8000.0, end: 16000.0, red: 0.75, green: 0.625, blue: 0.375 },
+  floor: { model: STAGE_LAVA_MODEL, z: -1300.0, color: [100, 150, 255] },
   pieces: [
-
-    { model: "Doodads\\Ruins\\Props\\RuinsObelisk\\RuinsObelisk1.mdx", x: -2100.0, y: 5700.0, z: -3835.0, scale: 4.5, yaw: 300.0, matrixScale: [1.0, 1.0, f32(3.027)] },
-    { model: "Doodads\\Barrens\\Structures\\RuinedArch\\RuinedArch2.mdx", x: 2200.0, y: 4100.0, z: -1200.0, scale: 4.0, yaw: 220.0 },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks2.mdx", x: 2235.0, y: 4100.0, z: -2935.0, scale: f32(7.9), yaw: 257.0, matrixScale: [1.0, 1.0, f32(2.797)] },
-    { model: "Doodads\\Barrens\\Structures\\RuinedCurvedWall\\RuinedCurvedWall.mdx", x: 800.0, y: 5000.0, z: -1350.0, scale: 4.0, yaw: 160.0 },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks2.mdx", x: 810.0, y: 5000.0, z: -3455.0, scale: f32(7.29), yaw: 197.0, matrixScale: [1.0, 1.0, f32(3.672)] },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 2000.0, y: 2400.0, z: -2025.0, scale: 3.5, yaw: 45.0, matrixScale: [1.0, 1.0, f32(3.56)] },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -2200.0, y: 3000.0, z: -2310.0, scale: 4.5, yaw: 300.0, matrixScale: [1.0, 1.0, f32(3.486)] },
+    { model: SPIRE0, x: -4000.0, y: 4450.0, z: -1808.0, scale: 4.0, yaw: 190.0, matrixScale: [2.5, 1.0, 1.5] },
+    { model: SPIRE2, x: -3650.0, y: 4300.0, z: -1549.0, scale: 4.5, yaw: 170.0, matrixScale: [2.5, 1.0, 1.5] },
+    { model: SPIRE0, x: -3000.0, y: 4600.0, z: -1815.0, scale: 4.25, yaw: 200.0, matrixScale: [2.5, 1.0, 1.5] },
+    { model: SPIRE2, x: -2350.0, y: 4350.0, z: -1732.0, scale: 5.0, yaw: 175.0, matrixScale: [2.25, 1.0, 1.5] },
+    { model: SPIRE0, x: -1700.0, y: 4650.0, z: -1451.0, scale: 3.75, yaw: 185.0, matrixScale: [2.5, 1.0, 1.5] },
+    { model: SPIRE2, x: -1050.0, y: 4400.0, z: -1566.0, scale: 4.75, yaw: 160.0, matrixScale: [2.25, 1.0, 1.5] },
+    { model: SPIRE0, x: -400.0, y: 4700.0, z: -1551.0, scale: 4.5, yaw: 195.0, matrixScale: [2.5, 1.0, 1.25] },
+    { model: SPIRE2, x: 250.0, y: 4300.0, z: -1627.0, scale: 4.0, yaw: 180.0, matrixScale: [2.75, 1.0, 1.75] },
+    { model: SPIRE0, x: 900.0, y: 4550.0, z: -1765.0, scale: 4.25, yaw: 205.0, matrixScale: [2.5, 1.0, 1.5] },
+    { model: SPIRE2, x: 1550.0, y: 4400.0, z: -1632.0, scale: 5.0, yaw: 170.0, matrixScale: [2.25, 1.0, 1.5] },
+    { model: SPIRE0, x: 2200.0, y: 4650.0, z: -1444.0, scale: 3.5, yaw: 165.0, matrixScale: [2.75, 1.0, 1.5] },
+    { model: SPIRE2, x: 2850.0, y: 4350.0, z: -1713.0, scale: 4.25, yaw: 190.0, matrixScale: [2.5, 1.0, 1.75] },
+    { model: SPIRE0, x: 3500.0, y: 4500.0, z: -1632.0, scale: 4.75, yaw: 175.0, matrixScale: [2.25, 1.0, 1.25] },
+    { model: SPIRE2, x: 4000.0, y: 4500.0, z: -1585.0, scale: 5.75, yaw: 200.0, matrixScale: [2.5, 1.0, 1.25] },
+    { model: SPIRE2, x: -2625.0, y: 5100.0, z: -1499.0, scale: 4.5, yaw: 205.0, matrixScale: [2.75, 1.0, 1.5] },
+    { model: SPIRE0, x: -2000.0, y: 5100.0, z: -1849.0, scale: 5.5, yaw: 195.0, matrixScale: [2.75, 1.0, 1.0] },
+    { model: SPIRE0, x: -1350.0, y: 5050.0, z: -1640.0, scale: 4.0, yaw: 200.0, matrixScale: [2.75, 1.0, 1.25] },
+    { model: SPIRE2, x: -750.0, y: 4950.0, z: -1688.0, scale: 5.5, yaw: 185.0, matrixScale: [2.75, 1.0, 1.25] },
+    { model: SPIRE0, x: -75.0, y: 5100.0, z: -1671.0, scale: 4.25, yaw: 185.0, matrixScale: [2.75, 1.0, 1.25] },
+    { model: SPIRE0, x: 575.0, y: 5300.0, z: -1640.0, scale: 4.0, yaw: 200.0, matrixScale: [2.75, 1.0, 1.25] },
+    { model: SPIRE0, x: 1175.0, y: 5100.0, z: -1799.0, scale: 5.5, yaw: 195.0, matrixScale: [2.75, 1.0, 1.0] },
+    { model: SPIRE2, x: 1875.0, y: 5000.0, z: -1616.0, scale: 4.75, yaw: 180.0, matrixScale: [2.75, 1.0, 1.5] },
+    { model: SPIRE0, x: 2575.0, y: 5000.0, z: -1801.0, scale: 4.5, yaw: 165.0, matrixScale: [2.75, 1.0, 1.25] },
+    { model: GATE, x: -1900.0, y: 3900.0, z: -1551.0, scale: 2.25, yaw: 200.0, matrixScale: [1.0, 1.0, 1.25] },
+    { model: OBELISK, x: 1500.0, y: 4000.0, z: -1451.0, scale: 3.0, yaw: 300.0, matrixScale: [1.0, 1.0, 3.0] },
+    { model: OBELISK, x: 2150.0, y: 4100.0, z: -1579.0, scale: 2.5, yaw: 330.0, matrixScale: [1.0, 1.0, 3.5] },
   ],
 };
