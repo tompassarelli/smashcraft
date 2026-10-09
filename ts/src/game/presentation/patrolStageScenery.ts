@@ -62,18 +62,23 @@ export const NAXXRAMAS_SCENERY: StageScenery = {
 };
 
 export const HELLFIRE_SCENERY: StageScenery = {
-
-  sky: "Environment\\Sky\\Outland_Sky\\Outland_Sky.mdl",
-  fog: { start: 5000.0, end: 11000.0, red: 0.25, green: 0.5, blue: 0.125 },
+  sky: STAGE_SKY_MODELS[14] ?? "",
+  fog: { start: 5000.0, end: 10000.0, red: 0.5, green: 0.1875, blue: 0.125 },
+  floor: { model: STAGE_SEA_MODEL, z: -1300.0, color: [88, 36, 28] },
   pieces: [
-
     { model: "buildings\\demon\\DemonGate\\DemonGate.mdx", x: -1850.0, y: 4500.0, z: -50.0, scale: 1.5, yaw: 280.0 },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -1770.0, y: 4500.0, z: -7200.0, scale: 9.0, yaw: 317.0, matrixScale: [1.0, 1.0, f32(9.20577)] },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -2250.0, y: 2600.0, z: -5500.0, scale: 2.75, yaw: 80.0, matrixScale: [1.0, 1.0, f32(20.26058)] },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 2150.0, y: 3700.0, z: -6500.0, scale: f32(2.7), yaw: 205.0, matrixScale: [1.0, 1.0, f32(24.68099)] },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 1750.0, y: 5400.0, z: -8500.0, scale: f32(3.15), yaw: 330.0, matrixScale: [1.0, 1.0, f32(30.778105)] },
-
+    { model: SPIRES, x: -1850.0, y: 4550.0, z: -1677.0, scale: 4.0, yaw: 185.0, matrixScale: [2.5, 1.0, 0.75] },
+    { model: SPIRES, x: -3800.0, y: 4500.0, z: -1321.0, scale: 5.0, yaw: 175.0, matrixScale: [1.75, 1.0, 0.75] },
+    { model: SPIRES, x: -2900.0, y: 4350.0, z: -1816.0, scale: 4.5, yaw: 195.0, matrixScale: [2.0, 1.0, 1.0] },
+    { model: SPIRES, x: -2000.0, y: 4650.0, z: -1443.0, scale: 5.5, yaw: 165.0, matrixScale: [1.5, 1.0, 0.75] },
+    { model: SPIRES, x: -1100.0, y: 4400.0, z: -1335.0, scale: 4.75, yaw: 205.0, matrixScale: [1.75, 1.0, 0.75] },
+    { model: SPIRES, x: -200.0, y: 4700.0, z: -1387.0, scale: 5.25, yaw: 185.0, matrixScale: [1.75, 1.0, 0.75] },
+    { model: SPIRES, x: 700.0, y: 4450.0, z: -1711.0, scale: 4.25, yaw: 160.0, matrixScale: [2.0, 1.0, 1.0] },
+    { model: SPIRES, x: 1600.0, y: 4600.0, z: -1499.0, scale: 5.75, yaw: 200.0, matrixScale: [1.5, 1.0, 0.75] },
+    { model: SPIRES, x: 2500.0, y: 4300.0, z: -1786.0, scale: 4.5, yaw: 170.0, matrixScale: [2.0, 1.0, 1.0] },
+    { model: SPIRES, x: 3400.0, y: 4650.0, z: -1341.0, scale: 5.0, yaw: 190.0, matrixScale: [1.75, 1.0, 0.75] },
+    { model: SPIRES, x: 4050.0, y: 4400.0, z: -1918.0, scale: 6.5, yaw: 180.0, matrixScale: [1.5, 1.0, 0.75] },
     { model: "Abilities\\Spells\\NightElf\\Immolation\\ImmolationTarget.mdx", x: -1850.0, y: 4500.0, z: -1100.0, scale: 0.75, yaw: 0.0 },
-    { model: "Abilities\\Spells\\NightElf\\Immolation\\ImmolationTarget.mdx", x: 2150.0, y: 3700.0, z: -1450.0, scale: 0.5, yaw: 0.0 },
+    { model: "Abilities\\Spells\\NightElf\\Immolation\\ImmolationTarget.mdx", x: 2500.0, y: 4300.0, z: 280.0, scale: 0.5, yaw: 0.0 },
   ],
 };

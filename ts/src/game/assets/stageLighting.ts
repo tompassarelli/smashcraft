@@ -37,7 +37,7 @@ export const STAGE_LIGHTS: readonly { readonly stage: number; readonly theme: st
   { stage: PATTERNED_DECKS_STAGE, theme: "Scourge", light: { key: [255, 255, 255], ambient: [180, 156, 196], intensity: 2.0 } },
 
 
-  { stage: HELLFIRE_STAGE, theme: "Fel", light: { key: [255, 222, 224], ambient: [192, 240, 160], intensity: 1.25 } },
+  { stage: HELLFIRE_STAGE, theme: "Fel", light: { key: [255, 222, 224], ambient: [192, 240, 180], intensity: 1.25 } },
 
   { stage: CANNON_TEST_STAGE, theme: "Blackrock", light: { key: [255, 248, 232], ambient: [170, 124, 112], intensity: 1.2000000476837158 } },
 
