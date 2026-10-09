@@ -4,7 +4,6 @@ export const stockPath = 'war3.w3mod:_de.w3mod:units\\orc\\HeroShadowHunter\\Her
 // Leg-only fitting otherwise leaves the hands and glaive below Classic's floor while the feet stay planted (#362).
 export const limbScales = [['arm_L0_0_jnt', 0.635], ['arm_R0_0_jnt', 0.745]] as const;
 export const classic = {
-    root: 'Bone_Root',
     pelvis: 'Bone_Pelvis',
     chest: 'Bone_Chest',
     head: 'Bone_Head',

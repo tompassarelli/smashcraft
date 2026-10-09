@@ -4,7 +4,6 @@ export const stockPath = 'war3.w3mod:_de.w3mod:units\\human\\heromountainking\\h
 export const fitScale = 0.65;
 // The axe and hammer are separate root bones in DE, rather than hand children.
 export const classic = {
-    root: 'Bone_Root',
     pelvis: 'Bone_Pelvis',
     chest: 'Bone_Chest',
     head: 'Bone_Head',

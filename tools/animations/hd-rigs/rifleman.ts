@@ -3,7 +3,6 @@ export const fitScale = 0.5;
 export const stockPath = 'war3.w3mod:_de.w3mod:units\\human\\rifleman\\rifleman.mdx';
 // The DE limb chains include twist joints between shoulder/elbow and elbow/wrist.
 export const classic = {
-    root: 'Bone_Root',
     pelvis: 'Bone_Pelvis',
     chest: 'Bone_Chest',
     head: 'Bone_Head',

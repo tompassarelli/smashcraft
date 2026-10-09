@@ -2,7 +2,6 @@ export const character = 11;
 export const fighter = 'Beastmaster';
 export const stockPath = 'war3.w3mod:_de.w3mod:units\\creeps\\BeastMaster\\BeastMaster.mdx';
 export const classic = {
-    root: 'Bone_Root',
     pelvis: 'Bone_Pelvis',
     chest: 'Bone_Chest',
     head: 'Bone_Head',

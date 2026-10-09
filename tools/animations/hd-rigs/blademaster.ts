@@ -2,7 +2,6 @@ export const character = 3;
 export const stockPath = 'war3.w3mod:_de.w3mod:units\\orc\\heroblademaster\\heroblademaster.mdx';
 // Authored whole-body helpers are copied above the stock rig; the pelvis and sword have independent motion.
 export const classic = {
-    root: 'Bone_Root',
     pelvis: 'Bone_Pelvis',
     chest: 'Bone_Chest',
     head: 'Bone_Head',

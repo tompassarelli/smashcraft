@@ -3,7 +3,6 @@ export const fighter = "SylvanasWindrunner";
 export const stockPath = "war3.w3mod:_de.w3mod:units/undead/evilsylvanas/evilsylvanas.mdx";
 export const visibilityPairs: readonly (readonly [number, number])[] = [[5, 0]];
 export const classic = {
-    root: 'Bone_Root',
     pelvis: 'Bone_Pelvis',
     chest: 'Bone_Chest',
     head: 'Bone_Head',
