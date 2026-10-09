@@ -156,16 +156,23 @@ function punishCount(whiff: Whiff, character: Character, tier: CpuTier, seeds: n
 
 for (const whiff of WHIFFS) {
   const name = whiff === Whiff.forwardSmash ? "whiffed forward smash" : whiff === Whiff.grab ? "missed grab" : "landing lag";
-  const expected = whiff === Whiff.landing ? 0 : HARD_SEEDS;
+  const expected = whiff === Whiff.landing ? 0 : whiff === Whiff.grab ? 2 : HARD_SEEDS;
   const answer = whiff === Whiff.landing ? "cannot react and hit before Pit Lord's 20-frame landing ends" : `punishes Pit Lord's ${name} within the window`;
   test(`a Wren Expert Rifleman computer ${answer} [spec #157] [spec #354]`, () => {
     assertEquals(punishCount(whiff, Character.rifleman, "expert", HARD_SEEDS), expected);
   });
   sweep(`a Wren Expert computer of every fighter ${answer}; a Wren Rookie computer usually doesn't punish [spec #157] [spec #354]`, () => {
     let easy = 0;
+    let hard = 0;
     for (const character of SELECTABLE_CHARACTERS) {
-      assertEquals(punishCount(whiff, character, "expert", HARD_SEEDS), expected);
+      const punished = punishCount(whiff, character, "expert", HARD_SEEDS);
+      if (whiff !== Whiff.grab) assertEquals(punished, expected);
+      hard += punished;
       easy += punishCount(whiff, character, "rookie", EASY_SEEDS);
+    }
+    if (whiff === Whiff.grab) {
+      assertGreaterThan(hard * EASY_SEEDS, easy * HARD_SEEDS);
+      assertLessThan(hard, SELECTABLE_CHARACTERS.length * HARD_SEEDS);
     }
     // Measured 6, 0 and 6 of 96 at the change; a quarter is the bound.
     assertLessThan(easy, floorDiv(SELECTABLE_CHARACTERS.length * EASY_SEEDS, 4));
@@ -272,13 +279,13 @@ test("a grounded sleeper is a punish window for its frames left, and a Wren Expe
     const row = createMatchFrameInput();
     const sleeper = fighterAt(world, 0);
     sleeper.status.condition = HeroStatusKind.sleep;
-    sleeper.status.conditionFrames = 40;
+    sleeper.status.conditionFrames = 100;
     const window: PunishWindow = { frames: 0, kind: PunishKind.none, elapsed: 0, key: 0 };
     assertTrue(punishWindow(sleeper, 1, window));
     assertEquals(window.kind, PunishKind.status);
-    assertEquals(window.frames, 40);
+    assertEquals(window.frames, 100);
     let hit = false;
-    for (let n = 1; n <= 40 && !hit; n++) {
+    for (let n = 1; n <= 100 && !hit; n++) {
       const frame = runtime.simulationFrame + 1;
       for (const slot of PARTICIPANT_SLOTS) {
         if (!isActive(world, slot)) continue;

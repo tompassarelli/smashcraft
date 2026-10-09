@@ -135,6 +135,13 @@ clipped to its answer's floor. These measured curves replace the older guessed
 high-tier base delays. Beginner and Rookie retain their slower guessed floors
 and use the curve's spread above them. Every client and replay draws the same
 delay. Horizontal reversals are at least four frames apart.
+The measured tail can outlast a missed grab or a partly spent Sleep; those short
+windows are not guaranteed punishes. The four recorded Rifleman seeds punish
+two missed grabs. The roster still punishes missed grabs more often as Expert
+than Rookie. Sleep's full grounded duration is 100 frames. Rollback fixtures
+include 48 frames so the computer acts after the reaction curve's 40-frame tail.
+High-tier matches retain 43 observation frames; a Beginner or Rookie retains
+61 frames for its slower floor plus the curve's tail.
 [#356](https://github.com/tompassarelli/smashcraft/issues/356) draws each turn’s
 interval from the match seed and the last committed turn. Targets come from
 master, diamond and platinum Slippi replays for Expert, Advanced and

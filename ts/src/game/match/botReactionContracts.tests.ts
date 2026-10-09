@@ -9,7 +9,7 @@ import { createFighter, type Fighter } from "../sim/fighter";
 import { createRoster, fighterAt, neutralControls, sameControls } from "../sim/roster";
 import { sameAttackBuffer } from "../input/attackBuffer";
 import { produceComputerInput } from "./botPlay";
-import { BOT_DIRECTION_MIN_FRAMES, BOT_HISTORY_FRAMES, type BotMemory, commitBotDirection, copyBotMemory, createBotMemory, clearBotMemory, observeOpponents, perceivedOpponent } from "./botPerception";
+import { FAST_BOT_HISTORY_FRAMES, BOT_DIRECTION_MIN_FRAMES, BOT_HISTORY_FRAMES, type BotMemory, commitBotDirection, copyBotMemory, createBotMemory, clearBotMemory, observeOpponents, perceivedOpponent } from "./botPerception";
 import { cpuSkill, cpuReactionFloor } from "./cpuSkill";
 import { CPU_PROFILES, type CpuOpponentId, type CpuTier } from "./cpuProfiles";
 import { createFrameControls } from "./controls";
@@ -43,6 +43,25 @@ const surprises: readonly ((target: Fighter) => void)[] = [
   target => { target.special.action = SpecialAction.riflemanBlaster; target.special.frame = 0;
     const p = mutableProjectile(target, 0); p.life = 100; p.x = 0.0; p.z = 45.0; p.direction = -1; p.velocityX = -12.0; p.serial++; },
 ];
+
+test("fast computer matches keep their short history and a slower opponent retains a 60-frame cue [repro #345] [spec #354]", () => {
+  const game = setup();
+  game.game.computerMask = 1;
+  for (let frame = 1; frame <= 100; frame++) {
+    game.target.motion.x = frame;
+    produceComputerInput(game.game, game.world, game.runtime, 0, frame, game.controls.inputs[0], game.controls.commands[0]);
+  }
+  assertEquals(game.runtime.botMemory.history.length, FAST_BOT_HISTORY_FRAMES);
+  game.game.computerMask = 3;
+  game.game.cpuTiers[1] = "rookie";
+  for (let frame = 101; frame <= 170; frame++) {
+    game.target.motion.x = frame;
+    produceComputerInput(game.game, game.world, game.runtime, 0, frame, game.controls.inputs[0], game.controls.commands[0]);
+  }
+  assertEquals(game.runtime.botMemory.history.length, BOT_HISTORY_FRAMES);
+  assertEquals(perceivedOpponent(game.runtime.botMemory, game.own, 0, 170, 60)?.motion.x, 110);
+  clearBotMemory(game.runtime.botMemory);
+});
 
 test("retained observations survive storage reuse, restored plain history and rollback [invariant]", () => {
   const game = setup();

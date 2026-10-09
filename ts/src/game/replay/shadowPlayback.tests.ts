@@ -308,8 +308,7 @@ function capture(state: ReplayState): ReplayState {
 
 test("lobby computers replay from corrected humans without network senders [invariant]", () => {
   // One human with three computers, and sparse two-human, one-computer occupancy.
-  // Wren Expert observes after 12 frames, leaving time to act inside the 24-frame window.
-  const frames = 20;
+  const frames = 48;
   const schedule = new ShadowInputSchedule();
   const playback = new ShadowInputPlayback();
   const history = new ReplayHistory();
@@ -327,9 +326,9 @@ test("lobby computers replay from corrected humans without network senders [inva
     copyMatchState(confirmedGame, game);
     const live = lobbyState(game);
     const confirmed = lobbyState(confirmedGame);
-    assertTrue(schedule.beginEpoch(epoch, 0, 24, humans));
+    assertTrue(schedule.beginEpoch(epoch, 0, 64, humans));
     assertTrue(playback.beginEpoch(epoch));
-    assertTrue(history.beginEpoch(epoch, 1, 24));
+    assertTrue(history.beginEpoch(epoch, 1, 64));
     assertTrue(confirmedHistory.beginEpoch(epoch, 1));
     for (let frame = 1; frame <= frames; frame++) {
       assertEquals(schedule.captureLocal(epoch, NEUTRAL), Capture.captured);
