@@ -34,7 +34,7 @@ export const SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES = 2;
 export const FAST_FALL_INPUT_WINDOW = 4;
 /** PlCo +0x468: a platform drop needs down pressed fewer input frames ago than this. */
 export const PLATFORM_DROP_INPUT_WINDOW = 6;
-/** Frames after platform contact whose stick still chooses stand, wrap or drop (smashcraft:docs/gameplay-design.md, "Platforms"). */
+/** Frames after platform contact whose stick still chooses stand or drop (smashcraft:docs/gameplay-design.md, "Platforms"). */
 export const PLATFORM_INTENT_FRAMES = 3;
 export const WALL_TECH_JUMP_INPUT_WINDOW_FRAMES = 20;
 /** PlCo +0x770: a wall jump needs the stick to have crossed the horizontal smash deadzone fewer input frames ago than this. */
@@ -400,7 +400,6 @@ interface PlatformTransit {
   stand: boolean;
   shield: boolean;
 
-  upFrames: number;
   landedFrames: number;
 
   dodgeQueued: boolean;
@@ -751,7 +750,7 @@ export function createFighter(character: Character, startX: number, facing: numb
     ledge: { state: LedgeState.none, side: 0, frame: 0, serial: 0, intangible: 0, regrab: 0, grabs: 0 },
     platform: {
       move: PlatformMove.none, frame: 0, duration: 0, deck: undefined, fromX: 0.0, toX: 0.0, fromZ: 0.0, toZ: 0.0, rise: 0.0,
-      stand: false, shield: false, upFrames: 0, landedFrames: PLATFORM_INTENT_FRAMES + 1, dodgeQueued: false, dodgeX: 0, dodgeZ: 0, specialQueued: false, specialX: 0, specialZ: 0,
+      stand: false, shield: false, landedFrames: PLATFORM_INTENT_FRAMES + 1, dodgeQueued: false, dodgeX: 0, dodgeZ: 0, specialQueued: false, specialX: 0, specialZ: 0,
     },
     cannon: { held: undefined, firing: undefined, cooldown: 0, passing: false },
     water: { inWater: false, frames: 0, entries: 0, hydraFrame: 0, hydraX: 0.0, hydraStrikeFrame: -1 },

@@ -197,8 +197,7 @@ export function clipFor(character: number, pose: HeroPose): HeroClip {
 export function platformClip(character: number, move: PlatformMove): HeroClip {
   switch (move) {
     case PlatformMove.ascent: return clipFor(character, "ledgeClimb");
-    case PlatformMove.descent: return clipFor(character, "ledgeHang");
-    default: return clipFor(character, "ledgeRoll");
+    default: return clipFor(character, "ledgeHang");
   }
 }
 

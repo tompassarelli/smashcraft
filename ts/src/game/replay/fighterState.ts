@@ -317,7 +317,6 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   platform.rise = sourcePlatform.rise;
   platform.stand = sourcePlatform.stand;
   platform.shield = sourcePlatform.shield;
-  platform.upFrames = sourcePlatform.upFrames;
   platform.landedFrames = sourcePlatform.landedFrames;
   platform.dodgeQueued = sourcePlatform.dodgeQueued;
   platform.dodgeX = sourcePlatform.dodgeX;
@@ -728,7 +727,6 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
   if (platform.rise !== sourcePlatform.rise || (platform.rise === 0 && 1 / platform.rise !== 1 / sourcePlatform.rise)) return false;
   if (platform.stand !== sourcePlatform.stand) return false;
   if (platform.shield !== sourcePlatform.shield) return false;
-  if (platform.upFrames !== sourcePlatform.upFrames) return false;
   if (platform.landedFrames !== sourcePlatform.landedFrames) return false;
   if (platform.dodgeQueued !== sourcePlatform.dodgeQueued) return false;
   if (platform.dodgeX !== sourcePlatform.dodgeX || (platform.dodgeX === 0 && 1 / platform.dodgeX !== 1 / sourcePlatform.dodgeX)) return false;

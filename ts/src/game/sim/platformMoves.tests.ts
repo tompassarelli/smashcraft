@@ -1,5 +1,5 @@
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
-import { addFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
+import { subtractFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
 import { copyFighterState } from "../replay/fighterState";
 import { firstFighterDifference } from "../replay/difference";
@@ -10,10 +10,10 @@ import { type Fighter, PLATFORM_INTENT_FRAMES, createFighter } from "./fighter";
 import { HERO_ROSTER } from "./heroes/registry";
 import { beginAirDodge } from "./jumpsAndDodges";
 import { attackLandingLag } from "./moves";
-import { PLATFORM_WRAP_REACH, platformMoveFrames, platformSpecialInput } from "./platformMoves";
+import { platformMoveFrames, platformSpecialInput } from "./platformMoves";
 import { type Controls } from "./roster";
 import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
-import { CROUCH_STICK_THRESHOLD, STICK_DEADZONE, TAP_JUMP_WINDOW } from "./stickZones";
+import { CROUCH_STICK_THRESHOLD, STICK_DEADZONE } from "./stickZones";
 import { bodyTop } from "./surfaces";
 import { advanceSolo, controls, soloWorld } from "./testWorld";
 import { interruptJumpOrDodge } from "./transitions";
@@ -34,9 +34,7 @@ const NONE = controls();
 const analog = (z: number, x = 0.0) => controls({ diStickValid: true, diStickX: x, diStickZ: z, down: z < -CROUCH_STICK_THRESHOLD });
 const KEY_DOWN = controls({ down: true, verticalDirection: -1 });
 const KEY_TILT_DOWN = controls({ down: true, verticalDirection: -1, walking: true });
-const KEY_UP = controls({ verticalDirection: 1 });
-const STAND_BAND = [-STICK_DEADZONE, f32(-0.5), -CROUCH_STICK_THRESHOLD];
-const WRAP_DOWN = [f32(-0.7), -1.0];
+const STAND_DOWN = [-STICK_DEADZONE, f32(-0.5), -CROUCH_STICK_THRESHOLD, f32(-0.7), -1.0];
 
 function risingUnder(character: Character, x = CENTRE): Fighter {
   const f = createFighter(character, x, 1);
@@ -74,12 +72,12 @@ function untilContact(f: Fighter, input: Readonly<Controls>): void {
   for (let frame = 1; frame <= 30 && !f.motion.grounded && f.platform.move === PlatformMove.none; frame++) step(f, input);
 }
 
-function assertWrappedOnto(f: Fighter, x: number, facing: number): void {
+function assertStoodOn(f: Fighter): void {
   assertEquals(f.platform.move, PlatformMove.none);
   assertTrue(f.motion.grounded);
   assertEquals(f.motion.surface, DECK);
-  assertEquals(f.motion.x, x);
-  assertEquals(f.facing, facing);
+  assertEquals(f.motion.x, CENTRE);
+  assertEquals(f.facing, 1);
   assertEquals(f.landing.lag, 0);
 }
 
@@ -160,13 +158,13 @@ test("an aerial in its startup or active frames strikes on the contact frame and
   }
 });
 
-test("rising, down anywhere from past the deadzone to the crouch threshold stands on the platform, as does Tilt+down; short of the deadzone climbs [spec #392]", () => {
+test("rising, down anywhere past the deadzone stands on the platform, analog or keyboard; short of the deadzone climbs [spec #392]", () => {
   for (const character of FIGHTERS) {
-    for (const input of [...STAND_BAND.map((z) => analog(z)), KEY_TILT_DOWN]) {
+    for (const input of [...STAND_DOWN.map((z) => analog(z)), KEY_TILT_DOWN, KEY_DOWN]) {
       const f = risingUnder(character);
       step(f, input);
       finishMove(f, input);
-      assertWrappedOnto(f, CENTRE, 1);
+      assertStoodOn(f);
     }
     const tilt = risingUnder(character);
     step(tilt, KEY_TILT_DOWN);
@@ -179,31 +177,6 @@ test("rising, down anywhere from past the deadzone to the crouch threshold stand
     step(shallow, inside);
     finishMove(shallow, inside);
     assertFalse(shallow.motion.grounded);
-  }
-});
-
-test("rising, full down wraps over the platform facing reversed, held from before the climb or pressed in the read window, analog or keyboard [spec #392]", () => {
-  for (const character of FIGHTERS) {
-    for (const input of [...WRAP_DOWN.map((z) => analog(z)), KEY_DOWN]) {
-      const held = risingUnder(character);
-      held.motion.z = f32(held.motion.z - 30.0);
-      for (let frame = 1; frame <= 20 && held.platform.move === PlatformMove.none; frame++) {
-        held.motion.vz = 12.0;
-        step(held, input);
-      }
-      assertEquals(held.platform.move, PlatformMove.wrapOver);
-      assertEquals(finishMove(held, NONE), platformMoveFrames(held));
-      assertWrappedOnto(held, addFloat32(CENTRE, PLATFORM_WRAP_REACH), -1);
-    }
-    const late = risingUnder(character);
-    step(late, NONE);
-    for (let frame = 1; frame < PLATFORM_INTENT_FRAMES && late.platform.move === PlatformMove.ascent; frame++) step(late, analog(f32(-0.5)));
-    step(late, KEY_DOWN);
-    assertEquals(late.platform.move, PlatformMove.wrapOver);
-    const edge = risingUnder(character, surfaceRight(STAGE, DECK, 0));
-    step(edge, KEY_DOWN);
-    finishMove(edge, NONE);
-    assertWrappedOnto(edge, surfaceRight(STAGE, DECK, 0), -1);
   }
 });
 
@@ -249,58 +222,6 @@ test("falling with full down drops through the platform, ending each aerial, and
     untilContact(tilt, KEY_TILT_DOWN);
     for (let frame = 1; frame <= PLATFORM_INTENT_FRAMES; frame++) step(tilt, KEY_TILT_DOWN);
     assertEquals(tilt.motion.surface, DECK);
-  }
-});
-
-test("falling with up held into contact wraps over the platform, facing reversed, ending the aerial without landing lag [spec #392]", () => {
-  for (const character of FIGHTERS) {
-    for (const input of [analog(1.0), KEY_UP]) {
-      const f = fallingOnto(character, TAP_JUMP_WINDOW + 3);
-      f.motion.fastFalling = false;
-      attack(f, AttackStyle.forwardAir);
-      untilContact(f, input);
-      assertEquals(f.platform.move, PlatformMove.wrapOver);
-      assertEquals(f.attack.style, undefined);
-      const contactX = f.motion.x;
-      assertEquals(finishMove(f, input), platformMoveFrames(f));
-      assertWrappedOnto(f, addFloat32(contactX, PLATFORM_WRAP_REACH), -1);
-    }
-  }
-});
-
-test("a fresh up flick into contact lands instead of wrapping, and a jump with up held double-jumps; tap jump is off [spec #392]", () => {
-  for (const character of FIGHTERS) {
-    const f = fallingOnto(character, 1.5);
-    untilContact(f, KEY_UP);
-    assertEquals(f.platform.move, PlatformMove.none);
-    assertTrue(f.motion.grounded);
-    assertEquals(f.facing, 1);
-    const jump = fallingOnto(character, TAP_JUMP_WINDOW + 3);
-    jump.motion.fastFalling = false;
-    for (let frame = 1; frame <= TAP_JUMP_WINDOW + 1; frame++) step(jump, KEY_UP);
-    step(jump, controls({ verticalDirection: 1, jumpPressed: true, jumpHeld: true }));
-    assertEquals(jump.jump.remaining, 0);
-    assertGreaterThan(jump.motion.vz, 0.0);
-    assertEquals(jump.platform.move, PlatformMove.none);
-  }
-});
-
-test("accepted failure modes: a down air jumped into a platform with full down wraps; an up air falling onto one with up held wraps [spec #392]", () => {
-  for (const character of FIGHTERS) {
-    const rising = risingUnder(character);
-    rising.motion.z = f32(f32(DECK_Z - height(rising)) - 10.0);
-    attack(rising, AttackStyle.downAir);
-    for (let frame = 1; frame <= 60 && rising.platform.move === PlatformMove.none; frame++) {
-      rising.motion.vz = 5.0;
-      step(rising, KEY_DOWN);
-    }
-    assertEquals(rising.platform.move, PlatformMove.wrapOver);
-    const falling = fallingOnto(character, TAP_JUMP_WINDOW + 3);
-    falling.motion.fastFalling = false;
-    attack(falling, AttackStyle.upAir);
-    untilContact(falling, KEY_UP);
-    assertEquals(falling.platform.move, PlatformMove.wrapOver);
-    assertEquals(falling.attack.style, undefined);
   }
 });
 
@@ -361,9 +282,7 @@ test("a fighter is vulnerable throughout every platform move, and a hit ends the
     assertEquals(ascent.platform.move, PlatformMove.ascent);
     const descent = standingOnDeck(character);
     step(descent, KEY_DOWN);
-    const wrap = risingUnder(character);
-    step(wrap, KEY_DOWN);
-    for (const f of [ascent, descent, wrap]) {
+    for (const f of [ascent, descent]) {
       while (f.platform.move !== PlatformMove.none) {
         assertFalse(isIntangible(f));
         assertTrue(canBeGrabbed(f));
@@ -447,7 +366,7 @@ test("Tom's route: falling down air, drop, up air, drop, double jump, rising up 
 });
 
 test("a platform move and its read window survive a snapshot copy [invariant]", () => {
-  for (const [original, inputs, wraps] of [
+  for (const [original, inputs, stands] of [
     [risingUnder(Character.rifleman), [NONE, analog(f32(-0.5)), KEY_DOWN, NONE, NONE, NONE, NONE, NONE, NONE], true],
     [fallingOnto(Character.rifleman, 1.5), [NONE, NONE, KEY_DOWN, NONE, NONE, NONE, NONE, NONE, NONE], false],
   ] as const) {
@@ -460,7 +379,6 @@ test("a platform move and its read window survive a snapshot copy [invariant]", 
       step(copy, input);
       assertEquals(firstFighterDifference(original, copy, 1, 1), undefined);
     }
-    assertEquals(original.facing, wraps ? -1 : 1);
-    assertEquals(original.motion.surface, wraps ? DECK : undefined);
+    assertEquals(original.motion.surface, stands ? DECK : undefined);
   }
 });

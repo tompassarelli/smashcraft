@@ -597,31 +597,22 @@ platform, not from taps or timing.
   | Contact | Stick | Analog | Keyboard | Result |
   | --- | --- | --- | --- | --- |
   | Rising | neutral | \|y\| < 0.28 | no direction | climb through with momentum |
-  | Rising | shallow down | −0.6875 ≤ y ≤ −0.28 | Tilt + down | stand on the platform, no landing lag |
-  | Rising | full down | y < −0.6875 | down | wrap over the platform |
-  | Falling | neutral or shallow | y ≥ −0.6875, below the jump threshold | no direction, Tilt + down or Tilt + up | land, with landing lag |
+  | Rising | down | y ≤ −0.28 | down or Tilt + down | stand on the platform, no landing lag |
+  | Falling | neutral, shallow or up | y ≥ −0.6875 | no direction, up or Tilt + down | land, with landing lag |
   | Falling | full down | y < −0.6875 | down | drop through, ending the aerial |
-  | Falling | up held into contact | y ≥ 0.6625, held since before the 4-frame tap-jump window (+0x74) | up | wrap over the platform, ending the aerial |
 
   Down held from before the climb counts. A falling drop also comes from full
   down in the 3 frames after landing, ending the landing lag (not after an
-  air dodge's landing, so wavelands stay). Up must already be held at contact:
-  a fresh up flick is a jump input, and jumps win over wraps (with tap jump
-  on it would double-jump; Smashcraft keeps tap jump off, so a fresh flick
-  lands). Shield held or pressed during a climb still ends it standing on
+  air dodge's landing, so wavelands stay). Shield held or pressed during a climb still ends it standing on
   the platform, shielding.
-- **Wraps** swing the fighter around the platform's edge onto its top toward
-  its drift (or its facing when it has none), up to about one body width (8
-  Melee units, never past the platform's end), facing reversed, standing with
-  no landing lag after the jump squat: a cross-up fake-out from either side.
 - **The drop** lowers the fighter through the platform over its jump squat
   until its body is below it, and it is actionable as the drop ends: falling
   down air → drop → up air on the first actionable frame.
-- Accepted failure modes: jumping with full down held and pressing A for a
-  down air through a platform wraps; falling onto a platform with up held for
-  an up air wraps. Diagonals: depth decides, not diagonal notches, because
-  players hold diagonals while drifting and would stand by accident (Tom and
-  the lead, 9 Oct); a keyboard down-diagonal is past the crouch threshold.
+- Diagonals: depth decides, not diagonal notches, because players hold
+  diagonals while drifting (Tom and the lead, 9 Oct); a keyboard
+  down-diagonal is past the crouch threshold.
+- The wrap over a platform's edge (#392) was removed (Tom, 10 Oct): it needed
+  a wrap-around animation per fighter for a gymnastic option.
 - Chains are bounded by geometry rather than a cooldown: each cancel needs a
   platform, and going up costs a jump. Tom's route: falling down air → drop →
   up air → drop → double jump → rising up air → climb → down air.
@@ -633,7 +624,7 @@ platform, not from taps or timing.
 - **No platform shield drop.** Down while shielding does not fall through a
   platform; leaving one goes through a descent.
 - Fighters are fully vulnerable, hittable and grabbable, through climbs,
-  drops, descents and wraps. With no shield drop and a jump-squat descent, a
+  drops and descents. With no shield drop and a jump-squat descent, a
   fighter on a platform is slightly behind one below it, as the principle
   intends. Measured by smashcraft:ts/scripts/platformAdvantage.ts (earliest
   first hit from rest, each fighter on a stage 1 side platform with another
@@ -645,7 +636,7 @@ platform, not from taps or timing.
   the platform for their whole active frames). Its test requires the fighter
   below to strike no later in at least 60% of pairs.
 - Presentation: the climb plays the fighter's ledge-climb clip, the drop and
-  descent its ledge-hang clip and a wrap its ledge-roll clip, each stretched
+  descent its ledge-hang clip, each stretched
   over the move (smashcraft:ts/src/game/presentation/fighterClips.ts).
 
 ## Grab holds and pummels
@@ -720,8 +711,8 @@ checks that every oracle departure names a row here.
 | Dodge timing | Per fighter | – | One shared profile: spot dodge 22 frames, intangible 2–15; rolls 31, intangible 4–19; air dodge 49, intangible 4–29, landing 10 | Owner's common frame-data profile | – |
 | Powershield | A full press within 2 frames of the trigger moving, while raising the shield: a hit in its first 4 frames does no shield damage and pushes back harder, a projectile in its first 2 reflects. The hit's shieldstun is unchanged, and the common +0x2B8 counter (4 frames) only lets attacks and grabs cut the shield drop short (`ftCo_80092F2C`, `ftCo_GuardOff_IASA`, `ftCo_80094138`); a press during shieldstun is ignored (`ftCo_GuardSetOff_IASA` is empty) | Ultimate: release-timed in the first 5 frames of the 11-frame shield drop; any attack skips the drop lag and acts 3 frames sooner than a block against direct hits; no reflection ([SmashWiki](https://www.ssbwiki.com/Perfect_shield)). Rivals 2: a 4-frame perfect shield plus a separate parry, active 6–13, that stuns the attacker 40–100 frames ([Dragdown](https://dragdown.wiki/wiki/RoA2/System_Mechanics/Defense)) | Melee's raise-timed press, but a parry: no shield damage, no shieldstun, no release lag; the whole shield reflects during its 2 reflector frames, not Melee's 0.75 reflector circle (#118); any grounded option on the first frame after the hit's freeze, an option pressed during the freeze buffered into it. One press parries one hit; a red parry re-pressed in shieldstun parries the next hit in a 2-frame window. Ground only ([Powershield and parry](#powershield-and-parry)) | A true parry with a clear reward that stays the player's own choice of punish, after Street Fighter III's parry and red parry (owner, 6 Oct) | #102 |
 | Aerial shieldstun | ⌊(0.45 × damage + 2) × 200/201⌋ frames on a full shield, the same for every attack (`ftCo_80092F2C`); 1.425 × damage + 2 on the lightest shield ([case study](design/melee/aerials-on-shield.md#shieldstun)) | Ultimate: ⌊0.8 × damage × 0.33 + 2⌋ for aerials, 0.264 a damage, with shield hitlag × 0.67 ([SmashWiki](https://www.ssbwiki.com/Shieldstun), [hitlag](https://www.ssbwiki.com/Hitlag)). Rivals 2: 0.8 × damage + 1 for every attack, and the input buffer drops to 2 frames after a shield contact ([Dragdown](https://dragdown.wiki/wiki/RoA2/System_Mechanics/Defense)) | Aerials: ⌊(0.6 × damage + 2) × 200/201⌋ (Melee's damage term × 4/3; the same × 4/3 on light shields). Ground attacks, hitlag, pushback and landing lag stay Melee's ([Aerials on shield](#aerials-on-shield)) | Tilt slightly toward aggression from Melee, in Rivals 2's direction rather than Ultimate's; pays back the defender's 6-frame grab buffer, which Melee lacks | #106 |
-| Platform ascent | A rising fighter passes up through a platform with no change to its action (mpCheckFloor meets a platform only while descending) | Ultimate passes through the same way ([SmashWiki](https://www.ssbwiki.com/Soft_platform)); Rivals 2 not sourced | A climb over the jump squat ends any aerial with no landing lag; jump or up sustains the rise, shallow down stands, full down wraps over, shield shields ([Platforms](#platforms)) | Platforms are contested physically; positions are used, not camped; the climb is a cancel route | #103, #392 |
-| Platform descent | A fresh down falls through at once | Ultimate drops through at once ([SmashWiki](https://www.ssbwiki.com/Soft_platform)); Rivals 2 not sourced | A vulnerable descent over the jump squat; falling onto a platform with full down drops through it ending the aerial, with up held into contact wraps over it ([Platforms](#platforms)) | Leaving a platform is a commitment, so sitting on one is slightly disadvantaged; the drop is a cancel route | #103, #392 |
+| Platform ascent | A rising fighter passes up through a platform with no change to its action (mpCheckFloor meets a platform only while descending) | Ultimate passes through the same way ([SmashWiki](https://www.ssbwiki.com/Soft_platform)); Rivals 2 not sourced | A climb over the jump squat ends any aerial with no landing lag; jump or up sustains the rise, down stands, shield shields ([Platforms](#platforms)) | Platforms are contested physically; positions are used, not camped; the climb is a cancel route | #103, #392 |
+| Platform descent | A fresh down falls through at once | Ultimate drops through at once ([SmashWiki](https://www.ssbwiki.com/Soft_platform)); Rivals 2 not sourced | A vulnerable descent over the jump squat; falling onto a platform with full down drops through it ending the aerial ([Platforms](#platforms)) | Leaving a platform is a commitment, so sitting on one is slightly disadvantaged; the drop is a cancel route | #103, #392 |
 | Platform shield drop | Down while shielding drops through a platform | Removed in Ultimate ([SmashWiki](https://www.ssbwiki.com/Shield_drop)); Project+ keeps it | Removed: down while shielding stays on the platform | Owner (6 Oct): no safe retaliation from a platform; leaving one goes through a descent | #103 |
 
 ## Turnaround specials
@@ -1082,9 +1073,7 @@ stay inside 32-bit integers, so Bun and Warcraft's Lua compute it alike.
   stands on, and specials that move it (Parry Step) only with room
   to land.
 - At advanced and expert (#392) it uses platforms as cancels: it climbs on
-  toward a target in the air above, wraps over to cross up a target standing
-  close ahead on the platform (rising with full down, falling with up held),
-  drops through with full down to reach a target below, and starts no aerial
+  toward a target in the air above, drops through with full down to reach a target below, and starts no aerial
   that a climb would end before its strike. Lower tiers stand on every
   platform they climb.
 - It attacks with whatever reaches: each move's strike at its first active
@@ -1242,7 +1231,7 @@ The descriptive basis is [fighting-game language](design/fighting-games.md),
 | Air dodge | Owner decision (6 Oct, #100): one directional air dodge per airtime with the shared frame profile. It ends actionable, not in helpless fall, and spends no jump; landing, catching a ledge and being hit refresh it. | Works as in Smash; once per airtime still prevents repeated free dodges, and wavedash movement is unchanged. |
 | Wavedash and waveland | Keep air-dodge momentum through landing and the 10-frame dodge landing lag, including the owner-selected shallow digital angle. | An interactive movement option, unlike the removed L-cancel chore. |
 | Offstage air-dodge buffering | Do not add a general held-input air-dodge buffer. Retain fresh dodge presses and the deliberate dodge press queued during jump squat; a fresh offstage press still works when legal. | Avoid accidental automatic dodges while preserving explicit player commands. |
-| Platforms | Climbs, drops, descents and wraps last the fighter's jump squat, end any aerial and leave it vulnerable; intent is the stick's depth toward the platform; no shield drop ([Platforms](#platforms)). | Positions are used, not camped (owner, 6 Oct, #103). |
+| Platforms | Climbs, drops and descents last the fighter's jump squat, end any aerial and leave it vulnerable; intent is the stick's depth toward the platform; no shield drop ([Platforms](#platforms)). | Positions are used, not camped (owner, 6 Oct, #103). |
 | Short hop and jump squat | Keep release-during-squat short hops, without a jump+attack macro or a new mandatory binding. Jump squat remains per fighter within #69's 3–5 frames: Rifleman 5, Illidan 4. | Preserves current controls and physical differences inside the accepted execution bounds. |
 | Input buffer and priority | Keep the 6-frame human attack grace. Same-frame attack requests prefer grab, unchargeable C-stick smash, chargeable smash, tilt, then the established style ordering; conflicting equal requests leave facing neutral. Existing action locks and fresh-input rules remain authoritative. | Deterministic input intent without a new universal hold buffer or callback-order priority. |
 | Wall movement | Keep existing wall tech and authored wall-jump eligibility. No wall climbing or free refresh of jumps, recovery specials or ledge protection. | Movement should respect the visible stage walls without granting an unlimited recovery loop. |

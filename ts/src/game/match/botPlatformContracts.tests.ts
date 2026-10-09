@@ -17,9 +17,9 @@ const STAGE = 1;
 const DECK = 1;
 const FRAMES = 900;
 
-interface PlatformUse { climbs: number; stands: number; wraps: number; drops: number; }
+interface PlatformUse { climbs: number; stands: number; drops: number; }
 
-type Layout = "under" | "aboveTarget" | "aboveBelowTarget";
+type Layout = "under" | "aboveBelowTarget";
 
 /** An idle opponent stands on a side platform (or below it); the computer starts under the platform or falling onto it: the platform moves it makes. */
 function platformUse(tier: CpuTier, layout: Layout): PlatformUse {
@@ -47,7 +47,7 @@ function platformUse(tier: CpuTier, layout: Layout): PlatformUse {
   const runtime = createPacingAndPresentation();
   const row = createMatchFrameInput();
   const c = fighterAt(world, 1);
-  const use: PlatformUse = { climbs: 0, stands: 0, wraps: 0, drops: 0 };
+  const use: PlatformUse = { climbs: 0, stands: 0, drops: 0 };
   let previous: number = c.platform.move;
   let previousGrounded = c.motion.grounded;
   for (let i = 1; i <= FRAMES; i++) {
@@ -63,7 +63,6 @@ function platformUse(tier: CpuTier, layout: Layout): PlatformUse {
     const move = c.platform.move;
     if (move !== previous) {
       if (move === PlatformMove.ascent) use.climbs++;
-      if (move === PlatformMove.wrapOver) use.wraps++;
       if (move === PlatformMove.descent && !previousGrounded) use.drops++;
     }
     if (previous === PlatformMove.ascent && move === PlatformMove.none && c.motion.grounded) use.stands++;
@@ -73,15 +72,12 @@ function platformUse(tier: CpuTier, layout: Layout): PlatformUse {
   return use;
 }
 
-test("expert computers climb, wrap to cross up and drop through platforms; rookies climb and stand only [spec #392]", () => {
-  const under = platformUse("expert", "under");
-  assertGreaterThan(under.climbs, 0);
-  assertGreaterThan(under.wraps, 0);
-  assertGreaterThan(platformUse("expert", "aboveTarget").wraps, 0);
+test("expert computers climb and drop through platforms; rookies climb and stand only [spec #392]", () => {
+  assertGreaterThan(platformUse("expert", "under").climbs, 0);
   assertGreaterThan(platformUse("expert", "aboveBelowTarget").drops, 0);
-  for (const layout of ["under", "aboveTarget", "aboveBelowTarget"] as const) {
+  for (const layout of ["under", "aboveBelowTarget"] as const) {
     const rookie = platformUse("rookie", layout);
-    assertEquals(rookie.wraps + rookie.drops, 0);
+    assertEquals(rookie.drops, 0);
     assertEquals(rookie.stands, rookie.climbs);
   }
 });

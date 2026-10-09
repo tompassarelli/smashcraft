@@ -422,7 +422,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   const stickSide = horizontalStick >= STICK_SMASH_DEADZONE_X ? 1 : horizontalStick <= -STICK_SMASH_DEADZONE_X ? -1 : 0;
   const tumbleExitFlick = stickSide !== 0 && stickSide !== motion.previousStickSide && Math.abs(horizontalStick) >= TUMBLE_EXIT_STICK_X;
   motion.stickSideAge = stickSide === 0 ? WALL_JUMP_FLICK_FRAMES : stickSide === motion.previousStickSide ? min(WALL_JUMP_FLICK_FRAMES, motion.stickSideAge + 1) : 0;
-  platforms.trackPlatformInput(f, input);
+  platforms.trackPlatformInput(f);
   motion.previousStickSide = stickSide;
   if (input.direction !== 0) {
     motion.turnaroundSide = input.direction < 0 ? -1 : 1;
