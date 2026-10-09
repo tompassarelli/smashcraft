@@ -33,8 +33,8 @@
   measured row, after a cut. The farm's merge job judges every shard's rows.
   Natives are counted by the frame-cost gate (`bun wisp perf compare`), not
   here. `bun run test` counts the frames stepMatch simulates in each test
-  (smashcraft:ts/test/testCost.ts) and fails a test over the 3,000-frame
-  Bun ceiling, about 4 s on a farm runner; work that steps no frames is
+  (smashcraft:ts/test/testCost.ts) and fails a test over the 58,000-frame
+  Bun ceiling, 4 s at a farm runner's 14,500 frames per CPU second; work that steps no frames is
   bounded only by the hang timeout. It reports each run's CPU and five
   heaviest tests by CPU and by frames without gating CPU;
   ts/test/cost-baseline.tsv holds CPU estimates that order processes. CPU
