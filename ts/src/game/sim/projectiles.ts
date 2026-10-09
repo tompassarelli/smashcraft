@@ -129,6 +129,27 @@ export function projectileDamage(projectile: Readonly<Projectile>): number {
   return roundToFloat32(f32(damage * projectile.damageMultiplier));
 }
 
+/** Reuses the projectile scratch; contacts copy it before the next request. */
+export function originalProjectileEffect(projectile: Readonly<Projectile>): Readonly<HitEffect> {
+  const { kind } = projectile;
+  projectileHit.element = kind === ProjectileKind.manaBurn ? HitElement.electric : HitElement.normal;
+  projectileHit.carry = undefined;
+  projectileHit.manaSteal = undefined;
+  projectileHit.damage = projectileDamage(projectile);
+  if (kind === ProjectileKind.blaster || kind === ProjectileKind.manaBurn) {
+    projectileHit.growth = 0.0;
+    projectileHit.base = 0.0;
+    projectileHit.launchX = 0.0;
+    projectileHit.launchZ = 0.0;
+  } else {
+    projectileHit.growth = 85.0;
+    projectileHit.base = 16.0;
+    projectileHit.launchX = 0.800000011920929;
+    projectileHit.launchZ = kind === ProjectileKind.recoil ? -0.6000000238418579 : 0.6000000238418579;
+  }
+  return projectileHit;
+}
+
 function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number, projectile: Readonly<Projectile>, shieldContact: boolean): void {
   const target = fighterAt(world, targetSlot);
   const { spec } = projectile;
@@ -139,27 +160,11 @@ function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number
     return;
   }
   const { kind } = projectile;
-  projectileHit.element = kind === ProjectileKind.manaBurn ? HitElement.electric : HitElement.normal;
-  projectileHit.carry = undefined;
-  projectileHit.manaSteal = undefined;
-  if (kind === ProjectileKind.blaster || kind === ProjectileKind.manaBurn) {
-    projectileHit.damage = projectileDamage(projectile);
-    projectileHit.growth = 0.0;
-    projectileHit.base = 0.0;
-    projectileHit.launchX = 0.0;
-    projectileHit.launchZ = 0.0;
-    collectDamageContact(world, ownerSlot, targetSlot, projectileHit, projectile.direction, ContactKind.flinch, false, undefined, shieldContact,
-      kind === ProjectileKind.manaBurn ? MANA_BURN_STUN : undefined, projectile.z);
-    return;
-  }
-  const damageOnly = false;
-  projectileHit.damage = projectileDamage(projectile);
-  projectileHit.growth = 85.0;
-  projectileHit.base = 16.0;
-  projectileHit.launchX = 0.800000011920929;
-  projectileHit.launchZ = kind === ProjectileKind.recoil ? -0.6000000238418579 : 0.6000000238418579;
-  collectDamageContact(world, ownerSlot, targetSlot, projectileHit, projectile.direction,
-    damageOnly ? ContactKind.damageOnly : ContactKind.launch, false, undefined, shieldContact, undefined, projectile.z);
+  const effect = originalProjectileEffect(projectile);
+  const flinch = kind === ProjectileKind.blaster || kind === ProjectileKind.manaBurn;
+  collectDamageContact(world, ownerSlot, targetSlot, effect, projectile.direction,
+    flinch ? ContactKind.flinch : ContactKind.launch, false, undefined, shieldContact,
+    kind === ProjectileKind.manaBurn ? MANA_BURN_STUN : undefined, projectile.z);
 }
 
 /** Sends the projectile back from a reflecting shield, slower and weaker; false when the reflector has no free slot. */

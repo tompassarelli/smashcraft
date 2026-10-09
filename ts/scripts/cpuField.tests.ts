@@ -17,14 +17,14 @@ test("a fighter's computer move usage is counted, ranked and repeatable [invaria
   if (unused !== undefined) expect(keyMovesAmongMostUsed(usage, [leading, unused], usage.length).missing).toEqual([unused]);
 });
 
-test("the matchup report counts 95% intervals overlapping 45-55% and the median distance from even [spec #105]", () => {
+test("the matchup report counts 95% intervals overlapping 30-70% and the median distance from even [spec #355]", () => {
   const row = (fighter: string, against: Record<string, number>, n: number) => ({
     fighter, against, played: Object.fromEntries(Object.keys(against).map((k) => [k, n])), decisive: Object.fromEntries(Object.keys(against).map((k) => [k, n])),
   });
-  // At 400 decisive matches the interval is about +-4.9 points at 50%: 41% overlaps 45%, 39% doesn't.
-  const report = matchupReport([row("a", { b: 0.5, c: 0.41 }, 400), row("b", { a: 0.5, c: 0.61 }, 400), row("c", { a: 0.59, b: 0.39 }, 400)]);
-  expect(report).toMatchObject({ matchups: 3, inside: 1, overlapping: 2, missing: ["b-c 61%"] });
-  expect(report.medianDeviation).toBeCloseTo(0.09, 6);
+  // At 400 decisive matches, 26% overlaps 30%; 24% does not.
+  const report = matchupReport([row("a", { b: 0.5, c: 0.26 }, 400), row("b", { a: 0.5, c: 0.76 }, 400), row("c", { a: 0.74, b: 0.24 }, 400)]);
+  expect(report).toMatchObject({ matchups: 3, inside: 1, overlapping: 2, missing: ["b-c 76%"] });
+  expect(report.medianDeviation).toBeCloseTo(0.24, 6);
 });
 
 test("the balance gate is 45-55% against the field with Wren Expert and 400 a pair, and roster.md's Balance gate states the same numbers [spec #105]", () => {

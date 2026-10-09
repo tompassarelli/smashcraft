@@ -11,6 +11,18 @@ import { join } from "node:path";
 export const BALANCE_SPEC = {
   winLow: 0.45,
   winHigh: 0.55,
+  winTarget: 0.50,
+  matchupLow: 0.30,
+  matchupHigh: 0.70,
+  matchupMatches: 400,
+  kitFraction: 0.25,
+  kitFrames: 3,
+  killFraction: 0.15,
+  confidenceZ: 1.96,
+  gradientFraction: 0.01,
+  gradientFrames: 1,
+  feelMaxPercent: 300,
+  feelFlightFrames: 360,
   /** The spam probe may win at most this against the Expert field. */
   spamMax: 0.45,
   /** No move may deal more than this share of a fighter's damage, unless its profile names it the signature move. */
@@ -149,6 +161,7 @@ export function readProfiles(folder = DESIGN_DOCS): Map<string, PlayStyleProfile
 export interface Measured {
   readonly fighter: string;
   readonly winRate: number;
+  readonly decisiveMatches?: number;
   readonly topMove?: string;
   readonly topDamageShare: number;
   readonly aerials: Readonly<Record<string, number>>;
@@ -163,6 +176,7 @@ export interface Measured {
   readonly potentialOpeningsPerKill?: number;
   /** Distance outside the roster's recovery band, once measured (0 inside). */
   readonly recoveryDistance?: number;
+  readonly matchups?: Readonly<Record<string, { readonly rate: number; readonly matches: number }>>;
 }
 
 const outside = (value: number, band: Range): number => (Number.isNaN(value) ? 0 : value < band.low ? band.low - value : value > band.high ? value - band.high : 0);
@@ -242,5 +256,60 @@ export function balanceGate(measured: Measured, profile: PlayStyleProfile | unde
   if (measured.spamWinRate !== undefined && measured.spamWinRate > BALANCE_SPEC.spamMax) failures.push(`${measured.topMove ?? "top move"} spam wins ${pct(measured.spamWinRate)}`);
   const limit = topMoveLimit(profile, measured.topMove);
   if (measured.topDamageShare > limit) failures.push(`${measured.topMove ?? "top move"} deals ${pct(measured.topDamageShare)} of damage (limit ${pct(limit)})`);
+  if (measured.matchups !== undefined) failures.push(...matchupFailures(measured.matchups));
+  if (profile !== undefined) failures.push(...archetypeFailures(measured, profile));
   return { fighter: measured.fighter, balanced: failures.length === 0 && measured.spamWinRate !== undefined, failures, measured: measured.spamWinRate !== undefined };
+}
+
+
+/** Defining profile ranges are hard gates; other ranges contribute only to score. */
+export const ARCHETYPE_TRAITS: Readonly<Record<string, readonly string[]>> = {
+  rushdown: ["approach"], zoner: ["ranged"], "bait-and-punish": ["approach"],
+  heavy: ["air"], grappler: ["approach"], setplay: ["ranged"], "all-rounder": ["approach", "ranged"],
+  skirmisher: ["approach", "air"], trapper: ["ranged", "special:down-special"],
+  "mobility trickster": ["air", "special:side-special"],
+};
+
+export function archetypeFailures(measured: Measured, profile: PlayStyleProfile): string[] {
+  const traits = ARCHETYPE_TRAITS[profile.archetype];
+  if (traits === undefined) return [`archetype ${profile.archetype} has no defining traits`];
+  return traits.flatMap(trait => {
+    const band = trait === "approach" ? profile.approach : trait === "ranged" ? profile.ranged : trait === "air" ? profile.airShare : profile.specials[trait.slice(8)];
+    const value = trait === "approach" ? measured.approachShare : trait === "ranged" ? measured.rangedShare : trait === "air" ? measured.airShare : measured.specials[trait.slice(8)];
+    if (band === undefined || value === undefined || !Number.isFinite(value)) return [`archetype ${trait} not measured`];
+    return outside(value, band) > 0 ? [`archetype ${trait} ${pct(value)} (${pct(band.low)}-${pct(band.high)})`] : [];
+  });
+}
+
+export function matchupFailures(matchups: NonNullable<Measured["matchups"]>): string[] {
+  return Object.entries(matchups).flatMap(([opponent, { rate, matches }]) =>
+    matches < BALANCE_SPEC.matchupMatches ? [`matchup ${opponent} only ${matches}/${BALANCE_SPEC.matchupMatches} matches`]
+      : !Number.isFinite(rate) || outside(rate, { low: BALANCE_SPEC.matchupLow, high: BALANCE_SPEC.matchupHigh }) > 0 ? [`matchup ${opponent} ${pct(rate)} (${pct(BALANCE_SPEC.matchupLow)}-${pct(BALANCE_SPEC.matchupHigh)})`] : []);
+}
+
+
+/** NIST Student-t 0.975 column; lower degrees of freedom round conservatively. */
+export const STUDENT_T95 = [[1,12.706], [2,4.303], [3,3.182], [4,2.776], [5,2.571], [6,2.447], [7,2.365], [8,2.306], [9,2.262], [10,2.228], [15,2.131], [20,2.086], [30,2.042], [60,2.000], [100,1.984]] as const;
+export function scoreIntervalCritical(samples: number): number {
+  let critical: number = STUDENT_T95[0][1];
+  for (const [degrees, value] of STUDENT_T95) if (samples - 1 >= degrees) critical = value;
+  return Math.max(BALANCE_SPEC.confidenceZ, critical);
+}
+
+
+/** Optimizer's win term aims at even while the release gate stays 45–55%. */
+export function optimizerScore(measured: Measured, profile: PlayStyleProfile | undefined): number {
+  const score = balanceScore(measured, profile);
+  return score.total - SCORE_WEIGHTS.win * score.win + SCORE_WEIGHTS.win * 100 * Math.abs(measured.winRate - BALANCE_SPEC.winTarget);
+}
+
+/** Wilson's two-sided 95% interval uses decisive matches, excluding ties. */
+export function withinWinTarget(measured: Measured): boolean {
+  const n = measured.decisiveMatches;
+  if (n === undefined || !Number.isInteger(n) || n < 1 || !Number.isFinite(measured.winRate)) return false;
+  const p = measured.winRate, z = BALANCE_SPEC.confidenceZ, z2 = z * z;
+  const denominator = 1 + z2 / n;
+  const center = (p + z2 / (2 * n)) / denominator;
+  const half = z * Math.sqrt(p * (1-p) / n + z2 / (4*n*n)) / denominator;
+  return BALANCE_SPEC.winTarget >= center - half && BALANCE_SPEC.winTarget <= center + half;
 }

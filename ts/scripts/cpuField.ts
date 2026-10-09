@@ -31,7 +31,11 @@ import { mainDeckLeft, mainDeckRight } from "../src/game/sim/stage";
 import soak from "./wisp/soak";
 import { admitsThroughHelper, runAdmitted } from "./heavyCapacity";
 import { spamOnly } from "./spamPolicy";
-import { BALANCE_SPEC, DISADVANTAGE_FRAMES, PUNISH_RESET_FRAMES, type Measured, type PlayStyleProfile, balanceGate, balanceScore, readProfiles } from "./balance";
+import baseline from "./balanceBaseline.json";
+import { currentKit, currentComputerCode } from "./balanceKit";
+import { currentFeel } from "./balanceFeel";
+import { kitFailures, feelFailures, type Baseline, type TuningField } from "./balanceOptimizer";
+import { BALANCE_SPEC, DISADVANTAGE_FRAMES, PUNISH_RESET_FRAMES, type Measured, type PlayStyleProfile, balanceGate, balanceScore, readProfiles, archetypeFailures, matchupFailures } from "./balance";
 
 /** The soak's stages by the game's stage numbers (test/soak/game.ts). */
 export const FIELD_STAGES: Readonly<Record<string, number>> = {
@@ -49,9 +53,9 @@ const NO_HIT_FRAMES = 3 * MATCH_TICKS_PER_SECOND;
  * a pair. The doc states these numbers; cpuField.tests.ts pins both together.
  */
 export const BALANCE_GATE = { fieldLow: 0.45, fieldHigh: 0.55, opponent: "wren", tier: "expert", perPair: 400 } as const;
-/** The matchup band, reported but not gated (Balance gate). */
-const MATCHUP_LOW = 0.45;
-const MATCHUP_HIGH = 0.55;
+/** The hard matchup gate is independent of the field-average win band. */
+const MATCHUP_LOW = BALANCE_SPEC.matchupLow;
+const MATCHUP_HIGH = BALANCE_SPEC.matchupHigh;
 /** Specials as gameplans and the computer's options number them: neutral, side, up, down. */
 export const SPECIAL_MOVE = GameplanSpecial;
 /** Spawn shifts, in order, for each variant of a setup. */
@@ -168,6 +172,7 @@ export interface FieldOptions {
   readonly perPair?: number;
   /** Match seeds each variant plays, from 0 (1 by default). */
   readonly seeds?: number;
+  readonly seedOffset?: number;
   /** The named profiles slots 0 and 1 play (Wren Expert by default). */
   readonly opponents?: readonly [CpuOpponentId, CpuOpponentId];
   readonly tiers?: readonly [CpuTier, CpuTier];
@@ -416,7 +421,7 @@ export function playCpuField(options: FieldOptions = {}, progress?: (done: numbe
     let played = 0;
     for (let variant = 0; variant < variants && (perPair === undefined || played < perPair); variant++) {
       for (let seed = 0; seed < seeds && (perPair === undefined || played < perPair); seed++) for (const stage of stages) for (const [x, y] of [[a, b], [b, a]] as const) {
-        const record = playCpuMatch(x, y, stage, variant, options, seed);
+        const record = playCpuMatch(x, y, stage, variant, options, seed + (options.seedOffset ?? 0));
         if (record !== undefined) {
           records.push(record);
           played++;
@@ -811,7 +816,7 @@ function fieldTable(summaries: readonly FighterSummary[], records: readonly Matc
     "",
     `Balance gate (every fighter ${percent(fieldLow)}-${percent(fieldHigh)} against the field, ${opponent} ${tier}, at least ${perPair} a pair): ${verdict.passes ? "passes" : verdict.gateRun ? "fails" : "not a gate run"}.${verdict.outside.length === 0 ? "" : ` Outside: ${verdict.outside.join(", ")}.`}`,
     "",
-    `Matchups (reported, not gated): inside ${percent(MATCHUP_LOW)}-${percent(MATCHUP_HIGH)} ${report.inside} of ${report.matchups}, at least ${report.smallestPlayed} matches each; 95% interval overlapping that band ${report.overlapping} of ${report.matchups}; median distance from 50% ${(100 * report.medianDeviation).toFixed(1)} points.`,
+    `Matchup gate (${BALANCE_SPEC.matchupMatches} a pair): ${summaries.every(summary => matchupFailures(Object.fromEntries(Object.entries(summary.against).map(([name, rate]) => [name, { rate, matches: summary.played[name] ?? 0 }]))).length === 0) ? "passes" : "fails"}; inside ${percent(MATCHUP_LOW)}-${percent(MATCHUP_HIGH)} ${report.inside} of ${report.matchups}, at least ${report.smallestPlayed} matches each; 95% interval overlapping that band ${report.overlapping} of ${report.matchups}; median distance from 50% ${(100 * report.medianDeviation).toFixed(1)} points.`,
   );
   return lines.join("\n");
 }
@@ -830,13 +835,29 @@ export function moveNamed(name: string): number | undefined {
 export function measuredOf(summary: FighterSummary, spamWinRate: number | undefined): Measured {
   const s = summary.style;
   return {
-    fighter: summary.fighter, winRate: summary.winRate, ...(s.damage[0] === undefined ? {} : { topMove: s.damage[0].name }), topDamageShare: s.topDamageShare, aerials: s.aerials, airShare: s.airShare,
+    fighter: summary.fighter, winRate: summary.winRate, decisiveMatches: summary.wins + summary.losses, ...(s.damage[0] === undefined ? {} : { topMove: s.damage[0].name }), topDamageShare: s.topDamageShare, aerials: s.aerials, airShare: s.airShare,
+    matchups: Object.fromEntries(Object.entries(summary.against).map(([name, rate]) => [name, { rate, matches: summary.played[name] ?? 0 }])),
     approachShare: s.approachShare, rangedShare: s.rangedShare, specials: s.specials, variety: s.variety, ...(spamWinRate === undefined ? {} : { spamWinRate }),
   };
 }
 
+/** Optimizer evidence is summarized from real records, including every seed's full pair matrix. */
+export function tuningFieldOf(records: readonly MatchRecord[], kits: TuningField["kits"], probes: ReadonlyMap<string, number>): TuningField {
+  const seeds = [...new Set(records.map(record => record.seed))].sort((a,b) => a-b);
+  const measured = (rows: readonly MatchRecord[]) => summarizeField(rows).map(summary => measuredOf(summary, probes.get(summary.fighter)));
+  const seedPairs = Object.fromEntries(seeds.map(seed => {
+    const counts: Record<string, number> = {};
+    for (const record of records) if (record.seed === seed) {
+      const key = [...record.fighters].sort().join(":");
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return [seed, counts];
+  }));
+  return { seeds, computerCode: currentComputerCode(), computerProfiles: JSON.stringify([...new Set(records.map(record => JSON.stringify([record.opponents,record.tiers])))].sort()), seedPairs, fighters: measured(records), kits, samples: Object.fromEntries(seeds.map(seed => [seed, measured(records.filter(record => record.seed === seed))])) };
+}
+
 /** The style, conversion and balance tables (smashcraft:docs/design/balance.md). */
-function balanceTables(summaries: readonly FighterSummary[], probes: ReadonlyMap<string, { readonly move: string; readonly winRate: number; readonly matches: number }>, profiles: ReadonlyMap<string, PlayStyleProfile>): string {
+export function balanceTables(summaries: readonly FighterSummary[], probes: ReadonlyMap<string, { readonly move: string; readonly winRate: number; readonly matches: number }>, profiles: ReadonlyMap<string, PlayStyleProfile>): string {
   const lines = [
     "",
     "Damage and stocks by move (share of the fighter's damage dealt and stocks taken; a hit is credited to the move its body was striking with, else to the last move it started):",
@@ -870,18 +891,37 @@ function balanceTables(summaries: readonly FighterSummary[], probes: ReadonlyMap
     "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
   );
   const failing: string[] = [];
+  const identity: string[] = [], feel: string[] = [], bounds: string[] = [];
+  const fixedBaseline: Baseline = baseline;
   for (const summary of summaries) {
     const probe = probes.get(summary.fighter);
     const profile = profiles.get(summary.fighter);
     const measured = measuredOf(summary, probe?.winRate);
     const gate = balanceGate(measured, profile);
     const score = balanceScore(measured, profile);
+    if (profile !== undefined) identity.push(...archetypeFailures(measured, profile).map(message => `${summary.fighter} ${message}`));
+    const character = selectableCharacterBySlug(summary.fighter);
+    const start = fixedBaseline[summary.fighter];
+    if (character === undefined || start === undefined) { bounds.push(`${summary.fighter} baseline missing`); feel.push(`${summary.fighter} baseline missing`); }
+    else {
+      const current = currentKit(character);
+      bounds.push(...kitFailures(current.values, start.values).map(message => `${summary.fighter} ${message}`));
+      const unchanged = JSON.stringify(current.values) === JSON.stringify(start.values);
+      feel.push(...feelFailures(unchanged ? start.feel : currentFeel(character), start.feel).map(message => `${summary.fighter} ${message}`));
+    }
     if (gate.failures.length > 0) failing.push(`${summary.fighter} (${gate.failures.join("; ")})`);
     const term = (value: number | undefined) => (value === undefined ? "-" : value.toFixed(1));
     lines.push(`| ${summary.fighter} | ${profile?.archetype ?? "no profile"} | ${probe === undefined ? "not run" : `${probe.move} ${share(probe.winRate)} (${probe.matches})`} | ${gate.balanced ? "balanced" : gate.failures.length > 0 ? `fails: ${gate.failures.join("; ")}` : "probe not run"} | ${score.total.toFixed(1)} | ${term(score.win)} | ${term(score.profile)} | ${term(score.variety)} | ${term(score.spam)} | ${term(score.probe)} | ${term(score.openings)} | ${term(score.recovery)} | ${score.misses.join(", ")} |`);
   }
+  const roster = SELECTABLE_CHARACTERS.map(fighterSlug);
+  const complete = summaries.length === roster.length && summaries.every(summary => roster.every(name => name === summary.fighter || (summary.played[name] ?? 0) >= BALANCE_SPEC.matchupMatches));
+  if (!complete) failing.push("whole field incomplete (every roster matchup requires 400 matches)");
+  failing.push(...bounds, ...feel);
+  lines.push("", `Archetype-trait gate: ${identity.length === 0 ? "passes" : "fails"}.${identity.length === 0 ? "" : ` ${identity.join("; ")}.`}`,
+    `Fixed baseline bounds (±${BALANCE_SPEC.kitFraction * 100}% damage/knockback, ±${BALANCE_SPEC.kitFrames} frames): ${bounds.length === 0 ? "passes" : "fails"}.${bounds.length === 0 ? "" : ` ${bounds.join("; ")}.`}`,
+    `Feel locks (block sign, kill percent ±${BALANCE_SPEC.killFraction * 100}%): ${feel.length === 0 ? "passes" : "fails"}.${feel.length === 0 ? "" : ` ${feel.join("; ")}.`}`);
   const probed = summaries.every((summary) => probes.has(summary.fighter));
-  lines.push("", `Balanced (win band, spam probe, move share): ${!probed ? "probe not run" : failing.length === 0 ? "passes" : "fails"}.${failing.length === 0 ? "" : ` Failing: ${failing.join(", ")}.`}`);
+  lines.push("", `Balanced (win band, spam probe, move share, matchup, archetype, fixed baseline, feel): ${!probed ? "probe not run" : failing.length === 0 ? "passes" : "fails"}.${failing.length === 0 ? "" : ` Failing: ${failing.join(", ")}.`}`);
   return lines.join("\n");
 }
 
@@ -923,7 +963,7 @@ function shardRecords(file: string): MatchRecord[] {
 if (import.meta.main) {
   const { values } = parseArgs({
     args: process.argv.slice(2),
-    options: { variants: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, opponents: { type: "string" }, tiers: { type: "string" }, stocks: { type: "string" }, minutes: { type: "string" }, json: { type: "string" }, merge: { type: "string" }, fighters: { type: "string" }, pairs: { type: "string" },
+    options: { variants: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, "seed-offset": { type: "string" }, opponents: { type: "string" }, tiers: { type: "string" }, stocks: { type: "string" }, minutes: { type: "string" }, json: { type: "string" }, merge: { type: "string" }, fighters: { type: "string" }, pairs: { type: "string" },
       "probe-fighter": { type: "string" }, from: { type: "string" }, probe: { type: "string" } },
     strict: true,
   });
@@ -963,7 +1003,7 @@ if (import.meta.main) {
   if (tiers !== undefined && tiers.length !== 2) throw new Error("--tiers takes two difficulties");
   if (opponents !== undefined && opponents.length !== 2) throw new Error("--opponents takes two names");
   const options: FieldOptions = {
-    variants: Number(values.variants ?? 1), seeds: Number(values.seeds ?? 1), stocks: Number(values.stocks ?? 3), minutes: Number(values.minutes ?? 4),
+    variants: Number(values.variants ?? 1), seeds: Number(values.seeds ?? 1), seedOffset: Number(values["seed-offset"] ?? 0), stocks: Number(values.stocks ?? 3), minutes: Number(values.minutes ?? 4),
     ...(tiers === undefined ? {} : { tiers: [tiers[0] ?? "expert", tiers[1] ?? "expert"] as const }),
     ...(opponents === undefined ? {} : { opponents: [opponents[0] ?? "wren", opponents[1] ?? "wren"] as const }),
     ...(fighters === undefined ? {} : { fighters }),

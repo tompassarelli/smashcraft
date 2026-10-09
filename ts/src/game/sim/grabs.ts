@@ -5,7 +5,8 @@ import { floorMod } from "wisp/src/sim/intMath";
 import { at } from "wisp/src/runtime/lookup";
 import { Character, ContactKind, GrabAction } from "./codes";
 import { finishDamageContacts, openDamageContacts, queueDamageContact } from "./contacts";
-import { copyHitEffect, emptyHitEffect } from "./hitRegions";
+import type { FighterMoves } from "./heroMoves";
+import { copyHitEffect, emptyHitEffect, type HitEffect } from "./hitRegions";
 import { advanceMash, clearMash } from "./mash";
 import { GRAB_HOLD_DISTANCE, GRAB_HOLD_MINIMUM_FRAMES, PUMMEL_DAMAGE, grabActionDuration, grabContactFrame, pummelLimit } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
@@ -65,14 +66,8 @@ function escapeGrab(world: Roster, ownerSlot: number, targetSlot: number): void 
   fighterAt(world, targetSlot).launch.throwHitstun = false;
 }
 
-function releaseThrow(world: Roster, ownerSlot: number, targetSlot: number, targetInput: Readonly<Controls>): void {
-  const owner = fighterAt(world, ownerSlot);
-  const target = fighterAt(world, targetSlot);
-  const { action } = owner.grab;
-  owner.grab.target = undefined;
-  target.grab.owner = undefined;
-  target.grab.grabbedFrames = 0;
-  clearMash(target.grab);
+/** Reuses the throw scratch; callers consume it before requesting another effect. */
+export function authoredThrowEffect(action: GrabAction, moves?: FighterMoves): Readonly<HitEffect> {
   const up = action === GrabAction.throwUp;
   const down = action === GrabAction.throwDown;
   throwHit.damage = up ? 6.0 : down ? 5.0 : 7.0;
@@ -87,10 +82,23 @@ function releaseThrow(world: Roster, ownerSlot: number, targetSlot: number, targ
   throwHit.electric = false;
   throwHit.manaDrain = undefined;
   throwHit.manaSteal = undefined;
-  const authored = owner.tuning.moves?.throws[action];
+  const authored = moves?.throws[action];
   if (authored !== undefined) copyHitEffect(throwHit, authored.effect);
+  return throwHit;
+}
+
+function releaseThrow(world: Roster, ownerSlot: number, targetSlot: number, targetInput: Readonly<Controls>): void {
+  const owner = fighterAt(world, ownerSlot);
+  const target = fighterAt(world, targetSlot);
+  const { action } = owner.grab;
+  owner.grab.target = undefined;
+  target.grab.owner = undefined;
+  target.grab.grabbedFrames = 0;
+  clearMash(target.grab);
+  const authored = owner.tuning.moves?.throws[action];
+  const effect = authoredThrowEffect(action, owner.tuning.moves);
   const direction = authored !== undefined ? owner.facing : action === GrabAction.throwBack ? -owner.facing : owner.facing;
-  queueDamageContact(world, ownerSlot, targetSlot, throwHit, direction, ContactKind.throw, false, targetInput);
+  queueDamageContact(world, ownerSlot, targetSlot, effect, direction, ContactKind.throw, false, targetInput);
   // Release changes ground-contact eligibility before later trap/catch checks.
   target.motion.grounded = false;
   target.motion.surface = undefined;

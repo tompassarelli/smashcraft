@@ -578,6 +578,8 @@ code. From smashcraft:ts/:
   `--probe N` matches a pair, 40 by default, 0 to skip), and with `--wait`
   prints the verdicts, the field table and the damage-by-move, play-style,
   openings-per-kill and balance-score tables (smashcraft:docs/design/balance.md).
+  Local saved fields use `bun scripts/cpuField.ts --merge FILE`;
+  `--seed-offset N` starts a fresh seed range for optimizer holdouts.
   A Wren Expert run with at least 400 matches per pair fails when the win-rate
   gate or the balanced gate fails, after publishing the report artifact;
   lower-tier or smaller exploratory fields remain reports.
