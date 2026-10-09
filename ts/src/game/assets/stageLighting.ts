@@ -34,7 +34,7 @@ export const STAGE_LIGHTS: readonly { readonly stage: number; readonly theme: st
   // Reforged still lifted fighters 5.7 L* toward it (#266).
   { stage: DRIFTING_DECK_STAGE, theme: "Durotar", light: { key: [255, 226, 180], ambient: [190, 152, 134], intensity: 0.30000001192092896 } },
   // Cold necropolis light, plague-violet fill.
-  { stage: PATTERNED_DECKS_STAGE, theme: "Scourge", light: { key: [222, 230, 255], ambient: [150, 136, 196] } },
+  { stage: PATTERNED_DECKS_STAGE, theme: "Scourge", light: { key: [255, 255, 255], ambient: [180, 156, 196], intensity: 2.0 } },
   // Burning sky key, fel-green fill.
   { stage: HELLFIRE_STAGE, theme: "Fel", light: { key: [255, 222, 196], ambient: [140, 172, 120] } },
   // A warm ivory key separates fighters from the orange forge backdrop (#292).
