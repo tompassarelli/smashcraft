@@ -8,7 +8,7 @@ import { heroDefinition } from "../sim/heroes/registry";
 import { HERO_PROJECTILE_CAP } from "../sim/heroSpecialRules";
 import { f32 } from "wisp/src/sim/f32";
 import { PARKED_CUE_TIME_SCALE, type ParkedFlags, type WorldOrigin, parkCue } from "./effects";
-import { PROJECTILE_DRAW_SCALES, fighterProjectileModels, projectileModelOf } from "../presentation/projectileArt";
+import { PROJECTILE_DRAW_SCALES, fighterProjectileModels, projectileModelOf, ultimateProjectiles } from "../presentation/projectileArt";
 import { projectedProjectile } from "../presentation/projectilePose";
 import { IMPACT_DEFILE_MODEL } from "../assets/impactAssetInfo";
 import { heroProjectileArt } from "../presentation/projectileArt";
@@ -38,9 +38,11 @@ export class ProjectilePresentation {
     private readonly origin: WorldOrigin,
   ) {
     const hero = heroDefinition(character) !== undefined;
-    fighterProjectileModels(character).forEach((path, index) => {
+    const paths = fighterProjectileModels(character);
+    const ultimateOnly = paths.filter((path, index) => index > 0 && !hero && ultimateProjectiles(character).some((spec) => spec.model === path));
+    paths.forEach((path, index) => {
 
-      const size = hero ? HERO_PROJECTILE_CAP + 1 : index === 0 ? PROJECTILE_CAPACITY : 4;
+      const size = hero ? HERO_PROJECTILE_CAP + 1 : index === 0 ? PROJECTILE_CAPACITY - 4 * ultimateOnly.length : 4;
       const effects: number[] = [];
       const boundaries: number[] = [];
       const specials = heroDefinition(character)?.specials;
