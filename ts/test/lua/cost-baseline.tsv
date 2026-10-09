@@ -12,6 +12,7 @@ src/game/input/padCapture.tests.ts	2	0.123
 src/game/input/playerKeys.tests.ts	3	0.000
 src/game/match/botCoverage.tests.ts	21	32.225
 src/game/match/botDefenseForecast.tests.ts	1	0.000
+src/game/match/botExecutionNoise.tests.ts	3	0.043
 src/game/match/botGameplan.tests.ts	6	0.001
 src/game/match/botHorizontalForecast.tests.ts	5	0.272
 src/game/match/botKitOptions.tests.ts	1	0.000

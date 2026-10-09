@@ -22,6 +22,12 @@ import { cpuSkill } from "./cpuSkill";
 import { useMatchSeed } from "./botRandom";
 
 declare const console: { log(line: string): void };
+declare const print: (this: void, line: string) => void;
+
+function report(line: string): void {
+  if (typeof console === "undefined") print(line);
+  else console.log(line);
+}
 
 /** Every count follows an executed input, rather than a random draw or an authored rate. */
 export function measureDefenceExecution(opponent: CpuOpponentId, tier: CpuTier, events: number) {
@@ -146,7 +152,7 @@ for (const opponent of CPU_OPPONENT_IDS) {
     let previous = { noDi: 2000, wrongDi: 2000, strongSdi: 2000, followupSdi: 2000, wrongSdi: 2000, fullHop: 2000, aerial: 2000 };
     for (const tier of CPU_TIERS) {
       const counts = measureDefenceExecution(opponent, tier, 2000);
-      console.log(`${opponent} ${tier} /2000 noDI=${counts.noDi} wrongDI=${counts.wrongDi} strongSDImissed=${counts.strongSdi} followupSDImissed=${counts.followupSdi} wrongSDI=${counts.wrongSdi}/${2000 - counts.strongSdi} attempts fullHop=${counts.fullHop} aerial=${counts.aerial}`);
+      report(`${opponent} ${tier} /2000 noDI=${counts.noDi} wrongDI=${counts.wrongDi} strongSDImissed=${counts.strongSdi} followupSDImissed=${counts.followupSdi} wrongSDI=${counts.wrongSdi}/${2000 - counts.strongSdi} attempts fullHop=${counts.fullHop} aerial=${counts.aerial}`);
       for (const key of ["noDi", "wrongDi", "strongSdi", "followupSdi", "fullHop", "aerial"] as const) assertEquals(counts[key] <= previous[key], true, `${opponent} ${tier} ${key}: ${counts[key]} <= ${previous[key]}`);
       if (tier === "expert") {
         assertEquals(counts.noDi >= 240 && counts.noDi <= 320, true, `no DI ${counts.noDi}/2000`);
@@ -221,7 +227,7 @@ test("an executed Expert aerial drift error gives a shield grab that proper spac
   assertGreaterThan(seed, -1);
   const proper = spacingPunishCase(seed, false);
   const miss = spacingPunishCase(seed, true);
-  console.log(`spacing seed=${seed} proper x=${proper.landingX} shieldTicks=${proper.shieldHits} grabbed=${proper.grabbed}; miss x=${miss.landingX} shieldTicks=${miss.shieldHits} grabbed=${miss.grabbed}`);
+  report(`spacing seed=${seed} proper x=${proper.landingX} shieldTicks=${proper.shieldHits} grabbed=${proper.grabbed}; miss x=${miss.landingX} shieldTicks=${miss.shieldHits} grabbed=${miss.grabbed}`);
   assertEquals(proper.grabbed, false);
   assertEquals(miss.grabbed, true);
   assertGreaterThan(miss.shieldHits, 0);
