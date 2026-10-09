@@ -259,6 +259,8 @@ code. From smashcraft:ts/:
   metadata. Store the generated model in `hero-models` and refresh the
   original clip pool before building. With pose names, reauthor only those clips
   from the existing `PRIVATE_OUTPUT/thrall.mdx`, preserving every other clip.
+  Exact `Thrall Damage HEIGHT STRENGTH` names (each number 0–2) replace only
+  the selected held pain poses; the generator requires nine distinct first poses.
 - Illidan locomotion authoring (from the repository root): run Blender with
   `--python tools/animations/illidan-locomotion.py -- PRIVATE_FIGHTER.blend PRIVATE_AUTHORED`,
   then `bun tools/animations/illidan-locomotion.ts PRIVATE_ASSETS PRIVATE_AUTHORED PRIVATE_OUTPUT`.
