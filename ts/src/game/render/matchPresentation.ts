@@ -21,6 +21,7 @@ import { coverScreen, createBackdrop, createText, gameUi } from "../ui/frames";
 import { MENU_FONT } from "../ui/hudLayout";
 import type { WorldOrigin } from "./effects";
 import { fighterModel } from "./combatEffects";
+import { type FighterOriginalClip, originalClip, originalClipNamed } from "../assets/fighterOriginalClipInfo";
 
 const PANEL_TEXTURE = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp";
 
@@ -176,6 +177,7 @@ export class MatchPresentation {
 
 
   tick(): boolean {
+    this.playVictory();
     if (this.pending === undefined) return false;
     if (this.delay > 0) {
       this.delay--;
@@ -209,19 +211,44 @@ export class MatchPresentation {
     this.victory = this.pose(winner, view.winnerSlot, GetCameraTargetPositionX() - this.origin.x - 240.0, 0.0);
   }
 
+  /** The winner's victory clip on its match body, when it plays from a timeline; otherwise undefined. */
+  private victoryClip: FighterOriginalClip | undefined;
+  private victoryFrames = 0;
+
   private pose(winner: Character, slot: number | undefined, x: number, z: number): effect {
+    const index = originalClipNamed(winner, victoryAnimation(winner));
+    const clip = index === undefined ? undefined : originalClip(winner, index);
+    this.victoryClip = clip?.timeline === true ? clip : undefined;
+    this.victoryFrames = 0;
     // Create handles at shared coordinates before placing them with a local camera.
-    const model = AddSpecialEffect(fighterModel(winner), this.origin.x, this.origin.y);
+    const model = AddSpecialEffect(this.victoryClip?.modelPath ?? fighterModel(winner), this.origin.x, this.origin.y);
     BlzSetSpecialEffectX(model, this.origin.x + x);
 
     if (slot !== undefined) BlzSetSpecialEffectColorByPlayer(model, Player(slot));
     BlzSetSpecialEffectZ(model, this.origin.z + z);
     BlzSetSpecialEffectScale(model, characterModelScale(winner));
     BlzSetSpecialEffectYaw(model, FACING_CAMERA);
-    BlzSetSpecialEffectAnimation(model, victoryAnimation(winner));
+    if (this.victoryClip === undefined) BlzSetSpecialEffectAnimation(model, victoryAnimation(winner));
+    else {
+      BlzSetSpecialEffectAnimationBlendTime(model, 0.0);
+      BlzSetSpecialEffectAnimation(model, "Stand");
+      BlzSetSpecialEffectTimeScale(model, 0.0);
+      BlzSetSpecialEffectTime(model, this.victoryClip.startSeconds);
+    }
     return model;
   }
 
+
+  private playVictory(): void {
+    const clip = this.victoryClip;
+    if (clip === undefined || this.victory === undefined) return;
+    this.victoryFrames++;
+    const duration = clip.endSeconds - clip.startSeconds;
+    let seconds = I2R(this.victoryFrames) / 60.0;
+    if (duration <= 0.0) seconds = 0.0;
+    else seconds -= I2R(R2I(seconds / duration)) * duration;
+    BlzSetSpecialEffectTime(this.victory, clip.startSeconds + seconds);
+  }
 
   hideResults(): void {
     this.pending = undefined;
@@ -233,6 +260,7 @@ export class MatchPresentation {
       BlzSetSpecialEffectScale(this.victory, 0.0);
       DestroyEffect(this.victory);
       this.victory = undefined;
+      this.victoryClip = undefined;
     }
   }
 

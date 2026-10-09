@@ -224,10 +224,15 @@ const PORTRAIT_CACHE = join(process.env.XDG_CACHE_HOME ?? join(homedir(), ".cach
 export const MAP_PORTRAITS: readonly string[] = RENDERED_FIGHTERS.flatMap((character) => PORTRAIT_KINDS.flatMap((kind) =>
   [...(kind === "Tile" ? [undefined] : []), ...PARTICIPANT_SLOTS].map((slot) => fighterPortrait(character, kind, slot))));
 
+/**
+ * Each portrait twice: the Classic render at its path, and the Definitive render
+ * (fighter-renders/de/) under _de.w3mod at the same path, which Definitive reads
+ * first and Classic ignores, as the fighter bodies do (docs/design/hd-fighters.md).
+ */
 const portraitImports = (assets: string) => Effect.forEach(
-  MAP_PORTRAITS,
-  (entry) => Effect.gen(function*() {
-    const source = join(assets, "fighter-renders", entry.replace("war3mapImported\\", "").replace(/\.blp$/, ".tga"));
+  MAP_PORTRAITS.flatMap((path): { entry: string; folder: readonly string[] }[] => [{ entry: path, folder: [] }, { entry: `_de.w3mod\\${path}`, folder: ["de"] }]),
+  ({ entry, folder }) => Effect.gen(function*() {
+    const source = join(assets, "fighter-renders", ...folder, entry.replace(/^.*war3mapImported\\/, "").replace(/\.blp$/, ".tga"));
     const bytes = yield* tryMapPromise("read portrait", source, () => Bun.file(source).bytes());
     const encoded = join(PORTRAIT_CACHE, `${new Bun.CryptoHasher("sha256").update(bytes).digest("hex")}-q${PORTRAIT_QUALITY}.blp`);
     if (!(yield* tryMapPromise("check portrait cache", encoded, () => Bun.file(encoded).exists()))) {

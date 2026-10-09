@@ -33,6 +33,7 @@ const heroProfile = (name: string) => `hero-${name.toLowerCase().replace(/\s+/g,
 
 export const MAP_PROFILES: Readonly<Record<string, SmashcraftMapProfile>> = {
   outfits: { describe: "four-colour portrait candidate, red Illidan and blue Rifleman", path: join(inputs, "slot-outfits-161-20261007/Smashcraft diagnostic slot portrait outfits.w3x"), quick: "-dev quick" },
+  "portraits-363": { describe: "Classic and Definitive portraits built for #363", path: join(homedir(), ".local/state/smashcraft/portraits-363-codex/Smashcraft-363-select-art.w3x"), quick: "-dev quick" },
   ...STAGE_COMPOSITION_MAPS,
   ...STAGE_ENTRY_MAPS,
   ...FLOATING_STAGE_MAPS,
@@ -222,6 +223,16 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       capture: [{ kind: "frames", name: "grid-and-picked-cards", client: "a" }],
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
       look: "The roster grid stays neutral; picked player cards show red Illidan and blue Rifleman clothing.",
+    },
+    {
+      id: "363-select-art", closes: "smashcraft#363 box 4", map: "portraits-363",
+      setup: [
+        { chat: "-dev reset" }, { chat: "-dev fighter 1 Illidan", client: "a" }, { chat: "-dev fighter 2 Forsaken Paladin", client: "b" },
+        { waitMs: 1500 },
+      ],
+      capture: [{ kind: "frames", name: "grid-and-picked-cards", client: "a" }],
+      pass: [NO_IMPORT_FAILURES, NO_ERRORS],
+      look: "Capture Classic on the Classic pair and Definitive on signed-in clones B/C/D set to Definitive. The Definitive grid tiles and player cards show the Definitive bodies (Illidan's Definitive armour, Forsaken's Definitive plate) and differ from the Classic frames; Forsaken, Murloc and Kobold tiles show the fighter in both.",
     },
     ...(["a", "b"] as const).map((client): NativeCheck => ({
       id: `174-defile-${client}`,

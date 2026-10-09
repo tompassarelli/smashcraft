@@ -35,11 +35,11 @@ export function encodePreview(image: Rgba): Uint8Array {
 
 
 export const PREVIEW_FIGHTERS = [
-  { card: "FighterCardWarden.tga", x: 30, height: 116, flip: false, shade: 0.72 },
-  { card: "FighterCardDreadlord.tga", x: 222, height: 120, flip: true, shade: 0.72 },
-  { card: "FighterCardBlademaster.tga", x: 70, height: 126, flip: false, shade: 0.9 },
-  { card: "FighterCardIllidan.tga", x: 176, height: 130, flip: true, shade: 0.9 },
-  { card: "FighterCardMountainKing.tga", x: 128, height: 112, flip: false, shade: 1 },
+  { card: "FighterCardWardenP1.tga", x: 30, height: 116, flip: false, shade: 0.72 },
+  { card: "FighterCardDreadlordP2.tga", x: 222, height: 120, flip: true, shade: 0.72 },
+  { card: "FighterCardBlademasterP1.tga", x: 70, height: 126, flip: false, shade: 0.9 },
+  { card: "FighterCardIllidanP2.tga", x: 176, height: 130, flip: true, shade: 0.9 },
+  { card: "FighterCardMountainKingP1.tga", x: 128, height: 112, flip: false, shade: 1 },
 ] as const;
 
 const DECK_TOP = 214;

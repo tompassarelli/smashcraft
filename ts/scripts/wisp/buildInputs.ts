@@ -28,7 +28,7 @@ export const FAMILIES = {
   "animation-assets": { produce: "bash tools/animations/build-assets.sh (writes build/animation-assets)" },
   "illidan-animation": { produce: "bun tools/animations/package-illidan.ts (writes build/illidan-animation)" },
   "selection-assets": { produce: "bun tools/selection/build-art.ts (writes build/selection-assets)" },
-  "fighter-renders": { produce: "bun tools/selection/render-fighters.ts --extract CASC_EXTRACT --assets \"$(bun wisp inputs path assets)\"" },
+  "fighter-renders": { produce: "bun scripts/fighterPortraits.ts PRIVATE_OUTPUT (from ts/; stores PRIVATE_OUTPUT/fighter-renders)" },
   "stage-assets": { produce: "bun tools/stage/package.ts (writes build/stage-assets)" },
   "impact-assets": { produce: "bun tools/effects/package.ts, trap.ts and shield.ts (write build/impact-assets)" },
   "imported-models": { produce: "the community models smashcraft:ts/src/game/assets/importedModelInfo.ts lists, from their authors' downloads" },

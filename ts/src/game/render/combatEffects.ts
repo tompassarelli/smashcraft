@@ -33,6 +33,7 @@ import { Character } from "../sim/codes";
 import { SELECTABLE_CHARACTERS, heroDefinition } from "../sim/heroes/registry";
 import { type ParkedFlags, type WorldOrigin, hideEffect, parkOnce, placeEffect } from "./effects";
 import { characterModelScale } from "../presentation/modelScale";
+import { originalClip, originalClipNamed } from "../assets/fighterOriginalClipInfo";
 import { tierSoundPaths } from "../presentation/moveTiers";
 import { KO_BLUR_DISTANCE, type KoFlash, createKoFlash, endKoFlash, koFlashLevels, noteKoFlash } from "../presentation/koFlash";
 import type { Fighter } from "../sim/fighter";
@@ -102,11 +103,16 @@ export class CombatEffects {
       this.impacts.push(model);
     }
     for (let i = 0; i < KO_BODY_COUNT; i++) {
-      const model = AddSpecialEffect(fighterModel(at(SELECTABLE_CHARACTERS, floorMod(i, KO_FIGHTERS))), origin.x, origin.y);
-      BlzSetSpecialEffectAnimation(model, "stand hit");
+      const character = at(SELECTABLE_CHARACTERS, floorMod(i, KO_FIGHTERS));
+      // The match body's hit clip where it plays from a timeline, so Definitive draws its _de.w3mod body.
+      const index = originalClipNamed(character, "stand hit");
+      const clip = index === undefined ? undefined : originalClip(character, index);
+      const timeline = clip?.timeline === true ? clip : undefined;
+      const model = AddSpecialEffect(timeline?.modelPath ?? fighterModel(character), origin.x, origin.y);
+      BlzSetSpecialEffectAnimation(model, timeline === undefined ? "stand hit" : "Stand");
       BlzSetSpecialEffectAnimationBlendTime(model, 0.0);
       BlzSetSpecialEffectTimeScale(model, 0.0);
-      BlzSetSpecialEffectTime(model, f32(0.1));
+      BlzSetSpecialEffectTime(model, timeline === undefined ? f32(0.1) : f32(timeline.startSeconds + f32(0.1)));
       parkOnce(model, this, parked, IMPACT_COUNT + i);
       this.koBodies.push(model);
     }

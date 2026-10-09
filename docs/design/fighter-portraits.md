@@ -37,40 +37,61 @@ own size or smaller, never stretched past it:
 
 ## Generating
 
-`bun tools/selection/render-fighters.ts --extract CASC_EXTRACT --assets ASSETS`
-renders every fighter in `RENDERED_FIGHTERS`
-(smashcraft:ts/src/game/sim/heroes/registry.ts) with
-smashcraft:tools/selection/render-fighter.py in Blender. Every fighter gets the
-same three-quarter camera, lights and background, framed to its silhouette at
-its first `Stand Ready` frame. Fighters render in Warcraft's Coal team colour
-(`NEUTRAL_TEAM_COLOR`, a dark grey no slot uses), so the grid shows no
-player's colour. Each new render also writes `work/NAME-team.png`: an unlit
-pass through the same material blend graph, with the painted textures' RGB
-removed and their alpha retained. This isolates the team layer even where it
-blends through skin or trim. The pass disables denoising, which otherwise
-changes faint edge colours, and retains `work/NAME-team.blend` for direct pixel
-diagnostics without importing the clip pool again. `--check RED_WORK` checks that pass for the twelve
-player colours (including Gray) and compares the render's silhouette with the
-same fighter rendered with `--team 0`. Cached renders without the isolated
-pass use their red comparison to find team-colour pixels. Heroes come from the game's storage, and the
-original fighters from their generated models. The renders are proprietary
-derived art: they go to `ASSETS/fighter-renders/` outside the repository, and
-the map build imports them from there. A fighter missing from
-`RENDERED_FIGHTERS` shows its command icon. Add it there after its renders
-exist.
+`bun scripts/fighterPortraits.ts PRIVATE_OUTPUT` (from ts/, through the
+capacity helper) draws every fighter in `RENDERED_FIGHTERS` with Wisp's
+headless renderer, once in Classic and once in Definitive, from the body the
+match draws in each mode: its timeline body, whose `_de.w3mod` alias is the
+Definitive body ([#363](https://github.com/tompassarelli/smashcraft/issues/363)).
+Use `--graphics classic` or `--graphics definitive` to refresh only that set,
+and `--only NAME,...` to limit the fighters.
+Both sets share one rule for pose, light and camera, so only the graphics
+mode differs. Each body is posed at the frame of its Stand clip whose face
+joints (nose, else eyes, else the head attachment) stand highest above its
+head bone, so an idle that bows the head still shows the face, and turned
+about the vertical so its face points at the camera, 20 degrees toward image
+left so the weapon hand and near pauldron sit behind it. The face's heading
+comes from the posed pair of eyeballs on Definitive rigs (square to the line
+across them; their bind poses aren't all level), else from the bind pose's
+level head-bone-to-nose (else eyes, else the head mesh's forward-most tenth)
+direction turned by the bone carrying most of the head mesh. On Definitive
+bind rigs whose `bone_head` carries no face joints, the sibling joint that
+does is the head. Bodies whose head mesh has under 50 vertices (Classic
+Murloc, Kobold and Peon) face the camera as their body does. Only the yaw
+turns: tilting a body to level a bowed face lays the whole card render over.
+The camera looks level through a narrow lens fitted to the silhouette, so the
+face is seen from within 4 degrees of its own height. The portrait light is
+the neutral stage light (classic midday key and fill) with its key turned to the camera's side (25 degrees
+toward image left, 30 above), so turned faces take the key in both modes;
+Definitive renders also get a 1.4 gamma lift. The hero glow under the feet is
+hidden by pointing its additive texture at stock black. Each fighter is drawn
+in Warcraft's Coal team colour (`NEUTRAL_TEAM_COLOR`) for the neutral grid
+tile, and in red, blue, teal and purple for its slot outfits; files append
+`P1` through `P4`. Tiles and busts frame head and shoulders around the head mesh: the posed vertices bound to the
+head bone or its direct children, evaluated with Wisp's vendored war3-model
+(its version-1800 skin reader), not the body's bounds; stock icons frame the
+head alone.
+The custom-game preview uses the red and blue player cards.
 
-`--slots` renders red, blue, teal and purple outfits in one imported scene,
-changing only the team's texture. Files append `P1` through `P4` before the
-extension. Picked cards, HUD busts, stock icons and off-screen portraits use
-the fighter slot's variant; the roster grid keeps its neutral portrait. A model
-without team-colour layers retains its painted costume in all four slots.
-Each variant's isolated contribution must contain only the expected player
-colour. `--reuse --slots` resumes existing renders and checks all four variants.
+It writes `PRIVATE_OUTPUT/fighter-renders/` (Classic) with its `de/` folder
+(Definitive); store that folder with `bun wisp inputs add fighter-renders`.
+The map build imports each Classic portrait at its path and each Definitive one
+at the same path under `_de.w3mod`, which Definitive reads first and Classic
+ignores, so the same UI code shows the right one in each mode. The renders are
+proprietary derived art and stay outside the repository.
 
-The renderer uses smashcraft:tools/animations/original-clips.ts to extract
-only the standing sequence before Blender imports it. Rifleman's full source
-had 427,224 keys; its standing pose needs 881. The beauty scene is retained as
-`work/NAME.blend`, so subsequent inspection does not need the full clip pool.
+Classic Murloc and Kobold keep the 3.0 stock models, which hang the old mesh
+bones, every pivot collapsed to one point, under a second `Bone_*` rig. Posed
+through that rig, war3-model's evaluator (Wisp's renderer and the earlier
+Blender importer alike) scatters the mesh into texture noise, so their Classic
+portraits hold that rig's rest pose. The earlier Blender set drew Forsaken
+Paladin black: Blender's MDX reader lost the textures of his version-1800
+skinned body.
+
+Picked cards, HUD busts, stock icons and off-screen portraits use the fighter
+slot's variant; the roster grid keeps its neutral portrait.
+
+The results pose and the star-KO body play their clips on the timeline body
+too, so every place a fighter is drawn follows the graphics mode.
 
 ## Match HUD plate
 

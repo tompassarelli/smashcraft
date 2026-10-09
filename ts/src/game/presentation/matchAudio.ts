@@ -118,7 +118,7 @@ const VOICES: Readonly<Record<Exclude<Character, typeof Character.medivh>, reado
   4: ["Units\\Human\\HeroMountainKing\\", "HeroMountainKing"],
   5: ["Units\\NightElf\\HeroWarden\\", "HeroWarden"],
   6: ["Units\\Undead\\HeroLich\\", "HeroLich"],
-  7: ["Units\\Human\\Uther\\", "Uther"],
+  7: ["Units\\Undead\\HeroDeathKnight\\", "DeathKnight"],
   8: ["Units\\Undead\\HeroDreadLord\\", "HeroDreadLord"],
   9: ["Units\\Orc\\HeroShadowHunter\\", "ShadowHunter"],
   10: ["Units\\Demon\\HeroPitLord\\", "HPitLord"],

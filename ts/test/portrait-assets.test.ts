@@ -8,9 +8,9 @@ import { MAP_PORTRAITS } from "../scripts/wisp/mapInputs";
 const manifest = JSON.parse(readFileSync(MANIFEST, "utf8"));
 const family = join(INPUTS_STORE, "fighter-renders", manifest["fighter-renders"]);
 
-test.skipIf(!existsSync(family))("every imported HUD and selection portrait has the shared render size and cut-out or round stock alpha [spec #323]", () => {
+const checkPortraits = (mode: "" | "de") => {
   for (const entry of MAP_PORTRAITS) {
-    const file = join(family, entry.replace("war3mapImported\\", "").replace(/\.blp$/, ".tga"));
+    const file = join(family, mode, entry.replace("war3mapImported\\", "").replace(/\.blp$/, ".tga"));
     const image = readTga(readFileSync(file));
     const kind = /Fighter(Card|Bust|Tile|Stock)/.exec(entry)?.[1];
     const size = kind === "Card" ? 384 : kind === "Stock" ? 64 : 256;
@@ -27,4 +27,7 @@ test.skipIf(!existsSync(family))("every imported HUD and selection portrait has 
     expect(opaque, entry).toBeLessThan(size * size);
     expect(outsideCircle, entry).toBe(0);
   }
-});
+};
+
+test.skipIf(!existsSync(family))("every Classic HUD and selection portrait has the shared render size and cut-out or round stock alpha [spec #323]", () => checkPortraits(""));
+test.skipIf(!existsSync(family))("every Definitive HUD and selection portrait has the shared render size and cut-out or round stock alpha [spec #363]", () => checkPortraits("de"));

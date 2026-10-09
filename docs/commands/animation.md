@@ -160,8 +160,7 @@ smashcraft:docs/design/animation-reference.md. Reference pixels remain private.
   drawn first poses, and preserves old sequences. Store changed model families
   and refresh the clip pool (smashcraft:docs/fighter-animation-work.md).
 
-Portrait outfits: `bun tools/selection/render-fighters.ts --extract EXTRACTOR --assets PRIVATE_ASSETS --slots --reuse`
-renders and checks the four slot outfits; omit `--slots` for the neutral grid.
-The renderer extracts only the standing sequence with the existing clip tool
-(Rifleman: 427,224 animation keys to 881), avoiding full-pool Blender imports.
+Fighter portraits: `bun scripts/fighterPortraits.ts PRIVATE_OUTPUT` (from ts/, through the
+capacity helper) renders the Classic and Definitive portrait sets, neutral and the four slot
+outfits, with Wisp's headless renderer; store PRIVATE_OUTPUT/fighter-renders as `fighter-renders`.
 See smashcraft:docs/design/fighter-portraits.md.
