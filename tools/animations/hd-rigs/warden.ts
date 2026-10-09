@@ -1,5 +1,6 @@
 export const character = 5;
 export const stockPath = 'war3.w3mod:_de.w3mod:units\\nightelf\\herowarden\\herowarden.mdx';
+export const fitScale = 0.723;
 
 // The Definitive limbs contain twist joints between the named Classic articulations.
 export const classic = {

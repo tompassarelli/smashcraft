@@ -1,5 +1,6 @@
 export const character = 23;
 export const stockPath = 'war3.w3mod:_de.w3mod:units\\undead\\herocryptlord\\herocryptlord.mdx';
+export const fitScale = 0.737;
 export const visibilityPairs: readonly (readonly [number, number])[] = [[0, 0], [1, 1]];
 export const classic = {
     root: 'Bone_Root',

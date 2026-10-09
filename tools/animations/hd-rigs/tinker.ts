@@ -1,5 +1,6 @@
 export const character = 19;
 export const stockPath = 'war3.w3mod:_de.w3mod:units\\creeps\\herotinker\\herotinker.mdx';
+export const fitScale = 0.899;
 export const visibilityPairs: readonly (readonly [number, number])[] = [
     [0, 0], [0, 4], [0, 5],
     [9, 2], [2, 3],

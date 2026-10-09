@@ -1,5 +1,6 @@
 export const character = 13;
 export const stockPath = 'war3.w3mod:_de.w3mod:units\\orc\\Thrall\\Thrall.mdx';
+export const fitScale = 0.834;
 export const limbScales = [
     ['mount_tail_01_bind_jnt', 0.4],
     ['mount_tail_scale_01_bind_jnt', 0.4, 'mount_tail_01_bind_jnt'],

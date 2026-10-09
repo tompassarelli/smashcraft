@@ -312,7 +312,8 @@ all read the one value in smashcraft:ts/src/game/presentation/modelScale.ts;
 smashcraft:ts/test/model-scale.test.ts pins draw scale = stock scale × the
 factor for every fighter. Hurt capsules follow the drawn body:
 smashcraft:ts/test/drawn-size.test.ts holds each drawn head within 0.9-1.3 of
-its capsule's top.
+its capsule's top, in Classic and Definitive, and each Definitive body within 10%
+of Classic or of its capsule top (smashcraft:docs/design/hd-fighters.md).
 
 | Fighter | Stock unit | Stock model scale | Draw scale | Before #162 |
 | --- | --- | ---: | ---: | ---: |

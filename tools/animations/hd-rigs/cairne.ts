@@ -1,5 +1,6 @@
 export const character = 16;
 export const stockPath = 'war3.w3mod:_de.w3mod:units\\orc\\HeroTaurenChieftain\\HeroTaurenChieftain.mdx';
+export const fitScale = 0.762;
 export const classic = {
     root: 'Root',
     pelvis: 'Bone_Pelvis',

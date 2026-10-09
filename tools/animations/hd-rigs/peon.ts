@@ -1,5 +1,6 @@
 export const character = 18;
 export const stockPath = 'war3.w3mod:_de.w3mod:units\\orc\\peon\\peon.mdx';
+export const fitScale = 0.909;
 export const classic = {
     pelvis: 'Bone_Pelvis',
     chest: 'Bone_Chest',

@@ -144,10 +144,11 @@ export class FighterPoolPresentation {
     const yaw = facingYaw(fighterPoseFacing(fighter));
     placeEffect(model, x, y, z);
     if (changed || this.yaw !== yaw) {
+      // Native yaw can discard an earlier effect scale (#360's floes), so the scale follows every yaw.
       BlzSetSpecialEffectYaw(model, yaw);
+      BlzSetSpecialEffectScale(model, this.scale);
       this.yaw = yaw;
     }
-    if (changed) BlzSetSpecialEffectScale(model, this.scale);
     if (changed || this.seconds !== seconds) {
       BlzSetSpecialEffectTime(model, (clip.timeline ? clip.startSeconds : 0.0) + seconds);
       this.seconds = seconds;
@@ -156,6 +157,7 @@ export class FighterPoolPresentation {
       placeEffect(this.light, x, y, z);
       if (this.lightYaw !== yaw) {
         BlzSetSpecialEffectYaw(this.light, yaw);
+        BlzSetSpecialEffectScale(this.light, this.scale);
         this.lightYaw = yaw;
       }
       if (!this.lightVisible) {

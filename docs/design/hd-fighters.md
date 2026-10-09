@@ -153,6 +153,14 @@ levers, tore at the joints and pointed elsewhere: Shadow Hunter's forearm stood
   as long as the Classic legs (all limbs on a rig with no feet). The rig
   can additionally calibrate `fitScale` against the rendered head and body:
   equal limb lengths do not ensure that the torso fills the shared hurt capsules.
+  Matched legs left nine Definitive bodies 10–69% taller than Classic at Stand
+  (Murloc 1.69, Anub'arak 1.36, Warden 1.32, Cairne 1.27, Illidan 1.23, Thrall 1.20,
+  Blademaster 1.16, Tinker 1.11, Peon 1.10), since Definitive models carry shorter
+  legs under larger bodies. Their `fitScale` now sets the drawn Stand height over the
+  hurt capsules' span to Classic's. smashcraft:ts/test/drawn-size.test.ts measures
+  both looks from the published family and fails a Definitive body more than 10% from
+  both Classic and its hurt top; Pit Lord (0.87 of Classic), Kael'thas (0.86) and
+  Medivh (0.89) pass on their hurt tops (1.09, 0.92, 1.00), which they fit better than Classic.
   `limbScales` uniformly fits an arm and its attached hand or weapon about the
   shoulder when its proportions differ from Classic; it leaves the torso and legs
   in place. Legged bodies plant visible leg and foot surfaces against Classic after

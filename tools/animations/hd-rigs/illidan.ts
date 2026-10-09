@@ -1,5 +1,6 @@
 export const character = 2;
 export const stockPath = 'war3.w3mod:_de.w3mod:units\\nightelf\\herodemonhunter\\herodemonhunter.mdx';
+export const fitScale = 0.812;
 // DE weapons are independent root children; both need their authored blade transform.
 export const classic = {
     root: 'Bone_Root',
