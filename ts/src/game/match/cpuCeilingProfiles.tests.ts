@@ -14,6 +14,7 @@ test("perfect execution keeps correct DI and short hops in 500 opportunities [sp
   f.launch.knockbackZ = 0.0;
   f.launch.diLaunchSpeed = 30.0;
   f.launch.hitstun = 30;
+  f.launch.hitlagFrames = 9;
   for (let index = 0; index < 500; index++) {
     f.visuals.hit = index;
     const input = neutralControls();
