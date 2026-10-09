@@ -12,6 +12,6 @@ for (const profile of CPU_PROFILES) {
 }
 
 test("calibration rejects insufficient decisions instead of calling an empty sample coverage [spec #186]", () => {
-  const row = collectCalibrationRow(cpuProfile("wren", "expert"), 1);
-  assertEquals(calibrationFailures(row).some(failure => failure.includes("10/100 eligible decisions")), true);
+  const row = collectCalibrationRow(cpuProfile("wren", "expert"), 0);
+  assertEquals(calibrationFailures(row).some(failure => failure.includes("0/100 eligible decisions")), true);
 });

@@ -100,9 +100,11 @@ function playAttack(setup: Setup): Trace {
   let shields = victim.visuals.shield;
   let damage = victim.status.damage;
   let victimHeld = false;
+  const neutral = neutralControls();
+  const idleVictim = setup.shielding === true ? shield() : neutral;
   for (let frame = 1; frame <= (setup.frames ?? 90); frame++) {
-    copyControls(frameControls.inputs[0], neutralControls());
-    copyControls(frameControls.inputs[1], setup.victimInput?.(frame, victim) ?? (setup.shielding === true ? shield() : neutralControls()));
+    copyControls(frameControls.inputs[0], neutral);
+    copyControls(frameControls.inputs[1], setup.victimInput?.(frame, victim) ?? idleVictim);
     if (setup.shieldGrab === true && attacker.motion.grounded && trace.contacts.length > 0 && canShieldGrab(victim) && frameControls.commands[1].pending === undefined) {
       queueAttack(frameControls.commands[1], { style: AttackStyle.grab, facing: 0, frame: frame, mayCharge: false });
     }
@@ -120,6 +122,7 @@ function playAttack(setup: Setup): Trace {
     if (trace.attackerLands < 0 && attacker.motion.grounded && setup.height > 0) trace.attackerLands = frame;
     if (frame > 1 && trace.attackerActs < 0 && attacker.motion.grounded && canAttack(attacker)) trace.attackerActs = frame;
     if (victimHeld && trace.victimActs < 0 && canAttack(victim)) trace.victimActs = frame;
+    if (setup.frames === undefined && setup.shieldGrab !== true && trace.attackerActs >= 0 && trace.victimActs >= 0 && canAttack(attacker) && canAttack(victim)) break;
   }
   return trace;
 }
@@ -162,11 +165,10 @@ const AERIALS: readonly Case[] = [
 ];
 
 /**
- * The shared up air Rifleman and Rifleman already had: both hits link, but its
+ * Rifleman's up air: both hits link, but its
  * second hit fills the same box as the first, so one hit's smash DI cannot clear it.
  */
 const SHARED_UP_AIRS: readonly Case[] = [
-  { name: "Rifleman up air", setup: { attacker: Character.rifleman, style: AttackStyle.upAir, offsetX: 0.0, height: 300.0, victimHeight: 400.0 }, hits: 2 },
   { name: "Rifleman up air", setup: { attacker: Character.rifleman, style: AttackStyle.upAir, offsetX: 0.0, height: 300.0, victimHeight: 400.0 }, hits: 2 },
 ];
 
@@ -219,7 +221,7 @@ test("Falling Knives has no landing hit and leaves Warden able to act first [spe
 test("the glaive drill carries its target sideways along Shadow Hunter's facing [spec #152]", () => {
   for (const c of [DRILLS[4]!, DRILLS[5]!]) {
     for (const percent of PERCENTS) {
-      const trace = playAttack({ ...c.setup, percent });
+      const trace = playAttack({ ...c.setup, percent, frames: 90 });
       assertEquals(trace.victim.motion.x > 100.0, true, `${c.name} at ${percent}%`);
     }
   }

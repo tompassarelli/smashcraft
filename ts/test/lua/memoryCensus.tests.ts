@@ -69,7 +69,7 @@ test("copied bot reads add no reachable tables when reads appear after warmup [i
   const environment = new LuaTable<AnyNotNil, unknown>();
   environment.set("snapshots", snapshots);
   for (const snapshot of snapshots) copyBotStrategy(snapshot, source);
-  const before = reach(environment, [], true).tables;
+  const before = reach(environment, []).tables;
   source.readChoice = HabitChoice.shield;
   source.readExpectedFrame = 153;
   source.readExpires = 171;
@@ -79,10 +79,10 @@ test("copied bot reads add no reachable tables when reads appear after warmup [i
     source.readActionFrame = turn;
     for (const snapshot of snapshots) copyBotStrategy(snapshot, source);
   }
-  assertEquals(reach(environment, [], true).tables, before);
+  assertEquals(reach(environment, []).tables, before);
   source.readActive = true;
   for (const snapshot of snapshots) copyBotStrategy(snapshot, source);
-  assertEquals(reach(environment, [], true).tables, before);
+  assertEquals(reach(environment, []).tables, before);
   for (const snapshot of snapshots) {
     assertEquals(snapshot.readChoice, HabitChoice.shield);
     assertEquals(snapshot.readExpectedFrame, 153);
@@ -99,9 +99,9 @@ test("first hero rendering and nonzero DI use initialized records without adding
   const environment = new LuaTable<AnyNotNil, unknown>();
   environment.set("envelopes", fighterBodyEnvelope);
   environment.set("operands", influenceOperands);
-  const baseline = reach(environment, [], true).tables;
+  const baseline = reach(environment, []).tables;
   for (const character of Object.values(Character)) fighterBodyEnvelope(character);
   fighter.launch.diPending = true;
   applyDirectionalInfluence(fighter, input);
-  assertEquals(reach(environment, [], true).tables, baseline);
+  assertEquals(reach(environment, []).tables, baseline);
 });
