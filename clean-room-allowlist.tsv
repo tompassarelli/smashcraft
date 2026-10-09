@@ -1,9 +1,5 @@
 # Committed files the clean-room check (smashcraft:ts/scripts/cleanRoom.ts, wisp:docs/clean-room.md) would refuse, with their origin.
 # PATH<TAB>ORIGIN (original, generated, or stock-path: names stock assets by in-game path, holds none)<TAB>HOW it was made
-client/src-tauri/icons/128x128.png	original	the desktop client's own app icon
-client/src-tauri/icons/32x32.png	original	the desktop client's own app icon
-client/src-tauri/icons/icon.png	original	the desktop client's own app icon
-client/src-tauri/tests/fixtures/stormlib.w3x	generated	StormLib 9.30 archive of our own fixture files (smashcraft:client/src-tauri/tests/fixtures/README.md)
 tools/selection/art/OpponentSettings.fdf	generated	bun scripts/wisp/uiFrames.ts (from ts/); names stock textures and fonts by in-game path
 tools/selection/art/OpponentSettings.toc	generated	bun scripts/wisp/uiFrames.ts (from ts/)
 tools/selection/art/SmashcraftHUD.fdf	generated	bun scripts/wisp/uiFrames.ts (from ts/)

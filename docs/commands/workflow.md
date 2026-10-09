@@ -26,8 +26,8 @@ its Status until the table exists. A status question never starts a new
 investigation.
 
 - smashcraft:ts/src/ owns gameplay, deterministic state/replay, selection and UI.
-- smashcraft:controller/ owns Smashcraft's controller plug-in and journal helper (`wc3-journal`); the service itself is github.com/tompassarelli/wc3-controller, pinned by tag in controller/Cargo.toml and client/src-tauri/Cargo.toml.
-- smashcraft:client/ owns the player's desktop app (Tauri: Rust backend, Bun-built TypeScript pages); it uses controller support only through the service's local interface (smashcraft:client/README.md).
+- smashcraft:controller/ owns Smashcraft's controller plug-in and journal helper (`wc3-journal`); the service itself is github.com/tompassarelli/wc3-controller, pinned by tag in controller/Cargo.toml.
+- The player's desktop app is github.com/tompassarelli/smashcraft-client; it reads Smashcraft only through smashcraft:docs/client-interface.md, which this repository owns.
 - smashcraft:tools/ owns build, native probes and automation.
 - smashcraft:docs/ holds durable knowledge only: how systems work, design
   decisions, reference data and procedures. Status, progress, plans, claim
@@ -43,8 +43,7 @@ copied game scripts outside smashcraft:clean-room-allowlist.tsv; wisp:docs/clean
 `bun run check` and the type-escape audit (smashcraft:ts/test/source-shapes.test.ts)
 when the pushed commits change ts/, the model facts check
 (smashcraft:ts/test/model-facts.test.ts; it refuses with the `bun wisp view models`
-refresh command) when they change clips or model build inputs, and client/ui's
-type-check when they change it, in a few seconds (smashcraft:ts/scripts/prePush.ts).
+refresh command) when they change clips or model build inputs, in a few seconds (smashcraft:ts/scripts/prePush.ts).
 It checks the working tree, so push from a clean checkout of the commit.
 A push to main then runs the tests its change affects (`bun wisp dev`'s selection, plus the affected game modules in 32-bit Lua when sim code changed; at most 150 s, under the capacity helper) and is refused when one fails that main's latest completed CI run doesn't, naming each and its rerun command; tests main already fails don't block, and each verdict is appended to new-fail-gate.tsv in the clone's git directory (smashcraft:ts/scripts/newFailures.ts).
 

@@ -1,4 +1,9 @@
+// The client kit's sim.js (smashcraft:docs/client-interface.md): the viewer, the replay files' format and this source's version.
+import type * as Api from "./clientKitApi";
+import { sourceVersion } from "../shell/sourceVersion";
+import { joinReplay, parseReplayHeader, parseReplayPart } from "./replayFormat";
+import { VIEWER_API, openReplay } from "./viewer";
 
+export { VIEWER_API, joinReplay, openReplay, parseReplayHeader, parseReplayPart, sourceVersion };
 
-export { VIEWER_API, openReplay, replayScene } from "./viewer";
-export { sourceVersion } from "../shell/sourceVersion";
+({ VIEWER_API, openReplay, parseReplayHeader, parseReplayPart, joinReplay, sourceVersion }) satisfies typeof Api;

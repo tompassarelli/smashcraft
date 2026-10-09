@@ -378,7 +378,7 @@ and smashcraft:ts/src/platform/shell/replays.ts writes.
   knows which replays its simulation plays. For another version the client
   finds that version's map in the Maps folders and plays the replay in the
   map's own `war3map.lua`, in 32-bit Lua, with the viewer's modules added
-  (smashcraft:client/README.md, "Replays").
+  ([smashcraft-client](https://github.com/tompassarelli/smashcraft-client) README, "Replays").
 - **Cost.** The replay checksum folds every number and boolean of each
   fighter, its projectiles and the match, in any order. In 32-bit Lua it is
   about 0.22 million instructions for four fighters. The canonical checksum

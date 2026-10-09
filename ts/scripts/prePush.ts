@@ -35,7 +35,6 @@ export const MODEL_FACTS_REFRESH = "cd ts && bun wisp view models --assets ASSET
 
 export function checksFor(paths: readonly string[]): Check[] {
   const ts = paths.some((path) => path.startsWith("ts/") || path === "typescript-toolchain.lock");
-  const client = paths.some((path) => path.startsWith("client/ui/"));
   const models = paths.some((path) => MODEL_INPUTS.some((input) => path === input || input.endsWith("/") && path.startsWith(input)));
   return [
     ...(paths.length > 0 ? [{ name: "clean room", directory: "ts", args: ["scripts/cleanRoom.ts"], fix: "follow wisp:docs/clean-room.md and the line above." }] : []),
@@ -47,7 +46,6 @@ export function checksFor(paths: readonly string[]): Check[] {
       { name: "model facts fresh", directory: "ts", args: ["test", "test/model-facts.test.ts"], fix: `refresh them with: ${MODEL_FACTS_REFRESH}` },
       { name: "generated models stored", directory: "ts", args: ["scripts/storedModels.ts"], fix: "store the regenerated family (smashcraft:docs/build-inputs.md, \"Change art\")." },
     ] : []),
-    ...(client ? [{ name: "type-check client/ui", directory: "client/ui", args: ["run", "check"] }] : []),
   ];
 }
 

@@ -9,6 +9,9 @@ Super Smash Bros. Melee. Warcraft heroes fight on floating stages with jumps,
 air dodges, shields, hitstun, knockback and stocks, over rollback netcode.
 
 There is no public release yet. How to play: [player guide](docs/player-guide.md).
+The desktop client (controller, play, history, stats, replays, online) is
+[smashcraft-client](https://github.com/tompassarelli/smashcraft-client); it
+reads Smashcraft through the [client interface](docs/client-interface.md).
 Status and next work: [roadmap #16](https://github.com/tompassarelli/smashcraft/issues/16).
 
 ## Develop

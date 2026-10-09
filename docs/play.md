@@ -64,6 +64,13 @@ own helper. On 8 October 2026 the old fresh-worktree build took 4m46s;
 the first shared-cache fill took 4m32s and a second worktree reused it in
 0.15s of Cargo time (2.147s including Nix and capacity setup).
 
+## The desktop client
+
+Players use [smashcraft-client](https://github.com/tompassarelli/smashcraft-client):
+its release bundles the controller service, and its Play launches the current
+map in Maps/00-Smashcraft ([client interface](client-interface.md)). It needs no
+checkout of this repository.
+
 ## Controller without play
 
 The controller service ([wc3-controller](https://github.com/tompassarelli/wc3-controller)
