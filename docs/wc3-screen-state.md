@@ -79,16 +79,4 @@ nix shell nixpkgs#tesseract nixpkgs#imagemagick --command \
   /run/user/1000/private-desktop.EXACT_RUN create-game 15
 ```
 
-The nearest focused check is:
-
-```sh
-nix shell nixpkgs#socat --command \
-  ~/code/smashcraft/worktrees/wc3-screen-speed-20261003/tools/test-wc3-wait-state.sh
-```
-
-That fixture check passed for a main-menu → Create Game observation, immediate
-blocking disconnect, and timeout while another known menu remains visible. It
-also requires each capture destination to be absent before writing. Capture
-and OCR are substituted in these orchestration tests; they do not establish
-live VNC capture or successful native navigation. ShellCheck passed. The earlier
-retained-image benchmark remains the evidence for actual menu OCR.
+The retained-image benchmark remains the evidence for actual menu OCR.
