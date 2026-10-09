@@ -13,7 +13,7 @@ import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/pla
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
 import { Phase, cancelRematchCountdown, characterFor, copyMatchState, firstHumanSlot, humanActive, recallCharacter, selectCharacter } from "../../game/match/rules";
 import { NO_LESSON, tutorialFinished } from "../../game/match/tutorial";
-import { classicDevRequest, loreDevRequest, LORE_WIN_COMMAND, winLoreBattle, DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchPair, quickStageSettings, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../game/shell/devSettings";
+import { classicDevRequest, loreDevRequest, LORE_WIN_COMMAND, winLoreBattle, DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchPair, quickPromoRequest, prepareQuickPromo, quickStageSettings, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../game/shell/devSettings";
 import { fighterName } from "../../game/sim/heroes/registry";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { endReplaySegment } from "./replays";
@@ -272,11 +272,13 @@ export function onDevCommand(s: ShellState): void {
 export function applyDeveloperCommand(s: ShellState, actor: number, original: string): void {
   ownConfirmedState(s);
   if (original === RESET_COMMAND) {
+    s.promoHudHidden = false;
     clearVisualCapture(localSlot());
     pauseMatchPresentation(s, s.session.paused);
   }
   const message = s.build.responseProbe ? configureVisualCapture(original, localSlot()) : original;
   let receipt: string | undefined;
+  const promo = quickPromoRequest(message);
   const quickStage = quickStageSettings(message);
   const quickHero = quickMatchHero(message);
   const quickPair = quickMatchPair(message);
@@ -308,6 +310,12 @@ export function applyDeveloperCommand(s: ShellState, actor: number, original: st
   } else if (message === "-dev camera") {
     receipt = "dev: camera match";
     startQuickMatch(s, 0, "camera");
+  } else if (promo !== undefined) {
+    if (!prepareQuickPromo(s.game, promo.pair)) return;
+    s.promoHudHidden = true;
+    ClearTextMessages();
+    receipt = "dev: quick promo";
+    startQuickMatch(s, promo.stage, "normal", undefined, QUICK_CPU_STOCKS);
   } else if (quickCpu !== undefined) {
     receipt = `dev: quick match cpu ${quickCpu}`;
     prepareQuickCpu(s.game, quickCpu, quickMatchCpuHero(message));
@@ -383,7 +391,7 @@ export function applyDeveloperCommand(s: ShellState, actor: number, original: st
   } else receipt = startAgencyFixture(s, message) ?? startBodyFit(s, message) ?? applyDevCommand(s.dev, message);
   if (receipt === undefined) return;
   s.devReceipts++;
-  DisplayTextToPlayer(GetLocalPlayer(), 0.0, 0.0, receipt);
+  if (!s.promoHudHidden) DisplayTextToPlayer(GetLocalPlayer(), 0.0, 0.0, receipt);
   const file = devReceiptFile(journalIdentity(s, s.rollback?.epoch ?? 0), s.devReceipts, s.dev, s.game);
   writeLines(file.name, file.lines);
 }

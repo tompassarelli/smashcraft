@@ -328,6 +328,7 @@ code. From smashcraft:ts/:
   and pad scripts: `-dev quick hero NAME`, `-dev quick recovery hero NAME`
   (starts tumbling above the floor for recovery captures), and `-dev quick cpu OPPONENT DIFFICULTY [hero NAME]`,
   a quick match against a named computer at the selected difficulty over three stocks.
+  `-dev quick promo stage N pair FIRST / SECOND` starts two Wren Expert computers over three stocks with match HUD, hints and developer receipts hidden (for example `-dev quick promo stage 0 pair rifleman / illidan`). `-dev reset` restores the normal UI.
   `-dev quick stage N [lighting stock|stage] [backdrop on|off] [view near|far|off]`
   applies the stage look before the first match draw, avoiding midmatch chat.
   Classic and Definitive use the same setup; omitted options keep current defaults.

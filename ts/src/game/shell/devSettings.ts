@@ -285,3 +285,32 @@ export function prepareQuickCpu(game: MatchState, profile: QuickCpuProfile, char
   setCpuTier(game, first, computer, profile.tier);
   if (character !== undefined) selectCpuCharacter(game, first, computer, character);
 }
+
+export function quickPromoRequest(message: string): { readonly stage: number; readonly pair: readonly [Character, Character] } | undefined {
+  const prefix = "-dev quick promo stage ";
+  if (!message.startsWith(prefix)) return undefined;
+  const rest = message.substring(prefix.length);
+  const marker = rest.indexOf(" pair ");
+  if (marker < 0) return undefined;
+  const stage = commandInteger(rest.substring(0, marker));
+  const pair = quickMatchPair(`-dev quick pair ${rest.substring(marker + 6)}`);
+  return stage === undefined || !selectableStage(stage) || pair === undefined ? undefined : { stage, pair };
+}
+
+export function prepareQuickPromo(game: MatchState, pair: readonly [Character, Character]): boolean {
+  const first = firstHumanSlot(game);
+  if (first === undefined || (game.phase !== Phase.characterMenu && game.phase !== Phase.stageMenu)) return false;
+  returnToCharacters(game, first);
+  for (const slot of PARTICIPANT_SLOTS) {
+    const wanted = slot < 2;
+    while (computerActive(game, slot) !== wanted || (!wanted && humanFighterActive(game, slot))) cycleSlotMode(game, first, slot);
+    if (wanted) {
+      setCpuOpponent(game, first, slot, "wren");
+      setCpuTier(game, first, slot, "expert");
+      selectCpuCharacter(game, first, slot, pair[slot === 0 ? 0 : 1]);
+    }
+  }
+  setTraining(game, first, false);
+  setHitAreas(game, first, false);
+  return true;
+}

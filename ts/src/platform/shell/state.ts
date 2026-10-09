@@ -286,6 +286,7 @@ export interface ShellState {
   readonly sounds: ModelSoundCursor;
   readonly dev: DevSettings;
   devReceipts: number;
+  promoHudHidden?: boolean;
   readonly trace: InputTrace;
   readonly probe: ResponseProbe | undefined;
   readonly rollback: Rollback | undefined;
