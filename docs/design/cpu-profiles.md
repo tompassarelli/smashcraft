@@ -134,7 +134,10 @@ lower tiers have wider spreads. Rookie’s intended 10th–90th percentiles are
 more late-turn noise, scaled by `100 − Execute`. Rare overshoots hold long
 enough to enter run. The targets are about 3, 2.5, 2, 1.5 and 1 unintended
 run per minute from Rookie through Expert; Expert’s acceptance range is
-0.7–1.5 and Rookie stays at or below 4. Braking to neutral remains immediate.
+0.7–1.5 and Rookie stays at or below 4. Each turn overshoots with chance 40, 23, 16, 10
+and 8 in 10,000 from Rookie through Expert. Measured 9 Oct: 3.51, 2.43, 2.07,
+1.17 and 0.90 runs per minute, medians 8, 7, 6, 6 and 5 frames, and Expert
+slips on 2.73% of technical inputs (83 wrong options). Braking to neutral remains immediate.
 The computer calibration report measures at least 2,000 real input-path
 reversals per tier, actual entries into run per minute of controlled match
 frames, and at least 2,000 Expert technical inputs including wrong options.
