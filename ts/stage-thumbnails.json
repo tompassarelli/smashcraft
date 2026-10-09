@@ -10,9 +10,9 @@
     {
       "stage": 12,
       "file": "StageCardBlackrock.blp",
-      "inputs": "8185547cd206604680e6ff1509554622bb6010f27f05a053440833c5d6014a83",
-      "sha256": "b0a61716005538345e4d2d79f3fab0ced3c36455d3dbf1ecbc11e261540783f8",
-      "bytes": 31366
+      "inputs": "37864c48b649e60dfa41693c9d3e714da326f7057f2642601147c75cc102fd6a",
+      "sha256": "de2da75354104a84c42d91b51d220008595d318cd2ecb2fa4683b57c980c9aa0",
+      "bytes": 30928
     },
     {
       "stage": 13,
