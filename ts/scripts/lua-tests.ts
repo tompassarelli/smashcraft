@@ -68,11 +68,12 @@ const budget = () => {
     }
   }
   if (savedCosts === undefined) rmSync(costDirectory, { recursive: true, force: true });
-  const judgement = judge({ label: "Lua32", measured, baselinePath: resolve("test/lua/cost-baseline.tsv"), project: resolve(".") });
+  const write = process.env.TEST_COST_WRITE !== "0";
+  const judgement = judge({ label: "Lua32", measured, baselinePath: resolve("test/lua/cost-baseline.tsv"), project: resolve("."), write });
   const busy = pressure.peak !== undefined && pressure.peak > BUSY_PRESSURE;
   const note = busy ? ` (inconclusive: CPU pressure ${Math.round(pressure.peak ?? 0)}%)` : "";
   for (const line of [...over, ...judgement.risen]) console.log(`${line}${note}`);
-  if (judgement.updated > 0) console.log(`test cost baseline: ${judgement.updated} rows updated in ts/test/lua/cost-baseline.tsv; commit them with the tests`);
+  if (judgement.updated > 0) console.log(`test cost baseline: ${judgement.updated} rows ${write ? "updated in" : "differ from (not written: TEST_COST_WRITE=0)"} ts/test/lua/cost-baseline.tsv; commit them with the tests`);
   console.log(judgement.heaviest);
   console.log(judgement.summary);
   if (over.length + judgement.risen.length === 0) return 0;

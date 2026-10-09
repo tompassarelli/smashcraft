@@ -100,6 +100,8 @@ export function judge(options: {
    * whole suite shares, so only the ceiling applies and no row is written.
    */
   readonly whole?: boolean;
+  /** False leaves the baseline file untouched and only prints its new rows (the pre-push gate). */
+  readonly write?: boolean;
 }): Judgement {
   const { label, measured, baselinePath, project } = options;
   const baseline = readBaseline(baselinePath);
@@ -142,7 +144,7 @@ export function judge(options: {
       updated++;
     }
   }
-  if (updated > 0) writeBaseline(baselinePath, next);
+  if (updated > 0 && options.write !== false) writeBaseline(baselinePath, next);
   const perTest = tests === 0 ? 0 : cpu / tests;
   const basePerTest = baseTests === 0 ? 0 : (baseCpu * factor) / baseTests;
   const change = basePerTest === 0 ? "" : ` (${perTest >= basePerTest ? "+" : ""}${((perTest / basePerTest - 1) * 100).toFixed(0)}%)`;

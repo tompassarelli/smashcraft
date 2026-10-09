@@ -33,7 +33,8 @@
   own rows; a model without rows records them and passes. Every CI run
   uploads them as the `cost-baseline` artifact; commit its file to ts/test/cost-baseline/,
   or rewrite them on CI with `gh workflow run ci.yml --ref BRANCH -f
-  cost-update=true` on the exact commit. Rows are scaled by the run's
+  cost-update=true` on the exact commit. The pre-push gate
+  (`TEST_COST_WRITE=0`) prints changed Lua rows without writing them. Rows are scaled by the run's
   median ratio, so a slower machine compares fairly; a verdict reached while
   CPU pressure was above Wisp's 30% is inconclusive (exit 75), not a failure.
   Every run ends with the suite's CPU, test count and CPU per test against

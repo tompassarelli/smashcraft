@@ -147,7 +147,7 @@ export function processesFor(plan: Plan): { readonly argv: readonly string[]; re
   return [
     ...[...isolated, ...bins].map((files) => ({ argv: testArgs(files), env: { ...testWorkerEnvironment(files) }, command: `bun test ${files.join(" ")}` })),
     ...(plan.game.length === 0 ? [] : [{ argv: testArgs(["test/game.test.ts"]), env: { ...TEST_WORKER_ENV, GAME_MODULES: game }, command: `GAME_MODULES=${game} bun test test/game.test.ts` }]),
-    ...(plan.lua.length === 0 ? [] : [{ argv: [bun, "scripts/lua-tests.ts"], env: { GAME_MODULES: plan.lua.join(","), LUA_JOBS: String(LUA_JOBS) }, command: `GAME_MODULES=${plan.lua.join(",")} bun scripts/lua-tests.ts` }]),
+    ...(plan.lua.length === 0 ? [] : [{ argv: [bun, "scripts/lua-tests.ts"], env: { GAME_MODULES: plan.lua.join(","), LUA_JOBS: String(LUA_JOBS), TEST_COST_WRITE: "0" }, command: `GAME_MODULES=${plan.lua.join(",")} bun scripts/lua-tests.ts` }]),
   ];
 }
 
