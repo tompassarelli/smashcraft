@@ -134,7 +134,8 @@ test("playable: selection creates no effect and reads no file; match start creat
 
   expect(loadingCreated).toBe(stageModels(stage).length);
 
-  expect(start.poolCreated).toBe(4 * poolEffects(Character.demonHunter));
+  // Each fighter's victory pose is its own match body, made at the synchronized match start.
+  expect(start.poolCreated).toBe(4 * (poolEffects(Character.demonHunter) + 1));
   const pooledCues = fighterRenderedCues(Character.demonHunter).filter(cue => DEFINITIVE_CUE_EMITTERS[cue.model] !== true).length;
   expect(start.created).toBe(start.poolCreated + 4 * (1 + PROJECTILE_CAPACITY + pooledCues + HIT_AREA_EFFECT_CAPACITY + 3));
   expect(start.fileReads).toBe(0);

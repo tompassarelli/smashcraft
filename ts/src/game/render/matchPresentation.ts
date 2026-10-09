@@ -3,10 +3,10 @@
 
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
-import { PARTICIPANT_CAPACITY } from "../input/participants";
+import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS } from "../input/participants";
 import type { MatchState } from "../match/rules";
 import type { Character } from "../sim/codes";
-import type { Roster } from "../sim/roster";
+import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { characterModelScale } from "../presentation/modelScale";
 import { MatchCue, MENU_MUSIC, cueSound, interfaceSoundPaths, presentationSoundPaths, readyVoice, victoryAnimation, victoryMusic, warcryVoice } from "../presentation/matchAudio";
 import {
@@ -52,6 +52,11 @@ const createDropSounds = (): sound[] => [MatchCue.itemSpawn, MatchCue.meterReady
     return sound;
   });
 
+interface VictoryPose {
+  readonly character: Character;
+  readonly model: effect;
+}
+
 export class MatchPresentation {
 
   itemObservation = createItemCueObservation();
@@ -72,6 +77,7 @@ export class MatchPresentation {
   private readonly title: framehandle;
   private readonly lines: readonly framehandle[];
   private victory: effect | undefined;
+  private readonly poses: (VictoryPose | undefined)[] = [];
   private shown = false;
   private pending: ResultsView | undefined;
   private delay = 0;
@@ -150,6 +156,7 @@ export class MatchPresentation {
 
   beginMatch(stageMusic: string, game: Readonly<MatchState>, world: Readonly<Roster>): void {
     this.hideResults();
+    this.preparePoses(world);
     clearMatchTally(this.tally);
     observeForCues(this.observation, game, world);
     this.itemSounds ??= createItemSounds();
@@ -240,16 +247,35 @@ export class MatchPresentation {
   private victoryClip: FighterOriginalClip | undefined;
   private victoryFrames = 0;
 
-  private pose(winner: Character, slot: number | undefined, x: number, z: number): effect {
+  // A match start is synchronized, so every client makes the winner's handle there rather than when its results arrive.
+  preparePoses(world: Readonly<Roster>): void {
+    for (const slot of PARTICIPANT_SLOTS) {
+      const previous = this.poses[slot];
+      if (previous !== undefined) DestroyEffect(previous.model);
+      if (!isActive(world, slot)) {
+        this.poses[slot] = undefined;
+        continue;
+      }
+      const character = fighterAt(world, slot).character;
+      const index = originalClipNamed(character, victoryAnimation(character));
+      const clip = index === undefined ? undefined : originalClip(character, index);
+      const model = AddSpecialEffect(clip?.timeline === true ? clip.modelPath : fighterModel(character), this.origin.x, this.origin.y);
+      BlzSetSpecialEffectScale(model, 0.0);
+      BlzSetSpecialEffectColorByPlayer(model, Player(slot));
+      this.poses[slot] = { character, model };
+    }
+  }
+
+  private pose(winner: Character, slot: number | undefined, x: number, z: number): effect | undefined {
+    const prepared = slot === undefined ? undefined : this.poses[slot];
+    let model = prepared?.character === winner ? prepared.model : undefined;
+    for (const other of PARTICIPANT_SLOTS) if (model === undefined && this.poses[other]?.character === winner) model = this.poses[other]?.model;
+    if (model === undefined) return undefined;
     const index = originalClipNamed(winner, victoryAnimation(winner));
     const clip = index === undefined ? undefined : originalClip(winner, index);
     this.victoryClip = clip?.timeline === true ? clip : undefined;
     this.victoryFrames = 0;
-    // Create handles at shared coordinates before placing them with a local camera.
-    const model = AddSpecialEffect(this.victoryClip?.modelPath ?? fighterModel(winner), this.origin.x, this.origin.y);
     BlzSetSpecialEffectX(model, this.origin.x + x);
-
-    if (slot !== undefined) BlzSetSpecialEffectColorByPlayer(model, Player(slot));
     BlzSetSpecialEffectZ(model, this.origin.z + z);
     BlzSetSpecialEffectScale(model, characterModelScale(winner));
     BlzSetSpecialEffectYaw(model, FACING_CAMERA);
@@ -283,7 +309,6 @@ export class MatchPresentation {
     BlzFrameSetVisible(this.panel, false);
     if (this.victory !== undefined) {
       BlzSetSpecialEffectScale(this.victory, 0.0);
-      DestroyEffect(this.victory);
       this.victory = undefined;
       this.victoryClip = undefined;
     }
