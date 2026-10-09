@@ -52,6 +52,10 @@ const FINE_FRAMES = 6;
 
 const THROW_LIMIT = 60;
 
+const STEER_STEP = 6;
+const STEER_BEAM = 8;
+const STEER_LIMIT = 150;
+
 const ATTACK = bit(Action.attack);
 const SPECIAL = bit(Action.special);
 const JUMP = bit(Action.jump);
@@ -226,6 +230,8 @@ function defenderMask(d: Defender, n: number, freedAt: number | undefined, b: Re
 }
 
 
+const steering = (a: Fighter): boolean => a.special.action !== SpecialAction.none && !canAttack(a);
+
 const settled = (b: Readonly<Fighter>): boolean => canStartAttack(b) || b.down.state === DownState.wait || b.ledge.state === LedgeState.hang;
 
 
@@ -249,6 +255,8 @@ interface Node {
   readonly damage: number;
 
   readonly hits: number;
+
+  readonly steered?: boolean;
 }
 
 export type Situation = "none" | "tech chase" | "ledge";
@@ -516,6 +524,63 @@ class Explorer {
   }
 
 
+  private steers(node: Node, d: Defender): Node[] {
+    const { sim } = this;
+    sim.load(node.saved);
+    if (node.steered === true || !steering(sim.a)) return [];
+    type Live = { readonly saved: Saved; readonly attacker: readonly number[]; readonly defender: readonly number[]; readonly hits: number; readonly damage: number; readonly near: number; readonly tumbling: boolean };
+    const name = `steer ${node.moves.at(-1) ?? "move"}`;
+    const stocks = sim.b.status.stocks;
+    let live: Live[] = [{ saved: sim.save(), attacker: [], defender: [], hits: sim.b.visuals.hit, damage: sim.b.status.damage, near: 0, tumbling: sim.b.down.state === DownState.tumble && !sim.b.motion.grounded }];
+    const found: Node[] = [];
+    const seen = new Set<string>();
+    for (let at = 0; at < STEER_LIMIT && live.length > 0; at += STEER_STEP) {
+      const next: Live[] = [];
+      for (const state of live) {
+        for (const policy of [0, 1, -1]) {
+          sim.load(state.saved);
+          const attacker = [...state.attacker];
+          const defender = [...state.defender];
+          let { hits, tumbling } = state;
+          let open = true;
+          for (let n = at + 1; n <= at + STEER_STEP; n++) {
+            const a = sim.a;
+            const b = sim.b;
+            const am = policy === 0 ? 0 : policy > 0 ? toward(a, b) : away(a, b);
+            const bm = defenderMask(d, n, undefined, b, a);
+            attacker.push(am);
+            defender.push(bm);
+            sim.step(am, bm);
+            cost.frames++;
+            if (sim.b.visuals.hit !== hits) {
+              hits = sim.b.visuals.hit;
+              found.push({ saved: sim.save(), inputs: joined(node.inputs, attacker, defender), moves: [...node.moves, name], reads: node.reads, damage: sim.b.status.damage, hits, steered: true });
+            }
+            const landed = tumbling && sim.b.motion.grounded && d.tech === undefined;
+            tumbling = sim.b.down.state === DownState.tumble && !sim.b.motion.grounded;
+            if (landed || settled(sim.b) || !steering(sim.a) || sim.b.status.stocks !== stocks) { open = false; break; }
+          }
+          if (!open) continue;
+          const a = sim.a;
+          const b = sim.b;
+          const key = `${Math.round(a.motion.x / 4)}|${Math.round(b.motion.x / 4)}|${Math.round(b.motion.z / 4)}|${Math.round(b.status.damage * 10)}|${a.special.frame}|${b.launch.hitstun}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          next.push({ saved: sim.save(), attacker, defender, hits, damage: b.status.damage, near: Math.abs(a.motion.x - b.motion.x), tumbling });
+        }
+        free(state.saved);
+      }
+      next.sort((x, y) => y.damage - x.damage || x.near - y.near);
+      for (const dropped of next.slice(STEER_BEAM)) free(dropped.saved);
+      live = next.slice(0, STEER_BEAM);
+    }
+    for (const state of live) free(state.saved);
+    found.sort((x, y) => y.damage - x.damage);
+    for (const dropped of found.slice(BEAM)) free(dropped.saved);
+    return found.slice(0, BEAM);
+  }
+
+
   private throws(node: Node, d: Defender, attacker: readonly number[], defender: readonly number[], move: Move, from: number): Node[] {
     const { sim } = this;
     const caught = sim.save();
@@ -555,7 +620,7 @@ class Explorer {
         nodes++;
         const { ending, line } = this.ending(node, d, rootPercent);
         if (better(best, ending)) best = ending;
-        if (!ending.ko && depth < DEPTH) next.push(...this.followUps(node, d, line));
+        if (!ending.ko && depth < DEPTH) next.push(...this.followUps(node, d, line), ...this.steers(node, d));
         releaseLine(line);
         if (node !== root) free(node.saved);
       }
