@@ -1,5 +1,9 @@
 import { at } from "wisp/src/runtime/lookup";
 import { floorDiv } from "wisp/src/sim/intMath";
+import { botChoice, useMatchSeed } from "./botRandom";
+import { DownState, LedgeState } from "../sim/codes";
+import { canAttack } from "../sim/conditions";
+import type { Fighter } from "../sim/fighter";
 import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
 import { CPU_OPPONENT_DEFAULT, CPU_OPPONENT_IDS, CPU_PROFILES, CPU_TIER_DEFAULT, CPU_TIERS, type CpuOpponentId, type CpuProfile, type CpuTier } from "./cpuProfiles";
 
@@ -70,3 +74,19 @@ export function perceivedCpuSkill(opponent: CpuOpponentId, tier: CpuTier): CpuSk
 }
 
 export const FULL_SKILL: CpuSkill = cpuSkill("wren", "expert");
+
+/** A guard, tech or ledge answer is already prepared; neutral needs a fresh choice. */
+export function cpuReactionFloor(fighter: Fighter, skill: CpuSkill): number {
+  if (fighter.shield.raised || fighter.down.state !== DownState.none || fighter.ledge.state !== LedgeState.none) return Math.max(14, skill.reactionFrames);
+  // Retreat is available; each additional legal shield, jump or attack adds a frame.
+  const options = 1 + (fighter.motion.grounded ? 1 : 0) + (fighter.jump.remaining > 0 ? 1 : 0) + (canAttack(fighter) ? 1 : 0);
+  return Math.max(skill.reactionFrames, 16 + options - 1);
+}
+
+/** Each newly observed cue draws 0–2 extra frames under the shared match seed. */
+export function cpuReactionFrames(fighter: Fighter, skill: CpuSkill, seed: number, slot: number, cue: number): number {
+  useMatchSeed(seed);
+  const spread = botChoice(cue, slot * 17 + fighter.character, 3);
+  useMatchSeed(0);
+  return cpuReactionFloor(fighter, skill) + spread;
+}

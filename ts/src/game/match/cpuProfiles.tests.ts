@@ -53,7 +53,7 @@ test("named opponents grow primary and secondary skills at five tiers while reta
     const profile = cpuProfile(opponent, tier);
     assertEquals(profile.opponent, opponent);
     assertEquals(profile.tier, tier);
-    assertTrue(profile.reactionFrames >= 12);
+    assertTrue(profile.reactionFrames >= 14);
     assertTrue(profile.historyCapacity <= 32 && profile.historyStride >= 1);
     assertTrue(profile.guessPercent > 0 && profile.executionPercent < 100);
     if (index === 0) continue;

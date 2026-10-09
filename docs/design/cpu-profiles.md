@@ -82,12 +82,12 @@ exceed 100. Initiative and variance weight preferences, not capability ceilings.
 | Ember | Beginner | 27 | 72 | 40/52 | 6/3 | 2/50 | 65 | 45 | 90/65 | 30 |
 | Ember | Intermediate | 21 | 84 | 65/72 | 12/2 | 3/60 | 45 | 60 | 90/60 | 20 |
 | Ember | Advanced | 15 | 93 | 82/86 | 20/1 | 4/65 | 32 | 75 | 90/55 | 12 |
-| Ember | Expert | 12 | 97 | 94/95 | 28/1 | 5/75 | 22 | 90 | 88/50 | 8 |
+| Ember | Expert | 14 | 97 | 94/95 | 28/1 | 5/75 | 22 | 90 | 88/50 | 8 |
 | Flint | Rookie | 30 | 65 | 25/35 | 4/16 | 2/45 | 80 | 50 | 60/20 | 20 |
 | Flint | Beginner | 27 | 78 | 40/58 | 8/12 | 3/55 | 68 | 65 | 62/22 | 15 |
 | Flint | Intermediate | 21 | 88 | 65/78 | 12/4 | 3/65 | 52 | 80 | 65/25 | 10 |
 | Flint | Advanced | 15 | 95 | 84/90 | 20/2 | 4/70 | 38 | 90 | 70/30 | 7 |
-| Flint | Expert | 12 | 98 | 95/96 | 28/1 | 5/75 | 28 | 100 | 75/35 | 4 |
+| Flint | Expert | 14 | 98 | 95/96 | 28/1 | 5/75 | 28 | 100 | 75/35 | 4 |
 | Vale | Rookie | 36 | 50 | 30/45 | 6/4 | 2/65 | 75 | 90 | 15/10 | 10 |
 | Vale | Beginner | 30 | 65 | 50/62 | 10/3 | 3/70 | 60 | 100 | 25/12 | 8 |
 | Vale | Intermediate | 24 | 80 | 72/80 | 16/2 | 4/75 | 42 | 110 | 45/18 | 6 |
@@ -102,7 +102,7 @@ exceed 100. Initiative and variance weight preferences, not capability ceilings.
 | Wren | Beginner | 30 | 67 | 48/58 | 8/3 | 3/60 | 55 | 70 | 48/28 | 15 |
 | Wren | Intermediate | 24 | 82 | 70/74 | 16/2 | 3/65 | 40 | 85 | 60/35 | 10 |
 | Wren | Advanced | 18 | 93 | 87/89 | 24/1 | 4/70 | 27 | 95 | 70/40 | 7 |
-| Wren | Expert | 12 | 97 | 96/96 | 32/1 | 5/75 | 20 | 105 | 78/45 | 4 |
+| Wren | Expert | 14 | 97 | 96/96 | 32/1 | 5/75 | 20 | 105 | 78/45 | 4 |
 
 An execution miss produces a legal late, dropped or simpler input. A judgment
 miss considers fewer candidates or misjudges observed spacing; it never
@@ -117,8 +117,12 @@ knowledge. Rook's reluctance and Ember's impatience remain biases, not rules
 that prevent a rational desperate attack or a safe disengagement.
 
 Every combination preserves [#176](https://github.com/tompassarelli/smashcraft/issues/176):
-new unexpected information waits for the authored reaction delay (never below
-12 frames at 60 Hz), and a horizontal direction holds for at least five frames.
+trained recognition (a held guard, tech or ledge answer) waits at least 14 frames
+(233 ms). A new decision waits at least 16 frames (267 ms), plus one frame for
+each additional viable option: retreat, grounded shield, remaining jump and legal
+attack. The slower authored tier delay still applies. Each observed cue draws
+0–2 additional frames from the shared match seed; every client and replay draws
+the same delay. A horizontal direction holds for at least five frames.
 Prepared sequences and fallible reads can act before a predicted action occurs.
 Delayed observations, bounded history and move-value logic are owned by
 [#182](https://github.com/tompassarelli/smashcraft/issues/182).
@@ -372,3 +376,10 @@ computer setup was one fixed match, so a matchup's rate was 0% or 100% per
 setup. `bun scripts/cpuField.ts --seeds N` plays N seeds of each setup and
 `bun scripts/cpuTiers.ts` measures Wren at the five tiers against each other
 (smashcraft:docs/typescript.md).
+
+The field calls `produceComputerInput`, which delays the observation before
+choosing any response. `PERCEIVED_SKILLS` has zero extra reaction frames only
+inside that already delayed policy, so defense and punish do not wait twice.
+It is not a zero-delay field opponent. Expert strength comes from its existing
+fallible, conditioned reads and prepared sequences; the reaction change does
+not alter fighter numbers or gameplan weights.

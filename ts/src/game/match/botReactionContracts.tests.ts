@@ -1,3 +1,4 @@
+declare const console: { log(this: void, line: string): void };
 import { mutableProjectile } from "../sim/fighterProjectiles";
 import { assertDefined, assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { at } from "wisp/src/runtime/lookup";
@@ -7,8 +8,8 @@ import { createFighter, type Fighter } from "../sim/fighter";
 import { createRoster, fighterAt, neutralControls, sameControls } from "../sim/roster";
 import { sameAttackBuffer } from "../input/attackBuffer";
 import { produceComputerInput } from "./botPlay";
-import { BOT_DIRECTION_FRAMES, type BotMemory, commitBotDirection, copyBotMemory, createBotMemory, observeOpponents, perceivedOpponent } from "./botPerception";
-import { cpuSkill } from "./cpuSkill";
+import { BOT_DIRECTION_FRAMES, type BotMemory, commitBotDirection, copyBotMemory, createBotMemory, clearBotMemory, observeOpponents, perceivedOpponent } from "./botPerception";
+import { cpuSkill, cpuReactionFloor } from "./cpuSkill";
 import { CPU_PROFILES, type CpuOpponentId, type CpuTier } from "./cpuProfiles";
 import { createFrameControls } from "./controls";
 import { createPacingAndPresentation } from "./pacingAndPresentation";
@@ -102,7 +103,7 @@ sweep("150 surprise-action traces: no computer input responds before its authore
   let early = 0;
   for (const profile of CPU_PROFILES) {
     const delay = cpuSkill(profile.opponent, profile.tier).reactionFrames;
-    assertTrue(delay >= 12);
+    assertTrue(delay >= 14);
     for (const surprise of surprises) {
       const changed = setup(profile.opponent, profile.tier);
       const quiet = setup(profile.opponent, profile.tier);
@@ -127,16 +128,51 @@ sweep("150 surprise-action traces: no computer input responds before its authore
 // The response precedes Rifleman's idle stretch and falls after his direction hold expires.
 const RESPONSE_SURPRISE_FRAME = 39;
 
-test("Wren Expert first responds on frame 12 after a surprise side change [spec #176]", () => {
-  const changed = setup();
-  const quiet = setup();
-  let first: number | undefined;
-  for (let frame = 1; frame <= RESPONSE_SURPRISE_FRAME + 20; frame++) {
-    if (frame === RESPONSE_SURPRISE_FRAME) at(surprises, 3)(changed.target);
-    for (const game of [changed, quiet]) produceComputerInput(game.game, game.world, game.runtime, 0, frame, game.controls.inputs[0], game.controls.commands[0]);
-    if (first === undefined && (!sameControls(changed.controls.inputs[0], quiet.controls.inputs[0]) || !sameAttackBuffer(changed.controls.commands[0], quiet.controls.commands[0]))) first = frame - RESPONSE_SURPRISE_FRAME;
+test("prepared guard and fresh run-in first inputs respect human reaction floors [spec #354]", () => {
+  for (const trained of [true, false]) {
+    const changed = setup();
+    const quiet = setup();
+    for (const game of [changed, quiet]) game.own.shield.raised = trained;
+    let first = -1;
+    const floor = trained ? 14 : 19;
+    for (let frame = 1; frame <= RESPONSE_SURPRISE_FRAME + 45; frame++) {
+      if (frame === RESPONSE_SURPRISE_FRAME) at(surprises, 3)(changed.target);
+      for (const game of [changed, quiet]) produceComputerInput(game.game, game.world, game.runtime, 0, frame, game.controls.inputs[0], game.controls.commands[0]);
+      if (first < 0 && (!sameControls(changed.controls.inputs[0], quiet.controls.inputs[0]) || !sameAttackBuffer(changed.controls.commands[0], quiet.controls.commands[0]))) first = frame - RESPONSE_SURPRISE_FRAME;
+    }
+    assertTrue(first >= floor);
+    for (const game of [changed, quiet]) clearBotMemory(game.runtime.botMemory);
   }
-  assertEquals(first, 12);
+});
+
+sweep("1000 recorded prepared answers and 1000 fresh choices report actual input reaction distributions [spec #354]", () => {
+  for (const trained of [true, false]) {
+    const distribution: number[] = [];
+    for (let frame = 0; frame <= 60; frame++) distribution.push(0);
+    let early = 0;
+    let measured = 0;
+    for (let seed = 0; seed < 1000; seed++) {
+      const changed = setup();
+      const quiet = setup();
+      for (const game of [changed, quiet]) { game.game.matchSeed = seed; game.own.shield.raised = trained; }
+      const start = 39;
+      const floor = cpuReactionFloor(changed.own, cpuSkill("wren", "expert"));
+      let first = -1;
+      for (let frame = 1; frame <= start + 60; frame++) {
+        if (frame === start) at(surprises, 3)(changed.target);
+        for (const game of [changed, quiet]) produceComputerInput(game.game, game.world, game.runtime, 0, frame, game.controls.inputs[0], game.controls.commands[0]);
+        if (first < 0 && (!sameControls(changed.controls.inputs[0], quiet.controls.inputs[0]) || !sameAttackBuffer(changed.controls.commands[0], quiet.controls.commands[0]))) first = frame - start;
+      }
+      assertTrue(first >= 0);
+      if (first < floor) early++;
+      distribution[first] = (distribution[first] ?? 0) + 1;
+      measured++;
+      for (const game of [changed, quiet]) clearBotMemory(game.runtime.botMemory);
+    }
+    console.log(`${trained ? "trained recognition" : "new decision"}: ${measured} actual responses, ${early} early; ${distribution.map((count, frame) => count > 0 ? `${frame}:${count}` : "").filter(row => row !== "").join(" ")}`);
+    assertEquals(measured, 1000);
+    assertEquals(early, 0);
+  }
 });
 
 test("rapid grounded and airborne requests, including neutral braking, have zero reversals before five frames [spec #176]", () => {

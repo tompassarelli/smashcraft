@@ -15,7 +15,7 @@ import { surfaceLeft, surfaceRight } from "../sim/stage";
 import { FREEZE_TRAP_FREEZE_FRAMES } from "../sim/summons";
 import { produceComputerInput, sameComputerInputs } from "./botPlay";
 import { observeOpponents } from "./botPerception";
-import { cpuSkill } from "./cpuSkill";
+import { cpuSkill, cpuReactionFloor } from "./cpuSkill";
 import { copyReplayState, createReplaySnapshot } from "../replay/snapshot";
 import { chooseDefense } from "./botDefense";
 import { beginFighterAttack } from "../sim/attacks";
@@ -246,7 +246,7 @@ test("a computer repeats a decision only from the same state: any change to its 
   assertFalse(same());
   before.match.matchFrame--;
   // The perceived sample: a memory with one more observation sees a newer one.
-  const seen = frame + cpuSkill("wren", "expert").reactionFrames;
+  const seen = frame + cpuReactionFloor(fighterAt(game.world, 1), cpuSkill("wren", "expert"));
   assertTrue(sameComputerInputs(game.match, game.world, game.runtime, before.match, before.world, before.runtime, 1, seen));
   observeOpponents(before.runtime.botMemory, before.world, frame);
   assertFalse(sameComputerInputs(game.match, game.world, game.runtime, before.match, before.world, before.runtime, 1, seen));

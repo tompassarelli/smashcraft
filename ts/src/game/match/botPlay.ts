@@ -19,7 +19,7 @@ import { SPACE_PLAN, avoids, gameplanGoal, gameplanOf, gameplanPlan, gameplanThr
 import { steerInAir, steerOnGround } from "./botFooting";
 import { chooseAttack, lastChoicePassedForVariety, smashChargeGoal } from "./botMoves";
 import { botChance, botChoice, useMatchSeed } from "./botRandom";
-import { type CpuSkill, cpuSkill, perceivedCpuSkill } from "./cpuSkill";
+import { type CpuSkill, cpuSkill, cpuReactionFloor, cpuReactionFrames, perceivedCpuSkill } from "./cpuSkill";
 import { type BotMemory, observeOpponents, perceivedOpponent, perceivedHeldFighter, commitBotDirection, samePerception } from "./botPerception";
 import { chooseDefense } from "./botDefense";
 import { choosePunish } from "./botPunish";
@@ -131,6 +131,16 @@ function approachByGameplan(f: Readonly<Fighter>, target: Readonly<Fighter>, sta
   }
 }
 
+function reactionDelay(game: Readonly<MatchState>, runtime: Readonly<BotRuntime>, fighter: Fighter, slot: ParticipantSlot, frame: number, skill: CpuSkill): number {
+  const floor = cpuReactionFloor(fighter, skill);
+  const cue = perceivedOpponent(runtime.botMemory, fighter, slot, frame, floor);
+  // Only information old enough for this kind of answer may affect its seeded delay.
+  const key = cue === undefined ? 0 : cue.attack.serial * 31 + cue.special.action * 17
+    + (cue.motion.x < fighter.motion.x ? 1 : 2) + (cue.shield.raised ? 4 : 0)
+    + (cue.motion.grounded ? 8 : 0) + cue.ledge.state * 64 + cue.down.state * 256;
+  return cpuReactionFrames(fighter, skill, game.matchSeed, slot, key);
+}
+
 /**
  * The computer in `slot` plays its resolved identity and tier under the match seed. Correcting
  * human movement also corrects every computer decision derived from it.
@@ -142,16 +152,18 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
   const skill = cpuSkill(opponent, tier);
   observeOpponents(runtime.botMemory, world, frame);
   const fighter = fighterAt(world, slot);
-  const target = fighter.grab.target === undefined ? perceivedOpponent(runtime.botMemory, fighter, slot, frame, skill.reactionFrames)
-    : perceivedHeldFighter(runtime.botMemory, fighter.grab.target, frame, skill.reactionFrames);
+  const reactionFrames = reactionDelay(game, runtime, fighter, slot, frame, skill);
+  useMatchSeed(game.matchSeed);
+  const target = fighter.grab.target === undefined ? perceivedOpponent(runtime.botMemory, fighter, slot, frame, reactionFrames)
+    : perceivedHeldFighter(runtime.botMemory, fighter.grab.target, frame, reactionFrames);
   const strategy = runtime.botStrategies[slot];
   if (target !== undefined) {
-    const ownObserved = perceivedHeldFighter(runtime.botMemory, slot, frame, skill.reactionFrames);
-    const opponent = PARTICIPANT_SLOTS.find(candidate => candidate !== slot && perceivedHeldFighter(runtime.botMemory, candidate, frame, skill.reactionFrames) === target);
-    if (ownObserved !== undefined && opponent !== undefined) learnBotHabit(strategy, ownObserved, target, opponent, frame - skill.reactionFrames, skill.decision);
-    prepareBotRead(strategy, fighter, target, frame, skill.reactionFrames, skill.decision);
+    const ownObserved = perceivedHeldFighter(runtime.botMemory, slot, frame, reactionFrames);
+    const opponent = PARTICIPANT_SLOTS.find(candidate => candidate !== slot && perceivedHeldFighter(runtime.botMemory, candidate, frame, reactionFrames) === target);
+    if (ownObserved !== undefined && opponent !== undefined) learnBotHabit(strategy, ownObserved, target, opponent, frame - reactionFrames, skill.decision);
+    prepareBotRead(strategy, fighter, target, frame, reactionFrames, skill.decision);
   }
-  decide(game, world, runtime, slot, frame, input, commands, perceivedCpuSkill(opponent, tier), target, skill.reactionFrames);
+  decide(game, world, runtime, slot, frame, input, commands, perceivedCpuSkill(opponent, tier), target, reactionFrames);
   upgradeThreatenedSpecial(fighter, target, input);
   // DI and escape mashing are reactions to the fighter's own state, not steering.
   if (fighter.launch.hitlag <= 0 && fighter.grab.owner === undefined) commitBotDirection(runtime.botMemory, slot, frame, input);
@@ -175,16 +187,17 @@ export function sameComputerInputs(game: Readonly<MatchState>, world: Readonly<R
   if (opponent !== before.cpuResolvedOpponents[slot] || tier !== before.cpuTiers[slot] || game.matchSeed !== before.matchSeed) return false;
   if (game.stageChoice !== before.stageChoice || stageClock(game) !== stageClock(before)) return false;
   if (game.timeLimitMinutes !== before.timeLimitMinutes || game.remainingFrames !== before.remainingFrames) return false;
-  const delay = cpuSkill(opponent, tier).reactionFrames;
+  const fighter = fighterAt(world, slot);
+  const delay = reactionDelay(game, runtime, fighter, slot, frame, cpuSkill(opponent, tier));
   // With no delay the computer sees this frame's observation, which a rollback rewrites.
   if (delay < 1) return false;
   const attackDelay = runtime.botAttackDelays[slot];
   const beforeDelay = beforeRuntime.botAttackDelays[slot];
   if (attackDelay !== beforeDelay || negativeZero(attackDelay) !== negativeZero(beforeDelay)) return false;
   if (!sameBotStrategy(runtime.botStrategies[slot], beforeRuntime.botStrategies[slot])) return false;
+  if (!samePerception(runtime.botMemory, beforeRuntime.botMemory, slot, frame, cpuReactionFloor(fighter, cpuSkill(opponent, tier)))) return false;
   if (!samePerception(runtime.botMemory, beforeRuntime.botMemory, slot, frame, delay)) return false;
   if (fighterSame) return true;
-  const fighter = fighterAt(world, slot);
   const earlier = fighterAt(beforeWorld, slot);
   return sameFighterState(fighter, earlier);
 }
