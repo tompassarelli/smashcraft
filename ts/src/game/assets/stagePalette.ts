@@ -107,7 +107,7 @@ export const STAGE_DECK_PALETTES: readonly { readonly stage: number; readonly th
   // Basalt over black rock, molten lip.
   { stage: CANNON_TEST_STAGE, theme: "Blackrock", palette: { top: [132, 126, 122], lip: [255, 255, 255], body: [72, 64, 60], underside: [90, 80, 74] }, materials: {
     top: { texture: "TerrainArt\\Dungeon\\Cave_SquareTiles.blp" },
-    lip: { texture: "TerrainArt\\Dungeon\\Cave_LavaCracks.blp", crop: [0, 0, 0.125, 0.25] },
+    lip: { texture: "TerrainArt\\Dungeon\\Cave_LavaCracks.blp", crop: [0.9482421875, 0.908203125, 0.9501953125, 0.912109375] },
     body: { texture: "TerrainArt\\Dungeon\\Cave_DarkRocks.blp" },
     underside: { texture: "TerrainArt\\Dungeon\\Cave_DarkRocks.blp" },
     platform: {

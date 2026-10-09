@@ -320,7 +320,7 @@ export const MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
   "war3mapImported\\StageMainDeck-0fa3afd1d3929594674a58761415a33954d343a8358d7d0e2adb87c798886ddc.mdx": {"geosets":4,"triangles":520,"lights":0,"bounds":{"min":[-600,-60,-300],"max":[600,60,0]},"emitters":[]},
   "war3mapImported\\StageMainDeck-28c2bf5c3e5ec0ec7a949f50a708d31573fc52590e84fecba8b700b0661c45c3.mdx": {"geosets":4,"triangles":480,"lights":0,"bounds":{"min":[-600,-60,-252],"max":[600,60,0]},"emitters":[]},
   "war3mapImported\\StageMainDeck-2c25bb13ee2212293baaae6e1f7a0c97bf6dcd2fb335453342c2ce192dbd2d2e.mdx": {"geosets":4,"triangles":500,"lights":0,"bounds":{"min":[-600,-60,-300],"max":[600,60,0]},"emitters":[]},
-  "war3mapImported\\StageMainDeck-3afba373301e6392580cadc0e6de21dbd2d39a2e07c2086267bc79c81ba967a2.mdx": {"geosets":4,"triangles":524,"lights":0,"bounds":{"min":[-600,-60,-300],"max":[600,60,0]},"emitters":[]},
+  "war3mapImported\\StageMainDeck-1201cf5d5d0ff337e73be2bea46739833646cd706b8dc4229ecf330f5bdae0af.mdx": {"geosets":4,"triangles":524,"lights":0,"bounds":{"min":[-600,-60,-300],"max":[600,60,0]},"emitters":[]},
   "war3mapImported\\StageMainDeck-5dc41258c9e332f39a823514420054433f121f2b791a6f38b6a1b249d1b28f43.mdx": {"geosets":4,"triangles":560,"lights":0,"bounds":{"min":[-600,-60,-288],"max":[600,60,21]},"emitters":[]},
   "war3mapImported\\StageMainDeck-5ee5bfbdf7780ff3af5d5a6c8c5a04b1269bfa71600aaa2877b0130a1d59c7e9.mdx": {"geosets":4,"triangles":456,"lights":0,"bounds":{"min":[-600,-60,-240],"max":[600,60,0]},"emitters":[]},
   "war3mapImported\\StageMainDeck-a31fe67df8fe9fa25a5c12b6b16583753edca1216db7cfc662797515237e825b.mdx": {"geosets":4,"triangles":536,"lights":0,"bounds":{"min":[-600,-60,-312],"max":[600,60,0]},"emitters":[]},
