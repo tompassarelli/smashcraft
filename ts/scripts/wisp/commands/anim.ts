@@ -272,6 +272,8 @@ const prepare = (args: readonly string[]) => Effect.gen(function*() {
   const session = yield* Effect.acquireRelease(attempt("start the scene session", () => createStandaloneSession({ presentation: "pool-confirmed", script: "#! chat -dev quick" })), (open) => Effect.sync(() => open.close()));
   for (let frame = 0; frame < 60; frame++) session.step(NEUTRAL_INPUT);
   const base = captureScene(session.client, { visibleOnly: true });
+  const bodyEffect = base.effects.find((effect) => /TimelineBody/.test(effect.model)) ?? base.effects[0];
+  if (bodyEffect === undefined) return yield* new AnimFailure({ problem: "the sample scene has no fighter body to render" });
   const camera = createMatchCamera();
   extremeCamera(camera, FROZEN_THRONE_STAGE, MATCH_CAMERA_ASPECT, "far");
   const scenes: RenderScene[] = [];
@@ -290,7 +292,7 @@ const prepare = (args: readonly string[]) => Effect.gen(function*() {
       scenes.push({
         ...base, frame: id, units: [], ui: [], textTags: [],
         camera: { ...base.camera, x: 0, y: 0, fields: { ...base.camera.fields, CAMERA_FIELD_TARGET_DISTANCE: camera.distance, CAMERA_FIELD_ZOFFSET: z + 90, CAMERA_FIELD_FIELD_OF_VIEW: cameraFieldOfView(camera, MATCH_CAMERA_ASPECT) } },
-        effects: [{ ...(base.effects.find((effect) => /TimelineBody/.test(effect.model)) ?? base.effects[0]!), model: clip.modelPath, animation: "Stand", animationElapsed: sampled.seconds[index] ?? 0, animationClock: 0, timeScale: 0, x: 0, y: 0, z, yaw: 0, teamColor: 0, alpha: 255 }],
+        effects: [{ ...bodyEffect, model: clip.modelPath, animation: "Stand", animationElapsed: sampled.seconds[index] ?? 0, animationClock: 0, timeScale: 0, x: 0, y: 0, z, yaw: 0, teamColor: 0, alpha: 255 }],
       });
     }
     frameIds.set(`${row.fighter}/${row.move}`, ids);
