@@ -8,13 +8,13 @@ import { HERO_ROSTER } from "../sim/heroes/registry";
 import { type AuthoredSpecial } from "../sim/heroSpecials";
 import { SPECIAL_SLOTS } from "./projectileArt";
 import { RIFLEMAN_BLASTER_AIR_SHOT_FRAME, RIFLEMAN_BLASTER_GROUND_SHOT_FRAME } from "../sim/moves";
-import { RIFLEMAN_SECOND_SHOT_FORM } from "../sim/specials";
+import { RIFLEMAN_SECOND_SHOT_FIRST, RIFLEMAN_SECOND_SHOT_FORM, RIFLEMAN_SECOND_SHOT_LAST } from "../sim/specials";
 import { HERO_BRANCH_CUES, HERO_CUES, ORIGINAL_CUES, fighterBranchCues, fighterMoveCues, heroCueWindows, specialCueState } from "./specialCues";
 
 /** The original three and every registered hero, so a new hero needs its cues. */
 const FIGHTERS: readonly Character[] = [Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(({ character }) => character)];
 
-test("Rifleman's blaster cue readies on startup and flashes on the shot frame [spec #144]", () => {
+test("Rifleman's blaster cue readies on startup and flashes on the shot frame, and the second recoil shot cues across its whole input window [spec #144] [repro #251]", () => {
   const fighter = createFighter(Character.rifleman, 0.0, 1);
   fighter.special.action = SpecialAction.riflemanBlaster;
   for (const grounded of [true, false]) {
@@ -24,13 +24,9 @@ test("Rifleman's blaster cue readies on startup and flashes on the shot frame [s
     fighter.special.frame = grounded ? RIFLEMAN_BLASTER_GROUND_SHOT_FRAME : RIFLEMAN_BLASTER_AIR_SHOT_FRAME;
     assertEquals(specialCueState(fighter).phase, "active");
   }
-});
-
-test("the second recoil shot shows its cue at both ends of the legal input window [repro #251]", () => {
-  const fighter = createFighter(Character.rifleman, 0.0, 1);
   fighter.special.action = SpecialAction.riflemanRecovery;
   fighter.special.form = RIFLEMAN_SECOND_SHOT_FORM;
-  for (const frame of [12, 24]) {
+  for (let frame = RIFLEMAN_SECOND_SHOT_FIRST; frame <= RIFLEMAN_SECOND_SHOT_LAST; frame++) {
     fighter.special.frame = frame;
     assertEquals(specialCueState(fighter).phase, "active", `second shot on action frame ${frame}`);
   }

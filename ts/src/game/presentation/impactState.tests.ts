@@ -26,27 +26,27 @@ function projectAll(match: TestMatch): void {
   for (let i = 0; i < IMPACT_COUNT; i++) projectImpact(match.runtime.impacts, i);
 }
 
-test("the run footstep at frame 38 also shows its dust [repro #82]", () => {
-  const pool = createImpactState();
-  const events = createImpactEvents();
-  events.runningDust = true;
-  events.footstep = "run";
-  emitImpacts(pool, events, 38);
-  assertTrue(projectImpact(pool, IMPACT_DUST * IMPACTS_PER_KIND).visible);
-});
+const DUST = IMPACT_DUST * IMPACTS_PER_KIND;
 
-test("stock dust remains drawn until its slot expires [repro #95]", () => {
+test("a run footstep shows its dust on any frame, and dust stays drawn until its slot expires [repro #82] [repro #95]", () => {
+  for (let frame = 0; frame < 64; frame++) {
+    const pool = createImpactState();
+    const events = createImpactEvents();
+    events.runningDust = true;
+    events.footstep = "run";
+    emitImpacts(pool, events, frame);
+    assertEquals(projectImpact(pool, DUST).visible, true, `run footstep on frame ${frame}`);
+  }
   const pool = createImpactState();
   const events = createImpactEvents();
   events.movementDust = true;
   emitImpacts(pool, events, 1);
-  const slot = IMPACT_DUST * IMPACTS_PER_KIND;
   for (let frame = 0; frame < impactLifetime(IMPACT_DUST); frame++) {
-    const pose = projectImpact(pool, slot);
+    const pose = projectImpact(pool, DUST);
     assertTrue(pose.visible && pose.alpha > 0);
     advanceImpacts(pool);
   }
-  assertFalse(projectImpact(pool, slot).visible);
+  assertFalse(projectImpact(pool, DUST).visible);
 });
 
 /** Presses a spot dodge, or releases it. */
@@ -105,7 +105,7 @@ test("a snapshot restores the impact pool and its ring pointers [invariant]", ()
   for (let frame = 1; frame <= 5; frame++) advanceImpacts(match.runtime.impacts);
   const saved = createReplaySnapshot();
   captureReplaySnapshot(saved, match.world, match.game, match.inputs, match.runtime);
-  const dust = projectImpact(match.runtime.impacts, 24);
+  const dust = projectImpact(match.runtime.impacts, DUST);
   events.dodge = DodgeCue.roll;
   events.direction = -1;
   emitImpacts(match.runtime.impacts, events, 0);
@@ -116,7 +116,7 @@ test("a snapshot restores the impact pool and its ring pointers [invariant]", ()
   restoreReplaySnapshot(saved, match.world, match.game, match.inputs, match.runtime);
   captureReplaySnapshot(changed, match.world, match.game, match.inputs, match.runtime);
   assertEquals(firstPoseDifference(saved, changed), undefined);
-  const restored = projectImpact(match.runtime.impacts, 24);
+  const restored = projectImpact(match.runtime.impacts, DUST);
   assertEquals(restored.x, dust.x);
   assertEquals(restored.z, dust.z);
   assertEquals(restored.alpha, dust.alpha);
@@ -136,8 +136,8 @@ test("a correction removes a predicted impact and restores the accepted one's ag
   }
   const impacts = match.runtime.impacts;
   assertEquals(impacts.nextSlot[IMPACT_DUST], 4);
-  assertEquals(impacts.ages[24], 4);
-  assertEquals(impacts.ages[26], 3);
+  assertEquals(impacts.ages[DUST], 4);
+  assertEquals(impacts.ages[DUST + 2], 3);
   const corrected = createMatchFrameInput();
   assertTrue(captureFrame(corrected, 2, 9, createFrameControls(), match.runtime));
   const corrections = new ReplayCorrections();
@@ -145,10 +145,10 @@ test("a correction removes a predicted impact and restores the accepted one's ag
   assertTrue(corrections.add(corrected));
   assertEquals(history.correct(81, corrections, live), 2);
   assertEquals(impacts.nextSlot[IMPACT_DUST], 2);
-  assertEquals(impacts.ages[24], 4);
-  assertTrue(projectImpact(impacts, 24).visible);
-  assertFalse(projectImpact(impacts, 26).visible);
-  assertFalse(projectImpact(impacts, 27).visible);
+  assertEquals(impacts.ages[DUST], 4);
+  assertTrue(projectImpact(impacts, DUST).visible);
+  assertFalse(projectImpact(impacts, DUST + 2).visible);
+  assertFalse(projectImpact(impacts, DUST + 3).visible);
 });
 
 test("sparse and four-player matches emit the same impacts whether projected each frame or not [invariant]", () => {

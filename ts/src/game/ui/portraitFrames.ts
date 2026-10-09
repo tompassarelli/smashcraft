@@ -16,8 +16,6 @@ export const unitsForPixels = (pixels: number): number => (pixels * f32(0.6)) / 
 export const pixelsForUnits = (units: number, height: number): number => (units * height) / f32(0.6);
 
 
-export const CARD_PORTRAIT = unitsForPixels(CARD_TEXTURE_PX);
-export const HUD_PORTRAIT = unitsForPixels(CARD_TEXTURE_PX);
 
 export const OFFSCREEN_PORTRAIT = unitsForPixels(TILE_TEXTURE_PX / 2);
 

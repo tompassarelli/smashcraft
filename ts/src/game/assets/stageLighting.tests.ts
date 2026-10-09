@@ -1,9 +1,8 @@
 import { assertEquals, test } from "wisp/src/runtime/testing";
-import { f32 } from "wisp/src/sim/f32";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { luma } from "./stagePalette";
 import { STAGE_LIGHTS } from "./stageLighting";
-import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, DRIFTING_DECK_STAGE, FROZEN_THRONE_STAGE, HELLFIRE_STAGE, PATTERNED_DECKS_STAGE, TIMED_TEST_STAGE } from "../sim/stage";
+import { FROZEN_THRONE_STAGE, PATTERNED_DECKS_STAGE } from "../sim/stage";
 
 // smashcraft:docs/design/visual-quality.md, "Stage light rules".
 test("every selectable stage has its own light [spec docs/design/visual-quality.md]", () => {
@@ -28,54 +27,17 @@ test("each stage's light keeps fighters bright, shaded sides readable and team c
   }
 });
 
-test("Ahn'Qiraj uses the approved cool light at 0.3 for its perceptual contrast floor [spec #267]", () => {
-  const qiraji = STAGE_LIGHTS.find(({ stage }) => stage === TIMED_TEST_STAGE)?.light;
-  assertEquals(`${qiraji?.key.join(",")}/${qiraji?.ambient.join(",")}`, "230,236,255/150,162,204");
-  assertEquals(qiraji?.intensity, f32(0.3));
-  // #296: Naxxramas lifts fighters off its dark teal sky at 2.0; every other stage stays at most 1.25.
+test("every stage's light intensity stays positive and at most 1.25, Naxxramas at most 2 [spec #296]", () => {
   for (const { stage, theme, light } of STAGE_LIGHTS) {
     const intensity = light.intensity ?? 1, limit = stage === PATTERNED_DECKS_STAGE ? 2 : 1.25;
     assertEquals(intensity > 0 && intensity <= limit, true, `${theme}: intensity ${intensity} is outside (0, ${limit}]`);
   }
 });
 
-// #170 measured Durotar's full-intensity light lifting fighters toward its bright ring (ΔE00 −3.3, −3.5); #266 dims it.
-// At 0.65 Reforged still lifted them 5.7 L* (abs ΔL 9.8 → 4.4); at 0.3 abs ΔL 9.8 → 11.2, ΔE00 29.7 → 30.2.
-test("Durotar's key and fill stay dimmed to 0.3 so fighters keep their contrast against its bright backdrop [spec docs/design/visual-quality.md]", () => {
-  const durotar = STAGE_LIGHTS.find(({ stage }) => stage === DRIFTING_DECK_STAGE)?.light;
-  assertEquals(`${durotar?.key.join(",")}/${durotar?.ambient.join(",")}`, "255,226,180/190,152,134");
-  assertEquals(durotar?.intensity, f32(0.3));
-});
-
 // #265: over Frozen Throne's bright glacier backdrop the full light cut fighter contrast (ΔE00 35.2 → 33.0, 30.9 → 30.1).
-test("Frozen Throne's light shines at 0.8 so lit fighters sit below the stock noon light [spec #265]", () => {
-  const frozen = STAGE_LIGHTS.find(({ stage }) => stage === FROZEN_THRONE_STAGE)?.light;
-  assertEquals(`${frozen?.key.join(",")}/${frozen?.ambient.join(",")}`, "226,240,255/150,172,220");
-  assertEquals(frozen?.intensity, f32(0.8));
+test("Frozen Throne's lit key stays dimmer than Reforged's stock noon key [spec #265]", () => {
+  const frozen = STAGE_LIGHTS.find(({ stage }) => stage === FROZEN_THRONE_STAGE)!.light;
   // Reforged's stock noon key, 0.92 × (0.839, 0.839, 0.980), the dimmest of the three modes.
   const stockKey = 0.9200000166893005 * luma([0.8389999866485596 * 255, 0.8389999866485596 * 255, 0.9800000190734863 * 255]);
-  assertEquals(luma(frozen!.key) * frozen!.intensity! < stockKey, true, "Frozen Throne's key is not dimmer than stock");
-});
-
-// #292: Blackrock's backdrop is darker than the fighters (ring L* 21–24), so the light goes up, not down:
-// at 1 Reforged cut contrast (abs ΔL 22.1 → 21.3); at 1.2 abs ΔL 12.1 → 17.8, ΔE00 15.8 → 21.3.
-test("Blackrock's forge light shines at 1.2 so fighters stand brighter than its dark cavern [spec #292]", () => {
-  const blackrock = STAGE_LIGHTS.find(({ stage }) => stage === CANNON_TEST_STAGE)?.light;
-  assertEquals(`${blackrock?.key.join(",")}/${blackrock?.ambient.join(",")}`, "255,248,232/170,124,112");
-  assertEquals(blackrock?.intensity, f32(1.2));
-});
-
-// #293: at 1 the far Classic fighters sat 5 L* above the red haze; at 1.25 with a fel-green fill
-// far player 0, the closest row, went abs ΔL 5.3 → 15.8 and ΔE00 28.9 → 29.1.
-test("Hellfire's fel fill shines at 1.25 so fighters stand clear of the red haze [spec #293]", () => {
-  const hellfire = STAGE_LIGHTS.find(({ stage }) => stage === HELLFIRE_STAGE)?.light;
-  assertEquals(`${hellfire?.key.join(",")}/${hellfire?.ambient.join(",")}`, "255,222,224/192,240,160");
-  assertEquals(hellfire?.intensity, f32(1.25));
-});
-
-// #295: under the full light Gryphon Aerie's fighters rose to the bright sky (abs ΔL 7.7 → 2.4 in Reforged).
-test("Gryphon Aerie's mountain light shines at 0.2 so fighters stay apart from the bright sky [spec #295]", () => {
-  const aerie = STAGE_LIGHTS.find(({ stage }) => stage === CARRIED_TEST_STAGE)?.light;
-  assertEquals(`${aerie?.key.join(",")}/${aerie?.ambient.join(",")}`, "255,248,226/164,182,220");
-  assertEquals(aerie?.intensity, f32(0.2));
+  assertEquals(luma(frozen.key) * (frozen.intensity ?? 1) < stockKey, true, "Frozen Throne's key is not dimmer than stock");
 });

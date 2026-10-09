@@ -13,17 +13,18 @@ test("Beastmaster Bear marker shows all four states through one command and disa
   bear.life = 600;
   assertEquals(bearState(fighter), "FOLLOWING");
   bear.mode = CompanionMode.lunge;
+  const lunge = BEAR_PLACEMENT.companion!;
   let charging = 0, attacking = 0, resting = 0;
-  for (let frame = 1; frame <= 44; frame++) {
+  for (let frame = 1; frame <= lunge.lungeStartup + lunge.lungeActive + lunge.lungeRecovery; frame++) {
     bear.modeFrame = frame;
     const state = bearState(fighter);
     if (state === "CHARGING") charging++;
     if (state === "ATTACKING") attacking++;
     if (state === "RESTING") resting++;
   }
-  assertEquals(charging, 10);
-  assertEquals(attacking, 4);
-  assertEquals(resting, 30);
+  assertEquals(charging, lunge.lungeStartup);
+  assertEquals(attacking, lunge.lungeActive);
+  assertEquals(resting, lunge.lungeRecovery);
   bear.mode = CompanionMode.stunned;
   assertEquals(bearState(fighter), "RESTING");
   bear.life = 0;
@@ -43,7 +44,7 @@ test("Beastmaster Bear roars once per command and sounds only connected bites, w
     for (let frame = 1; frame <= 44; frame++) {
       bear.age = command * 50 + frame;
       bear.modeFrame = frame;
-      if (command !== 1 && frame === 11) bear.bitten = 2;
+      if (command !== 1 && frame === BEAR_PLACEMENT.companion!.lungeStartup + 1) bear.bitten = 2;
       const cues = advanceBearFeedback(cursor, fighter, bear.age);
       if (cues.roar) roars++;
       if (cues.hit) hits++;
@@ -56,5 +57,5 @@ test("Beastmaster Bear roars once per command and sounds only connected bites, w
   }
   assertEquals(roars, 3);
   assertEquals(hits, 2);
-  assertEquals(cursor.impactFrame, 111);
+  assertEquals(cursor.impactFrame, 100 + BEAR_PLACEMENT.companion!.lungeStartup + 1);
 });

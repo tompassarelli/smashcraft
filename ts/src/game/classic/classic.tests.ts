@@ -73,7 +73,7 @@ function finish(game: MatchState, world: Roster, won: boolean): void {
   settleConfiguredMatch(game, world);
 }
 
-test("every fighter in the Classic selector has one Classic route: five rival fights, the fifth on its home stage, then a lore boss and a two-or-three-line ending [spec docs/design/classic-mode.md]", () => {
+test("every fighter in the Classic selector has one Classic route: five rival fights, the fifth on its home stage, then a lore boss and a two-or-three-line ending; the selector offers exactly the finished routes [spec docs/design/classic-mode.md] [repro #345]", () => {
   for (const fighter of CLASSIC_CHARACTERS) {
     const routes = CLASSIC_ROUTES.filter(route => route.fighter === fighter);
     assertEquals(routes.length, 1, `${fighterName(fighter)} routes`);
@@ -91,6 +91,29 @@ test("every fighter in the Classic selector has one Classic route: five rival fi
   }
   // Each boss ends at least one route.
   for (const boss of BOSSES) assertEquals(CLASSIC_ROUTES.some(route => route.boss === boss.kind), true, boss.name);
+  // #345: the Classic selector reaches the original 21 and every finished route, and rejects pending stories while Versus keeps them.
+  const game = classicSelection(Character.rifleman, 1);
+  const reached = new Set<number>();
+  for (let step = 0; step < CLASSIC_CHARACTERS.length; step++) {
+    const choice = nextMatchCharacter(game, game.characterChoices[0], 1);
+    selectCharacter(game, 0, choice);
+    reached.add(game.characterChoices[0]);
+  }
+  assertEquals(reached.size, CLASSIC_CHARACTERS.length);
+  for (const fighter of CLASSIC_CHARACTERS) assertEquals(reached.has(fighter), true, `finished route ${fighter}`);
+  for (let fighter = 1; fighter <= 21; fighter++) assertEquals(reached.has(fighter), true, `finished fighter ${fighter}`);
+  for (const fighter of [22, 23, 24, 25, 26].filter(fighter => !CLASSIC_CHARACTERS.includes(fighter as Character))) {
+    const before = game.characterChoices[0];
+    selectCharacter(game, 0, fighter);
+    assertEquals(game.characterChoices[0], before, `pending story ${fighter}`);
+    assertEquals(reached.has(fighter), false);
+    if (SELECTABLE_CHARACTERS.includes(fighter as Character)) {
+      game.classic = false;
+      selectCharacter(game, 0, fighter);
+      assertEquals(game.characterChoices[0], fighter, `Versus fighter ${fighter}`);
+      game.classic = true;
+    }
+  }
 });
 
 test("a Classic run plays every fighter's route in order, climbing the tiers, through its boss to the ending card and results line, and restores the menu [spec docs/design/classic-mode.md]", () => {
@@ -132,7 +155,8 @@ test("a Classic run plays every fighter's route in order, climbing the tiers, th
     same(ending.lines, route.ending);
     assertEquals(ending.results, "Time 1:00 · 0% damage taken · 0 continues · finished on Beginner", name);
     assertEquals(continueClassic(game, 0), ClassicStep.menu);
-    same([game.phase, game.run.active, game.stockCount, game.timeLimitMinutes, game.computerMask, game.humanFighterMask], [Phase.characterMenu, false, 3, 7, 0, 1], name);
+    const menu = createMatchState();
+    same([game.phase, game.run.active, game.stockCount, game.timeLimitMinutes, game.computerMask, game.humanFighterMask], [Phase.characterMenu, false, menu.stockCount, menu.timeLimitMinutes, 0, 1], name);
   }
 });
 
@@ -224,30 +248,5 @@ test("a Lore Battles entry built from data alone plays through the configured-ma
     same([game.phase, game.timedOut], [Phase.result, true]);
     assertEquals(game.run.outcome, expected, `win condition ${win}`);
     assertTrue(game.run.cleared === (expected === RunOutcome.won));
-  }
-});
-
-test("[repro #345] Classic selection reaches the original 21 and every finished route and rejects pending stories while Versus keeps them", () => {
-  const game = classicSelection(Character.rifleman, 1);
-  const reached = new Set<number>();
-  for (let step = 0; step < CLASSIC_CHARACTERS.length; step++) {
-    const choice = nextMatchCharacter(game, game.characterChoices[0], 1);
-    selectCharacter(game, 0, choice);
-    reached.add(game.characterChoices[0]);
-  }
-  assertEquals(reached.size, CLASSIC_CHARACTERS.length);
-  for (const fighter of CLASSIC_CHARACTERS) assertEquals(reached.has(fighter), true, `finished route ${fighter}`);
-  for (let fighter = 1; fighter <= 21; fighter++) assertEquals(reached.has(fighter), true, `finished fighter ${fighter}`);
-  for (const fighter of [22, 23, 24, 25, 26].filter(fighter => !CLASSIC_CHARACTERS.includes(fighter as Character))) {
-    const before = game.characterChoices[0];
-    selectCharacter(game, 0, fighter);
-    assertEquals(game.characterChoices[0], before, `pending story ${fighter}`);
-    assertEquals(reached.has(fighter), false);
-    if (SELECTABLE_CHARACTERS.includes(fighter as Character)) {
-      game.classic = false;
-      selectCharacter(game, 0, fighter);
-      assertEquals(game.characterChoices[0], fighter, `Versus fighter ${fighter}`);
-      game.classic = true;
-    }
   }
 });

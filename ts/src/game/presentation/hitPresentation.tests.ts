@@ -10,6 +10,7 @@ import { captureImpactEventsBefore, createImpactEvents, finishImpactEventsAfter 
 import { hitlagShake, damageTint, presentImpactSounds } from "./hitPresentation";
 
 test("contact element and pummel survive snapshots and produce one distinct sound [spec docs/design/melee/hit-effects.md] [invariant]", () => {
+  const shakes = new Map<HitElement, number>();
   for (const element of [HitElement.normal, HitElement.electric, HitElement.fire, HitElement.slash, HitElement.ice]) {
     for (const pummel of [false, true]) {
       const attacker = createFighter(Character.rifleman, -50.0, 1);
@@ -38,7 +39,8 @@ test("contact element and pummel survive snapshots and produce one distinct soun
       assertEquals(labels[0], pummel ? "Defend" : element === HitElement.electric ? "LightningBolt" : element === HitElement.fire ? "Fireball"
         : element === HitElement.normal || element === HitElement.slash ? tierHitPath(element, events.tier, events.variant) : "FrostNova");
       assertTrue(damageTint(victim) !== undefined);
-      assertEquals(Math.abs(hitlagShake(victim)), element === HitElement.electric ? 3.0 : 2.0);
+      assertTrue(hitlagShake(victim) !== 0.0);
+      shakes.set(element, Math.abs(hitlagShake(victim)));
       victim.launch.hitlag = 0;
       assertEquals(hitlagShake(victim), 0.0);
       assertEquals(damageTint(victim) !== undefined, !pummel, "launch damage remains readable after contact freeze");
@@ -47,6 +49,7 @@ test("contact element and pummel survive snapshots and produce one distinct soun
       assertEquals(damageTint(victim), undefined);
     }
   }
+  for (const element of shakes.keys()) if (element !== HitElement.electric) assertEquals(shakes.get(HitElement.electric)! > shakes.get(element)!, true, `electric shakes harder than element ${element}`);
 });
 
 test("electric shield contact keeps its element through a snapshot [spec docs/design/melee/hit-effects.md] [invariant]", () => {

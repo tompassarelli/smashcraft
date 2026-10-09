@@ -152,8 +152,9 @@ test("a Lore Battle starts with its own fighter, opponents, stage, stocks and da
   assertEquals(game.phase, Phase.characterMenu);
   assertEquals(game.run.active, false);
   assertEquals(game.loreBattle, index + 1);
-  assertEquals(game.stockCount, 3);
-  assertEquals(game.timeLimitMinutes, 7);
+  const menu = createMatchState();
+  assertEquals(game.stockCount, menu.stockCount);
+  assertEquals(game.timeLimitMinutes, menu.timeLimitMinutes);
   assertEquals(game.computerMask, 0);
 });
 
