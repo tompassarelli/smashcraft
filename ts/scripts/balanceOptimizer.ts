@@ -57,8 +57,8 @@ export function completeFieldFailures(field: TuningField, roster: readonly strin
     const sample = field.samples[seed];
     if (sample === undefined || !sample.every(finite) || sample.length !== roster.length || new Set(sample.map(row => row.fighter)).size !== roster.length || roster.some(name => !sample.some(row => row.fighter === name))) failures.push(`seed ${seed} lacks complete-field scores`);
   }
-  for (let i = 0; i < roster.length; i++) for (let j = i + 1; j < roster.length; j++) {
-    const key = pair(roster[i]!, roster[j]!);
+  for (const [index, left] of roster.entries()) for (const right of roster.slice(index + 1)) {
+    const key = pair(left, right);
     let matches = 0;
     for (const seed of field.seeds) { const count = field.seedPairs[seed]?.[key] ?? 0; if (!Number.isInteger(count) || count < 1) failures.push(`seed ${seed} missing pair ${key}`); matches += count; }
     if (matches < BALANCE_SPEC.matchupMatches) failures.push(`whole field ${key} only ${matches}/${BALANCE_SPEC.matchupMatches}`);
@@ -119,6 +119,8 @@ export interface KeptChange {
 export interface Candidate { readonly field: TuningField; readonly before: TuningField }
 /** A paired 95% interval on complete-field score samples, not a caller-supplied claim. */
 export function acceptCandidate(fighter: string, candidates: readonly Candidate[], baseline: Baseline, frozen: FrozenPlay, profiles: ReadonlyMap<string, PlayStyleProfile>, usedSeeds: ReadonlySet<number>): KeptChange | undefined {
+  const reference = baseline[fighter];
+  if (reference === undefined) return undefined;
   const accepted: { record: KeptChange; size: [number, number]; targetDistance: number }[] = [];
   for (const { field, before } of candidates) {
     if (tuningVerdict(field, baseline, frozen, profiles, usedSeeds, true).length || tuningVerdict(before, baseline, frozen, profiles, usedSeeds, true).length) continue;
@@ -131,15 +133,17 @@ export function acceptCandidate(fighter: string, candidates: readonly Candidate[
     });
     const prior = scores(before), after = scores(field);
     if (prior === undefined || after === undefined || prior.length < 2 || prior.length !== after.length || prior.length !== field.seeds.length || [...prior, ...after].some(value => !Number.isFinite(value))) continue;
-    const improvements = prior.map((value, index) => value - after[index]!);
+    const improvements = prior.map((value, index) => value - (after[index] ?? Number.NaN));
     const mean = improvements.reduce((a, b) => a + b, 0) / improvements.length;
     const variance = improvements.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (improvements.length - 1);
     const interval = scoreIntervalCritical(improvements.length) * Math.sqrt(variance / improvements.length);
     if (!(mean > interval)) continue;
     const oldKit = before.kits[fighter], newKit = field.kits[fighter];
     if (oldKit === undefined || newKit === undefined || Object.keys(baseline).some(name => name !== fighter && JSON.stringify(before.kits[name]) !== JSON.stringify(field.kits[name]))) continue;
-    const size = changeSize(newKit.values, baseline[fighter]!.values);
-    accepted.push({ size, targetDistance: Math.abs(field.fighters.find(row => row.fighter === fighter)!.winRate - BALANCE_SPEC.winTarget), record: { fighter, seeds: field.seeds, beforeScore: prior.reduce((a,b) => a+b,0)/prior.length, afterScore: after.reduce((a,b) => a+b,0)/after.length, improvement: mean, interval95: interval, before: oldKit.values, after: newKit.values } });
+    const measured = field.fighters.find(row => row.fighter === fighter);
+    if (measured === undefined) continue;
+    const size = changeSize(newKit.values, reference.values);
+    accepted.push({ size, targetDistance: Math.abs(measured.winRate - BALANCE_SPEC.winTarget), record: { fighter, seeds: field.seeds, beforeScore: prior.reduce((a,b) => a+b,0)/prior.length, afterScore: after.reduce((a,b) => a+b,0)/after.length, improvement: mean, interval95: interval, before: oldKit.values, after: newKit.values } });
   }
   accepted.sort((a, b) => a.targetDistance - b.targetDistance || a.size[0] - b.size[0] || a.size[1] - b.size[1]);
   return accepted[0]?.record;
@@ -178,19 +182,24 @@ export function optimizeRound(options: {
   const evaluate = (values: KitValues, seeds: readonly number[]) => Effect.tryPromise({ try: () => options.evaluate(values, seeds), catch: cause => new BalanceFailure({ problem: String(cause) }) });
   const roster = Object.keys(baseline);
   const start = current.kits[fighter];
+  const reference = baseline[fighter];
   const profile = profiles.get(fighter);
-  if (start === undefined || profile === undefined) return yield* Effect.fail(new BalanceFailure({ problem: `${fighter} kit/profile missing` }));
+  if (start === undefined || profile === undefined || reference === undefined) return yield* Effect.fail(new BalanceFailure({ problem: `${fighter} kit/profile missing` }));
   if (completeFieldFailures(current, roster).length) return yield* Effect.fail(new BalanceFailure({ problem: "Optimizer requires a complete current field" }));
   if (options.heldOutSeeds.length < 2 || options.confirmationSeeds.length < 2) return yield* Effect.fail(new BalanceFailure({ problem: "Held-out and confirmation runs need independent score samples" }));
-  const measured = current.fighters.find(row => row.fighter === fighter)!;
+  const measured = current.fighters.find(row => row.fighter === fighter);
+  if (measured === undefined) return yield* Effect.fail(new BalanceFailure({ problem: `${fighter} not measured` }));
   if (withinWinTarget(measured) && tuningVerdict(current, baseline, frozen, profiles, usedSeeds).length === 0) return { trainingFields: 0, record: `${fighter}: no change; the 95% win-rate interval includes ${100 * BALANCE_SPEC.winTarget}%.` };
   const fresh = [...options.heldOutSeeds, ...options.confirmationSeeds];
   if (fresh.length === 0 || new Set(fresh).size !== fresh.length || fresh.some(seed => usedSeeds.has(seed) || current.seeds.includes(seed))) return yield* Effect.fail(new BalanceFailure({ problem: "Held-out and confirmation seeds must be unused and disjoint" }));
   current.seeds.forEach(seed => usedSeeds.add(seed));
-  const average = (field: TuningField) => optimizerScore(field.fighters.find(row => row.fighter === fighter)!, profile);
+  const average = (field: TuningField) => {
+    const row = field.fighters.find(row => row.fighter === fighter);
+    return row === undefined ? Number.POSITIVE_INFINITY : optimizerScore(row, profile);
+  };
   const descent: KitValues[] = [];
   let trainingFields = 0;
-  for (const values of kitCandidates(start.values, baseline[fighter]!.values)) {
+  for (const values of kitCandidates(start.values, reference.values)) {
     const field = yield* evaluate(values, current.seeds);
     trainingFields++;
     const changed = Object.entries(values).filter(([path,value]) => value !== start.values[path]);

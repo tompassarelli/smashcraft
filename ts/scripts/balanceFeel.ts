@@ -70,18 +70,19 @@ export function currentFeel(character: Character): FeelValues {
       }
     }
   }
-  const visit = (value: unknown, path: string, end: number): void => {
-    if (value === null || typeof value !== "object") return;
-    const row = value as Record<string, unknown>;
-    const actionEnd = typeof row.endFrame === "number" ? row.endFrame : end;
-    if (typeof row.firstFrame === "number" && typeof row.hit === "object" && row.hit !== null) {
-      const hit = row.hit as { effect: Readonly<HitEffect>; groundedEffect?: Readonly<HitEffect> };
-      if (hit.effect.damage > 0) out[path] = sample(hit.effect, actionEnd - row.firstFrame - 1, false);
-      if (hit.groundedEffect !== undefined) out[`${path}.grounded`] = sample(hit.groundedEffect, actionEnd - row.firstFrame - 1, false);
+  const isEffect = (value: unknown): value is Readonly<HitEffect> => typeof value === "object" && value !== null
+    && "damage" in value && typeof value.damage === "number" && "growth" in value && typeof value.growth === "number"
+    && "base" in value && typeof value.base === "number" && "launchX" in value && typeof value.launchX === "number"
+    && "launchZ" in value && typeof value.launchZ === "number" && "electric" in value && typeof value.electric === "boolean";
+  const visit = (row: unknown, path: string, end: number): void => {
+    if (row === null || typeof row !== "object") return;
+    const actionEnd = "endFrame" in row && typeof row.endFrame === "number" ? row.endFrame : end;
+    if ("firstFrame" in row && typeof row.firstFrame === "number" && "hit" in row && typeof row.hit === "object" && row.hit !== null) {
+      const hit = row.hit;
+      if ("effect" in hit && isEffect(hit.effect) && hit.effect.damage > 0) out[path] = sample(hit.effect, actionEnd - row.firstFrame - 1, false);
+      if ("groundedEffect" in hit && isEffect(hit.groundedEffect)) out[`${path}.grounded`] = sample(hit.groundedEffect, actionEnd - row.firstFrame - 1, false);
     }
-    if (typeof row.spawnFrame === "number" && typeof row.effect === "object" && row.effect !== null) {
-      out[path] = sample(row.effect as Readonly<HitEffect>, Math.max(0, actionEnd - row.spawnFrame), false);
-    }
+    if ("spawnFrame" in row && typeof row.spawnFrame === "number" && "effect" in row && isEffect(row.effect)) out[path] = sample(row.effect, Math.max(0, actionEnd - row.spawnFrame), false);
     for (const [name, child] of Object.entries(row)) visit(child, `${path}.${name}`, actionEnd);
   };
   visit(tuning.specials, "special", 0);
@@ -92,7 +93,9 @@ export function currentFeel(character: Character): FeelValues {
   if (character === Character.rifleman || character === Character.demonHunter) {
     const values = currentKit(character).values;
     const number = (name: string): number => Object.entries(values).find(([path]) => path.endsWith(`.${name}`))?.[1] ?? 0;
-    const projectile = { ...createFighter(character, 0, 1).projectiles[0]! };
+    const firstProjectile = createFighter(character, 0, 1).projectiles[0];
+    if (firstProjectile === undefined) throw new Error("Original fighter has no projectile slot");
+    const projectile = { ...firstProjectile };
     for (const kind of character === Character.rifleman ? [ProjectileKind.blaster, ProjectileKind.recoil] : [ProjectileKind.manaBurn]) {
       projectile.kind = kind;
       projectile.damageMultiplier = 1;
@@ -112,10 +115,11 @@ export function currentFeel(character: Character): FeelValues {
         for (const grounded of [false,true]) out[`special.immolate.${grounded}.${ex}`] = sample(specials.immolationRegion(grounded, ex).effect, specials.DEMONHUNTER_IMMOLATE_DURATION - specials.DEMONHUNTER_IMMOLATE_STARTUP, false);
       }
       out["special.glide"] = sample(specials.glideSlashRegion().effect, number("DEMONHUNTER_GLIDE_SLASH_FRAMES") - specials.DEMONHUNTER_GLIDE_SLASH_FIRST, false);
-      for (const [form, frame, total] of [[specials.FLAME_CRASH_FORM, specials.FLAME_CRASH_HANG_LAST + 1, specials.FLAME_CRASH_FRAMES], [specials.FLAME_CRASH_LANDING_FORM, 1, specials.FLAME_CRASH_LANDING_FRAMES]]) {
-        const hit = specials.flameCrashRegion(form!, frame!);
-        if (hit.effect.damage > 0) out[`special.flame.${form}`] = sample(hit.effect, total! - frame!, false);
-        if (hit.groundedEffect !== undefined) out[`special.flame.${form}.grounded`] = sample(hit.groundedEffect, total! - frame!, false);
+      const flames: readonly (readonly [number,number,number])[] = [[specials.FLAME_CRASH_FORM, specials.FLAME_CRASH_HANG_LAST + 1, specials.FLAME_CRASH_FRAMES], [specials.FLAME_CRASH_LANDING_FORM, 1, specials.FLAME_CRASH_LANDING_FRAMES]];
+      for (const [form, frame, total] of flames) {
+        const hit = specials.flameCrashRegion(form, frame);
+        if (hit.effect.damage > 0) out[`special.flame.${form}`] = sample(hit.effect, total - frame, false);
+        if (hit.groundedEffect !== undefined) out[`special.flame.${form}.grounded`] = sample(hit.groundedEffect, total - frame, false);
       }
     }
   }
