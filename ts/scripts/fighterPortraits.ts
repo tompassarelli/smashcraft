@@ -259,6 +259,9 @@ interface Correction { readonly rest?: boolean; readonly turn?: number; readonly
 const CORRECTIONS: Readonly<Record<'classic' | 'definitive', Readonly<Record<string, Correction>>>> = {
   classic: {
     "Anub'arak": { zoom: 0.6, lift: 2.6, angle: -30 },
+    Lich: { lift: 1.3 },
+    PitLord: { lift: 1.3 },
+    MalfurionStormrage: { lift: 1.3 },
   },
   definitive: {
     MountainKing: { level: true, zoom: 1.5 },
