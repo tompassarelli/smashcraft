@@ -155,7 +155,30 @@ plays at most four move layers:
 - **strong hit:** body, strong sweetener and element.
 
 Sounds are 3D at the fighter (`CombatSoundsEAX`, 600 to 3500 units), so the
-camera's stereo places them. Engine voice limits are the game's.
+camera's stereo places them.
+
+## Voice budget
+
+[voiceBudget.ts](../../ts/src/game/presentation/voiceBudget.ts) decides which
+combat sounds start; `CombatEffects` plays what it admits.
+
+- **Classes.** KO > hit > special > movement. Hits are hit, pummel, throw
+  release and shield sounds; special is every perform, swing and grab sound;
+  movement is landings, techs, ledges, jumps and footsteps.
+- **Cap.** 16 voices at once. Warcraft III publishes no limit; map makers on
+  the Hive Workshop report about 16 concurrent 3D sounds that cannot be
+  raised ("increase sound limit", hiveworkshop.com thread 266083), and a
+  single sound handle plays about 4 overlaps (thread 248004). Both are
+  community observations, not Blizzard documentation. Voice length is a
+  nominal per-class frame count because the library carries no file lengths.
+- **Priority.** A sound takes a free voice or replaces the oldest live voice of
+  a lower class. It is refused only when every live voice is of its own class
+  or higher, so a hit never drops while a lower class plays.
+- **Ducking.** A KO ducks starts for 90 frames: movement to 30 percent of its
+  volume, special to 50, hit to 75.
+- **Rate limit.** The same movement sound inside 6 frames, or the same special
+  sound inside 4, is dropped. Hits and KOs repeat freely so each hit sounds on
+  its hitstop frame.
 
 ## Deterministic variation
 

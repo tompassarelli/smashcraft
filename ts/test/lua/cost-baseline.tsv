@@ -107,6 +107,7 @@ src/game/presentation/specialEffectState.tests.ts	3	9133000	36756
 src/game/presentation/stagePreload.tests.ts	1	237000	251
 src/game/presentation/stageScenery.tests.ts	3	35000	268
 src/game/presentation/summonState.tests.ts	3	14751000	37592
+src/game/presentation/voiceBudget.tests.ts	4	232116000	63078
 src/game/presentation/windStreaks.tests.ts	1	15000	2
 src/game/render/fighterPool.tests.ts	1	125000	681
 src/game/render/modelSounds.tests.ts	2	2108000	17548

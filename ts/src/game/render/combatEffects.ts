@@ -28,6 +28,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { impactAnimation, impactModel, impactModelScale, impactStartSeconds, presentImpactSounds } from "../presentation/hitPresentation";
+import { VOICE_CAP, admitVoice, createVoiceBudget, resetVoiceBudget } from "../presentation/voiceBudget";
 import type { ImpactEvents } from "../presentation/impactEvents";
 import { Character } from "../sim/codes";
 import { SELECTABLE_CHARACTERS, heroDefinition } from "../sim/heroes/registry";
@@ -61,6 +62,10 @@ export class CombatEffects {
   private readonly koBodies: effect[] = [];
 
   private soundFrames: number[] = [];
+
+  private readonly voices = createVoiceBudget();
+
+  private readonly voiceHandles: (sound | undefined)[] = [];
 
   private shownAges: (number | undefined)[] | undefined;
 
@@ -124,6 +129,8 @@ export class CombatEffects {
     this.koBodies.forEach((model, i) => parkOnce(model, this, parked, IMPACT_COUNT + i));
     this.shownAges = undefined;
     this.soundFrames = [];
+    resetVoiceBudget(this.voices);
+    for (let slot = 0; slot < VOICE_CAP; slot++) this.voiceHandles[slot] = undefined;
     this.shownEmissions = [];
     this.drawnContacts = [];
     if (this.late !== undefined) clearImpactState(this.late);
@@ -200,15 +207,19 @@ export class CombatEffects {
     const previous = this.soundFrames[slot];
     if (previous !== undefined && frame <= previous) return;
     this.soundFrames[slot] = frame;
-    presentImpactSounds(events, (sound, x, z, volume, pitch, file) => {
-
+    presentImpactSounds(events, (sound, x, z, volume, pitch, file, cls) => {
+      const admitted = admitVoice(this.voices, frame, cls, sound);
+      if (!admitted.play) return;
+      const evicted = this.voiceHandles[admitted.slot];
+      if (admitted.replaced && evicted !== undefined) StopSound(evicted, true, false);
       const cue = file ? CreateSound(sound, false, true, true, 10, 10, "CombatSoundsEAX") : CreateSoundFromLabel(sound, false, true, true, 10000, 10000);
+      this.voiceHandles[admitted.slot] = cue;
       if (file) {
         SetSoundDistances(cue, 600.0, 3500.0);
         SetSoundDistanceCutoff(cue, 3000.0);
       }
       SetSoundPosition(cue, this.x + x, this.y, this.z + z);
-      SetSoundVolume(cue, volume);
+      SetSoundVolume(cue, floorDiv(volume * admitted.percent, 100));
       SetSoundPitch(cue, pitch);
       StartSound(cue);
       soundPlayed?.(sound, volume, pitch);
