@@ -4,7 +4,7 @@ import { createFighter, type Fighter } from "../sim/fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../sim/hitRegions";
 import { runningHeroSpecial } from "../sim/heroSpecialRules";
 import { DISJOINT_MODELS, disjointNormals, fanKnifePose, hitAreaPose, specialAreaRegion, type FanKnifePose, type HitAreaPose } from "../presentation/disjointCues";
-import { type ParkedFlags, type WorldOrigin, facingYaw, parkOnce } from "./effects";
+import { type ParkedFlags, type WorldOrigin, facingYaw, parkCue } from "./effects";
 
 
 export const HIT_AREA_EFFECT_CAPACITY = 12;
@@ -27,7 +27,7 @@ export class HitAreaEffects {
   clear(): void {
     for (let index = 0; index < this.models.length; index++) {
       const model = this.models[index];
-      if (model !== undefined) parkOnce(model, this.origin, this.parked, index);
+      if (model !== undefined) parkCue(model, this.origin, this.parked, index);
     }
   }
 
@@ -73,7 +73,7 @@ export class HitAreaEffects {
     }
     for (let index = shown; index < this.models.length; index++) {
       const model = this.models[index];
-      if (model !== undefined) parkOnce(model, this.origin, this.parked, index);
+      if (model !== undefined) parkCue(model, this.origin, this.parked, index);
     }
   }
 

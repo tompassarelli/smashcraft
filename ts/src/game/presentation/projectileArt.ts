@@ -1,3 +1,4 @@
+import { f32 } from "wisp/src/sim/f32";
 
 
 
@@ -79,3 +80,11 @@ export function allProjectileModels(): readonly string[] {
   for (const hero of HERO_ROSTER) for (const model of fighterProjectileModels(hero.character)) if (!models.includes(model)) models.push(model);
   return models;
 }
+
+export const PROJECTILE_DRAW_SCALES: { readonly [model: string]: number | undefined } = {
+  "Abilities\\Weapons\\QuillSprayMissile\\QuillSprayMissile.mdx": 1.5,
+  "Abilities\\Weapons\\ShadowHunterMissile\\ShadowHunterMissile.mdx": 1.5,
+  "Abilities\\Weapons\\FarseerMissile\\FarseerMissile.mdx": 0.5,
+  "Abilities\\Spells\\Undead\\CarrionSwarm\\CarrionSwarmMissile.mdx": f32(0.85),
+  "Abilities\\Spells\\Orc\\Shockwave\\ShockwaveMissile.mdx": f32(0.6),
+};

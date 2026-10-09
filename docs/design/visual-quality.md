@@ -753,6 +753,54 @@ and at least as white as the copy, it replaces the white models; if HD
 ignores the imported textures, keep the copies, trimmed to flashable poses
 ([map size](map-size.md)). The capture plan is on #308.
 
+## Effect budget (#380)
+
+An attack's effect lasts as long as the hit it shows plus a short fade, and
+never hides the fighters:
+
+- **Lifetime.** Visible no longer than the move's last active frame plus 12
+  frames of fade. Active frames are a live hit region, a special's active
+  cue window or a projectile's flight (projectiles: their flight plus 12); a
+  move with none counts from its last frame.
+- **Coverage.** One move's effects cover at most **4%** of the screen at the
+  near match camera (`extremeCamera(..., "near")`, following the fighter).
+  Source: `bun wisp view cues` on 9 Oct 2026, Classic: 108 drawn moves,
+  median 0.7%, 90th percentile 2.7%, then a gap from 3.9% to the six broad
+  spells at 4.3-11.6% that the limit rejects.
+- **Over a body.** An effect drawn over a fighter's body stays no longer than
+  that fighter's hitlag. The check below does not measure this one yet.
+
+Pooled effects are parked (scale 0, under the floor) when their window ends,
+but a stock model's world-space particles (ParticleEmitter2 without
+ModelSpace) stay where they were emitted and age with the effect's clock.
+Flame Strike's smoke lives 1.65 s, so a cue parked at time scale 0 left its
+fire standing, and one at time scale 1 left it for 99 frames. Move effects
+therefore park with `parkCue`, which runs their clock at
+`PARKED_CUE_TIME_SCALE` (16): the longest cue particle life (3 s) then ends
+within the fade. A slow stock spell plays faster while shown through the
+cue's `timeScale` (Flames of Azzinoth 2, Rain of Fire 1.5).
+
+`bun wisp view cues [--move FIGHTER:MOVE]... [--graphics classic|definitive]`
+(ts/scripts/wisp/cueBudget.ts) plays every attack cue and special through the
+real simulation and cue/projectile renderers, renders each frame's effects
+alone in Wisp, counts pixels differing from an empty frame, adds parked
+particle tails from the classic model's emitter lifespans, and fails any move
+over budget. Definitive pixels undercount: Wisp cannot draw Popcorn emitters,
+which 110 of 112 moves use there, so the Definitive rows rely on the particle
+tails and the Classic coverage. The nine cue models Definitive draws only as
+Popcorn (`DEFINITIVE_CUE_EMITTERS`) run without clock controls and are born
+per cast and destroyed a second later; they now park when their window ends,
+and their Popcorn particle lives stay unmeasured.
+
+On 9 Oct 2026 the check listed 195 of 224 rows over budget before the fix
+(nearly all parked particle tails, frozen at time scale 0), and after it 1 of
+240: Kael'thas's Flame Strike (8.2%), which #381 replaces. Coverage fixes,
+all presentation scale: Thunder Clap 0.35 and Shockwave 0.6 (Mountain King
+down, 8.3% to 2.9%), Chain Lightning 0.5 (Thrall, 11.6% to 3.0%), Frost Nova
+0.5 (Lich King up, 7.4% to 2.9%), Howl of Terror 0.7 (Pit Lord, 5.8% to
+2.9%), Holy Bolt 0.8 (Forsaken Paladin, 4.3% to 3.1%) and Carrion Swarm 0.85
+(Dreadlord, 3.8-4.1% to 2.7%).
+
 ## How the numbers are taken
 
 Fighter contrast is measured on native captures of the offline LAN pool

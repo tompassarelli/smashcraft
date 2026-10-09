@@ -8,4 +8,7 @@
   `view motion --assets DIR [--character ID]` measures every fighter's movement and recovery
   clips and rewrites their foot cadence and audit (smashcraft:docs/fighter-motion.md);
   `view reach --assets DIR [--character ID]` rewrites how far fighters' swings
-  draw toward their strikes (smashcraft:docs/hurtboxes.md).
+  draw toward their strikes (smashcraft:docs/hurtboxes.md);
+  `view cues [--move FIGHTER:MOVE]... [--graphics classic|definitive]` renders
+  every attack and special cue in Wisp and fails any move over the effect budget
+  (smashcraft:docs/design/visual-quality.md, "Effect budget").

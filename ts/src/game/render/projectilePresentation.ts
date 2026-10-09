@@ -7,8 +7,8 @@ import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { heroDefinition } from "../sim/heroes/registry";
 import { HERO_PROJECTILE_CAP } from "../sim/heroSpecialRules";
 import { f32 } from "wisp/src/sim/f32";
-import { type ParkedFlags, type WorldOrigin, parkOnce } from "./effects";
-import { fighterProjectileModels, projectileModelOf } from "../presentation/projectileArt";
+import { PARKED_CUE_TIME_SCALE, type ParkedFlags, type WorldOrigin, parkCue } from "./effects";
+import { PROJECTILE_DRAW_SCALES, fighterProjectileModels, projectileModelOf } from "../presentation/projectileArt";
 import { projectedProjectile } from "../presentation/projectilePose";
 import { IMPACT_DEFILE_MODEL } from "../assets/impactAssetInfo";
 import { heroProjectileArt } from "../presentation/projectileArt";
@@ -68,7 +68,7 @@ export class ProjectilePresentation {
 
 
   private hide(model: effect, parked: ParkedFlags, index: number): void {
-    if (parkOnce(model, this.origin, parked, index)) BlzSetSpecialEffectTimeScale(model, 0.0);
+    parkCue(model, this.origin, parked, index);
   }
 
   clear(): void {
@@ -125,8 +125,7 @@ export class ProjectilePresentation {
       BlzSetSpecialEffectYaw(model, pose.yaw);
       BlzSetSpecialEffectPitch(model, pose.pitch);
       BlzSetSpecialEffectPosition(model, this.origin.x + pose.x, this.origin.y, this.origin.z + pose.z);
-      const smallMissile = pool?.path.includes("QuillSprayMissile") === true || pool?.path.includes("ShadowHunterMissile") === true;
-      BlzSetSpecialEffectScale(model, pose.modelScale * (smallMissile ? f32(1.5) : 1.0));
+      BlzSetSpecialEffectScale(model, pose.modelScale * (pool === undefined ? 1.0 : PROJECTILE_DRAW_SCALES[pool.path] ?? 1.0));
       BlzSetSpecialEffectAlpha(model, 255);
       BlzSetSpecialEffectTimeScale(model, paused ? 0.0 : 1.0);
       if (pose.animationSeconds !== undefined) {
@@ -148,6 +147,7 @@ export class ProjectilePresentation {
         const frost = fighter?.character === Character.lich;
         BlzSetSpecialEffectColor(boundary, frost ? 155 : pose.armed ? 170 + 85 * pose.poolPulse : 70, frost ? 210 : pose.armed ? 75 + 180 * pose.poolPulse : 65, frost ? 255 : pose.armed ? 255 : 100);
         BlzSetSpecialEffectAlpha(boundary, pose.armed ? 255 : 160);
+        if (!this.visible[boundarySlot]) BlzSetSpecialEffectTime(boundary, 0.0);
         BlzSetSpecialEffectTimeScale(boundary, 0.0);
       }
     }
@@ -161,7 +161,7 @@ export class ProjectilePresentation {
   setPaused(paused: boolean): void {
     for (let index = 0; index < this.models.length; index++) {
       const model = this.models[index];
-      if (model !== undefined) BlzSetSpecialEffectTimeScale(model, paused || this.visible[index] !== true ? 0.0 : 1.0);
+      if (model !== undefined) BlzSetSpecialEffectTimeScale(model, paused ? 0.0 : this.visible[index] === true ? 1.0 : PARKED_CUE_TIME_SCALE);
     }
   }
 

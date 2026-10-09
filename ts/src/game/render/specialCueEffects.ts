@@ -9,7 +9,7 @@ import type { Fighter } from "../sim/fighter";
 import { ATTACK_CUES, type AttackCueState, attackCueState, fighterRenderedCues } from "../presentation/attackCues";
 import { characterModelScale } from "../presentation/modelScale";
 import { CUE_ANCHORS, MISSING_CUE_MODEL, type Cue, specialCueState } from "../presentation/specialCues";
-import { type ParkedFlags, type WorldOrigin, facingYaw, parkOnce, placeEffect } from "./effects";
+import { PARKED_CUE_TIME_SCALE, type ParkedFlags, type WorldOrigin, facingYaw, parkCue, parkOnce, placeEffect } from "./effects";
 import { HitAreaEffects } from "./hitAreaEffects";
 import { DEFINITIVE_CUE_EMITTERS } from "../presentation/cueEmitterInfo";
 import { modelFailed } from "wisp/src/platform/modelFailures";
@@ -74,12 +74,12 @@ export class SpecialCueEffects {
     const parked = (this.parked ??= []);
     for (let index = 0; index < this.cues.length; index++) {
       const entry = this.cues[index];
-      if (entry !== undefined) parkOnce(entry.model, this.origin, parked, index);
+      if (entry !== undefined) parkCue(entry.model, this.origin, parked, index);
     }
     this.shown = undefined;
     this.shownKey = 0;
     this.seekAgain = false;
-    for (const entry of this.popcorn) { parkOnce(entry.model, this.origin, [], 0); DestroyEffect(entry.model); }
+    for (const entry of this.popcorn) { this.parkPopcorn(entry.model); DestroyEffect(entry.model); }
     this.popcorn.length = 0;
     this.confirmedCue = undefined;
     this.confirmedKey = 0;
@@ -98,7 +98,7 @@ export class SpecialCueEffects {
     for (let index = this.popcorn.length - 1; index >= 0; index--) {
       const entry = this.popcorn[index];
       if (entry !== undefined && entry.cue !== cue && now - entry.born >= 1.0) {
-        parkOnce(entry.model, this.origin, [], 0);
+        this.parkPopcorn(entry.model);
         DestroyEffect(entry.model);
         this.popcorn.splice(index, 1);
       }
@@ -155,7 +155,7 @@ export class SpecialCueEffects {
       const entry = this.cues[index];
       if (entry === undefined) continue;
       if (fighter === undefined || entry.cue !== cue || failed) {
-        parkOnce(entry.model, this.origin, parked, index);
+        parkCue(entry.model, this.origin, parked, index);
         continue;
       }
       const { model } = entry;
@@ -173,17 +173,17 @@ export class SpecialCueEffects {
       BlzSetSpecialEffectYaw(model, facingYaw(fighter.facing));
       BlzSetSpecialEffectPitch(model, entry.cue.pitch ?? 0.0);
       BlzSetSpecialEffectScale(model, entry.cue.scale * this.scale);
-      BlzSetSpecialEffectAlpha(model, 255);
-      BlzSetSpecialEffectTimeScale(model, paused || fighter.launch.hitlag > 0 ? 0.0 : 1.0);
+      BlzSetSpecialEffectAlpha(model, entry.cue.alpha ?? 255);
+      BlzSetSpecialEffectTimeScale(model, paused || fighter.launch.hitlag > 0 ? 0.0 : entry.cue.timeScale ?? 1.0);
     }
     if (fighter !== undefined && playing) {
       for (const entry of this.popcorn) {
         if (modelFailed(entry.cue.model)) {
-          parkOnce(entry.model, this.origin, [], 0);
+          this.parkPopcorn(entry.model);
           continue;
         }
-        if (!this.definitive && entry.cue !== cue) {
-          parkOnce(entry.model, this.origin, [], 0);
+        if (entry.cue !== cue) {
+          this.parkPopcorn(entry.model);
           continue;
         }
         const anchor = CUE_ANCHORS[entry.cue.anchor];
@@ -202,8 +202,17 @@ export class SpecialCueEffects {
     this.shownKey = key;
   }
 
+  private parkPopcorn(model: effect): void {
+    if (this.definitive) parkOnce(model, this.origin, [], 0);
+    else parkCue(model, this.origin, [], 0);
+  }
+
   setPaused(paused: boolean): void {
-    for (const { model } of this.cues) BlzSetSpecialEffectTimeScale(model, paused ? 0.0 : 1.0);
+    const parked = (this.parked ??= []);
+    for (let index = 0; index < this.cues.length; index++) {
+      const entry = this.cues[index];
+      if (entry !== undefined) BlzSetSpecialEffectTimeScale(entry.model, paused ? 0.0 : parked[index] === true ? PARKED_CUE_TIME_SCALE : entry.cue.timeScale ?? 1.0);
+    }
     if (!this.definitive) for (const { model } of this.popcorn) BlzSetSpecialEffectTimeScale(model, paused ? 0.0 : 1.0);
   }
 

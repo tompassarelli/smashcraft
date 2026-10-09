@@ -31,6 +31,7 @@ import { DRAWN_MOTION } from "../drawnMotionInfo";
 import { MOTION_STATES, drawnStrideSource, measureDrawnMotion, measureDrawnStride, type DrawnStride, type DrawnMotionRow } from "../drawnMotion";
 import { AttackPhase, AttackStyle, Character } from "../../../src/game/sim/codes";
 import { AUTHORED_SAMPLE_STYLES } from "../../../src/game/sim/hurtboxes";
+import { CUE_FRAMES, type CueMeasurement, cueMoves, measureCueMoves } from "../cueBudget";
 
 const scenes = (directories: readonly string[]) => Effect.forEach(directories, (directory) => Effect.gen(function*() {
   const reports = yield* Effect.forEach(FILE_SLOT_NUMBERS, (slot) => {
@@ -322,7 +323,28 @@ const motion = (args: readonly string[]) => Effect.gen(function*() {
   for (const row of result.rows.filter(row => selected === undefined || row.character === selected)) yield* Console.log(`${fighterSlug(row.character)} ${row.state}: clips ${row.clips.join(",")}, motion ${row.motion.toFixed(1)}, body ${row.body.toFixed(1)}`);
 });
 
+const cues = (args: readonly string[]) => Effect.gen(function*() {
+  const only = args.flatMap((arg, index) => args[index - 1] === "--move" ? [arg] : []);
+  const looks = args.flatMap((arg, index) => args[index - 1] !== "--graphics" ? [] : arg === "classic" ? ["classic" as const] : arg === "definitive" ? ["definitive" as const] : []);
+  if (args.length !== (only.length + looks.length) * 2) {
+    return yield* new UsageFailure({ problem: "view cues takes [--move FIGHTER:MOVE]... [--graphics classic|definitive]" });
+  }
+  const moves = cueMoves().filter(({ name }) => only.length === 0 || only.includes(name));
+  const rows: CueMeasurement[] = [];
+  for (const graphics of looks.length === 0 ? ["classic", "definitive"] as const : looks) {
+    rows.push(...yield* measureCueMoves(moves, graphics, join(CUE_FRAMES, graphics)));
+  }
+  const frames = (value: number) => Number.isFinite(value) ? String(value) : "never";
+  for (const row of [...rows].sort((a, b) => b.linger - a.linger || b.coverage - a.coverage)) {
+    yield* Console.log(`${row.over.length > 0 ? "OVER" : "ok  "} ${row.move} ${row.graphics}: danger to ${row.lastDanger}, shown ${row.firstShown}-${frames(row.lastShown)}, linger ${frames(row.linger)}, covers ${(row.coverage * 100).toFixed(1)}% (${row.widest.join(", ")})${row.popcorn ? " (Popcorn undrawn)" : ""}${row.over.length > 0 ? `; ${row.over.join("; ")}` : ""}`);
+  }
+  const over = rows.filter((row) => row.over.length > 0);
+  yield* Console.log(`${rows.length} cue measurements, ${over.length} over budget; frames in ${CUE_FRAMES}`);
+  if (over.length > 0) return yield* new MapBuildFailure({ operation: "check the effect budget", path: "docs/design/visual-quality.md", cause: over.map((row) => `${row.move} ${row.graphics}`).join(", ") });
+});
+
 export const view: Command = ([mode, ...paths]) => {
+  if (mode === "cues") return cues(paths);
   if (mode === "models") return models(paths);
   if (mode === "motion") return motion(paths);
   if (mode === "reach") return reach(paths);

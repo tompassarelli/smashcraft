@@ -70,6 +70,8 @@ export interface Cue {
   readonly sequence?: string | undefined;
   readonly seconds?: number | undefined;
   readonly pitch?: number | undefined;
+  readonly timeScale?: number | undefined;
+  readonly alpha?: number | undefined;
 
   readonly replacesBody?: boolean | undefined;
 }
@@ -160,7 +162,7 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     down: { spell: "Repair", startup: cue("Abilities\\Spells\\Human\\Defend\\DefendCaster.mdx", "hand", f32(0.4)), active: HOLY },
   },
   [Character.thrall]: {
-    neutral: { spell: "Chain Lightning", startup: STORM, active: cue("Abilities\\Weapons\\FarseerMissile\\FarseerMissile.mdx", "hand", 1.0) },
+    neutral: { spell: "Chain Lightning", startup: STORM, active: cue("Abilities\\Weapons\\FarseerMissile\\FarseerMissile.mdx", "hand", 0.5) },
     side: { spell: "Feral Spirit", startup: BEAST, active: cue("units\\orc\\SpiritWolf\\SpiritWolf.mdx", "ahead", 0.5) },
     up: { spell: "Far Sight", startup: STORM, active: cue("Abilities\\Spells\\Orc\\Purge\\PurgeBuffTarget.mdx", "body", 0.5) },
     down: { spell: "Earthquake", startup: STORM, active: cue("Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdx", "feet", f32(1.3)) },
@@ -229,7 +231,7 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     neutral: { spell: "Storm Bolt", startup: STORM, active: cue("Abilities\\Spells\\Other\\ForkedLightning\\ForkedLightningTarget.mdx", "hand", f32(0.8)) },
     side: { spell: "Storm Rush", startup: cue("Abilities\\Spells\\Human\\Defend\\DefendCaster.mdx", "body", f32(0.8)), active: cue("Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx", "feet", 1.0) },
     up: { spell: "Thunder Leap", startup: cue("Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdx", "feet", 0.5), active: cue("Abilities\\Spells\\Orc\\LightningShield\\LightningShieldTarget.mdx", "body", f32(0.8)) },
-    down: { spell: "Thunder Clap", startup: STORM, active: cue("Abilities\\Spells\\Human\\Thunderclap\\ThunderClapCaster.mdx", "feet", f32(0.6)) },
+    down: { spell: "Thunder Clap", startup: STORM, active: cue("Abilities\\Spells\\Human\\Thunderclap\\ThunderClapCaster.mdx", "feet", f32(0.35)) },
   },
   [Character.warden]: {
     neutral: { spell: "Shadow Strike", startup: cue("Abilities\\Spells\\NightElf\\ShadowStrike\\ShadowStrike.mdx", "hand", f32(0.7)), active: cue("Abilities\\Weapons\\PoisonSting\\PoisonStingTarget.mdx", "hand", 1.0) },
@@ -244,7 +246,7 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     down: { spell: "Frost Armor", startup: cue("Abilities\\Spells\\Undead\\DarkRitual\\DarkRitualCaster.mdx", "feet", f32(0.6)), active: cue("Abilities\\Spells\\Undead\\FrostArmor\\FrostArmorDamage.mdx", "body", f32(1.2)) },
   },
   [Character.forsakenPaladin]: {
-    neutral: { spell: "Cleansing Hammer", startup: HOLY, active: cue("Abilities\\Spells\\Human\\HolyBolt\\HolyBoltSpecialArt.mdx", "hand", 1.0) },
+    neutral: { spell: "Cleansing Hammer", startup: HOLY, active: cue("Abilities\\Spells\\Human\\HolyBolt\\HolyBoltSpecialArt.mdx", "hand", f32(0.8)) },
     side: { spell: "Righteous Fury", startup: cue("Abilities\\Spells\\Human\\InnerFire\\InnerFireTarget.mdx", "body", f32(0.8)), active: cue("Abilities\\Spells\\Other\\Stampede\\StampedeMissileDeath.mdx", "ahead", 1.0) },
     up: { spell: "Ascension", startup: HOLY, active: cue("Abilities\\Spells\\Human\\Resurrect\\ResurrectTarget.mdx", "feet", 0.25) },
     down: { spell: "Consecration", startup: HOLY, active: cue("Abilities\\Spells\\Other\\Consecration\\Consecration.mdx", "feet", f32(0.05)) },
@@ -262,15 +264,15 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     down: { spell: "Hex", startup: VOODOO, active: cue("Abilities\\Spells\\Human\\Polymorph\\PolymorphTarget.mdx", "hand", f32(0.6)) },
   },
   [Character.pitLord]: {
-    neutral: { spell: "Howl of Terror", startup: FEL, active: cue("Abilities\\Spells\\Other\\HowlOfTerror\\HowlCaster.mdx", "body", 1.0) },
+    neutral: { spell: "Howl of Terror", startup: FEL, active: cue("Abilities\\Spells\\Other\\HowlOfTerror\\HowlCaster.mdx", "body", f32(0.7)) },
     side: { spell: "Ruin Charge", startup: FEL, active: cue("Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireDamage.mdx", "ahead", f32(0.8)) },
     up: { spell: "Abyssal Leap", startup: FEL, active: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "feet", f32(0.6)) },
-    down: { spell: "Rain of Fire", startup: FEL, active: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrike1.mdx", "overhead", f32(0.25)) },
+    down: { spell: "Rain of Fire", startup: FEL, active: { ...cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrike1.mdx", "overhead", f32(0.25)), timeScale: 1.5 } },
   },
   [Character.lichKing]: {
     neutral: { spell: "Howling Blast", startup: RUNE, active: cue("Abilities\\Spells\\Undead\\FreezingBreath\\FreezingBreathMissile.mdx", "hand", 1.0) },
     side: { spell: "Val'kyr Shadowguard", startup: RUNE, active: cue("Abilities\\Spells\\Undead\\Curse\\CurseTarget.mdx", "ahead", f32(0.8)) },
-    up: { spell: "Ascension of the Damned", startup: RUNE, active: cue("Abilities\\Spells\\Undead\\FrostNova\\FrostNovaTarget.mdx", "body", f32(0.8)) },
+    up: { spell: "Ascension of the Damned", startup: RUNE, active: cue("Abilities\\Spells\\Undead\\FrostNova\\FrostNovaTarget.mdx", "body", 0.5) },
     down: { spell: "Defile", startup: RUNE, active: cue("Abilities\\Spells\\Undead\\DeathAndDecay\\DeathAndDecayTarget.mdx", "feet", f32(0.4)) },
   },
   [Character.beastmaster]: {

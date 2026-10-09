@@ -62,7 +62,7 @@ export const ATTACK_CUES: { readonly [character: number]: { readonly [style: num
 
     [AttackStyle.downSmash]: [
       { name: "Azzinoth glaives", fromActive: 0, cue: timed(cue("Abilities\\Weapons\\DemonHunterMissile\\DemonHunterMissile.mdx", f32(1.4)), "stand", 0.0) },
-      { name: "Flames of Azzinoth", fromActive: 3, cue: timed(cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrike1.mdx", f32(0.6)), "birth", f32(1.3)) },
+      { name: "Flames of Azzinoth", fromActive: 3, cue: { ...timed(cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrike1.mdx", f32(0.5)), "birth", f32(1.3)), timeScale: 2.0 } },
     ],
 
     [AttackStyle.forwardAir]: [{ name: "Twin glaives", fromActive: 0, cue: timed(cue("Abilities\\Weapons\\IllidanMissile\\IllidanMissile.mdx", 1.0), "stand", 0.0) }],

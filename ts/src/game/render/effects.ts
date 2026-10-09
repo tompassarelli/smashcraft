@@ -60,6 +60,14 @@ export function parkOnce(model: effect, origin: Readonly<WorldOrigin>, parked: P
   return true;
 }
 
+export const PARKED_CUE_TIME_SCALE = 16.0;
+
+export function parkCue(model: effect, origin: Readonly<WorldOrigin>, parked: ParkedFlags, index: number): boolean {
+  if (!parkOnce(model, origin, parked, index)) return false;
+  BlzSetSpecialEffectTimeScale(model, PARKED_CUE_TIME_SCALE);
+  return true;
+}
+
 declare global {
 
   var __smashcraftEffectMotion: EffectMotion<effect> | undefined;
