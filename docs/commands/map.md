@@ -4,6 +4,9 @@
   builds the TypeScript map from the private inputs smashcraft:build-inputs.json
   names (`--base`, `--container`, `--assets`, `--summon` override one);
   `bun wisp map rebuild MAP.w3x` replaces only its script.
+  Both commands resolve every special, attack, contact-accent and projectile
+  cue model in Classic and Definitive through the renderer's real asset resolver.
+  A missing path in either look fails the build before replacing the map.
   `--profile native-input` measures the playable keyboard path with developer
   setup and the response probe (Ctrl+G records, Ctrl+H exports); its rendered
   marker identifies the callback actually captured in pixels. Report that

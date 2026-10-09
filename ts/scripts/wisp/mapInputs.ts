@@ -30,6 +30,7 @@ import { regenerateCommand } from "../stageThumbnailSpec";
 import { stageCardPath } from "./buildInputs";
 import { buildProject, projectRoot as PROJECT } from "./project";
 import { UI_FRAMES } from "./uiFrames";
+import { checkCueModels, cueModels } from "./headlessRender";
 const tryMapPromise = <A>(operation: string, path: string, run: () => PromiseLike<A>) => Effect.tryPromise({ try: run, catch: (cause) => new MapBuildFailure({ operation, path, cause }) });
 const tryMapSync = <A>(operation: string, path: string, run: () => A) => Effect.try({ try: run, catch: (cause) => new MapBuildFailure({ operation, path, cause }) });
 const EMPTY_MODEL = "the map script names an empty model path";
@@ -170,7 +171,7 @@ const requireListed = (path: string, imports: readonly string[], models: readonl
  * new script names. The build verified their contents; this reads the
  * archive's file list once, whose names Warcraft matches without case.
  */
-const carriedModels = (map: string, packager: string, models: readonly string[] = SCRIPT_MODELS) => Effect.scoped(Effect.gen(function*() {
+const carriedModels = (map: string, packager: string, models: readonly string[] = [...SCRIPT_MODELS, ...cueModels().filter(model => model.toLowerCase().startsWith("war3mapimported\\"))]) => Effect.scoped(Effect.gen(function*() {
   if (models.includes("")) return yield* new MapBuildFailure({ operation: "check script models", path: map, cause: EMPTY_MODEL });
   const scratch = yield* Effect.acquireRelease(
     tryMapSync("create scratch directory", tmpdir(), () => mkdtempSync(join(tmpdir(), "smashcraft-models."))),
@@ -196,7 +197,9 @@ const CUE_GRAPHICS_DE = { entry: "_de.w3mod\\war3mapImported\\CueGraphics.fdf", 
  */
 export const rebuildMap = (map: string) => {
   const packager = buildProject().packager;
-  return carriedModels(map, packager).pipe(
+  return checkCueModels().pipe(
+    step("cue models resolved in both looks"),
+    Effect.andThen(carriedModels(map, packager)),
     step("script models carried"),
     Effect.andThen(MapBuild.use((maps) => maps.rebuild(map))),
     Effect.andThen(Effect.forEach(UI_FRAME_FILES, (file) => {

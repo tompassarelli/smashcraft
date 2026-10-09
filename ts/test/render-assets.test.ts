@@ -2,7 +2,8 @@ import { chmodSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, test } from "bun:test";
-import { headlessRender } from "../scripts/wisp/headlessRender";
+import { Effect } from "effect";
+import { checkCueModels, headlessRender } from "../scripts/wisp/headlessRender";
 
 test("a Warcraft update cannot reuse the previous build's stock render bytes [spec AGENTS.md]", async () => {
   const directory = mkdtempSync(join(tmpdir(), "smashcraft-render-assets-"));
@@ -26,21 +27,26 @@ test("a Warcraft update cannot reuse the previous build's stock render bytes [sp
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
-test("[spec wisp#84] Definitive map body overrides stock while Classic keeps its imported body", async () => {
+test("[spec wisp#84, spec #365] Definitive map body overrides Classic and cue builds refuse paths missing in either look", async () => {
   const directory = mkdtempSync(join(tmpdir(), "smashcraft-definitive-assets-"));
   try {
     await Bun.write(join(directory, "classic"), "classic body");
     await Bun.write(join(directory, "definitive"), "definitive body");
     const renderer = headlessRender({ assets: directory, imports: [
-      { entry: "Unit.mdx", source: join(directory, "classic") },
-      { entry: "_de.w3mod\\Unit.mdx", source: join(directory, "definitive") },
+      { entry: "war3mapImported\\Unit.mdx", source: join(directory, "classic") },
+      { entry: "_de.w3mod\\war3mapImported\\Unit.mdx", source: join(directory, "definitive") },
+      { entry: "_de.w3mod\\war3mapImported\\DefinitiveOnly.mdx", source: join(directory, "definitive") },
     ] });
-    const classic = await renderer.resolveAsset("Unit.mdl", "classic");
-    const definitive = await renderer.resolveAsset("Unit.mdl", "definitive");
+    const classic = await renderer.resolveAsset("war3mapImported\\Unit.mdl", "classic");
+    const definitive = await renderer.resolveAsset("war3mapImported\\Unit.mdl", "definitive");
     expect(new TextDecoder().decode(classic.bytes)).toBe("classic body");
     expect(new TextDecoder().decode(definitive.bytes)).toBe("definitive body");
-    expect(definitive.selected).toEqual({ source: "map", layer: "_de.w3mod", path: "_de.w3mod/Unit.mdx" });
+    expect(definitive.selected).toEqual({ source: "map", layer: "_de.w3mod", path: "_de.w3mod/war3mapImported/Unit.mdx" });
     expect(definitive.attempts).toHaveLength(1);
+    await expect(Effect.runPromise(checkCueModels(renderer, ["war3mapImported\\Unit.mdl"]))).resolves.toBe(2);
+    await expect(Effect.runPromise(checkCueModels(renderer, ["war3mapImported\\DefinitiveOnly.mdx"]))).rejects.toThrow("classic: war3mapImported\\DefinitiveOnly.mdx");
+    const absent = "war3mapImported\\ForcedMissingChenFlame365.mdx";
+    await expect(Effect.runPromise(checkCueModels(renderer, [absent]))).rejects.toThrow(`classic: ${absent}; definitive: ${absent}`);
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 

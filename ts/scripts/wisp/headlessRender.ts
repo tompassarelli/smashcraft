@@ -13,6 +13,11 @@ import { INPUTS_STORE, assetsView, readManifest } from "./buildInputs";
 import { importedAssets } from "./mapInputs";
 import { runProcess } from "../hostProcess";
 import { POST_PROCESSING_FILE } from "../postProcessing";
+import { MapBuildFailure } from "wisp/scripts/wisp/mapBuild";
+import { fighterCueList, MISSING_CUE_MODEL } from "../../src/game/presentation/specialCues";
+import { allAttackCueModels } from "../../src/game/presentation/attackCues";
+import { allProjectileModels } from "../../src/game/presentation/projectileArt";
+import { Character } from "../../src/game/sim/codes";
 import { resolveRenderAsset, type AssetLocation, type AssetLayer, type Graphics, type ResolvedRenderAsset } from "wisp/scripts/wisp/renderAssets";
 
 const key = (path: string) => path.replaceAll("\\", "/").toLowerCase().replace(/\.mdl$/, ".mdx");
@@ -34,6 +39,21 @@ export interface RenderAssetOptions {
   readonly cache?: string;
   readonly manifest?: string;
 }
+
+export const cueModels = () => [...new Set([...Object.values(Character).flatMap(character => fighterCueList(character).map(cue => cue.model)), ...allAttackCueModels(), ...allProjectileModels(), MISSING_CUE_MODEL])];
+
+export const checkCueModels = Effect.fnUntraced(function*(renderer: { readonly resolveAsset: (path: string, graphics: Graphics) => Promise<ResolvedRenderAsset> } = headlessRender(), models: readonly string[] = cueModels()) {
+  const missing: string[] = [];
+  for (const model of models) for (const graphics of ["classic", "definitive"] as const) {
+    const resolved = yield* Effect.tryPromise({
+      try: () => renderer.resolveAsset(model, graphics),
+      catch: cause => new MapBuildFailure({ operation: "resolve cue model", path: model, cause }),
+    });
+    if (resolved.bytes === undefined || resolved.bytes.length === 0) missing.push(`${graphics}: ${model}`);
+  }
+  if (missing.length > 0) return yield* new MapBuildFailure({ operation: "check cue models", path: "Classic and Definitive", cause: missing.join("; ") });
+  return models.length * 2;
+});
 
 /** The map's imports and selected stock layers. Extraction stays outside the checkout. */
 export function headlessRender(options: RenderAssetOptions = {}) {
