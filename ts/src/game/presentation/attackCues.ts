@@ -9,7 +9,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { type HitRegion, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../sim/hitRegions";
-import { EYE_BLAST_CHARGE_FRAMES, attackStartupFrames } from "../sim/moves";
+import { attackStartupFrames } from "../sim/moves";
 import { HERO_ROSTER } from "../sim/heroes/registry";
 import { type Cue, fighterOwnCues, timed } from "./specialCues";
 import { DISJOINT_MODELS } from "./disjointCues";
@@ -58,7 +58,7 @@ export const ATTACK_CUES: { readonly [character: number]: { readonly [style: num
 
   [Character.demonHunter]: {
 
-    [AttackStyle.forwardSmash]: [{ name: "Eye Blast", fromActive: 0, cue: timed(cue("Abilities\\Weapons\\GreenDragonMissile\\GreenDragonMissile.mdx", f32(1.5)), "birth", 0.0) }],
+    [AttackStyle.forwardSmash]: [{ name: "Fel Lunge", fromActive: 0, cue: timed(cue("Abilities\\Weapons\\IllidanMissile\\IllidanMissile.mdx", f32(1.3)), "stand", 0.0) }],
 
     [AttackStyle.downSmash]: [
       { name: "Azzinoth glaives", fromActive: 0, cue: timed(cue("Abilities\\Weapons\\DemonHunterMissile\\DemonHunterMissile.mdx", f32(1.4)), "stand", 0.0) },
@@ -74,9 +74,6 @@ export const ATTACK_CUES: { readonly [character: number]: { readonly [style: num
 };
 
 
-export const EYE_BLAST_CHARGE_CUE: Cue = { model: "Abilities\\Spells\\Other\\Drain\\DrainCaster.mdx", anchor: "overhead", scale: f32(0.6), sequence: "stand", seconds: 0.0 };
-
-
 export interface AttackCueState {
   cue: Cue | undefined;
   x: number;
@@ -90,15 +87,8 @@ const scratch: HitRegion = emptyHitRegion();
 
 export function attackCueState(fighter: Readonly<Fighter>, out: AttackCueState): AttackCueState {
   out.cue = undefined;
-  const { style, frame, smashCharging, smashChargeFrames } = fighter.attack;
+  const { style, frame, smashChargeFrames } = fighter.attack;
   if (style === undefined || fighter.status.out) return out;
-  if (fighter.character === Character.demonHunter && style === AttackStyle.forwardSmash && smashCharging && smashChargeFrames >= EYE_BLAST_CHARGE_FRAMES) {
-    out.cue = EYE_BLAST_CHARGE_CUE;
-    out.x = 0.0;
-    out.z = 125.0;
-    out.key = -1;
-    return out;
-  }
   const cues = ATTACK_CUES[fighter.character]?.[style];
   if (cues === undefined) return out;
   const moves = fighter.tuning.moves;
@@ -123,7 +113,6 @@ export function attackCueState(fighter: Readonly<Fighter>, out: AttackCueState):
 export function fighterAttackCues(character: Character): readonly Cue[] {
   const out: Cue[] = [];
   for (const cues of Object.values(ATTACK_CUES[character] ?? {})) for (const { cue } of cues) if (!out.includes(cue)) out.push(cue);
-  if (character === Character.demonHunter) out.push(EYE_BLAST_CHARGE_CUE);
   return out;
 }
 

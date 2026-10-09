@@ -17,6 +17,7 @@ import { LAST_ATTACK_STYLE } from "../sim/codes";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { authoredTuning } from "../sim/tuning";
 import type { FighterMoves } from "../sim/heroMoves";
+import { felLungeStep } from "../sim/moves";
 
 interface AuthoredTravel {
   readonly moves: FighterMoves;
@@ -52,6 +53,8 @@ function buildAuthoredTravel(): { [character: number]: AuthoredTravel | undefine
 function authoredStartupStep(fighter: Readonly<Fighter>): number {
   const style = fighter.attack.style;
   if (style === undefined || !fighter.motion.grounded) return 0.0;
+  const lunge = felLungeStep(fighter.character, style, fighter.attack.frame + 1, false, fighter.attack.smashChargeFrames);
+  if (lunge > 0.0) return f32(lunge * fighter.facing);
   const travel = authoredTravel[fighter.character];
   if (travel === undefined || travel.moves !== fighter.tuning.moves) return 0.0;
   const move = travel.moves.normals[style];

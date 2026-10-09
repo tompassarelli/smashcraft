@@ -3,7 +3,7 @@ import { AttackStyle, Character, ContactKind, SpecialAction } from "./codes";
 import { createFighter } from "./fighter";
 import { HERO_ROSTER } from "./heroes/registry";
 import { EX_ARMOR_FRAMES, exArmorActive, exSpecialAffordable } from "./exSpecials";
-import { startFighterSpecial } from "./specials";
+import { EYE_BLAST_FORM, EYE_BLAST_FRAMES, startFighterSpecial } from "./specials";
 import { advanceFighterMotion } from "./step";
 import { collectDamageContact } from "./contacts";
 import { contactBatch, controls, hitEffect, testWorld } from "./testWorld";
@@ -27,14 +27,16 @@ function special(character: Character, side: boolean, mana: number, ex: boolean)
   return { f, world, started };
 }
 
-test("every fighter's neutral and side EX spend one 33-point segment, arm one light hit, and keep ordinary duration [spec #335]", () => {
+test("every fighter's neutral and side EX spend one 33-point segment, arm one light hit, and keep ordinary duration but Eye Blast [spec #335] [spec #379]", () => {
   for (const character of roster) for (const side of [false, true]) {
     const normal = special(character, side, 100, false);
     const ex = special(character, side, 100, true);
     assertTrue(normal.started);
     assertTrue(ex.started);
     assertEquals(ex.f.special.action, normal.f.special.action);
-    assertEquals(ex.f.special.duration, normal.f.special.duration);
+    const eyeBlast = character === Character.demonHunter && !side;
+    assertEquals(ex.f.special.duration, eyeBlast ? EYE_BLAST_FRAMES : normal.f.special.duration);
+    assertEquals(ex.f.special.form, eyeBlast ? EYE_BLAST_FORM : normal.f.special.form);
     assertEquals(ex.f.mana.points, 67);
     assertTrue(ex.f.special.ex);
     assertTrue(exArmorActive(ex.f));

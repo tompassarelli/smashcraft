@@ -4,8 +4,8 @@
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { AttackStyle, Character, SpecialAction } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
-import { CHAOS_STRIKE_AIR_FORM, CHAOS_STRIKE_FORM, FLAME_CRASH_FORM, FLAME_CRASH_LANDING_FORM, VENGEFUL_RETREAT_FORM } from "../sim/specials";
-import { ATTACK_CUES, EYE_BLAST_CHARGE_CUE } from "./attackCues";
+import { CHAOS_STRIKE_AIR_FORM, CHAOS_STRIKE_FORM, EYE_BLAST_FORM, FLAME_CRASH_FORM, FLAME_CRASH_LANDING_FORM, VENGEFUL_RETREAT_FORM } from "../sim/specials";
+import { ATTACK_CUES } from "./attackCues";
 import { MANA_DRAIN_LOOK, advanceDrainSeen, drainSeen } from "./elementLooks";
 import { type Cue, ORIGINAL_BRANCH_CUES, ORIGINAL_CUES } from "./specialCues";
 
@@ -55,7 +55,8 @@ test("every Illidan option's effect starts where its model already draws [native
     if (branch !== undefined) cues.push([`${branch.cues.spell} startup`, branch.cues.startup], [branch.cues.spell, branch.cues.active]);
   }
   for (const entries of Object.values(ATTACK_CUES[Character.demonHunter] ?? {})) for (const { name, cue } of entries) cues.push([name, cue]);
-  cues.push(["Eye Blast charge", EYE_BLAST_CHARGE_CUE]);
+  const eyeBlast = ORIGINAL_BRANCH_CUES[SpecialAction.demonHunterManaBurn]?.[EYE_BLAST_FORM];
+  if (eyeBlast !== undefined) cues.push(["Eye Blast windup", eyeBlast.cues.startup], ["Eye Blast", eyeBlast.cues.active]);
   for (const [name, cue] of cues) startsDrawn(name, cue);
   startsDrawn("Mana drain", MANA_DRAIN_LOOK);
 });

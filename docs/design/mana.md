@@ -81,7 +81,7 @@ its active time. Status durations and healing caps stay unchanged.
 | Fighter | Neutral EX | Side EX | Up EX | Down EX |
 |---|---|---|---|---|
 | Rifleman | Blaster deals 25% more damage. | Bear's strike deals 25% more damage. | Recoil travels 25% farther, including its second shot. | Freeze Trap has 25% more trigger reach, with the same freeze and f22 placement/f38 end. |
-| Illidan | Mana Burn orb has 25% more reach; its resource denial follows #335. | Fel Rush and its branches deal 25% more damage. | Wing Ascent rises 25% farther; glide choices stay intact. | Immolation/Flame Crash deals 25% more damage. |
+| Illidan | On the ground, Eye Blast: a 24-frame marked windup, then a floor beam to 645 (#379, docs/design/illidan.md); in the air, the Mana Burn orb has 25% more reach, its resource denial following #335. | Fel Rush and its branches deal 25% more damage. | Wing Ascent rises 25% farther; glide choices stay intact. | Immolation/Flame Crash deals 25% more damage. |
 | Blademaster | Wind Cutter deals 25% more damage. | Wind Walk's Backstab deals 25% more damage. | Rising Whirlwind travels 25% farther. | Mirror Image has twice the durability; Image Swap deals 25% more damage. |
 | Mountain King | Storm Bolt deals 25% more damage. | Storm Rush and Hammerfall deal 25% more damage. | Thunder Leap travels 25% farther. | Thunder Clap and its charged forms have 25% more reach. |
 | Warden | Shadow Strike deals 25% more damage. | Pursuit Lunge/marked slash deals 25% more damage. | Blink travels 25% farther. | Fan of Knives has 25% more reach. |

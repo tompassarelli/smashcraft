@@ -22,7 +22,7 @@ matches until the match rules turn them on.
 
 | Input | Name | What it does |
 | --- | --- | --- |
-| Neutral special | Mana Burn | A slow orb that burns mana and stuns; the emptier it leaves the target, the longer the stun. |
+| Neutral special | Mana Burn | A slow orb that burns mana and stuns; the emptier it leaves the target, the longer the stun. On a full meter, its EX is Eye Blast. |
 | Side special | Fel Rush (Vengeful Retreat, Chaos Strike, Aerial Chaos Strike) | Dash through anyone in your path; press special to flip back out, or attack to slash. |
 | Up special | Wing Ascent (Glide, Wing Slash) | Rise on his wings; jump near the top to glide, attack in the glide to slash. |
 | Down special | Immolate (Flame Crash) | A burst of flame around him that a jump can cancel; in the air, plunge down in a Flame Crash. |
@@ -32,7 +32,7 @@ matches until the match rules turn them on.
 Normals, inspired by:
 
 - Down smash: Flames of Azzinoth, from the Black Temple encounter
-- Forward smash: Eye Blast, from the Black Temple encounter
+- Forward smash: Fel Lunge, from the Demon Hunter's Fel Rush
 - Forward tilt: Shear, from the Black Temple encounter
 - Forward air: His twin warglaives crossing
 

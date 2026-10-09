@@ -26,6 +26,9 @@ import {
   DEMONHUNTER_IMMOLATE_STARTUP,
   DEMONHUNTER_MANA_BURN_STARTUP,
   DEMONHUNTER_WING_STARTUP,
+  EYE_BLAST_FIRST,
+  EYE_BLAST_FORM,
+  EYE_BLAST_LAST,
   FEL_RUSH_FIRST,
   FEL_RUSH_LAST,
   RIFLEMAN_BEAR_CAST_FRAMES,
@@ -387,7 +390,12 @@ export interface OriginalBranch {
 const CHAOS_STRIKE_CUES: OriginalBranch = { cues: branch("Chaos Strike", FEL_TELL, timed(cue("Abilities\\Spells\\NightElf\\MoonGlaive\\MoonGlaiveCaster.mdx", "ahead", 1.0), "stand", 0.0)), first: CHAOS_STRIKE_FIRST, last: CHAOS_STRIKE_LAST };
 
 
+export const EYE_BLAST_EYES: Cue = { model: "Abilities\\Weapons\\IllidanMissile\\IllidanMissile.mdx", anchor: "overhead", scale: f32(0.9), sequence: "stand", seconds: 0.0 };
+
 export const ORIGINAL_BRANCH_CUES: { readonly [action: number]: { readonly [form: number]: OriginalBranch } } = {
+  [SpecialAction.demonHunterManaBurn]: {
+    [EYE_BLAST_FORM]: { cues: branch("Eye Blast", EYE_BLAST_EYES, timed(cue("Abilities\\Weapons\\GreenDragonMissile\\GreenDragonMissile.mdx", "breath", f32(1.5)), "birth", 0.0)), first: EYE_BLAST_FIRST, last: EYE_BLAST_LAST },
+  },
   [SpecialAction.demonHunterFelRush]: {
 
     [VENGEFUL_RETREAT_FORM]: { cues: branch("Vengeful Retreat", FEL_TELL, timed(cue("Abilities\\Spells\\Undead\\Possession\\PossessionMissile.mdx", "body", 1.0), "stand", 0.0)), first: 1, last: VENGEFUL_RETREAT_MOVE_LAST },

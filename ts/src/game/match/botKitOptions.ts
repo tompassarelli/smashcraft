@@ -13,9 +13,10 @@ import { toInt } from "../../runtime/numbers";
 import { hurtCapsule } from "../physics/contactGeometry";
 import { AttackStyle, Character, DownState, HeroStatusKind, ProjectileKind, SpecialAction } from "../sim/codes";
 import { canAttack } from "../sim/conditions";
+import { exSpecialAffordable } from "../sim/exSpecials";
 import { type Fighter, placedObject } from "../sim/fighter";
 import { type AttackBuffer, queueAttack } from "../input/attackBuffer";
-import { EYE_BLAST_CHARGE_FRAMES, attackStartupFrames, characterAttackActiveFrames } from "../sim/moves";
+import { attackStartupFrames, characterAttackActiveFrames } from "../sim/moves";
 import { companionReady, isHeroSpecialAction, runningHeroSpecial, specialCooldownReady } from "../sim/heroSpecialRules";
 import { heroStatusBlocksActions } from "../sim/heroStatus";
 import { type AuthoredSpecial, type SpecialFollowUp, type SpecialProjectile, CompanionOrder, FOLLOW_UP_FORM, FollowUpInput, SpecialSlot, specialKit } from "../sim/heroSpecials";
@@ -355,10 +356,10 @@ export function pressKitOption(f: Readonly<Fighter>, target: Readonly<Fighter>, 
         return true;
       }
 
-      if (free && ready && motion.grounded && target.motion.grounded && toward === f.facing && gap >= EYE_BLAST_NEAR && gap <= EYE_BLAST_FAR
+      if (free && ready && motion.grounded && target.motion.grounded && toward === f.facing && gap >= EYE_BLAST_NEAR && gap <= EYE_BLAST_FAR && exSpecialAffordable(f) && affords(f, SpecialAction.demonHunterManaBurn)
         && Math.abs(f32(target.motion.z - motion.z)) <= 40.0 && takes(skill, floorDiv(frame, 30), f.character * 7 + 24) && botChoice(floorDiv(frame, 30), f.character * 7 + 25, 3) === 0) {
-        queueAttack(commands, { style: AttackStyle.forwardSmash, facing: toward < 0 ? -1 : 1, frame, mayCharge: true });
-        input.attackHeld = true;
+        pressSlot(input, SpecialSlot.neutral, 0);
+        input.shield = true;
         return true;
       }
 
@@ -456,15 +457,6 @@ export function steerRunningSpecial(f: Readonly<Fighter>, target: Readonly<Fight
     }
   }
   return false;
-}
-
-
-
-
-
-export function kitChargeGoal(f: Readonly<Fighter>, target: Readonly<Fighter> | undefined, skill: CpuSkill, goal: number): number {
-  if (f.character !== Character.demonHunter || f.attack.style !== AttackStyle.forwardSmash || target === undefined || skill.kitTenths <= 0) return goal;
-  return Math.abs(f32(target.motion.x - f.motion.x)) >= EYE_BLAST_NEAR ? Math.max(goal, EYE_BLAST_CHARGE_FRAMES) : goal;
 }
 
 

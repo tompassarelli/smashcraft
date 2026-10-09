@@ -39,7 +39,6 @@ const SLACK = 40.0;
 
 const FEL_RUSH_REACH = 340.0;
 
-const EYE_BLAST_FAR = 600.0;
 
 
 const ORIGINAL_ZONING: readonly number[] = [
@@ -56,7 +55,6 @@ function strikesNow(c: Readonly<Fighter>, o: Readonly<Fighter>, style: AttackSty
   const dx = f32(o.motion.x - c.motion.x);
   const dz = f32(o.motion.z - c.motion.z);
 
-  if (c.character === Character.demonHunter && style === AttackStyle.forwardSmash && Math.abs(dx) <= EYE_BLAST_FAR && Math.abs(dz) <= 40.0) return true;
   for (const slackX of [0.0, SLACK, -SLACK]) {
     for (const slackZ of [0.0, SLACK, -SLACK]) if (moveReaches(c.character, style, o, f32(f32(dx * c.facing) - slackX), f32(dz - slackZ), c.tuning.moves)) return true;
   }

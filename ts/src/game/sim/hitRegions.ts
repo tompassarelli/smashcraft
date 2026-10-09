@@ -8,10 +8,8 @@ import { AttackStyle, Character, HitElement } from "./codes";
 import type { FighterMoves, StrikeCapsule } from "./heroMoves";
 import { DIAGONAL_UNIT, ORDINARY_HIT_BASE_KNOCKBACK, ORDINARY_HIT_GROWTH_PERCENT } from "./knockback";
 import {
-  DEMON_HUNTER_FORWARD_SMASH_ACTIVE,
   DOWN_ATTACK_BASE_KNOCKBACK,
   DOWN_ATTACK_DAMAGE,
-  EYE_BLAST_CHARGE_FRAMES,
   attackDamage,
   attackReach,
   attackStartupFrames,
@@ -107,7 +105,7 @@ const DEMON_HUNTER_REGIONS: { readonly [style: number]: Readonly<HitRegion> } = 
   [AttackStyle.jab3]: region(0.0, 110.0, -50.0, 110.0, 6.0, 95.0, 22.0, 0.7660444378852844, 0.6427876353263855),
   [AttackStyle.upSmash]: region(-105.0, 105.0, -30.0, 195.0, 15.0, 100.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
   [AttackStyle.downSmash]: region(-105.0, 105.0, -195.0, 45.0, 15.0, 100.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
-  [AttackStyle.forwardSmash]: region(25.0, 195.0, -75.0, 105.0, 10.0, 85.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
+  [AttackStyle.forwardSmash]: region(25.0, 120.0, -75.0, 105.0, 10.0, 85.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
 
   [AttackStyle.demonHunterDashAttack]: region(0.0, 150.0, -70.0, 115.0, 9.0, 95.0, 20.0, 0.5, 0.8660253882408142),
 
@@ -132,25 +130,14 @@ const AZZINOTH_GLAIVES = { ...region(-190.0, 190.0, -60.0, 60.0, 14.0, 95.0, 22.
 
 const AZZINOTH_FLAMES = { ...region(-190.0, 190.0, -30.0, 170.0, 3.0, 20.0, 30.0, 0.08715574443340302, 0.9961947202682495), effect: downSmashHit(region(-190.0, 190.0, -30.0, 170.0, 3.0, 20.0, 30.0, 0.08715574443340302, 0.9961947202682495).effect) };
 
-function eyeBlastBeam(): readonly Readonly<HitRegion>[] {
-  const beam: Readonly<HitRegion>[] = [];
-  for (let frame = 0; frame < DEMON_HUNTER_FORWARD_SMASH_ACTIVE; frame++) {
-    beam.push(region(25.0, 195.0 + frame * 50.0, -60.0, 45.0, 10.0, 90.0, 24.0, 0.8660253882408142, 0.5));
-  }
-  return beam;
-}
-const EYE_BLAST_BEAM = eyeBlastBeam();
 
 
-function demonHunterRegion(style: AttackStyle, activeFrame: number, chargeFrames: number): Readonly<HitRegion> {
+function demonHunterRegion(style: AttackStyle, activeFrame: number): Readonly<HitRegion> {
   switch (style) {
     case AttackStyle.forwardAir:
       return activeFrame <= 1 ? FORWARD_AIR_LINK : activeFrame >= 4 ? FORWARD_AIR_LAUNCH : NO_HIT_REGION;
     case AttackStyle.downSmash:
       return activeFrame <= 2 ? AZZINOTH_GLAIVES : AZZINOTH_FLAMES;
-    case AttackStyle.forwardSmash:
-      if (chargeFrames >= EYE_BLAST_CHARGE_FRAMES) return EYE_BLAST_BEAM[activeFrame] ?? NO_HIT_REGION;
-      return activeFrame <= 2 ? DEMON_HUNTER_REGIONS[style] ?? NO_HIT_REGION : NO_HIT_REGION;
     default:
       return DEMON_HUNTER_REGIONS[style] ?? NO_HIT_REGION;
   }
@@ -217,11 +204,11 @@ export function authoredHitRegionCount(style: AttackStyle | undefined, moves?: F
   return style === AttackStyle.forwardTilt ? 2 : 1;
 }
 
-function activeRegion(character: Character, style: AttackStyle, frame: number, index: number, chargeFrames: number): Readonly<HitRegion> {
+function activeRegion(character: Character, style: AttackStyle, frame: number, index: number): Readonly<HitRegion> {
   const startup = attackStartupFrames(style);
 
   if (character === Character.demonHunter && style !== AttackStyle.grab && style !== AttackStyle.getupAttack && style !== AttackStyle.ledgeAttack) {
-    return demonHunterRegion(style, frame - startup, chargeFrames);
+    return demonHunterRegion(style, frame - startup);
   }
   switch (style) {
     case AttackStyle.forwardTilt: {
@@ -277,7 +264,7 @@ export function authoredHitRegion(out: HitRegion, character: Character, style: A
     copyHitRegion(out, NO_HIT_REGION);
     return out;
   }
-  copyHitRegion(out, activeRegion(character, style, frame, index, chargeFrames));
+  copyHitRegion(out, activeRegion(character, style, frame, index));
   if (character === Character.demonHunter) out.effect.element = HitElement.slash;
   if (isSmashAttack(style)) out.effect.damage = f32(out.effect.damage * smashDamageMultiplier(chargeFrames));
   return out;

@@ -9,7 +9,7 @@ import { attackBuffer, clearAttackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { AttackStyle, Character, SpecialAction } from "../sim/codes";
 import { type Fighter, createFighter } from "../sim/fighter";
-import { EYE_BLAST_CHARGE_FRAMES } from "../sim/moves";
+import { EYE_BLAST_FORM } from "../sim/specials";
 import { copyControls, createRoster, fighterAt, isActive, neutralControls } from "../sim/roster";
 import { gameplanOf } from "./botGameplan";
 import { type GameplanMove, GameplanSpecial } from "../sim/gameplan";
@@ -34,10 +34,12 @@ function observe(f: Readonly<Fighter>, watch: Watch, counts: Counts): void {
   const style = f.attack.style;
   if (style !== undefined && f.attack.serial !== watch.attack) count(counts, `style${style}`);
   watch.attack = f.attack.serial;
-  if (f.character === Character.demonHunter && style === AttackStyle.forwardSmash && !f.attack.smashCharging && f.attack.smashChargeFrames >= EYE_BLAST_CHARGE_FRAMES && watch.blast !== f.attack.serial) {
+  const blasting = f.special.action === SpecialAction.demonHunterManaBurn && f.special.form === EYE_BLAST_FORM;
+  if (blasting && watch.blast === 0) {
     count(counts, "eyeBlast");
-    watch.blast = f.attack.serial;
+    if (!f.special.ex) count(counts, "eyeBlastWithoutMeter");
   }
+  watch.blast = blasting ? 1 : 0;
 }
 
 
@@ -139,10 +141,11 @@ sweep("computer Forsaken Paladin throws his down tilt and dash attack [spec #155
   throws(played(Character.forsakenPaladin), [downTilt, dashAttack]);
 });
 
-sweep("computer Illidan charges Eye Blast and throws Shear, Flames of Azzinoth and the two-hit forward air [spec #155]", () => {
+sweep("computer Illidan fires Eye Blast only on a full meter and throws Shear, Flames of Azzinoth and the two-hit forward air [spec #155] [spec #379]", () => {
   const counts = played(Character.demonHunter);
   throws(counts, [forwardTilt, downSmash, forwardAir]);
   assertGreaterThan(counts.eyeBlast ?? 0, 0);
+  assertEquals(counts.eyeBlastWithoutMeter ?? 0, 0);
 });
 
 sweep("computer Illidan and Rifleman never press a special their mana can't pay in a seeded mirror, which replays its counts [spec #155]", () => {

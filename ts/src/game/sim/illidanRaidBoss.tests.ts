@@ -6,9 +6,12 @@ import { f32 } from "wisp/src/sim/f32";
 import { queueAttack } from "../input/attackBuffer";
 import { AttackStyle, Character, SpecialAction } from "./codes";
 import { canAttack } from "./conditions";
-import { EYE_BLAST_CHARGE_FRAMES, attackDurationFrames, attackStartupFrames } from "./moves";
-import { FLAME_CRASH_FORM, FLAME_CRASH_FRAMES, FLAME_CRASH_HANG_LAST, FLAME_CRASH_LANDING_FORM, flameCrashRegion } from "./specials";
-import { authoredHitRegion, emptyHitRegion } from "./hitRegions";
+import { FEL_LUNGE_BASE, FEL_LUNGE_CHARGE, SMASH_MAX_CHARGE_FRAMES, attackDurationFrames, attackDurationFramesForGrounding, attackStartupFrames } from "./moves";
+import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "./hitRegions";
+import { SELECTABLE_CHARACTERS } from "./heroes/registry";
+import { authoredTuning } from "./tuning";
+import { EYE_BLAST_MARKS, eyeBlastMark } from "../presentation/eyeBlastMarker";
+import { EYE_BLAST_FORM, EYE_BLAST_LAST, EYE_BLAST_REACH, EYE_BLAST_WINDUP, FLAME_CRASH_FORM, FLAME_CRASH_FRAMES, FLAME_CRASH_HANG_LAST, FLAME_CRASH_LANDING_FORM, flameCrashRegion } from "./specials";
 import { type Duel, duel, lift } from "./testDuel";
 import { controls } from "./testWorld";
 
@@ -87,31 +90,79 @@ test("Flames of Azzinoth counterplay: a shield holds both parts and acts with th
   assertEquals(over.target.status.damage, 0.0);
 });
 
-test("Eye Blast: forward smash charged 20 frames becomes a floor beam reaching 400 without draining meter [spec #148]; uncharged it does not reach [spec docs/design/illidan.md]", () => {
-  for (const charge of [0, EYE_BLAST_CHARGE_FRAMES + 2]) {
+const EYE_BLAST_PRESS = controls({ specialPressed: true, shield: true, shieldStrength: 1.0 });
+
+test("Fel Lunge: forward smash travels 40, or 70 fully charged, and fires no beam at a target 420 away [spec #379]", () => {
+  for (const charge of [0, SMASH_MAX_CHARGE_FRAMES]) {
     const d = duel(420.0);
-    d.target.mana.points = 50;
     const held = controls({ attackHeld: true });
     attack(d, AttackStyle.forwardSmash, true, charge > 0 ? held : controls());
+    const start = d.illidan.motion.x;
     d.run(charge + 6, charge > 0 ? held : controls());
     finish(d, 80);
-    if (charge === 0) {
-      assertEquals(d.target.status.damage, 0.0);
-    } else {
-      assertGreaterThan(d.target.status.damage, 10.0);
-      assertEquals(d.target.visuals.manaDrained, 0);
-    }
+    assertEquals(d.target.status.damage, 0.0);
+    assertEquals(f32(d.illidan.motion.x - start), charge > 0 ? f32(FEL_LUNGE_BASE + FEL_LUNGE_CHARGE) : FEL_LUNGE_BASE);
   }
+  const near = duel(150.0);
+  attack(near, AttackStyle.forwardSmash);
+  finish(near, 80);
+  assertEquals(near.target.status.damage, 10.0);
+});
+
+test("Fel Lunge's full-charge reach stays inside the roster's forward smash band [spec #379]", () => {
+  const out = emptyHitRegion();
+  let illidan = 0.0;
+  let widest = 0.0;
+  for (const character of SELECTABLE_CHARACTERS) {
+    const moves = authoredTuning(character).moves;
+    let reach = 0.0;
+    for (let frame = 0; frame < attackDurationFramesForGrounding(AttackStyle.forwardSmash, true, moves); frame++) {
+      for (let index = 0; index < authoredHitRegionCount(AttackStyle.forwardSmash, moves); index++) {
+        const region = authoredHitRegion(out, character, AttackStyle.forwardSmash, frame, 0, index, moves);
+        if (region.effect.damage > 0.0) reach = Math.max(reach, region.strike === undefined ? region.maxX : Math.max(region.strike.x1, region.strike.x2) + region.strike.radius);
+      }
+    }
+    reach += moves?.normals[AttackStyle.forwardSmash]?.startupTravelX ?? 0.0;
+    if (character === Character.demonHunter) illidan = reach + FEL_LUNGE_BASE + FEL_LUNGE_CHARGE;
+    else widest = Math.max(widest, reach);
+  }
+  assertGreaterThan(illidan, 0.0);
+  assertTrue(illidan <= widest);
+});
+
+test("Eye Blast: a full meter's grounded EX neutral special, with a 24-frame windup and ground marker before a beam reaching 645 [spec #379]", () => {
+  const d = duel(420.0);
+  d.illidan.mana.points = 100;
+  d.target.mana.points = 50;
+  d.step(EYE_BLAST_PRESS);
+  assertEquals(d.illidan.special.action, SpecialAction.demonHunterManaBurn);
+  assertEquals(d.illidan.special.form, EYE_BLAST_FORM);
+  assertEquals(d.illidan.mana.points, 0);
+  assertGreaterThan(EYE_BLAST_WINDUP + 1, 20);
+  while (d.illidan.special.frame < EYE_BLAST_WINDUP) {
+    for (let mark = 0; mark < EYE_BLAST_MARKS; mark++) assertTrue(eyeBlastMark(d.illidan, mark) !== undefined);
+    assertEquals(d.target.status.damage, 0.0);
+    d.step();
+  }
+  assertEquals(d.target.status.damage, 0.0);
+  d.run(EYE_BLAST_LAST - EYE_BLAST_WINDUP);
+  assertEquals(d.target.status.damage, 13.0);
+  assertEquals(EYE_BLAST_REACH, 645.0);
+
+  const empty = duel(420.0);
+  empty.illidan.mana.points = 99;
+  empty.step(EYE_BLAST_PRESS);
+  assertEquals(empty.illidan.special.form, 0);
+  assertEquals(empty.illidan.mana.points, 99);
 });
 
 test("Eye Blast counterplay: the beam runs low along the floor, so a fighter above it is not hit [spec docs/design/illidan.md]", () => {
   const d = duel(420.0);
-  const held = controls({ attackHeld: true });
-  attack(d, AttackStyle.forwardSmash, true, held);
-  d.run(EYE_BLAST_CHARGE_FRAMES + 2, held);
+  d.illidan.mana.points = 100;
+  d.step(EYE_BLAST_PRESS);
   lift(d.target, 140.0);
-  d.target.motion.x = 420.0;
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < EYE_BLAST_LAST + 2; i++) {
+    d.target.motion.x = 420.0;
     d.target.motion.z = 140.0;
     d.target.motion.vz = 0.0;
     d.step();

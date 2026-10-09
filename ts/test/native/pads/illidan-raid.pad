@@ -1,4 +1,4 @@
-# Illidan's raid-boss moves for #147: Flame Crash, Eye Blast and Flames of Azzinoth, each
+# Illidan's raid-boss moves for #147: Flame Crash, Fel Lunge (#379) and Flames of Azzinoth, each
 # hitting b. Illidan a against Illidan b; syntax and checks: smashcraft:docs/native-bot-session.md.
 #! chat -dev quick hero illidan
 # Both dash in and pass each other, b ending about 50 behind a.
@@ -11,7 +11,7 @@
 92 a stick 0 -1
 92 a tap X 2
 93 a stick 0 0
-# Eye Blast (forward smash).
+# Fel Lunge (forward smash).
 260 a cstick 1 0
 264 a cstick 0 0
 # Flames of Azzinoth (down smash).

@@ -234,24 +234,63 @@ Mountain King's returning Storm Bolt); **C, the flames as persistent stage
 hazards** (rejected: a lingering zone after a smash outlives his
 commitment).
 
-### Forward smash: Eye Blast (picked)
+### Forward smash: Fel Lunge (picked, #379)
 
-Black Temple's Eye Blast is a beam swept along the floor. Startup 6 and
-total 36 as before; active 3 → 10. **The charge decides:** released with
-under 20 frames of charge it is the glaive swing it was (10% after #105 pass 3, was 12%; reach 195, on
-active frames 1–3). Held 20 frames or more (his eyes glow fel green while
-charging, the read), the beam sweeps out along the floor: active frames
-1–10, reaching 195 on frame 1 and 50 further each frame to 645 on frame 10,
-low (from 60 below his feet to 45 above), 10% at 30° (base 24, growth 90)
-before charge scaling, drain 10, one hit per target.
+Tom's playtest (9 Oct, #379): the old forward smash, Eye Blast, became a
+645-unit floor beam when charged 20 frames. Its only tell was a glow over his
+eyes that did not read at gameplay zoom, and computers fired it from across
+the stage: a full-screen zoning tool on a rushdown fighter. Lead decision:
+forward smash loses the beam and lunges like Fel Rush; Eye Blast moves into
+his meter-gated special (below).
 
-Counterplay: the charge is 20 frames of visible glow; the beam is low, so a
-short hop over it, or a jump at the charge, beats it; the whole move is
-still his 36-frame commitment, so up close a shield wins, and at range the
-beam is blocked like a projectile. Alternatives: **B, Eye Blast as the
-neutral special** (rejected: Mana Burn is kept and is his drain identity);
-**C, a beam on every forward smash** (rejected: a 645-unit smash with no
-added commitment is free stage control).
+Startup 6 and total 36 as before; active frames 6–8 (3, was 10). On attack
+frames 6–9, after any charge, he travels forward 40 units, plus up to 30
+more at full charge (60 frames): 10 a frame uncharged, 17.5 fully charged.
+The lunge stops at a body or a raised shield, like Fel Rush. The glaive
+strikes from 25 to 120 units ahead, from 75 below his feet to 105 above:
+10% at 45° (base 20, growth 85), drain 10, scaled by charge like every
+smash. Reach from where he starts is 160 uncharged and 190 fully charged,
+inside the roster's forward-smash band (62–195; the widest other fighter
+reaches 190). No projectile and no beam.
+
+Kill percent, from the centre of stage 0, no DI, against Rifleman / Murloc
+/ Cairne: uncharged 128 / 122 / 171 (unchanged); fully charged 94 / 90 /
+125, where the charged beam killed at 75 / 76 / 114. Both stay inside the
+range the old move covered (75–171).
+
+Counterplay: the lunge is short and straight, so a shield stops it in place
+and he still has 27 frames of recovery after the strike; a jump over the low
+lunge lands behind him. Alternatives: **B, keep the charged beam with a
+louder tell** (rejected by the lead: a 645-unit forward smash is free stage
+control at any tell); **C, a lunge as long as Fel Rush** (rejected: it
+duplicates his side special and would leave the reach band).
+
+### EX neutral special: Eye Blast (picked, #379)
+
+The issue first placed Eye Blast inside Metamorphosis; the lead corrected
+it (9 Oct): Smashcraft has no ultimate system, only the one super meter that
+buys EX specials (#335), so Eye Blast is Illidan's EX neutral special under
+those rules. Shield + Special with no direction on a full 100-point bar, on
+the ground, starts Eye Blast in place of Mana Burn's 25% reach EX and spends
+the whole bar. Below a full bar, or in the air, the press is the ordinary or
+EX Mana Burn.
+
+- **Frames 1–24, the windup:** he stands rooted; fel fire burns over his
+  eyes (his Metamorphosis missile) and eight small green dragon flames stand
+  just above the floor from 60 to 645 units ahead, brightening and growing
+  over the windup: the ground marker of where the beam will run. A hit
+  interrupts it; the bar stays spent.
+- **Frames 25–34, the beam:** reaching 195 on frame 25 and 50 further each
+  frame to 645 on frame 34, low (60 below his feet to 45 above): 13% at 30°
+  (base 24, growth 90), drain 10, one hit per target. Each flame burns
+  to full size as the beam passes it.
+- **Frames 35–60:** recovery; he acts on frame 61.
+
+Counterplay: 24 frames of windup with the whole path marked is a reaction
+for every fighter: a short hop clears the low beam, a shield holds it, and
+anyone near him punishes the windup. Alternatives: **B, Eye Blast as the
+ordinary neutral special** (rejected: Mana Burn is kept and is his drain
+identity); **C, a beam on every forward smash** (rejected: #379).
 
 ### Down special in the air: Flame Crash (picked)
 
@@ -322,6 +361,14 @@ works against stock pressure).
 
 ## What changes for the computer
 
+#379: the computer no longer charges forward smash at range. It fires Eye
+Blast only on a full meter at a grounded, level target 240–600 units ahead,
+and never upgrades a close neutral special into it as an armored answer. In
+a seeded 20-match Wren Expert sweep against Rifleman (stage 0, 1,800 frames
+each), Illidan's average distance to Rifleman fell from 281.7 to 272.4
+units; his 27 charged forward-smash beams, none paid for, became 13 Eye
+Blasts, each on a full bar.
+
 The computer presses side special as before; the gameplan names the
 Fel Rush branches only once a bot lane authors them (#105 is paused). Its
 old defence through Parry Step is gone: Illidan's planned stance answers fall
@@ -340,7 +387,8 @@ attackCues.ts and elementLooks.ts):
 | Chaos Strike (ground and air) | Moon Glaive whirl |
 | Flame Crash hang and plunge / landing burst | Breath of Fire missile / Volcano death |
 | Shear (forward tilt, all angles) | Demon Bolt impact where the glaive cuts |
-| Eye Blast charge / beam | Drain caster over his eyes / green dragon fire |
+| Fel Lunge (forward smash) | Illidan's Metamorphosis missile trail |
+| Eye Blast windup / beam | Metamorphosis missile over his eyes and small green dragon flames along the floor / green dragon fire, each floor flame growing as the beam reaches it |
 | Flames of Azzinoth glaives / fire wall | Demon Hunter glaive / Flame Strike |
 | Twin-glaive forward air | Illidan's missile trail |
 | Drain on hit (any victim) | Mana Burn target over the victim's head through that hit's hitlag and hitstun |

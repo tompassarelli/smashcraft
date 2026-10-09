@@ -48,6 +48,14 @@ export const FEL_RUSH_SPEED = 20.0;
 export const FEL_RUSH_BRANCH_FIRST = 10;
 export const FEL_RUSH_BRANCH_LAST = 24;
 export const FEL_RUSH_COOLDOWN = 40;
+export const EYE_BLAST_FORM = 1;
+export const EYE_BLAST_WINDUP = 24;
+export const EYE_BLAST_FIRST = EYE_BLAST_WINDUP + 1;
+export const EYE_BLAST_LAST = EYE_BLAST_FIRST + 9;
+export const EYE_BLAST_FRAMES = 60;
+export const EYE_BLAST_NEAR = 195.0;
+export const EYE_BLAST_SWEEP = 50.0;
+export const EYE_BLAST_REACH = EYE_BLAST_NEAR + EYE_BLAST_SWEEP * (EYE_BLAST_LAST - EYE_BLAST_FIRST);
 
 const FEL_RUSH_AIRTIME = 2;
 const FEL_RUSH_AIR_CARRY = 5.0;
@@ -461,6 +469,18 @@ function startDemonHunterSpecial(owner: Fighter, action: SpecialAction, moveX: n
 }
 
 
+function enterEyeBlast(owner: Fighter): void {
+  const { special } = owner;
+  for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
+  special.form = EYE_BLAST_FORM;
+  special.hit = false;
+  special.duration = EYE_BLAST_FRAMES;
+  special.lockFrames = EYE_BLAST_FRAMES;
+  special.cooldowns[SpecialAction.demonHunterManaBurn] = EYE_BLAST_FRAMES;
+  owner.attack.cooldown = max(owner.attack.cooldown, EYE_BLAST_FRAMES);
+  owner.motion.vx = 0.0;
+}
+
 const heroRefusal = { groundOnly: false };
 const neutralPress = neutralControls();
 
@@ -521,6 +541,7 @@ export function startFighterSpecial(owner: Fighter, stage: number, matchFrame: n
   const started = startOriginalSpecial(owner, stage, matchFrame, requested, moveX);
   if (started) {
     enterExSpecial(owner, input);
+    if (requested === SpecialAction.demonHunterManaBurn && owner.special.ex && owner.motion.grounded) enterEyeBlast(owner);
   }
   else owner.facing = facing;
   return started;
@@ -562,7 +583,8 @@ function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number,
   }
   if (special.action === SpecialAction.riflemanTrap && special.frame === TRAP_APPEAR_FRAME) startFreezeTrap(owner, stage, matchFrame);
   if (special.action === SpecialAction.riflemanBear && special.frame === RIFLEMAN_BEAR_CAST_FRAMES) summonBear(owner, stage, matchFrame);
-  if (special.action === SpecialAction.demonHunterManaBurn && special.frame === DEMONHUNTER_MANA_BURN_STARTUP) {
+  if (special.action === SpecialAction.demonHunterManaBurn && special.form === EYE_BLAST_FORM && motion.grounded) motion.vx = 0.0;
+  if (special.action === SpecialAction.demonHunterManaBurn && special.form !== EYE_BLAST_FORM && special.frame === DEMONHUNTER_MANA_BURN_STARTUP) {
     spawnProjectileMotion(owner, ProjectileKind.manaBurn, f32(owner.facing * DEMONHUNTER_MANA_BURN_SPEED), 0.0, DEMONHUNTER_MANA_BURN_LIFETIME, shotSerial, 1.0, DEMONHUNTER_MANA_BURN_HEIGHT);
   }
   if (special.action === SpecialAction.riflemanRecovery) {
@@ -699,8 +721,35 @@ function felRushContact(owner: Fighter, targetSlot: number, target: Fighter): Re
   return localX >= region.minX && localX <= region.maxX && localZ >= region.minZ && localZ <= region.maxZ ? region : NO_HIT_REGION;
 }
 
+const EYE_BLAST_BEAM: readonly Readonly<HitRegion>[] = eyeBlastBeam();
+
+function eyeBlastBeam(): Readonly<HitRegion>[] {
+  const beam: Readonly<HitRegion>[] = [];
+  for (let frame = EYE_BLAST_FIRST; frame <= EYE_BLAST_LAST; frame++) {
+    beam.push({
+      minX: 25.0, maxX: f32(EYE_BLAST_NEAR + f32(EYE_BLAST_SWEEP * (frame - EYE_BLAST_FIRST))), minZ: -60.0, maxZ: 45.0,
+      effect: { damage: 13.0, growth: 90.0, base: 24.0, launchX: 0.8660253882408142, launchZ: 0.5, electric: false, element: HitElement.fire, manaDrain: 10 },
+      window: 1,
+    });
+  }
+  return beam;
+}
+
+export function eyeBlastRegion(frame: number): Readonly<HitRegion> {
+  return frame >= EYE_BLAST_FIRST && frame <= EYE_BLAST_LAST ? at(EYE_BLAST_BEAM, frame - EYE_BLAST_FIRST) : NO_HIT_REGION;
+}
+
+function eyeBlastContact(owner: Fighter, targetSlot: number, target: Fighter): Readonly<HitRegion> {
+  const region = eyeBlastRegion(owner.special.frame);
+  if (region.window <= 0 || specialAlreadyHit(owner, targetSlot) || target.status.out || isIntangible(target)) return NO_HIT_REGION;
+  const localX = f32(f32(target.motion.x - owner.motion.x) * owner.facing);
+  const localZ = f32(target.motion.z - owner.motion.z);
+  return localX >= region.minX && localX <= region.maxX && localZ >= region.minZ && localZ <= region.maxZ ? region : NO_HIT_REGION;
+}
+
 function demonHunterSpecialContact(owner: Fighter, targetSlot: number, target: Fighter): Readonly<HitRegion> {
   const { special } = owner;
+  if (owner.character === Character.demonHunter && special.action === SpecialAction.demonHunterManaBurn && special.form === EYE_BLAST_FORM) return eyeBlastContact(owner, targetSlot, target);
   if (owner.character === Character.demonHunter && special.action === SpecialAction.demonHunterFelRush) return felRushContact(owner, targetSlot, target);
   if (owner.character === Character.demonHunter && special.action === SpecialAction.demonHunterWingAscent && special.form === DEMONHUNTER_GLIDE_SLASH_FORM) return glideSlashContact(owner, targetSlot, target);
   if (owner.character !== Character.demonHunter || special.action !== SpecialAction.demonHunterImmolate) return NO_HIT_REGION;

@@ -3,8 +3,8 @@
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { AttackStyle, Character } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
-import { EYE_BLAST_CHARGE_FRAMES, attackStartupFrames } from "../sim/moves";
-import { ATTACK_CUES, EYE_BLAST_CHARGE_CUE, type AttackCueState, attackCueState } from "./attackCues";
+import { attackStartupFrames } from "../sim/moves";
+import { ATTACK_CUES, type AttackCueState, attackCueState } from "./attackCues";
 
 const STYLES = Object.values(AttackStyle);
 
@@ -34,9 +34,4 @@ test("every signature normal shows its cue on its hits and none before them [spe
       if (cues.length > 1) assertTrue(keys.size > 1);
     }
   }
-  const illidan = createFighter(Character.demonHunter, 0.0, 1);
-  illidan.attack.style = AttackStyle.forwardSmash;
-  illidan.attack.smashCharging = true;
-  illidan.attack.smashChargeFrames = EYE_BLAST_CHARGE_FRAMES;
-  assertTrue(attackCueState(illidan, out).cue === EYE_BLAST_CHARGE_CUE);
 });

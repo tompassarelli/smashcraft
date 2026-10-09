@@ -10,7 +10,7 @@ import { DownState, GrabAction, ShieldBreak } from "../sim/codes";
 import { heroStatusBlocksActions, heroStatusMashes } from "../sim/heroStatus";
 import type { Fighter } from "../sim/fighter";
 import { exSpecialAffordable } from "../sim/exSpecials";
-import { SpecialAction } from "../sim/codes";
+import { Character, SpecialAction } from "../sim/codes";
 import { isSmashAttack } from "../sim/moves";
 import { type Controls, type Roster, copyControls, fighterAt, neutralControls } from "../sim/roster";
 import { surfacePass } from "../sim/stage";
@@ -25,7 +25,7 @@ import { chooseDefense } from "./botDefense";
 import { choosePunish } from "./botPunish";
 import { chooseRecoveryInput } from "./botRecovery";
 import { pressHeroFollowUp } from "./botHeroKit";
-import { dashIn, kitChargeGoal, pressKitOption, steerHeroBranches, steerRunningSpecial } from "./botKitOptions";
+import { dashIn, pressKitOption, steerHeroBranches, steerRunningSpecial } from "./botKitOptions";
 import { MATCH_TICKS_PER_SECOND, type MatchState, stageClock, computerActive } from "./rules";
 import { trainingPartnerInput } from "./training";
 import { sameFighterState } from "../replay/fighterState";
@@ -241,6 +241,7 @@ export function upgradeThreatenedSpecial(fighter: Readonly<Fighter>, target: Rea
   if (target === undefined || !input.specialPressed || fighter.special.action !== SpecialAction.none
     || target.attack.style === undefined || Math.abs(f32(target.motion.x - fighter.motion.x)) > 140.0
     || Math.abs(f32(target.motion.z - fighter.motion.z)) > 140.0 || !exSpecialAffordable(fighter)) return;
+  if (fighter.character === Character.demonHunter && input.specialX === 0 && input.specialZ === 0) return;
   input.shield = true;
 }
 
@@ -285,7 +286,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
   if (skill.basicMoves === undefined && target !== undefined && (steerHeroBranches(fighter, target, skill, input) || pressHeroFollowUp(fighter, target, stage, input))) return;
   const recovering = chooseRecoveryInput(fighter, stage, stageFrame, input, target, skill);
   if (steerRunningSpecial(fighter, target, stage, skill, input) || recovering) return;
-  if (isSmashAttack(fighter.attack.style) && fighter.attack.smashChargeAllowed) input.attackHeld = fighter.attack.smashChargeFrames < kitChargeGoal(fighter, target, skill, smashChargeGoal(fighter));
+  if (isSmashAttack(fighter.attack.style) && fighter.attack.smashChargeAllowed) input.attackHeld = fighter.attack.smashChargeFrames < smashChargeGoal(fighter);
   if (target === undefined) return;
   if (chooseDefense(fighter, target, stage, input, skill, observationAge)) return;
   // An opponent that can't act yet is punished before any pause or idle stretch.

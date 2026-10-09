@@ -1509,7 +1509,8 @@ Expert gameplan: Place and recall the bear, trap routes and cover jumps while va
 ### Illidan
 
 **Identity:** the original fighter with the highest air speed and the
-longest glaives (forward and back air reach 175 units, forward smash 195).
+longest glaives (forward and back air reach 175 units; forward smash, Fel
+Lunge, lunges 40–70 to reach 160–190, #379).
 He reaches farther and deals less: the twin-glaive forward air 3 + 4, back air 6, forward
 smash 10, all at 85 knockback growth, and his smashes start from 20 base
 knockback like everyone's ordinary hits. Every hit he lands drains the
@@ -1531,7 +1532,10 @@ at 60° (damage 9, base 20, growth 95 unchanged); forward smash's glaive
 swing deals 10%. Measured from the centre of stage 0, no DI, against
 Rifleman / Murloc / Cairne: uncharged forward smash kills from 145 / 137 /
 190% before and 131 / 124 / 173% after; fully charged Eye Blast is
-unchanged at 77 / 76 / 114%. Dash attack kills from 115 / 115 / 170%
+unchanged at 77 / 76 / 114%. 9 Oct, #379: forward smash became Fel Lunge,
+a short lunge with no beam (uncharged 128 / 122 / 171%, fully charged 94 /
+90 / 125%), and Eye Blast moved to his full-meter EX neutral special
+(smashcraft:docs/design/illidan.md). Dash attack kills from 115 / 115 / 170%
 before and 145 / 135 / 190% after; at 120% it now sends Rifleman 180 units
 up (39 before) with Illidan 22 frames ahead.
 

@@ -41,7 +41,7 @@ export const ORIGINAL_KITS: Readonly<Record<number, OriginalKit>> = {
   },
   2: {
     specials: [
-      { action: SpecialAction.demonHunterManaBurn, name: "Mana Burn", description: "A slow orb that burns mana and stuns; the emptier it leaves the target, the longer the stun." },
+      { action: SpecialAction.demonHunterManaBurn, name: "Mana Burn", description: "A slow orb that burns mana and stuns; the emptier it leaves the target, the longer the stun. On a full meter, its EX is Eye Blast." },
       {
         action: SpecialAction.demonHunterFelRush, name: "Fel Rush", description: "Dash through anyone in your path; press special to flip back out, or attack to slash.",
         forms: [{ form: VENGEFUL_RETREAT_FORM, name: "Vengeful Retreat" }, { form: CHAOS_STRIKE_FORM, name: "Chaos Strike" }, { form: CHAOS_STRIKE_AIR_FORM, name: "Aerial Chaos Strike" }],
@@ -59,7 +59,7 @@ export const ORIGINAL_KITS: Readonly<Record<number, OriginalKit>> = {
     inspiredBy: {
       [AttackStyle.forwardTilt]: "Shear, from the Black Temple encounter",
       [AttackStyle.downSmash]: "Flames of Azzinoth, from the Black Temple encounter",
-      [AttackStyle.forwardSmash]: "Eye Blast, from the Black Temple encounter",
+      [AttackStyle.forwardSmash]: "Fel Lunge, from the Demon Hunter's Fel Rush",
       [AttackStyle.forwardAir]: "His twin warglaives crossing",
     },
     ultimate: { name: "Metamorphosis", description: "He becomes a demon for a while: heavier, with a fast bolt and a draining aura." },

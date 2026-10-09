@@ -19,9 +19,18 @@ export const DOWN_ATTACK_BASE_KNOCKBACK = 75.0;
 
 export const DEMON_HUNTER_FORWARD_AIR_ACTIVE = 6;
 export const DEMON_HUNTER_DOWN_SMASH_ACTIVE = 9;
-export const DEMON_HUNTER_FORWARD_SMASH_ACTIVE = 10;
+export const DEMON_HUNTER_FORWARD_SMASH_ACTIVE = 3;
 
-export const EYE_BLAST_CHARGE_FRAMES = 20;
+export const FEL_LUNGE_BASE = 40.0;
+export const FEL_LUNGE_CHARGE = 30.0;
+export const FEL_LUNGE_FIRST = 6;
+export const FEL_LUNGE_FRAMES = 4;
+
+export function felLungeStep(character: Character, style: AttackStyle | undefined, frame: number, charging: boolean, chargeFrames: number): number {
+  if (character !== Character.demonHunter || style !== AttackStyle.forwardSmash || charging || frame < FEL_LUNGE_FIRST || frame >= FEL_LUNGE_FIRST + FEL_LUNGE_FRAMES) return 0.0;
+  const charge = f32(f32(FEL_LUNGE_CHARGE * min(chargeFrames, SMASH_MAX_CHARGE_FRAMES)) / SMASH_MAX_CHARGE_FRAMES);
+  return f32(f32(FEL_LUNGE_BASE + charge) / FEL_LUNGE_FRAMES);
+}
 
 
 
