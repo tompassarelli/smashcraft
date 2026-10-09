@@ -93,6 +93,9 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   launch.hitstun = sourceLaunch.hitstun;
   launch.throwHitstun = sourceLaunch.throwHitstun;
   launch.hitlag = sourceLaunch.hitlag;
+  launch.hitlagFrames = sourceLaunch.hitlagFrames;
+  launch.hitlagEndAge = sourceLaunch.hitlagEndAge;
+  launch.sdiFollowup = sourceLaunch.sdiFollowup;
   launch.diPending = sourceLaunch.diPending;
   launch.diLaunchSpeed = sourceLaunch.diLaunchSpeed;
   launch.diSerial = sourceLaunch.diSerial;
@@ -495,6 +498,9 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
   if (launch.throwHitstun !== sourceLaunch.throwHitstun) return false;
   if (launch.hitlag !== sourceLaunch.hitlag || (launch.hitlag === 0 && 1 / launch.hitlag !== 1 / sourceLaunch.hitlag)) return false;
   if (launch.diPending !== sourceLaunch.diPending) return false;
+  if (launch.hitlagFrames !== sourceLaunch.hitlagFrames) return false;
+  if (launch.hitlagEndAge !== sourceLaunch.hitlagEndAge) return false;
+  if (launch.sdiFollowup !== sourceLaunch.sdiFollowup) return false;
   if (launch.diLaunchSpeed !== sourceLaunch.diLaunchSpeed || (launch.diLaunchSpeed === 0 && 1 / launch.diLaunchSpeed !== 1 / sourceLaunch.diLaunchSpeed)) return false;
   if (launch.diSerial !== sourceLaunch.diSerial || (launch.diSerial === 0 && 1 / launch.diSerial !== 1 / sourceLaunch.diSerial)) return false;
   if (launch.diAngleDegrees !== sourceLaunch.diAngleDegrees || (launch.diAngleDegrees === 0 && 1 / launch.diAngleDegrees !== 1 / sourceLaunch.diAngleDegrees)) return false;

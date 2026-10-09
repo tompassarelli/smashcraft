@@ -13,9 +13,11 @@ import { createRoster, fighterAt, copyControls } from "../sim/roster";
 import { createBufferedFrameControls } from "./controls";
 import { createMatchState, Phase } from "./rules";
 import { stepMatch } from "./step";
-import { controls, soloWorld } from "../sim/testWorld";
+import { contactBatch, controls, hitEffect, soloWorld, testWorld } from "../sim/testWorld";
+import { applyAttackHit } from "../sim/hits";
 import { CPU_OPPONENT_IDS, CPU_TIERS, type CpuOpponentId, type CpuTier } from "./cpuProfiles";
 import { applyAerialExecutionNoise, chooseHitlagInput } from "./botExecutionNoise";
+import { melee } from "../sim/tuning";
 import { cpuSkill } from "./cpuSkill";
 import { useMatchSeed } from "./botRandom";
 
@@ -29,7 +31,7 @@ export function measureDefenceExecution(opponent: CpuOpponentId, tier: CpuTier, 
   const target = createFighter(Character.rifleman, 100.0, -1);
   const world = soloWorld(f);
   const input = controls();
-  const result = { di: 0, sdi: 0, fullHop: 0, aerial: 0 };
+  const result = { noDi: 0, wrongDi: 0, strongSdi: 0, followupSdi: 0, wrongSdi: 0, fullHop: 0, aerial: 0 };
   for (let event = 0; event < events; event++) {
     useMatchSeed(event);
     copyFighterState(f, base, 1);
@@ -38,17 +40,41 @@ export function measureDefenceExecution(opponent: CpuOpponentId, tier: CpuTier, 
     f.motion.grounded = false;
     f.motion.surface = undefined;
     f.motion.z = 200.0;
-    f.launch.hitlag = 1;
+    f.launch.hitlag = 9;
+    f.launch.hitlagFrames = 9;
+    f.launch.diLaunchSpeed = melee(3.0);
     f.launch.hitstun = 30;
     f.launch.diPending = true;
     f.launch.knockbackX = 100.0;
     f.launch.knockbackZ = 40.0;
     chooseHitlagInput(f, 0, 2, skill, input);
     applyDirectionalInfluence(f, input);
-    if (f.launch.diAngleDegrees <= 0) result.di++;
-    const before = f.motion.x;
-    applySmashDirectionalInfluence(world, 0, 0, 2, input);
-    if (f.motion.x >= before) result.sdi++;
+    if (f.launch.diAngleDegrees === 0) result.noDi++;
+    else if (f.launch.diAngleDegrees < 0) result.wrongDi++;
+    for (const followup of [false, true]) {
+      copyFighterState(f, base, 1);
+      f.visuals.hit = event + 1;
+      f.status.damage = 100.0;
+      f.motion.grounded = false;
+      f.motion.surface = undefined;
+      f.motion.z = 200.0;
+      f.launch.diPending = true;
+      f.launch.hitlag = followup ? 3 : 9;
+      f.launch.hitlagFrames = f.launch.hitlag;
+      f.launch.sdiFollowup = followup;
+      f.launch.knockbackX = 100.0;
+      f.launch.knockbackZ = 40.0;
+      const before = f.motion.x;
+      for (let tick = 0; tick < f.launch.hitlagFrames; tick++) {
+        const sdi = controls();
+        chooseHitlagInput(f, 0, tick + 1, skill, sdi);
+        applySmashDirectionalInfluence(world, 0, 0, tick + 1, sdi);
+      }
+      if (f.motion.x === before) {
+        if (followup) result.followupSdi++;
+        else result.strongSdi++;
+      } else if (!followup && f.motion.x > before) result.wrongSdi++;
+    }
     copyFighterState(f, base, 1);
     f.jump.serial = event;
     for (let frame = 0; frame < 8; frame++) {
@@ -85,31 +111,49 @@ test("defence uses the observed launch angle and combo or survival goal [spec #3
   f.launch.knockbackX = 100.0;
   f.launch.knockbackZ = 40.0;
   const input = controls();
+  const skill = { ...cpuSkill("wren", "expert"), executionMistakes: false };
   let survival = 0, combo = 0;
   for (let hit = 0; hit < 100; hit++) {
     f.visuals.hit = hit;
     f.status.damage = 100.0;
-    chooseHitlagInput(f, 0, 2, cpuSkill("wren", "expert"), input);
+    chooseHitlagInput(f, 0, 2, skill, input);
     if (input.verticalDirection === 1) survival++;
     f.status.damage = 0.0;
-    chooseHitlagInput(f, 0, 2, cpuSkill("wren", "expert"), input);
+    chooseHitlagInput(f, 0, 2, skill, input);
     if (input.verticalDirection === -1) combo++;
   }
   assertGreaterThan(survival, 90);
   assertGreaterThan(combo, 90);
 });
 
+test("SDI follow-ups use the previous hitlag end even when no SDI was attempted [spec #357]", () => {
+  const attacker = createFighter(Character.rifleman, -100.0, 1);
+  const target = createFighter(Character.rifleman, 100.0, -1);
+  const base = createFighter(Character.rifleman, 100.0, -1);
+  const world = testWorld(attacker, target);
+  for (const age of [15, 16]) {
+    copyFighterState(target, base, 1);
+    target.launch.hitlagEndAge = age;
+    contactBatch(world, () => applyAttackHit(world, 0, 1, AttackStyle.jab, 1, hitEffect(18.0, 100.0, 20.0, 1.0, 1.0), true, false));
+    assertEquals(target.launch.hitlagFrames, 9);
+    assertEquals(target.launch.sdiFollowup, age === 15);
+    assertEquals(target.launch.sdiStringTravel, 0);
+  }
+});
+
 for (const opponent of CPU_OPPONENT_IDS) {
   sweep(`${opponent} defence executes 2000 opportunities per tier with monotonic human slips [spec #357]`, () => {
-    let previous = { di: 2000, sdi: 2000, fullHop: 2000, aerial: 2000 };
+    let previous = { noDi: 2000, wrongDi: 2000, strongSdi: 2000, followupSdi: 2000, wrongSdi: 2000, fullHop: 2000, aerial: 2000 };
     for (const tier of CPU_TIERS) {
       const counts = measureDefenceExecution(opponent, tier, 2000);
-      console.log(`${opponent} ${tier} /2000 DI=${counts.di} SDI=${counts.sdi} fullHop=${counts.fullHop} aerial=${counts.aerial}`);
-      for (const key of ["di", "sdi", "fullHop", "aerial"] as const) assertEquals(counts[key] <= previous[key], true, `${opponent} ${tier} ${key}: ${counts[key]} <= ${previous[key]}`);
+      console.log(`${opponent} ${tier} /2000 noDI=${counts.noDi} wrongDI=${counts.wrongDi} strongSDImissed=${counts.strongSdi} followupSDImissed=${counts.followupSdi} wrongSDI=${counts.wrongSdi} fullHop=${counts.fullHop} aerial=${counts.aerial}`);
+      for (const key of ["noDi", "wrongDi", "strongSdi", "followupSdi", "fullHop", "aerial"] as const) assertEquals(counts[key] <= previous[key], true, `${opponent} ${tier} ${key}: ${counts[key]} <= ${previous[key]}`);
       if (tier === "expert") {
-        assertEquals(counts.di >= 60 && counts.di <= 120, true, `DI ${counts.di}/2000`);
-        assertEquals(counts.sdi >= 100 && counts.sdi <= 200, true, `SDI ${counts.sdi}/2000`);
-        assertEquals(counts.fullHop > 0 && counts.fullHop <= 20, true, `fullHop ${counts.fullHop}/2000`);
+        assertEquals(counts.noDi >= 240 && counts.noDi <= 320, true, `no DI ${counts.noDi}/2000`);
+        assertEquals(counts.wrongDi >= 60 && counts.wrongDi <= 120, true, `wrong DI ${counts.wrongDi}/2000`);
+        assertEquals(counts.strongSdi >= 1160 && counts.strongSdi <= 1320, true, `strong SDI ${counts.strongSdi}/2000`);
+        assertEquals(counts.followupSdi >= 1700 && counts.followupSdi <= 1820, true, `followup SDI ${counts.followupSdi}/2000`);
+        assertEquals(counts.fullHop >= 12 && counts.fullHop <= 24, true, `fullHop ${counts.fullHop}/2000`);
         assertEquals(counts.aerial >= 40 && counts.aerial <= 100, true, `aerial ${counts.aerial}/2000`);
       }
       previous = counts;

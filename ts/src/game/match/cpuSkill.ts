@@ -8,6 +8,7 @@ import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
 import { CPU_OPPONENT_DEFAULT, CPU_OPPONENT_IDS, CPU_PROFILES, CPU_TIER_DEFAULT, CPU_TIERS, type CpuOpponentId, type CpuProfile, type CpuTier } from "./cpuProfiles";
 
 export interface CpuSkill {
+  readonly tier?: CpuTier;
   /** Debug ceiling experiments disable mistakes without changing the five playable tiers. */
   readonly executionMistakes?: boolean;
   readonly decision: CpuDecisionPolicy;
@@ -48,6 +49,7 @@ export interface CpuSkill {
 function mechanics(profile: CpuProfile): CpuSkill {
   const missed = 100 - profile.executionPercent;
   return {
+    tier: profile.tier,
     decision: profile, reactionFrames: profile.reactionFrames,
     defendTenths: Math.min(7, floorDiv(profile.judgmentPercent * 7 + 99, 100)),
     attackPause: 3 + floorDiv(missed, 2), attackSpread: 8 + floorDiv(missed, 2),

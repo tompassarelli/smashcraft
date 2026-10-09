@@ -409,6 +409,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   // Expiry resumes this frame, including input gates and state countdowns.
   const hitlagBefore = launch.hitlag;
   launch.hitlag = max(0, launch.hitlag - 1);
+  launch.hitlagEndAge = hitlagBefore > 0 ? 0 : min(16, launch.hitlagEndAge + 1);
   // A jump or ground dodge pressed during a parried hit's freeze starts on its first actionable frame.
   let parryOption: ParryBuffer = ParryBuffer.none;
   const parryDirection = shield.parryBufferDirection;

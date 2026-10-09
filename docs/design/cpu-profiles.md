@@ -156,18 +156,33 @@ for a second guard; without active protection, the guard reserve still applies.
 input errors without changing fighter stats. DI uses the victim’s visible
 knockback angle: side launches turn upward for survival and downward for combo
 escape; vertical launches turn outward for survival and inward for escape.
-Survival takes priority at 80 damage or launch speed 20. A slip drops DI,
-applies it after hitlag has released the launch, or points it the wrong way. Strong hits (at least 20
-hitstun frames) and continuing strings receive an escaping SDI pulse every
-other tick; a missed save drops that pulse or reverses it.
+Survival takes priority at 80 damage or launch speed 20. Absent DI and wrong
+DI are separate, disjoint outcomes. Kill-percent hits require at least 100%
+damage, upward launch, and speed at least 3 Melee units per frame. Other hits
+use the all-knockback context; along-launch inputs are not counted as absent.
+Strong SDI opportunities have at least 9 hitlag frames. Multi-hit follow-ups
+start within 15 frames after the previous hitlag ends and have at least 3
+hitlag frames. The victim's hit duration and elapsed time supply these
+classes, even when the preceding SDI was missed. Attempts pulse every other
+tick; a small separate share points the wrong way.
 
-For execution `E`, the initial rates per 1,000 opportunities are
-`DI = 30 + 5 × (100 − E)`, `SDI = 60 + 8 × (100 − E)`,
-`full hop = 3 + floor((100 − E)/2)` and
-`aerial drift = 20 + 4 × (100 − E)`.
-The Expert rows (execution 96–98) therefore request 4–5% DI slips,
-7.6–9.2% SDI misses, 0.4–0.5% accidental full hops and 2.8–3.6% aerial
-spacing errors. Every lower tier increases each rate monotonically.
+The [Slippi measurements](human-input-consistency.md) map master to Expert,
+diamond to Advanced and platinum to Intermediate. Rates per 1,000 actual
+opportunities are:
+
+| Difficulty | No DI, kill percent | No DI, other hits | Wrong DI | Strong SDI missed | Follow-up SDI missed | Wrong SDI, of attempts | Accidental full hop |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Expert | 140 | 180 | 45 | 620 | 880 | 40 | 9 |
+| Advanced | 170 | 200 | 70 | 690 | 880 | 65 | 12 |
+| Intermediate | 180 | 220 | 95 | 690 | 890 | 90 | 16 |
+| Beginner | 240 | 300 | 120 | 780 | 930 | 115 | 24 |
+| Rookie | 320 | 400 | 145 | 860 | 970 | 140 | 36 |
+
+Wrong-direction rates, Beginner/Rookie rates and aerial misspacing remain
+guesses. The 33% survival-shortening replay proxy ignores stage position and
+is not the wrong-DI target. For execution `E`, aerial mistakes retain
+`20 + 4 × (100 − E)` per thousand and drift lasts
+`5 + floor((100 − E)/8)` frames. Expert requests 2.8–3.6% aerial mistakes.
 A successful intended short hop presses the dedicated short-hop button;
 a mistake holds ordinary jump through squat. A drifting aerial keeps its
 planned gap, but a slip adds 5–11 ticks of inward stick and fast-falls when
@@ -177,7 +192,8 @@ match seed keep a choice fixed for its opportunity on every client and replay.
 Only delayed opponent position supplies the drift direction.
 
 The `botExecutionNoise` production-input sweep executes 2,000 of each
-opportunity for every identity and tier, counting launch rotation, SDI travel,
+opportunity for every identity and tier, counting absent and wrong DI separately,
+strong and follow-up SDI travel,
 actual takeoff speed and final aerial position. It checks Expert’s issue
 ranges and monotonic errors at lower tiers. The shield-grab case executes the
 same aerial with correct spacing and an Expert drift mistake.

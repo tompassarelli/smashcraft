@@ -802,6 +802,9 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("hitlag", l.hitlag);
   bool("diPending", l.diPending);
   real("diLaunchSpeed", l.diLaunchSpeed);
+  int("hitlagFrames", l.hitlagFrames);
+  int("hitlagEndAge", l.hitlagEndAge);
+  bool("sdiFollowup", l.sdiFollowup);
   int("diSerial", l.diSerial);
   real("diAngleDegrees", l.diAngleDegrees);
   bool("sdiWasGrounded", l.sdiWasGrounded);

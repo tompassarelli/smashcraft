@@ -123,6 +123,9 @@ interface Launch {
   /** The current hitstun came from a throw; grabs cannot extend it. */
   throwHitstun: boolean;
   hitlag: number;
+  hitlagFrames: number;
+  hitlagEndAge: number;
+  sdiFollowup: boolean;
   diPending: boolean;
   diLaunchSpeed: number;
   diSerial: number;
@@ -630,6 +633,9 @@ export function createFighter(character: Character, startX: number, facing: numb
       hitstun: 0,
       throwHitstun: false,
       hitlag: 0,
+      hitlagFrames: 0,
+      hitlagEndAge: 16,
+      sdiFollowup: false,
       diPending: false,
       diLaunchSpeed: 0.0,
       diSerial: 0,

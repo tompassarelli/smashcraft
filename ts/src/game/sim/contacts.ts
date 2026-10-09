@@ -292,7 +292,11 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     target.visuals.hitHeight = effectContact.height;
     target.visuals.hitPummel = effectContact.kind === ContactKind.pummel;
     // The strongest launch supplies the effect; the largest damage supplies hitlag power.
-    if (hurtContact !== undefined) launch.hitlag = max(launch.hitlag, victimHitlagFrames(hitlagDamage, effectContact.effect.electric, effectContact.crouching) + hammerHitlag);
+    if (hurtContact !== undefined) {
+      launch.sdiFollowup = launch.hitlag === 0 && launch.hitlagEndAge <= 15;
+      launch.hitlagFrames = victimHitlagFrames(hitlagDamage, effectContact.effect.electric, effectContact.crouching) + hammerHitlag;
+      launch.hitlag = max(launch.hitlag, launch.hitlagFrames);
+    }
   }
   status.damage = addFloat32(roundToFloat32(status.damage), totalDamage);
   if (blockedContact) {

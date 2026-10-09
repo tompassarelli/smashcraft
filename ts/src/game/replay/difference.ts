@@ -143,6 +143,9 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("hitlag", e.launch.hitlag, a.launch.hitlag);
   add("diPending", e.launch.diPending, a.launch.diPending);
   add("diLaunchSpeed", e.launch.diLaunchSpeed, a.launch.diLaunchSpeed);
+  add("hitlagFrames", e.launch.hitlagFrames, a.launch.hitlagFrames);
+  add("hitlagEndAge", e.launch.hitlagEndAge, a.launch.hitlagEndAge);
+  add("sdiFollowup", e.launch.sdiFollowup, a.launch.sdiFollowup);
   add("diSerial", e.launch.diSerial, a.launch.diSerial);
   add("diAngleDegrees", e.launch.diAngleDegrees, a.launch.diAngleDegrees);
   add("sdiWasGrounded", e.launch.sdiWasGrounded, a.launch.sdiWasGrounded);
