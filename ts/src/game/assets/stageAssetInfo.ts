@@ -26,7 +26,7 @@ export const STAGE_LIGHT_MODELS: Readonly<Record<number, string>> = {
   10: "war3mapImported\\StageLight-237830eeeab84963d9a926cef8a7feaa72a71cb011309292ea8ad44f5ca69774.mdx",
   11: "war3mapImported\\StageLight-05aabd398820dbd090d773939d22c06f15272ac65ae31484b6ac69312ca119b6.mdx",
   3: "war3mapImported\\StageLight-fb31be74844f3d133719d66ba8227f747932fcf3d203a7cf8181ca071c7c6fcc.mdx",
-  4: { slab: "war3mapImported\\StageDeck-4508b3718f5c7777229ce5edd2ca3be08eb975ffee395f6d3b1d811060c662d0.mdx", main: "war3mapImported\\StageMainDeck-28c2bf5c3e5ec0ec7a949f50a708d31573fc52590e84fecba8b700b0661c45c3.mdx", alternate: "war3mapImported\\StageDeck-80aefce43aaad2415a8a3a59bcfef71488fb60af9d150612cb8a594ca7702d54.mdx" },
+  4: "war3mapImported\\StageLight-a1cf0295f1d9682a4ecb95d75eefa97bea7d6ce9877241c9cfd424288b5b8586.mdx",
   14: "war3mapImported\\StageLight-e2e9386a7685323a61c636f8d97042435961a2254e369c4af27061e382c12990.mdx",
   12: "war3mapImported\\StageLight-ecb13d23efd5e332c60425c87a7554ca5ecb54096c06b457a584a5e5a95aea25.mdx",
   6: "war3mapImported\\StageLight-72c98875af85ebde417d827ee435f29e5151d6a7b93c13c1e3f7569005990f36.mdx",
