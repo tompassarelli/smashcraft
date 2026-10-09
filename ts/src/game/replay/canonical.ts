@@ -952,10 +952,8 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   real("platformRise", p.rise);
   bool("platformStand", p.stand);
   bool("platformShield", p.shield);
-  int("platformWrapLeft", p.wrapLeft);
-  int("platformWrapLeftAge", p.wrapLeftAge);
-  int("platformWrapRight", p.wrapRight);
-  int("platformWrapRightAge", p.wrapRightAge);
+  int("platformUpFrames", p.upFrames);
+  int("platformLandedFrames", p.landedFrames);
   bool("platformDodgeQueued", p.dodgeQueued);
   int("platformDodgeX", p.dodgeX);
   int("platformDodgeZ", p.dodgeZ);

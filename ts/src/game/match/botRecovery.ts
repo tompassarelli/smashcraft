@@ -14,7 +14,8 @@ import type { Fighter } from "../sim/fighter";
 import { totalVelocityZ } from "../sim/motion";
 import { RIFLEMAN_RECOVERY_STARTUP_FRAMES } from "../sim/specials";
 import type { Controls } from "../sim/roster";
-import { mainDeckLeft, mainDeckRight, mainDeckZ, surfaceCount, surfaceLeft, surfaceRight, surfaceZAt } from "../sim/stage";
+import { mainDeckLeft, mainDeckRight, mainDeckZ, surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ, surfaceZAt } from "../sim/stage";
+import { PLATFORM_WRAP_REACH } from "../sim/platformMoves";
 import { botChance, botChoice } from "./botRandom";
 import { type CpuSkill, FULL_SKILL } from "./cpuSkill";
 import { aimsLedge, gameplanOf, upSpecialFirst } from "./botGameplan";
@@ -208,6 +209,50 @@ function aimUpSpecial(f: Readonly<Fighter>, stage: number, side: number, input: 
 
 
 
+const PLATFORM_TARGET_BELOW = 80.0;
+const PLATFORM_CONTACT_LEAD_FRAMES = 12;
+
+function platformBelow(f: Readonly<Fighter>, stage: number, matchFrame: number): number | undefined {
+  const { x, z, vz } = f.motion;
+  const reach = f32(-vz * PLATFORM_CONTACT_LEAD_FRAMES);
+  for (let i = 0; i < surfaceCount(stage); i++) {
+    if (!surfacePass(stage, i) || x < surfaceLeft(stage, i, matchFrame) || x > surfaceRight(stage, i, matchFrame)) continue;
+    const gap = f32(z - surfaceZ(stage, i, matchFrame));
+    if (gap >= 0 && gap <= reach) return i;
+  }
+  return undefined;
+}
+
+/** A wrap swings toward the fighter's drift (or facing) and turns it around: worth it when that lands it beside, past or back across a target standing on the platform. */
+function wrapCrossesUp(f: Readonly<Fighter>, target: Readonly<Fighter>, deck: number): boolean {
+  if (!target.motion.grounded || target.motion.surface !== deck) return false;
+  const side = f.motion.vx > 0 ? 1 : f.motion.vx < 0 ? -1 : f.facing;
+  const ahead = f32(f32(target.motion.x - f.motion.x) * side);
+  return ahead > -PLATFORM_WRAP_REACH && ahead <= f32(PLATFORM_WRAP_REACH * 2);
+}
+
+/** Below the higher tiers it stands on every platform it climbs; above, it climbs on toward a target above it, wraps to cross up a target on the platform, and otherwise stands. */
+function choosePlatformClimb(f: Readonly<Fighter>, target: Readonly<Fighter> | undefined, stage: number, matchFrame: number, input: Controls, skill: CpuSkill): void {
+  const deck = f.platform.deck ?? 0;
+  if (skill.platformCancels && target !== undefined && target.motion.z > surfaceZ(stage, deck, matchFrame) && !target.motion.grounded) return;
+  input.down = true;
+  input.verticalDirection = -1;
+  input.walking = !(skill.platformCancels && target !== undefined && wrapCrossesUp(f, target, deck));
+}
+
+/** Falling onto a platform: a target below is reached by dropping through it (ending any aerial); one on the platform close ahead is crossed up with a wrap. */
+function choosePlatformContact(f: Readonly<Fighter>, target: Readonly<Fighter> | undefined, stage: number, matchFrame: number, input: Controls): void {
+  if (target === undefined || f.motion.grounded || f.motion.vz >= 0 || f.launch.hitstun > 0 || f.dodge.airDodging) return;
+  const deck = platformBelow(f, stage, matchFrame);
+  if (deck === undefined) return;
+  if (target.motion.z < f32(surfaceZ(stage, deck, matchFrame) - PLATFORM_TARGET_BELOW)) {
+    input.down = true;
+    input.verticalDirection = -1;
+  } else if (wrapCrossesUp(f, target, deck)) {
+    input.verticalDirection = 1;
+  }
+}
+
 export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, matchFrame: number, input: Controls, target?: Readonly<Fighter>, skill: CpuSkill = FULL_SKILL): boolean {
   input.specialPressed = false;
   input.specialX = 0;
@@ -220,7 +265,7 @@ export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, m
     return true;
   }
   if (fighter.platform.move === PlatformMove.ascent) {
-    input.down = true;
+    choosePlatformClimb(fighter, target, stage, matchFrame, input, skill);
     return true;
   }
   if (chooseGetUp(fighter, input, target, skill.mixesUp)) return true;
@@ -234,6 +279,7 @@ export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, m
     input.direction = f32(x - lavaLeft(matchFrame)) < f32(lavaRight(matchFrame) - x) ? -1 : 1;
     return true;
   }
+  if (skill.platformCancels) choosePlatformContact(fighter, target, stage, matchFrame, input);
   if (grounded || (x >= left && x <= right && z >= floor)) {
     const move = fighter.special.action === SpecialAction.heroUp ? runningHeroSpecial(fighter) : undefined;
     if (move?.aimFrames !== undefined && fighter.special.frame < move.aimFrames) {

@@ -41,6 +41,8 @@ export interface CpuSkill {
   readonly kitTenths: number;
   /** Punish windows (botPunish.ts), in tenths, it recognizes and answers: an opponent's end lag, missed grab, landing or dropped shield. */
   readonly punishTenths: number;
+  /** Whether it climbs, drops and wraps through platforms to cancel aerials and cross up (smashcraft:docs/gameplay-design.md, "Platforms"); below, it stands on every platform it climbs. */
+  readonly platformCancels: boolean;
   /** Frames it overestimates a punish window by, so a slow move it throws may come out after the opponent can act. */
   readonly punishMisjudge: number;
 }
@@ -61,6 +63,7 @@ function mechanics(profile: CpuProfile): CpuSkill {
     kitTenths: floorDiv(profile.executionPercent + 9, 10),
     punishTenths: floorDiv(profile.judgmentPercent + 9, 10),
     punishMisjudge: floorDiv(100 - profile.spacingPercent, 5),
+    platformCancels: profile.tier === "advanced" || profile.tier === "expert",
   };
 }
 

@@ -363,10 +363,8 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("platformRise", e.platform.rise, a.platform.rise);
   add("platformStand", e.platform.stand, a.platform.stand);
   add("platformShield", e.platform.shield, a.platform.shield);
-  add("platformWrapLeft", e.platform.wrapLeft, a.platform.wrapLeft);
-  add("platformWrapLeftAge", e.platform.wrapLeftAge, a.platform.wrapLeftAge);
-  add("platformWrapRight", e.platform.wrapRight, a.platform.wrapRight);
-  add("platformWrapRightAge", e.platform.wrapRightAge, a.platform.wrapRightAge);
+  add("platformUpFrames", e.platform.upFrames, a.platform.upFrames);
+  add("platformLandedFrames", e.platform.landedFrames, a.platform.landedFrames);
   add("platformDodgeQueued", e.platform.dodgeQueued, a.platform.dodgeQueued);
   add("platformDodgeX", e.platform.dodgeX, a.platform.dodgeX);
   add("platformDodgeZ", e.platform.dodgeZ, a.platform.dodgeZ);

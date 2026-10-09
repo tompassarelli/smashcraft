@@ -11,8 +11,8 @@
 
 
 import { Action } from "../src/game/input/actions";
-import { AttackPhase, AttackStyle, Character, ContactKind, DownState, LedgeState, PlatformMove, SurfaceContact } from "../src/game/sim/codes";
-import { attackPhase, isIntangible } from "../src/game/sim/conditions";
+import { AttackStyle, Character, ContactKind, DownState, LedgeState, PlatformMove, SurfaceContact } from "../src/game/sim/codes";
+import { isIntangible } from "../src/game/sim/conditions";
 import { beginDamageContacts, collectDamageContact, finishDamageContacts } from "../src/game/sim/contacts";
 import { type Fighter, createFighter } from "../src/game/sim/fighter";
 import { uncancelledLandingLag } from "../src/game/sim/moves";
@@ -635,6 +635,7 @@ function upAirIntoDeck(character: Character): string {
     pressed ||= press;
     frame(s, press ? [Action.jump, Action.moveUp, Action.attack] : [Action.jump]);
     if (f.motion.z + bodyTop(character) * WORLD_UNITS_PER_MELEE_UNIT < deckZ) continue;
+    frame(s, [Action.jump]);
     if (f.attack.style === AttackStyle.upAir) return "up air continues";
     return f.platform.move === PlatformMove.ascent ? "cancelled into an ascent" : "other";
   }
@@ -644,28 +645,6 @@ function upAirIntoDeck(character: Character): string {
 
 
 
-
-
-function upAirRecoveryInDeck(character: Character): string {
-  for (const full of [true, false]) for (let doubleAt = 0; doubleAt <= 30; doubleAt++) for (let pressAt = 1; pressAt <= 40; pressAt++) {
-    const s = solo(1, character, UNDER_DECK_X);
-    const f = fighter(s);
-    const deckZ = surfaceZ(1, 1, 0);
-    let wasActive = false;
-    for (let n = 1; n <= 60; n++) {
-      const jump = n === 1 || n === doubleAt || (full && n <= 6 && doubleAt > 7) ? [Action.jump] : [];
-      frame(s, n === pressAt ? [...jump, Action.moveUp, Action.attack] : jump);
-      if (f.attack.style === AttackStyle.upAir && attackPhase(f) === AttackPhase.active) wasActive = true;
-      else if (wasActive) {
-        const straddling = f.motion.z < deckZ && f.motion.z + bodyTop(character) * WORLD_UNITS_PER_MELEE_UNIT >= deckZ;
-        if (f.platform.move === PlatformMove.ascent) return "recovery cancelled into an ascent";
-        if (straddling && f.attack.style === AttackStyle.upAir) return "recovery continues";
-        break;
-      }
-    }
-  }
-  return "never straddled the deck";
-}
 
 
 function downThroughDeck(character: Character): string {
@@ -681,6 +660,8 @@ function downThroughDeck(character: Character): string {
 
 const PLATFORM_LINES = "platforms are floor lines flagged LINE_FLAG_PLATFORM: mpCheckFloor hits them only while descending, mpCheckCeiling ignores them (melee:src/melee/mp/mplib.c, forward.h)";
 const PLATFORM_PASS = "Pass needs stick y <= -PlCo +0x464 (0.66) reached under PlCo +0x468 = 6 frames ago on a platform: melee:src/melee/ft/kinds/ftCommon/ftCo_Pass.c:26 ftCo_80099F1C; mpColl skips that platform";
+
+const PLATFORM_DROP = "Platform descent: falling onto a platform with down past the crouch threshold drops through it, ending the aerial (owner decision 2026-10-09, #392)";
 
 const PLATFORMS: readonly Scenario[] = [
   { area: "hazard", name: "Whispy's first gust moves a standing fighter", cite: "GrOp.dat yakumono_param +0x10 = 0.2; groldpupupu.c wind after blow frame 45; fighter.c Fighter_procUpdate windOffset", run: (c) => {
@@ -729,20 +710,16 @@ const PLATFORMS: readonly Scenario[] = [
   { area: "platform", name: "down pressed on a raised deck", cite: PLATFORM_PASS, run: (c) => ({ expected: "main deck", actual: downOnDeck(c) }) },
   {
     area: "platform", name: "up air rising into a raised deck", cite: `${PLATFORM_LINES}; a fighter's action is unchanged by passing a platform`,
+    departure: "Platform ascent: the climb starts as the body meets the platform; an aerial strikes on that frame and ends as the climb's first frame begins (owner decision 2026-10-09, #392)",
     run: (c) => ({ expected: "up air continues", actual: upAirIntoDeck(c) }),
-  },
-  {
-    area: "platform", name: "up air's active frames ending inside a raised deck", cite: `${PLATFORM_LINES}; a fighter's action is unchanged by passing a platform`,
-    departure: "Platform ascent: once an attack's active frames end with the body in a platform, an ascent over the jump squat cancels its recovery (owner decision 2026-10-06, #103)",
-    run: (c) => ({ expected: "recovery continues", actual: upAirRecoveryInDeck(c) }),
   },
   {
     area: "platform", name: "fresh down on a raised deck: how the fighter leaves it", cite: `${PLATFORM_PASS}; ftCo_Pass enters a fall at once`,
     departure: "Platform descent: a vulnerable descent over the jump squat (owner decision 2026-10-06, #103)",
     run: (c) => ({ expected: "falls through at once", actual: downThroughDeck(c) }),
   },
-  { area: "platform", name: "falling onto a raised deck holding down: landing", cite: `${PLATFORM_LINES}; airborne collision has no stick test (melee:src/melee/ft/ft_081B.c)`, run: (c) => ({ expected: "raised deck", actual: landHoldingDown(c, 0) }) },
-  { area: "platform", name: "still holding down 30 frames after that landing", cite: PLATFORM_PASS, run: (c) => ({ expected: "raised deck", actual: landHoldingDown(c, 30) }) },
+  { area: "platform", name: "falling onto a raised deck holding down: landing", cite: `${PLATFORM_LINES}; airborne collision has no stick test (melee:src/melee/ft/ft_081B.c)`, departure: PLATFORM_DROP, run: (c) => ({ expected: "raised deck", actual: landHoldingDown(c, 0) }) },
+  { area: "platform", name: "still holding down 30 frames after that landing", cite: PLATFORM_PASS, departure: PLATFORM_DROP, run: (c) => ({ expected: "raised deck", actual: landHoldingDown(c, 30) }) },
 ];
 
 

@@ -1,15 +1,9 @@
-
-
-
-
-
-
 import { max, min } from "../../runtime/numbers";
 import { addFloat32, divideFloat32, multiplyFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
-import { AttackPhase, PlatformMove } from "./codes";
+import { AttackPhase, DownState, PlatformMove, SpecialAction } from "./codes";
 import { attackPhase } from "./conditions";
 import { finishLanding } from "./down";
-import { type Fighter, PLATFORM_DROP_INPUT_WINDOW } from "./fighter";
+import { type Fighter, PLATFORM_DROP_INPUT_WINDOW, PLATFORM_INTENT_FRAMES } from "./fighter";
 import { beginAirDodge } from "./jumpsAndDodges";
 import { setWorldMotionValue, totalVelocityZ } from "./motion";
 import { type Controls, copyControls, neutralControls } from "./roster";
@@ -20,13 +14,9 @@ import { cancelAttack, cancelSpecialState, clearDownState, clearPlatformMove } f
 import { clearDash } from "./groundMovement";
 import { aerialJumps } from "./itemBuffs";
 import { melee } from "./tuning";
-
-/** Melee's stick-up jump threshold, 0.6625 (wc3-controller:README.md, ftCo_800DF910): holding up past it sustains an ascent. */
-const TAP_JUMP_STICK_Z = 0.6625000238418579;
+import { CROUCH_STICK_THRESHOLD, STICK_DEADZONE, TAP_JUMP_STICK_THRESHOLD, TAP_JUMP_WINDOW } from "./stickZones";
 
 export const PLATFORM_WRAP_REACH = melee(8.0);
-
-const WRAP_COMPLETE = 3;
 
 const AIR_DODGE_VULNERABLE_FRAME = 30;
 
@@ -74,45 +64,31 @@ function bodyHeight(f: Readonly<Fighter>): number {
 }
 
 
-function wrapStep(progress: number, side: number, stickSide: number, fresh: boolean, down: boolean): number {
-  if (progress === 0) return stickSide === -side && fresh && !down ? 1 : 0;
-  if (progress === 1) return down ? 2 : 1;
-  if (progress === 2) return stickSide === side && !down ? WRAP_COMPLETE : 2;
-  return progress;
+export const PlatformIntent = { none: 0, stand: 1, wrap: 2, drop: 3 } as const;
+export type PlatformIntent = (typeof PlatformIntent)[keyof typeof PlatformIntent];
+
+/** Rising: down from past the deadzone to the crouch threshold stands, past it wraps; the tilt modifier keeps a digital down in the stand band. */
+export function risingIntent(z: number, walking: boolean): PlatformIntent {
+  if (z > -STICK_DEADZONE) return PlatformIntent.none;
+  return walking || z >= -CROUCH_STICK_THRESHOLD ? PlatformIntent.stand : PlatformIntent.wrap;
 }
 
-
-
-
-
-
-export function trackWrapMotion(f: Fighter, stickSide: number, freshStickSide: boolean, down: boolean): void {
-  const p = f.platform;
-  if (f.motion.grounded) {
-    p.wrapLeft = 0;
-    p.wrapLeftAge = 0;
-    p.wrapRight = 0;
-    p.wrapRightAge = 0;
-    return;
-  }
-  const window = platformMoveFrames(f);
-  if (p.wrapLeft > 0 && ++p.wrapLeftAge > window) p.wrapLeft = 0;
-  if (p.wrapRight > 0 && ++p.wrapRightAge > window) p.wrapRight = 0;
-  const left = wrapStep(p.wrapLeft, -1, stickSide, freshStickSide, down);
-  if (p.wrapLeft === 0 && left > 0) p.wrapLeftAge = 0;
-  p.wrapLeft = left;
-  const right = wrapStep(p.wrapRight, 1, stickSide, freshStickSide, down);
-  if (p.wrapRight === 0 && right > 0) p.wrapRightAge = 0;
-  p.wrapRight = right;
+/** Falling: down past the crouch threshold drops; up past the jump threshold, held since before its tap-jump window, wraps upward. */
+export function fallingIntent(z: number, walking: boolean, upFrames: number): PlatformIntent {
+  if (walking) return PlatformIntent.none;
+  if (z < -CROUCH_STICK_THRESHOLD) return PlatformIntent.drop;
+  return z >= TAP_JUMP_STICK_THRESHOLD && upFrames > TAP_JUMP_WINDOW ? PlatformIntent.wrap : PlatformIntent.none;
 }
 
-
-function wrapSide(f: Readonly<Fighter>, stage: number, matchFrame: number, deck: number): number {
+export function trackPlatformInput(f: Fighter, input: Readonly<Controls>): void {
   const p = f.platform;
-  const { x } = f.motion;
-  if (p.wrapRight === WRAP_COMPLETE && x < surfaceRight(stage, deck, matchFrame)) return 1;
-  if (p.wrapLeft === WRAP_COMPLETE && x > surfaceLeft(stage, deck, matchFrame)) return -1;
-  return 0;
+  p.upFrames = stickZ(input) >= TAP_JUMP_STICK_THRESHOLD ? min(TAP_JUMP_WINDOW + 1, p.upFrames + 1) : 0;
+  p.landedFrames = min(PLATFORM_INTENT_FRAMES + 1, p.landedFrames + 1);
+}
+
+function wrapSide(f: Readonly<Fighter>): number {
+  const { vx } = f.motion;
+  return vx > 0 ? 1 : vx < 0 ? -1 : f.facing;
 }
 
 function wrapX(f: Readonly<Fighter>, stage: number, matchFrame: number, deck: number, side: number): number {
@@ -149,40 +125,48 @@ function ascentDeck(f: Readonly<Fighter>, stage: number, matchFrame: number): nu
 
 
 
-export function beginPlatformAscent(f: Fighter, stage: number, matchFrame: number): boolean {
+export function beginPlatformAscent(f: Fighter, stage: number, matchFrame: number, input: Readonly<Controls>): boolean {
   const { motion, launch, dodge } = f;
   if (motion.grounded || launch.hitstun > 0 || launch.hitlag > 0 || totalVelocityZ(f) <= 0) return false;
-  const phase = attackPhase(f);
-  if (phase === AttackPhase.startup || phase === AttackPhase.active) return false;
   const deck = ascentDeck(f, stage, matchFrame);
   if (deck === undefined) return false;
   const helpless = f.special.fall;
-  cancelAttack(f);
+  const phase = attackPhase(f);
+  if (phase !== AttackPhase.startup && phase !== AttackPhase.active) cancelAttack(f);
   cancelSpecialState(f);
   f.special.fall = helpless;
   clearDownState(f);
   dodge.airMotionFrames = 0;
   if (dodge.airDodging) dodge.airFrame = max(dodge.airFrame, AIR_DODGE_VULNERABLE_FRAME);
   const p = f.platform;
-
-  if (p.wrapLeftAge > 0) p.wrapLeft = 0;
-  if (p.wrapRightAge > 0) p.wrapRight = 0;
   const width = subtractFloat32(surfaceRight(stage, deck, matchFrame), surfaceLeft(stage, deck, matchFrame));
   const travel = multiplyFloat32(motion.vx, platformMoveFrames(f));
   const left = surfaceLeft(stage, deck, matchFrame);
   const toX = addFloat32(left, max(0.0, min(width, addFloat32(subtractFloat32(motion.x, left), travel))));
+  const side = wrapSide(f);
   p.rise = motion.vz;
   p.stand = false;
   p.shield = false;
   beginMove(f, PlatformMove.ascent, deck, stage, matchFrame, toX, 0.0);
   p.fromZ = min(p.fromZ, 0.0);
   place(f, stage, matchFrame);
+  readRisingIntent(f, stage, matchFrame, input, side);
   return true;
 }
 
+function readRisingIntent(f: Fighter, stage: number, matchFrame: number, input: Readonly<Controls>, side: number): boolean {
+  const p = f.platform;
+  if (p.frame > PLATFORM_INTENT_FRAMES) return false;
+  const intent = risingIntent(stickZ(input), input.walking);
+  if (intent === PlatformIntent.wrap) {
+    beginWrap(f, stage, matchFrame, p.deck ?? 0, side);
+    return true;
+  }
+  if (intent === PlatformIntent.stand) p.stand = true;
+  return false;
+}
 
-export function beginPlatformDescent(f: Fighter, stage: number, matchFrame: number): void {
-  const deck = f.motion.surface ?? 0;
+export function beginPlatformDescent(f: Fighter, stage: number, matchFrame: number, deck: number): void {
   f.jump.remaining = min(f.jump.remaining, aerialJumps(f));
   f.motion.vx = 0.0;
   f.motion.vz = 0.0;
@@ -191,27 +175,48 @@ export function beginPlatformDescent(f: Fighter, stage: number, matchFrame: numb
   f.platform.specialQueued = false;
 }
 
+function beginWrap(f: Fighter, stage: number, matchFrame: number, deck: number, side: number): void {
+  beginMove(f, PlatformMove.wrapOver, deck, stage, matchFrame, wrapX(f, stage, matchFrame, deck, side), 0.0);
+}
 
+function intentOpen(f: Readonly<Fighter>, stage: number, deck: number): boolean {
+  return surfacePass(stage, deck) && f.launch.hitstun <= 0 && f.launch.hitlag <= 0 && f.down.state === DownState.none && !f.dodge.airDodging;
+}
 
-
-
-
-export function beginPlatformWrapUnder(f: Fighter, stage: number, matchFrame: number, deck: number): boolean {
-  if (!surfacePass(stage, deck) || f.launch.hitstun > 0) return false;
-  const side = wrapSide(f, stage, matchFrame, deck);
-  if (side === 0) return false;
-  const toX = wrapX(f, stage, matchFrame, deck, side);
+/** On the frame a falling fighter would land on a platform: full down drops through it, up held into contact wraps over it; either ends the aerial with no landing lag. */
+export function beginPlatformContact(f: Fighter, stage: number, matchFrame: number, input: Readonly<Controls>, deck: number): boolean {
+  if (!intentOpen(f, stage, deck)) return false;
+  const intent = fallingIntent(stickZ(input), input.walking, f.platform.upFrames);
+  if (intent === PlatformIntent.none || (intent === PlatformIntent.wrap && f.special.fall)) return false;
+  const side = wrapSide(f);
   cancelAttack(f);
+  f.landing.lag = 0;
   f.motion.z = surfaceZ(stage, deck, matchFrame);
-  f.motion.vx = 0.0;
-  f.motion.vz = 0.0;
-  beginMove(f, PlatformMove.wrapUnder, deck, stage, matchFrame, toX, -bodyHeight(f));
+  if (intent === PlatformIntent.drop) {
+    beginPlatformDescent(f, stage, matchFrame, deck);
+  } else {
+    f.motion.vx = 0.0;
+    f.motion.vz = 0.0;
+    beginWrap(f, stage, matchFrame, deck, side);
+  }
   return true;
 }
 
-function beginWrapOver(f: Fighter, stage: number, matchFrame: number, side: number): void {
-  const deck = f.platform.deck ?? 0;
-  beginMove(f, PlatformMove.wrapOver, deck, stage, matchFrame, wrapX(f, stage, matchFrame, deck, side), 0.0);
+export function markPlatformLanding(f: Fighter, stage: number, deck: number, airDodged: boolean): void {
+  if (surfacePass(stage, deck) && !airDodged) f.platform.landedFrames = 0;
+}
+
+/** A few frames after landing on a platform, full down still drops through it, ending the landing lag. */
+export function dropAfterPlatformLanding(f: Fighter, stage: number, matchFrame: number, input: Readonly<Controls>): boolean {
+  const { motion } = f;
+  const deck = motion.surface;
+  if (f.platform.landedFrames > PLATFORM_INTENT_FRAMES || !motion.grounded || deck === undefined || !intentOpen(f, stage, deck)) return false;
+  if (f.attack.style !== undefined || f.special.action !== SpecialAction.none || f.jump.squat > 0 || f.shield.raised) return false;
+  if (fallingIntent(stickZ(input), input.walking, 0) !== PlatformIntent.drop) return false;
+  f.landing.lag = 0;
+  f.platform.landedFrames = PLATFORM_INTENT_FRAMES + 1;
+  beginPlatformDescent(f, stage, matchFrame, deck);
+  return true;
 }
 
 function standOn(f: Fighter, stage: number, matchFrame: number, input: Readonly<Controls>, deck: number): void {
@@ -258,17 +263,16 @@ function finishDescent(f: Fighter): void {
 export function advancePlatformMove(f: Fighter, stage: number, matchFrame: number, input: Readonly<Controls>): void {
   const p = f.platform;
   p.frame++;
+  if (p.frame === 1) cancelAttack(f);
   const { physics } = f.tuning;
   switch (p.move) {
     case PlatformMove.ascent: {
       if (input.shield || input.shieldPressed) p.shield = true;
-      if (input.down) p.stand = true;
-      const sustained = input.jumpHeld || stickZ(input) >= TAP_JUMP_STICK_Z;
+      const sustained = input.jumpHeld || stickZ(input) >= TAP_JUMP_STICK_THRESHOLD;
       if (!sustained) p.rise = max(-physics.terminalSpeed, subtractFloat32(p.rise, physics.gravity));
       place(f, stage, matchFrame);
-      const side = wrapSide(f, stage, matchFrame, p.deck ?? 0);
-      if (side !== 0) beginWrapOver(f, stage, matchFrame, side);
-      else if (p.frame >= p.duration) finishAscent(f, stage, matchFrame, input);
+      if (readRisingIntent(f, stage, matchFrame, input, wrapSide(f))) return;
+      if (p.frame >= p.duration) finishAscent(f, stage, matchFrame, input);
       return;
     }
     case PlatformMove.descent:
@@ -287,20 +291,13 @@ export function advancePlatformMove(f: Fighter, stage: number, matchFrame: numbe
         p.specialZ = input.specialZ;
       }
       return;
-    case PlatformMove.wrapOver:
-    case PlatformMove.wrapUnder: {
+    case PlatformMove.wrapOver: {
       place(f, stage, matchFrame);
       if (p.frame < p.duration) return;
       const deck = p.deck ?? 0;
-      const over = p.move === PlatformMove.wrapOver;
       clearPlatformMove(f);
       f.facing = -f.facing;
-      if (over) {
-        standOn(f, stage, matchFrame, input, deck);
-      } else {
-        f.motion.vz = 0.0;
-        setWorldMotionValue(f.motion.meleeVelocityZ, 0.0);
-      }
+      standOn(f, stage, matchFrame, input, deck);
       return;
     }
     default:

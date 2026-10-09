@@ -56,7 +56,7 @@ export const LedgeState = { none: 0, hang: 1, climb: 2, roll: 3, attack: 4 } as 
 export type LedgeState = (typeof LedgeState)[keyof typeof LedgeState];
 
 
-export const PlatformMove = { none: 0, ascent: 1, descent: 2, wrapOver: 3, wrapUnder: 4 } as const;
+export const PlatformMove = { none: 0, ascent: 1, descent: 2, wrapOver: 3 } as const;
 export type PlatformMove = (typeof PlatformMove)[keyof typeof PlatformMove];
 
 

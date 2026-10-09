@@ -177,10 +177,6 @@ export function clearPlatformMove(f: Fighter): void {
   p.rise = 0.0;
   p.stand = false;
   p.shield = false;
-  p.wrapLeft = 0;
-  p.wrapLeftAge = 0;
-  p.wrapRight = 0;
-  p.wrapRightAge = 0;
   p.dodgeQueued = false;
   p.dodgeX = 0;
   p.dodgeZ = 0;

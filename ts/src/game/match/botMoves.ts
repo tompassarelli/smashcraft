@@ -13,7 +13,10 @@ import { canAttack } from "../sim/conditions";
 import { groundGatedStyle } from "../sim/attacks";
 import type { Fighter } from "../sim/fighter";
 import { SHARED_GRAB_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../sim/hitRegions";
-import { attackStartupFrames } from "../sim/moves";
+import { attackStartupFrames, characterAttackActiveFrames } from "../sim/moves";
+import { surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "../sim/stage";
+import { bodyTop } from "../sim/surfaces";
+import { melee } from "../sim/tuning";
 import { BLASTER_PROJECTILE_RADIUS } from "../sim/projectiles";
 import type { FighterMoves } from "../sim/heroMoves";
 import type { Controls } from "../sim/roster";
@@ -201,6 +204,20 @@ function landsWithin(f: Readonly<Fighter>, frames: number, stage: number, matchF
   const there = deckUnder(stage, matchFrame, f32(f.motion.x + f32(f.motion.deltaX * frames)), peak);
   const deck = here === undefined ? there : there === undefined ? here : Math.max(here, there);
   return deck !== undefined && heightAhead(f, frames, -1, matchFrame) <= deck;
+}
+
+/** A platform climb ends any aerial, so one rising into a platform before its strike is over is wasted. */
+function climbsWithin(f: Readonly<Fighter>, frames: number, stage: number, matchFrame: number): boolean {
+  if (f.motion.grounded || f.motion.deltaZ <= 0.0) return false;
+  const { z } = f.motion;
+  const x = f32(f.motion.x + f32(f.motion.deltaX * frames));
+  const top = f32(heightAhead(f, frames, -1, matchFrame) + melee(bodyTop(f.character)));
+  for (let i = 0; i < surfaceCount(stage); i++) {
+    if (!surfacePass(stage, i) || x < surfaceLeft(stage, i, matchFrame) || x > surfaceRight(stage, i, matchFrame)) continue;
+    const deckZ = surfaceZ(stage, i, matchFrame);
+    if (deckZ > z && top >= deckZ) return true;
+  }
+  return false;
 }
 
 function specialReady(f: Readonly<Fighter>, option: number): boolean {
@@ -461,6 +478,7 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
         const frames = attackStartupFrames(aerial, f.tuning.moves);
 
         if (landsWithin(f, frames + 1, stage, matchFrame)) continue;
+        if (climbsWithin(f, frames + characterAttackActiveFrames(f.character, aerial, f.tuning.moves), stage, matchFrame)) continue;
         if (moveReaches(f.character, aerial, target, f32(aheadX(f, target, frames, aerial, observationAge, stage, matchFrame) * f.facing), aheadZ(f, target, frames + 1, stage, matchFrame, observationAge), f.tuning.moves)) options[count++] = aerial;
       }
     }
