@@ -2,7 +2,7 @@ import { assertEquals, test } from "wisp/src/runtime/testing";
 import { AttackStyle, Character, LedgeState } from "./codes";
 import { createReferenceFighter } from "./referenceRig";
 import { beginFighterAttack, resolveAttacks } from "./attacks";
-import { attackStartupFrames } from "./moves";
+import { attackDamage, attackStartupFrames } from "./moves";
 import { createRoster } from "./roster";
 import { controls } from "./testWorld";
 import { resolveLedges } from "./ledge";
@@ -27,11 +27,11 @@ test("multipleAttackersKeepIndependentVictimHitWindows [spec #12]", () => {
     world.fighters[slot]!.attack.frame = attackStartupFrames(AttackStyle.jab);
   }
   resolveAttacks(world);
-  assertEquals(world.fighters[3]!.status.damage, 10.0);
+  assertEquals(world.fighters[3]!.status.damage, attackDamage(AttackStyle.jab) * 2);
   world.fighters[0]!.launch.hitlag = 0;
   world.fighters[2]!.launch.hitlag = 0;
   resolveAttacks(world);
-  assertEquals(world.fighters[3]!.status.damage, 10.0);
+  assertEquals(world.fighters[3]!.status.damage, attackDamage(AttackStyle.jab) * 2);
 });
 
 test("oneMeleeSwingCanContactAllThreeOpponents [spec #12]", () => {
@@ -41,7 +41,7 @@ test("oneMeleeSwingCanContactAllThreeOpponents [spec #12]", () => {
   beginFighterAttack(world, 0, AttackStyle.jab, false);
   world.fighters[0]!.attack.frame = attackStartupFrames(AttackStyle.jab);
   resolveAttacks(world);
-  for (let slot = 1; slot <= 3; slot++) assertEquals(world.fighters[slot]!.status.damage, 5.0);
+  for (let slot = 1; slot <= 3; slot++) assertEquals(world.fighters[slot]!.status.damage, attackDamage(AttackStyle.jab));
 });
 
 test("fourFightersArbitrateBothLedgesByDistance [spec docs/physics.md]", () => {

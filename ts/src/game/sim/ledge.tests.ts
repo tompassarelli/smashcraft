@@ -11,7 +11,7 @@ import { AIR_DODGE_ANIMATION_FRAMES } from "./jumpsAndDodges";
 import { advanceLedge, LEDGE_CLIMB_FRAMES, LEDGE_HANG_DEPTH, LEDGE_INTANGIBLE_FRAMES, LEDGE_ROLL_FRAMES, ledgeCatchBox, ledgeSnap, resolveLedges } from "./ledge";
 import { SpecialSlot } from "./heroSpecials";
 import { startFighterSpecial } from "./specials";
-import { LEDGE_ATTACK_FRAMES, attackStartupFrames, GRAB_HOLD_FRAMES } from "./moves";
+import { LEDGE_ATTACK_FRAMES, attackActiveFrames, attackDamage, attackStartupFrames, GRAB_HOLD_FRAMES } from "./moves";
 import type { Controls } from "./roster";
 import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
 import { BODY_HALF_WIDTH } from "./surfaces";
@@ -393,11 +393,11 @@ test("a ledge attack has startup, an active window that hits once, and recovery 
     }
     advanceSolo(fighter, 0, input, 0.0);
     resolveAttacks(world);
-    assertEquals(target.status.damage, 7.0);
+    assertEquals(target.status.damage, attackDamage(AttackStyle.ledgeAttack));
     resolveAttacks(world);
-    assertEquals(target.status.damage, 7.0);
+    assertEquals(target.status.damage, attackDamage(AttackStyle.ledgeAttack));
     fighter.launch.hitlag = 0;
-    fighter.attack.frame = 19;
+    fighter.attack.frame = attackStartupFrames(AttackStyle.ledgeAttack) + attackActiveFrames(AttackStyle.ledgeAttack);
     assertEquals(attackPhase(fighter), AttackPhase.recovery);
   }
 });

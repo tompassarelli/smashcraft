@@ -1,7 +1,7 @@
 import { mutableProjectile } from "./fighterProjectiles";
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { AttackStyle, Character, HeroStatusGroup, HeroStatusKind, LedgeState, ProjectileKind, SpecialAction } from "./codes";
-import { DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_MANA_BURN_STARTUP, DEMONHUNTER_WING_DURATION, FLAME_CRASH_HANG_LAST, startFighterSpecial, advanceSpecials } from "./specials";
+import { DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_MANA_BURN_LIFETIME, DEMONHUNTER_MANA_BURN_RECOVERY, DEMONHUNTER_MANA_BURN_SPEED, DEMONHUNTER_MANA_BURN_STARTUP, DEMONHUNTER_WING_DURATION, FLAME_CRASH_FORM, FLAME_CRASH_HANG_LAST, flameCrashRegion, immolationRegion, startFighterSpecial, advanceSpecials } from "./specials";
 import { type Fighter, type Projectile, createFighter } from "./fighter";
 import { beginFighterAttack } from "./attacks";
 import { MANA_BURN_STUN, projectileCount, updateProjectiles } from "./projectiles";
@@ -35,7 +35,7 @@ test("simultaneousImmolatesTradeInEitherSlotOrder [invariant]", () => {
     const world = reversed ? testWorld(right, left) : testWorld(left, right);
 
     for (let tick = 1; tick <= (airborne ? FLAME_CRASH_HANG_LAST + 1 : DEMONHUNTER_IMMOLATE_STARTUP); tick++) advanceSpecials(world, 0, 0);
-    const damage = airborne ? 9.0 : 7.0;
+    const damage = immolationRegion(!airborne).effect.damage;
     assertEquals(left.status.damage, damage);
     assertEquals(right.status.damage, damage);
     assertGreaterThan(left.launch.hitstun, 0);
@@ -53,13 +53,13 @@ test("flameCrashPlungeSpikesAndUsesSingleContact [spec docs/design/illidan.md]",
   const world = testWorld(illidan, target);
   assertTrue(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true, down: true, specialZ: -1 })));
   for (let tick = 1; tick <= FLAME_CRASH_HANG_LAST + 1; tick++) advanceSpecials(world, 0, 0);
-  assertEquals(target.status.damage, 9.0);
+  assertEquals(target.status.damage, flameCrashRegion(FLAME_CRASH_FORM, FLAME_CRASH_HANG_LAST + 1).effect.damage);
   assertLessThan(target.launch.knockbackX, 0.0);
   assertLessThan(target.launch.knockbackZ, 0.0);
   const hitlag = target.launch.hitlag;
   illidan.launch.hitlag = 0;
   advanceSpecials(world, 0, 0);
-  assertEquals(target.status.damage, 9.0);
+  assertEquals(target.status.damage, flameCrashRegion(FLAME_CRASH_FORM, FLAME_CRASH_HANG_LAST + 1).effect.damage);
   assertEquals(target.launch.hitlag, hitlag);
 });
 
@@ -165,16 +165,16 @@ test("manaBurnCastsASlowOrbOnFrame16RecoversOnFrame46AndKeepsOneOut [spec #116]"
   const target = createFighter(Character.rifleman, 5000.0, -1);
   const world = testWorld(illidan, target);
   assertTrue(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true })));
-  for (let tick = 1; tick < 16; tick++) {
+  for (let tick = 1; tick < DEMONHUNTER_MANA_BURN_STARTUP; tick++) {
     advanceSpecials(world, 0, 0);
     assertEquals(projectileCount(illidan), 0);
   }
   advanceSpecials(world, 0, 0);
   assertEquals(projectileCount(illidan), 1);
   const orb = mutableProjectile(illidan, 0)!;
-  assertEquals(orb.velocityX, 12.0);
-  assertEquals(orb.life, 90);
-  for (let tick = 17; tick < 46; tick++) advanceSpecials(world, 0, 0);
+  assertEquals(orb.velocityX, DEMONHUNTER_MANA_BURN_SPEED);
+  assertEquals(orb.life, DEMONHUNTER_MANA_BURN_LIFETIME);
+  for (let tick = DEMONHUNTER_MANA_BURN_STARTUP + 1; tick < DEMONHUNTER_MANA_BURN_STARTUP + DEMONHUNTER_MANA_BURN_RECOVERY; tick++) advanceSpecials(world, 0, 0);
   assertEquals(illidan.special.action, SpecialAction.demonHunterManaBurn);
   advanceSpecials(world, 0, 0);
   assertEquals(illidan.special.action, SpecialAction.none);
@@ -183,8 +183,8 @@ test("manaBurnCastsASlowOrbOnFrame16RecoversOnFrame46AndKeepsOneOut [spec #116]"
   illidan.special.cooldowns[SpecialAction.demonHunterManaBurn] = 0;
   assertFalse(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true })));
   const startX = orb.x;
-  for (let tick = 1; tick < 90; tick++) updateProjectiles(world);
-  assertEquals(orb.x, f32(startX + 12.0 * 89));
+  for (let tick = 1; tick < DEMONHUNTER_MANA_BURN_LIFETIME; tick++) updateProjectiles(world);
+  assertEquals(orb.x, f32(startX + DEMONHUNTER_MANA_BURN_SPEED * (DEMONHUNTER_MANA_BURN_LIFETIME - 1)));
   assertEquals(projectileCount(illidan), 1);
   updateProjectiles(world);
   assertEquals(projectileCount(illidan), 0);

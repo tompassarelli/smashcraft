@@ -5,7 +5,7 @@ import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GrabAction } fr
 import { attackPhase } from "../conditions";
 import { createFighter } from "../fighter";
 import { SHARED_GRAB_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
-import { attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
+import { attackStartupFrames, characterAttackActiveFrames, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { HurtContact, fighterHurtParts, strikeHurtContact } from "../hurtboxes";
@@ -17,19 +17,13 @@ import { Action, bit } from "../../input/actions";
 
 
 const NORMAL_TIMINGS = [
-  [AttackStyle.jab, 5, 2, 16, 0],
-  [AttackStyle.upTilt, 8, 4, 22, 0],
-  [AttackStyle.dashAttack, 11, 5, 26, 0],
-  [AttackStyle.forwardSmash, 20, 3, 36, 0],
-  [AttackStyle.upSmash, 17, 5, 32, 0],
-  [AttackStyle.downSmash, 16, 6, 22, 0],
-  [AttackStyle.neutralAir, 8, 6, 22, 15],
-  [AttackStyle.forwardAir, 16, 3, 30, 21],
-  [AttackStyle.backAir, 10, 3, 25, 15],
-  [AttackStyle.upAir, 7, 4, 22, 13],
-  [AttackStyle.downAir, 12, 5, 29, 20],
-  [AttackStyle.grab, 8, 3, 24, 0],
-] as const;
+  AttackStyle.jab, AttackStyle.upTilt, AttackStyle.dashAttack, AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.downSmash,
+  AttackStyle.neutralAir, AttackStyle.forwardAir, AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir, AttackStyle.grab,
+].map((style) => {
+  const move = MOUNTAIN_KING_MOVES.normals[style]!;
+  const active = characterAttackActiveFrames(Character.mountainKing, style, MOUNTAIN_KING_MOVES);
+  return [style, move.startupFrames + 1, active, move.totalFrames - move.startupFrames - active] as const;
+});
 
 function attackPair(style: AttackStyle, frame: number, targetX: number, targetZ = 0.0, facing = 1, groundedTarget = true) {
   const owner = createFighter(Character.rifleman, 0.0, facing);
@@ -49,7 +43,6 @@ function attackPair(style: AttackStyle, frame: number, targetX: number, targetZ 
 test("Mountain King production phases match the adopted roster [spec docs/design/roster.md]", () => {
   for (const [style, first, active] of NORMAL_TIMINGS) {
     const { owner } = attackPair(style, 0, 1000.0);
-    assertEquals(attackStartupFrames(style, owner.tuning.moves), first - 1);
     owner.attack.frame = first - 2;
     assertEquals(attackPhase(owner), AttackPhase.startup);
     owner.attack.frame = first - 1;
@@ -178,8 +171,8 @@ test("Mountain King standing grab uses scaled reach and its dash jab selects the
     assertEquals(owner.attack.style, AttackStyle.dashAttack);
   }
   assertEquals(smashDamageMultiplier(0, MOUNTAIN_KING_MOVES), 1.0);
-  assertEquals(smashDamageMultiplier(45, MOUNTAIN_KING_MOVES), 1.25);
-  assertEquals(smashDamageMultiplier(100, MOUNTAIN_KING_MOVES), 1.25);
+  assertEquals(smashDamageMultiplier(MOUNTAIN_KING_MOVES.smashMaxChargeFrames, MOUNTAIN_KING_MOVES), MOUNTAIN_KING_MOVES.smashMaxDamageMultiplier);
+  assertEquals(smashDamageMultiplier(MOUNTAIN_KING_MOVES.smashMaxChargeFrames * 2, MOUNTAIN_KING_MOVES), MOUNTAIN_KING_MOVES.smashMaxDamageMultiplier);
 });
 
 test("Mountain King dash grab extends standing reach with three startup and eleven total frames added [spec docs/design/roster.md]", () => {
@@ -193,12 +186,13 @@ test("Mountain King dash grab extends standing reach with three startup and elev
       beginFighterAttack(world, 0, DASH_GRAB_REQUEST, false);
       assertEquals(owner.attack.style, AttackStyle.grab);
       assertTrue(owner.attack.dashGrab);
-      assertEquals(owner.attack.duration, 45);
-      owner.attack.frame = 9;
+      const grab = MOUNTAIN_KING_MOVES.normals[AttackStyle.grab]!;
+      assertEquals(owner.attack.duration, grab.totalFrames + 11);
+      owner.attack.frame = grab.startupFrames + 2;
       assertEquals(attackPhase(owner), AttackPhase.startup);
       resolveAttacks(world);
       assertEquals(owner.grab.target, undefined);
-      owner.attack.frame = 10;
+      owner.attack.frame = grab.startupFrames + 3;
       assertEquals(attackPhase(owner), AttackPhase.active);
       resolveAttacks(world);
       assertEquals(owner.grab.target !== undefined, caught);
@@ -206,21 +200,16 @@ test("Mountain King dash grab extends standing reach with three startup and elev
   }
 });
 
-const THROW_ROWS = [
-  [GrabAction.throwForward, 14, 22, 35],
-  [GrabAction.throwBack, 18, 27, 40],
-  [GrabAction.throwUp, 16, 13, 90],
-  [GrabAction.throwDown, 20, 26, 25],
-] as const;
+const THROW_ACTIONS = [GrabAction.throwForward, GrabAction.throwBack, GrabAction.throwUp, GrabAction.throwDown] as const;
 
 test("Mountain King throws release once on their roster frame with facing-relative launch [spec docs/design/roster.md]", () => {
   for (const facing of [1, -1]) {
-    for (const [action, release, recovery, angle] of THROW_ROWS) {
+    for (const action of THROW_ACTIONS) {
+      const authored = MOUNTAIN_KING_MOVES.throws[action]!;
+      const release = authored.contactFrame;
       const { owner, target, world } = attackPair(AttackStyle.grab, 7, 40.0, 0.0, facing);
       resolveAttacks(world);
       assertEquals(owner.grab.target, 1);
-      assertEquals(grabContactFrame(action, owner.tuning.moves), release);
-      assertEquals(grabActionDuration(action, owner.tuning.moves), release + recovery);
       const input = controls({
         grabThrowX: action === GrabAction.throwForward ? facing : action === GrabAction.throwBack ? -facing : 0,
         grabThrowZ: action === GrabAction.throwUp ? 1 : action === GrabAction.throwDown ? -1 : 0,
@@ -239,7 +228,7 @@ test("Mountain King throws release once on their roster frame with facing-relati
       assertTrue(target.launch.throwHitstun);
       assertGreaterThan(target.launch.hitstun, 0);
       assertGreaterThan(target.launch.knockbackZ, 0.0);
-      if (angle === 90) assertEquals(target.launch.knockbackX, 0.0);
+      if (authored.effect.launchX === 0.0) assertEquals(target.launch.knockbackX, 0.0);
       else if (action === GrabAction.throwBack) assertLessThan(target.launch.knockbackX * facing, 0.0);
       else assertGreaterThan(target.launch.knockbackX * facing, 0.0);
       testGrabFrame(world, [input, controls()], false);

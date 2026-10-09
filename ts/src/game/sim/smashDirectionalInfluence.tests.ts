@@ -12,7 +12,7 @@ import { collectDamageContact } from "./contacts";
 import { type Fighter, createFighter } from "./fighter";
 import { DIAGONAL_UNIT } from "./knockback";
 import {
-  ASDI_DISTANCE, HIT_TRAVEL, SDI_HIT_TRAVEL, SDI_STEP_DISTANCE, STRING_TRAVEL, beginSmashDirectionalInfluenceHit,
+  ASDI_DISTANCE, HIT_TRAVEL, SDI_HIT_TRAVEL, SDI_STEP_DISTANCE, SDI_STEP_TRAVEL, STRING_TRAVEL, beginSmashDirectionalInfluenceHit,
 } from "./smashDirectionalInfluence";
 import { respawnFighter } from "./stocks";
 import { advanceFighter } from "./step";
@@ -129,17 +129,20 @@ const WIGGLE_NET_X = f32(f32(STEP + STEP) + f32(f32(DIAGONAL_UNIT * STEP) * 2.0)
 const WIGGLE_NET_Z = f32(f32(DIAGONAL_UNIT * STEP) * 2.0);
 
 
+const HIT = melee(HIT_TRAVEL);
+const STRING = melee(HIT_TRAVEL * 2);
+const HIT_STEPS = SDI_HIT_TRAVEL / SDI_STEP_TRAVEL;
 const EXPECTED: Readonly<Record<string, readonly [number, number, number, number]>> = {
-  "one-frame": [18, 18, 0, 1],
-  "two-frame": [36, 36, 1, 1],
-  "light": [72, 72, 3, 1],
-  "electric-strong": [72, 72, 3, 1],
-  "cap": [72, 72, 3, 1],
-  "cap-alternate": [72, 0, 3, 1],
-  "cap-held": [54, 54, 2, 1],
-  "light-three-hit-string": [144, 144, 6, 2],
-  "cap-three-hit-string": [144, 0, 6, 2],
-  "cap-wiggle": [72, Math.sqrt(WIGGLE_NET_X * WIGGLE_NET_X + WIGGLE_NET_Z * WIGGLE_NET_Z), 3, 1],
+  "one-frame": [ASDI_DISTANCE, ASDI_DISTANCE, 0, 1],
+  "two-frame": [STEP + ASDI_DISTANCE, STEP + ASDI_DISTANCE, 1, 1],
+  "light": [HIT, HIT, HIT_STEPS, 1],
+  "electric-strong": [HIT, HIT, HIT_STEPS, 1],
+  "cap": [HIT, HIT, HIT_STEPS, 1],
+  "cap-alternate": [HIT, 0, HIT_STEPS, 1],
+  "cap-held": [STEP * 2 + ASDI_DISTANCE, STEP * 2 + ASDI_DISTANCE, 2, 1],
+  "light-three-hit-string": [STRING, STRING, HIT_STEPS * 2, 2],
+  "cap-three-hit-string": [STRING, 0, HIT_STEPS * 2, 2],
+  "cap-wiggle": [HIT, Math.sqrt(WIGGLE_NET_X * WIGGLE_NET_X + WIGGLE_NET_Z * WIGGLE_NET_Z), HIT_STEPS, 1],
 };
 
 test("the ten teleport fixtures now stay within 72 world units per hit, 144 per string and 18 per tick [spec #70]", () => {
@@ -166,7 +169,7 @@ test("a fresh pulse spends its 6 units as two 3-unit steps, and the hit admits a
   const pulse = (sdiX: number, sdiZ: number) => advanceSolo(f, 0, controls({ sdiPulse: sdiX !== 0 || sdiZ !== 0, sdiX, sdiZ }), -240.0);
   pulse(1, 0);
   assertEquals(f.motion.x, STEP);
-  assertEquals(f.launch.sdiStepTravel, 3);
+  assertEquals(f.launch.sdiStepTravel, SDI_STEP_TRAVEL);
   pulse(0, 0);
   assertEquals(f.motion.x, f32(STEP + STEP));
   assertEquals(f.launch.sdiStepTravel, 0);
@@ -189,13 +192,13 @@ test("queued requests count against the hit, and release discards the unfinished
   advanceSolo(f, 0, controls({ direction: 1, sdiPulse: true, sdiX: 1 }), -240.0);
   advanceSolo(f, 0, controls({ direction: -1, sdiPulse: true, sdiX: -1 }), -240.0);
   assertEquals(f.motion.x, f32(STEP + STEP));
-  assertEquals(f.launch.sdiStepTravel, 3);
+  assertEquals(f.launch.sdiStepTravel, SDI_STEP_TRAVEL);
   assertEquals(f.launch.sdiStepX, -1);
   // The release tick shifts only by ASDI; the queued 3 units left are dropped.
   advanceSolo(f, 0, controls({ direction: 1, sdiPulse: true, sdiX: 1 }), -240.0);
   assertEquals(f.motion.x, f32(f32(STEP + STEP) + ASDI_DISTANCE));
   assertEquals(f.launch.sdiStepTravel, 0);
-  assertEquals(f.launch.sdiHitTravel, 9);
+  assertEquals(f.launch.sdiHitTravel, SDI_HIT_TRAVEL);
   advanceSolo(f, 0, controls({ direction: 1, sdiPulse: true, sdiX: 1 }), -240.0);
   assertEquals(f.motion.x, f32(f32(STEP + STEP) + ASDI_DISTANCE));
 });
@@ -212,12 +215,12 @@ test("a replacement hit renews the hit allowance and drops queued travel, but no
   hit();
   assertTrue(victim.launch.hitlag > 2);
   advanceFighter(world, 1, 0, controls({ direction: 1, sdiPulse: true, sdiX: 1 }), -240.0);
-  assertEquals(victim.launch.sdiStepTravel, 3);
-  assertEquals(victim.launch.sdiStringTravel, 3);
+  assertEquals(victim.launch.sdiStepTravel, SDI_STEP_TRAVEL);
+  assertEquals(victim.launch.sdiStringTravel, SDI_STEP_TRAVEL);
   hit();
   assertEquals(victim.launch.sdiStepTravel, 0);
   assertEquals(victim.launch.sdiHitTravel, 0);
-  assertEquals(victim.launch.sdiStringTravel, 3);
+  assertEquals(victim.launch.sdiStringTravel, SDI_STEP_TRAVEL);
 });
 
 /** Spends a 4-frame hit's full 12 units to the right. */
@@ -285,7 +288,7 @@ test("an exhausted string withholds ASDI, and a blocked step still charges its l
   // Smash DI down can't land; the clipped step is charged anyway.
   advanceSolo(floored, 0, controls({ verticalDirection: -1, sdiPulse: true, sdiZ: -1 }), -240.0);
   assertEquals(floored.motion.z, 10.0);
-  assertEquals(floored.launch.sdiHitTravel, 3);
+  assertEquals(floored.launch.sdiHitTravel, SDI_STEP_TRAVEL);
 });
 
 test("a restored snapshot continues queued SDI identically [invariant]", () => {

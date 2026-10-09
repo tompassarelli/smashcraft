@@ -1,8 +1,10 @@
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
+import { floorDiv } from "wisp/src/sim/intMath";
 import { Character, ContactKind } from "./codes";
 import { collectDamageContact } from "./contacts";
 import { createFighter } from "./fighter";
 import { SELECTABLE_CHARACTERS } from "./heroes/registry";
+import { ROSTER_MANA } from "./mana";
 import { startFighterSpecial } from "./specials";
 import { checkBlastZone, respawnFighter } from "./stocks";
 import { contactBatch, controls, hitEffect, testWorld } from "./testWorld";
@@ -24,7 +26,10 @@ test("every regular special starts in its full form at zero meter [spec #335]", 
 });
 
 test("body damage earns 1 meter per whole percent dealt capped at 12 and half as much taken capped at 6 [spec #335]", () => {
-  for (const [damage, dealt, taken] of [[7.0, 7, 3], [3.5, 3, 1], [20.0, 12, 6]] as const) {
+  for (const damage of [7.0, 3.5, 20.0]) {
+    const whole = Math.floor(damage);
+    const dealt = Math.min(ROSTER_MANA.dealtCap, whole * ROSTER_MANA.dealtPerPercent);
+    const taken = Math.min(ROSTER_MANA.takenCap, floorDiv(whole, ROSTER_MANA.takenPercentPerPoint));
     for (const [kind, direct] of [[ContactKind.launch, true], [ContactKind.flinch, false], [ContactKind.throw, false], [ContactKind.pummel, true]] as const) {
       const source = createFighter(Character.rifleman, 0.0, 1);
       const target = createFighter(Character.rifleman, 40.0, -1);
@@ -42,12 +47,13 @@ test("shielded damage earns no meter and a full bar stops at 100 [spec #335]", (
   for (const shielded of [false, true]) {
     const source = createFighter(Character.rifleman, 0.0, 1);
     const target = createFighter(Character.rifleman, 40.0, -1);
-    source.mana.points = 98; target.mana.points = 98;
+    const start = ROSTER_MANA.max - 2;
+    source.mana.points = start; target.mana.points = start;
     target.shield.raised = shielded;
     const world = testWorld(source, target);
     contactBatch(world, () => collectDamageContact(world, 0, 1, hitEffect(10.0, 0.0, 0.0, 1.0, 0.0), 1, ContactKind.launch, true, undefined, shielded));
-    assertEquals(source.mana.points, shielded ? 98 : 100);
-    assertEquals(target.mana.points, shielded ? 98 : 100);
+    assertEquals(source.mana.points, shielded ? start : ROSTER_MANA.max);
+    assertEquals(target.mana.points, shielded ? start : ROSTER_MANA.max);
   }
 });
 

@@ -15,6 +15,7 @@ import { advanceFighter } from "../step";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { beginAttack, beginDownState } from "../transitions";
 import { THRALL_MOVES } from "./thrallMoves";
+import { THRALL_SPECIALS } from "./thrallSpecials";
 
 for (const style of [AttackStyle.jab, AttackStyle.jab2, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown,
   AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack, AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.downSmash,
@@ -97,8 +98,8 @@ const up = controls({ specialPressed: true, specialZ: 1 });
 const down = controls({ specialPressed: true, specialZ: -1 });
 
 for (const [name, input, action, end] of [
-  ["lightning", neutral, SpecialAction.heroNeutral, 44], ["wolves", side, SpecialAction.heroSide, 44],
-  ["sight", up, SpecialAction.heroUp, 40], ["earthquake", down, SpecialAction.heroDown, 50],
+  ["lightning", neutral, SpecialAction.heroNeutral, THRALL_SPECIALS.neutral.ground.endFrame], ["wolves", side, SpecialAction.heroSide, THRALL_SPECIALS.side.ground.endFrame],
+  ["sight", up, SpecialAction.heroUp, THRALL_SPECIALS.up.ground.endFrame], ["earthquake", down, SpecialAction.heroDown, THRALL_SPECIALS.down.ground.endFrame],
 ] as const) test(`Thrall ${name} preserves the super meter and ends on its authored frame [spec #335]`, () => {
   const { world, owner } = pair(600.0);
   frame(world, input);
@@ -125,7 +126,7 @@ test("Thrall Earthquake launches a grounded body but leaves a high jumper clear 
     if (airborne) { target.motion.grounded = false; target.motion.z = 700.0; }
     frame(world, down);
     for (let i = 0; i < 35; i++) frame(world);
-    assertEquals(target.status.damage, airborne ? 0.0 : 11.0);
+    assertEquals(target.status.damage, airborne ? 0.0 : THRALL_SPECIALS.down.ground.regions![0]!.hit.effect.damage);
   }
 });
 

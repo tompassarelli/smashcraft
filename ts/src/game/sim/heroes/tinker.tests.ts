@@ -18,7 +18,13 @@ import { controls, testGrabFrame } from "../testWorld";
 import { clearSpecialOnStock } from "../transitions";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
+import { ROSTER_MANA } from "../mana";
 import { TINKER_MOVES } from "./tinkerMoves";
+import { TINKER_SPECIALS } from "./tinkerSpecials";
+
+const FACTORY = TINKER_SPECIALS.side.ground.placement!;
+const ROBO_DAMAGE = TINKER_SPECIALS.down.ground.regions![0]!.hit.effect.damage;
+const EX_MANA_LEFT = ROSTER_MANA.max - ROSTER_MANA.exCost;
 
 function frame(world: Roster, input: Readonly<Controls> = controls()): void {
   for (let slot = 0; slot < 2; slot++) advanceFighter(world, slot, 0, slot === 0 ? input : controls(), slot === 0 ? -240.0 : 240.0);
@@ -127,7 +133,7 @@ test("Tinker body preserves the named Ultimate ROB weight, run and air speed [re
 });
 
 test("Tinker regular specials preserve the super meter, complete their frames and use rockets for an airborne side press [spec #335]", () => {
-  for (const [input, action, end] of [[neutral, SpecialAction.heroNeutral, 43], [side, SpecialAction.heroSide, 48], [up, SpecialAction.heroUp, 32], [down, SpecialAction.heroDown, 46]] as const) {
+  for (const [input, action, end] of [[neutral, SpecialAction.heroNeutral, TINKER_SPECIALS.neutral.ground.endFrame], [side, SpecialAction.heroSide, TINKER_SPECIALS.side.ground.endFrame], [up, SpecialAction.heroUp, TINKER_SPECIALS.up.ground.endFrame], [down, SpecialAction.heroDown, TINKER_SPECIALS.down.ground.endFrame]] as const) {
     const { owner, world } = pair();
     frame(world, input);
     assertEquals(owner.special.action, action);
@@ -149,11 +155,12 @@ test("Tinker rockets fire three staggered contacts [spec docs/design/tinker.md]"
   for (const facing of [-1, 1]) {
     const { owner, target, world } = pair(200.0, facing);
     frame(world, neutral);
-    for (let tick = 2; tick <= 13; tick++) frame(world);
+    const firstRocket = TINKER_SPECIALS.neutral.ground.projectiles![0]!.spawnFrame;
+    for (let tick = 2; tick < firstRocket; tick++) frame(world);
     assertEquals(owner.projectiles.filter(p => p.life > 0).length, 0);
     frame(world);
     assertEquals(owner.projectiles.filter(p => p.life > 0).length, 1);
-    for (let tick = 15; tick <= 60; tick++) frame(world);
+    for (let tick = firstRocket + 1; tick <= 60; tick++) frame(world);
     assertGreaterThan(target.status.damage, 0.0);
   }
 });
@@ -161,10 +168,10 @@ test("Tinker rockets fire three staggered contacts [spec docs/design/tinker.md]"
 test("Tinker factory fires Clockwerk Goblins, recalls and resets with the stock [spec docs/design/tinker.md]", () => {
   const { owner, world } = pair();
   frame(world, side);
-  for (let tick = 2; tick <= 24; tick++) frame(world);
+  for (let tick = 2; tick <= FACTORY.frame; tick++) frame(world);
   assertEquals(owner.placed.age, 1);
-  assertEquals(owner.placed.life, 239);
-  assertEquals(owner.placed.durability, 24.0);
+  assertEquals(owner.placed.life, FACTORY.life - 1);
+  assertEquals(owner.placed.durability, FACTORY.durability);
   for (let tick = 25; tick <= 59; tick++) frame(world);
   assertTrue(owner.projectiles.some(p => p.life > 0 && p.spec?.model?.includes("HeroTinkerRobot") === true));
   frame(world, side);
@@ -195,12 +202,12 @@ test("Tinker Robo-Goblin hits once and its running state survives a rollback cop
   const { owner, target, world } = pair(120.0);
   frame(world, down);
   for (let tick = 2; tick <= 18; tick++) frame(world);
-  assertEquals(target.status.damage, 13.0);
+  assertEquals(target.status.damage, ROBO_DAMAGE);
   const restored = createFighter(Character.tinker, 0.0, 1);
   copyFighterState(restored, owner, 3);
   assertEquals(firstFighterDifference(owner, restored, 3, 3), undefined);
   for (let tick = 0; tick < 60; tick++) frame(world);
-  assertEquals(target.status.damage, 13.0);
+  assertEquals(target.status.damage, ROBO_DAMAGE);
 });
 
 test("Tinker Robo-Goblin armor takes one light hit and then a second hit interrupts it [spec docs/design/tinker.md]", () => {
@@ -231,7 +238,7 @@ test("Tinker pummel strikes once [spec docs/design/tinker.md]", () => {
   resolveAttacks(world);
   testGrabFrame(world, [controls({ attackPressed: true }), controls()], false);
   for (let tick = 0; tick < 80; tick++) testGrabFrame(world, [controls(), controls()], false);
-  assertEquals(target.status.damage, 3.0);
+  assertEquals(target.status.damage, TINKER_MOVES.throws[GrabAction.pummel]!.effect.damage);
 
 });
 
@@ -240,9 +247,9 @@ test("Tinker EX Robo-Goblin deals a quarter more damage in both facings [spec #3
     const { owner, target, world } = pair(120.0, facing);
     frame(world, controls({ specialPressed: true, specialZ: -1, shield: true }));
     assertTrue(owner.special.ex);
-    assertEquals(owner.mana.points, 67);
+    assertEquals(owner.mana.points, EX_MANA_LEFT);
     for (let tick = 2; tick <= 18; tick++) frame(world);
-    assertEquals(target.status.damage, 16.25);
+    assertEquals(target.status.damage, f32(ROBO_DAMAGE * 1.25));
   }
 });
 
@@ -250,11 +257,11 @@ test("Tinker EX factory retains its extra durability after casting and EX recall
   const { owner, world } = pair();
   frame(world, controls({ specialPressed: true, specialX: 1, shield: true }));
   for (let tick = 2; tick <= 48; tick++) frame(world);
-  assertEquals(owner.placed.durability, 30.0);
+  assertEquals(owner.placed.durability, f32(FACTORY.durability * 1.25));
   owner.mana.points = 100;
   frame(world, controls({ specialPressed: true, specialX: 1, shield: true }));
   assertTrue(isIntangible(owner));
-  assertEquals(owner.mana.points, 67);
+  assertEquals(owner.mana.points, EX_MANA_LEFT);
   for (let tick = 2; tick <= 4; tick++) { frame(world); assertTrue(isIntangible(owner)); }
   frame(world);
   assertFalse(isIntangible(owner));

@@ -19,8 +19,13 @@ import { controls } from "../testWorld";
 import { setWorldMotionValue } from "../motion";
 import { mainDeckRight } from "../stage";
 import { squareRoot } from "../warcraftMath";
+import { WARDEN_SPECIALS } from "./wardenSpecials";
 
 const H = HERO_REFERENCE_HEIGHT;
+const SHADOW_STRIKE_BLADE = WARDEN_SPECIALS.neutral.ground.projectiles![0]!;
+const LUNGE_DAMAGE = WARDEN_SPECIALS.side.ground.regions![0]!.hit.effect.damage;
+const PURSUIT_DAMAGE = WARDEN_SPECIALS.side.marked!.special.regions![0]!.hit.effect.damage;
+const FAN_DAMAGE = WARDEN_SPECIALS.down.ground.regions![0]!.hit.effect.damage;
 
 
 function frame(world: Roster, first: Readonly<Controls> = controls(), second: Readonly<Controls> = controls(), atContacts?: () => void): void {
@@ -82,7 +87,7 @@ test("Shadow Strike throws one slow reflectable blade on f16 and refuses a secon
   frame(world);
   assertEquals(live(), 1);
   const blade = warden.projectiles.find(p => p.life > 0)!;
-  assertNear(blade.velocityX, f32(H * f32(0.11)), f32(0.001));
+  assertNear(blade.velocityX, SHADOW_STRIKE_BLADE.velocityX, f32(0.001));
   assertTrue(blade.spec?.reflectable === true);
   for (let f = 17; f <= 37; f++) frame(world);
   assertEquals(warden.special.action, SpecialAction.none);
@@ -108,7 +113,7 @@ test("Pursuit Lunge travels 1.0H, slashes once for 10 at f11-14 and stops dead, 
     for (let f = 2; f <= 10; f++) frame(world);
     assertEquals(target.status.damage, 0.0);
     for (let f = 11; f <= 60; f++) frame(world);
-    assertEquals(target.status.damage, 10.0);
+    assertEquals(target.status.damage, LUNGE_DAMAGE);
     assertEquals(warden.special.action, SpecialAction.none);
   }
 });
@@ -212,10 +217,10 @@ test("Fan of Knives strikes front and back once each for 7 at 45 degrees outward
       for (let f = 2; f <= 8; f++) frame(world);
       assertEquals(target.status.damage, 0.0);
       for (let f = 9; f <= 12; f++) frame(world);
-      assertEquals(target.status.damage, 7.0);
+      assertEquals(target.status.damage, FAN_DAMAGE);
       assertTrue(f32(target.launch.knockbackX * facing * side) > 0.0);
       for (let f = 13; f <= 38; f++) frame(world);
-      assertEquals(target.status.damage, 7.0);
+      assertEquals(target.status.damage, FAN_DAMAGE);
       assertLessThan(Math.abs(target.motion.x), 2000.0);
     }
   }
@@ -230,7 +235,7 @@ test("Fan of Knives reaches 1.30H on the ground and in the air in both direction
     frame(world, downB);
     assertEquals(warden.special.form, height === 0.0 ? SpecialForm.ground : SpecialForm.air);
     for (let f = 2; f <= 12; f++) frame(world);
-    assertEquals(target.status.damage, 7.0);
+    assertEquals(target.status.damage, FAN_DAMAGE);
     assertGreaterThan(target.status.poisonFrames, 0);
     assertGreaterThan(f32(target.launch.knockbackX * side), 0.0);
     assertEquals(warden.mana.points, 100);
@@ -309,7 +314,7 @@ test("Shadow Strike marks a body hit: poison for three 1-damage ticks over 180 f
     if (target.status.damage > 0.0) hitFrame = f;
   }
   assertGreaterThan(hitFrame, 0);
-  assertEquals(target.status.damage, 5.0);
+  assertEquals(target.status.damage, SHADOW_STRIKE_BLADE.effect.damage);
   assertEquals(target.status.poisonFrames > 0, true);
   const ticks: number[] = [];
   for (let f = 1; f <= 190; f++) {
@@ -321,10 +326,10 @@ test("Shadow Strike marks a body hit: poison for three 1-damage ticks over 180 f
       assertEquals(target.launch.hitlag, 0);
     }
   }
-  assertEquals(target.status.damage, 8.0);
+  assertEquals(target.status.damage, f32(SHADOW_STRIKE_BLADE.effect.damage + f32(3 * SHADOW_STRIKE_BLADE.status!.tick!.damage)));
   assertEquals(ticks.length, 3);
-  assertEquals(ticks[1]! - ticks[0]!, 60);
-  assertEquals(ticks[2]! - ticks[1]!, 60);
+  assertEquals(ticks[1]! - ticks[0]!, SHADOW_STRIKE_BLADE.status!.tick!.every);
+  assertEquals(ticks[2]! - ticks[1]!, SHADOW_STRIKE_BLADE.status!.tick!.every);
   assertEquals(target.status.poisonFrames, 0);
   assertEquals(warden.status.damage, 0.0);
 });
@@ -346,7 +351,7 @@ test("Fan of Knives marks every body it hits, and never through a shield [spec d
   const open = pair(0.0, 60.0);
   frame(open.world, downB);
   run(open.world, 12);
-  assertEquals(open.target.status.damage, 7.0);
+  assertEquals(open.target.status.damage, FAN_DAMAGE);
   assertGreaterThan(open.target.status.poisonFrames, 150);
   const guarded = pair(0.0, 60.0);
   const guard = controls({ shield: true });
@@ -379,7 +384,7 @@ test("Shadow Pursuit: side special against a marked target in reach appears behi
     assertEquals(warden.facing, -facing);
     assertEquals(target.status.poisonFrames, 0);
     run(world, 5);
-    assertEquals(f32(target.status.damage - before), 10.0);
+    assertEquals(f32(target.status.damage - before), PURSUIT_DAMAGE);
   }
 });
 

@@ -16,6 +16,7 @@ import { authoredPhysics, melee } from "../tuning";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
 import { CAIRNE_MOVES } from "./cairneMoves";
+import { CAIRNE_SPECIALS } from "./cairneSpecials";
 import { heroBody } from "./heroBodies";
 
 function frame(world: Roster, input: Readonly<Controls> = controls(), attack?: AttackStyle, defender: Readonly<Controls> = controls()): void {
@@ -109,7 +110,7 @@ test("Cairne Shockwave and War Stomp hit once, respect shields and preserve the 
     frame(world, controls({ specialPressed: true, specialX: side ? facing : 0 }), undefined, defended);
     assertEquals(owner.mana.points, 100);
     for (let i = 0; i < 100; i++) frame(world, controls(), undefined, defended);
-    assertEquals(target.status.damage, shield ? 0.0 : side ? 13.0 : 10.0);
+    assertEquals(target.status.damage, shield ? 0.0 : side ? CAIRNE_SPECIALS.side.ground.regions![0]!.hit.effect.damage : CAIRNE_SPECIALS.neutral.ground.projectiles![0]!.effect.damage);
     assertEquals(owner.special.action, SpecialAction.none);
   }
 });
@@ -138,7 +139,7 @@ test("Cairne Spirit Lift's totem strikes above him at every meter level [spec #3
     owner.mana.points = mana;
     frame(world, controls({ specialPressed: true, specialZ: 1 }));
     for (let i = 0; i < 50; i++) frame(world);
-    assertEquals(target.status.damage, 9.0);
+    assertEquals(target.status.damage, CAIRNE_SPECIALS.up.ground.regions![0]!.hit.effect.damage);
   }
 });
 
@@ -150,7 +151,7 @@ test("Cairne Reincarnation heals only a successful read and never adds a stock [
     owner.mana.points = 100;
     frame(world, controls({ specialPressed: true, specialZ: -1 }));
     for (let f = 2; f <= 60; f++) frame(world, controls(), f === 3 ? AttackStyle.jab : undefined);
-    assertEquals(owner.status.damage, 80.0 - 12.0 * (cast + 1));
+    assertEquals(owner.status.damage, 80.0 - CAIRNE_SPECIALS.down.ground.guard!.heal * (cast + 1));
     assertEquals(owner.status.stocks, stocks);
   }
   const whiff = pair(1000.0);

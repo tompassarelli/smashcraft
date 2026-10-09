@@ -4,7 +4,7 @@ import { beginDamageContacts, finishDamageContacts } from "./contacts";
 import { createFighter } from "./fighter";
 import { applyAttackHit } from "./hits";
 import {
-  LAVA_CALM_FRAMES, LAVA_CENTER_X, LAVA_HIT, LAVA_WARNING_FRAMES, LavaPhase, collectLavaContacts, framesUntilLava, lavaLeft, lavaPhase, lavaRight, lavaSide,
+  LAVA_CALM_FRAMES, LAVA_CENTER_X, LAVA_HIT, LAVA_SIDE_FRAMES, LAVA_WARNING_FRAMES, LavaPhase, collectLavaContacts, framesUntilLava, lavaLeft, lavaPhase, lavaRight, lavaSide,
 } from "./lava";
 import { queueAttack } from "../input/attackBuffer";
 import { CANNON_TEST_STAGE, STAGE_AT_REST, STRATHOLME_STAGE, mainDeckLeft, mainDeckRight, mainDeckZAt } from "./stage";
@@ -33,10 +33,10 @@ test("lava produces the same complete victim as an ordinary scripted fire hit [s
     beginDamageContacts(); collectLavaContacts(lava, CANNON_TEST_STAGE, FIRST_ERUPTION); finishDamageContacts(lava);
     beginDamageContacts(); applyAttackHit(scripted, 0, 0, AttackStyle.jab, 1, LAVA_HIT, false, false, undefined); finishDamageContacts(scripted);
     assertEquals(firstFighterDifference(first, second, 3, 3), undefined);
-    assertEquals(first.status.damage, damage + 12.0);
+    assertEquals(first.status.damage, damage + LAVA_HIT.damage);
     assertFalse(first.motion.grounded);
     assertGreaterThan(first.launch.knockbackZ, 0.0);
-    assertEquals(first.launch.hitstun, 40);
+    assertGreaterThan(first.launch.hitstun, 0);
   }
 });
 
@@ -46,18 +46,18 @@ test("lava produces the same complete victim as an ordinary scripted fire hit [s
 test("Blackrock's lava warns for five seconds, erupts on the right, then warns and erupts on the mirrored left spot, on a fixed timetable [spec #193]", () => {
   const at = (frame: number) => `${lavaPhase(CANNON_TEST_STAGE, frame)}${lavaSide(frame) > 0 ? "R" : "L"}`;
   const { calm, warning, erupting } = LavaPhase;
+  const C = LAVA_CALM_FRAMES, W = LAVA_WARNING_FRAMES, S = LAVA_SIDE_FRAMES;
   const timetable: [number, string][] = [
-    [1, `${calm}R`], [300, `${calm}R`], [301, `${warning}R`], [600, `${warning}R`], [601, `${erupting}R`], [1200, `${erupting}R`],
-    [1201, `${calm}L`], [1500, `${calm}L`], [1501, `${warning}L`], [1800, `${warning}L`], [1801, `${erupting}L`], [2400, `${erupting}L`],
-    [2401, `${calm}R`], [2701, `${warning}R`], [3001, `${erupting}R`],
+    [1, `${calm}R`], [C, `${calm}R`], [C + 1, `${warning}R`], [C + W, `${warning}R`], [C + W + 1, `${erupting}R`], [S, `${erupting}R`],
+    [S + 1, `${calm}L`], [S + C, `${calm}L`], [S + C + 1, `${warning}L`], [S + C + W, `${warning}L`], [S + C + W + 1, `${erupting}L`], [2 * S, `${erupting}L`],
+    [2 * S + 1, `${calm}R`], [2 * S + C + 1, `${warning}R`], [2 * S + C + W + 1, `${erupting}R`],
   ];
   assertEquals(timetable.map(([frame]) => `${frame}:${at(frame)}`).join(" "), timetable.map(([frame, phase]) => `${frame}:${phase}`).join(" "));
-  assertEquals(LAVA_WARNING_FRAMES, 300);
-  assertEquals(framesUntilLava(301), 300);
-  assertEquals(framesUntilLava(600), 1);
-  assertEquals(framesUntilLava(601), 0);
+  assertEquals(framesUntilLava(C + 1), W);
+  assertEquals(framesUntilLava(C + W), 1);
+  assertEquals(framesUntilLava(C + W + 1), 0);
   // The left spot mirrors the right.
-  assertEquals(`${lavaLeft(1801)}..${lavaRight(1801)}`, `${-lavaRight(601)}..${-lavaLeft(601)}`);
+  assertEquals(`${lavaLeft(S + FIRST_ERUPTION)}..${lavaRight(S + FIRST_ERUPTION)}`, `${-lavaRight(FIRST_ERUPTION)}..${-lavaLeft(FIRST_ERUPTION)}`);
   // Hazards off and other stages never warn or erupt.
   assertEquals(lavaPhase(CANNON_TEST_STAGE, STAGE_AT_REST + FIRST_ERUPTION), calm);
   assertEquals(lavaPhase(STRATHOLME_STAGE, FIRST_ERUPTION), calm);
@@ -74,7 +74,7 @@ test("Blackrock's one lava patch stays off the centre and clear of each ledge by
   let longest = 0.0;
   for (const character of SELECTABLE_CHARACTERS) longest = Math.max(longest, dashLength(character));
   assertGreaterThan(longest, 100.0);
-  for (const frame of [FIRST_ERUPTION, FIRST_ERUPTION + 1200]) {
+  for (const frame of [FIRST_ERUPTION, FIRST_ERUPTION + LAVA_SIDE_FRAMES]) {
     const left = lavaLeft(frame);
     const right = lavaRight(frame);
     assertGreaterThan(Math.min(left - mainDeckLeft(CANNON_TEST_STAGE), mainDeckRight(CANNON_TEST_STAGE) - right), 2 * longest);

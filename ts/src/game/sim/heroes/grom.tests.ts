@@ -9,6 +9,7 @@ import { isAerialAttack } from "../moves";
 import { advanceSpecials, startFighterSpecial } from "../specials";
 import { GROM_MOVES } from "./gromMoves";
 import { GROM_SPECIALS } from "./gromSpecials";
+import { ROSTER_MANA } from "../mana";
 import { HEIGHT_PROBE_OUT, REACH_PROBE_DEPTH, RECOVERY_BANDS, RECOVERY_PLANS, recovers, recoveryArchetype, upSpecialRoute } from "../../match/recoveryEnvelope";
 import { mainDeckRight } from "../stage";
 
@@ -61,7 +62,7 @@ test("Grom starts all four free specials with an empty bar and every EX spends o
     for (const ex of [false, true]) {
       const owner = createFighter(Character.grom, 0.0, 1); owner.motion.grounded = true; owner.motion.surface = 0; owner.mana.points = ex ? 100 : 0;
       const input = controls({ specialPressed: true, specialX: x, specialZ: z, shield: ex });
-      startFighterSpecial(owner, 0, 0, input); assertEquals(owner.special.action, action); assertEquals(owner.mana.points, ex ? 67 : 0); assertEquals(owner.special.ex, ex);
+      startFighterSpecial(owner, 0, 0, input); assertEquals(owner.special.action, action); assertEquals(owner.mana.points, ex ? ROSTER_MANA.max - ROSTER_MANA.exCost : 0); assertEquals(owner.special.ex, ex);
     }
   }
 });
@@ -80,9 +81,11 @@ test("Grom's rush stops at shields and Blood Leap ends helpless with the aerial 
 });
 
 test("Grom's four specials hit at their authored contacts in ground and air, both facings [spec #340]", () => {
-  for (const facing of [-1, 1]) for (const air of [false, true]) for (const [x, z, targetX, targetZ, damage, contact] of [
-    [0, 0, 44.0, 0.0, 6.300000190734863, 12], [1, 0, 104.0, 0.0, 10.800000190734863, 10], [0, 1, 12.0, 96.0, 8.100000381469727, 7], [0, -1, 124.0, 0.0, 19.799999237060547, 20],
+  for (const facing of [-1, 1]) for (const air of [false, true]) for (const [x, z, targetX, targetZ, kit] of [
+    [0, 0, 44.0, 0.0, GROM_SPECIALS.neutral], [1, 0, 104.0, 0.0, GROM_SPECIALS.side], [0, 1, 12.0, 96.0, GROM_SPECIALS.up], [0, -1, 124.0, 0.0, GROM_SPECIALS.down],
   ] as const) {
+    const region = kit.ground.regions![0]!;
+    const damage = region.hit.effect.damage, contact = region.firstFrame + 1;
     const owner = createFighter(Character.grom, 0.0, facing), target = createFighter(Character.rifleman, targetX * facing, -facing);
     owner.motion.grounded = !air; owner.motion.surface = 0; target.motion.grounded = false; target.motion.z = targetZ;
     const world = testWorld(owner, target);

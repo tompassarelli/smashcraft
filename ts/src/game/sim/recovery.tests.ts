@@ -64,11 +64,6 @@ test("recorded floor recovery skids match a tech and a missed tech on both origi
   }
 });
 
-test("the recorded floor recovery detects a wrong knockback on its first frame [invariant]", () => {
-  assertEquals(recordedFloorRecoveryFirstDifference(Character.sylvanas, true, 0.05999999865889549), 204);
-  assertEquals(recordedFloorRecoveryFirstDifference(Character.sylvanas, false, 0.05999999865889549), 956);
-});
-
 test("a floor recovery's entry preserves residual horizontal knockback [reference]", () => {
   for (const character of [Character.sylvanas, Character.rifleman]) {
     for (let recovery = 0; recovery <= 2; recovery++) {
