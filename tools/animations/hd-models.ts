@@ -1,32 +1,45 @@
-import { resolve, relative } from 'node:path';
-import { Effect } from 'effect';
-import { parseMDX } from '../../ts/scripts/clipNodes';
-import { CAIRNE_DE_PAIRS, checkBodySkin, checkRetarget, generateHdBody, parseHdBody, retargetHd, type RetargetOptions } from './hd-retarget';
+import { model as mdx } from '../../ts/scripts/clipNodes';
+import { checkBodySkin, checkRetarget, generateHdBody, parseHdBody, retargetHd } from './hd-retarget';
+import { canonicalMotion, classicSkeleton, type FighterRig } from './canonical-rig';
 import { timelineBody } from './timeline-body';
 import { flashableSequences } from './white-flash-keys';
 import { thinKeys } from '../../ts/scripts/keyThin';
-import { fighters } from './original-clips';
+import { encodeVerified, fighters, parseSource } from './original-clips';
+import { DEFINITIVE_FIGHTERS } from '../../ts/src/game/assets/definitiveFighters';
+import type { Character } from '../../ts/src/game/sim/codes';
 import { victoryAnimation } from '../../ts/src/game/presentation/matchAudio';
 
-export interface HdRig extends RetargetOptions { readonly pairs: readonly (readonly [string, string])[] }
+const normalize = (name: string) => name.replace(/\s+\d+$/, '').replaceAll(/\s+/g, '').toLowerCase();
 
-/** One fighter's Definitive timeline body from its authored Classic model and the stock Definitive model. */
-export async function convertHdBody(source: ArrayBuffer, stock: ArrayBuffer, character: number, rig: HdRig) {
-    const fighter = fighters.get(character);
-    if (fighter === undefined) throw new Error(`Unknown fighter ${character}`);
-    const authored = parseMDX(source);
+/** The sequence indices each body plays: the fighter's production clips, and in Definitive its victory pose too. */
+export interface PlayedMoves { readonly classic: readonly number[]; readonly definitive: readonly number[] }
+export function playedMoves(character: number, motion: mdx.Model): PlayedMoves {
+    const played = flashableSequences(character, motion.Sequences).map(sequence => motion.Sequences.indexOf(sequence));
+    const victory = normalize(victoryAnimation(character));
+    const definitive = new Set(played);
+    motion.Sequences.forEach((sequence, index) => { if (normalize(sequence.Name) === victory) definitive.add(index); });
+    return { classic: played, definitive: [...definitive].sort((a, b) => a - b) };
+}
+const selected = (model: mdx.Model, indices: readonly number[]) => model.Sequences.filter((_, index) => indices.includes(index));
+
+/** One fighter's Classic timeline body, generated from its canonical motion through the Classic mapping. */
+export function classicBody(motion: mdx.Model, rig: FighterRig, played: readonly number[]): ArrayBuffer {
+    const thinned = thinKeys(classicSkeleton(motion, rig)).model;
+    return encodeVerified(timelineBody(thinned, selected(thinned, played)));
+}
+
+/** One fighter's Definitive timeline body, generated from its canonical motion onto the stock Definitive model. */
+export function definitiveBody(motion: mdx.Model, stock: ArrayBuffer, rig: FighterRig, played: readonly number[]) {
+    const character = rig.character;
+    const fighter = fighters.get(character) ?? { name: `Fighter ${character}` };
     const hd = parseHdBody(stock);
     // The Crypt Lord names a base-only glow; Definitive has the same stock art under this path (#346).
     for (const texture of hd.Textures) if (texture.Image.replaceAll('\\', '/').replace(/\.(blp|tif|dds|tga)$/i, '').toLowerCase() === 'replaceabletextures/teamglow/teamglow00') texture.Image = 'Textures\\TeamGlow0000.dds';
     const pairs = rig.pairs;
-    if (!Array.isArray(pairs) || pairs.length === 0) throw new Error('Rig module must export a nonempty pairs array');
+    if (!Array.isArray(pairs) || pairs.length === 0) throw new Error('A Definitive rig needs a nonempty pairs array');
     const skin = checkBodySkin(hd);
-    const normalize = (name: string) => name.replace(/\s+\d+$/, '').replaceAll(/\s+/g, '').toLowerCase();
-    const victory = normalize(victoryAnimation(character));
-    const selected = new Set(flashableSequences(character, authored.Sequences));
-    for (const sequence of authored.Sequences) if (normalize(sequence.Name) === victory) selected.add(sequence);
-    const sequences = authored.Sequences.filter(sequence => selected.has(sequence));
-    const result = retargetHd(authored, hd, pairs, sequences, rig);
+    const sequences = selected(motion, played);
+    const result = retargetHd(motion, hd, pairs, sequences, rig);
     const converted = checkRetarget(result);
     if (converted.units > 0.5 || converted.degrees > 0.5) throw new Error(`${fighter.name} retarget exceeds 0.5/0.5: ${JSON.stringify(converted)}`);
     for (const collision of result.model.CollisionShapes) delete result.model.Nodes[collision.ObjectId];
@@ -46,21 +59,16 @@ export async function convertHdBody(source: ArrayBuffer, stock: ArrayBuffer, cha
         importReason: 'Authored moves cannot be played on the unmodified stock Definitive model.' } };
 }
 
-if (import.meta.main) {
-    const [sourcePath, stockPath, outputPath, ...options] = process.argv.slice(2);
-    const option = (name: string) => { const index = options.indexOf(name); return index < 0 ? undefined : options[index + 1]; };
-    const character = Number(option('--character') ?? 16);
-    const rigPath = option('--rig');
-    if (sourcePath === undefined || stockPath === undefined || outputPath === undefined) {
-        throw new Error('usage: bun tools/animations/hd-models.ts AUTHORED.mdx STOCK_DEFINITIVE.mdx PRIVATE_OUTPUT.mdx [--character ID --rig PAIRS.ts]');
-    }
-    if (character !== 16 && rigPath === undefined) throw new Error('Every fighter needs its registered literal rig mapping');
-    const output = resolve(outputPath);
-    if (!relative(resolve(import.meta.dir, '../..'), output).startsWith('..')) throw new Error('HD bodies stay in private storage');
-    await Effect.runPromise(Effect.tryPromise({ try: async () => {
-        const rig: HdRig = rigPath === undefined ? { pairs: CAIRNE_DE_PAIRS } : await import(resolve(rigPath));
-        const { bytes, report } = await convertHdBody(await Bun.file(sourcePath).arrayBuffer(), await Bun.file(stockPath).arrayBuffer(), character, rig);
-        await Bun.write(output, bytes);
-        console.log(JSON.stringify({ ...report, output }));
-    }, catch: cause => new Error(`Definitive ${character} export failed`, { cause }) }));
+/**
+ * Both looks' bodies from one canonical motion (#366). A fighter without an approved Definitive body draws its
+ * Classic body in Definitive too, so `definitive` is undefined.
+ */
+export function fighterBodies(motion: mdx.Model, rig: FighterRig, stock: ArrayBuffer | undefined, moves = playedMoves(rig.character, motion)) {
+    const classic = classicBody(motion, rig, moves.classic);
+    if (!DEFINITIVE_FIGHTERS.has(rig.character as Character)) return { classic, definitive: undefined };
+    if (stock === undefined) throw new Error(`Fighter ${rig.character} needs its stock Definitive model`);
+    return { classic, definitive: definitiveBody(motion, stock, rig, moves.definitive) };
 }
+
+/** Today's canonical motion source: the authored Classic model, mapped onto the rig. */
+export const authoredMotion = (authored: ArrayBuffer, rig: FighterRig) => canonicalMotion(parseSource(authored), rig);

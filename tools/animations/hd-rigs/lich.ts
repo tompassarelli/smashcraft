@@ -1,22 +1,35 @@
+export const character = 6;
 export const stockPath = 'war3.w3mod:_de.w3mod:units\\undead\\herolich\\herolich.mdx';
 // The floating robe's lengths otherwise place the head 54% above the Classic body's height (#362).
 export const fitScale = 0.65;
 
 // Lich has a floating torso and eight robe strips, rather than a leg rig.
+export const classic = {
+    root: 'Bone_Root',
+    chest: 'Cylinder01',
+    neck: 'Bone NECK',
+    head: 'Bone_Head',
+    'shoulder.L': 'Cylinder07',
+    'elbow.L': 'Mesh05',
+    'wrist.L': 'Mesh03',
+    'shoulder.R': 'Cylinder06',
+    'elbow.R': 'Mesh04',
+    'wrist.R': 'Mesh02',
+} as const;
 export const pairs: readonly (readonly [string, string])[] = [
-    ['Bone_Root', 'spine_C0_0_jnt'],
+    ['root', 'spine_C0_0_jnt'],
     ['Mesh01', 'spine_C0_1_jnt'],
-    ['Cylinder01', 'bone_chest'],
-    ['Bone NECK', 'neck_C0_0_jnt'],
-    ['Bone_Head', 'bone_head'],
-    ['Cylinder07', 'shoulder_L0_shoulder_jnt'],
-    ['Cylinder07', 'arm_L0_0_jnt'],
-    ['Mesh05', 'arm_L0_2_jnt'],
-    ['Mesh03', 'arm_L0_4_jnt'],
-    ['Cylinder06', 'shoulder_R0_shoulder_jnt'],
-    ['Cylinder06', 'arm_R0_0_jnt'],
-    ['Mesh04', 'arm_R0_2_jnt'],
-    ['Mesh02', 'arm_R0_4_jnt'],
+    ['chest', 'bone_chest'],
+    ['neck', 'neck_C0_0_jnt'],
+    ['head', 'bone_head'],
+    ['shoulder.L', 'shoulder_L0_shoulder_jnt'],
+    ['shoulder.L', 'arm_L0_0_jnt'],
+    ['elbow.L', 'arm_L0_2_jnt'],
+    ['wrist.L', 'arm_L0_4_jnt'],
+    ['shoulder.R', 'shoulder_R0_shoulder_jnt'],
+    ['shoulder.R', 'arm_R0_0_jnt'],
+    ['elbow.R', 'arm_R0_2_jnt'],
+    ['wrist.R', 'arm_R0_4_jnt'],
     ['Box20', 'ElbowChain_L0_0_jnt'],
     ['Mesh06', 'ElbowChain_L0_2_jnt'],
     ['Box21', 'HandChain_L0_0_jnt'],

@@ -20,6 +20,7 @@ import { DEMON_HUNTER_MODEL_FILE } from "../../src/game/presentation/demonHunter
 import { RIFLEMAN_MODEL_FILE } from "../../src/game/presentation/fighterAssetInfo";
 import { SUMMON_BEAR, summonClip, summonClipCount } from "../../src/game/presentation/summonClipInfo";
 import { Character } from "../../src/game/sim/codes";
+import { DEFINITIVE_FIGHTERS } from "../../src/game/assets/definitiveFighters";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
 import { HERO_ROSTER, PORTRAIT_KINDS, RENDERED_FIGHTERS, fighterPortrait } from "../../src/game/sim/heroes/registry";
 import { PARTICIPANT_SLOTS } from "../../src/game/input/participants";
@@ -112,6 +113,10 @@ export const ORIGINAL_CLIP_MODELS = [...new Set(Object.values(Character).flatMap
   return light === undefined ? clips : [...clips, light];
 }))];
 
+
+/** Timeline bodies whose fighter's Definitive flag is set; every other fighter draws its Classic body in Definitive (#366). */
+export const DEFINITIVE_BODY_MODELS = [...DEFINITIVE_FIGHTERS]
+  .map((character) => originalClip(character, 0)?.modelPath ?? "").filter((model) => model.includes("TimelineBody-"));
 
 const IMPORTED_HERO_MODELS = HERO_ROSTER.map(({ presentation }) => presentation.model).filter((model) => importedModelFile(model) !== undefined);
 
@@ -288,7 +293,7 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
   const clipEvidencePath = join(clipDirectory, "original-clips-evidence.json");
   const clipEvidence = yield* readJson(OriginalClipEvidence, clipEvidencePath);
   const clipFiles = [...new Set(clipEvidence.records.flatMap((record) => [...record.clips.map(({ filename }) => filename), ...(record.light === null ? [] : [record.light.filename])]))].filter((file) => ORIGINAL_CLIP_MODELS.includes(`war3mapImported\\${file}`));
-  const definitiveBodies = ORIGINAL_CLIP_MODELS.filter((model) => model.includes("TimelineBody-")).flatMap((model) => {
+  const definitiveBodies = DEFINITIVE_BODY_MODELS.flatMap((model) => {
     const entry = `_de.w3mod\\${model}`;
     const source = join(clipDirectory, "imports", ...entry.split("\\"));
     return existsSync(source) ? [{ entry, source }] : [];

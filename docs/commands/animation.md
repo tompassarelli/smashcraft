@@ -116,9 +116,10 @@ smashcraft:docs/design/animation-reference.md. Reference pixels remain private.
   authors clips through Blender; the optional existing model preserves shipped
   sequences and appends only new clips; `--replace NAME` reauthors one existing clip at its same index and length (smashcraft:docs/fighter-animation-work.md).
 
-- Definitive fighter body: `bun tools/animations/hd-models.ts AUTHORED.mdx STOCK_DEFINITIVE.mdx PRIVATE_OUTPUT.mdx [--character ID --rig PAIRS.ts]`
-  transfers production poses to the stock Definitive rig and checks both retargeted
-  clips and the final timeline within 0.5 units / 0.5 degrees.
+- Both fighter bodies from one canonical motion: `bun tools/animations/hd-roster.ts PRIVATE_OUTPUT [CHARACTER...]`
+  writes each fighter's Classic timeline body under `classic/` and, for fighters in
+  `DEFINITIVE_FIGHTERS`, its Definitive body, checked within 0.5 units / 0.5 degrees
+  (smashcraft:docs/design/hd-fighters.md, "Canonical rig").
 
 - Normal timeline body pilot (from the repository root):
   `bun tools/animations/timeline-models.ts PRIVATE_ASSETS PRIVATE_POOL MountainKing`

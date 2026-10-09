@@ -1,10 +1,48 @@
 # Definitive match fighters
 
-[#334](https://github.com/tompassarelli/smashcraft/issues/334) keeps the authored
-moves and Classic bodies, and gives Definitive the stock Definitive body seen on the
-victory screen. Cairne's dual-alias pilot passed native model loading,
-team colour and a smoke round on Classic and Definitive clients in 3.0.1.
-That establishes the body pipeline for parallel roster conversion.
+**Definitive is the first-class look and Classic the fallback, per fighter**
+([#366](https://github.com/tompassarelli/smashcraft/issues/366)). Each fighter's
+moves are stored once on the canonical rig, and its Classic and Definitive bodies are
+both generated from that motion. A fighter's Definitive body ships only when it
+passes [Definitive approval](#definitive-approval); otherwise the fighter draws its
+Classic body in both looks. [#334](https://github.com/tompassarelli/smashcraft/issues/334)
+established the stock Definitive body pipeline; Cairne's dual-alias pilot passed
+native model loading, team colour and a smoke round in 3.0.1.
+
+## Canonical rig
+
+Decided with Tom on 9 October (#366): one motion source drives both bodies, in the
+manner of HumanIK or Mixamo retargeting. Edit a move once and both looks change; no
+look is tuned by hand.
+
+- **The rig.** `HUMANOID_JOINTS` (smashcraft:tools/animations/canonical-rig.ts) is
+  a neutral humanoid: `root`, `pelvis`, `chest`, `neck`, `head`, and per side
+  `clavicle`, `shoulder`, `elbow`, `wrist`, `hip`, `knee`, `ankle` and `toe`
+  (`shoulder.L`, ...), plus `weapon` and `weapon.L`. A fighter's other animated
+  parts (wings, tails, capes, mounts, beards) are its own secondary joints, named
+  as in its source.
+- **Canonical motion.** `canonicalMotion` stores a fighter's moves on the rig, with
+  its mesh as the reference silhouette that bodies plant and fit against. Its first
+  source is today's authored Classic model, so the canonical proportions are
+  Classic's for now.
+- **Mapping, once per fighter.** Each `hd-rigs/<fighter>.ts` exports only
+  `character`, `stockPath`, `classic` (humanoid joint → Classic node), `pairs`
+  (rig joint → Definitive bone, any number per joint) and the body fit
+  (`fitScale`, `limbScales`, `visibilityPairs`). It names no move, sequence or frame.
+  The rig joint names are what `registerRig` reads; Definitive bones that no pair
+  names keep their stock pose under their nearest mapped parent.
+- **Both bodies are generated.** `fighterBodies` (smashcraft:tools/animations/hd-models.ts)
+  writes the Classic timeline body through the Classic mapping and the Definitive
+  body through #362's `retargetHd`. Gameplay timing and boxes come from the
+  simulation, so they are identical in both looks.
+- **Checks.** smashcraft:ts/test/canonical-rig.test.ts checks every mapping for
+  per-fighter fields only, and checks that editing one canonical move changes that
+  move in both exported bodies and no other move. Its per-fighter sweeps rebuild
+  all 26 shipped Classic bodies and all 24 converted Definitive bodies from canonical
+  motion, byte for byte against the published family.
+
+Not yet done: sizing the gameplay boxes to the rig at Definitive proportions and
+fitting Classic to them.
 
 ## Stock textures
 
@@ -57,12 +95,12 @@ must resolve each role to a literal pair of names and reject missing pairs.
 | Medivh | authored Medivh → Medivh | arms, legs, staff → staff, cloak → cloak, raven → raven |
 | Kobold | authored Kobold → Kobold | arms, legs, pick → pick, candle → candle |
 
-The two approved exceptions keep their existing body in Definitive. The installed
-stock model named Lich King is a one-bone frozen throne scene; playable stock
-Arthas lacks the approved helmeted identity. The installed Definitive Malfurion
-model includes a visible stag even under its `MalfurionNoStag` name, while the
-approved fighter walks. Neither receives a replacement alias. These identity
-choices may be revisited separately when a matching stock body is available.
+Lich King and Malfurion have no Definitive mapping and keep their Classic body in
+Definitive. The installed stock model named Lich King is a one-bone frozen throne
+scene, and playable stock Arthas lacks the approved helmeted identity. The installed
+Definitive Malfurion model includes a visible stag even under its `MalfurionNoStag`
+name, while the approved fighter walks. These identity choices may be revisited
+separately when a matching stock body is available.
 
 Cairne's installed Definitive model (3.0.1) has 91 bones and is 1,726,676 bytes.
 Its 27 literal pairs are `Root → root`, `Bone_Chest → bone_chest`,
@@ -85,7 +123,7 @@ targets, so they retain the authored hand-to-weapon relationship.
 Classic and Definitive share hit regions and hurt capsules, so each Definitive body
 must visibly fill the same hurt capsules as Classic and put its hitting weapon or
 limb inside the same hit regions on active frames. A body that can't takes its
-Classic body in both looks, like the Lich King and Malfurion ([#362](https://github.com/tompassarelli/smashcraft/issues/362)).
+Classic body in both looks ([#362](https://github.com/tompassarelli/smashcraft/issues/362), [Definitive approval](#definitive-approval)).
 
 `registerRig` (smashcraft:tools/animations/hd-retarget.ts) fixes each fighter's
 registration from the two rest poses alone (Classic and stock Definitive Stand
@@ -131,8 +169,8 @@ mapped joints are within **0.5 Warcraft units** and **0.5 degrees** of the
 transferred pose, after #314's thinning and #308's timeline export. Fail on an
 unmapped required joint, singular transform, non-finite sample, empty track or
 a body over 255 nodes. `bun tools/animations/hd-roster.ts PRIVATE_OUTPUT [CHARACTER...]`
-converts every retargeted fighter from its stock Definitive model; one fighter
-is `bun tools/animations/hd-models.ts`.
+writes every fighter's bodies from its canonical motion: the Classic timeline body, and
+the Definitive body for each fighter in `DEFINITIVE_FIGHTERS`.
 
 ## Packaging and size
 
@@ -158,3 +196,59 @@ The existing 10% growth gate remains; add an absolute 120,000,000-byte map
 check and a 60,000,000-byte Definitive contribution check before shipping. Every
 import reports its bytes and reason: authored moves cannot be played on the
 unmodified stock Definitive model. Do not add another copy for each move or flash.
+
+## Definitive approval
+
+A fighter's Definitive body ships only if every move passes, with no hand edits (#366):
+1. It reads clearly at gameplay zoom, at mainstream fighting-game quality: the
+   [#367 scorecard](../animation-scorecard.md), lines 1–5, in Definitive.
+2. Nothing twists, tears or slides.
+3. The silhouette covers its hurt capsules at idle and key frames.
+4. The hitting limb or weapon is inside the hit region on the first active frame.
+
+Moving a fighter between looks is one entry in `DEFINITIVE_FIGHTERS`
+(smashcraft:ts/src/game/assets/definitiveFighters.ts). The map imports a fighter's
+`_de.w3mod` body only when it is listed; a fighter that is not listed draws its
+Classic body in Definitive. The exporter writes Definitive bodies only for listed fighters.
+
+9 October judgement of the 690fa4ef family: criteria 2–4 come from #362's textured
+captures, judged by an agent that did not author the bodies. Criterion 4 fails when
+the conversion leaves a gap of more than about 3 units where Classic is inside the
+region (`surfaceOverlapDistance`, first active frame). Criterion 1 is
+`bun wisp anim score --graphics definitive`
+(smashcraft:tools/move-data/anim-score/definitive.tsv): moves passing lines 1–4, and
+mean shortfall in Definitive and Classic. Line 5 has no judgement yet. No fighter
+passes criterion 1 in either look: the source animations are the limit (#180), so
+the flag currently follows criteria 2–4.
+
+| ID | Fighter | 1: Definitive / Classic moves passing, shortfall | 2 | 3 | 4 | Flag |
+|---|---|---|---|---|---|---|
+| 1 | Rifleman | 0/16, 11.22 / 0/16, 10.02 | pass | pass | pass | Definitive |
+| 2 | Illidan | 0/16, 12.69 / 0/16, 10.57 | pass | pass | pass | Definitive |
+| 3 | Blademaster | 0/18, 3.53 / 0/18, 3.29 | pass | pass | pass | Definitive |
+| 4 | Mountain King | 1/20, 3.04 / 0/20, 2.61 | pass | pass | **fail**: first-active reach 107 → 62 on forward tilt, hammer tucked in | Classic |
+| 5 | Warden | 0/20, 5.34 / 0/20, 5.13 | pass | pass | pass | Definitive |
+| 6 | Lich | 0/18, 6.72 / 0/18, 3.04 | pass | pass | **fail**: jab +6.94 (Classic −7.99), jab 2 +5.04 (−7.72) | Classic |
+| 7 | Forsaken Paladin | 0/20, 2.16 / 0/20, 2.81 | pass | pass | pass (up smash loses its hop) | Definitive |
+| 8 | Dreadlord | 0/19, 4.63 / 0/19, 4.51 | pass | pass | pass | Definitive |
+| 9 | Shadow Hunter | 0/19, 13.06 / 0/19, 14.44 | pass | pass | pass | Definitive |
+| 10 | Pit Lord | 0/20, 3.53 / 3/20, 3.01 | pass | pass | pass | Definitive |
+| 11 | Beastmaster | 0/18, 4.79 / 0/18, 5.17 | pass | pass | **fail**: down air +4.60 (Classic −4.46), angled-up forward tilt +4.89 (−6.48) | Classic |
+| 12 | Lich King | — | — | — | — | Classic (no Definitive mapping) |
+| 13 | Thrall | 0/19, 3.70 / 0/19, 3.76 | pass | pass | pass | Definitive |
+| 14 | Jaina | 0/18, 7.00 / 0/18, 7.51 | pass | pass | **fail**: angled-up forward tilt +9.44 (Classic −1.34), down air +3.76 (−0.63) | Classic |
+| 15 | Sylvanas | 0/19, 7.88 / 0/19, 7.00 | pass | pass | pass | Definitive |
+| 16 | Cairne | 0/19, 5.53 / 0/19, 5.39 | pass | pass | pass | Definitive |
+| 17 | Chen | 0/20, 9.36 / 0/20, 8.58 | pass | pass | pass | Definitive |
+| 18 | Peon | 0/17, 9.43 / 0/17, 9.25 | pass | pass | pass | Definitive |
+| 19 | Goblin Tinker | 0/20, 7.29 / 0/20, 7.00 | pass | pass | pass | Definitive |
+| 20 | Kael'thas | 0/20, 3.06 / 0/20, 2.97 | pass | pass | pass | Definitive |
+| 21 | Murloc | 0/20, 4.77 / 0/20, 5.70 | pass | pass (body larger than Classic) | pass | Definitive |
+| 22 | Grom | 0/20, 5.44 / 0/20, 4.71 | pass | pass | pass | Definitive |
+| 23 | Anub'arak | 2/19, 2.93 / 0/19, 3.11 | pass | pass | pass | Definitive |
+| 24 | Malfurion | — | — | — | — | Classic (no Definitive mapping) |
+| 25 | Medivh | 0/20, 7.99 / 0/20, 5.98 | pass | pass | pass (down air +2.65, marginal) | Definitive |
+| 26 | Kobold | 0/20, 3.21 / 0/20, 2.44 | pass | pass | pass | Definitive |
+
+Run and roll sliding was not judged for most fighters, and later active frames were
+not measured. Lich's criterion 4 result overturns #362's pass.

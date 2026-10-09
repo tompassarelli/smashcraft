@@ -2,23 +2,7 @@ import { mat4, quat, vec3 } from '../../ts/node_modules/gl-matrix';
 import { ModelRenderer, model as mdx, parseMDX, generateMDX } from '../../ts/scripts/clipNodes';
 import { skinChunks } from '../../ts/scripts/mdxCodec';
 import { tracks, onGlobalClock } from './original-clips';
-
-export const CAIRNE_DE_PAIRS: readonly (readonly [string, string])[] = [
-    ['Root', 'root'], ['Bone_Chest', 'bone_chest'], ['Bone_Neck', 'neck'],
-    ['Bone_Head', 'bone_head'], ['Bone_Pelvis', 'pelvis'],
-    ['Bone_Totum', 'totem'], ['Axe', 'weapon'],
-    ...(['L', 'R'] as const).flatMap(side => [
-        [`Bone_Clavical${side}`, `scapula_${side}`],
-        [`Bone_UpperArm${side}`, `scapula_${side}|shoulder_l`],
-        [`Bone_LowerArm${side}`, `elbow_${side}`],
-        [`Bone_Hand${side}`, `wrist_${side}`],
-        [`Bone_Upperleg${side}`, `hip_${side}`],
-        [`Bone_Leg2${side}`, `knee_${side}`],
-        [`Bone_Leg3${side}`, `ankle_${side}`],
-        [`Bone_Foot${side}`, `toes_${side}`],
-    ] as const),
-    ...[1, 2, 3, 4].map(index => [`Bone_Tail${index}`, `tail${index}`] as const),
-];
+import { isLegJoint } from './canonical-rig';
 
 /** Match bodies use no camera; version 1800's camera record extends the old layout. */
 export function parseHdBody(bytes: ArrayBuffer): mdx.Model {
@@ -330,7 +314,7 @@ export function registerRig(source: mdx.Model, hd: mdx.Model, pairs: readonly (r
         const used = rig.Geosets.map(mesh => rig.Materials[mesh.MaterialID]?.Layers.some(layer => Number(layer.FilterMode) <= 2) ? new Set(mesh.Faces) : new Set<number>());
         return vertices.filter(({ geoset, vertex }) => used[geoset].has(vertex));
     };
-    const classicLegs = [...group.keys()].filter(id => /leg|foot|ankle|shin|toe|paw/i.test(source.Nodes[id].Name)
+    const classicLegs = [...group.keys()].filter(id => isLegJoint(source.Nodes[id].Name) || /leg|foot|ankle|shin|toe|paw/i.test(source.Nodes[id].Name)
         || group.get(id)!.some(target => /leg|foot|ankle|toe|paw|mount_bone_hand/i.test(model.Nodes[target].Name)));
     const targetLegs = classicLegs.flatMap(id => group.get(id)!);
     const classicBody = drawnVertices(source, ownedVertices(source, [...group.keys()], group, true));
