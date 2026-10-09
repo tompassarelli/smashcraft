@@ -475,7 +475,7 @@ turns on Environment Shadows, Point Light Shadows and AO and records the mode.
 
 | # | Lever | Done when |
 | --- | --- | --- |
-| G1 | A visual capture profile (shadows, point-light shadows and AO on, mode recorded), then re-capture the stock/mask/stage triple of every stage on 3.0.1 in Classic, Reforged and Definitive | 11 stages × 3 modes of triples exist, each recording its mode |
+| G1 | A visual capture profile (shadows, point-light shadows and AO on, mode recorded), then re-capture the stock/mask/stage triple of every stage on 3.0.1 in Classic and Definitive | 11 stages × 2 modes of triples exist, each recording its mode |
 | G2 | `war3mapPostProcessing.txt`: bloom on with a high threshold, so only additive sparks and emissive accents bloom, and a tighter ASSAO for fighter contact shadows (Forgotten Hollow uses radius 6, multiplier 3) | Reforged and Definitive captures of `-dev effects 12` show bloom on the sparks, and fighter ΔE00 against the ring falls on no stage |
 | G3 | Definitive copies of the stage lights at `_DE.w3mod\war3mapImported\StageLight-*.mdx` with high-range intensities; Classic and Reforged keep the current files | A Definitive capture shows the copy loaded (a distinct test colour), and contrast holds on the four measured stages |
 | G4 | KO punctuation: a local depth-of-field pulse and cinematic-filter flash on KO only, after Silverpine's pattern | A native KO capture shows the pulse, and the two clients' checksums stay equal over a full match |
@@ -484,7 +484,7 @@ Per stage (backdrop facts from [Per-stage recommendations](#per-stage-recommenda
 
 | Stage | Backdrop | 3.0.1 / Forsaken Kingdom levers worth using | Skip |
 | --- | --- | --- | --- |
-| Sky Deck (0) | neutral; #178 ΔE00 22.8 | The control for G1–G3: capture it first in all three modes, AO on and off | Forsaken Kingdom art |
+| Sky Deck (0) | neutral; #178 ΔE00 22.8 | The control for G1–G3: capture it first in both supported modes, AO on and off | Forsaken Kingdom art |
 | Frozen Throne (2) | bright ring (L\* 52–54); contrast falls | Height fog (style 3) in deep blue below the deck with a `MaxLinearDensity` cap, to darken the bright lower band instead of dimming the fighters. `DrawOverSky` to pull the sky's horizon into the same tint. Bloom (G2) on the ice's emissive layers | NorthrendSky and IcecrownGlacierSky (HD-only); weather |
 | Durotar (3) | bright ring; contrast falls | Height fog in warm dust below the deck. The bloom threshold must leave sunlit sandstone unbloomed | Forsaken Kingdom art |
 | Naxxramas (4) | dark ring (L\* 31–33); contrast rises | A cold green omni light from an imported effect by the necropolis (unlimited in HD) with `BlzSetMinShadowCastingPointLightCount(1)`. Undercity and Naxx decor (`naxxdeco0/1`, ceiling chains, Forsaken banners) only as Definitive garnish | NaxxNightSky (Definitive only, one sky slot); DNCUndercityFinal (too dark for fighters) |
