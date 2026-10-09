@@ -2,7 +2,7 @@
 
 Tom’s roster decision (9 October 2026, #339): 21 fighters remain. Every fighter needs a strong, pointed personality: funny, annoying, menacing, heroic, or something equally specific. Never flat or generic. The roster holds at 26 fighters, Melee’s size, until every fighter feels good. The only planned additions are [Grom Hellscream (#340)](https://github.com/tompassarelli/smashcraft/issues/340), [Anub’arak (#341)](https://github.com/tompassarelli/smashcraft/issues/341), [Malfurion (#342)](https://github.com/tompassarelli/smashcraft/issues/342), [Medivh (#343)](https://github.com/tompassarelli/smashcraft/issues/343), and [Kobold (#344)](https://github.com/tompassarelli/smashcraft/issues/344). No further additions are planned.
 
-Smashcraft supports Classic and Definitive graphics. Each player chooses their look; moves, timing, hitboxes, hurtboxes and match results are identical across both. Reforged is dropped from the plans.
+Smashcraft supports Classic and Definitive graphics. Each player chooses their look; moves, timing, hitboxes, hurtboxes and match results are identical across both. Reforged is dropped from the plans. Because the boxes are shared, each Definitive body must visibly fill the same hurt capsules as Classic and put its hitting weapon or limb inside the same hit regions on active frames; a body that can't takes its Classic body in both looks ([#362](https://github.com/tompassarelli/smashcraft/issues/362)).
 
 ## Malfurion Stormrage (#342)
 

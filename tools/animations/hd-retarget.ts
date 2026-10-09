@@ -71,52 +71,6 @@ function inverse(matrix: mat4): mat4 {
     return result;
 }
 
-function registrationFactors(matrix: mat4): readonly [mat4, mat4, mat4] {
-    const a = Array.from({ length: 3 }, (_, row) => Array.from({ length: 3 }, (_, column) => matrix[column * 4 + row]));
-    const stretchSquared = Array.from({ length: 3 }, (_, row) => Array.from({ length: 3 }, (_, column) =>
-        a.reduce((sum, values) => sum + values[row] * values[column], 0)));
-    const basis = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
-    for (let iteration = 0; iteration < 32; iteration++) {
-        let p = 0, q = 1;
-        for (const [row, column] of [[0, 2], [1, 2]])
-            if (Math.abs(stretchSquared[row][column]) > Math.abs(stretchSquared[p][q])) { p = row; q = column; }
-        if (Math.abs(stretchSquared[p][q]) < 1e-12) break;
-        const angle = 0.5 * Math.atan2(2 * stretchSquared[p][q], stretchSquared[q][q] - stretchSquared[p][p]);
-        const c = Math.cos(angle), s = Math.sin(angle);
-        const pp = stretchSquared[p][p], qq = stretchSquared[q][q], pq = stretchSquared[p][q];
-        stretchSquared[p][p] = c * c * pp - 2 * c * s * pq + s * s * qq;
-        stretchSquared[q][q] = s * s * pp + 2 * c * s * pq + c * c * qq;
-        stretchSquared[p][q] = stretchSquared[q][p] = 0;
-        for (let row = 0; row < 3; row++) {
-            if (row !== p && row !== q) {
-                const rp = stretchSquared[row][p], rq = stretchSquared[row][q];
-                stretchSquared[row][p] = stretchSquared[p][row] = c * rp - s * rq;
-                stretchSquared[row][q] = stretchSquared[q][row] = s * rp + c * rq;
-            }
-            const bp = basis[row][p], bq = basis[row][q];
-            basis[row][p] = c * bp - s * bq;
-            basis[row][q] = s * bp + c * bq;
-        }
-    }
-    const scales = stretchSquared.map((row, index) => Math.sqrt(row[index]));
-    if (scales.some(value => !Number.isFinite(value) || value < 1e-8)) throw new Error('Singular Stand registration');
-    const left = mat4.create(), diagonal = mat4.create(), right = mat4.create();
-    for (let row = 0; row < 3; row++) for (let column = 0; column < 3; column++) {
-        left[column * 4 + row] = a[row].reduce((sum, value, index) => sum + value * basis[index][column], 0) / scales[column];
-        right[column * 4 + row] = basis[column][row];
-    }
-    if (mat4.determinant(left) < 0) {
-        for (let row = 0; row < 3; row++) left[8 + row] *= -1;
-        scales[2] *= -1;
-    }
-    for (let axis = 0; axis < 3; axis++) {
-        left[12 + axis] = matrix[12 + axis];
-        diagonal[axis * 5] = scales[axis];
-    }
-    // R*S = (R*Q)*D*Q^-1. Only D stretches; all three factors stay constant.
-    return [left, diagonal, right];
-}
-
 function appendTransform(node: mdx.Node, matrix: mat4, frame: number): void {
     const rotation = mat4.getRotation(quat.create(), matrix);
     quat.normalize(rotation, rotation);
@@ -131,10 +85,100 @@ function appendTransform(node: mdx.Node, matrix: mat4, frame: number): void {
 }
 
 export interface RetargetSample { sequence: number; frame: number; expected: ReadonlyMap<number, mat4> }
-export interface RetargetResult { model: mdx.Model; samples: RetargetSample[]; mapped: number }
+export interface RetargetResult { model: mdx.Model; samples: RetargetSample[]; mapped: number; fit: number; props: readonly string[] }
+export interface RetargetOptions {
+    /** Classic geoset index → Definitive geoset index whose authored hide/show keys it takes. */
+    readonly visibilityPairs?: readonly (readonly [number, number])[];
+}
 
-export function retargetHd(source: mdx.Model, hd: mdx.Model, pairs: readonly (readonly [string, string])[], sequences: readonly mdx.Sequence[], visibilityPairs: readonly (readonly [number, number])[] = []): RetargetResult {
-    const model = structuredClone(hd);
+const rotationOf = (matrix: mat4) => quat.normalize(quat.create(), mat4.getRotation(quat.create(), matrix));
+const pivotOf = (matrix: mat4, pivot: ArrayLike<number>) => vec3.transformMat4(vec3.create(), pivot as vec3, matrix);
+/** The rotation turning direction `from` onto `to`, with no turn about either. */
+function swing(from: vec3, to: vec3): quat {
+    const a = vec3.normalize(vec3.create(), from), b = vec3.normalize(vec3.create(), to);
+    return quat.rotationTo(quat.create(), a, b);
+}
+/** p + turn about p applied to `matrix`: the pose `matrix` moved rigidly so its pivot lands on `to`. */
+function turnedAbout(matrix: mat4, from: vec3, turn: quat, to: vec3): mat4 {
+    const result = mat4.fromTranslation(mat4.create(), to);
+    mat4.multiply(result, result, mat4.fromQuat(mat4.create(), turn));
+    mat4.translate(result, result, vec3.negate(vec3.create(), from));
+    return mat4.multiply(result, result, matrix);
+}
+
+/** The vertices joints carry: Classic vertices bound only (or, `partly`, at all) to `owner` and its unmapped descendants, or Definitive vertices whose heaviest bone is one of `owner` or their unmapped descendants. With no `mapped` joints, only `owner` itself counts. */
+function ownedVertices(rig: mdx.Model, owner: number | readonly number[], mapped: ReadonlyMap<number, unknown>, partly = false) {
+    const roots = new Set(typeof owner === 'number' ? [owner] : owner);
+    const owns = (id: number) => {
+        if (mapped.size === 0) return roots.has(id);
+        for (let node: number | null | undefined = id; node != null; node = rig.Nodes[node]?.Parent) {
+            if (roots.has(node)) return true;
+            if (mapped.has(node)) return false;
+        }
+        return false;
+    };
+    const vertices: { geoset: number; vertex: number }[] = [];
+    for (const [geoset, mesh] of rig.Geosets.entries()) {
+        for (let vertex = 0; vertex < mesh.Vertices.length / 3; vertex++) {
+            if (mesh.SkinWeights !== undefined) {
+                let best = -1, weight = 0;
+                for (let k = 0; k < 4; k++) if (mesh.SkinWeights[vertex * 8 + 4 + k] > weight) { weight = mesh.SkinWeights[vertex * 8 + 4 + k]; best = mesh.SkinWeights[vertex * 8 + k]; }
+                if (best >= 0 && owns(best)) vertices.push({ geoset, vertex });
+            } else if (partly ? (mesh.Groups[mesh.VertexGroup[vertex]] ?? []).some(owns) : (mesh.Groups[mesh.VertexGroup[vertex]] ?? []).every(owns)) vertices.push({ geoset, vertex });
+        }
+    }
+    return vertices;
+}
+
+/** A vertex of `rig` posed by the node matrices `world` gives. */
+function skinned(rig: mdx.Model, world: (id: number) => mat4, geoset: number, vertex: number): vec3 {
+    const mesh = rig.Geosets[geoset], at = vec3.fromValues(mesh.Vertices[vertex * 3], mesh.Vertices[vertex * 3 + 1], mesh.Vertices[vertex * 3 + 2]);
+    const out = vec3.create(), part = vec3.create();
+    if (mesh.SkinWeights !== undefined) {
+        for (let k = 0; k < 4; k++) { const weight = mesh.SkinWeights[vertex * 8 + 4 + k]; if (weight > 0) vec3.scaleAndAdd(out, out, vec3.transformMat4(part, at, world(mesh.SkinWeights[vertex * 8 + k])), weight / 255); }
+    } else {
+        const ids = mesh.Groups[mesh.VertexGroup[vertex]];
+        for (const id of ids) vec3.scaleAndAdd(out, out, vec3.transformMat4(part, at, world(id)), 1 / ids.length);
+    }
+    return out;
+}
+
+/** The long axis of a prop's posed vertices, when they form an elongated shape: twice the variance along it as across it. */
+function propAxis(rig: mdx.Model, pose: readonly mat4[], vertices: readonly { geoset: number; vertex: number }[]): vec3 | undefined {
+    if (vertices.length < 12) return undefined;
+    const points = vertices.map(({ geoset, vertex }) => skinned(rig, id => pose[id], geoset, vertex));
+    const mean = points.reduce((sum, point) => vec3.scaleAndAdd(sum, sum, point, 1 / points.length), vec3.create());
+    const covariance = [0, 1, 2].map(row => [0, 1, 2].map(column => points.reduce((sum, point) => sum + (point[row] - mean[row]) * (point[column] - mean[column]), 0) / points.length));
+    let axis = vec3.fromValues(1, 1, 1);
+    for (let iteration = 0; iteration < 64; iteration++) {
+        const next = vec3.fromValues(...[0, 1, 2].map(row => covariance[row][0] * axis[0] + covariance[row][1] * axis[1] + covariance[row][2] * axis[2]) as [number, number, number]);
+        if (vec3.length(next) < 1e-9) return undefined;
+        axis = vec3.normalize(next, next);
+    }
+    const first = [0, 1, 2].reduce((sum, row) => sum + axis[row] * (covariance[row][0] * axis[0] + covariance[row][1] * axis[1] + covariance[row][2] * axis[2]), 0);
+    const across = covariance[0][0] + covariance[1][1] + covariance[2][2] - first;
+    return first >= 2 * Math.max(across, 1e-9) ? axis : undefined;
+}
+
+/**
+ * Retargets authored Classic motion onto the stock Definitive skeleton (#362). Each mapped Definitive
+ * joint takes its Classic joint's turn from the Classic Stand reference, after its rest direction is
+ * swung onto the Classic rest direction; positions come from the Definitive skeleton's own bone lengths,
+ * so limbs keep their length and joints stay joined. The whole-body helper above the mapped skeleton
+ * (authored flips, squashes, drills, jumps) applies to the Definitive body unchanged. No Classic node is
+ * copied: the body keeps the stock Definitive node count.
+ */
+export function retargetHd(source: mdx.Model, hd: mdx.Model, pairs: readonly (readonly [string, string])[], sequences: readonly mdx.Sequence[], options: RetargetOptions = {}): RetargetResult {
+    return transferMotion(source, hd, registerRig(source, hd, pairs), sequences, options);
+}
+
+/**
+ * The fixed per-fighter registration of a source rig onto a target skeleton: which target joints follow which
+ * source joints, each joint's rest alignment, the size fit and the ground height. It is data about the two rest
+ * poses only; `transferMotion` applies it to any motion of the source rig.
+ */
+export function registerRig(source: mdx.Model, hd: mdx.Model, pairs: readonly (readonly [string, string])[]) {
+    const model = hd;
     const referenceSequence = (rig: mdx.Model) => {
         const ready = rig.Sequences.findIndex(sequence => /^Stand Ready(?:\s+\d+)?$/.test(sequence.Name));
         return ready >= 0 ? ready : rig.Sequences.findIndex(sequence => /^Stand(?:\s*-?\s*\d+)?$/.test(sequence.Name));
@@ -146,32 +190,195 @@ export function retargetHd(source: mdx.Model, hd: mdx.Model, pairs: readonly (re
     const sourceReference = sourceAt(sourceStand, source.Sequences[sourceStand].Interval[0]);
     const hdReference = hdAt(hdStand, hd.Sequences[hdStand].Interval[0]);
     const correspondence = new Map<number, number>();
+    const group = new Map<number, number[]>();
     for (const [classic, definitive] of pairs) {
         const from = source.Nodes.find(node => node?.Name === classic);
         const to = model.Bones.find(node => node.Name === definitive);
         if (from === undefined || to === undefined) throw new Error(`Unmapped required joint ${classic} → ${definitive}`);
         if (correspondence.has(to.ObjectId)) throw new Error(`Repeated Definitive target ${definitive}`);
         correspondence.set(to.ObjectId, from.ObjectId);
+        group.set(from.ObjectId, [...group.get(from.ObjectId) ?? [], to.ObjectId]);
     }
-    const referenceLocal = new Map(model.Bones.map(node => [node.ObjectId, node.Parent == null
-        ? hdReference[node.ObjectId]
-        : mat4.multiply(mat4.create(), inverse(hdReference[node.Parent]), hdReference[node.ObjectId])]));
-    const registration = new Map([...correspondence].map(([to, from]) => [to,
-        mat4.multiply(mat4.create(), inverse(sourceReference[from]), hdReference[to])]));
+    const classicAncestor = (id: number): number | undefined => {
+        for (let parent = source.Nodes[id]?.Parent; parent != null; parent = source.Nodes[parent]?.Parent) if (group.has(parent)) return parent;
+        return undefined;
+    };
+    const depth = (nodes: readonly (mdx.Node | undefined)[], id: number) => { let count = 0; for (let parent = nodes[id]?.Parent; parent != null; parent = nodes[parent]?.Parent) count++; return count; };
+    // The whole-body frame: the Classic node above the topmost mapped joint. Authored helpers there move the whole body.
+    const top = [...group.keys()].reduce((best, id) => depth(source.Nodes, id) < depth(source.Nodes, best) ? id : best);
+    const bodyNode = source.Nodes[top]?.Parent ?? null;
+    const bodyAt = (pose: readonly mat4[]) => bodyNode === null ? mat4.create() : pose[bodyNode];
+    const body0 = bodyAt(sourceReference);
+    const classicRest = new Map([...group.keys()].map(id => [id, pivotOf(sourceReference[id], source.Nodes[id].PivotPoint)]));
+    const hdRest = (id: number) => pivotOf(hdReference[id], model.Nodes[id].PivotPoint);
+    const head = (id: number) => group.get(id)![0];
+    const children = new Map<number, number[]>();
+    for (const id of group.keys()) { const parent = classicAncestor(id); if (parent !== undefined) children.set(parent, [...children.get(parent) ?? [], id]); }
+    const heights = [...classicRest.values()].map(point => point[2]);
+    const floorBand = Math.min(...heights) + 0.2 * (Math.max(...heights) - Math.min(...heights));
+    const floorJoints = [...group.keys()].filter(id => classicRest.get(id)![2] <= floorBand);
+    // Proportion: Definitive over Classic length of the legs (each foot up to the joint its legs share), or of every
+    // mapped limb on a rig with no feet. The size fit undoes it, so planted feet stay planted and the body fills the
+    // shared hurt capsules (#362).
+    const length = (pairs: Iterable<readonly [number, number]>) => {
+        let hdLength = 0, classicLength = 0;
+        for (const [parent, child] of pairs) {
+            hdLength += vec3.distance(hdRest(head(parent)), hdRest(head(child)));
+            classicLength += vec3.distance(classicRest.get(parent)!, classicRest.get(child)!);
+        }
+        return classicLength > 1e-6 && hdLength > 1e-6 ? hdLength / classicLength : undefined;
+    };
+    const legs: [number, number][] = [];
+    for (const [foot] of group) {
+        if (classicRest.get(foot)![2] > floorBand || (children.get(foot)?.length ?? 0) > 0) continue;
+        for (let joint = foot, parent = classicAncestor(joint); parent !== undefined && (children.get(parent)?.length ?? 0) < 2; joint = parent, parent = classicAncestor(joint)) legs.push([parent, joint]);
+    }
+    const limbs = [...children].flatMap(([parent, list]) => list.map(child => [parent, child] as const));
+    const proportion = length(legs) ?? length(limbs) ?? 1;
+    const fit = 1 / proportion;
+    const centroid = (points: vec3[]) => points.reduce((sum, point) => vec3.scaleAndAdd(sum, sum, point, 1 / points.length), vec3.create());
+    // Rest alignment per Classic joint: swing the Definitive rest direction onto the Classic one.
+    const alignment = new Map<number, quat>();
+    const aimed = new Map<number, number[]>();
+    const props: string[] = [];
+    const ordered = [...group.keys()].sort((a, b) => depth(source.Nodes, a) - depth(source.Nodes, b));
+    const minimum = 0.05 * (Math.max(...heights) - Math.min(...heights));
+    for (const id of ordered) {
+        const list = children.get(id) ?? [];
+        const classicDirection = list.length === 0 ? undefined : vec3.sub(vec3.create(), centroid(list.map(child => classicRest.get(child)!)), classicRest.get(id)!);
+        const hdDirection = list.length === 0 ? undefined : vec3.sub(vec3.create(), centroid(list.map(child => hdRest(head(child)))), hdRest(head(id)));
+        const parent = classicAncestor(id);
+        if (classicDirection !== undefined && hdDirection !== undefined && vec3.length(classicDirection) >= minimum && vec3.length(hdDirection) >= minimum) {
+            alignment.set(id, swing(hdDirection, classicDirection));
+            aimed.set(id, list);
+        }
+        // A foot keeps its own flat stance; a hand or head keeps its rest angle to its limb.
+        else if (classicRest.get(id)![2] <= floorBand || parent === undefined) alignment.set(id, quat.create());
+        else alignment.set(id, quat.clone(alignment.get(parent)!));
+        // A long rigid prop (a weapon, staff or gun) points along its Classic counterpart: its strike direction is the move.
+        if (aimed.has(id) || classicRest.get(id)![2] <= floorBand) continue;
+        const classicAxis = propAxis(source, sourceReference, ownedVertices(source, id, group));
+        const hdAxis = propAxis(model, hdReference, ownedVertices(model, group.get(id)!, correspondence));
+        if (classicAxis !== undefined && hdAxis !== undefined) {
+            props.push(source.Nodes[id].Name);
+            const current = vec3.transformQuat(vec3.create(), hdAxis, alignment.get(id)!);
+            if (vec3.dot(current, classicAxis) < 0) vec3.negate(classicAxis, classicAxis);
+            alignment.set(id, quat.multiply(quat.create(), swing(current, classicAxis), alignment.get(id)!));
+        }
+    }
+    // Definitive hierarchy: a parentless mapped joint hangs from the joint mapped to its Classic parent.
+    const descends = (id: number, ancestor: number) => { for (let parent = model.Nodes[id]?.Parent; parent != null; parent = model.Nodes[parent]?.Parent) if (parent === ancestor) return true; return false; };
+    const logicalParent = new Map<number, number | null>();
+    for (const node of model.Nodes) {
+        if (node === undefined) continue;
+        if (node.Parent != null) { logicalParent.set(node.ObjectId, node.Parent); continue; }
+        const classic = correspondence.get(node.ObjectId);
+        const ancestor = classic === undefined ? undefined : classicAncestor(classic);
+        const last = ancestor === undefined ? undefined : group.get(ancestor)!.at(-1)!;
+        logicalParent.set(node.ObjectId, last === undefined || descends(last, node.ObjectId) ? null : last);
+    }
+    const order: number[] = [];
+    const visited = new Set<number>();
+    const visit = (id: number) => { if (visited.has(id)) return; visited.add(id); const parent = logicalParent.get(id); if (parent != null) visit(parent); order.push(id); };
+    for (const node of model.Nodes) if (node !== undefined) visit(node.ObjectId);
+    // Mapped joints drop the stock stance's slight squash and stretch, so every keyed joint is rigid and keys exactly.
+    const rigidReference = new Map([...correspondence.keys()].map(id => {
+        const rest = hdRest(id), pivot = model.Nodes[id].PivotPoint;
+        const matrix = mat4.fromRotationTranslation(mat4.create(), rotationOf(hdReference[id]), rest);
+        return [id, mat4.translate(matrix, matrix, [-pivot[0], -pivot[1], -pivot[2]])] as const;
+    }));
+    // A joint on the way to a mapped joint (a twist joint) keeps its stock offset without the stance's squash:
+    // a squashed parent would shear its turned child, and a node keys no shear.
+    const onPath = new Set<number>();
+    for (const id of correspondence.keys()) for (let parent = logicalParent.get(id); parent != null; parent = logicalParent.get(parent)) if (!correspondence.has(parent)) onPath.add(parent);
+    const constantLocal = new Map<number, mat4>();
+    const referenceWorld = new Map<number, mat4>();
+    for (const id of order) {
+        const parent = logicalParent.get(id) ?? null;
+        if (correspondence.has(id)) { referenceWorld.set(id, rigidReference.get(id)!); continue; }
+        if (parent === null) { referenceWorld.set(id, hdReference[id]); continue; }
+        let local = mat4.multiply(mat4.create(), inverse(hdReference[parent]), hdReference[id]);
+        if (onPath.has(id)) {
+            const pivot = model.Nodes[id].PivotPoint;
+            const rigid = mat4.fromRotationTranslation(mat4.create(), rotationOf(local), pivotOf(local, pivot));
+            local = mat4.translate(rigid, rigid, [-pivot[0], -pivot[1], -pivot[2]]);
+        }
+        constantLocal.set(id, local);
+        referenceWorld.set(id, mat4.multiply(mat4.create(), referenceWorld.get(parent)!, local));
+    }
+    // The skin the mapped joints carry themselves, without dangling cloth or fingers: its lowest point stands on the
+    // floor wherever the Classic body's does, so feet stay planted and a body lying down lies on the floor.
+    const soles = ownedVertices(model, [...correspondence.keys()], new Map());
+    const classicSoles = ownedVertices(source, [...group.keys()], new Map(), true);
+    const lowestOf = (rig: mdx.Model, world: (id: number) => mat4, vertices: readonly { geoset: number; vertex: number }[]) =>
+        vertices.reduce((low, { geoset, vertex }) => Math.min(low, skinned(rig, world, geoset, vertex)[2]), Infinity);
+    const pose = (classic: readonly mat4[], ground: number, plant?: number) => {
+        const frame = mat4.multiply(mat4.create(), body0, inverse(bodyAt(classic)));
+        const world = new Map<number, mat4>();
+        for (const id of order) {
+            const parent = logicalParent.get(id) ?? null, from = correspondence.get(id), rest = hdRest(id);
+            const anchored = parent === null ? undefined : pivotOf(mat4.multiply(mat4.create(), world.get(parent)!, inverse(referenceWorld.get(parent)!)), rest);
+            if (from === undefined) {
+                world.set(id, parent === null ? mat4.clone(hdReference[id]) : mat4.multiply(mat4.create(), world.get(parent)!, constantLocal.get(id)!));
+                continue;
+            }
+            const local = mat4.multiply(mat4.create(), frame, classic[from]);
+            let turn = quat.multiply(quat.create(), rotationOf(local), quat.invert(quat.create(), rotationOf(sourceReference[from])));
+            // Aim: Classic rigs also bend limbs by moving joints, so the limb points where its Classic child joint now is.
+            const aim = aimed.get(from);
+            if (aim !== undefined) {
+                const now = vec3.sub(vec3.create(), centroid(aim.map(child => pivotOf(mat4.multiply(mat4.create(), frame, classic[child]), source.Nodes[child].PivotPoint))), pivotOf(local, source.Nodes[from].PivotPoint));
+                const predicted = vec3.transformQuat(vec3.create(), vec3.sub(vec3.create(), centroid(aim.map(child => classicRest.get(child)!)), classicRest.get(from)!), turn);
+                if (vec3.length(now) > 1e-6) turn = quat.multiply(quat.create(), swing(predicted, now), turn);
+            }
+            turn = quat.multiply(quat.create(), turn, alignment.get(from)!);
+            const at = anchored ?? vec3.add(vec3.create(), vec3.scaleAndAdd(vec3.create(), rest, vec3.sub(vec3.create(), pivotOf(local, source.Nodes[from].PivotPoint), classicRest.get(from)!), proportion), [0, 0, ground]);
+            world.set(id, turnedAbout(rigidReference.get(id)!, rest, turn, at));
+        }
+        // Planting: the lowest Definitive ankle keeps the Classic lowest ankle's height, so feet on the floor stay on it
+        // whatever the two legs' thigh-to-shin proportions.
+        if (plant !== undefined) {
+            const classicLowest = lowestOf(source, id => mat4.multiply(mat4.create(), frame, classic[id]), classicSoles);
+            const hdLowest = lowestOf(model, id => world.get(id)!, soles);
+            const lift = mat4.fromTranslation(mat4.create(), [0, 0, (classicLowest + plant) / fit - hdLowest]);
+            for (const [id, matrix] of world) world.set(id, mat4.multiply(matrix, lift, matrix));
+        }
+        // Fixed size fit: the Definitive limbs draw at the Classic limbs' length, so the body fills the shared hurt capsules
+        // and its strikes reach the shared hit regions (#362).
+        const toBody = mat4.scale(mat4.create(), mat4.multiply(mat4.create(), bodyAt(classic), inverse(body0)), [fit, fit, fit]);
+        for (const [id, matrix] of world) world.set(id, mat4.multiply(matrix, toBody, matrix));
+        return world;
+    };
+    // Ground registration: the aligned rest stance stands its soles where the stock stance does.
+    const aligned = pose(sourceReference, 0);
+    const ground = soles.length === 0 ? 0 : (lowestOf(model, id => hdReference[id], soles) - lowestOf(model, id => aligned.get(id)!, soles)) / fit;
+    const standing = pose(sourceReference, ground);
+    const plant = soles.length === 0 || classicSoles.length === 0 ? undefined
+        : lowestOf(model, id => standing.get(id)!, soles) - lowestOf(source, id => sourceReference[id], classicSoles);
+    return { sourceStand, hdStand, sourceAt, sourceReference, hdReference, correspondence, logicalParent, alignment, aimed, props, proportion, fit, ground, plant, bodyNode, bodyAt, constantLocal, pose };
+}
+export type RigRegistration = ReturnType<typeof registerRig>;
+
+/** Bakes `sequences` of the source rig's motion onto a copy of the target body through `registration`. */
+export function transferMotion(source: mdx.Model, hd: mdx.Model, registration: RigRegistration, sequences: readonly mdx.Sequence[], options: RetargetOptions = {}): RetargetResult {
+    const model = structuredClone(hd);
+    const { hdStand, sourceAt, hdReference, correspondence, logicalParent, fit, ground, plant, bodyNode, bodyAt, constantLocal, pose } = registration;
+    const mappedIds = [...correspondence.keys()];
+    const keyed = new Set(model.Bones.filter(bone => correspondence.has(bone.ObjectId) || bone.Parent == null).map(bone => bone.ObjectId));
     const hdBones = [...model.Bones];
     for (const node of hdBones) { delete node.Translation; delete node.Rotation; delete node.Scaling; }
-    const sourceNodes = new Map<number, number>();
     const globalOffset = model.GlobalSequences.length;
     model.GlobalSequences.push(...source.GlobalSequences);
-    const copyAncestor = (id: number): number => {
-        const existing = sourceNodes.get(id);
+    // Only the whole-body helper chain is copied, so a squash under a flip stays exact (a node keys no shear).
+    const copied = new Map<number, number>();
+    const copyBody = (id: number): number => {
+        const existing = copied.get(id);
         if (existing !== undefined) return existing;
         const original = source.Nodes[id];
-        if (original === undefined) throw new Error(`Missing authored ancestor ${id}`);
-        const parent = original.Parent == null ? null : copyAncestor(original.Parent);
+        const parent = original.Parent == null ? null : copyBody(original.Parent);
         const ObjectId = model.Nodes.length;
         const node: mdx.Bone = {
-            Name: `Authored ${original.Name}`, ObjectId, Parent: parent, Flags: original.Flags,
+            Name: `Body ${original.Name}`, ObjectId, Parent: parent, Flags: original.Flags,
             PivotPoint: new Float32Array(original.PivotPoint), GeosetId: null, GeosetAnimId: null,
         };
         for (const kind of ['Translation', 'Rotation', 'Scaling'] as const) {
@@ -180,31 +387,21 @@ export function retargetHd(source: mdx.Model, hd: mdx.Model, pairs: readonly (re
             node[kind] = structuredClone(track);
             if (onGlobalClock(track)) node[kind].GlobalSeqId = track.GlobalSeqId! + globalOffset;
         }
-        model.Bones.push(node);
-        model.Nodes.push(node);
-        model.PivotPoints.push(node.PivotPoint);
-        sourceNodes.set(id, ObjectId);
+        model.Bones.push(node); model.Nodes.push(node); model.PivotPoints.push(node.PivotPoint);
+        copied.set(id, ObjectId);
         return ObjectId;
     };
-    const constantTransforms = new Map(referenceLocal);
-    for (const [to, from] of correspondence) {
-        let parent = copyAncestor(from);
-        const factors = registrationFactors(registration.get(to)!);
-        for (const [index, factor] of factors.entries()) {
-            if (index === 2) {
-                model.Nodes[to].Parent = parent;
-                constantTransforms.set(to, factor);
-                continue;
-            }
-            const ObjectId = model.Nodes.length;
-            const node: mdx.Bone = {
-                Name: `Registration ${index} ${model.Nodes[to].Name}`, ObjectId, Parent: parent, Flags: 0,
-                PivotPoint: new Float32Array(3), GeosetId: null, GeosetAnimId: null,
-            };
-            model.Bones.push(node); model.Nodes.push(node); model.PivotPoints.push(node.PivotPoint);
-            constantTransforms.set(ObjectId, factor);
-            parent = ObjectId;
-        }
+    const bodyParent = bodyNode === null ? null : copyBody(bodyNode);
+    const roots = model.Bones.filter(bone => bone.Parent == null && !copied.has(bone.ObjectId) && ![...copied.values()].includes(bone.ObjectId));
+    // A parentless mapped joint (Definitive wrists, ankles, weapons) joins its limb, so it interpolates with it.
+    // A node keys translation, rotation and scale, never shear: a limb parent whose stock scale would shear the joint isn't used.
+    const keyable = (matrix: mat4) => {
+        const rebuilt = mat4.fromRotationTranslationScale(mat4.create(), mat4.getRotation(quat.create(), matrix), mat4.getTranslation(vec3.create(), matrix), mat4.getScaling(vec3.create(), matrix));
+        return matrix.every((value, index) => Math.abs(value - rebuilt[index]) < 1e-4 * Math.max(1, Math.abs(value)));
+    };
+    for (const bone of roots) {
+        const limb = correspondence.has(bone.ObjectId) ? logicalParent.get(bone.ObjectId) : null;
+        bone.Parent = limb != null && keyable(mat4.multiply(mat4.create(), inverse(hdReference[limb]), hdReference[bone.ObjectId])) ? limb : bodyParent;
     }
     const samples: RetargetSample[] = [];
     for (const sequence of sequences) {
@@ -212,11 +409,16 @@ export function retargetHd(source: mdx.Model, hd: mdx.Model, pairs: readonly (re
         const frames = new Set<number>([start, end]);
         tracks(source, track => { if (!onGlobalClock(track)) for (const key of track.Keys) if (key.Frame >= start && key.Frame <= end) frames.add(key.Frame); });
         for (const frame of [...frames].sort((a, b) => a - b)) {
-            const reference = sourceAt(index, frame);
-            if (frame === start || frame === end) for (const [id, matrix] of constantTransforms)
-                appendTransform(model.Nodes[id], matrix, frame);
-            samples.push({ sequence: index, frame, expected: new Map([...correspondence].map(([id, from]) =>
-                [id, mat4.multiply(mat4.create(), reference[from], registration.get(id)!)])) });
+            const classic = sourceAt(index, frame);
+            const world = pose(classic, ground, plant);
+            const bodyWorld = bodyNode === null ? undefined : bodyAt(classic);
+            for (const bone of hdBones) {
+                const id = bone.ObjectId;
+                if (!keyed.has(id)) { if (frame === start || frame === end) appendTransform(bone, constantLocal.get(id)!, frame); continue; }
+                const parentWorld = bone.Parent === bodyParent ? bodyWorld : world.get(bone.Parent!)!;
+                appendTransform(bone, parentWorld === undefined ? world.get(id)! : mat4.multiply(mat4.create(), inverse(parentWorld), world.get(id)!), frame);
+            }
+            samples.push({ sequence: index, frame, expected: new Map(mappedIds.map(id => [id, world.get(id)!])) });
         }
     }
     model.Sequences = structuredClone(source.Sequences);
@@ -228,7 +430,7 @@ export function retargetHd(source: mdx.Model, hd: mdx.Model, pairs: readonly (re
         track.LineType = mdx.LineType.DontInterp;
         track.Keys = sequences.flatMap(sequence => [...sequence.Interval].map(Frame => ({ Frame, Vector: new Float32Array(first.Vector) })));
     });
-    for (const [classic, definitive] of visibilityPairs) {
+    for (const [classic, definitive] of options.visibilityPairs ?? []) {
         if (source.Geosets[classic] === undefined || model.Geosets[definitive] === undefined) throw new Error(`Missing visibility mesh ${classic} → ${definitive}`);
         const alpha = source.GeosetAnims.find(animation => animation.GeosetId === classic)?.Alpha ?? 1;
         let animation = model.GeosetAnims.find(animation => animation.GeosetId === definitive);
@@ -241,7 +443,7 @@ export function retargetHd(source: mdx.Model, hd: mdx.Model, pairs: readonly (re
     }
     // Authored sequence indices stay stable even when their intervals are out of order.
     tracks(model, track => track.Keys.sort((left, right) => left.Frame - right.Frame));
-    return { model, samples, mapped: correspondence.size };
+    return { model, samples, mapped: correspondence.size, fit, props: registration.props };
 }
 
 /** Degrees `actual` is turned from `expected` in world space. */

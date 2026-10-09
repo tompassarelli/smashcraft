@@ -8,31 +8,23 @@ import { thinKeys } from '../../ts/scripts/keyThin';
 import { fighters } from './original-clips';
 import { victoryAnimation } from '../../ts/src/game/presentation/matchAudio';
 
-const [sourcePath, stockPath, outputPath, ...options] = process.argv.slice(2);
-const option = (name: string) => { const index = options.indexOf(name); return index < 0 ? undefined : options[index + 1]; };
-const character = Number(option('--character') ?? 16);
-const rigPath = option('--rig');
-const fighter = fighters.get(character);
-if (fighter === undefined) throw new Error(`Unknown fighter ${character}`);
-if (sourcePath === undefined || stockPath === undefined || outputPath === undefined) {
-    throw new Error('usage: bun tools/animations/hd-models.ts AUTHORED.mdx STOCK_DEFINITIVE.mdx PRIVATE_OUTPUT.mdx [--character ID --rig PAIRS.ts]');
-}
-if (character !== 16 && rigPath === undefined) throw new Error('Every fighter needs its registered literal rig mapping');
-const output = resolve(outputPath);
-if (!relative(resolve(import.meta.dir, '../..'), output).startsWith('..')) throw new Error('HD bodies stay in private storage');
-await Effect.runPromise(Effect.tryPromise({ try: async () => {
-    const source = parseMDX(await Bun.file(sourcePath).arrayBuffer());
-    const hd = parseHdBody(await Bun.file(stockPath).arrayBuffer());
-    const rig = rigPath === undefined ? { pairs: CAIRNE_DE_PAIRS } : await import(resolve(rigPath));
-    const pairs = rig.pairs as readonly (readonly [string, string])[];
+export interface HdRig { readonly pairs: readonly (readonly [string, string])[]; readonly visibilityPairs?: readonly (readonly [number, number])[] }
+
+/** One fighter's Definitive timeline body from its authored Classic model and the stock Definitive model. */
+export async function convertHdBody(source: ArrayBuffer, stock: ArrayBuffer, character: number, rig: HdRig) {
+    const fighter = fighters.get(character);
+    if (fighter === undefined) throw new Error(`Unknown fighter ${character}`);
+    const authored = parseMDX(source);
+    const hd = parseHdBody(stock);
+    const pairs = rig.pairs;
     if (!Array.isArray(pairs) || pairs.length === 0) throw new Error('Rig module must export a nonempty pairs array');
     const skin = checkBodySkin(hd);
     const normalize = (name: string) => name.replace(/\s+\d+$/, '').replaceAll(/\s+/g, '').toLowerCase();
     const victory = normalize(victoryAnimation(character));
-    const selected = new Set(flashableSequences(character, source.Sequences));
-    for (const sequence of source.Sequences) if (normalize(sequence.Name) === victory) selected.add(sequence);
-    const sequences = source.Sequences.filter(sequence => selected.has(sequence));
-    const result = retargetHd(source, hd, pairs, sequences, rig.visibilityPairs);
+    const selected = new Set(flashableSequences(character, authored.Sequences));
+    for (const sequence of authored.Sequences) if (normalize(sequence.Name) === victory) selected.add(sequence);
+    const sequences = authored.Sequences.filter(sequence => selected.has(sequence));
+    const result = retargetHd(authored, hd, pairs, sequences, { visibilityPairs: rig.visibilityPairs });
     const converted = checkRetarget(result);
     if (converted.units > 0.5 || converted.degrees > 0.5) throw new Error(`${fighter.name} retarget exceeds 0.5/0.5: ${JSON.stringify(converted)}`);
     for (const collision of result.model.CollisionShapes) delete result.model.Nodes[collision.ObjectId];
@@ -40,11 +32,33 @@ await Effect.runPromise(Effect.tryPromise({ try: async () => {
     const thinned = thinKeys(result.model, { position: 0.45, rotationDegrees: 0.45 });
     const timeline = timelineBody(thinned.model, sequences);
     const bytes = generateHdBody(timeline);
-    const exportedSkin = checkBodySkin(parseHdBody(bytes));
+    const exported = parseHdBody(bytes);
+    const exportedSkin = checkBodySkin(exported);
     if (skin.geosets !== exportedSkin.geosets || skin.vertices !== exportedSkin.vertices) throw new Error('Definitive export changed the mesh count');
+    // Warcraft draws no body with more than 255 nodes (#346).
+    const nodes = exported.Nodes.filter(node => node !== undefined).length;
+    if (nodes > 255) throw new Error(`${fighter.name} Definitive body has ${nodes} nodes; Warcraft draws at most 255`);
     const measured = checkRetarget({ ...result, samples: result.samples.map(sample => ({ ...sample, sequence: 0 })) }, bytes);
     if (measured.units > 0.5 || measured.degrees > 0.5) throw new Error(`${fighter.name} timeline exceeds 0.5/0.5: ${JSON.stringify(measured)}`);
-    await Bun.write(output, bytes);
-    console.log(JSON.stringify({ fighter: fighter.name, character, sequences: sequences.length, joints: result.mapped, skin: exportedSkin, converted, thinning: thinned.report, timeline: measured,
-        importReason: 'Authored moves cannot be played on the unmodified stock Definitive model.', output }));
-}, catch: cause => new Error(`Definitive ${fighter.name} export failed`, { cause }) }));
+    return { bytes, report: { fighter: fighter.name, character, sequences: sequences.length, joints: result.mapped, fit: result.fit, props: result.props, nodes, skin: exportedSkin, converted, thinning: thinned.report, timeline: measured,
+        importReason: 'Authored moves cannot be played on the unmodified stock Definitive model.' } };
+}
+
+if (import.meta.main) {
+    const [sourcePath, stockPath, outputPath, ...options] = process.argv.slice(2);
+    const option = (name: string) => { const index = options.indexOf(name); return index < 0 ? undefined : options[index + 1]; };
+    const character = Number(option('--character') ?? 16);
+    const rigPath = option('--rig');
+    if (sourcePath === undefined || stockPath === undefined || outputPath === undefined) {
+        throw new Error('usage: bun tools/animations/hd-models.ts AUTHORED.mdx STOCK_DEFINITIVE.mdx PRIVATE_OUTPUT.mdx [--character ID --rig PAIRS.ts]');
+    }
+    if (character !== 16 && rigPath === undefined) throw new Error('Every fighter needs its registered literal rig mapping');
+    const output = resolve(outputPath);
+    if (!relative(resolve(import.meta.dir, '../..'), output).startsWith('..')) throw new Error('HD bodies stay in private storage');
+    await Effect.runPromise(Effect.tryPromise({ try: async () => {
+        const rig: HdRig = rigPath === undefined ? { pairs: CAIRNE_DE_PAIRS } : await import(resolve(rigPath));
+        const { bytes, report } = await convertHdBody(await Bun.file(sourcePath).arrayBuffer(), await Bun.file(stockPath).arrayBuffer(), character, rig);
+        await Bun.write(output, bytes);
+        console.log(JSON.stringify({ ...report, output }));
+    }, catch: cause => new Error(`Definitive ${character} export failed`, { cause }) }));
+}

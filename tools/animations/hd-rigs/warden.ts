@@ -3,15 +3,15 @@ export const stockPath = 'war3.w3mod:_de.w3mod:units\\nightelf\\herowarden\\hero
 // The Definitive limbs contain twist joints between the named Classic articulations.
 export const pairs: readonly (readonly [string, string])[] = [
     ['Bone_Pelvis', 'spine_C0_0_jnt'],
-    ['Bone_Root', 'spine_C0_1_jnt'],
+    ['Bone_Chest', 'spine_C0_1_jnt'],
     ['Bone_Chest', 'bone_chest'],
     ['Bone_Head', 'neck_C0_0_jnt'],
     ['Bone_Head', 'bone_head'],
-    ['Bone_Arm1_L', 'shoulder_L0_shoulder_jnt'],
+    
     ['Bone_Arm1_L', 'arm_L0_0_jnt'],
     ['Bone_Arm2_L', 'arm_L0_2_jnt'],
     ['Bone_Hand_L', 'arm_L0_4_jnt'],
-    ['Bone_Arm1_R', 'shoulder_R0_shoulder_jnt'],
+    
     ['Bone_Arm1_R', 'arm_R0_0_jnt'],
     ['Bone_Arm2_R', 'arm_R0_2_jnt'],
     ['Bone_Hand_R', 'arm_R0_4_jnt'],

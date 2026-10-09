@@ -38,7 +38,7 @@ must resolve each role to a literal pair of names and reject missing pairs.
 | Lich | HeroLich → HeroLich | arms, floating pelvis, robe → robe |
 | Forsaken Paladin | authored Classic Forsaken Paladin → stock Definitive Forsaken Paladin | 121 common bones of 125 with identical parents; pivots differ, so preserve stock sword and verify the reference transforms |
 | Dreadlord | HeroDreadLord → HeroDreadLord | arms, legs, each wing chain → wing chain |
-| Shadow Hunter | HeroShadowHunter → HeroShadowHunter | arms, legs, glaive → glaive, mask → mask |
+| Shadow Hunter | HeroShadowHunter → HeroShadowHunter | arms, legs, glaive → glaive, mask → mask; lower spine → chest |
 | Pit Lord | HeroPitLord → HeroPitLord | arms, all four leg chains, polearm → polearm, wings → wings |
 | Beastmaster | Beastmaster → Beastmaster | arms, legs, both axes → both axes |
 | Lich King | authored LichKing2 → same approved Classic body | approved exception: helmet, cape and Frostmourne retain the existing custom identity in both graphics modes |
@@ -82,33 +82,49 @@ targets, so they retain the authored hand-to-weapon relationship.
 
 ## Conversion and the measured bound
 
-Evaluate the Classic authored source and stock Definitive reference pose. Transfer
-each mapped joint's world-space motion relative to that reference, then solve
-local transforms through the Definitive hierarchy. Preserve Definitive mesh, skin weights,
-materials, bind matrices, and team-colour layers. Every nonzero SKIN influence
-must address a BONE node, including hold chains added by timeline export;
-helper-node indices are invalid for Definitive skin (#319). Different body proportions
-make raw Classic and Definitive bind positions different: compare the transferred
-motion in the common reference frame, not those different bind positions.
-This registration is fixed per fighter, never fitted per move or sample.
+Classic and Definitive share hit regions and hurt capsules, so each Definitive body
+must visibly fill the same hurt capsules as Classic and put its hitting weapon or
+limb inside the same hit regions on active frames. A body that can't takes its
+Classic body in both looks, like the Lich King and Malfurion ([#362](https://github.com/tompassarelli/smashcraft/issues/362)).
 
-At every authored key time and sequence edge, compare the exported model's
-evaluated mapped transforms against the registered Classic reference:
-maximum position error **0.5 Warcraft units**, maximum quaternion angular
-error **0.5 degrees**. Check the hand/weapon attachment too. Fail on an
-unmapped required joint, singular transform, non-finite sample or empty track.
-Use the same renderer evaluator as #308/#314, serialize and parse before
-measuring, and report the worst fighter/move/joint/time. Definitive-only joints keep
-their reference local transform; they are not falsely counted as Classic
-correspondences. A Definitive frame and its stock victory look must also agree
-on body, equipment and team colour.
+`registerRig` (smashcraft:tools/animations/hd-retarget.ts) fixes each fighter's
+registration from the two rest poses alone (Classic and stock Definitive Stand
+Ready): the rig pairs, each mapped joint's rest alignment, the size fit and the
+ground height. `transferMotion` applies it to the authored motion. #334's first
+conversion pinned each Definitive joint to its Classic joint with the offset
+between the two different Stand Ready poses, so Definitive limbs swung on long
+levers, tore at the joints and pointed elsewhere: Shadow Hunter's forearm stood
+94 degrees off Classic at rest and 143 degrees off at the forward tilt's hit (#362).
 
-Keep sequence indices and millisecond intervals. Run #314's thinning against
-the unthinned retargeted reference, then #308's timeline export, with a final
-comparison against the original registered motion so errors cannot accumulate
-past 0.5/0.5. Keep one Definitive mesh and only production-played keys. Stock camera,
-collision and emitter chunks do not belong in a match body; Cairne's version
-1800 camera chunk is not accepted by the pinned 4.0.1 model parser.
+- **Rotation, not position.** Each mapped joint takes its Classic joint's turn from
+  Stand Ready. Its rest direction (to the centroid of its mapped child joints) is
+  first swung onto the Classic rest direction, and each frame the limb aims where
+  its Classic child joint is, because Classic rigs also bend limbs by moving
+  joints. Positions come from the Definitive skeleton's own bone lengths, so limbs
+  keep their length and joints stay joined.
+- **Ends.** A joint with no aimable child keeps its rest angle to its limb (hands,
+  head); a joint in the floor band keeps its stock world stance (feet). A long rigid
+  prop (weapon, staff, gun) points along its Classic counterpart's long axis, read
+  from the vertices each carries, since its direction is the strike.
+- **Whole-body helpers.** The Classic helper chain above the mapped skeleton
+  (Attack Gesture, Jump/Drill/Recovery Motion: flips, squashes, drills) is the only
+  copied part; it carries the body unchanged. The body keeps the stock node count
+  plus that chain, under Warcraft's 255-node limit ([#346](https://github.com/tompassarelli/smashcraft/issues/346)).
+- **Size fit and planting.** A fixed per-fighter scale makes the Definitive legs
+  as long as the Classic legs (all limbs on a rig with no feet). Each frame the
+  lowest skin of the mapped joints stands where the Classic body's does, so planted
+  feet stay on the floor and a body lying down lies on it.
+- **Rig pairs.** Map anatomy: clavicles stay with the chest, and the lower
+  Definitive spine follows the Classic chest, which bends at the waist.
+
+Every nonzero SKIN influence must address a BONE node (#319). The export bound
+is unchanged: at every authored key time and sequence edge, the exported model's
+mapped joints are within **0.5 Warcraft units** and **0.5 degrees** of the
+transferred pose, after #314's thinning and #308's timeline export. Fail on an
+unmapped required joint, singular transform, non-finite sample, empty track or
+a body over 255 nodes. `bun tools/animations/hd-roster.ts PRIVATE_OUTPUT [CHARACTER...]`
+converts every retargeted fighter from its stock Definitive model; one fighter
+is `bun tools/animations/hd-models.ts`.
 
 ## Packaging and size
 
