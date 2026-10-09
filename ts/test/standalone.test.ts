@@ -22,7 +22,7 @@ async function fourFighterMatch(frames: number): Promise<void> {
     for (let frame = 0; frame < frames; frame++) {
       session.step(NEUTRAL_INPUT);
 
-      if (frame === 109) expect(value(client, () => shell().world.fighters[0]?.motion.x)).not.toBe(x);
+      if (frame === 112) expect(value(client, () => shell().world.fighters[0]?.motion.x)).toBeGreaterThan(x ?? Infinity);
     }
     expect(value(client, () => shell().world.fighters.filter(fighter => fighter !== undefined && fighter.status.stocks > 0).length)).toBe(4);
     expect(session.finished()).toBe(false);
