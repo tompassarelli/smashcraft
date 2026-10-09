@@ -562,7 +562,7 @@ shows the stage as before. The lava gains an additive crest layer
 (smashcraft:ts/scripts/stageLiquid.ts). The crests peak above luma 0.9 and
 the body stays under the stock bloom threshold of 0.72, so the map-wide bloom
 (#288) catches only the veins. Blackrock's AO is #288's map-wide ASSAO.
-smashcraft:ts/test/stage-model.test.ts pins these values.
+smashcraft:ts/test/stage-model.test.ts checks these rules.
 
 Hellfire's #293 choices follow HF-2/HF-3 in `stage-boards.md`: stock
 `Outland_Sky` in all modes, green linear haze beginning at 5,000, and two

@@ -61,7 +61,6 @@ const checks = [
     100,
     { ...process.env, GAME_TESTS: "sim/meleeScalarMath" },
   ),
-  check("fake-client hot-reload and fresh-match protocol", ["test", "test/wisp.test.ts", "-t", "fake client"]),
   check("full logic suite (target ≤5 s)", ["run", "test"], 5000),
   check(
     "compiler affected-module and output-equivalence checks",

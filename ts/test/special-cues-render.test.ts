@@ -9,10 +9,6 @@ import { HERO_CUES, MISSING_CUE_MODEL, heroCueWindows } from "../src/game/presen
 import { pollModelFailures, startModelFailures } from "wisp/src/platform/modelFailures";
 import { modelFailureFile, modelFailureRequestFile } from "wisp/src/runtime/gameFiles";
 import { configureRuntime } from "wisp/src/runtime/config";
-import { ProjectilePresentation } from "../src/game/render/projectilePresentation";
-import { heroProjectileArt } from "../src/game/presentation/projectileArt";
-import { mutableProjectile } from "../src/game/sim/fighterProjectiles";
-import { ProjectileKind } from "../src/game/sim/codes";
 
 test("a missing Chen flame model shows a debug marker and fighter/cue/path error without local handle births [spec #365]", () => {
   const cue = HERO_CUES[Character.chen]?.neutral.active;
@@ -65,99 +61,7 @@ test("a missing Chen flame model shows a debug marker and fighter/cue/path error
 
 
 
-test("short specials select the stock spell's visible sequence on their first shown frame [repro #144]", () => {
-  const runtime = installHeadless(SMASHCRAFT_HEADLESS);
-  try {
-    const clients = runtime.clients({ install() {}, start() {} }, [0]);
-    const client = clients.clients[0];
-    if (client === undefined) throw new Error("missing client");
-    client.run(() => {
-      for (const [character, slot, phase, animation] of [
-        [Character.mountainKing, "side", "startup", "birth"],
-        [Character.mountainKing, "down", "active", "stand"],
-        [Character.warden, "down", "active", "birth"],
-        [Character.lich, "down", "active", "birth"],
-        [Character.dreadlord, "down", "active", "birth"],
-        [Character.lichKing, "up", "active", "birth"],
-        [Character.pitLord, "down", "active", "birth"],
-      ] as const) {
-        const fighter = createFighter(character, 0.0, 1);
-        const move = heroDefinition(character)?.specials?.[slot].ground;
-        if (move === undefined) throw new Error("missing move");
-        fighter.special.action = slot === "side" ? SpecialAction.heroSide : slot === "up" ? SpecialAction.heroUp : SpecialAction.heroDown;
-        fighter.special.frame = phase === "startup" ? 1 : heroCueWindows(move).active.first;
-        const renderer = new SpecialCueEffects(character, { x: 0.0, y: 0.0, z: 0.0 });
-        renderer.present(fighter, true, false);
-        const shown = client.effectPoses().filter(effect => effect.scale > 0 && effect.alpha > 0);
-        expect(shown.some(effect => effect.animation?.toLowerCase() === animation)).toBe(true);
-        renderer.destroy();
-      }
-    });
-  } finally { runtime.restore(); }
-});
-
-test("frost, quill and glaive missiles enter their flying sequence without the extra frost shrink [repro #144]", () => {
-  const runtime = installHeadless(SMASHCRAFT_HEADLESS);
-  try {
-    const clients = runtime.clients({ install() {}, start() {} }, [0]);
-    const client = clients.clients[0];
-    if (client === undefined) throw new Error("missing client");
-    client.run(() => {
-      for (const [character, fragment] of [[Character.lich, "FrostBoltMissile"], [Character.beastmaster, "QuillSprayMissile"], [Character.shadowHunter, "ShadowHunterMissile"]] as const) {
-        const fighter = createFighter(character, 0.0, 1);
-        const kit = heroDefinition(character)?.specials;
-        const spec = kit === undefined ? undefined : heroProjectileArt(kit).find(({ spec }) => spec.model?.includes(fragment))?.spec;
-        if (spec === undefined) throw new Error(`missing ${fragment}`);
-        const projectile = mutableProjectile(fighter, 0);
-        projectile.kind = ProjectileKind.hero;
-        projectile.spec = spec;
-        projectile.life = spec.life;
-        projectile.serial = 1;
-        projectile.velocityX = spec.velocityX;
-        const renderer = new ProjectilePresentation(character, { x: 0.0, y: 0.0, z: 0.0 });
-        renderer.present(fighter, true, false);
-        const missile = client.effectPoses().find(effect => effect.model.includes(fragment) && effect.scale > 0);
-        expect(missile?.animation).toBe("stand");
-        expect(missile?.scale).toBeGreaterThanOrEqual(1);
-        renderer.destroy();
-      }
-    });
-  } finally { runtime.restore(); }
-});
-
-test("Defile's startup and active cues skip the stock models' empty lead-in [repro #144]", () => {
-  const runtime = installHeadless(SMASHCRAFT_HEADLESS);
-  try {
-    const clients = runtime.clients({ install() {}, start() {} }, [0]), client = clients.client(0);
-    clients.start();
-    const move = heroDefinition(Character.lichKing)?.specials?.down.ground;
-    if (move === undefined) throw new Error("missing Defile");
-
-    for (const [frame, fragment, animation, seconds] of [
-        [1, "DarkRitualCaster", "birth", 1.0],
-        [heroCueWindows(move).active.first, "DeathAndDecayTarget", "stand", 0.5],
-      ] as const) {
-        const fighter = createFighter(Character.lichKing, 0.0, 1);
-        fighter.special.action = SpecialAction.heroDown;
-        fighter.special.frame = frame;
-        let created: SpecialCueEffects | undefined;
-        client.run(() => { created = new SpecialCueEffects(Character.lichKing, { x: 0.0, y: 0.0, z: 0.0 }); });
-        if (created === undefined) throw new Error("missing cue renderer");
-        const renderer = created;
-        client.run(() => { renderer.confirm(fighter, true, 0); renderer.present(fighter, true, false); });
-        clients.frames(1);
-        client.run(() => {
-          renderer.present(fighter, true, false);
-          const shown = client.effectPoses().find(effect => effect.model.includes(fragment) && effect.scale > 0 && effect.alpha > 0);
-          expect(shown?.animation).toBe(animation);
-          expect(shown?.animationElapsed).toBe(seconds);
-          renderer.destroy();
-        });
-      }
-  } finally { runtime.restore(); }
-});
-
-test("Definitive Popcorn cues start on confirmed casts, run without clock controls and survive their first spawn [spec #144]", () => {
+test("Definitive Popcorn cues start on confirmed casts, run without clock controls and survive their first spawn; Classic cues skip the stock lead-in on their visible sequence [spec #144]", () => {
   const runtime = installHeadless({ ...SMASHCRAFT_HEADLESS, natives: client => ({
     ...SMASHCRAFT_HEADLESS.natives?.(client),
     GetLocalizedString: (key: string) => key === "SMASHCRAFT_CUE_GRAPHICS" ? client.slot === 0 ? "classic" : "definitive" : key,
@@ -166,7 +70,8 @@ test("Definitive Popcorn cues start on confirmed casts, run without clock contro
     const clients = runtime.clients({ install() {}, start() {} }, [0, 1]);
     clients.start();
     const move = heroDefinition(Character.lichKing)?.specials?.down.ground;
-    if (move === undefined) throw new Error("missing Defile");
+    const defile = HERO_CUES[Character.lichKing]?.down;
+    if (move === undefined || defile === undefined) throw new Error("missing Defile");
     const handles: unknown[][] = [];
     for (const client of clients.clients) client.run(() => {
       const renderer = new SpecialCueEffects(Character.lichKing, { x: 0, y: 0, z: 0 });
@@ -190,7 +95,11 @@ test("Definitive Popcorn cues start on confirmed casts, run without clock contro
       handles.push(ids);
       const clocks = client.log.slice(begin).filter(call => ids.includes(call.args[0]) && ["BlzSetSpecialEffectTime", "BlzSetSpecialEffectTimeScale", "BlzSetSpecialEffectAnimation"].includes(call.name));
       if (client.slot === 1) expect(clocks).toHaveLength(0);
-      else expect(clocks.filter(call => call.name === "BlzSetSpecialEffectTime").map(call => call.args[1])).toEqual([1, 1, 0.5, 0.5]);
+      else {
+        const { startup, active } = defile;
+        expect(clocks.filter(call => call.name === "BlzSetSpecialEffectTime").map(call => call.args[1])).toEqual([startup.seconds, startup.seconds, active.seconds, active.seconds]);
+        for (const cue of [startup, active]) expect(client.effectPoses().find(pose => pose.model === cue.model)?.animation?.toLowerCase()).toBe(cue.sequence);
+      }
 
       fighter.special.frame = 1;
       renderer.present(fighter, true, false);

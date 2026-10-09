@@ -17,7 +17,7 @@ function isField(value: unknown): value is Field {
 }
 
 
-export function hiddenFighters(field: Field): readonly string[] {
+function hiddenFighters(field: Field): readonly string[] {
   const { opponents, tiers } = field.options;
   const required = `not a gate run: needs ${BALANCE_GATE.opponent} ${BALANCE_GATE.tier} and at least ${BALANCE_GATE.perPair} matches a pair`;
   if (opponents === undefined || tiers === undefined) throw new Error(required);
@@ -29,7 +29,7 @@ export function hiddenFighters(field: Field): readonly string[] {
   return hidden;
 }
 
-export function releaseRosterSource(hidden: readonly string[]): string {
+function releaseRosterSource(hidden: readonly string[]): string {
   const old = readFileSync(RELEASE_ROSTER_FILE, "utf8");
   const list = hidden.length === 0 ? "[]" : `[${hidden.map((slug) => JSON.stringify(slug)).join(", ")}]`;
   return old.replace(/export const HIDDEN_FIGHTERS: readonly string\[\] = \[[^\]]*\];/, `export const HIDDEN_FIGHTERS: readonly string[] = ${list};`);

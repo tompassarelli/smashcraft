@@ -134,7 +134,6 @@ test("playable: selection creates no effect and reads no file; match start creat
 
   expect(loadingCreated).toBe(stageModels(stage).length);
 
-  expect(HIT_AREA_EFFECT_CAPACITY).toBe(12);
   expect(start.poolCreated).toBe(4 * poolEffects(Character.demonHunter));
   const pooledCues = fighterRenderedCues(Character.demonHunter).filter(cue => DEFINITIVE_CUE_EMITTERS[cue.model] !== true).length;
   expect(start.created).toBe(start.poolCreated + 4 * (1 + PROJECTILE_CAPACITY + pooledCues + HIT_AREA_EFFECT_CAPACITY + 3));

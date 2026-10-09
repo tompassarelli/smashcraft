@@ -2,7 +2,6 @@ import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { CLASSIC_CHARACTERS, classicRoute } from "../src/game/classic/routes";
 import { LORE_BATTLES } from "../src/game/classic/loreBattles";
-import { BossKind } from "../src/game/classic/runState";
 import { Phase } from "../src/game/match/rules";
 import { Character } from "../src/game/sim/codes";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
@@ -16,7 +15,13 @@ import { expectSynchronized, shows, value } from "./rematch/playableMatch";
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
 
-test("Medivh selects Classic, clears six fights to its Guardian ending and results, returns to selection, and clears its authored Lore Battle [spec #352] [invariant]", () => {
+const STORIES = [
+  { character: Character.anubarak, name: "Anub'arak", lore: "lore.anubarak-ascent" },
+  { character: Character.kobold, name: "Kobold", lore: "lore.kobold-candle" },
+  { character: Character.medivh, name: "Medivh", lore: "lore.medivh-warning" },
+] as const;
+
+for (const { character, name, lore: loreId } of STORIES) test(`${name} selects Classic, clears six fights to its boss, ending and results, returns to selection, and clears its authored Lore Battle [spec #350] [spec #352] [spec #353] [invariant]`, () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1]);
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
   helpers.rows = (slot, frame) => rowFor(slot, frame, { denseCycles: 0, walkers: [] });
@@ -26,18 +31,19 @@ test("Medivh selects Classic, clears six fights to its Guardian ending and resul
     for (let i = 0; i < limit && !done(); i++) frames(1);
     expect(done(), label).toBe(true);
   };
-  expect(CLASSIC_CHARACTERS.includes(Character.medivh)).toBe(true);
-  const route = classicRoute(Character.medivh);
-  if (route === undefined) throw new Error("Medivh route missing");
+  expect(CLASSIC_CHARACTERS.includes(character)).toBe(true);
+  const route = classicRoute(character);
+  const battle = LORE_BATTLES.find(entry => entry.id === loreId);
+  if (route === undefined || battle === undefined) throw new Error(`${name} route or Lore Battle missing`);
   clients.start(); frames(30);
-  clients.chat(0, "-dev classic Medivh");
+  clients.chat(0, `-dev classic ${name}`);
   for (let fight = 0; fight < 6; fight++) {
-    until(`Medivh fight ${fight + 1}`, () => read(() => shell().game.phase) === Phase.match);
+    until(`${name} fight ${fight + 1}`, () => read(() => shell().game.phase) === Phase.match);
     frames(2);
     for (const client of clients.clients) {
-      expect(value(client, () => [shell().game.run.fighter, shell().game.run.fight])).toEqual([Character.medivh, fight]);
+      expect(value(client, () => [shell().game.run.fighter, shell().game.run.fight])).toEqual([character, fight]);
       if (fight < 5) expect(value(client, () => shell().game.stageChoice)).toBe(route.fights[fight]?.stage);
-      else expect(value(client, () => shell().game.run.boss.kind)).toBe(BossKind.archimonde);
+      else expect(value(client, () => shell().game.run.boss.kind)).toBe(route.boss);
       client.run(() => {
         const { game, world } = shell();
         for (const fighter of world.fighters) if (fighter !== undefined && fighter !== world.fighters[game.run.player]) {
@@ -47,7 +53,7 @@ test("Medivh selects Classic, clears six fights to its Guardian ending and resul
         game.run.boss.health = 0;
       });
     }
-    until(`Medivh result ${fight + 1}`, () => read(() => shell().game.phase) === Phase.result);
+    until(`${name} result ${fight + 1}`, () => read(() => shell().game.phase) === Phase.result);
     frames(100);
     expectSynchronized(clients);
     if (fight === 5) {
@@ -60,13 +66,12 @@ test("Medivh selects Classic, clears six fights to its Guardian ending and resul
     clients.press(0, Key.y); frames(3);
   }
   until("fighter selection after ending", () => read(() => shell().game.phase) === Phase.characterMenu);
-  const lore = LORE_BATTLES.findIndex(entry => entry.id === "lore.medivh-warning");
-  expect(lore).toBeGreaterThanOrEqual(0);
+  const lore = LORE_BATTLES.indexOf(battle);
   clients.chat(0, `-dev lore ${lore + 1}`);
-  until("Medivh Lore match", () => read(() => shell().game.phase) === Phase.match);
+  until(`${name} Lore match`, () => read(() => shell().game.phase) === Phase.match);
   frames(2);
   for (const client of clients.clients) {
-    expect(value(client, () => [shell().game.run.fighter, shell().game.run.current?.id])).toEqual([Character.medivh, "lore.medivh-warning"]);
+    expect(value(client, () => [shell().game.run.fighter, shell().game.run.current?.id])).toEqual([character, loreId]);
   }
   for (const client of clients.clients) client.run(() => {
     const { game, world } = shell();
@@ -75,11 +80,11 @@ test("Medivh selects Classic, clears six fights to its Guardian ending and resul
       fighter.status.out = true;
     }
   });
-  until("Medivh Lore clear", () => read(() => shell().game.phase) === Phase.result);
+  until(`${name} Lore clear`, () => read(() => shell().game.phase) === Phase.result);
   frames(2);
   for (const client of clients.clients) {
     expect(value(client, () => shell().game.run.cleared)).toBe(true);
-    expect(shows(client, "Lore Battle cleared: The Guardian's Last Warning")).toBe(true);
+    expect(shows(client, `Lore Battle cleared: ${battle.title}`)).toBe(true);
     expect(client.errors).toEqual([]);
   }
   expectSynchronized(clients);

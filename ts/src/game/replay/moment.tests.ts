@@ -114,7 +114,7 @@ function roundTrip(callback: boolean, frames: number, row = scriptedRow, fighter
 }
 
 /** The same saved gameplay fixture for the Bun command path and Bun/Lua32 state comparison. */
-export const savedInspectionFixture = (): Repro => roundTrip(false, 120, scriptedRow, undefined, true);
+const savedInspectionFixture = (): Repro => roundTrip(false, 120, scriptedRow, undefined, true);
 
 test("moment inspection: saved gameplay start, middle, end and one frame back equal ordinary canonical states [invariant]", savedInspectionFixture);
 

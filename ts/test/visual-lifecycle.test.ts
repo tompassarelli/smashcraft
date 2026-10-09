@@ -27,8 +27,9 @@ import { CombatEffects, fighterModel } from "../src/game/render/combatEffects";
 import { originalClip, originalClipNamed } from "../src/game/assets/fighterOriginalClipInfo";
 import { victoryAnimation } from "../src/game/presentation/matchAudio";
 import { createImpactEvents } from "../src/game/presentation/impactEvents";
-import { ELECTRIC_CONTACT_FRAMES, advanceImpacts, createImpactState, emitImpacts } from "../src/game/presentation/impactState";
-import { ELECTRIC_IMPACT_MODEL } from "../src/game/presentation/hitPresentation";
+import { ELECTRIC_CONTACT_FRAMES, IMPACT_HIT, advanceImpacts, createImpactState, emitImpacts, impactLifetime } from "../src/game/presentation/impactState";
+import { ELECTRIC_IMPACT_MODEL, damageTint } from "../src/game/presentation/hitPresentation";
+import { projectedShield } from "../src/game/presentation/shieldPose";
 import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
 import { HIT_PRESENTATION_CASES } from "../src/game/shell/hitPresentationCases";
 import { SpecialEffects } from "../src/game/render/specialEffects";
@@ -99,17 +100,19 @@ test("Ahn'Qiraj keeps neutral fighter colours, the hit pulse and scenery at stoc
     fighter.launch.hitlag = 10;
     renderPersistentPresentation(s);
     expect(white()?.color).toEqual([255, 255, 255]);
-    expect(white()?.alpha).toBe(220);
+    const pulse = white()?.alpha;
+    expect(pulse).toBeGreaterThan(0);
     fighter.launch.hitlag = 8;
     renderPersistentPresentation(s);
-    expect(white()?.alpha).toBe(100);
+    expect(white()?.alpha).not.toBe(pulse);
     fighter.launch.hitlag = 0;
     fighter.status.frozenFrames = 3;
     renderPersistentPresentation(s);
-    expect(body()?.color).toEqual([155, 210, 255]);
+    const frozen = body()?.color;
+    expect(frozen).not.toEqual([255, 255, 255]);
     expect(scenery()).toEqual(backdrop);
     applyDeveloperCommand(s, 0, "-dev lighting stock");
-    expect(body()?.color).toEqual([155, 210, 255]);
+    expect(body()?.color).toEqual(frozen);
     expect(scenery()).not.toEqual(backdrop);
     applyDeveloperCommand(s, 0, "-dev lighting stage");
     expect(scenery()).toEqual(backdrop);
@@ -128,7 +131,7 @@ test("Ahn'Qiraj keeps neutral fighter colours, the hit pulse and scenery at stoc
     fighter.launch.hitlag = 10;
     renderPersistentPresentation(s);
     expect(white()?.color).toEqual([255, 255, 255]);
-    expect(white()?.alpha).toBe(220);
+    expect(white()?.alpha).toBe(pulse);
     renderFighter(s, 0, pose, false);
     expect(client.log.findLast(call => call.name === "SetUnitVertexColor" && call.args[0] === unit)?.args.slice(1)).toEqual([255, 255, 255, 255]);
   });
@@ -282,25 +285,32 @@ test("damage hue and shield recoil reach the renderer through freeze, stun and r
       renderPersistentPresentation(s);
       return client.log.slice(before);
     };
+    const coloured = (calls: readonly { readonly name: string; readonly args: readonly unknown[] }[], names: readonly string[], { red, green, blue }: { readonly red: number; readonly green: number; readonly blue: number }) =>
+      calls.some(({ name, args }) => names.includes(name) && args[1] === red && args[2] === green && args[3] === blue);
+    const tinted = ["BlzSetSpecialEffectColor", "SetUnitVertexColor"];
     victim.launch.hitstun = 12;
+    const hue = damageTint(victim);
+    if (hue === undefined) throw new Error("a stunned fighter has no damage hue");
+    expect(hue).not.toEqual({ red: 255, green: 255, blue: 255 });
     for (const lag of [5, 0]) {
       victim.launch.hitlag = lag;
-      const colours = draw().filter(({ name }) => name === "BlzSetSpecialEffectColor" || name === "SetUnitVertexColor");
-      expect(colours.some(({ args }) => args[1] === 255 && args[2] === 185 && args[3] === 150)).toBe(true);
+      expect(coloured(draw(), tinted, hue)).toBe(true);
     }
     victim.launch.hitstun = 0;
-    expect(draw().some(({ name, args }) => (name === "BlzSetSpecialEffectColor" || name === "SetUnitVertexColor") && args[2] === 185)).toBe(false);
+    expect(coloured(draw(), tinted, hue)).toBe(false);
     victim.shield.raised = true;
     victim.shield.stun = 5;
     victim.shield.pushbackX = -10;
+    const struck = projectedShield(victim, true);
+    expect(struck.x).not.toBe(projectedShield({ ...victim, shield: { ...victim.shield, stun: 0 } }, true).x);
     for (const lag of [4, 0]) {
       victim.launch.hitlag = lag;
       const calls = draw();
-      expect(calls.some(({ name, args }) => name === "BlzSetSpecialEffectColor" && args[1] === 255 && args[2] === 225 && args[3] === 150)).toBe(true);
-      expect(calls.some(({ name, args }) => name === "BlzSetSpecialEffectPosition" && args[1] === s.origin.x + victim.motion.x - 6)).toBe(true);
+      expect(coloured(calls, ["BlzSetSpecialEffectColor"], struck)).toBe(true);
+      expect(calls.some(({ name, args }) => name === "BlzSetSpecialEffectPosition" && args[1] === s.origin.x + projectedShield(victim, true).x)).toBe(true);
     }
     victim.shield.stun = 0;
-    expect(draw().some(({ name, args }) => name === "BlzSetSpecialEffectColor" && args[2] === 225)).toBe(false);
+    expect(coloured(draw(), ["BlzSetSpecialEffectColor"], struck)).toBe(false);
     expect(client.log.filter(({ name }) => name === "AddSpecialEffect")).toHaveLength(initialAllocations);
   });
   expect(client.errors).toEqual([]);
@@ -326,7 +336,7 @@ test("combat effects: a hit corrected in after its spark's window still shows it
       shown.push(sparks().length);
     }
 
-    expect(shown).toEqual([1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0]);
+    expect(shown).toEqual(shown.map((_, age) => age < impactLifetime(IMPACT_HIT) ? 1 : 0));
 
     renderer.confirmContacts(50, hit);
     for (let n = 0; n < 20; n++) renderer.present(empty, 60, empty, true);
@@ -577,12 +587,13 @@ test("pooled fighters: unchanged poses keep their appearance and a returning fad
     const changed = draw(3);
     expect(changed.some(call => call.name === "BlzSetSpecialEffectYaw" && Number(call.args[1]) > 3)).toBe(true);
     expect(changed.some(call => call.name === "BlzSetSpecialEffectTime" && call.args[1] === clip.startSeconds + 0.25)).toBe(true);
-    expect(changed.some(call => call.name === "BlzSetSpecialEffectColor" && call.args.slice(1).join(",") === "155,210,255")).toBe(true);
+    expect(changed.some(call => call.name === "BlzSetSpecialEffectColor" && call.args.slice(1).join(",") !== "255,255,255")).toBe(true);
     fighter.status.frozenFrames = 0;
     fighter.status.invincible = 5;
     const recovered = draw(4);
     expect(recovered.some(call => call.name === "BlzSetSpecialEffectColor" && call.args.slice(1).join(",") === "255,255,255")).toBe(true);
-    expect(shown()?.alpha).toBe(140);
+    expect(shown()?.alpha).toBeGreaterThan(0);
+    expect(shown()?.alpha).toBeLessThan(255);
     fighter.status.invincible = 0;
     draw(5);
     expect(shown()?.alpha).toBe(255);

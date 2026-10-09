@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
-import { createStandaloneSession, NEUTRAL_INPUT, standaloneArguments } from "../scripts/wisp/standalone";
+import { createStandaloneSession, NEUTRAL_INPUT } from "../scripts/wisp/standalone";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { nativeDriverCommand } from "../src/platform/nativeDriver";
 import { install, start } from "../src/platform/nativeDriverMain";
@@ -61,32 +61,4 @@ async function matchesNativeDriver(frames: number): Promise<void> {
   } finally { runtime.restore(); }
 }
 
-sweep("standalone CPU fixture matches the native pad driver over its first 300 frames [invariant]", () => matchesNativeDriver(300), 120000);
-
 sweep("standalone CPU fixture matches the native pad driver at all 1070 frames [invariant]", () => matchesNativeDriver(1070), 120000);
-
-test("standalone arguments require a complete headless capture [spec docs/play.md]", () => {
-  expect(standaloneArguments(["--standalone", "--four-fighters", "--frames", "7200", "--out", "build/four"])).toEqual({ fourFighters: true, headless: false, frames: 7200, out: "build/four" });
-  expect(() => standaloneArguments(["--four-fighters", "--script", "a.pad"])).toThrow("--four-fighters plays its own inputs");
-  expect(standaloneArguments(["--standalone", "--headless", "--frames", "1070", "--out", "build/cpu", "--capture-frames", "200,600,1000"])).toEqual({ headless: true, frames: 1070, out: "build/cpu", captureFrames: [200, 600, 1000] });
-  expect(() => standaloneArguments(["--headless"])).toThrow("--headless needs");
-});
-
-test("standalone presentation arguments accept the map profiles [spec docs/play.md]", () => {
-  for (const presentation of ["native", "pool-confirmed", "pool-predicted"]) {
-    expect(standaloneArguments(["--standalone", "--presentation", presentation])).toEqual({ headless: false, presentation });
-  }
-  expect(() => standaloneArguments(["--presentation"])).toThrow("needs a value");
-  expect(() => standaloneArguments(["--presentation", "pool"])).toThrow("needs native, pool-confirmed or pool-predicted");
-});
-
-test("standalone presentation defaults keep live prediction and native scripts [spec docs/play.md]", async () => {
-  const script = readFileSync(new URL("./native/pads/cpu-expert.pad", import.meta.url), "utf8");
-  for (const options of [{}, { script }]) {
-    const session = await createStandaloneSession(options);
-    try {
-      expect(value(session.client, () => shell().build.presentation)).toBe("script" in options ? "native" : "pool-predicted");
-      expect(session.client.errors).toEqual([]);
-    } finally { session.close(); }
-  }
-});

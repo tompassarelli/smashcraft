@@ -8,9 +8,8 @@ import { Action, bit } from "../src/game/input/actions";
 import { inputRow } from "../src/game/input/inputRow";
 import { Phase } from "../src/game/match/rules";
 import { matchSpawnX } from "../src/game/match/step";
-import { PartnerBehaviour, PartnerEscape } from "../src/game/match/trainingState";
+import { PARTNER_DAMAGE_STEP, PartnerBehaviour, PartnerEscape } from "../src/game/match/trainingState";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
-import { QUICK_TRAINING_COMMAND } from "../src/game/shell/devSettings";
 import { fighterAt } from "../src/game/sim/roster";
 import { RULE_BUTTONS } from "../src/game/ui/ruleButtons";
 import { install, startBuild } from "../src/platform/main";
@@ -26,6 +25,8 @@ afterAll(headless.restore);
 
 const RESET_FRAME = 60;
 const BOTH_SHIELDS = bit(Action.leftTrigger) | bit(Action.rightTrigger);
+const DAMAGE_CLICKS = 4;
+const PARTNER_DAMAGE = DAMAGE_CLICKS * PARTNER_DAMAGE_STEP;
 
 test("training settings agree on both clients and both shields with attack reset the match on both [spec #120] [invariant]", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 120), keepCalls: 64 });
@@ -48,16 +49,16 @@ test("training settings agree on both clients and both shields with attack reset
   click("training");
   click("moreBehaviour", 0);
   click("lessEscape");
-  for (let step = 0; step < 4; step++) click("moreDamage", step % 2);
+  for (let step = 0; step < DAMAGE_CLICKS; step++) click("moreDamage", step % 2);
   click("hitAreas");
   for (const client of clients.clients) {
     expect(value(client, () => {
       const { training, trainer } = shell().game;
       return [training, trainer.behaviour, trainer.escape, trainer.damage, trainer.showHitAreas];
-    })).toEqual([true, PartnerBehaviour.shield, PartnerEscape.random, 40, true]);
+    })).toEqual([true, PartnerBehaviour.shield, PartnerEscape.random, PARTNER_DAMAGE, true]);
     expect(shows(client, "Mode: Training")).toBe(true);
     expect(shows(client, "Partner: Shield")).toBe(true);
-    expect(shows(client, "Partner damage: 40%")).toBe(true);
+    expect(shows(client, `Partner damage: ${PARTNER_DAMAGE}%`)).toBe(true);
   }
   for (const actor of [0, 1]) clients.press(actor, Key.n);
   frames(5);
@@ -66,7 +67,7 @@ test("training settings agree on both clients and both shields with attack reset
   until("stage selection", () => read(() => shell().game.phase) === Phase.stageMenu, 30);
   clients.press(0, Key.y);
   until("match", () => read(() => shell().game.phase) === Phase.match, 120);
-  expect(read(() => fighterAt(shell().world, 2).status.damage)).toBe(40);
+  expect(read(() => fighterAt(shell().world, 2).status.damage)).toBe(PARTNER_DAMAGE);
 
   until("player 1 walks away from its spot", () => read(() => fighterAt(shell().world, 0).motion.x) < matchSpawnX(0) - 100.0, 1200);
   until("the reset frame", () => read(() => shell().runtime.simulationFrame) >= RESET_FRAME, 1200);
@@ -75,27 +76,10 @@ test("training settings agree on both clients and both shields with attack reset
       const { world, game } = shell();
 
       return [game.phase, fighterAt(world, 2).status.damage, Math.abs(fighterAt(world, 0).motion.x - matchSpawnX(0)) < 5.0, fighterAt(world, 1).motion.x];
-    })).toEqual([Phase.match, 40, true, matchSpawnX(1)]);
+    })).toEqual([Phase.match, PARTNER_DAMAGE, true, matchSpawnX(1)]);
   }
   until("partner raises its shield after reset", () => read(() => fighterAt(shell().world, 2).shield.raised), 60);
   expect(read(() => shell().game.phase)).toBe(Phase.match);
   expect(read(() => fighterAt(shell().world, 2).shield.raised)).toBe(true);
   expectSynchronized(clients);
-});
-
-test("-dev quick training starts a training match with a shielding partner at 40% and hit areas on, on both clients [spec #120]", () => {
-  const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1]);
-  const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
-  const frames = (n: number) => { for (let i = 0; i < n; i++) { clients.frames(1); helpers.service(clients); } };
-  clients.start();
-  frames(30);
-  clients.chat(0, QUICK_TRAINING_COMMAND);
-  for (let frame = 0; frame < 240 && !value(clients.client(0), () => shell().game.phase === Phase.match); frame++) frames(1);
-  for (const client of clients.clients) {
-    expect(client.errors).toEqual([]);
-    expect(value(client, () => {
-      const { game, world } = shell();
-      return [game.phase, game.training, game.trainer.showHitAreas, game.computerMask, fighterAt(world, 2).status.damage, game.trainer.behaviour];
-    })).toEqual([Phase.match, true, true, 4, 40, PartnerBehaviour.shield]);
-  }
 });

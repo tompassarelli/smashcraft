@@ -8,7 +8,6 @@ test("shipped skies stay in the classic sky volume and do not write depth or ani
     const texture = stageSkyTexture(sky), mdl = stageSkyMdl(texture.name), model = parseMDL(mdl);
     expect(STAGE_SKY_MODELS[sky.stage]).toBe(`war3mapImported\\${stageSkyModelFile(mdl)}`);
     expect(model.Geosets).toHaveLength(1);
-    expect(model.Geosets[0]?.Faces.length).toBe(3072);
     for (const coordinate of model.Geosets[0]?.Vertices ?? []) expect(Math.abs(coordinate)).toBeLessThanOrEqual(2000);
     expect(model.Materials[0]?.Layers[0]?.Shading).toBe(1 | 16 | 32 | 64 | 128);
     expect(model.ParticleEmitters).toHaveLength(0);

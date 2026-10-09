@@ -15,13 +15,6 @@ const track = (): mdx.AnimVector => ({
   })),
 });
 
-test("white flash retains exact keys and tangents inside flashable clips, including both edges [spec #310]", () => {
-  const animation = track();
-  const retained = animation.Keys.slice(1, 4);
-  keepFlashableKeys(animation, [sequence]);
-  expect(animation.Keys).toEqual(retained);
-});
-
 test("white flash preserves independent global-clock keys outside clip intervals [invariant]", () => {
   const animation = track();
   animation.GlobalSeqId = 0;
@@ -30,14 +23,18 @@ test("white flash preserves independent global-clock keys outside clip intervals
   expect(animation).toEqual(before);
 });
 
-test("white flash removes constant linear keys while preserving the held pose and clip boundaries [spec #310]", () => {
+test("white flash keeps exact keys and tangents inside flashable clips, and collapses constant linear keys to the clip edges while preserving the held pose [spec #310]", () => {
   const animation = track();
-  animation.LineType = mdx.LineType.Linear;
-  for (const key of animation.Keys) key.Vector.fill(7);
-  const original = structuredClone(animation.Keys);
+  const retained = animation.Keys.slice(1, 4);
   keepFlashableKeys(animation, [sequence]);
-  expect(animation.Keys.map(key => key.Frame)).toEqual([100, 200]);
-  for (const key of original.slice(1, 4)) expect(preservesFlashKey(animation, key)).toBe(true);
+  expect(animation.Keys).toEqual(retained);
+  const constant = track();
+  constant.LineType = mdx.LineType.Linear;
+  for (const key of constant.Keys) key.Vector.fill(7);
+  const original = structuredClone(constant.Keys);
+  keepFlashableKeys(constant, [sequence]);
+  expect(constant.Keys.map(key => key.Frame)).toEqual([100, 200]);
+  for (const key of original.slice(1, 4)) expect(preservesFlashKey(constant, key)).toBe(true);
 });
 
 test("white flash removes a track whose keys all lie outside flashable clips, because Warcraft crashes loading an empty track [repro #284]", () => {

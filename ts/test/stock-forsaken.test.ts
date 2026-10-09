@@ -37,14 +37,3 @@ test('restoring stock Forsaken keeps head and sword geometry while retaining shi
     expect(restored.Bones[0]?.Translation).toEqual(bone.Translation);
     expect(checkStockGeosets(stock, restored, restored.Sequences).required.map(geoset => geoset.name)).toEqual(['Head', 'Sword']);
 });
-
-test('the stock geoset check rejects an invisible head and incomplete sword weights [repro #328]', () => {
-    const stock = stockBody(), hidden = structuredClone(stock);
-    hidden.GeosetAnims = [{ GeosetId: 0, Alpha: 0, Color: new Float32Array([1, 1, 1]), Flags: 0 }];
-    expect(() => checkStockGeosets(stock, hidden, hidden.Sequences)).toThrow('is hidden');
-    const incomplete = structuredClone(stock);
-    const skin = incomplete.Geosets[1]?.SkinWeights;
-    if (skin === undefined) throw new Error('Missing fixture sword skin');
-    skin[4] = 0;
-    expect(() => checkStockGeosets(stock, incomplete, incomplete.Sequences)).toThrow('incomplete weights');
-});

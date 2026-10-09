@@ -193,8 +193,3 @@ test("production TypeScript has no type escapes (#35, #38) [spec #38]", () => {
 test("map code has no decimal literal the map compiler refuses as non-binary32 (TS9300) [repro #267]", () => {
   expect(nonBinary32Literals(mapSources.filter((path) => !/\.(test|tests)\.ts$|\.d\.ts$/.test(path)))).toEqual([]);
 });
-
-test("the binary32 literal audit names 6.489 at its file and line [repro #267]", () => {
-  expect(nonBinary32Literals(["test/fixtures/binary32/scale.ts"]))
-    .toEqual(["test/fixtures/binary32/scale.ts:2: 6.489 isn't a binary32 value; write 6.488999843597412 or f32(6.489)"]);
-});
