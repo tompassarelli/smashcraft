@@ -2155,8 +2155,8 @@ mod linux {
                 let Press::Key(key) = binding.press else { return None };
                 let action = match key.as_str() {
                     "n" => ATTACK, "u" => SPECIAL, "i" => JUMP, "z" => SHORT_HOP, "o" => GRAB, "p" => WALK,
-                    "q" | "t" if source == LT_SOURCE => LEFT_TRIGGER,
-                    "q" | "t" => RIGHT_TRIGGER,
+                    "q" | "t" | "7" if source == LT_SOURCE => LEFT_TRIGGER,
+                    "q" | "t" | "7" => RIGHT_TRIGGER,
                     _ => return None,
                 };
                 Some((source, action))
@@ -2203,7 +2203,7 @@ mod linux {
     #[test]
     fn left_stick_click_journals_short_hop_press_and_release_spec_321() {
         {
-            let mut state = State { preset: wc3_controller::model::PadPreset::Tom, ..State::default() };
+            let mut state = State { preset: wc3_controller::model::PadPreset::Script, ..State::default() };
             update_state(&[None; 6], &mut state, evdev::InputEvent::new(evdev::EventType::KEY.0, Key::BTN_THUMBL.0, 1));
             assert_eq!(action_state(state), SHORT_HOP);
             update_state(&[None; 6], &mut state, evdev::InputEvent::new(evdev::EventType::KEY.0, Key::BTN_THUMBL.0, 0));
@@ -2218,18 +2218,18 @@ mod linux {
     #[test]
     fn journal_tap_jump_reads_effective_guard_stick_and_keeps_button_jump() {
         use wc3_controller::model::PadPreset;
-        let state = State { preset: PadPreset::Tom, y: -32_767, lt: 20_000, ..State::default() };
+        let state = State { preset: PadPreset::Script, y: -32_767, lt: 20_000, ..State::default() };
         assert_eq!(action_state(state) & JUMP, 0);
         let state = State { tap_jump: true, ..state };
         assert_eq!(action_state(state) & JUMP, JUMP);
-        let state = State { rt: 20_000, ..state };
+        let state = State { sources: 1 << 4, ..state };
         assert_eq!(action_state(state) & JUMP, 0);
-        assert_eq!(action_state(State { sources: 1 << 4, ..state }) & JUMP, JUMP);
+        assert_eq!(action_state(State { sources: 1 << 4 | 1 << 3, ..state }) & JUMP, JUMP);
         assert_eq!(action_state(State { lt: 0, ..state }) & JUMP, JUMP);
         let mut held = state;
         release_for_focus_loss(&mut held, &mut BTreeMap::new(), &mut BTreeMap::new(), 1, FrameSegment { epoch_ns: 0, first_frame: 1 }, 0).unwrap();
         assert!(held.tap_jump);
-        assert_eq!(held.preset, PadPreset::Tom);
+        assert_eq!(held.preset, PadPreset::Script);
     }
 
     #[test]
@@ -2239,7 +2239,7 @@ mod linux {
         for (preset, expected) in [
             (PadPreset::Melee, [ATTACK, SPECIAL, JUMP, JUMP, 0, GRAB, 0]),
             (PadPreset::ZJump, [ATTACK, SPECIAL, GRAB, JUMP, 0, JUMP, 0]),
-            (PadPreset::Tom, [ATTACK, GRAB, SPECIAL, JUMP, JUMP, GRAB, SHORT_HOP]),
+            (PadPreset::Tom, [ATTACK, GRAB, SPECIAL, JUMP, SHORT_HOP, 0, 0]),
             (PadPreset::Script, [ATTACK, JUMP, SPECIAL, JUMP, WALK, GRAB, SHORT_HOP]),
         ] {
             let state = State { preset, ..State::default() };
@@ -2250,11 +2250,7 @@ mod linux {
                 for right in [TriggerShield::Full, TriggerShield::Light] {
                     let state = State { triggers: TriggerShields { left, right }, ..state };
                     let (left, right) = (u32::from(left.pressure()), u32::from(right.pressure()));
-                    let rows: &[(u16, u16, u32, u32)] = if preset == PadPreset::Tom {
-                        &[(20_000, 0, LEFT_TRIGGER, left * 256), (0, 20_000, WALK, 0)]
-                    } else {
-                        &[(20_000, 0, LEFT_TRIGGER, left * 256), (0, 20_000, RIGHT_TRIGGER, right), (20_000, 20_000, LEFT_TRIGGER | RIGHT_TRIGGER, left * 256 + right)]
-                    };
+                    let rows: &[(u16, u16, u32, u32)] = &[(20_000, 0, LEFT_TRIGGER, left * 256), (0, 20_000, RIGHT_TRIGGER, right), (20_000, 20_000, LEFT_TRIGGER | RIGHT_TRIGGER, left * 256 + right)];
                     for &(lt, rt, held, pressure) in rows {
                         let row = encode_row(State { lt, rt, ..state }, 0, Edges::default());
                         let (flags, tail) = if pressure == 0 { ("3", String::new()) } else { ("B", compact(pressure, 3)) };
