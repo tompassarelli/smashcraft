@@ -23,7 +23,7 @@ export const WARDEN_GAMEPLAN: FighterGameplan = {
   ],
   approach: [
     { via: "run", moves: [AttackStyle.dashAttack, GameplanSpecial.side, AttackStyle.grab], weight: 2 },
-    { via: "jump", moves: [AttackStyle.forwardAir, AttackStyle.neutralAir, AttackStyle.backAir], weight: 2 }
+    { via: "jump", moves: [AttackStyle.forwardAir, AttackStyle.neutralAir, AttackStyle.backAir, AttackStyle.upAir], weight: 2 }
   ],
   defense: ["spotDodge", "roll", "jump", "shield"],
   combos: [
