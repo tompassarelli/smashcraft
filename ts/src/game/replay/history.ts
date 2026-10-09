@@ -164,8 +164,6 @@ export class ReplayHistory {
   sameState: (this: void, stored: Readonly<ReplayState>, state: Readonly<ReplayState>, first: number) => boolean = sameReplayState;
   private readonly repeated: { mask: number; after: ReplayState["runtime"] } = { mask: 0, after: createReplaySnapshot().runtime };
   private repeatedDecisions = 0;
-  /** A frame truncate restored from a snapshot that doesn't follow the one before it. */
-  private unfollowed: number | undefined;
   // The corrected state a repair replays, apart from live state, which keeps running.
   private readonly repairState = createReplaySnapshot();
   /** The next frame a pending repair runs; every snapshot before it is corrected. */
@@ -201,7 +199,6 @@ export class ReplayHistory {
     this.repairDirty = 0;
     this.repairShown = 0;
     this.repairInputs = 0;
-    this.unfollowed = undefined;
     return true;
   }
 
@@ -293,9 +290,8 @@ export class ReplayHistory {
     if (this.current === undefined || epoch !== this.current || live.runtime.simulationFrame !== this.nextFrame - 1) return false;
     if (frame >= this.nextFrame) return true;
     if (frame <= this.authoritativeThrough || !this.contains(epoch, frame)) return false;
-    // A positioned repair that stopped at `frame` left its snapshot from the run before the correction.
-    this.unfollowed = this.repairNext === frame && this.repairPositioned ? frame : undefined;
-    copyReplayState(live, this.snapshotAt(frame));
+    // A positioned repair stopped at `frame` holds the corrected state; that snapshot predates the correction.
+    copyReplayState(live, this.repairNext === frame && this.repairPositioned ? this.repairState : this.snapshotAt(frame));
     this.liveFollows = false;
     this.count -= this.nextFrame - frame;
     this.nextFrame = frame;
@@ -607,8 +603,7 @@ export class ReplayHistory {
     if (this.nextFrame > INPUT_LAST_FRAME) return false;
     const slot = this.slotOf(this.nextFrame);
     // Callers save each frame's state after running the frame before from its snapshot.
-    this.follows[slot] = this.contains(epoch, this.nextFrame - 1) && this.unfollowed !== this.nextFrame;
-    this.unfollowed = undefined;
+    this.follows[slot] = this.contains(epoch, this.nextFrame - 1);
     this.copySnapshot(this.nextFrame, live);
     copyMatchFrameInput(at(this.inputs, slot), row);
     this.speculative[slot] = predicted;

@@ -15,6 +15,7 @@ import { copyReplayState, createReplaySnapshot } from "./snapshot";
 import { type TapeWorld, captureTape, createTapeWorld, executeTapeRow, runRecordedTape } from "./tapeWorld";
 import { Character } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
+import { sweep } from "../../runtime/sweep";
 
 function frameControls(first: Controls, second: Controls, firstCommands: AttackBuffer, secondCommands: AttackBuffer): FrameControls {
   return { inputs: [first, second, neutralControls(), neutralControls()], commands: [firstCommands, secondCommands, attackBuffer(0), attackBuffer(0)] };
@@ -609,4 +610,148 @@ test("a repair that reaches a stored snapshot keeps the later frames and ends as
   // A checksum leaves the crouching pose out: declaring convergence on it keeps snapshots that differ.
   const checksum = convergedAgainstWhole((stored, state) => stateChecksum(stored) === stateChecksum(state));
   assertTrue(checksum.difference !== undefined);
+});
+
+interface PausedMatch {
+  readonly late: number;
+  readonly frames: number;
+  readonly computer: boolean;
+  readonly seed: number;
+  readonly stick?: (frame: number) => number;
+  readonly rewind: (tick: number, pending: number | undefined, history: ReplayHistory, draw: (range: number) => number) => number | undefined;
+}
+
+function pausedAgainstStraight(match: PausedMatch): { ontoRepair: number; rewinds: number; difference: string | undefined } {
+  const world = (): TapeWorld => createTapeWorld({ stocks: 99, humans: match.computer ? 1 : 2 });
+  const straight = world();
+  const rolled = world();
+  const senders = match.computer ? 1 : 3;
+  if (match.computer) {
+    straight.live.match.computerMask = 2;
+    rolled.live.match.computerMask = 2;
+  }
+  let state = match.seed;
+  const draw = (range: number): number => {
+    state = floorMod(state * 75 + 74, 65537);
+    return floorMod(state, range);
+  };
+  const sticks = [-100, -60, 0, 60, 100];
+  const actual = Array.from({ length: match.frames + 1 }, () => participantInputs());
+  for (let frame = 1; frame <= match.frames; frame++) {
+    const was = actual[frame - 1]?.[0];
+    const human = actual[frame]?.[0];
+    if (was === undefined || human === undefined) throw new Error(`no inputs for frame ${frame}`);
+    human.axisX = match.stick?.(frame) ?? (draw(6) === 0 ? sticks[draw(5)] ?? 0 : was.axisX);
+    human.pressed = match.stick === undefined && draw(9) === 0 ? bit(draw(2) === 0 ? Action.attack : Action.special) : 0;
+    human.held = human.pressed;
+    const other = actual[frame]?.[1];
+    if (other !== undefined && !match.computer) other.axisX = floorMod(floorDiv(frame, 20), 2) === 0 ? 40 : -40;
+  }
+  const inputsAt = (frame: number) => {
+    const inputs = actual[frame];
+    if (inputs === undefined) throw new Error(`no inputs for frame ${frame}`);
+    return inputs;
+  };
+  const straightHistory = new ReplayHistory();
+  const history = new ReplayHistory();
+  const corrections = new ReplayCorrections();
+  assertTrue(straightHistory.beginEpoch(1, 1));
+  assertTrue(history.beginEpoch(1, 1, REPLAY_MAX_CORRECTION_FRAMES));
+  assertTrue(corrections.beginEpoch(1));
+  const row = createMatchFrameInput();
+  for (let frame = 1; frame <= match.frames; frame++) {
+    resetMatchFrameInput(row);
+    assertTrue(captureNetworkFrame(row, frame, inputsAt(frame), straight.live.world, senders));
+    assertTrue(straightHistory.save(1, row, straight.live));
+    execute(straight, row);
+  }
+  const predicted = participantInputs();
+  let confirmed = 0;
+  let ontoRepair = 0;
+  let rewinds = 0;
+  const deliver = (through: number) => {
+    while (confirmed < through) {
+      confirmed++;
+      resetMatchFrameInput(row);
+      assertTrue(captureNetworkFrame(row, confirmed, inputsAt(confirmed), rolled.live.world, senders));
+      corrections.clear();
+      assertTrue(corrections.add(row));
+      assertTrue(history.amend(1, corrections, rolled.live) !== "rejected");
+    }
+  };
+  for (let tick = 1; history.lastRecordedFrame() < match.frames; tick++) {
+    const frame = history.lastRecordedFrame() + 1;
+    Object.assign(predicted[1], inputsAt(frame)[1]);
+    predicted[0].axisX = inputsAt(Math.max(1, confirmed))[0].axisX;
+    predicted[0].held = 0;
+    predicted[0].pressed = 0;
+    resetMatchFrameInput(row);
+    assertTrue(captureNetworkFrame(row, frame, predicted, rolled.live.world, senders));
+    assertTrue(history.saveSpeculative(1, row, rolled.live));
+    execute(rolled, row);
+    deliver(Math.max(0, frame - match.late));
+    assertTrue(history.repair(1, 2, rolled.live, 3) !== "rejected");
+    const pending = history.pendingRepairFrame(1);
+    const to = match.rewind(tick, pending, history, draw);
+    if (to === undefined || to < history.firstCorrectableFrame() || to > history.lastRecordedFrame()) continue;
+    assertTrue(history.truncate(1, to, rolled.live));
+    rewinds++;
+    if (to === pending) ontoRepair++;
+  }
+  deliver(match.frames);
+  while (history.pendingRepairFrame(1) !== undefined) assertTrue(history.repair(1, 2, rolled.live, 3) !== "rejected");
+  let difference = tapeDifference(straight, rolled);
+  const expected = createReplaySnapshot();
+  const got = createReplaySnapshot();
+  for (let frame = history.firstRetainedFrame(); frame <= match.frames && difference === undefined; frame++) {
+    assertTrue(straightHistory.restore(1, frame, expected));
+    assertTrue(history.restore(1, frame, got));
+    const found = firstStateDifference(expected, got);
+    if (found !== undefined) difference = `snapshot ${frame}: ${found}`;
+  }
+  return { ontoRepair, rewinds, difference };
+}
+
+test("#397 a pause rewind onto a positioned repair's frame keeps the correction to earlier frames [repro #397]", () => {
+  const result = pausedAgainstStraight({
+    late: 4,
+    frames: 40,
+    computer: false,
+    seed: 1,
+    stick: (frame) => (frame < 10 ? 100 : -100),
+    rewind: (tick, pending) => (tick === 14 ? pending : undefined),
+  });
+  assertEquals(result.ontoRepair, 1);
+  assertEquals(result.difference, undefined);
+});
+
+function seededPauses(seed: number): { ontoRepair: number; rewinds: number; difference: string | undefined } {
+  return pausedAgainstStraight({
+    late: 2 + floorMod(seed, 5),
+    frames: 120,
+    computer: floorMod(seed, 2) === 1,
+    seed,
+    rewind: (_tick, pending, history, draw) => {
+      if (draw(12) !== 0) return undefined;
+      if (pending !== undefined && draw(2) === 0) return pending;
+      const first = history.firstCorrectableFrame();
+      return first + draw(Math.max(1, history.lastRecordedFrame() - first + 1));
+    },
+  });
+}
+
+test("a seeded match with late inputs and pause rewinds confirms the state of the straight match [invariant]", () => {
+  const result = seededPauses(3);
+  assertGreaterThan(result.rewinds, 0);
+  assertEquals(result.difference, undefined);
+});
+
+sweep("seeded matches with late inputs and pause rewinds confirm the state of the straight match [invariant]", () => {
+  let ontoRepair = 0;
+  for (let seed = 1; seed <= 32; seed++) {
+    const result = seededPauses(seed);
+    if (result.difference !== undefined) throw new Error(`seed ${seed}: ${result.difference}`);
+    ontoRepair += result.ontoRepair;
+  }
+  assertGreaterThan(ontoRepair, 10);
 });
