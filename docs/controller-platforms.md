@@ -2,7 +2,7 @@
 
 The keyboard is the baseline (#166): the published map reads Warcraft's own
 synchronized key events and needs nothing installed. The companion is an
-optional upgrade that turns a controller into the same keys (smashcraft:companion/README.md,
+optional upgrade that turns a controller into the same keys (smashcraft:controller/README.md,
 "Always-on controller service"); its journal path serves the integrity build's
 native tests.
 
@@ -92,9 +92,9 @@ If acquisition works but events never reach the map, investigate output, privile
 
 ## What CI checks on Windows and macOS
 
-The `End-to-end helper test` step of smashcraft:.github/workflows/companion.yml
-(smashcraft:companion/tests/e2e.rs) runs on GitHub's `windows-latest` and
-`macos-latest` runners for every companion change. A scripted pad presses every
+The `End-to-end helper test` step of wc3-controller:.github/workflows/ci.yml
+(wc3-controller:tests/e2e.rs) runs on GitHub's `windows-latest` runner for
+every wc3-controller change (macOS ran it until the extraction, #373). A scripted pad presses every
 #18 action (A, X, B, Y, RB, LB, both triggers, Start, four stick and four
 C-stick directions), the jump and shield overlaps, a focus switch away and back,
 and a disconnect. The real helper binary types into a small SDL stand-in

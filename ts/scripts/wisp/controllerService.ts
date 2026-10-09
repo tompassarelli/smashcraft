@@ -15,9 +15,11 @@ import { PlayProblem } from "wisp/scripts/wisp/play";
 import { pollUntil } from "../hostPoll";
 
 export const CONTROLLER_LAUNCHER = join(homedir(), ".local/share/smashcraft-build-inputs/controller/wc3-journal");
-export const CONTROLLER_UNIT = "smashcraft-controller.service";
-export const CONTROLLER_STATUS = join(homedir(), ".local/state/smashcraft/controller-service.txt");
-export const CONTROLLER_LOG = join(homedir(), ".local/state/smashcraft/controller-service.log");
+export const SERVICE_LAUNCHER = join(homedir(), ".local/share/wc3-controller/bin/wc3-controller");
+export const SERVICE_ARGS = ["--service", "--plugin", CONTROLLER_LAUNCHER];
+export const CONTROLLER_UNIT = "wc3-controller.service";
+export const CONTROLLER_STATUS = join(homedir(), ".local/state/wc3-controller/service.txt");
+export const CONTROLLER_LOG = join(homedir(), ".local/state/wc3-controller/service.log");
 
 
 export type ServiceStatus = Readonly<Record<string, string>>;
@@ -73,8 +75,11 @@ const alive = (pid: string | undefined) => pid !== undefined && /^\d+$/.test(pid
 const fail = (problem: string) => new PlayProblem({ problem });
 
 
+/** The pinned wc3-controller service built beside the Smashcraft plug-in (currentPlaytest.ts). */
+export const pointLaunchers = (helper: string) => [pointLauncher(helper), pointLauncher(join(dirname(helper), "wc3-controller"), SERVICE_LAUNCHER)].some(Boolean);
+
 export const ensureService = (helper: string) => Effect.gen(function*() {
-  const changed = pointLauncher(helper);
+  const changed = pointLaunchers(helper);
   if (yield* unitInstalled) {
     if (changed || (yield* systemctl("is-active", "--quiet", CONTROLLER_UNIT)).exitCode !== 0) {
       const restart = yield* systemctl("restart", CONTROLLER_UNIT);
@@ -99,7 +104,7 @@ export const ensureService = (helper: string) => Effect.gen(function*() {
     try: () => new Promise<number>((resolve, reject) => {
       mkdirSync(dirname(CONTROLLER_LOG), { recursive: true });
       const output = openSync(CONTROLLER_LOG, "a");
-      const child = spawn(CONTROLLER_LAUNCHER, ["--service"], { detached: true, stdio: ["ignore", output, output] });
+      const child = spawn(SERVICE_LAUNCHER, SERVICE_ARGS, { detached: true, stdio: ["ignore", output, output] });
       child.once("error", (error) => {
         closeSync(output);
         reject(error);

@@ -1,28 +1,39 @@
-//! A fake Smashcraft session served by the real `wc3-journal --service`: a
-//! virtual pad, a stand-in game folder whose menu files the test writes, and
-//! the helper typing into a file. Needs a writable /dev/uinput.
+//! A fake Smashcraft session served by wc3-controller's service through the
+//! real plug-in program (`wc3-journal --plugin`): a virtual pad, a stand-in
+//! game folder whose menu files the test writes, and the helper typing into a
+//! file. Needs a writable /dev/uinput.
 #![cfg(target_os = "linux")]
 
-#[path = "../src/focus.rs"]
-mod focus;
-#[path = "../src/wlr.rs"]
-mod wlr;
+use wc3_controller::{focus, service::{self, plugin::Plugin}};
 
 use evdev::{AbsInfo, AbsoluteAxisCode as Abs, AttributeSet, KeyCode, UinputAbsSetup, uinput::VirtualDevice};
 use std::{
     fs,
     path::{Path, PathBuf},
-    process::{Child, Command, Stdio},
+    sync::{Arc, atomic::{AtomicBool, Ordering}},
     thread,
     time::{Duration, Instant},
 };
 
-struct Service(Child);
+struct Service(Arc<AtomicBool>, Option<thread::JoinHandle<()>>);
+
+impl Service {
+    fn start(config: service::Config) -> Self {
+        let stop = Arc::new(AtomicBool::new(false));
+        let flag = Arc::clone(&stop);
+        Self(stop, Some(thread::spawn(move || {
+            let mut plugin = Plugin::spawn(Path::new(env!("CARGO_BIN_EXE_wc3-journal"))).unwrap();
+            service::run(&config, &mut plugin, &flag, |_| {}).unwrap();
+        })))
+    }
+}
 
 impl Drop for Service {
     fn drop(&mut self) {
-        let _ = self.0.kill();
-        let _ = self.0.wait();
+        self.0.store(true, Ordering::Relaxed);
+        if let Some(thread) = self.1.take() {
+            let _ = thread.join();
+        }
     }
 }
 
@@ -74,58 +85,6 @@ fn serving(status: &Path) -> Option<String> {
 }
 
 #[test]
-fn layout_tap_jump_and_trigger_choices_take_effect_live_and_survive_service_restart() {
-    use std::{io::{BufRead, BufReader, Write}, net::{TcpListener, TcpStream}};
-    use wc3_controller::model::{ClientMessage, ControllerSettings, PadPreset, ServiceMessage, TriggerShield, TriggerShields};
-    let root = std::env::temp_dir().join(format!("wc3-controller-settings-{}", std::process::id()));
-    let documents = root.join("game");
-    let pads = root.join("pads");
-    fs::create_dir_all(&documents).unwrap();
-    fs::create_dir_all(&pads).unwrap();
-    let path = root.join("controller.json");
-    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-    let address = listener.local_addr().unwrap();
-    drop(listener);
-    let start = || Service(Command::new(env!("CARGO_BIN_EXE_wc3-journal"))
-        .args(["--service", "--pads", pads.to_str().unwrap(), "--headless", documents.to_str().unwrap(),
-            "--settings", path.to_str().unwrap(), "--status", root.join("status.txt").to_str().unwrap(),
-            "--interface", &address.to_string(), "--poll-ms", "10"])
-        .stdin(Stdio::null()).spawn().unwrap());
-    let connect = || {
-        let stream = until("isolated service interface", || TcpStream::connect(address).ok());
-        stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
-        stream
-    };
-    let read = |stream: &TcpStream| {
-        let mut line = String::new();
-        BufReader::new(stream.try_clone().unwrap()).read_line(&mut line).unwrap();
-        let ServiceMessage::Status(snapshot) = ServiceMessage::parse(&line).unwrap() else { panic!("expected settings snapshot") };
-        snapshot.settings
-    };
-    let service = start();
-    let mut stream = connect();
-    assert_eq!(read(&stream), ControllerSettings::default());
-    let selected = ControllerSettings {
-        pad_preset: PadPreset::ZJump, tap_jump: true,
-        triggers: TriggerShields { left: TriggerShield::Light, right: TriggerShield::Full },
-    };
-    for message in [ClientMessage::PadPreset(selected.pad_preset), ClientMessage::TapJump(selected.tap_jump), ClientMessage::TriggerShields(selected.triggers)] {
-        stream.write_all(message.line().as_bytes()).unwrap();
-    }
-    until("all three settings saved in one file", || fs::read_to_string(&path).ok()
-        .and_then(|text| serde_json::from_str::<ControllerSettings>(&text).ok()).filter(|saved| *saved == selected));
-    assert_eq!(read(&stream), selected);
-    drop(stream);
-    drop(service);
-    let service = start();
-    let stream = connect();
-    assert_eq!(read(&stream), selected);
-    drop(stream);
-    drop(service);
-    fs::remove_dir_all(root).unwrap();
-}
-
-#[test]
 fn the_service_follows_a_fake_session_through_new_sessions_and_game_restarts() {
     let Some((_pad, node)) = virtual_pad() else {
         eprintln!("skipped: /dev/uinput is not writable, so no virtual pad");
@@ -142,11 +101,11 @@ fn the_service_follows_a_fake_session_through_new_sessions_and_game_restarts() {
     fs::write(documents.join("game"), "1").unwrap();
     menu(&data, 0, "CHARACTER");
 
-    let _service = Service(Command::new(env!("CARGO_BIN_EXE_wc3-journal"))
-        .args(["--service", "--pads", pads.to_str().unwrap(), "--headless", documents.to_str().unwrap(), "--status", status.to_str().unwrap(), "--poll-ms", "50", "--interface", "off"])
-        .stdin(Stdio::null())
-        .spawn()
-        .unwrap());
+    let _service = Service::start(service::Config {
+        pads: pads.clone(), headless: Some(documents.clone()), status_file: Some(status.clone()),
+        settings_file: root.join("settings.json"), poll: Duration::from_millis(50), interface: None,
+        ..service::Config::default()
+    });
 
     // No arguments about the session: it is read from the map's files.
     let first = until("a helper for the session", || serving(&status));
@@ -181,7 +140,8 @@ fn the_service_follows_a_fake_session_through_new_sessions_and_game_restarts() {
 #[ignore = "requires the assigned offline Warcraft client and its private desktop"]
 fn a_private_pad_script_drives_the_published_menu_pointer() {
     use focus::{Foreground, Gate, Target};
-    use wc3_controller::{model::{Button, InputView, PadPreset}, service::{any_map::{DesktopOutput, Driver, MenuCurve}, smashcraft::newest_menu}};
+    use wc3_controller::{model::{Button, InputView, PadPreset}, service::{any_map::{DesktopOutput, Driver, MenuCurve}, }};
+    use smashcraft_controller::profile::newest_menu;
 
     let setting = |name| std::env::var(name).unwrap_or_else(|_| panic!("missing {name}"));
     let display = setting("WC3_MENU_DISPLAY");

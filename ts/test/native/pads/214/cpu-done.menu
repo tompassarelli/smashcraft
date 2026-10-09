@@ -1,6 +1,6 @@
 # #214/#238 menu pointer on client A, a 1920x1080 window: to the settings screen's Done (UI 0.400, 0.138 = 960, 833 px)
 # Rows: milliseconds, left X, left Y (SDL, down positive), A, Start. Run through
-# companion/tests/service.rs a_private_pad_script (companion/README.md, menu check).
+# controller/tests/service.rs a_private_pad_script (controller/README.md, menu check).
 # Moves start from the top-left corner; full tilt moves 1920 px a second.
 200 0 0 0 0
 1200 -32767 -32767 0 0

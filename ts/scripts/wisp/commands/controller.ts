@@ -8,7 +8,7 @@ import { Effect } from "effect";
 import { ChildProcess } from "effect/process";
 import type { Command } from "wisp/scripts/wisp/command";
 import { PlayProblem } from "wisp/scripts/wisp/play";
-import { CONTROLLER_LAUNCHER, CONTROLLER_STATUS, CONTROLLER_UNIT, ensureService, pointLauncher, unitInstalled } from "../controllerService";
+import { CONTROLLER_STATUS, CONTROLLER_UNIT, SERVICE_ARGS, SERVICE_LAUNCHER, ensureService, pointLaunchers, unitInstalled } from "../controllerService";
 import { setControllerLayout } from "../controllerLayout";
 import { currentHelper } from "../currentPlaytest";
 
@@ -26,11 +26,11 @@ export const controller: Command = (args) => Effect.gen(function*() {
     console.log(`Controller service: ${runs}, helper ${helper}. Its state: ${CONTROLLER_STATUS}`);
     return;
   }
-  pointLauncher(helper);
+  pointLaunchers(helper);
   console.log(`No ${CONTROLLER_UNIT} installed; running the controller service here until Ctrl-C.`);
 
   const code = yield* Effect.scoped(Effect.gen(function*() {
-    const child = yield* ChildProcess.make(CONTROLLER_LAUNCHER, ["--service"], { stdin: "inherit", stdout: "inherit", stderr: "inherit" });
+    const child = yield* ChildProcess.make(SERVICE_LAUNCHER, SERVICE_ARGS, { stdin: "inherit", stdout: "inherit", stderr: "inherit" });
     return yield* child.exitCode;
   })).pipe(
     Effect.provide(BunServices.layer),

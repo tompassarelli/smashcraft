@@ -1,14 +1,8 @@
+//! Smashcraft's plug-in for wc3-controller (README.md): `wc3-journal --plugin`
+//! reports Smashcraft sessions to the service, and the same executable is the
+//! journal helper that serves them.
 #![deny(unsafe_code)]
 
-#[cfg(target_os = "linux")]
-#[path = "../focus.rs"]
-mod focus;
-#[cfg(target_os = "linux")]
-#[path = "../wlr.rs"]
-mod wlr;
-#[cfg(target_os = "linux")]
-#[path = "../stick.rs"]
-mod stick;
 
 #[cfg(not(target_os = "linux"))]
 fn main() {
@@ -20,8 +14,8 @@ fn main() {
 mod linux {
     #![allow(unsafe_code)]
 
-    use crate::focus::Foreground;
-    use crate::stick::{c_stick, melee_stick, stick_down};
+    use wc3_controller::focus::Foreground;
+    use wc3_controller::stick::{c_stick, melee_stick, stick_down};
     use enigo::{Direction, Enigo, Key as OutputKey, Keyboard, Settings};
     use evdev::{AbsoluteAxisCode as Abs, EventSummary, KeyCode as Key, raw_stream::RawDevice};
     use std::{
@@ -391,16 +385,16 @@ mod linux {
     enum Typist {
         Window {
             output: Enigo,
-            gate: crate::focus::Gate,
+            gate: wc3_controller::focus::Gate,
             window: u32,
         },
         File(fs::File),
     }
 
     impl Typist {
-        fn window(display: &str, target: crate::focus::Target) -> Result<Self, String> {
+        fn window(display: &str, target: wc3_controller::focus::Target) -> Result<Self, String> {
             let window = target.window;
-            let gate = crate::focus::Gate::new(target)?;
+            let gate = wc3_controller::focus::Gate::new(target)?;
             let settings = Settings {
                 x11_display: Some(display.to_owned()),
                 linux_delay: 0,
@@ -866,8 +860,8 @@ mod linux {
     }
 
     fn usage() -> &'static str {
-        "wc3-journal --service [--display :0] [--pads /dev/input/by-id] [--status FILE] [--settings FILE] [--interface 127.0.0.1:47631|off] [--headless DOCUMENTS]\n\
-         Always on: finds Warcraft III on the display, the controller and the map's session, and keeps a helper serving them.\n\
+        "wc3-journal --plugin\n\
+         Smashcraft's map plug-in for wc3-controller --service --plugin wc3-journal: reports the map's sessions and names this helper.\n\
          wc3-journal --follow-matches --build BUILD --slot N [--epoch N] [--menu-keys all|start] [--preset standard|z-jump] [--tap-jump on|off] [--left-trigger full|light] [--right-trigger full|light] --device /dev/input/eventN --out DIR --editbox-display :N [--trace]\n\
          Start in character selection; stick left/right chooses, A selects, X backs, Start confirms. Follows matches and rematches.\n\
          Diagnostic only: wc3-journal --device /dev/input/eventN --out DIR --ready-file PATH --epoch-monotonic-ns NS [--mailbox-display :N | --editbox-display :N] [--first-frame N] [--stop-frame N] [--trace]\n\
@@ -2166,7 +2160,7 @@ mod linux {
             held |= GRAB;
         }
         let (x, y) = melee_stick(s.x, s.y);
-        if crate::stick::tap_jump(y, s.tap_jump, s.sources & (1 << 4) != 0, s.lt > 4_000 || s.rt > 4_000) {
+        if wc3_controller::stick::tap_jump(y, s.tap_jump, s.sources & (1 << 4) != 0, s.lt > 4_000 || s.rt > 4_000) {
             held |= JUMP;
         }
         if x < 0 {
@@ -4109,7 +4103,7 @@ mod linux {
             (Some(path), _) => Some(Typist::file(path)?),
             (None, Some(display)) => Some(Typist::window(
                 display,
-                crate::focus::Target {
+                wc3_controller::focus::Target {
                     display: display.clone(),
                     window: o.window.ok_or("keyboard output requires --x11-window")?,
                     pid: o.pid.ok_or("keyboard output requires --pid")?,
@@ -4784,33 +4778,16 @@ mod linux {
         }
     }
 
-    fn service() -> Result<(), String> {
-        let mut config = wc3_controller::service::Config::default();
-        let mut args = env::args().skip(2);
-        while let Some(arg) = args.next() {
-            let mut value = || args.next().ok_or_else(|| format!("missing value for {arg}"));
-            match arg.as_str() {
-                "--display" => config.display = value()?,
-                "--pads" => config.pads = value()?.into(),
-                "--status" => config.status_file = Some(value()?.into()),
-                "--settings" => config.settings_file = value()?.into(),
-                "--helper" => config.helper = value()?.into(),
-                "--headless" => config.headless = Some(value()?.into()),
-                "--interface" => config.interface = Some(value()?).filter(|address| address != "off"),
-                "--poll-ms" => config.poll = Duration::from_millis(value()?.parse().map_err(|_| "invalid --poll-ms")?),
-                _ => return Err(format!("unexpected argument {arg:?}\n{}", usage())),
-            }
-        }
-        let stop = Arc::new(AtomicBool::new(false));
-        let signal = Arc::clone(&stop);
-        ctrlc::set_handler(move || signal.store(true, Ordering::Relaxed)).map_err(|error| format!("install interrupt handler: {error}"))?;
-        wc3_controller::service::run(&config, &mut wc3_controller::service::smashcraft::Smashcraft::default(), &stop, |_| {})
+    /// `--plugin`: answers wc3-controller's requests on standard input and output.
+    fn plugin() -> Result<(), String> {
+        let mut profile = smashcraft_controller::profile::Smashcraft::default();
+        wc3_controller::service::plugin::serve(&mut profile, io::stdin().lock(), io::stdout().lock()).map_err(|error| error.to_string())
     }
 
     pub fn main() {
-        if env::args().nth(1).as_deref() == Some("--service") {
-            if let Err(error) = service() {
-                eprintln!("wc3-journal --service: {error}");
+        if env::args().nth(1).as_deref() == Some("--plugin") {
+            if let Err(error) = plugin() {
+                eprintln!("wc3-journal --plugin: {error}");
                 std::process::exit(1);
             }
             return;

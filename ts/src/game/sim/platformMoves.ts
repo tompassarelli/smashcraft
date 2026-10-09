@@ -21,7 +21,7 @@ import { clearDash } from "./groundMovement";
 import { aerialJumps } from "./itemBuffs";
 import { melee } from "./tuning";
 
-/** Melee's stick-up jump threshold, 0.6625 (companion/README.md, ftCo_800DF910): holding up past it sustains an ascent. */
+/** Melee's stick-up jump threshold, 0.6625 (wc3-controller:README.md, ftCo_800DF910): holding up past it sustains an ascent. */
 const TAP_JUMP_STICK_Z = 0.6625000238418579;
 
 export const PLATFORM_WRAP_REACH = melee(8.0);

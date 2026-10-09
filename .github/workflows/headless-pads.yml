@@ -58,16 +58,16 @@ jobs:
           sudo apt-get "${dependency_options[@]}" install -y -q libudev-dev libxkbcommon-dev
         timeout-minutes: 3
       - run: rustup toolchain install
-        working-directory: companion
+        working-directory: controller
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: companion
+          workspaces: controller
       - run: cargo build --release --locked --bin wc3-journal
-        working-directory: companion
+        working-directory: controller
       - uses: actions/upload-artifact@v4
         with:
           name: wc3-journal
-          path: companion/target/release/wc3-journal
+          path: controller/target/release/wc3-journal
           retention-days: 3
 
   pad:
@@ -93,7 +93,7 @@ jobs:
         with:
           name: wc3-journal
           path: helper
-      # The helper reads a uinput pad the script drives (as companion.yml's tests do).
+      # The helper reads a uinput pad the script drives (as controller.yml's tests do).
       - name: Virtual pads
         run: |
           chmod +x helper/wc3-journal

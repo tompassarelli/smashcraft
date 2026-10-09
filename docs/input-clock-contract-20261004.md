@@ -32,7 +32,7 @@ publication supplies the local segment origin; a new match gets a new epoch,
 and paused time is excluded by a new resume segment. The helper checks its
 realtime/monotonic relation and reports timestamp uncertainty. Neutral rearm
 deliberately suppresses held-through-pause/focus/epoch controls. The executable
-rule is `frame_at` in smashcraft:companion/src/bin/journal.rs. Current native
+rule is `frame_at` in smashcraft:controller/src/main.rs. Current native
 start/rematch and delayed-resume evidence is retained in
 smashcraft:evidence/match-lifecycle-native-20261005/README.md and
 smashcraft:evidence/resume-clock-native-20261005/README.md.

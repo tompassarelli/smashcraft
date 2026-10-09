@@ -13,7 +13,7 @@ afterAll(() => rmSync(scratch, { recursive: true, force: true }));
 
 const SERVING = "service_pid=10\nprofile=smashcraft\nstate=serving\ngame_pid=2852\nsession=playable-0047/s0/3\nsession_summary=Smashcraft playable-0047, player 1, fighter selection\nhelper_pid=11\n";
 
-test("the service serves a game once its helper is ready for that game's session of the build [spec companion/README.md]", () => {
+test("the service serves a game once its helper is ready for that game's session of the build [spec controller/README.md]", () => {
   const status = parseStatus(SERVING);
   expect(status.session_summary).toBe("Smashcraft playable-0047, player 1, fighter selection");
   expect(servesGame(status, 2852, "playable-0047")).toBe(true);

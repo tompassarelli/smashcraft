@@ -7,7 +7,7 @@ import type { Controls } from "./roster";
 
 const sign = (value: number) => (value === 0 ? 0 : value > 0 ? 1 : -1);
 
-/** Tilt while shielding stays below tap jump 0.6625 and rolls/spot dodge 0.7 (companion/README.md, common +0x314/+0x31C). */
+/** Tilt while shielding stays below tap jump 0.6625 and rolls/spot dodge 0.7 (wc3-controller:README.md, common +0x314/+0x31C). */
 export const SHIELD_TILT_STICK_CAP = 0.6499999761581421;
 
 function shieldStick(value: number, input: Readonly<Controls>): number {

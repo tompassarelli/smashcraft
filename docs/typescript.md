@@ -415,7 +415,7 @@ persistent wc3-journal helper started with `--text-out FILE` instead of
 `--editbox-display`: the helper appends each typing to FILE, Wisp types it
 into that client's focused edit box (or, at menus, as key presses), and the
 helper reads the files the client writes in OUT/client-N/CustomMapData,
-written as Warcraft writes them. Build the helper from smashcraft:companion
+written as Warcraft writes them. Build the helper from smashcraft:controller
 (`cargo build --locked --bin wc3-journal`). A game stall holds the clients
 (no frame runs and the match loses the time); a helper stall stops the
 helper process. Pad edges are written from their own thread
@@ -591,7 +591,7 @@ From smashcraft:ts/:
   source. smashcraft:ts/test/tune.test.ts applies tuned gravity in two
   headless clients: both install it on the same frame, and from that frame
   both matches change alike. The input helper's stick deadzone
-  (`STICK_DEADZONE`, smashcraft:companion/src/stick.rs) is compiled into the
+  (`STICK_DEADZONE`, wc3-controller:src/stick.rs) is compiled into the
   helper, outside what a reload changes, so it is no tunable: rebuild and
   restart the helper to change it. A match with tuned values can't be
   replayed from its inputs alone.

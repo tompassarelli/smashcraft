@@ -23,7 +23,7 @@ test("Bun and Lua failures share a full title, including colons, while a new tit
 test("the pre-push gate type-checks and audits a push that changes TypeScript, and skips one that doesn't [spec AGENTS.md]", () => {
   expect(checksFor(["ts/scripts/wisp/buildInputs.ts"]).map(({ name }) => name)).toEqual(["clean room", "type-check ts", "type escapes and source shapes"]);
   expect(checksFor(["client/ui/src/main.ts"]).map(({ name }) => name)).toEqual(["clean room", "type-check client/ui"]);
-  expect(checksFor(["docs/play.md", "companion/src/main.rs"]).map(({ name }) => name)).toEqual(["clean room"]);
+  expect(checksFor(["docs/play.md", "controller/src/main.rs"]).map(({ name }) => name)).toEqual(["clean room"]);
   expect(checksFor([])).toEqual([]);
 });
 

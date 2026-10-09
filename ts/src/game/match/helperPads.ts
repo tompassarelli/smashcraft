@@ -1,6 +1,6 @@
 // Test fixtures only: controllers played through the real input path. Each
 // pad state becomes a row as the companion helper builds it
-// (companion/src/bin/journal.rs), read as a journal packet, carried in the
+// (controller/src/main.rs), read as a journal packet, carried in the
 // synchronized input message and adapted by the match frame executor.
 import { assertDefined, assertTrue } from "wisp/src/runtime/testing";
 import { Action, bit, has } from "../input/actions";

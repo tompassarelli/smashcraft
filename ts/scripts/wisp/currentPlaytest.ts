@@ -76,14 +76,14 @@ const reserveVersion = (library: string, revision: string) => withLock(join(lock
 
 
 const resolveMain = Effect.gen(function*() {
-  const resolved = yield* capture(projectRoot, ["git", "rev-parse", "main", "main:companion"]);
-  const [revision, companion] = (resolved ?? "").split("\n");
-  if (resolved === undefined || revision === undefined || companion === undefined || !/^[a-f0-9]{40}$/.test(revision) || !/^[a-f0-9]{40}$/.test(companion)) return yield* playProblem(new Error("couldn't resolve Smashcraft main"));
+  const resolved = yield* capture(projectRoot, ["git", "rev-parse", "main", "main:controller"]);
+  const [revision, controller] = (resolved ?? "").split("\n");
+  if (resolved === undefined || revision === undefined || controller === undefined || !/^[a-f0-9]{40}$/.test(revision) || !/^[a-f0-9]{40}$/.test(controller)) return yield* playProblem(new Error("couldn't resolve Smashcraft main"));
   const registry = yield* capture(projectRoot, ["git", "worktree", "list", "--porcelain"]);
   const mainBlock = registry?.split("\n\n").find((block) => block.split("\n").includes("branch refs/heads/main"));
   const mainCheckout = mainBlock?.split("\n").find((line) => line.startsWith("worktree "))?.slice(9);
   if (mainCheckout === undefined) return yield* playProblem(new Error("couldn't locate the main checkout"));
-  return { mainCheckout, revision, companion };
+  return { mainCheckout, revision, controller };
 });
 
 
@@ -108,27 +108,31 @@ const buildLane = (mainCheckout: string, revision: string) => Effect.gen(functio
 const removeLane = (mainCheckout: string, revision: string) =>
   capture(projectRoot, ["git", "worktree", "remove", "--force", join(dirname(mainCheckout), "worktrees", `play-build-${revision.slice(0, 12)}`)]).pipe(Effect.asVoid);
 
-const helperPath = (companion: string) => join(inputsRoot, "play-helpers", companion, "wc3-journal");
+const helperPath = (controller: string) => join(inputsRoot, "play-helpers", controller, "wc3-journal");
 const helperTarget = join(inputsRoot, "play-helper-target");
 
 
 const buildHelper = (lane: string, helper: string) => withLock(join(locks, "play-helper-target.lock"), "Waiting for another controller helper build", Effect.gen(function*() {
   const capacity = join(homedir(), "code/nixos-config/main/dotfiles/agents/skills/machine-capacity/scripts/machine-capacity.mjs");
-  yield* run(join(lane, "companion"), ["nix-shell", "-p", "stdenv.cc", "cmake", "pkg-config", "libxkbcommon", "udev", "--run",
-    `PATH=${join(homedir(), ".rustup/toolchains/1.96.1-x86_64-unknown-linux-gnu/bin")}:$PATH bun '${capacity}' run --class moderate --owner smashcraft:play-helper --timeout-seconds 900 -- cargo build --release --locked --jobs 2 --target-dir '${helperTarget}' --bin wc3-journal`]);
+  // The pinned wc3-controller service comes from the plug-in's git dependency (controller/Cargo.toml).
+  const build = (target: string) => `cargo build --release --locked --jobs 2 --target-dir '${helperTarget}' ${target}`;
+  yield* run(join(lane, "controller"), ["nix-shell", "-p", "stdenv.cc", "cmake", "pkg-config", "libxkbcommon", "udev", "--run",
+    `PATH=${join(homedir(), ".rustup/toolchains/1.96.1-x86_64-unknown-linux-gnu/bin")}:$PATH bun '${capacity}' run --class moderate --owner smashcraft:play-helper --timeout-seconds 900 -- sh -c "${build("--bin wc3-journal")} && ${build("-p wc3-controller --bin wc3-controller")}"`]);
 
   yield* tryPlay(() => {
     mkdirSync(dirname(helper), { recursive: true });
-    const staged = `${helper}.${process.pid}.tmp`;
-    copyFileSync(join(helperTarget, "release/wc3-journal"), staged);
-    renameSync(staged, helper);
+    for (const name of ["wc3-controller", "wc3-journal"]) {
+      const staged = join(dirname(helper), `${name}.${process.pid}.tmp`);
+      copyFileSync(join(helperTarget, "release", name), staged);
+      renameSync(staged, join(dirname(helper), name));
+    }
   });
 }));
 
 
 export const currentHelper = Effect.gen(function*() {
-  const { revision, companion, mainCheckout } = yield* resolveMain;
-  const helper = helperPath(companion);
+  const { revision, controller, mainCheckout } = yield* resolveMain;
+  const helper = helperPath(controller);
   if (existsSync(helper)) return helper;
   return yield* withLock(revisionLock(revision), `Waiting for another build of ${revision.slice(0, 12)}`, Effect.gen(function*() {
     if (existsSync(helper)) return helper;
@@ -147,11 +151,11 @@ export const currentHelper = Effect.gen(function*() {
 
 
 export const currentPlaytest = (library: string) => Effect.gen(function*() {
-  const { revision, companion, mainCheckout } = yield* resolveMain;
+  const { revision, controller, mainCheckout } = yield* resolveMain;
   const title = `Smashcraft ${yield* reserveVersion(library, revision)}`;
   const final = join(builds, revision);
   const map = { folder: "00-Smashcraft", file: `${title}.w3x`, title, source: join(final, `${title}.w3x`) };
-  const helper = helperPath(companion);
+  const helper = helperPath(controller);
   yield* buildOnce(revisionLock(revision), final, (folder) => existsSync(join(folder, map.file)), `Waiting for another build of ${title}`, (staging) => Effect.gen(function*() {
     console.log(`Building ${title}`);
     const lane = yield* buildLane(mainCheckout, revision);

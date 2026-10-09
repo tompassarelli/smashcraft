@@ -51,14 +51,14 @@ its hash and every imported file against the script and archive. Build outputs
 and proprietary assets stay outside source trees; dependency installation and
 compilation happen in the revision's own worktree, under the revision's lock,
 so plays started together build one map and share it. The controller helper is
-optional and cached by its companion source tree; a failed helper build leaves
+optional and cached by its controller source tree (smashcraft:controller); a failed helper build leaves
 the keyboard and never blocks the map. A new source revision builds a new map;
 repeated runs reuse its map and helper.
 
 Helper compilation uses one Cargo target directory at
 `~/.local/share/smashcraft-build-inputs/play-helper-target`, shared across
 temporary play-build worktrees. Cargo locks its build output; the play launcher
-also holds a lock through copying the finished binary into the companion
+also holds a lock through copying the finished binaries into the controller
 source tree's `play-helpers/` directory, so concurrent revisions deliver their
 own helper. On 8 October 2026 the old fresh-worktree build took 4m46s;
 the first shared-cache fill took 4m32s and a second worktree reused it in
@@ -66,16 +66,18 @@ the first shared-cache fill took 4m32s and a second worktree reused it in
 
 ## Controller without play
 
-The controller service (`wc3-journal --service`, smashcraft:companion/README.md)
-runs from Tom's login as the systemd user unit smashcraft-controller.service,
-declared in nixos-config. It runs the launcher
-~/.local/share/smashcraft-build-inputs/controller/wc3-journal, a link to a
-helper under play-helpers/. It finds Warcraft III on :0 by itself, follows any
+The controller service ([wc3-controller](https://github.com/tompassarelli/wc3-controller)
+with Smashcraft's plug-in, smashcraft:controller/README.md) runs from Tom's
+login as the systemd user unit wc3-controller.service, declared in
+nixos-config. It runs the launcher ~/.local/share/wc3-controller/bin/wc3-controller
+`--service --plugin` ~/.local/share/smashcraft-build-inputs/controller/wc3-journal;
+both are links to the pinned service and the plug-in built together under
+play-helpers/. It finds Warcraft III on :0 by itself, follows any
 Smashcraft session (one Tom opens from Custom Games included, and a reopened
 map) and survives Warcraft restarts and pad replugs. `play` and
-`bun wisp controller` point the link at main's helper and restart the unit
+`bun wisp controller` point the links at main's build and restart the unit
 when it changed; without the unit, `bun wisp controller` runs the service in
-the foreground. Its state is in ~/.local/state/smashcraft/controller-service.txt;
-its log is `journalctl --user -u smashcraft-controller`.
+the foreground. Its state is in ~/.local/state/wc3-controller/service.txt;
+its log is `journalctl --user -u wc3-controller`.
 
 Controller layouts: `bun wisp controller layout standard` uses B to jump and RB to grab; `bun wisp controller layout zjump` swaps them. Both triggers shield by default. The client Controller page also chooses the layout, tap jump and full or light shield for each trigger. These choices stay in the controller service settings across restarts. A running service changes immediately; a stopped service reads the saved choice at its next start.

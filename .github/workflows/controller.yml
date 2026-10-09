@@ -1,0 +1,45 @@
+name: Controller
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore: ["farm/**"]
+    paths:
+      - "controller/**"
+      - ".github/workflows/controller.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  plugin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: controller
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build libraries and virtual pads
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q libudev-dev libxkbcommon-dev
+          # controller/tests/service.rs drives a virtual pad.
+          sudo modprobe uinput && sudo chmod 0666 /dev/uinput
+          echo 'SUBSYSTEM=="input", KERNEL=="event*", MODE="0666"' | sudo tee /etc/udev/rules.d/99-ci-pads.rules
+          sudo udevadm control --reload-rules
+      - name: Pinned Rust toolchain
+        run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: controller
+      # The journal accepts control timestamps only from btrfs, XFS or tmpfs;
+      # the runner's /tmp is ext4, /dev/shm is tmpfs.
+      - name: Tests
+        run: TMPDIR=/dev/shm cargo test --locked

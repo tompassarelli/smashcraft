@@ -59,7 +59,7 @@ The Linux journal's focused `journal_jump_sources_retain_hold_until_last_release
 test passes all six ordered pairs of B, Y and stick-up. It feeds the production
 event handler and checks captured frame states and edges: jump stays held when
 one source releases, with one press at the first source and one release at the
-last. Reproduce from smashcraft:companion with `cargo test --locked --jobs 2
+last. Reproduce from smashcraft:controller with `cargo test --locked --jobs 2
 --bin wc3-journal linux::journal_jump_sources_retain_hold_until_last_release
 -- --exact`. This is the shared-source correctness check for #18.
 

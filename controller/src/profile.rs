@@ -1,7 +1,7 @@
 //! The Smashcraft profile: the map publishes
 //! `CustomMapData/smashcraft-journal-menu-BUILD-sSLOT.txt` for the local
 //! player, naming its build, slot, epoch and menu phase; `wc3-journal
-//! --follow-matches` serves it (smashcraft:companion/README.md).
+//! --follow-matches` serves it (smashcraft:controller/README.md).
 //!
 //! Within one map session the epoch only grows, one per match. A newer
 //! publication with a lower epoch, or another build or slot, is a new map
@@ -12,10 +12,12 @@
 //! also publishes menus. Its ready file `CustomMapData/wc3-melee-ready.txt`,
 //! written at fighter selection, names the build and its keyboard profile: that
 //! session plays on keys, so the service runs no helper and presses the
-//! controller's keys itself ([`super::any_map::Mode::Keys`]).
+//! fighter layout itself (wc3-controller's `any_map::Mode::Keys`).
 
-use super::{Game, HelperEvent, Pad, Profile, Session, Target};
-use crate::model;
+use wc3_controller::{
+    model,
+    service::{Game, Helper, HelperEvent, Line, Pad, Profile, Session, Target},
+};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -160,6 +162,10 @@ impl Profile for Smashcraft {
         "smashcraft"
     }
 
+    fn title(&self) -> &str {
+        "Smashcraft"
+    }
+
     fn session(&mut self, game: &Game) -> Option<Session> {
         if self.game != Some((game.pid, game.birth)) {
             self.tracker.forget();
@@ -190,12 +196,12 @@ impl Profile for Smashcraft {
         }
     }
 
-    fn keys(&self) -> bool {
+    fn keys(&mut self) -> bool {
         self.keys.is_some()
     }
 
-    fn args(&self, game: &Game, pad: &Pad, _session: &Session) -> Vec<String> {
-        let menu = self.tracker.menu().expect("a session has a menu");
+    fn helper(&mut self, game: &Game, pad: &Pad, _session: &Session) -> Option<Helper> {
+        let menu = self.tracker.menu()?;
         // The helper's epoch is the map's current one, so it drives this
         // menu and adopts the next match.
         let mut args = vec![
@@ -210,12 +216,12 @@ impl Profile for Smashcraft {
             ]),
             Target::Headless { text_out } => args.extend(["--text-out".into(), text_out.display().to_string()]),
         }
-        args
+        Some(Helper { program: std::env::current_exe().ok()?, args })
     }
 
     /// Fighter, opponent settings, stage and results menus, while the map keeps publishing them
     /// (it refreshes an open menu every 250 ms and publishes BLOCKED for play).
-    fn pointer_menu(&self) -> bool {
+    fn pointer_menu(&mut self) -> bool {
         self.tracker.menu().is_some_and(|menu| {
             self.keys.as_ref().is_none_or(|keys| keys.build == menu.build)
                 && matches!(menu.phase.as_str(), "CHARACTER" | "CPU" | "STAGE" | "RESULT")
@@ -223,18 +229,22 @@ impl Profile for Smashcraft {
         })
     }
 
-    fn event(&self, line: &str) -> Option<HelperEvent> {
-        let word = line.split_whitespace().next()?;
-        Some(match word {
-            "waiting_for_match" => HelperEvent::Ready,
-            "match_ready" | "match_start" => HelperEvent::InMatch,
-            "game-eligible=true" => HelperEvent::Focus(true),
-            "game-eligible=false" => HelperEvent::Focus(false),
-            "controller_disconnected" => HelperEvent::PadLost,
-            "controller_reconnected" => HelperEvent::PadBack,
-            _ => return None,
-        })
+    fn line(&mut self, line: &str) -> Line {
+        Line { event: event(line), problem: line.strip_prefix("wc3-journal: ").map(str::to_owned) }
     }
+}
+
+fn event(line: &str) -> Option<HelperEvent> {
+    let word = line.split_whitespace().next()?;
+    Some(match word {
+        "waiting_for_match" => HelperEvent::Ready,
+        "match_ready" | "match_start" => HelperEvent::InMatch,
+        "game-eligible=true" => HelperEvent::Focus(true),
+        "game-eligible=false" => HelperEvent::Focus(false),
+        "controller_disconnected" => HelperEvent::PadLost,
+        "controller_reconnected" => HelperEvent::PadBack,
+        _ => return None,
+    })
 }
 
 #[cfg(test)]
@@ -380,11 +390,12 @@ mod tests {
 
     #[test]
     fn reads_helper_lifecycle_lines() {
-        let profile = Smashcraft::default();
-        assert_eq!(profile.event("waiting_for_match build=b slot=0 start_before=final-match-confirmation"), Some(HelperEvent::Ready));
-        assert_eq!(profile.event("match_ready epoch=1 neutral_rearm=required"), Some(HelperEvent::InMatch));
-        assert_eq!(profile.event("game-eligible=false mono_ns=1 neutral_rearm=required"), Some(HelperEvent::Focus(false)));
-        assert_eq!(profile.event("controller_disconnected mono_ns=1"), Some(HelperEvent::PadLost));
-        assert_eq!(profile.event("source=/dev/input/event4"), None);
+        let mut profile = Smashcraft::default();
+        assert_eq!(profile.line("wc3-journal: no pad").problem.as_deref(), Some("no pad"));
+        assert_eq!(profile.line("waiting_for_match build=b slot=0 start_before=final-match-confirmation").event, Some(HelperEvent::Ready));
+        assert_eq!(profile.line("match_ready epoch=1 neutral_rearm=required").event, Some(HelperEvent::InMatch));
+        assert_eq!(profile.line("game-eligible=false mono_ns=1 neutral_rearm=required").event, Some(HelperEvent::Focus(false)));
+        assert_eq!(profile.line("controller_disconnected mono_ns=1").event, Some(HelperEvent::PadLost));
+        assert_eq!(profile.line("source=/dev/input/event4"), Line::default());
     }
 }

@@ -445,7 +445,7 @@ says arrived, and while a record waits untyped, contiguous row packets pack
 into the existing I5 message format (at most 64 frames). Holds omit repeated
 rows; every press and release remains on its original frame. A message joins
 the waiting record only when its complete envelope still fits 160 characters
-(smashcraft:companion/README.md). Dirty text receipts
+(smashcraft:controller/README.md). Dirty text receipts
 are written every two map ticks, at most 30 per client per second, so the
 smaller typing window drains within the recovery budget. The map admits a joined
 record's rows within the same per-callback budget, over as many callbacks as
