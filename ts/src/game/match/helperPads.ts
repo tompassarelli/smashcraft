@@ -17,6 +17,7 @@ const RAW = 32767;
 const STICK_DIGITAL = 7000;
 const C_STICK_DIGITAL = 11000;
 const TRIGGER_DIGITAL = 4000;
+const SHIELDS = bit(Action.leftTrigger) | bit(Action.rightTrigger);
 
 
 export interface Pad {
@@ -26,7 +27,9 @@ export interface Pad {
   readonly cy?: number;
   readonly attack?: boolean;
   readonly special?: boolean;
+  readonly jump?: boolean;
   readonly trigger?: boolean;
+  readonly rightTrigger?: boolean;
 }
 
 const raw = (value: number | undefined) => Math.trunc((value ?? 0) * RAW);
@@ -41,6 +44,7 @@ function heldActions(pad: Pad): number {
   let held = 0;
   if (pad.attack === true) held |= bit(Action.attack);
   if (pad.special === true) held |= bit(Action.special);
+  if (pad.jump === true) held |= bit(Action.jump);
   if (x < -STICK_DIGITAL) held |= bit(Action.moveLeft);
   if (x > STICK_DIGITAL) held |= bit(Action.moveRight);
   if (up < -STICK_DIGITAL) held |= bit(Action.moveDown);
@@ -49,6 +53,7 @@ function heldActions(pad: Pad): number {
   if (raw(pad.cx) < -C_STICK_DIGITAL) held |= bit(Action.smashLeft);
   if (raw(pad.cy) > C_STICK_DIGITAL) held |= bit(Action.smashUp);
   if (pad.trigger === true && RAW > TRIGGER_DIGITAL) held |= bit(Action.leftTrigger);
+  if (pad.rightTrigger === true && RAW > TRIGGER_DIGITAL) held |= bit(Action.rightTrigger);
   return held;
 }
 
@@ -67,10 +72,11 @@ function helperRow(previous: Pad, pad: Pad): InputRow {
     held, pressed, released: before & ~held,
     axisX: axisByte(x), axisZ: axisByte(up),
     triggerLeft: pad.trigger === true ? 255 : 0,
+    triggerRight: pad.rightTrigger === true ? 255 : 0,
     specialX: has(pressed, Action.special) ? beyond(x) : 0,
     specialZ: has(pressed, Action.special) ? beyond(up) : 0,
-    dodgeX: has(pressed, Action.leftTrigger) ? beyond(x) : 0,
-    dodgeZ: has(pressed, Action.leftTrigger) ? beyond(up) : 0,
+    dodgeX: (pressed & SHIELDS) !== 0 ? beyond(x) : 0,
+    dodgeZ: (pressed & SHIELDS) !== 0 ? beyond(up) : 0,
     ledgeVertical: has(pressed, Action.moveUp) ? 1 : has(pressed, Action.moveDown) ? -1 : 0,
     sdi, sdiX: sdi ? afterX : 0, sdiZ: sdi ? afterZ : 0,
   }), "helper row");
