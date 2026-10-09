@@ -47,7 +47,7 @@ redesigned; signature normals are scored for context and kept.
 Shared lessons: put the second decision after the press; make every setup
 visible (a marker, an aura, an orb in the air); let statuses shape movement
 or options rather than freezing the victim; give the victim an action
-(mashing, moving, shielding) inside any status; tie Warcraft's passive auras
+(mashing, moving, shielding) inside any status; tie Warcraft's always-on auras
 to a deliberate press.
 
 ## Lich (#130)
@@ -219,7 +219,7 @@ long and contested:
 
 **Side B: Vampiric Pounce (#237).** A forward horizontal corkscrew with trailing bats in both ground and air forms. It stops before a body to catch and bite, healing 4% with a 12% per-stock cap. A preemptive strike interrupts the approach; an out-of-reach retreat leaves its full miss recovery exposed.
 
-**Rejected: lifesteal on every hit.** Passive, forbidden by the roster
+**Rejected: lifesteal on every hit.** Always on, forbidden by the roster
 contract and invisible. **Rejected: Sleep scaling with percent.** Illidan's
 Mana Burn stun (#116) owns the percent-scaled stun; Sleep is distinct by
 being long, contested by mashing and ended by any hit.

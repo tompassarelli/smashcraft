@@ -47,7 +47,7 @@ grabs, ledge acquisition, input buffering, bots and presentation are excluded.
 `contactFrame` is the zero-based age of the original move at the checkpoint.
 All other frame fields count ticks after that checkpoint, including hitlag.
 `attackerReady` and `defenderReady` are the first production `canAttack` result
-in a passive baseline. This includes real shield release/landing recovery and
+in an idle-opponent baseline. This includes real shield release/landing recovery and
 surface reactions, rather than subtracting declared durations. It is a normal
 action gate, **not an oracle for the earliest possible escape of any kind**.
 `-1` means unavailable or unobserved within 96 ticks; associated separation
@@ -180,7 +180,7 @@ A jab's 5 damage is below the 7-damage down-damage threshold
 on a downed fighter is now a jab reset, not a launch. A downed fighter that
 stands, rolls or get-up attacks leaves after the first reset, before the
 next jab. One that does nothing stays down: jabbing as fast as the game
-allows held a passive Archer for 25 resets in 600 frames from 30% and from
+allows held an idle Archer for 25 resets in 600 frames from 30% and from
 100%. The game's computer never chooses a get-up option, so in
 computer-against-computer matches a jabbing Archer or Rifleman can hold a
 downed opponent until time runs out.

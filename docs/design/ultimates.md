@@ -13,7 +13,7 @@ launch values below are original, provisional Smashcraft tuning.
   with frame data: blockable, punishable, and its startup is known.
 - **Street Fighter 6:** splits Drive (EX, parries, rushes) from the Super Art
   bar. Smashcraft keeps one bar: the spend-or-save choice is the point.
-- **Smash Ultimate Final Smash meter:** fills passively, its cinematic hits
+- **Smash Ultimate Final Smash meter:** fills over time, its cinematic hits
   cannot be answered, and it hands out comebacks; tournaments switch it off.
   Smash Balls are random. Rivals of Aether has no supers at all.
 
@@ -24,7 +24,7 @@ Smashcraft takes the Street Fighter half and refuses the Smash half.
 | Rule | Value |
 | --- | --- |
 | Cost | The whole bar (100 points). EX specials cost one 33/33/34 segment (docs/design/mana.md). |
-| Gain | Unchanged: own hits and damage taken. Nothing random or passive. |
+| Gain | Unchanged: own hits and damage taken. Nothing random or idle. |
 | Input | Attack + Special together (hold Attack, press Special; controller A + X), any direction, from any state a special could start. Below a full bar, or with ultimates off, the ordinary special starts instead. |
 | Flash | At most 4 frames of white fighter flash and the ready sound. No camera cut, no freeze of the opponent. |
 | Telegraph | Every ultimate shows its area, line or target before its first active frame. Startup is at least 16 frames. |
@@ -74,7 +74,7 @@ Frames count from the input frame (frame 1 is the first frame after it).
 | Thrall | **Earthquake** · Warcraft III Far Seer ultimate (tier 1) | Raises the Doomhammer; cracks run both ways, f1–26 | f27 two ground tremors run outward both ways, 16 a frame for 50 frames, grounded foes only; 15%, 70° | Jump, stand on a platform, shield; punish him through f60 | The shaman shaking the world | Earthquake target and caster effects |
 | Jaina | **Glacial Ray** · Jaina in the Battle of Dazar'alor (tier 2: Mass Teleport cannot be a strike) | Staff charges; a frost line at 45° above her, f1–24 | f25–54 a beam, 600 long, sweeps from 45° up to the floor ahead: three 5% chilling hits, then 10% at 30° | Get behind or inside her, shield; punish f55–80 | Her admiral-era fury in one sweep | BreathOfFrost, frost bolt, Blizzard target |
 | Sylvanas | **Charm** · Warcraft III Dark Ranger ultimate (tier 1) | Draws a violet spectral arrow, f1–20 | f21 a slow banshee spirit, 10 a frame for 90 frames: 8%, then 3 s of Charm: the victim's left and right are swapped | Jump or shield the slow spirit; a charmed player still acts; punish her through f40 | Her mind games, without taking control away | Banshee missile, Possession effects |
-| Cairne | **Reincarnation** · Warcraft III Tauren Chieftain ultimate (tier 1, reimagined: it is passive in WC3) | Totem driven down, ancestral light rises, f1–6 | f7–50 any strike that would hit him instead triggers a spirit pillar, radius 140: 18%, 70° | Do not strike: wait, grab, or zone; punish a whiff through f75 | The old chief who will not stay down | Reincarnation target, ancestral spirit |
+| Cairne | **Reincarnation** · Warcraft III Tauren Chieftain ultimate (tier 1, reimagined: it triggers on death in WC3) | Totem driven down, ancestral light rises, f1–6 | f7–50 any strike that would hit him instead triggers a spirit pillar, radius 140: 18%, 70° | Do not strike: wait, grab, or zone; punish a whiff through f75 | The old chief who will not stay down | Reincarnation target, ancestral spirit |
 | Chen | **Storm, Earth and Fire** · Warcraft III Brewmaster ultimate (tier 1) | He splits; three spirits appear, f1–20 | Earth stomps both sides (f21, radius 120, 8%), Storm strikes 220 ahead (f33, 7%), Fire breathes behind (f45, 9%) | Each spirit hits once in its own place and time: read the order, shield, or roll through | His three-way split as one combination | Storm, Earth and Fire Pandaren effects, Breath of Fire |
 | Peon | **Timber!** · orc peons chopping trees (unit) | A big tree sprouts beside him; he chops three times, f1–36 | f37–48 the tree falls forward, 420 long, from upright to flat: 20%, 40°, base 45 | Stand behind him or past the treetop, shield, or hit him while he chops | Work work, and finally work complete | Ashenvale tree, lumber target art |
 | Goblin Tinker | **Robo-Goblin Overdrive** · Warcraft III Tinker ultimate (tier 1, reimagined: Robo-Goblin is his down special) | He hops out; the robot waddles forward beeping, f1–20 | The robot walks 6 a frame for 60 frames, then explodes, radius 150: 22%, 55°; touching it explodes it early | Walk away, shield the blast, or punish Tinker through f50 | Goblin engineering that is almost a weapon | Robo-Goblin unit, goblin land mine explosion |

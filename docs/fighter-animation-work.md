@@ -45,7 +45,7 @@ smashcraft:build/archer-silhouette-attacks-trace.txt,
 smashcraft:build/archer-silhouette-reverse-native.mp4, and
 smashcraft:build/archer-silhouette-reverse-trace.txt. Angled forward tilts have
 source previews but were not separately exercised natively in this pass.
-The normal and passive maps build with zero errors and six warnings in
+The normal and idle-opponent maps build with zero errors and six warnings in
 unchanged Wurst files. These are single-client visual checks, not multiplayer
 or exact per-frame collision-volume acceptance.
 
@@ -123,7 +123,7 @@ This is simultaneous input, not a later direction change during jump squat.
 
 ## Archer and Rifleman native specials — 2026-10-01
 
-Rifleman's remaining throw directions are also observed in the passive native
+Rifleman's remaining throw directions are also observed in the idle-opponent native
 match. Forward release at frame 492 takes Archer from 3% after pummel to 10%
 and gives 25 hitstun frames. Back release at 1460 takes 13% to 20%, gives 27
 hitstun frames and launches behind the left-facing holder. Up release at 1936
@@ -267,7 +267,7 @@ Shield raise/release, spot dodge and both directional rolls are visible in
 smashcraft:build/illidan-defense-native.mp4. The fighter changes pose, rolls
 along the stage and returns to standing; the short ground sparkle is visible.
 smashcraft:build/illidan-defense-trace.txt records the shield/direction inputs
-with zero dropped records. This passive-opponent check does not verify the
+with zero dropped records. This idle-opponent check does not verify the
 protection windows or shield-contact reactions.
 
 The earlier normal-bot attempt in smashcraft:build/illidan-parry-native.mp4 and
@@ -343,7 +343,7 @@ Native acceptance here is right-facing only; left-facing appearance,
 recovery follow-ups and exact contact-volume alignment remain unverified.
 
 Normal and air-dodge landing playback is now observed in Warcraft: both show
-the authored contact crouch followed by standing. The clean passive-opponent
+the authored contact crouch followed by standing. The clean idle-opponent
 trace records 4 normal recovery frames and 10 after air dodge, with no damage
 interruptions and zero dropped trace records. Evidence:
 smashcraft:build/illidan-landing-passive.mp4,
@@ -360,7 +360,7 @@ Those activations do not establish Immolate contact/spike or successful parrying
 The short green/blue-white cues still need closer visual validation.
 Earlier active-CPU footage shows Up-B ascent with visible wings.
 
-O captures the passive opponent, N pummels (damage 5 to 8), and Space selects
+O captures the idle opponent, N pummels (damage 5 to 8), and Space selects
 up-throw (damage 8 to 14), releasing the victim with 25 hitstun frames in the
 trace. Pair poses overlap substantially at gameplay scale; readability and
 the other three throw directions remain unfinished native checks.
@@ -368,7 +368,7 @@ Evidence: smashcraft:build/illidan-passive-specials.mp4,
 smashcraft:build/illidan-passive-specials-trace.txt,
 smashcraft:build/illidan-passive-grab.mp4,
 smashcraft:build/illidan-passive-grab-trace.txt, and
-smashcraft:build/illidan-specials-native.mp4. Both passive traces finish with
+smashcraft:build/illidan-specials-native.mp4. Both idle-opponent traces finish with
 zero dropped trace records. These are single-client tests, not multiplayer proof.
 
 Illidan selection and HUD integration are implemented in the working source;

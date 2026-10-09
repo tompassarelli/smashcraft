@@ -75,7 +75,7 @@ is historical.
 ## The rest of his moves
 
 Existing frame data and normal geometry stay in the fighter's move tables.
-A 0.80 multiplier scales all Forsaken Paladin damage after passive bonuses, including
+A 0.80 multiplier scales all Forsaken Paladin damage, including
 normal attacks, throws and specials. Hitlag still uses the original damage;
 the extra three hammer frames remain. The special rows above show final damage.
 These rows document their identities and reference relationships;

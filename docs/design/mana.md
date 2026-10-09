@@ -17,7 +17,7 @@ resolver awards damage gains.
 | Bar size | 100 integer points, one bar in three segments at 33 and 66. A new match starts at 0. |
 | Damage dealt to a body | 1 point per whole percent of damage, up to 12 points per hit. Normals, specials, projectiles, summons, throws and pummels all count. |
 | Damage taken to the body | 1 point per 2 whole percent, up to 6 points per hit. This earns half as much as attacking. |
-| Idle, movement or shielding | 0 points per frame. No passive refill. |
+| Idle, movement or shielding | 0 points per frame. No idle refill. |
 | Shield damage or parry | 0 points. |
 | Stock loss | Keep the current points through the KO and respawn. |
 | Regular special | 0 points; always chooses its full ground or air form. Existing cooldowns, airtime limits and entity limits still apply. |
@@ -36,7 +36,7 @@ bar. A fighter at 98 gains only 2 more points from a 10% hit.
 
 A thin segmented blue bar sits on each fighter's HUD plate. Two marks
 divide it into its three segments, one EX each. The HUD is the only meter display;
-fighters carry no duplicate overhead bar or passive pips.
+fighters carry no duplicate overhead bar or pips.
 
 At 100 points the bar glows gold continuously until the bar is spent or
 drained. Crossing from below 100 to 100 flashes the fighter white for 12
@@ -53,11 +53,9 @@ no imported art or audio. sim/mana.tests.ts and sim/exSpecials.tests.ts pin
 the resource rules in Bun and Lua32. test/mana-bar.test.ts checks the Wisp
 frames, fighter flash and ready sound log.
 
-## Hero passives and drain
+## Drain and refunds
 
-Hero passives are a separate system (#148). This meter change does not
-redesign their procs. Authored damage drains and steals operate on the same
-100-point bar; gain still comes from body damage. Illidan's Mana Burn can
+Authored damage drains and steals operate on the same 100-point bar; gain still comes from body damage. Illidan's Mana Burn can
 drain the opponent's stored meter and its stun reads the resulting bar.
 Hero-specific spell refunds remain authored move effects; they never make
 an ordinary special cost meter.

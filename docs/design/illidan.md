@@ -8,7 +8,7 @@ his expressive actions carry the identity: warglaive chains, Fel Rush branches,
 wing glide, plunge and Eye Blast. Tom revised the resource rule on 9 Oct
 (#148/#335): ordinary hits and throws no longer drain another fighter's
 meter; all fighters use the same damage-dealt/taken gain rules. Named spells
-remain deliberate actions. There is no replacement passive quota.
+remain deliberate actions.
 
 
 Numbers are provisional authoring values, not measured balance. Frames follow
@@ -163,9 +163,9 @@ Counterplay: drain needs a landed hit, so the answer is the ordinary one,
 not getting hit; a fighter who spends mana freely arrives at Illidan's Mana
 Burn with less to lose, and a fighter who keeps its mana gives up specials.
 
-**Alternative B, a separate Mana Break passive at a flat 3 per hit
-(superseded).** Tom's refinement: drain is what his hits do, not a passive,
-and it scales with the move. **Alternative C, drain proportional to damage
+**Alternative B, a separate always-on Mana Break at a flat 3 per hit
+(superseded).** Tom's refinement: drain is what his hits do, not a
+separate rule, and it scales with the move. **Alternative C, drain proportional to damage
 dealt (rejected).** It ties drain to his light damage, so his identity
 (many light hits) would drain little; per-move authoring lets a combo ender
 drain more than its damage implies.

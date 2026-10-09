@@ -45,7 +45,7 @@ timing stay the roster's.
 Frames count entry as 1. Columns are first active / active duration / recovery;
 aerial landing is the authored landing lag (aerials land with half of it).
 Reach is world units from his centre. Every contact is one hit per target
-and action. Ordinary contacts also feed his passive.
+and action.
 
 | Input | Gesture and role | Frames; damage; reach | Warcraft source | Smash reference |
 |---|---|---|---|---|

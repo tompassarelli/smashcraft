@@ -100,7 +100,7 @@ C-stick left; H is down; J is up; M is right. C-stick down-air preserves
 normal aerial momentum. QWERTY uses 7 for right trigger and 8 for the
 alternate jump key.
 
-Specials use U with a direction; every fighter's specials, passive and
+Specials use U with a direction; every fighter's specials and
 ultimate are listed by name in the [move list](move-list.md).
 
 Use Warcraft's ordinary Quit Mission to leave and recreate a custom game.

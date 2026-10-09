@@ -250,7 +250,7 @@ game and version and have not been re-measured.
 ## 13. Cooldown specials, perks, 2v2 default, ring-out count (MultiVersus)
 
 - **What:** Specials with cooldown timers and alternate moves during
-  cooldown; teammate-passive perks; 2v2 default with a ring-out count instead
+  cooldown; always-on teammate perks; 2v2 default with a ring-out count instead
   of eliminations ([Warthog Report](https://warthogreport.substack.com/p/multiversus-impressions),
   [Wikipedia](https://en.wikipedia.org/wiki/MultiVersus)).
 - **Reception:** open beta praised for team battles; launch condemned for

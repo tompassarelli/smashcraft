@@ -51,6 +51,6 @@ sounds are stock Warcraft III content: classic models need no import.
   effect on the victim's body through hitlag and hitstun, tints the hitlag and
   plays its own sound. The element never changes an outcome.
 - **Distinctness.** No two moves share a startup/active pair or an active
-  spell; passives (#148) keep their own models.
+  spell.
 
 The per-move table, its scores and the native look are tracked in #144.

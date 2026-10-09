@@ -44,8 +44,8 @@ missed; its separate failed recording is retained. Pair-pose overlap remains
 unfinished. Next work should improve coordinated hold/pummel poses rather than
 repeat successful throw activation checks.
 
-Running: passive `special-direction-passive-r1`, P1 Rifleman x=284.879,
-0%, facing right; passive Archer 29%. Paused with Y after up-throw recording.
+Running: idle-opponent `special-direction-passive-r1`, P1 Rifleman x=284.879,
+0%, facing right; idle Archer 29%. Paused with Y after up-throw recording.
 Normal `special-direction-r1` restored atomically from
 smashcraft:build/special-direction-normal.w3x; installed byte comparison passed.
 Public downloadable release unchanged. No recording process or child is live.
@@ -61,8 +61,8 @@ damage and release. Back crosses behind the holder; up launches vertically;
 down produces tumble, floor contact and prone recovery. Evidence and frame
 numbers are in smashcraft:docs/fighter-animation-work.md. Hold/pummel overlap remains an art gap.
 
-Running: passive `special-direction-passive-r1`, P1 Archer at x=-105.121,
-0%, facing right; passive Rifleman at 37%, prone after down throw. Paused with
+Running: idle-opponent `special-direction-passive-r1`, P1 Archer at x=-105.121,
+0%, facing right; idle Rifleman at 37%, prone after down throw. Paused with
 Y. Installed normal map remains `special-direction-r1`; no build/install change
 this turn. Continue Rifleman's remaining throw directions and pair readability;
 no child was admitted and no recording process remains live.
@@ -82,13 +82,13 @@ through stepMatch input for both frames; it passes 1/1 with one existing warning
 smashcraft:build/wurst-tests/archer-arrow-jump-frame.log. Native sequential
 shot cancellation remains unverified. No gameplay source change or rebuild.
 
-Running passive Archer/Rifleman match remains paused with Y after recording
+Running idle-opponent Archer/Rifleman match remains paused with Y after recording
 smashcraft:build/archer-arrow-jump-native.mp4. Normal `special-direction-r1`
 remains installed for next launch. Public downloadable release unchanged.
 
 ## Current checkpoint — two-fighter native checks, 2026-10-01
 
-Archer/Rifleman specials were exercised in the passive fixture. Observed
+Archer/Rifleman specials were exercised in the idle-opponent fixture. Observed
 damage-only arrow, multishot fan, hippogryph disengage/contact and mounted
 ascent; Rifleman shot flinch, running bear/contact, 300-frame ice freeze and
 downward-shot ascent. Rifleman Shield+O, pummel and down-throw contact/release
@@ -98,7 +98,7 @@ Detailed evidence and limits: smashcraft:docs/fighter-animation-work.md.
 
 Installed for next launch: normal `special-direction-r1`, restored atomically
 from smashcraft:build/special-direction-normal.w3x; byte comparison passed.
-Running: passive `special-direction-passive-r1`, Archer versus Rifleman,
+Running: idle-opponent `special-direction-passive-r1`, Archer versus Rifleman,
 paused with Y after the grab attempt. Do not use Ctrl+R. Public release remains
 unchanged. No source rebuild was needed for these checks; no multiplayer
 conclusion follows. Continue with controlled Archer capture/throws and arrow
@@ -119,7 +119,7 @@ after batched releases. Native after:
 smashcraft:build/special-direction-release-trace.txt receives Special down/up
 and Down up at frame 1787, then selects special 12 at frame 1788 despite
 neutral movement. Airborne Immolate additionally connects for 9 damage against
-the grounded passive opponent; offstage spike motion remains untested.
+the grounded idle opponent; offstage spike motion remains untested.
 
 Source suite: 365/366 passed initially; the added three-character test lacked
 the surface required to place Rifleman's trap. After correcting that fixture,
@@ -131,7 +131,7 @@ The actual native test runs in `special-direction-passive-r1`, paused with Y.
 Normal `special-direction-r1` is built and installed for the next launch;
 byte comparison passed. Build completed with zero errors and six warnings:
 smashcraft:build/special-direction-normal-map.log. The currently running map
-remains the paused passive scenario. Public downloadable release is unchanged.
+remains the paused idle-opponent scenario. Public downloadable release is unchanged.
 
 ## Current checkpoint — 2026-10-01 landing playback
 
@@ -145,7 +145,7 @@ records. Evidence and remaining limits are in smashcraft:docs/fighter-animation-
 
 The earlier active-CPU recording was interrupted by damage and desktop focus
 change. Its copied smashcraft:build/illidan-landing-trace.txt is stale (previous
-passive grab run) and must not be used as evidence for landing.
+idle-opponent grab run) and must not be used as evidence for landing.
 
 ## Previous checkpoint — landing bindings
 
@@ -168,7 +168,7 @@ Installed for the next launch: normal `illidan-visibility-r1`, restored atomical
 from smashcraft:build/illidan-visibility-normal.w3x. Byte comparison passed;
 SHA-256 adfd7fe9dbbcd322941b91bcffe3ed67dc17174847a1a98afb5936a6a5f44fec.
 Currently running: `illidan-passive-r1`, paused with Y after native testing.
-Do not confuse the running knockdown/passive fixture with the restored file.
+Do not confuse the running knockdown/idle-opponent fixture with the restored file.
 
 Native traces confirm Mana Burn hit (5 damage, 4 hitlag, 13 hitstun), Immolate
 activation, parry-step activation/movement, grab capture, pummel and up-throw

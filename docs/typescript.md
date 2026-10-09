@@ -537,7 +537,7 @@ Such an array also cannot use `for…of`, spreads or array methods: `for…of`
 uses `ipairs`, which stops at the first nil, and array operations use Lua's
 unreliable length. Visit fixed slots or named fields, or push only defined
 values into a dense list. `Object.values` builds a dense list with `pairs`,
-which skips nil fields. A proc-only fighter's passive effect leaked every
+which skips nil fields. A proc-only fighter's on-hit effect leaked every
 match because cleanup iterated `[ready, proc]` with no ready effect (#168).
 smashcraft:ts/test/lua-holes.test.ts checks every file compiled to Lua.
 

@@ -603,7 +603,7 @@ The specification answers these design questions for the expansion:
 | --- | --- |
 | Physical differences | Use each hero's relative weight, run and air-speed table as initial tuning. The complete candidate table spans weight 0.85–1.28, run 0.80–1.14 and air 0.75–1.22 (of 1.00 Melee units a frame since #190). Jump velocity and gravity initially inherit the reference. |
 | Archetypes | State each fighter's purpose and exploitable weakness before building its moves. |
-| Meter | 100 mana, full on spawn; normal/throw hits earn 1 per whole percent (12 cap), hits taken earn 1 per 2 whole percent (6 cap), and a perfect shield/parry earns 8. Passive gain is 1/second while eligible. Specials pay their listed costs; normals/grabs are free; up specials retain free recovery. |
+| Meter | 100 mana, full on spawn; normal/throw hits earn 1 per whole percent (12 cap), hits taken earn 1 per 2 whole percent (6 cap), and a perfect shield/parry earns 8. Idle, movement and shielding earn nothing. Specials pay their listed costs; normals/grabs are free; up specials retain free recovery. |
 | EX specials | Shield + neutral or side Special spends the normal cost plus 25 mana for one-hit startup armor. See the EX table below. There are no ultimates. Existing per-move cooldowns remain part of each kit. |
 
 ### Build-and-spend mana and EX specials
@@ -616,10 +616,8 @@ once per parry window. Ordinary shield contacts and pummels earn nothing;
 specials do not earn their caster mana. Every gain caps at 100. Stock loss
 and rematch restore 100 and clear the spending and armor state.
 
-The passive floor is one point every 60 eligible frames on both ground and
-air. It stops during shields, shieldstun, grabs, hitstun, freeze, sleep,
-stun and special casts. Its integer remainder advances by 2/120 per frame.
-There is no spending delay. Offense builds the budget faster than waiting;
+Idle time, movement and shielding earn nothing; there is no idle refill
+(smashcraft:docs/design/mana.md). There is no spending delay. Offense builds the budget faster than waiting;
 recovery remains available through the existing free up-special forms.
 
 Hold either Shield and press neutral or side Special to request EX, on the
@@ -685,7 +683,7 @@ special decisions built from elemental setups, while its
 illustrates authored armor windows rather than universal invulnerability.
 [Guilty Gear's official guide](https://www.arcsystemworks.jp/guiltygear/img/playguide-en.pdf)
 rewards Instant Block with extra Tension; that supports paying precise
-defense here. The rejected alternative was one-button ultimates with passive
+defense here. The rejected alternative was one-button ultimates with idle
 refill: saving for a single large event would replace the exchange-by-exchange
 choice between an ordinary special and an armored commitment.
 | Disjoints | Weapon extensions only; attached body parts keep hurtboxes. |

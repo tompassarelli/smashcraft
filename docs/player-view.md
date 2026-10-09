@@ -28,8 +28,8 @@ may include `down: true` or `down: false` to hold or release an input.
 Use the same source revision, fighter, inputs and camera as a native capture.
 The existing `test/native/pads/171/` scripts cover Rifleman, Illidan,
 Blademaster and Warden at frame 132 (walk) and 169 (run); their `*-cues.pad`
-scripts supply strike, special and passive examples. Illidan has no passive;
-his Immolation is a special example. These names alone are capture locations,
+scripts supply strike and special examples; Illidan's Immolation is a
+special example. These names alone are capture locations,
 not measured renderer agreement.
 
 For the native pad path, run `bun wisp pad SCRIPT --headless --helper BINARY

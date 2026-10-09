@@ -10,7 +10,7 @@ Smashcraft supports Classic and Definitive graphics. Each player chooses their l
 points where his opponent ought to stand, closes that space with roots and a
 treant, then dismisses them with his staff. A space-trapping zoner, distinct
 from Jaina's falling spells, Lich's frost bursts and Shadow Hunter's crossfire.
-He has no passive, stacks or second resource. All four ordinary specials are
+He has no stacks or second resource. All four ordinary specials are
 free; a full universal super bar empowers anyone's next special, including his.
 
 **Body:** weight 94, run 10.8 units/frame, air 5.7 units/frame, standing hurt
@@ -112,7 +112,7 @@ A tiny, frantic candle-hoarder who wins scraps with a mining pick, then scurries
 away clutching his light. He is comedy through movement: anxious tiptoe runs,
 overcommitted digging and a panicked recovery. Unlike Peon's building setup or
 Murloc's sustained claw pressure, Kobold pokes, ducks underneath a reply and
-punishes a missed swing. No passive or second resource. Use the stock Kobold
+punishes a missed swing. No second resource. Use the stock Kobold
 creep body, portrait, voice and fire/dirt effects in Classic and Definitive.
 
 Provisional body: weight 0.90, walk multiplier 1.10, run 13.78 and dash 11.95
@@ -206,7 +206,7 @@ Use the project’s existing knockback, hitlag, hitstun, DI, shieldstun, and sta
 
 Calibrate classes in an empty test stage against a reference weight at 60 percent, no DI and no walls. Indicative displacement along the launch direction after 30 ticks: LINK 0.6–1.2H; POKE 1.2–2.0H; LAUNCH 2.0–3.0H; EDGE 2.5–3.5H; KILL 3.5–5.0H; SPIKE downward 2.5–3.5H before gravity. These are test bands, not a second knockback formula. Publish the actual coefficients and measured outcomes once calibrated. Adjust hitstun separately through the established formula rather than assuming distance proves a true combo. LINK never guarantees a follow-up without testing DI, percentage, weight, and move timing.
 
-No critical-hit RNG, random evasion, chance-on-hit stuns, or automatic spell counters. Every fighter is distinctive through expressive standard actions, designed case by case (Tom, 9 Oct 2026, #148). A passive is optional and only a visible physical trait learned by playing, such as a float, extra jumps or visible double-jump armour. No hidden stat passives. One universal super meter (#335); no character stacks, charges, resource timers or second bars. Ordinary move durations, cooldowns, statuses and placed-object HP remain action state. Damage is Smash-style percent damage; a healing move lowers it directly. Damage-over-time ticks do not cause hitlag, hitstun or knockback. A status applies only on an actual body hit, not on shield.
+No critical-hit RNG, random evasion, chance-on-hit stuns, or automatic spell counters. Every fighter is distinctive through expressive standard actions, designed case by case (Tom, 9 Oct 2026, #148). Fighters have no passives (Tom, 9 Oct 2026, #384). Floats, extra jumps and visible double-jump armour are movement properties, like weight and air speed, and are learned by playing. One universal super meter (#335); no character stacks, charges, resource timers or second bars. Ordinary move durations, cooldowns, statuses and placed-object HP remain action state. Damage is Smash-style percent damage; a healing move lowers it directly. Damage-over-time ticks do not cause hitlag, hitstun or knockback. A status applies only on an actual body hit, not on shield.
 
 ### Proposed resource profile
 
@@ -214,7 +214,7 @@ Mana is every fighter's one resource for specials; its rules, numbers and bar ar
 
 Every up B has a weaker zero-mana version described in its kit; being depleted must not remove basic recovery. If current mana is below the full up B cost, automatically select the free version and spend zero mana; this is the explicit exception to the unaffordable-move rule. If sufficient mana exists, use the full version. Full-strength up B uses its listed cost. One up B use per airtime; it resets only on grounded actionable state or stock respawn, not on ledge regrab. Up B and mobility specials marked helpless prohibit attacks, specials, and double jump until landing or the existing hitstun escape rules. They do not confer ledge invulnerability. Non-mobility specials never refresh jumps or recovery availability.
 
-Offensive specials may be interrupted by being hit normally. No generic B-to-B or B-to-A cancels. Any exception must be stated in the move. Neutral B is usually cheap or free; normals and grabs are always free. Maintain a separate shield resource for this proposal. Do not grant characters separate passive mana or shield economies without a stated kit rule.
+Offensive specials may be interrupted by being hit normally. No generic B-to-B or B-to-A cancels. Any exception must be stated in the move. Neutral B is usually cheap or free; normals and grabs are always free. Maintain a separate shield resource for this proposal. Do not grant characters separate mana or shield economies without a stated kit rule.
 
 ### Grabs and throws
 
@@ -234,7 +234,7 @@ Summon durability is a separate damage pool. Attacks can hit a fighter and a sum
 
 ### Defense and status limits
 
-Armor, when explicitly listed, absorbs hit reaction from one hit up to its listed damage threshold, but damage still applies; grabs ignore armor. A stronger hit breaks it. No passive armor from being heavy. Intangibility is only on the explicitly listed frames and cannot be reused to refresh ledge invulnerability. Never let a defensive transformation clear existing hitstun.
+Armor, when explicitly listed, absorbs hit reaction from one hit up to its listed damage threshold, but damage still applies; grabs ignore armor. A stronger hit breaks it. Being heavy grants no armor. Intangibility is only on the explicitly listed frames and cannot be reused to refresh ledge invulnerability. Never let a defensive transformation clear existing hitstun.
 
 At most one copy of each status per target; reapplication refreshes duration but does not stack strength. Hex and sleep count down in simulation frames, not wall time. Their timers, active source IDs, immunity windows, and any damage counters belong in snapshots. No status disables ordinary jumping, shielding, DI, or recovery unless its exact short effect states otherwise.
 
@@ -970,7 +970,7 @@ Expert gameplan: Time wards, healing and hex to control space and create a conve
 
 ## Pit Lord
 
-**Identity:** the largest heavy, with a huge cleaver and wide body attacks. Long reach is offset by startup, recovery, and a large target. His size must not require native pathing changes or give him passive armor.
+**Identity:** the largest heavy, with a huge cleaver and wide body attacks. Long reach is offset by startup, recovery, and a large target. His size must not require native pathing changes or give him armor.
 
 ### Normals
 
@@ -1338,7 +1338,7 @@ Standing grab 9/2/26, reach 0.60H. Pummel: ember squeeze, no extra heat mark.
 
 **Ultimate — Volcano:** ground-only f40 startup creates a volcano 1.3H ahead, 25 durability, life 180. Three eruptions at ages 30, 90, and 150, radius 0.85H, each 9 damage, LAUNCH at 80 degrees. No random rocks or full-map targeting. Destroying the volcano ends later eruptions. Owner’s casting action ends f78. Each eruption has a 20-frame visible warning; cannot hit through solid platforms.
 
-**Required counterplay test:** lava fire plus Molten Patch leaves an aerial route and cannot cause indefinite shieldstun. Heat marks create a readable incentive to avoid the third hit without giving normals hidden passive explosions.
+**Required counterplay test:** lava fire plus Molten Patch leaves an aerial route and cannot cause indefinite shieldstun. Heat marks create a readable incentive to avoid the third hit without giving normals hidden explosions.
 
 ## Lich King
 
@@ -1779,7 +1779,7 @@ Architecture reference: the project’s CODEX_IMPLEMENTATION_BRIEF.md and SMASHC
 **Identity:** reckless, furious, tragic. Grom runs into the fight with Gorehowl
 raised and commits his whole body to killing swings. He earns pressure by
 closing distance; his recovery and missed axe swings leave him exposed. He
-has no rage meter, counted bonus or hidden passive. Unlike Thrall he fights
+has no rage meter, counted bonus or hidden bonus. Unlike Thrall he fights
 on foot with no wolves or lightning; unlike Blademaster he never vanishes,
 leaves images or plays a safe outer-blade spacing game.
 
@@ -1865,7 +1865,7 @@ contact point readable in Classic and Definitive; no third-party model.
 
 ## Anub'arak (#341)
 
-**Identity:** an ancient insect king who treats the stage as his crypt. He advances with a low, six-legged scuttle, skewers ankles with his tusks, disappears under the floor and erupts beneath prey. His carrion beetles do the undignified chasing for him. Heavy ground control and frightening eruptions cost slow turns, a broad body and committed recovery. No reflective passive, resource or hidden stat bonus.
+**Identity:** an ancient insect king who treats the stage as his crypt. He advances with a low, six-legged scuttle, skewers ankles with his tusks, disappears under the floor and erupts beneath prey. His carrion beetles do the undignified chasing for him. Heavy ground control and frightening eruptions cost slow turns, a broad body and committed recovery. No damage reflection, resource or hidden stat bonus.
 
 ### Normals
 
@@ -1941,8 +1941,7 @@ Expert gameplan: Choose burrow approaches, beetle pressure and impale/grab conve
 ## Fighter identity audit (#148, Tom 9 Oct 2026)
 
 The old counted effects are cut. Existing standard actions carry these identities;
-there is no requirement to add a replacement passive. None of the current kits
-needs an extra passive. Archer is removed by #339; the roster cap is 26.
+none of the current kits needs a replacement effect. Archer is removed by #339; the roster cap is 26.
 
 | Fighter | Keep: expressive actions learned in play | Cut: counted or hidden effect |
 |---|---|---|
@@ -1982,7 +1981,7 @@ theatrical staff flourishes bait a chase; he disappears and returns where the
 opponent committed. Mobility trickster, light body (0.90 reference weight),
 ordinary run (0.98), strong air drift (1.20), narrow 0.90-wide, 1.10-high body.
 His staff is honest close-range contact; blink endpoints have visible recovery.
-No passive, charge system, second resource or automatic counter.
+No charge system, second resource or automatic counter.
 
 | Normal | Gesture and purpose | First / active / recovery; damage |
 | --- | --- | --- |
