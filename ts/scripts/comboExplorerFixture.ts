@@ -79,7 +79,7 @@ function record(seed: number): string[] | undefined {
     }
     if (root !== undefined) frames.push(copied(produced));
     if (!captureFrame(row, n, world.mask, produced, runtime) || !executeMatchFrame(row, game, world, controls, runtime, n)) throw new Error(`frame ${n} did not run`);
-    if (root !== undefined && (canStartAttack(defender) || defender.status.stocks !== root.stocks)) root = undefined;
+    if (root !== undefined && (canStartAttack(defender, true) || defender.status.stocks !== root.stocks)) root = undefined;
     if (root !== undefined && defender.visuals.hit > root.hits && defender.status.damage > root.damage && attacker.attack.serial !== root.serial) {
 
       const setup = { ...SETUP, percent: root.damage };
