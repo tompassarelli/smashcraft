@@ -232,6 +232,14 @@ const heroPhysicsRecords: (FighterPhysics | undefined)[] = [];
 
 
 
+/** Melee's roster spread in Melee units a frame (smashcraft:docs/design/melee/movement.md, "Ground movement"). */
+export const MELEE_WALK_SPEED_SPREAD: readonly [number, number] = [melee(0.6499999761581421), melee(1.600000023841858)];
+export const MELEE_DASH_SPEED_SPREAD: readonly [number, number] = [melee(1.0), melee(2.0)];
+export const MELEE_RUN_SPEED_SPREAD: readonly [number, number] = [melee(1.100000023841858), melee(2.299999952316284)];
+export const MELEE_DASH_RUN_FRAME_SPREAD: readonly [number, number] = [8, 19];
+
+const meleeSpread = (value: number, spread: readonly [number, number]): number => Math.max(spread[0], Math.min(spread[1], value));
+
 function heroPhysics(character: Character): FighterPhysics {
   const cached = heroPhysicsRecords[character];
   if (cached !== undefined) return cached;
@@ -241,9 +249,9 @@ function heroPhysics(character: Character): FighterPhysics {
   const physics: FighterPhysics = {
     ...reference,
     weight: f32(REFERENCE_WEIGHT * body.weight),
-    dashSpeed: body.dashSpeed ?? f32(reference.dashSpeed * body.run),
-    runSpeed: body.runSpeed ?? f32(reference.runSpeed * body.run),
-    walkSpeed: f32(reference.walkSpeed * body.run),
+    dashSpeed: meleeSpread(body.dashSpeed ?? f32(reference.dashSpeed * body.run), MELEE_DASH_SPEED_SPREAD),
+    runSpeed: meleeSpread(body.runSpeed ?? f32(reference.runSpeed * body.run), MELEE_RUN_SPEED_SPREAD),
+    walkSpeed: meleeSpread(f32(reference.walkSpeed * body.run), MELEE_WALK_SPEED_SPREAD),
     airSpeed: f32(REFERENCE_AIR_SPEED * body.air),
   };
   heroPhysicsRecords[character] = physics;
@@ -384,6 +392,18 @@ function heroShieldGeometry(character: Character): ShieldGeometry {
   return geometry;
 }
 
+const heroGroundRecords: (GroundMovementRules | undefined)[] = [];
+
+function heroGroundRules(character: Character): GroundMovementRules {
+  const cached = heroGroundRecords[character];
+  if (cached !== undefined) return cached;
+  const frame = heroBody(character)?.dashRunFrame;
+  if (frame === undefined) return AUTHORED_GROUND_MOVEMENT_RULES;
+  const rules = { ...AUTHORED_GROUND_MOVEMENT_RULES, dashRunEnableFrame: meleeSpread(frame, MELEE_DASH_RUN_FRAME_SPREAD) };
+  heroGroundRecords[character] = rules;
+  return rules;
+}
+
 export function authoredTuning(character: Character): FighterTuning {
   const hero = heroDefinition(character);
   return {
@@ -392,7 +412,7 @@ export function authoredTuning(character: Character): FighterTuning {
     ultimate: FIGHTER_ULTIMATES[character],
     physics: authoredPhysics(character),
     surface: authoredSurfaceRecovery(character),
-    ground: AUTHORED_GROUND_MOVEMENT_RULES,
+    ground: heroGroundRules(character),
     dashGrab: AUTHORED_DASH_GRAB_RULES,
     shield: heroShieldGeometry(character),
     tech: character === Character.demonHunter ? CAPTAIN_FALCON_TECH_TIMING : AUTHORED_TECH_TIMING,

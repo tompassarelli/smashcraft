@@ -8,6 +8,9 @@ import { speedBuffed } from "./itemBuffs";
 import { GroundAction } from "./codes";
 import type { Fighter } from "./fighter";
 import { floorTraction } from "./stage";
+import { DASH_FLICK_SAMPLES, DASH_STICK_THRESHOLD, type GroundOption, GroundState, StickZone, TAP_JUMP_WINDOW, groundOptionAllowed, runStickDirection, stickSpeedScale, stickZone } from "./stickZones";
+import { stickZ } from "./stick";
+import type { Controls } from "./roster";
 import { INITIAL_DASH_FRAMES, WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning";
 
 const WALK_ACCEL_TAPER_GAIN = 0.5;
@@ -15,11 +18,28 @@ const RUN_ACCEL_TAPER_GAIN = 0.4000000059604645;
 const RUN_DASH_TURN_FRICTION_MULTIPLIER = 1.0;
 
 const TURN_RUN_ZERO_VELOCITY_THRESHOLD = melee(0.009999999776482582);
-const DASH_STICK_THRESHOLD = 0.800000011920929;
-
-const DASH_FLICK_SAMPLES = 3;
 /** NTSC common +0x4c; only the Dash-to-Guard branch uses this early/late split. */
 export const DASH_GUARD_EARLY_FRAMES = 20;
+
+export function groundState(f: Readonly<Fighter>): GroundState {
+  if (f.motion.crouching) return GroundState.crouch;
+  switch (f.ground.action) {
+    case GroundAction.dash: return GroundState.dash;
+    case GroundAction.run: return GroundState.run;
+    case GroundAction.runBrake: return GroundState.runBrake;
+    case GroundAction.turnRun: return GroundState.turnRun;
+    default: return f.motion.vx !== 0 ? GroundState.walk : GroundState.stand;
+  }
+}
+
+export function groundOptionOpen(f: Readonly<Fighter>, option: GroundOption): boolean {
+  return groundOptionAllowed(groundState(f), f.ground.actionFrame, option, f.tuning.ground.runBrakeTurnCommandEndFrame);
+}
+
+export function wantsCrouch(f: Readonly<Fighter>, input: Readonly<Controls>, horizontalStick: number): boolean {
+  const z = stickZ(input);
+  return stickZone(horizontalStick, z < 0 ? z : -1.0, f.motion.stickSideAge, TAP_JUMP_WINDOW, f.facing, groundState(f)) === StickZone.crouch;
+}
 
 export function clearDash(f: Fighter): void {
   const { ground } = f;
@@ -142,8 +162,12 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
   const changingDirection = direction !== 0 && direction !== ground.dashDirection;
 
 
-  const freshFlick = ground.action !== GroundAction.dash || motion.stickSideAge < DASH_FLICK_SAMPLES;
+  if (direction !== 0 && (ground.action === GroundAction.run || ground.action === GroundAction.turnRun || ground.action === GroundAction.runBrake)) {
+    direction = runStickDirection(horizontalStick === 0 ? direction : horizontalStick, f.facing);
+  }
   const strongStick = Math.abs(horizontalStick) >= DASH_STICK_THRESHOLD;
+  const freshFlick = motion.stickSideAge < DASH_FLICK_SAMPLES || (ground.action !== GroundAction.dash && Math.abs(horizontalStick) >= 1.0);
+  const speedScale = stickSpeedScale(horizontalStick === 0 ? direction : horizontalStick, walking);
 
   const travelInWindow = ground.actionFrame - motion.stickSideAge < f.tuning.ground.dashRunEnableFrame;
   if (!walking && changingDirection && ground.action !== GroundAction.run && ground.action !== GroundAction.turnRun && ground.action !== GroundAction.runBrake) {
@@ -151,7 +175,7 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
 
 
       direction = 0;
-    } else if (!strongStick || (!freshFlick && direction !== f.facing)) {
+    } else if (!strongStick || (!freshFlick && (ground.action !== GroundAction.dash || direction !== f.facing))) {
       walking = true;
     }
   }
@@ -159,9 +183,9 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
     clearDash(f);
     if (direction !== 0) {
       f.facing = direction;
-      const walkTargetVelocity = f32(speedBuffed(f, chillScaled(f, physics.walkSpeed)) * direction);
+      const walkTargetVelocity = f32(f32(speedBuffed(f, chillScaled(f, physics.walkSpeed)) * speedScale) * direction);
       const walkTargetSpeed = Math.abs(walkTargetVelocity);
-      const acceleration = taperedAcceleration(f, physics.walkAccelerationMultiplier, physics.walkAccelerationBase, direction, walkTargetSpeed, WALK_ACCEL_TAPER_GAIN, walkTargetSpeed > 0);
+      const acceleration = taperedAcceleration(f, f32(physics.walkAccelerationMultiplier * speedScale), physics.walkAccelerationBase, direction, walkTargetSpeed, WALK_ACCEL_TAPER_GAIN, walkTargetSpeed > 0);
       motion.vx = groundMovementVelocity(motion.vx, acceleration, walkTargetVelocity, traction, speedBuffed(f, physics.groundSpeedCap));
 
     }
@@ -216,15 +240,15 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
     if (ground.action === GroundAction.dash) ground.actionFrame = min(actionClockLimit(f), ground.actionFrame + 1);
   }
   if (ground.action === GroundAction.dash && direction === ground.dashDirection) {
-    if (ground.actionFrame >= f.tuning.ground.dashRunEnableFrame) {
+    if (ground.actionFrame >= f.tuning.ground.dashRunEnableFrame && runStickDirection(horizontalStick === 0 ? direction : horizontalStick, f.facing) === f.facing) {
       ground.action = GroundAction.run;
       ground.actionFrame = 0;
     }
   }
-  const runTarget = speedBuffed(f, chillScaled(f, physics.runSpeed));
+  const runTarget = f32(speedBuffed(f, chillScaled(f, physics.runSpeed)) * speedScale);
   const targetVelocity = f32(direction * runTarget);
   const acceleration = taperedAcceleration(
-    f, physics.groundAccelerationMultiplier, physics.groundAccelerationBase, direction, runTarget, RUN_ACCEL_TAPER_GAIN,
+    f, f32(physics.groundAccelerationMultiplier * speedScale), physics.groundAccelerationBase, direction, runTarget, RUN_ACCEL_TAPER_GAIN,
     ground.action === GroundAction.run && targetVelocity !== 0,
   );
   motion.vx = groundMovementVelocity(motion.vx, acceleration, targetVelocity, f32(traction * RUN_DASH_TURN_FRICTION_MULTIPLIER), speedBuffed(f, physics.groundSpeedCap));

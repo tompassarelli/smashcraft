@@ -39,7 +39,8 @@ import {
   WALL_JUMP_FLICK_FRAMES,
   WALL_TECH_JUMP_INPUT_WINDOW_FRAMES,
 } from "./fighter";
-import { DASH_GUARD_EARLY_FRAMES, advanceGroundMovement, clearDash } from "./groundMovement";
+import { DASH_GUARD_EARLY_FRAMES, advanceGroundMovement, clearDash, groundOptionOpen, wantsCrouch } from "./groundMovement";
+import { GroundOption } from "./stickZones";
 import { heroMotionHolds } from "./heroSpecialRules";
 import { carryHeroStatus } from "./heroStatus";
 import { exSpecialPressed } from "./exSpecials";
@@ -259,7 +260,8 @@ function advanceGuard(f: Fighter, input: Readonly<Controls>, forcedShield: boole
   }
   const shieldCanStart = (input.shield || input.shieldPressed) && (shield.raised || shield.energy > 0) && f.down.state === DownState.none
     && f.launch.hitstun <= 0 && motion.grounded && !isGroundDodging(f) && shield.stun <= 0 && f.landing.lag <= 0
-    && shield.releaseLag <= 0 && f.attack.cooldown <= 0 && f.jump.squat <= 0;
+    && shield.releaseLag <= 0 && f.attack.cooldown <= 0 && f.jump.squat <= 0
+    && (shield.raised || groundOptionOpen(f, GroundOption.shield));
   if (shieldCanStart) observeActionDecision(GUARD_BITS);
   let wantsShield = forcedShield;
   if (!forcedShield) {
@@ -553,8 +555,10 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   const canSteer = !authoredMotion && down.state === DownState.none && launch.hitstun <= 0 && (!dodge.airDodging || !dodgeActive) && !isGroundDodging(f)
     && shield.releaseLag <= 0 && f.landing.lag <= 0 && shield.stun <= 0 && jump.squat <= 0 && !smashChargePaused
     && (!motion.grounded || attack.cooldown <= 0) && f.surfaceRecovery.state !== SurfaceContact.techWall;
-  motion.crouching = input.down && input.direction === 0 && motion.grounded && canSteer && !wantsShield
-    && attack.style === undefined && f.special.action === SpecialAction.none;
+  motion.crouching = input.down && wantsCrouch(f, input, horizontalStick) && motion.grounded && canSteer && !wantsShield
+    && attack.style === undefined && f.special.action === SpecialAction.none
+    && groundOptionOpen(f, GroundOption.crouch);
+  if (motion.crouching) direction = 0;
   if (!canSteer || wantsShield || !motion.grounded) clearDash(f);
   if (canSteer) {
     if (!wantsShield) {

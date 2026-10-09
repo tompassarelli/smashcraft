@@ -5,6 +5,7 @@
 import { join } from "node:path";
 import { SELECTABLE_CHARACTERS, fighterName } from "../src/game/sim/heroes/registry";
 import { SPECIAL_INPUTS, fighterKit } from "../src/game/sim/moveNames";
+import { WORLD_UNITS_PER_MELEE_UNIT, authoredTuning } from "../src/game/sim/tuning";
 
 export const MOVE_LIST_PATH = join(import.meta.dir, "../../docs/move-list.md");
 
@@ -21,8 +22,11 @@ export function moveListMarkdown(): string {
     "pummel, up throw). A normal's",
     "\"inspired by\" note is a design reference, not a name. An ultimate is",
     "Attack + Special together at a full bar (docs/design/ultimates.md), unless",
-    "the match's Ultimates rule is off.",
+    "the match's Ultimates rule is off. Ground movement is in Melee units a frame,",
+    "inside Melee's roster spread (smashcraft:docs/gameplay-design.md,",
+    "\"Ground states and the stick map\").",
   ];
+  const units = (value: number) => (value / WORLD_UNITS_PER_MELEE_UNIT).toFixed(2);
   for (const character of SELECTABLE_CHARACTERS) {
     const kit = fighterKit(character);
     lines.push("", `## ${fighterName(character)}`, "", "| Input | Name | What it does |", "| --- | --- | --- |");
@@ -33,6 +37,8 @@ export function moveListMarkdown(): string {
     lines.push(`| Jab, repeated | ${cell(kit.jab.name)} | ${cell(kit.jab.description)} |`);
     if (kit.trait !== undefined) lines.push(`| Trait | | ${cell(kit.trait)} |`);
     if (kit.ultimate !== undefined) lines.push(`| Ultimate | ${cell(kit.ultimate.name)} | ${cell(kit.ultimate.description)} |`);
+    const { physics, ground } = authoredTuning(character);
+    lines.push("", `Ground movement: walk ${units(physics.walkSpeed)}, initial dash ${units(physics.dashSpeed)}, run ${units(physics.runSpeed)}; run from dash frame ${ground.dashRunEnableFrame}.`);
     if (kit.inspiredBy.length > 0) {
       lines.push("", "Normals, inspired by:", "");
       for (const { move, note } of kit.inspiredBy) lines.push(`- ${move}: ${note}`);

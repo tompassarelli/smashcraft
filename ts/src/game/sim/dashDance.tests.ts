@@ -258,7 +258,8 @@ test("dash dancing: a dash released to neutral late in its window turns into a d
   for (const character of ROSTER) {
     for (const facing of [-1, 1]) {
       for (const input of [DanceInput.stick, DanceInput.keyOverlap, DanceInput.keyGap]) {
-        for (let hold = 10; hold <= 13; hold++) {
+        const runFrame = danceDriver(character, facing).fighter.tuning.ground.dashRunEnableFrame;
+        for (let hold = runFrame - 4; hold <= runFrame - 1; hold++) {
           for (let neutral = 1; neutral <= 3; neutral++) {
             const driver = danceDriver(character, facing);
             for (let frame = 0; frame < hold; frame++) holdToward(driver, input, facing);

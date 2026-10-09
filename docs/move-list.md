@@ -7,7 +7,9 @@ normals are named by their input (forward tilt, forward air, down smash,
 pummel, up throw). A normal's
 "inspired by" note is a design reference, not a name. An ultimate is
 Attack + Special together at a full bar (docs/design/ultimates.md), unless
-the match's Ultimates rule is off.
+the match's Ultimates rule is off. Ground movement is in Melee units a frame,
+inside Melee's roster spread (smashcraft:docs/gameplay-design.md,
+"Ground states and the stick map").
 
 ## Rifleman
 
@@ -20,6 +22,8 @@ the match's Ultimates rule is off.
 | Jab, repeated | Rifle Butt | A push of the barrel, then the stock driven in on a second jab. |
 | Ultimate | Aimed Shot | Kneel and aim: a red line shows the shot, then one bullet crosses the stage. Jump or shield it. |
 
+Ground movement: walk 1.40, initial dash 1.90, run 1.50; run from dash frame 14.
+
 ## Illidan
 
 | Input | Name | What it does |
@@ -30,6 +34,8 @@ the match's Ultimates rule is off.
 | Down special | Immolate (Flame Crash) | A burst of flame around him that a jump can cancel; in the air, plunge down in a Flame Crash. |
 | Jab, repeated | Warglaive Flurry | Three quick glaive cuts on repeated jabs; the third launches. |
 | Ultimate | Metamorphosis | Fel fire burns around him as he becomes a demon: a burst launches nearby foes, then he moves faster for 8 seconds. |
+
+Ground movement: walk 1.55, initial dash 1.90, run 1.85; run from dash frame 14.
 
 Normals, inspired by:
 
@@ -49,6 +55,8 @@ Normals, inspired by:
 | Jab, repeated | Swift Cuts | Two quick cuts close to his body on repeated jabs. |
 | Ultimate | Bladestorm | A steerable whirlwind of cuts ending in a strong slash, then he is dizzy. Shield, jump above it or outrun it. |
 
+Ground movement: walk 1.60, initial dash 1.98, run 2.29; run from dash frame 14.
+
 ## Mountain King
 
 | Input | Name | What it does |
@@ -59,6 +67,8 @@ Normals, inspired by:
 | Down special | Thunder Clap (Small Clap) | Raise the hammer and slam: early for a small clap, late for a ring with shockwaves. Shield drops the charge. |
 | Jab, repeated | Tavern Brawl | A short punch, then a heavy hook on a second jab. |
 | Ultimate | Avatar | He turns to stone with a stomp: heavier for 10 seconds. Hit him while he changes. |
+
+Ground movement: walk 1.41, initial dash 1.67, run 1.94; run from dash frame 14.
 
 ## Warden
 
@@ -71,6 +81,8 @@ Normals, inspired by:
 | Jab, repeated | Crescent Flurry | Three quick cuts of her crescent blade on repeated jabs. |
 | Ultimate | Vengeance | The Avatar of Vengeance rises behind her and throws four ghostly glaives. Break it or dodge the glaives. |
 
+Ground movement: walk 1.60, initial dash 2.00, run 2.30; run from dash frame 14.
+
 ## Lich
 
 | Input | Name | What it does |
@@ -81,6 +93,8 @@ Normals, inspired by:
 | Down special | Frost Armor (Dark Ritual) | A shell that takes the knockback of one light hit and chills the attacker; press again for Dark Ritual: shatter it for mana. |
 | Jab, repeated | Chilling Touch | A slap, then a freezing palm on a second jab. |
 | Ultimate | Frost Wyrm | A frost wyrm sweeps across at jump height. Stay low or shield it. |
+
+Ground movement: walk 1.44, initial dash 1.71, run 1.98; run from dash frame 14.
 
 ## Forsaken Paladin
 
@@ -93,6 +107,8 @@ Normals, inspired by:
 | Jab, repeated | Hammer and Haft | A hammer check, then a shove of the haft on a second jab. |
 | Ultimate | Light's Hammer | A golden circle marks where the Light's hammer will fall, then blesses the ground twice. Leave the circle. |
 
+Ground movement: walk 1.47, initial dash 1.75, run 2.02; run from dash frame 14.
+
 ## Dreadlord
 
 | Input | Name | What it does |
@@ -103,6 +119,8 @@ Normals, inspired by:
 | Down special | Sleep | A slow orb that puts a grounded target to sleep until it mashes out or is hit. |
 | Jab, repeated | Vampiric Claws | Two claw rakes and a wing strike on repeated jabs. |
 | Ultimate | Inferno | An Infernal crashes onto a burning mark ahead. Leave the mark. |
+
+Ground movement: walk 1.60, initial dash 1.99, run 2.29; run from dash frame 14.
 
 ## Shadow Hunter
 
@@ -115,6 +133,8 @@ Normals, inspired by:
 | Jab, repeated | Glaive Handle | Two jabs of the glaive handle, then a cut of its blade, on repeated jabs. |
 | Ultimate | Big Bad Voodoo | He dances untouchable inside a voodoo ring that pulses, then erupts. Leave the ring. |
 
+Ground movement: walk 1.60, initial dash 1.98, run 2.29; run from dash frame 14.
+
 ## Pit Lord
 
 | Input | Name | What it does |
@@ -125,6 +145,8 @@ Normals, inspired by:
 | Down special | Rain of Fire | Three waves of fire fall ahead; rush underneath or tilt your shield up. |
 | Jab, repeated | Haft and Chop | A haft check, then a short cleaver chop on a second jab. |
 | Ultimate | Doom | A clawed grab that ignores shields brands the victim with Doom, burning on after the throw. Jump or roll away. |
+
+Ground movement: walk 1.28, initial dash 1.52, run 1.76; run from dash frame 16.
 
 ## Beastmaster
 
@@ -137,6 +159,8 @@ Normals, inspired by:
 | Jab, repeated | Twin Axes | Both axe hilts, then a shoulder that shoves, on repeated jabs. |
 | Ultimate | Stampede | His pack stampedes past: a low quilbeast, a bear, then a high hawk. Jump, shield, then stay low. |
 
+Ground movement: walk 1.55, initial dash 1.84, run 2.13; run from dash frame 14.
+
 ## Lich King
 
 | Input | Name | What it does |
@@ -147,6 +171,8 @@ Normals, inspired by:
 | Down special | Defile | Plant Frostmourne to spread a shadow pool; hurting a grounded foe grows it and flashes the edge. Jump out; recasts must wait. |
 | Jab, repeated | Pommel and Rake | A gauntlet check, a rake of the blade, then a Frostmourne thrust on repeated jabs. |
 | Ultimate | Animate Dead | Runes mark the ground under the nearest foe; the dead claw up there a moment later. Step off the mark. |
+
+Ground movement: walk 1.34, initial dash 1.60, run 1.85; run from dash frame 14.
 
 Normals, inspired by:
 
@@ -171,6 +197,8 @@ Normals, inspired by:
 | Jab, repeated | Doomhammer | Check with the handle, then press again for a short hammer hook. |
 | Ultimate | Earthquake | Tremors run along the ground both ways. Jump them or stand on a platform. |
 
+Ground movement: walk 1.09, initial dash 1.29, run 1.50; run from dash frame 16.
+
 ## Jaina Proudmoore
 
 | Input | Name | What it does |
@@ -181,6 +209,8 @@ Normals, inspired by:
 | Down special | Summon Water Elemental | Summon a fragile ally that fires four water bolts. Press again to recall it. |
 | Jab, repeated | Staff Check | Two short staff strikes to create space. |
 | Ultimate | Glacial Ray | A ray of frost sweeps down from high ahead of her to the floor. Get behind her or shield. |
+
+Ground movement: walk 0.80, initial dash 1.00, run 1.10; run from dash frame 14.
 
 ## Sylvanas Windrunner
 
@@ -193,6 +223,8 @@ Normals, inspired by:
 | Jab, repeated | Bow Check | Three close checks of the bow on repeated jabs. |
 | Ultimate | Charm | A slow banshee spirit; a foe it reaches has left and right swapped for 3 seconds. |
 
+Ground movement: walk 1.33, initial dash 1.58, run 1.83; run from dash frame 14.
+
 ## Cairne Bloodhoof
 
 | Input | Name | What it does |
@@ -203,6 +235,8 @@ Normals, inspired by:
 | Down special | Reincarnation | Read an incoming strike to heal 12 damage, up to 24 per stock. A wait or grab beats it. |
 | Jab, repeated | Haft and Totem | Check with the haft, then press again for the totem's short finishing blow. |
 | Ultimate | Reincarnation | He waits with the ancestors: a strike that would hit him raises a spirit pillar instead. Don't strike; grab or wait. |
+
+Ground movement: walk 1.08, initial dash 1.28, run 1.49; run from dash frame 16.
 
 ## Chen Stormstout
 
@@ -215,6 +249,8 @@ Normals, inspired by:
 | Jab, repeated | Staggering Three | A palm, a staff butt and a belly check on repeated jabs. |
 | Ultimate | Storm, Earth and Fire | He splits into Earth, Storm and Fire, which strike around him one after another. |
 
+Ground movement: walk 1.16, initial dash 1.38, run 1.60; run from dash frame 14.
+
 ## Peon
 
 | Input | Name | What it does |
@@ -225,6 +261,8 @@ Normals, inspired by:
 | Down special | Repair | Duck behind the tools; a correctly timed hit repairs a little damage. |
 | Jab, repeated | Work Work | A quick haft tap followed by a short axe chop. |
 | Ultimate | Timber! | He chops at a big tree until it falls forward across the stage. Stand behind him or hit him while he chops. |
+
+Ground movement: walk 1.16, initial dash 1.38, run 1.60; run from dash frame 14.
 
 ## Goblin Tinker
 
@@ -237,6 +275,8 @@ Normals, inspired by:
 | Jab, repeated | Claw-Pack | Two short claw taps and a wrench shove. |
 | Ultimate | Robo-Goblin Overdrive | His Robo-Goblin waddles ahead and explodes. Walk away or shield the blast. |
 
+Ground movement: walk 1.25, initial dash 1.49, run 1.73; run from dash frame 14.
+
 ## Kael'thas Sunstrider
 
 | Input | Name | What it does |
@@ -247,6 +287,8 @@ Normals, inspired by:
 | Down special | Banish | Briefly turn ethereal, then push nearby enemies away. |
 | Jab, repeated | Verdant Touch | A palm check, then a sphere shove on a second tap. |
 | Ultimate | Gravity Lapse | Arcane orbs ring him, then everyone inside is lifted straight up. Leave the ring. |
+
+Ground movement: walk 1.60, initial dash 1.95, run 2.26; run from dash frame 14.
 
 ## Murloc
 
@@ -259,6 +301,8 @@ Normals, inspired by:
 | Jab, repeated | Claw Flurry | A quick claw poke, then a second swipe on another tap. |
 | Ultimate | Mrglglgl Stampede | He blows a conch and a swarm of murlocs pours across the ground. Jump over it or shield. |
 
+Ground movement: walk 1.60, initial dash 2.00, run 2.30; run from dash frame 14.
+
 ## Grom Hellscream
 
 | Input | Name | What it does |
@@ -269,6 +313,8 @@ Normals, inspired by:
 | Down special | Mannoroth's Bane | Commit to a furious two-handed execution chop. |
 | Jab, repeated | Warsong Greeting | Check them with the hilt, then chop on a second tap. |
 | Ultimate | Blood of Mannoroth | Demon blood drives a charge that catches the first foe, through a shield, for three Gorehowl chops. Jump it. |
+
+Ground movement: walk 1.60, initial dash 1.98, run 2.29; run from dash frame 14.
 
 ## Kobold
 
@@ -281,6 +327,8 @@ Normals, inspired by:
 | Jab, repeated | Pick Pick! | Two nervous mining-pick taps. You no take candle! |
 | Ultimate | You No Take Candle! | He digs in and burrows toward the foe, then bursts up under them. Watch the dirt. |
 
+Ground movement: walk 1.60, initial dash 1.99, run 2.30; run from dash frame 14.
+
 ## Malfurion Stormrage
 
 | Input | Name | What it does |
@@ -291,6 +339,8 @@ Normals, inspired by:
 | Down special | Force of Nature | Plant a fragile treant that throws four branches. Press again to recall it. |
 | Jab, repeated | Gardening Lesson | Two dismissive staff taps: mind the flowers. |
 | Ultimate | Wisps of Hyjal | A slow wall of wisps drifts forward and detonates on whoever it reaches. |
+
+Ground movement: walk 1.31, initial dash 1.55, run 1.80; run from dash frame 14.
 
 ## Medivh
 
@@ -303,6 +353,8 @@ Normals, inspired by:
 | Jab, repeated | Impatient Prophecy | Two pointed staff taps for those who will not listen. |
 | Ultimate | The Dark Portal | A dark portal opens ahead, drawing foes in, then erupts. Walk away before it bursts. |
 
+Ground movement: walk 1.57, initial dash 1.86, run 2.16; run from dash frame 14.
+
 ## Anub'arak
 
 | Input | Name | What it does |
@@ -313,3 +365,5 @@ Normals, inspired by:
 | Down special | Carrion Beetle | Plant a fragile nest that sends beetles along the ground. Press again to recall it. |
 | Jab, repeated | Royal Rebuke | The king dismisses prey with one tusk, then the other. |
 | Ultimate | Locust Swarm | A slow cloud of beetles drifts ahead, stinging anyone standing in it. Jump or shield. |
+
+Ground movement: walk 1.31, initial dash 1.56, run 1.80; run from dash frame 16.

@@ -5,6 +5,7 @@ import type { Controls } from "../sim/roster";
 import { analogShieldActive, analogShieldStrength } from "../sim/shield";
 import { squareRoot } from "../sim/warcraftMath";
 import { SHIELD_TILT_STICK_CAP, stickX, stickZ } from "../sim/stick";
+import { STICK_DEADZONE } from "../sim/stickZones";
 import { Action, has, maskOf } from "./actions";
 import { type AttackBuffer, clearAttackBuffer, queueAttack } from "./attackBuffer";
 import { groundDodgeIntent, normalAttackStyle } from "./combat";
@@ -25,7 +26,7 @@ function edgePair(pressed: number, negative: Action, positive: Action): Directio
 function movementAxis(row: Readonly<InputRow>, negative: Action, positive: Action, axis: number): Direction {
 
 
-  if (has(row.held, negative) || has(row.held, positive) || axis !== 0) return sign(axis);
+  if (has(row.held, negative) || has(row.held, positive) || axis !== 0) return f32(Math.abs(axis) / 127.0) < STICK_DEADZONE ? 0 : sign(axis);
   return edgePair(row.pressed, negative, positive);
 }
 

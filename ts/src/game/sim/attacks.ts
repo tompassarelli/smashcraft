@@ -3,6 +3,8 @@
 
 import { f32 } from "wisp/src/sim/f32";
 import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GroundAction } from "./codes";
+import { groundState } from "./groundMovement";
+import { GroundOption, GroundState, groundOptionAllowed } from "./stickZones";
 import { attackPhase, attackStartup, attackActive, canBeGrabbed, canStartAttackStyle, inEarlyAscent, inGrabContext, isIntangible, jabChainStep } from "./conditions";
 import { finishDamageContacts, openDamageContacts } from "./contacts";
 import type { Fighter } from "./fighter";
@@ -123,6 +125,36 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
 
 
 
+function groundOption(style: AttackStyle): GroundOption | undefined {
+  switch (style) {
+    case AttackStyle.jab: return GroundOption.jab;
+    case AttackStyle.forwardTilt:
+    case AttackStyle.forwardTiltUp:
+    case AttackStyle.forwardTiltDown:
+    case AttackStyle.upTilt:
+    case AttackStyle.downTilt: return GroundOption.tilt;
+    case AttackStyle.forwardSmash: return GroundOption.forwardSmash;
+    case AttackStyle.upSmash:
+    case AttackStyle.downSmash: return GroundOption.upDownSmash;
+    case AttackStyle.grab: return GroundOption.grab;
+    default: return undefined;
+  }
+}
+
+
+export function groundGatedStyle(f: Readonly<Fighter>, style: AttackStyle): AttackStyle | undefined {
+  const option = groundOption(style);
+  if (option === undefined) return style;
+  const state = groundState(f);
+  const frame = f.ground.actionFrame;
+  const turnEnd = f.tuning.ground.runBrakeTurnCommandEndFrame;
+  if (option === GroundOption.grab) return groundOptionAllowed(state, frame, option, turnEnd) || state === GroundState.turnRun ? style : undefined;
+  if (groundOptionAllowed(state, frame, option, turnEnd)) return style;
+  if (groundOptionAllowed(state, frame, GroundOption.dashAttack, turnEnd)) return AttackStyle.dashAttack;
+  return undefined;
+}
+
+
 export function beginFighterAttack(world: Roster, slot: number, style: AttackStyle | undefined, mayCharge: boolean): void {
   if (style === undefined) return;
   const fighter = fighterAt(world, slot);
@@ -132,11 +164,13 @@ export function beginFighterAttack(world: Roster, slot: number, style: AttackSty
     beginAttack(fighter, chained, false);
     return;
   }
-  const action = fighter.tuning.moves !== undefined && style === AttackStyle.jab && grounded && fighter.ground.dashFrame > 0
+  const gated = grounded ? groundGatedStyle(fighter, style) : style;
+  if (gated === undefined) return;
+  const action = fighter.tuning.moves !== undefined && gated === AttackStyle.dashAttack
     ? fighter.tuning.moves.dashAttack
-    : fighter.character === Character.demonHunter && style === AttackStyle.jab && grounded && fighter.ground.dashFrame > 0
+    : fighter.character === Character.demonHunter && gated === AttackStyle.dashAttack
     ? AttackStyle.demonHunterDashAttack
-    : style;
+    : gated === AttackStyle.dashAttack ? AttackStyle.jab : gated;
   const groundAttack = (action <= DASH_GRAB_REQUEST && action !== AttackStyle.shot) || action === AttackStyle.demonHunterDashAttack || action === AttackStyle.dashAttack || isJab(action);
   const aerial = isAerialAttack(action);
   if (((groundAttack && grounded) || action === AttackStyle.shot || (aerial && !grounded)) && canStartAttackStyle(fighter, action)) {
