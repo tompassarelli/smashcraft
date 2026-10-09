@@ -173,7 +173,7 @@ src/game/sim/heroes/forsakenPaladinMoves.tests.ts	9	881000	3585
 src/game/sim/heroes/forsakenPaladinSpecials.tests.ts	14	50055000	19410
 src/game/sim/heroes/grom.tests.ts	6	99788000	17980
 src/game/sim/heroes/jaina.tests.ts	8	4889000	8551
-src/game/sim/heroes/kaelthas.tests.ts	11	20415000	18300
+src/game/sim/heroes/kaelthas.tests.ts	8	14768000	14702
 src/game/sim/heroes/kobold.tests.ts	9	5154000	7763
 src/game/sim/heroes/lichKingSpecials.tests.ts	6	17738000	19778
 src/game/sim/heroes/lichMoves.tests.ts	9	3122000	13780

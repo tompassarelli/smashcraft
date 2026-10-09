@@ -343,24 +343,6 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/kaelthassunstriderwhite-d675437d2672fb4178c0abaee71f58d3d0d81d0b31367eb012169807d99a9111.mdx": {
-    "geosets": 2,
-    "triangles": 569,
-    "lights": 0,
-    "bounds": {
-      "min": [
-        -300,
-        -300,
-        -200
-      ],
-      "max": [
-        300,
-        300,
-        644.5029907226562
-      ]
-    },
-    "emitters": []
-  },
   "war3mapimported/murlocwhite-b21340d9963ac5af8e3cb23ba999dfd67c4fc756235e3f0922b84dc7303a2fff.mdx": {
     "geosets": 3,
     "triangles": 384,
@@ -465,6 +447,24 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
         300,
         300,
         350
+      ]
+    },
+    "emitters": []
+  },
+  "war3mapimported/kaelthassunstriderwhite-9f2ff895e4f05b9b3883b37780f240d8b60430bf37787ecfa7d442c84d9e97da.mdx": {
+    "geosets": 2,
+    "triangles": 569,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -300,
+        -300,
+        -200
+      ],
+      "max": [
+        300,
+        300,
+        644.5029907226562
       ]
     },
     "emitters": []
