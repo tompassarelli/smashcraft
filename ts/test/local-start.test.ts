@@ -250,6 +250,10 @@ sweep("#60: every local press starts in the presser's next prediction unless a r
     for (let click = 0; click < 2; click++) clients.everywhere(() => panelActions().selection.cycleMode(0, slot));
     clients.everywhere(() => panelActions().selection.selectCpuChoice(0, slot, character));
   }
+  // Keep both humans in play until the legal-press sample is complete after the roster cut (#345).
+  clients.everywhere(() => {
+    while (shell().game.stockCount < 9) panelActions().selection.changeStocks(0, 1);
+  });
   for (const slot of [0, 1]) clients.press(slot, Key.n);
   for (let frame = 0; frame < 60; frame++) tick();
   clients.press(0, Key.y);
