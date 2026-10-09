@@ -147,11 +147,11 @@ function reactionDelay(game: Readonly<MatchState>, runtime: Readonly<BotRuntime>
  * The computer in `slot` plays its resolved identity and tier under the match seed. Correcting
  * human movement also corrects every computer decision derived from it.
  */
-export function produceComputerInput(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, slot: ParticipantSlot, frame: number, input: Controls, commands: AttackBuffer): TechnicalOutcome {
+export function produceComputerInput(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, slot: ParticipantSlot, frame: number, input: Controls, commands: AttackBuffer, skillOverride?: CpuSkill): TechnicalOutcome {
   useMatchSeed(game.matchSeed);
   const opponent = game.cpuResolvedOpponents[slot];
   const tier = game.cpuTiers[slot];
-  const skill = cpuSkill(opponent, tier);
+  const skill = skillOverride ?? cpuSkill(opponent, tier);
   observeOpponents(runtime.botMemory, world, frame);
   const fighter = fighterAt(world, slot);
   const reactionFrames = reactionDelay(game, runtime, fighter, slot, frame, skill);
@@ -165,7 +165,7 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
     if (ownObserved !== undefined && opponent !== undefined) learnBotHabit(strategy, ownObserved, target, opponent, frame - reactionFrames, skill.decision);
     prepareBotRead(strategy, fighter, target, frame, reactionFrames, skill.decision);
   }
-  decide(game, world, runtime, slot, frame, input, commands, perceivedCpuSkill(opponent, tier), target, reactionFrames);
+  decide(game, world, runtime, slot, frame, input, commands, skillOverride === undefined ? perceivedCpuSkill(opponent, tier) : { ...skill, reactionFrames: 0 }, target, reactionFrames);
   const execution = executeBotTechnique(fighter, input, commands, frame, slot, skill.decision);
   upgradeThreatenedSpecial(fighter, target, input);
   if (fighter.launch.hitlag <= 0 && fighter.launch.hitstun > 0) chooseHitlagInput(fighter, slot, frame, skill, input);
@@ -247,7 +247,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
   runtime.botAttackDelays[slot] = delay;
   const stage = game.stageChoice;
   const stageFrame = stageClock(game);
-  const gameplan = gameplanOf(fighter.character);
+  const gameplan = gameplanOf(fighter.character, skill.basicMoves);
   if (fighter.launch.hitlag > 0) {
     chooseHitlagInput(fighter, slot, frame, skill, input);
     return;
@@ -264,29 +264,30 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
     return;
   }
   if (fighter.grab.target !== undefined) {
-    if (target !== undefined) followUpGrab(fighter, target, gameplan, frame, input);
+    if (skill.basicMoves !== undefined) input.grabThrowX = fighter.facing;
+    else if (target !== undefined) followUpGrab(fighter, target, gameplan, frame, input);
     return;
   }
   if (fighter.shield.breakState !== ShieldBreak.none) {
     input.mashPressed = floorMod(frame, skill.grabMashFrames) === 0;
     return;
   }
-  if (target !== undefined && (steerHeroBranches(fighter, target, skill, input) || pressHeroFollowUp(fighter, target, stage, input))) return;
+  if (skill.basicMoves === undefined && target !== undefined && (steerHeroBranches(fighter, target, skill, input) || pressHeroFollowUp(fighter, target, stage, input))) return;
   const recovering = chooseRecoveryInput(fighter, stage, stageFrame, input, target, skill);
   if (steerRunningSpecial(fighter, target, stage, skill, input) || recovering) return;
   if (isSmashAttack(fighter.attack.style) && fighter.attack.smashChargeAllowed) input.attackHeld = fighter.attack.smashChargeFrames < kitChargeGoal(fighter, target, skill, smashChargeGoal(fighter));
   if (target === undefined) return;
   if (chooseDefense(fighter, target, stage, input, skill, observationAge)) return;
   // An opponent that can't act yet is punished before any pause or idle stretch.
-  if (choosePunish(fighter, target, stage, stageFrame, frame, skill, input, commands, observationAge)) {
+  if (skill.basicMoves === undefined && choosePunish(fighter, target, stage, stageFrame, frame, skill, input, commands, observationAge)) {
 
     runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
     return;
   }
-  if (pressBotRead(runtime.botStrategies[slot], fighter, target, stage, stageFrame, frame, input, commands)) return;
+  if (skill.basicMoves === undefined && pressBotRead(runtime.botStrategies[slot], fighter, target, stage, stageFrame, frame, input, commands)) return;
   // An idle stretch stands where it is: no approach, no attack.
   if (botChance(floorDiv(frame, IDLE_FRAMES), slot * 17 + fighter.character, skill.idle, 100)) return;
-  if (pressKitOption(fighter, target, stage, skill, frame, delay <= 0, input, commands)) {
+  if (skill.basicMoves === undefined && pressKitOption(fighter, target, stage, skill, frame, delay <= 0, input, commands)) {
     if (input.specialPressed || input.attackHeld) runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
     return;
   }

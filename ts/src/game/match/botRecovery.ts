@@ -260,7 +260,7 @@ export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, m
   if (ledge && outside <= LEDGE_LINE_REACH && z >= f32(floor - LEDGE_MISSED)) return true;
   // Near the edge and still above the deck, one return in two spends the up special first and keeps the jump.
   const coin = botChoice(fighter.visuals.hit + toInt(fighter.status.damage), fighter.character * 13 + 5, 2) === 0;
-  const gameplan = gameplanOf(fighter.character);
+  const gameplan = gameplanOf(fighter.character, skill.basicMoves);
   const specialFirst = outside <= SPECIAL_FIRST_REACH && z >= floor && upSpecialStartable(fighter, specialCooldownReady(fighter, upSpecial(fighter.character)))
     && (gameplan === undefined ? coin : upSpecialFirst(gameplan, coin));
   if (totalVelocityZ(fighter) <= 0 && z < f32(floor + 100)) {

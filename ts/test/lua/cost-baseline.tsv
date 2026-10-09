@@ -25,6 +25,7 @@ src/game/match/combatInputContracts.tests.ts	1	0.011
 src/game/match/comboRoute.tests.ts	1	0.185
 src/game/match/controls.tests.ts	4	0.000
 src/game/match/cpuCalibration.tests.ts	1	2.449
+src/game/match/cpuCeilingProfiles.tests.ts	1	0.004
 src/game/match/cpuProfileContracts.tests.ts	2	0.801
 src/game/match/cpuProfiles.tests.ts	4	0.320
 src/game/match/edgeRecovery.tests.ts	8	2.578

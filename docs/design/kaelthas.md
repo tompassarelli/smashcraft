@@ -145,3 +145,15 @@ approach: 30-60
 ranged: 25-65
 specials: neutral 5-25, side 3-15, up 0-8, down 2-12
 ```
+
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: kael'thas-sunstrider
+path: decision
+basic-moves: neutral-special,side-special,neutral-air
+```
+
+Basic gameplan: Use simple fire shots and a neutral aerial. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Place flame areas, manage control and turn forced movement into finishers. Use the full authored kit and gameplan at the same CPU skill.

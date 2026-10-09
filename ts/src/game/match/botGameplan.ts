@@ -15,8 +15,13 @@ import { ORIGINAL_GAMEPLANS } from "../sim/originalGameplans";
 import { mainDeckLeft, mainDeckRight } from "../sim/stage";
 
 /** The fighter's declared gameplan, or undefined for the general computer. */
-export function gameplanOf(character: Character): FighterGameplan | undefined {
-  return heroDefinition(character)?.gameplan ?? ORIGINAL_GAMEPLANS[character];
+export function gameplanOf(character: Character, basicMoves?: readonly number[]): FighterGameplan | undefined {
+  const plan = heroDefinition(character)?.gameplan ?? ORIGINAL_GAMEPLANS[character];
+  if (plan === undefined || basicMoves === undefined) return plan;
+  const approach = plan.approach.find(option => option.moves.some(move => basicMoves.includes(move)));
+  return { ...plan, spacing: plan.spacing.filter(spaced => basicMoves.includes(spaced.move)),
+    approach: approach === undefined ? [] : [{ ...approach, moves: approach.moves.filter(move => basicMoves.includes(move)) }],
+    combos: [], kills: [], defense: ["shield"], recovery: { aim: "deck", upSpecial: "last" } };
 }
 
 /** The plan that keeps the preferred range and throws spacing tools; approach plans are their option's index. */

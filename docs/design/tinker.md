@@ -119,3 +119,15 @@ approach: 35-65
 ranged: 15-50
 specials: neutral 3-15, side 2-12, up 0-8, down 3-15
 ```
+
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: goblin-tinker
+path: decision
+basic-moves: forward-tilt,neutral-special,neutral-air
+```
+
+Basic gameplan: Use a wrench poke and one ranged tool. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Arrange machines and missiles to cover routes and convert their pressure. Use the full authored kit and gameplan at the same CPU skill.

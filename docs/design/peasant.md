@@ -110,3 +110,15 @@ approach: 50-80
 ranged: 0-25
 specials: neutral 2-12, side 2-12, up 0-8, down 2-12
 ```
+
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: peon
+path: decision
+basic-moves: forward-tilt,down-tilt,neutral-air
+```
+
+Basic gameplan: Use tool pokes and a neutral aerial. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Choose tools, building pressure, grabs and deceptive approaches. Use the full authored kit and gameplan at the same CPU skill.

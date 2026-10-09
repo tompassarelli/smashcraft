@@ -12,6 +12,7 @@ export interface CpuSkill {
   /** Debug ceiling experiments disable mistakes without changing the five playable tiers. */
   readonly executionMistakes?: boolean;
   readonly decision: CpuDecisionPolicy;
+  readonly basicMoves?: readonly number[];
   /** Age of the opponent observation used for decisions, in input frames. */
   readonly reactionFrames: number;
   /** Threats answered, in tenths; the rest are taken. */

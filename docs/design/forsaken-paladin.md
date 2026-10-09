@@ -170,3 +170,15 @@ approach: 40-70
 ranged: 0-20
 specials: neutral 1-10, side 2-12, up 0-8, down 2-12
 ```
+
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: forsaken-paladin
+path: decision
+basic-moves: forward-tilt,down-tilt,neutral-special
+```
+
+Basic gameplan: Poke and use a simple holy strike. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Choose guard, healing, resource commitments and the right punish window. Use the full authored kit and gameplan at the same CPU skill.

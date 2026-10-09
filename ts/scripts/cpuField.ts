@@ -21,6 +21,7 @@ import { initializeMatchFighters, matchSpawnX } from "../src/game/match/step";
 import { produceComputerInput } from "../src/game/match/botPlay";
 import { isCpuOpponent, isCpuTier, type CpuOpponentId, type CpuTier } from "../src/game/match/cpuProfiles";
 import { gameplanOf } from "../src/game/match/botGameplan";
+import type { CpuSkill } from "../src/game/match/cpuSkill";
 import { type GameplanMove, GameplanSpecial, GameplanThrow } from "../src/game/sim/gameplan";
 import { AttackStyle, type Character, DownState, GrabAction, LedgeState, SpecialAction } from "../src/game/sim/codes";
 import { createFighter, type Fighter } from "../src/game/sim/fighter";
@@ -139,6 +140,7 @@ export interface PunishTotals {
 }
 
 export interface MatchRecord {
+  readonly skillOverrides?: FieldOptions["skills"];
   readonly stage: string;
   readonly variant: number;
   readonly seed: number;
@@ -154,6 +156,7 @@ export interface MatchRecord {
 }
 
 export interface FieldOptions {
+  readonly skills?: readonly [CpuSkill | undefined, CpuSkill | undefined];
   readonly variants?: number;
   readonly stocks?: number;
   readonly minutes?: number;
@@ -294,7 +297,7 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
     for (const slot of PARTICIPANT_SLOTS) {
       copyControls(produced.inputs[slot], NEUTRAL);
       clearAttackBuffer(produced.commands[slot]);
-      if (slot <= 1) produceComputerInput(match, world, runtime, slot, frame, produced.inputs[slot], produced.commands[slot]);
+      if (slot === 0 || slot === 1) produceComputerInput(match, world, runtime, slot, frame, produced.inputs[slot], produced.commands[slot], options.skills?.[slot]);
       const only = slot === 0 || slot === 1 ? spam[slot] : undefined;
       if (only !== undefined) spamOnly(fighterAt(world, slot), fighterAt(world, 1 - slot), only, stage, frame, produced.inputs[slot], produced.commands[slot]);
     }
@@ -389,7 +392,7 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
   }
   for (const slot of [0, 1] as const) sides[slot].stocksPlayed = sides[slot].stockLosses.length + (fighterAt(world, slot).status.stocks > 0 ? 1 : 0);
   return {
-    stage: stageName, variant, seed, opponents, tiers, fighters: [sides[0].fighter, sides[1].fighter],
+    stage: stageName, variant, seed, opponents, tiers, skillOverrides: options.skills, fighters: [sides[0].fighter, sides[1].fighter],
     winner: match.winner === 0 || match.winner === 1 ? match.winner : null, timedOut: match.timedOut, frames: frame, sides,
   };
 }
@@ -399,7 +402,7 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
  * times over; with `perPair`, as many variants as each pair needs to reach
  * that many matches (spawn shifts that leave a deck make none).
  */
-function playCpuField(options: FieldOptions = {}, progress?: (done: number, total: number) => void): MatchRecord[] {
+export function playCpuField(options: FieldOptions = {}, progress?: (done: number, total: number) => void): MatchRecord[] {
   const fighters = options.fighters ?? SELECTABLE_CHARACTERS;
   const stages = options.stages ?? Object.keys(FIELD_STAGES);
   const perPair = options.perPair;

@@ -56,6 +56,19 @@ ranged: 25-65
 specials: neutral 5-25, side 3-20, up 0-8, down 3-15
 ```
 
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: malfurion-stormrage
+path: decision
+basic-moves: neutral-special,side-special,neutral-air
+```
+
+Basic gameplan: Use simple nature shots and a neutral aerial. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Place roots and nature control to force a route and punish it. Use the full authored kit and gameplan at the same CPU skill.
+
+
 Adopted by the owner on 6 October 2026 from the 2 October expansion brief.
 The requested roster is Blademaster, Mountain King, Warden, Lich, Forsaken Paladin,
 Dreadlord and Shadow Hunter, in that order. The Tavern kits below record the earlier expansion brief. Their tuning tables are starting values, not shipped
@@ -151,6 +164,19 @@ ranged: 5-15
 specials: neutral 3-15, side 5-20, up 0-10, down 3-15
 signature: side-special 40
 ```
+
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: kobold
+path: mixed
+basic-moves: forward-tilt,down-tilt,neutral-air
+```
+
+Basic gameplan: Use pick pokes and a neutral aerial. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Mix candle control, mobility and fast pick conversions with recovery choices. Use the full authored kit and gameplan at the same CPU skill.
+
 
 Build order is a recommendation, not permission to delete or overwrite ongoing work. Finish or checkpoint the current synchronization milestone before integrating new gameplay into that branch. A first overnight pass should finish one or two complete heroes and reusable move primitives; it should not report all fifteen finished because character-select entries exist.
 
@@ -400,6 +426,19 @@ ranged: 0-20
 specials: neutral 1-10, side 2-12, up 0-8, down 1-10
 ```
 
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: blademaster
+path: execution
+basic-moves: forward-tilt,down-tilt,neutral-air
+```
+
+Basic gameplan: Poke with grounded tilts and use a neutral aerial on simple jumps. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Time dash-dancing, sword confirms and aerial routes into the right finisher. Use the full authored kit and gameplan at the same CPU skill.
+
+
 ## Mountain King
 
 **Identity:** a compact heavy whose hammer, axe, and deliberate stun setups reward close reads. He has strong burst force and a projectile, but poor chase and limited air drift. No random Bash.
@@ -475,6 +514,19 @@ ranged: 0-20
 specials: neutral 3-15, side 1-10, up 0-8, down 1-10
 ```
 
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: mountain-king
+path: mixed
+basic-moves: forward-tilt,down-tilt,neutral-special
+```
+
+Basic gameplan: Use safe axe pokes and a hammer throw, then return directly. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Mix hammer control, grabs, close confirms and charged kill windows. Use the full authored kit and gameplan at the same CPU skill.
+
+
 ## Warden
 
 **Identity:** light, mobile precision fighter using crescent blades and a punishable blink. Her escape options cost space and commitment; they cannot erase a bad attack. Fan of Knives gives close coverage rather than full-screen zoning.
@@ -547,6 +599,19 @@ approach: 55-85
 ranged: 0-15
 specials: neutral 2-12, side 3-15, up 0-8, down 1-10
 ```
+
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: warden
+path: execution
+basic-moves: forward-tilt,side-special,neutral-air
+```
+
+Basic gameplan: Poke, throw a simple knife and use a neutral aerial. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Cross up with blinks and vary knife pressure, drills and directional finishers. Use the full authored kit and gameplan at the same CPU skill.
+
 
 ## Pandaren Brewmaster
 
@@ -686,6 +751,19 @@ ranged: 30-70
 specials: neutral 5-25, side 5-25, up 0-8, down 3-15
 ```
 
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: lich
+path: decision
+basic-moves: neutral-special,side-special,forward-smash
+```
+
+Basic gameplan: Shoot the two frost tools and smash only close targets. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Choose frost placement, shield pressure and ranged confirms for the opponent position. Use the full authored kit and gameplan at the same CPU skill.
+
+
 ## Forsaken Paladin
 
 **Identity:** a Forsaken Paladin with a substantial hammer, a short slowing
@@ -802,6 +880,19 @@ ranged: 0-15
 specials: neutral 1-10, side 2-12, up 0-8, down 1-10
 ```
 
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: dreadlord
+path: mixed
+basic-moves: neutral-air,forward-air,side-special
+```
+
+Basic gameplan: Approach with simple aerials and one rush. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Mix sleep, grabs, cross-up rushes and conversion routes. Use the full authored kit and gameplan at the same CPU skill.
+
+
 ## Shadow Hunter
 
 **Identity:** Rokhan-inspired trap and angle specialist with a glaive, a destructible serpent ward, and brief hex pressure. His zoning is built from placed threats and traps. He retains functional normals when his setup is gone.
@@ -863,6 +954,19 @@ approach: 35-65
 ranged: 15-50
 specials: neutral 3-15, side 2-12, up 0-8, down 3-15
 ```
+
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: shadow-hunter
+path: decision
+basic-moves: forward-tilt,side-special,neutral-special
+```
+
+Basic gameplan: Use a spear poke and the two simple ranged tools. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Time wards, healing and hex to control space and create a conversion. Use the full authored kit and gameplan at the same CPU skill.
+
 
 ## Pit Lord
 
@@ -1327,6 +1431,19 @@ ranged: 0-20
 specials: neutral 2-12, side 2-12, up 0-8, down 2-12
 ```
 
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: lich-king
+path: mixed
+basic-moves: forward-tilt,neutral-special,neutral-air
+```
+
+Basic gameplan: Use sword pokes and a simple ranged strike. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Combine ground control, grabs and sword confirms into planned finishers. Use the full authored kit and gameplan at the same CPU skill.
+
+
 ## Original fighters
 
 Rifleman and Illidan were built before this specification. Their kits live in
@@ -1375,6 +1492,19 @@ ranged: 25-65
 specials: neutral 8-30, side 3-15, up 0-8, down 2-12
 signature: side-special 50
 ```
+
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: rifleman
+path: decision
+basic-moves: neutral-special,down-tilt,neutral-air
+```
+
+Basic gameplan: Keep shots simple, poke nearby targets and recover with up special. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Place and recall the bear, trap routes and cover jumps while varying shot pressure. Use the full authored kit and gameplan at the same CPU skill.
+
 
 ### Illidan
 
@@ -1713,6 +1843,19 @@ ranged: 0-0
 specials: neutral 2-15, side 10-30, up 0-10, down 2-15
 ```
 
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: grom-hellscream
+path: execution
+basic-moves: forward-tilt,down-tilt,neutral-air
+```
+
+Basic gameplan: Poke with the axe and use simple neutral aerials. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Time war-cry pressure, rush confirms and leap routes into axe kills. Use the full authored kit and gameplan at the same CPU skill.
+
+
 Stock campaign Grom model, textures, portrait, cries and Orc spell effects
 are the first inputs. Authored clips reshape that stock rig to make each
 contact point readable in Classic and Definitive; no third-party model.
@@ -1778,6 +1921,19 @@ approach: 20-50
 ranged: 15-45
 specials: neutral 5-20, side 3-15, up 0-8, down 3-15
 ```
+
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: anub'arak
+path: decision
+basic-moves: forward-tilt,down-tilt,neutral-special
+```
+
+Basic gameplan: Use claw pokes and simple impales. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Choose burrow approaches, beetle pressure and impale/grab conversion routes. Use the full authored kit and gameplan at the same CPU skill.
+
 
 ## Fighter identity audit (#148, Tom 9 Oct 2026)
 
@@ -1871,3 +2027,15 @@ approach: 20-40
 ranged: 10-25
 specials: neutral 5-20, side 10-25, up 0-10, down 0-15
 ```
+
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: medivh
+path: mixed
+basic-moves: neutral-special,forward-tilt,neutral-air
+```
+
+Basic gameplan: Use staff pokes and a simple spell. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Choose and execute blink/raven movement, aerial routes and spell conversions. Use the full authored kit and gameplan at the same CPU skill.

@@ -1,5 +1,10 @@
 # TypeScript in Smashcraft
 
+`bun scripts/cpuCeiling.ts --pairs a:b --depth a,b --json FILE` measures the
+Expert personality panel and final skill profiles. `--merge FILES --baseline
+field.json --report TABLE.md` prints the #358 verdicts against the frozen Wren
+field. `bun wisp farm balance` runs these shards after its field and spam probes.
+
 Historical fixture notes below retain Archer only where they describe captures before the 9 October 2026 roster cut (#339); she is absent from the current roster.
 
 ## JSON soak results

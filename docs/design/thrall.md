@@ -127,3 +127,15 @@ approach: 45-75
 ranged: 0-20
 specials: neutral 2-12, side 2-12, up 0-8, down 2-12
 ```
+
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: thrall
+path: decision
+basic-moves: forward-tilt,neutral-special,neutral-air
+```
+
+Basic gameplan: Poke with the hammer and throw lightning. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Vary lightning, wolves and ground control and time charged commitments. Use the full authored kit and gameplan at the same CPU skill.

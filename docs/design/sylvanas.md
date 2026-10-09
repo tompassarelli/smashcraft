@@ -162,3 +162,15 @@ approach: 25-55
 ranged: 25-65
 specials: neutral 5-25, side 3-15, up 0-8, down 2-12
 ```
+
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: sylvanas-windrunner
+path: mixed
+basic-moves: forward-tilt,neutral-special,neutral-air
+```
+
+Basic gameplan: Poke and shoot from a steady range. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Mix mobility, traps, silence and ranged confirms with close punish routes. Use the full authored kit and gameplan at the same CPU skill.

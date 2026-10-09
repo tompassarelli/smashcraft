@@ -130,3 +130,15 @@ approach: 20-50
 ranged: 30-70
 specials: neutral 5-25, side 3-15, up 0-8, down 3-15
 ```
+
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: jaina-proudmoore
+path: decision
+basic-moves: neutral-special,side-special,neutral-air
+```
+
+Basic gameplan: Use simple frost shots and a neutral aerial. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Place blizzard and freeze traps to force escapes and finish them. Use the full authored kit and gameplan at the same CPU skill.

@@ -422,7 +422,7 @@ function weightedOption(gameplan: Readonly<FighterGameplan> | undefined, planInd
  */
 export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, ranged: boolean, input: Controls, commands: AttackBuffer, slot = -1, planIndex: number = SPACE_PLAN, skill: CpuSkill = FULL_SKILL, observationAge = 0, decision?: AttackDecision): boolean {
   passedForVariety = false;
-  const gameplan = gameplanOf(f.character);
+  const gameplan = gameplanOf(f.character, skill.basicMoves);
   const dx = aheadX(f, target, 0, undefined, observationAge, stage, matchFrame);
   const gap = Math.abs(dx);
   const toward = dx === 0 ? f.facing : dx > 0 ? 1 : -1;
@@ -469,7 +469,7 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
   // Let the shield walk-in reach grab range instead of stopping it with repeated long normals.
   if (wantsGrab && !grabReaches) return false;
   // A misplay throws any normal near the target, in reach or not.
-  if (canAttack(f) && gap <= MISPLAY_GAP && botChance(frame, f.attack.serial * 11 + f.character + 5, skill.misplay, 100)) {
+  if (skill.basicMoves === undefined && canAttack(f) && gap <= MISPLAY_GAP && botChance(frame, f.attack.serial * 11 + f.character + 5, skill.misplay, 100)) {
     const moves = f.motion.grounded ? GROUND_MOVES : AERIALS;
     perform(f, target, at(moves, botChoice(frame, f.attack.serial * 3 + f.character, moves.length)), frame, input, commands, observationAge, stage, matchFrame);
     return true;
@@ -477,15 +477,23 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
   if (canAttack(f)) count = addCloseSpecials(f, target, stage, count, observationAge);
   const close = count;
   if (canAttack(f)) count = addShots(f, target, stage, count, observationAge);
+  if (skill.basicMoves !== undefined) {
+    let kept = 0;
+    for (let index = 0; index < count; index++) {
+      const option = at(options, index);
+      if (skill.basicMoves.includes(gameplanMoveOf(f, option))) options[kept++] = option;
+    }
+    count = kept;
+  }
   if (count === 0 || (close === 0 && !ranged)) return false;
   if (decision !== undefined && nothingFresh(decision.strategy, count, frame)) {
     passedForVariety = true;
     return false;
   }
-  const grabbing = skill.grabsShields && target.shield.raised && f.motion.grounded && grabReaches;
+  const grabbing = skill.basicMoves === undefined && skill.grabsShields && target.shield.raised && f.motion.grounded && grabReaches;
   // Running in, the dash attack when it reaches.
   const kit = botChance(frame, f.attack.serial * 13 + f.character + 3, skill.kitTenths, 10);
-  const dashIn = kit && dashing && f.motion.grounded && !target.shield.raised && dashReaches && botChoice(frame, f.attack.serial * 5 + f.character, 2) === 0;
+  const dashIn = skill.basicMoves === undefined && kit && dashing && f.motion.grounded && !target.shield.raised && dashReaches && botChoice(frame, f.attack.serial * 5 + f.character, 2) === 0;
   const familiar = decision === undefined ? undefined : familiarOption(options, count, f, frame, decision);
   const option = grabbing ? AttackStyle.grab
     : dashIn ? AttackStyle.jab

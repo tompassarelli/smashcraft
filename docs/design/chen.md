@@ -114,3 +114,15 @@ approach: 40-70
 ranged: 0-20
 specials: neutral 2-12, side 2-12, up 0-8, down 2-12
 ```
+
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: chen-stormstout
+path: mixed
+basic-moves: forward-tilt,down-tilt,neutral-air
+```
+
+Basic gameplan: Use grounded pokes and a neutral aerial. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Manage drink commitments and mix flame routes, close confirms and recovery. Use the full authored kit and gameplan at the same CPU skill.

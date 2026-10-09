@@ -143,6 +143,19 @@ ranged: 0-20
 specials: neutral 3-15, side 3-15, up 0-8, down 2-12
 ```
 
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: murloc
+path: execution
+basic-moves: forward-tilt,down-tilt,neutral-air
+```
+
+Basic gameplan: Use quick pokes and simple neutral aerials. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Link fast movement, bubbles, aerial pressure and slippery recovery routes. Use the full authored kit and gameplan at the same CPU skill.
+
+
 ## Balance record
 
 First seeded Wren Expert field (e5709fe6, 400 a pair against all 21

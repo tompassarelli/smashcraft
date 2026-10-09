@@ -35,6 +35,14 @@ export const PUNISH_RESET_FRAMES = 45;
 /** A lone hit is an opening, not a poke, when it leaves the victim unable to act this many frames. */
 export const DISADVANTAGE_FRAMES = 30;
 
+/** Draft depth/headroom margins; #358 fixes the win bands and sample counts. */
+export const CEILING_SPEC = {
+  panelLow: 0.45, panelHigh: 0.55, personalityLow: 0.40, personalityHigh: 0.60,
+  bestFitMin: 1, bestFitMaxShare: 0.5, depthMargin: 0.05,
+  axisMajority: 0.6, mixedGainMin: 0, ceilingLow: 0.45, ceilingHigh: 0.55,
+  headroomTolerance: 0.10, wrenPerPair: 400, panelPerPair: 100, finalPerPair: 25, depthMatches: 100,
+} as const;
+
 /** Each score term's weight, initial values (balance.md, "Balance score"). */
 export const SCORE_WEIGHTS = { win: 1, profile: 0.5, variety: 1, spam: 1, probe: 1, openings: 10, recovery: 1 } as const;
 

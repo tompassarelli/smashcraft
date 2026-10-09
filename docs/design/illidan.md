@@ -373,3 +373,15 @@ approach: 55-85
 ranged: 0-15
 specials: neutral 2-12, side 3-15, up 0-8, down 2-12
 ```
+
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: illidan
+path: execution
+basic-moves: forward-tilt,forward-air,neutral-air
+```
+
+Basic gameplan: Walk into tilt range, use a forward aerial and save jumps for recovery. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Chain dash approaches, cross-ups and aerial pressure with timed recovery mixups. Use the full authored kit and gameplan at the same CPU skill.

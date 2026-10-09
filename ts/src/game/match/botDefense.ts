@@ -184,7 +184,7 @@ function respond(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number,
   // A shield pushed back at the edge can slide off it: dodge there instead.
   const cornered = !safeAt(stage, f32(f.motion.x + f32(away * PUSHBACK_ROOM)), 0.0);
   if (choice >= skill.defendTenths) return Response.none;
-  const gameplan = gameplanOf(f.character);
+  const gameplan = gameplanOf(f.character, skill.basicMoves);
   const planned = gameplan === undefined ? undefined : defenseOption(gameplan, botChoice, threat.serial, f.visuals.hit * 7 + f.character);
   if (planned !== undefined) return plannedResponse(f, planned, cornered);
   // A hero's guard or stance, when its window meets the threat, takes the choices a parry would.

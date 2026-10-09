@@ -86,3 +86,15 @@ approach: 45-75
 ranged: 5-30
 specials: neutral 2-12, side 2-12, up 0-8, down 2-12
 ```
+
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: pit-lord
+path: decision
+basic-moves: forward-tilt,side-special,neutral-air
+```
+
+Basic gameplan: Use cleave range and a direct rush. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Commit armor and fire zoning at the right moment and choose kill routes. Use the full authored kit and gameplan at the same CPU skill.

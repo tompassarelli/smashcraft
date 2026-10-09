@@ -256,3 +256,41 @@ cpuField `--json` files: `bun scripts/cpuField.ts --merge FIELD_SHARDS
 --probe PROBE_FILES`; one fighter's probe is `bun scripts/cpuField.ts
 --probe-fighter SLUG --from FIELD.json --per-pair 40 --seeds 100 --json
 OUT.json`.
+
+## Player panel and equal skill ceilings (#358)
+
+Every fighter targets a 45–55% mean over all six Expert personalities, with
+an equal vote for Rook, Ember, Flint, Vale, Kite and Wren. Each personality's
+fighter rate must be 40–60%. Each personality must share first place on at
+least 1 fighter, and on at most 50% of the roster; ties count for every tied
+personality. Wren keeps 400 matches a pair; the other five use 100.
+
+Each fighter's `ceiling-plan` block is a **draft for Tom to correct**. Its
+basic gameplan uses the named subset, one approach and shield, without combo
+routes, advanced kit sequences or read-based punishes. Its expert gameplan
+uses the full authored plan at the same mechanical and judgment skill. Expert
+must win at least 55% (a fixed 5 percentage point depth margin) over basic in
+100 mirror matches, with both sides measured equally.
+
+Final skill profiles run 25 matches a pair. Perfect execution removes tech,
+DI, SDI, hop and aerial drift slips and uses 100% execution with full kit
+reliability. Perfect judgment removes judgment, spacing, guess and repeated
+answer mistakes, idle stretches and punish misjudgments. It keeps personality
+preferences, human observation delays and the shared move-value estimate;
+that estimate is fallible, so this is a mistake-free judgment profile, not an
+omniscient opponent. The ceiling combines both improvements.
+
+The execution and judgment gains are measured against the same fixed Wren
+Expert field, as is Advanced-to-ceiling headroom. An `execution` or `decision`
+path needs at least 60% of the positive single-axis gains on its named axis;
+there must be a positive gain. `mixed` needs a gain above 0 on each axis.
+Ceiling versus ceiling targets 45–55% for every fighter. Each fighter's
+Advanced-to-ceiling gain must be positive and within 10 percentage points of
+the roster median. The depth margin, axis majority and headroom tolerance are
+initial draft values; `CEILING_SPEC` in balance.ts owns every number here.
+
+`bun wisp farm balance` runs the panel after the existing Wren field and spam
+probes, using at most eight hosted jobs at once. The final table prints panel,
+diversity, depth, declared path, ceiling and headroom pass/fail verdicts. Missing
+samples fail completeness; no kit is retuned by the measurement. The profile
+runner reports actual process CPU (user plus system) for production matches.

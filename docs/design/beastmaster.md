@@ -116,3 +116,15 @@ approach: 35-65
 ranged: 15-50
 specials: neutral 3-15, side 3-15, up 0-8, down 2-12
 ```
+
+Path draft for Tom to correct (#358):
+
+```ceiling-plan
+fighter: beastmaster
+path: decision
+basic-moves: forward-tilt,down-tilt,neutral-special
+```
+
+Basic gameplan: Poke with axes and use a simple axe throw. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
+
+Expert gameplan: Position summons, choose pressure routes and cover the opponent escape. Use the full authored kit and gameplan at the same CPU skill.
