@@ -255,14 +255,16 @@ interface Portrait { readonly elapsed: number; readonly yaw: number; readonly an
  * face in shadow that leaves the match's lighting alone), `body` (turn and
  * frame by the body, as for heads too small to place a face), `bones`
  * (joints turned for the portrait only, withBones) and `rest` (the rig's bind
- * pose, bindPose, for a rig whose every Stand clip hides the face) and `flipped`
+ * pose, bindPose, for a rig whose every Stand clip hides the face), `shift` (the
+ * crops moved right and down by these head sizes, centring a lopsided silhouette) and `flipped`
  * (the head bone's local up axis points down on screen, so the upright check reverses it).
  */
-interface Correction { readonly rest?: boolean; readonly turn?: number; readonly elapsed?: number; readonly angle?: number; readonly zoom?: number; readonly level?: boolean; readonly lift?: number; readonly body?: boolean; readonly flipped?: boolean; readonly bones?: Readonly<Record<string, readonly [number, number, number]>> }
+interface Correction { readonly rest?: boolean; readonly turn?: number; readonly elapsed?: number; readonly angle?: number; readonly zoom?: number; readonly level?: boolean; readonly lift?: number; readonly body?: boolean; readonly flipped?: boolean; readonly shift?: readonly [number, number]; readonly bones?: Readonly<Record<string, readonly [number, number, number]>> }
 const CORRECTIONS: Readonly<Record<'classic' | 'definitive', Readonly<Record<string, Correction>>>> = {
   classic: {
     "Anub'arak": { zoom: 0.6, lift: 2.6, angle: -30 },
-    Lich: { lift: 1.3 },
+    Lich: { lift: 1.3, zoom: 1.2 },
+    Murloc: { zoom: 1.2, shift: [0.14, 0] },
     PitLord: { lift: 1.3 },
     MalfurionStormrage: { lift: 1.3 },
   },
@@ -276,7 +278,9 @@ const CORRECTIONS: Readonly<Record<'classic' | 'definitive', Readonly<Record<str
     "Kael'thasSunstrider": { angle: 15, turn: 30 },
     CairneBloodhoof: { elapsed: 30.5, angle: 20, zoom: 1.5 },
     "Anub'arak": { flipped: true },
-    Murloc: { rest: true, body: true, zoom: 0.5, bones: { bone_head: [0, -20, 0] } },
+    Lich: { zoom: 1.2 },
+    JainaProudmoore: { zoom: 1.2 },
+    Murloc: { rest: true, body: true, zoom: 0.7, shift: [0.3, 1.6], bones: { bone_head: [0, -20, 0] } },
   },
 };
 const correctionOf = (graphics: 'classic' | 'definitive', character: number): Correction => CORRECTIONS[graphics][fighterRenderName(character)] ?? {};
@@ -488,13 +492,14 @@ const TGA = ['-depth', '8', '-compress', 'none'];
  * tiles and busts frame head and shoulders around the head mesh (headBox), stock
  * icons the head alone; without a head, the silhouette's top sixth stands in.
  */
-function crops(raw: string, directory: string, name: string, suffix: string, kinds: readonly PortraitKind[], found: Head | undefined, zoom: number): boolean {
+function crops(raw: string, directory: string, name: string, suffix: string, kinds: readonly PortraitKind[], found: Head | undefined, zoom: number, shift: readonly [number, number] = [0, 0]): boolean {
   const box = run(['magick', raw, '-alpha', 'extract', '-threshold', '10%', '-format', '%@', 'info:']).trim();
   const bounds = box.match(/(\d+)x(\d+)\+(\d+)\+(\d+)/);
   if (bounds === null) throw new Error(`${raw}: nothing drawn`);
   const w = Number(item(bounds, 1)), h = Number(item(bounds, 2)), x = Number(item(bounds, 3)), y = Number(item(bounds, 4));
   const band = run(['magick', raw, '-alpha', 'extract', '-threshold', '10%', '-crop', `${RESOLUTION}x${Math.max(1, Math.round(h / 10))}+0+${y}`, '+repage', '-format', '%@', 'info:']).trim().match(/(\d+)x\d+\+(\d+)\+/);
-  const head = found ?? { x: band === null ? x + w / 2 : Number(band[2]) + Number(band[1]) / 2, y: y + h / 12, size: h / 6 };
+  const placed = found ?? { x: band === null ? x + w / 2 : Number(band[2]) + Number(band[1]) / 2, y: y + h / 12, size: h / 6 };
+  const head = { ...placed, x: placed.x + shift[0] * placed.size, y: placed.y + shift[1] * placed.size };
   const window = (side: number, above: number) => {
     const size = Math.round(Math.max(64, Math.min(RESOLUTION, side)));
     return { size, left: Math.max(0, Math.min(RESOLUTION - size, Math.round(head.x - size / 2))), top: Math.max(0, Math.min(RESOLUTION - size, Math.round(head.y - size * above))) };
@@ -609,7 +614,7 @@ await Effect.runPromise(Effect.gen(function*() {
       // The grid keeps the neutral tile; the slot outfits carry every kind (MAP_PORTRAITS).
       const scene = required(scenes.get(frame), 'scene'), body = at(scene.effects, 0);
       const bytes = (yield* Effect.promise(() => project.resolveAsset(body.model, graphics))).bytes;
-      if (!crops(raw, into, name, suffix, kinds ?? (variant === 0 ? ['Tile'] : PORTRAIT_KINDS), bytes === undefined || required(poses.get(character), 'pose').body ? undefined : headBox(bytes, scene, required(heights.get(character), 'height'), correctionOf(graphics, character).flipped), required(poses.get(character), 'pose').zoom)) upsideDown.push(`${graphics} ${name}${suffix}`);
+      if (!crops(raw, into, name, suffix, kinds ?? (variant === 0 ? ['Tile'] : PORTRAIT_KINDS), bytes === undefined || required(poses.get(character), 'pose').body ? undefined : headBox(bytes, scene, required(heights.get(character), 'height'), correctionOf(graphics, character).flipped), required(poses.get(character), 'pose').zoom, correctionOf(graphics, character).shift)) upsideDown.push(`${graphics} ${name}${suffix}`);
       return raw;
     };
     // Each pass's P1 bust is drawn alone; every lighting variant, exposed to the
