@@ -5,15 +5,17 @@ import { fixtureOf, frameStamp } from "../scripts/nativeCapture";
 /** The stamp's colors as Warcraft draws its team color textures. */
 const RGB: Readonly<Record<StampCell, readonly [number, number, number]>> = { one: [255, 3, 3], zero: [0, 66, 255], guard: [32, 192, 0] };
 
-function painted(width: number, height: number, script: number, frame: number) {
-  const rgb = new Uint8Array(width * height * 3).fill(90);
+/** A game area `width` by `height` at the top left of a desktop `margin` pixels larger each way. */
+function painted(width: number, height: number, script: number, frame: number, margin = 0) {
+  const desktop = width + margin;
+  const rgb = new Uint8Array(desktop * (height + margin) * 3).fill(90);
   const scale = height / 0.6;
   const left = (width - 0.8 * scale) / 2;
   const side = STAMP_CELL * scale;
   stampCells(script, frame).forEach((cell, index) => {
-    for (let y = 0; y < Math.floor(side); y++) for (let x = Math.ceil(left + index * side); x < Math.floor(left + (index + 1) * side); x++) rgb.set(RGB[cell], (y * width + x) * 3);
+    for (let y = 0; y < Math.floor(side); y++) for (let x = Math.ceil(left + index * side); x < Math.floor(left + (index + 1) * side); x++) rgb.set(RGB[cell], (y * desktop + x) * 3);
   });
-  return { width, height, rgb };
+  return { width: desktop, height: height + margin, rgb };
 }
 
 // The map paints what the host reads; a capture without the stamp, or with a cell flipped, names no frame.
@@ -28,6 +30,15 @@ test("a capture's drawn stamp names the fixture and frame the map painted, at 10
   const y = Math.round(0.5 * STAMP_CELL * scale);
   for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) flipped.rgb.set(flipped.rgb[((y + dy) * 1920 + x + dx) * 3] === 255 ? RGB.zero : RGB.one, ((y + dy) * 1920 + x + dx) * 3);
   expect(frameStamp(flipped)).toBeUndefined();
+});
+
+// The pool's 1280x720 window sits at the top left of a 1320x760 desktop; the reader placed cells from the whole capture's size and missed them.
+test("a stamp reads in a pool window smaller than its desktop and under the KO flash's white wash [repro wisp#79]", () => {
+  const pool = painted(1280, 720, 2, 410, 40);
+  expect(frameStamp(pool)).toEqual({ script: 2, frame: 410 });
+  // The KO flash blends white at 117/255 over the whole screen, the stamp included (koFlash.ts).
+  for (let index = 0; index < pool.rgb.length; index++) pool.rgb[index] = Math.round((pool.rgb[index] ?? 0) * (1 - 117 / 255) + 117);
+  expect(frameStamp(pool)).toEqual({ script: 2, frame: 410 });
 });
 
 test("a fixture holds each capture frame of its pad script once [spec AGENTS.md]", () => {
