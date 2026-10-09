@@ -191,6 +191,17 @@ for (const hero of HERO_ROSTER) {
   });
 }
 
+test("a match ends the same after a match between other heroes in the same process [invariant]", () => {
+  const play = (characters: readonly [Character, Character]): string => {
+    const game = computerMatch(characters, [-240.0, 240.0], 0, 3, 33331);
+    heroUsage(game, 1, 600);
+    return stateChecksum(game);
+  };
+  const fresh = play([Character.rifleman, Character.kaelthas]);
+  play([Character.thrall, Character.rifleman]);
+  assertEquals(play([Character.rifleman, Character.kaelthas]), fresh);
+});
+
 test("a frozen computer mashes out of the freeze at a human pace [spec #114]", () => {
   // Ten presses a second (botPlay.ts) thaw it after the 60-frame floor and before the freeze runs out.
   for (const character of [Character.rifleman, Character.demonHunter]) {

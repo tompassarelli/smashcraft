@@ -17,7 +17,7 @@ src/game/match/botExecutionNoise.tests.ts	3	2492000	3823
 src/game/match/botGameplan.tests.ts	6	57000	249
 src/game/match/botHorizontalForecast.tests.ts	5	16830000	75576
 src/game/match/botKitOptions.tests.ts	1	2000	1
-src/game/match/botPlayContracts.tests.ts	7	339539000	108250
+src/game/match/botPlayContracts.tests.ts	8	451982000	135537
 src/game/match/botPunishContracts.tests.ts	6	27583000	58314
 src/game/match/botReachContracts.tests.ts	2	26908000	7520
 src/game/match/botReactionContracts.tests.ts	5	13137000	51027

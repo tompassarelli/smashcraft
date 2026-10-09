@@ -104,14 +104,14 @@ const LAVA_BUBBLE_FRAMES = 20;
 export function lavaLook(stage: number, frame: number): Readonly<LavaLook> {
   const phase = lavaPhase(stage, frame);
   look.red = 255;
+  look.green = 255;
+  look.blue = 255;
   if (phase === LavaPhase.calm) {
     look.alpha = 0;
     return look;
   }
   if (phase === LavaPhase.erupting) {
     look.alpha = 255;
-    look.green = 255;
-    look.blue = 255;
     return look;
   }
   const into = floorMod(floorMod(frame - 1, LAVA_CYCLE_FRAMES), LAVA_SIDE_FRAMES) - LAVA_CALM_FRAMES;
