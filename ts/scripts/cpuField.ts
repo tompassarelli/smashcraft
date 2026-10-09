@@ -18,6 +18,7 @@ import { captureFrame, createMatchFrameInput, executeMatchFrame } from "../src/g
 import { createPacingAndPresentation } from "../src/game/match/pacingAndPresentation";
 import { MATCH_TICKS_PER_SECOND, Phase, createMatchState, setParticipants } from "../src/game/match/rules";
 import { initializeMatchFighters, matchSpawnX } from "../src/game/match/step";
+import { scheduleMeterDrops } from "../src/game/match/meterDrops";
 import { produceComputerInput } from "../src/game/match/botPlay";
 import { isCpuOpponent, isCpuTier, type CpuOpponentId, type CpuTier } from "../src/game/match/cpuProfiles";
 import { gameplanOf } from "../src/game/match/botGameplan";
@@ -157,6 +158,11 @@ export interface MatchRecord {
   readonly timedOut: boolean;
   readonly frames: number;
   readonly sides: readonly [SideRecord, SideRecord];
+
+  readonly apartFrames: number;
+  readonly apartOnStageFrames: number;
+  readonly bothInFrames: number;
+  readonly dropsTaken: readonly [number, number];
 }
 
 export interface FieldOptions {
@@ -178,6 +184,8 @@ export interface FieldOptions {
   readonly tiers?: readonly [CpuTier, CpuTier];
 
   readonly spam?: Readonly<Partial<Record<string, number>>>;
+
+  readonly drops?: boolean;
 }
 
 interface Watch {
@@ -258,6 +266,9 @@ function closePunish(totals: PunishTotals, punish: Punish, kill: boolean): void 
 const NEUTRAL = neutralControls();
 
 
+const onMainDeck = (f: Readonly<Fighter>, stage: number): boolean =>
+  f.motion.x >= mainDeckLeft(stage) && f.motion.x <= mainDeckRight(stage) && f.motion.z >= 0.0;
+
 export function playCpuMatch(a: Character, b: Character, stageName: string, variant: number, options: FieldOptions = {}, seed = 0): MatchRecord | undefined {
   const stage = FIELD_STAGES[stageName];
   if (stage === undefined) throw new Error(`no stage named ${stageName}`);
@@ -282,6 +293,8 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
   match.timeLimitMinutes = options.minutes ?? 4;
   match.remainingFrames = match.timeLimitMinutes * 60 * MATCH_TICKS_PER_SECOND;
   match.phase = Phase.match;
+  match.drops.on = options.drops === true;
+  scheduleMeterDrops(match);
   const world = createRoster(3, [createFighter(a, xs[0], 1), createFighter(b, xs[1], -1)]);
   const controls = createFrameControls();
   const produced = createFrameControls();
@@ -296,6 +309,12 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
   const sides: [SideRecord, SideRecord] = [side(a), side(b)];
   const watches = [watchOf(fighterAt(world, 0)), watchOf(fighterAt(world, 1))] as const;
   const limit = (match.timeLimitMinutes * 60 + 5) * MATCH_TICKS_PER_SECOND;
+  const halfStage = f32(f32(mainDeckRight(stage) - mainDeckLeft(stage)) * 0.5);
+  let apartFrames = 0;
+  let apartOnStageFrames = 0;
+  let bothInFrames = 0;
+  let pickups = 0;
+  const takes: [number, number] = [0, 0];
   let frame = 0;
   while (match.phase === Phase.match && frame < limit) {
     frame = runtime.simulationFrame + 1;
@@ -308,6 +327,18 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
     }
     if (!captureFrame(row, frame, world.mask, produced, runtime)) throw new Error(`capture refused frame ${frame}`);
     if (!executeMatchFrame(row, match, world, controls, runtime, frame)) throw new Error(`execution refused frame ${frame}`);
+    if (match.drops.pickupSerial !== pickups) {
+      pickups = match.drops.pickupSerial;
+      if (match.drops.lastTaker === 0 || match.drops.lastTaker === 1) takes[match.drops.lastTaker]++;
+    }
+    const first = fighterAt(world, 0), second = fighterAt(world, 1);
+    if (!first.status.out && !second.status.out) {
+      bothInFrames++;
+      if (Math.abs(f32(first.motion.x - second.motion.x)) > halfStage) {
+        apartFrames++;
+        if (onMainDeck(first, stage) && onMainDeck(second, stage)) apartOnStageFrames++;
+      }
+    }
     for (const slot of [0, 1] as const) {
       const f = fighterAt(world, slot);
       const seen = watches[slot];
@@ -399,6 +430,7 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
   return {
     stage: stageName, variant, seed, opponents, tiers, skillOverrides: options.skills, fighters: [sides[0].fighter, sides[1].fighter],
     winner: match.winner === 0 || match.winner === 1 ? match.winner : null, timedOut: match.timedOut, frames: frame, sides,
+    apartFrames, apartOnStageFrames, bothInFrames, dropsTaken: takes,
   };
 }
 

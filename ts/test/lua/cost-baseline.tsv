@@ -42,6 +42,7 @@ src/game/match/knockdownInputContracts.tests.ts	6	85704000	54593
 src/game/match/ledgeCatchContracts.tests.ts	5	23622000	4482
 src/game/match/ledgeGrabContracts.tests.ts	1	11289000	7297
 src/game/match/matchStepContracts.tests.ts	17	4913000	6547
+src/game/match/meterDrops.tests.ts	6	282210000	23788
 src/game/match/movingPlatformContracts.tests.ts	6	56063000	31835
 src/game/match/multiHitAerialContracts.tests.ts	7	130238000	14360
 src/game/match/offscreenInputContracts.tests.ts	3	16117000	10999

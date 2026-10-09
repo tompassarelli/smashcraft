@@ -13,7 +13,8 @@ import { exSpecialAffordable } from "../sim/exSpecials";
 import { Character, SpecialAction } from "../sim/codes";
 import { isSmashAttack } from "../sim/moves";
 import { type Controls, type Roster, copyControls, fighterAt, neutralControls } from "../sim/roster";
-import { surfacePass } from "../sim/stage";
+import { mainDeckLeft, mainDeckRight, surfacePass } from "../sim/stage";
+import { DROP_TELEGRAPH_FRAMES, contestedDropPoint, meterDropPoint } from "./meterDrops";
 import { type FighterGameplan, GameplanThrow } from "../sim/gameplan";
 import { SPACE_PLAN, avoids, gameplanGoal, gameplanOf, gameplanPlan, gameplanThrow, jumpsIn, keptGap, onAnotherDeck, plansRanged, spacingAerialAt } from "./botGameplan";
 import { steerInAir, steerOnGround } from "./botFooting";
@@ -133,6 +134,43 @@ function approachByGameplan(f: Readonly<Fighter>, target: Readonly<Fighter>, sta
   }
 }
 
+const DROP_STEP = 40.0;
+
+export function dropContest(game: Readonly<MatchState>, fighter: Readonly<Fighter>, slot: ParticipantSlot, skill: CpuSkill): number {
+  const { drops } = game;
+  const point = contestedDropPoint(drops, game.matchFrame);
+  if (point < 0 || game.training) return -1;
+  if (drops.point < 0 && game.matchFrame < drops.nextSpawnFrame - DROP_TELEGRAPH_FRAMES + skill.contestDelay) return -1;
+  return botChance(drops.draws, slot * 29 + fighter.character, skill.contestTenths, 10) ? point : -1;
+}
+
+function approachPoint(f: Readonly<Fighter>, stage: number, x: number, z: number, frame: number, input: Controls): void {
+  const { motion } = f;
+  const dx = f32(x - motion.x);
+  const dz = f32(z - motion.z);
+  if (!motion.grounded) {
+    steerInAir(f, stage, x, input);
+    if (dz > DROP_STEP && motion.vz < 0 && f.jump.remaining > 0 && Math.abs(dx) < 200) {
+      input.jumpPressed = true;
+      input.jumpHeld = true;
+    }
+    return;
+  }
+  steerOnGround(f, stage, x, input);
+  if (f.jump.squat > 0) {
+    input.jumpHeld = dz > DROP_STEP;
+    return;
+  }
+  if (motion.surface !== undefined && surfacePass(stage, motion.surface) && dz < -DROP_STEP) {
+    input.down = floorMod(frame, 8) < 4;
+    return;
+  }
+  if (dz > DROP_STEP && Math.abs(dx) < 260) {
+    input.jumpPressed = true;
+    input.jumpHeld = true;
+  }
+}
+
 function reactionDelay(game: Readonly<MatchState>, runtime: Readonly<BotRuntime>, fighter: Fighter, slot: ParticipantSlot, frame: number, skill: CpuSkill): number {
   const floor = cpuReactionFloor(fighter, skill);
   const cue = perceivedOpponent(runtime.botMemory, fighter, slot, frame, floor);
@@ -191,7 +229,8 @@ const negativeZero = (value: number): boolean => value === 0 && 1 / value < 0;
  * it did from `before`, so it decides the same. It reads the match seed, the
  * slot's identity and tier, training, the stage and its clock, the time
  * limit, the slot's own fighter, its perceived sample and committed
- * direction, its strategy and its attack delay; a new read joins this list.
+ * direction, its strategy, its attack delay and the meter drop it contests;
+ * a new read joins this list.
  * `fighterSame` says the slot's fighter is known to equal the earlier one.
  */
 export function sameComputerInputs(game: Readonly<MatchState>, world: Readonly<Roster>, runtime: Readonly<BotRuntime>, before: Readonly<MatchState>, beforeWorld: Readonly<Roster>, beforeRuntime: Readonly<BotRuntime>, slot: ParticipantSlot, frame: number, fighterSame = false): boolean {
@@ -203,6 +242,10 @@ export function sameComputerInputs(game: Readonly<MatchState>, world: Readonly<R
   if (game.timeLimitMinutes !== before.timeLimitMinutes || game.remainingFrames !== before.remainingFrames) return false;
   const fighter = fighterAt(world, slot);
   const skill = cpuSkill(opponent, tier);
+  useMatchSeed(game.matchSeed);
+  const contest = dropContest(game, fighter, slot, skill) === dropContest(before, fighterAt(beforeWorld, slot), slot, skill);
+  useMatchSeed(0);
+  if (!contest) return false;
   if (observationFrames(game, skill) !== observationFrames(before, skill)) return false;
   const delay = reactionDelay(game, runtime, fighter, slot, frame, skill);
   // With no delay the computer sees this frame's observation, which a rollback rewrites.
@@ -303,6 +346,8 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
     if (input.specialPressed || input.attackHeld) runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
     return;
   }
+  const targetOnStage = target.motion.x >= mainDeckLeft(stage) && target.motion.x <= mainDeckRight(stage) && target.motion.z >= 0.0;
+  const drop = targetOnStage ? dropContest(game, fighter, slot, skill) : -1;
   if (gameplan === undefined) {
     const plan = planFor(fighter, slot, frame);
     if (delay <= 0 && chooseAttack(fighter, target, stage, stageFrame, frame, plan === Plan.range, input, commands, slot, SPACE_PLAN, skill, observationAge, { strategy: runtime.botStrategies[slot], policy: skill.decision, game })) {
@@ -310,7 +355,8 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
       if (!fighter.motion.grounded) steerInAir(fighter, stage, target.motion.x, input);
       return;
     }
-    approach(fighter, target, stage, plan, frame, input);
+    if (drop >= 0) approachPoint(fighter, stage, meterDropPoint(stage, drop).x, meterDropPoint(stage, drop).z, frame, input);
+    else approach(fighter, target, stage, plan, frame, input);
     return;
   }
   const planIndex = gameplanPlan(gameplan, fighter, slot, frame, botChoice);
@@ -319,6 +365,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
     if (!fighter.motion.grounded) steerInAir(fighter, stage, gameplanGoal(gameplan, fighter, target, stage, gameplan.range.near), input);
     return;
   }
-  if (delay <= 0 && lastChoicePassedForVariety()) approach(fighter, target, stage, Plan.ground, frame, input);
+  if (drop >= 0) approachPoint(fighter, stage, meterDropPoint(stage, drop).x, meterDropPoint(stage, drop).z, frame, input);
+  else if (delay <= 0 && lastChoicePassedForVariety()) approach(fighter, target, stage, Plan.ground, frame, input);
   else approachByGameplan(fighter, target, stage, gameplan, slot, planIndex, frame, input, skill);
 }

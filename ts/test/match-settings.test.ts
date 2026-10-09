@@ -6,10 +6,11 @@ import { nextMatchSeed } from "../src/game/match/botRandom";
 import { randomStage } from "../src/game/menu/stageCatalog";
 
 import { beginRematchCountdown, copyMatchState, createMatchState, Phase, requestStageSelect, requestStart, setParticipants, stageClock, tickRematchCountdown } from "../src/game/match/rules";
-import { HAZARDS_BUTTON } from "../src/game/ui/stageUi";
+import { DROPS_BUTTON, HAZARDS_BUTTON } from "../src/game/ui/stageUi";
 import { stageAtRest } from "../src/game/sim/stage";
 
 import { RULE_BUTTONS } from "../src/game/ui/ruleButtons";
+import { DROP_TELEGRAPH_FRAMES, meterDropPoint } from "../src/game/match/meterDrops";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
 import { ALL_ITEMS_MASK, ItemKind, itemBit } from "../src/game/sim/codes";
 import { fighterAt } from "../src/game/sim/roster";
@@ -22,7 +23,7 @@ import { expectSynchronized, shows, value } from "./rematch/playableMatch";
 import { sweep } from "./sweep";
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
-function session(endless = false, hazardsOff = false) {
+function session(endless = false, hazardsOff = false, dropsOff = false) {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 74), keepCalls: 64 });
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id);
   helpers.workload = { denseCycles: 0, walkers: [0] };
@@ -58,6 +59,15 @@ function session(endless = false, hazardsOff = false) {
     for (const client of clients.clients) {
       expect(value(client, () => shell().game.hazards)).toBe(false);
       expect(shows(client, "Hazards: Off")).toBe(true);
+    }
+  }
+  for (const client of clients.clients) expect(shows(client, "Drops: On")).toBe(true);
+  if (dropsOff) {
+    expect(clients.click(0, DROPS_BUTTON.x + DROPS_BUTTON.width / 2, DROPS_BUTTON.y - DROPS_BUTTON.height / 2)).toBe(true);
+    frames(1);
+    for (const client of clients.clients) {
+      expect(value(client, () => shell().game.drops.on)).toBe(false);
+      expect(shows(client, "Drops: Off")).toBe(true);
     }
   }
   clients.press(0, Key.y);
@@ -187,3 +197,22 @@ test("item switches sync between players and keep their choices at match start [
   expectSettings(true, itemBit(ItemKind.extraJump));
   expectSynchronized(clients);
 });
+
+sweep("both clients see the same meter drop telegraph and appear at centre stage [spec #385] [invariant]", () => {
+  const { clients, read, until } = session(true);
+  const drops = () => ({ ...shell().game.drops });
+  until("drop telegraph", () => read(() => shell().game.drops.nextSpawnFrame !== 0 && shell().game.matchFrame >= shell().game.drops.nextSpawnFrame - DROP_TELEGRAPH_FRAMES), 2400);
+  until("drop appears", () => read(() => shell().game.drops.spawnSerial) >= 1, DROP_TELEGRAPH_FRAMES + 120);
+  until("both clients reach the spawn", () => clients.clients.every(client => value(client, () => shell().game.drops.spawnSerial) >= 1), 120);
+  const first = value(clients.client(0), drops);
+  for (const client of clients.clients) expect(value(client, drops).spawnSerial).toBe(first.spawnSerial);
+  expect(meterDropPoint(read(() => shell().game.stageChoice), 0).x).toBe(0.0);
+  expectSynchronized(clients);
+}, 60_000);
+
+test("the stage menu's Drops toggle turns meter drops off for both players [spec #385] [invariant]", () => {
+  const { clients, frames } = session(false, false, true);
+  frames(120);
+  for (const client of clients.clients) expect(value(client, () => ({ ...shell().game.drops }))).toMatchObject({ on: false, nextSpawnFrame: 0, spawnSerial: 0 });
+  expectSynchronized(clients);
+}, 30_000);

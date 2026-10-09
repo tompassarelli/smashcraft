@@ -45,6 +45,8 @@ export interface CpuSkill {
   readonly platformCancels: boolean;
   /** Frames it overestimates a punish window by, so a slow move it throws may come out after the opponent can act. */
   readonly punishMisjudge: number;
+  readonly contestTenths: number;
+  readonly contestDelay: number;
 }
 
 
@@ -64,6 +66,7 @@ function mechanics(profile: CpuProfile): CpuSkill {
     punishTenths: floorDiv(profile.judgmentPercent + 9, 10),
     punishMisjudge: floorDiv(100 - profile.spacingPercent, 5),
     platformCancels: profile.tier === "advanced" || profile.tier === "expert",
+    contestTenths: floorDiv(profile.judgmentPercent + 9, 10), contestDelay: profile.reactionFrames,
   };
 }
 

@@ -599,6 +599,31 @@ every fighter reaches every static platform with a jump and a double jump;
 smashcraft:ts/src/game/match/stageRecoveryContracts.tests.ts checks
 recovery to every stage.
 
+### Meter drop points
+
+Meter drops ([gameplay design](../gameplay-design.md#meter-drops-385))
+appear at these points, (x, height) in world units from the centre of the
+main deck. The first drop of a match is always the first point; later ones
+rotate through the list from a seeded start. Only static platforms centred
+within 150 units of the stage centre hold a point, so a fighter at any point
+is never more than half a stage from an opponent on the main deck.
+ts/test/meter-drop-points.test.ts checks this table against
+smashcraft:ts/src/game/match/meterDrops.ts.
+
+| Stage | Points |
+| --- | --- |
+| Frozen Throne | (0, 0), (0, 326) |
+| Nordrassil | (0, 0), (0, 309) |
+| Gryphon Aerie | (0, 0), (0, 252) |
+| Durotar Skies | (0, 0) |
+| Naxxramas | (0, 0) |
+| Hellfire Citadel | (0, 0) |
+| Blackrock | (0, 0), (0, 150) |
+| Ahn'Qiraj | (0, 0) |
+| Stratholme | (0, 21), (0, 276) |
+| Tomb of Sargeras | (0, 0) |
+| Sky Deck (test) | (0, 0) |
+
 ## Smashcraft decisions
 
 The questions this research raised about the flat arena, platform motion,

@@ -18,6 +18,7 @@ import { canonicalSlot, fighterMovesCanonical, fighterSpecialsCanonical } from "
 import { firstTrainingDifference } from "../match/trainingState";
 import { firstRunDifference } from "../classic/runState";
 import { firstItemsDifference } from "../match/items";
+import { firstMeterDropsDifference } from "../match/meterDrops";
 import { firstBotMemoryDifference, sameBotMemory } from "../match/botPerception";
 import { botStrategyValues, sameBotStrategy } from "../match/botStrategy";
 import type { MatchState } from "../match/rules";
@@ -471,6 +472,8 @@ function firstMatchDifference(e: Readonly<MatchState>, a: Readonly<MatchState>):
   if (e.startHold !== a.startHold) return "match.startHold";
   const items = firstItemsDifference(e.items, a.items);
   if (items !== undefined) return items;
+  const drops = firstMeterDropsDifference(e.drops, a.drops);
+  if (drops !== undefined) return drops;
   if (e.timedOut !== a.timedOut) return "match.timedOut";
   return undefined;
 }

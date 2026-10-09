@@ -34,6 +34,7 @@ import { type StageActions, StagePanel } from "../../game/ui/stageUi";
 import type { ShellState } from "./state";
 import { bindPrototype } from "../rebind";
 import { ItemPresentation } from "../../game/render/itemPresentation";
+import { MeterDropPresentation } from "../../game/render/meterDropPresentation";
 import { BodyFlash } from "../../game/render/bodyFlash";
 import { ClassicPresentation } from "../../game/render/classicPresentation";
 import { PauseMenu } from "../../game/ui/pauseMenu";
@@ -55,6 +56,7 @@ interface FighterRenderers {
 export interface UiObjects {
   pause: PauseMenu;
   items: ItemPresentation;
+  drops: MeterDropPresentation;
   readonly clock: MatchClock;
   readonly training: TrainingReadout;
   readonly huds: Slots<FighterHud>;
@@ -113,6 +115,7 @@ export function createUi(s: ShellState, actions: PanelActions): UiObjects {
   const ui: UiObjects = {
     pause: new PauseMenu(),
     items: new ItemPresentation(s.origin),
+    drops: new MeterDropPresentation(s.origin),
     clock: new MatchClock(),
     training: new TrainingReadout(),
     huds: each(slot => new FighterHud(slot, 4)),
@@ -186,6 +189,9 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
   const retainedItems: { readonly items?: ItemPresentation } = ui;
   if (retainedItems.items === undefined) ui.items = new ItemPresentation(s.origin);
   else bindPrototype(ui.items, ItemPresentation.prototype);
+  const retainedDrops: { readonly drops?: MeterDropPresentation } = ui;
+  if (retainedDrops.drops === undefined) ui.drops = new MeterDropPresentation(s.origin);
+  else bindPrototype(ui.drops, MeterDropPresentation.prototype);
   bindPrototype(ui.clock, MatchClock.prototype);
   bindPrototype(ui.training, TrainingReadout.prototype);
   for (const slot of PARTICIPANT_SLOTS) {

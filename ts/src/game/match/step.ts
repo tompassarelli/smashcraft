@@ -36,6 +36,7 @@ import type { FrameControls } from "./controls";
 import { copyFighterState } from "../replay/fighterState";
 import { type MatchState, Phase, advanceClock, holdingStart, humanFighterActive, keepsStocks, resolveStocks, stageClock } from "./rules";
 import { advanceItems } from "./centreItem";
+import { advanceMeterDrops } from "./meterDrops";
 
 import { bossClock, collectBossContacts, strikeBoss } from "../classic/bosses";
 import { applyConfiguredStart, settleConfiguredMatch, trackConfiguredFrame } from "../classic/configuredMatch";
@@ -192,6 +193,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   }
   advanceWater(world, stage, game.matchFrame, game.hazards);
   advanceItems(game, world, controls, frame);
+  advanceMeterDrops(game, world);
   advanceStageCannon(world, stage, stageFrame, controls.inputs);
 
   captureGrabPauses(world);

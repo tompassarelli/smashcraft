@@ -16,6 +16,7 @@ import type { HitEffect } from "../sim/hitRegions";
 import { type HurtPart, HurtState } from "../sim/hurtboxes";
 import { HERO_STATUS_GROUPS } from "../sim/codes";
 import { writeMatchItems } from "../match/items";
+import { writeMatchMeterDrops } from "../match/meterDrops";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
 import { writeTrainingState } from "../match/trainingState";
@@ -1139,6 +1140,7 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
   if (match.startHold !== 0) int("match.startHold", match.startHold);
   writeMatchItems(match.items, int, bool);
   if (match.ultimatesOff) bool("match.ultimatesOff", true);
+  writeMatchMeterDrops(match.drops, int, bool);
   bool("match.timedOut", match.timedOut);
   bool("match.practice", match.practice);
 

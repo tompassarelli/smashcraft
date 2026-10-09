@@ -507,6 +507,7 @@ export function lockArenaCamera(s: ShellState): void {
     SetCameraPosition(centerX, centerY);
   }
   views(s).items.present(game, world);
+  views(s).drops.present(game);
   for (const slot of PARTICIPANT_SLOTS) {
     const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
     const point = cameraPoint(framing, aspect, fighter?.motion.x ?? 0.0, (fighter?.motion.z ?? 0.0) + 60.0);

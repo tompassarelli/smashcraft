@@ -1,4 +1,5 @@
 import { scheduleMatchItems } from "../match/centreItem";
+import { scheduleMeterDrops } from "../match/meterDrops";
 
 
 
@@ -201,6 +202,7 @@ export function prepareQuickMatch(game: MatchState, stage = 0, character?: Chara
 
   game.startHold = 0;
   scheduleMatchItems(game);
+  scheduleMeterDrops(game);
   return true;
 }
 

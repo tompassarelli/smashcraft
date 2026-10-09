@@ -1808,6 +1808,81 @@ tuned from playtests; the first-grab 30 stays inside the #69 bound of 30 to 37.
 The ledge commitment lock, the computer's use of these options and the seeded win
 rate measurements are tracked in #386's remaining boxes.
 
+## Meter drops (#385)
+
+Owner direction, 9 Oct 2026: in a game with meter, meter is advantage, so give
+it a place on the stage. Meter energy appears at known stage points with a
+short telegraph, so players fight over a space instead of stalling; a player
+who runs away cedes the drop. It replaces a stalling penalty, adds no second
+meter and is not an item.
+
+### Precedent
+
+**MOBA runes and objectives.** Dota 2's power runes first spawn at 6:00 and
+then every 2 minutes at one of two river rune spots; an untaken rune
+disappears when the next one spawns
+([Liquipedia: Runes](https://liquipedia.net/dota2/Runes),
+[Hotspawn](https://www.hotspawn.com/?p=147428)). League of Legends' dragon
+spawns at 5:00 and 5:00 after each kill, in a fixed pit, and the next
+dragon's type is shown on the timer and the pit wall before it appears
+([League wiki: Dragon pit](https://wiki.leagueoflegends.com/en-us/Dragon_pit_(League_of_Legends))).
+Both put a timed resource at a learnable place, so the map's fights gather
+there on a known clock; the criticism of both is the random part (which river
+spot, which dragon element;
+[Team Liquid forum](https://tl.net/forum/league-of-legends/509598-the-rng-dragon-problem)).
+
+**Platform-fighter pickups.** Competitive Smash keeps items off because their
+spawns, places and effects are random ([Items](#items-196), above).
+Brawlhalla, whose ranked play keeps weapon pickups on, spawns its first
+pickup at the centre of the stage and later ones in fixed spawn zones whose
+order is shuffled per match
+([Brawlhalla wiki: Item Spawning](https://brawlhalla.wiki.gg/wiki/Item_Spawning)).
+Rivals of Aether 2 has neither items nor meter, so it offers no precedent
+here.
+
+Smashcraft keeps the timing and the place public and removes the random
+parts: the schedule comes from the match seed, the place from a fixed
+rotation, and the effect is always one EX segment.
+
+### Rules
+
+Tom decided, 9 Oct (delegated in #385):
+
+- **Telegraph.** A blue marker grows and pulses at the point for 3 s (180
+  frames) before the orb appears, with a sound at the point when the telegraph
+  starts, when the orb appears and when it is taken.
+- **Schedule.** The first drop appears 15 s after GO. Each later drop appears
+  a seeded 10–18 s (whole seconds from the match seed and the draw count) after
+  the previous one is taken. An untaken orb stays until someone touches it.
+- **Points.** The first drop is at the centre of the main deck. Later drops
+  rotate through the stage's fixed points in a fixed order (centre, then each
+  static platform centred within 150 units of the stage centre, in deck
+  order), starting from a seeded offset, so the points are learnable but the
+  next one is not always the same. Side and moving platforms hold no point: a
+  side point let one fighter take the drop near a ledge while the other stayed
+  at the far edge, which raised the time fighters spent apart in the computer
+  field; a fighter on the centre line is never more than half a stage from an
+  opponent on the main deck. Each stage's points are listed in
+  [stages](design/stages.md#meter-drop-points).
+- **Amount.** Touching the orb (the body within 48 units sideways, from
+  60 units above the point down to the fighter's height below it) grants
+  one EX segment, 33 mana (`ROSTER_MANA.exCost`), to the nearest touching
+  fighter, capped at full. A full fighter still takes the orb and denies it.
+- **Rule.** Drops are on in the standard ruleset; the Drops button on the
+  stage menu (or `-dev drops on|off`) turns them off. They never appear in
+  training or in Classic and lore runs.
+- **Computers** contest a drop after their reaction delay from the start of
+  the telegraph, choosing per drop at their judgment: Expert contests every
+  drop, Rookie about one in three (smashcraft:ts/src/game/match/cpuSkill.ts,
+  `contestTenths`). While the opponent is off the main deck they keep chasing
+  it instead. `bun scripts/meterDropField.ts` from ts/ plays a seeded field
+  with drops off and on and prints the share of frames the fighters spend more
+  than half a stage apart and each fighter's win rate.
+
+The drop state (schedule, point, serials, last taker) is part of the match
+snapshot, its checksum and its replay
+(smashcraft:ts/src/game/match/meterDrops.ts).
+
 ## Recovery and edgeguarding
 
 [spec #252] Each fighter has a recovery archetype with a distinct strength and
