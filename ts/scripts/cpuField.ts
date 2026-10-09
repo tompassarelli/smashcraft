@@ -853,7 +853,7 @@ export function tuningFieldOf(records: readonly MatchRecord[], kits: TuningField
     }
     return [seed, counts];
   }));
-  return { seeds, computerCode: currentComputerCode(), computerProfiles: JSON.stringify([...new Set(records.map(record => JSON.stringify([record.opponents,record.tiers])))].sort()), seedPairs, fighters: measured(records), kits, samples: Object.fromEntries(seeds.map(seed => [seed, measured(records.filter(record => record.seed === seed))])) };
+  return { seeds, computerCode: currentComputerCode(), computerProfiles: JSON.stringify([...new Set(records.map(record => JSON.stringify([record.opponents,record.tiers,record.skillOverrides ?? []])))].sort()), seedPairs, fighters: measured(records), kits, samples: Object.fromEntries(seeds.map(seed => [seed, measured(records.filter(record => record.seed === seed))])) };
 }
 
 /** The style, conversion and balance tables (smashcraft:docs/design/balance.md). */
