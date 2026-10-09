@@ -12,6 +12,7 @@ import type { FighterAgency } from "../../game/presentation/fighterAgency";
 import type { FrameControls } from "../../game/match/controls";
 import type { PacingAndPresentation } from "../../game/match/pacingAndPresentation";
 import { type MatchState, Phase, remainingSeconds, stageClock, timedMatch } from "../../game/match/rules";
+import { fighterOffscreen, fitFighterFrames } from "../../game/presentation/fighterFraming";
 import { ARENA_CAMERA, FLOOR_HEIGHT, cameraFieldOfView, cameraPoint, extremeCamera, localCamera } from "../../game/presentation/arenaCamera";
 
 import { beginPauseCamera, advancePauseCamera, pauseCameraAngle, pauseHudHidden } from "./pauseCamera";
@@ -485,6 +486,7 @@ export function lockArenaCamera(s: ShellState): void {
   if (s.session.paused && s.pauseCamera !== undefined) advancePauseCamera(s, aspect);
   else localCamera(s.camera, game.camera.initialized ? game.camera : s.camera, game.stageChoice, aspect);
   if (s.viewExtreme !== undefined) extremeCamera(s.camera, game.stageChoice, aspect, s.viewExtreme);
+  if (!s.session.paused || s.pauseCamera === undefined) fitFighterFrames(s.camera, world, game.stageChoice, aspect);
   const { x: centerX, y: centerY } = s.origin;
   const framing = s.camera;
   if (game.phase === Phase.match && game.run.active && game.run.boss.kind !== 0 && !s.session.paused) {
@@ -511,7 +513,7 @@ export function lockArenaCamera(s: ShellState): void {
   for (const slot of PARTICIPANT_SLOTS) {
     const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
     const point = cameraPoint(framing, aspect, fighter?.motion.x ?? 0.0, (fighter?.motion.z ?? 0.0) + 60.0);
-    const outside = point.column < 0.0 || point.column > 1.0 || point.row < 0.0 || point.row > 1.0;
+    const outside = fighter !== undefined && fighterOffscreen(framing, aspect, fighter.character, fighter.motion.x, fighter.motion.z);
     views(s).bubbles[slot].update(!pauseHudHidden(s) && game.phase === Phase.match && fighter !== undefined && !fighter.status.out && outside, fighter?.character ?? Character.rifleman, point.column, point.row, aspect);
     readEscapeMeter(world, slot, meter);
     if (game.phase !== Phase.match || pauseHudHidden(s)) meter.shown = false;
