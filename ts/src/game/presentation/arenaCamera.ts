@@ -14,6 +14,7 @@ export const FLOOR_HEIGHT = 1800.0;
  * scenery up to 7,600 behind the fighters; units stay inside the playable bounds, so the arena and its blast zones stay there.
  */
 export const WORLD_BOUNDS = { left: -4096.0, right: 4096.0, front: -4096.0, back: 8192.0 } as const;
+export const HIDDEN_EFFECT_DEPTH = 8192.0;
 export const PLAYABLE_BOUNDS = { left: -3328.0, right: 3328.0, front: -3584.0, back: 3072.0, centreY: -256.0 } as const;
 
 /** The fields the arena camera keeps, in degrees and world units: along +y, ten degrees down. */

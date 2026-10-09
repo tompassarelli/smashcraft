@@ -2,8 +2,7 @@
 // host's player-view check (wisp:docs/player-view.md). Playable entries never
 // import this module, so their bundles carry none of it.
 import { installSceneReport, startSceneReport } from "wisp/src/platform/scene";
-import { FLOOR_HEIGHT } from "../game/presentation/arenaCamera";
-import { HIDDEN_EFFECT_DEPTH } from "../game/render/effects";
+import { FLOOR_HEIGHT, HIDDEN_EFFECT_DEPTH } from "../game/presentation/arenaCamera";
 import { HERO_ROSTER } from "../game/sim/heroes/registry";
 import { shellState } from "./shell/state";
 

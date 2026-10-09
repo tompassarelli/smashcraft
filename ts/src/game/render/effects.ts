@@ -2,7 +2,7 @@
 // handles created in the synchronized match lifecycle and only change them
 // while presenting completed state; presenting never creates or destroys one.
 import { f32 } from "wisp/src/sim/f32";
-import { FLOOR_HEIGHT } from "../presentation/arenaCamera";
+import { FLOOR_HEIGHT, HIDDEN_EFFECT_DEPTH } from "../presentation/arenaCamera";
 import { Character } from "../sim/codes";
 import { EffectMotion } from "./motion";
 
@@ -22,7 +22,6 @@ export const STOCK_MODELS = {
 } as const;
 
 const HALF_TURN = f32(3.141592654);
-export const HIDDEN_EFFECT_DEPTH = 8192.0;
 
 /** Models face +x at yaw 0; facing -1 turns them around. */
 export function facingYaw(facing: number): number {

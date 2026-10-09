@@ -1,5 +1,4 @@
 import { impactModel } from "../../src/game/presentation/hitPresentation";
-import { HIDDEN_EFFECT_DEPTH } from "../../src/game/render/effects";
 import { IMPACT_KIND_COUNT } from "../../src/game/presentation/impactState";
 // What a player must see in a Smashcraft match (wisp:docs/player-view.md):
 // each kind of effect the map draws, with its models and the longest a player
@@ -24,7 +23,7 @@ import { STAGE_EDGE_LIGHT_MODEL } from "../../src/game/presentation/stageEdgeLig
 import { STAGE_DECK_PALETTES } from "../../src/game/assets/stagePalette";
 import { DEMON_HUNTER_MODEL_FILE } from "../../src/game/presentation/demonHunterAssetInfo";
 import { RIFLEMAN_MODEL_FILE } from "../../src/game/presentation/fighterAssetInfo";
-import { ARENA_CAMERA, FLOOR_HEIGHT, arenaFraming } from "../../src/game/presentation/arenaCamera";
+import { ARENA_CAMERA, FLOOR_HEIGHT, HIDDEN_EFFECT_DEPTH, arenaFraming } from "../../src/game/presentation/arenaCamera";
 import { SUMMON_BEAR, summonClip, summonClipCount } from "../../src/game/presentation/summonClipInfo";
 import { CANNON_MODEL, HYDRA_CREST_MODEL, HYDRA_RING_MODEL } from "../../src/game/presentation/stageHazards";
 import { allProjectileModels, SPECIAL_SLOTS } from "../../src/game/presentation/projectileArt";
