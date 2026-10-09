@@ -21,8 +21,8 @@ test("a Warcraft update cannot reuse the previous build's stock render bytes [sp
     expect(new TextDecoder().decode(await headlessRender(options).readAsset("Abilities/Spell.mdx"))).toBe("retuned spell");
     const used = await Bun.file(manifest).json();
     expect(used.stock.fields.Version).toBe("3.0.1.24342");
-    expect(used.assets["abilities/spell.mdx"].sha256).toBe(new Bun.CryptoHasher("sha256").update("retuned spell").digest("hex"));
-    expect(used.assets["abilities/spell.mdx"].bytes).toBe(13);
+    expect(used.assets["classic::abilities/spell.mdx"].sha256).toBe(new Bun.CryptoHasher("sha256").update("retuned spell").digest("hex"));
+    expect(used.assets["classic::abilities/spell.mdx"].bytes).toBe(13);
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
