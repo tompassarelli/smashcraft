@@ -28,7 +28,7 @@ test("the pre-push gate type-checks and audits a push that changes TypeScript, a
 });
 
 test("a push that changes clips or model build inputs checks the model facts, and its refusal names the refresh command [spec AGENTS.md]", () => {
-  // 41cdbd3c's files: it replaced Thrall clips without refreshing the table.
+
   const checks = checksFor(["build-inputs.json", "tools/animations/thrall-clips.ts", "ts/src/game/presentation/heroes/thrallClips.ts"]);
   expect(checks.map(({ name }) => name)).toContain("model facts fresh");
   expect(checks.find(({ name }) => name === "model facts fresh")?.fix).toContain("bun wisp view models");
@@ -46,7 +46,7 @@ test("a push to main is refused for an affected test that main's CI run doesn't 
   const y = "src/game/sim/combat > Y knockback grows with damage [spec #2]";
   const output = (...failing: string[]) => ["test/game.test.ts:", "(pass) src/game/sim/combat > hitstun [0.20ms]", ...failing.map((name) => `(fail) ${name} [1.00ms]`), "", " 1 pass", ` ${failing.length} fail`].join("\n");
   const known = new Set([x, "Lua32: X shield breaks at zero [spec #1]"]);
-  // The change breaks Y while main already fails X: only Y blocks.
+
   const broken = newFailures([
     { command: game, exitCode: 1, output: output(x, y) },
     { command: "GAME_MODULES=src/game/sim/combat.tests.ts bun scripts/lua-tests.ts", exitCode: 1, output: "fail X shield breaks at zero [spec #1]: expected 0\nfail Y knockback grows with damage [spec #2]: expected 3\n0 of 2 passed" },
@@ -56,18 +56,18 @@ test("a push to main is refused for an affected test that main's CI run doesn't 
   expect(message).toContain(y);
   expect(message).toContain(`reproduce: cd ts && ${game} -t '^src/game/sim/combat Y knockback grows with damage \\[spec #2\\]'`);
   expect(message).not.toContain("X shield");
-  // The change touches X, which main already fails: nothing blocks.
+
   expect(newFailures([{ command: game, exitCode: 1, output: output(x) }], known)).toEqual([]);
-  // A crash that names no test is new.
+
   expect(newFailures([{ command: game, exitCode: 134, output: "Segmentation fault" }], known).map(({ test }) => test)).toEqual([`process: ${game} exited 134`]);
 });
 
 test("a gate step past its budget dies with everything it started, so git's push isn't held open by an orphan on the hook's pipe [spec #240]", async () => {
-  // #240: the capacity helper outlived the timed-out affected-test runner and kept the pipe open; git waited 11 minutes.
+
   const directory = mkdtempSync(join(tmpdir(), "pre-push-reap-"));
   const pidFile = join(directory, "grandchild.pid");
-  // The grandchild records its NSpid line: the first pid indexes /proc (which may belong to an outer PID
-  // namespace, as under run-bounded), the last is the pid this test can signal.
+
+
   const record = `while read key first rest; do [ "$key" = NSpid: ] && echo "$first $rest" > ${pidFile}; done < /proc/self/status; exec sleep 30`;
   const step = ["sh", "-c", `sh -c '${record}' & sleep 30`];
   const hook = `import { Effect } from "effect"; import { run } from ${JSON.stringify(join(import.meta.dir, "../scripts/prePush.ts"))};
@@ -77,12 +77,12 @@ test("a gate step past its budget dies with everything it started, so git's push
   let procPid = 0;
   let ownPid = 0;
   try {
-    // Budget + 10 s absorbs startup on a loaded machine; the unreaped step holds the pipe for its full 30 s.
+
     const ended = await Promise.race([gate.exited.then(() => true), Bun.sleep(11_000).then(() => false)]);
     const pids = readFileSync(pidFile, "utf8").trim().split(/\s+/).map(Number);
     [procPid, ownPid] = [pids[0]!, pids.at(-1)!];
     expect(ended).toBe(true);
-    // A killed process still needs a time slice to exit, which a loaded machine can delay.
+
     for (let waited = 0; alive(procPid) && waited < 5000; waited += 50) await Bun.sleep(50);
     expect(alive(procPid)).toBe(false);
   } finally {

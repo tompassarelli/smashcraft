@@ -1,4 +1,4 @@
-// Aggregate camera acceptance used by the soak and player-view journeys.
+
 import type { HeadlessClient } from "wisp/src/headless/client";
 import { PARTICIPANT_SLOTS } from "../src/game/input/participants";
 import { Phase } from "../src/game/match/rules";
@@ -29,8 +29,8 @@ export class CameraFindings {
       previous.set(slot, confirmed.status.out);
       if (!before && confirmed.status.out) {
         this.stockLosses++;
-        // Check the whole drawn fighter, not just its camera bone: the top
-        // of a body below the bottom blast plane must also be out of view.
+
+
         const bodyVisible = [0, 60, 150].some((above) => {
           const point = cameraPoint(s.camera, aspect, confirmed.motion.x, confirmed.motion.z + above);
           return point.column >= 0 && point.column <= 1 && point.row >= 0 && point.row <= 0.77;
@@ -47,8 +47,8 @@ export class CameraFindings {
         if (frame === undefined || client.frames.shown(frame) !== needsBubble) findings.push({ detector: "offscreen-bubble", text: `Player ${slot + 1} ${name} ${needsBubble ? "missing outside the view" : "shown inside the view or out of play"}` });
         if (needsBubble && frame !== undefined) {
           const at = frame.points.get(FRAMEPOINT_CENTER);
-          // The native GameUI parent clips these frames to 4:3 even when
-          // the headless recorder retains their requested widescreen points.
+          // GameUI clips these frames to 4:3 even when the recorder retains widescreen points.
+
           if (frame.parent?.name !== "ConsoleUIBackdrop") findings.push({ detector: "offscreen-bubble", text: `Player ${slot + 1} ${name} cannot draw across the full screen` });
           if (frame.enabled || at === undefined || at.y - frame.height / 2 < 0.139 || at.y + frame.height / 2 > 0.6 || Math.abs(at.x - 0.4) + frame.width / 2 > aspect * 0.3) findings.push({ detector: "offscreen-bubble", text: `Player ${slot + 1} ${name} outside the safe view or takes input` });
         }

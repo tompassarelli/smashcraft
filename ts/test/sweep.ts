@@ -1,5 +1,5 @@
-// Bun-only sweeps (src/runtime/sweep.ts): skipped in the suite; `SWEEPS=1 bun
-// run test` runs only them.
+
+
 import { test } from "bun:test";
 import { SWEEP_PREFIX } from "../src/runtime/sweep";
 

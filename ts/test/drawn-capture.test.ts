@@ -1,6 +1,6 @@
-// A pad script's capture shows the frame it names, however far the client's
-// drawn match runs behind the helper's clock (#156: 6 to 88 frames under
-// load). The integrity build writes the frame it drew; the capture waits for it.
+
+
+
 import { afterAll, expect, test } from "bun:test";
 import { readFileSync, readdirSync } from "node:fs";
 import { Effect, Exit } from "effect";
@@ -23,7 +23,7 @@ import { value } from "./rematch/playableMatch";
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
-/** A client whose drawn match runs `lag` frames behind a 60 fps clock that started `ahead` frames ago, in match `epoch`. */
+
 function laggingClient(epoch: number, lag: number, ahead: number) {
   const started = performance.now() - ahead * 1000 / 60;
   const clockFrame = () => Math.floor((performance.now() - started) * 60 / 1000);

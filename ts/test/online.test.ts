@@ -1,6 +1,6 @@
-// Direct play (#142): join codes, the user.reg switch the setup writes, and
-// the host and guest flows against two fake games that share one fake
-// Battle.net, each answering on Wisp's menu socket the way fresh's fakes do.
+
+
+
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "bun:test";
@@ -17,7 +17,7 @@ test("a join code names the game and carries its password [invariant]", () => {
   const code = newJoinCode(bytes(10, 11, 12, 13, 0, 1, 31, 32));
   expect(code).toEqual({ text: "ABCD-01Z0", gameName: "Smashcraft ABCD", password: "01Z0" });
   expect(readJoinCode(code.text)).toEqual(code);
-  // Fresh codes are eight characters of the alphabet.
+
   for (let i = 0; i < 50; i++) expect(newJoinCode().text).toMatch(/^[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}$/);
 });
 
@@ -41,13 +41,13 @@ const MAPS = "C:/users/steamuser/Documents/Warcraft III/Maps/";
 const MAP = "Smashcraft 0.0.52.w3x";
 const READY = readFileSync(join(import.meta.dir, "fixtures/wisp/melee-ready.pld"), "utf8");
 
-/**
- * Battle.net and two players' games. The host's game lists 00-Smashcraft;
- * a lobby is joined by its exact name and password; lobby chat reaches the
- * other player; LobbyStart with both in shows both loading screens, and each
- * game's Smashcraft then writes its ready file. `refuse` names refused at
- * creation stand for games another host already has.
- */
+
+
+
+
+
+
+
 function battleNet(options: { readonly refuse?: readonly string[] } = {}) {
   const sent: string[] = [];
   const payloads: Sent[] = [];
@@ -122,7 +122,7 @@ function battleNet(options: { readonly refuse?: readonly string[] } = {}) {
   };
 }
 
-/** Host and guest at once; the guest reads the code from the host's lines, as a friend would. */
+
 const playBoth = (net: ReturnType<typeof battleNet>, options: { readonly startNow?: (lines: string[]) => Effect.Effect<void>; readonly password?: string; readonly makeCodes?: (() => ReturnType<typeof newJoinCode>) } = {}) =>
   Effect.scoped(Effect.gen(function*() {
     const hostLines: string[] = [];
@@ -169,7 +169,7 @@ test("the host shows a code, the guest joins by it, and both reach fighter selec
     expect(create).toMatchObject({ filename: `${MAPS}00-Smashcraft/${MAP}`, gameName: "Smashcraft ABCD", privateGame: true, password: "EFGH" });
     expect(net.payloads.filter(({ message }) => message === "guest:JoinGameByGameName").map(({ payload }) => payload["gamePass"])).toEqual(["EFGH", "EFGH"]);
     expect(net.sent.some((message) => message.endsWith(":SendGameChatMessage"))).toBe(false);
-    // One start, after the guest has joined and the host requests it.
+
     expect(net.sent.filter((message) => message === "host:LobbyStart")).toHaveLength(1);
     expect(net.sent.indexOf("host:LobbyStart")).toBeGreaterThan(net.sent.lastIndexOf("guest:JoinGameByGameName"));
   } finally {

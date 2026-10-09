@@ -9,7 +9,7 @@ import { previewImport } from "../scripts/wisp/mapInputs";
 import { IMPORTED_MODEL_FILES } from "../src/game/assets/importedModelInfo";
 
 test("the build packages the lineup at the minimap entry shown by Classic and Definitive lobbies [native]", async () => {
-  // #317: custom-minimap-d8fe5996 Classic/Definitive captures, 9 Oct 2026.
+
   const assets = mkdtempSync(join(tmpdir(), "smashcraft-preview-test-"));
   try {
     mkdirSync(join(assets, "fighter-renders"));

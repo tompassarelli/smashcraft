@@ -1,9 +1,9 @@
-// Runs game tests registered through wisp:src/runtime/testing.ts.
-// Optional filter: GAME_TESTS=Simulation bun test test/game.test.ts
-// GAME_SOAK=1 runs the long *.soak.ts scenarios instead, without a time limit.
-// SWEEPS=1 runs only the sweeps (src/runtime/sweep.ts), which the suite skips.
-// GAME_MODULES=A,B loads only those modules (paths under src/), so the suite
-// can spread the registry over several processes.
+
+
+
+
+
+
 import { beforeEach, describe, test } from "bun:test";
 import { registeredTests } from "wisp/src/runtime/testing";
 import { isSweep } from "../src/runtime/sweep";

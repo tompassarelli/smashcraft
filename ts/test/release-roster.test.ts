@@ -1,5 +1,5 @@
-// The release roster: a fighter failing the balance gate is hidden from
-// selection stepping, while measurement keeps the whole roster.
+
+
 import { expect, test } from "bun:test";
 import { Character } from "../src/game/sim/codes";
 import { PLAYABLE_CHARACTERS, SELECTABLE_CHARACTERS, nextCharacterIn, playableCharactersOf } from "../src/game/sim/heroes/registry";

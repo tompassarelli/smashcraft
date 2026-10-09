@@ -1,6 +1,6 @@
-// #129: the stage-loading screen between the start press and the match, gated
-// on every client's "stage drawn" report, with a timeout for a client that
-// never sends one.
+
+
+
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
@@ -18,7 +18,7 @@ import { expectSynchronized, shows, value } from "./rematch/playableMatch";
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
 
-/** Two players at stage selection on Gryphon Aerie; `silent` clients never report their stage. */
+
 function atStageSelection(silent: readonly number[] = [], stage = 11) {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 74), keepCalls: 64 });
   for (const slot of silent) {

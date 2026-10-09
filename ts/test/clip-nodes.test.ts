@@ -1,11 +1,11 @@
 import { expect, test } from "bun:test";
 import { type NodeTable, misplacedNodes, renumberNodes } from "../scripts/clipNodes";
 
-/**
- * Illidan's clip node table in miniature, as the export wrote it before
- * renumbering: his light (between his bones and helpers) and his event nodes
- * (before his collision shapes) removed, every other ObjectId and pivot kept.
- */
+
+
+
+
+
 function illidanShapedClip(): NodeTable {
   const node = (Name: string, ObjectId: number, Parent: number | null) => ({ Name, ObjectId, Parent });
   return {
@@ -24,7 +24,7 @@ function illidanShapedClip(): NodeTable {
   };
 }
 
-/** Each node by name with its parent's name and its pivot, and each geoset's skin by bone name. */
+
 function skeleton(model: NodeTable) {
   const nodes = [...model.Bones, ...model.Helpers, ...model.Attachments, ...model.CollisionShapes];
   const name = (id: number | null | undefined) => (id === null || id === undefined ? null : nodes.find((node) => node.ObjectId === id)?.Name);

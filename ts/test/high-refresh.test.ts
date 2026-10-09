@@ -1,8 +1,8 @@
-// Drawing between simulation frames (#169) is presentation only: a quick
-// match whose clients draw several frames between every simulation frame,
-// with smoothing on, reaches the same confirmed checksums on every frame as
-// the same match drawn once a frame, and both clients still make the same
-// synchronized native calls.
+
+
+
+
+
 import { afterAll, expect } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { install, start } from "../src/platform/main";
@@ -19,7 +19,7 @@ afterAll(headless.restore);
 
 const MATCH_FRAMES = 300;
 
-/** Each client's confirmed checksum on every frame of a quick match, drawing `extraDraws` more frames between simulation frames. */
+
 function quickMatch(extraDraws: number, cameraTween = false): { checksums: string[][]; smoothed: number; drawnPositions: number } {
   const clients = headless.clients({ start, install });
   clients.start();
@@ -52,7 +52,7 @@ sweep("drawing between simulation frames leaves every confirmed checksum unchang
   const plain = quickMatch(0);
   const smooth = quickMatch(2);
   expect(plain.smoothed).toBe(0);
-  // Three drawn frames a simulation frame turn smoothing on once the average passes 1.5.
+
   expect(smooth.smoothed).toBeGreaterThan(MATCH_FRAMES);
   expect(smooth.drawnPositions).toBeGreaterThan(plain.drawnPositions);
   expect(smooth.checksums[0]?.length).toBe(MATCH_FRAMES);

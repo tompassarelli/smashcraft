@@ -1,9 +1,9 @@
-// What a player of the playable build can read. Two simulated clients play
-// its entry through fighter selection, a one-stock match that ends when
-// Player 1 walks off, and the results, on the keyboard alone.
-// No text a frame shows and no message the map displays may contain what the
-// former developer line printed.
-// Neither may it show a runtime error report, which the error file keeps.
+
+
+
+
+
+
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import type { HeadlessClient } from "wisp/src/headless/client";
@@ -107,31 +107,31 @@ test("training hints opt in from pause, whose controls name full shield, light s
   expect(clients.firstDivergence()).toBeUndefined();
 });
 
-/** Every field the developer line prints, by its label. */
+
 const DEVELOPER_LINE_TERMS = [
   "Developer test", "player=", "phase=", "x=", "z=", "input=", "mode=", "normal=", "move=", "attack-frame=",
   "simulation=", "predicted=", "serial=", "down=", "DI=", "Ctrl+R",
 ];
-/** The values it names: the build's identity and, with journal input, its input and presentation profiles. */
+
 const BUILD_TERMS = [CURRENT_BUILD.id, INTEGRITY_BUILD.id, PLAYABLE_BUILD.id, PLAYABLE_BUILD.inputProfile, PLAYABLE_BUILD.presentation];
-/** How the playable build works underneath, which its players never need to read. */
+
 const IMPLEMENTATION_TERMS = ["journal", "editbox", "rollback", "presentation"];
 const DENIED = [...DEVELOPER_LINE_TERMS, ...BUILD_TERMS, ...IMPLEMENTATION_TERMS].map((term) => term.toLowerCase());
 
 type Native = (...args: unknown[]) => unknown;
 
 interface ShownFrame {
-  /** Undefined for a frame a template made, which the map finds by name. */
+
   readonly parent: unknown;
   text: string;
   visible: boolean;
 }
 
-/**
- * The frames one client's map created and the text and visibility it gave
- * them. Frames of unknown parentage count as shown while their own flag is
- * set, so the text this reports is at least what a player can see.
- */
+
+
+
+
+
 class FrameView {
   private readonly frames = new Map<unknown, ShownFrame>();
 
@@ -176,14 +176,14 @@ class FrameView {
     return true;
   }
 
-  /** The non-empty text of every shown frame. */
+
   texts(): string[] {
     return [...this.frames].filter(([handle, { text }]) => text !== "" && this.shown(handle)).map(([, { text }]) => text);
   }
 
 }
 
-/** Distinct texts the clients showed, frame texts and messages, after each frame. */
+
 function recordShown(clients: Lockstep, views: readonly FrameView[], shown: Set<string>): void {
   for (const view of views) for (const text of view.texts()) shown.add(text);
   for (const client of clients.clients) for (const message of client.messages) shown.add(message);
@@ -211,7 +211,7 @@ test("the playable build shows players no developer text through selection, a ma
 
   clients.start();
   frames(30);
-  // Move right picks each player's next fighter.
+
   for (const slot of [0, 1]) clients.press(slot, Key.r);
   frames(10);
   clients.everywhere(() => {
@@ -226,7 +226,7 @@ test("the playable build shows players no developer text through selection, a ma
   for (let frame = 0; frame < 120 && !phases().every((phase) => phase === Phase.match); frame++) frames(1);
   expect(phases()).toEqual([Phase.match, Phase.match]);
   for (let frame = 0; frame < 240 && clients.clients.some((client) => { let held = true; client.run(() => { held = holdingStart(shell().game); }); return held; }); frame++) frames(1);
-  // Player 1 holds Move left (W) until they walk off the stage.
+
   for (const client of clients.clients) client.key(0, Key.w, 0, true);
   for (let frame = 0; frame < 1200 && !phases().every((phase) => phase === Phase.result); frame++) frames(1);
   expect(phases()).toEqual([Phase.result, Phase.result]);
@@ -244,12 +244,12 @@ test("the playable build shows players no developer text through selection, a ma
   expect([...shown].filter((text) => developerText(text).length > 0)).toEqual([]);
 });
 
-/** The shell's per-frame handler, which every frame of a started map runs (src/platform/shell/shell.ts). */
+
 const SHELL_TICK = "shell.tick";
 const DELIBERATE_FAILURE = "deliberate failure";
 const REPORT_TEXT = `error in ${SHELL_TICK}: Error: ${DELIBERATE_FAILURE}`;
 
-/** Makes the shell's per-frame handler fail in every client for three frames, recording what they show. */
+
 function failFrames(clients: Lockstep, views: readonly FrameView[], shown: Set<string>): void {
   clients.everywhere(() => {
     on(SHELL_TICK, () => {
@@ -262,7 +262,7 @@ function failFrames(clients: Lockstep, views: readonly FrameView[], shown: Set<s
   }
 }
 
-/** The first two lines of a client's error file: the report's heading and its message. */
+
 const errorReport = (client: HeadlessClient) => client.files.get(`smashcraft-error-p${client.slot}.txt`)?.slice(0, 2);
 const REPORT_LINES = [`error 1 in ${SHELL_TICK}`, `Error: ${DELIBERATE_FAILURE}`];
 

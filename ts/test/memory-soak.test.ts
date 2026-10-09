@@ -3,7 +3,7 @@ import { checkMemory, parseMemoryRun, slope } from "../scripts/wisp/memorySoak";
 
 const MINUTE = 3600;
 
-/** A run's output: a fighter-selection sample every two game minutes, with the heap and effects these functions give. */
+
 function output(minutes: number, heapKb: (minute: number) => number, effects: (minute: number) => number, problems: readonly string[] = []): string {
   const lines: string[] = [];
   for (let minute = 1; minute <= minutes; minute += 2) {
@@ -23,7 +23,7 @@ test("slope is the least-squares slope [invariant]", () => {
 });
 
 test("a heap and handle counts that only fill pools during warm-up pass [spec #168]", () => {
-  // Warm-up fills pools: effects and heap climb for ten minutes, then hold with noise.
+
   const run = parseMemoryRun(output(30, (minute) => (minute < 10 ? 38000 + minute * 300 : 41000 + ((minute * 37) % 200)), (minute) => (minute < 10 ? 460 + minute : 469)));
   expect(run.samples.filter((sample) => sample.kind === "menu")).toHaveLength(15);
   expect(run.samples[1]?.clients[1]?.live.effect).toBe(461);

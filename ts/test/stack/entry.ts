@@ -1,9 +1,9 @@
-// Emitted-Lua proof for the stack-trace profile. scripts/lua-tests.ts compiles
-// this with the stack plugin and runs it in 32-bit Lua: `-dev stack-demo`, run
-// through the dispatch boundary as its chat trigger does, must write an error
-// report naming the demo's TypeScript frames, innermost first, at the source
-// lines that were executing. The test reads the source with Lua's io library,
-// which Warcraft lacks; the natives the reporter calls are recorders.
+
+
+
+
+
+
 import { installDispatch, trampoline } from "wisp/src/platform/dispatch";
 import { configureRuntime } from "wisp/src/runtime/config";
 import { CURRENT_BUILD } from "../../src/game/shell/currentBuild";

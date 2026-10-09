@@ -18,10 +18,10 @@ import { createMatchCamera, MATCH_CAMERA_ASPECT } from "../src/game/sim/matchCam
 import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
 import { CANNON_TEST_STAGE, HELLFIRE_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt, solidSurfaceCount, surfaceLine } from "../src/game/sim/stage";
 
-/** The stages whose main deck has walls and an underside, each drawn from its own outline. */
+
 const SHIPPED_STAGES = [1, ...STAGE_DECK_PALETTES.map(({ stage }) => stage).filter((stage) => solidSurfaceCount(stage) > 0)];
 
-/** The main deck's collision corners on `stage`, from its left ledge along the walking line, then down its walls and underside, in model units. */
+
 function collisionCorners(stage: number): OutlinePoint[] {
   const left = mainDeckLeft(stage);
   const center = (left + mainDeckRight(stage)) / 2;
@@ -39,11 +39,11 @@ function collisionCorners(stage: number): OutlinePoint[] {
 
 const key = ([x, z]: OutlinePoint) => `${x},${z}`;
 
-/**
- * The front faces' outline, from the edges that only one front face has,
- * walked from `start` against the faces' winding (clockwise, as the
- * collision lines run) with straight runs joined into one line.
- */
+
+
+
+
+
 function frontOutline(faces: readonly DeckFace[], start: OutlinePoint): OutlinePoint[] {
   const edges = new Map<string, { readonly from: OutlinePoint; readonly to: OutlinePoint }>();
   for (const { normal, corners } of faces) {
@@ -58,7 +58,7 @@ function frontOutline(faces: readonly DeckFace[], start: OutlinePoint): OutlineP
       else edges.set(`${key(from)}>${key(to)}`, { from, to });
     });
   }
-  // Clockwise: each outline edge reversed, keyed by where it starts.
+
   const after = new Map([...edges.values()].map(({ from, to }) => [key(to), from]));
   const points: OutlinePoint[] = [start];
   for (let point = after.get(key(start)); point !== undefined && key(point) !== key(start); point = after.get(key(point))) {
@@ -73,7 +73,7 @@ function frontOutline(faces: readonly DeckFace[], start: OutlinePoint): OutlineP
   });
 }
 
-/** The area inside a closed outline. */
+
 const area = (points: readonly OutlinePoint[]) => Math.abs(points.reduce((sum, [x, z], index) => {
   const [nextX, nextZ] = points[(index + 1) % points.length] ?? [x, z];
   return sum + x * nextZ - nextX * z;
@@ -100,10 +100,10 @@ test("the main deck model's outline is the main deck's collision lines on every 
       expect(x).toBeCloseTo(corners[index]?.[0] ?? Number.NaN, 3);
       expect(z).toBeCloseTo(corners[index]?.[1] ?? Number.NaN, 3);
     });
-    // The front faces fill the outline once: no gaps, no overlaps.
+
     const fronts = faces.filter(({ normal }) => normal[1] === -1).map(({ corners: points }) => points.map(([x, , z]): OutlinePoint => [x, z]));
     expect(fronts.reduce((sum, face) => sum + area(face), 0)).toBeCloseTo(area(corners), 2);
-    // Each collision line is drawn through the deck's depth, facing out along its normal.
+
     for (let index = 0; index < MAIN_DECK_BODY_SURFACES; index++) {
       const line = solidSurfaceAt(stage, index);
       const center = (mainDeckLeft(stage) + mainDeckRight(stage)) / 2;
@@ -118,7 +118,7 @@ test("the main deck model's outline is the main deck's collision lines on every 
 
 test("every face of the main deck faces out along its normal, so Warcraft draws it from outside [invariant]", () => {
   for (const { normal, corners } of SHIPPED_STAGES.flatMap((stage) => mainDeckFaces(stage))) {
-    // Newell's normal of the polygon as wound.
+
     const wound = [0, 0, 0];
     corners.forEach(([x, y, z], index) => {
       const [nextX, nextY, nextZ] = corners[(index + 1) % corners.length] ?? [x, y, z];
@@ -136,19 +136,19 @@ test("each stage's shipped lighting model is the one its light declares [invaria
   }
 });
 
-// #292, Blackrock: forge-fire omni lights (visual-quality.md, "Levers worth using, per stage").
+
 test("Blackrock's forge fires carry two warm omni lights, one shadow-casting, that fade out far behind the fight [spec #292]", () => {
   const lights = STAGE_POINT_LIGHTS.find(({ stage }) => stage === CANNON_TEST_STAGE)?.lights ?? [];
   expect(lights.map(({ x, y, z, color, intensity, flicker, loopMs, radius, castsShadow }) => `${x},${y},${z} ${color.join(",")}@${intensity}±${flicker}/${loopMs}ms r${radius}${castsShadow ? " shadow" : ""}`)).toEqual([
     "-2100,4600,-1250 255,150,70@1.25±0.125/1600ms r1100 shadow",
     "2050,6000,-1300 255,132,56@0.875±0.125/2100ms r900",
   ]);
-  // stage-art.md, "light the play, not the backdrop": the fighting volume (y within 200 of the plane) stays outside every light by 3,000 units, so no fighter is tinted toward the ember ring.
+
   for (const light of lights) expect(light.y - light.radius - 200).toBeGreaterThan(3000);
-  // Each light sits on one of the stage's fire pieces, within 300 units.
+
   const fires = stageScenery(CANNON_TEST_STAGE).pieces.filter(({ model }) => model.includes("Fire"));
   for (const light of lights) expect(fires.some((fire) => Math.hypot(fire.x - light.x, fire.y - light.y, fire.z - light.z) <= 300)).toBe(true);
-  // Rule 8: the flicker loops slower than once a second, far below three flashes a second.
+
   for (const light of lights) expect(light.loopMs).toBeGreaterThanOrEqual(1000);
   expect(shadowCastingLights(CANNON_TEST_STAGE)).toBe(1);
   for (const { id } of STAGE_CATALOG) if (!STAGE_POINT_LIGHTS.some(({ stage }) => stage === id)) expect(pointLightPieces(id)).toEqual([]);
@@ -297,7 +297,7 @@ test("Naxxramas's cold green light frames the necropolis with one shadow and lea
 test("Stratholme keeps its cathedral against a dark dusk horizon and limits warm lights to town fires [spec #297]", () => {
   const scenery = stageScenery(6);
   expect(scenery.sky).toBe(STAGE_SKY_MODELS[6]);
-  // Far-view fighter contrast (#297) needs the horizon behind the deck at or below L* 30.
+
   expect(STAGE_SKIES.find(({ stage }) => stage === 6)?.horizon).toEqual([100, 50, 32]);
   expect(scenery.fog).toEqual({ start: 5000, end: 11000, red: 0.5, green: 0.28125, blue: 0.1875 });
   const cathedral = scenery.pieces.find(({ model }) => model.includes("CathedralRuined"));
@@ -333,7 +333,7 @@ test("the map ships each point light model its light declares [invariant]", () =
   expect(pointLightPieces(CANNON_TEST_STAGE).map(({ model }) => model)).toEqual([...(STAGE_POINT_LIGHT_MODELS[CANNON_TEST_STAGE] ?? [])]);
 });
 
-// #292: lava blooms under the map-wide post-processing (#288) through its crest glow; the body, decks and fighters stay below the threshold.
+
 test("Blackrock's lava glows above the bloom threshold only on its crests [spec #292]", () => {
   expect(`${LAVA_GLOW.color.join(",")} from ${LAVA_GLOW.crest}`).toBe("255,196,96 from 0.8");
   const threshold = STOCK_BLOOM_THRESHOLD * 255;
@@ -350,7 +350,7 @@ test("Blackrock's lava glows above the bloom threshold only on its crests [spec 
     if (lit > threshold) glowing++;
   }
   expect(bodyMax).toBeLessThan(threshold);
-  // The crest peak clears even a threshold raised to 0.9.
+
   expect(peak).toBeGreaterThan(0.9 * 255);
   expect(glowing / texels).toBeGreaterThan(0.05);
   expect(glowing / texels).toBeLessThan(0.3);

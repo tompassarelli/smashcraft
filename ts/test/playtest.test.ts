@@ -1,7 +1,7 @@
-// The playtest request `bun wisp play` leaves in CustomMapData, in the
-// playable build's simulated clients: read once at map start, the match
-// started on every client only after the go-ahead, and no file read at
-// fighter selection in a session without a request.
+
+
+
+
 import { afterAll, expect, test } from "bun:test";
 import { Phase } from "../src/game/match/rules";
 import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
@@ -24,7 +24,7 @@ test("a playtest request adds a Wren Intermediate as Player 3 and starts the mat
   host.published.set(PLAYTEST_REQUEST_FILE, [playtestRequest(0b100, "wren", "intermediate")]);
   clients.start();
   clients.frames(120);
-  // The helper isn't running yet: fighter selection waits.
+
   for (const client of clients.clients) client.run(() => expect(shell().game.phase).toBe(Phase.characterMenu));
   host.published.set(PLAYTEST_GO_FILE, ["GO"]);
   clients.frames(40);

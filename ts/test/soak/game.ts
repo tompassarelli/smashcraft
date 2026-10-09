@@ -1,12 +1,12 @@
-// Smashcraft's soak matches (scripts/wisp/soak.ts, wisp:docs/soak.md): the
-// integrity build (journal input) with the scene recorder in two headless clients. Each
-// player's helper is the journal stand-in (test/rematch/journalHelper.ts) on
-// the soak's wall clock: it types rows from the fuzzed controller ("fuzz"),
-// neutral rows while the player's fighter is a computer ("cpu"), or nothing,
-// as when no helper runs ("absent"). The host client's confirmed match also
-// feeds the lock-loop detector (scripts/lockWatch.ts), whose findings are
-// `game` findings. Loaded only by the soak's worker processes, so the host
-// type check never reads map code.
+
+
+
+
+
+
+
+
+
 import { appendFileSync } from "node:fs";
 import { type SoakDriver, type SoakEdge, type SoakMatch, defineSoakGame } from "wisp/scripts/wisp/soak";
 import type { HeadlessClient } from "wisp/src/headless/client";
@@ -37,17 +37,17 @@ import { CameraFindings } from "../cameraFindings";
 
 const STAGES: Readonly<Record<string, number>> = { "sky-deck": 0, "three-bridges": 1, "frozen-throne": 2, "drifting-deck": 3, "patterned-decks": 4, "wind": 10, "carried": 11, "cannon": 12, "timed-lift": 13, "hellfire": 14, "stratholme": 6, "tomb-of-sargeras": 7 };
 const FRAME_MS = 1000 / 60;
-/** A one-stock match with a one-minute clock: each ends by a KO or by time. */
+
 const STOCKS = 1;
 const MINUTES = 1;
-/** Half a second in, the camera has framed the fighters and their clips are posed. */
+
 const SETTLED_FRAME = 30;
 
 const ACTIONS: readonly Action[] = SOAK_BUTTONS.map((name) => Action[name]);
-/** A flick from inside the dead zone to past this is a smash. */
+
 const SMASH_REACH = 101;
 
-/** Each pooled fighter's clip models, which follow it all match; a hero draws with its unit's model. */
+
 const clipModels = (character: Character) => {
   const hero = heroDefinition(character);
   if (hero !== undefined) return [hero.presentation.model];
@@ -56,7 +56,7 @@ const clipModels = (character: Character) => {
 
 const sign = (value: number) => (value > STICK_DEAD_ZONE ? 1 : value < -STICK_DEAD_ZONE ? -1 : 0);
 
-/** One player's fuzzed controller as journal rows, frame by frame of their helper's clock. */
+
 class ControllerRows {
   private buttons = 0;
   private readonly axes = [0, 0];
@@ -74,7 +74,7 @@ class ControllerRows {
       | (sign(z) < 0 ? bit(Action.moveDown) : 0) | (sign(z) > 0 ? bit(Action.moveUp) : 0);
   }
 
-  /** The row for `frame`, after the rows of every earlier frame. */
+
   row(frame: number): InputRow {
     const before = this.held();
     let pressed = 0;
@@ -91,7 +91,7 @@ class ControllerRows {
       this.axes[edge.axis] = edge.value;
       const [negative, positive] = edge.axis === 0 ? [bit(Action.smashLeft), bit(Action.smashRight)] : [bit(Action.smashDown), bit(Action.smashUp)];
       const toward = edge.value < 0 ? negative : positive;
-      // A smash holds while the stick stays past its reach on the side it was flicked to.
+
       this.smash &= ~((Math.abs(edge.value) < SMASH_REACH ? negative | positive : 0) | (toward === negative ? positive : negative));
       if (Math.abs(was) <= STICK_DEAD_ZONE && Math.abs(edge.value) >= SMASH_REACH) this.smash |= toward;
     }
@@ -114,7 +114,7 @@ class ControllerRows {
   }
 }
 
-/** The integrity build with the scene recorder: journal input, reporting what it draws. */
+
 export const SOAK_ENTRY = {
   start: () => {
     startBuild(INTEGRITY_BUILD);
@@ -134,7 +134,7 @@ function readIn<T>(client: HeadlessClient, body: () => T): T {
   return result as T;
 }
 
-/** A match's fighters and stage as the game numbers them. */
+
 function matchChoices(match: SoakMatch): { readonly fighters: readonly Character[]; readonly stage: number } {
   const fighters = match.fighters.map((name) => {
     const character = selectableCharacterBySlug(name);
@@ -146,11 +146,11 @@ function matchChoices(match: SoakMatch): { readonly fighters: readonly Character
   return { fighters, stage };
 }
 
-/**
- * Fighter and stage selection through each slot's menus as every client takes
- * them, to the match's first frame; `frame` runs one frame with whatever
- * types for the players.
- */
+
+
+
+
+
 export function beginMatch(clients: Lockstep, match: SoakMatch, frame: () => void): void {
   const { fighters, stage } = matchChoices(match);
   const frames = (count: number) => {
@@ -189,11 +189,11 @@ export function beginMatch(clients: Lockstep, match: SoakMatch, frame: () => voi
   until("the match", () => readIn(host, () => shell().game.phase) === Phase.match);
 }
 
-/**
- * What the soak reads in each client: progress, the waiting notice, the
- * confirmed state and the fighters in play. `journaled` is the frame a
- * player's input source has sent through, when the soak can see it.
- */
+
+
+
+
+
 export function matchView(journaled: (slot: number) => number | undefined): Pick<SoakDriver, "observe" | "confirmed" | "bodies"> {
   const stalled = new Map<HeadlessClient, { progress: number | undefined; frames: number }>();
   return {
@@ -208,7 +208,7 @@ export function matchView(journaled: (slot: number) => number | undefined): Pick
       const sent = journaled(client.slot);
       return {
         progress,
-        // What the player sees only matters once the match has stood still a moment.
+
         waiting: last.frames >= 30 ? client.frames.shownText().find((text) => text.includes("Waiting for")) : undefined,
         ...(playing && sent !== undefined ? { backlog: sent - s.runtime.simulationFrame } : {}),
         over: s.game.phase === Phase.result,
@@ -233,7 +233,7 @@ export function matchView(journaled: (slot: number) => number | undefined): Pick
   };
 }
 
-/** The row a human slot ran a confirmed frame with, as the moment recorder keeps it (src/game/replay/moment.ts). */
+
 const recordedRows: RecordedRows = (frame, slot) => {
   const { recorder } = shell().moment;
   const ring = recorder.rowFrames.length;
@@ -243,7 +243,7 @@ const recordedRows: RecordedRows = (frame, slot) => {
   return loadInputNumbers(numbers, index * INPUT_ROW_NUMBERS);
 };
 
-/** The lock-loop detector (scripts/lockWatch.ts) on the host client's confirmed match: each loop a fighter can't act out of. */
+
 function lockLoops(): Pick<SoakDriver, "findings"> {
   const watch = new LockWatch();
   const camera = new CameraFindings();
@@ -258,14 +258,14 @@ function lockLoops(): Pick<SoakDriver, "findings"> {
 }
 
 interface StockLoss {
-  /** Match frames from the start. */
+
   readonly frame: number;
   readonly percent: number;
-  /** Frames since the fighter last took a hit, as observed after each frame; undefined when it never did. */
+
   readonly sinceHit: number | undefined;
 }
 
-/** Attack styles by the move names of the move data (scripts/moveData.ts). */
+
 const MOVE_NAMES: Readonly<Record<number, string>> = {
   [AttackStyle.jab]: "jab", [AttackStyle.forwardTilt]: "forward-tilt", [AttackStyle.forwardTiltUp]: "forward-tilt-up",
   [AttackStyle.forwardTiltDown]: "forward-tilt-down", [AttackStyle.upTilt]: "up-tilt", [AttackStyle.downTilt]: "down-tilt",
@@ -277,17 +277,17 @@ const MOVE_NAMES: Readonly<Record<number, string>> = {
 const THROW_NAMES: Readonly<Record<number, string>> = {
   [GrabAction.throwForward]: "forward-throw", [GrabAction.throwBack]: "back-throw", [GrabAction.throwUp]: "up-throw", [GrabAction.throwDown]: "down-throw",
 };
-/** The special each projectile flies from. */
+
 const PROJECTILE_MOVES: Readonly<Record<number, string>> = {
   [ProjectileKind.blaster]: "neutral-special", [ProjectileKind.manaBurn]: "neutral-special",
   [ProjectileKind.recoil]: "up-special",
 };
-/** Specials with nothing that strikes: Rifleman's recoil and Illidan's ascent count once started. */
+
 const STRIKELESS_SPECIALS: Readonly<Record<number, string>> = { [SpecialAction.riflemanRecovery]: "up-special", [SpecialAction.demonHunterWingAscent]: "up-special" };
-/** A hero's specials by the move names, in SpecialSlot order. */
+
 const HERO_SPECIAL_NAMES = ["neutral-special", "side-special", "up-special", "down-special"] as const;
 
-/** The special of the attacker's kit a hero projectile flies from. */
+
 function heroProjectileMove(attacker: Readonly<Fighter>, spec: Readonly<SpecialProjectile> | undefined): string | undefined {
   const specials = attacker.tuning.specials;
   if (specials === undefined || spec === undefined) return undefined;
@@ -299,10 +299,10 @@ function heroProjectileMove(attacker: Readonly<Fighter>, spec: Readonly<SpecialP
   return undefined;
 }
 
-/** A fighter that leaves the stage this long after the last hit it took left on its own. */
+
 const UNFORCED_FRAMES = 60;
 
-/** One player's record, and what its fighter showed at the previous observation. */
+
 interface Seen {
   readonly baseHits: number;
   hits: number;
@@ -325,14 +325,14 @@ interface Seen {
   airDodging: boolean;
   offStage: boolean;
   downDamage: boolean;
-  /** Moves this player's fighter landed on the opponent, by name. */
+
   readonly landed: Record<string, number>;
-  /** Match frames the fighter left the stage on its own while the opponent stood on it. */
+
   readonly departures: number[];
-  /** Attacks this player's shield stopped, and dodges started. */
+
   blocked: number;
   dodges: number;
-  /** Jab resets taken: weak hits that kept the fighter lying down. */
+
   resets: number;
 }
 
@@ -350,12 +350,12 @@ const land = (seen: Seen, move: string | undefined) => {
   if (move !== undefined) seen.landed[move] = (seen.landed[move] ?? 0) + 1;
 };
 
-/**
- * The move that struck `victim` since the previous observation, credited to
- * its attacker: a normal by the attack the victim's hit registry names, else
- * a throw, a pummel, a projectile that ended early, the bear or a special's
- * own contact.
- */
+
+
+
+
+
+
 function creditStrike(victim: Readonly<Fighter>, victimSeen: Seen, attackerSlot: number, attacker: Readonly<Fighter>, attackerSeen: Seen, elapsed: number): void {
   const struck = victim.visuals.hit !== victimSeen.hits;
   const registry = victim.hits.lastAttackSerial;
@@ -379,14 +379,14 @@ function creditStrike(victim: Readonly<Fighter>, victimSeen: Seen, attackerSlot:
   if (attacker.special.hit && !attackerSeen.specialHit && attacker.special.action === SpecialAction.demonHunterImmolate) land(attackerSeen, "down-special");
 }
 
-/**
- * Appends the match's result to `file` as one JSON line, once the result
- * shows: the winner and, per player, the damage and hits taken, each stock
- * lost, the moves its fighter landed, the attacks it blocked, dodges it
- * started and jab resets it took, and when it left the stage on its own while
- * its opponent stood on it. It reads the host's confirmed state after every frame; frames count
- * from the match's start. scripts/soakOutcomes.ts summarizes the file.
- */
+
+
+
+
+
+
+
+
 function outcomeRecorder(match: SoakMatch, file: string): (client: HeadlessClient, over: boolean) => void {
   const players = new Map<number, Seen>();
   let written = false;
@@ -404,7 +404,7 @@ function outcomeRecorder(match: SoakMatch, file: string): (client: HeadlessClien
       if (seen === undefined) throw new Error(`slot ${slot} has no record`);
       return seen;
     };
-    // Soak matches have two players: each one's opponent is the other.
+
     const [first, second] = active;
     if (active.length === 2 && first !== undefined && second !== undefined) {
       for (const [victimSlot, attackerSlot] of [[first, second], [second, first]] as const) {
@@ -429,7 +429,7 @@ function outcomeRecorder(match: SoakMatch, file: string): (client: HeadlessClien
       seen.downDamage = downDamage;
       if (visuals.hit !== seen.hits) seen.lastHit = frame;
       seen.hits = visuals.hit;
-      // A respawn resets the percent; only rises are damage taken.
+
       seen.damageTaken += Math.max(0, status.damage - seen.damage);
       seen.damage = status.damage;
       if (status.out && !seen.out) seen.losses.push({ frame, percent: status.damage, sinceHit: seen.lastHit === undefined ? undefined : frame - seen.lastHit });
@@ -474,7 +474,7 @@ export default defineSoakGame({
   entry: SOAK_ENTRY,
   begin: (clients, match) => {
     if (match.typed === true) {
-      // Played through the real helpers (test/soak/helper.ts): the soak types what they typed, so no stand-in types.
+
       beginMatch(clients, match, () => clients.frames(1));
       return { input: () => undefined, ...matchView(() => undefined), ...lockLoops() };
     }
@@ -489,12 +489,12 @@ export default defineSoakGame({
       clients.frames(1);
       helpers.service(clients);
     });
-    // From here the helpers live on the soak's wall clock, from the frame the match began.
+
     const began = clients.frame;
     let clock = began;
     helpers.clock = () => clock;
     let silent: ReadonlySet<number> = new Set();
-    // A quiet helper's rows wait in it, so only a typing helper's count as sent.
+
     const view = matchView((slot) => (helpers.silent.has(slot) ? undefined : helpers.journaled(slot)));
     const outcomes = process.env.SOAK_OUTCOMES;
     const record = outcomes === undefined || outcomes === "" ? undefined : outcomeRecorder(match, outcomes);

@@ -27,7 +27,7 @@ for (const width of [1920, 1620]) test(`both selection screens at ${width}: text
   try {
     const clients = runtime.clients({ start: () => startBuild(PLAYABLE_BUILD), install }, [0]);
     clients.start(); clients.frames(3);
-    // A fresh profile opens the tutorial menu over the roster; answer it with Not now (ui/tutorialMenu.ts: 0.41, 0.315, 0.16 by 0.035).
+
     expect(clients.click(0, 0.41 + 0.16 / 2, 0.315 - 0.035 / 2)).toBe(true);
     clients.frames(2);
     clients.everywhere(() => {
@@ -74,7 +74,7 @@ for (const width of [1920, 1620]) test(`both selection screens at ${width}: text
         }
       } else {
         expect(text.find(frame => frame.text === "Random Stage" && frame.name.includes("TileName"))!.rectangle![1]).toBeLessThan(0.46);
-        // A stage card's own name banner sits inside its panel; nothing else may.
+
         const card = (name: string) => /^MeleeStageTile(\d+)/.exec(name)?.[1];
         const tiles = scene.ui.filter(frame => frame.visible && /^MeleeStageTile\d+(Panel)?$/.test(frame.name));
         for (const frame of text) for (const tile of tiles) if (!(/^MeleeStageTile\d+Name$/.test(frame.name) && card(frame.name) === card(tile.name))) expect(overlaps(frame, tile), `${frame.name} overlaps ${tile.name}`).toBe(false);

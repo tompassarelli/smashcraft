@@ -1,7 +1,7 @@
-// Issue #46: in Tom's 0.0.47 playtest player 1's helper journaled, player 2's
-// client had none, a computer Illidan made three, and the match stopped at
-// 7:00 on its first frames with nothing on screen. Here in two simulated
-// clients of the journal (integrity) build, with Battle.net's measured sync latency.
+
+
+
+
 import { holdingStart } from "../src/game/match/rules";
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
@@ -17,7 +17,7 @@ import { PREDICTED_HEADLESS } from "../scripts/wisp/headless";
 import { JournalHelpers } from "./rematch/journalHelper";
 import { WAITING, confirmedFrame, expectSynchronized, shows, startPlayableMatch, value } from "./rematch/playableMatch";
 
-/** The keys each client's player holds down. */
+
 const held = new Map<number, Set<number>>();
 const headless = installHeadless({
   ...PREDICTED_HEADLESS,
@@ -25,7 +25,7 @@ const headless = installHeadless({
 });
 afterAll(headless.restore);
 
-/** Player 2's confirmed rows, as client 0 runs them: every action any of them held or pressed. */
+
 let player2Actions = 0;
 const readConfirmed = ShadowInputSchedule.prototype.readConfirmed;
 afterAll(() => {
@@ -43,22 +43,22 @@ test("a human without a controller helper plays on the keyboard: the match runs,
   const { clients, frames, clientA: a, clientB: b } = startPlayableMatch(headless, helpers, true);
   const player2X = (client: typeof a) => value(client, () => fighterAt(shell().world, 1).motion.x);
   const paused = () => clients.clients.map(client => value(client, () => shell().session.paused));
-  // A stall names the missing player while normal play remains text-free (#348).
+
   frames(60);
   expect([shows(a, WAITING), shows(b, WAITING)]).toEqual([true, true]);
-  // Two seconds after the match began, player 2 plays on the keyboard.
+
   frames(60);
   expect([shows(a, KEYBOARD_FALLBACK_MESSAGE), shows(b, KEYBOARD_FALLBACK_MESSAGE)]).toEqual([false, false]);
-  // The pause control is named in the pause menu, not during play (#336).
+
   expect([shows(a, "Start: pause."), shows(b, "Y: pause.")]).toEqual([false, false]);
-  // The match runs on every client, with player 2's fighter on neutral input.
+
   const started = [confirmedFrame(a), confirmedFrame(b)];
   frames(20);
   expect([shows(a, WAITING), shows(b, WAITING)]).toEqual([false, false]);
   expect(player2Actions).toBe(0);
-  // Keys move the fighter from GO!, after the countdown's hold.
+
   for (let i = 0; i < 240 && value(a, () => holdingStart(shell().game)); i++) frames(1);
-  // Player 2 holds QWERTY's move right.
+
   const before = player2X(a);
   held.set(1, new Set([Key.r]));
   frames(20);
@@ -67,10 +67,10 @@ test("a human without a controller helper plays on the keyboard: the match runs,
   expect(player2Actions & bit(Action.moveRight)).not.toBe(0);
   expect(player2X(a)).toBeGreaterThan(before);
   expect(player2X(b)).toBe(player2X(a));
-  // At game speed: 60 frames of play confirm on both clients.
+
   const running = [confirmedFrame(a) - (started[0] ?? 0), confirmedFrame(b) - (started[1] ?? 0)];
   for (const advanced of running) expect(advanced).toBeGreaterThanOrEqual(50);
-  // Player 2's Y pauses: player 1's helper and player 2's keyboard agree the frame.
+
   clients.press(1, Key.y);
   frames(45);
   expect(paused()).toEqual([true, true]);

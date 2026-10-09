@@ -1,6 +1,6 @@
-// Pure Warcraft natives for host tests, matching the Wurst interpreter the
-// converted tests were written against: binary32 results, JASS conversions.
-// Warcraft provides the real natives in the map; this file is test-only.
+// Warcraft natives return binary32 values and use JASS conversions.
+
+
 const natives = {
   R2I: (x: number) => (x < 0 ? Math.ceil(x) : Math.floor(x)),
   I2R: (x: number) => x,

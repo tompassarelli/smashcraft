@@ -1,6 +1,6 @@
-// `pad`, `fresh` and `accept` take their clients from --clients-file and leave the
-// default clients.json alone; the pad runner ignores setup receipts written
-// before its session began (a prefix copied from another install carries them).
+
+
+
 import { afterAll, expect, test } from "bun:test";
 import { Effect, Exit } from "effect";
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, utimesSync, writeFileSync } from "node:fs";
@@ -12,7 +12,7 @@ const folder = mkdtempSync(join(tmpdir(), "smashcraft-clients-file-"));
 afterAll(() => rmSync(folder, { recursive: true, force: true }));
 const fixture = (name: string) => join(import.meta.dir, "fixtures/wisp", name);
 
-/** Runs `bun wisp ARGS` with HOME in the test folder, whose default clients.json no command may read or write. */
+
 const wisp = (args: readonly string[]) => {
   const home = join(folder, `home-${Math.random().toString(36).slice(2)}`);
   const state = join(home, ".local/state/smashcraft");
@@ -36,7 +36,7 @@ test("fresh, pad and accept use --clients-file FILE and leave clients.json untou
   ]) {
     const run = wisp(args);
     expect(run.code, args[0]).not.toBe(0);
-    // A missing clients file fails before capacity admission or client input.
+
     const output = run.output;
     expect(output, args.join(" ")).toContain(`can't read the clients from ${file}`);
     expect(output).not.toContain(run.defaultFile);
@@ -50,7 +50,7 @@ test("a setup receipt written before the session is ignored, even one in an olde
   copyFileSync(fixture("dev-command-receipt-malformed.pld"), stale);
   utimesSync(stale, new Date(sessionStart - 86_400_000), new Date(sessionStart - 86_400_000));
   expect(await Effect.runPromise(setupReceipt(stale, "a", sessionStart))).toBeUndefined();
-  // The same file written during the session is read, and its malformed receipt refused.
+
   utimesSync(stale, new Date(), new Date());
   expect(Exit.isFailure(await Effect.runPromiseExit(setupReceipt(stale, "a", sessionStart)))).toBe(true);
   const fresh = join(folder, "fresh.pld");

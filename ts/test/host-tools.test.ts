@@ -1,5 +1,5 @@
-// The host-tool rules in docs/typescript.md ("Host tools"), checked with
-// stand-in programs.
+
+
 import { expect, test } from "bun:test";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -14,14 +14,14 @@ import { pollUntil } from "../scripts/hostPoll";
 
 const wispEntry = resolve(import.meta.dir, "../scripts/wisp.ts");
 
-/** A stand-in program named `name` in `bin`, written in JavaScript and run by this Bun. */
+
 const stub = (bin: string, name: string, body: string) => {
   const path = join(bin, name);
   writeFileSync(path, `#!${process.execPath}\nconst { appendFileSync, writeFileSync } = require("node:fs");\nconst { execFileSync } = require("node:child_process");\nconst args = process.argv.slice(2);\n${body}\n`);
   chmodSync(path, 0o755);
 };
 
-/** Live (not zombie) processes among `pids`. */
+
 const leftovers = (pids: readonly number[]) => pids.filter((pid) => {
   try {
     return !/^\d+ \(.*\) Z/.test(readFileSync(`/proc/${pid}/stat`, "utf8"));

@@ -1,8 +1,8 @@
-// The stack-trace profile's `-dev stack-demo` command on two simulated clients,
-// as a chat event reaches the map's real entry. Wisp's headless runtime stands
-// in for Warcraft, and nothing here is compiled with the stack plugin, so the report
-// shows the thrown error without frames; test/stack/entry.ts checks those in
-// emitted Lua.
+
+
+
+
+
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import type { MapEntry } from "wisp/src/headless/client";

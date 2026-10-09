@@ -41,7 +41,7 @@ test("[native] capture driver shows Cairne jab and roll on adjacent held frames 
       if (body === undefined) throw new Error("Cairne body missing");
       return body;
     };
-    // Warcraft 3.0.1: ref-84-cairne/cairne84.pad and jab-startup-f33, jab-startup-last-f35, roll-first-active-f74.
+
     const jab33 = held(33);
     const jab35 = held(35);
     expect(jab35.animationElapsed).not.toBe(jab33.animationElapsed);
@@ -109,7 +109,7 @@ test("Defile's ground effect stays upright and starts the boundary's visible Sta
   expect(clients.client(0).errors).toEqual([]);
 });
 
-// Real shell callback, capture and replay; command delivery itself belongs to Wisp.
+
 test("native driver sets up pad rows, holds the whole callback, and stepped and free runs replay equally [invariant]", () => {
   const clients = runtime.clients({ install, start }, [0, 1]);
   const command = (text: string) => clients.everywhere(() => nativeDriverCommand(text));

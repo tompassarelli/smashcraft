@@ -6,12 +6,12 @@ import { savedFiles } from "wisp/scripts/wisp/devResult";
 
 const root = join(import.meta.dir, "..");
 const saved = savedFiles();
-/** Each audit checks every file on its own, so under `bun wisp dev` it checks only the saved ones. */
+
 const audited = (paths: readonly string[]) => (saved === undefined ? paths : paths.filter((path) => saved.includes(join(root, path))));
 const mapSources = audited([...new Bun.Glob("src/**/*.ts").scanSync(root)].sort());
 
 const parsed = new Map<string, { readonly text: string; readonly source: ts.SourceFile }>();
-/** Each audit reads the same files; parse each once. */
+
 function parse(path: string): { readonly text: string; readonly source: ts.SourceFile } {
   const cached = parsed.get(path);
   if (cached !== undefined) return cached;
@@ -28,11 +28,11 @@ interface SourceShapeViolation {
   readonly shape: string;
 }
 
-/**
- * Each decimal literal the map compiler's number rule TS9300 refuses
- * (wisp:plugins/number-rules.ts), as `file:line`. A literal inside f32() needs the
- * checker to confirm f32 is Wisp's helper; the compiler accepts it, so it is skipped.
- */
+
+
+
+
+
 function nonBinary32Literals(paths: readonly string[]): string[] {
   return paths.flatMap((path) => {
     const { source } = parse(path);
@@ -81,7 +81,7 @@ function assignedRecordFields(body: ts.ConciseBody | ts.Block | undefined, targe
   return fields.size;
 }
 
-// About 1.4 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
+
 test("map source follows the TypeScript shapes required by #35 [spec #35]", () => {
   const violations: SourceShapeViolation[] = [];
   const counts = {
@@ -180,7 +180,7 @@ test("production TypeScript has no type escapes (#35, #38) [spec #38]", () => {
       if (node.kind === ts.SyntaxKind.AnyKeyword) add(node, "any");
       if (ts.isNonNullExpression(node)) add(node, "nonNull");
       if (ts.isTypeAssertionExpression(node)) add(node, "assertions");
-      // `as const` narrows a literal; every other `as` overrides the checker.
+
       if (ts.isAsExpression(node) && !(ts.isTypeReferenceNode(node.type) && node.type.typeName.getText(source) === "const")) add(node, "assertions");
       ts.forEachChild(node, visit);
     };

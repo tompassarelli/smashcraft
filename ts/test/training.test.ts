@@ -1,6 +1,6 @@
-// #120: training chosen with the rule buttons at fighter selection, played in
-// two journal clients with a computer partner, and the reset both players'
-// clients apply on the same frame.
+
+
+
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
@@ -67,13 +67,13 @@ test("training settings agree on both clients and both shields with attack reset
   clients.press(0, Key.y);
   until("match", () => read(() => shell().game.phase) === Phase.match, 120);
   expect(read(() => fighterAt(shell().world, 2).status.damage)).toBe(40);
-  // Player 1 walks left; the reset puts every fighter back on its spot and the partner at its damage.
+
   until("player 1 walks away from its spot", () => read(() => fighterAt(shell().world, 0).motion.x) < matchSpawnX(0) - 100.0, 1200);
   until("the reset frame", () => read(() => shell().runtime.simulationFrame) >= RESET_FRAME, 1200);
   for (const client of clients.clients) {
     expect(value(client, () => {
       const { world, game } = shell();
-      // Player 1 had walked far left; the confirmed cursor may already be a frame or two past the reset.
+
       return [game.phase, fighterAt(world, 2).status.damage, Math.abs(fighterAt(world, 0).motion.x - matchSpawnX(0)) < 5.0, fighterAt(world, 1).motion.x];
     })).toEqual([Phase.match, 40, true, matchSpawnX(1)]);
   }

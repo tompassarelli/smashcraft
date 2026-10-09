@@ -1,8 +1,8 @@
-// wisp#15: K saves the last ten seconds of a match on the asking player's
-// client only, with no desync, and the saved moment replays to the checksum
-// the game recorded: the development build's callback match and the
-// integrity build's rollback match, where a controller helper asks through
-// the edit box. Wisp's own tests read a repro file as Warcraft writes it.
+
+
+
+
+
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import type { HeadlessClient } from "wisp/src/headless/client";
@@ -25,7 +25,7 @@ afterAll(headless.restore);
 
 const moments = (client: HeadlessClient) => [...client.files.keys()].filter(name => name.startsWith("smashcraft-repro-"));
 
-/** The client's saved moment replays to its recorded checksum, the confirmed match's when it was saved. */
+
 function expectReplays(lines: readonly string[] | undefined, checksum: string): void {
   const repro = parseRepro(lines ?? []);
   if (typeof repro === "string") throw new Error(repro);
@@ -44,8 +44,8 @@ function checkCallbackSave(beats: number): void {
   clients.start();
   clients.frames(30);
   clients.chat(0, QUICK_MATCH_COMMAND);
-  // Player 2 steps one way and back while player 1 attacks and jumps.
-  // The walk modifier keeps these short turns near their starting point for the saved interval.
+
+
   hold(1, 0x50, true);
   for (let beat = 0; beat < beats; beat++) {
     clients.press(0, beat % 2 === 0 ? 0x4e : 0x49);
@@ -62,7 +62,7 @@ function checkCallbackSave(beats: number): void {
   expect(value(a, () => shell().game.phase)).toBe(Phase.match);
   const checksum = value(a, () => confirmedChecksum(shell()));
   clients.press(0, Key.k);
-  // The save takes a step a frame while the match runs on.
+
   clients.frames(12);
   expect([moments(a).length, moments(b).length]).toEqual([1, 0]);
   expect(clients.firstDivergence()).toBeUndefined();
@@ -83,7 +83,7 @@ test("in the integrity build's rollback match, a controller helper's request and
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
   helpers.workload = { denseCycles: 2, walkers: [1] };
   const { clients, frames, clientA: a, clientB: b } = startPlayableMatch(headless, helpers, true);
-  // A second of play: a match younger than ten seconds saves from its first frame.
+
   frames(60);
   helpers.requestMoment(1);
   frames(15);

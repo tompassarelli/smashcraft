@@ -1,8 +1,8 @@
-// #141: the client plays a replay in the simulation of the map that recorded
-// it (smashcraft:client/src-tauri/src/mapsim.rs): its Lua glue loads a map
-// bundle without starting it, adds viewer.lua's modules and drives the viewer.
-// Here the map is a TypeScriptToLua bundle compiled as maps are, wrapped as
-// war3map.lua holds it, in the 32-bit Lua that LUA names, else Wisp's cached pinned build.
+
+
+
+
+
 import { expect, test } from "bun:test";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -41,7 +41,7 @@ test("a replay plays in a map bundle's own simulation with the viewer's modules 
   expect(run.stderr.toString()).toBe("");
   const [opened, advanced, sought, ended] = run.stdout.toString().trim().split("\n").map((line) => JSON.parse(line));
   expect(opened).toEqual({ first: 0, last: 700, frame: 0 });
-  // Across the pause's segment break, and back again by seeking.
+
   expect([advanced.frame, advanced.ended, advanced.scene.fighters.length]).toEqual([450, false, 2]);
   expect(advanced.scene.fighters[0].parts.length).toBeGreaterThan(0);
   expect([sought.frame, sought.scene.frame]).toEqual([120, 120]);

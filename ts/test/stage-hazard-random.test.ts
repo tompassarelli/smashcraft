@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { join } from "node:path";
 
 const root = join(import.meta.dir, "..");
-// The code that decides where a stage hazard is, when it acts and what it does.
+
 const HAZARD_FILES = [
   "src/game/sim/stageHazards.ts",
   "src/game/sim/lava.ts",
@@ -10,8 +10,8 @@ const HAZARD_FILES = [
   "src/game/sim/stage.ts",
   "src/game/presentation/stageHazards.ts",
 ];
-// The match's random source: the seed itself, the draws made from it (bots,
-// items, random stage) and the runtimes' own generators.
+
+
 const RANDOM_SOURCE = /\bmatchSeed\b|\bbotRandom\b|\bbotChoice\b|\bbotChance\b|\buseMatchSeed\b|\bcentreItem\b|\bitemDraw\b|\brandomStage\b|Math\.random|\bGetRandom\w*/;
 
 function enclosing(lines: readonly string[], index: number): string {

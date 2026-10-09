@@ -1,4 +1,4 @@
-// The generated menu files match their definitions (scripts/wisp/uiFrames.ts).
+
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

@@ -48,7 +48,7 @@ test.each([[true, false], [false, true], [true, true]])("fresh hosts only a priv
           if (message === "JoinGameByGameName") {
             passwords.guest = payload?.["gamePass"];
             expect(state.get("a")).toBe("lobby");
-            // Fresh 97387: a page-hosted public game asked a guest joining by name for a password, again and again.
+
             if (passwords.host !== undefined && (passwords.host === "" || payload?.["gamePass"] !== passwords.host)) {
               tell("RequestForPassword", {});
               return;
@@ -78,7 +78,7 @@ test.each([[true, false], [false, true], [true, true]])("fresh hosts only a priv
       { name: "a", documents: "/a", ...page("a", hostPage) },
       { name: "b", documents: "/b", ...page("b", guestPage) },
     ];
-    // Nothing is clicked, typed or read from the screen.
+
     const input = (client: Client, what: string) => Effect.sync(() => {
       clicks.push(`${client.name}:${what}`);
     });
@@ -95,7 +95,7 @@ test.each([[true, false], [false, true], [true, true]])("fresh hosts only a priv
       write: () => Effect.void, replace: () => Effect.void, remove: () => Effect.void,
       list: () => Effect.succeed([]), installMap: () => Effect.void,
     });
-    // Both clients sit in their menus, as the watch reports them.
+
     const watch = ClientWatch.of({ view: () => Effect.succeed({ state: { kind: "menus" } } as unknown as ClientView) });
     const exit = await Effect.runPromiseExit(freshMatch("/maps/test.w3x").pipe(Effect.provide(Layer.mergeAll(Layer.succeed(Clients, driver), Layer.succeed(GameFiles, files), Layer.succeed(ClientWatch, watch)))));
     expect(clicks).toEqual([]);
@@ -104,12 +104,12 @@ test.each([[true, false], [false, true], [true, true]])("fresh hosts only a priv
       expect([...state.values()]).toEqual(["playing", "playing"]);
       expect(commands).toContain("a:LobbyStart");
       expect(commands).toContain("b:JoinGameByGameName");
-      // A private game, joined with its own non-empty password.
+
       expect(passwords.privateGame).toBe(true);
       expect(passwords.host).toMatch(/^[0-9a-z]{6}$/);
       expect(passwords.guest).toBe(passwords.host);
     } else {
-      // A game created by clicks is listed publicly, so a client without a page stops fresh before anything is hosted.
+
       expect(Exit.isFailure(exit) && String(exit.cause)).toContain(`none reported for ${hostPage ? "b" : "a"}`);
       expect(commands.filter((command) => command.endsWith("CreateLobby"))).toEqual([]);
     }

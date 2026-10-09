@@ -1,4 +1,4 @@
-// #74: rule clicks and match/rematch journeys through the journal helpers (integrity build).
+
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
@@ -118,7 +118,7 @@ sweep("rules agree on both clients and the last countdown frame starts the next 
   expect(read(() => shell().game.stagePool)).toEqual({ ...pool, remainingMask: pool.remainingMask & ~(1 << nextStage) });
   expectSynchronized(clients);
 }, 30_000);
-// About 1.5 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
+
 sweep("either player's press cancels the automatic rematch [spec #74] [invariant]", () => {
   for (const actor of [0, 1]) {
     for (const key of [Key.n, Key.u, Key.y]) {
@@ -134,7 +134,7 @@ sweep("either player's press cancels the automatic rematch [spec #74] [invariant
     }
   }
 }, 30_000);
-// About 2.4 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
+
 sweep("endless survives repeated knockouts past the selected time limit [spec #74] [invariant]", () => {
   const { clients, frames, read } = session(true);
   let respawns = 0; let out = false;

@@ -37,7 +37,7 @@ for (const facing of [-1, 1]) for (const style of [AttackStyle.jab, AttackStyle.
       s.game.camera.initialized = false;
       advanceMatchCamera(s.game.camera, s.world, s.game.stageChoice);
       if (style === AttackStyle.getupAttack) beginDownState(owner, DownState.attack, 0); else if (style === AttackStyle.ledgeAttack) beginAttack(owner, style, false); else beginFighterAttack(s.world, 0, style, false);
-      // Setup starts outside the match callback, so deliver its attack-start event.
+
       s.runtime.poses[0] = createFighterPose();
       advanceFighterPose(s.runtime.poses[0], owner, s.world, controls(), false, false, true, false);
     });

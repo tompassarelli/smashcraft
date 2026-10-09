@@ -33,7 +33,7 @@ function grab(clients: ReturnType<typeof headless.clients>): void {
   }
 }
 
-/** Each frame, both clients' meters against the simulation; one `held:remaining:pummel` entry per client and frame held. */
+
 function watch(clients: ReturnType<typeof headless.clients>, frames: number, press?: number): string[] {
   const seen: string[] = [];
   for (let frame = 0; frame < frames; frame++) {
@@ -75,12 +75,12 @@ test("both players see the held fighter's escape meter drain with the simulation
   clients.frames(5);
   grab(clients);
   const idle = watch(clients, GRAB_HOLD_FRAMES + 5);
-  // Both clients, every held frame, from full to its last frame.
+
   expect(idle.length).toBe(2 * (GRAB_HOLD_FRAMES - 1));
   clients.frames(30);
   grab(clients);
   const pummelled = watch(clients, GRAB_HOLD_FRAMES + 5, 0);
-  // The mark closes on the bar's empty end as the pummel winds up, then goes.
+
   expect(pummelled.some((entry) => Number(entry.split(":")[2]) > 0 && Number(entry.split(":")[2]) < PUMMEL_CONTACT_FRAME)).toBe(true);
   expect(pummelled.some((entry) => entry.endsWith(":-1"))).toBe(true);
   for (const client of clients.clients) expect(client.errors).toEqual([]);
@@ -96,7 +96,7 @@ test("both players see a frozen fighter's escape meter drain with the freeze, fa
   for (const client of clients.clients) client.run(() => { fighterAt(shell().world, 0).status.frozenFrames = FREEZE_TRAP_FREEZE_FRAMES; });
   const seen: number[] = [];
   for (let frame = 0; frame < FREEZE_TRAP_FREEZE_FRAMES; frame++) {
-    // Slot 0 mashes attack for a while, 6 presses a second.
+
     if (frame >= 30 && frame < 90 && frame % 10 === 0) clients.press(0, Key.n);
     clients.frames(1);
     const remaining: number[] = [];
@@ -116,7 +116,7 @@ test("both players see a frozen fighter's escape meter drain with the freeze, fa
     seen.push(remaining[0]!);
     if (remaining[0] === 0) break;
   }
-  // Six presses took 48 frames off: the bar empties at the thaw, well before 300 frames.
+
   expect(seen.length).toBeLessThan(FREEZE_TRAP_FREEZE_FRAMES - 40);
   expect(seen.at(-1)).toBe(0);
   for (const client of clients.clients) expect(client.errors).toEqual([]);

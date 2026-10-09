@@ -9,19 +9,19 @@ import { STAGE_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
 
 type Bounds = { readonly min: readonly number[]; readonly max: readonly number[] };
 
-/**
- * Reforged and Definitive draw a stock path's HD file (`_hd.w3mod`, the same
- * bytes as `_de.w3mod`), whose geometry differs from the classic file that
- * MODEL_FACTS reads: these are its MODL extents, read from Warcraft 3.0.1's
- * CASC storage on 8 Oct 2026 (#322). Imported models draw one file in every mode.
- */
+// Stock HD paths use different MODL extents; imported models use one file in every graphics mode.
+
+
+
+
+
 const HD_BOUNDS: Readonly<Record<string, Bounds>> = {
   "Doodads\\Northrend\\Water\\North_IceFloe3\\North_IceFloe3.mdx": { min: [-115.22, -129.81, -76.13], max: [116.05, 147.26, 60.67] },
   "Doodads\\Icecrown\\Rocks\\Ice_Rock\\Ice_Rock0.mdx": { min: [-61.33, -60.04, -16.0], max: [63.01, 63.84, 120.78] },
   "Doodads\\Icecrown\\Structures\\Icecrown_Rubble\\Icecrown_Rubble0.mdx": { min: [-51.53, -67.87, -1.82], max: [65.04, 66.45, 81.54] },
 };
 
-/** Each graphics mode's bounds for a model: classic, then HD when its stock HD file differs. */
+
 function modeBounds(model: string): readonly Bounds[] {
   const classic = MODEL_FACTS[model]?.bounds;
   if (classic === undefined) throw new Error(`${model} has no model facts`);
@@ -33,7 +33,7 @@ function modeBounds(model: string): readonly Bounds[] {
 
 interface Drawn { readonly model: string; readonly left: number; readonly right: number; readonly bottom: number; readonly top: number }
 
-/** A part's drawn box in the fighting plane, in stage units: its bounds scaled per model axis, turned by its yaw, then offset. */
+
 function drawnBox(part: Readonly<PlatformPart>, bounds: Bounds, centerX: number, z: number): Drawn {
   const [sx, sy, sz] = part.scale;
   const turn = part.yaw * (Math.PI / 180);
@@ -48,7 +48,7 @@ function drawnBox(part: Readonly<PlatformPart>, bounds: Bounds, centerX: number,
   };
 }
 
-/** Every part the shell draws for one deck at match start, as stockPlatforms and the palette slab place it, in every graphics mode. */
+
 function drawnDeck(stage: number, index: number): { readonly walking: readonly Drawn[]; readonly dressing: readonly Drawn[] } {
   const left = surfaceLeft(stage, index, 0);
   const right = surfaceRight(stage, index, 0);
@@ -66,7 +66,7 @@ function drawnDeck(stage: number, index: number): { readonly walking: readonly D
 const decks = () => STAGE_CATALOG.flatMap(({ id }) => Array.from({ length: surfaceCount(id) }, (_, index) => ({ stage: id, index })));
 
 const TOP_TOLERANCE = 3;
-/** The palette slab's body below its walking line: a deck drawn no deeper than it reads as the deck itself, wherever it stands. */
+
 const SLAB_BODY = -(MODEL_FACTS[STAGE_DECK_MODEL]?.bounds?.min[2] ?? Number.NaN);
 const END_TOLERANCE = 4;
 

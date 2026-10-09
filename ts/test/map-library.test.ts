@@ -42,7 +42,7 @@ test("a new build of main takes the next version after every one built or in the
     writeFileSync(join(builds, "a/Smashcraft 0.0.50.w3x"), "");
     expect(playVersion(builds, library, "a")).toBe("0.0.50");
     expect(playVersion(builds, library, "b")).toBe("0.0.51");
-    // A number reserved for a build still running counts as taken.
+
     writeFileSync(join(builds, "b.version"), "0.0.51\n");
     expect(playVersion(builds, library, "b")).toBe("0.0.51");
     expect(playVersion(builds, library, "c")).toBe("0.0.52");

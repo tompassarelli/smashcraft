@@ -1,7 +1,7 @@
-// #305: Lore Battles chosen with the mode button at fighter selection, the
-// first battle started from its list on both journal clients with its own
-// fighter, opponent and stage, -dev lore starting a later battle, and
-// -dev lore win clearing a battle that stays cleared after a reload.
+
+
+
+
 import { afterAll, expect, test } from "bun:test";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

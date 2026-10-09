@@ -121,8 +121,8 @@ test("Start pauses and resumes when the helpers journaled more than the future w
   const paused = () => clients.clients.map(client => value(client, () => shell().session.paused));
   for (let i = 0; i < 240 && value(a, () => holdingStart(shell().game)); i++) frames(1);
   frames(30);
-  // As on 8 Oct natively: the sync round trip outlasted the helper's Start seal,
-  // so both helpers journaled 2.5 s on before the pause request reached them.
+
+
   helpers.pressStart(0);
   helpers.clock = lockstep => lockstep.frame + FUTURE_LIMIT + 22;
   frames(120);
@@ -140,7 +140,7 @@ test("Start pauses and resumes when the helpers journaled more than the future w
 
 test("pause-dash: the first draw after resuming shows every fighter where it paused, then prediction catches up at most two frames a draw [repro #206]", () => {
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
-  // As pause-dash.pad: slot A dashes right, Start pauses mid-dash, and the stick lets go just after the resume.
+
   let dashFrom = Infinity;
   let releaseAt = Infinity;
   const dash = inputRow({ held: bit(Action.moveRight), pressed: bit(Action.moveRight) | bit(Action.smashRight), axisX: 127 });
@@ -169,7 +169,7 @@ test("pause-dash: the first draw after resuming shows every fighter where it pau
   releaseAt = (helpers.journaled(0) ?? 0) + 3;
   for (let i = 0; i < 120 && paused().some(Boolean); i++) frames(1);
   expect(paused()).toEqual([false, false]);
-  // The helpers journaled through the resume round trip: those rows wait past the paused frame.
+
   expect(helpers.journaled(0)).toBeGreaterThan((pausedAt[0] ?? 0) + 12);
   expect(clients.clients.map(picture)).toEqual(frozen);
   expect(clients.clients.map(predicted)).toEqual(pausedAt);
@@ -191,8 +191,8 @@ test("Start pressed again while the pause is still settling resumes it, both pla
   const predicted = (client: HeadlessClient) => value(client, () => shell().rollback?.speculative.runtime.simulationFrame ?? -1);
   for (let i = 0; i < 240 && value(a, () => holdingStart(shell().game)); i++) frames(1);
   frames(30);
-  // As natively on 9 Oct under load: B's helper answers the pause seconds late,
-  // and A's resume Start lands after A's helper prepared but before the commit.
+
+
   helpers.silent.add(1);
   helpers.pressStart(0);
   frames(30);
@@ -213,7 +213,7 @@ test("Start pressed again while the pause is still settling resumes it, both pla
   expect(pausedAt).toBeDefined();
   expect(paused()).toEqual([false, false]);
   expect(waited).toBeLessThanOrEqual(60);
-  // The first draw after resuming shows the paused frame on both players.
+
   expect(clients.clients.map(predicted)).toEqual(pausedAt ?? []);
   expect([confirmedFrame(a), confirmedFrame(b)]).toEqual(stopped ?? []);
   frames(60);

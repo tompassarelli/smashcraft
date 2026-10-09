@@ -1,5 +1,5 @@
-// Runs one tape in Lua and prints its records, the 32-bit Lua side of
-// scripts/tapes.ts. Environment: TAPE_FILE.
+
+
 import { decodeTape } from "../../src/game/replay/tape";
 import { runTape } from "../../src/game/replay/tapeRunner";
 

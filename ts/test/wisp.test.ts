@@ -96,7 +96,7 @@ test("the quick-match command is one chat line from the host, acknowledged by ev
     read: (path): Effect.Effect<StoredFile | undefined> => Effect.gen(function*() {
       if (path.endsWith("/wc3-melee-ready.txt")) return { text: fixture("melee-ready.pld"), modified: 0 };
       if (quickAt !== undefined && (yield* Clock.currentTimeMillis) >= quickAt && path.includes("smashcraft-dev-")) return { text: fixture("dev-command-receipt.pld"), modified: quickAt };
-      // An earlier command's receipt, removed before this one is sent.
+
       return path.includes("smashcraft-dev-") && quickAt === undefined ? { text: fixture("dev-command-receipt.pld"), modified: 0 } : undefined;
     }),
     write: () => Effect.void, replace: () => Effect.void, list: () => Effect.succeed([]), installMap: () => Effect.void,
@@ -122,7 +122,7 @@ test("the quick-match command is one chat line from the host, acknowledged by ev
     yield* Fiber.join(fiber);
   }).pipe(Effect.provide(TestClock.layer()));
   await Effect.runPromise(run);
-  // One batch, so Wisp checks once that the host is in its match before Return (wisp:docs/watch.md).
+
   expect(sent).toEqual(["a: Escape+Return | -dev quick | Return"]);
   expect(removed).toHaveLength(2);
 });

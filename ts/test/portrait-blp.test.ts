@@ -5,7 +5,7 @@ import { PORTRAIT_QUALITY, encodeBlp } from "../scripts/blp";
 import { readMapBaseline } from "../scripts/mapSize";
 import { MAP_PORTRAITS } from "../scripts/wisp/mapInputs";
 
-/** #307: the 26-fighter cap at about 0.55 MB each needs 14.3 MB, rounded to 15 MB. */
+
 const PORTRAIT_BUDGET = 15_000_000;
 
 test("portraits are imported as BLP and stay within their map budget in the committed size baseline [spec #307]", () => {
@@ -26,7 +26,7 @@ test("a portrait BLP decodes in war3-model to its source within JPEG error, alph
   const blp = encodeBlp({ width, height, data, alpha: true }, PORTRAIT_QUALITY);
   const decoded = decodeBLP(blp.slice().buffer);
   expect([decoded.width, decoded.height, decoded.content, decoded.alphaBits, decoded.mipmaps.length]).toEqual([width, height, 0, 8, 1]);
-  // Warcraft rejects BLP JPEG headers longer than 624 bytes.
+
   expect(new DataView(blp.buffer).getUint32(156, true)).toBeLessThanOrEqual(624);
   const pixels = getBLPImageData(decoded, 0).data;
   let worst = 0;

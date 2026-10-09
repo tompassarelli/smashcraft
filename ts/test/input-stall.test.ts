@@ -1,7 +1,7 @@
-// Issue #46: a player's controller input stops mid-match. Every client names
-// the player the match waits for during the stall (#348), and the
-// match goes on when the input returns. Two simulated clients of the journal (integrity) build, with Battle.net's
-// measured sync latency.
+
+
+
+
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import type { HeadlessClient } from "wisp/src/headless/client";
@@ -29,7 +29,7 @@ test("a helper that stops mid-match shows who every client waits for within a se
     if (probe === undefined) throw new Error("integrity has no response probe");
     startProbe(probe, false);
   });
-  // Player 2's helper types nothing for two seconds.
+
   const cut = clients.frame;
   helpers.silent.add(1);
   const waitingFor = (client: HeadlessClient) => value(client, () => activeRollback(shell())?.waitingFor ?? 0);
@@ -42,7 +42,7 @@ test("a helper that stops mid-match shows who every client waits for within a se
       expect(shows(client, WAITING)).toBe(named(client));
     }
   }
-  // Within one second (60 frames) of player 2's input stopping, on both clients.
+
   expect([shown.get(a) ?? Infinity, shown.get(b) ?? Infinity].every(frames => frames <= 60)).toBe(true);
   expect(value(a, () => shell().probe?.waitingCallbacks)).toBeGreaterThan(0);
   expect(value(a, () => shell().probe?.waitingOwnCallbacks)).toBe(0);

@@ -1,8 +1,8 @@
-// Live tuning (`bun wisp tune`, wisp:docs/tune.md): every declared value is
-// found in the source, and tuned values applied through a hot reload change
-// the confirmed match alike in two simulated clients from the frame both
-// install them. In Bun the reload loads the map again from a copy of its
-// sources holding the texts tune compiles, as a real reload links new modules.
+
+
+
+
+
 import { afterAll, expect, test } from "bun:test";
 import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -34,13 +34,13 @@ const TUNED_GRAVITY = [["Rifleman gravity", 0.3], ["Demon Hunter gravity", 0.3]]
 
 interface Tuned {
   readonly entry: MapEntry;
-  /** The copy's tuning module, whose authored values the tuned entry gives fighters. */
+
   readonly tuning: { readonly authoredTuning: typeof authoredTuning };
-  /** The files tune compiles instead of the source's. */
+
   readonly files: readonly string[];
 }
 
-/** The map loaded from a copy of src/ with the texts tune compiles after applying `values`. */
+
 async function tunedEntry(values: readonly (readonly [string, number])[]): Promise<Tuned> {
   const replacements = new Map<string, string>();
   const reload = HotReload.of({ publish: Effect.succeed(1) });
@@ -65,7 +65,7 @@ interface Observed {
   readonly gravity: number;
 }
 
-/** A quick match that reloads into `next` and then jumps: what each client holds after each frame from the reload on. */
+
 function play(next: MapEntry): Observed[][] {
   const clients = headless.clients({ start, install }, [0, 1], { keepCalls: 0 });
   clients.start();
@@ -97,7 +97,7 @@ function play(next: MapEntry): Observed[][] {
 let tuned: Promise<Tuned> | undefined;
 const tunedGravity = () => (tuned ??= tunedEntry(TUNED_GRAVITY));
 
-// About 1.5 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
+
 test("under rollback the speculative match and every history snapshot take tuned values too, so a correction can't undo them [invariant]", async () => {
   const { entry, tuning } = await tunedGravity();
   const clients = headless.clients({ install, start: () => startBuild(INTEGRITY_BUILD) }, [0, 1], { keepCalls: 0 });
@@ -125,7 +125,7 @@ test("under rollback the speculative match and every history snapshot take tuned
   }
 }, 30_000);
 
-// About 2 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
+
 test("tuned gravity reaches both clients' fighters on the frame they install it and changes the match alike in both [repro #242]", async () => {
   const tuned = await tunedGravity();
   expect(tuned.files).toEqual(["src/game/sim/tuning.ts"]);
@@ -139,13 +139,13 @@ test("tuned gravity reaches both clients' fighters on the frame they install it 
   for (const frame of changed) expect(frame[1]).toEqual(frame[0]!);
   for (const frame of reference) expect(frame[1]).toEqual(frame[0]!);
   const column = (frames: Observed[][], field: keyof Observed) => frames.map((frame) => frame[0]?.[field]);
-  // Up to the install the match is the reference's; from it the tuned value runs.
+
   expect(column(changed, "checksum").slice(0, at)).toEqual(column(reference, "checksum").slice(0, at));
   for (let frame = at; frame < changed.length; frame++) expect(changed[frame]![0]!.checksum).not.toBe(reference[frame]![0]!.checksum);
   const gravity = changed[at]![0]!.gravity;
   expect([melee(0.3499999940395355), melee(0.30000001192092896)]).toContain(gravity);
   expect(reference[at]![0]!.gravity).not.toBe(gravity);
-  // The jump after it rises differently.
+
   const heights = column(changed, "height");
   const referenceHeights = column(reference, "height");
   expect(heights.slice(0, 20)).toEqual(referenceHeights.slice(0, 20));

@@ -33,7 +33,7 @@ test("both clients show both locked markers on each fighter and remove them on c
       expect(client.effectPoses().filter(pose => pose.model === markerModel && pose.scale > 0)).toEqual([]);
       client.run(() => {
         const s = shell();
-        // Presenting a forecast must leave all observed simulation state intact.
+
         const victim = fighterAt(s.world, 1);
         const before = JSON.stringify(victim);
         renderPersistentPresentation(s);

@@ -62,9 +62,9 @@ test("a missing Chen flame model shows a debug marker and fighter/cue/path error
   }
 });
 
-// Classic model sequences, extracted from Warcraft 3.0.1 on 8 Oct.
-// Defend's first sequence is Nothing; Clap's is nothing; the other burst
-// effects here have Birth but no Stand. The native judge saw none in #144.
+
+
+
 test("short specials select the stock spell's visible sequence on their first shown frame [repro #144]", () => {
   const runtime = installHeadless(SMASHCRAFT_HEADLESS);
   try {
@@ -132,7 +132,7 @@ test("Defile's startup and active cues skip the stock models' empty lead-in [rep
     clients.start();
     const move = heroDefinition(Character.lichKing)?.specials?.down.ground;
     if (move === undefined) throw new Error("missing Defile");
-    // Stock Dark Ritual first emits at 0.833 s; Death and Decay at 0.267-0.367 s.
+
     for (const [frame, fragment, animation, seconds] of [
         [1, "DarkRitualCaster", "birth", 1.0],
         [heroCueWindows(move).active.first, "DeathAndDecayTarget", "stand", 0.5],
@@ -181,7 +181,7 @@ test("Definitive Popcorn cues start on confirmed casts, run without clock contro
         renderer.setPaused(true);
         renderer.setPaused(false);
       };
-      // #144 native lead: Dark Ritual first spawn 833 ms; Decay 267–367 ms.
+
       cast(1, 0);
       cast(heroCueWindows(move).active.first, 0.2);
       const births = client.log.slice(begin).filter(call => call.name === "AddSpecialEffect");
@@ -191,7 +191,7 @@ test("Definitive Popcorn cues start on confirmed casts, run without clock contro
       const clocks = client.log.slice(begin).filter(call => ids.includes(call.args[0]) && ["BlzSetSpecialEffectTime", "BlzSetSpecialEffectTimeScale", "BlzSetSpecialEffectAnimation"].includes(call.name));
       if (client.slot === 1) expect(clocks).toHaveLength(0);
       else expect(clocks.filter(call => call.name === "BlzSetSpecialEffectTime").map(call => call.args[1])).toEqual([1, 1, 0.5, 0.5]);
-      // Predicted correction changes poses, without starting another effect.
+
       fighter.special.frame = 1;
       renderer.present(fighter, true, false);
       expect(client.log.slice(begin).filter(call => call.name === "AddSpecialEffect")).toHaveLength(2);

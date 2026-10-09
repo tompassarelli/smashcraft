@@ -1,13 +1,13 @@
-// #60's claim headless, in the 0.0.49 native bot session's four-fighter
-// match (R2): two helpers' pads playing the session's beats against computer
-// Illidan and Rifleman, client B's game stopped for 2 s three times, Battle.net
-// latency as that session measured it and the helpers' typing cost. Every
-// legal press must start in its presser's first prediction, at most a callback
-// after the map captured it. Presses captured while a remote row R frames
-// behind held prediction back, and those B's helper journaled while B's game
-// was stopped, are left out, as #60 leaves them out, and so are presses whose
-// prediction entered their frame in a world a remote row it had not yet
-// received had already changed (a remote hit it could not foresee).
+
+
+
+
+
+
+
+
+
+
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
 import { type SyncLatency, syncDelivery } from "wisp/src/headless/syncChannel";
@@ -29,7 +29,7 @@ import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { JournalHelpers } from "./rematch/journalHelper";
 import { sweep } from "./sweep";
 
-/** The session's beats: an action's bits, frames held (0 for a 5 ms tap), what its press also carries; 24 frames apart. */
+
 const BEATS: readonly (readonly [mask: number, held: number, press: RowFields])[] = [
   [32, 0, {}],
   [2048, 6, { throwX: 1 }],
@@ -43,13 +43,13 @@ const BEATS: readonly (readonly [mask: number, held: number, press: RowFields])[
   [1, 18, { axisX: -127, sdi: true, sdiX: -1, throwX: -1 }],
 ];
 const BEAT_GAP = 24;
-/**
- * The gate's sample: steady-play legal presses. The match plays the beats until
- * the stalls are over and this many have been confirmed, so a kit change that
- * makes fewer beats legal lengthens the match instead of failing the floor.
- */
+
+
+
+
+
 const GATED_PRESSES = 15;
-/** A ceiling of two minutes of beats; the sample, not this, ends the match. */
+
 const MATCH_FRAMES = 7200;
 
 function beatRows(frames: number): InputRow[] {
@@ -77,20 +77,20 @@ function beatRows(frames: number): InputRow[] {
 }
 const BEAT_ROWS = beatRows(MATCH_FRAMES + 600);
 
-/**
- * Arrival 11 / 23 / 30 / 39 frames (p50 / p95 / p99 / max) after a send
- * every 6 frames. R2's own echoes came back in 118-120 / 294-409 / - /
- * 586-2785 ms.
- */
+
+
+
+
+
 const extraTurns = Array.from({ length: 24 }, (_, turns) => 0.75 ** turns);
 const BOT_SESSION_LATENCY: SyncLatency = { latencyMs: 80, turnMs: 25, extraTurns: extraTurns.map((weight) => weight / extraTurns.reduce((sum, each) => sum + each, 0)) };
-/** 180 ms (10.8 frames) for 608 characters taken at once (smashcraft:test/lag-recovery.test.ts). */
+// Typing cost: 180 ms for 608 characters (test/lag-recovery.test.ts).
 const TYPING_FRAMES_PER_CHARACTER_SQUARED = 0.00003;
 const CATCH_UP_CALLBACKS = 10;
-/** B's messages take 100 ms longer, as R2's did: B's own echo p95 409 ms, A's 294 ms. */
+
 const B_SLOWER = 6;
 const STALL_FRAMES = 120;
-/** R2's stops of B, 6, 14 and 22 s into the match, by B's helper's clock. */
+
 const STALLS = [360, 840, 1320];
 
 const declarations = readNativeDeclarations();
@@ -109,24 +109,24 @@ interface Press {
   readonly frame: number;
   readonly pressed: number;
   readonly capture: number;
-  /** Prediction was held back by a remote row R frames behind it, or hadn't yet run every local row since. */
+
   readonly held: boolean;
-  /**
-   * The prediction entered the press's frame in a different world than the confirmed
-   * run did: a remote row it had not yet received had already changed the match.
-   */
+
+
+
+
   remote?: boolean;
-  /** The predicted world entering the press's frame. */
+
   entering?: string;
   predicted?: number;
   started?: number;
   legal?: number;
 }
 const presses = new Map<string, Press>();
-/** Each client's world after a frame, as its latest prediction and its confirmed run left it. */
+
 const predictedWorlds = new Map<string, string>();
 const confirmedWorlds = new Map<string, string>();
-/** The fighters' state a press's start depends on; a coarse digest only ever reports fewer worlds apart. */
+
 function worldDigest(world: Readonly<Roster> | undefined): string {
   return (world?.fighters ?? []).map((f) => f === undefined ? "-" : [
     f.motion.x, f.motion.z, f.motion.vx, f.motion.vz, f.status.damage, f.attack.style ?? -1, f.attack.frame, f.attack.cooldown,
@@ -182,14 +182,14 @@ afterAll(() => {
   ShadowInputSchedule.prototype.readConfirmed = readConfirmed;
 });
 
-/** The parts of the lockstep this test drives itself, so one game can stop while the other runs. */
+
 interface LockstepFrames {
   frame: number;
   readonly inFlight: { readonly arrival: number; readonly message: SyncMessage }[];
   flush(): void;
 }
 
-// About 1.5 s alone; at load 23-29 a host took headless match tests past Bun's 5 s default.
+
 sweep("#60: every local press starts in the presser's next prediction unless a remote holds prediction back [spec #60]", () => {
   const network = syncDelivery(BOT_SESSION_LATENCY, 11);
   let slower = 0;
@@ -204,7 +204,7 @@ sweep("#60: every local press starts in the presser's next prediction unless a r
     return value as T;
   };
   const phase = () => read(host, () => shell().game.phase);
-  /** Games stopped as SIGSTOP stops them: they run nothing, and while one is stopped no turn completes, so no message arrives. */
+
   const stopped = new Set<number>();
   const owed = [0, 0];
   const typing = [0, 0];
@@ -250,7 +250,7 @@ sweep("#60: every local press starts in the presser's next prediction unless a r
     for (let click = 0; click < 2; click++) clients.everywhere(() => panelActions().selection.cycleMode(0, slot));
     clients.everywhere(() => panelActions().selection.selectCpuChoice(0, slot, character));
   }
-  // Keep both humans in play until the legal-press sample is complete after the roster cut (#345).
+
   clients.everywhere(() => {
     while (shell().game.stockCount < 9) panelActions().selection.changeStocks(0, 1);
   });
@@ -264,7 +264,7 @@ sweep("#60: every local press starts in the presser's next prediction unless a r
   slower = B_SLOWER;
   expect(read(host, () => [shell().game.humanFighterMask, shell().game.computerMask, [...shell().game.characterChoices]])).toEqual([3, 12, [Character.rifleman, Character.demonHunter, Character.demonHunter, Character.rifleman]]);
 
-  /** Frames B's helper journaled while B's game was stopped. */
+
   const ownStalls: [number, number][] = [];
   for (const stall of STALLS) {
     until("stall", () => (helpers.journaled(1) ?? 0) >= stall, MATCH_FRAMES);
@@ -283,12 +283,12 @@ sweep("#60: every local press starts in the presser's next prediction unless a r
 
   const legal = [...presses.values()].filter((press) => (press.legal ?? 0) !== 0);
   const rows = legal.map((press) => ({ ...press, own: own(press), late: (press.predicted ?? Infinity) - press.capture, mispredicted: ((press.started ?? 0) & (press.legal ?? 0)) !== press.legal }));
-  // A press whose prediction entered its frame in a world a late remote row had already changed is reported apart too:
-  // its start answers to that row, not to the local press's latency.
+
+
   const gated = rows.filter((press) => !press.own && !press.held && press.remote !== true);
   expect(gated.length).toBeGreaterThanOrEqual(GATED_PRESSES);
   expect(gated.filter((press) => press.late > 1 || press.mispredicted)).toEqual([]);
-  // A's presses while B's game was stopped wait for B's rows, and are reported apart.
+
   expect(rows.filter((press) => press.held && press.slot === 0).length).toBeGreaterThan(0);
 
   until("one confirmed frame on both clients", () => new Set(clients.clients.map((client) => read(client, () => shell().runtime.simulationFrame))).size === 1, 60);

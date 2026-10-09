@@ -2,10 +2,10 @@ import { expect, test } from "bun:test";
 import { STAMP_CELL, STAMP_CELLS, type StampCell, stampCells } from "../src/runtime/drawnStamp";
 import { fixtureOf, frameStamp } from "../scripts/nativeCapture";
 
-/** The stamp's colors as Warcraft draws its team color textures. */
+
 const RGB: Readonly<Record<StampCell, readonly [number, number, number]>> = { one: [255, 3, 3], zero: [0, 66, 255], guard: [32, 192, 0] };
 
-/** A game area `width` by `height` at the top left of a desktop `margin` pixels larger each way. */
+
 function painted(width: number, height: number, script: number, frame: number, margin = 0) {
   const desktop = width + margin;
   const rgb = new Uint8Array(desktop * (height + margin) * 3).fill(90);
@@ -18,7 +18,7 @@ function painted(width: number, height: number, script: number, frame: number, m
   return { width: desktop, height: height + margin, rgb };
 }
 
-// The map paints what the host reads; a capture without the stamp, or with a cell flipped, names no frame.
+
 test("a capture's drawn stamp names the fixture and frame the map painted, at 1080 and 1440 lines [invariant]", () => {
   expect(stampCells(5, 177)).toHaveLength(STAMP_CELLS);
   expect(frameStamp(painted(1920, 1080, 5, 177))).toEqual({ script: 5, frame: 177 });
@@ -32,11 +32,11 @@ test("a capture's drawn stamp names the fixture and frame the map painted, at 10
   expect(frameStamp(flipped)).toBeUndefined();
 });
 
-// The pool's 1280x720 window sits at the top left of a 1320x760 desktop; the reader placed cells from the whole capture's size and missed them.
+
 test("a stamp reads in a pool window smaller than its desktop and under the KO flash's white wash [repro wisp#79]", () => {
   const pool = painted(1280, 720, 2, 410, 40);
   expect(frameStamp(pool)).toEqual({ script: 2, frame: 410 });
-  // The KO flash blends white at 117/255 over the whole screen, the stamp included (koFlash.ts).
+
   for (let index = 0; index < pool.rgb.length; index++) pool.rgb[index] = Math.round((pool.rgb[index] ?? 0) * (1 - 117 / 255) + 117);
   expect(frameStamp(pool)).toEqual({ script: 2, frame: 410 });
 });

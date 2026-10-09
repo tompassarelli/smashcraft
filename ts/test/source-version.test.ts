@@ -1,6 +1,6 @@
-// #141: every map build stamps its source version over the placeholder in
-// src/game/shell/sourceVersion.ts, so replays from development maps name a
-// real version too; unstamped code says "development".
+
+
+
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

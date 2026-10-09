@@ -1,5 +1,5 @@
-// The release keyboard path: local capture assigns two frames ahead, and
-// predicted fighters respond on that frame while their own echo is in flight.
+
+
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { syncDelivery } from "wisp/src/headless/syncChannel";

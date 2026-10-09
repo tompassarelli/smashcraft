@@ -1,6 +1,6 @@
-// #284: Classic chosen with the mode button at fighter selection, its first
-// fight started on both journal clients, and a boss match played into its
-// strikes, with both clients agreeing throughout.
+
+
+
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { BOSSES, BossPhase, bossCycleFrames, bossDefinition, bossMoment, collectBossContacts } from "../src/game/classic/bosses";
@@ -75,7 +75,7 @@ test("-dev classic boss starts Archimonde's battle on Nordrassil on both clients
   clients.start(); frames(30);
   clients.chat(0, "-dev classic boss Blademaster");
   until("the boss match", () => read(() => shell().game.phase) === Phase.match, 240);
-  // Past GO! and the opening into the first strikes.
+
   frames(380);
   for (const client of clients.clients) {
     expect(client.errors).toEqual([]);
@@ -88,13 +88,13 @@ test("-dev classic boss starts Archimonde's battle on Nordrassil on both clients
 });
 
 test("every boss's whole drawn body stands behind the deck and inside the view at both camera extremes, wherever its strikes move it [repro #284]", () => {
-  // Natively Archimonde stood in front of the fighters and the Lich King and Kil'jaeden drew off the top of the screen.
+
   const tilt = Math.PI / 18;
   for (const kind of [BossKind.archimonde, BossKind.lichKing, BossKind.kiljaeden]) {
     const boss = bossDefinition(kind);
     if (boss === undefined) throw new Error(`missing boss ${kind}`);
     const { min, max } = boss.drawn;
-    // The body is turned a quarter right to face the camera: model x points toward the viewer (-y), model y along +x.
+
     const corners = boss.strikes.flatMap(({ x }) => [min[0], max[0]].flatMap(forward => [min[1], max[1]].flatMap(side => [min[2], max[2]].map(up =>
       [x + boss.scale * side, boss.depth - boss.scale * forward, boss.standZ + boss.scale * up] as const))));
     for (const [, y] of corners) expect(y, `${boss.name} behind the deck`).toBeGreaterThan(MAIN_DECK_HALF_DEPTH);
@@ -181,7 +181,7 @@ test("Grom completes six Classic fights, sees his ending and results, and clears
     expect(read(() => [shell().game.run.fighter, shell().game.run.fight])).toEqual([Character.grom, fight]);
     expect(read(() => shell().game.stageChoice)).toBe(fight === 5 ? bossDefinition(route.boss)?.stage : route.fights[fight]?.stage);
     frames(2);
-    // Script the knockout; the running map judges the result and advances on the player's confirm.
+
     clients.everywhere(() => {
       const { game, world } = shell();
       for (const fighter of world.fighters) {

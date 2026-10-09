@@ -55,7 +55,7 @@ sweep("Malfurion selects Classic, six scripted wins reach his ending and results
     expect(read(() => [shell().game.run.fighter, shell().game.run.fight])).toEqual([Character.malfurion, fight]);
     if (fight < 5) expect(read(() => shell().game.stageChoice)).toBe(route?.fights[fight]?.stage);
     else expect(read(() => shell().game.run.boss.kind)).toBe(BossKind.archimonde);
-    // Script rival knockouts; the real map judges the match and advances on the player's confirm.
+
     clients.everywhere(() => {
       const { game, world } = shell();
       for (const slot of PARTICIPANT_SLOTS) {

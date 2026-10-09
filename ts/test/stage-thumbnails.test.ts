@@ -1,7 +1,7 @@
-// The stage-select cards follow the stage art (smashcraft:docs/design/stage-select.md).
-// Each stage's card is checked on its own: after a stage or its art changes, run the
-// command the failure prints (`bun scripts/stageThumbnails.ts --stage NAME` from ts/)
-// and commit ts/stage-thumbnails.json and src/game/menu/stageSilhouettes.ts.
+
+
+
+
 import { expect, test } from "bun:test";
 import { join } from "node:path";
 import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";

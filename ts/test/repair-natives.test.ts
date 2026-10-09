@@ -1,6 +1,6 @@
-// Rollback repair replays corrected frames numerically: presentation, audio,
-// effects and every other Warcraft native stay with the completed state
-// (src/platform/shell/rollback.ts), so a deep correction costs only Lua.
+
+
+
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
@@ -46,7 +46,7 @@ test("rollback repair re-simulates corrected frames without a single native call
     clients.frames(30);
     clients.chat(0, "-dev quick");
     clients.frames(30);
-    // The bot session's beat on both players: taps, shields and dashes the other client predicts wrong.
+
     let held = 0;
     for (let frame = 1; frame <= 90; frame++) {
       const [tap, hold] = botBeatKeys(frame);

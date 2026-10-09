@@ -3,8 +3,8 @@ import { generateMDX, parseMDL } from 'war3-model';
 import { KEY_BOUND, poseError, savedKeyBytes, thinKeys } from '../scripts/keyThin';
 import { fighterName, SELECTABLE_CHARACTERS } from '../src/game/sim/heroes/registry';
 
-// An arm: a root bone turning about Z at a steady rate, with a 3 degree
-// flick at frame 500, and a hand 100 units out on it.
+
+
 function arm(): string {
   const keys: string[] = [];
   for (let frame = 0; frame <= 1000; frame += 10) {
@@ -42,7 +42,7 @@ test('thinning drops keys a steady turn reproduces, keeps the flick, and holds t
   expect(report.keysBefore).toBe(101);
   expect(frames.Keys.length).toBeLessThan(20);
   expect(frames.Keys.some(key => key.Frame === 500)).toBe(true);
-  // war3-model's renderer draws both models: the error is its pose, not the thinner's arithmetic.
+
   const error = poseError(source, model);
   expect(error.maxPosition).toBeLessThanOrEqual(KEY_BOUND.position);
   expect(error.maxRotationDegrees).toBeLessThanOrEqual(KEY_BOUND.rotationDegrees);

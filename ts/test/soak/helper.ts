@@ -1,11 +1,11 @@
-// The soak through the real input path (wisp:docs/soak.md, "Through a game's
-// own input helper"): each match plays in two headless clients in real time.
-// Each player's controller is a uinput pad that the soak's fuzzer drives at a
-// rate real time allows, read by a persistent wc3-journal helper typing into
-// its client's edit box (--text-out) and reading its client's CustomMapData,
-// as `wisp integrity headless` runs them (scripts/integrity/headless.ts). The
-// soak's detectors watch every frame. Loaded only by `bun wisp soak
-// --helper`, so the host type check never reads map code.
+
+
+
+
+
+
+
+
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Effect } from "effect";
@@ -27,39 +27,39 @@ import { SMASHCRAFT_SCENE } from "../../scripts/wisp/playerView";
 import { PREDICTED_HEADLESS } from "../../scripts/wisp/headless";
 import { SOAK_ENTRY, beginMatch, matchView } from "./game";
 
-/** The pad as the helper reads it: A, B, X, Y, LB, RB and Start, the left stick and both triggers. */
+
 const PAD: SoakController = {
   buttons: ["a", "b", "x", "y", "lb", "rb", "start"],
   toggles: ["start"],
   axes: ["leftX", "leftY", "leftTrigger", "rightTrigger"],
   axisLimit: 32767,
-  // Melee's 0.28 dead zone of a full-scale stick (companion/src/stick.rs).
+
   deadZone: 9175,
 };
 const AXES = [ABS_X, ABS_Y, ABS_Z, ABS_RZ] as const;
 
-/** A pattern every second or so: the helper journals edges in real time, one at a time. */
+
 const HELPER_FUZZ = { rate: 1 / 60, silence: 0, hitch: 1 / 3600 };
 
-/** The pad's kernel event for a fuzzed edge; triggers rest at zero and press to the magnitude. */
+
 const sourceEdge = (edge: SoakEdge): SourceEdge =>
   "button" in edge
     ? { type: EV_KEY, code: at(PAD_BUTTONS, edge.button), value: edge.down ? 1 : 0 }
     : { type: EV_ABS, code: at(AXES, edge.axis), value: edge.axis >= 2 ? Math.abs(edge.value) : edge.value };
 
 interface HelperSoakOptions {
-  /** The persistent controller helper binary, built with --text-out. */
+
   readonly helper: string;
   readonly out: string;
   readonly matches: number;
   readonly seed: number;
-  /** Real-time seconds each match may run. */
+
   readonly seconds: number;
 }
 
 type PadReply = { readonly error: string } | { readonly injection: unknown };
 
-/** Pad writes in scripts/integrity/padWorker.ts's thread, in order, each answered before the next. */
+
 const padThread = Effect.acquireRelease(
   Effect.sync(() => {
     const worker = new Worker(join(import.meta.dir, "../../scripts/integrity/padWorker.ts"));
@@ -77,14 +77,14 @@ const padThread = Effect.acquireRelease(
 
 const SLOTS = [0, 1] as const;
 
-/** One match: pads, helpers and clients made for it and gone after it. */
+
 const playMatch = (runtime: ReturnType<typeof installHeadless>, match: SoakMatch, options: HelperSoakOptions) =>
   Effect.scoped(Effect.gen(function*() {
     const out = join(options.out, `match-${match.index}`);
     const data = SLOTS.map((slot) => join(out, `client-${slot}`, "CustomMapData"));
     yield* tryIntegrity("create match directory", out, () => mkdirSync(out, { recursive: true }));
     let monitor: SoakMonitor | undefined;
-    // What the helpers type and write, by the frame it reaches the clients: what a replay plays.
+
     const recorder = helperRecorder(() => (monitor === undefined ? 0 : monitor.frame + 1));
     const typed = new Map<number, TypedInput>();
     const pads: Pad[] = [];
@@ -109,7 +109,7 @@ const playMatch = (runtime: ReturnType<typeof installHeadless>, match: SoakMatch
     const noQuiet: ReadonlySet<number> = new Set();
     const realtime = new RealtimeClients(clients, typed, undefined, () => watching.afterFrame(performance.now() - began, noQuiet));
     yield* tryIntegrity("start headless clients", out, () => realtime.start());
-    // Menus take the clients' own frames; the helpers follow them through the files the map writes.
+
     yield* tryIntegrity("begin the match", out, () => beginMatch(clients, match, () => clients.frames(1)));
     monitor = watching;
     began = performance.now();
@@ -122,7 +122,7 @@ const playMatch = (runtime: ReturnType<typeof installHeadless>, match: SoakMatch
         const step = source.frame(injected + 1);
         for (const [slot, edges] of step.edges) for (const edge of edges) yield* writes.write(at(pads, slot), sourceEdge(edge));
         if (step.hitchMs > 0) {
-          // A lag spike: the game stops, the helpers' clocks don't.
+
           realtime.hold(0);
           yield* Effect.sleep(step.hitchMs);
           realtime.release(0);
@@ -135,12 +135,12 @@ const playMatch = (runtime: ReturnType<typeof installHeadless>, match: SoakMatch
       match: { ...match, typed: true }, frames: watching.frame, wallMs: performance.now() - began, costMs: watching.costMs, worstFrameMs: watching.worstFrameMs,
       over: watching.over, findings, inputs: recorder.recorded(source.recorded()), checksums: clients.clients.map((client) => client.checksum()),
     };
-    // The pads' edges stay as evidence; `bun wisp soak --repro` plays what the helpers typed, without them.
+
     yield* tryIntegrity("write repro", out, () => writeFileSync(join(out, "match.json"), `${JSON.stringify(soakRepro(project.name, result))}\n`));
     return result;
   }));
 
-/** Every match in turn; prints each finding with its folder and returns how many matches found something. */
+
 export default (options: HelperSoakOptions) =>
   Effect.gen(function*() {
     const runtime = yield* Effect.acquireRelease(Effect.sync(() => installHeadless(PREDICTED_HEADLESS)), (installed) => Effect.sync(installed.restore));

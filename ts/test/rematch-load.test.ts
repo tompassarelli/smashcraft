@@ -1,10 +1,10 @@
-// A match, slot change and three-fighter rematch in two simulated clients of
-// the integrity build, with its journal input and rollback,
-// with each helper typing #26's dense taps
-// into the edit box and Battle.net's measured sync latency. Native #26 runs
-// held one core per client in the first match and fell behind real time in
-// the rematch, whose slot change adds a computer fighter that every client
-// simulates.
+
+
+
+
+
+
+
 import { afterAll, expect } from "bun:test";
 import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
@@ -37,13 +37,13 @@ import { JournalHelpers, type Workload } from "./rematch/journalHelper";
 import { sweep } from "./sweep";
 
 const declarations = readNativeDeclarations();
-// Desyncs are the desync guard's to find; unlogged natives keep these frames fast.
+
 const unlogged = Object.fromEntries(declarations.functions.map(([name]) => [name, "this test counts the calls it checks"]));
 const helpers = new JournalHelpers(INTEGRITY_BUILD.id);
 const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: unlogged }, declarations);
 afterAll(headless.restore);
 
-/** History rows each reconciliation read, per call, and the corrections that changed rows. */
+
 const rowsRead: number[] = [];
 let corrections = 0;
 const copyInputRow = ReplayHistory.prototype.copyInputRow;
@@ -63,10 +63,10 @@ ShadowInputPlayback.prototype.amend = function (this: ShadowInputPlayback, ...ar
   return result;
 };
 
-/** Natives that create or destroy a handle a match could leak. */
+
 const LIFETIMES = ["AddSpecialEffect", "AddSpecialEffectTarget", "DestroyEffect", "CreateTimer", "DestroyTimer", "CreateTrigger", "DestroyTrigger"];
 
-/** Counts a client's handle creations and destructions by native. */
+
 function countLifetimes(client: HeadlessClient): Map<string, number> {
   const counts = new Map<string, number>();
   for (const name of LIFETIMES) {
@@ -79,19 +79,19 @@ function countLifetimes(client: HeadlessClient): Map<string, number> {
   return counts;
 }
 
-/** The effect setters whose result a headless client keeps in an effect's pose. */
+
 const POSED = ["BlzSetSpecialEffectPosition", "BlzSetSpecialEffectX", "BlzSetSpecialEffectY", "BlzSetSpecialEffectZ", "BlzSetSpecialEffectAlpha", "BlzSetSpecialEffectScale", "BlzSetSpecialEffectTimeScale", "BlzSetSpecialEffectMatrixScale", "BlzResetSpecialEffectMatrix"];
 
-/**
- * Counts, while `on`, setter calls during a frame on effects parked before
- * and after it whose pose the frame left as it was: Warcraft runs each
- * native call, and a pool's hidden effects stay parked for most of a match.
- * Call `frameEnded` after each frame.
- */
+
+
+
+
+
+
 function parkedCallMeter(client: HeadlessClient, parkedBelow: () => number) {
   const poses = (client as unknown as { effects: Map<unknown, EffectPose> }).effects;
   const describe = (pose: EffectPose) => `${pose.x} ${pose.y} ${pose.z} ${pose.alpha} ${pose.scale} ${pose.timeScale} ${pose.flat}`;
-  /** This frame's touched effects: their pose before the first call and the calls they took. */
+
   const touched = new Map<unknown, { readonly before: string; readonly parked: boolean; calls: number }>();
   const meter = {
     on: false,
@@ -119,13 +119,13 @@ function parkedCallMeter(client: HeadlessClient, parkedBelow: () => number) {
   return meter;
 }
 
-/**
- * What is wrong with the clips the client's pooled fighters show this match
- * frame: each fighter in play shows exactly one clip, where the presented
- * match puts him, at his model's scale and opacity, and with his own model's
- * whole mesh; a fighter out shows none. Counts each character's checked
- * frames in `seen`.
- */
+
+
+
+
+
+
+
 function shownClipProblems(client: HeadlessClient, parkedBelow: number, seen: Map<Character, number>): string[] {
   const problems: string[] = [];
   client.run(() => {
@@ -155,7 +155,7 @@ function shownClipProblems(client: HeadlessClient, parkedBelow: number, seen: Ma
       seen.set(character, (seen.get(character) ?? 0) + 1);
       const fitted = { x: 0, z: 0 };
       fitFighterPlacement(fitted, fighter, s.game.stageChoice);
-      // Warcraft stores the effect natives' real coordinates as binary32.
+      // Warcraft stores effect coordinates as binary32.
       const place = [s.origin.x + fitted.x, s.origin.y, s.origin.z + fitted.z].map(Math.fround);
       if (pose.x !== place[0] || pose.y !== place[1] || pose.z !== place[2]) problems.push(`slot ${slot} clip at ${pose.x} ${pose.y} ${pose.z}, fighter at ${place.join(" ")}`);
       if (pose.scale !== characterModelScale(character) || (pose.alpha !== 255 && pose.alpha !== 140)) problems.push(`slot ${slot} clip scale ${pose.scale} alpha ${pose.alpha}`);
@@ -170,12 +170,12 @@ function shownClipProblems(client: HeadlessClient, parkedBelow: number, seen: Ma
   return problems;
 }
 
-// About 2.3 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
+
 sweep("a match and its three-fighter rematch show each pooled fighter whole where he stands, read only correctable rollback rows, touch no parked effect and keep nothing between them [repro #242]", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 7) });
   const host = clients.clients[0] as HeadlessClient;
-  // Warcraft retains destroyed models for five game seconds (native wisp#59);
-  // only effects without a DestroyEffect call are still the map's resources.
+  // Warcraft retains destroyed models for five game seconds (native wisp#59); count undestroyed effects.
+
   const retainedEffects = () => host.effectPoses().filter(pose => pose.destroyed === undefined).length;
   const lifetimes = countLifetimes(host);
   let parkedBelow = 0;
@@ -202,7 +202,7 @@ sweep("a match and its three-fighter rematch show each pooled fighter whole wher
     for (let frame = 0; frame < limit && !done(); frame++) frames(1);
     if (!done()) throw new Error(`${what} not reached; phase ${phase()}`);
   };
-  /** Selection, a one-stock match on the workload, its result and the return to fighter selection. */
+
   const play = (workload: Workload) => {
     for (const slot of [0, 1]) clients.press(slot, Key.n);
     frames(5);
@@ -211,7 +211,7 @@ sweep("a match and its three-fighter rematch show each pooled fighter whole wher
     });
     clients.press(0, Key.y);
     until("stage menu", () => phase() === Phase.stageMenu, 30);
-    // Compare fighter resources on the same arena across both matches.
+
     clients.everywhere(() => panelActions().stage.selectStage(0, 2));
     helpers.workload = workload;
     clients.press(0, Key.y);
@@ -223,7 +223,7 @@ sweep("a match and its three-fighter rematch show each pooled fighter whole wher
     parked.calls = 0;
     until("a result", () => phase() !== Phase.match, 900);
     const played = { lifetimes: Object.fromEntries(lifetimes), rows: Math.max(...rowsRead), corrections, effectsAtResult: retainedEffects() };
-    // The edit box keeps the keyboard until both helpers have stopped journaling the match.
+
     until("helpers quiescent", () => read(() => shell().rollback?.journal?.lifecycle?.quiescent() === true), 90);
     parked.on = false;
     for (const slot of [0, 1]) clients.press(slot, Key.n);
@@ -233,12 +233,12 @@ sweep("a match and its three-fighter rematch show each pooled fighter whole wher
 
   clients.start();
   frames(30);
-  // hideEffect parks effects on the ground beneath the floor.
+
   parkedBelow = read(() => shell().origin.z - FLOOR_HEIGHT + 1.0);
   const window = read(() => shell().rollback?.window ?? 0);
   const first = play({ denseCycles: 1, walkers: [0] });
   const selectionAfterFirst = retainedEffects();
-  // The slot change of #26's rematch: slot C goes from EMPTY to a human fighter, then to a computer.
+
   for (let click = 0; click < 2; click++) clients.everywhere(() => panelActions().selection.cycleMode(0, 2));
   clients.everywhere(() => panelActions().selection.selectCpuChoice(0, 2, Character.demonHunter));
   expect(read(() => [shell().game.humanFighterMask, shell().game.computerMask, shell().game.characterChoices[2]])).toEqual([3, 4, Character.demonHunter]);
@@ -246,26 +246,26 @@ sweep("a match and its three-fighter rematch show each pooled fighter whole wher
 
   for (const played of [first, rematch]) {
     expect(played.corrections).toBeGreaterThan(5);
-    // A reconcile reads the rows a correction may change, the authoritative row before them and the newest
-    // row once more, never the whole 64-frame history.
+
+
     expect(played.rows).toBeLessThanOrEqual(window + 2);
-    // From the match's first frame through its result, no call touches an effect that stays parked.
+
     expect(played.parkedCalls).toBe(0);
   }
-  // Every match frame of both matches showed each pooled fighter in play once, whole, where he stands;
-  // the rematch's computer Illidan among them.
+
+
   expect(shownProblems).toEqual([]);
   for (const character of [Character.demonHunter, Character.rifleman, Character.demonHunter]) expect(shownFrames.get(character) ?? 0).toBeGreaterThan(60);
-  // Match frames create and destroy nothing; the result recreates the menu key triggers the match start removed.
+
   for (const played of [first, rematch]) expect(played.lifetimes).toEqual({ CreateTrigger: 2 });
-  // At its result the rematch also holds the computer Illidan's clip pool, shield, projectiles, special cues, hit-area pool, agency halo and body flash; fighter
-  // selection ends every fighter's renderers, so it then holds exactly what it held after the first match.
+
+
   const illidan = originalClipCount(Character.demonHunter) + (originalLightPath(Character.demonHunter) === undefined ? 0 : 1);
   const pooledCues = fighterRenderedCues(Character.demonHunter).filter(cue => DEFINITIVE_CUE_EMITTERS[cue.model] !== true).length;
   expect(rematch.effectsAtResult - first.effectsAtResult).toBe(illidan + 1 + PROJECTILE_CAPACITY + pooledCues + HIT_AREA_EFFECT_CAPACITY + 3);
   expect(retainedEffects()).toBe(selectionAfterFirst);
   for (const client of clients.clients) expect(client.errors).toEqual([]);
-  // Each client wrote its own player's record of both matches for the Smashcraft client: two fighters, then three.
+
   clients.clients.forEach((client, index) => {
     for (const [serial, fighters] of [[1, 2], [2, 3]] as const) {
       const record = client.files.get(matchRecordFile(serial)) ?? [];

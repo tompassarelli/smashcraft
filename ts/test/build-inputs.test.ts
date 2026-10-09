@@ -8,7 +8,7 @@ import { FAMILIES, FAMILY_NAMES, Manifest, removeTree, resolveInputs, storeFamil
 const scratch = () => mkdtempSync(join(tmpdir(), "smashcraft-build-inputs-"));
 const failureText = (exit: Exit.Exit<unknown, unknown>) => Exit.isFailure(exit) ? Cause.pretty(exit.cause) : "succeeded";
 
-/** A store holding a small folder (or file) for every family, and the manifest naming them. */
+
 async function populated(root: string): Promise<{ store: string; manifest: Manifest }> {
   const store = join(root, "store");
   const entries = await Promise.all(FAMILY_NAMES.map(async (family) => {
@@ -32,7 +32,7 @@ test("two concurrent builds of one revision both succeed and publish one identic
     expect(results.map(({ code, err }) => [code, err])).toEqual([[0, ""], [0, ""]]);
     expect(results.map(({ out }) => out.split("\n").at(-1)).sort()).toEqual(["published the revision's map", "reused the revision's map"]);
     expect(readFileSync(log, "utf8").trim().split("\n")).toHaveLength(1);
-    // One published folder; no staging folder or partial file left beside it.
+
     expect(readdirSync(join(root, "play-current"))).toEqual(["0123456789abcdef0123456789abcdef01234567"]);
     expect(readdirSync(final).sort()).toEqual(["map.w3x", "map.w3x.next"]);
   } finally { removeTree(root); }
@@ -59,7 +59,7 @@ test("changing assets takes a manifest change: stored families are sealed, and a
     expect(readFileSync(resolved.base, "utf8")).toBe("base bytes");
     const stored = join(store, "stage-assets", manifest["stage-assets"], "model.mdx");
     expect(() => writeFileSync(stored, "new art")).toThrow();
-    // New art stores under a new hash, which only a manifest change selects.
+
     const source = join(root, "new-stage");
     mkdirSync(source);
     writeFileSync(join(source, "model.mdx"), "new art");
@@ -68,7 +68,7 @@ test("changing assets takes a manifest change: stored families are sealed, and a
     expect(readFileSync(join(resolved.assets, "stage-assets/model.mdx"), "utf8")).toBe("stage-assets bytes");
     const changed = await Effect.runPromise(resolveInputs({ ...manifest, "stage-assets": hash }, store));
     expect(readFileSync(join(changed.assets, "stage-assets/model.mdx"), "utf8")).toBe("new art");
-    // Forcing an edit past the seal is caught before any build uses it.
+
     chmodSync(stored, 0o644);
     writeFileSync(stored, "edited in place");
     const text = failureText(await Effect.runPromiseExit(verifiedFamily("stage-assets", manifest["stage-assets"], store)));

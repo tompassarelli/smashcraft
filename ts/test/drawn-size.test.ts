@@ -1,6 +1,6 @@
-// Drawn size against the hurt capsule (#144, the #97 rule that correct spacing
-// must not lose to a body the player cannot see): each fighter's drawn
-// standing height, at its model scale, meets its standing hurt capsule's top.
+
+
+
 import { expect, test } from "bun:test";
 import { hurtCapsule } from "../src/game/physics/contactGeometry";
 import { clipFor } from "../src/game/presentation/fighterClips";
@@ -8,12 +8,12 @@ import { characterModelScale } from "../src/game/presentation/modelScale";
 import { Character } from "../src/game/sim/codes";
 import { HERO_ROSTER } from "../src/game/sim/heroes/registry";
 
-/**
- * Highest drawn point of each fighter's idle clip 0.1 s in, at model scale 1:
- * the model the clients draw (the packaged fighter models, the heroes' classic
- * stock models) skinned by scripts/wisp/hurtboxView.ts DrawnModel, additive
- * glow layers left out. A changed idle clip needs a new measurement.
- */
+
+
+
+
+
+
 const IDLE_TOPS: readonly { readonly character: Character; readonly idleClip: number; readonly top: number }[] = [
   { character: Character.anubarak, idleClip: 0, top: 155.479248046875 },
   { character: Character.rifleman, idleClip: 0, top: 87 },
@@ -43,11 +43,11 @@ const IDLE_TOPS: readonly { readonly character: Character; readonly idleClip: nu
   { character: Character.medivh, idleClip: 0, top: 144.29507446289062 },
 ];
 
-/** The hurt capsule's top may sit at most a tenth above the drawn head. */
+
 const LOWEST = 0.9;
-/** Hair, hoods, crowns and folded wings may stand up to 0.3 of the body above it, as #97 rule 6 allows a limb. */
+
 const HIGHEST = 1.3;
-/** Named departures: drawn parts that rise higher and are not body. */
+
 const DEPARTURES: { readonly [character: number]: string } = {
   [Character.blademaster]: "the banner on his back stands about 60 units over his head",
   [Character.lichKing]: "Frostmourne, raised in Stand Ready, stands about 50 units over his helm; the blade is never body",
@@ -68,6 +68,6 @@ test("every fighter's drawn standing height meets its hurt capsule's top [spec #
     return [];
   });
   expect(off).toEqual([]);
-  // The original three and every registered hero.
+
   expect(IDLE_TOPS.map(({ character }) => character).sort((a, b) => a - b)).toEqual([Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(({ character }) => character)].sort((a, b) => a - b));
 });

@@ -1,8 +1,8 @@
-// The native bot session's selection (scripts/wisp/botMatch.ts BOT_FOUR):
-// players A and B on journal helpers, a computer Illidan in C and a computer
-// Rifleman in D, through fighter and stage selection on the integrity build.
-// Stepping back from Random Stage wraps to Sky Deck, a stage with fewer
-// decks than the arena still draws until the match starts.
+
+
+
+
+
 import { afterAll, expect } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { Phase } from "../src/game/match/rules";
@@ -53,7 +53,7 @@ sweep("bot session: selection with computers in C and D steps to every stage and
     expect(value(client, () => shell().game.stageChoice)).toBe(RANDOM_STAGE);
     expect(client.frames.shownText()).toContain("Random Stage");
   }
-  // W steps back to Sky Deck, then around every option including Random Stage.
+
   for (let step = 1; step <= STAGE_CHOICES.length; step++) {
     clients.press(0, Key.w);
     frames(10);

@@ -1,7 +1,7 @@
-// #306: the whole tutorial on one headless client of the integrity build. The
-// player opens it from fighter selection with the menu's Start button, a pad
-// plays every lesson, and pausing and leaving returns to fighter selection
-// with Training on.
+
+
+
+
 import { afterAll, expect } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { floorMod } from "wisp/src/sim/intMath";
@@ -25,7 +25,7 @@ import { sweep } from "./sweep";
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
 
-// The menu's Start tutorial button (ui/tutorialMenu.ts): top-left (0.23, 0.315), 0.16 by 0.035.
+
 const START_BUTTON = { x: 0.23 + 0.16 / 2, y: 0.315 - 0.035 / 2 };
 const LEFT = bit(Action.moveLeft);
 const RIGHT = bit(Action.moveRight);
@@ -38,17 +38,17 @@ const row = (fields: RowFields): InputRow => {
   return made;
 };
 const NEUTRAL = row({});
-/** Walk toward x, as a held half stick. */
+
 const walk = (toward: number): InputRow => row({ held: side(toward) | bit(Action.walk), axisX: toward * 64 });
 
-/** The pad: what the player's controller sends on `frame`, from what it sees of the player and partner in `lesson`. */
+
 function pad(action: LessonAction, frame: number, player: Readonly<Fighter>, partner: Readonly<Fighter>): InputRow {
   const toward = partner.motion.x < player.motion.x ? -1 : 1;
   const distance = Math.abs(partner.motion.x - player.motion.x);
   if (action !== LessonAction.ledge && player.ledge.state === LedgeState.hang) return row({ pressed: side(-player.ledge.side), released: side(-player.ledge.side) });
   switch (action) {
     case LessonAction.dash: {
-      // A full stick flick from neutral, each way in turn.
+
       const direction = floorMod(frame, 80) < 40 ? 1 : -1;
       if (floorMod(frame, 40) >= 12) return NEUTRAL;
       return row({ held: side(direction), pressed: floorMod(frame, 40) === 0 ? side(direction) : 0, axisX: direction * 127 });
@@ -63,7 +63,7 @@ function pad(action: LessonAction, frame: number, player: Readonly<Fighter>, par
     case LessonAction.special:
       return floorMod(frame, 90) === 0 ? row({ pressed: bit(Action.special), released: bit(Action.special) }) : NEUTRAL;
     case LessonAction.dodge: {
-      // Shield held, rolling one way then the other every second.
+
       const at = floorMod(frame, 60);
       if (at === 59) return row({ released: SHIELD });
       const direction = floorMod(frame, 120) < 60 ? -1 : 1;
@@ -72,12 +72,12 @@ function pad(action: LessonAction, frame: number, player: Readonly<Fighter>, par
     }
     case LessonAction.throw:
       if (player.grab.target !== undefined) return floorMod(frame, 10) === 0 ? row({ pressed: side(toward), released: side(toward) }) : NEUTRAL;
-      // A grab reaches where the player faces: turn first. Stop short of the partner's body, which a
-      // walk pushes (#338) and could shove off the edge; the grab box still reaches it (#337).
+
+
       if (distance > 60.0 || player.facing !== toward) return walk(toward);
       return floorMod(frame, 20) === 0 ? row({ pressed: bit(Action.grab), released: bit(Action.grab) }) : NEUTRAL;
     case LessonAction.ledge: {
-      // Walk to the left edge, face the stage, jump backward off it, drift back onto the ledge, jumping again if low.
+
       const edge = mainDeckLeft(TUTORIAL_STAGE);
       if (player.ledge.state === LedgeState.hang) return floorMod(frame, 10) === 0 ? row({ pressed: RIGHT, released: RIGHT }) : NEUTRAL;
       if (player.ledge.state !== LedgeState.none) return NEUTRAL;
@@ -89,7 +89,7 @@ function pad(action: LessonAction, frame: number, player: Readonly<Fighter>, par
       return row({ held: side(drift), pressed: jump ? bit(Action.jump) : 0, released: jump ? bit(Action.jump) : 0, axisX: drift * 127 });
     }
     case LessonAction.knockout: {
-      // The ledge lesson ends on the ledge: climb up first.
+
       if (player.ledge.state === LedgeState.hang) return floorMod(frame, 10) === 0 ? row({ pressed: RIGHT, released: RIGHT }) : NEUTRAL;
       if (player.ledge.state !== LedgeState.none) return NEUTRAL;
       if (distance > 40.0) return walk(toward);
@@ -119,7 +119,7 @@ sweep("the whole tutorial plays through on one client from the menu's Start butt
   };
   clients.start();
   frames(30);
-  // A fresh profile: the tutorial menu is open by itself on fighter selection.
+
   expect(shows(client, "Start tutorial")).toBe(true);
   expect(clients.click(0, START_BUTTON.x, START_BUTTON.y)).toBe(true);
   until("the tutorial's match", () => read(() => shell().game.phase) === Phase.match, 600);

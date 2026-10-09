@@ -1,10 +1,10 @@
-// The desync guard: two simulated clients, local slot 0 and local slot 1,
-// run the map's TypeScript entry in lockstep through a match and a hot reload
-// mid-match, and must make the same native calls in the same order. Only
-// local-only natives may differ: Wisp's own and those
-// scripts/wisp/headless.ts declares. Wisp's headless runtime stands in for
-// Warcraft, so this finds code that branches on the local client; it does not
-// prove native behavior.
+
+
+
+
+
+
+
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import type { MapEntry } from "wisp/src/headless/client";
@@ -31,7 +31,7 @@ test("desync guard: both clients make the same native calls through a match and 
   expect(state?.log.length ?? 0).toBeGreaterThan(1000);
 });
 
-/** Start, then slot 1 types the deliberate desync command. */
+
 function typeDesync(entry: MapEntry): Lockstep {
   const clients = headless.clients(entry);
   clients.start();
@@ -62,8 +62,8 @@ test("the playable build ignores -dev desync [invariant]", () => {
 });
 
 test("an input trace starts and finishes on one client only, as the helper's first row arrives there, without a synchronized native call [repro #158] [invariant]", () => {
-  // A trace starts at this client's own first journal row (journal.ts), a turn the other client reaches at another time;
-  // a handle made then is born on different turns on each client, a native tempest-checksum desync (#158).
+
+
   const clients = headless.clients({ start: () => {}, install: () => {} });
   clients.start();
   const traces: InputTrace[] = [];

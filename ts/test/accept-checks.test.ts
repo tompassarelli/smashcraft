@@ -16,7 +16,7 @@ test("an accept shard that exits nonzero fails with its exit code instead of pas
   const { rmSync } = await import("node:fs");
   const { dirname } = await import("node:path");
   try {
-    // No pool lists pair 999999, so the shard's own run stops before touching any client.
+
     const failure = await Effect.runPromise(Effect.flip(runShard("999999", ["no-such-check"], directory)));
     expect(failure.message).toMatch(/exited [1-9]/);
     expect((await Bun.file(`${directory}.err`).text()).trim()).not.toBe("");

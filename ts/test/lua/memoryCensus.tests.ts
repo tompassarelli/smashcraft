@@ -1,5 +1,5 @@
-// Lua debug upvalues and native handle representations are the foreign boundary
-// this census observes; Bun cannot execute its graph walk.
+
+
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { createBotStrategy, copyBotStrategy } from "../../src/game/match/botStrategy";
 import { fighterBodyEnvelope } from "../../src/game/presentation/fighterPlacement";

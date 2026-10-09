@@ -1,7 +1,7 @@
-// `bun wisp pad --batch` plays many scripts in one game per pair: a new game
-// (about a minute: menus, lobby, map load) only starts a session or replaces
-// one an invalid or broken run left, never between valid scripts, unless
-// --fresh-each asks for the old loop.
+
+
+
+
 import { expect, test } from "bun:test";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";

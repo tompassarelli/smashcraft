@@ -1,6 +1,6 @@
-// Replays one joined match replay in Lua and prints what it reached, the
-// 32-bit Lua side of `bun wisp replay` (scripts/wisp/commands/replay.ts).
-// Environment: REPLAY_FILE, a joined replay of plain lines.
+
+
+
 import { replayMatch } from "../../src/game/replay/matchReplay";
 
 const path = os.getenv("REPLAY_FILE") ?? "";

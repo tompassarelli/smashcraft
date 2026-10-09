@@ -12,7 +12,7 @@ const project = join(import.meta.dir, "../..");
 
 test("the installed TypeScript toolchain matches typescript-toolchain.lock [spec AGENTS.md]", async () => {
   await Effect.runPromise(verifyToolchain(join(project, "typescript-toolchain.lock"), join(project, "ts")));
-  // Wisp's check predates the host tools' platform package (docs/typescript.md, "Host tools").
+
   const locked = Bun.TOML.parse(await Bun.file(join(project, "typescript-toolchain.lock")).text());
   const declared = (await Bun.file(join(project, "ts/package.json")).json()).devDependencies["@effect/platform-bun"];
   const installed = async (name: string) => (await Bun.file(join(project, "ts/node_modules", name, "package.json")).json()).version;
@@ -23,7 +23,7 @@ test("the installed TypeScript toolchain matches typescript-toolchain.lock [spec
 test("every imported model the map script names is a distinct content-addressed path [invariant]", () => {
   expect(SCRIPT_MODELS).toContain(STAGE_DECK_MODEL);
   for (const { models } of GENERATED_MODELS) expect(models.length).toBeGreaterThan(0);
-  // A community model keeps the archive path its author's readme names (importedModelInfo.ts); every generated one is content-addressed.
+
   for (const model of SCRIPT_MODELS) if (importedModelFile(model) === undefined) expect(model).toMatch(/^war3mapImported\\[A-Za-z0-9]+-[0-9a-f]{64}\.mdx$/);
   expect(new Set(SCRIPT_MODELS).size).toBe(SCRIPT_MODELS.length);
 });
@@ -48,7 +48,7 @@ test("the FileIO ability retains the recorded war3map.w3a bytes [reference]", ()
 
 test("the map ships war3mapPostProcessing.txt: Forgotten Hollow's contact-shadow ASSAO and bloom above 0.9 only [spec #288]", () => {
   const file = generatedFiles().find(({ entry }) => entry === "war3mapPostProcessing.txt");
-  // Radius and ShadowMultiplier from Blizzard's (1)ForgottenHollow.w3x; Bloom Enabled 0 and threshold 0.72 in stock PostProcessingConfig.txt.
+
   expect(new TextDecoder().decode(file?.contents)).toBe(
     "[ASSAO]\r\nRadius=6.000000\r\nShadowMultiplier=3.000000\r\n\r\n[Bloom]\r\nEnabled=1\r\nBloomThreshold=0.900000\r\n",
   );

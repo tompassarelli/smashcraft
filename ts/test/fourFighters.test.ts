@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { fourFighterResult } from "../scripts/fourFighters";
 import type { CaptureEvidence, ClientExport, JourneyEvent } from "../scripts/integrity/reconcile";
 
-// These fixtures test the verdict contract; native acceptance uses actual capture files.
+
 const boundary = (event: "start" | "end", epoch: number): JourneyEvent => ({ event, epoch, publications: [{ contents: "", estimateNs: 0 }, { contents: "", estimateNs: 0 }] });
 const exported = (epoch: number, checksum = "123:456", phase = 3): ClientExport => ({
   trace: "connected 3 human-fighters 3 computers 12 fighters 15",

@@ -1,7 +1,7 @@
-// Issue #168: a callback confirms only the rows every client had received
-// when the previous callback began, so a correction's repair spreads over the
-// callback after its rows arrive and the frame budget holds. Two simulated
-// clients of the journal (integrity) build, with Battle.net's measured sync latency.
+
+
+
+
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";

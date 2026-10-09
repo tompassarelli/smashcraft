@@ -184,7 +184,7 @@ test("hit event language: 26 event cases reach stock effects and confirmed sound
       renderer.presentConfirmed(index + 1, 0, events);
       renderer.present(impacts, 0, impacts, true);
       const calls = client.log.slice(before);
-      // A sound by script path is named in the case by its file name.
+
       expect(calls.filter(call => call.name === "CreateSoundFromLabel" || call.name === "CreateSound")
         .map(call => String(call.args[0]).split("\\").pop()?.replace(/\.flac$/, ""))).toEqual([sound]);
       expect(calls.filter(call => call.name === "StartSound")).toHaveLength(1);
@@ -195,7 +195,7 @@ test("hit event language: 26 event cases reach stock effects and confirmed sound
       renderer.presentConfirmed(index, 0, events);
       expect(client.log.length).toBe(after);
     }
-    // An electric hit's flash draws at least as large as an electric shield hit's.
+
     expect(shownScale[2]).toBeGreaterThanOrEqual(shownScale[7] ?? 0);
     renderer.destroy();
   });
@@ -222,7 +222,7 @@ test("electric hit and electric shield sparks draw Lightning Shield at least 200
         if (age < ELECTRIC_CONTACT_FRAMES) {
           expect(shown()).toHaveLength(1);
           expect(shown()[0]?.animation).toBe("Stand");
-          // Geometry drawn at least a fighter across, at the spark's smallest (its first frame).
+
           expect((shown()[0]?.scale ?? 0) * width).toBeGreaterThanOrEqual(200);
         } else expect(shown()).toHaveLength(0);
         advanceImpacts(impacts);
@@ -313,7 +313,7 @@ test("combat effects: a hit corrected in after its spark's window still shows it
     const sparks = () => client.effectPoses().filter((pose) => pose.model.includes("ImpactHit-") && pose.scale > 0 && pose.z > -FLOOR_HEIGHT);
     const hit = { ...createImpactEvents(), hit: true, x: 40.0, z: 100.0 };
     const empty = createImpactState();
-    // Prediction missed the hit on frame 10; its correction confirms 20 frames later, past the 9-frame spark.
+
     for (let frame = 10; frame < 30; frame++) renderer.present(empty, frame, empty, true);
     expect(sparks()).toHaveLength(0);
     renderer.confirmContacts(10, hit);
@@ -322,15 +322,15 @@ test("combat effects: a hit corrected in after its spark's window still shows it
       renderer.present(empty, frame, empty, true);
       shown.push(sparks().length);
     }
-    // Shown at once, for a whole spark's window, then parked.
+
     expect(shown).toEqual([1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0]);
-    // A pause holds a late spark where it is.
+
     renderer.confirmContacts(50, hit);
     for (let n = 0; n < 20; n++) renderer.present(empty, 60, empty, true);
     expect(sparks()).toHaveLength(1);
     renderer.clear();
 
-    // Prediction drew the hit on frame 70: its confirmation shows no second spark.
+
     const predicted = createImpactState();
     emitImpacts(predicted, hit, 70);
     renderer.present(predicted, 70, empty, true);
@@ -342,7 +342,7 @@ test("combat effects: a hit corrected in after its spark's window still shows it
       renderer.present(later, frame, empty, true);
       expect(sparks()).toHaveLength(0);
     }
-    // Without prediction, state is the confirmed match: its own spark is the only one.
+
     const confirmed = createImpactState();
     emitImpacts(confirmed, hit, 100);
     renderer.confirmContacts(100, hit);
@@ -353,7 +353,7 @@ test("combat effects: a hit corrected in after its spark's window still shows it
   expect(client.errors).toEqual([]);
 });
 
-/** The client's effects as it poses them; the host does not simulate Warcraft particles. */
+
 function effectPoses(client: HeadlessClient): Map<unknown, EffectPose> {
   return new Map(client.effectPoses().map((pose) => [pose.handle, pose]));
 }
@@ -364,11 +364,11 @@ function visible(client: HeadlessClient, handles: ReadonlySet<unknown>): Map<unk
   return new Map([...effectPoses(client)].filter(([handle, pose]) => handles.has(handle) && !hidden(pose)));
 }
 
-/**
- * Hidden effects left where the arena camera can see them. Alpha, scale and
- * time scale do not stop a model's particle emitters: the native four-fighter
- * match showed the rifleman's parked missiles smoking at the stage center.
- */
+// Alpha, scale and time scale do not stop Warcraft model particle emitters.
+
+
+
+
 function hiddenInView(client: HeadlessClient): unknown[] {
   const ground = shell().origin.z - FLOOR_HEIGHT;
   return [...effectPoses(client)].filter(([, pose]) => hidden(pose) && pose.z > ground).map(([handle]) => handle);
@@ -483,7 +483,7 @@ test("combat effects: rollback, pause/resume and rematch neither replay nor reta
     applyFrame(s);
     renderPersistentPresentation(s);
     expect(visible(client, handles).has(animated)).toBe(true);
-    // Fighter shields are recreated by the rematch; count only the retained particle's restarts.
+
     expect(restarts().filter(({ args }) => args[0] === animated)).toHaveLength(2);
   });
   expect(client.errors).toEqual([]);
@@ -503,7 +503,7 @@ test("quick match: a shot's missile and the idle missile pools stay out of the a
     expect(startAtGo(s.game, 0)).toBe(true);
     startMatch(s);
     s.game.timeLimitMinutes = 0;
-    // The two idle fighters' missile pools, before any input.
+
     expect(hiddenInView(client)).toEqual([]);
     const handles = new Set([...effectPoses(client)].filter(([, pose]) => hidden(pose)).map(([handle]) => handle));
     const step = () => {
@@ -610,7 +610,7 @@ test("every fighter wears its slot's player colour from the first match frame th
   clients.frames(30);
   const client = clients.clients[0];
   if (client === undefined) throw new Error("missing host client");
-  // A lobby can colour a player otherwise, so the map sets each participant player's colour before any model takes it.
+
   const firstColoured = client.log.findIndex(call => call.name === "BlzSetSpecialEffectColorByPlayer" || call.name === "CreateUnit");
   expect(firstColoured).toBeGreaterThan(0);
   const recoloured = client.log.slice(0, firstColoured).filter(call => call.name === "SetPlayerColor").map(call => call.args.join(","));

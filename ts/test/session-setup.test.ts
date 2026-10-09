@@ -1,7 +1,7 @@
-// A native bot session's setup without the menus' pointer targets: the chat
-// commands journey.ts types (sessionSetup.ts) in two headless clients of the
-// integrity build, each confirmed by both clients' developer receipts, then
-// the stage receipt a capture waits on before it checks the player's view.
+
+
+
+
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { Phase } from "../src/game/match/rules";
@@ -29,7 +29,7 @@ test("bot session setup: slot, fighter, rule and stage commands, each confirmed 
   const receipt = (slot: number, name: string) => receiptFields((clients.clients[slot]?.files.get(name) ?? []).join("\n"));
   clients.start();
   frames(30);
-  // A Battle.net lobby's computer players: C and D come up CPU.
+
   clients.everywhere(() => { shell().game.computerMask = 12; });
   let count = 0;
   const confirmed = (command: string, fields: Readonly<Record<string, string>>) => {
@@ -50,7 +50,7 @@ test("bot session setup: slot, fighter, rule and stage commands, each confirmed 
   confirmed("-dev time 1", { minutes: "1" });
   confirmed("-dev auto-rematch on", { "automatic-rematch": "1" });
   confirmed("-dev stage 0", { stage: "0" });
-  // A refused command still gets a receipt, whose state shows nothing changed.
+
   confirmed("-dev stage 99", { stage: "0" });
   expect(errors()).toEqual([]);
   for (const client of clients.clients) {
@@ -59,7 +59,7 @@ test("bot session setup: slot, fighter, rule and stage commands, each confirmed 
       return [game.humanFighterMask, game.computerMask, game.stockCount, game.timeLimitMinutes, game.automaticRematch, game.stageChoice];
     })).toEqual([3, 12, 1, 1, true, 0]);
   }
-  // The players pick their fighters and start; no stage was clicked.
+
   for (const client of clients.clients) clients.press(client.slot, Key.n);
   frames(5);
   clients.press(0, Key.y);

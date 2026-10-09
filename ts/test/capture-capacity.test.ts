@@ -13,7 +13,7 @@ test("a native timing batch stops before client input without an exclusive lease
   try {
     const inherited = captureLease();
     if (inherited !== undefined) {
-      // This test can itself inherit an exclusive scope; the pad batch needs a non-exclusive fixture.
+
       const leases = join(directory, "agent-capacity-v1/leases");
       mkdirSync(leases, { recursive: true });
       writeFileSync(join(leases, `${inherited.id}.json`), JSON.stringify({ ...inherited, class: "moderate" }));

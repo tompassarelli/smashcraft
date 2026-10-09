@@ -1,6 +1,6 @@
-// The always-on controller service as play and `bun wisp controller` see it:
-// its status file, whether it serves a game, and the launcher link the login
-// unit runs. The service itself is tested in smashcraft:companion/tests/service.rs.
+
+
+
 import { afterAll, expect, test } from "bun:test";
 import { mkdtempSync, readlinkSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -19,7 +19,7 @@ test("the service serves a game once its helper is ready for that game's session
   expect(servesGame(status, 2852, "playable-0047")).toBe(true);
   expect(servesGame(status, 2853, "playable-0047")).toBe(false);
   expect(servesGame(status, 2852, "playable-0048")).toBe(false);
-  // A build whose name another starts with is another build.
+
   expect(servesGame(status, 2852, "playable-004")).toBe(false);
   expect(servesGame(parseStatus(SERVING.replace("state=serving", "state=starting")), 2852, "playable-0047")).toBe(false);
 });

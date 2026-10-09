@@ -58,7 +58,7 @@ sweep("3 minutes of Hellfire play: its theme loops from each match start to the 
       }
       if (!inMatch) continue;
       if (row.kind === "music") {
-        // Only the results end the theme: its stop, then the winner's stinger once.
+
         if (row.event === "start") {
           expect(source).toMatch(/Victory\.flac$/);
           expect(row.looping).toBe(false);

@@ -1,6 +1,6 @@
-// Every move's projectile missile (src/game/presentation/projectileArt.ts) is
-// a model read from the game's own archives; projectileArt.tests.ts checks
-// that each move names its own.
+
+
+
 import { expect, test } from "bun:test";
 import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
 import { IMPORTED_MODEL_FILES, VALKYR_MODEL } from "../src/game/assets/importedModelInfo";

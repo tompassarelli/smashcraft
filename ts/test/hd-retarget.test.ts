@@ -131,8 +131,8 @@ test('a sheared Stand registration retains its fixed stretch through authored mo
 });
 
 test('a 0.2 degree turn of a joint sheared by its Stand registration measures 0.2 degrees [repro #334]', () => {
-    // Rifleman arm_L0_end_jnt, Up Tilt: thinning turned the hand 0.23 degrees, but quaternions read off
-    // the sheared pose matrices differed by 3.6 degrees. This stretch and pose make that read jump 75 degrees.
+
+
     const turn = (axis: [number, number, number], degrees: number) =>
         mat4.fromQuat(mat4.create(), quat.setAxisAngle(quat.create(), axis, degrees * Math.PI / 180));
     const sheared = mat4.multiply(mat4.create(), mat4.fromScaling(mat4.create(), [1, 0.25, 1]), turn([Math.SQRT1_2, Math.SQRT1_2, 0], 240));

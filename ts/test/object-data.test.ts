@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { fighterUnits } from "../scripts/objectData";
 import { FIGHTER_OBJECT_ORDER, FIGHTER_OBJECTS } from "../src/game/objectData";
 
-/** Independent format-2 reader: verify the archive's field IDs, types and values. */
+
 function readUnits(bytes: Uint8Array): Map<number, Map<string, string | number>> {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   let offset = 0;

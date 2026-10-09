@@ -6,7 +6,7 @@ import { Effect } from "effect";
 import { type PlayableRecord, playableResult, playableVerdict } from "../scripts/playable";
 import type { CaptureEvidence, ClientExport, JourneyEvent } from "../scripts/integrity/reconcile";
 
-// These fixtures test the verdict contract; native acceptance uses actual capture files.
+
 const receipt = (frame: number, winner = "") => ({ contents: `call Preload( "SMASHCRAFT JOURNAL CONTROL v=1 build=test epoch=1 slot=0 sequence=0 state=END frame=${frame}${winner}" )`, estimateNs: 0 });
 const boundary = (event: "start" | "end", epoch: number, frames: readonly [number, number] = [900, 900], winners: readonly [string, string] = ["", ""]): JourneyEvent =>
   ({ event, epoch, publications: [receipt(frames[0], winners[0]), receipt(frames[1], winners[1])] });
@@ -32,7 +32,7 @@ test("a playable capture fails on any disagreement, missing result or in-game er
   const exports = new Map(capture().exports);
   exports.set(2, [exported(), exported("123:457")]);
   expect(playableResult({ ...capture(), exports }, record()).failures).toEqual(["epoch 2: confirmed checksums differ at frames 900, 960"]);
-  // Each receipt's frame is its client's local input frame; a difference alone is not a disagreement.
+
   expect(playableResult(capture([boundary("start", 1), boundary("end", 1, [900, 901]), boundary("start", 2), boundary("end", 2)]), record()).failures).toEqual([]);
   expect(playableResult(capture([boundary("start", 1), boundary("end", 1, [900, 0]), boundary("start", 2), boundary("end", 2)]), record()).failures)
     .toEqual(["epoch 1: an end receipt is absent"]);
@@ -66,8 +66,8 @@ test("end receipts name the winner; a result screen may be unreadable but never 
   expect(playableResult(agreed, contradicted).failures).toEqual(["epoch 2: client B's result screen names Player 2, the game Player 1"]);
 });
 
-// 0.0.45's native match and rematch: smashcraft:evidence/playable-0045-native-20261006/capture.json
-// and, from the private raw capture, both clients' result traces in fixtures/playable-0045/.
+
+
 const EVIDENCE_0045 = join(import.meta.dir, "../../evidence/playable-0045-native-20261006/capture.json");
 const FIXTURES_0045 = "fixtures/playable-0045/";
 const TRACES_0045 = [
@@ -76,7 +76,7 @@ const TRACES_0045 = [
   "fixtures/playable-0045/epoch-2/0-wc3-melee-input-trace.txt",
   "fixtures/playable-0045/epoch-2/1-wc3-melee-input-trace.txt",
 ];
-/** A trace's path in the capture directory. */
+
 const TRACE = (epoch: number, client: number) => `epoch-${epoch}/${client}-wc3-melee-input-trace.txt`;
 const roots: string[] = [];
 afterAll(() => {
@@ -87,7 +87,7 @@ interface RecordedCapture {
   events: { event: string; epoch?: number; texts?: string[]; publications?: { contents: string }[] }[];
 }
 
-/** The 0.0.45 capture as a capture directory, after `change` edits its capture.json and result traces. */
+
 function recorded0045(change: (capture: RecordedCapture, traces: Map<string, string>) => void = () => {}) {
   const capture = JSON.parse(readFileSync(EVIDENCE_0045, "utf8")) as RecordedCapture;
   const traces = new Map(TRACES_0045.map((fixture) => [fixture.slice(FIXTURES_0045.length), readFileSync(join(import.meta.dir, fixture), "utf8")] as const));
@@ -130,7 +130,7 @@ test("the recorded 0.0.45 capture fails when its clients disagree on the winner 
     traces.set(TRACE(2, 1), (traces.get(TRACE(2, 1)) ?? "").replaceAll("783381:730897", "783381:730898"));
   });
   expect(otherChecksum.failures).toEqual(["epoch 2: confirmed checksums differ at frames 276"]);
-  // The same run, had its end receipts named different winners.
+
   const otherReceipt = await recorded0045((capture) => {
     const end = capture.events.find((each) => each.event === "end" && each.epoch === 2);
     for (const [client, publication] of (end?.publications ?? []).entries()) publication.contents = publication.contents.replace("frame=285\"", `frame=285 winner=P${client + 1}"`);

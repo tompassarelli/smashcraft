@@ -16,7 +16,7 @@ import { applySetupCommand } from "../src/game/shell/sessionSetup";
 
 const evidence = (run: string) => join(import.meta.dir, "../../evidence", `input-integrity-0042-${run}-20261005`);
 
-/** Captures before #60's held rows report no press captured while prediction was held. */
+
 const NOTHING_HELD = { local_start_while_prediction_held_frames: { n: 0, p50: null, p95: null, max: null, distribution: {} }, held_missing_first_prediction: 0 };
 
 const reconcileRun = async (run: string) => {
@@ -25,7 +25,7 @@ const reconcileRun = async (run: string) => {
   return integrityResult(await Effect.runPromise(readEvidence(root, metadata)), capturePair(metadata));
 };
 
-// The retired Python reconciler's output on the same files; r8 is #26's measured result.
+
 test("the r8 capture reconciles to #26's measured table [native] [reference]", async () => {
   const result = await reconcileRun("r8");
   expect(integrityTable(result)).toEqual([
@@ -44,7 +44,7 @@ test("the r8 capture reconciles to #26's measured table [native] [reference]", a
   ]);
   expect(result.gates).toEqual({ edges: true, expectedFrame: true, localStart: false, checksums: true });
   expect(result.failures).toEqual([]);
-  // The retained summary predates the rollback-limit, four-fighter, player-view and held-prediction fields.
+
   const retained = await Bun.file(join(evidence("r8"), "summary.json")).json();
   expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [], ...NOTHING_HELD });
 });
@@ -63,12 +63,12 @@ test("the r7 capture reconciles to its retained failing summary [native] [refere
 const NOW = 10 ** 15;
 const CLIENTS = "ab";
 
-/**
- * A Rig that records what the journey does, in the retired Python driver's
- * trace format, and finds every wait satisfied. Chat commands typed into A
- * reach a model of the map's menus (sessionSetup.ts, devSettings.ts), which
- * writes both clients' developer receipts and the stage receipt as the map does.
- */
+
+
+
+
+
+
 function recordingRig(file: (client: Slot, name: string) => string, screenText = "1 Stock", lobby: { readonly humans: number; readonly computers: number } = { humans: 3, computers: 0 }, initialChatOpen = false) {
   const trace: string[] = [];
   const events: JourneyRecord[] = [];
@@ -139,10 +139,10 @@ function recordingRig(file: (client: Slot, name: string) => string, screenText =
 
 const gameFiles = (_client: Slot, name: string) =>
   name.includes("-menu-") ? "connected=3 human-fighters=3 computers=0 fighters=3\nendfunction\n" : " state=PAUSE_COMMIT  state=RESUME \nendfunction\n";
-// r8 predates #49, so its pads follow the earlier layout.
+
 const R8: JourneyOptions = { build: "playable-0042", epochs: [1, 2], fourFighters: false, sweep: [], padLayout: "compass-tap-jump" };
 
-// Traces of the retired Python driver's integrity(epoch), run under recording stubs.
+
 const PYTHON_INTEGRITY = {
   1: { lines: 1039, sends: 692, sha256: "258b46bd97da1a54fb20d6ed5f3084657bd1b267ef26abc7e82e40c06c450bb7" },
   2: { lines: 894, sends: 608, sha256: "f96af9e2fc2291822c560504647fef978d0bdbe1b216808730c0e07945b520df" },
@@ -159,7 +159,7 @@ test("each match's integrity workload sends, waits, stalls and pauses as the Pyt
 });
 
 
-/** Pointer and screen-reading steps, which only a playable build's journey (no dev console) still takes. */
+
 const pointerOrOcr = (trace: readonly string[]) => trace.filter((line) => / click | wait /.test(line) && !/ wait (?:PAUSED|wins\|rematch)/.test(line));
 
 test("the integrity workload raises one stock to three before its first match and changes it no more [spec docs/native-bot-session.md]", async () => {
@@ -177,7 +177,7 @@ test("the journey sends r8's pad edges in r8's order, then returns to fighter se
   const root = evidence("r8");
   const producer = (await Bun.file(join(root, "producer.jsonl")).text()).trim().split("\n").map((line) => JSON.parse(line) as Record<string, unknown>);
   const sent = producer.map((edge) => `send ${String(edge.event).replace("slot-", "")} ${edge.type} ${edge.code} ${edge.value} ${edge.phase}`);
-  // r8's driver stopped at the rematch result; the journey now also leaves it for fighter selection.
+
   expect(trace.filter((line) => line.startsWith("send "))).toEqual([
     ...sent,
     "send 0 1 304 1 results-only",
@@ -187,7 +187,7 @@ test("the journey sends r8's pad edges in r8's order, then returns to fighter se
   ]);
   const capture = await Bun.file(join(root, "capture.json")).json() as { events: { event: string; phase?: string }[] };
   const name = (event: { event: string; phase?: string }) => event.event + (event.phase === undefined ? "" : ` ${event.phase}`);
-  // r8 predates the player-view records.
+
   expect(events.filter((event) => event.event !== "player-view").map((event) => name(event))).toEqual([...capture.events.map(name), "menu RESULT", "menu CHARACTER"]);
   expect(events.flatMap((event) => (event.event === "player-view" ? [[event.epoch, event.at, event.failure]] : []))).toEqual([
     [1, "start", undefined], [1, "result", undefined], [2, "start", undefined], [2, "result", undefined],
@@ -196,7 +196,7 @@ test("the journey sends r8's pad edges in r8's order, then returns to fighter se
 
 const SCENE_FAILURE = "check player view in match 2 failed for DIR: a, b: a player would see\n  - a: a hit spark stayed in view for 4.00 s";
 
-/** The recording rig, with every player view of the rematch failing, as the clean-folders capture's result check did. */
+
 function failingViewRig(screenText?: string) {
   const recording = recordingRig(gameFiles, screenText);
   const rig: RigShape = {
@@ -213,7 +213,7 @@ test("an input-integrity capture records a failed player view and does everythin
   await Effect.runPromise(journey(passing.rig, R8).run);
   const failing = failingViewRig();
   await Effect.runPromise(journey(failing.rig, R8).run);
-  // Both matches' pages are exported and archived, and the journey returns to fighter selection.
+
   const steps = (trace: readonly string[]) => trace.filter((line) => !line.startsWith("view "));
   expect(steps(failing.trace)).toEqual(steps(passing.trace));
   expect(failing.trace.filter((line) => line === "key a ctrl+h")).toHaveLength(2);
@@ -234,14 +234,14 @@ test("the result reports player-view failures without gating them [native]", asy
     const metadata = await Effect.runPromise(readMetadata(directory));
     const result = integrityResult(await Effect.runPromise(readEvidence(root, metadata)), capturePair(metadata));
     const retained = await Bun.file(join(root, "summary.json")).json();
-    // r8's table, gates and verdict, with the failure beside them.
+
     expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [`match 2 at result: ${SCENE_FAILURE}`], ...NOTHING_HELD });
   } finally {
     rmSync(directory, { recursive: true });
   }
 });
 
-// Bytes and calls the retired Python VirtualGamepad made, recorded with stubbed os and fcntl.
+
 test("virtual pads are declared and fed exactly as the Python driver did [reference]", () => {
   const ioctls = [...padCapabilities(PAD_BUTTONS)].map(([request, argument]) => `ioctl 0x${request.toString(16)} ${argument}`);
   expect(ioctls).toEqual([
@@ -265,7 +265,7 @@ test("kernel observations are logged in r8's format [native]", async () => {
   expect(kernelLine({ kernelNs: 580467607853000, type: 1, code: 304, value: 1 })).toBe(`${first}\n`);
 });
 
-/** The recording rig over a lobby whose slots C/D the journey's commands change, noting the slot modes at bot setup. */
+
 function lobbyRig(humans: number, computers: number) {
   const recording = recordingRig(gameFiles, "3 Stock 7:00 Automatic rematch: Off Player 2 wins!", { humans, computers });
   const atSetup: (readonly [number, number])[] = [];
@@ -280,7 +280,7 @@ function lobbyRig(humans: number, computers: number) {
 
 test("bot sessions set slots C/D, the computers' fighters and the stage by command from whatever the lobby gave them [spec docs/native-bot-session.md]", async () => {
   const slots = (trace: readonly string[]) => trace.filter((line) => line.startsWith("type a -dev slots") || line.startsWith("type a -dev fighter"));
-  // The lobby's computer players: C and D come up CPU.
+
   for (const botFour of [false, true]) {
     const bot = lobbyRig(3, 12);
     await Effect.runPromise(journey(bot.rig, { ...R8, build: "typescript-integrity", workload: "bot", botFour }).run);
@@ -291,11 +291,11 @@ test("bot sessions set slots C/D, the computers' fighters and the stage by comma
       "type a -dev fighter 3 Illidan", ...(botFour ? ["type a -dev fighter 4 Warden"] : []),
       "type a -dev slots 3 0",
     ]);
-    // The run ends with two humans again.
+
     expect([bot.game.humanFighterMask, bot.game.computerMask]).toEqual([3, 0]);
     expect(pointerOrOcr(bot.trace)).toEqual([]);
   }
-  // #26's integrity run also starts its rematch slot change from two humans.
+
   const integrity = lobbyRig(3, 12);
   await Effect.runPromise(journey(integrity.rig, R8).run);
   expect(slots(integrity.trace)[0]).toBe("type a -dev slots 3 0");
@@ -303,7 +303,7 @@ test("bot sessions set slots C/D, the computers' fighters and the stage by comma
 });
 
 test("a refused developer command stops the journey with its receipt's state [spec docs/native-bot-session.md]", async () => {
-  // A command the map refuses leaves the state it reported: the capture names the field instead of waiting.
+
   const refused = lobbyRig(3, 12);
   const rig: RigShape = { ...refused.rig, type: (client, text) => refused.rig.type(client, text === "-dev slots 3 0" ? "-dev slots 3 3" : text) };
   const exit = await Effect.runPromiseExit(journey(rig, R8).run);
@@ -318,7 +318,7 @@ test("a capture starts at the game's next match, read from both menu receipts [s
   };
   expect(await next([0, 0])).toMatchObject({ _tag: "Success", value: 1 });
   expect(await next([2, 2])).toMatchObject({ _tag: "Success", value: 3 });
-  // A rematch can't start a capture, and the clients must agree.
+
   expect((await next([1, 1]))._tag).toBe("Failure");
   expect((await next([2, 4]))._tag).toBe("Failure");
   const base = ["--helper", "h", "--build", "b", "--out", "o", "--app-id", "a=x", "--app-id", "b=y"];

@@ -1,6 +1,6 @@
-// Every special cue (src/game/presentation/specialCues.ts) is a classic model
-// read from the game's archives; specialCues.tests.ts checks the windows and
-// that no two moves look alike.
+
+
+
 import { expect, test } from "bun:test";
 import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
 import { allCueModels } from "../src/game/presentation/specialCues";

@@ -1,6 +1,6 @@
-// Two simulated clients of the journal (integrity) build with Battle.net's measured sync
-// latency, from start to the match player 1 starts, for the tests of a player
-// whose controller input is missing or stops (#46).
+
+
+
 import { expect } from "bun:test";
 import type { HeadlessRuntime } from "wisp/scripts/wisp/headless";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
@@ -29,7 +29,7 @@ export function value<T>(client: HeadlessClient, body: () => T): T {
 export const shows = (client: HeadlessClient, text: string) => client.frames.shownText().some(shown => shown.includes(text));
 export const confirmedFrame = (client: HeadlessClient) => value(client, () => shell().runtime.simulationFrame);
 
-/** Fighter selection, optionally a computer Illidan in slot C, then the match player 1 starts; helpers type after each frame. */
+
 export function startPlayableMatch(headless: HeadlessRuntime, helpers: JournalHelpers, withComputer: boolean) {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], {
     delivery: syncDelivery(MEASURED_BATTLE_NET, 46), keepCalls: 64,
@@ -50,7 +50,7 @@ export function startPlayableMatch(headless: HeadlessRuntime, helpers: JournalHe
   for (const slot of [0, 1]) clients.press(slot, Key.n);
   frames(5);
   if (withComputer) {
-    // Slot C goes from empty to a human fighter, then to a computer.
+
     for (let click = 0; click < 2; click++) clients.everywhere(() => panelActions().selection.cycleMode(0, 2));
     clients.everywhere(() => panelActions().selection.selectCpuChoice(0, 2, Character.demonHunter));
     expect(value(host, () => [shell().game.humanFighterMask, shell().game.computerMask, shell().game.characterChoices[2]])).toEqual([3, 4, Character.demonHunter]);
@@ -62,7 +62,7 @@ export function startPlayableMatch(headless: HeadlessRuntime, helpers: JournalHe
   return { clients, frames, clientA: clients.client(0), clientB: clients.client(1) };
 }
 
-/** The clients' synchronized native calls and confirmed match states are equal. */
+
 export function expectSynchronized(clients: Lockstep): void {
   for (const client of clients.clients) expect(client.errors).toEqual([]);
   expect(clients.firstDivergence()).toBeUndefined();

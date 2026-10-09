@@ -1,6 +1,6 @@
-// The development build's scene report, read the way the host reads it, against
-// Smashcraft's declared player view (scripts/wisp/playerView.ts), with the model
-// facts and arena cameras of its render visibility.
+
+
+
 import { STAGE_LAVA_MODEL } from "../src/game/assets/terrainAssetInfo";
 import { afterAll, expect, test } from "bun:test";
 import { trampoline } from "wisp/src/platform/dispatch";
@@ -47,10 +47,10 @@ import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { MAIN_DECK_HALF_DEPTH, mainDeckOutlineStage } from "../scripts/stageDeck";
 import { CameraFindings } from "./cameraFindings";
 
-// Nothing here compares clients' native calls, so none are logged: the dense-dust match runs 240 frames.
+
 const declarations = readNativeDeclarations();
 const unlogged = Object.fromEntries(declarations.functions.map(([name]) => [name, "this file compares no calls"]));
-/** The camera fields and position each client last set. */
+
 interface SetCamera {
   readonly fields: Map<string, number>;
   x: number;
@@ -75,7 +75,7 @@ const seconds = (value: number) => value * SMASHCRAFT_SCENE.framesPerSecond;
 afterAll(headless.restore);
 
 test("Durotar: turning the backdrop off and on twice leaves every scenery piece at its authored stretch [repro wisp#40]", () => {
-  // Warcraft multiplies matrix scales, so reapplying a stretch without a reset stacks it.
+  // Warcraft multiplies matrix scales, so stretching without resetting stacks the scale.
   const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
   clients.start();
   clients.frames(30);
@@ -113,12 +113,12 @@ test("Frozen Throne: a selectable match draws four platforms and the winter back
 });
 
 const TEMPLE_OF_TIDES = "Buildings\\Naga\\TempleOfTides\\TempleOfTides.mdx";
-/**
- * Where a scenery model draws while it stands, for models whose facts box also holds
- * geosets other sequences show (scenery plays Stand: src/platform/shell/stageScenery.ts).
- * TempleOfTides.mdx: vertices of geosets 0, 2, 3 and 5, the only ones with alpha in Stand;
- * geoset 1 (Portrait only) stretches its facts box to z -573..803.
- */
+
+
+
+
+
+
 const STAND_BOUNDS: Readonly<Record<string, { readonly min: readonly [number, number, number]; readonly max: readonly [number, number, number] }>> = {
   [TEMPLE_OF_TIDES]: { min: [-180.0, -170.0, -91.0], max: [176.0, 183.0, 374.0] },
 };
@@ -145,7 +145,7 @@ test("Tomb's Temple of Tides draws its whole standing body and roof above the de
       0.5 + (x - camera.x) / (2 * depth(y, z) * camera.tangent * aspect),
       0.5 - (y * Math.sin(tilt) + (z - camera.z) * Math.cos(tilt)) / (2 * depth(y, z) * camera.tangent),
     ] as const;
-    // The deck's top back edge is its highest line on screen at both extremes; the temple must clear it.
+
     const deckTop = Math.min(...[-600, 600].map(x => project(x, MAIN_DECK_HALF_DEPTH, 0)[1]));
     for (const [x, y, z] of corners) {
       expect(depth(y, z), extreme).toBeLessThan(ARENA_CAMERA.farZ);
@@ -168,7 +168,7 @@ test("Tomb's Temple of Tides draws its whole standing body and roof above the de
 });
 
 test("every stage's scenery and the fighting plane stand inside Warcraft's world bounds, outside which no effect draws [repro #298]", () => {
-  // Natively Stratholme's cathedral (y +6,200) and Tomb's temple and waterfall (+5,600) went undrawn from a playable-centre origin.
+
   const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
   clients.start();
   clients.frames(30);
@@ -176,7 +176,7 @@ test("every stage's scenery and the fighting plane stand inside Warcraft's world
   const outside: string[] = [];
   client.run(() => {
     const s = shell();
-    // Headless centres the playable map at 0; the base map centres it at PLAYABLE_BOUNDS.centreY.
+
     const inside = (x: number, y: number) => {
       const nativeY = y + PLAYABLE_BOUNDS.centreY;
       return x >= WORLD_BOUNDS.left && x <= WORLD_BOUNDS.right && nativeY >= WORLD_BOUNDS.front && nativeY <= WORLD_BOUNDS.back;
@@ -195,10 +195,10 @@ test("every stage's scenery and the fighting plane stand inside Warcraft's world
   expect(client.errors).toEqual([]);
 });
 
-// Warcraft keeps units inside the playable bounds: an arena moved 3,500 south left fighters short of the blast zones (e2e34176).
+// Warcraft constrains units to playable bounds, which must contain the blast zones.
 const BLAST_MARGIN = 512.0;
 for (const { id: stage, name } of STAGE_CATALOG) test(`${name}: every blast zone lies ${BLAST_MARGIN} inside the playable bounds, and a fighter launched past each one is KO'd [repro #298]`, () => {
-  // Solo quick matches add a computer, whose attacks can freeze a crossing during hitlag.
+
   const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0, 1]);
   clients.start();
   clients.frames(30);
@@ -213,7 +213,7 @@ for (const { id: stage, name } of STAGE_CATALOG) test(`${name}: every blast zone
   const stocks: string[] = [];
   client.run(() => {
     const s = shell();
-    // Headless centres the playable map at 0; the base map centres it at PLAYABLE_BOUNDS.centreY.
+
     const y = s.origin.y + PLAYABLE_BOUNDS.centreY;
     expect(s.origin.x + blast.left - BLAST_MARGIN).toBeGreaterThanOrEqual(PLAYABLE_BOUNDS.left);
     expect(s.origin.x + blast.right + BLAST_MARGIN).toBeLessThanOrEqual(PLAYABLE_BOUNDS.right);
@@ -235,7 +235,7 @@ for (const { id: stage, name } of STAGE_CATALOG) test(`${name}: every blast zone
     });
     clients.frames(2);
     client.run(() => stocks.push(`${side}: ${before - fighterAt(shell().world, 0).status.stocks}`));
-    // Past the respawn and its invincibility.
+
     clients.frames(160);
   }
   expect(stocks).toEqual(sides.map(({ side }) => `${side}: 1`));
@@ -256,7 +256,7 @@ test("every stage's scenery stays behind fighters, and fog starts beyond the fig
       const yaw = radians(camera.rotation);
       const forward = [Math.cos(pitch) * Math.cos(yaw), Math.cos(pitch) * Math.sin(yaw), Math.sin(pitch)] as const;
       const along = (point: readonly number[]) => point.reduce((sum, value, axis) => sum + value * forward[axis]!, 0);
-      // Includes the complete visible fighting volume and a 200-unit allowance for fighter bodies.
+
       const blast = stageBounds(stage.id).blast;
       const fight = { min: [blast.left - 200, -200, blast.bottom - 200], max: [blast.right + 200, 200, blast.top + 200] };
       const farthestFighter = Math.max(...corners(fight).map(along));
@@ -284,7 +284,7 @@ test("every stage's scenery stays behind fighters, and fog starts beyond the fig
 });
 
 test("no stage shows a scenery piece's base below the deck at either camera extreme: the stage floats [spec docs/design/stage-art.md]", () => {
-  // Rule 11: every base reaches below the frame or hides behind the main deck or a nearer piece (a rock it stands on).
+
   const tilt = (10 * Math.PI) / 180;
   const problems: string[] = [];
   for (const stage of STAGE_CATALOG) {
@@ -328,7 +328,7 @@ test("no stage shows a scenery piece's base below the deck at either camera extr
   expect(problems).toEqual([]);
 });
 
-/** The client's latest scene report, from the lines it wrote. */
+
 function sceneReport(client: HeadlessClient): SceneReport {
   const read = readSceneLines(client.files.get(sceneFile(client.slot, "smashcraft")) ?? []);
   if ("problem" in read) throw new Error(`scene report line ${read.line}: ${read.problem}`);
@@ -349,7 +349,7 @@ test("development build: a match's scene report shows the stage and declares eve
     expect(requestStageSelect(s.game, 0)).toBe(true);
     expect(requestStart(s.game, 0)).toBe(true);
     mainDeck = deckModel(s.game.stageChoice, 0);
-    // Every effect pool is created when the match starts.
+
     startMatch(s);
     renderPersistentPresentation(s);
     trampoline("scene.report")();
@@ -480,7 +480,7 @@ test("every hazard stage keeps warning text off the match screen and draws wind,
       renderPersistentPresentation(s);
       renderUi(s);
       lockArenaCamera(s);
-      // During play the screen shows no hazard text; the stage itself warns (#336).
+
       expect(client.frames.shownText()).not.toContain(warning);
       trampoline("scene.report")();
       const report = sceneReport(client);
@@ -491,27 +491,27 @@ test("every hazard stage keeps warning text off the match screen and draws wind,
         else expect(wind).toMatchObject({ live: 6, drawn: 6 });
       }
       if (stage === CANNON_TEST_STAGE) expect(report.models.find(({ model }) => model === reportedModel(CANNON_MODEL))).toMatchObject({ live: 1, drawn: 1 });
-      // The warning glows at the lava's own spot.
+
       if (!cannonShot && stage === CANNON_TEST_STAGE) expect(report.models.find(({ model }) => model === reportedModel(STAGE_LAVA_MODEL))).toMatchObject({ live: 1, drawn: 1 });
     });
     expect(client.errors).toEqual([]);
   }
 });
 
-/**
- * Dense play's dust: an rifleman jumping every 9 frames while running back and
- * forth, with two computers chasing it, takes the eight-slot dust pool's next
- * slot before the last dust in it fades. Counted as one stay, a reused slot
- * stayed in view over 180 frames and failed the rematch of #26's clean-folders
- * capture (240 frames) and its headless run (687).
- */
+
+
+
+
+
+
+
 test("a dust slot reused while shown is a new stay each use; a standing spark and a collapsed missile still fail [repro #26]", () => {
   const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
   clients.start();
   clients.frames(30);
   const client = clients.clients[0];
   if (client === undefined) throw new Error("missing client");
-  // A hit spark left standing at the stage center, moved in view but never parked: the defect the check is for.
+
   let lingering: effect | undefined;
   let dustPool: CombatEffects | undefined;
   client.run(() => {
@@ -525,14 +525,14 @@ test("a dust slot reused while shown is a new stay each use; a standing spark an
     lingering = AddSpecialEffect(IMPACT_HIT_MODEL, s.origin.x, s.origin.y);
     dustPool = new CombatEffects(s.origin);
   });
-  // Per frame, how long each dust slot has been in view and how often its slot was reused meanwhile.
+
   const stays = new Map<number, { frames: number; reuses: number; age: number | undefined }>();
   let longestReused = 0;
   const dust = createImpactEvents();
   const impacts = createImpactState();
   dust.launchTrail = true;
-  // Keep the reproduced pool reuse independent of changing combat outcomes:
-  // one trail per frame for 208 frames, then allow its final stays to expire.
+
+
   for (let frame = 0; frame < 240; frame++) {
     client.run(() => {
       const { origin, participants } = shell();
@@ -564,15 +564,15 @@ test("a dust slot reused while shown is a new stay each use; a standing spark an
     });
   }
   client.run(() => {
-    // And 05266a3's defect: a collapsed missile waiting at the floor, where the camera sees its smoke.
+
     const { origin } = shell();
     const missile = AddSpecialEffect(STOCK_MODELS.gyroCopterMissile, origin.x, origin.y);
     BlzSetSpecialEffectScale(missile, 0.0);
     BlzSetSpecialEffectPosition(missile, origin.x, origin.y, origin.z);
     trampoline("scene.report")();
   });
-  // A dust slot stayed in view across uses for longer than a hit spark may stay;
-  // each use was a stay of its own, and only the standing spark and the collapsed missile fail.
+
+
   expect(longestReused).toBeGreaterThan(seconds(3));
   const report = sceneReport(client);
   expect(report.models.find(({ model }) => model === reportedModel(impactModel(IMPACT_DUST)))?.longest).toBe(impactLifetime(IMPACT_DUST));
@@ -608,7 +608,7 @@ test("a downward offscreen portrait and arrow stay entirely above the HUD at eve
   }
 });
 
-// One test a stage: the catalog grows, and each stage's three 360-frame matches take 0.2-0.5 s alone.
+
 for (const { id: stage, name } of STAGE_CATALOG) test(`${name} keeps its camera inside the blast zones, shows every offscreen bubble and loses stocks outside the view at all supported aspects [spec #80]`, () => {
   for (const aspect of [16 / 9, 16 / 10, 3 / 2]) {
     const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
@@ -632,7 +632,7 @@ for (const { id: stage, name } of STAGE_CATALOG) test(`${name} keeps its camera 
         const camera = cameras.get(client);
         if (camera === undefined) throw new Error("missing set camera");
         const bounds = stageBounds(stage);
-        // Intersect rays from the actual camera fields with the fighters' plane.
+
         const field = (name: string) => camera.fields.get(name) ?? Number.NaN;
         const pitch = (field("CAMERA_FIELD_ANGLE_OF_ATTACK") - 360) * Math.PI / 180;
         const tangent = Math.tan(field("CAMERA_FIELD_FIELD_OF_VIEW") * Math.PI / 360) / aspect;
@@ -659,17 +659,17 @@ for (const { id: stage, name } of STAGE_CATALOG) test(`${name} keeps its camera 
   }
 });
 
-/** The match HUD's panels reach 0.139 up the 0.6-high screen (src/game/ui/matchHud.ts). */
+
 const HUD_TOP_ROW = 1 - 0.139 / 0.6;
 type Point = readonly [x: number, y: number, z: number];
 
-/**
- * Where an arena point shows in the frame of the camera a client set, as
- * fractions of the frame's width and height from its top left. The ground is
- * level, so the camera's target is its z offset above the ground, FLOOR_HEIGHT
- * below the floor. The clients run 16:9 and Warcraft spreads the field of
- * view across the width, as wisp:scripts/wisp/visibility.ts frames a camera.
- */
+
+
+
+
+
+
+
 function framePoint(camera: SetCamera, origin: { readonly x: number; readonly y: number }, [x, y, z]: Point) {
   const field = (name: string) => camera.fields.get(name) ?? Number.NaN;
   const radians = (degrees: number) => (degrees * Math.PI) / 180;
@@ -698,9 +698,9 @@ test("a fighter within 100 of the main deck's underside shows above the HUD with
   const underside = Array.from({ length: MAIN_DECK_BODY_SURFACES }, (_, index) => solidSurfaceAt(0, index))
     .find((line) => line.kind === SurfaceContact.ceiling && line.startZ === MAIN_DECK_UNDERSIDE_Z && line.endZ === MAIN_DECK_UNDERSIDE_Z);
   if (underside === undefined) throw new Error("the main deck has no level underside");
-  // The underside's front edge where it is nearest the fighter.
+
   const undersideNear = ([x]: Point): Point => [Math.min(Math.max(x, underside.endX), underside.startX), -MAIN_DECK_HALF_DEPTH, MAIN_DECK_UNDERSIDE_Z];
-  // Beside a wall, 12 outside it as a fighter stands against it; under the underside, down to the blast zone.
+
   const beside = (side: number, z: number): Point => {
     const wall = Array.from({ length: MAIN_DECK_BODY_SURFACES }, (_, index) => solidSurfaceAt(0, index))
       .find((line) => line.normalX * side > 0 && Math.min(line.startZ, line.endZ) <= z && Math.max(line.startZ, line.endZ) >= z);
@@ -711,7 +711,7 @@ test("a fighter within 100 of the main deck's underside shows above the HUD with
     ...[underside.endX, 0, underside.startX].flatMap((x) => [MAIN_DECK_UNDERSIDE_Z - 1, MAIN_DECK_UNDERSIDE_Z - near].map((z): Point => [x, 0, z])),
     ...[-1, 1].flatMap((side) => [MAIN_DECK_UNDERSIDE_Z + near / 2, MAIN_DECK_UNDERSIDE_Z + near].map((z) => beside(side, z))),
   ];
-  // The other fighter: KO'd, on the main deck, on a raised deck, high, at the top blast zone, far to a side.
+
   const others: (Point | undefined)[] = [undefined, [300, 0, 0], [-265, 0, 170], [0, 0, 465], [0, 0, stageBounds(0).blast.top - 1], [-(stageBounds(0).blast.right - 20), 0, 0]];
   const misses: string[] = [];
   let origin = { x: 0, y: 0 };
@@ -759,7 +759,7 @@ test("the underside scenario holds a fighter under the main deck, shown above th
     setParticipants(s.game, 1, 2);
     selectCharacter(s.game, 0, Character.rifleman);
     expect(requestStageSelect(s.game, 0)).toBe(true);
-    // Final Destination's reference underside, which these checks measure.
+
     selectStage(s.game, 0, 0);
     expect(requestStart(s.game, 0)).toBe(true);
     startMatch(s);
@@ -771,7 +771,7 @@ test("the underside scenario holds a fighter under the main deck, shown above th
     const { motion, status } = fighterAt(shell().world, 0);
     expect([motion.x, motion.z, status.frozenFrames > 0]).toEqual([520, MAIN_DECK_UNDERSIDE_Z, true]);
   });
-  // The underside's right end, and the fighter's feet.
+
   const shown: Point[] = [[371, -MAIN_DECK_HALF_DEPTH, MAIN_DECK_UNDERSIDE_Z], [520, 0, MAIN_DECK_UNDERSIDE_Z]];
   for (const { column, row } of shown.map((point) => framePoint(camera, origin, point))) {
     expect(column).toBeGreaterThan(0);
@@ -781,13 +781,13 @@ test("the underside scenario holds a fighter under the main deck, shown above th
   }
 });
 
-/** Whether a point lies inside the main deck: between its floor and its walls and underside (even-odd crossings). */
+
 function insideMainDeck(x: number, z: number): boolean {
   const edges = Array.from({ length: MAIN_DECK_BODY_SURFACES }, (_, index): readonly [number, number, number, number] => {
     const line = solidSurfaceAt(0, index);
     return [line.startX, line.startZ, line.endX, line.endZ];
   });
-  // The floor closes the outline between the two ledges.
+
   const ledges = edges.flatMap(([x0, z0, x1, z1]) => [[x0, z0], [x1, z1]]).filter(([, lz]) => lz === 0);
   const [left, right] = [Math.min(...ledges.map(([lx]) => lx!)), Math.max(...ledges.map(([lx]) => lx!))];
   let inside = false;
@@ -805,7 +805,7 @@ test("in the underside scenario's match, a fighter rising into the main deck's u
   if (client === undefined) throw new Error("missing client");
   const top = bodyTop(Character.rifleman) * WORLD_UNITS_PER_MELEE_UNIT;
   const flank = BODY_HALF_WIDTH * WORLD_UNITS_PER_MELEE_UNIT;
-  // The ECB as collision uses it: the position up to the top, the 2-unit flank each side.
+
   const ecbInside = (x: number, z: number) =>
     [x - flank, x, x + flank].some((px) => [z, z + top / 2, z + top - 0.5].some((pz) => insideMainDeck(px, pz)));
   client.run(() => {
@@ -813,7 +813,7 @@ test("in the underside scenario's match, a fighter rising into the main deck's u
     setParticipants(s.game, 1, 2);
     selectCharacter(s.game, 0, Character.rifleman);
     expect(requestStageSelect(s.game, 0)).toBe(true);
-    // Final Destination's reference underside, which these checks measure.
+
     selectStage(s.game, 0, 0);
     expect(requestStart(s.game, 0)).toBe(true);
     startMatch(s);
@@ -822,9 +822,9 @@ test("in the underside scenario's match, a fighter rising into the main deck's u
   clients.frames(30);
   client.run(() => {
     const fighter = fighterAt(shell().world, 0);
-    // Frozen beside the deck's lower right corner: none of its ECB is inside the deck.
+
     expect(ecbInside(fighter.motion.x, fighter.motion.z)).toBe(false);
-    // Thawed under the underside's middle, its top 3 under it, and launched up into it.
+
     fighter.status.frozenFrames = 0;
     fighter.motion.x = 200.0;
     fighter.motion.z = MAIN_DECK_UNDERSIDE_Z - top - 3.0;
@@ -840,7 +840,7 @@ test("in the underside scenario's match, a fighter rising into the main deck's u
     });
   }
   client.run(() => {
-    // On the contact frame.
+
     const { motion, surfaceRecovery } = fighterAt(shell().world, 0);
     expect(surfaceRecovery.contactKind).toBe(SurfaceContact.ceiling);
     expect(surfaceRecovery.contactZ).toBe(MAIN_DECK_UNDERSIDE_Z);

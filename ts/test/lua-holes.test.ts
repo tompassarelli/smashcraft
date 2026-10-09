@@ -1,11 +1,11 @@
-// Code that runs in Lua never iterates a list that may hold undefined (#168).
-// TypeScriptToLua turns undefined into nil, and a Lua list ends at its first
-// nil: `for...of` becomes ipairs, and spreads and array methods read `#`. So
-// `for (const model of [this.ready, this.proc])` skipped `proc` whenever
-// `ready` was undefined, and seven fighters left an effect behind every
-// match. Iterate the defined values instead (by slot, by name, or a list
-// built with push). Object.values is exempt: TypeScriptToLua builds it with
-// pairs, which skips nil, so its list is always dense.
+// Lua iteration stops at nil; TypeScriptToLua Object.values uses pairs and produces a dense list.
+
+
+
+
+
+
+
 import { expect } from "bun:test";
 import { join, relative } from "node:path";
 import ts from "typescript";
@@ -13,11 +13,11 @@ import { sweep } from "./sweep";
 
 const root = join(import.meta.dir, "..");
 
-/** Array methods TypeScriptToLua's library runs over `#list`. */
+
 const ITERATING_METHODS = new Set(["forEach", "map", "flatMap", "filter", "some", "every", "reduce", "reduceRight", "find", "findIndex", "findLast", "findLastIndex", "includes", "indexOf", "lastIndexOf", "join", "entries", "keys", "values", "slice", "concat"]);
 
 sweep("Lua code iterates no list that may hold undefined [repro #168]", () => {
-  // tsconfig.game.json holds every file compiled to Lua: the map, its emitted-Lua tests and the Lua programs.
+
   const configPath = join(root, "tsconfig.game.json");
   const config = ts.parseJsonConfigFileContent(ts.readConfigFile(configPath, ts.sys.readFile).config, ts.sys, root);
   const program = ts.createProgram({ rootNames: config.fileNames, options: { ...config.options, noEmit: true, incremental: false, declaration: false, emitDeclarationOnly: false } });

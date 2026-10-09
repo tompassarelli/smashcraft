@@ -38,7 +38,7 @@ test("a pad parity check reads the input trace's checksums and fighter lines and
     "165 2.750 confirmed frame 110 state 196331:389408",
   ]);
   expect([...checksums]).toEqual([[0, "461891:9677"], [110, "196331:389408"]]);
-  // Presentation and key lines are left out: only confirmed changes are compared.
+
   expect(events.map((event) => [event.slot, event.frame])).toEqual([[0, 60], [1, 118]]);
   const expectations = parseExpectations("60 a tap X 2\n#! expect a 60 special 13\n#! absent b 100-110 recovery\n#! expect b 118 special");
   expect(unmetExpectations({ checksums, events }, expectations, "native")).toEqual([
@@ -62,7 +62,7 @@ test("a native pad run that desynced, crashed or ended early is invalid, neither
 test("headless pad checks require a saved checksum even when edges and event expectations match [spec AGENTS.md]", () => {
   const root = mkdtempSync(join(tmpdir(), "pad-headless-"));
   writeFileSync(join(root, "result.json"), JSON.stringify({ off_frame: 0, helpers_stopped: [] }));
-  // The trace is a Warcraft Preload file, as the integrity build writes it.
+
   const preload = (lines: readonly string[]) => `function PreloadFiles takes nothing returns nothing\n${lines.map((line) => `\tcall Preload( "${line}" )\n`).join("")}endfunction\n`;
   writeFileSync(join(root, "trace-a.txt"), preload([
     "72 1.200 participant 0 frame 60 phase 2 special 13 action-frame 1 x -240.000 z 0.000",
@@ -82,7 +82,7 @@ test("every native check script parses, names its match, starts after the helper
     const steps = parsePadScript(script);
     expect([name, scriptChat(script)?.startsWith("-dev quick")]).toEqual([name, true]);
     expect([name, (steps.find((step) => step.kind === "edge")?.frame ?? 0) >= 15]).toEqual([name, true]);
-    // View held a second asks for the moment the parity check replays.
+
     const view = steps.filter((step) => step.kind === "edge" && step.edges.some((edge) => edge.code === BTN_SELECT));
     expect([name, view.length >= 2 && view.length % 2 === 0 && view.every((press, index) => index % 2 === 1 || (view[index + 1]?.frame ?? 0) - press.frame >= 60)]).toEqual([name, true]);
     expect([name, parseExpectations(script).length > 0]).toEqual([name, true]);

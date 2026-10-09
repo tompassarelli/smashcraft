@@ -41,7 +41,7 @@ test("white flash removes constant linear keys while preserving the held pose an
 });
 
 test("white flash removes a track whose keys all lie outside flashable clips, because Warcraft crashes loading an empty track [repro #284]", () => {
-  // Peon's attachment visibility keys only outside his flashable clips crashed every match he joined.
+
   const hidden: mdx.AnimVector = { LineType: mdx.LineType.DontInterp, GlobalSeqId: -1, Keys: [{ Frame: 20, Vector: new Float32Array([0]) }, { Frame: 300, Vector: new Float32Array([1]) }] };
   const attachment = { Name: "Weapon", Visibility: hidden, Translation: track() };
   trimFlashTracks({ Attachments: [attachment], Nodes: [attachment] }, [sequence]);

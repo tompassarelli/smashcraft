@@ -1,9 +1,9 @@
-// Runs every registered test in Lua; the index imports the test modules.
-// On the farm (`wisp farm test`), LUA_SHARD=K/N runs only shard K's tests:
-// those LUA_SHARD_PLAN (NAME<TAB>SHARD lines) assigns to K, and unplanned ones
-// whose name hashes to K; LUA_TEST_RESULT gets STATUS<TAB>SECONDS<TAB>NAME a test.
-// LUA_TEST_COST gets MODULE<TAB>CPU SECONDS<TAB>NAME a test for the suite's
-// CPU budget (scripts/testCost.ts); the index records where each module's tests start.
+
+
+
+
+
+
 import { imod } from "wisp/src/sim/intMath";
 import { AssertionFailure, registeredTests } from "wisp/src/runtime/testing";
 import { isSweep } from "../../src/runtime/sweep";
@@ -43,7 +43,7 @@ registeredTests.forEach(({ name }, index) => {
   moduleOf.set(name, module);
 });
 
-// SWEEPS=1 runs only the sweeps (src/runtime/sweep.ts); the suite skips them.
+
 const sweeps = os.getenv("SWEEPS") === "1";
 const mine = registeredTests.filter(({ name }) => isSweep(name) === sweeps
   && (shardSpec === undefined || (planned.get(name) ?? hashShard(name)) === shard));

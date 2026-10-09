@@ -1,4 +1,4 @@
-// Opponent settings through the same key events and frame hit targets as Warcraft.
+
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { CPU_OPPONENT_IDS, CPU_TIERS } from "../src/game/match/cpuProfiles";
@@ -35,7 +35,7 @@ test("all 30 CPU choices reachable with keys, exact previews, Random and retaine
   const { clients, frames, key, read, text } = journey(PLAYABLE_BUILD);
   expect(read(() => shell().game.cpuOpponents[2])).toBe("wren");
   expect(read(() => shell().game.cpuTiers[2])).toBe("intermediate");
-  // Own fighter, CPU fighter, CPU settings. N opens without a pointer.
+
   key(69); key(69); key(Key.n);
   expect(text()).toContain("CPU 3 — Opponent settings");
   expect(text()).toContain("Flexible tools and burst pressure.");
@@ -45,7 +45,7 @@ test("all 30 CPU choices reachable with keys, exact previews, Random and retaine
     key(69);
     for (let i = 0; i < 4; i++) key(Key.w);
     expect(read(() => shell().game.cpuTiers[2])).toBe("rookie");
-    key(Key.w); // Difficulty stops at Rookie.
+    key(Key.w);
     for (const tier of CPU_TIERS) {
       expect(read(() => shell().game.cpuTiers[2])).toBe(tier);
       expect(text()).toContain(CPU_OPPONENT_COPY[opponent].description);
@@ -59,14 +59,14 @@ test("all 30 CPU choices reachable with keys, exact previews, Random and retaine
   expect(read(() => shell().game.cpuOpponents[2])).toBe("random");
   expect(text()).toContain("A different opponent each match.");
   expect(text()).not.toContain("Strong at:");
-  key(Key.n); key(Key.n); key(Key.n); // Choose advances two rows, then Done.
+  key(Key.n); key(Key.n); key(Key.n);
   expect(text()).not.toContain("CPU 3 — Opponent settings");
   expect(text()).toContain("> Opponent settings <");
-  key(Key.n); key(Key.u); key(Key.n); // Back retains and returns focus.
+  key(Key.n); key(Key.u); key(Key.n);
   for (const client of clients.clients) client.key(0, Key.y, 0, true);
-  frames(); // Start only closes.
+  frames();
   for (const client of clients.clients) client.key(0, Key.y, 0, true);
-  frames(); // A held repeat cannot start behind the closed panel.
+  frames();
   expect(read(() => shell().game.phase)).toBe(Phase.characterMenu);
   for (const client of clients.clients) client.key(0, Key.y, 0, false);
   expect(text()).not.toContain("CPU 3 — Opponent settings");
