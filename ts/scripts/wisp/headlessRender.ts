@@ -12,7 +12,7 @@ import { heroModelSource, importedModelFile } from "../heroModelSource";
 import { INPUTS_STORE, assetsView, readManifest } from "./buildInputs";
 import { importedAssets } from "./mapInputs";
 import { runProcess } from "../hostProcess";
-import { resolveRenderAsset, type AssetLayer, type Graphics, type ResolvedRenderAsset } from "wisp/scripts/wisp/renderAssets";
+import { resolveRenderAsset, type AssetLocation, type AssetLayer, type Graphics, type ResolvedRenderAsset } from "wisp/scripts/wisp/renderAssets";
 
 const key = (path: string) => path.replaceAll("\\", "/").toLowerCase().replace(/\.mdl$/, ".mdx");
 const PRIVATE = join(homedir(), ".local/share/smashcraft-render-assets");
@@ -132,8 +132,8 @@ export function headlessRender(options: RenderAssetOptions = {}) {
       Effect.mapError((failure) => new RenderAssetFailure({ problem: `cannot convert stock texture ${path}: ${failure.problem}` })));
     return yield* read(png);
   });
-  const resolveAsset = (path: string, graphics: Graphics = "classic"): Promise<ResolvedRenderAsset> => {
-    const normalized = graphics === "classic" ? key(path) : `${graphics}:${key(path)}`;
+  const resolveAsset = (path: string, graphics: Graphics = "classic", body?: AssetLocation): Promise<ResolvedRenderAsset> => {
+    const normalized = `${graphics}:${body?.layer ?? ""}:${key(path)}`;
     let promise = pending.get(normalized);
     const resolveMap = (entry: string) => Effect.gen(function*() {
       const imported = yield* sources;
@@ -156,7 +156,7 @@ export function headlessRender(options: RenderAssetOptions = {}) {
       map: (entry: string) => Effect.runPromise(resolveMap(entry).pipe(Effect.provide(BunServices.layer))),
       stock: (entry: string, layer: AssetLayer) => Effect.runPromise((layer === "base" ? stockClassic(entry) : stockLayer(key(entry), layer)).pipe(Effect.provide(BunServices.layer))),
     };
-    if (promise === undefined) pending.set(normalized, promise = Effect.runPromise(resolveRenderAsset(readers, path, graphics)).then((result) => {
+    if (promise === undefined) pending.set(normalized, promise = Effect.runPromise(resolveRenderAsset(readers, path, graphics, body)).then((result) => {
       const { bytes } = result;
       if (bytes !== undefined && manifestPath !== undefined) {
         used.set(normalized, { sha256: createHash("sha256").update(bytes).digest("hex"), bytes: bytes.length });
