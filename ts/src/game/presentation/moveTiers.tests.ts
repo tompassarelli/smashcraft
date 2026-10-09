@@ -57,7 +57,7 @@ function attackSounds(style: AttackStyle): { swing: string[]; hit: string[]; tie
       if (own.hit) tier = own.tier;
       presentImpactSounds(own, (sound, _x, _z, _volume, _pitch, file) => {
         if (sound === SWING_SOUND) swing.push(`${slot}:${own.swing}`);
-        else if (file) hit.push(sound);
+        else if (file && sound.startsWith("Sound\\Units\\Combat\\")) hit.push(sound);
       });
     }
   }

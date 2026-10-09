@@ -141,7 +141,7 @@ test("Forsaken Paladin's hammer makes one loud heavy bash and holds a shield con
     frame(sound.world, f === 1 ? neutral : controls());
     finishImpactEventsAfter(events, sound.target, sound.world);
     presentImpactSounds(events, (path, _x, _z, volume, _pitch, file) => {
-      if (events.hit && file) played.push(`${path}:${volume}`);
+      if (events.hit && file && path.startsWith("Sound\\Units\\Combat\\")) played.push(`${path}:${volume}`);
     });
   }
   assertEquals(played.length, 1);

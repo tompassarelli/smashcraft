@@ -13,6 +13,7 @@ import {SELECTABLE_CHARACTERS} from '../../ts/src/game/sim/heroes/registry';
 import {STAGE_CATALOG} from '../../ts/src/game/menu/stageCatalog';
 import {hitPresentationSoundLabels} from '../../ts/src/game/shell/hitPresentationCases';
 import {tierSoundPaths} from '../../ts/src/game/presentation/moveTiers';
+import {moveSoundLabels} from '../../ts/src/game/presentation/moveSounds';
 
 const option = (name: string) => { const index = process.argv.indexOf(name); return index < 0 ? undefined : process.argv[index + 1]; };
 const extract = option('--extract');
@@ -66,13 +67,13 @@ function soundTable(text: string): Map<string, string[]> {
 }
 
 const labelFiles = new Map<string, string[]>();
-for (const table of ['AnimSounds', 'AbilitySounds']) {
+for (const table of ['AnimSounds', 'AbilitySounds', 'UnitCombatSounds']) {
   const output = join(scratch, `${table}.slk`);
   const child = Bun.spawn([extract, storage, `war3.w3mod:ui\\soundinfo\\${table.toLowerCase()}.slk`, output], {stdout: 'ignore', stderr: 'inherit'});
   if (await child.exited !== 0) throw new Error(`cannot read ${table}.slk from the installed game`);
   for (const [label, files] of soundTable(await Bun.file(output).text())) if (!labelFiles.has(label)) labelFiles.set(label, files);
 }
-const labels = hitPresentationSoundLabels();
+const labels = [...new Set([...hitPresentationSoundLabels(), ...moveSoundLabels(SELECTABLE_CHARACTERS)])];
 
 for (const label of labels) if (label.includes('\\')) labelFiles.set(label, [label]);
 const unknownLabels = labels.filter(label => !labelFiles.has(label));
@@ -97,7 +98,7 @@ const lines = [
   ...paths.map((path, index) => `  ${JSON.stringify(path)}: ${JSON.stringify(found[index])},`),
   '};',
   '',
-  '/** Sound labels hit presentation plays, with the script paths the game\'s sound tables give each; every path is in VERIFIED_STOCK_SOUNDS. */',
+  '/** Sound labels hit presentation and move sounds play, with the script paths the game\'s sound tables give each; every path is in VERIFIED_STOCK_SOUNDS. */',
   'export const VERIFIED_STOCK_SOUND_LABELS: Readonly<Record<string, readonly string[]>> = {',
   ...labels.map(label => `  ${JSON.stringify(label)}: ${JSON.stringify(labelFiles.get(label))},`),
   '};',

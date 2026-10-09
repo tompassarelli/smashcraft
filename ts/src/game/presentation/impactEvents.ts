@@ -10,6 +10,11 @@ import { WORLD_UNITS_PER_MELEE_UNIT } from "../sim/tuning";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { AttackStyle } from "../sim/codes";
 import { moveTier } from "./moveTiers";
+import { specialMove, specialSlot } from "./moveSounds";
+import { PARTICIPANT_CAPACITY } from "../input/participants";
+import { ProjectileKind, SpecialAction } from "../sim/codes";
+import { heroDefinition } from "../sim/heroes/registry";
+import { type AuthoredSpecial, type SpecialProjectile, specialKit } from "../sim/heroSpecials";
 
 
 export const ImpactLanding = { none: 0, tech: 1, missedTech: 2 } as const;
@@ -57,6 +62,9 @@ export interface ImpactEvents {
   previousLedgeSide: number;
   previousAttackSerial: number;
   previousAttackFrame: number;
+  previousSpecialAction: SpecialAction;
+  previousSpecialFrame: number;
+  previousSpecialForm: number;
   grab: boolean;
   throwRelease: boolean;
   charge: boolean;
@@ -76,6 +84,14 @@ export interface ImpactEvents {
   swing: number;
 
   variant: number;
+  perform: number;
+  performSerial: number;
+  hitCharacter: Character;
+  hitMove: number;
+  strong: boolean;
+  shieldCharacter: Character;
+  shieldMove: number;
+  shieldVariant: number;
   pummel: boolean;
   shieldElectric: boolean;
   footstep: "none" | "walk" | "run" | "dash";
@@ -120,9 +136,10 @@ export function createImpactEvents(): ImpactEvents {
     previousX: 0.0, previousZ: 0.0, previousVelocityX: 0.0, previousDownFrame: 0,
     previousGrabVisualSerial: 0, previousThrowVisualSerial: 0, previouslyCharging: false,
     previousChargeFrames: 0, previousLedgeSerial: 0, previousLedgeState: LedgeState.none,
-    previousLedgeSide: 0, previousAttackSerial: 0, previousAttackFrame: 0, grab: false, throwRelease: false, charge: false, ready: false,
+    previousLedgeSide: 0, previousAttackSerial: 0, previousAttackFrame: 0, previousSpecialAction: SpecialAction.none, previousSpecialFrame: 0, previousSpecialForm: 0, grab: false, throwRelease: false, charge: false, ready: false,
     ledgeCatch: false, ledgeRecovery: false, ledgeX: 0.0, ledgeZ: 0.0, hit: false, electric: false,
-    element: HitElement.normal, strength: 0, tier: 0, swing: -1, variant: 0, pummel: false, shieldElectric: false, footstep: "none",
+    element: HitElement.normal, strength: 0, tier: 0, swing: -1, variant: 0, perform: -1, performSerial: 0, hitCharacter: 1, hitMove: -1, strong: false,
+    shieldCharacter: 1, shieldMove: -1, shieldVariant: 0, pummel: false, shieldElectric: false, footstep: "none",
     shieldHit: false, shieldReflect: false, shieldBreak: false, ordinaryLanding: false,
     movementDust: false, runningDust: false, launchTrail: false, dodgeTrail: false, airDodge: false,
     respawn: false, jump: JumpCue.none, jumpOriginX: 0.0, jumpOriginZ: 0.0, character: 1, facing: 1,
@@ -160,6 +177,9 @@ export function captureImpactEventsBefore(events: ImpactEvents, fighter: Readonl
   events.previousLedgeSide = fighter.ledge.side;
   events.previousAttackSerial = fighter.attack.serial;
   events.previousAttackFrame = fighter.attack.frame;
+  events.previousSpecialAction = fighter.special.action;
+  events.previousSpecialFrame = fighter.special.frame;
+  events.previousSpecialForm = fighter.special.form;
   events.grab = false;
   events.throwRelease = false;
   events.charge = false;
@@ -181,6 +201,10 @@ export function captureImpactEventsBefore(events: ImpactEvents, fighter: Readonl
   events.airDodge = false;
   events.respawn = false;
   events.swing = -1;
+  events.perform = -1;
+  events.hitMove = -1;
+  events.shieldMove = -1;
+  events.strong = false;
   events.jump = JumpCue.none;
   events.koDirectionX = 0;
   events.koDirectionZ = 0;
@@ -201,9 +225,74 @@ function hitTier(fighter: Readonly<Fighter>, world: Readonly<Roster> | undefined
 }
 
 
+const PROJECTILE_REACH = 160.0;
+const PROJECTILE_BODY_Z = 50.0;
 
+function firesProjectile(special: Readonly<AuthoredSpecial> | undefined, spec: Readonly<SpecialProjectile>): boolean {
+  if (special === undefined) return false;
+  if (special.projectiles?.includes(spec) === true) return true;
+  for (const followUp of special.followUps ?? []) if (followUp.special.projectiles?.includes(spec) === true) return true;
+  return false;
+}
 
+function projectileSlot(character: Character, spec: Readonly<SpecialProjectile> | undefined): number {
+  const specials = heroDefinition(character)?.specials;
+  if (spec === undefined || specials === undefined) return 0;
+  for (let slot = 0; slot < 4; slot++) {
+    const kit = specialKit(specials, slot);
+    if (firesProjectile(kit.ground, spec) || firesProjectile(kit.air, spec) || firesProjectile(kit.recall, spec) || firesProjectile(kit.marked?.special, spec)) return slot;
+  }
+  return 0;
+}
 
+function strikingMove(fighter: Readonly<Fighter>, world: Readonly<Roster> | undefined, shield: boolean, events: ImpactEvents): void {
+  if (world === undefined) return;
+  const { lastAttacker, lastAttackSerial } = fighter.hits;
+  let character: Character | undefined;
+  let move = -1;
+  if (lastAttacker !== undefined && isActive(world, lastAttacker)) {
+    const attacker = fighterAt(world, lastAttacker);
+    if (attacker.attack.style !== undefined && attacker.attack.serial === lastAttackSerial) {
+      character = attacker.character;
+      move = attacker.attack.style;
+    }
+  }
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY && move < 0; slot++) {
+    if (!isActive(world, slot)) continue;
+    const attacker = fighterAt(world, slot);
+    if (attacker === fighter || specialSlot(attacker.special.action) < 0) continue;
+    for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) {
+      const target = attacker.special.hitTargets[entry];
+      if (target !== undefined && isActive(world, target) && fighterAt(world, target) === fighter) {
+        character = attacker.character;
+        move = specialMove(specialSlot(attacker.special.action));
+      }
+    }
+  }
+  if (character === undefined) {
+    let nearest = PROJECTILE_REACH;
+    for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
+      if (!isActive(world, slot)) continue;
+      const owner = fighterAt(world, slot);
+      if (owner === fighter) continue;
+      for (const projectile of owner.projectiles) {
+        const distance = f32(Math.abs(f32(projectile.x - fighter.motion.x)) + Math.abs(f32(projectile.z - f32(fighter.motion.z + PROJECTILE_BODY_Z))));
+        if (projectile.serial === 0 || distance >= nearest) continue;
+        nearest = distance;
+        character = owner.character;
+        move = specialMove(projectile.kind === ProjectileKind.recoil ? 2 : projectile.kind === ProjectileKind.hero ? projectileSlot(owner.character, projectile.spec) : 0);
+      }
+    }
+  }
+  if (character === undefined) return;
+  if (shield) {
+    events.shieldCharacter = character;
+    events.shieldMove = move;
+  } else {
+    events.hitCharacter = character;
+    events.hitMove = move;
+  }
+}
 
 export function finishImpactEventsAfter(events: ImpactEvents, fighter: Readonly<Fighter>, world?: Readonly<Roster>): void {
   const { motion, status, ground, surfaceRecovery, visuals, jump, launch, shield, down, attack, ledge, dodge } = fighter;
@@ -249,6 +338,10 @@ export function finishImpactEventsAfter(events: ImpactEvents, fighter: Readonly<
   events.tier = events.hit ? hitTier(fighter, world) ?? visuals.hitStrength : events.tier;
   events.variant = visuals.hit;
   events.pummel = events.hit && visuals.hitPummel;
+  if (events.hit && !events.pummel) {
+    events.strong = visuals.hitStrength === 2;
+    strikingMove(fighter, world, false, events);
+  }
   if (present && events.previousFrozenFrames === 0 && status.frozenFrames > 0) {
     events.hit = true;
     events.element = HitElement.ice;
@@ -256,16 +349,29 @@ export function finishImpactEventsAfter(events: ImpactEvents, fighter: Readonly<
     events.pummel = false;
     events.strength = 0;
     events.tier = 0;
+    events.hitMove = -1;
   }
 
   const { style } = attack;
   if (present && style !== undefined && style !== AttackStyle.grab && style !== AttackStyle.shot && !attack.dashGrab
     && (attack.serial !== events.previousAttackSerial || attack.frame !== events.previousAttackFrame) && attack.frame === attackStartup(fighter, style)) {
     events.swing = moveTier(fighter.character, style);
+    events.perform = style;
+    events.performSerial = attack.serial;
+  }
+  const { special } = fighter;
+  const slot = specialSlot(special.action);
+  if (present && slot >= 0 && (special.action !== events.previousSpecialAction || special.frame < events.previousSpecialFrame || special.form !== events.previousSpecialForm)) {
+    events.perform = specialMove(slot);
+    events.performSerial = attack.serial + jump.serial + visuals.hit;
   }
   events.shieldElectric = visuals.shieldElectric;
   events.shieldHit = present && visuals.shield !== events.previousShieldVisualSerial;
   events.shieldReflect = present && visuals.shieldReflect !== events.previousShieldReflectVisualSerial;
+  if (events.shieldHit) {
+    events.shieldVariant = visuals.shield;
+    strikingMove(fighter, world, true, events);
+  }
   events.shieldBreak = present && events.previousShieldBreak === ShieldBreak.none && shield.breakState !== ShieldBreak.none;
   events.ordinaryLanding = present && !events.previouslyGrounded && motion.grounded && down.state === DownState.none;
   if (present && jump.serial !== events.previousJumpSerial && !events.ledgeRecovery) {

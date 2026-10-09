@@ -6,6 +6,7 @@ import { elementLook } from "./elementLooks";
 import { SWING_SOUND, TIER_HIT_VOLUME, TIER_SWING_PITCH, TIER_SWING_VOLUME, tierHitPath } from "./moveTiers";
 import { at } from "wisp/src/runtime/lookup";
 import { type ImpactEvents, ImpactLanding, JumpCue } from "./impactEvents";
+import { playHit, playPerform, playShieldHit } from "./moveSounds";
 import { IMPACT_FIRE_HIT, IMPACT_SLASH_HIT, IMPACT_ICE_HIT, IMPACT_ELECTRIC_SHIELD, IMPACT_PUMMEL } from "./impactState";
 import { IMPACT_DUST_MODEL, IMPACT_ROLL_MODEL, IMPACT_TECH_MODEL, IMPACT_JUMP_MODEL, IMPACT_SHIELD_MODEL, IMPACT_HIT_MODEL, IMPACT_KO_MODEL } from "../assets/impactAssetInfo";
 
@@ -75,17 +76,21 @@ type ImpactSoundSink = (sound: string, x: number, z: number, volume: number, pit
 
 export function presentImpactSounds(events: Readonly<ImpactEvents>, sink: ImpactSoundSink): void {
   const play = (label: string, volume = 100, pitch = 1.0) => sink(label, events.x, events.z, volume, pitch, false);
-  if (events.swing >= 0) sink(SWING_SOUND, events.x, events.z, at(TIER_SWING_VOLUME, events.swing), at(TIER_SWING_PITCH, events.swing), true);
+  const file = (path: string, volume: number, pitch: number) => sink(path, events.x, events.z, volume, pitch, true);
+  if (events.perform >= 0) playPerform(events.character, events.perform, events.performSerial, file);
+  else if (events.swing >= 0) sink(SWING_SOUND, events.x, events.z, at(TIER_SWING_VOLUME, events.swing), at(TIER_SWING_PITCH, events.swing), true);
   if (events.throwRelease) play("BlinkTarget");
   else if (events.pummel) play("Defend", 75, 1.5);
+  else if (events.hit && events.hitMove >= 0) playHit(events.hitCharacter, events.hitMove, events.strong, events.element, events.variant, file);
   else if (events.hit) {
 
     const electric = events.element !== HitElement.fire && events.electric;
-    const file = electric ? undefined : tierHitPath(events.element, events.tier, events.variant);
+    const path = electric ? undefined : tierHitPath(events.element, events.tier, events.variant);
     const volume = at(TIER_HIT_VOLUME, events.tier);
-    if (file !== undefined) sink(file, events.x, events.z, volume, 1.0, true);
+    if (path !== undefined) sink(path, events.x, events.z, volume, 1.0, true);
     else play(electric ? "LightningBolt" : elementLook(events.element).sound ?? "LightningBolt", volume);
   }
+  if (events.shieldHit && events.shieldMove >= 0) playShieldHit(events.shieldCharacter, events.shieldMove, events.shieldVariant, file);
   if (events.shieldHit || events.shieldReflect) play(events.shieldElectric ? "LightningBolt" : "Defend", 90, events.shieldReflect ? 1.5 : 1.0);
   if (events.shieldBreak) play("ThunderClap");
   if (events.grab) play("EntanglingRoots", 70);
