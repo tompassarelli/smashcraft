@@ -1,5 +1,5 @@
 import { WHITE_FIGHTER_MODELS } from "../assets/whiteFighterModels";
-import { ARENA_CAMERA } from "../presentation/arenaCamera";
+import { ARENA_CAMERA, FLOOR_HEIGHT } from "../presentation/arenaCamera";
 import { originalClip, originalClipNamed } from "../assets/fighterOriginalClipInfo";
 import { fitFighterPlacement } from "../presentation/fighterPlacement";
 import type { FighterPose } from "../presentation/fighterPose";
@@ -8,6 +8,7 @@ import { createWhiteGlowState, whiteGlowAlpha } from "../presentation/whiteGlow"
 import type { Character } from "../sim/codes";
 import { fighterPoseFacing } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
+import type { MatchCamera } from "../sim/matchCamera";
 import { facingYaw, hideEffect, placeEffect, type WorldOrigin } from "./effects";
 import { at } from "wisp/src/runtime/lookup";
 
@@ -27,7 +28,7 @@ export class BodyFlash {
     hideEffect(this.model, origin);
   }
 
-  present(fighter: Readonly<Fighter> | undefined, pose: Readonly<FighterPose>, stage: number, frame: number): void {
+  present(fighter: Readonly<Fighter> | undefined, pose: Readonly<FighterPose>, stage: number, frame: number, camera: Readonly<MatchCamera>): void {
     const alpha = fighter === undefined ? 0 : whiteGlowAlpha(this.state, fighter, frame);
     const index = pose.clipIndex ?? originalClipNamed(this.character, pose.clipName);
     const clip = index === undefined ? undefined : originalClip(this.character, index);
@@ -46,10 +47,10 @@ export class BodyFlash {
     BlzSetSpecialEffectYaw(this.model, facingYaw(fighterPoseFacing(fighter)));
     const x = this.origin.x + this.placement.x, y = this.origin.y, z = this.origin.z + this.placement.z;
     const pitch = ARENA_CAMERA.angleOfAttack * (Math.PI / 180.0), yaw = ARENA_CAMERA.rotation * (Math.PI / 180.0);
-    const distance = GetCameraField(CAMERA_FIELD_TARGET_DISTANCE);
-    const towardX = GetCameraTargetPositionX() - Math.cos(yaw) * Math.cos(pitch) * distance - x;
+    const distance = camera.distance;
+    const towardX = this.origin.x + camera.x - Math.cos(yaw) * Math.cos(pitch) * distance - x;
     const towardY = this.origin.y - Math.sin(yaw) * Math.cos(pitch) * distance - y;
-    const towardZ = GetCameraField(CAMERA_FIELD_ZOFFSET) - Math.sin(pitch) * distance - z;
+    const towardZ = FLOOR_HEIGHT + camera.z - Math.sin(pitch) * distance - z;
     const length = Math.sqrt(towardX * towardX + towardY * towardY + towardZ * towardZ);
     const lift = length > FLASH_LIFT * 2.0 ? FLASH_LIFT / length : 0.0;
     placeEffect(this.model, x + towardX * lift, y + towardY * lift, z + towardZ * lift);
