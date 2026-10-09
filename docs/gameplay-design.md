@@ -1160,7 +1160,6 @@ not claims that these timings guarantee human reaction on every setup.
 | Red parry (re-press in shieldstun) | 2 | 4 | 2 |
 | Ledge intangibility | 30 | 37 | 30 on the first grab, then 22, 14, 6, 0 |
 | Ledge regrab lock | 30 | 60 | 30 |
-| Ledge hang limit | by time | by time | 300 frames |
 | Any required precision input with no aid | 3 | n/a | L-cancel removed |
 
 The reaction figures are authoring targets: at least 15 frames from the first
@@ -1797,30 +1796,6 @@ The decay step is a first value, chosen to reach none on the fifth grab, and is
 tuned from playtests; the first-grab 30 stays inside the #69 bound of 30 to 37.
 The ledge commitment lock, the computer's use of these options and the seeded win
 rate measurements are tracked in #386's remaining boxes.
-
-### Ledge hang limit (#411)
-
-A fighter who hangs on the ledge for 300 frames (5 seconds) lets go and falls,
-as if it had pressed away: the same drop as the away getup, with the ledge
-regrab lock and the decayed intangibility of the next catch unchanged. Without
-a limit an idle hanger, or a fighter ahead on stocks or percent, could stall
-the clock on the ledge; the playtest in #407 found an idle fighter hung
-there for the full 3,600 frames. The limit is a first value for the owner to
-tune; it is long enough to read and pick any getup.
-
-Prior art: Melee, Smash 4 and Ultimate all end a long hang by time, and
-SmashWiki's Ledge page lists the limits (Ultimate's is shorter than Melee's
-and falls with damage). I could not fetch that page from the build
-environment, so the 300 frames is chosen here and not copied from it; check
-the page's figures before treating the number as sourced.
-
-The Expert computer contests a hanger. It stands 60 units inside the deck edge
-facing the ledge, and when the hanger's getup (climb or attack) begins it
-throws a forward tilt that is active as the climber stands up. Ground moves do
-not reach a fighter hanging 90 units below the deck, so the trap covers the
-getup and the hang limit ends a hanger who never moves. Test: the Expert
-computer hits a climber within 45 frames of the getup press (input delay 4,
-climb 25, tilt startup and travel about 16).
 
 ## Meter drops (#385)
 

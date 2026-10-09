@@ -24,7 +24,6 @@ import { type CpuSkill, cpuSkill, cpuReactionFloor, cpuReactionFrames, perceived
 import { FAST_BOT_HISTORY_FRAMES, BOT_HISTORY_FRAMES, type BotMemory, observeOpponents, perceivedOpponent, perceivedHeldFighter, commitBotDirection, samePerception } from "./botPerception";
 import { chooseDefense } from "./botDefense";
 import { choosePunish } from "./botPunish";
-import { TRAP_ATTACK, TRAP_NONE, chooseLedgeTrap } from "./botLedgeTrap";
 import { chooseRecoveryInput } from "./botRecovery";
 import { pressHeroFollowUp } from "./botHeroKit";
 import { dashIn, pressKitOption, pressUltimate, steerHeroBranches, steerRunningSpecial } from "./botKitOptions";
@@ -337,11 +336,6 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
   if (skill.basicMoves === undefined && choosePunish(fighter, target, stage, stageFrame, frame, skill, input, commands, observationAge)) {
 
     runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
-    return;
-  }
-  const trap = skill.tier === "expert" && skill.basicMoves === undefined ? chooseLedgeTrap(fighter, target, stage, frame, input, commands, delay <= 0) : TRAP_NONE;
-  if (trap !== TRAP_NONE) {
-    if (trap === TRAP_ATTACK) runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
     return;
   }
   if (skill.basicMoves === undefined && pressBotRead(runtime.botStrategies[slot], fighter, target, stage, stageFrame, frame, input, commands)) return;
