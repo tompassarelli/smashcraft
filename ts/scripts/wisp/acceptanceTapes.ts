@@ -67,6 +67,8 @@ interface MatchScript {
   readonly hazardsOff?: boolean;
 
   readonly exercise?: "pushed" | "carried" | "shieldPush" | "edgeCancel" | "shieldSlide";
+
+  readonly dropPickups?: number;
 }
 
 
@@ -185,6 +187,10 @@ function playMatch(script: MatchScript, session: TapeSession, play: (...lines: s
     if (script.exercise !== undefined && !moved) moved = exercised(session, script.exercise, memory);
   }
   if (script.exercise !== undefined && !moved) throw new Error(`no fighter was ${script.exercise} by the stage on stage ${script.stage}`);
+  const { drops } = session.live.match;
+  if (script.dropPickups !== undefined && (drops.spawnSerial < script.dropPickups || drops.pickupSerial < script.dropPickups)) {
+    throw new Error(`${drops.spawnSerial} meter drops spawned and ${drops.pickupSerial} taken; the script needs ${script.dropPickups}`);
+  }
 }
 
 
@@ -302,6 +308,17 @@ const COMPUTER: MatchScript = {
   ], []],
   approaches: [[[1, 60], [150, 60], [250, 45], [400, 60], [540, 45], [680, 60], [800, 45]], []],
   rollbacks: [...every(120, 840, 120, 8), [837, 900]],
+};
+
+
+const METER_DROPS: MatchScript = {
+  characters: [Character.rifleman, Character.demonHunter], stage: 0, stocks: 5, minutes: 0, frames: 2700, computer: true, dropPickups: 2,
+  holds: [[
+    [100, 2, ATTACK], [300, 20, SHIELD_LEFT], [500, 2, SPECIAL], [700, 3, JUMP], [704, 2, ATTACK], [880, 2, GRAB],
+    [1100, 2, ATTACK], [1400, 24, SHIELD_RIGHT], [1700, 2, SPECIAL], [2000, 3, JUMP], [2004, 2, ATTACK], [2300, 2, GRAB],
+  ], []],
+  approaches: [[[1, 60], [200, 60], [400, 60], [600, 45], [760, 40], [840, 40], [1000, 60], [1200, 60], [1500, 45], [1800, 60], [2100, 45], [2400, 60]], []],
+  rollbacks: [...every(180, 2700, 180, 8), ...every(840, 2700, 300, 60), [1130, 1180], [2090, 2140]],
 };
 
 
@@ -552,6 +569,7 @@ export function generateTapes(): Map<string, string> {
       rollbacks: [[44, 70], [204, 230], [302, 330]], predictions: [[60, 72], [210, 222]],
     }])],
     ["computer", recordTape("A player against the computer on the raised decks, with replays.", [COMPUTER])],
+    ["meter-drops", recordTape("Two meter drops telegraph, spawn and are fought over and taken by a player and the computer, with replays across the pickups (#385).", [METER_DROPS])],
     ["lich", recordTape("Lich's specials, free recovery and normals against the Illidan, with replays.", [LICH])],
     ["dreadlord", recordTape("Dreadlord's specials, sleep, a command grab, free Bat Ascension, normals and a throw against the Illidan, with replays.", [DREADLORD])],
     ["mountain-king", recordTape("Mountain King's specials, free Thunder Leap, normals and a throw against the Illidan, with replays.", [MOUNTAIN_KING])],

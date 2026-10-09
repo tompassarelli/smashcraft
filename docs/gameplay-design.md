@@ -1837,9 +1837,12 @@ rotation, and the effect is always one EX segment.
 
 Tom decided, 9 Oct (delegated in #385):
 
-- **Telegraph.** A blue marker grows and pulses at the point for 3 s (180
-  frames) before the orb appears, with a sound at the point when the telegraph
-  starts, when the orb appears and when it is taken.
+- **Telegraph.** A blue marker (Mass Teleport's arrival column) grows and
+  pulses at the point for 3 s (180 frames) before the orb appears, which is a
+  blue Frost Wyrm missile at scale 0.8, about 60 px wide at 640x360 on the near
+  match camera. Classic Wisp frames, effects alone: marker 0.8%, orb 1.1% of
+  the screen, under #380's 4%; the marker hides when the orb appears. A
+  sound plays at the point when the telegraph starts, when the orb appears and when it is taken.
 - **Schedule.** The first drop appears 15 s after GO. Each later drop appears
   a seeded 10–18 s (whole seconds from the match seed and the draw count) after
   the previous one is taken. An untaken orb stays until someone touches it.

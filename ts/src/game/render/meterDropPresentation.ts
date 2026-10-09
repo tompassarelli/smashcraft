@@ -11,8 +11,8 @@ export class MeterDropPresentation {
   private orbStage = -1;
 
   constructor(private readonly origin: Readonly<WorldOrigin>) {
-    this.marker = AddSpecialEffect(STOCK_MODELS.immolationTarget, origin.x, origin.y);
-    this.orb = AddSpecialEffect(STOCK_MODELS.greenDragonMissile, origin.x, origin.y);
+    this.marker = AddSpecialEffect(STOCK_MODELS.massTeleportTarget, origin.x, origin.y);
+    this.orb = AddSpecialEffect(STOCK_MODELS.frostWyrmMissile, origin.x, origin.y);
     hideEffect(this.marker, origin);
     hideEffect(this.orb, origin);
   }
@@ -25,7 +25,6 @@ export class MeterDropPresentation {
       const point = meterDropPoint(game.stageChoice, drops.nextPoint);
       BlzSetSpecialEffectPosition(this.marker, this.origin.x + point.x, this.origin.y, this.origin.z + point.z);
       BlzSetSpecialEffectScale(this.marker, dropMarkerScale(left));
-      BlzSetSpecialEffectColor(this.marker, 90, 150, 255);
       BlzSetSpecialEffectAlpha(this.marker, dropMarkerAlpha(left));
       this.markerShown = true;
     } else if (this.markerShown) {
@@ -37,7 +36,6 @@ export class MeterDropPresentation {
       const point = meterDropPoint(game.stageChoice, live);
       BlzSetSpecialEffectPosition(this.orb, this.origin.x + point.x, this.origin.y, this.origin.z + point.z + DROP_HEIGHT);
       BlzSetSpecialEffectScale(this.orb, DROP_ORB_SCALE);
-      BlzSetSpecialEffectColor(this.orb, 90, 150, 255);
     } else if (live < 0 && this.orbPoint >= 0) hideEffect(this.orb, this.origin);
     this.orbPoint = live;
     this.orbStage = game.stageChoice;

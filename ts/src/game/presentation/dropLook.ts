@@ -26,7 +26,7 @@ export function confirmedDropCues(before: Readonly<DropCueObservation>, drops: R
 
 export const DROP_MARKER_SCALE_START = f32(0.2);
 export const DROP_MARKER_SCALE_END = f32(0.45);
-export const DROP_ORB_SCALE = 0.5;
+export const DROP_ORB_SCALE = f32(0.8);
 export const DROP_PULSE_FRAMES = 30;
 
 export function dropMarkerScale(left: number): number {
