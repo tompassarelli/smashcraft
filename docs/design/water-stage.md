@@ -213,6 +213,9 @@ The stage's creature is a hydra of the Broken Isles, the amphibious creep
   lava uses: from the surface that carries a fighter through the bottom blast
   line at any percent, the bite Tom remembers. Shields don't help in the
   water; invincibility and dodge intangibility do.
+  The stock hydra rises above its crest at the drifting mark on impact and
+  sinks over the following 18 frames; its last strike frame is replayed with
+  the fighter, so correcting a prediction restores the same lunge.
 - **Dodge.** Jump out during the tell, or swim against the tide: the mark
   drifts with the current and a fighter swimming against it opens 3.6 a frame,
   162 over the tell, enough to leave the circle.

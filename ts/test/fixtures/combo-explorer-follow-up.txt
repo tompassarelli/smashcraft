@@ -474,7 +474,7 @@ state tech{ pressAge=255 previousPressAge=255 accumulatedPress=F window=0 } surf
 state reflectCooldown=0 contactSerial=0 contactKind=0 contactApproachSpeed=0 contactX=0 contactZ=0 contactNormalX=0 contactNormalZ=0 } grab{ pummels=0 grabbedFrames=0 heldFrames=0 queuedThrow=0 action=0
 state frame=0 serial=0 mashX=0 mashZ=0 } ledge{ state=0 side=0 frame=0 serial=0 intangible=0 regrab=0 } platform{ move=0 frame=0 duration=0 fromX=0 toX=0 fromZ=0 toZ=0 rise=0 stand=F shield=F wrapLeft=0
 state wrapLeftAge=0 wrapRight=0 wrapRightAge=0 dodgeQueued=F dodgeX=0 dodgeZ=0 specialQueued=F specialX=0 specialZ=0 } cannon{ cooldown=0 passing=F } water{ inWater=F frames=0 entries=0 hydraFrame=0
-state hydraX=0 } status{ offscreenFrames=0 damage=0 stocks=2 respawn=0 out=F invincible=10 frozenFrames=0 freezeImmunityFrames=0 armorFrames=0 armorMaxDamage=0 armorChills=F condition=0 conditionFrames=0
+state hydraX=0 hydraStrikeFrame=-1 } status{ offscreenFrames=0 damage=0 stocks=2 respawn=0 out=F invincible=10 frozenFrames=0 freezeImmunityFrames=0 armorFrames=0 armorMaxDamage=0 armorChills=F condition=0 conditionFrames=0
 state conditionGroup=0 conditionImmunityFrames=0 conditionImmunity[ 0=0 1=0 2=0 ] divineFrames=0 poisonFrames=0 poisonEvery=0 poisonDamage=0 buff=0 buffFrames=0 } mana{ points=91 } placed{ life=0 age=150
 state x=~+7:65628288:0 z=0 direction=1 durability=1 serial=1 spec{ frame=8 offsetX=0 radius=22 height=~+7:5557448:0 durability=1 life=150 fireAges[ ] } struck[ ] specialStruck=0 mode=0 modeFrame=0 apart=0
 state bitten=0 surface=0 } pack[ ] } 1{ character=1 tuning{ moves{ normals# 0{ startupFrames=3 activeFrames=3 totalFrames=22 landingLag=0 regions[ 0{ firstFrame=3 lastFrame=3 hit{ minX=8 maxX=105 minZ=40
@@ -554,7 +554,7 @@ state faceUp=T attackQueued=F } tech{ pressAge=199 previousPressAge=255 accumula
 state wallJumpsUsed=0 reflectCooldown=0 contactSerial=0 contactKind=0 contactApproachSpeed=0 contactX=0 contactZ=0 contactNormalX=0 contactNormalZ=0 } grab{ pummels=0 grabbedFrames=0 heldFrames=0
 state queuedThrow=0 action=0 frame=0 serial=0 mashX=0 mashZ=0 } ledge{ state=0 side=0 frame=0 serial=1 intangible=0 regrab=0 } platform{ move=0 frame=0 duration=0 fromX=0 toX=0 fromZ=0 toZ=0 rise=0 stand=F
 state shield=F wrapLeft=1 wrapLeftAge=3 wrapRight=0 wrapRightAge=0 dodgeQueued=F dodgeX=0 dodgeZ=0 specialQueued=F specialX=0 specialZ=0 } cannon{ cooldown=0 passing=F } water{ inWater=F frames=0 entries=0
-state hydraFrame=0 hydraX=0 } status{ offscreenFrames=0 damage=~+6:15382608:0 stocks=3 respawn=0 out=F invincible=0 frozenFrames=0 freezeImmunityFrames=0 armorFrames=0 armorMaxDamage=0 armorChills=F
+state hydraFrame=0 hydraX=0 hydraStrikeFrame=-1 } status{ offscreenFrames=0 damage=~+6:15382608:0 stocks=3 respawn=0 out=F invincible=0 frozenFrames=0 freezeImmunityFrames=0 armorFrames=0 armorMaxDamage=0 armorChills=F
 state condition=0 conditionFrames=0 conditionGroup=0 conditionImmunityFrames=0 conditionImmunity[ 0=0 1=0 2=0 ] divineFrames=0 poisonFrames=0 poisonEvery=0 poisonDamage=0 buff=0 buffFrames=0 } mana{
 state points=86 } placed{ life=0 age=0 x=0 z=0 direction=1 durability=0 serial=0 struck[ ] specialStruck=0 mode=0 modeFrame=0 apart=0 bitten=0 } pack[ ] } ] match{ camera{ boxes[ 0{ left=~-8:35662072:0
 state right=~+6:45004880:0 bottom=~-6:45004880:0 top=~+7:32547800:0 } 1{ left=~-8:35662072:0 right=~+6:45004880:0 bottom=~-6:45004880:0 top=~+7:32547800:0 } 2{ left=0 right=0 bottom=0 top=0 } 3{ left=0

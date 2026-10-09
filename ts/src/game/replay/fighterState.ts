@@ -335,6 +335,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   water.entries = sourceWater.entries;
   water.hydraFrame = sourceWater.hydraFrame;
   water.hydraX = sourceWater.hydraX;
+  water.hydraStrikeFrame = sourceWater.hydraStrikeFrame;
   const status = target.status;
   const sourceStatus = source.status;
   status.damage = sourceStatus.damage;
@@ -742,6 +743,7 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
   if (water.entries !== sourceWater.entries || (water.entries === 0 && 1 / water.entries !== 1 / sourceWater.entries)) return false;
   if (water.hydraFrame !== sourceWater.hydraFrame || (water.hydraFrame === 0 && 1 / water.hydraFrame !== 1 / sourceWater.hydraFrame)) return false;
   if (water.hydraX !== sourceWater.hydraX || (water.hydraX === 0 && 1 / water.hydraX !== 1 / sourceWater.hydraX)) return false;
+  if (water.hydraStrikeFrame !== sourceWater.hydraStrikeFrame) return false;
   const status = target.status;
   const sourceStatus = source.status;
   if (status.damage !== sourceStatus.damage || (status.damage === 0 && 1 / status.damage !== 1 / sourceStatus.damage)) return false;

@@ -7,7 +7,8 @@ import { CARRIED_TEST_STAGE, TIMED_TEST_STAGE, surfaceWaitFrames } from "../sim/
 import { LAVA_CALM_FRAMES, LAVA_CYCLE_FRAMES, LAVA_SIDE_FRAMES, LAVA_WARNING_FRAMES, LavaPhase, framesUntilLava, lavaPhase, lavaSide } from "../sim/lava";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import type { Fighter } from "../sim/fighter";
-import { HYDRA_STRIKE_FRAME } from "../sim/water";
+import { HYDRA_REACH, HYDRA_STRIKE_FRAME } from "../sim/water";
+import { SEA_SURFACE_Z } from "../sim/stageHazards";
 import {
   CANNON_HOLD_FRAMES, CANNON_SHOT_FRAMES, WindPhase, cannonOn, framesUntilTideTurns, framesUntilWind, hasTide, tideNextDirection, windDirection, windOn, windPhase,
 } from "../sim/stageHazards";
@@ -22,6 +23,14 @@ export const HYDRA_RING_MODEL = "Abilities\\Spells\\Undead\\DeathandDecay\\Death
 /** The mark belongs to the simulation; the warning never follows the swimmer. */
 export function hydraWarningX(stage: number, water: Readonly<Fighter["water"]>): number | undefined {
   return hasTide(stage) && water.hydraFrame > 0 && water.hydraFrame < HYDRA_STRIKE_FRAME ? water.hydraX : undefined;
+}
+
+export const HYDRA_SUBMERGE_FRAMES = 18;
+/** A strike starts fully above its warning crest, then sinks at the same fixed mark. */
+export function hydraStrikeZ(stage: number, water: Readonly<Fighter["water"]>, matchFrame: number): number | undefined {
+  const elapsed = matchFrame - water.hydraStrikeFrame;
+  if (!hasTide(stage) || water.hydraStrikeFrame < 0 || elapsed < 0 || elapsed >= HYDRA_SUBMERGE_FRAMES) return undefined;
+  return SEA_SURFACE_Z + HYDRA_REACH - elapsed * 20.0;
 }
 
 export interface WindStreak { x: number; z: number; direction: -1 | 1 }

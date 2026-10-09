@@ -966,6 +966,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("waterEntries", fighter.water.entries);
   int("waterHydraFrame", fighter.water.hydraFrame);
   real("waterHydraX", fighter.water.hydraX);
+  int("waterHydraStrikeFrame", fighter.water.hydraStrikeFrame);
 
   real("physics.walkAccelerationMultiplier", t.physics.walkAccelerationMultiplier);
   real("physics.walkAccelerationBase", t.physics.walkAccelerationBase);

@@ -144,7 +144,7 @@ export function inHydraStrike(markX: number, x: number, z: number): boolean {
  * is: every fighter in the lunge, shield or not, unless intangible. Then
  * it submerges and the fighter it rose under starts its count again.
  */
-export function collectHydraContacts(world: Roster, stage: number): void {
+export function collectHydraContacts(world: Roster, stage: number, matchFrame: number): void {
   if (!hasTide(stage)) return;
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
@@ -156,6 +156,7 @@ export function collectHydraContacts(world: Roster, stage: number): void {
       if (victim.status.out || isIntangible(victim) || victim.launch.hitlag > 0) continue;
       if (inHydraStrike(water.hydraX, victim.motion.x, victim.motion.z)) collectTerrainContact(world, target, HYDRA_HIT);
     }
+    water.hydraStrikeFrame = matchFrame;
     water.hydraFrame = 0;
     water.frames = 0;
   }

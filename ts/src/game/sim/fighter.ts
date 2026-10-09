@@ -441,6 +441,8 @@ interface Water {
   hydraFrame: number;
   /** The hydra's mark, drifting with the tide through the tell. */
   hydraX: number;
+  /** Match frame of the last lunge, or -1 before a strike. */
+  hydraStrikeFrame: number;
 }
 
 interface Status {
@@ -745,7 +747,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       stand: false, shield: false, wrapLeft: 0, wrapLeftAge: 0, wrapRight: 0, wrapRightAge: 0, dodgeQueued: false, dodgeX: 0, dodgeZ: 0, specialQueued: false, specialX: 0, specialZ: 0,
     },
     cannon: { held: undefined, firing: undefined, cooldown: 0, passing: false },
-    water: { inWater: false, frames: 0, entries: 0, hydraFrame: 0, hydraX: 0.0 },
+    water: { inWater: false, frames: 0, entries: 0, hydraFrame: 0, hydraX: 0.0, hydraStrikeFrame: -1 },
     status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0, armorChills: false, condition: 0, conditionFrames: 0, conditionGroup: 0, conditionImmunityFrames: 0, conditionImmunity: [0, 0, 0], divineFrames: 0, poisonFrames: 0, poisonEvery: 0, poisonDamage: 0.0, buff: 0, buffFrames: 0 },
     mana: { points: 0 },
     placed: createPlacedObject(),

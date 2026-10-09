@@ -219,7 +219,7 @@ src/game/sim/surfaces.tests.ts	26	0.093
 src/game/sim/tech.tests.ts	7	0.011
 src/game/sim/tumbleLandings.tests.ts	1	0.858
 src/game/sim/turnaroundSpecials.tests.ts	3	0.413
-src/game/sim/water.tests.ts	14	1.027
+src/game/sim/water.tests.ts	15	1.018
 src/game/ui/cpuSettings.tests.ts	1	0.000
 src/game/ui/cpuSettingsLayout.tests.ts	2	0.000
 src/game/ui/hudLayout.tests.ts	2	0.000

@@ -123,6 +123,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   f.water.entries = 0;
   f.water.hydraFrame = 0;
   f.water.hydraX = 0.0;
+  f.water.hydraStrikeFrame = -1;
   clearShieldBreak(f);
   shield.breakSerial = 0;
   clearOwnedFreezeTrap(f);

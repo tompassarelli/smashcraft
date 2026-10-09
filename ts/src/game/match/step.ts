@@ -196,7 +196,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   resolveGrabs(world);
   beginDamageContacts();
   collectLavaContacts(world, stage, stageFrame);
-  collectHydraContacts(world, stage);
+  collectHydraContacts(world, stage, game.matchFrame);
   const bossFight = game.run.active && game.run.boss.kind !== BossKind.none;
   if (bossFight && !holdingStart(game)) collectBossContacts(game.run.boss, world, bossClock(game.matchFrame, game.startHold), game.run.player);
   advanceGrabs(world, controls.inputs);

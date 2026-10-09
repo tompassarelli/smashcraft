@@ -22,7 +22,7 @@ import { fighterTintChannel, stageFighterTint } from "../../game/presentation/st
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import { hideEffect } from "../../game/render/effects";
 import { FRAME_SECONDS, type FighterPose } from "../../game/presentation/fighterPose";
-import { CANNON_MODEL, HYDRA_CREST_MODEL, HYDRA_RING_MODEL, PLATFORM_CUE_FRAMES, WIND_STREAK_COUNT, WIND_STREAK_MODEL, framesUntilPlatformMoves, hydraWarningX, lavaLook, windStreak } from "../../game/presentation/stageHazards";
+import { CANNON_MODEL, HYDRA_CREST_MODEL, HYDRA_RING_MODEL, PLATFORM_CUE_FRAMES, WIND_STREAK_COUNT, WIND_STREAK_MODEL, framesUntilPlatformMoves, hydraWarningX, hydraStrikeZ, lavaLook, windStreak } from "../../game/presentation/stageHazards";
 import { escapeMeterView, readEscapeMeter } from "../../game/presentation/escapeMeter";
 import { lavaPiece } from "../../game/presentation/stageScenery";
 import { hasLava, lavaSide } from "../../game/sim/lava";
@@ -357,17 +357,20 @@ export function renderPersistentPresentation(s: ShellState): void {
     const ring = s.stageHydra?.[slot * 2];
     const crest = s.stageHydra?.[slot * 2 + 1];
     if (ring === undefined || crest === undefined) continue;
-    const x = playing && isActive(world, slot) ? hydraWarningX(drawn, fighterAt(world, slot).water) : undefined;
+    const water = playing && isActive(world, slot) ? fighterAt(world, slot).water : undefined;
+    const strikeZ = water === undefined ? undefined : hydraStrikeZ(drawn, water, game.matchFrame);
+    const x = water === undefined ? undefined : strikeZ === undefined ? hydraWarningX(drawn, water) : water.hydraX;
     if (x === undefined) {
       hideEffect(ring, s.origin);
       hideEffect(crest, s.origin);
       continue;
     }
-    BlzSetSpecialEffectScale(ring, 0.75);
+    BlzSetSpecialEffectScale(ring, strikeZ === undefined ? 0.75 : 1.0);
     BlzSetSpecialEffectColor(ring, 48, 72, 64);
     BlzSetSpecialEffectPosition(ring, s.origin.x + x, s.origin.y, s.origin.z + SEA_SURFACE_Z + 8.0);
-    BlzSetSpecialEffectScale(crest, 0.75);
-    BlzSetSpecialEffectPosition(crest, s.origin.x + x, s.origin.y + 40.0, s.origin.z + SEA_SURFACE_Z - 60.0);
+    BlzSetSpecialEffectScale(crest, strikeZ === undefined ? 0.75 : 1.0);
+    BlzSetSpecialEffectYaw(crest, Math.PI / 2.0);
+    BlzSetSpecialEffectPosition(crest, s.origin.x + x, s.origin.y + 40.0, s.origin.z + (strikeZ ?? SEA_SURFACE_Z - 60.0));
     BlzSetSpecialEffectTimeScale(crest, 0.0);
   }
   const ui = views(s);

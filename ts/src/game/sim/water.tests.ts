@@ -16,10 +16,33 @@ import { advanceSolo, controls } from "./testWorld";
 import { f32 } from "wisp/src/sim/f32";
 import { HYDRA_STRIKE_FRAME, SWIM_SPEED, WATER_RISE_CAP, beginWaterJump, inHydraStrike, waterJumpScale } from "./water";
 import { SEA_SURFACE_Z, TIDE_SPEED, framesUntilTideTurns, seaLeft, seaRight, tideDirection, tideNextDirection, tidePush } from "./stageHazards";
-import { hydraWarningX } from "../presentation/stageHazards";
+import { hydraWarningX, hydraStrikeZ } from "../presentation/stageHazards";
 
 const TOMB = TOMB_OF_SARGERAS_STAGE;
 const UNDER = SEA_SURFACE_Z - 10.0;
+
+test("the hydra lunges at its drifting mark on impact, submerges after 18 frames, and restores the lunge through rollback [repro #277]", () => {
+  const state = seaMatch(-1000.0, SEA_SURFACE_Z);
+  play(state, 1, 194);
+  const fighter = fighterAt(state.world, 0);
+  const mark = fighter.water.hydraX;
+  fighter.motion.x += 200.0;
+  const saved = createReplaySnapshot();
+  copyReplayState(saved, state);
+  play(state, 195, 212, (frame, f) => {
+    assertEquals(f.status.damage, 0.0);
+    assertEquals(f.water.hydraStrikeFrame, 195);
+    assertEquals(f.water.hydraX, f32(mark + TIDE_SPEED));
+    assertEquals(hydraStrikeZ(TOMB, f.water, frame), -210.0 - (frame - 195) * 20.0);
+  });
+  const replay = createReplaySnapshot();
+  copyReplayState(replay, saved);
+  play(replay, 195, 212);
+  assertEquals(firstStateDifference(state, replay), undefined);
+  assertEquals(stateChecksum(state), stateChecksum(replay));
+  play(state, 213, 213);
+  assertEquals(hydraStrikeZ(TOMB, fighter.water, 213), undefined);
+});
 
 test("the hydra's visible mark warns for all 45 frames before damage and clears after the strike [repro #277]", () => {
   const state = seaMatch(-1000.0, SEA_SURFACE_Z);
