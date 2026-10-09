@@ -401,8 +401,8 @@ function portraitPose(bytes: Uint8Array, character: number, animation: string | 
   return azimuth === undefined ? undefined : { elapsed: best / 1000, yaw: FACE_AZIMUTH - azimuth + (correction.turn ?? 0) * Math.PI / 180, angle, zoom: correction.zoom ?? 1, lift: correction.lift ?? 1, body: false };
 }
 
-/** A fighter's head in the 1024 px render: the centre and larger side of its projected mesh. */
-interface Head { readonly x: number; readonly y: number; readonly size: number }
+/** A fighter's head in the 1024 px render: the centre and larger side of its projected mesh, and whether its crown draws above its chin. */
+interface Head { readonly x: number; readonly y: number; readonly size: number; readonly upright: boolean }
 
 /**
  * The head's place and size in the 1024 px render: its mesh (headOf) posed at
@@ -417,7 +417,10 @@ function headBox(bytes: Uint8Array, scene: RenderScene, height: number): Head | 
   if (head === undefined || pose === undefined) return undefined;
   const { state } = posedAt(model, sequenceOf(model, pose.animation), Math.round(pose.animationElapsed * 1000));
   const pitch = (scene.camera.fields.CAMERA_FIELD_ANGLE_OF_ATTACK ?? 0) * Math.PI / 180, pixels = RESOLUTION / (height * 1.1);
-  const xs: number[] = [], ys: number[] = [];
+  const placed = (local: Vector): Vector => [(local[0] * Math.cos(pose.yaw) - local[1] * Math.sin(pose.yaw)) * pose.scale, (local[0] * Math.sin(pose.yaw) + local[1] * Math.cos(pose.yaw)) * pose.scale, local[2] * pose.scale];
+  // Rotation 90: the camera's right is +x and its up is (0, -sin pitch, cos pitch).
+  const project = (local: Vector) => { const world = placed(local); return RESOLUTION / 2 - (-(world[1] - scene.camera.y) * Math.sin(pitch) + (world[2] - (scene.camera.fields.CAMERA_FIELD_ZOFFSET ?? 0)) * Math.cos(pitch)) * pixels; };
+  const xs: number[] = [], ys: number[] = [], everyHeight: [number, number, boolean][] = [];
   for (const vertex of head.vertices) {
     if ((state.geosetAlpha[vertex.geoset] ?? 1) < 1e-6) continue;
     let local: Vector = [0, 0, 0];
@@ -425,16 +428,19 @@ function headBox(bytes: Uint8Array, scene: RenderScene, height: number): Head | 
       const matrix = state.nodes[bone]?.matrix;
       if (matrix !== undefined && weight > 0) { const posed = apply(matrix, vertex.position, 1); local = [local[0] + weight * posed[0], local[1] + weight * posed[1], local[2] + weight * posed[2]]; }
     }
-    const world: Vector = [(local[0] * Math.cos(pose.yaw) - local[1] * Math.sin(pose.yaw)) * pose.scale, (local[0] * Math.sin(pose.yaw) + local[1] * Math.cos(pose.yaw)) * pose.scale, local[2] * pose.scale];
-    // Rotation 90: the camera's right is +x and its up is (0, -sin pitch, cos pitch).
-    const across = world[0] - scene.camera.x;
-    const up = -(world[1] - scene.camera.y) * Math.sin(pitch) + (world[2] - (scene.camera.fields.CAMERA_FIELD_ZOFFSET ?? 0)) * Math.cos(pitch);
-    xs.push(RESOLUTION / 2 + across * pixels); ys.push(RESOLUTION / 2 - up * pixels);
+    const world = placed(local);
+    xs.push(RESOLUTION / 2 + (world[0] - scene.camera.x) * pixels); ys.push(project(local));
+    everyHeight.push([vertex.position[2], project(local), vertex.weights.some(([bone, weight]) => bone === head.head && weight >= 0.5)]);
   }
   if (xs.length < 8) return undefined;
   const span = (values: number[]) => { const sorted = values.sort((a, b) => a - b); return [item(sorted, Math.floor(sorted.length * 0.02)), item(sorted, Math.ceil(sorted.length * 0.98) - 1)] as const; };
   const [left, right] = span(xs), [top, bottom] = span(ys);
-  return { x: (left + right) / 2, y: (top + bottom) / 2, size: Math.max(right - left, bottom - top) };
+  const own = everyHeight.filter((row) => row[2]), heights = (own.length >= 8 ? own : everyHeight).sort((a, b) => b[0] - a[0]);
+  const tenth = Math.ceil(heights.length / 10), drawnAt = (rows: [number, number, boolean][]) => rows.reduce((total, row) => total + row[1], 0) / rows.length;
+  const jointsAt = (pattern: RegExp) => head.joints.filter((joint) => pattern.test(joint.name)).flatMap((joint) => { const matrix = state.nodes[joint.id]?.matrix; return matrix === undefined ? [] : [project(apply(matrix, Array.from(model.PivotPoints[joint.id] ?? [0, 0, 0]), 1))]; });
+  const eyes = jointsAt(/eye|brow/i), jaw = jointsAt(/jaw|chin/i), average = (values: number[]) => values.reduce((total, value) => total + value, 0) / values.length;
+  const upright = eyes.length > 0 && jaw.length > 0 ? average(eyes) < average(jaw) : drawnAt(heights.slice(0, tenth)) < drawnAt(heights.slice(-tenth));
+  return { x: (left + right) / 2, y: (top + bottom) / 2, size: Math.max(right - left, bottom - top), upright };
 }
 
 const run = (command: string[]) => Effect.runSync(Effect.try({
@@ -499,8 +505,7 @@ function crops(raw: string, directory: string, name: string, suffix: string, kin
     const stock = window(1.5 * head.size / zoom, 0.5);
     run(['magick', raw, '-crop', `${stock.size}x${stock.size}+${stock.left}+${stock.top}`, '+repage', '-resize', `${STOCK_ICON_PX}x${STOCK_ICON_PX}`, ...fadeAlpha(STOCK_FADE), ...TGA, file('Stock')]);
   }
-  // Upright: the head mesh's centre sits in the silhouette's upper half.
-  return found === undefined || found.y < y + h / 2;
+  return found === undefined || found.upright;
 }
 
 await Effect.runPromise(Effect.gen(function*() {
@@ -620,5 +625,5 @@ await Effect.runPromise(Effect.gen(function*() {
       console.log(`${graphics}: ${yield* draw(frame, image, required(lighting.get(character), 'lighting'), gammaOf(character), portraits)}`);
     }
   }
-  if (upsideDown.length > 0) { console.log(`FAIL head below the body's middle: ${[...new Set(upsideDown)].join(', ')}`); process.exitCode = 1; }
+  if (upsideDown.length > 0) { console.log(`FAIL head drawn upside down: ${[...new Set(upsideDown)].join(', ')}`); process.exitCode = 1; }
 }));

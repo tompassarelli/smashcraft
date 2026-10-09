@@ -8,7 +8,7 @@ import { RENDERED_FIGHTERS, fighterRenderName } from '../src/game/sim/heroes/reg
 import { CARD_PREVIEW, CARD_TEXTURE_PX, TILE_TEXTURE_PX, cardPortrait } from '../src/game/ui/portraitFrames';
 
 /** Calibrated on Peon, Blademaster and Thrall, the portraits Tom accepts as well lit (#363). */
-export const LIGHT_BAND = { target: 110, lowest: 85, highest: 150, spread: 1.6, floor: 50, lit: 0.8 } as const;
+export const LIGHT_BAND = { target: 110, lowest: 85, highest: 150, spread: 1.6, floor: 50, lit: 0.65 } as const;
 
 export interface Light { readonly mean: number; readonly lit: number }
 
