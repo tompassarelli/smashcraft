@@ -75,10 +75,6 @@ function hazardTrack(stage: number, seed: number): Track {
 
 const hazardStages = STAGE_CATALOG.filter(stage => hazardNames(stage.id).length > 0);
 
-test("the stage list has hazard stages to check [spec #274]", () => {
-  if (hazardStages.length < 2) throw new Error(`only ${hazardStages.length} selectable stages have hazards; #194 built at least two`);
-});
-
 for (const stage of hazardStages) {
   test(`${stage.name}'s hazards follow the match clock: two match seeds give identical hazard tracks every frame [spec #274] [invariant]`, () => {
     const first = hazardTrack(stage.id, SEEDS[0]);

@@ -5,7 +5,7 @@ import { imod } from "wisp/src/sim/intMath";
 import { createFighter } from "../sim/fighter";
 import { Character } from "../sim/codes";
 import { createRoster, fighterAt } from "../sim/roster";
-import { Phase, advanceClock, allCharactersReady, characterReady, confirmRematch, cpuSlot, createMatchState, cycleSlotMode, recallCharacter, requestStageSelect, requestStart, returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setCpuOpponent, setCpuTier, setHumanCount, setParticipants, setStocks, setTimeLimit } from "./rules";
+import { MATCH_TICKS_PER_SECOND, Phase, advanceClock, allCharactersReady, characterReady, confirmRematch, cpuSlot, createMatchState, cycleSlotMode, recallCharacter, requestStageSelect, requestStart, returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setCpuOpponent, setCpuTier, setHumanCount, setParticipants, setStocks, setTimeLimit } from "./rules";
 
 function testSoloMatch() {
   const game = createMatchState();
@@ -13,6 +13,8 @@ function testSoloMatch() {
   recallCharacter(game, 0, 1);
   return game;
 }
+
+const framesOf = (minutes: number): number => minutes * 60 * MATCH_TICKS_PER_SECOND;
 
 function testStanding(firstStocks: number, firstDamage: number, secondStocks: number, secondDamage: number) {
   const world = createRoster(3, [createFighter(1, 0, 1), createFighter(1, 0, -1)]);
@@ -60,13 +62,13 @@ test("soloPracticeNeedsOnlyPlayerChipAndCpuPlacementChoosesFight [spec docs/play
 test("menuAndUnlimitedMatchesDoNotRunClock [spec docs/design/match-flow.md]", () => {
   const game = testSoloMatch();
   advanceClock(game, testStanding(0, 0.0, 0, 0.0));
-  assertEquals(game.remainingFrames, 25200);
+  assertEquals(game.remainingFrames, framesOf(createMatchState().timeLimitMinutes));
   assertEquals(game.phase, Phase.characterMenu);
   selectCharacter(game, 0, 1);
   selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 0);
   requestStageSelect(game, 0);
   advanceClock(game, testStanding(0, 0.0, 0, 0.0));
-  assertEquals(game.remainingFrames, 25200);
+  assertEquals(game.remainingFrames, framesOf(createMatchState().timeLimitMinutes));
   assertEquals(game.phase, Phase.stageMenu);
   returnToCharacters(game, 0);
   setTimeLimit(game, 0, 0);
@@ -94,7 +96,7 @@ test("everyHumanMustChooseAndConfirmForThreeAndFourPlayerMatches [spec #234]", (
     setTimeLimit(game, count - 1, 2);
     assertTrue(requestStageSelect(game, count - 1));
     assertTrue(requestStart(game, count - 1));
-    assertEquals(game.remainingFrames, 7200);
+    assertEquals(game.remainingFrames, framesOf(2));
     game.phase = Phase.result;
     for (let slot = 0; slot <= count - 2; slot++) {
       assertFalse(confirmRematch(game, slot));
@@ -106,7 +108,7 @@ test("everyHumanMustChooseAndConfirmForThreeAndFourPlayerMatches [spec #234]", (
     }
     assertTrue(requestStageSelect(game, 0));
     assertTrue(requestStart(game, 0));
-    assertEquals(game.remainingFrames, 7200);
+    assertEquals(game.remainingFrames, framesOf(2));
 
   }
 });

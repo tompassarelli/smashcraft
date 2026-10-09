@@ -44,7 +44,7 @@ test("a deck carries its grounded fighter during hitlag [spec #77]", () => {
   const before = run.fighter.motion.x;
   playPads(run, {}, {});
   assertGreaterThan(run.fighter.launch.hitlag, 0);
-  assertNear(run.fighter.motion.x, f32(before + 2.5), 0.0010000000474974513);
+  assertNear(run.fighter.motion.x, f32(before + f32(surfaceLeft(DRIFTING_DECK_STAGE, 1, 1) - surfaceLeft(DRIFTING_DECK_STAGE, 1, 0))), 0.0010000000474974513);
 });
 
 // mpCheckFloorRemap maps the old endpoint by the line's motion before crossing.
@@ -88,8 +88,9 @@ test("a controller trigger techs on a moving deck and its recovery rides the dec
   assertEquals(fighter.down.state, DownState.tech);
   assertTrue(fighter.motion.grounded);
   const x = fighter.motion.x;
+  const from = run.match.game.matchFrame;
   for (let frame = 0; frame < 5; frame++) playPads(run, {}, {});
-  assertNear(fighter.motion.x, f32(x + 12.5), 0.0010000000474974513);
+  assertNear(fighter.motion.x, f32(x + f32(surfaceLeft(DRIFTING_DECK_STAGE, 1, from + 5) - surfaceLeft(DRIFTING_DECK_STAGE, 1, from))), 0.0010000000474974513);
 });
 
 // GrSt.dat line 0 and GrIz.dat lines 0–2 are platforms without LINE_FLAG_LEDGE.

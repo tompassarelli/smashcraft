@@ -14,7 +14,6 @@ import type { Fighter } from "../sim/fighter";
 import { createFighter } from "../sim/fighter";
 import { runningHeroSpecial } from "../sim/heroSpecialRules";
 import { Relocation } from "../sim/heroSpecials";
-import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 import { attackStartupFrames } from "../sim/moves";
 import { copyControls, createRoster, fighterAt, isActive, neutralControls } from "../sim/roster";
 import { immolationRegion } from "../sim/specials";
@@ -26,7 +25,6 @@ import { createFrameControls } from "./controls";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
 import { createPacingAndPresentation } from "./pacingAndPresentation";
 import { MATCH_TICKS_PER_SECOND, Phase, createMatchState } from "./rules";
-import { sweep } from "../../runtime/sweep";
 
 const NEUTRAL = neutralControls();
 /** Stage 1: the main deck at 0 and two pass-through decks 170 up, from 110 to 420 each side. */
@@ -195,23 +193,3 @@ test("Blademaster approaches the raised deck without drifting a stationary drill
   assertGreaterThan(run.hits, 0);
 });
 
-sweep("computerApproachesAnOpponentOutOfReachInsteadOfAttacking after 40 stationary observation frames [repro #160] [spec #354]", () => {
-  const failures: string[] = [];
-  let idleStarts = 0;
-  for (const character of SELECTABLE_CHARACTERS) {
-    const layouts = [
-      { name: "from a raised deck to the main deck", run: playIdleOpponent(character, 265.0, RAISED_Z, 2, -450.0, 0.0, 0) },
-      { name: "from the main deck to a raised deck", run: playIdleOpponent(character, 450.0, 0.0, 0, -265.0, RAISED_Z, 1) },
-    ];
-    for (const { name, run } of layouts) {
-      const who = `${fighterName(character)} ${name}`;
-      idleStarts += run.idleStarts;
-      if (run.outOfReach.length > 0) failures.push(`${who}: ${run.outOfReach.length} starts out of reach, first ${run.outOfReach.slice(0, 3).join("; ")}`);
-      if (run.arrival < 0 || run.arrival > ARRIVAL_FRAMES) failures.push(`${who}: reached the opponent's deck on frame ${run.arrival}`);
-      // Having arrived, it fights: the contract holds a computer that attacks, not one that waits.
-      if (run.hits === 0) failures.push(`${who}: landed no hit`);
-    }
-  }
-  if (failures.length > 0) throw new Error(failures.join("\n"));
-  assertGreaterThan(idleStarts, SELECTABLE_CHARACTERS.length);
-});

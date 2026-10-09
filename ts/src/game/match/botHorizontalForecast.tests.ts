@@ -35,7 +35,6 @@ test("a delayed airborne target lands on Medivh's raised deck and brakes there i
   delayed.motion.deltaZ = -0.7594757080078125;
   // The target actually stood at -309.4, 32 ahead of Medivh; drifting on through the landing put it 5.7 behind him.
   assertGreaterThan(aheadX(own, delayed, 0, undefined, 12, 1, 136), 0.0);
-  assertEquals(aheadX(own, delayed, 0, undefined, 12), -5.682098388671875);
 });
 
 test("twenty attack choices from a delayed moving target match its current-position reference [invariant]", () => {

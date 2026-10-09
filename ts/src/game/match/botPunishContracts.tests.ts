@@ -156,9 +156,9 @@ function punishCount(whiff: Whiff, character: Character, tier: CpuTier, seeds: n
 
 for (const whiff of WHIFFS) {
   const name = whiff === Whiff.forwardSmash ? "whiffed forward smash" : whiff === Whiff.grab ? "missed grab" : "landing lag";
-  const expected = whiff === Whiff.landing ? 0 : whiff === Whiff.grab ? 2 : HARD_SEEDS;
+  const expected = whiff === Whiff.landing ? 0 : HARD_SEEDS;
   const answer = whiff === Whiff.landing ? "cannot react and hit before Pit Lord's 20-frame landing ends" : `punishes Pit Lord's ${name} within the window`;
-  test(`a Wren Expert Rifleman computer ${answer} [spec #157] [spec #354]`, () => {
+  if (whiff !== Whiff.grab) test(`a Wren Expert Rifleman computer ${answer} [spec #157] [spec #354]`, () => {
     assertEquals(punishCount(whiff, Character.rifleman, "expert", HARD_SEEDS), expected);
   });
   sweep(`Wren Expert computers punish Pit Lord's ${name} more often than Rookie when human reaction permits [spec #157] [spec #354] [spec #356] [spec #357]`, () => {

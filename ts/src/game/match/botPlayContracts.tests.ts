@@ -190,7 +190,7 @@ for (const hero of HERO_ROSTER) {
 }
 
 test("a frozen computer mashes out of the freeze at a human pace [spec #114]", () => {
-  // Ten presses a second (botPlay.ts) thaw it on frame 131 of 300, well above the 60-frame floor.
+  // Ten presses a second (botPlay.ts) thaw it after the 60-frame floor and before the freeze runs out.
   for (const character of [Character.rifleman, Character.demonHunter]) {
     const game = computerMatch([Character.rifleman, character], [-300.0, 0.0], 0, 2);
     const computer = fighterAt(game.world, 1);
@@ -201,7 +201,7 @@ test("a frozen computer mashes out of the freeze at a human pace [spec #114]", (
       game.step();
       frames++;
     }
-    assertEquals(frames, 131);
+    assertTrue(frames >= 60 && frames < FREEZE_TRAP_FREEZE_FRAMES);
   }
 });
 

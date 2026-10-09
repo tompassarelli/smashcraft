@@ -222,7 +222,9 @@ test("rapid grounded and airborne requests, including neutral braking, have zero
   let early = 0;
   for (let frame = 1; frame <= 500; frame++) {
     input.direction = floorMod(frame, 3) === 0 ? 0 : floorMod(frame, 2) === 0 ? -1 : 1;
+    const braking = input.direction === 0;
     commitBotDirection(memory, 0, frame, input);
+    if (braking) assertEquals(input.direction, 0);
     if (input.direction !== 0 && input.direction !== previous) {
       if (previous !== 0) { reversals++; if (frame - chosen < BOT_DIRECTION_MIN_FRAMES) early++; }
       previous = input.direction;

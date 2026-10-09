@@ -26,7 +26,7 @@ function startedMatch(humans = 3) {
 test("a competitive match holds every fighter for 180 frames, with the clock stopped until GO! [spec #129]", () => {
   const { game, world, controls } = startedMatch();
   assertEquals(game.startHold, START_HOLD_FRAMES);
-  assertEquals(START_HOLD_FRAMES, 180);
+  assertEquals(START_HOLD_FRAMES, 3 * MATCH_TICKS_PER_SECOND);
   const clock = game.remainingFrames;
   // Settle onto the deck, then hold right and jump every frame of the countdown.
   const held = neutralControls();
@@ -78,5 +78,5 @@ test("the countdown calls 3, 2 and 1 a second apart and GO! on the first frame f
     const cue = countdownCue(game);
     if (cue !== undefined) calls.push(`${cue}@${game.matchFrame}`);
   }
-  assertEquals(calls.join(" "), `${MatchCue.three}@1 ${MatchCue.two}@61 ${MatchCue.one}@121 ${MatchCue.go}@181`);
+  assertEquals(calls.join(" "), `${MatchCue.three}@1 ${MatchCue.two}@${1 + MATCH_TICKS_PER_SECOND} ${MatchCue.one}@${1 + 2 * MATCH_TICKS_PER_SECOND} ${MatchCue.go}@${START_HOLD_FRAMES + 1}`);
 });

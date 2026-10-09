@@ -48,7 +48,7 @@ test("Flint changes a practiced strike read after fewer new shield events at eac
 });
 
 test("named opponents grow primary and secondary skills at five tiers while retaining different habits [spec #184]", () => {
-  assertEquals(CPU_PROFILES.length, 30);
+  assertEquals(CPU_PROFILES.length, CPU_OPPONENT_IDS.length * CPU_TIERS.length);
   for (const opponent of CPU_OPPONENT_IDS) for (let index = 0; index < CPU_TIERS.length; index++) {
     const tier = at(CPU_TIERS, index);
     const profile = cpuProfile(opponent, tier);

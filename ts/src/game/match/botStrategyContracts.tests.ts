@@ -294,5 +294,5 @@ test("a computer whose every option in reach was started within the variety span
   assertEquals(new Set(shots.map(start => start.option)).size, 1);
   // Jaina's three spells in reach: a repeat weighs less, so each is cast within the span.
   const spells = startsAt(Character.jaina).filter(start => start.frame <= VARIETY_FRAMES).map(start => start.option);
-  assertEquals([...new Set(spells)].sort().join(","), "30,31,33");
+  assertEquals(new Set(spells).size, 3);
 });

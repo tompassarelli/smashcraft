@@ -112,14 +112,9 @@ function lessonPassesOnlyOnItsAction(lesson: number): void {
   assertTrue(played.game.trainer.lessonCheer > 0 || played.game.trainer.lesson === lesson + 1);
 }
 
-test("lesson 1, move and dash, passes on dashes and not on idle play [spec #306]", () => lessonPassesOnlyOnItsAction(0));
-test("lesson 2, jump and double jump, passes on double jumps and not on idle play [spec #306]", () => lessonPassesOnlyOnItsAction(1));
-test("lesson 3, attacks, passes on hits on the partner and not on idle play [spec #306]", () => lessonPassesOnlyOnItsAction(2));
-test("lesson 4, specials, passes on specials and not on idle play [spec #306]", () => lessonPassesOnlyOnItsAction(3));
-test("lesson 5, shield and dodge, passes on rolls from shield and not on idle play [spec #306]", () => lessonPassesOnlyOnItsAction(4));
-test("lesson 6, grab and throw, passes on throws and not on idle play [spec #306]", () => lessonPassesOnlyOnItsAction(5));
-test("lesson 7, back to the ledge, passes on ledge catches and not on idle play [spec #306]", () => lessonPassesOnlyOnItsAction(6));
-test("lesson 8, knock out the partner, passes on a knockout and not on idle play [spec #306]", () => lessonPassesOnlyOnItsAction(7));
+for (let lesson = 0; lesson < LESSONS.length; lesson++) {
+  test(`lesson ${lesson + 1}, ${LESSONS[lesson]?.name ?? ""}, passes on its action and not on idle play [spec #306]`, () => lessonPassesOnlyOnItsAction(lesson));
+}
 
 test("a passed lesson says well done, then the next lesson starts from zero; the last one finishes the tutorial [spec #306]", () => {
   const { game, run } = lessonMatch(0);
@@ -139,7 +134,7 @@ test("a passed lesson says well done, then the next lesson starts from zero; the
 test("the knockout lesson starts the partner badly hurt [spec #306]", () => {
   const { run, partner } = lessonMatch(LESSONS.length - 1);
   run(1);
-  assertEquals(partner.status.damage, 150);
+  assertEquals(partner.status.damage, LESSONS[LESSONS.length - 1]?.partnerDamage);
 });
 
 test("the tutorial menu starts any lesson on the Training stage with a computer partner, and leaving ends it [spec #306]", () => {
