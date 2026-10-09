@@ -147,7 +147,7 @@ export function dropContest(game: Readonly<MatchState>, fighter: Readonly<Fighte
   return botChance(drops.draws, slot * 29 + fighter.character, skill.contestTenths, 10) ? point : -1;
 }
 
-function approachPoint(f: Readonly<Fighter>, stage: number, x: number, z: number, frame: number, input: Controls): void {
+export function approachPoint(f: Readonly<Fighter>, stage: number, x: number, z: number, frame: number, input: Controls): void {
   const { motion } = f;
   const dx = f32(x - motion.x);
   const dz = f32(z - motion.z);
