@@ -1,10 +1,10 @@
 name: Autoland
 
 # A claude/** branch (a cloud worker's) lands on main by itself: rebased onto
-# main, checked, and run through the full suites (farm-test.yml); it lands when
-# it fails no test main's farm run doesn't also fail. Otherwise the branch stays
-# and the issue its commits reference gets the conflicting files or the new
-# failures (smashcraft:docs/ci.md).
+# main, checked, and run through the full suites (farm-test.yml); it lands only
+# when the suites pass on that exact rebased commit (#394). Otherwise the
+# branch stays and the issue its commits reference gets the conflicting files
+# or the failures (smashcraft:docs/ci.md).
 on:
   push:
     branches: ["claude/**"]
@@ -105,71 +105,13 @@ jobs:
     with:
       ref: ${{ needs.rebase.outputs.sha }}
 
-  # Main's failures at the base commit, from the newest farm result for it or
-  # one of its last 30 main ancestors (a previous landing's saved summary or a
-  # `bun wisp farm test` run), else from a farm run of the base itself.
-  baseline:
-    needs: rebase
-    if: needs.rebase.outputs.verdict == 'test'
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    outputs:
-      from: ${{ steps.cached.outputs.from }}
-    env:
-      BASE: ${{ needs.rebase.outputs.base }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-      - id: cached
-        run: |
-          set +e -uo pipefail
-          gh api "repos/$GH_REPO/actions/workflows/farm-test.yml/runs?event=workflow_dispatch&status=completed&per_page=100" \
-            --jq '.workflow_runs[] | select(.conclusion == "success" or .conclusion == "failure") | "\(.display_title | split(" ")[2]) \(.id)"' > farm-runs.txt
-          for sha in $(git rev-list --first-parent -n 30 "$BASE"); do
-            run=$(gh api "repos/$GH_REPO/actions/artifacts?name=autoland-summary-$sha" --jq '[.artifacts[] | select(.expired | not)][0].workflow_run.id // empty')
-            name=autoland-summary-$sha
-            if [ -z "$run" ]; then run=$(awk -v sha="$sha" '$1 == sha { print $2; exit }' farm-runs.txt); name=farm-test-summary; fi
-            if [ -n "$run" ] && gh run download "$run" -n "$name" -D baseline; then
-              echo "from=$sha" >> "$GITHUB_OUTPUT"
-              echo "Main's failures: the farm result of ${sha:0:10} (run $run)." >> "$GITHUB_STEP_SUMMARY"
-              exit 0
-            fi
-          done
-      - if: steps.cached.outputs.from == ''
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.13
-      - if: steps.cached.outputs.from == ''
-        working-directory: ts
-        run: |
-          set +e -uo pipefail
-          bun install --frozen-lockfile
-          bun wisp farm test --ref "$BASE" --wait | tee farm.txt
-          grep -qE '^(bun|lua32): [0-9]+ passed' farm.txt || { echo "main's farm run printed no result"; exit 1; }
-          mkdir -p ../baseline
-          jq -Rn '[inputs] | {failures: map(select(startswith("FAIL ")) | .[5:]), problems: map(select(startswith("PROBLEM ")) | .[8:])}' farm.txt > ../baseline/summary.json
-      - if: steps.cached.outputs.from == ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: autoland-summary-${{ env.BASE }}
-          path: baseline/summary.json
-          retention-days: 14
-      - uses: actions/upload-artifact@v4
-        with:
-          name: autoland-baseline
-          path: baseline/summary.json
-          retention-days: 3
-
   land:
-    needs: [rebase, suite, baseline]
+    needs: [rebase, suite]
     if: ${{ !cancelled() && needs.rebase.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
       VERDICT: ${{ needs.rebase.outputs.verdict }}
-      BASELINE_FROM: ${{ needs.baseline.outputs.from }}
       SHA: ${{ needs.rebase.outputs.sha }}
       BASE: ${{ needs.rebase.outputs.base }}
       SCRATCH: ${{ needs.rebase.outputs.scratch }}
@@ -187,16 +129,6 @@ jobs:
         with:
           name: farm-test-summary
           path: candidate
-      - if: env.VERDICT == 'test'
-        uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          name: autoland-baseline
-          path: baseline
-      - if: env.VERDICT == 'test'
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.13
       - id: land
         run: |
           set +e -uo pipefail
@@ -218,57 +150,22 @@ jobs:
             check) refuse "the checks failed:" "$(printf '```\n%s\n```' "$DETAIL")" ;;
           esac
           [ -f candidate/summary.json ] || refuse "the suite run ended without a result." ""
-          [ -f baseline/summary.json ] || refuse "main's baseline run ended without a result." ""
-          # A shard that failed without naming a test is new unless main's run had one in the same suite.
-          compare() {
-            jq -rn --slurpfile c candidate/summary.json --slurpfile b baseline/summary.json '
-              def suites: map(split(" ")[0]) | unique;
-              ($c[0].failures - $b[0].failures) + [$c[0].problems[] | select((split(" ")[0]) as $s | ($b[0].problems | suites | index($s)) == null)] | .[]'
-          }
-          new=$(compare)
-          # An ancestor's result misses whatever broke on main since; before refusing, run the base itself.
-          if [ -n "$new" ] && [ "$BASELINE_FROM" != "$BASE" ]; then
-            echo "New failures against ${BASELINE_FROM:0:10}'s result; running the farm on main at ${BASE:0:10}"
-            (cd ts && bun install --frozen-lockfile > /dev/null && bun wisp farm test --ref "$BASE" --wait | tee farm.txt)
-            if grep -qE '^(bun|lua32): [0-9]+ passed' ts/farm.txt; then
-              jq -Rn '[inputs] | {failures: map(select(startswith("FAIL ")) | .[5:]), problems: map(select(startswith("PROBLEM ")) | .[8:])}' ts/farm.txt > baseline/summary.json
-              new=$(compare)
-            fi
+          failed=$(jq -r '.failures[], .problems[]' candidate/summary.json)
+          if [ -n "$failed" ]; then
+            refuse "$(grep -c . <<< "$failed") failing on the rebased commit; main lands only on a green suite, including tests main already fails:" "$(printf '%s\n' "$failed" | sed 's/^/- /')"
           fi
-          if [ -n "$new" ]; then
-            refuse "$(grep -c . <<< "$new") failing that main's run passes:" "$(printf '%s\n' "$new" | sed 's/^/- /')"
+          # Main moved while the suites ran: the tested commit isn't the one that would land, so test again.
+          git fetch -q origin main
+          if [ "$(git rev-parse origin/main)" != "$BASE" ]; then
+            gh workflow run autoland.yml --ref main -f branch="$BRANCH"
+            echo "main moved during the suites: queued $BRANCH again to test the new rebase" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
           fi
-          # Main moves while the suites run: replay the tested commits onto it, as a
-          # local landing would; a conflict sends the branch through again.
           git fetch -q origin "$SCRATCH"
-          landed=$SHA
-          pushed=
-          for attempt in 1 2 3; do
-            git fetch -q origin main
-            if ! git merge-base --is-ancestor origin/main "$landed"; then
-              git checkout -q -B land "$landed"
-              if ! git rebase -q origin/main; then
-                git rebase --abort
-                gh workflow run autoland.yml --ref main -f branch="$BRANCH"
-                echo "main moved and $BRANCH now conflicts with it: queued it again" >> "$GITHUB_STEP_SUMMARY"
-                exit 0
-              fi
-              landed=$(git rev-parse HEAD)
-            fi
-            if git push origin "$landed:refs/heads/main" 2> push.log; then pushed=1; break; fi
-          done
-          [ -n "$pushed" ] || refuse "pushing to main failed:" "$(cat push.log)"
+          git push origin "$SHA:refs/heads/main" 2> push.log || refuse "pushing to main failed:" "$(cat push.log)"
           git push origin --delete "$BRANCH"
           # Pushes made with this token start no workflows: start main's CI (main-red follows it).
           gh workflow run ci.yml --ref main || echo "::warning::couldn't start main's CI"
-          echo "Landed $BRANCH on main as ${landed:0:10}; deleted the branch." >> "$GITHUB_STEP_SUMMARY"
-          if [ "$landed" = "$SHA" ]; then echo "landed=true" >> "$GITHUB_OUTPUT"; fi
-      # The landed commit is main's next base: its result saves the next landing a baseline run.
-      - if: steps.land.outputs.landed == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: autoland-summary-${{ env.SHA }}
-          path: candidate/summary.json
-          retention-days: 14
+          echo "Landed $BRANCH on main as $short; deleted the branch." >> "$GITHUB_STEP_SUMMARY"
       - if: always() && env.SCRATCH != ''
         run: git push origin --delete "$SCRATCH" || true

@@ -20,23 +20,15 @@ test it locally.
    facts; smashcraft:ts/scripts/prePush.ts).
 3. **Suites.** The farm test workflow runs the full Bun and Lua32 suites for
    the rebased commit inside the autoland run.
-4. **Compare.** At the same time, main's own failures come from the newest
-   farm result for the base or one of its last 30 main ancestors: the
-   summary a previous landing saved (artifact `autoland-summary-SHA`, kept
-   14 days) or a `bun wisp farm test` run's. Only when none exists does it
-   run `bun wisp farm test --ref BASE`; an ancestor's result can miss what
-   broke on main since, so before refusing on one it runs the base too. A test that fails on the branch but
-   not in that result is a new failure; a shard that crashed without naming
-   a test is new unless main's result also had one in that suite.
-5. **Land.** With no new failures, the rebased commits are pushed to main
-   (a plain fast-forward) and the branch is
-   deleted. Pushes made with the workflow token start no workflows, so the
-   run dispatches main's CI for the landed commit. A dispatched run starts no
-   `workflow_run` either, so that CI run's last job dispatches "Main is red"
-   with its own run ID. If main moved during the run, the tested commits are
-   replayed onto it, as a local landing would; only a conflict sends the
-   branch through again.
-6. **Refuse.** On a conflict, a failed check or new failures, the branch
+4. **Land.** Only when the suites pass on that exact rebased commit, main's
+   known failures included (#394), and main hasn't moved meanwhile, the
+   commit is pushed to main (a plain fast-forward) and the branch is
+   deleted. If main moved, the branch is queued again, so the commit that
+   lands is always the one tested. Pushes made with the workflow token start
+   no workflows, so the run dispatches main's CI for the landed commit. A
+   dispatched run starts no `workflow_run` either, so that CI run's last job
+   dispatches "Main is red" with its own run ID.
+5. **Refuse.** On a conflict, a failed check or any failing test, the branch
    stays and every issue the commits reference (`Refs smashcraft#N`) gets a
    comment naming the files or tests and linking the run. Push a fix to the
    same branch and it tries again.

@@ -30,13 +30,12 @@
   "shrink it or move it to the farm" (shrink it, or make it a `sweep()`). A
   new module or a changed test count passes under the ceiling and rewrites
   its row: commit it with the tests. `TEST_COST_UPDATE=1` rewrites every
-  measured row, after a cut. The farm's merge job judges every shard's rows,
-  and the pre-push gate (`TEST_COST_WRITE=0`) prints changed rows without
-  writing them. Natives are counted by the frame-cost gate
-  (`bun wisp perf compare`), not here. `bun run test` reports each run's CPU
+  measured row, after a cut. The farm's merge job judges every shard's rows.
+  Natives are counted by the frame-cost gate (`bun wisp perf compare`), not
+  here. `bun run test` reports each run's CPU
   and five heaviest tests without gating them, and fails only a test over
   the 4 s Bun ceiling; ts/test/cost-baseline.tsv holds CPU estimates that
-  order processes and the pre-push selection. CPU and wall-clock budgets
+  order processes. CPU and wall-clock budgets
   are judged only in the exclusive-lease perf measurements (#168). Tests get
   Wisp's two-minute timeout, which only catches hangs; a test that asserts
   speed is a `timingTest`, which the runner runs alone after the suite

@@ -130,8 +130,6 @@ export function judgeLua(options: {
   readonly measured: LuaCosts;
   readonly baselinePath: string;
   readonly project: string;
-  /** False leaves the baseline file untouched and only prints its new rows (the pre-push gate). */
-  readonly write?: boolean;
 }): LuaJudgement {
   const { measured, baselinePath, project } = options;
   const baseline = readLuaBaseline(baselinePath);
@@ -162,7 +160,7 @@ export function judgeLua(options: {
       updated++;
     }
   }
-  if (updated > 0 && options.write !== false) writeLuaBaseline(baselinePath, next);
+  if (updated > 0) writeLuaBaseline(baselinePath, next);
   const heaviest = [...measured].sort(([, a], [, b]) => (b.maxInstructions ?? 0) - (a.maxInstructions ?? 0)).slice(0, 5)
     .map(([unit, cost]) => `${unit} ${megas(cost.maxInstructions ?? 0)}`).join(", ");
   const summary = `Lua32: ${megas(instructions)} instructions and ${(allocKb / 1024).toFixed(0)} MB allocated for ${tests} tests; ${megas(tests === 0 ? 0 : instructions / tests)} instructions per test (about ${(instructions / LUA_INSTRUCTIONS_PER_S).toFixed(0)} reference CPU seconds)`;

@@ -10,10 +10,9 @@
 
 
 import { existsSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import { Console, Effect, Option, Schema } from "effect";
 import { issueTests, redTitle } from "./mainRed";
-import { GATE_BUDGET_S, affectedTests, appendLanding, decodeRuns, knownFailing, landingLine, newFailures, processResult, refusal } from "./newFailures";
 
 const root = join(import.meta.dir, "../..");
 const ZERO = /^0+$/;
@@ -141,9 +140,10 @@ export const prePush = (input: string) => Effect.gen(function*() {
   });
   const paths = [...new Set((yield* Effect.forEach(pushed, ({ local, remote }) => changedPaths(local, remote))).flat())];
   const checks = checksFor(paths);
-  if (checks.length === 0) return;
+  const toMain = pushed.some(({ remoteRef }) => remoteRef === "refs/heads/main");
+  if (checks.length === 0 && !toMain) return;
   const head = yield* git("rev-parse", "HEAD");
-  const dirty = yield* git("status", "--porcelain", "--", ...new Set(checks.map(({ directory }) => directory)));
+  const dirty = checks.length === 0 ? "" : yield* git("status", "--porcelain", "--", ...new Set(checks.map(({ directory }) => directory)));
   if (pushed.some(({ local }) => local !== head) || dirty !== "") {
     return yield* new PrePushRefusal({ problem: `pre-push: the checks read the working tree, so push the clean checked-out commit (HEAD ${head.slice(0, 12)}).\n${dirty}` });
   }
@@ -158,43 +158,31 @@ export const prePush = (input: string) => Effect.gen(function*() {
     }
     yield* Console.error(`pre-push: ${name} passed (${seconds} s)`);
   }
-  if (pushed.some(({ remoteRef }) => remoteRef === "refs/heads/main")) yield* newFailureGate(head, paths);
+  if (toMain) yield* farmGate(head);
 });
 
 
-const newFailureGate = (head: string, paths: readonly string[]) => Effect.gen(function*() {
-  const plan = affectedTests(paths);
-  const gitDirectory = resolve(root, yield* git("rev-parse", "--git-common-dir"));
-  const log = join(gitDirectory, "new-fail-gate.tsv");
-  for (const path of plan.uncovered) yield* Console.error(`pre-push: no affected-test selection for ${path}; CI covers it`);
-  if (plan.deferred.length > 0) yield* Console.error(`pre-push: ${plan.deferred.length} heavier affected test files left to CI: ${plan.deferred.join(", ")}`);
-  const units = plan.files.length + plan.game.length + plan.lua.length;
-  if (units === 0) return yield* appendLanding(log, landingLine(new Date(), head, "passed", 0, [], 0, "none affected"));
-  yield* Console.error(`pre-push: running the affected tests: ${plan.files.length} Bun files, ${plan.game.length} game modules${plan.lua.length === 0 ? "" : `, ${plan.lua.length} in Lua32`} (budget ${GATE_BUDGET_S} s)`);
+const FARM_TIMEOUT_MINUTES = 30;
+const FarmRuns = Schema.fromJsonString(Schema.Array(Schema.Struct({ displayTitle: Schema.String, conclusion: Schema.String, url: Schema.String })));
+
+
+export function greenFarmRun(runs: readonly { readonly displayTitle: string; readonly conclusion: string; readonly url: string }[], sha: string): string | undefined {
+  return runs.find(({ displayTitle, conclusion }) => conclusion === "success" && displayTitle.startsWith(`Farm test ${sha} `))?.url;
+}
+
+
+const farmGate = (head: string) => Effect.gen(function*() {
+  const listed = yield* run(["gh", "run", "list", "--workflow", "farm-test.yml", "--status", "success", "--limit", "100", "--json", "displayTitle,conclusion,url"], root);
+  const runs = listed.exitCode === 0 ? yield* Schema.decodeEffect(FarmRuns)(listed.stdout).pipe(Effect.orElseSucceed(() => [])) : [];
+  const green = greenFarmRun(runs, head);
+  if (green !== undefined) return yield* Console.error(`pre-push: the farm suite is green on ${head.slice(0, 12)} (${green})`);
+  yield* Console.error(`pre-push: main lands only on a green farm suite for this exact commit; running bun wisp farm test --ref ${head.slice(0, 12)} --wait`);
   const started = performance.now();
-  const [finished, known] = yield* Effect.all([
-    run([process.execPath, "scripts/newFailures.ts", "run", JSON.stringify(plan)], join(root, "ts")).pipe(Effect.timeoutOption(`${GATE_BUDGET_S} seconds`)),
-    knownFailing(join(gitDirectory, "known-failing")),
-  ], { concurrency: "unbounded" });
-  const seconds = ((performance.now() - started) / 1000).toFixed(1);
-  const knownFrom = known === undefined ? "main's failing set unavailable" : `main ${known.sha.slice(0, 10)}: ${known.tests.length} failing`;
-  if (Option.isNone(finished)) {
-    yield* Console.error(`pre-push: the affected tests didn't finish within ${GATE_BUDGET_S} s; landing unverified, CI decides`);
-    return yield* appendLanding(log, landingLine(new Date(), head, "unverified", 0, [], units, knownFrom));
+  const farm = yield* run([process.execPath, "wisp", "farm", "test", "--ref", head, "--wait"], join(root, "ts")).pipe(Effect.timeoutOption(`${FARM_TIMEOUT_MINUTES} minutes`));
+  const minutes = ((performance.now() - started) / 60000).toFixed(1);
+  if (Option.isNone(farm)) return yield* new PrePushRefusal({ problem: `pre-push: the farm suite on ${head.slice(0, 12)} didn't finish within ${FARM_TIMEOUT_MINUTES} minutes; NOT landed` });
+  if (farm.value.exitCode !== 0) {
+    return yield* new PrePushRefusal({ problem: `${farm.value.stdout}${farm.value.stderr}\npre-push: the farm suite failed on ${head.slice(0, 12)} (${minutes} min); main lands only on a green suite, including tests main already fails` });
   }
-  const runs = yield* decodeRuns(finished.value.stdout);
-  if (runs === undefined) {
-    return yield* new PrePushRefusal({ problem: `${finished.value.stdout}${finished.value.stderr}\npre-push: the affected-test runner exited ${finished.value.exitCode} without a result` });
-  }
-  const knownTests = new Set(known?.tests ?? []);
-  const failures = newFailures(runs, knownTests);
-  const passed = runs.reduce((sum, ran) => sum + processResult(ran).passed, 0);
-  yield* appendLanding(log, landingLine(new Date(), head, failures.length === 0 ? "passed" : "refused", passed, failures, units, knownFrom));
-  if (failures.length > 0) {
-    for (const ran of runs) {
-      if (newFailures([ran], knownTests).length > 0) yield* Console.error(`${ran.command}\n${ran.output.trimEnd()}`);
-    }
-    return yield* new PrePushRefusal({ problem: refusal(failures, knownFrom) });
-  }
-  yield* Console.error(`pre-push: affected tests: ${passed} passed, none newly failing (${knownFrom}; ${seconds} s)`);
+  yield* Console.error(`pre-push: the farm suite passed on ${head.slice(0, 12)} (${minutes} min)`);
 });

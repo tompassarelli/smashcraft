@@ -45,7 +45,7 @@ when the pushed commits change ts/, the model facts check
 (smashcraft:ts/test/model-facts.test.ts; it refuses with the `bun wisp view models`
 refresh command) when they change clips or model build inputs, in a few seconds (smashcraft:ts/scripts/prePush.ts).
 It checks the working tree, so push from a clean checkout of the commit.
-A push to main then runs the tests its change affects (`bun wisp dev`'s selection, plus the affected game modules in 32-bit Lua when sim code changed; at most 150 s, under the capacity helper) and is refused when one fails that main's latest completed CI run doesn't, naming each and its rerun command; tests main already fails don't block, and each verdict is appended to new-fail-gate.tsv in the clone's git directory (smashcraft:ts/scripts/newFailures.ts).
+A push to main then needs a green farm suite (`bun wisp farm test`) on the exact commit it pushes: the gate reuses a farm run already green on that commit, else runs one and waits (about 4 minutes), and refuses on any failure, main's known ones included (#394). The repository's .safe-push sets `landing.exact`, so `safe-push --to main` re-runs the gate whenever main moved during it; the commit that lands is the one the farm tested. Run `bun wisp farm test --wait` before `safe-push` to see failures earlier; the gate then reuses that run if main hasn't moved.
 
 Main stays green. Each CI run on main opens, updates or closes the one
 "main is red" issue (smashcraft:.github/workflows/main-red.yml), which lists the
