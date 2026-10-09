@@ -102,14 +102,60 @@ function levers(model: mdx.Model): Map<number, number> {
 function thinTrack(track: mdx.AnimVector, quaternion: boolean, sequences: readonly mdx.Sequence[], tolerance: number): void {
     const keys = track.Keys;
     if (keys.length < 3) return;
-    const keep = keys.map(key => !sequences.some(sequence => key.Frame >= at(sequence.Interval, 0) && key.Frame <= at(sequence.Interval, 1)));
+    const keep = keys.map(() => true), ends: number[] = [];
     for (const sequence of sequences) {
-        const inside = keys.flatMap((key, index) => key.Frame >= at(sequence.Interval, 0) && key.Frame <= at(sequence.Interval, 1) ? [index] : []);
-        if (inside.length) { keep[inside[0] ?? 0] = true; keep[inside.at(-1) ?? 0] = true; }
+        const start = at(sequence.Interval, 0), end = at(sequence.Interval, 1);
+        let first = -1, last = -1;
+        for (let index = 0; index < keys.length; index++) {
+            const frame = keyAt(keys, index).Frame;
+            if (frame >= start && frame <= end) { if (first < 0) first = index; last = index; keep[index] = false; }
+        }
+        if (first >= 0) ends.push(first, last);
     }
+    for (const index of ends) keep[index] = true;
     const curved = track.LineType === mdx.LineType.Hermite || track.LineType === mdx.LineType.Bezier;
 
+    const linearFits = (a: number, c: number) => {
+        const left = keyAt(keys, a), right = keyAt(keys, c), A = left.Vector, B = right.Vector;
+        const same = left.Frame === right.Frame, n = A.length;
+        const a0 = at(A, 0), a1 = at(A, 1), a2 = at(A, 2), a3 = at(A, 3);
+        let bx = at(B, 0), by = at(B, 1), bz = at(B, 2), bw = at(B, 3), omega = 0, sin = 0, turns = false;
+        if (quaternion) {
+            const cos = a0 * bx + a1 * by + a2 * bz + a3 * bw;
+            if (cos < 0) { bx = -bx; by = -by; bz = -bz; bw = -bw; }
+            const c2 = cos < 0 ? -cos : cos;
+            if (1 - c2 > 1e-6) { turns = true; omega = Math.acos(c2); sin = Math.sin(omega); }
+        }
+        for (let j = a + 1; j < c; j++) {
+            const key = keyAt(keys, j), V = key.Vector, t = (key.Frame - left.Frame) / (right.Frame - left.Frame);
+            if (quaternion) {
+                let x = a0, y = a1, z = a2, w = a3;
+                if (!same) {
+                    let s0 = 1 - t, s1 = t;
+                    if (turns) { s0 = Math.sin((1 - t) * omega) / sin; s1 = Math.sin(t * omega) / sin; }
+                    x = s0 * a0 + s1 * bx; y = s0 * a1 + s1 * by; z = s0 * a2 + s1 * bz; w = s0 * a3 + s1 * bw;
+                }
+                const v0 = at(V, 0), v1 = at(V, 1), v2 = at(V, 2), v3 = at(V, 3);
+                const sign = x * v0 + y * v1 + z * v2 + w * v3 < 0 ? -1 : 1;
+                let minus = 0, plus = 0;
+                minus += (x - sign * v0) ** 2; plus += (x + sign * v0) ** 2;
+                minus += (y - sign * v1) ** 2; plus += (y + sign * v1) ** 2;
+                minus += (z - sign * v2) ** 2; plus += (z + sign * v2) ** 2;
+                minus += (w - sign * v3) ** 2; plus += (w + sign * v3) ** 2;
+                if (4 * Math.atan2(Math.sqrt(minus), Math.sqrt(plus)) > tolerance) return false;
+                continue;
+            }
+            let sum = 0;
+            for (let i = 0; i < n; i++) {
+                const x = at(A, i), y = same ? x : x + t * (at(B, i) - x);
+                sum += (y - at(V, i)) ** 2;
+            }
+            if (Math.sqrt(sum) > tolerance) return false;
+        }
+        return true;
+    };
     const fits = (a: number, c: number) => {
+        if (!curved && track.LineType !== mdx.LineType.DontInterp) return linearFits(a, c);
         for (let j = a + 1; j < c; j++) {
             if (track.LineType === mdx.LineType.DontInterp) { if (difference(quaternion, keyAt(keys, j).Vector, keyAt(keys, a).Vector) !== 0) return false; continue; }
             if (difference(quaternion, interpolate(track, quaternion, keyAt(keys, a), keyAt(keys, c), keyAt(keys, j).Frame), keyAt(keys, j).Vector) > tolerance) return false;
