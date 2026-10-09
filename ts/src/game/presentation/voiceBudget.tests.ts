@@ -180,7 +180,7 @@ test("one seeded four-fighter bot match keeps the cap, drops no hit under a lowe
   assertLessThan(report.peakLive, VOICE_CAP + 1);
 });
 
-sweep("eight seeded four-fighter bot matches of 3600 frames keep the cap, drop no hit and start every hit sound on its hitstop frame: 0 of 953 hits off, uncapped play peaks at 22 voices against the cap of 16 [spec #406]", () => {
+sweep("eight seeded four-fighter bot matches of 3600 frames keep the cap, drop no hit and start every hit sound on its hitstop frame: 0 of 968 hits off, uncapped play peaks at 22 voices against the cap of 16 [spec #406]", () => {
   let hits = 0;
   let off = 0;
   let evictions = 0;

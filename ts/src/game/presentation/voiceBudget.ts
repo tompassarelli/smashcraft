@@ -66,8 +66,10 @@ function refuse(admission: Admission): Admission {
 /**
  * Decides whether one sound of class `cls` and identity `key` starts on `frame`.
  * A sound that plays takes a free slot or replaces the oldest live voice of a lower class;
- * it is refused only when every live voice is of its own class or higher, or when a lower
- * class repeats the same sound inside its rate limit. Starts under a KO duck by class.
+ * a hit or KO with no lower voice live replaces the oldest voice of its own class, so it
+ * always starts on its frame. A lower class is refused when every live voice is of its own
+ * class or higher, or when it repeats the same sound inside its rate limit. Starts under a
+ * KO duck by class.
  */
 export function admitVoice(budget: VoiceBudget, frame: number, cls: VoiceClass, key: string): Admission {
   const admission = budget.admission;
@@ -83,7 +85,7 @@ export function admitVoice(budget: VoiceBudget, frame: number, cls: VoiceClass, 
       slot = index;
       break;
     }
-    if (voice.cls >= cls) continue;
+    if (voice.cls > cls || (voice.cls === cls && cls < VoiceClass.hit)) continue;
     const current = oldest < 0 ? undefined : budget.voices[oldest];
     if (current === undefined || voice.cls < current.cls || (voice.cls === current.cls && voice.start < current.start)) oldest = index;
   }
