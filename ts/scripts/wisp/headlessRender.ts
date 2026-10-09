@@ -12,6 +12,7 @@ import { heroModelSource, importedModelFile } from "../heroModelSource";
 import { INPUTS_STORE, assetsView, readManifest } from "./buildInputs";
 import { importedAssets } from "./mapInputs";
 import { runProcess } from "../hostProcess";
+import { POST_PROCESSING_FILE } from "../postProcessing";
 import { resolveRenderAsset, type AssetLocation, type AssetLayer, type Graphics, type ResolvedRenderAsset } from "wisp/scripts/wisp/renderAssets";
 
 const key = (path: string) => path.replaceAll("\\", "/").toLowerCase().replace(/\.mdl$/, ".mdx");
@@ -138,6 +139,8 @@ export function headlessRender(options: RenderAssetOptions = {}) {
     const resolveMap = (entry: string) => Effect.gen(function*() {
       const imported = yield* sources;
       const name = key(entry);
+      // The map's generated post-processing file, which Definitive's ambient occlusion and bloom read.
+      if (name === key(POST_PROCESSING_FILE.entry)) return POST_PROCESSING_FILE.contents;
       if (graphics !== "classic" && stockFallback.has(name)) return undefined;
       const source = imported.get(name);
       if (source === undefined) return undefined;
