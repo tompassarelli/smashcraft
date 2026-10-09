@@ -1877,8 +1877,34 @@ intangibility still ends when the fighter lets go.
 
 The decay step is a first value, chosen to reach none on the fifth grab, and is
 tuned from playtests; the first-grab 30 stays inside the #69 bound of 30 to 37.
-The ledge commitment lock, the computer's use of these options and the seeded win
-rate measurements are tracked in #386's remaining boxes.
+The ledge commitment lock and the seeded win rate measurements are tracked in
+#386's remaining boxes.
+
+### Computer corner play
+
+Advanced and Expert computers play the corner (smashcraft:ts/src/game/match/botCorner.ts);
+Rookie, Beginner and Intermediate play it as neutral, unchanged. The corner band
+is the outer 150 units inside each lip of the main deck. All choices read the
+delayed opponent observation, so the #354 reaction floors (14 and 16 frames)
+hold, and every draw is seeded by the match.
+
+- Edge cancel: against an opponent shielding at the lip, the computer dashes in,
+  short-hops an aerial at it and steers the landing just inside the lip with
+  speed outward, so the slide carries it off and the cancel frees it (the
+  shield overshoot). It takes the option in the share of moments its tier takes
+  a kit's advanced option. Against an opponent standing, hit or hanging it never
+  runs off the stage (#56).
+- Pressure: with the opponent cornered, it walks to poke range 70 units on the
+  centre side, never idles and never keeps away; its pokes and shield grabs
+  come from its usual move choice.
+- Escape: cornered with the opponent within 320 units on the centre side, it
+  holds one choice for half a second: a full hop out over the opponent (4 in
+  10), a roll in (4 in 10) or a shield whose punish the usual punish logic
+  answers (2 in 10).
+
+Measured over 200 seeded Wren corner situations per offset (ts/test/corner-cpu.test.ts):
+a cornered Expert's median stay in the band is 45 to 50 frames (84 to 102 before);
+Expert edge-cancels 0 to 4 of 17 to 27 near-ledge landings per 200 situations.
 
 ### Ledge hang limit (#411)
 

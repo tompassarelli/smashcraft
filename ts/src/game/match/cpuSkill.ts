@@ -43,6 +43,8 @@ export interface CpuSkill {
   readonly punishTenths: number;
   /** Whether it climbs and drops through platforms to cancel aerials (smashcraft:docs/gameplay-design.md, "Platforms"); below, it stands on every platform it climbs. */
   readonly platformCancels: boolean;
+  /** Whether it edge-cancels toward a cornered opponent, presses the corner and escapes one by a readable option (botCorner.ts); below, it plays the corner as neutral. */
+  readonly cornerPlay: boolean;
   /** Frames it overestimates a punish window by, so a slow move it throws may come out after the opponent can act. */
   readonly punishMisjudge: number;
   readonly contestTenths: number;
@@ -66,6 +68,7 @@ function mechanics(profile: CpuProfile): CpuSkill {
     punishTenths: floorDiv(profile.judgmentPercent + 9, 10),
     punishMisjudge: floorDiv(100 - profile.spacingPercent, 5),
     platformCancels: profile.tier === "advanced" || profile.tier === "expert",
+    cornerPlay: profile.tier === "advanced" || profile.tier === "expert",
     contestTenths: floorDiv(profile.judgmentPercent + 9, 10), contestDelay: profile.reactionFrames,
   };
 }
