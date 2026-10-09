@@ -236,20 +236,44 @@ test("World Tree and aviary stay inside the far clip, and the aviary roof clears
   }
 });
 
-test("Hellfire rock bases extend below the wide far capture [repro #191]", () => {
+test("Hellfire and Naxxramas rock bases extend below the wide far capture [repro #191]", () => {
   const aspect = 2560 / 1080;
-  const camera = createMatchCamera();
-  extremeCamera(camera, HELLFIRE_STAGE, aspect, "far");
   const tilt = 10 * Math.PI / 180;
-  const tangent = Math.tan(cameraFieldOfView(camera, aspect) * Math.PI / 360);
-  for (const piece of stageScenery(HELLFIRE_STAGE).pieces.filter(({ model }) => model.includes("Barrens_Rocks0"))) {
-    const bounds = MODEL_FACTS[piece.model]?.bounds;
-    if (bounds === undefined) throw new Error(`missing rock bounds: ${piece.model}`);
-    const z = piece.z + bounds.min[2] * piece.scale * (piece.matrixScale?.[2] ?? 1);
-    const dz = z - camera.z;
-    const depth = camera.distance + piece.y * Math.cos(tilt) - dz * Math.sin(tilt);
-    const row = 0.5 - (dz * Math.cos(tilt) + piece.y * Math.sin(tilt)) / (2 * depth * tangent);
-    expect(row, `rock at ${piece.x},${piece.y}`).toBeGreaterThan(1);
+  for (const stage of [HELLFIRE_STAGE, PATTERNED_DECKS_STAGE]) {
+    const camera = createMatchCamera();
+    extremeCamera(camera, stage, aspect, "far");
+    const tangent = Math.tan(cameraFieldOfView(camera, aspect) * Math.PI / 360);
+    for (const piece of stageScenery(stage).pieces.filter(({ model }) => /Barrens_Rocks0|Glacier5|IceCrownObelisk1/.test(model))) {
+      const bounds = MODEL_FACTS[piece.model]?.bounds;
+      if (bounds === undefined) throw new Error(`missing rock bounds: ${piece.model}`);
+      const z = piece.z + bounds.min[2] * piece.scale * (piece.matrixScale?.[2] ?? 1);
+      const dz = z - camera.z;
+      const depth = camera.distance + piece.y * Math.cos(tilt) - dz * Math.sin(tilt);
+      const row = 0.5 - (dz * Math.cos(tilt) + piece.y * Math.sin(tilt)) / (2 * depth * tangent);
+      expect(row, `rock at ${piece.x},${piece.y}`).toBeGreaterThan(1);
+    }
+  }
+});
+
+test("Naxxramas's Necropolis clears the deck on the right third at both far camera widths [repro #191]", () => {
+  const citadel = stageScenery(PATTERNED_DECKS_STAGE).pieces.find(({ model }) => model.includes("Necropolis"));
+  if (citadel === undefined) throw new Error("missing Naxxramas necropolis");
+  const tilt = 10 * Math.PI / 180;
+  for (const aspect of [MATCH_CAMERA_ASPECT, 2560 / 1080]) {
+    const camera = createMatchCamera();
+    extremeCamera(camera, PATTERNED_DECKS_STAGE, aspect, "far");
+    const dz = citadel.z - camera.z;
+    const depth = camera.distance + citadel.y * Math.cos(tilt) - dz * Math.sin(tilt);
+    const column = 0.5 + (citadel.x - camera.x) / (2 * depth * camera.tangent * aspect);
+    const row = 0.5 - (dz * Math.cos(tilt) + citadel.y * Math.sin(tilt)) / (2 * depth * camera.tangent);
+    const deckDz = mainDeckZ(PATTERNED_DECKS_STAGE) - camera.z;
+    const deckDepth = camera.distance - deckDz * Math.sin(tilt);
+    const deckRow = 0.5 - deckDz * Math.cos(tilt) / (2 * deckDepth * camera.tangent);
+    expect(depth).toBeLessThan(ARENA_CAMERA.farZ);
+    expect(column).toBeGreaterThan(2 / 3);
+    expect(column).toBeLessThan(1);
+    expect(row).toBeGreaterThan(0);
+    expect(row).toBeLessThan(deckRow);
   }
 });
 

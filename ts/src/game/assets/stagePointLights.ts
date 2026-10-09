@@ -36,7 +36,7 @@ export const STAGE_POINT_LIGHTS: readonly { readonly stage: number; readonly the
   {
     stage: PATTERNED_DECKS_STAGE, theme: "Naxxramas", lights: [
       // NX-1's plague green frames NX-3's lone necropolis; the light ends behind the fighting plane.
-      { x: 1900.0, y: 4800.0, z: -300.0, color: [96, 220, 168], intensity: 0.875, flicker: 0.0, loopMs: 2400, radius: 1400.0, castsShadow: true },
+      { x: 1900.0, y: 4800.0, z: 500.0, color: [96, 220, 168], intensity: 0.875, flicker: 0.0, loopMs: 2400, radius: 1400.0, castsShadow: true },
     ],
   },
   {

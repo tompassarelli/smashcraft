@@ -22,14 +22,14 @@ export const NAXXRAMAS_SCENERY: StageScenery = {
   fog: { start: 5000.0, end: 11000.0, red: 0.25, green: 0.5, blue: 0.625 },
   pieces: [
     // NX-3: the floating citadel clears the deck and stays inside the far camera's clip.
-    { model: "buildings\\undead\\Necropolis\\Necropolis.mdx", x: 1900.0, y: 4600.0, z: -450.0, scale: 1.5, yaw: 250.0 },
+    { model: "buildings\\undead\\Necropolis\\Necropolis.mdx", x: 1900.0, y: 4600.0, z: 350.0, scale: 1.5, yaw: 250.0 },
     // NX-3: low Definitive-only stock garnish beside the citadel, invisible in Classic and Reforged.
     { model: "Doodads\\Undercity\\Props\\NaxxDeco\\NaxxDeco0.mdx", x: 1700.0, y: 5900.0, z: -900.0, scale: 0.5, yaw: 250.0 },
-    { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier5.mdx", x: 1940.0, y: 4400.0, z: -3100.0, scale: f32(7.1), yaw: 287.0, matrixScale: [1.0, 1.0, f32(1.317)] },
+    { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier5.mdx", x: 1940.0, y: 4400.0, z: -8000.0, scale: f32(7.1), yaw: 287.0, matrixScale: [1.0, 1.0, f32(4.938627)] },
     { model: "buildings\\undead\\Ziggurat\\Ziggurat.mdx", x: -1800.0, y: 3900.0, z: -1150.0, scale: 0.75, yaw: 25.0 },
-    { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier5.mdx", x: -2085.0, y: 3900.0, z: -2770.0, scale: f32(3.3), yaw: 62.0, matrixScale: [1.0, 1.0, f32(1.69)] },
-    { model: "Doodads\\Icecrown\\Props\\IceCrownObelisk\\IceCrownObelisk1.mdx", x: -2300.0, y: 2500.0, z: -2245.0, scale: 2, yaw: 285.0, matrixScale: [1.0, 1.0, f32(4.201)] },
-    { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier5.mdx", x: 2650.0, y: 3200.0, z: -2555.0, scale: 1.5, yaw: 155.0, matrixScale: [1.0, 1.0, f32(4.619)] },
+    { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier5.mdx", x: -2085.0, y: 3900.0, z: -7500.0, scale: f32(3.3), yaw: 62.0, matrixScale: [1.0, 1.0, f32(8.155981)] },
+    { model: "Doodads\\Icecrown\\Props\\IceCrownObelisk\\IceCrownObelisk1.mdx", x: -2300.0, y: 2500.0, z: -5500.0, scale: 2, yaw: 285.0, matrixScale: [1.0, 1.0, f32(12.919268)] },
+    { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier5.mdx", x: 2650.0, y: 3200.0, z: -6500.0, scale: 1.5, yaw: 155.0, matrixScale: [1.0, 1.0, f32(16.483323)] },
   ],
 };
 
