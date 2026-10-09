@@ -28,7 +28,8 @@ look is tuned by hand.
 - **Mapping, once per fighter.** Each `hd-rigs/<fighter>.ts` exports only
   `character`, `stockPath`, `classic` (humanoid joint → Classic node), `pairs`
   (rig joint → Definitive bone, any number per joint) and the body fit
-  (`fitScale`, `limbScales`, `visibilityPairs`). It names no move, sequence or frame.
+  (`fitScale`, `limbScales`, `visibilityPairs`, `alignRoot`, `heldProps`), plus the stock-body edits
+  `dropGeosets` (meshes it never shows) and `mirror` (a weapon in the other hand). It names no move, sequence or frame.
   In canonical motion a rig joint's node is named `@<joint>` (`rigNode`), so it never collides with a
   source node such as Illidan's own `pelvis`; Definitive bones that no pair
   names keep their stock pose under their nearest mapped parent.
@@ -39,7 +40,7 @@ look is tuned by hand.
 - **Checks.** smashcraft:ts/test/canonical-rig.test.ts checks every mapping for
   per-fighter fields only, and checks that editing one canonical move changes that
   move in both exported bodies and no other move. Its per-fighter sweeps rebuild
-  all 26 shipped Classic bodies and all 24 converted Definitive bodies from canonical
+  all 26 shipped Classic bodies and all 26 converted Definitive bodies from canonical
   motion, byte for byte against the published family.
 
 Not yet done: sizing the gameplay boxes to the rig at Definitive proportions and
@@ -80,7 +81,7 @@ must resolve each role to a literal pair of names and reject missing pairs.
 | Shadow Hunter | HeroShadowHunter → HeroShadowHunter | arms, legs, glaive → glaive, mask → mask; lower spine → chest |
 | Pit Lord | HeroPitLord → HeroPitLord | arms, all four leg chains, polearm → polearm, wings → wings |
 | Beastmaster | Beastmaster → Beastmaster | arms, legs, both axes → both axes |
-| Lich King | authored LichKing2 → same approved Classic body | approved exception: helmet, cape and Frostmourne retain the existing custom identity in both graphics modes |
+| Lich King | authored LichKing2 → stock Definitive Death Knight Arthas (`UndeadArthas`), mirrored | arms, legs, Frostmourne → Frostmourne; horse geosets dropped |
 | Thrall | authored Thrall → Thrall | rider arms, hammer; rider pelvis → rider pelvis, mount root and all four legs → mount joints |
 | Jaina | authored Jaina → Jaina | arms, legs, staff → staff, robe → robe |
 | Sylvanas | authored EvilSylvanas → EvilSylvanas | arms, legs, bow → bow, cape → cape |
@@ -92,16 +93,17 @@ must resolve each role to a literal pair of names and reject missing pairs.
 | Murloc | authored Murloc → Murloc | arms, legs, weapon → weapon, fins → fins |
 | Grom | authored Hellscream → Hellscream | arms, legs, axe → axe, hair → hair |
 | Anub’arak | authored Crypt Lord → Crypt Lord | root, chest, head, all leg chains, claws → claws, shell → shell |
-| Malfurion | authored walking Furion → same approved Classic body | approved exception: walking staff fighter in both graphics modes |
+| Malfurion | authored walking Furion → `MalfurionNoStag` | arms, legs, staff → staff; stag geosets dropped |
 | Medivh | authored Medivh → Medivh | arms, legs, staff → staff, cloak → cloak, raven → raven |
 | Kobold | authored Kobold → Kobold | arms, legs, pick → pick, candle → candle |
 
-Lich King and Malfurion have no Definitive mapping and keep their Classic body in
-Definitive. The installed stock model named Lich King is a one-bone frozen throne
-scene, and playable stock Arthas lacks the approved helmeted identity. The installed
-Definitive Malfurion model includes a visible stag even under its `MalfurionNoStag`
-name, while the approved fighter walks. These identity choices may be revisited
-separately when a matching stock body is available.
+No stock Definitive Lich King is a fighter body (the installed model of that name is a one-bone
+frozen throne scene), so the Lich King's Definitive body is the closest stock model, Death Knight
+Arthas with Frostmourne (`Units\Undead\EvilArthas\UndeadArthas`), without the approved helmet
+(decided 10 October, #366). Stock Arthas holds Frostmourne in his left hand, so the rig mirrors the
+stock body (`mirror`) and maps the Classic right side to its `L_` bones. Definitive `MalfurionNoStag`
+stands beside its stag; `dropGeosets` removes the stag meshes and the textures only they drew, so
+Malfurion walks in both looks.
 
 Cairne's installed Definitive model (3.0.1) has 91 bones and is 1,726,676 bytes.
 Its 27 literal pairs are `Root → root`, `Bone_Chest → bone_chest`,
@@ -236,17 +238,17 @@ passes criterion 1 in either look: the source animations are the limit, which
 | 1 | Rifleman | 0/16, 11.22 / 0/16, 10.02 | pass | pass | pass | Definitive |
 | 2 | Illidan | 0/16, 12.69 / 0/16, 10.57 | pass | pass | pass | Definitive |
 | 3 | Blademaster | 0/18, 3.53 / 0/18, 3.29 | pass | pass | pass | Definitive |
-| 4 | Mountain King | 1/20, 3.04 / 0/20, 2.61 | pass | pass | **fail**: first-active reach 107 → 62 on forward tilt, hammer tucked in | Classic |
+| 4 | Mountain King | 1/20, 3.04 / 0/20, 2.61 | pass | pass | pass (10 October: `alignRoot`) | Definitive |
 | 5 | Warden | 0/20, 5.34 / 0/20, 5.13 | pass | pass | pass | Definitive |
-| 6 | Lich | 0/18, 6.72 / 0/18, 3.04 | pass | pass | **fail**: jab +6.94 (Classic −7.99), jab 2 +5.04 (−7.72) | Classic |
+| 6 | Lich | 0/18, 6.72 / 0/18, 3.04 | pass | pass | pass (10 October: `alignRoot` floats the robe hem where Classic's is) | Definitive |
 | 7 | Forsaken Paladin | 0/20, 2.16 / 0/20, 2.81 | pass | pass | pass (republished in c1d12775; up smash keeps its hop) | Definitive |
 | 8 | Dreadlord | 0/19, 4.63 / 0/19, 4.51 | pass | pass | pass | Definitive |
 | 9 | Shadow Hunter | 0/19, 13.06 / 0/19, 14.44 | pass | pass | pass | Definitive |
 | 10 | Pit Lord | 0/20, 3.53 / 3/20, 3.01 | pass | pass | pass | Definitive |
-| 11 | Beastmaster | 0/18, 4.79 / 0/18, 5.17 | pass | pass | **fail**: down air +4.60 (Classic −4.46), angled-up forward tilt +4.89 (−6.48) | Classic |
-| 12 | Lich King | — | — | — | — | Classic (no Definitive mapping) |
+| 11 | Beastmaster | 0/18, 4.79 / 0/18, 5.17 | pass | pass | pass (10 October: `heldProps` puts the axes in the hands) | Definitive |
+| 12 | Lich King | — | pass | pass | pass (up tilt first frame +11.62 where Classic is outside at +6.78; both inside a frame later) | Definitive |
 | 13 | Thrall | 0/19, 3.70 / 0/19, 3.76 | pass | pass | pass | Definitive |
-| 14 | Jaina | 0/18, 7.00 / 0/18, 7.51 | pass | pass | **fail**: angled-up forward tilt +9.44 (Classic −1.34), down air +3.76 (−0.63) | Classic |
+| 14 | Jaina | 0/18, 7.00 / 0/18, 7.51 | pass | pass | pass (10 October: `alignRoot`, arm 1.09, staff 1.2; down air +1.87) | Definitive |
 | 15 | Sylvanas | 0/19, 7.88 / 0/19, 7.00 | pass | pass | pass | Definitive |
 | 16 | Cairne | 0/19, 5.53 / 0/19, 5.39 | pass | pass | pass | Definitive |
 | 17 | Chen | 0/20, 9.36 / 0/20, 8.58 | pass | pass | pass | Definitive |
@@ -256,7 +258,7 @@ passes criterion 1 in either look: the source animations are the limit, which
 | 21 | Murloc | 0/20, 4.77 / 0/20, 5.70 | pass | pass (body larger than Classic) | pass | Definitive |
 | 22 | Grom | 0/20, 5.44 / 0/20, 4.71 | pass | pass | pass | Definitive |
 | 23 | Anub'arak | 2/19, 2.93 / 0/19, 3.11 | pass | pass | pass | Definitive |
-| 24 | Malfurion | — | — | — | — | Classic (no Definitive mapping) |
+| 24 | Malfurion | — | pass | pass | pass | Definitive |
 | 25 | Medivh | 0/20, 7.99 / 0/20, 5.98 | pass | pass | pass (down air +2.65, marginal) | Definitive |
 | 26 | Kobold | 0/20, 3.21 / 0/20, 2.44 | pass | pass | pass | Definitive |
 
@@ -267,3 +269,12 @@ about 1 unit of Classic. Its criterion 1 numbers come from the earlier body.
 
 Run and roll sliding was not judged for most fighters, and later active frames were
 not measured. Lich's criterion 4 result overturns #362's pass.
+
+10 October fixes (#366): the four criterion 4 failures came from registration, not motion. Jaina's and
+Mountain King's stock Stand Ready steps the body off the origin (Jaina 12.7 units back), and the retarget
+kept that offset in every move; `alignRoot` stands the Definitive root where Classic's stands and, for a
+floating body, puts its lowest point where Classic's is. Beastmaster's stock axes are children of the body
+root, so they turned with the wrists but stayed at the hip; `heldProps` hangs them from the forearms as a
+parentless prop does. Every move's first active frame was measured with the vertex-to-region gap; the fill
+of the hurt capsules stays within 8 points of Classic at idle, jab, forward smash and down air. Criterion 1
+was not rerun.

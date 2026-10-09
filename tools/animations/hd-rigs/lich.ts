@@ -2,6 +2,8 @@ export const character = 6;
 export const stockPath = 'war3.w3mod:_de.w3mod:units\\undead\\herolich\\herolich.mdx';
 // The floating robe's lengths otherwise place the head 54% above the Classic body's height (#362).
 export const fitScale = 0.65;
+// The robe hem floats where Classic's does, so low strikes reach the same regions.
+export const alignRoot = true;
 
 // Lich has a floating torso and eight robe strips, rather than a leg rig.
 export const classic = {

@@ -1,6 +1,8 @@
 export const character = 11;
 export const fighter = 'Beastmaster';
 export const stockPath = 'war3.w3mod:_de.w3mod:units\\creeps\\BeastMaster\\BeastMaster.mdx';
+// The stock axes hang from the body root, not the hands.
+export const heldProps = ['Wep01_R0_0_jnt', 'Wep01_L0_0_jnt'];
 export const classic = {
     pelvis: 'Bone_Pelvis',
     chest: 'Bone_Chest',

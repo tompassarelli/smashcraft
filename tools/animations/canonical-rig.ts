@@ -28,8 +28,12 @@ export interface FighterRig extends RetargetOptions {
     readonly classic: Readonly<Partial<Record<HumanoidJoint, string>>>;
     /** Rig → Definitive skeleton: a humanoid joint, or one of the fighter's own secondary joints, and the Definitive bone it drives. */
     readonly pairs: readonly (readonly [string, string])[];
+    /** Stock Definitive meshes the fighter never shows, such as a mount it walks without; textures nothing else draws go too. */
+    readonly dropGeosets?: readonly number[];
+    /** The stock Definitive body mirrored left to right, when it carries its weapon in the other hand than Classic. */
+    readonly mirror?: boolean;
 }
-export const RIG_FIELDS: ReadonlySet<string> = new Set(['character', 'fighter', 'stockPath', 'classic', 'pairs', 'fitScale', 'limbScales', 'visibilityPairs']);
+export const RIG_FIELDS: ReadonlySet<string> = new Set(['character', 'fighter', 'stockPath', 'classic', 'pairs', 'fitScale', 'limbScales', 'visibilityPairs', 'alignRoot', 'heldProps', 'dropGeosets', 'mirror']);
 
 function renamed(model: mdx.Model, names: ReadonlyMap<string, string>): mdx.Model {
     const copy = structuredClone(model);

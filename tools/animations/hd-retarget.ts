@@ -78,6 +78,10 @@ export interface RetargetOptions {
     readonly fitScale?: number;
     /** A branch's fixed size about its root or a named anchor, including its attached skin. */
     readonly limbScales?: readonly (readonly [string, number, string?])[];
+    /** The Definitive body stands where Classic stands, though its stock reference stance steps off the origin. */
+    readonly alignRoot?: boolean;
+    /** Definitive props parented to the body root that the hands carry: each hangs from its Classic parent's joint, as a parentless prop does. */
+    readonly heldProps?: readonly string[];
 }
 
 const rotationOf = (matrix: mat4) => quat.normalize(quat.create(), mat4.getRotation(quat.create(), matrix));
@@ -261,7 +265,7 @@ export function registerRig(source: mdx.Model, hd: mdx.Model, pairs: readonly (r
     const logicalParent = new Map<number, number | null>();
     for (const node of model.Nodes) {
         if (node === undefined) continue;
-        if (node.Parent != null) { logicalParent.set(node.ObjectId, node.Parent); continue; }
+        if (node.Parent != null && !options.heldProps?.includes(node.Name)) { logicalParent.set(node.ObjectId, node.Parent); continue; }
         const classic = correspondence.get(node.ObjectId);
         const ancestor = classic === undefined ? undefined : classicAncestor(classic);
         const last = ancestor === undefined ? undefined : group.get(ancestor)!.at(-1)!;
@@ -334,6 +338,8 @@ export function registerRig(source: mdx.Model, hd: mdx.Model, pairs: readonly (r
         const low = lowestOf(rig, world, vertices);
         return Number.isFinite(low) ? low : lowestOf(rig, world, rig === source ? classicBody : targetBody);
     };
+    const topRest = hdRest(head(top)), classicTop = classicRest.get(top)!;
+    const rootShift = options.alignRoot ? mat4.fromTranslation(mat4.create(), [classicTop[0] / fit - topRest[0], classicTop[1] / fit - topRest[1], 0]) : undefined;
     const pose = (classic: readonly mat4[], ground: number, plant?: number) => {
         const frame = mat4.multiply(mat4.create(), body0, inverse(bodyAt(classic)));
         const world = new Map<number, mat4>();
@@ -357,6 +363,7 @@ export function registerRig(source: mdx.Model, hd: mdx.Model, pairs: readonly (r
             const at = anchored ?? vec3.add(vec3.create(), vec3.scaleAndAdd(vec3.create(), rest, vec3.sub(vec3.create(), pivotOf(local, source.Nodes[from].PivotPoint), classicRest.get(from)!), proportion), [0, 0, ground]);
             world.set(id, turnedAbout(rigidReference.get(id)!, rest, turn, at));
         }
+        if (rootShift !== undefined) for (const [id, matrix] of world) world.set(id, mat4.multiply(mat4.create(), rootShift, matrix));
         for (const { anchor, scale, ids } of limbScales) {
             const pivot = pivotOf(world.get(anchor)!, model.Nodes[anchor].PivotPoint);
             const sizing = mat4.fromTranslation(mat4.create(), pivot);
@@ -393,7 +400,7 @@ export function registerRig(source: mdx.Model, hd: mdx.Model, pairs: readonly (r
     const ground = Number.isFinite(stockFloor + alignedFloor) ? (stockFloor - alignedFloor) / fit : 0;
     const standing = pose(sourceReference, ground);
     const targetFloor = supportHeight(model, id => standing.get(id)!, soles), classicFloor = supportHeight(source, id => sourceReference[id], classicSoles);
-    const plant = Number.isFinite(targetFloor + classicFloor) ? legSupport ? 0 : targetFloor - classicFloor : undefined;
+    const plant = Number.isFinite(targetFloor + classicFloor) ? legSupport || options.alignRoot ? 0 : targetFloor - classicFloor : undefined;
     return { sourceStand, hdStand, sourceAt, sourceReference, hdReference, correspondence, fittedRoots, logicalParent, alignment, aimed, props, proportion, fit, ground, plant, bodyNode, bodyAt, constantLocal, pose };
 }
 export type RigRegistration = ReturnType<typeof registerRig>;

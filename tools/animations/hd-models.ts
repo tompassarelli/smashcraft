@@ -28,11 +28,47 @@ export function classicBody(motion: mdx.Model, rig: FighterRig, played: readonly
     return encodeVerified(timelineBody(thinned, selected(thinned, played)));
 }
 
+/** The stock Definitive body as a fighter's rig uses it: mirrored to its striking hand and without unshown meshes. */
+export function stockBody(stock: ArrayBuffer, rig: FighterRig): mdx.Model {
+    const fighter = fighters.get(rig.character) ?? { name: `Fighter ${rig.character}` };
+    const hd = parseHdBody(stock);
+    if (rig.mirror === true) {
+        for (const node of hd.Nodes) {
+            if (node === undefined) continue;
+            node.PivotPoint[1] = -node.PivotPoint[1];
+            for (const key of node.Translation?.Keys ?? []) key.Vector[1] = -key.Vector[1];
+            for (const key of node.Rotation?.Keys ?? []) { key.Vector[0] = -key.Vector[0]; key.Vector[2] = -key.Vector[2]; }
+        }
+        for (const geoset of hd.Geosets) {
+            for (let vertex = 0; vertex < geoset.Vertices.length / 3; vertex++) {
+                geoset.Vertices[vertex * 3 + 1] = -geoset.Vertices[vertex * 3 + 1];
+                geoset.Normals[vertex * 3 + 1] = -geoset.Normals[vertex * 3 + 1];
+                if (geoset.Tangents !== undefined) { geoset.Tangents[vertex * 4 + 1] = -geoset.Tangents[vertex * 4 + 1]; geoset.Tangents[vertex * 4 + 3] = -geoset.Tangents[vertex * 4 + 3]; }
+            }
+            for (let face = 0; face + 2 < geoset.Faces.length; face += 3) [geoset.Faces[face + 1], geoset.Faces[face + 2]] = [geoset.Faces[face + 2], geoset.Faces[face + 1]];
+            for (const extent of [geoset, ...(geoset.Anims ?? [])]) { const low = extent.MinimumExtent[1]; extent.MinimumExtent[1] = -extent.MaximumExtent[1]; extent.MaximumExtent[1] = -low; }
+        }
+        for (const sequence of hd.Sequences) { const low = sequence.MinimumExtent[1]; sequence.MinimumExtent[1] = -sequence.MaximumExtent[1]; sequence.MaximumExtent[1] = -low; }
+    }
+    const dropped = new Set(rig.dropGeosets ?? []);
+    if (dropped.size > 0) {
+        const kept = hd.Geosets.map((_, index) => index).filter(index => !dropped.has(index));
+        const animations = hd.GeosetAnims.map((_, index) => index).filter(index => kept.includes(hd.GeosetAnims[index].GeosetId));
+        for (const bone of hd.Bones) {
+            bone.GeosetId = bone.GeosetId == null || !kept.includes(bone.GeosetId) ? null : kept.indexOf(bone.GeosetId);
+            bone.GeosetAnimId = bone.GeosetAnimId == null || !animations.includes(bone.GeosetAnimId) ? null : animations.indexOf(bone.GeosetAnimId);
+        }
+        hd.GeosetAnims = animations.map(index => ({ ...hd.GeosetAnims[index], GeosetId: kept.indexOf(hd.GeosetAnims[index].GeosetId) }));
+        hd.Geosets = kept.map(index => hd.Geosets[index]);
+    }
+    return hd;
+}
+
 /** One fighter's Definitive timeline body, generated from its canonical motion onto the stock Definitive model. */
 export function definitiveBody(motion: mdx.Model, stock: ArrayBuffer, rig: FighterRig, played: readonly number[]) {
     const character = rig.character;
     const fighter = fighters.get(character) ?? { name: `Fighter ${character}` };
-    const hd = parseHdBody(stock);
+    const hd = stockBody(stock, rig);
     // The Crypt Lord names a base-only glow; Definitive has the same stock art under this path (#346).
     for (const texture of hd.Textures) if (texture.Image.replaceAll('\\', '/').replace(/\.(blp|tif|dds|tga)$/i, '').toLowerCase() === 'replaceabletextures/teamglow/teamglow00') texture.Image = 'Textures\\TeamGlow0000.dds';
     const pairs = rig.pairs;
@@ -46,6 +82,16 @@ export function definitiveBody(motion: mdx.Model, stock: ArrayBuffer, rig: Fight
     result.model.CollisionShapes = [];
     const thinned = thinKeys(result.model, { position: 0.45, rotationDegrees: 0.45 });
     const timeline = timelineBody(thinned.model, sequences);
+    // A body with stock meshes dropped also drops the textures only they and stock effects drew.
+    if ((rig.dropGeosets ?? []).length > 0) {
+        const slots = ['TextureID', 'NormalTextureID', 'ORMTextureID', 'EmissiveTextureID', 'TeamColorTextureID', 'ReflectionsTextureID'] as const;
+        const layers = timeline.Materials.flatMap(material => material.Layers) as unknown as Record<string, unknown>[];
+        const ids = layers.flatMap(layer => slots.map(slot => layer[slot]).filter(id => id !== undefined && id !== null));
+        if (ids.some(id => typeof id !== 'number') || timeline.ParticleEmitters2.length > 0 || timeline.RibbonEmitters.length > 0) throw new Error(`${fighter.name}: cannot prune textures under animated layers or emitters`);
+        const used = [...new Set(ids as number[])].sort((a, b) => a - b);
+        for (const layer of layers) for (const slot of slots) if (typeof layer[slot] === 'number') layer[slot] = used.indexOf(layer[slot] as number);
+        timeline.Textures = used.map(index => timeline.Textures[index]);
+    }
     const bytes = generateHdBody(timeline);
     const exported = parseHdBody(bytes);
     const exportedSkin = checkBodySkin(exported);
