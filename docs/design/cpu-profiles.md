@@ -123,7 +123,10 @@ Every combination preserves [#176](https://github.com/tompassarelli/smashcraft/i
 trained recognition (a held guard, tech or ledge answer) waits at least 14 frames
 (233 ms). A new decision waits at least 16 frames (267 ms), plus one frame for
 each additional viable option: retreat, grounded shield, remaining jump and legal
-attack. Expert, Advanced and Intermediate use the measured tech-chase curve
+attack. Reaction measurements report responding and unanswered trials separately
+at the Slippi sample's 40-frame deadline; every responding trial counts, including
+early inputs. The extra choice cost is a guess: the replay sample had no clean
+new-decision response peak. Expert, Advanced and Intermediate use the measured tech-chase curve
 from [human input consistency](human-input-consistency.md), shifted to medians
 21, 22 and 23 frames. Its Expert p5/p10/p25/p90 are 15/16/19/33, with about
 6 frames of standard deviation; the endpoint and p75 interpolate the measured

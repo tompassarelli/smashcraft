@@ -1,4 +1,4 @@
-declare const console: { log(this: void, line: string): void };
+import { reportTestLine } from "../../runtime/testReport";
 import { mutableProjectile } from "../sim/fighterProjectiles";
 import { assertDefined, assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { at } from "wisp/src/runtime/lookup";
@@ -160,19 +160,18 @@ for (const tier of ["expert", "advanced", "intermediate"] as const) sweep(`1000 
       const start = 39;
       const floor = cpuReactionFloor(changed.own, cpuSkill("wren", tier));
       let first = -1;
-      for (let frame = 1; frame <= start + 60 && first < 0; frame++) {
+      for (let frame = 1; frame <= start + 40 && first < 0; frame++) {
         if (frame === start) changed.target.motion.x = -450.0;
         for (const game of [changed, quiet]) produceComputerInput(game.game, game.world, game.runtime, 0, frame, game.controls.inputs[0], game.controls.commands[0]);
         if (first < 0 && (!sameControls(changed.controls.inputs[0], quiet.controls.inputs[0]) || !sameAttackBuffer(changed.controls.commands[0], quiet.controls.commands[0]))) first = frame - start;
       }
       for (const game of [changed, quiet]) clearBotMemory(game.runtime.botMemory);
-      // A chosen wait is not an observed reaction; retain every responding trial, even early ones.
       if (first < 0) { unanswered++; continue; }
       if (first < floor) early++;
       distribution[first] = (distribution[first] ?? 0) + 1;
       measured++;
     }
-    console.log(`${tier} ${trained ? "trained recognition" : "new decision"}: ${measured} actual responses, ${unanswered} unanswered, ${early} early; ${distribution.map((count, frame) => count > 0 ? `${frame}:${count}` : "").filter(row => row !== "").join(" ")}`);
+    reportTestLine(`${tier} ${trained ? "trained recognition" : "new decision (guess)"}: ${measured} actual responses within 40 frames, ${unanswered} unanswered, ${early} early; ${distribution.map((count, frame) => count > 0 ? `${frame}:${count}` : "").filter(row => row !== "").join(" ")}`);
     assertEquals(measured, 1000);
     assertEquals(early, 0);
     let cumulative = 0;
@@ -188,10 +187,9 @@ for (const tier of ["expert", "advanced", "intermediate"] as const) sweep(`1000 
     }
     const mean = f32(total / measured);
     const variance = f32(f32(squares / measured) - f32(mean * mean));
-    console.log(`${tier} ${trained ? "trained recognition" : "new decision"}: median ${median}, mean ${mean}, sd ${Math.sqrt(variance)}`);
+    reportTestLine(`${tier} ${trained ? "trained recognition" : "new decision (guess)"}: median ${median}, mean ${mean}, sd ${Math.sqrt(variance)}`);
     const expectedMedian = tier === "expert" ? 21 : tier === "advanced" ? 22 : 23;
     assertTrue(median >= expectedMedian - 1 && median <= expectedMedian + 1);
-    // The measured master spread is 6.1 frames; clipping fresh choices removes the fastest tail.
     assertTrue(variance >= 25 && variance <= 49);
   }
 });
