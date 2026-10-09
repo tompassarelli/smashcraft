@@ -1,5 +1,5 @@
 import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
-import { Character, SpecialAction } from "../sim/codes";
+import { AttackStyle, Character, SpecialAction } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { neutralControls } from "../sim/roster";
 import { startFighterSpecial } from "../sim/specials";
@@ -185,6 +185,6 @@ test("walking selects tilts and same-frame opposing smashes cancel facing [spec 
   f.adapt({ held: maskOf(Action.attack, Action.walk, Action.moveUp), pressed: maskOf(Action.attack, Action.smashLeft, Action.smashRight), axisZ: 127 }, 10);
   assertTrue(f.input.walking);
   const command = f.take(10);
-  assertEquals(command.style, 4);
+  assertEquals(command.style, AttackStyle.upTilt);
   assertEquals(command.facing, 0);
 });

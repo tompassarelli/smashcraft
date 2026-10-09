@@ -80,3 +80,32 @@ test("Meter + Special and Shield + Special each spend one EX segment, Special al
     assertEquals(fighter.mana.points, spent ? ROSTER_MANA.max - ROSTER_MANA.exCost : ROSTER_MANA.max);
   }
 });
+
+test("tom layout: grounded right stick tilts where the default right stick smashes [spec docs/gameplay-design.md]", () => {
+  for (const [rightStickTilts, cx, cy, expected] of [
+    [true, 1.0, 0.0, AttackStyle.forwardTilt], [true, 0.0, 1.0, AttackStyle.upTilt], [true, 0.0, -1.0, AttackStyle.downTilt],
+    [false, 1.0, 0.0, AttackStyle.forwardSmash],
+  ] as const) {
+    const { run, fighter } = padRun();
+    for (let frame = 0; frame < 4; frame++) playPads(run, {}, {});
+    playPads(run, { cx, cy, rightStickTilts }, {});
+    playPads(run, { cx, cy, rightStickTilts }, {});
+    assertTrue(fighter.motion.grounded);
+    assertEquals(fighter.attack.style, expected);
+  }
+});
+
+test("tom layout: airborne right stick throws the matching aerial [spec docs/gameplay-design.md]", () => {
+  for (const [cx, cy, expected] of [
+    [1.0, 0.0, AttackStyle.forwardAir], [-1.0, 0.0, AttackStyle.backAir], [0.0, 1.0, AttackStyle.upAir], [0.0, -1.0, AttackStyle.downAir],
+  ] as const) {
+    const { run, fighter } = padRun();
+    for (let frame = 0; frame < 4; frame++) playPads(run, {}, {});
+    for (let frame = 0; frame < 20 && fighter.motion.grounded; frame++) playPads(run, { jump: true }, {});
+    for (let frame = 0; frame < 8; frame++) playPads(run, {}, {});
+    assertTrue(!fighter.motion.grounded);
+    playPads(run, { cx, cy, rightStickTilts: true }, {});
+    playPads(run, { cx, cy, rightStickTilts: true }, {});
+    assertEquals(fighter.attack.style, expected);
+  }
+});

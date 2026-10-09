@@ -33,6 +33,7 @@ export interface Pad {
   readonly tilt?: boolean;
   readonly shortHop?: boolean;
   readonly meter?: boolean;
+  readonly rightStickTilts?: boolean;
 }
 
 const raw = (value: number | undefined) => Math.trunc((value ?? 0) * RAW);
@@ -58,6 +59,8 @@ function heldActions(pad: Pad): number {
   if (raw(pad.cx) > C_STICK_DIGITAL) held |= bit(Action.smashRight);
   if (raw(pad.cx) < -C_STICK_DIGITAL) held |= bit(Action.smashLeft);
   if (raw(pad.cy) > C_STICK_DIGITAL) held |= bit(Action.smashUp);
+  if (raw(pad.cy) < -C_STICK_DIGITAL) held |= bit(Action.smashDown);
+  if (pad.rightStickTilts === true && Math.max(Math.abs(raw(pad.cx)), Math.abs(raw(pad.cy))) > C_STICK_DIGITAL) held |= bit(Action.walk);
   if (pad.trigger === true && RAW > TRIGGER_DIGITAL) held |= bit(Action.leftTrigger);
   if (pad.rightTrigger === true && RAW > TRIGGER_DIGITAL) held |= bit(Action.rightTrigger);
   return held;

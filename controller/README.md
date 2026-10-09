@@ -47,7 +47,7 @@ the build and `INPUT keyboard-d2-r24` (the development build uses `INPUT callbac
 it is a Smashcraft session on keys (`session=BUILD/keys/N`): the service
 runs no helper, uses the pointer in fighter, stage and results menus, and presses the pad's keys during matches through the same mapper as
 `wc3-controller --emit` (the default melee layout: A n, B u, X/Y i, RB o, LT q, RT v; tom: A n, B o, X u, Y i, LB z, RB x (meter), LT q, RT v;
-Start y, left stick w/r/e/space, right stick b/m/j/h), into the game's window
+Start y, left stick w/r/e/space, right stick b/m/j/h, plus p in tom so it tilts and throws aerials), into the game's window
 while niri focuses it. Focus loss releases them, and nothing presses again
 until the pad is neutral. The status reads `state=serving` once that output runs.
 

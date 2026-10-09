@@ -2185,6 +2185,9 @@ mod linux {
             held |= MOVE_UP;
         }
         let (cx, cy) = c_stick(s.cx, s.cy);
+        if s.preset == wc3_controller::model::PadPreset::Tom && (cx != 0 || cy != 0) {
+            held |= WALK;
+        }
         if cx < 0 {
             held |= SMASH_LEFT;
         }
@@ -2672,6 +2675,9 @@ mod linux {
         assert_eq!(held(0, -19_660), 0);
         assert_eq!(held(0, -22_937), SMASH_UP);
         assert_eq!(held(0, 22_937), SMASH_DOWN);
+        let tom = |cx, cy| action_state(State { preset: wc3_controller::model::PadPreset::Tom, cx, cy, ..State::default() });
+        assert_eq!(tom(26_500, 0), WALK | SMASH_RIGHT);
+        assert_eq!(tom(22_937, 0), 0);
     }
 
     #[test]

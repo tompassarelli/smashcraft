@@ -14,6 +14,7 @@ import type { Direction, InputRow } from "./inputRow";
 const GRAB_MASH_ACTIONS = maskOf(Action.attack, Action.special, Action.jump, Action.shortHop, Action.grab, Action.leftTrigger, Action.rightTrigger, Action.lightShield);
 const MOVEMENT_ACTIONS = maskOf(Action.moveLeft, Action.moveRight, Action.moveDown, Action.moveUp);
 const TRIGGERS = maskOf(Action.leftTrigger, Action.rightTrigger, Action.lightShield);
+const SMASHES = maskOf(Action.smashLeft, Action.smashRight, Action.smashUp, Action.smashDown);
 
 const sign = (value: number): Direction => value < 0 ? -1 : value > 0 ? 1 : 0;
 
@@ -74,7 +75,7 @@ export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, 
   destination.meter = has(held, Action.meter);
   destination.techPressed = destination.shieldPressed;
   const airborne = (fighter.jump.squat > 0 || !fighter.motion.grounded) && fighter.ledge.state === LedgeState.none;
-  const tiltDodge = !destination.shieldPressed && airborne && destination.shieldTriggerActive && has(pressed, Action.walk);
+  const tiltDodge = !destination.shieldPressed && airborne && destination.shieldTriggerActive && has(pressed, Action.walk) && ((held | pressed) & SMASHES) === 0;
   destination.airDodgePressed = destination.shieldPressed || tiltDodge;
   destination.dodgeX = destination.shieldPressed ? row.dodgeX : tiltDodge ? destination.direction : 0;
   destination.dodgeZ = destination.shieldPressed ? row.dodgeZ : tiltDodge ? destination.verticalDirection : 0;
@@ -110,8 +111,9 @@ export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, 
     });
   }
   if (has(pressed, Action.grab)) queueAttack(attacks, { style: AttackStyle.grab, facing: 0, frame, mayCharge: false });
-  if (has(pressed, Action.smashLeft)) queueAttack(attacks, { style: AttackStyle.forwardSmash, facing: -1, frame, mayCharge: false });
-  if (has(pressed, Action.smashRight)) queueAttack(attacks, { style: AttackStyle.forwardSmash, facing: 1, frame, mayCharge: false });
-  if (has(pressed, Action.smashUp)) queueAttack(attacks, { style: AttackStyle.upSmash, facing: 0, frame, mayCharge: false });
-  if (has(pressed, Action.smashDown)) queueAttack(attacks, { style: AttackStyle.downSmash, facing: 0, frame, mayCharge: false });
+  const tilt = destination.walking;
+  if (has(pressed, Action.smashLeft)) queueAttack(attacks, { style: tilt ? AttackStyle.forwardTilt : AttackStyle.forwardSmash, facing: -1, frame, mayCharge: false });
+  if (has(pressed, Action.smashRight)) queueAttack(attacks, { style: tilt ? AttackStyle.forwardTilt : AttackStyle.forwardSmash, facing: 1, frame, mayCharge: false });
+  if (has(pressed, Action.smashUp)) queueAttack(attacks, { style: tilt ? AttackStyle.upTilt : AttackStyle.upSmash, facing: 0, frame, mayCharge: false });
+  if (has(pressed, Action.smashDown)) queueAttack(attacks, { style: tilt ? AttackStyle.downTilt : AttackStyle.downSmash, facing: 0, frame, mayCharge: false });
 }
