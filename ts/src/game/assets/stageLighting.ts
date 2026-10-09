@@ -44,7 +44,5 @@ export const STAGE_LIGHTS: readonly { readonly stage: number; readonly theme: st
   { stage: STRATHOLME_STAGE, theme: "Stratholme", light: { key: [255, 214, 180], ambient: [170, 140, 150], intensity: 1.2000000476837158 } },
   // Cool sea light, tide-teal fill.
   { stage: TOMB_OF_SARGERAS_STAGE, theme: "Sargeras", light: { key: [226, 244, 255], ambient: [130, 176, 180] } },
-  // Bleached sandstone sun, warm sand fill, at half strength: at full strength
-  // fighters rose 11 L* toward the bright sandstone ring (#267).
-  { stage: TIMED_TEST_STAGE, theme: "Qiraji", light: { key: [255, 240, 204], ambient: [192, 170, 136], intensity: 0.5 } },
+  { stage: TIMED_TEST_STAGE, theme: "Qiraji", light: { key: [230, 236, 255], ambient: [150, 162, 204], intensity: 0.30000001192092896 } },
 ];

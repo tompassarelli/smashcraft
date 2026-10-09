@@ -28,10 +28,10 @@ test("each stage's light keeps fighters bright, shaded sides readable and team c
   }
 });
 
-// #267: over Ahn'Qiraj's bright sandstone ring the full light cut fighter contrast (abs ΔL 33.5 → 22.9, 14.6 → 3.8).
-test("Ahn'Qiraj's light shines at half strength so fighters stay darker than the bright ring [spec docs/design/visual-quality.md]", () => {
+test("Ahn'Qiraj uses the approved cool light at 0.3 for its perceptual contrast floor [spec #267]", () => {
   const qiraji = STAGE_LIGHTS.find(({ stage }) => stage === TIMED_TEST_STAGE)?.light;
-  assertEquals(`${qiraji?.key.join(",")}/${qiraji?.ambient.join(",")}@${qiraji?.intensity}`, "255,240,204/192,170,136@0.5");
+  assertEquals(`${qiraji?.key.join(",")}/${qiraji?.ambient.join(",")}`, "230,236,255/150,162,204");
+  assertEquals(qiraji?.intensity, f32(0.3));
   // #296: Naxxramas lifts fighters off its dark teal sky at 2.0; every other stage stays at most 1.25.
   for (const { stage, theme, light } of STAGE_LIGHTS) {
     const intensity = light.intensity ?? 1, limit = stage === PATTERNED_DECKS_STAGE ? 2 : 1.25;

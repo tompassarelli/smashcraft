@@ -31,7 +31,7 @@ export const STAGE_LIGHT_MODELS: Readonly<Record<number, string>> = {
   12: "war3mapImported\\StageLight-1b9742fd35a7bd91a98fd818f4ff13946e3cb4f09b9fd9bc7f168616cb91aa43.mdx",
   6: "war3mapImported\\StageLight-79edd605146efb956c78e48e3a8880c561b3daf10f8071569276bdf468101f04.mdx",
   7: "war3mapImported\\StageLight-edf3b5df8d80335a608fe64f09ae146f616bfd1e255338dcf59c73937403957a.mdx",
-  13: "war3mapImported\\StageLight-ae4432a8c4c7ead2f4655b3f2ee7b8a1457e8d5dc0afd011d537768e7e5d32b9.mdx",
+  13: "war3mapImported\\StageLight-3b4bd0aa6e0598a929146d14a4ea093139d4acab860e42d13227568b48f14ec3.mdx",
 };
 /** Each stage's backdrop omni light models, in the order of its lights in stagePointLights.ts. */
 export const STAGE_POINT_LIGHT_MODELS: Readonly<Record<number, readonly string[]>> = {
