@@ -69,9 +69,9 @@ export class FixedInputSchedule {
     return this.ledger.knownThrough();
   }
 
-  /** The first frame of any packet accepted since the last call (past INPUT_LAST_FRAME when none was), and starts afresh. */
-  takeLowestAccepted(): number {
-    return this.ledger.takeLowestAccepted();
+  /** This sender's first newly accepted frame, past INPUT_LAST_FRAME when none was; starts afresh. */
+  takeLowestAccepted(sender: number): number {
+    return this.ledger.takeLowestAccepted(sender);
   }
 
   confirmedThrough(): number {

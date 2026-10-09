@@ -307,6 +307,46 @@ function capture(state: ReplayState): ReplayState {
   return snapshot;
 }
 
+test("sender-only reconciliation equals rebuilding every sender after staggered late rows [invariant]", () => {
+  const epoch = 976;
+  const make = () => {
+    const game = createMatchState();
+    setParticipants(game, 15, 0);
+    game.phase = Phase.match;
+    game.timeLimitMinutes = 0;
+    const live = lobbyState(game);
+    const schedule = new ShadowInputSchedule();
+    const playback = new ShadowInputPlayback();
+    const history = new ReplayHistory();
+    assertTrue(schedule.beginEpoch(epoch, 0, 24, 15));
+    assertTrue(playback.beginEpoch(epoch));
+    assertTrue(history.beginEpoch(epoch, 1, 24));
+    for (let frame = 1; frame <= 12; frame++) {
+      assertEquals(schedule.captureLocal(epoch, NEUTRAL), Capture.captured);
+      assertTrue(playback.advanceSpeculative(schedule, epoch, 0, live, history));
+    }
+    return { live, schedule, playback, history };
+  };
+  const incremental = make();
+  const full = make();
+  const arrivals: readonly (readonly [number, number, InputRow])[] = [
+    [1, 1, WALK_RIGHT], [2, 3, JUMP], [3, 2, SHIELD], [1, 5, NEUTRAL],
+    [2, 1, ATTACK], [3, 6, NEUTRAL], [0, 7, NEUTRAL], [1, 8, JUMP],
+  ];
+  for (const [sender, frame, input] of arrivals) {
+    for (const copy of [incremental, full]) deliver(copy.schedule, sender, epoch, frame, input);
+    full.playback.forgetReconciliation();
+    for (const copy of [incremental, full]) assertFalse(copy.playback.reconcile(copy.schedule, epoch, 0, copy.live, copy.history) === "rejected");
+    assertEquals(firstStateDifference(capture(full.live), capture(incremental.live)), undefined);
+    for (let retained = 1; retained <= 12; retained++) {
+      for (const slot of PARTICIPANT_SLOTS) {
+        assertTrue(sameInput(networkRow(full.history, epoch, retained, slot), networkRow(incremental.history, epoch, retained, slot)));
+        assertEquals(incremental.history.isSpeculative(epoch, retained), full.history.isSpeculative(epoch, retained));
+      }
+    }
+  }
+});
+
 test("lobby computers replay from corrected humans without network senders [invariant]", () => {
   // One human with three computers, and sparse two-human, one-computer occupancy.
   const warmFrames = 48;

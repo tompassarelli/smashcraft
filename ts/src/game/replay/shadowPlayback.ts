@@ -1,8 +1,8 @@
 // Runs a shadow schedule's two cursors: speculative frames on local and
 // predicted rows, corrected in place as remote rows arrive, and confirmed
 // frames on accepted rows in a world of their own.
-import { type InputRow, copyInput, emptyInput, predictInto } from "../input/inputRow";
-import { PARTICIPANT_SLOTS, participantInputs } from "../input/participants";
+import { type InputRow, copyInput, emptyInput, predictInto, sameInput } from "../input/inputRow";
+import { PARTICIPANT_SLOTS, type Slots, participantInputs } from "../input/participants";
 import {
   captureNetworkFrame,
   copyMatchFrameInput,
@@ -10,8 +10,6 @@ import {
   createMatchFrameInput,
   executeMatchFrame,
   hasNetworkRows,
-  networkRowsMatch,
-  replaceNetworkRows,
 } from "../match/frameInput";
 import { humanActive } from "../match/rules";
 import type { ShadowInputSchedule } from "../netcode/shadowSchedule";
@@ -42,6 +40,7 @@ export class ShadowInputPlayback {
   private readonly confirmedRow = createMatchFrameInput();
   private readonly correctionRow = createMatchFrameInput();
   private readonly corrections = new ReplayCorrections();
+  private readonly changedFrom: Slots<number> = [0, 0, 0, 0];
   private current: number | undefined;
   // The schedule's accepted packets at the last reconciliation: no row can differ until it changes.
   private reconciledPackets: number | undefined;
@@ -141,45 +140,47 @@ export class ShadowInputPlayback {
     // the latest of them alone gives each slot its prediction basis.
     const retained = Math.max(history.firstRetainedFrame(), schedule.firstAcceptedFrame(), history.firstCorrectableFrame() - 1);
     const lastFrame = history.lastRecordedFrame();
-    const lowest = schedule.takeLowestAccepted();
-    for (const row of actual) copyInput(row, NEUTRAL);
-    // Rows before the first frame of any newly accepted packet already hold
-    // what this walk would rebuild, so it resumes from the row before it.
-    let firstFrame = retained;
-    if (this.reconciledPackets !== undefined && lowest > retained + 1 && history.copyInputRow(epoch, Math.min(lowest, lastFrame + 1) - 1, correctionRow) && hasNetworkRows(correctionRow)) {
-      firstFrame = Math.min(lowest, lastFrame + 1);
-      for (const slot of PARTICIPANT_SLOTS) if (humanActive(match, slot)) copyNetworkRow(correctionRow, slot, actual[slot]);
+    let firstFrame = lastFrame + 1;
+    for (const slot of PARTICIPANT_SLOTS) {
+      const lowest = schedule.takeLowestAccepted(slot);
+      const first = this.reconciledPackets === undefined ? retained : Math.max(retained, lowest);
+      this.changedFrom[slot] = first;
+      if (!humanActive(match, slot) || first > lastFrame) continue;
+      firstFrame = Math.min(firstFrame, first);
+      copyInput(actual[slot], NEUTRAL);
+      const previous = history.inputRow(epoch, first - 1);
+      if (previous !== undefined && hasNetworkRows(previous)) copyNetworkRow(previous, slot, actual[slot]);
     }
+    const known = schedule.knownThrough();
     for (let frame = firstFrame; frame <= lastFrame; frame++) {
       const stored = history.inputRow(epoch, frame);
       if (stored === undefined || stored.mask !== world.mask) return "rejected";
       if (!hasNetworkRows(stored)) continue;
       if (!history.isSpeculative(epoch, frame)) {
-        for (const slot of PARTICIPANT_SLOTS) if (humanActive(match, slot)) copyNetworkRow(stored, slot, actual[slot]);
+        for (const slot of PARTICIPANT_SLOTS) if (humanActive(match, slot) && frame >= this.changedFrom[slot]) copyNetworkRow(stored, slot, actual[slot]);
         continue;
       }
-      let allAccepted = true;
+      let changed = 0;
       for (const slot of PARTICIPANT_SLOTS) {
-        if (!humanActive(match, slot)) continue;
+        if (!humanActive(match, slot) || frame < this.changedFrom[slot]) continue;
         const accepted = schedule.accepted(epoch, slot, frame);
         if (accepted !== undefined) {
           copyInput(actual[slot], accepted);
-          continue;
-        }
-        if (slot === localPlayer) {
+        } else if (slot === localPlayer) {
           copyNetworkRow(stored, slot, actual[slot]);
-          continue;
+        } else {
+          predictInto(actual[slot], actual[slot]);
         }
-        allAccepted = false;
-        predictInto(actual[slot], actual[slot]);
+        if (!sameInput(stored.network[slot], actual[slot])) changed |= 1 << slot;
       }
       // A row that ran on the inputs it keeps changes nothing in history.amend; one now wholly accepted only stops being correctable.
-      if (networkRowsMatch(stored, actual)) {
+      const allAccepted = frame <= known || PARTICIPANT_SLOTS.every(slot => slot === localPlayer || !humanActive(match, slot) || schedule.accepted(epoch, slot, frame) !== undefined);
+      if (changed === 0) {
         if (allAccepted && !history.settle(epoch, frame)) return "rejected";
         continue;
       }
       copyMatchFrameInput(correctionRow, stored);
-      replaceNetworkRows(correctionRow, actual);
+      for (const slot of PARTICIPANT_SLOTS) if ((changed & (1 << slot)) !== 0) copyInput(correctionRow.network[slot], actual[slot]);
       if (!(allAccepted ? corrections.add(correctionRow) : corrections.addSpeculative(correctionRow))) return "rejected";
     }
     const result = replay ? history.correct(epoch, corrections, live) : history.amend(epoch, corrections, live);

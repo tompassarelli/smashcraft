@@ -43,8 +43,7 @@ export class InputLedger {
   private retainedFrom = 1;
   private consumed = 0;
   private known = 0;
-  /** The first frame of any packet accepted since takeLowestAccepted last ran. */
-  private lowestAccepted = INPUT_LAST_FRAME + 1;
+  private readonly lowestAccepted = Array.from({ length: PARTICIPANT_CAPACITY }, () => INPUT_LAST_FRAME + 1);
 
   /**
    * Starts an epoch at firstFrame (1 for a match; later for an imported or
@@ -60,7 +59,7 @@ export class InputLedger {
     this.retainedFrom = firstFrame;
     this.consumed = firstFrame - 1;
     this.known = firstFrame - 1;
-    this.lowestAccepted = INPUT_LAST_FRAME + 1;
+    this.lowestAccepted.fill(INPUT_LAST_FRAME + 1);
     for (const ring of this.senders) ring.clear();
     for (let i = 0; i < delay; i++) {
       const frame = firstFrame + i;
@@ -157,14 +156,14 @@ export class InputLedger {
       if (this.isActive(other) && at(this.through, other) < known) known = at(this.through, other);
     }
     if (known > this.known) this.known = known;
-    if (firstFrame < this.lowestAccepted) this.lowestAccepted = firstFrame;
+    if (firstFrame < at(this.lowestAccepted, sender)) this.lowestAccepted[sender] = firstFrame;
     return "accepted";
   }
 
-  /** The first frame of any packet accepted since the last call (past INPUT_LAST_FRAME when none was), and starts afresh. */
-  takeLowestAccepted(): number {
-    const lowest = this.lowestAccepted;
-    this.lowestAccepted = INPUT_LAST_FRAME + 1;
+  /** This sender's first newly accepted frame, past INPUT_LAST_FRAME when none was; starts afresh. */
+  takeLowestAccepted(sender: number): number {
+    const lowest = at(this.lowestAccepted, sender);
+    this.lowestAccepted[sender] = INPUT_LAST_FRAME + 1;
     return lowest;
   }
 
