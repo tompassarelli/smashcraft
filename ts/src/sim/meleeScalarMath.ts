@@ -85,7 +85,7 @@ function hasNegativeSign(value: number): boolean {
   return value < 0 || (value === 0 && 1.0 / value < 0);
 }
 
-
+/** Finite binary32 vector angle; zero vectors use the vertical zero's sign. */
 export function meleeAtan2(y: number, x: number): number {
   const horizontal = roundToFloat32(x);
   const vertical = roundToFloat32(y);
@@ -182,7 +182,7 @@ function rememberAngle(angle: number): void {
   trigMemoSize++;
 }
 
-
+/** Binary32 sine for finite angles in [-float32(pi), float32(pi)]. */
 export function meleeSin(angle: number): number {
   const input = roundToFloat32(angle);
   if (input === 0 || input !== input) return sineAt(input);
@@ -194,7 +194,7 @@ export function meleeSin(angle: number): number {
   return value;
 }
 
-
+/** Binary32 cosine for finite angles in [-float32(pi), float32(pi)]. */
 export function meleeCos(angle: number): number {
   const input = roundToFloat32(angle);
   if (input === 0 || input !== input) return cosineAt(input);
