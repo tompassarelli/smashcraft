@@ -35,7 +35,6 @@ const METAL: readonly (readonly string[])[] = [
 interface SpecialSound {
   readonly perform: string;
   readonly hit: string;
-  readonly voice?: boolean | undefined;
 }
 
 interface FighterSound {
@@ -47,114 +46,114 @@ interface FighterSound {
   readonly normals?: { readonly [style: number]: { readonly perform?: string; readonly hit?: string } | undefined } | undefined;
 }
 
-const s = (perform: string, hit: string, voice?: boolean): SpecialSound => ({ perform, hit, voice });
+const s = (perform: string, hit: string): SpecialSound => ({ perform, hit });
 
 export const FIGHTER_SOUNDS: { readonly [character: number]: FighterSound | undefined } = {
   [Character.rifleman]: {
     weapon: Weapon.blunt, strong: "FlakCannonHit",
-    specials: [s("RiflemanAttack1", "GyrocopterAttack"), s("DruidOfTheClawMorph", "StampedeHit"), s("RiflemanAttack1", "GyrocopterAttack", true), s("WardBirth", "FrostNova")],
+    specials: [s("RiflemanAttack1", "GyrocopterAttack"), s("DruidOfTheClawMorph", "StampedeHit"), s("RiflemanAttack1", "GyrocopterAttack"), s("WardBirth", "FrostNova")],
     normals: { [AttackStyle.shot]: { perform: "RiflemanAttack1", hit: "GyrocopterAttack" } },
   },
   [Character.demonHunter]: {
     weapon: Weapon.blade, strong: "DemonHunterMissileHit",
-    specials: [s("DemonHunterMissileLaunch", "ManaBurn"), s("DestroyerMissileLaunch", "MetalHeavySliceFlesh", true), s("GargoyleMissileLaunch", "MetalMediumSliceFlesh"), s("FireballLaunch", "Fireball")],
+    specials: [s("DemonHunterMissileLaunch", "ManaBurn"), s("DestroyerMissileLaunch", "MetalHeavySliceFlesh"), s("GargoyleMissileLaunch", "MetalMediumSliceFlesh"), s("FireballLaunch", "Fireball")],
   },
   [Character.blademaster]: {
     weapon: Weapon.blade, swing: ["HeroBladeMasterAttack1", "HeroBladeMasterAttack2"], strong: "CriticalStrike",
-    specials: [s("DemonHunterMissileLaunch", "MetalMediumSliceFlesh"), s("WindWalk", "CriticalStrike"), s("Whirlwind", "MetalMediumSliceFlesh", true), s("MirrorImage", "MetalMediumSliceFlesh")],
+    specials: [s("DemonHunterMissileLaunch", "MetalMediumSliceFlesh"), s("WindWalk", "CriticalStrike"), s("Whirlwind", "MetalMediumSliceFlesh"), s("MirrorImage", "MetalMediumSliceFlesh")],
   },
   [Character.mountainKing]: {
     weapon: Weapon.hammer, swing: ["HeroMountainKingAttack1"], strong: "StormBolt",
-    specials: [s("StormBoltLaunch", "StormBolt"), s("BattleRoar", "MetalHeavyBashFlesh"), s("HeroMountainKingAttack1", "ThunderClap", true), s("Taunt", "ThunderClap")],
+    specials: [s("StormBoltLaunch", "StormBolt"), s("BattleRoar", "MetalHeavyBashFlesh"), s("HeroMountainKingAttack1", "ThunderClap"), s("Taunt", "ThunderClap")],
   },
   [Character.warden]: {
     weapon: Weapon.blade, effort: ["WardenAttack"], strong: "FanOfKnivesHit",
-    specials: [s("ShadowStrikeMissileBirth", "ShadowStrikeBirth"), s("BlinkCaster", "MetalHeavySliceFlesh", true), s("BlinkTarget", "MetalLightSliceFlesh"), s("FanOfKnives", "FanOfKnivesHit")],
+    specials: [s("ShadowStrikeMissileBirth", "ShadowStrikeBirth"), s("BlinkCaster", "MetalHeavySliceFlesh"), s("BlinkTarget", "MetalLightSliceFlesh"), s("FanOfKnives", "FanOfKnivesHit")],
   },
   [Character.lich]: {
     weapon: Weapon.blunt, effort: ["HeroLichAttack1"], strong: "LichMissile",
-    specials: [s("ZigguratFrostMissileLaunch", "FrostNova"), s("DeathAndDecayTarget", "DeathCoil", true), s("BansheeMissileLaunch", "LichMissile"), s("FrostArmor", "FrostBoltHit")],
+    specials: [s("ZigguratFrostMissileLaunch", "FrostNova"), s("DeathAndDecayTarget", "DeathCoil"), s("BansheeMissileLaunch", "LichMissile"), s("FrostArmor", "FrostBoltHit")],
   },
   [Character.forsakenPaladin]: {
     weapon: Weapon.blunt, swing: ["HeroPaladinAttack1", "HeroPaladinAttack2"], strong: "HolyBolt",
-    specials: [s("DispelMagic", "WoodHeavyBashFlesh"), s("DivineShield", "WoodHeavyBashFlesh", true), s("InnerFire", "WoodMediumBashFlesh"), s("Heal", "HolyBolt")],
+    specials: [s("DispelMagic", "WoodHeavyBashFlesh"), s("DivineShield", "WoodHeavyBashFlesh"), s("InnerFire", "WoodMediumBashFlesh"), s("Heal", "HolyBolt")],
   },
   [Character.dreadlord]: {
     weapon: Weapon.claw, strong: "BansheeMissileHit",
-    specials: [s("CarrionSwarmLaunch", "CarrionSwarmDamage"), s("BansheeMissileLaunch", "DeathPactTarget", true), s("GargoyleMissileLaunch", "MetalLightChopFlesh"), s("Sleep", "CreepSleep")],
+    specials: [s("CarrionSwarmLaunch", "CarrionSwarmDamage"), s("BansheeMissileLaunch", "DeathPactTarget"), s("GargoyleMissileLaunch", "MetalLightChopFlesh"), s("Sleep", "CreepSleep")],
   },
   [Character.shadowHunter]: {
     weapon: Weapon.axe, strong: "HunterMissileHit",
-    specials: [s("ShadowHunterMissileLaunch", "ShadowHunterMissileHit"), s("WardBirth", "PoisonArrowHit"), s("VoodooBirth", "MetalMediumChopFlesh", true), s("WitchDoctorMissileLaunch", "Polymorph")],
+    specials: [s("ShadowHunterMissileLaunch", "ShadowHunterMissileHit"), s("WardBirth", "PoisonArrowHit"), s("VoodooBirth", "MetalMediumChopFlesh"), s("WitchDoctorMissileLaunch", "Polymorph")],
   },
   [Character.pitLord]: {
     weapon: Weapon.axe, swing: ["PitLordAttack1", "PitLordAttack2", "PitLordAttack3"], strong: "InfernalAttack2",
-    specials: [s("HowlOfTerror", "CrushingWaveDamage", true), s("BalrogAttack1", "RockHeavyBashFlesh"), s("PitLordAttackSlam1", "InfernalBirth"), s("RainOfFireWave", "Fireball")],
+    specials: [s("HowlOfTerror", "CrushingWaveDamage"), s("BalrogAttack1", "RockHeavyBashFlesh"), s("PitLordAttackSlam1", "InfernalBirth"), s("RainOfFireWave", "Fireball")],
     normals: { [AttackStyle.dashAttack]: { perform: "PitLordAttackSlam1", hit: "RockHeavyBashFlesh" } },
   },
   [Character.beastmaster]: {
     weapon: Weapon.axe, effort: ["BeastmasterAttack"], strong: "AxeMissileHit",
-    specials: [s("AxeMissileLaunch", "AxeMissileHit"), s("DruidOfTheClawMorph", "StampedeHit", true), s("HarpyMissileLaunch", "HarpyMissileHit"), s("BristleBackMissileLaunch", "BristleBackMissileHit")],
+    specials: [s("AxeMissileLaunch", "AxeMissileHit"), s("DruidOfTheClawMorph", "StampedeHit"), s("HarpyMissileLaunch", "HarpyMissileHit"), s("BristleBackMissileLaunch", "BristleBackMissileHit")],
   },
   [Character.lichKing]: {
     weapon: Weapon.blade, swing: ["HeroDeathKnightAttack1"], strong: "FrostWyrmAttack1",
-    specials: [s("BreathOfFrost", "FrostNova"), s("PossessionMissileLaunch", "PossessionMissileHit", true), s("FrostArmor", "FrostBoltHit"), s("DeathAndDecayTarget", "DeathCoil")],
+    specials: [s("BreathOfFrost", "FrostNova"), s("PossessionMissileLaunch", "PossessionMissileHit"), s("FrostArmor", "FrostBoltHit"), s("DeathAndDecayTarget", "DeathCoil")],
   },
   [Character.thrall]: {
     weapon: Weapon.hammer, strong: "StormBolt",
-    specials: [s("HeroFarSeerAttack1", "LightningBolt"), s("FeralSpiritTarget", "MetalMediumChopFlesh"), s("RevealMap", "MetalMediumBashFlesh"), s("Earthquake", "Warstomp", true)],
+    specials: [s("HeroFarSeerAttack1", "LightningBolt"), s("FeralSpiritTarget", "MetalMediumChopFlesh"), s("RevealMap", "MetalMediumBashFlesh"), s("Earthquake", "Warstomp")],
   },
   [Character.jaina]: {
     weapon: Weapon.blunt, strong: "FrostBoltHit",
-    specials: [s("FrostBoltLaunch", "FrostBoltHit"), s("FrostArrowLaunch", "FrostNova", true), s("BlinkCaster", "BlinkTarget"), s("WaterElementalBirth", "WaterElementalMissile")],
+    specials: [s("FrostBoltLaunch", "FrostBoltHit"), s("FrostArrowLaunch", "FrostNova"), s("BlinkCaster", "BlinkTarget"), s("WaterElementalBirth", "WaterElementalMissile")],
   },
   [Character.sylvanas]: {
     weapon: Weapon.blunt, strong: "BlackArrowHit",
-    specials: [s("ArrowLaunch", "BlackArrowHit", true), s("Silence", "Curse"), s("BansheeMissileLaunch", "BansheeMissileHit"), s("DarkRitual", "DeathCoil")],
+    specials: [s("ArrowLaunch", "BlackArrowHit"), s("Silence", "Curse"), s("BansheeMissileLaunch", "BansheeMissileHit"), s("DarkRitual", "DeathCoil")],
   },
   [Character.cairne]: {
     weapon: Weapon.rock, swing: ["HeroTaurenChieftainAttack1", "HeroTaurenChieftainAttack2"], strong: "Pulverize",
-    specials: [s("ShockWave", "RockHeavyBashFlesh"), s("HeroTaurenChieftainAttack2", "Warstomp", true), s("AncestralSpirit", "WoodMediumBashFlesh"), s("Reincarnation", "Pulverize")],
+    specials: [s("ShockWave", "RockHeavyBashFlesh"), s("HeroTaurenChieftainAttack2", "Warstomp"), s("AncestralSpirit", "WoodMediumBashFlesh"), s("Reincarnation", "Pulverize")],
   },
   [Character.chen]: {
     weapon: Weapon.blunt, effort: ["BrewmasterAttack1", "BrewmasterAttack2"], strong: "Pulverize",
-    specials: [s("BreathOfFire", "Fireball", true), s("StrongDrinkMissile", "StrongDrink"), s("CycloneBirth", "WoodMediumBashFlesh"), s("Taunt", "Fireball")],
+    specials: [s("BreathOfFire", "Fireball"), s("StrongDrinkMissile", "StrongDrink"), s("CycloneBirth", "WoodMediumBashFlesh"), s("Taunt", "Fireball")],
   },
   [Character.peon]: {
     weapon: Weapon.axe, strong: "AxeMediumChopWood",
-    specials: [s("AxeMissileLaunch", "AxeMediumChopWood"), s("WardBirth", "WyvernSpearMissile"), s("CatapultAttack1", "WoodMediumBashFlesh", true), s("Repair", "AxeMediumChopWood")],
+    specials: [s("AxeMissileLaunch", "AxeMediumChopWood"), s("WardBirth", "WyvernSpearMissile"), s("CatapultAttack1", "WoodMediumBashFlesh"), s("Repair", "AxeMediumChopWood")],
   },
   [Character.tinker]: {
     weapon: Weapon.hammer, effort: ["GoblinAlchemistAttack"], strong: "GyrocopterAttack",
-    specials: [s("ClusterRocketsLaunch", "ClusterRocketsImpact"), s("PocketFactoryBirth", "GoblinSapperExplode"), s("MortarTeamAttack2", "MetalMediumBashFlesh"), s("HeroTinkerMorph", "SteamTankAttack", true)],
+    specials: [s("ClusterRocketsLaunch", "ClusterRocketsImpact"), s("PocketFactoryBirth", "GoblinSapperExplode"), s("MortarTeamAttack2", "MetalMediumBashFlesh"), s("HeroTinkerMorph", "SteamTankAttack")],
   },
   [Character.kaelthas]: {
     weapon: Weapon.blunt, strong: "HeroFlameLordMissileImpact",
-    specials: [s("FireballLaunch", "FlameStrike"), s("SiphonManaCaster", "ManaBurn"), s("PhoenixMissileLaunch", "Fireball", true), s("BanishCaster", "Feedback")],
+    specials: [s("FireballLaunch", "FlameStrike"), s("SiphonManaCaster", "ManaBurn"), s("PhoenixMissileLaunch", "Fireball"), s("BanishCaster", "Feedback")],
   },
   [Character.murloc]: {
     weapon: Weapon.claw, strong: "CrushingWaveDamage",
-    specials: [s("EnsnareMissile", "Ensnare"), s("BigWaterStep", "CrushingWaveDamage", true), s("CrushingWave", "WaterElementalMissile"), s("Parasite", "PoisonArrowHit")],
+    specials: [s("EnsnareMissile", "Ensnare"), s("BigWaterStep", "CrushingWaveDamage"), s("CrushingWave", "WaterElementalMissile"), s("Parasite", "PoisonArrowHit")],
   },
   [Character.grom]: {
     weapon: Weapon.axe, strong: "CriticalStrike",
-    specials: [s("BattleRoar", "MetalMediumChopFlesh", true), s("Whirlwind", "MetalHeavyChopFlesh"), s("Bloodlust", "MetalMediumChopFlesh"), s("UnholyFrenzy", "MetalHeavyChopFlesh")],
+    specials: [s("BattleRoar", "MetalMediumChopFlesh"), s("Whirlwind", "MetalHeavyChopFlesh"), s("Bloodlust", "MetalMediumChopFlesh"), s("UnholyFrenzy", "MetalHeavyChopFlesh")],
   },
   [Character.anubarak]: {
     weapon: Weapon.claw, effort: ["CryptLordAttack1", "CryptLordAttack2"], strong: "ImpaleHit",
-    specials: [s("Impale", "ImpaleHit", true), s("Burrow", "ImpaleLand"), s("ImpaleLand", "RockHeavyBashFlesh"), s("ScarabBirth", "CryptFiendMissileHit")],
+    specials: [s("Impale", "ImpaleHit"), s("Burrow", "ImpaleLand"), s("ImpaleLand", "RockHeavyBashFlesh"), s("ScarabBirth", "CryptFiendMissileHit")],
   },
   [Character.malfurion]: {
     weapon: Weapon.blunt, strong: "KeeperOfTheGroveMissileHit",
-    specials: [s("KeeperOfTheGroveMissileLaunch", "EntanglingRoots"), s("BattleRoar", "StampedeHit"), s("DruidOfTheTalonMorph", "DruidOfTheTalonMissileHit"), s("ForceOfNatureBirth", "WoodHeavyBashFlesh", true)],
+    specials: [s("KeeperOfTheGroveMissileLaunch", "EntanglingRoots"), s("BattleRoar", "StampedeHit"), s("DruidOfTheTalonMorph", "DruidOfTheTalonMissileHit"), s("ForceOfNatureBirth", "WoodHeavyBashFlesh")],
   },
   [Character.medivh]: {
     weapon: Weapon.blunt, strong: "ManaFlareMissile",
-    specials: [s("SorceressMissileLaunch", "SorceressMissileHit"), s("BlinkCaster", "Feedback"), s("DruidOfTheTalonMorph", "DruidOfTheTalonMissileHit"), s("SpellStealMissileLaunch", "SpellStealTarget", true)],
+    specials: [s("SorceressMissileLaunch", "SorceressMissileHit"), s("BlinkCaster", "Feedback"), s("DruidOfTheTalonMorph", "DruidOfTheTalonMissileHit"), s("SpellStealMissileLaunch", "SpellStealTarget")],
   },
   [Character.kobold]: {
     weapon: Weapon.axe, strong: "GoblinLandMineDeath",
-    specials: [s("SearingArrowLaunch", "SearingArrowHit", true), s("Burrow", "MetalLightChopFlesh"), s("VolcanoMissileLaunch", "WoodLightBashFlesh"), s("WardBirth", "GoblinLandMineDeath")],
+    specials: [s("SearingArrowLaunch", "SearingArrowHit"), s("Burrow", "MetalLightChopFlesh"), s("VolcanoMissileLaunch", "WoodLightBashFlesh"), s("WardBirth", "GoblinLandMineDeath")],
   },
 };
 
@@ -208,7 +207,7 @@ function resolve(character: Character, move: number): MoveSound | undefined {
       hit: [layer([special.hit], at(TIER_HIT_VOLUME, SoundTier.medium))],
       strong: [layer([special.hit], at(TIER_HIT_VOLUME, SoundTier.large)), layer([fighter.strong], SWEETENER_VOLUME)],
       shield: [layer([at(at(METAL, weapon), SoundTier.medium)], SHIELD_VOLUME)],
-      voice: special.voice === true ? layer([warcryVoice(character)], VOICE_VOLUME) : undefined,
+      voice: undefined,
     };
   }
   const style = move;

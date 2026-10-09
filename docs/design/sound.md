@@ -93,7 +93,7 @@ layers, and each layer is a native sound with alternatives:
 | Weak hit | The frame the hit lands (its hitlag starts) | The fighter's weapon striking flesh at the move's tier. A special plays its signature hit. A fire, electric, ice, dark, holy, poison or arcane hit layers that element's sound. |
 | Strong hit | As weak, when the hit is strong | The heavy weapon sound plus the fighter's strong sweetener. |
 | Shield hit | The frame a raised shield takes the hit | The weapon striking metal at the move's tier, over the shield's own Defend sound. |
-| Voice | With perform, on two of three uses | The model's effort grunt on smash attacks, or the hero's battle cry on one signature special. |
+| Voice | With perform, on two of three uses | The model's effort grunt on smash attacks only. Battle cries and other unit voice lines never play on moves; they belong to character select and results (Tom, 10 Oct: voice on every special is noise). |
 
 - **Whiff** is perform alone, as in Smash.
 - **Weapon families** come from the game's combat table: blade (metal slice),
