@@ -1,7 +1,7 @@
 // `bun run test`: the suite in a few processes, then Wisp's timing phase
 // (wisp:docs/testing.md), then its CPU against the committed baseline
 // (scripts/testCost.ts, docs/commands/testing.md).
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { availableParallelism, tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import * as BunRuntime from "@effect/platform-bun/BunRuntime";
@@ -42,8 +42,17 @@ const junitDirectory = process.env.TEST_JUNIT_DIR;
 // SWEEPS=1 runs only the sweeps (src/runtime/sweep.ts) in the same processes.
 const GAME_SHARDS = 3;
 const REST_SHARDS = 4;
-const baselinePath = resolve(project, "test/cost-baseline.tsv");
-const baseline = readBaseline(baselinePath);
+// CPU models scale files differently (module loading against arithmetic), so each model compares with its own rows.
+const cpuModel = (() => {
+  try {
+    return /^model name\s*:\s*(.+)$/m.exec(readFileSync("/proc/cpuinfo", "utf8"))?.[1]?.trim() ?? "unknown";
+  } catch {
+    return "unknown";
+  }
+})();
+const baselineName = `test/cost-baseline/${cpuModel.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.tsv`;
+const baselinePath = resolve(project, baselineName);
+const baseline = readBaseline(existsSync(baselinePath) ? baselinePath : resolve(project, "test/cost-baseline.tsv"));
 const fileCost = (file: string) => baseline.get(file)?.cpu ?? 1;
 const sweeps = process.env.SWEEPS === "1";
 const hasSweeps = (file: string) => /(^|[^\w.])sweep\)?\(/m.test(readFileSync(resolve(project, file), "utf8"));
@@ -149,6 +158,8 @@ const program = Effect.gen(function*() {
         else if (row.unit !== undefined) addCost(measured, row.unit, row.tests ?? 0, row.cpu ?? 0, row.max ?? 0);
       }
     }
+    const recorded = existsSync(baselinePath);
+    mkdirSync(dirname(baselinePath), { recursive: true });
     const judgement = judge({
       label: "suite", measured, baselinePath, project, whole: only.length === 0,
       totalCpu: results.reduce((sum, result) => sum + result.cpu, 0),
@@ -158,9 +169,10 @@ const program = Effect.gen(function*() {
     const busy = pressure.peak !== undefined && pressure.peak > BUSY_PRESSURE;
     for (const line of judgement.risen) console.log(busy ? `${line} (inconclusive: CPU pressure ${percent(pressure.peak)})` : line);
     if (judgement.risen.length > 0 && busy) inconclusive = true;
-    if (judgement.updated > 0) console.log(`test cost baseline: ${judgement.updated} rows updated in ts/test/cost-baseline.tsv; commit them with the tests`);
+    if (!recorded && only.length === 0) console.log(`test cost baseline: no rows yet for ${cpuModel}, so this run records them in ts/${baselineName} without comparing; commit the file`);
+    else if (judgement.updated > 0) console.log(`test cost baseline: ${judgement.updated} rows updated in ts/${baselineName} (${cpuModel}); commit them with the tests`);
     console.log(judgement.heaviest);
-    console.log(judgement.summary);
+    console.log(`${judgement.summary}, rows for ${cpuModel}`);
     if (judgement.risen.length > 0 && !busy) return 1;
   }
   console.log(`CPU pressure during this run: average ${percent(pressure.average)}, peak some avg10 ${percent(pressure.peak)} (budget and timing verdicts count as inconclusive above ${BUSY_PRESSURE}%)`);

@@ -21,18 +21,19 @@
   on a GitHub runner; enforced by smashcraft:ts/scripts/testCost.ts). `bun run test`
   and `bun scripts/lua-tests.ts` charge each test's CPU to its file (a game
   test to its src module) and compare each file with its row in
-  smashcraft:ts/test/cost-baseline.tsv or smashcraft:ts/test/lua/cost-baseline.tsv.
+  smashcraft:ts/test/cost-baseline/CPU-MODEL.tsv or smashcraft:ts/test/lua/cost-baseline.tsv.
   A test over the ceiling fails, and on a whole run so does a file whose CPU
   per test rises more than 25% (and more than 1 s) at the same test count;
   both name the file and say "shrink it or move it to the farm" (shrink it, or
   make it a `sweep()`). A new file or a changed test count passes under the
   ceiling and rewrites its row: commit it with the tests. `TEST_COST_UPDATE=1`
   rewrites every measured row, after a cut. A file's CPU depends on the files
-  before it in its process, so every machine runs the same processes (fixed
-  counts, files by name hash), and rows come from CI's runner: `gh workflow
-  run ci.yml --ref BRANCH -f cost-update=true` on the exact commit, then
-  commit the `cost-baseline` artifact as ts/test/cost-baseline.tsv (every CI
-  run uploads it). Rows are scaled by the run's
+  before it in its process and on the CPU model, so every machine runs the
+  same processes (fixed counts, files by name hash) and each CPU model has its
+  own rows; a model without rows records them and passes. Every CI run
+  uploads them as the `cost-baseline` artifact; commit its file to ts/test/cost-baseline/,
+  or rewrite them on CI with `gh workflow run ci.yml --ref BRANCH -f
+  cost-update=true` on the exact commit. Rows are scaled by the run's
   median ratio, so a slower machine compares fairly; a verdict reached while
   CPU pressure was above Wisp's 30% is inconclusive (exit 75), not a failure.
   Every run ends with the suite's CPU, test count and CPU per test against
