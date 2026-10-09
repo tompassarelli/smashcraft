@@ -6,12 +6,16 @@
 // state; predicted presentation only moves their existing handles.
 import type { Character } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
-import { type AttackCueState, attackCueState, fighterRenderedCues } from "../presentation/attackCues";
+import { ATTACK_CUES, type AttackCueState, attackCueState, fighterRenderedCues } from "../presentation/attackCues";
 import { characterModelScale } from "../presentation/modelScale";
 import { CUE_ANCHORS, type Cue, specialCueState } from "../presentation/specialCues";
 import { type ParkedFlags, type WorldOrigin, facingYaw, parkOnce, placeEffect } from "./effects";
 import { HitAreaEffects } from "./hitAreaEffects";
 import { DEFINITIVE_CUE_EMITTERS } from "../presentation/cueEmitterInfo";
+import { modelFailed } from "wisp/src/platform/modelFailures";
+import { fighterName } from "../sim/heroes/registry";
+
+export const MISSING_CUE_MODEL = "Objects\\InventoryItems\\QuestionMark\\QuestionMark.mdl";
 
 declare global { var __smashcraftCueDefinitive: boolean | undefined; }
 
@@ -36,6 +40,9 @@ interface PopcornCue {
 }
 
 export class SpecialCueEffects {
+  private readonly missing: effect;
+  private readonly missingParked: ParkedFlags = [];
+  private readonly reported: Record<string, boolean | undefined> = {};
   private readonly areas: HitAreaEffects;
   private readonly cues: CueModel[] = [];
   private parked: ParkedFlags | undefined;
@@ -51,7 +58,8 @@ export class SpecialCueEffects {
   private readonly scale: number;
   private readonly attack: AttackCueState = { cue: undefined, x: 0.0, z: 0.0, key: 0 };
 
-  constructor(character: Character, private readonly origin: WorldOrigin) {
+  constructor(private readonly character: Character, private readonly origin: WorldOrigin) {
+    this.missing = AddSpecialEffect(MISSING_CUE_MODEL, origin.x, origin.y);
     this.areas = new HitAreaEffects(character, origin);
     this.front = origin.y - 12.0;
     this.scale = characterModelScale(character);
@@ -63,6 +71,7 @@ export class SpecialCueEffects {
   }
 
   clear(): void {
+    parkOnce(this.missing, this.origin, this.missingParked, 0);
     this.areas.clear();
     const parked = (this.parked ??= []);
     for (let index = 0; index < this.cues.length; index++) {
@@ -106,10 +115,12 @@ export class SpecialCueEffects {
     let x = 0.0;
     let z = 0.0;
     let key = 0;
+    let cueName = "normal attack";
     if (fighter !== undefined && playing) {
       const special = specialCueState(fighter);
       if (special.cues !== undefined && special.phase !== "none") {
         cue = special.phase === "startup" ? special.cues.startup : special.cues.active;
+        cueName = `${special.cues.spell} ${special.phase}`;
         const anchor = CUE_ANCHORS[cue.anchor];
         x = anchor.x * this.scale;
         z = anchor.z * this.scale;
@@ -117,6 +128,7 @@ export class SpecialCueEffects {
       } else {
         const attack = attackCueState(fighter, this.attack);
         cue = attack.cue;
+        for (const entries of Object.values(ATTACK_CUES[this.character] ?? {})) for (const entry of entries ?? []) if (entry.cue === cue) cueName = entry.name;
         if (cue !== undefined && cue.anchor === "overhead") {
           x = 0.0;
           z = CUE_ANCHORS.overhead.z * this.scale;
@@ -128,10 +140,23 @@ export class SpecialCueEffects {
       }
     }
     const parked = (this.parked ??= []);
+    const failed = cue !== undefined && modelFailed(cue.model);
+    if (failed && fighter !== undefined && cue !== undefined) {
+      this.missingParked[0] = false;
+      placeEffect(this.missing, this.origin.x + fighter.motion.x + fighter.facing * x, this.front, this.origin.z + fighter.motion.z + z);
+      BlzSetSpecialEffectScale(this.missing, 1.5 * this.scale);
+      BlzSetSpecialEffectColor(this.missing, 255, 0, 255);
+      BlzSetSpecialEffectAlpha(this.missing, 255);
+      const identity = `${cueName}: ${cue.model}`;
+      if (this.reported[identity] !== true) {
+        this.reported[identity] = true;
+        DisplayTimedTextToPlayer(GetLocalPlayer(), 0.0, 0.0, 30.0, `Missing effect: ${fighterName(this.character)} / ${identity}`);
+      }
+    } else parkOnce(this.missing, this.origin, this.missingParked, 0);
     for (let index = 0; index < this.cues.length; index++) {
       const entry = this.cues[index];
       if (entry === undefined) continue;
-      if (fighter === undefined || entry.cue !== cue) {
+      if (fighter === undefined || entry.cue !== cue || failed) {
         parkOnce(entry.model, this.origin, parked, index);
         continue;
       }
@@ -155,6 +180,10 @@ export class SpecialCueEffects {
     }
     if (fighter !== undefined && playing) {
       for (const entry of this.popcorn) {
+        if (modelFailed(entry.cue.model)) {
+          parkOnce(entry.model, this.origin, [], 0);
+          continue;
+        }
         if (!this.definitive && entry.cue !== cue) {
           parkOnce(entry.model, this.origin, [], 0);
           continue;
@@ -183,6 +212,7 @@ export class SpecialCueEffects {
   destroy(): void {
     this.clear();
     this.areas.destroy();
+    DestroyEffect(this.missing);
     for (const { model } of this.cues) DestroyEffect(model);
     this.cues.length = 0;
   }

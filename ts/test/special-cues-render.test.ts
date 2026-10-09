@@ -1,15 +1,66 @@
 import { expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
-import { SpecialCueEffects } from "../src/game/render/specialCueEffects";
+import { MISSING_CUE_MODEL, SpecialCueEffects } from "../src/game/render/specialCueEffects";
 import { Character, SpecialAction } from "../src/game/sim/codes";
 import { createFighter } from "../src/game/sim/fighter";
 import { heroDefinition } from "../src/game/sim/heroes/registry";
-import { heroCueWindows } from "../src/game/presentation/specialCues";
+import { HERO_CUES, heroCueWindows } from "../src/game/presentation/specialCues";
+import { pollModelFailures, startModelFailures } from "wisp/src/platform/modelFailures";
+import { modelFailureFile, modelFailureRequestFile } from "wisp/src/runtime/gameFiles";
+import { configureRuntime } from "wisp/src/runtime/config";
 import { ProjectilePresentation } from "../src/game/render/projectilePresentation";
 import { heroProjectileArt } from "../src/game/presentation/projectileArt";
 import { mutableProjectile } from "../src/game/sim/fighterProjectiles";
 import { ProjectileKind } from "../src/game/sim/codes";
+
+test("a missing Chen flame model shows a debug marker and fighter/cue/path error without local handle births [spec #365]", () => {
+  const cue = HERO_CUES[Character.chen]?.neutral.active;
+  const move = heroDefinition(Character.chen)?.specials?.neutral.ground;
+  if (cue === undefined || move === undefined) throw new Error("missing Chen cue");
+  const original = cue.model;
+  const missing = "war3mapImported\\ForcedMissingChenFlame365.mdx";
+  Object.assign(cue, { model: missing });
+  const runtime = installHeadless(SMASHCRAFT_HEADLESS);
+  try {
+    const clients = runtime.clients({ install() {}, start() {} }, [0, 1]);
+    const births: number[] = [];
+    for (const client of clients.clients) client.run(() => {
+      configureRuntime({ filePrefix: "smashcraft", globalPrefix: "__smashcraft", readyPrefix: "SC_HRR" });
+      startModelFailures();
+      const token = client.files.get(modelFailureRequestFile(client.slot, "smashcraft"))?.[0];
+      if (token === undefined) throw new Error("missing failure request");
+      const fighter = createFighter(Character.chen, 0, 1);
+      fighter.special.action = SpecialAction.heroNeutral;
+      fighter.special.frame = heroCueWindows(move).active.first;
+      const renderer = new SpecialCueEffects(Character.chen, { x: 0, y: 0, z: 0 });
+      renderer.confirm(fighter, true, 0);
+      renderer.present(fighter, true, false);
+      births.push(client.log.filter(call => call.name === "AddSpecialEffect").length);
+      expect(client.effectPoses().find(pose => pose.model === MISSING_CUE_MODEL)?.scale).toBe(0);
+      const begin = client.log.length;
+      if (client.slot === 0) client.published.set(modelFailureFile(token, 1, "smashcraft"), [missing.split("\\").join("/")]);
+      for (let tick = 0; tick < 32; tick++) pollModelFailures();
+      renderer.present(fighter, true, false);
+      renderer.present(fighter, true, false);
+      const shown = client.effectPoses().filter(pose => pose.scale > 0 && pose.alpha > 0);
+      expect(shown.some(pose => pose.model === MISSING_CUE_MODEL)).toBe(client.slot === 0);
+      expect(shown.some(pose => pose.model === missing)).toBe(client.slot !== 0);
+      expect(client.log.slice(begin).filter(call => call.name === "AddSpecialEffect" || call.name === "DestroyEffect")).toHaveLength(0);
+      const errors = client.log.slice(begin).filter(call => call.name === "DisplayTimedTextToPlayer");
+      expect(errors).toHaveLength(client.slot === 0 ? 1 : 0);
+      if (client.slot === 0) {
+        expect(errors[0]?.args[4]).toContain("Chen Stormstout / Breath of Fire active");
+        expect(errors[0]?.args[4]).toContain(missing);
+      }
+      renderer.destroy();
+    });
+    expect(births[0]).toBe(births[1]);
+  } finally {
+    Object.assign(cue, { model: original });
+    runtime.restore();
+  }
+});
 
 // Classic model sequences, extracted from Warcraft 3.0.1 on 8 Oct.
 // Defend's first sequence is Nothing; Clap's is nothing; the other burst

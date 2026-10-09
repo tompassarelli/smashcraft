@@ -133,10 +133,11 @@ test("playable: selection creates no effect and reads no file; match start creat
   });
   // Stage handles are prepared once under the cover, then retained at match start.
   expect(loadingCreated).toBe(stageModels(stage).length);
-  // Popcorn spell cues are born on confirmed casts, after the match starts (#144).
+  // Popcorn cues are born on confirmed casts; the debug marker is pooled with the fighter.
   expect(HIT_AREA_EFFECT_CAPACITY).toBe(12);
   expect(start.poolCreated).toBe(4 * poolEffects(Character.demonHunter));
-  expect(start.created).toBe(start.poolCreated + 4 * (1 + PROJECTILE_CAPACITY + fighterRenderedCues(Character.demonHunter).filter(cue => DEFINITIVE_CUE_EMITTERS[cue.model] !== true).length + HIT_AREA_EFFECT_CAPACITY + 2));
+  const pooledCues = fighterRenderedCues(Character.demonHunter).filter(cue => DEFINITIVE_CUE_EMITTERS[cue.model] !== true).length;
+  expect(start.created).toBe(start.poolCreated + 4 * (1 + PROJECTILE_CAPACITY + pooledCues + HIT_AREA_EFFECT_CAPACITY + 3));
   expect(start.fileReads).toBe(0);
 
   const match: Work[] = [];
