@@ -32,7 +32,9 @@
 #! expect a 75 special-form 6 action 14
 #! expect b 80 damage 11.460
 #! expect a 200 special 16 form 0
-#! expect a 223 special 0 form 0 action-frame 0 x -202.456
+# #333 (cb83c0780) slows b's entry dash; #338 (8a9eb0218) pushes their
+# overlapping bodies apart before Mirror Image leaves its 132-unit step.
+#! expect a 223 special 0 form 0 action-frame 0 x -216.196
 #! expect a 260 special 16 form 3
 #! expect b 267 damage 21.010
 #! expect a 650 special 16 form 3
