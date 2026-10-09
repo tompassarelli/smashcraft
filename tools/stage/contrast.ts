@@ -79,6 +79,7 @@ export async function measure(maskPath: string, frames: readonly string[]): Prom
 const STOCK_LIGHT = { terrain: "Environment\\DNC\\DNCLordaeron\\DNCLordaeronTerrain\\DNCLordaeronTerrain.mdl", unit: "Environment\\DNC\\DNCLordaeron\\DNCLordaeronUnit\\DNCLordaeronUnit.mdl" };
 const LOOK = ["day-night-light", "fog", "height-fog-falloff", "sky", "shadows", "point-lights", "pbr", "point-light-shadows", "ambient-occlusion", "bloom"] as const;
 const HORIZON = 1 / 3;
+const MINIMAL_STAGES = new Set([0, 2]);
 
 async function stockLightCheck(args: readonly string[]): Promise<number> {
   const half = args.includes("--half");
@@ -99,7 +100,8 @@ async function stockLightCheck(args: readonly string[]): Promise<number> {
   const normalize = (path: string) => path.replaceAll("\\", "/").toLowerCase();
   const key = (model: string, color: readonly number[] | undefined) => `${normalize(model)}|${(color ?? []).slice(0, 3).join(",")}`;
   console.log("stage\tmode\tclient\tview\tfighter L* stock light>stage\t|dL| stock>stage\tdE00 stock>stage\tcontrast\tempty% stock>stage\tL*");
-  let failed = 0;
+  let failed = 0, empty = 0;
+  const { emptyBackdropShare, EMPTY_BACKDROP_LIMIT } = await import("./layout");
   for (const stage of stages) {
     const runtime = installHeadless(SMASHCRAFT_HEADLESS);
     const clients = runtime.clients({ start, install });
@@ -139,18 +141,20 @@ async function stockLightCheck(args: readonly string[]): Promise<number> {
         const frame = (offset: number) => `${directory}/p${client}-frame-${scene.frame + offset}.png`;
         const { rows: [atStock, atStage, stockLit] } = await measure(frame(2000), [frame(3000), frame(0), frame(4000)]);
         if (atStock === undefined || atStage === undefined || stockLit === undefined) throw new Error(`${directory}: missing contrast rows`);
-        const { emptyBackdropShare } = await import("./layout");
         const emptyStock = await emptyBackdropShare(frame(1000), frame(3000), HORIZON), emptyStage = await emptyBackdropShare(frame(1000), frame(0), HORIZON);
         const darker = Number(atStage.fighterL.toFixed(1)) < Number(stockLit.fighterL.toFixed(1));
         const holds = Number(atStage.absDL.toFixed(1)) >= Number(atStock.absDL.toFixed(1)) && Number(atStage.dE00.toFixed(1)) >= Number(atStock.dE00.toFixed(1));
+        const overfull = !MINIMAL_STAGES.has(stage) && Number(emptyStage.toFixed(2)) > EMPTY_BACKDROP_LIMIT;
         if (darker) failed++;
+        if (overfull) empty++;
         const view = scene === scenes.find(entry => entry.client === client) ? "near" : "far";
-        console.log(`${stage}\t${mode}\t${client}\t${view}\t${stockLit.fighterL.toFixed(1)}>${atStage.fighterL.toFixed(1)}\t${atStock.absDL.toFixed(1)}>${atStage.absDL.toFixed(1)}\t${atStock.dE00.toFixed(1)}>${atStage.dE00.toFixed(1)}\t${holds ? "holds" : "falls"}\t${emptyStock.toFixed(2)}>${emptyStage.toFixed(2)}\t${darker ? "FAIL" : "pass"}${undrawn === "" ? "" : `\t${undrawn}`}`);
+        console.log(`${stage}\t${mode}\t${client}\t${view}\t${stockLit.fighterL.toFixed(1)}>${atStage.fighterL.toFixed(1)}\t${atStock.absDL.toFixed(1)}>${atStage.absDL.toFixed(1)}\t${atStock.dE00.toFixed(1)}>${atStage.dE00.toFixed(1)}\t${holds ? "holds" : "falls"}\t${emptyStock.toFixed(2)}>${emptyStage.toFixed(2)}${MINIMAL_STAGES.has(stage) ? " minimal" : overfull ? " FAIL" : ""}\t${darker ? "FAIL" : "pass"}${undrawn === "" ? "" : `\t${undrawn}`}`);
       }
     }
   }
   console.log(failed === 0 ? "PASS: no stage draws its fighters darker than the stock light" : `FAIL: ${failed} views draw fighters darker than the stock light`);
-  return failed === 0 ? 0 : 1;
+  console.log(empty === 0 ? `PASS: every full stage keeps its empty backdrop within ${EMPTY_BACKDROP_LIMIT}%` : `FAIL: ${empty} views of full stages show more than ${EMPTY_BACKDROP_LIMIT}% empty backdrop`);
+  return failed === 0 && empty === 0 ? 0 : 1;
 }
 
 if (import.meta.main) {
