@@ -37,9 +37,10 @@ if (out !== undefined && out !== "") {
   };
   const file = () => relative(project, Bun.main);
   let mark = seconds();
-  // Charge only test bodies: the gap before a file's first test (the previous file's teardown, GC, modules not yet loaded) depends on its process grouping.
   beforeEach(() => {
-    mark = seconds();
+    const now = seconds();
+    charge(file(), 0, now - mark);
+    mark = now;
   });
   afterEach(() => {
     const now = seconds();
@@ -60,6 +61,7 @@ if (out !== undefined && out !== "") {
     }
   });
   afterAll(() => {
+    charge(file(), 0, seconds() - mark);
     appendFileSync(out, [...costs].map(([unit, cost]) => `${JSON.stringify({ unit, ...cost })}\n`).join(""));
   });
 }
