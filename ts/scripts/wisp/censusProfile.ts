@@ -33,8 +33,6 @@ export function profileRun(
   }
   const phaseCounts = new Map<number, Map<number, number[]>>();
   let phaseRow: number[] | undefined;
-  const breakdowns = new Map<number, Map<number, number[]>>();
-  let breakdown: number[] | undefined;
 
   const stack = (first: number): [number, boolean] => {
     let phase = 4;
@@ -73,13 +71,11 @@ export function profileRun(
       if (simulation) phaseRow[5] = (phaseRow[5] ?? 0) + 1;
     }
     const seen = new Set<number>();
-    const trace: string[] = [];
     for (let level = 2; ; level++) {
       const info = debug.getinfo(level, "S");
       if (info === undefined) break;
       if (info.short_src !== "map") continue;
       const line = info.linedefined ?? 0;
-      trace.push(names.get(line) ?? "");
       let entry = current.get(line);
       if (entry === undefined) {
         entry = [0, 0];
@@ -91,17 +87,6 @@ export function profileRun(
         seen.add(line);
       }
     }
-    if (event === "count" && breakdown !== undefined) {
-      const has = (value: string) => trace.some(name => name.includes(value));
-      const category = has(".copySnapshot(") || has(".saveRow(") ? 0
-        : has(".copyReplayState(") ? 1
-        : has("game.match.botPlay ") || has(".repeatedComputers(") ? 3
-        : has("game.match.step ") && has("stepMatch(") && has(".repair(") ? 2
-        : has("platform.shell.view function ____exports.renderUi(") || has("game.ui.matchHud ") ? 6
-        : has("game.render.modelSound") || has("game.presentation.matchAudio ") ? 5
-        : trace.some(name => name.startsWith("game.presentation.") || name.startsWith("game.render.")) ? 4 : 7;
-      breakdown[category] = (breakdown[category] ?? 0) + 1;
-    }
   };
   let clients: Lockstep | undefined;
   const scope: ClientScope = {
@@ -110,10 +95,6 @@ export function profileRun(
       if (!frames.has(frame)) return;
       current = counts.get(frame) ?? new Map();
       counts.set(frame, current);
-      const breakdownSlots = breakdowns.get(frame) ?? new Map<number, number[]>();
-      breakdowns.set(frame, breakdownSlots);
-      breakdown = breakdownSlots.get(client.slot) ?? [0, 0, 0, 0, 0, 0, 0, 0];
-      breakdownSlots.set(client.slot, breakdown);
       if (phases) {
         const slots = phaseCounts.get(frame) ?? new Map<number, number[]>();
         phaseCounts.set(frame, slots);
@@ -126,7 +107,6 @@ export function profileRun(
       debug.sethook();
       current = undefined;
       phaseRow = undefined;
-      breakdown = undefined;
     },
   };
   const lockstep = luaLockstep(map, bundle, readFile(declarationsPath), scope, delivery);
@@ -134,7 +114,6 @@ export function profileRun(
   const result = play(lockstep, { begin: () => undefined, typed: () => undefined });
   for (const [frame, functions] of counts) for (const [line, [self, inclusive]] of functions) print(`prof\t${frame}\t${line}\t${self}\t${inclusive}`);
   for (const [frame, slots] of phaseCounts) for (const [slot, row] of slots) print(`phase\t${frame}\t${slot}\t${row.join("\t")}`);
-  for (const [frame, slots] of breakdowns) for (const [slot, row] of slots) print(`breakdown\t${frame}\t${slot}\t${row.join("\t")}`);
   for (const line of result.lines) print(`journey: ${line}`);
   return result.problems;
 }
