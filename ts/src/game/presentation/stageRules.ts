@@ -1,5 +1,6 @@
 import type { StageLight } from "../assets/stageLighting";
 import { luma, type DeckPalette } from "../assets/stagePalette";
+import { cosineTurns, sineTurns } from "../sim/mathTables";
 import { PATTERNED_DECKS_STAGE } from "../sim/stage";
 import type { SceneryPiece, StageScenery } from "./stageScenery";
 
@@ -78,11 +79,11 @@ const isEffect = (model: string): boolean => model.toLowerCase().startsWith("abi
 
 function placed(piece: SceneryPiece, box: ModelBox): Placed {
   const [mx, my, mz] = piece.matrixScale ?? [1, 1, 1];
-  const turn = (piece.yaw * Math.PI) / 180;
+  const turns = piece.yaw / 360, cosine = cosineTurns(turns), sine = sineTurns(turns);
   const xs: number[] = [], ys: number[] = [];
   for (const x of [box.min[0] * mx, box.max[0] * mx]) for (const y of [box.min[1] * my, box.max[1] * my]) {
-    xs.push((x * Math.cos(turn) - y * Math.sin(turn)) * piece.scale + piece.x);
-    ys.push((x * Math.sin(turn) + y * Math.cos(turn)) * piece.scale + piece.y);
+    xs.push((x * cosine - y * sine) * piece.scale + piece.x);
+    ys.push((x * sine + y * cosine) * piece.scale + piece.y);
   }
   return { left: Math.min(...xs), right: Math.max(...xs), front: Math.min(...ys), back: Math.max(...ys), bottom: box.min[2] * mz * piece.scale + piece.z, top: box.max[2] * mz * piece.scale + piece.z };
 }
