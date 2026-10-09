@@ -1,0 +1,176 @@
+name: Playtest
+
+# #403's overnight computer playtester: headless computer-versus-computer
+# matches across every fighter, stage and computer level on the newest green
+# main, each seed played twice to compare state hashes, sharded over hosted
+# runners one process a core like the balance field. One report, and one
+# issue a finding kind, updated rather than duplicated
+# (smashcraft:ts/scripts/playtestCore.ts).
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Commit, branch or tag to play (empty is the newest green main)
+        default: ""
+      matches:
+        description: Matches to play
+        default: "1000"
+      ms-per-match:
+        description: Measured milliseconds a match takes with both runs, which sets the shard count
+        default: "1200"
+      target-minutes:
+        description: Minutes a shard may take
+        default: "2"
+      tag:
+        description: Names the run so `bun wisp farm` can find the one it dispatched
+        default: ""
+  schedule:
+    - cron: "43 3 * * *"
+
+run-name: Playtest ${{ inputs.ref || 'green main' }} ${{ inputs.matches || '1000' }} matches ${{ inputs.tag }}
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      sha: ${{ steps.plan.outputs.sha }}
+      shards: ${{ steps.plan.outputs.shards }}
+    steps:
+      - id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REF: ${{ inputs.ref }}
+        run: |
+          if [ -n "$REF" ]; then
+            echo "ref=$REF" >> "$GITHUB_OUTPUT"
+          else
+            sha=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?branch=main&status=success&event=push&per_page=1" --jq '.workflow_runs[0].head_sha')
+            if [ -z "$sha" ] || [ "$sha" = "null" ]; then echo "::error::no green CI run on main"; exit 1; fi
+            echo "ref=$sha" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.resolve.outputs.ref }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+        working-directory: ts
+      - id: plan
+        working-directory: ts
+        env:
+          MATCHES: ${{ inputs.matches || '1000' }}
+          MS: ${{ inputs.ms-per-match || '1200' }}
+          MINUTES: ${{ inputs.target-minutes || '2' }}
+        run: |
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "shards=$(bun scripts/playtest.ts --plan "$MATCHES" --ms-per-match "$MS" --target-minutes "$MINUTES" --cores 4)" >> "$GITHUB_OUTPUT"
+
+  shard:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        range: ${{ fromJSON(needs.plan.outputs.shards) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+        working-directory: ts
+      - name: Play the range, one process a core
+        working-directory: ts
+        env:
+          FIRST: ${{ matrix.range.first }}
+          COUNT: ${{ matrix.range.count }}
+        run: |
+          mkdir -p runs
+          cores=$(nproc)
+          per=$(( (COUNT + cores - 1) / cores ))
+          pids=()
+          for (( i = 0; i < cores; i++ )); do
+            from=$(( FIRST + i * per ))
+            left=$(( FIRST + COUNT - from ))
+            if (( left <= 0 )); then break; fi
+            n=$(( left < per ? left : per ))
+            bun scripts/playtest.ts --first "$from" --count "$n" --out "runs/$from.json" 2> "runs/$from.log" &
+            pids+=("$!")
+          done
+          status=0
+          for pid in "${pids[@]}"; do wait "$pid" || status=1; done
+          cat runs/*.log
+          exit "$status"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: playtest-shard-${{ strategy.job-index }}
+          path: ts/runs/*.json
+          retention-days: 3
+
+  report:
+    needs: [plan, shard]
+    if: ${{ always() && needs.plan.result == 'success' && needs.shard.result != 'cancelled' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+        working-directory: ts
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: playtest-shard-*
+          merge-multiple: true
+          path: ts/runs
+      - name: Write the report
+        working-directory: ts
+        env:
+          SHA: ${{ needs.plan.outputs.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          bun scripts/playtest.ts --merge "$(ls runs/*.json | paste -sd,)" --report-dir playtest --header "Commit ${SHA:0:10}, run $RUN_URL" > /dev/null
+          cat playtest/report.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: playtest-report
+          path: ts/playtest
+          retention-days: 30
+      - name: Open or update one issue a finding kind
+        working-directory: ts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for kind in never-ends zero-to-death win-rate-band move-share stage-no-kos desync; do
+            title="Playtester: $kind"
+            number=$(gh api "repos/$GITHUB_REPOSITORY/issues?state=open&labels=playtester&per_page=100" --jq "[.[] | select(.title == \"$title\")][0].number // empty")
+            count=$(jq "[.[] | select(.kind == \"$kind\")] | length" playtest/findings.json)
+            if [ "$count" = "0" ]; then
+              if [ -n "$number" ]; then
+                gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$number/comments" -F body=@playtest/$kind.md > /dev/null
+              fi
+            elif [ -n "$number" ]; then
+              gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/$number" -F body=@playtest/$kind.md > /dev/null
+              echo "updated #$number for $kind"
+            else
+              gh api -X POST "repos/$GITHUB_REPOSITORY/issues" -f title="$title" -f "labels[]=playtester" -F body=@playtest/$kind.md --jq '"opened #" + (.number | tostring)'
+            fi
+          done

@@ -10,6 +10,8 @@
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { f32 } from "wisp/src/sim/f32";
+import { stateChecksum } from "../src/game/replay/canonical";
+import { captureReplaySnapshot, createReplaySnapshot } from "../src/game/replay/snapshot";
 import { parseArgs } from "node:util";
 import { clearAttackBuffer } from "../src/game/input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../src/game/input/participants";
@@ -163,6 +165,16 @@ export interface MatchRecord {
   readonly apartOnStageFrames: number;
   readonly bothInFrames: number;
   readonly dropsTaken: readonly [number, number];
+  readonly ended?: boolean;
+  readonly checksums?: readonly (readonly [number, string])[];
+  readonly strings?: readonly ZeroToDeath[];
+}
+
+export interface ZeroToDeath {
+  readonly victim: number;
+  readonly frame: number;
+  readonly hits: number;
+  readonly damage: number;
 }
 
 export interface FieldOptions {
@@ -186,6 +198,10 @@ export interface FieldOptions {
   readonly spam?: Readonly<Partial<Record<string, number>>>;
 
   readonly drops?: boolean;
+
+  readonly frameCap?: number;
+
+  readonly checksumEvery?: number;
 }
 
 interface Watch {
@@ -241,7 +257,7 @@ const unactionable = (f: Readonly<Fighter>): boolean =>
 const emptyPunishes = (): PunishTotals => ({ openings: 0, neutralWins: 0, neutralConverted: 0, pokes: 0, pokeDamage: 0, oneHit: 0, kills: 0, zeroToDeaths: 0, hits: 0, damage: 0, maxHits: 0, maxDamage: 0 });
 
 
-function closePunish(totals: PunishTotals, punish: Punish, kill: boolean): void {
+function closePunish(totals: PunishTotals, punish: Punish, kill: boolean, strings?: ZeroToDeath[], victim = 0, frame = 0): void {
   if (punish.hits < 2) totals.oneHit++;
   if (punish.hits < 2 && !punish.disadvantage && !kill) {
     totals.pokes++;
@@ -259,7 +275,10 @@ function closePunish(totals: PunishTotals, punish: Punish, kill: boolean): void 
   totals.maxDamage = Math.max(totals.maxDamage, punish.damage);
   if (kill) {
     totals.kills++;
-    if (punish.fromStockStart) totals.zeroToDeaths++;
+    if (punish.fromStockStart) {
+      totals.zeroToDeaths++;
+      strings?.push({ victim, frame, hits: punish.hits, damage: punish.damage });
+    }
   }
 }
 
@@ -308,13 +327,22 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
   const spam = [options.spam?.[fighterSlug(a)], options.spam?.[fighterSlug(b)]] as const;
   const sides: [SideRecord, SideRecord] = [side(a), side(b)];
   const watches = [watchOf(fighterAt(world, 0)), watchOf(fighterAt(world, 1))] as const;
-  const limit = (match.timeLimitMinutes * 60 + 5) * MATCH_TICKS_PER_SECOND;
   const halfStage = f32(f32(mainDeckRight(stage) - mainDeckLeft(stage)) * 0.5);
   let apartFrames = 0;
   let apartOnStageFrames = 0;
   let bothInFrames = 0;
   let pickups = 0;
   const takes: [number, number] = [0, 0];
+  const limit = options.frameCap ?? (match.timeLimitMinutes * 60 + 5) * MATCH_TICKS_PER_SECOND;
+  const checksumEvery = options.checksumEvery ?? 0;
+  const checksums: [number, string][] = [];
+  const strings: ZeroToDeath[] = [];
+  const snapshot = checksumEvery > 0 ? createReplaySnapshot() : undefined;
+  const checksumNow = (at: number) => {
+    if (snapshot === undefined) return;
+    captureReplaySnapshot(snapshot, world, match, controls, runtime);
+    checksums.push([at, stateChecksum(snapshot)]);
+  };
   let frame = 0;
   while (match.phase === Phase.match && frame < limit) {
     frame = runtime.simulationFrame + 1;
@@ -339,6 +367,7 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
         if (onMainDeck(first, stage) && onMainDeck(second, stage)) apartOnStageFrames++;
       }
     }
+    if (checksumEvery > 0 && frame % checksumEvery === 0) checksumNow(frame);
     for (const slot of [0, 1] as const) {
       const f = fighterAt(world, slot);
       const seen = watches[slot];
@@ -405,7 +434,7 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
         const selfDestruct = seen.lastHit === undefined || (seen.lastSafe !== undefined && seen.lastHit < seen.lastSafe);
         own.stockLosses.push({ frame, sinceHit: seen.lastHit === undefined ? undefined : frame - seen.lastHit, selfDestruct });
         if (!selfDestruct && other !== undefined && seen.lastHitMove !== undefined) other.kosByMove[seen.lastHitMove] = (other.kosByMove[seen.lastHitMove] ?? 0) + 1;
-        if (seen.punish !== undefined && other !== undefined) closePunish(other.punishes, seen.punish, !selfDestruct);
+        if (seen.punish !== undefined && other !== undefined) closePunish(other.punishes, seen.punish, !selfDestruct, strings, slot, frame);
         seen.punish = undefined;
         seen.stockFirstHit = true;
         seen.lastHit = undefined;
@@ -426,11 +455,13 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
     const open = watches[slot].punish;
     if (open !== undefined) closePunish(sides[slot === 0 ? 1 : 0].punishes, open, false);
   }
+  if (checksumEvery > 0) checksumNow(frame);
   for (const slot of [0, 1] as const) sides[slot].stocksPlayed = sides[slot].stockLosses.length + (fighterAt(world, slot).status.stocks > 0 ? 1 : 0);
   return {
     stage: stageName, variant, seed, opponents, tiers, skillOverrides: options.skills, fighters: [sides[0].fighter, sides[1].fighter],
     winner: match.winner === 0 || match.winner === 1 ? match.winner : null, timedOut: match.timedOut, frames: frame, sides,
     apartFrames, apartOnStageFrames, bothInFrames, dropsTaken: takes,
+    ended: match.phase !== Phase.match, ...(checksumEvery > 0 ? { checksums } : {}), strings,
   };
 }
 
