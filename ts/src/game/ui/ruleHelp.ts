@@ -41,11 +41,15 @@ const TRAINING_HELP = {
   speed: "Game speed: slow the whole game to half or quarter speed to study moves.",
 } as const;
 
+const HELP: Readonly<Record<Exclude<RuleName, "training" | "easierClassic" | "harderClassic">, string>> = { ...MATCH_HELP, ...ITEM_HELP, ...TRAINING_HELP };
+
+const isRule = (name: string): name is RuleName => name in RULE_BUTTONS;
+
 const RULE_GROUPS: readonly (readonly [RuleGroup, readonly RuleName[]])[] = [
   ["mode", ["training"]],
-  ["match", Object.keys(MATCH_HELP) as RuleName[]],
-  ["items", Object.keys(ITEM_HELP) as RuleName[]],
-  ["training", Object.keys(TRAINING_HELP) as RuleName[]],
+  ["match", Object.keys(MATCH_HELP).filter((name) => isRule(name))],
+  ["items", Object.keys(ITEM_HELP).filter((name) => isRule(name))],
+  ["training", Object.keys(TRAINING_HELP).filter((name) => isRule(name))],
   ["classic", ["easierClassic", "harderClassic"]],
 ];
 
@@ -82,7 +86,5 @@ function modeHelp(game: Readonly<MatchState>): string {
 export function ruleHelp(name: RuleName, game: Readonly<MatchState>): string {
   if (name === "training") return modeHelp(game);
   if (name === "easierClassic" || name === "harderClassic") return game.lore ? "Battle: choose which lore battle to fight." : "Difficulty: how strong the opponents are on this Classic run.";
-  if (name in MATCH_HELP) return MATCH_HELP[name as keyof typeof MATCH_HELP];
-  if (name in ITEM_HELP) return ITEM_HELP[name as keyof typeof ITEM_HELP];
-  return TRAINING_HELP[name as keyof typeof TRAINING_HELP];
+  return HELP[name];
 }
