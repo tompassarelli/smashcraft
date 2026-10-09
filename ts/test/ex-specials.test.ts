@@ -72,7 +72,7 @@ test.each(SELECTABLE_CHARACTERS)("real Wisp map fires fighter %i's four EX speci
     for (const client of clients.clients) expect(client.errors, `${fighterName(character)}:${slot}`).toEqual([]);
     const [first, second] = fighters;
     if (first === undefined || second === undefined) throw new Error("missing EX fighter");
-    expect(firstFighterDifference(first, second, 0, 0), `${fighterName(character)}:${slot}`).toBeUndefined();
+    expect(firstFighterDifference(first, second, 3, 3), `${fighterName(character)}:${slot}`).toBeUndefined();
     expect(clients.firstDivergence(), `${fighterName(character)}:${slot}`).toBeUndefined();
     casts++;
   }

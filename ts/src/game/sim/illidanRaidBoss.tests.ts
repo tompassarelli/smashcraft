@@ -151,10 +151,10 @@ test("Eye Blast: a grounded EX neutral special spending one meter segment, with 
   assertEquals(EYE_BLAST_REACH, 645.0);
 
   const empty = duel(420.0);
-  empty.illidan.mana.points = 99;
+  empty.illidan.mana.points = ROSTER_MANA.exCost - 1;
   empty.step(EYE_BLAST_PRESS);
   assertEquals(empty.illidan.special.form, 0);
-  assertEquals(empty.illidan.mana.points, 99);
+  assertEquals(empty.illidan.mana.points, ROSTER_MANA.exCost - 1);
 });
 
 test("Eye Blast counterplay: the beam runs low along the floor, so a fighter above it is not hit [spec docs/design/illidan.md]", () => {
