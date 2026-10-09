@@ -133,7 +133,9 @@ export function projectileDamage(projectile: Readonly<Projectile>): number {
 export function originalProjectileEffect(projectile: Readonly<Projectile>): Readonly<HitEffect> {
   const { kind } = projectile;
   projectileHit.element = kind === ProjectileKind.manaBurn ? HitElement.electric : HitElement.normal;
+  projectileHit.electric = false;
   projectileHit.carry = undefined;
+  projectileHit.manaDrain = undefined;
   projectileHit.manaSteal = undefined;
   projectileHit.damage = projectileDamage(projectile);
   if (kind === ProjectileKind.blaster || kind === ProjectileKind.manaBurn) {

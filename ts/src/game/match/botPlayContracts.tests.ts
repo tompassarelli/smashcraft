@@ -28,12 +28,13 @@ import { Phase, createMatchState } from "./rules";
 const NEUTRAL = neutralControls();
 
 /** A two-fighter match on `stage` where the slots in `computers` play themselves and the rest stand still unless `human` acts. */
-function computerMatch(characters: readonly [Character, Character], xs: readonly [number, number], stage: number, computers: number) {
+function computerMatch(characters: readonly [Character, Character], xs: readonly [number, number], stage: number, computers: number, seed = 0) {
   const world = createRoster(3, [createFighter(characters[0], xs[0], xs[0] < xs[1] ? 1 : -1), createFighter(characters[1], xs[1], xs[1] < xs[0] ? 1 : -1)]);
   const match = createMatchState();
   match.phase = Phase.match;
   match.stageChoice = stage;
   match.timeLimitMinutes = 0;
+  match.matchSeed = seed;
   // Strongest-play contracts select Wren Expert explicitly rather than the Intermediate default.
   for (const slot of PARTICIPANT_SLOTS) {
     match.cpuOpponents[slot] = "wren";
@@ -180,7 +181,8 @@ for (const hero of HERO_ROSTER) {
   sweep(`${hero.name}'s computer uses its specials and grabs in a match against another computer, the same each time [spec #146] [invariant]`, () => {
     const checksums: string[] = [];
     for (let run = 0; run < 2; run++) {
-      const game = computerMatch([Character.rifleman, hero.character], [-240.0, 240.0], 0, 3);
+      // Seed 33331: a Thrall bolt left its electric flag on the shared projectile hit, so the next match's rifle shot hit differently (#371).
+      const game = computerMatch([Character.rifleman, hero.character], [-240.0, 240.0], 0, 3, 33331);
       const { specials } = heroUsage(game, 1, 3600);
       assertGreaterThan(specials.filter((count, slot) => slot !== 2 && count > 0).length, 0);
       checksums.push(stateChecksum(game));
