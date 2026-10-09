@@ -77,6 +77,6 @@ export const ITEM_MODELS = {
   heavyPickup: "Abilities\\Spells\\Human\\Defend\\DefendCaster.mdx",
   glow: "Abilities\\Spells\\Other\\GeneralAuraTarget\\GeneralAuraTarget.mdl",
   burst: "Abilities\\Spells\\Human\\HolyBolt\\HolyBoltSpecialArt.mdx",
-  speedTrail: "Abilities\\Spells\\Other\\Tornado\\Tornado_Target.mdx",
+  speedTrail: "Abilities\\Spells\\Undead\\Cripple\\CrippleTarget.mdx",
   end: "Abilities\\Spells\\NightElf\\Blink\\BlinkCaster.mdx",
 } as const;
