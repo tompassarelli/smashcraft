@@ -4,6 +4,7 @@ import { Character } from "../sim/codes";
 import { createReferenceFighter } from "../sim/referenceRig";
 import { type Pad, padMatch, playPads } from "./helperPads";
 import { testMatch } from "./testMatch";
+import { f32 } from "wisp/src/sim/f32";
 
 function wavedashOutOfShield(shield: Pad, dodge: Pad): void {
   const match = testMatch(3, Character.sylvanas);
@@ -14,10 +15,10 @@ function wavedashOutOfShield(shield: Pad, dodge: Pad): void {
   for (let frame = 1; frame <= 12; frame++) playPads(run, shield, {});
   assertTrue(fighter.shield.raised);
   playPads(run, { ...shield, jump: true }, {});
-  playPads(run, { ...shield, ...dodge, jump: true, x: 0.7, y: -0.7 }, {});
+  playPads(run, { ...shield, ...dodge, jump: true, x: f32(0.7), y: f32(-0.7) }, {});
   let landed = false;
   for (let frame = 0; frame < 20 && !landed; frame++) {
-    playPads(run, { ...shield, ...dodge, x: 0.7, y: -0.7 }, {});
+    playPads(run, { ...shield, ...dodge, x: f32(0.7), y: f32(-0.7) }, {});
     landed = fighter.landing.lag === AIR_DODGE_LANDING_LAG;
   }
   assertTrue(landed);
