@@ -77,7 +77,10 @@ export function headlessRender(options: RenderAssetOptions = {}) {
   // The stock extractor can exit 0 without writing a missing asset.
   const succeeds = (program: string, args: readonly string[]) =>
     runProcess(ChildProcess.make(program, args, { stdin: "ignore" })).pipe(
-      Effect.flatMap(() => read(args[args.length - 1]!).pipe(Effect.map((bytes) => bytes !== undefined && bytes.length > 0))),
+      Effect.flatMap(() => {
+        const output = args.at(-1);
+        return output === undefined ? Effect.succeed(false) : read(output).pipe(Effect.map((bytes) => bytes !== undefined && bytes.length > 0));
+      }),
       Effect.catchTag("ProcessFailure", () => Effect.succeed(false)));
   /** A stock art layer; DDS textures are converted to PNG in private storage. */
   const stockLayer = (normalized: string, layer: AssetLayer) => Effect.gen(function*() {
