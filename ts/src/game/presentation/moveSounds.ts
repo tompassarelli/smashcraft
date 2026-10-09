@@ -184,6 +184,7 @@ const layer = (sounds: readonly string[], volume: number, pitch = 1.0): SoundLay
 
 export const specialMove = (slot: number): number => SPECIAL_MOVE + slot;
 export const isSpecialMove = (move: number): boolean => move >= SPECIAL_MOVE;
+const isNormalMove = (move: number): move is AttackStyle => move < SPECIAL_MOVE;
 
 export function specialSlot(action: SpecialAction): number {
   switch (action) {
@@ -199,7 +200,7 @@ function resolve(character: Character, move: number): MoveSound | undefined {
   const fighter = FIGHTER_SOUNDS[character];
   if (fighter === undefined) return undefined;
   const { weapon } = fighter;
-  if (isSpecialMove(move)) {
+  if (!isNormalMove(move)) {
     const special = fighter.specials[move - SPECIAL_MOVE];
     if (special === undefined) return undefined;
     return {
@@ -210,7 +211,7 @@ function resolve(character: Character, move: number): MoveSound | undefined {
       voice: special.voice === true ? layer([warcryVoice(character)], VOICE_VOLUME) : undefined,
     };
   }
-  const style = move as AttackStyle;
+  const style = move;
   const tier = moveTier(character, style);
   const own = fighter.normals?.[style];
   const perform = style === AttackStyle.shot ? [] : [layer([SWING_SOUND], at(TIER_SWING_VOLUME, tier), at(TIER_SWING_PITCH, tier))];
