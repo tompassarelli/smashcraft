@@ -37,7 +37,7 @@ function playFile(path: string, volume = 127): sound {
   return cue;
 }
 
-const createItemSounds = (): sound[] => [MatchCue.lastStock, MatchCue.go, MatchCue.confirm].map(cue => {
+const createItemSounds = (): sound[] => [MatchCue.lastStock, MatchCue.itemSpawn, MatchCue.confirm].map(cue => {
     const path = cueSound(cue);
     const sound = CreateSound(path, false, true, true, 10, 10, "DefaultEAXON");
     SetSoundDuration(sound, GetSoundFileDuration(path));

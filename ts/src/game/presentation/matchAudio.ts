@@ -7,11 +7,14 @@ import { type StageTile, selectableStage } from "../menu/stageCatalog";
 
 /** Moments the match calls out; each plays one stock sound. */
 export const MatchCue = {
-  three: 0, two: 1, one: 2, go: 3, game: 4, time: 5, stockLost: 6, lastStock: 7, hover: 8, confirm: 9, cheer: 10, meterReady: 11,
+  three: 0, two: 1, one: 2, go: 3, game: 4, time: 5, stockLost: 6, lastStock: 7, hover: 8, confirm: 9, cheer: 10, meterReady: 11, itemSpawn: 12,
 } as const;
 export type MatchCue = (typeof MatchCue)[keyof typeof MatchCue];
 
-/** By MatchCue. */
+/**
+ * By MatchCue. Cues that fire while fighters play are short interface sounds:
+ * GameFound is a 7.5-second fanfare and plays only once, on GO (#361).
+ */
 const CUE_SOUNDS: readonly string[] = [
   "Sound\\Interface\\BattleNetTick.flac",
   "Sound\\Interface\\BattleNetTick.flac",
@@ -24,7 +27,8 @@ const CUE_SOUNDS: readonly string[] = [
   "Sound\\Interface\\MouseOver1.flac",
   "Sound\\Interface\\BigButtonClick.flac",
   "Sound\\Cinematics\\CrowdCheer1.flac",
-  "Sound\\Interface\\GameFound.flac",
+  "Sound\\Interface\\ItemReceived.flac",
+  "Sound\\Interface\\Hint.flac",
 ];
 
 export const cueSound = (cue: MatchCue): string => at(CUE_SOUNDS, cue);

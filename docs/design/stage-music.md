@@ -54,3 +54,12 @@ available to a stage:
   Battle_Intense_A-C, Combat1-3, Race1-3.
 - Warcraft I and II remakes: `war1\Human1-3`, `war1\Orc1-3`,
   `war2\Human2-5`, `war2\Orc2-5`, each with an `_opl` variant.
+
+## Cues during play
+
+Nothing musical plays between GO and GAME! except the stage track. The
+countdown's GO uses `Sound\Interface\GameFound.flac`, a 7.5-second fanfare,
+once. A full meter plays `ItemReceived` and an item spawn plays `Hint`; both
+played GameFound until #361, which Tom heard mid-match as a stray victory or
+campaign-start clip. The sweep in smashcraft:ts/test/match-audio.test.ts plays
+3 minutes of Hellfire Citadel and fails on any music or fanfare call mid-match.

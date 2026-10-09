@@ -37,8 +37,9 @@ fighters carry no duplicate overhead bar or passive pips.
 
 At 100 points the bar glows gold continuously until the bar is spent or
 drained. Crossing from below 100 to 100 flashes the fighter white for 12
-frames and plays Warcraft's stock `Sound\Interface\GameFound.flac` once on
-the confirmed frame. Replay and prediction never play the sound. A rise of
+frames and plays Warcraft's stock `Sound\Interface\ItemReceived.flac` once on
+the confirmed frame (GameFound until #361: a 7.5-second fanfare that was
+heard mid-match as a stray music clip). Replay and prediction never play the sound. A rise of
 at least 3 points also gives the bar a short 12-update glow. The old
 “EX Neutral + Side” affordability label is removed: a full bar pays for any
 direction, so its glow carries the whole message.

@@ -9,6 +9,8 @@ export const VERIFIED_STOCK_SOUNDS: Readonly<Record<string, string>> = {
   "Sound\\Interface\\MouseOver1.flac": "war3.w3mod:sound\\interface\\mouseover1.ogg",
   "Sound\\Interface\\BigButtonClick.flac": "war3.w3mod:sound\\interface\\bigbuttonclick.ogg",
   "Sound\\Cinematics\\CrowdCheer1.flac": "war3.w3mod:sound\\cinematics\\crowdcheer1.ogg",
+  "Sound\\Interface\\ItemReceived.flac": "war3.w3mod:sound\\interface\\itemreceived.ogg",
+  "Sound\\Interface\\Hint.flac": "war3.w3mod:sound\\interface\\hint.ogg",
   "Sound\\Music\\mp3Music\\War3XMainScreen.flac": "war3.w3mod:sound\\music\\mp3music\\war3xmainscreen.mp3",
   "Sound\\Music\\mp3Music\\HumanVictory.flac": "war3.w3mod:sound\\music\\mp3music\\humanvictory.mp3",
   "Sound\\Music\\mp3Music\\OrcVictory.flac": "war3.w3mod:sound\\music\\mp3music\\orcvictory.mp3",
