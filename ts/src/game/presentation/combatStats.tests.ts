@@ -54,7 +54,7 @@ function presented(): Presented {
 
 
 function recover(p: Presented, victim: Fighter): void {
-  for (let frame = 0; frame < 600 && (victim.down.state !== DownState.none || victim.launch.hitstun > 0 || !victim.motion.grounded); frame++) present(p, {}, {});
+  for (let frame = 0; frame < 600 && victim.ledge.state !== LedgeState.hang && (victim.down.state !== DownState.none || victim.launch.hitstun > 0 || !victim.motion.grounded); frame++) present(p, {}, {});
   assertEquals(victim.down.state, DownState.none);
 }
 
