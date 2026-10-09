@@ -1,6 +1,6 @@
 import { at } from "wisp/src/runtime/lookup";
 import { PARTICIPANT_SLOTS } from "../input/participants";
-import type { Character } from "../sim/codes";
+import { Character } from "../sim/codes";
 import { copyMatchCamera, createMatchCamera, limitCamera, type MatchCamera } from "../sim/matchCamera";
 import { fighterAt, isActive, type Roster } from "../sim/roster";
 import { stageBounds } from "../sim/stageBounds";
@@ -12,7 +12,7 @@ const PITCH_SIN = 0.1736481785774231;
 const HUD_SHARE = 0.4399999976158142;
 
 export const FRAMING_MARGIN = { top: 80.0, bottom: 100.0, side: 15.0 } as const;
-export const CLOSEST_BODY_SHARE = 0.3;
+export const CLOSEST_BODY_SHARE = 0.30000001192092896;
 
 export function lookFrame(character: Character, look: "classic" | "definitive"): ViewBounds {
   const bounds = FIGHTER_VIEW_BOUNDS[character][look];
@@ -28,7 +28,7 @@ function frameOf(character: Character): ViewBounds {
 
 const FRAMES: readonly ViewBounds[] = (() => {
   const frames: ViewBounds[] = [];
-  for (const key of Object.keys(FIGHTER_VIEW_BOUNDS)) frames[Number(key)] = frameOf(Number(key) as Character);
+  for (const character of Object.values(Character)) frames[character] = frameOf(character);
   return frames;
 })();
 
@@ -69,7 +69,7 @@ function limitBodyShare(camera: MatchCamera, world: Readonly<Roster>, widest: nu
       count++;
     }
     if (share <= CLOSEST_BODY_SHARE) return;
-    const scale = Math.min((share / CLOSEST_BODY_SHARE) * 1.02, Math.max(1.0, widest / camera.distance));
+    const scale = Math.min((share / CLOSEST_BODY_SHARE) * 1.0199999809265137, Math.max(1.0, widest / camera.distance));
     if (scale <= 1.0) return;
     const anchor = (left + right) / 2.0;
     camera.x = anchor + (camera.x - anchor) * scale;
