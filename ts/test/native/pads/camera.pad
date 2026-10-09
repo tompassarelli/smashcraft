@@ -2,7 +2,7 @@
 # position, distance and subject boxes), so a native run equal to the headless one moves the
 # camera exactly as the headless run that `bun scripts/cameraFeel.ts` measures. Rifleman a and
 # Rifleman b spread apart, jump, cross and close in; syntax: smashcraft:docs/native-bot-session.md.
-#! chat -dev quick
+#! chat -dev quick pair rifleman / rifleman
 # Spread apart: a dashes left, b right.
 60 a stick -1 0
 60 b stick 1 0
@@ -32,11 +32,13 @@
 900 a stick 1 0
 902 a stick 0 0
 # Expected, frame by frame (headless run of this script):
-#! expect a 153 applied jump 1 double 0
+# #339 (d28bf9c7b): quick's first fighter is Rifleman, with five squat ticks
+# instead of Archer's three (docs/physics.md, ground takeoff).
+#! expect a 155 applied jump 1 double 0
 #! expect a 170 applied jump 2 double 1
 #! expect b 245 applied jump 1 double 0
 #! expect b 645 applied jump 2 double 0
-#! expect a 703 applied jump 3 double 0
+#! expect a 705 applied jump 3 double 0
 #! expect a 720 applied jump 4 double 1
 #! absent a 1-850 damage
 #! absent b 1-850 damage
