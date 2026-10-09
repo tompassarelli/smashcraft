@@ -28,6 +28,7 @@ From ts/, `bun wisp help` lists commands and topics; `bun wisp help TOPIC` print
 | `client` | [client](commands/client.md) |
 | `lan` | [lan](commands/lan.md) |
 | `menus` | [menus](commands/menus.md) |
+| `net-accept` | [net-accept](commands/net-accept.md) |
 | `online` | [online](commands/online.md) |
 | `view` | [view](commands/view.md) |
 | `headless` | [headless](commands/headless.md) |
