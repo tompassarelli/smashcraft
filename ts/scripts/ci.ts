@@ -4,7 +4,7 @@
 // over its target is timed again, up to TIMED_ATTEMPTS samples, and gated on
 // its fastest sample. A failing child is never retried. The targets describe
 // the development machine, so CI_TIMING=report (set by hosted CI, whose runners
-// are smaller) reports a target's samples without gating them.
+// are smaller) reports one sample without gating its timing.
 import { resolve } from "node:path";
 import { BunRuntime, BunServices } from "@effect/platform-bun";
 import { Cause, Effect, Exit, Schema } from "effect";
@@ -43,9 +43,9 @@ const check = (
   })).pipe(Effect.catchTag("PlatformError", (cause) => Effect.fail(new CheckFailure({ problem: `${name}: ${cause.message}`, exitCode: 1 }))));
   const overTarget = (elapsedMs: number) => targetMs !== undefined && elapsedMs > targetMs;
   // A failing child is never retried: a failure ends the repeat.
-  const last = yield* Effect.repeat(sample, { while: overTarget, times: TIMED_ATTEMPTS - 1 });
+  const last = yield* Effect.repeat(sample, { while: elapsedMs => gateTiming && overTarget(elapsedMs), times: TIMED_ATTEMPTS - 1 });
   if (!overTarget(last)) return;
-  const summary = `${name} exceeded ${targetMs} ms in all ${TIMED_ATTEMPTS} samples: ${samples.map((ms) => ms.toFixed(0)).join(", ")} ms`;
+  const summary = `${name} exceeded ${targetMs} ms in ${samples.length} samples: ${samples.map((ms) => ms.toFixed(0)).join(", ")} ms`;
   if (!gateTiming) {
     console.log(`${summary} (reported, not gated: CI_TIMING=report)`);
     return;
