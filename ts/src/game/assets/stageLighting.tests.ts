@@ -2,7 +2,8 @@ import { assertEquals, test } from "wisp/src/runtime/testing";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { luma } from "./stagePalette";
 import { STAGE_LIGHTS } from "./stageLighting";
-import { FROZEN_THRONE_STAGE, PATTERNED_DECKS_STAGE } from "../sim/stage";
+import { FROZEN_THRONE_STAGE } from "../sim/stage";
+import { intensityProblems, lightProblems } from "../presentation/stageRules";
 
 
 test("every selectable stage has its own light [spec docs/design/visual-quality.md]", () => {
@@ -14,24 +15,11 @@ test("every selectable stage has its own light [spec docs/design/visual-quality.
 });
 
 test("each stage's light keeps fighters bright, shaded sides readable and team colours their own [spec docs/design/visual-quality.md]", () => {
-  for (const { theme, light } of STAGE_LIGHTS) {
-    const key = luma(light.key);
-    const ambient = luma(light.ambient);
-    assertEquals(key >= 210, true, `${theme}: key light luma ${key} is below 210`);
-    assertEquals(ambient >= 120, true, `${theme}: ambient luma ${ambient} is below 120`);
-    assertEquals(ambient <= key, true, `${theme}: ambient luma ${ambient} exceeds key ${key}`);
-    for (const part of ["key", "ambient"] as const) {
-      const chroma = Math.max(...light[part]) - Math.min(...light[part]);
-      assertEquals(chroma <= 80, true, `${theme}: ${part} light chroma ${chroma} exceeds 80`);
-    }
-  }
+  for (const { theme, light } of STAGE_LIGHTS) assertEquals(lightProblems(theme, light).join("\n"), "");
 });
 
 test("every stage's light intensity stays positive and at most 1.25, Naxxramas at most 2 [spec #296]", () => {
-  for (const { stage, theme, light } of STAGE_LIGHTS) {
-    const intensity = light.intensity ?? 1, limit = stage === PATTERNED_DECKS_STAGE ? 2 : 1.25;
-    assertEquals(intensity > 0 && intensity <= limit, true, `${theme}: intensity ${intensity} is outside (0, ${limit}]`);
-  }
+  for (const { stage, theme, light } of STAGE_LIGHTS) assertEquals(intensityProblems(theme, stage, light).join("\n"), "");
 });
 
 // #265: over Frozen Throne's bright glacier backdrop the full light cut fighter contrast (ΔE00 35.2 → 33.0, 30.9 → 30.1).

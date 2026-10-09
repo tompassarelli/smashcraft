@@ -45,9 +45,12 @@ function coverage(sky: Float32Array, image: Float32Array): number[] {
   return shares;
 }
 
+const skies = new Map<string, Promise<Float32Array>>();
+const skyLab = (path: string) => { const cached = skies.get(path) ?? lab(path); skies.set(path, cached); return cached; };
+
 export async function emptyBackdropShare(skyPath: string, imagePath: string, horizon: number): Promise<number> {
   if (!Number.isFinite(horizon) || horizon < 0 || horizon >= BOTTOM) throw new Error(`horizon row ${horizon} is outside 0 to ${BOTTOM}`);
-  const sky = await lab(skyPath), image = await lab(imagePath);
+  const [sky, image] = await Promise.all([skyLab(skyPath), lab(imagePath)]);
   const top = Math.floor(HEIGHT * horizon), bottom = Math.floor(HEIGHT * BOTTOM);
   let empty = 0;
   for (let i = top * WIDTH; i < bottom * WIDTH; i++)

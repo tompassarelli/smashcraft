@@ -293,6 +293,10 @@ from the floor (smashcraft:ts/src/game/presentation/stageScenery.ts).
 
 Every stage passes these, judged from one batch of native captures at both
 camera extremes (smashcraft:ts/scripts/wisp/stageCompositionChecks.ts):
+`bun tools/stage/search.ts STAGE SPEC.json` ([stage help](../commands/stage.md))
+checks the render-free rules on every fog, tint, position, scale and light
+candidate before rendering, then ranks the survivors by empty backdrop; run
+it before contrast.ts and the judge.
 
 | | Check | Measured by |
 | --- | --- | --- |

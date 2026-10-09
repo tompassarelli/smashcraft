@@ -2,7 +2,8 @@ import { assertEquals, test } from "wisp/src/runtime/testing";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { stageScenery } from "../presentation/stageScenery";
 import { f32 } from "wisp/src/sim/f32";
-import { STAGE_DECK_PALETTES, STAGE_PALETTE, luma, type PlatformMaterialSet } from "./stagePalette";
+import { STAGE_DECK_PALETTES, STAGE_PALETTE, type PlatformMaterialSet } from "./stagePalette";
+import { deckProblems } from "../presentation/stageRules";
 
 
 test("every selectable stage has its own deck palette [spec docs/design/stage-art.md]", () => {
@@ -37,14 +38,7 @@ test("every selectable stage has its own deck palette [spec docs/design/stage-ar
 });
 
 test("each deck's top stands apart from its fog in value and its body is darker than its top [spec docs/design/stage-art.md]", () => {
-  for (const { stage, theme, palette } of STAGE_DECK_PALETTES) {
-    const top = luma(palette.top);
-    assertEquals(luma(palette.body) <= top - 50, true, `${theme}: body ${luma(palette.body)} is within 50 of top ${top}`);
-    const fog = stageScenery(stage).fog;
-    if (fog === undefined) continue;
-    const background = luma([fog.red * 255, fog.green * 255, fog.blue * 255]);
-    assertEquals(Math.abs(top - background) >= 40, true, `${theme}: top ${top} is within 40 of fog ${background}`);
-  }
+  for (const { stage, theme, palette } of STAGE_DECK_PALETTES) assertEquals(deckProblems(theme, palette, stageScenery(stage).fog).join("\n"), "");
 });
 
 type Lab = readonly [lightness: number, a: number, b: number];

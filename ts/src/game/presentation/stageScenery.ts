@@ -80,8 +80,11 @@ export const STOCK_UNIT_LIGHT = "Environment\\DNC\\DNCLordaeron\\DNCLordaeronUni
  * Only scenery takes it; the fighters keep the stock light.
  */
 export function sceneryColor(stage: number, color: readonly [number, number, number]): readonly [number, number, number] {
+  return moodColor(STAGE_LIGHTS.find(entry => entry.stage === stage)?.light, color);
+}
+
+export function moodColor(light: StageLight | undefined, color: readonly [number, number, number]): readonly [number, number, number] {
   const stock = STAGE_LIGHTS[0]?.light;
-  const light: StageLight | undefined = STAGE_LIGHTS.find(entry => entry.stage === stage)?.light;
   if (stock === undefined || light === undefined) return color;
   const intensity = light.intensity ?? 1.0;
   const channel = (index: 0 | 1 | 2) => min(255, toInt(f32(f32(f32(color[index] * f32(intensity * (light.key[index] + light.ambient[index]))) / (stock.key[index] + stock.ambient[index])) + 0.5)));

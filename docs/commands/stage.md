@@ -12,6 +12,26 @@
   `-dev fogv STYLE ZSTART ZEND DENSITY HEIGHTSTART HEIGHTEND LINEARSTART LINEAREND R G B OVER_SKY`
   for the existing 3.0 fog comparison; these affect only local presentation.
 
+- Stage search: from the repository root, through the capacity helper,
+  `bun tools/stage/search.ts STAGE [SPEC.json] [--out DIR]` captures the
+  stage's near and far views once, rejects every candidate that breaks a
+  render-free rule (fog start ≥ 5000, deck body ≥ 50 darker than its top and
+  top ≥ 40 from the fog, pieces inside x ±4096, nothing floating, no mirror
+  twins, scenery behind the fight, a light that keeps its fighter rules),
+  renders the rest in one warm Wisp call per mode and client, and ranks them by worst empty-backdrop
+  share. It writes `DIR/STAGE-search.txt`: the table and the top one or two
+  finalists as scenery and light source, numbers written as `f32(...)` where
+  binary32 needs it. Splice a finalist in, then run `contrast.ts
+  --stock-light STAGE` and one fresh judge. SPEC.json lists values per axis
+  and searches their product: `fogStart`, `fogEnd`, `fogColor` ([r,g,b] 0–1),
+  `tint` ([r,g,b]), `tintScale`, `depth` (y offset of every piece), `scale`
+  (multiplier), `lightKey`, `lightAmbient`, `lightIntensity`, and
+  `pieces: {"INDEX": {x, y, z, scale}}`, plus `modes` (default classic and
+  definitive), `clients` (default [0]) and `finalists` (1 or 2). Model choice
+  stays a human step; with no spec it sweeps fog end and tint scale. The
+  rules live in smashcraft:ts/src/game/presentation/stageRules.ts and
+  smashcraft:ts/scripts/stageViewRules.ts, shared with the stage tests.
+
 - Stage-select cards: `bun scripts/stageThumbnails.ts --stage NAME` (from ts/,
   through the capacity helper) regenerates one stage's layout silhouette and
   hero render, stores it and records its input hash in its own row of

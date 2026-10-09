@@ -218,6 +218,10 @@ Definitive with Wisp, and fails when the fighters' mean L\* falls below the
 same frame under the stock light at one decimal. It also prints each view's
 contrast row against the stock look (stock light, stock scenery colours) and
 the empty-backdrop share at horizon row 1/3.
+Choose the fog, tints, positions, scales and light to check first with
+`bun tools/stage/search.ts STAGE SPEC.json`, which rejects candidates on the
+render-free rules and ranks the rest by empty backdrop in about a minute
+([stage help](../commands/stage.md)).
 
 Patch 2.0 broke custom DNC models: one with a light node lit the whole map
 with no shadows, one without went black
