@@ -3,6 +3,7 @@ import { installHeadless } from "wisp/scripts/wisp/headless";
 import { frameCostCaptureFile } from "wisp/src/runtime/frameCostCapture";
 import * as nativePerf from "../src/platform/nativePerfMain";
 import { shellState } from "../src/platform/shell/state";
+import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
@@ -17,7 +18,7 @@ test("playable presentation exports a diagnostic capture on both clients without
   clients.chat(0, "-dev capture 240");
   clients.frames(241);
   for (const client of clients.clients) {
-    client.run(() => expect(shellState()?.build).toMatchObject({ input: { kind: "keyboard", pairedSends: false, delay: 2, rollback: 24 }, inputProfile: "keyboard-d2-r24", presentation: "pool-predicted", hotReload: false }));
+    client.run(() => expect(shellState()?.build).toMatchObject({ input: PLAYABLE_BUILD.input, inputProfile: PLAYABLE_BUILD.inputProfile, presentation: PLAYABLE_BUILD.presentation, hotReload: false }));
     expect(client.errors).toEqual([]);
     const lines = client.files.get(frameCostCaptureFile(client.slot, 1, "smashcraft"));
     expect(lines?.[0]).toMatch(/^frame capture run=1 frames=240 /);

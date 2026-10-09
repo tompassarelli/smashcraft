@@ -330,7 +330,7 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
 
 
 
-export function importProblem(entries: readonly ArchiveEntry[], exists: (path: string) => boolean = existsSync): string | undefined {
+function importProblem(entries: readonly ArchiveEntry[], exists: (path: string) => boolean = existsSync): string | undefined {
   const seen = new Map<string, string>();
   for (const { entry, source } of entries) {
     const key = entry.toLowerCase();

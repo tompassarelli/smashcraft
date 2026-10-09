@@ -27,7 +27,7 @@ sweep("3 minutes of Hellfire play: its theme loops from each match start to the 
   };
   let played = 0;
   let matches = 0;
-  while (played < PLAY_FRAMES) {
+  while (played < PLAY_FRAMES || matches < 2) {
     if (matches > 0) {
       clients.chat(0, "-dev reset");
       clients.frames(2);
@@ -42,7 +42,6 @@ sweep("3 minutes of Hellfire play: its theme loops from each match start to the 
     }
     clients.frames(120);
   }
-  expect(matches).toBeGreaterThan(1);
   const theme = stageMusic(HELLFIRE);
   for (const client of clients.clients) {
     const log = client.soundLog.filter(row => row.event !== "create");

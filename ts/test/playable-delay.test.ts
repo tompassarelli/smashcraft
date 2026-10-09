@@ -12,6 +12,7 @@ import { value } from "./rematch/playableMatch";
 import { startProbe } from "../src/platform/shell/responseProbe";
 
 const headless = installHeadless(PREDICTED_HEADLESS);
+const DELAY = PLAYABLE_BUILD.input.kind === "keyboard" ? PLAYABLE_BUILD.input.delay : 0;
 afterAll(headless.restore);
 
 test("a refused local keyboard send retries the original row and keeps neutral capture running [spec #26]", () => {
@@ -40,7 +41,7 @@ test("a refused local keyboard send retries the original row and keeps neutral c
   expect(clients.firstDivergence()).toBeUndefined();
 });
 
-test("release keyboard shields start exactly two frames after capture before the sender's echo [spec #60]", () => {
+test("release keyboard shields start exactly the build's input delay after capture before the sender's echo [spec #60]", () => {
   const clients = headless.clients({ start: () => startBuild({ ...PLAYABLE_BUILD, devConsole: true }), install }, [0, 1], {
     delivery: syncDelivery({ latencyMs: 150, turnMs: 25, extraTurns: [1] }, 60),
   });
@@ -64,14 +65,14 @@ test("release keyboard shields start exactly two frames after capture before the
   pressedFrames = before.map((state) => state.target ?? 0);
   for (const state of before) {
     expect(state.shield).toBe(false);
-    expect(state.delay).toBe(2);
-    expect(state.target).toBe(state.frame + 2);
+    expect(state.delay).toBe(DELAY);
+    expect(state.target).toBe(state.frame + DELAY);
   }
   for (const player of clients.clients) for (const client of clients.clients) client.key(player.slot, 0x51, 0, true);
-  clients.frames(1);
-  expect(states().map((state) => state.shield)).toEqual([false, false]);
-  clients.frames(1);
-  expect(states().map((state) => state.shield)).toEqual([false, false]);
+  for (let frame = 0; frame < DELAY; frame++) {
+    clients.frames(1);
+    expect(states().map((state) => state.shield)).toEqual([false, false]);
+  }
   clients.frames(1);
   for (const state of states()) {
     expect(state.shield).toBe(true);

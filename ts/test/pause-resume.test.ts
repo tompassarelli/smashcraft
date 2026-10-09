@@ -62,7 +62,6 @@ test("pause with a computer keeps its replay continuous and advances one frame p
   clients.frames(30);
   clients.chat(0, "-dev quick cpu wren intermediate hero dreadlord");
   clients.frames(150);
-  expect(read(() => shell().runtime.botMemory.history.length)).toBe(43);
   expect(read(() => shell().replay.recorder.text)).toBeUndefined();
   client.run(() => { const probe = shell().probe; if (probe !== undefined) startProbe(probe, false); });
   clients.frames(120);

@@ -24,7 +24,7 @@ interface ResultScreens {
 }
 
 
-export interface PlayableRecord {
+interface PlayableRecord {
   readonly results: ReadonlyMap<number, ResultScreens>;
 
   readonly errorReports: readonly string[];
@@ -57,7 +57,7 @@ function receiptWinner(contents: string): string | undefined {
   return named === undefined ? undefined : named === "none" ? "nobody" : `Player ${named.slice(1)}`;
 }
 
-export function playableResult(evidence: CaptureEvidence, record: PlayableRecord) {
+function playableResult(evidence: CaptureEvidence, record: PlayableRecord) {
   const { metadata } = evidence;
   const pair = capturePair(metadata);
   const failures: string[] = [];

@@ -98,7 +98,7 @@ export function batchScripts(paths: readonly string[]): string[] {
 
 
 
-export function needsNewGame(previous: "none" | "valid" | "failed" | "invalid" | "broken", freshEach: boolean): boolean {
+function needsNewGame(previous: "none" | "valid" | "failed" | "invalid" | "broken", freshEach: boolean): boolean {
   return freshEach || previous === "none" || previous === "invalid" || previous === "broken";
 }
 

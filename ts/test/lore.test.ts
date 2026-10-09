@@ -76,7 +76,7 @@ test("-dev lore 20 starts The Ascension's boss battle on the Frozen Throne on bo
   const battle = LORE_BATTLES[19];
   for (const client of clients.clients) {
     expect(client.errors).toEqual([]);
-    expect(value(client, () => [shell().game.run.current?.id, shell().game.run.boss.kind, shell().game.stageChoice])).toEqual([battle?.id, battle?.boss, 2]);
+    expect(value(client, () => [shell().game.run.current?.id, shell().game.run.boss.kind, shell().game.stageChoice])).toEqual([battle?.id, battle?.boss, battle?.stage]);
   }
   expectSynchronized(clients);
 });

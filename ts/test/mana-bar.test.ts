@@ -6,7 +6,7 @@ import { shell } from "../src/platform/shell/state";
 import { fighterAt } from "../src/game/sim/roster";
 import { MANA_BAR_SEGMENTS } from "../src/game/presentation/manaBar";
 import { views } from "../src/platform/shell/ui";
-import { gainMana } from "../src/game/sim/mana";
+import { ROSTER_MANA, gainMana } from "../src/game/sim/mana";
 import { MatchCue, cueSound } from "../src/game/presentation/matchAudio";
 import { plateManaSlot } from "../src/game/ui/matchHud";
 
@@ -36,14 +36,14 @@ test("every fighter's HUD meter shows three segments filled to its current point
   const clients = quickMatch();
   forBoth(clients, () => {
     fighterAt(shell().world, 0).mana.points = 40;
-    fighterAt(shell().world, 1).mana.points = 100;
+    fighterAt(shell().world, 1).mana.points = ROSTER_MANA.max;
   });
   clients.frames(1);
   for (const client of clients.clients) {
-    for (const [slot, points] of [[0, 40], [1, 100]] as const) {
+    for (const [slot, points] of [[0, 40], [1, ROSTER_MANA.max]] as const) {
       const fill = hud(client, "Fill", slot, 1)!;
       expect(client.frames.shown(fill)).toBe(true);
-      expect(fill.width).toBeCloseTo((plateManaSlot(slot, 2).width * points) / 100, 4);
+      expect(fill.width).toBeCloseTo((plateManaSlot(slot, 2).width * points) / ROSTER_MANA.max, 4);
       expect(hud(client, "Line", slot, 2 + MANA_BAR_SEGMENTS - 1)).toBeTruthy();
     }
     expect(client.errors).toEqual([]);
@@ -53,7 +53,7 @@ test("every fighter's HUD meter shows three segments filled to its current point
 
 test("full super meter glows on the HUD, flashes the fighter and sounds once with no EX label [spec #335]", () => {
   const clients = quickMatch();
-  forBoth(clients, () => { fighterAt(shell().world, 0).mana.points = 98; });
+  forBoth(clients, () => { fighterAt(shell().world, 0).mana.points = ROSTER_MANA.max - 2; });
   clients.frames(1);
   for (const client of clients.clients) client.run(() => {
     const state = shell();

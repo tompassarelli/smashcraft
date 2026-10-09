@@ -81,7 +81,7 @@ export function requestedSetup(command: string, receipt: DevReceipt): boolean {
 
 
 
-export const setupReceipt = (path: string, clientName: string, sinceMs: number) =>
+const setupReceipt = (path: string, clientName: string, sinceMs: number) =>
   tryIntegrity("read setup receipt", clientName, () => existsSync(path) && statSync(path).mtimeMs >= sinceMs ? { text: readFileSync(path, "latin1"), modified: statSync(path).mtimeMs } : undefined).pipe(Effect.flatMap((stored) => stored === undefined || preloadLines(stored.text) === undefined ? Effect.succeed(undefined) : DevCommandReceipt.decode(path, stored.text).pipe(Effect.map((value) => ({ value, modified: stored.modified })), Effect.mapError((cause) => new IntegrityFailure({ operation: "read setup receipt", path: clientName, cause })))));
 
 const setupCommand = (session: NativeSession, command: string, send: Effect.Effect<void, IntegrityFailure>) => Effect.gen(function*() {
@@ -167,7 +167,7 @@ const finish = (out: string, scriptPath: string, build: string, epochs: readonly
 
 
 
-export const collect = (data: readonly [string, string], out: string, sinceMs: number) => Effect.gen(function*() {
+const collect = (data: readonly [string, string], out: string, sinceMs: number) => Effect.gen(function*() {
   const fresh = (path: string) => existsSync(path) && statSync(path).mtimeMs >= sinceMs;
   const waited = yield* Effect.exit(pollUntil(tryIntegrity("collect traces and moments", out, () => data.every((dir) => fresh(join(dir, TRACE_FILE))) ? true : undefined), {
     every: "250 millis", within: TRACE_WAIT_MS,

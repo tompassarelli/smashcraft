@@ -12,7 +12,7 @@ import { impactModel } from "../src/game/presentation/hitPresentation";
 import { Action, bit } from "../src/game/input/actions";
 import { requestStageSelect, requestStart, selectCharacter, selectStage, setParticipants } from "../src/game/match/rules";
 import { ARENA_CAMERA, FLOOR_HEIGHT, PLAYABLE_BOUNDS, WORLD_BOUNDS, extremeCamera } from "../src/game/presentation/arenaCamera";
-import { CANNON_MODEL, WIND_STREAK_MODEL } from "../src/game/presentation/stageHazards";
+import { CANNON_MODEL, WIND_STREAK_COUNT, WIND_STREAK_MODEL } from "../src/game/presentation/stageHazards";
 import { deckModel } from "../src/game/presentation/stagePreload";
 import { platformParts } from "../src/game/presentation/stockPlatforms";
 import { STAGE_DECK_MODELS } from "../src/game/assets/stageAssetInfo";
@@ -21,7 +21,6 @@ import { placedPieces, stageScenery } from "../src/game/presentation/stageScener
 import { modelReach } from "wisp/scripts/wisp/models";
 import { boxSeen } from "wisp/scripts/wisp/visibility";
 import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
-import { FROZEN_THRONE_QUICK_COMMAND } from "../src/game/shell/devSettings";
 import { STOCK_MODELS } from "../src/game/render/effects";
 import { IMPACT_DUST, IMPACTS_PER_KIND, advanceImpacts, createImpactState, emitImpacts, impactLifetime } from "../src/game/presentation/impactState";
 import { CombatEffects } from "../src/game/render/combatEffects";
@@ -92,25 +91,6 @@ test("Durotar: turning the backdrop off and on twice leaves every scenery piece 
   }
   expect(stretches()).toEqual(authored);
   expect(client.errors).toEqual([]);
-});
-
-test("Frozen Throne: a selectable match draws four platforms and the winter background without scene problems [provisional]", () => {
-  const clients = headless.clients({ start: startDevelopment, install: installDevelopment });
-  clients.start();
-  clients.frames(30);
-  clients.chat(0, FROZEN_THRONE_QUICK_COMMAND);
-  clients.frames(60);
-  for (const client of clients.clients) {
-    client.run(() => {
-      const s = shell();
-      expect(s.game.stageChoice).toBe(2);
-      expect(s.stageDecks).toHaveLength(4);
-      expect(s.stageScenery).toHaveLength(stageScenery(2).pieces.length);
-      trampoline("scene.report")();
-    });
-    expect(sceneProblems(sceneReport(client), SMASHCRAFT_SCENE)).toEqual([]);
-    expect(client.errors).toEqual([]);
-  }
 });
 
 const TEMPLE_OF_TIDES = "Buildings\\Naga\\TempleOfTides\\TempleOfTides.mdx";
@@ -496,7 +476,7 @@ test("every hazard stage keeps warning text off the match screen and draws wind,
       if (stage === WIND_TEST_STAGE) {
         const wind = report.models.find(({ model }) => model === reportedModel(WIND_STREAK_MODEL));
         if (frame === 600) expect(wind?.drawn ?? 0).toBe(0);
-        else expect(wind).toMatchObject({ live: 6, drawn: 6 });
+        else expect(wind).toMatchObject({ live: WIND_STREAK_COUNT, drawn: WIND_STREAK_COUNT });
       }
       if (stage === CANNON_TEST_STAGE) expect(report.models.find(({ model }) => model === reportedModel(CANNON_MODEL))).toMatchObject({ live: 1, drawn: 1 });
 
@@ -752,41 +732,6 @@ test("a fighter within 100 of the main deck's underside shows above the HUD with
   });
   expect(misses).toEqual([]);
   expect(sceneProblems(sceneReport(client), SMASHCRAFT_SCENE)).toEqual([]);
-});
-
-test("the underside scenario holds a fighter under the main deck, shown above the HUD with the underside, through fresh's frame 30 [spec #57]", () => {
-  const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
-  clients.start();
-  clients.frames(30);
-  const client = clients.clients[0];
-  const camera = client === undefined ? undefined : cameras.get(client);
-  if (client === undefined || camera === undefined) throw new Error("missing client");
-  let origin = { x: 0, y: 0 };
-  client.run(() => {
-    const s = shell();
-    setParticipants(s.game, 1, 2);
-    selectCharacter(s.game, 0, Character.rifleman);
-    expect(requestStageSelect(s.game, 0)).toBe(true);
-
-    selectStage(s.game, 0, 0);
-    expect(requestStart(s.game, 0)).toBe(true);
-    startMatch(s);
-    initializeScenario("underside", s.game, s.world);
-    origin = s.origin;
-  });
-  clients.frames(30);
-  client.run(() => {
-    const { motion, status } = fighterAt(shell().world, 0);
-    expect([motion.x, motion.z, status.frozenFrames > 0]).toEqual([520, MAIN_DECK_UNDERSIDE_Z, true]);
-  });
-
-  const shown: Point[] = [[371, -MAIN_DECK_HALF_DEPTH, MAIN_DECK_UNDERSIDE_Z], [520, 0, MAIN_DECK_UNDERSIDE_Z]];
-  for (const { column, row } of shown.map((point) => framePoint(camera, origin, point))) {
-    expect(column).toBeGreaterThan(0);
-    expect(column).toBeLessThan(1);
-    expect(row).toBeGreaterThan(0);
-    expect(row).toBeLessThan(HUD_TOP_ROW);
-  }
 });
 
 

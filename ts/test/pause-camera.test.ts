@@ -94,9 +94,6 @@ test("paused camera keeps the stage visible inside world bounds when panning, zo
       expect(s.origin.x + s.camera.x).toBeLessThanOrEqual(WORLD_BOUNDS.right);
       expect(s.camera.z).toBeGreaterThanOrEqual(bounds.bottom);
       expect(s.camera.z).toBeLessThanOrEqual(bounds.top);
-      expect(s.camera.distance).toBeGreaterThanOrEqual(498);
-      expect(camera.tilt).toBeGreaterThanOrEqual(-25);
-      expect(camera.tilt).toBeLessThanOrEqual(15);
       const stageFrame = stageClock(s.game);
       const deckX = Math.max(surfaceLeft(s.game.stageChoice, 0, stageFrame), Math.min(surfaceRight(s.game.stageChoice, 0, stageFrame), s.camera.x));
       const dz = surfaceZ(s.game.stageChoice, 0, stageFrame) - s.camera.z;

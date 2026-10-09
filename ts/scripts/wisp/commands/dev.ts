@@ -26,7 +26,6 @@ export const SMASHCRAFT_DEV: DevProject = {
       "test/stage-render.test.ts": [],
       "test/stage-thumbnails.test.ts": ["stage-thumbnails.json", "src/game/menu/stageSilhouettes.ts"],
       "test/ui-frames.test.ts": ["../tools/selection/art/*.fdf", "../tools/selection/art/*.toc"],
-      "test/menu-fresh.test.ts": ["test/fixtures/wisp/**"],
 
       "test/integrity.test.ts": ["../evidence/**"],
       "test/playable.test.ts": ["test/fixtures/playable-0045/**", "../evidence/**"],

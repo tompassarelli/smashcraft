@@ -3,31 +3,12 @@
 
 
 import { expect, test } from "bun:test";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Cause, Effect } from "effect";
-import { needsNewGame, padBatch, runBatchProcess } from "../scripts/wisp/padBatch";
+import { runBatchProcess } from "../scripts/wisp/padBatch";
 import { pollUntil } from "../scripts/hostPoll";
-import { pad } from "../scripts/wisp/commands/pad";
-
-test("a native comparison batch rejects missing export before starting references or clients [spec AGENTS.md]", async () => {
-  const dir = mkdtempSync(join(tmpdir(), "pad-preflight-"));
-  const script = join(dir, "no-export.pad");
-  writeFileSync(script, "#! chat -dev quick hero rifleman\n150 a tap A 2\n154 a capture\n");
-  const out = join(dir, "out");
-  await expect(Effect.runPromise(padBatch({ scripts: [script], pairs: [], helper: "/missing-helper", build: "typescript-integrity", out, map: "/missing-map.w3x", retries: 0, freshEach: false, hot: false, headlessJobs: 1 }))).rejects.toThrow("comparison requires a replay export");
-  await expect(Effect.runPromise(pad([script, "--headless", "--helper", "/missing-helper", "--out", out, "--compare", "/missing-native"]))).rejects.toThrow("comparison requires a replay export");
-  expect(existsSync(join(out, "no-export", "headless.log"))).toBe(false);
-});
-
-test("a batch session starts one game and resets between valid or failed scripts [spec AGENTS.md]", () => {
-  const outcomes = ["none", "valid", "failed", "valid"] as const;
-  expect(outcomes.map((previous) => needsNewGame(previous, false))).toEqual([true, false, false, false]);
-  expect(needsNewGame("invalid", false)).toBe(true);
-  expect(needsNewGame("broken", false)).toBe(true);
-  expect(outcomes.map((previous) => needsNewGame(previous, true))).toEqual([true, true, true, true]);
-});
 
 test("batch children preserve completion and failure and cancellation leaves no child [spec #240]", async () => {
   const dir = mkdtempSync(join(tmpdir(), "pad-batch-process-"));

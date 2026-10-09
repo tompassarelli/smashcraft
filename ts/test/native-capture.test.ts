@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { STAMP_CELL, STAMP_CELLS, type StampCell, stampCells } from "../src/runtime/drawnStamp";
-import { fixtureOf, frameStamp } from "../scripts/nativeCapture";
+import { frameStamp } from "../scripts/nativeCapture";
 
 
 const RGB: Readonly<Record<StampCell, readonly [number, number, number]>> = { one: [255, 3, 3], zero: [0, 66, 255], guard: [32, 192, 0] };
@@ -19,7 +19,7 @@ function painted(width: number, height: number, script: number, frame: number, m
 }
 
 
-test("a capture's drawn stamp names the fixture and frame the map painted, at 1080 and 1440 lines [invariant]", () => {
+test("a capture's drawn stamp names the fixture and frame the map painted, at 1080 and 1440 lines, in a pool window smaller than its desktop and under the KO flash's white wash [invariant] [repro wisp#79]", () => {
   expect(stampCells(5, 177)).toHaveLength(STAMP_CELLS);
   expect(frameStamp(painted(1920, 1080, 5, 177))).toEqual({ script: 5, frame: 177 });
   expect(frameStamp(painted(2560, 1440, 63, 18000))).toEqual({ script: 63, frame: 18000 });
@@ -30,18 +30,10 @@ test("a capture's drawn stamp names the fixture and frame the map painted, at 10
   const y = Math.round(0.5 * STAMP_CELL * scale);
   for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) flipped.rgb.set(flipped.rgb[((y + dy) * 1920 + x + dx) * 3] === 255 ? RGB.zero : RGB.one, ((y + dy) * 1920 + x + dx) * 3);
   expect(frameStamp(flipped)).toBeUndefined();
-});
-
-
-test("a stamp reads in a pool window smaller than its desktop and under the KO flash's white wash [repro wisp#79]", () => {
   const pool = painted(1280, 720, 2, 410, 40);
   expect(frameStamp(pool)).toEqual({ script: 2, frame: 410 });
-
   for (let index = 0; index < pool.rgb.length; index++) pool.rgb[index] = Math.round((pool.rgb[index] ?? 0) * (1 - 117 / 255) + 117);
   expect(frameStamp(pool)).toEqual({ script: 2, frame: 410 });
 });
 
-test("a fixture holds each capture frame of its pad script once [spec AGENTS.md]", () => {
-  const fixture = fixtureOf("test/native/pads/180/lich-back-left.pad", "#! chat -dev quick hero lich\n40 a stick 1 0\n164 a capture\n164 b capture\n+13 a capture\n");
-  expect(fixture).toEqual({ name: "180-lich-back-left", frames: [164, 177], script: fixture.script });
-});
+

@@ -63,7 +63,7 @@ function median(values: readonly number[]): number {
 }
 
 
-export function censusEntries(output: string): CensusEntry[] {
+function censusEntries(output: string): CensusEntry[] {
   let current: { frames: Map<number, FrameSample>; marks: string[][] } = { frames: new Map(), marks: [] };
   const runs = [current];
   for (const line of output.split(/\r?\n/)) {

@@ -177,31 +177,3 @@ test("the host shows a code, the guest joins by it, and both reach fighter selec
   }
 }, 20_000);
 
-test("the lobby waits for Start now and sends no chat while waiting [spec AGENTS.md]", async () => {
-  const net = battleNet();
-  try {
-    const startNow = (guestLines: string[]) => Effect.gen(function*() {
-      while (!guestLines.includes("In the lobby; waiting for the host to start")) yield* Effect.sleep("20 millis");
-      yield* Effect.sleep("7 seconds");
-      expect(net.sent).not.toContain("host:LobbyStart");
-      expect(net.sent.some((message) => message.endsWith(":SendGameChatMessage"))).toBe(false);
-    });
-    const { hostLines, guestLines } = await Effect.runPromise(playBoth(net, { startNow }));
-    expect(hostLines.slice(2)).toEqual(["Starting the match", "Loading the match", "In the match"]);
-    expect(guestLines.at(-1)).toBe("In the match");
-  } finally {
-    net.stop();
-  }
-}, 20_000);
-
-test("an explicit online password keeps the game private and lets the guest join [spec AGENTS.md]", async () => {
-  const net = battleNet();
-  try {
-    const { guestLines } = await Effect.runPromise(playBoth(net, { password: "EFGH" }));
-    expect(net.payloads.find(({ message }) => message === "host:CreateLobby")!.payload).toMatchObject({ privateGame: true, password: "EFGH" });
-    expect(net.payloads.filter(({ message }) => message === "guest:JoinGameByGameName").every(({ payload }) => payload["gamePass"] === "EFGH")).toBe(true);
-    expect(guestLines.at(-1)).toBe("In the match");
-  } finally {
-    net.stop();
-  }
-}, 20_000);

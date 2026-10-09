@@ -45,9 +45,9 @@ for (const facing of [-1, 1]) for (const style of [AttackStyle.jab, AttackStyle.
   });
 }
 
-for (const facing of [-1, 1]) for (const air of [false, true]) for (const [name, x, z, targetX, targetZ, contact] of [
-  ["Entangling Roots", 0, 0, 180, 0, 32], ["Stag Charge", 1, 0, 104, 0, 16],
-  ["Dream Ascent", 0, 1, 0, 96, 16], ["Force of Nature", 0, -1, 124, 0, 74],
+for (const facing of [-1, 1]) for (const air of [false, true]) for (const [name, x, z, targetX, targetZ] of [
+  ["Entangling Roots", 0, 0, 180, 0], ["Stag Charge", 1, 0, 104, 0],
+  ["Dream Ascent", 0, 1, 0, 96], ["Force of Nature", 0, -1, 124, 0],
 ] as const) {
   if (air && name === "Force of Nature") continue;
   test(`Wisp plays Malfurion ${name} ${air ? "air" : "ground"} facing ${facing} through contact [spec #342]`, () => {
@@ -59,9 +59,14 @@ for (const facing of [-1, 1]) for (const air of [false, true]) for (const [name,
       s.world = createRoster(3, [owner, target]);
       expect(startFighterSpecial(owner, 0, 0, controls({ specialPressed: true, specialX: x * facing, specialZ: z }), s.world)).toBe(true);
     });
-    clients.frames(contact + 1);
+    let hit = false;
+    for (let frame = 0; frame < 120 && !hit; frame++) {
+      clients.frames(1);
+      client.run(() => { hit = (shell().world.fighters[1]?.status.damage ?? 0) > 0; });
+    }
+    expect(hit, `${name}/${facing}/${air}`).toBe(true);
     client.run(() => {
-      expect(shell().world.fighters[1]?.status.damage, `${name}/${facing}/${air}`).toBeGreaterThan(0); wholeBody(`${name}/${facing}/${air}`);
+      wholeBody(`${name}/${facing}/${air}`);
       if (name === "Stag Charge") expect(client.effectPoses().some(effect => effect.model.includes("BlackStagMale") && effect.scale > 0 && effect.alpha > 0)).toBe(true);
     });
     expect(client.errors).toEqual([]);

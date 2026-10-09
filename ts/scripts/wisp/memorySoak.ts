@@ -73,7 +73,7 @@ export function parseMemoryRun(text: string): MemoryRun {
 }
 
 
-export function slope(points: readonly (readonly [x: number, y: number])[]): number {
+function slope(points: readonly (readonly [x: number, y: number])[]): number {
   const n = points.length;
   if (n < 2) return 0;
   const meanX = points.reduce((sum, [x]) => sum + x, 0) / n;
