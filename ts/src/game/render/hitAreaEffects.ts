@@ -20,7 +20,7 @@ export class HitAreaEffects {
 
   constructor(character: Character, private readonly origin: WorldOrigin) {
     this.styles = disjointNormals(createFighter(character, 0.0, 1));
-    for (let index = 0; index < HIT_AREA_EFFECT_CAPACITY; index++) this.models.push(AddSpecialEffect(DISJOINT_MODELS[character] ?? DISJOINT_MODELS[Character.rifleman] ?? "", origin.x, origin.y));
+    for (let index = 0; index < HIT_AREA_EFFECT_CAPACITY; index++) this.models.push(AddSpecialEffect(DISJOINT_MODELS[character] ?? "", origin.x, origin.y));
     this.clear();
   }
 

@@ -96,7 +96,7 @@ const BIRTH_CUES = new Set([
   "HealingWaveTarget", "FeralSpiritDone", "PolymorphTarget", "AncestralSpiritCaster", "HowlCaster",
   "FlameStrike1", "FreezingBreathMissile", "FrostNovaTarget", "DispelMagicTarget",
   "MassTeleportTarget", "WaterElementalMissile", "NeutralBuildingExplosion", "RedDragonMissile",
-  "GoldCredit", "NagaDeath",
+  "GoldCredit", "NagaDeath", "AIfbSpecialArt", "PolyMorphDoneGround", "UCancelDeath",
 ]);
 
 const cue = (model: string, anchor: CueAnchor, scale: number): Cue => {
@@ -196,12 +196,12 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
   [Character.medivh]: {
     neutral: { spell: "Arcane Omen", startup: ARCANE, active: cue("Abilities\\Weapons\\PriestMissile\\PriestMissile.mdl", "hand", 0.5) },
     side: { spell: "Vanishing Act", startup: ARCANE, active: cue("Abilities\\Spells\\NightElf\\Blink\\BlinkTarget.mdx", "body", 0.75) },
-    up: { spell: "Raven Flight", startup: ARCANE, active: cue("Abilities\\Weapons\\AvengerMissile\\AvengerMissile.mdx", "body", 0.75) },
+    up: { spell: "Raven Flight", startup: ARCANE, active: cue("Abilities\\Spells\\Human\\Polymorph\\PolyMorphDoneGround.mdx", "body", 0.75) },
     down: { spell: "Last Word", startup: ARCANE, active: cue("Abilities\\Spells\\Human\\Invisibility\\InvisibilityTarget.mdx", "body", 0.75) },
   },
   [Character.anubarak]: {
     neutral: { spell: "Impale", startup: BURROW, active: cue("Abilities\\Spells\\Undead\\Impale\\ImpaleMissTarget.mdl", "ahead", f32(0.6)) },
-    side: { spell: "Burrow Hunt", startup: BURROW, active: cue("Abilities\\Spells\\Orc\\Shockwave\\ShockwaveMissile.mdx", "feet", f32(0.5)) },
+    side: { spell: "Burrow Hunt", startup: BURROW, active: cue("Objects\\Spawnmodels\\Undead\\UCancelDeath\\UCancelDeath.mdx", "feet", f32(0.5)) },
     up: { spell: "Crypt Eruption", startup: BURROW, active: cue("Abilities\\Spells\\Demon\\DarkPortal\\DarkPortalTarget.mdx", "feet", f32(0.4)) },
     down: { spell: "Carrion Beetle", startup: BURROW, active: drawn("Units\\Undead\\Scarab\\Scarab.mdl", "ahead") },
   },
@@ -214,7 +214,7 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
   [Character.kobold]: {
     neutral: { spell: "Wick Flick", startup: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "hand", f32(0.3)), active: cue("Abilities\\Weapons\\LavaSpawnMissile\\LavaSpawnMissile.mdx", "hand", f32(0.4)) },
     side: { spell: "Panic Dig", startup: cue("Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx", "feet", f32(0.3)), active: cue("Abilities\\Spells\\Other\\Tornado\\TornadoElemental.mdx", "feet", f32(0.15)) },
-    up: { spell: "Candle Escape", startup: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "hand", f32(0.3)), active: cue("Abilities\\Weapons\\DemolisherFireMissile\\DemolisherFireMissile.mdx", "feet", f32(0.3)) },
+    up: { spell: "Candle Escape", startup: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "hand", f32(0.3)), active: cue("Abilities\\Spells\\Other\\ImmolationRed\\ImmolationRedTarget.mdx", "feet", f32(0.3)) },
     down: { spell: "Mine!", startup: cue("Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx", "feet", f32(0.3)), active: timed(cue("Objects\\Spawnmodels\\Human\\FragmentationShards\\FragBoomSpawn.mdx", "feet", f32(0.3)), "birth", 0.0) },
   },
   [Character.blademaster]: {
@@ -249,7 +249,7 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
   },
   [Character.dreadlord]: {
     neutral: { spell: "Carrion Swarm", startup: VAMPIRIC, active: cue("Abilities\\Spells\\Undead\\CarrionSwarm\\CarrionSwarmDamage.mdx", "hand", f32(0.8)) },
-    side: { spell: "Corkscrew Pounce", startup: VAMPIRIC, active: cue("Abilities\\Spells\\Undead\\CarrionSwarm\\CarrionSwarmMissile.mdx", "behind", f32(0.8)) },
+    side: { spell: "Corkscrew Pounce", startup: VAMPIRIC, active: cue("Abilities\\Spells\\Items\\VampiricPotion\\VampPotionCaster.mdx", "behind", f32(0.8)) },
     up: { spell: "Bat Ascension", startup: VAMPIRIC, active: cue("Abilities\\Spells\\Undead\\DarkSummoning\\DarkSummonTarget.mdx", "body", f32(0.6)) },
     down: { spell: "Sleep", startup: VAMPIRIC, active: cue("Abilities\\Spells\\Undead\\Sleep\\SleepSpecialArt.mdx", "hand", f32(0.8)) },
   },
@@ -330,7 +330,7 @@ export const HERO_BRANCH_CUES: { readonly [character: number]: { readonly [slot 
   },
   [Character.chen]: {
     down: { followUps: [
-      branch("Fire Palm", BEAST, cue("Abilities\\Weapons\\FireBallMissile\\FireBallMissile.mdx", "ahead", f32(0.8))),
+      branch("Fire Palm", BEAST, cue("Abilities\\Spells\\Items\\AIfb\\AIfbSpecialArt.mdx", "ahead", f32(0.8))),
       branch("Storm Step", STORM, cue("Abilities\\Spells\\Other\\Monsoon\\MonsoonBoltTarget.mdx", "body", f32(0.5))),
     ] },
   },

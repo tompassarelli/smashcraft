@@ -8,7 +8,7 @@ import { runningHeroSpecial } from "../sim/heroSpecialRules";
 import { attackDurationFramesForGrounding } from "../sim/moves";
 import { DEMONHUNTER_GLIDE_SLASH_FIRST, DEMONHUNTER_GLIDE_SLASH_LAST, DEMONHUNTER_GLIDE_SLASH_FORM, DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, felRushRegion, flameCrashRegion, immolationRegion, glideSlashRegion } from "../sim/specials";
 
-/** Warcraft's own moving spell/weapon art, used as a held contact accent. */
+/** Warcraft's own moving spell/weapon art from each fighter's kit or race, held as its contact accent. */
 export const DISJOINT_MODELS: { readonly [character: number]: string } = {
   [Character.rifleman]: "Abilities\\Weapons\\GyroCopter\\GyroCopterMissile.mdx",
   [Character.demonHunter]: "Abilities\\Weapons\\DemonHunterMissile\\DemonHunterMissile.mdx",
@@ -25,6 +25,17 @@ export const DISJOINT_MODELS: { readonly [character: number]: string } = {
   [Character.chen]: "Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireDamage.mdx",
   [Character.kaelthas]: "Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile.mdx",
   [Character.kobold]: "Abilities\\Weapons\\Axe\\AxeMissile.mdx",
+  [Character.thrall]: "Abilities\\Weapons\\FarseerMissile\\FarseerMissile.mdx",
+  [Character.jaina]: "Abilities\\Spells\\Other\\FrostDamage\\FrostDamage.mdx",
+  [Character.sylvanas]: "Abilities\\Spells\\Other\\BlackArrow\\BlackArrowMissile.mdl",
+  [Character.cairne]: "Abilities\\Weapons\\RockBoltMissile\\RockBoltMissile.mdx",
+  [Character.peon]: "Abilities\\Weapons\\catapult\\CatapultMissile.mdx",
+  [Character.tinker]: "Abilities\\Spells\\Other\\AcidBomb\\BottleMissile.mdx",
+  [Character.murloc]: "Abilities\\Weapons\\MurgulMagicMissile\\MurgulMagicMissile.mdx",
+  [Character.grom]: "Abilities\\Spells\\Other\\ImmolationRed\\ImmolationRedDamage.mdx",
+  [Character.anubarak]: "Abilities\\Weapons\\CryptFiendMissile\\CryptFiendMissile.mdx",
+  [Character.malfurion]: "Abilities\\Weapons\\KeeperGroveMissile\\KeeperGroveMissile.mdx",
+  [Character.medivh]: "Abilities\\Weapons\\DruidoftheTalonMissile\\DruidoftheTalonMissile.mdx",
 };
 
 /** Beyond the current body by more than half its standing width, along either gameplay axis. */

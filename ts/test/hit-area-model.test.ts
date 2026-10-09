@@ -9,7 +9,7 @@ import { install, start } from "../src/platform/main";
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
-test("Peon forward tilt draws a stock accent instead of an empty asset in both facings [repro #309]", () => {
+test("Peon forward tilt draws his own catapult-stone accent, never an empty asset or Rifleman's rocket, in both facings [repro #309] [spec #365]", () => {
   const clients = headless.clients({ start, install });
   clients.start();
   const client = clients.client(0);
@@ -22,7 +22,7 @@ test("Peon forward tilt draws a stock accent instead of an empty asset in both f
       fighter.facing = facing;
       areas.present(fighter, true);
       const drawn = client.effectPoses({ visibleOnly: true }).filter(pose => pose.scale > 0);
-      expect(drawn.some(pose => pose.model === "Abilities\\Weapons\\GyroCopter\\GyroCopterMissile.mdx")).toBe(true);
+      expect(drawn.some(pose => pose.model === "Abilities\\Weapons\\catapult\\CatapultMissile.mdx")).toBe(true);
       expect(drawn.filter(pose => pose.model === "")).toEqual([]);
     }
     areas.destroy();
