@@ -289,7 +289,7 @@ const prepare = (args: readonly string[]) => Effect.gen(function*() {
       const z = FLOOR_HEIGHT + (sampled.heights[index] ?? 0);
       scenes.push({
         ...base, frame: id, units: [], ui: [], textTags: [],
-        camera: { ...base.camera, x: 0, y: 0, fields: { ...base.camera.fields, CAMERA_FIELD_TARGET_DISTANCE: camera.distance, CAMERA_FIELD_ZOFFSET: FLOOR_HEIGHT + 90, CAMERA_FIELD_FIELD_OF_VIEW: cameraFieldOfView(camera, MATCH_CAMERA_ASPECT) } },
+        camera: { ...base.camera, x: 0, y: 0, fields: { ...base.camera.fields, CAMERA_FIELD_TARGET_DISTANCE: camera.distance, CAMERA_FIELD_ZOFFSET: z + 90, CAMERA_FIELD_FIELD_OF_VIEW: cameraFieldOfView(camera, MATCH_CAMERA_ASPECT) } },
         effects: [{ ...(base.effects.find((effect) => /TimelineBody/.test(effect.model)) ?? base.effects[0]!), model: clip.modelPath, animation: "Stand", animationElapsed: sampled.seconds[index] ?? 0, animationClock: 0, timeScale: 0, x: 0, y: 0, z, yaw: 0, teamColor: 0, alpha: 255 }],
       });
     }
