@@ -47,6 +47,8 @@ test("hitlag and shieldstun respect Melee integer boundaries [reference] [spec #
   assertEquals(ordinaryHitlagFrames(0.0), 0);
   assertEquals(ordinaryHitlagFrames(2.999000072479248), 3);
   assertEquals(ordinaryHitlagFrames(3.0), 4);
+  assertEquals(ordinaryHitlagFrames(5.999000072479248), 4);
+  assertEquals(ordinaryHitlagFrames(6.0), 5);
   assertEquals(ordinaryHitlagFrames(15.0), 8);
   assertEquals(ordinaryHitlagFrames(100.0), 20);
   assertEquals(digitalShieldstunFrames(12.0), 7);
@@ -55,6 +57,9 @@ test("hitlag and shieldstun respect Melee integer boundaries [reference] [spec #
   assertEquals(digitalShieldstunFrames(12.0, true), 9);
   assertEquals(digitalShieldstunFrames(7.0, true), 6);
   assertEquals(digitalShieldstunFrames(5.0, true), 4);
+  assertEquals(ordinaryHitstunFrames(2.499000072479248), 1);
+  assertEquals(ordinaryHitstunFrames(2.5), 1);
+  assertEquals(ordinaryHitstunFrames(51.06666564941406), 20);
   assertEquals(ordinaryHitstunFrames(100.0), 40);
 });
 

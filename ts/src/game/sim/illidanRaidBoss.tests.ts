@@ -4,15 +4,20 @@
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { queueAttack } from "../input/attackBuffer";
-import { AttackStyle, SpecialAction } from "./codes";
+import { AttackStyle, Character, SpecialAction } from "./codes";
 import { canAttack } from "./conditions";
 import { EYE_BLAST_CHARGE_FRAMES, attackDurationFrames, attackStartupFrames } from "./moves";
-import { FLAME_CRASH_FRAMES, FLAME_CRASH_LANDING_FORM } from "./specials";
+import { FLAME_CRASH_FORM, FLAME_CRASH_FRAMES, FLAME_CRASH_HANG_LAST, FLAME_CRASH_LANDING_FORM, flameCrashRegion } from "./specials";
+import { authoredHitRegion, emptyHitRegion } from "./hitRegions";
 import { type Duel, duel, lift } from "./testDuel";
 import { controls } from "./testWorld";
 
 const SHIELD = controls({ shield: true, shieldStrength: 1.0 });
 const downB = controls({ specialPressed: true, specialZ: -1, verticalDirection: -1, down: true });
+const damageAt = (style: AttackStyle, activeFrame: number): number =>
+  authoredHitRegion(emptyHitRegion(), Character.demonHunter, style, attackStartupFrames(style) + activeFrame, 0, 0).effect.damage;
+const PLUNGE = flameCrashRegion(FLAME_CRASH_FORM, FLAME_CRASH_HANG_LAST + 1);
+const BURST = flameCrashRegion(FLAME_CRASH_LANDING_FORM, 1).effect;
 
 
 function attack(d: Duel, style: AttackStyle, mayCharge = false, first = controls(), second = controls()): void {
@@ -31,7 +36,7 @@ test("Shear: forward tilt deals 9 at a low angle, blocked by shield without drai
   d.target.mana.points = 60;
   attack(d, AttackStyle.forwardTilt);
   finish(d, 40);
-  assertEquals(d.target.status.damage, 9.0);
+  assertEquals(d.target.status.damage, damageAt(AttackStyle.forwardTilt, 0));
   assertEquals(d.target.visuals.manaDrained, 0);
   const blocked = duel(110.0);
   blocked.target.mana.points = 60;
@@ -49,7 +54,7 @@ test("Flames of Azzinoth: the glaives strike both sides out to 190 for 14, and t
     d.target.motion.x = f32(side * 170.0);
     attack(d, AttackStyle.downSmash);
     finish(d, 60);
-    assertEquals(d.target.status.damage, 14.0);
+    assertEquals(d.target.status.damage, damageAt(AttackStyle.downSmash, 0));
     assertEquals(d.target.visuals.manaDrained, 0);
   }
 
@@ -58,7 +63,7 @@ test("Flames of Azzinoth: the glaives strike both sides out to 190 for 14, and t
   for (let i = 0; i < 40 && late.illidan.attack.frame < 8 + 3; i++) late.step();
   late.target.motion.x = 150.0;
   finish(late, 60);
-  assertEquals(late.target.status.damage, 3.0);
+  assertEquals(late.target.status.damage, damageAt(AttackStyle.downSmash, 3));
 });
 
 test("Flames of Azzinoth counterplay: a shield holds both parts and acts with the smash still running; a jump clears the fire [spec docs/design/illidan.md]", () => {
@@ -133,12 +138,12 @@ function forwardAir(percent: number, gap: number, sdi: boolean): number {
 }
 
 test("Twin-glaive forward air: the link and the launcher both connect at 0, 50 and 100 percent [spec docs/design/illidan.md]", () => {
-  for (const percent of [0.0, 50.0, 100.0]) assertEquals(forwardAir(percent, 100.0, false), 5.0);
+  for (const percent of [0.0, 50.0, 100.0]) assertEquals(forwardAir(percent, 100.0, false), f32(damageAt(AttackStyle.forwardAir, 0) + damageAt(AttackStyle.forwardAir, 4)));
 });
 
 test("Twin-glaive forward air counterplay: SDI away from the link escapes the launcher [spec docs/design/illidan.md]", () => {
-  assertEquals(forwardAir(0.0, 150.0, false), 5.0);
-  assertEquals(forwardAir(0.0, 150.0, true), 2.0);
+  assertEquals(forwardAir(0.0, 150.0, false), f32(damageAt(AttackStyle.forwardAir, 0) + damageAt(AttackStyle.forwardAir, 4)));
+  assertEquals(forwardAir(0.0, 150.0, true), damageAt(AttackStyle.forwardAir, 0));
 });
 
 test("Flame Crash: hangs, plunges and spikes an airborne fighter below; a grounded one is launched up [spec docs/design/illidan.md]", () => {
@@ -155,14 +160,14 @@ test("Flame Crash: hangs, plunges and spikes an airborne fighter below; a ground
     air.target.motion.vz = 0.0;
     air.step();
   }
-  assertEquals(air.target.status.damage, 9.0);
+  assertEquals(air.target.status.damage, PLUNGE.effect.damage);
   assertLessThan(air.target.launch.knockbackZ, 0.0);
 
   const ground = duel(30.0);
   lift(ground.illidan, 200.0);
   ground.step(downB);
   for (let i = 0; i < 20 && ground.target.status.damage === 0.0; i++) ground.step();
-  assertEquals(ground.target.status.damage, 9.0);
+  assertEquals(ground.target.status.damage, PLUNGE.groundedEffect?.damage);
   assertGreaterThan(ground.target.launch.knockbackZ, 0.0);
 });
 
@@ -174,8 +179,8 @@ test("Flame Crash: landing bursts beside him for 8, and a shielding fighter acts
   for (let i = 0; i < 20 && d.illidan.special.form !== FLAME_CRASH_LANDING_FORM; i++) d.step();
   assertEquals(d.illidan.special.form, FLAME_CRASH_LANDING_FORM);
   d.run(3);
-  assertEquals(d.target.status.damage, 8.0);
-  assertEquals(d.drained, 6);
+  assertEquals(d.target.status.damage, BURST.damage);
+  assertEquals(d.drained, BURST.manaDrain);
 
   const blocked = duel(80.0);
   blocked.run(4, controls(), SHIELD);

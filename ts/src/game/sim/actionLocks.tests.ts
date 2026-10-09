@@ -43,8 +43,8 @@ test("every fighter's dropped shield blocks attacks for Ultimate's 11 frames, th
     input.shield = false;
     advanceSolo(fighter, 0, input, -240.0);
     assertFalse(fighter.shield.raised);
-    assertEquals(fighter.shield.releaseLag, 11);
-    for (let frame = 1; frame < 11; frame++) {
+    assertEquals(fighter.shield.releaseLag, SHIELD_RELEASE_LAG_FRAMES);
+    for (let frame = 1; frame < SHIELD_RELEASE_LAG_FRAMES; frame++) {
       assertFalse(canAttack(fighter));
       advanceSolo(fighter, 0, input, -240.0);
     }

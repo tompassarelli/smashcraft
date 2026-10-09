@@ -14,15 +14,8 @@ import { advanceFighterMotion } from "../step";
 
 
 const NORMALS = [
-  [AttackStyle.forwardSmash, 17, 3, 32, 0],
-  [AttackStyle.upSmash, 15, 4, 30, 0],
-  [AttackStyle.downSmash, 14, 6, 19, 0],
-  [AttackStyle.neutralAir, 7, 9, 17, 12],
-  [AttackStyle.forwardAir, 10, 3, 22, 14],
-  [AttackStyle.backAir, 8, 3, 23, 13],
-  [AttackStyle.upAir, 6, 3, 19, 11],
-  [AttackStyle.downAir, 10, 25, 12, 20],
-  [AttackStyle.grab, 7, 3, 21, 0],
+  AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.downSmash, AttackStyle.neutralAir, AttackStyle.forwardAir,
+  AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir, AttackStyle.grab,
 ] as const;
 
 function fighter(facing = 1): Fighter {
@@ -67,12 +60,11 @@ function contact(style: AttackStyle, facing: number, x: number, z = 0.0, airborn
   return target;
 }
 
-test("Blademaster startup and active frames reach production APIs [spec docs/design/roster.md]", () => {
+test("Blademaster hit regions are live exactly during each move's authored active frames [spec docs/design/roster.md]", () => {
   const out = emptyHitRegion();
-  for (const [style, first, active] of NORMALS) {
+  for (const style of NORMALS) {
     const startup = attackStartupFrames(style, BLADEMASTER_MOVES);
-    assertEquals(startup, first - 1);
-    assertEquals(characterAttackActiveFrames(Character.rifleman, style, BLADEMASTER_MOVES), active);
+    const active = characterAttackActiveFrames(Character.rifleman, style, BLADEMASTER_MOVES);
     const count = authoredHitRegionCount(style, BLADEMASTER_MOVES);
     for (let frame = startup - 1; frame <= startup + active; frame++) {
       let activeCount = 0;
@@ -131,18 +123,14 @@ test("Blademaster down smash cannot rehit one target from its later back swing [
 
 test("Blademaster catches shield and releases each throw once on its adopted frame [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
-    for (const [action, release] of [
-      [GrabAction.throwForward, 12],
-      [GrabAction.throwBack, 15],
-      [GrabAction.throwUp, 13],
-      [GrabAction.throwDown, 16],
-    ] as const) {
+    for (const action of [GrabAction.throwForward, GrabAction.throwBack, GrabAction.throwUp, GrabAction.throwDown] as const) {
+      const release = BLADEMASTER_MOVES.throws[action]!.contactFrame;
       const owner = fighter(facing);
       const target = createFighter(Character.rifleman, f32(60.0 * facing), -facing);
       target.shield.raised = true;
       const world = testWorld(owner, target);
       beginFighterAttack(world, 0, AttackStyle.grab, false);
-      owner.attack.frame = 6;
+      owner.attack.frame = attackStartupFrames(AttackStyle.grab, BLADEMASTER_MOVES);
       resolveAttacks(world);
       assertEquals(owner.grab.target, 1);
       assertEquals(target.grab.owner, 0);

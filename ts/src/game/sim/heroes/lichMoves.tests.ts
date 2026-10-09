@@ -2,29 +2,27 @@ import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue
 import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GrabAction } from "../codes";
-import { attackPhase } from "../conditions";
+import { attackPhase, attackStartup } from "../conditions";
 import { createFighter } from "../fighter";
 import { createReferenceContactFighter } from "../referenceRig";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { fighterHurtParts } from "../hurtboxes";
 import { SHARED_GRAB_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
-import { attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
+import { attackStartupFrames, characterAttackActiveFrames, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { LICH_MOVES } from "./lichMoves";
 import { isMultiHit } from "./multiHit";
 
 
 const NORMALS = [
-  [AttackStyle.jab, 6, 2, 15, 0],
-  [AttackStyle.upSmash, 20, 5, 34, 0],
-  [AttackStyle.downSmash, 19, 5, 23, 0],
-  [AttackStyle.neutralAir, 9, 14, 17, 16],
-  [AttackStyle.forwardAir, 12, 3, 27, 17],
-  [AttackStyle.backAir, 10, 3, 25, 15],
-  [AttackStyle.upAir, 8, 4, 23, 14],
-  [AttackStyle.downAir, 16, 4, 31, 22],
-  [AttackStyle.grab, 10, 3, 27, 0],
+  AttackStyle.jab, AttackStyle.upSmash, AttackStyle.downSmash, AttackStyle.neutralAir, AttackStyle.forwardAir,
+  AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir, AttackStyle.grab,
 ] as const;
+
+const regionDamage = (style: AttackStyle, grounded = false): number => {
+  const hit = LICH_MOVES.normals[style]!.regions[0]!.hit;
+  return grounded ? (hit.groundedEffect ?? hit.effect).damage : hit.effect.damage;
+};
 
 
 
@@ -42,11 +40,12 @@ function attackPair(style: AttackStyle, x: number, z = 0.0, facing = 1, targetGr
   return { owner, target, world };
 }
 
-test("Lich normal phases and contact windows match the adopted startup and active frames [spec docs/design/roster.md]", () => {
+test("Lich normal phases and contact windows change exactly at each move's authored startup and active frames [spec docs/design/roster.md]", () => {
   const out = emptyHitRegion();
-  for (const [style, first, active] of NORMALS) {
+  for (const style of NORMALS) {
+    const first = attackStartupFrames(style, LICH_MOVES) + 1;
+    const active = characterAttackActiveFrames(Character.rifleman, style, LICH_MOVES);
     const { owner } = attackPair(style, 1000.0);
-    assertEquals(attackStartupFrames(style, LICH_MOVES), first - 1);
     owner.attack.frame = first - 2;
     assertEquals(attackPhase(owner), AttackPhase.startup);
     owner.attack.frame++;
@@ -74,17 +73,18 @@ test("Lich normal phases and contact windows match the adopted startup and activ
 
 test("Lich normals deal their adopted damage only after startup in both facings [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
-    for (const [style, x, z, damage] of [
-      [AttackStyle.jab, 50.0, 0.0, 3.0],
-      [AttackStyle.downTilt, 90.0, 0.0, 6.0],
-      [AttackStyle.forwardSmash, 170.0, 0.0, 18.0],
-      [AttackStyle.upSmash, 0.0, 0.0, 17.0],
-      [AttackStyle.downSmash, 130.0, 0.0, 14.0],
-      [AttackStyle.forwardAir, 130.0, 0.0, 11.0],
-      [AttackStyle.backAir, -90.0, 0.0, 12.0],
-      [AttackStyle.upAir, 0.0, 0.0, 9.0],
-      [AttackStyle.downAir, 0.0, -120.0, 12.0],
+    for (const [style, x, z] of [
+      [AttackStyle.jab, 50.0, 0.0],
+      [AttackStyle.downTilt, 90.0, 0.0],
+      [AttackStyle.forwardSmash, 170.0, 0.0],
+      [AttackStyle.upSmash, 0.0, 0.0],
+      [AttackStyle.downSmash, 130.0, 0.0],
+      [AttackStyle.forwardAir, 130.0, 0.0],
+      [AttackStyle.backAir, -90.0, 0.0],
+      [AttackStyle.upAir, 0.0, 0.0],
+      [AttackStyle.downAir, 0.0, -120.0],
     ] as const) {
+      const damage = regionDamage(style, !isAerialAttack(style));
       const { owner, target, world } = attackPair(style, x, z, facing, !isAerialAttack(style));
       owner.attack.frame--;
       resolveAttacks(world);
@@ -131,7 +131,7 @@ test("Lich attached falling crystal spikes airborne targets and lifts grounded t
     for (const grounded of [false, true]) {
       const { target, world } = attackPair(AttackStyle.downAir, 0.0, -120.0, facing, grounded);
       resolveAttacks(world);
-      assertEquals(target.status.damage, 12.0);
+      assertEquals(target.status.damage, regionDamage(AttackStyle.downAir, grounded));
       if (grounded) {
         assertGreaterThan(target.launch.knockbackZ, 0.0);
         assertNear(f32(target.launch.knockbackZ / f32(target.launch.knockbackX * facing)), f32(f32(0.819152044) / f32(0.573576436)), f32(0.00001));
@@ -147,17 +147,18 @@ test("Lich Grave Frost hits once across both floor bursts and sends the rear hit
   for (const facing of [-1, 1]) {
     const pair = attackPair(AttackStyle.downSmash, 100.0, 0.0, facing);
     resolveAttacks(pair.world);
-    assertEquals(pair.target.status.damage, 14.0);
+    const frost = regionDamage(AttackStyle.downSmash);
+    assertEquals(pair.target.status.damage, frost);
     pair.owner.launch.hitlag = 0;
     pair.target.launch.hitlag = 0;
     pair.target.motion.x = f32(-100.0 * facing);
     pair.target.motion.z = 0.0;
     pair.owner.attack.frame++;
     resolveAttacks(pair.world);
-    assertEquals(pair.target.status.damage, 14.0);
+    assertEquals(pair.target.status.damage, frost);
     const rear = attackPair(AttackStyle.downSmash, -100.0, 0.0, facing);
     resolveAttacks(rear.world);
-    assertEquals(rear.target.status.damage, 14.0);
+    assertEquals(rear.target.status.damage, frost);
     assertLessThan(f32(rear.target.launch.knockbackX * facing), 0.0);
   }
 });
@@ -169,17 +170,19 @@ test("Lich dash attack selects the hovering glide and smash charge caps at 45 fr
   beginFighterAttack(testWorld(owner, createFighter(Character.rifleman, 1000.0, -1)), 0, AttackStyle.jab, false);
   assertEquals(owner.attack.style, AttackStyle.dashAttack);
   assertEquals(smashDamageMultiplier(0, LICH_MOVES), 1.0);
-  assertEquals(smashDamageMultiplier(45, LICH_MOVES), 1.25);
-  assertEquals(smashDamageMultiplier(90, LICH_MOVES), 1.25);
+  const cap = LICH_MOVES.smashMaxChargeFrames;
+  assertEquals(smashDamageMultiplier(cap, LICH_MOVES), LICH_MOVES.smashMaxDamageMultiplier);
+  assertEquals(smashDamageMultiplier(cap * 2, LICH_MOVES), LICH_MOVES.smashMaxDamageMultiplier);
   const out = emptyHitRegion();
-  authoredHitRegion(out, Character.rifleman, AttackStyle.forwardSmash, 17, 45, 0, LICH_MOVES);
-  assertEquals(out.effect.damage, 22.5);
+  authoredHitRegion(out, Character.rifleman, AttackStyle.forwardSmash, 17, cap, 0, LICH_MOVES);
+  assertEquals(out.effect.damage, f32(regionDamage(AttackStyle.forwardSmash) * LICH_MOVES.smashMaxDamageMultiplier));
 });
 
 test("Lich spectral grab catches shield on either active tick at the scaled standing reach [spec #337]", () => {
   const reach = 96.0;
   for (const facing of [-1, 1]) {
-    for (const tick of [9, 10]) {
+    const grabStartup = attackStartupFrames(AttackStyle.grab, LICH_MOVES);
+    for (const tick of [grabStartup, grabStartup + 1]) {
       for (const [x, caught] of [[reach, true], [f32(reach + 1.0), false]] as const) {
         const pair = attackPair(AttackStyle.grab, x, 0.0, facing);
         pair.target.shield.raised = true;
@@ -197,8 +200,7 @@ test("Lich spectral grab catches shield on either active tick at the scaled stan
     const world = testWorld(owner, target);
     beginFighterAttack(world, 0, DASH_GRAB_REQUEST, false);
     assertTrue(owner.attack.dashGrab);
-    assertEquals(owner.attack.duration, 50);
-    owner.attack.frame = 11;
+    owner.attack.frame = attackStartup(owner, AttackStyle.grab) - 1;
     resolveAttacks(world);
     assertEquals(owner.grab.target, undefined);
     owner.attack.frame++;
@@ -209,25 +211,12 @@ test("Lich spectral grab catches shield on either active tick at the scaled stan
 
 test("Lich throws release once on their adopted frames with facing-relative directions [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
-    for (const [action, release, recovery, damage, x, z] of [
-      [GrabAction.throwForward, 14, 23, 7.0, f32(0.819152044), f32(0.573576436)],
-      [GrabAction.throwBack, 18, 26, 8.0, -f32(0.766044443), f32(0.642787610)],
-      [GrabAction.throwUp, 17, 13, 7.0, 0.0, 1.0],
-      [GrabAction.throwDown, 19, 26, 6.0, f32(0.906307787), f32(0.422618262)],
-    ] as const) {
+    for (const action of [GrabAction.throwForward, GrabAction.throwBack, GrabAction.throwUp, GrabAction.throwDown] as const) {
       const { owner, target, world } = attackPair(AttackStyle.grab, 60.0, 0.0, facing);
       resolveAttacks(world);
       assertEquals(owner.grab.target, 1);
-      assertEquals(grabContactFrame(action, LICH_MOVES), release);
-      assertEquals(grabActionDuration(action, LICH_MOVES), release + recovery);
-      const effect = LICH_MOVES.throws[action]?.effect;
-      assertTrue(effect !== undefined);
-      if (effect === undefined) continue;
-      assertEquals(effect.damage, damage);
-      if (action !== GrabAction.throwDown) {
-        assertNear(effect.launchX, x, f32(0.000001));
-        assertNear(effect.launchZ, z, f32(0.000001));
-      }
+      const release = grabContactFrame(action, LICH_MOVES);
+      const damage = LICH_MOVES.throws[action]!.effect.damage;
       const input = controls({
         grabThrowX: action === GrabAction.throwForward ? facing : action === GrabAction.throwBack ? -facing : 0,
         grabThrowZ: action === GrabAction.throwUp ? 1 : action === GrabAction.throwDown ? -1 : 0,

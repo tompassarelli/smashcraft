@@ -10,7 +10,7 @@ import { createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { updateProjectiles } from "../projectiles";
 import { advancePlacedObjects } from "../placedObjects";
-import { isAerialAttack } from "../moves";
+import { attackStartupFrames, isAerialAttack } from "../moves";
 import { cancelSpecialState } from "../transitions";
 import { type Controls, type Roster, createRoster } from "../roster";
 import { advanceSpecials, startFighterSpecial } from "../specials";
@@ -22,24 +22,27 @@ import { firstFighterDifference } from "../../replay/difference";
 import { fighterCoverage } from "../../match/botCoverage";
 import { moveReaches } from "../../match/botMoves";
 import { MALFURION_MOVES } from "./malfurionMoves";
+import { MALFURION_SPECIALS } from "./malfurionSpecials";
 import { SELECTABLE_CHARACTERS } from "./registry";
 import { Action } from "../../input/actions";
 import { fighter as sceneFighter, frame as sceneFrame, scene } from "../../match/padScene";
 
 
 const NORMALS = [
-  [AttackStyle.jab, 5, 42.0, 0.0, 3.0], [AttackStyle.jab2, 5, 48.0, 0.0, 4.0],
-  [AttackStyle.forwardTilt, 9, 88.0, 0.0, 8.0], [AttackStyle.forwardTiltUp, 9, 85.0, 45.0, 8.0],
-  [AttackStyle.forwardTiltDown, 9, 85.0, -35.0, 8.0], [AttackStyle.upTilt, 8, 0.0, 80.0, 7.0],
-  [AttackStyle.downTilt, 7, 75.0, -38.0, 6.0], [AttackStyle.dashAttack, 11, 80.0, 0.0, 10.0],
-  [AttackStyle.forwardSmash, 19, 148.0, 0.0, 17.0], [AttackStyle.upSmash, 18, 0.0, 112.0, 16.0],
-  [AttackStyle.downSmash, 17, 96.0, -34.0, 13.0], [AttackStyle.neutralAir, 8, 50.0, 0.0, 8.0],
-  [AttackStyle.forwardAir, 12, 96.0, 0.0, 12.0], [AttackStyle.backAir, 9, -75.0, 0.0, 11.0],
-  [AttackStyle.upAir, 10, 0.0, 108.0, 11.0], [AttackStyle.downAir, 16, 0.0, -112.0, 12.0],
+  [AttackStyle.jab, 42.0, 0.0], [AttackStyle.jab2, 48.0, 0.0],
+  [AttackStyle.forwardTilt, 88.0, 0.0], [AttackStyle.forwardTiltUp, 85.0, 45.0],
+  [AttackStyle.forwardTiltDown, 85.0, -35.0], [AttackStyle.upTilt, 0.0, 80.0],
+  [AttackStyle.downTilt, 75.0, -38.0], [AttackStyle.dashAttack, 80.0, 0.0],
+  [AttackStyle.forwardSmash, 148.0, 0.0], [AttackStyle.upSmash, 0.0, 112.0],
+  [AttackStyle.downSmash, 96.0, -34.0], [AttackStyle.neutralAir, 50.0, 0.0],
+  [AttackStyle.forwardAir, 96.0, 0.0], [AttackStyle.backAir, -75.0, 0.0],
+  [AttackStyle.upAir, 0.0, 108.0], [AttackStyle.downAir, 0.0, -112.0],
 ] as const;
 
 test("Malfurion every normal hits once in both facings, never in startup [spec #342]", () => {
-  for (const facing of [-1, 1]) for (const [style, first, x, z, damage] of NORMALS) {
+  for (const facing of [-1, 1]) for (const [style, x, z] of NORMALS) {
+    const move = MALFURION_MOVES.normals[style]!;
+    const damage = move.regions[0]!.hit.effect.damage;
     const owner = createFighter(Character.malfurion, 0.0, facing);
   owner.mana.points = 100;
     const victim = createFighter(Character.rifleman, f32(x * facing), -facing);
@@ -47,7 +50,7 @@ test("Malfurion every normal hits once in both facings, never in startup [spec #
     victim.motion.z = z;
     const world = createRoster(3, [owner, victim]);
     beginFighterAttack(world, 0, style, false);
-    owner.attack.frame = first - 2;
+    owner.attack.frame = move.startupFrames - 1;
     resolveAttacks(world);
     assertEquals(victim.status.damage, 0.0, `startup ${style}`);
     owner.attack.frame++;
@@ -70,7 +73,7 @@ test("Malfurion grabs shields and all four throws release once toward their chos
     victim.shield.raised = true;
     const world = createRoster(3, [owner, victim]);
     beginFighterAttack(world, 0, AttackStyle.grab, false);
-    owner.attack.frame = 8;
+    owner.attack.frame = attackStartupFrames(AttackStyle.grab, MALFURION_MOVES);
     resolveAttacks(world);
     assertEquals(owner.grab.target, 1);
     const move = MALFURION_MOVES.throws[action];
@@ -101,19 +104,20 @@ test("Malfurion pummel uses the shared escape window and releases after one stri
   victim.motion.grounded = true;
   const world = createRoster(3, [owner, victim]);
   beginFighterAttack(world, 0, AttackStyle.grab, false);
-  owner.attack.frame = 8;
+  owner.attack.frame = attackStartupFrames(AttackStyle.grab, MALFURION_MOVES);
   resolveAttacks(world);
   assertEquals(owner.grab.target, 1);
-  for (let tick = 1; tick < 60; tick++) {
+  const pummel = MALFURION_MOVES.throws[GrabAction.pummel]!;
+  for (let tick = 1; tick < pummel.contactFrame; tick++) {
     testGrabFrame(world, [controls({ attackPressed: true }), controls()], false);
     assertEquals(victim.status.damage, 0.0);
   }
   testGrabFrame(world, [controls(), controls()], false);
-  assertEquals(victim.status.damage, 3.0);
-  for (let tick = 61; tick <= 69; tick++) testGrabFrame(world, [controls({ attackPressed: true }), controls()], false);
+  assertEquals(victim.status.damage, pummel.effect.damage);
+  for (let tick = pummel.contactFrame + 1; tick <= pummel.totalFrames + 1; tick++) testGrabFrame(world, [controls({ attackPressed: true }), controls()], false);
   assertEquals(owner.grab.pummels, 1);
   assertEquals(victim.grab.owner, undefined);
-  assertEquals(victim.status.damage, 3.0);
+  assertEquals(victim.status.damage, pummel.effect.damage);
 });
 
 function frame(world: Roster, input: Controls = controls()): void {
@@ -137,11 +141,13 @@ function pair(distance: number) {
 
 test("Malfurion roots telegraph twenty frames and leave jump, shield and attacks available [spec #342]", () => {
   const { malfurion, victim, world } = pair(180.0);
+  const roots = MALFURION_SPECIALS.neutral.ground.projectiles![0]!;
+  const closes = roots.spawnFrame + (roots.activeFrom ?? 0);
   frame(world, controls({ specialPressed: true }));
-  for (let tick = 2; tick <= 26; tick++) frame(world);
+  for (let tick = 2; tick <= closes - 2; tick++) frame(world);
   assertEquals(victim.status.damage, 0.0);
-  for (let tick = 27; tick <= 30 && victim.status.damage === 0.0; tick++) frame(world);
-  assertEquals(victim.status.damage, 8.0);
+  for (let tick = closes - 1; tick <= closes + 2 && victim.status.damage === 0.0; tick++) frame(world);
+  assertEquals(victim.status.damage, roots.effect.damage);
   assertEquals(victim.status.condition, HeroStatusKind.root);
   assertEquals(chillScaled(victim, 10.0), 0.0);
   assertTrue(!heroStatusBlocksActions(victim));
@@ -156,7 +162,7 @@ test("Malfurion stag charge strikes and ends at frame 43 with all meter levels [
     malfurion.mana.points = meter;
     frame(world, controls({ specialPressed: true, specialX: 1 }));
     for (let tick = 2; tick <= 60; tick++) frame(world);
-    assertEquals(victim.status.damage, 11.0);
+    assertEquals(victim.status.damage, MALFURION_SPECIALS.side.ground.regions![0]!.hit.effect.damage);
     assertEquals(malfurion.special.action, SpecialAction.none);
     assertGreaterThan(malfurion.motion.x, -100.0);
   }
@@ -172,7 +178,7 @@ test("Malfurion Dream Ascent hits above him then spends his jump and falls helpl
   victim.motion.z = 270.0;
   frame(world, controls({ specialPressed: true, specialZ: 1 }));
   for (let tick = 2; tick <= 50; tick++) frame(world);
-  assertEquals(victim.status.damage, 7.0);
+  assertEquals(victim.status.damage, MALFURION_SPECIALS.up.ground.regions![0]!.hit.effect.damage);
   assertTrue(malfurion.special.fall);
   assertEquals(malfurion.jump.remaining, 0);
   assertGreaterThan(malfurion.motion.z, 250.0);
@@ -180,19 +186,20 @@ test("Malfurion Dream Ascent hits above him then spends his jump and falls helpl
 
 test("Malfurion treant plants at frame 26, fires branches, snapshots and recalls [spec #342] [invariant]", () => {
   const { malfurion, victim, world } = pair(260.0);
+  const treant = MALFURION_SPECIALS.down.ground.placement!;
   frame(world, controls({ specialPressed: true, specialZ: -1 }));
-  for (let tick = 2; tick < 26; tick++) frame(world);
+  for (let tick = 2; tick < treant.frame; tick++) frame(world);
   assertEquals(malfurion.placed.life, 0);
   frame(world);
   assertGreaterThan(malfurion.placed.life, 0);
   const copy = createFighter(Character.malfurion, 0.0, 1);
   copyFighterState(copy, malfurion, 3);
   assertEquals(firstFighterDifference(malfurion, copy, 3, 3), undefined);
-  for (let tick = 27; tick <= 100 && victim.status.damage === 0.0; tick++) frame(world);
-  assertEquals(victim.status.damage, 5.0);
+  for (let tick = treant.frame + 1; tick <= 100 && victim.status.damage === 0.0; tick++) frame(world);
+  assertEquals(victim.status.damage, treant.shot!.effect.damage);
   while (malfurion.special.action !== SpecialAction.none) frame(world);
   frame(world, controls({ specialPressed: true, specialZ: -1 }));
-  for (let tick = 2; tick <= 27; tick++) frame(world);
+  for (let tick = 2; tick <= MALFURION_SPECIALS.down.recall!.endFrame + 1; tick++) frame(world);
   assertEquals(malfurion.placed.life, 0);
 });
 
@@ -216,7 +223,7 @@ test("Malfurion's first treant branch into a point-blank shield permits shield g
   assertTrue(!acted);
 });
 
-test("Malfurion computer respects staff reach and plays a seeded match with his kit [spec #342]", () => {
+test("Malfurion computer respects staff reach and attacks and casts at least 4 times in a seeded match, against 11-18 seen on four seed offsets [spec #342]", () => {
   const target = createFighter(Character.rifleman, 0.0, -1);
   assertTrue(moveReaches(Character.malfurion, AttackStyle.forwardTilt, target, 100.0, 0.0, MALFURION_MOVES));
   assertTrue(!moveReaches(Character.malfurion, AttackStyle.forwardTilt, target, 200.0, 0.0, MALFURION_MOVES));
@@ -224,7 +231,7 @@ test("Malfurion computer respects staff reach and plays a seeded match with his 
   const report = fighterCoverage(0, Character.rifleman, choices, 1);
   assertEquals(report.matches, 1);
   assertGreaterThan(report.movement, 0);
-  assertGreaterThan(report.attacks, 0);
-  assertGreaterThan(report.kit, 0);
+  assertGreaterThan(report.attacks, 3);
+  assertGreaterThan(report.kit, 3);
   assertEquals(report.manaDenied, 0);
 });

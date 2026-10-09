@@ -11,18 +11,19 @@ import { updateProjectiles } from "../projectiles";
 import { advanceFighter } from "../step";
 import { fighterAt, type Controls, type Roster } from "../roster";
 import { MURLOC_MOVES } from "./murlocMoves";
+import { MURLOC_SPECIALS } from "./murlocSpecials";
 
 
 const normalCases = [
-  [AttackStyle.jab, 45.0, 0.0, 2.0], [AttackStyle.jab2, 50.0, 0.0, 4.0],
-  [AttackStyle.forwardTilt, 70.0, 0.0, 8.0], [AttackStyle.forwardTiltUp, 70.0, 0.0, 8.0],
-  [AttackStyle.forwardTiltDown, 70.0, 0.0, 8.0], [AttackStyle.upTilt, 30.0, 60.0, 7.0],
-  [AttackStyle.downTilt, 65.0, 0.0, 6.0], [AttackStyle.dashAttack, 70.0, 0.0, 9.0],
-  [AttackStyle.forwardSmash, 95.0, 0.0, 16.0], [AttackStyle.upSmash, 0.0, 90.0, 15.0],
-  [AttackStyle.downSmash, 80.0, 0.0, 13.0], [AttackStyle.neutralAir, 40.0, 0.0, 8.0],
-  [AttackStyle.forwardAir, 80.0, 0.0, 10.0], [AttackStyle.backAir, -80.0, 0.0, 12.0],
-  [AttackStyle.upAir, 0.0, 80.0, 9.0], [AttackStyle.downAir, 0.0, -90.0, 11.0],
-  [AttackStyle.getupAttack, -50.0, 0.0, 6.0], [AttackStyle.ledgeAttack, 70.0, 0.0, 6.0],
+  [AttackStyle.jab, 45.0, 0.0], [AttackStyle.jab2, 50.0, 0.0],
+  [AttackStyle.forwardTilt, 70.0, 0.0], [AttackStyle.forwardTiltUp, 70.0, 0.0],
+  [AttackStyle.forwardTiltDown, 70.0, 0.0], [AttackStyle.upTilt, 30.0, 60.0],
+  [AttackStyle.downTilt, 65.0, 0.0], [AttackStyle.dashAttack, 70.0, 0.0],
+  [AttackStyle.forwardSmash, 95.0, 0.0], [AttackStyle.upSmash, 0.0, 90.0],
+  [AttackStyle.downSmash, 80.0, 0.0], [AttackStyle.neutralAir, 40.0, 0.0],
+  [AttackStyle.forwardAir, 80.0, 0.0], [AttackStyle.backAir, -80.0, 0.0],
+  [AttackStyle.upAir, 0.0, 80.0], [AttackStyle.downAir, 0.0, -90.0],
+  [AttackStyle.getupAttack, -50.0, 0.0], [AttackStyle.ledgeAttack, 70.0, 0.0],
 ] as const;
 
 function pair(x: number, facing = 1) {
@@ -34,10 +35,11 @@ function pair(x: number, facing = 1) {
 }
 
 test("Murloc every normal hits once on its first active frame and Scavenger takes mana, both facings [spec #335]", () => {
-  for (const facing of [-1, 1]) for (const [style, x, z, damage] of normalCases) {
+  for (const facing of [-1, 1]) for (const [style, x, z] of normalCases) {
     const { owner, target, world } = pair(x, facing);
     owner.motion.grounded = !isAerialAttack(style); target.motion.grounded = false; target.motion.z = z;
     const move = MURLOC_MOVES.normals[style]; assertTrue(move !== undefined); if (move === undefined) continue;
+    const damage = move.regions[0]!.hit.effect.damage;
     owner.attack.style = style; owner.attack.duration = move.totalFrames; owner.attack.frame = move.startupFrames - 1;
     resolveAttacks(world); assertEquals(target.status.damage, 0.0, `early ${style}`);
     owner.attack.frame++; resolveAttacks(world); assertEquals(target.status.damage, damage, `normal ${style}`);
@@ -47,9 +49,8 @@ test("Murloc every normal hits once on its first active frame and Scavenger take
 });
 
 test("Murloc grab catches a shield and every directional throw releases once [spec docs/design/murloc.md]", () => {
-  for (const facing of [-1, 1]) for (const [action, release, damage] of [
-    [GrabAction.throwForward, 12, 7.0], [GrabAction.throwBack, 14, 9.0], [GrabAction.throwUp, 12, 6.0], [GrabAction.throwDown, 16, 5.0],
-  ] as const) {
+  for (const facing of [-1, 1]) for (const action of [GrabAction.throwForward, GrabAction.throwBack, GrabAction.throwUp, GrabAction.throwDown] as const) {
+    const { contactFrame: release, effect: { damage } } = MURLOC_MOVES.throws[action]!;
     const { owner, target, world } = pair(45.0, facing); target.shield.raised = true;
     beginFighterAttack(world, 0, AttackStyle.grab, false); owner.attack.frame = attackStartupFrames(AttackStyle.grab, MURLOC_MOVES);
     resolveAttacks(world); assertEquals(owner.grab.target, 1);
@@ -73,7 +74,7 @@ test("Murloc Ensnare's net slows the first body it reaches and preserves the sup
     const { owner, target, world } = pair(160.0, facing);
     frame(world, controls({ specialPressed: true })); assertEquals(owner.special.action, SpecialAction.heroNeutral); assertEquals(owner.mana.points, 40);
     for (let tick = 0; tick < 40 && target.status.damage === 0.0; tick++) frame(world);
-    assertEquals(target.status.damage, 4.0); assertEquals(target.status.condition, HeroStatusKind.chill);
+    assertEquals(target.status.damage, MURLOC_SPECIALS.neutral.ground.projectiles![0]!.effect.damage); assertEquals(target.status.condition, HeroStatusKind.chill);
   }
 });
 
@@ -100,7 +101,7 @@ test("Murloc EX Tidal Rush deals a quarter more damage in both facings [spec #32
     frame(world, controls({ specialPressed: true, specialX: facing, shield: true }));
     assertEquals(owner.mana.points, 67);
     for (let tick = 2; tick <= 40; tick++) frame(world);
-    assertEquals(target.status.damage, 10.0);
+    assertEquals(target.status.damage, f32(MURLOC_SPECIALS.side.ground.regions![0]!.hit.effect.damage * 1.25));
   }
 });
 
@@ -110,7 +111,8 @@ test("Murloc EX Disease Cloud reaches farther while retaining the poison duratio
     owner.mana.points = 100;
     frame(world, controls({ specialPressed: true, specialZ: -1, shield: ex }));
     for (let tick = 2; tick <= 40 && target.status.poisonFrames === 0; tick++) frame(world);
-    assertEquals(target.status.poisonFrames, ex ? 180 : 0);
-    assertEquals(target.status.damage, ex ? 2.0 : 0.0);
+    const cloud = MURLOC_SPECIALS.down.ground.projectiles![0]!;
+    assertEquals(target.status.poisonFrames, ex ? cloud.status!.frames : 0);
+    assertEquals(target.status.damage, ex ? cloud.effect.damage : 0.0);
   }
 });

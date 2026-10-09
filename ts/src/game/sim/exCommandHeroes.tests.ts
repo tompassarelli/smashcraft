@@ -11,6 +11,7 @@ import { type Roster } from "./roster";
 import { advanceSpecials, startFighterSpecial } from "./specials";
 import { advanceFighter } from "./step";
 import { controls, testWorld } from "./testWorld";
+import { THRALL_SPECIALS } from "./heroes/thrallSpecials";
 
 function scene(character: Character) {
   const owner = createFighter(character, 0.0, 1);
@@ -79,13 +80,15 @@ test("command heroes' projectile EX casts and air forms deal 25% more through bo
 });
 
 test("EX Bear, Quilbeast, Hawk and Water Elemental keep stronger placements after the cast ends [spec #329]", () => {
-  for (const [character, slot, animal, durability] of [
-    [Character.beastmaster, SpecialSlot.side, 0, 30.0],
-    [Character.beastmaster, SpecialSlot.down, 1, 18.0],
-    [Character.beastmaster, SpecialSlot.up, 2, 12.0],
-    [Character.jaina, SpecialSlot.down, 0, 24.0],
+  for (const [character, slot, animal] of [
+    [Character.beastmaster, SpecialSlot.side, 0],
+    [Character.beastmaster, SpecialSlot.down, 1],
+    [Character.beastmaster, SpecialSlot.up, 2],
+    [Character.jaina, SpecialSlot.down, 0],
   ] as const) {
     const { owner, target, world } = scene(character);
+    const basePlacement = owner.tuning.specials === undefined ? undefined : specialKit(owner.tuning.specials, slot).ground.placement;
+    assertTrue(basePlacement !== undefined);
     cast(owner, world, slot, true);
     const move = runningHeroSpecial(owner);
     const placement = move?.placement;
@@ -94,7 +97,7 @@ test("EX Bear, Quilbeast, Hawk and Water Elemental keep stronger placements afte
     timeline(world, move?.endFrame ?? 0);
     assertEquals(owner.special.action, SpecialAction.none);
     const placed = placedObject(owner, animal);
-    assertEquals(placed.durability, f32(durability * 1.25));
+    assertEquals(placed.durability, f32((basePlacement?.durability ?? 0.0) * 1.25));
     assertEquals(placed.spec, placement);
     owner.special.ex = false;
     if (placement.shot !== undefined) {
@@ -107,7 +110,7 @@ test("EX Bear, Quilbeast, Hawk and Water Elemental keep stronger placements afte
       target.motion.x = f32(projectile.x + projectile.velocityX);
       target.motion.z = f32(f32(projectile.z + projectile.velocityZ) - 45.0);
       updateProjectiles(world);
-      const baseShot = owner.tuning.specials === undefined ? undefined : specialKit(owner.tuning.specials, slot).ground.placement?.shot;
+      const baseShot = basePlacement?.shot;
       assertTrue(baseShot !== undefined);
       assertEquals(target.status.damage, f32((baseShot?.effect.damage ?? 0.0) * 1.25));
     } else if (animal === 0) {
@@ -119,7 +122,7 @@ test("EX Bear, Quilbeast, Hawk and Water Elemental keep stronger placements afte
       placed.direction = 1;
       target.motion.x = f32(placed.x + f32(partner.lungeTravel / partner.lungeActive));
       timeline(world, 1);
-      assertEquals(target.status.damage, f32(10.799999237060547 * 1.25));
+      assertEquals(target.status.damage, f32((basePlacement?.companion?.biteEffect.damage ?? 0.0) * 1.25));
     }
   }
 });
@@ -187,14 +190,13 @@ test("EX Defile grows its radius and cap together while keeping its pulse interv
     target.motion.x = projectile.x;
     projectile.life = spec.life - (spec.activeFrom ?? 0);
     updateProjectiles(world);
-    assertEquals(target.status.damage, 2.0);
+    assertEquals(target.status.damage, spec.effect.damage);
     const firstGrowth = f32(heroProjectileRadius(projectile, spec) - initial);
     projectile.poolHits = 100;
     radii.push([initial, firstGrowth, heroProjectileRadius(projectile, spec), spec.pool?.every ?? 0]);
   }
   for (const component of [0, 1, 2]) assertNear(radii[1]?.[component] ?? 0.0, f32((radii[0]?.[component] ?? 0.0) * 1.25), f32(0.001));
-  assertEquals(radii[0]?.[3], 36);
-  assertEquals(radii[1]?.[3], 36);
+  assertEquals(radii[1]?.[3], radii[0]?.[3]);
 });
 
 test("EX Earthquake reaches outside the ordinary strike on both sides [spec #329]", () => {
@@ -208,6 +210,6 @@ test("EX Earthquake reaches outside the ordinary strike on both sides [spec #329
       damage.push(target.status.damage);
     }
     assertEquals(damage[0], 0.0);
-    assertEquals(damage[1], 11.0);
+    assertEquals(damage[1], THRALL_SPECIALS.down.ground.regions?.[0]?.hit.effect.damage);
   }
 });

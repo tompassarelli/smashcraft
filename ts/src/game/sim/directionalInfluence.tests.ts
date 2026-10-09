@@ -6,7 +6,7 @@ import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNea
 import { f32 } from "wisp/src/sim/f32";
 import { Character, DownState } from "./codes";
 import { createReferenceFighter } from "./referenceRig";
-import { applyDirectionalInfluence, directionalInfluenceVector, influenceOperands, ordinaryHitKnockback, ordinaryHitlagFrames, ordinaryHitstunFrames } from "./knockback";
+import { applyDirectionalInfluence, directionalInfluenceVector, influenceOperands, ordinaryHitKnockback } from "./knockback";
 import { setMeleeKnockback, totalVelocityX, totalVelocityZ } from "./motion";
 import { ASDI_DISTANCE, SDI_STEP_DISTANCE } from "./smashDirectionalInfluence";
 import { respawnFighter } from "./stocks";
@@ -328,15 +328,4 @@ test("an ordinary hit separates fractional percent from integer attack power [re
   assertNear(ordinaryHitKnockback(9.99899959564209, 1.5, 80.0, 100.0, 20.0, 1.0), baseline, 0.00009999999747378752);
   assertNear(baseline, 40.45000076293945, 0.00009999999747378752);
   assertGreaterThan(ordinaryHitKnockback(10.0, 1.5, 80.0, 100.0, 20.0, 1.0), baseline);
-});
-
-test("ordinary hitlag and hitstun round at frame boundaries [reference]", () => {
-  assertEquals(ordinaryHitlagFrames(2.999000072479248), 3);
-  assertEquals(ordinaryHitlagFrames(3.0), 4);
-  assertEquals(ordinaryHitlagFrames(5.999000072479248), 4);
-  assertEquals(ordinaryHitlagFrames(6.0), 5);
-  assertEquals(ordinaryHitlagFrames(15.0), 8);
-  assertEquals(ordinaryHitstunFrames(2.499000072479248), 1);
-  assertEquals(ordinaryHitstunFrames(2.5), 1);
-  assertEquals(ordinaryHitstunFrames(51.06666564941406), 20);
 });

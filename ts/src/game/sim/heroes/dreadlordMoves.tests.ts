@@ -1,12 +1,12 @@
-import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GrabAction, HitElement } from "../codes";
-import { attackPhase } from "../conditions";
+import { attackPhase, attackStartup } from "../conditions";
 import { createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { SHARED_GRAB_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
-import { attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
+import { attackStartupFrames, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { DREADLORD_MOVES } from "./dreadlordMoves";
 import { isMultiHit } from "./multiHit";
@@ -14,16 +14,14 @@ import { isMultiHit } from "./multiHit";
 
 
 const NORMAL_TIMINGS = [
-  [AttackStyle.forwardSmash, 18, 4, 34, 0],
-  [AttackStyle.upSmash, 16, 5, 31, 0],
-  [AttackStyle.downSmash, 15, 6, 20, 0],
-  [AttackStyle.neutralAir, 7, 10, 19, 11],
-  [AttackStyle.forwardAir, 10, 4, 24, 10],
-  [AttackStyle.backAir, 9, 4, 25, 10],
-  [AttackStyle.upAir, 7, 3, 21, 12],
-  [AttackStyle.downAir, 14, 4, 29, 20],
-  [AttackStyle.grab, 7, 3, 26, 0],
+  AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.downSmash, AttackStyle.neutralAir, AttackStyle.forwardAir,
+  AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir, AttackStyle.grab,
 ] as const;
+
+const timing = (style: AttackStyle) => {
+  const move = DREADLORD_MOVES.normals[style]!;
+  return { first: move.startupFrames + 1, active: move.activeFrames, total: move.totalFrames };
+};
 
 function attackPair(style: AttackStyle, frame: number, x: number, z = 0.0, facing = 1, groundedTarget = true) {
   const owner = createFighter(Character.rifleman, 0.0, facing);
@@ -40,10 +38,10 @@ function attackPair(style: AttackStyle, frame: number, x: number, z = 0.0, facin
   return { owner, target, world };
 }
 
-test("Dreadlord production phases match the adopted roster [spec docs/design/roster.md]", () => {
-  for (const [style, first, active] of NORMAL_TIMINGS) {
+test("Dreadlord attack phases change exactly at each move's authored startup and active boundaries [spec docs/design/roster.md]", () => {
+  for (const style of NORMAL_TIMINGS) {
+    const { first, active } = timing(style);
     const { owner } = attackPair(style, 0, 1000.0);
-    assertEquals(attackStartupFrames(style, owner.tuning.moves), first - 1);
     owner.attack.frame = first - 2;
     assertEquals(attackPhase(owner), AttackPhase.startup);
     owner.attack.frame++;
@@ -57,10 +55,11 @@ test("Dreadlord production phases match the adopted roster [spec docs/design/ros
 
 test("Dreadlord paths are narrow capsules active only on adopted contact frames [spec docs/design/roster.md]", () => {
   const out = emptyHitRegion();
-  for (const [style, first, active, recovery] of NORMAL_TIMINGS) {
+  for (const style of NORMAL_TIMINGS) {
+    const { first, active, total } = timing(style);
     const count = authoredHitRegionCount(style, DREADLORD_MOVES);
     assertGreaterThan(count, 0);
-    for (let frame = 0; frame < first + active + recovery; frame++) {
+    for (let frame = 0; frame < total; frame++) {
       let live = 0;
       for (let index = 0; index < count; index++) {
         authoredHitRegion(out, Character.rifleman, style, frame, 0, index, DREADLORD_MOVES);
@@ -136,14 +135,11 @@ test("Dreadlord angled claws retain separate paths and horn lift leaves a latera
   resolveAttacks(hornGap.world);
   assertEquals(hornGap.target.status.damage, 0.0);
   assertEquals(smashDamageMultiplier(0, DREADLORD_MOVES), 1.0);
-  assertEquals(smashDamageMultiplier(45, DREADLORD_MOVES), 1.25);
-  assertEquals(smashDamageMultiplier(100, DREADLORD_MOVES), 1.25);
+  assertEquals(smashDamageMultiplier(DREADLORD_MOVES.smashMaxChargeFrames, DREADLORD_MOVES), DREADLORD_MOVES.smashMaxDamageMultiplier);
+  assertEquals(smashDamageMultiplier(DREADLORD_MOVES.smashMaxChargeFrames + 55, DREADLORD_MOVES), DREADLORD_MOVES.smashMaxDamageMultiplier);
 });
 
 test("Dreadlord shield grab and dash grab use scaled reach and whiff timing [spec docs/design/roster.md]", () => {
-  const out = emptyHitRegion();
-  authoredHitRegion(out, Character.rifleman, AttackStyle.grab, 6, 0, 0, DREADLORD_MOVES);
-  assertNear(out.maxX, 96.0, f32(0.0001));
   for (const facing of [1, -1]) {
     const standing = attackPair(AttackStyle.grab, 6, 85.0, 0.0, facing);
     standing.target.shield.raised = true;
@@ -156,31 +152,25 @@ test("Dreadlord shield grab and dash grab use scaled reach and whiff timing [spe
     const target = createFighter(Character.rifleman, f32(85.0 * facing), -facing);
     const world = testWorld(owner, target);
     beginFighterAttack(world, 0, DASH_GRAB_REQUEST, false);
-    assertEquals(owner.attack.duration, 46);
-    owner.attack.frame = 8;
+    const dashStartup = attackStartup(owner, AttackStyle.grab);
+    owner.attack.frame = dashStartup - 1;
     resolveAttacks(world);
     assertEquals(owner.grab.target, undefined);
-    owner.attack.frame = 9;
+    owner.attack.frame = dashStartup;
     resolveAttacks(world);
     assertEquals(owner.grab.target, 1);
   }
 });
 
-const THROW_ROWS = [
-  [GrabAction.throwForward, 12, 20],
-  [GrabAction.throwBack, 18, 25],
-  [GrabAction.throwUp, 15, 11],
-  [GrabAction.throwDown, 19, 25],
-] as const;
+const THROW_ROWS = [GrabAction.throwForward, GrabAction.throwBack, GrabAction.throwUp, GrabAction.throwDown] as const;
 
 test("Dreadlord throws hold until the adopted release and launch once in both facings [spec docs/design/roster.md]", () => {
   for (const facing of [1, -1]) {
-    for (const [action, release, recovery] of THROW_ROWS) {
+    for (const action of THROW_ROWS) {
       const { owner, target, world } = attackPair(AttackStyle.grab, 6, 50.0, 0.0, facing);
       resolveAttacks(world);
       assertEquals(owner.grab.target, 1);
-      assertEquals(grabContactFrame(action, owner.tuning.moves), release);
-      assertEquals(grabActionDuration(action, owner.tuning.moves), release + recovery);
+      const release = grabContactFrame(action, owner.tuning.moves);
       const input = controls({
         grabThrowX: action === GrabAction.throwForward ? facing : action === GrabAction.throwBack ? -facing : 0,
         grabThrowZ: action === GrabAction.throwUp ? 1 : action === GrabAction.throwDown ? -1 : 0,

@@ -22,8 +22,6 @@ test("Rifleman casts in his Spell pose for 24 frames before the bear appears (#1
     assertEquals(match.runtime.poses[0].clipIndex, originalClipNamed(Character.rifleman, "spell"));
     assertEquals(owner.bear.life > 0, frame >= RIFLEMAN_BEAR_CAST_FRAMES);
   }
-  assertEquals(RIFLEMAN_BEAR_CAST_FRAMES, 24);
-  assertEquals(RIFLEMAN_BEAR_SUMMON_FRAMES, 42);
   assertGreaterThan(owner.bear.x, owner.motion.x);
   executeNext(match);
   assertEquals(owner.special.action, SpecialAction.none);

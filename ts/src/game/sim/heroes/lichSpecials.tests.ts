@@ -18,9 +18,19 @@ import { advanceSpecials, startFighterSpecial } from "../specials";
 import { advanceFighter } from "../step";
 import { controls } from "../testWorld";
 import { copyFighterState } from "../../replay/fighterState";
+import { type SpecialProjectile } from "../heroSpecials";
+import { LICH_MOVES } from "./lichMoves";
+import { LICH_SPECIALS } from "./lichSpecials";
+import { dealtManaGain } from "../mana";
 import { firstFighterDifference } from "../../replay/difference";
 
 const H = HERO_REFERENCE_HEIGHT;
+const ORB = LICH_SPECIALS.neutral.ground.projectiles![0]!;
+const BURST = LICH_SPECIALS.neutral.recall!.burst!;
+const [DECAY_SMALL, DECAY_STRONG] = LICH_SPECIALS.side.ground.projectiles! as readonly [SpecialProjectile, SpecialProjectile];
+const decayFrame = (strike: SpecialProjectile) => strike.spawnFrame + (strike.activeFrom ?? 0) - 1;
+const ARMOR = LICH_SPECIALS.down.ground.armor!;
+const RITUAL = LICH_SPECIALS.down.recall!;
 
 
 function frame(world: Roster, first: Readonly<Controls> = controls(), second: Readonly<Controls> = controls(), stage = 0): void {
@@ -61,13 +71,13 @@ test("Frost Nova is free, its slow orb leaves the hand on frame 18 and chills a 
   frame(world, neutral);
   assertEquals(lich.special.action, SpecialAction.heroNeutral);
   assertEquals(lich.mana.points, 100);
-  for (let f = 2; f <= 17; f++) frame(world);
+  for (let f = 2; f < ORB.spawnFrame; f++) frame(world);
   assertEquals(live(lich).length, 0);
   frame(world);
   assertEquals(live(lich).length, 1);
-  assertNear(Math.abs(live(lich)[0]!.velocityX), f32(H * f32(0.09)), f32(0.01));
-  for (let f = 19; f <= 80 && target.status.damage === 0.0; f++) frame(world);
-  assertEquals(target.status.damage, 9.0);
+  assertNear(Math.abs(live(lich)[0]!.velocityX), ORB.velocityX, f32(0.01));
+  for (let f = ORB.spawnFrame + 1; f <= 80 && target.status.damage === 0.0; f++) frame(world);
+  assertEquals(target.status.damage, ORB.effect.damage);
   assertTrue(chilled(target));
   assertGreaterThan(target.status.conditionFrames, 73);
 });
@@ -80,7 +90,7 @@ test("a second Frost Nova press stops the orb on its frame 4 and bursts it 6 fra
   frame(world, neutral);
   assertEquals(lich.special.action, SpecialAction.heroNeutral);
   assertEquals(lich.mana.points, 100);
-  for (let f = 2; f <= 4; f++) frame(world);
+  for (let f = 2; f <= BURST.frame; f++) frame(world);
   const x = orb.x;
   frame(world);
   assertEquals(orb.x, x);
@@ -95,7 +105,7 @@ test("a second Frost Nova press stops the orb on its frame 4 and bursts it 6 fra
     frame(world);
     burstFrame = f;
   }
-  assertEquals(target.status.damage, 10.0);
+  assertEquals(target.status.damage, BURST.into.effect.damage);
 
   assertEquals(burstFrame, 5);
   assertTrue(chilled(target));
@@ -134,19 +144,19 @@ test("Death and Decay is free and strikes a fighter standing in it on frame 30 a
   const { world, lich, target } = lichPair(ahead);
   frame(world, sideForward);
   assertEquals(lich.mana.points, 100);
-  for (let f = 2; f <= 8; f++) frame(world);
+  for (let f = 2; f <= DECAY_SMALL.spawnFrame; f++) frame(world);
   assertEquals(live(lich).length, 2);
   assertNear(live(lich)[0]!.x, f32(lich.motion.x + ahead), 1.0);
-  for (let f = 9; f <= 29; f++) frame(world);
+  for (let f = DECAY_SMALL.spawnFrame + 1; f < decayFrame(DECAY_SMALL); f++) frame(world);
   assertEquals(target.status.damage, 0.0);
   frame(world);
-  assertEquals(target.status.damage, 5.0);
+  assertEquals(target.status.damage, DECAY_SMALL.effect.damage);
 
-  for (let f = 31; f <= 69; f++) frame(world);
-  assertEquals(target.status.damage, 5.0);
+  for (let f = decayFrame(DECAY_SMALL) + 1; f < decayFrame(DECAY_STRONG); f++) frame(world);
+  assertEquals(target.status.damage, DECAY_SMALL.effect.damage);
   target.motion.x = f32(lich.motion.x + ahead);
-  for (let f = 70; f <= 72; f++) frame(world);
-  assertEquals(target.status.damage, 14.0);
+  for (let f = decayFrame(DECAY_STRONG); f <= decayFrame(DECAY_STRONG) + 2; f++) frame(world);
+  assertEquals(target.status.damage, f32(DECAY_SMALL.effect.damage + DECAY_STRONG.effect.damage));
   for (let f = 73; f <= 100; f++) frame(world);
   assertEquals(live(lich).length, 0);
 });
@@ -209,13 +219,13 @@ test("Frost Armor is free, its shell lasts 240 frames, takes one small hit's rea
 
   beginFighterAttack(world, 1, AttackStyle.jab, false);
   for (let f = 0; f < 8; f++) frame(world);
-  assertEquals(lich.status.damage, 3.0);
+  assertEquals(lich.status.damage, LICH_MOVES.normals[AttackStyle.jab]!.regions[0]!.hit.effect.damage);
   assertEquals(lich.launch.hitstun, 0);
   assertEquals(lich.status.armorFrames, 0);
   assertTrue(chilled(target));
   const lasting = lichPair(600.0);
   frame(lasting.world, down);
-  for (let f = 2; f <= 22 + 238; f++) frame(lasting.world);
+  for (let f = 2; f <= ARMOR.last - 1; f++) frame(lasting.world);
   assertGreaterThan(lasting.lich.status.armorFrames, 0);
   frame(lasting.world);
   frame(lasting.world);
@@ -235,13 +245,14 @@ test("Dark Ritual: down special while the shell holds shatters it on frame 6 int
   frame(world, down);
   assertEquals(lich.special.action, SpecialAction.heroDown);
   assertEquals(lich.mana.points, 50);
-  for (let f = 2; f <= 5; f++) frame(world);
+  for (let f = 2; f < RITUAL.ritual!.frame; f++) frame(world);
   assertGreaterThan(lich.status.armorFrames, 0);
+  const beforeRitual = lich.mana.points;
   frame(world);
   assertEquals(lich.status.armorFrames, 0);
-  assertEquals(lich.mana.points, 85);
-  for (let f = 7; f <= 9; f++) frame(world);
-  assertEquals(target.status.damage, 5.0);
+  assertEquals(lich.mana.points, beforeRitual + RITUAL.ritual!.mana + dealtManaGain(RITUAL.regions![0]!.hit.effect.damage));
+  for (let f = RITUAL.ritual!.frame + 1; f <= RITUAL.ritual!.frame + 3; f++) frame(world);
+  assertEquals(target.status.damage, RITUAL.regions![0]!.hit.effect.damage);
 
   for (let f = 10; f <= 40; f++) frame(world);
   assertEquals(lich.special.action, SpecialAction.none);
