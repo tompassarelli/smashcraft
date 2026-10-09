@@ -27,7 +27,7 @@ test("a Warcraft update cannot reuse the previous build's stock render bytes [sp
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
-test("[spec wisp#84, spec #365] Definitive map body overrides Classic and cue builds refuse paths missing in either look", async () => {
+test("Definitive map body overrides Classic and cue builds refuse paths missing in either look [spec wisp#84] [spec #365]", async () => {
   const directory = mkdtempSync(join(tmpdir(), "smashcraft-definitive-assets-"));
   try {
     await Bun.write(join(directory, "classic"), "classic body");
