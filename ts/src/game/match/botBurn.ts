@@ -9,9 +9,9 @@ import { BURN_MEMORY_FRAMES, type BotStrategy } from "./botStrategy";
 const BURN_MARGIN = 30.0;
 
 export function burnedMove(state: Readonly<BotStrategy>, target: Readonly<Fighter>, frame: number, observationAge: number): AttackStyle | undefined {
-  if (state.burnCount <= 0 || frame - state.burnFrame > BURN_MEMORY_FRAMES + observationAge || target.character !== state.burnCharacter) return undefined;
+  if (state.burnStyle === -1 || state.burnCount <= 0 || frame - state.burnFrame > BURN_MEMORY_FRAMES + observationAge || target.character !== state.burnCharacter) return undefined;
   if (target.launch.hitstun > 0 || target.down.state !== DownState.none || !target.motion.grounded) return undefined;
-  return state.burnStyle as AttackStyle;
+  return state.burnStyle;
 }
 
 export function keepClearOfBurn(state: Readonly<BotStrategy>, burned: AttackStyle | undefined, own: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, input: Controls): boolean {

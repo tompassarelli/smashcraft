@@ -71,7 +71,7 @@ export interface BotStrategy {
   readActionFacing: Direction;
   lastOption: number;
   burnHurt: boolean;
-  burnStyle: number;
+  burnStyle: AttackStyle | -1;
   burnCharacter: number;
   burnFrame: number;
   burnCount: number;
