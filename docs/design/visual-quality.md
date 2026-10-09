@@ -297,15 +297,17 @@ How a map uses a newer feature safely:
    stock/mask/stage sets.
 
    Wisp's headless Classic and Definitive profiles are separate from these
-   native client preferences. At Wisp 9b821201, they draw day/night light,
-   fog and sky; Definitive also draws model point lights and PBR materials.
-   Shadows, water, ambient occlusion, bloom and point-light shadows require
-   the native renderer or the corresponding Wisp renderer fix. A requested
-   unsupported lever fails `--look` before drawing; a supported-lever
-   contrast triple cannot tick #287's full capture-profile box
+   native client preferences. At Wisp `1383a934`, both draw day/night light,
+   fog, sky and sun shadows. Definitive also draws model point lights, PBR
+   materials, point-light shadows, ambient occlusion and bloom. Water and
+   height-fog falloff still require native captures. A requested unsupported
+   lever fails `--look` before drawing; an image with a model named in
+   `render.json`'s `notDrawn` cannot tick a complete visual capture box
    (wisp:docs/headless.md, "Graphics profiles"). Take each stock, mask and
    stage frame at the same pose and camera: separate headless journeys at
-   the same frame, rather than three different simulation frames.
+   the same frame, rather than three different simulation frames. Leave the
+   headless journey unpaused: pressing Y opens the pause menu over the stage,
+   darkening and covering the scene being measured.
 
 ### 3.0.1 presentation changes
 
@@ -750,13 +752,17 @@ An actual Classic and Definitive draw is needed for the asset fallback claim.
 
 ### 3.0.1 headless comparison reference
 
-The shared #287 producer at Smashcraft `5e8ef374` and Wisp `9b821201` uses
+The earlier #287 producer at Smashcraft `5e8ef374` and Wisp `9b821201` uses
 Warcraft 3.0.1.24342 assets, Classic and Definitive, and separate stock/mask/stage
 journeys drawn at frame 410. It pauses at frame 345 (holding match frame 315)
 and fixes the near or far camera before the pause. These views differ from
 the earlier `view off` comparisons. `--look day-night-light,fog,sky` records
 the levers being measured; the native profile's shadows, water and HD
-post-processing remain outside this headless reference.
+post-processing remain outside this headless reference. Its pause menu is
+visible over the stage, so these historical rows are not the current art or
+full-profile baseline. The replacement journeys remove the Y key events and
+capture all three separate runs at frame 410, with the same near/far view,
+pose and camera in each triple.
 
 Hellfire's saved reference for both clients, measured with
 `tools/stage/contrast.ts`:
