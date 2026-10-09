@@ -2,10 +2,10 @@
 import { STAGE_DECK_MODEL, STAGE_DECK_MODELS, STAGE_MAIN_DECK_MODEL } from "../assets/stageAssetInfo";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { surfaceCount } from "../sim/stage";
-import { hasCannon } from "../sim/stageHazards";
+import { hasCannon, hasTide } from "../sim/stageHazards";
 import { hasLava } from "../sim/lava";
 import { STAGE_LAVA_MODEL } from "../assets/terrainAssetInfo";
-import { CANNON_MODEL } from "./stageHazards";
+import { CANNON_MODEL, HYDRA_CREST_MODEL, HYDRA_RING_MODEL } from "./stageHazards";
 import { placedPieces, stageLightModel, stageScenery } from "./stageScenery";
 import { platformParts } from "./stockPlatforms";
 import { CARRIED_TEST_STAGE, surfacePass } from "../sim/stage";
@@ -42,6 +42,7 @@ export function stageModels(stage: number): string[] {
   }
   if (hasCannon(stage)) models.push(CANNON_MODEL);
   if (hasLava(stage)) models.push(STAGE_LAVA_MODEL);
+  if (hasTide(stage)) models.push(HYDRA_CREST_MODEL, HYDRA_RING_MODEL);
   for (const piece of placedPieces(stage)) models.push(piece.model);
   if (stageEdgeLight(stage, 0, 0) !== undefined) models.push(STAGE_EDGE_LIGHT_MODEL);
   return models;

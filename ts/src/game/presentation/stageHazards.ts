@@ -6,6 +6,8 @@ import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { CARRIED_TEST_STAGE, TIMED_TEST_STAGE, surfaceWaitFrames } from "../sim/stage";
 import { LAVA_CALM_FRAMES, LAVA_CYCLE_FRAMES, LAVA_SIDE_FRAMES, LAVA_WARNING_FRAMES, LavaPhase, framesUntilLava, lavaPhase, lavaSide } from "../sim/lava";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
+import type { Fighter } from "../sim/fighter";
+import { HYDRA_STRIKE_FRAME } from "../sim/water";
 import {
   CANNON_HOLD_FRAMES, CANNON_SHOT_FRAMES, WindPhase, cannonOn, framesUntilTideTurns, framesUntilWind, hasTide, tideNextDirection, windDirection, windOn, windPhase,
 } from "../sim/stageHazards";
@@ -14,6 +16,13 @@ import {
 export const CANNON_MODEL = "Units\\Other\\TNTBarrel\\TNTBarrel.mdx";
 export const WIND_STREAK_MODEL = "Abilities\\Spells\\Other\\Tornado\\Tornado_Target.mdx";
 export const WIND_STREAK_COUNT = 6;
+export const HYDRA_CREST_MODEL = "Units\\Creeps\\Hydra\\Hydra.mdx";
+export const HYDRA_RING_MODEL = "Abilities\\Spells\\Undead\\DeathandDecay\\DeathandDecayTarget.mdx";
+
+/** The mark belongs to the simulation; the warning never follows the swimmer. */
+export function hydraWarningX(stage: number, water: Readonly<Fighter["water"]>): number | undefined {
+  return hasTide(stage) && water.hydraFrame > 0 && water.hydraFrame < HYDRA_STRIKE_FRAME ? water.hydraX : undefined;
+}
 
 export interface WindStreak { x: number; z: number; direction: -1 | 1 }
 const streak: WindStreak = { x: 0.0, z: 0.0, direction: 1 };

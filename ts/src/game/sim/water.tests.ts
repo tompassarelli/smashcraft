@@ -16,9 +16,26 @@ import { advanceSolo, controls } from "./testWorld";
 import { f32 } from "wisp/src/sim/f32";
 import { HYDRA_STRIKE_FRAME, SWIM_SPEED, WATER_RISE_CAP, beginWaterJump, inHydraStrike, waterJumpScale } from "./water";
 import { SEA_SURFACE_Z, TIDE_SPEED, framesUntilTideTurns, seaLeft, seaRight, tideDirection, tideNextDirection, tidePush } from "./stageHazards";
+import { hydraWarningX } from "../presentation/stageHazards";
 
 const TOMB = TOMB_OF_SARGERAS_STAGE;
 const UNDER = SEA_SURFACE_Z - 10.0;
+
+test("the hydra's visible mark warns for all 45 frames before damage and clears after the strike [repro #277]", () => {
+  const state = seaMatch(-1000.0, SEA_SURFACE_Z);
+  let warningFrames = 0;
+  play(state, 1, 195, (frame, fighter) => {
+    const warning = hydraWarningX(TOMB, fighter.water);
+    if (frame < 150 || frame === 195) assertEquals(warning, undefined);
+    else {
+      assertEquals(warning, fighter.water.hydraX);
+      assertEquals(fighter.status.damage, 0.0);
+      warningFrames++;
+    }
+  });
+  assertEquals(warningFrames, 45);
+  assertEquals(fighterAt(state.world, 0).status.damage, 15.0);
+});
 
 test("the tide pushes 4.8 a frame right through frame 540, is slack from 541, pushes left from 601 and right again from 1201 [spec docs/design/water-stage.md]", () => {
   assertNear(TIDE_SPEED, 4.800000190734863, 0.0010000000474974513);

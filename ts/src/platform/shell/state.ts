@@ -268,6 +268,7 @@ export interface ShellState {
   /** Blackrock's lava patch, drawn on its side of the timetable. */
   stageLava: effect | undefined;
   stageWind: effect[];
+  stageHydra?: effect[];
   stageScenery: effect[] | undefined;
   stockLighting?: boolean;
   shadowLightsRaised: boolean;

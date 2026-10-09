@@ -22,7 +22,7 @@ import { fighterTintChannel, stageFighterTint } from "../../game/presentation/st
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import { hideEffect } from "../../game/render/effects";
 import { FRAME_SECONDS, type FighterPose } from "../../game/presentation/fighterPose";
-import { CANNON_MODEL, PLATFORM_CUE_FRAMES, WIND_STREAK_COUNT, WIND_STREAK_MODEL, framesUntilPlatformMoves, lavaLook, windStreak } from "../../game/presentation/stageHazards";
+import { CANNON_MODEL, HYDRA_CREST_MODEL, HYDRA_RING_MODEL, PLATFORM_CUE_FRAMES, WIND_STREAK_COUNT, WIND_STREAK_MODEL, framesUntilPlatformMoves, hydraWarningX, lavaLook, windStreak } from "../../game/presentation/stageHazards";
 import { escapeMeterView, readEscapeMeter } from "../../game/presentation/escapeMeter";
 import { lavaPiece } from "../../game/presentation/stageScenery";
 import { hasLava, lavaSide } from "../../game/sim/lava";
@@ -32,7 +32,7 @@ import { type StartControl, matchHelp, resultNotice, waitingMessage } from "../.
 import { isIntangible } from "../../game/sim/conditions";
 import { type Roster, fighterAt, isActive } from "../../game/sim/roster";
 import { surfaceCount, surfaceLeft, surfaceMoves, surfaceRight, surfaceZ } from "../../game/sim/stage";
-import { CANNON_Z, cannonAim, cannonOn, cannonX, hasWind } from "../../game/sim/stageHazards";
+import { CANNON_Z, SEA_SURFACE_Z, cannonAim, cannonOn, cannonX, hasTide, hasWind } from "../../game/sim/stageHazards";
 import { localParticipantSlot, traceParticipant } from "./diagnostics";
 import { placeFighterBody, renderDizzy } from "./fighterBody";
 import { type ShellState, type StatusFrames, activeRollback, localSlot, playsOnKeyboard } from "./state";
@@ -92,6 +92,11 @@ export function createStatusFrames(): StatusFrames {
 }
 
 function clearStageDecks(s: ShellState): void {
+  for (const effect of s.stageHydra ?? []) {
+    hideEffect(effect, s.origin);
+    DestroyEffect(effect);
+  }
+  s.stageHydra = [];
   for (const effect of s.stageWind) {
     hideEffect(effect, s.origin);
     DestroyEffect(effect);
@@ -178,6 +183,15 @@ export function drawStage(s: ShellState): void {
     presentLava(s, stage, stageFrame);
   }
   s.drawnStage = stage;
+  if (hasTide(stage)) {
+    for (const _slot of PARTICIPANT_SLOTS) {
+      for (const model of [HYDRA_RING_MODEL, HYDRA_CREST_MODEL]) {
+        const effect = AddSpecialEffect(model, origin.x, origin.y);
+        hideEffect(effect, origin);
+        s.stageHydra?.push(effect);
+      }
+    }
+  }
   if (hasWind(stage)) {
     for (let index = 0; index < WIND_STREAK_COUNT; index++) {
       const effect = AddSpecialEffect(WIND_STREAK_MODEL, origin.x, origin.y);
@@ -339,6 +353,23 @@ export function renderPersistentPresentation(s: ShellState): void {
   }
   presentLava(s, drawn, matchFrame);
   presentWind(s, drawn, matchFrame);
+  for (const slot of PARTICIPANT_SLOTS) {
+    const ring = s.stageHydra?.[slot * 2];
+    const crest = s.stageHydra?.[slot * 2 + 1];
+    if (ring === undefined || crest === undefined) continue;
+    const x = playing && isActive(world, slot) ? hydraWarningX(drawn, fighterAt(world, slot).water) : undefined;
+    if (x === undefined) {
+      hideEffect(ring, s.origin);
+      hideEffect(crest, s.origin);
+      continue;
+    }
+    BlzSetSpecialEffectScale(ring, 0.75);
+    BlzSetSpecialEffectColor(ring, 48, 72, 64);
+    BlzSetSpecialEffectPosition(ring, s.origin.x + x, s.origin.y, s.origin.z + SEA_SURFACE_Z + 8.0);
+    BlzSetSpecialEffectScale(crest, 0.75);
+    BlzSetSpecialEffectPosition(crest, s.origin.x + x, s.origin.y + 40.0, s.origin.z + SEA_SURFACE_Z - 60.0);
+    BlzSetSpecialEffectTimeScale(crest, 0.0);
+  }
   const ui = views(s);
   ui.classic?.present(game);
   ui.combat.present(runtime.impacts, runtime.simulationFrame, s.runtime.impacts, playing);
