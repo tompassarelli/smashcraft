@@ -1831,7 +1831,7 @@ No passive, charge system, second resource or automatic counter.
 
 | Special | Ordinary version (all free) | EX (one full universal bar) |
 | --- | --- | --- |
-| Neutral: Arcane Omen | f12 launches one slow purple bolt, 8 damage, 40-frame cast. Shield or jump it. | Faster larger 12-damage bolt; same cast commitment. |
+| Neutral: Arcane Omen | f12 launches one slow purple bolt, 9 damage, 40-frame cast. Shield or jump it. | Faster larger 12-damage bolt; same cast commitment. |
 | Side: Vanishing Act | f10 blink 180 units forward, f12–14 staff strike for 7, end f38; intangible only f9–10. Read the arrival and punish recovery. | Blink 250 units, 11-damage strike; same exposed arrival. |
 | Up: Raven Flight | Compress f1–8, raven-form aimed flight f9–28 at 16 units/frame, 5-damage wing contact f9–15; end f36 helpless, spends air jump. | Flight speed 20 and 8-damage contact; same helpless landing. |
 | Down: Last Word | f10 blink 120 units backwards, f13–15 outward arcane burst for 5, end f38; intangible f9–10. Bait the pursuit or lose ground. | Retreat 160 units and 9-damage wider burst. |
