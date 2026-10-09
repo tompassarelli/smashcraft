@@ -18,6 +18,7 @@ import { fighterAt } from "./roster";
 import { startFighterSpecial } from "./specials";
 import { setHumanMask } from "../match/rules";
 import { produceComputerInput } from "../match/botPlay";
+import { sweep } from "../../runtime/sweep";
 
 test("Frost Trap appears at frame 22 and releases Rifleman at frame 38 [spec #325]", () => {
   const match = testMatch(3, Character.rifleman);
@@ -42,7 +43,7 @@ test("Frost Trap appears at frame 22 and releases Rifleman at frame 38 [spec #32
   assertEquals(owner.attack.style, AttackStyle.jab);
 });
 
-test("an Intermediate CPU punishes a point-blank trap before Rifleman can act in at least 4 of 24 match seeds, against 9-17 seen on six seed offsets [spec #325]", () => {
+sweep("an Intermediate CPU punishes a point-blank trap before Rifleman can act in at least 4 of 24 match seeds, against 9-17 seen on six seed offsets [spec #325]", () => {
   let punishes = 0;
   for (let seed = 0; seed < 24; seed++) {
     const match = testMatch(3, Character.rifleman);

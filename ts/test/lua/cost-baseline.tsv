@@ -134,9 +134,9 @@ src/game/shell/stageLoad.tests.ts	1	1000	12
 src/game/sim/actionLocks.tests.ts	19	9370000	8295
 src/game/sim/analogAirDrift.tests.ts	1	16194000	16788
 src/game/sim/analogShield.tests.ts	8	213000	141
-src/game/sim/dashDance.tests.ts	6	134939000	145854
+src/game/sim/dashDance.tests.ts	5	134755000	145509
 src/game/sim/demonHunterContracts.tests.ts	12	13641000	2847
-src/game/sim/directionalInfluence.tests.ts	17	266000	695
+src/game/sim/directionalInfluence.tests.ts	16	254000	684
 src/game/sim/dodgesAndStocks.tests.ts	27	14930000	15041
 src/game/sim/downAir.tests.ts	26	168000	1351
 src/game/sim/downSmashes.tests.ts	12	36820000	4873
@@ -149,7 +149,7 @@ src/game/sim/exSupportHeroes.tests.ts	5	1484000	2922
 src/game/sim/felRush.tests.ts	8	14724000	11871
 src/game/sim/floorFriction.tests.ts	5	1930000	524
 src/game/sim/fourPlayerContracts.tests.ts	3	83000	370
-src/game/sim/freezeTrapContracts.tests.ts	12	28486000	15442
+src/game/sim/freezeTrapContracts.tests.ts	11	27048000	11657
 src/game/sim/grabs.tests.ts	12	48534000	350245
 src/game/sim/groundMovement.tests.ts	17	2446000	1774
 src/game/sim/heroSpecials.tests.ts	14	8731000	6989
@@ -166,7 +166,7 @@ src/game/sim/heroes/dreadlordMoves.tests.ts	9	919000	3112
 src/game/sim/heroes/dreadlordSpecials.tests.ts	12	22620000	15138
 src/game/sim/heroes/exCoreHeroes.tests.ts	8	1050000	5960
 src/game/sim/heroes/fighterArt.tests.ts	1	7000	21
-src/game/sim/heroes/forsakenPaladinMoves.tests.ts	10	868000	3584
+src/game/sim/heroes/forsakenPaladinMoves.tests.ts	9	881000	3585
 src/game/sim/heroes/forsakenPaladinSpecials.tests.ts	14	50055000	19410
 src/game/sim/heroes/grom.tests.ts	6	99788000	17980
 src/game/sim/heroes/jaina.tests.ts	8	4889000	8551
@@ -202,7 +202,7 @@ src/game/sim/knockdown.tests.ts	17	5786000	2369
 src/game/sim/lava.tests.ts	6	12643000	4596
 src/game/sim/ledge.tests.ts	17	2380000	14213
 src/game/sim/mana.tests.ts	5	1172000	7980
-src/game/sim/meleeContact.tests.ts	4	93000	295
+src/game/sim/meleeContact.tests.ts	3	108000	349
 src/game/sim/normals.tests.ts	12	5826000	21984
 src/game/sim/physics.tests.ts	57	11319000	11143
 src/game/sim/physicsPrecisionMotion.tests.ts	4	791000	2863
@@ -210,8 +210,8 @@ src/game/sim/physicsPrecisionScalar.tests.ts	7	2980000	22
 src/game/sim/physicsPrecisionState.tests.ts	5	20000	137
 src/game/sim/platformMoves.tests.ts	13	23079000	33849
 src/game/sim/powershield.tests.ts	18	1895000	2699
-src/game/sim/recoilAndGlide.tests.ts	9	5856000	3178
-src/game/sim/recovery.tests.ts	9	293000	900
+src/game/sim/recoilAndGlide.tests.ts	8	5839000	3194
+src/game/sim/recovery.tests.ts	8	268000	827
 src/game/sim/runCeiling.tests.ts	2	4122000	1485
 src/game/sim/shieldBreak.tests.ts	10	4007000	3988
 src/game/sim/shieldTilt.tests.ts	9	472000	526
@@ -224,7 +224,7 @@ src/game/sim/surfaces.tests.ts	26	10804000	5564
 src/game/sim/tech.tests.ts	7	1159000	1510
 src/game/sim/tumbleLandings.tests.ts	1	74873000	99036
 src/game/sim/turnaroundSpecials.tests.ts	3	44301000	44148
-src/game/sim/water.tests.ts	15	70550000	14708
+src/game/sim/water.tests.ts	13	65207000	14216
 src/game/ui/cpuSettings.tests.ts	1	8000	16
 src/game/ui/cpuSettingsLayout.tests.ts	2	1000	6
 src/game/ui/hudLayout.tests.ts	2	0	0
