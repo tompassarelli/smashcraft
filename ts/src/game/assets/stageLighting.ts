@@ -35,8 +35,9 @@ export const STAGE_LIGHTS: readonly { readonly stage: number; readonly theme: st
   { stage: DRIFTING_DECK_STAGE, theme: "Durotar", light: { key: [255, 226, 180], ambient: [190, 152, 134], intensity: 0.30000001192092896 } },
   // Cold necropolis light, plague-violet fill.
   { stage: PATTERNED_DECKS_STAGE, theme: "Scourge", light: { key: [255, 255, 255], ambient: [180, 156, 196], intensity: 2.0 } },
-  // Burning sky key, fel-green fill.
-  { stage: HELLFIRE_STAGE, theme: "Fel", light: { key: [255, 222, 196], ambient: [140, 172, 120] } },
+  // Burning sky key, bright fel-green fill, at 1.25: at 1 the far fighters
+  // sat only 5 L* above the red haze (#293).
+  { stage: HELLFIRE_STAGE, theme: "Fel", light: { key: [255, 222, 224], ambient: [192, 240, 160], intensity: 1.25 } },
   // A warm ivory key separates fighters from the orange forge backdrop (#292).
   { stage: CANNON_TEST_STAGE, theme: "Blackrock", light: { key: [255, 248, 232], ambient: [170, 124, 112], intensity: 1.2000000476837158 } },
   // Firelit dusk key, smoky mauve fill.

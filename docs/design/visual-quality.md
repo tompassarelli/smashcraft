@@ -214,7 +214,7 @@ both modes; the three stock skies preserve their stock animation.
 | Gryphon Aerie | 255,248,226 / 164,182,220; 0.2 | Original mountain sky | 5,500–11,500; 0.25,0.375,0.5 |
 | Durotar Skies | 255,226,180 / 190,152,134; 0.3 | Original dusty sky | 5,000–11,000; 0.75,0.5,0.25 |
 | Naxxramas | 222,230,255 / 150,136,196; 1 | Original slate-teal sky | 5,000–11,000; 0.25,0.5,0.625 |
-| Hellfire Citadel | 255,222,196 / 140,172,120; 1 | Stock Outland_Sky | 5,000–11,000; 0.25,0.5,0.125 |
+| Hellfire Citadel | 255,222,224 / 192,240,160; 1.25 | Stock Outland_Sky | 5,000–11,000; 0.25,0.5,0.125 |
 | Blackrock | 255,248,232 / 170,124,112; 1.2 | Original forge sky | 5,000–10,000; 0.5,0.125,0.0625 |
 | Ahn'Qiraj | 230,236,255 / 150,162,204; 0.3 (approved #267) | Original sandstone sky | 5,000–10,000; 0.75,0.625,0.375 |
 | Stratholme | 255,214,180 / 170,140,150; 1 | Stock LordaeronFallSky | 5,000–11,000; 0.5,0.28125,0.1875 |
@@ -544,7 +544,7 @@ the stock flames and sky. Two light-only omni models add green to the rocks
 in HD, one shadow-casting, with slow ±12.5% loops and no reach within 3,000
 units of the fighters. The gate and its support move to depth 6,000 so the
 far camera can retain the HF-c landmark within its 8,000-unit clip distance.
-The directional fighter light stays the board's warm key and green ambient.
+The directional fighter light is a warm key and a bright fel-green fill at 1.25: at 1 the far fighters sat 5 L* above the red haze, and the green fill also pulls their colour away from it (#293).
 Stage tests pin the sky, haze, accents and light values; #287 captures judge
 their drawn contrast and bloom.
 
@@ -651,7 +651,7 @@ right. Re-capture the stock/mask/stage triple after every change.
 | Gryphon Aerie (11) | 255, 248, 226 / 164, 182, 220 | authored | no mask capture | Capture; *(guess)* its pale cloud field behaves like Frozen Throne |
 | Blackrock (12) | 255, 216, 176 / 170, 124, 112 | authored | stock and stage failed | Capture; lowest #178 ΔE00 (21.2), so check it first |
 | Ahn'Qiraj (13) | 230, 236, 255 / 150, 162, 204 at intensity 0.3 (approved #267) | authored | At intensity 1, the former warm key reduced contrast (abs ΔL 33.5 → 22.9, 14.6 → 3.8) | Use #267's cool-key comparisons; the frozen #287 table below predates that fix |
-| Hellfire (14) | 255, 222, 196 / 140, 172, 120 | authored | stock capture only | Capture; *(guess)* dark haze favours the lift |
+| Hellfire (14) | 255, 222, 224 / 192, 240, 160 at intensity 1.25 (#293) | authored | at 1, far abs ΔL 5.3 and 5.0 | Classic passes; Definitive stock capture lacks the HD RaysOfLight texture |
 
 The other levers, for every stage:
 
