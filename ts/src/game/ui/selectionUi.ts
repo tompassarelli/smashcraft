@@ -438,7 +438,7 @@ export class SelectionPanel {
   }
 
   destroy(): void {
-    this.showHand(false, 0.0, 0.0);
+    if (this.ownsLocalClient()) this.showHand(false, 0.0, 0.0);
     this.clicks.destroy();
     for (const trigger of this.syncTriggers) DestroyTrigger(trigger);
     for (const frame of this.movesFrames) BlzDestroyFrame(frame);
@@ -619,7 +619,6 @@ export class SelectionPanel {
   }
 
   private showHand(shown: boolean, x: number, y: number): void {
-    if (!this.ownsLocalClient()) return;
     BlzFrameSetVisible(this.hand, shown);
     if (shown) placeTopLeft(this.hand, handLeft(x), handTop(y));
     if (shown === this.cursorHidden) return;
