@@ -155,7 +155,6 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
       int(`${part}.first`, phase.firstFrame);
       int(`${part}.last`, phase.lastFrame);
       if (phase.speedZ !== undefined) real(`${part}.speedZ`, phase.speedZ);
-      if (phase.speedX !== undefined) real(`${part}.speedX`, phase.speedX);
     }
     if (move.landingHit !== undefined) {
       int(`${name}.landingHit.first`, move.landingHit.firstFrame);

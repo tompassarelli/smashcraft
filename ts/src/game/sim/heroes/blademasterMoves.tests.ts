@@ -24,7 +24,7 @@ function fighter(facing = 1): Fighter {
   return owner;
 }
 
-test("Sword Plunge stops approach drift while startup keeps ordinary gravity [spec docs/design/aerials.md]", () => {
+test("Sword Plunge startup keeps ordinary gravity, then hangs at 1.5 units a frame [spec docs/design/aerials.md]", () => {
   for (const facing of [-1, 1]) {
     const owner = fighter(facing);
     owner.motion.grounded = false;
@@ -34,14 +34,10 @@ test("Sword Plunge stops approach drift while startup keeps ordinary gravity [sp
     owner.motion.vz = -1.0;
     const world = testWorld(owner, createFighter(Character.rifleman, 400.0, -facing));
     beginFighterAttack(world, 0, AttackStyle.downAir, false);
-    const x = owner.motion.x;
     advanceFighterMotion(world, 0, 0, 1, controls(), 0.0);
-    assertEquals(owner.motion.x, x);
-    assertEquals(owner.motion.vx, 0.0);
     assertLessThan(owner.motion.vz, -1.0);
     owner.attack.frame = 9;
     advanceFighterMotion(world, 0, 0, 2, controls(), 0.0);
-    assertEquals(owner.motion.x, x);
     assertEquals(owner.motion.vz, -1.5);
   }
 });

@@ -76,7 +76,7 @@ const GLAIVE_DRILL: AuthoredMove = {
       { centre: GLAIVE_FLING, front: GLAIVE_FLING, back: GLAIVE_FLING }) },
   ])),
 
-  fall: [{ firstFrame: 8, lastFrame: GLAIVE_THROW, speedZ: -3.0, speedX: 4.0 }],
+  fall: [{ firstFrame: 8, lastFrame: GLAIVE_THROW, speedZ: -3.0 }],
 };
 
 

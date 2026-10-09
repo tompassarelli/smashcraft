@@ -60,7 +60,6 @@ export interface AuthoredFall {
   readonly firstFrame: number;
   readonly lastFrame: number;
   readonly speedZ?: number | undefined;
-  readonly speedX?: number | undefined;
 }
 
 

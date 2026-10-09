@@ -129,7 +129,7 @@ export function aheadX(f: Readonly<Fighter>, target: Readonly<Fighter>, frames: 
   const observedNow = horizontalAhead(target, observationAge, stage, matchFrame);
   const toward = observedNow < f.motion.x ? -1 : 1;
 
-  const travel = f.motion.grounded && startupTravel !== undefined ? f32(startupTravel * toward) : travelOver(f, frames, style);
+  const travel = f.motion.grounded && startupTravel !== undefined ? f32(startupTravel * toward) : travelOver(f, frames);
   return f32(f32(horizontalAhead(target, observationAge + frames, stage, matchFrame) - f.motion.x) - travel);
 }
 
@@ -138,24 +138,8 @@ export function aheadX(f: Readonly<Fighter>, target: Readonly<Fighter>, frames: 
 
 
 
-function travelOver(f: Readonly<Fighter>, frames: number, style?: AttackStyle): number {
-  if (!f.motion.grounded) {
-    const fall = style === undefined ? undefined : f.tuning.moves?.normals[style]?.fall;
-    if (fall === undefined) return f32(f.motion.deltaX * frames);
-    let travel = 0.0;
-    let speed = f.motion.deltaX;
-    let elapsed = 0;
-    for (const phase of fall) {
-      if (phase.speedX === undefined || phase.firstFrame >= frames) continue;
-      const before = Math.max(0, phase.firstFrame - elapsed);
-      travel = f32(travel + f32(speed * before));
-      speed = f32(phase.speedX * f.facing);
-      const end = Math.min(frames, phase.lastFrame + 1);
-      travel = f32(travel + f32(speed * (end - elapsed - before)));
-      elapsed = end;
-    }
-    return f32(travel + f32(speed * (frames - elapsed)));
-  }
+function travelOver(f: Readonly<Fighter>, frames: number): number {
+  if (!f.motion.grounded) return f32(f.motion.deltaX * frames);
 
   const straight = f32(f.motion.vx * frames);
   const speed = Math.abs(f.motion.vx);

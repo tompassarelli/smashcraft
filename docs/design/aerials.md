@@ -86,9 +86,9 @@ neutral or forward air. Examples:
   (`carry` in smashcraft:ts/src/game/sim/hitRegions.ts, applied in
   contacts.ts): Smashcraft's form of the autolink angle. Grounded targets
   are held on the floor by a downward link.
-- **Drills.** An authored `fall` holds the attacker's vertical speed (and,
-  if set, its forward speed) over attack frames, replacing gravity and fast
-  fall; a `landingHit` turns landing during the active frames into a
+- **Drills.** An authored `fall` holds the attacker's vertical speed over
+  attack frames, replacing gravity and fast fall; horizontal air drift and
+  stick control persist through every aerial, as in Melee (Tom, 0.0.103); a `landingHit` turns landing during the active frames into a
   grounded continuation of the same attack instead of landing lag, so its
   hits keep their windows (smashcraft:ts/src/game/sim/down.ts).
 - **SDI stays the answer.** Bounded SDI allows 12 Melee units per hit and
@@ -104,9 +104,9 @@ Frames count from one, as the [roster](roster.md) does.
 
 | Fighter, move | Hits (frames, damage) | Link | Ending | Risk |
 | --- | --- | --- | --- | --- |
-| Blademaster down air, Bladestorm | 10–11, 13–14, 16–17, 19–20, 22–23 (2 each); plunge 25–34 (2) | flanks pull in; stops horizontal drift, hangs at 1.5 units a frame, then plunges at 14 | landing hit 4, fixed 90 knockback at 80° (tumbles at any percent); 12-frame landing | most rewarding; shielded, he lands 15 frames and is shield-grabbed |
+| Blademaster down air, Bladestorm | 10–11, 13–14, 16–17, 19–20, 22–23 (2 each); plunge 25–34 (2) | flanks pull in; keeps air drift, hangs at 1.5 units a frame, then plunges at 14 | landing hit 4, fixed 90 knockback at 80° (tumbles at any percent); 12-frame landing | most rewarding; shielded, he lands 15 frames and is shield-grabbed |
 | Warden down air, Falling Knives (Fan of Knives in miniature) | 7, 9, 11 (2 each), 13 (3) | drags down; falls at 9 units a frame | none; landing lag 10 | low reward, safe: she acts first on hit, sets up a grab, or her Fan of Knives mark into Shadow Pursuit |
-| Shadow Hunter down air, glaive drill | 9–10, 12–13, 15–16, 18–19 (2 each) | carries forward at 4 units a frame while falling at 3 | fling 4 at 25°, base 65 (tumbles at any percent) toward the ledge; landing lag 14 | positioning and edge-guarding, not a combo starter |
+| Shadow Hunter down air, glaive drill | 9–10, 12–13, 15–16, 18–19 (2 each) | keeps air drift while falling at 3 units a frame | fling 4 at 25°, base 65 (tumbles at any percent) toward the ledge; landing lag 14 | positioning and edge-guarding, not a combo starter |
 | Blademaster neutral air, Blade Wheel | 7–9 (3), 13–15 (6) | first turn pulls in | second, tighter turn launches at 50° | like Falcon's and Marth's |
 | Dreadlord neutral air, Batwing Turn | 7–8, 10–11 (2 each), 14–16 (5) | wing beats drag along | launches at 50° | |
 | Lich neutral air, Frost Halo | 9–11, 13–15, 17–19 (2 each), 21–22 (4) | a ring that holds a target in place; nothing at its centre | bursts outward at 50° | long, so it is a trap more than an approach |

@@ -632,7 +632,6 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   }
   const drill = motion.grounded ? undefined : attackFall(attack.style, attack.frame, f.tuning.moves);
   let buoyant = false;
-  if (drill?.speedX !== undefined) motion.vx = f32(drill.speedX * f.facing);
   moveHorizontally(f, stage, matchFrame, dashEntryDisplacementAdjustment);
   if (isGroundDodging(f) || (motion.grounded && jump.squat > 0)) {
     motion.vz = 0.0;
