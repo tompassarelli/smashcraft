@@ -110,7 +110,7 @@ test("Kobold Panic Dig and Candle Escape hit once without spending meter in both
   }
 });
 
-test("Kobold EX Wick Flick and Panic Dig spend one full bar for 25% more damage in ground and air [spec docs/design/mana.md]", () => {
+test("Kobold EX Wick Flick and Panic Dig spend one bar segment for 25% more damage in ground and air [spec docs/design/mana.md]", () => {
   for (const facing of [-1, 1]) for (const air of [false, true]) for (const side of [false, true]) {
     const { owner, target, world } = pair(side ? 80.0 : 160.0, facing);
     owner.mana.points = 100;
@@ -119,7 +119,7 @@ test("Kobold EX Wick Flick and Panic Dig spend one full bar for 25% more damage 
       target.motion.grounded = false; target.motion.surface = undefined; target.motion.z = 1000.0;
     }
     frame(world, controls({ specialPressed: true, specialX: side ? facing : 0, shield: true }));
-    assertTrue(owner.special.ex); assertEquals(owner.mana.points, 0);
+    assertTrue(owner.special.ex); assertEquals(owner.mana.points, 67);
     for (let tick = 0; tick < 40 && target.status.damage === 0.0; tick++) {
       beginDamageContacts(); advanceSpecials(world, 0, tick); updateProjectiles(world); finishDamageContacts(world);
     }
@@ -134,7 +134,7 @@ test("Kobold EX Candle Escape rises and steers 25% farther on the same helpless 
     owner.mana.points = 100;
     owner.motion.grounded = false; owner.motion.surface = undefined; owner.motion.z = 1000.0;
     assertTrue(startFighterSpecial(owner, 0, 0, controls({ specialPressed: true, specialZ: 1, shield: ex }), world));
-    assertEquals(owner.mana.points, ex ? 0 : 100);
+    assertEquals(owner.mana.points, ex ? 67 : 100);
     const move = runningHeroSpecial(owner);
     let x = 0.0; let z = 0.0;
     for (let tick = 1; tick <= (move?.endFrame ?? 0); tick++) {
@@ -155,7 +155,7 @@ test("Kobold EX Mine reaches outside the ordinary swipe on both sides [spec docs
     const { owner, target, world } = pair(115.0 * side, facing);
     owner.mana.points = 100;
     frame(world, controls({ specialPressed: true, specialZ: -1, shield: ex }));
-    assertEquals(owner.mana.points, ex ? 0 : 100);
+    assertEquals(owner.mana.points, ex ? 67 : 100);
     for (let tick = 0; tick < 18 && target.status.damage === 0.0; tick++) frame(world);
     assertEquals(target.status.damage, ex ? 7.0 : 0.0);
   }

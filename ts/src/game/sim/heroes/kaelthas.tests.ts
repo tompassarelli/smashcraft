@@ -179,7 +179,7 @@ test("Kaelthas EX Flame Strike keeps travelling after interruption with a quarte
     const { owner, target, world } = pair(180.0, facing);
     owner.mana.points = 100;
     frame(world, controls({ specialPressed: true, shield: true }));
-    assertEquals(owner.mana.points, 0);
+    assertEquals(owner.mana.points, 67);
     for (let tick = 2; tick <= 13; tick++) frame(world);
     cancelSpecialState(owner);
     for (let tick = 14; tick <= 60; tick++) frame(world);

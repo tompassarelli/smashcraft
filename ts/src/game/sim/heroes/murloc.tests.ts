@@ -98,7 +98,7 @@ test("Murloc EX Tidal Rush deals a quarter more damage in both facings [spec #32
     const { owner, target, world } = pair(140.0, facing);
     owner.mana.points = 100;
     frame(world, controls({ specialPressed: true, specialX: facing, shield: true }));
-    assertEquals(owner.mana.points, 0);
+    assertEquals(owner.mana.points, 67);
     for (let tick = 2; tick <= 40; tick++) frame(world);
     assertEquals(target.status.damage, 10.0);
   }

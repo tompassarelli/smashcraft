@@ -32,7 +32,7 @@ function forBoth(clients: Clients, change: (slot: number) => void): void {
   for (const client of clients.clients) client.run(() => change(0));
 }
 
-test("every fighter's HUD meter shows ten segments filled to its current points [spec #335]", () => {
+test("every fighter's HUD meter shows three segments filled to its current points [spec #335]", () => {
   const clients = quickMatch();
   forBoth(clients, () => {
     fighterAt(shell().world, 0).mana.points = 40;

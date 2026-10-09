@@ -75,11 +75,11 @@ function frame(world: Roster, input: Readonly<Controls> = controls(), targetInpu
   resolveAttacks(world); advanceSpecials(world, 0, 0, rows); updateProjectiles(world); finishDamageContacts(world);
 }
 
-test("Medivh four free specials preserve the bar and every EX spends one full bar [spec #335] [spec #343]", () => {
+test("Medivh four free specials preserve the bar and every EX spends one bar segment [spec #335] [spec #343]", () => {
  for (const direction of [[0,0],[1,0],[0,1],[0,-1]] as const) for(const ex of [false,true]) {
   const {owner}=pair(1000.0); owner.mana.points=ex?100:28;
   startFighterSpecial(owner,0,0,controls({specialPressed:true,specialX:direction[0],specialZ:direction[1],shield:ex}));
-  assertTrue(owner.special.action!==SpecialAction.none); assertEquals(owner.special.ex,ex); assertEquals(owner.mana.points,ex?0:28);
+  assertTrue(owner.special.action!==SpecialAction.none); assertEquals(owner.special.ex,ex); assertEquals(owner.mana.points,ex?67:28);
   const copy=createFighter(Character.medivh,0.0,1);copyFighterState(copy,owner,3);assertEquals(firstFighterDifference(copy,owner,3,3),undefined);
  }
 });

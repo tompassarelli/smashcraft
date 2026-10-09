@@ -3,7 +3,9 @@
 Tom replaced special costs with one super meter on 8 October 2026 (#335).
 Every regular special is free, including its full recovery form. Normals,
 grabs and throws remain free. Shield + Special requests the EX version in
-any of the four directions; a full bar buys one EX.
+any of the four directions. The bar has three segments (33/33/34 points,
+#382): an EX costs one segment and an ultimate ([ultimates.md](ultimates.md))
+costs the full bar.
 
 The simulation stores the bar in each fighter's `mana.points`; meter is part
 of replay and rollback state. The rules live in
@@ -12,15 +14,16 @@ resolver awards damage gains.
 
 | Rule | Value |
 |---|---|
-| Bar size | 100 integer points, one bar. A new match starts at 0. |
+| Bar size | 100 integer points, one bar in three segments at 33 and 66. A new match starts at 0. |
 | Damage dealt to a body | 1 point per whole percent of damage, up to 12 points per hit. Normals, specials, projectiles, summons, throws and pummels all count. |
 | Damage taken to the body | 1 point per 2 whole percent, up to 6 points per hit. This earns half as much as attacking. |
 | Idle, movement or shielding | 0 points per frame. No passive refill. |
 | Shield damage or parry | 0 points. |
 | Stock loss | Keep the current points through the KO and respawn. |
 | Regular special | 0 points; always chooses its full ground or air form. Existing cooldowns, airtime limits and entity limits still apply. |
-| EX special | Needs all 100 points; pays 100 once when the action starts, leaving 0. |
-| EX requested below full | The ordinary free special starts. No refusal or partial spend. |
+| EX special | Needs one segment (33 points); pays 33 once when the action starts. A full bar buys three. |
+| Ultimate | Needs all 100 points; pays 100 once when it starts, leaving 0. |
+| EX below 33, or ultimate below 100 | The ordinary free special starts. No refusal or partial spend. |
 | Interrupted or missed EX | The bar stays spent. Follow-up inputs do not spend it again. |
 | Full bar | Further gain stops at 100; no second bar or stored overflow. |
 
@@ -31,8 +34,8 @@ bar. A fighter at 98 gains only 2 more points from a 10% hit.
 
 ## Ready signal
 
-A thin segmented blue bar sits on each fighter's HUD plate. Its ten
-segments each represent 10 points. The HUD is the only meter display;
+A thin segmented blue bar sits on each fighter's HUD plate. Two marks
+divide it into its three segments, one EX each. The HUD is the only meter display;
 fighters carry no duplicate overhead bar or passive pips.
 
 At 100 points the bar glows gold continuously until the bar is spent or
@@ -42,7 +45,8 @@ the confirmed frame (GameFound until #361: a 7.5-second fanfare that was
 heard mid-match as a stray music clip). Replay and prediction never play the sound. A rise of
 at least 3 points also gives the bar a short 12-update glow. The old
 “EX Neutral + Side” affordability label is removed: a full bar pays for any
-direction, so its glow carries the whole message.
+direction, so its glow carries the whole message. The full-bar glow is
+also the ultimate's ready signal.
 
 These cues reuse the game's white fighter flash and stock sound; they add
 no imported art or audio. sim/mana.tests.ts and sim/exSpecials.tests.ts pin
@@ -60,9 +64,9 @@ an ordinary special cost meter.
 
 ## Every special has an EX form (#329)
 
-Tom's 8 October super-bar decision (#335):
-ordinary specials are free; damage dealt and taken builds one bar, and a full
-bar buys one EX with Shield + Special in any direction. #335 owns the bar's
+Tom's 8 October super-bar decision (#335), with the #382 segments:
+ordinary specials are free; damage dealt and taken builds one bar, and one
+segment buys one EX with Shield + Special in any direction. #335 owns the bar's
 earning rules and display. This section owns the move upgrades.
 
 Each EX keeps the base move's startup, active windows, recovery, landing lag,
@@ -109,5 +113,5 @@ there are no new imports.
 
 ## Ultimates
 
-Ultimate move designs belong to later work. This rule supplies one shared
-bar and one EX spend; it adds no second resource.
+[ultimates.md](ultimates.md) owns the ultimate moves. They spend the whole
+shared bar; there is no second resource.

@@ -318,7 +318,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       setup: [{ waitMs: 3000 }],
       capture: [{ kind: "frames", name: "full", client: "a" }, { kind: "frames", name: "full", client: "b" }],
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
-      look: "a thin segmented blue bar (ten segments) full over each fighter's head, and a matching full bar on each HUD plate",
+      look: "a thin segmented blue bar (three segments) full over each fighter's head, and a matching full bar on each HUD plate",
     },
     {
       id: "153-mana-spent",

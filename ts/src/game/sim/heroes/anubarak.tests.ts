@@ -80,7 +80,7 @@ test("Anubarak Impale hits the first body along its low line [spec #341]", () =>
   }
 });
 
-test("Anubarak's ordinary four specials are free and a full bar buys EX for each [spec #335]", () => {
+test("Anubarak's ordinary four specials are free and one bar segment buys EX for each [spec #335]", () => {
   for (const [x, z, action] of [[0, 0, SpecialAction.heroNeutral], [1, 0, SpecialAction.heroSide], [0, 1, SpecialAction.heroUp], [0, -1, SpecialAction.heroDown]] as const) {
     for (const ex of [false, true]) {
       const { owner, world } = pair(900.0);
@@ -88,7 +88,7 @@ test("Anubarak's ordinary four specials are free and a full bar buys EX for each
       frame(world, controls({ specialPressed: true, specialX: x, specialZ: z, shield: ex }));
       assertEquals(owner.special.action, action);
       assertEquals(owner.special.ex, ex);
-      assertEquals(owner.mana.points, 0);
+      assertEquals(owner.mana.points, ex ? 67 : 0);
     }
   }
 });

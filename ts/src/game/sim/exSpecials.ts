@@ -11,14 +11,14 @@ export function exSpecialPressed(input: Readonly<Controls>): boolean {
 }
 
 export function exSpecialAffordable(f: Readonly<Fighter>): boolean {
-  return f.mana.points >= ROSTER_MANA.max;
+  return f.mana.points >= ROSTER_MANA.exCost;
 }
 
 
 export function enterExSpecial(f: Fighter, input: Readonly<Controls>): void {
   f.special.ex = exSpecialPressed(input) && exSpecialAffordable(f);
   f.special.exArmorUsed = false;
-  if (f.special.ex) spendMana(f, ROSTER_MANA.max);
+  if (f.special.ex) spendMana(f, ROSTER_MANA.exCost);
 }
 
 export function exArmorActive(f: Readonly<Fighter>): boolean {

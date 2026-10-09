@@ -7,9 +7,8 @@ import { idiv, imod } from "wisp/src/sim/intMath";
 import { ROSTER_MANA } from "../sim/mana";
 import { ESCAPE_METER_BORDER, ESCAPE_METER_HEIGHT } from "./escapeMeter";
 
-/** Mana between the bar's segment lines. */
-export const MANA_BAR_SEGMENT = 10;
-export const MANA_BAR_SEGMENTS = idiv(ROSTER_MANA.max, MANA_BAR_SEGMENT);
+/** The bar's 33/33/34 segments: an EX costs one, an ultimate all three. */
+export const MANA_BAR_SEGMENTS = ROSTER_MANA.segments;
 /** Rendered updates a refusal flashes for, about three quarters of a second, blinking every 6. */
 export const MANA_FLASH_UPDATES = 45;
 const MANA_FLASH_BLINK = 6;

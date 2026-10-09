@@ -3,7 +3,7 @@ import { idiv } from "wisp/src/sim/intMath";
 import type { Fighter } from "./fighter";
 
 
-export const ROSTER_MANA = { max: 100, dealtPerPercent: 1, dealtCap: 12, takenPercentPerPoint: 2, takenCap: 6 } as const;
+export const ROSTER_MANA = { max: 100, exCost: 33, segments: 3, dealtPerPercent: 1, dealtCap: 12, takenPercentPerPoint: 2, takenCap: 6 } as const;
 
 export function spendMana(f: Fighter, cost: number): void {
   if (cost > 0) f.mana.points = max(0, f.mana.points - cost);

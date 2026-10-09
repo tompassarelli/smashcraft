@@ -27,7 +27,7 @@ function special(character: Character, side: boolean, mana: number, ex: boolean)
   return { f, world, started };
 }
 
-test("every fighter's neutral and side EX spend a full bar, arm one light hit, and keep ordinary duration [spec #335]", () => {
+test("every fighter's neutral and side EX spend one 33-point segment, arm one light hit, and keep ordinary duration [spec #335]", () => {
   for (const character of roster) for (const side of [false, true]) {
     const normal = special(character, side, 100, false);
     const ex = special(character, side, 100, true);
@@ -35,7 +35,7 @@ test("every fighter's neutral and side EX spend a full bar, arm one light hit, a
     assertTrue(ex.started);
     assertEquals(ex.f.special.action, normal.f.special.action);
     assertEquals(ex.f.special.duration, normal.f.special.duration);
-    assertEquals(ex.f.mana.points, 0);
+    assertEquals(ex.f.mana.points, 67);
     assertTrue(ex.f.special.ex);
     assertTrue(exArmorActive(ex.f));
     assertFalse(ex.f.shield.raised);
@@ -48,11 +48,11 @@ test("every fighter's neutral and side EX spend a full bar, arm one light hit, a
 
 test("every fighter's unaffordable EX falls back to a free ordinary special [spec #335]", () => {
   for (const character of roster) for (const side of [false, true]) {
-    const price = 99;
+    const price = 32;
     const attempt = special(character, side, price, true);
     assertTrue(attempt.started);
     assertFalse(attempt.f.special.ex);
-    assertEquals(attempt.f.mana.points, 99);
+    assertEquals(attempt.f.mana.points, 32);
     assertEquals(attempt.f.visuals.manaDenied, 0);
   }
 });
@@ -111,7 +111,7 @@ test("EX state and spent armor restore exactly, reset on a stock while spent met
     clearSpecialOnStock(copy);
     resetSpecialOnStock(copy);
     assertFalse(copy.special.ex);
-    assertEquals(copy.mana.points, 0);
+    assertEquals(copy.mana.points, 67);
     for (const direction of [-1, 1]) {
       const upDown = createFighter(character, 0.0, 1);
       upDown.motion.grounded = true;
@@ -120,15 +120,15 @@ test("EX state and spent armor restore exactly, reset on a stock while spent met
       testWorld(upDown, createFighter(Character.rifleman, 900.0, -1));
       startFighterSpecial(upDown, 0, 0, controls({ specialPressed: true, specialZ: direction, shield: true }));
       assertTrue(upDown.special.ex);
-      assertEquals(upDown.mana.points, 0);
+      assertEquals(upDown.mana.points, 67);
     }
   }
 });
 
-test("only a full bar can buy EX [spec #335]", () => {
+test("one 33-point segment buys EX [spec #382]", () => {
   const f = createFighter(Character.rifleman, 0.0, 1);
-  for (const points of [0, 28, 99, 100]) {
+  for (const points of [0, 28, 32, 33, 99, 100]) {
     f.mana.points = points;
-    assertEquals(exSpecialAffordable(f), points === 100);
+    assertEquals(exSpecialAffordable(f), points >= 33);
   }
 });

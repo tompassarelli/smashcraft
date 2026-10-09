@@ -240,7 +240,7 @@ test("Tinker EX Robo-Goblin deals a quarter more damage in both facings [spec #3
     const { owner, target, world } = pair(120.0, facing);
     frame(world, controls({ specialPressed: true, specialZ: -1, shield: true }));
     assertTrue(owner.special.ex);
-    assertEquals(owner.mana.points, 0);
+    assertEquals(owner.mana.points, 67);
     for (let tick = 2; tick <= 18; tick++) frame(world);
     assertEquals(target.status.damage, 16.25);
   }
@@ -254,7 +254,7 @@ test("Tinker EX factory retains its extra durability after casting and EX recall
   owner.mana.points = 100;
   frame(world, controls({ specialPressed: true, specialX: 1, shield: true }));
   assertTrue(isIntangible(owner));
-  assertEquals(owner.mana.points, 0);
+  assertEquals(owner.mana.points, 67);
   for (let tick = 2; tick <= 4; tick++) { frame(world); assertTrue(isIntangible(owner)); }
   frame(world);
   assertFalse(isIntangible(owner));

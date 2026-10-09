@@ -55,13 +55,13 @@ test("Grom grabs a shield and releases all four throws once in both facings [spe
   }
 });
 
-test("Grom starts all four free specials with an empty bar and every EX spends one full universal bar [spec #335]", () => {
+test("Grom starts all four free specials with an empty bar and every EX spends one bar segment [spec #335]", () => {
   for (const [x, z, action, kit] of [[0, 0, SpecialAction.heroNeutral, GROM_SPECIALS.neutral], [1, 0, SpecialAction.heroSide, GROM_SPECIALS.side], [0, 1, SpecialAction.heroUp, GROM_SPECIALS.up], [0, -1, SpecialAction.heroDown, GROM_SPECIALS.down]] as const) {
     assertTrue(kit !== undefined); if (kit === undefined) continue;
     for (const ex of [false, true]) {
       const owner = createFighter(Character.grom, 0.0, 1); owner.motion.grounded = true; owner.motion.surface = 0; owner.mana.points = ex ? 100 : 0;
       const input = controls({ specialPressed: true, specialX: x, specialZ: z, shield: ex });
-      startFighterSpecial(owner, 0, 0, input); assertEquals(owner.special.action, action); assertEquals(owner.mana.points, 0); assertEquals(owner.special.ex, ex);
+      startFighterSpecial(owner, 0, 0, input); assertEquals(owner.special.action, action); assertEquals(owner.mana.points, ex ? 67 : 0); assertEquals(owner.special.ex, ex);
     }
   }
 });
