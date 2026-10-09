@@ -70,7 +70,7 @@ export function calibrationReport(revision: string, trials = 10) {
   }
   const technical = collectTechnicalCalibration("expert");
   lines.push("", `Expert frame-tight technical inputs: ${technical.inputs}; slips: ${technical.slips} (${(technical.slips * 100 / technical.inputs).toFixed(2)}%); wrong options: ${technical.wrongOptions}.`,
-    "Turns use repeated legal opposite-side spacing situations through produceComputerInput and actual ground motion; runs count entries into the simulation's run action per minute of those frames. Frame-tight inputs alternate wavedash air dodges and landing aerials through the production execution step.");
+    "Turns use repeated legal opposite-side spacing situations through produceComputerInput and actual ground motion; runs count entries into the simulation's run action per minute of those frames. Frame-tight inputs are repeated wavedash air dodges through the production execution step.");
   return { rows, failures, text: lines.join("\n") + "\n" };
 }
 

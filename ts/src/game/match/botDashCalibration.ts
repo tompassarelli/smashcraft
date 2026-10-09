@@ -1,7 +1,7 @@
 import { floorDiv } from "wisp/src/sim/intMath";
 import { at } from "wisp/src/runtime/lookup";
-import { AttackStyle, Character, GroundAction } from "../sim/codes";
-import { attackBuffer, clearAttackBuffer, queueAttack } from "../input/attackBuffer";
+import { Character, GroundAction } from "../sim/codes";
+import { attackBuffer, clearAttackBuffer } from "../input/attackBuffer";
 import { cpuSkill } from "./cpuSkill";
 import { useMatchSeed } from "./botRandom";
 import { executeBotTechnique, isFrameTight } from "./botTechnicalExecution";
@@ -78,7 +78,7 @@ export function dashPercentile(row: DashCalibration, tenths: number): number {
   return at(row.intervals, floorDiv((row.intervals.length - 1) * tenths, 10));
 }
 
-/** Alternating wavedash air dodges and landing aerials count frame-tight presses and their legal mistakes. */
+/** Repeated wavedash air dodges count frame-tight presses and their legal mistakes. */
 export function collectTechnicalCalibration(tier: CpuTier, frames = 6000): { inputs: number; slips: number; wrongOptions: number } {
   const own = createFighter(Character.rifleman, 0.0, 1);
   const policy = cpuSkill("wren", tier).decision;
@@ -91,15 +91,11 @@ export function collectTechnicalCalibration(tier: CpuTier, frames = 6000): { inp
   for (let frame = 1; frame <= frames; frame++) {
     Object.assign(input, neutralControls());
     clearAttackBuffer(commands);
-    own.motion.grounded = frame % 2 === 0;
-    if (own.motion.grounded) {
-      input.direction = -1;
-      input.jumpPressed = true;
-      input.airDodgePressed = true;
-    } else {
-      queueAttack(commands, { style: AttackStyle.forwardTilt, facing: 1, frame, mayCharge: false });
-    }
-    check(isFrameTight(own, input, commands));
+    own.motion.grounded = true;
+    input.direction = frame % 2 === 0 ? -1 : 1;
+    input.jumpPressed = true;
+    input.airDodgePressed = true;
+    check(isFrameTight(input));
     const outcome = executeBotTechnique(own, input, commands, frame, 0, policy);
     if (outcome !== "none") inputs++;
     if (outcome === "dropped" || outcome === "wrongOption") slips++;

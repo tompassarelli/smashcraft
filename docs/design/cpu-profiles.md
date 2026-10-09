@@ -138,7 +138,7 @@ scaled by `100 − Execute`. Each turn overshoots into run with chance 44, 32, 1
 0.4–0.8 unintended runs per minute; each lower tier is at least as high and
 Rookie stays at or below 4. Measured 9 Oct over 120,000 controlled frames a
 tier: 2.85, 2.46, 0.84, 0.78 and 0.63 runs per minute, medians 8, 7, 7, 7 and 6.
-Frame-tight presses (landing aerials, wavedash air dodges) miss 9 points more
+Frame-tight presses (wavedash air dodges) miss 9 points more
 often than Execute: Expert Wren slips on 11.8% of 6,000 of them (361 wrong
 options), against measured masters’ 12.5–13%. Braking to neutral remains
 immediate. The computer calibration report prints these tables.
