@@ -1,4 +1,4 @@
-// The pack's authored values: smashcraft:docs/design/beastmaster.md.
+
 import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HitElement } from "../codes";

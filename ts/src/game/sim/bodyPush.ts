@@ -9,7 +9,7 @@ import { melee } from "./tuning";
 const PUSH_PER_CONTACT = melee(0.30000001192092896);
 const pushes: Slots<number> = [0.0, 0.0, 0.0, 0.0];
 
-/** Grounded overlap contributes a small step, rather than a barrier to running. */
+
 export function pushFighterBodies(world: Roster): void {
   pushes.fill(0.0);
   for (const first of PARTICIPANT_SLOTS) {

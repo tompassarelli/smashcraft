@@ -1,6 +1,6 @@
-// Actor-owned tuning, in world units per simulation frame. Character identity
-// selects moves and presentation; these records travel with each fighter so
-// reference rigs can substitute retail values without retuning the roster.
+
+
+
 import { multiplyFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
@@ -15,7 +15,7 @@ import { originalFighterMoves } from "./originalMoves";
 
 export const WORLD_UNITS_PER_MELEE_UNIT = 6.0;
 
-/** A Melee-unit tuning value in world units, rounded as the game rounds it. */
+
 export function melee(units: number): number {
   return multiplyFloat32(units, WORLD_UNITS_PER_MELEE_UNIT);
 }
@@ -33,7 +33,7 @@ export interface FighterPhysics {
   readonly dashSpeed: number;
   readonly runSpeed: number;
   readonly walkSpeed: number;
-  /** Frames, an integer. */
+
   readonly jumpSquatFrames: number;
   readonly fullJumpSpeed: number;
   readonly shortJumpSpeed: number;
@@ -50,7 +50,7 @@ export interface FighterPhysics {
   readonly groundSpeedCap: number;
 }
 
-/** Wall and ceiling tech motion and wall jumps, from each fighter's Melee reference. */
+
 export interface SurfaceRecoveryPhysics {
   readonly passiveWallSpeed: number;
   readonly wallJumpHorizontalSpeed: number;
@@ -60,7 +60,7 @@ export interface SurfaceRecoveryPhysics {
   readonly canWallJump: boolean;
 }
 
-/** Actor command timing for dash, run, turn-run and run-brake animations, in frames. */
+
 export interface GroundMovementRules {
   readonly dashRunEnableFrame: number;
   readonly turnRunFacingCommandFrame: number;
@@ -76,14 +76,14 @@ export interface DashGrabRules {
   readonly totalFrames: number;
 }
 
-/** The authored shield circle, facing-relative. */
+
 export interface ShieldGeometry {
   readonly centerX: number;
   readonly centerZ: number;
   readonly radius: number;
 }
 
-/** Surface tech animation timing; NTSC Fox/Falco push off on frame 14, Captain Falcon on 11. */
+
 interface TechTiming {
   readonly ceilingImpulseFrame: number;
   readonly ceilingAnimationEndFrame: number;
@@ -96,10 +96,10 @@ interface ShieldBreakTiming {
   readonly standFrames: number;
 }
 
-/** Every tuning record a fighter carries; each is replaced whole, never edited in place. */
+
 export interface FighterTuning {
   moves?: FighterMoves | undefined;
-  /** Expansion hero specials; the original fighters run theirs in sim/specials.ts. */
+
   specials?: FighterSpecials | undefined;
   physics: FighterPhysics;
   surface: SurfaceRecoveryPhysics;
@@ -112,8 +112,8 @@ export interface FighterTuning {
 
 export const GROUND_TRACTION = melee(0.07999999821186066);
 export const INITIAL_DASH_SPEED = melee(1.899999976158142);
-// Shared ground acceleration defaults for original Smashcraft fighters. The
-// Falco reference rig supplies its separately sourced values in tests only.
+
+
 const GROUND_ACCELERATION_MULTIPLIER = 0.10000000149011612;
 const GROUND_ACCELERATION_BASE = 0.019999999552965164;
 const GROUND_SPEED_CAP = melee(3.0);
@@ -128,10 +128,10 @@ const ORIGINAL_ACCELERATION = {
   groundSpeedCap: GROUND_SPEED_CAP,
 } as const;
 
-/** The three fighters authored before the roster expansion. */
+
 type OriginalFighter = "reference" | "rifleman" | "demonHunter";
 
-/** Defaults for the original roster, never a reference-character selector. */
+
 export const AUTHORED_PHYSICS: { readonly [name in OriginalFighter]: FighterPhysics } = {
   reference: {
     weight: 62.0,
@@ -198,7 +198,7 @@ export const AUTHORED_PHYSICS: { readonly [name in OriginalFighter]: FighterPhys
     fullJumpSpeed: 24.200000762939453,
     shortJumpSpeed: 13.199999809265137,
     aerialJumpSpeed: 25.5,
-    // Preserve his standing-hop trajectory while the shared rule carries dash speed.
+
     jumpMomentum: 1.0,
     jumpHorizontalSpeed: 0.0,
     jumpHorizontalCap: melee(1.7000000476837158),
@@ -219,17 +219,17 @@ export function authoredPhysics(character: Character): FighterPhysics {
   }
 }
 
-/** The reference body's weight, 1.00 in the roster's table; Fox reference herself is lighter (#105). */
+
 const REFERENCE_WEIGHT = 75.0;
 /** What a hero's 1.00 air multiplier means: Ultimate's median air speed (#190; smashcraft:docs/gameplay-design.md, "Air drift and jump momentum"). */
 export const REFERENCE_AIR_SPEED = melee(1.0);
 
 const heroPhysicsRecords: (FighterPhysics | undefined)[] = [];
 
-/**
- * An expansion hero's physics: Fox reference's, with the roster's weight (of REFERENCE_WEIGHT), run and
- * air-speed (of REFERENCE_AIR_SPEED) multipliers. Jumps and gravity stay the reference's.
- */
+
+
+
+
 function heroPhysics(character: Character): FighterPhysics {
   const cached = heroPhysicsRecords[character];
   if (cached !== undefined) return cached;
@@ -248,15 +248,15 @@ function heroPhysics(character: Character): FighterPhysics {
   return physics;
 }
 
-/**
- * Wall-tech push-off, wall jumps and the ceiling tech's sideways impulse from
- * each fighter's Melee reference: ftCo_DatAttrs +0x100 passivewall_vel_x,
- * +0x104/+0x108 wall jump launch, +0x10C passiveceil_vel_x and +0x148
- * wall_jump_min_approach_speed in the owner's GALE01 revision 2 PlFx.dat
- * (Fox reference = Fox), PlFc.dat (Rifleman = Falco) and PlCa.dat (Illidan =
- * Captain Falcon), all of whom wall jump (can_walljump in ftFx_Init_OnLoad,
- * ftFc_Init_OnLoad, ftCa_Init_OnLoad).
- */
+// Wall recovery impulses retain NTSC GALE01 revision 2 ftCo_DatAttrs +0x100/+0x104/+0x108/+0x10C/+0x148 values.
+
+
+
+
+
+
+
+
 const AUTHORED_SURFACE_RECOVERY: { readonly [name in OriginalFighter]: SurfaceRecoveryPhysics } = {
   reference: {
     passiveWallSpeed: melee(0.5),
@@ -295,12 +295,12 @@ function authoredSurfaceRecovery(character: Character): SurfaceRecoveryPhysics {
   }
 }
 
-// The original roster keeps authored movement timing. NTSC reference fixtures
-// inject their own actor-owned command timeline; the encoded event is not a
-// universal character constant.
+
+
+
 export const INITIAL_DASH_FRAMES = 13;
 
-/** Smashcraft's authored approximation of the run timeline, not a retail-derived value. */
+
 export const AUTHORED_GROUND_MOVEMENT_RULES: GroundMovementRules = {
   dashRunEnableFrame: INITIAL_DASH_FRAMES + 1,
   turnRunFacingCommandFrame: 9,
@@ -328,7 +328,7 @@ export const NTSC_CAPTAIN_FALCON_GROUND_MOVEMENT_RULES: GroundMovementRules = {
   runBrakeMaximumFrames: 30,
 };
 
-/** The authored roster dash grabs with its ordinary grab timing; test rigs override it. */
+
 export const AUTHORED_DASH_GRAB_RULES: DashGrabRules = {
   startupFrames: attackStartupFrames(AttackStyle.grab),
   activeFrames: 3,
@@ -354,11 +354,11 @@ export const SHIELD_BREAK_LAND_FRAMES = 12;
 export const SHIELD_BREAK_STAND_FRAMES = 30;
 export const AUTHORED_SHIELD_BREAK_TIMING: ShieldBreakTiming = { landFrames: SHIELD_BREAK_LAND_FRAMES, standFrames: SHIELD_BREAK_STAND_FRAMES };
 
-/**
- * Gives every fighter of `world` its character's authored tuning again. A
- * hot reload that changed authored values (`bun wisp tune`) reaches the
- * fighters already playing this way, on the frame every client installs it.
- */
+
+
+
+
+
 export function applyAuthoredTuning(world: Roster): void {
   // By slot: in Lua a roster's empty slot is a nil that would end a for-of over its fighters.
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
@@ -367,11 +367,11 @@ export function applyAuthoredTuning(world: Roster): void {
   }
 }
 
-/**
- * The reference shield, or one scaled to a hero's body when its roster body
- * declares a shield scale: a body much wider than the reference's (Pit Lord)
- * would otherwise stand outside its own shield.
- */
+
+
+
+
+
 function heroShieldGeometry(character: Character): ShieldGeometry {
   const cached = heroShieldRecords[character];
   if (cached !== undefined) return cached;

@@ -1,8 +1,8 @@
-// Stage hazards on fixed timetables of the match frame, so a player can learn
-// them: Dream Land's wind, Kongo Jungle's barrel cannon and the Tomb of
-// Sargeras tide (smashcraft:docs/design/water-stage.md). Nothing here is
-// random or reacts to the fighters' positions when it chooses what to do.
-// smashcraft:docs/stage-hazards.md cites the Melee code and data each follows.
+
+
+
+
+
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS } from "../input/participants";
@@ -19,9 +19,9 @@ import { cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, inter
 import { melee } from "./tuning";
 import { knockbackWeight } from "./itemBuffs";
 
-// ---------------------------------------------------------------- wind
 
-/** What the wind is doing on a frame. */
+
+
 export const WindPhase = { calm: 0, cue: 1, blowing: 2 } as const;
 export type WindPhase = (typeof WindPhase)[keyof typeof WindPhase];
 
@@ -29,16 +29,16 @@ export type WindPhase = (typeof WindPhase)[keyof typeof WindPhase];
 export const WIND_CALM_FRAMES = 600;
 /** Whispy's blow animation runs this long before the wind starts, its sound on the last of them (groldpupupu.c grOldPupupu_802113E0). */
 export const WIND_CUE_FRAMES = 45;
-/** The wind blows from the blow's frame 46 through 319 (0x2D < xD0 < 0x140). */
+
 export const WIND_BLOW_FRAMES = 274;
 export const WIND_CYCLE_FRAMES = WIND_CALM_FRAMES + WIND_CUE_FRAMES + WIND_BLOW_FRAMES;
 /** GrOp.dat +0x10: Melee units a gust moves a fighter each frame. */
 export const WIND_SPEED = melee(0.20000000298023224);
-/**
- * GrOp.dat +0x14..+0x28, with Dream Land's ledges at ±77.2713: a gust's box,
- * its inner edge measured from the stage center and its outer edge from the
- * ledge it blows toward, its height from the floor.
- */
+// Whispy gust bounds use GrOp.dat +0x14..+0x28 and Dream Land ledges at ±77.2713.
+
+
+
+
 const WIND_INNER_EDGE_RIGHT = melee(17.0);
 const WIND_INNER_EDGE_LEFT = melee(18.0);
 const WIND_OUTER_INSET_RIGHT = melee(1.2713000774383545);
@@ -48,19 +48,19 @@ const WIND_TOP = melee(40.0);
 
 const windCycle = (frame: number) => floorMod(frame - 1, WIND_CYCLE_FRAMES);
 
-/** What the wind does on match frame `frame` (the first is 1). */
+
 export function windPhase(frame: number): WindPhase {
   const cycle = windCycle(frame);
   if (cycle < WIND_CALM_FRAMES) return WindPhase.calm;
   return cycle < WIND_CALM_FRAMES + WIND_CUE_FRAMES ? WindPhase.cue : WindPhase.blowing;
 }
 
-/** The way the frame's gust blows, or the next one will: gusts alternate, the first to the right. */
+
 export function windDirection(frame: number): -1 | 1 {
   return floorMod(floorDiv(frame - 1, WIND_CYCLE_FRAMES), 2) === 0 ? 1 : -1;
 }
 
-/** Frames until the next gust's wind starts, or zero while it blows. */
+
 export function framesUntilWind(frame: number): number {
   const cycle = windCycle(frame);
   return cycle >= WIND_CALM_FRAMES + WIND_CUE_FRAMES ? 0 : WIND_CALM_FRAMES + WIND_CUE_FRAMES - cycle;
@@ -68,7 +68,7 @@ export function framesUntilWind(frame: number): number {
 
 const stageCenter = (stage: number) => f32(f32(mainDeckLeft(stage) + mainDeckRight(stage)) / 2);
 
-/** The lower x bound of a gust blowing `direction`; positions strictly inside the box are pushed. */
+
 export function windLeft(stage: number, direction: -1 | 1): number {
   return direction > 0 ? f32(stageCenter(stage) - WIND_INNER_EDGE_RIGHT) : f32(mainDeckLeft(stage) + WIND_OUTER_INSET_LEFT);
 }
@@ -82,10 +82,10 @@ const windTop = (stage: number): number => f32(mainDeckZ(stage) + WIND_TOP);
 
 export const hasWind = (stage: number): boolean => stage === WIND_TEST_STAGE;
 
-/** Whether the wind runs on stage clock `frame`: never with hazards off. */
+
 export const windOn = (stage: number, frame: number): boolean => hasWind(stage) && !stageAtRest(frame);
 
-/** The world distance the wind moves a fighter at (x, z) along x on match frame `frame`. */
+
 export function windPush(stage: number, frame: number, x: number, z: number): number {
   if (!windOn(stage, frame) || windPhase(frame) !== WindPhase.blowing) return 0.0;
   const direction = windDirection(frame);
@@ -93,27 +93,27 @@ export function windPush(stage: number, frame: number, x: number, z: number): nu
   return direction > 0 ? WIND_SPEED : -WIND_SPEED;
 }
 
-// ---------------------------------------------------------------- tide
 
-/** What the Tomb's tide is doing on a frame: flowing one way, or slack before it turns. */
+
+
 export const TidePhase = { flood: 0, slackToEbb: 1, ebb: 2, slackToFlood: 3 } as const;
 export type TidePhase = (typeof TidePhase)[keyof typeof TidePhase];
 
-/** Each flow lasts nine seconds, then a one-second slack while the notice names the turn. */
+
 export const TIDE_FLOW_FRAMES = 540;
 export const TIDE_SLACK_FRAMES = 60;
-/** Right for the first ten seconds of every twenty, left for the second. */
+
 export const TIDE_CYCLE_FRAMES = 2 * (TIDE_FLOW_FRAMES + TIDE_SLACK_FRAMES);
-/** A quarter of Jungle Japes' 3.0 Melee units a frame. */
+
 export const TIDE_SPEED = melee(0.800000011920929);
-/** The sea's surface: 60 below the Tomb deck's deepest underside (z −300), 480 above the bottom blast line. */
+
 export const SEA_SURFACE_Z = -360.0;
 
 export const hasTide = (stage: number): boolean => stage === TOMB_OF_SARGERAS_STAGE;
 
 const tideCycle = (frame: number) => floorMod(frame - 1, TIDE_CYCLE_FRAMES);
 
-/** The tide on match frame `frame` (the first is 1). It follows the match frame even with hazards off: the sea is the stage. */
+
 export function tidePhase(frame: number): TidePhase {
   const cycle = tideCycle(frame);
   if (cycle < TIDE_FLOW_FRAMES) return TidePhase.flood;
@@ -121,19 +121,19 @@ export function tidePhase(frame: number): TidePhase {
   return cycle < TIDE_CYCLE_FRAMES - TIDE_SLACK_FRAMES ? TidePhase.ebb : TidePhase.slackToFlood;
 }
 
-/** The way the current runs on `frame`: right on the flood, left on the ebb, still at slack. */
+
 export function tideDirection(frame: number): -1 | 0 | 1 {
   const phase = tidePhase(frame);
   return phase === TidePhase.flood ? 1 : phase === TidePhase.ebb ? -1 : 0;
 }
 
-/** The way the current will run after this frame's slack, or runs now. */
+
 export function tideNextDirection(frame: number): -1 | 1 {
   const phase = tidePhase(frame);
   return phase === TidePhase.flood || phase === TidePhase.slackToFlood ? 1 : -1;
 }
 
-/** Frames until the current runs again, or zero while it runs. */
+
 export function framesUntilTideTurns(frame: number): number {
   const phase = tidePhase(frame);
   if (phase === TidePhase.flood || phase === TidePhase.ebb) return 0;
@@ -141,32 +141,32 @@ export function framesUntilTideTurns(frame: number): number {
   return (phase === TidePhase.slackToEbb ? TIDE_FLOW_FRAMES + TIDE_SLACK_FRAMES : TIDE_CYCLE_FRAMES) - cycle;
 }
 
-/** The sea fills the stage's whole width, blast line to blast line, from its surface down. */
+
 export const seaLeft = (stage: number): number => stageBounds(stage).blast.left;
 export const seaRight = (stage: number): number => stageBounds(stage).blast.right;
 
-/** Whether (x, z) is in the sea: at or below its surface, where a floating fighter rests. */
+
 export function inSea(stage: number, x: number, z: number): boolean {
   return hasTide(stage) && z <= SEA_SURFACE_Z && x >= seaLeft(stage) && x <= seaRight(stage);
 }
 
-/** The world distance the current moves a fighter at (x, z) along x on match frame `frame`. */
+
 export function tidePush(stage: number, frame: number, x: number, z: number): number {
   if (!inSea(stage, x, z)) return 0.0;
   const direction = tideDirection(frame);
   return direction === 0 ? 0.0 : direction > 0 ? TIDE_SPEED : -TIDE_SPEED;
 }
 
-// ---------------------------------------------------------------- cannon
 
-/** The cannon swings beneath the main deck between these x, at a constant speed. */
+
+
 const CANNON_SWING_HALF_WIDTH = 760.0;
 const CANNON_SWING_SPEED = 5.0;
-/** Frames from one end of the swing to the other. */
+
 const CANNON_SWING_FRAMES = 304;
-/** Its height: 30 above the bottom blast zone, its catch reaching up past the deck's underside. */
+
 export const CANNON_Z = -390.0;
-/** At each end the cannon leans this far (15 degrees) from upright, toward the stage. */
+
 const CANNON_LEAN = 0.2617993950843811;
 /** GrOk.dat rframe_barrel_in: a fighter whose position comes this close to the cannon's center is caught. */
 const CANNON_CATCH_RADIUS = melee(15.0);
@@ -179,26 +179,26 @@ export const CANNON_BASE_KNOCKBACK = 180.0;
 /** PlCo.dat common +0x5E0 bury_timer_unk2: frames after a shot before a cannon catches the fighter again. */
 export const CANNON_RECATCH_FRAMES = 16;
 
-/** The cannon's center x on match frame `frame`: from the left end, right and back. */
+
 export function cannonX(frame: number): number {
   const step = floorMod(frame - 1, 2 * CANNON_SWING_FRAMES);
   const travelled = step < CANNON_SWING_FRAMES ? step : 2 * CANNON_SWING_FRAMES - step;
   return f32(-CANNON_SWING_HALF_WIDTH + f32(travelled * CANNON_SWING_SPEED));
 }
 
-/** The cannon's aim, in radians from upright, positive toward +x: it leans toward the stage center in proportion to its distance from it. */
+
 export function cannonAim(frame: number): number {
   return f32(f32(-cannonX(frame) / CANNON_SWING_HALF_WIDTH) * CANNON_LEAN);
 }
 
 export const hasCannon = (stage: number): boolean => stage === CANNON_TEST_STAGE;
 
-/** Whether the cannon is there on stage clock `frame`: hazards off remove it. */
+
 export const cannonOn = (stage: number, frame: number): boolean => hasCannon(stage) && !stageAtRest(frame);
 
 export const inStageCannon = (f: Readonly<Fighter>): boolean => f.cannon.held !== undefined;
 
-/** Ends a shot's pass through the main deck once the fighter stands on a deck or its feet are above the main deck's top. */
+
 export function endCannonPass(f: Fighter, stage: number): void {
   if (f.cannon.passing && (f.motion.grounded || f.motion.z > mainDeckZ(stage))) f.cannon.passing = false;
 }
@@ -243,13 +243,13 @@ function catchFighter(world: Roster, slot: number, frame: number): void {
   holdAtCannon(f, frame);
 }
 
-/** Melee's barrel shot (ftCo_8009EC70): a launch along the aim from the cannon's center, then catch immunity. */
+
 function fire(f: Fighter, frame: number): void {
   holdAtCannon(f, frame);
   f.cannon.held = undefined;
   f.cannon.firing = undefined;
   f.cannon.cooldown = CANNON_RECATCH_FRAMES;
-  // Kongo's deck is floor-only so the barrel fires up through it; this one has walls and an underside, which the shot passes.
+
   f.cannon.passing = true;
   const aim = cannonAim(frame);
   const knockback = contactKnockback(f.status.damage, 0.0, knockbackWeight(f), 0.0, CANNON_BASE_KNOCKBACK, 1.0);
@@ -272,12 +272,12 @@ function canBeCaught(f: Readonly<Fighter>, frame: number): boolean {
   return f32(f32(dx * dx) + f32(dz * dz)) < f32(CANNON_CATCH_RADIUS * CANNON_CATCH_RADIUS);
 }
 
-/**
- * The cannon's frame, after the fighters have moved: a held fighter follows
- * it, a press of Attack or Special (Melee's A or B) or the end of the hold
- * begins the shot, which leaves CANNON_SHOT_FRAMES later; then an empty
- * cannon catches the first fighter in slot order within its reach.
- */
+
+
+
+
+
+
 export function advanceStageCannon(world: Roster, stage: number, frame: number, inputs: readonly Readonly<Controls>[]): void {
   if (!cannonOn(stage, frame)) return;
   let occupied = false;

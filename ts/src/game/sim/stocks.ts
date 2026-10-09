@@ -1,4 +1,4 @@
-// Losing a stock past the blast zone, and respawning.
+
 import { max } from "../../runtime/numbers";
 import { GrabAction, SurfaceContact } from "./codes";
 import { PLATFORM_DROP_INPUT_WINDOW, SHIELD_MAX, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES, TURNAROUND_SPECIAL_WINDOW_FRAMES, WALL_JUMP_FLICK_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES } from "./fighter";
@@ -28,7 +28,7 @@ const RESPAWN_FRAMES = 60;
 const RESPAWN_HEIGHT = 280.0;
 const RESPAWN_INVINCIBLE_FRAMES = 90;
 
-/** Takes a stock from a fighter past a blast zone. The top zone needs a strong upward launch, a frozen or grounded fighter. */
+
 export function checkBlastZone(world: Roster, slot: number, stage: number = 0): void {
   const f = fighterAt(world, slot);
   const { motion, launch, attack, dodge, status } = f;
@@ -72,7 +72,7 @@ export function checkBlastZone(world: Roster, slot: number, stage: number = 0): 
   clearDownState(f);
 }
 
-/** Respawns a fighter above startX: airborne, invincible and with every action and link cleared. */
+
 export function respawnFighter(world: Roster, slot: number, startX: number): void {
   const f = fighterAt(world, slot);
   const { motion, jump, launch, shield, attack, hits, special, dodge, landing, status, surfaceRecovery: recovery } = f;

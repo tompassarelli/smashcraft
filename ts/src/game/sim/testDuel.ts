@@ -1,5 +1,5 @@
-// A two-fighter match driven through the ordinary match step for scripted
-// input-path tests: Illidan's kit (#147) and its counterplay.
+
+
 import { ATTACK_BUFFER_FRAMES, type AttackBuffer, attackBuffer } from "../input/attackBuffer";
 import { type FrameControls, createFrameControls } from "../match/controls";
 import { Phase, createMatchState } from "../match/rules";
@@ -14,17 +14,17 @@ export interface Duel {
   readonly illidan: Fighter;
   readonly target: Fighter;
   readonly commands: readonly [AttackBuffer, AttackBuffer];
-  /**
-   * Mana drained from the target so far: each frame it took damage, its mana
-   * change less the shared comeback gain for being hit (smashcraft:docs/design/mana.md).
-   */
+
+
+
+
   drained: number;
-  /** One match frame with these controls for Illidan and the target; returns the frame number. */
+
   readonly step: (this: void, first?: Readonly<Controls>, second?: Readonly<Controls>) => number;
   readonly run: (this: void, frames: number, first?: Readonly<Controls>, second?: Readonly<Controls>) => void;
 }
 
-/** Illidan at 0 facing right and a fighter `gap` ahead facing him, both settled on the main deck. */
+
 export function duel(gap: number, character: Character = Character.rifleman): Duel {
   const game = createMatchState();
   game.phase = Phase.match;
@@ -57,7 +57,7 @@ export function duel(gap: number, character: Character = Character.rifleman): Du
   return d;
 }
 
-/** Puts the fighter in the air at `z`, at rest. */
+
 export function lift(f: Fighter, z: number): void {
   f.motion.grounded = false;
   f.motion.surface = undefined;

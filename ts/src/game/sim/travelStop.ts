@@ -1,6 +1,6 @@
-// Scripted forward travel that may not carry a fighter into or through
-// another: dash attacks' startup travel and hero dash specials. A raised
-// shield always stops it; an exposed body stops it when the move says so.
+
+
+
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { shieldCenterX, shieldCenterZ } from "./shieldTilt";
@@ -9,7 +9,7 @@ import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt, isActive } from "./roster";
 import { shieldSizeMultiplier } from "./shield";
 
-/** `distance` (forward, non-negative) clamped to end just before the first shield, or body when `stopsAtBody`, ahead. */
+
 export function travelBeforeBodies(world: Roster, slot: number, distance: number, stopsAtBody: boolean): number {
   const f = fighterAt(world, slot);
   const ownRadius = hurtCapsule(f.character).radius;

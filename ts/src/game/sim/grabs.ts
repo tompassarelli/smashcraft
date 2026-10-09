@@ -1,4 +1,4 @@
-// Holding a grabbed fighter: mash-out escapes, pummels and throws.
+
 import { min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
@@ -15,7 +15,7 @@ import { type Controls, type Roster, controlsAt, fighterAt, isActive } from "./r
 import { beginGrabAction, clearGrabLinks } from "./transitions";
 
 const PUMMEL_HIT = { damage: PUMMEL_DAMAGE, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
-// Preallocated: a throw's effect depends on its direction; contacts copy it.
+
 const throwHit = emptyHitEffect();
 
 interface HeldOffset {
@@ -27,8 +27,8 @@ interface HeldOffset {
   z: number;
 }
 
-// Both hold resolution passes, rollback and agency forecasts repeat these
-// exact throw-frame offsets. Positions remain live; only the pure offset is kept.
+
+
 const HELD_OFFSET_LIMIT = 128;
 const heldOffsets: HeldOffset[] = [];
 for (let index = 0; index < HELD_OFFSET_LIMIT; index++) heldOffsets.push({ frame: -1, action: GrabAction.none, contact: 0, facing: 0, x: 0.0, z: 0.0 });
@@ -66,13 +66,13 @@ function escapeGrab(world: Roster, ownerSlot: number, targetSlot: number): void 
   fighterAt(world, targetSlot).launch.throwHitstun = false;
 }
 
-/** Reuses the throw scratch; callers consume it before requesting another effect. */
+
 export function authoredThrowEffect(action: GrabAction, moves?: FighterMoves): Readonly<HitEffect> {
   const up = action === GrabAction.throwUp;
   const down = action === GrabAction.throwDown;
   throwHit.damage = up ? 6.0 : down ? 5.0 : 7.0;
-  // Throw roles (#107): an up throw stays out of tumble through mid percent for
-  // its juggle; a down throw tumbles from 0% into a tech chase.
+
+
   throwHit.growth = down ? 40.0 : up ? 55.0 : 70.0;
   throwHit.base = down ? 75.0 : 45.0;
   throwHit.launchX = up ? 0.17364799976348877 : down ? 0.9063078165054321 : 0.8660249710083008;
@@ -99,12 +99,12 @@ function releaseThrow(world: Roster, ownerSlot: number, targetSlot: number, targ
   const effect = authoredThrowEffect(action, owner.tuning.moves);
   const direction = authored !== undefined ? owner.facing : action === GrabAction.throwBack ? -owner.facing : owner.facing;
   queueDamageContact(world, ownerSlot, targetSlot, effect, direction, ContactKind.throw, false, targetInput);
-  // Release changes ground-contact eligibility before later trap/catch checks.
+
   target.motion.grounded = false;
   target.motion.surface = undefined;
 }
 
-/** Holds the target at the grabber's hand, carried along a throw's arc; a broken hold releases. */
+
 function resolveHeldTarget(world: Roster, ownerSlot: number): void {
   const owner = fighterAt(world, ownerSlot);
   const targetSlot = owner.grab.target;
@@ -139,7 +139,7 @@ function resolveHeldTarget(world: Roster, ownerSlot: number): void {
   target.launch.knockbackZ = 0.0;
 }
 
-/** The throw the grabber's input asks for, or none. */
+
 function requestedThrow(owner: Readonly<Fighter>, input: Readonly<Controls>): GrabAction {
   if (input.grabThrowZ !== 0) return input.grabThrowZ > 0 ? GrabAction.throwUp : GrabAction.throwDown;
   if (input.grabThrowX !== 0) return input.grabThrowX === owner.facing ? GrabAction.throwForward : GrabAction.throwBack;
@@ -168,7 +168,7 @@ function advanceGrab(world: Roster, ownerSlot: number, ownerInput: Readonly<Cont
     }
   } else if (grab.frame >= grabActionDuration(grab.action, owner.tuning.moves)) {
     if (grab.action === GrabAction.pummel && targetSlot !== undefined) {
-      // After the one pummel the grabber throws, or the victim goes free.
+
       const next = throwAction !== GrabAction.none ? throwAction : grab.queuedThrow;
       grab.queuedThrow = GrabAction.none;
       if (next === GrabAction.none) {
@@ -186,7 +186,7 @@ function advanceGrab(world: Roster, ownerSlot: number, ownerInput: Readonly<Cont
   }
   if (targetSlot !== undefined && grab.action >= GrabAction.pummel && grab.action <= GrabAction.throwDown && grab.frame === grabContactFrame(grab.action, owner.tuning.moves)) {
     resolveHeldTarget(world, ownerSlot);
-    // A hold broken just now still delivers its contact, as a throw.
+
     if (grab.action === GrabAction.pummel) {
       const hit = owner.tuning.moves?.throws[GrabAction.pummel]?.effect ?? PUMMEL_HIT;
       queueDamageContact(world, ownerSlot, targetSlot, hit, owner.facing, ContactKind.pummel, true, undefined);
@@ -195,7 +195,7 @@ function advanceGrab(world: Roster, ownerSlot: number, ownerInput: Readonly<Cont
   }
 }
 
-/** Advances every grab; hitlag on either end, captured beforehand, pauses it. */
+
 export function advanceGrabs(world: Roster, controls: readonly Readonly<Controls>[]): void {
   const ownsBatch = openDamageContacts();
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
@@ -216,11 +216,11 @@ export function captureGrabPauses(world: Roster): void {
   }
 }
 
-/**
- * Anchors every held fighter. Runs after both fighters advance, so expiry
- * never gives the second slot an extra movement tick, and again after
- * contacts to anchor a newly caught pair.
- */
+
+
+
+
+
 export function resolveGrabs(world: Roster): void {
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (isActive(world, slot)) resolveHeldTarget(world, slot);

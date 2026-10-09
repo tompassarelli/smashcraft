@@ -1,5 +1,5 @@
-// Wall and ceiling contacts: stopping against solid faces, tumble rebounds,
-// the wall and ceiling techs that recover from them, and wall jumps.
+
+
 import { max, min } from "../../runtime/numbers";
 import { at } from "wisp/src/runtime/lookup";
 import { f32 } from "wisp/src/sim/f32";
@@ -23,26 +23,26 @@ export const WALL_JUMP_INPUT_WINDOW_FRAMES = 130;
 export const WALL_JUMP_STICK_X = 0.800000011920929;
 /** PlCo +0x778: each earlier wall jump since landing scales a wall jump's rise by this. */
 export const WALL_JUMP_REPEAT_RISE_SCALE = 0.9750000238418579;
-/** Melee's wall-jump input timer saturates here and then rechecks the approach (ftwalljump.c max_input_frames). */
+
 const WALL_JUMP_AGE_LIMIT = 254;
 const WALL_JUMPS_USED_LIMIT = 255;
 
-/**
- * Melee's airborne collision box is never narrower than 2 units a side
- * (mpColl_LoadECB_JObj). Fighters meet walls with that flank and reach for
- * ledges past it; this is the half-width in Melee units.
- */
+// Melee airborne ECB half-width is at least 2 units (mpColl_LoadECB_JObj).
+
+
+
+
 export const BODY_HALF_WIDTH = 2.0;
 const BODY_REACH = melee(BODY_HALF_WIDTH);
 
-/**
- * How far above its position a fighter's top is, in Melee units: Melee's
- * airborne ECB top, the highest of its six ECB bones (ftData x44;
- * melee:src/melee/mp/mpcoll.c mpColl_LoadECB_JObj, with no 2-unit pad, as
- * falls and jumps load it), in its model's bind pose (PlFxNr.dat,
- * PlFcNr.dat, PlCaNr.dat) times its model_scaling (+0x8C): Fox's head 11.625
- * x 0.96, Falco's 12.5 x 1.1, Captain Falcon's 19.3585 x 0.97.
- */
+// ECB top heights use the six bind-pose bones times model_scaling (ftData x44; PlFxNr.dat, PlFcNr.dat, PlCaNr.dat).
+
+
+
+
+
+
+
 export function bodyTop(character: Character): number {
   switch (character) {
     default:
@@ -53,17 +53,17 @@ export function bodyTop(character: Character): number {
   }
 }
 
-/** How far a fighter's body moves a surface sideways: a sideways-facing surface meets its flank. */
+
 function bodyShift(surface: SolidSurface): number {
   return surface.normalX > 0 ? BODY_REACH : surface.normalX < 0 ? -BODY_REACH : 0.0;
 }
 
-/** How far a fighter's body moves a surface down: a ceiling meets its top, other surfaces its position. */
+
 function bodyLift(f: Fighter, surface: SolidSurface): number {
   return surface.kind === SurfaceContact.ceiling ? ceilingLift(f.character) : 0.0;
 }
 
-// Each character's ceiling lift, found on first ask: every solid face asks it every frame.
+
 const CEILING_LIFTS: Record<number, number | undefined> = {};
 
 function ceilingLift(character: Character): number {
@@ -78,21 +78,21 @@ function signedDistance(surface: SolidSurface, shift: number, lift: number, x: n
   return f32(f32(f32(x - f32(surface.startX + shift)) * surface.normalX) + f32(f32(z - f32(surface.startZ + lift)) * surface.normalZ));
 }
 
-/**
- * signedDistance in raw arithmetic: binary64 on the host, Warcraft's own
- * rounding in Lua. It is within a few ulps of signedDistance, so beyond ±1 its
- * sign is signedDistance's in both, without the exact operations (about 1 µs
- * each in Lua) that every fighter would pay for every surface on every frame.
- */
+// Raw surface distances agree in sign beyond ±1 across host binary64 and Warcraft Lua rounding.
+
+
+
+
+
 function roughDistance(surface: SolidSurface, shift: number, lift: number, x: number, z: number): number {
   return (x - (surface.startX + shift)) * surface.normalX + (z - (surface.startZ + lift)) * surface.normalZ;
 }
 
-/**
- * Whether a point on the shifted surface's line lies within it, along its
- * longer axis. A level underside reaches a body's half-width further at each
- * end, so it still meets its shifted neighbours.
- */
+
+
+
+
+
 function withinSurface(surface: SolidSurface, shift: number, x: number, z: number): boolean {
   const { startX, startZ, endX, endZ } = surface;
   if (Math.abs(f32(endZ - startZ)) > Math.abs(f32(endX - startX))) return z >= min(startZ, endZ) && z <= max(startZ, endZ);
@@ -123,12 +123,12 @@ function clearMotionForSurfaceTech(f: Fighter): void {
   f.shield.recoilZ = 0.0;
 }
 
-/**
- * Enters Melee's wall recovery, which wall techs and wall jumps share
- * (melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveWall.c ftCo_800C1E64): motion
- * stops, the fighter turns `away` from the wall, and its push-off or jump
- * comes when the five-frame hang ends.
- */
+
+
+
+
+
+
 function beginWallRecovery(f: Fighter, away: number, jumpQueued: boolean, repeat: number): void {
   clearDownState(f);
   const recovery = f.surfaceRecovery;
@@ -143,7 +143,7 @@ function beginWallRecovery(f: Fighter, away: number, jumpQueued: boolean, repeat
   f.facing = away;
 }
 
-/** Removes the launch velocity component pointing into the surface, and the fighter's own when `own`. */
+
 function stopInwardMotion(f: Fighter, nx: number, nz: number, own: boolean): void {
   const { motion, launch } = f;
   const inwardSelfSpeed = f32(f32(motion.vx * nx) + f32(motion.vz * nz));
@@ -158,7 +158,7 @@ function stopInwardMotion(f: Fighter, nx: number, nz: number, own: boolean): voi
   }
 }
 
-/** Puts a point that crossed the shifted surface back onto its line. */
+
 function placeOnSurface(f: Fighter, surface: SolidSurface, shift: number, lift: number, distance: number): void {
   const { motion } = f;
   if (surface.normalZ === 0) {
@@ -219,7 +219,7 @@ function resolveSolidSurfaceContact(f: Fighter, surface: SolidSurface, index: nu
   if (eventKind === SurfaceContact.techWall || eventKind === SurfaceContact.techCeiling) {
     stopInwardMotion(f, nx, nz, true);
   } else if (isTumbling(f) && recovery.reflectCooldown === 0 && index !== recovery.lastReflectedSurface && inwardKnockback > SURFACE_REFLECT_SPEED_THRESHOLD) {
-    // A tumbling launch rebounds off the surface, attenuated.
+
     const combinedX = f32(motion.vx + launch.knockbackX);
     const combinedZ = f32(motion.vz + launch.knockbackZ);
     const inwardSpeed = f32(f32(combinedX * nx) + f32(combinedZ * nz));
@@ -231,23 +231,23 @@ function resolveSolidSurfaceContact(f: Fighter, surface: SolidSurface, index: nu
     recovery.lastReflectedSurface = index;
     recovery.reflectCooldown = SURFACE_REFLECT_COOLDOWN_FRAMES;
   } else {
-    // Airborne collision moves a fighter off a wall without changing its own
-    // velocity (melee:src/melee/ft/ft_081B.c ft_800835B0), so a fighter that
-    // rises past a wall's top carries on over it. An underside stops a rise.
+
+
+
     stopInwardMotion(f, nx, nz, kind === SurfaceContact.ceiling);
   }
   return true;
 }
 
-/** Resolves the step from (old) against every solid face; returns the side of the fighter a wall met (-1 left, 1 right), or 0. */
+
 export function resolveSolidSurfaceContacts(f: Fighter, stage: number, oldX: number, oldZ: number, input: Readonly<Controls>): number {
   let touched = false;
   let wallSide = 0;
   const surfaces = solidSurfacesOf(stage);
-  // Every main-deck face is at or below its walking plane, and ceiling
-  // contact lowers it by the fighter's height. A step wholly above that
-  // plane cannot cross one; retain a unit of room for contact rounding.
-  // A cannon shot passes the main deck's body (stageHazards.ts, endCannonPass).
+
+
+
+
   const first = f.cannon.passing || (oldZ > mainDeckZ(stage) + 1 && f.motion.z > mainDeckZ(stage) + 1) ? MAIN_DECK_BODY_SURFACES : 0;
   for (let i = first; i < surfaces.length; i++) {
     const surface = at(surfaces, i);
@@ -259,12 +259,12 @@ export function resolveSolidSurfaceContacts(f: Fighter, stage: number, oldX: num
   return wallSide;
 }
 
-/**
- * Whether Melee checks for a wall jump after this frame's collision: falls,
- * jumps, tumbles past hitstun and recoveries past their hang do; aerials,
- * specials, air dodges, special falls and hitstun don't (the callers of
- * ftWallJump_8008169C in melee:src/melee/ft/ft_081B.c).
- */
+
+
+
+
+
+
 function checksWallJump(f: Fighter): boolean {
   const { motion, launch, attack, special, dodge, down, surfaceRecovery: recovery } = f;
   return !motion.grounded && !f.status.out && launch.hitstun <= 0 && launch.hitlag <= 0 && attack.style === undefined
@@ -273,14 +273,14 @@ function checksWallJump(f: Fighter): boolean {
     && !(recovery.state === SurfaceContact.techWall && recovery.frame < WALL_TECH_STARTUP_FRAMES);
 }
 
-/**
- * Melee's wall jump (melee:src/melee/ft/ftwalljump.c ftWallJump_8008169C):
- * meeting a wall faster than the fighter's minimum approach speed opens a
- * window while it stays against that wall, and a fresh flick away from it in
- * that window jumps off it. `wallSide` is the side of the fighter a wall met
- * this frame (-1 left, 1 right, 0 none) and `deltaX` the frame's sideways
- * movement. True when a wall jump began.
- */
+
+
+
+
+
+
+
+
 export function advanceWallJump(f: Fighter, wallSide: number, deltaX: number, stickX: number): boolean {
   const physics = f.tuning.surface;
   const recovery = f.surfaceRecovery;
@@ -307,11 +307,11 @@ export function advanceWallJump(f: Fighter, wallSide: number, deltaX: number, st
   return true;
 }
 
-/**
- * Where the main deck's `side` meets a fighter's flank at height z, if its
- * side reaches that low. Each height crosses the body in one span, so its
- * sides are the body's whole extent there.
- */
+
+
+
+
+
 function mainDeckSideX(stage: number, side: number, z: number): number | undefined {
   for (let i = 0; i < MAIN_DECK_BODY_SURFACES; i++) {
     const surface = solidSurfaceAt(stage, i);
@@ -325,7 +325,7 @@ function mainDeckSideX(stage: number, side: number, z: number): number | undefin
   return undefined;
 }
 
-/** Whether a point lies strictly inside the main deck's solid body, below its walking plane and between its sides. */
+
 export function insideMainDeckBody(stage: number, x: number, z: number): boolean {
   if (solidSurfaceCount(stage) === 0 || z >= mainDeckZ(stage)) return false;
   const right = mainDeckSideX(stage, 1, z);
@@ -333,14 +333,14 @@ export function insideMainDeckBody(stage: number, x: number, z: number): boolean
   return right !== undefined && left !== undefined && x > f32(left + BODY_REACH) && x < f32(right - BODY_REACH);
 }
 
-/**
- * Moves a fighter whose feet ended a frame inside the main deck's body out
- * sideways to the nearer flank, as Melee's collision box slides off a ledge's
- * corner: a fighter running off a ledge drops within its half-width of the
- * wall without crossing it. Callers skip it on a frame that lands on a deck.
- * Returns the side of the fighter the wall it now stands against is on (-1
- * left, 1 right), or 0 when it wasn't inside.
- */
+
+
+
+
+
+
+
+
 export function leaveMainDeckBody(f: Fighter, stage: number): number {
   const { motion } = f;
   if (f.cannon.passing || solidSurfaceCount(stage) === 0 || motion.z >= mainDeckZ(stage)) return 0;
@@ -353,7 +353,7 @@ export function leaveMainDeckBody(f: Fighter, stage: number): number {
   return toRight ? -1 : 1;
 }
 
-/** Advances a wall or ceiling tech; true on the frame a queued wall jump launches. */
+
 export function advanceSurfaceRecovery(f: Fighter, input: Readonly<Controls>): boolean {
   if (f.launch.hitlag > 0) return false;
   const { surfaceRecovery: recovery, motion } = f;
@@ -361,7 +361,7 @@ export function advanceSurfaceRecovery(f: Fighter, input: Readonly<Controls>): b
   const timing = f.tuning.tech;
   if (recovery.state === SurfaceContact.techCeiling) {
     recovery.frame++;
-    // The animation's throw-flag event sets sideways speed from the stick times passiveceil_vel_x (ftCo_PassiveCeil.c ftCo_PassiveCeil_Anim).
+
     if (recovery.frame === timing.ceilingImpulseFrame && !recovery.velocityApplied) {
       motion.vx = f32(stickX(input) * physics.passiveCeilingSpeed);
       recovery.velocityApplied = true;
@@ -385,7 +385,7 @@ export function advanceSurfaceRecovery(f: Fighter, input: Readonly<Controls>): b
   recovery.wallJumpQueued = recovery.wallJumpQueued || wallTechJumpInputIsRecent(f, input);
   recovery.frame++;
   if (recovery.frame !== WALL_TECH_STARTUP_FRAMES) return false;
-  // Melee pushes off along the facing it turned to, away from even a sloped wall (ftCo_PassiveWall.c ftCo_PassiveWall_Anim).
+
   const away = f.facing > 0 ? 1.0 : -1.0;
   if (recovery.wallJumpQueued) {
     motion.vx = f32(away * physics.wallJumpHorizontalSpeed);

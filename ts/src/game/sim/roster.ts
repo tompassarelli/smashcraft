@@ -1,18 +1,18 @@
-// The fighters of a match by participant slot, and the controls each slot
-// supplies for one frame.
+
+
 import type { Fighter } from "./fighter";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 
-/** Slot identities are stable for a match epoch, including sparse rosters. */
+
 export interface Roster {
-  /** Participant bits by slot. */
+
   mask: number;
-  /** Hitlag captured before grabs advance: a frozen end pauses its grab. */
+
   readonly grabPaused: boolean[];
   readonly fighters: (Fighter | undefined)[];
 }
 
-/** A roster of the given participants, seating fighters from slot zero; a sparse roster seats the rest by slot. */
+
 export function createRoster(mask: number, fighters: readonly Fighter[] = []): Roster {
   return {
     mask,
@@ -21,13 +21,13 @@ export function createRoster(mask: number, fighters: readonly Fighter[] = []): R
   };
 }
 
-/** participantActive(roster.mask, slot), inline: every simulated frame asks it about two hundred times. */
+
 export function isActive(roster: Roster, slot: number): boolean {
   const mask = roster.mask;
   return mask > 0 && mask < 16 && slot >= 0 && slot < 4 && (mask & (1 << slot)) !== 0;
 }
 
-/** The fighter in a slot that must be occupied: an active slot, or a slot that fighter state refers to. */
+
 export function fighterAt(roster: Roster, slot: number): Fighter {
   const fighter = roster.fighters[slot];
   if (fighter === undefined) throw new Error(`no fighter in slot ${slot}`);

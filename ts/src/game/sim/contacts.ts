@@ -1,6 +1,6 @@
-// Damage contacts: every contact of a frame is collected against the same
-// pre-hit state, then each target resolves its contacts together. The
-// strongest launch wins; blocked contacts drain and push the shield instead.
+
+
+
 import { max, min, toInt } from "../../runtime/numbers";
 import { addFloat32, divideFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
 import { Character, ContactKind, DownState, HeroStatusKind } from "./codes";
@@ -41,7 +41,7 @@ import { dealtManaGain, gainMana, takenManaGain } from "./mana";
 import { EX_ARMOR_DAMAGE, exArmorActive } from "./exSpecials";
 import { FORSAKEN_PALADIN_DAMAGE_MULTIPLIER, forsakenPaladinHammerContact } from "./heroes/forsakenPaladinHammer";
 
-/** One contact, with the source's and target's state sampled when it was collected. */
+
 interface DamageContact {
   source: number;
   target: number;
@@ -55,11 +55,11 @@ interface DamageContact {
   crouching: boolean;
   grounded: boolean;
   sourceGrounded: boolean;
-  /** A direct hit from an aerial attack, whose shieldstun has the aerial tilt. */
+
   sourceAerial: boolean;
   sourceDeltaX: number;
   sourceDeltaZ: number;
-  /** The source's own velocity, which a link hit gives its airborne target. */
+
   sourceVelocityX: number;
   sourceVelocityZ: number;
   targetDeltaX: number;
@@ -67,7 +67,7 @@ interface DamageContact {
   down: boolean;
   smashCharging: boolean;
   throwInput: Readonly<Controls> | undefined;
-  /** A hero status the contact applies if it reaches the body. */
+
   status: Readonly<AppliedStatus> | undefined;
   height: number;
 }
@@ -81,11 +81,11 @@ function emptyContact(): DamageContact {
   };
 }
 
-// Scratch for one synchronous step, never part of a saved world. Records are
-// reused across frames; the pool only grows past its largest batch so far.
+
+
 const batch: { contacts: DamageContact[]; count: number; collecting: boolean } = { contacts: [], count: 0, collecting: false };
 
-/** A flinch without knockback (the blaster's) stuns 3 frames per point of damage: 9 for an aerial shot, 12 for a grounded one (#117). */
+
 function flinchHitstunFrames(damage: number): number {
   return toInt(multiplyFloat32(3.0, roundToFloat32(damage)));
 }
@@ -95,21 +95,21 @@ export function beginDamageContacts(): void {
   batch.collecting = true;
 }
 
-/** Releases a finished match's scratch pool; no replay state owns contacts. */
+
 export function clearDamageContacts(): void {
   batch.contacts.length = 0;
   batch.count = 0;
   batch.collecting = false;
 }
 
-/** Opens a batch unless one is already open; true when the caller owns it and must finish it. */
+
 export function openDamageContacts(): boolean {
   if (batch.collecting) return false;
   beginDamageContacts();
   return true;
 }
 
-/** Adds a contact; throws and pummels can't be blocked. */
+
 export function collectDamageContact(
   world: Roster, sourceSlot: number, targetSlot: number, effect: Readonly<HitEffect>, facing: number,
   kind: ContactKind, direct: boolean, throwInput: Readonly<Controls> | undefined, shieldContact: boolean,
@@ -146,8 +146,8 @@ export function collectDamageContact(
   contact.smashCharging = target.attack.smashCharging;
   contact.throwInput = throwInput;
   contact.status = status;
-  // Authored strike/projectile geometry supplies a height; throws and other
-  // contacts without a point use the middle band. This never feeds combat.
+
+
   contact.height = 1;
   if (contactZ !== undefined) {
     let bottom = 0.0;
@@ -161,17 +161,17 @@ export function collectDamageContact(
     contact.height = relative < addFloat32(bottom, multiplyFloat32(span, 0.375)) ? 0
       : relative >= addFloat32(bottom, multiplyFloat32(span, 0.75)) ? 2 : 1;
   }
-  // Forsaken Paladin's balance multiplier preserves the original contact freeze.
+
   contact.hitlagDamage = contact.effect.damage;
   if (source.character === Character.forsakenPaladin) contact.effect.damage = multiplyFloat32(contact.effect.damage, FORSAKEN_PALADIN_DAMAGE_MULTIPLIER);
 }
 
-/** Terrain shares ordinary body-hit resolution, without a fighter earning damage. */
+
 export function collectTerrainContact(world: Roster, targetSlot: number, effect: Readonly<HitEffect>): void {
   collectDamageContact(world, targetSlot, targetSlot, effect, 1, ContactKind.launch, false, undefined, false, undefined, undefined);
 }
 
-/** Adds a contact that the target's raised shield blocks. */
+
 export function queueDamageContact(
   world: Roster, sourceSlot: number, targetSlot: number, effect: Readonly<HitEffect>, facing: number,
   kind: ContactKind, direct: boolean, throwInput: Readonly<Controls> | undefined,
@@ -183,14 +183,14 @@ function shieldRecoilAxis(attackerDelta: number, defenderDelta: number): number 
   return multiplyFloat32(attackerDelta, defenderDelta) >= 0 ? subtractFloat32(defenderDelta, attackerDelta) : defenderDelta;
 }
 
-/** An airborne attacker recoils by the relative step, scaled by the weight ratio. */
+
 function applyAirborneShieldRecoil(source: Fighter, target: Fighter, contact: Readonly<DamageContact>): void {
   const weightRatio = multiplyFloat32(min(divideFloat32(target.tuning.physics.weight, source.tuning.physics.weight), 1.0), SHIELD_HIT_WEIGHT_MULTIPLIER);
   source.shield.recoilX = addFloat32(source.shield.recoilX, multiplyFloat32(shieldRecoilAxis(contact.sourceDeltaX, contact.targetDeltaX), weightRatio));
   source.shield.recoilZ = addFloat32(source.shield.recoilZ, multiplyFloat32(shieldRecoilAxis(contact.sourceDeltaZ, contact.targetDeltaZ), weightRatio));
 }
 
-/** A hit that reaches the body drains its authored mana (Illidan's kit); mana floors at 0. */
+
 function drainMana(target: Fighter, drain: number | undefined): void {
   if (drain === undefined || drain <= 0 || target.mana.points <= 0) return;
   target.mana.points = max(0, target.mana.points - drain);
@@ -276,7 +276,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     if (contact.kind === ContactKind.launch || contact.kind === ContactKind.throw) {
       const magnitude = contactKnockback(postHitPercent, damage, knockbackWeight(target), contact.effect.growth, contact.effect.base, 1.0);
       const knockback = contact.kind === ContactKind.throw ? magnitude : hitContextKnockback(magnitude, contact.crouching, contact.smashCharging);
-      // Equal-strength contacts retain the first contact's direction.
+
       if (knockback > strongest) {
         strongest = knockback;
         winner = index;
@@ -291,7 +291,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     target.visuals.hitStrength = effectContact.hammerHitlag > 0 || strongest >= 180.0 ? 2 : strongest >= 80.0 ? 1 : 0;
     target.visuals.hitHeight = effectContact.height;
     target.visuals.hitPummel = effectContact.kind === ContactKind.pummel;
-    // The strongest launch supplies the effect; the largest damage supplies hitlag power.
+
     if (hurtContact !== undefined) {
       launch.sdiFollowup = launch.hitlag === 0 && launch.hitlagEndAge <= 15;
       launch.hitlagFrames = victimHitlagFrames(hitlagDamage, effectContact.effect.electric, effectContact.crouching) + hammerHitlag;
@@ -305,7 +305,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
       target.visuals.shieldReflect++;
       grantParry(target);
     } else {
-      // An ordinary block ends any parry reward, so a string pays out only when every hit is parried.
+
       target.visuals.shield++;
       shield.perfectActionFrames = 0;
       shield.redParryTried = false;
@@ -313,7 +313,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
   }
   if (shieldDamage > 0) shield.energy = subtractFloat32(shield.energy, shieldContactDamage(shieldDamage, shield.strength));
   if (shieldPushback > 0 && target.motion.grounded) {
-    // Shield contact replaces the defender's self ground speed.
+
     target.motion.vx = 0.0;
     shield.pushbackX = multiplyFloat32(shieldDirection, shieldPushback);
     shield.drainResumePending = true;
@@ -328,26 +328,26 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     target.special.exArmorUsed = true;
     if (armorDamage <= EX_ARMOR_DAMAGE) return;
   }
-  // Hero armor takes one hit's reaction up to its limit; its damage stays applied. Throws ignore it.
+
   if (status.armorFrames > 0 && contactAt(chosenIndex).kind !== ContactKind.throw) {
     status.armorFrames = 0;
     const armorChills = status.armorChills;
     status.armorChills = false;
     if (armorDamage <= status.armorMaxDamage) {
-      // Frost Armor chills the striker whose melee hit spent it.
+
       const spentBy = contactAt(chosenIndex);
       if (armorChills && spentBy.direct) applyHeroStatus(fighterAt(world, spentBy.source), CHILL);
       return;
     }
   }
-  // Forsaken Paladin's Devotion Aura takes a share off a launch it is ready for; throws ignore it.
-  // A later hit replaces both shield-contact motion channels.
+
+
   shield.pushbackX = 0.0;
   shield.recoilX = 0.0;
   shield.recoilZ = 0.0;
   shield.drainResumePending = false;
   const chosen = contactAt(chosenIndex);
-  // Melee compares the damage summed over the frame's contacts.
+
   const jabReset = chosen.kind !== ContactKind.throw && chosen.down && totalDamage < DOWN_DAMAGE_RESET_THRESHOLD;
   clearGrabLinks(world, slot);
   launch.diPending = false;
@@ -386,19 +386,19 @@ function resolveDamageContacts(world: Roster, slot: number): void {
   }
 }
 
-/** Statuses from contacts that reached the body, after that frame's damage could end an earlier one. */
+
 function applyContactStatuses(world: Roster, slot: number): void {
   for (let index = 0; index < batch.count; index++) {
     const contact = contactAt(index);
     if (contact.target !== slot || contact.blocked || contact.status === undefined) continue;
     const target = fighterAt(world, slot);
     applyHeroStatus(target, contact.status);
-    // A carried fighter faces back along the hit, so the carry takes it the way the carrier flew.
+
     if (target.status.condition === HeroStatusKind.carried && contact.status.kind === HeroStatusKind.carried) target.facing = contact.facing < 0 ? 1 : -1;
   }
 }
 
-/** Resolves every active target's contacts in slot order and closes the batch. */
+
 export function finishDamageContacts(world: Roster): void {
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (!isActive(world, slot)) continue;

@@ -1,8 +1,8 @@
-// What every fighter's moves are called, read from its kit data: a hero's
-// SpecialKit.name and HeroDefinition/ultimate, an original fighter's
-// ORIGINAL_KITS record. Specials and ultimates have official names;
-// normals go by their input. smashcraft:docs/move-list.md, the Moves page and
-// training's readout all read this view.
+
+
+
+
+
 import { at } from "wisp/src/runtime/lookup";
 import { SpecialAction } from "./codes";
 import type { NamedMove } from "./heroes/hero";
@@ -11,7 +11,7 @@ import type { FighterMoves } from "./heroMoves";
 import { FOLLOW_UP_FORM, type AuthoredSpecial, type SpecialKit, SpecialForm, SpecialSlot, specialForm, specialKit } from "./heroSpecials";
 import { ORIGINAL_KITS } from "./originalKits";
 
-/** A form the design names on its own, by the running special's form code. */
+
 export interface NamedForm {
   readonly form: number;
   readonly name: string;
@@ -22,24 +22,24 @@ export interface SpecialText extends NamedMove {
 }
 
 export interface FighterKitText {
-  /** Neutral, side, up and down, in SpecialSlot order. */
+
   readonly specials: readonly SpecialText[];
   readonly trait: string | undefined;
-  /** The jab chain: every fighter's repeated jab (#163). */
+
   readonly jab: NamedMove;
   readonly ultimate?: NamedMove | undefined;
-  /** Docs only: normals and throws by input name, with what each draws on. */
+
   readonly inspiredBy: readonly { readonly move: string; readonly note: string }[];
 }
 
-/** Normals by AttackStyle code, named by their input as players call them. */
+
 export const NORMAL_NAMES: readonly string[] = [
   "Jab", "Shot", "Up smash", "Down smash", "Forward smash", "Grab", "Forward tilt", "Up tilt", "Down tilt", "Forward tilt (up)",
   "Forward tilt (down)", "Get-up attack", "Neutral air", "Forward air", "Back air", "Up air", "Down air", "Ledge attack", "Dash attack", "Dash attack",
   "Second jab", "Third jab",
 ];
 
-/** Pummel and throws by GrabAction code. */
+
 const GRAB_NAMES: readonly string[] = ["", "", "Pummel", "Forward throw", "Back throw", "Up throw", "Down throw"];
 
 export const SPECIAL_INPUTS = ["Neutral special", "Side special", "Up special", "Down special"] as const;
@@ -88,7 +88,7 @@ function heroInspirations(moves: Readonly<FighterMoves>): { move: string; note: 
   return [...notes(NORMAL_NAMES, normals), ...notes(GRAB_NAMES, throws)];
 }
 
-/** The fighter's specials and ultimate as players see them. */
+
 export function fighterKit(character: number): FighterKitText {
   const hero = heroDefinition(character);
   if (hero !== undefined) {

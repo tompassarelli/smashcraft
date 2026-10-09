@@ -1,6 +1,6 @@
-// A hero special's command grab (heroSpecials.ts CommandGrab): catch through
-// the shared grab link, hold, then release as a throw. Every value it changes
-// is fighter state, so rollback restores it with the fighters.
+
+
+
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { emptyCapsule, placeCapsule } from "../physics/contactGeometry";
@@ -14,7 +14,7 @@ import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt, isActive } from "./roster";
 import { cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, interruptJumpOrDodge } from "./transitions";
 
-// Preallocated: rollback replays test the catch every frame of its window.
+
 const strike = emptyCapsule();
 
 function stopMotion(f: Fighter): void {
@@ -25,7 +25,7 @@ function stopMotion(f: Fighter): void {
   f.launch.knockbackZ = 0.0;
 }
 
-/** The nearest body the strike latches, ties to the lower slot; shields do not stop it. */
+
 function caughtTarget(world: Roster, slot: number, owner: Readonly<Fighter>): number | undefined {
   let best: number | undefined;
   let bestDistance = 0.0;
@@ -43,7 +43,7 @@ function caughtTarget(world: Roster, slot: number, owner: Readonly<Fighter>): nu
   return best;
 }
 
-/** Links the pair as an ordinary grab does, without the holder's pummel and throw choices. */
+
 function latch(world: Roster, slot: number, targetSlot: number, holdFrames: number): void {
   const owner = fighterAt(world, slot);
   const target = fighterAt(world, targetSlot);
@@ -67,7 +67,7 @@ function latch(world: Roster, slot: number, targetSlot: number, holdFrames: numb
   stopMotion(target);
 }
 
-/** One frame of the slot's command grab, after its special frame advanced. */
+
 export function advanceHeroCommandGrab(world: Roster, slot: number): void {
   const owner = fighterAt(world, slot);
   const grab = runningHeroSpecial(owner)?.commandGrab;
@@ -85,7 +85,7 @@ export function advanceHeroCommandGrab(world: Roster, slot: number): void {
   }
   if (frame !== special.grabFrame + grab.holdFrames) return;
   const targetSlot = owner.grab.target;
-  // A hold an external hit already broke releases nothing.
+
   if (targetSlot === undefined || fighterAt(world, targetSlot).grab.owner !== slot) return;
   clearGrabLinks(world, slot);
   const target = fighterAt(world, targetSlot);

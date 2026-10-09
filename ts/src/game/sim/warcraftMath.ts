@@ -1,5 +1,5 @@
-// Math operations used by the simulation, with the Warcraft native domains
-// and binary32 results expected by the authored physics contracts.
+
+
 import { squareRootFloat32 } from "wisp/src/sim/binary32";
 
 /** SquareRoot: zero outside its domain, as measured on the 3.0.0 client. */

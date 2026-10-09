@@ -1,20 +1,20 @@
-// Blademaster's four specials (smashcraft:docs/design/roster.md, "Blademaster",
-// "B specials"), as data for sim/heroSpecials.ts. Brief frame numbering: the
-// entry tick is frame 1 and windows are inclusive.
+
+
+
 import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { type AuthoredSpecial, type FighterSpecials, type SpecialPlacement, CHARGED_AIM_FRAMES, FollowUpInput, Relocation, chargedAngleMotion, frames } from "../heroSpecials";
 import { hurtPose } from "../hurtboxes";
 import { BLADE_RADIUS, L, M, capsule, cut, hit, length, path, reach } from "./blademasterMoves";
 
-// The sword arm reaches toward each strike, from just before it into early
-// recovery, as the normals' bodies do; the blade past the hand stays disjoint.
+
+
 const LOW_CUT_ARM = reach(46.0, 56.0);
 
-// Non-mobility specials used in the air end on landing with the roster's default lag.
+
 const AIR_LANDING_LAG = 20;
 
-/** Wind Cutter: one short reflectable blade wave; free. Spawn f18, end f40. */
+
 const windCutter: AuthoredSpecial = {
   endFrame: 40,
   hurt: [hurtPose(16, 24, LOW_CUT_ARM)],
@@ -33,20 +33,20 @@ const windCutter: AuthoredSpecial = {
   }],
 };
 
-// Wind Walk (smashcraft:docs/design/kit-review-1.md, #124): a 7-frame fade,
-// then a 2.2H walk over f8-31 that passes bodies and stops at a raised shield.
-// From f10 an attack press slashes (Backstab; the stick held at the press
-// picks the side, so walking through and slashing back is the cross-up), a
-// special press steps out of it, and nothing recovers to f44.
+
+
+
+
+
 const WALK_FRAMES = 24;
 const WALK_SPEED = f32(length(f32(2.2)) / WALK_FRAMES);
 const STOP = { velocityX: 0.0, velocityZ: 0.0 };
 const walkMotion = [{ ...frames(8, 31), velocityX: WALK_SPEED, velocityZ: 0.0, stopsAtShield: true }, { ...frames(32, 32), ...STOP }];
 const WALK_BRANCHES = frames(10, 31);
 
-/** Backstab: active f6-8 from its press, 12% EDGE at 40 degrees, ends f28. */
+
 const backstab: AuthoredSpecial = { name: "Backstab", endFrame: 30, hurt: [hurtPose(4, 12, LOW_CUT_ARM)], motion: [{ ...frames(1, 1), ...STOP }], regions: cut(6, [52.0, 45.0, 38.0], L, hit(11.460000038146973, "EDGE", 40)) };
-/** Step out: the walk stops and the action ends 8 frames later. */
+
 const stepOut: AuthoredSpecial = { name: "Step Out", endFrame: 8, motion: [{ ...frames(1, 1), ...STOP }] };
 
 const windWalk = (air: boolean): AuthoredSpecial => {
@@ -62,15 +62,15 @@ const windWalk = (air: boolean): AuthoredSpecial => {
   });
 };
 
-// Rising Whirlwind, the roster's charged-angle rule (#189): he hovers through f8
-// while the stick picks one of eight directions (straight up when neutral),
-// dashes that way evenly over f9-22 and stops on f23, so the helpless fall
-// starts from rest. The hover is the exposed moment his gameplan accepts.
+
+
+
+
 const RISE_FRAMES = 14;
 const rise = (distance: number) => chargedAngleMotion(length(distance), RISE_FRAMES);
 const BLADE_TOP = f32(M - BLADE_RADIUS);
 
-/** Rising Whirlwind: a 2.8H charged-angle dash, one 9-damage hit f9-14, then helpless; no intangibility. */
+
 const risingBlade: AuthoredSpecial = {
   endFrame: 24,
   aimFrames: CHARGED_AIM_FRAMES,
@@ -88,9 +88,9 @@ const risingBlade: AuthoredSpecial = {
   helpless: true,
 };
 
-// Mirror Image (#124): a tell, then on f8 an image stays where he stood (one
-// hit shatters it; 150 frames) while he steps 1.0H back over f8-11; ends f24.
-// Down with a side turns him to that side first, so he steps away from it.
+
+
+
 const IMAGE_STEP_SPEED = f32(-f32(length(f32(1.0)) / 4));
 const MIRROR_IMAGE_OBJECT: SpecialPlacement = { frame: 8, offsetX: 0.0, radius: 22.0, height: f32(length(f32(1.05))), durability: 1.0, life: 150, fireAges: [] };
 const mirrorImage: AuthoredSpecial = {
@@ -103,11 +103,11 @@ const mirrorImage: AuthoredSpecial = {
   ],
 };
 
-/**
- * Swap: down special while the image stands. The image flashes over f1-5, he
- * takes its place on f6 facing its way, and slashes f8-10 (10% EDGE at 40
- * degrees); ends f30. Free; the image is spent.
- */
+
+
+
+
+
 const imageSwap: AuthoredSpecial = {
   name: "Image Swap",
 

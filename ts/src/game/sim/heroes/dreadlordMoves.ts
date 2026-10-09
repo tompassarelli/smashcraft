@@ -7,8 +7,8 @@ import { DREADLORD_GROUND } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 import { type Strike, linkAt, multiHit } from "./multiHit";
 
-// smashcraft:docs/design/roster.md supplies timing, damage and outer reach.
-// These original limb paths require matching exposed hurt volumes in poses.
+
+
 const S = f32(HERO_REFERENCE_HEIGHT * f32(0.55));
 const M = f32(HERO_REFERENCE_HEIGHT * f32(0.80));
 const L = f32(HERO_REFERENCE_HEIGHT * f32(1.10));
@@ -16,8 +16,8 @@ const GRAB = f32(HERO_REFERENCE_HEIGHT * f32(0.65));
 const CLAW_RADIUS = 10.0;
 const WING_RADIUS = 12.0;
 
-// Provisional hypotheses in the existing knockback formula, not measured
-// displacement bands or guaranteed follow-ups.
+
+
 const CLASS = {
   LINK: { growth: 49.775001525878906, base: 12.0 },
   POKE: { growth: 67.875, base: 18.0 },
@@ -25,7 +25,7 @@ const CLASS = {
   EDGE: { growth: 99.55000305175781, base: 22.0 },
   KILL: { growth: 108.5999984741211, base: 28.0 },
   SPIKE: { growth: 90.5, base: 22.0 },
-  // Throw roles (#107): an up throw's guaranteed short juggle and a down throw's tech chase.
+
   JUGGLE: { growth: 56.11000061035156, base: 50.0 },
   CHASE: { growth: 36.20000076293945, base: 75.0 },
 } as const;
@@ -57,7 +57,7 @@ function capsule(x1: number, z1: number, x2: number, z2: number, radius = CLAW_R
   return { x1, z1, x2, z2, radius };
 }
 
-/** One narrow limb position per active tick; all contacts share one window. */
+
 function path(first: number, strikes: readonly StrikeCapsule[], effect: Readonly<HitEffect>, groundedEffect?: Readonly<HitEffect>): readonly MoveRegion[] {
   return strikes.map((strike, index) => heroRegion(first + index, first + index, strike, effect, groundedEffect));
 }
@@ -90,8 +90,8 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
       capsule(-20.0, 58.0, -70.0, 95.0, WING_RADIUS),
     ], dreadlordHit(14.480000495910645, "KILL", 85))),
     [AttackStyle.downSmash]: heroMove(15, 6, 20, 0, [...wingSweep(15, 1.0), ...wingSweep(18, -1.0)]),
-    // Batwing Turn (#152): three wing beats around him. The first two drag the
-    // target along with him at any percent; the third launches it.
+
+
     [AttackStyle.neutralAir]: heroMove(7, 10, 19, 11, multiHit([
       { first: 7, last: 8, strikes: BATWING_DRAG },
       { first: 10, last: 11, strikes: BATWING_DRAG },
@@ -126,16 +126,16 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
     ], { damage: 0.0, ...NO_LAUNCH })),
 };
 
-// The roster body (width 1.10, height 1.15 of the reference capsule) plus the
-// folded wings behind the shoulders: Dreadlord's large target.
+
+
 const TORSO = hurtPart(0.0, 4.0, 0.0, 103.0, f32(26.4));
 const FOLDED_WINGS = hurtPart(-18.0, 70.0, -30.0, 135.0, 16.0);
 export const DREADLORD_STAND: readonly HurtPart[] = [TORSO, FOLDED_WINGS];
-/** A touch thinner than the strike, so a mirrored limb-on-limb meeting trades rather than whiffs. */
+
 const LIMB_INSET = 2.0;
-/** Largest extent change per body change, inside the 60-unit legible-hurtbox rule. */
+
 const BODY_STEP = 55.0;
-/** Every authored pose is held at least this long (legible-hurtbox rule 3). */
+
 const POSE_FRAMES = 3;
 
 interface Extent { front: number; back: number; top: number; bottom: number }
@@ -161,21 +161,21 @@ function smallStep(a: readonly HurtPart[], b: readonly HurtPart[]): boolean {
 const torsoZ = (z: number): number => Math.min(Math.max(z, TORSO.z1), TORSO.z2);
 const toward = (from: number, to: number, t: number): number => f32(from + f32(f32(to - from) * t));
 
-/** The strike path drawn `t` of the way out from the torso axis. */
+
 function drawnOut(strike: Readonly<StrikeCapsule>, t: number): HurtPart {
   return hurtPart(toward(0.0, strike.x1, t), toward(torsoZ(strike.z1), strike.z1, t),
     toward(0.0, strike.x2, t), toward(torsoZ(strike.z2), strike.z2, t), f32(strike.radius - LIMB_INSET));
 }
 
-/**
- * Dreadlord carries no weapon, so nothing he swings is disjointed: every claw,
- * wing, horn and elbow path is also his body (roster "Weapon-only extensions
- * can be disjointed"). The limbs are fully out from a frame before the first
- * strike to two after the last, and are drawn out and folded back through
- * held intermediate poses so no body change moves an extent more than
- * BODY_STEP. `offset` shifts zero-based region frames to the pose numbering
- * (1 for specials, which count their entry frame as one).
- */
+
+
+
+
+
+
+
+
+
 export function dreadlordLimbPoses(regions: readonly MoveRegion[], totalFrames: number, offset = 0): readonly HurtPose[] {
   let first = totalFrames;
   let last = -1;

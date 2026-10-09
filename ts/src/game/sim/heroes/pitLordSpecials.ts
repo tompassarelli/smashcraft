@@ -1,6 +1,6 @@
-// Pit Lord's four specials as authored data (smashcraft:docs/design/roster.md,
-// "Pit Lord", B specials). The entry tick is frame 1 and "end fN" is the last
-// frame of the action. Distances are in the hero reference height H.
+
+
+
 import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { hurtCapsule } from "../../physics/contactGeometry";
@@ -14,7 +14,7 @@ const H = HERO_REFERENCE_HEIGHT;
 const h = (multiple: number): number => f32(H * f32(multiple));
 const perFrame = (distance: number, first: number, last: number): number => f32(distance / (last - first + 1));
 
-/** Non-mobility specials used in the air end on landing with this lag (roster "Action defaults"). */
+
 const AIR_SPECIAL_LANDING_LAG = 24;
 
 const meteor = (spawnFrame: number, offset: number): SpecialProjectile => ({
@@ -31,10 +31,10 @@ const rain = (air: boolean): AuthoredSpecial => ({
   landingLag: air ? AIR_SPECIAL_LANDING_LAG : undefined,
 });
 
-// Ruin Charge: 1.5H of travel over f19-26, a dead stop, R38. One hit up to 6
-// damage is absorbed on f19-24 only; startup and recovery have no armor. It
-// stops short of a raised shield or a body instead of carrying through.
-// The airborne form travels 0.8H with no armor, once per airtime, and ends helpless.
+
+
+
+
 const CHARGE = hit(15.0, "EDGE", 35, 1.0, HitElement.normal);
 const CHARGE_BODY = capsule(10.0, 30.0, 40.0, 80.0, 40.0);
 const CHARGE_HURT = [hurtPose(16, 30, [hurtCapsule(Character.pitLord), hurtPart(10.0, 30.0, 40.0, 80.0, 40.0)])];
@@ -58,10 +58,10 @@ const RUIN_CHARGE_AIR: AuthoredSpecial = {
   helpless: true,
 };
 
-// Abyssal Leap, a guided rise (#189): a slow arcing leap through f32, half of its rise in the f13-18
-// hoof window, then easing so the peak stays at the listed height; the held
-// stick steers it up to the listed steer. The slow start costs height.
-// Travel is 3.5H up, 0.5H across and 1.15H steer.
+
+
+
+
 const leap = (rise: number, drift: number, steer: number): SpecialMotion[] => {
   const segment = (first: number, last: number, share: number): SpecialMotion =>
     ({
@@ -78,8 +78,8 @@ const abyssalLeap = (rise: number, drift: number, steer: number): AuthoredSpecia
   facesStick: true, oncePerAirtime: true, helpless: true,
 });
 
-// Howl of Terror: a 1.0H roar around the body on f15-18, R28. The airborne
-// form has the same commitment and holds no height (no stall).
+
+
 const HOWL_REACH = h(1.0);
 const HOWL_RADIUS = h(f32(0.5));
 const HOWL_HEIGHT = h(f32(0.6));

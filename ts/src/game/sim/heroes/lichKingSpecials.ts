@@ -1,6 +1,6 @@
-// The Lich King's four specials (#167), from the Icecrown Citadel encounter
-// and Warcraft III: Howling Blast, Val'kyr Shadowguard, Ascension of the
-// Damned and Defile. Frames follow the roster brief (entry tick is frame 1).
+
+
+
 import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HeroStatusGroup, HeroStatusKind, HitElement } from "../codes";
@@ -11,15 +11,15 @@ import { capsule, hit } from "./lichKingMoves";
 import { VALKYR_MODEL } from "../../assets/importedModelInfo";
 
 const h = (fraction: number): number => f32(HERO_REFERENCE_HEIGHT * fraction);
-/** Chest height, where his casts leave the off hand. */
+
 const CHEST = h(f32(0.5));
-/** Non-recovery specials used in the air end on landing with this lag (roster "Action defaults"). */
+
 const AIR_LANDING_LAG = 20;
 
-/**
- * Howling Blast: a wide frost gust that travels about 2.9H on frame 16.
- * Reflectable.
- */
+
+
+
+
 const blastProjectile = (radius: number, damage: number, status: AppliedStatus | undefined): SpecialProjectile => ({
   model: "Abilities\\Weapons\\FrostWyrmMissile\\FrostWyrmMissile.mdx",
   spawnFrame: 16, offsetX: 50.0, offsetZ: CHEST, velocityX: h(f32(0.08)), velocityZ: 0.0,
@@ -32,18 +32,18 @@ const howlingBlast = (projectile: SpecialProjectile, landingLag: number | undefi
   projectiles: [projectile],
 });
 
-/**
- * Val'kyr Shadowguard's carry (sim/heroStatus.ts, HeroStatusKind.carried):
- * 80 frames at 3 units a frame toward the ledge the Val'kyr flew at, mashed
- * out never before frame 20, dropped by any damaging hit, then 240 frames
- * immune to the sleep group so it can't chain with a stun or another carry.
- */
+
+
+
+
+
+
 const CARRIED: AppliedStatus = { kind: HeroStatusKind.carried, frames: 80, group: HeroStatusGroup.sleep, immunityFrames: 240 };
 
-/**
- * Val'kyr Shadowguard: a Val'kyr flies out on frame 14 and seizes the first
- * body it reaches. A shield stops her, and a powershield sends her back.
- */
+
+
+
+
 const valkyrProjectile = (speed: number): SpecialProjectile => ({
   model: VALKYR_MODEL,
   spawnFrame: 14, offsetX: 40.0, offsetZ: f32(CHEST + 10.0), velocityX: speed, velocityZ: 0.0,
@@ -59,11 +59,11 @@ const shadowguard = (projectile: SpecialProjectile, landingLag: number | undefin
 
 const ASCENT_FRAMES = 23;
 
-/**
- * Ascension of the Damned, a guided rise (#189): an ice column lifts him over frames 8-30, steered
- * up to `steer` sideways by the held stick, inside a Remorseless Winter vortex that strikes each
- * opponent once; then a helpless fall.
- */
+
+
+
+
+
 function ascension(height: number, steer: number): AuthoredSpecial {
   return {
     endFrame: 46,
@@ -75,15 +75,15 @@ function ascension(height: number, steer: number): AuthoredSpecial {
   };
 }
 
-/**
- * Defile: a shadow pool 0.6H ahead of him on frame 20, where he can see. From
- * age 18 it strikes a grounded body inside it every 36 frames, and each hit
- * that reaches a body widens it by 6, up to 0.6H; it lasts 180 frames. One at
- * a time, at least 320 frames between casts. Jump over it or stay out.
- */
+
+
+
+
+
+
 const DEFILE_POOL: SpecialProjectile = {
   model: "Abilities\\Spells\\Demon\\DarkPortal\\DarkPortalTarget.mdx",
-  // The stock particles extend to 1222.223 (scripts/wisp/modelFacts.ts); keep them inside the rim.
+
   modelRadius: 1223.0,
   spawnFrame: 20, offsetX: h(f32(0.6)), offsetZ: 6.0, velocityX: 0.0, velocityZ: 0.0,
   life: 180, activeFrom: 18, radius: h(f32(0.3)),

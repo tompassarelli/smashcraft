@@ -7,44 +7,44 @@ import { hurtPart, hurtPose } from "../hurtboxes";
 import { type AuthoredSpecial, type FighterSpecials, type SpecialKit, type SpecialMotion, type SpecialProjectile, CHARGED_AIM_FRAMES, FollowUpInput, chargedAngleMotion, frames } from "../heroSpecials";
 import { MEDIUM, SHORT, capsule, hit } from "./mountainKingMoves";
 
-// smashcraft:docs/design/roster.md "Mountain King": frames, damage,
-// angles and travel are the adopted starting values; geometry and the eased
-// travel split are original and provisional.
+
+
+
 const H = HERO_REFERENCE_HEIGHT;
 const heights = (amount: number) => f32(H * f32(amount));
 
-// Storm Bolt (#125, smashcraft:docs/design/kit-review-1.md): the hammer flies
-// out for 45 frames, then back to his body at 0.14H a frame, launching toward
-// him on the way back; neutral special while it flies calls it back at once.
+
+
+
 const BOLT_SPEED = heights(f32(0.12));
 const BOLT_RETURN = { age: 45, speed: heights(f32(0.14)) };
-/** Calling the hammer back: a 10-frame gesture, free. */
+
 const BOLT_RECALL: AuthoredSpecial = { endFrame: 10, recallsProjectiles: true, landingLag: 10 };
 const BOLT_RADIUS = heights(f32(0.18));
 const STORM_BOLT = hit(5.524999618530273, "LAUNCH", 65, false, HitElement.electric);
 
-// Storm Rush: 1.2H of shoulder travel over its six active frames, then a dead stop.
+
 const RUSH_FRAMES = 6;
 const RUSH_SPEED = f32(heights(f32(1.2)) / RUSH_FRAMES);
 const STORM_RUSH = { ...hit(13.25999927520752, "EDGE", 35), growth: f32(88.4) };
 const RUSH: readonly SpecialMotion[] = [{ ...frames(13, 18), velocityX: RUSH_SPEED, velocityZ: 0.0, stopsAtBody: true }, { ...frames(19, 19), velocityX: 0.0, velocityZ: 0.0 }];
 const RUSH_BODY = capsule(0.0, 14.0, 12.0, 60.0, 26.0);
-// The lowered shoulder is body, so it carries its own hurt volume while it strikes.
+
 const RUSH_HURT = [hurtPose(13, 18, [hurtCapsule(Character.mountainKing), hurtPart(RUSH_BODY.x1, RUSH_BODY.z1, RUSH_BODY.x2, RUSH_BODY.z2, RUSH_BODY.radius)])];
 
-// Thunder Leap, the roster's charged-angle rule (#189): he crouches through
-// f8 while the stick picks one of eight directions (straight up by default),
-// leaps 2.7H that way evenly over f9-24 and stops on f25;
-// a committed angle suits his limited air drift.
+
+
+
+
 const leap = (distance: number): readonly SpecialMotion[] => chargedAngleMotion(distance, 16);
 const FULL_LEAP = leap(heights(f32(2.7)));
 const THUNDER_LEAP = hit(8.839999198913574, "LAUNCH", 80, false, HitElement.electric);
 const LEAP_HAMMER = capsule(10.0, 60.0, 30.0, f32(MEDIUM + 20.0), 16.0);
 
-// Hammerfall (#125): a special press in the leap's f16-28 hangs 3 frames, then
-// plunges straight down hammer first at 0.16H a frame: a spike against
-// airborne targets, 55 degrees against grounded ones. Landing ends it with 24
-// frames of lag; ending airborne leaves him helpless.
+
+
+
+
 const PLUNGE = heights(f32(0.16));
 const HAMMERFALL: AuthoredSpecial = {
   name: "Hammerfall",
@@ -56,12 +56,12 @@ const HAMMERFALL: AuthoredSpecial = {
   helpless: true,
 };
 
-// Thunder Clap (#125), charged like Donkey Kong's Giant Punch: he raises the
-// hammer over f1-9 and holds the charge f10-49. A special press in f10-29
-// slams the small Clap; in f30-49, or by running out to f50, the full Thunder
-// Clap, whose ring sends a ground wave each way; a shield press in f10-49
-// drops the charge. No armor: a hit stops it. A ground-level ring of 0.85H on
-// both sides; a jump clears ring and waves.
+
+
+
+
+
+
 const CLAP_REACH = heights(f32(0.85));
 const ring = (first: number, damage: number): readonly MoveRegion[] => [
   heroRegion(first, first + 3, capsule(0.0, 14.0, f32(CLAP_REACH - 16.0), 14.0, 16.0), hit(damage, "LAUNCH", 70, false, HitElement.electric)),
@@ -74,11 +74,11 @@ const wave = (spawnFrame: number, sign: number): SpecialProjectile => ({
   life: 24, radius: 16.0, effect: hit(7.734999656677246, "LAUNCH", 75, false, HitElement.electric), reflectable: true, limit: 1,
 });
 const WAVES = (spawnFrame: number) => [wave(spawnFrame, 1), wave(spawnFrame, -1)];
-/** The small Clap: slam on f4-7 of its press, 9%; ends f28. */
+
 const CLAP: AuthoredSpecial = { name: "Small Clap", endFrame: 28, regions: ring(4, 9.944999694824219) };
-/** The full Thunder Clap: slam on f4-7 of its press, 12% and both waves; ends f32. */
+
 const THUNDER_CLAP: AuthoredSpecial = { endFrame: 32, regions: ring(4, 13.25999927520752), projectiles: WAVES(4) };
-/** Dropping the charge: the action ends, so a held shield rises next frame. */
+
 const HOLD: AuthoredSpecial = { endFrame: 1 };
 const CHARGED_CLAP: AuthoredSpecial = {
   endFrame: 81,
@@ -90,10 +90,10 @@ const CHARGED_CLAP: AuthoredSpecial = {
     { window: frames(10, 49), input: FollowUpInput.shield, special: HOLD },
   ],
 };
-// Air form: the hammer swings under the body, 0.55H reach, no shockwave.
+
 const AIR_CLAP = hit(11.049999237060547, "LAUNCH", 70, false, HitElement.electric);
 
-// Hammerfall branches from Thunder Leap but also receives its specified damage upgrade.
+
 function withHammerfallEx(kit: SpecialKit): SpecialKit {
   const upgraded = withExKit(kit, { travel: 1.25 });
   const ex = upgraded.ground.ex;

@@ -9,11 +9,11 @@ export interface ExUpgrade {
   readonly durability?: number;
   readonly armorDamage?: number;
   readonly guardFrames?: number;
-  /** Protection for a recall or companion command that has no damaging payload. */
+
   readonly recallProtection?: number;
 }
 
-/** Build immutable EX data once; a running cast only selects its authored form. */
+
 export function withExKit(kit: SpecialKit, upgrade: ExUpgrade): SpecialKit {
   const damage = upgrade.damage ?? 1.0;
   const reach = upgrade.reach ?? 1.0;

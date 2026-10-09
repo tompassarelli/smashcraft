@@ -1,5 +1,5 @@
-// Dreadlord's registration: identity, kit and presentation. Owned by this hero's
-// lane; set `complete` only when the whole base kit works (hero.ts).
+
+
 import { Character } from "../codes";
 import { DREADLORD_CLIP_TABLE, DREADLORD_FALLBACK_CLIP, DREADLORD_MODEL_FILE } from "../../presentation/heroes/dreadlordClips";
 import type { HeroDefinition } from "./hero";

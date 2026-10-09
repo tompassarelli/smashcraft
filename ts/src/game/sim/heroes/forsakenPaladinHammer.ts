@@ -10,7 +10,7 @@ export function forsakenPaladinHammerAttack(character: Character, style: AttackS
     && style !== AttackStyle.backAir && style !== AttackStyle.grab;
 }
 
-/** The held hammer, excluding light projectiles, boots, jabs and throws. */
+
 export function forsakenPaladinHammerContact(fighter: Readonly<Fighter>, damage: number, direct: boolean): boolean {
   if (!direct || damage < 8.0 || fighter.character !== Character.forsakenPaladin) return false;
   return forsakenPaladinHammerAttack(fighter.character, fighter.attack.style)

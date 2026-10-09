@@ -1,7 +1,7 @@
-// Executes the expansion heroes' authored specials (heroSpecials.ts) and the
-// roster's special contract: strike paths, motion, projectiles, intangible and
-// armor windows, airtime limits and helpless ends. Every value it changes is
-// fighter state, so rollback restores it with the fighter.
+
+
+
+
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
@@ -23,14 +23,14 @@ import { HurtContact, strikeHurtContact } from "./hurtboxes";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { solidSurfaceAt, solidSurfaceCount } from "./stage";
 
-/** Diagonal aim keeps the authored speed. */
+
 const DIAGONAL = 0.7071067690849304;
-/** Ordinary traveling projectiles one fighter may own (roster "Projectiles and summons"). */
+
 export const HERO_PROJECTILE_CAP = 3;
 
 export const isHeroSpecialAction = (action: number): boolean => action >= SpecialAction.heroNeutral && action <= SpecialAction.heroDown;
 
-/** The authored special a running hero action uses, if any. */
+
 export function runningHeroSpecial(f: Readonly<Fighter>): AuthoredSpecial | undefined {
   const specials = f.tuning.specials;
   if (specials === undefined || !isHeroSpecialAction(f.special.action)) return undefined;
@@ -47,7 +47,7 @@ function ownedCount(f: Readonly<Fighter>, spec: Readonly<SpecialProjectile> | un
   return count;
 }
 
-/** The nearest marked (poisoned) opponent of the fighter within `range` on both axes, if any. */
+
 export function markedTarget(world: Roster, f: Readonly<Fighter>, range: number): Fighter | undefined {
   let nearest: Fighter | undefined;
   let distance = 0.0;
@@ -63,7 +63,7 @@ export function markedTarget(world: Roster, f: Readonly<Fighter>, range: number)
   return nearest;
 }
 
-/** Turns every outbound returning projectile of the fighter back toward it now. */
+
 function recallProjectiles(f: Fighter): void {
   let index = -1;
   for (const projectile of f.projectiles) {
@@ -74,7 +74,7 @@ function recallProjectiles(f: Fighter): void {
   }
 }
 
-/** Whether the move's projectiles fit under their own limits and the fighter's cap. */
+
 function projectilesFit(f: Readonly<Fighter>, move: Readonly<AuthoredSpecial>): boolean {
   const projectiles = move.projectiles ?? [];
   if (projectiles.length === 0) return true;
@@ -88,7 +88,7 @@ function projectilesFit(f: Readonly<Fighter>, move: Readonly<AuthoredSpecial>): 
   return true;
 }
 
-/** Whether the kit's `recall` form is the one a press starts now. */
+
 function recallHolds(f: Readonly<Fighter>, kit: Readonly<SpecialKit>): boolean {
   if (kit.recallWhile === "armor") return f.status.armorFrames > 0;
   if (kit.recallWhile === "projectile") {
@@ -99,7 +99,7 @@ function recallHolds(f: Readonly<Fighter>, kit: Readonly<SpecialKit>): boolean {
   return (kit.recallGroundOnly !== true || f.motion.grounded) && placedObject(f, kit.ground.placement?.slot).life > 0;
 }
 
-/** Whether the press requested a ground-only form in the air. */
+
 export interface SpecialRefusal {
   groundOnly: boolean;
 }
@@ -109,13 +109,13 @@ export interface HeroSpecialChoice {
   form: SpecialForm;
 }
 
-// Preallocated: a special press is resolved every frame during rollback replays.
+
 const choice: HeroSpecialChoice = { slot: SpecialSlot.neutral, form: SpecialForm.ground };
 
-/**
- * The form a press would start, or undefined when it may not: ground-only in
- * the air, already used this airtime, or past an entity limit.
- */
+
+
+
+
 export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<FighterSpecials>, input: Readonly<Controls>, out: SpecialRefusal, world?: Roster): HeroSpecialChoice | undefined {
   out.groundOnly = false;
   const slot = requestedSlot(input);
@@ -139,19 +139,19 @@ export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<Fight
   return choice;
 }
 
-/** A new stock restores airtime uses and guard healing; its super meter carries. */
+
 export function resetSpecialOnStock(f: Fighter): void {
   f.special.airtimeUses = 0;
 }
 
-/** tan(22.5 degrees): an analog stick picks the nearest of eight 45-degree sectors. */
+
 const SECTOR_TANGENT = 0.41421356797218323;
 
-/**
- * A charged-angle aim's horizontal part (#189, smashcraft:docs/gameplay-design.md,
- * "Up specials"): an analog stick's nearest of eight directions, else the
- * digital direction, so keys and a stick choose among the same eight aims.
- */
+
+
+
+
+
 export function chargedAimX(input: Readonly<Controls>): number {
   if (input.diStickValid && (input.diStickX !== 0 || input.diStickZ !== 0)) {
     return Math.abs(input.diStickX) > f32(SECTOR_TANGENT * Math.abs(input.diStickZ)) ? (input.diStickX < 0 ? -1 : 1) : 0;
@@ -159,7 +159,7 @@ export function chargedAimX(input: Readonly<Controls>): number {
   return input.direction < 0 ? -1 : input.direction > 0 ? 1 : 0;
 }
 
-/** A charged-angle aim's vertical part, by chargedAimX's rule. */
+
 export function chargedAimZ(input: Readonly<Controls>): number {
   if (input.diStickValid && (input.diStickX !== 0 || input.diStickZ !== 0)) {
     return Math.abs(input.diStickZ) > f32(SECTOR_TANGENT * Math.abs(input.diStickX)) ? (input.diStickZ < 0 ? -1 : 1) : 0;
@@ -167,7 +167,7 @@ export function chargedAimZ(input: Readonly<Controls>): number {
   return input.verticalDirection < 0 ? -1 : input.verticalDirection > 0 ? 1 : 0;
 }
 
-/** While the running form's `aimFrames` last, a held stick re-chooses its aim. */
+
 export function steerHeroSpecial(f: Fighter, input: Readonly<Controls>): void {
   const move = runningHeroSpecial(f);
   if (move?.aimFrames === undefined || f.special.frame >= move.aimFrames) return;
@@ -178,7 +178,7 @@ export function steerHeroSpecial(f: Fighter, input: Readonly<Controls>): void {
   f.special.aimZ = z;
 }
 
-/** Records the chosen form; the caller has started the action and paid any EX meter. */
+
 export function enterHeroSpecial(f: Fighter, chosen: Readonly<HeroSpecialChoice>, input: Readonly<Controls>): AuthoredSpecial {
   const specials = f.tuning.specials;
   if (specials === undefined) throw new Error("hero special without a kit");
@@ -204,17 +204,17 @@ export function enterHeroSpecial(f: Fighter, chosen: Readonly<HeroSpecialChoice>
 const inWindow = (window: { readonly first: number; readonly last: number } | undefined, frame: number): boolean =>
   window !== undefined && frame >= window.first && frame <= window.last;
 
-/**
- * Contacts resolve before specials advance in a match step, so the frame
- * resolved next is one past `frame`; protection set now covers it.
- */
+
+
+
+
 function applyWindows(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number): void {
   const { status } = f;
   if (inWindow(move.intangible, frame + 1)) status.invincible = max(status.invincible, 2);
   else if (inWindow(move.intangible, frame)) status.invincible = max(status.invincible, 1);
   const armor = move.armor;
   if (armor?.shell === true) {
-    // Armed once; the step's status countdown then runs it through `last`.
+
     if (frame + 1 === armor.first) {
       status.armorFrames = armor.last - armor.first + 2;
       status.armorMaxDamage = armor.maxDamage;
@@ -227,7 +227,7 @@ function applyWindows(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number
   }
 }
 
-/** Whether segment a-b properly crosses segment c-d. */
+
 function segmentsCross(ax: number, az: number, bx: number, bz: number, cx: number, cz: number, dx: number, dz: number): boolean {
   if (!segmentBoxesOverlap(ax, az, bx, bz, cx, cz, dx, dz)) return false;
   const side = (px: number, pz: number, qx: number, qz: number, rx: number, rz: number): number =>
@@ -239,7 +239,7 @@ function segmentsCross(ax: number, az: number, bx: number, bz: number, cx: numbe
   return ((c > 0 && d < 0) || (c < 0 && d > 0)) && ((a > 0 && b < 0) || (a < 0 && b > 0));
 }
 
-/** Whether no solid stage surface lies between two points. */
+
 function clearLine(stage: number, fromX: number, fromZ: number, toX: number, toZ: number): boolean {
   for (let index = 0; index < solidSurfaceCount(stage); index++) {
     const surface = solidSurfaceAt(stage, index);
@@ -256,7 +256,7 @@ function spawnHeroProjectile(owner: Fighter, spec: Readonly<SpecialProjectile>, 
   spawnHeroProjectileAt(owner, spec, x, z, owner.facing, up, serial);
 }
 
-/** Emits an owned hero projectile at a point along a facing: a caster's spawn point or its placed object's. */
+
 export function spawnHeroProjectileAt(owner: Fighter, spec: Readonly<SpecialProjectile>, x: number, z: number, facing: number, up: boolean, serial: number): void {
   let index = -1;
   for (const before of owner.projectiles) {
@@ -268,7 +268,7 @@ export function spawnHeroProjectileAt(owner: Fighter, spec: Readonly<SpecialProj
     projectile.kind = ProjectileKind.hero;
     projectile.spec = spec;
     projectile.visualFamily = owner.character;
-    // A projectile sent backward strikes the way it flies.
+
     projectile.direction = f32(facing * velocityX) < 0 ? -1 : f32(facing * velocityX) > 0 ? 1 : facing < 0 ? -1 : 1;
     projectile.velocityX = f32(facing * velocityX);
     projectile.velocityZ = velocityZ;
@@ -312,13 +312,13 @@ function applyMotion(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number,
   }
 }
 
-/** Whether the fighter's partner can take a lunge order: standing, and neither lunging nor stunned. */
+
 export function companionReady(f: Readonly<Fighter>, slot = 0): boolean {
   const placed = placedObject(f, slot);
   return placed.life > 0 && placed.spec?.companion !== undefined && (placed.mode === CompanionMode.follow || placed.mode === CompanionMode.returning);
 }
 
-/** Gives the fighter's partner an order: a lunge the way its owner faces, or a walk back to its owner. */
+
 function orderCompanion(f: Fighter, order: CompanionOrder, slot = 0): void {
   const placed = placedObject(f, slot);
   if (placed.life <= 0 || placed.spec?.companion === undefined) return;
@@ -334,7 +334,7 @@ function orderCompanion(f: Fighter, order: CompanionOrder, slot = 0): void {
   }
 }
 
-/** Stands the fighter's placed object ahead of its feet, facing its way, with a clean strike record. */
+
 function placeObject(f: Fighter, spec: Readonly<SpecialPlacement>): void {
   const placed = placedObject(f, spec.slot);
   if (spec.keepExisting === true && placed.life > 0) return;
@@ -355,11 +355,11 @@ function placeObject(f: Fighter, spec: Readonly<SpecialPlacement>): void {
   placed.surface = f.motion.surface;
 }
 
-/**
- * Whether the velocity this frame moves by was set by the running special's
- * motion (its window covered the frame just advanced): steering and drag then
- * leave it alone, and so do gravity and the fall-speed cap; collision still applies.
- */
+
+
+
+
+
 export function heroMotionHolds(f: Readonly<Fighter>): boolean {
   const move = runningHeroSpecial(f);
   if (move === undefined) return false;
@@ -367,7 +367,7 @@ export function heroMotionHolds(f: Readonly<Fighter>): boolean {
   return false;
 }
 
-/** Ends the action; a helpless form that ends airborne leaves a helpless fall. */
+
 function endHeroSpecial(f: Fighter, move: Readonly<AuthoredSpecial>): void {
   if (move.helpless === true && !f.motion.grounded) {
     f.special.fall = true;
@@ -377,7 +377,7 @@ function endHeroSpecial(f: Fighter, move: Readonly<AuthoredSpecial>): void {
   f.special.frame = 0;
 }
 
-/** Stops each of the fighter's live `from` projectiles where it is and makes it `into`, newly aged. */
+
 function burstProjectiles(f: Fighter, from: Readonly<SpecialProjectile>, into: Readonly<SpecialProjectile>): void {
   const specials = f.tuning.specials;
   const kit = specials === undefined ? undefined : specialKit(specials, f.special.action - SpecialAction.heroNeutral);
@@ -397,7 +397,7 @@ function burstProjectiles(f: Fighter, from: Readonly<SpecialProjectile>, into: R
   }
 }
 
-/** One frame of a running hero special, after its frame counter advanced. */
+
 export function advanceHeroSpecial(f: Fighter, stage = 0, input?: Readonly<Controls>): void {
   const move = runningHeroSpecial(f);
   if (move === undefined) return;
@@ -420,13 +420,13 @@ export function advanceHeroSpecial(f: Fighter, stage = 0, input?: Readonly<Contr
   }
 }
 
-/** The last frame of the running form: a caught command grab ends after its release and recovery. */
+
 export function heroSpecialEndFrame(f: Readonly<Fighter>, move: Readonly<AuthoredSpecial>): number {
   const grab = move.commandGrab;
   return grab !== undefined && f.special.grabFrame > 0 ? f.special.grabFrame + grab.holdFrames + grab.recovery : move.endFrame;
 }
 
-/** Landing ends a form that sets a landing lag; true when it did. */
+
 export function landHeroSpecial(f: Fighter): boolean {
   const move = runningHeroSpecial(f);
   if (move?.landingLag === undefined) return false;
@@ -438,10 +438,10 @@ export function landHeroSpecial(f: Fighter): boolean {
   return true;
 }
 
-// Preallocated: hit selection builds these capsules for every pair every frame.
+
 const strike = emptyCapsule();
 
-/** Whether the strike path touches the target's raised shield. */
+
 export function heroStrikeMeetsShield(owner: Readonly<Fighter>, target: Readonly<Fighter>, region: Readonly<HitRegion>): boolean {
   const path = region.strike;
   if (!target.shield.raised || path === undefined) return false;
@@ -452,11 +452,11 @@ export function heroStrikeMeetsShield(owner: Readonly<Fighter>, target: Readonly
     shieldSizeMultiplier(target.shield.energy, target.shield.strength));
 }
 
-/**
- * The strike path of the owner's running hero special that reaches the target
- * this frame: the first active region whose path meets its body or shield.
- * Each target is struck once per action.
- */
+
+
+
+
+
 export function heroSpecialContact(owner: Readonly<Fighter>, target: Readonly<Fighter>, alreadyHit: boolean): Readonly<HitRegion> {
   const move = runningHeroSpecial(owner);
   if (move === undefined || alreadyHit || owner.launch.hitlag > 0 || target.status.out || isIntangible(target)) return NO_HIT_REGION;
@@ -473,13 +473,13 @@ export function heroSpecialContact(owner: Readonly<Fighter>, target: Readonly<Fi
   return NO_HIT_REGION;
 }
 
-// Preallocated: guards test every opponent's strikes every frame, replays included.
+
 const guardRegion = emptyHitRegion();
 const guardStrike = emptyCapsule();
-/** Original projectiles carry no radius of their own; the blaster's is the largest. */
+
 const ORIGINAL_PROJECTILE_RADIUS = 24.0;
 
-/** Whether the attacker's damaging melee, hero special strike or projectile overlaps the target's body now. */
+
 function threatensBody(attacker: Readonly<Fighter>, target: Readonly<Fighter>): boolean {
   if (attacker.status.out) return false;
   const { attack } = attacker;
@@ -493,7 +493,7 @@ function threatensBody(attacker: Readonly<Fighter>, target: Readonly<Fighter>): 
       if (strikeHurtContact(guardStrike, target) !== HurtContact.none) return true;
     }
   }
-  // Before this frame's special advance, the frame about to resolve is one past the counter.
+
   const special = runningHeroSpecial(attacker);
   for (const region of special?.regions ?? []) {
     const strike = region.hit.strike;
@@ -524,12 +524,12 @@ function guardSucceeds(f: Fighter, guard: Readonly<SpecialGuard>): void {
   }
 }
 
-/**
- * Runs before this frame's specials advance, after melee selection: a guard
- * whose window covers the frame being resolved succeeds once when any
- * opponent's damaging strike or projectile overlaps the guarding body, though
- * its intangibility lets that strike pass.
- */
+
+
+
+
+
+
 export function resolveHeroGuards(world: Roster): void {
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (!isActive(world, slot)) continue;
@@ -544,22 +544,22 @@ export function resolveHeroGuards(world: Roster): void {
   }
 }
 
-/** One frame of a fighter's hero armor, hitlag included. */
+
 export function advanceHeroStatus(f: Fighter): void {
   if (f.status.armorFrames > 0) f.status.armorFrames--;
   if (f.status.divineFrames > 0) f.status.divineFrames--;
   advanceHeroConditions(f);
 }
 
-/** Whether a special input is off its authored cooldown. */
+
 export function specialCooldownReady(f: Readonly<Fighter>, action: number): boolean {
   return (f.special.cooldowns[action] ?? 0) <= 0;
 }
 
-/**
- * Clamps the forward velocity a running special's `stopsAtBody` motion set
- * this frame so it ends short of a raised shield or another fighter's body.
- */
+
+
+
+
 export function stopHeroMotionAtBodies(world: Roster, slot: number): void {
   const f = fighterAt(world, slot);
   const move = runningHeroSpecial(f);
@@ -574,15 +574,15 @@ export function stopHeroMotionAtBodies(world: Roster, slot: number): void {
   }
 }
 
-/** How far behind a marked target's body a relocation puts the fighter. */
+
 const BEHIND_MARK = 60.0;
 
-/**
- * On the first frame of a relocating motion window, moves the fighter at
- * once: onto its placed object, which is spent, facing the object's way, or
- * just behind its nearest marked target in reach, facing it.
- * It then falls from rest, so a spot on the deck lands it at once.
- */
+
+
+
+
+
+
 export function relocateHeroSpecial(world: Roster, slot: number): void {
   const f = fighterAt(world, slot);
   const move = runningHeroSpecial(f);
@@ -597,7 +597,7 @@ export function relocateHeroSpecial(world: Roster, slot: number): void {
       f.facing = placed.direction;
       placed.life = 0;
     } else {
-      // Just behind the marked target, facing it; the mark is spent.
+
       const target = markedTarget(world, f, segment.relocateReach ?? 0.0);
       if (target === undefined) return;
       const back = target.facing < 0 ? 1 : -1;
@@ -619,11 +619,11 @@ function followUpPressed(followUp: Readonly<SpecialFollowUp>, input: Readonly<Co
   return kind === FollowUpInput.attack ? input.attackPressed : kind === FollowUpInput.shield ? input.shieldPressed : input.specialPressed;
 }
 
-/**
- * A fresh press that takes one of the running form's branches inside its
- * window replaces the rest of the action with that follow-up; true when it
- * did. The press tick is the follow-up's frame 1, as an entry is.
- */
+
+
+
+
+
 export function followUpHeroSpecial(f: Fighter, input: Readonly<Controls>): boolean {
   const { special } = f;
   const followUps = runningHeroSpecial(f)?.followUps;
@@ -639,7 +639,7 @@ export function followUpHeroSpecial(f: Fighter, input: Readonly<Controls>): bool
   special.frame = 0;
   special.duration = next.endFrame;
   special.lockFrames = next.endFrame;
-  // The entry held attacks for the whole base form; a shorter branch frees them at its own end.
+
   f.attack.cooldown = next.endFrame;
   for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
   special.hit = false;

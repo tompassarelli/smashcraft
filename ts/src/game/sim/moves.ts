@@ -1,5 +1,5 @@
-// Attack timing, damage and reach for every action ID. Frame counts are
-// provisional authored values unless a constant names its Melee source.
+
+
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { idiv } from "wisp/src/sim/intMath";
@@ -13,22 +13,22 @@ export const DOWN_ATTACK_FRAMES = 49;
 export const DOWN_ATTACK_STARTUP_FRAMES = 16;
 export const DOWN_ATTACK_ACTIVE_FRAMES = 3;
 export const DOWN_ATTACK_DAMAGE = 7.0;
-// Provisional get-up attack tuning: let the attacker regain control before
-// the opponent's first active wake-up attack. See smashcraft:docs/physics.md.
+
+
 export const DOWN_ATTACK_BASE_KNOCKBACK = 75.0;
-// Illidan's raid-boss normals (#147, smashcraft:docs/design/illidan.md): longer active windows inside the shared totals.
+
 export const DEMON_HUNTER_FORWARD_AIR_ACTIVE = 6;
 export const DEMON_HUNTER_DOWN_SMASH_ACTIVE = 9;
 export const DEMON_HUNTER_FORWARD_SMASH_ACTIVE = 10;
-/** Forward smash held this long becomes Eye Blast's beam. */
+
 export const EYE_BLAST_CHARGE_FRAMES = 20;
-/**
- * Rifleman's blaster (neutral special), after Melee Falco's laser and a little
- * less oppressive. Shot frames count special frames from the press (frame 1).
- * A grounded shot leaves sooner and hits harder but holds him longer; an
- * aerial shot leaves later, and landing ends it with its landing lag, before
- * the shot if it has not left. Values and their ramifications are in #117.
- */
+
+
+
+
+
+
+
 export const RIFLEMAN_BLASTER_GROUND_SHOT_FRAME = 9;
 export const RIFLEMAN_BLASTER_GROUND_FRAMES = 38;
 export const RIFLEMAN_BLASTER_AIR_SHOT_FRAME = 14;
@@ -36,12 +36,12 @@ export const RIFLEMAN_BLASTER_AIR_FRAMES = 40;
 export const RIFLEMAN_BLASTER_LANDING_LAG = 8;
 /** A grounded shot deals 4 to an aerial shot's 3; f32(4/3) * 3 rounds to exactly 4. */
 export const RIFLEMAN_BLASTER_GROUND_DAMAGE_MULTIPLIER = 1.3333333730697632;
-/**
- * Each aerial's authored landing lag before Melee's L-cancel would halve it
- * (PlCo +0x0E8 = 2, melee:src/melee/ft/kinds/ftCommon/ftCo_LandingAir.c).
- * Smashcraft omits L-cancelling: every aerial lands with the halved lag
- * (smashcraft:docs/gameplay-design.md).
- */
+
+
+
+
+
+
 const UNCANCELLED_AERIAL_LANDING_LAG = {
   [AttackStyle.neutralAir]: 10,
   [AttackStyle.forwardAir]: 14,
@@ -54,7 +54,7 @@ export function isAerialAttack(style: AttackStyle | undefined): boolean {
   return style !== undefined && style >= AttackStyle.neutralAir && style <= AttackStyle.downAir;
 }
 
-/** The descent an authored drill holds on this attack frame, if any. */
+
 export function attackFall(style: AttackStyle | undefined, frame: number, moves?: FighterMoves): AuthoredFall | undefined {
   const phases = style === undefined ? undefined : moves?.normals[style]?.fall;
   if (phases === undefined) return undefined;
@@ -62,13 +62,13 @@ export function attackFall(style: AttackStyle | undefined, frame: number, moves?
   return undefined;
 }
 
-/** Whether landing on this attack frame continues into the aerial's landing hit: only during its active frames. */
+
 export function landsIntoAttack(style: AttackStyle | undefined, frame: number, moves?: FighterMoves): boolean {
   const move = style === undefined ? undefined : moves?.normals[style];
   return move?.landingHit !== undefined && frame >= move.startupFrames && frame < move.startupFrames + move.activeFrames;
 }
 
-/** The jab chain's next step (#163): jab to jab2 to jab3; none after the last. */
+
 export function nextJab(style: AttackStyle | undefined): AttackStyle | undefined {
   return style === AttackStyle.jab ? AttackStyle.jab2 : style === AttackStyle.jab2 ? AttackStyle.jab3 : undefined;
 }
@@ -77,17 +77,17 @@ export function isJab(style: AttackStyle | undefined): boolean {
   return style === AttackStyle.jab || style === AttackStyle.jab2 || style === AttackStyle.jab3;
 }
 
-/**
- * The attack frame (entry is frame one) from which a fresh jab press
- * continues a jab to the chain's next step; undefined where the chain ends.
- * A kit's steps say it (AuthoredMove.chainsFrom); a shared-table jab (the reference body's,
- * Illidan's) opens the frame after its last active frame.
- */
+
+
+
+
+
+
 export function jabChainFrom(character: Character, style: AttackStyle, moves?: FighterMoves): number | undefined {
   const next = nextJab(style);
   if (next === undefined) return undefined;
   const shared = attackStartupFrames(style) + attackActiveFrames(style) + 1;
-  // A kit whose jab is the shared table's (the reference body's) opens the shared window.
+
   if (moves !== undefined) return moves.normals[next] === undefined ? undefined : moves.normals[style]?.chainsFrom ?? (moves.normals[style] === undefined ? shared : undefined);
   return character === Character.demonHunter ? shared : undefined;
 }
@@ -96,7 +96,7 @@ export function isSmashAttack(style: AttackStyle | undefined): boolean {
   return style !== undefined && style >= AttackStyle.upSmash && style <= AttackStyle.forwardSmash;
 }
 
-/** An aerial's landing lag before Melee's L-cancel would halve it; zero for other actions. */
+
 export function uncancelledLandingLag(style: AttackStyle | undefined): number {
   switch (style) {
     case AttackStyle.neutralAir:
@@ -110,7 +110,7 @@ export function uncancelledLandingLag(style: AttackStyle | undefined): number {
   }
 }
 
-/** The landing lag an aerial lands with, always Melee's L-cancelled lag: half, at least one; zero for other actions. */
+
 export function attackLandingLag(style: AttackStyle | undefined, moves?: FighterMoves): number {
   if (style !== undefined && moves?.normals[style] !== undefined) return moves.normals[style].landingLag;
   const lag = uncancelledLandingLag(style);
@@ -156,7 +156,7 @@ export function attackDamage(style: AttackStyle): number {
   }
 }
 
-/** Damage scale of a smash charged for chargeFrames, linear up to SMASH_MAX_CHARGE_FRAMES. */
+
 export function smashDamageMultiplier(chargeFrames: number, moves?: FighterMoves): number {
   const frames = moves?.smashMaxChargeFrames ?? SMASH_MAX_CHARGE_FRAMES;
   const multiplier = moves?.smashMaxDamageMultiplier ?? SMASH_MAX_DAMAGE_MULTIPLIER;
@@ -166,7 +166,7 @@ export function smashDamageMultiplier(chargeFrames: number, moves?: FighterMoves
 
 export function attackReach(style: AttackStyle): number {
   switch (style) {
-    // The shared jab, the reference body's and the engine tests' reference attack, reaches short of her forward tilt (#163).
+
     case AttackStyle.jab:
       return 120.0;
     case AttackStyle.demonHunterDashAttack:
@@ -183,7 +183,7 @@ export function attackReach(style: AttackStyle): number {
   }
 }
 
-/** Frames before the first active frame; attackFrame zero is the start tick (reference frame one). */
+
 export function attackStartupFrames(style: AttackStyle, moves?: FighterMoves): number {
   const authored = moves?.normals[style];
   if (authored !== undefined) return authored.startupFrames;
@@ -249,7 +249,7 @@ export function characterAttackActiveFrames(character: Character, style: AttackS
   if (style === AttackStyle.grab) return 3;
   const authored = moves?.normals[style];
   if (authored !== undefined) return authored.activeFrames;
-  // Illidan's raid-boss normals (#147): the twin-glaive forward air, Flames of Azzinoth, Eye Blast.
+
   if (character === Character.demonHunter) {
     if (style === AttackStyle.forwardAir) return DEMON_HUNTER_FORWARD_AIR_ACTIVE;
     if (style === AttackStyle.downSmash) return DEMON_HUNTER_DOWN_SMASH_ACTIVE;
@@ -262,7 +262,7 @@ export function attackDurationFrames(style: AttackStyle): number {
   return attackDurationFramesForGrounding(style, true);
 }
 
-/** Total frames; only the shot is shorter in the air. */
+
 export function attackDurationFramesForGrounding(style: AttackStyle, grounded: boolean, moves?: FighterMoves): number {
   const authored = moves?.normals[style];
   if (authored !== undefined) return authored.totalFrames;
@@ -311,30 +311,30 @@ export function attackRecoveryFrames(character: Character, style: AttackStyle, g
   return attackDurationFramesForGrounding(style, grounded, moves) - attackStartupFrames(style, moves) - characterAttackActiveFrames(character, style, moves);
 }
 
-/**
- * A grab catches a fighter this many frames into a ground jump's ascent as if it
- * were still on the deck it left (#107): the slowest standing grab's first
- * active frame (Lich, frame 10) less the fastest jump squat (3).
- */
+
+
+
+
+
 export const EARLY_ASCENT_GRAB_FRAMES = 7;
 
-/** Frames every grab holds when the victim doesn't mash, at any percent (#101). */
+
 export const GRAB_HOLD_FRAMES = 120;
-/** However fast the victim mashes, a hold lasts this long, so a prompt throw always starts. */
+
 export const GRAB_HOLD_MINIMUM_FRAMES = 30;
-/** Every fighter's one pummel connects this late, so mashing from the catch escapes it. */
+
 export const PUMMEL_CONTACT_FRAME = 60;
 export const PUMMEL_TOTAL_FRAMES = 68;
-/** Every fighter's pummel deals this much, whatever its look (owner decision, #101). */
+
 export const PUMMEL_DAMAGE = 3.0;
 export const GRAB_HOLD_DISTANCE = 50.0;
 
-/** At most one pummel per grab; a kit may allow none. */
+
 export function pummelLimit(moves?: FighterMoves): number {
   return min(1, moves?.maxPummels ?? 1);
 }
 
-/** The one-based action frame, counting entry, on which a pummel or throw connects. */
+
 export function grabContactFrame(action: GrabAction, moves?: FighterMoves): number {
   if (action === GrabAction.pummel) return PUMMEL_CONTACT_FRAME;
   const authored = moves?.throws[action];
@@ -359,7 +359,7 @@ export function grabActionDuration(action: GrabAction, moves?: FighterMoves): nu
     case GrabAction.throwBack:
       return 34;
     case GrabAction.throwUp:
-      // Throw roles (#107): the thrower recovers in time for a guaranteed juggle.
+
       return 24;
     case GrabAction.throwDown:
       return 36;

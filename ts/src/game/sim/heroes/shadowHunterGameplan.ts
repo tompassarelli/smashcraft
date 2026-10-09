@@ -1,16 +1,16 @@
-// Shadow Hunter's gameplan (#105): how his computer plays his identity, totem
-// placement and angles (smashcraft:docs/design/roster.md, "Shadow Hunter").
+
+
 import { AttackStyle } from "../codes";
 import { type FighterGameplan, GameplanSpecial, GameplanThrow } from "../gameplan";
 
-/**
- * Shadow Hunter's gameplan: totem placement and angles. He sets a Serpent
- * Ward from range and fights beside it at the glaive's tip (Crescent Chop
- * and its angles, Low Crescent), with Spirit Glaive and Hex
- * from further out. He backs out of brawls and keeps off the edge: Loa
- * Vault's 0.6H drift is the shortest way back of any kit, so he avoids being
- * driven deep and returns to the ledge with his jump first.
- */
+
+
+
+
+
+
+
+
 export const SHADOW_HUNTER_GAMEPLAN: FighterGameplan = {
   range: { near: 100, far: 180 },
   spacing: [

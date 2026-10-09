@@ -1,5 +1,5 @@
-// Independently positioned companions follow, hold a firing position or fly.
-// Commands stop while the owner is punished; their bodies never shield it.
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { max, min } from "../../runtime/numbers";
 import { AttackStyle } from "./codes";
@@ -15,10 +15,10 @@ import { surfaceLeft, surfaceRight, surfaceZAt } from "./stage";
 import { emptyCapsule, placeCapsule } from "../physics/contactGeometry";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 
-// Preallocated: rollback replays every partner every frame.
+
 const bite = emptyCapsule();
 
-/** Steps `x` toward `target` by at most `speed`; the facing it walked, or 0 when it arrived. */
+
 function stepToward(placed: PlacedObject, target: number, speed: number): number {
   const dx = f32(target - placed.x);
   if (Math.abs(dx) <= speed) {
@@ -30,12 +30,12 @@ function stepToward(placed: PlacedObject, target: number, speed: number): number
   return direction;
 }
 
-/** Whether the owner can't direct its partner now: launched, held, holding or throwing, or out. */
+
 function ownerBusy(owner: Readonly<Fighter>): boolean {
   return owner.status.out || owner.launch.hitstun > 0 || inGrabContext(owner);
 }
 
-/** The lunge's bite against every opponent it hasn't bitten yet this lunge. */
+
 function biteOpponents(world: Roster, ownerSlot: number, placed: PlacedObject, partner: Readonly<SpecialCompanion>): void {
   placeCapsule(bite, partner.bite, placed.x, placed.z, placed.direction);
   for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
@@ -51,7 +51,7 @@ function biteOpponents(world: Roster, ownerSlot: number, placed: PlacedObject, p
   }
 }
 
-/** One frame of the owner's partner, inside the specials' contact batch. */
+
 export function advanceCompanion(world: Roster, ownerSlot: number, stage: number, matchFrame: number): void {
   const owner = fighterAt(world, ownerSlot);
   for (let animal = 0; animal <= owner.pack.length; animal++) advanceAnimal(world, ownerSlot, stage, matchFrame, placedObject(owner, animal));
@@ -110,7 +110,7 @@ function advanceAnimal(world: Roster, ownerSlot: number, stage: number, matchFra
     const walked = stepToward(placed, heel, partner.followSpeed);
     placed.direction = walked !== 0 ? walked : owner.facing < 0 ? -1 : 1;
   }
-  // It keeps to its deck: its ends stop it, and a moving deck carries its height.
+
   if (partner.behavior === "flying" && placed.mode !== CompanionMode.lunge && placed.mode !== CompanionMode.stunned) {
     const height = f32(owner.motion.z + (partner.followHeight ?? 0.0));
     placed.z = f32(placed.z + min(partner.followSpeed, max(-partner.followSpeed, f32(height - placed.z))));
@@ -126,7 +126,7 @@ function advanceAnimal(world: Roster, ownerSlot: number, stage: number, matchFra
   if (placed.apart >= partner.leashFrames) placed.life = 0;
 }
 
-/** A hit that reaches the partner during a lunge cancels it and stuns it. */
+
 export function staggerCompanion(placed: PlacedObject): void {
   const partner = placed.spec?.companion;
   if (partner === undefined || placed.mode !== CompanionMode.lunge) return;

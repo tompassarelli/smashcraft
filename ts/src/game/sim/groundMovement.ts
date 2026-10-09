@@ -1,6 +1,6 @@
-// Grounded steering: walk, dash, run, turn-run and run-brake, with the actor's
-// command timeline in tuning.ground. Coefficients come from the locally
-// identified NTSC 1.02 PlCo.dat.
+
+
+
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { chillScaled } from "./chill";
@@ -13,10 +13,10 @@ import { INITIAL_DASH_FRAMES, WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning
 const WALK_ACCEL_TAPER_GAIN = 0.5;
 const RUN_ACCEL_TAPER_GAIN = 0.4000000059604645;
 const RUN_DASH_TURN_FRICTION_MULTIPLIER = 1.0;
-// TurnRun's velocity test is encoded in Melee units; world velocity is scaled.
+
 const TURN_RUN_ZERO_VELOCITY_THRESHOLD = melee(0.009999999776482582);
 const DASH_STICK_THRESHOLD = 0.800000011920929;
-// A reversal reaches the dash threshold within three stick samples (#188).
+
 const DASH_FLICK_SAMPLES = 3;
 /** NTSC common +0x4c; only the Dash-to-Guard branch uses this early/late split. */
 export const DASH_GUARD_EARLY_FRAMES = 20;
@@ -53,8 +53,8 @@ function startTurnRun(f: Fighter, animationFrame: number): void {
   ground.action = GroundAction.turnRun;
   ground.actionFrame = animationFrame;
   ground.turnRunEntryFacing = f.facing;
-  // A nonzero animation start at/past frame 9 enters with the facing command
-  // phase active; the paused animation still waits for its velocity condition.
+
+
   ground.turnRunFacingCommandLatched = animationFrame >= f.tuning.ground.turnRunFacingCommandFrame;
   ground.turnRunPausePending = ground.turnRunFacingCommandLatched;
   ground.runBrakeFramesRemaining = 0;
@@ -79,8 +79,8 @@ function advanceActionClock(f: Fighter, direction: number): void {
       return;
     }
     if (ground.turnRunFacingCommandLatched && f.facing === ground.turnRunEntryFacing) {
-      // The command pauses TurnRun; a later animation update changes facing
-      // only after ground velocity crosses zero.
+
+
       if (f32(f.motion.vx * ground.turnRunEntryFacing) <= TURN_RUN_ZERO_VELOCITY_THRESHOLD) {
         f.facing = -ground.turnRunEntryFacing;
         ground.dashDirection = f.facing;
@@ -107,7 +107,7 @@ function advanceActionClock(f: Fighter, direction: number): void {
   }
 }
 
-/** Ground velocity toward a target: friction above it, acceleration below it, capped either way. */
+
 function groundMovementVelocity(velocity: number, acceleration: number, targetVelocity: number, friction: number, speedCap: number): number {
   const targetDirection = targetVelocity > 0 ? 1 : targetVelocity < 0 ? -1 : 0;
   const currentDirection = velocity > 0 ? 1 : velocity < 0 ? -1 : 0;
@@ -122,7 +122,7 @@ function groundMovementVelocity(velocity: number, acceleration: number, targetVe
   return max(-speedCap, min(speedCap, acceleratedVelocity));
 }
 
-/** Acceleration toward the target, tapering as the velocity along it approaches the target speed. */
+
 function taperedAcceleration(f: Fighter, multiplier: number, base: number, direction: number, targetSpeed: number, gain: number, taper: boolean): number {
   const acceleration = f32(f32(f32(multiplier + base) * WORLD_UNITS_PER_MELEE_UNIT) * direction);
   const alongTarget = f32(f.motion.vx * direction);
@@ -130,26 +130,26 @@ function taperedAcceleration(f: Fighter, multiplier: number, base: number, direc
   return f32(acceleration * f32(f32(1.0 - f32(alongTarget / targetSpeed)) * gain));
 }
 
-/**
- * One grounded steering frame; true when it starts a dash, whose entry velocity
- * applies after this frame's displacement. `friction` is the floor's
- * (stage.ts floorFriction): it scales every traction the frame slides against.
- */
+
+
+
+
+
 export function advanceGroundMovement(f: Fighter, direction: number, walking: boolean, horizontalStick = direction, friction = 1.0): boolean {
   const { ground, motion } = f;
   const physics = f.tuning.physics;
   const traction = floorTraction(physics.traction, friction);
   const changingDirection = direction !== 0 && direction !== ground.dashDirection;
-  // Flick freshness qualifies an active dash's reversal. A full direction
-  // held through landing/recovery starts a normal dash when steering resumes.
+
+
   const freshFlick = ground.action !== GroundAction.dash || motion.stickSideAge < DASH_FLICK_SAMPLES;
   const strongStick = Math.abs(horizontalStick) >= DASH_STICK_THRESHOLD;
-  // Travel that crossed the stick centre during the initial dash frames.
+
   const travelInWindow = ground.actionFrame - motion.stickSideAge < f.tuning.ground.dashRunEnableFrame;
   if (!walking && changingDirection && ground.action !== GroundAction.run && ground.action !== GroundAction.turnRun && ground.action !== GroundAction.runBrake) {
     if (ground.action === GroundAction.dash && motion.stickSideAge < DASH_FLICK_SAMPLES - 1 && !strongStick && travelInWindow) {
-      // A flick's first two samples past the centre can precede its full
-      // travel. Keep the dash clock and facing until the third sample decides.
+
+
       direction = 0;
     } else if (!strongStick || (!freshFlick && direction !== f.facing)) {
       walking = true;
@@ -172,11 +172,11 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
   if ((previousAction === GroundAction.runBrake || previousAction === GroundAction.turnRun) && ground.action === GroundAction.none) return false;
   if (direction !== 0 && ground.action === GroundAction.runBrake) {
     if (direction * f.facing < 0 && ground.actionFrame < f.tuning.ground.runBrakeTurnCommandEndFrame) {
-      // Retail RunBrake starts TurnRun at the current animation frame.
+
       startTurnRun(f, ground.actionFrame);
     } else {
-      // RunBrake's actor-owned command window has closed. Neutral braking
-      // continues until the action ends or the fighter reaches rest.
+
+
       motion.vx = motion.vx > 0 ? max(0.0, f32(motion.vx - traction)) : min(0.0, f32(motion.vx + traction));
       if (Math.abs(motion.vx) <= traction && !runBrakeHasRecordedEndRules(f)) clearDash(f);
       return false;
@@ -194,18 +194,18 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
     return false;
   }
   if (ground.dashFrame === 0 || direction !== ground.dashDirection) {
-    // Only Run turns. A dash past its initial frames is still a dash because
-    // its input was neutral or travelling, and reverses as standing does.
+
+
     if (ground.action === GroundAction.run || ground.action === GroundAction.turnRun) {
-      // Run turning uses the ordinary dash acceleration toward the new target.
-      // The retail command at frame 9 delays facing until the velocity has
-      // crossed zero; the timing is per actor.
+
+
+
       if (ground.action !== GroundAction.turnRun) startTurnRun(f, 0);
     } else {
       ground.dashFrame = 1;
       ground.dashDirection = direction;
       ground.action = GroundAction.dash;
-      // Dash entry explicitly advances its animation once before physics.
+
       ground.actionFrame = 1;
       f.facing = direction;
       motion.vx = f32(direction * min(speedBuffed(f, chillScaled(f, physics.dashSpeed)), speedBuffed(f, physics.groundSpeedCap)));

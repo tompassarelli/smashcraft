@@ -1,8 +1,8 @@
 import { downSmashHit } from "./downMoveValues";
-// Authored hit regions: provisional facing-relative reach envelopes for each
-// action, with the hit each one deals. Lower region indices win overlaps.
-// Window zero means no authored contact; increasing positive windows
-// explicitly permit a later hit of the same target.
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, HitElement } from "./codes";
 import type { FighterMoves, StrikeCapsule } from "./heroMoves";
@@ -22,7 +22,7 @@ import {
 
 export { HitElement };
 
-/** What a contact does: damage, launch growth and base, launch direction (facing-relative) and effect. */
+
 
 export interface HitEffect {
   damage: number;
@@ -31,16 +31,16 @@ export interface HitEffect {
   launchX: number;
   launchZ: number;
   electric: boolean;
-  /** Presentation element; electric retains its existing hitlag rule. */
+
   element?: HitElement | undefined;
-  /**
-   * Mana the hit drains from the body it reaches (Illidan's kit,
-   * smashcraft:docs/design/illidan.md); a shield stops it, and mana floors at 0.
-   */
+
+
+
+
   manaDrain?: number | undefined;
-  /** Mana transferred from a body to the attacker, capped by what the target holds. */
+
   manaSteal?: number | undefined;
-  /** A link hit (#152): an airborne target struck directly also takes the attacker's own velocity, so it travels with the attacker to the next hit. */
+
   carry?: boolean | undefined;
 }
 
@@ -89,7 +89,7 @@ export function copyHitRegion(target: HitRegion, source: Readonly<HitRegion>): v
 
 export const NO_HIT_REGION: Readonly<HitRegion> = emptyHitRegion();
 
-/** A table row: bounds, then damage, growth, base and launch direction of a single-window contact. */
+
 function region(
   minX: number, maxX: number, minZ: number, maxZ: number,
   damage: number, growth: number, base: number, launchX: number, launchZ: number, window = 1,
@@ -97,10 +97,10 @@ function region(
   return { minX, maxX, minZ, maxZ, effect: { damage, growth, base, launchX, launchZ, electric: false }, window };
 }
 
-// Character 2 has an explicit region for each shared ground and aerial action.
-// Numeric windows are single-contact and provisional; animation assets must
-// bind their matching action IDs before roster exposure. Smash damage is
-// before charge.
+
+
+
+
 const DEMON_HUNTER_REGIONS: { readonly [style: number]: Readonly<HitRegion> } = {
   [AttackStyle.jab]: region(0.0, 92.0, -55.0, 105.0, 5.0, 100.0, 18.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
   [AttackStyle.jab2]: region(0.0, 96.0, -50.0, 100.0, 4.0, 30.0, 22.0, 0.3420201539993286, 0.9396926164627075),
@@ -108,9 +108,9 @@ const DEMON_HUNTER_REGIONS: { readonly [style: number]: Readonly<HitRegion> } = 
   [AttackStyle.upSmash]: region(-105.0, 105.0, -30.0, 195.0, 15.0, 100.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
   [AttackStyle.downSmash]: region(-105.0, 105.0, -195.0, 45.0, 15.0, 100.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
   [AttackStyle.forwardSmash]: region(25.0, 195.0, -75.0, 105.0, 10.0, 85.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
-  // A 60-degree pop-up (#359): at 23 degrees it out-killed his forward smash.
+
   [AttackStyle.demonHunterDashAttack]: region(0.0, 150.0, -70.0, 115.0, 9.0, 95.0, 20.0, 0.5, 0.8660253882408142),
-  // Shear (#147): the tank-buster as the mana cutter, 9% at a low 25 degrees.
+
   [AttackStyle.forwardTilt]: region(0.0, 135.0, -80.0, 95.0, 9.0, 80.0, 20.0, 0.9063078165054321, 0.4226182699203491),
   [AttackStyle.upTilt]: region(0.0, 125.0, -30.0, 185.0, 8.0, 105.0, 18.0, 0.25, 0.968245804309845),
   [AttackStyle.downTilt]: region(-115.0, 115.0, -145.0, 40.0, 7.0, 90.0, 16.0, DIAGONAL_UNIT, 0.30000001192092896),
@@ -123,15 +123,15 @@ const DEMON_HUNTER_REGIONS: { readonly [style: number]: Readonly<HitRegion> } = 
   [AttackStyle.downAir]: region(-105.0, 105.0, -190.0, -10.0, 9.0, 100.0, 20.0, 0.1599999964237213, -0.9869999885559082),
 };
 
-// Illidan's raid-boss normals (#147, smashcraft:docs/design/illidan.md), by
-// active frame (0 is the first): the twin-glaive forward air's link and
-// launcher, Flames of Azzinoth's glaives then fire, and Eye Blast's beam.
+
+
+
 const FORWARD_AIR_LINK = region(0.0, 175.0, -55.0, 115.0, 2.0, 10.0, 30.0, -0.258819043636322, 0.9659258127212524);
 const FORWARD_AIR_LAUNCH = region(0.0, 150.0, -40.0, 110.0, 3.0, 85.0, 18.0, 0.7660444378852844, 0.6427876353263855, 2);
 const AZZINOTH_GLAIVES = { ...region(-190.0, 190.0, -60.0, 60.0, 14.0, 95.0, 22.0, 0.258819043636322, 0.9659258127212524), effect: downSmashHit(region(-190.0, 190.0, -60.0, 60.0, 14.0, 95.0, 22.0, 0.258819043636322, 0.9659258127212524).effect) };
-// The fire burns only a fighter the glaives missed: one contact window for both.
+
 const AZZINOTH_FLAMES = { ...region(-190.0, 190.0, -30.0, 170.0, 3.0, 20.0, 30.0, 0.08715574443340302, 0.9961947202682495), effect: downSmashHit(region(-190.0, 190.0, -30.0, 170.0, 3.0, 20.0, 30.0, 0.08715574443340302, 0.9961947202682495).effect) };
-/** Eye Blast's beam sweeps out along the floor: 195 on its first active frame, 50 further each frame. */
+
 function eyeBlastBeam(): readonly Readonly<HitRegion>[] {
   const beam: Readonly<HitRegion>[] = [];
   for (let frame = 0; frame < DEMON_HUNTER_FORWARD_SMASH_ACTIVE; frame++) {
@@ -141,7 +141,7 @@ function eyeBlastBeam(): readonly Readonly<HitRegion>[] {
 }
 const EYE_BLAST_BEAM = eyeBlastBeam();
 
-/** Illidan's region on an active frame: the raid-boss normals vary by frame and charge, the rest are one row. */
+
 function demonHunterRegion(style: AttackStyle, activeFrame: number, chargeFrames: number): Readonly<HitRegion> {
   switch (style) {
     case AttackStyle.forwardAir:
@@ -159,7 +159,7 @@ function demonHunterRegion(style: AttackStyle, activeFrame: number, chargeFrames
 const ordinary = (minX: number, maxX: number, minZ: number, maxZ: number, damage: number, launchX = DIAGONAL_UNIT) =>
   region(minX, maxX, minZ, maxZ, damage, ORDINARY_HIT_GROWTH_PERCENT, ORDINARY_HIT_BASE_KNOCKBACK, launchX, DIAGONAL_UNIT);
 
-/** Reach envelope of the actions without a region of their own; smash damage is before charge. */
+
 function reachRegion(style: AttackStyle): Readonly<HitRegion> {
   const verticalOffset = style === AttackStyle.forwardTiltUp ? 65.0 : style === AttackStyle.forwardTiltDown ? -65.0 : 0.0;
   const [minZ, maxZ] = [f32(verticalOffset - 130), f32(verticalOffset + 130)];
@@ -207,7 +207,7 @@ const UP_AIR_FINISHER = region(-105.0, 105.0, 20.0, 190.0, 8.0, 110.0, 24.0, 0.2
 const downAir = (minX: number, maxX: number, damage: number) =>
   region(minX, maxX, -180.0, -10.0, damage, ORDINARY_HIT_GROWTH_PERCENT, ORDINARY_HIT_BASE_KNOCKBACK, 0.25, -0.968245804309845);
 const DOWN_AIR = downAir(-95.0, 95.0, attackDamage(AttackStyle.downAir));
-// the reference body's up smash keeps the shared reach and damage with 80 growth: her kill power is her weak side (#279).
+
 const SHARED_UP_SMASH = reachRegion(AttackStyle.upSmash);
 
 export function authoredHitRegionCount(style: AttackStyle | undefined, moves?: FighterMoves): number {
@@ -219,7 +219,7 @@ export function authoredHitRegionCount(style: AttackStyle | undefined, moves?: F
 
 function activeRegion(character: Character, style: AttackStyle, frame: number, index: number, chargeFrames: number): Readonly<HitRegion> {
   const startup = attackStartupFrames(style);
-  // Grab and recovery attacks use the shared contact rules below.
+
   if (character === Character.demonHunter && style !== AttackStyle.grab && style !== AttackStyle.getupAttack && style !== AttackStyle.ledgeAttack) {
     return demonHunterRegion(style, frame - startup, chargeFrames);
   }
@@ -250,11 +250,11 @@ function activeRegion(character: Character, style: AttackStyle, frame: number, i
   }
 }
 
-/**
- * Writes the region an action presents on an attack frame into out and returns
- * it; NO_HIT_REGION's values outside the active frames. Smash damage scales
- * with charge.
- */
+
+
+
+
+
 export function authoredHitRegion(out: HitRegion, character: Character, style: AttackStyle | undefined, frame: number, chargeFrames: number, index: number, moves?: FighterMoves): HitRegion {
   if (style === AttackStyle.grab) {
     const startup = attackStartupFrames(style, moves);

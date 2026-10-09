@@ -1,5 +1,5 @@
-// Blademaster's registration: identity, kit and presentation. Owned by this hero's
-// lane; set `complete` only when the whole base kit works (hero.ts).
+
+
 import { Character } from "../codes";
 import type { HeroDefinition } from "./hero";
 import { BLADEMASTER_GAMEPLAN } from "./blademasterGameplan";
@@ -22,7 +22,7 @@ export const BLADEMASTER_HERO: HeroDefinition = {
     model: "units\\orc\\HeroBladeMaster\\HeroBladeMaster.mdl",
     objectId: 0x6d66626d,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroBlademaster.blp",
-    // Mirror Image: his own model, see-through, standing where he left it.
+
     placedModel: { path: "units\\orc\\HeroBladeMaster\\HeroBladeMaster.mdl", height: 140.0, alpha: 120 },
     clips: BLADEMASTER_CLIPS,
     fallback: BLADEMASTER_FALLBACK_CLIP,

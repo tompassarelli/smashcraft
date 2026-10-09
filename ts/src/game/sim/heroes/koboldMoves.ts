@@ -1,5 +1,5 @@
-// The Kobold's normals and throws (smashcraft:docs/design/roster.md, #344): a
-// candle-hoarding scrapper with short mining-pick strikes.
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";

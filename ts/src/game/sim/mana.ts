@@ -2,7 +2,7 @@ import { max, min, toInt } from "../../runtime/numbers";
 import { idiv } from "wisp/src/sim/intMath";
 import type { Fighter } from "./fighter";
 
-/** One bar; body damage fills it, one EX spends it (docs/design/mana.md). */
+
 export const ROSTER_MANA = { max: 100, dealtPerPercent: 1, dealtCap: 12, takenPercentPerPoint: 2, takenCap: 6 } as const;
 
 export function spendMana(f: Fighter, cost: number): void {

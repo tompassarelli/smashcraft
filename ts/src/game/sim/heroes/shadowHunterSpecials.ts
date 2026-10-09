@@ -1,7 +1,7 @@
-// Shadow Hunter's four specials as authored data (smashcraft:docs/design/roster.md,
-// "Shadow Hunter", B specials). Frames follow the brief: the entry tick is
-// frame 1 and "end fN" is the last frame of the action. Distances are in the
-// hero reference height H.
+
+
+
+
 import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
@@ -13,12 +13,12 @@ import { hit } from "./shadowHunterMoves";
 const H = HERO_REFERENCE_HEIGHT;
 const h = (multiple: number): number => f32(H * f32(multiple));
 
-/** Non-mobility specials used in the air end on landing with this lag (roster "Action defaults"). */
+
 const AIR_SPECIAL_LANDING_LAG = 20;
-/** Chest height of the drawn throw release. */
+
 const CAST_HEIGHT = h(f32(0.45));
 
-/** Spirit Glaive (#133): out 22 frames, then back to Shadow Hunter (6% out, 5% back toward him). */
+
 const SPIRIT_GLAIVE_SHOT: SpecialProjectile = {
   model: "Abilities\\Weapons\\ShadowHunterMissile\\ShadowHunterMissile.mdx",
   spawnFrame: 18, offsetX: h(f32(0.35)), offsetZ: CAST_HEIGHT,
@@ -32,26 +32,26 @@ const spiritGlaive = (air: boolean): AuthoredSpecial => ({
   landingLag: air ? AIR_SPECIAL_LANDING_LAG : undefined,
 });
 
-/**
- * Loa Vault, the roster's charged-angle rule (#189): the spirits hold him
- * through f8 while the stick picks one of eight directions (straight up when
- * neutral), vault him that way evenly over f9-24 and stop on f25; then
- * helpless. His recovery is an angle choice,
- * like his wards.
- */
+
+
+
+
+
+
+
 const loaVault = (distance: number): AuthoredSpecial => ({
   endFrame: 26, aimFrames: CHARGED_AIM_FRAMES,
   motion: chargedAngleMotion(h(distance), 16),
   oncePerAirtime: true, helpless: true,
 });
 
-/**
- * Hex (#133, docs/design/kit-review-2.md): for 50 frames the target cannot
- * attack, grab or start a neutral, side or down special; movement, jumps,
- * shield, dodges, DI and up special stay. It mashes out, never before frame
- * 36 (sim/heroStatus.ts). No hurtbox change. When it ends, 240 frames of
- * immunity shared with silence.
- */
+
+
+
+
+
+
+
 const HEX: AppliedStatus = { kind: HeroStatusKind.hex, frames: 50, group: HeroStatusGroup.silence, immunityFrames: 240 };
 
 const HEX_ORB: SpecialProjectile = {
@@ -66,11 +66,11 @@ const hex = (air: boolean): AuthoredSpecial => ({
   landingLag: air ? AIR_SPECIAL_LANDING_LAG : undefined,
 });
 
-/**
- * Serpent Ward: 26 durability, 240 frames, a straight never-aimed shot at ages
- * 45, 85, 125, 165 and 205 along the placement facing. Its upright body is the totem's
- * drawn size, struck by any opponent's normal, hero special or projectile.
- */
+
+
+
+
+
 const SERPENT_WARD: SpecialPlacement = {
   frame: 26, offsetX: h(f32(0.65)), radius: h(f32(0.18)), height: h(f32(0.6)),
   durability: 26.0, life: 240, fireAges: [45, 85, 125, 165, 205],
@@ -82,11 +82,11 @@ const SERPENT_WARD: SpecialPlacement = {
   },
 };
 
-/**
- * The ward's cast: ground-only, the ward appears f26, the action ends
- * f52. Recasting while it stands plays the same vulnerable cast and
- * removes the ward when it completes; nothing is refunded.
- */
+
+
+
+
+
 const SERPENT_WARD_CAST: AuthoredSpecial = { endFrame: 52, groundOnly: true, placement: SERPENT_WARD };
 const SERPENT_WARD_RECALL: AuthoredSpecial = { endFrame: 52, groundOnly: true, recall: true };
 

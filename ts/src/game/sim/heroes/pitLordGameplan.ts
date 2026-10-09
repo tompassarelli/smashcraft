@@ -1,9 +1,9 @@
-// Pit Lord's gameplan (#105; smashcraft:docs/design/roster.md, "Pit Lord"):
-// the largest heavy holds the cleaver's tip spacing, makes the target act
-// with Rain of Fire and Ruin Charge's armor, and kills early with Annihilating
-// Cleave. A fast fighter inside a missed cleave is his weakness, so he backs
-// out of close range and keeps to the ground. Gaps are centre to centre: his
-// XL cleaver reaches about 185 and a target's body adds about 25.
+
+
+
+
+
+
 import { AttackStyle } from "../codes";
 import { type FighterGameplan, GameplanSpecial, GameplanThrow } from "../gameplan";
 
@@ -16,12 +16,12 @@ export const PIT_LORD_GAMEPLAN: FighterGameplan = {
     { move: GameplanSpecial.down, near: 220.0, far: 370.0 },
   ],
   approach: [
-    // Rain forces a jump or an approach into the cleaver's space.
+
     { via: "shoot", moves: [GameplanSpecial.down, AttackStyle.forwardTilt], weight: 2 },
-    // Ruin Charge's armor beats a jab or a single poke on the way in.
+
     { via: "run", moves: [GameplanSpecial.side, AttackStyle.forwardTilt, AttackStyle.grab], weight: 2 },
   ],
-  // A huge shield, a roar to blunt the punish, then out to the cleaver's range.
+
   defense: ["shield", "shield", "retreat", "jump"],
   combos: [
     { starter: AttackStyle.downTilt, followUps: [AttackStyle.forwardTilt, AttackStyle.upTilt, AttackStyle.grab] },
@@ -35,7 +35,7 @@ export const PIT_LORD_GAMEPLAN: FighterGameplan = {
     { move: AttackStyle.forwardAir, fromPercent: 95.0 },
     { move: GameplanThrow.back, fromPercent: 110.0 },
   ],
-  // The heaviest drift and slowest leap: he goes for the ledge with his jump first.
+
   recovery: { aim: "ledge", upSpecial: "last" },
   avoid: ["close", "edge", "air"],
 };

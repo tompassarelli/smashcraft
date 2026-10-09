@@ -1,6 +1,6 @@
-// State transitions every system shares: starting attacks, entering down
-// states, and ending or interrupting actions. Grab links are the only state
-// that spans fighters, so clearing them takes the roster.
+
+
+
 import { clearTechInput } from "../physics/techInput";
 import { at } from "wisp/src/runtime/lookup";
 import { mutableProjectile } from "./fighterProjectiles";
@@ -15,13 +15,13 @@ import type { Roster } from "./roster";
 import { clearPowershield, clearShieldBreak } from "./shield";
 
 export const LEDGE_REGRAB_FRAMES = 30;
-// A response at the 15-frame reaction floor completes the longest jump squat
-// (5 frames) before the next trap check may catch the fighter.
+
+
 const FREEZE_IMMUNITY_FRAMES = 20;
-/** However fast a frozen fighter mashes, the freeze lasts this long, so a trap sprung near Rifleman still gives him a follow-up. */
+
 export const FREEZE_MINIMUM_FRAMES = 60;
 
-/** Natural thaw, a mash-out and hits that break ice grant the same finite trap escape interval. */
+
 export function thawFighter(f: Fighter): void {
   if (f.status.frozenFrames <= 0) return;
   f.status.frozenFrames = 0;
@@ -68,7 +68,7 @@ export function leaveLedge(f: Fighter): void {
   f.ledge.regrab = LEDGE_REGRAB_FRAMES;
 }
 
-/** Drops a raised shield and its powershield timers. */
+
 function lowerShield(f: Fighter): void {
   f.shield.raised = false;
   f.shield.tiltX = 0.0;
@@ -92,10 +92,10 @@ export function cancelAttack(f: Fighter): void {
   attack.smashChargeAllowed = false;
 }
 
-/** Ends the special action; spawned cover and bears outlive it, a mount does not. */
+
 export function cancelSpecialState(f: Fighter): void {
   const { special } = f;
-  // A hero marker that has not become active ends with its interrupted cast.
+
   if (special.action >= SpecialAction.heroNeutral) {
     for (let index = 0; index < f.projectiles.length; index++) {
       const projectile = at(f.projectiles, index);
@@ -112,7 +112,7 @@ export function cancelSpecialState(f: Fighter): void {
   special.lockFrames = 0;
 }
 
-/** Losing a stock removes every special, summon and projectile the fighter owns. */
+
 export function clearSpecialOnStock(f: Fighter): void {
   cancelSpecialState(f);
   const { special, bear } = f;
@@ -163,7 +163,7 @@ export function clearOwnedFreezeTrap(f: Fighter): void {
   trap.surface = undefined;
 }
 
-/** Ends a move through a platform where the fighter is, with its latched inputs. */
+
 export function clearPlatformMove(f: Fighter): void {
   const p = f.platform;
   p.move = PlatformMove.none;
@@ -189,7 +189,7 @@ export function clearPlatformMove(f: Fighter): void {
   p.specialZ = 0;
 }
 
-/** A hit, grab or shield break stops jumps, dodges, dashes, ledge hangs and platform moves in progress. */
+
 export function interruptJumpOrDodge(f: Fighter): void {
   const { jump, dodge, shield } = f;
   clearPlatformMove(f);
@@ -216,12 +216,12 @@ export function interruptJumpOrDodge(f: Fighter): void {
   dodge.groundEntryFacing = 0;
 }
 
-/** A hit, grab or ledge catch lets an original fighter use its once-per-airtime specials again (the reference body's ride). */
+
 export function refreshOriginalAirtime(f: Fighter): void {
   if (f.tuning.specials === undefined) f.special.airtimeUses = 0;
 }
 
-/** Breaks the fighter's grab links from both ends. */
+
 export function clearGrabLinks(world: Roster, slot: number): void {
   const f = world.fighters[slot];
   if (f === undefined) return;
@@ -258,7 +258,7 @@ export function beginGrabAction(owner: Fighter, action: GrabAction): void {
   owner.grab.serial++;
 }
 
-/** Lands the fighter in a down state; bound and floor techs keep their sliding launch. */
+
 export function beginDownState(f: Fighter, state: DownState, direction: number): void {
   const { motion, launch, down, attack } = f;
   motion.fastFalling = false;
@@ -294,7 +294,7 @@ export function beginDownState(f: Fighter, state: DownState, direction: number):
   }
 }
 
-/** A weak hit on a lying fighter: it stays down and restarts its wait from the hitstun. */
+
 export function beginDownDamage(f: Fighter, hitstunFrames: number): void {
   const { motion, launch, down } = f;
   clearSurfaceRecovery(f);
@@ -315,7 +315,7 @@ export function beginDownDamage(f: Fighter, hitstunFrames: number): void {
   lowerShield(f);
 }
 
-/** Starts an attack; DASH_GRAB_REQUEST starts a grab with the actor's dash-grab timing. */
+
 export function beginAttack(attacker: Fighter, style: AttackStyle, mayCharge: boolean): void {
   endDivineShield(attacker);
   const isDashGrab = style === DASH_GRAB_REQUEST;
@@ -355,7 +355,7 @@ export function beginAttack(attacker: Fighter, style: AttackStyle, mayCharge: bo
   if (attacker.tuning.moves?.normals[resolvedStyle]?.startupTravelX !== undefined) attacker.motion.vx = 0.0;
 }
 
-/** Starting an attack, a special or a grab drops Divine Shield and the intangibility it gave. */
+
 export function endDivineShield(f: Fighter): void {
   if (f.status.divineFrames <= 0) return;
   f.status.divineFrames = 0;

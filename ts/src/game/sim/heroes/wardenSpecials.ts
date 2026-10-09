@@ -1,5 +1,5 @@
-// Warden's four specials from smashcraft:docs/design/roster.md ("Warden", B
-// specials), in the brief's frame numbering. Starting values, not balance.
+
+
 import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT, heroRegion, type MoveRegion, type StrikeCapsule } from "../heroMoves";
@@ -12,10 +12,10 @@ const H = HERO_REFERENCE_HEIGHT;
 const KNIFE_RADIUS = 7.0;
 const blade = (x1: number, z1: number, x2: number, z2: number, radius = KNIFE_RADIUS): StrikeCapsule => ({ x1, z1, x2, z2, radius });
 
-// The mark (#126, smashcraft:docs/design/kit-review-1.md): Shadow Strike's and
-// Fan of Knives' body hits poison for three 1-damage ticks over 180 frames,
-// without flinch; a new hit refreshes it. While it lasts the target is marked
-// for Shadow Pursuit.
+
+
+
+
 const POISON: AppliedStatus = { kind: HeroStatusKind.poison, frames: 180, group: HeroStatusGroup.sleep, immunityFrames: 0, tick: { every: 60, damage: 1.0 } };
 const SHADOW_STRIKE: AuthoredSpecial = {
   endFrame: 37,
@@ -26,8 +26,8 @@ const SHADOW_STRIKE: AuthoredSpecial = {
   }],
 };
 
-// Pursuit Lunge: 1.0H of travel through the slash, which is active f11-14; the
-// dash stops dead after it.
+
+
 const LUNGE_TRAVEL_FRAMES = 10;
 const LUNGE_SPEED = f32(H / f32(LUNGE_TRAVEL_FRAMES));
 const lungeRegions = (): readonly MoveRegion[] => [heroRegion(11, 14, blade(16.0, 48.0, f32(f32(H * f32(0.80)) - KNIFE_RADIUS), 44.0), wardenHit(10.0, "EDGE", 35))];
@@ -35,9 +35,9 @@ const PURSUIT_LUNGE: AuthoredSpecial = {
   name: "Pursuit Lunge", endFrame: 40, regions: lungeRegions(),
   motion: [{ ...frames(5, 14), velocityX: LUNGE_SPEED, velocityZ: 0.0 }, { ...frames(15, 15), velocityX: 0.0, velocityZ: 0.0 }],
 };
-// Shadow Pursuit (#126): against a marked opponent within 2.5H, a 14-frame tell
-// (the mark flares), then on f15 she appears just behind the target facing
-// it, spending the mark, and slashes f18-20; ends f40. No intangibility.
+
+
+
 const PURSUIT_REACH = f32(H * f32(2.5));
 const SHADOW_PURSUIT: AuthoredSpecial = {
   endFrame: 40,
@@ -45,17 +45,17 @@ const SHADOW_PURSUIT: AuthoredSpecial = {
   regions: [heroRegion(18, 20, blade(16.0, 48.0, f32(f32(H * f32(0.80)) - KNIFE_RADIUS), 44.0), wardenHit(10.0, "EDGE", 35))],
 };
 
-// Up or down held through entry tilts the air dash 20 degrees; no later steering.
+
 const LUNGE_TILT = { x: f32(0.939692621), z: f32(0.342020143) };
 const PURSUIT_LUNGE_AIR: AuthoredSpecial = {
   ...PURSUIT_LUNGE, oncePerAirtime: true, helpless: true, landingLag: 12, aimFrames: 4,
   motion: [{ ...frames(5, 14), velocityX: LUNGE_SPEED, velocityZ: 0.0, aimedTilt: LUNGE_TILT }, { ...frames(15, 15), velocityX: 0.0, velocityZ: 0.0 }],
 };
 
-// Blink, the roster's charged-angle rule (#189) as a teleport: she hovers
-// through f8 while the stick picks one of eight directions, moves at once on
-// f9, intangible f8-10, then holds still at her vulnerable
-// endpoint through f30 (on the ground as well) before a helpless fall in the air.
+
+
+
+
 const blink = (distance: number): AuthoredSpecial => ({
   endFrame: 30, oncePerAirtime: true, helpless: true, aimFrames: CHARGED_AIM_FRAMES,
   motion: [
@@ -67,7 +67,7 @@ const blink = (distance: number): AuthoredSpecial => ({
 });
 const BLINK = blink(f32(H * f32(3.5)));
 
-// Fan of Knives reaches 1.30H; shield or bait the committed cast to punish it.
+
 export const WARDEN_FAN_REACH = f32(H * f32(1.30));
 const FAN = f32(WARDEN_FAN_REACH - KNIFE_RADIUS);
 const FAN_DIAGONAL = f32(FAN * f32(0.707106781));
@@ -94,7 +94,7 @@ const fanRegions = (scale = 1.0): readonly MoveRegion[] => {
 };
 const FAN_OF_KNIVES: AuthoredSpecial = { endFrame: 38, regions: fanRegions(), strikeStatus: POISON };
 
-// All seven rays expand about the same chest-height center.
+
 function withFanEx(kit: SpecialKit): SpecialKit {
   const upgraded = withExKit(kit, { reach: 1.25 });
   const form = (move: AuthoredSpecial): AuthoredSpecial => ({ ...move,

@@ -1,7 +1,7 @@
-// Forsaken Paladin's hammer and Light (smashcraft:docs/design/forsaken-paladin.md).
-// Frames follow the brief: entry is frame 1, windows are inclusive. A motion
-// window sets velocity exactly (no gravity or drag), so each travel is its
-// distance over its frames.
+
+
+
+
 import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HitElement } from "../codes";
@@ -52,10 +52,10 @@ const RIGHTEOUS_FURY_AIR: AuthoredSpecial = {
   landingLag: 20,
 };
 
-// Ascension, a guided rise (#189): travel f8-29, then helpless. It rises 2.9H with one
-// hammer hit on f10-15 and drifts
-// 0.2H forward plus up to 1.6H steered by the held stick, and stop on f29
-// so the helpless fall starts at the apex.
+
+
+
+
 const ASCENT_FIRST = 8;
 const ASCENT_LAST = 29;
 const ascension = (rise: number): AuthoredSpecial => ({

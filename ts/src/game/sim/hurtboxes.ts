@@ -1,6 +1,6 @@
-// Hurt volumes that follow each fighter's animation. A fighter's body is a few
-// authored capsules chosen from its state and attack frame; the drawn model
-// never decides contact. smashcraft:docs/hurtboxes.md describes the authoring.
+
+
+
 import { at } from "wisp/src/runtime/lookup";
 import { f32 } from "wisp/src/sim/f32";
 import { type Capsule, capsulesIntersect, emptyCapsule, hurtCapsule, placeCapsule } from "../physics/contactGeometry";
@@ -11,40 +11,40 @@ import type { Fighter } from "./fighter";
 import type { FighterMoves } from "./heroMoves";
 import { attackStartupFrames, characterAttackActiveFrames } from "./moves";
 
-/** How a body part takes a strike: a hit, a strike spent without effect, or nothing at all. */
+
 export const HurtState = { normal: 0, invincible: 1, intangible: 2 } as const;
 export type HurtState = (typeof HurtState)[keyof typeof HurtState];
 
-/** A facing-relative body capsule: the origin is the fighter's feet and positive x is in front. */
+
 export interface HurtPart {
   readonly x1: number;
   readonly z1: number;
   readonly x2: number;
   readonly z2: number;
   readonly radius: number;
-  /** Normal when absent. */
+
   readonly state?: HurtState | undefined;
 }
 
-/** The body over zero-based attack frames firstFrame..lastFrame, inclusive. */
+
 export interface HurtPose {
   readonly firstFrame: number;
   readonly lastFrame: number;
   readonly parts: readonly HurtPart[];
 }
 
-/**
- * A fighter's authored body. An attack frame no pose covers, and every state
- * without its own body, uses the standing body.
- */
+
+
+
+
 export interface FighterHurtboxes {
   readonly stand: readonly HurtPart[];
-  /** Grounded and crouching, outside attacks. */
+
   readonly crouch?: readonly HurtPart[] | undefined;
   readonly attacks: { readonly [style: number]: readonly HurtPose[] | undefined };
 }
 
-/** What a strike touched: no part, a normal part, or only invincible parts. */
+
 export const HurtContact = { none: 0, hit: 1, invincible: 2 } as const;
 export type HurtContact = (typeof HurtContact)[keyof typeof HurtContact];
 
@@ -52,20 +52,20 @@ export function hurtPart(x1: number, z1: number, x2: number, z2: number, radius:
   return state === undefined ? { x1, z1, x2, z2, radius } : { x1, z1, x2, z2, radius, state };
 }
 
-/** A pose over zero-based attack frames, as the simulation counts them. */
+
 export function hurtPose(firstFrame: number, lastFrame: number, parts: readonly HurtPart[]): HurtPose {
   return { firstFrame, lastFrame, parts };
 }
 
 const standingBody = (character: Character): readonly HurtPart[] => [hurtCapsule(character)];
 
-// Provisional authored volumes for the shipped fighters, fitted to their drawn
-// poses with `bun wisp view hurtboxes`. Weapons stay outside the body: only
-// limbs and torso extend.
-// Heights scale with each character's standing capsule; the per-fighter
-// intangible and invincible parts are provisional design choices
-// (smashcraft:docs/hurtboxes.md, "Shipped fighters").
-/** `moves` gives a kit's own timing to the poses it times (smashcraft:docs/design/tilts.md). */
+
+
+
+
+
+
+
 export function shippedHurtboxes(character: Character, moves?: FighterMoves): FighterHurtboxes {
   const body = hurtCapsule(character);
   const top = body.z2;
@@ -73,7 +73,7 @@ export function shippedHurtboxes(character: Character, moves?: FighterMoves): Fi
   const h = (fraction: number) => f32(top * fraction);
   const startup = (style: AttackStyle) => attackStartupFrames(style, moves);
   const lastActive = (style: AttackStyle) => startup(style) + characterAttackActiveFrames(character, style, moves) - 1;
-  /** The extended pose spans the last two startup frames to three recovery frames. */
+
   const reaching = (style: AttackStyle, parts: readonly HurtPart[], before: readonly HurtPart[] = []) => [
     ...(before.length > 0 ? [hurtPose(0, startup(style) - 3, before)] : []),
     hurtPose(startup(style) - 2, lastActive(style) + 3, parts),
@@ -82,24 +82,24 @@ export function shippedHurtboxes(character: Character, moves?: FighterMoves): Fi
   return {
     stand: [body],
     attacks: {
-      // An arm reaching toward the strike.
+
       [AttackStyle.jab]: reaching(AttackStyle.jab, [torso(4.0), hurtPart(8.0, h(f32(0.68)), 40.0, h(f32(0.6)), 9.0)]),
-      // The chain's later jabs reach the same arm, or a kicking leg low.
+
       ...(moves?.normals[AttackStyle.jab2] === undefined && character !== Character.demonHunter ? {} : {
         [AttackStyle.jab2]: reaching(AttackStyle.jab2,  [torso(4.0), hurtPart(8.0, h(f32(0.68)), 42.0, h(f32(0.62)), 9.0)]),
       }),
       ...(moves?.normals[AttackStyle.jab3] === undefined && character !== Character.demonHunter ? {} : {
         [AttackStyle.jab3]: reaching(AttackStyle.jab3, [torso(6.0), hurtPart(8.0, h(f32(0.66)), 46.0, h(f32(0.6)), 9.0)]),
       }),
-      // Ducked low: the torso drops and the front leg sweeps forward.
+
       [AttackStyle.downTilt]: reaching(AttackStyle.downTilt, [torso(8.0, 4.0, h(f32(0.62)), r), hurtPart(10.0, 10.0, 52.0, 6.0, 10.0)]),
-      // Wound back through startup, then the torso and striking arm commit forward.
+
       [AttackStyle.forwardSmash]: reaching(AttackStyle.forwardSmash,
         [torso(14.0), hurtPart(10.0, h(f32(0.62)), 48.0, h(f32(0.55)), 10.0)],
         [torso(-12.0)]),
-      // Tucked, with the front leg kicked out.
+
       [AttackStyle.forwardAir]: reaching(AttackStyle.forwardAir, [torso(0.0, h(f32(0.22)), h(f32(0.9))), hurtPart(10.0, h(f32(0.42)), 46.0, h(f32(0.32)), 10.0)]),
-      // Legs driven down below the feet; like every attacking limb, they can be hit.
+
       [AttackStyle.downAir]: reaching(AttackStyle.downAir, [torso(0.0, h(f32(0.35))), hurtPart(0.0, h(f32(0.35)), 4.0, -18.0, 12.0)]),
     },
   };
@@ -111,7 +111,7 @@ const CHARACTER_HURTBOXES: Readonly<Record<number, FighterHurtboxes>> = {
   2: FALLBACK_HURTBOXES,
 };
 
-/** The authored body set a fighter uses: its hero kit's, or its character's. */
+
 export function fighterHurtboxes(f: Readonly<Fighter>): Readonly<FighterHurtboxes> {
   const moves = f.tuning.moves;
   if (moves !== undefined) return moves.hurtboxes ?? defaultHurtboxes(f.character);
@@ -120,7 +120,7 @@ export function fighterHurtboxes(f: Readonly<Fighter>): Readonly<FighterHurtboxe
 
 const DEFAULTS: FighterHurtboxes[] = [];
 
-/** A kit without authored hurt volumes keeps its character's standing body in every state. */
+
 function defaultHurtboxes(character: Character): Readonly<FighterHurtboxes> {
   let set = DEFAULTS[character];
   if (set === undefined) {
@@ -130,10 +130,10 @@ function defaultHurtboxes(character: Character): Readonly<FighterHurtboxes> {
   return set;
 }
 
-/**
- * A running hero special's authored body on its current special frame (the
- * roster brief's numbering, entry frame 1); undefined outside its poses.
- */
+
+
+
+
 function specialHurtParts(f: Readonly<Fighter>): readonly HurtPart[] | undefined {
   const specials = f.tuning.specials;
   const { action, frame, form } = f.special;
@@ -144,7 +144,7 @@ function specialHurtParts(f: Readonly<Fighter>): readonly HurtPart[] | undefined
   return undefined;
 }
 
-/** The fighter's facing-relative body parts on its current frame. */
+
 export function fighterHurtParts(f: Readonly<Fighter>): readonly HurtPart[] {
   const set = fighterHurtboxes(f);
   const special = specialHurtParts(f);
@@ -164,13 +164,13 @@ export function fighterHurtParts(f: Readonly<Fighter>): readonly HurtPart[] {
   return set.stand;
 }
 
-// Preallocated: hit selection places every target part for every strike, replays included.
+
 const placed = emptyCapsule();
 
-/**
- * Whether a placed strike capsule touches the target's body: a normal part
- * hits, invincible parts alone spend the strike, intangible parts pass it.
- */
+
+
+
+
 export function strikeHurtContact(strike: Readonly<Capsule>, target: Readonly<Fighter>, z = target.motion.z): HurtContact {
   const parts = fighterHurtParts(target);
   const facing = fighterPoseFacing(target);
@@ -186,12 +186,12 @@ export function strikeHurtContact(strike: Readonly<Capsule>, target: Readonly<Fi
   return contact;
 }
 
-/** Grabs take any part a strike could touch, invincible ones included; `z` places the body for an early-ascent catch. */
+
 export function grabTouchesBody(strike: Readonly<Capsule>, target: Readonly<Fighter>, z = target.motion.z): boolean {
   return strikeHurtContact(strike, target, z) !== HurtContact.none;
 }
 
-/** Styles the shipped fighters author poses for; tests and captures iterate them. */
+
 export const AUTHORED_SAMPLE_STYLES: readonly AttackStyle[] = [
   AttackStyle.jab, AttackStyle.downTilt, AttackStyle.forwardSmash, AttackStyle.forwardAir, AttackStyle.downAir,
 ];

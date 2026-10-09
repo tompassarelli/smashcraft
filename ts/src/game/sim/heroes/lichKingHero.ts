@@ -1,7 +1,7 @@
-// The Lich King's registration (#167): Arthas in the Helm of Domination with
-// Frostmourne, on Kwaliti's model (Hive Workshop, credited in the map and
-// smashcraft:docs/design/roster.md). Set `complete` only when the whole base
-// kit works (hero.ts).
+
+
+
+
 import { LICH_KING_ICON, LICH_KING_MODEL } from "../../assets/importedModelInfo";
 import { Character } from "../codes";
 import type { HeroDefinition } from "./hero";

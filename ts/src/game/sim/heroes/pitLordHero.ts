@@ -1,5 +1,5 @@
-// Pit Lord's registration: identity, kit and presentation (#121). Set
-// `complete` only when the whole base kit works (hero.ts).
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { jabSlice } from "./groundNormals";
 import { Character } from "../codes";
@@ -9,29 +9,29 @@ import { PIT_LORD_MOVES } from "./pitLordMoves";
 import { PIT_LORD_SPECIALS } from "./pitLordSpecials";
 import { PIT_LORD_SPECIAL_CLIPS } from "../../presentation/heroes/pitLordClipInfo";
 
-// The classic HeroPitLord model's seventeen sequences by file index, with
-// their lengths. Shapes come from each sequence's extents: Attack reaches
-// furthest forward at mid height, the Attack Slam pairs swing the cleaver
-// overhead and down in front, "attack - 2" sweeps both sides and Spell Slam
-// and Spell raise it highest. The model has no hit or ready stance.
+
+
+
+
+
 const clip = (index: number, seconds: number): HeroClip => ({ index, seconds });
 const STAND_3 = clip(0, f32(2.833));
 const WALK = clip(1, f32(1.333));
 const STAND = clip(2, f32(2.667));
 const WALK_FAST = clip(3, f32(0.467));
-/** Stand - 2: a short shift of weight, used for flinches. */
+
 const STAND_2 = clip(4, f32(1.167));
-/** Attack Slam - 1: the cleaver overhead and down in front (forward 288, up 290). */
+
 const ATTACK_SLAM_1 = clip(5, 1.5);
-/** Spell Slam: raised high (339) and driven down. */
+
 const SPELL_SLAM = clip(6, 1.5);
-/** Attack: the forward thrust (282 ahead at mid height). */
+
 const ATTACK = clip(7, 1.5);
 const DEATH = clip(8, f32(2.667));
 const DISSIPATE = clip(9, 2.0);
-/** Attack Slam - 2: a sweep across both sides (254 each way). */
+
 const ATTACK_SLAM_2 = clip(13, f32(1.667));
-/** Spell: arms raised highest (370). */
+
 const SPELL = clip(14, 1.5);
 const ATTACK_2 = clip(15, f32(1.667));
 const ATTACK_3 = clip(16, 1.5);
@@ -62,7 +62,7 @@ export const PIT_LORD_HERO: HeroDefinition = {
       knockdown: DEATH, getUp: STAND_2, downDamage: DEATH,
       rollForward: WALK_FAST, rollBackward: WALK_FAST, spotDodge: STAND_2,
       jump: STAND_2, doubleJump: STAND_2, fallSpecial: STAND_3,
-      // The Attack Slam's heave shoves him off a wall; a wall tech braces with Spell Slam.
+
       wallJump: ATTACK_SLAM_1, wallTech: SPELL_SLAM,
       damageGround: STAND_2, damageAir: STAND_2, damageTumble: STAND_2, damageShield: STAND_2,
       grabHold: STAND, grabbed: STAND_2,

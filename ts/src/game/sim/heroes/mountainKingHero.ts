@@ -1,5 +1,5 @@
-// Mountain King's registration: identity, kit and presentation. Owned by this hero's
-// lane; set `complete` only when the whole base kit works (hero.ts).
+
+
 import { Character } from "../codes";
 import { MOUNTAIN_KING_CLIPS, MOUNTAIN_KING_FALLBACK } from "../../presentation/heroes/mountainKingClips";
 import type { HeroDefinition } from "./hero";

@@ -3,10 +3,10 @@ import type { Fighter } from "./fighter";
 import type { Controls } from "./roster";
 import { stickX, stickZ } from "./stick";
 
-// Mario NTSC 1.02 cardinal reach / shield radius, numerical facts only:
-// https://github.com/technospider-ssbm/melee-shield-tilt/blob/e8c05c2a0ed3419c1f461d0a5cb11728d01aa3b1/data/Mr.csv
-// Neutral (1.375, 7.168952); full up/down/forward/back offsets 4.400041,
-// 3.6297448, 2.75, 3.3000001. Radius 6.799376. Smashcraft scales these to its authored radius.
+
+
+
+
 const RETAIL_RADIUS = f32(6.799376);
 const UP_REACH = f32(4.400041);
 const DOWN_REACH = f32(3.6297448);

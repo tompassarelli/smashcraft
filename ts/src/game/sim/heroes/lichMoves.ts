@@ -8,16 +8,16 @@ import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
 import { type Strike, linkAt, multiHit } from "./multiHit";
 
-// Original geometry for smashcraft:docs/design/roster.md; the frost volumes
-// stay attached to the caster and never become traveling projectiles.
+
+
 const S = f32(HERO_REFERENCE_HEIGHT * f32(0.55));
 const M = f32(HERO_REFERENCE_HEIGHT * f32(0.80));
 const L = f32(HERO_REFERENCE_HEIGHT * f32(1.10));
 const XL = f32(HERO_REFERENCE_HEIGHT * f32(1.40));
 const GRAB = f32(HERO_REFERENCE_HEIGHT * f32(0.70));
 
-// Provisional hypotheses in the existing formula, not measured displacement
-// calibration or evidence that a LINK guarantees a follow-up.
+
+
 const CLASS = {
   LINK: { growth: 55.0, base: 12.0 },
   POKE: { growth: 75.0, base: 18.0 },
@@ -25,7 +25,7 @@ const CLASS = {
   EDGE: { growth: 110.0, base: 22.0 },
   KILL: { growth: 120.0, base: 26.0 },
   SPIKE: { growth: 100.0, base: 22.0 },
-  // Throw roles (#107): an up throw's guaranteed short juggle and a down throw's tech chase.
+
   JUGGLE: { growth: 70.0, base: 45.0 },
   CHASE: { growth: 40.0, base: 75.0 },
 } as const;
@@ -59,8 +59,8 @@ function palm(first: number, heights: readonly number[]): readonly MoveRegion[] 
   return heights.map((height, index) => frame(first + index, capsule(20.0, 45.0, f32(M - 8.0), height), hit(8.0, "POKE", 35)));
 }
 
-/** Opposite thin arcs rotate around the torso instead of filling their box. */
-/** Frost Halo (#152): a ring around the torso that pulses, after Ultimate's rehitting n-airs. */
+
+
 function halo(): readonly MoveRegion[] {
   const outer = f32(M - 10.0);
   const diagonal = f32(outer * f32(0.707106781));
@@ -73,7 +73,7 @@ function halo(): readonly MoveRegion[] {
     capsule(-diagonal, f32(45.0 - diagonal), -18.0, f32(45.0 - outer), 10.0),
   ];
   const ring = [...strikes, ...strikes.map(strike => capsule(-strike.x1, f32(90.0 - strike.z1), -strike.x2, f32(90.0 - strike.z2), strike.radius))];
-  // Three chilling pulses hold a target in the ring at any percent; the last bursts outward.
+
   const hold = (effect: Readonly<HitEffect>): readonly Strike[] => ring.map(strike => [strike, effect]);
   const burst: readonly Strike[] = ring.map(strike => [strike, hit(4.0, "POKE", 50, strike.x1 + strike.x2 < 0.0)]);
   return multiHit([
@@ -99,9 +99,9 @@ function throwMove(release: number, recovery: number, damage: number, kind: keyo
   return { contactFrame: release, totalFrames: release + recovery, effect: hit(damage, kind, angle, backwards) };
 }
 
-// Lich's body: his standing hurt capsule (the roster's width and height). Lich has no weapon, so the conjured frost beyond the hand is the
-// move's disjoint while the casting arm extends the body from late startup
-// through early recovery; a whiffed cast is punishable at the hand.
+
+
+
 const BODY_RADIUS = hurtCapsule(Character.lich).radius;
 const BODY_TOP = hurtCapsule(Character.lich).z2;
 const SHOULDER = f32(BODY_TOP - 14.0);
@@ -110,7 +110,7 @@ const ARM_RADIUS = 9.0;
 const arm = (handX: number, handZ: number, shoulderX = 8.0) => hurtPart(shoulderX, SHOULDER, handX, handZ, ARM_RADIUS);
 const reach = (first: number, last: number, ...limbs: readonly HurtPart[]) => [heroHurtPose(first, last, [TORSO, ...limbs])];
 
-/** A special's casting arm over special frames (entry frame 1). */
+
 export const lichCastBody = (first: number, last: number, handX: number, handZ: number): readonly HurtPose[] =>
   [hurtPose(first, last, [TORSO, arm(handX, handZ)])];
 
@@ -124,11 +124,11 @@ const LICH_BODY: FighterHurtboxes = {
     [AttackStyle.upSmash]: reach(16, 30, arm(10.0, f32(BODY_TOP + 20.0)), arm(-10.0, f32(BODY_TOP + 20.0), -8.0)),
     [AttackStyle.downSmash]: reach(16, 28, arm(28.0, 14.0), arm(-28.0, 14.0, -8.0)),
     [AttackStyle.forwardAir]: reach(10, 18, arm(28.0, 47.0)),
-    // Bone Spike: an elbow-and-hand strike, so the rear arm reaches the burst's root.
+
     [AttackStyle.backAir]: reach(8, 15, arm(-34.0, 47.0, -8.0)),
     [AttackStyle.upAir]: reach(6, 14, arm(8.0, f32(BODY_TOP + 16.0))),
     [AttackStyle.downAir]: reach(13, 22, arm(10.0, -6.0)),
-    // The spectral hand is conjured; the real arm reaches toward it.
+
     [AttackStyle.grab]: reach(8, 14, arm(30.0, 47.0)),
   },
 };

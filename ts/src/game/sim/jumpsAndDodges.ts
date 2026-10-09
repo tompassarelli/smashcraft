@@ -1,4 +1,4 @@
-// Starting jumps, air dodges and ground dodges.
+
 import { f32 } from "wisp/src/sim/f32";
 import { Character, DownState, LedgeState, PlatformMove, ShieldBreak, SurfaceContact } from "./codes";
 import { inGrabContext, inSurfaceTechStartup, isGroundDodging, isTumbling } from "./conditions";
@@ -10,22 +10,22 @@ import { observeActionDecision, observeActionStart } from "./observations";
 import { clearDownState } from "./transitions";
 import { melee } from "./tuning";
 
-// #347 deliberately exceeds Melee’s 3.1 by about 10%; decay and dodge timing stay shared.
+
 const AIR_DODGE_SPEED = melee(f32(3.4));
 export const AIR_DODGE_DECAY = 0.8999999761581421;
-// EscapeAir processes animation frame one before entry physics; frame 30 resumes air physics.
+
 const AIR_DODGE_DECAY_FRAMES = 29;
 export const AIR_DODGE_ANIMATION_FRAMES = 49;
 // Cos and Sin of 18 * bj_DEGTORAD, as the Wurst interpreter evaluates them in binary32.
 const SHALLOW_DODGE_COS = 0.9510565996170044;
 const SHALLOW_DODGE_SIN = 0.30901676416397095;
-/** Action bits in decision observations. */
+
 export const JUMP_BIT = 16;
 const DODGE_BITS = 768;
 
 const sign = (value: number) => (value === 0 ? 0 : value > 0 ? 1 : -1);
 
-/** Whether an ongoing state blocks jumps and air dodges alike. */
+
 export function lockedOut(f: Fighter): boolean {
   return inSurfaceTechStartup(f) || inGrabContext(f) || f.ledge.state !== LedgeState.none || f.status.out || f.special.fall
     || f.shield.breakState !== ShieldBreak.none || (f.down.state !== DownState.none && !isTumbling(f))
@@ -33,7 +33,7 @@ export function lockedOut(f: Fighter): boolean {
     || f.platform.move !== PlatformMove.none;
 }
 
-/** Starts jump squat on the ground or a double jump in the air. */
+
 export function beginJump(f: Fighter, horizontal: number, shortHop = false): void {
   const { motion, jump, shield } = f;
   if (lockedOut(f) || (shield.releaseLag > 0 && !motion.grounded) || f.dodge.airDodging || isGroundDodging(f) || jump.squat > 0 || jump.remaining <= 0) return;
@@ -50,7 +50,7 @@ export function beginJump(f: Fighter, horizontal: number, shortHop = false): voi
     jump.squat = f.tuning.physics.jumpSquatFrames;
     jump.held = !shortHop;
   } else {
-    // Illidan keeps horizontal momentum on his aerial jump.
+
     if (f.character !== Character.demonHunter) motion.vx = f32(horizontal * f.tuning.physics.aerialJumpHorizontalSpeed);
     motion.vz = jumpBuffed(f, f.tuning.physics.aerialJumpSpeed);
     jump.serial++;
@@ -61,10 +61,10 @@ export function beginJump(f: Fighter, horizontal: number, shortHop = false): voi
   observeActionStart(JUMP_BIT);
 }
 
-/**
- * An air dodge in a digital direction; horizontal dodges angle shallowly downward, explicit vertical input stays directional.
- * One per airtime, ending actionable rather than helpless (owner decision, #100).
- */
+
+
+
+
 export function beginAirDodge(f: Fighter, horizontal: number, vertical: number): void {
   const { motion, launch, dodge } = f;
   if (lockedOut(f) || motion.grounded || dodge.airDodging || dodge.airUsed || dodge.airMotionFrames > 0) return;
@@ -110,7 +110,7 @@ export function canBeginGroundDodge(f: Fighter): boolean {
     && f.grab.grabbedFrames <= 0 && !f.dodge.airDodging && !isGroundDodging(f) && (shield.raised || shield.energy > 0);
 }
 
-/** A roll toward direction, or a spot dodge for zero; the roll keeps its entry facing until it ends. */
+
 export function beginGroundDodge(f: Fighter, direction: number): void {
   const { dodge } = f;
   f.motion.crouching = false;

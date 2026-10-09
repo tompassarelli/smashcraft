@@ -14,7 +14,7 @@ export function exSpecialAffordable(f: Readonly<Fighter>): boolean {
   return f.mana.points >= ROSTER_MANA.max;
 }
 
-/** Entry captures the modifier; holding shield later cannot upgrade a running cast. */
+
 export function enterExSpecial(f: Fighter, input: Readonly<Controls>): void {
   f.special.ex = exSpecialPressed(input) && exSpecialAffordable(f);
   f.special.exArmorUsed = false;

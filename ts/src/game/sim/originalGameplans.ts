@@ -1,18 +1,18 @@
-// The original fighters' gameplans (sim/gameplan.ts, #105), by Character
-// code. A fighter missing here plays the general computer. the reference body's and
-// Rifleman's identities are written in smashcraft:docs/design/roster.md,
-// "Original fighters"; Illidan's gameplan lives in illidanGameplan.ts.
+
+
+
+
 import { AttackStyle, Character } from "./codes";
 import { type FighterGameplan, GameplanSpecial, GameplanThrow } from "./gameplan";
 import { ILLIDAN_GAMEPLAN } from "./illidanGameplan";
 
-/**
- * Rifleman: slow on the ground and late off it, but floaty, a little heavier
- * and harder-hitting. He holds ground: the blaster shoots from range, the bear
- * walks ahead as cover, the freezing trap guards the gap in front of him and
- * sets up a smash, and his down tilt hits hardest of the originals. He never
- * chases and doesn't fight in close, where his slow start loses scrambles.
- */
+
+
+
+
+
+
+
 const RIFLEMAN: FighterGameplan = {
   range: { near: 220.0, far: 520.0 },
   spacing: [

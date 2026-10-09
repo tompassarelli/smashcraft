@@ -1,7 +1,7 @@
-// Keep the complete frame order together: a later phase reads the state
-// written by earlier phases, including contact and landing on the same tick.
-// One fighter's frame: timers, input transitions, steering, gravity, motion,
-// wall contacts and landing, in the order the retail engine applies them.
+
+
+
+
 import { max, min } from "../../runtime/numbers";
 import { divideFloat32, roundToFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
@@ -100,13 +100,13 @@ const FAST_FALL_DOWN_THRESHOLD = 0.6625000238418579;
 const STICK_SMASH_DEADZONE_X = 0.25;
 /** Melee common +0x210/+0x214: tumble ends on a flick at least this far sideways, on the frame it crosses the deadzone. */
 const TUMBLE_EXIT_STICK_X = 0.800000011920929;
-/** Dash-to-guard after the early window opens a dash-grab window this long. */
+
 const LATE_DASH_GUARD_GRAB_WINDOW = 3;
-/** Action bits in decision observations. */
+
 const GUARD_BITS = 768;
 const STEERING_BITS = 16399;
 
-/** Scripted startup travel is clamped before the body reaches a raised shield. */
+
 function attackStartupTravel(world: Roster, slot: number): number {
   const f = fighterAt(world, slot);
   const move = f.attack.style === undefined ? undefined : f.tuning.moves?.normals[f.attack.style];
@@ -115,13 +115,13 @@ function attackStartupTravel(world: Roster, slot: number): number {
   return f32(distance * f.facing);
 }
 
-/** Advances one fighter's frame and regenerates its shield; `matchFrame` places moving decks, and a stage at rest needs none. */
+
 export function advanceFighter(world: Roster, slot: number, stage: number, input: Readonly<Controls>, respawnX: number, matchFrame = 0): void {
   advanceFighterMotion(world, slot, stage, matchFrame, input, respawnX);
   regenerateShield(fighterAt(world, slot));
 }
 
-/** Counts down a stock-out to respawn; true while the fighter is out. */
+
 function advanceOut(world: Roster, slot: number, respawnX: number): boolean {
   const { status } = fighterAt(world, slot);
   if (!status.out) return false;
@@ -131,7 +131,7 @@ function advanceOut(world: Roster, slot: number, respawnX: number): boolean {
   return true;
 }
 
-/** Freeze and trap timers, mashing out of a freeze as out of a grab; true while the fighter was frozen at the start of the frame. */
+
 function advanceFreeze(f: Fighter, input: Readonly<Controls>): boolean {
   const { status } = f;
   const trap = f.freezeTrap;
@@ -151,7 +151,7 @@ function advanceFreeze(f: Fighter, input: Readonly<Controls>): boolean {
   return wasFrozen;
 }
 
-/** Ends get-up states whose animations finished. */
+
 function endFinishedDownStates(f: Fighter): void {
   const { down } = f;
   if (isFloorTeching(f) && down.frame >= (down.state === DownState.tech ? TECH_IN_PLACE_FRAMES : TECH_ROLL_FRAMES)) clearDownState(f);
@@ -160,7 +160,7 @@ function endFinishedDownStates(f: Fighter): void {
   else if (down.state === DownState.attack && down.frame >= DOWN_ATTACK_FRAMES) clearDownState(f);
 }
 
-/** Smash charge and the action clocks it pauses; true when charging held the clocks this frame. */
+
 function advanceActionClocks(f: Fighter, input: Readonly<Controls>): boolean {
   const { attack, special } = f;
   let smashChargePaused = false;
@@ -183,7 +183,7 @@ function advanceActionClocks(f: Fighter, input: Readonly<Controls>): boolean {
   if (special.lockFrames > 0) special.lockFrames--;
   const cooldowns = special.cooldowns;
   for (let action = 1; action < cooldowns.length; action++) {
-    // Dense: every index below length holds a number.
+
     const remaining = cooldowns[action] ?? 0;
     if (remaining !== 0) cooldowns[action] = max(0, remaining - 1);
   }
@@ -203,11 +203,11 @@ function advanceActionClocks(f: Fighter, input: Readonly<Controls>): boolean {
   return false;
 }
 
-/** Jump squat countdown and takeoff; true on a takeoff that replaces this frame's steering and gravity. */
+
 function advanceJumpSquat(f: Fighter, input: Readonly<Controls>, squatBeforeInput: number): boolean {
   const { jump, motion } = f;
   const physics = f.tuning.physics;
-  // Illidan retains his entry-frame squat countdown and immediate jump physics.
+
   const illidan = f.character === Character.demonHunter;
   if (jump.ascent > 0) jump.ascent = motion.grounded || jump.ascent >= EARLY_ASCENT_GRAB_FRAMES ? 0 : jump.ascent + 1;
   if (!(jump.squat > 0 && f.launch.hitlag === 0 && (illidan || squatBeforeInput > 0))) return false;
@@ -245,7 +245,7 @@ function advanceGroundDodge(f: Fighter, groundDodgeStarted: boolean): void {
   }
 }
 
-/** Guard entry, hold and release; returns whether the fighter wants its shield this frame. */
+
 function advanceGuard(f: Fighter, input: Readonly<Controls>, forcedShield: boolean): boolean {
   const { shield, motion, ground } = f;
   if (!forcedShield && exSpecialPressed(input) && canStartAttack(f)) {
@@ -269,7 +269,7 @@ function advanceGuard(f: Fighter, input: Readonly<Controls>, forcedShield: boole
       if (wantsShield) {
         shield.heldFrames++;
       } else if (shield.raised && !input.shield) {
-        // A parry's reward drops the shield with no release lag.
+
         shield.releaseLag = shield.perfectActionFrames > 0 ? 0 : SHIELD_RELEASE_LAG_FRAMES;
         shield.heldFrames = 0;
       }
@@ -289,7 +289,7 @@ function advanceGuard(f: Fighter, input: Readonly<Controls>, forcedShield: boole
     shield.reflectFrames = SHIELD_REFLECTOR_ACTIVE_FRAMES;
     shield.perfectFrames = SHIELD_PERFECT_ACTIVE_FRAMES;
   } else if (fullPress && forcedShield && !shield.redParryTried) {
-    // A red parry: a fresh press in shieldstun, timed tighter, parries the next hit.
+
     shield.redParryTried = true;
     shield.reflectFrames = SHIELD_RED_PARRY_FRAMES;
     shield.perfectFrames = SHIELD_RED_PARRY_FRAMES;
@@ -299,7 +299,7 @@ function advanceGuard(f: Fighter, input: Readonly<Controls>, forcedShield: boole
   return wantsShield;
 }
 
-/** Horizontal displacement for the frame, rounded per channel; dodge rolls stay on their deck. */
+
 function moveHorizontally(f: Fighter, stage: number, matchFrame: number, dashEntryDisplacementAdjustment: number): void {
   const { motion, launch, shield, dodge } = f;
   if (isGroundDodging(f) && dodge.groundDirection !== 0) {
@@ -317,7 +317,7 @@ function moveHorizontally(f: Fighter, stage: number, matchFrame: number, dashEnt
   }
   if (motion.grounded) {
     const ground = addMeleeWorldValues(f32(motion.vx + dashEntryDisplacementAdjustment), shield.pushbackX);
-    // Melee moves ground speed along the floor line, so a slope takes its horizontal share.
+
     const line = motion.surface === undefined ? undefined : surfaceLine(stage, motion.surface);
     moveMeleeX(f, line === undefined ? ground : f32(ground * groundLineCosine(line, motion.x)));
   } else {
@@ -327,17 +327,17 @@ function moveHorizontally(f: Fighter, stage: number, matchFrame: number, dashEnt
   moveMeleeX(f, shield.recoilX);
 }
 
-/**
- * The highest deck the frame's descent crossed within its span, if the
- * fighter is not rising toward it. A moving deck is met as it moves: the step
- * starts where the fighter was relative to the deck a frame ago, as Melee's
- * mpCheckFloorRemap moves the collision box's previous bottom with its line
- * (melee:src/melee/mp/mplib.c), except on the deck that `carried` the
- * fighter this frame, which already moved it along.
- */
+
+
+
+
+
+
+
+
 function landingDeck(f: Fighter, stage: number, matchFrame: number, oldX: number, oldZ: number, carried: number | undefined): number | undefined {
   const { motion } = f;
-  // Most frames cross no deck's height, so the rise is only found for one that is crossed.
+
   let rise: number | undefined;
   let landing: number | undefined;
   let landingZ = 0.0;
@@ -373,7 +373,7 @@ function landingDeck(f: Fighter, stage: number, matchFrame: number, oldX: number
   return landing;
 }
 
-/** Advances one fighter's frame. The match step regenerates shields separately, after contact collection. */
+
 export function advanceFighterMotion(world: Roster, slot: number, stage: number, matchFrame: number, input: Readonly<Controls>, respawnX: number): void {
   const f = fighterAt(world, slot);
   const { motion, launch, shield, attack, jump, dodge, down, status } = f;
@@ -383,14 +383,14 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   if (advanceOut(world, slot, respawnX)) return;
   renewSmashDirectionalInfluenceString(f);
   if (inStageCannon(f)) return;
-  // The deck this fighter stands on carried it before the frame began (carryOnMovingDecks).
+
   const carried = motion.grounded ? motion.surface : undefined;
   jump.inputAge =input.jumpPressed ? 0 : min(WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, jump.inputAge + 1);
   if (advanceFreeze(f, input)) {
     checkBlastZone(world, slot, stage);
     return;
   }
-  // Direction freshness is input time, including hitlag; ages beyond the window are equivalent.
+
   const downHeld = (input.down ? 1.0 : 0.0) >= FAST_FALL_DOWN_THRESHOLD;
   motion.fastFallInputAge = downHeld ? (motion.fastFallDownHeld ? min(PLATFORM_DROP_INPUT_WINDOW, motion.fastFallInputAge + 1) : 0) : PLATFORM_DROP_INPUT_WINDOW;
   motion.fastFallDownHeld = downHeld;
@@ -406,11 +406,11 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   } else {
     motion.turnaroundAge = min(TURNAROUND_SPECIAL_WINDOW_FRAMES + 1, motion.turnaroundAge + 1);
   }
-  // Expiry resumes this frame, including input gates and state countdowns.
+
   const hitlagBefore = launch.hitlag;
   launch.hitlag = max(0, launch.hitlag - 1);
   launch.hitlagEndAge = hitlagBefore > 0 ? 0 : min(16, launch.hitlagEndAge + 1);
-  // A jump or ground dodge pressed during a parried hit's freeze starts on its first actionable frame.
+
   let parryOption: ParryBuffer = ParryBuffer.none;
   const parryDirection = shield.parryBufferDirection;
   if (launch.hitlag > 0) {
@@ -431,7 +431,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     return;
   }
   if (shield.breakState !== ShieldBreak.none && advanceShieldBreak(world, slot, stage, matchFrame, input)) return;
-  // Only the guard present at the animation boundary drains; input may enter or leave guard later.
+
   if (launch.hitlag <= 0 && shield.raised && shieldDrainShouldResume(f, shield.stun > 0)) {
     if (input.shield) shield.strength = input.shieldStrength;
     shield.energy = subtractFloat32(shield.energy, shieldDrain(shield.strength));
@@ -479,7 +479,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   if (launch.hitstun === 0) launch.throwHitstun = false;
   const squatBeforeInput = jump.squat;
   if (input.jumpPressed || input.attackPressed) demonHunterJumpOrGlideCancel(f, input);
-  // In the sea a jump is the water jump; a fighter that can't take it keeps its double jump.
+
   const wet = sea.wet(f, stage);
   const waterJumped = wet && (input.jumpPressed || parryOption === ParryBuffer.jump) && !wallJumped && sea.beginWaterJump(f, input.direction);
   if ((input.jumpPressed || parryOption === ParryBuffer.jump) && !wallJumped && !waterJumped) beginJump(f, input.direction, input.shortHopPressed);
@@ -546,7 +546,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     motion.vx = max(-airSpeed, min(airSpeed, motion.vx));
   }
   let dashEntryDisplacementAdjustment = 0.0;
-  // Illidan's glide sets the velocity each frame (specials.ts).
+
   const authoredMotion = carryHeroStatus(f) || heroMotionHolds(f) || demonHunterGliding(f);
   const canSteer = !authoredMotion && down.state === DownState.none && launch.hitstun <= 0 && (!dodge.airDodging || !dodgeActive) && !isGroundDodging(f)
     && shield.releaseLag <= 0 && f.landing.lag <= 0 && shield.stun <= 0 && jump.squat <= 0 && !smashChargePaused
@@ -562,10 +562,10 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     if (wantsShield) direction = 0;
     if (motion.grounded) {
       const previousGroundVelocity = motion.vx;
-      // Dash entry stores new ground velocity after this frame's displacement.
+
       if (advanceGroundMovement(f, direction, input.walking, horizontalStick, floorFriction(stage, motion))) dashEntryDisplacementAdjustment = f32(previousGroundVelocity - motion.vx);
     } else if (direction !== 0 && !groundTakeoff) {
-      // Air steering changes velocity, not facing; back aerials rely on a stable orientation.
+
       const driftStick = input.driftStickX ?? direction;
       motion.vx = wet ? sea.swimVelocity(motion.vx, direction) : airDriftVelocity(f, motion.vx, driftStick === 0 ? direction : driftStick);
     }
@@ -583,8 +583,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     const drag = motion.grounded ? floorTraction(physics.traction, floorFriction(stage, motion)) : physics.airFriction;
     motion.vx = motion.vx > 0 ? max(0.0, f32(motion.vx - drag)) : min(0.0, f32(motion.vx + drag));
   }
-  // A fresh down, as Melee's drop needs (ftCo_Pass.c), descends; landing on a deck with down held stays on it, and the
-  // tilt modifier keeps a digital down for crouching and down tilts.
+
+
   if (input.down && !input.walking && motion.fastFallInputAge < PLATFORM_DROP_INPUT_WINDOW && !input.attackRequested && down.state === DownState.none
     && motion.grounded && motion.surface !== undefined && surfacePass(stage, motion.surface) && canAttack(f)) {
     beginPlatformDescent(f, stage, matchFrame);
@@ -624,23 +624,23 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   moveMeleeZ(f, divideFloat32(launch.knockbackZ, WORLD_UNITS_PER_MELEE_UNIT));
   moveMeleeZ(f, divideFloat32(shield.recoilZ, WORLD_UNITS_PER_MELEE_UNIT));
   if (buoyant) sea.floatAtSurface(f);
-  // Melee adds the wind to the position after the frame's velocities, before collision (fighter.c Fighter_procUpdate, windOffset).
+
   if (!isGroundDodging(f)) moveMeleeX(f, windPush(stage, matchFrame, motion.x, motion.z));
   const frameDeltaX = f32(motion.x - oldX);
   const frameDeltaZ = f32(motion.z - oldZ);
   const edge = passThroughEdge(world, slot, stage, oldX, oldZ);
   let wallSide = edge === EdgePass.none ? resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input) : 0;
   rideWall(f, wallSide, frameDeltaX, frameDeltaZ, oldX, oldZ);
-  // Rising into a platform ascends it; a half-circle onto one wraps under it instead of landing.
+
   const ascending = edge === EdgePass.none && beginPlatformAscent(f, stage, matchFrame);
   const landing = edge === EdgePass.land ? 0 : edge !== EdgePass.none || ascending ? undefined : landingDeck(f, stage, matchFrame, oldX, oldZ, carried);
   const wrapping = landing !== undefined && beginPlatformWrapUnder(f, stage, matchFrame, landing);
   if (landing !== undefined && !wrapping) {
     finishLanding(f, stage, matchFrame, input, landing, false);
   } else if (!ascending && !wrapping) {
-    // Moving into a wall that leans out puts the fighter inside the body
-    // rather than across a face; moved back out, it is against that wall as
-    // Melee's collision reports it. One leaving a ledge's corner is not.
+
+
+
     const bodySide = leaveMainDeckBody(f, stage);
     if (wallSide === 0 && f32(bodySide * frameDeltaX) > 0) wallSide = bodySide;
     if (motion.grounded) jump.remaining = min(jump.remaining, aerialJumps(f));

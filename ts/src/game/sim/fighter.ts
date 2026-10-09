@@ -1,9 +1,9 @@
-// Fighter-owned records, construction and copying stay together so every
-// mutable rollback field can be reviewed against the complete Fighter type.
-// A fighter's complete simulation state as plain data. References to other
-// fighters are participant slots, so a rollback snapshot is a field-by-field
-// copy and code can be replaced while state is kept. Replay checksums write
-// an absent slot or surface as -1 at that boundary.
+
+
+
+
+
+// Replay checksums serialize an absent fighter slot or surface as -1.
 import { type TechInput, emptyTechInput } from "../physics/techInput";
 import { at } from "wisp/src/runtime/lookup";
 import {
@@ -29,7 +29,7 @@ import type { SpecialPlacement, SpecialProjectile } from "./heroSpecials";
 
 export const PROJECTILE_CAPACITY = 16;
 export const SHIELD_MAX = 60.0;
-// Common NTSC 1.02 input counters; the shield geometry is Smashcraft's own.
+
 export const SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES = 2;
 export const FAST_FALL_INPUT_WINDOW = 4;
 /** PlCo +0x468: a platform drop needs down pressed fewer input frames ago than this. */
@@ -40,13 +40,13 @@ export const WALL_JUMP_FLICK_FRAMES = 3;
 /** A neutral special faces the side the stick last pressed at most this many input frames before it (smashcraft:docs/gameplay-design.md, "Turnaround specials"). */
 export const TURNAROUND_SPECIAL_WINDOW_FRAMES = 8;
 const STARTING_STOCKS = 3;
-/** A tech press age that is never inside a window; the input driver saturates at 255. */
 
-/**
- * A position or velocity kept in Melee units alongside its rounded world value.
- * Original-unit accumulation survives the projection; a published value that no
- * longer matches the world field identifies an intervening world write.
- */
+
+
+
+
+
+
 export interface MeleeMotionValue {
   original: number;
   published: number;
@@ -55,7 +55,7 @@ export interface MeleeMotionValue {
 interface Motion {
   x: number;
   z: number;
-  /** The last completed movement step, sampled by synchronous contact resolution. */
+
   deltaX: number;
   deltaZ: number;
   vx: number;
@@ -64,20 +64,20 @@ interface Motion {
   meleeZ: MeleeMotionValue;
   meleeVelocityZ: MeleeMotionValue;
   grounded: boolean;
-  /** The platform under a grounded fighter. */
+
   surface: number | undefined;
   crouching: boolean;
   fastFalling: boolean;
   fastFallDownHeld: boolean;
-  /** Input frames since down was pressed, Melee's one stick timer for fast-falls and platform drops; ages past the longer window are equivalent. */
+
   fastFallInputAge: number;
-  /** The side of Melee's horizontal smash deadzone the stick was past on the previous input frame: -1, 0 or 1. */
+
   previousStickSide: number;
-  /** Input frames since the stick crossed that deadzone to its current side (Melee's stick-x timer); ages past the wall-jump flick window are equivalent. */
+
   stickSideAge: number;
-  /** The side the stick last pressed: -1, 0 or 1. */
+
   turnaroundSide: number;
-  /** Input frames since then; ages past the turnaround special window are equivalent. */
+
   turnaroundAge: number;
 }
 
@@ -90,21 +90,21 @@ interface GroundMovement {
   turnRunEntryFacing: number;
   turnRunFacingCommandLatched: boolean;
   turnRunPausePending: boolean;
-  /** Frames in which a late dash-to-guard entry still turns a grab into a dash grab. */
+
   dashGrabWindow: number;
 }
 
 interface Jump {
-  /** Input frames since jump was pressed, for wall-tech jumps. */
+
   inputAge: number;
   remaining: number;
   serial: number;
   isDouble: boolean;
   squat: number;
-  /** Frames since a ground jump left the deck, takeoff counting as 1, through EARLY_ASCENT_GRAB_FRAMES; 0 otherwise (#107). */
+
   ascent: number;
   held: boolean;
-  /** An air dodge pressed during jump squat, taken on the takeoff frame. */
+
   dodgeQueued: boolean;
   dodgeX: number;
   dodgeZ: number;
@@ -116,11 +116,11 @@ interface Launch {
   meleeKnockbackX: MeleeMotionValue;
   meleeKnockbackZ: MeleeMotionValue;
   groundKnockbackX: number;
-  /** Frames since the last launch; merging only distinguishes ages below ten. */
+
   knockbackAge: number | undefined;
   damageLevel: number;
   hitstun: number;
-  /** The current hitstun came from a throw; grabs cannot extend it. */
+
   throwHitstun: boolean;
   hitlag: number;
   hitlagFrames: number;
@@ -134,7 +134,7 @@ interface Launch {
   sdiLaunchesUpward: boolean;
   sdiSerial: number;
   asdiSerial: number;
-  /** Bounded SDI in Melee units: travel charged this hit and this string, and the queued requests (smashDirectionalInfluence.ts). */
+
   sdiHitTravel: number;
   sdiStringTravel: number;
   sdiStepX: number;
@@ -149,13 +149,13 @@ interface Shield {
   raised: boolean;
   tiltX: number;
   tiltZ: number;
-  /** Analog pressure scale in [0, 1]; digital is 1. */
+
   strength: number;
   energy: number;
   stun: number;
   heldFrames: number;
   releaseLag: number;
-  /** Shield contact motion, separate from launch velocity. */
+
   pushbackX: number;
   recoilX: number;
   recoilZ: number;
@@ -166,12 +166,12 @@ interface Shield {
   triggerAge: number;
   reflectFrames: number;
   perfectFrames: number;
-  /** A parry's reward while the shield stays held: it drops without release lag into any grounded option. */
+
   perfectActionFrames: number;
-  /** A red parry was already pressed in this shieldstun: one try per blocked hit, so mashing earns nothing. */
+
   redParryTried: boolean;
   parryBuffer: ParryBuffer;
-  /** The buffered ground dodge's direction: 0 spot dodge, otherwise the roll's. */
+
   parryBufferDirection: number;
   breakState: ShieldBreak;
   breakFrame: number;
@@ -187,14 +187,14 @@ interface Attack {
   hit: boolean;
   dashGrab: boolean;
   pivotGrab: boolean;
-  /** Frames before any new action, set by attacks, specials and traps. */
+
   cooldown: number;
   smashCharging: boolean;
   smashChargeFrames: number;
   smashChargeAllowed: boolean;
 }
 
-/** One attacker's latest contact with this fighter; eligibility for that attack's later windows. */
+
 interface HitEntry {
   attacker: number | undefined;
   attackSerial: number;
@@ -203,13 +203,13 @@ interface HitEntry {
 
 interface HitRegistry {
   readonly entries: HitEntry[];
-  /** The latest contact, for diagnostics. */
+
   lastAttacker: number | undefined;
   lastAttackSerial: number | undefined;
   lastWindow: number;
 }
 
-/** Presentation counters: each increment is one event to show. */
+
 interface VisualSerials {
   grab: number;
   throw: number;
@@ -217,15 +217,15 @@ interface VisualSerials {
   hitElectric: boolean;
   hitElement: HitElement;
   hitStrength: number;
-  /** Contact height band: 0 low, 1 middle, 2 high; presentation only. */
+
   hitHeight: number;
   hitPummel: boolean;
   shieldElectric: boolean;
   shield: number;
   shieldReflect: number;
-  /** Hits that drained this fighter's mana (Illidan's kit), for the drain flash. */
+
   manaDrained: number;
-  /** Hero specials refused for want of mana, once per press. */
+
   manaDenied: number;
 }
 
@@ -236,24 +236,24 @@ interface Special {
   frame: number;
   duration: number;
   lockFrames: number;
-  /** Up-specials end in a helpless fall until landing or a ledge catch. */
+
   fall: boolean;
-  /** Indexed by SpecialAction. */
+
   readonly cooldowns: number[];
   direction: number;
   hit: boolean;
-  /** Targets this action has already struck. */
+
   readonly hitTargets: (number | undefined)[];
-  /** A hero special's authored form (SpecialForm), captured on entry. */
+
   form: number;
-  /** The stick on entry, world-relative: -1, 0 or 1 on each axis. */
+
   aimX: number;
   aimZ: number;
-  /** Hero specials used this airtime, one bit per SpecialSlot. */
+
   airtimeUses: number;
-  /** The special frame a hero command grab caught on; 0 before a catch. */
+
   grabFrame: number;
-  /** This action's guard has already succeeded. */
+
   guarded: boolean;
 }
 
@@ -268,18 +268,18 @@ export interface Projectile {
   velocityZ: number;
   serial: number;
   damageMultiplier: number;
-  /** Reflected this frame; it moves from the next frame. */
+
   newlyReflected: boolean;
   exReach: boolean;
-  /** A pool's damaging hits so far, which widen it (SpecialProjectile.pool). */
+
   poolHits: number;
-  /** Frames before a pool may strike again. */
+
   poolWait: number;
-  /** A hero projectile's authored record; immutable and shared like tuning. */
+
   spec: SpecialProjectile | undefined;
 }
 
-/** Summons keep their last values when they expire; snapshots and checksums include them. */
+
 interface Bear {
   exDamage: boolean;
   life: number;
@@ -300,16 +300,16 @@ interface FreezeTrap {
   z: number;
   surface: number | undefined;
   serial: number;
-  /** The owner's frames before another trap. */
+
   cooldown: number;
 }
 
 interface Dodge {
   airDodging: boolean;
   airFrame: number;
-  /** The airtime's one air dodge is spent; landing, a ledge catch or a hit refreshes it. */
+
   airUsed: boolean;
-  /** Frames of decaying air dodge motion left. */
+
   airMotionFrames: number;
   groundFrame: number;
   groundDirection: number;
@@ -326,28 +326,28 @@ interface Down {
   direction: number;
   waitRemaining: number;
   faceUp: boolean;
-  /** A get-up attack pressed during the bound, which Melee starts as the bound ends. */
+
   attackQueued: boolean;
 }
 
-/** Tech input ages; they continue through frozen input frames. */
+
 interface Tech extends TechInput {
   window: number;
 }
 
-/** Wall and ceiling contacts and the techs that recover from them. */
+
 interface SurfaceRecovery {
   state: SurfaceContact;
   frame: number;
   velocityApplied: boolean;
   wallJumpQueued: boolean;
-  /** Earlier wall jumps since landing when this one began; each lowers its rise. */
+
   wallJumpRepeat: number;
-  /** Frames since the fighter met a wall on wallJumpSide fast enough to wall jump off it, while it stays against it. */
+
   wallJumpAge: number | undefined;
-  /** The side of the fighter that wall is on: -1 left, 1 right. */
+
   wallJumpSide: number;
-  /** Wall jumps since the fighter last stood on the ground. */
+
   wallJumpsUsed: number;
   reflectCooldown: number;
   lastReflectedSurface: number | undefined;
@@ -361,13 +361,13 @@ interface SurfaceRecovery {
 }
 
 interface Grab {
-  /** Pummels this hold has started. */
+
   pummels: number;
-  /** Frames left before a held fighter breaks free. */
+
   grabbedFrames: number;
-  /** Frames a held fighter has been held, which bound how soon mashing frees it. */
+
   heldFrames: number;
-  /** A throw pressed during the pummel, which starts when the pummel ends. */
+
   queuedThrow: GrabAction;
   action: GrabAction;
   frame: number;
@@ -378,11 +378,11 @@ interface Grab {
   target: number | undefined;
 }
 
-/**
- * A move through a pass-through platform (platformMoves.ts). Positions are
- * kept from the platform's left end and top, so a moving platform carries the
- * fighter; the inputs are latched over the move.
- */
+
+
+
+
+
 interface PlatformTransit {
   move: PlatformMove;
   frame: number;
@@ -392,17 +392,17 @@ interface PlatformTransit {
   toX: number;
   fromZ: number;
   toZ: number;
-  /** The vertical velocity an ascent carries out. */
+
   rise: number;
-  /** Down or shield held or pressed during an ascent: it ends standing or shielding on the platform. */
+
   stand: boolean;
   shield: boolean;
-  /** Half-circle progress toward each side while airborne, 0 to 3 steps, and frames since its first step. */
+
   wrapLeft: number;
   wrapLeftAge: number;
   wrapRight: number;
   wrapRightAge: number;
-  /** An air dodge or special pressed during a descent, taken on its first free frame. */
+
   dodgeQueued: boolean;
   dodgeX: number;
   dodgeZ: number;
@@ -420,31 +420,31 @@ interface Ledge {
   regrab: number;
 }
 
-/** A stage cannon (stageHazards.ts) holding this fighter, and its catch immunity after a shot. */
+
 interface StageCannon {
-  /** Frames since the cannon caught this fighter, while it holds it. */
+
   held: number | undefined;
-  /** Frames since the cannon began its shot, while it holds this fighter. */
+
   firing: number | undefined;
-  /** Frames before a cannon can catch this fighter again. */
+
   cooldown: number;
-  /** A shot carrying this fighter up through the main deck: its walls and underside let it pass until it is above the deck's top or lands. */
+
   passing: boolean;
 }
 
-/** The Tomb's sea (water.ts): this fighter's visit and the hydra rising under it. */
+
 interface Water {
-  /** Whether its position was in the sea at the end of its last frame. */
+
   inWater: boolean;
-  /** Frames in the sea since it last landed on a deck; paused out of the water, restarted by a hydra strike. */
+
   frames: number;
-  /** Times it entered the sea since it last landed; every entry after the first is a re-entry. */
+
   entries: number;
-  /** Frames since the hydra's tell began under it, or zero. */
+
   hydraFrame: number;
-  /** The hydra's mark, drifting with the tide through the tell. */
+
   hydraX: number;
-  /** Match frame of the last lunge, or -1 before a strike. */
+
   hydraStrikeFrame: number;
 }
 
@@ -456,63 +456,63 @@ interface Status {
   out: boolean;
   invincible: number;
   frozenFrames: number;
-  /** Frames until another trap may catch a fighter after its ice breaks. */
+
   freezeImmunityFrames: number;
-  /** Frames of hero armor left, and the largest hit it absorbs. */
+
   armorFrames: number;
   armorMaxDamage: number;
-  /** The armor chills the melee striker whose hit spends it (Lich's Frost Armor). */
+
   armorChills: boolean;
-  /** A hero status (HeroStatusKind), its frames left, its immunity group and the immunity it grants on ending. */
+
   condition: number;
   conditionFrames: number;
   conditionGroup: number;
   conditionImmunityFrames: number;
-  /** Frames of immunity left per HeroStatusGroup. */
+
   readonly conditionImmunity: number[];
-  /** Poison, beside the condition: frames left, ticks every this many frames, damage per tick. */
+
   poisonFrames: number;
   poisonEvery: number;
   poisonDamage: number;
-  /** Frames of Divine Shield left: intangible to strikes and projectiles, not grabs, until the fighter attacks (Forsaken Paladin, #131). */
+
   divineFrames: number;
-  /** Damage percent hero guards and returning projectiles restored this stock. */
-  /** The item buff running (ItemKind, sim/itemBuffs.ts, #196) and its frames left; a knockout ends it. */
+
+
   buff: number;
   buffFrames: number;
 }
 
-/** Every fighter's resource for specials (sim/mana.ts). */
+
 interface Mana {
   points: number;
 }
 
-/** A placed object or animal (sim/placedObjects.ts); `life` 0 when absent. */
+
 export interface PlacedObject {
   life: number;
-  /** Frames since placement. */
+
   age: number;
   x: number;
   z: number;
-  /** The facing it fires along. */
+
   direction: number;
   durability: number;
-  /** Counts placements, so presentation never replays one. */
+
   serial: number;
-  /** Its authored record; immutable and shared like tuning. */
+
   spec: SpecialPlacement | undefined;
-  /** The attack serial each participant last struck it with. */
+
   readonly struck: (number | undefined)[];
-  /** One bit per participant whose running special has struck it. */
+
   specialStruck: number;
-  /** A partner's state (CompanionMode) and frames in it; 0 for other objects. */
+
   mode: number;
   modeFrame: number;
-  /** Frames in a row past its leash. */
+
   apart: number;
-  /** One bit per participant its current lunge has bitten. */
+
   bitten: number;
-  /** The deck a partner walks on. */
+
   surface: number | undefined;
 }
 
@@ -545,7 +545,7 @@ export interface Fighter {
   readonly status: Status;
   readonly mana: Mana;
   readonly placed: PlacedObject;
-  /** Beastmaster's additional animals: Quilbeast and Hawk. */
+
   readonly pack: PlacedObject[];
 }
 
@@ -571,7 +571,7 @@ function emptyProjectile(): Projectile {
   };
 }
 
-/** A fighter standing at startX with the Wurst constructor's initial state. */
+
 export function createFighter(character: Character, startX: number, facing: number): Fighter {
   const tuning = authoredTuning(character);
   const fighter: Fighter = {

@@ -1,10 +1,10 @@
-// Each hero's jab, tilts and dash attack (smashcraft:docs/design/tilts.md):
-// distinct timing, volumes and rewards by identity. Coordinates are
-// facing-relative world units from the fighter's centre at the feet; H is
-// 131.8, so 1.10H is 145. Each active frame is one strike position, never the
-// filled box of an arc. A kit whose forward tilt is a vertical swing plays it
-// for every angle (Ultimate's angling rule); an angleable kit gives each angle
-// its own volume and launch.
+
+
+
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, HitElement } from "../codes";
 import { type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule, heroHurtPose, heroMove, heroRegion, jabStep } from "../heroMoves";
@@ -32,12 +32,12 @@ const DIRECTION = {
   80: { x: f32(0.173648178), z: f32(0.984807753) },
   85: { x: f32(0.087155743), z: f32(0.996194698) },
   90: { x: 0.0, z: 1.0 },
-  /** Along the floor toward the attacker. */
+
   180: { x: -1.0, z: 0.0 },
 } as const;
 type Angle = keyof typeof DIRECTION;
 
-/** A hit; `behind` mirrors the launch to the attacker's back. */
+
 export function groundHit(damage: number, angle: Angle, growth: number, base: number, element: HitElement, behind = false): Readonly<HitEffect> {
   const direction = DIRECTION[angle];
   return { damage, growth, base, launchX: behind ? -direction.x : direction.x, launchZ: direction.z, electric: false, element };
@@ -46,16 +46,16 @@ export function groundHit(damage: number, angle: Angle, growth: number, base: nu
 type Segment = readonly [number, number, number, number];
 const capsule = ([x1, z1, x2, z2]: Segment, radius: number): StrikeCapsule => ({ x1, z1, x2, z2, radius });
 
-/** One strike per active frame from `first`. */
+
 function swing(first: number, segments: readonly Segment[], radius: number, effect: Readonly<HitEffect>): MoveRegion[] {
   return segments.map((segment, index) => heroRegion(first + index, first + index, capsule(segment, radius), effect));
 }
 
-/**
- * A blade whose outer `tip` units have their own reward: each frame's tip
- * region is listed first, so it wins an overlap with the inner blade. Tips
- * are horizontal-led segments, so the split follows x.
- */
+
+
+
+
+
 function tipped(first: number, segments: readonly Segment[], radius: number, tip: number, tipEffect: Readonly<HitEffect>, inner: Readonly<HitEffect>): MoveRegion[] {
   const regions: MoveRegion[] = [];
   for (let index = 0; index < segments.length; index++) {
@@ -72,7 +72,7 @@ function tipped(first: number, segments: readonly Segment[], radius: number, tip
   return regions;
 }
 
-/** A region held over several frames that may hit again on a later window. */
+
 function held(first: number, last: number, segment: Segment, radius: number, effect: Readonly<HitEffect>, window = 1): MoveRegion {
   const region = heroRegion(first, last, capsule(segment, radius), effect);
   return window === 1 ? region : { ...region, hit: { ...region.hit, window } };
@@ -80,20 +80,20 @@ function held(first: number, last: number, segment: Segment, radius: number, eff
 
 export interface GroundKit {
   readonly normals: { readonly [style: number]: AuthoredMove };
-  /** The striking hand (or foot) each normal reaches toward, for the kit's own limb. */
+
   readonly reaches: { readonly [style: number]: readonly [number, number] };
 }
 
-/** A kit's forward tilt for every stick angle: one move when the swing is vertical. */
+
 function unangled(move: AuthoredMove): { readonly [style: number]: AuthoredMove } {
   return { [AttackStyle.forwardTilt]: move, [AttackStyle.forwardTiltUp]: move, [AttackStyle.forwardTiltDown]: move };
 }
 
-/**
- * Limb poses for a kit's ground normals: the limb reaches its target from two
- * frames before the first active frame through two after the last, at least
- * three frames (smashcraft:docs/gameplay-design.md, "Legible hurtboxes").
- */
+
+
+
+
+
 export function groundPoses(kit: GroundKit, limb: (x: number, z: number) => readonly HurtPart[]): { [style: number]: readonly HurtPose[] } {
   const poses: { [style: number]: readonly HurtPose[] } = {};
   for (const key in kit.reaches) {
@@ -109,8 +109,8 @@ export function groundPoses(kit: GroundKit, limb: (x: number, z: number) => read
   return poses;
 }
 
-// Blademaster: the spacing sword. A descending cut over head to feet (not
-// angled) with a 0.20H tipper; the longest low poke, safe on shield at the tip.
+
+
 const BM = HitElement.slash;
 export const BLADEMASTER_GROUND: GroundKit = {
   normals: {
@@ -132,9 +132,9 @@ export const BLADEMASTER_GROUND: GroundKit = {
   },
 };
 
-// Mountain King: the heavy hammer. A horizontal hook, so it angles; a boot and
-// axe that only bumps at low percent and tumbles vertically at high percent;
-// a shoulder charge that launches.
+
+
+
 const MK = HitElement.normal;
 const mkHook = (angle: Angle) => groundHit(13.25999927520752, angle, f32(88.4), 25.0, MK);
 export const MOUNTAIN_KING_GROUND: GroundKit = {
@@ -148,8 +148,8 @@ export const MOUNTAIN_KING_GROUND: GroundKit = {
       groundHit(11.049999237060547, 80, 104.9749984741211, 24.0, MK))),
     [AttackStyle.downTilt]: heroMove(8, 3, 21, 0, swing(8, [[12.0, 10.0, 87.0, 12.0], [12.0, 8.0, 87.0, 6.0], [12.0, 8.0, 70.0, 2.0]], 12.0,
       groundHit(11.049999237060547, 85, 77.3499984741211, 10.0, MK))),
-    // Body actions stay inside the exposed torso; the charge carries its reach by movement.
-    // The charge's shoulder sits 4 forward: centred, the push kept every body narrower than Cairne out of reach (#359).
+
+
     [AttackStyle.dashAttack]: heroMove(11, 5, 26, 0, [held(11, 15, [4.0, 12.0, 4.0, 65.0], 24.0, groundHit(13.25999927520752, 75, 104.9749984741211, 30.0, MK))], 79.0, true),
   },
   reaches: {
@@ -158,8 +158,8 @@ export const MOUNTAIN_KING_GROUND: GroundKit = {
   },
 };
 
-// Warden: the fastest blade. A straight crescent thrust that angles, and a
-// frame-3 chain poke along the floor.
+
+
 const WD = HitElement.slash;
 const wardenThrust = (angle: Angle) => groundHit(8.0, angle, 75.0, 18.0, WD);
 export const WARDEN_GROUND: GroundKit = {
@@ -179,8 +179,8 @@ export const WARDEN_GROUND: GroundKit = {
   reaches: {},
 };
 
-// Lich: the slow caster. A frost palm that angles, a crown of ice that
-// lingers above the shoulders, and creeping low frost.
+
+
 const LICH = HitElement.ice;
 const palm = (ends: readonly (readonly [number, number])[], angle: Angle) =>
   swing(9, ends.map(([x, z]): Segment => [20.0, 45.0, x, z]), 8.0, groundHit(9.0, angle, 80.0, 20.0, LICH));
@@ -205,8 +205,8 @@ export const LICH_GROUND: GroundKit = {
   },
 };
 
-// Forsaken Paladin: the defensive hammer. The longest, slowest tilt is an overhead arc to
-// the floor (not angled); the handle sweep knocks down.
+
+
 const FORSAKEN_PALADIN = HitElement.normal;
 export const FORSAKEN_PALADIN_GROUND: GroundKit = {
   normals: {
@@ -225,9 +225,9 @@ export const FORSAKEN_PALADIN_GROUND: GroundKit = {
   },
 };
 
-// Dreadlord: the grappler. A straight claw rake that angles, a wing arc that
-// reaches farther behind, a low rake that drags the victim in toward his grab,
-// and a wing dash that passes through to hit from behind.
+
+
+
 const DL = HitElement.slash;
 const rake = (ends: readonly (readonly [number, number, number])[], angle: Angle) =>
   swing(8, ends.map(([z1, x, z]): Segment => [18.0, z1, x, z]), 10.0, groundHit(10.860000610351562, angle, 90.5, 22.0, DL));
@@ -242,7 +242,7 @@ export const DREADLORD_GROUND: GroundKit = {
     [AttackStyle.upTilt]: heroMove(7, 4, 20, 0, swing(7, [[18.0, 60.0, 60.0, 80.0], [10.0, 68.0, 30.0, 93.0], [0.0, 70.0, -30.0, 93.0], [-12.0, 65.0, -80.0, 80.0]], 12.0,
       groundHit(8.145000457763672, 90, 81.45000457763672, 25.0, DL))),
     [AttackStyle.downTilt]: heroMove(6, 3, 18, 0, swing(6, [[16.0, 12.0, 95.0, 12.0], [16.0, 10.0, 95.0, 6.0], [16.0, 8.0, 80.0, 2.0]], 10.0, groundHit(5.430000305175781, 180, 27.150001525878906, 30.0, DL))),
-    // The wing dash passes through an unshielded body; the back wing hits once it is behind him.
+
     [AttackStyle.dashAttack]: heroMove(7, 4, 24, 0, [
       ...swing(7, [[16.0, 40.0, 90.0, 46.0], [16.0, 40.0, 90.0, 40.0]], 10.0, groundHit(8.145000457763672, 60, 81.45000457763672, 22.0, DL)),
       ...swing(9, [[-16.0, 40.0, -90.0, 46.0], [-16.0, 40.0, -90.0, 40.0]], 10.0, groundHit(8.145000457763672, 60, 81.45000457763672, 22.0, DL, true)),
@@ -251,8 +251,8 @@ export const DREADLORD_GROUND: GroundKit = {
   reaches: {},
 };
 
-// Shadow Hunter: the glaive angles. An angled thrust whose down angle reaches
-// below the stage, an edge poke under the lip, and a three-hit glaive spin.
+
+
 const SH = HitElement.slash;
 const thrust = (ends: readonly (readonly [number, number, number])[], angle: Angle) =>
   swing(9, ends.map(([z1, x, z]): Segment => [20.0, z1, x, z]), 7.0, groundHit(11.0, angle, 75.0, 18.0, SH));
@@ -281,9 +281,9 @@ export const SHADOW_HUNTER_GROUND: GroundKit = {
   },
 };
 
-// Rifleman: the rifle as a club and a bayonet. A thrust that angles, an
-// overhead swing, a low sweep that pops the victim straight up (Falco's 1.3
-// ratio over the old shared down tilt), and a lunge.
+
+
+
 const RIFLE = HitElement.normal;
 const bayonet = (ends: readonly (readonly [number, number, number])[], angle: Angle) =>
   swing(7, ends.map(([z1, x, z]): Segment => [18.0, z1, x, z]), 10.0, groundHit(9.300000190734863, angle, 100.44000244140625, 22.0, RIFLE));
@@ -304,17 +304,17 @@ export const RIFLEMAN_GROUND: GroundKit = {
   reaches: {},
 };
 
-/** A jab's slice of a stock sequence: its first `until` seconds, reached on the first active frame (HeroClip.until). */
+
 export function jabSlice(clip: { readonly index: number }, until: number): HeroClip {
   return { index: clip.index, seconds: until, aligned: true, until };
 }
 
-/**
- * A stock sequence retimed so its strike moment (seconds into the sequence,
- * measured where the drawn weapon or limb reaches farthest) plays on `frame`
- * of a kit's ground normal: the first active frame unless named (1-based).
- * The clip stretches over the whole action, so seconds = strike × total / frames before it.
- */
+
+
+
+
+
+
 export function strikeClip(clip: { readonly index: number }, strike: number, kit: Pick<FighterMoves, "normals">, style: AttackStyle, frame?: number): HeroClip {
   const move = kit.normals[style];
   const before = frame === undefined ? move?.startupFrames ?? 1 : frame - 1;

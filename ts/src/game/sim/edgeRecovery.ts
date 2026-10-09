@@ -1,6 +1,6 @@
-// Recovery contacts with the main deck (smashcraft:docs/gameplay-design.md,
-// "Recovery and edgeguarding"): an up special that meets a wall rides up it,
-// and a teleport whose path enters the deck through its lip passes the lip.
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT } from "./heroMoves";
 import type { Fighter } from "./fighter";
@@ -14,12 +14,12 @@ import { BODY_HALF_WIDTH, insideMainDeckBody } from "./surfaces";
 import { melee } from "./tuning";
 import { squareRoot } from "./warcraftMath";
 
-/** [spec] A teleport may enter the deck at most this far below its top and still pass the lip. */
+
 export const TELEPORT_LIP_DEPTH = f32(HERO_REFERENCE_HEIGHT * f32(0.5));
-/** [spec] A teleport ending inside the lip at most this far in from the ledge catches the ledge; farther in, it lands. */
+
 export const TELEPORT_LEDGE_INSET = f32(HERO_REFERENCE_HEIGHT * f32(0.5));
 
-/** Whether this frame's step is a teleport that may pass the deck's lip (SpecialMotion.throughEdge). */
+
 export function teleportsThisFrame(f: Readonly<Fighter>): boolean {
   const move = runningHeroSpecial(f);
   if (move === undefined) return false;
@@ -29,21 +29,21 @@ export function teleportsThisFrame(f: Readonly<Fighter>): boolean {
   return false;
 }
 
-/**
- * Wall ride: an up special still running (not its helpless fall) that met a
- * wall this frame while moving into it, level or rising, keeps the travel the
- * wall took, turned up along that wall. A ridden wall is never crossed: the
- * fighter moves along its line. `wallSide` is the side of the fighter the
- * wall met (surfaces.ts), `intendedX`/`intendedZ` the frame's step before
- * collision.
- */
+
+
+
+
+
+
+
+
 export function rideWall(f: Fighter, wallSide: number, intendedX: number, intendedZ: number, oldX: number, oldZ: number): void {
   const { motion, special } = f;
   if (wallSide === 0 || !isUpSpecialAction(special.action) || special.fall || teleportsThisFrame(f)) return;
   if (f32(intendedX * wallSide) <= 0 || intendedZ < 0) return;
   const nx = f.surfaceRecovery.contactNormalX;
   const nz = f.surfaceRecovery.contactNormalZ;
-  // The wall line's direction that rises.
+
   const tx = nz >= 0 ? -nz : nz;
   const tz = nz >= 0 ? nx * -wallSide : -nx * -wallSide;
   const upX = tz < 0 ? -tx : tx;
@@ -59,11 +59,11 @@ export function rideWall(f: Fighter, wallSide: number, intendedX: number, intend
   setWorldMotionValue(motion.meleeZ, motion.z);
 }
 
-/** How a teleport's step met the main deck. */
+
 export const EdgePass = { none: 0, through: 1, land: 2, ledge: 3 } as const;
 export type EdgePass = (typeof EdgePass)[keyof typeof EdgePass];
 
-/** The fraction of the step (old to new) where it first meets a main-deck wall or underside, or 2 when it meets none. */
+
 function deckEntry(stage: number, oldX: number, oldZ: number, x: number, z: number): number {
   const dx = f32(x - oldX);
   const dz = f32(z - oldZ);
@@ -84,15 +84,15 @@ function deckEntry(stage: number, oldX: number, oldZ: number, x: number, z: numb
   return first;
 }
 
-/**
- * Teleport through the edge (Warden's and Jaina's Blink): a teleport step
- * that enters the main deck within TELEPORT_LIP_DEPTH of its top passes the
- * lip instead of stopping at it. Ending above the top, the fighter is simply
- * there; ending inside the lip, it catches the ledge when it ends within
- * TELEPORT_LEDGE_INSET of it (a free ledge it may regrab), else stands on the
- * deck above where it ended. With the ledge taken, it ends just outside the
- * lip at that height. Any other teleport meets the stage as every step does.
- */
+
+
+
+
+
+
+
+
+
 export function passThroughEdge(world: Roster, slot: number, stage: number, oldX: number, oldZ: number): EdgePass {
   const f = fighterAt(world, slot);
   const { motion } = f;

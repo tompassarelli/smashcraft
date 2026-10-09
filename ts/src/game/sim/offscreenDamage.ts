@@ -1,11 +1,11 @@
-// Fighter_procAnim, PlCo +0x7AC/+0x7B0/+0x7B4: one percent each
-// 60 consecutive magnifier frames below 150 percent; training disables it.
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS, participantActive } from "../input/participants";
 import { outsideCamera, wellInsideCamera, type MatchCamera } from "./matchCamera";
 import { fighterAt, isActive, type Roster } from "./roster";
 
-/** Whether a fighter at x, z counts toward offscreen damage under this camera. */
+
 export const countsOffscreen = (camera: Readonly<MatchCamera>, x: number, z: number): boolean =>
   !wellInsideCamera(camera, x, z + 60.0) && outsideCamera(camera, x, f32(z + 60.0));
 
@@ -17,7 +17,7 @@ export function advanceOffscreenDamage(world: Roster, camera: Readonly<MatchCame
       status.offscreenFrames = 0;
       continue;
     }
-    // At 150% the original stops both counting and resetting.
+
     if (status.damage >= 150.0) continue;
     if (!countsOffscreen(camera, motion.x, motion.z)) {
       status.offscreenFrames = 0;

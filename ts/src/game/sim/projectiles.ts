@@ -1,5 +1,5 @@
-// Projectiles: spawning, flight, hits, shield blocks and reflections. Timing
-// and trajectories are first-pass character-special tuning.
+
+
 import { max, min } from "../../runtime/numbers";
 import { roundToFloat32 } from "wisp/src/sim/binary32";
 import { meleeCos, meleeSin } from "../../sim/meleeScalarMath";
@@ -27,7 +27,7 @@ export const BLASTER_AIR_SHOT_HEIGHT = 30.0;
 const BLASTER_PROJECTILE_HALF_HEIGHT = 36.0;
 export const BLASTER_PROJECTILE_RADIUS = 24.0;
 export const BLASTER_PROJECTILE_SPAWN_OFFSET = 35.0;
-/** Height of a target's body center above its position. */
+
 const TARGET_CENTER_HEIGHT = 45;
 const DEGREES_TO_RADIANS = 0.01745329238474369;
 
@@ -41,7 +41,7 @@ export function projectileActive(f: Fighter, index: number): boolean {
   return index >= 0 && index < PROJECTILE_CAPACITY && at(f.projectiles, index).life > 0;
 }
 
-/** Launches from the owner's hand in the first free slot, `height` above its feet; a full owner fires nothing. */
+
 export function spawnProjectileMotion(owner: Fighter, kind: ProjectileKind, velocityX: number, velocityZ: number, lifetime: number, serial: number,
   damageMultiplier = 1.0, height = BLASTER_PROJECTILE_HEIGHT): Projectile | undefined {
   let index = -1;
@@ -67,60 +67,60 @@ export function spawnProjectileMotion(owner: Fighter, kind: ProjectileKind, velo
   return undefined;
 }
 
-/**
- * Rifleman's blaster shot. A grounded shot leaves from the shoulder and hits
- * harder; an aerial one leaves from the hip, so a short-hop shot meets a
- * standing body and a full shield (#117).
- */
+
+
+
+
+
 export function spawnBlasterShot(owner: Fighter, serial: number, grounded: boolean): void {
   spawnProjectileMotion(owner, ProjectileKind.blaster, f32(owner.facing * BLASTER_PROJECTILE_SPEED), 0.0, BLASTER_PROJECTILE_LIFETIME, serial,
     f32((grounded ? RIFLEMAN_BLASTER_GROUND_DAMAGE_MULTIPLIER : 1.0) * (owner.special.ex ? 1.25 : 1.0)), grounded ? BLASTER_PROJECTILE_HEIGHT : BLASTER_AIR_SHOT_HEIGHT);
 }
 
-/** The Rifleman's attack shot. */
+
 export function spawnProjectile(owner: Fighter): void {
   spawnProjectileMotion(owner, ProjectileKind.blaster, f32(owner.facing * BLASTER_PROJECTILE_SPEED), 0.0, BLASTER_PROJECTILE_LIFETIME, owner.attack.serial);
 }
 
 const facingOf = (owner: Fighter, direction: number): number => (direction === 0 ? owner.facing : direction > 0 ? 1 : -1);
 
-/**
- * Mana Burn (#116, smashcraft:docs/design/mana.md): a body hit burns 25 of
- * the target's mana, then stuns it 15 frames plus up to 45 more the emptier
- * that leaves it (26 on a full bar, 60 on an empty one); the next damaging
- * hit ends it, and 300 frames of sleep-group immunity follow so stuns and
- * sleeps never chain.
- */
+
+
+
+
+
+
+
 export const MANA_BURN_STUN: Readonly<AppliedStatus> = {
   kind: HeroStatusKind.stun, frames: 15, group: HeroStatusGroup.sleep, immunityFrames: 300,
   drain: { mana: 25, emptyFrames: 45 },
 };
 
-// Preallocated: collected contacts copy it, so one record serves every hit.
+
 const projectileHit = emptyHitEffect();
 
-/**
- * Whether a returning hero projectile is on its way back to its owner. A
- * reflected one (its damage multiplied down) belongs to the reflector and flies straight on.
- */
+
+
+
+
 export function heroProjectileReturning(projectile: Readonly<Projectile>): boolean {
   const spec = projectile.spec;
   return spec?.returns !== undefined && projectile.damageMultiplier === 1.0 && spec.life - projectile.life >= spec.returns.age;
 }
 
-/** A hero projectile's reach: its authored radius, widened by a pool's hits up to the pool's cap. */
+
 export function heroProjectileRadius(projectile: Readonly<Projectile>, spec: Readonly<SpecialProjectile>): number {
   const pool = spec.pool;
   if (pool === undefined || projectile.poolHits === 0) return spec.radius;
   return min(pool.maxRadius, f32(spec.radius + f32(projectile.poolHits * pool.growth)));
 }
 
-/** The hit a hero projectile deals now: its return hit once it has turned back. */
+
 function heroProjectileEffect(projectile: Readonly<Projectile>, spec: Readonly<SpecialProjectile>): Readonly<HitEffect> {
   return heroProjectileReturning(projectile) ? spec.returnEffect ?? spec.effect : spec.effect;
 }
 
-/** The damage a projectile deals a body, before shield or reflection changes. */
+
 export function projectileDamage(projectile: Readonly<Projectile>): number {
   const { kind, spec } = projectile;
   const damage = kind === ProjectileKind.hero && spec !== undefined ? heroProjectileEffect(projectile, spec).damage
@@ -129,7 +129,7 @@ export function projectileDamage(projectile: Readonly<Projectile>): number {
   return roundToFloat32(f32(damage * projectile.damageMultiplier));
 }
 
-/** Reuses the projectile scratch; contacts copy it before the next request. */
+
 export function originalProjectileEffect(projectile: Readonly<Projectile>): Readonly<HitEffect> {
   const { kind } = projectile;
   projectileHit.element = kind === ProjectileKind.manaBurn ? HitElement.electric : HitElement.normal;
@@ -167,7 +167,7 @@ function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number
     kind === ProjectileKind.manaBurn ? MANA_BURN_STUN : undefined, projectile.z);
 }
 
-/** Sends the projectile back from a reflecting shield, slower and weaker; false when the reflector has no free slot. */
+
 function reflectProjectile(target: Fighter, source: Projectile): boolean {
   let index = -1;
   for (const before of target.projectiles) {
@@ -198,17 +198,17 @@ function reflectProjectile(target: Fighter, source: Projectile): boolean {
   return false;
 }
 
-// Preallocated: target positions before any projectile resolves, sampled every frame.
+
 const targets = {
   x: [0.0, 0.0, 0.0, 0.0],
   z: [0.0, 0.0, 0.0, 0.0],
   out: [false, false, false, false],
   intangible: [false, false, false, false],
-  // Sampled before any projectile resolves: a reflection spends the window, but every projectile meeting the shield that frame reflects.
+
   reflecting: [false, false, false, false],
 };
 
-/** Flies one projectile and returns the slot of the target it reaches, or undefined. */
+
 function flyProjectile(world: Roster, ownerSlot: number, projectile: Projectile, hit: { reflector: boolean; shield: boolean }): number | undefined {
   const oldX = projectile.x;
   const oldZ = projectile.z;
@@ -235,7 +235,7 @@ function flyProjectile(world: Roster, ownerSlot: number, projectile: Projectile,
     const centerZ = f32(at(targets.z, targetSlot) + TARGET_CENTER_HEIGHT);
     const crossed = f32(f32(targetX - oldX) * direction) >= 0 && f32(f32(targetX - projectile.x) * direction) <= 0;
     const near = Math.abs(f32(targetX - projectile.x)) <= radius;
-    // The blaster meets the whole hurt capsule, so a short-hop shot reaches a standing body, and a shield at the shot's radius.
+
     const blaster = projectile.kind === ProjectileKind.blaster;
     const body = hurtCapsule(target.character);
     const targetZ = at(targets.z, targetSlot);
@@ -257,7 +257,7 @@ function flyProjectile(world: Roster, ownerSlot: number, projectile: Projectile,
   return nearest;
 }
 
-/** Restores the owner's damage by a caught projectile's heal, within the per-stock heal cap. */
+
 function catchHeal(owner: Fighter, spec: Readonly<SpecialProjectile> | undefined): void {
   const heal = spec?.catchHeal;
   if (heal === undefined) return;
@@ -266,10 +266,10 @@ function catchHeal(owner: Fighter, spec: Readonly<SpecialProjectile> | undefined
   status.damage = f32(status.damage - restored);
 }
 
-/**
- * Heads a returning projectile at its owner's body: level speed toward it,
- * climbing or sinking at most that speed. False when it arrives, which ends it.
- */
+
+
+
+
 function returnToOwner(owner: Fighter, projectile: Projectile, speed: number): boolean {
   const dx = f32(owner.motion.x - projectile.x);
   const dz = f32(f32(owner.motion.z + TARGET_CENTER_HEIGHT) - projectile.z);
@@ -284,16 +284,16 @@ function returnToOwner(owner: Fighter, projectile: Projectile, speed: number): b
   return true;
 }
 
-/**
- * Flies a hero projectile, swept from its old position against each target's
- * standing body widened by its radius. It reaches nothing before its age
- * reaches `activeFrom`; a non-reflectable one meets a reflector as a shield.
- */
+
+
+
+
+
 const heroFlight = emptyCapsule();
 const heroTarget = emptyCapsule();
 function flyHeroProjectile(world: Roster, ownerSlot: number, projectile: Projectile, hit: { reflector: boolean; shield: boolean }): number | undefined {
   const spec = projectile.spec;
-  // A reflected one (its damage multiplied down) belongs to the reflector and flies straight on.
+
   if (spec?.returns !== undefined && projectile.damageMultiplier === 1.0 && spec.life - projectile.life >= spec.returns.age && !returnToOwner(fighterAt(world, ownerSlot), projectile, spec.returns.speed)) return undefined;
   const oldX = projectile.x;
   const oldZ = projectile.z;
@@ -321,13 +321,13 @@ function flyHeroProjectile(world: Roster, ownerSlot: number, projectile: Project
     const body = hurtCapsule(target.character);
     const targetX = at(targets.x, targetSlot);
     const targetZ = at(targets.z, targetSlot);
-    // Ground pools deny the deck, so jumping leaves their danger even while above the pool.
+
     if (spec.pool !== undefined && !target.motion.grounded) continue;
     const reach = f32(radius + body.radius);
     const crossed = f32(f32(targetX - oldX) * direction) >= 0 && f32(f32(targetX - projectile.x) * direction) <= 0;
     const near = Math.abs(f32(targetX - projectile.x)) <= reach;
     const height = f32(max(oldZ, projectile.z) + reach) >= f32(targetZ + body.z1) && f32(min(oldZ, projectile.z) - reach) <= f32(targetZ + body.z2);
-    // The shield takes the projectile at the same widened reach as the body, so a broad one never passes a raised shield.
+
     const shieldContact = target.shield.raised && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, 1.0, radius);
     const reflector = spec.reflectable && shieldContact && at(targets.reflecting, targetSlot);
     const candidate = Math.abs(f32(targetX - oldX));
@@ -343,28 +343,28 @@ function flyHeroProjectile(world: Roster, ownerSlot: number, projectile: Project
   return nearest;
 }
 
-/** Which side of the line a-b point c lies on: the sign of their cross product. */
+
 function side(ax: number, az: number, bx: number, bz: number, cx: number, cz: number): number {
   return f32(f32(f32(bx - ax) * f32(cz - az)) - f32(f32(bz - az) * f32(cx - ax)));
 }
 
-/** Whether segments p1-p2 and q1-q2 cross or touch. */
+
 function segmentsMeet(p1x: number, p1z: number, p2x: number, p2z: number, q1x: number, q1z: number, q2x: number, q2z: number): boolean {
   if (!segmentBoxesOverlap(p1x, p1z, p2x, p2z, q1x, q1z, q2x, q2z)) return false;
   const d1 = side(q1x, q1z, q2x, q2z, p1x, p1z);
   const d2 = side(q1x, q1z, q2x, q2z, p2x, p2z);
-  // Most steps lie wholly on one side of a surface's line; p's own line isn't needed then.
+
   if (!((d1 <= 0 && d2 >= 0) || (d1 >= 0 && d2 <= 0))) return false;
   const d3 = side(p1x, p1z, p2x, p2z, q1x, q1z);
   const d4 = side(p1x, p1z, p2x, p2z, q2x, q2z);
   return ((d3 <= 0 && d4 >= 0) || (d3 >= 0 && d4 <= 0)) && !(d1 === 0 && d2 === 0 && d3 === 0 && d4 === 0);
 }
 
-/**
- * Whether a hero projectile's step from (oldX, oldZ) to (x, z) meets solid
- * stage: a wall or underside line, or a solid deck's top from above. Pass
- * decks let projectiles through.
- */
+
+
+
+
+
 function projectileMeetsStage(stage: number, matchFrame: number, oldX: number, oldZ: number, x: number, z: number): boolean {
   for (let i = 0; i < solidSurfaceCount(stage); i++) {
     const surface = solidSurfaceAt(stage, i);
@@ -390,7 +390,7 @@ function projectileMeetsStage(stage: number, matchFrame: number, oldX: number, o
   return false;
 }
 
-/** Whether a and b meet this frame: their centres cross or come within both reaches, horizontally and vertically. */
+
 function projectilesMeet(a: Readonly<Projectile>, b: Readonly<Projectile>): boolean {
   const reachX = f32(BLASTER_PROJECTILE_RADIUS + (b.spec?.radius ?? BLASTER_PROJECTILE_RADIUS));
   const reachZ = f32(BLASTER_PROJECTILE_HALF_HEIGHT + (b.spec?.radius ?? BLASTER_PROJECTILE_HALF_HEIGHT));
@@ -400,11 +400,11 @@ function projectilesMeet(a: Readonly<Projectile>, b: Readonly<Projectile>): bool
   return crossed && Math.abs(f32(f32(a.z + a.velocityZ) - f32(b.z + b.velocityZ))) <= reachZ;
 }
 
-/**
- * A Mana Burn orb and an opposing traveling projectile that meet this frame
- * cancel each other before either flies (#116). Persistent, non-reflectable
- * hero objects are not traveling projectiles and are left alone.
- */
+
+
+
+
+
 function clashManaBurns(world: Roster): void {
   for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
     if (!isActive(world, ownerSlot)) continue;
@@ -431,14 +431,14 @@ function clashManaBurns(world: Roster): void {
   }
 }
 
-// Preallocated: rollback replays fly projectiles every frame.
+
 const selected = { reflector: false, shield: false };
 
-/**
- * Advances every projectile against target positions sampled before any
- * resolves. A projectile stops at the nearest target it reaches: a reflecting
- * shield sends it back, anything else takes the hit.
- */
+
+
+
+
+
 export function updateProjectiles(world: Roster, stage?: number, matchFrame = 0): void {
   const ownsBatch = openDamageContacts();
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
@@ -471,7 +471,7 @@ export function updateProjectiles(world: Roster, stage?: number, matchFrame = 0)
       }
       const pool = projectile.kind === ProjectileKind.hero ? projectile.spec?.pool : undefined;
       if (nearest !== undefined && pool !== undefined) {
-        // A pool stays: it waits before striking again and widens on a body.
+
         applyProjectileHit(world, ownerSlot, nearest, projectile, selected.shield);
         projectile.poolWait = pool.every - 1;
         if (!selected.shield) projectile.poolHits++;

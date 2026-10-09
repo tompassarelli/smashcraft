@@ -25,7 +25,7 @@ const tideSpout = (speed: number, drift: number): AuthoredSpecial => ({
   motion: [{ ...frames(1, 5), velocityX: 0.0, velocityZ: 0.0 }, { ...frames(6, 25), velocityX: 0.0, velocityZ: speed, driftSpeed: drift }],
   regions: [heroRegion(6, 14, { x1: 0.0, z1: 20.0, x2: 0.0, z2: 80.0, radius: 26.0 }, murlocHit(5.0, 80, 70.0, 30.0))],
 });
-/** Disease Cloud's poison: three 1% ticks over 180 frames, without flinch. */
+
 const PLAGUE: AppliedStatus = { kind: HeroStatusKind.poison, frames: 180, group: HeroStatusGroup.sleep, immunityFrames: 0, tick: { every: 60, damage: 1.0 } };
 const DISEASE_CLOUD: AuthoredSpecial = {
   endFrame: 38, cooldownFrames: 150, groundOnly: true,

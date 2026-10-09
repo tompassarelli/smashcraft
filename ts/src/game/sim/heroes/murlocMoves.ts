@@ -1,5 +1,5 @@
-// The Murloc's normals and throws (smashcraft:docs/design/murloc.md): a
-// small, light rushdown with quick, short claws.
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";

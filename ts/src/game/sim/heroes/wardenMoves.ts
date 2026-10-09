@@ -8,15 +8,15 @@ import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
 import { type Strike, drillStrikes, linkAt, multiHit } from "./multiHit";
 
-// smashcraft:docs/design/roster.md counts reach from the fighter center.
+
 const S = f32(HERO_REFERENCE_HEIGHT * f32(0.55));
 const M = f32(HERO_REFERENCE_HEIGHT * f32(0.80));
 const L = f32(HERO_REFERENCE_HEIGHT * f32(1.10));
 const GRAB = f32(HERO_REFERENCE_HEIGHT * f32(0.48));
 const BLADE_RADIUS = 6.0;
 
-// Provisional class coefficients in the existing knockback formula. The
-// roster's displacement bands remain calibration targets, not observations.
+
+
 const CLASS = {
   LINK: { growth: 55.0, base: 12.0 },
   POKE: { growth: 75.0, base: 18.0 },
@@ -24,7 +24,7 @@ const CLASS = {
   EDGE: { growth: 100.0, base: 22.0 },
   KILL: { growth: 110.0, base: 26.0 },
   SPIKE: { growth: 100.0, base: 22.0 },
-  // Throw roles (#107): an up throw's guaranteed short juggle and a down throw's tech chase.
+
   JUGGLE: { growth: 55.0, base: 45.0 },
   CHASE: { growth: 40.0, base: 75.0 },
 } as const;
@@ -53,7 +53,7 @@ function path(first: number, strikes: readonly StrikeCapsule[], effect: Readonly
   return strikes.map((strike, index) => heroRegion(first + index, first + index, strike, effect, groundedEffect));
 }
 
-/** One narrow blade position per frame; the end of the blade has priority. */
+
 function cut(first: number, heights: readonly number[], reach: number, inner: Readonly<HitEffect>, tip?: Readonly<HitEffect>, facing = 1.0): readonly MoveRegion[] {
   const regions: MoveRegion[] = [];
   const end = f32(reach - BLADE_RADIUS);
@@ -79,17 +79,17 @@ function throwMove(release: number, recovery: number, damage: number, kind: keyo
 }
 
 const BACK_AIR = wardenHit(11.0, "KILL", 35, -1.0);
-// Sky Crescent's lifting kicks (up air, #152): weak links that rise with her.
+
 const SKY_LIFT: readonly Strike[] = [
   [blade(0.0, 48.0, 0.0, f32(M - BLADE_RADIUS), 10.0), linkAt(2.0, 8.0, 90, HitElement.normal)],
   [blade(16.0, 40.0, 30.0, f32(M - 20.0), 10.0), linkAt(2.0, 8.0, 95, HitElement.normal)],
   [blade(-16.0, 40.0, -30.0, f32(M - 20.0), 10.0), linkAt(2.0, 8.0, 85, HitElement.normal)],
 ];
-// Falling Knives (down air, #152), Fan of Knives in miniature: a short, fast
-// drill. Four quick knife hits as she drops at a fixed fast speed drag the
-// target down with her; no landing hit, so the reward is the grab or her Fan
-// of Knives mark after it, and the low landing lag keeps it safe.
-// smashcraft:docs/design/aerials.md.
+
+
+
+
+
 const KNIFE_REACH = f32(S + 10.0);
 const fallingKnives = (damage: number, base: number) => drillStrikes(-4.0, -70.0, KNIFE_REACH,
   { centre: linkAt(damage, base, 270), front: linkAt(damage, base, 250), back: linkAt(damage, base, 290) },
@@ -133,13 +133,13 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
       blade(-18.0, 35.0, -f32(M - BLADE_RADIUS), 35.0),
     ], wardenHit(6.0, "POKE", 50))),
     [AttackStyle.forwardAir]: heroMove(8, 3, 20, 12, cut(8, [64.0, 45.0, 26.0], M, wardenHit(10.0, "EDGE", 40))),
-    // The exposed leg remains inside the body. Only the heel blade extends.
+
     [AttackStyle.backAir]: heroMove(7, 3, 22, 12, [
       ...cut(7, [54.0, 45.0, 36.0], M, BACK_AIR, undefined, -1.0),
       heroRegion(7, 9, blade(-8.0, 42.0, -16.0, 38.0, 8.0), BACK_AIR),
     ]),
-    // Sky Crescent (#152): three rising kicks, after Fox's and Falco's up airs.
-    // The first two lift the target with her at any percent; the third launches.
+
+
     [AttackStyle.upAir]: heroMove(5, 9, 15, 10, multiHit([
       { first: 5, last: 6, strikes: SKY_LIFT },
       { first: 8, last: 9, strikes: SKY_LIFT },
@@ -150,10 +150,10 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
       blade(16.0, 45.0, f32(GRAB - 10.0), 45.0, 10.0), GRAB_EFFECT)]),
 };
 
-// Warden's body: the roster's 0.90 width and 1.00 height of the reference
-// capsule. Blades stay outside it; the arm (for Heel Blade, also the leg)
-// reaches toward each strike from two frames before it through four after,
-// so a whiff is punishable at the hand while the blade beyond it is disjoint.
+
+
+
+
 const BODY_RADIUS = f32(24.0 * f32(0.90));
 export const WARDEN_BODY: HurtPart = hurtPart(0.0, 4.0, 0.0, f32(f32(4.0 + 132.0) - f32(2.0 * BODY_RADIUS)), BODY_RADIUS);
 const SHOULDER_Z = 70.0;
@@ -168,30 +168,30 @@ interface Point {
   readonly z: number;
 }
 
-/** The strike end nearest the shoulder: where the hand holds the blade. */
+
 function handOf(strike: StrikeCapsule): Point {
   const near = (x: number, z: number) => f32(f32(x * x) + f32(f32(z - SHOULDER_Z) * f32(z - SHOULDER_Z)));
   return near(strike.x1, strike.z1) <= near(strike.x2, strike.z2) ? { x: strike.x1, z: strike.z1 } : { x: strike.x2, z: strike.z2 };
 }
 
-/** Where the hand holds the blades on one attack frame: the strike end nearest the body. */
+
 function handAt(move: AuthoredMove, frame: number, reachEnd: boolean): Point | undefined {
   let hand: Point | undefined;
   for (const region of move.regions) {
     const strike = region.hit.strike;
     if (strike === undefined || frame < region.firstFrame || frame > region.lastFrame) continue;
-    // A grab's capsule is the hand itself, so the arm reaches its far end.
+
     const candidate = reachEnd ? { x: strike.x2, z: strike.z2 } : handOf(strike);
     if (hand === undefined || Math.abs(candidate.x) < Math.abs(hand.x)) hand = candidate;
   }
   return hand;
 }
 
-/**
- * Arm poses held for LIMB_POSE_FRAMES each (the last takes the remainder),
- * from two frames before the first strike through four after the last; each
- * reaches the hand of the active frame nearest its middle.
- */
+
+
+
+
+
 function limbPoses(move: AuthoredMove | undefined, reachEnd: boolean): readonly HurtPose[] {
   if (move === undefined) return [];
   let first = Number.MAX_SAFE_INTEGER;
@@ -217,7 +217,7 @@ function wardenHurtboxes(): FighterHurtboxes {
   const attacks: { [style: number]: readonly HurtPose[] | undefined } = {};
   for (let style = 0; style <= LAST_ATTACK_STYLE; style++) {
     if (NORMALS[style] === undefined) continue;
-    // Heel Blade's leg is exposed before and after the heel strikes.
+
     attacks[style] = style === AttackStyle.backAir
       ? [heroHurtPose(5, 13, [WARDEN_BODY, HEEL])]
       : limbPoses(NORMALS[style], style === AttackStyle.grab);

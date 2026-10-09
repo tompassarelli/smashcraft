@@ -1,5 +1,5 @@
-// The expansion heroes by Character code, in the roster's build order. A hero
-// joins selection only when its definition is marked complete.
+
+
 import { floorMod } from "wisp/src/sim/intMath";
 import { Character } from "../codes";
 import type { HeroDefinition } from "./hero";
@@ -65,14 +65,14 @@ export function heroDefinition(character: number): HeroDefinition | undefined {
   return BY_CHARACTER[character];
 }
 
-/** The original fighters first, then every complete hero in build order. */
+
 export function selectableCharactersOf(roster: readonly HeroDefinition[]): readonly Character[] {
   const choices: Character[] = [ Character.rifleman, Character.demonHunter];
   for (const hero of roster) if (hero.complete) choices.push(hero.character);
   return choices;
 }
 
-/** Every finished fighter, in roster-tile order: measurement tools and named dev commands use all of them; selection uses PLAYABLE_CHARACTERS. */
+
 export const SELECTABLE_CHARACTERS: readonly Character[] = selectableCharactersOf(HERO_ROSTER);
 
 export function isSelectableCharacter(choice: number): choice is Character {
@@ -82,12 +82,12 @@ export function isSelectableCharacter(choice: number): choice is Character {
 
 const ORIGINAL_NAMES: Readonly<Record<number, string>> = { [Character.rifleman]: "Rifleman", [Character.demonHunter]: "Illidan" };
 
-/** The fighter's name as players see it. */
+
 export function fighterName(character: number): string {
   return heroDefinition(character)?.name ?? ORIGINAL_NAMES[character] ?? "Rifleman";
 }
 
-/** The fighter in `choices` that `direction` steps from `current`, wrapping; from a fighter not in `choices`, the first or last. */
+
 export function nextCharacterIn(choices: readonly Character[], current: number | undefined, direction: number): Character {
   const count = choices.length;
   let index = -1;
@@ -96,30 +96,30 @@ export function nextCharacterIn(choices: readonly Character[], current: number |
   return choices[floorMod(index + direction, count)] ?? Character.rifleman;
 }
 
-/** The playable fighter `direction` steps from `current` in tile order, wrapping. */
+
 export function nextSelectableCharacter(current: number | undefined, direction: number): Character {
   return nextCharacterIn(PLAYABLE_CHARACTERS, current, direction);
 }
 
-/**
- * The fighters with rendered portraits (tools/selection/render-fighters.ts);
- * the map imports each one's tile and card. A fighter missing here shows its
- * Warcraft command icon.
- */
+
+
+
+
+
 export const RENDERED_FIGHTERS: readonly Character[] = SELECTABLE_CHARACTERS;
 
-/** The name a fighter's rendered portraits are filed under: "MountainKing". */
+
 export const fighterRenderName = (character: number): string => fighterName(character).split(" ").join("");
 
-/**
- * A fighter's rendered portraits: the grid tile (head and shoulders on the shared
- * background), the card (full body), the HUD bust (head and shoulders, clear
- * background) and the stock icon (head).
- */
+
+
+
+
+
 export type PortraitKind = "Tile" | "Card" | "Bust" | "Stock";
 export const PORTRAIT_KINDS: readonly PortraitKind[] = ["Tile", "Card", "Bust", "Stock"];
 
-/** The fighter's portrait texture of `kind`, or its hero's command icon. */
+
 export function fighterPortrait(character: number, kind: PortraitKind, slot?: number): string {
   for (const rendered of RENDERED_FIGHTERS) {
     if (rendered === character) return `war3mapImported\\Fighter${kind}${fighterRenderName(character)}${slot === undefined ? "" : `P${slot + 1}`}.blp`;
@@ -129,7 +129,7 @@ export function fighterPortrait(character: number, kind: PortraitKind, slot?: nu
 
 const ORIGINAL_ICONS: Readonly<Record<number, string>> = { [Character.rifleman]: "BTNRifleman", [Character.demonHunter]: "BTNHeroDemonHunter" };
 
-/** The fighter's Warcraft command icon. */
+
 export function fighterIcon(character: number): string {
   return heroDefinition(character)?.presentation.portrait ?? `ReplaceableTextures\\CommandButtons\\${ORIGINAL_ICONS[character] ?? "BTNRifleman"}.blp`;
 }

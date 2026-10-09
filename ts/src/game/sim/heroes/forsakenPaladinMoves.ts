@@ -7,15 +7,15 @@ import { FORSAKEN_PALADIN_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 
-// Timings and damage: smashcraft:docs/design/roster.md. Original hammer paths
-// are provisional until checked against the matching animation poses.
+
+
 const SHORT = f32(HERO_REFERENCE_HEIGHT * f32(0.55));
 export const MEDIUM = f32(HERO_REFERENCE_HEIGHT * f32(0.80));
 const LONG = f32(HERO_REFERENCE_HEIGHT * f32(1.10));
 const GRAB = SHORT;
 
-// Provisional coefficients for the existing formula, not calibrated distance
-// bands or guarantees about follow-ups.
+
+
 const CLASS_HYPOTHESES = {
   LINK: { growth: 65.0, base: 12.0 },
   POKE: { growth: 80.0, base: 16.0 },
@@ -23,7 +23,7 @@ const CLASS_HYPOTHESES = {
   EDGE: { growth: 100.0, base: 25.0 },
   KILL: { growth: 110.0, base: 30.0 },
   SPIKE: { growth: 100.0, base: 24.0 },
-  // Throw roles (#107): an up throw's guaranteed short juggle and a down throw's tech chase.
+
   JUGGLE: { growth: 55.0, base: 50.0 },
   CHASE: { growth: 40.0, base: 75.0 },
 } as const;
@@ -43,7 +43,7 @@ const DIRECTIONS = {
   270: { x: 0.0, z: -1.0 },
 } as const;
 
-/** Forsaken Paladin's provisional launch for a roster row: damage, tuning class and facing-relative angle. */
+
 export function hit(damage: number, launchClass: LaunchClass, angle: keyof typeof DIRECTIONS, backwards = false, element: HitElement = HitElement.normal): Readonly<HitEffect> {
   const direction = DIRECTIONS[angle];
   const strength = CLASS_HYPOTHESES[launchClass];
@@ -73,21 +73,21 @@ const DOWN_AIR = hit(13.0, "SPIKE", 270);
 const DOWN_AIR_GROUNDED = hit(13.0, "LAUNCH", 55);
 const GRAB_CONTACT = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 
-// Forsaken Paladin's body (smashcraft:docs/hurtboxes.md, gameplay-design.md "Legible
-// hurtboxes"). The hammer stays outside it, so a swing's reach past the
-// gauntlet is its disjoint; the swinging arm reaches toward each strike from
-// late startup into early recovery, at the hand heights of the Paladin's
-// "Attack - 1", "Attack - 2" and "Spell" sequences (forsakenPaladinClips.ts). The jab's
-// gauntlet, back air's boot and the grabbing hand are the strikes themselves.
+
+
+
+
+
+
 const body = hurtCapsule(Character.forsakenPaladin);
 const FORSAKEN_PALADIN_TORSO = hurtPart(body.x1, body.z1, body.x2, body.z2, body.radius);
 const ARM_RADIUS = 10.0;
-/** The torso and the swinging arm from the shoulder to the hand. */
+
 export const forsakenPaladinReach = (handX: number, handZ: number): readonly HurtPart[] => [FORSAKEN_PALADIN_TORSO, hurtPart(6.0, 88.0, handX, handZ, ARM_RADIUS)];
 const JAB_ARM = hurtPart(10.0, 66.0, f32(SHORT - 10.0), 60.0, 10.0);
 const GRAB_ARM = hurtPart(10.0, 56.0, f32(GRAB - 12.0), 40.0, 12.0);
-// Rearward Boot reaches 0.8H behind through a half-extended leg on each side,
-// keeping every body change within 60 units.
+
+
 const BOOT_TIP = -f32(MEDIUM - 11.0);
 const BOOT = hurtPart(-8.0, 42.0, BOOT_TIP, 30.0, 11.0);
 const HALF_BOOT = hurtPart(-8.0, 42.0, f32(BOOT_TIP * f32(0.6)), 36.0, 11.0);

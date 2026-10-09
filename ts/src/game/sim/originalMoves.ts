@@ -1,7 +1,7 @@
-// the reference body's and Rifleman's own jab, tilts and dash attack
-// (smashcraft:docs/design/tilts.md). Their smashes, aerials, grabs and throws
-// keep the shared tables in moves.ts and hitRegions.ts; their bodies keep the
-// shipped poses, timed to these moves.
+
+
+
+
 import { SMASH_MAX_CHARGE_FRAMES, SMASH_MAX_DAMAGE_MULTIPLIER } from "./moves";
 import { AttackStyle, Character } from "./codes";
 import type { FighterMoves } from "./heroMoves";
@@ -20,7 +20,7 @@ function originalMoves(character: Character, kit: GroundKit): FighterMoves {
 }
 export const RIFLEMAN_MOVES: FighterMoves = originalMoves(Character.rifleman, RIFLEMAN_GROUND);
 
-/** An original fighter's kit; Illidan's normals stay in the shared tables. */
+
 export function originalFighterMoves(character: Character): FighterMoves | undefined {
   return character === Character.rifleman ? RIFLEMAN_MOVES : undefined;
 }

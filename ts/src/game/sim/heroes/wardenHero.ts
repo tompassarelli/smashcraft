@@ -1,5 +1,5 @@
-// Warden's registration: identity, kit and presentation. Owned by this hero's
-// lane; set `complete` only when the whole base kit works (hero.ts).
+
+
 import { Character } from "../codes";
 import { WARDEN_CLIP_TABLE } from "../../presentation/heroes/wardenClipTable";
 import { WARDEN_CLIPS, WARDEN_MODEL_FILE } from "../../presentation/heroes/wardenClips";

@@ -1,6 +1,6 @@
-// Launch strength, hitlag, hitstun and directional influence. The scalar
-// formulas reproduce NTSC 1.02 binary32 arithmetic; see
-// smashcraft:docs/melee-hitlag-scalars.md and melee-hitstun-boundaries.md.
+
+
+
 import { max, min, toInt, toReal } from "../../runtime/numbers";
 import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
@@ -20,7 +20,7 @@ const KNOCKBACK_STACKING_FRAMES = 10;
 const GROUND_LAUNCH_BOUNCE_ANGLE = 0.1745329201221466;
 const GROUND_LAUNCH_REBOUND = 0.800000011920929;
 const RADIANS_TO_DEGREES = 57.295780181884766;
-// Typed `number`, not their literals, so a tuned value (bun wisp tune) type-checks this module alone.
+
 export const ORDINARY_HIT_GROWTH_PERCENT: number = 100.0;
 export const ORDINARY_HIT_BASE_KNOCKBACK: number = 20.0;
 export const ORDINARY_HIT_CONTEXT_SCALE = 1.0;
@@ -30,7 +30,7 @@ export const TOP_KO_MINIMUM_UPWARD_KNOCKBACK = melee(2.4000000953674316);
 /** PlCo.dat +0x164 max_grounded_kb_on_landing. */
 export const MAX_GROUNDED_KNOCKBACK_ON_LANDING = melee(8.300000190734863);
 
-/** Attack power: integer even without staling, at least one for any positive damage. */
+
 export function integerHitPower(hitDamage: number): number {
   const damage = roundToFloat32(hitDamage);
   return damage > 0 ? max(1, toInt(damage)) : 0;
@@ -49,7 +49,7 @@ function scaledLaunchGrowth(contribution: number, victimWeight: number, growthPe
   return min(2500.0, fusedMultiplyAddFloat32(multiplier, growth, roundToFloat32(baseKnockback)));
 }
 
-/** Knockback from the victim's percent after the hit's damage is added. */
+
 export function contactKnockback(postHitPercent: number, hitDamage: number, victimWeight: number, growthPercent: number, baseKnockback: number, contextScale: number): number {
   const percent = roundToFloat32(postHitPercent);
   const powered = multiplyFloat32(percent, toReal(integerHitPower(hitDamage)));
@@ -65,7 +65,7 @@ export function fixedHitKnockback(fixedPower: number, victimWeight: number, grow
   return multiplyFloat32(scaledLaunchGrowth(contribution, victimWeight, growthPercent, baseKnockback), roundToFloat32(contextScale));
 }
 
-/** Crouch-cancel and smash-charge adjustments to a launch. */
+
 export function hitContextKnockback(knockback: number, crouching: boolean, smashCharging: boolean): number {
   let result = roundToFloat32(knockback);
   if (crouching) result = multiplyFloat32(result, 0.6666666865348816);
@@ -73,7 +73,7 @@ export function hitContextKnockback(knockback: number, crouching: boolean, smash
   return result;
 }
 
-/** Damage retains its fraction; the victim's percent before the hit is truncated. */
+
 export function ordinaryHitKnockback(preHitPercent: number, hitDamage: number, victimWeight: number, growthPercent: number, baseKnockback: number, contextScale: number): number {
   const postHitPercent = addFloat32(toReal(toInt(max(0.0, roundToFloat32(preHitPercent)))), roundToFloat32(hitDamage));
   return contactKnockback(postHitPercent, hitDamage, victimWeight, growthPercent, baseKnockback, contextScale);
@@ -115,7 +115,7 @@ function mergeLaunchAxis(existing: number, incoming: number): number {
   return existing > 0 ? max(existing, incoming) : min(existing, incoming);
 }
 
-/** Replaces or, ten frames after the last launch, merges the launch velocity along each axis. */
+
 export function installDamageLaunch(target: Fighter, knockback: number, directionX: number, directionZ: number, wasGrounded: boolean): void {
   const { launch, motion } = target;
   launch.damageLevel = damageLevelForKnockback(knockback);
@@ -126,7 +126,7 @@ export function installDamageLaunch(target: Fighter, knockback: number, directio
   if (motion.grounded) {
     launchZ = 0.0;
   } else if (wasGrounded && launch.damageLevel === 3 && directionZ < 0) {
-    // The floor normal is vertical on the current flat stage surfaces.
+
     if (meleeAtan2(-directionZ, Math.abs(directionX)) > GROUND_LAUNCH_BOUNCE_ANGLE) launchZ = -f32(launchZ * GROUND_LAUNCH_REBOUND);
   }
   launch.groundKnockbackX = motion.grounded ? launchX : 0.0;
@@ -141,13 +141,13 @@ export function installDamageLaunch(target: Fighter, knockback: number, directio
   launch.diLaunchSpeed = speed;
 }
 
-/** Advances the launch age through KNOCKBACK_STACKING_FRAMES, past which ages are equivalent. */
+
 export function ageKnockback(f: Fighter): void {
   const age = f.launch.knockbackAge;
   if (age !== undefined) f.launch.knockbackAge = min(KNOCKBACK_STACKING_FRAMES, age + 1);
 }
 
-/** Ground launch slides against traction, scaled by the floor's `friction`; air launch decays along its angle until the retail cutoff. */
+
 export function decayKnockback(f: Fighter, friction = 1.0): void {
   const { launch } = f;
   if (f.motion.grounded) {
@@ -176,17 +176,17 @@ interface DirectionalInfluence {
   angleRadians: number;
 }
 
-// Preallocated: rollback replays apply DI when replayed hitlag ends.
+
 const influence: DirectionalInfluence = { velocityX: 0.0, velocityZ: 0.0, degrees: 0.0, angleRadians: 0.0 };
 
 
-/**
- * A launch rotated by DI. Launch components are in Melee units; stick
- * components are normalized. The signed squared cross product gives the
- * rotation fraction; rounding and fused angle reconstruction are checked
- * against smashcraft:docs/smash-melee-reference/retail-di-vector.json.
- * The result is valid until the next call.
- */
+
+
+
+
+
+
+
 export function directionalInfluenceVector(x: number, z: number, stickX: number, stickZ: number): Readonly<DirectionalInfluence> {
   const horizontal = roundToFloat32(x);
   const vertical = roundToFloat32(z);
@@ -214,7 +214,7 @@ export function directionalInfluenceVector(x: number, z: number, stickX: number,
 
 const sign = (value: number) => (value === 0 ? 0 : value > 0 ? 1 : -1);
 
-/** Rotates a pending airborne launch by the stick; ground knockback follows the floor tangent instead. */
+
 export function applyDirectionalInfluence(target: Fighter, input: Readonly<Controls>): void {
   const { launch } = target;
   if (!launch.diPending) return;

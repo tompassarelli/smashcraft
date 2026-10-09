@@ -1,6 +1,6 @@
-// Character specials: choosing and starting them, their per-frame timelines,
-// and Demon Hunter's Immolation contact. First-pass timing and trajectories;
-// gameplay tuning remains provisional.
+
+
+
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, ProjectileKind, SPECIAL_ACTION_CAPACITY, SpecialAction, SurfaceContact } from "./codes";
@@ -28,18 +28,18 @@ import { at } from "wisp/src/runtime/lookup";
 import { travelBeforeBodies } from "./travelStop";
 import { advanceHeroSpecial, chargedAimX, chargedAimZ, chooseHeroSpecial, enterHeroSpecial, followUpHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, relocateHeroSpecial, runningHeroSpecial, resolveHeroGuards, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
 
-// Mana Burn (#116): a slow orb Illidan can run behind, one at a time; its stun is in projectiles.ts.
+
 export const DEMONHUNTER_MANA_BURN_STARTUP = 16;
 export const DEMONHUNTER_MANA_BURN_RECOVERY = 30;
 export const DEMONHUNTER_MANA_BURN_SPEED = 12.0;
 export const DEMONHUNTER_MANA_BURN_LIFETIME = 90;
-// At the shield's centre: a held shield always meets the slow orb, and a short hop clears it.
+
 export const DEMONHUNTER_MANA_BURN_HEIGHT = 45.0;
-// Fel Rush (side special, #147, smashcraft:docs/design/illidan.md): a fel tell
-// on frames 1-5, a straight rush on 6-15 that passes bodies and stops at a
-// raised shield, recovery to 29. A press in frames 10-24 branches: special is
-// Vengeful Retreat (a backflip away), attack is Chaos Strike (a slash toward
-// the held stick). Level in the air, once per airtime, never helpless.
+
+
+
+
+
 export const FEL_RUSH_TELL_LAST = 5;
 export const FEL_RUSH_FIRST = 6;
 export const FEL_RUSH_LAST = 15;
@@ -48,13 +48,13 @@ export const FEL_RUSH_SPEED = 20.0;
 export const FEL_RUSH_BRANCH_FIRST = 10;
 export const FEL_RUSH_BRANCH_LAST = 24;
 export const FEL_RUSH_COOLDOWN = 40;
-/** Fel Rush's bit in airtimeUses (the ride's is 1). */
+
 const FEL_RUSH_AIRTIME = 2;
 const FEL_RUSH_AIR_CARRY = 5.0;
 export const VENGEFUL_RETREAT_FORM = 1;
 export const CHAOS_STRIKE_FORM = 2;
 export const CHAOS_STRIKE_AIR_FORM = 3;
-/** Vengeful Retreat moves on its frames 1-10 and ends on 16: he acts on 17. */
+
 export const VENGEFUL_RETREAT_FRAMES = 16;
 export const VENGEFUL_RETREAT_MOVE_LAST = 10;
 export const VENGEFUL_RETREAT_SPEED = 16.0;
@@ -66,8 +66,8 @@ export const CHAOS_STRIKE_FRAMES = 30;
 const CHAOS_STRIKE_LANDING_LAG = 12;
 export const DEMONHUNTER_WING_STARTUP = 3;
 export const DEMONHUNTER_WING_DURATION = 28;
-// The glide out of Wing Ascent (#128): a jump in frames 16-28 spreads the
-// wings; the stick pitches the line; an attack slashes and ends it helpless.
+
+
 export const DEMONHUNTER_GLIDE_FIRST = 16;
 export const DEMONHUNTER_GLIDE_FRAMES = 90;
 export const DEMONHUNTER_GLIDE_FORM = 1;
@@ -82,9 +82,9 @@ const GLIDE_DIVE = { speed: 11.0, sink: 4.0 };
 export const DEMONHUNTER_IMMOLATE_STARTUP = 4;
 export const DEMONHUNTER_IMMOLATE_ACTIVE = 4;
 export const DEMONHUNTER_IMMOLATE_DURATION = 27;
-// Flame Crash (#147): down special in the air hangs on frames 1-4, plunges
-// from 5 striking once on the way down, and bursts on landing (its frames
-// 1-3), acting 24 frames after landing; still airborne on frame 34, helpless.
+
+
+
 export const FLAME_CRASH_FORM = 1;
 export const FLAME_CRASH_LANDING_FORM = 2;
 export const FLAME_CRASH_HANG_LAST = 4;
@@ -92,11 +92,11 @@ export const FLAME_CRASH_FRAMES = 34;
 export const FLAME_CRASH_SPEED = 24.0;
 export const FLAME_CRASH_LANDING_FRAMES = 24;
 export const FLAME_CRASH_BURST_LAST = 3;
-// Rifleman's recoil shot (up special, #127, smashcraft:docs/design/kit-review-1.md),
-// the roster's charged-angle rule (#189): the stick held through frame 4
-// picks one of eight directions he flies (straight up when neutral); the
-// shot fires the opposite way. One second shot on a special press in frames
-// 12-24 picks a new route the same way.
+
+
+
+
+
 export const RIFLEMAN_RECOVERY_STARTUP_FRAMES = 4;
 export const RIFLEMAN_RECOVERY_PROTECTION_END = 10;
 const RIFLEMAN_RECOIL_SPEED = 33.5;
@@ -105,16 +105,16 @@ export const RIFLEMAN_SECOND_SHOT_FIRST = 12;
 export const RIFLEMAN_SECOND_SHOT_LAST = 24;
 const RIFLEMAN_SECOND_SHOT_SPEED = 22.0;
 export const RIFLEMAN_SECOND_SHOT_FORM = 1;
-/** Diagonal aims keep the authored speed. */
+
 const AIM_DIAGONAL = 0.7071067690849304;
 const RIFLEMAN_RECOVERY_FRAMES = 34;
-/** The bear appears this many frames into the cast, past the reaction floor in docs/gameplay-design.md (#69). */
+
 export const RIFLEMAN_BEAR_CAST_FRAMES = 24;
-/** The cast, then 18 frames after the bear appears. */
+
 export const RIFLEMAN_BEAR_SUMMON_FRAMES = RIFLEMAN_BEAR_CAST_FRAMES + 18;
 const TRAP_APPEAR_FRAME = 22;
 const TRAP_SET_FRAMES = 38;
-/** The special input bit in action observations. */
+
 const SPECIAL_ACTION_BIT = 64;
 
 function startSpecialAction(owner: Fighter, action: SpecialAction, duration: number, direction: number): void {
@@ -130,7 +130,7 @@ function startSpecialAction(owner: Fighter, action: SpecialAction, duration: num
   special.ex = false;
   special.exArmorUsed = false;
   special.frame = 0;
-  // Every special starts in its plain form; a glide or Chaos Strike's form must not carry into the next special.
+
   special.form = 0;
   special.duration = duration;
   special.lockFrames = duration;
@@ -147,7 +147,7 @@ function startSpecialAction(owner: Fighter, action: SpecialAction, duration: num
   attack.cooldown = max(attack.cooldown, duration);
 }
 
-/** The special's horizontal direction: the pressed side, the facing for neutral, zero for vertical. */
+
 function specialDirection(input: Readonly<Controls>, facing: number): number {
   if (input.specialX !== 0) return input.specialX;
   return input.specialZ === 0 ? facing : 0;
@@ -207,10 +207,10 @@ function startRiflemanSpecial(owner: Fighter, stage: number, matchFrame: number,
   return true;
 }
 
-/**
- * Flies the Rifleman at `speed` the way an eight-way aim picks (straight up
- * when neutral) and fires the recoil shot the opposite way.
- */
+
+
+
+
 function fireRecoil(owner: Fighter, aimX: number, aimZ: number, speed: number, serial: number): void {
   const x = aimX < 0 ? -1 : aimX > 0 ? 1 : 0;
   const z = aimZ < 0 ? -1 : aimZ > 0 || x === 0 ? 1 : 0;
@@ -221,10 +221,10 @@ function fireRecoil(owner: Fighter, aimX: number, aimZ: number, speed: number, s
   owner.motion.vz = f32(f32(z * travelSpeed) * scale);
 }
 
-/**
- * The recoil shot's second shot: a special press in frames 12-24, once, flies
- * him the way the held stick picks at the second shot's speed.
- */
+
+
+
+
 function secondRecoilShot(owner: Fighter, input: Readonly<Controls>): boolean {
   const { special } = owner;
   const next = special.frame + 1;
@@ -235,12 +235,12 @@ function secondRecoilShot(owner: Fighter, input: Readonly<Controls>): boolean {
   return true;
 }
 
-/**
- * Runs before the jump input: Immolate from its first active frame (as
- * Melee's reflector from frame 4) ends so the jump starts this frame; Wing
- * Ascent in frames 16-28 turns into the glide instead; an attack during the
- * glide becomes the wing slash.
- */
+
+
+
+
+
+
 export function demonHunterJumpOrGlideCancel(owner: Fighter, input: Readonly<Controls>): void {
   const { special } = owner;
   if (owner.character !== Character.demonHunter || owner.launch.hitlag > 0) return;
@@ -273,7 +273,7 @@ function startGlidePhase(owner: Fighter, form: number, frames: number): void {
   owner.attack.cooldown = max(owner.attack.cooldown, frames);
 }
 
-/** Whether Illidan's glide (or its slash), Fel Rush's tell and rush, or Vengeful Retreat's vault sets his velocity this frame. */
+
 export function demonHunterGliding(f: Readonly<Fighter>): boolean {
   const { special } = f;
   if (special.action === SpecialAction.demonHunterFelRush) {
@@ -283,10 +283,10 @@ export function demonHunterGliding(f: Readonly<Fighter>): boolean {
   return special.action === SpecialAction.demonHunterWingAscent && special.form !== 0;
 }
 
-/**
- * One Flame Crash frame: still through the hang, then straight down; landing
- * starts the burst, a fresh strike allowance, and its recovery.
- */
+
+
+
+
 function advanceFlameCrash(owner: Fighter): void {
   const { special, motion } = owner;
   if (special.form !== FLAME_CRASH_FORM) return;
@@ -304,11 +304,11 @@ function advanceFlameCrash(owner: Fighter): void {
   motion.vz = special.frame < FLAME_CRASH_HANG_LAST ? 0.0 : -FLAME_CRASH_SPEED;
 }
 
-/**
- * A fresh press in Fel Rush's frames 10-24 replaces the rest of it: special
- * vaults back (Vengeful Retreat), attack slashes toward the held stick (Chaos
- * Strike). The press tick is the branch's frame 1. True when it branched.
- */
+
+
+
+
+
 function felRushBranch(owner: Fighter, input: Readonly<Controls>, attack: boolean): boolean {
   const { special, motion } = owner;
   const next = special.frame + 1;
@@ -316,7 +316,7 @@ function felRushBranch(owner: Fighter, input: Readonly<Controls>, attack: boolea
   special.exArmorUsed = special.ex;
   for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
   special.hit = false;
-  // The branch replaces the rush's lock with its own.
+
   owner.attack.cooldown = 0;
   if (attack) {
     if (input.direction !== 0) owner.facing = input.direction < 0 ? -1 : 1;
@@ -333,11 +333,11 @@ function felRushBranch(owner: Fighter, input: Readonly<Controls>, attack: boolea
   return true;
 }
 
-/**
- * One Fel Rush frame, setting the velocity the next frame moves by: still
- * through the tell, the rush (level in the air), then a stop; Vengeful
- * Retreat's vault arcs back; an aerial Chaos Strike ends on landing.
- */
+
+
+
+
+
 function advanceFelRush(owner: Fighter): void {
   const { special, motion } = owner;
   const frame = special.frame;
@@ -373,7 +373,7 @@ function advanceFelRush(owner: Fighter): void {
   }
 }
 
-/** Fel Rush's rush ends just short of a raised shield ahead; it passes bodies. */
+
 function stopFelRushAtShields(world: Roster, slot: number): void {
   const f = fighterAt(world, slot);
   if (f.character !== Character.demonHunter || f.special.action !== SpecialAction.demonHunterFelRush || f.special.form !== 0) return;
@@ -382,7 +382,7 @@ function stopFelRushAtShields(world: Roster, slot: number): void {
   f.motion.vx = f32(f.facing * travelBeforeBodies(world, slot, forward, false));
 }
 
-/** One glide frame: forward along the facing, pitched by the held stick. */
+
 function glide(owner: Fighter, input: Readonly<Controls> | undefined): void {
   const { motion, special } = owner;
   if (motion.grounded) {
@@ -399,7 +399,7 @@ function glide(owner: Fighter, input: Readonly<Controls> | undefined): void {
   motion.vz = -line.sink;
 }
 
-/** The cast completes: the bear appears ahead of the Rifleman and runs the way he cast it. */
+
 function summonBear(owner: Fighter, stage: number, matchFrame: number): void {
   const { motion, bear, special } = owner;
   const moveX = special.direction;
@@ -413,7 +413,7 @@ function summonBear(owner: Fighter, stage: number, matchFrame: number): void {
   bear.swipeCooldown = 5;
 }
 
-/** Illidan has one orb out at a time, counting one he reflected. */
+
 function manaBurnInFlight(owner: Readonly<Fighter>): boolean {
   for (const projectile of owner.projectiles) if (projectile.life > 0 && projectile.kind === ProjectileKind.manaBurn) return true;
   return false;
@@ -444,7 +444,7 @@ function startDemonHunterSpecial(owner: Fighter, action: SpecialAction, moveX: n
   }
   if (action === SpecialAction.demonHunterFelRush) {
     if (!motion.grounded && (special.airtimeUses & FEL_RUSH_AIRTIME) !== 0) return false;
-    // The stick picks the side; he faces it for the tell.
+
     owner.facing = moveX < 0 ? -1 : 1;
     startSpecialAction(owner, action, FEL_RUSH_FRAMES, moveX);
     special.cooldowns[action] = FEL_RUSH_COOLDOWN;
@@ -460,16 +460,16 @@ function startDemonHunterSpecial(owner: Fighter, action: SpecialAction, moveX: n
   return true;
 }
 
-// Preallocated: a refused hero press reports why, and an airborne side press retries as neutral.
+
 const heroRefusal = { groundOnly: false };
 const neutralPress = neutralControls();
 
-/**
- * Turnaround specials, one rule for every fighter before any neutral or side
- * special starts, airborne or grounded: a side special faces the pressed side;
- * a neutral special faces the side the stick last pressed within the
- * turnaround window (smashcraft:docs/gameplay-design.md, "Turnaround specials").
- */
+
+
+
+
+
+
 function turnForSpecial(owner: Fighter, input: Readonly<Controls>): void {
   if (input.specialZ !== 0) return;
   const { motion } = owner;
@@ -478,15 +478,15 @@ function turnForSpecial(owner: Fighter, input: Readonly<Controls>): void {
   else if (motion.turnaroundSide !== 0 && motion.turnaroundAge <= TURNAROUND_SPECIAL_WINDOW_FRAMES) owner.facing = motion.turnaroundSide;
 }
 
-/**
- * Starts an expansion hero's free special through its authored kit.
- */
+
+
+
 function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>, world: Roster | undefined): boolean {
   const specials = owner.tuning.specials;
   const { special } = owner;
   if (specials === undefined || special.lockFrames > 0 || special.action !== SpecialAction.none || !canAttack(owner)) return false;
   let chosen = chooseHeroSpecial(owner, specials, input, heroRefusal, world);
-  // A side special that only starts on the ground fires the neutral one in the air, turned to the stick.
+
   if (chosen === undefined && heroRefusal.groundOnly && input.specialX !== 0 && input.specialZ === 0) {
     copyControls(neutralPress, input);
     neutralPress.specialX = 0;
@@ -504,7 +504,7 @@ function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>, worl
   return true;
 }
 
-/** Starts the special the input asks for if it may, turned by the turnaround rule. */
+
 export function startFighterSpecial(owner: Fighter, stage: number, matchFrame: number, input: Readonly<Controls>, world?: Roster): boolean {
   steerHeroSpecial(owner, input);
   if (owner.tuning.specials !== undefined && isHeroSpecialAction(owner.special.action)) return followUpHeroSpecial(owner, input);
@@ -537,7 +537,7 @@ function startOriginalSpecial(owner: Fighter, stage: number, matchFrame: number,
   }
 }
 
-/** Ends the action; up-specials that end airborne leave a helpless fall. */
+
 function endSpecialAction(owner: Fighter, helpless: boolean): void {
   if (helpless && !owner.motion.grounded) {
     owner.special.fall = true;
@@ -570,7 +570,7 @@ function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number,
       const aimX = input === undefined ? 0 : chargedAimX(input);
       const aimZ = input === undefined ? 0 : chargedAimZ(input);
       if (aimX === 0 && aimZ >= 0) {
-        // Straight up on a shot straight down, as the recovery always flew: the side pressed drifts him.
+
         spawnProjectileMotion(owner, ProjectileKind.recoil, f32(owner.facing * 2.0), -RIFLEMAN_RECOIL_SHOT_SPEED, 8, shotSerial);
         motion.vx = f32(f32(special.direction * 8.0) * (special.ex ? 1.25 : 1.0));
         motion.vz = f32(RIFLEMAN_RECOIL_SPEED * (special.ex ? 1.25 : 1.0));
@@ -626,10 +626,10 @@ function exDamageRegion(region: Readonly<HitRegion>): Readonly<HitRegion> {
   };
 }
 
-/** Where Immolation strikes a target's position, facing right, from the ground or the air. */
+
 export const immolationRegion = (grounded: boolean, ex = false): Readonly<HitRegion> => (grounded ? ex ? IMMOLATE_GROUND_EX : IMMOLATE_GROUND : ex ? IMMOLATE_AIR_EX : IMMOLATE_AIR);
 
-// Flame Crash's plunge spikes an airborne target and launches a grounded one; the landing burst surrounds him.
+
 const FLAME_CRASH_PLUNGE: Readonly<HitRegion> = {
   minX: -60.0, maxX: 60.0, minZ: -120.0, maxZ: 20.0,
   effect: { damage: 9.0, growth: 100.0, base: 26.0, launchX: 0.1736481785774231, launchZ: -0.9848077297210693, electric: false, element: HitElement.fire, manaDrain: 6 },
@@ -644,14 +644,14 @@ const FLAME_CRASH_BURST: Readonly<HitRegion> = {
 const FLAME_CRASH_PLUNGE_EX = exDamageRegion(FLAME_CRASH_PLUNGE);
 const FLAME_CRASH_BURST_EX = exDamageRegion(FLAME_CRASH_BURST);
 
-/** The Flame Crash region that strikes this frame: the plunge from frame 5, the burst on landing frames 1-3. */
+
 export function flameCrashRegion(form: number, frame: number, ex = false): Readonly<HitRegion> {
   if (form === FLAME_CRASH_FORM) return frame > FLAME_CRASH_HANG_LAST ? ex ? FLAME_CRASH_PLUNGE_EX : FLAME_CRASH_PLUNGE : NO_HIT_REGION;
   if (form === FLAME_CRASH_LANDING_FORM) return frame <= FLAME_CRASH_BURST_LAST ? ex ? FLAME_CRASH_BURST_EX : FLAME_CRASH_BURST : NO_HIT_REGION;
   return NO_HIT_REGION;
 }
 
-/** Immolation strikes each target inside its grounded or aerial region once during its active frames. */
+
 const GLIDE_SLASH: Readonly<HitRegion> = {
   minX: 0.0, maxX: 120.0, minZ: -20.0, maxZ: 110.0,
   effect: { damage: 8.0, growth: 100.0, base: 24.0, launchX: 0.7071067690849304, launchZ: 0.7071067690849304, electric: false, manaDrain: 5 },
@@ -660,7 +660,7 @@ const GLIDE_SLASH: Readonly<HitRegion> = {
 
 export const glideSlashRegion = (): Readonly<HitRegion> => GLIDE_SLASH;
 
-/** The glide's wing slash strikes each target in front of Illidan once on its frames 4-7. */
+
 function glideSlashContact(owner: Fighter, targetSlot: number, target: Fighter): Readonly<HitRegion> {
   const { special } = owner;
   if (special.frame < DEMONHUNTER_GLIDE_SLASH_FIRST || special.frame > DEMONHUNTER_GLIDE_SLASH_LAST) return NO_HIT_REGION;
@@ -670,7 +670,7 @@ function glideSlashContact(owner: Fighter, targetSlot: number, target: Fighter):
   return localX >= GLIDE_SLASH.minX && localX <= GLIDE_SLASH.maxX && localZ >= GLIDE_SLASH.minZ && localZ <= GLIDE_SLASH.maxZ ? GLIDE_SLASH : NO_HIT_REGION;
 }
 
-// Fel Rush's pass strikes each body it crosses once with a pop-up; Chaos Strike slashes in front.
+
 const FEL_RUSH_PASS: Readonly<HitRegion> = {
   minX: -40.0, maxX: 60.0, minZ: -20.0, maxZ: 140.0,
   effect: { damage: 6.0, growth: 40.0, base: 45.0, launchX: 0.1736481785774231, launchZ: 0.9848077297210693, electric: false, element: HitElement.fire, manaDrain: 4 },
@@ -684,7 +684,7 @@ const CHAOS_STRIKE: Readonly<HitRegion> = {
 const FEL_RUSH_PASS_EX = exDamageRegion(FEL_RUSH_PASS);
 const CHAOS_STRIKE_EX = exDamageRegion(CHAOS_STRIKE);
 
-/** The Fel Rush region that strikes this frame: the pass on rush frames 6-15, Chaos Strike on its frames 5-8. */
+
 export function felRushRegion(form: number, frame: number, ex = false): Readonly<HitRegion> {
   if (form === 0) return frame >= FEL_RUSH_FIRST && frame <= FEL_RUSH_LAST ? ex ? FEL_RUSH_PASS_EX : FEL_RUSH_PASS : NO_HIT_REGION;
   if (form === CHAOS_STRIKE_FORM || form === CHAOS_STRIKE_AIR_FORM) return frame >= CHAOS_STRIKE_FIRST && frame <= CHAOS_STRIKE_LAST ? ex ? CHAOS_STRIKE_EX : CHAOS_STRIKE : NO_HIT_REGION;
@@ -720,14 +720,14 @@ function demonHunterSpecialContact(owner: Fighter, targetSlot: number, target: F
   return inside ? contact : NO_HIT_REGION;
 }
 
-// Preallocated per participant and per pair: rollback replays advance specials every frame.
+
 const specialScratch = {
   contacts: Array.from({ length: PARTICIPANT_CAPACITY * PARTICIPANT_CAPACITY }, (): Readonly<HitRegion> => NO_HIT_REGION),
   facings: [0, 0, 0, 0],
   active: [false, false, false, false],
 };
 
-/** Advances every special timeline, applies Immolation contacts selected against one state, then summons. */
+
 export function advanceSpecials(world: Roster, stage: number, matchFrame: number, inputs?: readonly Readonly<Controls>[]): void {
   const ownsBatch = openDamageContacts();
   const { contacts, facings, active } = specialScratch;
@@ -744,7 +744,7 @@ export function advanceSpecials(world: Roster, stage: number, matchFrame: number
     if (!isActive(world, ownerSlot)) continue;
     const owner = fighterAt(world, ownerSlot);
     facings[ownerSlot] = owner.facing;
-    // Both contact tests start from a running special.
+
     active[ownerSlot] = owner.special.action !== SpecialAction.none;
     if (!active[ownerSlot]) continue;
     for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
@@ -777,7 +777,7 @@ export function advanceSpecials(world: Roster, stage: number, matchFrame: number
   if (ownsBatch) finishDamageContacts(world);
 }
 
-/** A strike path's grounded variant applies to a grounded target. */
+
 function heroContactEffect(contact: Readonly<HitRegion>, target: Readonly<Fighter>): Readonly<HitEffect> {
   return target.motion.grounded && contact.groundedEffect !== undefined ? contact.groundedEffect : contact.effect;
 }

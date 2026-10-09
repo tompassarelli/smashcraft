@@ -1,4 +1,4 @@
-// The Murloc's registration (smashcraft:docs/design/murloc.md, #262).
+
 import { Character } from "../codes";
 import type { HeroDefinition } from "./hero";
 import { MURLOC_CLIPS, MURLOC_DAMAGE_CLIPS, MURLOC_FALLBACK, MURLOC_MODEL_FILE } from "./murlocClips";

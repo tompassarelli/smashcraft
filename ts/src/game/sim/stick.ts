@@ -1,6 +1,6 @@
-// The left stick as Melee's fighter code reads it for down states, techs and
-// tumble: a frame's analog row, or its digital directions for controls
-// without one and for a direction tapped and released within its row.
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { DIAGONAL_UNIT } from "./knockback";
 import type { Controls } from "./roster";

@@ -1,4 +1,4 @@
-// Retail movement captures use Fox parameters independently of the host's kit.
+
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character } from "./codes";
 import { createFighter, type Fighter } from "./fighter";

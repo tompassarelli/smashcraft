@@ -1,4 +1,4 @@
-// Summons that act on their own: the Rifleman's bear and freeze trap.
+
 import { max } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, SpecialAction } from "./codes";
@@ -16,7 +16,7 @@ export const RIFLEMAN_BEAR_LIFETIME = 150;
 const RIFLEMAN_BEAR_SWIPE_INTERVAL = 14;
 const FREEZE_TRAP_ARMING_FRAMES = 20;
 const FREEZE_TRAP_LIFETIME_FRAMES = 480;
-/** A freeze no one mashes out of lasts this long. */
+
 export const FREEZE_TRAP_FREEZE_FRAMES = 300;
 const FREEZE_TRAP_COOLDOWN_FRAMES = 90;
 const FREEZE_TRAP_TRIGGER_RADIUS = 42.0;
@@ -49,7 +49,7 @@ export function canStartFreezeTrap(owner: Fighter): boolean {
     && freezeTrap.life === 0 && freezeTrap.cooldown === 0 && canAttack(owner);
 }
 
-/** Places a trap at a grounded Rifleman's feet, one at a time and after its cooldown. */
+
 export function startFreezeTrap(owner: Fighter, stage: number, matchFrame: number): boolean {
   const { motion } = owner;
   const trap = owner.freezeTrap;
@@ -101,15 +101,15 @@ function freezeFromTrap(world: Roster, slot: number): void {
   cancelSpecialState(target);
 }
 
-// Preallocated per participant: rollback replays check traps every frame.
+
 const trapScratch = { triggers: [false, false, false, false], freezes: [false, false, false, false] };
 
-/**
- * Springs each armed trap on its nearest grounded victim on the trap's deck.
- * Every contact is decided against the same pre-mutation frame, then traps are
- * consumed and victims frozen, so simultaneous traps don't depend on slot
- * order. A shielding victim consumes the trap without freezing.
- */
+
+
+
+
+
+
 export function advanceFreezeTraps(world: Roster): void {
   const { triggers, freezes } = trapScratch;
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
@@ -120,7 +120,7 @@ export function advanceFreezeTraps(world: Roster): void {
   for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
     if (!isActive(world, ownerSlot)) continue;
     const owner = fighterAt(world, ownerSlot);
-    // trapCanContact's owner terms: without a live, armed trap no target qualifies.
+
     if (owner.freezeTrap.life <= 0 || owner.freezeTrap.arming !== 0 || owner.status.out) continue;
     let nearest: number | undefined;
     let distance = 0.0;
@@ -149,7 +149,7 @@ export function advanceFreezeTraps(world: Roster): void {
   }
 }
 
-/** The bear walks, falls to the main deck, and swipes everyone within reach on an interval. */
+
 export function advanceBear(world: Roster, ownerSlot: number, stage: number, matchFrame: number): void {
   const owner = fighterAt(world, ownerSlot);
   const { bear } = owner;

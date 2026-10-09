@@ -1,6 +1,6 @@
-// Starting attacks and resolving their contacts. Every contact is selected
-// against the same pre-hit state before grabs or parries can interrupt an
-// attacker; mutual catches clash and competing catches take the nearest victim.
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GroundAction } from "./codes";
 import { attackPhase, attackStartup, attackActive, canBeGrabbed, canStartAttackStyle, inEarlyAscent, inGrabContext, isIntangible, jabChainStep } from "./conditions";
@@ -23,7 +23,7 @@ import { at } from "wisp/src/runtime/lookup";
 const DASH_GRAB_REGION: Readonly<HitRegion> = { ...SHARED_GRAB_REGION, maxX: 120.0 };
 const PIVOT_GRAB_REGION: Readonly<HitRegion> = { ...SHARED_GRAB_REGION, maxX: 144.0 };
 
-// Preallocated: hit selection builds these capsules for every pair every frame.
+
 const strikeCapsule = emptyCapsule();
 
 function placeStrikeCapsule(attacker: Fighter, region: Readonly<HitRegion>): void {
@@ -31,7 +31,7 @@ function placeStrikeCapsule(attacker: Fighter, region: Readonly<HitRegion>): voi
   placeCapsule(strikeCapsule, strikeCapsule, attacker.motion.x, attacker.motion.z, attacker.facing);
 }
 
-/** Whether the region's strike path touches the target's raised shield. */
+
 export function meleeHitIntersectsShield(attacker: Fighter, target: Fighter, region: Readonly<HitRegion>): boolean {
   if (!target.shield.raised || region.window <= 0) return false;
   placeStrikeCapsule(attacker, region);
@@ -42,7 +42,7 @@ export function meleeHitIntersectsShield(attacker: Fighter, target: Fighter, reg
     centerX, centerZ, geometry.radius, shieldSizeMultiplier(target.shield.energy, target.shield.strength));
 }
 
-/** Whether this attack already hit the target in this window or a later one. */
+
 function alreadyHitRegion(attackerSlot: number, attacker: Fighter, target: Fighter, window: number): boolean {
   for (const entry of target.hits.entries) {
     if (entry.attacker === attackerSlot && entry.attackSerial === attacker.attack.serial && entry.window >= window) return true;
@@ -66,29 +66,29 @@ function recordHitRegion(attackerSlot: number, attacker: Fighter, target: Fighte
   }
 }
 
-/** How far ahead of the attacker, along its facing, the target stands. */
+
 function facingOffsetX(attacker: Readonly<Fighter>, target: Readonly<Fighter>): number {
   return f32(f32(target.motion.x - attacker.motion.x) * attacker.facing);
 }
 
-/** Where a grab meets the target's feet: early in a ground jump's ascent, still at the grabber's height (#107). */
+
 function grabTargetZ(attacker: Readonly<Fighter>, target: Readonly<Fighter>): number {
   return inEarlyAscent(target) && target.motion.z > attacker.motion.z ? attacker.motion.z : target.motion.z;
 }
 
-/**
- * Writes the region of the attacker's current attack that reaches the target
- * into out, or NO_HIT_REGION's values. True when that region touched only
- * invincible body parts: the strike is spent on the target without effect.
- */
+
+
+
+
+
 function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number, out: HitRegion): boolean {
   const attacker = fighterAt(world, attackerSlot);
   const target = fighterAt(world, targetSlot);
   copyHitRegion(out, NO_HIT_REGION);
   const { attack } = attacker;
-  // A fighter not attacking strikes nothing: out stays empty.
+
   if (attack.style === undefined) return false;
-  // Divine Shield stops strikes, not grabs.
+
   const grabsDivine = attack.style === AttackStyle.grab && target.status.divineFrames > 0;
   if (attacker.status.out || attacker.launch.hitlag > 0 || target.status.out || (isIntangible(target) && !grabsDivine)) return false;
   if (attack.style === AttackStyle.grab && !canBeGrabbed(target)) return false;
@@ -119,10 +119,10 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
   return false;
 }
 
-/**
- * Starts a requested action if the fighter may; a dashing Demon Hunter's jab
- * is his dash attack, and a jab pressed in a jab chain's window is its next jab.
- */
+
+
+
+
 export function beginFighterAttack(world: Roster, slot: number, style: AttackStyle | undefined, mayCharge: boolean): void {
   if (style === undefined) return;
   const fighter = fighterAt(world, slot);
@@ -146,7 +146,7 @@ export function beginFighterAttack(world: Roster, slot: number, style: AttackSty
   }
 }
 
-// Preallocated per participant and per pair: rollback replays resolve attacks every frame.
+
 const scratch: {
   contacts: HitRegion[];
   styles: (AttackStyle | undefined)[];
@@ -155,7 +155,7 @@ const scratch: {
   clashed: boolean[];
   choices: (number | undefined)[];
   grabbed: boolean[];
-  /** Per pair: the contact touched only invincible parts. */
+
   spent: boolean[];
 } = {
   contacts: Array.from({ length: PARTICIPANT_CAPACITY * PARTICIPANT_CAPACITY }, () => emptyHitRegion()),
@@ -172,7 +172,7 @@ function contactBetween(source: number, target: number): HitRegion {
   return at(scratch.contacts, source * PARTICIPANT_CAPACITY + target);
 }
 
-/** Resolves every active attack's contacts for the frame. */
+
 export function resolveAttacks(world: Roster): void {
   const ownsBatch = openDamageContacts();
   const { styles, shots, facings, clashed, choices, grabbed, spent } = scratch;
@@ -189,8 +189,8 @@ export function resolveAttacks(world: Roster): void {
       if (isActive(world, target) && target !== source) spent[source * PARTICIPANT_CAPACITY + target] = selectHitRegion(world, source, target, contactBetween(source, target));
     }
   }
-  // Mutual catches clash; competing catches choose the nearest available victim,
-  // then slot order. Every fighter can belong to at most one grab link.
+
+
   for (let source = 0; source < PARTICIPANT_CAPACITY; source++) {
     if (!isActive(world, source) || styles[source] !== AttackStyle.grab) continue;
     for (let target = 0; target < PARTICIPANT_CAPACITY; target++) {

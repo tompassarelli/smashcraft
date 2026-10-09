@@ -7,15 +7,15 @@ import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 import { MOUNTAIN_KING_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 
-// smashcraft:docs/design/roster.md adopts these timings and damages. Geometry
-// is original and provisional until the matching weapon/body poses are seen.
+
+
 export const SHORT = f32(HERO_REFERENCE_HEIGHT * f32(0.55));
 export const MEDIUM = f32(HERO_REFERENCE_HEIGHT * f32(0.80));
 const LONG = f32(HERO_REFERENCE_HEIGHT * f32(1.10));
 const GRAB = f32(HERO_REFERENCE_HEIGHT * 0.5);
 
-// Named class hypotheses in the existing growth/base formula, not calibrated
-// displacement bands or promises of guaranteed follow-ups.
+
+
 const CLASS_HYPOTHESES = {
   LINK: { growth: 71.82499694824219, base: 12.0 },
   POKE: { growth: 88.39999389648438, base: 16.0 },
@@ -23,7 +23,7 @@ const CLASS_HYPOTHESES = {
   EDGE: { growth: 110.5, base: 25.0 },
   KILL: { growth: 121.54999542236328, base: 30.0 },
   SPIKE: { growth: 110.5, base: 24.0 },
-  // Throw roles (#107): an up throw's guaranteed short juggle and a down throw's tech chase.
+
   JUGGLE: { growth: 60.77499771118164, base: 50.0 },
   CHASE: { growth: 44.19999694824219, base: 75.0 },
 } as const;
@@ -77,10 +77,10 @@ const DOWN_AIR = hit(14.364999771118164, "SPIKE", 270);
 const DOWN_AIR_GROUNDED = hit(14.364999771118164, "LAUNCH", 55);
 const GRAB_CONTACT = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 
-// Bodies that follow the swings: the torso plus the arm, leg or head that
-// drives each strike, from late startup through early recovery. Hammer head,
-// handle and axe blade stay outside, so only weapon reach is disjoint; the
-// kick, boots, headbutt and body checks carry their own hurt volume.
+
+
+
+
 const BODY: HurtPart = hurtCapsule(Character.mountainKing);
 const ARM = 10.0;
 const LEG = 12.0;
@@ -90,7 +90,7 @@ const MOUNTAIN_KING_BODIES: FighterHurtboxes = {
   stand: [BODY],
   attacks: {
     ...groundPoses(MOUNTAIN_KING_GROUND, (x, z) => [BODY, hurtPart(8.0, 58.0, x, z, ARM)]),
-    // Boot and Axe: the leg kicks out through a half extension; the axe past the boot is the disjoint.
+
     [AttackStyle.downTilt]: [limb(5, 7, hurtPart(6.0, 20.0, 40.0, 12.0, LEG)), limb(8, 12, hurtPart(6.0, 20.0, 64.0, 10.0, LEG)), limb(13, 15, hurtPart(6.0, 20.0, 40.0, 12.0, LEG))],
     [AttackStyle.forwardSmash]: [limb(14, 28, hurtPart(8.0, 60.0, 46.0, 62.0, ARM))],
     [AttackStyle.upSmash]: [limb(13, 26, hurtPart(6.0, 62.0, 14.0, 98.0, ARM))],

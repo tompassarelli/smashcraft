@@ -1,6 +1,6 @@
-// The original fighters' move names: their specials run as code (specials.ts),
-// so their names and one-line descriptions live in this record, shaped like a
-// hero's (SpecialKit.name, HeroDefinition and ultimate).
+
+
+
 import { AttackStyle, SpecialAction } from "./codes";
 import type { NamedMove } from "./heroes/hero";
 import {
@@ -10,22 +10,22 @@ import {
 
 export interface OriginalSpecial extends NamedMove {
   readonly action: SpecialAction;
-  /** Forms the design names on their own, by the running special's form code. */
+
   readonly forms?: readonly { readonly form: number; readonly name: string }[] | undefined;
 }
 
 export interface OriginalKit {
-  /** Neutral, side, up and down. */
+
   readonly specials: readonly [OriginalSpecial, OriginalSpecial, OriginalSpecial, OriginalSpecial];
   readonly trait?: string | undefined;
-  /** Its jab chain's name and one line for players (#163). */
+
   readonly jab: NamedMove;
   readonly ultimate?: NamedMove | undefined;
-  /** Docs only: what a normal draws on, by AttackStyle (a hero's is AuthoredMove.inspiredBy). */
+
   readonly inspiredBy?: { readonly [style: number]: string | undefined } | undefined;
 }
 
-/** By Character code: reference, Rifleman, Illidan. */
+
 export const ORIGINAL_KITS: Readonly<Record<number, OriginalKit>> = {
   1: {
     specials: [

@@ -1,4 +1,4 @@
-// Applying a selected hit: grab catches, and damage contacts for everything else.
+
 import { max } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, ContactKind, GrabAction, SpecialAction } from "./codes";
@@ -20,7 +20,7 @@ function stopMotion(f: Fighter): void {
   f.launch.knockbackZ = 0.0;
 }
 
-/** Links a grab: the attacker holds, and the target loses every action in progress. */
+
 function catchTarget(world: Roster, attackerSlot: number, targetSlot: number): void {
   const attacker = fighterAt(world, attackerSlot);
   const target = fighterAt(world, targetSlot);
@@ -51,7 +51,7 @@ function catchTarget(world: Roster, attackerSlot: number, targetSlot: number): v
   stopMotion(target);
 }
 
-/** Applies a selected strike: an eligible grab catches. */
+
 export function applyAttackHit(
   world: Roster, attackerSlot: number, targetSlot: number, style: AttackStyle, facing: number,
   effect: Readonly<HitEffect>, directContact: boolean, shieldContact: boolean, status?: Readonly<AppliedStatus>, contactZ?: number,

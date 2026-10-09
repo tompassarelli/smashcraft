@@ -1,5 +1,5 @@
-// Shield break: launched upward, landing, standing up, then dizzy until the
-// timer, shortened by mashing, runs out.
+
+
 import { max } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { ShieldBreak } from "./codes";
@@ -50,7 +50,7 @@ export function beginShieldBreak(world: Roster, slot: number): void {
   motion.surface = undefined;
 }
 
-/** One frame of a shield break; true while it continues or the fighter is out, which ends the fighter's frame. */
+
 export function advanceShieldBreak(world: Roster, slot: number, stage: number, matchFrame: number, input: Readonly<Controls>): boolean {
   checkBlastZone(world, slot, stage);
   const f = fighterAt(world, slot);

@@ -1,4 +1,4 @@
-// The Kobold's registration (smashcraft:docs/design/roster.md, #344).
+
 import { Character } from "../codes";
 import type { HeroDefinition } from "./hero";
 import { KOBOLD_CLIPS, KOBOLD_DAMAGE_CLIPS, KOBOLD_FALLBACK, KOBOLD_MODEL_FILE } from "./koboldClips";

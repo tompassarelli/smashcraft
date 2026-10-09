@@ -1,4 +1,4 @@
-// Ledge catches and the options from a hang: jump, climb, drop, roll and attack.
+
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, DownState, LedgeState, ShieldBreak, SpecialAction } from "./codes";
@@ -24,36 +24,36 @@ export const LEDGE_HANG_DEPTH = 90.0;
 const LEDGE_MOUNT_FRAMES = 12;
 const LEDGE_CLIMB_INSET = 24.0;
 
-/** A fighter's NTSC 1.02 ledge snap data (ftData x44 +0x10/+0x14/+0x18), in Melee units. */
+
 interface LedgeSnap {
   readonly x: number;
   readonly y: number;
   readonly height: number;
 }
 
-/**
- * Where a fighter catches ledges, in world units: up to `reach` ahead of its
- * position, for ledges strictly between `lowest` and `highest` above its feet.
- */
+
+
+
+
 interface LedgeCatchBox {
   readonly reach: number;
   readonly lowest: number;
   readonly highest: number;
 }
 
-// reference, Rifleman and Illidan catch with Fox's, Falco's and Captain Falcon's data.
+
 const FOX_LEDGE_SNAP: LedgeSnap = { x: 11.0, y: 13.0, height: 9.0 };
 const FALCO_LEDGE_SNAP: LedgeSnap = { x: 11.0, y: 13.0, height: 9.0 };
 const CAPTAIN_FALCON_LEDGE_SNAP: LedgeSnap = { x: 9.0, y: 17.0, height: 11.0 };
 
 const heroSnaps: (LedgeSnap | undefined)[] = [];
 
-/**
- * An expansion hero catches with Fox's box grown with its body: a body taller
- * than the reference reaches as far beyond it as Fox does beyond his, as
- * Melee's taller fighters' boxes sit higher (Captain Falcon's 17 against
- * Fox's 13). Shorter bodies keep Fox's box.
- */
+
+
+
+
+
+
 function heroSnap(character: Character): LedgeSnap {
   const cached = heroSnaps[character];
   if (cached !== undefined) return cached;
@@ -76,7 +76,7 @@ export function ledgeSnap(character: Character): LedgeSnap {
 
 function catchBox(snap: LedgeSnap): LedgeCatchBox {
   const half = f32(snap.height * 0.5);
-  // Melee widens the reach by the airborne collision box; fighters reach with its minimum.
+
   return {
     reach: melee(f32(BODY_HALF_WIDTH + snap.x)),
     lowest: melee(f32(snap.y - half)),
@@ -104,15 +104,15 @@ export function ledgeCatchBox(character: Character): LedgeCatchBox {
   }
 }
 
-/**
- * A fighter hanging on the ledge can't be caught by a standing, dash or shield
- * grab, whatever its intangibility. ftCliffCommon_80081370 and ftCo_8009A804
- * (melee:src/melee/ft/ftcliffcommon.c, ftCo_CliffWait.c) give the hanger
- * x1A6A = 511 through ftCommon_8007E2F4; ftCo_800D8C54 (ftCo_Catch.c) gives every
- * catch x1A68 = 1; and ftColl_80078A2C (ftcoll.c) skips a victim whose
- * x1A6A & x1A68 is nonzero. Fighter_ChangeMotionState clears x1A6A, so
- * climbs, rolls, attacks and drops from the hang are catchable again.
- */
+
+
+
+
+
+
+
+
+
 export function hangsOnLedge(f: Fighter): boolean {
   return f.ledge.state === LedgeState.hang;
 }
@@ -121,18 +121,18 @@ function ledgeX(stage: number, side: number): number {
   return side < 0 ? mainDeckLeft(stage) : mainDeckRight(stage);
 }
 
-/** The four up specials, which spend the aerial jump and end in a helpless fall. */
+
 export function isUpSpecialAction(action: number): boolean {
   return action === SpecialAction.heroUp
     || action === SpecialAction.riflemanRecovery || action === SpecialAction.demonHunterWingAscent;
 }
 
-/**
- * Falling, helpless and tumbling fighters catch, and so does a running up
- * special (smashcraft:docs/gameplay-design.md, "Recovery and edgeguarding",
- * as most Melee up specials do); attacks, other specials, air dodges, hitstun
- * and shield breaks don't. An air dodge ends actionable when its animation ends.
- */
+
+
+
+
+
+
 function canCatchLedge(f: Fighter): boolean {
   const { attack, special, dodge, launch, down } = f;
   const upSpecial = isUpSpecialAction(special.action);
@@ -142,10 +142,10 @@ function canCatchLedge(f: Fighter): boolean {
     && !inGrabContext(f) && (down.state === DownState.none || isTumbling(f));
 }
 
-/**
- * The ledge ahead that the fighter's last movement swept into its catch box,
- * or zero. Only a downward movement catches; holding down lets ledges pass.
- */
+
+
+
+
 function ledgeCandidate(f: Fighter, stage: number, input: Readonly<Controls>): number {
   const { motion } = f;
   if (!canCatchLedge(f) || motion.grounded || f.ledge.regrab > 0 || input.down || motion.deltaZ >= 0) {
@@ -170,7 +170,7 @@ function ledgeDistance(f: Fighter, stage: number, side: number): number {
 
 function catchLedge(f: Fighter, stage: number, side: number): void {
   const { motion, launch, ledge } = f;
-  // A catch during an up special ends it there.
+
   f.special.action = SpecialAction.none;
   f.special.frame = 0;
   f.special.lockFrames = 0;
@@ -205,11 +205,11 @@ function catchLedge(f: Fighter, stage: number, side: number): void {
   clearTech(f);
 }
 
-/**
- * A teleport through the edge (sim/edgeRecovery.ts) catching `side`'s ledge at
- * once; false, changing nothing, when another fighter holds that ledge or the
- * fighter's regrab lock runs.
- */
+
+
+
+
+
 export function snapToLedge(world: Roster, slot: number, stage: number, side: number): boolean {
   const f = fighterAt(world, slot);
   if (f.ledge.regrab > 0) return false;
@@ -222,7 +222,7 @@ export function snapToLedge(world: Roster, slot: number, stage: number, side: nu
   return true;
 }
 
-/** Catches each main-deck ledge for its nearest candidate; tied nearest candidates both fail. */
+
 export function resolveLedges(world: Roster, stage: number, controls: readonly Readonly<Controls>[]): void {
   for (let sideIndex = 0; sideIndex < 2; sideIndex++) {
     const side = sideIndex === 0 ? -1 : 1;
@@ -254,7 +254,7 @@ function startLedgeOption(f: Fighter, state: LedgeState): void {
   if (state === LedgeState.attack) beginAttack(f, AttackStyle.ledgeAttack, false);
 }
 
-/** One frame on the ledge: hang options, then the mount onto the stage. */
+
 export function advanceLedge(world: Roster, slot: number, stage: number, input: Readonly<Controls>): void {
   checkBlastZone(world, slot, stage);
   const f = fighterAt(world, slot);
@@ -263,7 +263,7 @@ export function advanceLedge(world: Roster, slot: number, stage: number, input: 
   f.status.invincible = max(0, f.status.invincible - 1);
   ledge.intangible = max(0, ledge.intangible - 1);
   if (ledge.state === LedgeState.hang) {
-    // The catch tick anchors before new options can begin.
+
     if (ledge.frame > 0) {
       const intoStage = input.getupDirectionPressed && input.getupDirection === -ledge.side;
       const away = input.getupDirectionPressed && input.getupDirection === ledge.side;

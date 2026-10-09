@@ -1,6 +1,6 @@
-// Fighter motion in Melee units. Positions and vertical velocity accumulate in
-// original units and publish rounded world values; air drift, launch decay and
-// platform landings use the same arithmetic as the retail engine.
+
+
+
 import { max, min } from "../../runtime/numbers";
 import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
@@ -12,8 +12,8 @@ import type { Fighter, MeleeMotionValue } from "./fighter";
 import { type GroundLine, groundLineZ, surfaceCount, surfaceLeft, surfaceLine, surfaceMoves, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
 import { type FighterPhysics, WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 
-// Rollback and consecutive agency forecasts publish the same Melee-unit
-// values. Cache only the pure conversion; zero bypasses the key to retain its sign.
+
+
 const WORLD_VALUE_MEMO_LIMIT = 512;
 const worldValueInput: Record<number, number> = {};
 const worldValueResult: Record<number, number> = {};
@@ -21,8 +21,8 @@ const originalValueInput: Record<number, number> = {};
 const originalValueResult: Record<number, number> = {};
 
 function worldValue(original: number): number {
-  // Slot arithmetic only picks a candidate; the original value must match.
-  // Reusing slots also avoids replacing tables as new positions arrive.
+
+
   const slot = floorMod(Math.floor(original * 4093), WORLD_VALUE_MEMO_LIMIT);
   if (original === 0 || slot !== slot) return multiplyFloat32(original, WORLD_UNITS_PER_MELEE_UNIT);
   if (worldValueInput[slot] === original) return worldValueResult[slot] ?? 0.0;
@@ -48,7 +48,7 @@ function setOriginal(value: MeleeMotionValue, original: number): void {
   value.published = worldValue(original);
 }
 
-/** Restarts accumulation from a world value written outside Melee-unit motion. */
+
 export function setWorldMotionValue(value: MeleeMotionValue, world: number): void {
   value.original = originalValue(world);
   value.published = world;
@@ -109,17 +109,17 @@ export function moveMeleeZ(f: Fighter, originalDisplacement: number): void {
   motion.z = motion.meleeZ.published;
 }
 
-/** A physics record's per-frame terms in Melee units. */
+
 export interface PhysicsTerms {
   readonly gravity: number;
   readonly terminalSpeed: number;
-  /** Ground knockback's friction: the traction, rounded through Melee units. */
+
   readonly knockbackFriction: number;
 }
 
-// Physics records are immutable and every fighter reads these terms every
-// frame, confirmed, predicted and replayed: a pure function's cache, which
-// never changes a result.
+
+
+
 const physicsTerms = new WeakMap<Readonly<FighterPhysics>, PhysicsTerms>();
 
 export function termsOfPhysics(physics: Readonly<FighterPhysics>): PhysicsTerms {
@@ -134,7 +134,7 @@ export function termsOfPhysics(physics: Readonly<FighterPhysics>): PhysicsTerms 
   return terms;
 }
 
-/** Ground knockback slows by the fighter's traction times this. */
+
 const GROUND_KNOCKBACK_FRICTION_MULTIPLIER = 1.0;
 
 export function applyMeleeGravity(f: Fighter): void {
@@ -154,7 +154,7 @@ export function roundMeleeWorldValue(value: number): number {
 }
 
 export function addMeleeWorldValues(value: number, displacement: number): number {
-  // Authored stationary surfaces need exact zero-displacement identity.
+
   if (displacement === 0) return value;
   const left = originalValue(value);
   const right = originalValue(displacement);
@@ -169,19 +169,19 @@ export function totalVelocityZ(f: Fighter): number {
   return f32(f32(f.motion.vz + f.launch.knockbackZ) + f.shield.recoilZ);
 }
 
-/**
- * Melee's air drift with the stick held (ftCommon_CalcSelfAccel_DriftFrom,
- * ftCommon_CalcSelfAccel_AccelToVelClampedFrom in melee:src/melee/ft/ftcommon.c):
- * toward the stick it gains its acceleration up to the air speed; above the
- * air speed it loses its air friction instead, never below the air speed,
- * and never past `cap` (ftCo_DatAttrs +0x078 air_max_horizontal_velocity).
- */
+
+
+
+
+
+
+
 function retailAirDriftVelocity(f: Fighter, velocity: number, stick: number, cap: number): number {
   const { airAcceleration, airFriction } = f.tuning.physics;
   const direction = stick < 0 ? -1 : 1;
   const magnitude = Math.abs(stick);
-  // Fox, Falco and Captain Falcon share +0x068's 0.02 base; the authored
-  // full-stick acceleration stores that base plus +0x064's multiplier.
+
+
   const base = f32(0.019999999552965164 * WORLD_UNITS_PER_MELEE_UNIT);
   const acceleration = magnitude === 1 ? airAcceleration : f32(base + f32(f32(airAcceleration - base) * magnitude));
   const target = f32(speedBuffed(f, chillScaled(f, f.tuning.physics.airSpeed)) * magnitude);
@@ -190,7 +190,7 @@ function retailAirDriftVelocity(f: Fighter, velocity: number, stick: number, cap
   return f32(max(-cap, min(cap, next)) * direction);
 }
 
-/** Every fighter's air drift, a ceiling tech's impulse frame included (ftCo_PassiveCeil_Phys runs the same drift). */
+
 export function airDriftVelocity(f: Fighter, velocity: number, stick: number): number {
   return retailAirDriftVelocity(f, velocity, stick, speedBuffed(f, f.tuning.physics.airCap));
 }
@@ -211,20 +211,20 @@ export const AIR_RECOIL_DECAY = divideFloat32(AIR_SHIELD_RECOIL_DECAY, WORLD_UNI
 export const AIR_KNOCKBACK_SQUARED_CUTOFF = retailAirDecaySquaredCutoff(AIR_KNOCKBACK_DECAY);
 export const AIR_RECOIL_SQUARED_CUTOFF = retailAirDecaySquaredCutoff(AIR_RECOIL_DECAY);
 
-/** One frame of airborne decay; belowCutoff means the motion stopped instead. */
+
 interface AirMotion {
   x: number;
   z: number;
   belowCutoff: boolean;
 }
 
-// Preallocated: rollback replays decay launch and recoil every airborne frame.
+
 const decayed: AirMotion = { x: 0.0, z: 0.0, belowCutoff: false };
 
-// The confirmed match, prediction and every replay decay the same vectors
-// again, and one decay is some forty exact binary32 operations, so recent
-// results are kept by their horizontal input. A pure function's cache: what
-// it holds never changes a result.
+
+
+
+
 const DECAY_MEMO_LIMIT = 512;
 let decayMemoSize = 0;
 let decayMemoVertical: Record<number, number> = {};
@@ -233,7 +233,7 @@ let decayMemoCutoff: Record<number, number> = {};
 let decayMemoX: Record<number, number> = {};
 let decayMemoZ: Record<number, number> = {};
 
-/** Decays a Melee-unit vector along its own angle. Valid until the next call. */
+
 export function decayedAirMotion(horizontal: number, vertical: number, decay: number, squaredCutoff: number): Readonly<AirMotion> {
   // Zeros would lose their sign as keys, and NaN can't be one.
   const memoized = horizontal !== 0 && vertical !== 0 && horizontal === horizontal;
@@ -274,13 +274,13 @@ export function decayedAirMotion(horizontal: number, vertical: number, decay: nu
   return decayed;
 }
 
-/**
- * Where a step from (fromX, fromZ) to (newX, newZ) meets a sloped deck's
- * walking line from above, as its height at newX, or undefined. A fighter
- * already standing on the deck keeps to it anywhere over its span, as Melee's
- * grounded collision follows its floor line down a slope; one arriving must
- * have been on or above the line, and cross it within its span.
- */
+
+
+
+
+
+
+
 export function slopedLandingZ(line: GroundLine, standing: boolean, fromX: number, fromZ: number, newX: number, newZ: number): number | undefined {
   const left = line.xs[0] ?? 0.0;
   const right = line.xs[line.xs.length - 1] ?? 0.0;
@@ -296,7 +296,7 @@ export function slopedLandingZ(line: GroundLine, standing: boolean, fromX: numbe
   return crossingX >= left && crossingX <= right ? groundZ : undefined;
 }
 
-/** Keeps a fighter standing on a sloped deck on its line after a shift along the ground. */
+
 export function keepToSlope(f: Fighter, stage: number): void {
   const { motion } = f;
   if (!motion.grounded || motion.surface === undefined) return;
@@ -308,13 +308,13 @@ export function keepToSlope(f: Fighter, stage: number): void {
   setWorldMotionValue(motion.meleeZ, z);
 }
 
-/**
- * The highest deck whose top the step from old to new crosses downward,
- * within its span at both crossing and end, on match frame `matchFrame`. A
- * shift within the frame meets every deck where it is; a step `overFrame`
- * starts where the fighter was relative to each moving deck a frame ago, as
- * Melee's mpCheckFloorRemap moves the previous position with its line.
- */
+
+
+
+
+
+
+
 export function landingAlongShift(f: Fighter, stage: number, matchFrame: number, oldX: number, oldZ: number, newX: number, newZ: number, overFrame: boolean): number | undefined {
   let landing: number | undefined;
   let landingZ = 0.0;

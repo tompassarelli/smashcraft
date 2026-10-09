@@ -1,8 +1,8 @@
-// A hero's placed object (heroSpecials.ts SpecialPlacement, such as Serpent
-// Ward): it ages, fires its shot on schedule, and opponents' attacks and
-// projectiles spend its durability. It never shields its owner: strikes that
-// reach it still reach any fighter they touch. Every value is fighter state,
-// so rollback restores it with its owner.
+
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, ProjectileKind } from "./codes";
 import { mutableProjectile } from "./fighterProjectiles";
@@ -17,10 +17,10 @@ import { type Roster, fighterAt, isActive } from "./roster";
 import { attackCapsule, capsulesIntersect, emptyCapsule, placeCapsule } from "../physics/contactGeometry";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 
-/** Projectiles without an authored radius sweep this wide against an object. */
+
 const ORIGINAL_PROJECTILE_RADIUS = 12.0;
 
-// Preallocated: rollback replays strike objects every frame.
+
 const body = emptyCapsule();
 const strike = emptyCapsule();
 const region = emptyHitRegion();
@@ -33,7 +33,7 @@ function placeBody(placed: Readonly<PlacedObject>, spec: Readonly<SpecialPlaceme
   body.radius = spec.radius;
 }
 
-/** The damage the source's running normal deals the object this frame, once per attack; 0 for none. */
+
 function normalStrike(placed: PlacedObject, sourceSlot: number, source: Readonly<Fighter>): number {
   const { attack } = source;
   const style = attack.style;
@@ -51,7 +51,7 @@ function normalStrike(placed: PlacedObject, sourceSlot: number, source: Readonly
   return 0.0;
 }
 
-/** The damage the source's running hero special deals the object this frame, once per action; 0 for none. */
+
 function specialStrike(placed: PlacedObject, sourceSlot: number, source: Readonly<Fighter>): number {
   const bit = 1 << sourceSlot;
   const move = runningHeroSpecial(source);
@@ -68,7 +68,7 @@ function specialStrike(placed: PlacedObject, sourceSlot: number, source: Readonl
   return 0.0;
 }
 
-/** Damage from the source's projectiles that crossed the object this frame; each one that does is spent. */
+
 function projectileStrikes(source: Fighter): number {
   let damage = 0.0;
   let index = -1;
@@ -93,7 +93,7 @@ function ownedProjectiles(f: Readonly<Fighter>): number {
   return count;
 }
 
-/** One frame of every placed object, after the frame's attacks and projectiles resolved. */
+
 export function advancePlacedObjects(world: Roster): void {
   for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
     if (!isActive(world, ownerSlot)) continue;

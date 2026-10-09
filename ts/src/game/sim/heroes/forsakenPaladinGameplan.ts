@@ -1,4 +1,4 @@
-// Forsaken Paladin spaces a heavy hammer around a short, fixed holy patch.
+
 import { AttackStyle } from "../codes";
 import { type FighterGameplan, GameplanSpecial, GameplanThrow } from "../gameplan";
 
