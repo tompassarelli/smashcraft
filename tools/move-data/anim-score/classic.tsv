@@ -403,10 +403,10 @@ pit-lord	up-tilt	tilt	2/4	1.86	FAIL	0.13	0.13	arm R	pass	0.01	0.01	0.16	FAIL	6	1
 rifleman	back-air	aerial	3/4	11.40	pass	1.00	0.21	body	FAIL	0.06	0.06	0.00	pass	0	3	33	0.83	3	18	36	pass	0.55	0.35	0.45	unjudged	0							falco bair	4	39
 rifleman	dash-attack	tilt	2/4	2.10	FAIL	0.45	0.43	arm L	FAIL	0.07	0.07	0.00	pass	5	8	33	0.92	8	10	35	pass	0.37	0.32	0.63	unjudged	0							falco dattack	4	39
 rifleman	down-air	aerial	2/4	14.22	FAIL	0.02	0.35	arm L	FAIL	0.07	0.07	0.00	pass	4	7	34	0.89	7	9	37	pass	0.46	0.51	0.54	unjudged	0							falco dair	5	49
-rifleman	down-smash	smash	0/4	11.83	FAIL	0.00	0.00	arm R	FAIL	0.08	0.08	0.25	FAIL	8	40	39	0.94	8	10	41	FAIL	0.15	0.85	0.62	unjudged	0							falco dsmash	6	49
+rifleman	down-smash	smash	4/5	0.00	pass	0.42	0.66	arm L	pass	0.00	0.01	0.24	pass	5	9	39	0.94	8	10	41	pass	0.72	0.09	0.28	FAIL	1	2.00	3.00	3.00	3.00	2.00	2.00	falco dsmash	6	49
 rifleman	down-tilt	tilt	2/4	2.08	FAIL	0.28	0.29	arm R	FAIL	0.06	0.06	0.00	pass	4	6	29	0.95	6	8	30	pass	0.63	0.36	0.37	unjudged	0							falco dtilt	7	29
 rifleman	forward-air	aerial	1/4	19.15	FAIL	1.00	-0.13	body	FAIL	0.06	0.06	0.00	FAIL	0	5	27	0.88	5	6	30	pass	0.38	0.53	0.62	unjudged	0							falco fair	6	59
-rifleman	forward-smash	smash	0/5	13.81	FAIL	0.00	-0.00	arm L	FAIL	0.10	0.10	0.30	FAIL	1	4	34	0.96	6	8	35	FAIL	0.13	0.87	0.50	FAIL	1	1.00	1.00	1.00	1.00	1.00	2.00	falco fsmash	12	39
+rifleman	forward-smash	smash	4/5	0.00	pass	0.41	0.51	arm L	pass	0.00	0.01	0.29	pass	3	7	33	0.93	6	8	35	pass	0.58	0.14	0.42	FAIL	2	1.50	2.00	2.00	2.00	1.50	2.50	falco fsmash	12	39
 rifleman	forward-tilt	tilt	2/4	1.90	FAIL	0.48	0.43	arm R	FAIL	0.07	0.07	0.00	pass	4	6	28	0.95	6	8	29	pass	0.45	0.32	0.55	unjudged	0							falco ftilt	5	26
 rifleman	forward-tilt-down	tilt	2/4	1.93	FAIL	0.45	0.44	arm L	FAIL	0.07	0.07	0.00	pass	4	6	28	0.95	6	8	29	pass	0.65	0.28	0.35	unjudged	0							falco ftilt	5	26
 rifleman	forward-tilt-up	tilt	2/4	2.01	FAIL	0.39	0.35	arm L	FAIL	0.07	0.07	0.00	pass	4	6	28	0.95	6	8	29	pass	0.54	0.39	0.46	unjudged	0							falco ftilt	5	26
@@ -414,7 +414,7 @@ rifleman	jab	jab	1/4	5.69	FAIL	0.39	0.22	arm L	FAIL	0.06	0.15	0.00	FAIL	1	3	14	0
 rifleman	jab2	jab	1/4	6.66	FAIL	0.39	0.25	arm L	FAIL	0.06	0.18	0.00	FAIL	1	3	15	0.61	3	4	22	pass	0.41	0.49	0.59	unjudged	0							falco jab2	2	19
 rifleman	neutral-air	aerial	2/4	13.93	FAIL	0.14	0.18	arm R	FAIL	0.08	0.08	0.00	pass	1	3	39	0.90	3	30	40	pass	0.42	0.43	0.58	unjudged	0							falco nair	4	49
 rifleman	up-air	aerial	2/4	14.11	FAIL	0.02	0.32	arm L	FAIL	0.07	0.07	0.00	pass	3	5	26	0.73	5	7	33	pass	0.50	0.47	0.50	unjudged	0							falco uair	8	39
-rifleman	up-smash	smash	0/4	12.12	FAIL	0.00	-0.02	arm L	FAIL	0.08	0.08	0.30	FAIL	0	0	39	0.94	8	10	41	FAIL	0.15	0.85	0.62	unjudged	0							falco usmash	7	43
+rifleman	up-smash	smash	4/5	0.00	pass	0.68	0.58	arm L	pass	0.00	0.01	0.28	pass	5	9	38	0.90	8	10	41	pass	0.69	0.07	0.31	FAIL	1	2.00	3.00	3.00	3.00	2.00	2.00	falco usmash	7	43
 rifleman	up-tilt	tilt	2/4	2.26	FAIL	0.13	0.17	arm L	FAIL	0.06	0.06	0.00	pass	3	5	27	0.91	5	7	29	pass	0.39	0.40	0.61	unjudged	0							falco utilt	5	23
 shadow-hunter	back-air	aerial	1/4	4.43	FAIL	0.19	0.05	leg L	FAIL	0.01	0.04	0.15	FAIL	0	11	32	1.00	7	9	32	pass	0.43	0.53	0.57	unjudged	0							link bair	6	39
 shadow-hunter	dash-attack	tilt	3/4	1.00	pass	1.00	0.03	body	pass	0.01	0.04	0.04	FAIL	4	11	35	1.00	7	15	35	pass	0.48	0.34	0.52	unjudged	0							link dattack	7	53

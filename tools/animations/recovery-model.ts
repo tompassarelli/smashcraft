@@ -165,6 +165,19 @@ export function grabBaseModel(source: mdx.Model): mdx.Model | undefined {
 }
 
 
+export const APPENDED_STRIKES = ["Forward Smash", "Up Smash", "Down Smash"];
+
+export function appendedStrikeBaseModel(source: mdx.Model): mdx.Model | undefined {
+  let first = source.Sequences.length;
+  while (first > 0 && APPENDED_STRIKES.includes(source.Sequences[first - 1]!.Name)) first--;
+  if (first === source.Sequences.length || first === 0) return undefined;
+  const cutoff = source.Sequences[first]!.Interval[0];
+  const model = structuredClone(source);
+  model.Sequences = model.Sequences.slice(0, first);
+  tracks(model, track => { if (!onGlobalClock(track)) track.Keys = track.Keys.filter(k => k.Frame < cutoff); });
+  return model;
+}
+
 export function damageBaseModel(source: mdx.Model): mdx.Model | undefined {
   const first = source.Sequences.findIndex(s => s.Name.startsWith("Damage Grid "));
   if (first < 0) return undefined;

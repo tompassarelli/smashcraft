@@ -1,5 +1,5 @@
 
-import { parseMDL, generateMDX } from "war3-model";
+import { parseMDL, parseMDX, generateMDX } from "war3-model";
 import { join } from "node:path";
 import { type ModelAssetInfo, typescriptAssetInfo } from "./asset-info";
 
@@ -55,23 +55,27 @@ const clips = [
     ["LEDGE_HANG", "Ledge Hang"],
     ["LEDGE_CLIMB", "Ledge Climb"],
     ["SPELL", "Spell"],
+    ["FORWARD_SMASH", "Forward Smash"],
+    ["UP_SMASH", "Up Smash"],
+    ["DOWN_SMASH", "Down Smash"],
 ] as const;
 const absent: Record<string, readonly string[]> = { Rifleman: ["SPECIAL_SIDE"] };
 const typescriptModels: ModelAssetInfo[] = [];
 for (const fighter of ["Rifleman"]) {
     const prefix = fighter.toUpperCase();
     const model = parseMDL(await Bun.file(join(assetDirectory, `${fighter.toLowerCase()}-fighter.mdl`)).text());
+    const modelBytes = metadataOnly
+        ? await Bun.file(join(assetDirectory, `${fighter}Fighter.mdx`)).arrayBuffer()
+        : generateMDX(model);
+    const shipped = metadataOnly ? parseMDX(modelBytes) : model;
     const metadata = clips.filter(([key]) => !absent[fighter]?.includes(key)).map(([key, name]) => {
-        const index = model.Sequences.findIndex(sequence => sequence.Name === name);
+        const index = shipped.Sequences.findIndex(sequence => sequence.Name === name);
         if (index < 0) throw new Error(`authored model has no ${name} sequence`);
-        const sequence = model.Sequences[index];
+        const sequence = shipped.Sequences[index];
         const seconds = (sequence.Interval[1] - sequence.Interval[0]) / 1000;
         if (!(seconds > 0)) throw new Error(`${name} sequence must have a positive duration`);
         return [key, index, seconds] as const;
     });
-    const modelBytes = metadataOnly
-        ? await Bun.file(join(assetDirectory, `${fighter}Fighter.mdx`)).arrayBuffer()
-        : generateMDX(model);
     const modelHash = new Bun.CryptoHasher("sha256").update(new Uint8Array(modelBytes)).digest("hex");
     const modelPath = `war3mapImported\\${fighter}Fighter-${modelHash}.mdx`;
     if (!metadataOnly) await Bun.write(join(assetDirectory, `${fighter}Fighter.mdx`), modelBytes);

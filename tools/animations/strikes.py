@@ -20,7 +20,7 @@ from mathutils import Matrix, Quaternion, Vector
 
 project = Path(__file__).resolve().parents[2]
 private_assets = Path(os.environ.get('SMASHCRAFT_ANIMATION_ASSETS', project / 'build/animation-assets'))
-selected_clip = os.environ.get('SMASHCRAFT_STRIKE_CLIP')
+selected_clip = [c for c in os.environ.get('SMASHCRAFT_STRIKE_CLIP', '').split(',') if c]
 fighter = sys.argv[sys.argv.index('--') + 1] if '--' in sys.argv else ''
 SCENES = {
     'rifleman': project / 'build/animation-assets/rifleman-fighter',
@@ -45,9 +45,12 @@ def update():
 
 
 
+ARMS = {s: (f'Bone_Arm1_{s}', f'Bone_Arm2_{s}', f'Bone_Hand_{s}') for s in 'RL'}
+LEGS = {s: (f'Bone_Leg1_{s}', f'Bone_Leg2_{s}', f'Bone_Foot_{s}') for s in 'RL'}
 WEAPON_TIPS = {'illidan': {'R': 'Plane36', 'L': 'Plane22'}, 'rifleman': {}}[fighter]
 
 SIDE = {'R': -1, 'L': 1}
+REST_EXACT = fighter == 'rifleman'
 
 
 def aim_bone(bone, endpoint, target):
@@ -87,6 +90,9 @@ def rig_slot(action):
 def sample(action, frame):
     rig.animation_data.action = action
     rig.animation_data.action_slot = rig_slot(action)
+    # MDX: a channel with no key in a sequence plays its default, so unkeyed bones sample at rest, not the last action's pose.
+    for b in bones:
+        b.matrix_basis = Matrix.Identity(4)
     scene.frame_set(frame)
     update()
     return {b.name: b.matrix_basis.copy() for b in bones}
@@ -131,7 +137,8 @@ def params_at(keys, frame):
 def pose(p, base, standing, plant):
     for name, m in blend(base, standing, p['rise']).items():
         bones[name].matrix_basis = m
-    bones['Bone_Root'].location = (0, 0, 0)
+    if not REST_EXACT:
+        bones['Bone_Root'].location = (0, 0, 0)
     update()
     planted = {s: bones[LEGS[s][2]].matrix.translation.copy() for s in 'RL'}
     hands = {s: bones[ARMS[s][2]].matrix.translation.copy() for s in 'RL'}
@@ -153,7 +160,7 @@ def pose(p, base, standing, plant):
         if target is None and not plant:
             continue
         goal = planted[s] if target is None else planted[s].lerp(target[0], target[1])
-        solve(LEGS[s], goal, hip + Vector((40, SIDE[s] * 12, 10)))
+        solve(LEGS[s], goal, bones[LEGS[s][1]].matrix.translation.copy() if REST_EXACT else hip + Vector((40, SIDE[s] * 12, 10)))
     if fighter == 'rifleman':
         place_rifle(p, ride)
     else:
@@ -189,7 +196,7 @@ def place_rifle(p, ride):
     update()
     chest = bones['Bone_Chest'].matrix.translation
     for s in 'RL':
-        solve(ARMS[s], weapon @ grips[s], chest + Vector((-20, SIDE[s] * 30, -15)))
+        solve(ARMS[s], weapon @ grips[s], bones[ARMS[s][1]].matrix.translation.copy())
         bones[f'Bone_Hand_{s}'].matrix = weapon @ rifle_base.inverted() @ hand_base[s]
     update()
 
@@ -216,7 +223,7 @@ def retime(action, slot, old_last, last):
 
 
 def author(name, keys, plant=True, base_from=None, standing_from=None):
-    if selected_clip and name != selected_clip:
+    if selected_clip and name not in selected_clip:
         return bpy.data.actions.get(name)
     action = bpy.data.actions.get(name)
     if action is None:
@@ -246,7 +253,7 @@ def author(name, keys, plant=True, base_from=None, standing_from=None):
                 bone.rotation_quaternion = q
             previous[bone.name] = q.copy()
             bone.keyframe_insert('rotation_quaternion', frame=frame, group=bone.name)
-            if bone.name != 'Bone_Root':
+            if REST_EXACT or bone.name != 'Bone_Root':
                 bone.keyframe_insert('location', frame=frame, group=bone.name)
             bone.keyframe_insert('scale', frame=frame, group=bone.name)
     print('STRIKE_CLIP', fighter, name, last, flush=True)
@@ -326,6 +333,41 @@ if fighter == 'rifleman':
         strike={'rifle_lift': (22, -14), 'rifle_pitch': -26, 'lean': 26, 'step': (8, -18)},
         follow={'rifle_lift': (16, -12), 'rifle_pitch': -18, 'lean': 20, 'step': (6, -16)},
         settle=(21, {'rifle_lift': (4, -2), 'lean': 6, 'step': (2, -4)})))
+
+    hold_rifle('Stand')
+
+    def smash(name, keys, settle_from):
+        last = max(keys)
+        held = keys[settle_from]
+        for frame in range(settle_from + 1, last):
+            t = (frame - settle_from) / (last - settle_from)
+            f = .5 * t + .5 * ease(t)
+            keys[frame] = {k: lerp(v, SCALARS[k], f) for k, v in held.items()}
+        author(name, {frame: {**key, 'rise': 1.} for frame, key in keys.items()}, base_from='Stand', standing_from=('Stand', 0))
+
+    smash('Forward Smash', {
+        0: {},
+        3: {'rifle_lift': (-8, 8), 'rifle_pitch': 25, 'lean': -18, 'spin': -10, 'step': (-14, -4)},
+        6: {'rifle_lift': (28, 0), 'rifle_pitch': -5, 'lean': 22, 'spin': 10, 'step': (18, -6)},
+        7: {'rifle_lift': (38, -6), 'rifle_pitch': -20, 'lean': 25, 'spin': 11, 'step': (20, -7)},
+        8: {'rifle_lift': (10, -2), 'rifle_pitch': -6, 'lean': 9, 'spin': 4, 'step': (8, -3)},
+        36: {}}, 8)
+
+    smash('Up Smash', {
+        0: {},
+        5: {'rifle_lift': (0, -8), 'rifle_pitch': -10, 'lean': 0, 'spin': -8, 'step': (-10, -30)},
+        8: {'rifle_lift': (14, 26), 'rifle_pitch': 45, 'lean': 0, 'spin': 8, 'step': (16, 24)},
+        9: {'rifle_lift': (14, 38), 'rifle_pitch': 72, 'lean': -2, 'spin': 9, 'step': (18, 28)},
+        10: {'rifle_lift': (4, 10), 'rifle_pitch': 20, 'lean': 0, 'spin': 3, 'step': (5, 8)},
+        42: {}}, 10)
+
+    smash('Down Smash', {
+        0: {},
+        5: {'rifle_lift': (-8, 24), 'rifle_pitch': 60, 'lean': -14, 'spin': -8, 'step': (-4, 8)},
+        8: {'rifle_lift': (34, -34), 'rifle_pitch': -20, 'lean': 36, 'spin': 10, 'step': (20, -26)},
+        9: {'rifle_lift': (42, -42), 'rifle_pitch': -32, 'lean': 40, 'spin': 11, 'step': (23, -29)},
+        10: {'rifle_lift': (10, -10), 'rifle_pitch': -6, 'lean': 12, 'spin': 3, 'step': (6, -8)},
+        42: {}}, 10)
 else:
     clips_path = SCENES['illidan'].parent / 'clips.json'
     clips = json.loads(clips_path.read_text())
