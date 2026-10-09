@@ -28,6 +28,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   tuning.shieldBreak = sourceTuning.shieldBreak;
   tuning.moves = sourceTuning.moves;
   tuning.specials = sourceTuning.specials;
+  tuning.ultimate = sourceTuning.ultimate;
 
   const motion = target.motion;
   const sourceMotion = source.motion;
@@ -430,6 +431,7 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
   if (tuning.shieldBreak !== sourceTuning.shieldBreak) return false;
   if (tuning.moves !== sourceTuning.moves) return false;
   if (tuning.specials !== sourceTuning.specials) return false;
+  if (tuning.ultimate !== sourceTuning.ultimate) return false;
 
   const motion = target.motion;
   const sourceMotion = source.motion;
