@@ -586,7 +586,7 @@ function seededBeat(slot: number, frame: number, seed: number): InputRow {
 function confirmedAgainstStraight(seed: number, frames: number): string | undefined {
   const world = (): TapeWorld => {
     const tape = createTapeWorld({ stocks: 3, humans: 2 });
-    const fighters = [24, 25, 0, 1].map((index, slot) => createFighter(SELECTABLE_CHARACTERS[index] ?? Character.rifleman, matchSpawnX(slot), slot % 2 === 0 ? 1 : -1));
+    const fighters = [24, 25, 0, 1].map((index, slot) => createFighter(SELECTABLE_CHARACTERS[index] ?? Character.rifleman, matchSpawnX(slot), floorMod(slot, 2) === 0 ? 1 : -1));
     for (const fighter of fighters) fighter.status.stocks = 3;
     const match = tape.live.match;
     match.stageChoice = 6;
