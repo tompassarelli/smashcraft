@@ -123,7 +123,7 @@ const STAND_BOUNDS: Readonly<Record<string, { readonly min: readonly [number, nu
   [TEMPLE_OF_TIDES]: { min: [-180.0, -170.0, -91.0], max: [176.0, 183.0, 374.0] },
 };
 
-test("Tomb's Temple of Tides draws its whole standing body and roof above the deck's top edge on the right third at both camera extremes [repro #263]", () => {
+test("Tomb's Temple of Tides draws its whole standing body and roof above the deck's top edge on the right third at both camera extremes and client widths [repro #299]", () => {
   const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
   clients.start();
   clients.frames(30);
@@ -137,12 +137,12 @@ test("Tomb's Temple of Tides draws its whole standing body and roof above the de
     piece.x + piece.scale * (x * Math.cos(turn) - y * Math.sin(turn)), piece.y + piece.scale * (x * Math.sin(turn) + y * Math.cos(turn)), piece.z + piece.scale * z,
   ] as const)));
   const tilt = (10 * Math.PI) / 180;
-  for (const extreme of ["near", "far"] as const) {
+  for (const aspect of [16 / 9, 64 / 27]) for (const extreme of ["near", "far"] as const) {
     const camera = createMatchCamera();
-    extremeCamera(camera, 7, MATCH_CAMERA_ASPECT, extreme);
+    extremeCamera(camera, 7, aspect, extreme);
     const depth = (y: number, z: number) => camera.distance + y * Math.cos(tilt) - (z - camera.z) * Math.sin(tilt);
     const project = (x: number, y: number, z: number) => [
-      0.5 + (x - camera.x) / (2 * depth(y, z) * camera.tangent * MATCH_CAMERA_ASPECT),
+      0.5 + (x - camera.x) / (2 * depth(y, z) * camera.tangent * aspect),
       0.5 - (y * Math.sin(tilt) + (z - camera.z) * Math.cos(tilt)) / (2 * depth(y, z) * camera.tangent),
     ] as const;
     // The deck's top back edge is its highest line on screen at both extremes; the temple must clear it.
@@ -157,6 +157,7 @@ test("Tomb's Temple of Tides draws its whole standing body and roof above the de
     }
     const centre = corners.reduce((sum, [x, y, z]) => [sum[0] + x / 8, sum[1] + y / 8, sum[2] + z / 8], [0, 0, 0]);
     expect(project(centre[0], centre[1], centre[2])[0], extreme).toBeGreaterThanOrEqual(2 / 3);
+    aspects.set(client, aspect);
     clients.chat(0, `-dev view ${extreme}`);
     clients.frames(1);
     client.run(() => trampoline("scene.report")());
