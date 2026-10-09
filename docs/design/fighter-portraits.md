@@ -92,7 +92,9 @@ Classic Murloc and Kobold keep the 3.0 stock models, which hang the old mesh
 bones, every pivot collapsed to one point, under a second `Bone_*` rig. Posed
 through that rig, war3-model's evaluator (Wisp's renderer and the earlier
 Blender importer alike) scatters the mesh into texture noise, so their Classic
-portraits hold that rig's rest pose. The earlier Blender set drew Forsaken
+portraits hold that rig's rest pose. Definitive Murloc's every Stand clip hunches his head
+into his fins, so his Definitive portrait holds his rig's bind pose with the
+head lifted 20 degrees; his match animation is unchanged. The earlier Blender set drew Forsaken
 Paladin black: Blender's MDX reader lost the textures of his version-1800
 skinned body.
 

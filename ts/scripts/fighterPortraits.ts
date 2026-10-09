@@ -142,36 +142,45 @@ function withoutGlow(bytes: Uint8Array): Uint8Array {
  * Patched in place: rewriting the model would re-encode the version-1800 skins.
  */
 function withBones(bytes: Uint8Array, bones: Readonly<Record<string, readonly [number, number, number]>>): Uint8Array {
-  const out = bytes.slice(), view = new DataView(out.buffer), text = new TextDecoder();
-  const turnOf = ([x, y, z]: readonly [number, number, number]) => {
-    const half = (degrees: number) => degrees * Math.PI / 360;
-    const qx = [Math.sin(half(x)), 0, 0, Math.cos(half(x))], qy = [0, Math.sin(half(y)), 0, Math.cos(half(y))], qz = [0, 0, Math.sin(half(z)), Math.cos(half(z))];
-    return times(qz, times(qy, qx));
-  };
   const found = new Set<string>();
+  const out = withTracks(bytes, (name, tag, value) => {
+    const turn = bones[name];
+    if (turn === undefined || tag !== 'KGRT') return value;
+    found.add(name);
+    return times(turnOf(turn), value);
+  });
+  for (const name of Object.keys(bones)) if (!found.has(name)) throw new Error(`no rotation track on joint ${name}`);
+  return out;
+}
+const turnOf = ([x, y, z]: readonly [number, number, number]) => {
+  const half = (degrees: number) => degrees * Math.PI / 360;
+  const qx = [Math.sin(half(x)), 0, 0, Math.cos(half(x))], qy = [0, Math.sin(half(y)), 0, Math.cos(half(y))], qz = [0, 0, Math.sin(half(z)), Math.cos(half(z))];
+  return times(qz, times(qy, qx));
+};
+
+/** Every joint at its bind pose: each translation, rotation and scale key set to rest, patched in place. */
+const bindPose = (bytes: Uint8Array): Uint8Array => withTracks(bytes, (_, tag) => tag === 'KGRT' ? [0, 0, 0, 1] : tag === 'KGSC' ? [1, 1, 1] : [0, 0, 0]);
+
+/** Each joint's animation keys (and their tangents) rewritten by edit, in place. */
+function withTracks(bytes: Uint8Array, edit: (name: string, tag: string, value: number[]) => number[]): Uint8Array {
+  const out = bytes.slice(), view = new DataView(out.buffer), text = new TextDecoder();
   for (let at = 4; at + 8 <= out.length; at += 8 + view.getUint32(at + 4, true)) {
     const tag = text.decode(out.subarray(at, at + 4));
     if (tag !== 'BONE' && tag !== 'HELP') continue;
     for (let node = at + 8; node < at + 8 + view.getUint32(at + 4, true);) {
       const size = view.getUint32(node, true), name = text.decode(out.subarray(node + 4, node + 84)).replace(/\0.*$/s, '');
-      const turn = bones[name];
-      if (turn !== undefined) for (let track = node + 96; track < node + size;) {
-        const count = view.getUint32(track + 4, true), interpolation = view.getUint32(track + 8, true);
-        const width = text.decode(out.subarray(track, track + 4)) === 'KGRT' ? 4 : 3, stride = 4 + 4 * width * (interpolation > 1 ? 3 : 1);
-        if (width === 4) {
-          found.add(name);
-          const r = turnOf(turn);
-          for (let key = 0; key < count; key++) for (let part = 0; part < (interpolation > 1 ? 3 : 1); part++) {
-            const q = track + 16 + key * stride + 4 + part * 16, value = [0, 1, 2, 3].map((i) => view.getFloat32(q + 4 * i, true));
-            times(r, value).forEach((v, i) => view.setFloat32(q + 4 * i, v, true));
-          }
+      for (let track = node + 96; track < node + size;) {
+        const tag = text.decode(out.subarray(track, track + 4)), count = view.getUint32(track + 4, true), interpolation = view.getUint32(track + 8, true);
+        const width = tag === 'KGRT' ? 4 : 3, stride = 4 + 4 * width * (interpolation > 1 ? 3 : 1);
+        for (let key = 0; key < count; key++) for (let part = 0; part < (interpolation > 1 ? 3 : 1); part++) {
+          const q = track + 16 + key * stride + 4 + part * 4 * width, value = Array.from({ length: width }, (_, i) => view.getFloat32(q + 4 * i, true));
+          edit(name, tag, value).forEach((v, i) => view.setFloat32(q + 4 * i, v, true));
         }
         track += 16 + count * stride;
       }
       node += size + (tag === 'BONE' ? 8 : 0);
     }
   }
-  for (const name of Object.keys(bones)) if (!found.has(name)) throw new Error(`no rotation track on joint ${name}`);
   return out;
 }
 const times = (a: readonly number[], b: readonly number[]) => {
@@ -225,10 +234,11 @@ interface Portrait { readonly elapsed: number; readonly yaw: number; readonly an
  * whose face is closest to level, the camera raised or lowered to meet what
  * tilt remains), `lift` (a gamma lift of the portrait's shadows, a fill for a
  * face in shadow that leaves the match's lighting alone), `body` (turn and
- * frame by the body, as for heads too small to place a face) and `bones`
- * (joints turned for the portrait only, withBones).
+ * frame by the body, as for heads too small to place a face), `bones`
+ * (joints turned for the portrait only, withBones) and `rest` (the rig's bind
+ * pose, bindPose, for a rig whose every Stand clip hides the face).
  */
-interface Correction { readonly turn?: number; readonly elapsed?: number; readonly angle?: number; readonly zoom?: number; readonly level?: boolean; readonly lift?: number; readonly body?: boolean; readonly bones?: Readonly<Record<string, readonly [number, number, number]>> }
+interface Correction { readonly rest?: boolean; readonly turn?: number; readonly elapsed?: number; readonly angle?: number; readonly zoom?: number; readonly level?: boolean; readonly lift?: number; readonly body?: boolean; readonly bones?: Readonly<Record<string, readonly [number, number, number]>> }
 const CORRECTIONS: Readonly<Record<'classic' | 'definitive', Readonly<Record<string, Correction>>>> = {
   classic: {
     "Anub'arak": { zoom: 0.6, lift: 2.6, angle: -30 },
@@ -242,7 +252,7 @@ const CORRECTIONS: Readonly<Record<'classic' | 'definitive', Readonly<Record<str
     ShadowHunter: { level: true, zoom: 1.5 },
     "Kael'thasSunstrider": { angle: 15, turn: 30 },
     CairneBloodhoof: { elapsed: 30.5, angle: 20, zoom: 1.5 },
-    Murloc: { body: true, zoom: 0.4, turn: 225, bones: { arm_L0_0_jnt: [60, 0, 0], arm_R0_0_jnt: [-60, 0, 0] } },
+    Murloc: { rest: true, body: true, zoom: 0.5, bones: { bone_head: [0, -20, 0] } },
   },
 };
 const correctionOf = (graphics: 'classic' | 'definitive', character: number): Correction => CORRECTIONS[graphics][fighterRenderName(character)] ?? {};
@@ -496,12 +506,12 @@ await Effect.runPromise(Effect.gen(function*() {
   const project = { ...stock, width: DRAWN, height: DRAWN,
     resolveAsset: async (...args: Parameters<typeof stock.resolveAsset>) => {
       if (args[0] === PORTRAIT_LIGHT) return { requested: PORTRAIT_LIGHT, graphics: args[1] ?? 'classic', attempts: [], selected: { source: 'project' as const, layer: 'base' as const, path: PORTRAIT_LIGHT }, bytes: new TextEncoder().encode(portraitLightMdl()) };
-      const resolved = await stock.resolveAsset(...args);
       const body = bodies.get(args[0].toLowerCase());
+      const correction = body === undefined ? {} : correctionOf(args[1] === 'definitive' ? 'definitive' : 'classic', body);
+      const resolved = await stock.resolveAsset(...args);
       if (body === undefined || resolved.bytes === undefined) return resolved;
-      const posed = args[1] === 'classic' && CLASSIC_REST_POSE.includes(body) ? restPose(resolved.bytes) : resolved.bytes;
-      const bones = correctionOf(args[1] === 'definitive' ? 'definitive' : 'classic', body).bones;
-      return { ...resolved, bytes: withoutGlow(bones === undefined ? posed : withBones(posed, bones)) };
+      const posed = args[1] === 'classic' && CLASSIC_REST_POSE.includes(body) ? restPose(resolved.bytes) : correction.rest === true ? bindPose(resolved.bytes) : resolved.bytes;
+      return { ...resolved, bytes: withoutGlow(correction.bones === undefined ? posed : withBones(posed, correction.bones)) };
     } };
   const wide0 = { x: 0, z: 120, height: 700 };
   for (const graphics of graphicsModes) {
