@@ -7,7 +7,7 @@ export const STAGE_SKY_MODELS: Readonly<Record<number, string>> = {
   3: "war3mapImported\\StageSky-2f2c893f3ceed80677bba9a312d64e0808a7b02e969bd4312f3261f222daefc9.mdx",
   4: "war3mapImported\\StageSky-034c18bba1141796f0cc0cf846d478fbc91623c2d7cc5e667c479a188024a101.mdx",
   14: "war3mapImported\\StageSky-4fdca07a9d6155b871fb5704458be5ce29dc8bce50a980c85439e651a6093a3a.mdx",
-  12: "war3mapImported\\StageSky-d855064e03bc9273c1be3a9395cf6b9efff1e4428f3d6ed0e2b15ca1d1fc0a57.mdx",
+  12: "war3mapImported\\StageSky-56040f98ef724d03bf2acfa7cfa864123d9d7fbfb27476865853631f56ab4fda.mdx",
   6: "war3mapImported\\StageSky-a5561c63547e7c780d8fdf773cb39eb49c4b2e1ed6b70250c4c708ff76b52449.mdx",
   7: "war3mapImported\\StageSky-4144d99e4c338deba06dd135d6272f006bb35a5c0c6f51fc75de1691be1f5e09.mdx",
   13: "war3mapImported\\StageSky-6b2f702b854f591c521b318bae0c60eb6020f2218b9790cdb33b8b2b9d197574.mdx",
