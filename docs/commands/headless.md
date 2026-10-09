@@ -1,6 +1,6 @@
 # Headless
 
-- Headless match: `bun wisp headless [quick-match|desync] [--clients N] [--journey FILE] [--render DIR --frames N... --graphics classic|definitive]` plays
+- Headless match: `bun wisp headless [quick-match|desync|cpu-expert] [--clients N] [--journey FILE] [--render DIR --frames N... --graphics classic|definitive]` plays
   the dev build's quick match in simulated clients in about a second and prints
   desyncs, error reports and scene problems; `--cost` adds its predicted
   Warcraft cost per frame. `--render` draws requested frames using the map's

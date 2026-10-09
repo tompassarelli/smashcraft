@@ -213,7 +213,7 @@ profile still writes the report to `smashcraft-error-p<slot>.txt`, which
 `bun wisp hot --watch` and the playable capture gates read.
 smashcraft:ts/test/player-text.test.ts keeps both halves.
 
-Without the clients, `bun wisp headless [quick-match|desync] [--clients N]`
+Without the clients, `bun wisp headless [quick-match|desync|cpu-expert] [--clients N]`
 plays the development build (src/platform/devMain.ts) in Wisp's headless
 runtime ([Wisp headless](https://github.com/tompassarelli/wisp/blob/main/docs/headless.md)):
 start, `-dev quick`, Ctrl+T, a hot reload through the map's reloader at frame
@@ -221,6 +221,9 @@ start, `-dev quick`, Ctrl+T, a hot reload through the map's reloader at frame
 and checksum, the first desync, a reload not running, error reports and what
 a player would see wrong in each client's scene report, and exits 1 on any.
 `desync` adds `-dev desync` typed by the second player, which it must report.
+`cpu-expert` plays 5,400 frames against Wren Expert (`-dev quick cpu wren
+expert`) while the first player walks left and right, so the computer's
+seeded reaction draws run in every client (#354).
 smashcraft:ts/scripts/wisp/headless.ts declares the natives Smashcraft calls
 on one client only; the desync guard, visual-lifecycle, player-view and
 stack-trace tests run their clients with the same declaration. Its
