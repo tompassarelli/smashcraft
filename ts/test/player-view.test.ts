@@ -198,7 +198,8 @@ test("every stage's scenery and the fighting plane stand inside Warcraft's world
 // Warcraft keeps units inside the playable bounds: an arena moved 3,500 south left fighters short of the blast zones (e2e34176).
 const BLAST_MARGIN = 512.0;
 for (const { id: stage, name } of STAGE_CATALOG) test(`${name}: every blast zone lies ${BLAST_MARGIN} inside the playable bounds, and a fighter launched past each one is KO'd [repro #298]`, () => {
-  const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
+  // Solo quick matches add a computer, whose attacks can freeze a crossing during hitlag.
+  const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0, 1]);
   clients.start();
   clients.frames(30);
   const client = clients.client(0);
