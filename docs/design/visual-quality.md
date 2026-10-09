@@ -216,7 +216,7 @@ both modes; the three stock skies preserve their stock animation.
 | Naxxramas | 222,230,255 / 150,136,196; 1 | Original slate-teal sky | 5,000–11,000; 0.25,0.5,0.625 |
 | Hellfire Citadel | 255,222,196 / 140,172,120; 1 | Stock Outland_Sky | 5,000–11,000; 0.25,0.5,0.125 |
 | Blackrock | 255,248,232 / 170,124,112; 1.2 | Original forge sky | 5,000–10,000; 0.5,0.125,0.0625 |
-| Ahn'Qiraj | 255,240,204 / 192,170,136; 0.5 | Original sandstone sky | 5,000–10,000; 0.75,0.625,0.375 |
+| Ahn'Qiraj | 230,236,255 / 150,162,204; 0.3 (approved #267) | Original sandstone sky | 5,000–10,000; 0.75,0.625,0.375 |
 | Stratholme | 255,214,180 / 170,140,150; 1 | Stock LordaeronFallSky | 5,000–11,000; 0.5,0.28125,0.1875 |
 | Tomb of Sargeras | 226,244,255 / 130,176,180; 1 | Original tide sky | 5,000–11,000; 0.25,0.4375,0.46875 |
 
@@ -650,7 +650,7 @@ right. Re-capture the stock/mask/stage triple after every change.
 | Nordrassil (10) | 236, 246, 232 / 136, 178, 172 | stock FelwoodSky | no stock capture | Capture; *(guess)* its dark aurora backdrop favours the lift, as Naxxramas |
 | Gryphon Aerie (11) | 255, 248, 226 / 164, 182, 220 | authored | no mask capture | Capture; *(guess)* its pale cloud field behaves like Frozen Throne |
 | Blackrock (12) | 255, 216, 176 / 170, 124, 112 | authored | stock and stage failed | Capture; lowest #178 ΔE00 (21.2), so check it first |
-| Ahn'Qiraj (13) | 255, 240, 204 / 192, 170, 136 at intensity 0.5 (#267) | authored | at intensity 1, contrast fell (abs ΔL 33.5 → 22.9, 14.6 → 3.8) | Re-capture the triple at 0.5 |
+| Ahn'Qiraj (13) | 230, 236, 255 / 150, 162, 204 at intensity 0.3 (approved #267) | authored | At intensity 1, the former warm key reduced contrast (abs ΔL 33.5 → 22.9, 14.6 → 3.8) | Use #267's cool-key comparisons; the frozen #287 table below predates that fix |
 | Hellfire (14) | 255, 222, 196 / 140, 172, 120 | authored | stock capture only | Capture; *(guess)* dark haze favours the lift |
 
 The other levers, for every stage:
@@ -750,6 +750,62 @@ longest authored particle lifetime is 12 seconds. Restore with
 `-dev backdrop on`; switch only the light while the fighters stay paused.
 Use one mask for the stock/stage pair, keeping sky, fog, camera and pose fixed.
 An actual Classic and Definitive draw is needed for the asset fallback claim.
+
+### Unpaused comparison with shadows and post-processing
+
+The #287 batch uses Smashcraft `9c57ccfa`, Wisp `1383a934` and the installed
+Warcraft `3.0.1.24342` stock assets. Each stock/mask/stage triple is drawn
+at frame 410 (match frame 380), with separate deterministic journeys and
+the same near/far camera and fighter pose. Both clients receive the view
+and lighting commands. There is no pause menu over the scene.
+
+The requested look is `day-night-light,fog,sky,shadows,point-lights,pbr,`
+`point-light-shadows,ambient-occlusion,bloom`. Both modes draw sun shadows;
+Definitive records ambient occlusion and bloom on. Water and height-fog
+falloff remain outside this renderer's supported look. Terrain is hidden
+on these stages. Frozen's masks use `18868a54` (the same baseline source
+with the landed `4354a6e1d` snow-parking fix), retaining every stock and
+stage frame. Its parked snow no longer reaches any arena camera.
+
+Each cell is stock → stage **|ΔL| / ΔE00**, measured with
+`tools/stage/contrast.ts`. Client 0 is 1920×1080; client 1 is 2560×1080.
+
+| Stage / mode | Near / client 0 | Near / client 1 | Far / client 0 | Far / client 1 | Drawing result |
+| --- | --- | --- | --- | --- | --- |
+| Sky Deck / Classic | 2.7 / 11.5 → 8.3 / 13.8 | 4.3 / 11.9 → 9.7 / 14.6 | 1.5 / 9.3 → 10.1 / 13.3 | 10.5 / 12.7 → 2.1 / 7.6 | captured |
+| Sky Deck / Definitive | 7.8 / 14.6 → 12.1 / 16.9 | 11.8 / 17.3 → 16.2 / 19.9 | 7.0 / 12.4 → 16.3 / 18.5 | 8.6 / 13.3 → 5.4 / 10.6 | captured |
+| Frozen Throne / Classic | 3.1 / 8.9 → 5.6 / 9.6 | 4.2 / 9.2 → 6.8 / 10.2 | 6.3 / 9.5 → 9.3 / 11.3 | 5.3 / 8.5 → 8.9 / 10.6 | captured |
+| Frozen Throne / Definitive | 9.2 / 11.3 → 12.7 / 13.6 | 13.7 / 14.0 → 16.6 / 16.2 | 9.9 / 11.9 → 15.3 / 15.6 | 8.7 / 10.8 → 15.0 / 15.6 | IceTorch particles not drawn |
+| Durotar / Classic | 4.1 / 31.7 → 1.5 / 31.1 | 5.1 / 31.6 → 0.5 / 30.8 | 3.9 / 26.5 → 4.4 / 24.8 | 7.1 / 26.4 → 18.3 / 27.4 | captured |
+| Durotar / Definitive | 8.0 / 31.6 → 7.6 / 31.5 | 11.3 / 31.6 → 11.2 / 31.6 | 7.8 / 27.4 → 7.2 / 26.8 | 8.0 / 24.6 → 10.1 / 25.0 | captured |
+| Naxxramas / Classic | 10.9 / 17.5 → 14.0 / 18.9 | 11.4 / 17.5 → 14.4 / 18.9 | 11.5 / 17.2 → 16.2 / 20.3 | 3.6 / 13.5 → 10.5 / 17.2 | captured |
+| Naxxramas / Definitive | 13.4 / 16.8 → 15.7 / 17.3 | 15.6 / 17.6 → 17.3 / 17.8 | 12.3 / 17.6 → 19.8 / 21.5 | 0.2 / 16.1 → 12.7 / 17.9 | Necropolis particles not drawn |
+| Stratholme / Classic | 4.6 / 22.9 → 7.4 / 23.2 | 3.8 / 22.7 → 6.6 / 22.9 | 5.8 / 18.4 → 10.5 / 19.3 | 19.5 / 31.4 → 12.7 / 26.3 | captured |
+| Stratholme / Definitive | not captured | not captured | not captured | not captured | RaysOfLight texture missing |
+| Tomb of Sargeras / Classic | 6.0 / 23.0 → 10.0 / 23.6 | 6.2 / 23.5 → 10.1 / 24.2 | 1.8 / 23.9 → 7.7 / 24.0 | 7.2 / 20.4 → 1.9 / 16.6 | captured; Hydra facts missing at this source |
+| Tomb of Sargeras / Definitive | 11.1 / 25.2 → 15.0 / 26.7 | 12.3 / 27.2 → 16.4 / 28.7 | 3.8 / 25.7 → 13.0 / 27.2 | 5.2 / 21.3 → 6.8 / 18.5 | captured; Hydra facts missing at this source |
+| Nordrassil / Classic | 21.8 / 32.9 → 26.1 / 34.0 | 21.1 / 33.2 → 25.3 / 34.2 | 5.5 / 28.2 → 1.0 / 26.1 | 3.6 / 24.8 → 5.7 / 22.5 | captured |
+| Nordrassil / Definitive | not captured | not captured | not captured | not captured | RaysOfLight texture missing |
+| Gryphon Aerie / Classic | 2.4 / 18.6 → 4.0 / 19.1 | 4.9 / 18.8 → 1.5 / 18.5 | 3.5 / 16.7 → 13.3 / 21.1 | 11.9 / 16.9 → 25.2 / 25.4 | captured |
+| Gryphon Aerie / Definitive | 9.7 / 21.5 → 8.8 / 21.2 | 14.5 / 24.6 → 13.9 / 24.3 | 3.0 / 19.0 → 1.5 / 18.9 | 9.2 / 16.9 → 14.8 / 18.8 | captured |
+| Blackrock / Classic | 9.2 / 25.8 → 13.0 / 25.7 | 11.1 / 25.9 → 14.8 / 26.0 | 5.8 / 15.8 → 12.0 / 14.9 | 4.5 / 13.1 → 12.4 / 11.8 | captured |
+| Blackrock / Definitive | 9.4 / 26.2 → 13.1 / 26.6 | 12.6 / 26.4 → 16.5 / 27.0 | 2.4 / 10.6 → 1.6 / 9.2 | 4.4 / 10.8 → 2.9 / 8.2 | FireTrapUp / FirePillarMedium particles not drawn |
+| Ahn'Qiraj / Classic | 4.2 / 30.7 → 2.2 / 29.4 | 5.5 / 30.6 → 3.4 / 29.3 | 2.2 / 28.2 → 4.9 / 25.5 | 13.0 / 28.9 → 16.4 / 26.5 | captured |
+| Ahn'Qiraj / Definitive | 11.1 / 32.2 → 12.3 / 32.3 | 14.4 / 33.1 → 15.8 / 33.4 | 3.6 / 29.9 → 6.6 / 28.9 | 12.1 / 28.2 → 8.0 / 24.9 | captured |
+| Hellfire / Classic | 10.1 / 32.4 → 13.8 / 32.3 | 12.4 / 32.5 → 15.9 / 32.6 | 5.3 / 28.9 → 11.3 / 27.3 | 5.0 / 26.9 → 13.5 / 26.7 | captured |
+| Hellfire / Definitive | not captured | not captured | not captured | not captured | RaysOfLight texture missing |
+
+45 of 76 measured rows keep both contrast values at reported precision;
+31 fall, and 12 rows cannot be measured because the texture failure
+prevented a stock or stage image. The drawing failures preserve their saved
+scene and error log. Particle omissions and missing textures require a
+complete Definitive reference before #287's full capture box can pass.
+
+The mask deliberately hides decks, so its ordinary match scene check still
+reports missing decks; this is not an ordinary match pass. The frozen Tomb
+source also reports absent Hydra model facts, which were added on main
+before the snow fix. These numbers describe this frozen baseline; stage
+workers' later lighting and composition fixes have their own comparisons.
 
 ### 3.0.1 headless comparison reference
 
