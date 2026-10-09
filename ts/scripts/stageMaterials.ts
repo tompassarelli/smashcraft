@@ -57,7 +57,7 @@ export function texturedDeckMdl(faces: readonly DeckFace[], materials: PlatformM
       uv.push(...cell.uv.map(([u,v])=>[u0+(u ?? 0)*(u1-u0),v0+(v ?? 0)*(v1-v0)]));
       for(let i=1;i+1<cell.corners.length;i++) triangles.push(offset,offset+i,offset+i+1);
     }
-    const tint = part === "top" ? materials.tint ?? palette.top : palette[part];
+    const tint = source.tint ?? (part === "top" ? materials.tint ?? palette.top : palette[part]);
     return `Geoset {
       Vertices ${vertices.length} { ${vertices.map(v=>`${vec(v)},`).join("\n")} }
       Normals ${normals.length} { ${normals.map(v=>`${vec(v)},`).join("\n")} }

@@ -6,7 +6,7 @@ export const STAGE_DECK_MODELS: Readonly<Record<number, { readonly slab: string;
   10: { slab: "war3mapImported\\StageDeck-5a3d1d08a39c69e330f63fa8f4f18afc731045bb4baede45cc8ce707fce1b2c7.mdx", main: "war3mapImported\\StageMainDeck-df69eebae5360948bb0bd0f7c6fc76e4cad7a27691248656efca1b82a606c71a.mdx" },
   11: { slab: "war3mapImported\\StageDeck-46d3e1533ec507ee9756d96b95b077596ac8ac527ade934265918bf3a35ff9ef.mdx", main: "war3mapImported\\StageMainDeck-fe065b7681d386e05382f03eafb53b9fd1ed525c1b32949b0699e8a49579161e.mdx", alternate: "war3mapImported\\StageDeck-6cf55f4c398fe902a2025f11b959e627452ccce8b3042ceac596a45f2077ccad.mdx" },
   3: { slab: "war3mapImported\\StageDeck-f50de2749e88b8f23c39e407d754a9ba2b5da1ce35cd1a3705e38f460ffcd4e2.mdx", main: "war3mapImported\\StageMainDeck-d515d10e84d10f2948cef82813083f8738ddebdcaadb52815b72e9d1f3f59db0.mdx" },
-  4: { slab: "war3mapImported\\StageDeck-42aadf5d0c0e5338fcedaec9c2faae69aad7c84c59bc11497bfdf790693e87d5.mdx", main: "war3mapImported\\StageMainDeck-28c2bf5c3e5ec0ec7a949f50a708d31573fc52590e84fecba8b700b0661c45c3.mdx", alternate: "war3mapImported\\StageDeck-a81845b5bf33ba958e6b59a85d594ad9098682e60321301e21803b5234f3828e.mdx" },
+  4: { slab: "war3mapImported\\StageDeck-4508b3718f5c7777229ce5edd2ca3be08eb975ffee395f6d3b1d811060c662d0.mdx", main: "war3mapImported\\StageMainDeck-28c2bf5c3e5ec0ec7a949f50a708d31573fc52590e84fecba8b700b0661c45c3.mdx", alternate: "war3mapImported\\StageDeck-80aefce43aaad2415a8a3a59bcfef71488fb60af9d150612cb8a594ca7702d54.mdx" },
   14: { slab: "war3mapImported\\StageDeck-ac92d7d504dfa134c760f69c12b8c018b4d4699529fab3b0eceebcc44f578f6d.mdx", main: "war3mapImported\\StageMainDeck-a31fe67df8fe9fa25a5c12b6b16583753edca1216db7cfc662797515237e825b.mdx" },
   12: { slab: "war3mapImported\\StageDeck-14ac350c5ca9c3f1cdc914b44159f54889eaf7d0ac1be33eda7a1f6d2ef5a578.mdx", main: "war3mapImported\\StageMainDeck-1201cf5d5d0ff337e73be2bea46739833646cd706b8dc4229ecf330f5bdae0af.mdx" },
   6: { slab: "war3mapImported\\StageDeck-92dc55828d06da5ea6a9660d2457c9b6df2253be0cd2950a92de4dcf54d35b7e.mdx", main: "war3mapImported\\StageMainDeck-5dc41258c9e332f39a823514420054433f121f2b791a6f38b6a1b249d1b28f43.mdx" },
@@ -26,7 +26,7 @@ export const STAGE_LIGHT_MODELS: Readonly<Record<number, string>> = {
   10: "war3mapImported\\StageLight-237830eeeab84963d9a926cef8a7feaa72a71cb011309292ea8ad44f5ca69774.mdx",
   11: "war3mapImported\\StageLight-05aabd398820dbd090d773939d22c06f15272ac65ae31484b6ac69312ca119b6.mdx",
   3: "war3mapImported\\StageLight-fb31be74844f3d133719d66ba8227f747932fcf3d203a7cf8181ca071c7c6fcc.mdx",
-  4: "war3mapImported\\StageLight-a1cf0295f1d9682a4ecb95d75eefa97bea7d6ce9877241c9cfd424288b5b8586.mdx",
+  4: { slab: "war3mapImported\\StageDeck-4508b3718f5c7777229ce5edd2ca3be08eb975ffee395f6d3b1d811060c662d0.mdx", main: "war3mapImported\\StageMainDeck-28c2bf5c3e5ec0ec7a949f50a708d31573fc52590e84fecba8b700b0661c45c3.mdx", alternate: "war3mapImported\\StageDeck-80aefce43aaad2415a8a3a59bcfef71488fb60af9d150612cb8a594ca7702d54.mdx" },
   14: "war3mapImported\\StageLight-e2e9386a7685323a61c636f8d97042435961a2254e369c4af27061e382c12990.mdx",
   12: "war3mapImported\\StageLight-ecb13d23efd5e332c60425c87a7554ca5ecb54096c06b457a584a5e5a95aea25.mdx",
   6: "war3mapImported\\StageLight-72c98875af85ebde417d827ee435f29e5151d6a7b93c13c1e3f7569005990f36.mdx",
@@ -35,7 +35,7 @@ export const STAGE_LIGHT_MODELS: Readonly<Record<number, string>> = {
 };
 /** Each stage's backdrop omni light models, in the order of its lights in stagePointLights.ts. */
 export const STAGE_POINT_LIGHT_MODELS: Readonly<Record<number, readonly string[]>> = {
-  4: ["war3mapImported\\StagePointLight-3c239f503cd4b885fb1d2ccbd395dce50e78f4797f65e6db0ea63e33a1d92923.mdx"],
+  4: { slab: "war3mapImported\\StageDeck-4508b3718f5c7777229ce5edd2ca3be08eb975ffee395f6d3b1d811060c662d0.mdx", main: "war3mapImported\\StageMainDeck-28c2bf5c3e5ec0ec7a949f50a708d31573fc52590e84fecba8b700b0661c45c3.mdx", alternate: "war3mapImported\\StageDeck-80aefce43aaad2415a8a3a59bcfef71488fb60af9d150612cb8a594ca7702d54.mdx" },
   14: ["war3mapImported\\StagePointLight-a80bf58f5aab59d642ab911bc6ae05f69654de09308907c907d76de24c2fd479.mdx", "war3mapImported\\StagePointLight-e40b69be1b897ad6f33fb53f05e23630f4af667ba227af8a3da1b3ea270dfb6f.mdx"],
   12: ["war3mapImported\\StagePointLight-999e4101ca5c95726a64c7da6fb63358b7f581400b20ef4bc2c0aacdd79d4619.mdx", "war3mapImported\\StagePointLight-a570d9a1bc4c3789b5c18b15b77898cdc97168e585ea26494d42ebac45446328.mdx"],
   6: ["war3mapImported\\StagePointLight-999e4101ca5c95726a64c7da6fb63358b7f581400b20ef4bc2c0aacdd79d4619.mdx", "war3mapImported\\StagePointLight-a570d9a1bc4c3789b5c18b15b77898cdc97168e585ea26494d42ebac45446328.mdx"],

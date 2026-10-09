@@ -9,7 +9,7 @@ import { luma } from "../src/game/assets/stagePalette";
 import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";
 import { pointLightPieces, shadowCastingLights, stageScenery } from "../src/game/presentation/stageScenery";
 import { STAGE_DECK_PALETTES } from "../src/game/assets/stagePalette";
-import { texturedDeckMdl } from "../scripts/stageMaterials";
+import { platformDeckFaces, texturedDeckMdl } from "../scripts/stageMaterials";
 import { parseMDL } from "war3-model";
 import { ARENA_CAMERA, extremeCamera } from "../src/game/presentation/arenaCamera";
 import { createMatchCamera, MATCH_CAMERA_ASPECT } from "../src/game/sim/matchCamera";
@@ -312,4 +312,21 @@ test("Gryphon Aerie darkens the cloud field below the deck and keeps distant Cla
   const scenery = stageScenery(11);
   expect(scenery.fog).toEqual({ start: 5500, end: 11500, red: 0.25, green: 0.375, blue: 0.5 });
   expect(scenery.heightFog).toEqual({ start: 5500, end: 11500, density: 0.25, heightStart: -1800, heightEnd: -500, maxDensity: 0.5, drawOverSky: true });
+});
+
+
+test("Naxxramas patrol tops and front bodies carry distinct green and blue hues [repro #276]", () => {
+  const deck = STAGE_DECK_PALETTES.find(entry => entry.stage === PATTERNED_DECKS_STAGE);
+  if (deck?.materials?.alternatePlatform === undefined) throw new Error("Naxxramas has no second patrol material");
+  const green = parseMDL(texturedDeckMdl(platformDeckFaces(), deck.materials.platform, deck.palette));
+  const blue = parseMDL(texturedDeckMdl(platformDeckFaces(), deck.materials.alternatePlatform, deck.palette));
+  for (const part of [0, 2]) {
+    const greenTint = green.GeosetAnims[part]?.Color;
+    const blueTint = blue.GeosetAnims[part]?.Color;
+    if (!(greenTint instanceof Float32Array) || !(blueTint instanceof Float32Array)) throw new Error("patrol face has no static tint");
+    expect(greenTint[1]).toBeGreaterThan(1.5 * (greenTint[0] ?? 0));
+    expect(greenTint[1]).toBeGreaterThan(1.5 * (greenTint[2] ?? 0));
+    expect(blueTint[2]).toBeGreaterThan(1.5 * (blueTint[1] ?? 0));
+    expect(blueTint[2]).toBeGreaterThan(1.5 * (blueTint[0] ?? 0));
+  }
 });
