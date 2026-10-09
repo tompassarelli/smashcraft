@@ -7,6 +7,7 @@ import { canAttack, isIntangible } from "../sim/conditions";
 import { type Fighter, createFighter } from "../sim/fighter";
 import { type Controls, createRoster, neutralControls, copyControls } from "../sim/roster";
 import { mainDeckRight } from "../sim/stage";
+import { squareRoot } from "../sim/warcraftMath";
 import { produceComputerInput } from "./botPlay";
 import { createFrameControls } from "./controls";
 import type { CpuOpponentId, CpuTier } from "./cpuProfiles";
@@ -215,7 +216,7 @@ export function recoveryProfile(character: Character, plan: Readonly<RecoveryPla
     if (endsAt === "none") recoveryInput(v, plan, n, input);
     else copyControls(input, neutralControls());
     d.step(input, () => undefined);
-    const moved = f32(Math.sqrt(f32(f32(f32(v.motion.x - x) * f32(v.motion.x - x)) + f32(f32(v.motion.z - z) * f32(v.motion.z - z)))));
+    const moved = f32(squareRoot(f32(f32(f32(v.motion.x - x) * f32(v.motion.x - x)) + f32(f32(v.motion.z - z) * f32(v.motion.z - z)))));
     const rose = f32(v.motion.z - z);
     x = v.motion.x;
     z = v.motion.z;
