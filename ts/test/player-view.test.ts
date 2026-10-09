@@ -17,7 +17,7 @@ import { deckModel } from "../src/game/presentation/stagePreload";
 import { platformParts } from "../src/game/presentation/stockPlatforms";
 import { STAGE_DECK_MODELS } from "../src/game/assets/stageAssetInfo";
 import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";
-import { placedPieces, stageScenery } from "../src/game/presentation/stageScenery";
+import { hiddenBelow, placedPieces, stageScenery } from "../src/game/presentation/stageScenery";
 import { STOCK_MODELS } from "../src/game/render/effects";
 import { IMPACT_DUST, IMPACTS_PER_KIND, advanceImpacts, createImpactState, emitImpacts, impactLifetime } from "../src/game/presentation/impactState";
 import { CombatEffects } from "../src/game/render/combatEffects";
@@ -43,6 +43,8 @@ import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { MAIN_DECK_HALF_DEPTH } from "../scripts/stageDeck";
 import { CameraFindings } from "./cameraFindings";
 import { STAND_BOUNDS, TEMPLE_OF_TIDES, behindProblems, floatingProblems, insideWorld } from "../scripts/stageViewRules";
+import { groundProblems, landmarkProblems } from "../src/game/presentation/stageRules";
+import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
 
 
 const declarations = readNativeDeclarations();
@@ -221,6 +223,11 @@ test("no stage shows a scenery piece's base below the deck at either camera extr
   expect(problems).toEqual([]);
 });
 
+test("no stage's scenery prop crosses its landmark, and every structure rests on a rock or the stage's ground band [spec docs/design/stage-art.md]", () => {
+  const boundsOf = (model: string) => MODEL_FACTS[model]?.bounds;
+  const problems = STAGE_CATALOG.flatMap(stage => [...landmarkProblems(stage.name, stageScenery(stage.id).pieces, boundsOf), ...groundProblems(stage.name, stageScenery(stage.id).pieces, boundsOf, hiddenBelow(stage.id))]);
+  expect(problems).toEqual([]);
+});
 
 function sceneReport(client: HeadlessClient): SceneReport {
   const read = readSceneLines(client.files.get(sceneFile(client.slot, "smashcraft")) ?? []);

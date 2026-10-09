@@ -24,6 +24,7 @@ export interface SceneryPiece {
   readonly yaw: number;
   readonly matrixScale?: readonly [number, number, number];
   readonly color?: readonly [number, number, number];
+  readonly flying?: true;
 }
 
 export interface StageScenery {

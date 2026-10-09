@@ -1,7 +1,8 @@
 import type { StageLight } from "../../ts/src/game/assets/stageLighting";
 import type { DeckPalette } from "../../ts/src/game/assets/stagePalette";
-import { moodColor, type SceneryPiece, type StageScenery } from "../../ts/src/game/presentation/stageScenery";
-import { deckProblems, fogProblems, intensityProblems, lightProblems, mirrorProblems } from "../../ts/src/game/presentation/stageRules";
+import { hiddenBelow, moodColor, type SceneryPiece, type StageScenery } from "../../ts/src/game/presentation/stageScenery";
+import { deckProblems, fogProblems, groundProblems, intensityProblems, landmarkProblems, lightProblems, mirrorProblems } from "../../ts/src/game/presentation/stageRules";
+import { MODEL_FACTS } from "../../ts/scripts/wisp/modelFacts";
 import { behindProblems, floatingProblems, worldProblems } from "../../ts/scripts/stageViewRules";
 
 type Rgb = readonly [number, number, number];
@@ -102,6 +103,8 @@ export function candidateProblems(stage: Stage, { scenery, light }: Candidate): 
     ...worldProblems(stage.name, stage.origin, scenery.pieces),
     ...floatingProblems(stage.id, stage.name, scenery.pieces),
     ...mirrorProblems(stage.name, scenery.pieces),
+    ...landmarkProblems(stage.name, scenery.pieces, model => MODEL_FACTS[model]?.bounds),
+    ...groundProblems(stage.name, scenery.pieces, model => MODEL_FACTS[model]?.bounds, hiddenBelow(stage.id)),
     ...behindProblems(stage.id, stage.name, scenery),
     ...lightProblems(stage.name, light),
     ...intensityProblems(stage.name, stage.id, light),

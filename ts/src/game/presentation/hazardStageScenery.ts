@@ -10,10 +10,11 @@ export const NORDRASSIL_SCENERY: StageScenery = {
   pieces: [
 
     { model: "Doodads\\Ashenvale\\Structures\\Worldtree\\Worldtree.mdx", x: -1900.0, y: 4800.0, z: -2650.0, scale: 0.625, yaw: 300.0, matrixScale: [1.0, 1.0, f32(1.512)] },
+    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks2.mdx", x: -1900.0, y: 4800.0, z: -3588.0, scale: 12.0, yaw: 140.0 },
     { model: "Buildings\\NightElf\\MoonWell\\MoonWell.mdx", x: 1600.0, y: 2900.0, z: -900.0, scale: 1.0, yaw: 250.0 },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 1715.0, y: 2900.0, z: -2295.0, scale: f32(5.35), yaw: 287.0, matrixScale: [1.0, 1.0, f32(2.605)] },
-    { model: "Buildings\\NightElf\\MoonWell\\MoonWell.mdx", x: -2300.0, y: 4400.0, z: -1200.0, scale: 0.625, yaw: 20.0 },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -2410.0, y: 4400.0, z: -3210.0, scale: f32(3.55), yaw: 57.0, matrixScale: [1.0, 1.0, f32(6.407)] },
+    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks2.mdx", x: 1715.0, y: 2900.0, z: -2295.0, scale: f32(7.22), yaw: 287.0, matrixScale: [1.0, 1.0, f32(2.462)] },
+    { model: "Buildings\\NightElf\\MoonWell\\MoonWell.mdx", x: -2850.0, y: 4400.0, z: -1200.0, scale: 0.625, yaw: 20.0 },
+    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks2.mdx", x: -2960.0, y: 4400.0, z: -3210.0, scale: f32(4.79), yaw: 57.0, matrixScale: [1.0, 1.0, f32(5.335)] },
     { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 2000.0, y: 3600.0, z: -2710.0, scale: f32(3.55), yaw: 150.0, matrixScale: [1.0, 1.0, f32(6.052)] },
   ],
 };
@@ -26,7 +27,7 @@ export const GRYPHON_SCENERY: StageScenery = {
   pieces: [
 
     { model: "Buildings\\Human\\GryphonAviary\\GryphonAviary.mdx", x: 2300.0, y: 4800.0, z: -150.0, scale: 1.25, yaw: 215.0 },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 2550.0, y: 4800.0, z: -3650.0, scale: 8.0, yaw: 252.0, matrixScale: [1.0, 1.0, 4.75] },
+    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks2.mdx", x: 2550.0, y: 4800.0, z: -3650.0, scale: f32(10.8), yaw: 252.0, matrixScale: [1.0, 1.0, f32(4.114)] },
     { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -2050.0, y: 3200.0, z: -2475.0, scale: 3.5, yaw: 35.0, matrixScale: [1.0, 1.0, f32(5.138)] },
     { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -550.0, y: 5200.0, z: -3505.0, scale: f32(5.05), yaw: 110.0, matrixScale: [1.0, 1.0, f32(6.005)] },
   ],
@@ -56,9 +57,9 @@ export const AHNQIRAJ_SCENERY: StageScenery = {
 
     { model: "Doodads\\Ruins\\Props\\RuinsObelisk\\RuinsObelisk1.mdx", x: -2100.0, y: 5700.0, z: -3835.0, scale: 4.5, yaw: 300.0, matrixScale: [1.0, 1.0, f32(3.027)] },
     { model: "Doodads\\Barrens\\Structures\\RuinedArch\\RuinedArch2.mdx", x: 2200.0, y: 4100.0, z: -1200.0, scale: 4.0, yaw: 220.0 },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 2235.0, y: 4100.0, z: -2935.0, scale: f32(5.85), yaw: 257.0, matrixScale: [1.0, 1.0, f32(3.62)] },
+    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks2.mdx", x: 2235.0, y: 4100.0, z: -2935.0, scale: f32(7.9), yaw: 257.0, matrixScale: [1.0, 1.0, f32(2.797)] },
     { model: "Doodads\\Barrens\\Structures\\RuinedCurvedWall\\RuinedCurvedWall.mdx", x: 800.0, y: 5000.0, z: -1350.0, scale: 4.0, yaw: 160.0 },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 810.0, y: 5000.0, z: -3455.0, scale: f32(5.4), yaw: 197.0, matrixScale: [1.0, 1.0, f32(4.835)] },
+    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks2.mdx", x: 810.0, y: 5000.0, z: -3455.0, scale: f32(7.29), yaw: 197.0, matrixScale: [1.0, 1.0, f32(3.672)] },
     { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 2000.0, y: 2400.0, z: -2025.0, scale: 3.5, yaw: 45.0, matrixScale: [1.0, 1.0, f32(3.56)] },
     { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -2200.0, y: 3000.0, z: -2310.0, scale: 4.5, yaw: 300.0, matrixScale: [1.0, 1.0, f32(3.486)] },
   ],

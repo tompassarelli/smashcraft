@@ -59,3 +59,66 @@ export function intensityProblems(theme: string, stage: number, light: StageLigh
   const intensity = light.intensity ?? 1, limit = stage === PATTERNED_DECKS_STAGE ? 2 : 1.25;
   return intensity > 0 && intensity <= limit ? [] : [`${theme}: intensity ${intensity} is outside (0, ${limit}]`];
 }
+
+export interface ModelBox { readonly min: readonly number[]; readonly max: readonly number[] }
+export type BoundsOf = (model: string) => ModelBox | undefined;
+interface Placed { readonly left: number; readonly right: number; readonly front: number; readonly back: number; readonly bottom: number; readonly top: number }
+
+// Lowest of the classic and Definitive mesh tops: a structure resting on one of these rocks touches it in both looks.
+export const SUPPORT_TOPS: Readonly<Record<string, number>> = {
+  "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx": 38,
+  "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks2.mdx": 79,
+  "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier0.mdx": 380,
+  "Doodads\\Outland\\Rocks\\Outland_Spires\\Outland_Spires7.mdx": 459,
+  "Doodads\\Ruins\\Rocks\\Ruins_Rock\\Ruins_Rock0.mdx": 77,
+};
+
+export const isStructure = (model: string): boolean => model.toLowerCase().startsWith("buildings\\") || model.toLowerCase().includes("\\structures\\");
+const isEffect = (model: string): boolean => model.toLowerCase().startsWith("abilities\\");
+
+function placed(piece: SceneryPiece, box: ModelBox): Placed {
+  const [mx, my, mz] = piece.matrixScale ?? [1, 1, 1];
+  const turn = (piece.yaw * Math.PI) / 180;
+  const xs: number[] = [], ys: number[] = [];
+  for (const x of [box.min[0]! * mx, box.max[0]! * mx]) for (const y of [box.min[1]! * my, box.max[1]! * my]) {
+    xs.push((x * Math.cos(turn) - y * Math.sin(turn)) * piece.scale + piece.x);
+    ys.push((x * Math.sin(turn) + y * Math.cos(turn)) * piece.scale + piece.y);
+  }
+  return { left: Math.min(...xs), right: Math.max(...xs), front: Math.min(...ys), back: Math.max(...ys), bottom: box.min[2]! * mz * piece.scale + piece.z, top: box.max[2]! * mz * piece.scale + piece.z };
+}
+
+function supports(rock: SceneryPiece, piece: SceneryPiece, boundsOf: BoundsOf): boolean {
+  const top = SUPPORT_TOPS[rock.model], box = boundsOf(rock.model);
+  if (rock === piece || top === undefined || box === undefined) return false;
+  const under = placed(rock, box), surface = rock.z + top * (rock.matrixScale?.[2] ?? 1) * rock.scale;
+  const height = (boundsOf(piece.model)?.max[2] ?? 0) * piece.scale;
+  return piece.x >= under.left && piece.x <= under.right && piece.y >= under.front && piece.y <= under.back && piece.z <= surface && surface <= piece.z + height / 4;
+}
+
+export function landmarkProblems(name: string, pieces: readonly SceneryPiece[], boundsOf: BoundsOf): readonly string[] {
+  const landmark = pieces.find((piece) => isStructure(piece.model)) ?? pieces[0];
+  const box = landmark === undefined ? undefined : boundsOf(landmark.model);
+  if (landmark === undefined || box === undefined) return [];
+  const whole = placed(landmark, box);
+  const mark = { left: (landmark.x + whole.left) / 2, right: (landmark.x + whole.right) / 2, front: (landmark.y + whole.front) / 2, back: (landmark.y + whole.back) / 2, };
+  const problems: string[] = [];
+  for (const [index, piece] of pieces.entries()) {
+    const own = boundsOf(piece.model);
+    if (piece === landmark || own === undefined || isEffect(piece.model)) continue;
+    const top = piece.z + (supports(piece, landmark, boundsOf) ? SUPPORT_TOPS[piece.model]! : own.max[2]!) * (piece.matrixScale?.[2] ?? 1) * piece.scale;
+    const crossed = piece.x > mark.left && piece.x < mark.right && piece.y > mark.front && piece.y < mark.back && top > landmark.z + (whole.top - landmark.z) / 4;
+    if (crossed) problems.push(`${name}: piece ${index} ${piece.model} crosses the landmark ${landmark.model} (core x ${Math.round(mark.left)}..${Math.round(mark.right)}, y ${Math.round(mark.front)}..${Math.round(mark.back)})`);
+  }
+  return problems;
+}
+
+export function groundProblems(name: string, pieces: readonly SceneryPiece[], boundsOf: BoundsOf, ground: number | undefined): readonly string[] {
+  const problems: string[] = [];
+  for (const [index, piece] of pieces.entries()) {
+    if (!isStructure(piece.model) || piece.flying === true) continue;
+    if (ground !== undefined && piece.z <= ground) continue;
+    const supported = pieces.some((other) => supports(other, piece, boundsOf));
+    if (!supported) problems.push(`${name}: piece ${index} ${piece.model} at z ${piece.z} stands on nothing`);
+  }
+  return problems;
+}

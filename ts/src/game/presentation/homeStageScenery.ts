@@ -12,19 +12,20 @@ export const STRATHOLME_SCENERY: StageScenery = {
   pieces: [
 
     { model: "Doodads\\LordaeronFall\\Structures\\AndrohalClockTower_Destroyed\\AndrohalClockTower_Destroyed.mdx", x: -1600.0, y: 7600.0, z: -1800.0, scale: 2.0, yaw: 270.0 },
+    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks2.mdx", x: -1600.0, y: 7600.0, z: -4000.0, scale: 10.0, yaw: 110.0, matrixScale: [1.0, 1.0, f32(2.797)] },
 
     { model: "Doodads\\Cityscape\\Structures\\CathedralRuined\\CathedralRuined.mdx", x: 1500.0, y: 5500.0, z: -1300.0, scale: 3.0, yaw: 250.0 },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 1730.0, y: 5495.0, z: -3790.0, scale: f32(12.4), yaw: 287.0, matrixScale: [1.0, 1.0, f32(2.487)] },
+    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks2.mdx", x: 1730.0, y: 5495.0, z: -3790.0, scale: f32(16.74), yaw: 287.0, matrixScale: [1.0, 1.0, f32(1.89)] },
     { model: TOWN_FIRE, x: 1250.0, y: 6000.0, z: -900.0, scale: 1.75, yaw: 0.0 },
     { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 1215.0, y: 6000.0, z: -3980.0, scale: f32(6.05), yaw: 37.0, matrixScale: [1.0, 1.0, f32(6.398)] },
     { model: "Doodads\\Cityscape\\Structures\\CityWallEntrance\\CityWallEntrance.mdx", x: -1900.0, y: 3800.0, z: -1300.0, scale: 2.0, yaw: 285.0 },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -1875.0, y: 3800.0, z: -2875.0, scale: f32(3.65), yaw: 322.0, matrixScale: [1.0, 1.0, f32(5.626)] },
+    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks2.mdx", x: -1875.0, y: 3800.0, z: -2875.0, scale: f32(4.93), yaw: 322.0, matrixScale: [1.0, 1.0, f32(4.072)] },
     { model: "Doodads\\Cityscape\\Structures\\CityBuildingLarge_45_Ruined\\CityBuildingLarge_45_Ruined.mdx", x: -2300.0, y: 2600.0, z: -1250.0, scale: 1.75, yaw: 20.0 },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -2375.0, y: 2590.0, z: -2085.0, scale: f32(6.15), yaw: 57.0, matrixScale: [1.0, 1.0, f32(1.758)] },
+    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks2.mdx", x: -2375.0, y: 2590.0, z: -2085.0, scale: f32(8.3), yaw: 57.0, matrixScale: [1.0, 1.0, f32(1.288)] },
     { model: TOWN_FIRE, x: -2250.0, y: 2650.0, z: -1000.0, scale: 1.25, yaw: 90.0 },
     { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -2275.0, y: 2650.0, z: -2290.0, scale: f32(2.55), yaw: 127.0, matrixScale: [1.0, 1.0, f32(6.441)] },
     { model: "Doodads\\Cityscape\\Structures\\CityBuildingSmall135_1_Ruined\\CityBuildingSmall135_1_Ruined.mdx", x: 2400.0, y: 3400.0, z: -1350.0, scale: 2.0, yaw: 160.0 },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 2395.0, y: 3400.0, z: -2585.0, scale: f32(5.1), yaw: 197.0, matrixScale: [1.0, 1.0, f32(3.092)] },
+    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks2.mdx", x: 2395.0, y: 3400.0, z: -2585.0, scale: f32(6.88), yaw: 197.0, matrixScale: [1.0, 1.0, f32(2.289)] },
   ],
 };
 
@@ -41,7 +42,7 @@ export const TOMB_OF_SARGERAS_SCENERY: StageScenery = {
     { model: "Doodads\\Ruins\\Structures\\SRuinArch\\SRuinArch.mdx", x: -4000.0, y: 3900.0, z: -1900.0, scale: 5.0, yaw: 90.0, matrixScale: [0.5, 2.0, 1.0] },
     { model: "Doodads\\Ruins\\Structures\\SRuinArch\\SRuinArch.mdx", x: 0.0, y: 4500.0, z: -2150.0, scale: 6.25, yaw: 270.0, matrixScale: [0.5, 2.0, 1.0] },
     { model: "Doodads\\Ruins\\Structures\\SRuinArch\\SRuinArch.mdx", x: 4000.0, y: 4500.0, z: -1400.0, scale: 4.0, yaw: 85.0, matrixScale: [0.5, 2.0, 1.0] },
-    { model: "Doodads\\Ruins\\Rocks\\Ruins_Rock\\Ruins_Rock0.mdx", x: 1500.0, y: 4600.0, z: -5000.0, scale: 17.0, yaw: 287.0, matrixScale: [1.0, 1.0, 2.0] },
+    { model: "Doodads\\Ruins\\Rocks\\Ruins_Rock\\Ruins_Rock0.mdx", x: 1500.0, y: 4600.0, z: -5150.0, scale: 17.0, yaw: 287.0, matrixScale: [1.0, 1.0, 2.0] },
     // TS-c: the waterfall stays on the left; HD/DE imports replace only its misty model, keeping Classic stock.
     { model: "Doodads\\Terrain\\CliffDoodad\\Waterfall\\Waterfall.mdx", x: -2200.0, y: 3600.0, z: -2200.0, scale: 5.0, yaw: 270.0, matrixScale: [1.0, 1.0, 2.5] },
     { model: "Doodads\\Ruins\\Structures\\SRuinArch\\SRuinArch.mdx", x: -1800.0, y: 3500.0, z: -900.0, scale: 4.0, yaw: 15.0 },

@@ -25,8 +25,8 @@ export const DUROTAR_SCENERY: StageScenery = {
     { model: MOUND, x: 3950.0, y: 4350.0, z: -1682.0, scale: 8.5, yaw: 180.0, matrixScale: [3.5, 1.0, 2.5] },
     { model: SPIRES, x: -3500.0, y: 4100.0, z: -1459.0, scale: 1.75, yaw: 30.0, matrixScale: [1.5, 1.0, 2.75] },
     { model: SPIRES, x: 3600.0, y: 4200.0, z: -1524.0, scale: 2.25, yaw: 330.0, matrixScale: [1.5, 1.0, 2.25] },
-    { model: "buildings\\orc\\WatchTower\\WatchTower.mdx", x: -2300.0, y: 4600.0, z: 350.0, scale: 3.0, yaw: 300.0 },
-    { model: "buildings\\orc\\TrollBurrow\\TrollBurrow.mdl", x: 1150.0, y: 4700.0, z: 450.0, scale: 3.25, yaw: 230.0 },
+    { model: "buildings\\orc\\WatchTower\\WatchTower.mdx", x: -2300.0, y: 4600.0, z: 60.0, scale: 3.0, yaw: 300.0 },
+    { model: "buildings\\orc\\TrollBurrow\\TrollBurrow.mdl", x: 1150.0, y: 4700.0, z: 95.0, scale: 3.25, yaw: 230.0 },
   ],
 };
 
@@ -67,10 +67,10 @@ export const HELLFIRE_SCENERY: StageScenery = {
   floor: { model: STAGE_SEA_MODEL, z: -1300.0, color: [88, 36, 28] },
   pieces: [
     { model: "buildings\\demon\\DemonGate\\DemonGate.mdx", x: -1850.0, y: 4500.0, z: -50.0, scale: 1.5, yaw: 280.0 },
-    { model: SPIRES, x: -1850.0, y: 4550.0, z: -1677.0, scale: 4.0, yaw: 185.0, matrixScale: [2.5, 1.0, 0.75] },
+    { model: MOUND, x: -1850.0, y: 4550.0, z: -1620.0, scale: 10.0, yaw: 185.0, matrixScale: [2.5, 1.0, 2.0], color: [150, 84, 104] },
     { model: SPIRES, x: -3800.0, y: 4500.0, z: -1321.0, scale: 5.0, yaw: 175.0, matrixScale: [1.75, 1.0, 0.75] },
-    { model: SPIRES, x: -2900.0, y: 4350.0, z: -1816.0, scale: 4.5, yaw: 195.0, matrixScale: [2.0, 1.0, 1.0] },
-    { model: SPIRES, x: -2000.0, y: 4650.0, z: -1443.0, scale: 5.5, yaw: 165.0, matrixScale: [1.5, 1.0, 0.75] },
+    { model: SPIRES, x: -3250.0, y: 4350.0, z: -1816.0, scale: 4.5, yaw: 195.0, matrixScale: [2.0, 1.0, 1.0] },
+    { model: SPIRES, x: -2550.0, y: 4650.0, z: -1443.0, scale: 5.5, yaw: 165.0, matrixScale: [1.5, 1.0, 0.75] },
     { model: SPIRES, x: -1100.0, y: 4400.0, z: -1335.0, scale: 4.75, yaw: 205.0, matrixScale: [1.75, 1.0, 0.75] },
     { model: SPIRES, x: -200.0, y: 4700.0, z: -1387.0, scale: 5.25, yaw: 185.0, matrixScale: [1.75, 1.0, 0.75] },
     { model: SPIRES, x: 700.0, y: 4450.0, z: -1711.0, scale: 4.25, yaw: 160.0, matrixScale: [2.0, 1.0, 1.0] },

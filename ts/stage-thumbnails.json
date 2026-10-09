@@ -3,9 +3,9 @@
     {
       "stage": 11,
       "file": "StageCardGryphon.blp",
-      "inputs": "e7a871ab8ac106d22fa834dcbdaf6e4f7d9fff3211b43e7d2aa9783e22764ab1",
-      "sha256": "045ab0d5379ee2be8601caa65702486aead1a308c2c047d85698898b06c38472",
-      "bytes": 42716
+      "inputs": "fca48e0a612edda0779049a283ac57ccdf04ae7ccfa19fa107aca125b4ea5c1b",
+      "sha256": "ff73a4b58fb7498b11807b1ce6a711b54c368bda5c696cfabeaa891799f1c95e",
+      "bytes": 43728
     },
     {
       "stage": 12,
@@ -17,9 +17,9 @@
     {
       "stage": 13,
       "file": "StageCardAhnQiraj.blp",
-      "inputs": "1387e4603fa16cd2b1f4b1edb67cc3a4b604b42c84ed608441c5c7e78a14d4c5",
-      "sha256": "415e8ba266cc4cd067ab101423c97f39fd38b145f983c43a0cd5de99b84b8d83",
-      "bytes": 38217
+      "inputs": "6415bf340f2927299bf14709bc6353b5563ab6d0f665eb85462c9808d5d6d5bb",
+      "sha256": "dd7ee6a5c7770b04e95ab8ee2eb86c90998d51f7bf39fffb439b2d1d3ba0ba6f",
+      "bytes": 38381
     },
     {
       "stage": 0,
