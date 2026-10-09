@@ -52,6 +52,6 @@
 #! expect a 660 special 5 form 0
 #! expect a 701 special 0
 #! scene a BearOriginalClip
-#! scene a GyroCopterMissile
+#! scene a FlyingMachineMissile
 1000 a press VIEW
 1070 a release VIEW

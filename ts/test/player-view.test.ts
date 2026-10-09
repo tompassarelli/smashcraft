@@ -553,7 +553,7 @@ test("a dust slot reused while shown is a new stay each use; a standing spark an
   client.run(() => {
 
     const { origin } = shell();
-    const missile = AddSpecialEffect(STOCK_MODELS.gyroCopterMissile, origin.x, origin.y);
+    const missile = AddSpecialEffect(STOCK_MODELS.flyingMachineMissile, origin.x, origin.y);
     BlzSetSpecialEffectScale(missile, 0.0);
     BlzSetSpecialEffectPosition(missile, origin.x, origin.y, origin.z);
     trampoline("scene.report")();
@@ -565,7 +565,7 @@ test("a dust slot reused while shown is a new stay each use; a standing spark an
   expect(report.models.find(({ model }) => model === reportedModel(impactModel(IMPACT_DUST)))?.longest).toBe(impactLifetime(IMPACT_DUST));
   expect(sceneProblems(report, SMASHCRAFT_SCENE).map(({ seen }) => seen)).toEqual([
     "a hit spark stayed in view for 4.00 s; it should be gone within 3.00 s",
-    "1 hidden projectile, special cue in view still show particles",
+    "1 hidden projectile in view still show particles",
   ]);
   expect(client.errors).toEqual([]);
 });

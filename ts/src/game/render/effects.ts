@@ -16,7 +16,7 @@ export interface WorldOrigin {
 
 export const STOCK_MODELS = {
   silenceTarget: "Abilities\\Spells\\Other\\Silence\\SilenceTarget.mdx",
-  gyroCopterMissile: "Abilities\\Weapons\\GyroCopter\\GyroCopterMissile.mdx",
+  flyingMachineMissile: "Abilities\\Weapons\\FlyingMachine\\FlyingMachineMissile.mdx",
   immolationTarget: "Abilities\\Spells\\NightElf\\Immolation\\ImmolationTarget.mdx",
   manaBurnTarget: "Abilities\\Spells\\NightElf\\ManaBurn\\ManaBurnTarget.mdx",
   greenDragonMissile: "Abilities\\Weapons\\GreenDragonMissile\\GreenDragonMissile.mdx",

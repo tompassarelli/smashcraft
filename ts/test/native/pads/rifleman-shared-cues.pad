@@ -67,7 +67,7 @@
 #! expect a 640 special 6 form 0
 #! expect a 663 special-form 1 action 6
 #! scene a GyroCopterImpact
-#! scene a GyroCopterMissile
+#! scene a FlyingMachineMissile
 #! scene a RoarTarget
 #! scene a FeralSpiritTarget
 #! scene a BlizzardTarget

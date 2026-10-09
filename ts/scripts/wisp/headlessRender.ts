@@ -17,7 +17,7 @@ import { MapBuildFailure } from "wisp/scripts/wisp/mapBuild";
 import { fighterCueList, MISSING_CUE_MODEL } from "../../src/game/presentation/specialCues";
 import { allAttackCueModels } from "../../src/game/presentation/attackCues";
 import { DEFINITIVE_ACCENT_REDRAWS, DISJOINT_MODELS } from "../../src/game/presentation/disjointCues";
-import { allProjectileModels } from "../../src/game/presentation/projectileArt";
+import { DEFINITIVE_PROJECTILE_REDRAWS, allProjectileModels } from "../../src/game/presentation/projectileArt";
 import { Character } from "../../src/game/sim/codes";
 import { resolveRenderAsset, type AssetLocation, type AssetLayer, type Graphics, type ResolvedRenderAsset } from "wisp/scripts/wisp/renderAssets";
 
@@ -54,15 +54,16 @@ export const checkCueModels = Effect.fnUntraced(function*(renderer: { readonly r
   }
   if (missing.length > 0) return yield* new MapBuildFailure({ operation: "check cue models", path: "Classic and Definitive", cause: missing.join("; ") });
   const redrawn: string[] = [];
-  for (const model of new Set(Object.values(DISJOINT_MODELS))) {
-    if (DEFINITIVE_ACCENT_REDRAWS[model] !== undefined) continue;
+  const listed = { ...DEFINITIVE_ACCENT_REDRAWS, ...DEFINITIVE_PROJECTILE_REDRAWS };
+  for (const model of new Set([...Object.values(DISJOINT_MODELS), ...allProjectileModels()])) {
+    if (listed[model] !== undefined) continue;
     const [classic, definitive] = yield* Effect.tryPromise({
       try: () => Promise.all([renderer.resolveAsset(model, "classic"), renderer.resolveAsset(model, "definitive")]),
-      catch: cause => new MapBuildFailure({ operation: "resolve contact accent", path: model, cause }),
+      catch: cause => new MapBuildFailure({ operation: "resolve accent or projectile", path: model, cause }),
     });
     if (classic.bytes === undefined || definitive.bytes === undefined || !Buffer.from(classic.bytes).equals(Buffer.from(definitive.bytes))) redrawn.push(model);
   }
-  if (redrawn.length > 0) return yield* new MapBuildFailure({ operation: "check contact accents", path: "src/game/presentation/disjointCues.ts", cause: `Definitive redraws these held contact accents as different models; review each in Definitive and list it in DEFINITIVE_ACCENT_REDRAWS or choose another: ${redrawn.join("; ")}` });
+  if (redrawn.length > 0) return yield* new MapBuildFailure({ operation: "check Definitive redraws", path: "src/game/presentation", cause: `Definitive redraws these contact accents or projectiles as different models; review each in Definitive and list it in DEFINITIVE_ACCENT_REDRAWS (disjointCues.ts) or DEFINITIVE_PROJECTILE_REDRAWS (projectileArt.ts), or choose another: ${redrawn.join("; ")}` });
   return models.length * 2;
 });
 

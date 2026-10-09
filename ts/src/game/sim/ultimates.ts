@@ -51,7 +51,7 @@ const RIFLEMAN: AuthoredSpecial = {
   name: "Aimed Shot", endFrame: 70, groundOnly: true,
   projectiles: [
     mark("Abilities\\Spells\\Human\\ManaFlare\\ManaFlareTarget.mdx", 4, 32, 60.0, 50.0),
-    shot(36, 50.0, 50.0, 60.0, 0.0, 30, 26.0, hit(24.0, 30, 95.0, 40.0), "Abilities\\Weapons\\GyroCopter\\GyroCopterMissile.mdx"),
+    shot(36, 50.0, 50.0, 60.0, 0.0, 30, 26.0, hit(24.0, 30, 95.0, 40.0), "Abilities\\Weapons\\FlyingMachine\\FlyingMachineMissile.mdx"),
   ],
 };
 
