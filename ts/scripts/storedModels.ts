@@ -14,6 +14,11 @@ import { groundPlaneGeosets } from "./groundPlanes";
 
 const store = process.argv[2] ?? INPUTS_STORE;
 
+if (process.env.GITHUB_ACTIONS === "true" && !existsSync(store)) {
+  console.log(`stored models: skipped on a hosted runner, which has no private input store (${store})`);
+  process.exit(0);
+}
+
 const program = Effect.gen(function*() {
   const manifest = yield* readManifest(MANIFEST);
   const problems: string[] = [];
