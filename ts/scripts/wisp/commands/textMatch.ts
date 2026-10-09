@@ -50,7 +50,7 @@ const writeAll = (text: string): Effect.Effect<void, TextMatchFailure> => {
     catch: (cause) => typeof cause === "object" && cause !== null && "code" in cause && cause.code === "EAGAIN" ? STDOUT_BUSY : new TextMatchFailure({ problem: describeCause(cause) }),
   }).pipe(
     Effect.map((written) => at + written),
-    Effect.catch((failure) => failure === STDOUT_BUSY ? Effect.sleep("1 millis").pipe(Effect.as(at)) : Effect.fail(failure)),
+    Effect.catchIf((failure): failure is typeof STDOUT_BUSY => failure === STDOUT_BUSY, () => Effect.sleep("1 millis").pipe(Effect.as(at))),
     Effect.flatMap(from),
   );
   return from(0);
