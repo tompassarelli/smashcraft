@@ -54,7 +54,9 @@ export function texturedDeckMdl(faces: readonly DeckFace[], materials: PlatformM
     for (const face of faces.filter(f=>f.material===material)) for (const cell of tileFace(face)) {
       const offset=vertices.length;
       vertices.push(...cell.corners); normals.push(...cell.corners.map(()=>[...face.normal]));
-      uv.push(...cell.uv.map(([u,v])=>[u0+(u ?? 0)*(u1-u0),v0+(v ?? 0)*(v1-v0)]));
+      const bottom = Math.min(...face.corners.map(p => p[2] ?? 0));
+      const height = Math.max(...face.corners.map(p => p[2] ?? 0)) - bottom;
+      uv.push(...cell.uv.map(([u,v], index)=>[u0+(u ?? 0)*(u1-u0),v0+(source.fitHeight && height > 0 && Math.abs(face.normal[2]) < 0.5 ? ((cell.corners[index]?.[2] ?? bottom)-bottom)/height : v ?? 0)*(v1-v0)]));
       for(let i=1;i+1<cell.corners.length;i++) triangles.push(offset,offset+i,offset+i+1);
     }
     const tint = source.tint ?? (part === "top" ? materials.tint ?? palette.top : palette[part]);

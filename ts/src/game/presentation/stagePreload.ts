@@ -8,7 +8,7 @@ import { STAGE_LAVA_MODEL } from "../assets/terrainAssetInfo";
 import { CANNON_MODEL, HYDRA_CREST_MODEL, HYDRA_RING_MODEL } from "./stageHazards";
 import { placedPieces, stageLightModel, stageScenery } from "./stageScenery";
 import { platformParts } from "./stockPlatforms";
-import { CARRIED_TEST_STAGE, surfacePass } from "../sim/stage";
+import { CARRIED_TEST_STAGE, TOMB_OF_SARGERAS_STAGE, surfacePass } from "../sim/stage";
 import { f32 } from "wisp/src/sim/f32";
 import { stageEdgeLight, STAGE_EDGE_LIGHT_MODEL } from "./stageEdgeLights";
 
@@ -30,7 +30,7 @@ export function deckModel(stage: number, index: number): string {
 export function slabScale(stage: number, index: number, width: number): readonly [x: number, y: number, z: number] | undefined {
   if (index === 0) return undefined;
   const pass = surfacePass(stage, index);
-  return [width / 100, pass ? f32(0.65) : 1.0, pass ? f32(0.45) : 1.0];
+  return [width / 100, pass ? f32(0.65) : 1.0, pass ? stage === TOMB_OF_SARGERAS_STAGE ? 2.0 : f32(0.45) : 1.0];
 }
 
 /** The effect models a stage's scene draws: decks, cannon, lava and scenery pieces. */

@@ -378,3 +378,19 @@ test("Naxxramas patrol tops and front bodies carry distinct green and blue hues 
     expect(blueTint[2]).toBeGreaterThan(1.5 * (blueTint[0] ?? 0));
   }
 });
+
+test("Tomb's carved platform face maps a complete brick cell rather than its bottom sliver [repro #276]", () => {
+  const deck = STAGE_DECK_PALETTES.find(entry => entry.stage === 7);
+  if (deck?.materials === undefined) throw new Error("Tomb has no stock materials");
+  const model = parseMDL(texturedDeckMdl(platformDeckFaces(), deck.materials.platform, deck.palette));
+  const body = model.Geosets[2];
+  if (body === undefined) throw new Error("Tomb has no platform body");
+  const heights = Array.from(body.Vertices).filter((_, index) => index % 3 === 2);
+  const uv = body.TVertices[0];
+  if (uv === undefined) throw new Error("Tomb has no platform texture coordinates");
+  for (const height of [Math.min(...heights), Math.max(...heights)]) {
+    const atHeight = heights.flatMap((z, index) => z === height && Math.abs(body.Normals[index * 3 + 2] ?? 0) < 0.5 ? [uv[index * 2 + 1] ?? Number.NaN] : []);
+    expect(Math.max(...atHeight) - Math.min(...atHeight)).toBeLessThan(0.00001);
+    expect(atHeight[0]).toBeCloseTo(height === Math.min(...heights) ? 0 : 0.25, 5);
+  }
+});
