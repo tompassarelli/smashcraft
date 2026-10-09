@@ -1,4 +1,14 @@
-import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { floorMod } from "wisp/src/sim/intMath";
+import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { sweep, sweepSeed } from "../../runtime/sweep";
+import { clearAttackBuffer } from "../input/attackBuffer";
+import { PARTICIPANT_SLOTS } from "../input/participants";
+import { produceComputerInput } from "../match/botPlay";
+import type { CpuTier } from "../match/cpuProfiles";
+import { captureFrame, createMatchFrameInput, executeMatchFrame } from "../match/frameInput";
+import { createPacingAndPresentation } from "../match/pacingAndPresentation";
+import { SELECTABLE_CHARACTERS } from "./heroes/registry";
+import { fighterAt, isActive, neutralControls } from "./roster";
 import { f32 } from "wisp/src/sim/f32";
 import { ATTACK_BUFFER_FRAMES, type AttackBuffer, attackBuffer, queueAttack } from "../input/attackBuffer";
 import { createFrameControls } from "../match/controls";
@@ -9,7 +19,7 @@ import { type Fighter, createFighter } from "./fighter";
 import { ROSTER_MANA } from "./mana";
 import { type Controls, copyControls, createRoster } from "./roster";
 import { controls } from "./testWorld";
-import { FIGHTER_ULTIMATES } from "./ultimates";
+import { FIGHTER_ULTIMATES, ULTIMATE_REACH } from "./ultimates";
 import type { AuthoredSpecial } from "./heroSpecials";
 
 /** How each ultimate is met in its recorded scenario (docs/design/ultimates.md). */
@@ -63,11 +73,13 @@ interface Bout {
   readonly step: (this: void, first?: Readonly<Controls>, second?: Readonly<Controls>) => void;
   readonly commands: readonly AttackBuffer[];
   readonly frame: () => number;
+  readonly game: ReturnType<typeof createMatchState>;
 }
 
-function bout(scenario: Readonly<Scenario>, facing: number, target: Character = Character.blademaster, x = scenario.x): Bout {
+function bout(scenario: Readonly<Scenario>, facing: number, target: Character = Character.blademaster, x = scenario.x, off = false): Bout {
   const game = createMatchState();
   game.phase = Phase.match;
+  game.ultimatesOff = off;
   const owner = createFighter(scenario.character, f32(-x * facing * 0.5), facing);
   const victim = createFighter(target, f32(x * facing * 0.5), -facing);
   owner.mana.points = ROSTER_MANA.max;
@@ -90,7 +102,7 @@ function bout(scenario: Readonly<Scenario>, facing: number, target: Character = 
     victim.motion.surface = undefined;
     victim.motion.z = f32(victim.motion.z + scenario.z);
   }
-  return { owner, target: victim, step, commands, frame: () => frame };
+  return { owner, target: victim, step, commands, frame: () => frame, game };
 }
 
 /** Holds an airborne target where it was put, as a jumper at its apex would be. */
@@ -169,4 +181,134 @@ test("each fighter's ultimate is answered by its defence on startup and leaves t
     if (b.target.status.damage !== 0.0 || firstThreat(move) < 16 || move.endFrame < firstThreat(move) + 16) failures.push(`${name(scenario.character)} ${facing}: ${b.target.status.damage}% threat ${firstThreat(move)} end ${move.endFrame}`);
   }
   assertEquals(failures.join("; "), "");
+});
+
+const EX = controls({ specialPressed: true, shield: true, shieldPressed: true, airDodgePressed: true, groundDodgePressed: true });
+
+test("with Ultimates off no fighter performs an ultimate from Attack + Special, EX still spends one segment and a landed hit still fills the bar [spec #382]", () => {
+  const failures: string[] = [];
+  for (const scenario of ULTIMATE_SCENARIOS) {
+    const held = bout(scenario, 1, Character.blademaster, scenario.x, true);
+    for (let tick = 0; tick < 90; tick++) {
+      held.step(ULTIMATE);
+      if (held.owner.special.action === SpecialAction.heroUltimate) failures.push(`${name(scenario.character)} performed it`);
+    }
+    if (held.owner.mana.points !== ROSTER_MANA.max) failures.push(`${name(scenario.character)} spent ${held.owner.mana.points}`);
+    const ex = bout(scenario, 1, Character.blademaster, 600.0, true);
+    ex.step(EX);
+    if (ex.owner.mana.points !== ROSTER_MANA.max - ROSTER_MANA.exCost) failures.push(`${name(scenario.character)} EX left ${ex.owner.mana.points}`);
+  }
+  assertEquals(failures.join("; "), "");
+  const filling = bout({ character: Character.blademaster, x: 60.0, defence: "shield" }, 1, Character.blademaster, 60.0, true);
+  filling.owner.mana.points = 0;
+  for (let tick = 0; tick < 200; tick++) {
+    if (floorMod(tick, 24) === 0) queueAttack(filling.commands[0] ?? attackBuffer(ATTACK_BUFFER_FRAMES), { style: AttackStyle.jab, facing: 0, frame: filling.frame() + 1, mayCharge: false });
+    filling.step();
+  }
+  assertGreaterThan(filling.target.status.damage, 0.0);
+  assertGreaterThan(filling.owner.mana.points, 0);
+});
+
+interface CpuUltimates {
+  starts: number;
+  landed: number;
+  outOfReach: number;
+  shielded: number;
+  users: number;
+}
+
+const WATCH_FRAMES = 150;
+const REFILL_FRAMES = 120;
+
+function cpuUltimates(characters: readonly Character[], tier: CpuTier, seed: number, frames: number, off: boolean): CpuUltimates {
+  const total: CpuUltimates = { starts: 0, landed: 0, outOfReach: 0, shielded: 0, users: 0 };
+  for (const [index, character] of characters.entries()) {
+    const foe = SELECTABLE_CHARACTERS[floorMod(SELECTABLE_CHARACTERS.indexOf(character) + 7, SELECTABLE_CHARACTERS.length)] ?? Character.blademaster;
+    const world = createRoster(3, [createFighter(character, -200.0, 1), createFighter(foe, 200.0, -1)]);
+    const match = createMatchState();
+    match.phase = Phase.match;
+    match.ultimatesOff = off;
+    for (const slot of [0, 1] as const) {
+      match.cpuOpponents[slot] = "wren";
+      match.cpuResolvedOpponents[slot] = "wren";
+      match.cpuTiers[slot] = tier;
+    }
+    match.stageChoice = 0;
+    match.timeLimitMinutes = 0;
+    match.matchSeed = sweepSeed(seed * 31 + index);
+    const produced = createFrameControls();
+    const executed = createFrameControls();
+    const runtime = createPacingAndPresentation();
+    const row = createMatchFrameInput();
+    const me = fighterAt(world, 0);
+    const other = fighterAt(world, 1);
+    me.mana.points = ROSTER_MANA.max;
+    const reach = ULTIMATE_REACH[character];
+    let was = false;
+    let watch = -1;
+    let cooldown = 0;
+    let base = 0.0;
+    let stocks = 0;
+    let used = 0;
+    for (let n = 0; n < frames; n++) {
+      const frame = runtime.simulationFrame + 1;
+      if (cooldown > 0) cooldown--;
+      else if (watch < 0 && !was && me.mana.points < ROSTER_MANA.max) me.mana.points = ROSTER_MANA.max;
+      for (const slot of PARTICIPANT_SLOTS) {
+        if (!isActive(world, slot)) continue;
+        copyControls(produced.inputs[slot], neutralControls());
+        clearAttackBuffer(produced.commands[slot]);
+        produceComputerInput(match, world, runtime, slot, frame, produced.inputs[slot], produced.commands[slot]);
+      }
+      const gap = Math.abs(f32(other.motion.x - me.motion.x));
+      const shield = other.shield.raised;
+      const damage = other.status.damage;
+      const lives = other.status.stocks;
+      captureFrame(row, frame, world.mask, produced, runtime);
+      executeMatchFrame(row, match, world, executed, runtime, frame);
+      const now = me.special.action === SpecialAction.heroUltimate;
+      if (now && !was) {
+        total.starts++;
+        used++;
+        if (shield) total.shielded++;
+        if (reach === undefined || gap < reach.near || gap > reach.far) total.outOfReach++;
+        watch = WATCH_FRAMES;
+        base = damage;
+        stocks = lives;
+      }
+      if (watch >= 0) {
+        if (other.status.damage > base || other.status.stocks < stocks) {
+          total.landed++;
+          watch = -1;
+          cooldown = REFILL_FRAMES;
+        } else if (--watch < 0) cooldown = REFILL_FRAMES;
+      }
+      was = now;
+    }
+    if (used > 0) total.users++;
+  }
+  return total;
+}
+
+test("a Wren Expert Rifleman computer spends a full bar on an ultimate that lands and never does with Ultimates off [spec #382]", () => {
+  const on = cpuUltimates([Character.rifleman], "expert", 0, 1200, false);
+  assertGreaterThan(on.starts, 0);
+  assertGreaterThan(on.landed, 0);
+  const off = cpuUltimates([Character.rifleman], "expert", 0, 1200, true);
+  assertEquals(off.starts, 0);
+});
+
+const SWEEP_FRAMES = 900;
+
+for (const tier of ["beginner", "intermediate", "advanced", "expert"] as const) sweep(`Wren ${tier} computers spend a full bar on an ultimate in 23-25 of 26 fighters, 66-81 times per 26 matches, land at least 60 percent (71-85 seen) and almost never into a raised shield on three seed offsets [spec #382]`, () => {
+  const r = cpuUltimates(SELECTABLE_CHARACTERS, tier, 0, SWEEP_FRAMES, false);
+  assertGreaterThan(r.starts, 55);
+  assertGreaterThan(r.users, 20);
+  assertGreaterThan(r.landed * 10, r.starts * 6);
+  assertLessThan(r.shielded * 20, r.starts);
+});
+
+sweep("Wren Rookie computers never press an ultimate and no computer does with Ultimates off [spec #382]", () => {
+  assertEquals(cpuUltimates(SELECTABLE_CHARACTERS, "rookie", 0, SWEEP_FRAMES, false).starts, 0);
+  assertEquals(cpuUltimates(SELECTABLE_CHARACTERS, "expert", 0, SWEEP_FRAMES, true).starts, 0);
 });

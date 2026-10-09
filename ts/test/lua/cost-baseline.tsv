@@ -225,6 +225,7 @@ src/game/sim/surfaces.tests.ts	26	10804000	5564
 src/game/sim/tech.tests.ts	7	1159000	1510
 src/game/sim/tumbleLandings.tests.ts	1	74873000	99036
 src/game/sim/turnaroundSpecials.tests.ts	3	44301000	44148
+src/game/sim/ultimates.tests.ts	5	455893000	284075
 src/game/sim/water.tests.ts	13	65207000	14216
 src/game/ui/cpuSettings.tests.ts	1	8000	16
 src/game/ui/cpuSettingsLayout.tests.ts	2	1000	6

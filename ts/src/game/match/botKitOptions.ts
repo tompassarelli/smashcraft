@@ -334,7 +334,9 @@ export function pressUltimate(f: Readonly<Fighter>, target: Readonly<Fighter>, s
   if (move.groundOnly === true && !f.motion.grounded) return false;
   const dx = f32(target.motion.x - f.motion.x);
   const gap = Math.abs(dx);
-  if (gap < reach.near || gap > reach.far || Math.abs(f32(target.motion.z - f.motion.z)) > 80.0 || target.status.out) return false;
+  const rise = f32(target.motion.z - f.motion.z);
+  const aloft = f.character === Character.lich ? !target.motion.grounded && rise >= 90.0 && rise <= 220.0 : Math.abs(rise) <= 80.0;
+  if (gap < reach.near || gap > reach.far || !aloft || target.shield.raised || target.status.out) return false;
   if (!takes(skill, floorDiv(frame, 20), f.character * 7 + 40)) return false;
   const toward = towardOf(f, target.motion.x);
   input.specialPressed = true;

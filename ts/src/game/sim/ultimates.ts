@@ -380,7 +380,7 @@ export const ULTIMATE_REACH: { readonly [character: number]: { readonly near: nu
   [Character.blademaster]: { near: 0.0, far: 120.0 },
   [Character.mountainKing]: { near: 0.0, far: 170.0 },
   [Character.warden]: { near: 120.0, far: 500.0 },
-  [Character.lich]: { near: 0.0, far: 0.0 },
+  [Character.lich]: { near: 0.0, far: 600.0 },
   [Character.forsakenPaladin]: { near: 150.0, far: 300.0 },
   [Character.dreadlord]: { near: 190.0, far: 330.0 },
   [Character.shadowHunter]: { near: 0.0, far: 170.0 },

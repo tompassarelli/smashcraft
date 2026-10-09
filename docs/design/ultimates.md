@@ -101,7 +101,7 @@ Frames count from the input frame (frame 1 is the first frame after it).
   ultimates with rollbacks in Bun and both Lua32 modes.
 - Computer fighters press it at a full bar when the target is inside the
   move's authored reach (ULTIMATE_REACH), as often as their kit options;
-  Rookie never does, and neither Lich (a high sweep) nor Cairne (a counter)
-  aims it yet.
+  Rookie never does, Lich presses it at a target in the air within 600, a
+  raised shield stops the press, and Cairne (a counter) does not aim it yet.
 - "Ultimates off" is MatchState.ultimatesOff (fighter-selection rules,
   `-dev ultimates on|off`); it clears the input before specials start.
