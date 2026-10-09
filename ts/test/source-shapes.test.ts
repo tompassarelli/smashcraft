@@ -193,3 +193,44 @@ test("production TypeScript has no type escapes (#35, #38) [spec #38]", () => {
 test("map code has no decimal literal the map compiler refuses as non-binary32 (TS9300) [repro #267]", () => {
   expect(nonBinary32Literals(mapSources.filter((path) => !/\.(test|tests)\.ts$|\.d\.ts$/.test(path)))).toEqual([]);
 });
+
+const exportedStatement = (node: ts.Node) => ts.canHaveModifiers(node) && (ts.getModifiers(node) ?? []).some((m) => m.kind === ts.SyntaxKind.ExportKeyword);
+
+function valueNames(source: ts.SourceFile): Set<string> {
+  const names = new Set<string>();
+  const visit = (node: ts.Node): void => {
+    if (ts.isTypeNode(node) || ts.isImportDeclaration(node) || ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node)) return;
+    if (ts.isIdentifier(node)) names.add(node.text);
+    ts.forEachChild(node, visit);
+  };
+  visit(source);
+  return names;
+}
+
+function topLevelLocals(source: ts.SourceFile): number {
+  const used = valueNames(source);
+  let count = 1;
+  for (const statement of source.statements) {
+    if (ts.isImportDeclaration(statement)) {
+      const clause = statement.importClause;
+      if (clause === undefined || clause.isTypeOnly) continue;
+      const bindings = clause.namedBindings;
+      if (bindings !== undefined && ts.isNamespaceImport(bindings)) count++;
+      else {
+        const named = bindings === undefined ? 0 : bindings.elements.filter((element) => !element.isTypeOnly && used.has(element.name.text)).length;
+        const defaults = clause.name === undefined ? 0 : 1;
+        if (named + defaults > 0) count += 1 + named + defaults;
+      }
+    } else if ((ts.isFunctionDeclaration(statement) || ts.isClassDeclaration(statement) || ts.isEnumDeclaration(statement)) && !exportedStatement(statement)) count++;
+    else if (ts.isVariableStatement(statement) && !exportedStatement(statement)) count += statement.declarationList.declarations.length;
+  }
+  return count;
+}
+
+test("each map module keeps its top-level locals under Lua 5.3's 200-per-function limit, with 10 spare for lualib helpers [spec #399]", () => {
+  const over = mapSources
+    .filter((path) => !/\.(test|tests)\.ts$|\.d\.ts$/.test(path))
+    .map((path) => ({ path, locals: topLevelLocals(parse(path).source) }))
+    .filter(({ locals }) => locals > 190);
+  expect(over).toEqual([]);
+});

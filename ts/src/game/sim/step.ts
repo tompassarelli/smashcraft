@@ -81,7 +81,7 @@ import {
 import { advanceShieldBreak, beginShieldBreak } from "./shieldBreak";
 import { advanceShieldTilt } from "./shieldTilt";
 import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence, discardPendingSmashDirectionalInfluence, renewSmashDirectionalInfluenceString } from "./smashDirectionalInfluence";
-import { floorFriction, floorTraction, groundLineCosine, surfaceCount, surfaceLeft, surfaceLine, surfaceMoves, surfacePass, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ, surfaceZAt } from "./stage";
+import * as stageSurfaces from "./stage";
 
 import { endCannonPass, inStageCannon, windPush } from "./stageHazards";
 // One local for the sea: this module is near Lua's 200-local limit.
@@ -309,8 +309,8 @@ function moveHorizontally(f: Fighter, stage: number, matchFrame: number, dashEnt
   if (isGroundDodging(f) && dodge.groundDirection !== 0) {
     const proposedX = f32(motion.x + totalVelocityX(f));
     const deck = motion.surface ?? 0;
-    const left = surfaceLeft(stage, deck, matchFrame);
-    const right = surfaceRight(stage, deck, matchFrame);
+    const left = stageSurfaces.surfaceLeft(stage, deck, matchFrame);
+    const right = stageSurfaces.surfaceRight(stage, deck, matchFrame);
     motion.x = max(left, min(right, proposedX));
     if ((dodge.groundDirection < 0 && motion.x === left) || (dodge.groundDirection > 0 && motion.x === right)) {
       motion.vx = 0.0;
@@ -322,8 +322,8 @@ function moveHorizontally(f: Fighter, stage: number, matchFrame: number, dashEnt
   if (motion.grounded) {
     const ground = addMeleeWorldValues(f32(motion.vx + dashEntryDisplacementAdjustment), shield.pushbackX);
 
-    const line = motion.surface === undefined ? undefined : surfaceLine(stage, motion.surface);
-    moveMeleeX(f, line === undefined ? ground : f32(ground * groundLineCosine(line, motion.x)));
+    const line = motion.surface === undefined ? undefined : stageSurfaces.surfaceLine(stage, motion.surface);
+    moveMeleeX(f, line === undefined ? ground : f32(ground * stageSurfaces.groundLineCosine(line, motion.x)));
   } else {
     moveMeleeX(f, motion.vx);
   }
@@ -345,8 +345,8 @@ function landingDeck(f: Fighter, stage: number, matchFrame: number, oldX: number
   let rise: number | undefined;
   let landing: number | undefined;
   let landingZ = 0.0;
-  for (let i = 0; i < surfaceCount(stage); i++) {
-    const line = surfaceLine(stage, i);
+  for (let i = 0; i < stageSurfaces.surfaceCount(stage); i++) {
+    const line = stageSurfaces.surfaceLine(stage, i);
     if (line !== undefined) {
       const lineZ = slopedLandingZ(line, i === carried, oldX, oldZ, motion.x, motion.z);
       if (lineZ === undefined || (landing !== undefined && lineZ <= landingZ)) continue;
@@ -356,17 +356,17 @@ function landingDeck(f: Fighter, stage: number, matchFrame: number, oldX: number
       landingZ = lineZ;
       continue;
     }
-    const platformZ = surfaceZ(stage, i, matchFrame);
-    const follows = i !== carried && surfaceMoves(stage, i);
-    const fromZ = follows ? f32(oldZ + surfaceShiftZ(stage, i, matchFrame)) : oldZ;
+    const platformZ = stageSurfaces.surfaceZ(stage, i, matchFrame);
+    const follows = i !== carried && stageSurfaces.surfaceMoves(stage, i);
+    const fromZ = follows ? f32(oldZ + stageSurfaces.surfaceShiftZ(stage, i, matchFrame)) : oldZ;
     if (!(fromZ >= platformZ && motion.z <= platformZ)) continue;
     if (rise === undefined) rise = totalVelocityZ(f);
-    if ((follows ? f32(rise - surfaceShiftZ(stage, i, matchFrame)) : rise) > 0) continue;
-    const fromX = follows ? f32(oldX + surfaceShiftX(stage, i, matchFrame)) : oldX;
+    if ((follows ? f32(rise - stageSurfaces.surfaceShiftZ(stage, i, matchFrame)) : rise) > 0) continue;
+    const fromX = follows ? f32(oldX + stageSurfaces.surfaceShiftX(stage, i, matchFrame)) : oldX;
     const fraction = fromZ === motion.z ? 1.0 : f32(f32(fromZ - platformZ) / f32(fromZ - motion.z));
     const crossingX = f32(fromX + f32(f32(motion.x - fromX) * fraction));
-    const left = surfaceLeft(stage, i, matchFrame);
-    const right = surfaceRight(stage, i, matchFrame);
+    const left = stageSurfaces.surfaceLeft(stage, i, matchFrame);
+    const right = stageSurfaces.surfaceRight(stage, i, matchFrame);
     if (crossingX >= left && crossingX <= right && motion.x >= left && motion.x <= right) {
       if (landing === undefined || platformZ > landingZ) {
         landing = i;
@@ -569,7 +569,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     if (motion.grounded) {
       const previousGroundVelocity = motion.vx;
 
-      if (advanceGroundMovement(f, direction, input.walking, horizontalStick, floorFriction(stage, motion))) dashEntryDisplacementAdjustment = f32(previousGroundVelocity - motion.vx);
+      if (advanceGroundMovement(f, direction, input.walking, horizontalStick, stageSurfaces.floorFriction(stage, motion))) dashEntryDisplacementAdjustment = f32(previousGroundVelocity - motion.vx);
     } else if (direction !== 0 && !groundTakeoff) {
 
       const driftStick = input.driftStickX ?? direction;
@@ -586,7 +586,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   } else if (isGroundDodging(f)) {
     motion.vx = 0.0;
   } else if (!groundTakeoff && !authoredMotion && (!canSteer || direction === 0) && launch.hitstun <= 0 && (!dodgeActive || motion.grounded)) {
-    const drag = motion.grounded ? floorTraction(physics.traction, floorFriction(stage, motion)) : physics.airFriction;
+    const drag = motion.grounded ? stageSurfaces.floorTraction(physics.traction, stageSurfaces.floorFriction(stage, motion)) : physics.airFriction;
     motion.vx = motion.vx > 0 ? max(0.0, f32(motion.vx - drag)) : min(0.0, f32(motion.vx + drag));
   }
 
@@ -596,7 +596,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     return;
   }
   if (input.down && !input.walking && motion.fastFallInputAge < PLATFORM_DROP_INPUT_WINDOW && !input.attackRequested && down.state === DownState.none
-    && motion.grounded && motion.surface !== undefined && surfacePass(stage, motion.surface) && canAttack(f)) {
+    && motion.grounded && motion.surface !== undefined && stageSurfaces.surfacePass(stage, motion.surface) && canAttack(f)) {
     platforms.beginPlatformDescent(f, stage, matchFrame, motion.surface);
     checkBlastZone(world, slot, stage);
     return;
@@ -604,8 +604,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   const oldX = motion.x;
   const oldZ = motion.z;
   dashEntryDisplacementAdjustment = f32(dashEntryDisplacementAdjustment + attackStartupTravel(world, slot));
-  decayKnockback(f, floorFriction(stage, motion));
-  decayShieldMotion(f, floorFriction(stage, motion));
+  decayKnockback(f, stageSurfaces.floorFriction(stage, motion));
+  decayShieldMotion(f, stageSurfaces.floorFriction(stage, motion));
   if (dodgeActive && !motion.grounded) {
     motion.vx = f32(motion.vx * AIR_DODGE_DECAY);
     motion.vz = f32(motion.vz * AIR_DODGE_DECAY);
@@ -616,7 +616,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   moveHorizontally(f, stage, matchFrame, dashEntryDisplacementAdjustment);
   if (isGroundDodging(f) || (motion.grounded && jump.squat > 0)) {
     motion.vz = 0.0;
-    motion.z = surfaceZAt(stage, motion.surface ?? 0, matchFrame, motion.x);
+    motion.z = stageSurfaces.surfaceZAt(stage, motion.surface ?? 0, matchFrame, motion.x);
   } else if (wet && !waterJumped && launch.hitstun <= 0 && !dodgeActive && !authoredMotion && drill?.speedZ === undefined) {
     buoyant = true;
     sea.applyBuoyancy(f);
