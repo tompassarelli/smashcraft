@@ -10,8 +10,10 @@
 import { lineTokens, parseRecord, recordTokens, tokenLines } from "wisp/src/runtime/recordText";
 import { type AttackBuffer, clearAttackBuffer, copyAttackBuffer } from "../src/game/input/attackBuffer";
 import { createBotMemory } from "../src/game/match/botPerception";
+import { scheduleMatchItems } from "../src/game/match/centreItem";
 import { type FrameControls, createFrameControls } from "../src/game/match/controls";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "../src/game/match/frameInput";
+import { scheduleMeterDrops } from "../src/game/match/meterDrops";
 import { createPacingAndPresentation } from "../src/game/match/pacingAndPresentation";
 import { produceComputerInput } from "../src/game/match/botPlay";
 import { Phase, createMatchState, setParticipants } from "../src/game/match/rules";
@@ -56,6 +58,8 @@ function record(seed: number): string[] | undefined {
     game.cpuResolvedOpponents[slot] = "wren";
     game.cpuTiers[slot] = "expert";
   }
+  scheduleMatchItems(game);
+  scheduleMeterDrops(game);
   const world = createRoster(3, [createFighter(SETUP.attacker, matchSpawnX(0), 1), createFighter(SETUP.defender, matchSpawnX(1), -1)]);
   initializeMatchFighters(game, world);
   const produced = createFrameControls();
