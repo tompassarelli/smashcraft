@@ -28,6 +28,7 @@ import { advanceWater, collectHydraContacts } from "../sim/water";
 import { surfaceCount, surfaceLine, surfaceZAt } from "../sim/stage";
 import { setWorldMotionValue } from "../sim/motion";
 import { advanceFreezeTraps } from "../sim/summons";
+import { steppedFrames } from "./frameCount";
 import { advanceMatchCamera } from "../sim/matchCamera";
 import { nextJab } from "../sim/moves";
 import { advanceOffscreenDamage } from "../sim/offscreenDamage";
@@ -127,6 +128,7 @@ export interface StepScope {
 
 export function stepMatch(game: MatchState, world: Roster, controls: FrameControls, frame: number, scope?: Readonly<StepScope>): void {
   if (game.phase !== Phase.match) return;
+  steppedFrames.count++;
   game.matchFrame++;
   const stage = game.stageChoice;
   const stageFrame = stageClock(game);

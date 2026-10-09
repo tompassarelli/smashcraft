@@ -1,15 +1,16 @@
 // The suite's cost budget (ts/AGENTS.md). The Lua32 runner (scripts/lua-tests.ts)
 // gates each test file on deterministic counts: Lua VM instructions and
 // kilobytes allocated per test, against committed rows in
-// test/lua/cost-baseline.tsv (#394). CPU seconds vary 0.5-1.9x between CI
-// machines, so they gate nothing here; `bun run test` (scripts/test.ts) only
-// reports them, and wall-clock budgets live in the exclusive-lease perf
-// measurements (#168).
+// test/lua/cost-baseline.tsv (#394). Bun tests are gated on simulated frames
+// per test (test/testCost.ts). CPU seconds vary 0.5-1.9x between CI machines,
+// so they gate nothing here; `bun run test` (scripts/test.ts) only reports
+// them, and wall-clock budgets live in the exclusive-lease perf measurements
+// (#168).
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-/** Bun: CPU seconds one test may use (AGENTS.md). Never raise it to fit a test. */
-export const BUN_TEST_CEILING_S = 4;
+/** Bun: frames stepMatch may simulate in one test, about 4 s on a farm runner (AGENTS.md). Never raise it to fit a test. */
+export const BUN_TEST_CEILING_FRAMES = 3000;
 /** Lua32: CPU seconds one test may use on the reference runner (AGENTS.md). Never raise it to fit a test. */
 export const LUA_TEST_CEILING_S = 6;
 /** The reference CI runner's stock Lua32 speed: the median over the heaviest files of their instructions per baseline CPU second (#394). */
@@ -26,13 +27,15 @@ export interface UnitCost {
   readonly cpu: number;
   /** The CPU seconds of the file's heaviest test, when measured. */
   readonly max?: number;
+  /** The simulated frames of the file's heaviest test, when measured. */
+  readonly maxFrames?: number;
 }
 
 export type Costs = Map<string, UnitCost>;
 
-export function addCost(costs: Costs, unit: string, tests: number, cpu: number, max = 0): void {
+export function addCost(costs: Costs, unit: string, tests: number, cpu: number, max = 0, maxFrames = 0): void {
   const before = costs.get(unit) ?? { tests: 0, cpu: 0 };
-  costs.set(unit, { tests: before.tests + tests, cpu: before.cpu + cpu, max: Math.max(before.max ?? 0, max) });
+  costs.set(unit, { tests: before.tests + tests, cpu: before.cpu + cpu, max: Math.max(before.max ?? 0, max), maxFrames: Math.max(before.maxFrames ?? 0, maxFrames) });
 }
 
 /** Bun CPU estimates per file (test/cost-baseline.tsv), used only to order and select processes. */
@@ -58,7 +61,9 @@ export function cpuReport(label: string, measured: Costs, totalCpu?: number): re
   const heaviest = [...measured].filter(([, cost]) => (cost.max ?? 0) > 0).sort(([, a], [, b]) => (b.max ?? 0) - (a.max ?? 0)).slice(0, 5)
     .map(([unit, cost]) => `${unit} ${(cost.max ?? 0).toFixed(2)} s`).join(", ");
   const total = totalCpu === undefined ? "" : `, ${totalCpu.toFixed(1)} s in all with process start-up`;
-  return [`${label} heaviest tests (CPU): ${heaviest}`, `${label} CPU: ${cpu.toFixed(1)} s for ${tests} tests${total} (reported, not gated)`];
+  const framed = [...measured].filter(([, cost]) => (cost.maxFrames ?? 0) > 0).sort(([, a], [, b]) => (b.maxFrames ?? 0) - (a.maxFrames ?? 0)).slice(0, 5)
+    .map(([unit, cost]) => `${unit} ${cost.maxFrames ?? 0}`).join(", ");
+  return [`${label} heaviest tests (CPU): ${heaviest}`, `${label} heaviest tests (frames, ceiling ${BUN_TEST_CEILING_FRAMES}): ${framed}`, `${label} CPU: ${cpu.toFixed(1)} s for ${tests} tests${total} (reported, not gated)`];
 }
 
 export interface LuaCost {

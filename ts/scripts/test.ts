@@ -7,14 +7,16 @@ import { dirname, join, resolve } from "node:path";
 import * as BunRuntime from "@effect/platform-bun/BunRuntime";
 import * as BunServices from "@effect/platform-bun/BunServices";
 import { Cause, Effect, Exit, Schema } from "effect";
-import { BUSY_PRESSURE, INCONCLUSIVE_EXIT, TEST_TIMEOUT_MS, timingTestFiles, timingTests, withPressure } from "wisp/scripts/wisp/testRunner";
+import { BUSY_PRESSURE, INCONCLUSIVE_EXIT, timingTestFiles, timingTests, withPressure } from "wisp/scripts/wisp/testRunner";
 import { TEST_PHASE_ENV } from "wisp/scripts/wisp/timingTest";
 import { ISOLATED_TEST_GROUPS, testWorkerEnvironment } from "./testWorkers";
 import { admit } from "./heavyCapacity";
 import { runMeasuredProcess } from "./hostProcess";
-import { BUN_TEST_CEILING_S, addCost, cpuReport, readBaseline, type Costs } from "./testCost";
+import { BUN_TEST_CEILING_FRAMES, addCost, cpuReport, readBaseline, type Costs } from "./testCost";
 import { refuseUntagged } from "./oracleTags";
 
+/** The hang timeout per test; cost is bounded by BUN_TEST_CEILING_FRAMES. */
+const TEST_TIMEOUT_MS = 60_000;
 const project = resolve(import.meta.dir, "..");
 process.chdir(project);
 const files = [
@@ -103,7 +105,7 @@ const CostRow = Schema.Struct({
   tests: Schema.optionalKey(Schema.Int),
   cpu: Schema.optionalKey(Schema.Finite),
   max: Schema.optionalKey(Schema.Finite),
-  inconclusive: Schema.optionalKey(Schema.String),
+  maxFrames: Schema.optionalKey(Schema.Int),
 });
 const decodeCostRow = Schema.decodeUnknownEffect(Schema.fromJsonString(CostRow));
 const percent = (value: number | undefined) => (value === undefined ? "unknown" : `${Math.round(value)}%`);
@@ -113,7 +115,7 @@ const runGroup = (group: Group) => Effect.suspend(() => {
   const junit = junitDirectory === undefined ? [] : ["--reporter=junit", `--reporter-outfile=${resolve(junitDirectory, `${groups.indexOf(group)}.xml`)}`];
   // Bun matches the pattern against the name with its describe blocks.
   const sweepFilter = sweeps ? ["-t", "\\(sweep\\) "] : [];
-  const cost = sweeps ? {} : { TEST_COST_OUT: costFile(group), TEST_COST_CEILING_S: String(BUN_TEST_CEILING_S), TEST_COST_BUSY: String(BUSY_PRESSURE) };
+  const cost = sweeps ? {} : { TEST_COST_OUT: costFile(group), TEST_COST_CEILING_FRAMES: String(BUN_TEST_CEILING_FRAMES) };
   return runMeasuredProcess(
     [process.execPath, "test", "--timeout", String(TEST_TIMEOUT_MS), ...junit, ...sweepFilter, ...group.files.map((file) => resolve(project, file))],
     project,
@@ -139,17 +141,13 @@ const program = Effect.gen(function*() {
   let inconclusive = verdicts.includes("inconclusive");
   if (!sweeps) {
     const measured: Costs = new Map();
-    const notes: string[] = [];
     for (const group of groups) {
       if (!existsSync(costFile(group))) continue;
       for (const line of readFileSync(costFile(group), "utf8").split("\n").filter((text) => text !== "")) {
         const row = yield* decodeCostRow(line);
-        if (row.inconclusive !== undefined) notes.push(row.inconclusive);
-        else if (row.unit !== undefined) addCost(measured, row.unit, row.tests ?? 0, row.cpu ?? 0, row.max ?? 0);
+        if (row.unit !== undefined) addCost(measured, row.unit, row.tests ?? 0, row.cpu ?? 0, row.max ?? 0, row.maxFrames ?? 0);
       }
     }
-    for (const note of notes) console.log(note);
-    inconclusive ||= notes.length > 0;
     for (const line of cpuReport("suite", measured, results.reduce((sum, result) => sum + result.cpu, 0))) console.log(line);
   }
   console.log(`CPU pressure during this run: average ${percent(pressure.average)}, peak some avg10 ${percent(pressure.peak)} (budget and timing verdicts count as inconclusive above ${BUSY_PRESSURE}%)`);

@@ -32,12 +32,14 @@
   its row: commit it with the tests. `TEST_COST_UPDATE=1` rewrites every
   measured row, after a cut. The farm's merge job judges every shard's rows.
   Natives are counted by the frame-cost gate (`bun wisp perf compare`), not
-  here. `bun run test` reports each run's CPU
-  and five heaviest tests without gating them, and fails only a test over
-  the 4 s Bun ceiling; ts/test/cost-baseline.tsv holds CPU estimates that
-  order processes. CPU and wall-clock budgets
-  are judged only in the exclusive-lease perf measurements (#168). Tests get
-  Wisp's two-minute timeout, which only catches hangs; a test that asserts
+  here. `bun run test` counts the frames stepMatch simulates in each test
+  (smashcraft:ts/test/testCost.ts) and fails a test over the 3,000-frame
+  Bun ceiling, about 4 s on a farm runner; work that steps no frames is
+  bounded only by the hang timeout. It reports each run's CPU and five
+  heaviest tests by CPU and by frames without gating CPU;
+  ts/test/cost-baseline.tsv holds CPU estimates that order processes. CPU
+  and wall-clock budgets are judged only in the exclusive-lease perf
+  measurements (#168). Tests get a 60 s timeout, which only catches hangs; a test that asserts
   speed is a `timingTest`, which the runner runs alone after the suite
   (wisp:docs/testing.md).
 
