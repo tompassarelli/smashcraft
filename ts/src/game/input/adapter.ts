@@ -1,5 +1,5 @@
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle } from "../sim/codes";
+import { AttackStyle, LedgeState } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import type { Controls } from "../sim/roster";
 import { analogShieldActive, analogShieldStrength } from "../sim/shield";
@@ -71,10 +71,12 @@ export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, 
   destination.shortHopPressed = has(pressed, Action.shortHop);
   destination.jumpPressed = has(pressed, Action.jump) || destination.shortHopPressed;
   destination.jumpHeld = has(held, Action.jump);
-  destination.airDodgePressed = destination.shieldPressed;
-  destination.dodgeX = destination.airDodgePressed ? row.dodgeX : 0;
-  destination.dodgeZ = destination.airDodgePressed ? row.dodgeZ : 0;
-  destination.techPressed = destination.airDodgePressed;
+  destination.techPressed = destination.shieldPressed;
+  const airborne = (fighter.jump.squat > 0 || !fighter.motion.grounded) && fighter.ledge.state === LedgeState.none;
+  const tiltDodge = !destination.shieldPressed && airborne && destination.shieldTriggerActive && has(pressed, Action.walk);
+  destination.airDodgePressed = destination.shieldPressed || tiltDodge;
+  destination.dodgeX = destination.shieldPressed ? row.dodgeX : tiltDodge ? destination.direction : 0;
+  destination.dodgeZ = destination.shieldPressed ? row.dodgeZ : tiltDodge ? destination.verticalDirection : 0;
   destination.mashPressed = pressed !== 0;
   destination.attackPressed = has(pressed, Action.attack);
   destination.grabMashPressed = (pressed & GRAB_MASH_ACTIONS) !== 0;
