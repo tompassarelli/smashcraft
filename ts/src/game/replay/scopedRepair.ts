@@ -19,6 +19,7 @@ import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { authoredTuning } from "../sim/tuning";
 import type { FighterMoves } from "../sim/heroMoves";
 import { felLungeStep } from "../sim/moves";
+import { EYE_BLAST_FORM, EYE_BLAST_REACH } from "../sim/specials";
 
 interface AuthoredTravel {
   readonly moves: FighterMoves;
@@ -67,9 +68,9 @@ function authoredStartupStep(fighter: Readonly<Fighter>): number {
 
 /**
  * Farther apart than this on either axis, a fighter's strikes, specials,
- * grabs and summons can't reach another this frame. A special that moves its
- * caster next to another fighter is caught by the same test on the states
- * after the frame.
+ * grabs and summons can't reach another this frame, except Eye Blast's beam
+ * (`strikeReach`). A special that moves its caster next to another fighter is
+ * caught by the same test on the states after the frame.
  */
 export const SCOPE_REACH = 300.0;
 /** Two fighters doing nothing that strikes still push each other within this. */
@@ -82,6 +83,12 @@ const apart = (ax: number, az: number, bx: number, bz: number, distance: number)
 function reaching(f: Readonly<Fighter>): boolean {
   return f.attack.style !== undefined || f.special.action !== SpecialAction.none || f.grab.owner !== undefined || f.grab.target !== undefined || inGrabContext(f)
     || f.ledge.state !== LedgeState.none || f.cannon.held !== undefined;
+}
+
+/** How far `f` may act on another fighter this frame: Eye Blast's whole beam, any other reaching action, or a body push. */
+function strikeReach(f: Readonly<Fighter>): number {
+  if (f.special.action === SpecialAction.demonHunterManaBurn && f.special.form === EYE_BLAST_FORM) return EYE_BLAST_REACH;
+  return reaching(f) ? SCOPE_REACH : SCOPE_BODY;
 }
 
 /** Every live projectile, summon and placed object of `owner` is beyond reach of `other`'s body. */
@@ -98,8 +105,7 @@ function objectsApart(owner: Readonly<Fighter>, other: Readonly<Fighter>): boole
 /** Neither fighter can touch the other this frame: far apart, or close with neither doing anything that reaches. */
 export function fightersApart(a: Readonly<Fighter>, b: Readonly<Fighter>): boolean {
   if (!objectsApart(a, b) || !objectsApart(b, a)) return false;
-  const reach = reaching(a) || reaching(b) ? SCOPE_REACH : SCOPE_BODY;
-  return apart(a.motion.x, a.motion.z, b.motion.x, b.motion.z, reach);
+  return apart(a.motion.x, a.motion.z, b.motion.x, b.motion.z, Math.max(strikeReach(a), strikeReach(b)));
 }
 
 /** `slot` is apart from every other active fighter of `others`. */
@@ -118,8 +124,7 @@ export function authoredMotionApartFromOthers(slot: number, fighter: Readonly<Fi
   for (const other of PARTICIPANT_SLOTS) {
     if (other === slot || !isActive(others, other)) continue;
     const target = fighterAt(others, other);
-    const reach = reaching(fighter) || reaching(target) ? SCOPE_REACH : SCOPE_BODY;
-    if (!apart(x, fighter.motion.z, target.motion.x, target.motion.z, reach)) return false;
+    if (!apart(x, fighter.motion.z, target.motion.x, target.motion.z, Math.max(strikeReach(fighter), strikeReach(target)))) return false;
   }
   return true;
 }

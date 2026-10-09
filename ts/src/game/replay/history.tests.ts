@@ -460,14 +460,17 @@ test("#206 a client that predicted past the pause frame returns to the state bef
 /**
  * Four humans; slot 0's stick turns every 10 frames and its rows arrive 4
  * frames late, so each turn is mispredicted and repaired. Slot 1 jabs every
- * 12 frames from `jabberX`. Returns the scoped steps the repairs took and
+ * 12 frames from `jabberX`, or, as Illidan with a full meter, fires one Eye
+ * Blast at frame `blastAt`. Returns the scoped steps the repairs took and
  * the first difference from the same match repaired whole, frame by frame.
  */
-function scopedAgainstWhole(mode: "auto" | "force", jabberX: number): { scoped: number; difference: string | undefined } {
+function scopedAgainstWhole(mode: "auto" | "force", jabberX: number, blastAt?: number): { scoped: number; difference: string | undefined } {
   const late = 4;
   const world = (): TapeWorld => {
     const tape = createTapeWorld({ stocks: 99, humans: 4 });
-    const fighters = [createFighter(Character.demonHunter, -300.0, 1), createFighter(Character.rifleman, jabberX, -1), createFighter(Character.rifleman, 250.0, -1), createFighter(Character.demonHunter, 400.0, -1)];
+    const attacker = createFighter(blastAt === undefined ? Character.rifleman : Character.demonHunter, jabberX, -1);
+    if (blastAt !== undefined) attacker.mana.points = 100;
+    const fighters = [createFighter(Character.demonHunter, -300.0, 1), attacker, createFighter(Character.rifleman, 250.0, -1), createFighter(Character.demonHunter, 400.0, -1)];
     for (const fighter of fighters) fighter.status.stocks = 99;
     const live = { ...tape.live, world: createRoster(15, fighters) };
     for (const slot of [0, 1, 2, 3] as const) live.controls.commands[slot] = attackBuffer(4);
@@ -485,8 +488,13 @@ function scopedAgainstWhole(mode: "auto" | "force", jabberX: number): { scoped: 
   const predicted = participantInputs();
   const actualAt = (frame: number) => {
     actual[0].axisX = floorMod(floorDiv(frame, 10), 2) === 0 ? 100 : -100;
-    actual[1].held = floorMod(frame, 12) < 2 ? bit(Action.attack) : 0;
-    actual[1].pressed = floorMod(frame, 12) === 0 ? bit(Action.attack) : 0;
+    if (blastAt === undefined) {
+      actual[1].held = floorMod(frame, 12) < 2 ? bit(Action.attack) : 0;
+      actual[1].pressed = floorMod(frame, 12) === 0 ? bit(Action.attack) : 0;
+    } else {
+      actual[1].held = frame === blastAt ? bit(Action.rightTrigger) : 0;
+      actual[1].pressed = frame === blastAt ? bit(Action.special) : 0;
+    }
     return actual;
   };
   const row = createMatchFrameInput();
@@ -529,6 +537,11 @@ test("a fighter-scoped repair of a mispredicted input ends on the same state as 
   assertEquals(near.difference, undefined);
   // Scoping them anyway loses the hits: the comparison above catches broken eligibility.
   assertTrue(scopedAgainstWhole("force", -260.0).difference !== undefined);
+  // Eye Blast's beam hits the corrected fighter from 600 away, beyond the strike reach of every other move.
+  const blast = scopedAgainstWhole("auto", 300.0, 2);
+  assertGreaterThan(blast.scoped, 0);
+  assertEquals(blast.difference, undefined);
+  assertTrue(scopedAgainstWhole("force", 300.0, 2).difference !== undefined);
 });
 
 /**
