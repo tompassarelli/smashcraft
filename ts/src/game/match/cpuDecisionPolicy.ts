@@ -1,4 +1,4 @@
-/** Independent decision dimensions; opponent identities compose these with mechanical skill (#184). */
+
 export interface CpuDecisionPolicy {
   readonly judgmentPercent: number;
   readonly spacingPercent: number;

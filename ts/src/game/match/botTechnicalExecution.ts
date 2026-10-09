@@ -6,13 +6,13 @@ import { botChoice } from "./botRandom";
 import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
 
 export type TechnicalOutcome = "none" | "executed" | "dropped" | "wrongOption";
-/** Frame-tight presses (wavedash air dodges) miss 9 points more often than Execute. */
+
 export const FRAME_TIGHT_EXTRA_MISS = 9;
 export function isFrameTight(input: Readonly<Controls>): boolean {
   return input.airDodgePressed;
 }
 
-/** Technical presses can be dropped or replaced by a legal simpler option. */
+
 export function executeBotTechnique(fighter: Readonly<Fighter>, input: Controls, commands: AttackBuffer, frame: number, slot: number, policy: CpuDecisionPolicy): TechnicalOutcome {
   const aerial = !fighter.motion.grounded && commands.pending !== undefined;
   const jump = input.jumpPressed || input.airDodgePressed;

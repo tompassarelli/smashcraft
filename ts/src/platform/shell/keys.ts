@@ -3,8 +3,8 @@ import { HIT_PRESENTATION_CASES } from "../../game/shell/hitPresentationCases";
 import { warcraftChatOpen } from "../editboxJournal";
 import { createImpactEvents } from "../../game/presentation/impactEvents";
 import { emitImpacts } from "../../game/presentation/impactState";
-// Synchronized key and chat events: menu keys, Start, settings capture,
-// callback-match input, developer chords and dev console commands.
+
+
 import { Action } from "../../game/input/actions";
 import { sampleKeys } from "../../game/input/keyboardCapture";
 import { isCarrierKey } from "../../game/netcode/journal/keyboard";
@@ -43,20 +43,20 @@ import { clearMatchEffects, views } from "./ui";
 import { ownConfirmedState } from "./confirmedState";
 import { LASTING, pauseMatchPresentation, renderFighter, renderPersistentPresentation, setStatus } from "./view";
 
-/** Keys the journal's carriers or edit box own, which the map must not read as the player's controls. */
+
 function journalOwnsKey(s: ShellState, slot: ParticipantSlot, key: number): boolean {
   const epoch = journalEpoch(s);
   if (epoch === undefined) return false;
   const { journal } = epoch;
   if (journal.ingress === "keyboard") return isCarrierKey(key);
   if (journal.ingress !== "editbox") return false;
-  // The edit box owns typing until the ended epoch is quiescent, and Start during
-  // a match, unless the player plays the match on the keyboard: then Y is Start.
+
+
   if (s.game.phase !== Phase.match) return journal.lifecycle?.quiescent() !== true;
   return key === Key.y && !playsOnKeyboard(journal, slot);
 }
 
-/** Start: confirms in menus; in a match, pauses at once, or through the helpers' barrier for a journal. */
+
 export function startDown(s: ShellState, slot: ParticipantSlot): void {
   const epoch = journalEpoch(s);
   const playing = s.game.phase === Phase.match;
@@ -77,7 +77,7 @@ export function startDown(s: ShellState, slot: ParticipantSlot): void {
   } else if (action === "confirm") confirm(s, slot);
 }
 
-/** Journal menus have fixed controller keys, independent of combat bindings and the mouse. */
+
 function journalMenuKey(s: ShellState, slot: ParticipantSlot, key: number): boolean {
   const action = key === Key.w ? Action.moveLeft : key === Key.r ? Action.moveRight : key === 32 ? Action.moveUp : key === 69 ? Action.moveDown : key === Key.n ? Action.attack : key === Key.u ? Action.special : undefined;
   if (action !== undefined) {
@@ -200,7 +200,7 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
 function participantKeyUp(s: ShellState, slot: ParticipantSlot): void {
   if (!humanActive(s.game, slot)) return;
   const key = GetHandleId(BlzGetTriggerPlayerKey());
-  // Starting a match changes the phase before its confirming key is released.
+
   if (key === Key.y) {
     startKeyUp(s.session, slot);
     return;
@@ -232,27 +232,27 @@ export function onKeyUp(s: ShellState): void {
   if (slot !== undefined) participantKeyUp(s, slot);
 }
 
-/** Developer chords answer only the first human, so one press acts once on every client. */
+
 const fromFirstHuman = (s: Readonly<ShellState>) => triggerSlot() === firstHumanSlot(s.game);
 
-/** Ctrl+R: restart the map. */
+
 export function onDeveloperRestart(s: ShellState): void {
   if (!fromFirstHuman(s) || s.restartRequested) return;
   s.restartRequested = true;
   RestartGame(false);
 }
 
-/** Ctrl+T: start the input trace. */
+
 export function onDeveloperTrace(s: ShellState): void {
   if (fromFirstHuman(s) && !s.trace.active && !probeRecording(s.probe)) startInputTrace(s);
 }
 
-/** Ctrl+G records the response probe; Ctrl+J records it with a file per edge. */
+
 export function onProbeStart(s: ShellState, edgeStamps: boolean): void {
   if (s.probe !== undefined && !s.trace.active && fromFirstHuman(s)) startProbe(s.probe, edgeStamps);
 }
 
-/** Ctrl+H: the confirmed checksum, then the probe's pages. */
+
 export function onProbeExport(s: ShellState): void {
   if (s.probe === undefined || !fromFirstHuman(s)) return;
   const rollback = activeRollback(s);
@@ -260,15 +260,15 @@ export function onProbeExport(s: ShellState): void {
   exportProbe(s.probe);
 }
 
-/**
- * Chat reaches every client at the same game time. The receipt file lets
- * automation confirm every client holds the setting before the next match.
- */
+
+
+
+
 export function onDevCommand(s: ShellState): void {
   applyDeveloperCommand(s, GetPlayerId(GetTriggerPlayer()), GetEventPlayerChatString());
 }
 
-/** Applies synchronized developer setup without requiring a chat event. */
+
 export function applyDeveloperCommand(s: ShellState, actor: number, original: string): void {
   ownConfirmedState(s);
   if (original === RESET_COMMAND) {
@@ -286,7 +286,7 @@ export function applyDeveloperCommand(s: ShellState, actor: number, original: st
   const offstageHero = quickOffstageHero(message);
   const painHero = quickPainHero(message);
   const quickCpu = quickMatchCpuProfile(message);
-  // Session setup (sessionSetup.ts) changes the menus only for its own spellings.
+
   const setup = applySetupCommand(s.game, actor, message);
   if (setup === `dev: stage ${s.game.stageChoice}` && s.game.phase === Phase.characterMenu) s.dev.stageChoice = s.game.stageChoice;
   const classic = classicDevRequest(message);
@@ -366,7 +366,7 @@ export function applyDeveloperCommand(s: ShellState, actor: number, original: st
     s.viewExtreme = message === "-dev view near" ? "near" : message === "-dev view far" ? "far" : undefined;
     receipt = `dev: view ${s.viewExtreme ?? "off"}`;
   } else if (message.startsWith("-dev fogv ")) {
-    // Atmosphere tuning on a running client: SetTerrainFogExV's eleven arguments, then optionally 1 to draw fog over the sky.
+
     const v = message.slice(10).split(" ").map((word) => S2R(word));
     if (v.length < 11) return;
     SetTerrainFogExV(R2I(v[0] ?? 0), v[1] ?? 0, v[2] ?? 0, v[3] ?? 0, v[4] ?? 0, v[5] ?? 0, v[6] ?? 0, v[7] ?? 0, v[8] ?? 0, v[9] ?? 0, v[10] ?? 0);
@@ -383,7 +383,7 @@ export function applyDeveloperCommand(s: ShellState, actor: number, original: st
   } else if (message === DESYNC_COMMAND) {
     const slot = actor;
     receipt = `dev: desync from player ${slot + 1}'s client`;
-    // One more handle on one client: Warcraft's handle counter and tempest checksum diverge.
+    // Creating a handle on one client alone diverges Warcraft's handle counter and tempest checksum.
     if (slot === GetPlayerId(GetLocalPlayer())) CreateTimer();
   } else if (setup !== undefined) {
     receipt = setup;

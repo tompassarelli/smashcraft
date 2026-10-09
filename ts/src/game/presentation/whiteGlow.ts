@@ -18,7 +18,7 @@ export function createWhiteGlowState(): WhiteGlowState {
   return { hit: 0, remaining: 0, total: 0, frame: -1, meter: 0, readyUntil: -1 };
 }
 
-/** Remember the contact's full freeze so its last seven frames stay heavy. */
+
 export function whiteGlowAlpha(state: WhiteGlowState, fighter: Readonly<Fighter>, frame: number): number {
   const remaining = fighter.launch.hitlag;
   if (fighter.mana.points >= ROSTER_MANA.max && state.meter < ROSTER_MANA.max) state.readyUntil = frame + 12;

@@ -1,4 +1,4 @@
-// Final player copy from smashcraft:docs/design/cpu-profiles.md.
+
 export const CPU_OPPONENT_COPY = {
   "rook": {
     "id": "rook",

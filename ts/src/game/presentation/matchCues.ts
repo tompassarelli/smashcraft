@@ -1,6 +1,6 @@
-// What the match calls out on each confirmed frame, and the tally the results
-// screen shows. Both read confirmed state only: replayed and predicted frames
-// never reach them, and nothing here feeds the simulation.
+
+
+
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots, isParticipantSlot } from "../input/participants";
 import { MATCH_TICKS_PER_SECOND, type MatchState, Phase, humanFighterActive, keepsStocks } from "../match/rules";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
@@ -12,7 +12,7 @@ import { ROSTER_MANA } from "../sim/mana";
 import type { Character } from "../sim/codes";
 import { type CombatObservation, type CombatTally, clearCombatTally, createCombatObservation, createCombatTally, observeCombat, tallyCombat } from "./combatStats";
 
-/** Confirmed state a frame's cues compare against, captured before it runs. */
+
 export interface CueObservation {
   phase: Phase;
   readonly out: Slots<boolean>;
@@ -31,7 +31,7 @@ export function observeForCues(observation: CueObservation, game: Readonly<Match
   observeCombat(observation.combat, world);
 }
 
-/** KOs credited to each fighter and stocks each lost, for the results, and the match record's combat stats. */
+
 export interface MatchTally {
   readonly kos: Slots<number>;
   readonly falls: Slots<number>;
@@ -48,10 +48,10 @@ export function clearMatchTally(tally: MatchTally): void {
   clearCombatTally(tally.combat);
 }
 
-/**
- * The countdown's call on this match frame: "3", "2" and "1" a second apart
- * through the held start, then "GO!" on the first frame fighters act.
- */
+
+
+
+
 export function countdownCue(game: Readonly<MatchState>): MatchCue | undefined {
   const { startHold, matchFrame } = game;
   if (game.phase !== Phase.match || startHold === 0) return undefined;
@@ -65,11 +65,11 @@ export function countdownCue(game: Readonly<MatchState>): MatchCue | undefined {
   }
 }
 
-/**
- * The cues of one confirmed frame, in play order: the countdown, knockouts,
- * then the end of the match. Counts each knockout and the combat stats in `tally`; the last fighter to land
- * a hit takes the KO.
- */
+
+
+
+
+
 export function confirmedFrameCues(before: Readonly<CueObservation>, game: Readonly<MatchState>, world: Readonly<Roster>, tally: MatchTally, cues: MatchCue[]): void {
   cues.length = 0;
   const countdown = countdownCue(game);
@@ -91,7 +91,7 @@ export function confirmedFrameCues(before: Readonly<CueObservation>, game: Reado
   if (before.phase === Phase.match && game.phase === Phase.result && !game.interrupted) cues.push(game.timedOut ? MatchCue.time : MatchCue.game);
 }
 
-/** One fighter's line on the results screen. */
+
 export interface ResultRow {
   readonly slot: ParticipantSlot;
   readonly winner: boolean;
@@ -100,7 +100,7 @@ export interface ResultRow {
 
 const percent = (damage: number): string => `${Math.floor(damage)}%`;
 
-/** Each fighter of the finished match, the winner first, then by slot. */
+
 export function resultRows(game: Readonly<MatchState>, world: Readonly<Roster>, tally: Readonly<MatchTally>): ResultRow[] {
   const rows: ResultRow[] = [];
   for (const slot of PARTICIPANT_SLOTS) {
@@ -118,7 +118,7 @@ export function resultRows(game: Readonly<MatchState>, world: Readonly<Roster>, 
   return rows;
 }
 
-/** The menus as the last local frame showed them, for selection sounds. */
+
 export interface MenuObservation {
   phase: Phase;
   stage: number;
@@ -131,7 +131,7 @@ export function createMenuObservation(): MenuObservation {
   return { phase: Phase.characterMenu, stage: 0, hover: undefined, choices: [0, 0, 0, 0], ready: [false, false, false, false] };
 }
 
-/** What the menus' last change sounds like: a hover tick, a confirm, and each slot whose fighter was just confirmed. */
+
 export interface MenuCues {
   hover: boolean;
   confirm: boolean;
@@ -142,11 +142,11 @@ export function createMenuCues(): MenuCues {
   return { hover: false, confirm: false, fighters: [] };
 }
 
-/**
- * Compares the menus with the last frame's and records the change in `before`.
- * A fighter is confirmed when its slot becomes ready or changes fighter while
- * ready; `hover` is this client's pointer tile.
- */
+
+
+
+
+
 export function menuFrameCues(before: MenuObservation, game: Readonly<MatchState>, hover: number | undefined, cues: MenuCues): void {
   cues.hover = false;
   cues.confirm = false;
@@ -170,11 +170,11 @@ export function menuFrameCues(before: MenuObservation, game: Readonly<MatchState
   }
 }
 
-/** A finished match as the results screen shows it: rows, and the winner's fighter and where it stood. */
+
 export interface ResultsView {
   readonly rows: readonly ResultRow[];
   readonly winner: Character | undefined;
-  /** The winner's slot: its pose wears that player's colour, as its match body did. */
+
   readonly winnerSlot: ParticipantSlot | undefined;
   readonly x: number;
   readonly z: number;

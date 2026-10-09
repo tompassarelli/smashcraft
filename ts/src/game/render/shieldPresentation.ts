@@ -1,6 +1,6 @@
-// One participant's shield bubble, allocated once per participant in the
-// synchronized match lifecycle. Projection can replace a speculative shield
-// without allocating a handle.
+
+
+
 import { SHIELD_P1_MODEL, SHIELD_P2_MODEL, SHIELD_P3_MODEL, SHIELD_P4_MODEL } from "../assets/shieldAssetInfo";
 import type { Fighter } from "../sim/fighter";
 import { type ParkedFlags, type WorldOrigin, parkOnce, placeEffect } from "./effects";

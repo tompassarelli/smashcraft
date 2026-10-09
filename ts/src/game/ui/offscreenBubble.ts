@@ -1,5 +1,5 @@
-// Every client creates the same handles; only their drawn position and
-// visibility depend on the local camera. No frame receives input focus.
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { createBackdrop, createText, consoleUi } from "./frames";
 import { MENU_FONT } from "./hudLayout";
@@ -10,7 +10,7 @@ import { OFFSCREEN_PORTRAIT } from "./portraitFrames";
 function bubblePosition(column: number, row: number): { readonly column: number; readonly row: number; readonly arrow: string } {
   const dx = column - 0.5;
   const dy = row - 0.5;
-  // ifmagnify.c's 252.7/640 by 162.7/480 inset; bottom stays above our HUD.
+
   const extent = Math.max(Math.abs(dx) / f32(252.6999969482422 / 640.0), Math.abs(dy) / f32(162.6999969482422 / 480.0));
   const scale = 1.0 / Math.max(1.0, extent);
   const arrow = Math.abs(dx) > Math.abs(dy) ? dx > 0 ? ">" : "<" : dy > 0 ? "v" : "^";
@@ -24,7 +24,7 @@ export class OffscreenBubble {
   private character: Character | undefined;
 
   constructor(private readonly slot: number) {
-    // GameUI clips BACKDROP/TEXT frames outside its central 4:3 area.
+
     const parent = consoleUi();
     this.portrait = createBackdrop(`OffscreenPortrait${I2S(slot)}`, parent, 920 + slot * 2);
     this.arrow = createText(`OffscreenArrow${I2S(slot)}`, parent, 921 + slot * 2);

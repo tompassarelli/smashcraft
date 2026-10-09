@@ -1,7 +1,7 @@
-// Special-move effects per participant slot: the bear summon,
-// Illidan's aura, wing trail, the drain flash, immolation flames and mana-burn
-// hand. Handles are created with the match; numerical state owns every
-// contact. Animated particles restart only from confirmed frames.
+
+
+
+
 import { IMPACT_DUST_MODEL, IMPACT_ROLL_MODEL, IMPACT_TECH_MODEL } from "../assets/impactAssetInfo";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type ImpactPresentationCursor, consumeImpactFrame, createImpactPresentationCursor, resetImpactPresentationCursor } from "../presentation/impactEvents";
@@ -33,15 +33,15 @@ interface SpecialSlot {
   readonly wingTrail: effect;
   readonly drainFlash: effect;
   readonly silence: effect;
-  /** Event identity is (match, completed frame, fighter, action); the cursor rejects replayed frames before any restart. */
+
   readonly cursor: ImpactPresentationCursor;
   previousSpecial: SpecialAction;
   previousSpecialFrame: number;
-  /** Immolation's fire loop while it burns; made on first use, so a reloaded slot gains one. */
+
   immolationLoop?: sound | undefined;
 }
 
-/** A slot's effects in its parked flags, after eight times the slot. */
+
 const AURA = 1;
 const FEL_FLAMES = 2;
 const MANA_HAND = 3;
@@ -53,7 +53,7 @@ const SLOT_EFFECTS = 8;
 export class SpecialEffects {
   private readonly slots: readonly SpecialSlot[];
   private parked: ParkedFlags | undefined;
-  /** Effects sit just in front of the fighters. */
+
   private readonly front: number;
 
   constructor(private readonly origin: WorldOrigin) {
@@ -79,7 +79,7 @@ export class SpecialEffects {
     this.clear();
   }
 
-  /** Bind retained summon pools to the reloaded bundle. */
+
   bindNestedCode(): void {
     for (const slot of this.slots) bindPrototype(slot.bear, SummonPresentation.prototype);
   }
@@ -124,7 +124,7 @@ export class SpecialEffects {
     }
   }
 
-  /** Shows a particle at an offset from the fighter, in its model's scale, frozen while the fighter is. */
+
   private show(model: effect, slot: number, effect: number, fighter: Readonly<Fighter>, x: number, z: number, size: number): void {
     this.placed(slot, effect);
     const scale = characterModelScale(fighter.character);
@@ -134,13 +134,13 @@ export class SpecialEffects {
     BlzSetSpecialEffectTimeScale(model, fighter.launch.hitlag > 0 || fighter.status.frozenFrames > 0 ? 0.0 : 1.0);
   }
 
-  /** Mana Burn's stun (#116) burns over the stunned fighter's head; it never overlaps the fighter's own cast. */
+
   private showStun(fighter: Readonly<Fighter>, index: number, manaHand: effect): void {
     if (fighter.status.condition === HeroStatusKind.stun) this.show(manaHand, index, MANA_HAND, fighter, 0.0, 175.0, f32(0.6));
     else this.park(manaHand, index, MANA_HAND);
   }
 
-  /** Immolation's cast, loop and decay sounds, from confirmed frames only, so a rollback never replays one. */
+
   private presentImmolationSound(fighter: Readonly<Fighter>, slot: SpecialSlot, lit: boolean, out: boolean): void {
     const x = this.origin.x + fighter.motion.x;
     const z = this.origin.z + fighter.motion.z;
@@ -172,9 +172,9 @@ export class SpecialEffects {
     if (fighter.character === Character.demonHunter && !fighter.status.out) {
       if (entered && action === SpecialAction.demonHunterImmolate) BlzSetSpecialEffectTime(felFlames, 0.0);
       else if (entered && action === SpecialAction.demonHunterManaBurn) BlzSetSpecialEffectTime(manaHand, 0.0);
-      // The fel fire burns through the whole action and flares over its strike frames.
+
       const immolating = action === SpecialAction.demonHunterImmolate;
-      // Flame Crash's landing flares the same fire over its burst.
+
       const crashBurst = fighter.special.form === FLAME_CRASH_LANDING_FORM && frame <= FLAME_CRASH_BURST_LAST;
       const striking = immolating && (fighter.special.form === 0 ? frame >= DEMONHUNTER_IMMOLATE_STARTUP && frame < DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE : crashBurst);
       this.presentImmolationSound(fighter, slot, entered && immolating, slot.previousSpecial === SpecialAction.demonHunterImmolate && !immolating);
@@ -204,7 +204,7 @@ export class SpecialEffects {
     BlzSetSpecialEffectAlpha(model, pose.alpha);
   }
 
-  /** Effects that follow completed state directly, speculative or not; undefined hides them. */
+
   presentStatic(state: Readonly<SpecialEffectState>, fighter: Readonly<Fighter> | undefined, slot: number): void {
     const effects = this.slots[slot];
     if (effects === undefined) return;
@@ -223,7 +223,7 @@ export class SpecialEffects {
     this.slots[slot]?.bear.present(projectBear(state, fighter, slot));
   }
 
-  /** Animated effects that restart on an event: once per confirmed frame, never from a speculative one. */
+
   presentConfirmedAnimated(frame: number, fighter: Readonly<Fighter>, slot: number): void {
     const effects = this.slots[slot];
     if (effects === undefined || !consumeImpactFrame(effects.cursor, frame)) return;

@@ -9,7 +9,7 @@ export const NORMAL_ATTACK_POSES = [
 ] as const;
 const SPECIAL_POSES = ["neutralSpecial", "sideSpecial", "upSpecial", "downSpecial"] as const;
 
-/** Ground, air and follow-up clips belong to one input's special family. */
+
 export function attackClipFamilies(character: Character): { pose: HeroPose; family: string; index: number }[] {
   const table = characterClips(character), result: { pose: HeroPose; family: string; index: number }[] = [];
   for (const pose of NORMAL_ATTACK_POSES) {
@@ -32,7 +32,7 @@ export function attackClipFamilies(character: Character): { pose: HeroPose; fami
   return result;
 }
 
-/** Lists the actual sequence index and distinct attack families that reuse it. */
+
 export function sharedAttackClips(character: Character): { index: number; families: string[] }[] {
   const groups: { index: number; families: string[] }[] = [];
   for (const binding of attackClipFamilies(character)) {

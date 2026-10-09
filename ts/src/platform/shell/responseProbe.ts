@@ -1,10 +1,10 @@
-// The response probe (probe builds, Ctrl+G or Ctrl+J to record, Ctrl+H to
-// export): per-callback service timings, transport echo ages and the
-// integrity rows the #26 harness reconciles (capture, held, receive,
-// confirmed, predict, action, legal, rollback, stall, checksum). Pages are
-// written as smashcraft-response-p<slot>-run<run>-page<page>.txt; their lines
-// are the harness's format. Times are native game milliseconds, not host
-// time, and nothing here feeds synchronized state.
+
+
+
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { trampoline } from "wisp/src/platform/dispatch";
@@ -16,12 +16,12 @@ import type { MatchCamera } from "../../game/sim/matchCamera";
 const ROW_LIMIT = 7200;
 const PAGE_ROWS = 150;
 const EDGE_PAIR_LIMIT = 64;
-/** Original-frame send stamps; 8192 cover a full 2700-callback capture with headroom. */
+
 const TRANSPORT_LIMIT = 8192;
 const INTEGRITY_LIMIT = 8192;
 export const PROBE_EXPORT = "probe.exportPage";
 
-/** One game callback's service. -1 is "not recorded" in the page format. */
+
 interface ServiceRow {
   entryMs: number;
   pollMs: number | undefined;
@@ -73,7 +73,7 @@ export interface ResponseProbe {
   edgeDropped: number;
   pendingEdgeRow: number | undefined;
   rows: number;
-  /** The current callback's row, while recording. */
+
   row: number | undefined;
   run: number;
   page: number;
@@ -83,7 +83,7 @@ export interface ResponseProbe {
   presentations: number;
   readonly clock: timer;
   readonly exportTimer: timer;
-  /** A visible mark whose position encodes the row, to correlate with screen captures. */
+
   readonly marker: framehandle;
   readonly service: ServiceRow[];
   readonly integrity: string[];
@@ -112,7 +112,7 @@ function serviceRow(): ServiceRow {
 
 const vacantStamp = (): TransportStamp => ({ epoch: undefined, frame: 0, sendMs: undefined, receiveMs: undefined });
 
-/** Creates the probe's timers, marker and every row before measurement, so recording only overwrites. */
+
 export function createResponseProbe(build: string): ResponseProbe {
   const marker = BlzCreateFrameByType("TEXT", "ResponseServiceMarker", BlzGetOriginFrame(ORIGIN_FRAME_GAME_UI, 0), "", 966);
   BlzFrameSetText(marker, "|cffff00ffI|r");
@@ -139,14 +139,14 @@ function currentRow(probe: ResponseProbe | undefined): ServiceRow | undefined {
   return probe?.row === undefined ? undefined : probe.service[probe.row];
 }
 
-/** An integrity row; these describe execution, not reconstructed original-frame tags. */
+
 export function probeIntegrity(probe: ResponseProbe | undefined, entry: string): void {
   if (!probeRecording(probe)) return;
   if (probe.integrity.length >= INTEGRITY_LIMIT) probe.integrityDropped++;
   else probe.integrity.push(`${probe.serviceSerial} ${entry}`);
 }
 
-/** A row with edges, at one pipeline stage; rows without edges are not recorded. */
+
 export function probeInput(probe: ResponseProbe | undefined, stage: string, epoch: number, slot: number, frame: number, held: number, pressed: number, released: number, frontier: number): void {
   if (pressed !== 0 || released !== 0) probeIntegrity(probe, `${stage} ${epoch} ${slot} ${frame} ${held} ${pressed} ${released} ${frontier}`);
 }
@@ -177,12 +177,12 @@ export function startProbe(probe: ResponseProbe, edgeStamps: boolean): void {
   probe.transportOrder.length = 0;
   for (const stamp of probe.transport) Object.assign(stamp, vacantStamp());
   probe.run++;
-  // Native game time is not host time; the marker correlates rows with screen captures.
+
   TimerStart(probe.clock, 120.0, false, () => {});
   BlzFrameSetVisible(probe.marker, true);
 }
 
-/** Opens this callback's row. */
+
 export function probeBegin(probe: ResponseProbe | undefined, frame: number, speculative: number, known: number, phase: number): void {
   if (probe === undefined) return;
   probe.row = undefined;
@@ -197,7 +197,7 @@ export function probeBegin(probe: ResponseProbe | undefined, frame: number, spec
   const row = probe.service[index];
   if (row === undefined) return;
   probe.row = index;
-  // Preallocated: assigned field by field so recording allocates nothing.
+
   row.entryMs = nowMs(probe);
   row.frameBefore = frame;
   row.speculativeBefore = speculative;
@@ -227,7 +227,7 @@ export function probeBegin(probe: ResponseProbe | undefined, frame: number, spec
   row.sendCalls = 0;
 }
 
-/** Native milliseconds for timing a call, or undefined while not recording. */
+
 export function probeClockMs(probe: ResponseProbe | undefined): number | undefined {
   return probeRecording(probe) ? nowMs(probe) : undefined;
 }
@@ -274,7 +274,7 @@ export function probeTransportReceive(probe: ResponseProbe | undefined, epoch: n
   }
 }
 
-/** Edge-stamp mode writes a file per edge; it perturbs service, so only clean runs measure performance. */
+
 function stampEdge(probe: ResponseProbe, stage: "poll" | "present"): void {
   const row = currentRow(probe);
   if (!probe.recording || !probe.edgeStamps || probe.exporting || row === undefined || probe.row === undefined) return;
@@ -312,7 +312,7 @@ export function probeCapture(probe: ResponseProbe | undefined, result: number): 
   row.captureResult = result;
 }
 
-/** correction: 0 unchanged, -1 refused, else the first replayed frame. */
+
 export function probeAdvance(probe: ResponseProbe | undefined, frame: number, speculative: number, correction: number): void {
   const row = currentRow(probe);
   if (probe === undefined || row === undefined) return;
@@ -332,14 +332,14 @@ export function probeFighterPosition(probe: ResponseProbe | undefined, slot: Par
   row.positionZ[slot] = z;
 }
 
-/** The same waiting mask the HUD renders, while the existing probe records. */
+
 export function probeWaiting(probe: ResponseProbe | undefined, waiting: number, slot: number): void {
   if (!probeRecording(probe) || currentRow(probe) === undefined || waiting === 0) return;
   probe.waitingCallbacks++;
   if ((waiting & (1 << slot)) !== 0) probe.waitingOwnCallbacks++;
 }
 
-/** Native fields are sampled before this callback requests its next camera position. */
+
 export function probeCamera(probe: ResponseProbe | undefined, simulated: Readonly<MatchCamera>, projected: Readonly<MatchCamera>, originX: number, floor: number): void {
   const row = currentRow(probe);
   if (row === undefined) return;
@@ -367,7 +367,7 @@ export function probePresent(probe: ResponseProbe | undefined, confirmedShield: 
   row.confirmedShield = confirmedShield ? 1 : 0;
   row.predictedShield = predictedShield ? 1 : 0;
   row.poseSerial = poseSerial;
-  // Separate grid cells survive native low-resolution rasterization; adjacent positions in one strip alias.
+  // Separate grid cells survive native rasterization; adjacent positions in one strip alias.
   const column = floorMod(probe.row, 32);
   const line = floorMod(floorDiv(probe.row, 32), 4);
   BlzFrameSetAbsPoint(probe.marker, FRAMEPOINT_TOPLEFT, f32(0.04) + column * f32(0.0032), f32(0.595) - line * f32(0.01));
@@ -377,7 +377,7 @@ export function probePresent(probe: ResponseProbe | undefined, confirmedShield: 
   }
 }
 
-/** Writes one page per export tick, so no single callback writes the whole run. */
+
 export function exportProbePage(probe: ResponseProbe): void {
   const slot = GetPlayerId(GetLocalPlayer());
   const first = probe.page * PAGE_ROWS;
@@ -422,7 +422,7 @@ export function exportProbePage(probe: ResponseProbe): void {
   }
 }
 
-/** Stops recording and writes the run's pages, one per tenth of a second. */
+
 export function exportProbe(probe: ResponseProbe): void {
   if (probe.exporting || probe.run === 0) return;
   probe.recording = false;

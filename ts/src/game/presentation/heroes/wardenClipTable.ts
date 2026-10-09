@@ -1,4 +1,4 @@
-// Warden's pose families as the shared hero clip table (sim/heroes/hero.ts).
+
 import type { HeroClipTable } from "../../sim/heroes/hero";
 import { WARDEN_CLIPS } from "./wardenClips";
 import { WARDEN_FAN_CLIPS } from "../wardenFanClipInfo";

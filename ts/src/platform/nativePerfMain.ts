@@ -1,6 +1,6 @@
-// Native cost trials share the playable input and pooled presentation.
-// Only this diagnostic entry adds setup commands and the frame meter with its
-// `-dev capture N` command (./frameMeter.ts).
+
+
+
 import type { MapBuild } from "../game/shell/build";
 import { PLAYABLE_BUILD } from "../game/shell/currentBuild";
 import { installFrameMeter, startMatchFrameMeter } from "./frameMeter";

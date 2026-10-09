@@ -11,7 +11,7 @@ import { characterModelScale } from "./modelScale";
 
 export const DRAIN_FLASH_FRAMES = 12;
 
-/** Illidan's effects that follow him (his special aura and wing trail), and the drain flash over any fighter his hits drain. */
+
 export const STATIC_AURA = 0;
 export const STATIC_WING_TRAIL = 1;
 export const STATIC_DRAIN_FLASH = 2;
@@ -28,13 +28,13 @@ export interface StaticSpecialPose {
   blue: number;
 }
 
-/**
- * Only event history: action windows and transforms come from the fighter
- * itself, and projection never consumes or advances time.
- */
+
+
+
+
 export interface SpecialEffectState {
   readonly drainSerial: Slots<number>;
-  /** Executed frames since the latest mana drain; DRAIN_FLASH_FRAMES once the flash is over. */
+
   readonly drainAge: Slots<number>;
 }
 
@@ -67,7 +67,7 @@ export function firstSpecialEffectDifference(expected: Readonly<SpecialEffectSta
   return undefined;
 }
 
-/** Advances one executed frame for the fighter in a participant slot. */
+
 export function advanceSpecialEffect(state: SpecialEffectState, fighter: Readonly<Fighter>, slot: ParticipantSlot): void {
   const drainSerial = fighter.visuals.manaDrained;
   if (fighter.status.out) state.drainAge[slot] = DRAIN_FLASH_FRAMES;
@@ -76,7 +76,7 @@ export function advanceSpecialEffect(state: SpecialEffectState, fighter: Readonl
   state.drainSerial[slot] = drainSerial;
 }
 
-// Shared and never changed: renderers project every pooled effect on every callback.
+
 const HIDDEN: Readonly<StaticSpecialPose> = { visible: false, x: 0.0, z: 0.0, scale: 0.0, alpha: 0, red: 0, green: 0, blue: 0 };
 
 export function projectSpecialEffect(state: Readonly<SpecialEffectState>, fighter: Readonly<Fighter> | undefined, slot: number, kind: StaticSpecial): Readonly<StaticSpecialPose> {
@@ -85,11 +85,11 @@ export function projectSpecialEffect(state: Readonly<SpecialEffectState>, fighte
   const { special, motion } = fighter;
   const felRush = special.action === SpecialAction.demonHunterFelRush;
   if (kind === STATIC_AURA) {
-    // Ground Immolate's strike; Flame Crash's hang, the tell before the plunge.
+
     const immolate = special.action === SpecialAction.demonHunterImmolate && (special.form === 0
       ? special.frame >= DEMONHUNTER_IMMOLATE_STARTUP && special.frame < DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE
       : special.form === FLAME_CRASH_FORM && special.frame >= 1 && special.frame <= FLAME_CRASH_HANG_LAST);
-    // Fel Rush's tell flares the aura before the rush; Chaos Strike flares it on its active frames.
+
     const tell = felRush && special.form === 0 && special.frame >= 1 && special.frame <= FEL_RUSH_TELL_LAST;
     const chaos = felRush && (special.form === CHAOS_STRIKE_FORM || special.form === CHAOS_STRIKE_AIR_FORM)
       && special.frame >= CHAOS_STRIKE_FIRST && special.frame <= CHAOS_STRIKE_LAST;
@@ -106,8 +106,8 @@ export function projectSpecialEffect(state: Readonly<SpecialEffectState>, fighte
   }
   if (kind === STATIC_WING_TRAIL) {
     return {
-      // The glide (form 1, its slash 2) keeps the wings spread from its first frame; the
-      // same fel trail follows Fel Rush's rush and Vengeful Retreat's vault.
+
+
       visible: (special.action === SpecialAction.demonHunterWingAscent && (special.frame >= DEMONHUNTER_WING_STARTUP || special.form !== 0))
         || (felRush && special.form === 0 && special.frame >= FEL_RUSH_FIRST && special.frame <= FEL_RUSH_LAST)
         || (felRush && special.form === VENGEFUL_RETREAT_FORM && special.frame <= VENGEFUL_RETREAT_MOVE_LAST),
@@ -124,7 +124,7 @@ export function projectSpecialEffect(state: Readonly<SpecialEffectState>, fighte
   const progress = f32(age / DRAIN_FLASH_FRAMES);
   return {
     visible: age < DRAIN_FLASH_FRAMES,
-    // Over the drained fighter's head, in mana-burn purple.
+
     x: motion.x,
     z: f32(motion.z + f32(150 * scale)),
     scale: f32(f32(f32(0.8) + f32(progress * f32(0.7))) * scale),

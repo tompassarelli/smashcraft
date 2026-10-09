@@ -1,17 +1,17 @@
-// Native probe for #169: does any Lua callback track Warcraft's render rate?
-// Invoked only by the development console command `-dev render-clock`.
-// Every handle it makes or frees is made at a synchronized moment (the chat
-// command, or a one-shot timer at a fixed game time); the clock reads and the
-// report file are local.
+
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { renderClockFile } from "../../runtime/gameFiles";
 declare const os: { readonly clock?: (this: void) => number } | undefined;
 
 const PROBE_GAME_SECONDS = 4.0;
 const MAX_SAMPLES = 64000;
-/** An exact binary32 period near the historical 1 ms timer limit. */
+
 const FAST_PERIOD = 0.0009765625;
-/** Gaps above this group separate callback bursts; renderer telemetry must identify actual frames. */
+
 const MIN_FRAME_GAP = 0.001953125;
 const TENTH = f32(0.1);
 const NINE_TENTHS = f32(0.9);
@@ -31,7 +31,7 @@ function now(): number {
   return os.clock();
 }
 
-/** The clock's smallest visible step, read once. */
+
 function clockStep(): number {
   const start = now();
   let next = start;
@@ -96,7 +96,7 @@ function summarize(candidate: Candidate, gap: number): string[] {
   ];
 }
 
-/** Runs a zero-period and a 1/1024 s periodic timer for four game seconds and reports their wall-clock cadence. */
+
 export function probeRenderClock(): void {
   runs++;
   const run = runs;

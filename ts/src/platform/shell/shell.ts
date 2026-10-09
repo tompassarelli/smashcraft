@@ -1,8 +1,8 @@
 import { servicePauseCameraControls, pauseHudHidden } from "./pauseCamera";
-// The native shell's lifecycle: start creates the state and every handle
-// once, install registers every callback by name (and after a hot reload
-// recreates the UI objects, which keep their creation code), and the game
-// callback services one frame of menus, input, simulation and presentation.
+
+
+
+
 import { PARTICIPANT_SLOTS, isParticipantMask, isParticipantSlot } from "../../game/input/participants";
 import { clearPulse } from "../../game/input/directionalInput";
 import { ownConfirmedState } from "./confirmedState";
@@ -65,7 +65,7 @@ const PROBE_START = "shell.probeStart";
 const PROBE_EDGES = "shell.probeEdges";
 const PROBE_DUMP = "shell.probeDump";
 
-/** The build and rollback playback start() was given, until the deferred initialization uses them. */
+
 interface PendingStart {
   readonly build: MapBuild;
   readonly playback: RollbackPlayback;
@@ -75,7 +75,7 @@ declare global {
   var __smashcraftShellStart: PendingStart | undefined;
 }
 
-/** One game callback. */
+
 function gameTick(s: ShellState): void {
   if (!beforeNativeDriverTick(s)) return;
   if (s.build.pausePositionProbe && s.game.phase === Phase.match && s.probe?.run === 0) startProbe(s.probe, false);
@@ -165,7 +165,7 @@ function gameTick(s: ShellState): void {
   afterNativeDriverTick(s);
 }
 
-/** Menu sounds and music, and the results screen once "GAME!" has had its moment. */
+
 function presentMatchFlow(s: ShellState): void {
   const { match, selections } = views(s);
   const { phase } = s.game;
@@ -215,7 +215,7 @@ function playerLeft(s: ShellState): void {
   syncKeyEvents(s);
 }
 
-/** A trigger for one key with a modifier (2: Ctrl) from every human, run by name. */
+
 function developerChord(s: ShellState, key: number, handler: string): void {
   const trigger = CreateTrigger();
   for (const slot of PARTICIPANT_SLOTS) {
@@ -232,7 +232,7 @@ function syncTrigger(s: ShellState, prefix: string, handler: string, humansOnly:
   TriggerAddAction(trigger, trampoline(handler));
 }
 
-/** Every trigger and timer, created once. */
+
 function createTriggers(s: ShellState): void {
   createPadTriggers(s);
   if (s.probe !== undefined) {
@@ -274,7 +274,7 @@ function createTriggers(s: ShellState): void {
   startFrameClock(tick);
 }
 
-/** The playable map's center, with the floor FLOOR_HEIGHT above the ground there. */
+
 function worldOrigin(): { x: number; y: number; z: number } {
   const center = GetRectCenter(GetPlayableMapRect());
   const origin = { x: GetLocationX(center), y: GetLocationY(center), z: GetLocationZ(center) + FLOOR_HEIGHT };
@@ -282,7 +282,7 @@ function worldOrigin(): { x: number; y: number; z: number } {
   return origin;
 }
 
-/** Custom frames and fonts need the running game UI, so initialization waits for the first timer. */
+
 function initialize(): void {
   DestroyTimer(GetExpiredTimer());
   const pending = globalThis.__smashcraftShellStart;
@@ -291,14 +291,14 @@ function initialize(): void {
   const { build } = pending;
   const origin = worldOrigin();
   BlzHideOriginFrames(true);
-  // The panels' frame templates come from this table of contents.
+
   if (!BlzLoadTOCFile("war3mapImported\\SmashcraftHUD.toc")) DisplayTextToPlayer(GetLocalPlayer(), 0.0, 0.0, "Smashcraft's menus could not load. Restart the game.");
   BlzEnableSelections(false, false);
   EnableUserControl(true);
   FogEnable(false);
   FogMaskEnable(false);
-  // A lobby can give a player another colour (Tom's 0.0.95 match drew P1 in blue). The HUD shows
-  // slot N in player N's colour, and effects coloured by Player(N) take its colour when created.
+
+
   for (const slot of PARTICIPANT_SLOTS) SetPlayerColor(Player(slot), ConvertPlayerColor(slot));
   const s = createShellState(build, {
     origin, frames: view.createStatusFrames(), persistence: bindingFiles, playback: pending.playback,
@@ -324,7 +324,7 @@ function initialize(): void {
   }
 }
 
-/** Runs a handler on the shell's state once it exists. */
+
 function withShell(handler: (s: ShellState) => void): () => void {
   return () => {
     const s = shellState();
@@ -332,7 +332,7 @@ function withShell(handler: (s: ShellState) => void): () => void {
   };
 }
 
-/** Registers every shell callback; after a hot reload, also rebinds retained UI objects. */
+
 export function installShell(): void {
   on(PAD_MOUSE, withShell(padMouse));
   on(INIT, initialize);
@@ -359,14 +359,14 @@ export function installShell(): void {
   on(STAGE_READY, withShell(stageReadyEvent));
   const s = shellState();
   if (s?.ui !== undefined) recreateUi(s, panelActions());
-  // A match from a bundle without the moment record keeps running with a new one.
+
   if (s !== undefined && s.moment === undefined) s.moment = momentSaves();
   if (s !== undefined && s.replay === undefined) s.replay = replayRecording();
-  // A shell from a bundle that didn't record its drawn stage draws the chosen one.
+
   if (s !== undefined && s.drawnStage === undefined) view.drawStage(s);
 }
 
-/** Starts the shell once, when the map starts. */
+
 export function startShell(build: MapBuild, playback: RollbackPlayback): void {
   globalThis.__smashcraftShellStart = { build, playback };
   TimerStart(CreateTimer(), 0.0, false, trampoline(INIT));

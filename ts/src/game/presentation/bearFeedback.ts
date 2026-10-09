@@ -28,7 +28,7 @@ export interface BearFeedbackCursor {
 
 export const createBearFeedbackCursor = (): BearFeedbackCursor => ({ frame: -1, placement: -1, command: -1, bitten: 0, impactFrame: -100, impactX: 0.0, impactZ: 0.0 });
 
-/** Confirmed frames only: repeat presentation or replay cannot repeat a roar or bite. */
+
 export function advanceBearFeedback(cursor: BearFeedbackCursor, fighter: Readonly<Fighter>, frame: number): { roar: boolean; hit: boolean } {
   if (frame <= cursor.frame) return { roar: false, hit: false };
   cursor.frame = frame;

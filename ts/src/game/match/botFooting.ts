@@ -1,39 +1,39 @@
-// Keeping the computer's fighter on the main deck: it steers toward a goal
-// only while the point it would come to rest at stays inside the deck, on
-// the ground and in the air, and brakes once that point would pass an edge.
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import type { Fighter } from "../sim/fighter";
 import type { Controls } from "../sim/roster";
 import { floorFriction, floorTraction, mainDeckLeft, mainDeckRight, surfaceCount, surfaceLeft, surfaceLine, surfaceMoves, surfaceRight, surfaceZAt } from "../sim/stage";
 
 
-/** How far inside the main deck's edges the computer keeps its resting point. */
+
 const EDGE_MARGIN = 40.0;
-/** Within this distance of its goal the computer walks, so it stops where it means to. */
+
 const WALK_RANGE = 120.0;
-/** Close enough to the goal to stop steering. */
+
 const ARRIVED = 12.0;
 
 const safeLeft = (stage: number): number => f32(mainDeckLeft(stage) + EDGE_MARGIN);
 const safeRight = (stage: number): number => f32(mainDeckRight(stage) - EDGE_MARGIN);
 
-/** Whether x lies between the deck's safe bounds, `inset` further in. */
+
 export function safeAt(stage: number, x: number, inset: number): boolean {
   return x >= f32(safeLeft(stage) + inset) && x <= f32(safeRight(stage) - inset);
 }
 
-/** Where a fighter moving at vx comes to rest slowing by `deceleration` a frame, one frame late. */
+
 function restingX(x: number, vx: number, deceleration: number): number {
   const speed = Math.abs(vx);
   const distance = f32(f32(f32(speed * speed) / f32(2.0 * deceleration)) + speed);
   return vx < 0 ? f32(x - distance) : f32(x + distance);
 }
 
-/**
- * Whether a grounded fighter that stops steering now, as a ground attack
- * makes it, comes to rest on its deck: inside the main deck's safe bounds,
- * or on the raised deck it stands on.
- */
+
+
+
+
+
 export function slideStaysOnDeck(f: Readonly<Fighter>, stage: number, matchFrame: number): boolean {
   const { x, vx, surface } = f.motion;
   const rest = restingX(x, vx, floorTraction(f.tuning.physics.traction, floorFriction(stage, f.motion)));
@@ -43,11 +43,11 @@ export function slideStaysOnDeck(f: Readonly<Fighter>, stage: number, matchFrame
 
 const towardGoal = (stage: number, goal: number) => Math.min(safeRight(stage), Math.max(safeLeft(stage), goal));
 
-/**
- * Steers a grounded fighter toward goal: it runs while far and walks while
- * near, but never at a speed whose stop would pass the deck's safe bounds,
- * and turns back when its current slide would.
- */
+
+
+
+
+
 export function steerOnGround(f: Readonly<Fighter>, stage: number, goal: number, input: Controls): void {
   const { x, vx } = f.motion;
   const { traction, dashSpeed, walkSpeed } = f.tuning.physics;
@@ -74,11 +74,11 @@ export function steerOnGround(f: Readonly<Fighter>, stage: number, goal: number,
   input.direction = direction;
 }
 
-/**
- * Drifts an airborne fighter toward goal while braking against its drift
- * would still stop it inside the deck's safe bounds; past that it steers
- * back toward the deck.
- */
+
+
+
+
+
 export function steerInAir(f: Readonly<Fighter>, stage: number, goal: number, input: Controls): void {
   const { x, vx } = f.motion;
   const { airAcceleration, airSpeed } = f.tuning.physics;
@@ -98,22 +98,22 @@ export function steerInAir(f: Readonly<Fighter>, stage: number, goal: number, in
   if (pressed <= high && pressed >= low) input.direction = direction;
 }
 
-/**
- * A fighter's height after `frames` more frames: its last frame's rise,
- * slowed each frame by gravity while airborne down to its fall speed, so a
- * rising jump isn't taken to keep rising into a target overhead, and held
- * by the deck under it when it falls that far (#160).
- */
+
+
+
+
+
+
 export function heightAhead(f: Readonly<Fighter>, frames: number, stage: number, matchFrame: number): number {
   const { z, deltaZ, surface } = f.motion;
   if (f.motion.grounded) {
-    // On a fixed level deck the landing frame's step is the end of a fall, not motion that continues.
+
     if (deltaZ !== 0.0 && stage >= 0 && surface !== undefined && !surfaceMoves(stage, surface) && surfaceLine(stage, surface) === undefined) return z;
     return f32(z + f32(deltaZ * frames));
   }
   const { gravity, terminalSpeed } = f.tuning.physics;
   const floor = Math.min(deltaZ, -terminalSpeed);
-  // Frames whose fall gravity still speeds up before the floor holds it.
+
   const slowing = Math.min(frames, Math.max(0, Math.floor(f32(f32(deltaZ - floor) / gravity))));
   const curve = f32(f32(deltaZ * slowing) - f32(gravity * ((slowing * (slowing + 1)) / 2)));
   const ahead = f32(z + f32(curve + f32(floor * (frames - slowing))));
@@ -121,14 +121,14 @@ export function heightAhead(f: Readonly<Fighter>, frames: number, stage: number,
   return deck !== undefined && ahead < deck ? deck : ahead;
 }
 
-/**
- * The last fall searched for its landing: a computer's choice asks for the
- * same target's landing once per candidate move, each further ahead, and
- * repairs ask again for every replayed frame (#168).
- */
+
+
+
+
+
 const lastLanding = { z: 0.0, deltaZ: 0.0, gravity: 0.0, terminalSpeed: 0.0, deckZ: 0.0, searched: 0, landing: 0 };
 
-/** The first frame from 1 on, at most `frames`, whose height ahead (deck aside) is at or below `deckZ`; frames + 1 when none is. */
+
 function landingFrame(f: Readonly<Fighter>, frames: number, deckZ: number, matchFrame: number): number {
   const { z, deltaZ } = f.motion;
   const { gravity, terminalSpeed } = f.tuning.physics;
@@ -150,12 +150,12 @@ function landingFrame(f: Readonly<Fighter>, frames: number, deckZ: number, match
   return landing;
 }
 
-/**
- * A fighter's horizontal position after `frames` more frames: its last
- * frame's travel, but an airborne fighter that falls onto the deck under it
- * within them slides on from the landing, braking by its traction on that
- * deck, and stops at the deck's edge, as heightAhead holds a fall (#345).
- */
+
+
+
+
+
+
 export function horizontalAhead(f: Readonly<Fighter>, frames: number, stage: number, matchFrame: number): number {
   const { x, z, deltaX } = f.motion;
   const straight = f32(x + f32(deltaX * frames));
@@ -174,7 +174,7 @@ export function horizontalAhead(f: Readonly<Fighter>, frames: number, stage: num
   return Math.max(surfaceLeft(stage, deck, matchFrame), Math.min(surfaceRight(stage, deck, matchFrame), rest));
 }
 
-/** The index of the highest deck of `stage` under (x, z) on match frame `matchFrame`, or -1 over the void. */
+
 function deckIndexUnder(stage: number, matchFrame: number, x: number, z: number): number {
   let top = -1;
   let topZ = 0.0;
@@ -189,7 +189,7 @@ function deckIndexUnder(stage: number, matchFrame: number, x: number, z: number)
   return top;
 }
 
-/** The highest deck of `stage` under (x, z) on match frame `matchFrame`, or undefined over the void. */
+
 export function deckUnder(stage: number, matchFrame: number, x: number, z: number): number | undefined {
   const index = deckIndexUnder(stage, matchFrame, x, z);
   return index < 0 ? undefined : surfaceZAt(stage, index, matchFrame, x);

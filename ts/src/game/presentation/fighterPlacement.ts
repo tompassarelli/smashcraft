@@ -1,5 +1,5 @@
-// The drawn body stays outside nearby stage faces without changing its ECB.
-// Combat uses the simulation origin and authored hurt volumes (docs/hurtboxes.md).
+
+
 import { at } from "wisp/src/runtime/lookup";
 import { Character, LedgeState } from "../sim/codes";
 import { heroBody } from "../sim/heroes/heroBodies";
@@ -16,9 +16,9 @@ interface BodyEnvelope {
   readonly top: number;
 }
 
-// Rounded outward from visible, skinned vertices across every frame of the
-// standing, jump, fall and airborne damage clips, including held weapons.
-// smashcraft:evidence/fighter-placement-20261006/body-bounds.json
+
+
+
 const BODY_ENVELOPES: Readonly<Record<number, BodyEnvelope>> = {
   1: { left: -53.0, right: 77.0, bottom: -1.0, top: 128.0 },
   2: { left: -101.0, right: 100.0, bottom: -6.0, top: 185.0 },
@@ -26,10 +26,10 @@ const BODY_ENVELOPES: Readonly<Record<number, BodyEnvelope>> = {
 
 
 
-/**
- * A hero's envelope is the reference body's, the roster's reference body, stretched by
- * the hero's width and height multipliers, in its own model's units.
- */
+
+
+
+
 function heroEnvelope(character: Character): BodyEnvelope {
   const reference = { left: -49.0, right: 91.0, bottom: -4.0, top: 106.0 };
   const body = heroBody(character);
@@ -44,10 +44,10 @@ function createBodyEnvelopes(): readonly BodyEnvelope[] {
   return envelopes;
 }
 
-// Every declared fighter has its immutable envelope before rendering starts.
+
 const heroEnvelopes = createBodyEnvelopes();
 
-/** The drawn body's extent around the fighter's origin, in its model's units. */
+
 export function fighterBodyEnvelope(character: Character): Readonly<BodyEnvelope> {
   return at(heroEnvelopes, character);
 }
@@ -57,12 +57,12 @@ interface FighterPlacement {
   z: number;
 }
 
-/** Fills a caller-owned render origin; neither fighter state nor stage collision moves. */
+
 export function fitFighterPlacement(out: FighterPlacement, fighter: Readonly<Fighter>, stage: number): void {
   const { motion } = fighter;
   out.x = motion.x + hitlagShake(fighter);
   out.z = motion.z;
-  // Grounded and ledge poses deliberately meet the walking plane or ledge.
+
   if (motion.grounded || motion.z >= mainDeckZ(stage) || fighter.ledge.state !== LedgeState.none) return;
   const body = fighterBodyEnvelope(fighter.character);
   const scale = characterModelScale(fighter.character);
@@ -72,7 +72,7 @@ export function fitFighterPlacement(out: FighterPlacement, fighter: Readonly<Fig
   const bottom = body.bottom * scale;
   const top = body.top * scale;
   const count = solidSurfaceCount(stage);
-  // A second pass handles the neighbour of a sloping face after its correction.
+
   for (let pass = 0; pass < 2; pass++) {
     for (let index = 0; index < count; index++) {
       const surface = solidSurfaceAt(stage, index);

@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import type { TextBox } from "./hudLayout";
 
-/** A centered panel inside Warcraft's safe 4:3 area, including widescreen. */
+
 export const CPU_SETTINGS_PANEL: TextBox = { left: f32(0.12), top: f32(0.44), width: f32(0.56), height: f32(0.34) };
 export const CPU_SETTINGS_ROWS = [f32(0.377), f32(0.333)] as const;
 export const CPU_SETTINGS_PREVIEW: TextBox = { left: f32(0.15), top: f32(0.287), width: f32(0.5), height: f32(0.127) };

@@ -1,9 +1,9 @@
-// Dreadlord's stock classic model and the sequence each pose plays. Indices,
-// names and lengths are those of the classic HeroDreadLord.mdx (the test
-// clients run hd=0; the HD model keeps indices 0-10 and differs at 11). The
-// model has eleven usable sequences and no hit, jump, dodge or knockdown
-// clips, so those poses reuse the nearest readable sequence. Dissipate draws
-// no body at all, so no pose plays it: his hurt volumes stay visible.
+
+
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle } from "../../sim/codes";
 import { DREADLORD_GROUND, jabSlice, strikeClip } from "../../sim/heroes/groundNormals";
@@ -19,7 +19,7 @@ interface StockClip {
 
 const clip = (index: number, name: string, seconds: number): StockClip => ({ index, name, seconds });
 
-/** Every sequence in the classic model, by index ("Cinematic death", 11, repeats Death). */
+
 export const DREADLORD_SEQUENCES = {
   stand: clip(0, "Stand", 1.5),
   standReady: clip(1, "Stand Ready", 1.5),
@@ -36,25 +36,25 @@ export const DREADLORD_SEQUENCES = {
 
 const s = DREADLORD_SEQUENCES;
 
-// Strike moments: where the drawn claw or wing is farthest out or highest.
+
 const ground = (clip: StockClip, strike: number, style: AttackStyle, frame?: number): HeroClip =>
   strikeClip(clip, strike, DREADLORD_GROUND, style, frame);
 
-/** Each pose's sequence; the presentation fits it to the action's frames. */
+
 export const DREADLORD_CLIP_TABLE: HeroClipTable = {
   idle: s.standReady, walk: s.walk, dash: s.walk, run: s.walk, crouch: s.spellSlam, fall: s.standReady,
   landing: s.standReady, shield: s.standReady, airDodge: s.wingStretch, smashCharge: s.standReady, ko: s.death, dizzy: s.stand,
   jump: s.wingStretch, doubleJump: s.wingStretch, fallSpecial: s.standReady,
-  // He rears up off a wall, wings back, and a wall tech beats the wings with the Spell Slam.
+
   wallJump: s.rearUp, wallTech: s.spellSlam,
   spotDodge: s.standReady, rollForward: s.walk, rollBackward: s.walk,
   damageGround: s.standReady, damageAir: s.standReady, damageTumble: s.death, damageShield: s.standReady,
   knockdown: s.death, downDamage: s.death, getUp: s.standReady, getUpAttack: s.attack2,
   ledgeHang: s.standReady, ledgeClimb: s.spellSlam, ledgeRoll: s.walk, ledgeAttack: s.attack2,
-  // Claws are the two attack swings; wings and horns the raised spell and rear-up; the slam is the low sweep.
-  // Ground normals strike on their first active frame (smashcraft:docs/design/tilts.md): the claw
-  // rake angles up through the rear-up and down through the low slam. The up tilt is the raised spell,
-  // its wings reaching farthest toward the overhead arc at 0.93 s; the rear-up rises too late (#156).
+
+
+
+
   jab: jabSlice(s.attack2, f32(0.53)), jab2: jabSlice(s.attack2, f32(0.53)), jab3: jabSlice(s.attack2, f32(0.72)), forwardTilt: ground(s.attack1, f32(0.70), AttackStyle.forwardTilt),
   forwardTiltUp: ground(s.rearUp, f32(0.82), AttackStyle.forwardTiltUp), forwardTiltDown: ground(s.spellSlam, f32(0.38), AttackStyle.forwardTiltDown),
   upTilt: ground(s.spell, f32(0.93), AttackStyle.upTilt, 9), downTilt: ground(s.attack2, f32(0.76), AttackStyle.downTilt),
@@ -65,7 +65,7 @@ export const DREADLORD_CLIP_TABLE: HeroClipTable = {
   throwForward: s.attack2, throwBack: s.attack1, throwUp: s.spell, throwDown: s.spellSlam,
   victimPummel: s.standReady, victimThrowForward: s.standReady, victimThrowBack: s.standReady,
   victimThrowUp: s.standReady, victimThrowDown: s.death,
-  // Carrion Swarm and Sleep are his casting spell; Vampiric Pounce a claw lunge; Bat Ascension a wing spread.
+
   neutralSpecial: s.spell, sideSpecial: s.attack2, upSpecial: s.wingStretch, downSpecial: s.spell,
   neutralSpecialAir: s.spell, sideSpecialAir: s.attack2, upSpecialAir: s.wingStretch, downSpecialAir: s.spell,
 };

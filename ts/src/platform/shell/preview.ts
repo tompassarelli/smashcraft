@@ -1,5 +1,5 @@
-// The fighters standing on the stage: rebuilt from the selected roster
-// whenever the selection changes and at the start of every match.
+
+
 import { PARTICIPANT_SLOTS } from "../../game/input/participants";
 import { characterFor, fighterMask } from "../../game/match/rules";
 import { matchSpawnX } from "../../game/match/step";
@@ -14,7 +14,7 @@ import { endFighter, layoutHuds, views } from "./ui";
 
 const NEUTRAL = neutralControls();
 
-/** Removes every fighter's unit and renderers and ends their effects. */
+
 function removeFighters(s: ShellState): void {
   clearDamageContacts();
   for (const slot of PARTICIPANT_SLOTS) {
@@ -34,7 +34,7 @@ function removeFighters(s: ShellState): void {
   ui.combat.clear();
 }
 
-/** Stands each selected fighter at its spawn, facing the middle of the stage. */
+
 export function makePreview(s: ShellState): void {
   clearAllInputs(s);
   removeFighters(s);

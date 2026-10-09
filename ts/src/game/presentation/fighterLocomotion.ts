@@ -21,7 +21,7 @@ const ILLIDAN_WALK: HeroClip = { index: dh.DEMON_HUNTER_WALK_FORWARD_INDEX, seco
 const ILLIDAN_RUN: HeroClip = { index: dh.DEMON_HUNTER_RUN_FORWARD_INDEX, seconds: f32(0.6) };
 const ILLIDAN_DASH: HeroClip = { index: dh.DEMON_HUNTER_INITIAL_DASH_BURST_INDEX, seconds: dh.DEMON_HUNTER_INITIAL_DASH_BURST_SECONDS };
 
-/** The exact sequence walked or run by production pose selection, including the originals' named stock walks. */
+
 export function groundLocomotionClip(character: Character, motion: IllidanLocomotion): HeroClip | undefined {
   if (character === Character.demonHunter) {
     if (motion === IllidanLocomotion.walk) return ILLIDAN_WALK;
@@ -37,7 +37,7 @@ export function groundLocomotionClip(character: Character, motion: IllidanLocomo
   return undefined;
 }
 
-/** Feet cover the distance the simulation travels, rather than one stock cycle per second at every fighter's maximum speed. */
+
 export function groundLocomotionRate(f: Readonly<Fighter>, motion: IllidanLocomotion): number {
   const gait = motion === IllidanLocomotion.walk ? "walk" : "run";
   const stride = DRAWN_STRIDES[f.character]?.[gait];

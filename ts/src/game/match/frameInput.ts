@@ -19,7 +19,7 @@ import { type ReplayState, copyReplayState } from "../replay/snapshot";
 import { type BotMemory, clearBotMemory, copyBotMemory, createBotMemory, firstBotMemoryDifference } from "./botPerception";
 import { type BotStrategy, copyBotStrategy, createBotStrategy, botStrategyValues } from "./botStrategy";
 
-/** Detached source rows. Every execution adapts again from the world being replayed. */
+
 export interface MatchFrameInput {
   frame: number | undefined;
   mask: number;
@@ -95,17 +95,17 @@ export function replaceNetworkRows(row: MatchFrameInput, source: ParticipantInpu
   return true;
 }
 
-/** A network row's values are execution scratch: executeMatchFrame writes every active slot's before reading it, so they aren't copied. */
+
 export function copyMatchFrameInput(target: MatchFrameInput, source: Readonly<MatchFrameInput>): void {
   target.frame = source.frame;
   target.mask = source.mask;
   target.networkMask = source.networkMask;
   target.source = source.source;
   const adapted = source.source !== "network";
-  // Only adapted rows carry the computers' state; a network row's computers decide again when it runs.
+
   if (adapted) copyBotMemory(target.botMemoryAfterInput, source.botMemoryAfterInput);
   else if (target.botMemoryAfterInput.history.length > 0) clearBotMemory(target.botMemoryAfterInput);
-  // participantActive inline: rollback copies rows every frame it saves or reconciles.
+
   const mask = source.mask > 0 && source.mask < 16 ? source.mask : 0;
   const networkMask = source.networkMask > 0 && source.networkMask < 16 ? source.networkMask : 0;
   for (const slot of PARTICIPANT_SLOTS) {
@@ -133,24 +133,24 @@ export function sameMatchFrameInput(a: Readonly<MatchFrameInput>, b: Readonly<Ma
   return true;
 }
 
-// Preallocated: execution and rollback overwrite every active slot before reading it.
+
 const beforeOut: Slots<boolean> = [false, false, false, false];
 const beforeJump: Slots<number> = [0, 0, 0, 0];
 const beforeAttack: Slots<number> = [0, 0, 0, 0];
 const beforeDamage: Slots<number> = [0.0, 0.0, 0.0, 0.0];
 const beforeShield: Slots<number> = [0.0, 0.0, 0.0, 0.0];
 
-/**
- * Computers whose decisions a step takes from an earlier run of the same
- * frame: `after` is that run's state after it, and sameComputerInputs matched
- * each slot in `mask` with the state before it.
- */
+
+
+
+
+
 export interface RepeatedComputers {
   readonly mask: number;
   readonly after: Readonly<PacingAndPresentation>;
 }
 
-/** The frame's controls from its row and the world before it, and each fighter's state before it for impact events and poses. */
+
 function prepareMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number, repeated: RepeatedComputers | undefined): boolean {
   if (row.frame !== frame || frame !== runtime.simulationFrame + 1 || row.mask !== world.mask) return false;
   if (row.source !== "network") copyBotMemory(runtime.botMemory, row.botMemoryAfterInput);
@@ -207,7 +207,7 @@ function reusePresentation(runtime: PacingAndPresentation, after: Readonly<Repla
 export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number, repeated?: RepeatedComputers, scope?: Readonly<ScopedFrame>): boolean {
   if (!prepareMatchFrame(row, game, world, controls, runtime, frame, repeated)) return false;
   if (game.phase === Phase.match && game.training) {
-    // Slow motion: the match runs on the last of every `speed` input frames, with the presses made on the ones it skips.
+
     const trainer = game.trainer;
     const skip = trainer.speedPhase + 1 < trainer.speed;
     trainer.speedPhase = skip ? trainer.speedPhase + 1 : 0;
@@ -257,13 +257,13 @@ export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world:
   return true;
 }
 
-/**
- * As executeMatchFrame, for a frame a replay history already ran on the same
- * row from the same state: `after` is its state after the frame. Confirmation
- * consumes the state and impact events, so neither input adaptation nor CPU
- * decisions run again. Training's slow motion edits the row's presses, so a
- * training frame runs.
- */
+
+
+
+
+
+
+
 export function restoreMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number, after: Readonly<ReplayState>): boolean {
   if (game.training) return executeMatchFrame(row, game, world, controls, runtime, frame);
   if (row.frame !== frame || frame !== runtime.simulationFrame + 1 || row.mask !== world.mask || after.runtime.simulationFrame !== frame) return false;
@@ -272,7 +272,7 @@ export function restoreMatchFrame(row: MatchFrameInput, game: MatchState, world:
   }
   copyReplayState({ world, match: game, controls, runtime }, after);
   for (const slot of PARTICIPANT_SLOTS) {
-    // The step's observations, as running it would leave them.
+
     observedFrameLegalActions[slot] = runtime.observedLegal[slot];
     observedFrameStartedActions[slot] = runtime.observedStarted[slot];
     if (isActive(world, slot)) finishImpactEventsAfter(runtime.frameImpacts[slot], fighterAt(world, slot), world);
@@ -280,7 +280,7 @@ export function restoreMatchFrame(row: MatchFrameInput, game: MatchState, world:
   return runtime.simulationFrame === frame;
 }
 
-/** Presents a retained frame in place; only its per-frame scratch changes. */
+
 export function borrowMatchFrame(row: MatchFrameInput, world: Roster, runtime: PacingAndPresentation, frame: number, after: Readonly<ReplayState>): boolean {
   if (row.frame !== frame || frame !== runtime.simulationFrame + 1 || row.mask !== world.mask || after.runtime.simulationFrame !== frame) return false;
   const scratch = runtime.frameImpacts;

@@ -20,7 +20,7 @@ interface FrameCostBenchmarkResult {
   readonly finalState: string;
 }
 
-/** Runs the recorded-tape workload through the production TypeScript frame executor. */
+
 export function runFrameCostBenchmark(clock: () => number): FrameCostBenchmarkResult | undefined {
   const match = createMatchState();
   match.phase = Phase.match;
@@ -45,7 +45,7 @@ export function runFrameCostBenchmark(clock: () => number): FrameCostBenchmarkRe
   inputs.commands[0] = firstRequests;
   inputs.commands[1] = secondRequests;
 
-  // Prepare detached rows before timing so the measured interval covers frame execution only.
+
   const rows: MatchFrameInput[] = [];
   for (let frame = 1; frame <= FRAME_COUNT; frame++) {
     const phase = floorMod(frame, 192);

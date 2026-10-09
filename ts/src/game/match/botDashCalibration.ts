@@ -26,7 +26,7 @@ export interface DashCalibration {
   readonly wrongOptions: number;
 }
 
-/** Repeated opposite-side spacing situations request turns through the production input path. */
+
 export function collectDashCalibration(tier: CpuTier, frames = 120000): DashCalibration {
   const own = createFighter(Character.blademaster, 0.0, 1);
   const target = createFighter(Character.blademaster, 0.0, -1);
@@ -47,7 +47,7 @@ export function collectDashCalibration(tier: CpuTier, frames = 120000): DashCali
   let slips = 0;
   let wrongOptions = 0;
   for (let frame = 1; frame <= frames; frame++) {
-    // Repeat the same legal grounded spacing situation, retaining actual dash/run state.
+
     own.motion.x = previous > 0 ? 500.0 : -500.0;
     own.motion.z = 0.0;
     own.motion.grounded = true;
@@ -78,7 +78,7 @@ export function dashPercentile(row: DashCalibration, tenths: number): number {
   return at(row.intervals, floorDiv((row.intervals.length - 1) * tenths, 10));
 }
 
-/** Repeated wavedash air dodges count frame-tight presses and their legal mistakes. */
+
 export function collectTechnicalCalibration(tier: CpuTier, frames = 6000): { inputs: number; slips: number; wrongOptions: number } {
   const own = createFighter(Character.rifleman, 0.0, 1);
   const policy = cpuSkill("wren", tier).decision;

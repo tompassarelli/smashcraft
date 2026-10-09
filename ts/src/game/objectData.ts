@@ -1,4 +1,4 @@
-// The build and running map consume these same object definitions.
+
 import { CHUNKS_PER_FILE, FILE_IO_ABILITY } from "wisp/src/runtime/gameFiles";
 import { RIFLEMAN_MODEL_FILE } from "./presentation/fighterAssetInfo";
 import { DEMON_HUNTER_MODEL_FILE } from "./presentation/demonHunterAssetInfo";
@@ -21,19 +21,19 @@ export interface FighterObject {
 
 const fighterFields = {
   artVersion: 0,
-  // Blending can hold the previous pose throughout hitlag.
+
   blendTime: 0.0,
   selectionScale: 0.0,
-  // Native movement/attacks are paused; Smashcraft's simulation owns both.
+
   moveSpeed: 270.0,
   attackCooldown: 1.5,
 } as const;
 
-/**
- * A hero's object, from its registered presentation. Like the originals it
- * derives from a plain unit, not a hero, so its body shows no hero icon or
- * experience bar.
- */
+
+
+
+
+
 function heroObject(character: Character): FighterObject {
   const hero = heroDefinition(character);
   if (hero === undefined) throw new Error(`hero ${character} is not registered`);
@@ -72,7 +72,7 @@ export const FIGHTER_OBJECTS: Readonly<Record<Character, FighterObject>> = {
 
 export const FIGHTER_OBJECT_ORDER: readonly Character[] = [ Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
 
-/** FileIO's channel ability uses one tooltip per file chunk. */
+
 export const FILE_IO_OBJECT = {
   base: "ANcl",
   id: FILE_IO_ABILITY,

@@ -1,8 +1,8 @@
-// The tutorial menu on fighter selection (#306): a lesson choice, Start and
-// Not now. It opens by itself for a player who has never started a match or
-// answered it (a local file remembers that), and from the Tutorial button that
-// training shows. Opening is presentation only; its buttons are synchronized
-// clicks that act on the match rules.
+
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { readChunks, writeChunks } from "wisp/src/platform/fileio";
 import { LESSONS, lessonChoiceText } from "../match/tutorial";
@@ -18,7 +18,7 @@ const SEEN = "seen";
 export interface TutorialMenuFrames {
   readonly root: framehandle;
   readonly lesson: framehandle;
-  /** The Tutorial button among training's rules. */
+
   readonly open: framehandle;
 }
 
@@ -40,7 +40,7 @@ function button(parent: framehandle, x: number, y: number, width: number, height
   return frame;
 }
 
-/** The menu over the roster, hidden, and the Tutorial button on `rules`. */
+
 export function createTutorialMenu(owner: framehandle, rules: framehandle, suffix: string, add: (frame: framehandle, target: TutorialButton) => framehandle): TutorialMenuFrames {
   const root = createBackdrop(`MeleeTutorialMenu${suffix}`, owner, 0);
   BlzFrameSetTexture(root, PANEL_TEXTURE, 0, true);
@@ -64,12 +64,12 @@ export function showTutorialLesson(frames: TutorialMenuFrames, lesson: number): 
   BlzFrameSetText(frames.lesson, lessonChoiceText(lesson));
 }
 
-/** Whether this client's player has started a match or answered the tutorial's offer. */
+
 export function tutorialSeen(): boolean {
   return readChunks(SEEN_FILE).join("") === SEEN;
 }
 
-/** Remembers on this client that its player needs no offer again. */
+
 export function markTutorialSeen(): void {
   writeChunks(SEEN_FILE, [SEEN]);
 }

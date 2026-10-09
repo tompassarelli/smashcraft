@@ -1,7 +1,7 @@
-// The escape meter over a held or frozen fighter
-// (smashcraft:docs/gameplay-design.md, "Grab holds and pummels" and
-// "Rifleman's trap escape"): local presentation read from the simulation, the
-// same for every player.
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { GrabAction } from "../sim/codes";
 import { fighterHurtboxes } from "../sim/hurtboxes";
@@ -10,23 +10,23 @@ import type { Fighter } from "../sim/fighter";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { FREEZE_TRAP_FREEZE_FRAMES } from "../sim/summons";
 
-/** Frames between the meter's segment lines. */
+
 export const ESCAPE_METER_SEGMENT_FRAMES = 10;
-/** World units between the held fighter's standing head and the meter. */
+
 const HEAD_CLEARANCE = 30.0;
-/** The meter's UI height and border; the mana bar stacks above it (presentation/manaBar.ts). */
+
 export const ESCAPE_METER_HEIGHT = f32(0.008);
 export const ESCAPE_METER_BORDER = f32(0.0015);
 
 export interface EscapeMeterView {
   shown: boolean;
-  /** Frames left before the fighter breaks free. */
+
   remaining: number;
-  /** The bar's full length in frames: GRAB_HOLD_FRAMES for a grab, FREEZE_TRAP_FREEZE_FRAMES for a freeze. */
+
   full: number;
-  /** Frames until a pummel would land, or -1 when none can. */
+
   pummel: number;
-  /** World position of the meter's centre. */
+
   x: number;
   z: number;
 }
@@ -35,10 +35,10 @@ export function escapeMeterView(): EscapeMeterView {
   return { shown: false, remaining: 0, full: GRAB_HOLD_FRAMES, pummel: -1, x: 0.0, z: 0.0 };
 }
 
-/**
- * The meter while `slot` is frozen, or held and not yet being thrown. The bar
- * empties before a pummel lands when `remaining` is at most `pummel`.
- */
+
+
+
+
 export function readEscapeMeter(world: Readonly<Roster>, slot: number, view: EscapeMeterView): void {
   view.shown = false;
   if (!isActive(world, slot)) return;
@@ -64,14 +64,14 @@ export function readEscapeMeter(world: Readonly<Roster>, slot: number, view: Esc
   view.z = overheadAnchorZ(held);
 }
 
-/** The world height over a fighter's standing head where its overhead bars sit. */
+
 export function overheadAnchorZ(f: Readonly<Fighter>): number {
   let top = 0.0;
   for (const part of fighterHurtboxes(f).stand) top = Math.max(top, Math.max(part.z1, part.z2) + part.radius);
   return f.motion.z + top + HEAD_CLEARANCE;
 }
 
-/** The bar's filled share, 0..1. */
+
 export function escapeMeterFill(view: Readonly<EscapeMeterView>): number {
   return Math.min(1.0, view.remaining / view.full);
 }

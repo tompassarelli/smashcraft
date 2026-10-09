@@ -5,17 +5,17 @@ import { type KeyBindings, actionFor, keyFor } from "./keyBindings";
 
 const KEY_CODES = 256;
 
-/**
- * One participant's keys, from synchronized key events and that player's own
- * bindings. An action bound to two keys stays held until both are up.
- */
+
+
+
+
 export interface PlayerKeys {
-  /** Whether each Warcraft key code, 0 through 255, is down. */
+
   readonly down: boolean[];
-  /** Action bits held by each binding slot; each mask fits Lua's 32-bit integer. */
+
   heldFirst: number;
   heldSecond: number;
-  /** The movement keys read as a stick. */
+
   readonly directions: DirectionalInput;
 }
 
@@ -33,7 +33,7 @@ export function actionHeld({ heldFirst, heldSecond }: Readonly<PlayerKeys>, acti
   return ((heldFirst | heldSecond) & (1 << action)) !== 0;
 }
 
-/** The held actions as an input mask. */
+
 export function heldActions(keys: Readonly<PlayerKeys>): number {
   let mask = 0;
   for (const action of ACTION_ORDER) {
@@ -60,14 +60,14 @@ function holdSlot(keys: PlayerKeys, key: number, bindings: Readonly<KeyBindings>
   return action;
 }
 
-/** A key went down: the action it holds, or undefined for an unbound key or a repeat of a key already down. */
+
 export function pressKey(keys: PlayerKeys, key: number, bindings: Readonly<KeyBindings>): Action | undefined {
   if (!isKeyCode(key) || keys.down[key] === true) return undefined;
   keys.down[key] = true;
   return holdSlot(keys, key, bindings, true);
 }
 
-/** A key went up: the action it held, or undefined for an unbound key or one not down. */
+
 export function releaseKey(keys: PlayerKeys, key: number, bindings: Readonly<KeyBindings>): Action | undefined {
   if (!isKeyCode(key) || keys.down[key] !== true) return undefined;
   keys.down[key] = false;

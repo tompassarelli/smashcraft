@@ -10,7 +10,7 @@ import { type BotMemory, clearBotMemory, copyBotMemory, createBotMemory } from "
 import { type BotStrategy, createBotStrategy, copyBotStrategy, clearBotStrategy } from "./botStrategy";
 import { type AttackBuffer, attackBuffer, copyAttackBuffer } from "../input/attackBuffer";
 
-/** A computer's controls and attack commands from the step that reached a state. */
+
 export interface BotDecision {
   decided: boolean;
   readonly input: Controls;
@@ -19,25 +19,25 @@ export interface BotDecision {
 
 const createBotDecision = (): BotDecision => ({ decided: false, input: neutralControls(), commands: attackBuffer(0) });
 
-/**
- * What a match carries beside its world, game rules and controls: the frame pacing
- * (simulationFrame, botAttackDelays, botMemory) and the presentation history (impacts, special
- * effects, summons, poses). Only the pacing feeds the simulation.
- */
+
+
+
+
+
 export interface PacingAndPresentation {
   simulationFrame: number;
   botAttackDelays: Slots<number>;
   readonly botMemory: BotMemory;
   readonly botStrategies: Slots<BotStrategy>;
-  /** What each computer decided in the step that reached this state, so a rollback from an equal state can replay it (ReplayHistory.repair). */
+
   readonly botDecisions: Slots<BotDecision>;
   impacts: ImpactState;
   specials: SpecialEffectState;
   summons: SummonState;
-  /** Scratch, overwritten before every step: no state crosses frames. */
+
   frameImpacts: Slots<ImpactEvents>;
   poses: Slots<FighterPose>;
-  /** The step that reached this state: each fighter's legal and started actions (observedFrameLegalActions, observedFrameStartedActions). */
+
   readonly observedLegal: Slots<number>;
   readonly observedStarted: Slots<number>;
 }
@@ -59,7 +59,7 @@ export function createPacingAndPresentation(): PacingAndPresentation {
   };
 }
 
-/** Clears the impact, special-effect, summon and pose history; the pacing and the per-frame scratch stay. */
+
 export function clearPresentationHistory(runtime: PacingAndPresentation): void {
   clearImpactState(runtime.impacts);
   clearSpecialEffectState(runtime.specials);
@@ -91,11 +91,11 @@ export function copyBotDecision(target: BotDecision, source: Readonly<BotDecisio
   copyAttackBuffer(target.commands, source.commands);
 }
 
-/**
- * As createPacingAndPresentation leaves it, for every slot: copies keep the
- * per-slot observations of slots a match doesn't play, so a slot an earlier
- * match used would otherwise stay in later matches' state (`-dev reset`).
- */
+
+
+
+
+
 export function resetPacingAndPresentation(runtime: PacingAndPresentation): void {
   runtime.simulationFrame = 0;
   clearPresentationHistory(runtime);

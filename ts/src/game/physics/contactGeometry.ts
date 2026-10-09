@@ -1,13 +1,13 @@
-// Smashcraft's authored approximation of fighter contact, in simulation units.
-// Contact checks run for every hit region every frame and again in rollback
-// replays, so capsule functions fill a caller's record instead of returning
-// a new one.
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
 import { heroBody } from "../sim/heroes/heroBodies";
 import { Character } from "../sim/codes";
 
-/** A segment swept by a radius. */
+
 export interface Capsule {
   x1: number;
   z1: number;
@@ -16,7 +16,7 @@ export interface Capsule {
   radius: number;
 }
 
-/** An authored hit region's reach, relative to a fighter facing right. */
+
 interface Reach {
   readonly strike?: Readonly<Capsule> | undefined;
   readonly minX: number;
@@ -43,7 +43,7 @@ function pointSegmentDistanceSquared(px: number, pz: number, segment: Readonly<C
   return f32(f32(closestX * closestX) + f32(closestZ * closestZ));
 }
 
-/** Twice the signed area of a, b, c: positive when c lies left of a→b. */
+
 function orientation(ax: number, az: number, bx: number, bz: number, cx: number, cz: number): number {
   return f32(f32(f32(bx - ax) * f32(cz - az)) - f32(f32(bz - az) * f32(cx - ax)));
 }
@@ -51,7 +51,7 @@ function orientation(ax: number, az: number, bx: number, bz: number, cx: number,
 const between = (a: number, b: number, value: number) => value >= Math.min(a, b) && value <= Math.max(a, b);
 const straddles = (first: number, second: number) => (first < 0 && second > 0) || (first > 0 && second < 0);
 
-/** Whether two segments' coordinate bounds overlap, including touching endpoints. */
+
 export function segmentBoxesOverlap(ax: number, az: number, bx: number, bz: number, cx: number, cz: number, dx: number, dz: number): boolean {
   return Math.max(ax, bx) >= Math.min(cx, dx) && Math.max(cx, dx) >= Math.min(ax, bx)
     && Math.max(az, bz) >= Math.min(cz, dz) && Math.max(cz, dz) >= Math.min(az, bz);
@@ -63,30 +63,30 @@ function segmentsIntersect(a: Readonly<Capsule>, b: Readonly<Capsule>): boolean 
   const cdA = orientation(b.x1, b.z1, b.x2, b.z2, a.x1, a.z1);
   const cdB = orientation(b.x1, b.z1, b.x2, b.z2, a.x2, a.z2);
   if (straddles(abC, abD) && straddles(cdA, cdB)) return true;
-  // Collinear endpoints touch when they lie within the other segment's box.
+
   return (abC === 0 && between(a.x1, a.x2, b.x1) && between(a.z1, a.z2, b.z1))
     || (abD === 0 && between(a.x1, a.x2, b.x2) && between(a.z1, a.z2, b.z2))
     || (cdA === 0 && between(b.x1, b.x2, a.x1) && between(b.z1, b.z2, a.z1))
     || (cdB === 0 && between(b.x1, b.x2, a.x2) && between(b.z1, b.z2, a.z2));
 }
 
-// Every hit region tests its strike against every target on every frame,
-// replays included, and the exact test below is some ninety exact binary32
-// operations (about 1 µs each in Lua). The same formulas in raw arithmetic
-// (binary64 on the host, Warcraft's own rounding in Lua) stay within a few
-// ulps of them: an orientation within 13 binary32 rounding units of its
-// products' magnitudes, a squared distance within 400 of the squared
-// coordinate magnitude. Beyond allowances 10 to 300 times wider, the raw
-// values make the exact test's decision; nearer, the exact test makes it.
+
+
+
+
+
+
+
+
 const ROUGH_ALLOWANCE = 0.000244140625;
-/** Coordinates beyond this take the exact test. */
+
 const ROUGH_LIMIT = 1048576.0;
 
 const magnitude = (value: number) => (value < 0 ? -value : value);
 
-/** The sign orientation() takes, or 0 when the raw value is too near zero to tell. */
+
 function roughOrientation(ax: number, az: number, bx: number, bz: number, cx: number, cz: number): number {
-  // * 1.0 keeps Lua integers, which wrap, out of the products.
+  // Multiplying by 1.0 keeps wrapping Lua integers out of these products.
   const p = (bx - ax) * 1.0 * (cz - az);
   const q = (bz - az) * 1.0 * (cx - ax);
   const allowance = (magnitude(p) + magnitude(q)) * ROUGH_ALLOWANCE;
@@ -94,7 +94,7 @@ function roughOrientation(ax: number, az: number, bx: number, bz: number, cx: nu
   return difference > allowance ? 1 : difference < -allowance ? -1 : 0;
 }
 
-/** pointSegmentDistanceSquared in raw arithmetic. */
+
 function roughDistanceSquared(px: number, pz: number, segment: Readonly<Capsule>): number {
   const { x1, z1, x2, z2 } = segment;
   const dx = (x2 - x1) * 1.0;
@@ -109,7 +109,7 @@ function roughDistanceSquared(px: number, pz: number, segment: Readonly<Capsule>
   return closestX * closestX + closestZ * closestZ;
 }
 
-/** The larger of a capsule pair's coordinate magnitudes. */
+
 function coordinateScale(a: Readonly<Capsule>, b: Readonly<Capsule>): number {
   return Math.max(
     Math.max(Math.max(magnitude(a.x1), magnitude(a.z1)), Math.max(magnitude(a.x2), magnitude(a.z2))),
@@ -120,13 +120,13 @@ function coordinateScale(a: Readonly<Capsule>, b: Readonly<Capsule>): number {
 export function capsulesIntersect(a: Readonly<Capsule>, b: Readonly<Capsule>): boolean {
   const radius = f32(a.radius + b.radius);
   const scale = coordinateScale(a, b);
-  // NaN fails this comparison too, and takes the exact test.
+
   if (scale < ROUGH_LIMIT) {
     const abC = roughOrientation(a.x1, a.z1, a.x2, a.z2, b.x1, b.z1);
     const abD = roughOrientation(a.x1, a.z1, a.x2, a.z2, b.x2, b.z2);
     const cdA = roughOrientation(b.x1, b.z1, b.x2, b.z2, a.x1, a.z1);
     const cdB = roughOrientation(b.x1, b.z1, b.x2, b.z2, a.x2, a.z2);
-    // Nonzero signs: no orientation is exactly zero, so only the straddle decides.
+
     const crossing = abC !== 0 && abD !== 0 && cdA !== 0 && cdB !== 0 ? abC !== abD && cdA !== cdB : segmentsIntersect(a, b);
     if (crossing) return true;
     const limit = f32(radius * radius);
@@ -138,7 +138,7 @@ export function capsulesIntersect(a: Readonly<Capsule>, b: Readonly<Capsule>): b
     if (nearest > limit + allowance) return false;
     if (nearest < limit - allowance) return true;
   } else if (segmentsIntersect(a, b)) return true;
-  // Apart, two segments are closest at an endpoint of one projected onto the other.
+
   const distanceSquared = Math.min(
     Math.min(pointSegmentDistanceSquared(a.x1, a.z1, b), pointSegmentDistanceSquared(a.x2, a.z2, b)),
     Math.min(pointSegmentDistanceSquared(b.x1, b.z1, a), pointSegmentDistanceSquared(b.x2, b.z2, a)),
@@ -146,7 +146,7 @@ export function capsulesIntersect(a: Readonly<Capsule>, b: Readonly<Capsule>): b
   return distanceSquared <= f32(radius * radius);
 }
 
-/** Moves a facing-relative capsule to an origin, mirroring X for a left facing. Target may be the capsule itself. */
+
 export function placeCapsule(target: Capsule, local: Readonly<Capsule>, originX: number, originZ: number, facing: number): Capsule {
   const direction = facing < 0 ? -1.0 : 1.0;
   target.x1 = f32(originX + f32(direction * local.x1));
@@ -157,11 +157,11 @@ export function placeCapsule(target: Capsule, local: Readonly<Capsule>, originX:
   return target;
 }
 
-/**
- * Fills the provisional strike path of a Simulation attack style within a
- * region's reach. The move sets the strike's direction: a tall reach doesn't
- * make a jab a vertical strike.
- */
+
+
+
+
+
 export function attackCapsule(target: Capsule, style: number | undefined, reach: Reach): Capsule {
   const authored = reach.strike;
   if (authored !== undefined) {
@@ -173,43 +173,43 @@ export function attackCapsule(target: Capsule, style: number | undefined, reach:
     return target;
   }
   const { minX, maxX, minZ, maxZ } = reach;
-  if (style === 0) { // jab
+  if (style === 0) {
     target.x1 = 0.0;
     target.z1 = 45.0;
     target.x2 = 70.0;
     target.z2 = 45.0;
     target.radius = 10.0;
-  } else if (style === 15) { // up aerial
+  } else if (style === 15) {
     target.x1 = 0.0;
     target.z1 = 70.0;
     target.x2 = 0.0;
     target.z2 = f32(maxZ - 30.0);
     target.radius = 40.0;
-  } else if (style === 16) { // down aerial
+  } else if (style === 16) {
     target.x1 = 0.0;
     target.z1 = minZ;
     target.x2 = 0.0;
     target.z2 = -75.0;
     target.radius = 40.0;
-  } else if (style === 2 || style === 7) { // up smash, up tilt
+  } else if (style === 2 || style === 7) {
     target.x1 = 0.0;
     target.z1 = 20.0;
     target.x2 = f32(maxX - 30.0);
     target.z2 = f32(maxZ - 30.0);
     target.radius = 30.0;
-  } else if (style === 9 || style === 10) { // forward tilts angled up and down
+  } else if (style === 9 || style === 10) {
     target.x1 = minX;
     target.z1 = 45.0;
     target.x2 = f32(maxX - 34.0);
     target.z2 = style === 9 ? 175.0 : -85.0;
     target.radius = 10.0;
-  } else if (style === 3 || style === 8) { // down smash, down tilt
+  } else if (style === 3 || style === 8) {
     target.x1 = minX < 0 ? f32(minX + 25.0) : minX;
     target.z1 = 0.0;
     target.x2 = f32(maxX - 25.0);
     target.z2 = 0.0;
     target.radius = 25.0;
-  } else { // forward strikes
+  } else {
     target.x1 = minX < 0 ? f32(minX + 34.0) : minX;
     target.z1 = 45.0;
     target.x2 = maxX > 0 ? Math.max(minX, f32(maxX - 34.0)) : maxX;
@@ -219,10 +219,10 @@ export function attackCapsule(target: Capsule, style: number | undefined, reach:
   return target;
 }
 
-// Coarse, pose-independent hurt capsules fitted to each fighter's drawn body
-// at its model scale (presentation/modelScale.ts); they claim no Melee hurtbox
-// or animation parity. Expansion heroes scale the reference body's capsule by the roster's
-// width and height multipliers.
+
+
+
+
 const REFERENCE_HURT_CAPSULE: Readonly<Capsule> = { x1: 0.0, z1: 4.0, x2: 0.0, z2: 88.0, radius: 24.0 };
 const ORIGINAL_HURT_CAPSULES: Readonly<Record<number, Readonly<Capsule>>> = {
   1:
@@ -239,7 +239,7 @@ function scaledHurtCapsule(character: number): Readonly<Capsule> | undefined {
   return { x1: 0.0, z1: reference.z1, x2: 0.0, z2: f32(reference.z1 + f32(height - f32(2.0 * radius))), radius };
 }
 
-/** The original fighters' capsules and each registered hero body. */
+
 const HURT_CAPSULES: Readonly<Record<number, Readonly<Capsule>>> = (() => {
   const capsules: Record<number, Readonly<Capsule>> = { ...ORIGINAL_HURT_CAPSULES };
   for (const character of Object.values(Character)) {
@@ -250,7 +250,7 @@ const HURT_CAPSULES: Readonly<Record<number, Readonly<Capsule>>> = (() => {
   return capsules;
 })();
 
-/** A character's facing-relative hurt capsule; characters past the table share its last entry. */
+
 export function hurtCapsule(character: number): Readonly<Capsule> {
   return HURT_CAPSULES[character] ?? REFERENCE_HURT_CAPSULE;
 }

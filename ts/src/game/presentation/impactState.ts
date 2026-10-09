@@ -6,7 +6,7 @@ import { HitElement } from "../sim/hitRegions";
 import { DodgeCue, type ImpactEvents, ImpactLanding, JumpCue } from "./impactEvents";
 import { TIER_SPARK_SCALE } from "./moveTiers";
 
-// Impact kinds. Each owns a ring of IMPACTS_PER_KIND pool slots, in kind order.
+
 export const IMPACT_HIT = 0;
 const IMPACT_TECH = 1;
 const IMPACT_MISSED_TECH = 2;
@@ -50,7 +50,7 @@ interface ImpactPose {
   pitch: number;
 }
 
-/** A top KO's flying body: a visual handle's transform, never a fighter. */
+
 interface KoPose {
   visible: boolean;
   character: Character;
@@ -64,12 +64,12 @@ interface KoPose {
   roll: number;
 }
 
-/**
- * A pool of impacts by slot, as parallel arrays. Ages count executed frames
- * from emission; undefined marks a free slot, keeping each array dense in Lua.
- * A free slot holds the empty pool's values, so a copy skips slots free in both.
- * Projection reads the pool without advancing time or consuming events.
- */
+
+
+
+
+
+
 export interface ImpactState {
   readonly ages: (number | undefined)[];
   readonly occupied: number[];
@@ -85,7 +85,7 @@ export interface ImpactState {
 
 const filled = <T>(length: number, value: T): T[] => Array.from({ length }, () => value);
 
-/** An empty pool, copied for each new state: a snapshot ring creates one per frame it keeps. */
+
 const EMPTY: Readonly<ImpactState> = {
   ages: filled<number | undefined>(IMPACT_COUNT, undefined),
   occupied: filled(IMPACT_KIND_COUNT, 0),
@@ -101,7 +101,7 @@ const EMPTY: Readonly<ImpactState> = {
 
 export function createImpactState(): ImpactState {
   return {
-    // Every slot free: read by slot, and in Lua a list of nils is the empty table anyway.
+    // Read free slots by index: a Lua list of nils has no length.
     ages: [],
     occupied: EMPTY.occupied.slice(),
     nextSlot: EMPTY.nextSlot.slice(),
@@ -115,14 +115,14 @@ export function createImpactState(): ImpactState {
   };
 }
 
-/** An element of a pool array; indexes come from the pool's own bounds. */
+
 function at<T>(values: readonly T[], index: number): T {
   const value = values[index];
   if (value === undefined) throw new Error(`impact slot ${index} outside the pool`);
   return value;
 }
 
-/** Frees a slot and restores the empty pool's values. */
+
 export function clearImpactSlot(state: ImpactState, i: number): void {
   const kind = idiv(i, IMPACTS_PER_KIND);
   state.occupied[kind] = at(state.occupied, kind) & ~(1 << imod(i, IMPACTS_PER_KIND));
@@ -136,7 +136,7 @@ export function clearImpactSlot(state: ImpactState, i: number): void {
   state.strength[i] = 0.0;
 }
 
-/** Every snapshot save and every replayed frame copies the pool: its live slots, and those it frees. */
+
 export function copyImpactStateInto(target: ImpactState, source: Readonly<ImpactState>): void {
   for (let kind = 0; kind < IMPACT_KIND_COUNT; kind++) {
     const occupied = at(source.occupied, kind) | at(target.occupied, kind);
@@ -192,13 +192,13 @@ export function clearImpactState(state: ImpactState): void {
   for (let kind = 0; kind < IMPACT_KIND_COUNT; kind++) state.nextSlot[kind] = 0;
 }
 
-/** Frames a contact spark (a hit, pummel or shield hit) stays in the pool. */
+
 const CONTACT_FRAMES = 9;
 
-/** Frames an electric spark stays: Forked Lightning's 9 were gone natively by +8 (#301, #302). */
+
 export const ELECTRIC_CONTACT_FRAMES = 24;
 
-/** Frames an impact of this kind stays in the pool. */
+
 export function impactLifetime(kind: number): number {
   switch (kind) {
     case IMPACT_STAR_KO: return KO_STAR_FRAMES;
@@ -218,10 +218,10 @@ export function impactLifetime(kind: number): number {
   }
 }
 
-/** Hits, pummels and shield hits: the sparks a player must see for every hit that lands. */
+
 export const isContactImpact = (kind: number): boolean => impactLifetime(kind) === CONTACT_FRAMES || impactLifetime(kind) === ELECTRIC_CONTACT_FRAMES;
 
-/** Ages every live impact by one executed frame. */
+
 export function advanceImpacts(state: ImpactState): void {
   for (let kind = 0; kind < IMPACT_KIND_COUNT; kind++) {
     const occupied = at(state.occupied, kind);
@@ -237,7 +237,7 @@ export function advanceImpacts(state: ImpactState): void {
   }
 }
 
-/** Takes the kind's next ring slot, replacing whatever it held. */
+
 function spawn(state: ImpactState, kind: number, x: number, z: number, direction: number, size: number): number {
   const next = at(state.nextSlot, kind);
   const slot = kind * IMPACTS_PER_KIND + next;
@@ -253,7 +253,7 @@ function spawn(state: ImpactState, kind: number, x: number, z: number, direction
   return slot;
 }
 
-/** A tech stays anchored to contact; other cues drift along the inward normal. */
+
 function surfaceFlash(state: ImpactState, kind: number, events: Readonly<ImpactEvents>): void {
   const anchored = kind === IMPACT_TECH;
   const slot = spawn(state, kind, events.contactX, events.contactZ, anchored ? 0 : toInt(events.normalX), f32(0.8));
@@ -261,7 +261,7 @@ function surfaceFlash(state: ImpactState, kind: number, events: Readonly<ImpactE
   state.driftZ[slot] = anchored ? 0.0 : events.normalZ;
 }
 
-/** Emits one fighter's cues for an executed frame; `frame` paces running dust and picks a top KO's cinematic. */
+
 export function emitImpacts(state: ImpactState, events: Readonly<ImpactEvents>, frame: number): void {
   const { x, z } = events;
   if (events.grab) spawn(state, IMPACT_GRAB, x, f32(z + 50.0), 0, f32(0.65));
@@ -307,7 +307,7 @@ export function emitImpacts(state: ImpactState, events: Readonly<ImpactEvents>, 
   }
   if (events.launchTrail) spawn(state, IMPACT_DUST, x, f32(z + 45.0), 0, f32(0.6));
   if (events.koDirectionX === 0 && events.koDirectionZ > 0) {
-    // Presentation policy only: no random state, stock or respawn mutation.
+
     const kind = imod(frame + events.character, 2) === 0 ? IMPACT_STAR_KO : IMPACT_SCREEN_KO;
     const slot = spawn(state, kind, f32(x * f32(0.45)), min(z, 480.0), events.facing, 1.0);
     state.character[slot] = events.character;
@@ -325,13 +325,13 @@ export function emitImpacts(state: ImpactState, events: Readonly<ImpactEvents>, 
   }
 }
 
-/** How far an impact has drifted at the given velocity. */
+
 const travel = (velocity: number, age: number): number => f32(f32(velocity * age) * f32(1.3));
 
-// Shared and never changed: renderers project every pooled effect on every callback.
+
 const HIDDEN_IMPACT: Readonly<ImpactPose> = { visible: false, alpha: 0, scale: 0.0, x: 0.0, z: 0.0, pitch: 0.0 };
 
-/** An impact slot's transform. KO slots show only a star KO's closing sparkle. */
+
 export function projectImpact(state: Readonly<ImpactState>, i: number): Readonly<ImpactPose> {
   if (i < 0 || i >= IMPACT_COUNT) return HIDDEN_IMPACT;
   const age = state.ages[i];
@@ -360,7 +360,7 @@ export function projectImpact(state: Readonly<ImpactState>, i: number): Readonly
   const opacity = kind === IMPACT_DUST ? f32(220 * strength) : 255.0;
   return {
     visible: true,
-    // Stock particles ignore alpha: a live slot must stay drawn until it parks.
+    // Stock particles ignore alpha; keep live slots drawn until parked.
     alpha: max(1, toInt(f32(f32(opacity * fade) * fade))),
     scale: f32(scale * strength),
     x: f32(originX + travel(drift, age)),
@@ -369,14 +369,14 @@ export function projectImpact(state: Readonly<ImpactState>, i: number): Readonly
   };
 }
 
-// Shared and never changed: renderers project every pooled effect on every callback.
+
 const HIDDEN_KO: Readonly<KoPose> = { visible: false, character: 1, alpha: 0, scale: 0.0, x: 0.0, y: 0.0, z: 0.0, pitch: 0.0, yaw: 0.0, roll: 0.0 };
 
-/**
- * A top KO's body: a star KO flies away and spins, a screen KO hits the
- * camera and drops. Pure transforms of the age, so they freeze with the
- * confirmed frame clock.
- */
+
+
+
+
+
 export function projectKo(state: Readonly<ImpactState>, i: number): Readonly<KoPose> {
   if (i < IMPACT_STAR_KO * IMPACTS_PER_KIND || i >= IMPACT_COUNT) return HIDDEN_KO;
   const age = state.ages[i];

@@ -45,14 +45,14 @@ import { clockSeconds } from "./trace";
 
 declare const os: { readonly clock?: (this: void) => number } | undefined;
 
-/** Two 60 Hz display intervals; callback counts cannot identify a real draw. */
+
 const RESUME_PRESENTATION_SECONDS = f32(1.0 / 30.0);
 
 export function resumePresentationHeld(s: Readonly<ShellState>): boolean {
   return s.resumePresentationUntil !== undefined;
 }
 
-/** Presentation alone waits for the local clock; input and match frames keep running. */
+
 export function serviceResumePresentation(s: ShellState): void {
   if (s.resumePresentationUntil === undefined) return;
   if (s.game.phase === Phase.match && typeof os === "object" && typeof os.clock === "function" && os.clock() < s.resumePresentationUntil) return;
@@ -60,7 +60,7 @@ export function serviceResumePresentation(s: ShellState): void {
   setMatchPresentationPaused(s, s.session.paused);
 }
 
-/** Text that waits for the players stays this long. */
+
 export const LASTING = 3600.0;
 
 export function setStatus(s: ShellState, text: string, seconds: number): void {
@@ -68,7 +68,7 @@ export function setStatus(s: ShellState, text: string, seconds: number): void {
   s.status.seconds = seconds;
 }
 
-/** A two-second announcement. */
+
 export function announce(s: ShellState, text: string): void {
   setStatus(s, text, 2.0);
 }
@@ -131,7 +131,7 @@ function placePart(deck: effect, part: Readonly<PlatformPart>, x: number, y: num
   BlzSetSpecialEffectYaw(deck, part.yaw * (Math.PI / 180.0));
 }
 
-/** One deck model per surface of the chosen stage: the main deck's own, drawn from its collision, and a slab for each raised deck. */
+
 export function drawStage(s: ShellState): void {
   clearStageDecks(s);
   drawStageScenery(s);
@@ -147,7 +147,7 @@ export function drawStage(s: ShellState): void {
     BlzSetSpecialEffectPosition(deck, x, origin.y, z);
     const parts = platformParts(stage, index);
     if (parts.length > 0) {
-      // Stock platforms: the first part stands in for the slab and the rest dress it.
+
       for (const [order, part] of parts.entries()) {
         const effect = order === 0 ? deck : AddSpecialEffect(part.model, x, origin.y);
         placePart(effect, part, x, origin.y, z);
@@ -216,7 +216,7 @@ function presentWind(s: ShellState, stage: number, frame: number): void {
   }
 }
 
-/** Blackrock's lava on its frame's side: hidden while calm, a growing glow through the warning, then full lava. */
+
 function presentLava(s: ShellState, stage: number, frame: number): void {
   const lava = s.stageLava;
   if (lava === undefined || !hasLava(stage)) return;
@@ -227,7 +227,7 @@ function presentLava(s: ShellState, stage: number, frame: number): void {
   BlzSetSpecialEffectColor(lava, look.red, look.green, look.blue);
 }
 
-/** The unit's view of a confirmed frame: visibility, clip, rate, position and tint. */
+
 export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readonly<FighterPose>, wasOut: boolean): void {
   if (resumePresentationHeld(s)) return;
   const participant = s.participants[slot];
@@ -243,12 +243,12 @@ export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readon
   ShowUnit(body.unit, !pooled && !fighter.status.out);
   if (body.renderedSelection !== pose.selectionSerial) {
     if (!pooled) {
-      // Starting a hero's Death sequence plays its death cry: only strong hits and knockouts may.
+
       const cry = gateCry(body.cry ??= createCryGate(), s.runtime.simulationFrame, fighter, pose.clipIndex, pose.clipName);
       const standIn = cry === CryDecision.standIn ? cryStandIn(fighter.character) : undefined;
       if (standIn !== undefined) SetUnitAnimationByIndex(body.unit, standIn);
       else if (cry === CryDecision.keep) {
-        // The cry clip already showing carries on.
+
       } else if (pose.clipIndex !== undefined) SetUnitAnimationByIndex(body.unit, pose.clipIndex);
       else SetUnitAnimation(body.unit, pose.clipName);
     }
@@ -271,7 +271,7 @@ export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readon
   SetUnitVertexColor(body.unit, red, green, blue, alpha);
 }
 
-/** Freezes or resumes the units, effects and projectiles. */
+
 export function pauseMatchPresentation(s: ShellState, paused: boolean): void {
   s.resumePresentationUntil = undefined;
   if (paused && s.game.phase === Phase.match) {
@@ -308,7 +308,7 @@ interface PresentedMatch {
   readonly playing: boolean;
 }
 
-/** The match persistent visuals show: the speculative one while predicted presentation runs. */
+
 function presentedMatch(s: ShellState): PresentedMatch {
   const rollback = activeRollback(s);
   const confirmedPlaying = s.game.phase === Phase.match;
@@ -319,15 +319,15 @@ function presentedMatch(s: ShellState): PresentedMatch {
   return { game: s.game, world: s.world, runtime: s.runtime, playing: confirmedPlaying };
 }
 
-// Preallocated: each live fighter's marker, written by markAgency every callback before it is drawn.
+
 const agencyMarks: Slots<FighterAgency> = ["act", "act", "act", "act"];
 
-/**
- * Each live fighter's marker. A motion forecast costs up to a few fighter
- * steps, so a callback runs at most one for fighters still in the hit their
- * last forecast covered, the stalest; the others show that forecast, at most
- * MAX_REUSE_AGE frames old. A new hit or an older forecast always runs (#168).
- */
+
+
+
+
+
+
 function markAgency(ui: UiObjects, world: Readonly<Roster>, stage: number, matchFrame: number, controls: Readonly<FrameControls>): void {
   let stalest = -1;
   let stalestAge = -1;
@@ -353,7 +353,7 @@ function markAgency(ui: UiObjects, world: Readonly<Roster>, stage: number, match
   if (forecast !== undefined && stalestAge > 0) agencyMarks[stalest] = forecast.forecast(world, stalest, stage, matchFrame, at(controls.commands, stalest).graceFrames);
 }
 
-/** Runs once per callback, after confirmed catch-up and any replay. */
+
 export function renderPersistentPresentation(s: ShellState): void {
   if (resumePresentationHeld(s)) return;
   const now = clockSeconds(s.trace);
@@ -363,7 +363,7 @@ export function renderPersistentPresentation(s: ShellState): void {
   const { game, world, runtime, playing } = presentedMatch(s);
   const stage = game.stageChoice;
   const matchFrame = stageClock(game);
-  // The decks drawn are the drawn stage's: the stage menu changes the choice before the match draws it.
+
   const drawn = s.drawnStage;
   const beforePlatform = framesUntilPlatformMoves(drawn, matchFrame);
   for (let index = 0; index < s.stageDeckParts.length; index++) {
@@ -436,14 +436,14 @@ export function renderPersistentPresentation(s: ShellState): void {
   }
 }
 
-// Preallocated scratch for each slot's escape meter.
+
 const meter = escapeMeterView();
 
 function applyArenaCamera(s: ShellState, framing: Readonly<MatchCamera>, aspect: number, angle: number, duration: number): void {
   const { x: centerX, y: centerY } = s.origin;
   const targetX = centerX + framing.x;
   if (duration > 0.0) {
-    // A bound at the new target would snap the pan before its timed movement.
+
     const bounds = stageBounds(s.game.stageChoice).camera;
     const left = centerX + bounds.left;
     const right = centerX + bounds.right;
@@ -460,11 +460,11 @@ function applyArenaCamera(s: ShellState, framing: Readonly<MatchCamera>, aspect:
   else SetCameraPosition(targetX, centerY);
 }
 
-/** Frames the live fighters of the presented match from the side. */
+
 export function lockArenaCamera(s: ShellState): void {
   if (resumePresentationHeld(s)) return;
   const { world, game } = presentedMatch(s);
-  // Menus have no simulation camera yet; this temporary view never enters replay state.
+
   if (!game.camera.initialized) advanceMatchCamera(s.camera, world, game.stageChoice);
   const height = BlzGetLocalClientHeight();
   const aspect = height > 0 ? I2R(BlzGetLocalClientWidth()) / I2R(height) : 16.0 / 9.0;
@@ -474,7 +474,7 @@ export function lockArenaCamera(s: ShellState): void {
   const { x: centerX, y: centerY } = s.origin;
   const framing = s.camera;
   if (game.phase === Phase.match && game.run.active && game.run.boss.kind !== 0 && !s.session.paused) {
-    // Following a launched fighter can hide the deck before a boss's low attack.
+
     framing.x = 0.0;
     framing.z = 160.0;
     framing.distance = 1450.0;
@@ -484,7 +484,7 @@ export function lockArenaCamera(s: ShellState): void {
   const duration = s.cameraTween === true && game.phase === Phase.match && !s.session.paused ? FRAME_SECONDS : 0.0;
   applyArenaCamera(s, framing, aspect, pauseCameraAngle(s), duration);
   if (s.build.analogPadDiagnostic === true) {
-    // Calibration stays valid throughout both candidate ingress measurements.
+
     SetCameraBounds(centerX, centerY, centerX, centerY, centerX, centerY, centerX, centerY);
     SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, 270.0, 0.0);
     SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, 3200.0, 0.0);
@@ -505,7 +505,7 @@ export function lockArenaCamera(s: ShellState): void {
   }
 }
 
-/** HUD, panels, help and results, for the local player. */
+
 export function renderUi(s: ShellState): void {
   if (resumePresentationHeld(s)) return;
   const { game } = s;

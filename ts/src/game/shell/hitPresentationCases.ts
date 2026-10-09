@@ -4,11 +4,11 @@ import { type ImpactEvents, ImpactLanding, JumpCue, createImpactEvents } from ".
 import { presentImpactSounds } from "../presentation/hitPresentation";
 import { ELEMENTS } from "../presentation/elementLooks";
 
-/**
- * Native mapping inspection: each case names an observable effect and sound.
- * Contact, ledge and jump cues carry their own position: the event default is
- * the floor origin, which buries them.
- */
+
+
+
+
+
 export const HIT_PRESENTATION_CASES = [
       { cue: { hit: true }, sound: "WoodLightBashFlesh1", model: "ImpactHit-" },
       { cue: { hit: true, strength: 2, tier: 2 }, sound: "WoodHeavyBashFlesh1", model: "ImpactHit-" },
@@ -39,7 +39,7 @@ export const HIT_PRESENTATION_CASES = [
       { cue: { ordinaryLanding: true }, sound: "DeepFootstep", model: "ImpactDust-" },
 ] as const;
 
-/** Every sound label hit presentation plays: the cases above and a hit of each element. */
+
 export function hitPresentationSoundLabels(): string[] {
   const labels = new Set<string>();
   const cues: Partial<ImpactEvents>[] = [...HIT_PRESENTATION_CASES.map(({ cue }) => cue), ...ELEMENTS.map((element) => ({ hit: true, element }))];

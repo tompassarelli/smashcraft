@@ -1,6 +1,6 @@
-// Key event triggers. Start (Y) always has its own trigger; every other key
-// is registered only while keys drive menus or a callback match. A rollback
-// match polls the keyboard instead, so its triggers are removed for combat.
+
+
+
 import { PARTICIPANT_SLOTS } from "../../game/input/participants";
 import { Phase, humanActive } from "../../game/match/rules";
 import { trampoline } from "wisp/src/platform/dispatch";
@@ -11,12 +11,12 @@ import { pauseCameraKey } from "./pauseCamera";
 export const KEY_DOWN = "shell.keyDown";
 export const KEY_UP = "shell.keyUp";
 
-/** Warcraft OS key codes the shell reads by name. */
+
 export const Key = {
   enter: 0x0d, escape: 0x1b, g: 0x47, h: 0x48, j: 0x4a, k: 0x4b, n: 0x4e, r: 0x52, t: 0x54, u: 0x55, w: 0x57, y: 0x59, f1: 0x70, f2: 0x71,
 } as const;
 
-/** Registers the key, with no modifier, for every human. */
+
 export function registerKey(s: Readonly<ShellState>, trigger: trigger, key: number, down: boolean, meta: number = 0): void {
   for (const slot of PARTICIPANT_SLOTS) {
     if (humanActive(s.game, slot)) BlzTriggerRegisterPlayerKeyEvent(trigger, Player(slot), ConvertOsKeyType(key), meta, down);
@@ -32,7 +32,7 @@ function registerKeys(s: ShellState, escapeOnly: boolean): void {
   const down = CreateTrigger();
   const up = CreateTrigger();
   for (let key = 1; key <= 255; key++) {
-    // Return belongs to Warcraft chat while playing, and to the pause menu while paused.
+
     const pauseKey = pauseCameraKey(key) || key === Key.escape || key === Key.enter || key === Key.f2 || key === 0x26 || key === 0x28 || key === 32 || key === 69 || key === Key.n || key === Key.u;
     if (key === Key.y || (!escapeOnly && key === Key.enter) || (escapeOnly && !pauseKey)) continue;
     registerKey(s, down, key, true);
@@ -57,11 +57,11 @@ export function removeKeyEvents(s: ShellState): void {
   keyEvents.up = undefined;
 }
 
-/**
- * Called after anything that changes the phase, the pause or the rollback session.
- * A rollback match polls the keyboard, so it has no key triggers; paused, it
- * reads only pause-menu keys. Their handlers return before sampling combat input.
- */
+
+
+
+
+
 export function syncKeyEvents(s: ShellState): void {
   const rollbackMatch = activeRollback(s) !== undefined && s.game.phase === Phase.match;
   if (rollbackMatch && !s.session.paused) removeKeyEvents(s);

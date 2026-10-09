@@ -1,10 +1,10 @@
 import { nextMatchCharacter, selectableMatchCharacter } from "../match/rules";
 import { RULE_BUTTONS, RULE_HEIGHT, type RuleBox, type TrainingSetting, cpuSettingsBox } from "./ruleButtons";
-// The character panel of one participant. Every client builds all four panels;
-// only the owner's client shows its own and reads its pointer, and a placed or
-// recalled chip crosses a player sync event before the game sees it. Beside the
-// roster each panel shows the match rules, which any player changes with a
-// synchronized click.
+
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
 import { Action } from "../input/actions";
@@ -61,7 +61,7 @@ import { slotColor } from "./slotColors";
 import { type TutorialButton, type TutorialMenuFrames, createTutorialMenu, markTutorialSeen, showTutorialLesson, tutorialSeen } from "./tutorialMenu";
 import { ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
 
-/** What a participant's panel asks the game to do; each call comes from a synchronized event. */
+
 export interface SelectionActions {
   selectChoice(participantId: number, choice: RosterTile): void;
   selectCpuChoice(participantId: number, cpu: number, choice: RosterTile): void;
@@ -99,7 +99,7 @@ function cpuCardSummary(game: Readonly<MatchState>, slot: number): string {
   return `${titleCase(game.cpuOpponents[slot] ?? CPU_OPPONENT_DEFAULT)}\n${titleCase(game.cpuTiers[slot] ?? CPU_TIER_DEFAULT)}`;
 }
 
-/** One participant slot's card along the bottom of the panel. */
+
 interface CardFrames {
   readonly card: framehandle;
   readonly tag: framehandle;
@@ -134,7 +134,7 @@ function label(parent: framehandle, name: string, x: number, y: number, width: n
   return frame;
 }
 
-/** An invisible dialog button over art that shows what it does. */
+
 function hotspot(parent: framehandle, x: number, y: number, width: number, height: number): framehandle {
   const frame = BlzCreateFrame("ScriptDialogButton", parent, 0, 0);
   placeTopLeft(frame, x, y);
@@ -143,7 +143,7 @@ function hotspot(parent: framehandle, x: number, y: number, width: number, heigh
   return frame;
 }
 
-/** Roster tiles are positions in the selectable fighters; a fighter chosen by tile is that character. */
+
 const characterOfTile = (tile: RosterTile): number => PLAYABLE_CHARACTERS[tile] ?? Character.rifleman;
 function tileOfCharacter(character: number): RosterTile {
   for (let tile = 0; tile < PLAYABLE_CHARACTERS.length; tile++) if (PLAYABLE_CHARACTERS[tile] === character) return tile;
@@ -165,20 +165,20 @@ export class SelectionPanel {
   private readonly clicks: ButtonClicks<SelectionButton>;
   private readonly syncTriggers: readonly trigger[];
   private readonly drag = selectionDrag();
-  // Preallocated: the owner's client reads the pointer every rendered frame.
+
   private readonly chips: RosterChip[] = PARTICIPANT_SLOTS.map(() => ({ choice: 0, placed: false }));
   private readonly roster: Roster = { grid: rosterGrid(PLAYABLE_CHARACTERS.length), selectable: 0, chips: this.chips };
-  /** The match the panel last showed; synchronized events check choices against it. */
+
   private game: Readonly<MatchState> | undefined;
   private settingsOpen = false;
-  /** The Moves page: presentation only, opened and paged by the owner's clicks; the fighter it shows. */
+
   private movesOpen = false;
   private movesCharacter: number = Character.rifleman;
   private shownMoves = -1;
   private readonly movesFrames: readonly framehandle[];
   private readonly movesTitle: framehandle;
   private readonly movesBody: framehandle;
-  /** The match mode in the header's title box. */
+
   private readonly modeLabel: framehandle;
   private shownMode = "";
   private readonly stockValue: framehandle;
@@ -190,18 +190,18 @@ export class SelectionPanel {
   private readonly trainingToggle: framehandle;
   private readonly hitAreasToggle: framehandle;
   private readonly speedToggle: framehandle;
-  /** Each partner choice's value between its two steps. */
+
   private readonly partnerValues: readonly framehandle[];
-  /** The match rules training has no use for, and the partner choices that replace them. */
+
   private readonly matchRuleFrames: readonly framehandle[];
   private readonly trainingFrames: readonly framehandle[];
-  /** Classic's difficulty stepper, its value and the chosen fighter's route. */
+
   private readonly classicFrames: readonly framehandle[];
   private readonly classicTierValue: framehandle;
   private readonly classicRoute: framehandle;
-  /** The stock and time buttons, which endless play leaves unused. */
+
   private readonly steps: readonly framehandle[];
-  /** The rules the panel last showed. */
+
   private shownRules: string | undefined;
   private cpuSlot: number | undefined;
   private cpuFocus: 0 | 1 | 2 = 0;
@@ -215,10 +215,10 @@ export class SelectionPanel {
   private readonly cpuSteps: framehandle[] = [];
   private menuPrompt = "";
   private readonly tutorial: TutorialMenuFrames;
-  /** The tutorial menu: presentation only, opened by the owner's click or, once, by itself for a new player. */
+
   private tutorialOpen = false;
   private tutorialOffered = false;
-  // This client's answer, read from its file once: headless clients share this module, so it can't live there.
+
   private seen: boolean | undefined;
 
   constructor(
@@ -312,7 +312,7 @@ export class SelectionPanel {
       pageButton(`MeleeMovesBack${suffix}`, f32(0.33), f32(0.14), "Back", { kind: "movesBack" }),
       pageButton(`MeleeMovesNext${suffix}`, f32(0.5), f32(0.1), ">", { kind: "movesStep", direction: 1 }),
     ];
-    // Generated from scripts/wisp/uiFrames.ts (wisp:docs/ui.md); the participant is its context.
+
     const cpu = createOpponentSettings(gameUi(), participantId);
     if (cpu === undefined) throw new Error("the Opponent settings frames did not load");
     this.cpuRoot = cpu.root;
@@ -449,7 +449,7 @@ export class SelectionPanel {
     else this.actions.toggleAutomaticRematch(this.participantId);
   }
 
-  /** The game the panel may take choices for now, or undefined while it isn't choosing. */
+
   private choosing(): Readonly<MatchState> | undefined {
     const { game } = this;
     return game === undefined || game.phase !== Phase.characterMenu || this.settingsOpen || !humanActive(game, this.participantId) ? undefined : game;
@@ -477,7 +477,7 @@ export class SelectionPanel {
     else this.actions.changeCpuTier(this.participantId, cpuSlot, direction);
   }
 
-  /** Start consumes this press. The shell's startHeld latch requires release before another Start. */
+
   consumeStart(): boolean {
     if (this.cpuSlot === undefined) return false;
     this.closeCpuSettings();
@@ -488,12 +488,12 @@ export class SelectionPanel {
     return this.cpuSlot !== undefined;
   }
 
-  /** A retained panel from before the CPU settings frame existed must be rebuilt. */
+
   hasCpuSettingsFrames(): boolean {
     return this.cpuRoot !== undefined && this.tutorial !== undefined;
   }
 
-  /** Participant-local focus, updated by the existing synchronized menu events. */
+
   menuAction(action: Action): boolean {
     const game = this.choosing();
     if (game === undefined) return false;
@@ -572,7 +572,7 @@ export class SelectionPanel {
     if (this.choosing() !== undefined && tile !== undefined) this.actions.selectChoice(this.participantId, characterOfTile(tile));
   }
 
-  /** Data is the computer's slot digit, then the full tile number. */
+
   private acceptCpuDrop(data: string): void {
     const game = this.choosing();
     const placement = decodeCpuPlacement(data, PLAYABLE_CHARACTERS.length);
@@ -595,19 +595,19 @@ export class SelectionPanel {
     else if (canChooseComputer(game, this.participantId, slot)) BlzSendSyncData("cpu-fighter-drop", `${I2S(slot)}${I2S(tile)}`);
   }
 
-  /** The roster tile under this client's pointer, for the hover sound. */
+
   hoveredTile(): number | undefined {
     return this.drag.hover;
   }
 
-  /** The attack key: places the held chip on the hovered tile. */
+
   placeHovered(): void {
     if (!this.ownsLocalClient()) return;
     const placement = placeHovered(this.drag);
     if (placement !== undefined) this.sendPlacement(placement);
   }
 
-  /** Sends the held chip back to its card. */
+
   recallHeld(): void {
     const { held } = this.drag;
     if (this.ownsLocalClient() && this.choosing() !== undefined && held !== undefined) BlzSendSyncData("fighter-recall", I2S(held));
@@ -624,7 +624,7 @@ export class SelectionPanel {
     markTutorialSeen();
   }
 
-  /** Every rendered frame on every client, for every panel; only the owner's client draws. */
+
   update(game: Readonly<MatchState>, settingsOpen: boolean): void {
     this.game = game;
     this.settingsOpen = settingsOpen;
@@ -633,7 +633,7 @@ export class SelectionPanel {
     const { participantId, drag } = this;
     const visible = this.choosing() !== undefined;
     const cpuOpen = visible && this.cpuSlot !== undefined;
-    // A match started: this player needs no offer any more.
+
     if (game.phase === Phase.match) this.markSeen();
     if (visible && !this.tutorialOffered) {
       this.tutorialOffered = true;
@@ -731,7 +731,7 @@ export class SelectionPanel {
     this.showRules(game);
   }
 
-  /** Opens on the owner's chosen fighter. */
+
   private openMoves(): void {
     const game = this.game;
     this.movesCharacter = (game === undefined ? undefined : characterFor(game, this.participantId)) ?? Character.rifleman;
@@ -741,7 +741,7 @@ export class SelectionPanel {
   private showMoves(): void {
     if (this.shownMoves === this.movesCharacter) return;
     this.shownMoves = this.movesCharacter;
-    // Ultimates have no match rule yet, so the page leaves them out.
+
     const { title, lines } = movesPage(this.movesCharacter, false);
     BlzFrameSetText(this.movesTitle, title);
     BlzFrameSetText(this.movesBody, lines.join("\n\n"));

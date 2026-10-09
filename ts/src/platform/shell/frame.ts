@@ -1,6 +1,6 @@
-// Executing one confirmed match frame: the recorded row runs through the
-// simulation, then each fighter's changes are announced, traced and shown.
-// Callback matches also produce that row here, from synchronized key events.
+
+
+
 import { hasPendingAttack, clearAttackBuffer } from "../../game/input/attackBuffer";
 import { adaptInput } from "../../game/input/adapter";
 import { commitEdges } from "../../game/input/keyboardCapture";
@@ -54,7 +54,7 @@ function observe(before: FrameObservation, fighter: Readonly<Fighter>): void {
 
 const bit = (value: boolean) => (value ? "1" : "0");
 
-/** Announcements and trace lines for what the frame changed; trace text is built only while tracing. */
+
 function reportChanges(s: ShellState, slot: ParticipantSlot, before: Readonly<FrameObservation>, f: Readonly<Fighter>): void {
   if (s.trace.active) traceChanges(s, slot, before, f);
 }
@@ -84,7 +84,7 @@ function traceChanges(s: ShellState, slot: ParticipantSlot, before: Readonly<Fra
   if (before.damage !== f.status.damage) traceParticipant(s, slot, `damage ${R2S(f.status.damage)} hitlag ${f.launch.hitlag} hitstun ${f.launch.hitstun} height ${f.visuals.hitHeight} strength ${f.visuals.hitStrength} clip ${s.runtime.poses[slot].clipIndex ?? -1}`);
   const influence = before.di !== f.launch.diSerial ? influenceOperands(f) : undefined;
   if (influence !== undefined) {
-    // Exact x, z, stick x, stick z, degrees, radians and angle, so a replay can repeat the DI operation by operation.
+
     const { x, z, stickX, stickZ, degrees, angleRadians } = influence;
     const exact = [x, z, stickX, stickZ, degrees, angleRadians, f.launch.diAngleDegrees].map(value => canonicalReal(value)).join(" ");
     traceParticipant(s, slot, `di ${f.launch.diSerial} ${exact}`);
@@ -92,18 +92,18 @@ function traceChanges(s: ShellState, slot: ParticipantSlot, before: Readonly<Fra
   if (before.attack !== f.attack.serial) traceParticipant(s, slot, `applied attack ${f.attack.serial} style ${f.attack.style ?? -1}`);
 }
 
-/**
- * Before a confirmed frame's controls are made: the replay and the moment
- * record start, or keep the match as the frame finds it. A callback match
- * calls it before its computers choose their controls, which change the
- * match (their attack delays); a rollback match's applyFrame calls it.
- */
+
+
+
+
+
+
 function beginRecordedFrame(s: ShellState, frame: number): void {
   beginReplayFrame(s, frame);
   beginMomentFrame(s.moment.recorder, frame, s.world, s.game, s.controls, s.runtime);
 }
 
-/** Runs the frame the frame input captured, then presents its confirmed result; `recorded` when the caller began its record. */
+
 export function applyFrame(s: ShellState, recorded = false): void {
   for (const slot of PARTICIPANT_SLOTS) if (isActive(s.world, slot)) observe(s.participants[slot].before, fighterAt(s.world, slot));
   const frame = s.frameInput.frame;
@@ -111,8 +111,8 @@ export function applyFrame(s: ShellState, recorded = false): void {
   const { recorder } = s.moment;
   if (!recorded) beginRecordedFrame(s, frame);
   views(s).match.observe(s.game, s.world);
-  // The speculative match usually ran this frame on this row already. The
-  // response probe and the integrity trace read the step's own observations.
+
+
   const rollback = activeRollback(s);
   const ran = rollback !== undefined && !s.game.training && !s.trace.active && !probeRecording(s.probe) ? rollback.playback.confirmedState(rollback.epoch, frame, s.frameInput) : undefined;
   if (ran === undefined) {
@@ -156,7 +156,7 @@ export function applyFrame(s: ShellState, recorded = false): void {
   const cues = ui.match.presentConfirmed(s.game, world);
   if (s.game.phase !== Phase.result) return;
   clearMatchEffects(s);
-  // The countdown changes the match between frames: the moment keeps it as its last frame left it.
+
   keepMomentEnd(recorder, world, s.game, s.controls, runtime);
   endReplaySegment(s);
   ownConfirmedState(s);
@@ -167,10 +167,10 @@ export function applyFrame(s: ShellState, recorded = false): void {
   setStatus(s, resultMessage(s.game), LASTING);
 }
 
-/** A frame of a callback match: adapt each human's keys, choose the computers' controls, and run it. */
+
 export function callbackMatchTick(s: ShellState): void {
   const frame = s.runtime.simulationFrame + 1;
-  // A frame the input already captured isn't run again, so it starts no record.
+
   const fresh = s.frameInput.frame !== frame;
   if (fresh) beginRecordedFrame(s, frame);
   for (const slot of PARTICIPANT_SLOTS) {

@@ -1,20 +1,20 @@
-// The I4 input packet: one or two consecutive frames of one participant's
-// controls. The companion helper writes it, so its exact text is a protocol.
-// The I5 message below carries a journal's rows between clients.
-//
-// "I4" | record count (1 or 2) | epoch varint | first-frame varint | records.
-// Varints carry 5 payload bits per character, least significant first; the
-// sixth bit marks continuation. Each record starts with six presence flags:
-// held, edges, axes, triggers, press metadata, throw totals. A present group is
-// never zero, so every row has exactly one spelling. Sender identity comes from
-// the receive event, not the packet.
+// Companion I4/I5 packet text is an external protocol.
+
+
+
+
+
+
+
+
+
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { ALL_ACTIONS } from "./actions";
 import { type Direction, type InputRow, type RowFields, emptyInput, isInputRow, predictInto, sameInput } from "./inputRow";
 
 export const ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_";
 
-/** The last frame number; one signed value stays free for the next-frame cursor. */
+
 export const INPUT_LAST_FRAME = 2147483646;
 const MAX_EPOCH = 2147483647;
 export const HEADER_MIN_BYTES = 5;
@@ -26,13 +26,13 @@ export const PACKET_MAX_BYTES = HEADER_MAX_BYTES + 2 * RECORD_MAX_BYTES;
 export interface InputPacket {
   epoch: number;
   firstFrame: number;
-  /** Consecutive frames from firstFrame: one or two on the wire; a journal record that joins packets carries more. */
+
   rows: readonly InputRow[];
 }
 
 const Flag = { held: 1, edges: 2, axes: 4, triggers: 8, metadata: 16, throws: 32 } as const;
 
-/** Builds a packet, or undefined when the epoch, frames or row count are out of range. */
+
 export function inputPacket(epoch: number, firstFrame: number, rows: readonly InputRow[]): InputPacket | undefined {
   const valid = epoch >= 0 && firstFrame >= 1 && firstFrame <= INPUT_LAST_FRAME
     && (rows.length === 1 || rows.length === 2) && firstFrame <= INPUT_LAST_FRAME - (rows.length - 1);
@@ -45,9 +45,9 @@ export function packetSizeInRange(bytes: number, records: number): boolean {
     && bytes <= HEADER_MAX_BYTES + RECORD_MAX_BYTES * records;
 }
 
-// ---------------------------------------------------------------- encoding
 
-/** Fixed-width base-64 digits, most significant first. */
+
+
 function digits(value: number, width: number): string {
   let text = "";
   let remaining = value;
@@ -69,7 +69,7 @@ function varint(value: number): string {
   return text;
 }
 
-/** -1, 0, 1 as 1, 0, 2: zero stays zero so absent groups stay omitted. */
+
 const directionDigit = (value: Direction) => (value < 0 ? 1 : value * 2);
 const signedDigit = (value: number) => (value < 0 ? -2 * value - 1 : 2 * value);
 const signedValue = (digit: number) => (floorMod(digit, 2) === 1 ? -floorDiv(digit + 1, 2) : floorDiv(digit, 2));
@@ -87,7 +87,7 @@ function encodeRecord(row: Readonly<InputRow>): string {
   if (axes !== 0) group(Flag.axes, digits(axes, 3));
   const triggers = row.triggerLeft * 256 + row.triggerRight;
   if (triggers !== 0) group(Flag.triggers, digits(triggers, 3));
-  // The smash-DI vector is nonzero exactly when a pulse exists, so it carries the pulse.
+
   const metadata = directionDigit(row.specialX) + 3 * directionDigit(row.specialZ)
     + 9 * directionDigit(row.dodgeX) + 27 * directionDigit(row.dodgeZ)
     + 81 * directionDigit(row.sdiX) + 243 * directionDigit(row.sdiZ) + 729 * directionDigit(row.ledgeVertical);
@@ -101,9 +101,9 @@ export function encodePacket(packet: InputPacket): string {
   return `I4${digits(packet.rows.length, 1)}${varint(packet.epoch)}${varint(packet.firstFrame)}${packet.rows.map((row) => encodeRecord(row)).join("")}`;
 }
 
-// ---------------------------------------------------------------- decoding
 
-/** Reads text left to right; every read returns undefined past a malformed field. */
+
+
 class Reader {
   offset: number;
   constructor(private readonly text: string, offset: number) {
@@ -132,7 +132,7 @@ class Reader {
     return value;
   }
 
-  /** A canonical varint no larger than maximum: no trailing zero digit, at most 7 digits. */
+
   varint(maximum: number): number | undefined {
     let value = 0;
     let multiplier = 1;
@@ -150,7 +150,7 @@ class Reader {
     return undefined;
   }
 
-  /** A present group: nonzero and at most maximum. */
+
   group(width: number, maximum: number): number | undefined {
     const value = this.digits(width);
     return value !== undefined && value > 0 && value <= maximum ? value : undefined;
@@ -161,7 +161,7 @@ function decodeRecord(reader: Reader): InputRow | undefined {
   const flags = reader.digit();
   if (flags === undefined) return undefined;
   const present = (flag: number) => (flags & flag) !== 0;
-  // Groups appear in flag order; a missing group reads as zero.
+
   const held = present(Flag.held) ? reader.group(3, ALL_ACTIONS) : 0;
   const pressed = present(Flag.edges) ? reader.digits(3) : 0;
   const released = present(Flag.edges) ? reader.digits(3) : 0;
@@ -175,7 +175,7 @@ function decodeRecord(reader: Reader): InputRow | undefined {
   const direction = (place: number) => signedValue(floorMod(floorDiv(metadata, place), 3));
   const sdiX = direction(81);
   const sdiZ = direction(243);
-  // Absent throw totals are explicit zeros, never the taps implied by presses.
+
   const row: Required<RowFields> = {
     held, pressed, released,
     axisX: signedValue(floorDiv(axes, 255)), axisZ: signedValue(floorMod(axes, 255)),
@@ -187,7 +187,7 @@ function decodeRecord(reader: Reader): InputRow | undefined {
   return isInputRow(row) ? row : undefined;
 }
 
-/** Decodes one canonical packet, or undefined for any malformed, truncated or out-of-range text. */
+
 export function decodePacket(wire: string): InputPacket | undefined {
   if (wire.length < HEADER_MIN_BYTES + RECORD_MIN_BYTES || wire.length > PACKET_MAX_BYTES || !wire.startsWith("I4")) return undefined;
   const reader = new Reader(wire, 2);
@@ -205,28 +205,28 @@ export function decodePacket(wire: string): InputPacket | undefined {
   return reader.atEnd() ? inputPacket(epoch, firstFrame, rows) : undefined;
 }
 
-// ---------------------------------------------------------------- I5 messages
 
-// One sender's consecutive frames in one synchronized message. Only rows that
-// differ from holding the row before them are spelled out:
-//
-// "I5" | epoch varint | first-frame varint | frame-count varint | first record
-//      | { hold-count varint | record }
-//
-// The first frame's record is always present, so each message decodes alone.
-// A hold count says how many frames repeat the previous record as a hold
-// (held buttons, stick and triggers kept; edges, press vectors and throw taps
-// dropped, as predictInto does) before the next record. Frames after the last
-// record, up to the frame count, are holds too. A record equal to the hold it
-// would replace is never spelled, so every run of rows has one spelling.
 
-/**
- * Data bytes in one message. Warcraft limits a synchronized message's prefix
- * and data together to about 255 bytes (jassbot BlzSendSyncData); 200 leaves
- * room for the prefix and still carries 8 frames whose every group changes.
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+// BlzSendSyncData limits prefix plus data to about 255 bytes; 200 reserves prefix space (jassbot).
+
+
+
+
 export const MESSAGE_MAX_BYTES = 200;
-/** Frames in one message; a longer backlog of unsent frames takes the next messages. */
+
 const MESSAGE_MAX_FRAMES = 64;
 
 export interface InputMessage {
@@ -235,10 +235,10 @@ export interface InputMessage {
   readonly lastFrame: number;
 }
 
-// Comparison scratch; never returned.
+
 const HOLD: InputRow = emptyInput();
 
-/** Whether row is exactly the hold of previous. */
+
 function holds(row: Readonly<InputRow>, previous: Readonly<InputRow>): boolean {
   predictInto(HOLD, previous);
   return sameInput(row, HOLD);
@@ -250,11 +250,11 @@ function holdOf(previous: Readonly<InputRow>): InputRow {
   return row;
 }
 
-/**
- * Spells frames firstFrame through at most lastFrame of one sender as one
- * message: as many as fit MESSAGE_MAX_BYTES and MESSAGE_MAX_FRAMES, at least
- * the first. rowAt supplies each frame's row.
- */
+
+
+
+
+
 export function encodeInputMessage(epoch: number, firstFrame: number, lastFrame: number, rowAt: (frame: number) => Readonly<InputRow>): InputMessage {
   const head = `I5${varint(epoch)}${varint(firstFrame)}`;
   let previous = rowAt(firstFrame);
@@ -280,10 +280,10 @@ export function encodeInputMessage(epoch: number, firstFrame: number, lastFrame:
   return { wire: `${head}${varint(last - firstFrame + 1)}${body}`, firstFrame, lastFrame: last };
 }
 
-/**
- * Every frame of one canonical I5 message, in order, as packets of one or two
- * rows; undefined for any malformed, non-canonical or out-of-range text.
- */
+
+
+
+
 export function decodeInputMessage(wire: string): InputPacket[] | undefined {
   if (wire.length > MESSAGE_MAX_BYTES || !wire.startsWith("I5")) return undefined;
   const reader = new Reader(wire, 2);

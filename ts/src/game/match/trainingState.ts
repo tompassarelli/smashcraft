@@ -1,33 +1,33 @@
-// Training's synchronized state (#120): partner settings and the readout.
-// Rollback copies it, the replay difference compares it and the checksum folds it while training is on.
+
+
 import { PARTICIPANT_SLOTS, type Slots } from "../input/participants";
 
-/** What the partner does when it can act. Codes are in the checksum. */
+
 export const PartnerBehaviour = { stand: 0, shield: 1, crouch: 2, jump: 3, attack: 4, fight: 5 } as const;
 export type PartnerBehaviour = (typeof PartnerBehaviour)[keyof typeof PartnerBehaviour];
 export const PARTNER_BEHAVIOURS = 6;
-/** How the partner holds the stick as a hit launches it. */
+
 export const PartnerEscape = { none: 0, toward: 1, away: 2, random: 3 } as const;
 export type PartnerEscape = (typeof PartnerEscape)[keyof typeof PartnerEscape];
 export const PARTNER_ESCAPES = 4;
-/** How the partner techs a tumbling landing. */
+
 export const PartnerTech = { none: 0, inPlace: 1, toward: 2, away: 3, random: 4 } as const;
 export type PartnerTech = (typeof PartnerTech)[keyof typeof PartnerTech];
 export const PARTNER_TECHS = 5;
 export const PARTNER_DAMAGE_STEP = 10;
 export const PARTNER_DAMAGE_MAX = 300;
-/** The readout's last result. */
+
 export const Advantage = { none: 0, hit: 1, shield: 2 } as const;
 export type Advantage = (typeof Advantage)[keyof typeof Advantage];
 
-/** Speeds: the match advances one frame in every SPEEDS[i] input frames. */
+
 export const TRAINING_SPEEDS: readonly number[] = [1, 2, 4];
 
-/**
- * Presses made on input frames slow motion skips, kept for the next frame the
- * match runs: a bit per press (training.ts PRESS_FIELDS) and the values those
- * presses carry.
- */
+
+
+
+
+
 export interface LatchedPresses {
   mask: number;
   specialX: number;
@@ -51,21 +51,21 @@ export function emptyLatchedPresses(): LatchedPresses {
 }
 
 export interface TrainingState {
-  /** Input frames per match frame: 1, 2 or 4. */
+
   speed: number;
-  /** Input frames since the match last ran, below speed. */
+
   speedPhase: number;
   readonly latches: Slots<LatchedPresses>;
-  /** PartnerBehaviour, PartnerEscape and PartnerTech codes. */
+
   behaviour: number;
   escape: number;
   tech: number;
-  /** The partner's damage at the start and after every reset or knockout. */
+
   damage: number;
   showHitAreas: boolean;
-  /** The last move a player's fighter started: its style (-1 none), first active frame, active frames and total length. */
+
   moveStyle: number;
-  /** Or the last special it started or branched into: its SpecialAction (-1 none), form and fighter. */
+
   moveSpecial: number;
   moveForm: number;
   moveCharacter: number;
@@ -73,23 +73,23 @@ export interface TrainingState {
   moveStartup: number;
   moveActive: number;
   moveTotal: number;
-  /** Frames since the contact being measured; -1 while none is. */
+
   measureFrames: number;
   measureAttacker: number;
   measureDefender: number;
   measureKind: number;
   attackerReady: number;
   defenderReady: number;
-  /** The last finished measurement: positive when the attacker acts first. */
+
   advantage: number;
-  /** An Advantage code. */
+
   advantageKind: number;
   comboDefender: number;
-  /** Whether the combo's defender has not yet been able to act since its last hit. */
+
   comboOpen: boolean;
   comboHits: number;
   comboDamage: number;
-  /** The tutorial (match/tutorial.ts, #306): the lesson (-1 none, past the last when finished), its count, and frames of "well done" left. */
+
   lesson: number;
   lessonCount: number;
   lessonCheer: number;
@@ -111,7 +111,7 @@ const INT_FIELDS = [
   "measureFrames", "measureAttacker", "measureDefender", "measureKind", "attackerReady", "defenderReady",
   "advantage", "advantageKind", "comboDefender", "comboHits",
 ] as const;
-/** Folded only while a tutorial runs, so ordinary training keeps its checksum. */
+
 const TUTORIAL_FIELDS = ["lesson", "lessonCount", "lessonCheer"] as const;
 
 export function copyTrainingState(target: TrainingState, source: Readonly<TrainingState>): void {
@@ -148,7 +148,7 @@ export function copyTrainingState(target: TrainingState, source: Readonly<Traini
   target.lessonCheer = source.lessonCheer;
 }
 
-/** Writes every field through the checksum's writers, in a fixed order. */
+
 export function writeTrainingState(state: Readonly<TrainingState>, int: (name: string, value: number) => void, bool: (name: string, value: boolean) => void, real: (name: string, value: number) => void): void {
   for (const key of INT_FIELDS) int(`match.trainer.${key}`, state[key]);
   bool("match.trainer.showHitAreas", state.showHitAreas);
@@ -168,7 +168,7 @@ export function firstTrainingDifference(expected: Readonly<TrainingState>, actua
   return undefined;
 }
 
-/** Clears the readout, slow motion's phase and kept presses for a new match; the settings stay. */
+
 export function clearTrainingReadout(state: TrainingState): void {
   state.speedPhase = 0;
   for (const slot of PARTICIPANT_SLOTS) for (const key of LATCH_FIELDS) state.latches[slot][key] = 0;

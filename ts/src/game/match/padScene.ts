@@ -1,7 +1,7 @@
-// Headless scenes played through the match frame executor from controller
-// rows, as a pad reports them. The Melee oracle (meleeOracle.ts) and the
-// interaction graph (interactions.ts) share it, so both measure the frame
-// order, input buffers and contacts that a match runs.
+
+
+
+
 import { Action, has } from "../input/actions";
 import { type InputRow, copyInput, emptyInput } from "../input/inputRow";
 import { type ParticipantInputs, participantInputs } from "../input/participants";
@@ -29,7 +29,7 @@ export interface Placement {
   readonly facing: number;
 }
 
-/** A match on `stage` with the given fighters in slots 0.., every slot a human playing from controller rows with a live match's attack buffer. */
+
 export function scene(stage: number, placements: readonly Placement[]): Scene {
   const mask = (1 << placements.length) - 1;
   const world = createRoster(mask, placements.map(({ character, x, facing }) => createFighter(character, x, facing)));
@@ -44,13 +44,13 @@ export function scene(stage: number, placements: readonly Placement[]): Scene {
   };
 }
 
-/** One fighter in slot 0 and an idle Rifleman across the stage, since a match with one fighter left is over. */
+
 export const solo = (stage: number, character: Character, x = 0.0, facing = 1): Scene =>
   scene(stage, [{ character, x, facing }, { character: Character.rifleman, x: x < 0 ? 450.0 : -450.0, facing: -1 }]);
 
 export const fighter = (s: Scene, slot = 0): Fighter => fighterAt(s.world, slot);
 
-/** Aim the projectile fixture's guard upward when fire is falling vertically. */
+
 export function projectileShieldActions(shooter: Readonly<Fighter>): readonly Action[] {
   return shooter.projectiles.some(p => p.life > 0 && p.velocityX === 0 && p.velocityZ < 0)
     ? [Action.rightTrigger, Action.moveUp] : [Action.rightTrigger];
@@ -61,7 +61,7 @@ const maskOf = (actions: readonly Action[]): number => actions.reduce<number>((m
 const axis = (held: number, negative: Action, positive: Action): number => (has(held, positive) ? 127 : 0) - (has(held, negative) ? 127 : 0);
 const EMPTY_INPUT = emptyInput();
 
-/** A controller row holding `actions`; presses and releases come from the slot's previous row, as a pad reports them. */
+
 function padRow(target: InputRow, held: number, previous: number): void {
   const pressed = held & ~previous;
   copyInput(target, EMPTY_INPUT);
@@ -84,12 +84,12 @@ function padRow(target: InputRow, held: number, previous: number): void {
   target.throwZ = sign(axis(pressed, Action.moveDown, Action.moveUp));
 }
 
-/** Runs controller rows, optionally adding the pulses and taps a pad reports beside held buttons. */
+
 export function frameRows(s: Scene, held: readonly (readonly Action[])[], amend?: (row: InputRow, slot: number) => void): void {
   frameMasks(s, (slot) => maskOf(held[slot] ?? []), amend);
 }
 
-/** Runs controller rows from each slot's held action mask, as frameRows does from its listed actions. */
+
 export function frameMasks(s: Scene, held: (slot: number) => number, amend?: (row: InputRow, slot: number) => void): void {
   for (let slot = 0; slot < s.previous.length; slot++) {
     const row = s.source[slot];
@@ -104,12 +104,12 @@ export function frameMasks(s: Scene, held: (slot: number) => number, amend?: (ro
   if (!executeMatchFrame(s.row, s.game, s.world, s.controls, s.runtime, next)) throw new Error(`frame ${next} not executed`);
 }
 
-/** Runs one frame with each slot holding its listed actions. */
+
 export function frame(s: Scene, ...held: (readonly Action[])[]): void {
   frameRows(s, held);
 }
 
-/** Frames run until `done`, or undefined after `limit` frames; the frame that satisfied it counts. */
+
 export function framesUntil(s: Scene, done: () => boolean, limit: number, held: (frame: number) => readonly Action[] = () => []): number | undefined {
   for (let n = 1; n <= limit; n++) {
     frame(s, held(n));
@@ -127,7 +127,7 @@ export function airborne(f: Fighter, x: number, z: number): void {
   f.motion.vz = 0.0;
 }
 
-/** Tumbling in hitstun, so a shield press techs instead of air dodging. */
+
 export function tumbling(f: Fighter, x: number, z: number): void {
   airborne(f, x, z);
   f.down.state = DownState.tumble;

@@ -1,6 +1,6 @@
-// Paints the drawn-frame stamp (smashcraft:ts/src/runtime/drawnStamp.ts) for
-// native-driver builds. Every client creates the cells on the same callback;
-// only their textures change afterwards.
+
+
+
 import { STAMP_CELL, STAMP_CELLS, type StampCell, stampCells } from "../../runtime/drawnStamp";
 import { createBackdrop, gameUi, placeTopLeft } from "../../game/ui/frames";
 import { f32 } from "wisp/src/sim/f32";
@@ -34,7 +34,7 @@ function stamp(): Stamp {
   return created;
 }
 
-/** After a callback presented `frame` of fixture `script`. */
+
 export function paintDrawnStamp(script: number, frame: number): void {
   const { cells, shown } = stamp();
   const kinds = stampCells(script, frame);

@@ -1,7 +1,7 @@
 import { AttackStyle } from "../sim/codes";
 import type { Direction } from "./inputRow";
 
-/** Ground requests select aerials relative to the fighter's facing. Grabs have no aerial form. */
+
 export function attackStyleForGrounding(style: AttackStyle | undefined, grounded: boolean, facing: number, direction: number): AttackStyle | undefined {
   if (grounded || style === undefined || style === AttackStyle.shot) return style;
   switch (style) {
@@ -19,7 +19,7 @@ export function attackStyleForGrounding(style: AttackStyle | undefined, grounded
   }
 }
 
-/** Fresh down wins over horizontal edges; opposing horizontal edges cancel. */
+
 export function groundDodgeIntent(shielding: boolean, left: boolean, right: boolean, down: boolean): Direction | undefined {
   if (!shielding) return undefined;
   if (down) return 0;

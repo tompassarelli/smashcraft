@@ -1,7 +1,7 @@
-// A whole match recorded as a replay, without the shell: two humans on a
-// tape world (tapeWorld.ts) walking and attacking on their own beats, with
-// a pause that ends a segment. Tests in Bun and 32-bit Lua and the client's
-// viewer tests replay it (smashcraft:ts/src/game/replay/matchReplay.ts).
+
+
+
+
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { Action, bit } from "../input/actions";
 import { clearAttackBuffer } from "../input/attackBuffer";
@@ -29,12 +29,12 @@ function scriptedRow(slot: number, frame: number): InputRow {
 }
 
 export interface TapeReplay {
-  /** Each part file's lines, as the shell writes them. */
+
   readonly parts: readonly (readonly string[])[];
   readonly manifest: readonly string[];
-  /** Segments the recorder started. */
+
   readonly segments: number;
-  /** The canonical checksum of the match on its last frame. */
+
   readonly finalChecksum: string;
 }
 
@@ -42,7 +42,7 @@ const must = (ok: boolean, what: string) => {
   if (!ok) throw new Error(`tape replay: ${what}`);
 };
 
-/** A rollback match of `frames` frames, paused before frame `pauseAt`, recorded as the shell records one. */
+
 export function recordTapeReplay(frames: number, pauseAt: number): TapeReplay {
   const tape = createTapeWorld({ stocks: 3, humans: 2 });
   const { world, match, controls, runtime } = tape.live;
@@ -59,7 +59,7 @@ export function recordTapeReplay(frames: number, pauseAt: number): TapeReplay {
   let segments = 0;
   for (let frame = 1; frame <= frames; frame++) {
     if (frame === pauseAt) {
-      // A pause: the shell ends the segment, then clears the attack buffers between frames.
+
       keepMomentEnd(moment, world, match, controls, runtime);
       endMatchReplaySegment(recorder, moment, world, match, controls, runtime);
       for (const slot of PARTICIPANT_SLOTS) clearAttackBuffer(controls.commands[slot]);

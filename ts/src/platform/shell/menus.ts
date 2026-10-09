@@ -1,8 +1,8 @@
 import type { QuickStageSettings } from "../../game/shell/devSettings";
-// Character selection with the match rules, stage selection, settings and the
-// rematch, chosen or automatic. Every entry point runs from a synchronized
-// event (a key event, frame click, sync message, chat or the game timer), so
-// all clients take the same path.
+
+
+
+
 import { PARTICIPANT_SLOTS, type ParticipantSlot, isParticipantSlot } from "../../game/input/participants";
 import {
   Phase, changeStagePoolMode, changeStagePoolStage, canChooseComputer, cancelRematchCountdown, firstHumanSlot, characterFor, confirmRematch, cycleSlotMode, humanActive, recallCharacter,
@@ -40,7 +40,7 @@ import type { PanelActions } from "./ui";
 import { clearMatchEffects, views } from "./ui";
 import { announce, pauseMatchPresentation, setStatus } from "./view";
 
-/** Left and right on a menu: the next fighter, or the other stage. */
+
 export function choose(s: ShellState, slot: ParticipantSlot, direction: -1 | 1): void {
   if (!controlsAvailable(s, slot) || stageLoading(s)) return;
   if (s.game.phase === Phase.characterMenu) {
@@ -50,7 +50,7 @@ export function choose(s: ShellState, slot: ParticipantSlot, direction: -1 | 1):
   } else if (s.game.phase === Phase.stageMenu) selectStage(s.game, slot, nextStage(s.game.stageChoice, direction));
 }
 
-/** Accept: continue to stages, start the match, or ready up for a rematch. */
+
 export function confirm(s: ShellState, slot: ParticipantSlot): void {
   if (s.pauseMenu?.title) {
     s.pauseMenu.title = false;
@@ -119,11 +119,11 @@ export function back(s: ShellState, slot: ParticipantSlot): void {
   } else if (s.game.phase === Phase.result) cancelRematchCountdown(s.game, slot);
 }
 
-/**
- * Each game callback at a result: the countdown runs once the players'
- * controller helpers have all stopped sending the last match, which is when
- * their presses reach the menus, and starts the rematch when it runs out.
- */
+
+
+
+
+
 export function serviceAutomaticRematch(s: ShellState): void {
   const journal = s.rollback?.journal;
   if (journal !== undefined && s.rollback?.active === true && journal.lifecycle?.quiescent() !== true) return;
@@ -142,7 +142,7 @@ export function openSettingsScreen(s: ShellState, slot: ParticipantSlot): void {
   views(s).settings[slot].show();
 }
 
-/** `-dev quick`: every human's default fighter on the default stage, past both menus. */
+
 export function startQuickMatch(s: ShellState, stage = 0, scenario: Scenario = s.build.scenario, character?: Character | readonly Character[], stocks = 1, stageSettings?: QuickStageSettings): void {
   if (prepareQuickMatch(s.game, stage, character, stocks)) {
     for (const panel of views(s).settings) panel.close();
@@ -150,7 +150,7 @@ export function startQuickMatch(s: ShellState, stage = 0, scenario: Scenario = s
   }
 }
 
-/** `-dev classic`: the first player's run on `character`'s route, from its first fight or its boss. */
+
 export function startDevClassic(s: ShellState, character: Character, boss: boolean): void {
   const first = firstHumanSlot(s.game);
   if (first === undefined || s.game.phase !== Phase.characterMenu || stageLoading(s)) return;
@@ -165,7 +165,7 @@ export function startDevClassic(s: ShellState, character: Character, boss: boole
   requestStageLoad(s, first);
 }
 
-/** `-dev lore N`: the first player's Lore Battle N, counted from 1. */
+
 export function startDevLore(s: ShellState, battle: number): void {
   const first = firstHumanSlot(s.game);
   if (first === undefined || s.game.phase !== Phase.characterMenu || stageLoading(s)) return;
@@ -178,7 +178,7 @@ export function startDevLore(s: ShellState, battle: number): void {
   requestStageLoad(s, first);
 }
 
-/** A playtest request: its computers at its level, then the match, past both menus. */
+
 export function startPlaytest(s: ShellState, request: PlaytestRequest): boolean {
   const first = firstHumanSlot(s.game);
   if (first === undefined || !preparePlaytest(s.game, request)) return false;
@@ -186,12 +186,12 @@ export function startPlaytest(s: ShellState, request: PlaytestRequest): boolean 
   return requestStageLoad(s, first);
 }
 
-/** Panel events carry a participant number; anything but a slot is ignored. */
+
 function withSlot(participant: number, act: (s: ShellState, slot: ParticipantSlot) => void): void {
   if (isParticipantSlot(participant)) act(shell(), participant);
 }
 
-/** The panels' requests. Each looks up the current state, so recreated panels act on the same match. */
+
 export function panelActions(): PanelActions {
   return {
     selection: {
@@ -311,7 +311,7 @@ export function panelActions(): PanelActions {
   };
 }
 
-/** Fighter selection as the map starts it: the players in the game, and the scenario's fighters. */
+
 export function startingSelection(scenario: Scenario): MatchState {
   const game = createMatchState();
   setParticipants(game, currentHumanMask(0), currentComputerMask());
@@ -319,11 +319,11 @@ export function startingSelection(scenario: Scenario): MatchState {
   return game;
 }
 
-/**
- * `-dev reset`: ends any match between frames and puts the rules back at
- * startingSelection, so the next match plays the boot's seed and settings.
- * Leaving the match phase ends its journal epoch as a result does.
- */
+
+
+
+
+
 export function resetToStartingSelection(s: ShellState): void {
   if (s.game.phase === Phase.match) {
     keepMomentEnd(s.moment.recorder, s.world, s.game, s.controls, s.runtime);

@@ -1,7 +1,7 @@
-// The stage panel all players share, which also shows the rules chosen at
-// fighter selection. Its buttons are synchronized frame clicks any player may
-// press; dragging the stage chip is local cursor art until a finished choice
-// crosses the "stage-drop" sync event.
+
+
+
+
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { stageInPool, stagePoolCount } from "../menu/stagePool";
 import { f32 } from "wisp/src/sim/f32";
@@ -17,7 +17,7 @@ import { MENU_FONT } from "./hudLayout";
 import { StageCard } from "./stageCard";
 
 
-/** What the stage panel asks the game to do; each call comes from a synchronized event. */
+
 export interface StageActions {
   selectStage(participantId: number, choice: StageChoice): void;
   togglePoolMode(participantId: number): void;
@@ -28,7 +28,7 @@ export interface StageActions {
 }
 
 type StageButton = { kind: "hazards" } | { kind: "start" } | { kind: "back" } | { kind: "poolOpen" } | { kind: "poolClose" } | { kind: "poolMode" } | { kind: "poolStage"; choice: number };
-/** The hazards toggle beside the back button, in Warcraft's UI coordinates; the native check clicks its center. */
+
 export const HAZARDS_BUTTON = { x: f32(0.225), y: f32(0.082), width: f32(0.19), height: f32(0.037) } as const;
 
 
@@ -168,7 +168,7 @@ export class StagePanel {
 
   }
 
-  /** Every rendered frame on every client. */
+
   update(game: Readonly<MatchState>): void {
     const enabled = game.phase === Phase.stageMenu && humanActive(game, GetPlayerId(GetLocalPlayer()));
     if (this.lastPhase !== game.phase) {

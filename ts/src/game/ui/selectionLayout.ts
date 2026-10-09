@@ -7,7 +7,7 @@ export function selectionTitleBox(_aspect: number): TextBox {
   return { left: f32(0.055), top: f32(0.552), width: f32(0.285), height: f32(0.025) };
 }
 
-/** The Moves page's title, its move lines and its row of buttons, all below the header. */
+
 export const MOVES_TITLE_BOX: TextBox = { left: f32(0.12), top: f32(0.44), width: f32(0.56), height: f32(0.03) };
 export const MOVES_BODY_BOX: TextBox = { left: f32(0.12), top: f32(0.4), width: f32(0.56), height: f32(0.3) };
 export const MOVES_BUTTON_TOP = f32(0.075);

@@ -1,6 +1,6 @@
-// Recorded-tape fixtures shared by the replay contracts, the soak and tape
-// runners: Wurst ReplayHistoryTests' TapeWorld and runRecordedTape. Every
-// rule still runs through the production frame executor and history.
+
+
+
 import { assertEquals, assertGreaterThan, assertLessThan, assertTrue } from "wisp/src/runtime/testing";
 import { floorMod } from "wisp/src/sim/intMath";
 import { attackBuffer, clearAttackBuffer, queueAttack } from "../input/attackBuffer";
@@ -18,23 +18,23 @@ import { type ReplayState, copyReplayState, createReplaySnapshot } from "./snaps
 
 interface TapeWorldOptions {
   stocks: number;
-  /** Connected humans in slots 0 upward, set before the match starts. */
+
   humans?: number;
   first?: Fighter;
   second?: Fighter;
 }
 
-/** A live two-fighter match and storage to capture it into. */
+
 export interface TapeWorld {
   readonly live: ReplayState;
   readonly snapshot: ReplayState;
 }
 
-/**
- * Two fighters in a running match without a time limit, by default an reference
- * at 0 facing right and a rifleman at 100 facing left. Their command buffers
- * keep four grace frames.
- */
+
+
+
+
+
 export function createTapeWorld({ stocks, humans = 1, first = createFighter(Character.demonHunter, 0.0, 1), second = createFighter(Character.rifleman, 100.0, -1) }: TapeWorldOptions): TapeWorld {
   const match = createMatchState();
   setHumanCount(match, humans);
@@ -52,23 +52,23 @@ export function createTapeWorld({ stocks, humans = 1, first = createFighter(Char
   };
 }
 
-/** Copies the live match into the tape's snapshot storage and returns it. */
+
 export function captureTape(tape: TapeWorld): ReplayState {
   copyReplayState(tape.snapshot, tape.live);
   return tape.snapshot;
 }
 
-/** Runs a recorded row on the live match; the row's frame must come next. */
+
 export function executeTapeRow(tape: TapeWorld, row: MatchFrameInput): boolean {
   const { match, world, controls, runtime } = tape.live;
   return row.frame !== undefined && executeMatchFrame(row, match, world, controls, runtime, row.frame);
 }
 
-/**
- * Wurst runRecordedTape: a deterministic input tape runs in one world and,
- * through the history with rollbacks every rollbackStride frames and over the
- * last 63 frames every 64, in another; they must agree on every frame.
- */
+
+
+
+
+
 export function runRecordedTape(frames: number, rollbackStride: number, startingStocks: number): void {
   const canonical = createTapeWorld({ stocks: startingStocks });
   const replayed = createTapeWorld({ stocks: startingStocks });
@@ -90,7 +90,7 @@ export function runRecordedTape(frames: number, rollbackStride: number, starting
   let sawDamage = false;
   let sawRespawn = false;
   for (let frame = 1; frame <= frames; frame++) {
-    // A deterministic input tape, independent of either world's evolving state.
+
     const phase = floorMod(frame, 192);
     firstInput.direction = phase >= 96 && phase < 120 ? -1 : phase >= 144 && phase < 168 ? 1 : 0;
     secondInput.direction = 0 - firstInput.direction;
@@ -105,7 +105,7 @@ export function runRecordedTape(frames: number, rollbackStride: number, starting
     if (frame === 1 || frame === 40) queueAttack(firstRequests, { style: 0, facing: 1, frame, mayCharge: false });
     if (phase >= 80 && floorMod(phase, 32) === 16) queueAttack(firstRequests, { style: 1, facing: 1, frame, mayCharge: false });
     if (phase === 160) queueAttack(secondRequests, { style: 6, facing: -1, frame, mayCharge: false });
-    // Stock loss and respawn through recorded input, whatever the combat before it produced.
+
     if (frame >= 3000 && frame < 3300) {
       secondInput.direction = 1;
       clearAttackBuffer(secondRequests);
@@ -114,7 +114,7 @@ export function runRecordedTape(frames: number, rollbackStride: number, starting
     assertTrue(history.save(1, row, replayed.live));
     assertTrue(executeTapeRow(canonical, row));
     assertTrue(executeTapeRow(replayed, row));
-    // Reuse producer storage before rollback; the history keeps its own row.
+
     resetMatchFrameInput(row);
     firstInput.direction = 1;
     firstInput.shield = true;

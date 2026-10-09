@@ -1,9 +1,9 @@
-// One corpus evaluated identically on the host (binary64) and in Warcraft's Lua
-// (32-bit integers, binary32 numbers). Inputs are exact binary32 values built
-// from integer steps below 2^31; no bitwise operators. The last three results
-// are f32(a + b), f32(a - b) and f32(a * b) as the compiler emits them: they
-// equal the host only when that emitted code rounds exactly, whatever the
-// Lua's raw arithmetic does (wisp:native/warcraft-rounding.h).
+
+
+
+
+
+
 import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, multiplyFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
@@ -15,12 +15,12 @@ function powerOfTwo(exponent: number): number {
   return result;
 }
 
-/** Linear congruential step modulo 2^24; every product stays below 2^31. */
+
 function step(state: number): number {
   return floorMod(state * 101 + 7919, 16777216);
 }
 
-/** An exact binary32 value with exponent in [-30, 29] and a random sign. */
+
 function operand(seed: number): number {
   const first = step(floorMod(seed, 16777216));
   const second = step(first);
@@ -31,7 +31,7 @@ function operand(seed: number): number {
   return sign * significand * powerOfTwo(exponent - 23);
 }
 
-/** An exact binary32 angle with magnitude below 4. */
+
 function angleFor(seed: number): number {
   const first = step(floorMod(seed, 16777216));
   const second = step(first);
@@ -40,7 +40,7 @@ function angleFor(seed: number): number {
   return sign * significand * powerOfTwo(floorMod(second, 8) - 29);
 }
 
-/** Eleven results per case: +, -, *, /, fma, atan2, cos, sin with the exact helpers, then +, - and * through f32(). */
+
 export function evaluateCase(index: number): number[] {
   const a = operand(index * 4 + 1);
   const b = operand(index * 4 + 2);

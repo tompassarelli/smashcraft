@@ -1,12 +1,12 @@
-// Barriers every human participant crosses together: match start, match end
-// and a shared pause.
+
+
 import { participantActive } from "../../input/participants";
 
-/**
- * One match's start and end barriers. Every human slot must report ready
- * before the match starts and stopped before it is quiescent; the local
- * client's own report alone cannot release the menus.
- */
+
+
+
+
+
 export class MatchLifecycle {
   private readyMask = 0;
   private stoppedMask = 0;
@@ -33,7 +33,7 @@ export class MatchLifecycle {
   }
 }
 
-/** The frame a shared pause takes effect: the highest frontier any participant prepared. */
+
 export function pauseBarrierFrame(prepared: readonly [number, ...number[]]): number {
   return Math.max(...prepared);
 }

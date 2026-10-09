@@ -1,49 +1,49 @@
-// A journal match pauses and resumes only at a frame every human's helper
-// acknowledged. A pause takes two rounds: each helper first acknowledges
-// PREPARE with the next frame it can stop at, then PAUSE at the frame the
-// controller's Start was pressed in, or without one at the highest of those;
-// a resume takes one RESUME round at the paused frame. Each client relays its helper's
-// acknowledgment to every client in a synchronized SC_JC message, so all
-// clients complete each round on the same message.
+
+
+
+
+
+
+
 import { padDecimal, parseDecimal } from "../netcode/journal/decimal";
 import { pauseBarrierFrame } from "../netcode/journal/lifecycle";
 import type { ControlState } from "../netcode/journal/source";
 import { PARTICIPANT_SLOTS, type Slots, isParticipantSlot, participantActive } from "../input/participants";
 
 export const CONTROL_ACK_PREFIX = "SC_JC";
-/** Synchronized prefix of an edit box pause or resume request. */
+
 export const PAUSE_REQUEST_PREFIX = "SC_JP";
 
 interface BarrierRequest {
-  /** The acknowledgment each helper owes this round. */
+
   readonly stage: ControlState;
-  /**
-   * The frame the round settles on whatever the helpers answer: a Start
-   * press's frame, every client's from its synchronized request, or the
-   * paused frame a resume restarts at.
-   */
+
+
+
+
+
   readonly target: number | undefined;
-  /** The common frame, once every human acknowledged this round. */
+
   frame: number | undefined;
 }
 
 export interface PauseBarrier {
   request: BarrierRequest | undefined;
-  /** Each slot's last relayed control sequence; sequences rise by one across the epoch. */
+
   readonly sequences: Slots<number>;
-  /** Each slot's frame in the current round. */
+
   readonly frames: Slots<number | undefined>;
-  /** After a resume, until prediction catches up, the frame the speculative cursor stops before. */
+
   paced: number | undefined;
-  /** A resume Start arrived while the pause was still settling: it resumes as soon as the pause commits. */
+
   resumeQueued: boolean;
 }
 
-/**
- * Speculative frames one callback runs after a resume. The helpers' clocks
- * restart when they read the resume, a round trip before the match resumes,
- * so rows wait; at the catch-up budget they showed as one jump (#206).
- */
+
+
+
+
+
 export const RESUME_PACE_FRAMES = 2;
 
 export function pauseBarrier(): PauseBarrier {
@@ -58,48 +58,48 @@ export function resetPauseBarrier(barrier: PauseBarrier): void {
   barrier.resumeQueued = false;
 }
 
-/** The match resumed with the speculative cursor at `frame`: the callback that resumes it shows the paused picture. */
+
 export function paceResume(barrier: PauseBarrier, frame: number): void {
   barrier.paced = frame;
 }
 
-/** This callback's speculative stop while a resume is paced: RESUME_PACE_FRAMES past the last one. */
+
 export function pacedStop(barrier: PauseBarrier): number | undefined {
   if (barrier.paced === undefined) return undefined;
   barrier.paced += RESUME_PACE_FRAMES;
   return barrier.paced;
 }
 
-/** Ends the pace once the speculative cursor stopped short of it: no rows wait past it. */
+
 export function settlePace(barrier: PauseBarrier, speculativeFrame: number): void {
   if (barrier.paced !== undefined && speculativeFrame < barrier.paced) barrier.paced = undefined;
 }
 
-/** Starts a round; the caller has written the control request the helpers answer. */
+
 export function requestRound(barrier: PauseBarrier, stage: ControlState, target?: number): void {
   barrier.request = { stage, target, frame: undefined };
   for (const slot of PARTICIPANT_SLOTS) barrier.frames[slot] = undefined;
 }
 
-/** Whether the request in flight pauses (PREPARE or PAUSE) rather than resumes. */
+
 export const pausing = (barrier: Readonly<PauseBarrier>): boolean => barrier.request !== undefined && barrier.request.stage !== "RESUME";
 
-/** The frame a completed PAUSE or RESUME round takes effect at. */
+
 export function agreedFrame({ request }: Readonly<PauseBarrier>): number | undefined {
   return request !== undefined && request.stage !== "PREPARE" ? request.frame : undefined;
 }
 
-/**
- * The frame neither cursor may run while a round is in flight: a pause's
- * target from its request on, otherwise the agreed frame.
- */
+
+
+
+
 export function stopFrame(barrier: Readonly<PauseBarrier>): number | undefined {
   const { request } = barrier;
   if (request === undefined) return undefined;
   return agreedFrame(barrier) ?? (pausing(barrier) ? request.target : undefined);
 }
 
-/** The frame a completed PREPARE round asks every helper to pause at. */
+
 export function preparedFrame({ request }: Readonly<PauseBarrier>): number | undefined {
   return request?.stage === "PREPARE" ? request.frame : undefined;
 }
@@ -120,7 +120,7 @@ function stageOf(code: string): ControlState | undefined {
   return code === "R" ? "RESUME" : undefined;
 }
 
-/** "JC1", epoch, slot, sequence, stage code, frame: decimals zero-padded to ten digits, the slot one. */
+
 export function encodeControlAck({ epoch, slot, sequence, stage, frame }: ControlAck): string {
   return `JC1${padDecimal(epoch, 10)}${slot}${padDecimal(sequence, 10)}${STAGE_CODES[stage]}${padDecimal(frame, 10)}`;
 }
@@ -138,11 +138,11 @@ function decodeControlAck(wire: string): ControlAck | undefined {
 
 type BarrierReceipt = "ignored" | "recorded" | "complete" | { readonly failure: string };
 
-/**
- * Records a relayed acknowledgment from sender. Messages for another epoch,
- * another round or a slot that is not the sender are ignored; a skipped or
- * repeated sequence, or PAUSE and RESUME frames that differ, stop the journal.
- */
+
+
+
+
+
 export function receiveControlAck(barrier: PauseBarrier, humans: number, epoch: number, sender: number, wire: string): BarrierReceipt {
   const ack = decodeControlAck(wire);
   const { request } = barrier;

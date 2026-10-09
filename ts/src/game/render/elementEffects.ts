@@ -1,30 +1,30 @@
-// A hit's element on its victim (presentation/elementLooks.ts): one effect per
-// element that has a victim look, per participant slot, created with the
-// match. The victim shows its last hit's element through hitlag and hitstun,
-// as Melee shows an element through hitlag, and a hit that drained its mana
-// over its head; it follows numerical state, so a restore reapplies it
-// without spawning anything.
+
+
+
+
+
+
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type DrainSeen, ELEMENTS, MANA_DRAIN_LOOK, advanceDrainSeen, drainSeen, elementLook } from "../presentation/elementLooks";
 import { characterModelScale } from "../presentation/modelScale";
 import type { Fighter } from "../sim/fighter";
 import { type ParkedFlags, type WorldOrigin, parkOnce, placeEffect } from "./effects";
 
-/** Elements with a victim look, in table order; their effects sit at this index within a slot. */
+
 const SHOWN = ELEMENTS.filter((element) => elementLook(element).victim !== undefined);
 
 export class ElementEffects {
-  /** A slot's effects at SHOWN.length times the slot. */
+
   private readonly models: readonly effect[];
   private parked: ParkedFlags | undefined;
-  /** The hit serial each slot last restarted its effect for. */
+
   private readonly hitSerials: number[] = [0, 0, 0, 0];
-  /** Effects sit just in front of the fighters. */
+
   private readonly front: number;
-  /** Each slot's drain burst, parked after the element effects' flags. */
+
   readonly drains: readonly effect[];
   private readonly drainSeen: DrainSeen[] = PARTICIPANT_SLOTS.map(() => drainSeen());
-  /** The hit serial each slot last started its drain burst for, or -1. */
+
   private readonly drainShown: number[] = [-1, -1, -1, -1];
 
   constructor(private readonly origin: WorldOrigin) {

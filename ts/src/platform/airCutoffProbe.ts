@@ -1,4 +1,4 @@
-// Developer-only trace for the native AIR_CUTOFF_4 counterexample.
+
 import { fusedMultiplyAddFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
 import { Character } from "../game/sim/codes";
@@ -9,8 +9,8 @@ import { advanceFighter } from "../game/sim/step";
 import { controls, soloWorld } from "../game/sim/testWorld";
 import { meleeAtan2, meleeCos, meleeSin } from "../sim/meleeScalarMath";
 
-// Lua's ordinary float formatting hides nearby binary32 values. Scaling by
-// powers of two exposes the exact integer significand without decimal loss.
+// Power-of-two scaling exposes binary32 significands hidden by Lua float formatting.
+
 function exact(value: number): string {
   if (value === 0 || value !== value || value - value !== 0) return String(value);
   let magnitude = Math.abs(value);

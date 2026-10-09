@@ -1,10 +1,10 @@
-// Journal input: the companion helper records each local player's controller
-// rows for their original frames, the map admits them and relays them to
-// every client. Ingress is edit box text, keyboard carrier keys or published
-// files. A player whose edit box helper never reports ready plays the match on
-// the keyboard, and the map journals their keys the same way. This module
-// admits and sends rows and follows the helper's lifecycle, menus and end of
-// match; journalPause.ts runs the pause rounds and chat.
+
+
+
+
+
+
+
 import { commitEdges, resetKeys, sampleKeys } from "../../game/input/keyboardCapture";
 import { isParticipantSlot } from "../../game/input/participants";
 import { INPUT_LAST_FRAME, type InputPacket } from "../../game/input/wire";
@@ -28,20 +28,20 @@ import { type Journal, type Rollback, type ShellState, localSlot, playsOnKeyboar
 import { recordSend, traceInput } from "./trace";
 import { LASTING, setStatus } from "./view";
 
-/** Synchronized prefix of input rows and helper readiness. */
+
 export const INPUT_PREFIX = "SC_GP";
 
-/**
- * Callbacks after a match starts before a human whose helper has not reported
- * ready plays it on the keyboard. In the 0.0.47 capture the helper took the
- * match 0.13 s after its Start press and every client started at 0.43 s.
- */
+
+
+
+
+
 const HELPER_READY_CALLBACKS = 120;
 
-/** How long a player who plays on the keyboard sees why, in seconds. */
+
 const KEYBOARD_NOTICE_SECONDS = 4.0;
 
-/** The rollback session while a journal epoch runs. */
+
 interface JournalEpoch {
   readonly rollback: Rollback;
   readonly journal: Journal;
@@ -59,7 +59,7 @@ export function journalIdentity(s: Readonly<ShellState>, epoch: number): Journal
 
 export const writeJournalFile = (file: { readonly name: string; readonly lines: readonly string[] }) => writeLines(file.name, file.lines);
 
-/** Stops this client's journal for the epoch; the match cannot continue. */
+
 export function failJournal(s: ShellState, rollback: Rollback, journal: Journal, reason: string): void {
   if (journal.failed) return;
   journal.failed = true;
@@ -70,7 +70,7 @@ export function failJournal(s: ShellState, rollback: Rollback, journal: Journal,
   if (s.build.responseProbe) writeJournalFile(failureFile(journalIdentity(s, rollback.epoch), reason, sequence, frame));
 }
 
-/** The edit box's next payload, failing the journal if its text broke. */
+
 export function peekEditbox(s: ShellState, rollback: Rollback, journal: Journal): string | undefined {
   const { editbox } = journal;
   if (editbox === undefined) return undefined;
@@ -83,12 +83,12 @@ export function peekEditbox(s: ShellState, rollback: Rollback, journal: Journal)
   return wire;
 }
 
-/**
- * Takes rows at the head of the edit box out of it, so a pause acknowledgment
- * typed after them can be read. While a pause round holds the confirmed
- * cursor, rows the helper journaled before it stopped can lie past the future
- * window and could otherwise never be admitted ahead of the acknowledgment (#206).
- */
+
+
+
+
+
+
 export function setAsideRows(s: ShellState, rollback: Rollback, journal: Journal): void {
   for (let index = 0; index < TEXT_WINDOW; index++) {
     const wire = peekEditbox(s, rollback, journal);
@@ -98,7 +98,7 @@ export function setAsideRows(s: ShellState, rollback: Rollback, journal: Journal
   }
 }
 
-/** Marks the edit box payload applied; false after failing the journal. */
+
 export function consumeEditbox(s: ShellState, rollback: Rollback, journal: Journal): boolean {
   const { editbox } = journal;
   if (editbox === undefined || editbox.consumed()) return true;
@@ -106,7 +106,7 @@ export function consumeEditbox(s: ShellState, rollback: Rollback, journal: Journ
   return false;
 }
 
-/** The keyboard mailbox's complete message, when it starts with prefix. */
+
 export function mailboxMessage(journal: Journal, prefix: string): string | undefined {
   const { mailbox } = journal;
   if (mailbox === undefined) return undefined;
@@ -115,7 +115,7 @@ export function mailboxMessage(journal: Journal, prefix: string): string | undef
   return message?.startsWith(prefix) === true ? message : undefined;
 }
 
-/** Sends the admitted rows not yet sent, at most one message per batch of callbacks, pauses included. */
+
 export function flushTransport(s: ShellState, rollback: Rollback, journal: Journal): void {
   if (journal.failed) return;
   const message = journal.outgoing.ready(rollback.batch);
@@ -141,10 +141,10 @@ export function flushTransport(s: ShellState, rollback: Rollback, journal: Journ
   journal.outgoing.sent(message);
 }
 
-/**
- * A human whose helper never reported ready plays the match on the keyboard:
- * every client learns it from "K4", and the edit box lets go of the keyboard.
- */
+
+
+
+
 function startKeyboard(s: ShellState, rollback: Rollback, journal: Journal): void {
   if (!BlzSendSyncData(INPUT_PREFIX, `K4${rollback.epoch}`)) {
     failJournal(s, rollback, journal, "keyboard readiness could not be synchronized");
@@ -157,7 +157,7 @@ function startKeyboard(s: ShellState, rollback: Rollback, journal: Journal): voi
   setStatus(s, KEYBOARD_FALLBACK_MESSAGE, KEYBOARD_NOTICE_SECONDS);
 }
 
-/** Before the match starts, relays the helper's readiness; an explicit-clock producer is ready with its first row. */
+
 function serviceReadiness(s: ShellState, rollback: Rollback, journal: Journal): void {
   if (journal.startSent) return;
   journal.readyWait++;
@@ -176,7 +176,7 @@ function serviceReadiness(s: ShellState, rollback: Rollback, journal: Journal): 
   if (ready) consumeEditbox(s, rollback, journal);
 }
 
-/** The next journal text for the local player, or undefined to wait. */
+
 function nextPacketText(s: ShellState, rollback: Rollback, journal: Journal): string | undefined {
   const source = journal.source;
   if (source === undefined) return undefined;
@@ -185,7 +185,7 @@ function nextPacketText(s: ShellState, rollback: Rollback, journal: Journal): st
       const held = journal.setAside[0];
       if (held !== undefined) return held;
       const wire = peekEditbox(s, rollback, journal);
-      // Pause acknowledgments and requests, and moment requests, are serviced in their own order.
+
       return wire === undefined || wire.startsWith("ACK1|") || wire.startsWith("JP1") || isMomentRequest(wire) ? undefined : wire;
     }
     case "keyboard":
@@ -202,21 +202,21 @@ function nextPacketText(s: ShellState, rollback: Rollback, journal: Journal): st
   }
 }
 
-/**
- * Polls the local keyboard once per running callback and advances its clock,
- * which a pause holds: from a prepared pause the rows stop before keyStop.
- * The clock counts callbacks, so time the game lost, as in a lag spike, is
- * lost from it too while another player's helper journals on: the clock
- * follows the frames other players have already sent.
- */
+
+
+
+
+
+
+
 function sampleKeyboard(s: ShellState, rollback: Rollback, journal: Journal): void {
   if (journal.keyStop === undefined) journal.keyClock = rollback.schedule.othersThrough(localSlot(), journal.keyClock + 1);
-  // Typing into Warcraft's chat entry is not play.
+
   const chatting = journal.editbox?.chatOpen() === true;
   sampleKeys(journal.keys, chatting ? 0 : pollLocalKeys(s));
 }
 
-/** The local keyboard's row for the next frame, once its clock has reached that frame. */
+
 function keyboardPacket(rollback: Rollback, journal: Journal, source: JournalInputSource): InputPacket | undefined {
   const frame = source.expectedFrame();
   if (frame > (journal.keyStop === undefined ? journal.keyClock : journal.keyStop - 1)) return undefined;
@@ -226,7 +226,7 @@ function keyboardPacket(rollback: Rollback, journal: Journal, source: JournalInp
   return packet;
 }
 
-/** Admits the local helper's or keyboard's next rows at their original frames and queues them for every client. */
+
 export function serviceJournalInput(s: ShellState, rollback: Rollback, journal: Journal): void {
   if (journal.failed) return;
   const { source } = journal;
@@ -240,14 +240,14 @@ export function serviceJournalInput(s: ShellState, rollback: Rollback, journal: 
     if (journal.readyMask !== s.game.humanMask) return;
   }
   const slot = localSlot();
-  // Connected controllers keep a journal even when their fighter is a computer
-  // or empty: frame input selects that behavior, and every sender must advance.
+
+
   if (source === undefined || !isParticipantSlot(slot) || !humanActive(s.game, slot)) return;
   const { schedule } = rollback;
   const keyboard = playsOnKeyboard(journal, slot);
   if (keyboard) sampleKeyboard(s, rollback, journal);
-  // Rows behind their clock, a helper's or a keyboard's after a stall, catch up within the callback budget;
-  // a helper's record that joins several packets may take more than one callback.
+
+
   for (let admitted = 0; admitted < CATCH_UP_FRAMES; ) {
     const latest = Math.min(INPUT_LAST_FRAME, schedule.nextConfirmedFrame() - 1 + FUTURE_LIMIT);
     if (source.expectedFrame() > latest) return;
@@ -277,7 +277,7 @@ export function serviceJournalInput(s: ShellState, rollback: Rollback, journal: 
       const row = packet.rows[index];
       if (row === undefined) return;
       const frame = packet.firstFrame + index;
-      // A newly arrived row can cross the remote window before this callback's prediction runs.
+
       if (frame - schedule.remoteThrough(slot) > schedule.rollbackFrames()) rollback.predictionHeld = true;
       const captured = schedule.captureLocalAt(rollback.epoch, frame, row);
       if (captured === Capture.tooFarAhead || captured === Capture.pendingFull) return;
@@ -313,11 +313,11 @@ export function serviceJournalInput(s: ShellState, rollback: Rollback, journal: 
   }
 }
 
-/**
- * A helper reported ready ("J4"), a player without one will play on the
- * keyboard ("K4"), or a helper stopped ("E4"), for this epoch. Returns false
- * for any other message.
- */
+
+
+
+
+
 export function receiveLifecycle(s: ShellState, rollback: Rollback, journal: Journal, sender: number, wire: string): boolean {
   if (wire === `E4${rollback.epoch}`) {
     journal.lifecycle?.stopped(rollback.epoch, sender);
@@ -333,7 +333,7 @@ export function receiveLifecycle(s: ShellState, rollback: Rollback, journal: Jou
   traceInput(s.trace, `journal transport start received sender ${sender}`);
   if (journal.readyMask !== s.game.humanMask) return true;
   const identity = journalIdentity(s, rollback.epoch);
-  // A helper that reports ready late waits for the next match; the keyboard plays this one.
+
   if (journal.ingress === "editbox" && !playsOnKeyboard(journal, localSlot())) writeJournalFile(startFile(identity, 1 + rollback.delay));
   writeJournalFile(transportReadyFile(identity, journal.readyMask));
   return true;
@@ -345,7 +345,7 @@ const MENU_PHASES: Partial<Readonly<Record<Phase, MenuPhase>>> = {
   [Phase.result]: "RESULT",
 };
 
-/** Tells the controller service which menu is open; refreshed every 15 callbacks, BLOCKED once. */
+
 export function publishMenu(s: ShellState): void {
   const journal = s.rollback?.journal;
   if (journal?.editbox === undefined && s.build.input.kind !== "keyboard" && s.build.input.kind !== "callback") return;
@@ -363,7 +363,7 @@ export function publishMenu(s: ShellState): void {
   }));
 }
 
-/** After a match ends: tell the helper, drain its last rows, and relay when it has stopped. */
+
 export function serviceJournalEnd(s: ShellState, rollback: Rollback, journal: Journal): void {
   const { editbox } = journal;
   if (editbox === undefined) return;
@@ -383,7 +383,7 @@ export function serviceJournalEnd(s: ShellState, rollback: Rollback, journal: Jo
     editbox.endEpoch();
     return;
   }
-  // Ordered rows of the ended epoch are terminal data now; consume them without combat.
+
   for (let index = 0; index < TEXT_WINDOW; index++) {
     const wire = editbox.peek() ?? "";
     if (wire === "") return;

@@ -1,4 +1,4 @@
-// The bounded roster activity check for #179, shared by Bun and emitted Lua.
+
 import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
 import { clearAttackBuffer } from "../input/attackBuffer";
@@ -33,7 +33,7 @@ export interface BotCoverage {
   readonly missing: string[];
 }
 
-/** `seeds` distinct seeds (eight by default), 1800 frames each, from the fifth on starting at launch-prone damage. */
+
 export function fighterCoverage(index: number, opponent?: Character, choices: readonly Character[] = SELECTABLE_CHARACTERS, seeds = 8): BotCoverage {
   const character = at(choices, index);
   const result: BotCoverage = { fighter: fighterName(character), matches: 0, movement: 0, attacks: 0, kit: 0, specials: { neutral: 0, side: 0, up: 0, down: 0 }, defense: 0, recovery: 0, manaDenied: 0, defenseDecisions: 0, recoveryDecisions: 0, companions: { bear: 0, quilbeast: 0, hawk: 0 }, missing: [] };

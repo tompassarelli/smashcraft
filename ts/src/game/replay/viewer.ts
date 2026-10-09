@@ -1,12 +1,12 @@
-// The replay viewer's simulation (smashcraft:docs/design/client.md, "Full-match
-// replays"): a joined replay opened as a player that steps a frame at a time,
-// seeks to any frame and describes the replayed state for drawing (fighters,
-// their hurt volumes, active strikes, projectiles and the stage). The client
-// builds this module into each version's simulation bundle and keeps the
-// bundles of versions it has played, so VIEWER_API is the shape every client
-// can call: add to it, never change it. The client also runs this module
-// inside an older map's own simulation (viewerDriver.ts), so it calls only
-// simulation functions whose shape has held since replays began.
+
+
+
+
+
+
+
+
+
 import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
 import { PARTICIPANT_SLOTS } from "../input/participants";
@@ -26,7 +26,7 @@ import { type ReplayState, copyReplayState, createReplaySnapshot } from "./snaps
 
 export const VIEWER_API = 1;
 
-/** Frames between the states a viewer keeps, so a seek runs at most this many frames. */
+
 const KEYFRAME_FRAMES = 300;
 
 export interface SceneCapsule {
@@ -38,7 +38,7 @@ export interface SceneCapsule {
 }
 
 export interface ScenePart extends SceneCapsule {
-  /** 0 normal, 1 invincible, 2 intangible. */
+
   readonly state: number;
 }
 
@@ -64,19 +64,19 @@ export interface ReplayScene {
   readonly fighters: readonly SceneFighter[];
 }
 
-/** A replay opened for watching. */
+
 export interface ReplayViewer {
   readonly build: string;
   readonly version: string;
   readonly serial: number;
-  /** The frame the replay starts after, and its last frame. */
+
   readonly first: number;
   readonly last: number;
-  /** The frame the shown state is after. */
+
   readonly frame: number;
-  /** Runs the next frame; false at the last frame or when a frame can't run. */
+
   step(): boolean;
-  /** Shows the state after `frame`, clamped to the replay. */
+
   seek(frame: number): void;
   scene(): ReplayScene;
 }
@@ -108,7 +108,7 @@ function sceneFighter(slot: number, f: Readonly<Fighter>): SceneFighter {
   };
 }
 
-/** What the replayed state looks like after `frame`. */
+
 export function replayScene(state: Readonly<ReplayState>, frame: number): ReplayScene {
   const stage = state.match.stageChoice;
   const surfaces: { left: number; right: number; z: number }[] = [];
@@ -155,7 +155,7 @@ class Viewer implements ReplayViewer {
     let segment = at(this.replay.segments, this.segment);
     const next = this.frame + 1;
     if (next > segment.start + segment.frames.length) {
-      // The shell changed the match between frames here; the next segment starts from the state it left.
+
       this.segment++;
       segment = at(this.replay.segments, this.segment);
       copyReplayState(this.state, segment.state);
@@ -187,7 +187,7 @@ class Viewer implements ReplayViewer {
       }
     }
     while (this.frame < target && this.step()) {
-      // Each step runs one saved frame.
+
     }
   }
 
@@ -196,7 +196,7 @@ class Viewer implements ReplayViewer {
   }
 }
 
-/** A joined replay opened for watching, or what is wrong with it. */
+
 export function openReplay(lines: readonly string[]): ReplayViewer | string {
   const replay = parseReplay(lines);
   return typeof replay === "string" ? replay : new Viewer(replay);

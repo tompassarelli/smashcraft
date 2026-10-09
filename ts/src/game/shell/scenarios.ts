@@ -1,5 +1,5 @@
-// Developer scenarios: a match that starts from a staged position, for native
-// probes of one mechanic. The probe scripts select one at build time.
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { type AttackBuffer, clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../input/participants";
@@ -18,7 +18,7 @@ import { melee } from "../sim/tuning";
 import type { Scenario } from "./build";
 import { initializePainScenario } from "./painFixture";
 
-/** Both fighters airborne past one edge, rising, close enough for a downward Immolate. */
+
 export function initializeSpikeScenario(first: Fighter, second: Fighter, stage: number, side: 1 | -1): void {
   const edge = side > 0 ? mainDeckRight(stage) : mainDeckLeft(stage);
   first.motion.x = f32(edge + side * 60);
@@ -34,7 +34,7 @@ export function initializeSpikeScenario(first: Fighter, second: Fighter, stage: 
   }
 }
 
-/** The spike scenario fights as two Demon Hunters. */
+
 export function chooseScenarioCharacters(scenario: Scenario, game: MatchState): void {
   if (scenario !== "spike") return;
   const first = firstHumanSlot(game);
@@ -47,15 +47,15 @@ export function chooseScenarioCharacters(scenario: Scenario, game: MatchState): 
   }
 }
 
-/** The first human's opponent: the computer, or the first other fighter. */
+
 function opponentSlot(game: Readonly<MatchState>, world: Roster, first: ParticipantSlot): ParticipantSlot | undefined {
   return cpuSlot(game) ?? PARTICIPANT_SLOTS.find(slot => isActive(world, slot) && slot !== first);
 }
 
-/** Ten seconds, long enough for fresh's frame at frame 30 and a few looks after it. */
+
 const UNDERSIDE_FROZEN_FRAMES = 600;
 
-/** Stages the scenario on a freshly initialized match. */
+
 export function initializeScenario(scenario: Scenario, game: Readonly<MatchState>, world: Roster): void {
   if (initializePainScenario(scenario, world)) return;
   const firstSlot = firstHumanSlot(game);
@@ -134,7 +134,7 @@ export function initializeScenario(scenario: Scenario, game: Readonly<MatchState
       second.motion.x = 350.0;
       return;
     case "underside":
-      // Frozen in the air beside the main deck's lower right corner, level with its underside, for native captures of both.
+
       first.motion.x = 520.0;
       first.motion.z = mainDeckUndersideZ(game.stageChoice);
       first.motion.grounded = false;
@@ -143,8 +143,8 @@ export function initializeScenario(scenario: Scenario, game: Readonly<MatchState
       second.motion.x = 350.0;
       return;
     case "camera":
-      // Three seconds in the magnifier, then the retained launch crosses the
-      // side KO plane. One stock, ordinary movement and stock completion.
+
+
       first.motion.x = f32(stageBounds(game.stageChoice).camera.right + 20.0);
       first.motion.z = 300.0;
       first.motion.grounded = false;
@@ -178,7 +178,7 @@ export function initializeScenario(scenario: Scenario, game: Readonly<MatchState
   }
 }
 
-/** Staged scenarios keep the computer passive. */
+
 const COMPUTER_PLAYS: Readonly<Record<Scenario, boolean>> = {
   "pain-low-small": false, "pain-low-medium": false, "pain-low-large": false,
   "pain-middle-small": false, "pain-middle-medium": false, "pain-middle-large": false,
@@ -194,7 +194,7 @@ const COMPUTER_PLAYS: Readonly<Record<Scenario, boolean>> = {
 
 const NEUTRAL = neutralControls();
 
-/** The computer's controls for a callback-driven frame. */
+
 export function produceScenarioComputerInput(
   scenario: Scenario,
   game: Readonly<MatchState>,

@@ -10,7 +10,7 @@ interface ProjectilePose {
   z: number;
   yaw: number;
   pitch: number;
-  /** A ground pool's horizontal danger radius; zero for traveling missiles. */
+
   poolRadius: number;
   dangerRadius: number;
   armed: boolean;
@@ -20,10 +20,10 @@ interface ProjectilePose {
   animationSeconds?: number | undefined;
 }
 
-// Shared and never changed: renderers project every pooled effect on every callback.
+
 const HIDDEN: Readonly<ProjectilePose> = { visible: false, x: 0.0, z: 0.0, yaw: 0.0, pitch: 0.0, poolRadius: 0.0, dangerRadius: 0.0, armed: false, poolPulse: 0.0, modelScale: 1.0 };
 
-/** A live projectile, facing its direction of travel and pitched along its path; hidden outside play. */
+
 export function projectedProjectile(fighter: Readonly<Fighter> | undefined, index: number, playing: boolean): Readonly<ProjectilePose> {
   const projectile = fighter?.projectiles[index];
   if (!playing || fighter === undefined || projectile === undefined || fighter.status.out || !projectileActive(fighter, index)) {

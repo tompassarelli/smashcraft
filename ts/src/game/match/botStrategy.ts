@@ -1,5 +1,5 @@
-// Habits are learned only from delayed visible samples. A read commits to a
-// forecast, so a changed habit can bait it before the new evidence arrives.
+
+
 import { at } from "wisp/src/runtime/lookup";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { f32 } from "wisp/src/sim/f32";
@@ -18,7 +18,7 @@ import { HABIT_FIELDS, HabitChoice, habitContext } from "./botHabits";
 
 const HISTORY_LIMIT = 128;
 const READ_CHOICES = [HabitChoice.attack, HabitChoice.shield, HabitChoice.jump, HabitChoice.retreat, HabitChoice.approach, HabitChoice.landing, HabitChoice.ledge] as const;
-// Preallocated scratch: confirmed and rollback decisions reuse it without retaining it.
+
 const readCounts = [0, 0, 0, 0, 0, 0, 0, 0];
 const readIntervals = [0, 0, 0, 0, 0, 0, 0, 0];
 const readTimed = [0, 0, 0, 0, 0, 0, 0, 0];
@@ -45,9 +45,9 @@ interface SavedBotRead {
 }
 
 export interface BotStrategy {
-  /** Owned scalar storage: frame, context, choice and interval for each habit. */
+
   readonly history: number[];
-  /** Exact contents let snapshots reuse unchanged storage without copying it. */
+
   historyKey: string;
   observedFrame: number;
   opponent: number;
@@ -67,7 +67,7 @@ export interface BotStrategy {
   readActionStyle: number;
   readActionFacing: Direction;
   lastOption: number;
-  /** The attack chooser's last VARIETY_STARTS options, oldest first, as option and match-frame pairs; -1 where none yet. */
+
   readonly recentOptions: number[];
 }
 
@@ -82,7 +82,7 @@ export type SavedBotStrategy = Pick<BotStrategy, "observedFrame" | "opponent" | 
   readonly read: SavedBotRead | undefined;
 };
 
-/** Replay text keeps named records; live snapshots keep owned scalars. */
+
 export function savedBotStrategy(state: Readonly<BotStrategy>): SavedBotStrategy {
   const history: SavedBotHabit[] = [];
   for (let index = 0; index < state.history.length; index += HABIT_FIELDS) {
@@ -144,7 +144,7 @@ export function copyBotStrategy(target: BotStrategy, source: Readonly<BotStrateg
   target.lastSerial = source.lastSerial;
   target.events = source.events;
   target.lastOption = source.lastOption;
-  // Dense numbers: plain indexing spares a lookup call per option on every copied frame.
+
   const recent = source.recentOptions;
   const into = target.recentOptions;
   for (let index = 0; index < recent.length; index++) into[index] = recent[index] ?? 0;
@@ -173,7 +173,7 @@ export function clearBotStrategy(state: BotStrategy): void {
   copyBotStrategy(state, createBotStrategy());
 }
 
-/** Dense scalar enumeration is shared by canonical/difference and periodic replay checks. */
+
 export function botStrategyValues(state: Readonly<BotStrategy>): number[] {
   const values = [state.observedFrame, state.opponent, state.lastChoice, state.lastContext, state.lastSerial, state.events, state.lastOption,
     state.readActive ? 1 : 0, state.readActive ? state.readChoice : 0, state.readActive ? state.readContext : 0, state.readActive ? state.readExpectedFrame : 0, state.readActive ? state.readExpires : 0, state.readActive ? state.readConfidence : 0, state.readActive && state.readActed ? 1 : 0,
@@ -194,7 +194,7 @@ function visibleChoice(own: Readonly<Fighter>, target: Readonly<Fighter>): Habit
   return moving > 1.0 ? HabitChoice.approach : moving < -1.0 ? HabitChoice.retreat : HabitChoice.none;
 }
 
-/** Processes a known sample once; an opponent change starts a new bounded history. */
+
 export function learnBotHabit(state: BotStrategy, ownObserved: Readonly<Fighter>, target: Readonly<Fighter>, opponent: number, observedFrame: number, policy: CpuDecisionPolicy): void {
   if (observedFrame <= state.observedFrame) return;
   if (opponent !== state.opponent) {
@@ -234,7 +234,7 @@ export function learnBotHabit(state: BotStrategy, ownObserved: Readonly<Fighter>
   state.lastSerial = target.attack.serial;
 }
 
-/** Revises an expired plan from historical evidence; a held plan does not track new inputs. */
+
 export function prepareBotRead(state: BotStrategy, own: Readonly<Fighter>, target: Readonly<Fighter>, frame: number, delay: number, policy: CpuDecisionPolicy): void {
   if (state.readActive && frame <= state.readExpires) return;
   state.readActive = false;
@@ -285,7 +285,7 @@ export function prepareBotRead(state: BotStrategy, own: Readonly<Fighter>, targe
   state.readActionFacing = 0;
 }
 
-/** A prepared read may position or buffer before its expected event, and may miss. */
+
 export function pressBotRead(state: BotStrategy, own: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, input: Controls, commands: AttackBuffer): boolean {
   if (!state.readActive || frame > state.readExpires || !own.motion.grounded || own.down.state !== DownState.none || own.launch.hitstun > 0) return false;
   const ahead = state.readExpectedFrame - frame;

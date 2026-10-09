@@ -1,8 +1,8 @@
-// A fighter's mana bar: a thin segmented blue bar in the escape meter's style,
-// one over each fighter's head and a matching one on its HUD plate. It
-// flashes red when a special it could not afford did not come out and glows
-// when a hit or throw pays it. Every client creates the same handles; only
-// drawn position and visibility are local.
+
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import {
   MANA_BAR_SEGMENTS, type ManaFeedback, advanceManaFeedback, manaFeedback, manaFill, manaDrainLit, manaFlashLit, manaGlowLit,
@@ -14,7 +14,7 @@ const DARK = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp";
 const FILL = "ReplaceableTextures\\TeamColor\\TeamColor01.blp";
 const FLASH = "ReplaceableTextures\\TeamColor\\TeamColor00.blp";
 const GLOW = "ReplaceableTextures\\TeamColor\\TeamColor04.blp";
-/** Purple: mana burned away by an opponent's hit. */
+
 const DRAIN = "ReplaceableTextures\\TeamColor\\TeamColor03.blp";
 
 export class ManaBar {
@@ -34,7 +34,7 @@ export class ManaBar {
   private drainShown = false;
   private shownFill = -1.0;
 
-  /** `name` keeps the frame names apart: "Overhead" or "Hud". */
+
   constructor(name: string, slot: number, parent: framehandle, context: number, private readonly height: number, private readonly border: number) {
     const suffix = `${name}${I2S(slot)}`;
     this.back = createBackdrop(`ManaBarBack${suffix}`, parent, context);
@@ -70,10 +70,10 @@ export class ManaBar {
     return [this.back, this.fill, this.glow, ...this.lines, this.flash, this.drain];
   }
 
-  /**
-   * Places the bar: its left edge, vertical centre and length, in UI units.
-   * Its parts hang from the dark back, so a move is one native call.
-   */
+
+
+
+
   place(left: number, centerY: number, width: number): void {
     if (width !== this.width) {
       this.width = width;
@@ -92,7 +92,7 @@ export class ManaBar {
     BlzFrameSetAbsPoint(this.back, FRAMEPOINT_CENTER, left + width / 2.0, centerY);
   }
 
-  /** One rendered update: `points` is the fighter's mana, `denials` its refusal count and `drains` how often hits drained it. */
+
   update(shown: boolean, points: number, denials: number, drains: number): void {
     advanceManaFeedback(this.feedback, points, denials, drains);
     if (shown !== this.visible) {

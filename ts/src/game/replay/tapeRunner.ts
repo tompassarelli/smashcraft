@@ -1,5 +1,5 @@
-// Runs a decoded tape through match rules, recorded frame execution and the
-// replay history, printing the canonical replay state after each operation.
+
+
 import { clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type FrameControls, createFrameControls } from "../match/controls";
@@ -27,7 +27,7 @@ type TapeResult =
   | { readonly ok: true; readonly frames: number }
   | { readonly ok: false; readonly line: number; readonly message: string };
 
-/** Fighter presentation, which the replay checksum leaves out, in the canonical field form. */
+
 function poseFields(slot: number, pose: Readonly<FighterPose>): string {
   const p = `|pose[${slot}].`;
   const { motion } = pose;
@@ -40,7 +40,7 @@ function poseFields(slot: number, pose: Readonly<FighterPose>): string {
     + `${p}ledgeCatchRemaining=${motion.ledgeCatchRemaining}${p}ledgeJump=${motion.ledgeJump ? 1 : 0}`;
 }
 
-/** One tape's match, inputs and history; a generator steps it one operation at a time. */
+
 export interface TapeSession {
   readonly live: ReplayState;
   readonly history: ReplayHistory;
@@ -62,7 +62,7 @@ export function createTapeSession(): TapeSession {
 
 const NEUTRAL = neutralControls();
 
-/** The canonical replay state followed by each fighter's pose. */
+
 function recordState({ live, observed }: TapeSession): string {
   copyReplayState(observed, live);
   let poses = "";
@@ -70,7 +70,7 @@ function recordState({ live, observed }: TapeSession): string {
   return `${canonicalState(observed)}${poses}`;
 }
 
-// The pure part of starting a match in the game: fresh fighters, runtime and history epoch.
+
 function startMatch(session: TapeSession): boolean {
   const { match, world, controls, runtime } = session.live;
   world.mask = fighterMask(match);
@@ -102,7 +102,7 @@ function clearProduced({ produced }: TapeSession): void {
 function runFrame(session: TapeSession, frame: number, predicted: boolean): string | undefined {
   const { live, history, row, produced, epoch } = session;
   const { match, world, controls, runtime } = live;
-  // Computers choose from the live match, as the game's frame callback has them, so each runtime replays their decisions.
+
   for (const slot of PARTICIPANT_SLOTS) {
     if (isActive(world, slot) && computerActive(match, slot)) produceComputerInput(match, world, runtime, slot, frame, produced.inputs[slot], produced.commands[slot]);
   }
@@ -113,7 +113,7 @@ function runFrame(session: TapeSession, frame: number, predicted: boolean): stri
   return undefined;
 }
 
-/** Replaces a frame with the inputs given since, as a one-row batch: the earliest replayed frame, "unchanged" or "rejected". */
+
 function correctFrame(session: TapeSession, frame: number): string {
   const { live, history, corrections, correction, produced, epoch } = session;
   resetMatchFrameInput(correction);
@@ -125,7 +125,7 @@ function correctFrame(session: TapeSession, frame: number): string {
 
 const flag = (value: boolean) => (value ? "1" : "0");
 
-/** Performs one operation: its record's result field, or a refusal. */
+
 function perform(session: TapeSession, operation: TapeOperation): { result: string } | { refused: string } | undefined {
   const { live, history, produced, epoch } = session;
   const game = live.match;
@@ -192,10 +192,10 @@ function perform(session: TapeSession, operation: TapeOperation): { result: stri
   }
 }
 
-/**
- * Performs one operation and, unless it is input, emits its record:
- * "LINE OPERATION RESULT STATE". Returns the refusal, if any.
- */
+
+
+
+
 export function performTapeOperation(session: TapeSession, operation: TapeOperation, emit?: (record: string) => void): string | undefined {
   const outcome = perform(session, operation);
   if (outcome === undefined) return undefined;
@@ -204,7 +204,7 @@ export function performTapeOperation(session: TapeSession, operation: TapeOperat
   return undefined;
 }
 
-/** Runs every operation in order, stopping at the first one the rules or history refuse. */
+
 export function runTape(operations: readonly TapeOperation[], emit: (record: string) => void): TapeResult {
   const session = createTapeSession();
   let frames = 0;

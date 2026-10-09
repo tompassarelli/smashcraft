@@ -1,6 +1,6 @@
-// Training's readout (#120) in the top-left corner, or the tutorial's lesson (#306): the last move's frames,
-// the advantage after the last hit or shielded hit, and the combo, on a dark
-// panel so the text stays legible over bright sky.
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { type TrainingState, copyTrainingState, createTrainingState } from "../match/trainingState";
 import { trainingReadout } from "../shell/messages";
@@ -9,16 +9,16 @@ import { createBackdrop, createText, gameUi, placeTopLeft } from "./frames";
 import { MENU_FONT } from "./hudLayout";
 import { TRAINING_READOUT_BOX, TRAINING_READOUT_PANEL, TRAINING_READOUT_PANEL_ALPHA } from "./hudLayout";
 
-/** The dark tooltip texture the results panel and meters draw behind their text. */
+
 const PANEL_TEXTURE = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp";
 
 export class TrainingReadout {
   private readonly panel: framehandle;
   private readonly label: framehandle;
-  /** The state its text was last built from; the text changes only with it. */
+
   private readonly shown = createTrainingState();
   private built = false;
-  /** Whether the last built text was empty; the panel hides with no text on it. */
+
   private empty = true;
 
   constructor() {
@@ -55,7 +55,7 @@ export class TrainingReadout {
       && last.lesson === state.lesson && last.lessonCount === state.lessonCount && (last.lessonCheer > 0) === (state.lessonCheer > 0))) {
       copyTrainingState(last, state);
       this.built = true;
-      // The tutorial's lesson takes the readout's place.
+
       const text = tutorialOn(state) ? tutorialText(state) : trainingReadout(state);
       this.empty = text === "";
       BlzFrameSetText(this.label, text);

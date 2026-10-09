@@ -1,8 +1,8 @@
-// The pad scripts a native capture map plays, with the frames it holds for the
-// host to capture. `bun scripts/nativeCapture.ts build PAD...` rewrites this
-// list for one build and restores it; the checked-in list is the control: the
-// same walk twice around a different fighter, so a capture that shows an
-// earlier scene can't match its twin (smashcraft:ts/scripts/nativeCapture.ts).
+
+
+
+
+
 export interface CaptureFixture {
   readonly name: string;
   readonly frames: readonly number[];

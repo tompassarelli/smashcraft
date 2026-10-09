@@ -1,5 +1,5 @@
-// Foreign animation boundary diagnostic: one visible model per interrupted
-// pose, switching to a constant pain target without touching gameplay state.
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
 import { ARENA_CAMERA, FLOOR_HEIGHT } from "../game/presentation/arenaCamera";

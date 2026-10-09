@@ -1,7 +1,7 @@
-// The clip table each character's poses play. The original fighters' tables
-// come from the packaged asset metadata; each hero registers its own in its
-// presentation (sim/heroes/<hero>Hero.ts). Tables only: pose selection lives in
-// fighterPose.
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, LedgeState, PlatformMove, SpecialAction } from "../sim/codes";
 import { type HeroClip, type HeroClipTable, type HeroFollowUpPose, type HeroPose, STOCK_FALLBACK_CLIP } from "../sim/heroes/hero";
@@ -20,11 +20,11 @@ import { STOCK_CLIP_SWAPS } from "./stockClipSwaps";
 
 const clip = (index: number, seconds: number): HeroClip => ({ index, seconds });
 
-/**
- * A clip whose strike is authored on frame `startup` of `total`, retimed to
- * land on another move's first active frame: each dash attack reuses a tilt's
- * clip (smashcraft:docs/design/tilts.md).
- */
+
+
+
+
+
 const retimed = (index: number, seconds: number, startup: number, total: number, kit: GroundKit, style: AttackStyle): HeroClip =>
   strikeClip({ index }, f32(f32(seconds * startup) / total), kit, style);
 
@@ -37,7 +37,7 @@ const RIFLEMAN_CLIPS: HeroClipTable = {
   downTilt: clip(assets.RIFLEMAN_DOWN_TILT_INDEX, assets.RIFLEMAN_DOWN_TILT_SECONDS),
   forwardTiltUp: clip(assets.RIFLEMAN_FORWARD_TILT_UP_INDEX, assets.RIFLEMAN_FORWARD_TILT_UP_SECONDS),
   forwardTiltDown: clip(assets.RIFLEMAN_FORWARD_TILT_DOWN_INDEX, assets.RIFLEMAN_FORWARD_TILT_DOWN_SECONDS),
-  // The lunge plays the bayonet thrust.
+
   dashAttack: retimed(assets.RIFLEMAN_FORWARD_TILT_INDEX, assets.RIFLEMAN_FORWARD_TILT_SECONDS, 6, 30, RIFLEMAN_GROUND, AttackStyle.dashAttack),
   neutralAir: clip(assets.RIFLEMAN_AERIAL_NEUTRAL_INDEX, assets.RIFLEMAN_AERIAL_NEUTRAL_SECONDS),
   forwardAir: clip(assets.RIFLEMAN_AERIAL_FORWARD_INDEX, assets.RIFLEMAN_AERIAL_FORWARD_SECONDS),
@@ -64,7 +64,7 @@ const RIFLEMAN_CLIPS: HeroClipTable = {
   damageAir: clip(assets.RIFLEMAN_DAMAGE_AIR_INDEX, assets.RIFLEMAN_DAMAGE_AIR_SECONDS),
   damageTumble: clip(assets.RIFLEMAN_DAMAGE_TUMBLE_INDEX, assets.RIFLEMAN_DAMAGE_TUMBLE_SECONDS),
   damageShield: clip(assets.RIFLEMAN_DAMAGE_SHIELD_INDEX, assets.RIFLEMAN_DAMAGE_SHIELD_SECONDS),
-  // Rifleman has no "Stand Hit": a broken shield reels as from a shield hit and holds there.
+
   dizzy: clip(assets.RIFLEMAN_DAMAGE_SHIELD_INDEX, assets.RIFLEMAN_DAMAGE_SHIELD_SECONDS),
   grabHold: clip(assets.RIFLEMAN_GRAB_HOLD_INDEX, assets.RIFLEMAN_GRAB_HOLD_SECONDS),
   grabbed: clip(assets.RIFLEMAN_GRABBED_INDEX, assets.RIFLEMAN_GRABBED_SECONDS),
@@ -170,30 +170,30 @@ function recoveryTables(): Readonly<Record<number, HeroClipTable>> {
 }
 const COMBINED_CLIPS = recoveryTables();
 
-/** The clips a table names, without the poses it leaves to the fallback. */
+
 export function namedClips(table: HeroClipTable): HeroClip[] {
   const clips: HeroClip[] = [];
-  // Object.values is dense in Lua too: TypeScriptToLua builds it with pairs, which skips nil.
+  // Lua Object.values uses pairs and skips nil, so its result is dense.
   for (const clip of Object.values(table)) if (clip !== undefined) clips.push(clip);
   return clips;
 }
 
-/** The character's clip table: an original fighter's, or a hero's registered one. */
+
 export function characterClips(character: number): HeroClipTable {
   return COMBINED_CLIPS[character] ?? ORIGINAL_CLIPS[character] ?? heroDefinition(character)?.presentation.clips ?? NO_CLIPS;
 }
 
-/** The character's clip for a pose, or the hero's fallback when its table leaves the pose out. */
+
 export function clipFor(character: number, pose: HeroPose): HeroClip {
   const table = characterClips(character);
   return table[pose] ?? (pose === "jab2" || pose === "jab3" ? table.jab : undefined) ?? heroDefinition(character)?.presentation.fallback ?? STOCK_FALLBACK_CLIP;
 }
 
-/**
- * A platform move plays the ledge clip every fighter's table maps: ascent the
- * ledge climb, descent the ledge hang it lowers from, and both wraps the
- * ledge roll around the edge.
- */
+
+
+
+
+
 export function platformClip(character: number, move: PlatformMove): HeroClip {
   switch (move) {
     case PlatformMove.ascent: return clipFor(character, "ledgeClimb");
@@ -211,7 +211,7 @@ export function ledgePose(state: LedgeState): HeroPose {
   }
 }
 
-/** A pummel or throw from both sides: the holder's pose and the victim's. */
+
 interface GrabActionPoses {
   readonly holder: HeroPose;
   readonly victim: HeroPose;
@@ -223,7 +223,7 @@ const THROW_BACK: GrabActionPoses = { holder: "throwBack", victim: "victimThrowB
 const THROW_UP: GrabActionPoses = { holder: "throwUp", victim: "victimThrowUp" };
 const THROW_DOWN: GrabActionPoses = { holder: "throwDown", victim: "victimThrowDown" };
 
-/** Pummels and throws have clips; holding and escaping do not. */
+
 export function grabActionPoses(action: GrabAction): GrabActionPoses | undefined {
   switch (action) {
     case GrabAction.pummel: return PUMMEL;
@@ -235,7 +235,7 @@ export function grabActionPoses(action: GrabAction): GrabActionPoses | undefined
   }
 }
 
-/** The pose an attack's start selects; smashes and shots without one play the named "attack" clip. */
+
 export function attackPose(style: AttackStyle | undefined): HeroPose | undefined {
   switch (style) {
     case AttackStyle.neutralAir: return "neutralAir";
@@ -269,13 +269,13 @@ function ownAttackPose(style: AttackStyle | undefined): HeroPose | undefined {
   }
 }
 
-/** Smashes and dash attacks play their own clip only where the table maps one. */
+
 export function ownAttackClip(character: number, style: AttackStyle | undefined): HeroClip | undefined {
   const pose = ownAttackPose(style);
   return pose === undefined ? undefined : characterClips(character)[pose];
 }
 
-/** A charged smash: the held charge clip, then the release. */
+
 interface SmashClips {
   readonly charge: HeroClip;
   readonly release: HeroClip;
@@ -294,13 +294,13 @@ const DEMON_HUNTER_FORWARD_SMASH_CHARGE: SmashClips = {
   release: clip(dh.DEMON_HUNTER_FORWARD_SMASH_RELEASE_INDEX, dh.DEMON_HUNTER_FORWARD_SMASH_RELEASE_SECONDS),
 };
 
-/** Illidan's charged smash clips; any other style charges as a forward smash. */
+
 export function illidanSmashClips(style: AttackStyle | undefined): SmashClips {
   if (style === AttackStyle.upSmash) return DEMON_HUNTER_UP_SMASH_CHARGE;
   return style === AttackStyle.downSmash ? DEMON_HUNTER_DOWN_SMASH_CHARGE : DEMON_HUNTER_FORWARD_SMASH_CHARGE;
 }
 
-/** Illidan's specials have a grounded and an aerial clip; so does the rifleman's blaster. */
+
 interface GroundingClips {
   readonly grounded: HeroClip;
   readonly air: HeroClip;
@@ -311,19 +311,19 @@ const FEL_RUSH: GroundingClips = { grounded: clip(dh.DEMON_HUNTER_SPECIAL_SIDE_I
 const WING_ASCENT: GroundingClips = { grounded: clip(dh.DEMON_HUNTER_SPECIAL_UP_INDEX, dh.DEMON_HUNTER_SPECIAL_UP_SECONDS), air: clip(dh.DEMON_HUNTER_SPECIAL_UP_AIR_INDEX, dh.DEMON_HUNTER_SPECIAL_UP_AIR_SECONDS) };
 const IMMOLATE: GroundingClips = { grounded: clip(dh.DEMON_HUNTER_SPECIAL_DOWN_INDEX, dh.DEMON_HUNTER_SPECIAL_DOWN_SECONDS), air: clip(dh.DEMON_HUNTER_SPECIAL_DOWN_AIR_INDEX, dh.DEMON_HUNTER_SPECIAL_DOWN_AIR_SECONDS) };
 const RIFLEMAN_BLASTER: GroundingClips = { grounded: clip(assets.RIFLEMAN_SPECIAL_NEUTRAL_INDEX, assets.RIFLEMAN_SPECIAL_NEUTRAL_SECONDS), air: clip(assets.RIFLEMAN_SPECIAL_NEUTRAL_AIR_INDEX, assets.RIFLEMAN_SPECIAL_NEUTRAL_AIR_SECONDS) };
-// The stock Warcraft cast: he rocks back with a raised hand, then points the rifle
-// forward about when the bear appears (60% through, frame 24 of 42).
+
+
 const RIFLEMAN_BEAR = clip(assets.RIFLEMAN_SPELL_INDEX, assets.RIFLEMAN_SPELL_SECONDS);
 const RIFLEMAN_TRAP = clip(assets.RIFLEMAN_SPECIAL_DOWN_INDEX, assets.RIFLEMAN_SPECIAL_DOWN_SECONDS);
 const RIFLEMAN_RECOVERY = clip(assets.RIFLEMAN_SPECIAL_UP_INDEX, assets.RIFLEMAN_SPECIAL_UP_SECONDS);
 
 const byGrounding = (clips: GroundingClips, grounded: boolean): HeroClip => grounded ? clips.grounded : clips.air;
 
-/**
- * A special's clip. A hero's four specials play its table's grounded or aerial
- * pose. A follow-up plays its own follow-up pose when the table maps one. Any other action without its own clip plays the rifleman's blaster,
- * aerial when it has an aerial shot's duration.
- */
+
+
+
+
+
 const FOLLOW_UP_POSES: readonly (readonly [grounded: HeroFollowUpPose, air: HeroFollowUpPose])[] = [
   ["neutralSpecialFollowUp", "neutralSpecialFollowUpAir"], ["sideSpecialFollowUp", "sideSpecialFollowUpAir"],
   ["upSpecialFollowUp", "upSpecialFollowUpAir"], ["downSpecialFollowUp", "downSpecialFollowUpAir"],

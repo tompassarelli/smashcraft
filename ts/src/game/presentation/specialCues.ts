@@ -1,8 +1,8 @@
-// What every special shows on its startup and on its active frames: a stock
-// Warcraft spell effect at a body anchor, so a viewer can tell which move it is
-// and when it is dangerous (#144). Each hero's startup uses its own colour of
-// cast flash and each move its own Warcraft spell; the window comes from the
-// kit's authored frames, never from the drawn clip. Presentation only.
+
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { Character, SpecialAction } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
@@ -38,7 +38,7 @@ import {
 import { SPECIAL_SLOTS, type SpecialSlot } from "./projectileArt";
 import { RIFLEMAN_MODEL_FILE } from "./fighterAssetInfo";
 
-/** Where a cue stands, facing-relative, in the fighter's model scale. */
+
 export type CueAnchor = "hand" | "body" | "feet" | "ahead" | "behind" | "overhead" | "barrel" | "breath";
 
 export const MISSING_CUE_MODEL = "Objects\\InventoryItems\\QuestionMark\\QuestionMark.mdl";
@@ -51,7 +51,7 @@ export const CUE_ANCHORS: { readonly [anchor in CueAnchor]: { readonly x: number
   behind: { x: -55.0, z: 55.0 },
   overhead: { x: 0.0, z: 125.0 },
   barrel: { x: 75.0, z: 60.0 },
-  // A breath missile's flame trails back from its head: the head sits at the reach, the trail runs back to the mouth.
+
   breath: { x: 124.0, z: 62.0 },
 };
 
@@ -59,33 +59,33 @@ export interface Cue {
   readonly model: string;
   readonly anchor: CueAnchor;
   readonly scale: number;
-  /** Already drawn by the fighter's own special effects (render/specialEffects.ts). */
+
   readonly drawn?: boolean | undefined;
-  /**
-   * The sequence a showing starts and the seconds into it, where its model
-   * already draws: a pooled effect has played past its birth by the time it
-   * shows, and some stock models draw nothing in their first tenths of a
-   * second. Unset, a showing restarts whatever sequence plays from 0 s.
-   */
+
+
+
+
+
+
   readonly sequence?: string | undefined;
   readonly seconds?: number | undefined;
   readonly pitch?: number | undefined;
-  /** A visible transformation replaces the normal body while this cue plays. */
+
   readonly replacesBody?: boolean | undefined;
 }
 
-/** `cue` started `seconds` into `sequence`. */
+
 export const timed = (cue: Cue, sequence: string, seconds: number): Cue => ({ ...cue, sequence, seconds });
 
-/** One special's cues: its Warcraft spell, what its startup shows and what its active frames show. */
+
 export interface MoveCues {
   readonly spell: string;
   readonly startup: Cue;
   readonly active: Cue;
 }
 
-// These stock spells have no visible Stand, or need Birth rather than their
-// empty first sequence. Names and draw times come from the classic model keys.
+
+
 const BIRTH_CUES = new Set([
   "StarfallTarget", "MoonWellCasterArt", "TauntCaster", "StarfallCaster", "GyroCopterImpact",
   "FeralSpiritTarget", "FlakTarget", "FireLordDeathExplode", "SlowCaster", "BlizzardTarget",
@@ -104,7 +104,7 @@ const BIRTH_CUES = new Set([
 const cue = (model: string, anchor: CueAnchor, scale: number): Cue => {
   const name = (model.split("\\").pop() ?? model).replace(".mdx", "").replace(".mdl", "");
   const sequence = BIRTH_CUES.has(name) ? "birth" : "stand";
-  // Dark Ritual starts emitting at 0.833 s; Death and Decay at 0.267-0.367 s.
+
   const seconds = name === "MarkOfChaosTarget" || name === "InvisibilityTarget" ? 0.75 : name === "FlameStrike1" ? f32(1.3)
     : name === "DarkRitualCaster" ? 1.0 : name === "DeathAndDecayTarget" ? 0.5
     : name === "DeathCoilSpecialArt" || name === "ThunderClapCaster" || name === "WarStompCaster" ? f32(0.3)
@@ -114,7 +114,7 @@ const cue = (model: string, anchor: CueAnchor, scale: number): Cue => {
 };
 const drawn = (model: string, anchor: CueAnchor): Cue => ({ model, anchor, scale: 1.0, drawn: true });
 
-// Each hero's cast flash, its colour: orc fury, storm, shadow, frost, holy light, vampiric, voodoo, fel, wild.
+
 const BLOODLUST = cue("Abilities\\Spells\\Orc\\Bloodlust\\BloodlustSpecial.mdx", "hand", f32(0.8));
 const STORM = cue("Abilities\\Weapons\\Bolt\\BoltImpact.mdx", "hand", 1.0);
 const SHADOW = cue("Abilities\\Spells\\Undead\\Cripple\\CrippleTarget.mdx", "hand", f32(0.7));
@@ -128,12 +128,12 @@ const FEL = cue("Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilSpecialArt.mdx",
 const MURGUL = cue("Abilities\\Weapons\\MurgulMagicMissile\\MurgulMagicMissile.mdx", "hand", f32(0.6));
 const BEAST = cue("Abilities\\Spells\\Orc\\Bloodlust\\BloodlustTarget.mdx", "hand", f32(0.6));
 const NATURE = cue("Abilities\\Spells\\NightElf\\Tranquility\\TranquilityTarget.mdx", "hand", f32(0.7));
-/** The Lich King's dark rune under his feet. */
+
 const RUNE = cue("Abilities\\Spells\\Undead\\DarkRitual\\DarkRitualCaster.mdx", "feet", f32(0.6));
-/** Anub'arak's dust kicked up as he digs in. */
+
 const BURROW = cue("Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx", "feet", f32(0.4));
 
-/** Every hero's four specials; every form of a special (air, free, follow-up, recall, marked) shows its special's cues. */
+
 export const HERO_CUES: { readonly [character: number]: { readonly [slot in SpecialSlot]: MoveCues } } = {
   [Character.malfurion]: {
     neutral: { spell: "Entangling Roots", startup: NATURE, active: cue("Abilities\\Spells\\NightElf\\EntanglingRoots\\EntanglingRootsTarget.mdx", "ahead", f32(0.35)) },
@@ -281,40 +281,40 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
   },
 };
 
-// Illidan's cues (#147) start where their models draw, read from each model's
-// keys: Death Coil special art's only sequence (Stand, once) draws nothing for
-// 0.07 s and bursts 0.3-0.6 s, so the five-frame tell starts at 0.3 s; Breath
-// of Fire missile and Volcano death have only a Birth, drawn 0-0.5 s; the
-// missiles' and Moon Glaive's Stand draw from 0 s.
-/** Fel Rush's tell, and the start of each of its branches. */
+
+
+
+
+
+
 const FEL_TELL = timed(cue("Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilSpecialArt.mdx", "body", 0.5), "stand", f32(0.3));
 
-// Illidan's own effects (render/specialEffects.ts) already show his specials.
+
 const MANA_BURN_HAND = "Abilities\\Spells\\NightElf\\ManaBurn\\ManaBurnTarget.mdx";
 const FEL_FLAMES = "Abilities\\Spells\\NightElf\\Immolation\\ImmolationTarget.mdx";
 
-/** The original fighters' specials, by action. */
+
 export const ORIGINAL_CUES: { readonly [action: number]: MoveCues } = {
   [SpecialAction.riflemanBlaster]: { spell: "Blaster", startup: drawn(RIFLEMAN_MODEL_FILE, "barrel"), active: cue("Abilities\\Weapons\\GyroCopter\\GyroCopterImpact.mdx", "barrel", 0.5) },
   [SpecialAction.riflemanBear]: { spell: "Summon Bear", startup: cue("Abilities\\Spells\\NightElf\\BattleRoar\\RoarTarget.mdx", "body", f32(0.7)), active: cue("Abilities\\Spells\\Orc\\FeralSpirit\\FeralSpiritTarget.mdx", "ahead", f32(0.8)) },
   [SpecialAction.riflemanRecovery]: { spell: "Recoil Shot", startup: cue("Abilities\\Spells\\Human\\FlakCannons\\FlakTarget.mdx", "feet", f32(0.8)), active: cue("Abilities\\Spells\\Other\\Incinerate\\FireLordDeathExplode.mdx", "feet", f32(0.4)) },
   [SpecialAction.riflemanTrap]: { spell: "Frost Trap", startup: cue("Abilities\\Spells\\Human\\Slow\\SlowCaster.mdx", "body", f32(0.6)), active: cue("Abilities\\Spells\\Human\\Blizzard\\BlizzardTarget.mdx", "feet", f32(0.4)) },
   [SpecialAction.demonHunterManaBurn]: { spell: "Mana Burn", startup: drawn(MANA_BURN_HAND, "hand"), active: cue("Abilities\\Spells\\Human\\Feedback\\SpellBreakerAttack.mdx", "hand", 1.0) },
-  // The fel streak of his Metamorphosis missile trails the rush.
+
   [SpecialAction.demonHunterFelRush]: { spell: "Fel Rush", startup: FEL_TELL, active: timed(cue("Abilities\\Weapons\\IllidanMissile\\IllidanMissile.mdx", "body", 1.0), "stand", 0.0) },
   [SpecialAction.demonHunterWingAscent]: { spell: "Metamorphosis wings", startup: cue("Abilities\\Spells\\NightElf\\Immolation\\ImmolationDamage.mdx", "feet", 1.0), active: cue("Abilities\\Spells\\Other\\Silence\\SilenceAreaBirth.mdx", "feet", f32(0.3)) },
   [SpecialAction.demonHunterImmolate]: { spell: "Immolation", startup: drawn(FEL_FLAMES, "body"), active: drawn(FEL_FLAMES, "body") },
 };
 
 
-/**
- * A branch's cues: its own spell, "slot" when it is deliberately its
- * special's own spell again, or "none" when it shows nothing (a dropped charge;
- * Lua drops a null array entry, so the absence is a word).
- */
+// Cue absence uses "none" because Lua drops null array entries.
+
+
+
+
 export type BranchCue = MoveCues | "slot" | "none";
 
-/** The branches of a hero special: its recall and marked forms and each follow-up, in `followUps` order. */
+
 export interface HeroBranchCues {
   readonly recall?: BranchCue | undefined;
   readonly marked?: BranchCue | undefined;
@@ -323,7 +323,7 @@ export interface HeroBranchCues {
 
 const branch = (spell: string, startup: Cue, active: Cue): MoveCues => ({ spell, startup, active });
 
-/** Every hero branch names its cue; specialCues.tests.ts checks each authored branch has one. */
+
 export const HERO_BRANCH_CUES: { readonly [character: number]: { readonly [slot in SpecialSlot]?: HeroBranchCues } } = {
   [Character.malfurion]: { down: { recall: "slot" } },
   [Character.anubarak]: { down: { recall: "slot" } },
@@ -350,7 +350,7 @@ export const HERO_BRANCH_CUES: { readonly [character: number]: { readonly [slot 
   [Character.mountainKing]: {
     neutral: { recall: branch("Storm Bolt recall", STORM, cue("Abilities\\Spells\\Orc\\LightningShield\\LightningShieldBuff.mdx", "hand", f32(0.8))) },
     up: { followUps: [branch("Hammerfall", STORM, cue("Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdx", "feet", f32(0.8)))] },
-    // The small Clap, the full Thunder Clap (its special's own spell) and a dropped charge.
+
     down: { followUps: [branch("Small Clap", STORM, cue("Abilities\\Spells\\Orc\\EarthQuake\\EarthquakeTarget.mdx", "feet", f32(0.3))), "slot", "none"] },
   },
   [Character.warden]: {
@@ -370,25 +370,25 @@ export const HERO_BRANCH_CUES: { readonly [character: number]: { readonly [slot 
   },
 };
 
-/** An original special's branch form: its cues and its active frames (special frames, inclusive). */
+
 export interface OriginalBranch {
   readonly cues: MoveCues;
   readonly first: number;
   readonly last: number;
 }
 
-// Two glaives: the moon-glaive whirl across his strike frames, on the ground or in the air.
+
 const CHAOS_STRIKE_CUES: OriginalBranch = { cues: branch("Chaos Strike", FEL_TELL, timed(cue("Abilities\\Spells\\NightElf\\MoonGlaive\\MoonGlaiveCaster.mdx", "ahead", 1.0), "stand", 0.0)), first: CHAOS_STRIKE_FIRST, last: CHAOS_STRIKE_LAST };
 
-/** The original fighters' branch forms, by action and form; form 0 keeps the action's own cues. */
+
 export const ORIGINAL_BRANCH_CUES: { readonly [action: number]: { readonly [form: number]: OriginalBranch } } = {
   [SpecialAction.demonHunterFelRush]: {
-    // A fel backflip: the possession streak trails his vault.
+
     [VENGEFUL_RETREAT_FORM]: { cues: branch("Vengeful Retreat", FEL_TELL, timed(cue("Abilities\\Spells\\Undead\\Possession\\PossessionMissile.mdx", "body", 1.0), "stand", 0.0)), first: 1, last: VENGEFUL_RETREAT_MOVE_LAST },
     [CHAOS_STRIKE_FORM]: CHAOS_STRIKE_CUES,
     [CHAOS_STRIKE_AIR_FORM]: CHAOS_STRIKE_CUES,
   },
-  // Flame Crash: a fire streak through its hang and plunge, then a volcanic burst where it lands.
+
   [SpecialAction.demonHunterImmolate]: {
     [FLAME_CRASH_FORM]: { cues: branch("Flame Crash", FEL_TELL, timed(cue("Abilities\\Weapons\\RedDragonBreath\\RedDragonMissile.mdx", "body", 1.0), "birth", 0.0)), first: 1, last: FLAME_CRASH_FRAMES },
     [FLAME_CRASH_LANDING_FORM]: { cues: branch("Flame Crash landing", FEL_TELL, timed(cue("Abilities\\Spells\\Other\\Volcano\\VolcanoDeath.mdx", "feet", f32(0.6)), "birth", 0.0)), first: 1, last: FLAME_CRASH_BURST_LAST },
@@ -401,13 +401,13 @@ export const ORIGINAL_BRANCH_CUES: { readonly [action: number]: { readonly [form
   },
 };
 
-/** A special's startup and active frames, special frames inclusive (the entry tick is frame 1). */
+
 export interface CueWindows {
   readonly startup: FrameWindow;
   readonly active: FrameWindow;
 }
 
-/** An active cue stays at least this long, so its spell plays through a one-frame release. */
+
 export const ACTIVE_CUE_FRAMES = 18;
 
 const widen = (window: { first: number; last: number }, first: number, last: number): void => {
@@ -415,15 +415,15 @@ const widen = (window: { first: number; last: number }, first: number, last: num
   window.last = Math.max(window.last, last);
 };
 
-/**
- * A hero special's active frames: every frame it strikes, moves, places,
- * releases, grabs, guards or is armored or intangible, from the first to the
- * last; startup is everything before.
- */
+
+
+
+
+
 export function heroCueWindows(move: Readonly<AuthoredSpecial>, minimumActive = ACTIVE_CUE_FRAMES): CueWindows {
-  // Past any action's last frame, and a 32-bit integer in Lua.
+
   const active = { first: 1000000, last: 0 };
-  // Regions count zero-based attack frames: special frame N strikes with region frame N - 1.
+
   for (const region of move.regions ?? []) widen(active, region.firstFrame + 1, region.lastFrame + 1);
   for (const projectile of move.projectiles ?? []) widen(active, projectile.spawnFrame, projectile.spawnFrame);
   for (const segment of move.motion ?? []) {
@@ -436,14 +436,14 @@ export function heroCueWindows(move: Readonly<AuthoredSpecial>, minimumActive = 
   if (move.commandGrab !== undefined) widen(active, move.commandGrab.first, move.commandGrab.last);
   if (move.guard !== undefined) widen(active, move.guard.first, move.guard.last);
   if (move.intangible !== undefined) widen(active, move.intangible.first, move.intangible.last);
-  // A shell armor lasts long after the cast; its cue marks the cast.
+
   if (move.armor !== undefined) widen(active, move.armor.first, move.armor.shell === true ? move.armor.first : move.armor.last);
   if (active.last === 0) widen(active, 1, 1);
   const first = Math.max(1, active.first);
   return { startup: { first: 1, last: Math.max(1, first - 1) }, active: { first, last: Math.min(move.endFrame, Math.max(active.last, first + minimumActive - 1)) } };
 }
 
-/** The frame an original special releases or starts its effect, by action. */
+
 function originalActiveFrame(action: number, grounded: boolean): number {
   switch (action) {
     case SpecialAction.riflemanBlaster: return grounded ? RIFLEMAN_BLASTER_GROUND_SHOT_FRAME : RIFLEMAN_BLASTER_AIR_SHOT_FRAME;
@@ -458,7 +458,7 @@ function originalActiveFrame(action: number, grounded: boolean): number {
   }
 }
 
-/** An original special's windows; its active frames last through its window or ACTIVE_CUE_FRAMES. */
+
 export function originalCueWindows(action: number, grounded: boolean): CueWindows {
   const first = originalActiveFrame(action, grounded);
   const authoredLast = action === SpecialAction.demonHunterFelRush ? FEL_RUSH_LAST
@@ -466,7 +466,7 @@ export function originalCueWindows(action: number, grounded: boolean): CueWindow
   return { startup: { first: 1, last: Math.max(1, first - 1) }, active: { first, last: Math.max(authoredLast, first + ACTIVE_CUE_FRAMES - 1) } };
 }
 
-/** Which of a fighter's cues its running special shows now. */
+
 export interface CueState {
   readonly cues: MoveCues | undefined;
   readonly phase: "none" | "startup" | "active";
@@ -474,7 +474,7 @@ export interface CueState {
 
 const NONE: CueState = { cues: undefined, phase: "none" };
 
-/** The cues a fighter's running special shows on its current frame. */
+
 export function specialCueState(fighter: Readonly<Fighter>): CueState {
   const { action, frame } = fighter.special;
   if (action === SpecialAction.none || fighter.status.out) return NONE;
@@ -501,25 +501,25 @@ export function specialCueState(fighter: Readonly<Fighter>): CueState {
   return { cues, phase: "none" };
 }
 
-/** The original fighters' special actions. */
+
 const ORIGINAL_ACTIONS: { readonly [character: number]: readonly SpecialAction[] } = {
   [Character.rifleman]: [SpecialAction.riflemanBlaster, SpecialAction.riflemanBear, SpecialAction.riflemanRecovery, SpecialAction.riflemanTrap],
   [Character.demonHunter]: [SpecialAction.demonHunterManaBurn, SpecialAction.demonHunterFelRush, SpecialAction.demonHunterWingAscent, SpecialAction.demonHunterImmolate],
 };
 
-/** Every special's cues for one fighter, in input order. */
+
 export function fighterMoveCues(character: Character): readonly MoveCues[] {
   const hero = HERO_CUES[character];
   if (hero !== undefined) return SPECIAL_SLOTS.map((slot) => hero[slot]);
   return (ORIGINAL_ACTIONS[character] ?? []).flatMap((action) => ORIGINAL_CUES[action] ?? []);
 }
 
-/** Every cue a fighter's specials and their branches can show, startup and active. */
+
 export function fighterCueList(character: Character): readonly Cue[] {
   return [...fighterMoveCues(character), ...fighterBranchCues(character), ...(character === Character.dreadlord ? [DREADLORD_BITE_CUES] : [])].flatMap((cues) => [cues.startup, cues.active]);
 }
 
-/** Every branch cue a fighter can show. */
+
 export function fighterBranchCues(character: Character): readonly MoveCues[] {
   const out: MoveCues[] = [];
   const add = (cue: BranchCue | undefined): void => {
@@ -535,7 +535,7 @@ export function fighterBranchCues(character: Character): readonly MoveCues[] {
   return out;
 }
 
-/** Every model a cue draws itself, every fighter's. */
+
 export function allCueModels(): readonly string[] {
   const models: string[] = [];
   const characters: readonly Character[] = [ Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(({ character }) => character)];
@@ -543,14 +543,14 @@ export function allCueModels(): readonly string[] {
   return models;
 }
 
-/** The cues a fighter's renderer draws itself, one effect each: its own effects show the rest. */
+
 export function fighterOwnCues(character: Character): readonly Cue[] {
   const own: Cue[] = [];
   for (const cue of fighterCueList(character)) if (cue.drawn !== true && !own.includes(cue)) own.push(cue);
   return own;
 }
 
-/** The cue a running hero form names: undefined for a base form, which shows its special's. */
+
 export function heroBranchCue(branches: Readonly<HeroBranchCues> | undefined, form: number): BranchCue | undefined {
   if (form >= FOLLOW_UP_FORM) return branches?.followUps?.[idiv(form, FOLLOW_UP_FORM) - 1];
   if (form === SpecialForm.recall) return branches?.recall;
@@ -558,7 +558,7 @@ export function heroBranchCue(branches: Readonly<HeroBranchCues> | undefined, fo
   return undefined;
 }
 
-/** An original branch's windows: startup before its active frames, which last at least ACTIVE_CUE_FRAMES. */
+
 function branchWindows(branch: Readonly<OriginalBranch>): CueWindows {
   return { startup: { first: 1, last: Math.max(1, branch.first - 1) }, active: { first: branch.first, last: Math.max(branch.last, branch.first + ACTIVE_CUE_FRAMES - 1) } };
 }

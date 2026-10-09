@@ -1,9 +1,9 @@
-// One fighter's move cues: a startup and an active stock spell effect per
-// special (presentation/specialCues.ts) and the effects its signature normals
-// show where their hit region is live (presentation/attackCues.ts), created
-// with the fighter's renderers. Presentation follows numerical state (the
-// running special or attack and its frame). Popcorn births follow confirmed
-// state; predicted presentation only moves their existing handles.
+
+
+
+
+
+
 import type { Character } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { ATTACK_CUES, type AttackCueState, attackCueState, fighterRenderedCues } from "../presentation/attackCues";
@@ -44,7 +44,7 @@ export class SpecialCueEffects {
   private readonly areas: HitAreaEffects;
   private readonly cues: CueModel[] = [];
   private parked: ParkedFlags | undefined;
-  /** The cue and key shown last, so a new phase or hit restarts its effect from its first frame. */
+
   private shown: Cue | undefined;
   private shownKey = 0;
   private seekAgain = false;
@@ -85,7 +85,7 @@ export class SpecialCueEffects {
     this.confirmedKey = 0;
   }
 
-  /** Handle births and deaths use confirmed state in every graphics mode. */
+
   confirm(fighter: Readonly<Fighter> | undefined, playing: boolean, now: number): void {
     const state = fighter === undefined || !playing ? undefined : specialCueState(fighter);
     const cue = state?.cues === undefined || state.phase === "none" ? undefined
@@ -166,7 +166,7 @@ export class SpecialCueEffects {
         BlzSetSpecialEffectTime(model, entry.cue.seconds ?? 0.0);
         this.seekAgain = true;
       } else if (this.seekAgain) {
-        // Warcraft discards a seek in the callback that selects an animation (#58 native rulers).
+        // Warcraft discards animation seeks in the callback selecting the animation (#58 native rulers).
         BlzSetSpecialEffectTime(model, entry.cue.seconds ?? 0.0);
         this.seekAgain = false;
       }

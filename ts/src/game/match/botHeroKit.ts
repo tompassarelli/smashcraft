@@ -1,10 +1,10 @@
-// The computer's use of an expansion hero's specials, read from the kit's own
-// data (sim/heroSpecials.ts): a projectile when its flight meets the target,
-// a strike when its paths and travel reach the target, and a guard, armor or
-// intangible stance timed against a strike or projectile about to land. Mana, entity
-// limits, ground-only forms and airtime uses come from chooseHeroSpecial, so
-// the computer never presses a special the rules would refuse. Every choice
-// reads only the match state.
+
+
+
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { hurtCapsule } from "../physics/contactGeometry";
 import { canAttack } from "../sim/conditions";
@@ -15,16 +15,16 @@ import { type Controls, neutralControls } from "../sim/roster";
 import { floorFriction, floorTraction } from "../sim/stage";
 import { deckUnder, heightAhead, safeAt } from "./botFooting";
 
-/** How the computer may use a special this frame. */
+
 export const HeroSpecialUse = { none: 0, close: 1, ranged: 2 } as const;
 export type HeroSpecialUse = (typeof HeroSpecialUse)[keyof typeof HeroSpecialUse];
 
 
-// Preallocated: the computer weighs every special each frame, rollback replays included.
+
 const press = neutralControls();
 const refusal = { groundOnly: false };
 
-/** The form a press of `slot` would start now, or undefined when the rules refuse it. */
+
 export function startableForm(f: Readonly<Fighter>, specials: Readonly<FighterSpecials>, slot: SpecialSlot): AuthoredSpecial | undefined {
   press.specialPressed = true;
   press.specialX = slot === SpecialSlot.side ? f.facing : 0;
@@ -33,7 +33,7 @@ export function startableForm(f: Readonly<Fighter>, specials: Readonly<FighterSp
   return choice === undefined ? undefined : specialForm(specialKit(specials, slot), choice.form);
 }
 
-/** Whether a projectile's straight flight from the fighter meets the target's body. */
+
 function projectileMeets(spec: Readonly<SpecialProjectile>, target: Readonly<Fighter>, localX: number, localZ: number, facing: number): boolean {
   const body = hurtCapsule(target.character);
   const reach = f32(spec.radius + body.radius);
@@ -60,7 +60,7 @@ function projectileMeets(spec: Readonly<SpecialProjectile>, target: Readonly<Fig
   return z >= f32(f32(localZ + body.z1) - reach) && z <= f32(f32(localZ + body.z2) + reach);
 }
 
-/** Whether a strike box [minX, maxX] x [minZ, maxZ], carried by travelX/Z, reaches a target localX ahead and localZ above. */
+
 function boxMeets(target: Readonly<Fighter>, localX: number, localZ: number, travelX: number, travelZ: number, boxMinX: number, boxMaxX: number, boxMinZ: number, boxMaxZ: number): boolean {
   const body = hurtCapsule(target.character);
   const minX = f32(f32(boxMinX + Math.min(0.0, travelX)) - body.radius);
@@ -70,11 +70,11 @@ function boxMeets(target: Readonly<Fighter>, localX: number, localZ: number, tra
   return localX >= minX && localX <= maxX && localZ >= minZ && localZ <= maxZ;
 }
 
-/**
- * Whether the special's strike paths or command grab, carried by its own
- * travel (after `carriedX`/`carriedZ` already travelled), or a strike
- * branch taken anywhere along it, reach a target localX ahead and localZ above.
- */
+
+
+
+
+
 export function strikeMeets(move: Readonly<AuthoredSpecial>, target: Readonly<Fighter>, localX: number, localZ: number, carriedX = 0.0, carriedZ = 0.0): boolean {
   const regions = move.regions ?? [];
   const grab = move.commandGrab?.strike;
@@ -92,7 +92,7 @@ export function strikeMeets(move: Readonly<AuthoredSpecial>, target: Readonly<Fi
   for (const segment of move.motion ?? []) if (segment.velocityX !== 0.0 || segment.velocityZ !== 0.0) motionEnds = Math.max(motionEnds, segment.last);
   for (const region of regions) {
     const hit = region.hit;
-    // A strike that starts once the travel is over (a blink, then a burst) strikes only from where the travel left it.
+
     if (motionEnds > 0 && region.firstFrame + 1 > motionEnds) {
       if (boxMeets(target, f32(localX - travelX), f32(localZ - travelZ), 0.0, 0.0, hit.minX, hit.maxX, hit.minZ, hit.maxZ)) return true;
       continue;
@@ -105,12 +105,12 @@ export function strikeMeets(move: Readonly<AuthoredSpecial>, target: Readonly<Fi
     f32(Math.min(grab.z1, grab.z2) - grab.radius), f32(Math.max(grab.z1, grab.z2) + grab.radius));
 }
 
-/** A special that only protects: no strike or projectile, but a guard, armor or intangible window. */
+
 const isStance = (move: Readonly<AuthoredSpecial>): boolean =>
   (move.regions ?? []).length === 0 && (move.projectiles ?? []).length === 0
   && (move.guard !== undefined || move.armor !== undefined || move.intangible !== undefined);
 
-/** A form that moves the fighter somewhere else (onto its image, behind a mark): botKitOptions.ts weighs it from there. */
+
 const relocates = (move: Readonly<AuthoredSpecial>): boolean => {
   for (const segment of move.motion ?? []) if (segment.relocate !== undefined) return true;
   return false;
@@ -118,7 +118,7 @@ const relocates = (move: Readonly<AuthoredSpecial>): boolean => {
 
 const STANCE_SLOTS = [SpecialSlot.down, SpecialSlot.side, SpecialSlot.neutral] as const;
 
-/** Whether the special's travel ends over the deck; a helpless form needs room to land back on it. */
+
 function travelStaysOnDeck(f: Readonly<Fighter>, move: Readonly<AuthoredSpecial>, stage: number): boolean {
   let travelX = 0.0;
   let velocityX = 0.0;
@@ -126,7 +126,7 @@ function travelStaysOnDeck(f: Readonly<Fighter>, move: Readonly<AuthoredSpecial>
     travelX = f32(travelX + f32(segment.velocityX * (segment.last - segment.first + 1)));
     velocityX = segment.velocityX;
   }
-  // The last motion segment leaves its velocity behind through the special's recovery.
+
   if (f.motion.grounded && velocityX !== 0.0) {
     const traction = floorTraction(f.tuning.physics.traction, floorFriction(stage, f.motion));
     const speed = Math.abs(velocityX);
@@ -137,10 +137,10 @@ function travelStaysOnDeck(f: Readonly<Fighter>, move: Readonly<AuthoredSpecial>
   return safeAt(stage, f32(f.motion.x + f32(f.facing * travelX)), move.helpless === true ? 200.0 : 0.0);
 }
 
-/**
- * How a hero may use the special in `slot` against the target this frame:
- * close for a strike or stance, ranged for a projectile, or none.
- */
+
+
+
+
 export function heroSpecialUse(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, slot: SpecialSlot, observationAge = 0): HeroSpecialUse {
   const specials = f.tuning.specials;
   if (specials === undefined || !canAttack(f)) return HeroSpecialUse.none;
@@ -155,31 +155,31 @@ export function heroSpecialUse(f: Readonly<Fighter>, target: Readonly<Fighter>, 
   let firstStrike: number | undefined;
   for (const region of move.regions ?? []) if (firstStrike === undefined || region.firstFrame < firstStrike) firstStrike = region.firstFrame;
   if (move.commandGrab !== undefined && (firstStrike === undefined || move.commandGrab.first < firstStrike)) firstStrike = move.commandGrab.first;
-  // A special that strikes only through a follow-up strikes once its own travel ends, the travel strikeMeets carries;
-  // by then a falling target may have dropped out of its height.
+
+
   if (firstStrike === undefined && !target.motion.grounded) for (const segment of move.motion ?? []) if (firstStrike === undefined || segment.last > firstStrike) firstStrike = segment.last;
   if (firstStrike !== undefined && !f.motion.grounded && move.landingLag !== undefined && (move.motion ?? []).length === 0) {
     const deck = deckUnder(stage, 0, f.motion.x, f.motion.z);
-    // Landing cancels this air form before its first active strike.
+
     if (deck !== undefined && heightAhead(f, firstStrike + 1, stage, 0) <= deck) return HeroSpecialUse.none;
   }
-  // A falling opponent may leave the special's height before its first strike.
+
   const ownStrikeZ = firstStrike === undefined || f.motion.grounded || (move.motion ?? []).length > 0
     ? f.motion.z : heightAhead(f, firstStrike + 1, stage, 0);
   const strikeZ = firstStrike === undefined ? localZ : f32(heightAhead(target, observationAge + firstStrike + 1, stage, 0) - ownStrikeZ);
   if (strikeMeets(move, target, localX, strikeZ)) return HeroSpecialUse.close;
   for (const spec of move.projectiles ?? []) if (projectileMeets(spec, target, localX, localZ, f.facing)) return HeroSpecialUse.ranged;
-  // A placed object fires from where it stands: set one when its shot would reach the target there.
+
   const placement = move.placement;
   if (placement?.shot !== undefined && target.motion.grounded && projectileMeets(placement.shot, target, f32(localX - placement.offsetX), localZ, f.facing)) return HeroSpecialUse.ranged;
   return HeroSpecialUse.none;
 }
 
-/**
- * A grounded hero's special whose protective window (guard, armor or
- * intangibility) covers a threat arriving in `arrival` frames, or undefined.
- * A press now starts the special on the next frame, its frame 1.
- */
+
+
+
+
+
 export function heroStanceSlot(f: Readonly<Fighter>, arrival: number): SpecialSlot | undefined {
   const specials = f.tuning.specials;
   if (specials === undefined || arrival < 0 || !canAttack(f)) return undefined;
@@ -193,7 +193,7 @@ export function heroStanceSlot(f: Readonly<Fighter>, arrival: number): SpecialSl
   return undefined;
 }
 
-/** Whether a grounded hero's stance window would meet a threat arriving in `arrival` frames if pressed later: it waits for the read. */
+
 export function heroStanceLater(f: Readonly<Fighter>, arrival: number): boolean {
   const specials = f.tuning.specials;
   if (specials === undefined || arrival < 0 || !canAttack(f)) return false;
@@ -206,23 +206,23 @@ export function heroStanceLater(f: Readonly<Fighter>, arrival: number): boolean 
   return false;
 }
 
-/**
- * Whether the fighter's up special would start now: an original fighter's
- * cooldown, or for a hero the kit's rules (one use an airtime, its free form
- * below the full cost).
- */
+
+
+
+
+
 export function upSpecialStartable(f: Readonly<Fighter>, cooldownReady: boolean): boolean {
   const specials = f.tuning.specials;
   return specials === undefined ? cooldownReady : startableForm(f, specials, SpecialSlot.up) !== undefined;
 }
 
-/**
- * While a hero special runs, presses the attack or special branch (Wind
- * Walk's Backstab, a charge's release) whose strike reaches the target from
- * where the fighter stands now, turning toward it when the branch reads the
- * stick; a branch that ends helpless (Hammerfall) only over the deck. True
- * when it pressed.
- */
+
+
+
+
+
+
+
 export function pressHeroFollowUp(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, input: Controls): boolean {
   if (!isHeroSpecialAction(f.special.action) || f.special.form >= FOLLOW_UP_FORM || f.launch.hitstun > 0) return false;
   const next = f.special.frame + 1;

@@ -1,6 +1,6 @@
-// Freeze traps and ice shells, one of each per participant slot, created with
-// the match. Presentation follows numerical state, so it can be reapplied after
-// a restore without spawning another trap or shell.
+
+
+
 import { FROST_ICE_MODEL, FROST_TRAP_MODEL } from "../assets/frostAssetInfo";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import type { Fighter } from "../sim/fighter";
@@ -13,7 +13,7 @@ interface FrostSlot {
 
 export class FrostEffects {
   private readonly slots: readonly FrostSlot[];
-  /** A slot's trap at twice the slot, its shell after it. */
+
   private parked: ParkedFlags | undefined;
 
   constructor(private readonly origin: WorldOrigin) {

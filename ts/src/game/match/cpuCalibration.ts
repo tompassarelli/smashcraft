@@ -109,7 +109,7 @@ function reaction(profile: CpuProfile, seed: number, trial: number, into: Calibr
 function reads(profile: CpuProfile, seed: number, trial: number, into: CalibrationRow): void {
   const game = setup(profile, seed, Character.rifleman);
   const strategy = createBotStrategy();
-  // One event each 60 frames, identical public observations for every row.
+
   for (let event = 0; event < 20; event++) {
     const frame = event * 60;
     game.target.attack.style = AttackStyle.jab;
@@ -155,7 +155,7 @@ function reads(profile: CpuProfile, seed: number, trial: number, into: Calibrati
       : played.own.visuals.shield > 0 ? "learned strike blocked" : played.own.status.damage > 0.0 ? "learned strike landed" : "learned strike missed");
     clearBotMemory(runtime.botMemory);
   }
-  // Feed a real pattern switch; count observations until the committed read changes.
+
   let adapted = -1;
   for (let event = 0; event < 80; event++) {
     const observed = 1260 + event * 60;
@@ -199,7 +199,7 @@ function choices(profile: CpuProfile, seed: number, trial: number, into: Calibra
   chooseAttack(own, target, 0, secondFrame, secondFrame, true, input, commands, 0, -1, skill, 0, decision);
   const second = commands.pending?.style ?? (input.specialPressed ? 30 : -1);
   record(into.samples.repetition, first === second ? "repeated" : "changed");
-  // Distances vary across trials; actual queued normals are checked against authored reach.
+
   target.motion.x = trial < 5 ? 60.0 : 130.0;
   const spaced = pick();
   if (spaced >= 0) {
@@ -230,13 +230,13 @@ function choices(profile: CpuProfile, seed: number, trial: number, into: Calibra
   copyControls(input, neutral);
   record(into.samples.defensive, chooseDefense(own, target, 0, input, seenSkill) ? "answered visible strike" : "took visible strike");
   target.attack.style = undefined;
-  // Independent legal neutral opportunity, with no ongoing attack/pause or trained read.
+
   produceComputerInput(state.match, state.world, state.runtime, 0, frame - profile.reactionFrames, game.produced.inputs[0], game.produced.commands[0]);
   state.runtime.botAttackDelays[0] = 0.0;
   produceComputerInput(state.match, state.world, state.runtime, 0, frame, game.produced.inputs[0], game.produced.commands[0]);
   const proactive = game.produced.commands[0].pending !== undefined || game.produced.inputs[0].specialPressed || game.produced.inputs[0].jumpPressed || game.produced.inputs[0].direction !== 0;
   record(into.samples.proactive, proactive ? "took initiative" : "waited in neutral");
-  // Rifleman's short-hop blaster has a ready, level target inside its authored band.
+
   const rifle = createFighter(Character.rifleman, 0.0, 1);
   rifle.attack.serial = trial; target.motion.x = 300.0;
   copyControls(input, neutral); clearAttackBuffer(commands);
@@ -381,7 +381,7 @@ function replayAndDirection(profile: CpuProfile, seed: number, trial: number, in
   clearBotMemory(ahead.runtime.botMemory);
 }
 
-/** Controlled decisions, rather than passive match frames, supply each denominator. */
+
 export function collectCalibrationRow(profile: CpuProfile, trialsPerSeed = 10): CalibrationRow {
   const samples = { reaction: sample(), execution: sample(), judgment: sample(), spacing: sample(), adaptation: sample(), repetition: sample(), reads: sample(), riskAhead: sample(), riskBehind: sample(), proactive: sample(), defensive: sample(), kit: sample(), conversion: sample(), exploit: sample() };
   const row: CalibrationRow = { opponent: profile.opponent, tier: profile.tier, samples, earlyReactions: 0, earlyReversals: 0, reversals: 0, replayCases: 0, replayDifferences: 0 };

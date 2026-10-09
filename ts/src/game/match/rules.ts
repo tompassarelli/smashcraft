@@ -16,11 +16,11 @@ import { STAGE_AT_REST } from "../sim/stage";
 import { type ConfiguredRun, copyConfiguredRun, createConfiguredRun } from "../classic/runState";
 import { PARTNER_BEHAVIOURS, PARTNER_DAMAGE_MAX, PARTNER_DAMAGE_STEP, PARTNER_ESCAPES, PARTNER_TECHS, TRAINING_SPEEDS, type TrainingState, clearTrainingReadout, copyTrainingState, createTrainingState } from "./trainingState";
 
-/** Phase numbers are part of the canonical replay checksum. */
+
 export const Phase = { characterMenu: 0, stageMenu: 1, match: 2, result: 3 } as const;
 export type Phase = (typeof Phase)[keyof typeof Phase];
 export const MATCH_TICKS_PER_SECOND = 60;
-/** Classic's starting difficulty unless a player picks another: Beginner. */
+
 export const CLASSIC_TIER_DEFAULT = 1;
 
 export interface MatchState {
@@ -29,13 +29,13 @@ export interface MatchState {
   readonly characterChoices: Slots<Character>;
   readonly cpuOpponents: Slots<CpuOpponentChoice>;
   readonly cpuTiers: Slots<CpuTier>;
-  /** The match-start draw, retained while Random remains selected for rematches. */
+
   readonly cpuResolvedOpponents: Slots<CpuOpponentId>;
   readonly characterReadiness: Slots<boolean>;
   readonly rematchReadiness: Slots<boolean>;
   departedMask: number;
   interrupted: boolean;
-  /** Connected players own menus and senders, independently of fighter mode. */
+
   humanMask: number;
   humanFighterMask: number;
   humanCount: number;
@@ -43,43 +43,43 @@ export interface MatchState {
   stageChoice: number;
   stageResolved: boolean;
   readonly stagePool: StagePool;
-  /** Stage hazards, chosen at stage selection: off holds moving platforms at rest and removes the wind and the cannon. */
+
   hazards: boolean;
 
   winner: ParticipantSlot | undefined;
   stockCount: number;
   timeLimitMinutes: number;
-  /** Knockouts and the clock never end the match; a player leaves it from the pause. */
+
   endless: boolean;
-  /** After a result, the same fighters play again on the next pool stage once rematchCountdown runs out. */
+
   automaticRematch: boolean;
-  /** Frames until the automatic rematch starts; 0 while none counts down. */
+
   rematchCountdown: number;
   remainingFrames: number;
-  /** Every computer choice draws under it, so each match plays differently; the next match after a result takes the next seed. */
+
   matchSeed: number;
-  /** Frames at the start that hold every fighter for "3, 2, 1, GO!"; 0 in practice, training and test matches. */
+
   startHold: number;
-  /** Frames this match has run; moving decks follow their paths by it. */
+
   matchFrame: number;
   timedOut: boolean;
   practice: boolean;
-  /** Training (#120): no clock or lost stocks, computers play the partner set in trainer. */
+
   training: boolean;
   readonly trainer: TrainingState;
-  /** Competitive pickups: the two settings and the centre item (match/items.ts, #196). */
+
   readonly items: MatchItems;
-  /** Classic (#284) is the chosen mode at fighter selection, and the difficulty its run starts at (an index into CPU_TIERS). */
+
   classic: boolean;
   classicTier: number;
-  /** Lore Battles (#305) is the chosen mode, and the battle chosen in its list (an index into LORE_BATTLES). */
+
   lore: boolean;
   loreBattle: number;
-  /** The configured match being played and the run around it (smashcraft:ts/src/game/classic/runState.ts). */
+
   readonly run: ConfiguredRun;
 }
 
-/** The opening fighter of slot `index`: the release roster's tiles in order, so a hidden fighter is never preselected. */
+
 const defaultChoice = (index: number): Character => PLAYABLE_CHARACTERS[floorMod(index, PLAYABLE_CHARACTERS.length)] ?? Character.rifleman;
 
 export function createMatchState(): MatchState {
@@ -99,7 +99,7 @@ export function createMatchState(): MatchState {
   };
 }
 
-// participantActive inline, as isActive is: rollback asks these for every slot of every frame.
+
 export const humanActive = (game: Readonly<MatchState>, slot: number): boolean => {
   const mask = game.humanMask;
   return mask > 0 && mask < 16 && slot >= 0 && slot < 4 && (mask & (1 << slot)) !== 0;
@@ -286,18 +286,18 @@ export function changeStagePoolStage(game: MatchState, slot: number, choice: num
   if (game.phase === Phase.stageMenu && humanActive(game, slot)) togglePoolStage(game.stagePool, choice);
 }
 
-/** Any player turns the stage hazards on or off at stage selection. */
+
 export function setHazards(game: MatchState, slot: number, on: boolean): void {
   if (game.phase === Phase.stageMenu && humanActive(game, slot)) game.hazards = on;
 }
 
-/** Whether the match plays with stage hazards. */
+
 export const hazardsOn = (game: Readonly<MatchState>): boolean => game.hazards;
 
-/**
- * The frame stage hazards and moving platforms follow: the match frame, or
- * with hazards off the stopped clock (smashcraft:ts/src/game/sim/stage.ts).
- */
+
+
+
+
 export const stageClock = (game: Readonly<MatchState>): number => game.hazards ? game.matchFrame : STAGE_AT_REST;
 
 export function requestStageSelect(game: MatchState, slot: number): boolean {
@@ -312,7 +312,7 @@ export function returnToCharacters(game: MatchState, slot: number): void {
   if (game.phase === Phase.stageMenu && humanActive(game, slot)) game.phase = Phase.characterMenu;
 }
 
-/** Any player sets the match rules at fighter selection. */
+
 const settingRules = (game: Readonly<MatchState>, slot: number): boolean => game.phase === Phase.characterMenu && humanActive(game, slot);
 
 export function setStocks(game: MatchState, slot: number, count: number): void {
@@ -337,12 +337,12 @@ export function setTraining(game: MatchState, slot: number, training: boolean): 
   if (!training) game.trainer.lesson = -1;
 }
 
-/** The tutorial's lesson (match/tutorial.ts, #306), -1 for none; it runs in a training match. */
+
 export function setTutorialLesson(game: MatchState, slot: number, lesson: number, lessons: number): void {
   if (settingRules(game, slot) && lesson >= -1 && lesson < lessons) game.trainer.lesson = lesson;
 }
 
-/** The mode button steps Versus, Training, Classic, Lore Battles. */
+
 export function cycleMatchMode(game: MatchState, slot: number): void {
   if (!settingRules(game, slot)) return;
   if (game.lore) game.lore = false;
@@ -361,17 +361,17 @@ export function cycleMatchMode(game: MatchState, slot: number): void {
   } else game.training = true;
 }
 
-/** Classic's starting difficulty steps through the five computer tiers. */
+
 export function stepClassicTier(game: MatchState, slot: number, direction: number): void {
   if (settingRules(game, slot) && game.classic) game.classicTier = Math.max(0, Math.min(CPU_TIERS.length - 1, game.classicTier + direction));
 }
 
-/** Lore Battles' stepper walks the list of `battles`, wrapping at either end. */
+
 export function stepLoreBattle(game: MatchState, slot: number, direction: number, battles: number): void {
   if (settingRules(game, slot) && game.lore) game.loreBattle = floorMod(game.loreBattle + direction, battles);
 }
 
-/** Ends a configured run: the menu's own settings come back and play returns to fighter selection. */
+
 export function endConfiguredRun(game: MatchState): void {
   const { run } = game;
   if (!run.active) return;
@@ -390,7 +390,7 @@ export function endConfiguredRun(game: MatchState): void {
 
 const cycle = (value: number, count: number, direction: number): number => floorMod(value + direction, count);
 
-/** Training's partner choices step through their options in either direction. */
+
 export function stepPartnerBehaviour(game: MatchState, slot: number, direction: number): void {
   if (settingRules(game, slot)) game.trainer.behaviour = cycle(game.trainer.behaviour, PARTNER_BEHAVIOURS, direction);
 }
@@ -407,7 +407,7 @@ export function setPartnerDamage(game: MatchState, slot: number, damage: number)
   if (settingRules(game, slot) && damage >= 0 && damage <= PARTNER_DAMAGE_MAX && floorMod(damage, PARTNER_DAMAGE_STEP) === 0) game.trainer.damage = damage;
 }
 
-/** Steps training's speed through full, half and quarter. */
+
 export function stepTrainingSpeed(game: MatchState, slot: number, direction: number): void {
   if (!settingRules(game, slot)) return;
   const index = TRAINING_SPEEDS.indexOf(game.trainer.speed);
@@ -430,28 +430,28 @@ export function setAutomaticRematch(game: MatchState, slot: number, automatic: b
   if (settingRules(game, slot)) game.automaticRematch = automatic;
 }
 
-/** Items appear in the match at all (#196). */
+
 export function setItemsOn(game: MatchState, slot: number, on: boolean): void {
   if (settingRules(game, slot)) game.items.on = on;
 }
 
-/** Turns one item kind on or off for the match (#196). */
+
 export function toggleItemKind(game: MatchState, slot: number, kind: ItemKind): void {
   if (settingRules(game, slot) && kind !== ItemKind.none) game.items.enabledMask ^= itemBit(kind);
 }
 
-/** Whether the match clock runs: practice, endless and training matches have none. */
+
 export const timedMatch = (game: Readonly<MatchState>): boolean => !game.practice && !game.endless && !game.training && game.timeLimitMinutes > 0;
 
-/** Knockouts cost no stock: practice, endless and training. */
+
 export const keepsStocks = (game: Readonly<MatchState>): boolean => game.practice || game.endless || game.training;
 
 export const remainingSeconds = (game: Readonly<MatchState>): number => floorDiv(game.remainingFrames + MATCH_TICKS_PER_SECOND - 1, MATCH_TICKS_PER_SECOND);
 
-/** Brawl and Ultimate count "3, 2, 1, GO!" over about three seconds; Melee holds 84 frames for "Ready... GO!" (docs/design/match-flow.md). */
+
 export const START_HOLD_FRAMES = 3 * MATCH_TICKS_PER_SECOND;
 
-/** Whether this match frame still holds the fighters for the countdown: GO! is frame startHold + 1. */
+
 export const holdingStart = (game: Readonly<MatchState>): boolean => game.phase === Phase.match && game.startHold > 0 && game.matchFrame <= game.startHold;
 
 function beginMatch(game: MatchState): void {
@@ -463,7 +463,7 @@ function beginMatch(game: MatchState): void {
   game.practice = !game.training && !game.run.active && practiceSelected(game);
   clearTrainingReadout(game.trainer);
   game.remainingFrames = timedMatch(game) ? game.timeLimitMinutes * 60 * MATCH_TICKS_PER_SECOND : 0;
-  // A match has run since the boot: this one plays the next seed.
+
   if (game.matchFrame > 0) game.matchSeed = nextMatchSeed(game.matchSeed);
   resolveStageChoice(game, game.matchSeed);
   for (const slot of PARTICIPANT_SLOTS) game.cpuResolvedOpponents[slot] = resolveCpuOpponent(game.cpuOpponents[slot], game.matchSeed, slot);
@@ -473,11 +473,11 @@ function beginMatch(game: MatchState): void {
   scheduleMatchItems(game);
 }
 
-/** Whether `slot`'s start press at stage selection may start the match. */
+
 export const canRequestStart = (game: Readonly<MatchState>, slot: number): boolean =>
   game.phase === Phase.stageMenu && humanActive(game, slot) && allCharactersReady(game);
 
-/** Loading and match start share the resolved stage. */
+
 export function resolveStageChoice(game: MatchState, seed = game.matchSeed): void {
   if (game.stageResolved) return;
   if (game.stageChoice === RANDOM_STAGE) game.stageChoice = nextPoolStage(game.stagePool, seed);
@@ -492,10 +492,10 @@ export function requestStart(game: MatchState, slot: number): boolean {
   return true;
 }
 
-/**
- * Leaving from the pause: the first human ends practice, and any player here
- * ends an endless match. Both return to fighter selection.
- */
+
+
+
+
 export function leaveMatch(game: MatchState, slot: number): boolean {
   if (game.phase !== Phase.match || !(game.practice ? slot === firstHumanSlot(game) : (game.endless || game.training) && humanPresent(game, slot))) return false;
   game.phase = Phase.characterMenu;
@@ -504,25 +504,25 @@ export function leaveMatch(game: MatchState, slot: number): boolean {
   return true;
 }
 
-/** Seconds a result shows before the automatic rematch starts. */
+
 export const REMATCH_COUNTDOWN_SECONDS = 5;
 
-/** At a result, the automatic rematch counts down `seconds`; none after a player left. */
+
 export function beginRematchCountdown(game: MatchState, seconds: number): void {
   game.rematchCountdown = game.phase === Phase.result && game.automaticRematch && !game.interrupted && !game.run.active ? seconds * MATCH_TICKS_PER_SECOND : 0;
 }
 
-/** Any player's press during the countdown stops the automatic rematch; true when one was counting. */
+
 export function cancelRematchCountdown(game: MatchState, slot: number): boolean {
   if (game.phase !== Phase.result || game.rematchCountdown === 0 || !humanPresent(game, slot)) return false;
   game.rematchCountdown = 0;
   return true;
 }
 
-/**
- * One callback of the countdown. When it runs out, the same fighters play
- * again on the next pool stage with the same rules; true when that match starts.
- */
+
+
+
+
 export function tickRematchCountdown(game: MatchState): boolean {
   if (game.phase !== Phase.result || game.rematchCountdown === 0) return false;
   game.rematchCountdown--;

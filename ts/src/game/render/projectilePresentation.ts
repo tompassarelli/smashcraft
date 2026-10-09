@@ -1,7 +1,7 @@
-// One fighter's projectile models: a pool per stock missile its moves fire
-// (presentation/projectileArt.ts). Created and destroyed only in the
-// synchronized match lifecycle; projecting never allocates handles.
-// Particles the engine emits are not replay state.
+
+
+
+
 import { Character } from "../sim/codes";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { heroDefinition } from "../sim/heroes/registry";
@@ -13,10 +13,10 @@ import { projectedProjectile } from "../presentation/projectilePose";
 import { IMPACT_DEFILE_MODEL } from "../assets/impactAssetInfo";
 import { heroProjectileArt } from "../presentation/projectileArt";
 
-/** One missile model's effects. */
+
 interface Pool {
   readonly path: string;
-  /** Global effect indices, into `models`. */
+
   readonly effects: readonly number[];
   readonly boundaries: readonly number[];
 }
@@ -25,9 +25,9 @@ export class ProjectilePresentation {
   private readonly models: effect[] = [];
   private readonly visible: boolean[] = [];
   private readonly pools: Pool[] = [];
-  /** The effect each projectile slot draws with, or -1; kept while it flies, so a missile never jumps to another. */
+
   private readonly assigned: number[] = [];
-  /** Effects drawn this presentation, by effect index; reused every frame. */
+
   private readonly taken: boolean[] = [];
   private readonly serials: number[] = [];
   private readonly specs: (Fighter["projectiles"][number]["spec"])[] = [];
@@ -39,12 +39,12 @@ export class ProjectilePresentation {
   ) {
     const hero = heroDefinition(character) !== undefined;
     fighterProjectileModels(character).forEach((path, index) => {
-      // A hero owns at most three projectiles; one more for a reflected one. The original fighters' main missile can fill every slot.
+
       const size = hero ? HERO_PROJECTILE_CAP + 1 : index === 0 ? PROJECTILE_CAPACITY : 4;
       const effects: number[] = [];
       const boundaries: number[] = [];
       const specials = heroDefinition(character)?.specials;
-      // Only a growing pool (Defile) draws a danger rim; under other ground effects it read as a stray dark oval (#364).
+
       const groundPool = specials !== undefined && heroProjectileArt(specials).some(({ spec }) => spec.model === path && spec.pool !== undefined && spec.pool.growth > 0.0);
       for (let slot = 0; slot < size; slot++) {
         effects.push(this.models.length);
@@ -66,7 +66,7 @@ export class ProjectilePresentation {
     this.clear();
   }
 
-  /** Parks a missile once and stops its animation, which a pause would otherwise leave running. */
+
   private hide(model: effect, parked: ParkedFlags, index: number): void {
     if (parkOnce(model, this.origin, parked, index)) BlzSetSpecialEffectTimeScale(model, 0.0);
   }
@@ -82,17 +82,17 @@ export class ProjectilePresentation {
     for (let index = 0; index < this.assigned.length; index++) this.assigned[index] = -1;
   }
 
-  /**
-   * The pool for a projectile's model: a foreign missile this fighter
-   * reflected draws with its first pool when it has none of that model.
-   */
+
+
+
+
   private poolOf(fighter: Readonly<Fighter>, index: number): Pool | undefined {
     const projectile = fighter.projectiles[index];
     const path = projectile === undefined ? undefined : projectileModelOf(projectile);
     return this.pools.find((pool) => pool.path === path) ?? this.pools[0];
   }
 
-  /** The effect a visible projectile draws with: its kept one when still of its pool, else a free one. */
+
   private effectFor(pool: Pool, index: number, taken: readonly boolean[]): number {
     const kept = this.assigned[index] ?? -1;
     if (kept >= 0 && pool.effects.includes(kept) && taken[kept] !== true) return kept;
@@ -134,7 +134,7 @@ export class ProjectilePresentation {
         BlzSetSpecialEffectTime(model, pose.animationSeconds);
         BlzSetSpecialEffectTimeScale(model, 0.0);
       } else if (projectile?.spec !== undefined && projectile.velocityX === 0.0 && projectile.velocityZ === 0.0) {
-        // Stationary spell areas hold their visible contact pose while armed.
+
         BlzSetSpecialEffectTime(model, f32(0.3));
         BlzSetSpecialEffectTimeScale(model, 0.0);
       }

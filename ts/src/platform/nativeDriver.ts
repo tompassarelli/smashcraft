@@ -42,13 +42,13 @@ interface Driver {
   captures: number[];
   paused: boolean;
   target: number | undefined;
-  /** A target hold froze the fighters' animations and effects on the frame it drew. */
+
   frozen: boolean;
   readonly pads: readonly Pad[];
 }
 declare global {
   var __smashcraftNativeDriver: Driver | undefined;
-  /** Pad scripts started this game; the drawn stamp names the current one. */
+
   var __smashcraftDriverScripts: number | undefined;
 }
 
@@ -67,7 +67,7 @@ function real(text: string | undefined, low: number, high: number): number {
   return f32(value);
 }
 
-/** The existing pad file syntax, including relative frames and taps expanded to releases. */
+
 function parseScript(text: string): { readonly setup: string; readonly edges: readonly Edge[] } {
   let setup = "-dev quick";
   let previous = 0;
@@ -84,7 +84,7 @@ function parseScript(text: string): { readonly setup: string; readonly edges: re
     previous = frame;
     const slot = player === "a" ? 0 : 1;
     if (action === "capture") { edges.push({ order: edges.length, frame, slot, action, args }); continue; }
-    // A developer command typed at a frame, such as `-dev effects 5` (native captures only; pad parity has no chat).
+
     if (action === "chat") { edges.push({ order: edges.length, frame, slot, action, args }); continue; }
     if (action === "press" || action === "release" || action === "tap") {
       if (BUTTONS[(args[0] ?? "").toUpperCase()] === undefined) throw new Error("native driver: unknown pad button");
@@ -161,14 +161,14 @@ function publish(s: ShellState): void {
   paintDrawnStamp(globalThis.__smashcraftDriverScripts ?? 0, s.runtime.simulationFrame);
 }
 
-/** A held target shows the pose and effects of the frame it drew, as held visual captures do. */
+
 function freeze(s: ShellState, driver: Driver, frozen: boolean): void {
   if (driver.frozen === frozen || s.game.phase !== Phase.match) return;
   driver.frozen = frozen;
   pauseMatchPresentation(s, frozen || s.session.paused);
 }
 
-/** Only a predeclared synchronized driver event calls this on the native clients. */
+
 export function nativeDriverCommand(text: string): void {
   const s = shell();
   const driver = state();
@@ -194,7 +194,7 @@ export function nativeDriverCommand(text: string): void {
   }
   const script = parseScript(text);
   applyDeveloperCommand(s, 0, "-dev reset");
-  // One client plays both pads: the second participant is a scripted human, not a computer.
+
   setHumanCount(s.game, 2);
   applyDeveloperCommand(s, 0, script.setup);
   globalThis.__smashcraftDriverScripts = (globalThis.__smashcraftDriverScripts ?? 0) + 1;
@@ -204,7 +204,7 @@ export function nativeDriverCommand(text: string): void {
   publish(s);
 }
 
-/** Polling continues while the entire map callback is held. */
+
 export function beforeNativeDriverTick(s: ShellState): boolean {
   if (s.build.inputProfile !== "native-driver") return true;
   serviceNativeDriver();
@@ -212,7 +212,7 @@ export function beforeNativeDriverTick(s: ShellState): boolean {
   return !driver.paused;
 }
 
-/** Bindings are applied before scripted rows enter the existing capture. */
+
 export function captureNativeDriverInputs(s: ShellState): void {
   if (s.build.inputProfile !== "native-driver") return;
   const driver = state();

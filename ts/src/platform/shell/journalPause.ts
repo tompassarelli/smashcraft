@@ -1,7 +1,7 @@
-// Journal pauses and chat: a pause, a resume and a chat request are rounds every
-// human's helper acknowledges, or the map for a player on the keyboard, and the
-// match pauses or resumes exactly when the confirmed cursor reaches the frame
-// they agreed on. Rows, lifecycle and menus are in journal.ts.
+
+
+
+
 import { isParticipantSlot } from "../../game/input/participants";
 import { Phase, humanActive } from "../../game/match/rules";
 import { padDecimal, parseDecimal } from "../../game/netcode/journal/decimal";
@@ -18,22 +18,22 @@ import { syncKeyEvents } from "./keyEvents";
 import { traceInput } from "./trace";
 import { LASTING, pauseMatchPresentation, setStatus, startControl } from "./view";
 
-/** Synchronized prefix of chat closes; pause requests use pauseBarrier's PAUSE_REQUEST_PREFIX. */
+
 export const CHAT_CLOSED_PREFIX = "SC_JH";
 
 export function chatBusy(journal: Readonly<Journal>): boolean {
   return journal.chatRequested.some(requested => requested);
 }
 
-/**
- * Asks every helper to pause at `startFrame`, the synchronized frame of a
- * controller's Start, or without one at a frame they choose; a resume
- * restarts every helper at the paused frame.
- */
+
+
+
+
+
 export function requestPause(s: ShellState, rollback: Rollback, journal: Journal, wantPaused: boolean, startFrame?: number): void {
   const { source } = journal;
   if (source === undefined || journal.barrier.request !== undefined || (!wantPaused && chatBusy(journal))) return;
-  // Paused, the confirmed cursor waits at the paused frame on every client.
+
   const target = wantPaused ? startFrame : rollback.schedule.nextConfirmedFrame();
   writeJournalFile(controlFile(journalIdentity(s, rollback.epoch), source.controlSequenceNumber(), wantPaused ? "PAUSE" : "RESUME", target ?? source.expectedFrame()));
   requestRound(journal.barrier, wantPaused ? "PREPARE" : "RESUME", target);
@@ -44,11 +44,11 @@ export function requestPause(s: ShellState, rollback: Rollback, journal: Journal
   setStatus(s, wantPaused ? "Pausing…" : "Resuming…", LASTING);
 }
 
-/**
- * What a helper would answer for the local keyboard, once per round: PREPARE
- * stops its rows at the next frame, PAUSE answers once its rows reach the
- * committed frame, and RESUME restarts its clock there.
- */
+
+
+
+
+
 function keyboardAck(journal: Journal, source: JournalInputSource, request: NonNullable<Journal["barrier"]["request"]>): string | undefined {
   if (journal.keyAnswered === request) return undefined;
   let frame = source.expectedFrame();
@@ -57,7 +57,7 @@ function keyboardAck(journal: Journal, source: JournalInputSource, request: NonN
     if (journal.keyStop === undefined || frame < journal.keyStop) return undefined;
     frame = journal.keyStop;
   } else {
-    // Rows already sent past the paused frame play first; the clock restarts level with the others.
+
     frame = request.target ?? frame;
     journal.keyStop = undefined;
     journal.keyClock = frame - 1;
@@ -66,7 +66,7 @@ function keyboardAck(journal: Journal, source: JournalInputSource, request: NonN
   return `ACK1|${source.controlSequenceNumber()}|${request.stage}|${frame}`;
 }
 
-/** Relays the local helper's acknowledgment of the current round to every client. */
+
 export function serviceControlAck(s: ShellState, rollback: Rollback, journal: Journal): void {
   const { source, barrier } = journal;
   const request = barrier.request;
@@ -94,7 +94,7 @@ export function serviceControlAck(s: ShellState, rollback: Rollback, journal: Jo
   else if (journal.mailbox !== undefined) releaseMessage(journal.mailbox);
 }
 
-/** A relayed acknowledgment arrived from the triggering player. */
+
 export function receiveControlAckEvent(s: ShellState): void {
   const epoch = journalEpoch(s);
   if (epoch === undefined) return;
@@ -107,7 +107,7 @@ export function receiveControlAckEvent(s: ShellState): void {
   }
 }
 
-/** After every helper prepared, asks them to pause at the agreed frame. */
+
 export function sendPauseCommit(s: ShellState, rollback: Rollback, journal: Journal): void {
   const frame = preparedFrame(journal.barrier);
   if (journal.source === undefined || frame === undefined) return;
@@ -116,7 +116,7 @@ export function sendPauseCommit(s: ShellState, rollback: Rollback, journal: Jour
   requestRound(journal.barrier, "PAUSE", frame);
 }
 
-/** Pauses or resumes exactly when the confirmed cursor reaches the agreed frame. */
+
 export function commitPauseAtFrame(s: ShellState, rollback: Rollback, journal: Journal): void {
   const frame = agreedFrame(journal.barrier);
   if (frame === undefined) return;
@@ -138,7 +138,7 @@ export function commitPauseAtFrame(s: ShellState, rollback: Rollback, journal: J
   if (resume) requestPause(s, rollback, journal, false);
 }
 
-/** Custom frame events synchronize the triggering player: Enter in the edit box asks to chat. */
+
 export function chatEntered(s: ShellState): void {
   const epoch = journalEpoch(s);
   const slot = GetPlayerId(GetTriggerPlayer());
@@ -158,7 +158,7 @@ export function chatClosedEvent(s: ShellState): void {
   if (BlzGetTriggerSyncData() === `${rollback.epoch}|${journal.chatSerial[slot]}`) journal.chatRequested[slot] = false;
 }
 
-/** A chat request pauses the match, then hands the keyboard to Warcraft's chat until it closes. */
+
 export function serviceChat(s: ShellState, rollback: Rollback, journal: Journal): void {
   const { editbox } = journal;
   if (editbox === undefined || s.game.phase !== Phase.match || journal.failed) return;
@@ -169,7 +169,7 @@ export function serviceChat(s: ShellState, rollback: Rollback, journal: Journal)
   }
 }
 
-/** The controller's Start shares the ordered text with its rows; it crosses a sync event before the pause barrier starts. */
+
 export function servicePauseRequest(s: ShellState, rollback: Rollback, journal: Journal): void {
   if (journal.editbox === undefined || s.game.phase !== Phase.match || journal.failed) return;
   const wire = peekEditbox(s, rollback, journal);
@@ -187,19 +187,19 @@ export function pauseRequestEvent(s: ShellState): void {
   const wire = BlzGetTriggerSyncData();
   const epochPrefix = `JP1${padDecimal(rollback.epoch, 10)}`;
   if (journal.barrier.request !== undefined) {
-    // A resume pressed before the pause commits (a slow helper can hold the
-    // commit for seconds) resumes right after it, on every client alike.
+
+
     if (pausing(journal.barrier) && wire.length === epochPrefix.length + 11 && wire.startsWith(epochPrefix) && wire.endsWith("R")) journal.barrier.resumeQueued = true;
     return;
   }
   const paused = s.session.paused;
-  // The epoch and control sequence discard delayed or simultaneous requests.
+
   const expected = `${epochPrefix}${padDecimal(journal.source.controlSequenceNumber(), 10)}${paused ? "R" : "P"}`;
   if (paused) {
     if (wire === expected) requestPause(s, rollback, journal, false);
     return;
   }
-  // A pause names the frame Start was pressed in; one the match already confirmed past pauses where the helpers stop.
+
   const frame = wire.length === expected.length + 10 && wire.startsWith(expected) ? parseDecimal(wire.substring(expected.length)) : undefined;
   if (frame === undefined) return;
   requestPause(s, rollback, journal, true, frame >= rollback.schedule.nextConfirmedFrame() ? frame : undefined);

@@ -1,8 +1,8 @@
-// The native shell's state. Everything a running match needs lives in one
-// global record, so a hot reload keeps the match and the new bundle's code
-// works on it. Handles are owned by the record that destroys them; the UI and
-// renderer objects keep the code they were created with, so a reload
-// recreates them (ui.ts).
+
+
+
+
+
 import type { CryGate } from "../../game/presentation/hurtVoice";
 import type { StageLoad } from "../../game/shell/stageLoad";
 import type { CameraExtreme } from "../../game/presentation/arenaCamera";
@@ -46,17 +46,17 @@ import { type InputTrace, inputTrace } from "./trace";
 import type { UiObjects } from "./ui";
 import type { NativePadCapture } from "./analogPad";
 
-/** The unit a fighter animates when no pool presents it, and its dizzy mark. */
+
 export interface FighterBody {
   readonly unit: unit;
   dizzy: effect | undefined;
-  /** The pose selection the unit last played. */
+
   renderedSelection: number;
-  /** When its hero may cry out; created on first use, so a body retained across a reload gains it. */
+
   cry?: CryGate;
 }
 
-/** What a fighter was before a frame, compared after it to announce and trace changes. */
+
 export interface FrameObservation {
   out: boolean;
   holding: boolean;
@@ -81,33 +81,33 @@ export interface FrameObservation {
 
 interface Participant {
   readonly slot: ParticipantSlot;
-  /** Present while the slot has a fighter on the stage or in the preview. */
+
   body: FighterBody | undefined;
-  /** The pool presents this match's fighter, and the unit stays hidden. */
+
   pooled: boolean;
-  /** Keys from synchronized key events, for menus and callback matches. */
+
   readonly keys: PlayerKeys;
-  /** The callback match's sampler of those keys. */
+
   readonly capture: KeyboardCapture;
   readonly bindings: BindingSettings;
   appliedBindingRevision: number | undefined;
   lastInputAction: Action | undefined;
-  /** The attack style the last callback-match press queued. */
+
   lastNormalStyle: number | undefined;
   readonly before: FrameObservation;
 }
 
-/** Original capture times of retained local rows, for the trace. */
+
 interface CaptureStamp {
   traced: boolean;
   callback: number;
   seconds: number;
 }
 
-/** Keyboard rollback: the keys polled each callback, and the rows waiting to be sent. */
+
 export interface KeyboardRollback {
   readonly capture: KeyboardCapture;
-  /** Built per epoch. */
+
   outgoing: InputBatch;
   nextSend: number;
   lastTarget: number | undefined;
@@ -115,28 +115,28 @@ export interface KeyboardRollback {
   readonly pairedSends: boolean;
 }
 
-/** Journal input: the helper's rows for this client, their transport and the barriers every human crosses. */
+
 export interface Journal {
   readonly ingress: JournalIngress;
-  /** Opened per epoch. */
+
   source: JournalInputSource | undefined;
   failed: boolean;
   readonly outgoing: OutgoingInput;
-  /** Humans whose helper is ready this epoch, or who play it on the keyboard. */
+
   readyMask: number;
-  /** Humans who play this epoch on the keyboard because their helper never reported ready. */
+
   keyboardMask: number;
-  /** Callbacks this epoch has waited for the local helper to report ready. */
+
   readyWait: number;
-  /** The local player's keys while they play on the keyboard. */
+
   readonly keys: KeyboardCapture;
-  /** The last frame the local keyboard's clock has reached: one more each running callback. */
+
   keyClock: number;
-  /** While a pause is prepared or in effect, the frame the local keyboard's rows stop before. */
+
   keyStop: number | undefined;
-  /** The pause round the local keyboard answered last; it answers each round once. */
+
   keyAnswered: PauseBarrier["request"];
-  /** Preallocated: the packet that carries the local keyboard's next row. */
+
   readonly keyPacket: InputPacket;
   startSent: boolean;
   lifecycle: MatchLifecycle | undefined;
@@ -147,24 +147,24 @@ export interface Journal {
   readonly chatSerial: Slots<number>;
   readonly barrier: PauseBarrier;
   readonly editbox: EditboxIngress | undefined;
-  /**
-   * Edit box rows taken out of the box in order while a pause round waits for
-   * the acknowledgment typed after them; they are admitted before the box's next text.
-   */
+
+
+
+
   readonly setAside: string[];
   mailbox: KeyboardMailbox | undefined;
 }
 
-/** Rollback input: synchronized rows, the confirmed cursor, and a speculative match for presentation. */
+
 export interface Rollback {
   readonly mode: ShadowInputMode;
-  /** False until an epoch starts, and after a player leaves it. */
+
   active: boolean;
   epoch: number;
-  /** Settings fixed for the running epoch. */
+
   delay: FixedDelay;
   window: number;
-  /** Callbacks per synchronized input message. */
+
   batch: number;
   readonly schedule: ShadowInputSchedule;
   readonly playback: RollbackPlayback;
@@ -174,22 +174,22 @@ export interface Rollback {
   sendFailed: boolean;
   readonly keyboard: KeyboardRollback | undefined;
   readonly journal: Journal | undefined;
-  /** Consecutive callbacks the match has waited for players' input; local presentation. */
+
   stalled: number;
-  /** Humans every client names while the match waits for their input; 0 while it runs. */
+
   waitingFor: number;
-  /**
-   * Prediction stopped at a remote row R frames behind it, and a keyboard
-   * press still awaits capture or journal rows have not drained. The response
-   * probe reports presses captured then apart (#60).
-   */
+
+
+
+
+
   predictionHeld: boolean;
-  /**
-   * Rows every client had received when the previous callback began. A
-   * callback confirms only through them, so a row's correction is repaired in
-   * the callback after it arrives and confirmed in the next one, the same
-   * callback on every client (#168).
-   */
+
+
+
+
+
+
   knownBefore: number;
 }
 
@@ -200,37 +200,37 @@ export interface StatusFrames {
 
 interface StatusLine {
   text: string;
-  /** Seconds the text stays; long for messages that wait for the players. */
+
   seconds: number;
 }
 
-/** The confirmed match's recent moments, which this client's player can save for `bun wisp repro`. */
+
 interface MomentSaves {
   readonly recorder: MomentRecorder;
-  /** Moments this client saved, which names the next file. */
+
   saved: number;
-  /** Seconds the player still sees that their moment was saved; local presentation. */
+
   notice: number;
 }
 
 export const momentSaves = (): MomentSaves => ({ recorder: createMomentRecorder(), saved: 0, notice: 0.0 });
 
-/** The match being recorded as a replay (replays.ts). */
+
 export interface ReplayRecording {
   readonly recorder: MatchReplayRecorder;
-  /** The open replay's serial. */
+
   serial: number;
-  /** The serial the match's record takes, until it is written. */
+
   recordSerial: number | undefined;
 }
 
 export const replayRecording = (): ReplayRecording => ({ recorder: createMatchReplayRecorder(), serial: 0, recordSerial: undefined });
 
-/** Key triggers for every key, which exist only while keys drive menus or a callback match. */
+
 interface KeyEvents {
   down: trigger | undefined;
   up: trigger | undefined;
-  /** Whether the triggers hold only menu controls, for a paused match. */
+
   escapeOnly: boolean;
 }
 
@@ -242,45 +242,45 @@ export interface ShellState {
   pauseKeysHeld?: number[];
   menuPublication?: { phase: MenuPhase; ticks: number };
   readonly pad: NativePadCapture | undefined;
-  /** Synchronized menu callbacks salt the random stage draw; retained across reloads. */
+
   menuFrames?: number;
   readonly camera: MatchCamera;
   cameraTween?: boolean;
-  /** Local clock deadline: resume keeps the paused picture across batched callbacks. */
+
   resumePresentationUntil?: number | undefined;
   readonly build: MapBuild;
-  /** The world point the simulation's origin maps to: stage center and floor height. */
+
   readonly origin: WorldOrigin;
   game: MatchState;
-  /** The confirmed match: the only state synchronized decisions read. */
+
   world: Roster;
   controls: FrameControls;
-  /** Callback matches adapt keys into these before a frame captures them. */
+
   readonly produced: FrameControls;
   runtime: PacingAndPresentation;
-  /** Owned storage while the confirmed match reads a retained history snapshot. */
+
   ownedConfirmed?: ReplayState | undefined;
-  /** Pause and Start keys; outside replay state, so rollback never undoes a pause. */
+
   readonly session: MatchControls;
   readonly frameInput: MatchFrameInput;
   readonly participants: Slots<Participant>;
   readonly status: StatusLine;
   readonly frames: StatusFrames;
   readonly stageDecks: effect[];
-  /** Stock-built platforms' dressing parts beyond the one in stageDecks. */
+
   readonly stageDeckParts: effect[];
-  /** The stage whose decks and cannon are drawn. */
+
   drawnStage: number;
   stageCannon: effect | undefined;
-  /** Blackrock's lava patch, drawn on its side of the timetable. */
+
   stageLava: effect | undefined;
   stageWind: effect[];
   stageHydra?: effect[];
   stageScenery: effect[] | undefined;
   shadowLightsRaised: boolean;
-  /** `-dev view near|far` holds the local camera at a stage's camera extreme for captures; never in replay state. */
+
   viewExtreme: CameraExtreme | undefined;
-  /** Menus, HUD and renderers; retained and rebound on hot reload. */
+
   ui: UiObjects | undefined;
   readonly sounds: ModelSoundCursor;
   readonly dev: DevSettings;
@@ -292,13 +292,13 @@ export interface ShellState {
   readonly keyEvents: KeyEvents;
   readyMarkerWritten: boolean;
   restartRequested: boolean;
-  /** Checksums capture the confirmed match here. */
+
   readonly diagnostic: ReplayState;
-  /** Assigned again when a reload finds a match from a bundle without it. */
+
   moment: MomentSaves;
-  /** Assigned again when a reload finds a match from a bundle without it. */
+
   replay: ReplayRecording;
-  /** The stage-loading screen between the start press and the match (stageLoad.ts). */
+
   stageLoad?: StageLoad | undefined;
 }
 
@@ -309,7 +309,7 @@ declare global {
 
 export const playtestProgress = () => (globalThis.__smashcraftPlaytest ??= { request: undefined, looked: 0, sent: false, cancelled: false });
 
-/** Manual selection takes over from an automatic request still waiting for its go-ahead. */
+
 export function cancelPendingPlaytest(): void {
   playtestProgress().cancelled = true;
 }
@@ -335,7 +335,7 @@ function participant(slot: ParticipantSlot, persistence: BindingPersistence): Pa
   };
 }
 
-/** Four fighters in stable slots, which each epoch's seed overwrites before any frame runs. */
+
 function speculativeRoster(): Roster {
   return createRoster(3, PARTICIPANT_SLOTS.map(slot => createFighter(slot === 0 ? 1 : slot === 1 ? 2 : slot === 2 ? 3 : 5, matchSpawnX(slot), slot === 0 || slot === 2 ? 1 : -1)));
 }
@@ -372,11 +372,11 @@ interface ShellSetup {
   readonly frames: StatusFrames;
   readonly persistence: BindingPersistence;
   readonly playback: RollbackPlayback;
-  /** The edit box, created on every client, when the build reads journal text from one. */
+
   readonly editbox: EditboxIngress | undefined;
 }
 
-/** Builds the shell's record once, on every client, after the game UI exists. */
+
 export function createShellState(build: MapBuild, setup: ShellSetup): ShellState {
   const { input } = build;
   const { persistence } = setup;
@@ -396,7 +396,7 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
     keyEvents: { down: undefined, up: undefined, escapeOnly: false }, readyMarkerWritten: false, restartRequested: false,
     diagnostic: createReplaySnapshot(), moment: momentSaves(), replay: replayRecording(),
   };
-  // Live history, every saved-moment owner, rollback and correction storage.
+
   const moments = state.moment.recorder;
   reserveBotObservations(state.runtime.botMemory,
     BOT_HISTORY_FRAMES * (moments.snapshots.length + 4) + REPLAY_HISTORY_CAPACITY + 2 * REPLAY_MAX_CORRECTION_FRAMES);
@@ -404,7 +404,7 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
   return state;
 }
 
-/** The rollback session while an epoch runs. */
+
 export function activeRollback(state: Readonly<ShellState>): Rollback | undefined {
   return state.rollback?.active === true ? state.rollback : undefined;
 }
@@ -413,7 +413,7 @@ export function localSlot(): number {
   return GetPlayerId(GetLocalPlayer());
 }
 
-/** Whether the player in slot plays this journal epoch on the keyboard; every client knows it. */
+
 export function playsOnKeyboard(journal: Readonly<Journal> | undefined, slot: number): boolean {
   return journal !== undefined && participantActive(journal.keyboardMask, slot);
 }

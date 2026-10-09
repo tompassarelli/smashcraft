@@ -9,7 +9,7 @@ export function install(this: void): void {
   installFrameMeter();
 }
 
-/** Normal production gameplay with the native helper's journal/editbox input, reporting the scene it draws and its frames' cost. */
+
 export function start(this: void): void {
   startBuild(INTEGRITY_BUILD);
   startMatchSceneReport();

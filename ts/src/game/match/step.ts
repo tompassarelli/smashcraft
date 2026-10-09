@@ -45,13 +45,13 @@ import { advanceTutorial, beginLesson, captureTutorialBefore, tutorialOn } from 
 export const observedFrameLegalActions: Slots<number> = [0, 0, 0, 0];
 export const observedFrameStartedActions: Slots<number> = [0, 0, 0, 0];
 
-/** As the map starts them: a step writes only the slots it plays, so a slot an earlier match used keeps its last observation (`-dev reset`). */
+
 export function clearObservedActions(): void {
   observedFrameLegalActions.fill(0);
   observedFrameStartedActions.fill(0);
 }
 
-// Preallocated: every match frame, including rollback, overwrites this scratch.
+
 const hadDashGrabWindow: Slots<boolean> = [false, false, false, false];
 const wasGrabbed: Slots<boolean> = [false, false, false, false];
 const beforeOut: Slots<boolean> = [false, false, false, false];
@@ -66,7 +66,7 @@ export function initializeMatchFighters(game: Readonly<MatchState>, world: Roste
     fighter.status.stocks = absent ? 0 : game.stockCount;
     fighter.status.out = absent;
     if (game.training && participantActive(game.computerMask, slot)) fighter.status.damage = f32(game.trainer.damage);
-    // Fighters start standing at the main deck's height; a sloped deck's line puts them on it.
+
     const { motion } = fighter;
     if (motion.grounded && surfaceCount(game.stageChoice) > 0 && surfaceLine(game.stageChoice, 0) !== undefined) {
       motion.surface = 0;
@@ -77,10 +77,10 @@ export function initializeMatchFighters(game: Readonly<MatchState>, world: Roste
   applyConfiguredStart(game, world);
 }
 
-/** Whether the frame's rules ended the match. */
+
 const matchEnded = (game: Readonly<MatchState>): boolean => game.phase === Phase.result;
 
-/** A boss fight ends when the boss's health is gone or the player's stocks are. */
+
 function resolveBossFight(game: MatchState, world: Roster): void {
   const { run } = game;
   if (game.phase !== Phase.match) return;
@@ -106,7 +106,7 @@ export function matchSpawnX(slot: number, participantMask = 0): number {
   return slot === 2 ? -80.0 : 80.0;
 }
 
-/** Command buffers admit the eleven ground request codes. */
+
 function requestedStyle(style: number | undefined): AttackStyle | undefined {
   switch (style) {
     case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7: case 8: case 9: case 10: return style;
@@ -114,12 +114,12 @@ function requestedStyle(style: number | undefined): AttackStyle | undefined {
   }
 }
 
-/**
- * A step that plays only `slot`: every other fighter and its commands end as
- * `after` holds them, the state an earlier run of the same frame reached.
- * Valid only while nothing `slot` does reaches another fighter
- * (smashcraft:ts/src/game/replay/history.ts, scopedStep).
- */
+
+
+
+
+
+
 export interface StepScope {
   slot: number;
   after: Readonly<{ world: Roster; controls: FrameControls }>;
@@ -130,7 +130,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   game.matchFrame++;
   const stage = game.stageChoice;
   const stageFrame = stageClock(game);
-  // Through the countdown every fighter stands still; a press made during it is dropped, so GO! needs a fresh one.
+
   if (holdingStart(game)) {
     for (const slot of PARTICIPANT_SLOTS) {
       copyControls(controls.inputs[slot], HELD);
@@ -138,14 +138,14 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     }
   }
   if (game.training) {
-    // Both shields held with attack pressed, by any player: everyone back to the start.
+
     if (PARTICIPANT_SLOTS.some(slot => isActive(world, slot) && humanFighterActive(game, slot) && controls.inputs[slot].resetPressed)) {
       resetTrainingPositions(game.trainer, world, game.computerMask, matchSpawnX);
       for (const slot of PARTICIPANT_SLOTS) clearAttackBuffer(controls.commands[slot]);
     }
     captureTrainingBefore(world);
     if (tutorialOn(game.trainer)) {
-      // The chosen lesson starts afresh with every match.
+
       if (game.matchFrame === 1) beginLesson(game.trainer, world, game.computerMask, game.trainer.lesson);
       captureTutorialBefore(world);
     }
@@ -214,9 +214,9 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     const f = fighterAt(world, slot);
     const commands = controls.commands[slot];
     if (f.status.frozenFrames > 0) clearAttackBuffer(commands);
-    // An attack pressed during a parried hit's freeze waits for its first actionable frame.
+
     if (f.launch.hitlag > 0 && f.shield.perfectActionFrames > 0) holdAttack(commands, frame);
-    // A jab pressed during a chaining jab's hitlag waits for its window, as Melee latches it (#163).
+
     if (f.launch.hitlag > 0 && commands.pending?.style === AttackStyle.jab && nextJab(f.attack.style) !== undefined) holdAttack(commands, frame);
     if (commands.pending?.style === AttackStyle.grab && f.shield.raised && (f.launch.hitlag > 0 || f.shield.stun > 0 || f.shield.drainResumePending)) holdAttack(commands, frame);
     const command = takeAttack(commands, frame, canStartAttackStyle(f, requestedStyle(commands.pending?.style)));

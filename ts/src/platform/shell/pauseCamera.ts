@@ -26,7 +26,7 @@ export function beginPauseCamera(s: ShellState, aspect: number): void {
   s.pauseCamera = { saved, aspect, tilt: 0.0, hideHud: false, using: false, held: [] };
 }
 
-/** Only the local player's pause keys reach this state; no combat sampler reads it. */
+
 export function cameraKey(s: ShellState, key: number, down: boolean): boolean {
   if (!pauseCameraKey(key) || !s.session.paused || s.game.phase !== Phase.match) return false;
   const camera = s.pauseCamera;
@@ -43,7 +43,7 @@ export function cameraKey(s: ShellState, key: number, down: boolean): boolean {
   return true;
 }
 
-/** A camera gesture stays hidden until a menu key is used, even after its release. */
+
 export function returnPauseMenu(s: ShellState): void {
   if (s.pauseCamera !== undefined) s.pauseCamera.using = false;
 }
@@ -83,7 +83,7 @@ export function advancePauseCamera(s: ShellState, aspect: number): void {
 
 export const pauseCameraAngle = (s: Readonly<ShellState>): number => ARENA_CAMERA.angleOfAttack + (s.pauseCamera?.tilt ?? 0.0);
 
-/** The controller types into the focused journal box; these local letters never enter its records. */
+
 export function servicePauseCameraControls(s: ShellState): void {
   if (!s.session.paused || s.game.phase !== Phase.match) return;
   const controls = s.rollback?.journal?.editbox?.takePauseControls() ?? "";

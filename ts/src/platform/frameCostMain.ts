@@ -1,4 +1,4 @@
-// Native CPU-clock boundary for the isolated 4096-frame workload.
+
 import { runFrameCostBenchmark } from "../game/replay/frameCostBenchmark";
 import { frameCostFile } from "../runtime/gameFiles";
 

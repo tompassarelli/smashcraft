@@ -1,10 +1,10 @@
-// Signature normals that show a stock Warcraft effect where their hit region
-// is live (#144): the multi-hit aerials and drills (#152) and Illidan's
-// raid-boss normals (#147). Each hit restarts the effect, so a drill reads as
-// its separate spins; the effect stands at the live region's centre. Most
-// normals show only their swing and hit spark: effects stay on the moves whose
-// identity is the effect (Sakurai: effects must not outshine the fighter).
-// Presentation only: the region is read, never changed.
+
+
+
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
@@ -16,7 +16,7 @@ import { DISJOINT_MODELS } from "./disjointCues";
 
 const cue = (model: string, scale: number): Cue => ({ model, anchor: "body", scale });
 
-/** A normal's effect from an active frame on (0 is the first), the last entry at or before it applying. */
+
 export interface AttackCue {
   readonly name: string;
   readonly fromActive: number;
@@ -39,44 +39,44 @@ export const ATTACK_CUES: { readonly [character: number]: { readonly [style: num
   },
   [Character.dreadlord]: {
     [AttackStyle.neutralAir]: [{ name: "Batwing Turn", fromActive: 0, cue: cue("Abilities\\Weapons\\BansheeMissile\\BansheeMissile.mdx", f32(1.2)) }],
-    // The dash passes through its target: a dark avenger streak marks the cross-up.
+
     [AttackStyle.dashAttack]: [{ name: "Wing cross-up", fromActive: 0, cue: cue("Abilities\\Weapons\\AvengerMissile\\AvengerMissile.mdx", 1.0) }],
   },
   [Character.lich]: {
     [AttackStyle.neutralAir]: [{ name: "Frost Halo", fromActive: 0, cue: cue("Abilities\\Spells\\Undead\\FrostNova\\FrostNovaTarget.mdx", f32(0.45)) }],
-    // The lingering ice crown above his shoulders.
+
     [AttackStyle.upTilt]: [{ name: "Ice crown", fromActive: 0, cue: cue("Abilities\\Spells\\Undead\\FreezingBreath\\FreezingBreathMissile.mdx", f32(0.8)) }],
   },
   [Character.pitLord]: {
-    // Demonic Bulk, the strongest dash attack: the ground shakes under the heave.
+
     [AttackStyle.dashAttack]: [{ name: "Demonic Bulk", fromActive: 0, cue: cue("Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdx", f32(0.45)) }],
   },
-  // Illidan's raid-boss normals (#147) start where their models draw, read
-  // from each model's keys: Flame Strike's Birth builds from one shockwave to
-  // its full fire 1.3-2.0 s in (its Stand draws nothing), so the six-frame
-  // wall starts there; Demon Bolt impact draws nothing before 0.23 s; the
-  // missiles draw from 0 s.
+
+
+
+
+
   [Character.demonHunter]: {
-    // Eye Blast: the fel breath of the green dragon along the floor beam.
+
     [AttackStyle.forwardSmash]: [{ name: "Eye Blast", fromActive: 0, cue: timed(cue("Abilities\\Weapons\\GreenDragonMissile\\GreenDragonMissile.mdx", f32(1.5)), "birth", 0.0) }],
-    // Flames of Azzinoth: the planted glaives, then the fire wall.
+
     [AttackStyle.downSmash]: [
       { name: "Azzinoth glaives", fromActive: 0, cue: timed(cue("Abilities\\Weapons\\DemonHunterMissile\\DemonHunterMissile.mdx", f32(1.4)), "stand", 0.0) },
       { name: "Flames of Azzinoth", fromActive: 3, cue: timed(cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrike1.mdx", f32(0.6)), "birth", f32(1.3)) },
     ],
-    // Twin glaives: a crossing link, then the opening launcher.
+
     [AttackStyle.forwardAir]: [{ name: "Twin glaives", fromActive: 0, cue: timed(cue("Abilities\\Weapons\\IllidanMissile\\IllidanMissile.mdx", 1.0), "stand", 0.0) }],
-    // Shear, the mana cutter, at every angle: a fel bolt bursts where the glaive cuts.
+
     [AttackStyle.forwardTilt]: SHEAR,
     [AttackStyle.forwardTiltUp]: SHEAR,
     [AttackStyle.forwardTiltDown]: SHEAR,
   },
 };
 
-/** Eye Blast's charge: his eyes burn once it has charged long enough to fire the beam. */
+
 export const EYE_BLAST_CHARGE_CUE: Cue = { model: "Abilities\\Spells\\Other\\Drain\\DrainCaster.mdx", anchor: "overhead", scale: f32(0.6), sequence: "stand", seconds: 0.0 };
 
-/** What a fighter's normal shows this frame: its cue, the live region's centre and a key that changes with each hit. */
+
 export interface AttackCueState {
   cue: Cue | undefined;
   x: number;
@@ -84,10 +84,10 @@ export interface AttackCueState {
   key: number;
 }
 
-// Preallocated scratch: presentation queries regions every frame.
+
 const scratch: HitRegion = emptyHitRegion();
 
-/** Writes the cue the fighter's current normal shows into `out`; its cue is undefined when it shows none. */
+
 export function attackCueState(fighter: Readonly<Fighter>, out: AttackCueState): AttackCueState {
   out.cue = undefined;
   const { style, frame, smashCharging, smashChargeFrames } = fighter.attack;
@@ -112,14 +112,14 @@ export function attackCueState(fighter: Readonly<Fighter>, out: AttackCueState):
     out.cue = cues[chosen]?.cue;
     out.x = f32(f32(region.minX + region.maxX) * 0.5);
     out.z = f32(f32(region.minZ + region.maxZ) * 0.5);
-    // A new hit: another region, another contact window, or another cue.
+
     out.key = index * 1000 + region.window * 10 + chosen;
     return out;
   }
   return out;
 }
 
-/** Every cue a fighter's normals can show. */
+
 export function fighterAttackCues(character: Character): readonly Cue[] {
   const out: Cue[] = [];
   for (const cues of Object.values(ATTACK_CUES[character] ?? {})) for (const { cue } of cues) if (!out.includes(cue)) out.push(cue);
@@ -127,7 +127,7 @@ export function fighterAttackCues(character: Character): readonly Cue[] {
   return out;
 }
 
-/** Every model an attack cue draws, every fighter's. */
+
 export function allAttackCueModels(): readonly string[] {
   const models: string[] = [];
   for (const model of Object.values(DISJOINT_MODELS)) if (!models.includes(model)) models.push(model);
@@ -137,7 +137,7 @@ export function allAttackCueModels(): readonly string[] {
   return models;
 }
 
-/** Every cue a fighter's renderer draws itself, one effect each: its specials' and its normals'. */
+
 export function fighterRenderedCues(character: Character): readonly Cue[] {
   const out: Cue[] = [];
   for (const cue of [...fighterOwnCues(character), ...fighterAttackCues(character)]) if (!out.includes(cue)) out.push(cue);

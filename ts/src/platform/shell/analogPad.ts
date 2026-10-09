@@ -22,7 +22,7 @@ export interface NativePadCapture {
 
 const pressed = (key: number) => BlzIsKeyPressed(ConvertOsKeyType(key));
 
-/** Both comparison builds create the same mouse event registrations. */
+
 export function createPadTriggers(s: ShellState): void {
   if (s.pad === undefined || (s.build.analogPadDiagnostic !== true && s.build.analogPad !== "cursor")) return;
   const trigger = CreateTrigger();
@@ -39,7 +39,7 @@ export function padMouse(s: ShellState): void {
     pad.mouseEvents++;
     pad.mouse.push(`mouse ${pad.mouseEvents} ${s.trace.clockPeriods * 1000.0 + TimerGetElapsed(s.trace.clock)} ${pad.syncEvents}`);
   }
-  // Calibration and capture are local; only the resulting input rows are sent.
+
   if (GetTriggerPlayer() !== GetLocalPlayer() || !pressed(PAD_ACTIVE_KEY)) return;
   const point = { x: f32(BlzGetTriggerPlayerMouseX()), y: f32(BlzGetTriggerPlayerMouseY()) };
   if (pressed(0x21)) {
@@ -80,7 +80,7 @@ export function recordPadRow(s: ShellState, epoch: number, frame: number, row: R
   if (wire !== undefined) pad.rows.push(`row ${epoch} ${frame} ${valid === undefined ? -1 : packet} ${encodePacket(wire)} ${s.trace.clockPeriods * 1000.0 + TimerGetElapsed(s.trace.clock)}`);
 }
 
-/** Exported with the finished match, so the runner need not stop gameplay. */
+
 export function exportPad(s: ShellState): void {
   const pad = s.pad;
   if (pad === undefined || s.build.analogPadDiagnostic !== true) return;

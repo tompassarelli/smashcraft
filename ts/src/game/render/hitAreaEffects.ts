@@ -6,10 +6,10 @@ import { runningHeroSpecial } from "../sim/heroSpecialRules";
 import { DISJOINT_MODELS, disjointNormals, fanKnifePose, hitAreaPose, specialAreaRegion, type FanKnifePose, type HitAreaPose } from "../presentation/disjointCues";
 import { type ParkedFlags, type WorldOrigin, facingYaw, parkOnce } from "./effects";
 
-/** Lich's twelve-segment halo is the largest simultaneous strike set. */
+
 export const HIT_AREA_EFFECT_CAPACITY = 12;
 
-/** Contact accents are separate from cast cues: simultaneous regions each get one. */
+
 export class HitAreaEffects {
   private readonly models: effect[] = [];
   private readonly styles;
@@ -66,7 +66,7 @@ export class HitAreaEffects {
         BlzSetSpecialEffectScale(model, f32(pose.scale * size));
         BlzSetSpecialEffectAlpha(model, 255);
         BlzSetSpecialEffectAnimation(model, "stand");
-        // Hold a visible spell pose on every active tick, including a long hitstop.
+
         BlzSetSpecialEffectTime(model, f32(0.3));
         BlzSetSpecialEffectTimeScale(model, 0.0);
       }

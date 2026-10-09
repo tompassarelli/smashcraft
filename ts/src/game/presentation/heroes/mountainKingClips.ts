@@ -1,15 +1,15 @@
-// Mountain King's presentation on the stock Warcraft III model, as plain data
-// for the shared hero clip seam. The sequence table was read from the game's
-// archive copy of the model (war3.w3mod:units/human/heromountainking/
-// heromountainking.mdx, 286165 bytes) with war3-model; the "Alternate" (Avatar)
-// sequences 13-26 are omitted because the ultimate stays off.
-//
-// Arm-bone rotation over each sequence identifies the weapon: Attack -1 and
-// Spell Throw swing the right arm (hammer, about 173 degrees), Attack -2 and
-// Attack Slam the left (axe, about 177 degrees, Attack Slam with more root
-// travel), and Spell Slam is the two-handed ground slam. The model has no
-// jump, hit, dodge, ledge or grab sequences, so those states reuse the nearest
-// readable sequence, often only its opening.
+
+
+
+
+
+
+
+
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle } from "../../sim/codes";
 import { MOUNTAIN_KING_GROUND, jabSlice, strikeClip } from "../../sim/heroes/groundNormals";
@@ -21,7 +21,7 @@ export interface StockSequence {
   readonly looping: boolean;
 }
 
-/** Sequence names exactly as the model spells them, with index and length. */
+
 export const MOUNTAIN_KING_SEQUENCES = {
   "Stand - 1": { index: 0, seconds: 1.5, looping: true },
   "Stand Ready": { index: 1, seconds: 1.5, looping: true },
@@ -41,20 +41,20 @@ export const MOUNTAIN_KING_SEQUENCES = {
 
 export type MountainKingSequence = keyof typeof MOUNTAIN_KING_SEQUENCES;
 
-/** A shorter `seconds` plays only that opening of the sequence over the pose. */
+
 const play = (sequence: MountainKingSequence, seconds?: number): HeroClip => {
   const { index, seconds: length } = MOUNTAIN_KING_SEQUENCES[sequence];
   return { index, seconds: f32(seconds ?? length) };
 };
 
-// Strike moments: where the drawn hammer or axe is farthest out (smashcraft:docs/design/tilts.md, "Animation").
+
 const ground = (sequence: MountainKingSequence, strike: number, style: AttackStyle, frame?: number): HeroClip =>
   strikeClip(MOUNTAIN_KING_SEQUENCES[sequence], strike, MOUNTAIN_KING_GROUND, style, frame);
 
-/** Idle, walking and every pose without its own entry. */
+
 export const MOUNTAIN_KING_FALLBACK = play("Stand Ready");
 
-/** Every table-selected pose (the shared hero pose names), hammer for blunt hits and axe for cuts. */
+
 export const MOUNTAIN_KING_CLIPS = {
   idle: play("Stand Ready"),
   walk: play("Walk"),
@@ -71,15 +71,15 @@ export const MOUNTAIN_KING_CLIPS = {
   jab: jabSlice(MOUNTAIN_KING_SEQUENCES["Attack -1"], f32(0.36)),
   jab2: jabSlice(MOUNTAIN_KING_SEQUENCES["Attack -1"], f32(0.36)),
   grab: play("Attack -2"),
-  // The level axe hook, whose swing already ends low; the up angle is the overhead throw.
+
   forwardTilt: ground("Attack -2", f32(0.48), AttackStyle.forwardTilt),
   forwardTiltUp: ground("Spell Throw", f32(0.52), AttackStyle.forwardTiltUp),
   forwardTiltDown: ground("Attack -2", f32(0.48), AttackStyle.forwardTiltDown),
-  // The hammer is highest on the scoop's second active frame.
+
   upTilt: ground("Attack -1", f32(0.44), AttackStyle.upTilt, 9),
-  // The low hammer sweep reaches farthest along the floor at 0.57 s (drawn reach, #156).
+
   downTilt: ground("Attack Slam Alternate", f32(0.57), AttackStyle.downTilt),
-  // Attack Slam's root travel carries the charge forward.
+
   dashAttack: ground("Attack Slam", f32(0.48), AttackStyle.dashAttack),
   forwardSmash: play("Attack Slam"),
   upSmash: play("Attack -1"),
@@ -102,7 +102,7 @@ export const MOUNTAIN_KING_CLIPS = {
   spotDodge: play("Spell Slam", f32(0.4)),
   jump: play("Stand - 3", f32(0.6)),
   doubleJump: play("Stand - 3", f32(0.6)),
-  // The Attack Slam leap kicks off a wall; a wall tech braces with the Spell Slam crouch.
+
   wallJump: play("Attack Slam"),
   wallTech: play("Spell Slam", f32(0.5)),
   fallSpecial: play("Death", f32(0.3)),

@@ -1,5 +1,5 @@
-// The in-match HUD: a damage plate per fighter and the match clock. Every
-// client creates the same frames; only what they show varies.
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { idiv, imod } from "wisp/src/sim/intMath";
 import { Character } from "../sim/codes";
@@ -14,7 +14,7 @@ import { MENU_FONT } from "./hudLayout";
 
 const STOCK_ICONS = STOCK_ICONS_SHOWN;
 
-/** Where a plate's mana bar sits: the plate art's mana track, as left edge, centre height and length. */
+
 export function plateManaSlot(position: number, count: number): { readonly left: number; readonly centerY: number; readonly width: number } {
   return { left: boxLeft(plateLeft(position, count), MANA_BOX), centerY: boxTop(MANA_BOX) - unitsForPixels(MANA_BOX.height) / 2, width: unitsForPixels(MANA_BOX.width) };
 }
@@ -44,7 +44,7 @@ export class MatchClock {
 }
 
 
-/** One fighter's plate: bust, damage, mana, name, slot and stock icons (plateLayout.ts). */
+
 export class FighterHud {
   private readonly plate: framehandle;
   private readonly portrait: framehandle;
@@ -53,24 +53,24 @@ export class FighterHud {
   private readonly name: framehandle;
   private readonly slotLabel: framehandle;
   private readonly stocks: readonly framehandle[];
-  /** Beside the first stock icon when there are more stocks than icons: "x7". */
+
   private readonly stockCount: framehandle;
-  /** The frames that show and hide with the plate; stock icons also follow the stock count. */
+
   private readonly body: readonly framehandle[];
   private shownCharacter: number | undefined;
-  // What the plate shows, so a callback that changes nothing calls no native.
+
   private shownVisible: boolean | undefined;
   private shownDamage: string | undefined;
   private shownTenths: string | undefined;
   private shownStocks: number | undefined;
-  /** The plate's left edge; the damage readout shakes around its place in it. */
+
   private left = 0.0;
   private damageValue = 0.0;
-  /** Rendered frames into the current hit's shake, and its strength in plate pixels. */
+
   private shakeFrame = SHAKE_FRAMES;
   private shakeStrength = 0.0;
 
-  /** `count` plates share the bottom of the screen; this one starts at its slot's position. */
+
   constructor(private readonly slot: number, count: number) {
     const suffix = I2S(slot);
     const context = 800 + slot * 20;
@@ -126,7 +126,7 @@ export class FighterHud {
     BlzDestroyFrame(this.stockCount);
   }
 
-  /** Places this plate `position`-th of `count` evenly spaced plates. */
+
   layout(position: number, count: number): void {
     const left = plateLeft(position, count);
     this.left = left;
@@ -140,7 +140,7 @@ export class FighterHud {
     placeTopLeft(this.stockCount, boxLeft(left, STOCK_ROW) + unitsForPixels(STOCK_STEP_PX + 4), boxTop(STOCK_ROW));
   }
 
-  /** Every rendered frame. */
+
   update(visible: boolean, character: Character, damage: number, stocks: number): void {
     if (this.shownVisible !== visible) {
       this.shownVisible = visible;
@@ -176,7 +176,7 @@ export class FighterHud {
     BlzFrameSetText(this.stockCount, `x${I2S(shownStocks)}`);
   }
 
-  /** A hit shakes the readout for a moment, harder for a bigger hit; local presentation only. */
+
   private shake(visible: boolean, damage: number): void {
     const added = damage - this.damageValue;
     this.damageValue = damage;

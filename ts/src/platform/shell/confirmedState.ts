@@ -1,7 +1,7 @@
 import { copyReplayState } from "../../game/replay/snapshot";
 import type { ShellState } from "./state";
 
-/** Detach the confirmed history snapshot before a caller changes the match. */
+
 export function ownConfirmedState(s: ShellState): void {
   const owned = s.ownedConfirmed;
   if (owned === undefined) return;

@@ -1,10 +1,10 @@
 import { Character } from "../sim/codes";
 
-/**
- * Each selectable fighter's home stage: the place you would meet them in a
- * Warcraft campaign (smashcraft:docs/design/home-stages.md gives the lore).
- * Stage ids are smashcraft:ts/src/game/menu/stageCatalog.ts tiles.
- */
+
+
+
+
+
 export const HOME_STAGES: readonly { readonly character: Character; readonly stage: number }[] = [
   { character: Character.anubarak, stage: 2 },
   { character: Character.rifleman, stage: 11 },

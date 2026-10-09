@@ -1,6 +1,6 @@
-// One participant's controls screen. Every client builds all four and tracks
-// whether each is open from synchronized events; only the owner's client draws
-// its own. Escape and captured keys arrive through the shell's key handling.
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { bindPrototype } from "../../platform/rebind";
 import { ACTION_ORDER, type Action } from "../input/actions";
@@ -34,7 +34,7 @@ export class SettingsPanel {
   private readonly status: framehandle;
   private readonly buttons: readonly framehandle[];
   private readonly rows: readonly ActionRow[];
-  /** Every frame the screen owns, for showing, hiding and destroying them together. */
+
   private readonly all: framehandle[];
   private readonly clicks: ButtonClicks<SettingsButton>;
   private open = false;
@@ -119,7 +119,7 @@ export class SettingsPanel {
     return this.open;
   }
 
-  /** Opens the screen once the bindings have loaded; from a synchronized event. */
+
   show(): void {
     if (!this.settings.ready) return;
     this.open = true;
@@ -127,7 +127,7 @@ export class SettingsPanel {
     this.update();
   }
 
-  /** From a synchronized event: the Back button or the owner's Escape key. */
+
   close(): void {
     this.open = false;
     cancelBindingCapture(this.settings);
@@ -135,7 +135,7 @@ export class SettingsPanel {
     this.actions.closeSettings(this.participantId);
   }
 
-  /** Every rendered frame on every client; redraws the owner's open screen when its content changed. */
+
   update(): void {
     if (GetLocalPlayer() !== Player(this.participantId) || !this.open) return;
     const { settings } = this;

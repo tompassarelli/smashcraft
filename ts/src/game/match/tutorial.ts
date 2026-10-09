@@ -1,8 +1,8 @@
-// The basic tutorial (#306, smashcraft:docs/design/single-player-modes.md, MVP
-// item 3): lessons in training with the partner. Each lesson shows one
-// instruction and passes when the sim has counted its action `goal` times,
-// then the next lesson starts. The lesson, its count and the "well done"
-// pause are training state, so rollback, replay and the checksum carry them.
+
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
 import { PARTICIPANT_SLOTS, type Slots, participantActive } from "../input/participants";
@@ -14,18 +14,18 @@ import {
   setTraining, setTutorialLesson,
 } from "./rules";
 
-/** What a lesson counts, once per occurrence. */
+
 export const LessonAction = { dash: 0, doubleJump: 1, hit: 2, special: 3, dodge: 4, throw: 5, ledge: 6, knockout: 7 } as const;
 export type LessonAction = (typeof LessonAction)[keyof typeof LessonAction];
 
 export interface Lesson {
   readonly name: string;
   readonly instruction: string;
-  /** What the count line calls one action. */
+
   readonly counted: string;
   readonly action: LessonAction;
   readonly goal: number;
-  /** The partner's damage while the lesson runs. */
+
   readonly partnerDamage: number;
 }
 
@@ -40,16 +40,16 @@ export const LESSONS: readonly Lesson[] = [
   { name: "Knock out your partner", instruction: "Your partner is badly hurt. Hit it hard to knock it off the screen.", counted: "Knockouts", action: LessonAction.knockout, goal: 1, partnerDamage: 150 },
 ];
 
-/** No lesson: ordinary training. */
+
 export const NO_LESSON = -1;
-/** Frames "Well done!" shows before the next lesson counts. */
+
 export const LESSON_CHEER_FRAMES = 120;
 
 export const tutorialOn = (state: Readonly<TrainingState>): boolean => state.lesson !== NO_LESSON;
-/** Every lesson has passed. */
+
 export const tutorialFinished = (state: Readonly<TrainingState>): boolean => state.lesson >= LESSONS.length;
 
-/** Starts `lesson` from a count of zero, with the partner standing at the lesson's damage. */
+
 export function beginLesson(state: TrainingState, world: Roster, computerMask: number, lesson: number): void {
   state.lesson = lesson;
   state.lessonCount = 0;
@@ -63,7 +63,7 @@ export function beginLesson(state: TrainingState, world: Roster, computerMask: n
   for (const slot of PARTICIPANT_SLOTS) if (isActive(world, slot) && participantActive(computerMask, slot)) fighterAt(world, slot).status.damage = f32(info.partnerDamage);
 }
 
-// Preallocated: overwritten for every slot at the start of every tutorial frame, rollback included.
+
 const beforeGround: Slots<number> = [0, 0, 0, 0];
 const beforeJump: Slots<number> = [0, 0, 0, 0];
 const beforeHit: Slots<number> = [0, 0, 0, 0];
@@ -90,7 +90,7 @@ export function captureTutorialBefore(world: Roster): void {
   }
 }
 
-/** How many times this frame a player did `action`; hits, throws and knockouts count on the partner. */
+
 function countAction(action: LessonAction, world: Roster, playerMask: number, computerMask: number): number {
   let count = 0;
   for (const slot of PARTICIPANT_SLOTS) {
@@ -111,7 +111,7 @@ function countAction(action: LessonAction, world: Roster, playerMask: number, co
   return count;
 }
 
-/** After a tutorial frame: counts the lesson's action, and moves on once the "well done" pause after a pass ends. */
+
 export function advanceTutorial(state: TrainingState, world: Roster, playerMask: number, computerMask: number): void {
   if (state.lessonCheer > 0) {
     state.lessonCheer--;
@@ -124,7 +124,7 @@ export function advanceTutorial(state: TrainingState, world: Roster, playerMask:
   if (state.lessonCount >= lesson.goal) state.lessonCheer = LESSON_CHEER_FRAMES;
 }
 
-/** The tutorial's on-screen text: the lesson, its instruction and the count, or the finish. */
+
 export function tutorialText(state: Readonly<TrainingState>): string {
   if (tutorialFinished(state)) return "Tutorial complete!\nYou know the basics. Pause and press Escape to go back to fighter selection.";
   const lesson = LESSONS[state.lesson];
@@ -134,28 +134,28 @@ export function tutorialText(state: Readonly<TrainingState>): string {
   return `${heading}\n${lesson.instruction}\n${lesson.counted}: ${state.lessonCount} / ${lesson.goal}`;
 }
 
-/** The lesson choice on the tutorial menu. */
+
 export const lessonChoiceText = (lesson: number): string => {
   const info = LESSONS[lesson < 0 ? 0 : lesson];
   return info === undefined ? "" : `${(lesson < 0 ? 0 : lesson) + 1}. ${info.name}`;
 };
 
-/** The Training stage: the flat Sky Deck. */
+
 export const TUTORIAL_STAGE = 0;
 
-/**
- * From fighter selection: a computer partner in the first free slot when
- * there is none, the chosen lesson (the first when none is chosen), every
- * present player on the fighter they have, and stage selection on the
- * Training stage. The match starts once every client has loaded it. False
- * when the menus could not get there.
- */
+
+
+
+
+
+
+
 export function prepareTutorial(game: MatchState, slot: number): boolean {
   const first = firstHumanSlot(game);
   if (first === undefined || game.phase !== Phase.characterMenu || !humanPresent(game, slot)) return false;
   if (!PARTICIPANT_SLOTS.some(other => computerActive(game, other))) {
     const partner = PARTICIPANT_SLOTS.find(other => !humanFighterActive(game, other) && !computerActive(game, other));
-    // An empty slot becomes a human fighter, then a computer.
+
     if (partner !== undefined) for (let step = 0; step < 2; step++) cycleSlotMode(game, first, partner);
   }
   setTraining(game, slot, true);
@@ -166,7 +166,7 @@ export function prepareTutorial(game: MatchState, slot: number): boolean {
   return true;
 }
 
-/** Steps the tutorial menu's lesson through every lesson in either direction. */
+
 export function stepTutorialLesson(game: MatchState, slot: number, direction: number): void {
   const current = game.trainer.lesson < 0 || game.trainer.lesson >= LESSONS.length ? 0 : game.trainer.lesson;
   setTutorialLesson(game, slot, floorMod(current + direction, LESSONS.length), LESSONS.length);

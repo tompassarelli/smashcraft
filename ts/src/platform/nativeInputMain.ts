@@ -1,5 +1,5 @@
-// Native keyboard timing uses the playable input and presentation. The probe
-// records callback rows and a rendered marker; its overhead is diagnostic.
+
+
 import type { MapBuild } from "../game/shell/build";
 import { PLAYABLE_BUILD } from "../game/shell/currentBuild";
 import { install as installGame, startBuild } from "./main";

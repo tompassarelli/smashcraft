@@ -1,5 +1,5 @@
-// The menus, HUD and renderers the shell drives. A hot reload keeps their
-// native handles and mutable state, and binds their objects to the new code.
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../../game/input/participants";
 import { CombatEffects } from "../../game/render/combatEffects";
@@ -38,17 +38,17 @@ import { BodyFlash } from "../../game/render/bodyFlash";
 import { ClassicPresentation } from "../../game/render/classicPresentation";
 import { PauseMenu } from "../../game/ui/pauseMenu";
 
-/** A fighter's renderers for one match; the pool only in pooled presentation. */
+
 interface FighterRenderers {
   readonly character: Character;
   readonly shield: ShieldPresentation;
   readonly projectiles: ProjectilePresentation;
-  /** Each special's startup and active spell; absent in renderers a bundle before it made. */
+
   readonly cues?: SpecialCueEffects | undefined;
   readonly pool: FighterPoolPresentation | undefined;
   readonly agency: AgencyMarker;
   readonly flash: BodyFlash;
-  /** Training's hit areas, when that match shows them. */
+
   readonly hitAreas: HitAreaPresentation | undefined;
 }
 
@@ -60,7 +60,7 @@ export interface UiObjects {
   readonly huds: Slots<FighterHud>;
   readonly bubbles: Slots<OffscreenBubble>;
   readonly escapeMeters: Slots<EscapeMeter>;
-  /** Each fighter's meter on its HUD plate; created on reload by a bundle that predates them. */
+
   manaBars: Slots<ManaBars>;
   readonly selections: Slots<SelectionPanel>;
   readonly settings: Slots<SettingsPanel>;
@@ -71,15 +71,15 @@ export interface UiObjects {
   readonly special: SpecialEffects;
   readonly fighters: Slots<FighterRenderers | undefined>;
   sounds: ModelSoundSink;
-  /** Announcer cues, music, selection voices and the results screen; created on reload by a bundle that predates it. */
+
   match: MatchPresentation;
-  /** Each victim's hit element; created on reload by a bundle that predates it. */
+
   elements: ElementEffects;
-  /** Classic's boss and ending card; created on reload by a bundle that predates it. */
+
   classic?: ClassicPresentation;
 }
 
-/** What the panels ask the game to do; menus.ts implements them over the shell. */
+
 export interface PanelActions {
   readonly selection: SelectionActions;
   readonly stage: StageActions;
@@ -99,7 +99,7 @@ export interface ManaBars {
 }
 
 const createManaBars = (slot: ParticipantSlot): ManaBars => ({
-  // The plate art draws the bar's track (plateLayout.ts).
+
   hud: new ManaBar("Hud", slot, gameUi(), 1300 + slot * 20, unitsForPixels(MANA_BAR_HEIGHT_PX), 0.0),
 });
 
@@ -107,7 +107,7 @@ function menuControls(s: Readonly<ShellState>): MenuControls {
   return s.build.input.kind === "journal" && s.build.input.ingress === "editbox" ? "journal" : "keyboard";
 }
 
-/** Creates every shared panel, HUD plate and effect pool, on every client in the same order. */
+// Create shared panels, HUD plates and effect pools in the same order on every client.
 export function createUi(s: ShellState, actions: PanelActions): UiObjects {
   const controls = menuControls(s);
   const ui: UiObjects = {
@@ -146,10 +146,10 @@ function endFighterRenderers(renderers: FighterRenderers | undefined): void {
   renderers?.hitAreas?.destroy();
 }
 
-/**
- * Creates a fighter's shield and projectile renderers, and its pooled clip
- * models when pooled; true when the pool admitted the character.
- */
+
+
+
+
 export function beginFighterRenderers(s: ShellState, slot: ParticipantSlot, character: Character, pooled: boolean): boolean {
   const ui = views(s);
   endFighterRenderers(ui.fighters[slot]);
@@ -166,7 +166,7 @@ export function endFighter(s: ShellState, slot: ParticipantSlot): void {
   ui.fighters[slot] = undefined;
 }
 
-/** Places each active fighter's HUD plate along the bottom of the screen. */
+
 export function layoutHuds(s: ShellState): void {
   const ui = views(s);
   const active = PARTICIPANT_SLOTS.filter(slot => isActive(s.world, slot));
@@ -177,7 +177,7 @@ export function layoutHuds(s: ShellState): void {
   });
 }
 
-/** Rebind retained UI and renderer handles to this bundle's methods and actions. */
+
 export function recreateUi(s: ShellState, actions: PanelActions): void {
   const ui = s.ui;
   if (ui === undefined) return;
@@ -214,11 +214,11 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
   else for (const slot of PARTICIPANT_SLOTS) {
     bindPrototype(ui.manaBars[slot].hud, ManaBar.prototype);
   }
-  // A bundle from before the match presentation left none to rebind.
+
   const retained: { readonly match?: MatchPresentation } = ui;
   if (retained.match === undefined) ui.match = new MatchPresentation(s.origin);
   else bindPrototype(ui.match, MatchPresentation.prototype);
-  // A bundle from before the drain bursts keeps its element effects' old shape: replace it.
+
   const retainedElements: { readonly elements?: { readonly drains?: readonly effect[] } } = ui;
   if (retainedElements.elements === undefined) ui.elements = new ElementEffects(s.origin);
   else if (retainedElements.elements.drains === undefined) {
@@ -245,7 +245,7 @@ export function settingsOpen(s: Readonly<ShellState>, slot: ParticipantSlot): bo
   return views(s).settings[slot].isOpen();
 }
 
-/** Ends frost and special effects and every projectile, as at a result or a departure. */
+
 export function clearMatchEffects(s: ShellState): void {
   const ui = views(s);
   ui.frost.clear();

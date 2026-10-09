@@ -1,7 +1,7 @@
-// The configured-match engine: puts one data entry (runState.ts) into the
-// match through the ordinary settings, starts its fighters with the entry's
-// stocks and damage, and judges its win condition. Classic plays a route of
-// entries; Lore Battles (#305) plays its own list through the same calls.
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, participantActive } from "../input/participants";
 import { type MatchState, Phase } from "../match/rules";
@@ -9,11 +9,11 @@ import type { Character } from "../sim/codes";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { BossKind, type ConfiguredMatch, RunOutcome, WinCondition, resetBossState } from "./runState";
 
-/**
- * The slot of the entry's `index`-th opponent: the free slots after the
- * player's in order, then other players' slots when a full lobby leaves none
- * (those players watch the run).
- */
+
+
+
+
+
 export function opponentSlot(player: number, humans: number, index: number): ParticipantSlot | undefined {
   let seen = 0;
   for (const watching of [false, true]) {
@@ -26,7 +26,7 @@ export function opponentSlot(player: number, humans: number, index: number): Par
   return undefined;
 }
 
-/** Starts a run for `player` with `fighter`, keeping the menu's settings to restore at its end. */
+
 export function beginConfiguredRun(game: MatchState, player: ParticipantSlot, fighter: Character): void {
   const { run } = game;
   run.active = true;
@@ -47,10 +47,10 @@ export function beginConfiguredRun(game: MatchState, player: ParticipantSlot, fi
   run.savedItems = game.items.on;
 }
 
-/**
- * Configures the next match from `entry` and leaves it at stage selection
- * with its stage resolved, so the ordinary loading screen and start follow.
- */
+
+
+
+
 export function applyConfiguredMatch(game: MatchState, entry: ConfiguredMatch): void {
   const { run } = game;
   const player = run.player;
@@ -86,7 +86,7 @@ export function applyConfiguredMatch(game: MatchState, entry: ConfiguredMatch): 
   game.phase = Phase.stageMenu;
 }
 
-/** At the match's first frame: the entry's stocks and starting damage for each side. */
+
 export function applyConfiguredStart(game: Readonly<MatchState>, world: Roster): void {
   const { run } = game;
   const entry = run.current;
@@ -106,7 +106,7 @@ export function applyConfiguredStart(game: Readonly<MatchState>, world: Roster):
   }
 }
 
-/** Whether the player won the entry's match as it ended. */
+
 export function configuredOutcome(game: Readonly<MatchState>, world: Readonly<Roster>): RunOutcome {
   const { run } = game;
   const entry = run.current;
@@ -121,7 +121,7 @@ export function configuredOutcome(game: Readonly<MatchState>, world: Readonly<Ro
   }
 }
 
-/** Each match frame of a run: the damage the player takes. */
+
 export function trackConfiguredFrame(game: MatchState, world: Readonly<Roster>): void {
   const { run } = game;
   if (!run.active || !isActive(world, run.player)) return;
@@ -130,7 +130,7 @@ export function trackConfiguredFrame(game: MatchState, world: Readonly<Roster>):
   run.lastDamage = damage;
 }
 
-/** The frame the match ended: its outcome and the frames it took join the run. */
+
 export function settleConfiguredMatch(game: MatchState, world: Readonly<Roster>): void {
   const { run } = game;
   if (!run.active || run.current === undefined) return;

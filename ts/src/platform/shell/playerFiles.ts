@@ -1,7 +1,7 @@
-// Player files for saved bindings: a player's file is read on that player's
-// client and its text synchronized to every client before anyone uses it;
-// saving writes the owner's file. The file format is FileIO's (fileio.ts), so
-// files the Wurst map saved still load.
+
+
+
+
 import type { BindingPersistence } from "../../game/ui/bindingSettings";
 import { PARTICIPANT_SLOTS } from "../../game/input/participants";
 import { trampoline } from "wisp/src/platform/dispatch";
@@ -11,7 +11,7 @@ import { departPlayerFiles, enqueuePlayerFile, receivePlayerFileChunk, type Play
 export const PLAYER_FILE_RECEIVED = "shell.playerFileReceived";
 const MORE_PREFIX = "SC_FL";
 const LAST_PREFIX = "SC_FE";
-/** Characters per synchronized message and per stored chunk. */
+
 const CHUNK = 200;
 const BINDINGS_FILE = "MeleePrototypeBindings.pld";
 
@@ -23,7 +23,7 @@ function files(): PlayerFileQueue {
   return (globalThis.__smashcraftPlayerFiles ??= { queue: [] });
 }
 
-/** The owner's client sends the first queued file. */
+
 function sendFile(owner: number): void {
   if (GetLocalPlayer() !== Player(owner)) return;
   const text = readChunks(BINDINGS_FILE).join("");
@@ -35,7 +35,7 @@ function sendFile(owner: number): void {
   BlzSendSyncData(LAST_PREFIX, text.substring(offset));
 }
 
-/** A chunk of the first queued file arrived on this client. */
+
 export function playerFileReceived(): void {
   receivePlayerFileChunk(files(), GetPlayerId(GetTriggerPlayer()), BlzGetTriggerSyncData(), BlzGetTriggerSyncPrefix() === LAST_PREFIX, sendFile);
 }
@@ -44,7 +44,7 @@ export function playerFilesOwnerLeft(owner: number): void {
   departPlayerFiles(files(), owner, sendFile);
 }
 
-/** Registers the synchronized receipt once; its handler is registered by name at every install. */
+
 export function startPlayerFiles(): void {
   const trigger = CreateTrigger();
   for (const slot of PARTICIPANT_SLOTS) {

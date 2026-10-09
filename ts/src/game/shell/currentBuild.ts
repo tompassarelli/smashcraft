@@ -1,10 +1,10 @@
-// The build this map runs. The checked-in value is the development loop's:
-// key events, unit animation, and the dev console for
-// `-dev quick`. Native integrity runs (#26) use INTEGRITY_BUILD with the
-// companion helper's journal. The playable build polls local keys into
-// fixed-delay rollback rows, so it plays with
-// nothing but Warcraft and a keyboard; a controller helper, when one runs,
-// presses the same keys (#166).
+
+
+
+
+
+
+
 import type { MapBuild } from "./build";
 
 export const INTEGRITY_BUILD: MapBuild = {
@@ -43,5 +43,5 @@ export const CURRENT_BUILD: MapBuild = {
   hotReload: true,
 };
 
-/** Deterministic native engine scripts use the same row adapter as callback matches. */
+
 export const NATIVE_DRIVER_BUILD: MapBuild = { ...CURRENT_BUILD, id: "typescript-native-driver", inputProfile: "native-driver", hotReload: false };

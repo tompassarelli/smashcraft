@@ -1,5 +1,5 @@
-// Test fixtures only: a match whose frames run through captured rows and the
-// frame executor, as recorded play does.
+
+
 import { assertTrue } from "wisp/src/runtime/testing";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import type { Character } from "../sim/codes";
@@ -19,7 +19,7 @@ export interface TestMatch {
   readonly row: MatchFrameInput;
 }
 
-/** Human participants of one character, 150 apart from x = -240, in an untimed match. */
+
 export function testMatch(mask: number, character: Character): TestMatch {
   const world = createRoster(mask);
   for (const slot of PARTICIPANT_SLOTS) if (isActive(world, slot)) world.fighters[slot] = createFighter(character, -240.0 + slot * 150.0, 1);
@@ -30,7 +30,7 @@ export function testMatch(mask: number, character: Character): TestMatch {
   return { world, game, inputs: createFrameControls(), runtime: createPacingAndPresentation(), row: createMatchFrameInput() };
 }
 
-/** Captures the current inputs as the next frame's row. */
+
 export function captureNext(match: TestMatch): void {
   const { row, world, inputs, runtime } = match;
   assertTrue(captureFrame(row, runtime.simulationFrame + 1, world.mask, inputs, runtime));
@@ -46,16 +46,16 @@ export function executeNext(match: TestMatch): void {
   executeCaptured(match);
 }
 
-/** The match as replay state, for history saves, replays and snapshots. */
+
 export function replayState({ world, game, inputs, runtime }: TestMatch): ReplayState {
   return { world, match: game, controls: inputs, runtime };
 }
 
-/**
- * Starts the match from the stage menu without its countdown, so combat and
- * clock contracts run from its first frame; the hold has its own contracts
- * (startHold.tests.ts).
- */
+
+
+
+
+
 export function startAtGo(game: MatchState, slot: number): boolean {
   const started = requestStart(game, slot);
   game.startHold = 0;

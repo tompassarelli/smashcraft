@@ -8,16 +8,16 @@ export type StageChoice = StageTile | typeof RANDOM_STAGE;
 export interface StageInfo<Choice extends StageChoice = StageTile> {
   readonly id: Choice;
   readonly name: string;
-  /**
-   * The card's picture, square: Warcraft's own campaign loading art for the
-   * stage's zone, or for a stage with none, its hero-camera render
-   * (scripts/stageThumbnails.ts; smashcraft:docs/design/stage-select.md).
-   */
+
+
+
+
+
   readonly texture: string;
   readonly description: string;
 }
 
-/** The ranked ten, followed by the flat testing arena. */
+
 export const STAGE_CATALOG: readonly StageInfo[] = [
   { id: 2, name: "Frozen Throne", texture: "UI\\Glues\\Loading\\Backgrounds\\Campaigns\\IcecrownExpansion-TopLeft.blp", description: "Three icy platforms above Icecrown.\nFight beneath the Frozen Throne." },
   { id: 10, name: "Nordrassil", texture: "UI\\Glues\\Loading\\Backgrounds\\Campaigns\\AshenvaleExpansion-TopLeft.blp", description: "Three platforms beneath the World Tree.\nThe Ancients breathe alternating gusts." },
@@ -37,13 +37,13 @@ export function stageTileIndex(choice: number): number {
   return 0;
 }
 
-/** Random is a menu choice, never part of the playable stage roster. */
+
 export const STAGE_CHOICES: readonly StageInfo<StageChoice>[] = [
   { id: RANDOM_STAGE, name: "Random Stage", texture: "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp", description: "Choose from your stage pool.\nEach stage plays once before repeating." },
   ...STAGE_CATALOG,
 ];
 
-/** A seeded integer draw, exact in Bun and Warcraft's Lua32. */
+// Keep seeded menu draws exact in Bun and Lua32.
 export function randomStage(seed: number, mask?: number): StageTile {
   const value = floorMod(seed, 46337);
   const mixed = floorMod(value * value + 12345, 46337);

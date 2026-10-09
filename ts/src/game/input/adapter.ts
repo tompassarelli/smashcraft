@@ -23,13 +23,13 @@ function edgePair(pressed: number, negative: Action, positive: Action): Directio
 }
 
 function movementAxis(row: Readonly<InputRow>, negative: Action, positive: Action, axis: number): Direction {
-  // Held directions own the axis, even when opposing holds cancel it. A short
-  // tap is preserved only when neither direction remains held.
+
+
   if (has(row.held, negative) || has(row.held, positive) || axis !== 0) return sign(axis);
   return edgePair(row.pressed, negative, positive);
 }
 
-/** Fills reused frame scratch; the caller records the requests beside this exact row for replay. */
+
 export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, frame: number, destination: Controls, attacks: AttackBuffer): void {
   const { held, pressed } = row;
   clearAttackBuffer(attacks);
@@ -89,7 +89,7 @@ export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, 
   const leftShield = has(held, Action.leftTrigger) || analogShieldActive(row.triggerLeft);
   const rightShield = has(held, Action.rightTrigger) || analogShieldActive(row.triggerRight);
   destination.resetPressed = leftShield && rightShield && destination.attackPressed;
-  // Melee's escape stick thresholds: common +0x31C/+0x314, ftCo_Escape.c.
+
   const dodge = groundDodgeIntent(destination.shield,
     has(pressed, Action.moveLeft) && stickX(destination) <= -0.699999988079071,
     has(pressed, Action.moveRight) && stickX(destination) >= 0.699999988079071,

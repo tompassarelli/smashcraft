@@ -1,14 +1,14 @@
-// Each confirmed frame's digest (wisp#69): a test build's replay records,
-// for every frame, a fold of the fields a differing rule moves first, so a
-// replay names the first frame where the native match and the headless one
-// part. The fold is the replay checksum's (replayFold.ts) over a few fields a
-// fighter, cheap enough to run every frame; the full checksum still comes
-// every two seconds.
-//
-// The two lanes are sums of one term per field, so when exactly one field
-// (or two of one fighter's, as a position moved by a velocity) differs, the
-// difference between the recorded and the replayed digest determines the
-// field and its native value: digestDifference solves for it.
+
+
+
+
+
+
+
+
+
+
+
 import { at } from "wisp/src/runtime/lookup";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { PARTICIPANT_SLOTS } from "../input/participants";
@@ -19,7 +19,7 @@ import {
   keyHash, lowResidue, numberTerm, secondCoefficient,
 } from "./replayFold";
 
-/** The fields each frame's digest folds for every active fighter: record and field ("" for the fighter's own). */
+
 export const DIGEST_FIELDS: readonly (readonly [string, string])[] = [
   ["", "facing"],
   ["motion", "x"], ["motion", "z"], ["motion", "vx"], ["motion", "vz"], ["motion", "grounded"],
@@ -68,7 +68,7 @@ function digestLanes(world: Readonly<Roster>, frame: number): Lanes {
 
 const DIGITS = "0123456789abcdefghijklmnopqrstuvwxyz";
 
-/** A lane below MODULUS as three base-36 digits (36^3 = 46656). */
+
 function laneText(lane: number): string {
   const high = floorDiv(lane, 1296);
   const middle = floorDiv(floorMod(lane, 1296), 36);
@@ -86,13 +86,13 @@ function laneValue(text: string): number | undefined {
   return value < MODULUS ? value : undefined;
 }
 
-/** The digest of the confirmed match after `frame`: six base-36 digits. */
+
 export function frameDigest(world: Readonly<Roster>, frame: number): string {
   const lanes = digestLanes(world, frame);
   return `${laneText(lanes.first)}${laneText(lanes.second)}`;
 }
 
-/** A recorded digest's lanes, or undefined when it isn't one. */
+
 export function digestLanesOf(token: string): Lanes | undefined {
   if (token.length !== 6) return undefined;
   const first = laneValue(token.substring(0, 3));
@@ -100,21 +100,21 @@ export function digestLanesOf(token: string): Lanes | undefined {
   return first === undefined || second === undefined ? undefined : { first, second };
 }
 
-// ---------------------------------------------------------------- naming the field
 
-/** One digest field whose native value differs from the replayed one. */
+
+
 export interface FieldDifference {
-  /** `p0 motion.x`: the slot and field. */
+
   readonly field: string;
   readonly replayed: number | boolean;
   readonly native: number | boolean;
-  /** How far apart: integer steps, or units in the last place of a binary32 significand. */
+
   readonly steps: number;
 }
 
-/** What the difference between a recorded and a replayed digest shows. */
+
 export interface DigestDifference {
-  /** The fields whose native values explain the recorded digest; empty when no one or two of a fighter's fields do. */
+
   readonly fields: readonly FieldDifference[];
 }
 
@@ -123,7 +123,7 @@ interface DigestTerm {
   readonly slot: number;
   readonly key: number;
   readonly value: number | boolean;
-  /** The term's name hash and integer as foldInteger folds them. */
+
   readonly termKey: number;
   readonly integer: number;
 }
@@ -142,7 +142,7 @@ function powMod(base: number, exponent: number): number {
 
 const INVERSES: Record<number, number> = {};
 
-/** The inverse of `value` modulo the prime MODULUS; undefined for a multiple of it. */
+
 function inverse(value: number): number | undefined {
   const residue = floorMod(value, MODULUS);
   if (residue === 0) return undefined;
@@ -157,7 +157,7 @@ const INVERSE_31 = powMod(31, MODULUS - 2);
 const firstTerm = (key: number, integer: number) => floorMod(firstCoefficient(key) * (lowResidue(integer) + 1), MODULUS);
 const secondTerm = (key: number, integer: number) => floorMod(secondCoefficient(key) * (highResidue(integer) + 1), MODULUS);
 
-/** The integer below 2^24 in magnitude whose terms under `key` are `first` and `second`; undefined when none is. */
+
 function solveInteger(key: number, first: number, second: number): number | undefined {
   const firstInverse = inverse(firstCoefficient(key));
   const secondInverse = inverse(secondCoefficient(key));
@@ -170,7 +170,7 @@ function solveInteger(key: number, first: number, second: number): number | unde
   return value < TWO_24 && value > -TWO_24 ? value : undefined;
 }
 
-/** The binary exponent numberTerm gives a nonzero finite number. */
+
 function binaryExponent(value: number): number {
   let magnitude = value < 0 ? -value : value;
   let exponent = 0;
@@ -185,7 +185,7 @@ function binaryExponent(value: number): number {
   return exponent;
 }
 
-/** A nonzero finite number, which has a binary exponent. */
+
 const measurable = (value: number) => value === value && value !== 0 && value * 2.0 !== value;
 
 function scaled(significand: number, exponent: number): number {
@@ -195,10 +195,10 @@ function scaled(significand: number, exponent: number): number {
   return value;
 }
 
-/** One unit in the last place of a binary32 value's significand; 0 for zero, infinities and NaN. */
+
 export const significandUnit = (value: number) => (measurable(value) ? scaled(1, binaryExponent(value)) : 0);
 
-/** Steps between two values of one field: integer steps, or significand units at the replayed value's exponent. */
+
 function stepsBetween(replayed: number | boolean, native: number | boolean): number {
   if (typeof replayed === "boolean" || typeof native === "boolean") return 1;
   const difference = native - replayed;
@@ -207,14 +207,14 @@ function stepsBetween(replayed: number | boolean, native: number | boolean): num
   return unit === 0 ? difference : difference / unit;
 }
 
-/** A differing value within `limit` steps of the replayed one. */
+
 function near(replayed: number, native: number, limit: number): boolean {
   if (native === replayed) return false;
   const steps = stepsBetween(replayed, native);
   return steps <= limit && steps >= -limit;
 }
 
-/** Native values of `term`'s field whose terms are `first` and `second`, within `limit` steps of the replayed value. */
+
 function nativeValues(term: DigestTerm, first: number, second: number, limit: number): (number | boolean)[] {
   const found: (number | boolean)[] = [];
   if (typeof term.value === "boolean") {
@@ -257,13 +257,13 @@ function digestTerms(world: Readonly<Roster>): DigestTerm[] {
   return terms;
 }
 
-/** One field's replayed term plus the lanes' difference: the terms its native value must have. */
+
 const targets = (term: DigestTerm, first: number, second: number) => [
   floorMod(firstTerm(term.termKey, term.integer) + first, MODULUS),
   floorMod(secondTerm(term.termKey, term.integer) + second, MODULUS),
 ] as const;
 
-/** Steps of a field's own kind around its replayed value that the pair search tries. */
+
 function neighbours(term: DigestTerm, reach: number): { value: number | boolean; key: number; integer: number }[] {
   if (typeof term.value === "boolean") return [{ value: !term.value, key: term.termKey, integer: term.value ? 0 : 1 }];
   const found: { value: number | boolean; key: number; integer: number }[] = [];
@@ -281,11 +281,11 @@ function neighbours(term: DigestTerm, reach: number): { value: number | boolean;
   return found;
 }
 
-/**
- * Which digest fields explain the recorded digest `recorded`, given the
- * replayed match: one field anywhere, else two of one fighter's fields within
- * a few steps of their replayed values.
- */
+
+
+
+
+
 export function digestDifference(world: Readonly<Roster>, frame: number, recorded: string): DigestDifference {
   const native = digestLanesOf(recorded);
   if (native === undefined) return { fields: [] };
@@ -335,7 +335,7 @@ function closest(found: readonly FieldDifference[]): FieldDifference {
   return best;
 }
 
-/** A whole number's decimal digits, alike in Bun and in Lua, which prints a float's ".0". */
+// Integer decimal digits avoid Lua integral-float .0 suffixes.
 function wholeText(value: number): string {
   let rest = value < 0 ? -value : value;
   let text = "";
@@ -346,7 +346,7 @@ function wholeText(value: number): string {
   return value < 0 ? `-${text}` : text;
 }
 
-/** `p0 motion.x +1 (replayed 512.25)` for each field; or that no one or two fields of a fighter explain it. */
+
 export function describeDigestDifference(difference: DigestDifference): string {
   if (difference.fields.length === 0) return "more than one digest field differs";
   return difference.fields.map(({ field, replayed, native, steps }) => typeof replayed === "boolean"

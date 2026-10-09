@@ -1,7 +1,7 @@
-// Classic's presentation (#284): the boss's stock model scaled up over the
-// stage, its strikes' warnings and hits drawn with stock spell art, and the
-// ending card. Effects are created when a boss match starts and destroyed when
-// it ends, both synchronized; presenting only moves, shows and hides them.
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { BossPhase, bossClock, bossDefinition, bossMoment, bossPosition, zoneCenter, type BossDefinition, type BossMoment } from "../classic/bosses";
 import { classicEnding } from "../classic/classicText";
@@ -12,10 +12,10 @@ import { createBackdrop, createText, gameUi, placeTopLeft } from "../ui/frames";
 import { MENU_FONT } from "../ui/hudLayout";
 import { type ParkedFlags, type WorldOrigin, parkOnce } from "./effects";
 
-/** Strike art per zone; no strike has more zones than this. */
+
 const ZONE_EFFECTS = 4;
 export const BOSS_TELEGRAPH_MODEL = "UI\\Feedback\\SelectionCircle\\SelectionCircle.mdx";
-// The stock building selection square spans 76.336 model units in its ground plane.
+
 const MARKER_HALF = f32(38.168);
 const QUARTER_TURN = f32(1.5707963);
 const PANEL_TEXTURE = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp";
@@ -62,7 +62,7 @@ export class ClassicPresentation {
     BlzFrameSetVisible(this.card, false);
   }
 
-  /** At a match start: a boss match's model and strike art. */
+
   beginMatch(game: Readonly<MatchState>): void {
     this.endMatch();
     const boss = game.run.active ? bossDefinition(game.run.boss.kind) : undefined;
@@ -89,7 +89,7 @@ export class ClassicPresentation {
     BlzSetSpecialEffectPosition(this.body, x, y + boss.depth, z + boss.standZ);
   }
 
-  /** When the match ends: the boss and its art go. */
+
   endMatch(): void {
     if (this.body !== undefined) DestroyEffect(this.body);
     for (const art of this.tells) DestroyEffect(art);
@@ -100,13 +100,13 @@ export class ClassicPresentation {
     this.boss = undefined;
   }
 
-  /** Every rendered frame of the presented match. */
+
   present(game: Readonly<MatchState>): void {
     const { boss, body } = this;
     if (boss === undefined || body === undefined || game.phase !== Phase.match || game.run.boss.kind === BossKind.none) return;
     const clock = bossClock(game.matchFrame, game.startHold);
     const { origin } = this;
-    // The body follows the strike's hover sideways only; its height stays where its drawn box fits the view.
+
     BlzSetSpecialEffectPosition(body, origin.x + bossPosition(boss, clock).x, origin.y + boss.depth, origin.z + boss.standZ);
     const flash = game.run.boss.flash > 0;
     BlzSetSpecialEffectColor(body, flash ? 255 : boss.tint[0], flash ? 90 : boss.tint[1], flash ? 90 : boss.tint[2]);
@@ -132,7 +132,7 @@ export class ClassicPresentation {
         BlzResetSpecialEffectMatrix(tell);
         BlzSetSpecialEffectMatrixScale(tell, f32(zone.halfWidth / MARKER_HALF), f32(f32(zone.top - zone.bottom) / f32(2.0 * MARKER_HALF)), 1.0);
         BlzSetSpecialEffectRoll(tell, QUARTER_TURN);
-        // The deck's near lip hides low warnings drawn in the fighters' plane.
+
         BlzSetSpecialEffectPosition(tell, origin.x + zoneCenter(strike, zone, game.run.boss.aimX), origin.y - 220.0, origin.z + f32(f32(zone.bottom + zone.top) / 2.0));
         BlzSetSpecialEffectAlpha(tell, 255);
         BlzSetSpecialEffectAnimation(tell, "Neutral Big");
@@ -146,7 +146,7 @@ export class ClassicPresentation {
     }
   }
 
-  /** The ending card over a cleared run's result. */
+
   updateCard(game: Readonly<MatchState>): void {
     const shown = game.phase === Phase.result && game.run.active && game.run.cleared && !game.lore;
     BlzFrameSetVisible(this.card, shown);

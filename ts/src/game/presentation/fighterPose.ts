@@ -1,5 +1,5 @@
-// HeroClip selection and its completed-frame clock stay together: the chosen clip
-// determines whether the elapsed interval advances, freezes or restarts.
+
+
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackPhase, AttackStyle, Character, DownState, GrabAction, LedgeState, PlatformMove, ShieldBreak, SpecialAction, HeroStatusKind, SurfaceContact } from "../sim/codes";
@@ -30,7 +30,7 @@ import {
   advanceIllidanMotion, clearIllidanMotion, copyIllidanMotion, createIllidanMotion, firstIllidanMotionDifference,
 } from "./illidanMotion";
 
-/** A follow-up or a recall plays the special's follow-up pose where the table maps one. */
+
 const playsFollowUpPose = (f: Readonly<Fighter>): boolean => f.special.form >= FOLLOW_UP_FORM || f.special.form === SpecialForm.recall;
 
 export const FRAME_SECONDS = f32(0.016666667);
@@ -40,25 +40,25 @@ const DOUBLE_JUMP_CLIP_FRAMES = 30;
 const CROUCH_CLIP_FRAMES = 24;
 const SHIELD_RAISE_FRAMES = 4;
 
-/**
- * Completed-frame presentation state, without engine handles. The clip clock
- * is seconds since the latest selection; the renderer owns loop and clamp
- * sampling.
- */
+
+
+
+
+
 export interface FighterPose {
-  /** The selection key: a changed key selects its clip, an unchanged one keeps it playing. */
+
   animation: string;
   jumpAnimationRemaining: number;
   doubleJumpAnimation: boolean;
-  /** A landing keeps the rate its lag gave it on entry. */
+
   landingAnimationRate: number;
   readonly motion: IllidanMotion;
-  /** The selected model sequence, or undefined when clipName names the clip. */
+
   clipIndex: number | undefined;
   clipName: string;
   clipTime: number;
   rate: number;
-  /** Counts selections, so restarting the same clip is a new one. */
+
   selectionSerial: number;
 }
 
@@ -82,7 +82,7 @@ export function clearFighterPose(pose: FighterPose): void {
   pose.selectionSerial = 0;
 }
 
-/** Copies between worlds; slot references keep only participants of the source world. */
+
 export function copyFighterPoseInto(target: FighterPose, source: Readonly<FighterPose>, sourceWorld: Readonly<Roster>): void {
   target.animation = source.animation;
   target.jumpAnimationRemaining = source.jumpAnimationRemaining;
@@ -125,7 +125,7 @@ export function selectFighterClipName(pose: FighterPose, name: string): void {
   pose.selectionSerial++;
 }
 
-/** Selects the keyed clip unless that key is already playing. */
+
 function playIndex(pose: FighterPose, key: string, index: number): void {
   if (pose.animation === key) return;
   selectFighterClipIndex(pose, index);
@@ -138,19 +138,19 @@ function playName(pose: FighterPose, key: string, name: string): void {
   pose.animation = key;
 }
 
-/** The rate that plays a clip of the given length over the given frames. */
+
 const clipRate = (seconds: number, frames: number): number => f32(seconds / f32(frames * FRAME_SECONDS));
 
-/**
- * Advances one executed frame. `jumped` and `attacked` report a new jump or
- * attack serial, and `hit` new damage or shield damage, during this frame.
- */
+
+
+
+
 export function advanceFighterPose(
   pose: FighterPose, fighter: Readonly<Fighter>, world: Readonly<Roster>, controls: Readonly<Controls>,
   wasOut: boolean, jumped: boolean, attacked: boolean, hit: boolean,
 ): void {
-  // Integrate the interval that just elapsed, before this frame changes the
-  // selection or freezes its rate. A new selection starts at zero.
+
+
   pose.clipTime = f32(pose.clipTime + f32(pose.rate * FRAME_SECONDS));
   const phase = attackPhase(fighter);
   if (attacked && phase !== AttackPhase.none) selectAttackClip(pose, fighter);
@@ -174,8 +174,8 @@ export function advanceFighterPose(
   }
   advanceJumpClip(pose, fighter, phase, wasOut, jumped);
   const rate = selectClip(pose, fighter, world, phase, hit);
-  // A contact selects the victim's reaction while the attacker keeps its
-  // contact pose; hitlag only stops the clock, so the held clip resumes.
+
+
   pose.rate = fighter.launch.hitlag > 0 || fighter.attack.smashCharging ? 0.0 : rate;
 }
 
@@ -189,15 +189,15 @@ function advanceJumpClip(pose: FighterPose, f: Readonly<Fighter>, phase: AttackP
     pose.jumpAnimationRemaining = pose.doubleJumpAnimation ? DOUBLE_JUMP_CLIP_FRAMES : JUMP_CLIP_FRAMES;
     pose.animation = "";
   } else if (pose.jumpAnimationRemaining > 0 && f.launch.hitlag <= 0) pose.jumpAnimationRemaining--;
-  // Illidan's rising jump clip gives way to his fall, except off a ledge.
+
   if (f.character === Character.demonHunter && f.motion.vz < 0 && !pose.motion.ledgeJump) pose.jumpAnimationRemaining = 0;
 }
 
-/** Knockdown states with their own clip; tumble and get-up attacks play other poses. */
+
 const posesDown = (f: Readonly<Fighter>): boolean =>
   f.down.state !== DownState.none && f.down.state !== DownState.tumble && f.down.state !== DownState.attack;
 
-/** Selects this frame's clip and returns its rate. Earlier states take precedence. */
+
 function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Roster>, phase: AttackPhase, hit: boolean): number {
   const reaction = damagePose(f);
   const rate = actionRate(pose, f, phase, reaction);
@@ -223,7 +223,7 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     return illidan && f.ledge.state === LedgeState.hang ? 0.0 : rate;
   }
   if (f.platform.move !== PlatformMove.none) {
-    // The whole clip plays over the move, which lasts the jump squat.
+
     const platformClip = clips.platformClip(character, f.platform.move);
     playIndex(pose, `platform${f.platform.move}`, platformClip.index);
     return clipRate(platformClip.seconds, f.platform.duration);
@@ -240,7 +240,7 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     }
     return rate;
   }
-  // Mana Burn's stun plays the shield-break dizzy once the hit's flinch ends (#116).
+
   if (f.status.condition === HeroStatusKind.stun && f.launch.hitlag <= 0 && f.launch.hitstun <= 0) {
     if (pose.animation !== "stunned") {
       if (illidan) selectFighterClipIndex(pose, dh.DEMON_HUNTER_SHIELD_BREAK_INDEX);
@@ -252,7 +252,7 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
   }
   if (posesDown(f)) {
     const key = `down${f.down.state}`;
-    // A down hit restarts its clip; waiting holds the knockdown clip except for Illidan.
+
     if (pose.animation !== key || (f.down.state === DownState.damage && hit)) {
       if (f.down.state !== DownState.wait) selectFighterClipIndex(pose, downClipIndex(f));
       else if (illidan) selectFighterClipIndex(pose, dh.DEMON_HUNTER_DOWN_WAIT_INDEX);
@@ -260,7 +260,7 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     }
     return rate;
   }
-  // A wall jump or wall tech plays its own clip over the wall hang and push-off (#144).
+
   if (f.surfaceRecovery.state === SurfaceContact.techWall) {
     const jumping = f.surfaceRecovery.wallJumpQueued;
     const wall = clips.clipFor(character, jumping ? "wallJump" : "wallTech");
@@ -274,7 +274,7 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
   if (reaction !== DamagePose.none) {
     const contact = reaction !== DamagePose.shield && f.launch.hitstun > 0;
     const key = contact ? `damage-contact${f.visuals.hitHeight}:${f.visuals.hitStrength}` : `damage${reaction}`;
-    // Every new contact restarts the reaction.
+
     if (hit || pose.animation !== key) {
       selectFighterClipIndex(pose, (contact ? contactDamageClip(f) : clips.clipFor(character, damageClipPose(reaction))).index);
       pose.animation = key;
@@ -290,7 +290,7 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     return rate;
   }
   if (f.special.action !== SpecialAction.none && f.launch.hitstun === 0) {
-    // A follow-up replaces the action's remaining frames, so its clip starts over.
+
     playIndex(pose, `special${f.special.action}${playsFollowUpPose(f) ? "+" : ""}`, fighterSpecialClip(f).index);
     return rate;
   }
@@ -300,7 +300,7 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     playIndex(pose, "jump", clips.clipFor(character, pose.doubleJumpAnimation ? "doubleJump" : "jump").index);
     return rate;
   }
-  // A jab slice's recovery returns to the stance (HeroClip.until).
+
   if (phase === AttackPhase.recovery && f.launch.hitlag === 0 && attackClip(f)?.until !== undefined) {
     if (table.idle === undefined) playName(pose, "jab-return", "stand ready");
     else playIndex(pose, "jab-return", table.idle.index);
@@ -326,14 +326,14 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     return pose.motion.motion === IllidanLocomotion.run ? locomotionRate(f, pose.motion.motion) : tableLocomotionRate(moving, pose.motion.motion);
   }
   const walking = f.motion.grounded && Math.abs(totalVelocityX(f)) > f32(0.1);
-  // A table that maps locomotion plays it by index; the originals play named clips.
+
   const locomotion = table[walking ? "walk" : "idle"];
   if (locomotion === undefined) playName(pose, walking ? "walk" : "stand", walking ? "walk" : "stand");
   else playIndex(pose, walking ? "walk" : "stand", locomotion.index);
   return walking ? min(f32(1.4), max(f32(0.2), f32(Math.abs(f.motion.vx) / f.tuning.physics.runSpeed))) : rate;
 }
 
-/** Holder and victim follow the holder's action; a new action or grab serial reselects. */
+
 function selectGrabClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Roster>): number {
   const ownerSlot = f.grab.owner;
   const victim = ownerSlot !== undefined;
@@ -344,7 +344,7 @@ function selectGrabClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly
   if (pose.animation !== key) {
     if (illidanEscape) selectFighterClipIndex(pose, dh.DEMON_HUNTER_GRAB_ESCAPE_INDEX);
     else if (action === GrabAction.escape) {
-      // A table that maps a stance plays it by index; the originals play the named clip.
+
       const stance = clips.characterClips(f.character).idle;
       if (stance === undefined) selectFighterClipName(pose, "stand ready");
       else selectFighterClipIndex(pose, stance.index);
@@ -360,8 +360,8 @@ function selectGrabClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly
   const contact = grabContactFrame(action, owner.tuning.moves);
   const heldSlot = owner.grab.target;
   const frozen = owner.launch.hitlag > 0 || (heldSlot !== undefined && fighterAt(world, heldSlot).launch.hitlag > 0);
-  // Both bodies reach their contact pose on the owner's actual action frame,
-  // including unlike kits and a restored or hitstop-paused grab.
+
+
   if (owner.grab.frame < contact) {
     const rate = clipRate(clip.contact, contact);
     pose.clipTime = f32(f32(owner.grab.frame * FRAME_SECONDS) * rate);
@@ -372,10 +372,10 @@ function selectGrabClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly
   return frozen ? 0.0 : rate;
 }
 
-/**
- * Tables supply the fighter's action clips; Illidan selects his authored
- * variants separately.
- */
+
+
+
+
 function selectTableAction(pose: FighterPose, f: Readonly<Fighter>, table: Readonly<HeroClipTable>): number | undefined {
   const { dodge, jump, motion, landing, shield, attack } = f;
   if (dodge.airDodging && table.airDodge !== undefined) {
@@ -399,8 +399,8 @@ function selectTableAction(pose: FighterPose, f: Readonly<Fighter>, table: Reado
     return 1.0;
   }
   const { style } = attack;
-  // Stock Attack - 2 has its own wind-up; swapping to the authored charge
-  // pose and restarting its swing on release jumps Frostmourne backwards.
+
+
   if (f.character === Character.lichKing && style === AttackStyle.forwardSmash) {
     return attack.smashCharging ? 0.0 : attackRate(f, attackPhase(f));
   }
@@ -408,7 +408,7 @@ function selectTableAction(pose: FighterPose, f: Readonly<Fighter>, table: Reado
     playIndex(pose, "smash-charge", table.smashCharge.index);
     return 0.0;
   }
-  // A released charge replays the smash's own clip over the rest of the attack.
+
   const release = clips.ownAttackClip(f.character, style);
   if (style !== undefined && release !== undefined && (pose.animation === "smash-charge" || pose.animation === "smash-release")) {
     if (pose.animation === "smash-charge") {
@@ -420,7 +420,7 @@ function selectTableAction(pose: FighterPose, f: Readonly<Fighter>, table: Reado
   return undefined;
 }
 
-/** A table's locomotion clip for Illidan's locomotion states; undefined where it maps none. */
+
 function tableLocomotion(table: Readonly<HeroClipTable>, motion: IllidanLocomotion): HeroClip | undefined {
   switch (motion) {
     case IllidanLocomotion.dash: return table.dash;
@@ -434,7 +434,7 @@ function tableLocomotion(table: Readonly<HeroClipTable>, motion: IllidanLocomoti
   }
 }
 
-/** Illidan's own clips for dodges, landings, shielding, smash charges, respawns and ledge jumps. */
+
 function selectIllidanAction(pose: FighterPose, f: Readonly<Fighter>): number | undefined {
   const { dodge, jump, motion, landing, shield, attack } = f;
   if (dodge.airDodging) {
@@ -468,7 +468,7 @@ function selectIllidanAction(pose: FighterPose, f: Readonly<Fighter>): number | 
     playIndex(pose, "smash-charge", clips.illidanSmashClips(style).charge.index);
     return 0.0;
   }
-  // A released charge plays its release over the rest of the attack.
+
   if (style !== undefined && (pose.animation === "smash-charge" || pose.animation === "smash-release")) {
     const release = clips.illidanSmashClips(style).release;
     if (pose.animation === "smash-charge") {
@@ -488,7 +488,7 @@ function selectIllidanAction(pose: FighterPose, f: Readonly<Fighter>): number | 
   return undefined;
 }
 
-/** The clip the fighter's current attack plays: its own, or its pose's; none for an attack without one. */
+
 function attackClip(f: Readonly<Fighter>): HeroClip | undefined {
   const { style } = f.attack;
   const own = clips.ownAttackClip(f.character, style);
@@ -496,7 +496,7 @@ function attackClip(f: Readonly<Fighter>): HeroClip | undefined {
   return own ?? (shared === undefined ? undefined : clips.clipFor(f.character, shared));
 }
 
-/** An attack's start selects its clip; Illidan's smash charge may later replace it. */
+
 function selectAttackClip(pose: FighterPose, f: Readonly<Fighter>): void {
   const { style } = f.attack;
   if (f.character === Character.demonHunter) pose.animation = "";
@@ -506,11 +506,11 @@ function selectAttackClip(pose: FighterPose, f: Readonly<Fighter>): void {
     return;
   }
   selectFighterClipIndex(pose, clip.index);
-  // Pooled clips start past a wind-up the startup cannot play; a unit plays its sequence from the start.
+
   if (style !== undefined) pose.clipTime = strikeStart(f.character, style, clip, attackStartupFrames(style, f.tuning.moves));
 }
 
-/** The rate that fits the current action's clip to the action's frames; 1 without one. */
+
 function actionRate(pose: Readonly<FighterPose>, f: Readonly<Fighter>, phase: AttackPhase, reaction: DamagePose): number {
   const { character } = f;
   if (f.ledge.state === LedgeState.climb) return clipRate(clips.clipFor(character, "ledgeClimb").seconds, LEDGE_CLIMB_FRAMES);
@@ -531,30 +531,30 @@ function actionRate(pose: Readonly<FighterPose>, f: Readonly<Fighter>, phase: At
   return attackRate(f, phase);
 }
 
-/** A measured strike earlier than this is the clip's first pose, not a swing. */
+
 const EARLIEST_STRIKE = f32(0.034);
-/** Bounds on an aligned swing's rate: a wind-up plays at most this much faster, and never slower than the floor. */
+
 const FASTEST_SWING = 4.0;
 const SLOWEST_SWING = f32(0.35);
-/** After the strike the clip plays on through its table length, or at least this much follow-through. */
+
 const FOLLOW_THROUGH = f32(0.4);
 
-/** The clip seconds a swing starts at: past the wind-up a startup could not play even at the fastest swing rate. */
+
 const strikeSkip = (strike: number, startup: number): number => max(0.0, f32(strike - f32(FASTEST_SWING * f32(startup * FRAME_SECONDS))));
 
-/** Where a hero swing's clip starts, so a long wind-up still strikes on the first active frame; 0 plays it from its start. */
+
 export function strikeStart(character: number, style: number, clip: Readonly<HeroClip>, startup: number): number {
   const moment = HERO_STRIKE_MOMENTS[character]?.[style];
   return moment === undefined || clip.aligned === true || moment.clip !== clip.index || moment.seconds < EARLIEST_STRIKE || startup <= 0 ? 0.0 : strikeSkip(moment.seconds, startup);
 }
 
-/**
- * A hero swing's rate where its strike moment is measured
- * (heroStrikeMomentInfo.ts, #144): the startup plays the wind-up so the clip's
- * farthest reach lands on the first active frame, a wind-up too long for the
- * startup catches up over the active frames, and recovery plays the
- * follow-through. Undefined plays the clip evenly.
- */
+
+
+
+
+
+
+
 export function strikeAlignedRate(character: number, style: number, clip: Readonly<HeroClip>, startup: number, active: number, duration: number, phase: AttackPhase): number | undefined {
   const moment = HERO_STRIKE_MOMENTS[character]?.[style];
   const recovery = duration - startup - active;
@@ -580,7 +580,7 @@ function attackRate(f: Readonly<Fighter>, phase: AttackPhase): number {
     ?? clipRate(clip.seconds, duration);
   const own = clips.ownAttackClip(f.character, style);
   if (own !== undefined) return aligned(own);
-  // A ledge attack's clip spans the ledge option, not the attack's duration.
+
   if (style === AttackStyle.ledgeAttack) return clipRate(clips.clipFor(f.character, "getUpAttack").seconds, LEDGE_ATTACK_FRAMES);
   const shared = clips.attackPose(style);
   return shared === undefined ? 1.0 : aligned(clips.clipFor(f.character, shared));
@@ -670,7 +670,7 @@ function locomotionClipIndex(motion: IllidanLocomotion): number {
   }
 }
 
-/** Transient movement clips span their action; crouch spans its entry, and fall holds. */
+
 function tableLocomotionRate(clip: HeroClip, motion: IllidanLocomotion): number {
   if (motion === IllidanLocomotion.dash) return clipRate(clip.seconds, INITIAL_DASH_FRAMES);
   if (motion === IllidanLocomotion.turn || motion === IllidanLocomotion.stop) return clipRate(clip.seconds, TRANSITION_FRAMES);
@@ -678,7 +678,7 @@ function tableLocomotionRate(clip: HeroClip, motion: IllidanLocomotion): number 
   return 0.0;
 }
 
-/** Walking and running follow ground speed, never slower than a fifth of the clip. */
+
 function locomotionRate(f: Readonly<Fighter>, motion: IllidanLocomotion): number {
   switch (motion) {
     case IllidanLocomotion.dash: return clipRate(dh.DEMON_HUNTER_INITIAL_DASH_BURST_SECONDS, INITIAL_DASH_FRAMES);
@@ -693,11 +693,11 @@ function locomotionRate(f: Readonly<Fighter>, motion: IllidanLocomotion): number
   }
 }
 
-/**
- * A special's clip rate: a hero special's measured strike (heroStrikeMomentInfo.ts)
- * lands on its first active frame, as a swing's does; other specials and
- * follow-ups play their clip evenly over the action.
- */
+
+
+
+
+
 function specialRate(f: Readonly<Fighter>): number {
   const clip = fighterSpecialClip(f);
   const even = clipRate(clip.seconds, f.special.duration);

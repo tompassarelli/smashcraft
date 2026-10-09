@@ -1,5 +1,5 @@
-// The stack-trace diagnostic profile: the development build plus a deliberate
-// failure (`-dev stack-demo`), compiled with Wisp's stack plugin.
+
+
 import { CURRENT_BUILD } from "../game/shell/currentBuild";
 import type { MapBuild } from "../game/shell/build";
 import { install as installMap, startBuild } from "./main";

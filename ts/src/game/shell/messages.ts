@@ -1,4 +1,4 @@
-// Player-facing text of the match: announcements, results and help.
+
 import { Advantage, type TrainingState } from "../match/trainingState";
 import { PARTICIPANT_SLOTS, participantActive } from "../input/participants";
 import { floorDiv } from "wisp/src/sim/intMath";
@@ -11,7 +11,7 @@ import { classicResultHelp, classicResultMessage, tierName } from "../classic/cl
 import { CPU_OPPONENT_DEFAULT, CPU_TIER_DEFAULT } from "../match/cpuProfiles";
 import { loreBattle, loreResultHelp, loreResultMessage } from "../classic/loreBattles";
 
-/** The control that starts, pauses and resumes: a controller's Start, or Y on a keyboard. */
+
 export type StartControl = "Start" | "Y";
 
 export function fighterLabel(game: Readonly<MatchState>, slot: number): string {
@@ -42,7 +42,7 @@ function rematchStatus(game: Readonly<MatchState>, start: StartControl): string 
   return `${ready.length}/${present.length} ready. Press ${confirmControl(start)} to choose your next match.`;
 }
 
-/** The result announcement, with the automatic rematch's countdown while it runs. */
+
 export function resultNotice(game: Readonly<MatchState>, result: string): string {
   const notice = game.rematchCountdown > 0 ? `${result}\nRematch in ${floorDiv(game.rematchCountdown + MATCH_TICKS_PER_SECOND - 1, MATCH_TICKS_PER_SECOND)}` : result;
   return notice;
@@ -56,7 +56,7 @@ export const hazardsSetting = (on: boolean) => `Hazards: ${on ? "On" : "Off"}`;
 export const itemsSetting = (on: boolean) => `Items: ${on ? "On" : "Off"}`;
 export const itemKindSetting = (kind: ItemKind, on: boolean) => `${kind === ItemKind.speed ? "Speed" : kind === ItemKind.extraJump ? "Extra jump" : "Heavy"}: ${on ? "On" : "Off"}`;
 
-/** The mode button: Versus, Training, Classic or Lore Battles. */
+
 export const modeSetting = (game: Readonly<MatchState>) => `Mode: ${game.lore ? "Lore Battles" : game.classic ? "Classic" : game.training ? "Training" : "Versus"}`;
 const BEHAVIOUR_NAMES = ["Stand", "Shield", "Crouch", "Jump", "Attack", "Fight"];
 const ESCAPE_NAMES = ["None", "Toward you", "Away", "Random"];
@@ -68,7 +68,7 @@ export const partnerDamageSetting = (damage: number) => `Partner damage: ${damag
 export const hitAreasSetting = (shown: boolean) => `Hit areas: ${shown ? "On" : "Off"}`;
 export const trainingSpeedSetting = (speed: number) => `Speed: ${speed === 4 ? "Quarter" : speed === 2 ? "Half" : "Full"}`;
 
-/** The rules the next match plays by, as the stage screen shows them. */
+
 export function rulesSummary(game: Readonly<MatchState>): string {
   if (game.classic) return `Classic · starts at ${tierName(game.classicTier)}`;
   if (game.lore) return `Lore Battle · ${loreBattle(game.loreBattle)?.title ?? ""}`;
@@ -80,17 +80,17 @@ export function rulesSummary(game: Readonly<MatchState>): string {
 
 export const pausedMessage = (start: StartControl) => `Paused — press ${start} to resume.`;
 
-/** The players a stalled match waits for, by the labels the HUD shows: "Waiting for Player 2". */
+
 export function waitingMessage(slots: number): string {
   const players = PARTICIPANT_SLOTS.filter(slot => participantActive(slots, slot)).map(slot => `${slot + 1}`);
   const last = players.pop() ?? "";
   return players.length === 0 ? `Waiting for Player ${last}` : `Waiting for Players ${players.join(", ")} and ${last}`;
 }
 
-/** Shown to a player whose controller helper never reported ready, when the match starts on their keyboard. */
+
 export const KEYBOARD_FALLBACK_MESSAGE = "No controller found: use the keyboard.";
 
-/** The help line under the HUD during a match or its result. */
+
 export function matchHelp(game: Readonly<MatchState>, paused: boolean, start: StartControl, local: Readonly<Fighter> | undefined, playing: boolean): string {
   if (playing && !paused && local !== undefined) {
     if (local.down.state === DownState.wait) return "Knocked down: Attack/Special to strike, Up/Jump/Shield to stand, Left/Right to roll.";
@@ -104,7 +104,7 @@ export function matchHelp(game: Readonly<MatchState>, paused: boolean, start: St
 
 const signed = (value: number) => (value > 0 ? `+${value}` : `${value}`);
 
-/** Training's readout: the last move's frames, the advantage after the last hit or shielded hit, and the combo. */
+
 export function trainingReadout(state: Readonly<TrainingState>): string {
   const lines: string[] = [];
   if (state.moveSpecial >= 0) lines.push(`${specialName(state.moveCharacter, state.moveSpecial, state.moveForm)}: ${state.moveTotal} total`);
@@ -114,16 +114,16 @@ export function trainingReadout(state: Readonly<TrainingState>): string {
   return lines.join("\n");
 }
 
-/** The selection header's title: the match mode, or the Moves page while it is open. */
+
 export function selectionModeLabel(game: Readonly<MatchState>): string {
   return game.lore ? "LORE BATTLES" : game.classic ? "CLASSIC" : game.training ? "TRAINING" : "VERSUS";
 }
 export const MOVES_HEADER = "MOVES";
 
-/**
- * The Moves page: a fighter's specials and, while ultimates are on,
- * ultimate, one line each. Title first, then one line per move.
- */
+
+
+
+
 export function movesPage(character: number, ultimates: boolean): { title: string; lines: string[] } {
   const kit = fighterKit(character);
   const lines: string[] = [];

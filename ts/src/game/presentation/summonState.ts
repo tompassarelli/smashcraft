@@ -16,7 +16,7 @@ export interface SummonProjection {
   scale: number;
 }
 
-/** Each participant's bear clip, and the bear hit serial its last swipe answered. */
+
 export interface SummonState {
   readonly bears: Slots<SummonPose>;
   readonly bearHitSerial: Slots<number>;
@@ -52,10 +52,10 @@ export function firstSummonDifference(expected: Readonly<SummonState>, actual: R
   return undefined;
 }
 
-/**
- * Advances one executed frame, hitlag included; a paused match executes none.
- * An absent fighter clears its slot. A new bear hit plays the swipe, then walks.
- */
+
+
+
+
 export function advanceSummons(state: SummonState, fighter: Readonly<Fighter> | undefined, slot: ParticipantSlot): void {
   const pose = state.bears[slot];
   if (fighter === undefined) {
@@ -71,7 +71,7 @@ export function advanceSummons(state: SummonState, fighter: Readonly<Fighter> | 
   state.bearHitSerial[slot] = bear.hitSerial;
 }
 
-// Shared and never changed: renderers project every pooled effect on every callback.
+
 const HIDDEN: Readonly<SummonProjection> = { visible: false, clipIndex: undefined, seconds: 0.0, x: 0.0, z: 0.0, yaw: 0.0, scale: 0.0 };
 
 export function projectBear(state: Readonly<SummonState>, fighter: Readonly<Fighter> | undefined, slot: number): Readonly<SummonProjection> {

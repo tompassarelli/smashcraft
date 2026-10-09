@@ -1,9 +1,9 @@
-// A moment of play for `bun wisp repro` (wisp:docs/repro.md). Every client
-// keeps the last ten to twelve seconds of its confirmed match: a snapshot
-// every two seconds and each human's input row for every frame since the
-// oldest. A player saves the latest snapshot at least ten seconds back and
-// every row since; replayRepro restores that snapshot and runs the rows
-// through the frame executor the match ran, to the checksum the game recorded.
+
+
+
+
+
+
 import { at } from "wisp/src/runtime/lookup";
 import { lineTokens, parseRecord, recordTokens, tokenLines } from "wisp/src/runtime/recordText";
 import { REPRO_LINE_WIDTH, type Repro, type ReproInspection, type ReproResult } from "wisp/src/runtime/repro";
@@ -30,39 +30,39 @@ import { authoredTuning } from "../sim/tuning";
 import { canonicalState, fighterSpecialsCanonical, specialPlacementCanonical, specialProjectileCanonical, stateChecksum } from "./canonical";
 import { type ReplayState, captureReplaySnapshot, copyReplayState, createReplaySnapshot } from "./snapshot";
 
-/** Frames between snapshots: two seconds. */
+
 export const SNAPSHOT_FRAMES = 120;
 const SNAPSHOTS = 6;
-/** A moment starts at the latest snapshot at least this many frames, ten seconds, before its end. */
+
 export const MOMENT_FRAMES = 600;
-/** Frames of rows each slot keeps: every frame since the oldest snapshot. */
+
 export const ROW_FRAMES = SNAPSHOT_FRAMES * SNAPSHOTS;
-/** Characters before a line's tokens: its section word and a space. */
+
 const SECTION_WIDTH = 6;
 
-/** How the match's frames got their controls: synchronized rows, or keys adapted on the game callback, with the build's scenario. */
+
 export type MomentInput = { readonly kind: "network" } | { readonly kind: "callback"; readonly scenario: Scenario };
 
-/** A controller helper's journal record asking to save a moment: "JM1" and the epoch in ten digits. */
+
 const MOMENT_REQUEST = "JM1";
 export const momentRequest = (epoch: number) => `${MOMENT_REQUEST}${padDecimal(epoch, 10)}`;
 export const isMomentRequest = (wire: string) => wire.startsWith(MOMENT_REQUEST);
 
 export const momentInput = (build: Readonly<MapBuild>): MomentInput => (isShadow(build.input) ? { kind: "network" } : { kind: "callback", scenario: build.scenario });
 
-/**
- * A save in progress. Its checksums and the snapshot's text each take a few
- * milliseconds of Lua, so continueMomentSave does one per frame; what the
- * record would overwrite meanwhile is copied when the save begins.
- */
+
+
+
+
+
 interface MomentSave {
   readonly input: MomentInput;
   readonly start: number;
   readonly last: number;
-  /** The snapshots after the start, by ring position; a position the record reuses meanwhile is left out. */
+
   readonly checkpoints: readonly number[];
   readonly checkpointFrames: readonly number[];
-  /** The rows, encoded when the save began. */
+
   readonly rows: readonly string[];
   readonly lines: string[];
   checksum: string;
@@ -70,26 +70,26 @@ interface MomentSave {
 }
 
 export interface MomentRecorder {
-  /** Preallocated: the match keeps one every two seconds. */
+
   readonly snapshots: ReplayState[];
-  /** The frame after which each snapshot holds the match; -1 for none since the record started. */
+
   readonly snapshotFrames: number[];
   nextSnapshot: number;
-  /** Preallocated: per slot, INPUT_ROW_NUMBERS numbers for each kept frame, at its frame modulo ROW_FRAMES. */
+
   readonly rows: Slots<number[]>;
-  /** The frame each ring position holds, and the slots with a row for it. */
+
   readonly rowFrames: number[];
   readonly rowMasks: number[];
-  /** The last frame the match ran; every frame since the record started ran in order. */
+
   last: number | undefined;
-  /**
-   * The match as the last frame left it, once the shell changed it between
-   * frames (a pause or a match end clears the attack buffers): the moment ends
-   * there, and the next frame starts the record again.
-   */
+
+
+
+
+
   end: ReplayState;
   ended: boolean;
-  /** Preallocated: a save's starting snapshot and final match, copied when it begins. */
+
   saveStart: ReplayState;
   saveEnd: ReplayState;
   save: MomentSave | undefined;
@@ -112,11 +112,11 @@ export function createMomentRecorder(): MomentRecorder {
   };
 }
 
-/**
- * Back to createMomentRecorder's state. Snapshots keep only the slots a match
- * plays, so a slot an earlier match used (a computer) would stay in later
- * moments' starting states; `-dev reset` starts from new storage instead.
- */
+
+
+
+
+
 export function resetMomentRecorder(recorder: MomentRecorder): void {
   for (let index = 0; index < SNAPSHOTS; index++) recorder.snapshots[index] = createReplaySnapshot();
   recorder.snapshotFrames.fill(-1);
@@ -132,11 +132,11 @@ export function resetMomentRecorder(recorder: MomentRecorder): void {
   recorder.save = undefined;
 }
 
-/**
- * Before the match runs `frame`: a frame out of order (a new match), or the
- * first after the shell changed the match between frames, starts the record
- * again; every two seconds the match is kept as it stands.
- */
+
+
+
+
+
 export function beginMomentFrame(recorder: MomentRecorder, frame: number, world: Readonly<Roster>, match: Readonly<MatchState>, controls: Readonly<FrameControls>, runtime: Readonly<PacingAndPresentation>): void {
   const restart = recorder.last === undefined || recorder.ended || frame !== recorder.last + 1;
   if (restart) {
@@ -159,40 +159,40 @@ function claimRows(recorder: MomentRecorder, frame: number): number {
   return index;
 }
 
-/** The row a human's fighter runs on `frame`, as the match adapts it. */
+
 export function recordMomentRow(recorder: MomentRecorder, frame: number, slot: number, row: Readonly<InputRow>): void {
   const index = claimRows(recorder, frame);
   storeInputNumbers(at(recorder.rows, slot), index * INPUT_ROW_NUMBERS, row);
   recorder.rowMasks[index] = at(recorder.rowMasks, index) | (1 << slot);
 }
 
-/** After the match ran `frame`, with every row recorded. */
+
 export function momentFrameRan(recorder: MomentRecorder, frame: number): void {
   claimRows(recorder, frame);
   recorder.last = frame;
 }
 
-/** Before the shell changes the match between frames: the moment keeps the match as its last frame left it. */
+
 export function keepMomentEnd(recorder: MomentRecorder, world: Readonly<Roster>, match: Readonly<MatchState>, controls: Readonly<FrameControls>, runtime: Readonly<PacingAndPresentation>): void {
   if (recorder.last === undefined || recorder.ended) return;
   captureReplaySnapshot(recorder.end, world, match, controls, runtime);
   recorder.ended = true;
 }
 
-/** The state's checksum as the shell computes the confirmed match's: captured into scratch storage first. */
+
 export function checksumOf(scratch: ReplayState, state: Readonly<ReplayState>): string {
   copyReplayState(scratch, state);
   return stateChecksum(scratch);
 }
 
-/**
- * The fields a snapshot holds that are keyed by action number (a kit's normals,
- * throws and attack poses), which the record text keeps by key; recordTokens
- * throws naming any other integer-keyed field.
- */
+
+
+
+
+
 export const KEYED_BY_ACTION = ["attacks", "normals", "throws"];
 
-/** What a snapshot saves: the active fighters, the match, the command buffers and the pacing and presentation. */
+
 type SavedRuntime = Omit<PacingAndPresentation, "botStrategies"> & { readonly botStrategies: Slots<SavedBotStrategy> };
 
 export function savedRuntime(runtime: Readonly<PacingAndPresentation>): SavedRuntime {
@@ -207,10 +207,10 @@ export function savedView(state: Readonly<ReplayState>) {
   return { mask: state.world.mask, fighters, match: state.match, commands: state.controls.commands, runtime: savedRuntime(state.runtime) };
 }
 
-/** Reused for each row's numbers, so a full-match replay's rows allocate only their text. */
+
 const ROW_TEXT = filled(INPUT_ROW_NUMBERS, 0);
 
-/** One frame's rows: its mask, then each of those slots' numbers. */
+
 function frameRowText(recorder: MomentRecorder, index: number): string {
   const mask = at(recorder.rowMasks, index);
   const slots: string[] = [];
@@ -224,7 +224,7 @@ function frameRowText(recorder: MomentRecorder, index: number): string {
   return `${mask}:${slots.join("/")}`;
 }
 
-/** Whether two ring positions hold the same slots' rows with the same numbers. */
+
 export function sameFrameRows(recorder: MomentRecorder, first: number, second: number): boolean {
   const mask = at(recorder.rowMasks, first);
   if (mask !== at(recorder.rowMasks, second)) return false;
@@ -238,10 +238,10 @@ export function sameFrameRows(recorder: MomentRecorder, first: number, second: n
   return true;
 }
 
-/** A run of `count` frames whose rows equal ring position `index`'s, as a rows token. */
+
 export const runToken = (recorder: MomentRecorder, index: number, count: number): string => `${count}:${frameRowText(recorder, index)}`;
 
-/** Rows of frames start + 1 through last, a token per run of equal frames; text only at each run's end. */
+
 export function rowTokens(recorder: MomentRecorder, start: number, last: number): string[] {
   const tokens: string[] = [];
   let run = floorMod(start + 1, ROW_FRAMES);
@@ -260,7 +260,7 @@ export function rowTokens(recorder: MomentRecorder, start: number, last: number)
   return tokens;
 }
 
-/** The snapshot a moment ending on `last` starts at: the latest at least MOMENT_FRAMES back, or the oldest of a younger match. */
+
 function startSnapshot(recorder: MomentRecorder, last: number): number | undefined {
   const target = last - MOMENT_FRAMES;
   let chosen: number | undefined;
@@ -275,11 +275,11 @@ function startSnapshot(recorder: MomentRecorder, last: number): number | undefin
 
 export const section = (word: string, tokens: readonly string[]) => tokenLines(tokens, REPRO_LINE_WIDTH - SECTION_WIDTH).map(line => `${word} ${line}`);
 
-/**
- * Begins saving the moment that ends on the last frame the match ran, with
- * `world`, `match`, `controls` and `runtime` the live match. False, starting
- * nothing, before a frame ran or while another save runs.
- */
+
+
+
+
+
 export function beginMomentSave(recorder: MomentRecorder, input: MomentInput, world: Readonly<Roster>, match: Readonly<MatchState>, controls: Readonly<FrameControls>, runtime: Readonly<PacingAndPresentation>): boolean {
   const last = recorder.last;
   const chosen = last === undefined ? undefined : startSnapshot(recorder, last);
@@ -303,18 +303,18 @@ export function beginMomentSave(recorder: MomentRecorder, input: MomentInput, wo
   return true;
 }
 
-/** A finished save: the game's lines of the moment, its last frame and the match's checksum there. */
+
 interface SavedMoment {
   readonly lines: readonly string[];
   readonly frame: number;
   readonly checksum: string;
 }
 
-/**
- * One frame's part of the save in progress: one checksum, or the snapshot's
- * text; the finished moment once every part is done. `scratch` takes checksum
- * copies.
- */
+
+
+
+
+
 export function continueMomentSave(recorder: MomentRecorder, scratch: ReplayState): SavedMoment | undefined {
   const { save } = recorder;
   if (save === undefined) return undefined;
@@ -335,9 +335,9 @@ export function continueMomentSave(recorder: MomentRecorder, scratch: ReplayStat
   return undefined;
 }
 
-// ---------------------------------------------------------------- replay
 
-/** A frame's saved rows. */
+
+
 export interface FrameRows {
   readonly mask: number;
   readonly rows: ParticipantInputs;
@@ -349,12 +349,12 @@ interface Moment {
   readonly startChecksum: string;
   readonly checkpoints: ReadonlyMap<number, string>;
   readonly state: ReplayState;
-  /** Frames start + 1 onward, in order. */
+
   readonly frames: readonly FrameRows[];
 }
 
 const isObject = (value: unknown): value is object => typeof value === "object" && value !== null;
-/** Decoded arrays are Lua tables that need not start at index 1, so any table is indexed as one. */
+// Decoded Lua arrays need not start at index 1; index them as tables.
 const isList = (value: unknown): value is readonly unknown[] => isObject(value);
 const isFighter = (value: unknown): value is Fighter => isObject(value) && "character" in value && typeof value.character === "number" && "motion" in value && isObject(value.motion);
 const isMatch = (value: unknown): value is MatchState => isObject(value) && "phase" in value && typeof value.phase === "number" && "characterChoices" in value && isObject(value.characterChoices);
@@ -369,7 +369,7 @@ function isCommands(value: unknown): value is Slots<AttackBuffer> {
   return true;
 }
 
-/** Every projectile and placement a hero kit authors, by its canonical text. */
+
 function authoredParts(specials: Readonly<FighterSpecials>, projectiles: Map<string, SpecialProjectile>, placements: Map<string, SpecialPlacement>): void {
   const projectile = (spec: SpecialProjectile | undefined) => {
     if (spec !== undefined) projectiles.set(specialProjectileCanonical(spec, ""), spec);
@@ -394,13 +394,13 @@ function authoredParts(specials: Readonly<FighterSpecials>, projectiles: Map<str
   }
 }
 
-/**
- * Decoded text holds a copy of a fighter's kit, in which a burst's `from` and
- * the orb it bursts are different objects, and the rules match a projectile
- * to its kit by identity (Frost Nova's burst, projectile limits). A fighter
- * whose kit equals its authored kit gets that kit back, and each live
- * projectile and placement its authored part.
- */
+
+
+
+
+
+
+
 function rebindAuthoredKit(fighter: Fighter): void {
   const authored = authoredTuning(fighter.character).specials;
   if (authored === undefined || fighterSpecialsCanonical(fighter.tuning.specials) !== fighterSpecialsCanonical(authored)) return;
@@ -419,7 +419,7 @@ function rebindAuthoredKit(fighter: Fighter): void {
   }
 }
 
-/** The snapshot's state, in records copyReplayState reads; undefined when a part is missing. */
+
 export function savedState(record: Readonly<Record<string, unknown>>): ReplayState | undefined {
   const { mask, fighters, match, commands, runtime } = record;
   if (typeof mask !== "number" || !isList(fighters) || !isMatch(match) || !isCommands(commands) || !isRuntime(runtime)) return undefined;
@@ -443,7 +443,7 @@ export const wholeNumber = (text: string | undefined) => {
   return text !== undefined && text.length > 0 && value === Math.floor(value) ? value : undefined;
 };
 
-/** The frames a run of saved rows stands for, appended to `frames`; false when malformed. */
+
 export function readRun(token: string, frames: FrameRows[]): boolean {
   const [countText, maskText, slotsText = ""] = token.split(":");
   const count = wholeNumber(countText);
@@ -465,7 +465,7 @@ export function readRun(token: string, frames: FrameRows[]): boolean {
   return true;
 }
 
-/** A repro's moment: its input, start, checkpoints, starting state and rows. */
+
 export function parseMoment(lines: readonly string[], last: number): Moment | string {
   let input: MomentInput | undefined;
   let start: number | undefined;
@@ -502,17 +502,17 @@ export function parseMoment(lines: readonly string[], last: number): Moment | st
   return { input, start, startChecksum, checkpoints, state, frames };
 }
 
-/** The scratch records a replayed frame produces its controls in. */
+
 export interface FrameScratch {
   readonly frameInput: MatchFrameInput;
   readonly produced: FrameControls;
 }
 
-/**
- * A callback match's frame, as smashcraft:ts/src/platform/shell/frame.ts
- * runs it: humans' rows adapted, the computers' controls chosen, captured,
- * then executed.
- */
+
+
+
+
+
 export function runCallbackFrame(state: ReplayState, scenario: Scenario, scratch: FrameScratch, saved: FrameRows, frame: number): boolean {
   const { world, match, controls, runtime } = state;
   const { frameInput, produced } = scratch;
@@ -527,14 +527,14 @@ export function runCallbackFrame(state: ReplayState, scenario: Scenario, scratch
   return executeMatchFrame(frameInput, match, world, controls, runtime, frame);
 }
 
-/** A rollback match's confirmed frame: every human's accepted row, as the shell's stepConfirmed runs it. */
+
 export function runNetworkFrame(state: ReplayState, scratch: FrameScratch, saved: FrameRows, frame: number): boolean {
   const { world, match, controls, runtime } = state;
   return captureNetworkFrame(scratch.frameInput, frame, saved.rows, world, saved.mask)
     && executeMatchFrame(scratch.frameInput, match, world, controls, runtime, frame);
 }
 
-/** `wisp repro`'s replay of a saved moment: the snapshot restored, then each saved frame run, to the last frame's checksum. */
+
 function replayMoment(repro: Repro, requested?: number): { readonly result: ReproResult; readonly inspection?: ReproInspection } {
   const moment = parseMoment(repro.lines, repro.frame);
   if (typeof moment === "string") return { result: { checksum: "", frames: 0, problems: [moment] } };
@@ -581,12 +581,12 @@ function replayMoment(repro: Repro, requested?: number): { readonly result: Repr
   return inspection === undefined ? { result } : { result, inspection };
 }
 
-/** Ordinary replay and inspection use the same restore and frame executor. */
+
 export function replayRepro(repro: Repro): ReproResult {
   return replayMoment(repro).result;
 }
 
-/** Exact snapshot-canonical state after `frame`; backward requests restore the saved start and replay. */
+
 export function inspectRepro(repro: Repro, frame: number): ReproInspection | string {
   const { result, inspection } = replayMoment(repro, frame);
   if (result.problems.length > 0) return result.problems.join("; ");

@@ -1,23 +1,23 @@
-// Journal records delivered as text, for ingress paths that carry a stream of
-// characters rather than files. The companion helper writes each record as
-//
-//   "@J1" | epoch (10 digits) | sequence (10 digits) | checksum (5 digits) | "|" | payload | ";"
-//
-// with zero-padded decimals. The checksum covers epoch, sequence, "|" and
-// payload over the I4 alphabet plus "|", so the text is a protocol.
+// Companion J1 envelopes use zero-padded epoch/sequence/checksum fields and checksummed I4 payload text.
+
+
+
+
+
+
 import { floorMod, imod } from "wisp/src/sim/intMath";
 import { ALPHABET } from "../../input/wire";
 import { padDecimal, parseDecimal } from "./decimal";
 
-/** Records received ahead of consumption that the stream holds. */
+
 export const TEXT_WINDOW = 16;
 
-/**
- * Characters the helper types at most past the record the receipt says the
- * edit box received, a joined record included (wc3-journal's
- * TYPED_AHEAD_BYTES): Warcraft takes typed text at a cost that grows with how
- * much it takes at once.
- */
+
+
+
+
+
+
 export const TYPED_AHEAD_CHARACTERS = 160;
 
 const CHECKSUM_ALPHABET = `${ALPHABET}|`;
@@ -40,15 +40,15 @@ export function textEnvelope(epoch: number, sequence: number, payload: string): 
   return checksum === undefined ? undefined : `@J1${identity}${padDecimal(checksum, 5)}|${payload};`;
 }
 
-/** What to do with the text in front of the reader. */
+
 export type Inspection =
-  /** No complete record yet; keep the text and look again later. */
+
   | { kind: "wait" }
-  /** Discard `width` characters: a new record was received. */
+
   | { kind: "ready"; width: number }
-  /** Discard `width` characters: noise, a damaged record or a repeat. */
+
   | { kind: "skip"; width: number }
-  /** A record contradicts one already received, or lies beyond the window. */
+
   | { kind: "invalid"; width: number };
 
 const WAIT: Inspection = { kind: "wait" };
@@ -58,12 +58,12 @@ interface Received {
   readonly payload: string;
 }
 
-/**
- * Receives one epoch's records in any order and yields their payloads in
- * sequence. Receipt and consumption are separate cumulative cursors, so text
- * can drain while gameplay admission waits without acknowledging application
- * early; the window bounds how far receipt runs ahead.
- */
+
+
+
+
+
+
 export class JournalTextStream {
   private readonly window: (Received | undefined)[] = [];
   private receivedThrough = 0;
@@ -79,7 +79,7 @@ export class JournalTextStream {
     return this.consumedThrough;
   }
 
-  /** The next payload to consume, once every earlier one is consumed. */
+
   next(): string | undefined {
     if (this.receivedThrough <= this.consumedThrough) return undefined;
     return this.at(this.consumedThrough + 1)?.payload;
@@ -96,7 +96,7 @@ export class JournalTextStream {
     const start = text.indexOf("@");
     if (start !== 0) return { kind: "skip", width: start < 0 ? text.length : start };
     const delimiter = text.indexOf(";");
-    // A second record start before the delimiter means this record was cut short.
+
     const restart = text.indexOf("@", 1);
     if (restart >= 0 && (delimiter < 0 || restart < delimiter)) return { kind: "skip", width: restart };
     if (delimiter < 0) return WAIT;
@@ -125,7 +125,7 @@ export class JournalTextStream {
     return { kind: "ready", width };
   }
 
-  /** The record held for exactly this sequence. */
+
   private at(sequence: number): Received | undefined {
     const received = this.window[floorMod(sequence, TEXT_WINDOW)];
     return received?.sequence === sequence ? received : undefined;

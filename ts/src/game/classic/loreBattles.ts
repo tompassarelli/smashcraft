@@ -1,7 +1,7 @@
-// Lore Battles (#305): twenty configured matches recreating Warcraft III
-// moments, each one data entry played through Classic's engine
-// (configuredMatch.ts). The list climbs from Rookie to Expert; a won battle
-// is cleared on this client (loreClears.ts) and a lost one can be retried.
+
+
+
+
 import { at } from "wisp/src/runtime/lookup";
 import { type CpuOpponentId, type CpuTier } from "../match/cpuProfiles";
 import { type MatchState, Phase, endConfiguredRun, firstHumanSlot } from "../match/rules";
@@ -25,7 +25,7 @@ interface BattleSpec {
   readonly id: string;
   readonly title: string;
   readonly player: Character;
-  /** The computers, all at `tier`. */
+
   readonly against: readonly Character[];
   readonly tier: CpuTier;
   readonly stage: StageTile;
@@ -52,7 +52,7 @@ function battle(spec: BattleSpec): LoreBattle {
   };
 }
 
-/** A boss battle on the boss's own stage with hazards off, its health from `tier` (an index into CPU_TIERS). */
+
 function bossBattle(id: string, title: string, player: Character, boss: BossKind, tier: number, minutes: number, playerStocks: number, intro: string): LoreBattle {
   const definition = bossDefinition(boss);
   return {
@@ -169,7 +169,7 @@ export const LORE_BATTLES: readonly LoreBattle[] = [
 
 export const loreBattle = (index: number): LoreBattle | undefined => LORE_BATTLES[index];
 
-/** Fighter selection with Lore Battles chosen: the first player's start begins the chosen battle. */
+
 export function startLore(game: MatchState, slot: number): boolean {
   const first = firstHumanSlot(game);
   const entry = loreBattle(game.loreBattle);
@@ -183,7 +183,7 @@ export function startLore(game: MatchState, slot: number): boolean {
 export const LoreStep = { none: 0, retry: 1, menu: 2 } as const;
 export type LoreStep = (typeof LoreStep)[keyof typeof LoreStep];
 
-/** The player's confirm at a result: a clear returns to the menu with the next battle chosen, a loss retries. */
+
 export function continueLore(game: MatchState, slot: number): LoreStep {
   const { run } = game;
   const entry = run.current;
@@ -208,14 +208,14 @@ export function goalText(entry: Readonly<ConfiguredMatch>): string {
   }
 }
 
-/** The battle stepper's value at fighter selection. */
+
 export function loreBattleSetting(index: number, cleared: boolean): string {
   const entry = loreBattle(index);
   if (entry === undefined) return "";
   return `${index + 1}/${LORE_BATTLES.length} ${entry.title}${cleared ? " |cff40ff40(cleared)|r" : ""}`;
 }
 
-/** Under the stepper: who fights whom, where, the goal, and the client's clears. */
+
 export function loreBattleSummary(index: number, clears: number): string {
   const entry = loreBattle(index);
   if (entry === undefined) return "";
@@ -225,7 +225,7 @@ export function loreBattleSummary(index: number, clears: number): string {
   return `${fighterName(entry.player)} vs ${against}${level} · ${stageInfo(entry.stage).name} · ${goalText(entry)}\n${clears} of ${LORE_BATTLES.length} cleared`;
 }
 
-/** Shown as a battle starts: its title, goal and transmission. */
+
 export function loreIntro(game: Readonly<MatchState>): string {
   const entry = loreBattle(game.run.fight);
   if (entry === undefined) return "";

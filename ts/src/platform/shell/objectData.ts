@@ -6,7 +6,7 @@ import { confirmedChecksum } from "./diagnostics";
 import { shellState } from "./state";
 import { objectDataReceiptFile } from "../../runtime/gameFiles";
 
-/** install() already runs on the same synchronized frame on every client. */
+// install() runs on the same synchronized frame on every client.
 export function installObjectData(): void {
   applyFileIoObject();
   const s = shellState();

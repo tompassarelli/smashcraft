@@ -1,6 +1,6 @@
-// Natives of keyboard journal ingress (game/netcode/journal/keyboard.ts): the
-// carrier keys are polled on the local client, and receipts are written for
-// the helper.
+
+
+
 import { CARRIER_KEYS, COMMIT_KEY, type KeyboardMailbox, decodeChunk } from "../game/netcode/journal/keyboard";
 import { writeLine } from "wisp/src/platform/fileio";
 
@@ -11,7 +11,7 @@ function acknowledge(mailbox: KeyboardMailbox): void {
   writeLine(name, line);
 }
 
-/** Takes a newly published chunk off the keys; true when one was taken. */
+
 export function pollMailbox(mailbox: KeyboardMailbox): boolean {
   if (!BlzIsLocalClientActive()) return false;
   const commit = isDown(COMMIT_KEY);
@@ -22,7 +22,7 @@ export function pollMailbox(mailbox: KeyboardMailbox): boolean {
   return true;
 }
 
-/** Forgets the used message and acknowledges its final chunk, so the helper sends the next. */
+
 export function releaseMessage(mailbox: KeyboardMailbox): void {
   if (mailbox.release()) acknowledge(mailbox);
 }

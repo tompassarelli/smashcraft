@@ -1,5 +1,5 @@
-// Preload files the map writes for the companion helper and the integrity
-// harness, which parse them: their names and lines are a protocol.
+// Companion Preload filenames and lines are an external protocol.
+
 import type { DevSettings } from "./devSettings";
 import type { MatchState } from "../match/rules";
 import type { JournalIngress } from "./build";
@@ -16,7 +16,7 @@ export interface JournalIdentity {
   readonly slot: number;
 }
 
-/** What the map asks the helper to do: request a pause, commit it at the prepared frame, or resume. */
+
 type ControlRequest = "PAUSE" | "PAUSE_COMMIT" | "RESUME";
 
 function controlLine({ build, epoch, slot }: JournalIdentity, sequence: number, state: string, frame: number): string {
@@ -28,17 +28,17 @@ export function controlFile(identity: JournalIdentity, sequence: number, state: 
   return { name: journalControlFile(build, epoch, slot, sequence), lines: [controlLine(identity, sequence, state, frame)] };
 }
 
-/** Match start: the helper starts journaling an epoch. */
+
 export function startFile(identity: JournalIdentity, frame: number): PreloadFile {
   const { build, epoch, slot } = identity;
   return { name: journalLifecycleFile(build, epoch, slot, "start"), lines: [controlLine(identity, 0, "START", frame)] };
 }
 
-/**
- * Match end: the helper stops journaling the epoch. The receipt also names
- * the confirmed winner by the slot label the HUD shows (P1 for slot 0), or
- * none, for tools that check results; the helper ignores fields it doesn't read.
- */
+
+
+
+
+
 export function endFile(identity: JournalIdentity, frame: number, winner: number | undefined): PreloadFile {
   const { build, epoch, slot } = identity;
   return {
@@ -47,7 +47,7 @@ export function endFile(identity: JournalIdentity, frame: number, winner: number
   };
 }
 
-/** The helper's reply that it has stopped writing an ended epoch; it holds "Q". */
+
 export const quiescentFile = ({ build, epoch, slot }: JournalIdentity) => `smashcraft-journal-quiescent-${build}-e${epoch}-s${slot}.pld`;
 
 const TRANSPORT_DESCRIPTIONS: Readonly<Record<JournalIngress, string>> = {
@@ -63,7 +63,7 @@ interface JournalSettings {
   readonly rollback: number;
 }
 
-/** Written when an epoch starts: how the helper must journal it. */
+
 export function readyFile(identity: JournalIdentity, { inputProfile, ingress, delay, rollback }: JournalSettings): PreloadFile {
   const { build, epoch, slot } = identity;
   return {
@@ -88,7 +88,7 @@ interface MenuRoster {
   readonly fighters: number;
 }
 
-/** The menu the helper's controller may drive now; BLOCKED while a match or its journal is live. */
+
 export function menuFile(identity: JournalIdentity, phase: MenuPhase, roster: MenuRoster): PreloadFile {
   const { build, epoch, slot } = identity;
   return {
@@ -100,7 +100,7 @@ export function menuFile(identity: JournalIdentity, phase: MenuPhase, roster: Me
   };
 }
 
-/** Every human's helper is ready, before any journal read. */
+
 export function transportReadyFile({ build, epoch, slot }: JournalIdentity, receivedMask: number): PreloadFile {
   return {
     name: journalTransportReadyFile(build, epoch, slot),
@@ -115,11 +115,11 @@ export function failureFile({ build, epoch, slot }: JournalIdentity, reason: str
   };
 }
 
-/**
- * Confirms a dev command on this client, so automation knows every client
- * holds it: `receipt` counts the game's commands, and the SETUP line is the
- * fighter-selection state the session setup commands (sessionSetup.ts) set.
- */
+
+
+
+
+
 export function devReceiptFile({ build, epoch, slot }: JournalIdentity, receipt: number, { rollback, delay, batch, rematchSeconds }: Readonly<DevSettings>, game: Readonly<MatchState>): PreloadFile {
   const [a, b, c, d] = game.characterChoices;
   return {
@@ -131,7 +131,7 @@ export function devReceiptFile({ build, epoch, slot }: JournalIdentity, receipt:
   };
 }
 
-/** The stage this client drew at a match start: its catalog id and deck count. */
+
 export function stageDrawnFile({ build, epoch, slot }: JournalIdentity, stage: number, decks: number): PreloadFile {
   return { name: stageReceiptFile(build, slot), lines: [`SMASHCRAFT STAGE v=1 build=${build} epoch=${epoch} stage=${stage} decks=${decks} `] };
 }

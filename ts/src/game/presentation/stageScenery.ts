@@ -1,5 +1,5 @@
-// Stage scenery is presentation only: arena coordinates never become collision.
-// Composition rules (asymmetric dressing, depth bands, motion budget): smashcraft:docs/design/stage-art.md.
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { STAGE_WATER_MODEL, STAGE_LAVA_MODEL, STAGE_SEA_MODEL } from "../assets/terrainAssetInfo";
 import { LAVA_CENTER_X, LAVA_HALF_WIDTH } from "../sim/lava";
@@ -20,7 +20,7 @@ export interface SceneryPiece {
   readonly y: number;
   readonly z: number;
   readonly scale: number;
-  /** Facing in degrees, counterclockwise from +x; the camera looks along +y, so 270 faces it. */
+
   readonly yaw: number;
   readonly matrixScale?: readonly [number, number, number];
   readonly color?: readonly [number, number, number];
@@ -36,7 +36,7 @@ export interface StageScenery {
     readonly start: number;
     readonly end: number;
     readonly density: number;
-    /** Heights relative to the arena origin, below the fighting deck. */
+
     readonly heightStart: number;
     readonly heightEnd: number;
     readonly maxDensity: number;
@@ -44,7 +44,7 @@ export interface StageScenery {
   };
 }
 
-/** The practice stage keeps a plain sky as the neutral baseline. */
+
 const SUMMER: StageScenery = {
   sky: STAGE_SKY_MODELS[0] ?? "",
   fog: { start: 6000.0, end: 12000.0, red: 0.6875, green: 0.8125, blue: 0.9375 },
@@ -53,10 +53,10 @@ const SUMMER: StageScenery = {
 
 const FROZEN_THRONE: StageScenery = {
   sky: STAGE_SKY_MODELS[2] ?? "",
-  // Fog begins beyond the fighting plane; the deck and fighters retain their contrast.
+
   fog: { start: 5000.0, end: 11000.0, red: 0.375, green: 0.625, blue: 0.875 },
   pieces: [
-    // Landmark on the right third; a broad glacier wall counterweights it on the left.
+
     { model: "Doodads\\Cinematic\\FrozenThrone\\FrozenThrone.mdx", x: 1900.0, y: 6500.0, z: -2620.0, scale: 0.5, yaw: 250.0, matrixScale: [1.0, 1.0, f32(1.763)] },
     { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier0.mdx", x: -1900.0, y: 3700.0, z: -2560.0, scale: 3.5, yaw: 20.0, matrixScale: [1.0, 1.0, f32(1.788)] },
     { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier5.mdx", x: 2300.0, y: 2900.0, z: -2300.0, scale: 2.25, yaw: 140.0, matrixScale: [1.0, 1.0, f32(3.206)] },
@@ -100,7 +100,7 @@ export function stageScenery(stage: number): StageScenery {
   return SUMMER;
 }
 
-/** Visible liquid sits within its contact surface; background pieces keep their own depth bands. Blackrock's timed lava is drawn by the match view (lavaPiece). */
+
 export function terrainPieces(stage: number): readonly SceneryPiece[] {
   if (stage === TOMB_OF_SARGERAS_STAGE) return [
     { model: STAGE_WATER_MODEL, x: 0.0, y: 0.0, z: 1.0, scale: 1.0, matrixScale: [12.0, 1.0, 1.0], yaw: 0.0 },
@@ -111,19 +111,19 @@ export function terrainPieces(stage: number): readonly SceneryPiece[] {
   return [];
 }
 
-/** Blackrock's lava patch on `side` of the centre: its surface strip is exactly the contact width. */
+
 export function lavaPiece(side: -1 | 1): SceneryPiece {
   return { model: STAGE_LAVA_MODEL, x: side * LAVA_CENTER_X, y: 0.0, z: 1.0, scale: 1.0, matrixScale: [(2 * LAVA_HALF_WIDTH) / 100, 1.0, 1.0], yaw: 0.0 };
 }
 
-/** A stage's backdrop omni lights (stagePointLights.ts), placed as light-only models. */
+
 export function pointLightPieces(stage: number): readonly SceneryPiece[] {
   const models = STAGE_POINT_LIGHT_MODELS[stage] ?? [];
   const lights = STAGE_POINT_LIGHTS.find(entry => entry.stage === stage)?.lights ?? [];
   return lights.map((light, index) => ({ model: models[index] ?? "", x: light.x, y: light.y, z: light.z, scale: 1.0, yaw: 0.0 }));
 }
 
-/** How many of a stage's point lights cast shadows. */
+
 export function shadowCastingLights(stage: number): number {
   return (STAGE_POINT_LIGHTS.find(entry => entry.stage === stage)?.lights ?? []).filter(light => light.castsShadow).length;
 }

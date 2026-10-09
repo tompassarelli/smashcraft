@@ -6,28 +6,28 @@ import type { HeroClip } from "../sim/heroes/hero";
 import { DAMAGE_CLIPS } from "./damageClipInfo";
 import { heroDefinition } from "../sim/heroes/registry";
 
-/** A fighter's hit reaction clip; the numbers are the Wurst codes pose keys record. */
+
 export const DamagePose = { none: 0, ground: 1, air: 2, tumble: 3, shield: 4 } as const;
 export type DamagePose = (typeof DamagePose)[keyof typeof DamagePose];
 
-/** Low/middle/high rows, small/medium/large columns; presentation only. */
+
 export function contactDamageClips(character: number): readonly HeroClip[] | undefined {
   return heroDefinition(character)?.presentation.damageClips ?? DAMAGE_CLIPS[character];
 }
 
-/** The authored reaction matching the accepted contact. */
+
 export function contactDamageClip(fighter: Readonly<Fighter>): HeroClip {
   const row = contactDamageClips(fighter.character);
   if (row === undefined) throw new Error("Missing fighter damage grid");
   return at(row, fighter.visuals.hitHeight * 3 + fighter.visuals.hitStrength);
 }
 
-/** Animation selection only; this result never feeds combat. */
+
 export function damagePose(fighter: Readonly<Fighter>): DamagePose {
   const { status, shield, ledge, down, launch, motion } = fighter;
   if (status.out || status.frozenFrames > 0 || shield.breakState !== ShieldBreak.none || ledge.state !== LedgeState.none) return DamagePose.none;
   if (down.state !== DownState.none && down.state !== DownState.tumble) return DamagePose.none;
-  // A grounded contact keeps its grounded reaction through hitlag, before the launch lifts it.
+
   if (launch.hitstun > 0 && (motion.grounded || (launch.hitlag > 0 && launch.sdiWasGrounded))) return DamagePose.ground;
   if (isTumbling(fighter)) return DamagePose.tumble;
   if (launch.hitstun > 0) return DamagePose.air;

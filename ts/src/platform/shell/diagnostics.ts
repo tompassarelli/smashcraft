@@ -1,5 +1,5 @@
-// Developer diagnostics written from the shell's state: the input trace's
-// match lines and checksums, and the ready marker probe scripts wait for.
+
+
 import { hasPendingAttack, type AttackBuffer } from "../../game/input/attackBuffer";
 import { pulsePending } from "../../game/input/directionalInput";
 import { encodeBindings } from "../../game/input/keyBindings";
@@ -22,20 +22,20 @@ export function traceParticipant(s: ShellState, slot: number, entry: string): vo
   traceInput(s.trace, `participant ${slot} frame ${s.runtime.simulationFrame} phase ${s.game.phase} ${entry}`);
 }
 
-/** The confirmed match's canonical checksum. */
+
 export function confirmedChecksum(s: ShellState): string {
   captureReplaySnapshot(s.diagnostic, s.world, s.game, s.controls, s.runtime);
   return stateChecksum(s.diagnostic);
 }
 
-/**
- * Callbacks a confirmed-state checksum is folded over. Folding a four-fighter
- * state's canonical text in one callback cost about 2.4 million Lua
- * instructions, the worst frame of `bun wisp perf bot-four` (#48).
- */
+
+
+
+
+
 const CHECKSUM_FOLD_CALLBACKS = 45;
 
-/** Captures the confirmed state's canonical text; foldConfirmedState writes its checksum over the next callbacks. */
+
 function traceConfirmedState(s: ShellState): void {
   const first = firstHumanSlot(s.game);
   if (first === undefined || s.participants[first].body === undefined) return;
@@ -47,7 +47,7 @@ function traceConfirmedState(s: ShellState): void {
   s.trace.checksum = { frame: s.runtime.simulationFrame, fold, slice: idiv(fold.text.length + CHECKSUM_FOLD_CALLBACKS - 1, CHECKSUM_FOLD_CALLBACKS) };
 }
 
-/** Folds the pending confirmed-state checksum's next slice, or all of it, and writes its line once folded. */
+
 function foldConfirmedState(trace: InputTrace, all: boolean): void {
   const pending = trace.checksum;
   if (pending === undefined) return;
@@ -80,7 +80,7 @@ export function startInputTrace(s: ShellState): void {
   traceInput(s.trace, `trace-start receipt native-seconds ${R2S(traceSeconds(s.trace) - receiptStarted)}`);
 }
 
-/** A callback-driven frame's sampled input, when it carries a press. */
+
 export function traceFrameInput(s: ShellState, slot: ParticipantSlot, input: Readonly<Controls>, attacks: Readonly<AttackBuffer>, frame: number): void {
   const attacking = hasPendingAttack(attacks, frame);
   if (!s.trace.active || !(input.jumpPressed || input.airDodgePressed || input.specialPressed || attacking)) return;
@@ -88,25 +88,25 @@ export function traceFrameInput(s: ShellState, slot: ParticipantSlot, input: Rea
   traceInput(s.trace, `participant ${slot} frame ${frame} phase ${s.game.phase} sampled x ${input.direction} z ${input.verticalDirection} jump ${bit(input.jumpPressed)} dodge ${bit(input.airDodgePressed)} special ${bit(input.specialPressed)} attack ${attack}`);
 }
 
-/** The local player's slot, or the first human's for an observer. */
+
 export function localParticipantSlot(s: Readonly<ShellState>): ParticipantSlot | undefined {
   const slot = localSlot();
   return PARTICIPANT_SLOTS.find(candidate => candidate === slot && humanActive(s.game, candidate)) ?? firstHumanSlot(s.game);
 }
 
-/** Active play the trace observes before it ends; pauses don't count. */
+
 function traceLength(s: Readonly<ShellState>): number {
   if (s.build.responseProbe) return RESPONSE_TRACE_CALLBACKS;
   if (s.build.inputProfile === "native-driver") return 1200;
   return s.build.scenario === "shield-break" || s.build.scenario === "ledge" ? 600 : 300;
 }
 
-/** One game callback of trace: local samples, and once a second the checksum and schedule summary. */
+
 export function traceTick(s: ShellState): void {
   const { trace } = s;
   if (!trace.active) return;
   trace.ticks++;
-  // Callback timestamps stay intact, but a chat pause cannot use up the post-resume observation.
+
   if (s.session.paused) trace.pausedTicks++;
   foldConfirmedState(trace, false);
   const local = localParticipantSlot(s);
@@ -126,7 +126,7 @@ export function traceTick(s: ShellState): void {
     }
   }
   if (floorMod(trace.ticks, 60) === 0) {
-    // A capture the trace would end before folding is skipped rather than folded in one callback.
+
     if (trace.ticks - trace.pausedTicks + CHECKSUM_FOLD_CALLBACKS < traceLength(s)) traceConfirmedState(s);
     const rollback = activeRollback(s);
     if (rollback !== undefined) {
@@ -149,7 +149,7 @@ export function traceTick(s: ShellState): void {
   }
 }
 
-/** Written once the local bindings are ready: probe scripts wait for it before driving keys. */
+
 export function writeReadyMarker(s: ShellState): void {
   const local = localParticipantSlot(s);
   if (s.readyMarkerWritten || local === undefined || !s.participants[local].bindings.ready) return;

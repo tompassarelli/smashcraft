@@ -1,5 +1,5 @@
-// A summon drawn from its original-model clip pool, like a pooled fighter. The
-// pool is allocated once; presenting only projects completed summon state.
+
+
 import { summonClip, summonClipCount } from "../presentation/summonClipInfo";
 import type { SummonProjection } from "../presentation/summonState";
 import { type WorldOrigin, hideEffect, placeEffect } from "./effects";
@@ -48,7 +48,7 @@ export class SummonPresentation {
   }
 
   destroy(): void {
-    // Every clip but the shown one is already parked, where its death animation plays out of view.
+
     this.hide();
     for (const model of this.clips) DestroyEffect(model);
     this.clips.length = 0;

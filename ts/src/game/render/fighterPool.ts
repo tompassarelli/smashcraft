@@ -1,9 +1,9 @@
-// A fighter drawn from a pool of original-model clips: every clip has its own
-// effect, all frozen, and presenting shows the selected one at the pose's clip
-// time. Allocation and destruction belong to the synchronized character and
-// match lifecycle; present and hide change only these handles. Entering or
-// leaving a pain pose keeps the previous clip frozen over the new one while
-// it dissolves (presentation/damageBlend.ts).
+
+
+
+
+
+
 import {
   ORIGINAL_LIGHT_ACTIVE_ANIMATION,
   ORIGINAL_LIGHT_GATE_SECONDS,
@@ -37,12 +37,12 @@ export class FighterPoolPresentation {
   private blue: number | undefined;
   private alpha: number | undefined;
   private lightYaw: number | undefined;
-  /** The dissolving previous clip, the simulation frame it started and its length. */
+
   private blendFrom: number | undefined;
   private blendStart = 0;
   private blendFrames = 0;
   private readonly placement = { x: 0.0, z: 0.0 };
-  /** Frames whose pose selected a clip this pool doesn't have. */
+
   missingSelections = 0;
 
   constructor(
@@ -76,12 +76,12 @@ export class FighterPoolPresentation {
     }
   }
 
-  /** Whether this character has a clip pool to draw with. */
+
   admitted(): boolean {
     return this.clips.length > 0;
   }
 
-  /** The light's inactive animation casts no light. */
+
   private suppress(light: effect): void {
     BlzSetSpecialEffectAnimation(light, ORIGINAL_LIGHT_INACTIVE_ANIMATION);
     BlzSetSpecialEffectTime(light, ORIGINAL_LIGHT_GATE_SECONDS);
@@ -119,11 +119,11 @@ export class FighterPoolPresentation {
     if (changed) {
       const previous = this.visible;
       const frames = previous === undefined ? 0 : poseBlendFrames(fighter, previous, index);
-      // A clip returning while it dissolves is simply drawn again.
+
       if (this.blendFrom === index) this.blendFrom = undefined;
       this.endBlend();
       const shown = previous === undefined ? undefined : this.clips[previous];
-      // The outgoing clip stays frozen at its last drawn pose and yaw.
+
       if (frames > 0) {
         this.blendFrom = previous;
         this.blendStart = frame;
@@ -138,7 +138,7 @@ export class FighterPoolPresentation {
     else if (seconds > duration) seconds = duration;
     fitFighterPlacement(this.placement, fighter, stage);
     const x = this.origin.x + this.placement.x;
-    // Large captives otherwise hide the holder at the side camera.
+
     const y = this.origin.y - (fighter.grab.target === undefined ? 0.0 : 80.0);
     const z = this.origin.z + this.placement.z;
     const yaw = facingYaw(fighterPoseFacing(fighter));
@@ -210,12 +210,12 @@ export class FighterPoolPresentation {
   }
 
   destroy(): void {
-    // DestroyEffect may defer teardown; turn the light off first.
+
     if (this.light !== undefined) {
       this.suppress(this.light);
       DestroyEffect(this.light);
     }
-    // Every clip but the shown one is already parked, where its death animation plays out of view.
+
     this.endBlend();
     const shown = this.visible === undefined ? undefined : this.clips[this.visible];
     if (shown !== undefined) hideEffect(shown, this.origin);

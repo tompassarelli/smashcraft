@@ -15,7 +15,7 @@ export function observeItemCues(before: ItemCueObservation, items: Readonly<Matc
   before.pickupSerial = items.pickupSerial;
 }
 
-/** Bit 1 warning, bit 2 spawn, bit 4 pickup; read only after a confirmed frame. */
+
 export function confirmedItemCues(before: Readonly<ItemCueObservation>, items: Readonly<MatchItems>, frame: number): number {
   let cues = 0;
   if (itemWarningFrames(items, frame) !== undefined && before.warningFrame !== items.nextSpawnFrame) cues |= 1;

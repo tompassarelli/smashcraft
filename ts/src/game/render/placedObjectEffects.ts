@@ -1,6 +1,6 @@
-// Placed objects (sim/placedObjects.ts), three models per participant slot,
-// created with the match. Presentation follows numerical state, so it can be
-// reapplied after a restore without spawning another object.
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { idiv } from "wisp/src/sim/intMath";
 import { PARTICIPANT_SLOTS } from "../input/participants";
@@ -12,7 +12,7 @@ import { bearState } from "../presentation/bearFeedback";
 import { BearFeedback } from "./bearFeedback";
 import { bindPrototype } from "../../platform/rebind";
 
-/** Serpent Ward, the default placed object: the classic model stands about 300 units tall. */
+
 const PLACED_OBJECT_MODEL = "Units\\Orc\\SerpentWard\\SerpentWard.mdx";
 const MODEL_HEIGHT = 300.0;
 const DEFAULT_LOOK = { path: PLACED_OBJECT_MODEL, height: MODEL_HEIGHT, alpha: 255 };
@@ -20,7 +20,7 @@ const DEFAULT_LOOK = { path: PLACED_OBJECT_MODEL, height: MODEL_HEIGHT, alpha: 2
 export class PlacedObjectEffects {
   private readonly models: effect[];
   private readonly paths: string[];
-  /** A partner's playing animation (0 stand, 1 walk, 2 attack) and its last x, by slot. */
+
   private readonly anims: number[] = [];
   private attackStarts: number[] | undefined;
   private readonly lastX: number[] = [];
@@ -38,7 +38,7 @@ export class PlacedObjectEffects {
     this.clear();
   }
 
-  /** The slot's model for the fighter's look, replaced only when the fighter's look differs. */
+
   private modelFor(slot: number, path: string): effect | undefined {
     const current = this.models[slot];
     if (current === undefined || this.paths[slot] === path) return current;
@@ -47,7 +47,7 @@ export class PlacedObjectEffects {
     BlzSetSpecialEffectAnimationBlendTime(model, 0.0);
     this.models[slot] = model;
     this.paths[slot] = path;
-    // Created at the origin: the next hide must park it.
+
     if (this.parked !== undefined) this.parked[slot] = false;
     return model;
   }
@@ -92,7 +92,7 @@ export class PlacedObjectEffects {
 
   private presentAnimal(fighter: Readonly<Fighter>, placed: Readonly<PlacedObject>, slot: number): void {
     const look = placed.spec?.model ?? heroDefinition(fighter.character)?.presentation.placedModel ?? DEFAULT_LOOK;
-    // Predicted summons can arrive on different client turns; only confirmed frames create their handles.
+
     const model = this.paths[slot] === look.path ? this.models[slot] : undefined;
     const spec = placed.spec;
     if (model === undefined) return;
@@ -108,13 +108,13 @@ export class PlacedObjectEffects {
     const bear = placed === fighter.placed ? bearState(fighter) : undefined;
     if (spec.companion !== undefined) this.animate(model, slot, placed, bear);
     BlzSetSpecialEffectScale(model, f32(spec.height / look.height * (bear === "CHARGING" ? 1.25 : 1.0)));
-    // A damaged object fades toward half its opacity as its durability runs out.
+
     const left = f32(Math.max(0.0, placed.durability) / spec.durability);
     const half = idiv(look.alpha, 2);
     BlzSetSpecialEffectAlpha(model, half + Math.floor(f32((look.alpha - half) * left)));
   }
 
-  /** Keep the attack's windup and follow-through visible; the contact window alone cuts off the stock animation. */
+
   private animate(model: effect, slot: number, placed: Readonly<PlacedObject>, bear: ReturnType<typeof bearState>): void {
     const { x, mode } = placed;
     const partner = placed.spec?.companion;

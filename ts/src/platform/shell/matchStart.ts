@@ -1,8 +1,8 @@
 import type { QuickStageSettings } from "../../game/shell/devSettings";
 import { showBackdrop, showStageFog, showStageLighting } from "./stageScenery";
-// Starting a match, on every client at the same synchronized event: a fresh
-// confirmed match, the stage, the developer scenario, the rollback epoch and
-// its journal, then the fighters' renderers.
+
+
+
 import { PARTICIPANT_SLOTS } from "../../game/input/participants";
 import { resetMatchFrameInput } from "../../game/match/frameInput";
 import { clearPresentationHistory } from "../../game/match/pacingAndPresentation";
@@ -29,10 +29,10 @@ import { beginFighterRenderers, views } from "./ui";
 import { LASTING, drawStage, pauseMatchPresentation, renderPersistentPresentation, setStatus } from "./view";
 
 export function startMatch(s: ShellState, scenario: Scenario = s.build.scenario, stageSettings?: QuickStageSettings): void {
-  // Revoke the helper's menu before the match takes text focus.
+
   publishMenu(s);
   const wasPaused = s.session.paused;
-  // A held start calls its own countdown (presentation/matchCues.ts); practice and training start at once.
+
   setStatus(s, s.game.startHold === 0 ? "GO!" : "", s.game.startHold === 0 ? 1.0 : 0.0);
   const ui = views(s);
   for (const slot of PARTICIPANT_SLOTS) if (ui.settings[slot].isOpen()) ui.settings[slot].close();
@@ -46,8 +46,8 @@ export function startMatch(s: ShellState, scenario: Scenario = s.build.scenario,
   for (const strategy of s.runtime.botStrategies) clearBotStrategy(strategy);
   makePreview(s);
   initializeMatchFighters(s.game, s.world);
-  // Keep the scene prepared behind the loading screen, including on rematch.
-  // Recreating it here would expose the old scenery's death animations.
+
+
   if (s.drawnStage !== s.game.stageChoice || s.stageDecks.length !== surfaceCount(s.game.stageChoice)) drawStage(s);
   if (stageSettings?.lighting !== undefined) showStageLighting(s, stageSettings.lighting === "stage");
   if (stageSettings?.backdrop !== undefined) showBackdrop(s, stageSettings.backdrop === "on");
@@ -69,20 +69,20 @@ export function startMatch(s: ShellState, scenario: Scenario = s.build.scenario,
     }
   }
   if (s.build.devConsole) {
-    // Captures take the player's view only after every client has drawn this match's stage.
+
     const drawn = stageDrawnFile(journalIdentity(s, rollback?.epoch ?? 0), s.drawnStage, s.stageDecks.length);
     writeLines(drawn.name, drawn.lines);
   }
-  // A callback match draws its pool from confirmed frames; a rollback match once its epoch began.
+
   const pooled = usesPool(s.build) && rollback?.active !== false;
-  // Model sounds follow epochs: a rollback match's own, or one more for each callback match.
+
   if (pooled) beginModelSoundEpoch(s.sounds, rollback?.epoch ?? (s.sounds.epoch ?? 0) + 1);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(s.world, slot)) continue;
     const participant = s.participants[slot];
     const fighter = fighterAt(s.world, slot);
     participant.pooled = beginFighterRenderers(s, slot, fighter.character, pooled);
-    // A fighter without a clip pool is drawn by its unit body instead.
+
     if (!participant.pooled) continue;
     if (participant.body !== undefined) {
       SetUnitTimeScale(participant.body.unit, 0.0);

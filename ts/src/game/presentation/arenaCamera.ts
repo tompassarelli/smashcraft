@@ -1,26 +1,26 @@
-// The arena camera frames the live fighters from the side above a floor that
-// stands FLOOR_HEIGHT over the ground at the world origin. The map's camera
-// and the host's view checks share these numbers.
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { copyMatchCamera, createMatchCamera, limitCamera, MATCH_CAMERA_ASPECT, type MatchCamera } from "../sim/matchCamera";
 import { stageBounds } from "../sim/stageBounds";
 
-/** The arena floor stands this far above the ground at the world origin. */
+
 export const FLOOR_HEIGHT = 1800.0;
 
-/**
- * The base map's bounds (smashcraft:build-inputs.json `base`); Wisp's headless world has neither and centres the playable map at 0.
- * Warcraft draws no effect outside the world bounds (#298), so the terrain runs 32 cells past the playable map's back edge for
- * scenery up to 7,600 behind the fighters; units stay inside the playable bounds, so the arena and its blast zones stay there.
- */
+
+
+
+
+
 export const WORLD_BOUNDS = { left: -4096.0, right: 4096.0, front: -4096.0, back: 8192.0 } as const;
 export const HIDDEN_EFFECT_DEPTH = 8192.0;
 export const PLAYABLE_BOUNDS = { left: -3328.0, right: 3328.0, front: -3584.0, back: 3072.0, centreY: -256.0 } as const;
 
-/** The fields the arena camera keeps, in degrees and world units: along +y, ten degrees down. */
+
 export const ARENA_CAMERA = { rotation: 90.0, angleOfAttack: 350.0, farZ: 8000.0 } as const;
 
-/** Local-only projection of the canonical match camera; never fed into simulation. */
+
 export function localCamera(target: MatchCamera, source: Readonly<MatchCamera>, stage: number, aspect: number): void {
   copyMatchCamera(target, source);
   const bounds = stageBounds(stage);
@@ -31,10 +31,10 @@ export function cameraFieldOfView(camera: Readonly<MatchCamera>, aspect: number)
   return (Math.atan(camera.tangent * aspect) * 360.0) / Math.PI;
 }
 
-/** The two framings a match can reach on a stage: closest (fighters together on the deck) and widest and lowest (fighters spread to the camera limits, one far below). */
+
 export type CameraExtreme = "near" | "far";
 
-/** Sets `target` to one of the stage's camera extremes, after the same limits every match framing passes. */
+
 export function extremeCamera(target: MatchCamera, stage: number, aspect: number, extreme: CameraExtreme): void {
   const bounds = stageBounds(stage);
   target.x = 0.0;
@@ -44,14 +44,14 @@ export function extremeCamera(target: MatchCamera, stage: number, aspect: number
   limitCamera(target, bounds.camera, aspect, bounds.blast.bottom);
 }
 
-/** Projection against the actual local view, as fractions from the top-left. */
+
 export function cameraPoint(camera: Readonly<MatchCamera>, aspect: number, x: number, z: number): { readonly column: number; readonly row: number } {
   const dz = z - camera.z;
   const depth = camera.distance - dz * 0.1736481785774231;
   return { column: 0.5 + (x - camera.x) / (2.0 * depth * camera.tangent * aspect), row: 0.5 - dz * 0.9848077297210693 / (2.0 * depth * camera.tangent) };
 }
 
-/** Static view spans for the model parking check, with the same final corner clamp. */
+
 export function arenaFraming(left: number, right: number, bottom: number, top: number): { readonly x: number; readonly z: number; readonly distance: number; readonly fieldOfView: number } {
   const camera = createMatchCamera();
   camera.tangent = 0.3443276286125183;

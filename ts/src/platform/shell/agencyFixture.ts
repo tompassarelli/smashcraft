@@ -8,7 +8,7 @@ import { views } from "./ui";
 import { pauseMatchPresentation, renderPersistentPresentation } from "./view";
 import { writeLines } from "wisp/src/platform/fileio";
 
-/** Paused native samples use real state gates; thaw runs for the control-return capture. */
+
 export function startAgencyFixture(s: ShellState, message: string): string | undefined {
   const words = message.split(" ");
   if (words.length !== 4 || words[0] !== "-dev" || words[1] !== "agency") return undefined;

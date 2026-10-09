@@ -33,7 +33,7 @@ export function togglePoolStage(pool: StagePool, choice: number): boolean {
   return true;
 }
 
-/** A forced pick counts as played when it belongs to the pool. */
+
 export function consumePoolStage(pool: StagePool, choice: number): void {
   if (!stageInPool(pool, choice)) return;
   if (pool.remainingMask === 0) pool.remainingMask = activeStageMask(pool);

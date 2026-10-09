@@ -13,12 +13,12 @@ import type { TestMatch } from "./testMatch";
 
 const EPOCH = 3;
 const RAW = 32767;
-/** The helper's digital thresholds on raw axes. */
+
 const STICK_DIGITAL = 7000;
 const C_STICK_DIGITAL = 11000;
 const TRIGGER_DIGITAL = 4000;
 
-/** A controller's state on one frame: sticks in [-1, 1] with up positive, buttons by role. */
+
 export interface Pad {
   readonly x?: number;
   readonly y?: number;
@@ -34,7 +34,7 @@ const axisByte = (rawValue: number) => Math.max(-127, Math.min(127, Math.trunc((
 const signOf = (value: number) => (value < 0 ? -1 : value > 0 ? 1 : 0);
 const beyond = (rawValue: number) => (Math.abs(rawValue) > STICK_DIGITAL ? signOf(rawValue) : 0);
 
-/** The helper's action mask for a pad (journal.rs action_state); stick up also jumps. */
+
 function heldActions(pad: Pad): number {
   const x = raw(pad.x);
   const up = raw(pad.y);
@@ -52,7 +52,7 @@ function heldActions(pad: Pad): number {
   return held;
 }
 
-/** One frame's row as the helper records the change from previous to pad (journal.rs encode_row and its edges). */
+
 function helperRow(previous: Pad, pad: Pad): InputRow {
   const before = heldActions(previous);
   const held = heldActions(pad);
@@ -76,7 +76,7 @@ function helperRow(previous: Pad, pad: Pad): InputRow {
   }), "helper row");
 }
 
-/** A two-player match whose slots each read a helper journal. */
+
 export interface PadMatch {
   readonly match: TestMatch;
   readonly journals: readonly [JournalInputSource, JournalInputSource];
@@ -88,7 +88,7 @@ export function padMatch(match: TestMatch, build: string): PadMatch {
   return { match, journals: [journal(0), journal(1)], previous: [{}, {}] };
 }
 
-/** Plays one frame: each pad becomes a helper row, a journal packet and a synchronized message before the match adapts it. */
+
 export function playPads(run: PadMatch, first: Pad, second: Pad): void {
   const { match } = run;
   const frame = match.runtime.simulationFrame + 1;

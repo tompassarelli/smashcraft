@@ -14,7 +14,7 @@ export const visualCapture = (slot: number) => captures.get(slot);
 export const clearVisualCapture = (slot: number): void => { captures.delete(slot); };
 export const visualReleaseFile = (token: string, slot: number, frame: number) => `smashcraft-visual-${token}-p${slot}-f${frame}.txt`;
 
-/** Diagnostic suffix carried by the existing synchronized quick-match command. */
+
 export function configureVisualCapture(message: string, slot: number): string {
   const marker = message.indexOf(" |capture ");
   if (marker < 0) return message;
@@ -36,7 +36,7 @@ export function configureVisualCapture(message: string, slot: number): string {
   return message.substring(0, marker);
 }
 
-/** Holds only a frame that was actually presented; skipped targets cannot be relabelled. */
+
 export function holdVisualFrame(slot: number, epoch: number, frame: number): boolean {
   const state = captures.get(slot);
   if (state === undefined || state.held !== undefined) return false;

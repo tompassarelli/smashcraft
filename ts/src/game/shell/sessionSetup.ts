@@ -1,20 +1,20 @@
-// Developer chat commands that set up a match at fighter selection without
-// the menus' pointer targets, so native bot and integrity sessions are driven
-// by commands and receipts rather than clicks and screen reading:
-//   -dev slots HUMANS COMPUTERS   fighter slot masks, as menu receipts print them
-//   -dev fighter P NAME           player P's fighter (a computer's, or the typist's own)
-//   -dev stocks N, -dev time MINUTES, -dev auto-rematch on|off
-//   -dev stage ID                 a stage catalog id, at fighter or stage selection
-//   -dev hazards on|off           stage hazards, at fighter or stage selection
-//   -dev training on|off, -dev hit-areas on|off
-//   -dev partner BEHAVIOUR DRIFT TECH DAMAGE   training's partner, by the names below
-//   -dev speed 1|2|4              training's input frames per match frame
-//   -dev items on|off, -dev item speed|jump|heavy on|off   items, and which kinds appear
-// Each applies the menus' own rule for the player who typed it, so a command
-// can do only what that player's clicks could. The developer receipt's SETUP
-// line (journalFiles.ts) reports the resulting state; automation confirms a
-// command by the receipt counter, then checks that state. The spellings are a
-// protocol shared with smashcraft:ts/scripts/integrity/journey.ts.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { parseDecimal } from "../netcode/journal/decimal";
 import { PARTICIPANT_SLOTS, isParticipantMask, isParticipantSlot } from "../input/participants";
 import {
@@ -38,15 +38,15 @@ export const PARTNER_COMMAND = "-dev partner ";
 export const SPEED_COMMAND = "-dev speed ";
 export const ITEMS_COMMAND = "-dev items ";
 export const ITEM_COMMAND = "-dev item ";
-/** Item kinds by their command names. */
+
 const itemCommandKind = (name: string | undefined): ItemKind | undefined =>
   name === "speed" ? ItemKind.speed : name === "jump" ? ItemKind.extraJump : name === "heavy" ? ItemKind.heavy : undefined;
-/** Partner option names, in their code order (match/trainingState.ts). */
+
 export const PARTNER_BEHAVIOUR_NAMES = ["stand", "shield", "crouch", "jump", "attack", "fight"];
 export const PARTNER_DRIFT_NAMES = ["none", "toward", "away", "random"];
 export const PARTNER_TECH_NAMES = ["none", "place", "toward", "away", "random"];
 
-/** Digits exactly as I2S would print them. */
+
 function integer(text: string): number | undefined {
   const value = parseDecimal(text);
   return value !== undefined && `${value}` === text ? value : undefined;
@@ -58,7 +58,7 @@ function characterNamed(name: string): Character | undefined {
   return undefined;
 }
 
-/** Cycles each slot's tag (HMN, CPU, EMPTY) as its owner's clicks would until the masks hold. */
+
 function setSlots(game: MatchState, actor: number, humans: number, computers: number): boolean {
   if (!isParticipantMask(humans) || (computers !== 0 && !isParticipantMask(computers)) || (humans & computers) !== 0) return false;
   for (const slot of PARTICIPANT_SLOTS) {
@@ -71,11 +71,11 @@ function setSlots(game: MatchState, actor: number, humans: number, computers: nu
   return game.humanFighterMask === humans && game.computerMask === computers;
 }
 
-/**
- * Applies a session setup command typed by `actor` and returns its
- * confirmation, "refused" when the menus' rules don't allow it; undefined
- * for any other message.
- */
+
+
+
+
+
 export function applySetupCommand(game: MatchState, actor: number, message: string): string | undefined {
   const refused = (what: string) => `dev: ${what} refused`;
   if (message.startsWith(SLOTS_COMMAND)) {
@@ -153,13 +153,13 @@ export function applySetupCommand(game: MatchState, actor: number, message: stri
   }
   if (message.startsWith(STAGE_COMMAND)) {
     const stage = integer(message.substring(STAGE_COMMAND.length));
-    // The stage menu's own choice, made early: any player here may choose, at either menu.
+
     if (stage === undefined || !selectableStage(stage) || !humanActive(game, actor) || (game.phase !== Phase.characterMenu && game.phase !== Phase.stageMenu)) return refused("stage");
     game.stageChoice = stage;
     return `dev: stage ${stage}`;
   }
   if (message.startsWith(HAZARDS_COMMAND)) {
-    // The stage menu's toggle, set early like the stage.
+
     if (!humanActive(game, actor) || (game.phase !== Phase.characterMenu && game.phase !== Phase.stageMenu)) return refused("hazards");
     return toggle(HAZARDS_COMMAND, on => { game.hazards = on; }, () => game.hazards, "hazards");
   }

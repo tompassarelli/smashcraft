@@ -9,7 +9,7 @@ import type { CpuSkill } from "./cpuSkill";
 
 const sign = (value: number): -1 | 0 | 1 => value < 0 ? -1 : value > 0 ? 1 : 0;
 
-/** Slippi rank rates per thousand; lower ranks and wrong-direction rates remain guesses (#357). */
+
 export function defenceSlipRates(execution: number, tier: CpuTier = "expert") {
   const missed = 100 - execution;
   const rank = tier === "expert" ? 0 : tier === "advanced" ? 1 : tier === "intermediate" ? 2 : tier === "beginner" ? 3 : 4;
@@ -25,7 +25,7 @@ export function defenceSlipRates(execution: number, tier: CpuTier = "expert") {
   };
 }
 
-/** A hit's launch angle is visible to its victim; this reads no opponent state. */
+
 export function chooseHitlagInput(f: Readonly<Fighter>, slot: number, frame: number, skill: CpuSkill, input: Controls): void {
   const { launch } = f;
   if (!launch.diPending) return;
@@ -33,15 +33,15 @@ export function chooseHitlagInput(f: Readonly<Fighter>, slot: number, frame: num
   const outward = sign(launch.knockbackX) || (f.motion.x < 0 ? -1 : 1);
   const upward = Math.abs(launch.knockbackZ) > Math.abs(launch.knockbackX);
   const survival = f.status.damage >= 80 || launch.diLaunchSpeed >= 20.0;
-  // A side launch turns upward to survive; an upward launch turns away from centre.
-  // A combo launch turns down or inward to change where the follow-up must reach.
+
+
   let x: -1 | 0 | 1 = upward ? outward : 0;
   let z: -1 | 0 | 1 = upward ? 0 : survival ? 1 : -1;
   if (!survival && upward) x = sign(-outward);
   const key = f.visuals.hit;
   const kill = f.status.damage >= 100 && launch.diLaunchSpeed >= melee(3.0) && launch.knockbackZ > 0;
   const noDi = skill.executionMistakes !== false && botChoice(key, slot * 131 + f.character * 7 + 101, 1000) < (kill ? rates.noDiKill : rates.noDiOther);
-  // A separate interval of the same draw keeps absent and wrong DI disjoint.
+
   const wrongDi = skill.executionMistakes !== false && !noDi && botChoice(key, slot * 131 + f.character * 7 + 101, 1000) < (kill ? rates.noDiKill : rates.noDiOther) + rates.wrongDi;
   if (noDi || wrongDi) {
     if (noDi) { x = 0; z = 0; }
@@ -60,7 +60,7 @@ export function chooseHitlagInput(f: Readonly<Fighter>, slot: number, frame: num
   input.sdiZ = 0;
 }
 
-/** Alters only legal buttons/stick values; event keys survive rollback without extra state. */
+
 export function applyAerialExecutionNoise(f: Readonly<Fighter>, target: Readonly<Fighter> | undefined, slot: number, skill: CpuSkill, input: Controls): void {
   if (f.launch.hitlag > 0 || f.launch.hitstun > 0 || f.grab.owner !== undefined || f.status.out) return;
   const rates = defenceSlipRates(skill.decision.executionPercent, skill.tier);

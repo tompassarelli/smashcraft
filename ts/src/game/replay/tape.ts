@@ -1,17 +1,17 @@
-// Recorded input tapes, the acceptance oracle's shared format. Bun and 32-bit
-// Lua decode and execute the same operations.
-//
-// One operation per line, words separated by spaces, `#` comments:
-//   participants HUMANS COMPUTERS | character SLOT CHOICE | stage-select SLOT
-//   stage SLOT CHOICE | hazards SLOT 0-OR-1 | stocks SLOT COUNT | time SLOT MINUTES | start SLOT | rematch SLOT
-//   input SLOT FIELD=VALUE... attack=STYLE,FACING,FRAME,CHARGE...
-//   frame N              capture the inputs given since the last frame and the
-//                        computers' choices from the match, save, execute
-//   rollback FIRST LAST  replay FIRST..LAST (LAST is the current frame) from history
-//   predict N            as frame, but saved as a prediction a later correction may replace
-//   correct N            replace frame N with the inputs given since, and replay from it
-// Input fields are Controls fields; flags are 0 or 1. Every operation except
-// input prints one record: "LINE OPERATION RESULT CANONICAL-STATE".
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { parseDecimal } from "../netcode/journal/decimal";
 import type { AttackCommand } from "../input/attackBuffer";
 import type { Direction } from "../input/inputRow";
@@ -34,7 +34,7 @@ const FLAG_FIELDS: Readonly<Record<FlagField, true>> = {
   attackHeld: true, resetPressed: true,
 };
 
-/** Reals are binary32 values in every runtime; the rest are integers. */
+
 const NUMBER_FIELDS: Readonly<Record<NumberField, "int" | "real">> = {
   driftStickX: "real",
   direction: "int", verticalDirection: "int", diStickX: "real", diStickZ: "real", sdiX: "int", sdiZ: "int",
@@ -82,13 +82,13 @@ function parseReal(word: string | undefined): number | undefined {
 
 const isDirection = (value: number): value is Direction => value === -1 || value === 0 || value === 1;
 
-/** Splits on spaces; `name=value` and comma-separated arguments are separate words. */
+
 function words(text: string): string[] {
   const result: string[] = [];
   let start = 0;
   for (let index = 0; index <= text.length; index++) {
     const code = index < text.length ? text.charCodeAt(index) : 32;
-    // space, tab, `=` and `,`
+
     if (code === 32 || code === 9 || code === 61 || code === 44) {
       if (index > start) result.push(text.slice(start, index));
       start = index + 1;
@@ -175,7 +175,7 @@ function decodeLine(line: number, text: string): Decoded<TapeOperation> | undefi
   }
 }
 
-/** Decodes a whole tape; the first malformed line rejects it. */
+
 export function decodeTape(text: string): Decoded<readonly TapeOperation[]> {
   const lines = text.split("\n");
   if (lines[0] !== TAPE_HEADER) return { ok: false, line: 1, message: `expected "${TAPE_HEADER}"` };

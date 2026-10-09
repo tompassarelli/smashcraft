@@ -1,9 +1,9 @@
 import { placedObject } from "../sim/fighter";
-// Keep the whole canonical record together: field order and spelling are
-// shared with the retained replay oracle, including fields from every slot.
-// Replay2, Wurst ReplayState's canonical tape of gameplay state. Labels,
-// order and number formats are a cross-runtime contract: a tape compares
-// these strings and checksums between Wurst's Lua, Bun and 32-bit Lua.
+
+
+
+
+
 import { attackBufferCanonicalState } from "../input/attackBuffer";
 import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS, participantActive, type Slots } from "../input/participants";
 import { at } from "wisp/src/runtime/lookup";
@@ -28,7 +28,7 @@ import { RIFLEMAN_MOVES } from "../sim/originalMoves";
 
 const REPLAY_CHECKSUM_MODULUS = 1_000_003;
 
-/** Decimal bytes use integer division, including the negative int32 endpoint. */
+
 function writeIntegerBytes(emit: (code: number) => void, value: number): void {
   if (value < -2147483648 || value > 2147483647) {
     const text = `${value}`;
@@ -47,7 +47,7 @@ function writeIntegerBytes(emit: (code: number) => void, value: number): void {
   }
 }
 
-/** The same exact numeric bytes feed replay text and allocation-free observation checks. */
+
 export function writeCanonicalNumber(emit: (code: number) => void, value: number, integer = true): void {
   if (integer && Math.floor(value) === value) { writeIntegerBytes(emit, Math.floor(value)); return; }
   if (value !== value) { emit(110); emit(97); emit(110); return; }
@@ -62,10 +62,10 @@ export function writeCanonicalNumber(emit: (code: number) => void, value: number
   writeIntegerBytes(emit, realParts.low);
 }
 
-/** The magnitude splitFiniteReal last split: binary exponent and 52 fraction bits as two 26-bit integers. */
+
 export const realParts = { exponent: 0, high: 0, low: 0 };
 
-/** Splits a positive magnitude into realParts without allocating; false when it is infinite. */
+
 export function splitFiniteReal(positive: number): boolean {
   let magnitude = positive;
   if (magnitude * 2 === magnitude) return false;
@@ -86,18 +86,18 @@ export function splitFiniteReal(positive: number): boolean {
   return true;
 }
 
-/** Exact finite binary representation: sign, binary exponent and 52 fraction bits as two 26-bit integers. */
+
 export function canonicalReal(value: number): string {
   const parts: string[] = [];
   writeCanonicalNumber(code => { parts.push(String.fromCharCode(code)); }, value, false);
   return parts.join("");
 }
 
-/**
- * Wurst's I2S. Lua prints an integral float as "3.0", so the value is floored
- * to Lua's integer type first; a fraction, which no Wurst int can hold, keeps
- * its exact real form so a tape comparison still reports it.
- */
+// Lua prints integral floats with .0; floor them to integers to match Wurst I2S.
+
+
+
+
 function integerText(value: number): string {
   const whole = Math.floor(value);
   return whole === value ? `${whole}` : canonicalReal(value);
@@ -115,7 +115,7 @@ export function canonicalRealField(name: string, value: number): string {
   return `|${name}=${canonicalReal(value)}`;
 }
 
-/** Authored move values travel with tuning; absent profiles leave retained tapes unchanged. */
+
 export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = "moves"): string {
   if (moves === undefined) return "";
   const result: string[] = [canonicalInt(`${prefix}.dashAttack`, moves.dashAttack)];
@@ -146,7 +146,7 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
     real(`${name}.travel`, move.startupTravelX ?? 0.0);
     int(`${name}.stopsAtBody`, move.startupStopsAtBody ? 1 : 0);
     if (move.chainsFrom !== undefined) int(`${name}.chainsFrom`, move.chainsFrom);
-    // Optional fields enter the text only when present, so kits without them keep their checksum.
+
     const phases = move.fall ?? [];
     for (let index = 0; index < phases.length; index++) {
       const phase = at(phases, index);
@@ -226,8 +226,8 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
   return result.join("");
 }
 
-/** Wurst's slotOf: -1 for no fighter, -2 for a fighter the roster doesn't seat. */
-/** An authored hero projectile, field by field. */
+
+
 export function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: string): string {
   const result: string[] = [];
   const int = (name: string, value: number) => { result.push(canonicalInt(`${prefix}.${name}`, value)); };
@@ -274,7 +274,7 @@ export function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, pr
   return result.join("");
 }
 
-/** An authored placed object, field by field. */
+
 export function specialPlacementCanonical(spec: Readonly<SpecialPlacement>, prefix: string): string {
   const result: string[] = [];
   const int = (name: string, value: number) => { result.push(canonicalInt(`${prefix}.${name}`, value)); };
@@ -324,7 +324,7 @@ function hitEffectCanonical(hit: Readonly<HitEffect>, prefix: string): string {
     + (hit.manaSteal === undefined ? "" : canonicalInt(`${prefix}.manaSteal`, hit.manaSteal));
 }
 
-/** A hero's authored specials; empty for fighters without them. */
+
 export function fighterSpecialsCanonical(specials: Readonly<FighterSpecials> | undefined, prefix = "specials"): string {
   if (specials === undefined) return "";
   const result: string[] = [];
@@ -334,7 +334,7 @@ export function fighterSpecialsCanonical(specials: Readonly<FighterSpecials> | u
     if (kit.recallGroundOnly === true) result.push(canonicalInt(`${prefix}.kit[${slot}].recallGroundOnly`, 1));
     if (kit.recallWhile !== undefined) result.push(canonicalInt(`${prefix}.kit[${slot}].recallWhile`, kit.recallWhile === "armor" ? 2 : 1));
     const forms = [kit.ground, kit.air, kit.recall, kit.marked?.special];
-    // A fixed count: the list holds undefined forms, which a Lua length would skip.
+    // Use the fixed count because Lua length skips undefined forms.
     for (let form = 0; form < 6; form++) {
       const move = forms[form];
       if (move === undefined) continue;
@@ -480,7 +480,7 @@ export function canonicalSlot(slot: number | undefined, participantMask: number)
   return participantActive(participantMask, slot) ? slot : -2;
 }
 
-/** Two polynomial lanes over printable ASCII; the largest intermediate stays below 2^28 in both runtimes. */
+
 interface ChecksumLanes {
   valid: boolean;
   first: number;
@@ -491,7 +491,7 @@ function foldChecksum(lanes: ChecksumLanes, fragment: string): void {
   foldChecksumRange(lanes, fragment, 0, fragment.length);
 }
 
-/** Folds text's characters from index start up to, not including, end. */
+
 function foldChecksumRange(lanes: ChecksumLanes, text: string, start: number, end: number): void {
   if (!lanes.valid) return;
   let { first, second } = lanes;
@@ -501,7 +501,7 @@ function foldChecksumRange(lanes: ChecksumLanes, text: string, start: number, en
       lanes.valid = false;
       return;
     }
-    // Both operands are nonnegative, where floorMod equals Wurst's mod.
+
     first = floorMod(first * 257 + byte + 1, REPLAY_CHECKSUM_MODULUS);
     second = floorMod(second * 263 + byte + 1, REPLAY_CHECKSUM_MODULUS);
   }
@@ -517,13 +517,13 @@ export function canonicalChecksum(text: string): string {
   return checksumText(lanes);
 }
 
-/** Receives canonical fragments in tape order. */
+
 type Emit = (fragment: string) => void;
 
-// A kit is immutable, so its canonical text is folded once per kit object and
-// a state writes that digest. Map load folds every registered kit
-// (prepareKitDigests), so no match frame builds kit text: one kit's text is
-// millions of Lua instructions (perf bot-blademaster).
+
+
+
+
 const MOVES_DIGESTS = new Map<Readonly<FighterMoves>, string>();
 const SPECIALS_DIGESTS = new Map<Readonly<FighterSpecials>, string>();
 const PLACEMENT_DIGESTS = new Map<Readonly<SpecialPlacement>, string>();
@@ -531,12 +531,12 @@ const placedSpecCanonical = (spec: Readonly<SpecialPlacement>): string => specia
 declare global {
   var __smashcraftKitDigests: Record<string, string | undefined> | undefined;
 }
-// Reloads recreate kit objects. Full canonical text is their identity across
-// reloads; publishing the current table after preparation drops unused texts.
+
+
 const retainedKitDigests: Record<string, string | undefined> = {};
 let kitDigestBuilds = 0;
 
-/** Kit texts folded so far; a match frame after prepareKitDigests adds none. */
+
 export function kitDigestBuildCount(): number {
   return kitDigestBuilds;
 }
@@ -557,7 +557,7 @@ function kitDigestField<K>(name: string, kit: K | undefined, digests: Map<K, str
   return `|${name}.digest=${digest}`;
 }
 
-/** Immutable authored kit identity used by delayed opponent observations. */
+
 export function observedOpponentKitCanonical(fighter: Readonly<Fighter>): string {
   return kitDigestField("moves", fighter.tuning.moves, MOVES_DIGESTS, fighterMovesCanonical)
     + kitDigestField("specials", fighter.tuning.specials, SPECIALS_DIGESTS, fighterSpecialsCanonical);
@@ -584,7 +584,7 @@ function kitText(f: Readonly<Fighter>): string {
 
 export interface ObservationWriter {
   readonly byte: (this: void, code: number) => void;
-  /** Writes the separator before the scalar as well as its canonical number. */
+
   readonly number: (this: void, value: number) => void;
   readonly text: (this: void, text: string, repetitions: number) => void;
 }
@@ -698,7 +698,7 @@ export function writeObservations(writer: ObservationWriter, opponents: Slots<Re
   }
 }
 
-/** Text is materialized only for replay serialization and difference reporting. */
+
 export function botObservationCanonical(sample: Readonly<BotObservationFrame>): string {
   const parts: string[] = [];
   const byte = (code: number) => { parts.push(String.fromCharCode(code)); };
@@ -848,7 +848,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) int(`projectileSerial[${i}]`, at(fighter.projectiles, i).serial);
   int("manaDrainedSerial", v.manaDrained);
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) if (at(fighter.projectiles, i).exReach) int(`projectileExReach[${i}]`, 1);
-  // A pool's growth and strike wait (the Lich King's Defile); written only while either is live.
+
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) {
     const projectile = at(fighter.projectiles, i);
     if (projectile.poolHits !== 0) int(`projectilePoolHits[${i}]`, projectile.poolHits);
@@ -1033,7 +1033,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   emit(kitDigestField(`${prefix}.specials`, t.specials, SPECIALS_DIGESTS, fighterSpecialsCanonical));
   int("manaPoints", fighter.mana.points);
   int("manaDeniedSerial", v.manaDenied);
-  // Other hero state is written only where a hero kit or hero projectile exists.
+
   if (t.specials !== undefined) {
     int("specialForm", sp.form);
     int("specialAimX", sp.aimX);
@@ -1055,7 +1055,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
       int(`${animalName}Serial`, placed.serial);
       for (let i = 0; i < PARTICIPANT_CAPACITY; i++) int(`${animalName}Struck[${i}]`, placed.struck[i] ?? -1);
       int(`${animalName}SpecialStruck`, placed.specialStruck);
-      // Command and movement state exists only for companion objects.
+
       if (placed.spec?.companion !== undefined) {
         int(`${animalName}Mode`, placed.mode);
         int(`${animalName}ModeFrame`, placed.modeFrame);
@@ -1068,12 +1068,12 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
     int("specialGuarded", sp.guarded ? 1 : 0);
     if (st.divineFrames !== 0) int("divineFrames", st.divineFrames);
   }
-  // An item's buff (#196), written only while one runs.
+
   if (st.buff !== 0 || st.buffFrames !== 0) {
     int("buff", st.buff);
     int("buffFrames", st.buffFrames);
   }
-  // Any fighter can carry a hero status; it is written only while one or its immunity is live.
+
   if (st.condition !== 0 || st.conditionImmunity.some(frames => frames !== 0)) {
     int("condition", st.condition);
     int("conditionFrames", st.conditionFrames);
@@ -1145,17 +1145,17 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
   int("match.remainingFrames", match.remainingFrames);
   int("match.matchSeed", match.matchSeed);
   int("match.matchFrame", match.matchFrame);
-  // Only matches with a countdown carry it, so test and practice matches keep their checksums.
+
   if (match.startHold !== 0) int("match.startHold", match.startHold);
   writeMatchItems(match.items, int, bool);
   bool("match.timedOut", match.timedOut);
   bool("match.practice", match.practice);
-  // Only training matches carry training state, so every other match keeps its checksum.
+
   if (match.training) {
     bool("match.training", true);
     writeTrainingState(match.trainer, int, bool, (name, value) => emit(canonicalRealField(name, value)));
   }
-  // Only Classic selection and configured runs carry their state, so every other match keeps its checksum.
+
   if (match.classic) {
     bool("match.classic", true);
     int("match.classicTier", match.classicTier);
@@ -1188,33 +1188,33 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
   }
 }
 
-/** The Replay2 text of a state; capture live state into a snapshot first, as Wurst does. */
+
 export function canonicalState(state: Readonly<ReplayState>): string {
   const parts: string[] = [];
   writeState(fragment => { parts.push(fragment); }, state);
   return parts.join("");
 }
 
-/** canonicalChecksum(canonicalState(state)), folded fragment by fragment without building the text. */
+
 export function stateChecksum(state: Readonly<ReplayState>): string {
   const lanes: ChecksumLanes = { valid: true, first: 0, second: 0 };
   writeState(fragment => foldChecksum(lanes, fragment), state);
   return checksumText(lanes);
 }
 
-/** A state's checksum folded a slice at a time, so no one callback folds the whole text. */
+
 export interface StateChecksumFold {
   readonly text: string;
   position: number;
   readonly lanes: ChecksumLanes;
 }
 
-/** Captures the state's canonical text now; foldStateChecksum folds it later, after the state has moved on. */
+
 export function beginStateChecksum(state: Readonly<ReplayState>): StateChecksumFold {
   return { text: canonicalState(state), position: 0, lanes: { valid: true, first: 0, second: 0 } };
 }
 
-/** Folds up to `characters` more of the text; once all of it is folded, the captured state's stateChecksum. */
+
 export function foldStateChecksum(fold: StateChecksumFold, characters: number): string | undefined {
   const end = Math.min(fold.text.length, fold.position + characters);
   foldChecksumRange(fold.lanes, fold.text, fold.position, end);
@@ -1222,7 +1222,7 @@ export function foldStateChecksum(fold: StateChecksumFold, characters: number): 
   return end === fold.text.length ? checksumText(fold.lanes) : undefined;
 }
 
-/** Folds every registered hero kit's digest; map load calls it before any match frame. */
+
 export function prepareKitDigests(): void {
   for (const moves of [RIFLEMAN_MOVES]) kitDigestField("moves", moves, MOVES_DIGESTS, fighterMovesCanonical);
   for (const hero of HERO_ROSTER) {
@@ -1231,7 +1231,7 @@ export function prepareKitDigests(): void {
     const specials = hero.specials;
     if (specials === undefined) continue;
     for (const kit of [specials.neutral, specials.side, specials.up, specials.down]) {
-      // Only the forms a kit has: in Lua a list holding a missing form (nil) would end there.
+      // Iterate only existing kit forms because a nil stops a Lua list.
       const forms: AuthoredSpecial[] = [kit.ground];
       if (kit.air !== undefined) forms.push(kit.air);
       if (kit.recall !== undefined) forms.push(kit.recall);

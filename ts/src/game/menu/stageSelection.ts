@@ -1,24 +1,24 @@
-// Drag and drop on the stage panel: one shared chip marks the chosen stage.
-// Coordinates are UI frame units (pointer.ts). The state belongs to the local
-// cursor; only a finished choice crosses the sync event.
 
-/** The playable stages' tiles, left to right. */
+
+
+
+
 import { RANDOM_STAGE, STAGE_CHOICES, stageTileIndex, type StageChoice } from "./stageCatalog";
 import { f32 } from "wisp/src/sim/f32";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 export type { StageChoice } from "./stageCatalog";
 
-/** What the button did when it went down. */
+
 type StageGesture =
-  /** Picked up the stage chip; it lands on the tile where the button comes up. */
+
   | { kind: "carry" }
-  /** Pressed a stage tile away from the chip; coming up on the same tile chooses it. */
+
   | { kind: "click"; tile: StageChoice };
 
 interface StageDrag {
-  /** The button state at the last update. */
+
   down: boolean;
-  /** The gesture of the current press, if it is one. */
+
   gesture: StageGesture | undefined;
 }
 
@@ -41,7 +41,7 @@ export function stageTileAt(x: number, y: number): StageChoice | undefined {
   return undefined;
 }
 
-/** The chip is centered on the chosen tile; a press within 0.02 of its center picks it up. */
+
 function onStageChip(choice: number, x: number, y: number): boolean {
   const dx = x - (stageTileLeft(choice) + 0.04699999839067459);
   const dy = y - f32(stageTileTop(choice) - f32(0.0295));
@@ -52,13 +52,13 @@ export function stageDrag(): StageDrag {
   return { down: false, gesture: undefined };
 }
 
-/** The panel closed: any press in progress is forgotten. */
+
 export function clearStageDrag(drag: StageDrag): void {
   drag.down = false;
   drag.gesture = undefined;
 }
 
-/** One frame of the pointer while the panel is open, with the stage chosen now; returns a newly chosen stage. */
+
 export function updateStageDrag(drag: StageDrag, down: boolean, x: number, y: number, choice: number): StageChoice | undefined {
   let chosen: StageChoice | undefined;
   if (down && !drag.down) {

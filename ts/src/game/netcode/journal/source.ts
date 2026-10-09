@@ -1,10 +1,10 @@
-// Local input recorded by the companion helper as a journal: a sequence of
-// immutable canonical I4 packets of one or two rows, each tagged with the
-// frame its row belongs to. A helper behind its clock packs consecutive
-// unsent rows into an I5 message, so holds cost fewer characters to type.
-// The file names and the control acknowledgment text are written by the
-// helper, so their spellings are a
-// protocol.
+// Companion journal filenames and acknowledgment text are an external protocol.
+
+
+
+
+
+
 import { PARTICIPANT_CAPACITY } from "../../input/participants";
 import type { InputRow } from "../../input/inputRow";
 import { type InputPacket, decodeInputMessage, decodePacket } from "../../input/wire";
@@ -12,32 +12,32 @@ import { FUTURE_LIMIT } from "../ledger";
 import { parseDecimal } from "./decimal";
 
 export type JournalRead =
-  /** Nothing to admit yet: no packet, or its rows reach past the admissible frame. */
+
   | { kind: "wait" }
-  /** Not the next canonical packet of this epoch; the journal cannot continue. */
+
   | { kind: "invalid" }
   | { kind: "ready"; packet: InputPacket };
 
-/** Control states the helper acknowledges. */
+
 export type ControlState = "PREPARE" | "PAUSE" | "RESUME";
 
-/** Packets one record may join. */
+
 export const RECORD_PACKETS = 16;
 
 const WAIT: JournalRead = { kind: "wait" };
 const INVALID: JournalRead = { kind: "invalid" };
 
-/**
- * One local player's journal for one epoch. The cursor moves only after the
- * caller has admitted every row of a ready packet and queued those rows for
- * the synchronized channel.
- */
+
+
+
+
+
 export class JournalInputSource {
   private sequence = 1;
   private controlSequence = 1;
   private ready: InputPacket | undefined;
   private buffered: string | undefined;
-  /** Rows of the buffered record already admitted: a joined record may take several callbacks. */
+
   private taken = 0;
 
   private constructor(
@@ -52,31 +52,31 @@ export class JournalInputSource {
     return valid ? new JournalInputSource(build, epoch, slot, delay) : undefined;
   }
 
-  /** The frame the next packet must start at: frames 1..D are neutral seed rows. */
+
   expectedFrame(): number {
     return this.delay + this.sequence;
   }
 
-  /** Rows sent so far, plus one. */
+
   sequenceNumber(): number {
     return this.sequence;
   }
 
-  /** The base name of the helper's file for the next packet. */
+
   packetBase(): string {
     return `smashcraft-journal-${this.build}-e${this.epoch}-s${this.slot}-n${this.expectedFrame()}`;
   }
 
-  /** The last packet read and not yet sent in full, so a waiting packet needs no second read. */
+
   bufferedPacket(): string | undefined {
     return this.buffered;
   }
 
-  /**
-   * Reads I4 packets or an I5 message as one packet of their rows not yet
-   * sent. A packet whose rows reach past latestAdmissibleFrame
-   * waits, buffered.
-   */
+
+
+
+
+
   read(wire: string, latestAdmissibleFrame: number): JournalRead {
     this.ready = undefined;
     if (wire !== this.buffered) this.taken = 0;
@@ -90,7 +90,7 @@ export class JournalInputSource {
     return read;
   }
 
-  /** As read, for a packet the map made itself, such as a keyboard row. */
+
   offer(packet: InputPacket, latestAdmissibleFrame: number): JournalRead {
     this.ready = undefined;
     if (packet.epoch !== this.epoch || packet.firstFrame !== this.expectedFrame()) return INVALID;
@@ -99,11 +99,11 @@ export class JournalInputSource {
     return { kind: "ready", packet };
   }
 
-  /**
-   * Advances past the first `rows` of the ready packet, all of them by
-   * default, once they are admitted and queued to send. The rest of a record
-   * is read again from its next row.
-   */
+
+
+
+
+
   sent(rows = this.ready?.rows.length ?? 0): boolean {
     const ready = this.ready;
     if (ready === undefined || rows < 1 || rows > ready.rows.length) return false;
@@ -121,15 +121,15 @@ export class JournalInputSource {
     return this.controlSequence;
   }
 
-  /** The base name of the helper's acknowledgment for the next control request. */
+
   controlAckBase(): string {
     return `smashcraft-journal-ack-${this.build}-e${this.epoch}-s${this.slot}-n${this.controlSequence}`;
   }
 
-  /**
-   * Accepts "ACK1|<sequence>|<state>|<frame>" for the current control
-   * sequence and expected state, and returns the acknowledged frame.
-   */
+
+
+
+
   acceptControlAck(wire: string, expected: ControlState): number | undefined {
     const prefix = `ACK1|${this.controlSequence}|${expected}|`;
     if (!wire.startsWith(prefix)) return undefined;
@@ -140,7 +140,7 @@ export class JournalInputSource {
   }
 }
 
-/** Consecutive packets of one epoch joined with "|", as one packet of their rows; undefined unless canonical. */
+
 function decodePackets(wire: string): InputPacket | undefined {
   const parts = wire.split("|");
   if (parts.length > RECORD_PACKETS) return undefined;

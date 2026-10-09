@@ -4,16 +4,16 @@ import type { Fighter } from "../sim/fighter";
 import { HERO_STATUS_GROUPS } from "../sim/codes";
 import { shareFighterProjectiles } from "../sim/fighterProjectiles";
 
-// participantActive inline: a snapshot copy asks it for every slot reference.
+
 const retained = (activeMask: number, slot: number | undefined) =>
   (slot !== undefined && activeMask > 0 && activeMask < 16 && slot >= 0 && slot < 4 && (activeMask & (1 << slot)) !== 0 ? slot : undefined);
 
-/**
- * Copies mutable records and shares tuning and projectile values. Projectile
- * writers detach shared values before changing them. A
- * reference to a slot outside activeMask becomes absent, as Wurst's roster
- * remap drops a fighter the source world doesn't seat.
- */
+
+
+
+
+
+
 export function copyFighterState(target: Fighter, source: Readonly<Fighter>, activeMask: number): void {
   target.character = source.character;
   target.facing = source.facing;
@@ -160,7 +160,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
 
   const hits = target.hits;
   const sourceHits = source.hits;
-  // Paired walks index the source directly: a snapshot copies four fighters' tables every frame.
+
   let hit = 0;
   for (const to of hits.entries) {
     const from = sourceHits.entries[hit++];
@@ -198,7 +198,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   special.duration = sourceSpecial.duration;
   special.lockFrames = sourceSpecial.lockFrames;
   special.fall = sourceSpecial.fall;
-  // Both hold SPECIAL_ACTION_CAPACITY numbers.
+
   const cooldowns = special.cooldowns;
   const sourceCooldowns = sourceSpecial.cooldowns;
   for (let i = 0; i < cooldowns.length; i++) cooldowns[i] = sourceCooldowns[i] ?? 0;
@@ -392,10 +392,10 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   }
 }
 
-/** Records nested deeper than this are treated as different. */
+
 const RECORD_DEPTH = 6;
 
-/** Equal fields all the way down, signed zeros apart; shared records compare by identity. */
+
 function sameRecord<T extends object>(a: Readonly<T>, b: Readonly<T>, depth: number): boolean {
   if (depth > RECORD_DEPTH) return false;
   let fields = 0;
@@ -414,10 +414,10 @@ function sameRecord<T extends object>(a: Readonly<T>, b: Readonly<T>, depth: num
   return fields === 0;
 }
 
-/**
- * Whether two fighters hold the same state, as copyFighterState copies it,
- * signed zeros apart; shared projectiles compare by identity first.
- */
+
+
+
+
 export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fighter>): boolean {
   if (target.character !== source.character) return false;
   if (target.facing !== source.facing || (target.facing === 0 && 1 / target.facing !== 1 / source.facing)) return false;

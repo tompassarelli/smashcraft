@@ -41,7 +41,7 @@ export class BodyFlash {
     else seconds = Math.min(seconds, duration);
     BlzSetSpecialEffectTime(this.model, clip.startSeconds + seconds);
     BlzSetSpecialEffectYaw(this.model, facingYaw(fighterPoseFacing(fighter)));
-    // A half-unit toward the camera prevents two coincident surfaces from flickering.
+
     placeEffect(this.model, this.origin.x + this.placement.x, this.origin.y - 0.5, this.origin.z + this.placement.z);
     BlzSetSpecialEffectScale(this.model, characterModelScale(fighter.character));
     BlzSetSpecialEffectAlpha(this.model, alpha);

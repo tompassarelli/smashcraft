@@ -1,20 +1,20 @@
-// Journal text published as files of one symbol each, for ingress paths that
-// read files. The helper writes "<base>-c<offset>.pld" for every symbol, then
-// "<base>-length.pld", whose single I4-alphabet digit is the symbol count. The
-// marker is published last, so a missing file means "not yet", never
-// "malformed". File names are a protocol.
+// Companion vocabulary filenames are a protocol; publish the readiness marker last.
+
+
+
+
 import { ALPHABET, HEADER_MIN_BYTES, PACKET_MAX_BYTES, RECORD_MIN_BYTES } from "../../input/wire";
 
 export const symbolFile = (base: string, offset: number) => `${base}-c${offset}.pld`;
 export const markerFile = (base: string) => `${base}-length.pld`;
 
-/** Reads one published file's text: undefined while it is missing or empty. */
+
 export type ReadFile = (filename: string) => string | undefined;
 
 export type VocabularyRead =
-  /** Not published yet, or still being published. */
+
   | { kind: "missing" }
-  /** Published text no writer produces; the journal cannot continue. */
+
   | { kind: "invalid"; reason: "invalid-vocabulary-length" | "invalid-vocabulary-symbol" }
   | { kind: "text"; text: string };
 
@@ -37,12 +37,12 @@ function readText(read: ReadFile, base: string, minimum: number, maximum: number
   return { kind: "text", text };
 }
 
-/** An I4 packet the helper published under base; the journal source validates its text. */
+
 export function readVocabularyPacket(read: ReadFile, base: string): VocabularyRead {
   return readText(read, base, HEADER_MIN_BYTES + RECORD_MIN_BYTES, PACKET_MAX_BYTES, ALPHABET);
 }
 
-/** A control acknowledgment ("ACK1|..."), as long as one marker digit can count. */
+
 export function readVocabularyControlAck(read: ReadFile, base: string): VocabularyRead {
   return readText(read, base, 1, ALPHABET.length - 1, `${ALPHABET}|`);
 }

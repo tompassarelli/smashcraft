@@ -1,15 +1,15 @@
-// Natives of edit box journal ingress (game/netcode/journal/editbox.ts): the
-// box and its pause hint, the hand-off of keyboard focus to Warcraft's chat
-// entry, and the receipts the helper polls. Every call here is local UI.
+
+
+
 import { EDITBOX_CAPACITY, type EditboxFailure, EditboxSession, pauseLabel } from "../game/netcode/journal/editbox";
 import { trampoline } from "wisp/src/platform/dispatch";
 import { readChunk, writeLine } from "wisp/src/platform/fileio";
 import { nativeChatFile } from "../runtime/gameFiles";
 
-/** The dispatch name of Enter in the box, the local player's request to chat; register its handler with on(). */
+
 export const EDITBOX_ENTER = "journal.editboxEnter";
 
-/** Warcraft 3.0's chat entry: two unnamed children, a leafless recipient label and a four-child edit box whose first child has five. */
+// Warcraft 3.0 chat entry shape: recipient leaf plus four-child edit box whose first child has five.
 function isChatEntry(frame: framehandle): boolean {
   if (BlzFrameGetName(frame) !== "" || BlzFrameGetChildrenCount(frame) !== 2) return false;
   const label = BlzFrameGetChild(frame, 0);
@@ -20,7 +20,7 @@ function isChatEntry(frame: framehandle): boolean {
   return BlzFrameGetName(text) === "" && BlzFrameGetChildrenCount(text) === 5;
 }
 
-/** The chat entry has no frame name; undefined unless exactly one child of the game UI has its shape. */
+
 function chatEntry(gameUi: framehandle): framehandle | undefined {
   let found: framehandle | undefined;
   for (let index = 0; index < BlzFrameGetChildrenCount(gameUi); index++) {
@@ -37,11 +37,11 @@ export function warcraftChatOpen(): boolean {
   return chat !== undefined && BlzFrameIsVisible(chat);
 }
 
-/**
- * The edit box the helper types into. Construct on every client after map
- * initialization: frames are shared handles, and the chat entry is found
- * before any local visibility change.
- */
+
+
+
+
+
 export class EditboxIngress {
   private readonly box: framehandle;
   private readonly hint: framehandle;
@@ -73,7 +73,7 @@ export class EditboxIngress {
     writeLine(name, line);
   }
 
-  /** Gives the box the keyboard: empty, visible and focused. */
+
   private take(): void {
     BlzFrameSetText(this.box, "");
     BlzFrameSetVisible(this.box, true);
@@ -99,17 +99,17 @@ export class EditboxIngress {
     BlzFrameSetText(this.box, "");
   }
 
-  /** Why ingress stopped this epoch, if it did. */
+
   failure(): EditboxFailure | undefined {
     return this.session?.failure;
   }
 
-  /** Whether Warcraft's chat entry is open on this client. */
+
   chatOpen(): boolean {
     return this.chat !== undefined && BlzFrameIsVisible(this.chat);
   }
 
-  /** Developer capture drivers wait for this local observation before typing command text. */
+
   publishChat(build: string, slot: number): void {
     const open = this.chatOpen();
     if (this.observedChat === open) return;
@@ -118,12 +118,12 @@ export class EditboxIngress {
     writeLine(nativeChatFile(build, slot), `SMASHCRAFT CHAT v=1 build=${build} slot=${slot} revision=${this.chatRevision} available=${this.chat !== undefined ? 1 : 0} open=${open ? 1 : 0}`);
   }
 
-  /** The local player's latest chat request this epoch. */
+
   chatSerial(): number | undefined {
     return this.session?.chatSerial;
   }
 
-  /** Local paused controls stay outside the journal's complete or partial text envelopes. */
+
   takePauseControls(): string {
     if (this.session?.chat !== "receiving" || !BlzIsLocalClientActive()) return "";
     const text = BlzFrameGetText(this.box);
@@ -150,11 +150,11 @@ export class EditboxIngress {
     return controls;
   }
 
-  /**
-   * Drains newly typed text and returns the next payload to apply, which
-   * stays next until consumed(). Undefined while there is none, while the
-   * player chats, after a failure, or while the client is in the background.
-   */
+
+
+
+
+
   peek(): string | undefined {
     const { session } = this;
     if (session === undefined || !session.receiving() || !BlzIsLocalClientActive()) return undefined;
@@ -164,7 +164,7 @@ export class EditboxIngress {
     return session.failure === undefined ? session.stream.next() : undefined;
   }
 
-  /** The payload from peek() was applied; false sets the failure. */
+
   consumed(): boolean {
     return this.session?.consume() === true;
   }
@@ -176,16 +176,16 @@ export class EditboxIngress {
     this.writeReceipt(session);
   }
 
-  /**
-   * Advances a chat hand-off; true when the box has taken the keyboard back.
-   * paused: the shared pause is in effect, so the helper may stop typing.
-   */
+
+
+
+
   serviceChat(paused: boolean): boolean {
     const { session, chat } = this;
     if (session === undefined) return false;
     switch (session.chat) {
       case "requested":
-        // "Q": the helper consumed its last receipt and stopped typing. The box keeps focus until then.
+
         if (!paused || readChunk(session.chatFile()) !== "Q") return false;
         BlzFrameSetFocus(this.box, false);
         BlzFrameSetVisible(this.box, false);
@@ -208,13 +208,13 @@ export class EditboxIngress {
     return false;
   }
 
-  /** Call once per game tick: drained text is acknowledged in batches. */
+
   tick(): void {
     const { session } = this;
     if (session?.tick() === true) this.writeReceipt(session);
   }
 
-  /** Acknowledges at once, as when the last record of an epoch is applied. */
+
   flushReceipt(): void {
     if (this.session !== undefined) this.writeReceipt(this.session);
   }

@@ -1,5 +1,5 @@
-// Temporary native probe for deciding which clock measures work in Warcraft.
-// It is invoked only by the explicit development console command.
+
+
 import { frameCostClockFile } from "../../runtime/gameFiles";
 declare const os: { readonly clock?: () => number } | undefined;
 
@@ -14,7 +14,7 @@ function readOsClock(): number | undefined {
   return os.clock();
 }
 
-/** Reports Lua os.clock and Warcraft timer progress around the same bounded loop. */
+
 export function probeFrameCostClock(): void {
   const hasOs = typeof os !== "undefined";
   const hasOsClock = hasOs && typeof os.clock === "function";

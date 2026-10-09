@@ -1,26 +1,26 @@
-// Competitive pickups (#196; smashcraft:docs/gameplay-design.md, "Items"):
-// one item at a time appears at the centre of the stage on a seeded timer,
-// announced 10 seconds ahead. Every field is match state: copied for
-// rollback, written to the canonical checksum and restored by replays.
+
+
+
+
 import { ALL_ITEMS_MASK, ItemKind } from "../sim/codes";
 
 export interface MatchItems {
-  /** The match setting: items appear at all. On in the standard ruleset. */
+
   on: boolean;
-  /** The match setting: which kinds may appear (codes.ts itemBit). */
+
   enabledMask: number;
-  /** The item standing at the centre, ItemKind.none while none does. */
+
   kind: number;
-  /** Match frame the next item appears on; 0 while none is scheduled (one stands, or items are off). */
+
   nextSpawnFrame: number;
-  /** The kind the next spawn brings, drawn with its time so the warning can name it. */
+
   nextKind: number;
-  /** Items drawn this match; seeds each draw with the match seed. */
+
   draws: number;
-  /** Counts appearances and pickups, so presentation plays each cue once. */
+
   spawnSerial: number;
   pickupSerial: number;
-  /** The participant who took the latest item, -1 before any. */
+
   lastTaker: number;
 }
 
@@ -40,7 +40,7 @@ export function copyMatchItems(target: MatchItems, source: Readonly<MatchItems>)
   target.lastTaker = source.lastTaker;
 }
 
-/** The match-local part, cleared at every match start; the two settings persist. */
+
 export function resetMatchItems(items: MatchItems): void {
   items.kind = ItemKind.none;
   items.nextSpawnFrame = 0;
@@ -51,7 +51,7 @@ export function resetMatchItems(items: MatchItems): void {
   items.lastTaker = -1;
 }
 
-/** The first differing field, for replay diffs. */
+
 export function firstItemsDifference(e: Readonly<MatchItems>, a: Readonly<MatchItems>): string | undefined {
   if (e.on !== a.on) return "match.items.on";
   if (e.enabledMask !== a.enabledMask) return "match.items.enabledMask";
@@ -65,10 +65,10 @@ export function firstItemsDifference(e: Readonly<MatchItems>, a: Readonly<MatchI
   return undefined;
 }
 
-/**
- * Canonical fields. Written only when they differ from a fresh standard match,
- * so an unscheduled standard match contributes no extra fields.
- */
+
+
+
+
 export function writeMatchItems(items: Readonly<MatchItems>, int: (name: string, value: number) => void, bool: (name: string, value: boolean) => void): void {
   if (!items.on) bool("match.items.on", false);
   if (items.enabledMask !== ALL_ITEMS_MASK) int("match.items.enabledMask", items.enabledMask);

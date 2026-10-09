@@ -1,5 +1,5 @@
-// The unit each fighter animates when no pool presents it. Every client
-// creates the same units, as shared handles, at the same synchronized points.
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { ShieldBreak } from "../../game/sim/codes";
 import { fighterPoseFacing } from "../../game/sim/conditions";
@@ -12,13 +12,13 @@ import { applyFighterObject } from "../objectData";
 import { fitFighterPlacement } from "../../game/presentation/fighterPlacement";
 import { characterModelScale } from "../../game/presentation/modelScale";
 
-/** Crow Form, added and removed so the unit's flying height can change. */
+
 const CROW_FORM = 0x416d7266;
-/** Locust: no selection, no collision. */
+
 const LOCUST = 0x416c6f63;
 const DIZZY_MODEL = "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdx";
 
-// Preallocated: every callback projects each fighter without retaining offsets.
+
 const placement = { x: 0.0, z: 0.0 };
 
 export function placeFighterBody(body: FighterBody, fighter: Readonly<Fighter>, origin: WorldOrigin, stage = 0): void {
@@ -53,7 +53,7 @@ function clearDizzy(body: FighterBody): void {
   body.dizzy = undefined;
 }
 
-/** The dizzy mark follows a shield-broken fighter while the match runs. */
+
 export function renderDizzy(body: FighterBody, fighter: Readonly<Fighter>, playing: boolean, origin: WorldOrigin): void {
   if (fighter.shield.breakState !== ShieldBreak.dizzy || fighter.status.out || !playing) {
     clearDizzy(body);

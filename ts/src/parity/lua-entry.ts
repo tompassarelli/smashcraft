@@ -1,4 +1,4 @@
-// Standalone Lua 5.3 entry: prints every corpus result as round-trippable text.
+
 import { evaluateCase } from "./corpus";
 
 const count = 2000;

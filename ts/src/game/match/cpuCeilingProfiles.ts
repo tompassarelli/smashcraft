@@ -3,7 +3,7 @@ import { AttackStyle } from "../sim/codes";
 
 export type CeilingMode = "expert" | "basic" | "execution" | "judgment" | "ceiling";
 
-/** The rig removes mistakes on one axis while retaining legal observation delays and identity preferences. */
+
 export function ceilingSkill(skill: CpuSkill, mode: CeilingMode, basicMoves: readonly number[] = []): CpuSkill {
   if (mode === "expert") return skill;
   if (mode === "basic") return { ...skill, basicMoves, kitTenths: 0, mixesUp: false, grabsShields: basicMoves.includes(AttackStyle.grab) };

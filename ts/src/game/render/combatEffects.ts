@@ -1,5 +1,5 @@
-// Impact sparks, dust and KO bodies. Every handle is created with the match;
-// effects never feed back into combat, and playback creates or destroys none.
+
+
 import { DEMON_HUNTER_MODEL_FILE } from "../presentation/demonHunterAssetInfo";
 import { RIFLEMAN_MODEL_FILE } from "../presentation/fighterAssetInfo";
 import {
@@ -37,15 +37,15 @@ import { tierSoundPaths } from "../presentation/moveTiers";
 import { KO_BLUR_DISTANCE, type KoFlash, createKoFlash, endKoFlash, koFlashLevels, noteKoFlash } from "../presentation/koFlash";
 import type { Fighter } from "../sim/fighter";
 
-/** A KO body per star-KO impact and selectable fighter, so any fighter can fly off as itself. */
+
 const KO_FIGHTERS = SELECTABLE_CHARACTERS.length;
 const KO_BODY_COUNT = IMPACTS_PER_KIND * 2 * KO_FIGHTERS;
 const STAR_KO_FIRST = IMPACT_STAR_KO * IMPACTS_PER_KIND;
-/** Star-KO sparkles play far behind the stage, against the sky. */
+
 const STAR_KO_DEPTH = 1400.0;
-/** A confirmed hit within this many frames of a contact spark already drawn is that spark. */
+
 const SAME_HIT_FRAMES = 2;
-/** Frames of drawn contact sparks remembered per kind: longer than any correction takes to confirm. */
+
 const DRAWN_FRAMES = 64;
 
 
@@ -58,32 +58,32 @@ export function fighterModel(character: number): string {
 export class CombatEffects {
   private readonly impacts: effect[] = [];
   private readonly koBodies: effect[] = [];
-  /** Each impact slot's age when last shown; created on first use, so a pool retained across a reload gains it. */
+
   private soundFrames: number[] = [];
 
   private shownAges: (number | undefined)[] | undefined;
-  /** Per impact slot, the frame the drawn impact was emitted on. */
+
   private shownEmissions: (number | undefined)[] = [];
-  /** Per contact kind, the frames its drawn sparks were emitted on, at the frame's place in a DRAWN_FRAMES ring. */
+
   private drawnContacts: number[] = [];
-  /**
-   * Sparks for confirmed hits that predicted presentation never drew: a
-   * correction that arrives after a spark's window would otherwise drop it.
-   * Its ages count presented frames from the correction, not executed ones.
-   */
+
+
+
+
+
   private late: ImpactState | undefined;
-  /** Per late slot, the confirmed frame of a hit not yet checked against what was drawn. */
+
   private lateConfirmed: (number | undefined)[] = [];
   private lateLive = 0;
   private presentedFrame: number | undefined;
-  /** Created on first use, so a pool retained across a reload gains it. */
+
   private koFlash: KoFlash | undefined;
   private koFlashShown = false;
-  /** Per KO impact, whether every one of its bodies is parked; created on first use, so a pool retained across a reload gains it. */
+
   private koParked: (boolean | undefined)[] | undefined;
-  /** Impacts at their pool index, then KO bodies. */
+
   private parked: ParkedFlags | undefined;
-  /** The impacts' plane, just in front of the fighters; hidden models park beneath it. */
+
   readonly x: number;
   readonly y: number;
   readonly z: number;
@@ -128,12 +128,12 @@ export class CombatEffects {
     this.hideKoFlash();
   }
 
-  /** Notes a fighter's confirmed frame for the KO flash, which only a confirmed KO starts. */
+
   confirmKo(frame: number, slot: number, fighter: Readonly<Fighter>, events: Readonly<ImpactEvents>): void {
     noteKoFlash((this.koFlash ??= createKoFlash()), frame, slot, fighter, events);
   }
 
-  /** Silverpine's calls: a white mask over the screen and the camera's depth of field, on this client only. */
+
   private presentKoFlash(frame: number, playing: boolean): void {
     const flash = this.koFlash;
     const levels = flash === undefined ? undefined : koFlashLevels(flash, frame);
@@ -166,21 +166,21 @@ export class CombatEffects {
     SetCameraField(CAMERA_FIELD_DEPTH_OF_FIELD_SCALE, 0.0, 0.0);
   }
 
-  /**
-   * Notes the contact sparks of a confirmed frame's events. `present` shows
-   * each one that predicted presentation never drew, from the start of its
-   * spark, so a hit corrected in after its spark's window still shows one.
-   */
+
+
+
+
+
   confirmContacts(frame: number, events: Readonly<ImpactEvents>): void {
     if (!events.hit && !events.shieldHit && !events.shieldReflect && !events.shieldBreak) return;
     const late = (this.late ??= createImpactState());
     emitImpacts(late, events, frame);
     let live = 0;
-    // Pool arrays hold undefined for free slots, so loops run to IMPACT_COUNT, never to a Lua length.
+    // Use IMPACT_COUNT because free slots are undefined and Lua length skips them.
     for (let i = 0; i < IMPACT_COUNT; i++) {
-      // A noted slot is one an earlier frame of this callback emitted.
+
       if (late.ages[i] === 0 && this.lateConfirmed[i] === undefined) {
-        // The events' other cues (dust, jumps, landings) are predicted presentation's alone.
+
         if (isContactImpact(floorDiv(i, IMPACTS_PER_KIND))) this.lateConfirmed[i] = frame;
         else clearImpactSlot(late, i);
       }
@@ -189,13 +189,13 @@ export class CombatEffects {
     this.lateLive = live;
   }
 
-  /** Only completed frames dispatch sounds; replay never calls this method. */
+
   presentConfirmed(frame: number, slot: number, events: Readonly<ImpactEvents>, soundPlayed?: (sound: string, volume: number, pitch: number) => void): void {
     const previous = this.soundFrames[slot];
     if (previous !== undefined && frame <= previous) return;
     this.soundFrames[slot] = frame;
     presentImpactSounds(events, (sound, x, z, volume, pitch, file) => {
-      // A tier's weapon sound or swing plays its file at UnitCombatSounds.slk's distances; a label carries its own.
+
       const cue = file ? CreateSound(sound, false, true, true, 10, 10, "CombatSoundsEAX") : CreateSoundFromLabel(sound, false, true, true, 10000, 10000);
       if (file) {
         SetSoundDistances(cue, 600.0, 3500.0);
@@ -210,10 +210,10 @@ export class CombatEffects {
     });
   }
 
-  /**
-   * KO impacts come from confirmed state, so a rollback never replays one; the
-   * rest from `state`, as of `frame`, then late sparks where `state` shows none.
-   */
+
+
+
+
   present(state: Readonly<ImpactState>, frame: number, confirmed: Readonly<ImpactState>, playing: boolean): void {
     const shownAges = (this.shownAges ??= []);
     const parked = (this.parked ??= []);
@@ -224,17 +224,17 @@ export class CombatEffects {
       const kind = floorDiv(i, IMPACTS_PER_KIND);
       const source = kind === IMPACT_STAR_KO || kind === IMPACT_SCREEN_KO ? confirmed : state;
       const age = source.ages[i];
-      // An empty slot projects hidden, and most of the pool is empty for most of a match.
+
       const pose = playing && age !== undefined ? projectImpact(source, i) : undefined;
       if (pose === undefined || !pose.visible) {
-        // The late pass below shows or parks a slot holding a late spark.
+
         if (parked[i] !== true && (this.lateLive === 0 || this.late?.ages[i] === undefined)) parkOnce(model, this, parked, i);
         shownAges[i] = undefined;
         this.shownEmissions[i] = undefined;
         continue;
       }
-      // The slot's next impact took it while the last one still showed: park it
-      // first, as a new effect would start there. The callback draws only its final pose.
+
+
       const last = shownAges[i];
       if (last !== undefined && age !== undefined && age < last) hideEffect(model, this);
       if (last === undefined || age !== undefined && age < last) {
@@ -252,7 +252,7 @@ export class CombatEffects {
       const group = floorDiv(i, KO_FIGHTERS);
       const impact = STAR_KO_FIRST + group;
       if (!playing || confirmed.ages[impact] === undefined) {
-        // A KO impact's bodies all park together, and almost every frame has none flying.
+
         if (koParked[group] !== true) {
           for (let body = i; body < i + KO_FIGHTERS; body++) {
             const hidden = this.koBodies[body];
@@ -284,7 +284,7 @@ export class CombatEffects {
   private place(model: effect, i: number, kind: number, pose: ReturnType<typeof projectImpact>): void {
     const parked = (this.parked ??= []);
     parked[i] = false;
-    // Flat contact geometry must sit beyond the body, which extends 115 units toward the camera.
+
     const depth = kind === IMPACT_STAR_KO ? STAR_KO_DEPTH
       : isContactImpact(kind) || kind === IMPACT_GRAB || kind === IMPACT_THROW ? -120.0 : 0.0;
     BlzSetSpecialEffectAlpha(model, pose.alpha);
@@ -293,7 +293,7 @@ export class CombatEffects {
     placeEffect(model, this.x + pose.x, this.y + depth, this.z + pose.z);
   }
 
-  /** Records a contact spark drawn from `state`, once per emission. */
+
   private drawn(i: number, kind: number, emitted: number): void {
     if (!isContactImpact(kind) || this.shownEmissions[i] === emitted) return;
     this.shownEmissions[i] = emitted;
@@ -307,11 +307,11 @@ export class CombatEffects {
     return false;
   }
 
-  /**
-   * Checks each newly confirmed hit against the sparks drawn, after this
-   * callback's, then shows the late sparks in the handles `state` leaves free.
-   * Late sparks age once a presented frame, so a pause holds them.
-   */
+
+
+
+
+
   private presentLate(state: Readonly<ImpactState>, frame: number, playing: boolean): void {
     const late = this.late;
     if (late === undefined) return;
@@ -330,7 +330,7 @@ export class CombatEffects {
         if (model !== undefined && state.ages[i] === undefined) parkOnce(model, this, parked, i);
         continue;
       }
-      // A spark `state` draws in this handle wins it; the late one keeps aging.
+
       if (state.ages[i] === undefined) {
         if (age === 0) {
           BlzSetSpecialEffectAnimation(model, impactAnimation(kind));

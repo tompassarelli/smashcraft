@@ -8,7 +8,7 @@ import { runningHeroSpecial } from "../sim/heroSpecialRules";
 import { attackDurationFramesForGrounding } from "../sim/moves";
 import { DEMONHUNTER_GLIDE_SLASH_FIRST, DEMONHUNTER_GLIDE_SLASH_LAST, DEMONHUNTER_GLIDE_SLASH_FORM, DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, felRushRegion, flameCrashRegion, immolationRegion, glideSlashRegion } from "../sim/specials";
 
-/** Warcraft's own moving spell/weapon art from each fighter's kit or race, held as its contact accent. */
+
 export const DISJOINT_MODELS: { readonly [character: number]: string } = {
   [Character.rifleman]: "Abilities\\Weapons\\GyroCopter\\GyroCopterMissile.mdx",
   [Character.demonHunter]: "Abilities\\Weapons\\DemonHunterMissile\\DemonHunterMissile.mdx",
@@ -38,7 +38,7 @@ export const DISJOINT_MODELS: { readonly [character: number]: string } = {
   [Character.medivh]: "Abilities\\Weapons\\DruidoftheTalonMissile\\DruidoftheTalonMissile.mdx",
 };
 
-/** Beyond the current body by more than half its standing width, along either gameplay axis. */
+
 export function isDisjointRegion(fighter: Readonly<Fighter>, region: Readonly<HitRegion>): boolean {
   let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
   for (const part of fighterHurtParts(fighter)) {
@@ -51,7 +51,7 @@ export function isDisjointRegion(fighter: Readonly<Fighter>, region: Readonly<Hi
   return region.effect.damage > 0.0 && (region.minX < minX - halfWidth || region.maxX > maxX + halfWidth || region.minZ < minZ - halfWidth || region.maxZ > maxZ + halfWidth);
 }
 
-/** Called once while creating a fighter's presentation, never during a callback. */
+
 export function disjointNormals(fighter: Fighter): readonly AttackStyle[] {
   const styles: AttackStyle[] = [];
   const scratch = emptyHitRegion();
@@ -78,7 +78,7 @@ export function disjointNormals(fighter: Fighter): readonly AttackStyle[] {
   return styles;
 }
 
-/** The same special regions the collision code reads, on its entry-one clock. */
+
 export function specialAreaRegion(fighter: Readonly<Fighter>, index: number): Readonly<HitRegion> {
   const move = runningHeroSpecial(fighter);
   if (move !== undefined) {
@@ -99,7 +99,7 @@ export interface HitAreaPose { visible: boolean; x: number; z: number; scale: nu
 
 export interface FanKnifePose extends HitAreaPose { yaw: number; pitch: number; alpha: number; }
 
-/** Warden's seven outward knives follow the authored rays through the cast. */
+
 export function fanKnifePose(fighter: Readonly<Fighter>, index: number, out: FanKnifePose): FanKnifePose {
   const frame = fighter.special.frame;
   const ray = runningHeroSpecial(fighter)?.regions?.[index]?.hit.strike;
@@ -117,7 +117,7 @@ export function fanKnifePose(fighter: Readonly<Fighter>, index: number, out: Fan
   return out;
 }
 
-/** World centre, independent of fighter model scale, camera or facing. */
+
 export function hitAreaPose(fighter: Readonly<Fighter>, region: Readonly<HitRegion>, out: HitAreaPose): HitAreaPose {
   out.visible = region.effect.damage > 0.0 && !fighter.status.out;
   out.x = f32(fighter.motion.x + f32(fighter.facing * f32(f32(region.minX + region.maxX) * 0.5)));

@@ -1,5 +1,5 @@
-// Estimates over already eligible actions; the reach/legality owner still
-// supplies the candidates. Value is deliberately fallible, not an oracle.
+
+
 import { at } from "wisp/src/runtime/lookup";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { f32 } from "wisp/src/sim/f32";
@@ -35,7 +35,7 @@ const hit = emptyHitRegion();
 const NORMAL_STYLES = Object.values(AttackStyle);
 const noEffect: Readonly<HitEffect> = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false };
 
-/** Reads authored strike data; unpriced original specials retain their existing gameplan share. */
+
 function estimate(own: Readonly<Fighter>, option: number): MoveEstimate | undefined {
   if (option >= 30) {
     const specials = own.tuning.specials;
@@ -70,7 +70,7 @@ function estimate(own: Readonly<Fighter>, option: number): MoveEstimate | undefi
   let damage = 0.0;
   let effect = noEffect;
   if (move !== undefined) {
-    // A contact window hits once even when several capsules overlap.
+
     for (const region of move.regions) {
       const window = region.hit.window;
       if (window <= 0) continue;
@@ -95,7 +95,7 @@ function estimate(own: Readonly<Fighter>, option: number): MoveEstimate | undefi
   return { damage, effect, startup, recovery: Math.max(0, attackDurationFramesForGrounding(style, own.motion.grounded, own.tuning.moves) - startup), travel: move?.startupTravelX ?? 0.0 };
 }
 
-/** Own stocks/clock are public; opponent percent/stocks come from the delayed sample. */
+
 export function comebackPressure(own: Readonly<Fighter>, target: Readonly<Fighter>, game: Readonly<MatchState>): number {
   const stocks = Math.max(0, target.status.stocks - own.status.stocks);
   const trailing = own.status.stocks < target.status.stocks || (own.status.stocks === target.status.stocks && own.status.damage > target.status.damage);
@@ -103,7 +103,7 @@ export function comebackPressure(own: Readonly<Fighter>, target: Readonly<Fighte
   return Math.min(100, stocks * 25 + (trailing && shortClock ? 50 : 0));
 }
 
-/** Reward, punish exposure and stage position are compared at the observed percent. */
+
 export function estimatedMoveValue(move: MoveEstimate, own: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, success: number, policy: CpuDecisionPolicy, pressure: number): number {
   const afterDamage = f32(target.status.damage + move.damage);
   const knockback = contactKnockback(afterDamage, move.damage, knockbackWeight(target), move.effect.growth, move.effect.base, 1.0);
@@ -113,7 +113,7 @@ export function estimatedMoveValue(move: MoveEstimate, own: Readonly<Fighter>, t
   const horizontal = Math.max(0.0, f32(f32(move.effect.launchX * facing) * outward));
   const vertical = Math.max(0.0, move.effect.launchZ);
   const distance = horizontal > vertical ? f32((outward > 0 ? blast.right : f32(-blast.left)) - Math.abs(target.motion.x)) : f32(blast.top - target.motion.z);
-  // The launch model estimates a useful trajectory; recoveries and DI can invalidate it.
+
   const projected = f32(f32(knockback * Math.max(horizontal, vertical)) * 4.0);
   const kill = Math.max(0, Math.min(100, Math.floor(f32(f32(projected - distance) + 100.0))));
   const reward = Math.floor(f32(move.damage * 6.0)) + floorDiv(kill * 2, 1);
@@ -121,7 +121,7 @@ export function estimatedMoveValue(move: MoveEstimate, own: Readonly<Fighter>, t
   const risk = floorDiv(punish * policy.punishWeight, 100);
   const endX = f32(own.motion.x + f32(move.travel * facing));
   const position = Math.min(20, Math.floor(f32(f32(Math.abs(own.motion.x) - Math.abs(endX)) * f32(0.1))));
-  // Higher-variance comeback appetite applies only under a stock or clock deficit; the authored variance scales it.
+
   const varianceReward = floorDiv(floorDiv(pressure * (100 + policy.variancePercent), 100) * (kill + move.startup), 100);
   return floorDiv(success * reward, 100) - floorDiv((100 - success) * risk, 100) + position + varianceReward;
 }
@@ -148,7 +148,7 @@ function successEstimate(own: Readonly<Fighter>, target: Readonly<Fighter>, opti
   return Math.max(10, Math.min(95, chance - floorDiv(move.startup, 3)));
 }
 
-/** Weights stay positive, retaining mix-ups and the fighter's existing kit/gameplan. */
+
 export function moveValueMultiplier(own: Readonly<Fighter>, target: Readonly<Fighter>, option: number, decision: AttackDecision): number {
   const move = estimate(own, option);
   if (move === undefined) return 4;
@@ -157,7 +157,7 @@ export function moveValueMultiplier(own: Readonly<Fighter>, target: Readonly<Fig
   return Math.max(1, Math.min(12, 4 + floorDiv(value, 25)));
 }
 
-/** A familiar answer remains legal/eligible; low judgment also overvalues smashes. */
+
 export function familiarOption(options: readonly number[], count: number, own: Readonly<Fighter>, frame: number, decision: AttackDecision): number | undefined {
   const policy = decision.policy;
   if (botChance(frame, own.character * 43 + own.attack.serial, policy.judgmentPercent, 100)) return undefined;

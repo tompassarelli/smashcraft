@@ -3,31 +3,31 @@ import { floorDiv } from "wisp/src/sim/intMath";
 
 export type KeySlot = 0 | 1;
 
-/** Two key slots per action. */
+
 export const KEY_SLOT_COUNT = ACTION_COUNT * 2;
 
-/**
- * Warcraft key codes for every action's two slots, at slotIndex(action, slot):
- * the order of the save format and of held-key tracking. 0 is an empty slot, as
- * in the save format, because a Lua array can't hold undefined. A key fills at
- * most one slot.
- */
+// Saved binding slots use 0 for empty because Lua arrays cannot hold undefined.
+
+
+
+
+
 export interface KeyBindings {
   keys: number[];
 }
 
-/** Standard keeps the number-row keys on 7 and 8; the owner's custom layout moves them to 8 and 9. */
+
 export type BindingPreset = "standard" | "custom";
 
 const EMPTY = 0;
 const SPACE = 32;
 const SEMICOLON = 186;
 const SLASH = 191;
-/** Letters and digits have their character codes. */
+
 const code = (character: string) => character.charCodeAt(0);
 
-// Menu and developer controls stay available whatever the bindings: Escape,
-// Return (Warcraft's chat), Y (start/pause), F1, F5, F6, F7 and K (save a moment).
+
+
 const RESERVED_KEYS: readonly number[] = [13, 27, 75, 89, 112, 116, 117, 118];
 
 export function slotIndex(action: Action, slot: KeySlot): number {
@@ -71,7 +71,7 @@ export function actionFor({ keys }: Readonly<KeyBindings>, key: number): Action 
   return index < 0 ? undefined : ACTION_ORDER[floorDiv(index, 2)];
 }
 
-/** Fills or empties one slot; false for a reserved, out-of-range or already bound key. */
+
 function bindSlot(keys: number[], index: number, key: number): boolean {
   if (key !== EMPTY) {
     if (key < 1 || key > 255 || RESERVED_KEYS.includes(key)) return false;
@@ -81,16 +81,16 @@ function bindSlot(keys: number[], index: number, key: number): boolean {
   return true;
 }
 
-/** Binds a key to a slot, or empties the slot for undefined. False leaves the bindings unchanged. */
+
 export function rebind(bindings: KeyBindings, action: Action, slot: KeySlot, key: number | undefined): boolean {
   if (key === EMPTY) return false;
   return bindSlot(bindings.keys, slotIndex(action, slot), key ?? EMPTY);
 }
 
-// ---------------------------------------------------------------- saves
 
-// A version, then each slot's key code as three decimal digits. K2/K3 saves
-// predate light shield; K1 saves also predate the tilt slots. K4 predates its T key.
+
+
+
 const CURRENT_SAVE = "K5";
 const SAVED_SLOTS: Readonly<Record<string, number>> = { K1: 28, K2: 30, K3: 30, K4: KEY_SLOT_COUNT, [CURRENT_SAVE]: KEY_SLOT_COUNT };
 const DIGITS = "0123456789";
@@ -109,17 +109,17 @@ function readKey(saved: string, offset: number): number | undefined {
   return value;
 }
 
-/** Upgrades an older save's defaults, never displacing a key the player has since bound elsewhere. */
+
 function upgradeDefaults(bindings: KeyBindings, version: string): void {
   const { keys } = bindings;
   const free = (...candidates: number[]) => candidates.every((key) => !keys.includes(key));
   const first = (action: Action) => keyFor(bindings, action, 0);
   if (keyFor(bindings, Action.lightShield, 1) === undefined && free(code("T"))) rebind(bindings, Action.lightShield, 1, code("T"));
   if (version === "K1" && free(code("P"))) rebind(bindings, Action.walk, 0, code("P"));
-  // Grab moved from L to O, walk from ; to P.
+
   if (first(Action.grab) === code("L") && free(code("O"))) rebind(bindings, Action.grab, 0, code("O"));
   if (first(Action.walk) === SEMICOLON && free(code("P"))) rebind(bindings, Action.walk, 0, code("P"));
-  // Movement moved from S F D with the left trigger on A to W R E with Q, unless any of it was customized.
+
   if (first(Action.moveLeft) === code("S") && first(Action.moveRight) === code("F") && first(Action.moveDown) === code("D")
     && first(Action.leftTrigger) === code("A") && free(code("Q"), code("W"), code("E"), code("R"))) {
     rebind(bindings, Action.moveLeft, 0, code("W"));
@@ -129,7 +129,7 @@ function upgradeDefaults(bindings: KeyBindings, version: string): void {
   }
 }
 
-/** Reads saved bindings, upgrading older saves; undefined for anything malformed. */
+
 export function decodeBindings(saved: string): KeyBindings | undefined {
   const version = saved.slice(0, 2);
   const slots = SAVED_SLOTS[version];
@@ -139,7 +139,7 @@ export function decodeBindings(saved: string): KeyBindings | undefined {
   for (let index = 0; index < slots; index++) {
     const key = readKey(saved, 2 + index * 3);
     if (key === undefined) return undefined;
-    // Y became the fixed start/pause key; an older save loses only that binding.
+
     if (key !== code("Y") && !bindSlot(keys, index, key)) return undefined;
   }
   const bindings = { keys };
@@ -147,7 +147,7 @@ export function decodeBindings(saved: string): KeyBindings | undefined {
   return bindings;
 }
 
-// ---------------------------------------------------------------- labels
+
 
 export const ACTION_LABELS: Readonly<Record<Action, string>> = {
   [Action.moveLeft]: "Move left",

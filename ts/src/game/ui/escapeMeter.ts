@@ -1,6 +1,6 @@
-// A held or frozen fighter's escape meter: a segmented bar over its head that drains to
-// empty at the escape, with a mark where a pummel would land. Every client
-// creates the same handles; only drawn position and visibility are local.
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { idiv } from "wisp/src/sim/intMath";
 import { ESCAPE_METER_BORDER, ESCAPE_METER_HEIGHT, ESCAPE_METER_SEGMENT_FRAMES, type EscapeMeterView, escapeMeterFill } from "../presentation/escapeMeter";
@@ -27,7 +27,7 @@ export class EscapeMeter {
   private markVisible = false;
 
   constructor(slot: number) {
-    // Like the off-screen bubble, the console backdrop draws outside GameUI's central area.
+
     const parent = consoleUi();
     const context = 1100 + slot * 20;
     this.back = createBackdrop(`EscapeMeterBack${I2S(slot)}`, parent, context);
@@ -50,7 +50,7 @@ export class EscapeMeter {
     }
   }
 
-  /** `column` and `row` are the meter centre's share of the screen from the left and top. */
+
   update(view: Readonly<EscapeMeterView>, column: number, row: number, aspect: number): void {
     const shown = view.shown && column >= 0.0 && column <= 1.0 && row >= 0.0 && row <= 1.0;
     if (shown !== this.visible) {

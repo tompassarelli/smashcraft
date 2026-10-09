@@ -1,8 +1,8 @@
-// The developer input trace (Ctrl+T, or the response probe's first journal
-// row): timestamped lines kept in memory and written to
-// wc3-melee-input-trace.txt when the trace ends. The integrity harness parses
-// several of its lines. Local measurements here never feed the accepted
-// ledger, prediction or snapshots.
+
+
+
+
+
 import { INPUT_TRACE_FILE, traceEndLines } from "../../runtime/gameFiles";
 import { floorMod } from "wisp/src/sim/intMath";
 import type { ParticipantSlot, Slots } from "../../game/input/participants";
@@ -12,7 +12,7 @@ import type { StateChecksumFold } from "../../game/replay/canonical";
 const ECHO_CAPACITY = 256;
 const ECHO_BIN_LIMITS = [3, 6, 9, 12, 18] as const;
 
-/** Capture-to-send waits of batched local rows. */
+
 interface WaitSpread {
   samples: number;
   sumCallbacks: number;
@@ -21,7 +21,7 @@ interface WaitSpread {
   maxSeconds: number;
 }
 
-/** Local send-to-echo ages: how long the synchronized channel took to return this client's own rows. */
+
 interface EchoSpread {
   samples: number;
   minCallbacks: number;
@@ -31,11 +31,11 @@ interface EchoSpread {
   maxSeconds: number;
   sumSeconds: number;
   overwritten: number;
-  /** Ages in callbacks: 0-3, 4-6, 7-9, 10-12, 13-18, 19+. */
+
   readonly bins: number[];
 }
 
-/** Counts summarized and reset once a second of trace. */
+
 interface TraceWindow {
   readonly accepted: Slots<number>;
   readonly receivedRows: Slots<number>;
@@ -62,29 +62,29 @@ interface TraceWindow {
 
 interface EchoSend {
   epoch: number;
-  /** Undefined while the ring slot is free. */
+
   frame: number | undefined;
   callback: number;
   seconds: number;
 }
 
 export interface InputTrace {
-  /**
-   * Native game seconds since the shell started, in periods of CLOCK_PERIOD.
-   * Started with the shell on every client and never changed afterwards: a trace
-   * starts when this client's own first journal row arrives, a moment the other
-   * client reaches on another turn, so starting a timer or passing it code then
-   * makes a handle on one turn here and another there, which Warcraft reports as a
-   * tempest-checksum desync (#158).
-   */
+  // Start the trace timer at shared startup because per-client journal arrival creates handles on different turns.
+
+
+
+
+
+
+
   readonly clock: timer;
-  /** Completed periods of the clock. */
+
   clockPeriods: number;
-  /** Clock seconds when the trace started, and when it finished. */
+
   startedAt: number | undefined;
   finishedAt: number | undefined;
   active: boolean;
-  /** Game callbacks since the trace started. */
+
   ticks: number;
   pausedTicks: number;
   readonly capacity: number;
@@ -93,12 +93,12 @@ export interface InputTrace {
   lastAxes: number | undefined;
   lastDodge: number | undefined;
   lastLandingLag: number | undefined;
-  /** Synchronized messages received since the trace started, counted while inactive too. */
+
   rawSyncEvents: number;
   window: TraceWindow;
   readonly echoes: EchoSend[];
   echoPending: number;
-  /** The confirmed state captured at a checksum tick, folded a slice a callback until its line is written. */
+
   checksum: { readonly frame: number; readonly fold: StateChecksumFold; readonly slice: number } | undefined;
 }
 
@@ -113,10 +113,10 @@ function traceWindow(): TraceWindow {
   };
 }
 
-/** Seconds in one period of the trace clock; whole periods are counted, so elapsed seconds keep their precision. */
+
 const CLOCK_PERIOD = 1000.0;
 
-/** The probe build keeps a longer trace. Call once on every client at the same point, with the shell. */
+
 export function inputTrace(capacity: number): InputTrace {
   const trace: InputTrace = {
     clock: CreateTimer(), clockPeriods: 0, startedAt: undefined, finishedAt: undefined, active: false, ticks: 0, pausedTicks: 0, capacity, lines: [], dropped: 0,
@@ -135,7 +135,7 @@ export function clockSeconds(trace: Readonly<InputTrace>): number {
   return trace.clockPeriods * CLOCK_PERIOD + TimerGetElapsed(trace.clock);
 }
 
-/** Native game seconds since the trace started, held at its end once it finishes. */
+
 export function traceSeconds(trace: Readonly<InputTrace>): number {
   if (trace.startedAt === undefined) return 0.0;
   return (trace.finishedAt ?? clockSeconds(trace)) - trace.startedAt;
@@ -155,7 +155,7 @@ function clearEchoRing(trace: InputTrace): void {
   }
 }
 
-/** Marks the clock and clears every count; the caller writes the opening lines. Reads local state only. */
+
 export function beginInputTrace(trace: InputTrace): void {
   trace.startedAt = clockSeconds(trace);
   trace.finishedAt = undefined;
@@ -173,7 +173,7 @@ export function beginInputTrace(trace: InputTrace): void {
   trace.active = true;
 }
 
-/** Starts a new epoch's echo matching; rows sent in an earlier epoch never match. */
+
 export function resetEchoRing(trace: InputTrace): void {
   clearEchoRing(trace);
 }
@@ -184,7 +184,7 @@ export function finishInputTrace(trace: InputTrace): void {
   writeLines(INPUT_TRACE_FILE, [...trace.lines, ...traceEndLines(trace.dropped, trace.ticks, R2S(traceSeconds(trace)))]);
 }
 
-/** A local row handed to the synchronized channel. */
+
 export function recordSend(trace: InputTrace, epoch: number, frame: number): void {
   const send = trace.echoes[floorMod(frame, ECHO_CAPACITY)];
   if (send === undefined) return;
@@ -196,7 +196,7 @@ export function recordSend(trace: InputTrace, epoch: number, frame: number): voi
   send.seconds = traceSeconds(trace);
 }
 
-/** This client's own row came back through the synchronized channel. */
+
 export function recordEcho(trace: InputTrace, epoch: number, frame: number, callback: number, seconds: number): void {
   const send = trace.echoes[floorMod(frame, ECHO_CAPACITY)];
   if (send === undefined || send.frame !== frame || send.epoch !== epoch) return;
@@ -221,7 +221,7 @@ export function recordEcho(trace: InputTrace, epoch: number, frame: number, call
   echo.bins[index] = (echo.bins[index] ?? 0) + 1;
 }
 
-/** A batched local row waited this long between its capture and its send. */
+
 export function recordBatchWait(trace: InputTrace, callbacks: number, seconds: number): void {
   const wait = trace.window.batchWait;
   wait.samples++;
@@ -245,7 +245,7 @@ interface ScheduleSummary {
   readonly batchPending: number;
 }
 
-/** The window's summary lines, after which its counts start again. */
+
 export function closeTraceWindow(trace: InputTrace, schedule: ScheduleSummary, journalReadyMask: number): void {
   const w = trace.window;
   traceInput(trace, `common K ${schedule.known} confirmed ${schedule.confirmed} R ${schedule.rollback}`);

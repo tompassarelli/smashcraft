@@ -1,20 +1,20 @@
-// Training's hit areas (#120) drawn as outlines on the fighter's plane: body
-// parts green, protected parts blue, strikes red, after Rivals of Aether II.
-// The lightning is created with the fighter's renderers at a synchronized
-// match start and only moved while presenting.
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import type { Capsule } from "../physics/contactGeometry";
 import { HitAreaKind, type HitAreaList, collectHitAreas, createHitAreaList } from "../presentation/hitAreas";
 import type { Fighter } from "../sim/fighter";
 import type { WorldOrigin } from "./effects";
 
-/** Shapes drawn per fighter; a fighter's parts and strikes beyond these go undrawn. */
+
 const MAX_SHAPES = 16;
-/** Each end of a capsule is a half circle of this many segments. */
+
 const ARC_SEGMENTS = 4;
 const SEGMENTS_PER_SHAPE = 2 + 2 * ARC_SEGMENTS;
 const LIGHTNING = "LEAS";
-/** In front of the fighter's model, toward the camera. */
+
 const DEPTH = -60.0;
 
 export class HitAreaPresentation {
@@ -63,7 +63,7 @@ export class HitAreaPresentation {
     return segment + 1;
   }
 
-  /** The capsule's outline: two sides and a half circle at each end. */
+
   private outline(first: number, c: Readonly<Capsule>, kind: HitAreaKind): number {
     const dx = c.x2 - c.x1;
     const dz = c.z2 - c.z1;
@@ -79,7 +79,7 @@ export class HitAreaPresentation {
     return this.arc(segment, c.x1, c.z1, c.radius, start, 1.0, kind);
   }
 
-  /** A half circle from `start`, turning by `turn` (1 counterclockwise, -1 clockwise). */
+
   private arc(first: number, cx: number, cz: number, radius: number, start: number, turn: number, kind: HitAreaKind): number {
     let segment = first;
     for (let step = 0; step < ARC_SEGMENTS; step++) {

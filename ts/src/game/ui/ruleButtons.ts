@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { cardX } from "../menu/selectionDrag";
 
-/** A rules button's top-left corner and size in Warcraft's UI coordinates. */
+
 export interface RuleBox {
   readonly x: number;
   readonly y: number;
@@ -40,10 +40,10 @@ export const RULE_BUTTONS = {
   harderClassic: stepBox(f32(0.72), f32(0.585)),
 } as const;
 
-/** The partner choices training steps through. */
+
 export type TrainingSetting = "behaviour" | "escape" | "tech" | "damage";
 
-/** Below the chip drag area (cardSlot), so opening settings cannot pick up a chip. */
+
 export function cpuSettingsBox(slot: number): RuleBox {
   return { x: f32(f32(cardX(slot)) + f32(0.007)), y: f32(0.078), width: f32(0.146), height: f32(0.019) };
 }

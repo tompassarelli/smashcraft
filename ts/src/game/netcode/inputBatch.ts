@@ -1,10 +1,10 @@
 import type { InputRow } from "../input/inputRow";
 import { INPUT_LAST_FRAME, type InputPacket, inputPacket } from "../input/wire";
 
-/**
- * Up to two consecutive local captures of one epoch awaiting one synchronized
- * send. Rows are copied in, so later sampling cannot change them.
- */
+
+
+
+
 export class InputBatch {
   private rows: InputRow[] = [];
   private firstFrame = 0;
@@ -27,7 +27,7 @@ export class InputBatch {
     return this.rows.length === 0 ? undefined : inputPacket(this.epoch, this.firstFrame, [...this.rows]);
   }
 
-  /** Clear only after a successful send, so a failed one stays visible. */
+
   sent(): void {
     this.rows = [];
   }

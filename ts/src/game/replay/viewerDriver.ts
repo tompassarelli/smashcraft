@@ -1,9 +1,9 @@
-// The replay viewer as the client runs it inside a map's own simulation
-// (smashcraft:client/src-tauri/src/mapsim.rs): the client loads a map's
-// war3map.lua in 32-bit Lua, adds this module and viewer.ts to its modules,
-// and calls these functions with text, getting JSON text back. So a replay
-// plays on the simulation of the map that recorded it, whichever version the
-// client itself is.
+
+
+
+
+
+
 import { type ReplayScene, type ReplayViewer, openReplay } from "./viewer";
 
 let viewer: ReplayViewer | undefined;
@@ -16,7 +16,7 @@ function capsuleJson(c: { readonly x1: number; readonly z1: number; readonly x2:
   return `{${fields.join(",")}}`;
 }
 
-/** A scene as JSON text, the shape viewer.ts's ReplayScene has in the client. */
+
 export function sceneJson(scene: Readonly<ReplayScene>): string {
   const surfaces = scene.surfaces.map((s) => `{"left":${number(s.left)},"right":${number(s.right)},"z":${number(s.z)}}`);
   const { left, right, bottom, top } = scene.blast;
@@ -32,7 +32,7 @@ export function sceneJson(scene: Readonly<ReplayScene>): string {
 
 const quoted = (text: string) => `"${text.split("\\").join("\\\\").split("\"").join("\\\"")}"`;
 
-/** Opens a joined replay's text: {"first","last","frame"} or {"problem"}. */
+
 export function open(text: string): string {
   const opened = openReplay(text.split("\n").filter((line) => line.length > 0));
   if (typeof opened === "string") {
@@ -43,7 +43,7 @@ export function open(text: string): string {
   return `{"first":${opened.first},"last":${opened.last},"frame":${opened.frame}}`;
 }
 
-/** Runs up to `frames` frames: {"frame","ended","scene"}. */
+
 export function advance(frames: number): string {
   const shown = viewer;
   if (shown === undefined) return `{"problem":"no replay is open"}`;
@@ -52,7 +52,7 @@ export function advance(frames: number): string {
   return `{"frame":${shown.frame},"ended":${ended || shown.frame >= shown.last ? "true" : "false"},"scene":${sceneJson(shown.scene())}}`;
 }
 
-/** Shows the state after `frame`: {"frame","ended","scene"}. */
+
 export function seek(frame: number): string {
   const shown = viewer;
   if (shown === undefined) return `{"problem":"no replay is open"}`;

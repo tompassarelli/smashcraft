@@ -7,7 +7,7 @@ interface PendingLoad {
 }
 
 export interface PlayerFileQueue {
-  /** Every client requests the same loads in the same order. */
+
   readonly queue: PendingLoad[];
   departedMask?: number;
 }
@@ -31,7 +31,7 @@ export function receivePlayerFileChunk(files: PlayerFileQueue, owner: number, te
   files.queue.shift();
   const next = files.queue[0];
   pending.complete(pending.received === "" ? { kind: "empty" } : { kind: "loaded", encoded: pending.received });
-  // A callback may enqueue into an empty queue and start that new head itself.
+
   if (next !== undefined && files.queue[0] === next) send(next.owner);
 }
 
@@ -49,7 +49,7 @@ export function departPlayerFiles(files: PlayerFileQueue, owner: number, send: S
     files.queue.splice(index, 1);
   }
   const next = files.queue[0];
-  // Remove every abandoned request before completion callbacks can enqueue.
+
   for (const pending of removed) pending.complete({ kind: "unavailable" });
   if (next !== undefined && next !== previous && files.queue[0] === next) send(next.owner);
 }

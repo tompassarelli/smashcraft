@@ -1,7 +1,7 @@
-// Warden's stock classic model and the sequence each pose plays. Sequence
-// indices, names and lengths are those of the classic HeroWarden.mdx (the test
-// clients run hd=0); the model has twelve sequences and no hit, jump or
-// knockdown clips, so those poses reuse the nearest readable sequence.
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle } from "../../sim/codes";
 import { WARDEN_GROUND, jabSlice, strikeClip } from "../../sim/heroes/groundNormals";
@@ -16,7 +16,7 @@ export interface StockClip {
 
 const clip = (index: number, name: string, seconds: number): StockClip => ({ index, name, seconds });
 
-/** Every sequence in the classic model, by index. */
+
 export const WARDEN_SEQUENCES = {
   stand: clip(0, "Stand - 1", f32(1.334)),
   standFidget: clip(1, "Stand - 2", f32(4.434)),
@@ -34,11 +34,11 @@ export const WARDEN_SEQUENCES = {
 
 const s = WARDEN_SEQUENCES;
 
-// Strike moments: where the drawn blades are farthest out or highest.
+
 const ground = (clip: StockClip, strike: number, style: AttackStyle, frame?: number): StockClip =>
   ({ ...clip, ...strikeClip(clip, strike, WARDEN_GROUND, style, frame) });
 
-/** The sequence each pose family plays; the presentation fits it to the action's frames. */
+
 export const WARDEN_CLIPS = {
   idle: s.standReady,
   walk: s.walk,
@@ -47,7 +47,7 @@ export const WARDEN_CLIPS = {
   crouch: s.standChannel,
   jump: s.standReady,
   doubleJump: s.spellThrow,
-  // Spell Slam's crouch and spring pushes off a wall; a wall tech is her quick Attack - 1 flip of the blade.
+
   wallJump: s.spellSlam,
   wallTech: s.attack1,
   fall: s.standReady,
@@ -69,9 +69,9 @@ export const WARDEN_CLIPS = {
   ledgeClimb: s.spellSlam,
   ledgeAttack: s.attack2,
   ko: s.death,
-  // Normals: two blade swings, an overhead slam and a two-handed cast. Ground
-  // normals strike on their first active frame (smashcraft:docs/design/tilts.md).
-  // Spell Throw hides her for a moment and barely moves; Attack - 1 reaches farthest at 0.37 s (#156).
+
+
+
   jab: jabSlice(s.attack1, f32(0.32)),
   jab2: jabSlice(s.attack1, f32(0.32)),
   jab3: jabSlice(s.attack1, f32(0.34)),
@@ -88,7 +88,7 @@ export const WARDEN_CLIPS = {
   forwardAir: s.attack2,
   backAir: s.attack1,
   upAir: s.spell,
-  // Falling Knives plays her Fan of Knives cast.
+
   downAir: s.spell,
   grab: s.attack1,
   grabHold: s.standReady,
@@ -98,7 +98,7 @@ export const WARDEN_CLIPS = {
   throwBack: s.attack2,
   throwUp: s.spell,
   throwDown: s.spellSlam,
-  // Specials: Shadow Strike throws, Blink is the model's own dissipate.
+
   shadowStrike: s.spellThrow,
   pursuitLunge: s.attack2,
   blink: s.dissipate,

@@ -2,7 +2,7 @@ import { min, toInt } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { summonClip } from "./summonClipInfo";
 
-/** A native animation queue as data: the playing clip, its elapsed time and the clip queued after it. */
+
 export interface SummonPose {
   active: boolean;
   clipIndex: number | undefined;
@@ -28,7 +28,7 @@ export function selectSummonPose(pose: SummonPose, clip: number, next: number | 
   pose.clipTime = 0.0;
 }
 
-/** Plays forward; a finished clip hands its overflow to the queued clip, which then loops or holds its end. */
+
 export function advanceSummonPose(pose: SummonPose, summon: number, seconds: number): void {
   if (!pose.active || pose.clipIndex === undefined) return;
   pose.clipTime = f32(pose.clipTime + seconds);

@@ -1,20 +1,20 @@
-// The match's announcer cues, music and voice lines: Warcraft III's own
-// sounds by in-game path. tools/presentation/stock-sounds.ts checks every
-// path here against the installed game and records it in stockSoundInfo.ts.
+
+
+
 import { at } from "wisp/src/runtime/lookup";
 import { Character } from "../sim/codes";
 import { type StageTile, selectableStage } from "../menu/stageCatalog";
 
-/** Moments the match calls out; each plays one stock sound. */
+
 export const MatchCue = {
   three: 0, two: 1, one: 2, go: 3, game: 4, time: 5, stockLost: 6, lastStock: 7, hover: 8, confirm: 9, cheer: 10, meterReady: 11, itemSpawn: 12,
 } as const;
 export type MatchCue = (typeof MatchCue)[keyof typeof MatchCue];
 
-/**
- * By MatchCue. Cues that fire while fighters play are short interface sounds:
- * GameFound is a 7.5-second fanfare and plays only once, on GO (#361).
- */
+
+
+
+
 const CUE_SOUNDS: readonly string[] = [
   "Sound\\Interface\\BattleNetTick.flac",
   "Sound\\Interface\\BattleNetTick.flac",
@@ -37,13 +37,13 @@ export const cueSound = (cue: MatchCue): string => at(CUE_SOUNDS, cue);
 
 const MUSIC = "Sound\\Music\\mp3Music\\";
 
-/** Fighter selection and the stage menu. */
+
 export const MENU_MUSIC = `${MUSIC}War3XMainScreen.flac`;
 
-/**
- * Each stage's theme from the Warcraft III soundtrack, chosen for the
- * fighters who call it home (smashcraft:docs/design/stage-music.md).
- */
+
+
+
+
 const STAGE_MUSIC: Readonly<Record<StageTile, string>> = {
   0: `${MUSIC}Human1.flac`,
   2: `${MUSIC}LichKingTheme.flac`,
@@ -58,13 +58,13 @@ const STAGE_MUSIC: Readonly<Record<StageTile, string>> = {
   14: `${MUSIC}IllidansTheme.flac`,
 };
 
-/** An unknown stage plays the test arena's theme. */
+
 export const stageMusic = (stage: number): string => (selectableStage(stage) ? STAGE_MUSIC[stage] : STAGE_MUSIC[0]);
 
 export const Race = { human: 0, orc: 1, nightElf: 2, undead: 3 } as const;
 export type Race = (typeof Race)[keyof typeof Race];
 
-/** By Character. */
+
 const RACES: Readonly<Record<Character, Race>> = {
   23: Race.undead,
   1: Race.human,
@@ -96,20 +96,20 @@ const RACES: Readonly<Record<Character, Race>> = {
 
 export const characterRace = (character: Character): Race => RACES[character];
 
-/** By Race: the stinger Warcraft III plays when that race wins. */
+
 const VICTORY_MUSIC: readonly string[] = [
   `${MUSIC}HumanVictory.flac`, `${MUSIC}OrcVictory.flac`, `${MUSIC}NightElfVictory.flac`, `${MUSIC}UndeadVictory.flac`,
 ];
 
-/** A draw has no winner's theme. */
+
 export const victoryMusic = (winner: Character | undefined): string | undefined =>
   winner === undefined ? undefined : at(VICTORY_MUSIC, characterRace(winner));
 
-/**
- * By Character: the unit's sound directory, the prefix of its voice files, and
- * the line it says when chosen where the unit has no Ready line (a campaign hero),
- * and its battle cry where it has no Warcry line (a creep).
- */
+
+
+
+
+
 const VOICES: Readonly<Record<Exclude<Character, typeof Character.medivh>, readonly [string, string, string?, string?]>> = {
   23: ["Units\\Undead\\HeroCryptLord\\", "NerubianCryptLord"],
   1: ["Units\\Human\\Rifleman\\", "Rifleman"],
@@ -145,17 +145,17 @@ function voice(character: Character, line: string): string {
   return `${directory}${prefix}${spoken}1.flac`;
 }
 
-/** The line a hero says when trained: played when a player confirms that fighter. */
+
 export const readyVoice = (character: Character): string => voice(character, "Ready");
 
-/** The hero's battle cry: played for the winner on the results screen. */
+
 export const warcryVoice = (character: Character): string => voice(character, "Warcry");
 
-/** The model animation the winner plays at the results; models without one stand ready. */
+
 export function victoryAnimation(character: Character): string {
   switch (character) { case Character.blademaster: case Character.forsakenPaladin: case Character.shadowHunter:
       return "stand victory";
-    // Pit Lord has no ready stance; he roars.
+
     case Character.lich: case Character.pitLord:
       return "stand channel";
     default:
@@ -163,7 +163,7 @@ export function victoryAnimation(character: Character): string {
   }
 }
 
-/** Every sound and track above, for the stock-asset check. */
+
 export function presentationSoundPaths(characters: readonly Character[], stages: readonly StageTile[]): string[] {
   const paths = [...CUE_SOUNDS, MENU_MUSIC, ...VICTORY_MUSIC];
   for (const stage of stages) paths.push(stageMusic(stage));

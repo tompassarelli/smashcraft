@@ -48,7 +48,7 @@ export function copyPad(row: InputRow, pad: PadValues): void {
   row.triggerRight = pad.triggerRight;
 }
 
-/** Undefined packet uses the unchanged keyboard sampler. */
+
 export function samplePad(capture: KeyboardCapture, held: number, packed: number | undefined): boolean {
   if (!sampleKeys(capture, held)) return false;
   const pad = packed === undefined ? undefined : decodePad(packed);
@@ -61,7 +61,7 @@ export interface CursorCalibration {
   last: { readonly x: number; readonly y: number } | undefined;
 }
 
-/** A fixed top-down view over flat terrain maps each screen axis linearly. */
+
 export function cursorWorldPacket(calibration: Readonly<CursorCalibration>, worldX: number, worldY: number): number | undefined {
   const { first, last } = calibration;
   if (first === undefined || last === undefined) return undefined;

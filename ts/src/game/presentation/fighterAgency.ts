@@ -15,24 +15,24 @@ import { advanceFighterMotion } from "../sim/step";
 
 export type FighterAgency = "none" | "di" | "act";
 
-/**
- * The marker describes the next input frame. Countdown gates are current
- * state; a bounded single-fighter motion forecast uses the actual collision
- * rules for the button buffer and tech window. It runs no attacks, opponent
- * plan or alternative input replays, and never advances the live match.
- */
-/** A marker may show a forecast at most this many frames old, while its fighter stays in the same hit. */
+
+
+
+
+
+
+
 export const MAX_REUSE_AGE = 3;
 
-/** Forecast frames between clearance checks while a tumble is still near something. */
+
 const CLEARANCE_RECHECK = 3;
 
-/** With no later fresh press, ages only increase; an accumulated frozen press is the only reset. */
+
 function mayTechWithoutFreshPress(tech: Readonly<TechInput>): boolean {
   return techInputEligible(tech) || (tech.accumulatedPress && tech.pressAge >= TECH_REPEAT_MINIMUM_AGE_FRAMES);
 }
 
-/** A tumble whose next frames only gravity, decay and drag move: no hitlag, freeze, ledge, wall or platform state, out or in the cannon. */
+
 function clearFlight(f: Readonly<Fighter>): boolean {
   return f.down.state === DownState.tumble && !f.motion.grounded && f.launch.hitlag === 0 && f.status.frozenFrames === 0 && !f.status.out
     && f.ledge.state === LedgeState.none && f.surfaceRecovery.state === SurfaceContact.none && f.platform.move === PlatformMove.none && !inStageCannon(f);
@@ -43,25 +43,25 @@ export class FighterAgencyForecast {
   private readonly world = createRoster(1, [this.fighter]);
   private readonly input = neutralControls();
   private readonly pressedTech = { pressAge: 255, previousPressAge: 255, accumulatedPress: false };
-  // A committed throw and its victim, played to the release and the landing after it.
+
   private readonly holder = createFighter(Character.demonHunter, 0.0, 1);
   private readonly thrown = createFighter(Character.demonHunter, 0.0, 1);
   private readonly throwWorld = createRoster(3, [this.holder, this.thrown]);
   private readonly throwInputs = [neutralControls(), neutralControls()];
 
-  // The last forecast(): its frame, the hit it ran on and whether a press counted. Absent on a reloaded instance.
+
   private forecastFrame?: number;
   private forecastHit?: number;
   private forecastButtons?: boolean;
 
-  /** `bounded`: stop a forecast once the tumble surely touches nothing for the rest of the window (agencyClearance.ts); off, every frame is simulated. */
+
   constructor(private readonly bounded = true) {}
 
   classify(world: Readonly<Roster>, slot: number, stage: number, frame: number, bufferFrames = ATTACK_BUFFER_FRAMES): FighterAgency {
     return this.immediate(world, slot, stage, frame) ?? this.forecast(world, slot, stage, frame, bufferFrames);
   }
 
-  /** The answer current state alone gives, or undefined when it takes forecast(). */
+
   immediate(world: Readonly<Roster>, slot: number, stage: number, frame: number): FighterAgency | undefined {
     const f = fighterAt(world, slot);
     if (f.status.out) return "act";
@@ -74,7 +74,7 @@ export class FighterAgencyForecast {
       }
       const free = owner.launch.hitlag <= 0 && f.launch.hitlag <= 0;
       const release = grabContactFrame(owner.grab.action, owner.tuning.moves) - owner.grab.frame;
-      // A throw that tumbles its victim onto the floor soon after the release takes a tech press made while held.
+
       if (free && release <= TECH_WINDOW_FRAMES && this.techPressCounts(world, owner, f, stage, frame)) return "act";
       return free && release === 1 ? "di" : "none";
     }
@@ -86,10 +86,10 @@ export class FighterAgencyForecast {
     return undefined;
   }
 
-  /**
-   * How many frames ago this forecast last ran on the hit `slot` is still in,
-   * so reused() may stand for forecast(); undefined after a new hit.
-   */
+
+
+
+
   reuseAge(world: Readonly<Roster>, slot: number, frame: number): number | undefined {
     const f = fighterAt(world, slot);
     const last = this.forecastFrame;
@@ -97,14 +97,14 @@ export class FighterAgencyForecast {
     return frame - last;
   }
 
-  /** The last forecast's answer with the current hitlag's DI. */
+
   reused(world: Readonly<Roster>, slot: number): FighterAgency {
     const f = fighterAt(world, slot);
     if (this.forecastButtons === true) return "act";
     return f.launch.hitlag > 0 && f.launch.diPending ? "di" : "none";
   }
 
-  /** The motion forecast for a controlled fighter, after immediate() gave no answer. */
+
   forecast(world: Readonly<Roster>, slot: number, stage: number, frame: number, bufferFrames = ATTACK_BUFFER_FRAMES): FighterAgency {
     const f = fighterAt(world, slot);
     const freshHit = this.fighter.visuals.hit !== f.visuals.hit;
@@ -118,10 +118,10 @@ export class FighterAgencyForecast {
     const started = observedActions.started;
     let buttons = false;
     let nextCheck = 0;
-    // A locked-out tech press cannot change contact. Still grow the forecast
-    // through hitlag so exact motion caches warm a few new frames at a time
-    // before a fresh press can matter on the first unfrozen frame. The hit's
-    // own callback already resolves contact; defer its optional preparation.
+
+
+
+
     const lockedHorizon = freshHit ? bufferFrames : Math.max(bufferFrames, TECH_WINDOW_FRAMES - f.launch.hitlag - 1);
     try {
       for (let offset = 0; offset < TECH_WINDOW_FRAMES; offset++) {
@@ -131,7 +131,7 @@ export class FighterAgencyForecast {
           advanceTechInput(this.pressedTech, offset === 0, this.fighter.launch.hitlag > 1);
         }
         advanceFighterMotion(this.world, 0, stage, frame + offset + 1, this.input, 0.0);
-        // A request on this frame survives six later frames, inclusive.
+
         if (offset <= bufferFrames && (canAttack(this.fighter) || canShieldGrab(this.fighter))) {
           buttons = true;
           break;
@@ -142,11 +142,11 @@ export class FighterAgencyForecast {
           buttons = true;
           break;
         }
-        // Past the buffer only a tumbling fighter's contact can tech, and motion
-        // alone never starts a tumble (only a hit does), so the answer is known.
+
+
         if (offset >= bufferFrames && (this.fighter.motion.grounded || this.fighter.down.state !== DownState.tumble)) break;
         if (offset >= lockedHorizon && this.bounded && !mayTechWithoutFreshPress(this.pressedTech) && !mayTechWithoutFreshPress(this.fighter.tech)) break;
-        // A tumble that surely touches nothing for the rest of the window can't tech in it either (#168).
+
         if (offset >= bufferFrames && offset >= nextCheck && this.bounded && clearFlight(this.fighter)) {
           if (surelyClear(this.fighter, stage, frame + offset + 1, TECH_WINDOW_FRAMES - 1 - offset)) break;
           nextCheck = offset + CLEARANCE_RECHECK;
@@ -163,7 +163,7 @@ export class FighterAgencyForecast {
     return f.launch.hitlag > 0 && f.launch.diPending ? "di" : "none";
   }
 
-  /** Whether a tech press now, while `thrown` is held in `owner`'s committed throw, would change its landing. */
+
   private techPressCounts(world: Readonly<Roster>, owner: Readonly<Fighter>, thrown: Readonly<Fighter>, stage: number, frame: number): boolean {
     copyFighterState(this.holder, owner, world.mask);
     copyFighterState(this.thrown, thrown, world.mask);
@@ -180,8 +180,8 @@ export class FighterAgencyForecast {
         const before = this.thrown.down.state;
         const recoverySerial = this.thrown.surfaceRecovery.contactSerial;
         advanceTechInput(this.pressedTech, offset === 0, this.thrown.launch.hitlag > 1);
-        // Neutral input cannot catch the victim again after release; only its
-        // motion can change the landing the tech press is being tested against.
+
+
         const linked = !this.bounded || this.thrown.grab.owner !== undefined || this.holder.grab.target !== undefined;
         if (linked) advanceFighterMotion(this.throwWorld, 0, stage, frame + offset + 1, this.throwInputs[0] ?? neutralControls(), 0.0);
         advanceFighterMotion(this.throwWorld, 1, stage, frame + offset + 1, this.throwInputs[1] ?? neutralControls(), 0.0);
@@ -194,7 +194,7 @@ export class FighterAgencyForecast {
         const solidContact = before === DownState.tumble && this.thrown.surfaceRecovery.contactSerial !== recoverySerial;
         if (floorContact || solidContact) return techInputEligible(this.pressedTech) !== techInputEligible(this.thrown.tech);
         if (this.thrown.grab.owner === undefined && this.thrown.down.state !== DownState.tumble) return false;
-        // Released and tumbling clear of everything for the rest of the window: no contact to tech (#168).
+
         if (offset >= nextCheck && this.bounded && this.thrown.grab.owner === undefined && this.holder.grab.target === undefined && clearFlight(this.thrown)) {
           if (surelyClear(this.thrown, stage, frame + offset + 1, TECH_WINDOW_FRAMES - 1 - offset)) return false;
           nextCheck = offset + CLEARANCE_RECHECK;

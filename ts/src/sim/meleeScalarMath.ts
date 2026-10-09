@@ -1,8 +1,8 @@
 import { at } from "wisp/src/runtime/lookup";
-// Melee's independently authored binary32 atan2/sin/cos approximations.
-// Coefficients come from
-// smashcraft:docs/smash-melee-reference/retail-trig-coefficients.json. Every
-// rounding boundary is part of the approximation, including range reduction.
+
+
+
+
 import {
   addFloat32,
   divideFloat32,
@@ -81,11 +81,11 @@ function positiveAtan(magnitude: number): number {
 }
 
 function hasNegativeSign(value: number): boolean {
-  // The IEEE reciprocal distinguishes the zeros that choose atan2's quadrant.
+
   return value < 0 || (value === 0 && 1.0 / value < 0);
 }
 
-/** Finite binary32 vector angle; zero vectors use the vertical zero's sign. */
+
 export function meleeAtan2(y: number, x: number): number {
   const horizontal = roundToFloat32(x);
   const vertical = roundToFloat32(y);
@@ -165,8 +165,8 @@ function cosineAt(angle: number): number {
   return multiplyFloat32(-sine * residual, oddPolynomial(square));
 }
 
-// Decay forecasts repeatedly evaluate the same rounded launch angles. Keep
-// exact scalar results; signed zeros and NaN never become table keys.
+
+
 const TRIG_MEMO_LIMIT = 512;
 let sineMemo: Record<number, number> = {};
 let cosineMemo: Record<number, number> = {};
@@ -182,7 +182,7 @@ function rememberAngle(angle: number): void {
   trigMemoSize++;
 }
 
-/** Binary32 sine for finite angles in [-float32(pi), float32(pi)]. */
+
 export function meleeSin(angle: number): number {
   const input = roundToFloat32(angle);
   if (input === 0 || input !== input) return sineAt(input);
@@ -194,7 +194,7 @@ export function meleeSin(angle: number): number {
   return value;
 }
 
-/** Binary32 cosine for finite angles in [-float32(pi), float32(pi)]. */
+
 export function meleeCos(angle: number): number {
   const input = roundToFloat32(angle);
   if (input === 0 || input !== input) return cosineAt(input);

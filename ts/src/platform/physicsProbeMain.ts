@@ -1,5 +1,5 @@
-// Diagnostic map entry for issue #9. It executes the same production
-// simulation fixtures as Bun and Lua32, then exports the native gate report.
+
+
 import { AssertionFailure, registeredTests } from "wisp/src/runtime/testing";
 import { PHYSICS_REPORT_FILE } from "../runtime/gameFiles";
 import "../game/sim/physicsPrecisionState.tests";
@@ -71,8 +71,8 @@ function runProbe(source: string): void {
     }
   }
 
-  // The legacy report includes these two per-corpus diagnostics in addition
-  // to the sixteen group results. A failed fixture is reported above.
+
+
   message(`LAUNCH_MAGNITUDE_MISMATCH_COUNT=${launchFailures}`);
   message(`DIRECTIONAL_INFLUENCE_MISMATCH_COUNT=${diFailures}`);
   message(`DIRECTIONAL_INFLUENCE_DISCRETE_MISMATCH_COUNT=${diDiscreteFailures}`);
@@ -87,6 +87,6 @@ function runProbe(source: string): void {
 }
 
 export function start(source: string): void {
-  // The report is written after map initialization, matching the existing native capture timing.
+
   TimerStart(CreateTimer(), 0.009999999776482582, false, () => runProbe(source));
 }

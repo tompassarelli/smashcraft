@@ -3,7 +3,7 @@ import { PARTICIPANT_SLOTS, type Slots, isParticipantSlot } from "../input/parti
 import { type Controls, neutralControls } from "../sim/roster";
 import { Phase } from "./rules";
 
-/** Preallocated: rollback replays fill each participant's records every frame. */
+
 export interface FrameControls {
   readonly inputs: Slots<Controls>;
   readonly commands: Slots<AttackBuffer>;
@@ -16,14 +16,14 @@ export function createFrameControls(): FrameControls {
   };
 }
 
-/** Match controls whose attack buffers keep a press for the buffered frames, as a live match plays. */
+
 export function createBufferedFrameControls(): FrameControls {
   const controls = createFrameControls();
   for (const slot of PARTICIPANT_SLOTS) controls.commands[slot] = attackBuffer(ATTACK_BUFFER_FRAMES);
   return controls;
 }
 
-/** Session controls are outside replay state: rollback must not undo a pause. */
+
 export interface MatchControls {
   paused: boolean;
   readonly startHeld: Slots<boolean>;
@@ -35,7 +35,7 @@ export function createMatchControls(): MatchControls {
   return { paused: false, startHeld: [false, false, false, false] };
 }
 
-/** Deferred journal callers commit the pause only after the helper acknowledges its boundary. */
+
 export function startKeyDown(controls: MatchControls, slot: number, phase: Phase, settingsOpen: boolean, deferred = false): StartAction {
   if (!isParticipantSlot(slot) || controls.startHeld[slot]) return undefined;
   controls.startHeld[slot] = true;

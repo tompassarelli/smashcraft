@@ -1,26 +1,26 @@
-// Classic's routes (#284, smashcraft:docs/design/classic-mode.md): each
-// fighter's five themed fights, then the lore boss that ends its run, and the
-// two or three lines of its ending card.
+
+
+
 import { Character } from "../sim/codes";
 import type { StageTile } from "../menu/stageCatalog";
 import { BossKind } from "./runState";
 
 export interface ClassicRivalFight {
-  /** One rival, or two for the route's team fight. */
+
   readonly rivals: readonly Character[];
   readonly stage: StageTile;
-  /** The first rival's transmission before the fight. */
+
   readonly line: string;
 }
 
 export interface ClassicRoute {
   readonly fighter: Character;
-  /** The route's one-line story. */
+
   readonly story: string;
-  /** Three single fights, the team fight, then the arch-rival on the fighter's home stage. */
+
   readonly fights: readonly ClassicRivalFight[];
   readonly boss: BossKind;
-  /** The ending card's lines, spoken by the fighter. */
+
   readonly ending: readonly string[];
 }
 
@@ -345,7 +345,7 @@ export const CLASSIC_ROUTES: readonly ClassicRoute[] = [
 
 export const CLASSIC_CHARACTERS: readonly Character[] = CLASSIC_ROUTES.map(route => route.fighter);
 
-/** The finished route of `fighter`, or undefined while its story is pending. */
+
 export function classicRoute(fighter: number): ClassicRoute | undefined {
   for (const route of CLASSIC_ROUTES) if (route.fighter === fighter) return route;
   return undefined;

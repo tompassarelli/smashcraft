@@ -11,25 +11,25 @@ import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { AttackStyle } from "../sim/codes";
 import { moveTier } from "./moveTiers";
 
-/** How a down state was entered: a floor tech, or a missed one that bounced. */
+
 export const ImpactLanding = { none: 0, tech: 1, missedTech: 2 } as const;
 export type ImpactLanding = (typeof ImpactLanding)[keyof typeof ImpactLanding];
 
-/** A new jump: ground, double, other aerial, or a wall push-off. */
+
 export const JumpCue = { none: 0, ground: 1, double: 2, air: 3, wall: 4 } as const;
 export type JumpCue = (typeof JumpCue)[keyof typeof JumpCue];
 
 export const DodgeCue = { none: 0, spot: 1, roll: 2 } as const;
 export type DodgeCue = (typeof DodgeCue)[keyof typeof DodgeCue];
 
-/** The fighter's x beyond which a KO counts as a side KO. */
+
 const SIDE_KO_X = 920.0;
 
-/**
- * A numerical journal for one fighter's executed frame: the before half
- * records the fighter's prior state, the after half the cues it produced.
- * Native presentation consumes it outside simulation and replay.
- */
+
+
+
+
+
 export interface ImpactEvents {
   previousDown: DownState;
   previouslyOut: boolean;
@@ -63,18 +63,18 @@ export interface ImpactEvents {
   ready: boolean;
   ledgeCatch: boolean;
   ledgeRecovery: boolean;
-  /** The ledge lip a catch or recovery happened at; kept until the next one. */
+
   ledgeX: number;
   ledgeZ: number;
   hit: boolean;
   electric: boolean;
   element: HitElement;
   strength: number;
-  /** The hit's sound tier (presentation/moveTiers.ts): its attacker's move class, else its launch strength. */
+
   tier: number;
-  /** The tier of a swing reaching its first active frame this frame; -1 for none. */
+
   swing: number;
-  /** The hit's serial, which picks among a tier sound's variants. */
+
   variant: number;
   pummel: boolean;
   shieldElectric: boolean;
@@ -90,7 +90,7 @@ export interface ImpactEvents {
   airDodge: boolean;
   respawn: boolean;
   jump: JumpCue;
-  /** Where the latest jump took off; kept until the next one. */
+
   jumpOriginX: number;
   jumpOriginZ: number;
   character: Character;
@@ -104,7 +104,7 @@ export interface ImpactEvents {
   z: number;
   surface: SurfaceContact;
   surfaceMissedTech: boolean;
-  /** The latest wall or ceiling contact and its inward normal; kept until the next one. */
+
   contactX: number;
   contactZ: number;
   normalX: number;
@@ -132,7 +132,7 @@ export function createImpactEvents(): ImpactEvents {
   };
 }
 
-/** Records the fighter before its frame executes and clears the previous frame's cues. */
+
 export function captureImpactEventsBefore(events: ImpactEvents, fighter: Readonly<Fighter>): void {
   events.previousDown = fighter.down.state;
   events.previouslyOut = fighter.status.out;
@@ -191,7 +191,7 @@ export function captureImpactEventsBefore(events: ImpactEvents, fighter: Readonl
   events.surfaceMissedTech = false;
 }
 
-/** The tier of the attack that last hit the fighter, while its attacker is still in it; undefined otherwise. */
+
 function hitTier(fighter: Readonly<Fighter>, world: Readonly<Roster> | undefined): number | undefined {
   const { lastAttacker, lastAttackSerial } = fighter.hits;
   if (world === undefined || lastAttacker === undefined || !isActive(world, lastAttacker)) return undefined;
@@ -200,11 +200,11 @@ function hitTier(fighter: Readonly<Fighter>, world: Readonly<Roster> | undefined
   return style === undefined || serial !== lastAttackSerial ? undefined : moveTier(attacker.character, style);
 }
 
-/**
- * Derives the cues of the frame that just executed. Out fighters, and the
- * frame they return, raise none. The roster, when given, names each hit's
- * attacker for its sound tier.
- */
+
+
+
+
+
 export function finishImpactEventsAfter(events: ImpactEvents, fighter: Readonly<Fighter>, world?: Readonly<Roster>): void {
   const { motion, status, ground, surfaceRecovery, visuals, jump, launch, shield, down, attack, ledge, dodge } = fighter;
   events.character = fighter.character;
@@ -257,7 +257,7 @@ export function finishImpactEventsAfter(events: ImpactEvents, fighter: Readonly<
     events.strength = 0;
     events.tier = 0;
   }
-  // A swing sounds once, on its first active frame; a hitlag freeze holds that frame.
+
   const { style } = attack;
   if (present && style !== undefined && style !== AttackStyle.grab && style !== AttackStyle.shot && !attack.dashGrab
     && (attack.serial !== events.previousAttackSerial || attack.frame !== events.previousAttackFrame) && attack.frame === attackStartup(fighter, style)) {
@@ -316,10 +316,10 @@ export function finishImpactEventsAfter(events: ImpactEvents, fighter: Readonly<
   }
 }
 
-/**
- * The renderer presents completed frames only, each once. Replay never calls
- * the renderer; beginning a new match resets this cursor.
- */
+
+
+
+
 export interface ImpactPresentationCursor {
   lastFrame: number | undefined;
 }

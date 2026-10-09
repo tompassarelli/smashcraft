@@ -5,7 +5,7 @@ import { drawnFrame } from "./drawnFrame";
 import { type ShellState, localSlot } from "./state";
 import { lockArenaCamera, pauseMatchPresentation, renderPersistentPresentation, renderUi } from "./view";
 
-/** The FileIO result controls existing local visuals only, never the synchronized match. */
+
 export function serviceVisualCapture(s: ShellState): void {
   const slot = localSlot();
   const state = visualCapture(slot);
@@ -19,7 +19,7 @@ export function serviceVisualCapture(s: ShellState): void {
   }
 }
 
-/** The per-frame observer can present a requested pose inside a multi-frame catch-up callback. */
+
 export function holdPresentedCapture(s: ShellState): void {
   if (!s.build.responseProbe || s.game.phase !== Phase.match || heldVisualFrame(localSlot()) !== undefined) return;
   const { epoch, frame } = drawnFrame(s);

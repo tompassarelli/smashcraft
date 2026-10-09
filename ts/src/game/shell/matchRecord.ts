@@ -1,12 +1,12 @@
-// A finished match's record, which each client writes into its player's
-// CustomMapData for the Smashcraft client's match history and stats
-// (smashcraft:docs/design/client.md, "Match records"). Local presentation
-// only: it reads the confirmed match and the results tally and feeds nothing
-// back. Its name and lines are a protocol the client parses.
-//
-// Each line is a word and space-separated key=value fields. A `name=` field
-// comes last and runs to the end of its line, so a name may hold spaces.
-// Values never hold `"` or `\`: a Preload line becomes a JASS string.
+
+
+
+
+
+
+
+
+// Preload lines become JASS strings, so values cannot contain quotes or backslashes.
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots, isParticipantSlot } from "../input/participants";
 import { type MatchState, computerActive } from "../match/rules";
 import { stageInfo } from "../menu/stageCatalog";
@@ -18,19 +18,19 @@ import { type Roster, fighterAt, isActive } from "../sim/roster";
 export const MATCH_RECORD_HEADER = "smashcraft-match";
 export const MATCH_RECORD_VERSION = 1;
 
-/** Who wrote the record and which match it was. */
+
 export interface MatchRecordSource {
   readonly build: string;
   readonly serial: number;
-  /** This client's player slot; an observer's is not a fighter slot. */
+
   readonly local: number;
-  /** Each human's account name, as the game shows it. */
+
   readonly players: Readonly<Slots<string | undefined>>;
 }
 
 const label = (slot: number) => `P${slot + 1}`;
 
-/** A value without the characters a field or a Preload line can't hold. */
+
 export function recordValue(text: string): string {
   let value = "";
   for (let index = 0; index < text.length; index++) {
@@ -40,7 +40,7 @@ export function recordValue(text: string): string {
   return value;
 }
 
-/** A name field's text: spaces kept, quotes and backslashes dropped. */
+
 const nameText = (text: string) => text.split("\"").join("").split("\\").join("");
 
 function mode(game: Readonly<MatchState>): string {
@@ -51,14 +51,14 @@ function mode(game: Readonly<MatchState>): string {
 
 const flag = (value: boolean) => (value ? "1" : "0");
 
-/** `count / per` to one decimal place, rounded down, or `none` when `per` is 0. Integer steps so Bun and Lua print it alike. */
+// Integer decimal steps keep Bun and Lua output equal.
 export function ratio(count: number, per: number): string {
   if (per <= 0) return "none";
   const tenths = floorDiv(count * 10, per);
   return `${floorDiv(tenths, 10)}.${floorMod(tenths, 10)}`;
 }
 
-/** A fighter's combat stats line, which follows its fighter line. */
+
 function combatLine(slot: ParticipantSlot, tally: Readonly<MatchTally>): string {
   const { dealt, openings, techs, missedTechs, ledgeGrabs } = tally.combat;
   const damage = Math.floor(dealt[slot]);
@@ -67,7 +67,7 @@ function combatLine(slot: ParticipantSlot, tally: Readonly<MatchTally>): string 
     + ` techs=${techs[slot]} missed-techs=${missedTechs[slot]} ledge-grabs=${ledgeGrabs[slot]}`;
 }
 
-/** The record's lines for a match in its result, with the results screen's tally. */
+
 export function matchRecordLines(source: Readonly<MatchRecordSource>, game: Readonly<MatchState>, world: Readonly<Roster>, tally: Readonly<MatchTally>): string[] {
   const stage = stageInfo(game.stageChoice);
   const lines = [
@@ -89,7 +89,7 @@ export function matchRecordLines(source: Readonly<MatchRecordSource>, game: Read
   return lines;
 }
 
-/** The serial an index file's chunk holds, or 1 for none or an unreadable one. */
+
 export function nextSerial(chunk: string | undefined): number {
   const value = Number(chunk);
   return chunk !== undefined && chunk.length > 0 && value >= 1 && value === Math.floor(value) ? value : 1;

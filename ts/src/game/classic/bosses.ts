@@ -1,10 +1,10 @@
-// Classic's three lore bosses (#284, smashcraft:docs/design/classic-mode.md,
-// "Bosses"). Like Master Hand, a boss is not a fighter: it hovers over the
-// stage on its own fixed timetable of strikes, each telegraphed before it can
-// hurt, and the player's strikes and projectiles take its health. Following
-// the hazard rule (#274), a strike's timing comes from the match clock alone
-// and its place from the clock or from where the player stood on the tell's
-// first frame; nothing reads a random draw.
+
+
+
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { PARTICIPANT_SLOTS, participantActive } from "../input/participants";
@@ -18,7 +18,7 @@ import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { capsuleCircleIntersects } from "../sim/shield";
 import { BossKind, type BossState } from "./runState";
 
-/** One area a strike hurts, in stage coordinates or, for an aimed strike, offset from its aim. */
+
 export interface BossZone {
   readonly x: number;
   readonly halfWidth: number;
@@ -28,17 +28,17 @@ export interface BossZone {
 
 export interface BossStrike {
   readonly name: string;
-  /** Warning frames, then frames the zones hurt, then frames before the next strike's tell. */
+
   readonly tell: number;
   readonly active: number;
   readonly rest: number;
-  /** Zones follow the player's x on the tell's first frame. */
+
   readonly aimed: boolean;
   readonly zones: readonly BossZone[];
-  /** Launches away from the zone's middle when set; straight along `effect` otherwise. */
+
   readonly away: boolean;
   readonly effect: Readonly<HitEffect>;
-  /** Where the boss hovers through this strike. */
+
   readonly x: number;
   readonly z: number;
 }
@@ -47,34 +47,34 @@ export interface BossDefinition {
   readonly kind: BossKind;
   readonly name: string;
   readonly stage: 2 | 7 | 10;
-  /** Stock model drawn scaled up, and its tint. */
+
   readonly model: string;
   readonly scale: number;
   readonly tint: readonly [number, number, number];
-  /** The model's drawn box while it stands, in model units (x forward, z up), from its visible geosets' vertices. */
+
   readonly drawn: Readonly<{ min: readonly [number, number, number]; max: readonly [number, number, number] }>;
-  /** Where the body stands from the stage origin: this far behind the fighters' plane and this high, so the whole drawn box sits behind the deck inside both camera extremes. */
+
   readonly depth: number;
   readonly standZ: number;
-  /** Health at Rookie; each tier above adds BOSS_HEALTH_PER_TIER. */
+
   readonly health: number;
-  /** The boss's hurt circle around its hover point. */
+
   readonly radius: number;
   readonly strikes: readonly BossStrike[];
-  /** Presentation: the stock effect of a strike's hit. */
+
   readonly hitArt: string;
   readonly intro: string;
 }
 
-/** Warlock.mdx: body geosets 0-2 and its ground ring 3-4. */
+
 const WARLOCK_DRAWN = { min: [-135.0, -127.0, 0.0], max: [118.0, 127.0, 145.0] } as const;
-/** LichKing2.mdx: every geoset, Frostmourne reaching forward to x 143. */
+
 const LICH_KING_DRAWN = { min: [-35.0, -45.0, 0.0], max: [143.0, 45.0, 161.0] } as const;
 
-/** Frames between GO! and the boss's first tell. */
+
 export const BOSS_OPENING_FRAMES = 90;
 export const BOSS_HEALTH_PER_TIER = 30;
-/** What a projectile without its own hit takes from a boss. */
+
 export const BOSS_PROJECTILE_DAMAGE = 6;
 
 const DECK_HALF = 600.0;
@@ -83,7 +83,7 @@ const effect = (damage: number, base: number, growth: number, launchX: number, l
 const column = (x: number, halfWidth: number): BossZone => ({ x, halfWidth, bottom: -60.0, top: 700.0 });
 const band = (left: number, right: number, bottom: number, top: number): BossZone => ({ x: (left + right) / 2, halfWidth: (right - left) / 2, bottom, top });
 
-/** Frost: a column at the player, a low sweep to jump over, then a cleave across each half in turn. */
+
 const LICH_KING: BossDefinition = {
   kind: BossKind.lichKing, name: "The Lich King", stage: 2,
   model: "war3mapImported\\LichKing2.mdx", scale: f32(2.6), tint: [190, 220, 255], drawn: LICH_KING_DRAWN, depth: 480.0, standZ: -20.0,
@@ -98,7 +98,7 @@ const LICH_KING: BossDefinition = {
   ],
 };
 
-/** Fire: two staggered rains of fire, a Finger of Death at the player, then a ground shockwave to jump. */
+
 const ARCHIMONDE: BossDefinition = {
   kind: BossKind.archimonde, name: "Archimonde", stage: 10,
   model: "Units\\Demon\\Warlock\\Warlock.mdx", scale: f32(2.2), tint: [255, 255, 255], drawn: WARLOCK_DRAWN, depth: 400.0, standZ: -60.0,
@@ -112,7 +112,7 @@ const ARCHIMONDE: BossDefinition = {
   ],
 };
 
-/** Shadow: three Shadow Spikes at the player, Legion Lightning across the air, then Darkness around himself. */
+
 const KILJAEDEN: BossDefinition = {
   kind: BossKind.kiljaeden, name: "Kil'jaeden", stage: 7,
   model: "Units\\Demon\\Warlock\\Warlock.mdx", scale: f32(2.4), tint: [255, 120, 150], drawn: WARLOCK_DRAWN, depth: 420.0, standZ: -60.0,
@@ -147,7 +147,7 @@ export function bossCycleFrames(boss: Readonly<BossDefinition>): number {
 export const BossPhase = { opening: 0, tell: 1, active: 2, rest: 3 } as const;
 export type BossPhase = (typeof BossPhase)[keyof typeof BossPhase];
 
-/** Where the timetable is on boss frame `clock` (1 is GO!): the strike counted from the first, its phase and the frame within it. */
+
 export interface BossMoment {
   strike: number;
   index: number;
@@ -155,7 +155,7 @@ export interface BossMoment {
   frame: number;
 }
 
-// Preallocated: the step and the presentation read the moment every frame.
+
 const moment: BossMoment = { strike: -1, index: 0, phase: BossPhase.opening, frame: 0 };
 
 export function bossMoment(boss: Readonly<BossDefinition>, clock: number, out: BossMoment = moment): BossMoment {
@@ -186,25 +186,25 @@ export function bossMoment(boss: Readonly<BossDefinition>, clock: number, out: B
   return out;
 }
 
-/** The boss clock: frames since GO!. */
+
 export const bossClock = (matchFrame: number, startHold: number): number => Math.max(0, matchFrame - startHold);
 
-/** A zone's centre this strike: its own x, or offset from the aim. */
+
 export const zoneCenter = (strike: Readonly<BossStrike>, zone: Readonly<BossZone>, aimX: number): number => strike.aimed ? f32(aimX + zone.x) : zone.x;
 
 const FIGHTER_HEIGHT = 120.0;
 
-/** Whether a fighter standing at (x, z) is inside the zone. */
+
 export function inZone(strike: Readonly<BossStrike>, zone: Readonly<BossZone>, aimX: number, x: number, z: number): boolean {
   const center = zoneCenter(strike, zone, aimX);
   return Math.abs(f32(x - center)) <= zone.halfWidth && z <= zone.top && f32(z + FIGHTER_HEIGHT) >= zone.bottom;
 }
 
-// Preallocated: the hover point the step and the presentation read.
+
 const scratchMoment: BossMoment = { strike: -1, index: 0, phase: BossPhase.opening, frame: 0 };
 const hover = { x: 0.0, z: 0.0 };
 
-/** The boss's hover point this frame: it glides to each strike's spot over the first frames of its tell. */
+
 export function bossPosition(boss: Readonly<BossDefinition>, clock: number): Readonly<{ x: number; z: number }> {
   const now = bossMoment(boss, clock, scratchMoment);
   const strike = boss.strikes[now.index];
@@ -219,7 +219,7 @@ export function bossPosition(boss: Readonly<BossDefinition>, clock: number): Rea
   return hover;
 }
 
-/** Inside the damage batch: the strike's aim on its tell's first frame, and its hits while it is active. */
+
 export function collectBossContacts(state: BossState, world: Roster, clock: number, player: number): void {
   const boss = bossDefinition(state.kind);
   if (boss === undefined || state.health <= 0) return;
@@ -248,11 +248,11 @@ export function collectBossContacts(state: BossState, world: Roster, clock: numb
   }
 }
 
-// Preallocated: the player's strikes are tested against the boss every frame.
+
 const region: HitRegion = emptyHitRegion();
 const capsule = emptyCapsule();
 
-/** After attacks resolve: the player's strikes and projectiles that reach the boss take its health. */
+
 export function strikeBoss(state: BossState, world: Roster, clock: number, slot: number): void {
   const boss = bossDefinition(state.kind);
   if (state.flash > 0) state.flash--;

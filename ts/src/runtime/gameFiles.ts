@@ -1,11 +1,11 @@
-// Files for Smashcraft's selection, developer commands and input capture.
+
 export const devCommandReceiptFile = (build: string, slot: number) => `smashcraft-dev-${build}-p${slot}.txt`;
-/** The developer capture driver's observed Warcraft chat entry; written when it opens or closes. */
+
 export const nativeChatFile = (build: string, slot: number) => `smashcraft-chat-${build}-p${slot}.txt`;
 export const MELEE_READY_FILE = "wc3-melee-ready.txt";
 export const INPUT_START_FILE = "wc3-melee-input-start.txt";
 export const INPUT_TRACE_FILE = "wc3-melee-input-trace.txt";
-/** Item captures include the latest first spawn (60 s), its buff (10 s), and a replay export. */
+
 export const RESPONSE_TRACE_CALLBACKS = 4500;
 export const traceStartLine = (build: string) => `TRACE START ${build}`;
 export const traceEndLines = (dropped: number, ticks: number, seconds: string) => [`dropped ${dropped}`, `${ticks} ${seconds} end`];
@@ -20,24 +20,24 @@ export const responsePageFile = (slot: number | "*", run: number | "*", page: nu
 export const edgeStampFile = (slot: number, run: number, row: number, stage: "poll" | "present") => `smashcraft-edge-p${slot}-run${run}-row${row}-${stage}.txt`;
 export const frameCostFile = (source: string, slot: number, language: "typescript" | "wurst") => `smashcraft-frame-cost-${source}-p${slot}-${language}.txt`;
 export const frameCostClockFile = (slot: number) => `smashcraft-frame-cost-clock-p${slot}.txt`;
-/** The native capture map's latest script or end, for the host's log (smashcraft:ts/src/platform/nativeCaptureMain.ts). */
+
 export const CAPTURE_STATUS_FILE = "smashcraft-capture-status.txt";
 export const renderClockFile = (slot: number, run: number) => `smashcraft-render-clock-p${slot}-run${run}.txt`;
 export const PHYSICS_REPORT_FILE = "smashcraft-native-physics-precision.txt";
 export const objectDataReceiptFile = (slot: number) => `smashcraft-object-data-p${slot}.txt`;
-/** A playtest request the host leaves for the map, its go-ahead, and each client's receipt (smashcraft:ts/src/platform/shell/playtest.ts). */
+
 export const PLAYTEST_REQUEST_FILE = "smashcraft-play.txt";
 export const PLAYTEST_GO_FILE = "smashcraft-play-go.txt";
 export const playtestReceiptFile = (slot: number) => `smashcraft-play-p${slot}.txt`;
-/** The stage a match drew, written at its start by builds with the dev console, so a capture checks the player's view only after it. */
+
 export const stageReceiptFile = (build: string, slot: number) => `smashcraft-stage-${build}-p${slot}.txt`;
-/** The record of this client's `serial`th finished match for the Smashcraft client (smashcraft:ts/src/game/shell/matchRecord.ts); serials count across sessions. */
+
 export const matchRecordFile = (serial: number) => `smashcraft-match-${serial}.txt`;
-/** A replay's manifest, written at its match's end, and its parts, written during the match (smashcraft:ts/src/game/replay/matchReplay.ts). */
+
 export const replayFile = (serial: number) => `smashcraft-replay-${serial}.txt`;
 export const replayPartFile = (serial: number, part: number) => `smashcraft-replay-${serial}-${part}.txt`;
-/** Holds the next match record's serial, as one FileIO chunk. */
+
 export const MATCH_RECORD_INDEX_FILE = "smashcraft-match-index.pld";
-/** The integrity build's last drawn frame on this client, rewritten each callback it changes, so `bun wisp pad` captures the frame it names (smashcraft:ts/src/platform/shell/drawnFrame.ts). */
+
 export const drawnFrameFile = (build: string, slot: number) => `smashcraft-drawn-${build}-p${slot}.txt`;
 export const drawnFrameLine = (build: string, epoch: number, frame: number) => `SMASHCRAFT DRAWN v=1 build=${build} epoch=${epoch} frame=${frame}`;

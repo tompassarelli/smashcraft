@@ -1,6 +1,6 @@
-// A stage-select card (smashcraft:docs/design/stage-select.md): the stage's
-// square picture, a coal panel beside it holding the stage's layout silhouette,
-// and optionally a name banner along the bottom. Local presentation only.
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
 import { stageInfo } from "../menu/stageCatalog";

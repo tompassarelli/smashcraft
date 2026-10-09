@@ -1,8 +1,8 @@
-// Training (#120, smashcraft:docs/design/training-mode.md): the partner's
-// settings, its inputs, and the readout of the last move, the advantage after
-// a hit or shielded hit, and the combo. All of it is synchronized match
-// state: rollback copies it, the replay difference compares it and the
-// checksum folds it while training is on.
+
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { type AttackBuffer, queueAttack } from "../input/attackBuffer";
 import type { Direction } from "../input/inputRow";
@@ -17,17 +17,17 @@ import { respawnFighter } from "../sim/stocks";
 import { botChoice } from "./botRandom";
 import { Advantage, LATCH_FIELDS, type LatchedPresses, PartnerBehaviour, PartnerEscape, PartnerTech, type TrainingState, clearTrainingReadout } from "./trainingState";
 
-/** A measurement that waits longer than this for both fighters is dropped. */
+
 const MEASURE_LIMIT = 600;
-/** The partner presses tech when the forecast lands it within this many frames (the press techs within 20). */
+
 const TECH_LEAD_FRAMES = 12;
 
-/** Whether a fighter could start an action now: attack, or grab out of its shield. */
+
 export function canAct(f: Fighter): boolean {
   return !f.status.out && (canAttack(f) || canShieldGrab(f));
 }
 
-/** Every fighter back on its starting spot; computers take the partner's damage. */
+
 export function resetTrainingPositions(state: TrainingState, world: Roster, computerMask: number, spawnX: (slot: number) => number): void {
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
@@ -41,7 +41,7 @@ export function resetTrainingPositions(state: TrainingState, world: Roster, comp
   clearTrainingReadout(state);
 }
 
-// Preallocated: overwritten for every slot at the start of every training frame, rollback included.
+
 const beforeSerial: Slots<number> = [0, 0, 0, 0];
 const beforeHit: Slots<number> = [0, 0, 0, 0];
 const beforeShield: Slots<number> = [0, 0, 0, 0];
@@ -71,7 +71,7 @@ function attackerOf(world: Roster, defender: number): number {
   return -1;
 }
 
-/** After a training frame: the move a player started, contacts to measure, the combo, and a knocked-out partner's damage. */
+
 export function advanceTrainingReadout(state: TrainingState, world: Roster, playerMask: number, computerMask: number): void {
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
@@ -139,10 +139,10 @@ export function advanceTrainingReadout(state: TrainingState, world: Roster, play
 }
 
 interface Forecast { readonly fighter: Fighter; readonly world: Roster; readonly input: Controls }
-// The partner's tech forecast: one fighter played forward alone with the held stick, made on first use.
+
 let forecast: Forecast | undefined;
 
-/** Whether the tumbling fighter, holding `direction`, reaches the floor within `frames`. */
+
 function landsWithin(world: Roster, f: Readonly<Fighter>, stage: number, matchFrame: number, direction: number, frames: number): boolean {
   if (forecast === undefined) {
     const fighter = createFighter(Character.demonHunter, 0.0, 1);
@@ -159,7 +159,7 @@ function landsWithin(world: Roster, f: Readonly<Fighter>, stage: number, matchFr
   return false;
 }
 
-/** -1, 0 or 1 toward the fighter that last hit `f`, or toward the middle without one. */
+
 function towardAttacker(world: Roster, slot: number): Direction {
   const f = fighterAt(world, slot);
   const attacker = attackerOf(world, slot);
@@ -174,10 +174,10 @@ function techDirection(state: Readonly<TrainingState>, world: Roster, slot: numb
   return option === PartnerTech.away ? -towardAttacker(world, slot) : 0;
 }
 
-/**
- * The partner's inputs this frame; false leaves the frame to the computer
- * (Fight, with no escape or tech set for what is happening).
- */
+
+
+
+
 export function trainingPartnerInput(state: Readonly<TrainingState>, world: Roster, slot: number, stage: number, matchFrame: number, frame: number, input: Controls, commands: AttackBuffer): boolean {
   const f = fighterAt(world, slot);
   if (f.launch.hitlag > 0) {
@@ -224,13 +224,13 @@ export function trainingPartnerInput(state: Readonly<TrainingState>, world: Rost
   }
 }
 
-/** Presses slow motion keeps across the input frames it skips, by their bit in LatchedPresses.mask. */
+
 const PRESS_FIELDS = [
   "specialPressed", "shieldPressed", "jumpPressed", "airDodgePressed", "techPressed", "mashPressed", "attackPressed", "grabMashPressed",
   "groundDodgePressed", "getupAttackPressed", "getupStandPressed", "getupDirectionPressed", "cStickUpFlick", "sdiPulse", "resetPressed",
 ] as const;
 
-/** Copies the values a press carries, between controls and kept presses. */
+
 function carry(field: (typeof PRESS_FIELDS)[number], to: LatchedPresses | Controls, from: Readonly<LatchedPresses | Controls>): void {
   if (field === "specialPressed") { to.specialX = from.specialX; to.specialZ = from.specialZ; }
   else if (field === "airDodgePressed") { to.dodgeX = from.dodgeX; to.dodgeZ = from.dodgeZ; }
@@ -239,7 +239,7 @@ function carry(field: (typeof PRESS_FIELDS)[number], to: LatchedPresses | Contro
   else if (field === "sdiPulse") { to.sdiX = from.sdiX; to.sdiZ = from.sdiZ; }
 }
 
-/** Keeps a skipped input frame's first presses. */
+
 export function latchPresses(latch: LatchedPresses, input: Readonly<Controls>): void {
   for (let index = 0; index < PRESS_FIELDS.length; index++) {
     const field = PRESS_FIELDS[index];
@@ -252,7 +252,7 @@ export function latchPresses(latch: LatchedPresses, input: Readonly<Controls>): 
   if (latch.ledgeVerticalPressed === 0) latch.ledgeVerticalPressed = input.ledgeVerticalPressed;
 }
 
-/** Adds the kept presses to the frame the match runs, then forgets them. */
+
 export function releasePresses(latch: LatchedPresses, input: Controls): void {
   for (let index = 0; index < PRESS_FIELDS.length; index++) {
     const field = PRESS_FIELDS[index];

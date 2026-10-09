@@ -1,39 +1,39 @@
 import type { Direction } from "./inputRow";
 
-/** Grace frames for human attack commands. */
+
 export const ATTACK_BUFFER_FRAMES = 6;
 
-/**
- * One attack request. Callers keep immutable values; buffers copy them into
- * their own storage so replay snapshots retain a fixed number of records.
- */
+
+
+
+
 export interface AttackCommand {
-  /** A Simulation attack style; 0 through 10 can be queued. */
+
   readonly style: number;
-  /** The facing the attack asks for; 0 when same-frame requests disagreed. */
+
   readonly facing: Direction;
-  /** The logical simulation frame it is for, never a wall-clock time. */
+
   readonly frame: number;
-  /** Holding attack may charge it, as for a smash entered with the attack button. */
+
   readonly mayCharge: boolean;
 }
 
 type StoredAttackCommand = { -readonly [Field in keyof AttackCommand]: AttackCommand[Field] };
 
-/** One participant's queued attack, waiting up to graceFrames past its frame for the fighter to be able to start it. */
+
 export interface AttackBuffer {
   readonly queued: StoredAttackCommand;
   readonly previous: StoredAttackCommand;
   graceFrames: number;
   pending: AttackCommand | undefined;
-  /** Last queued request, retained because replay snapshots hash Wurst's last facing and target frame. */
+
   previousRequest: AttackCommand | undefined;
-  /** Result of the most recent consume attempt. */
+
   consumedFacing: Direction;
   consumedMayCharge: boolean;
 }
 
-/** The Wurst Replay2 fields for one command buffer, including its consumed observation. */
+
 interface AttackBufferCanonicalState {
   graceFrames: number;
   style: number;
@@ -63,7 +63,7 @@ function storeCommand(buffer: AttackBuffer, command: Readonly<AttackCommand>): v
   buffer.previousRequest = buffer.previous;
 }
 
-/** Explicitly reset both the queued request and its last-consume observation. */
+
 export function clearAttackBuffer(buffer: AttackBuffer): void {
   for (const command of [buffer.queued, buffer.previous]) {
     command.style = 0;
@@ -98,7 +98,7 @@ export function sameAttackBuffer(first: Readonly<AttackBuffer>, second: Readonly
     && a.mayCharge === b.mayCharge && a.consumedMayCharge === b.consumedMayCharge;
 }
 
-/** A field-by-field copy: Lua's Object.assign skips undefined requests. */
+// Lua Object.assign skips undefined requests.
 export function copyAttackBuffer(target: AttackBuffer, source: Readonly<AttackBuffer>): void {
   target.graceFrames = source.graceFrames;
   if (source.pending !== undefined) copyCommand(target.queued, source.pending);
@@ -113,19 +113,19 @@ const GRAB = 5;
 const isSmash = (style: number) => style >= 2 && style <= 4;
 const isTilt = (style: number) => style >= 6;
 
-/** Same-frame precedence: grab, C-stick smashes, smashes that may charge, tilts, then by style. */
+
 function precedence({ style, mayCharge }: AttackCommand): number {
   if (style === GRAB) return 5;
   if (isSmash(style)) return mayCharge ? 3 : 4;
   return isTilt(style) ? 2 : style;
 }
 
-/**
- * Queues an attack in place of one for another frame. Requests for the same
- * frame keep the one with precedence, the higher style on a tie, so callback
- * order never decides; equal requests that disagree on facing leave the
- * facing neutral.
- */
+// Resolve equal-frame requests by precedence and style so callback order cannot decide.
+
+
+
+
+
 export function queueAttack(buffer: AttackBuffer, command: AttackCommand): void {
   if (command.style < 0 || command.style > 10) return;
   const queued = buffer.pending;
@@ -141,15 +141,15 @@ export function queueAttack(buffer: AttackBuffer, command: AttackCommand): void 
   storeCommand(buffer, command);
 }
 
-/** Whether the queued attack's frame has come and its grace has not run out. */
+
 export function hasPendingAttack({ graceFrames, pending }: Readonly<AttackBuffer>, frame: number): boolean {
   return pending !== undefined && frame >= pending.frame && frame - pending.frame <= graceFrames;
 }
 
-/**
- * Takes the queued attack when it is due and the fighter may start it. An
- * attack that waited past its grace is dropped.
- */
+
+
+
+
 export function takeAttack(buffer: AttackBuffer, frame: number, allowed: boolean): AttackCommand | undefined {
   buffer.consumedFacing = 0;
   buffer.consumedMayCharge = false;
@@ -163,14 +163,14 @@ export function takeAttack(buffer: AttackBuffer, frame: number, allowed: boolean
   buffer.pending = undefined;
   buffer.consumedFacing = command.facing;
   buffer.consumedMayCharge = command.mayCharge;
-  // The caller may retain a consumed request while this buffer queues another.
+
   return { ...command };
 }
 
-/**
- * Keeps a queued attack due while a freeze holds it, as a parried hit's does:
- * its grace counts from the frame now, so it starts on the first actionable frame.
- */
+
+
+
+
 export function holdAttack(buffer: AttackBuffer, frame: number): void {
   const command = buffer.pending;
   if (command === undefined || command.frame >= frame || frame - command.frame > buffer.graceFrames) return;

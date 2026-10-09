@@ -13,15 +13,15 @@ interface ShieldPose {
   blue: number;
 }
 
-// Shared and never changed: renderers project every pooled effect on every callback.
+
 const HIDDEN: Readonly<ShieldPose> = { visible: false, x: 0.0, z: 0.0, scale: 0.0, red: 255, green: 255, blue: 255 };
 
-/** A raised shield's bubble, shrinking with its energy; hidden outside play. */
+
 export function projectedShield(fighter: Readonly<Fighter> | undefined, playing: boolean): Readonly<ShieldPose> {
   if (!playing || fighter === undefined || fighter.status.out || !fighter.shield.raised) return HIDDEN;
   const struck = fighter.shield.stun > 0;
-  // The bubble compresses and rebounds through contact freeze and shieldstun.
-  // Deriving the pulse from replayable clocks keeps corrections read-only.
+
+
   const clock = fighter.launch.hitlag > 0 ? fighter.launch.hitlag : fighter.shield.stun;
   const pulse = struck ? (imod(clock, 4) < 2 ? 1.125 : 0.9375) : 1.0;
   const recoil = struck ? (fighter.shield.pushbackX > 0.0 ? 6.0 : fighter.shield.pushbackX < 0.0 ? -6.0 : 0.0) : 0.0;

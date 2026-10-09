@@ -1,6 +1,6 @@
-// Factual frame observations from libmelee ef679270ff95f0d42339dcdf1608282a35023349,
-// melee/framedata.csv, SHA256 8e0d811290b511902076c0011db1a0116356a7ddaa68dfa369ea4f5dcdc93777.
-// Numerical data only; no LGPL library helper implementation is incorporated.
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../sim/tuning";
 import { heroBody } from "../sim/heroes/heroBodies";
@@ -8,14 +8,14 @@ import { heroBody } from "../sim/heroes/heroBodies";
 type RollKind = "roll" | "faceUpGetup" | "faceDownGetup" | "tech";
 type RollDirection = "forward" | "back";
 
-/**
- * Signed travel along the roll's direction in Melee units, one sample per
- * frame from frame 1. facing_changed is orientation metadata, not a travel
- * sign flip, and the small captured reversals are kept.
- */
+
+
+
+
+
 type RollCurves = Readonly<Record<RollKind, Readonly<Record<RollDirection, readonly number[]>>>>;
 
-/** Fox/reference (character 0) and Falco/Rifleman (character 1). */
+
 const ROLL_TRAVEL: readonly RollCurves[] = [
   {
     roll: {
@@ -169,11 +169,11 @@ const ROLL_TRAVEL: readonly RollCurves[] = [
   },
 ];
 
-/**
- * World units a roll travels on a one-based frame. Frames past the data don't
- * move, which ends a forty-frame tech roll on the dataset's last frame, 39.
- * Heroes use the reference body's curve scaled by their body's run multiplier.
- */
+
+
+
+
+
 export function rollTravel(character: number, kind: RollKind, direction: RollDirection, frame: number): number {
   const curves = ROLL_TRAVEL[character] ?? ROLL_TRAVEL[0];
   const sample = curves?.[kind][direction][frame - 1];
@@ -181,8 +181,8 @@ export function rollTravel(character: number, kind: RollKind, direction: RollDir
   return sample === undefined ? 0.0 : f32(f32(sample * WORLD_UNITS_PER_MELEE_UNIT) * scale);
 }
 
-/** The frame a forward roll turns the fighter around, or undefined to turn when it ends. */
+
 export function forwardRollTurnFrame(character: number): number | undefined {
-  // Only Fox/reference and Falco/Rifleman adopt the observed orientation event.
+
   return character === 0 || character === 1 ? 20 : undefined;
 }

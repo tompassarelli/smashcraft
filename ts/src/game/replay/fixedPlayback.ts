@@ -3,13 +3,13 @@ import { captureNetworkFrame, createMatchFrameInput, executeMatchFrame } from ".
 import type { FixedInputSchedule } from "../netcode/fixedSchedule";
 import type { ReplayState } from "./snapshot";
 
-/** Runs a fixed-delay schedule's accepted rows, one frame per call, in a world of their own. */
+
 export class FixedInputPlayback {
-  // Preallocated: refilled for every frame the schedule releases.
+
   private readonly accepted = participantInputs();
   private readonly recorded = createMatchFrameInput();
 
-  /** Runs the schedule's next frame once every participant's row has arrived. */
+
   advanceNext(schedule: FixedInputSchedule, epoch: number, live: ReplayState): boolean {
     const frame = schedule.nextFrame();
     const mask = schedule.participantMask();

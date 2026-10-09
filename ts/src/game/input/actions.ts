@@ -1,8 +1,8 @@
-/**
- * Controller actions. Each value is the action's bit position in input masks
- * and in the I4 wire format, which the companion helper also writes, so the
- * numbers are a protocol and must not change.
- */
+// Action numbers are bit positions in the companion I4 protocol and must not change.
+
+
+
+
 export const Action = {
   moveLeft: 0,
   moveRight: 1,
@@ -25,12 +25,12 @@ export const Action = {
 
 export type Action = (typeof Action)[keyof typeof Action];
 
-/** Actions in their input-mask and saved-key order, independent of Lua table iteration. */
+// Saved action order must not depend on Lua table iteration.
 export const ACTION_ORDER: readonly Action[] = Object.values(Action).sort((left, right) => left - right);
 
 export const ACTION_COUNT = ACTION_ORDER.length;
 
-/** A mask with every action set. */
+
 export const ALL_ACTIONS = (1 << ACTION_COUNT) - 1;
 
 export function bit(action: Action): number {

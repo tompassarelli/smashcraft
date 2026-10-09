@@ -6,17 +6,17 @@ import type { Fighter } from "../sim/fighter";
 import { type Controls, type Roster, isActive } from "../sim/roster";
 import { INITIAL_DASH_FRAMES } from "../sim/tuning";
 
-/** Illidan's locomotion clip; the numbers are the Wurst codes pose keys record. */
+
 export const IllidanLocomotion = { idle: 0, walk: 1, run: 2, dash: 3, turn: 4, stop: 5, crouch: 6, fall: 7, fastFall: 8 } as const;
 export type IllidanLocomotion = (typeof IllidanLocomotion)[keyof typeof IllidanLocomotion];
 
-/** How long each transient clip plays; its pose stretches the clip over these frames. */
+
 export const TRANSITION_FRAMES = 8;
 export const RESPAWN_FRAMES = 24;
 export const ESCAPE_FRAMES = 10;
 export const LEDGE_CATCH_FRAMES = 6;
 
-/** Completed-frame presentation history; the simulation never reads it. */
+
 export interface IllidanMotion {
   motion: IllidanLocomotion;
   transitionRemaining: number;
@@ -28,7 +28,7 @@ export interface IllidanMotion {
   previousLedge: LedgeState;
   previousJump: number;
   previousOut: boolean;
-  /** The slot that held this fighter on the previous executed frame. */
+
   previousGrabOwner: number | undefined;
   previouslyMoving: boolean;
 }
@@ -56,7 +56,7 @@ export function clearIllidanMotion(history: IllidanMotion): void {
   history.previouslyMoving = false;
 }
 
-/** A holder outside the source world's participants is not carried into the copy. */
+
 export function copyIllidanMotion(target: IllidanMotion, source: Readonly<IllidanMotion>, sourceWorld: Readonly<Roster>): void {
   target.motion = source.motion;
   target.transitionRemaining = source.transitionRemaining;
@@ -73,7 +73,7 @@ export function copyIllidanMotion(target: IllidanMotion, source: Readonly<Illida
   target.previousGrabOwner = owner !== undefined && isActive(sourceWorld, owner) ? owner : undefined;
 }
 
-/** The first differing field; a holder reference outside its world never matches. */
+
 export function firstIllidanMotionDifference(
   expected: Readonly<IllidanMotion>, actual: Readonly<IllidanMotion>, world: Readonly<Roster>, actualWorld: Readonly<Roster>,
 ): string | undefined {
@@ -94,7 +94,7 @@ export function firstIllidanMotionDifference(
   return undefined;
 }
 
-/** Advances one executed frame; the frame's hitlag and freezes hold every countdown. */
+
 export function advanceIllidanMotion(history: IllidanMotion, fighter: Readonly<Fighter>, controls: Readonly<Controls>, world: Readonly<Roster>): void {
   const { launch, motion, special, shield, jump, ground, grab, status, ledge } = fighter;
   if (launch.hitlag > 0 || status.frozenFrames > 0) return;
@@ -102,7 +102,7 @@ export function advanceIllidanMotion(history: IllidanMotion, fighter: Readonly<F
   history.escapeRemaining = max(0, history.escapeRemaining - 1);
   history.ledgeCatchRemaining = max(0, history.ledgeCatchRemaining - 1);
   if (history.previousOut && !status.out) history.respawnRemaining = RESPAWN_FRAMES;
-  // The previous holder's current action tells an escape from a throw.
+
   const previousOwner = history.previousGrabOwner === undefined ? undefined : world.fighters[history.previousGrabOwner];
   if (previousOwner !== undefined && grab.owner === undefined && previousOwner.grab.action === GrabAction.escape) history.escapeRemaining = ESCAPE_FRAMES;
   if (history.previousLedge === LedgeState.none && ledge.state === LedgeState.hang) history.ledgeCatchRemaining = LEDGE_CATCH_FRAMES;

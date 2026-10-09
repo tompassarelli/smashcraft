@@ -1,4 +1,4 @@
-// Every model a stage's scene creates, so the shell can load them before a match.
+
 import { STAGE_DECK_MODEL, STAGE_DECK_MODELS, STAGE_MAIN_DECK_MODEL } from "../assets/stageAssetInfo";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { surfaceCount } from "../sim/stage";
@@ -12,7 +12,7 @@ import { CARRIED_TEST_STAGE, TOMB_OF_SARGERAS_STAGE, surfacePass } from "../sim/
 import { f32 } from "wisp/src/sim/f32";
 import { stageEdgeLight, STAGE_EDGE_LIGHT_MODEL } from "./stageEdgeLights";
 
-/** The model drawn for one deck of a stage, in the stage's palette. */
+
 export function deckModel(stage: number, index: number): string {
   const [stock] = platformParts(stage, index);
   if (stock !== undefined) return stock.model;
@@ -22,18 +22,18 @@ export function deckModel(stage: number, index: number): string {
   return themed === undefined ? STAGE_DECK_MODEL : themed.slab;
 }
 
-/**
- * The matrix scale the shell gives a deck's palette model `width` wide: a
- * slab's walking plane spans [-50, 50] at z = 0 and its body stays below it;
- * undefined draws the main deck's own model as built from its collision.
- */
+
+
+
+
+
 export function slabScale(stage: number, index: number, width: number): readonly [x: number, y: number, z: number] | undefined {
   if (index === 0) return undefined;
   const pass = surfacePass(stage, index);
   return [width / 100, pass ? f32(0.65) : 1.0, pass ? stage === TOMB_OF_SARGERAS_STAGE ? 2.0 : f32(0.45) : 1.0];
 }
 
-/** The effect models a stage's scene draws: decks, cannon, lava and scenery pieces. */
+
 export function stageModels(stage: number): string[] {
   const models: string[] = [];
   for (let index = 0; index < surfaceCount(stage); index++) {
@@ -48,7 +48,7 @@ export function stageModels(stage: number): string[] {
   return models;
 }
 
-/** Each distinct effect model of every selectable stage. */
+
 export function preloadModels(): string[] {
   const models: string[] = [];
   for (const { id } of STAGE_CATALOG) for (const model of stageModels(id)) if (!models.includes(model)) models.push(model);

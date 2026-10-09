@@ -12,7 +12,7 @@ export const PAIN_SCENARIOS: readonly Scenario[] = [
   "pain-low-small", "pain-low-medium", "pain-low-large", "pain-middle-small", "pain-middle-medium", "pain-middle-large", "pain-high-small", "pain-high-medium", "pain-high-large",
 ];
 
-/** The ordinary projectile collision resolves both hits on frame 150, after the pad's jab starts. */
+
 export function initializePainScenario(scenario: Scenario, world: Roster): boolean {
   const category = PAIN_SCENARIOS.indexOf(scenario);
   if (category < 0) return false;
@@ -27,7 +27,7 @@ export function initializePainScenario(scenario: Scenario, world: Roster): boole
       top = Math.max(top, f32(Math.max(part.z1, part.z2) + part.radius));
     }
     const contact = f32(bottom + f32(f32(top - bottom) * at([0.1875, 0.5625, 0.875], height)));
-    // The fixture aims at authored height; hero projectiles collide with the standing capsule.
+
     const body = hurtCapsule(target.character);
     const radius = f32(Math.max(1.0, f32(contact - f32(body.z2 + body.radius)) + 1.0, f32(f32(body.z1 - body.radius) - contact) + 1.0));
     const projectile = mutableProjectile(fighterAt(world, owner), 0);
