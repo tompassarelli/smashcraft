@@ -10,6 +10,7 @@ import { type AttackBuffer, queueAttack } from "../input/attackBuffer";
 import { attackCapsule, capsulesIntersect, emptyCapsule, hurtCapsule, placeCapsule } from "../physics/contactGeometry";
 import { AttackStyle, Character, LAST_ATTACK_STYLE, SpecialAction } from "../sim/codes";
 import { canAttack } from "../sim/conditions";
+import { groundGatedStyle } from "../sim/attacks";
 import type { Fighter } from "../sim/fighter";
 import { SHARED_GRAB_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../sim/hitRegions";
 import { attackStartupFrames } from "../sim/moves";
@@ -437,6 +438,8 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
       for (const move of GROUND_MOVES) {
 
         if (f.shield.raised && move !== AttackStyle.grab) continue;
+        const gated = groundGatedStyle(f, move);
+        if (gated === undefined || (gated !== move && move !== AttackStyle.jab)) continue;
         const style = dashing && move === AttackStyle.jab ? f.tuning.moves?.dashAttack ?? AttackStyle.demonHunterDashAttack : move;
         const frames = attackStartupFrames(style, f.tuning.moves);
         if (ownShotArrives(f, target, frames, observationAge, stage, matchFrame)) continue;
