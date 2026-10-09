@@ -21,7 +21,7 @@ import { RECOVERY_BANDS, recoveryArchetype, upSpecialRoute } from "./recoveryEnv
 import { testMatch } from "./testMatch";
 import { sweep } from "../../runtime/sweep";
 
-const CHARGED_ANGLE: readonly Character[] = [Character.rifleman, Character.warden, Character.blademaster, Character.mountainKing, Character.shadowHunter, Character.kaelthas];
+const CHARGED_ANGLE: readonly Character[] = [Character.rifleman, Character.warden, Character.blademaster, Character.mountainKing, Character.shadowHunter];
 
 
 const check = (ok: boolean, label: string): void => assertEquals(ok ? "" : label, "");
@@ -124,7 +124,7 @@ function launchStep(driver: Driver, aimX: number, aimZ: number): { x: number; z:
   let best = { x: 0.0, z: 0.0 };
   let previousX = fighter.motion.x;
   let previousZ = fighter.motion.z;
-  for (let frame = 2; frame <= 60; frame++) {
+  for (let frame = 2; frame <= 24; frame++) {
     driver.play(frame <= 10 ? { x: aimX, z: aimZ } : { x: 0, z: 0 });
     const x = fighter.motion.x - previousX;
     const z = fighter.motion.z - previousZ;

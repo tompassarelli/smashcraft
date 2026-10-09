@@ -271,11 +271,6 @@ export function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, pr
     real("pool.growth", spec.pool.growth);
     real("pool.maxRadius", spec.pool.maxRadius);
   }
-  if (spec.homing !== undefined) {
-    real("homing.turn", spec.homing.turn);
-    real("homing.maxRise", spec.homing.maxRise);
-  }
-  if (spec.burstInto !== undefined) result.push(specialProjectileCanonical(spec.burstInto, `${prefix}.burstInto`));
   return result.join("");
 }
 

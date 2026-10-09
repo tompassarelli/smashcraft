@@ -372,9 +372,7 @@ function isCommands(value: unknown): value is Slots<AttackBuffer> {
 
 function authoredParts(specials: Readonly<FighterSpecials>, projectiles: Map<string, SpecialProjectile>, placements: Map<string, SpecialPlacement>): void {
   const projectile = (spec: SpecialProjectile | undefined) => {
-    if (spec === undefined) return;
-    projectiles.set(specialProjectileCanonical(spec, ""), spec);
-    if (spec.burstInto !== undefined) projectiles.set(specialProjectileCanonical(spec.burstInto, ""), spec.burstInto);
+    if (spec !== undefined) projectiles.set(specialProjectileCanonical(spec, ""), spec);
   };
   const move = (special: AuthoredSpecial | undefined): void => {
     if (special === undefined) return;

@@ -1,173 +1,152 @@
 # Kael’thas Sunstrider
 
-**Personality: the vain prince who cannot stop feeding.** Kael is a showman
-who needs your magic more than you do. He curses the fighter who rushes him
-so they can only flail with spells, drinks their meter through their shield
-so their enhanced moves never come, and throws fire that seeks them out and
-bursts into a pillar where it lands. When he is knocked away he burns himself
-into a phoenix and comes back screaming. Jaina sits back behind a delayed
-Blizzard and a Water Elemental and wins by owning space; Medivh teleports and
-wins by being somewhere else. Kael wins by taking things from you: your
-normals (Banish), your meter (Drain Mana) and your safe distance
-(Flamestrike). He loses to a patient opponent who jumps his bolt and refuses
-to stand next to him: his close normals are honest but light, his cast arm is
-part of his hurt body, and his recovery has the longest charge in the cast.
-
-Tom decided the kit core (9 Oct 2026, #381): the four Blood Mage abilities
-from Warcraft III; Flamestrike as a fire bolt in the spirit of Ness's PK
-Flash that drifts toward the opponent and bursts into a short pillar on
-contact, inside #380's effect budget; Drain Mana as a short tether that
-denies meter; Banish as a short-range curse; and a Fire Fox-style Phoenix
-whose flight bends up or down. Smashcraft has no ultimates, so Summon
-Phoenix is his EX up special. All geometry, damage and timings below are
-original provisional Smashcraft values; Smash, Rivals and Street Fighter
-references explain roles and trade-offs, not copied hitboxes or animation.
+Kael’thas is a mobile fire caster who sends a wall of flame along the ground
+at an approaching opponent. He buys another cast by risking a close Siphon Mana, or spends
+mana on a brief Banish dodge. His recovery is a committed phoenix flight.
+All geometry, damage and timings below are original provisional Smashcraft
+values. Smash references explain roles and trade-offs, not copied hitboxes.
 
 ## Research and body
 
-The [Warcraft III Blood Mage][wc] casts Flame Strike (a pillar of fire that
-burns an area), Banish (the target turns ethereal: slowed, unable to make
-physical attacks, still able to cast), Siphon Mana (takes an enemy's mana and
-gives it to the caster) and summons a Phoenix with a burning aura that is
-reborn from an egg. [Kael’thas][kael] adds the lore: Prince of Quel’Thalas,
-the Sunstrider line's phoenix, and the mana addiction that drives the blood
-elves. Smashcraft's universal meter is the "mana" Kael drinks.
+The [Warcraft III Blood Mage](https://wowpedia.fandom.com/wiki/Blood_Mage_(Warcraft_III))
+uses Verdant Spheres for ordinary attacks, Flame Strike for an area eruption,
+Banish for an ethereal state, Siphon Mana to transfer enemy mana, and Phoenix
+for an aerial summon. These are the Warcraft sources for the rows below;
+normals turn his sphere attacks into hand and flame gestures.
 
-The body counterpart is [Mewtwo in Ultimate][mw]: weight **79**, run
-**2.255**, air speed **1.313**, capped at the roster's **1.25** air maximum.
-Smashcraft uses six world units per Smash unit; his run is **13.53** and air
-speed **7.5** a frame (body multipliers 79/75 weight, 2.255/2.2 run, 1.25 air).
-Width 0.96 and height 1.12 are original Blood Mage silhouette choices. Shared
-gravity, jumps and dodges are the roster's. His extended casting arm is part
-of his hurt body; spell fire is not.
+The named body counterpart is
+[Mewtwo in Ultimate](https://www.ssbwiki.com/Mewtwo_(SSBU)#Stats): weight **79**,
+run **2.255**, air speed **1.313**. Kael intentionally caps that air reference
+at the roster's **1.25** maximum while retaining Mewtwo's weight and run.
+Smashcraft uses six world units per Smash unit; his actual run is **13.53**
+and air speed **7.5** per frame. The hero-body multipliers are 79/75 weight,
+2.255/2.2 run, and 1.25 air. Width 0.96 and
+height 1.12 are original Blood Mage silhouette choices. Shared gravity,
+jumps and dodge timing stay the roster's. Unlike Mewtwo's tail, his disjoint
+flames are not part of his hurt body; his extended casting arm is.
 
-## Gameplan
+[Robin's Arcfire](https://www.ssbwiki.com/Arcfire) supplies Flame Strike's
+role: a fire projectile that travels out to stop an approach and launches.
+[Ultimate Robin's side-special timing](https://www.ssbwiki.com/Robin_(SSBU)/Side_special)
+lists the initial projectile at frames 17–76 and the caster interruptible at
+frame 64: the fire keeps its threat after the caster's commitment ends. The
+[Warcraft III Blood Mage](https://classic.battle.net/war3/human/units/bloodmage.shtml)
+burns a target area. Kael's flame leaves the hand on frame 12 and travels
+along the ground for 33 frames; this is original Smashcraft tuning, not
+Arcfire's projectile or pillar duration. His flame ends on its first body or
+shield contact, so it cannot hold a victim in repeated flame hits.
 
-1. **Curse the rusher.** Banish is a close green curse (reach 110). The
-   victim turns ethereal for 90 frames: tinted green and see-through, slowed
-   to 60% speed, unable to use normals, still able to shield, jump, dodge and
-   cast, and taking 30% more damage from Kael's spells.
-2. **Bolt the cursed.** Flamestrike's bolt drifts toward the opponent and
-   bursts into a pillar of fire where it touches them. Banish into
-   Flamestrike is his signature string; the victim answers it by shielding,
-   reflecting or jumping the bolt.
-3. **Drink the meter.** Drain Mana is a short tether that grabs through a
-   shield, drains up to 30 meter into Kael and pops the victim away for 4%.
-   It denies the opponent's EX specials and feeds his own.
-4. **Burn home.** Phoenix charges in place for 42 frames with swirling
-   flames, then flies as a phoenix in the chosen direction; holding up or
-   down bends the flight a little. Edge-guarders hit the charge, cover the
-   ledge, or wait under the helpless fall.
+A fixed pillar placed 180 units ahead and live from frame 17 lost most of
+the computer field (1,611 of 8,160 games at 5af7b159): opponents crossed it
+in the air before it erupted or after it went out. The travelling flame meets
+an approach at any distance up to about 420 units.
+[Ridley's Wing Blitz](https://www.ssbwiki.com/Wing_Blitz) supplies the recovery
+commitment: choose a heading before flight, then punish the helpless landing.
+[Mewtwo's moves](https://www.ssbwiki.com/Mewtwo_(SSBU)#Moveset) supply the
+palm-pressure, aerial-spacing, and directional-throw relationships.
 
-The opponent's guess at mid range: shield the bolt and Drain Mana takes the
-meter; jump the tether and the bolt or an up air meets the landing; rush in
-and Banish takes the normals away.
-
-## Normals
+## Full kit
 
 Frames count entry as 1. Columns are first active / active duration / recovery;
-aerial landing is the authored landing lag (halved by the shared rule). Reach
-is world units from his centre. One hit per target per contact window.
-Every normal is a whole-body motion: the pelvis and shoulders turn into the
-strike and the weight shifts toward it, the off hand counter-swings, and the
-body settles back into the ready stance. Smash references are role and body
-analogues, not copied timing.
+aerial landing is the final automatic landing lag. Reach is world units from
+the caster's centre, before the target's body. No extra shield damage is used.
+Every ordinary contact is one hit per target and action.
 
-| Input | Body motion; setup and counterplay | Frames; damage; reach; angle | Reference |
-|---|---|---|---|
-| Jab 1 → 2 | Rear-foot pivot into a palm check, then the hips turn through a sphere shove. Fast out-of-shield poke; shield it and the shove is minus. | 5/2/13, 3%, 50, 25° → 6/3/16, 4%, 58, 35° | [Mewtwo jab][mw] |
-| Forward tilt (high/mid/low) | Steps in and sweeps a flame fan from the shoulder, the torso leaning the angle. Spacing poke; whiffs are punished by dash attack. | 9/3/20; 8%; 106; 55°/35°/25° | [Mewtwo forward tilt][mw] |
-| Up tilt | Crouch, then the whole body rises with the hand overhead. Anti-air; loses to a cross-up. | 8/4/20; 8%; height 136; 90° | [Mewtwo up tilt][mw] |
-| Down tilt | Drops low and sweeps the floor with a long reach; pops up for a juggle. Shield or jump the sweep. | 7/3/18; 6%; 94; 80° | [Mewtwo down tilt][mw] |
-| Dash attack | Leaps shoulder-first behind a palm, 64-unit slide. Commits past a shield. | 10/4/24; 9%; 94; 55° | [Mewtwo dash attack][mw] |
-| Forward smash | Coils back over the rear leg, then lunges both palms into a fire lance. Kill move from about 95%; 13 frames is readable, punish the 31-frame end. | 13/3/31; 16% (×1.25 charged); 138; 35° | [Mewtwo forward smash][mw] |
-| Up smash | Squats with the hands at the hip, then rises onto his toes and erupts overhead. Catches landings; slow against grounded rushes. | 18/5/31; 15%; height 157; 90° | [Mewtwo up smash][mw] |
-| Down smash | Splits his stance and sweeps flame low in front and behind. Roll read; jump it. | 20/4/32; 14%; ±111; 25° | [Mewtwo down smash][mw] |
-| Neutral air | Tucks and turns a full circle, a sphere ring around him. Close escape. | 8/6/22, land 14; 7%; ±40 r25; 55° | [Mewtwo neutral air][mw] |
-| Forward air | Hips drive forward under a fire palm. Aerial punish; land behind it. | 8/3/25, land 14; 10%; 103; 40° | [Mewtwo forward air][mw] |
-| Back air | Twists the shoulders round and back-hands flame behind. Longest aerial; slow to start. | 12/3/24, land 16; 11%; −123; 35° | [Mewtwo back air][mw] |
-| Up air | Arches back and swings both arms overhead. Juggle; DI out sideways. | 10/4/21, land 14; 9%; height 136; 90° | [Mewtwo up air][mw] |
-| Down air | Knees up, then stamps both hands downward. Air spike, ground lift. | 15/3/29, land 20; 12%; −76; spike | [Mewtwo down air][mw] |
-| Grab / pummel | Reaches, closes the hand on the victim; a sphere squeeze. | Grab 8/2/26, reach 58; pummel 3% | [Mewtwo grab][mw] |
-| Forward throw | Turns his hips and shoves. Spacing for Flamestrike. | release 14, recover 22; 7%, 35° | [Mewtwo throws][mw] |
-| Back throw | Pivots and slings behind; edge reward. | release 17, recover 25; 9%, 40° back | [Mewtwo throws][mw] |
-| Up throw | Lifts overhead and bursts; short juggle. | release 16, recover 15; 7%, 90° | [Mewtwo throws][mw] |
-| Down throw | Presses the victim to the floor; tech chase. | release 18, recover 24; 6%, 25° | [Mewtwo throws][mw] |
-| Get-up / ledge attack | Rising sphere sweep both sides / climbing palm. | shared timings; 7% / 7% | [Mewtwo floor attacks][mw] |
-
-Launch classes: growth/base 80/20 spacing, 95/24 launchers, 110/28
-finishers, 95/24 the spike, 55/50 up throw, 40/75 down throw. Smashes charge
-for at most 45 frames to 1.25 damage. No guaranteed repeat-grab or flame loop.
-
-## Specials
-
-| Input | What it does and the decision | Frames and values | Counterplay | Prior art |
+| Input | Gesture and role | Frames; damage; reach | Warcraft source | Smash reference |
 |---|---|---|---|---|
-| Neutral: **Flamestrike** | Throws a fire bolt that drifts up or down toward the nearest opponent ahead of it and, on touching a body or shield, bursts into a short pillar of fire there. | Bolt leaves the hand f16 at x40/z55, 9 a frame for 34 frames (about 350 units, mid range), radius 16; its vertical speed turns by at most 0.35 a frame toward the target, up to 4 a frame. Burst: 12% at 80°, growth 95 base 30; the pillar shows 12 frames and does not hit again. One bolt live; cast ends f38; 40-frame cooldown; air landing 20. | Read the f16 release; jump over the bolt (it only turns gently) or outrun its end; shield it (the burst hits the shield) or reflect it back. | [Ness's PK Flash][pkflash] (a slow fire bolt that bursts into a column where it is); [Pikachu's Thunder Jolt][jolt] (a projectile that follows terrain toward you); Street Fighter [Dhalsim's Yoga Fire][dhalsim] (a slow fireball as the setup) |
-| Side: **Drain Mana** | A short drain tether latches onto the first fighter in reach, through a shield, holds them while it drinks up to 30 meter into Kael, then pops them away. | Tether f10–13, from x30 to x120 at chest height; hold 18 frames; release 4%, 40°, growth 40 base 40, steals 30 meter. Whiff ends f38. Air landing 20. | Jump, spot dodge or roll on the read; the 10-frame tether is slow next to a jab; 25 frames of whiff end lag. | [Robin's Nosferatu][nosferatu] (a drain that feeds the caster); [Bowser's Flying Slam][slam] (a command grab through shields); Street Fighter [Zangief's Spinning Piledriver][zangief] (the shield and grab guess) |
-| Down: **Banish** | A close curse: the victim turns ethereal, slowed and unable to make physical attacks, but able to cast; Kael's spells hurt them 30% more. | Curse f12–14, from x25 to x110 at chest height, radius 20; 3%, set knockback 30; status 90 frames, then 240 frames before Banish or another silence-group status can land again. Cast ends f36. Air landing 18. | Shield it, jump it or space outside 110; a whiff leaves 22 frames to punish. Banished, keep away and cast your specials. | [Mewtwo's Disable][disable] (a short beam that takes the victim's options away); [Ness's PK Fire][pkfire] (a status that sets up the next hit); Rivals of Aether's [Zetterburn][zetter] burn and [Maypul][maypul] mark (a status another move cashes in) |
-| Up: **Phoenix** | Fire Fox: flames swirl round him while he charges in place, then he **becomes a phoenix** and flies in the stick's direction; **holding up or down** during the flight raises or lowers it a little. Helpless after. | Charge f1–42: hovers f1–15, then sinks slowly; swirl flames hit on f20–21, 26–27, 32–33 and 38–39 (each 2%, set knockback 30). Aim read through f42 (eight directions, straight up by default). Flight f43–72: 16 a frame (480 units); up or down adds ±3.5 a frame (about ±105 units over the flight); the phoenix hits 12% at 55° on f43–52 and 6% at 70° on f53–72. End f84, helpless, landing 18; spends the aerial jump, once per airtime. | Hit him during the 42-frame charge (the swirl only deals 2%); read the angle and take the ledge or stand in the line; punish the helpless fall and 18-frame landing. | [Fox's Fire Fox][firefox] (Melee: 43-frame charge, hitbox 20–72, total 92, landing 18; smashcraft:docs/design/melee/recovery.md); [Ridley's Wing Blitz][wing]; Street Fighter [Akuma's Tatsumaki][tatsu] (a committed aerial line) |
+| Jab 1 → 2 | Close palm, then a sphere shove; fresh second tap | 5/2/13, 3%, 60 → 6/3/16, 4%, 70 | [Verdant Spheres][wc] | [Mewtwo jab][mw] |
+| Forward tilt / angled | One flame fan tilted high or low; spacing | 9/3/20; 8%; 118 | [Verdant Spheres][wc] | [Mewtwo forward tilt][mw] |
+| Up tilt | Raised sphere; starts a juggle above the hand | 8/4/20; 8%; height 136 | [Verdant Spheres][wc] | [Mewtwo up tilt][mw] |
+| Down tilt | Low hand sweep; launcher | 7/3/18; 6%; 106 | [Verdant Spheres][wc] | [Mewtwo down tilt][mw] |
+| Dash attack | Forward palm with a 64-unit approach | 10/4/24; 9%; 108 | [Verdant Spheres][wc] | [Mewtwo dash attack][mw] |
+| Forward smash | Two-hand fire lance; committed finisher | 13/3/31; 16%; 150 | [Flame Strike][wc] | [Mewtwo forward smash][mw] |
+| Up smash | Narrow overhead eruption; catches descent | 18/5/31; 15%; height 175 | [Flame Strike][wc] | [Mewtwo up smash][mw] |
+| Down smash | Low flames ahead and behind; roll read | 20/4/32; 14%; ±125 | [Flame Strike][wc] | [Mewtwo down smash][mw] |
+| Neutral air | One circular sphere burst; close escape | 8/6/22, land 14; 7%; ±65 | [Verdant Spheres][wc] | [Mewtwo neutral air][mw] |
+| Forward air | Fast outward fire palm; aerial punish | 8/3/25, land 14; 10%; 115 | [Verdant Spheres][wc] | [Mewtwo forward air][mw] |
+| Back air | Turned rear flame sweep; longer spacing | 12/3/24, land 16; 11%; −135 | [Verdant Spheres][wc] | [Mewtwo back air][mw] |
+| Up air | Raised hands and sphere; juggle | 10/4/21, land 14; 9%; height 155 | [Verdant Spheres][wc] | [Mewtwo up air][mw] |
+| Down air | Downward flame thrust; air spike, ground lift | 15/3/29, land 20; 12%; −92 | [Flame Strike][wc] | [Mewtwo down air][mw] |
+| Grab / pummel | Hand reaches to a suspended enemy; local sphere squeeze | Grab 8/2/26, reach 70; shared pummel timing, 3% | [Banish][wc] | [Mewtwo grab/pummel][mw] |
+| Forward throw | Palm pushes enemy toward flame spacing | release 14, recover 22; 7%, 35° | [Verdant Spheres][wc] | [Mewtwo forward throw][mw] |
+| Back throw | Sweep behind; edge-position reward | release 17, recover 25; 9%, 40° back | [Banish][wc] | [Mewtwo back throw][mw] |
+| Up throw | Lift then burst; short juggle | release 16, recover 15; 7%, 90° | [Banish][wc] | [Mewtwo up throw][mw] |
+| Down throw | Press enemy toward the floor; tech chase | release 18, recover 24; 6%, 25° | [Flame Strike][wc] | [Mewtwo down throw][mw] |
+| Get-up / ledge attack | Rising sphere sweep / forward palm | shared action timings; 7% / 7% | [Verdant Spheres][wc] | [Mewtwo floor/ledge attacks][mw] |
 
-**EX versions** (one full universal bar, #335): Flamestrike's pillar deals a
-quarter more damage; Drain Mana's release deals a quarter more (the steal is
-unchanged); Banish reaches a quarter farther. **EX Phoenix is Summon
-Phoenix:** the flight travels a quarter farther, and on landing the flight
-leaves Warcraft's Phoenix flying beside Kael for three seconds. Its fire aura
-burns enemies within 70 units every half second for 4% at 70°; 12 damage
-destroys it. Prior art: [Zelda's Phantom][phantom] and Rosalina's Luma, a
-partner the opponent must hit or avoid.
+Normal launch classes use growth/base 80/20 for spacing, 95/24 for launchers,
+110/28 for finishers, 95/24 for the spike, 55/50 for up throw, and 40/75 for
+down throw. These are tuning hypotheses. Smashes charge for at most 45 frames
+to 1.25 damage. Shared grab escape, pummel limit, DI/SDI, techs and shield rules
+apply. No guaranteed repeat-grab or flame loop is designed.
 
-**Flamestrike and #380's budget.** The pillar shows for 12 frames after the
-burst and is removed; the bolt is a small travelling missile that is gone
-when it bursts or after 34 frames. Nothing sits on the stage after the hit.
-This replaces his old travelling ground flame.
+## Specials and ultimate
 
-**Banish.** WC3's ethereal state is shown as the green, translucent body in
-both looks and the slow; its cost is the loss of normals and the
-extra damage from Kael's specials. It shares the silence immunity group, so
-Shadow Hunter's Hex or Sylvanas's Silence cannot chain into it.
+| Input | Decision and counterplay | Original values | Warcraft / Smash reference |
+|---|---|---|---|
+| Neutral: Flame Strike | Send a wall of flame along the ground that launches the first enemy it reaches. Opponent can shield or powershield it, jump over it or interrupt the caster before it leaves the hand. A flame already sent keeps travelling if the caster is hit. Ground and air send the same flame at cast height. | 28 mana; appears f12 at x50/z45, radius40, travels 9/frame; live f12–44, reaching about 420 units from his centre; 12%, upward launch; action ends f43; air landing20; one live flame; one body or shield contact consumes it; a powershield reflects it like any traveling projectile; an interrupt before f12 sends nothing | [Flame Strike][flame], [Arcfire][arc], [Robin's timing][arcframes] |
+| Side: Siphon Mana | Short reaching cast trades fire damage for mana. Shield or space it; a whiff leaves the hand exposed. | 5 mana; strike f15–17 to x145; 4%; steal up to25 mana; action ends f42; air landing20; one contact | [Siphon Mana][wc], [Mewtwo Confusion][mw] |
+| Up: Phoenix Flight | Aim during startup, then fly in that heading. Opponent attacks the startup or catches the helpless descent. | 15 mana; hovers in place while aiming through f10; f11–30 travel at14/frame, 280 units; free version9/frame, 180 units; 6% flame contact f11–20; end f36; spends aerial jump, once per airtime, helpless; landing24 | [Phoenix][wc], [Wing Blitz][wing] |
+| Down: Banish | Briefly phase the caster, then push nearby opponents away. This is self-Banish, not a long victim stun. | 15 mana; intangible f5–12; burst f13–15, radius65; 5%; ends f38; air landing20 | [Banish][wc], [Mewtwo Disable's evasive startup][mw] |
+| Ultimate: Phoenix | A large phoenix follows Kael and fires at nearby enemies, then becomes an egg that can be destroyed. | Designed only: ultimates remain off under the current match rules, as for the rest of the roster | [Phoenix][wc], [Ridley's flight][wing] |
 
-**Phoenix and the ledge.** The charge holds him in the air for 15 frames and
-then sinks slowly, like Fire Fox. Straight up he rises about 480 units; the
-steering moves the end of the line by at most about 105 units, so an
-edge-guarder still reads one line. He can catch the ledge during the flight.
-Walking off the ledge keeps the aerial jump. The computer jumps first, then
-aims Phoenix at the ledge.
-
-## Shield, launch and follow-ups
-
-- Flamestrike's pillar launches upward (80°) into up air; DI and air dodge
-  decide.
-- Banish sets up Flamestrike (30% more) and his approach: for 90 frames the
-  victim cannot challenge his grab, dash attack or forward smash with a normal.
-- Drain Mana pops at 40°: tech chase or a bolt where they land.
-- Down tilt pops up for up air; down throw is the tech chase, up throw the
-  juggle.
+Phoenix Flight reaches the ledge from below or beside it, spends the remaining
+aerial jump and ends helpless. Walking off a ledge retains the aerial jump.
+The computer jumps first and aims Phoenix Flight at the ledge when needed.
+The stock Blood Mage and Phoenix/effect models and existing Warcraft sounds
+supply all presentation; no downloaded art or recordings are needed.
+The travelling flame draws the Flame Strike model's birth sequence from its
+1.5-second fire sample, advancing with the projectile clock, so it is live
+fire from its first frame. Playing the stock sequence from zero would show
+only the warning while the flame already hits. The casting gesture ends at f43.
 
 ## Position in the roster
 
-Jaina owns space with a delayed Blizzard and an elemental; Kael takes the
-opponent's options with a curse, a meter drain and a bolt that seeks them.
-Medivh's raven flight is an aimed straight dash; Kael's Phoenix is a long
-charge with swirl flames and a line that bends. Dreadlord also grabs through
-shields, but he pounces and heals; Kael's tether is short and drains meter.
-Shadow Hunter's Hex silences everything; Banish leaves the victim's specials
-and makes them weak to Kael's fire. Lich's Frost Nova bursts an orb on a
-second press; Flamestrike bursts on contact and turns toward its target.
+Rifleman fire repeatedly from farther away; Kael sends one
+costly flame at a time. Illidan drains while rushing; Kael risks a stationary
+Siphon. Blademaster and Warden win through weapon approach and escape routes;
+Kael commits to casting. Mountain King and Forsaken Paladin survive trades better.
+Lich is slower and controls wider space; Kael moves faster with a
+single flame that ends on one contact. Dreadlord has a command grab and healing; Kael's drain
+loses to shield. Shadow Hunter maintains a ward, Pit Lord owns wider melee
+space, and Beastmaster fights beside a ground partner. Lich King holds a
+heavier body and frost-zone kit. Kael pays for mobility with a tall hurt body,
+cast recovery, and a recovery path that cannot turn after startup.
+
+The computer contests medium range with Flame Strike, uses Siphon inside its
+reach, Banishes close pressure, and uses every directional aerial and throw
+through the shared matchup planner. Down tilt and Flame Strike launch toward
+up air; DI, airdodge and tech choices decide the follow-up.
+Forward smash starts on frame 13: at frame 19, in a 48-game probe against
+Dreadlord and Illidan, the computer was hit out of it
+about seven times a match while landing it twice.
+The computer may use Banish against a threat that arrives during its f5–12
+protection when it has 15 mana and can act. For a threat farther away it can
+wait to time Banish; for one arriving before f5 it chooses another defense. Banish
+still serves as an offensive burst when the nearby enemy is in reach.
+
+[wc]: https://wowpedia.fandom.com/wiki/Blood_Mage_(Warcraft_III)
+[mw]: https://www.ssbwiki.com/Mewtwo_(SSBU)#Moveset
+[arc]: https://www.ssbwiki.com/Arcfire
+[arcframes]: https://www.ssbwiki.com/Robin_(SSBU)/Side_special
+[flame]: https://classic.battle.net/war3/human/units/bloodmage.shtml
+[wing]: https://www.ssbwiki.com/Wing_Blitz
 
 ## Play-style profile
 
-Tom-tunable draft (9 Oct; smashcraft:docs/design/balance.md, "Play-style profiles").
+Tom-tunable draft (8 Oct; smashcraft:docs/design/balance.md, "Play-style profiles"). A fire mage whose projectile stops an approach; mid-range pressure.
 
 ```balance-profile
 fighter: kael'thas-sunstrider
-archetype: bait-and-punish
-aerials: nair 10-35, fair 10-35, bair 10-40, uair 5-30, dair 0-25
+archetype: zoner
+aerials: nair 10-35, fair 10-35, bair 20-50, uair 5-30, dair 0-25
 air-share: 15-45
-approach: 25-55
-ranged: 15-45
-specials: neutral 5-25, side 3-20, up 0-8, down 2-15
+approach: 30-60
+ranged: 25-65
+specials: neutral 5-25, side 3-15, up 0-8, down 2-12
 ```
+
+Path draft for Tom to correct (#358):
 
 ```ceiling-plan
 fighter: kael'thas-sunstrider
@@ -175,27 +154,6 @@ path: decision
 basic-moves: neutral-special,side-special,neutral-air
 ```
 
-Basic gameplan: throw Flamestrike at mid range, Drain Mana a shield, neutral
-air when pressed. Recovery keeps the normal up special.
+Basic gameplan: Use simple fire shots and a neutral aerial. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
 
-Expert gameplan: Banish the approach, then Flamestrike or grab the cursed
-opponent, Drain Mana the shield, and convert down tilt and Drain Mana pops
-into up air and forward smash.
-
-[wc]: https://wowpedia.fandom.com/wiki/Blood_Mage_(Warcraft_III)
-[kael]: https://wowpedia.fandom.com/wiki/Kael%27thas_Sunstrider
-[mw]: https://www.ssbwiki.com/Mewtwo_(SSBU)#Moveset
-[pkflash]: https://www.ssbwiki.com/PK_Flash
-[jolt]: https://www.ssbwiki.com/Thunder_Jolt
-[dhalsim]: https://wiki.supercombo.gg/w/Street_Fighter_6/Dhalsim
-[nosferatu]: https://www.ssbwiki.com/Nosferatu
-[slam]: https://www.ssbwiki.com/Flying_Slam
-[zangief]: https://wiki.supercombo.gg/w/Street_Fighter_6/Zangief
-[disable]: https://www.ssbwiki.com/Disable
-[pkfire]: https://www.ssbwiki.com/PK_Fire
-[zetter]: https://rivalsofaether.com/zetterburn/
-[maypul]: https://rivalsofaether.com/maypul/
-[firefox]: https://www.ssbwiki.com/Fire_Fox
-[wing]: https://www.ssbwiki.com/Wing_Blitz
-[tatsu]: https://wiki.supercombo.gg/w/Street_Fighter_6/Akuma
-[phantom]: https://www.ssbwiki.com/Phantom_Slash
+Expert gameplan: Place flame areas, manage control and turn forced movement into finishers. Use the full authored kit and gameplan at the same CPU skill.

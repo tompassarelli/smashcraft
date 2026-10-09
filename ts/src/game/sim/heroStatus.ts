@@ -38,7 +38,6 @@ interface StatusRules {
 const RULES: { readonly [kind: number]: StatusRules | undefined } = {
   [HeroStatusKind.root]: { blocksActions: false, blocksSpecials: false, endsOnDamage: true },
   [HeroStatusKind.silence]: { blocksActions: false, blocksSpecials: true, endsOnDamage: false },
-  [HeroStatusKind.banish]: { blocksActions: false, blocksSpecials: false, blocksAttacks: true, endsOnDamage: false },
 
   [HeroStatusKind.sleep]: { blocksActions: true, blocksSpecials: true, endsOnDamage: true, mashMinimum: 24 },
 
