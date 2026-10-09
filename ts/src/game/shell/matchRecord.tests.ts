@@ -7,7 +7,7 @@ import { createFighter } from "../sim/fighter";
 import { fighterAt } from "../sim/roster";
 import { MATCH_RECORD_HEADER, matchRecordLines, recordValue } from "./matchRecord";
 
-/** Mountain King (P1, human) beat a Lich computer (P2) on Frozen Throne. */
+
 function finishedMatch() {
   const match = testMatch(3, Character.mountainKing);
   const { game, world } = match;

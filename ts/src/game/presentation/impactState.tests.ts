@@ -49,7 +49,7 @@ test("a run footstep shows its dust on any frame, and dust stays drawn until its
   assertFalse(projectImpact(pool, DUST).visible);
 });
 
-/** Presses a spot dodge, or releases it. */
+
 function dodge(match: TestMatch, slot: ParticipantSlot, pressed: boolean): void {
   const input = match.inputs.inputs[slot];
   input.groundDodgePressed = pressed;
@@ -229,7 +229,7 @@ test("replaying from a snapshot restores accepted grab and throw cues, and proje
   assertEquals(match.runtime.impacts.nextSlot[IMPACT_GRAB], 1);
   assertEquals(match.runtime.impacts.nextSlot[IMPACT_THROW], 1);
   captureReplaySnapshot(accepted, match.world, match.game, match.inputs, match.runtime);
-  // Paused presentation projects repeatedly without consuming or aging a cue.
+
   for (let tick = 1; tick <= 20; tick++) projectAll(match);
   captureReplaySnapshot(replayed, match.world, match.game, match.inputs, match.runtime);
   assertEquals(firstPoseDifference(accepted, replayed), undefined);

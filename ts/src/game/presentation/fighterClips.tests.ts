@@ -35,7 +35,7 @@ for (const character of SELECTABLE_CHARACTERS) {
 }
 
 
-// A gesture generator binds by sequence index; any clip appended to the model before it shifts every later index.
+
 for (const [id, bindings] of Object.entries(ROSTER_ATTACK_CLIPS)) {
   const character = Number(id);
   test(`${fighterName(character)} plays each attack gesture from the sequence named for its move [repro #151]`, () => {

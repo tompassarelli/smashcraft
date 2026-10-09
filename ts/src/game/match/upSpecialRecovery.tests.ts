@@ -1,10 +1,10 @@
-// Up specials (#189, smashcraft:docs/gameplay-design.md, "Up specials" and
-// "Recovery and edgeguarding"): every selectable fighter's up special recovers
-// within its recovery archetype's band, and
-// both control styles answer keyboard keys and a controller stick through the
-// real input path (a helper journal for the stick, the keyboard sampler for
-// keys): a charged-angle up special flies any of eight directions picked in
-// its startup, and a guided one steers while it travels.
+
+
+
+
+
+
+
 import { assertDefined, assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { Action, bit } from "../input/actions";
@@ -23,13 +23,13 @@ import { sweep } from "../../runtime/sweep";
 
 const CHARGED_ANGLE: readonly Character[] = [Character.rifleman, Character.warden, Character.blademaster, Character.mountainKing, Character.shadowHunter];
 
-/** Fails naming `label` when `ok` is false. */
+
 const check = (ok: boolean, label: string): void => assertEquals(ok ? "" : label, "");
 
 const START_X = 700.0;
 const START_Z = 300.0;
 
-/** One frame's controls: a stick in [-1, 1] (keys hold its signs), the special and jump buttons. */
+
 interface Hold {
   readonly x: number;
   readonly z: number;
@@ -43,7 +43,7 @@ interface Driver {
   readonly fighter: Fighter;
 }
 
-/** The fighter airborne at rest beside the stage's right ledge, facing away from it, its jumps spent. */
+
 function offstage(character: Character, mana: number): ReturnType<typeof testMatch> {
   const match = testMatch(3, character);
   match.game.stageChoice = 0;
@@ -117,7 +117,7 @@ sweep("every fighter's full up special recovers within its archetype's band equa
   }
 });
 
-/** The first launch step, before gravity changes its direction. */
+
 function launchStep(driver: Driver, aimX: number, aimZ: number): { x: number; z: number } {
   const { fighter } = driver;
   driver.play({ x: 0, z: 1, special: true });
@@ -135,7 +135,7 @@ function launchStep(driver: Driver, aimX: number, aimZ: number): { x: number; z:
   return best;
 }
 
-/** -1, 0 or 1: a component under a quarter of the step counts as none. */
+
 const component = (value: number, length: number): number => (Math.abs(value) < 0.25 * length ? 0 : value < 0 ? -1 : 1);
 
 test("a charged-angle up special flies any of eight directions held in its startup, with keys or a stick [spec #189]", () => {
@@ -158,7 +158,7 @@ test("a charged-angle up special flies any of eight directions held in its start
 
 test("a stick a little off a direction still picks that direction's aim [spec #189]", () => {
   for (const character of CHARGED_ANGLE) {
-    // About 17 degrees above level and 17 degrees off vertical.
+
     for (const [x, z, aimX, aimZ] of [[f32(0.95), f32(0.3), 1, 0], [f32(0.3), f32(0.95), 0, 1], [f32(0.95), f32(-0.3), 1, 0]] as const) {
       const step = launchStep(stickDriver(character, 100), x, z);
       const length = Math.sqrt(step.x * step.x + step.z * step.z);

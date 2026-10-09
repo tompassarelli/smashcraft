@@ -9,7 +9,7 @@ import { attackBuffer } from "../input/attackBuffer";
 import { neutralControls } from "../sim/roster";
 import { chooseAttack } from "./botMoves";
 
-/** A spacing fighter built around a back air, in the manner #105 describes. */
+
 const SPACER: FighterGameplan = {
   range: { near: 120.0, far: 200.0 },
   spacing: [{ move: AttackStyle.backAir, near: 80.0, far: 160.0 }],
@@ -31,7 +31,7 @@ test("every declared gameplan names key moves and an ordered range band [spec #1
   for (const character of SELECTABLE_CHARACTERS) {
     const plan = gameplanOf(character);
     if (plan === undefined) continue;
-    // A declared gameplan names at least one key move, a range band and a recovery route.
+
     assertTrue(gameplanKeyMoves(plan).length > 0);
     assertTrue(plan.range.near <= plan.range.far);
   }

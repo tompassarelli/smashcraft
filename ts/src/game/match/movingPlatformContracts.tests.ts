@@ -1,4 +1,4 @@
-// Controllers pass through the companion row, journal and synchronized frame executor.
+
 import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { Character, DownState, LedgeState } from "../sim/codes";
@@ -20,7 +20,7 @@ function onDeck(stage: number, deck: number, frame = 0) {
   return { ...padMatch(match, "moving-platform"), fighter };
 }
 
-// Fighter_procUpdate adds mpGetSpeed to grounded position, even in hitlag.
+
 test("neutral and shielding controllers ride complete back-and-forth, loop and lift cycles [spec #77]", () => {
   for (const [stage, deck, frames] of [[DRIFTING_DECK_STAGE, 1, 600], [PATTERNED_DECKS_STAGE, 1, 420], [PATTERNED_DECKS_STAGE, 2, 500]] as const) {
     const run = onDeck(stage, deck);
@@ -47,7 +47,7 @@ test("a deck carries its grounded fighter during hitlag [spec #77]", () => {
   assertNear(run.fighter.motion.x, f32(before + f32(surfaceLeft(DRIFTING_DECK_STAGE, 1, 1) - surfaceLeft(DRIFTING_DECK_STAGE, 1, 0))), 0.0010000000474974513);
 });
 
-// mpCheckFloorRemap maps the old endpoint by the line's motion before crossing.
+
 test("a falling fighter lands on a rising deck and a jumping controller leaves it [spec #77]", () => {
   const run = onDeck(PATTERNED_DECKS_STAGE, 1, 100);
   const fighter = run.fighter;
@@ -93,7 +93,7 @@ test("a controller trigger techs on a moving deck and its recovery rides the dec
   assertNear(fighter.motion.x, f32(x + f32(surfaceLeft(DRIFTING_DECK_STAGE, 1, from + 5) - surfaceLeft(DRIFTING_DECK_STAGE, 1, from))), 0.0010000000474974513);
 });
 
-// GrSt.dat line 0 and GrIz.dat lines 0–2 are platforms without LINE_FLAG_LEDGE.
+
 test("moving platform edges cannot be grabbed; the main ledge remains grabbable [spec #77]", () => {
   const run = onDeck(DRIFTING_DECK_STAGE, 1);
   const fighter = run.fighter;

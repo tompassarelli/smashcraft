@@ -4,7 +4,7 @@ import { luma } from "./stagePalette";
 import { STAGE_LIGHTS } from "./stageLighting";
 import { FROZEN_THRONE_STAGE, PATTERNED_DECKS_STAGE } from "../sim/stage";
 
-// smashcraft:docs/design/visual-quality.md, "Stage light rules".
+
 test("every selectable stage has its own light [spec docs/design/visual-quality.md]", () => {
   for (const { id, name } of STAGE_CATALOG) {
     assertEquals(STAGE_LIGHTS.filter(({ stage }) => stage === id).length, 1, `${name} has no light`);

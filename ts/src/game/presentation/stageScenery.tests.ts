@@ -2,12 +2,12 @@ import { assertEquals, test } from "wisp/src/runtime/testing";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { stageScenery } from "./stageScenery";
 
-// smashcraft:docs/design/stage-art.md, rules 2 and 7.
-/**
- * Every unit model is a figure, even posed or parked: the Obsidian Statue
- * reads as a winged creature with a staff and the Dwarf Car carries a dwarf.
- * A doodad named for a figure fails too.
- */
+
+
+
+
+
+
 const FIGURE_WORDS = ["statue", "totem", "idol", "effigy", "corpse", "skeleton"];
 
 test("each selectable stage has its own sky and fog beyond the fight [spec #170]", () => {

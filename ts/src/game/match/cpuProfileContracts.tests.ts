@@ -1,4 +1,4 @@
-// Named CPU decisions remain deterministic after restored observations and habits.
+
 import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { clearAttackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
@@ -19,7 +19,7 @@ import { sweep } from "../../runtime/sweep";
 
 const NEUTRAL = neutralControls();
 
-/** Rifleman against Rifleman on the first stage, both computers playing `opponent` at `tier` under `seed`. */
+
 function computerMatch(opponent: CpuOpponentId, tier: CpuTier, seed: number) {
   const match = createMatchState();
   match.phase = Phase.match;

@@ -1,6 +1,6 @@
-// Classic (#284, smashcraft:docs/design/classic-mode.md): every fighter's
-// route, a whole run's progression to the ending card, the bosses' fixed
-// timetables, and a Lore Battles-style entry played through the same engine.
+
+
+
 import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { HOME_STAGES } from "../menu/homeStages";
@@ -24,12 +24,12 @@ import { applyConfiguredMatch, beginConfiguredRun, settleConfiguredMatch } from 
 import { CLASSIC_CHARACTERS, CLASSIC_ROUTES, classicRoute } from "./routes";
 import { BossKind, type ConfiguredMatch, RunOutcome, WinCondition } from "./runState";
 
-/** Arrays compare by their items. */
+
 function same(actual: readonly unknown[] | undefined, expected: readonly unknown[] | undefined, message?: string): void {
   assertEquals((actual ?? []).join(","), (expected ?? []).join(","), message);
 }
 
-/** One human at fighter selection with `fighter` ready and Classic chosen at `tier`. */
+
 function classicSelection(fighter: Character, tier: number): MatchState {
   const game = createMatchState();
   setParticipants(game, 1, 0);
@@ -40,7 +40,7 @@ function classicSelection(fighter: Character, tier: number): MatchState {
   return game;
 }
 
-/** The fighters a configured match seats, standing at their spawns. */
+
 function seat(game: MatchState): Roster {
   const world = createRoster(fighterMask(game));
   for (const slot of PARTICIPANT_SLOTS) {
@@ -51,7 +51,7 @@ function seat(game: MatchState): Roster {
   return world;
 }
 
-/** The configured match as the stage load starts it. */
+
 function begin(game: MatchState): Roster {
   assertTrue(requestStart(game, game.run.player));
   const world = seat(game);
@@ -59,7 +59,7 @@ function begin(game: MatchState): Roster {
   return world;
 }
 
-/** Ends the current fight as won or lost, through the engine's own settlement. */
+
 function finish(game: MatchState, world: Roster, won: boolean): void {
   if (game.run.boss.kind !== BossKind.none) game.run.boss.health = won ? 0 : game.run.boss.health;
   for (const slot of PARTICIPANT_SLOTS) {
@@ -89,7 +89,7 @@ test("every fighter in the Classic selector has one Classic route: five rival fi
     assertEquals(route.boss !== BossKind.none, true, `${fighterName(fighter)} boss`);
     assertEquals(route.ending.length >= 2 && route.ending.length <= 3, true, `${fighterName(fighter)} ending lines`);
   }
-  // Each boss ends at least one route.
+
   for (const boss of BOSSES) assertEquals(CLASSIC_ROUTES.some(route => route.boss === boss.kind), true, boss.name);
   // #345: the Classic selector reaches the original 21 and every finished route, and rejects pending stories while Versus keeps them.
   const game = classicSelection(Character.rifleman, 1);
@@ -147,7 +147,7 @@ test("a Classic run plays every fighter's route in order, climbing the tiers, th
       assertEquals(game.run.outcome, RunOutcome.won, `${name} fight ${fight}`);
       if (fight < CLASSIC_FIGHTS - 1) assertEquals(continueClassic(game, 0), ClassicStep.fight);
     }
-    // Beginner start: Beginner, Beginner, Intermediate, Intermediate, Advanced.
+
     same(tiers, ["beginner", "beginner", "intermediate", "intermediate", "advanced"], name);
     assertEquals(game.run.cleared, true, `${name} cleared`);
     const ending = classicEnding(game);
@@ -182,7 +182,7 @@ test("a lost Classic fight continues as the same fight one tier easier, never be
   same([game.phase, game.run.active], [Phase.characterMenu, false]);
 });
 
-/** A boss match on its stage with the player standing still under its strikes. */
+
 function bossMatch(kind: BossKind, seed: number): ReplayState {
   const route = CLASSIC_ROUTES.find(candidate => candidate.boss === kind);
   if (route === undefined) throw new Error(`no route ends at boss ${kind}`);
@@ -226,7 +226,7 @@ for (const boss of BOSSES) {
 }
 
 test("a Lore Battles entry built from data alone plays through the configured-match engine: starting damage, its stocks, and survive or KO-within-the-clock judged at time [spec docs/design/classic-mode.md]", () => {
-  // Warden hunting Illidan in the Tomb of Sargeras (#305's example): survive a minute at 50%.
+
   const hunt: ConfiguredMatch = {
     id: "lore.warden-hunts-illidan", player: Character.warden,
     opponents: [{ character: Character.demonHunter, opponent: "vale", tier: "rookie", stocks: 3, damage: 20 }],

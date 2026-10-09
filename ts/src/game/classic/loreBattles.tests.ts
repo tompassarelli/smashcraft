@@ -1,6 +1,6 @@
-// Lore Battles (#305): every battle's data, each win condition judged on its
-// rule through the configured-match engine, a battle's clear and retry, and
-// a clear kept in the local file across a reload.
+
+
+
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { selectableStage } from "../menu/stageCatalog";
@@ -18,7 +18,7 @@ import { LORE_BATTLES, LoreStep, continueLore, startLore } from "./loreBattles";
 import { type ChunkFiles, LORE_CLEARS_FILE, LoreClears } from "./loreClears";
 import { BossKind, RunOutcome, WinCondition } from "./runState";
 
-/** One human at fighter selection with Lore Battles and battle `index` chosen. */
+
 function loreSelection(index: number): MatchState {
   const game = createMatchState();
   setParticipants(game, 1, 0);
@@ -27,7 +27,7 @@ function loreSelection(index: number): MatchState {
   return game;
 }
 
-/** The battle as the stage load starts it, its fighters at their spawns. */
+
 function begin(game: MatchState): Roster {
   assertTrue(requestStart(game, game.run.player));
   const world = createRoster(fighterMask(game));
@@ -40,7 +40,7 @@ function begin(game: MatchState): Roster {
   return world;
 }
 
-/** The battle's difficulty: its computers' tier, or the tier a boss's health was built from. */
+
 function battleTier(index: number): number {
   const battle = LORE_BATTLES[index];
   if (battle === undefined) return -1;
@@ -87,7 +87,7 @@ test("the original twenty Lore Battles and authored expansion stories keep valid
   assertEquals(battleTier(LORE_BATTLES.length - 1), CPU_TIERS.length - 1);
 });
 
-/** Ends the battle: the player wins the stock count or not, the clock ran out or not, the player kept a stock or not, the boss's health left. */
+
 function judge(index: number, playerWon: boolean, timedOut: boolean, playerAlive: boolean, bossLeft = 0): RunOutcome {
   const game = loreSelection(index);
   assertTrue(startLore(game, 0));

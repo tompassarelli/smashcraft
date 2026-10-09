@@ -26,7 +26,7 @@ function take(buffer: AttackBuffer, frame: number): AttackCommand {
   return assertDefined(takeAttack(buffer, frame, true), `attack on frame ${frame}`);
 }
 
-/** Queues two same-frame requests in both orders and takes the winner of each. */
+
 function winners(first: AttackCommand, second: AttackCommand): AttackCommand[] {
   const forward = attackBuffer(0);
   queueAttack(forward, first);

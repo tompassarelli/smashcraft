@@ -9,7 +9,7 @@ import { createFrameControls } from "./controls";
 import { MATCH_TICKS_PER_SECOND, Phase, START_HOLD_FRAMES, createMatchState, holdingStart, requestStart, setParticipants } from "./rules";
 import { initializeMatchFighters, matchSpawnX, stepMatch } from "./step";
 
-/** Two players past selection, started the way the stage menu starts a match, with a one-minute clock. */
+
 function startedMatch(humans = 3) {
   const game = createMatchState();
   setParticipants(game, humans, 0);
@@ -28,7 +28,7 @@ test("a competitive match holds every fighter for 180 frames, with the clock sto
   assertEquals(game.startHold, START_HOLD_FRAMES);
   assertEquals(START_HOLD_FRAMES, 3 * MATCH_TICKS_PER_SECOND);
   const clock = game.remainingFrames;
-  // Settle onto the deck, then hold right and jump every frame of the countdown.
+
   const held = neutralControls();
   held.direction = 1;
   for (let frame = 1; frame <= START_HOLD_FRAMES; frame++) {
@@ -44,7 +44,7 @@ test("a competitive match holds every fighter for 180 frames, with the clock sto
   assertEquals(game.remainingFrames, clock);
   assertEquals(fighter.jump.serial, 0);
   assertEquals(fighter.attack.serial, 0);
-  // GO!: the stick held through it moves at once; the press made during the hold is gone.
+
   copyControls(controls.inputs[0], held);
   stepMatch(game, world, controls, START_HOLD_FRAMES + 1);
   assertFalse(holdingStart(game));
@@ -53,7 +53,7 @@ test("a competitive match holds every fighter for 180 frames, with the clock sto
   assertEquals(fighter.motion.x > matchSpawnX(0), true, `moved to ${fighter.motion.x}`);
   assertEquals(fighter.jump.serial, 0);
   assertEquals(fighter.attack.serial, 0);
-  // A fresh press after GO! acts.
+
   copyControls(controls.inputs[0], neutralControls());
   controls.inputs[0].jumpPressed = true;
   for (let frame = START_HOLD_FRAMES + 5; frame < START_HOLD_FRAMES + 12; frame++) {

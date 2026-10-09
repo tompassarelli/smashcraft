@@ -1,8 +1,8 @@
-// Rollback input for one match epoch. Every client runs the confirmed match
-// only on rows every human sent through the synchronized channel, at most up
-// to the speculative frontier; a speculative match runs ahead on the local
-// player's rows and predictions of the others for presentation, and replays
-// when accepted rows differ from what it ran.
+
+
+
+
+
 import { clearAttackBuffer } from "../../game/input/attackBuffer";
 import { type InputRow, copyInput, emptyInput } from "../../game/input/inputRow";
 import { commitEdges, resetKeys } from "../../game/input/keyboardCapture";
@@ -38,15 +38,15 @@ import { holdPresentedCapture } from "./visualCapture";
 import { samplePad } from "../../game/input/padCapture";
 import { pollPad, recordPadRow } from "./analogPad";
 
-/** Callbacks without a new predicted frame before every client names the players a running match waits for. */
+
 const STALL_NOTICE_CALLBACKS = 20;
-/** At the start every helper's readiness crosses the network first; the 0.0.47 capture's clients started 0.43 s after Start. */
+
 const START_NOTICE_CALLBACKS = 45;
 const NEUTRAL: Readonly<InputRow> = emptyInput();
 
 const failControls = (s: ShellState) => setStatus(s, "Controls stopped responding. Restart the match.", LASTING);
 
-/** Starts a match epoch with the dev settings, seeded from the confirmed match; false when the schedule refuses them. */
+
 export function beginRollbackEpoch(s: ShellState, rollback: Rollback): boolean {
   if (s.pad !== undefined) {
     s.pad.rows.length = 0;
@@ -106,7 +106,7 @@ export function beginRollbackEpoch(s: ShellState, rollback: Rollback): boolean {
     journal.source = JournalInputSource.open(s.build.id, rollback.epoch, slot, rollback.delay);
     if (journal.source === undefined) failJournal(s, rollback, journal, "epoch could not be initialized");
     if (journal.editbox !== undefined) {
-      // Text focus can consume the release of the menu key that started the match.
+
       for (const other of PARTICIPANT_SLOTS) startKeyUp(s.session, other);
       journal.editbox.beginEpoch(s.build.id, rollback.epoch, slot);
     }
@@ -116,7 +116,7 @@ export function beginRollbackEpoch(s: ShellState, rollback: Rollback): boolean {
   return true;
 }
 
-/** A refused send keeps the original rows for the next callback. */
+
 function sendBatch(s: ShellState, rollback: Rollback, keyboard: KeyboardRollback): boolean {
   const count = keyboard.outgoing.size();
   if (count === 0) return true;
@@ -149,11 +149,11 @@ function sendBatch(s: ShellState, rollback: Rollback, keyboard: KeyboardRollback
   return true;
 }
 
-/**
- * Polls the local keys into the next row and assigns it to its frame. Neutral
- * while paused or inactive: that latches releases, which the sampler keeps
- * until a frame not yet assigned can carry them.
- */
+
+
+
+
+
 function captureKeyboard(s: ShellState, rollback: Rollback, keyboard: KeyboardRollback): void {
   const { trace, probe } = s;
   const { schedule, epoch } = rollback;
@@ -168,7 +168,7 @@ function captureKeyboard(s: ShellState, rollback: Rollback, keyboard: KeyboardRo
   }
   if (target === keyboard.lastTarget) {
     if (trace.active) trace.window.sameTargetSkips++;
-    // A stalled cursor must never strand the row needed to unblock it.
+
     queueKeyboardRows(s, rollback, keyboard, true);
     return;
   }
@@ -212,7 +212,7 @@ function queueKeyboardRows(s: ShellState, rollback: Rollback, keyboard: Keyboard
   if (flush || !keyboard.pairedSends || keyboard.outgoing.size() === 2) sendBatch(s, rollback, keyboard);
 }
 
-/** Runs the next confirmed frame on every human's accepted row. */
+
 function stepConfirmed(s: ShellState, rollback: Rollback): boolean {
   const { schedule, epoch, accepted } = rollback;
   const frame = schedule.nextConfirmedFrame();
@@ -230,7 +230,7 @@ function stepConfirmed(s: ShellState, rollback: Rollback): boolean {
   return s.runtime.simulationFrame === frame && schedule.completeConfirmed(epoch, frame);
 }
 
-/** The response probe's view of each speculative frame, before the schedule completes it. */
+
 function observeSpeculativeFrame(frame: number, local: Readonly<InputRow>): void {
   const s = shell();
   holdPresentedCapture(s);
@@ -242,13 +242,13 @@ function observeSpeculativeFrame(frame: number, local: Readonly<InputRow>): void
   if (local.pressed !== 0) probeIntegrity(s.probe, `action ${epoch} ${slot} ${frame} ${local.pressed} ${local.pressed & observedFrameLegalActions[slot]} ${local.pressed & observedFrameStartedActions[slot]}`);
 }
 
-/** Counts the callbacks the match has waited for the players in `waiting`, and names them once it has waited `notice`. */
+
 function noteWaiting(rollback: Rollback, waiting: number, notice: number): void {
   rollback.stalled = waiting === 0 ? 0 : rollback.stalled + 1;
   rollback.waitingFor = rollback.stalled >= notice ? waiting : 0;
 }
 
-/** One game callback of a rollback match: local input, confirmed catch-up, reconciliation and prediction. */
+
 export function rollbackTick(s: ShellState, rollback: Rollback): void {
   const { schedule, epoch, keyboard, journal, speculative } = rollback;
   const { trace, probe } = s;
@@ -291,9 +291,9 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
   }
   const confirmable = Math.min(schedule.confirmedFrame(), known);
   const confirmSteps = confirmedBudget(confirmable - schedule.nextConfirmedFrame() + 1);
-  // Confirmation can reuse history only after accepted corrections have
-  // repaired it, through the frame after it: the repair replays the frames
-  // this callback confirms rather than running them twice.
+
+
+
   const lastConfirmed = Math.min(confirmable, schedule.nextConfirmedFrame() + confirmSteps - 1, stopAt === undefined ? Number.POSITIVE_INFINITY : stopAt - 1);
   const pending = rollback.playback.pendingRepair(epoch);
   const behind = pending === undefined ? 0 : lastConfirmed + 2 - pending;
@@ -315,12 +315,12 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
   }
   if (s.game.phase !== Phase.match && keyboard !== undefined) sendBatch(s, rollback, keyboard);
   if (trace.active && steps === 0 && s.game.phase === Phase.match) trace.window.waitTicks++;
-  // Replay stays numerical: persistent visuals show only the completed state;
-  // event effects, audio, results and HUD stay confirmed. A deep correction
-  // replays over several callbacks while local rows keep running.
+
+
+
   if (s.game.phase === Phase.match) {
     const before = schedule.speculativeFrame();
-    // While the paused picture is held, the paced cursor waits with it.
+
     const paced = journal === undefined ? undefined : resumePresentationHeld(s) ? journal.barrier.paced : pacedStop(journal.barrier);
     const speculativeStop = stopAt === undefined ? paced : paced === undefined ? stopAt : Math.min(stopAt, paced);
     const advanced = rollback.playback.catchUp(schedule, epoch, slot, speculative, speculativeBudget(journal !== undefined), speculativeStop, observeSpeculativeFrame);
@@ -329,8 +329,8 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
     const halted = schedule.windowHalted(slot);
     const blocked = halted && after === before;
     if (halted) rollback.predictionHeld = true;
-    // The keyboard always queues D future rows. Only uncommitted presses can
-    // still belong to its stall; journal rows must drain their own backlog.
+
+
     else if (keyboard !== undefined ? keyboard.capture.row.pressed === 0 : !schedule.hasLocalRow(slot)) rollback.predictionHeld = false;
     if (trace.active) {
       trace.window.speculativeSteps += after - before;
@@ -338,14 +338,14 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
       else if (blocked) trace.window.windowBlocks++;
     }
     if (blocked) probeIntegrity(probe, `stall ${epoch} ${after} ${schedule.remoteThrough(slot)}`);
-    // A pause round holds every helper's rows on purpose.
+
     const holding = stopAt !== undefined || journal?.barrier.request !== undefined;
     noteWaiting(rollback, after > before || holding ? 0 : schedule.awaitedSlots(), STALL_NOTICE_CALLBACKS);
   } else noteWaiting(rollback, 0, 0);
   probeAdvance(probe, s.runtime.simulationFrame, schedule.speculativeFrame(), correction);
 }
 
-/** One sender's packet from a synchronized message. */
+
 function receivePacket(s: ShellState, rollback: Rollback, sender: number, packet: InputPacket): void {
   const { trace, probe } = s;
   const { schedule } = rollback;
@@ -371,7 +371,7 @@ function receivePacket(s: ShellState, rollback: Rollback, sender: number, packet
   } else trace.window.rejected++;
 }
 
-/** A synchronized input message: helper lifecycle, or a run of one sender's consecutive rows. */
+
 export function receiveInput(s: ShellState): void {
   if (s.pad !== undefined) s.pad.syncEvents++;
   const rollback = s.rollback;

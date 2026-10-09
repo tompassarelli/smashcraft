@@ -19,7 +19,7 @@ function row(fields: Parameters<typeof inputRow>[0]): InputRow {
   return assertDefined(inputRow(fields), "input row");
 }
 
-/** Both matches' world, poses and impacts agree. */
+
 function assertSameMatch(expected: TestMatch, actual: TestMatch): void {
   for (const slot of [0, 1] as const) {
     assertEquals(firstFighterDifference(fighterAt(expected.world, slot), fighterAt(actual.world, slot), 3, 3), undefined);
@@ -35,7 +35,7 @@ test("a captured row is detached from the controls that produced it [invariant]"
   queueAttack(producer.commands[0], { style: 0, facing: 0, frame: 1, mayCharge: false });
   producer.inputs[1].shield = true;
   assertTrue(captureFrame(recorded.row, 1, 3, producer, recorded.runtime));
-  // Mutating producer storage after capture changes neither the row nor its execution.
+
   producer.inputs[0].shield = true;
   producer.inputs[1].shield = false;
   producer.commands[0].pending = undefined;

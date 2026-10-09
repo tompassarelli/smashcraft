@@ -1,6 +1,6 @@
-// Each hero swing lands its measured strike moment on the move's first active
-// frame (heroStrikeMomentInfo.ts, measured by `bun wisp view strikes`), unless
-// the wind-up would have to play faster than the swing bound allows.
+
+
+
 import { assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackPhase, AttackStyle } from "../sim/codes";
@@ -24,7 +24,7 @@ test("a measured hero swing reaches its strike on the first active frame [native
       const rate = strikeAlignedRate(hero.character, style, clip, move.startupFrames, move.activeFrames, move.totalFrames, AttackPhase.startup);
       if (rate === undefined) continue;
       const atFirstActive = f32(rate * f32(move.startupFrames * FRAME_SECONDS));
-      // Bounded rates (a wind-up too long or too short for the startup) leave the strike near, not on, the frame.
+
       if (rate > f32(0.36) && rate < f32(3.99)) {
         assertTrue(Math.abs(atFirstActive - moment.seconds) < f32(0.002));
         aligned++;

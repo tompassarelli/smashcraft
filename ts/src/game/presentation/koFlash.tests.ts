@@ -14,7 +14,7 @@ function fingerprint(f: Readonly<Fighter>): string {
   return `${motion.x} ${motion.z} ${motion.vx} ${motion.vz} ${launch.hitlag} ${launch.hitstun} ${status.damage} ${status.stocks} ${status.out}`;
 }
 
-/** A launch near the right blast zone, played to its KO; `flash` watches each confirmed frame as the shell does. */
+
 function playKo(watch: boolean): { readonly frames: readonly string[]; readonly kos: readonly number[]; readonly hitlag: number; readonly flash: ReturnType<typeof createKoFlash> } {
   const attacker = createFighter(Character.rifleman, stageBounds(0).blast.right - 160.0, 1);
   const victim = createFighter(Character.rifleman, stageBounds(0).blast.right - 120.0, -1);
@@ -73,10 +73,10 @@ test("the KO flash peaks at Silverpine's caps after the blow's hitlag and turns 
   assertEquals(koFlashLevels(flash, 112 + KO_BLUR_FADE_FRAMES)?.blur, 0.0);
 });
 
-/** Display gamma, the same binary32 value in both runtimes. */
+
 const GAMMA = f32(2.2);
 
-/** A white blend of `alpha` over a scene of luma `scene`: Classic blends sRGB values, Reforged blends in linear light (#289's capture). */
+
 function washedLuma(scene: number, alpha: number, reforged: boolean): number {
   const a = alpha / 255;
   if (!reforged) return scene + (255 - scene) * a;
@@ -85,7 +85,7 @@ function washedLuma(scene: number, alpha: number, reforged: boolean): number {
 }
 
 test("the KO flash eases out in Classic and Reforged, never stepping more than 6 luma a frame from its peak through the off call [repro #289]", () => {
-  // Lane C's captures: the scene after the KO reads 92.6 luma in Classic and 91.6 in Reforged.
+
   const flash = createKoFlash();
   const fighter = createFighter(Character.rifleman, 0.0, 1);
   const events = createImpactEvents();

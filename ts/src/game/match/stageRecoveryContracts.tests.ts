@@ -43,8 +43,8 @@ test("Blademaster stops on Tomb’s raised platform after its ascent cancels his
   recover(TOMB_OF_SARGERAS_STAGE, "Tomb of Sargeras", Character.blademaster, -1, -40.0, 0);
 });
 
-// Every main-deck profile (smashcraft:docs/design/stages.md, "Main-deck topology")
-// must let every fighter back onto the stage from below either ledge.
+
+
 sweep("every fighter recovers onto every stage's main deck from below either ledge [spec #115]", () => {
   for (const { id: stage, name } of STAGE_CATALOG) {
     for (const character of SELECTABLE_CHARACTERS) {

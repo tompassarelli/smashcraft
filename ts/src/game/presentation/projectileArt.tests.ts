@@ -1,17 +1,17 @@
 import { mutableProjectile } from "../sim/fighterProjectiles";
-// Each projectile-firing move draws its own stock missile, and a live
-// projectile finds it from its authored record, a reflected one included.
+
+
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { Character, ProjectileKind } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { HERO_ROSTER } from "../sim/heroes/registry";
 import { ORIGINAL_PROJECTILE_MODELS, fighterProjectileModels, heroProjectileArt, projectileModelOf } from "./projectileArt";
 
-/**
- * Moves that are deliberately the same spell and so may share a missile, as
- * "Fighter slot" names; none yet. Projectiles of one move (Thunder Clap's two
- * waves, Death and Decay's two strikes) share theirs.
- */
+
+
+
+
+
 const SAME_SPELL: readonly (readonly string[])[] = [];
 
 test("every projectile-firing move names its own stock missile [spec #144]", () => {
@@ -41,7 +41,7 @@ test("every projectile-firing move names its own stock missile [spec #144]", () 
 test("a live projectile draws its move's missile, wherever it flies [spec #144]", () => {
   for (const hero of HERO_ROSTER) {
     if (hero.specials === undefined) continue;
-    // A reflected projectile sits in another fighter's slots with its record unchanged.
+
     const holder = createFighter(Character.rifleman, 0.0, 1);
     const projectile = mutableProjectile(holder, 0);
     if (projectile === undefined) continue;

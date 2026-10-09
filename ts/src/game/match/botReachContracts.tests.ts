@@ -1,10 +1,10 @@
-// The computer attacks only what it can reach (#160): with its opponent idle
-// on another deck, every fighter's Wren Expert computer goes to that deck instead
-// of swinging at nothing. An attack start counts as in reach when the move's
-// strike meets the opponent where it stands or will stand at the strike,
-// or when the move has a purpose at range: a projectile, a trap, a summon, a
-// beam. Starts that strike nothing (stances, armor, the up specials that
-// carry the fighter) are moves, not attacks.
+
+
+
+
+
+
+
 import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { clearAttackBuffer } from "../input/attackBuffer";
@@ -27,35 +27,35 @@ import { createPacingAndPresentation } from "./pacingAndPresentation";
 import { MATCH_TICKS_PER_SECOND, Phase, createMatchState } from "./rules";
 
 const NEUTRAL = neutralControls();
-/** Stage 1: the main deck at 0 and two pass-through decks 170 up, from 110 to 420 each side. */
+
 const RAISED_STAGE = 1;
 const RAISED_Z = 170.0;
 const FRAMES = 600;
 const ARRIVAL_FRAMES = 5 * MATCH_TICKS_PER_SECOND;
-// #354 measures human responses over 40 frames; an ended launch can still be the computer's observation.
+
 const IDLE_OBSERVATION_FRAMES = 40;
-/** A strike passing within about a body width of the opponent was aimed at it: this contract is about swings at nothing. */
+
 const SLACK = 40.0;
-/** Fel Rush carries Illidan about this far and Chaos Strike reaches about this far past it (botKitOptions.ts). */
+
 const FEL_RUSH_REACH = 340.0;
-/** Eye Blast's floor beam reaches a level target this far ahead (botKitOptions.ts). */
+
 const EYE_BLAST_FAR = 600.0;
 
-/** The original fighters' specials with a purpose at range, and those that only carry the fighter. */
+
 const ORIGINAL_ZONING: readonly number[] = [
   SpecialAction.riflemanBear,
   SpecialAction.riflemanBlaster, SpecialAction.riflemanTrap, SpecialAction.demonHunterManaBurn,
 ];
 const ORIGINAL_MOVEMENT: readonly number[] = [SpecialAction.riflemanRecovery, SpecialAction.riflemanRecovery, SpecialAction.demonHunterWingAscent];
 
-/** The opponent stands idle: still on a deck, out of hitstun and not down. Starts at an opponent launched, sliding or down are chases, not this contract. */
+
 const standsIdle = (o: Readonly<Fighter>): boolean => o.motion.grounded && o.motion.deltaX === 0.0 && o.motion.deltaZ === 0.0 && o.launch.hitstun <= 0 && o.launch.hitlag <= 0 && o.down.state === DownState.none;
 
-/** Whether the running attack's strike meets the opponent where both stand now. */
+
 function strikesNow(c: Readonly<Fighter>, o: Readonly<Fighter>, style: AttackStyle): boolean {
   const dx = f32(o.motion.x - c.motion.x);
   const dz = f32(o.motion.z - c.motion.z);
-  // Illidan's forward smash charged at a level target past the swing is Eye Blast, a beam.
+
   if (c.character === Character.demonHunter && style === AttackStyle.forwardSmash && Math.abs(dx) <= EYE_BLAST_FAR && Math.abs(dz) <= 40.0) return true;
   for (const slackX of [0.0, SLACK, -SLACK]) {
     for (const slackZ of [0.0, SLACK, -SLACK]) if (moveReaches(c.character, style, o, f32(f32(dx * c.facing) - slackX), f32(dz - slackZ), c.tuning.moves)) return true;
@@ -63,7 +63,7 @@ function strikesNow(c: Readonly<Fighter>, o: Readonly<Fighter>, style: AttackSty
   return false;
 }
 
-/** Whether the special just started strikes the opponent, has a purpose at range, or strikes nothing at all. */
+
 function specialAccountedFor(c: Readonly<Fighter>, o: Readonly<Fighter>): boolean {
   const action = c.special.action;
   const dx = f32(o.motion.x - c.motion.x);
@@ -78,11 +78,11 @@ function specialAccountedFor(c: Readonly<Fighter>, o: Readonly<Fighter>): boolea
   const move = runningHeroSpecial(c);
   if (move === undefined) return false;
   if (move.projectiles !== undefined || move.placement !== undefined || move.burst !== undefined || move.command !== undefined || move.recallsProjectiles === true) return true;
-  // Dark Ritual restores mana wherever the target stands: botKitOptions.ts cashes it far away or before the shell lapses.
-  // Move variety (830893eb) first had Lich cash a lapsing shell 344 away.
+
+
   if (move.ritual !== undefined) return true;
   if ((move.regions ?? []).length === 0 && move.commandGrab === undefined && (move.followUps ?? []).length === 0) return true;
-  // Shadow Pursuit appears behind its marked target and slashes from there: its reach is the relocation's.
+
   for (const step of move.motion ?? []) if (step.relocate === Relocation.behindMark && Math.abs(dx) <= (step.relocateReach ?? 0.0) && Math.abs(dz) <= (step.relocateReach ?? 0.0)) return true;
   for (const slack of [0.0, SLACK, -SLACK]) if (strikeMeets(move, o, f32(f32(dx * c.facing) - slack), dz)) return true;
   return false;
@@ -90,13 +90,13 @@ function specialAccountedFor(c: Readonly<Fighter>, o: Readonly<Fighter>): boolea
 
 interface ReachRun {
   outOfReach: string[];
-  /** Attack and special starts made while the opponent stood idle, and hits the computer landed. */
+
   idleStarts: number;
   hits: number;
   arrival: number;
 }
 
-/** A Wren Expert computer at (cx, cz) on deck `surface` against an idle opponent at (ox, oz) on deck `opponentSurface`, on the raised stage. */
+
 function playIdleOpponent(character: Character, cx: number, cz: number, surface: number, ox: number, oz: number, opponentSurface: number): ReachRun {
   const opponent = createFighter(character === Character.rifleman ? Character.rifleman : Character.rifleman, ox, cx > ox ? 1 : -1);
   opponent.motion.z = oz;
@@ -143,7 +143,7 @@ function playIdleOpponent(character: Character, cx: number, cz: number, surface:
     if (result.arrival < 0 && c.motion.grounded && o.motion.grounded && c.motion.surface === o.motion.surface) result.arrival = i;
     const style = c.attack.style;
     const where = `frame ${i} at (${Math.round(o.motion.x - c.motion.x)}, ${Math.round(o.motion.z - c.motion.z)}), facing ${c.facing}, travel (${c.motion.deltaX}, ${c.motion.deltaZ}), velocity (${c.motion.vx}, ${c.motion.vz}), dash ${c.ground.dashFrame}`;
-    // An attack reached when it hit, or when its strike met the opponent on any frame from its first active one.
+
     if (attack !== undefined && (c.attack.serial !== attack.serial || style === undefined)) {
       if (!attack.reached) result.outOfReach.push(attack.where);
       attack = undefined;

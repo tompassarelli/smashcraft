@@ -7,11 +7,11 @@ import { createFighter } from "../sim/fighter";
 import { type Roster, createRoster, fighterAt, isActive } from "../sim/roster";
 import { copyFighterState } from "./fighterState";
 
-/**
- * Everything a recorded frame reads and writes: the live match, or detached
- * storage holding it at one frame boundary. Only the controls' command
- * buffers carry state across frames; each row supplies the inputs.
- */
+
+
+
+
+
 export interface ReplayState {
   readonly world: Roster;
   readonly match: MatchState;
@@ -19,7 +19,7 @@ export interface ReplayState {
   readonly runtime: PacingAndPresentation;
 }
 
-/** Detached storage with a fighter in every slot, so any participant mask can be captured into it. */
+
 export function createReplaySnapshot(): ReplayState {
   return {
     world: createRoster(3, [createFighter(1, 0.0, 1), createFighter(1, 0.0, -1), createFighter(2, 0.0, 1), createFighter(1, 0.0, -1)]),
@@ -29,11 +29,11 @@ export function createReplaySnapshot(): ReplayState {
   };
 }
 
-/**
- * Captures (live into a snapshot) or restores (a snapshot into live state)
- * the source's active slots into existing records. Slot references keep
- * their numbers, so the target must seat its fighters in the same slots.
- */
+
+
+
+
+
 export function copyReplayState(target: ReplayState, source: Readonly<ReplayState>): void {
   const mask = source.world.mask;
   target.world.mask = mask;
@@ -46,12 +46,12 @@ export function copyReplayState(target: ReplayState, source: Readonly<ReplayStat
   copyPacingAndPresentation(target.runtime, source.runtime, source.world);
 }
 
-/** copyReplayState from live state held in separate records. */
+
 export function captureReplaySnapshot(snapshot: ReplayState, world: Readonly<Roster>, match: Readonly<MatchState>, controls: Readonly<FrameControls>, runtime: Readonly<PacingAndPresentation>): void {
   copyReplayState(snapshot, { world, match, controls, runtime });
 }
 
-/** copyReplayState into live state held in separate records. */
+
 export function restoreReplaySnapshot(snapshot: Readonly<ReplayState>, world: Roster, match: MatchState, controls: FrameControls, runtime: PacingAndPresentation): void {
   copyReplayState({ world, match, controls, runtime }, snapshot);
 }

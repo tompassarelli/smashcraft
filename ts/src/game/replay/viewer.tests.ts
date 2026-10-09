@@ -1,6 +1,6 @@
-// #141's viewer in Bun and in 32-bit Lua: a replay opened for watching shows
-// the same state at a frame however it got there, stepping or seeking back
-// and forth across a pause's segment break.
+
+
+
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { joinReplay, parseReplayHeader, parseReplayPart } from "./matchReplay";
 import { TAPE_REPLAY_SERIAL, recordTapeReplay } from "./tapeReplay";
@@ -17,7 +17,7 @@ function joined(): string[] {
   }));
 }
 
-/** The scene's fighters as text, so two scenes compare by value. */
+
 const sceneText = (scene: ReplayScene) =>
   `${scene.frame} ${scene.fighters.map((f) => `${f.slot}:${f.x},${f.z},${f.damage},${f.stocks},${f.parts.length},${f.strikes.length}`).join(" ")}`;
 

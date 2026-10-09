@@ -40,14 +40,14 @@ test("every selectable stage plays its own stock Warcraft track [spec docs/desig
   }
 });
 
-/** Runs one confirmed frame as the shell presents it: observe, execute, then read its cues. */
+
 function presentFrame(match: TestMatch, observation: CueObservation, tally: MatchTally, cues: MatchCue[]): void {
   observeForCues(observation, match.game, match.world);
   executeNext(match);
   confirmedFrameCues(observation, match.game, match.world, tally, cues);
 }
 
-/** Puts `slot` past the left blast zone with `attacker`'s hit the last it took. */
+
 function knockOut(match: TestMatch, slot: number, attacker: number): void {
   const fighter = fighterAt(match.world, slot);
   fighter.hits.lastAttacker = attacker;

@@ -1,11 +1,11 @@
-// Stage hazards follow the match clock, never a random draw (#274,
-// smashcraft:docs/design/stage-art.md rule 13): every selectable stage with a
-// hazard plays under two match seeds, with the fighters standing at centre
-// and pressing nothing (on the Tomb, the second fighter floats in its sea
-// from the start, so the current and the hydra act on it), and every
-// hazard's track must agree frame by frame.
-// The bots' random source is seeded with each match's seed while the hazards
-// are read, so a hazard that draws from it diverges.
+
+
+
+
+
+
+
+
 import { test } from "wisp/src/runtime/testing";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { stageWarning } from "../presentation/stageHazards";
@@ -17,7 +17,7 @@ import { useMatchSeed } from "./botRandom";
 import { Phase, stageClock } from "./rules";
 import { stepMatch } from "./step";
 
-/** Every hazard's longest cycle: the carried platform's 920 frames covers the wind's warning and first gust and the cannon's full swing. */
+
 const FRAMES = 920;
 const SEEDS = [3, 777] as const;
 const WIND_PROBES = [-560.0, -300.0, -40.0, 40.0, 300.0, 560.0];

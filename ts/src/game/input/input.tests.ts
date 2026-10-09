@@ -6,7 +6,7 @@ import { INPUT_LAST_FRAME, decodePacket, encodePacket, inputPacket } from "./wir
 const describe = (fields: RowFields) => Object.entries(fields).map(([key, value]) => `${key}=${String(value)}`).join(" ");
 const row = (fields: RowFields = {}) => assertDefined(inputRow(fields), `row ${describe(fields)}`);
 
-/** Every field at an extreme, with press vectors their presses allow. */
+
 const fullRow = (overrides: RowFields = {}) =>
   row({
     held: ALL_ACTIONS, pressed: ALL_ACTIONS, released: ALL_ACTIONS, axisX: -127, axisZ: 127, triggerLeft: 255, triggerRight: 255,
@@ -57,7 +57,7 @@ test("prediction continues holds, stick and triggers but never repeats edges or 
 test("packets roundtrip every field at its extremes and every analog value and direction combination [invariant]", () => {
   roundtrip(7, 1, [fullRow()]);
   roundtrip(2147483647, INPUT_LAST_FRAME - 1, [fullRow(), fullRow()]);
-  // Opposing taps can leave an explicit zero; it must survive the omitted group.
+
   assertEquals(decodePacket(roundtrip(7, 1, [row({ pressed: bit(Action.moveRight), throwX: 0 })]))?.rows[0]?.throwX, 0);
   for (let value = -127; value <= 127; value++) {
     roundtrip(7, 1, [fullRow({ axisX: value, axisZ: -value, triggerLeft: value + 127, triggerRight: 127 - value, throwX: -value, throwZ: value })]);

@@ -1,7 +1,7 @@
-// The computer plays the newest moves (#155): as Wren Expert, in seeded
-// computer-against-computer mirror matches, each fighter throws its drills
-// and multi-hit aerials, Illidan's raid-boss normals, the heroes' angled
-// forward tilts, down tilts and dash attacks.
+
+
+
+
 import { assertEquals, assertGreaterThan, assertTrue } from "wisp/src/runtime/testing";
 import { sweep } from "../../runtime/sweep";
 import { floorDiv } from "wisp/src/sim/intMath";
@@ -21,7 +21,7 @@ import { createPacingAndPresentation } from "./pacingAndPresentation";
 import { Phase, createMatchState } from "./rules";
 
 const NEUTRAL = neutralControls();
-/** Each fighter plays this many seeded matches, the first half at 0%, the rest at 110%. */
+
 const MATCHES = 8;
 const FRAMES = 1800;
 
@@ -40,7 +40,7 @@ function observe(f: Readonly<Fighter>, watch: Watch, counts: Counts): void {
   }
 }
 
-/** A Wren Expert match of `character` against `opponent` under `seed`, both at `damage`, counting each computer playing `character`. */
+
 function mirrorMatch(character: Character, opponent: Character, seed: number, damage: number, counts: Counts): void {
   const world = createRoster(3, [createFighter(character, -240.0, 1), createFighter(opponent, 240.0, -1)]);
   const match = createMatchState();
@@ -81,7 +81,7 @@ function mirrorMatch(character: Character, opponent: Character, seed: number, da
   }
 }
 
-/** The counts over the fighter's seeded matches; a seed replays its counts exactly. */
+
 function played(character: Character, opponent: Character = character, matches = MATCHES): Counts {
   const counts: Counts = {};
   for (let index = 0; index < matches; index++) mirrorMatch(character, opponent, 11 + index * 12, index < floorDiv(matches, 2) ? 0.0 : 110.0, counts);
@@ -94,7 +94,7 @@ function played(character: Character, opponent: Character = character, matches =
   return counts;
 }
 
-/** Each named move started at least once. */
+
 function throws(counts: Counts, styles: readonly AttackStyle[]): void {
   for (const style of styles) {
     const uses = counts[`style${style}`] ?? 0;
@@ -105,7 +105,7 @@ function throws(counts: Counts, styles: readonly AttackStyle[]): void {
 const { forwardTiltUp, forwardTiltDown, downTilt, dashAttack, neutralAir, upAir, downAir, forwardAir, forwardTilt, downSmash } = AttackStyle;
 
 sweep("computer Blademaster throws Bladestorm, Blade Wheel, his down tilt and dash attack [spec #155]", () => {
-  // Shields are rare (about 2% of his mirror's attacks) and whiff punishes reshuffle the mirror: 16 matches give the shares a sample.
+
   const counts = played(Character.blademaster, Character.blademaster, 2 * MATCHES);
   throws(counts, [downAir, neutralAir, downTilt, dashAttack]);
 });
@@ -120,8 +120,8 @@ sweep("computer Warden throws Falling Knives, Sky Crescent, angled forward tilts
 });
 
 sweep("computer Lich throws Frost Halo, angled forward tilts, his down tilt and dash attack [spec #155]", () => {
-  // A Lich mirror keeps its range; Warden, who jumps and runs in, brings his close moves out. Frost Halo
-  // answers her jump-ins only, a few a match since she stopped spacing with forward air (#160): 16 matches give it a sample.
+
+
   throws(played(Character.lich, Character.warden, 2 * MATCHES), [neutralAir, forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
 });
 

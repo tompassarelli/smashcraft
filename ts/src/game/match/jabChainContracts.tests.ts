@@ -1,7 +1,7 @@
-// Jabs read as jabs (#163, smashcraft:docs/design/tilts.md, "Jab chains"):
-// every selectable fighter's jab chains on repeated presses, as Melee's
-// Attack11-13 do, while a forward tilt never chains; each jab is shorter,
-// smaller and no slower than its forward tilt.
+
+
+
+
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { queueAttack } from "../input/attackBuffer";
 import { AttackStyle, Character } from "../sim/codes";
@@ -22,7 +22,7 @@ interface Duel {
   frame: number;
 }
 
-/** `character` facing right at x 0 and a Rifleman target `gap` ahead. */
+
 function duel(character: Character, gap: number): Duel {
   const game = createMatchState();
   game.phase = Phase.match;
@@ -36,12 +36,12 @@ function step(d: Duel): void {
   stepMatch(d.game, d.world, d.controls, d.frame);
 }
 
-/**
- * Three presses of `style`: the first at once, each later one `every`
- * frames after the last, or, when `every` is undefined, as each attack's
- * active frames end, as a player presses again on seeing a hit. Returns the
- * attacks started and the hits the target took.
- */
+
+
+
+
+
+
 function pressThrice(character: Character, style: AttackStyle, every: number | undefined, gap: number): { styles: AttackStyle[]; hits: number } {
   const d = duel(character, gap);
   const attacker = fighterAt(d.world, 0);
@@ -72,7 +72,7 @@ function pressThrice(character: Character, style: AttackStyle, every: number | u
   return { styles, hits };
 }
 
-/** The steps a fighter's jab chain has: jab, then each authored next jab. */
+
 function chainOf(character: Character): AttackStyle[] {
   const moves = authoredTuning(character).moves;
   const steps: AttackStyle[] = [AttackStyle.jab];
@@ -96,14 +96,14 @@ test("pressing jab three times plays the fighter's two- or three-hit jab chain, 
 test("pressing forward tilt three times plays three separate forward tilts [spec #163]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const moves = authoredTuning(character).moves;
-    // Each press after the last tilt ends: a tilt never chains, so earlier presses would only wait.
+
     const every = attackDurationFramesForGrounding(AttackStyle.forwardTilt, true, moves) + 2;
     const { styles } = pressThrice(character, AttackStyle.forwardTilt, every, 2000.0);
     assertEquals(styles.join(","), [AttackStyle.forwardTilt, AttackStyle.forwardTilt, AttackStyle.forwardTilt].join(","), fighterName(character));
   }
 });
 
-/** A move's farthest forward reach and its active hit volume's bounding area, over every frame. */
+
 function extent(character: Character, style: AttackStyle): { reach: number; area: number } {
   const moves = authoredTuning(character).moves;
   const out = emptyHitRegion();

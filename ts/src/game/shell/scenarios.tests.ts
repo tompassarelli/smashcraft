@@ -30,7 +30,7 @@ test("an offstage Flame Crash spikes downward through the ordinary match step [s
     const firstCommands = attackBuffer(ATTACK_BUFFER_FRAMES);
     const secondCommands = attackBuffer(ATTACK_BUFFER_FRAMES);
     const step = (frame: number) => stepMatch(game, world, frameControls(firstInput, secondInput, firstCommands, secondCommands), frame);
-    // A real-input-sized interval after the airborne fixture starts.
+
     for (let frame = 1; frame <= 12; frame++) step(frame);
     firstInput.specialPressed = true;
     firstInput.specialZ = -1;
@@ -39,7 +39,7 @@ test("an offstage Flame Crash spikes downward through the ordinary match step [s
     firstInput.specialPressed = false;
     firstInput.specialZ = 0;
     firstInput.down = false;
-    // The hang lasts frames 1-4; the plunge strikes from frame 5.
+
     for (let frame = 14; frame <= 18; frame++) step(frame);
     const struck = second.status.damage;
     assertGreaterThan(struck, 0.0);

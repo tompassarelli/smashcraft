@@ -181,7 +181,7 @@ test("grabBreaksShieldButHasShortReachAndTimedRelease [spec docs/design/melee/de
   assertEquals(target.grab.grabbedFrames, GRAB_HOLD_FRAMES);
   assertFalse(target.shield.raised);
   for (let frame = attackStartupFrames(5) + 2; frame <= attackStartupFrames(5) + 1 + GRAB_HOLD_FRAMES; frame++) {
-    // Keep slot identities stable; source Wurst rosters resolve grab links by fighter identity.
+
     stepMatch(game, testRoster(attacker, target), frameControls(attackerInput, targetInput, attackerCommands, targetCommands), frame);
   }
   assertEquals(target.grab.grabbedFrames, 0);

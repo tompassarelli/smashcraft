@@ -3,7 +3,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { stageTileAt, stageTileLeft, stageTileTop } from "./stageSelection";
 import { STAGE_CATALOG, STAGE_CHOICES, randomStage } from "./stageCatalog";
 
-/** UI frame units from thousandths, the same binary32 value in both runtimes. */
+
 const at = (thousandths: number) => f32(thousandths / 1000);
 
 const cx = (choice: number) => stageTileLeft(choice) + at(47);

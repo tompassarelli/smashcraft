@@ -1,6 +1,6 @@
-// The basic tutorial (#306): each lesson passes on scripted play that does its
-// action and not on idle play, through the frame executor, and the menu path
-// that starts it.
+
+
+
 import { floorMod } from "wisp/src/sim/intMath";
 import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { clearAttackBuffer, queueAttack } from "../input/attackBuffer";
@@ -22,7 +22,7 @@ const NEUTRAL = neutralControls();
 const NEUTRAL_FIGHTER = createFighter(Character.rifleman, 0.0, 1);
 type Script = (input: Controls, frame: number, queue: (style: AttackStyle, facing: Direction) => void, player: Readonly<Fighter>, partner: Readonly<Fighter>) => void;
 
-/** A player in slot 0 and the partner (a computer) in slot 1 on the Training stage, in `lesson`. */
+
 function lessonMatch(lesson: number, gap = 30.0) {
   const world = createRoster(3, [createFighter(Character.rifleman, -gap / 2, 1), createFighter(Character.rifleman, gap / 2, -1)]);
   const game = createMatchState();
@@ -54,11 +54,11 @@ function lessonMatch(lesson: number, gap = 30.0) {
   return { world, game, run, player: fighterAt(world, 0), partner: fighterAt(world, 1) };
 }
 
-/** Scripted play that does each lesson's action, by LessonAction. */
+
 const SCRIPTS: Record<LessonAction, { readonly frames: number; readonly script: Script }> = {
-  // Stick to one side from neutral, then back to neutral: a dash each time.
+
   [LessonAction.dash]: { frames: 240, script: (input, frame) => { input.direction = floorMod(frame, 40) < 12 ? (floorMod(frame, 80) < 40 ? 1 : -1) : 0; } },
-  // Jump, then jump again near the top, every second.
+
   [LessonAction.doubleJump]: { frames: 300, script: (input, frame) => { input.jumpPressed = floorMod(frame, 60) === 0 || floorMod(frame, 60) === 20; input.jumpHeld = floorMod(frame, 60) < 30; } },
   [LessonAction.hit]: { frames: 300, script: (input, frame, queue, player, partner) => {
     const toward: Direction = partner.motion.x < player.motion.x ? -1 : 1;
@@ -66,7 +66,7 @@ const SCRIPTS: Record<LessonAction, { readonly frames: number; readonly script: 
     if (floorMod(frame, 30) === 0) queue(AttackStyle.jab, toward);
   } },
   [LessonAction.special]: { frames: 300, script: (input, frame) => { input.specialPressed = floorMod(frame, 90) === 0; } },
-  // Shield held, with a roll pressed every second.
+
   [LessonAction.dodge]: { frames: 300, script: (input, frame) => {
     input.shield = true;
     input.shieldTriggerActive = true;
@@ -75,14 +75,14 @@ const SCRIPTS: Record<LessonAction, { readonly frames: number; readonly script: 
     input.groundDodgePressed = floorMod(frame, 60) === 30;
     input.groundDodgeDirection = floorMod(frame, 120) < 60 ? -1 : 1;
   } },
-  // Walk up to the partner, grab it and throw it forward; repeated.
+
   [LessonAction.throw]: { frames: 900, script: (input, frame, queue, player, partner) => {
     const toward: Direction = partner.motion.x < player.motion.x ? -1 : 1;
     if (player.grab.target !== undefined) input.grabThrowX = toward;
     else if (Math.abs(partner.motion.x - player.motion.x) > 25.0) { input.direction = toward; input.walking = true; }
     else if (floorMod(frame, 20) === 0) queue(AttackStyle.grab, toward);
   } },
-  // Walk to the left edge, face the stage, jump backward off it, then drift back down onto the ledge, jumping again if low.
+
   [LessonAction.ledge]: { frames: 1200, script: (input, _, __, player) => {
     const edge = mainDeckLeft(TUTORIAL_STAGE);
     if (player.ledge.state === LedgeState.hang) { input.getupDirectionPressed = true; input.getupDirection = 1; }

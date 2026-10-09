@@ -1,5 +1,5 @@
-// The shell's speculative cursor is backed by the same bounded replay history
-// as recorded tapes, so accepted remote rows can replace predictions in place.
+
+
 import type { InputRow } from "../input/inputRow";
 import type { FrameControls } from "../match/controls";
 import type { PacingAndPresentation } from "../match/pacingAndPresentation";
@@ -19,7 +19,7 @@ interface MutableReplayState {
   runtime: PacingAndPresentation;
 }
 
-/** Production rollback playback: the shell's private world is corrected from retained input rows. */
+
 class ReplayHistoryPlayback implements RollbackPlayback {
   private readonly history = new ReplayHistory();
   private readonly playback = new ShadowInputPlayback();

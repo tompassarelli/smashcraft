@@ -1,6 +1,6 @@
-// Every special of every fighter shows a stock spell on its startup and on its
-// active frames, read from its kit's authored frames, and no two moves look
-// alike (#144).
+
+
+
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { Character, SpecialAction } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
@@ -11,7 +11,7 @@ import { RIFLEMAN_BLASTER_AIR_SHOT_FRAME, RIFLEMAN_BLASTER_GROUND_SHOT_FRAME } f
 import { RIFLEMAN_SECOND_SHOT_FIRST, RIFLEMAN_SECOND_SHOT_FORM, RIFLEMAN_SECOND_SHOT_LAST } from "../sim/specials";
 import { HERO_BRANCH_CUES, HERO_CUES, ORIGINAL_CUES, fighterBranchCues, fighterMoveCues, heroCueWindows, specialCueState } from "./specialCues";
 
-/** The original three and every registered hero, so a new hero needs its cues. */
+
 const FIGHTERS: readonly Character[] = [Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(({ character }) => character)];
 
 test("Rifleman's blaster cue readies on startup and flashes on the shot frame, and the second recoil shot cues across its whole input window [spec #144] [repro #251]", () => {
@@ -32,7 +32,7 @@ test("Rifleman's blaster cue readies on startup and flashes on the shot frame, a
   }
 });
 
-/** Every form a kit can run: grounded, airborne, free, recall, marked and each follow-up. */
+
 function forms(special: AuthoredSpecial | undefined, into: AuthoredSpecial[]): void {
   if (special === undefined) return;
   into.push(special);

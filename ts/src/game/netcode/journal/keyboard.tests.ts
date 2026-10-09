@@ -1,7 +1,7 @@
 import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { CARRIER_KEYS, KeyboardMailbox, decodeChunk } from "./keyboard";
 
-/** The carrier keys a helper holds for one chunk, written from the protocol independently of the decoder. */
+
 function carrier(text: string, final: boolean): boolean[] {
   const keys = CARRIER_KEYS.map(() => false);
   for (let offset = 0; offset < text.length; offset++) {
@@ -25,7 +25,7 @@ const decoded = (keys: readonly boolean[]) => decodeChunk(keys)?.text;
 
 test("ASCII chunks carry I4 and control text exactly, least significant bit first [reference]", () => {
   assertEquals(CARRIER_KEYS.length, 54);
-  // "I" is 73: bits 0, 3 and 6, with a byte count of one.
+
   assertEquals(held(carrier("I", false)), "0,3,6,49");
   assertEquals(decoded(carrier("I40001a", false)), "I40001a");
   assertEquals(decoded(carrier("ACK1|4|", false)), "ACK1|4|");

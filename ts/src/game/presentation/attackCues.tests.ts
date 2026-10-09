@@ -1,5 +1,5 @@
-// Each signature normal shows its effect on every hit it lands, restarting per
-// hit, and nothing outside its active frames.
+
+
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { AttackStyle, Character } from "../sim/codes";
 import { createFighter } from "../sim/fighter";

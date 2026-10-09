@@ -16,7 +16,7 @@ import {
   createImpactPresentationCursor, finishImpactEventsAfter, resetImpactPresentationCursor,
 } from "./impactEvents";
 
-/** One journaled frame: the change runs between the before and after halves. */
+
 function journal(events: ImpactEvents, fighter: Readonly<Fighter>, change: () => void = () => {}): void {
   captureImpactEventsBefore(events, fighter);
   change();

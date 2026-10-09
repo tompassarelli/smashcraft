@@ -13,7 +13,7 @@ import { createCombatObservation, createCombatTally, observeCombat, tallyCombat 
 import type { MatchCue } from "./matchAudio";
 import { type CueObservation, type MatchTally, confirmedFrameCues, createCueObservation, createMatchTally, observeForCues } from "./matchCues";
 
-/** Rifleman (P1) and a Rifleman at 50% (P2) facing each other, both on controllers. */
+
 function scriptedMatch(): PadMatch {
   const match = testMatch(3, Character.rifleman);
   match.world.fighters[0] = createFighter(Character.rifleman, -560.0, 1);
@@ -30,7 +30,7 @@ interface Presented {
   readonly cues: MatchCue[];
 }
 
-/** Plays one frame as the shell presents a confirmed frame: observe, run, then tally. */
+
 function present(p: Presented, first: Pad, second: Pad): void {
   const { match } = p.run;
   observeForCues(p.observation, match.game, match.world);
@@ -38,7 +38,7 @@ function present(p: Presented, first: Pad, second: Pad): void {
   confirmedFrameCues(p.observation, match.game, match.world, p.tally, p.cues);
 }
 
-/** Forward smashes the victim toward `side` on frame 1, then plays until it lands from tumble; `trigger` is the victim's pad by frame. */
+
 function knockDown(p: Presented, side: number, trigger: (frame: number) => boolean): number {
   const victim = fighterAt(p.run.match.world, 1);
   for (let frame = 1; frame <= 240; frame++) {
@@ -52,21 +52,21 @@ function presented(): Presented {
   return { run: scriptedMatch(), observation: createCueObservation(), tally: createMatchTally(), cues: [] };
 }
 
-/** Plays neutral pads until the victim can act again. */
+
 function recover(p: Presented, victim: Fighter): void {
   for (let frame = 0; frame < 600 && (victim.down.state !== DownState.none || victim.launch.hitstun > 0 || !victim.motion.grounded); frame++) present(p, {}, {});
   assertEquals(victim.down.state, DownState.none);
 }
 
 test("a scripted match's combat stats: damage dealt, openings, techs, missed techs, ledge grabs and the record's line [spec #140]", () => {
-  // The landing frame of the first knockdown, from the same match played without a tech.
+
   const landing = knockDown(presented(), 1, () => false);
   const p = presented();
   const { world } = p.run.match;
   const attacker = fighterAt(world, 0);
   const victim = fighterAt(world, 1);
 
-  // A forward smash on a free victim is P1's first opening; the victim techs the landing.
+
   assertEquals(knockDown(p, 1, (frame) => frame === landing - 5), landing);
   assertEquals(victim.down.state, DownState.tech);
   const afterFirst = victim.status.damage;
@@ -75,7 +75,7 @@ test("a scripted match's combat stats: damage dealt, openings, techs, missed tec
   assertEquals(p.tally.combat.techs.join(","), "0,1,0,0");
   assertEquals(p.tally.combat.missedTechs.join(","), "0,0,0,0");
 
-  // Up close again from the other side, a second forward smash back toward the centre is a second opening; this landing is missed.
+
   recover(p, victim);
   assertEquals(victim.status.stocks, 3);
   attacker.motion.x = f32(victim.motion.x + 100.0);
@@ -89,7 +89,7 @@ test("a scripted match's combat stats: damage dealt, openings, techs, missed tec
   assertEquals(Math.floor(p.tally.combat.dealt[0]), Math.floor(victim.status.damage - 50.0));
   assertEquals(p.tally.combat.dealt[1], 0);
 
-  // Falling beside the left ledge, the victim catches it once.
+
   recover(p, victim);
   victim.motion.grounded = false;
   victim.motion.surface = undefined;
@@ -103,7 +103,7 @@ test("a scripted match's combat stats: damage dealt, openings, techs, missed tec
   for (let frame = 0; frame < 10; frame++) present(p, {}, {});
   assertEquals(p.tally.combat.ledgeGrabs.join(","), "0,1,0,0");
 
-  // P1 takes the victim's stock: two openings for one KO.
+
   victim.hits.lastAttacker = 0;
   victim.motion.x = -100000.0;
   present(p, {}, {});

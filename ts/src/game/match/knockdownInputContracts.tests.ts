@@ -1,5 +1,5 @@
-// Knockdown options through a controller's real input path (helperPads.ts),
-// after a low-, medium- and high-percent knockdown.
+
+
 import { assertDefined, assertEquals, test } from "wisp/src/runtime/testing";
 import { Character, DownState } from "../sim/codes";
 import { isTumbling } from "../sim/conditions";
@@ -16,7 +16,7 @@ interface Run extends PadMatch {
 const ATTACKER_X = -560.0;
 const VICTIM_X = -460.0;
 
-/** The shared reference combat rig faces a victim, both reading journals. */
+
 function startRun(victimCharacter: Character, percent: number): Run {
   const match = testMatch(3, Character.sylvanas);
   match.world.fighters[0] = createReferenceFighter(Character.sylvanas, ATTACKER_X, 1);
@@ -26,7 +26,7 @@ function startRun(victimCharacter: Character, percent: number): Run {
   return { ...padMatch(match, "knockdown"), victim };
 }
 
-/** Plays the strike, then the victim's pads, until the victim lands out of tumble; returns that frame. */
+
 function knockDown(run: Run, strike: Pad, victimPadAt: (frame: number) => Pad): number {
   for (let frame = 1; frame <= 120; frame++) {
     playPads(run, frame === 1 ? strike : {}, victimPadAt(frame));
@@ -36,7 +36,7 @@ function knockDown(run: Run, strike: Pad, victimPadAt: (frame: number) => Pad): 
   throw new Error("the victim never landed from tumble");
 }
 
-/** Plays neutral strikes and the victim's pads through frame last. */
+
 function playThrough(run: Run, last: number, victimPadAt: (frame: number) => Pad): void {
   for (let frame = run.match.runtime.simulationFrame + 1; frame <= last; frame++) playPads(run, {}, victimPadAt(frame));
 }
@@ -45,7 +45,7 @@ interface Knockdown {
   readonly name: string;
   readonly victim: Character;
   readonly percent: number;
-  /** The reference rig's frame-1 strike: a C-stick forward smash, or a jab for the farther high-percent launch. */
+
   readonly strike: Pad;
 }
 
@@ -57,7 +57,7 @@ const KNOCKDOWNS: readonly Knockdown[] = [
 
 const NEUTRAL = (): Pad => ({});
 
-/** The knockdown's landing frame when the victim presses nothing. */
+
 function missedTechLanding(knockdown: Knockdown): number {
   const run = startRun(knockdown.victim, knockdown.percent);
   const landing = knockDown(run, knockdown.strike, NEUTRAL);
@@ -65,14 +65,14 @@ function missedTechLanding(knockdown: Knockdown): number {
   return landing;
 }
 
-/** The bound's last frame and the frame Melee's DownBound ends, after landing (melee:src/melee/ft/kinds/ftCommon/ftCo_DownBound.c ftCo_DownBound_Anim). */
+
 const boundEnd = (landing: number) => landing + DOWN_BOUND_FRAMES;
 
 test("a trigger press before a tumble landing techs through the journal path at low, medium and high percent [reference]", () => {
   for (const knockdown of KNOCKDOWNS) {
     const landing = missedTechLanding(knockdown);
     const run = startRun(knockdown.victim, knockdown.percent);
-    // Inside the 20-frame window after hitlag (common +0x250; ftCo_DownAttack.c ftCo_800986B0), while hitstun blocks an air dodge.
+
     assertEquals(knockDown(run, knockdown.strike, (frame) => ({ trigger: frame === landing - 5 })), landing, knockdown.name);
     assertEquals(run.victim.down.state, DownState.tech, knockdown.name);
   }
@@ -106,7 +106,7 @@ test("a stick held sideways rolls forward or back, and held up stands, as Melee'
 });
 
 test("the down wait takes Special, takes a trigger press, and stands by itself after Melee's 220 frames [reference]", () => {
-  // Common +0x424 = 220 (ftCo_DownBound.c ftCo_80097E8C, ftCo_DownWait_Anim); A or B strikes (ftCo_DownAttack.c), L or R stands (ftCo_DownStand.c).
+
   const [low, mid, high] = [assertDefined(KNOCKDOWNS[0]), assertDefined(KNOCKDOWNS[1]), assertDefined(KNOCKDOWNS[2])];
   for (const [knockdown, pad, state] of [[low, { special: true }, DownState.attack], [mid, { trigger: true }, DownState.stand]] as const) {
     const run = startRun(knockdown.victim, knockdown.percent);
@@ -126,8 +126,8 @@ test("the down wait takes Special, takes a trigger press, and stands by itself a
 });
 
 test("a C-stick up flick during the wait starts the get-up attack and a sideways flick rolls that way [reference]", () => {
-  // melee:src/melee/ft/kinds/ftCommon/ftCo_Down.c ftCo_Down_CheckInput (sideways cstick, ftCo_800DF678) and
-  // ftCo_DownAttack.c ftCo_800984D4 (up flick, ftCo_800DF644 against common +0x7F4) read the C-stick edge.
+
+
   for (const knockdown of KNOCKDOWNS) {
     for (const [flick, state, direction] of [[{ cy: 1.0 }, DownState.attack, 0], [{ cx: -1.0 }, DownState.roll, -1], [{ cx: 1.0 }, DownState.roll, 1]] as const) {
       const run = startRun(knockdown.victim, knockdown.percent);

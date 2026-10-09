@@ -3,7 +3,7 @@ import { CPU_PROFILES, cpuProfile } from "./cpuProfiles";
 import { calibrationFailures, collectCalibrationRow } from "./cpuCalibration";
 import { sweep } from "../../runtime/sweep";
 
-// The suite measures one row; every named profile's row runs as a sweep.
+
 for (const profile of CPU_PROFILES) {
   sweep(`calibration ${profile.opponent}/${profile.tier}: 100 eligible decisions, zero early reactions/reversals/replay differences [spec #186]`, () => {
     const row = collectCalibrationRow(profile);

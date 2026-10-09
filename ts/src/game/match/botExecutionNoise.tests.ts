@@ -99,7 +99,7 @@ export function spacingPunishCase(seed: number, noise: boolean) {
 }
 
 test("an executed Expert aerial drift error gives a shield grab that proper spacing avoids [spec #357]", () => {
-  // Search shared seeds for the first actual inward drift, then record both executed cases.
+
   let seed = -1;
   const f = createFighter(Character.rifleman, -85.0, 1);
   f.motion.grounded = false;

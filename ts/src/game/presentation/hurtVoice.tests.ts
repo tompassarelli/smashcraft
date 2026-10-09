@@ -9,7 +9,7 @@ import { DamagePose, damagePose } from "./damagePose";
 import { clipFor } from "./fighterClips";
 import { CryDecision, createCryGate, gateCry, isCryClip } from "./hurtVoice";
 
-/** The clip index the pose layer selects for the fighter's hit reaction. */
+
 function reactionClip(fighter: Readonly<Fighter>): number {
   const reaction = damagePose(fighter);
   const pose = reaction === DamagePose.ground ? "damageGround" : reaction === DamagePose.tumble ? "damageTumble" : "damageAir";
@@ -43,7 +43,7 @@ test("a Rifleman blaster hit shows Mountain King's flinch without his death cry 
   const target = blasterHit();
   assertTrue(target.status.damage > 0.0);
   const clip = reactionClip(target);
-  // The premise: Mountain King's flinch is his model's Death sequence, which carries the cry.
+
   assertTrue(isCryClip(Character.mountainKing, clip, ""));
   assertEquals(gateCry(createCryGate(), 100, target, clip, ""), CryDecision.standIn);
 });

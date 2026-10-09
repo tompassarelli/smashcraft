@@ -1,7 +1,7 @@
-// wisp#69: a test build's replay records every frame's digest, and a replay
-// that parts from it names its first divergent frame and field. The canary
-// rewrites one recorded digest as the game would have written it had a field
-// differed, so a replay that stopped comparing digests fails here.
+
+
+
+
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { fighterAt } from "../sim/roster";
 import { frameDigest, significandUnit } from "./frameDigest";
@@ -22,7 +22,7 @@ function joinedTape(): string[] {
   }));
 }
 
-/** The joined replay with frame `frame`'s recorded digest replaced by the one `change` makes of the replayed match there. */
+
 function withNativeChange(lines: readonly string[], frame: number, change: (this: void, fighter: ReturnType<typeof fighterAt>) => void): string[] {
   const replay = parseReplay(lines);
   if (typeof replay === "string") throw new Error(replay);

@@ -9,9 +9,9 @@ const Key = {
 const PRESETS: readonly BindingPreset[] = ["standard", "custom"];
 
 const decode = (saved: string) => assertDefined(decodeBindings(saved), saved);
-/** The same layout as a K2 save, which predates the current defaults. */
+
 const asK2 = (bindings: KeyBindings) => `K2${encodeBindings(bindings).slice(2, 92)}`;
-/** The same layout as a K1 save, which predates the walk slots. */
+
 const asK1 = (bindings: KeyBindings) => `K1${encodeBindings(bindings).slice(2, 86)}`;
 
 test("saves roundtrip, malformed saves are refused and a saved Y binding is dropped [invariant]", () => {

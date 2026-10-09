@@ -15,7 +15,7 @@ import { type TapeWorld, captureTape, createTapeWorld, executeTapeRow } from "./
 
 const NEUTRAL = assertDefined(inputRow(), "neutral row");
 
-/** Runs network rows through the adapter and the frame executor directly, without a schedule. */
+
 function directRunner(tape: TapeWorld): (frame: number, first: InputRow, second: InputRow) => void {
   const requests = [attackBuffer(0), attackBuffer(0)] as const;
   const produced: FrameControls = { inputs: [neutralControls(), neutralControls(), neutralControls(), neutralControls()], commands: [requests[0], requests[1], attackBuffer(0), attackBuffer(0)] };
@@ -28,7 +28,7 @@ function directRunner(tape: TapeWorld): (frame: number, first: InputRow, second:
   };
 }
 
-/** A sender's row for a frame: neutral seed rows, then a 120-frame cycle of holds, presses and press data. */
+
 function tapeRow(frame: number, delay: number, sender: number): InputRow {
   if (frame <= delay) return NEUTRAL;
   const phase = floorMod((frame - delay) * 17 + sender * 23, 120);
@@ -98,8 +98,8 @@ function runScheduledGameplayOracle(delay: FixedDelay): void {
     const earlyCount = Math.min(2, groupCount);
     const laterCount = groupCount - earlyCount;
     if (laterCount > 0) {
-      // The later half of each four-row group arrives first. Until the missing
-      // prefix arrives, accepted future rows must not open the gate.
+
+
       for (const sender of [0, 1]) deliver(schedule, sender, epoch, groupStart + earlyCount, laterCount, delay);
       assertFalse(schedule.mayAdvance());
       assertFalse(playback.advanceNext(schedule, epoch, scheduled.live));

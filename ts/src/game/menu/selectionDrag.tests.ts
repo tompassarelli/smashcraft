@@ -10,7 +10,7 @@ import {
   decodeCpuPlacement, selectionDrag, updateSelectionDrag,
 } from "./selectionDrag";
 
-/** UI frame units from thousandths, the same binary32 value in both runtimes. */
+
 const at = (thousandths: number) => f32(thousandths / 1000);
 
 const UNPLACED: RosterChip = { choice: 0, placed: false };

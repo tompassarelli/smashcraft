@@ -22,8 +22,8 @@ import {
   createModelSoundCursor,
   } from "./modelSounds";
 
-// The original clips and cues these contracts were measured on, copied from
-// the generated FighterOriginalClipInfo and ModelSoundInfo the Wurst tests ran with.
+
+
 const clip = (startSeconds: number, endSeconds: number, looping: boolean): FighterOriginalClip => ({ modelPath: "", startSeconds, endSeconds, looping });
 const cue = (sequenceIndex: number, seconds: number, soundIndex: number): ModelSoundCue => ({ sequenceIndex, seconds, soundIndex });
 const CLIPS: Readonly<Record<number, Readonly<Record<number, FighterOriginalClip>>>> = {
@@ -95,7 +95,7 @@ test("sound sparse four slots and catch-up match sequential [invariant]", () => 
       assertTrue(confirmModelSounds(sequential, 7, 0, slot, fighter, pose, a.sink));
       assertTrue(confirmModelSounds(catchup, 7, 0, slot, fighter, pose, b.sink));
     }
-    // Six confirmed rows serviced by one callback must all reach the cursor.
+
     for (const [cursor, record, repeat] of [[sequential, a, false], [catchup, b, true]] as const) {
       for (let frame = 1; frame <= 6; frame++) {
         for (const slot of active) {
@@ -129,8 +129,8 @@ test("sound from speculative and corrected numerical rollback never dispatches; 
   for (const slot of PARTICIPANT_SLOTS) {
     if (!participantActive(world.mask, slot)) continue;
     const fighter = createFighter(Character.rifleman, -200.0 + slot * 150.0, 1);
-    // Gameplay stays frozen while the authored clip clock is about to cross a
-    // real rifle cue on the first completed frame.
+
+
     fighter.status.frozenFrames = 60;
     world.fighters[slot] = fighter;
     selectIndex(runtime.poses[slot], 5).clipTime = f32(0.16);
@@ -152,7 +152,7 @@ test("sound from speculative and corrected numerical rollback never dispatches; 
   assertEquals(record.count, 0);
   assertTrue(history.replay(11, 1, 4, live));
   assertEquals(record.count, 0);
-  // The confirmed copy consumes each saved completed frame once.
+
   for (let frame = 1; frame <= 4; frame++) {
     assertTrue(history.replay(11, frame, frame, live));
     for (const confirmed of confirmActive(frame)) assertTrue(confirmed);

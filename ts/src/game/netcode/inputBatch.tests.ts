@@ -13,8 +13,8 @@ test("every captured row reaches the ledger verbatim through pause and window-wa
   const batch = new InputBatch(73);
   const inputs = participantInputs();
   assertTrue(schedule.beginEpoch(73, 3, DEFAULT_ROLLBACK_WINDOW, 3));
-  // Withhold all transport until the six-frame window fills, then flush its
-  // incomplete tail.
+
+
   for (let frame = 1; frame <= 9; frame++) {
     assertEquals(schedule.captureTarget(), frame + 3);
     assertEquals(schedule.captureLocal(73, NEUTRAL), Capture.captured);
@@ -23,12 +23,12 @@ test("every captured row reaches the ledger verbatim through pause and window-wa
   }
   assertFalse(schedule.mayAdvanceSpeculative(0));
   assertEquals(schedule.captureLocal(73, NEUTRAL), Capture.captured);
-  // Repeated polling at a blocked target cannot rewrite the capture.
+
   assertEquals(schedule.captureLocal(73, NEUTRAL), Capture.alreadyCaptured);
   for (let target = 4; target <= 13; target++) {
     assertTrue(batch.append(73, target, assertDefined(schedule.pending(73, target))));
-    // Frame 6 stands for a pause or transition singleton; the tail for a
-    // repeated-target wait with no second row coming.
+
+
     if (batch.size() === 2 || target === 6 || target === 13) {
       const packet = assertDefined(batch.packet());
       assertEquals(schedule.acceptSynchronized(0, packet), "accepted");

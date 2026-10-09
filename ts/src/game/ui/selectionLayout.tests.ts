@@ -1,6 +1,6 @@
-// The Moves page never draws over the selection header (#150: its title and
-// first lines were drawn over the header's art), and the mode label sits in
-// the header's title box, at every common screen shape.
+
+
+
 import { assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import type { TextBox } from "./hudLayout";

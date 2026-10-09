@@ -1,7 +1,7 @@
-// Each fighter's jab, tilts and dash attack through the match step
-// (smashcraft:docs/design/tilts.md): distinct timing, forward-tilt reach
-// against the forward air, Ultimate's angling rule from a diagonal input, and
-// the role each down tilt and dash attack is designed for.
+
+
+
+
 import { assertEquals, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { queueAttack } from "../input/attackBuffer";
@@ -21,20 +21,20 @@ import { type FrameControls, createBufferedFrameControls } from "./controls";
 import { type MatchState, Phase, createMatchState } from "./rules";
 import { stepMatch } from "./step";
 
-/** Fighters whose ground normals tilts.md designs; Illidan's belong to his own kit. */
+
 const DESIGNED: readonly Character[] = [
   Character.rifleman, Character.blademaster, Character.mountainKing, Character.warden, Character.lich, Character.forsakenPaladin, Character.dreadlord, Character.shadowHunter,
   Character.pitLord, Character.beastmaster,
 ];
 const GROUND = [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack] as const;
-/** Forward airs that outreach the forward tilt on purpose (tilts.md, "Reach versus aerials"). */
+
 const LONGER_AERIAL: readonly Character[] = [Character.lich, Character.dreadlord];
-/** Forward tilts that sweep vertical ground, so a diagonal input plays the plain tilt. */
+
 const UNANGLED: readonly Character[] = [Character.blademaster, Character.forsakenPaladin, Character.pitLord];
 
 const movesOf = (character: Character): FighterMoves | undefined => authoredTuning(character).moves;
 
-/** The farthest forward any of a move's regions reaches. */
+
 function forwardReach(character: Character, style: AttackStyle): number {
   const moves = movesOf(character);
   const out = emptyHitRegion();
@@ -82,7 +82,7 @@ interface Duel {
   frame: number;
 }
 
-/** `character` in slot 0 facing right at x 0; a Rifleman target `gap` ahead, facing it. */
+
 function duel(character: Character, gap: number, damage = 0.0): Duel {
   const game = createMatchState();
   game.phase = Phase.match;
@@ -101,11 +101,11 @@ function step(d: Duel, targetShield = false, run = false): void {
   stepMatch(d.game, d.world, d.controls, d.frame);
 }
 
-/** Presses `style` for the attacker on the next frame, as the input layer would queue it. */
+
 function press(d: Duel, style: AttackStyle): void {
   const dashing = style === AttackStyle.dashAttack;
   if (dashing) {
-    // A jab pressed out of a dash is the dash attack.
+
     for (let i = 0; i < 3; i++) step(d, false, true);
     style = AttackStyle.jab;
   }
@@ -136,9 +136,9 @@ test("a diagonal tilt angles a straight strike and plays a vertical swing's plai
       assertEquals(moves?.normals[AttackStyle.forwardTiltUp] === plainMove && moves?.normals[AttackStyle.forwardTiltDown] === plainMove, true, `${fighterName(character)} angles a vertical swing`);
       continue;
     }
-    // Rifleman's angles come from the original tables, the others from their kits.
+
     const [plain, raised, lowered] = [timing(AttackStyle.forwardTilt), timing(AttackStyle.forwardTiltUp), timing(AttackStyle.forwardTiltDown)];
-    // Same timing and damage; the volume moves and the launch follows it.
+
     const at = (style: AttackStyle) => {
       const out = emptyHitRegion();
       authoredHitRegion(out, character, style, plain.startupFrames, 0, 0, moves);
@@ -158,7 +158,7 @@ test("a diagonal tilt angles a straight strike and plays a vertical swing's plai
   }
 });
 
-/** Runs a pressed move against the target until both are idle; returns the frames of each hit. */
+
 function hitFrames(d: Duel, frames: number, targetShield = false): number[] {
   const hits: number[] = [];
   let damage = target(d).status.damage;
@@ -204,7 +204,7 @@ test("Warden's down tilt chains: a second one lands before the victim can act [s
     if (target(d).status.damage > 0.0) first = d.frame;
   }
   assertGreaterThan(first, 0);
-  // Pressed again on the first frame the Warden can act.
+
   let victimActed = false;
   const watch = () => { victimActed ||= target(d).launch.hitstun === 0 && target(d).launch.hitlag === 0; };
   while (attacker(d).attack.style !== undefined) {
@@ -245,7 +245,7 @@ test("Blademaster's down-tilt tip leaves him out of reach on shield; its inner b
   };
   const tip = advantage(150.0);
   const inner = advantage(60.0);
-  // Pushed out of any grab or tilt the defender could start in the frames it gains; the inner blade leaves it in grab range.
+
   assertGreaterThan(tip[0], -8);
   assertGreaterThan(tip[1], 150.0);
   assertLessThan(inner[1], 100.0);
@@ -333,7 +333,7 @@ test("Pit Lord's down tilt sends an airborne fighter at his front low and outwar
   assertGreaterThan(out.effect.launchX, 0.0);
   assertLessThan(out.effect.launchZ, 0.0);
   press(d, AttackStyle.downTilt);
-  // A fighter rising past his front just as the hoof lands.
+
   while (attacker(d).attack.frame < attackStartupFrames(AttackStyle.downTilt, moves) - 1) step(d);
   target(d).motion.z = 20.0;
   target(d).motion.vz = 0.0;

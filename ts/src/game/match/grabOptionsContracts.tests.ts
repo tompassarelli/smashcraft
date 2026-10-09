@@ -96,7 +96,7 @@ test("a grab buffered during ordinary shield stun starts with jump out of shield
   while (frame < 40 && defender.shield.stun === 0) stepMatch(d.game, d.world, d.inputs, ++frame);
   assertTrue(defender.shield.stun > 0);
   queueAttack(d.inputs.commands[0], { style: AttackStyle.grab, facing: 0, frame: frame + 1, mayCharge: false });
-  // A held shield resumes its drain on the frame stun ends; actions start on the next (heldShieldOrderHitlagAndShieldstunResumeBeforeActionInputs).
+
   let free = -1;
   while (frame < 80 && defender.attack.style !== AttackStyle.grab) {
     stepMatch(d.game, d.world, d.inputs, ++frame);

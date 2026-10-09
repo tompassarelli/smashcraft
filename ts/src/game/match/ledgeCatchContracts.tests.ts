@@ -1,6 +1,6 @@
-// Recoveries played through captured rows and the frame executor: a fighter
-// whose fall carries the ledge into its catch box snaps to it, one just
-// outside the box falls past, and a ledge jump clears the wall below it.
+
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { Character, LedgeState } from "../sim/codes";
@@ -16,7 +16,7 @@ function ledgeEdge(side: number): number {
   return side < 0 ? surfaceLeft(0, 0, 0) : surfaceRight(0, 0, 0);
 }
 
-/** Slot 0 airborne `outside` beyond the `side` ledge and `below` it, facing the stage, with one air jump. */
+
 function besideLedge(match: TestMatch, side: number, outside: number, below: number): Fighter {
   const fighter = fighterAt(match.world, 0);
   fighter.motion.grounded = false;
@@ -35,16 +35,16 @@ function depth(fighter: Fighter): number {
 }
 
 interface Recovery {
-  /** The frame that caught the ledge, or undefined. */
+
   readonly caught: number | undefined;
-  /** Depths below the ledge after the two movements before the catch. */
+
   readonly previousDepth: number;
   readonly lastDepth: number;
-  /** Whether any frame caught while the fighter was still rising. */
+
   readonly caughtRising: boolean;
 }
 
-/** Plays neutral frames, pressing jump on the first when asked, until a catch or the fall passes `deepest`. */
+
 function playRecovery(match: TestMatch, fighter: Fighter, jumpFirst: boolean, deepest: number): Recovery {
   let previousDepth = depth(fighter);
   let lastDepth = previousDepth;
@@ -77,7 +77,7 @@ test("a fighter falling beside the ledge within its catch box snaps to it as its
       const recovery = playRecovery(match, fighter, false, 400.0);
       assertTrue(recovery.caught !== undefined);
       assertSnapped(fighter, side);
-      // The catch came on the first movement that carried the ledge into the box.
+
       assertGreaterThan(recovery.lastDepth, lowest);
       assertFalse(recovery.previousDepth > lowest);
     }

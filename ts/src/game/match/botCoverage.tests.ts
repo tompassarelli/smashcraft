@@ -4,7 +4,7 @@ import { fighterCoverage } from "./botCoverage";
 import { Character } from "../sim/codes";
 import { sweep } from "../../runtime/sweep";
 
-// The suite plays one seeded match a fighter; the eight-match kit coverage runs as a sweep.
+
 for (let index = 0; index < SELECTABLE_CHARACTERS.length; index++) {
   test(`roster AI: ${fighterName(SELECTABLE_CHARACTERS[index] ?? -1)} moves and attacks in one seeded Wren Expert match [spec #56]`, () => {
     const report = fighterCoverage(index, undefined, SELECTABLE_CHARACTERS, 1);

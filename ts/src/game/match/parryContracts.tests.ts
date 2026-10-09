@@ -1,9 +1,9 @@
 import { mutableProjectile } from "../sim/fighterProjectiles";
-// The powershield parry through the match step, for every shipped fighter:
-// after a parried hit or projectile each grounded option starts on the first
-// frame the defender can act, an option pressed during the parried hit's
-// freeze included; after an ordinary block the same press waits out
-// shieldstun. smashcraft:docs/gameplay-design.md ("Powershield and parry").
+
+
+
+
+
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { queueAttack } from "../input/attackBuffer";
@@ -25,7 +25,7 @@ interface Duel {
   frame: number;
 }
 
-/** An Rifleman in slot 0 facing the defender in slot 1, `gap` to its right; `guard` raises an ordinary held shield. */
+
 function duel(character: Character, gap: number, guard: boolean): Duel {
   const game = createMatchState();
   game.phase = Phase.match;
@@ -49,7 +49,7 @@ function play(d: Duel, input: Readonly<Controls>): void {
 const held = (): Controls => controls({ shield: true, shieldTriggerActive: true, shieldStrength: 1.0 });
 const pressed = (): Controls => controls({ shield: true, shieldPressed: true, shieldTriggerActive: true, shieldStrength: 1.0 });
 
-/** A grounded option out of a parry: its press, what is held after it, and whether it has started. */
+
 interface Option {
   readonly name: string;
   readonly press: (d: Duel) => Controls;
@@ -57,7 +57,7 @@ interface Option {
   readonly started: (f: Fighter) => boolean;
 }
 
-/** An attack queued as its press; the shield is let go for every one but the grab. */
+
 const attack = (name: string, style: AttackStyle): Option => {
   const shield = style === AttackStyle.grab;
   return {
@@ -95,7 +95,7 @@ const OPTIONS: readonly Option[] = [
 
 const GAP = 40.0;
 
-/** The frame the Rifleman's jab meets the defender's shield when the shield is raised on `raise` (0: held from the start). */
+
 function jabOnShield(character: Character, raise: number): { readonly duel: Duel; readonly contact: number } {
   const d = duel(character, GAP, raise === 0);
   queueAttack(d.controls.commands[0], { style: AttackStyle.jab, facing: 0, frame: 1, mayCharge: false });
@@ -107,7 +107,7 @@ function jabOnShield(character: Character, raise: number): { readonly duel: Duel
   throw new Error(`${fighterName(character)}: the jab never met the shield`);
 }
 
-/** Presses `option` on the duel's next frame and returns the frame it starts on, or undefined within `horizon` frames. */
+
 function optionStart(d: Duel, option: Option, horizon: number): number | undefined {
   const defender = defenderOf(d);
   const first = d.frame + 1;
@@ -128,7 +128,7 @@ function checkParriedHit(character: Character): void {
     assertEquals(defender.shield.stun, 0, `${name}: no shieldstun`);
     const freeze = defender.launch.hitlag;
     assertEquals(freeze > 1, true, `${name}: the parried hit freezes`);
-    // The freeze's last frame is the first the defender can act on.
+
     assertEquals(optionStart(parry.duel, option, 40), parry.contact + freeze, `${name} ${option.name} out of a parry`);
     const block = jabOnShield(character, 0);
     const blocked = defenderOf(block.duel);
@@ -159,7 +159,7 @@ test("a late shield keeps its shieldstun and release lag [spec #102]", () => {
   }
 });
 
-/** A shot from the far-left Rifleman at the defender's shield centre height, `distance` away, flying right. */
+
 function shotAt(d: Duel, distance: number): void {
   const defender = defenderOf(d);
   const shot = mutableProjectile(fighterAt(d.world, 0), 0)!;
@@ -174,7 +174,7 @@ function shotAt(d: Duel, distance: number): void {
   shot.damageMultiplier = 1.0;
 }
 
-/** The frame a shot reaches the defender's shield raised on `raise` (0: held from the start), with how it met it. */
+
 function shotOnShield(character: Character, raise: number): { readonly duel: Duel; readonly contact: number; readonly reflected: boolean } | undefined {
   const d = duel(character, 400.0, raise === 0);
   shotAt(d, 200.0);

@@ -1,5 +1,5 @@
-// The computer's Warden aims Blink back to the stage: from both sides, with
-// and without a jump left, it returns from every spot within Blink's reach.
+
+
 import { assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { Character } from "../sim/codes";

@@ -8,7 +8,7 @@ import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { sweep } from "../../runtime/sweep";
 
 test("locked input boundaries agree with the replay agency references in Lua32 [invariant]", () => {
-  // Reference strings: smashcraft:ts/scripts/liveAgency.tests.ts's replay oracle.
+
   const references = [
     { name: "grounded buffer", letters: ".............AAAAAAAAAA" },
     { name: "freeze", letters: "..............AAAA" },

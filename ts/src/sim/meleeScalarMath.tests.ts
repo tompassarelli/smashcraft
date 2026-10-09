@@ -1,8 +1,8 @@
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { meleeAtan2, meleeCos, meleeSin } from "./meleeScalarMath";
 
-// Recorded from the retail routines (smashcraft:docs/melee-scalar-math.md).
-// Each row: atan2(y, x), then cos and sin of that angle.
+// Retail scalar samples come from docs/melee-scalar-math.md.
+
 const vectors: [y: number, x: number, angle: number, cos: number, sin: number][] = [
   [0, 1, 0, 1, 0],
   [1, 0, 1.5707963705062866, -0.000000055655068109672357, 1],
@@ -17,7 +17,7 @@ const vectors: [y: number, x: number, angle: number, cos: number, sin: number][]
   [0.05000000074505806, 1, 0.04995839670300484, 0.9987523555755615, 0.049937617033720016],
 ];
 
-// Angles just outside [-pi, pi] that DI produces; cos and sin.
+
 const diAngles: [angle: number, cos: number, sin: number][] = [
   [3.455751895904541015625000000000, -0.951056540012359619140625000000, -0.309017002582550048828125000000],
   [-3.455751895904541015625000000000, -0.951056540012359619140625000000, 0.309017002582550048828125000000],

@@ -38,7 +38,7 @@ test("a bear's clip restores backward from a snapshot and projects read-only [in
   restoreReplaySnapshot(early, match.world, match.game, match.inputs, match.runtime);
   assertEquals(match.runtime.summons.bears[3].clipTime, earlyTime);
   assertEquals(match.runtime.summons.bears[3].queuedClip, SUMMON_BEAR_WALK);
-  // Paused callbacks project without executing a match frame.
+
   for (let callback = 1; callback <= 20; callback++) {
     assertEquals(projectBear(match.runtime.summons, fighterAt(match.world, 3), 3).seconds, earlyTime);
     assertFalse(projectBear(match.runtime.summons, undefined, 1).visible);
@@ -57,8 +57,8 @@ test("a bear's clip restores backward from a snapshot and projects read-only [in
 });
 
 test("a late correction removes or restores a bear's spawn and swipe [invariant]", () => {
-  // Rifleman 0 casts the bear on frame 1; slot 3's shot on frame 14 interrupts the cast
-  // or not, and the correction arrives after the uninterrupted bear has swiped.
+
+
   const SHOT = 14;
   const LAST = SHOT + REPLAY_MAX_CORRECTION_FRAMES - 1;
   const setUp = () => {
@@ -81,7 +81,7 @@ test("a late correction removes or restores a bear's spawn and swipe [invariant]
     for (let frame = 1; frame <= LAST; frame++) {
       press(match.inputs, frame, initiallyShoots);
       captureNext(match);
-      // Rows before the shot are confirmed; the rest wait for the remote input.
+
       assertTrue(frame < SHOT ? history.save(92, match.row, live) : history.saveSpeculative(92, match.row, live));
       executeCaptured(match);
     }

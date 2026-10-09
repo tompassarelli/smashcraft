@@ -1,5 +1,5 @@
-// Training (#120): partner behaviours, escapes and techs, the frame readout,
-// the combo counter and the reset, through the frame executor.
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { clearAttackBuffer, queueAttack } from "../input/attackBuffer";
@@ -28,7 +28,7 @@ import { HurtContact, fighterHurtParts, strikeHurtContact } from "../sim/hurtbox
 
 const NEUTRAL = neutralControls();
 
-/** A player in slot 0 and the partner (a computer) in slot 1, `gap` apart on the test deck, in training. */
+
 function trainingMatch(behaviour: number, gap = 30.0, character: Character = Character.rifleman) {
   const world = createRoster(3, [createFighter(character, -gap / 2, 1), createFighter(character, gap / 2, -1)]);
   const game = createMatchState();
@@ -115,7 +115,7 @@ test("partnerBehaviours [spec #120]", () => {
   const attack = trainingMatch(PartnerBehaviour.attack, 200.0);
   attack.until(() => attack.partner.attack.serial >= 3, 200);
   assertEquals(attack.partner.attack.style ?? AttackStyle.jab, AttackStyle.jab);
-  // Fight hands every frame to the computer, which closes the distance.
+
   const fight = trainingMatch(PartnerBehaviour.fight, 300.0);
   const start = fight.partner.motion.x;
   for (let i = 0; i < 90; i++) fight.step();
@@ -132,7 +132,7 @@ test("the tutorial partner climbs back from a ledge so later lessons can reach i
   }
 });
 
-/** The stick the partner holds on its hitlag's last frame for each escape. */
+
 function escapeDirection(escape: number, hitSerial: number): number {
   const match = trainingMatch(PartnerBehaviour.stand, 30.0);
   match.game.trainer.escape = escape;
@@ -146,7 +146,7 @@ function escapeDirection(escape: number, hitSerial: number): number {
 }
 
 test("partnerEscapes [spec #120]", () => {
-  // The player stands to the partner's left.
+
   assertEquals(escapeDirection(PartnerEscape.toward, 1), -1);
   assertEquals(escapeDirection(PartnerEscape.away, 1), 1);
   assertEquals(escapeDirection(PartnerEscape.none, 1), 0);
@@ -163,7 +163,7 @@ test("partnerEscapes [spec #120]", () => {
   assertGreaterThan(away, 5);
 });
 
-/** Where a tumbling partner ends up: its down state and roll direction once it lands. */
+
 function techOutcome(tech: number, hitSerial = 1): { state: number; direction: number } {
   const match = trainingMatch(PartnerBehaviour.stand, 120.0);
   match.game.trainer.tech = tech;
@@ -182,7 +182,7 @@ function techOutcome(tech: number, hitSerial = 1): { state: number; direction: n
 test("partnerTechs [spec #120]", () => {
   assertEquals(techOutcome(PartnerTech.none).state, DownState.bound);
   assertEquals(techOutcome(PartnerTech.inPlace).state, DownState.tech);
-  // The player stands to the partner's left: toward rolls left, away rolls right.
+
   const toward = techOutcome(PartnerTech.toward);
   assertEquals(toward.state, DownState.techRoll);
   assertEquals(toward.direction, -1);
@@ -209,7 +209,7 @@ test("readoutShowsTheMoveAndTheAdvantageOnShieldAndOnHit [spec #120]", () => {
     assertEquals(game.trainer.moveStartup, attackStartup(player, AttackStyle.jab) + 1);
     assertEquals(game.trainer.moveActive, attackActive(player, AttackStyle.jab));
     assertEquals(game.trainer.moveTotal, player.attack.duration);
-    // Count independently: frames from the contact until each fighter can act.
+
     let contact = -1;
     let playerReady = -1;
     let partnerReady = -1;
@@ -242,19 +242,19 @@ test("comboCountsOnlyHitsThePartnerCouldNotActBetween [spec #120]", () => {
   assertGreaterThan(first, 0.0);
   assertTrue(game.trainer.comboOpen);
   match.until(() => canAct(partner) && !game.trainer.comboOpen, 120);
-  // A second hit after the partner could act starts a new combo.
+
   match.until(() => canAct(match.player), 120);
   match.jab();
   match.until(() => partner.visuals.hit === 2, 30);
   assertEquals(game.trainer.comboHits, 1);
-  // A hit while the partner still cannot act adds to the combo.
+
   const third = trainingMatch(PartnerBehaviour.stand, 24.0);
   for (let i = 0; i < 12; i++) third.step();
   third.jab();
   third.until(() => third.game.trainer.comboHits === 1, 30);
   third.until(() => third.partner.launch.hitlag === 0, 30);
   assertTrue(third.game.trainer.comboOpen);
-  // Held frozen (as by a trap), it cannot act before the next hit.
+
   third.partner.status.frozenFrames = 200;
   third.until(() => canAct(third.player), 120);
   third.jab();
@@ -295,7 +295,7 @@ test("hitAreasListTheBodyAndTheActiveStrikesContactUses [spec #120]", () => {
   const expected = placeCapsule(emptyCapsule(), attackCapsule(emptyCapsule(), AttackStyle.jab, region), player.motion.x, player.motion.z, player.facing);
   const strike = strikes[0]?.capsule;
   assertTrue(strike !== undefined && strike.x1 === expected.x1 && strike.z1 === expected.z1 && strike.x2 === expected.x2 && strike.z2 === expected.z2 && strike.radius === expected.radius);
-  // A target standing in the drawn strike is hit by it.
+
   const target = createFighter(Character.rifleman, f32((expected.x1 + expected.x2) / 2.0), -1);
   target.motion.z = player.motion.z;
   assertEquals(strikeHurtContact(expected, target), HurtContact.hit);
@@ -307,7 +307,7 @@ test("slowMotionRunsOneFrameInTwoOrFourAndKeepsPresses [spec #120]", () => {
     match.game.trainer.speed = speed;
     for (let i = 0; i < 40; i++) match.step();
     assertEquals(match.game.matchFrame, 40 / speed);
-    // A jump pressed on an input frame the match skips still jumps.
+
     assertTrue(match.player.motion.grounded);
     let left = false;
     match.step(input => { input.jumpPressed = true; input.jumpHeld = true; });

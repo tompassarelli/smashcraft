@@ -1,7 +1,7 @@
 import { mutableProjectile } from "../sim/fighterProjectiles";
 import { startAtGo } from "./testMatch";
-// These contracts exercise ordering in the complete match executor: input,
-// shield, contact, landing, stocks and timeout can interact on one frame.
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { createFighter } from "../sim/fighter";
@@ -502,7 +502,7 @@ test("ordinaryDashAttackStaysAnAttackWhileGrabIntentStartsDashGrab [spec docs/de
   queueAttack(firstCommands, { style: 0, facing: 0, frame: 1, mayCharge: false });
   queueAttack(secondCommands, { style: 5, facing: 0, frame: 1, mayCharge: false });
   stepMatch(game, testRoster(first, second), testFrameControls(firstInput, secondInput, firstCommands, secondCommands), 1);
-  // Rifleman's dashing jab is his dash attack (smashcraft:docs/design/tilts.md).
+
   assertEquals(first.attack.style, AttackStyle.dashAttack);
   assertFalse(first.attack.dashGrab);
   assertEquals(second.attack.style, 5);

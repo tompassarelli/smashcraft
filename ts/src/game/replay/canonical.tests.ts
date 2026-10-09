@@ -55,7 +55,7 @@ test("a played state's checksum folds exactly its canonical text, in which every
   const snapshot = captureTape(tape);
   const text = canonicalState(snapshot);
   assertEquals(stateChecksum(snapshot), canonicalChecksum(text));
-  // The input trace folds the captured text a slice a callback (#48).
+
   const fold = beginStateChecksum(snapshot);
   let slices = 1;
   let folded = foldStateChecksum(fold, 1000);

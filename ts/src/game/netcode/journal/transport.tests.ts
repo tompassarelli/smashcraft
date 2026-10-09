@@ -1,6 +1,6 @@
-// The journal transport's contract: rate-capped I5 messages carry every
-// admitted frame once, in order, holds included, and two clients running the
-// same match on what they receive confirm every edge on its original frame.
+
+
+
 import { assertDefined, assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { floorMod } from "wisp/src/sim/intMath";
 import { ALL_ACTIONS, Action, bit, maskOf } from "../../input/actions";
@@ -33,7 +33,7 @@ const TAP_WHILE_WALKING = row({ held: bit(Action.moveRight), pressed: bit(Action
 const TWO_BUTTONS = row({ held: maskOf(Action.moveRight, Action.jump, Action.special), pressed: maskOf(Action.jump, Action.special), axisX: 127 });
 const STOP = row({ released: maskOf(Action.moveRight, Action.jump, Action.special) });
 
-/** Every frame of decoded packets, checking that they run consecutively from firstFrame. */
+
 function framesOf(packets: readonly InputPacket[], epoch: number, firstFrame: number): InputRow[] {
   const rows: InputRow[] = [];
   for (const packet of packets) {
@@ -45,7 +45,7 @@ function framesOf(packets: readonly InputPacket[], epoch: number, firstFrame: nu
 }
 
 test("an I5 message spells only changed frames and restores every frame once, in order [invariant]", () => {
-  // Six neutral frames are one record: "I5", epoch 1, frame 10, six frames, neutral.
+
   const quiet = encodeInputMessage(1, 10, 15, () => NEUTRAL);
   assertEquals(quiet.lastFrame, 15);
   assertEquals(framesOf(assertDefined(decodeTransport(quiet.wire)), 1, 10).length, 6);
@@ -56,17 +56,17 @@ test("an I5 message spells only changed frames and restores every frame once, in
   const rows = framesOf(assertDefined(decodeTransport(message.wire)), 7, 300);
   assertEquals(rows.length, source.length);
   rows.forEach((each, index) => assertTrue(sameInput(each, source[index] ?? NEUTRAL)));
-  // A message ending inside a held walk restores the walk, without its press, to the last frame.
+
   const walking = framesOf(assertDefined(decodeTransport(encodeInputMessage(7, 302, 304, frame => source[frame - 300] ?? NEUTRAL).wire)), 7, 302);
   assertTrue(sameInput(walking[0] ?? NEUTRAL, WALK) && sameInput(walking[2] ?? NEUTRAL, WALKING));
-  // Ten more neutral frames after the release are holds, which cost no bytes.
+
   const longer = encodeInputMessage(7, 300, 300 + source.length + 9, frame => source[frame - 300] ?? NEUTRAL);
   assertEquals(longer.lastFrame, 300 + source.length + 9);
   assertEquals(longer.wire.length, message.wire.length);
   assertEquals(framesOf(assertDefined(decodeTransport(longer.wire)), 7, 300).length, source.length + 10);
 });
 
-/** The largest row: every group present, all of them different from `other`'s. */
+
 function largestRow(other: boolean): InputRow {
   const sign = other ? -1 : 1;
   return row({
@@ -97,19 +97,19 @@ test("one message per batch drains a backlog of the largest rows within the size
   assertEquals(outgoing.ready(1), undefined);
 });
 
-// ---------------------------------------------------------------- two clients
 
-/** Callbacks from a send until every client receives it: the unsaturated echo measured in #26 r8 (about 130 ms). */
+
+
 const CHANNEL_CALLBACKS = 8;
 const WINDOW = 24;
-/** The shell's catch-up per callback, for both cursors. */
+
 const CATCH_UP = 6;
 
-/**
- * Dense controller input for one slot, frame by frame: direction reversals
- * every frame, rapid taps, press and release inside one frame, and two
- * buttons at once, each for 30 frames in turn.
- */
+
+
+
+
+
 function denseScript(slot: number, frames: number): InputRow[] {
   const rows: InputRow[] = [NEUTRAL];
   let held = 0;
@@ -145,13 +145,13 @@ interface Client {
   readonly slot: number;
   readonly schedule: ShadowInputSchedule;
   readonly outgoing: OutgoingInput;
-  /** Preallocated scratch for the speculative and confirmed cursors. */
+
   readonly predicted: ParticipantInputs;
   readonly inputs: ParticipantInputs;
   readonly row: MatchFrameInput;
   confirmed: ReplayState;
   admitted: number;
-  /** "slot frame pressed released" for every edge the confirmed match ran. */
+
   readonly applied: string[];
   stalls: number;
 }
@@ -162,7 +162,7 @@ interface Message {
   readonly wire: string;
 }
 
-/** A started two-human match on stage 0 with nine stocks; slot 1's fighter is a computer when asked. */
+
 function match(computerSlotOne: boolean): MatchState {
   const game = createMatchState();
   setParticipants(game, 0b11, 0);
@@ -187,18 +187,18 @@ function world(source: Readonly<MatchState>): ReplayState {
   return { world: roster, match: game, controls: createFrameControls(), runtime: createPacingAndPresentation() };
 }
 
-/**
- * Both clients and the ordered synchronized channel between them, callback
- * by callback in the shell's order. The confirmed match runs on accepted rows;
- * the speculative cursor advances without running frames, since prediction
- * and replay are rollback's own contracts.
- */
+
+
+
+
+
+
 class TwoClients {
   readonly clients: readonly Client[] = [0, 1].map(slot => ({
     slot, schedule: new ShadowInputSchedule(), outgoing: new OutgoingInput(), predicted: participantInputs(), inputs: participantInputs(),
     row: createMatchFrameInput(), confirmed: createReplaySnapshot(), admitted: 0, applied: [], stalls: 0,
   }));
-  /** Callbacks at which each slot sent a message. */
+
   readonly sends: [number[], number[]] = [[], []];
   private callback = 0;
   private network: Message[] = [];
@@ -227,7 +227,7 @@ class TwoClients {
   private service(client: Client, epoch: number, produced: number): void {
     const { schedule, outgoing, slot, confirmed } = client;
     outgoing.tick();
-    // The helper's packets carry two frames, and the shell admits one packet a callback.
+
     const latest = Math.min(produced, client.admitted + 2, schedule.nextConfirmedFrame() - 1 + FUTURE_LIMIT);
     for (let frame = client.admitted + 1; frame <= latest; frame++) {
       const input = this.scripts[slot]?.[frame] ?? NEUTRAL;
@@ -259,11 +259,11 @@ class TwoClients {
       assertTrue(schedule.resolveSpeculative(epoch, slot, client.predicted) !== undefined);
       assertTrue(schedule.completeSpeculative(epoch, frame));
     }
-    // The shell's prediction stall: the frontier waits at the window past K.
+
     if (schedule.speculativeFrame() === before && before > schedule.knownThrough() + WINDOW) client.stalls++;
   }
 
-  /** Every edge the scripts hold for frames 1 through last, in confirmation order. */
+
   expectedEdges(last: number): string[] {
     const edges: string[] = [];
     for (let frame = 1; frame <= last; frame++) {
@@ -276,7 +276,7 @@ class TwoClients {
   }
 }
 
-/** The most messages one slot sent in any 60 consecutive callbacks. */
+
 function busiestSecond(sends: readonly number[]): number {
   let busiest = 0;
   let start = 0;
@@ -287,13 +287,13 @@ function busiestSecond(sends: readonly number[]): number {
   return busiest;
 }
 
-/** One frame arrives per callback, none during a pause after pauseAfter, and the channel drains at the end. */
+
 function playEpoch(clients: TwoClients, epoch: number, game: Readonly<MatchState>, frames: number, pauseAfter: number | undefined): void {
   clients.begin(epoch, game);
   for (let produced = 1; produced <= frames; produced++) {
     clients.step(epoch, produced);
     if (produced !== pauseAfter) continue;
-    // Start pause: no frames arrive, and every admitted frame reaches both clients before the resume.
+
     for (let callback = 0; callback < WINDOW; callback++) clients.step(epoch, produced);
     for (const client of clients.clients) {
       assertEquals(client.outgoing.pending(), 0);
@@ -316,7 +316,7 @@ test("two clients under dense input send at most 10 messages a second and confir
   const frames = 120;
   const clients = new TwoClients([denseScript(0, frames), denseScript(1, frames)]);
   playEpoch(clients, 1, match(false), frames, 75);
-  // The rematch after a slot change: slot 1's human still sends while a computer plays its fighter.
+
   const rematch = match(true);
   assertFalse(humanFighterActive(rematch, 1));
   playEpoch(clients, 2, rematch, 60, undefined);

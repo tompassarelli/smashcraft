@@ -1,9 +1,9 @@
-// The 0.0.49 bot session's four fighters (two pads, computer Illidan and
-// Rifleman) with every row 4-22 frames late, outside the default suite. Run on
-// demand, in Bun and in Lua32: GAME_SOAK=1 bun test test/game.test.ts, or
-// GAME_SOAK=1 with scripts/lua-tests.ts. Predictions replay from snapshots,
-// so any state a snapshot misses in Lua only shows here as the speculative
-// history leaving the confirmed world, as a Special's hit targets did (#60).
+
+
+
+
+
+
 import { floorMod } from "wisp/src/sim/intMath";
 import { assertDefined, assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { type InputRow, type RowFields, inputRow } from "../input/inputRow";
@@ -25,7 +25,7 @@ import { type ReplayState, copyReplayState, createReplaySnapshot } from "./snaps
 const SLOT_CHARACTERS = [Character.rifleman, Character.demonHunter, Character.blademaster, Character.rifleman] as const;
 const row = (fields: RowFields = {}): InputRow => assertDefined(inputRow(fields), "row");
 
-/** The bot session's beats, both pads together: [action bits, frames held (0 for a tap), what the press carries]; 24 frames apart. */
+
 const BEATS: readonly [number, number, RowFields][] = [
   [32, 0, {}],
   [2048, 6, { throwX: 1 }],
@@ -90,7 +90,7 @@ test("four fighters: speculative history matches the confirmed world through lat
   assertTrue(confirmedHistory.beginEpoch(epoch, 1));
   const beats = beatRows(frames);
   const rows = [beats, beats];
-  // Pseudo-random arrival 4-22 frames late, in order per sender.
+
   let seed = 12345;
   const next = () => {
     seed = floorMod(seed * 1103 + 12345, 65536);
@@ -123,7 +123,7 @@ test("four fighters: speculative history matches the confirmed world through lat
     assertTrue(playback.catchUpSpeculative(schedule, epoch, 0, live, history, 6));
     const c = confirmed.runtime.simulationFrame;
     if (first === undefined && history.contains(epoch, c + 1) && history.firstCorrectableFrame() > c) {
-      // Restoring changes live state; keep it and put it back.
+
       copyReplayState(now, live);
       assertTrue(history.restore(epoch, c + 1, live));
       copyReplayState(scratch, live);

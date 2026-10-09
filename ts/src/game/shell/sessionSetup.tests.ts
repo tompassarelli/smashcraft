@@ -12,7 +12,7 @@ const twoPlayers = () => {
 
 test("slot commands reach any tag combination from the lobby's, by the tag clicks' rule [spec docs/native-bot-session.md]", () => {
   const game = twoPlayers();
-  // The lobby's computer players in C and D, as a Battle.net lobby leaves them.
+
   game.computerMask = 12;
   assertEquals(applySetupCommand(game, 0, "-dev slots 3 0"), "dev: slots human-fighters=3 computers=0");
   assertEquals(`${game.humanFighterMask} ${game.computerMask}`, "3 0");
@@ -20,7 +20,7 @@ test("slot commands reach any tag combination from the lobby's, by the tag click
     assertEquals(applySetupCommand(game, 0, `-dev slots ${humans} ${computers}`), `dev: slots human-fighters=${humans} computers=${computers}`);
     assertEquals(`${game.humanFighterMask} ${game.computerMask}`, `${humans} ${computers}`);
   }
-  // Player 2 may change only their own tag; overlapping masks and other spellings are refused.
+
   assertEquals(applySetupCommand(game, 1, "-dev slots 3 0"), "dev: slots refused");
   assertEquals(applySetupCommand(game, 0, "-dev slots 3 3"), "dev: slots refused");
   assertEquals(applySetupCommand(game, 0, "-dev slots 3"), "dev: slots refused");

@@ -6,7 +6,7 @@ import { type InputRow, emptyInput, inputRow, sameInput } from "./inputRow";
 import { type KeyboardCapture, captureKeys, keyboardCapture, resetKeys, sampleKeys } from "./keyboardCapture";
 import { participantInputs } from "./participants";
 
-/** The capture's row, which must always be one a controller can send. */
+
 const row = (capture: KeyboardCapture): InputRow => assertDefined(inputRow({ ...capture.row }), "valid row");
 
 function sampled(...masks: number[]): KeyboardCapture {

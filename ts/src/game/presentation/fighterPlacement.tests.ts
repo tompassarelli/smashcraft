@@ -21,7 +21,7 @@ function insideDeck(x: number, z: number): boolean {
 }
 
 test("each fighter's visible envelope clears the main underside and every side face at its unchanged ECB contact, both facings [spec #81]", () => {
-  // Every registered fighter, heroes included, whether or not it is selectable yet.
+
   for (const character of Object.values(Character)) {
     for (const facing of [-1, 1]) {
       const fighter = createFighter(character, 0.0, facing);
@@ -41,7 +41,7 @@ test("each fighter's visible envelope clears the main underside and every side f
         fitFighterPlacement(placement, fighter, 0);
         assertEquals(fighter.motion.x, x);
         assertEquals(fighter.motion.z, z);
-        // Sample the entire conservative body rectangle, including weapons.
+
         for (let column = 0; column <= 8; column++) {
           for (let row = 0; row <= 8; row++) {
             const px = placement.x + left + (right - left) * column / 8;

@@ -16,7 +16,7 @@ test("a shared pause completes only when every human acknowledged each round in 
   assertEquals(receiveControlAck(barrier, HUMANS, EPOCH, 0, ack(0, 1, "PREPARE", 40)), "recorded");
   assertEquals(preparedFrame(barrier), undefined);
   assertEquals(receiveControlAck(barrier, HUMANS, EPOCH, 2, ack(2, 1, "PREPARE", 43)), "complete");
-  // The pause frame is the highest frontier any helper prepared, and a prepared round is not yet agreed.
+
   assertEquals(preparedFrame(barrier), 43);
   assertEquals(agreedFrame(barrier), undefined);
 
@@ -48,7 +48,7 @@ test("[repro #206] a Start press pauses at its own frame, however late the other
   assertEquals(receiveControlAck(barrier, HUMANS, EPOCH, 2, ack(2, 1, "PREPARE", 192)), "complete");
   assertEquals(preparedFrame(barrier), 168);
   requestRound(barrier, "PAUSE", 168);
-  // Rows the later helper journaled before it prepared must not carry the match past the pause.
+
   assertEquals(stopFrame(barrier), 168);
   assertEquals(receiveControlAck(barrier, HUMANS, EPOCH, 0, ack(0, 2, "PAUSE", 168)), "recorded");
   assertEquals(receiveControlAck(barrier, HUMANS, EPOCH, 2, ack(2, 2, "PAUSE", 168)), "complete");

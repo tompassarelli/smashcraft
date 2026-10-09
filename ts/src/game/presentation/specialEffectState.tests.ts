@@ -58,7 +58,7 @@ test("a late correction removes or restores a drain flash at its completed age [
     const victim = fighterAt(match.world, 0);
     victim.character = Character.rifleman;
     victim.mana.points = 50;
-    // Illidan at -45 facing right Fel Rushes through the Rifleman at 45 facing left.
+
     illidan.motion.x = -45.0;
     illidan.facing = 1;
     victim.motion.x = 45.0;

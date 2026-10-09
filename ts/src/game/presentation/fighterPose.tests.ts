@@ -251,7 +251,7 @@ test("a snapshot's pose escapes from its own copy of the previous holder [invari
   first.grab.owner = 1;
   advanceFighterPose(runtime.poses[0], first, world, input, false, false, false, false);
   captureReplaySnapshot(snapshot, world, game, controls, runtime);
-  // Changing the live holder must not reach detached presentation history.
+
   second.grab.action = GrabAction.throwForward;
   const victim = fighterAt(snapshot.world, 0);
   victim.grab.owner = undefined;
@@ -287,7 +287,7 @@ test("paired hero throws reach contact on the actual holder's frame across every
       advanceFighterPose(pose, victim, world, neutralControls(), false, false, false, false);
       assertEquals(pose.clipIndex, clip.index);
       assertEquals(pose.clipTime, f32(0.5));
-      // A holder-only stop freezes both clocks at their coordinated pose.
+
       owner.launch.hitlag = 3;
       advanceFighterPose(pose, victim, world, neutralControls(), false, false, false, false);
       assertEquals(pose.rate, 0.0);

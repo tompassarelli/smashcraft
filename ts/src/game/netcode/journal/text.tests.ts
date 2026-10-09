@@ -129,7 +129,7 @@ test("records after a missing first or middle record wait in the window until it
   assertEquals(stream.acknowledged(), 3);
   assertEquals(stream.next(), undefined);
 
-  // Leave records 3 and 4 in the window while 2 is missing.
+
   const gapped = new JournalTextStream(1);
   assertEquals(gapped.inspect(first!).kind, "ready");
   assertTrue(gapped.consume());

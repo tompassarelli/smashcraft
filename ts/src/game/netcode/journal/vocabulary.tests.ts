@@ -1,7 +1,7 @@
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { type ReadFile, type VocabularyRead, markerFile, readVocabularyControlAck, readVocabularyPacket, symbolFile } from "./vocabulary";
 
-/** Files as the helper publishes them: one symbol each, then the length marker. */
+
 function published(base: string, text: string, marker: string): Map<string, string> {
   const files = new Map<string, string>();
   for (let offset = 0; offset < text.length; offset++) files.set(symbolFile(base, offset), text.charAt(offset));

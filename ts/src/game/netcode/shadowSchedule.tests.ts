@@ -16,7 +16,7 @@ function deliver(schedule: ShadowInputSchedule, sender: number, epoch: number, f
   assertEquals(schedule.acceptSynchronized(sender, assertDefined(inputPacket(epoch, frame, [input]))), "accepted");
 }
 
-/** Captures the sample for F + D, then runs F as local player 0. */
+
 function advanceOne(schedule: ShadowInputSchedule, epoch: number, sample: InputRow, inputs: ParticipantInputs): void {
   const frame = schedule.speculativeFrame();
   assertEquals(schedule.captureLocal(epoch, sample), Capture.captured);
@@ -66,7 +66,7 @@ test("tagged captures keep their original frames while speculation stalls [spec 
   const inputs = participantInputs();
   assertTrue(schedule.beginEpoch(1300, 0, 6, 3));
   for (let frame = 1; frame <= 8; frame++) {
-    // The producer's timeline moves on while the service cursor stays at 1.
+
     const sample = row({ held: frame, pressed: frame, released: frame, axisX: frame, axisZ: -frame, triggerLeft: frame, triggerRight: frame });
     assertEquals(schedule.captureLocalAt(1300, frame, sample), Capture.captured);
     assertEquals(schedule.speculativeFrame(), 1);
@@ -103,7 +103,7 @@ test("a tagged duplicate is accepted, a changed one conflicts, and neither moves
   assertEquals(schedule.captureLocalAt(1301, 4, original), Capture.captured);
   assertEquals(schedule.captureLocalAt(1301, 4, row({ ...original })), Capture.alreadyCaptured);
   assertEquals(schedule.captureLocalAt(1301, 4, changed), Capture.conflict);
-  // Polling the same target reports the immutable repeat, whatever it sampled.
+
   assertEquals(schedule.captureLocal(1301, changed), Capture.alreadyCaptured);
   assertTrue(sameInput(assertDefined(schedule.pending(1301, 4)), original));
   assertEquals(schedule.captureTarget(), 4);
@@ -207,7 +207,7 @@ test("a twelve-frame window stops 12 frames past the remote's rows, keeps captur
   assertEquals(schedule.captureLocal(906, NEUTRAL), Capture.captured);
   assertEquals(schedule.captureLocal(906, WALK_RIGHT), Capture.alreadyCaptured);
   assertEquals(schedule.pending(906, 19)?.held, 0);
-  // The local player's own echo never holds prediction back; the remote's row does.
+
   deliver(schedule, 0, 906, 4, NEUTRAL);
   assertFalse(schedule.mayAdvanceSpeculative(0));
   assertTrue(schedule.windowHalted(0));
@@ -239,7 +239,7 @@ test("a twenty-four-frame window stops and resumes without reassigning local inp
   assertEquals(schedule.captureLocal(908, NEUTRAL), Capture.captured);
   assertEquals(schedule.captureLocal(908, WALK_RIGHT), Capture.alreadyCaptured);
   assertEquals(schedule.resolveSpeculative(908, 0, inputs), undefined);
-  // The remote's row alone reopens the window; K waits for the local echo too.
+
   deliver(schedule, 1, 908, 1, NEUTRAL);
   assertEquals(schedule.knownThrough(), 0);
   assertTrue(schedule.mayAdvanceSpeculative(0));
@@ -275,13 +275,13 @@ test("every local slot predicts each remote from that remote's own causal histor
     });
     assertEquals(schedule.captureLocal(epoch, local), Capture.captured);
     assertEquals(schedule.captureLocal(epoch, NEUTRAL), Capture.alreadyCaptured);
-    // Every remote row is here, and the local row is final once captured.
+
     assertEquals(schedule.resolveSpeculative(epoch, localPlayer, inputs), "accepted");
     source.forEach((input, sender) => assertTrue(sameInput(inputs[sender]!, input)));
     assertTrue(schedule.completeSpeculative(epoch, 1));
     assertEquals(schedule.knownThrough(), 0);
     assertEquals(schedule.captureLocal(epoch, local), Capture.captured);
-    // A remote row accepted for a later frame cannot influence an earlier prediction.
+
     deliver(schedule, imod(localPlayer + 1, 4), epoch, 3, later);
     assertEquals(schedule.resolveSpeculative(epoch, localPlayer, inputs), "speculative");
     source.forEach((input, sender) => {
@@ -346,11 +346,11 @@ test("the confirmed match waits for exactly the players whose row after the comm
 test("a keyboard's clock follows the furthest frame another player has sent, never its own rows [spec docs/warcraft-api-netcode-findings.md]", () => {
   const schedule = new ShadowInputSchedule();
   assertTrue(schedule.beginEpoch(1501, 0, DEFAULT_ROLLBACK_WINDOW, 0b0111));
-  // Nothing from the others: the clock only takes its own next frame.
+
   assertEquals(schedule.othersThrough(0, 1), 1);
   for (let frame = 1; frame <= 40; frame++) deliver(schedule, 0, 1501, frame, NEUTRAL);
   assertEquals(schedule.othersThrough(0, 1), 1);
-  // A helper whose game lost time sent frames past this clock; the furthest of the others counts.
+
   for (let frame = 1; frame <= 30; frame++) deliver(schedule, 1, 1501, frame, NEUTRAL);
   for (let frame = 1; frame <= 12; frame++) deliver(schedule, 2, 1501, frame, NEUTRAL);
   assertEquals(schedule.othersThrough(0, 5), 30);
@@ -367,13 +367,13 @@ test("#233 a lone player's late echo holds prediction before its rows pass the f
     assertTrue(schedule.completeSpeculative(epoch, schedule.speculativeFrame()));
   };
   assertTrue(schedule.beginEpoch(epoch, 2, DEFAULT_ROLLBACK_WINDOW, 0b0001));
-  // No other player bounds prediction and no echo arrives: capture and run as long as the schedule allows.
+
   for (let callback = 0; callback < 2 * PENDING_CAPACITY; callback++) {
     schedule.captureLocal(epoch, WALK_RIGHT);
     if (!schedule.mayAdvanceSpeculativeFor(0)) break;
     run();
   }
-  // The echo arrives: every captured row is admitted, and confirmation lets capture and prediction resume.
+
   for (let frame = schedule.knownThrough() + 1; schedule.pending(epoch, frame) !== undefined; frame++) deliver(schedule, 0, epoch, frame, assertDefined(schedule.pending(epoch, frame), `row ${frame}`));
   for (let callback = 0; callback < 2 * FUTURE_LIMIT; callback++) {
     while (schedule.mayAdvanceConfirmed()) {

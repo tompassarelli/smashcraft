@@ -1,8 +1,8 @@
-// The computer takes the redesigned kits' options (#146): as Wren Expert, in
-// seeded computer-against-computer mirror matches, each fighter uses every
-// new option at least once, and a seed replays the same counts. Half the
-// matches start both fighters at a high percent, so launches send them off
-// the stage and the returns' options come up too.
+
+
+
+
+
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { sweep } from "../../runtime/sweep";
 import { floorDiv } from "wisp/src/sim/intMath";
@@ -24,11 +24,11 @@ import { createPacingAndPresentation } from "./pacingAndPresentation";
 import { Phase, createMatchState } from "./rules";
 
 const NEUTRAL = neutralControls();
-/** Each fighter plays this many seeded matches, the first half at 0%, the rest at 110%. */
+
 const MATCHES = 8;
 const FRAMES = 1800;
 
-/** Where each fighter's special stood last frame, and the facing its current action started with. */
+
 interface Watch {
   action: number;
   form: number;
@@ -42,16 +42,16 @@ interface Watch {
 type Counts = Record<string, number>;
 const count = (counts: Counts, option: string) => { counts[option] = (counts[option] ?? 0) + 1; };
 
-/** The option a hero action's form shows: a follow-up's index, the recall or the marked form. */
+
 const followUp = (f: Readonly<Fighter>): number => floorDiv(f.special.form, FOLLOW_UP_FORM) - 1;
 
-/** Whether the fighter's grounded down special has a branch a shield press takes (Thunder Clap's Hold). */
+
 const dropsCharge = (f: Readonly<Fighter>): boolean => {
   for (const branch of f.tuning.specials?.down.ground.followUps ?? []) if (branch.input === FollowUpInput.shield) return true;
   return false;
 };
 
-/** Counts the options both computers take as the frames go. */
+
 function observe(f: Readonly<Fighter>, watch: Watch, down: boolean, grabMash: boolean, counts: Counts): void {
   const { special } = f;
   const started = special.action !== watch.action || (special.frame < watch.frame && special.form === watch.form);
@@ -67,7 +67,7 @@ function observe(f: Readonly<Fighter>, watch: Watch, down: boolean, grabMash: bo
         if (f.facing !== watch.entryFacing) count(counts, `crossUp${slot}`);
       } else count(counts, `special${slot}`);
     }
-    // A charge run out to its end slams at full.
+
     if (special.form < FOLLOW_UP_FORM && special.frame === 50 && watch.frame === 49) count(counts, `runOut${slot}`);
   }
   switch (special.action) {
@@ -93,7 +93,7 @@ function observe(f: Readonly<Fighter>, watch: Watch, down: boolean, grabMash: bo
       if (special.form === DEMONHUNTER_GLIDE_FORM && watch.form !== special.form) count(counts, "glide");
       break;
   }
-  // A one-frame branch (Thunder Clap's Hold) ends the action on the frame it is taken.
+
   if (isHeroSpecialAction(watch.action) && special.action === SpecialAction.none && watch.form < FOLLOW_UP_FORM && f.launch.hitstun <= 0 && f.launch.hitlag <= 0
     && watch.action === SpecialAction.heroDown && watch.frame >= 9 && watch.frame < 48 && f.motion.grounded && dropsCharge(f)) count(counts, "dropped3");
   if (watch.action === SpecialAction.demonHunterImmolate && special.action !== SpecialAction.demonHunterImmolate && watch.frame < DEMONHUNTER_IMMOLATE_DURATION - 1
@@ -122,7 +122,7 @@ function observe(f: Readonly<Fighter>, watch: Watch, down: boolean, grabMash: bo
   watch.divine = f.status.divineFrames;
 }
 
-/** A Wren Expert match of `character` against `opponent` under `seed`, both at `damage`, counting the options of each computer playing `character`. */
+
 function computerMatch(character: Character, opponent: Character, seed: number, damage: number, counts: Counts): void {
   const world = createRoster(3, [createFighter(character, -240.0, 1), createFighter(opponent, 240.0, -1)]);
   const match = createMatchState();
@@ -160,12 +160,12 @@ function computerMatch(character: Character, opponent: Character, seed: number, 
   }
 }
 
-/** Every option named appears at least once over the seeds, and the first seed replays its counts. */
+
 function usesEvery(character: Character, options: readonly string[], opponent: Character = character, matches = MATCHES, extra: readonly (readonly [seed: number, damage: number])[] = []): void {
   const counts: Counts = {};
   for (let index = 0; index < matches; index++) computerMatch(character, opponent, 11 + index * 12, index < floorDiv(matches, 2) ? 0.0 : 110.0, counts);
   for (const [seed, damage] of extra) computerMatch(character, opponent, seed, damage, counts);
-  // "a|b": either option counts.
+
   for (const option of options) {
     const uses = option.split("|").reduce((sum, name) => sum + (counts[name] ?? 0), 0);
     if (uses <= 0) throw new Error(`inactive kit option ${option}: ${Object.keys(counts).map(name => `${name}=${counts[name] ?? 0}`).join(", ")}`);
@@ -224,6 +224,6 @@ sweep("computer Rifleman flies level and diagonal recoil routes with a second sh
 });
 
 sweep("computer Illidan jump-cancels Immolate, glides out of Wing Ascent, runs behind Mana Burn and Fel Rushes into Chaos Strike or Vengeful Retreat [spec #146]", () => {
-  // Whiff punishes (botPunish.ts) take most close windows with a normal, so Immolate starts rarely: 16 matches.
+
   usesEvery(Character.demonHunter, ["immolateJump", "glide", "behindOrb", "felRush", "chaosStrike|chaosCrossUp", "vengefulRetreat"], Character.demonHunter, 2 * MATCHES);
 });

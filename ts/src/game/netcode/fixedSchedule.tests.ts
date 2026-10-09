@@ -11,14 +11,14 @@ const row = (fields: RowFields = {}) => assertDefined(inputRow(fields), "row");
 const packet = (epoch: number, firstFrame: number, ...rows: InputRow[]) => assertDefined(inputPacket(epoch, firstFrame, rows), "packet");
 const NEUTRAL = row();
 
-/** A distinct sample for every capture frame and sender. */
+
 const sampleAt = (frame: number, sender: number) =>
   row({
     held: imod(frame * 7 + sender, 32768), pressed: imod(frame * 13 + sender, 32768), released: imod(frame * 3 + sender, 32768),
     axisX: imod(frame, 255) - 127, axisZ: imod(frame + sender, 255) - 127, triggerLeft: imod(frame, 256), triggerRight: imod(frame + sender, 256),
   });
 
-/** The row frame runs with under delay: the seed for the first frames, then the sample captured delay frames earlier. */
+
 const rowAt = (frame: number, delay: number, sender: number) => (frame <= delay ? NEUTRAL : sampleAt(frame - delay, sender));
 
 test("every supported delay seeds neutral frames, and each frame completes explicitly in order [spec docs/netcode-proposal.md]", () => {
@@ -77,7 +77,7 @@ test("a capture opportunity assigns its target once, and local capture never ope
     assertEquals(schedule.knownThrough(), 3);
     assertEquals(schedule.confirmedThrough(), 3);
   }
-  // A packet built from the local row is still not common receipt.
+
   const sent = packet(1, 4, assertDefined(schedule.pending(1, 4)));
   assertFalse(schedule.mayAdvance());
   assertEquals(schedule.acceptSynchronized(0, sent), "accepted");
@@ -148,8 +148,8 @@ test("a new epoch clears pending and prepared rows [spec docs/netcode-proposal.m
   assertFalse(schedule.beginEpoch(2147483647, 3, 3));
 });
 
-// Every complete row matches its canonical capture tape although receiver
-// order, duplicate bursts, packet shape and waits differ.
+
+
 test("delivery order, duplicates, waits and ring wrap never change the rows a frame runs [spec docs/netcode-proposal.md] [invariant]", () => {
   const ordered = new FixedInputSchedule();
   const reordered = new FixedInputSchedule();
@@ -164,14 +164,14 @@ test("delivery order, duplicates, waits and ring wrap never change the rows a fr
         assertEquals(ordered.acceptSynchronized(sender, packet(7, frame, rowAt(frame, 3, sender))), "accepted");
       }
     }
-    // New service opportunities while stalled cannot edit the assigned input.
+
     assertEquals(reordered.captureLocal(7, sampleAt(start, 0)), Capture.captured);
     for (let service = 1; service <= 4; service++) {
       assertEquals(reordered.captureLocal(7, sampleAt(start + service, 0)), Capture.alreadyCaptured);
       assertEquals(reordered.nextFrame(), start);
     }
-    // Player 1's packets all arrive before player 0's, each newest first, so
-    // the oldest missing pair closes the final gap.
+
+
     for (let delivery = 0; delivery <= 11; delivery++) {
       const sender = delivery < 6 ? 1 : 0;
       const frame = start + (5 - imod(delivery, 6)) * 2;

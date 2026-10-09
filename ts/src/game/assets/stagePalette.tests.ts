@@ -4,7 +4,7 @@ import { stageScenery } from "../presentation/stageScenery";
 import { f32 } from "wisp/src/sim/f32";
 import { STAGE_DECK_PALETTES, STAGE_PALETTE, luma, type PlatformMaterialSet } from "./stagePalette";
 
-// smashcraft:docs/design/stage-art.md, rule 10.
+
 test("every selectable stage has its own deck palette [spec docs/design/stage-art.md]", () => {
   for (const { id, name } of STAGE_CATALOG) {
     assertEquals(STAGE_DECK_PALETTES.filter(({ stage }) => stage === id).length, 1, `${name} has no deck palette`);
@@ -49,7 +49,7 @@ test("each deck's top stands apart from its fog in value and its body is darker 
 
 type Lab = readonly [lightness: number, a: number, b: number];
 
-/** CIELAB of an sRGB colour (D65). */
+
 function cieLab([red, green, blue]: readonly [number, number, number]): Lab {
   const linear = (channel: number) => { const c = channel / 255; return c <= f32(0.04045) ? c / f32(12.92) : ((c + f32(0.055)) / f32(1.055)) ** f32(2.4); };
   const [r, g, b] = [linear(red), linear(green), linear(blue)];
@@ -60,7 +60,7 @@ function cieLab([red, green, blue]: readonly [number, number, number]): Lab {
   return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
 }
 
-/** CIEDE2000 colour difference, which, unlike plain Lab distance, shrinks lightness steps among dark values the way the eye does. */
+
 function colorDifference([l1, a1, b1]: Lab, [l2, a2, b2]: Lab): number {
   const degrees = Math.PI / 180;
   const hue = (a: number, b: number) => { if (a === 0 && b === 0) return 0; const h = Math.atan2(b, a) / degrees; return h < 0 ? h + 360 : h; };
@@ -84,11 +84,11 @@ function colorDifference([l1, a1, b1]: Lab, [l2, a2, b2]: Lab): number {
   return Math.sqrt(dl * dl + dc * dc + dhs * dhs + rt * dc * dhs);
 }
 
-/**
- * What the arena camera shows beside and below a deck: the sky's dark lower
- * half. The native lower-camera captures of 7 Oct measured it near lightness 4
- * on every stage (#115).
- */
+
+
+
+
+
 const LOWER_BACKDROP = cieLab([12, 12, 12]);
 
 test("each deck's body and underside read against the dark backdrop below it [spec docs/design/stage-art.md]", () => {

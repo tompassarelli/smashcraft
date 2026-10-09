@@ -1,6 +1,6 @@
-// #141's round trip in Bun and in 32-bit Lua: the replay a recorder writes of
-// a whole match, in parts and with a segment break where the match changed
-// between frames, replays to every checksum it recorded.
+
+
+
 import { assertDefined, assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { stateChecksum } from "./canonical";
 import { createFrameScratch, joinReplay, parseReplay, parseReplayHeader, parseReplayPart, replayMatch, runReplayFrame } from "./matchReplay";
@@ -26,9 +26,9 @@ test("match replay: a rollback match recorded in parts, paused once, replays to 
   assertEquals(result.problems.join("; "), "");
   assertEquals(result.frames, frames);
   assertEquals(result.reached, result.recorded);
-  // Two segment starts, a checkpoint every two seconds of each, both segment ends and the manifest's.
+
   assertEquals(result.recorded, 2 + 3 + 2 + 2 + 1);
-  // The written state is the whole state: the last segment replays to the canonical checksum the match ended on.
+
   const replay = parseReplay(joined);
   if (typeof replay === "string") throw new Error(replay);
   assertEquals(replay.segments.length, 2);

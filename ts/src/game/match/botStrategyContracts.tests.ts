@@ -275,7 +275,7 @@ test("a computer whose every option in reach was started within the variety span
   const game = createMatchState();
   const startsAt = (character: Character) => {
     const own = createFighter(character, 0.0, 1);
-    // Out of every normal's reach: only ranged specials reach.
+
     const target = createFighter(Character.rifleman, 300.0, -1);
     const strategy = createBotStrategy();
     const input = neutralControls();
@@ -287,12 +287,12 @@ test("a computer whose every option in reach was started within the variety span
     }
     return starts;
   };
-  // Sylvanas's lone shot: VARIETY_PASS_STARTS times a span, not every free frame, and again once the span lapses.
+
   const shots = startsAt(Character.sylvanas);
   assertEquals(shots.filter(start => start.frame <= VARIETY_FRAMES).length, VARIETY_PASS_STARTS);
   assertEquals(shots.find(start => start.frame > VARIETY_FRAMES)?.frame, 1 + VARIETY_FRAMES);
   assertEquals(new Set(shots.map(start => start.option)).size, 1);
-  // Jaina's three spells in reach: a repeat weighs less, so each is cast within the span.
+
   const spells = startsAt(Character.jaina).filter(start => start.frame <= VARIETY_FRAMES).map(start => start.option);
   assertEquals(new Set(spells).size, 3);
 });

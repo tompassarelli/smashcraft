@@ -11,9 +11,9 @@ const routes: readonly { readonly route: ComboRoute; readonly damage: number; re
   { route: { setup: { ...setup, attackerZ: 100.0 }, held: [2048, 0, 1, 0, 0, 9, 0, 2, 12, 0, 0, 4] }, damage: 10.505000114440918, stocksLost: 0 },
 ];
 
-// Routes found by the explorer: up throw/forward tilt, up throw/forward smash,
-// and forward air. Recorded Bun results are shared with Lua32 to pin runtime
-// agreement, rather than a native gameplay value. Also compare ordinary pad frames.
+
+
+
 test("[invariant] searched combo routes match Bun in Lua32 and preserve pad-frame damage and stock loss", () => {
   for (const recorded of routes) {
     const { route } = recorded;

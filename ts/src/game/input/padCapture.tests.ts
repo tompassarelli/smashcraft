@@ -28,7 +28,7 @@ test("both pad carriers decode all 4624 quantized axis and trigger combinations 
   }
 });
 
-/** Replays the packets of a helper's recorded session, retaining keyboard edges. */
+
 function replayPadSession(session: readonly { readonly packed: number; readonly held: number; readonly row: InputRow }[]): void {
   const capture = keyboardCapture();
   for (let frame = 0; frame < session.length; frame++) {
@@ -43,8 +43,8 @@ function replayPadSession(session: readonly { readonly packed: number; readonly 
 }
 
 test("the recorded SDL pad session replays all 16 exact input rows through capture and wire [native]", () => {
-  // Actual helper acquisition: test/fixtures/analog204/recorded-pad-session.tsv.
-  // The helper's action transitions and quantized axes supply independent rows.
+
+
   const recorded = [
     { packed: 267, row: inputRow({ held: 2, pressed: 2, axisX: 62, sdi: true, sdiX: 1 }) },
     { packed: 272, row: inputRow({ held: 2, axisX: 127 }) },

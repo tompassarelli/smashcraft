@@ -1,6 +1,6 @@
-// Sound and spark tiers by move class (#163): every fighter's jabs are small,
-// its tilts medium and its smashes large, except the named departures, and a
-// hit and a swing carry their attack's tier to the sounds they play.
+
+
+
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { at } from "wisp/src/runtime/lookup";
 import { queueAttack } from "../input/attackBuffer";
@@ -28,13 +28,13 @@ test("every normal maps to its class tier: jab small, tilt medium, smash large, 
       }
     }
   }
-  // Each departure differs from its class and says why.
+
   for (const departure of TIER_DEPARTURES) {
     assertEquals(departure.tier !== classTier(departure.style) && departure.why.length > 0, true, `${fighterName(departure.character)} ${departure.style}`);
   }
 });
 
-/** The swing and hit sounds an attack of `style` plays, Warden against a Rifleman close in front. */
+
 function attackSounds(style: AttackStyle): { swing: string[]; hit: string[]; tier: number } {
   const game = createMatchState();
   game.phase = Phase.match;
@@ -69,7 +69,7 @@ test("a jab swings and hits small, a forward tilt medium and a forward smash lar
     const { swing, hit, tier } = attackSounds(style);
     assertEquals(swing.join(","), `0:${expected}`, `swing of ${style}`);
     assertEquals(tier, expected, `hit of ${style}`);
-    // Warden's blade cuts: the slice of the tier.
+
     assertEquals(hit.join(","), tierHitPath(HitElement.slash, expected, 1) ?? "", `hit sound of ${style}`);
   }
 });

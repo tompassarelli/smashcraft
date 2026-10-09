@@ -1,5 +1,5 @@
-// Magnifier rules through helper journal packets, synchronized rows and the
-// production frame executor. A frozen airborne fixture isolates the timer.
+
+
 import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { fighterAt } from "../sim/roster";
@@ -10,7 +10,7 @@ import { testMatch, replayState, executeCaptured } from "./testMatch";
 import { copyReplayState, createReplaySnapshot } from "../replay/snapshot";
 import { firstStateDifference } from "../replay/difference";
 
-/** Between the match stage's camera limit and its blast line. */
+
 function offscreenX(stage: number): number {
   const { camera, blast } = stageBounds(stage);
   return f32(f32(camera.right + blast.right) * 0.5);

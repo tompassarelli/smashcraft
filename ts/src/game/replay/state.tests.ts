@@ -1,6 +1,6 @@
 import { mutableProjectile } from "../sim/fighterProjectiles";
-// Snapshot copy, equality and restoration cover the same complete replay
-// record; keeping the cases together exposes fields missing from any operation.
+
+
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { type AttackBuffer, attackBuffer, clearAttackBuffer, hasPendingAttack, queueAttack } from "../input/attackBuffer";
@@ -37,7 +37,7 @@ function frameControls(firstCommands: AttackBuffer, secondCommands: AttackBuffer
   return { inputs: [first, second, neutralControls(), neutralControls()], commands: [firstCommands, secondCommands, attackBuffer(0), attackBuffer(0)] };
 }
 
-/** Two fighters in slots 0 and 1 as live replay state. */
+
 function liveState(first: Fighter, second: Fighter, match: MatchState, controls: FrameControls, runtime: PacingAndPresentation): ReplayState {
   return { world: testWorld(first, second), match, controls, runtime };
 }
@@ -361,7 +361,7 @@ test("restoring into other fighters keeps the contact registry by slot [invarian
   copyReplayState(replay, snapshot);
   assertEquals(replaySecond.hits.lastAttacker, 0);
   const damage = replaySecond.status.damage;
-  // The same active attack window must not score a second hit after restoration.
+
   resolveAttacks(replay.world);
   assertEquals(replaySecond.status.damage, damage);
   first.status.damage = 999.0;
@@ -403,7 +403,7 @@ test("recorded rows replay an attack against a shield from independently restore
     clearAttackBuffer(firstRequests);
     clearAttackBuffer(secondRequests);
     if (frame === 1) {
-      // Mutating producer storage after capture must not change the recorded row.
+
       firstInput.shield = true;
       assertFalse(captureFrame(row, frame, 3, produced, live.runtime));
       firstInput.shield = false;
@@ -546,7 +546,7 @@ test("every physics parameter survives capture and restore and participates in e
   const live = liveState(first, second, createMatchState(), frameControls(attackBuffer(0), attackBuffer(0)), createPacingAndPresentation());
   const expected = createReplaySnapshot();
   const actual = createReplaySnapshot();
-  // Distinct from every roster default, so restore can't silently reinitialize tuning.
+
   const assigned: FighterPhysics = {
     weight: 101.0, gravity: 2.0, terminalSpeed: 17.0, fastFallSpeed: 23.0, airAcceleration: f32(0.7), airSpeed: 6.0,
     airFriction: f32(0.3), airCap: 25.0, traction: f32(0.9), dashSpeed: 13.0, runSpeed: 15.0, walkSpeed: 8.0, jumpSquatFrames: 7,

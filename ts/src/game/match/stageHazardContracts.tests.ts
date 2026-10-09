@@ -1,7 +1,7 @@
-// Stage hazards through a controller's real input path (helperPads.ts), on
-// their test stages: Dream Land's wind pushes standing fighters on its fixed
-// cycle, and Kongo Jungle's barrel cannon catches a fighter, holds it and
-// fires it on a press or by itself. The schedules follow the match frame alone.
+
+
+
+
 import { assertDefined, assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { meleeCos, meleeSin } from "../../sim/meleeScalarMath";
@@ -56,7 +56,7 @@ function windMatch(): PadMatch {
   return padMatch(match, "wind");
 }
 
-/** Plays neutral frames through `last`, checking each frame's motion of both fighters along x. */
+
 function playWind(run: PadMatch, last: number, check: (frame: number, first: number, second: number) => void): void {
   const { world, runtime } = run.match;
   while (runtime.simulationFrame < last) {
@@ -76,12 +76,12 @@ test("Whispy's wind waits, warns for 45 frames, then pushes standing fighters on
   assertEquals(windPhase(WIND_CYCLE_FRAMES + 1), WindPhase.calm);
   assertEquals(windDirection(gust + 1), 1);
   assertEquals(windDirection(WIND_CYCLE_FRAMES + gust + 1), -1);
-  // Calm and the warning move no one.
+
   playWind(run, gust, (_frame, first, second) => {
     assertEquals(first, 0.0);
     assertEquals(second, 0.0);
   });
-  // The first gust blows right: the fighter right of center moves, the one left of center does not.
+
   playWind(run, WIND_CYCLE_FRAMES, (_frame, first, second) => {
     assertNear(first, WIND_SPEED, 0.00009999999747378752);
     assertEquals(second, 0.0);
@@ -89,7 +89,7 @@ test("Whispy's wind waits, warns for 45 frames, then pushes standing fighters on
   const pushed = fighterAt(run.match.world, 0);
   assertNear(pushed.motion.x, f32(240.0 + f32(WIND_BLOW_FRAMES * WIND_SPEED)), 0.009999999776482582);
   assertTrue(pushed.motion.grounded);
-  // The next gust blows left, after the same wait and warning; it stops pushing at its box's outer edge, short of the ledge.
+
   playWind(run, WIND_CYCLE_FRAMES + gust, (_frame, first, second) => {
     assertEquals(first, 0.0);
     assertEquals(second, 0.0);
@@ -108,7 +108,7 @@ test("Whispy's wind waits, warns for 45 frames, then pushes standing fighters on
 function cannonMatch(): PadMatch & { readonly victim: Fighter; readonly other: Fighter } {
   const match = testMatch(3, Character.rifleman);
   match.game.stageChoice = CANNON_TEST_STAGE;
-  // Both fall onto the cannon at its left end; it catches only the first in slot order.
+
   const victim = createFighter(Character.rifleman, cannonX(1), 1);
   const other = createFighter(Character.rifleman, f32(cannonX(1) + 20.0), -1);
   for (const fighter of [victim, other]) {
@@ -120,7 +120,7 @@ function cannonMatch(): PadMatch & { readonly victim: Fighter; readonly other: F
   return { ...padMatch(match, "cannon"), victim, other };
 }
 
-/** The shot along the cannon's aim on `frame`: Melee's knockback from base knockback alone. */
+
 function assertFiredAlongAim(victim: Fighter, frame: number): void {
   const knockback = contactKnockback(victim.status.damage, 0.0, victim.tuning.physics.weight, 0.0, CANNON_BASE_KNOCKBACK, 1.0);
   assertEquals(knockback, CANNON_BASE_KNOCKBACK);
@@ -149,7 +149,7 @@ test("the cannon catches the first fighter to touch it, holds it intangible as i
     assertEquals(victim.motion.z, CANNON_Z);
     assertEquals(other.cannon.held, undefined);
   }
-  // Attack begins the shot; it leaves CANNON_SHOT_FRAMES later.
+
   playPads(run, { attack: true }, NEUTRAL);
   assertEquals(victim.cannon.firing, 1);
   const shot = 31 + CANNON_SHOT_FRAMES - 1;
@@ -159,9 +159,9 @@ test("the cannon catches the first fighter to touch it, holds it intangible as i
   }
   playPads(run, NEUTRAL, NEUTRAL);
   assertFiredAlongAim(victim, shot);
-  // Fired from under the deck, the shot passes up through its underside and
-  // floor and leaves the fighter in play; the cannon does not catch it again
-  // on the way. Above the deck's top the deck is solid to it again (#338).
+
+
+
   assertLessThan(Math.abs(victim.motion.x), 600.0);
   assertTrue(victim.cannon.passing);
   let highest = victim.motion.z;
@@ -187,7 +187,7 @@ test("a held fighter that presses nothing is fired when the hold runs out [spec 
   const shot = 1 + CANNON_HOLD_FRAMES + CANNON_SHOT_FRAMES - 1;
   while (run.match.runtime.simulationFrame < shot) playPads(run, NEUTRAL, NEUTRAL);
   assertFiredAlongAim(victim, shot);
-  // Its immunity lasts CANNON_RECATCH_FRAMES; the other fighter, still beside the cannon's path, may be caught meanwhile.
+
   for (let frame = 0; frame < CANNON_RECATCH_FRAMES; frame++) playPads(run, NEUTRAL, NEUTRAL);
   assertEquals(victim.cannon.cooldown, 0);
 });

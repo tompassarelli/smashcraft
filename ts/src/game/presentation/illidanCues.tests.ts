@@ -1,6 +1,6 @@
-// Illidan's Demon Hunter options (#147) each show a stock Warcraft effect that
-// starts where its model already draws, and a hit that drains mana shows Mana
-// Burn's burst over its victim for that hit only.
+
+
+
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { AttackStyle, Character, SpecialAction } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
@@ -9,12 +9,12 @@ import { ATTACK_CUES, EYE_BLAST_CHARGE_CUE } from "./attackCues";
 import { MANA_DRAIN_LOOK, advanceDrainSeen, drainSeen } from "./elementLooks";
 import { type Cue, ORIGINAL_BRANCH_CUES, ORIGINAL_CUES } from "./specialCues";
 
-/**
- * Where each model draws its look, in milliseconds into the named sequence, read
- * from the classic model's geoset alpha, layer alpha and emitter visibility
- * and rate keys (extracted from the game's archives, 7 Oct). Death Coil
- * special art is its burst, Flame Strike its full fire wall.
- */
+
+
+
+
+
+
 const DRAWN: { readonly [model: string]: { readonly sequence: string; readonly fromMs: number; readonly toMs: number } } = {
   "Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilSpecialArt.mdx": { sequence: "stand", fromMs: 300, toMs: 600 },
   "Abilities\\Weapons\\IllidanMissile\\IllidanMissile.mdx": { sequence: "stand", fromMs: 0, toMs: 1600 },
@@ -30,7 +30,7 @@ const DRAWN: { readonly [model: string]: { readonly sequence: string; readonly f
   "Abilities\\Spells\\NightElf\\ManaBurn\\ManaBurnTarget.mdx": { sequence: "birth", fromMs: 230, toMs: 790 },
 };
 
-/** A showing must stay drawn at least this long: a tenth of a second, six frames. */
+
 const SHOWN_MS = 100;
 
 function startsDrawn(name: string, cue: { readonly model: string; readonly sequence?: string | undefined; readonly seconds?: number | undefined }): void {
@@ -69,7 +69,7 @@ test("a drained hit shows Mana Burn's burst over its victim for that hit only [s
   const victim = createFighter(Character.blademaster, 0.0, 1);
   const seen = drainSeen();
   assertEquals(advanceDrainSeen(seen, victim), false);
-  // A drained hit: the hit and its drain land together.
+
   victim.visuals.hit++;
   victim.visuals.manaDrained++;
   victim.launch.hitlag = 6;
@@ -77,10 +77,10 @@ test("a drained hit shows Mana Burn's burst over its victim for that hit only [s
   victim.launch.hitlag = 0;
   victim.launch.hitstun = 10;
   assertEquals(advanceDrainSeen(seen, victim), true);
-  // Out of hitstun the burst ends.
+
   victim.launch.hitstun = 0;
   assertEquals(advanceDrainSeen(seen, victim), false);
-  // A later hit that drains nothing (shielded mana, an empty bar) shows none.
+
   victim.visuals.hit++;
   victim.launch.hitlag = 6;
   assertEquals(advanceDrainSeen(seen, victim), false);

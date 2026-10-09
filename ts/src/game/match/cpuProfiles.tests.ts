@@ -34,7 +34,7 @@ test("Flint changes a practiced strike read after fewer new shield events at eac
         learnBotHabit(strategy, own, target, 1, frame, profile);
         target.shield.raised = false;
         learnBotHabit(strategy, own, target, 1, frame + 8, profile);
-        // #354 compares observed answers at a shared 40-frame deadline, independent of their reaction floor.
+
         prepareBotRead(strategy, own, target, frame + 40, profile.reactionFrames, profile);
         if (strategy.readActive && strategy.readChoice === HabitChoice.shield) { switched = event + 1; break; }
       }

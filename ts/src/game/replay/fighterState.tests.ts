@@ -13,11 +13,11 @@ interface LeafPair {
 
 type Field = Record<string, unknown>;
 
-/**
- * Every mutable leaf of two fighters of the same shape, in parallel, with
- * every pair of records that hold them. Tuning records are immutable values
- * and stay out. In Lua an absent field has no key, so only Bun visits those.
- */
+
+
+
+
+
 function walk(left: object, right: object, path: string, leaves: LeafPair[], records: [object, object][]): void {
   if (!path.startsWith(".projectiles[")) records.push([left, right]);
   const child = (childPath: string, get: (side: object) => unknown, set: (side: object, value: unknown) => void) => {
@@ -27,7 +27,7 @@ function walk(left: object, right: object, path: string, leaves: LeafPair[], rec
     else leaves.push({ path: childPath, left: () => get(left), right: () => get(right), setRight: next => set(right, next) });
   };
   if (Array.isArray(left)) {
-    // A callback parameter, not a loop variable: Lua closures share one loop variable.
+    // Lua closures share a loop variable; capture through a callback parameter.
     const elements: unknown[] = left;
     elements.forEach((_, index) => {
       child(`${path}[${index}]`, side => (side as unknown[])[index], (side, value) => { (side as unknown[])[index] = value; });
@@ -47,7 +47,7 @@ function fighterLeaves(left: Fighter, right: Fighter): { leaves: LeafPair[]; rec
   return { leaves, records };
 }
 
-/** A value of the leaf's kind that differs from it; absent references become slot 1. */
+
 function changed(value: unknown, seed: number): unknown {
   if (typeof value === "boolean") return !value;
   if (typeof value === "number") return value + seed;

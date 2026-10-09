@@ -34,7 +34,7 @@ test("contact element and pummel survive snapshots and produce one distinct soun
       const labels: string[] = [];
       presentImpactSounds(events, label => { labels.push(label); });
       assertEquals(labels.length, 1);
-      // Without its attacker, a hit's tier is its launch strength (presentation/moveTiers.ts).
+
       assertEquals(events.tier, victim.visuals.hitStrength);
       assertEquals(labels[0], pummel ? "Defend" : element === HitElement.electric ? "LightningBolt" : element === HitElement.fire ? "Fireball"
         : element === HitElement.normal || element === HitElement.slash ? tierHitPath(element, events.tier, events.variant) : "FrostNova");
