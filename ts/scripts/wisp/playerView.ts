@@ -1,3 +1,5 @@
+import { ITEM_MODELS } from "../../src/game/presentation/itemLook";
+import { ITEM_INTERVAL_MAX_SECONDS } from "../../src/game/match/centreItem";
 import { impactModel } from "../../src/game/presentation/hitPresentation";
 import { IMPACT_KIND_COUNT } from "../../src/game/presentation/impactState";
 
@@ -134,6 +136,7 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
       name: model === WARD_MODEL ? "placed ward" : `placed ${model.split("\\").at(-1)}`,
       lifetime: lifetime + seconds(1), models: [model],
     })),
+    { name: "centre item", lifetime: seconds(ITEM_INTERVAL_MAX_SECONDS + 1), models: Object.values(ITEM_MODELS) },
     { name: "agency marker", models: ["Abilities\\Spells\\Other\\GeneralAuraTarget\\GeneralAuraTarget.mdl"] },
 
     {

@@ -1,3 +1,4 @@
+import { HEAVY_SHEEN, HEAVY_SHEEN_ALPHA, heavySheen } from "../presentation/itemLook";
 import { WHITE_FIGHTER_MODELS } from "../assets/whiteFighterModels";
 import { ARENA_CAMERA, FLOOR_HEIGHT } from "../presentation/arenaCamera";
 import { originalClip, originalClipNamed } from "../assets/fighterOriginalClipInfo";
@@ -29,7 +30,9 @@ export class BodyFlash {
   }
 
   present(fighter: Readonly<Fighter> | undefined, pose: Readonly<FighterPose>, stage: number, frame: number, camera: Readonly<MatchCamera>): void {
-    const alpha = fighter === undefined ? 0 : whiteGlowAlpha(this.state, fighter, frame);
+    const glow = fighter === undefined ? 0 : whiteGlowAlpha(this.state, fighter, frame);
+    const sheen = glow === 0 && fighter !== undefined && heavySheen(fighter);
+    const alpha = sheen ? HEAVY_SHEEN_ALPHA : glow;
     const index = pose.clipIndex ?? originalClipNamed(this.character, pose.clipName);
     const clip = index === undefined ? undefined : originalClip(this.character, index);
     if (fighter === undefined || alpha === 0 || index === undefined || clip === undefined) {
@@ -56,7 +59,7 @@ export class BodyFlash {
     placeEffect(this.model, x + towardX * lift, y + towardY * lift, z + towardZ * lift);
     BlzSetSpecialEffectScale(this.model, characterModelScale(fighter.character) * (1.0 - lift));
     BlzSetSpecialEffectAlpha(this.model, alpha);
-    BlzSetSpecialEffectColor(this.model, 255, 255, 255);
+    BlzSetSpecialEffectColor(this.model, sheen ? HEAVY_SHEEN.red : 255, sheen ? HEAVY_SHEEN.green : 255, sheen ? HEAVY_SHEEN.blue : 255);
     this.shown = true;
   }
 

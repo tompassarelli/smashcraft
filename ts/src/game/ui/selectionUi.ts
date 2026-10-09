@@ -770,7 +770,7 @@ export class SelectionPanel {
     BlzFrameSetVisible(this.help, name !== undefined);
     if (name === undefined) return;
     const box = RULE_BUTTONS[name];
-    placeTopLeft(this.help, Math.min(box.x, f32(0.8 - RULE_HELP_WIDTH - 0.01)), f32(box.y - box.height - 0.003));
+    placeTopLeft(this.help, Math.min(box.x, f32(f32(0.8) - RULE_HELP_WIDTH - f32(0.01))), f32(box.y - box.height - f32(0.003)));
     BlzFrameSetText(this.helpText, text);
   }
 

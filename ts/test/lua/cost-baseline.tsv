@@ -35,7 +35,7 @@ src/game/match/frameInput.tests.ts	4	1752000	1812
 src/game/match/grabOptionsContracts.tests.ts	4	14131000	111584
 src/game/match/groundNormalContracts.tests.ts	16	13273000	4754
 src/game/match/hazardsSetting.tests.ts	4	100236000	5371
-src/game/match/itemsContracts.tests.ts	4	105919000	17411
+src/game/match/itemsContracts.tests.ts	3	5125000	15015
 src/game/match/jabChainContracts.tests.ts	3	84597000	20164
 src/game/match/jumpOutOfShieldGrabContracts.tests.ts	2	661000	447
 src/game/match/knockdownInputContracts.tests.ts	6	85704000	54593
@@ -234,6 +234,7 @@ src/game/ui/cpuSettingsLayout.tests.ts	2	1000	6
 src/game/ui/hudLayout.tests.ts	2	0	0
 src/game/ui/plateLayout.tests.ts	3	0	0
 src/game/ui/portraitFrames.tests.ts	4	89000	226
+src/game/ui/ruleHelp.tests.ts	1	45000	55
 src/game/ui/selectionLayout.tests.ts	2	0	1
 src/game/ui/slotColors.tests.ts	2	0	1
 src/platform/shell/playerFileQueue.tests.ts	3	0	14
