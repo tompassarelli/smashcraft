@@ -25,7 +25,7 @@ import { copyAttackBuffer, sameAttackBuffer } from "../input/attackBuffer";
 import { copyMatchState } from "../match/rules";
 import { copyPacingAndPresentation } from "../match/pacingAndPresentation";
 import { copyFighterState, sameFighterState } from "./fighterState";
-import { apartFromOthers, matchScopable, scopedStepHeld } from "./scopedRepair";
+import { apartFromOthers, authoredMotionApartFromOthers, matchScopable, scopedStepHeld } from "./scopedRepair";
 import { sameReplayState } from "./difference";
 
 /** A whole repaired frame's cost against a repair's budget, where a fighter-scoped one costs 1. */
@@ -503,6 +503,7 @@ export class ReplayHistory {
     if (!apartFromOthers(slot, fighterAt(state.world, slot), state.world)) return undefined;
     if (!apartFromOthers(slot, fighterAt(earlier, slot), state.world)) return undefined;
     if (!apartFromOthers(slot, fighterAt(after, slot), after)) return undefined;
+    if (!authoredMotionApartFromOthers(slot, fighterAt(state.world, slot), after)) return undefined;
     return slot;
   }
 

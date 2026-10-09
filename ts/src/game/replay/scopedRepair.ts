@@ -4,6 +4,7 @@
 // (distances and states, not exact contact shapes): a pair passes when
 // neither can reach the other this frame.
 import { f32 } from "wisp/src/sim/f32";
+import { at } from "wisp/src/runtime/lookup";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type MatchState, Phase, holdingStart, stageClock } from "../match/rules";
 import { LedgeState, SpecialAction } from "../sim/codes";
@@ -12,6 +13,53 @@ import type { Fighter } from "../sim/fighter";
 import { countsOffscreen } from "../sim/offscreenDamage";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { cannonOn, hasTide } from "../sim/stageHazards";
+import { LAST_ATTACK_STYLE } from "../sim/codes";
+import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
+import { authoredTuning } from "../sim/tuning";
+import type { FighterMoves } from "../sim/heroMoves";
+
+interface AuthoredTravel {
+  readonly moves: FighterMoves;
+  readonly startup: readonly (readonly number[])[];
+}
+
+const authoredTravel: { readonly [character: number]: AuthoredTravel | undefined } = buildAuthoredTravel();
+
+function buildAuthoredTravel(): { [character: number]: AuthoredTravel | undefined } {
+  const result: { [character: number]: AuthoredTravel | undefined } = {};
+  for (const character of SELECTABLE_CHARACTERS) {
+    const moves = authoredTuning(character).moves;
+    if (moves === undefined) continue;
+    const startup: number[][] = [];
+    for (let style = 0; style <= LAST_ATTACK_STYLE; style++) {
+      const move = moves.normals[style];
+      const positions = [0.0];
+      if (move?.startupTravelX !== undefined && move.startupFrames > 0) {
+        const step = f32(move.startupTravelX / move.startupFrames);
+        let x = 0.0;
+        for (let frame = 1; frame <= move.startupFrames; frame++) {
+          x = f32(x + step);
+          positions.push(x);
+        }
+      }
+      startup[style] = positions;
+    }
+    result[character] = { moves, startup };
+  }
+  return result;
+}
+
+function authoredStartupStep(fighter: Readonly<Fighter>): number {
+  const style = fighter.attack.style;
+  if (style === undefined || !fighter.motion.grounded) return 0.0;
+  const travel = authoredTravel[fighter.character];
+  if (travel === undefined || travel.moves !== fighter.tuning.moves) return 0.0;
+  const move = travel.moves.normals[style];
+  if (move?.startupTravelX === undefined || fighter.attack.frame >= move.startupFrames) return 0.0;
+  const positions = at(travel.startup, style);
+  const frame = fighter.attack.frame;
+  return f32(f32(at(positions, frame + 1) - at(positions, frame)) * fighter.facing);
+}
 
 /**
  * Farther apart than this on either axis, a fighter's strikes, specials,
@@ -55,6 +103,19 @@ export function apartFromOthers(slot: number, fighter: Readonly<Fighter>, others
   for (const other of PARTICIPANT_SLOTS) {
     if (other === slot || !isActive(others, other)) continue;
     if (!fightersApart(fighter, fighterAt(others, other))) return false;
+  }
+  return true;
+}
+
+export function authoredMotionApartFromOthers(slot: number, fighter: Readonly<Fighter>, others: Readonly<Roster>): boolean {
+  const step = authoredStartupStep(fighter);
+  if (step === 0.0) return true;
+  const x = f32(fighter.motion.x + step);
+  for (const other of PARTICIPANT_SLOTS) {
+    if (other === slot || !isActive(others, other)) continue;
+    const target = fighterAt(others, other);
+    const reach = reaching(fighter) || reaching(target) ? SCOPE_REACH : SCOPE_BODY;
+    if (!apart(x, fighter.motion.z, target.motion.x, target.motion.z, reach)) return false;
   }
   return true;
 }
