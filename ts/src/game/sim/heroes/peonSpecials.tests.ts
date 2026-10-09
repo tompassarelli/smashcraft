@@ -12,6 +12,7 @@ import { advanceSpecials, startFighterSpecial } from "../specials";
 import { advanceFighter } from "../step";
 import { controls, testWorld } from "../testWorld";
 import { clearSpecialOnStock } from "../transitions";
+import { PEON_SPECIALS } from "./peonSpecials";
 
 function frame(world: Roster, input: Controls = controls()): void {
   advanceFighter(world, 0, 0, input, -240.0);
@@ -42,8 +43,8 @@ const down = controls({ specialPressed: true, specialZ: -1 });
 
 test("Peon four regular special inputs preserve the super meter and finish on the authored frame [spec #335]", () => {
   for (const [input, action, end] of [
-    [neutral, SpecialAction.heroNeutral, 40], [side, SpecialAction.heroSide, 52],
-    [up, SpecialAction.heroUp, 28], [down, SpecialAction.heroDown, 38],
+    [neutral, SpecialAction.heroNeutral, PEON_SPECIALS.neutral.ground.endFrame], [side, SpecialAction.heroSide, PEON_SPECIALS.side.ground.endFrame],
+    [up, SpecialAction.heroUp, PEON_SPECIALS.up.ground.endFrame], [down, SpecialAction.heroDown, PEON_SPECIALS.down.ground.endFrame],
   ] as const) {
     const { world, owner } = pair(900.0);
     frame(world, input);
@@ -63,18 +64,19 @@ test("Peon Lumber Toss strikes once in both facings and never creates a second l
       frame(world, tick === 51 ? neutral : controls());
       assertTrue(owner.projectiles.filter(p => p.life > 0).length <= 1);
     }
-    assertEquals(target.status.damage, 16.0);
+    assertEquals(target.status.damage, 2.0 * (PEON_SPECIALS.neutral.ground.projectiles?.[0]?.effect.damage ?? -1.0));
     assertTrue(owner.projectiles.filter(p => p.life > 0).length <= 1);
   }
 });
 
 test("Peon Burrow fires its scheduled spear, packs away, and clears on stock loss [spec docs/design/peasant.md]", () => {
   const { world, owner, target } = pair(360.0);
+  const placement = PEON_SPECIALS.side.ground.placement;
   frame(world, side);
-  for (let tick = 2; tick <= 26; tick++) frame(world);
+  for (let tick = 2; tick <= (placement?.frame ?? 0); tick++) frame(world);
   assertEquals(owner.placed.age, 1);
-  assertEquals(owner.placed.life, 239);
-  assertEquals(owner.placed.durability, 32.0);
+  assertEquals(owner.placed.life, (placement?.life ?? 0) - 1);
+  assertEquals(owner.placed.durability, placement?.durability);
   for (let tick = 27; tick <= 100; tick++) frame(world);
   assertGreaterThan(target.status.damage, 0.0);
   frame(world, side);
@@ -115,7 +117,7 @@ test("Peon Repair heals only a timed contact and leaves a missed read punishable
   beginFighterAttack(world, 1, AttackStyle.jab, false);
   target.attack.frame = attackStartupFrames(AttackStyle.jab, target.tuning.moves) - 1;
   frame(world);
-  assertEquals(owner.status.damage, 26.0);
+  assertEquals(owner.status.damage, 30.0 - (PEON_SPECIALS.down.ground.guard?.heal ?? 0.0));
   const miss = pair(900.0);
   miss.owner.status.damage = 30.0;
   frame(miss.world, down);

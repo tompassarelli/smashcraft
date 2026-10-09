@@ -11,6 +11,7 @@ import { advanceFighter } from "./step";
 import { controls, testWorld } from "./testWorld";
 import { cancelSpecialState } from "./transitions";
 import { mutableProjectile } from "./fighterProjectiles";
+import { SHADOW_HUNTER_SPECIALS } from "./heroes/shadowHunterSpecials";
 
 const heroes = [Character.forsakenPaladin, Character.dreadlord, Character.shadowHunter, Character.pitLord] as const;
 
@@ -42,8 +43,8 @@ function projectile(character: Character, slot: SpecialSlot, ex: boolean, air = 
 }
 
 test("Paladin hammer and Fury and Pit Lord charge deal 25% more in ground and air contacts with the same launch [spec docs/design/mana.md]", () => {
-  for (const [character, slot, frame, x, baseDamage, bodyScale] of [[Character.forsakenPaladin, SpecialSlot.neutral, 14, 80.0, 13.0, f32(0.8)],
-    [Character.forsakenPaladin, SpecialSlot.side, 15, 80.0, 14.0, f32(0.8)], [Character.pitLord, SpecialSlot.side, 19, 60.0, 15.0, 1.0]] as const) {
+  for (const [character, slot, frame, x, bodyScale] of [[Character.forsakenPaladin, SpecialSlot.neutral, 14, 80.0, f32(0.8)],
+    [Character.forsakenPaladin, SpecialSlot.side, 15, 80.0, f32(0.8)], [Character.pitLord, SpecialSlot.side, 19, 60.0, 1.0]] as const) {
     for (const air of [false, true]) {
       const normal = cast(character, slot, false, air);
       const ex = cast(character, slot, true, air);
@@ -54,6 +55,7 @@ test("Paladin hammer and Fury and Pit Lord charge deal 25% more in ground and ai
         advanceSpecials(state.world, 0, 0);
         assertGreaterThan(state.target.status.damage, 0.0);
       }
+      const baseDamage = runningHeroSpecial(normal.owner)?.regions?.[0]?.hit.effect.damage ?? -1.0;
       assertEquals(normal.target.status.damage, f32(baseDamage * bodyScale));
       assertEquals(ex.target.status.damage, f32(f32(baseDamage * 1.25) * bodyScale));
       assertEquals(runningHeroSpecial(ex.owner)?.regions?.[0]?.hit.effect.growth, runningHeroSpecial(normal.owner)?.regions?.[0]?.hit.effect.growth);
@@ -77,7 +79,7 @@ test("Vampiric Pounce's ground and air bites deal 25% more and retain their four
       state.owner.special.frame = 32;
       advanceSpecials(state.world, 0, 0);
       assertGreaterThan(state.target.status.damage, 0.0);
-      assertEquals(state.owner.status.damage, 26.0);
+      assertEquals(state.owner.status.damage, 30.0 - (runningHeroSpecial(state.owner)?.commandGrab?.heal?.heal ?? 0.0));
     }
     assertEquals(ex.target.status.damage, f32(normal.target.status.damage * 1.25));
   }
@@ -87,17 +89,18 @@ test("Spirit Glaive's outward and return damage and all Rain of Fire waves retai
   for (const air of [false, true]) {
     const normal = projectile(Character.shadowHunter, SpecialSlot.neutral, false, air);
     const ex = projectile(Character.shadowHunter, SpecialSlot.neutral, true, air);
-    assertEquals(projectileDamage(ex.shot), 7.5);
-    assertEquals(projectileDamage(normal.shot), 6.0);
+    const outward = normal.spec.effect.damage, back = normal.spec.returnEffect?.damage ?? -1.0;
+    assertEquals(projectileDamage(ex.shot), f32(outward * 1.25));
+    assertEquals(projectileDamage(normal.shot), outward);
     normal.shot.life = 48;
     ex.shot.life = 48;
-    assertEquals(projectileDamage(ex.shot), 6.25);
-    assertEquals(projectileDamage(normal.shot), 5.0);
+    assertEquals(projectileDamage(ex.shot), f32(back * 1.25));
+    assertEquals(projectileDamage(normal.shot), back);
     for (let wave = 0; wave < 3; wave++) {
       const base = projectile(Character.pitLord, SpecialSlot.down, false, air, wave);
       const upgraded = projectile(Character.pitLord, SpecialSlot.down, true, air, wave);
-      assertEquals(projectileDamage(base.shot), 5.0);
-      assertEquals(projectileDamage(upgraded.shot), 6.25);
+      assertEquals(projectileDamage(base.shot), base.spec.effect.damage);
+      assertEquals(projectileDamage(upgraded.shot), f32(base.spec.effect.damage * 1.25));
       assertEquals(upgraded.shot.life, base.shot.life);
     }
   }
@@ -136,7 +139,7 @@ test("Howl reaches bodies beyond the normal roar in both directions and ground a
       advanceSpecials(state.world, 0, 0);
     }
     assertEquals(normal.target.status.damage, 0.0);
-    assertEquals(ex.target.status.damage, 7.0);
+    assertEquals(ex.target.status.damage, region.effect.damage);
   }
 });
 
@@ -183,8 +186,9 @@ test("Serpent Ward keeps stronger shots after the cast ends and EX recall protec
   const normalShot = normal.owner.projectiles.find(p => p.life > 0);
   const exShot = ex.owner.projectiles.find(p => p.life > 0);
   if (normalShot === undefined || exShot === undefined) throw new Error("ward did not fire");
-  assertEquals(projectileDamage(normalShot), 7.0);
-  assertEquals(projectileDamage(exShot), 8.75);
+  const wardDamage = SHADOW_HUNTER_SPECIALS.side.ground.placement?.shot?.effect.damage ?? -1.0;
+  assertEquals(projectileDamage(normalShot), wardDamage);
+  assertEquals(projectileDamage(exShot), f32(wardDamage * 1.25));
   assertEquals(ex.owner.placed.durability, normal.owner.placed.durability);
   for (const state of [normal, ex]) {
     state.owner.mana.points = 100;

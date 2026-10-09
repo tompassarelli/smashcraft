@@ -10,7 +10,7 @@ import { beginDamageContacts, finishDamageContacts } from "./contacts";
 import { type Fighter, createFighter } from "./fighter";
 import { updateProjectiles } from "./projectiles";
 import { type Controls, type Roster, createRoster } from "./roster";
-import { DEMONHUNTER_GLIDE_FORM, advanceSpecials, startFighterSpecial } from "./specials";
+import { DEMONHUNTER_GLIDE_FORM, advanceSpecials, glideSlashRegion, startFighterSpecial } from "./specials";
 import { advanceFighter } from "./step";
 import { controls } from "./testWorld";
 
@@ -143,7 +143,7 @@ function grounded(gap: number): { world: Roster; owner: Fighter; target: Fighter
   return { world, owner, target };
 }
 
-test("Immolate: a jump from its first active frame cancels it into a jump with the hit dealt; earlier it does not [spec #128]", () => {
+test("Immolate: a jump from its first active frame cancels it into a jump with the hit dealt, also after a glide slash; earlier it does not [spec #128] [repro #128]", () => {
   const { world, owner, target } = grounded(60.0);
   frame(world, downB);
   run(world, 3);
@@ -159,6 +159,19 @@ test("Immolate: a jump from its first active frame cancels it into a jump with t
   assertEquals(early.owner.special.action, SpecialAction.demonHunterImmolate);
   run(early.world, 8);
   assertTrue(early.owner.motion.grounded);
+  const slashed = airborne(Character.demonHunter, 300.0);
+  frame(slashed.world, upB);
+  run(slashed.world, 14);
+  frame(slashed.world, jump);
+  run(slashed.world, 2);
+  frame(slashed.world, controls({ attackPressed: true }));
+  for (let f = 0; f < 240 && !(slashed.owner.motion.grounded && slashed.owner.special.action === SpecialAction.none && slashed.owner.landing.lag === 0); f++) frame(slashed.world);
+  run(slashed.world, 30);
+  frame(slashed.world, downB);
+  assertEquals(slashed.owner.special.form, 0);
+  run(slashed.world, 4);
+  frame(slashed.world, jump);
+  assertEquals(slashed.owner.special.action, SpecialAction.none);
 });
 
 test("Immolate counterplay: after a jump cancel the next Immolate waits its 24-frame cooldown [spec #128]", () => {
@@ -212,7 +225,7 @@ test("Wing Ascent glide: an attack slashes for 8 and ends helpless; running out 
     }
     frame(world);
   }
-  assertEquals(target.status.damage, 8.0);
+  assertEquals(target.status.damage, glideSlashRegion().effect.damage);
   run(world, 20);
   assertTrue(owner.special.fall);
   const out = airborne(Character.demonHunter, 700.0);
@@ -224,20 +237,4 @@ test("Wing Ascent glide: an attack slashes for 8 and ends helpless; running out 
   run(out.world, 2);
   assertEquals(out.owner.special.action, SpecialAction.none);
   assertTrue(out.owner.special.fall);
-});
-
-test("A special starts in its plain form: after a glide slash, Immolate still jump-cancels [repro #128]", () => {
-  const { world, owner } = airborne(Character.demonHunter, 300.0);
-  frame(world, upB);
-  run(world, 14);
-  frame(world, jump);
-  run(world, 2);
-  frame(world, controls({ attackPressed: true }));
-  for (let f = 0; f < 240 && !(owner.motion.grounded && owner.special.action === SpecialAction.none && owner.landing.lag === 0); f++) frame(world);
-  run(world, 30);
-  frame(world, downB);
-  assertEquals(owner.special.form, 0);
-  run(world, 4);
-  frame(world, jump);
-  assertEquals(owner.special.action, SpecialAction.none);
 });

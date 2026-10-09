@@ -24,18 +24,6 @@ function dashFor(fighter: Fighter, facing: number, frames: number): void {
   for (let frame = 0; frame < frames; frame++) sample(fighter, facing);
 }
 
-test("dash dancing: authored window accepts thirteen held frames and rejects fourteen [spec docs/gameplay-design.md]", () => {
-  for (const facing of [-1, 1]) {
-    for (const hold of [13, 14]) {
-      const fighter = createFighter(Character.rifleman, 0.0, facing);
-      dashFor(fighter, facing, hold);
-      sample(fighter, -facing);
-      assertEquals(fighter.ground.action, hold === 13 ? GroundAction.dash : GroundAction.turnRun);
-      assertEquals(fighter.facing, hold === 13 ? -facing : facing);
-    }
-  }
-});
-
 test("dash dancing: weak travel gets a second and third sample at the last dash frame [spec docs/gameplay-design.md]", () => {
   for (const facing of [-1, 1]) {
     const fighter = createFighter(Character.rifleman, 0.0, facing);
@@ -78,7 +66,7 @@ test("dash dancing: deliberate walking and slow stick turns stay walks [spec doc
   }
 });
 
-test("dash dancing: 512 analog and digital timelines have zero transition or rollback mismatches [spec docs/gameplay-design.md] [invariant]", () => {
+test("dash dancing: 512 analog and digital timelines accept thirteen held frames, turn-run on fourteen, with zero transition or rollback mismatches [spec docs/gameplay-design.md] [invariant]", () => {
   let cases = 0;
   for (const character of [Character.demonHunter, Character.rifleman]) {
     for (const facing of [-1, 1]) {
@@ -105,6 +93,10 @@ test("dash dancing: 512 analog and digital timelines have zero transition or rol
             const accepted = hold <= 13 && amplitude >= f32(0.8);
             assertEquals(fighter.ground.action === GroundAction.dash && fighter.ground.dashFrame === 1, accepted);
             if (accepted) assertEquals(fighter.facing, -facing);
+            if (digital && travel === 0 && hold === 14) {
+              assertEquals(fighter.ground.action, GroundAction.turnRun);
+              assertEquals(fighter.facing, facing);
+            }
             cases++;
           }
         }

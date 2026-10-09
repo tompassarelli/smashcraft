@@ -11,19 +11,27 @@ import { updateProjectiles } from "../projectiles";
 import { advanceFighter } from "../step";
 import { fighterAt, type Controls, type Roster } from "../roster";
 import { KOBOLD_MOVES } from "./koboldMoves";
+import { KOBOLD_SPECIALS } from "./koboldSpecials";
+import { ROSTER_MANA } from "../mana";
 import { runningHeroSpecial } from "../heroSpecialRules";
 
 
+const WICK_DAMAGE = KOBOLD_SPECIALS.neutral.ground.projectiles?.[0]?.effect.damage ?? -1.0;
+const DIG_DAMAGE = KOBOLD_SPECIALS.side.ground.regions?.[0]?.hit.effect.damage ?? -1.0;
+const ESCAPE_DAMAGE = KOBOLD_SPECIALS.up.ground.regions?.[0]?.hit.effect.damage ?? -1.0;
+const MINE_DAMAGE = KOBOLD_SPECIALS.down.ground.regions?.[0]?.hit.effect.damage ?? -1.0;
+const EX_POINTS = 100 - ROSTER_MANA.exCost;
+
 const normalCases = [
-  [AttackStyle.jab, 45.0, 0.0, 2.0], [AttackStyle.jab2, 50.0, 0.0, 4.0],
-  [AttackStyle.forwardTilt, 70.0, 0.0, 8.0], [AttackStyle.forwardTiltUp, 70.0, 0.0, 8.0],
-  [AttackStyle.forwardTiltDown, 70.0, 0.0, 8.0], [AttackStyle.upTilt, 30.0, 60.0, 7.0],
-  [AttackStyle.downTilt, 65.0, 0.0, 6.0], [AttackStyle.dashAttack, 70.0, 0.0, 9.0],
-  [AttackStyle.forwardSmash, 95.0, 0.0, 16.0], [AttackStyle.upSmash, 0.0, 90.0, 15.0],
-  [AttackStyle.downSmash, 80.0, 0.0, 13.0], [AttackStyle.neutralAir, 40.0, 0.0, 8.0],
-  [AttackStyle.forwardAir, 80.0, 0.0, 10.0], [AttackStyle.backAir, -80.0, 0.0, 12.0],
-  [AttackStyle.upAir, 0.0, 80.0, 9.0], [AttackStyle.downAir, 0.0, -90.0, 11.0],
-  [AttackStyle.getupAttack, -50.0, 0.0, 6.0], [AttackStyle.ledgeAttack, 70.0, 0.0, 6.0],
+  [AttackStyle.jab, 45.0, 0.0], [AttackStyle.jab2, 50.0, 0.0],
+  [AttackStyle.forwardTilt, 70.0, 0.0], [AttackStyle.forwardTiltUp, 70.0, 0.0],
+  [AttackStyle.forwardTiltDown, 70.0, 0.0], [AttackStyle.upTilt, 30.0, 60.0],
+  [AttackStyle.downTilt, 65.0, 0.0], [AttackStyle.dashAttack, 70.0, 0.0],
+  [AttackStyle.forwardSmash, 95.0, 0.0], [AttackStyle.upSmash, 0.0, 90.0],
+  [AttackStyle.downSmash, 80.0, 0.0], [AttackStyle.neutralAir, 40.0, 0.0],
+  [AttackStyle.forwardAir, 80.0, 0.0], [AttackStyle.backAir, -80.0, 0.0],
+  [AttackStyle.upAir, 0.0, 80.0], [AttackStyle.downAir, 0.0, -90.0],
+  [AttackStyle.getupAttack, -50.0, 0.0], [AttackStyle.ledgeAttack, 70.0, 0.0],
 ] as const;
 
 function pair(x: number, facing = 1) {
@@ -35,10 +43,11 @@ function pair(x: number, facing = 1) {
 }
 
 test("Kobold every normal hits once on its first active frame, both facings [spec #344]", () => {
-  for (const facing of [-1, 1]) for (const [style, x, z, damage] of normalCases) {
+  for (const facing of [-1, 1]) for (const [style, x, z] of normalCases) {
     const { owner, target, world } = pair(x, facing);
     owner.motion.grounded = !isAerialAttack(style); target.motion.grounded = false; target.motion.z = z;
     const move = KOBOLD_MOVES.normals[style]; assertTrue(move !== undefined); if (move === undefined) continue;
+    const damage = move.regions.find(region => region.firstFrame === move.startupFrames)?.hit.effect.damage ?? -1.0;
     owner.attack.style = style; owner.attack.duration = move.totalFrames; owner.attack.frame = move.startupFrames - 1;
     resolveAttacks(world); assertEquals(target.status.damage, 0.0, `early ${style}`);
     owner.attack.frame++; resolveAttacks(world); assertEquals(target.status.damage, damage, `normal ${style}`);
@@ -48,9 +57,8 @@ test("Kobold every normal hits once on its first active frame, both facings [spe
 });
 
 test("Kobold grab catches a shield and every directional throw releases once [spec #344]", () => {
-  for (const facing of [-1, 1]) for (const [action, release, damage] of [
-    [GrabAction.throwForward, 12, 7.0], [GrabAction.throwBack, 14, 9.0], [GrabAction.throwUp, 12, 6.0], [GrabAction.throwDown, 16, 5.0],
-  ] as const) {
+  for (const facing of [-1, 1]) for (const action of [GrabAction.throwForward, GrabAction.throwBack, GrabAction.throwUp, GrabAction.throwDown]) {
+    const release = KOBOLD_MOVES.throws[action]?.contactFrame ?? 0, damage = KOBOLD_MOVES.throws[action]?.effect.damage ?? -1.0;
     const { owner, target, world } = pair(45.0, facing); target.shield.raised = true;
     beginFighterAttack(world, 0, AttackStyle.grab, false); owner.attack.frame = attackStartupFrames(AttackStyle.grab, KOBOLD_MOVES);
     resolveAttacks(world); assertEquals(owner.grab.target, 1);
@@ -74,7 +82,7 @@ test("Kobold Wick Flick hits the first body it reaches and preserves the super m
     const { owner, target, world } = pair(160.0, facing);
     frame(world, controls({ specialPressed: true })); assertEquals(owner.special.action, SpecialAction.heroNeutral); assertEquals(owner.mana.points, 40);
     for (let tick = 0; tick < 40 && target.status.damage === 0.0; tick++) frame(world);
-    assertEquals(target.status.damage, 4.0); assertEquals(target.status.condition, HeroStatusKind.none);
+    assertEquals(target.status.damage, WICK_DAMAGE); assertEquals(target.status.condition, HeroStatusKind.none);
   }
 });
 
@@ -93,7 +101,7 @@ test("Kobold Mine sweeps both sides for zero meter on the first contact frame [s
     frame(world,controls({specialPressed:true,specialZ:-1}));
     assertEquals(owner.special.action,SpecialAction.heroDown); assertEquals(owner.mana.points,40);
     for(let tick=0;tick<18 && target.status.damage===0.0;tick++) frame(world);
-    assertEquals(target.status.damage,7.0);
+    assertEquals(target.status.damage,MINE_DAMAGE);
   }
 });
 
@@ -105,7 +113,7 @@ test("Kobold Panic Dig and Candle Escape hit once without spending meter in both
     assertEquals(owner.special.action, rise ? SpecialAction.heroUp : SpecialAction.heroSide);
     assertEquals(owner.mana.points, 40);
     for (let tick = 0; tick < 25 && target.status.damage === 0.0; tick++) frame(world);
-    assertEquals(target.status.damage, rise ? 5.0 : 8.0);
+    assertEquals(target.status.damage, rise ? ESCAPE_DAMAGE : DIG_DAMAGE);
     if (rise) assertEquals(owner.special.airtimeUses & 4, 4);
   }
 });
@@ -119,11 +127,11 @@ test("Kobold EX Wick Flick and Panic Dig spend one bar segment for 25% more dama
       target.motion.grounded = false; target.motion.surface = undefined; target.motion.z = 1000.0;
     }
     frame(world, controls({ specialPressed: true, specialX: side ? facing : 0, shield: true }));
-    assertTrue(owner.special.ex); assertEquals(owner.mana.points, 67);
+    assertTrue(owner.special.ex); assertEquals(owner.mana.points, EX_POINTS);
     for (let tick = 0; tick < 40 && target.status.damage === 0.0; tick++) {
       beginDamageContacts(); advanceSpecials(world, 0, tick); updateProjectiles(world); finishDamageContacts(world);
     }
-    assertEquals(target.status.damage, side ? 10.0 : 5.0, `EX facing ${facing}, air ${air}, side ${side}`);
+    assertEquals(target.status.damage, f32((side ? DIG_DAMAGE : WICK_DAMAGE) * 1.25), `EX facing ${facing}, air ${air}, side ${side}`);
   }
 });
 
@@ -134,7 +142,7 @@ test("Kobold EX Candle Escape rises and steers 25% farther on the same helpless 
     owner.mana.points = 100;
     owner.motion.grounded = false; owner.motion.surface = undefined; owner.motion.z = 1000.0;
     assertTrue(startFighterSpecial(owner, 0, 0, controls({ specialPressed: true, specialZ: 1, shield: ex }), world));
-    assertEquals(owner.mana.points, ex ? 67 : 100);
+    assertEquals(owner.mana.points, ex ? EX_POINTS : 100);
     const move = runningHeroSpecial(owner);
     let x = 0.0; let z = 0.0;
     for (let tick = 1; tick <= (move?.endFrame ?? 0); tick++) {
@@ -155,8 +163,8 @@ test("Kobold EX Mine reaches outside the ordinary swipe on both sides [spec docs
     const { owner, target, world } = pair(115.0 * side, facing);
     owner.mana.points = 100;
     frame(world, controls({ specialPressed: true, specialZ: -1, shield: ex }));
-    assertEquals(owner.mana.points, ex ? 67 : 100);
+    assertEquals(owner.mana.points, ex ? EX_POINTS : 100);
     for (let tick = 0; tick < 18 && target.status.damage === 0.0; tick++) frame(world);
-    assertEquals(target.status.damage, ex ? 7.0 : 0.0);
+    assertEquals(target.status.damage, ex ? MINE_DAMAGE : 0.0);
   }
 });

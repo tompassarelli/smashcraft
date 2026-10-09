@@ -42,8 +42,8 @@ test("an initial dash's entry transitions toward the actor's run speed [spec doc
       const fighter = createReferenceFighter(character, 0.0, -direction);
       const input = controls({ direction });
       advanceSolo(fighter, 0, input, 0.0);
-      assertNear(fighter.motion.vx, f32(11.4) * direction, f32(0.001));
-      let expectedSpeed = f32(11.4);
+      assertNear(fighter.motion.vx, INITIAL_DASH_SPEED * direction, f32(0.001));
+      let expectedSpeed = INITIAL_DASH_SPEED;
       for (let tick = 2; tick <= INITIAL_DASH_FRAMES; tick++) {
         advanceSolo(fighter, 0, input, 0.0);
         expectedSpeed = character === Character.sylvanas ? min(f32(13.2), expectedSpeed + f32(0.72)) : max(9.0, expectedSpeed - GROUND_TRACTION);
@@ -226,13 +226,13 @@ test("an initial dash reversal restarts the window, including across neutral [sp
     assertEquals(fighter.ground.dashFrame, 9);
     input.direction = -1;
     advanceSolo(fighter, 0, input, 0.0);
-    assertNear(fighter.motion.vx, -f32(11.4), f32(0.001));
+    assertNear(fighter.motion.vx, -INITIAL_DASH_SPEED, f32(0.001));
     assertEquals(fighter.facing, -1);
     assertEquals(fighter.ground.dashFrame, 1);
     for (let tick = 1; tick <= 6; tick++) {
       input.direction = -input.direction;
       advanceSolo(fighter, 0, input, 0.0);
-      assertNear(fighter.motion.vx, f32(11.4) * input.direction, f32(0.001));
+      assertNear(fighter.motion.vx, INITIAL_DASH_SPEED * input.direction, f32(0.001));
       assertEquals(fighter.ground.dashFrame, 1);
     }
   }
@@ -305,7 +305,7 @@ test("a neutral stop after an initial dash allows a fresh dash [spec docs/gamepl
   assertEquals(fighter.ground.dashFrame, 0);
   input.direction = 1;
   advanceSolo(fighter, 0, input, 0.0);
-  assertNear(fighter.motion.vx, f32(11.4), f32(0.001));
+  assertNear(fighter.motion.vx, INITIAL_DASH_SPEED, f32(0.001));
   assertEquals(fighter.ground.dashFrame, 1);
 });
 
@@ -321,7 +321,7 @@ test("hitlag freezes an initial dash, then a reversal resumes [spec docs/physics
   assertEquals(fighter.ground.action, GroundAction.dash);
   assertEquals(fighter.ground.actionFrame, 1);
   advanceSolo(fighter, 0, input, 0.0);
-  assertNear(fighter.motion.vx, -f32(11.4), f32(0.001));
+  assertNear(fighter.motion.vx, -INITIAL_DASH_SPEED, f32(0.001));
   assertEquals(fighter.ground.dashFrame, 1);
   fighter.launch.hitstun = 3;
   advanceSolo(fighter, 0, input, 0.0);

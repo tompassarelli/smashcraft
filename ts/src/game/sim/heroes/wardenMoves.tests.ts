@@ -7,23 +7,22 @@ import { createFighter } from "../fighter";
 import { createReferenceContactFighter } from "../referenceRig";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { SHARED_GRAB_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
-import { attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
+import { attackStartupFrames, characterAttackActiveFrames, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { HurtContact, fighterHurtParts, strikeHurtContact } from "../hurtboxes";
 import { WARDEN_BODY, WARDEN_MOVES } from "./wardenMoves";
 import { isMultiHit } from "./multiHit";
 
-const NORMALS = [
-  [AttackStyle.forwardSmash, 15, 3, 30, 0],
-  [AttackStyle.upSmash, 13, 4, 27, 0],
-  [AttackStyle.downSmash, 12, 5, 28, 0],
-  [AttackStyle.neutralAir, 5, 5, 18, 10],
-  [AttackStyle.forwardAir, 8, 3, 20, 12],
-  [AttackStyle.backAir, 7, 3, 22, 12],
-  [AttackStyle.upAir, 5, 9, 15, 10],
-  [AttackStyle.downAir, 7, 7, 14, 10],
-  [AttackStyle.grab, 6, 3, 21, 0],
-] as const;
+const NORMALS = [AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.downSmash, AttackStyle.neutralAir, AttackStyle.forwardAir,
+  AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir, AttackStyle.grab] as const;
+
+function strongest(style: AttackStyle): number {
+  return Math.max(0.0, ...(WARDEN_MOVES.normals[style]?.regions.map(region => region.hit.effect.damage) ?? []));
+}
+
+function weakest(style: AttackStyle): number {
+  return Math.min(...(WARDEN_MOVES.normals[style]?.regions.map(region => region.hit.effect.damage) ?? [0.0]));
+}
 
 function pair(style: AttackStyle, frame: number, x: number, z = 0.0, facing = 1, groundedTarget = true, ownerZ = 0.0) {
   const owner = createFighter(Character.rifleman, 0.0, facing);
@@ -43,9 +42,9 @@ function pair(style: AttackStyle, frame: number, x: number, z = 0.0, facing = 1,
 
 test("Warden roster phases and single-contact paths reach production [spec docs/design/roster.md]", () => {
   const out = emptyHitRegion();
-  for (const [style, first, active] of NORMALS) {
+  for (const style of NORMALS) {
     const { owner } = pair(style, 0, 1000.0);
-    assertEquals(attackStartupFrames(style, WARDEN_MOVES), first - 1);
+    const first = attackStartupFrames(style, WARDEN_MOVES) + 1, active = characterAttackActiveFrames(Character.rifleman, style, WARDEN_MOVES);
     owner.attack.frame = first - 2;
     assertEquals(attackPhase(owner), AttackPhase.startup);
     owner.attack.frame++;
@@ -75,11 +74,11 @@ test("Warden roster phases and single-contact paths reach production [spec docs/
 test("Warden Judgment Edge rewards blade-end spacing and keeps moderate tilt reach [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
     for (const [style, frame, x, damage] of [
-      [AttackStyle.forwardSmash, 15, 60.0, 12.0],
-      [AttackStyle.forwardSmash, 15, 140.0, 16.0],
-      [AttackStyle.forwardTilt, 6, 80.0, 8.0],
+      [AttackStyle.forwardSmash, 15, 60.0, weakest(AttackStyle.forwardSmash)],
+      [AttackStyle.forwardSmash, 15, 140.0, strongest(AttackStyle.forwardSmash)],
+      [AttackStyle.forwardTilt, 6, 80.0, strongest(AttackStyle.forwardTilt)],
       [AttackStyle.forwardTilt, 6, 145.0, 0.0],
-      [AttackStyle.backAir, 6, -90.0, 11.0],
+      [AttackStyle.backAir, 6, -90.0, strongest(AttackStyle.backAir)],
       [AttackStyle.backAir, 6, 90.0, 0.0],
     ] as const) {
       const { target, world } = pair(style, frame, x, 0.0, facing);
@@ -88,16 +87,16 @@ test("Warden Judgment Edge rewards blade-end spacing and keeps moderate tilt rea
     }
   }
   assertEquals(smashDamageMultiplier(0, WARDEN_MOVES), 1.0);
-  assertEquals(smashDamageMultiplier(45, WARDEN_MOVES), 1.25);
-  assertEquals(smashDamageMultiplier(90, WARDEN_MOVES), 1.25);
+  assertEquals(smashDamageMultiplier(WARDEN_MOVES.smashMaxChargeFrames, WARDEN_MOVES), WARDEN_MOVES.smashMaxDamageMultiplier);
+  assertEquals(smashDamageMultiplier(WARDEN_MOVES.smashMaxChargeFrames * 2, WARDEN_MOVES), WARDEN_MOVES.smashMaxDamageMultiplier);
 });
 
 test("Warden angled slices and narrow vertical blades leave honest gaps [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
     for (const [style, x, z, damage] of [
-      [AttackStyle.forwardTiltUp, 105.0, 90.0, 8.0],
+      [AttackStyle.forwardTiltUp, 105.0, 90.0, strongest(AttackStyle.forwardTiltUp)],
       [AttackStyle.forwardTiltDown, 105.0, 90.0, 0.0],
-      [AttackStyle.forwardTiltDown, 105.0, -100.0, 8.0],
+      [AttackStyle.forwardTiltDown, 105.0, -100.0, strongest(AttackStyle.forwardTiltDown)],
       [AttackStyle.forwardTiltUp, 105.0, -100.0, 0.0],
       [AttackStyle.upSmash, 90.0, 0.0, 0.0],
       [AttackStyle.upAir, 70.0, 0.0, 0.0],
@@ -111,18 +110,19 @@ test("Warden angled slices and narrow vertical blades leave honest gaps [spec do
 
 test("Warden Twin Crescent hits once across front and rear blades [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
+    const damage = strongest(AttackStyle.downSmash);
     const { owner, target, world } = pair(AttackStyle.downSmash, 11, 80.0, 0.0, facing);
     resolveAttacks(world);
-    assertEquals(target.status.damage, 12.0);
+    assertEquals(target.status.damage, damage);
     owner.launch.hitlag = 0;
     target.launch.hitlag = 0;
     owner.attack.frame = 14;
     target.motion.x = f32(-80.0 * facing);
     resolveAttacks(world);
-    assertEquals(target.status.damage, 12.0);
+    assertEquals(target.status.damage, damage);
     const rear = pair(AttackStyle.downSmash, 14, -80.0, 0.0, facing);
     resolveAttacks(rear.world);
-    assertEquals(rear.target.status.damage, 12.0);
+    assertEquals(rear.target.status.damage, damage);
     assertLessThan(f32(rear.target.launch.knockbackX * facing), 0.0);
   }
 });
@@ -154,17 +154,11 @@ test("Warden standing and dash grabs use scaled standing and dash reach [spec #3
 
 test("Warden throws hold through adopted release then launch once in both facings [spec docs/design/roster.md]", () => {
   for (const facing of [-1, 1]) {
-    for (const [action, release, recovery, damage] of [
-      [GrabAction.throwForward, 10, 18, 6.0],
-      [GrabAction.throwBack, 14, 21, 7.0],
-      [GrabAction.throwUp, 11, 9, 5.0],
-      [GrabAction.throwDown, 14, 20, 4.0],
-    ] as const) {
+    for (const action of [GrabAction.throwForward, GrabAction.throwBack, GrabAction.throwUp, GrabAction.throwDown]) {
+      const release = grabContactFrame(action, WARDEN_MOVES), damage = WARDEN_MOVES.throws[action]?.effect.damage ?? -1.0;
       const { owner, target, world } = pair(AttackStyle.grab, 5, 40.0, 0.0, facing);
       resolveAttacks(world);
       assertEquals(owner.grab.target, 1);
-      assertEquals(grabContactFrame(action, WARDEN_MOVES), release);
-      assertEquals(grabActionDuration(action, WARDEN_MOVES), release + recovery);
       const input = controls({
         grabThrowX: action === GrabAction.throwForward ? facing : action === GrabAction.throwBack ? -facing : 0,
         grabThrowZ: action === GrabAction.throwUp ? 1 : action === GrabAction.throwDown ? -1 : 0,

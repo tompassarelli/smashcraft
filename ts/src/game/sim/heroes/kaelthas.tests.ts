@@ -1,4 +1,5 @@
 import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
+import { floorDiv } from "wisp/src/sim/intMath";
 import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, GrabAction, SpecialAction } from "../codes";
@@ -12,21 +13,27 @@ import { updateProjectiles } from "../projectiles";
 import { advanceFighter } from "../step";
 import { fighterAt, type Controls, type Roster } from "../roster";
 import { KAELTHAS_MOVES } from "./kaelthasMoves";
+import { KAELTHAS_SPECIALS } from "./kaelthasSpecials";
+import { ROSTER_MANA } from "../mana";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
 import { projectedProjectile } from "../../presentation/projectilePose";
 import { cancelSpecialState } from "../transitions";
 
+const FLAME_DAMAGE = KAELTHAS_SPECIALS.neutral.ground.projectiles?.[0]?.effect.damage ?? -1.0;
+const SIPHON = KAELTHAS_SPECIALS.side.ground.regions?.[0]?.hit.effect;
+const BANISH_DAMAGE = KAELTHAS_SPECIALS.down.ground.regions?.[0]?.hit.effect.damage ?? -1.0;
+
 const normalCases = [
-  [AttackStyle.jab, 45.0, 0.0, 3.0], [AttackStyle.jab2, 50.0, 0.0, 4.0],
-  [AttackStyle.forwardTilt, 95.0, 0.0, 8.0], [AttackStyle.forwardTiltUp, 95.0, 50.0, 8.0],
-  [AttackStyle.forwardTiltDown, 95.0, -25.0, 8.0], [AttackStyle.upTilt, 10.0, 65.0, 8.0],
-  [AttackStyle.downTilt, 85.0, -20.0, 6.0], [AttackStyle.dashAttack, 85.0, 0.0, 9.0],
-  [AttackStyle.forwardSmash, 135.0, 0.0, 16.0], [AttackStyle.upSmash, 0.0, 90.0, 15.0],
-  [AttackStyle.downSmash, 105.0, -20.0, 14.0], [AttackStyle.neutralAir, 45.0, 0.0, 7.0],
-  [AttackStyle.forwardAir, 100.0, 0.0, 10.0], [AttackStyle.backAir, -120.0, 0.0, 11.0],
-  [AttackStyle.upAir, 0.0, 85.0, 9.0], [AttackStyle.downAir, 0.0, -120.0, 12.0],
-  [AttackStyle.getupAttack, -60.0, -20.0, 7.0], [AttackStyle.ledgeAttack, 80.0, 0.0, 7.0],
+  [AttackStyle.jab, 45.0, 0.0], [AttackStyle.jab2, 50.0, 0.0],
+  [AttackStyle.forwardTilt, 95.0, 0.0], [AttackStyle.forwardTiltUp, 95.0, 50.0],
+  [AttackStyle.forwardTiltDown, 95.0, -25.0], [AttackStyle.upTilt, 10.0, 65.0],
+  [AttackStyle.downTilt, 85.0, -20.0], [AttackStyle.dashAttack, 85.0, 0.0],
+  [AttackStyle.forwardSmash, 135.0, 0.0], [AttackStyle.upSmash, 0.0, 90.0],
+  [AttackStyle.downSmash, 105.0, -20.0], [AttackStyle.neutralAir, 45.0, 0.0],
+  [AttackStyle.forwardAir, 100.0, 0.0], [AttackStyle.backAir, -120.0, 0.0],
+  [AttackStyle.upAir, 0.0, 85.0], [AttackStyle.downAir, 0.0, -120.0],
+  [AttackStyle.getupAttack, -60.0, -20.0], [AttackStyle.ledgeAttack, 80.0, 0.0],
 ] as const;
 
 function pair(x: number, facing = 1) {
@@ -38,10 +45,11 @@ function pair(x: number, facing = 1) {
 }
 
 test("Kaelthas every normal starts after its tell, hits once in both facings [spec docs/design/kaelthas.md]", () => {
-  for (const facing of [-1, 1]) for (const [style, x, z, damage] of normalCases) {
+  for (const facing of [-1, 1]) for (const [style, x, z] of normalCases) {
     const { owner, target, world } = pair(x, facing);
     owner.motion.grounded = !isAerialAttack(style); target.motion.grounded = false; target.motion.z = z;
     const move = KAELTHAS_MOVES.normals[style]; assertTrue(move !== undefined); if (move === undefined) continue;
+    const damage = move.regions.find(region => region.firstFrame === move.startupFrames)?.hit.effect.damage ?? -1.0;
     owner.attack.style = style; owner.attack.duration = move.totalFrames; owner.attack.frame = move.startupFrames - 1;
     resolveAttacks(world); assertEquals(target.status.damage, 0.0);
     owner.attack.frame++; resolveAttacks(world); assertEquals(target.status.damage, damage, `normal ${style}`);
@@ -51,9 +59,8 @@ test("Kaelthas every normal starts after its tell, hits once in both facings [sp
 });
 
 test("Kaelthas grab catches shield and every directional throw releases once [spec docs/design/kaelthas.md]", () => {
-  for (const facing of [-1, 1]) for (const [action, release, damage] of [
-    [GrabAction.throwForward, 14, 7.0], [GrabAction.throwBack, 17, 9.0], [GrabAction.throwUp, 16, 7.0], [GrabAction.throwDown, 18, 6.0],
-  ] as const) {
+  for (const facing of [-1, 1]) for (const action of [GrabAction.throwForward, GrabAction.throwBack, GrabAction.throwUp, GrabAction.throwDown]) {
+    const release = KAELTHAS_MOVES.throws[action]?.contactFrame ?? 0, damage = KAELTHAS_MOVES.throws[action]?.effect.damage ?? -1.0;
     const { owner, target, world } = pair(55.0, facing); target.shield.raised = true;
     beginFighterAttack(world, 0, AttackStyle.grab, false); owner.attack.frame = attackStartupFrames(AttackStyle.grab, KAELTHAS_MOVES);
     resolveAttacks(world); assertEquals(owner.grab.target, 1);
@@ -79,9 +86,9 @@ test("Kaelthas Flame Strike leaves the hand on frame 12 and launches the first b
     frame(world, controls({ specialPressed: true })); assertEquals(owner.special.action, SpecialAction.heroNeutral); assertEquals(owner.mana.points, 40);
     for (let tick = 2; tick < contact; tick++) frame(world);
     assertEquals(target.status.damage, 0.0, `before ${x}`);
-    frame(world); assertEquals(target.status.damage, 12.0, `at ${x}`); assertGreaterThan(target.launch.knockbackZ, 0.0);
+    frame(world); assertEquals(target.status.damage, FLAME_DAMAGE, `at ${x}`); assertGreaterThan(target.launch.knockbackZ, 0.0);
     for (let tick = contact + 1; tick <= 60; tick++) frame(world);
-    assertEquals(target.status.damage, 12.0); assertEquals(owner.mana.points, 52);
+    assertEquals(target.status.damage, FLAME_DAMAGE); assertEquals(owner.mana.points, 52);
   }
 });
 
@@ -127,7 +134,7 @@ test("Kaelthas Flame Strike stops at a shield, misses after its life and keeps t
     assertTrue(projectedProjectile(interrupted.owner, 0, true).visible);
     cancelSpecialState(interrupted.owner);
     for (let tick = 14; tick <= 60; tick++) frame(interrupted.world);
-    assertEquals(interrupted.target.status.damage, 12.0); assertEquals(interrupted.owner.mana.points, 52);
+    assertEquals(interrupted.target.status.damage, FLAME_DAMAGE); assertEquals(interrupted.owner.mana.points, 52);
 
     const early = pair(180.0, facing);
     frame(early.world, controls({ specialPressed: true }));
@@ -144,7 +151,7 @@ test("Kaelthas Siphon transfers available mana only on body contact and shields 
     const defense = controls({ shield: blocked, shieldStrength: 1.0 });
     frame(world, controls({ specialPressed: true, specialX: facing }), defense);
     for (let tick = 2; tick <= 44; tick++) frame(world, controls(), defense);
-    assertEquals(target.status.damage, blocked ? 0.0 : 4.0); assertEquals(owner.mana.points, blocked ? 40 : 56);
+    assertEquals(target.status.damage, blocked ? 0.0 : SIPHON?.damage); assertEquals(owner.mana.points, blocked ? 40 : 56);
     assertEquals(target.mana.points, blocked ? 12 : 2);
   }
 });
@@ -153,7 +160,7 @@ test("Kaelthas Banish protects only its authored window then strikes once [spec 
   const { owner, target, world } = pair(45.0); frame(world, controls({ specialPressed: true, specialZ: -1 }));
   assertEquals(owner.special.action, SpecialAction.heroDown); assertEquals(owner.mana.points, 40);
   for (let tick = 2; tick <= 12; tick++) { frame(world); if (tick >= 5) assertTrue(isIntangible(owner)); }
-  for (let tick = 13; tick <= 50; tick++) frame(world); assertEquals(target.status.damage, 5.0); assertTrue(!isIntangible(owner));
+  for (let tick = 13; tick <= 50; tick++) frame(world); assertEquals(target.status.damage, BANISH_DAMAGE); assertTrue(!isIntangible(owner));
 });
 
 test("Kaelthas Phoenix Flight at every meter level consumes the jump and finish helpless with snapshot state [spec docs/design/kaelthas.md] [invariant]", () => {
@@ -179,11 +186,11 @@ test("Kaelthas EX Flame Strike keeps travelling after interruption with a quarte
     const { owner, target, world } = pair(180.0, facing);
     owner.mana.points = 100;
     frame(world, controls({ specialPressed: true, shield: true }));
-    assertEquals(owner.mana.points, 67);
+    assertEquals(owner.mana.points, 100 - ROSTER_MANA.exCost);
     for (let tick = 2; tick <= 13; tick++) frame(world);
     cancelSpecialState(owner);
     for (let tick = 14; tick <= 60; tick++) frame(world);
-    assertEquals(target.status.damage, 15.0);
+    assertEquals(target.status.damage, f32(FLAME_DAMAGE * 1.25));
   }
 });
 
@@ -194,7 +201,7 @@ test("Kaelthas EX Siphon reaches beyond the ordinary beam without increasing its
     target.mana.points = 60;
     frame(world, controls({ specialPressed: true, specialX: facing, shield: ex }));
     for (let tick = 2; tick <= 44; tick++) frame(world);
-    assertEquals(target.status.damage, ex ? 4.0 : 0.0);
-    assertEquals(target.mana.points, ex ? 37 : 60);
+    assertEquals(target.status.damage, ex ? SIPHON?.damage : 0.0);
+    assertEquals(target.mana.points, ex ? 60 - (SIPHON?.manaSteal ?? 0) + floorDiv(Math.floor(SIPHON?.damage ?? 0.0), ROSTER_MANA.takenPercentPerPoint) : 60);
   }
 });

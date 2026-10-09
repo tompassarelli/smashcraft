@@ -4,7 +4,7 @@ import { Character, HeroStatusKind, SpecialAction } from "./codes";
 import { createFighter } from "./fighter";
 import { advanceSpecials, demonHunterJumpOrGlideCancel, felRushRegion, flameCrashRegion, immolationRegion, startFighterSpecial } from "./specials";
 import { updateProjectiles } from "./projectiles";
-import { advanceBear, advanceFreezeTraps } from "./summons";
+import { FREEZE_TRAP_FREEZE_FRAMES, advanceBear, advanceFreezeTraps } from "./summons";
 import { contactBatch, controls, testWorld } from "./testWorld";
 import { copyFighterState, sameFighterState } from "../replay/fighterState";
 import { firstFighterDifference } from "../replay/difference";
@@ -108,7 +108,7 @@ test("EX trap places on frame 22, ends on 38 and freezes from 50 units after the
     d.target.motion.surface = 0;
     d.target.motion.x = 50.0;
     advanceFreezeTraps(d.world);
-    assertEquals(d.target.status.frozenFrames, ex ? 300 : 0);
+    assertEquals(d.target.status.frozenFrames, ex ? FREEZE_TRAP_FREEZE_FRAMES : 0);
   }
 });
 
@@ -146,7 +146,7 @@ test("EX Fel Rush and ground/air Chaos Strike deal 25% greater damage through th
       damage.push(d.target.status.damage);
       assertEquals(d.owner.special.ex, ex);
     }
-    assertEquals(damage[0], branch ? 10.0 : 6.0);
+    assertEquals(damage[0], ordinary.effect.damage);
     assertEquals(damage[1], f32((damage[0] ?? 0) * 1.25));
   }
 });
@@ -166,7 +166,7 @@ test("EX Immolation and Flame Crash plunge/burst scale damage while keeping laun
       d.tick(form === 0 ? 4 : form === 1 ? 5 : 1);
       damage.push(d.target.status.damage);
     }
-    assertEquals(damage[0], form === 0 ? 7.0 : form === 1 ? 9.0 : 8.0);
+    assertEquals(damage[0], ordinary.effect.damage);
     assertEquals(damage[1], f32((damage[0] ?? 0) * 1.25));
   }
 });

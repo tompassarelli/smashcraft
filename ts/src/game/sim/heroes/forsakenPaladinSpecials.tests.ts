@@ -49,6 +49,12 @@ function pair(gap: number, opponent: Character = Character.sylvanas): { world: R
 }
 
 const H = HERO_REFERENCE_HEIGHT;
+const FP = FORSAKEN_PALADIN_SPECIALS;
+const HAMMER_DAMAGE = FP.neutral.ground.regions?.[0]?.hit.effect.damage ?? -1.0;
+const FURY_DAMAGE = FP.side.ground.regions?.[0]?.hit.effect.damage ?? -1.0;
+const ASCENSION_DAMAGE = FP.up.ground.regions?.[0]?.hit.effect.damage ?? -1.0;
+const CONSECRATION = FP.down.ground.projectiles?.[0];
+const CONSECRATION_DAMAGE = CONSECRATION?.effect.damage ?? -1.0;
 const neutral = controls({ specialPressed: true });
 const side = controls({ specialPressed: true, specialX: 1 });
 const up = controls({ specialPressed: true, specialZ: 1 });
@@ -64,10 +70,10 @@ test("Forsaken Paladin's replay kit identity records the frame of Cleansing Hamm
 
 test("Forsaken Paladin's specials preserve their super meter and end on their listed frames [spec #335]", () => {
   for (const [input, action, end] of [
-    [neutral, SpecialAction.heroNeutral, 38],
-    [side, SpecialAction.heroSide, 49],
-    [up, SpecialAction.heroUp, 29],
-    [down, SpecialAction.heroDown, 42],
+    [neutral, SpecialAction.heroNeutral, FP.neutral.ground.endFrame],
+    [side, SpecialAction.heroSide, FP.side.ground.endFrame],
+    [up, SpecialAction.heroUp, FP.up.ground.endFrame],
+    [down, SpecialAction.heroDown, FP.down.ground.endFrame],
   ] as const) {
     const { world, owner } = pair(900.0);
     frame(world, input);
@@ -92,12 +98,12 @@ test("Cleansing Hammer bonks once, launches upward and holds both fighters three
     for (let f = 2; f <= 13; f++) frame(world);
     assertEquals(target.status.damage, 0.0);
     for (let f = 14; f <= 16 && target.status.damage === 0.0; f++) frame(world);
-    assertEquals(target.status.damage, f32(13.0 * f32(0.8)));
-    assertEquals(owner.launch.hitlag, ordinaryHitlagFrames(13.0) + 3);
-    assertEquals(target.launch.hitlag, ordinaryHitlagFrames(13.0) + 3);
+    assertEquals(target.status.damage, f32(HAMMER_DAMAGE * f32(0.8)));
+    assertEquals(owner.launch.hitlag, ordinaryHitlagFrames(HAMMER_DAMAGE) + 3);
+    assertEquals(target.launch.hitlag, ordinaryHitlagFrames(HAMMER_DAMAGE) + 3);
     assertGreaterThan(target.launch.knockbackZ, Math.abs(target.launch.knockbackX));
     for (let f = 0; f < 60; f++) frame(world);
-    assertEquals(target.status.damage, f32(13.0 * f32(0.8)));
+    assertEquals(target.status.damage, f32(HAMMER_DAMAGE * f32(0.8)));
     assertEquals(owner.projectiles.filter((p) => p.life > 0).length, 0);
   }
 });
@@ -106,10 +112,11 @@ test("Forsaken Paladin's balanced hammer normal keeps its original hitlag while 
   const { world, owner, target } = pair(100.0);
   beginFighterAttack(world, 0, AttackStyle.forwardTilt, false);
   owner.attack.frame = 11;
+  const tilt = owner.tuning.moves?.normals[AttackStyle.forwardTilt]?.regions.find(region => region.firstFrame <= 11 && region.lastFrame >= 11)?.hit.effect.damage ?? -1.0;
   resolveAttacks(world);
-  assertEquals(target.status.damage, f32(13.5 * f32(0.8)));
-  assertEquals(owner.launch.hitlag, ordinaryHitlagFrames(13.5) + 3);
-  assertEquals(target.launch.hitlag, ordinaryHitlagFrames(13.5) + 3);
+  assertEquals(target.status.damage, f32(tilt * f32(0.8)));
+  assertEquals(owner.launch.hitlag, ordinaryHitlagFrames(tilt) + 3);
+  assertEquals(target.launch.hitlag, ordinaryHitlagFrames(tilt) + 3);
 });
 
 test("Righteous Fury advances with the hammer, hits once up close, slows movement and cannot hit at range [spec docs/design/forsaken-paladin.md]", () => {
@@ -124,7 +131,7 @@ test("Righteous Fury advances with the hammer, hits once up close, slows movemen
   const close = pair(100.0);
   frame(close.world, side);
   for (let f = 2; f <= 75; f++) frame(close.world);
-  assertEquals(close.target.status.damage, f32(14.0 * f32(0.8)));
+  assertEquals(close.target.status.damage, f32(FURY_DAMAGE * f32(0.8)));
   assertEquals(close.target.status.condition, HeroStatusKind.chill);
   const ranged = pair(400.0);
   frame(ranged.world, side);
@@ -153,8 +160,8 @@ test("Forsaken Paladin's hammer makes one loud heavy bash and holds a shield con
     frame(shield.world, f === 1 ? neutral : controls(), undefined, controls({ shield: true, shieldStrength: 1.0 }));
   }
   assertEquals(shield.target.status.damage, 0.0);
-  assertEquals(shield.owner.launch.hitlag, ordinaryHitlagFrames(13.0) + 3);
-  assertEquals(shield.target.launch.hitlag, ordinaryHitlagFrames(13.0) + 3);
+  assertEquals(shield.owner.launch.hitlag, ordinaryHitlagFrames(HAMMER_DAMAGE) + 3);
+  assertEquals(shield.target.launch.hitlag, ordinaryHitlagFrames(HAMMER_DAMAGE) + 3);
 });
 
 test("air Righteous Fury has no armor, spends its one airborne use and ends helpless [spec #335]", () => {
@@ -173,7 +180,7 @@ test("air Righteous Fury has no armor, spends its one airborne use and ends help
 });
 
 test("Ascension keeps its heavy recovery band and hammer hit at every meter level, 0.2H drift plus 1.6H steering and helpless fall [spec #335]", () => {
-  for (const [mana, damage] of [[100, 8.0], [14, 8.0]] as const) {
+  for (const mana of [100, 14]) {
     const route = upSpecialRoute(Character.forsakenPaladin, mana);
     assertTrue(route.rise >= 320.0 && route.rise <= 440.0);
     assertTrue(route.reach >= 320.0 && route.reach <= 480.0);
@@ -201,7 +208,7 @@ test("Ascension keeps its heavy recovery band and hammer hit at every meter leve
     close.owner.mana.points = mana;
     frame(close.world, up);
     for (let f = 2; f <= 30; f++) frame(close.world);
-    assertEquals(close.target.status.damage, f32(damage * f32(0.8)));
+    assertEquals(close.target.status.damage, f32(ASCENSION_DAMAGE * f32(0.8)));
   }
 });
 
@@ -249,12 +256,12 @@ test("Consecration refuses in air, pulses only on grounded targets and has one f
   for (let f = 2; f <= 15; f++) frame(world);
   assertEquals(target.status.damage, 0.0);
   frame(world);
-  assertEquals(target.status.damage, f32(2.0 * f32(0.8)));
+  assertEquals(target.status.damage, f32(CONSECRATION_DAMAGE * f32(0.8)));
   const pool = owner.projectiles.find(p => p.life > 0);
   assertTrue(pool !== undefined);
   if (pool === undefined) return;
   const x = pool.x;
-  assertEquals(pool.spec?.radius, 60.0);
+  assertEquals(pool.spec?.radius, CONSECRATION?.radius);
   assertEquals(pool.spec?.pool?.growth, 0.0);
   assertFalse(pool.spec?.reflectable ?? true);
   for (let f = 0; f < 48; f++) {
@@ -265,7 +272,7 @@ test("Consecration refuses in air, pulses only on grounded targets and has one f
     updateProjectiles(world);
     finishDamageContacts(world);
   }
-  assertEquals(target.status.damage, f32(2.0 * f32(0.8)));
+  assertEquals(target.status.damage, f32(CONSECRATION_DAMAGE * f32(0.8)));
   target.motion.z = 0.0;
   target.motion.grounded = true;
   target.status.invincible = 0;
@@ -274,9 +281,9 @@ test("Consecration refuses in air, pulses only on grounded targets and has one f
   beginDamageContacts();
   updateProjectiles(world);
   finishDamageContacts(world);
-  assertEquals(target.status.damage, f32(4.0 * f32(0.8)));
+  assertEquals(target.status.damage, f32(f32(2.0 * CONSECRATION_DAMAGE) * f32(0.8)));
   assertEquals(pool.x, x);
-  assertEquals(pool.spec?.radius, 60.0);
+  assertEquals(pool.spec?.radius, CONSECRATION?.radius);
 });
 
 test("Consecration cannot be recast before its cooldown and gives no shield protection [spec docs/design/forsaken-paladin.md]", () => {

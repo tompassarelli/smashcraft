@@ -64,18 +64,13 @@ test("a full trigger within the observed window starts and expires the reflect s
   advanceSolo(fighter, 0, input, 0.0);
   assertTrue(fighter.shield.raised);
   assertEquals(fighter.shield.reflectFrames, SHIELD_REFLECTOR_ACTIVE_FRAMES);
-  assertEquals(fighter.shield.perfectFrames, 4);
+  assertEquals(fighter.shield.perfectFrames, SHIELD_PERFECT_ACTIVE_FRAMES);
   input.shieldPressed = false;
-  advanceSolo(fighter, 0, input, 0.0);
-  assertEquals(fighter.shield.reflectFrames, 1);
-  assertEquals(fighter.shield.perfectFrames, 3);
-  advanceSolo(fighter, 0, input, 0.0);
-  assertEquals(fighter.shield.reflectFrames, 0);
-  assertEquals(fighter.shield.perfectFrames, 2);
-  advanceSolo(fighter, 0, input, 0.0);
-  assertEquals(fighter.shield.perfectFrames, 1);
-  advanceSolo(fighter, 0, input, 0.0);
-  assertEquals(fighter.shield.perfectFrames, 0);
+  for (let tick = 1; tick <= SHIELD_PERFECT_ACTIVE_FRAMES; tick++) {
+    advanceSolo(fighter, 0, input, 0.0);
+    assertEquals(fighter.shield.reflectFrames, Math.max(0, SHIELD_REFLECTOR_ACTIVE_FRAMES - tick));
+    assertEquals(fighter.shield.perfectFrames, SHIELD_PERFECT_ACTIVE_FRAMES - tick);
+  }
 });
 
 test("pressure to a full press honors the two-frame input window [reference]", () => {
@@ -190,7 +185,7 @@ test("a parried hit takes no shield damage or shieldstun; an ordinary block take
   target.shield.perfectFrames = 1;
   contactBatch(world, queueHitOf(world, 10.0));
   assertEquals(target.status.damage, 0.0);
-  assertEquals(target.shield.energy, 60.0);
+  assertEquals(target.shield.energy, SHIELD_MAX);
   assertEquals(target.shield.stun, 0);
   assertGreaterThan(target.launch.hitlag, 0);
   assertEquals(target.shield.pushbackX, f32(1.3000000715255737 * WORLD_UNITS_PER_MELEE_UNIT));
@@ -255,12 +250,12 @@ test("each hit of a string needs its own parry, and the reward follows the last 
     if (retimed) {
       assertEquals(target.visuals.shieldReflect, 2);
       assertEquals(target.shield.stun, 0);
-      assertEquals(target.shield.energy, 60.0);
+      assertEquals(target.shield.energy, SHIELD_MAX);
       assertEquals(target.shield.perfectActionFrames, SHIELD_PERFECT_POST_CONTACT_FRAMES);
     } else {
       assertEquals(target.visuals.shield, 1);
       assertGreaterThan(target.shield.stun, 0);
-      assertLessThan(target.shield.energy, 60.0);
+      assertLessThan(target.shield.energy, SHIELD_MAX);
       assertEquals(target.shield.perfectActionFrames, 0);
     }
     target.visuals.shield = 0;

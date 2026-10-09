@@ -8,6 +8,7 @@ import { updateProjectiles } from "../projectiles";
 import { createRoster } from "../roster";
 import { startFighterSpecial } from "../specials";
 import { controls } from "../testWorld";
+import { WARDEN_SPECIALS } from "./wardenSpecials";
 
 const heroes = [Character.blademaster, Character.mountainKing, Character.warden, Character.lich];
 
@@ -138,7 +139,7 @@ test("EX Fan of Knives expands sideways and upward around its chest center in gr
     const target = createFighter(Character.rifleman, vertical ? 0.0 : 220.0, -1);
     if (vertical) { target.motion.z = 245.0; target.motion.grounded = false; target.motion.surface = undefined; }
     assertEquals(heroSpecialContact(base, target, false).effect.damage, 0.0);
-    assertEquals(heroSpecialContact(ex, target, false).effect.damage, 7.0);
+    assertEquals(heroSpecialContact(ex, target, false).effect.damage, WARDEN_SPECIALS.down.ground.regions?.[0]?.hit.effect.damage);
   }
 });
 
@@ -172,8 +173,8 @@ test("Frost Nova ordinary recall preserves an EX orb and EX recall upgrades an o
     assertEquals(lich.special.form, SpecialForm.recall);
     advance(lich, 4);
     assertEquals(orb?.velocityX, 0.0);
-    assertEquals(orb?.life, 9);
     const baseBurst = lich.tuning.specials?.neutral.recall?.burst?.into;
+    assertEquals(orb?.life, baseBurst?.life);
     assertNear(orb?.spec?.radius ?? 0.0, f32((baseBurst?.radius ?? 0.0) * (orbEx || recallEx ? 1.25 : 1.0)), f32(0.001));
     assertEquals(orb?.spec?.effect.damage, baseBurst?.effect.damage);
   }

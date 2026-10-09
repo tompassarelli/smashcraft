@@ -48,10 +48,10 @@ test("an air dodge changes velocity, and landing restores jumps [reference] [spe
   assertEquals(fighter.motion.z, 0.0);
   assertTrue(fighter.motion.grounded);
   assertEquals(fighter.jump.remaining, 2);
-  assertEquals(fighter.landing.lag, 10);
+  assertEquals(fighter.landing.lag, AIR_DODGE_LANDING_LAG);
   input.direction = 1;
   advanceSolo(fighter, 0, input, -240.0);
-  assertEquals(fighter.landing.lag, 9);
+  assertEquals(fighter.landing.lag, AIR_DODGE_LANDING_LAG - 1);
 });
 
 const ALL_FIGHTERS = Object.values(Character);
@@ -75,11 +75,11 @@ test("Rifleman's wavedash carries the stronger dodge through landing traction [s
   beginAirDodge(fighter, 1, 0);
   advanceSolo(fighter, 0, controls(), 0.0);
   assertTrue(fighter.motion.grounded);
-  assertEquals(fighter.landing.lag, 10);
+  assertEquals(fighter.landing.lag, AIR_DODGE_LANDING_LAG);
   for (let frame = 1; frame < 10; frame++) advanceSolo(fighter, 0, controls(), 0.0);
 
   assertNear(fighter.motion.x, f32(153.01399168968203), f32(0.001));
-  assertEquals(fighter.landing.lag, 1);
+  assertEquals(fighter.landing.lag, AIR_DODGE_LANDING_LAG - 9);
   assertFalse(canAttack(fighter));
 });
 
@@ -268,7 +268,7 @@ test("a fast air dodge uses the swept platform crossing [spec docs/physics.md]",
     assertEquals(fighter.motion.surface, entersTooLate ? 0 : 1);
     assertEquals(fighter.motion.z, entersTooLate ? 0.0 : 170.0);
     assertNear(fighter.motion.vx, 90.0, 0.0010000000474974513);
-    assertEquals(fighter.landing.lag, 10);
+    assertEquals(fighter.landing.lag, AIR_DODGE_LANDING_LAG);
   }
 });
 
@@ -281,7 +281,7 @@ test("an air dodge landing slides and restores actions after ten ticks [referenc
     const input = controls();
     advanceSolo(fighter, 0, input, 0.0);
     assertTrue(fighter.motion.grounded);
-    assertEquals(fighter.landing.lag, 10);
+    assertEquals(fighter.landing.lag, AIR_DODGE_LANDING_LAG);
     assertFalse(canAttack(fighter));
     const landingSpeed = fighter.motion.vx;
     input.direction = -1;
@@ -290,7 +290,7 @@ test("an air dodge landing slides and restores actions after ten ticks [referenc
       advanceSolo(fighter, 0, input, 0.0);
       assertGreaterThan(fighter.motion.x, previousX);
       assertNear(fighter.motion.vx, landingSpeed - tick * GROUND_TRACTION, 0.0010000000474974513);
-      assertEquals(fighter.landing.lag, 10 - tick);
+      assertEquals(fighter.landing.lag, AIR_DODGE_LANDING_LAG - tick);
       assertFalse(canAttack(fighter));
     }
     advanceSolo(fighter, 0, input, 0.0);
@@ -321,14 +321,14 @@ test("a delayed jump air dodge lands during its motion and slides [spec docs/gam
         while (!fighter.motion.grounded && fighter.dodge.airMotionFrames > 0) advanceSolo(fighter, 0, input, 0.0);
         assertTrue(fighter.motion.grounded);
         assertGreaterThan(fighter.dodge.airMotionFrames, 0);
-        assertEquals(fighter.landing.lag, 10);
+        assertEquals(fighter.landing.lag, AIR_DODGE_LANDING_LAG);
         assertGreaterThan(fighter.motion.vx * direction, GROUND_TRACTION);
         const landingX = fighter.motion.x;
         const landingSpeed = fighter.motion.vx;
         advanceSolo(fighter, 0, input, 0.0);
         assertGreaterThan((fighter.motion.x - landingX) * direction, 0.0);
         assertNear(fighter.motion.vx, landingSpeed - direction * GROUND_TRACTION, 0.0010000000474974513);
-        assertEquals(fighter.landing.lag, 9);
+        assertEquals(fighter.landing.lag, AIR_DODGE_LANDING_LAG - 1);
         assertFalse(canAttack(fighter));
       }
     }
