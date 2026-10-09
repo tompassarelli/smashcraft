@@ -3,6 +3,7 @@ import type { HeadlessClient } from "wisp/src/headless/client";
 import { PARTICIPANT_SLOTS } from "../src/game/input/participants";
 import { Phase } from "../src/game/match/rules";
 import { cameraPoint } from "../src/game/presentation/arenaCamera";
+import { fighterFrame } from "../src/game/presentation/fighterFraming";
 import { fighterAt, isActive } from "../src/game/sim/roster";
 import { shell } from "../src/platform/shell/state";
 
@@ -39,7 +40,11 @@ export class CameraFindings {
       }
       const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
       const point = cameraPoint(s.camera, aspect, fighter?.motion.x ?? 0, (fighter?.motion.z ?? 0) + 60);
-      const outside = point.column < 0 || point.column > 1 || point.row < 0 || point.row > 1;
+      const body = fighter === undefined ? undefined : fighterFrame(fighter.character);
+      const outside = fighter !== undefined && body !== undefined && [body.bottom, body.top].some((above) => [-body.right, body.right].some((side) => {
+        const edge = cameraPoint(s.camera, aspect, fighter.motion.x + side, fighter.motion.z + above);
+        return edge.column < 0 || edge.column > 1 || edge.row < 0 || edge.row > 1;
+      }));
       const needsBubble = game.phase === Phase.match && fighter !== undefined && !fighter.status.out && outside;
       if (needsBubble) this.offscreenFrames++;
       for (const [name, context] of [[`OffscreenPortrait${slot}`, 920 + slot * 2], [`OffscreenArrow${slot}`, 921 + slot * 2]] as const) {
