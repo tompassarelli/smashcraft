@@ -1,4 +1,4 @@
-# #144 special cues: every Illidan special form shows its Warcraft spell (Illidan has no #148 passive).
+# #144 special cues: every Illidan special form shows its Warcraft spell.
 # Illidan a against Illidan b; syntax and checks: smashcraft:docs/native-bot-session.md.
 #! chat -dev quick hero illidan
 # Mana Burn: its orb hits a standing b.

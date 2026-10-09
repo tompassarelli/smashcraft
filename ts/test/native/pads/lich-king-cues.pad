@@ -1,4 +1,4 @@
-# #144 special cues: every Lich King special form shows its Warcraft spell (the Lich King has no #148 passive).
+# #144 special cues: every Lich King special form shows its Warcraft spell.
 # Lich King a against Lich King b; syntax and checks: smashcraft:docs/native-bot-session.md.
 #! chat -dev quick hero lich king
 # #144: Defile.

@@ -8,7 +8,7 @@ Public references for this work (sources, timestamps, rights) are indexed in
 ## Archer ground-attack readability — 2026-10-01
 
 Real inputs select jab (style 0, frame 1026), forward tilt (6, 1086), down
-tilt (8, 1145), and up tilt (7, 1199) in grab-pose-passive-r1, with zero
+tilt (8, 1145), and up tilt (7, 1199) in grab-pose-idle-opponent-r1, with zero
 dropped trace records. In that baseline the raised leg was difficult to
 distinguish from the head and cape.
 Evidence: smashcraft:build/archer-ground-attacks-native.mp4,
@@ -36,7 +36,7 @@ and Rifleman MDX are unchanged. Evidence:
 smashcraft:build/animation-assets/check-silhouette-preservation.log and
 smashcraft:build/animation-assets/check-silhouette-package.log.
 
-Native build archer-silhouette-passive-r1 was exercised through jab,
+Native build archer-silhouette-idle-opponent-r1 was exercised through jab,
 forward/down/up tilt in both facings. The overhead leg now separates from the
 head, and down tilt visibly lowers the torso. Right-facing dispatch frames:
 247/307/361/415; left-facing: 643/703/757/811. Both traces have zero dropped
@@ -73,14 +73,14 @@ outside the grab family, including curve handles and interpolation; package
 validation passed. Evidence: smashcraft:build/animation-assets/check-pair-preservation.log
 and smashcraft:build/animation-assets/check-pair-package.log.
 
-Native build grab-pose-passive-r1 was exercised with each fighter as holder
+Native build grab-pose-idle-opponent-r1 was exercised with each fighter as holder
 against the other. Both right-facing holders visibly reach the captive's upper
 body with separated weapons, pummel, and release forward. Both traces record
 hold at frame 270, pummel at 295 and forward release at 360, with zero dropped
 records. Damage progresses 0 to 3 to 10. Evidence:
 smashcraft:build/archer-grab-pose.mp4 and smashcraft:build/archer-grab-pose-trace.txt;
 smashcraft:build/rifleman-grab-pose.mp4 and smashcraft:build/rifleman-grab-pose-trace.txt.
-Reverse-facing checks now also succeed in `archer-silhouette-passive-r1`.
+Reverse-facing checks now also succeed in `archer-silhouette-idle-opponent-r1`.
 Archer captures/pummels/releases at frames 354/379/438; Rifleman at
 330/355/414. Both show the authored reach, captive pose, pummel and forward
 release, with weapons visibly separated and damage progressing 0 to 3 to 10.
@@ -165,7 +165,7 @@ these scenarios, not both-facing art acceptance or multiplayer behavior.
 Holder/victim overlap is visible in these older recordings; the coordinated
 grab-pose section above records the subsequent repair and both-facing checks.
 
-Single-client checks in `special-direction-passive-r1` now show:
+Single-client checks in `special-direction-idle-opponent-r1` now show:
 
 - Archer neutral arrow deals 7 damage without a victim hitstun transition.
   Multishot visibly emits its fan after windup; this close-range attempt misses
@@ -235,7 +235,7 @@ or successful cancellation.
 
 ## Demon Hunter completion checklist
 
-Native grounded-action checks in `archer-silhouette-passive-r1` now exercise
+Native grounded-action checks in `archer-silhouette-idle-opponent-r1` now exercise
 Illidan's jab and flat forward/down/up tilts in both facings. The first trace
 records activations at frames 247/301/355/403; the reverse trace records
 619/673/727/775. Forward and down tilt contact produce victim damage and
@@ -352,7 +352,7 @@ smashcraft:build/illidan-normal-landing-frames.png, and
 smashcraft:build/illidan-dodge-landing-frames.png. This does not establish
 Up-B landing, attack landing, both facings or rollback restoration.
 
-Native checks on 2026-10-01 used `illidan-passive-r1`, the existing knockdown
+Native checks on 2026-10-01 used `illidan-idle-opponent-r1`, the existing knockdown
 scenario after both fighters returned to standing. Mana Burn activates from U,
 hits for 5 damage and produces victim hitlag/hitstun. E+U activates Immolate
 (special 12); R+U activates the parry step (special 10) and moves the fighter.

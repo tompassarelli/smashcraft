@@ -44,12 +44,12 @@ missed; its separate failed recording is retained. Pair-pose overlap remains
 unfinished. Next work should improve coordinated hold/pummel poses rather than
 repeat successful throw activation checks.
 
-Running: idle-opponent `special-direction-passive-r1`, P1 Rifleman x=284.879,
+Running: idle-opponent `special-direction-idle-opponent-r1`, P1 Rifleman x=284.879,
 0%, facing right; idle Archer 29%. Paused with Y after up-throw recording.
 Normal `special-direction-r1` restored atomically from
 smashcraft:build/special-direction-normal.w3x; installed byte comparison passed.
 Public downloadable release unchanged. No recording process or child is live.
-The old load-rifleman-passive script stopped in the native lobby this time;
+The old load-rifleman-idle-opponent script stopped in the native lobby this time;
 manual Start followed by screen-confirmed selection completed the load. Do not
 assume its fixed sleeps establish a loaded match or use Ctrl+R.
 
@@ -61,7 +61,7 @@ damage and release. Back crosses behind the holder; up launches vertically;
 down produces tumble, floor contact and prone recovery. Evidence and frame
 numbers are in smashcraft:docs/fighter-animation-work.md. Hold/pummel overlap remains an art gap.
 
-Running: idle-opponent `special-direction-passive-r1`, P1 Archer at x=-105.121,
+Running: idle-opponent `special-direction-idle-opponent-r1`, P1 Archer at x=-105.121,
 0%, facing right; idle Rifleman at 37%, prone after down throw. Paused with
 Y. Installed normal map remains `special-direction-r1`; no build/install change
 this turn. Continue Rifleman's remaining throw directions and pair readability;
@@ -98,7 +98,7 @@ Detailed evidence and limits: smashcraft:docs/fighter-animation-work.md.
 
 Installed for next launch: normal `special-direction-r1`, restored atomically
 from smashcraft:build/special-direction-normal.w3x; byte comparison passed.
-Running: idle-opponent `special-direction-passive-r1`, Archer versus Rifleman,
+Running: idle-opponent `special-direction-idle-opponent-r1`, Archer versus Rifleman,
 paused with Y after the grab attempt. Do not use Ctrl+R. Public release remains
 unchanged. No source rebuild was needed for these checks; no multiplayer
 conclusion follows. Continue with controlled Archer capture/throws and arrow
@@ -127,7 +127,7 @@ the focused input suite passes 9/9, including the failing case for all three
 characters and immutable pending intent. Logs:
 smashcraft:build/wurst-tests/special-direction-all.log and
 smashcraft:build/wurst-tests/special-direction-input.log.
-The actual native test runs in `special-direction-passive-r1`, paused with Y.
+The actual native test runs in `special-direction-idle-opponent-r1`, paused with Y.
 Normal `special-direction-r1` is built and installed for the next launch;
 byte comparison passed. Build completed with zero errors and six warnings:
 smashcraft:build/special-direction-normal-map.log. The currently running map
@@ -137,7 +137,7 @@ remains the paused idle-opponent scenario. Public downloadable release is unchan
 
 Installed for next launch: normal `illidan-landing-r1`, restored by atomic
 replacement from smashcraft:build/illidan-landing-normal.w3x; byte comparison passed.
-Currently running: `illidan-landing-passive-r1`, paused with Y after a clean
+Currently running: `illidan-landing-idle-opponent-r1`, paused with Y after a clean
 normal-jump/air-dodge landing recording. Normal contact crouch -> stand and
 air-dodge contact crouch -> stand are visible. The trace records respective
 landing recovery of 4 and 10 frames, no damage interruptions and no dropped
@@ -167,7 +167,7 @@ smashcraft:build/illidan-visibility-normal.w3x. Public release remains unchanged
 Installed for the next launch: normal `illidan-visibility-r1`, restored atomically
 from smashcraft:build/illidan-visibility-normal.w3x. Byte comparison passed;
 SHA-256 adfd7fe9dbbcd322941b91bcffe3ed67dc17174847a1a98afb5936a6a5f44fec.
-Currently running: `illidan-passive-r1`, paused with Y after native testing.
+Currently running: `illidan-idle-opponent-r1`, paused with Y after native testing.
 Do not confuse the running knockdown/idle-opponent fixture with the restored file.
 
 Native traces confirm Mana Burn hit (5 damage, 4 hitlag, 13 hitstun), Immolate
