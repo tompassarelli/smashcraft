@@ -1660,9 +1660,8 @@ computers at **Wren Expert** and at least **400 matches a pair**: every pair
 of different fighters, both orders, on every soak stage, over seeded
 matches. The numbers live in one constant, `BALANCE_GATE` in
 smashcraft:ts/scripts/cpuField.ts. smashcraft:ts/scripts/cpuField.tests.ts
-pins the constant and checks that this section states the same numbers, so
-changing the gate means changing the code, the test and this section
-together.
+checks that this section states the constant's numbers, so changing the gate
+means changing the code and this section together.
 
 Tom's fuller balance spec (8 Oct), which adds the spam probe, the move-share
 ceiling, play-style profiles and the balance score on top of this band, is

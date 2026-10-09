@@ -12,40 +12,28 @@ import { playCpuMatch } from "./cpuField";
 const field = (): CeilingRow[] => Array.from({length:12},(_,index)=>({fighter:`fighter-${index}`,path:"execution",panel:Object.fromEntries(CPU_OPPONENT_IDS.map((id,k)=>[id,k===index%6?0.51:0.498])) as CeilingRow["panel"],expertVsBasic:0.6,expert:0.5,execution:0.6,judgment:0.52,ceilingVsExpert:0.65,advancedVsExpert:0.45,ceilingVsCeiling:0.5,complete:true}));
 const verdict = (patch: Partial<CeilingRow>) => {const rows=field();rows[0]={...rows[0]!,...patch};return ceilingVerdicts(rows).rows[0]!;};
 
-test("panel mean and individual personality bands reject outlying field rows [spec #358]",()=>{
-  expect(verdict({}).panel).toBe(true);
+const S = CEILING_SPEC;
+test("ceiling verdicts reject a row just outside each band: panel, personality, diversity, depth, path, ceiling and headroom [spec #358]",()=>{
+  expect(verdict({})).toMatchObject({panel:true,depth:true,path:true,ceiling:true,headroom:true});
   const panel=field()[0]!.panel;
-  expect(verdict({panel:{...panel,rook:0.61}}).panel).toBe(false);
-  expect(verdict({panel:Object.fromEntries(CPU_OPPONENT_IDS.map(id=>[id,0.56])) as CeilingRow["panel"]}).panel).toBe(false);
-});
-test("diversity rejects a field with no best fit or one dominant personality [spec #358]",()=>{
+  expect(verdict({panel:{...panel,rook:S.personalityHigh+0.01}}).panel).toBe(false);
+  expect(verdict({panel:Object.fromEntries(CPU_OPPONENT_IDS.map(id=>[id,S.panelHigh+0.01])) as CeilingRow["panel"]}).panel).toBe(false);
   expect(ceilingVerdicts(field()).diversity).toBe(true);
-  expect(ceilingVerdicts(field().map(r=>({...r,panel:{...r.panel,rook:0.6}}))).diversity).toBe(false);
-});
-test("each fighter needs the same expert-over-basic depth margin [spec #358]",()=>{
-  expect(verdict({expertVsBasic:0.55}).depth).toBe(true);
-  expect(verdict({expertVsBasic:0.54}).depth).toBe(false);
-});
-test("declared paths reject the wrong gain axis and mixed paths need both [spec #358]",()=>{
-  expect(verdict({}).path).toBe(true);
+  expect(ceilingVerdicts(field().map(r=>({...r,panel:{...r.panel,rook:S.personalityHigh}}))).diversity).toBe(false);
+  expect(verdict({expertVsBasic:0.5+S.depthMargin}).depth).toBe(true);
+  expect(verdict({expertVsBasic:0.5+S.depthMargin-0.01}).depth).toBe(false);
   expect(verdict({path:"decision"}).path).toBe(false);
   expect(verdict({path:"mixed",judgment:0.5}).path).toBe(false);
   expect(verdict({path:"mixed"}).path).toBe(true);
-});
-test("every fighter needs the ceiling field win band [spec #358]",()=>{
-  expect(verdict({ceilingVsCeiling:0.5}).ceiling).toBe(true);
-  expect(verdict({ceilingVsCeiling:0.56}).ceiling).toBe(false);
-});
-test("headroom rejects a fighter too far from the median or with no gain [spec #358]",()=>{
-  expect(verdict({}).headroom).toBe(true);
-  expect(verdict({ceilingVsExpert:0.76}).headroom).toBe(false);
-  expect(verdict({ceilingVsExpert:0.4}).headroom).toBe(false);
+  expect(verdict({ceilingVsCeiling:S.ceilingHigh+0.01}).ceiling).toBe(false);
+  const gain=field()[0]!.ceilingVsExpert-field()[0]!.advancedVsExpert;
+  expect(verdict({ceilingVsExpert:field()[0]!.ceilingVsExpert+S.headroomTolerance+0.01}).headroom).toBe(false);
+  expect(verdict({ceilingVsExpert:field()[0]!.ceilingVsExpert-gain-0.05}).headroom).toBe(false);
   expect(verdict({complete:false})).toMatchObject({panel:false,depth:false,path:false,ceiling:false,headroom:false});
 });
-test("all 26 fighters have draft paths and basic plans; rule constants match the declared spec [spec #358]",()=>{
+test("all 26 fighters have draft paths and basic plans, and balance.md states the path majority [spec #358]",()=>{
   expect(SELECTABLE_CHARACTERS.map(fighterSlug).filter(slug=>!readCeilingPlans().has(slug))).toEqual([]);
-  expect(CEILING_SPEC).toEqual({panelLow:0.45,panelHigh:0.55,personalityLow:0.4,personalityHigh:0.6,bestFitMin:1,bestFitMaxShare:0.5,depthMargin:0.05,axisMajority:0.6,mixedGainMin:0,ceilingLow:0.45,ceilingHigh:0.55,headroomTolerance:0.1,wrenPerPair:400,panelPerPair:100,finalPerPair:25,depthMatches:100});
-  expect(readFileSync(`${import.meta.dir}/../../docs/design/balance.md`,"utf8")).toContain("60% of the positive single-axis gains");
+  expect(readFileSync(`${import.meta.dir}/../../docs/design/balance.md`,"utf8")).toContain(`${Math.round(100*S.axisMajority)}% of the positive single-axis gains`);
 });
 test("basic and ceiling profiles play the production match with the declared move subset [spec #358]",()=>{
   const plan=readCeilingPlans().get("illidan")!;

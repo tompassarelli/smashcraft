@@ -54,14 +54,11 @@ test("prediction continues holds, stick and triggers but never repeats edges or 
   assertTrue(sameInput(predicted, expected));
 });
 
-test("packets carry every field at its extremes [invariant]", () => {
+test("packets roundtrip every field at its extremes and every analog value and direction combination [invariant]", () => {
   roundtrip(7, 1, [fullRow()]);
   roundtrip(2147483647, INPUT_LAST_FRAME - 1, [fullRow(), fullRow()]);
   // Opposing taps can leave an explicit zero; it must survive the omitted group.
   assertEquals(decodePacket(roundtrip(7, 1, [row({ pressed: bit(Action.moveRight), throwX: 0 })]))?.rows[0]?.throwX, 0);
-});
-
-test("packets roundtrip every analog value and direction combination [invariant]", () => {
   for (let value = -127; value <= 127; value++) {
     roundtrip(7, 1, [fullRow({ axisX: value, axisZ: -value, triggerLeft: value + 127, triggerRight: 127 - value, throwX: -value, throwZ: value })]);
   }

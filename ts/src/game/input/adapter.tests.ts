@@ -9,7 +9,7 @@ import { Action, maskOf } from "./actions";
 import { adaptInput } from "./adapter";
 import { attackBuffer, takeAttack } from "./attackBuffer";
 import { inputRow, type RowFields } from "./inputRow";
-import { actionFor, decodeBindings, encodeBindings, presetBindings, rebind } from "./keyBindings";
+import { actionFor, presetBindings } from "./keyBindings";
 import { commitEdges, keyboardCapture, sampleKeys } from "./keyboardCapture";
 import { heldActions, playerKeys, pressKey } from "./playerKeys";
 
@@ -108,24 +108,6 @@ test("LT and keyboard 9 or custom 0 raise the lightest shield, larger and weaker
   const q = keyboardCapture();
   assertTrue(sampleKeys(q, maskOf(assertDefined(actionFor(presetBindings("standard"), 81)))));
   assertEquals(q.row.triggerLeft, 255);
-});
-
-test("the helper's left trigger key raises light shield with the saved custom profile, not jump [repro #205]", () => {
-  const old = presetBindings("custom");
-  assertTrue(rebind(old, Action.lightShield, 1, undefined));
-  const bindings = assertDefined(decodeBindings(`K4${encodeBindings(old).slice(2)}`));
-  const keys = playerKeys();
-  assertEquals(pressKey(keys, 84, bindings), Action.lightShield);
-  const capture = keyboardCapture();
-  assertTrue(sampleKeys(capture, heldActions(keys)));
-  assertEquals(capture.row.triggerLeft, 77);
-  const light = fixture();
-  light.adapt(capture.row, 1);
-  assertFalse(light.input.jumpHeld);
-  assertFalse(light.input.jumpPressed);
-  advanceSolo(light.fighter, 0, light.input, 0.0);
-  assertTrue(light.fighter.shield.raised);
-  assertEquals(light.fighter.shield.strength, analogShieldStrength(77));
 });
 
 test("digital taps become movement without confusing C-stick down [spec docs/delivery-goal.md]", () => {

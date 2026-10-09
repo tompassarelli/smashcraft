@@ -4,7 +4,7 @@ import { Character } from "../sim/codes";
 import { QUICK_CPU_STOCKS, prepareQuickCpu, prepareQuickMatch, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickRecoveryHero, quickOffstageHero } from "./devSettings";
 import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 
-test("a quick match readies every present human's default fighter and starts with one stock on the default stage [spec docs/native-bot-session.md]", () => {
+test("a quick match readies every present human's default fighter and starts with one stock on the default stage, with a computer opponent when solo [spec docs/native-bot-session.md]", () => {
   for (const from of [Phase.characterMenu, Phase.stageMenu]) {
     const game = createMatchState();
     setParticipants(game, 0b011, 0b100);
@@ -24,6 +24,14 @@ test("a quick match readies every present human's default fighter and starts wit
   playing.phase = Phase.match;
   assertFalse(prepareQuickMatch(playing));
   assertEquals(playing.stockCount, 3);
+  // Solo on a chosen stage, the human gets a computer opponent rather than a return to fighter selection (#287).
+  const solo = createMatchState();
+  assertTrue(prepareQuickMatch(solo, 2));
+  assertEquals(solo.phase, Phase.match);
+  assertEquals(solo.stageChoice, 2);
+  assertEquals(solo.humanFighterMask, 1);
+  assertEquals(solo.computerMask, 2);
+  assertEquals(fighterMask(solo), 3);
 });
 
 test("a hero quick match gives every present human the named fighter [spec AGENTS.md]", () => {
@@ -36,17 +44,6 @@ test("a hero quick match gives every present human the named fighter [spec AGENT
   assertTrue(prepareQuickMatch(game, 0, Character.demonHunter));
   assertEquals(game.phase, Phase.match);
   assertEquals(game.characterChoices[0], Character.demonHunter);
-  assertEquals(game.characterChoices[1], Character.demonHunter);
-});
-
-test("a solo quick stage match has an opponent instead of immediately returning to fighter selection [repro #287]", () => {
-  const game = createMatchState();
-  assertTrue(prepareQuickMatch(game, 2));
-  assertEquals(game.phase, Phase.match);
-  assertEquals(game.stageChoice, 2);
-  assertEquals(game.humanFighterMask, 1);
-  assertEquals(game.computerMask, 2);
-  assertEquals(fighterMask(game), 3);
   assertEquals(game.characterChoices[1], Character.demonHunter);
 });
 

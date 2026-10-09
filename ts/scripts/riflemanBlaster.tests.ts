@@ -9,7 +9,7 @@ import { expect, test } from "bun:test";
 import { Action } from "../src/game/input/actions";
 import { Character } from "../src/game/sim/codes";
 import type { Fighter } from "../src/game/sim/fighter";
-import { RIFLEMAN_BLASTER_AIR_SHOT_FRAME } from "../src/game/sim/moves";
+import { RIFLEMAN_BLASTER_AIR_SHOT_FRAME, RIFLEMAN_BLASTER_GROUND_FRAMES, RIFLEMAN_BLASTER_GROUND_SHOT_FRAME, RIFLEMAN_BLASTER_LANDING_LAG } from "../src/game/sim/moves";
 import { type Held, type Situation, Timeline } from "./interactions";
 
 const START = 10;
@@ -81,14 +81,15 @@ function play(distance: number, defender: "idle" | "shield", press: number | und
   };
 }
 
-test("a grounded blaster shot leaves on frame 9 and acts on frame 39 [spec #117]", () => {
+test("a grounded blaster shot leaves on its shot frame and acts after its total frames [spec #117]", () => {
   const shot = play(240, "idle", undefined);
-  expect([shot.shot, shot.shooterActs]).toEqual([9, 39]);
+  expect([shot.shot, shot.shooterActs]).toEqual([RIFLEMAN_BLASTER_GROUND_SHOT_FRAME, RIFLEMAN_BLASTER_GROUND_FRAMES + 1]);
 });
 
-test("a short-hop blaster shot leaves on frame 19 and lands on frame 23 into 8 frames [spec #117]", () => {
+test("a short-hop blaster shot leaves on its air shot frame and lands into its landing lag [spec #117]", () => {
   const shot = play(240, "idle", SHORT_HOP_PRESS);
-  expect([shot.shot, shot.landing, shot.shooterActs]).toEqual([19, 23, 31]);
+  expect(shot.shot).toBe(SHORT_HOP_PRESS - 1 + RIFLEMAN_BLASTER_AIR_SHOT_FRAME);
+  expect(shot.shooterActs - (shot.landing ?? 0)).toBe(RIFLEMAN_BLASTER_LANDING_LAG);
 });
 
 test("a short-hop shot meets a held shield rather than passing over it [spec #117]", () => {
@@ -99,5 +100,5 @@ test("one shot per short hop, and landing before the shot leaves cancels it [spe
   expect(play(480, "idle", SHORT_HOP_PRESS, true).shots).toBe(1);
   const late = play(480, "idle", 18);
   expect(late.shots).toBe(0);
-  expect(late.shooterActs - (late.landing ?? 0)).toBe(8);
+  expect(late.shooterActs - (late.landing ?? 0)).toBe(RIFLEMAN_BLASTER_LANDING_LAG);
 });

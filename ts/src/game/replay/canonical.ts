@@ -534,12 +534,6 @@ declare global {
 
 
 const retainedKitDigests: Record<string, string | undefined> = {};
-let kitDigestBuilds = 0;
-
-
-export function kitDigestBuildCount(): number {
-  return kitDigestBuilds;
-}
 
 function kitDigestField<K>(name: string, kit: K | undefined, digests: Map<K, string>, text: (kit: K) => string): string {
   if (kit === undefined) return "";
@@ -547,10 +541,7 @@ function kitDigestField<K>(name: string, kit: K | undefined, digests: Map<K, str
   if (digest === undefined) {
     const canonical = text(kit);
     digest = retainedKitDigests[canonical] ?? globalThis.__smashcraftKitDigests?.[canonical];
-    if (digest === undefined) {
-      kitDigestBuilds++;
-      digest = canonicalChecksum(canonical);
-    }
+    if (digest === undefined) digest = canonicalChecksum(canonical);
     retainedKitDigests[canonical] = digest;
     digests.set(kit, digest);
   }

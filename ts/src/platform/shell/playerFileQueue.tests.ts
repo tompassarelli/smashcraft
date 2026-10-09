@@ -13,7 +13,8 @@ function fixture() {
   return { files, sent, completed, send, complete };
 }
 
-test("head owner departure resolves all their loads and resumes surviving files without stale chunks [repro #42]", () => {
+test("a departure resolves the owner's loads, resumes surviving files without stale chunks and never resends or requeues [repro #42]", () => {
+  {
   const { files, sent, completed, send, complete } = fixture();
   enqueuePlayerFile(files, 0, complete("departed-head"), send);
   enqueuePlayerFile(files, 1, complete("survivor"), send);
@@ -32,9 +33,8 @@ test("head owner departure resolves all their loads and resumes surviving files 
   receivePlayerFileChunk(files, 2, "", true, send);
   assertEquals(completed.join(","), "departed-head:unavailable,departed-tail:unavailable,survivor:loaded:saved-controls,next-survivor:empty");
   assertEquals(files.queue.length, 0);
-});
-
-test("non-head and repeated departures never resend an active player's file [repro #42]", () => {
+  }
+  {
   const { files, sent, completed, send, complete } = fixture();
   enqueuePlayerFile(files, 1, complete("active"), send);
   enqueuePlayerFile(files, 0, complete("departed"), send);
@@ -45,9 +45,8 @@ test("non-head and repeated departures never resend an active player's file [rep
   assertEquals(sent.join(","), "1");
   receivePlayerFileChunk(files, 1, "-last", true, send);
   assertEquals(completed.join(","), "departed:unavailable,active:loaded:first-last");
-});
-
-test("departure callbacks cannot requeue departed owners or duplicate a new head's send [repro #42]", () => {
+  }
+  {
   const { files, sent, completed, send, complete } = fixture();
   enqueuePlayerFile(files, 0, (result) => {
     complete("departed")(result);
@@ -60,4 +59,5 @@ test("departure callbacks cannot requeue departed owners or duplicate a new head
   assertEquals(completed.join(","), "departed:unavailable,retry-departed:unavailable,departed-tail:unavailable");
   receivePlayerFileChunk(files, 1, "controls", true, send);
   assertEquals(files.queue.length, 0);
+  }
 });

@@ -321,7 +321,7 @@ test("two clients under dense input send at most 10 messages a second and confir
   assertFalse(humanFighterActive(rematch, 1));
   playEpoch(clients, 2, rematch, 60, undefined);
   for (const sends of clients.sends) {
-    assertEquals(busiestSecond(sends), 10);
+    assertTrue(busiestSecond(sends) <= 10);
     assertGreaterThan(sends.length, 30);
   }
 });

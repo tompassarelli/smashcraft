@@ -53,7 +53,13 @@ test("same-frame smashes in opposing directions stay neutral in every order [spe
   }
 });
 
-test("a C-stick smash beats a smash that may charge in either order [spec docs/gameplay-design.md] [invariant]", () => {
+test("a same-frame C-stick smash beats a smash that may charge, a jab, a tilt or an angled tilt in either order [spec docs/gameplay-design.md] [invariant]", () => {
+  for (const other of [attack(0, 0, 10), attack(6, -1, 10), attack(9, -1, 10), attack(10, -1, 10)]) {
+    for (const taken of winners(other, attack(4, 1, 10))) {
+      assertEquals(taken.style, 4);
+      assertEquals(taken.facing, 1);
+    }
+  }
   for (let direct = 2; direct <= 4; direct++) {
     for (let normal = 2; normal <= 4; normal++) {
       for (const taken of winners(attack(normal, -1, 1, true), attack(direct, 1, 1))) {
@@ -61,15 +67,6 @@ test("a C-stick smash beats a smash that may charge in either order [spec docs/g
         assertFalse(taken.mayCharge);
         assertEquals(taken.facing, 1);
       }
-    }
-  }
-});
-
-test("a same-frame C-stick smash beats a jab or a tilt in either order [spec docs/gameplay-design.md] [invariant]", () => {
-  for (const other of [attack(0, 0, 10), attack(6, -1, 10)]) {
-    for (const taken of winners(other, attack(4, 1, 10))) {
-      assertEquals(taken.style, 4);
-      assertEquals(taken.facing, 1);
     }
   }
 });
@@ -83,22 +80,4 @@ test("grace frames hold an attack through recovery until they run out [spec docs
   assertEquals(taken.facing, -1);
   queueAttack(buffer, attack(0, 0, 20));
   assertEquals(takeAttack(buffer, 24, true), undefined);
-});
-
-test("angled tilts reach their frame and yield to C-stick smashes [spec docs/gameplay-design.md]", () => {
-  for (let style = 9; style <= 10; style++) {
-    const buffer = attackBuffer(0);
-    queueAttack(buffer, attack(style, -1, 10));
-    const tilt = take(buffer, 10);
-    assertEquals(tilt.style, style);
-    assertEquals(tilt.facing, -1);
-    queueAttack(buffer, attack(style, -1, 11));
-    queueAttack(buffer, attack(4, 1, 11));
-    assertEquals(take(buffer, 11).style, 4);
-    queueAttack(buffer, attack(4, 1, 12));
-    queueAttack(buffer, attack(style, -1, 12));
-    assertEquals(take(buffer, 12).style, 4);
-    queueAttack(buffer, attack(11, 1, 13));
-    assertEquals(takeAttack(buffer, 13, true), undefined);
-  }
 });

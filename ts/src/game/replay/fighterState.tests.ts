@@ -54,7 +54,7 @@ function changed(value: unknown, seed: number): unknown {
   return 1;
 }
 
-test("fighter replay copies preserve every field and detach mutable records [invariant]", () => {
+test("fighter replay copies preserve every field, absent hit targets included, and detach mutable records [invariant]", () => {
   const source = createFighter(Character.rifleman, -12.0, 1);
   const target = createFighter(Character.rifleman, 4.0, -1);
   const { leaves } = fighterLeaves(target, source);
@@ -66,20 +66,17 @@ test("fighter replay copies preserve every field and detach mutable records [inv
   for (const [copy, original] of copied.records) assertFalse(copy === original);
   assertTrue(target.tuning.physics === source.tuning.physics);
   assertFalse(target.tuning === source.tuning);
-});
-
-test("fighter replay copies carry every special hit target, absent ones included, into a fresh fighter [repro #59]", () => {
-  // The walk above sees absent targets only in Bun: in Lua a table of nils has no keys.
-  const source = createFighter(Character.rifleman, 0.0, 1);
-  const target = createFighter(Character.rifleman, 0.0, 1);
-  source.special.hitTargets[0] = 2;
-  source.special.hitTargets[2] = 3;
-  copyFighterState(target, source, 15);
-  assertEquals([0, 1, 2, 3].map(i => target.special.hitTargets[i] ?? -1).join(","), "2,-1,3,-1");
-  source.special.hitTargets[0] = undefined;
-  source.special.hitTargets[2] = undefined;
-  copyFighterState(target, source, 15);
-  assertEquals([0, 1, 2, 3].map(i => target.special.hitTargets[i] ?? -1).join(","), "-1,-1,-1,-1");
+  // Absent special hit targets: the walk sees them only in Bun, since in Lua a table of nils has no keys (#59).
+  const hitting = createFighter(Character.rifleman, 0.0, 1);
+  const fresh = createFighter(Character.rifleman, 0.0, 1);
+  hitting.special.hitTargets[0] = 2;
+  hitting.special.hitTargets[2] = 3;
+  copyFighterState(fresh, hitting, 15);
+  assertEquals([0, 1, 2, 3].map(i => fresh.special.hitTargets[i] ?? -1).join(","), "2,-1,3,-1");
+  hitting.special.hitTargets[0] = undefined;
+  hitting.special.hitTargets[2] = undefined;
+  copyFighterState(fresh, hitting, 15);
+  assertEquals([0, 1, 2, 3].map(i => fresh.special.hitTargets[i] ?? -1).join(","), "-1,-1,-1,-1");
 });
 
 test("every mutable fighter field participates in replay equality [invariant]", () => {

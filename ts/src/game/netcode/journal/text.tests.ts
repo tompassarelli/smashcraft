@@ -25,7 +25,7 @@ test("the golden envelope is received once and acknowledged only when consumed [
   assertEquals(stream.acknowledged(), 1);
 });
 
-test("an interrupted envelope is skipped, and a damaged or contradicting one is never accepted [spec docs/netcode-proposal.md]", () => {
+test("an interrupted or other-epoch envelope is skipped, and a damaged or contradicting one is never accepted [spec docs/netcode-proposal.md]", () => {
   const stream = new JournalTextStream(1);
   const whole = envelope(1, 1, "I421100");
   const partial = whole.substring(0, 33);
@@ -40,6 +40,12 @@ test("an interrupted envelope is skipped, and a damaged or contradicting one is 
   assertTrue(stream.consume());
   assertEquals(stream.inspect(envelope(1, 1, "I421300")).kind, "invalid");
   assertEquals(stream.acknowledged(), 1);
+  const later = new JournalTextStream(2);
+  assertEquals(later.inspect(envelope(1, 2, "I421300")).kind, "skip");
+  assertEquals(later.acknowledged(), 0);
+  assertEquals(later.inspect(envelope(2, 1, "I422100")).kind, "ready");
+  assertTrue(later.consume());
+  assertEquals(later.acknowledged(), 1);
 });
 
 test("a focus gap replays without retagging frames or applying a record twice [invariant]", () => {
@@ -140,13 +146,4 @@ test("records after a missing first or middle record wait in the window until it
   }
   assertEquals(gapped.acknowledged(), 4);
   assertEquals(gapped.next(), undefined);
-});
-
-test("a stream skips records from other epochs [spec docs/netcode-proposal.md]", () => {
-  const stream = new JournalTextStream(2);
-  assertEquals(stream.inspect(envelope(1, 2, "I421300")).kind, "skip");
-  assertEquals(stream.acknowledged(), 0);
-  assertEquals(stream.inspect(envelope(2, 1, "I422100")).kind, "ready");
-  assertTrue(stream.consume());
-  assertEquals(stream.acknowledged(), 1);
 });

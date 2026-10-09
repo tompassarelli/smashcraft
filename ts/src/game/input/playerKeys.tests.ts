@@ -24,7 +24,7 @@ test("each player's keys and bindings hold actions independently, and repeats ar
   assertEquals(heldActions(second), bit(Action.attack));
 });
 
-test("an action bound to two keys stays held until both are up [spec docs/controller-platforms.md]", () => {
+test("an action bound to two keys stays held until both are up, light shield's last two slots included, without clearing another action [spec docs/controller-platforms.md]", () => {
   const keys = playerKeys();
   const bindings = presetBindings("standard");
   assertTrue(rebind(bindings, Action.attack, 1, Key.G));
@@ -34,18 +34,15 @@ test("an action bound to two keys stays held until both are up [spec docs/contro
   assertTrue(actionHeld(keys, Action.attack));
   releaseKey(keys, Key.G, bindings);
   assertFalse(actionHeld(keys, Action.attack));
-});
-
-test("light shield's last two slots release independently without clearing an attack [spec docs/controller-platforms.md]", () => {
-  const keys = playerKeys();
-  const bindings = presetBindings("standard");
-  assertTrue(rebind(bindings, Action.lightShield, 1, Key.T));
-  pressKey(keys, 57, bindings);
-  pressKey(keys, Key.T, bindings);
-  pressKey(keys, Key.N, bindings);
-  releaseKey(keys, 57, bindings);
-  assertTrue(actionHeld(keys, Action.lightShield));
-  releaseKey(keys, Key.T, bindings);
-  assertFalse(actionHeld(keys, Action.lightShield));
-  assertEquals(heldActions(keys), bit(Action.attack));
+  const shielding = playerKeys();
+  const shieldBindings = presetBindings("standard");
+  assertTrue(rebind(shieldBindings, Action.lightShield, 1, Key.T));
+  pressKey(shielding, 57, shieldBindings);
+  pressKey(shielding, Key.T, shieldBindings);
+  pressKey(shielding, Key.N, shieldBindings);
+  releaseKey(shielding, 57, shieldBindings);
+  assertTrue(actionHeld(shielding, Action.lightShield));
+  releaseKey(shielding, Key.T, shieldBindings);
+  assertFalse(actionHeld(shielding, Action.lightShield));
+  assertEquals(heldActions(shielding), bit(Action.attack));
 });

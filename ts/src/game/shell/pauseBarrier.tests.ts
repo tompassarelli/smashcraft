@@ -60,16 +60,15 @@ test("[repro #206] a Start press pauses at its own frame, however late the other
   assertEquals(agreedFrame(barrier), 168);
 });
 
-test("[repro #206] after a resume, prediction runs two frames a callback until it stops short, so waiting rows never show as one jump", () => {
+test("[repro #206] after a resume, prediction runs a paced number of frames a callback until it stops short, so waiting rows never show as one jump", () => {
   const barrier = pauseBarrier();
   assertEquals(pacedStop(barrier), undefined);
   paceResume(barrier, 168);
-  assertEquals(RESUME_PACE_FRAMES, 2);
-  assertEquals(pacedStop(barrier), 170);
-  settlePace(barrier, 170);
-  assertEquals(pacedStop(barrier), 172);
+  assertEquals(pacedStop(barrier), 168 + RESUME_PACE_FRAMES);
+  settlePace(barrier, 168 + RESUME_PACE_FRAMES);
+  assertEquals(pacedStop(barrier), 168 + 2 * RESUME_PACE_FRAMES);
   // The cursor ran out of rows before the stop: it has caught up, and the pace ends.
-  settlePace(barrier, 171);
+  settlePace(barrier, 168 + 2 * RESUME_PACE_FRAMES - 1);
   assertEquals(pacedStop(barrier), undefined);
   paceResume(barrier, 200);
   resetPauseBarrier(barrier);

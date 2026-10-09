@@ -31,13 +31,17 @@ test("a packet is admitted at its original frame, and the cursor moves only when
   assertEquals(source.sequenceNumber(), 2);
 });
 
-test("packets from another epoch, out of sequence or malformed are invalid [spec docs/netcode-proposal.md]", () => {
+test("I4 packets and I5 backlogs from another epoch, out of sequence or malformed are invalid [spec docs/netcode-proposal.md]", () => {
   const source = open("candidate", 92, 0, 0);
   assertEquals(source.read(wire(93, 1, NEUTRAL), 64).kind, "invalid");
   assertEquals(source.read(wire(92, 2, NEUTRAL), 64).kind, "invalid");
   assertEquals(source.read("I4 malformed", 64).kind, "invalid");
+  assertEquals(source.read(encodeInputMessage(93, 1, 3, () => NEUTRAL).wire, 64).kind, "invalid");
+  assertEquals(source.read(encodeInputMessage(92, 2, 4, () => NEUTRAL).wire, 64).kind, "invalid");
+  assertEquals(source.read("I5 malformed", 64).kind, "invalid");
   assertEquals(source.read("", 64).kind, "wait");
   assertEquals(source.sequenceNumber(), 1);
+  assertEquals(source.expectedFrame(), 1);
 });
 
 test("a record joining consecutive packets is admitted whole at their frames; a gap, another epoch or too many packets is invalid [invariant]", () => {
@@ -103,12 +107,4 @@ test("an I5 backlog preserves 64 original frames and tap edges across admission 
   assertEquals(source.bufferedPacket(), undefined);
   assertEquals(source.sequenceNumber(), 65);
   assertEquals(source.read(message.wire, 67).kind, "invalid");
-});
-
-test("an I5 backlog rejects another epoch, a skipped frame and malformed text [spec docs/netcode-proposal.md]", () => {
-  const source = open("candidate", 99, 0, 0);
-  assertEquals(source.read(encodeInputMessage(100, 1, 3, () => NEUTRAL).wire, 64).kind, "invalid");
-  assertEquals(source.read(encodeInputMessage(99, 2, 4, () => NEUTRAL).wire, 64).kind, "invalid");
-  assertEquals(source.read("I5 malformed", 64).kind, "invalid");
-  assertEquals(source.expectedFrame(), 1);
 });

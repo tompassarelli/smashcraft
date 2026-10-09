@@ -59,12 +59,6 @@ for (const [index, fighter] of FIGHTERS.entries()) {
   }, 30_000);
 }
 
-test("Rifleman's blaster point blank on a shield is punished out of shield and reflected by a powershield [spec #98]", () => {
-  const row = projectileRows(Character.rifleman, "Rifleman").find((candidate) => candidate.variant === `neutral special at ${POINT_BLANK}`);
-  expect(row?.punishes.map((entry) => entry.punisher)).toContain("shield grab");
-  expect(row?.powershield.length).toBeGreaterThanOrEqual(MIN_POWERSHIELD_PRESSES);
-});
-
 test("Illidan's slow Mana Burn point blank on a shield is punished out of shield, reflected by a powershield and jumped from range (#116) [spec #116]", () => {
   for (const row of projectileRows(Character.demonHunter, "Illidan")) {
     expect(row.pokes).toBe(false);

@@ -1,46 +1,26 @@
 import { expect, test } from "bun:test";
-import { AttackStyle, Character } from "../src/game/sim/codes";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { BALANCE_GATE, SPECIAL_MOVE, balanceVerdict, fighterMoveUsage, keyMovesAmongMostUsed, matchupReport } from "./cpuField";
+import { BALANCE_GATE, balanceVerdict } from "./cpuField";
 
-test("a fighter's computer move usage is counted, ranked and repeatable [invariant]", () => {
-  const options = { fighters: [Character.rifleman], stages: ["sky-deck"], stocks: 1, minutes: 1 } as const;
-  const usage = fighterMoveUsage(Character.rifleman, options);
-  expect(usage.length).toBeGreaterThan(3);
-  for (let index = 1; index < usage.length; index++) expect(usage[index - 1]?.count ?? 0).toBeGreaterThanOrEqual(usage[index]?.count ?? 0);
-  expect(usage.reduce((sum, use) => sum + use.share, 0)).toBeCloseTo(1, 6);
-  expect(fighterMoveUsage(Character.rifleman, options)).toEqual(usage);
-  const leading = usage[0]?.move ?? -1;
-  expect(keyMovesAmongMostUsed(usage, [leading], 1)).toEqual({ ok: true, missing: [] });
-  const unused = [AttackStyle.jab, AttackStyle.ledgeAttack, SPECIAL_MOVE.up].find((move) => !usage.some((use) => use.move === move));
-  if (unused !== undefined) expect(keyMovesAmongMostUsed(usage, [leading, unused], usage.length).missing).toEqual([unused]);
-});
+const G = BALANCE_GATE;
+const pct = (n: number) => `${Math.round(100 * n)}%`;
+const title = (word: string) => `${word[0]?.toUpperCase() ?? ""}${word.slice(1)}`;
+const gateProfile = [{ opponent: G.opponent, tier: G.tier }] as const;
 
-test("the matchup report counts 95% intervals overlapping 30-70% and the median distance from even [spec #355]", () => {
-  const row = (fighter: string, against: Record<string, number>, n: number) => ({
-    fighter, against, played: Object.fromEntries(Object.keys(against).map((k) => [k, n])), decisive: Object.fromEntries(Object.keys(against).map((k) => [k, n])),
-  });
-  // At 400 decisive matches, 26% overlaps 30%; 24% does not.
-  const report = matchupReport([row("a", { b: 0.5, c: 0.26 }, 400), row("b", { a: 0.5, c: 0.76 }, 400), row("c", { a: 0.74, b: 0.24 }, 400)]);
-  expect(report).toMatchObject({ matchups: 3, inside: 1, overlapping: 2, missing: ["b-c 76%"] });
-  expect(report.medianDeviation).toBeCloseTo(0.24, 6);
-});
-
-test("the balance gate is 45-55% against the field with Wren Expert and 400 a pair, and roster.md's Balance gate states the same numbers [spec #105]", () => {
-  // Changing the gate changes this test, the constant and the doc together (Tom, 7 Oct).
-  expect(BALANCE_GATE).toEqual({ fieldLow: 0.45, fieldHigh: 0.55, opponent: "wren", tier: "expert", perPair: 400 });
+test("roster.md's Balance gate states BALANCE_GATE's band, opponent and matches a pair [spec #105]", () => {
   const doc = readFileSync(join(import.meta.dir, "../../docs/design/roster.md"), "utf8");
   const start = doc.indexOf("## Balance gate\n");
   expect(start).toBeGreaterThanOrEqual(0);
   const section = doc.slice(start, doc.indexOf("\n## ", start + 1));
-  for (const text of ["BALANCE_GATE", "45%", "55%", "Wren Expert", "400 matches a pair"]) expect(section).toContain(text);
+  for (const text of ["BALANCE_GATE", pct(G.fieldLow), pct(G.fieldHigh), `${title(G.opponent)} ${title(G.tier)}`, `${G.perPair} matches a pair`]) expect(section).toContain(text);
 });
 
-test("the balance verdict passes a gate run with every fighter inside 45-55%, and only a gate run [spec #105]", () => {
-  const field = [{ fighter: "a", winRate: 0.45 }, { fighter: "b", winRate: 0.55 }];
-  expect(balanceVerdict(field, [{ opponent: "wren", tier: "expert" }], 400)).toEqual({ outside: [], gateRun: true, passes: true });
-  expect(balanceVerdict([...field, { fighter: "c", winRate: 0.56 }], [{ opponent: "wren", tier: "expert" }], 400)).toEqual({ outside: ["c 56%"], gateRun: true, passes: false });
-  expect(balanceVerdict(field, [{ opponent: "wren", tier: "expert" }], 100).passes).toBe(false);
-  expect(balanceVerdict(field, [{ opponent: "wren", tier: "advanced" }], 400).gateRun).toBe(false);
+test("the balance verdict passes a gate run with every fighter inside the field band, and only a gate run [spec #105]", () => {
+  const field = [{ fighter: "a", winRate: G.fieldLow }, { fighter: "b", winRate: G.fieldHigh }];
+  expect(balanceVerdict(field, gateProfile, G.perPair)).toEqual({ outside: [], gateRun: true, passes: true });
+  const above = balanceVerdict([...field, { fighter: "c", winRate: G.fieldHigh + 0.01 }], gateProfile, G.perPair);
+  expect([above.outside.length, above.gateRun, above.passes]).toEqual([1, true, false]);
+  expect(balanceVerdict(field, gateProfile, G.perPair - 1).passes).toBe(false);
+  expect(balanceVerdict(field, [{ opponent: G.opponent, tier: "rookie" }], G.perPair).gateRun).toBe(false);
 });

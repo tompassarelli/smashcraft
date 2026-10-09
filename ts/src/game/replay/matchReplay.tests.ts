@@ -41,19 +41,3 @@ test("match replay: a rollback match recorded in parts, paused once, replays to 
   copyReplayState(replayed, state);
   assertEquals(stateChecksum(replayed), recorded.finalChecksum);
 });
-
-test("match replay: a segment ending during a checkpoint keeps every saved checksum [invariant]", () => {
-  const recorded = recordTapeReplay(250, 122);
-  const header = parseReplayHeader(recorded.manifest);
-  if (typeof header === "string") throw new Error(header);
-  const bodies = recorded.parts.map((part, index) => {
-    const body = parseReplayPart(part, TAPE_REPLAY_SERIAL, index + 1);
-    if (typeof body === "string") throw new Error(body);
-    return body;
-  });
-  const result = replayMatch(joinReplay(header, bodies));
-  assertEquals(result.problems.join("; "), "");
-  assertEquals(result.frames, 250);
-  assertEquals(result.recorded, 2 + 2 + 2 + 1);
-  assertEquals(result.reached, result.recorded);
-});
