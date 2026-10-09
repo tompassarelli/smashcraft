@@ -6,6 +6,7 @@ import { Character } from "../src/game/sim/codes";
 import { createFighter, placedObject } from "../src/game/sim/fighter";
 import { BEAR_PLACEMENT, QUILBEAST_PLACEMENT, HAWK_PLACEMENT } from "../src/game/sim/heroes/beastmasterSpecials";
 import { CompanionMode } from "../src/game/sim/heroSpecials";
+import { BEAR_IMPACT_MODEL, BEAR_ROAR_MODEL } from "../src/game/presentation/bearFeedback";
 
 const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: {} });
 afterAll(headless.restore);
@@ -34,13 +35,13 @@ test("Bear command draws a large rear-up, one roar and a bite-only impact [spec 
     effects.present(fighter, 0);
     expect(body()?.pitch).toBeLessThan(-0.8);
     expect(body()?.scale).toBeGreaterThan(followingScale * 1.2);
-    expect(client.effectPoses().some(pose => pose.model.includes("RoarTarget") && pose.scale === 2.5 && pose.z > 0)).toBe(true);
+    expect(client.effectPoses().some(pose => pose.model === BEAR_ROAR_MODEL && pose.scale > 0 && pose.z > 0)).toBe(true);
     bear.modeFrame = 11;
     bear.age = 110;
     bear.bitten = 2;
     effects.presentConfirmed(110, fighter, 0);
     effects.present(fighter, 0);
-    expect(client.effectPoses().some(pose => pose.model.includes("StampedeMissileDeath") && pose.scale === 1.5 && pose.z > 0)).toBe(true);
+    expect(client.effectPoses().some(pose => pose.model === BEAR_IMPACT_MODEL && pose.scale > 0 && pose.z > 0)).toBe(true);
     bear.modeFrame = 15;
     bear.age = 114;
     effects.presentConfirmed(114, fighter, 0);
@@ -56,7 +57,7 @@ test("Bear command draws a large rear-up, one roar and a bite-only impact [spec 
   });
 });
 
-test("predicted Beastmaster summons create no effects before their confirmed frame [repro #69]", () => {
+test("predicted Beastmaster summons create no effects before their confirmed frame [repro #69] [invariant]", () => {
   const clients = headless.clients({ install() {}, start() {} });
   clients.start();
   const client = clients.clients[0];

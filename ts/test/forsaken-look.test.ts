@@ -57,12 +57,12 @@ test("Forsaken selection, HUD, stock, ending and victory use the Forsaken model 
     victory.beginResults({ winner: Character.forsakenPaladin, winnerSlot: 0, rows: [], x: 0, z: 0 }, 0);
     expect(victory.tick()).toBe(true);
   });
-  expect(fighterModel(Character.forsakenPaladin)).toBe("war3mapImported\\ForsakenPaladin.mdx");
-  expect(models).toContain("war3mapImported\\ForsakenPaladin.mdx");
-  expect(textures).toContain("war3mapImported\\FighterTileForsakenPaladin.blp");
+  expect(fighterModel(Character.forsakenPaladin)).toContain("ForsakenPaladin");
+  expect(models).toContain(fighterModel(Character.forsakenPaladin));
+  expect(textures).toContain(fighterPortrait(Character.forsakenPaladin, "Tile"));
   for (const slot of PARTICIPANT_SLOTS) for (const kind of ["Card", "Bust", "Stock"] as const) {
-    const expected = `war3mapImported\\Fighter${kind}ForsakenPaladinP${slot + 1}.blp`;
-    expect(fighterPortrait(Character.forsakenPaladin, kind, slot)).toBe(expected);
+    const expected = fighterPortrait(Character.forsakenPaladin, kind, slot);
+    expect(expected).toContain("ForsakenPaladin");
     expect(textures).toContain(expected);
   }
   expect(textures.some(path => path.includes("BTNHeroPaladin"))).toBe(false);

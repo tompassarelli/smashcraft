@@ -65,12 +65,8 @@ function checkNormalRegions(characters: readonly Character[]): void {
   console.log(`disjoint presentation: ${measured} active region frames checked, 0 missing or misplaced`);
 }
 
-test("headless renderer places one visible effect at every live Warden disjoint normal region [spec docs/disjoint-legibility.md]", () => {
-  checkNormalRegions([Character.warden]);
-});
-
-test("Shadow Hunter's low strike accent stays on its live normal region centre [repro #345]", () => {
-  checkNormalRegions([Character.shadowHunter]);
+test("headless renderer places one visible effect at every live Warden and Shadow Hunter disjoint normal region [spec docs/disjoint-legibility.md] [repro #345]", () => {
+  checkNormalRegions([Character.warden, Character.shadowHunter]);
 });
 
 sweep("headless renderer places one visible effect at every fighter's live disjoint normal region [spec docs/disjoint-legibility.md]", () => {

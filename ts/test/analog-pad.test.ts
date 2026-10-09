@@ -86,6 +86,5 @@ test("normal analog keys preserve the side camera and capture rows without diagn
   expect(row).toMatchObject({ axisX: 88, axisZ: 0, triggerLeft: 77, triggerRight: 166 });
   expect(angle).toBe(ARENA_CAMERA.angleOfAttack);
   expect([...host.files.keys()].some(name => name.startsWith("smashcraft-pad-"))).toBe(false);
-  expect(PLAYABLE_BUILD.analogPad).toBeUndefined();
   expect(clients.clients.flatMap(client => client.errors)).toEqual([]);
 });

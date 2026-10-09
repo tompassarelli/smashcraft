@@ -9,7 +9,7 @@ import { AttackStyle, GrabAction } from "../src/game/sim/codes";
 import { resolveGrabs } from "../src/game/sim/grabs";
 import { GRAB_HOLD_FRAMES, PUMMEL_CONTACT_FRAME, attackStartupFrames } from "../src/game/sim/moves";
 import { fighterAt } from "../src/game/sim/roster";
-import { ESCAPE_METER_SEGMENT_FRAMES } from "../src/game/presentation/escapeMeter";
+import { ESCAPE_METER_BORDER, ESCAPE_METER_SEGMENT_FRAMES } from "../src/game/presentation/escapeMeter";
 import { FREEZE_TRAP_FREEZE_FRAMES } from "../src/game/sim/summons";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
@@ -57,10 +57,12 @@ function watch(clients: ReturnType<typeof headless.clients>, frames: number, pre
       if (back === undefined || fill === undefined || mark === undefined) return seen;
       expect(client.frames.shown(fill)).toBe(remaining > 0);
       if (remaining === 0) continue;
-      const left = [...back.points.values()][0]!.x - back.width / 2;
-      expect(fill.width).toBeCloseTo(Math.max(0.0006, (0.07 * remaining) / GRAB_HOLD_FRAMES), 4);
+      const width = back.width - 2 * ESCAPE_METER_BORDER;
+      const line = client.frames.named("EscapeMeterLine1", 1122)?.width ?? 0;
+      const left = [...back.points.values()][0]!.x - width / 2;
+      expect(fill.width).toBeCloseTo(Math.max(line, (width * remaining) / GRAB_HOLD_FRAMES), 4);
       expect(client.frames.shown(mark)).toBe(pummel >= 0);
-      if (pummel >= 0) expect([...mark.points.values()][0]!.x).toBeCloseTo(left + 0.0015 + (0.07 * Math.min(1, pummel / GRAB_HOLD_FRAMES)), 4);
+      if (pummel >= 0) expect([...mark.points.values()][0]!.x).toBeCloseTo(left + (width * Math.min(1, pummel / GRAB_HOLD_FRAMES)), 4);
       seen.push(`${client.slot}:${remaining}:${pummel}`);
     }
   }
@@ -104,13 +106,16 @@ test("both players see a frozen fighter's escape meter drain with the freeze, fa
       let frozen = 0;
       client.run(() => { frozen = fighterAt(shell().world, 0).status.frozenFrames; });
       remaining.push(frozen);
+      const back = client.frames.named("EscapeMeterBack0", 1100);
+      const width = (back?.width ?? 0) - 2 * ESCAPE_METER_BORDER;
+      const line = client.frames.named("EscapeMeterLine0", 1102)?.width ?? 0;
       const fill = client.frames.named("EscapeMeterFill0", 1101);
       const mark = client.frames.named("EscapeMeterMark0", 1101 + Math.floor(GRAB_HOLD_FRAMES / ESCAPE_METER_SEGMENT_FRAMES));
       expect(fill && mark).toBeTruthy();
       if (fill === undefined || mark === undefined) return;
       expect(client.frames.shown(fill)).toBe(frozen > 0);
       expect(client.frames.shown(mark)).toBe(false);
-      if (frozen > 0) expect(fill.width).toBeCloseTo(Math.max(0.0006, (0.07 * frozen) / FREEZE_TRAP_FREEZE_FRAMES), 4);
+      if (frozen > 0) expect(fill.width).toBeCloseTo(Math.max(line, (width * frozen) / FREEZE_TRAP_FREEZE_FRAMES), 4);
     }
     expect(remaining[1]).toBe(remaining[0]!);
     seen.push(remaining[0]!);

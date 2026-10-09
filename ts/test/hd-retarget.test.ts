@@ -28,106 +28,106 @@ test('registered alternate meshes retain authored hide and show keys in the Defi
     expect(output.Keys.find(key => key.Frame === 250)?.Vector[0]).toBe(1);
 });
 
-test('a nonuniform authored recovery squash preserves rotated Definitive joints and bone-only skin [repro #334]', () => {
-    const classic = parseMDL(stageSkyMdl('stock.blp'));
-    classic.Sequences[0]!.Name = 'Stand';
-    classic.Sequences[0]!.Interval = new Uint32Array([0, 100]);
-    const hd = structuredClone(classic);
-    hd.Version = 1800;
-    const node = classic.Bones[0]!, target = hd.Bones[0]!;
-    target.Rotation = { LineType: mdx.LineType.Linear, GlobalSeqId: null, Keys: [
-        { Frame: 0, Vector: new Float32Array([0, Math.sin(Math.PI / 8), 0, Math.cos(Math.PI / 8)]) },
-    ] };
-    target.PivotPoint = new Float32Array([10, 0, 10]);
-    hd.PivotPoints[target.ObjectId] = target.PivotPoint;
-    for (const geoset of hd.Geosets) {
-        geoset.Vertices = geoset.Vertices.slice(0, 9);
-        geoset.Normals = geoset.Normals.slice(0, 9);
-        geoset.VertexGroup = geoset.VertexGroup.slice(0, 3);
-        geoset.Faces = new Uint16Array([0, 1, 2]);
-        geoset.TVertices = geoset.TVertices.map(values => values.slice(0, 6));
-        geoset.SkinWeights = new Uint8Array(geoset.Vertices.length / 3 * 8);
-        for (let i = 0; i < geoset.SkinWeights.length; i += 8) geoset.SkinWeights.set([0, 0, 0, 0, 255, 0, 0, 0], i);
+test('retargeting keeps authored motion within 0.5 units and 0.5 degrees through a nonuniform squash, out-of-order intervals and a sheared Stand registration [repro #334]', () => {
+    {
+        const classic = parseMDL(stageSkyMdl('stock.blp'));
+        classic.Sequences[0]!.Name = 'Stand';
+        classic.Sequences[0]!.Interval = new Uint32Array([0, 100]);
+        const hd = structuredClone(classic);
+        hd.Version = 1800;
+        const node = classic.Bones[0]!, target = hd.Bones[0]!;
+        target.Rotation = { LineType: mdx.LineType.Linear, GlobalSeqId: null, Keys: [
+            { Frame: 0, Vector: new Float32Array([0, Math.sin(Math.PI / 8), 0, Math.cos(Math.PI / 8)]) },
+        ] };
+        target.PivotPoint = new Float32Array([10, 0, 10]);
+        hd.PivotPoints[target.ObjectId] = target.PivotPoint;
+        for (const geoset of hd.Geosets) {
+            geoset.Vertices = geoset.Vertices.slice(0, 9);
+            geoset.Normals = geoset.Normals.slice(0, 9);
+            geoset.VertexGroup = geoset.VertexGroup.slice(0, 3);
+            geoset.Faces = new Uint16Array([0, 1, 2]);
+            geoset.TVertices = geoset.TVertices.map(values => values.slice(0, 6));
+            geoset.SkinWeights = new Uint8Array(geoset.Vertices.length / 3 * 8);
+            for (let i = 0; i < geoset.SkinWeights.length; i += 8) geoset.SkinWeights.set([0, 0, 0, 0, 255, 0, 0, 0], i);
+        }
+        classic.Sequences.push({ ...structuredClone(classic.Sequences[0]!), Name: 'Recovery squash', Interval: new Uint32Array([200, 300]) });
+        node.Scaling = { LineType: mdx.LineType.Linear, GlobalSeqId: null, Keys: [
+            { Frame: 0, Vector: new Float32Array([1, 1, 1]) },
+            { Frame: 200, Vector: new Float32Array([1, 1, 0.15]) },
+            { Frame: 300, Vector: new Float32Array([1, 1, 0.15]) },
+        ] };
+        const sequences = classic.Sequences.slice(1);
+        const result = retargetHd(classic, hd, [[node.Name, target.Name]], sequences);
+        const bytes = generateHdBody(timelineBody(result.model, sequences));
+        const measured = checkRetarget({ ...result, samples: result.samples.map(sample => ({ ...sample, sequence: 0 })) }, bytes);
+        expect(measured.units).toBeLessThanOrEqual(0.5);
+        expect(measured.degrees).toBeLessThanOrEqual(0.5);
+        expect(checkBodySkin(parseHdBody(bytes))).toEqual(checkBodySkin(hd));
+        const drawn = new DrawnModel(bytes, 1).triangles(0, 0.2, 1);
+        let corner = 0;
+        for (const geoset of hd.Geosets) for (const vertex of geoset.Faces) {
+            const x = geoset.Vertices[vertex * 3]!, z = geoset.Vertices[vertex * 3 + 2]!;
+            const rotatedX = 10 + (x - 10 + z - 10) / Math.sqrt(2);
+            const rotatedZ = 10 + (-(x - 10) + z - 10) / Math.sqrt(2);
+            expect(drawn[corner++]).toBeCloseTo(rotatedX, 2);
+            expect(drawn[corner++]).toBeCloseTo(rotatedZ * 0.15, 2);
+        }
     }
-    classic.Sequences.push({ ...structuredClone(classic.Sequences[0]!), Name: 'Recovery squash', Interval: new Uint32Array([200, 300]) });
-    node.Scaling = { LineType: mdx.LineType.Linear, GlobalSeqId: null, Keys: [
-        { Frame: 0, Vector: new Float32Array([1, 1, 1]) },
-        { Frame: 200, Vector: new Float32Array([1, 1, 0.15]) },
-        { Frame: 300, Vector: new Float32Array([1, 1, 0.15]) },
-    ] };
-    const sequences = classic.Sequences.slice(1);
-    const result = retargetHd(classic, hd, [[node.Name, target.Name]], sequences);
-    const bytes = generateHdBody(timelineBody(result.model, sequences));
-    const measured = checkRetarget({ ...result, samples: result.samples.map(sample => ({ ...sample, sequence: 0 })) }, bytes);
-    expect(measured.units).toBeLessThanOrEqual(0.5);
-    expect(measured.degrees).toBeLessThanOrEqual(0.5);
-    expect(checkBodySkin(parseHdBody(bytes))).toEqual(checkBodySkin(hd));
-    const drawn = new DrawnModel(bytes, 1).triangles(0, 0.2, 1);
-    let corner = 0;
-    for (const geoset of hd.Geosets) for (const vertex of geoset.Faces) {
-        const x = geoset.Vertices[vertex * 3]!, z = geoset.Vertices[vertex * 3 + 2]!;
-        const rotatedX = 10 + (x - 10 + z - 10) / Math.sqrt(2);
-        const rotatedZ = 10 + (-(x - 10) + z - 10) / Math.sqrt(2);
-        expect(drawn[corner++]).toBeCloseTo(rotatedX, 2);
-        expect(drawn[corner++]).toBeCloseTo(rotatedZ * 0.15, 2);
+    {
+        const classic = parseMDL(stageSkyMdl('stock.blp'));
+        const hd = structuredClone(classic);
+        const node = classic.Bones[0];
+        const target = hd.Bones[0];
+        if (node === undefined || target === undefined) throw new Error('Missing fixture bone');
+        const stand = classic.Sequences[0];
+        if (stand === undefined) throw new Error('Missing fixture sequence');
+        stand.Name = 'Stand';
+        stand.Interval = new Uint32Array([0, 100]);
+        hd.Sequences = structuredClone(classic.Sequences);
+        classic.Sequences.push({ ...structuredClone(stand), Name: 'Authored move', Interval: new Uint32Array([200, 300]) });
+        node.Translation = { LineType: mdx.LineType.Linear, GlobalSeqId: null, Keys: [
+            { Frame: 0, Vector: new Float32Array([0, 0, 0]) },
+            { Frame: 200, Vector: new Float32Array([5, 0, 0]) },
+            { Frame: 300, Vector: new Float32Array([5, 0, 0]) },
+        ] };
+        target.PivotPoint = new Float32Array([10, 0, 0]);
+        hd.PivotPoints[target.ObjectId] = target.PivotPoint;
+        classic.Sequences.push({ ...structuredClone(stand), Name: 'Earlier authored move', Interval: new Uint32Array([120, 160]) });
+        node.Translation.Keys.splice(1, 0,
+            { Frame: 120, Vector: new Float32Array([2, 0, 0]) },
+            { Frame: 160, Vector: new Float32Array([2, 0, 0]) });
+        const result = retargetHd(classic, hd, [[node.Name, target.Name]], classic.Sequences.slice(1));
+        const authored = result.model.Bones.find(bone => bone.Name === `Authored ${node.Name}`);
+        expect(Array.from(authored!.Translation!.Keys.find(key => key.Frame === 120)!.Vector)).toEqual([2, 0, 0]);
+        const measured = checkRetarget(result);
+        expect(measured.units).toBeLessThanOrEqual(0.5);
+        expect(measured.degrees).toBeLessThanOrEqual(0.5);
+        const exportedKey = result.model.Bones[0]!.Translation!.Keys[0]!;
+        exportedKey.Vector[0] += 1;
+        expect(checkRetarget(result).units).toBeGreaterThan(0.5);
     }
-});
-
-test('authored translations survive out-of-order sequence intervals after HD export [repro #334]', () => {
-    const classic = parseMDL(stageSkyMdl('stock.blp'));
-    const hd = structuredClone(classic);
-    const node = classic.Bones[0];
-    const target = hd.Bones[0];
-    if (node === undefined || target === undefined) throw new Error('Missing fixture bone');
-    const stand = classic.Sequences[0];
-    if (stand === undefined) throw new Error('Missing fixture sequence');
-    stand.Name = 'Stand';
-    stand.Interval = new Uint32Array([0, 100]);
-    hd.Sequences = structuredClone(classic.Sequences);
-    classic.Sequences.push({ ...structuredClone(stand), Name: 'Authored move', Interval: new Uint32Array([200, 300]) });
-    node.Translation = { LineType: mdx.LineType.Linear, GlobalSeqId: null, Keys: [
-        { Frame: 0, Vector: new Float32Array([0, 0, 0]) },
-        { Frame: 200, Vector: new Float32Array([5, 0, 0]) },
-        { Frame: 300, Vector: new Float32Array([5, 0, 0]) },
-    ] };
-    target.PivotPoint = new Float32Array([10, 0, 0]);
-    hd.PivotPoints[target.ObjectId] = target.PivotPoint;
-    classic.Sequences.push({ ...structuredClone(stand), Name: 'Earlier authored move', Interval: new Uint32Array([120, 160]) });
-    node.Translation.Keys.splice(1, 0,
-        { Frame: 120, Vector: new Float32Array([2, 0, 0]) },
-        { Frame: 160, Vector: new Float32Array([2, 0, 0]) });
-    const result = retargetHd(classic, hd, [[node.Name, target.Name]], classic.Sequences.slice(1));
-    const authored = result.model.Bones.find(bone => bone.Name === `Authored ${node.Name}`);
-    expect(Array.from(authored!.Translation!.Keys.find(key => key.Frame === 120)!.Vector)).toEqual([2, 0, 0]);
-    const measured = checkRetarget(result);
-    expect(measured.units).toBeLessThanOrEqual(0.5);
-    expect(measured.degrees).toBeLessThanOrEqual(0.5);
-    const exportedKey = result.model.Bones[0]!.Translation!.Keys[0]!;
-    exportedKey.Vector[0] += 1;
-    expect(checkRetarget(result).units).toBeGreaterThan(0.5);
-});
-
-test('a sheared Stand registration retains its fixed stretch through authored motion [repro #334]', () => {
-    const classic = parseMDL(stageSkyMdl('stock.blp'));
-    classic.Sequences[0]!.Name = 'Stand';
-    classic.Sequences[0]!.Interval = new Uint32Array([0, 100]);
-    const hd = structuredClone(classic);
-    const node = classic.Bones[0]!, target = hd.Bones[0]!;
-    target.Rotation = { LineType: mdx.LineType.Linear, GlobalSeqId: null, Keys: [
-        { Frame: 0, Vector: new Float32Array([0, Math.sin(Math.PI / 8), 0, Math.cos(Math.PI / 8)]) },
-    ] };
-    classic.Sequences.push({ ...structuredClone(classic.Sequences[0]!), Name: 'Authored move', Interval: new Uint32Array([200, 300]) });
-    node.Scaling = { LineType: mdx.LineType.Linear, GlobalSeqId: null, Keys: [
-        { Frame: 0, Vector: new Float32Array([1, 1, 0.15]) },
-        { Frame: 200, Vector: new Float32Array([1, 1, 1]) },
-        { Frame: 300, Vector: new Float32Array([1, 1, 1]) },
-    ] };
-    const sequences = classic.Sequences.slice(1);
-    const result = retargetHd(classic, hd, [[node.Name, target.Name]], sequences);
-    const bytes = generateHdBody(timelineBody(result.model, sequences));
-    const measured = checkRetarget({ ...result, samples: result.samples.map(sample => ({ ...sample, sequence: 0 })) }, bytes);
-    expect(measured.units).toBeLessThanOrEqual(0.5);
-    expect(measured.degrees).toBeLessThanOrEqual(0.5);
+    {
+        const classic = parseMDL(stageSkyMdl('stock.blp'));
+        classic.Sequences[0]!.Name = 'Stand';
+        classic.Sequences[0]!.Interval = new Uint32Array([0, 100]);
+        const hd = structuredClone(classic);
+        const node = classic.Bones[0]!, target = hd.Bones[0]!;
+        target.Rotation = { LineType: mdx.LineType.Linear, GlobalSeqId: null, Keys: [
+            { Frame: 0, Vector: new Float32Array([0, Math.sin(Math.PI / 8), 0, Math.cos(Math.PI / 8)]) },
+        ] };
+        classic.Sequences.push({ ...structuredClone(classic.Sequences[0]!), Name: 'Authored move', Interval: new Uint32Array([200, 300]) });
+        node.Scaling = { LineType: mdx.LineType.Linear, GlobalSeqId: null, Keys: [
+            { Frame: 0, Vector: new Float32Array([1, 1, 0.15]) },
+            { Frame: 200, Vector: new Float32Array([1, 1, 1]) },
+            { Frame: 300, Vector: new Float32Array([1, 1, 1]) },
+        ] };
+        const sequences = classic.Sequences.slice(1);
+        const result = retargetHd(classic, hd, [[node.Name, target.Name]], sequences);
+        const bytes = generateHdBody(timelineBody(result.model, sequences));
+        const measured = checkRetarget({ ...result, samples: result.samples.map(sample => ({ ...sample, sequence: 0 })) }, bytes);
+        expect(measured.units).toBeLessThanOrEqual(0.5);
+        expect(measured.degrees).toBeLessThanOrEqual(0.5);
+    }
 });
 
 test('a 0.2 degree turn of a joint sheared by its Stand registration measures 0.2 degrees [repro #334]', () => {

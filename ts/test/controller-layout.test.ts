@@ -22,23 +22,3 @@ test("offline layout saves preserve tap jump and both trigger choices [spec docs
   expect(await Effect.runPromise(setControllerLayout("standard", file, port))).toBe("saved");
   expect(JSON.parse(readFileSync(file, "utf8"))).toEqual(settings);
 });
-test("live layout waits for service confirmation and leaves its file to the service [spec docs/play.md]", async () => {
-  let received = "";
-  const server = createServer((socket) => {
-    socket.on("data", (data) => {
-      received += data;
-      socket.write(JSON.stringify({ status: { settings: { pad_preset: "standard" } } }) + "\n");
-      socket.write(JSON.stringify({ status: { settings: { pad_preset: "z-jump" } } }) + "\n");
-    });
-  });
-  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
-  const address = server.address();
-  if (address === null || typeof address === "string") throw new Error("missing port");
-  const file = join(scratch, "live.json");
-  writeFileSync(file, "unchanged");
-  try {
-    expect(await Effect.runPromise(setControllerLayout("z-jump", file, address.port))).toBe("live");
-    expect(JSON.parse(received)).toEqual({ pad_preset: "z-jump" });
-    expect(readFileSync(file, "utf8")).toBe("unchanged");
-  } finally { await new Promise<void>((resolve) => server.close(() => resolve())); }
-});

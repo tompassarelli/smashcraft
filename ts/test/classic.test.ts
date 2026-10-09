@@ -82,7 +82,7 @@ test("-dev classic boss starts Archimonde's battle on Nordrassil on both clients
     expect(value(client, () => {
       const { game } = shell();
       return [game.phase, game.run.boss.kind, game.stageChoice, game.run.fighter, game.run.boss.strike >= 1];
-    })).toEqual([Phase.match, BossKind.archimonde, 10, Character.blademaster, true]);
+    })).toEqual([Phase.match, BossKind.archimonde, bossDefinition(BossKind.archimonde)?.stage, Character.blademaster, true]);
   }
   expectSynchronized(clients);
 });

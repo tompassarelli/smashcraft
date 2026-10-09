@@ -25,18 +25,12 @@ function strike(armOnly = false, followThrough = true): MoveSample {
   };
 }
 
-test("a driven strike follows through, settles and separates its three poses [spec #367]", () => {
+test("the scorer passes a driven strike and fails an arm-only strike and a direct return without follow-through [spec #367]", () => {
   const score = scoreMove(strike(), THRESHOLDS.jab);
   expect([score.line1.pass, score.line2.pass, score.line3.pass, score.line4.pass]).toEqual([true, true, true, true]);
-});
-
-test("an arm-only strike fails whole-body involvement [spec #367]", () => {
-  const score = scoreMove(strike(true), THRESHOLDS.jab);
-  expect(score.line1.pass, `body share ${score.line1.bodyShare}, want a failed whole-body line`).toBe(false);
-});
-
-test("a strike that returns directly without follow-through fails return to ready [spec #367]", () => {
-  const score = scoreMove(strike(false, false), THRESHOLDS.jab);
-  expect(score.line2.endError).toBe(0);
-  expect(score.line2.pass, `overshoot ${score.line2.overshoot}, want a failed follow-through line`).toBe(false);
+  const armOnly = scoreMove(strike(true), THRESHOLDS.jab);
+  expect(armOnly.line1.pass, `body share ${armOnly.line1.bodyShare}, want a failed whole-body line`).toBe(false);
+  const direct = scoreMove(strike(false, false), THRESHOLDS.jab);
+  expect(direct.line2.endError).toBe(0);
+  expect(direct.line2.pass, `overshoot ${direct.line2.overshoot}, want a failed follow-through line`).toBe(false);
 });

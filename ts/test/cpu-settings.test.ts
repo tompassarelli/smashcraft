@@ -1,7 +1,7 @@
 
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
-import { CPU_OPPONENT_IDS, CPU_TIERS } from "../src/game/match/cpuProfiles";
+import { CPU_OPPONENT_DEFAULT, CPU_OPPONENT_IDS, CPU_TIERS, CPU_TIER_DEFAULT } from "../src/game/match/cpuProfiles";
 import { Phase } from "../src/game/match/rules";
 import { CPU_OPPONENT_COPY } from "../src/game/ui/cpuOpponentCopy";
 import { cpuSettingsBox } from "../src/game/ui/ruleButtons";
@@ -33,18 +33,18 @@ function journey(build: MapBuild) {
 
 test("all 30 CPU choices reachable with keys, exact previews, Random and retained focus [spec #185] [invariant]", () => {
   const { clients, frames, key, read, text } = journey(PLAYABLE_BUILD);
-  expect(read(() => shell().game.cpuOpponents[2])).toBe("wren");
-  expect(read(() => shell().game.cpuTiers[2])).toBe("intermediate");
+  expect(read(() => shell().game.cpuOpponents[2])).toBe(CPU_OPPONENT_DEFAULT);
+  expect(read(() => shell().game.cpuTiers[2])).toBe(CPU_TIER_DEFAULT);
 
   key(69); key(69); key(Key.n);
   expect(text()).toContain("CPU 3 — Opponent settings");
-  expect(text()).toContain("Flexible tools and burst pressure.");
+  for (const line of CPU_OPPONENT_COPY[CPU_OPPONENT_DEFAULT].previews[CPU_TIER_DEFAULT].split("\n")) expect(text()).toContain(line);
   for (let i = 0; i < 5; i++) key(Key.w);
   for (const opponent of CPU_OPPONENT_IDS) {
     expect(read(() => shell().game.cpuOpponents[2])).toBe(opponent);
     key(69);
     for (let i = 0; i < 4; i++) key(Key.w);
-    expect(read(() => shell().game.cpuTiers[2])).toBe("rookie");
+    expect(read(() => shell().game.cpuTiers[2])).toBe(CPU_TIERS[0]);
     key(Key.w);
     for (const tier of CPU_TIERS) {
       expect(read(() => shell().game.cpuTiers[2])).toBe(tier);
@@ -53,7 +53,7 @@ test("all 30 CPU choices reachable with keys, exact previews, Random and retaine
       for (const line of CPU_OPPONENT_COPY[opponent].previews[tier].split("\n")) expect(text()).toContain(line);
       key(Key.r);
     }
-    expect(read(() => shell().game.cpuTiers[2])).toBe("expert");
+    expect(read(() => shell().game.cpuTiers[2])).toBe(CPU_TIERS.at(-1));
     key(69); key(69); key(Key.r);
   }
   expect(read(() => shell().game.cpuOpponents[2])).toBe("random");
@@ -71,7 +71,7 @@ test("all 30 CPU choices reachable with keys, exact previews, Random and retaine
   for (const client of clients.clients) client.key(0, Key.y, 0, false);
   expect(text()).not.toContain("CPU 3 — Opponent settings");
   expect(read(() => shell().game.cpuOpponents[2])).toBe("random");
-  expect(read(() => shell().game.cpuTiers[2])).toBe("expert");
+  expect(read(() => shell().game.cpuTiers[2])).toBe(CPU_TIERS.at(-1));
   frames();
   expect(clients.clients.flatMap(client => client.errors)).toEqual([]);
   expect(clients.firstDivergence()).toBeUndefined();
@@ -82,18 +82,18 @@ test("CPU preview follows shared choices, denies unauthorized changes and permis
   key(69, 1); key(69, 1); key(Key.n, 1);
   expect(text(1)).toContain("Only the slot owner or first player can change this opponent.");
   key(Key.r, 1);
-  expect(read(() => shell().game.cpuOpponents[2])).toBe("wren");
+  expect(read(() => shell().game.cpuOpponents[2])).toBe(CPU_OPPONENT_DEFAULT);
   clients.everywhere(() => panelActions().selection.changeCpuOpponent(0, 2, -1));
   frames();
-  expect(text(1)).toContain(CPU_OPPONENT_COPY.kite.description);
+  expect(text(1)).toContain(CPU_OPPONENT_COPY[CPU_OPPONENT_IDS[CPU_OPPONENT_IDS.indexOf(CPU_OPPONENT_DEFAULT) - 1] ?? CPU_OPPONENT_DEFAULT].description);
   clients.everywhere(() => { shell().game.humanMask = 2; shell().game.humanCount = 1; });
   frames();
   key(Key.r, 1);
-  expect(read(() => shell().game.cpuOpponents[2])).toBe("wren");
+  expect(read(() => shell().game.cpuOpponents[2])).toBe(CPU_OPPONENT_DEFAULT);
   clients.everywhere(() => { shell().game.humanMask = 3; shell().game.humanCount = 2; });
   frames();
   key(Key.r, 1);
-  expect(read(() => shell().game.cpuOpponents[2])).toBe("wren");
+  expect(read(() => shell().game.cpuOpponents[2])).toBe(CPU_OPPONENT_DEFAULT);
   expect(text(1)).toContain("Only the slot owner or first player can change this opponent.");
   key(Key.u, 1);
   const box = cpuSettingsBox(2);

@@ -48,15 +48,10 @@ test("every element shows a stock model on its victim and plays a stock sound [n
   expect(sounds.filter((label) => !LABELS.has(label))).toEqual([]);
 });
 
-test("every tier sound file is in the installed game [native]", () => {
-
+test("every tier sound and every sound hit presentation plays has its files in the installed game [native]", () => {
   expect(tierSoundPaths().filter((path) => VERIFIED_STOCK_SOUNDS[path] === undefined)).toEqual([]);
-});
-
-test("every sound hit presentation plays has its files in the installed game [native]", () => {
   const labels = hitPresentationSoundLabels();
   expect(labels.length).toBeGreaterThan(10);
-
   expect(labels.filter((label) => VERIFIED_STOCK_SOUND_LABELS[label] === undefined)).toEqual([]);
   expect(labels.flatMap((label) => VERIFIED_STOCK_SOUND_LABELS[label] ?? []).filter((path) => VERIFIED_STOCK_SOUNDS[path] === undefined)).toEqual([]);
 });

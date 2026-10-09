@@ -22,7 +22,6 @@ export const SMASHCRAFT_DEV: DevProject = {
       "test/lua-holes.test.ts": ["src/**/*.ts", "scripts/**/*.ts", "tsconfig.game.json"],
       "test/wisp.test.ts": ["test/fixtures/wisp/**"],
       "test/command-list.test.ts": ["scripts/wisp.ts", "scripts/wisp/commands/help.ts", "../docs/README.md", "../docs/commands/*.md"],
-      "test/cli-vocabulary.test.ts": ["scripts/wisp.ts", "scripts/wisp/commands/help.ts", "node_modules/wisp/docs/cli.md", "../docs/README.md"],
       "test/doctor-declaration.test.ts": ["../docs/commands/client.md"],
       "test/stage-render.test.ts": [],
       "test/stage-thumbnails.test.ts": ["stage-thumbnails.json", "src/game/menu/stageSilhouettes.ts"],
