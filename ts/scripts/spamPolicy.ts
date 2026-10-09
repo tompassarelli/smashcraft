@@ -7,6 +7,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { type AttackBuffer, clearAttackBuffer, queueAttack } from "../src/game/input/attackBuffer";
 import { moveReaches } from "../src/game/match/botMoves";
+import { groundGatedStyle } from "../src/game/sim/attacks";
 import { AttackStyle, GrabAction, SpecialAction } from "../src/game/sim/codes";
 import { canAttack } from "../src/game/sim/conditions";
 import type { Fighter } from "../src/game/sim/fighter";
@@ -30,11 +31,16 @@ function chosenMove(f: Readonly<Fighter>, input: Readonly<Controls>, commands: R
   }
   const request = commands.pending;
   if (request === undefined) return undefined;
-  if (f.motion.grounded) return request.style === AttackStyle.jab && f.ground.dashFrame > 0 ? AttackStyle.dashAttack : request.style;
+  if (f.motion.grounded) return gated(f, request.style);
   if (request.style === AttackStyle.jab) return AttackStyle.neutralAir;
   if (request.style === AttackStyle.upTilt) return AttackStyle.upAir;
   if (request.style === AttackStyle.downTilt) return AttackStyle.downAir;
   return request.facing !== 0 && request.facing !== f.facing ? AttackStyle.backAir : AttackStyle.forwardAir;
+}
+
+function gated(f: Readonly<Fighter>, move: number): number | undefined {
+  const style = Object.values(AttackStyle).find((known) => known === move);
+  return style === undefined ? move : groundGatedStyle(f, style);
 }
 
 const offstage = (f: Readonly<Fighter>, stage: number): boolean =>
@@ -110,6 +116,10 @@ export function spamOnly(f: Readonly<Fighter>, target: Readonly<Fighter>, move: 
   if (f.special.action !== SpecialAction.none || f.launch.hitstun > 0 || f.status.out) return;
   if (reaches(f, target, move)) {
     if (canAttack(f) || f.shield.raised) {
+      if (f.motion.grounded && !SPECIALS.includes(move) && gated(f, move === AttackStyle.dashAttack ? AttackStyle.jab : move) !== move) {
+        input.direction = 0;
+        return;
+      }
       input.shield = false;
       press(f, target, move, frame, input, commands);
     }

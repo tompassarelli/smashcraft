@@ -28,7 +28,7 @@ export function groundState(f: Readonly<Fighter>): GroundState {
     case GroundAction.run: return GroundState.run;
     case GroundAction.runBrake: return GroundState.runBrake;
     case GroundAction.turnRun: return GroundState.turnRun;
-    default: return f.motion.vx !== 0 ? GroundState.walk : GroundState.stand;
+    default: return f.ground.dashFrame > 0 ? GroundState.dash : f.motion.vx !== 0 ? GroundState.walk : GroundState.stand;
   }
 }
 
