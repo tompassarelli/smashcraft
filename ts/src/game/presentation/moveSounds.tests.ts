@@ -1,26 +1,15 @@
 import { assertEquals, test } from "wisp/src/runtime/testing";
-import { AttackStyle, Character, LAST_ATTACK_STYLE } from "../sim/codes";
-import { SELECTABLE_CHARACTERS, fighterName, heroDefinition } from "../sim/heroes/registry";
+import { AttackStyle } from "../sim/codes";
+import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 import { VERIFIED_STOCK_SOUNDS } from "../assets/stockSoundInfo";
 import { HitElement } from "../sim/hitRegions";
-import { SPECIAL_SLOT_NAMES, moveSound, playHit, soundFiles, specialMove } from "./moveSounds";
-
-function fighterMoves(character: Character): number[] {
-  const hero = heroDefinition(character);
-  const moves: number[] = [];
-  for (let style = 0; style <= LAST_ATTACK_STYLE; style++) {
-    if (style === AttackStyle.grab || (style === AttackStyle.shot && character !== Character.rifleman)) continue;
-    if (hero === undefined || hero.moves.normals[style] !== undefined) moves.push(style);
-  }
-  for (let slot = 0; slot < SPECIAL_SLOT_NAMES.length; slot++) moves.push(specialMove(slot));
-  return moves;
-}
+import { moveSound, playHit, soundFiles, soundedMoves } from "./moveSounds";
 
 test("every move of every fighter has a perform, weak, strong and shield sound, each in the installed game [spec #391]", () => {
   assertEquals(SELECTABLE_CHARACTERS.length, 26, "roster");
   const missing: string[] = [];
   for (const character of SELECTABLE_CHARACTERS) {
-    for (const move of fighterMoves(character)) {
+    for (const move of soundedMoves(character)) {
       const row = moveSound(character, move);
       const name = `${fighterName(character)} ${move}`;
       if (row === undefined) {

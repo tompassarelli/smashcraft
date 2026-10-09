@@ -1,8 +1,7 @@
 import { join } from "node:path";
-import { AttackStyle, Character, LAST_ATTACK_STYLE } from "../src/game/sim/codes";
-import { SELECTABLE_CHARACTERS, fighterName, heroDefinition } from "../src/game/sim/heroes/registry";
+import { SELECTABLE_CHARACTERS, fighterName } from "../src/game/sim/heroes/registry";
 import { SPECIAL_INPUTS, fighterKit, normalName } from "../src/game/sim/moveNames";
-import { type SoundLayer, moveSound, specialMove } from "../src/game/presentation/moveSounds";
+import { type SoundLayer, isSpecialMove, moveSound, soundedMoves, specialMove } from "../src/game/presentation/moveSounds";
 
 export const SOUND_TABLE_PATH = join(import.meta.dir, "../../docs/design/sound-table.md");
 
@@ -23,13 +22,11 @@ export function soundTableMarkdown(): string {
     "poison or arcane hit also layers that element's sound. Normals sharing every sound share a row.",
   ];
   for (const character of SELECTABLE_CHARACTERS) {
-    const hero = heroDefinition(character);
     const kit = fighterKit(character);
     lines.push("", `## ${fighterName(character)}`, "", "| Move | Perform | Weak hit | Strong hit | Shield hit | Voice |", "| --- | --- | --- | --- | --- | --- |");
     const groups = new Map<string, string[]>();
-    for (let style = 0; style <= LAST_ATTACK_STYLE; style++) {
-      if (style === AttackStyle.grab || (hero !== undefined && hero.moves.normals[style] === undefined)) continue;
-      if (hero === undefined && style === AttackStyle.shot && character !== Character.rifleman) continue;
+    for (const style of soundedMoves(character)) {
+      if (isSpecialMove(style)) continue;
       const row = moveSound(character, style);
       if (row === undefined) continue;
       const key = `${cell(row.perform)} | ${cell(row.hit)} | ${cell(row.strong)} | ${cell(row.shield)} | ${row.voice === undefined ? "" : cell([row.voice])}`;

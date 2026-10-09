@@ -12,10 +12,9 @@ poison or arcane hit also layers that element's sound. Normals sharing every sou
 
 | Move | Perform | Weak hit | Strong hit | Shield hit | Voice |
 | --- | --- | --- | --- | --- | --- |
-| Jab, Second jab, Third jab | BattleNetWooshStereo1 | WoodLightBashFlesh | WoodHeavyBashFlesh + FlakCannonHit | WoodLightBashMetal |  |
-| Shot | RiflemanAttack1 | GyrocopterAttack | GyrocopterAttack + FlakCannonHit | WoodLightBashMetal |  |
+| Jab, Second jab | BattleNetWooshStereo1 | WoodLightBashFlesh | WoodHeavyBashFlesh + FlakCannonHit | WoodLightBashMetal |  |
 | Up smash, Down smash, Forward smash | BattleNetWooshStereo1 | WoodHeavyBashFlesh | WoodHeavyBashFlesh + FlakCannonHit | WoodHeavyBashMetal |  |
-| Forward tilt, Up tilt, Down tilt, Forward tilt (up), Forward tilt (down), Get-up attack, Neutral air, Forward air, Back air, Up air, Down air, Ledge attack, Dash attack, Dash attack | BattleNetWooshStereo1 | WoodMediumBashFlesh | WoodHeavyBashFlesh + FlakCannonHit | WoodMediumBashMetal |  |
+| Forward tilt, Up tilt, Down tilt, Forward tilt (up), Forward tilt (down), Get-up attack, Neutral air, Forward air, Back air, Up air, Down air, Ledge attack, Dash attack | BattleNetWooshStereo1 | WoodMediumBashFlesh | WoodHeavyBashFlesh + FlakCannonHit | WoodMediumBashMetal |  |
 | Neutral special: Blaster | RiflemanAttack1 | GyrocopterAttack | GyrocopterAttack + FlakCannonHit | WoodMediumBashMetal |  |
 | Side special: Summon Bear | DruidOfTheClawMorph | StampedeHit | StampedeHit + FlakCannonHit | WoodMediumBashMetal |  |
 | Up special: Recoil Shot | RiflemanAttack1 | GyrocopterAttack | GyrocopterAttack + FlakCannonHit | WoodMediumBashMetal |  |
@@ -27,7 +26,7 @@ poison or arcane hit also layers that element's sound. Normals sharing every sou
 | --- | --- | --- | --- | --- | --- |
 | Jab, Second jab, Third jab | BattleNetWooshStereo1 | MetalLightSliceFlesh | MetalHeavySliceFlesh + DemonHunterMissileHit | MetalLightSliceMetal |  |
 | Up smash, Down smash, Forward smash | BattleNetWooshStereo1 | MetalHeavySliceFlesh | MetalHeavySliceFlesh + DemonHunterMissileHit | MetalHeavySliceMetal |  |
-| Forward tilt, Up tilt, Down tilt, Forward tilt (up), Forward tilt (down), Get-up attack, Neutral air, Forward air, Back air, Up air, Down air, Ledge attack, Dash attack, Dash attack | BattleNetWooshStereo1 | MetalMediumSliceFlesh | MetalHeavySliceFlesh + DemonHunterMissileHit | MetalMediumSliceMetal |  |
+| Forward tilt, Up tilt, Down tilt, Forward tilt (up), Forward tilt (down), Get-up attack, Neutral air, Forward air, Back air, Up air, Down air, Ledge attack, Dash attack | BattleNetWooshStereo1 | MetalMediumSliceFlesh | MetalHeavySliceFlesh + DemonHunterMissileHit | MetalMediumSliceMetal |  |
 | Neutral special: Mana Burn | DemonHunterMissileLaunch | ManaBurn | ManaBurn + DemonHunterMissileHit | MetalMediumSliceMetal |  |
 | Side special: Fel Rush | DestroyerMissileLaunch | MetalHeavySliceFlesh | MetalHeavySliceFlesh + DemonHunterMissileHit | MetalMediumSliceMetal |  |
 | Up special: Wing Ascent | GargoyleMissileLaunch | MetalMediumSliceFlesh | MetalMediumSliceFlesh + DemonHunterMissileHit | MetalMediumSliceMetal |  |

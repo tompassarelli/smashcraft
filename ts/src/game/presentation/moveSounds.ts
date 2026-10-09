@@ -1,9 +1,11 @@
 // Variants and pitch come from hit and attack serials, never a random source, so every client and replay sounds alike.
 import { at } from "wisp/src/runtime/lookup";
 import { imod } from "wisp/src/sim/intMath";
-import { AttackStyle, Character, SpecialAction } from "../sim/codes";
+import { AttackStyle, Character, LAST_ATTACK_STYLE, SpecialAction } from "../sim/codes";
 import { HitElement } from "../sim/hitRegions";
-import { isSmashAttack } from "../sim/moves";
+import { isSmashAttack, jabChainFrom } from "../sim/moves";
+import { heroDefinition } from "../sim/heroes/registry";
+import { originalFighterMoves } from "../sim/originalMoves";
 import { VERIFIED_STOCK_SOUND_LABELS } from "../assets/stockSoundInfo";
 import { elementLook } from "./elementLooks";
 import { warcryVoice } from "./matchAudio";
@@ -52,7 +54,6 @@ export const FIGHTER_SOUNDS: { readonly [character: number]: FighterSound | unde
   [Character.rifleman]: {
     weapon: Weapon.blunt, strong: "FlakCannonHit",
     specials: [s("RiflemanAttack1", "GyrocopterAttack"), s("DruidOfTheClawMorph", "StampedeHit"), s("RiflemanAttack1", "GyrocopterAttack"), s("WardBirth", "FrostNova")],
-    normals: { [AttackStyle.shot]: { perform: "RiflemanAttack1", hit: "GyrocopterAttack" } },
   },
   [Character.demonHunter]: {
     weapon: Weapon.blade, strong: "DemonHunterMissileHit",
@@ -213,7 +214,7 @@ function resolve(character: Character, move: number): MoveSound | undefined {
   const style = move;
   const tier = moveTier(character, style);
   const own = fighter.normals?.[style];
-  const perform = style === AttackStyle.shot ? [] : [layer([SWING_SOUND], at(TIER_SWING_VOLUME, tier), at(TIER_SWING_PITCH, tier))];
+  const perform = [layer([SWING_SOUND], at(TIER_SWING_VOLUME, tier), at(TIER_SWING_PITCH, tier))];
   if (own?.perform !== undefined) perform.push(layer([own.perform], PERFORM_VOLUME));
   else if (fighter.swing !== undefined && tier !== SoundTier.small) perform.push(layer(fighter.swing, at(MODEL_SWING_VOLUME, tier)));
   const body = own?.hit ?? at(at(FLESH, weapon), tier);
@@ -224,6 +225,23 @@ function resolve(character: Character, move: number): MoveSound | undefined {
     shield: [layer([at(at(METAL, weapon), tier)], SHIELD_VOLUME)],
     voice: fighter.effort !== undefined && isSmashAttack(style) ? layer(fighter.effort, VOICE_VOLUME) : undefined,
   };
+}
+
+export function soundedMoves(character: Character): number[] {
+  const hero = heroDefinition(character);
+  const moves = hero?.moves ?? originalFighterMoves(character);
+  const dash = moves?.dashAttack ?? (character === Character.demonHunter ? AttackStyle.demonHunterDashAttack : undefined);
+  const out: number[] = [];
+  for (let style = 0; style <= LAST_ATTACK_STYLE; style++) {
+    if (style === AttackStyle.grab || style === AttackStyle.shot) continue;
+    if (hero !== undefined && hero.moves.normals[style] === undefined) continue;
+    if ((style === AttackStyle.dashAttack || style === AttackStyle.demonHunterDashAttack) && style !== dash) continue;
+    if (style === AttackStyle.jab2 && jabChainFrom(character, AttackStyle.jab, moves) === undefined) continue;
+    if (style === AttackStyle.jab3 && jabChainFrom(character, AttackStyle.jab2, moves) === undefined) continue;
+    out.push(style);
+  }
+  for (let slot = 0; slot < SPECIAL_SLOT_NAMES.length; slot++) out.push(specialMove(slot));
+  return out;
 }
 
 const resolved: { [key: number]: MoveSound | false | undefined } = {};
