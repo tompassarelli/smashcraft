@@ -35,9 +35,9 @@ export const TOMB_OF_SARGERAS_SCENERY: StageScenery = {
   // TS-1/TS-2: teal haze below the bright tide floor leaves the fighting plane clear.
   heightFog: { start: 5000.0, end: 11000.0, density: 0.25, heightStart: -1800.0, heightEnd: -100.0, maxDensity: 0.375, drawOverSky: false },
   pieces: [
-    // TS-2/TS-c: lift the temple's crown into the open right third, above the walking line at gameplay zoom.
-    { model: "Buildings\\Naga\\TempleOfTides\\TempleOfTides.mdx", x: 2600.0, y: 5600.0, z: 90.0, scale: 2.0, yaw: 250.0 },
-    { model: "Doodads\\Ruins\\Rocks\\Ruins_Rock\\Ruins_Rock0.mdx", x: 2600.0, y: 5600.0, z: -3500.0, scale: f32(9.05), yaw: 287.0, matrixScale: [1.0, 1.0, f32(2.515)] },
+    // TS-2/TS-c: the temple's crown sits in the open right third above the deck edge; the 64:27 far view's deck edge (row 0.178) caps its scale near 1.15.
+    { model: "Buildings\\Naga\\TempleOfTides\\TempleOfTides.mdx", x: 2000.0, y: 5600.0, z: 450.0, scale: f32(1.15), yaw: 250.0 },
+    { model: "Doodads\\Ruins\\Rocks\\Ruins_Rock\\Ruins_Rock0.mdx", x: 2000.0, y: 5600.0, z: -3500.0, scale: f32(9.05), yaw: 287.0, matrixScale: [1.0, 1.0, f32(2.833)] },
     // TS-c: the waterfall stays on the left; HD/DE imports replace only its misty model, keeping Classic stock.
     { model: "Doodads\\Terrain\\CliffDoodad\\Waterfall\\Waterfall.mdx", x: -1900.0, y: 5600.0, z: -1515.0, scale: 3.5, yaw: 270.0, matrixScale: [1.0, 1.0, f32(2.498)] },
     { model: "Doodads\\Ruins\\Structures\\SRuinArch\\SRuinArch.mdx", x: -1500.0, y: 3600.0, z: -1350.0, scale: 2.0, yaw: 15.0 },
