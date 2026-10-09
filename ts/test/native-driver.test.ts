@@ -13,9 +13,46 @@ import { clipFor } from "../src/game/presentation/fighterClips";
 import { sweep } from "./sweep";
 import { TRACE_FILE, parseExpectations, parseTrace, unmetExpectations } from "../scripts/integrity/padParity";
 import { value } from "./rematch/playableMatch";
+import { PREDICTED_HEADLESS } from "../scripts/wisp/headless";
+import { NATIVE_DRIVER_BUILD } from "../src/game/shell/currentBuild";
+import { install as installGame, startBuild } from "../src/platform/main";
+import { installSmashcraftNativeDriver, startSmashcraftNativeDriver } from "../src/platform/nativeDriver";
 
 const runtime = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(runtime.restore);
+
+test("[native] capture driver shows Cairne jab and roll on adjacent held frames (wisp#84)", () => {
+  const captured = installHeadless(PREDICTED_HEADLESS);
+  const build = { ...NATIVE_DRIVER_BUILD, presentation: "pool-predicted" as const };
+  try {
+    const clients = captured.clients({
+      install() { installGame(build); installSmashcraftNativeDriver(); },
+      start() { startBuild(build); installSmashcraftNativeDriver(); startSmashcraftNativeDriver(); },
+    }, [0]);
+    const client = clients.client(0);
+    clients.start();
+    clients.frames(3);
+    clients.everywhere(() => nativeDriverCommand("#! chat -dev quick hero cairne bloodhoof\n30 a tap A 2\n70 a shield 1\n71 a stick -1 0\n76 a stick 0 0\n"));
+    const held = (frame: number) => {
+      clients.everywhere(() => nativeDriverCommand(`resume ${frame}`));
+      clients.frames(frame + 3);
+      expect(value(client, () => shell().runtime.simulationFrame)).toBe(frame);
+      const body = client.effectPoses({ visibleOnly: true }).find(pose => pose.model.includes("CairneBloodhoofTimelineBody") && pose.teamColor === 0);
+      if (body === undefined) throw new Error("Cairne body missing");
+      return body;
+    };
+    // Warcraft 3.0.1: ref-84-cairne/cairne84.pad and jab-startup-f33, jab-startup-last-f35, roll-first-active-f74.
+    const jab33 = held(33);
+    const jab35 = held(35);
+    expect(jab35.animationElapsed).not.toBe(jab33.animationElapsed);
+    expect(held(36).animationElapsed).not.toBe(jab35.animationElapsed);
+    expect(held(73).alpha).toBe(255);
+    expect(held(74).alpha).toBe(140);
+    expect(client.errors).toEqual([]);
+  } finally {
+    captured.restore();
+  }
+});
 
 function checkMovementRolls(file: string): void {
   const clients = runtime.clients({ install, start }, [0]);
