@@ -60,7 +60,7 @@ test("Frozen Throne's light shines at 0.8 so lit fighters sit below the stock no
 // at 1 Reforged cut contrast (abs ΔL 22.1 → 21.3); at 1.2 abs ΔL 12.1 → 17.8, ΔE00 15.8 → 21.3.
 test("Blackrock's forge light shines at 1.2 so fighters stand brighter than its dark cavern [spec #292]", () => {
   const blackrock = STAGE_LIGHTS.find(({ stage }) => stage === CANNON_TEST_STAGE)?.light;
-  assertEquals(`${blackrock?.key.join(",")}/${blackrock?.ambient.join(",")}`, "255,216,176/170,124,112");
+  assertEquals(`${blackrock?.key.join(",")}/${blackrock?.ambient.join(",")}`, "255,248,232/170,124,112");
   assertEquals(blackrock?.intensity, f32(1.2));
 });
 

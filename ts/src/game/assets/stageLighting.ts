@@ -37,9 +37,8 @@ export const STAGE_LIGHTS: readonly { readonly stage: number; readonly theme: st
   { stage: PATTERNED_DECKS_STAGE, theme: "Scourge", light: { key: [222, 230, 255], ambient: [150, 136, 196] } },
   // Burning sky key, fel-green fill.
   { stage: HELLFIRE_STAGE, theme: "Fel", light: { key: [255, 222, 196], ambient: [140, 172, 120] } },
-  // Forge-orange key, ember fill, at 1.2: the cavern is darker than the
-  // fighters, so a brighter light separates them (#292).
-  { stage: CANNON_TEST_STAGE, theme: "Blackrock", light: { key: [255, 216, 176], ambient: [170, 124, 112], intensity: 1.2000000476837158 } },
+  // A warm ivory key separates fighters from the orange forge backdrop (#292).
+  { stage: CANNON_TEST_STAGE, theme: "Blackrock", light: { key: [255, 248, 232], ambient: [170, 124, 112], intensity: 1.2000000476837158 } },
   // Firelit dusk key, smoky mauve fill.
   { stage: STRATHOLME_STAGE, theme: "Stratholme", light: { key: [255, 214, 180], ambient: [170, 140, 150] } },
   // Cool sea light, tide-teal fill.

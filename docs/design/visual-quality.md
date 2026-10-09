@@ -215,7 +215,7 @@ both modes; the three stock skies preserve their stock animation.
 | Durotar Skies | 255,226,180 / 190,152,134; 0.3 | Original dusty sky | 5,000–11,000; 0.75,0.5,0.25 |
 | Naxxramas | 222,230,255 / 150,136,196; 1 | Original slate-teal sky | 5,000–11,000; 0.25,0.5,0.625 |
 | Hellfire Citadel | 255,222,196 / 140,172,120; 1 | Stock Outland_Sky | 5,000–11,000; 0.25,0.5,0.125 |
-| Blackrock | 255,216,176 / 170,124,112; 1.2 | Original forge sky | 5,000–10,000; 0.5,0.125,0.0625 |
+| Blackrock | 255,248,232 / 170,124,112; 1.2 | Original forge sky | 5,000–10,000; 0.5,0.125,0.0625 |
 | Ahn'Qiraj | 255,240,204 / 192,170,136; 0.5 | Original sandstone sky | 5,000–10,000; 0.75,0.625,0.375 |
 | Stratholme | 255,214,180 / 170,140,150; 1 | Stock LordaeronFallSky | 5,000–11,000; 0.5,0.28125,0.1875 |
 | Tomb of Sargeras | 226,244,255 / 130,176,180; 1 | Original tide sky | 5,000–11,000; 0.25,0.4375,0.46875 |
