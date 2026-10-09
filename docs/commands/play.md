@@ -54,4 +54,10 @@
   screen on both sides, checksum mismatches, the map's rollback depth p95/p99/max
   against its window, the remote's lead and prediction stalls; it fails on a
   missed result, any mismatch or a p99 depth past the window. Each pad, log and
-  results.json land in DIR.
+  results.json land in DIR. It also accounts every scripted press: lost or
+  extra presses, rows off their assigned frame (input delay) or different on
+  the remote, and ticks from press to the local view running it, failing past
+  3. `--four-fighters` instead plays one two-player, two-computer match as
+  `play --standalone --host` and `--join` windows on this machine and fails on
+  a frame-time p95 over 16.7 ms in either window; run it under an exclusive
+  capacity lease.

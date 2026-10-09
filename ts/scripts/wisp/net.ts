@@ -8,6 +8,7 @@ import { PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
 import type { MapBuild } from "../../src/game/shell/build";
 import { PREDICTED_HEADLESS } from "./headless";
 import { heldKeys } from "./standalone";
+import { actionFor, presetBindings } from "../../src/game/input/keyBindings";
 
 const SETUP_FRAME = 30;
 const BUTTONS: Readonly<Record<string, string>> = { A: "attack", X: "special", B: "jump", Y: "jump", LB: "walk", TL: "walk", RB: "grab", TR: "grab", START: "start", VIEW: "view" };
@@ -78,7 +79,7 @@ export async function createNetStandalone(link: LockstepLink, slot: number, opti
   const runtime = installHeadless(PREDICTED_HEADLESS);
   try {
     const platform = join(import.meta.dir, "../../src/platform");
-    interface State { readonly game: { readonly phase: number } }
+    interface State { readonly game: { readonly phase: number; readonly humanFighterMask: number; readonly computerMask: number } }
     const { shell }: { shell(): State } = await import(join(platform, "shell/state.ts"));
     const { confirmedChecksum }: { confirmedChecksum(state: State): string } = await import(join(platform, "shell/diagnostics.ts"));
     const { setHumanCount }: { setHumanCount(game: State["game"], count: number): void } = await import(join(import.meta.dir, "../../src/game/match/rules.ts"));
@@ -93,6 +94,8 @@ export async function createNetStandalone(link: LockstepLink, slot: number, opti
     let held = new Set<number>();
     let lastPhase = -1;
     const net = netcodeStats();
+    const presses = pressStats(slot);
+    let tick = 0;
     return {
       client,
       input: (input) => { latest = input; },
@@ -101,22 +104,28 @@ export async function createNetStandalone(link: LockstepLink, slot: number, opti
         if (lockstep.frame === SETUP_FRAME) {
           client.run(() => {
             net.attach(shell() as unknown as NetcodeShell, slot);
+            presses.attach(shell() as unknown as NetcodeShell, () => tick);
             setHumanCount(shell().game, 2);
-            for (const command of chat) applyDeveloperCommand(shell(), command.startsWith("-dev fighter ") ? Number(command.split(" ")[2]) - 1 : 0, command);
+            for (const command of chat) applyDeveloperCommand(shell(), command.startsWith("-dev fighter ") && Number(command.split(" ")[2]) <= 2 ? Number(command.split(" ")[2]) - 1 : 0, command);
           });
           console.error(`net: fighter selection with 2 players at frame ${lockstep.frame}`);
         }
         if (lockstep.frame >= SETUP_FRAME) {
           const next = heldKeys(scripted === undefined ? latest : scripted(lockstep.frame - SETUP_FRAME + 1));
           for (const key of held) if (!next.has(key)) lockstep.key(slot, key, 0, false);
-          for (const key of next) if (!held.has(key)) lockstep.key(slot, key, 0, true);
+          for (const key of next) if (!held.has(key)) {
+            lockstep.key(slot, key, 0, true);
+            if (lastPhase === Phase.match) presses.press(key, tick);
+          }
           held = next;
         }
+        tick++;
         lockstep.frames(1);
+        presses.drawn(tick);
         if (client.errors.length > 0) throw new Error(client.errors.join("\n"));
         client.run(() => {
           const phase = shell().game.phase;
-          if (phase !== lastPhase) console.error(`net: ${PHASE_NAMES.get(phase) ?? phase} at frame ${lockstep.frame}`);
+          if (phase !== lastPhase) console.error(`net: ${PHASE_NAMES.get(phase) ?? phase} at frame ${lockstep.frame}${phase === Phase.match ? `, humans ${shell().game.humanFighterMask} computers ${shell().game.computerMask}` : ""}`);
           if (phase === Phase.match) net.sample();
           lastPhase = phase;
         });
@@ -129,6 +138,7 @@ export async function createNetStandalone(link: LockstepLink, slot: number, opti
       },
       close: () => {
         console.error(`net: rollback ${JSON.stringify(net.report())}`);
+        console.error(`net: presses ${JSON.stringify(presses.report())}`);
         runtime.restore();
       },
     };
@@ -143,7 +153,11 @@ interface NetcodeShell {
     readonly active: boolean;
     readonly window: number;
     readonly delay: number;
-    readonly schedule: { speculativeFrame(): number; remoteThrough(slot: number): number; windowHalted(slot: number): boolean };
+    readonly schedule: {
+      speculativeFrame(): number; remoteThrough(slot: number): number; windowHalted(slot: number): boolean; captureTarget(): number | undefined;
+      captureLocal(epoch: number, sample: { readonly pressed: number }): number;
+      acceptSynchronized(sender: number, packet: { readonly epoch: number; readonly firstFrame: number; readonly rows: readonly { readonly pressed: number }[] }): string;
+    };
     readonly playback: {
       reconcile(...args: unknown[]): "unchanged" | "rejected" | { readonly replayedFrom: number };
       catchUp(...args: unknown[]): boolean;
@@ -194,5 +208,60 @@ function netcodeStats() {
       const insideWindow = leads.filter((lead) => lead <= window).length;
       return { window, delay, depth: percentiles(depths), lead: percentiles(leads), leadInsideWindow: leads.length === 0 ? 1 : insideWindow / leads.length, stalls };
     },
+  };
+}
+
+const BINDINGS = presetBindings("standard");
+
+/** Every scripted key press during the match: the row it was captured into, the frame that row was assigned, the tick the local view first ran it, and every row received from each slot (wisp#112). */
+function pressStats(slot: number) {
+  const pending: { readonly bit: number; readonly tick: number }[] = [];
+  const captured: { frame: number; pressed: number; tick: number; frontier: number; drawnTick: number; pressTicks: number[] }[] = [];
+  const received: Record<number, Record<number, number>> = {};
+  let conflicts = 0, unmatched = 0, delay = 0;
+  let schedule: NonNullable<NetcodeShell["rollback"]>["schedule"] | undefined;
+  return {
+    attach(state: NetcodeShell, now: () => number) {
+      const rollback = state.rollback;
+      if (rollback === undefined) throw new Error("net: the build has no rollback");
+      schedule = rollback.schedule;
+      const own = rollback.schedule, captureLocal = own.captureLocal.bind(own), accept = own.acceptSynchronized.bind(own);
+      own.captureLocal = (epoch, sample) => {
+        const target = own.captureTarget(), frontier = own.speculativeFrame();
+        const result = captureLocal(epoch, sample);
+        if (result === 0 && target !== undefined && sample.pressed !== 0) {
+          delay = rollback.delay;
+          const row = { frame: target, pressed: sample.pressed, tick: now(), frontier, drawnTick: -1, pressTicks: [] as number[] };
+          for (let index = 0; index < pending.length;) {
+            const press = pending[index]!;
+            if ((sample.pressed & press.bit) !== 0) { row.pressTicks.push(press.tick); pending.splice(index, 1); } else index++;
+          }
+          if (row.pressTicks.length === 0) unmatched++;
+          captured.push(row);
+        }
+        return result;
+      };
+      own.acceptSynchronized = (sender, packet) => {
+        const receipt = accept(sender, packet);
+        if (receipt === "accepted") packet.rows.forEach((row, index) => {
+          if (row.pressed === 0) return;
+          const rows = received[sender] ??= {};
+          const frame = packet.firstFrame + index;
+          if (rows[frame] !== undefined && rows[frame] !== row.pressed) conflicts++;
+          rows[frame] = row.pressed;
+        });
+        return receipt;
+      };
+    },
+    press(key: number, tick: number) {
+      const action = actionFor(BINDINGS, key);
+      if (action !== undefined) pending.push({ bit: 1 << action, tick });
+    },
+    drawn(tick: number) {
+      if (schedule === undefined) return;
+      const ran = schedule.speculativeFrame();
+      for (let index = captured.length - 1; index >= 0 && captured[index]!.drawnTick < 0; index--) if (captured[index]!.frame < ran) captured[index]!.drawnTick = tick;
+    },
+    report: () => ({ slot, delay, conflicts, unmatched, lost: pending.length, lostTicks: pending.map((press) => press.tick), captured, received }),
   };
 }
