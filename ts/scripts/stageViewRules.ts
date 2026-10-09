@@ -30,18 +30,19 @@ export function behindProblems(stage: number, name: string, scenery: Pick<StageS
   const visibility = SMASHCRAFT_SCENE.visibility;
   if (visibility === undefined) throw new Error("missing visibility");
   const problems: string[] = [];
-  const corners = (box: { min: readonly number[]; max: readonly number[] }) =>
-    [box.min[0]!, box.max[0]!].flatMap(x => [box.min[1]!, box.max[1]!].flatMap(y => [box.min[2]!, box.max[2]!].map(z => [x, y, z] as const)));
+  const corners = (box: { min: readonly [number, number, number]; max: readonly [number, number, number] }) =>
+    [box.min[0], box.max[0]].flatMap(x => [box.min[1], box.max[1]].flatMap(y => [box.min[2], box.max[2]].map(z => [x, y, z] as const)));
   const radians = (degrees: number) => degrees * Math.PI / 180;
   for (const camera of visibility.cameras) {
     const pitch = radians(camera.angleOfAttack > 180 ? camera.angleOfAttack - 360 : camera.angleOfAttack);
     const yaw = radians(camera.rotation);
     const forward = [Math.cos(pitch) * Math.cos(yaw), Math.cos(pitch) * Math.sin(yaw), Math.sin(pitch)] as const;
-    const along = (point: readonly number[]) => point.reduce((sum, value, axis) => sum + value * forward[axis]!, 0);
+    const along = ([x, y, z]: readonly [number, number, number]) => x * forward[0] + y * forward[1] + z * forward[2];
     const blast = stageBounds(stage).blast;
-    const fight = { min: [blast.left - 200, -200, blast.bottom - 200], max: [blast.right + 200, 200, blast.top + 200] };
+    const fight = { min: [blast.left - 200, -200, blast.bottom - 200], max: [blast.right + 200, 200, blast.top + 200] } as const;
     const farthestFighter = Math.max(...corners(fight).map(along));
-    const eye = camera.target.map((value, axis) => value - camera.distance * forward[axis]!);
+    const [tx, ty, tz] = camera.target;
+    const eye = [tx - camera.distance * forward[0], ty - camera.distance * forward[1], tz - camera.distance * forward[2]] as const;
     if (scenery.fog !== undefined && !(farthestFighter - along(eye) < scenery.fog.start)) problems.push(`${name}: fog starts inside the fight`);
     for (const piece of scenery.pieces) {
       const turn = radians(piece.yaw);
@@ -89,7 +90,7 @@ export function floatingProblems(stage: number, name: string, pieces: readonly S
     ] as const;
     const deck = Array.from({ length: MAIN_DECK_BODY_SURFACES }, (_, index) => solidSurfaceAt(mainDeckOutlineStage(stage), index)).map(line => project(line.startX, -MAIN_DECK_HALF_DEPTH, line.startZ));
     const behindDeck = ([column, row]: readonly [number, number]) => deck.reduce((inside, [x1, y1], index) => {
-      const [x2, y2] = deck[(index + deck.length - 1) % deck.length]!;
+      const [x2, y2] = deck.at(index - 1) ?? [x1, y1];
       return (y1 > row) !== (y2 > row) && column < ((x2 - x1) * (row - y1)) / (y2 - y1) + x1 ? !inside : inside;
     }, false);
     for (const piece of placed) {

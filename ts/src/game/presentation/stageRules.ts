@@ -60,7 +60,7 @@ export function intensityProblems(theme: string, stage: number, light: StageLigh
   return intensity > 0 && intensity <= limit ? [] : [`${theme}: intensity ${intensity} is outside (0, ${limit}]`];
 }
 
-export interface ModelBox { readonly min: readonly number[]; readonly max: readonly number[] }
+export interface ModelBox { readonly min: readonly [number, number, number]; readonly max: readonly [number, number, number] }
 export type BoundsOf = (model: string) => ModelBox | undefined;
 interface Placed { readonly left: number; readonly right: number; readonly front: number; readonly back: number; readonly bottom: number; readonly top: number }
 
@@ -80,11 +80,11 @@ function placed(piece: SceneryPiece, box: ModelBox): Placed {
   const [mx, my, mz] = piece.matrixScale ?? [1, 1, 1];
   const turn = (piece.yaw * Math.PI) / 180;
   const xs: number[] = [], ys: number[] = [];
-  for (const x of [box.min[0]! * mx, box.max[0]! * mx]) for (const y of [box.min[1]! * my, box.max[1]! * my]) {
+  for (const x of [box.min[0] * mx, box.max[0] * mx]) for (const y of [box.min[1] * my, box.max[1] * my]) {
     xs.push((x * Math.cos(turn) - y * Math.sin(turn)) * piece.scale + piece.x);
     ys.push((x * Math.sin(turn) + y * Math.cos(turn)) * piece.scale + piece.y);
   }
-  return { left: Math.min(...xs), right: Math.max(...xs), front: Math.min(...ys), back: Math.max(...ys), bottom: box.min[2]! * mz * piece.scale + piece.z, top: box.max[2]! * mz * piece.scale + piece.z };
+  return { left: Math.min(...xs), right: Math.max(...xs), front: Math.min(...ys), back: Math.max(...ys), bottom: box.min[2] * mz * piece.scale + piece.z, top: box.max[2] * mz * piece.scale + piece.z };
 }
 
 function supports(rock: SceneryPiece, piece: SceneryPiece, boundsOf: BoundsOf): boolean {
@@ -105,7 +105,7 @@ export function landmarkProblems(name: string, pieces: readonly SceneryPiece[], 
   for (const [index, piece] of pieces.entries()) {
     const own = boundsOf(piece.model);
     if (piece === landmark || own === undefined || isEffect(piece.model)) continue;
-    const top = piece.z + (supports(piece, landmark, boundsOf) ? SUPPORT_TOPS[piece.model]! : own.max[2]!) * (piece.matrixScale?.[2] ?? 1) * piece.scale;
+    const top = piece.z + (supports(piece, landmark, boundsOf) ? SUPPORT_TOPS[piece.model] ?? own.max[2] : own.max[2]) * (piece.matrixScale?.[2] ?? 1) * piece.scale;
     const crossed = piece.x > mark.left && piece.x < mark.right && piece.y > mark.front && piece.y < mark.back && top > landmark.z + (whole.top - landmark.z) / 4;
     if (crossed) problems.push(`${name}: piece ${index} ${piece.model} crosses the landmark ${landmark.model} (core x ${Math.round(mark.left)}..${Math.round(mark.right)}, y ${Math.round(mark.front)}..${Math.round(mark.back)})`);
   }
