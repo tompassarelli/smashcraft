@@ -38,17 +38,18 @@ const banish = (landingLag: number | undefined): AuthoredSpecial => ({
 });
 
 export const PHOENIX_CHARGE_FRAMES = 42;
+export const PHOENIX_AIM_FRAMES = 14;
 export const PHOENIX_FLIGHT_FRAMES = 30;
 export const PHOENIX_SPEED = 16.0;
 const SWIRL: StrikeCapsule = { x1: -20.0, z1: 55.0, x2: 20.0, z2: 55.0, radius: 42.0 };
 const BIRD: StrikeCapsule = { x1: -24.0, z1: 55.0, x2: 24.0, z2: 55.0, radius: 32.0 };
 const swirl = kaelHit(2.0, 80, 0.0, 30.0);
 const phoenix = (speed: number): AuthoredSpecial => ({
-  endFrame: 84, aimFrames: PHOENIX_CHARGE_FRAMES, rehits: [25, 31, 37, PHOENIX_CHARGE_FRAMES], oncePerAirtime: true, helpless: true, landingLag: 18,
+  endFrame: 84, aimFrames: PHOENIX_AIM_FRAMES, rehits: [25, 31, 37, PHOENIX_CHARGE_FRAMES], oncePerAirtime: true, helpless: true, landingLag: 18,
   motion: [
     { ...frames(1, 15), velocityX: 0.0, velocityZ: 0.0 },
     { ...frames(16, PHOENIX_CHARGE_FRAMES), velocityX: 0.0, velocityZ: -0.5 },
-    { ...frames(PHOENIX_CHARGE_FRAMES + 1, PHOENIX_CHARGE_FRAMES + PHOENIX_FLIGHT_FRAMES), velocityX: 0.0, velocityZ: speed, aimedSpeed: speed, liftSpeed: 3.5 },
+    { ...frames(PHOENIX_CHARGE_FRAMES + 1, PHOENIX_CHARGE_FRAMES + PHOENIX_FLIGHT_FRAMES), velocityX: 0.0, velocityZ: speed, aimedSpeed: speed, liftSpeed: 1.5 },
   ],
   regions: [
     heroRegion(20, 21, SWIRL, swirl), heroRegion(26, 27, SWIRL, swirl), heroRegion(32, 33, SWIRL, swirl), heroRegion(38, 39, SWIRL, swirl),

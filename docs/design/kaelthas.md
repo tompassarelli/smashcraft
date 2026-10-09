@@ -55,8 +55,9 @@ of his hurt body; spell fire is not.
    shield, drains up to 30 meter into Kael and pops the victim away for 4%.
    It denies the opponent's EX specials and feeds his own.
 4. **Burn home.** Phoenix charges in place for 42 frames with swirling
-   flames, then flies as a phoenix in the chosen direction; holding up or
-   down bends the flight a little. Edge-guarders hit the charge, cover the
+   flames; the direction locks on frame 14, so the rest of the charge shows
+   the line. Then he flies as a phoenix that way; holding up or down bends
+   the flight a little. Edge-guarders hit the charge, cover the
    ledge, or wait under the helpless fall.
 
 The opponent's guess at mid range: shield the bolt and Drain Mana takes the
@@ -106,7 +107,7 @@ for at most 45 frames to 1.25 damage. No guaranteed repeat-grab or flame loop.
 | Neutral: **Flamestrike** | Throws a fire bolt that drifts up or down toward the nearest opponent ahead of it and, on touching a body or shield, bursts into a short pillar of fire there. | Bolt leaves the hand f16 at x40/z55, 9 a frame for 34 frames (about 350 units, mid range), radius 16; its vertical speed turns by at most 0.35 a frame toward the target, up to 4 a frame. Burst: 12% at 80°, growth 95 base 30; the pillar shows 12 frames and does not hit again. One bolt live; cast ends f38; 40-frame cooldown; air landing 20. | Read the f16 release; jump over the bolt (it only turns gently) or outrun its end; shield it (the burst hits the shield) or reflect it back. | [Ness's PK Flash][pkflash] (a slow fire bolt that bursts into a column where it is); [Pikachu's Thunder Jolt][jolt] (a projectile that follows terrain toward you); Street Fighter [Dhalsim's Yoga Fire][dhalsim] (a slow fireball as the setup) |
 | Side: **Drain Mana** | A short drain tether latches onto the first fighter in reach, through a shield, holds them while it drinks up to 30 meter into Kael, then pops them away. | Tether f10–13, from x30 to x120 at chest height; hold 18 frames; release 4%, 40°, growth 40 base 40, steals 30 meter. Whiff ends f38. Air landing 20. | Jump, spot dodge or roll on the read; the 10-frame tether is slow next to a jab; 25 frames of whiff end lag. | [Robin's Nosferatu][nosferatu] (a drain that feeds the caster); [Bowser's Flying Slam][slam] (a command grab through shields); Street Fighter [Zangief's Spinning Piledriver][zangief] (the shield and grab guess) |
 | Down: **Banish** | A close curse: the victim turns ethereal, slowed and unable to make physical attacks, but able to cast; Kael's spells hurt them 30% more. | Curse f12–14, from x25 to x110 at chest height, radius 20; 3%, set knockback 30; status 90 frames, then 240 frames before Banish or another silence-group status can land again. Cast ends f36. Air landing 18. | Shield it, jump it or space outside 110; a whiff leaves 22 frames to punish. Banished, keep away and cast your specials. | [Mewtwo's Disable][disable] (a short beam that takes the victim's options away); [Ness's PK Fire][pkfire] (a status that sets up the next hit); Rivals of Aether's [Zetterburn][zetter] burn and [Maypul][maypul] mark (a status another move cashes in) |
-| Up: **Phoenix** | Fire Fox: flames swirl round him while he charges in place, then he **becomes a phoenix** and flies in the stick's direction; **holding up or down** during the flight raises or lowers it a little. Helpless after. | Charge f1–42: hovers f1–15, then sinks slowly; swirl flames hit on f20–21, 26–27, 32–33 and 38–39 (each 2%, set knockback 30). Aim read through f42 (eight directions, straight up by default). Flight f43–72: 16 a frame (480 units); up or down adds ±3.5 a frame (about ±105 units over the flight); the phoenix hits 12% at 55° on f43–52 and 6% at 70° on f53–72. End f84, helpless, landing 18; spends the aerial jump, once per airtime. | Hit him during the 42-frame charge (the swirl only deals 2%); read the angle and take the ledge or stand in the line; punish the helpless fall and 18-frame landing. | [Fox's Fire Fox][firefox] (Melee: 43-frame charge, hitbox 20–72, total 92, landing 18; smashcraft:docs/design/melee/recovery.md); [Ridley's Wing Blitz][wing]; Street Fighter [Akuma's Tatsumaki][tatsu] (a committed aerial line) |
+| Up: **Phoenix** | Fire Fox: flames swirl round him while he charges in place, then he **becomes a phoenix** and flies in the stick's direction; **holding up or down** during the flight raises or lowers it a little. Helpless after. | Charge f1–42: hovers f1–15, then sinks slowly; swirl flames hit on f20–21, 26–27, 32–33 and 38–39 (each 2%, set knockback 30). Aim read through f14, then locked for the rest of the charge (eight directions, straight up by default). Flight f43–72: 16 a frame (480 units); up or down adds ±1.5 a frame (about ±45 units over the flight); the phoenix hits 12% at 55° on f43–52 and 6% at 70° on f53–72. End f84, helpless, landing 18; spends the aerial jump, once per airtime. | Hit him during the 42-frame charge (the swirl only deals 2%); read the angle locked from f14 and take the ledge or stand in the line; punish the helpless fall and 18-frame landing. | [Fox's Fire Fox][firefox] (Melee: 43-frame charge, hitbox 20–72, total 92, landing 18; smashcraft:docs/design/melee/recovery.md); [Ridley's Wing Blitz][wing]; Street Fighter [Akuma's Tatsumaki][tatsu] (a committed aerial line) |
 
 **EX versions** (one full universal bar, #335): Flamestrike's pillar deals a
 quarter more damage; Drain Mana's release deals a quarter more (the steal is
@@ -128,9 +129,12 @@ extra damage from Kael's specials. It shares the silence immunity group, so
 Shadow Hunter's Hex or Sylvanas's Silence cannot chain into it.
 
 **Phoenix and the ledge.** The charge holds him in the air for 15 frames and
-then sinks slowly, like Fire Fox. Straight up he rises about 480 units; the
-steering moves the end of the line by at most about 105 units, so an
-edge-guarder still reads one line. He can catch the ledge during the flight.
+then sinks slowly, like Fire Fox. Straight up he rises about 480 units, and
+612 with up held (the long band caps a held rise at 640); the steering moves
+the end of the line by at most about 45 units, so an edge-guarder still reads
+one line. His reach home is the whole recovery, not Phoenix alone: aerial
+jump, drift and an aim locked on frame 14 recover from 820 below the ledge
+(the long band asks 780). He can catch the ledge during the flight.
 Walking off the ledge keeps the aerial jump. The computer jumps first, then
 aims Phoenix at the ledge.
 
