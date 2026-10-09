@@ -70,8 +70,22 @@ function estimate(own: Readonly<Fighter>, option: number): MoveEstimate | undefi
   let damage = 0.0;
   let effect = noEffect;
   if (move !== undefined) {
+    // A contact window hits once even when several capsules overlap.
     for (const region of move.regions) {
-      if (region.hit.effect.damage > damage) { damage = region.hit.effect.damage; effect = region.hit.effect; }
+      const window = region.hit.window;
+      if (window <= 0) continue;
+      let earlier = false;
+      let strongest = region.hit.effect;
+      for (const candidate of move.regions) {
+        if (candidate === region) break;
+        if (candidate.hit.window === window) { earlier = true; break; }
+      }
+      if (earlier) continue;
+      for (const candidate of move.regions) {
+        if (candidate.hit.window === window && candidate.hit.effect.damage > strongest.damage) strongest = candidate.hit.effect;
+      }
+      damage = f32(damage + strongest.damage);
+      effect = strongest;
     }
   } else {
     authoredHitRegion(hit, own.character, style, startup, 0, 0, own.tuning.moves);
