@@ -5,6 +5,7 @@ import { createReferenceFighter } from "../sim/referenceRig";
 import { type Pad, type PadMatch, padMatch, playPads } from "./helperPads";
 import { ROSTER_MANA } from "../sim/mana";
 import { testMatch } from "./testMatch";
+import { f32 } from "wisp/src/sim/f32";
 
 function padRun(): { readonly run: PadMatch; readonly fighter: ReturnType<typeof createReferenceFighter> } {
   const match = testMatch(3, Character.sylvanas);
@@ -37,7 +38,7 @@ test("shield pressed on any jump-squat frame air dodges on the first airborne fr
     for (let offset = 0; ; offset++) {
       const { run, fighter } = padRun();
       for (let frame = 0; frame < 4; frame++) playPads(run, {}, {});
-      const stick = { x: 0.7, y: -0.7 };
+      const stick = { x: f32(0.7), y: f32(-0.7) };
       playPads(run, offset === 0 ? { ...jump, ...stick, trigger: true } : { ...jump, ...stick }, {});
       const squat = fighter.jump.squat;
       assertGreaterThan(squat, 0);
