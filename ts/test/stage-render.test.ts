@@ -55,6 +55,24 @@ test("quick stage applies capture look before the first match picture without la
   }
 });
 
+test("quick stage fog off clears Tomb's fog before the first match picture and keeps its sky [spec #298]", () => {
+  const clients = headless.clients({ start, install });
+  clients.start(); clients.frames(30);
+  const client = clients.client(0);
+  const before = client.log.length;
+  clients.chat(0, "-dev quick stage 7 lighting stage backdrop on view far fog off");
+  client.run(() => {
+    const s = shell();
+    expect(s.game.stageChoice).toBe(7);
+    expect(s.runtime.simulationFrame).toBe(0);
+    const calls = client.log.slice(before);
+    expect(calls.filter(call => call.name === "BlzShowSkyBox").at(-1)?.args).toEqual([true]);
+    const fogs = calls.filter(call => call.name === "SetTerrainFogEx" || call.name === "SetTerrainFogExV");
+    expect(fogs.at(-1)?.args.slice(0, 3)).toEqual([0, 100000, 200000]);
+  });
+  expect(client.errors).toEqual([]);
+});
+
 test("Tomb draws teal fog below its tide floor and replaces mist only in HD modes [spec #298]", () => {
   const clients = headless.clients({ start, install });
   clients.start(); clients.frames(30);

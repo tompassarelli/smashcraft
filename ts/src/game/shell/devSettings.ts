@@ -95,6 +95,8 @@ export interface QuickStageSettings {
   lighting?: "stock" | "stage";
   backdrop?: "on" | "off";
   view?: "near" | "far" | "off";
+  /** Off clears the stage's distance and height fog, sky and scenery kept, to tell fog from the sky's own gradient (#298). */
+  fog?: "on" | "off";
 }
 
 export function quickStageSettings(message: string): QuickStageSettings | undefined {
@@ -111,6 +113,7 @@ export function quickStageSettings(message: string): QuickStageSettings | undefi
     if (option === "lighting" && (value === "stock" || value === "stage")) settings.lighting = value;
     else if (option === "backdrop" && (value === "on" || value === "off")) settings.backdrop = value;
     else if (option === "view" && (value === "near" || value === "far" || value === "off")) settings.view = value;
+    else if (option === "fog" && (value === "on" || value === "off")) settings.fog = value;
     else return undefined;
   }
   return settings;

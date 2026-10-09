@@ -1,5 +1,5 @@
 import type { QuickStageSettings } from "../../game/shell/devSettings";
-import { showBackdrop, showStageLighting } from "./stageScenery";
+import { showBackdrop, showStageFog, showStageLighting } from "./stageScenery";
 // Starting a match, on every client at the same synchronized event: a fresh
 // confirmed match, the stage, the developer scenario, the rollback epoch and
 // its journal, then the fighters' renderers.
@@ -51,6 +51,7 @@ export function startMatch(s: ShellState, scenario: Scenario = s.build.scenario,
   if (s.drawnStage !== s.game.stageChoice || s.stageDecks.length !== surfaceCount(s.game.stageChoice)) drawStage(s);
   if (stageSettings?.lighting !== undefined) showStageLighting(s, stageSettings.lighting === "stage");
   if (stageSettings?.backdrop !== undefined) showBackdrop(s, stageSettings.backdrop === "on");
+  if (stageSettings?.fog !== undefined) showStageFog(s, stageSettings.fog === "on");
   if (stageSettings?.view !== undefined) s.viewExtreme = stageSettings.view === "off" ? undefined : stageSettings.view;
   if (wasPaused) pauseMatchPresentation(s, false);
   initializeScenario(scenario, s.game, s.world);

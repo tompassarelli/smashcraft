@@ -91,6 +91,11 @@ export function showBackdrop(s: ShellState, visible: boolean): void {
     }
   }
   for (const deck of [...s.stageDecks, ...s.stageDeckParts]) BlzSetSpecialEffectAlpha(deck, alpha);
+  showStageFog(s, visible);
+}
+
+/** The stage's own fog, or none: linear fog pushed past the far clip. */
+export function showStageFog(s: ShellState, visible: boolean): void {
   if (visible) drawStageFog(s);
   else {
     BlzSetTerrainFogMaxLinearDensity(1.0);
