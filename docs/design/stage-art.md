@@ -1,5 +1,23 @@
 # Stage art: backgrounds, skies and scenery
 
+Tomb of Sargeras is the showcase chosen for the other stages' quality bar
+(#299). Its [creative brief](showcase-tomb.md) gives each visual lever a job:
+the luminous tide floor, a dark temple on the right third, falling water on the
+left and an open fighting centre. Its TS-1 through TS-3 board and TS-a through
+TS-d rubric remain the reference for judging the result.
+
+Other stages must match that deliberate relationship between materials,
+lighting and silhouette: three distinct deck materials, themed platforms,
+three receding scenery bands, an immediately recognisable landmark and small
+accents that follow the stage's clock. Stock assets come first. Classic and
+Definitive must each compose a complete scene, with visible ledges and fighter
+contrast at both camera extremes. Bloom, shadows or fog earn their place by
+supporting that scene, and each stage keeps its frame and motion budgets.
+
+The quality judgment uses captures beside the stage's Ultimate and Rivals of
+Aether 2 references, line by line against its board. A missed line is fixed or
+filed before the finished showcase is used to grade another stage.
+
 How a Smashcraft stage's backdrop is composed so it tells its place without
 competing with the fight. The stage pass applies these rules to every
 selectable stage; a new stage follows them before it ships. Stage layouts,
