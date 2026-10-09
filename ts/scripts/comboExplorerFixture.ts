@@ -20,9 +20,9 @@ import { Phase, createMatchState, setParticipants } from "../src/game/match/rule
 import { initializeMatchFighters, matchSpawnX } from "../src/game/match/step";
 import { KEYED_BY_ACTION, savedState, savedView } from "../src/game/replay/moment";
 import { type ReplayState, captureReplaySnapshot, createReplaySnapshot } from "../src/game/replay/snapshot";
-import { Character } from "../src/game/sim/codes";
+import { Character, DownState } from "../src/game/sim/codes";
 import { canStartAttack } from "../src/game/sim/conditions";
-import { createFighter } from "../src/game/sim/fighter";
+import { type Fighter, createFighter } from "../src/game/sim/fighter";
 import { type Controls, copyControls, createRoster, fighterAt } from "../src/game/sim/roster";
 import type { ComboSetup } from "../src/game/match/comboRoute";
 import { Sim } from "./comboExplorer";
@@ -79,7 +79,7 @@ function record(seed: number): string[] | undefined {
     }
     if (root !== undefined) frames.push(copied(produced));
     if (!captureFrame(row, n, world.mask, produced, runtime) || !executeMatchFrame(row, game, world, controls, runtime, n)) throw new Error(`frame ${n} did not run`);
-    if (root !== undefined && (canStartAttack(defender, true) || defender.status.stocks !== root.stocks)) root = undefined;
+    if (root !== undefined && (canStartAttack(defender, true) || chose(defender) || defender.status.stocks !== root.stocks)) root = undefined;
     if (root !== undefined && defender.visuals.hit > root.hits && defender.status.damage > root.damage && attacker.attack.serial !== root.serial) {
 
       const setup = { ...SETUP, percent: root.damage };
@@ -105,6 +105,9 @@ function record(seed: number): string[] | undefined {
   return undefined;
 }
 
+
+const chose = (f: Readonly<Fighter>): boolean =>
+  f.down.state !== DownState.none && f.down.state !== DownState.tumble && f.down.state !== DownState.bound && f.down.state !== DownState.damage;
 
 export function idleDamage(setup: ComboSetup, state: Readonly<ReplayState>): number {
   const sim = new Sim(setup, state);
