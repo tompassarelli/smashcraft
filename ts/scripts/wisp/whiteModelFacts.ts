@@ -19,42 +19,6 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/illidanwhite-50c3dfbe2df5e980c4b4b519f1a9a1bd2c454e88d9e648cd6101137e8691b53a.mdx": {
-    "geosets": 18,
-    "triangles": 1295,
-    "lights": 0,
-    "bounds": {
-      "min": [
-        -204.4149932861328,
-        -202.2220001220703,
-        -99.90679931640625
-      ],
-      "max": [
-        199.40199279785156,
-        201.59500122070312,
-        267.77301025390625
-      ]
-    },
-    "emitters": []
-  },
-  "war3mapimported/blademasterwhite-70b8e5ba94e00bf335b452f00c6397a169ca3ef29bfbcfbb472e6ecd69745fc7.mdx": {
-    "geosets": 9,
-    "triangles": 550,
-    "lights": 0,
-    "bounds": {
-      "min": [
-        -398.0740051269531,
-        -378.6839904785156,
-        -70.77629852294922
-      ],
-      "max": [
-        376.4989929199219,
-        399.2030029296875,
-        1040.8699951171875
-      ]
-    },
-    "emitters": []
-  },
   "war3mapimported/mountainkingwhite-cf69e954caba52e0e7985d93535fed6abd6eeae2fe0c5ccc119d03a91e0d3f40.mdx": {
     "geosets": 8,
     "triangles": 570,
@@ -69,24 +33,6 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
         142.7100067138672,
         116.38099670410156,
         564.8629760742188
-      ]
-    },
-    "emitters": []
-  },
-  "war3mapimported/lichwhite-7315d0afe11f8a7235711785a9918b08bb2623ab623365f4fa21a53dbe3c345d.mdx": {
-    "geosets": 12,
-    "triangles": 596,
-    "lights": 0,
-    "bounds": {
-      "min": [
-        -162.3159942626953,
-        -165.9600067138672,
-        -52.3577995300293
-      ],
-      "max": [
-        168.93099975585938,
-        165.28700256347656,
-        218.0189971923828
       ]
     },
     "emitters": []
@@ -145,42 +91,6 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/jainaproudmoorewhite-aad7b9552a8f2c7a91aff46ee20bb796f3ed66323ea9668c1637772410e01825.mdx": {
-    "geosets": 3,
-    "triangles": 564,
-    "lights": 0,
-    "bounds": {
-      "min": [
-        -140.33799743652344,
-        -132.1320037841797,
-        -9.235360145568848
-      ],
-      "max": [
-        123.25199890136719,
-        131.45799255371094,
-        342.8320007324219
-      ]
-    },
-    "emitters": []
-  },
-  "war3mapimported/sylvanaswindrunnerwhite-ee42a9723beb9fbdda001a563ed21b2b11982c5d61d28d9dc8b3d2d76443107f.mdx": {
-    "geosets": 7,
-    "triangles": 489,
-    "lights": 0,
-    "bounds": {
-      "min": [
-        -145.44700622558594,
-        -111.19999694824219,
-        -44.0005989074707
-      ],
-      "max": [
-        119.04299926757812,
-        114.08999633789062,
-        500.8219909667969
-      ]
-    },
-    "emitters": []
-  },
   "war3mapimported/cairnebloodhoofwhite-0d5aadbb03a96d712236d7ef667a6aeaba25f1e2e53ad273d21db75e43e51592.mdx": {
     "geosets": 6,
     "triangles": 481,
@@ -195,24 +105,6 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
         232.87100219726562,
         283.1789855957031,
         464.3380126953125
-      ]
-    },
-    "emitters": []
-  },
-  "war3mapimported/goblintinkerwhite-22ff99a0a01fae555cd84b29acd72ebd7bf42d8c2b34d8ef14146196c5d3c5d6.mdx": {
-    "geosets": 24,
-    "triangles": 2412,
-    "lights": 0,
-    "bounds": {
-      "min": [
-        -272.2879943847656,
-        -264.968994140625,
-        -26.107999801635742
-      ],
-      "max": [
-        256.92999267578125,
-        264.24798583984375,
-        366.3789978027344
       ]
     },
     "emitters": []
@@ -325,24 +217,6 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/forsakenpaladinwhite-47300af24b7ed7c1b568d6676f227da01076ac9c434e59d2b9d931a9f789411e.mdx": {
-    "geosets": 5,
-    "triangles": 3424,
-    "lights": 0,
-    "bounds": {
-      "min": [
-        -320,
-        -320,
-        -200
-      ],
-      "max": [
-        320,
-        320,
-        391.70599365234375
-      ]
-    },
-    "emitters": []
-  },
   "war3mapimported/koboldwhite-0bf396557cf08b5b05002e314ebf29b22d31be85a8496997cb32bb0ba24c9738.mdx": {
     "geosets": 7,
     "triangles": 394,
@@ -357,24 +231,6 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
         83.89910125732422,
         101.71800231933594,
         129.94700622558594
-      ]
-    },
-    "emitters": []
-  },
-  "war3mapimported/malfurionstormragewhite-741ce24d06acb74b34da0005864a13883c190aa8ad606cda393f6aba32d60dbc.mdx": {
-    "geosets": 15,
-    "triangles": 1155,
-    "lights": 0,
-    "bounds": {
-      "min": [
-        -222.80499267578125,
-        -231.8820037841797,
-        -124.39299774169922
-      ],
-      "max": [
-        244.66600036621094,
-        249.02699279785156,
-        485.5610046386719
       ]
     },
     "emitters": []
@@ -429,6 +285,150 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
         300,
         300,
         520.5850219726562
+      ]
+    },
+    "emitters": []
+  },
+  "war3mapimported/illidanwhite-056fa7e3040bff7539fdd36586314cba4ca48822aec339cf6d566b8bd9ff005c.mdx": {
+    "geosets": 8,
+    "triangles": 983,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -300,
+        -300,
+        -200
+      ],
+      "max": [
+        300,
+        300,
+        350
+      ]
+    },
+    "emitters": []
+  },
+  "war3mapimported/blademasterwhite-3a0c95d58fc2fe134b4598f36fe6a7684b0adbe5fdeebabb7c7ae082af934bb8.mdx": {
+    "geosets": 3,
+    "triangles": 424,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -398.0740051269531,
+        -378.6839904785156,
+        -200
+      ],
+      "max": [
+        365.17401123046875,
+        399.2030029296875,
+        1040.8699951171875
+      ]
+    },
+    "emitters": []
+  },
+  "war3mapimported/lichwhite-2fd5e1a96ca63357e47fb74d15d33838721e8880502b03f67a603464100a54e3.mdx": {
+    "geosets": 3,
+    "triangles": 538,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -300,
+        -300,
+        -200
+      ],
+      "max": [
+        300,
+        300,
+        350
+      ]
+    },
+    "emitters": []
+  },
+  "war3mapimported/forsakenpaladinwhite-4bd8f195c69b2c646abacd1a6a2a2ec66df2cee4e0fc8ceec381c75fafaa5f24.mdx": {
+    "geosets": 4,
+    "triangles": 3418,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -320,
+        -320,
+        -200
+      ],
+      "max": [
+        320,
+        320,
+        391.70599365234375
+      ]
+    },
+    "emitters": []
+  },
+  "war3mapimported/jainaproudmoorewhite-329b030f2397bec81929c302fd8490c2eed9de2b321603c0304ce868c8405764.mdx": {
+    "geosets": 2,
+    "triangles": 558,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -300,
+        -300,
+        -200
+      ],
+      "max": [
+        300,
+        300,
+        350
+      ]
+    },
+    "emitters": []
+  },
+  "war3mapimported/goblintinkerwhite-172bed3bf89d1843a230d4573cc52534c521f5a906c3c9539e7ff3bed468c29d.mdx": {
+    "geosets": 19,
+    "triangles": 2372,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -300,
+        -300,
+        -150
+      ],
+      "max": [
+        300,
+        300,
+        366.3789978027344
+      ]
+    },
+    "emitters": []
+  },
+  "war3mapimported/malfurionstormragewhite-a54a87aebcd874ac5aba3607239748a56ef8059394782f737eff26479cf0b5f1.mdx": {
+    "geosets": 12,
+    "triangles": 1125,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -300,
+        -300,
+        -200
+      ],
+      "max": [
+        300,
+        300,
+        485.5610046386719
+      ]
+    },
+    "emitters": []
+  },
+  "war3mapimported/sylvanaswindrunnerwhite-980c49fba6a41559f37533798c450ee6bddd1214956232b977ec15f988fe34ad.mdx": {
+    "geosets": 3,
+    "triangles": 459,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -300,
+        -300,
+        -200
+      ],
+      "max": [
+        300,
+        300,
+        500.8219909667969
       ]
     },
     "emitters": []

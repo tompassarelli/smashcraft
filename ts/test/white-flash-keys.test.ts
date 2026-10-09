@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { model as mdx } from "war3-model";
 import { keepFlashableKeys, preservesFlashKey, trimFlashTracks } from "../../tools/animations/white-flash-keys";
+import { groundPlaneGeosets, removeGeosets } from "../scripts/groundPlanes";
 
 const sequence: mdx.Sequence = {
   Name: "Attack", Interval: new Uint32Array([100, 200]), NonLooping: true,
@@ -46,4 +47,21 @@ test("white flash removes a track whose keys all lie outside flashable clips, be
   trimFlashTracks({ Attachments: [attachment], Nodes: [attachment] }, [sequence]);
   expect("Visibility" in attachment).toBe(false);
   expect(attachment.Translation.Keys.map(key => key.Frame)).toEqual([100, 150, 200]);
+});
+
+test("white flash drops the team-glow ground plane under a fighter and renumbers what refers to the rest [repro #346]", () => {
+  const square = (size: number, z: number) => new Float32Array([-size, -size, z, size, -size, z, size, size, z, -size, size, z]);
+  const geoset = (Vertices: Float32Array) => ({ Vertices }) as mdx.Geoset;
+  const body = geoset(new Float32Array([0, 0, 0, 20, 0, 0, 0, 0, 180]));
+  const model = {
+    Geosets: [geoset(square(110, 8)), body],
+    GeosetAnims: [{ GeosetId: 0, Alpha: 0, Color: new Float32Array(3), Flags: 0 }, { GeosetId: 1, Alpha: 1, Color: new Float32Array(3), Flags: 0 }],
+    Bones: [{ GeosetId: 0, GeosetAnimId: 0 }, { GeosetId: 1, GeosetAnimId: 1 }],
+  } as unknown as mdx.Model;
+  expect(groundPlaneGeosets(model)).toEqual([0]);
+  removeGeosets(model, new Set(groundPlaneGeosets(model)));
+  expect(model.Geosets).toEqual([body]);
+  expect(model.GeosetAnims.map(animation => animation.GeosetId)).toEqual([0]);
+  expect(model.Bones.map(bone => [bone.GeosetId, bone.GeosetAnimId])).toEqual([[null, null], [0, 0]]);
+  expect(groundPlaneGeosets(model)).toEqual([]);
 });

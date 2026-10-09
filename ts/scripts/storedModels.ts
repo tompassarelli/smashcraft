@@ -1,12 +1,16 @@
 // Checks that the stored families build-inputs.json names hold every generated
 // model the script draws (GENERATED_MODELS), so regenerated art can't land
-// without its stored family. The pre-push gate runs it when model inputs change.
+// without its stored family, and that no white-flash body keeps a ground plane
+// (#346). The pre-push gate runs it when model inputs change.
 // Usage: bun scripts/storedModels.ts [STORE]
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { Console, Effect } from "effect";
 import { FAMILY_NAMES, INPUTS_STORE, MANIFEST, readManifest, regenerate } from "./wisp/buildInputs";
 import { GENERATED_MODELS, TOMB_WATERFALL_IMPORTS, missingModels } from "./wisp/mapInputs";
+import { parseModelMDX } from "./mdxCodec";
+import { WHITE_FIGHTER_MODELS } from "../src/game/assets/whiteFighterModels";
+import { groundPlaneGeosets } from "./groundPlanes";
 
 const store = process.argv[2] ?? INPUTS_STORE;
 
@@ -33,6 +37,13 @@ const program = Effect.gen(function*() {
   const stage = join(store, "stage-assets", manifest["stage-assets"]);
   const waterfalls = TOMB_WATERFALL_IMPORTS.map(({ file }) => file).filter((file) => !existsSync(join(stage, file)));
   if (waterfalls.length > 0) problems.push(`stage-assets ${manifest["stage-assets"]}: ${waterfalls.join(", ")} missing; add the new deck files to a copy of the stored family instead of storing build/stage-assets alone`);
+  const impact = join(store, "impact-assets", manifest["impact-assets"]);
+  for (const model of Object.values(WHITE_FIGHTER_MODELS)) {
+    const path = join(impact, model.replace(/^war3mapImported\\/, ""));
+    if (!existsSync(path)) continue;
+    const planes = groundPlaneGeosets(parseModelMDX(yield* Effect.promise(() => Bun.file(path).arrayBuffer())));
+    if (planes.length > 0) problems.push(`${model} keeps ground plane geosets ${planes.join(", ")}, which Warcraft draws solid white; regenerate it with tools/animations/white-flash-models.ts`);
+  }
   if (problems.length > 0) {
     yield* Console.error(problems.join("\n"));
     return yield* Effect.sync(() => process.exit(1));

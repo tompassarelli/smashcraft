@@ -9,6 +9,7 @@ import { headlessRender } from "../../ts/scripts/wisp/headlessRender";
 import { IMPORTED_MODEL_FILES } from "../../ts/src/game/assets/importedModelInfo";
 import { renumberNodes } from "../../ts/scripts/clipNodes";
 import { flashableSequences, preservesFlashKey, trimFlashTracks } from "./white-flash-keys";
+import { groundPlaneGeosets, removeGeosets } from "../../ts/scripts/groundPlanes";
 import { MODEL_FACTS } from "../../ts/scripts/wisp/modelFacts";
 import { whiteModelFactsSource } from "../../ts/scripts/wisp/whiteModelFactsSource";
 import { WHITE_FIGHTER_MODELS } from "../../ts/src/game/assets/whiteFighterModels";
@@ -93,13 +94,10 @@ for (const [character, fighter] of fighters.entries()) {
     texture.ReplaceableId = 0;
   }
   for (const geoset of model.GeosetAnims) { geoset.Color = new Float32Array([1, 1, 1]); geoset.Flags &= ~mdx.GeosetAnimFlags.Color; }
-  // Material alpha is ignored by the headless SD renderer; hide glow cards at the geoset.
-  model.Geosets.forEach((geoset, GeosetId) => {
-    if (!effectMaterials.has(geoset.MaterialID)) return;
-    const animation = model.GeosetAnims.find(item => item.GeosetId === GeosetId);
-    if (animation !== undefined) animation.Alpha = 0;
-    else model.GeosetAnims.push({ GeosetId, Alpha: 0, Color: new Float32Array([1, 1, 1]), Flags: 0 });
-  });
+  // Glow cards and team-glow ground planes would draw solid white, and Warcraft ignores a zero geoset alpha on them (#346).
+  const effectGeosets = new Set(model.Geosets.flatMap((geoset, index) => effectMaterials.has(geoset.MaterialID) ? [index] : []));
+  removeGeosets(model, effectGeosets);
+  removeGeosets(original, effectGeosets);
   removeBodyEffects(original);
   original.Lights = [];
   renumberNodes(model);
@@ -125,9 +123,9 @@ for (const [character, fighter] of fighters.entries()) {
     const active = track.Keys.filter(key => onGlobalClock(track) || sequences.some(sequence => key.Frame >= sequence.Interval[0] && key.Frame <= sequence.Interval[1]));
     if (active.some(key => !byFrame.get(key.Frame)?.some(item => isDeepStrictEqual(key, item)) && !preservesFlashKey(kept, key))) throw new Error(`${fighter.name}: white overlay changed flashable key ${path}`);
   });
-  decoded.Geosets.forEach((geoset, index) => {
-    if (effectMaterials.has(geoset.MaterialID) && decoded.GeosetAnims.find(item => item.GeosetId === index)?.Alpha !== 0) throw new Error(`${fighter.name}: effect geoset ${index} remains visible`);
-  });
+  if (decoded.Geosets.some(geoset => effectMaterials.has(geoset.MaterialID))) throw new Error(`${fighter.name}: white overlay kept an effect geoset`);
+  const planes = groundPlaneGeosets(decoded);
+  if (planes.length > 0) throw new Error(`${fighter.name}: white overlay kept ground plane geosets ${planes.join(", ")}`);
   const filename = `${fighter.name}White-${hash(bytes)}.mdx`;
   await Bun.write(join(output, filename), bytes);
   imports.push(filename); paths[character] = `war3mapImported\\${filename}`;

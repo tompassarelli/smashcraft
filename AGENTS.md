@@ -295,7 +295,7 @@ code. From smashcraft:ts/:
   Store the family with `bun wisp inputs add original-clips-static-lights PRIVATE_POOL`.
 - White body flashes (from the repository root):
   `bun tools/animations/white-flash-models.ts PRIVATE_ASSETS PRIVATE_OUTPUT [--character ID]`
-  authors white body-only copies with the original meshes and keys for selectable gameplay poses, removing unused sequences and repeated constant keys for charge and heavy-hit flashes; store PRIVATE_OUTPUT as `impact-assets`.
+  authors white body-only copies with the original meshes and keys for selectable gameplay poses, removing unused sequences, repeated constant keys, glow cards and team-glow ground planes for charge and heavy-hit flashes (the pre-push stored-model check fails a white copy that keeps a ground plane, #346); store PRIVATE_OUTPUT as `impact-assets`.
   `--character` refreshes one fighter in an existing PRIVATE_OUTPUT family and its model tables.
 - Sylvanas animation authoring (from the repository root):
   `bun tools/animations/sylvanas-clips.ts STOCK_SYLVANAS.mdx PRIVATE_OUTPUT`
