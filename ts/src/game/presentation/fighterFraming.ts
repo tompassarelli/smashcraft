@@ -53,15 +53,30 @@ function widestDistance(camera: Readonly<MatchCamera>, stage: number, aspect: nu
   return probe.distance;
 }
 
-function limitBodyShare(camera: MatchCamera, world: Readonly<Roster>, widest: number): void {
+interface LiveBody { x: number; z: number; frame: Readonly<ViewBounds> }
+const LIVE: readonly LiveBody[] = PARTICIPANT_SLOTS.map(() => ({ x: 0.0, z: 0.0, frame: fighterFrame(Character.rifleman) }));
+let liveCount = 0;
+
+function gatherLive(world: Readonly<Roster>): void {
+  let count = 0;
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (!isActive(world, slot)) continue;
+    const fighter = fighterAt(world, slot);
+    if (fighter.status.out) continue;
+    const body = at(LIVE, count++);
+    body.x = fighter.motion.x;
+    body.z = fighter.motion.z;
+    body.frame = fighterFrame(fighter.character);
+  }
+  liveCount = count;
+}
+
+function limitBodyShare(camera: MatchCamera, widest: number): void {
   for (let pass = 0; pass < 3; pass++) {
     let share = 0.0, left = 0.0, right = 0.0, lowest = 0.0, count = 0;
-    for (const slot of PARTICIPANT_SLOTS) {
-      if (!isActive(world, slot)) continue;
-      const fighter = fighterAt(world, slot);
-      if (fighter.status.out) continue;
-      const frame = fighterFrame(fighter.character);
-      const { x, z } = fighter.motion;
+    let index = 0;
+    for (const { frame, x, z } of LIVE) {
+      if (index++ >= liveCount) break;
       share = Math.max(share, rowOf(camera, z + frame.bottom) - rowOf(camera, z + frame.top));
       if (count === 0 || x < left) left = x;
       if (count === 0 || x > right) right = x;
@@ -80,25 +95,23 @@ function limitBodyShare(camera: MatchCamera, world: Readonly<Roster>, widest: nu
 
 export function fitFighterFrames(camera: MatchCamera, world: Readonly<Roster>, stage: number, aspect: number): boolean {
   const widest = widestDistance(camera, stage, aspect);
-  limitBodyShare(camera, world, widest);
-  containFighters(camera, world, stage, aspect, widest);
-  limitBodyShare(camera, world, widest);
-  containFighters(camera, world, stage, aspect, widest);
+  gatherLive(world);
+  limitBodyShare(camera, widest);
+  containFighters(camera, stage, aspect, widest);
+  limitBodyShare(camera, widest);
+  containFighters(camera, stage, aspect, widest);
   const { x, z, distance } = camera;
   const bounds = stageBounds(stage);
   limitCamera(camera, bounds.camera, aspect, bounds.blast.bottom);
   return distance < widest && camera.x === x && camera.z === z && camera.distance === distance;
 }
 
-function containFighters(camera: MatchCamera, world: Readonly<Roster>, stage: number, aspect: number, widest: number): void {
+function containFighters(camera: MatchCamera, stage: number, aspect: number, widest: number): void {
   const region = stageBounds(stage).camera;
   let left = 0.0, right = 0.0, bottom = 0.0, top = 0.0, count = 0;
-  for (const slot of PARTICIPANT_SLOTS) {
-    if (!isActive(world, slot)) continue;
-    const fighter = fighterAt(world, slot);
-    if (fighter.status.out) continue;
-    const frame = fighterFrame(fighter.character);
-    const { x, z } = fighter.motion;
+  let index = 0;
+  for (const { frame, x, z } of LIVE) {
+    if (index++ >= liveCount) break;
     const l = Math.max(region.left, x + frame.left - FRAMING_MARGIN.side), r = Math.min(region.right, x + frame.right + FRAMING_MARGIN.side);
     const b = z + frame.bottom - FRAMING_MARGIN.bottom, t = Math.min(region.top, z + frame.top + FRAMING_MARGIN.top);
     if (count === 0 || l < left) left = l;
