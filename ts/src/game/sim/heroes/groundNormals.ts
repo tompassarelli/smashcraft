@@ -149,7 +149,8 @@ export const MOUNTAIN_KING_GROUND: GroundKit = {
     [AttackStyle.downTilt]: heroMove(8, 3, 21, 0, swing(8, [[12.0, 10.0, 87.0, 12.0], [12.0, 8.0, 87.0, 6.0], [12.0, 8.0, 70.0, 2.0]], 12.0,
       groundHit(11.049999237060547, 85, 77.3499984741211, 10.0, MK))),
     // Body actions stay inside the exposed torso; the charge carries its reach by movement.
-    [AttackStyle.dashAttack]: heroMove(11, 5, 26, 0, [held(11, 15, [0.0, 12.0, 0.0, 65.0], 24.0, groundHit(13.25999927520752, 75, 104.9749984741211, 30.0, MK))], 79.0, true),
+    // The charge's shoulder sits 4 forward: centred, the push kept every body narrower than Cairne out of reach (#359).
+    [AttackStyle.dashAttack]: heroMove(11, 5, 26, 0, [held(11, 15, [4.0, 12.0, 4.0, 65.0], 24.0, groundHit(13.25999927520752, 75, 104.9749984741211, 30.0, MK))], 79.0, true),
   },
   reaches: {
     [AttackStyle.jab]: [40.0, 42.0], [AttackStyle.jab2]: [42.0, 46.0], [AttackStyle.forwardTilt]: [46.0, 52.0], [AttackStyle.forwardTiltUp]: [42.0, 72.0], [AttackStyle.forwardTiltDown]: [44.0, 34.0],

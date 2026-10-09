@@ -156,7 +156,7 @@ export const LICH_KING_MOVES: FighterMoves = {
       capsule(20.0, 64.0, f32(L - 4.0), 62.0, 13.0),
       capsule(20.0, 62.0, f32(L - 8.0), 60.0, 12.0),
       capsule(20.0, 60.0, f32(L - 12.0), 58.0, 12.0),
-    ], hit(11.0, "LAUNCH", 40)), 40.0, true), inspiredBy: "Arthas's charge at Stratholme" },
+    ], hit(11.0, "LAUNCH", 55)), 40.0, true), inspiredBy: "Arthas's charge at Stratholme" },
     // Frostmourne Cleave: the tip is the sweetspot, listed before the inner blade so it wins the overlap.
     [AttackStyle.forwardSmash]: { ...heroMove(22, 4, 38, 0, [
       ...[130.0, 96.0, 60.0, 16.0].map((z, index) => heroRegion(22 + index, 22 + index,

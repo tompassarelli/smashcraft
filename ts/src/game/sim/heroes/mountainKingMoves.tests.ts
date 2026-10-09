@@ -10,6 +10,9 @@ import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { HurtContact, fighterHurtParts, strikeHurtContact } from "../hurtboxes";
 import { MOUNTAIN_KING_MOVES, SHORT } from "./mountainKingMoves";
+import { comboScene } from "../../match/comboRoute";
+import { fighter, frameMasks } from "../../match/padScene";
+import { Action, bit } from "../../input/actions";
 
 // Use an existing actor with the authored profile: these contracts exercise
 // production attacks/throws without depending on the selection/presentation seam.
@@ -147,8 +150,10 @@ test("Mountain King angled axe hooks have distinct narrow paths and body attacks
     for (let index = 0; index < authoredHitRegionCount(style, MOUNTAIN_KING_MOVES); index++) {
       authoredHitRegion(region, Character.rifleman, style, first, 0, index, MOUNTAIN_KING_MOVES);
       if (region.window > 0) {
+        // The charge's shoulder reaches 4 past centre (#359); the aerials stay centred.
+        const reach = style === AttackStyle.dashAttack ? 28.0 : 24.0;
         assertTrue(region.minX >= -24.0);
-        assertTrue(region.maxX <= 24.0);
+        assertTrue(region.maxX <= reach);
       }
     }
   }
@@ -269,4 +274,11 @@ test("Mountain King's limbs follow his swings while hammer and axe stay disjoint
       }
     }
   }
+});
+
+test("Mountain King dash attack reaches a Rifleman-sized body [repro #359]", () => {
+  // Centred inside his torso, the charge's hit stopped short of every body the push kept apart.
+  const match = comboScene({ stage: 0, attacker: Character.mountainKing, defender: Character.rifleman, attackerX: -50.0, defenderX: 50.0, facing: 1, attackerZ: 0, defenderZ: 0, percent: 0 });
+  for (let n = 1; n <= 40; n++) frameMasks(match, (slot) => (slot === 0 ? (n <= 6 ? bit(Action.moveRight) : n === 7 ? bit(Action.attack) : 0) : 0));
+  assertGreaterThan(fighter(match, 1).status.damage, 13.0);
 });

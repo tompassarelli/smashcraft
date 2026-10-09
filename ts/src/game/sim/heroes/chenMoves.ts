@@ -42,7 +42,7 @@ export const CHEN_MOVES: FighterMoves = {
     [AttackStyle.forwardTilt]: tilt(58.0), [AttackStyle.forwardTiltUp]: tilt(88.0), [AttackStyle.forwardTiltDown]: tilt(26.0),
     [AttackStyle.upTilt]: heroMove(7, 4, 20, 0, [region(7, 10, 18.0, 72.0, 26.0, 112.0, 15.0, lift(7.0))]),
     [AttackStyle.downTilt]: heroMove(7, 3, 20, 0, [region(7, 9, 14.0, 22.0, 70.0, 16.0, 13.0, lift(6.0))]),
-    [AttackStyle.dashAttack]: heroMove(10, 5, 27, 0, [region(10, 14, 16.0, 42.0, 52.0, 68.0, 24.0, poke(10.0))]),
+    [AttackStyle.dashAttack]: heroMove(10, 5, 27, 0, [region(10, 14, 16.0, 42.0, 52.0, 68.0, 24.0, chenHit(10.0, 78.0, 18.0, f32(0.573576), f32(0.819152)))]),
     [AttackStyle.forwardSmash]: heroMove(19, 4, 34, 0, [region(19, 22, 24.0, 66.0, 104.0, 48.0, 14.0, finish(18.0))]),
     [AttackStyle.upSmash]: heroMove(15, 4, 31, 0, [region(15, 18, 12.0, 62.0, 8.0, 122.0, 24.0, chenHit(16.0, 108.0, 30.0, 0.0, 1.0))]),
     [AttackStyle.downSmash]: heroMove(15, 6, 32, 0, [region(15, 17, 18.0, 24.0, 88.0, 18.0, 13.0, finish(14.0)), region(18, 20, -18.0, 24.0, -88.0, 18.0, 13.0, finish(14.0, true))]),

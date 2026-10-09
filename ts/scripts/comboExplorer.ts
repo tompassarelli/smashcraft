@@ -98,7 +98,8 @@ const GROUND_MOVES: readonly Move[] = [
   ground("down smash", AttackStyle.downSmash, () => SMASH_DOWN),
 ];
 const GRAB_MOVE: Move = { name: "grab", kind: "grab", style: AttackStyle.grab, press: () => GRAB };
-const DASH_ATTACK: Move = { name: "dash attack", kind: "dash", style: AttackStyle.dashAttack, press: (a, b) => toward(a, b) | ATTACK };
+// A dash attack is A with the stick back at neutral during a dash; A with the stick held is a forward smash.
+const DASH_ATTACK: Move = { name: "dash attack", kind: "dash", style: AttackStyle.dashAttack, press: () => ATTACK };
 const DASH_GRAB: Move = { name: "dash grab", kind: "grab", style: AttackStyle.grab, press: (a, b) => toward(a, b) | GRAB };
 const AERIALS: readonly Move[] = [
   aerial("neutral air", AttackStyle.neutralAir, () => ATTACK),
@@ -646,7 +647,7 @@ function openerRoot(setup: ComboSetup, opener: Opener, d: Defender): { readonly 
       const style = sim.a.attack.style;
       const own = opener.throw !== undefined ? sim.a.grab.action !== GrabAction.none || sim.b.launch.hitstun > 0
         : opener.move.kind === "special" ? begun
-        : opener.move.style === AttackStyle.dashAttack ? style !== undefined && style !== AttackStyle.jab
+        : opener.move.style === AttackStyle.dashAttack ? style === AttackStyle.dashAttack || style === AttackStyle.demonHunterDashAttack
         : style === opener.move.style;
       if (!begun || !own) return undefined;
       return { sim, root: { saved: sim.save(), inputs: { attacker, defender }, moves: [opener.name], reads: 0, damage: sim.b.status.damage, hits: sim.b.visuals.hit } };

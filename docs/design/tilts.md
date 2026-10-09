@@ -418,6 +418,20 @@ Each now has one role:
 | Pit Lord | Kill charge, no armor | 15/6/34 | 0.30H | 16 | 40, 110/26 | Ganondorf and Bowser dash attacks |
 | Beastmaster | Heaves the victim behind him | 11/5/28 | 0.50H | 12 | 135, 95/20 | Ultimate's reverse-launch dash attacks |
 
+A dash attack is A with the stick back at neutral during a dash; A with the
+stick still held is a forward smash.
+
+**Balance record (#359, 9 Oct 2026, defect fixes).** Measured from the
+centre of stage 0 with no DI against Rifleman:
+- Mountain King's charge hit centred inside his torso, so the push kept
+  every body narrower than Cairne out of reach: it missed Rifleman and
+  Murloc at every spacing. Its hit now sits 4 units forward; at 60% it
+  sends Rifleman 209 units up with him 24 frames ahead, and kills from
+  125%.
+- Lich King's Death Knight's Charge and Chen's belly stumble launched at
+  40° and 35°, below every other launcher; both now launch at 55°. Lich
+  King kills from 110% (100 before), Chen from 130% (115 before).
+
 ## Animation
 
 Each tilt plays the stock sequence whose striking limb matches its volume,
