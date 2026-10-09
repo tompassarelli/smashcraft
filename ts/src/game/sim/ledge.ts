@@ -19,6 +19,11 @@ import { heroBody } from "./heroes/heroBodies";
 export const LEDGE_CLIMB_FRAMES = 25;
 export const LEDGE_ROLL_FRAMES = 36;
 export const LEDGE_INTANGIBLE_FRAMES = 30;
+export const LEDGE_INTANGIBLE_DECAY = 8;
+
+export function ledgeIntangibleFrames(grabs: number): number {
+  return max(0, LEDGE_INTANGIBLE_FRAMES - LEDGE_INTANGIBLE_DECAY * grabs);
+}
 export const LEDGE_HANG_OUTSET = 24.0;
 export const LEDGE_HANG_DEPTH = 90.0;
 const LEDGE_MOUNT_FRAMES = 12;
@@ -183,7 +188,8 @@ function catchLedge(f: Fighter, stage: number, side: number): void {
   ledge.side = side;
   ledge.frame = 0;
   ledge.serial++;
-  ledge.intangible = LEDGE_INTANGIBLE_FRAMES;
+  ledge.intangible = ledgeIntangibleFrames(ledge.grabs);
+  ledge.grabs++;
   motion.x = f32(ledgeX(stage, side) + f32(side * LEDGE_HANG_OUTSET));
   motion.z = f32(mainDeckZ(stage) - LEDGE_HANG_DEPTH);
   f.facing = -side;
@@ -305,7 +311,10 @@ export function advanceLedge(world: Roster, slot: number, stage: number, input: 
   motion.z = f32(mainDeckZAt(stage, motion.x) - f32(LEDGE_HANG_DEPTH * remaining));
   motion.grounded = ledge.frame >= LEDGE_MOUNT_FRAMES;
   motion.surface = motion.grounded ? 0 : undefined;
-  if (ledge.frame === LEDGE_MOUNT_FRAMES) f.special.airtimeUses = 0;
+  if (ledge.frame === LEDGE_MOUNT_FRAMES) {
+    f.special.airtimeUses = 0;
+    ledge.grabs = 0;
+  }
   if (ledge.state === LedgeState.attack) {
     f.attack.frame = ledge.frame;
     f.attack.cooldown = max(0, LEDGE_ATTACK_FRAMES - ledge.frame);

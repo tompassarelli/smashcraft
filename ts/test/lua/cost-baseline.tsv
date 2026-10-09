@@ -201,7 +201,7 @@ src/game/sim/identityTraits.tests.ts	15	336000	918
 src/game/sim/illidanRaidBoss.tests.ts	10	18587000	13358
 src/game/sim/knockdown.tests.ts	17	5786000	2369
 src/game/sim/lava.tests.ts	6	12643000	4596
-src/game/sim/ledge.tests.ts	17	2380000	14213
+src/game/sim/ledge.tests.ts	22	2461000	14695
 src/game/sim/mana.tests.ts	5	1172000	7980
 src/game/sim/meleeContact.tests.ts	3	108000	349
 src/game/sim/normals.tests.ts	12	5826000	21984

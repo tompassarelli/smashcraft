@@ -1111,7 +1111,7 @@ not claims that these timings guarantee human reaction on every setup.
 | Parry active window (counter specials) | 6 | 10 | none: no fighter authors a counter |
 | Powershield input window | 2 | 4 | 2 |
 | Red parry (re-press in shieldstun) | 2 | 4 | 2 |
-| Ledge intangibility | 30 | 37 | 30 |
+| Ledge intangibility | 30 | 37 | 30 on the first grab, then 22, 14, 6, 0 |
 | Ledge regrab lock | 30 | 60 | 30 |
 | Any required precision input with no aid | 3 | n/a | L-cancel removed |
 
@@ -1188,7 +1188,7 @@ The descriptive basis is [fighting-game language](design/fighting-games.md),
 | Short hop and jump squat | Keep release-during-squat short hops, without a jump+attack macro or a new mandatory binding. Jump squat remains per fighter within #69's 3–5 frames: Rifleman 5, Illidan 4. | Preserves current controls and physical differences inside the accepted execution bounds. |
 | Input buffer and priority | Keep the 6-frame human attack grace. Same-frame attack requests prefer grab, unchargeable C-stick smash, chargeable smash, tilt, then the established style ordering; conflicting equal requests leave facing neutral. Existing action locks and fresh-input rules remain authoritative. | Deterministic input intent without a new universal hold buffer or callback-order priority. |
 | Wall movement | Keep existing wall tech and authored wall-jump eligibility. No wall climbing or free refresh of jumps, recovery specials or ledge protection. | Movement should respect the visible stage walls without granting an unlimited recovery loop. |
-| Ledges | Keep exclusive occupancy/edgehogging, first-frame catch intangibility of 30 frames and the 30-frame regrab lock. No trump or extra two-frame catch vulnerability. | Retains the current Melee-derived ledge system within #69's accepted bounds. |
+| Ledges | Keep exclusive occupancy/edgehogging, first-grab catch intangibility of 30 frames (shrinking by 8 per regrab until the stage is touched, #386) and the 30-frame regrab lock. No trump or extra two-frame catch vulnerability. | Retains the current Melee-derived ledge system within #69's accepted bounds. |
 | DI, crouch and ASDI | Retain 18° maximum continuous DI rotation, crouch cancelling and ASDI-down landing behaviour. SDI/ASDI travel uses the selected bounded-SDI design when #70 is implemented. | Keep useful defensive positioning while addressing teleport distance at its chosen seam. |
 | Tech chases and platforms | Preserve current floor-tech and tech-roll timing on the surface actually contacted; pass-through platforms catch from above and do not become walls or ceilings. Extensions can require reads; only call a response reaction-based when its visible cue meets #69's budget. | Gives platforms a real escape/landing role and supports the short-combo, chained-read direction without promising a guaranteed human reaction chase. |
 | Launchers and recovery routes | Each fighter has at least one deliberate launcher into a juggle, tech chase or ledge situation and at least two meaningfully different recovery choices through path, drift, ledge/stage destination or timing. A second recovery special is not required. | Makes follow-up reads and offstage counterplay part of each kit; the roster already requires a weaker free recovery. |
@@ -1682,6 +1682,73 @@ above:
   granted immediately on pickup.
 - **Heavy** (Metal Box): weight x1.5 against knockback; gravity and fall speed
   x1.3; nothing else changes.
+
+## The corner belongs to the attacker (#386)
+
+Owner direction, 9 Oct: in Melee the ledge was built so some fighters are
+stronger there than on stage, and running away carried no penalty. Smashcraft
+makes the edge a place the attacker wants to put the opponent. Being near it or
+off the stage is dangerous; the attacker has options at the edge that the
+centre does not offer.
+
+### Edge cancels
+
+An aerial's landing lag, or a ground move's end lag, ends on the frame the
+fighter slides off the surface. It applies to the stage edge and to the ends of
+platforms alike, and covers every landing lag (aerial, air dodge, special).
+
+| | Melee | Ultimate | Smashcraft |
+| --- | --- | --- | --- |
+| Landing lag when sliding off an edge | Cancelled for any landing; the fighter enters fall with no lag ([SmashWiki](https://ssbwiki.com/Edge_cancel)) | Restricted to specific actions; Smash 4 allowed it only on an air dodge facing the ledge | Cancelled for every landing lag, on the first airborne frame |
+| End lag of a ground move | Cancelled for specials used at the lip ([SmashWiki](https://ssbwiki.com/Edge_cancel)) | Not sourced | Cancelled once the move's active frames are over; startup and active frames are kept |
+
+Frames: the cancel takes effect on the frame the fighter leaves the surface, so
+a fighter that lands with 7 frames of lag one frame from the lip is actionable
+in the air on the next frame. A move still in startup or its active frames is
+not cancelled; a hit, knockdown, grab or shield takes precedence over it.
+L-cancelling stays removed, so the cancel is the only way to shorten landing
+lag and it is a position decision, not an input chore.
+
+The attacker's options out of the cancel, each deterministic and visible on the
+tapes `edge-cancel-turnaround` and `edge-cancel-back-air`:
+
+- Overshoot: an aerial landed with momentum toward the edge carries the fighter
+  off. A defender who shields the aerial sees the attacker disappear from the
+  stage with no lag.
+- Turnaround: a fighter that jumped back (facing the stage, drifting toward the
+  edge) lands, cancels and, still facing the stage, catches the ledge.
+- Back air: the freed fighter attacks backward at once, so a back air can
+  follow a shielded aerial and carry the attacker back toward the centre.
+
+### Corner pressure
+
+Shield pushback stays Melee's damage-only formula (owner decision, 9 Oct);
+momentum-scaled pushback is not adopted. What changes is the edge. A fighter that
+is shielding, in shieldstun or being pushed when it leaves the surface drops its
+shield, loses the pushback and enters a helpless fall (`special.fall`), which
+ends only on a ledge catch, a landing or a hit. Rolling or full-hopping out of the
+corner stays available beforehand, readable and punishable. Tape
+`shield-slide-off` shows repeated hits carrying a shielding fighter off.
+
+### Ledge intangibility decay
+
+Catching the ledge grants 30 frames of intangibility on the first grab. Each
+further grab without touching the stage removes 8 frames (30, 22, 14, 6, then
+none), and touching the stage restores the full value: the mount frame of a
+getup, a landing, a respawn. The regrab lock of 30 frames is unchanged, and
+intangibility still ends when the fighter lets go.
+
+| Game | Rule |
+| --- | --- |
+| Melee | Full intangibility on every grab, with a 30-frame regrab lock; the ledge could be chained indefinitely |
+| Ultimate | Consecutive grabs reduce intangibility in each getup option (for example 26, 21 and 13 frames of one fighter's getup attack) and none from the fourth ([SmashWiki](https://www.ssbwiki.com/Lucario_(SSBU)/Edge_getups)) |
+| Rivals of Aether 2 | About 29 frames of ledge intangibility, lost on becoming actionable or on the ledge jump; community-reported, not official ([Steam thread](https://steamcommunity.com/app/2217000/discussions/0/601898462569583345)) |
+| Smashcraft | 30 minus 8 per regrab since the stage was last touched, never below 0 |
+
+The decay step is a first value, chosen to reach none on the fifth grab, and is
+tuned from playtests; the first-grab 30 stays inside the #69 bound of 30 to 37.
+The ledge commitment lock, the computer's use of these options and the seeded win
+rate measurements are tracked in #386's remaining boxes.
 
 ## Recovery and edgeguarding
 

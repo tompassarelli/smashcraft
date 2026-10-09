@@ -8,7 +8,7 @@ import { attackPhase, canAttack, isIntangible } from "./conditions";
 import { type Fighter,  } from "./fighter";
 import { createReferenceFighter } from "./referenceRig";
 import { AIR_DODGE_ANIMATION_FRAMES } from "./jumpsAndDodges";
-import { advanceLedge, LEDGE_CLIMB_FRAMES, LEDGE_HANG_DEPTH, LEDGE_INTANGIBLE_FRAMES, LEDGE_ROLL_FRAMES, ledgeCatchBox, ledgeSnap, resolveLedges } from "./ledge";
+import { advanceLedge, ledgeIntangibleFrames, LEDGE_CLIMB_FRAMES, LEDGE_HANG_DEPTH, LEDGE_INTANGIBLE_FRAMES, LEDGE_ROLL_FRAMES, ledgeCatchBox, ledgeSnap, resolveLedges } from "./ledge";
 import { SpecialSlot } from "./heroSpecials";
 import { startFighterSpecial } from "./specials";
 import { LEDGE_ATTACK_FRAMES, attackActiveFrames, attackDamage, attackStartupFrames, GRAB_HOLD_FRAMES } from "./moves";
@@ -17,7 +17,7 @@ import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
 import { BODY_HALF_WIDTH } from "./surfaces";
 import { respawnFighter } from "./stocks";
 import { advanceSolo, controls, soloWorld, testBeginAttacks, testWorld } from "./testWorld";
-import { LEDGE_REGRAB_FRAMES } from "./transitions";
+import { LEDGE_REGRAB_FRAMES, clearLedge } from "./transitions";
 import { authoredPhysics } from "./tuning";
 
 const LEDGE_PHASES = [LedgeState.hang, LedgeState.climb, LedgeState.roll, LedgeState.attack] as const;
@@ -495,4 +495,86 @@ test("ledge protection blocks strikes until it expires, and a grab never catches
       assertEquals(fighter.grab.grabbedFrames, 0);
     }
   }
+});
+
+
+test("each regrab without touching the stage shortens ledge intangibility until none is left [spec #386]", () => {
+  const fighter = ledgeTestFighter(Character.rifleman, 1);
+  let previous = LEDGE_INTANGIBLE_FRAMES + 1;
+  let reachedNone = false;
+  for (let grab = 0; grab < 6; grab++) {
+    fighter.ledge.regrab = 0;
+    fighter.motion.grounded = false;
+    fighter.motion.x = f32(surfaceRight(0, 0, 0) + 40.0);
+    fighter.motion.z = f32(surfaceZ(0, 0, 0) - 80.0);
+    fighter.motion.deltaX = 0.0;
+    fighter.motion.deltaZ = -2.0;
+    fighter.facing = -1;
+    catchTestLedge(fighter, controls());
+    assertEquals(fighter.ledge.state, LedgeState.hang);
+    assertEquals(fighter.ledge.intangible, ledgeIntangibleFrames(grab));
+    assertTrue(fighter.ledge.intangible < previous || fighter.ledge.intangible === 0);
+    previous = fighter.ledge.intangible;
+    reachedNone = reachedNone || fighter.ledge.intangible === 0;
+    clearLedge(fighter);
+  }
+  assertTrue(reachedNone);
+  assertEquals(ledgeIntangibleFrames(0), LEDGE_INTANGIBLE_FRAMES);
+});
+
+test("touching the stage restores full ledge intangibility [spec #386]", () => {
+  const fighter = ledgeTestFighter(Character.rifleman, 1);
+  fighter.ledge.grabs = 3;
+  fighter.ledge.state = LedgeState.climb;
+  const world = soloWorld(fighter);
+  for (let frame = 1; frame <= 12; frame++) advanceLedge(world, 0, 0, controls());
+  assertTrue(fighter.motion.grounded);
+  assertEquals(fighter.ledge.grabs, 0);
+});
+
+function standingAtRightEdge(landingLag: number): Fighter {
+  const fighter = createReferenceFighter(Character.rifleman, f32(surfaceRight(0, 0, 0) - 2.0), -1);
+  fighter.motion.grounded = true;
+  fighter.motion.surface = 0;
+  fighter.motion.z = surfaceZ(0, 0, 0);
+  fighter.motion.vx = 6.0;
+  fighter.landing.lag = landingLag;
+  return fighter;
+}
+
+test("sliding off the stage edge ends an aerial's landing lag at once [spec #386]", () => {
+  const fighter = standingAtRightEdge(8);
+  for (let frame = 0; frame < 6 && fighter.motion.grounded; frame++) advanceSolo(fighter, 0, controls(), 0.0);
+  assertFalse(fighter.motion.grounded);
+  assertEquals(fighter.landing.lag, 0);
+  assertTrue(canAttack(fighter));
+});
+
+test("sliding off the edge ends a ground move's end lag but not its startup [spec #386]", () => {
+  const recovering = standingAtRightEdge(0);
+  testBeginAttacks(soloWorld(recovering), AttackStyle.jab, undefined);
+  recovering.attack.frame = attackStartupFrames(AttackStyle.jab) + attackActiveFrames(AttackStyle.jab);
+  assertEquals(attackPhase(recovering), AttackPhase.recovery);
+  for (let frame = 0; frame < 6 && recovering.motion.grounded; frame++) advanceSolo(recovering, 0, controls(), 0.0);
+  assertFalse(recovering.motion.grounded);
+  assertEquals(recovering.attack.style, undefined);
+  assertEquals(recovering.attack.cooldown, 0);
+
+  const starting = standingAtRightEdge(0);
+  testBeginAttacks(soloWorld(starting), AttackStyle.jab, undefined);
+  for (let frame = 0; frame < 6 && starting.motion.grounded; frame++) advanceSolo(starting, 0, controls(), 0.0);
+  assertFalse(starting.motion.grounded);
+  assertEquals(starting.attack.style, AttackStyle.jab);
+});
+
+test("a shielding fighter pushed off the edge falls helpless with the shield down [spec #386]", () => {
+  const fighter = standingAtRightEdge(0);
+  fighter.motion.vx = 0.0;
+  fighter.shield.raised = true;
+  fighter.shield.pushbackX = 8.0;
+  for (let frame = 0; frame < 6 && fighter.motion.grounded; frame++) advanceSolo(fighter, 0, controls({ shield: true }), 0.0);
+  assertFalse(fighter.motion.grounded);
+  assertTrue(fighter.special.fall);
+  assertFalse(fighter.shield.raised);
+  assertEquals(fighter.shield.pushbackX, 0.0);
 });

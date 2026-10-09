@@ -418,6 +418,7 @@ interface Ledge {
   serial: number;
   intangible: number;
   regrab: number;
+  grabs: number;
 }
 
 
@@ -747,7 +748,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       contactNormalZ: 0.0,
     },
     grab: { pummels: 0, grabbedFrames: 0, heldFrames: 0, queuedThrow: GrabAction.none, action: GrabAction.none, frame: 0, serial: 0, mashX: 0, mashZ: 0, owner: undefined, target: undefined },
-    ledge: { state: LedgeState.none, side: 0, frame: 0, serial: 0, intangible: 0, regrab: 0 },
+    ledge: { state: LedgeState.none, side: 0, frame: 0, serial: 0, intangible: 0, regrab: 0, grabs: 0 },
     platform: {
       move: PlatformMove.none, frame: 0, duration: 0, deck: undefined, fromX: 0.0, toX: 0.0, fromZ: 0.0, toZ: 0.0, rise: 0.0,
       stand: false, shield: false, upFrames: 0, landedFrames: PLATFORM_INTENT_FRAMES + 1, dodgeQueued: false, dodgeX: 0, dodgeZ: 0, specialQueued: false, specialX: 0, specialZ: 0,

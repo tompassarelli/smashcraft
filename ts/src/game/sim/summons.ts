@@ -85,6 +85,7 @@ function freezeFromTrap(world: Roster, slot: number): void {
   cancelAttack(target);
   clearLedge(target);
   target.ledge.regrab = 0;
+  target.ledge.grabs = 0;
   shield.raised = false;
   shield.stun = 0;
   shield.releaseLag = 0;

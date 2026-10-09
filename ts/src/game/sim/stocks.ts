@@ -43,6 +43,7 @@ export function checkBlastZone(world: Roster, slot: number, stage: number = 0): 
   launch.damageLevel = 0;
   clearLedge(f);
   f.ledge.regrab = 0;
+  f.ledge.grabs = 0;
   clearShieldBreak(f);
   clearSpecialOnStock(f);
   clearOwnedFreezeTrap(f);
@@ -114,6 +115,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   clearLedge(f);
   f.ledge.serial = 0;
   f.ledge.regrab = 0;
+  f.ledge.grabs = 0;
   f.cannon.held = undefined;
   f.cannon.firing = undefined;
   f.cannon.cooldown = 0;

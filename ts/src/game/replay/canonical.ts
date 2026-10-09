@@ -940,6 +940,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("ledgeSerial", ledge.serial);
   int("ledgeIntangible", ledge.intangible);
   int("ledgeRegrab", ledge.regrab);
+  int("ledgeGrabs", ledge.grabs);
   const p = fighter.platform;
   int("platformMove", p.move);
   int("platformFrame", p.frame);

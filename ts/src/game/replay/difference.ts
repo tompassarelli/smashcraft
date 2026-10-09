@@ -352,6 +352,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("ledgeSerial", e.ledge.serial, a.ledge.serial);
   add("ledgeIntangible", e.ledge.intangible, a.ledge.intangible);
   add("ledgeRegrab", e.ledge.regrab, a.ledge.regrab);
+  add("ledgeGrabs", e.ledge.grabs, a.ledge.grabs);
   add("platformMove", e.platform.move, a.platform.move);
   add("platformFrame", e.platform.frame, a.platform.frame);
   add("platformDuration", e.platform.duration, a.platform.duration);

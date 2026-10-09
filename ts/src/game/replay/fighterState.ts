@@ -303,6 +303,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   ledge.serial = sourceLedge.serial;
   ledge.intangible = sourceLedge.intangible;
   ledge.regrab = sourceLedge.regrab;
+  ledge.grabs = sourceLedge.grabs;
   const platform = target.platform;
   const sourcePlatform = source.platform;
   platform.move = sourcePlatform.move;
@@ -713,6 +714,7 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
   if (ledge.serial !== sourceLedge.serial || (ledge.serial === 0 && 1 / ledge.serial !== 1 / sourceLedge.serial)) return false;
   if (ledge.intangible !== sourceLedge.intangible || (ledge.intangible === 0 && 1 / ledge.intangible !== 1 / sourceLedge.intangible)) return false;
   if (ledge.regrab !== sourceLedge.regrab || (ledge.regrab === 0 && 1 / ledge.regrab !== 1 / sourceLedge.regrab)) return false;
+  if (ledge.grabs !== sourceLedge.grabs || (ledge.grabs === 0 && 1 / ledge.grabs !== 1 / sourceLedge.grabs)) return false;
   const platform = target.platform;
   const sourcePlatform = source.platform;
   if (platform.move !== sourcePlatform.move || (platform.move === 0 && 1 / platform.move !== 1 / sourcePlatform.move)) return false;

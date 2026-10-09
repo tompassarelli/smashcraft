@@ -66,23 +66,39 @@ interface MatchScript {
 
   readonly hazardsOff?: boolean;
 
-  readonly exercise?: "pushed" | "carried" | "shieldPush";
+  readonly exercise?: "pushed" | "carried" | "shieldPush" | "edgeCancel" | "shieldSlide";
 }
 
 
-function exercised(session: TapeSession, exercise: "pushed" | "carried" | "shieldPush"): boolean {
+interface EdgeMemory {
+  grounded: boolean;
+  lag: number;
+  guarding: boolean;
+}
+
+function exercised(session: TapeSession, exercise: "pushed" | "carried" | "shieldPush" | "edgeCancel" | "shieldSlide", memory: EdgeMemory[]): boolean {
   const { world, match } = session.live;
   const frame = stageClock(match);
+  let edge = false;
   for (const slot of [0, 1]) {
     if (!isActive(world, slot)) continue;
-    const { motion } = fighterAt(world, slot);
+    const fighter = fighterAt(world, slot);
+    const { motion } = fighter;
+    const before = memory[slot];
+    const lag = fighter.landing.lag + fighter.attack.cooldown;
+    const guarding = fighter.shield.raised || fighter.shield.stun > 0;
+    if (before !== undefined && before.grounded && !motion.grounded) {
+      if (exercise === "edgeCancel" && before.lag > 0 && !before.guarding && lag === 0) edge = true;
+      if (exercise === "shieldSlide" && before.guarding && fighter.special.fall && !fighter.shield.raised) edge = true;
+    }
+    memory[slot] = { grounded: motion.grounded, lag, guarding };
     if (exercise === "shieldPush" && fighterAt(world, slot).shield.pushbackX !== 0) return true;
     if (!motion.grounded) continue;
     if (exercise === "pushed" && windPush(match.stageChoice, frame, motion.x, motion.z) !== 0) return true;
     const deck = motion.surface;
     if (exercise === "carried" && deck !== undefined && deck > 0 && (surfaceShiftX(match.stageChoice, deck, frame) !== 0 || surfaceShiftZ(match.stageChoice, deck, frame) !== 0)) return true;
   }
-  return false;
+  return edge;
 }
 
 const NEUTRAL = Object.entries(neutralControls());
@@ -123,6 +139,7 @@ function playMatch(script: MatchScript, session: TapeSession, play: (...lines: s
 
   const hold = session.live.match.startHold;
   let moved = false;
+  const memory: EdgeMemory[] = [];
   for (let at = 1; at <= hold; at++) play(`frame ${at}`);
   for (let frame = 1; frame <= script.frames; frame++) {
     const at = frame + hold;
@@ -165,7 +182,7 @@ function playMatch(script: MatchScript, session: TapeSession, play: (...lines: s
       if (frame === prediction[1]) actual.splice(0).forEach((recorded, index) => play(...recorded, `correct ${prediction[0] + hold + index}`));
     }
     if (first !== undefined) play(`rollback ${first + hold} ${at}`);
-    if (script.exercise !== undefined && !moved) moved = exercised(session, script.exercise);
+    if (script.exercise !== undefined && !moved) moved = exercised(session, script.exercise, memory);
   }
   if (script.exercise !== undefined && !moved) throw new Error(`no fighter was ${script.exercise} by the stage on stage ${script.stage}`);
 }
@@ -453,6 +470,24 @@ const WARDEN: MatchScript = {
 export function generateTapes(): Map<string, string> {
   const pressed = [new Set<string>(), new Set<string>()];
   const tapes = new Map([
+    ["edge-cancel-turnaround", recordTape("An aerial lands at the edge, the fighter slides off, the landing lag ends at once and the fighter turns back to catch the ledge, with predictions and rollback.", [{
+      placement: "test-air 0 480 0",
+      characters: [Character.rifleman, Character.rifleman], stage: 0, stocks: 3, minutes: 0, frames: 120,
+      holds: [[[1, 1, LEFT, WALK], [3, 3, JUMP], [3, 26, RIGHT], [20, 2, ATTACK]], [[1, 120, SHIELD_LEFT]]],
+      approaches: [[], []], rollbacks: [[30, 60]], predictions: [[22, 28]], exercise: "edgeCancel",
+    }])],
+    ["edge-cancel-back-air", recordTape("An aerial lands at the edge, the cancel frees the fighter at once and a back air follows, with rollback.", [{
+      placement: "test-air 0 480 0",
+      characters: [Character.rifleman, Character.rifleman], stage: 0, stocks: 3, minutes: 0, frames: 120,
+      holds: [[[1, 3, JUMP], [1, 36, RIGHT], [20, 2, ATTACK], [32, 2, C_LEFT]], [[1, 120, SHIELD_LEFT]]],
+      approaches: [[], []], rollbacks: [[30, 60]], exercise: "edgeCancel",
+    }])],
+    ["shield-slide-off", recordTape("A shielding fighter at the edge is pushed off by repeated hits and falls helpless, with rollback.", [{
+      placement: "test-air 0 592 0",
+      characters: [Character.rifleman, Character.rifleman], stage: 0, stocks: 3, minutes: 0, frames: 240,
+      holds: [[[1, 240, SHIELD_LEFT]], [[1, 6, RIGHT, WALK], [20, 2, ATTACK], [50, 2, ATTACK], [80, 2, ATTACK], [110, 2, ATTACK], [140, 2, ATTACK], [170, 2, ATTACK]]],
+      approaches: [[], [[1, 40]]], rollbacks: [[30, 60]], exercise: "shieldSlide",
+    }])],
     ["push-physics", recordTape("Walking overlapping bodies and striking a held shield, with predictions and rollback.", [{
       placement: "test-air 1 -215 0",
       characters: [Character.rifleman, Character.rifleman], stage: 0, stocks: 3, minutes: 0, frames: 180,

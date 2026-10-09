@@ -5,12 +5,13 @@
 import { max, min } from "../../runtime/numbers";
 import { divideFloat32, roundToFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
-import { Character, DownState, GroundAction, LedgeState, ParryBuffer, PlatformMove, ShieldBreak, SpecialAction, SurfaceContact } from "./codes";
+import { AttackPhase, Character, DownState, GroundAction, LedgeState, ParryBuffer, PlatformMove, ShieldBreak, SpecialAction, SurfaceContact } from "./codes";
 import {
   SPOT_DODGE_FRAMES,
   GROUND_ROLL_FRAMES,
   WALL_TECH_STARTUP_FRAMES,
   canAttack,
+  attackPhase,
   canStartAttack,
   inGrabContext,
   isFloorTeching,
@@ -77,6 +78,7 @@ import {
   regenerateShield,
   shieldDrain,
   shieldDrainShouldResume,
+  clearPowershield,
 } from "./shield";
 import { advanceShieldBreak, beginShieldBreak } from "./shieldBreak";
 import { advanceShieldTilt } from "./shieldTilt";
@@ -91,7 +93,7 @@ import { checkBlastZone, respawnFighter } from "./stocks";
 import { advanceSurfaceRecovery, advanceWallJump, leaveMainDeckBody, resolveSolidSurfaceContacts } from "./surfaces";
 import { forwardRollTurnFrame, rollTravel } from "../physics/rollTravel";
 import { advanceTechInput, techContactWindow } from "../physics/techInput";
-import { FREEZE_MINIMUM_FRAMES, clearDownState, clearOwnedFreezeTrap, thawFighter } from "./transitions";
+import { FREEZE_MINIMUM_FRAMES, cancelAttack, clearDownState, clearOwnedFreezeTrap, thawFighter } from "./transitions";
 import { advanceMash } from "./mash";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 import { aerialJumps, heavyFall, jumpBuffed, speedBuffed } from "./itemBuffs";
@@ -303,6 +305,24 @@ function advanceGuard(f: Fighter, input: Readonly<Controls>, forcedShield: boole
   return wantsShield;
 }
 
+
+function slideOffEdge(f: Fighter): void {
+  const { shield, landing, launch } = f;
+  if (launch.hitstun > 0 || f.down.state !== DownState.none || inGrabContext(f) || f.status.out) return;
+  if (shield.raised || shield.stun > 0 || shield.pushbackX !== 0) {
+    shield.raised = false;
+    shield.stun = 0;
+    shield.heldFrames = 0;
+    shield.pushbackX = 0.0;
+    shield.recoilX = 0.0;
+    shield.recoilZ = 0.0;
+    clearPowershield(f);
+    f.special.fall = true;
+    return;
+  }
+  landing.lag = 0;
+  if (attackPhase(f) === AttackPhase.recovery) cancelAttack(f);
+}
 
 function moveHorizontally(f: Fighter, stage: number, matchFrame: number, dashEntryDisplacementAdjustment: number): void {
   const { motion, launch, shield, dodge } = f;
@@ -656,7 +676,10 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
 
     const bodySide = leaveMainDeckBody(f, stage);
     if (wallSide === 0 && f32(bodySide * frameDeltaX) > 0) wallSide = bodySide;
-    if (motion.grounded) jump.remaining = min(jump.remaining, aerialJumps(f));
+    if (motion.grounded) {
+      jump.remaining = min(jump.remaining, aerialJumps(f));
+      slideOffEdge(f);
+    }
     motion.grounded = false;
     motion.surface = undefined;
     clearDash(f);
