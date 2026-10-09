@@ -39,7 +39,7 @@ import { SPECIAL_SLOTS, type SpecialSlot } from "./projectileArt";
 import { RIFLEMAN_MODEL_FILE } from "./fighterAssetInfo";
 
 /** Where a cue stands, facing-relative, in the fighter's model scale. */
-export type CueAnchor = "hand" | "body" | "feet" | "ahead" | "behind" | "overhead" | "barrel";
+export type CueAnchor = "hand" | "body" | "feet" | "ahead" | "behind" | "overhead" | "barrel" | "breath";
 
 export const CUE_ANCHORS: { readonly [anchor in CueAnchor]: { readonly x: number; readonly z: number } } = {
   hand: { x: 40.0, z: 70.0 },
@@ -49,6 +49,8 @@ export const CUE_ANCHORS: { readonly [anchor in CueAnchor]: { readonly x: number
   behind: { x: -55.0, z: 55.0 },
   overhead: { x: 0.0, z: 125.0 },
   barrel: { x: 75.0, z: 60.0 },
+  // A breath missile's flame trails back from its head: the head sits at the reach, the trail runs back to the mouth.
+  breath: { x: 124.0, z: 62.0 },
 };
 
 export interface Cue {
@@ -168,7 +170,7 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     down: { spell: "Life Drain", startup: SHADOW, active: cue("Abilities\\Spells\\Other\\Drain\\DrainCaster.mdx", "hand", f32(0.6)) },
   },
   [Character.chen]: {
-    neutral: { spell: "Breath of Fire", startup: BEAST, active: cue("Abilities\\Weapons\\RedDragonBreath\\RedDragonMissile.mdx", "ahead", f32(0.6)) },
+    neutral: { spell: "Breath of Fire", startup: BEAST, active: timed(cue("Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireMissile.mdx", "breath", f32(0.4)), "birth", 0.0) },
     side: { spell: "Drunken Haze", startup: BEAST, active: cue("Abilities\\Spells\\Other\\StrongDrink\\BrewmasterTarget.mdx", "hand", f32(0.7)) },
     up: { spell: "Storm Rise", startup: STORM, active: cue("Abilities\\Spells\\Other\\Tornado\\TornadoElementalSmall.mdx", "body", f32(0.6)) },
     down: { spell: "Storm, Earth and Fire", startup: BEAST, active: cue("Abilities\\Spells\\Orc\\SpiritLink\\SpiritLinkTarget.mdx", "feet", f32(0.5)) },
@@ -386,7 +388,7 @@ export const ORIGINAL_BRANCH_CUES: { readonly [action: number]: { readonly [form
   },
   // Flame Crash: a fire streak through its hang and plunge, then a volcanic burst where it lands.
   [SpecialAction.demonHunterImmolate]: {
-    [FLAME_CRASH_FORM]: { cues: branch("Flame Crash", FEL_TELL, timed(cue("Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireMissile.mdx", "body", 1.0), "birth", 0.0)), first: 1, last: FLAME_CRASH_FRAMES },
+    [FLAME_CRASH_FORM]: { cues: branch("Flame Crash", FEL_TELL, timed(cue("Abilities\\Weapons\\RedDragonBreath\\RedDragonMissile.mdx", "body", 1.0), "birth", 0.0)), first: 1, last: FLAME_CRASH_FRAMES },
     [FLAME_CRASH_LANDING_FORM]: { cues: branch("Flame Crash landing", FEL_TELL, timed(cue("Abilities\\Spells\\Other\\Volcano\\VolcanoDeath.mdx", "feet", f32(0.6)), "birth", 0.0)), first: 1, last: FLAME_CRASH_BURST_LAST },
   },
   [SpecialAction.demonHunterWingAscent]: {

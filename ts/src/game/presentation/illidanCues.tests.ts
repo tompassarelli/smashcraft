@@ -20,7 +20,7 @@ const DRAWN: { readonly [model: string]: { readonly sequence: string; readonly f
   "Abilities\\Weapons\\IllidanMissile\\IllidanMissile.mdx": { sequence: "stand", fromMs: 0, toMs: 1600 },
   "Abilities\\Spells\\Undead\\Possession\\PossessionMissile.mdx": { sequence: "stand", fromMs: 0, toMs: 1334 },
   "Abilities\\Spells\\NightElf\\MoonGlaive\\MoonGlaiveCaster.mdx": { sequence: "stand", fromMs: 0, toMs: 1000 },
-  "Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireMissile.mdx": { sequence: "birth", fromMs: 0, toMs: 490 },
+  "Abilities\\Weapons\\RedDragonBreath\\RedDragonMissile.mdx": { sequence: "birth", fromMs: 0, toMs: 500 },
   "Abilities\\Spells\\Other\\Volcano\\VolcanoDeath.mdx": { sequence: "birth", fromMs: 0, toMs: 590 },
   "Abilities\\Weapons\\GreenDragonMissile\\GreenDragonMissile.mdx": { sequence: "birth", fromMs: 0, toMs: 500 },
   "Abilities\\Spells\\Other\\Drain\\DrainCaster.mdx": { sequence: "stand", fromMs: 0, toMs: 1000 },

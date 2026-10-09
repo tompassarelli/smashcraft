@@ -22,6 +22,7 @@ export const DISJOINT_MODELS: { readonly [character: number]: string } = {
   [Character.pitLord]: "Abilities\\Weapons\\GreenDragonMissile\\GreenDragonMissile.mdx",
   [Character.beastmaster]: "Abilities\\Weapons\\Axe\\AxeMissile.mdx",
   [Character.lichKing]: "Abilities\\Spells\\Undead\\FreezingBreath\\FreezingBreathMissile.mdx",
+  [Character.chen]: "Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireDamage.mdx",
   [Character.kaelthas]: "Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile.mdx",
   [Character.kobold]: "Abilities\\Weapons\\Axe\\AxeMissile.mdx",
 };
