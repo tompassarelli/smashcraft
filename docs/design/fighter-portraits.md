@@ -59,7 +59,13 @@ does is the head. Bodies whose head mesh has under 50 vertices (Classic
 Murloc, Kobold and Peon) face the camera as their body does. Only the yaw
 turns: tilting a body to level a bowed face lays the whole card render over.
 The camera looks level through a narrow lens fitted to the silhouette, so the
-face is seen from within 4 degrees of its own height. The portrait light is
+face is seen from within 4 degrees of its own height. Where that still hides
+the face, `CORRECTIONS` in smashcraft:ts/scripts/fighterPortraits.ts adds a
+per-fighter turn, Stand time, camera angle or crop zoom; `level` poses at the
+Stand frame whose face is closest to level and tilts the camera (at most 35
+degrees) to meet what tilt remains. Wisp draws the same pose the script
+evaluates: a Definitive Mountain King judged as a back view faces the camera,
+with his face a thin strip between helmet brim and beard. The portrait light is
 the neutral stage light (classic midday key and fill) with its key turned to the camera's side (25 degrees
 toward image left, 30 above), so turned faces take the key in both modes;
 Definitive renders also get a 1.4 gamma lift. The hero glow under the feet is

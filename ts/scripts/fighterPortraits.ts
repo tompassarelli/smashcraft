@@ -41,6 +41,8 @@ const CLEAR = [10, 15, 23];
 /** The camera looks level along +y, so the face, turned toward it, is seen from its own height. */
 const ROTATION = 90;
 const ANGLE = 0;
+/** The most a `level` correction tilts the camera to meet a raised or lowered face, degrees. */
+const MAX_MEET = 35;
 /** The face points at the camera turned 20 degrees toward image left (-x), so the weapon hand and near pauldron sit behind it. */
 const FACE_AZIMUTH = -Math.PI / 2 - 20 * Math.PI / 180;
 /**
@@ -103,7 +105,7 @@ const portraitScene = (scene: RenderScene, character: number, frame: { x: number
     environment: { ...withoutFog(scene.environment), skyVisible: false, dayNight: { ...scene.environment.dayNight, unit: PORTRAIT_LIGHT } },
     // The camera's right is (sin rotation, -cos rotation) on the ground.
     camera: { x: frame.x * Math.sin(ROTATION * Math.PI / 180), y: -frame.x * Math.cos(ROTATION * Math.PI / 180), fields: {
-      CAMERA_FIELD_ROTATION: ROTATION, CAMERA_FIELD_ANGLE_OF_ATTACK: ANGLE, CAMERA_FIELD_TARGET_DISTANCE: distance,
+      CAMERA_FIELD_ROTATION: ROTATION, CAMERA_FIELD_ANGLE_OF_ATTACK: (360 + (pose?.angle ?? ANGLE)) % 360, CAMERA_FIELD_TARGET_DISTANCE: distance,
       CAMERA_FIELD_ZOFFSET: frame.z, CAMERA_FIELD_ROLL: 0, CAMERA_FIELD_FIELD_OF_VIEW: FOV, CAMERA_FIELD_NEARZ: distance / 4, CAMERA_FIELD_FARZ: distance * 4,
     } },
   };
@@ -132,6 +134,7 @@ function withoutGlow(bytes: Uint8Array): Uint8Array {
   }
   throw new Error('a model with textures has no TEXS chunk');
 }
+
 
 /**
  * Classic Murloc and Kobold (the 3.0 stock models their bodies keep) hang their
@@ -168,7 +171,31 @@ function posedAt(model: Model, sequence: number, ms: number) {
 }
 
 /** A portrait's pose: the Stand time it shows and the body's yaw that turns its face to the camera. */
-interface Portrait { readonly elapsed: number; readonly yaw: number }
+interface Portrait { readonly elapsed: number; readonly yaw: number; readonly angle: number; readonly zoom: number }
+
+/**
+ * Per-fighter corrections where the measured pose still hides the face: `turn`
+ * (degrees added to the face's yaw), `elapsed` (the Stand time, seconds),
+ * `angle` (the camera's angle of attack, degrees; positive looks up from below)
+ * `zoom` (the head crop's magnification) and `level` (pose at the Stand frame
+ * whose face is closest to level, the camera raised or lowered to meet what
+ * tilt remains).
+ */
+interface Correction { readonly turn?: number; readonly elapsed?: number; readonly angle?: number; readonly zoom?: number; readonly level?: boolean }
+const CORRECTIONS: Readonly<Record<'classic' | 'definitive', Readonly<Record<string, Correction>>>> = {
+  classic: {
+    "Anub'arak": { zoom: 0.5 },
+  },
+  definitive: {
+    MountainKing: { level: true, zoom: 1.5 },
+    Illidan: { level: true, zoom: 1.5, turn: 25 },
+    Kobold: { level: true, zoom: 1.5, turn: 180 },
+    Rifleman: { zoom: 1.5, turn: 25 },
+    Warden: { zoom: 1.5, turn: 25 },
+    ShadowHunter: { level: true, zoom: 1.5 },
+    "Kael'thasSunstrider": { angle: 15, turn: 30 },
+  },
+};
 
 type Vector = [number, number, number];
 /** A node matrix's linear part (w 0) or affine map (w 1) applied to v. */
@@ -234,25 +261,29 @@ const HEAD_VERTICES = 50;
  * Warcraft models face +x) direction, turned by the bone carrying most of the
  * head mesh.
  */
-function headingOf(model: Model, head: NonNullable<ReturnType<typeof headOf>>): ((state: Posed) => number | undefined) | undefined {
+function headingOf(model: Model, head: NonNullable<ReturnType<typeof headOf>>): { heading: (state: Posed) => number | undefined; pitch: (state: Posed) => number | undefined } | undefined {
   const pivot = (id: number) => Array.from(model.PivotPoints[id] ?? [0, 0, 0]);
   const at = (state: Posed, ids: readonly number[]) => { const points = ids.flatMap((id) => { const matrix = state.nodes[id]?.matrix; return matrix === undefined ? [] : [apply(matrix, pivot(id), 1)]; }); return points.length === ids.length ? mean(points) : undefined; };
   const joints = (pattern: RegExp) => head.joints.filter((joint) => pattern.test(joint.name)).map((joint) => joint.id);
   const left = joints(EYE.L), right = joints(EYE.R);
-  if (left.length > 0 && right.length > 0) return (state) => {
-    const l = at(state, left), r = at(state, right);
-    return l === undefined || r === undefined ? undefined : Math.atan2(r[0] - l[0], l[1] - r[1]);
-  };
   const level = (from: readonly number[], to: readonly number[]) => { const dx = item(to, 0) - item(from, 0), dy = item(to, 1) - item(from, 1); return Math.hypot(dx, dy) > 1e-3 ? [dx, dy, 0] : undefined; };
-  const named = [/nose/i, /eye/i].map((pattern) => head.joints.filter((joint) => pattern.test(joint.name))).find((found) => found.length > 0) ?? [];
+  const eyes = left.length > 0 && right.length > 0;
+  const named = eyes ? [...left, ...right] : ([/nose/i, /eye/i].map((pattern) => joints(pattern)).find((found) => found.length > 0) ?? []);
   const front = head.vertices.map((vertex) => vertex.position).sort((a, b) => b[0] - a[0]).slice(0, Math.ceil(head.vertices.length / 10));
-  const bind = (named.length > 0 ? level(pivot(head.head), mean(named.map((joint) => pivot(joint.id)))) : undefined)
+  const bind = (named.length > 0 ? level(pivot(head.head), mean(named.map(pivot))) : undefined)
     ?? (head.vertices.length >= HEAD_VERTICES ? level(mean(head.vertices.map((vertex) => vertex.position)), mean(front)) : undefined);
   if (bind === undefined) return undefined;
   const load = new Map<number, number>();
   for (const vertex of head.vertices) for (const [bone, weight] of vertex.weights) load.set(bone, (load.get(bone) ?? 0) + weight);
-  const carrier = [...load].reduce<[number, number]>((best, entry) => entry[1] > best[1] ? entry : best, [head.head, 0])[0];
-  return (state) => { const matrix = state.nodes[carrier]?.matrix; if (matrix === undefined) return undefined; const face = apply(matrix, bind, 0); return Math.atan2(face[1], face[0]); };
+  const carrier = eyes ? head.head : [...load].reduce<[number, number]>((best, entry) => entry[1] > best[1] ? entry : best, [head.head, 0])[0];
+  const face = (state: Posed) => { const matrix = state.nodes[carrier]?.matrix; return matrix === undefined ? undefined : apply(matrix, bind, 0); };
+  return {
+    heading: (state) => {
+      if (eyes) { const l = at(state, left), r = at(state, right); return l === undefined || r === undefined ? undefined : Math.atan2(r[0] - l[0], l[1] - r[1]); }
+      const posed = face(state); return posed === undefined ? undefined : Math.atan2(posed[1], posed[0]);
+    },
+    pitch: (state) => { const posed = face(state); return posed === undefined ? undefined : Math.atan2(posed[2], Math.hypot(posed[0], posed[1])); },
+  };
 }
 
 /**
@@ -262,7 +293,7 @@ function headingOf(model: Model, head: NonNullable<ReturnType<typeof headOf>>): 
  * bows the head still shows the face, and the yaw that turns that face to
  * FACE_AZIMUTH.
  */
-function portraitPose(bytes: Uint8Array, character: number, animation: string | number | undefined, elapsed: number): Portrait | undefined {
+function portraitPose(bytes: Uint8Array, character: number, animation: string | number | undefined, elapsed: number, correction: Correction): Portrait | undefined {
   const model = parseMDX(bytes.slice().buffer);
   const head = headOf(model);
   const heading = head === undefined ? undefined : headingOf(model, head);
@@ -277,13 +308,20 @@ function portraitPose(bytes: Uint8Array, character: number, animation: string | 
   const { pose } = posedAt(model, sequence, 0);
   const height = (state: Posed, id: number) => { const matrix = state.nodes[id]?.matrix; return matrix === undefined ? 0 : apply(matrix, Array.from(model.PivotPoints[id] ?? [0, 0, 0]), 1)[2]; };
   let best = Math.round(elapsed * 1000), highest = -Infinity;
-  if (face.length > 0) for (let ms = start; ms < end; ms += 10) {
+  if (face.length > 0 && correction.elapsed === undefined) for (let ms = start; ms < end; ms += 10) {
     const state = pose(ms);
     const lift = face.reduce((total, id) => total + height(state, id), 0) / face.length - height(state, head.head);
     if (lift > highest + 1e-6) { highest = lift; best = ms; }
   }
-  const azimuth = heading(pose(best));
-  return azimuth === undefined ? undefined : { elapsed: best / 1000, yaw: FACE_AZIMUTH - azimuth };
+  if (correction.level === true && correction.elapsed === undefined) {
+    let flattest = Infinity;
+    for (let ms = start; ms < end; ms += 10) { const tilt = Math.abs(heading.pitch(pose(ms)) ?? Infinity); if (tilt < flattest - 1e-6) { flattest = tilt; best = ms; } }
+  }
+  if (correction.elapsed !== undefined) best = Math.round(correction.elapsed * 1000);
+  const tilt = heading.pitch(pose(best)) ?? 0;
+  const angle = correction.angle ?? (correction.level === true ? Math.max(-MAX_MEET, Math.min(MAX_MEET, -tilt * 180 / Math.PI)) : ANGLE);
+  const azimuth = heading.heading(pose(best));
+  return azimuth === undefined ? undefined : { elapsed: best / 1000, yaw: FACE_AZIMUTH - azimuth + (correction.turn ?? 0) * Math.PI / 180, angle, zoom: correction.zoom ?? 1 };
 }
 
 /** A fighter's head in the 1024 px render: the centre and larger side of its projected mesh. */
@@ -301,7 +339,7 @@ function headBox(bytes: Uint8Array, scene: RenderScene, height: number): Head | 
   const pose = scene.effects[0];
   if (head === undefined || pose === undefined) return undefined;
   const { state } = posedAt(model, sequenceOf(model, pose.animation), Math.round(pose.animationElapsed * 1000));
-  const pitch = ANGLE * Math.PI / 180, pixels = RESOLUTION / (height * 1.1);
+  const pitch = (scene.camera.fields.CAMERA_FIELD_ANGLE_OF_ATTACK ?? 0) * Math.PI / 180, pixels = RESOLUTION / (height * 1.1);
   const xs: number[] = [], ys: number[] = [];
   for (const vertex of head.vertices) {
     if ((state.geosetAlpha[vertex.geoset] ?? 1) < 1e-6) continue;
@@ -359,7 +397,7 @@ const TGA = ['-depth', '8', '-compress', 'none'];
  * tiles and busts frame head and shoulders around the head mesh (headBox), stock
  * icons the head alone; without a head, the silhouette's top sixth stands in.
  */
-function crops(raw: string, directory: string, name: string, suffix: string, kinds: readonly PortraitKind[], found: Head | undefined): void {
+function crops(raw: string, directory: string, name: string, suffix: string, kinds: readonly PortraitKind[], found: Head | undefined, zoom: number): void {
   const box = run(['magick', raw, '-alpha', 'extract', '-threshold', '10%', '-format', '%@', 'info:']).trim();
   const bounds = box.match(/(\d+)x(\d+)\+(\d+)\+(\d+)/);
   if (bounds === null) throw new Error(`${raw}: nothing drawn`);
@@ -370,7 +408,7 @@ function crops(raw: string, directory: string, name: string, suffix: string, kin
     const size = Math.round(Math.max(64, Math.min(RESOLUTION, side)));
     return { size, left: Math.max(0, Math.min(RESOLUTION - size, Math.round(head.x - size / 2))), top: Math.max(0, Math.min(RESOLUTION - size, Math.round(head.y - size * above))) };
   };
-  const bust = window(2.6 * head.size, 0.42), portrait = `${bust.size}x${bust.size}+${bust.left}+${bust.top}`;
+  const bust = window(2.6 * head.size / zoom, 0.42), portrait = `${bust.size}x${bust.size}+${bust.left}+${bust.top}`;
   const file = (kind: PortraitKind) => join(directory, `Fighter${kind}${name}${suffix}.tga`);
   if (kinds.includes('Card')) {
     const inner = Math.round(CARD_TEXTURE_PX * 0.94);
@@ -379,7 +417,7 @@ function crops(raw: string, directory: string, name: string, suffix: string, kin
   if (kinds.includes('Tile')) run(['magick', ...TILE_BACKGROUND, '(', raw, '-crop', portrait, '+repage', '-resize', `${TILE_TEXTURE_PX}x${TILE_TEXTURE_PX}`, ')', '-composite', '-alpha', 'off', ...TGA, file('Tile')]);
   if (kinds.includes('Bust')) run(['magick', raw, '-crop', portrait, '+repage', '-resize', `${TILE_TEXTURE_PX}x${TILE_TEXTURE_PX}`, ...fadeAlpha(BUST_FADE), ...TGA, file('Bust')]);
   if (kinds.includes('Stock')) {
-    const stock = window(1.5 * head.size, 0.5);
+    const stock = window(1.5 * head.size / zoom, 0.5);
     run(['magick', raw, '-crop', `${stock.size}x${stock.size}+${stock.left}+${stock.top}`, '+repage', '-resize', `${STOCK_ICON_PX}x${STOCK_ICON_PX}`, ...fadeAlpha(STOCK_FADE), ...TGA, file('Stock')]);
   }
 }
@@ -421,11 +459,12 @@ await Effect.runPromise(Effect.gen(function*() {
     for (const character of fighters) {
       const body = at(portraitScene(required(captured.get(character), 'scene'), character, wide0, 0).effects, 0);
       const bytes = (yield* Effect.promise(() => project.resolveAsset(body.model, graphics))).bytes;
-      const found = bytes === undefined ? undefined : portraitPose(bytes, character, body.animation, body.animationElapsed);
-      const pose = found ?? { elapsed: body.animationElapsed, yaw: FACE_AZIMUTH };
+      const correction = CORRECTIONS[graphics][fighterRenderName(character)] ?? {};
+      const found = bytes === undefined ? undefined : portraitPose(bytes, character, body.animation, body.animationElapsed, correction);
+      const pose = found ?? { elapsed: correction.elapsed ?? body.animationElapsed, yaw: FACE_AZIMUTH + (correction.turn ?? 0) * Math.PI / 180, angle: correction.angle ?? ANGLE, zoom: correction.zoom ?? 1 };
       poses.set(character, pose);
       const degrees = (angle: number) => (angle * 180 / Math.PI).toFixed(1);
-      console.log(`${graphics} ${fighterRenderName(character)}: ${found === undefined ? 'no head geometry, ' : ''}Stand at ${pose.elapsed} s, yaw ${degrees(pose.yaw)}`);
+      console.log(`${graphics} ${fighterRenderName(character)}: ${found === undefined ? 'no head geometry, ' : ''}Stand at ${pose.elapsed} s, yaw ${degrees(pose.yaw)}, angle ${pose.angle}, zoom ${pose.zoom}`);
     }
     // A first wide view finds each fighter; the second fits its silhouette.
     const wide = wide0;
@@ -438,7 +477,7 @@ await Effect.runPromise(Effect.gen(function*() {
       const across = (box.x + box.w / 2 - DRAWN / 2) * scale, up = (DRAWN / 2 - (box.y + box.h / 2)) * scale;
       const height = Math.max(box.w, box.h) * scale;
       // Image right is the camera's right; screen up is close to world up at this shallow angle.
-      const frame = { x: across, z: wide.z + up / Math.cos((360 - ANGLE) * Math.PI / 180), height };
+      const frame = { x: across, z: wide.z + up / Math.cos(required(poses.get(character), 'pose').angle * Math.PI / 180), height };
       heights.set(character, height);
       return VARIANTS.map((_, variant) => portraitScene(required(captured.get(character), 'scene'), character, frame, variant, poses.get(character)));
     });
@@ -455,7 +494,7 @@ await Effect.runPromise(Effect.gen(function*() {
       // The grid keeps the neutral tile; the slot outfits carry every kind (MAP_PORTRAITS).
       const scene = required(scenes.get(frame), 'scene'), body = at(scene.effects, 0);
       const bytes = (yield* Effect.promise(() => project.resolveAsset(body.model, graphics))).bytes;
-      crops(raw, portraits, name, suffix, variant === 0 ? ['Tile'] : PORTRAIT_KINDS, bytes === undefined ? undefined : headBox(bytes, scene, required(heights.get(character), 'height')));
+      crops(raw, portraits, name, suffix, variant === 0 ? ['Tile'] : PORTRAIT_KINDS, bytes === undefined ? undefined : headBox(bytes, scene, required(heights.get(character), 'height')), required(poses.get(character), 'pose').zoom);
       console.log(`${graphics} ${name}${suffix}: ${raw}`);
     }
   }
