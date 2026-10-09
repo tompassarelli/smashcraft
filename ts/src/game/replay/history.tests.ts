@@ -652,19 +652,11 @@ function pausedAgainstStraight(match: PausedMatch): { ontoRepair: number; rewind
     if (inputs === undefined) throw new Error(`no inputs for frame ${frame}`);
     return inputs;
   };
-  const straightHistory = new ReplayHistory();
   const history = new ReplayHistory();
   const corrections = new ReplayCorrections();
-  assertTrue(straightHistory.beginEpoch(1, 1));
   assertTrue(history.beginEpoch(1, 1, REPLAY_MAX_CORRECTION_FRAMES));
   assertTrue(corrections.beginEpoch(1));
   const row = createMatchFrameInput();
-  for (let frame = 1; frame <= match.frames; frame++) {
-    resetMatchFrameInput(row);
-    assertTrue(captureNetworkFrame(row, frame, inputsAt(frame), straight.live.world, senders));
-    assertTrue(straightHistory.save(1, row, straight.live));
-    execute(straight, row);
-  }
   const predicted = participantInputs();
   let confirmed = 0;
   let ontoRepair = 0;
@@ -700,15 +692,19 @@ function pausedAgainstStraight(match: PausedMatch): { ontoRepair: number; rewind
   }
   deliver(match.frames);
   while (history.pendingRepairFrame(1) !== undefined) assertTrue(history.repair(1, 2, rolled.live, 3) !== "rejected");
-  let difference = tapeDifference(straight, rolled);
-  const expected = createReplaySnapshot();
+  let difference: string | undefined;
   const got = createReplaySnapshot();
-  for (let frame = history.firstRetainedFrame(); frame <= match.frames && difference === undefined; frame++) {
-    assertTrue(straightHistory.restore(1, frame, expected));
-    assertTrue(history.restore(1, frame, got));
-    const found = firstStateDifference(expected, got);
-    if (found !== undefined) difference = `snapshot ${frame}: ${found}`;
+  for (let frame = 1; frame <= match.frames; frame++) {
+    if (difference === undefined && frame >= history.firstRetainedFrame()) {
+      assertTrue(history.restore(1, frame, got));
+      const found = firstStateDifference(captureTape(straight), got);
+      if (found !== undefined) difference = `snapshot ${frame}: ${found}`;
+    }
+    resetMatchFrameInput(row);
+    assertTrue(captureNetworkFrame(row, frame, inputsAt(frame), straight.live.world, senders));
+    execute(straight, row);
   }
+  difference ??= tapeDifference(straight, rolled);
   return { ontoRepair, rewinds, difference };
 }
 
