@@ -300,10 +300,10 @@ Ground movement: walk 1.25, initial dash 1.49, run 1.73; run from dash frame 14.
 
 | Input | Name | What it does |
 | --- | --- | --- |
-| Neutral special | Flame Strike | Send a wall of flame along the ground that launches the first enemy it reaches. Shield it or jump over it. |
-| Side special | Siphon Mana | Reach ahead to take mana from an enemy. Shields stop it. |
-| Up special | Phoenix Flight | Aim, then ride a burst of fire. You fall helpless after the flight. |
-| Down special | Banish | Briefly turn ethereal, then push nearby enemies away. |
+| Neutral special | Flamestrike | A fire bolt that drifts toward the enemy and bursts into a pillar of flame on contact. Shield or reflect it. |
+| Side special | Drain Mana | A short tether that grabs through shields and drinks the victim's meter. Jump or dodge it. |
+| Up special | Phoenix | Charge in swirling flame, then fly as a phoenix the way you aim; up or down bends the flight. Helpless after. |
+| Down special | Banish | A close curse: the victim turns ethereal, slowed and unable to attack, and takes more damage from Kael's spells. |
 | Jab, repeated | Verdant Touch | A palm check, then a sphere shove on a second tap. |
 | Edge-guard tool | Down air | Read offstage, it kills this fighter's own predictable recovery at 40% (recorded in edgeGuard.tests.ts). |
 | Ultimate | Gravity Lapse | Arcane orbs ring him, then everyone inside is lifted straight up. Leave the ring. |
