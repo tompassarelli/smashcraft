@@ -33,6 +33,7 @@ import { createRoster, fighterAt } from "../sim/roster";
 import { stateChecksum } from "./canonical";
 import { firstStateDifference } from "./difference";
 import { ReplayHistory } from "./history";
+import { REPLAY_MAX_CORRECTION_FRAMES } from "./limits";
 import { ShadowInputPlayback } from "./shadowPlayback";
 import { type ReplayState, copyReplayState, createReplaySnapshot } from "./snapshot";
 import { type TapeWorld, captureTape, createTapeWorld } from "./tapeWorld";
@@ -308,7 +309,8 @@ function capture(state: ReplayState): ReplayState {
 
 test("lobby computers replay from corrected humans without network senders [invariant]", () => {
   // One human with three computers, and sparse two-human, one-computer occupancy.
-  const frames = 48;
+  const warmFrames = 48;
+  const frames = warmFrames + 20;
   const schedule = new ShadowInputSchedule();
   const playback = new ShadowInputPlayback();
   const history = new ReplayHistory();
@@ -326,26 +328,33 @@ test("lobby computers replay from corrected humans without network senders [inva
     copyMatchState(confirmedGame, game);
     const live = lobbyState(game);
     const confirmed = lobbyState(confirmedGame);
-    assertTrue(schedule.beginEpoch(epoch, 0, 64, humans));
+    assertTrue(schedule.beginEpoch(epoch, 0, REPLAY_MAX_CORRECTION_FRAMES, humans));
     assertTrue(playback.beginEpoch(epoch));
-    assertTrue(history.beginEpoch(epoch, 1, 64));
+    assertTrue(history.beginEpoch(epoch, 1, REPLAY_MAX_CORRECTION_FRAMES));
     assertTrue(confirmedHistory.beginEpoch(epoch, 1));
-    for (let frame = 1; frame <= frames; frame++) {
+    for (let frame = 1; frame <= warmFrames; frame++) {
+      assertEquals(schedule.captureLocal(epoch, NEUTRAL), Capture.captured);
+      for (const slot of PARTICIPANT_SLOTS) if (humanActive(game, slot)) deliver(schedule, slot, epoch, frame, NEUTRAL);
+      assertTrue(playback.advanceSpeculative(schedule, epoch, 3, live, history));
+      confirmAll(schedule, playback, epoch, confirmed, confirmedHistory);
+    }
+    assertEquals(firstStateDifference(capture(live), capture(confirmed)), undefined);
+    for (let frame = warmFrames + 1; frame <= frames; frame++) {
       assertEquals(schedule.captureLocal(epoch, NEUTRAL), Capture.captured);
       assertTrue(playback.advanceSpeculative(schedule, epoch, 3, live, history));
     }
     // Neither computers nor empty slots submit a packet.
-    for (let frame = 1; frame <= frames; frame++) {
+    for (let frame = warmFrames + 1; frame <= frames; frame++) {
       for (const slot of PARTICIPANT_SLOTS) if (humanActive(game, slot)) deliver(schedule, slot, epoch, frame, slot === 0 ? WALK_RIGHT : NEUTRAL);
     }
     assertEquals(schedule.knownThrough(), frames);
-    assertEquals(playback.reconcile(schedule, epoch, 3, live, history), variant === 0 ? "unchanged" : 1);
+    assertEquals(playback.reconcile(schedule, epoch, 3, live, history), variant === 0 ? "unchanged" : warmFrames + 1);
     confirmAll(schedule, playback, epoch, confirmed, confirmedHistory);
     const expected = capture(confirmed);
     assertEquals(firstStateDifference(capture(live), expected), undefined);
     const computer = fighterAt(live.world, 2);
     assertTrue(computer.motion.x !== matchSpawnX(2) || computer.attack.serial > 0);
-    assertTrue(history.replay(epoch, 1, frames, live));
+    assertTrue(history.replay(epoch, warmFrames + 1, frames, live));
     assertEquals(firstStateDifference(capture(live), expected), undefined);
   }
 });
