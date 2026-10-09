@@ -11,6 +11,7 @@
 import { $ } from "bun";
 
 const WIDTH = 640, HEIGHT = 360, SCENE_DE = 12, LIMIT = 5;
+export const EMPTY_BACKDROP_LIMIT = 10;
 const TOP = 0.08, BOTTOM = 0.76;
 
 async function lab(path: string): Promise<Float32Array> {
@@ -44,16 +45,38 @@ function coverage(sky: Float32Array, image: Float32Array): number[] {
   return shares;
 }
 
-const [skyPath, nativePath, wispPath] = Bun.argv.slice(2);
-if (skyPath === undefined || nativePath === undefined || wispPath === undefined) throw new Error("usage: bun tools/stage/layout.ts SKY.png NATIVE.png WISP.png");
-const sky = await lab(skyPath);
-const native = coverage(sky, await lab(nativePath)), wisp = coverage(sky, await lab(wispPath));
-const cells = ["top-left", "top", "top-right", "left", "middle", "right", "low-left", "low", "low-right"];
-let worst = 0;
-console.log("cell\tnative\twisp\tdiff");
-cells.forEach((name, index) => {
-  const difference = (wisp[index] ?? 0) - (native[index] ?? 0);
-  worst = Math.max(worst, Math.abs(difference));
-  console.log(`${name}\t${(native[index] ?? 0).toFixed(1)}\t${(wisp[index] ?? 0).toFixed(1)}\t${difference >= 0 ? "+" : ""}${difference.toFixed(1)}`);
-});
-console.log(`${worst <= LIMIT ? "PASS" : "FAIL"} worst cell ${worst.toFixed(1)} points (limit ${LIMIT})`);
+export async function emptyBackdropShare(skyPath: string, imagePath: string, horizon: number): Promise<number> {
+  if (!Number.isFinite(horizon) || horizon < 0 || horizon >= BOTTOM) throw new Error(`horizon row ${horizon} is outside 0 to ${BOTTOM}`);
+  const sky = await lab(skyPath), image = await lab(imagePath);
+  const top = Math.floor(HEIGHT * horizon), bottom = Math.floor(HEIGHT * BOTTOM);
+  let empty = 0;
+  for (let i = top * WIDTH; i < bottom * WIDTH; i++)
+    if (Math.hypot(image[i * 3]! - sky[i * 3]!, image[i * 3 + 1]! - sky[i * 3 + 1]!, image[i * 3 + 2]! - sky[i * 3 + 2]!) <= SCENE_DE) empty++;
+  return 100 * empty / ((bottom - top) * WIDTH);
+}
+
+const args = Bun.argv.slice(2);
+if (import.meta.main && args[0] === "--empty") {
+  const [, skyPath, imagePath, horizonText] = args;
+  const horizon = Number(horizonText);
+  if (skyPath === undefined || imagePath === undefined)
+    throw new Error("usage: bun tools/stage/layout.ts --empty SKY.png FRAME.png HORIZON_ROW_FRACTION");
+  const share = await emptyBackdropShare(skyPath, imagePath, horizon);
+  console.log(`${share <= EMPTY_BACKDROP_LIMIT ? "PASS" : "FAIL"} ${imagePath}: empty backdrop ${share.toFixed(2)}% (limit ${EMPTY_BACKDROP_LIMIT}%), horizon row ${horizon.toFixed(4)}`);
+  process.exit(share <= EMPTY_BACKDROP_LIMIT ? 0 : 1);
+}
+if (import.meta.main) {
+  const [skyPath, nativePath, wispPath] = args;
+  if (skyPath === undefined || nativePath === undefined || wispPath === undefined) throw new Error("usage: bun tools/stage/layout.ts SKY.png NATIVE.png WISP.png");
+  const sky = await lab(skyPath);
+  const native = coverage(sky, await lab(nativePath)), wisp = coverage(sky, await lab(wispPath));
+  const cells = ["top-left", "top", "top-right", "left", "middle", "right", "low-left", "low", "low-right"];
+  let worst = 0;
+  console.log("cell\tnative\twisp\tdiff");
+  cells.forEach((name, index) => {
+    const difference = (wisp[index] ?? 0) - (native[index] ?? 0);
+    worst = Math.max(worst, Math.abs(difference));
+    console.log(`${name}\t${(native[index] ?? 0).toFixed(1)}\t${(wisp[index] ?? 0).toFixed(1)}\t${difference >= 0 ? "+" : ""}${difference.toFixed(1)}`);
+  });
+  console.log(`${worst <= LIMIT ? "PASS" : "FAIL"} worst cell ${worst.toFixed(1)} points (limit ${LIMIT})`);
+}

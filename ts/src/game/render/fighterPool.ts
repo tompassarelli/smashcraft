@@ -23,7 +23,6 @@ import { specialCueState } from "../presentation/specialCues";
 import { characterModelScale } from "../presentation/modelScale";
 import { fitFighterPlacement } from "../presentation/fighterPlacement";
 import { outgoingPoseAlpha, poseBlendFrames } from "../presentation/damageBlend";
-import { fighterTintChannel, stageFighterTint } from "../presentation/stageFighterTint";
 
 export class FighterPoolPresentation {
   private readonly clips: effect[] = [];
@@ -106,7 +105,7 @@ export class FighterPoolPresentation {
   }
 
   /** `frame` is the presented simulation frame, which times pose blends. */
-  present(fighter: Readonly<Fighter>, pose: Readonly<FighterPose>, stage: number, frame: number, authoredLighting = true): void {
+  present(fighter: Readonly<Fighter>, pose: Readonly<FighterPose>, stage: number, frame: number): void {
     if (this.clips.length === 0) return;
     const index = pose.clipIndex ?? originalClipNamed(this.character, pose.clipName);
     const model = index === undefined ? undefined : this.clips[index];
@@ -187,10 +186,6 @@ export class FighterPoolPresentation {
     }
     const transformation = specialCueState(fighter);
     if (transformation.phase === "active" && transformation.cues?.active.replacesBody === true) alpha = 0;
-    const stageTint = stageFighterTint(stage, authoredLighting);
-    red = fighterTintChannel(red, stageTint[0]);
-    green = fighterTintChannel(green, stageTint[1]);
-    blue = fighterTintChannel(blue, stageTint[2]);
     if (changed || this.red !== red || this.green !== green || this.blue !== blue) {
       BlzSetSpecialEffectColor(model, red, green, blue);
       this.red = red;

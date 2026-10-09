@@ -9,7 +9,6 @@ import { fighterPoseFacing } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { facingYaw, hideEffect, placeEffect, type WorldOrigin } from "./effects";
 import { at } from "wisp/src/runtime/lookup";
-import { stageFighterTint } from "../presentation/stageFighterTint";
 
 export class BodyFlash {
   private readonly model: effect;
@@ -25,7 +24,7 @@ export class BodyFlash {
     hideEffect(this.model, origin);
   }
 
-  present(fighter: Readonly<Fighter> | undefined, pose: Readonly<FighterPose>, stage: number, frame: number, authoredLighting = true): void {
+  present(fighter: Readonly<Fighter> | undefined, pose: Readonly<FighterPose>, stage: number, frame: number): void {
     const alpha = fighter === undefined ? 0 : whiteGlowAlpha(this.state, fighter, frame);
     const index = pose.clipIndex ?? originalClipNamed(this.character, pose.clipName);
     const clip = index === undefined ? undefined : originalClip(this.character, index);
@@ -46,8 +45,7 @@ export class BodyFlash {
     placeEffect(this.model, this.origin.x + this.placement.x, this.origin.y - 0.5, this.origin.z + this.placement.z);
     BlzSetSpecialEffectScale(this.model, characterModelScale(fighter.character));
     BlzSetSpecialEffectAlpha(this.model, alpha);
-    const tint = stageFighterTint(stage, authoredLighting);
-    BlzSetSpecialEffectColor(this.model, tint[0], tint[1], tint[2]);
+    BlzSetSpecialEffectColor(this.model, 255, 255, 255);
     this.shown = true;
   }
 

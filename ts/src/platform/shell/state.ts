@@ -277,7 +277,6 @@ export interface ShellState {
   stageWind: effect[];
   stageHydra?: effect[];
   stageScenery: effect[] | undefined;
-  stockLighting?: boolean;
   shadowLightsRaised: boolean;
   /** `-dev view near|far` holds the local camera at a stage's camera extreme for captures; never in replay state. */
   viewExtreme: CameraExtreme | undefined;

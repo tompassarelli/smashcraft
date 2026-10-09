@@ -1,6 +1,3 @@
-
-
-
 import { $ } from "bun";
 import { decodePpm, type Frame } from "../../ts/node_modules/wisp/scripts/wisp/frameProbe";
 
@@ -38,46 +35,127 @@ function de2000([l1, a1, b1]: Lab, [l2, a2, b2]: Lab): number {
   return Math.sqrt(dl * dl + dc * dc + dhs * dhs + rt * dc * dhs);
 }
 
-const [maskPath, ...frames] = Bun.argv.slice(2);
-if (maskPath === undefined || frames.length === 0) throw new Error("usage: bun tools/stage/contrast.ts MASK.png FRAME.png...");
-const mask = await load(maskPath);
-const { width, height } = mask;
+export interface ContrastRow { readonly frame: string; readonly fighterL: number; readonly ringL: number; readonly absDL: number; readonly dE00: number; readonly frameL: number; readonly localDL: number }
 
-const counts = new Map<number, number>();
-for (let i = 0; i < width * height; i++) { const k = (mask.rgb[i * 3]! >> 3 << 10) | (mask.rgb[i * 3 + 1]! >> 3 << 5) | (mask.rgb[i * 3 + 2]! >> 3); counts.set(k, (counts.get(k) ?? 0) + 1); }
-const empty = [...counts.entries()].sort((a, b) => b[1] - a[1])[0]![0];
-const er = (empty >> 10) * 8 + 4, eg = ((empty >> 5) & 31) * 8 + 4, eb = (empty & 31) * 8 + 4;
-
-const on = new Uint8Array(width * height);
-for (let y = Math.floor(height * 0.08); y < Math.floor(height * 0.76); y++) for (let x = 0; x < width; x++) {
-  const i = y * width + x; const [r, g, b] = [mask.rgb[i * 3]!, mask.rgb[i * 3 + 1]!, mask.rgb[i * 3 + 2]!];
-  if (Math.abs(r - er) + Math.abs(g - eg) + Math.abs(b - eb) > 40) on[i] = 1;
+export async function measure(maskPath: string, frames: readonly string[]): Promise<{ readonly summary: string; readonly rows: readonly ContrastRow[] }> {
+  const mask = await load(maskPath);
+  const { width, height } = mask;
+  const counts = new Map<number, number>();
+  for (let i = 0; i < width * height; i++) { const k = (mask.rgb[i * 3]! >> 3 << 10) | (mask.rgb[i * 3 + 1]! >> 3 << 5) | (mask.rgb[i * 3 + 2]! >> 3); counts.set(k, (counts.get(k) ?? 0) + 1); }
+  const empty = [...counts.entries()].sort((a, b) => b[1] - a[1])[0]![0];
+  const er = (empty >> 10) * 8 + 4, eg = ((empty >> 5) & 31) * 8 + 4, eb = (empty & 31) * 8 + 4;
+  const on = new Uint8Array(width * height);
+  for (let y = Math.floor(height * 0.08); y < Math.floor(height * 0.76); y++) for (let x = 0; x < width; x++) {
+    const i = y * width + x; const [r, g, b] = [mask.rgb[i * 3]!, mask.rgb[i * 3 + 1]!, mask.rgb[i * 3 + 2]!];
+    if (Math.abs(r - er) + Math.abs(g - eg) + Math.abs(b - eb) > 40) on[i] = 1;
+  }
+  const label = new Int32Array(width * height).fill(-1); const sizes: number[] = [];
+  for (let i = 0; i < on.length; i++) {
+    if (!on[i] || label[i] !== -1) continue;
+    const id = sizes.length; let size = 0; const stack = [i]; label[i] = id;
+    while (stack.length) { const p = stack.pop()!; size++; const px = p % width, py = (p - px) / width;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) { const nx = px + dx, ny = py + dy; if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue; const n = ny * width + nx; if (on[n] && label[n] === -1) { label[n] = id; stack.push(n); } } }
+    sizes.push(size);
+  }
+  if (sizes.length === 0) throw new Error(`${maskPath}: no fighter silhouette found`);
+  const minimum = Math.max(...sizes) * 0.25;
+  const fighter = new Uint8Array(width * height);
+  for (let i = 0; i < on.length; i++) if (label[i]! >= 0 && sizes[label[i]!]! >= minimum) fighter[i] = 1;
+  const dilate = (src: Uint8Array, r: number) => { const out = new Uint8Array(src.length); for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) { if (!src[y * width + x]) continue; for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) { const nx = x + dx, ny = y + dy; if (nx >= 0 && ny >= 0 && nx < width && ny < height) out[ny * width + nx] = 1; } } return out; };
+  const inner = dilate(fighter, 4), outer = dilate(fighter, 18);
+  let fighterCount = 0; for (const v of fighter) fighterCount += v;
+  const rows: ContrastRow[] = [];
+  for (const path of frames) {
+    const image = await load(path);
+    if (image.width !== width || image.height !== height) throw new Error(`${path}: mask and frame dimensions differ`);
+    const sum = (sel: (i: number) => boolean) => { let r = 0, g = 0, b = 0, n = 0; for (let i = 0; i < width * height; i++) if (sel(i)) { r += image.rgb[i * 3]!; g += image.rgb[i * 3 + 1]!; b += image.rgb[i * 3 + 2]!; n++; } return lab(r / n, g / n, b / n); };
+    const f = sum(i => fighter[i] === 1), ring = sum(i => outer[i] === 1 && inner[i] === 0), all = sum(() => true);
+    let local = 0; for (let i = 0; i < width * height; i++) if (fighter[i]) local += Math.abs(lab(image.rgb[i * 3]!, image.rgb[i * 3 + 1]!, image.rgb[i * 3 + 2]!)[0] - ring[0]);
+    rows.push({ frame: path.split("/").pop() ?? path, fighterL: f[0], ringL: ring[0], absDL: Math.abs(f[0] - ring[0]), dE00: de2000(f, ring), frameL: all[0], localDL: local / fighterCount });
+  }
+  return { summary: `mask ${maskPath}: empty rgb(${er},${eg},${eb}), fighters ${fighterCount} px in ${sizes.filter(s => s >= minimum).length} blobs`, rows };
 }
 
-const label = new Int32Array(width * height).fill(-1); const sizes: number[] = [];
-for (let i = 0; i < on.length; i++) {
-  if (!on[i] || label[i] !== -1) continue;
-  const id = sizes.length; let size = 0; const stack = [i]; label[i] = id;
-  while (stack.length) { const p = stack.pop()!; size++; const px = p % width, py = (p - px) / width;
-    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) { const nx = px + dx, ny = py + dy; if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue; const n = ny * width + nx; if (on[n] && label[n] === -1) { label[n] = id; stack.push(n); } } }
-  sizes.push(size);
-}
-if (sizes.length === 0) throw new Error(`${maskPath}: no fighter silhouette found`);
-const minimum = Math.max(...sizes) * 0.25;
-const fighter = new Uint8Array(width * height);
-for (let i = 0; i < on.length; i++) if (label[i]! >= 0 && sizes[label[i]!]! >= minimum) fighter[i] = 1;
-const dilate = (src: Uint8Array, r: number) => { const out = new Uint8Array(src.length); for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) { if (!src[y * width + x]) continue; for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) { const nx = x + dx, ny = y + dy; if (nx >= 0 && ny >= 0 && nx < width && ny < height) out[ny * width + nx] = 1; } } return out; };
-const inner = dilate(fighter, 4), outer = dilate(fighter, 18);
-let fighterCount = 0; for (const v of fighter) fighterCount += v;
-console.log(`mask ${maskPath}: empty rgb(${er},${eg},${eb}), fighters ${fighterCount} px in ${sizes.filter(s => s >= minimum).length} blobs`);
-console.log("frame\tfighterL\tringL\tabsDL\tdE00\tframeL\tlocalDL");
-for (const path of frames) {
-  const image = await load(path);
-  if (image.width !== width || image.height !== height) throw new Error(`${path}: mask and frame dimensions differ`);
-  const sum = (sel: (i: number) => boolean) => { let r = 0, g = 0, b = 0, n = 0; for (let i = 0; i < width * height; i++) if (sel(i)) { r += image.rgb[i * 3]!; g += image.rgb[i * 3 + 1]!; b += image.rgb[i * 3 + 2]!; n++; } return lab(r / n, g / n, b / n); };
-  const f = sum(i => fighter[i] === 1), ring = sum(i => outer[i] === 1 && inner[i] === 0), all = sum(() => true);
+const STOCK_LIGHT = { terrain: "Environment\\DNC\\DNCLordaeron\\DNCLordaeronTerrain\\DNCLordaeronTerrain.mdl", unit: "Environment\\DNC\\DNCLordaeron\\DNCLordaeronUnit\\DNCLordaeronUnit.mdl" };
+const LOOK = ["day-night-light", "fog", "height-fog-falloff", "sky", "shadows", "point-lights", "pbr", "point-light-shadows", "ambient-occlusion", "bloom"] as const;
+const HORIZON = 1 / 3;
 
-  let local = 0; for (let i = 0; i < width * height; i++) if (fighter[i]) local += Math.abs(lab(image.rgb[i * 3]!, image.rgb[i * 3 + 1]!, image.rgb[i * 3 + 2]!)[0] - ring[0]);
-  const name = path.split("/").pop();
-  console.log(`${name}\t${f[0].toFixed(1)}\t${ring[0].toFixed(1)}\t${Math.abs(f[0] - ring[0]).toFixed(1)}\t${de2000(f, ring).toFixed(1)}\t${all[0].toFixed(1)}\t${(local / fighterCount).toFixed(1)}`);
+async function stockLightCheck(args: readonly string[]): Promise<number> {
+  const out = args[0] === "--out" ? args[1] ?? "" : `${process.env.XDG_STATE_HOME ?? `${process.env.HOME}/.local/state`}/smashcraft/stock-light`;
+  const named = (args[0] === "--out" ? args.slice(2) : args).map(Number);
+  const { Effect } = await import("../../ts/node_modules/effect/dist/index.js");
+  const { installHeadless } = await import("../../ts/node_modules/wisp/scripts/wisp/headless");
+  const { captureScene, renderScenes } = await import("../../ts/node_modules/wisp/scripts/wisp/headlessRender");
+  const { SMASHCRAFT_HEADLESS } = await import("../../ts/scripts/wisp/headless");
+  const { headlessRender } = await import("../../ts/scripts/wisp/headlessRender");
+  const { start, install } = await import("../../ts/src/platform/devMain");
+  const { stageModels } = await import("../../ts/src/game/presentation/stagePreload");
+  const { placedPieces } = await import("../../ts/src/game/presentation/stageScenery");
+  const { STAGE_CATALOG } = await import("../../ts/src/game/menu/stageCatalog");
+  const stages = named.length > 0 ? named : STAGE_CATALOG.map(({ id }) => id);
+  const normalize = (path: string) => path.replaceAll("\\", "/").toLowerCase();
+  const key = (model: string, color: readonly number[] | undefined) => `${normalize(model)}|${(color ?? []).slice(0, 3).join(",")}`;
+  console.log("stage\tmode\tclient\tview\tfighter L* stock light>stage\t|dL| stock>stage\tdE00 stock>stage\tcontrast\tempty% stock>stage\tL*");
+  let failed = 0;
+  for (const stage of stages) {
+    const runtime = installHeadless(SMASHCRAFT_HEADLESS);
+    const clients = runtime.clients({ start, install });
+    clients.start(); clients.frames(20); clients.chat(0, "-dev items off"); clients.frames(10); clients.chat(0, `-dev quick stage ${stage}`); clients.frames(15);
+    for (const client of clients.clients) clients.chat(client.slot, "-dev view near");
+    clients.frames(65);
+    const scenes = clients.clients.map(client => captureScene(client));
+    clients.frames(245);
+    for (const client of clients.clients) clients.chat(client.slot, "-dev view far");
+    clients.frames(55);
+    scenes.push(...clients.clients.map(client => captureScene(client)));
+    const errors = clients.clients.flatMap(client => client.errors);
+    runtime.restore();
+    if (errors.length > 0) throw new Error(`stage ${stage}: ${errors.join("\n")}`);
+    const own = new Set(stageModels(stage).map(normalize));
+    const stock = new Map<string, readonly number[]>();
+    const moody = placedPieces(stage, true), plain = placedPieces(stage, false);
+    moody.forEach((piece, index) => { const base = plain[index]?.color; if (base !== undefined) stock.set(key(piece.model, piece.color), base); });
+    for (const mode of ["classic", "definitive"] as const) for (const client of [0, 1]) {
+      const directory = `${out}/${stage}-${mode}-p${client}`;
+      const captures = scenes.filter(scene => scene.client === client).flatMap(scene => {
+        const common = { ...scene, ui: [], textTags: [], filter: undefined };
+        return [
+          common,
+          { ...common, frame: scene.frame + 1000, effects: [], units: [] },
+          { ...common, frame: scene.frame + 2000, effects: scene.effects.filter(effect => !own.has(normalize(effect.model))), environment: { ...common.environment, skyVisible: false, fog: undefined } },
+          { ...common, frame: scene.frame + 3000, effects: scene.effects.map(effect => { const color = stock.get(key(effect.model, effect.color)); return color === undefined ? effect : { ...effect, color: [color[0], color[1], color[2]] }; }), environment: { ...common.environment, dayNight: STOCK_LIGHT } },
+          { ...common, frame: scene.frame + 4000, environment: { ...common.environment, dayNight: STOCK_LIGHT } },
+        ];
+      });
+      const undrawn = await Effect.runPromise(renderScenes({ ...headlessRender(), width: 1280, height: client === 0 ? 720 : 540 }, captures, directory, mode, LOOK)).then(() => "", async (failure: unknown) => {
+        const drawn = await Promise.all(captures.map(scene => Bun.file(`${directory}/p${client}-frame-${scene.frame}.png`).exists()));
+        if (drawn.includes(false) || !String(failure).includes("undrawn")) throw failure;
+        return [...new Set(String(failure).match(/undrawn [^\n]*/g) ?? [])].join("; ");
+      });
+      for (const scene of scenes.filter(entry => entry.client === client)) {
+        const frame = (offset: number) => `${directory}/p${client}-frame-${scene.frame + offset}.png`;
+        const { rows: [atStock, atStage, stockLit] } = await measure(frame(2000), [frame(3000), frame(0), frame(4000)]);
+        if (atStock === undefined || atStage === undefined || stockLit === undefined) throw new Error(`${directory}: missing contrast rows`);
+        const { emptyBackdropShare } = await import("./layout");
+        const emptyStock = await emptyBackdropShare(frame(1000), frame(3000), HORIZON), emptyStage = await emptyBackdropShare(frame(1000), frame(0), HORIZON);
+        const darker = Number(atStage.fighterL.toFixed(1)) < Number(stockLit.fighterL.toFixed(1));
+        const holds = Number(atStage.absDL.toFixed(1)) >= Number(atStock.absDL.toFixed(1)) && Number(atStage.dE00.toFixed(1)) >= Number(atStock.dE00.toFixed(1));
+        if (darker) failed++;
+        const view = scene === scenes.find(entry => entry.client === client) ? "near" : "far";
+        console.log(`${stage}\t${mode}\t${client}\t${view}\t${stockLit.fighterL.toFixed(1)}>${atStage.fighterL.toFixed(1)}\t${atStock.absDL.toFixed(1)}>${atStage.absDL.toFixed(1)}\t${atStock.dE00.toFixed(1)}>${atStage.dE00.toFixed(1)}\t${holds ? "holds" : "falls"}\t${emptyStock.toFixed(2)}>${emptyStage.toFixed(2)}\t${darker ? "FAIL" : "pass"}${undrawn === "" ? "" : `\t${undrawn}`}`);
+      }
+    }
+  }
+  console.log(failed === 0 ? "PASS: no stage draws its fighters darker than the stock light" : `FAIL: ${failed} views draw fighters darker than the stock light`);
+  return failed === 0 ? 0 : 1;
+}
+
+if (import.meta.main) {
+  const [first, ...rest] = Bun.argv.slice(2);
+  if (first === "--stock-light") process.exit(await stockLightCheck(rest));
+  if (first === undefined || rest.length === 0) throw new Error("usage: bun tools/stage/contrast.ts MASK.png FRAME.png... | --stock-light [--out DIR] [STAGE...]");
+  const { summary, rows } = await measure(first, rest);
+  console.log(summary);
+  console.log("frame\tfighterL\tringL\tabsDL\tdE00\tframeL\tlocalDL");
+  for (const row of rows) console.log(`${row.frame}\t${row.fighterL.toFixed(1)}\t${row.ringL.toFixed(1)}\t${row.absDL.toFixed(1)}\t${row.dE00.toFixed(1)}\t${row.frameL.toFixed(1)}\t${row.localDL.toFixed(1)}`);
 }

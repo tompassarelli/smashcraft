@@ -1,10 +1,12 @@
 // Stage scenery is presentation only: arena coordinates never become collision.
 // Composition rules (asymmetric dressing, depth bands, motion budget): smashcraft:docs/design/stage-art.md.
 import { f32 } from "wisp/src/sim/f32";
-import { STAGE_WATER_MODEL, STAGE_LAVA_MODEL } from "../assets/terrainAssetInfo";
+import { STAGE_WATER_MODEL, STAGE_LAVA_MODEL, STAGE_SEA_MODEL } from "../assets/terrainAssetInfo";
 import { LAVA_CENTER_X, LAVA_HALF_WIDTH } from "../sim/lava";
-import { SEA_SURFACE_Z, seaLeft, seaRight } from "../sim/stageHazards";
-import { STAGE_LIGHT_MODELS, STAGE_POINT_LIGHT_MODELS, STAGE_SNOW_MODEL } from "../assets/stageAssetInfo";
+import { SEA_SURFACE_Z } from "../sim/stageHazards";
+import { STAGE_POINT_LIGHT_MODELS, STAGE_SNOW_MODEL } from "../assets/stageAssetInfo";
+import { STAGE_LIGHTS, type StageLight } from "../assets/stageLighting";
+import { min, toInt } from "../../runtime/numbers";
 import { STAGE_POINT_LIGHTS } from "../assets/stagePointLights";
 import { STAGE_SKY_MODELS } from "../assets/stageSkyInfo";
 import { AHNQIRAJ_SCENERY, BLACKROCK_SCENERY, GRYPHON_SCENERY, NORDRASSIL_SCENERY } from "./hazardStageScenery";
@@ -21,11 +23,14 @@ export interface SceneryPiece {
   /** Facing in degrees, counterclockwise from +x; the camera looks along +y, so 270 faces it. */
   readonly yaw: number;
   readonly matrixScale?: readonly [number, number, number];
+  readonly color?: readonly [number, number, number];
 }
 
 export interface StageScenery {
   readonly sky: string;
   readonly pieces: readonly SceneryPiece[];
+  /** The pieces' colour under the stock light, before the stage's mood (sceneryColor). */
+  readonly tint?: readonly [number, number, number];
   readonly fog?: { readonly start: number; readonly end: number; readonly red: number; readonly green: number; readonly blue: number };
   readonly heightFog?: {
     readonly start: number;
@@ -63,9 +68,22 @@ const FROZEN_THRONE: StageScenery = {
   ],
 };
 
-/** The stage's day/night lighting model (stageLighting.ts); a stage without its own takes the neutral one. */
-export function stageLightModel(stage: number): string {
-  return STAGE_LIGHT_MODELS[stage] ?? STAGE_LIGHT_MODELS[0] ?? "";
+/** Every stage draws with the stock Lordaeron light, so fighters are lit as at stock (#375). */
+export const STOCK_TERRAIN_LIGHT = "Environment\\DNC\\DNCLordaeron\\DNCLordaeronTerrain\\DNCLordaeronTerrain.mdl";
+export const STOCK_UNIT_LIGHT = "Environment\\DNC\\DNCLordaeron\\DNCLordaeronUnit\\DNCLordaeronUnit.mdl";
+
+/**
+ * A scenery colour under the stage's mood: the stage light (stageLighting.ts)
+ * divided by the stock noon light, its first entry, averaging key and fill.
+ * Only scenery takes it; the fighters keep the stock light.
+ */
+export function sceneryColor(stage: number, color: readonly [number, number, number]): readonly [number, number, number] {
+  const stock = STAGE_LIGHTS[0]?.light;
+  const light: StageLight | undefined = STAGE_LIGHTS.find(entry => entry.stage === stage)?.light;
+  if (stock === undefined || light === undefined) return color;
+  const intensity = light.intensity ?? 1.0;
+  const channel = (index: 0 | 1 | 2) => min(255, toInt(f32(f32(f32(color[index] * f32(intensity * (light.key[index] + light.ambient[index]))) / (stock.key[index] + stock.ambient[index])) + 0.5)));
+  return [channel(0), channel(1), channel(2)];
 }
 
 export function stageScenery(stage: number): StageScenery {
@@ -86,8 +104,9 @@ export function stageScenery(stage: number): StageScenery {
 export function terrainPieces(stage: number): readonly SceneryPiece[] {
   if (stage === TOMB_OF_SARGERAS_STAGE) return [
     { model: STAGE_WATER_MODEL, x: 0.0, y: 0.0, z: 1.0, scale: 1.0, matrixScale: [12.0, 1.0, 1.0], yaw: 0.0 },
-    { model: STAGE_WATER_MODEL, x: f32(f32(seaLeft(stage) + seaRight(stage)) / 2.0), y: 0.0, z: SEA_SURFACE_Z, scale: 1.0,
-      matrixScale: [f32(f32(seaRight(stage) - seaLeft(stage)) / 100.0), 1.0, 1.0], yaw: 0.0 },
+    // The sea extends beneath the camera so it reads as a surface, rather than a narrow tile.
+    { model: STAGE_SEA_MODEL, x: 0.0, y: 2200.0, z: SEA_SURFACE_Z, scale: 1.0,
+      matrixScale: [240.0, 140.0, 1.0], color: [176, 160, 144], yaw: 0.0 },
   ];
   return [];
 }
@@ -110,6 +129,11 @@ export function shadowCastingLights(stage: number): number {
 }
 
 /** Every effect a stage's scene places, in the order the shell creates them. */
-export function placedPieces(stage: number): readonly SceneryPiece[] {
-  return [...stageScenery(stage).pieces, ...terrainPieces(stage), ...pointLightPieces(stage)];
+export function placedPieces(stage: number, mood = true): readonly SceneryPiece[] {
+  const scenery = stageScenery(stage);
+  const pieces = scenery.pieces.map(piece => {
+    const color = scenery.tint ?? piece.color ?? [255, 255, 255] as const;
+    return { ...piece, color: mood ? sceneryColor(stage, color) : color };
+  });
+  return [...pieces, ...terrainPieces(stage), ...pointLightPieces(stage)];
 }

@@ -7,8 +7,11 @@ const hash = (bytes: Uint8Array) => new Bun.CryptoHasher("sha256").update(bytes)
 export async function packageLiquids(output: string): Promise<readonly string[]> {
   const names: string[] = [];
   const models: string[] = [];
-  for (const kind of ["Water", "Lava"] as const) {
-    const texture = liquidTga((x, y) => liquidTexel(kind, x, y));
+  for (const kind of ["Water", "Lava", "Sea"] as const) {
+    const texture = liquidTga((x, y) => {
+      const color = liquidTexel(kind === "Sea" ? "Water" : kind, x, y);
+      return kind === "Sea" ? [color[0], color[1], color[2], 255] : color;
+    });
     const textureName = `Stage${kind}-${hash(texture)}.tga`;
 
     const glow = kind === "Lava" ? liquidTga(lavaGlowTexel) : undefined;
@@ -23,7 +26,7 @@ Materials 1 { Material { Layer { FilterMode Blend, Unshaded, TwoSided, static Te
 Geoset {
 Vertices 4 { { -50, -60, 0 }, { 50, -60, 0 }, { 50, 60, 0 }, { -50, 60, 0 }, }
 Normals 4 { { 0, 0, 1 }, { 0, 0, 1 }, { 0, 0, 1 }, { 0, 0, 1 }, }
-TVertices 4 { { 0, 0 }, { 4, 0 }, { 4, 1 }, { 0, 1 }, }
+TVertices 4 { { 0, 0 }, { ${kind === "Sea" ? 96 : 4}, 0 }, { ${kind === "Sea" ? 96 : 4}, ${kind === "Sea" ? 64 : 1} }, { 0, ${kind === "Sea" ? 64 : 1} }, }
 VertexGroup { 0, 0, 0, 0, }
 Faces 1 6 { Triangles { { 0, 1, 2, 0, 2, 3 }, } }
 Groups 1 1 { Matrices { 0 }, }

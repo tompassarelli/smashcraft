@@ -39,8 +39,8 @@ test("quick stage applies capture look before the first match picture without la
       expect(s.game.stageChoice).toBe(command === "-dev quick" ? 0 : 2);
       expect(s.viewExtreme).toBe(command === "-dev quick" ? undefined : "near");
       const calls = client.log.slice(before);
-      const lighting = calls.filter(call => call.name === "SetDayNightModels").at(-1);
-      expect(String(lighting?.args[1]).includes(command === "-dev quick" ? "StageLight-" : "DNCLordaeronUnit")).toBe(true);
+      const lighting = client.log.filter(call => call.name === "SetDayNightModels").at(-1);
+      expect(String(lighting?.args[1]).includes("DNCLordaeronUnit")).toBe(true);
       if (command !== "-dev quick") {
         expect(calls.find(call => call.name === "BlzShowSkyBox")?.args).toEqual([false]);
 
@@ -193,8 +193,6 @@ test("contrast masking hides Frozen snow from every arena camera and restores ev
   for (const mode of ["stock", "stage"]) {
     const before = client.log.length;
     clients.chat(0, `-dev lighting ${mode}`);
-    const light = client.log.slice(before).find(call => call.name === "SetDayNightModels");
-    expect(light).toBeDefined();
-    expect(String(light?.args[1]).includes(mode === "stock" ? "DNCLordaeronUnit" : "StageLight-")).toBe(true);
+    expect(client.log.slice(before).some(call => call.name === "SetDayNightModels")).toBe(false);
   }
 });

@@ -1,5 +1,5 @@
-import { preloadLights, preloadModels, preloadSkies } from "../../game/presentation/stagePreload";
-import { placedPieces, shadowCastingLights, stageLightModel, stageScenery } from "../../game/presentation/stageScenery";
+import { preloadModels, preloadSkies } from "../../game/presentation/stagePreload";
+import { STOCK_TERRAIN_LIGHT, STOCK_UNIT_LIGHT, placedPieces, shadowCastingLights, stageScenery } from "../../game/presentation/stageScenery";
 import { hideEffect } from "../../game/render/effects";
 import type { ShellState } from "./state";
 
@@ -31,9 +31,7 @@ export function drawStageScenery(s: ShellState): void {
   // Stages float: no ground shows beneath the deck (smashcraft:docs/design/stage-art.md, rule 11).
   BlzShowTerrain(false);
   SetSkyModel(scenery.sky);
-  const light = stageLightModel(s.game.stageChoice);
-  SetDayNightModels(light, light);
-  s.stockLighting = false;
+  SetDayNightModels(STOCK_TERRAIN_LIGHT, STOCK_UNIT_LIGHT);
   drawStageFog(s);
   // Set only once a stage with a shadow-casting light has raised it, then back to none.
   const shadows = shadowCastingLights(s.game.stageChoice);
@@ -46,6 +44,7 @@ export function drawStageScenery(s: ShellState): void {
     const effect = AddSpecialEffect(piece.model, x, y);
     BlzSetSpecialEffectPosition(effect, x, y, s.origin.z + piece.z);
     BlzSetSpecialEffectScale(effect, piece.scale);
+    if (piece.color !== undefined) BlzSetSpecialEffectColor(effect, piece.color[0], piece.color[1], piece.color[2]);
     if (piece.matrixScale !== undefined) BlzSetSpecialEffectMatrixScale(effect, piece.matrixScale[0], piece.matrixScale[1], piece.matrixScale[2]);
     BlzSetSpecialEffectYaw(effect, piece.yaw * (Math.PI / 180.0));
     // An effect plays Birth first; the Temple of Tides' 60-second construction Birth hides its whole body (#263).
@@ -64,7 +63,6 @@ export function preloadStageAssets(s: ShellState): void {
     DestroyEffect(effect);
   }
   for (const sky of preloadSkies()) SetSkyModel(sky);
-  for (const light of preloadLights()) SetDayNightModels(light, light);
 }
 
 /**
@@ -104,14 +102,11 @@ export function showStageFog(s: ShellState, visible: boolean): void {
   }
 }
 
-/** Same paused scene, old stock lighting versus the stage's authored lighting. */
+/** Same paused scene, the scenery's stock colours versus the stage's mood; the fighters' light never changes. */
 export function showStageLighting(s: ShellState, authored: boolean): void {
-  s.stockLighting = !authored;
-  if (authored) {
-    const light = stageLightModel(s.game.stageChoice);
-    SetDayNightModels(light, light);
-  } else SetDayNightModels(
-    "Environment\\DNC\\DNCLordaeron\\DNCLordaeronTerrain\\DNCLordaeronTerrain.mdl",
-    "Environment\\DNC\\DNCLordaeron\\DNCLordaeronUnit\\DNCLordaeronUnit.mdl",
-  );
+  const pieces = placedPieces(s.game.stageChoice, authored);
+  for (const [index, effect] of (s.stageScenery ?? []).entries()) {
+    const color = pieces[index]?.color;
+    if (color !== undefined) BlzSetSpecialEffectColor(effect, color[0], color[1], color[2]);
+  }
 }

@@ -20,7 +20,6 @@ import { type MatchCamera, copyMatchCamera } from "../../game/sim/matchCamera";
 import { advanceMatchCamera } from "../../game/sim/matchCamera";
 import { stageBounds } from "../../game/sim/stageBounds";
 import { damageTint } from "../../game/presentation/hitPresentation";
-import { fighterTintChannel, stageFighterTint } from "../../game/presentation/stageFighterTint";
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import { hideEffect } from "../../game/render/effects";
 import { FRAME_SECONDS, type FighterPose } from "../../game/presentation/fighterPose";
@@ -268,9 +267,8 @@ export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readon
   const red = frozen ? 155 : tint?.red ?? (fighter.shield.raised ? 100 : 255);
   const green = frozen ? 210 : tint?.green ?? (fighter.shield.raised ? 160 : 255);
   const blue = frozen ? 255 : tint?.blue ?? 255;
-  const stageTint = stageFighterTint(s.game.stageChoice, !s.stockLighting);
   const alpha = !frozen && tint === undefined && isIntangible(fighter) ? 140 : 255;
-  SetUnitVertexColor(body.unit, fighterTintChannel(red, stageTint[0]), fighterTintChannel(green, stageTint[1]), fighterTintChannel(blue, stageTint[2]), alpha);
+  SetUnitVertexColor(body.unit, red, green, blue, alpha);
 }
 
 /** Freezes or resumes the units, effects and projectiles. */
@@ -417,11 +415,11 @@ export function renderPersistentPresentation(s: ShellState): void {
     const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
     const renderers = ui.fighters[slot];
     if (renderers?.pool !== undefined) {
-      if (fighter !== undefined && ui.match.posing !== slot) renderers.pool.present(fighter, runtime.poses[slot], stage, runtime.simulationFrame, !s.stockLighting);
+      if (fighter !== undefined && ui.match.posing !== slot) renderers.pool.present(fighter, runtime.poses[slot], stage, runtime.simulationFrame);
       else renderers.pool.hide();
     }
     const live = playing ? fighter : undefined;
-    renderers?.flash.present(ui.match.posing === slot ? undefined : live, runtime.poses[slot], stage, runtime.simulationFrame, !s.stockLighting);
+    renderers?.flash.present(ui.match.posing === slot ? undefined : live, runtime.poses[slot], stage, runtime.simulationFrame);
     if (renderers !== undefined) renderers.agency.present(live, live === undefined ? "act" : agencyMarks[slot]);
     ui.special.presentStatic(runtime.specials, live, slot);
     ui.special.presentSummons(runtime.summons, live, slot);

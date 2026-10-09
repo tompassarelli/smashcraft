@@ -4,9 +4,8 @@ import { parseMDL, generateMDX, parseMDX } from "../animations/node_modules/war3
 import { join } from "node:path";
 import { STAGE_PALETTE_TEXTURE, mainDeckFaces, mainDeckMdl, mainDeckModelFile, mainDeckOutlineStage, paletteTexture } from "../../ts/scripts/stageDeck";
 import { STAGE_DECK_PALETTES } from "../../ts/src/game/assets/stagePalette";
-import { STAGE_LIGHTS } from "../../ts/src/game/assets/stageLighting";
 import { STAGE_POINT_LIGHTS } from "../../ts/src/game/assets/stagePointLights";
-import { stageLightMdl, stageLightModelFile, stagePointLightMdl, stagePointLightModelFile } from "../../ts/scripts/stageLight";
+import { stagePointLightMdl, stagePointLightModelFile } from "../../ts/scripts/stageLight";
 import { packageLiquids } from "./liquids";
 import { packageSkies } from "./skies";
 import { platformDeckFaces, texturedDeckMdl } from "../../ts/scripts/stageMaterials";
@@ -157,21 +156,6 @@ await Bun.write(infoPath, `${await Bun.file(infoPath).text()}/** Drifting snow b
 console.log(`Stage snow: three emitters, stock snowflake texture; ${snowName}`);
 
 
-const lights: string[] = [];
-const lightNames: string[] = [];
-for (const { stage, theme, light } of STAGE_LIGHTS) {
-    const mdl = stageLightMdl(light);
-    const name = stageLightModelFile(mdl);
-    const bytes = new Uint8Array(generateMDX(parseMDL(mdl)));
-    const lite = parseMDX(bytes.buffer).Lights[0];
-    if (lite === undefined || lite.LightType !== 1) throw new Error(`${theme}: the lighting model has no directional light`);
-    await Bun.write(join(output, name), bytes);
-    await Bun.write(join(output, `StageLight${theme}.mdl`), mdl);
-    lightNames.push(name);
-    lights.push(`  ${stage}: ${JSON.stringify(`war3mapImported\\${name}`)},`);
-}
-await Bun.write(infoPath, `${await Bun.file(infoPath).text()}/** Each selectable stage's day/night lighting model, from its light in stageLighting.ts. */\nexport const STAGE_LIGHT_MODELS: Readonly<Record<number, string>> = {\n${lights.join("\n")}\n};\n`);
-
 const pointLights: string[] = [];
 const pointLightNames: string[] = [];
 for (const { stage, theme, lights } of STAGE_POINT_LIGHTS) {
@@ -192,5 +176,4 @@ for (const { stage, theme, lights } of STAGE_POINT_LIGHTS) {
 await Bun.write(infoPath, `${await Bun.file(infoPath).text()}/** Each stage's backdrop omni light models, in the order of its lights in stagePointLights.ts. */\nexport const STAGE_POINT_LIGHT_MODELS: Readonly<Record<number, readonly string[]>> = {\n${pointLights.join("\n")}\n};\n`);
 const skyNames = await packageSkies(output);
 const liquidNames = await packageLiquids(output);
-await Bun.write(join(output, "imports.txt"), `${[...new Set([...imports, snowName, ...lightNames, ...pointLightNames, ...skyNames, ...liquidNames])].join("\n")}\n`);
-console.log(`Stage lights: ${STAGE_LIGHTS.length} lighting models`);
+await Bun.write(join(output, "imports.txt"), `${[...new Set([...imports, snowName, ...pointLightNames, ...skyNames, ...liquidNames])].join("\n")}\n`);

@@ -7,6 +7,23 @@ deck palettes) is in [stage art](stage-art.md); this page is about light,
 atmosphere and materials. Every feature added since Reforged, by patch, is
 indexed in [Warcraft features since Reforged](warcraft-features.md).
 
+## Filled match frames (#360)
+
+At most 10% of the pixels below the stage's horizon may show only the sky or
+backdrop in each near and far match view, at 16:9 and 64:27, in Classic and
+Definitive. Scenery, the deck's body and water count as scene coverage.
+Measure with `bun tools/stage/layout.ts --empty SKY.png FRAME.png HORIZON_ROW_FRACTION`;
+`EMPTY_BACKDROP_LIMIT` is 10. The matched sky-only image keeps the same camera,
+sky, lighting and fog, with scene objects and UI removed. The measurement ends
+at row 0.76, above the HUD, and treats pixels within CIELAB distance 12 of that
+sky image as empty. Run it for each stage's captured views.
+
+Scenery forms a continuous band across the frame, with recognisable shapes at
+least 3% of the frame height. A water stage has one continuous sea at its
+gameplay height, with a readable ripple pattern and supports descending into
+it. The horizon may stay calm; below it the deck sits in water, cliffs or
+structure. These visual surfaces do not change collision or blast bounds.
+
 Each claim below names its source: a repository file, a cited document, or a
 measured capture. **Unmeasured** marks a lever whose 3.0 behaviour no
 Smashcraft capture has shown yet; *(guess)* marks an inference.
@@ -152,13 +169,24 @@ Classic's night key and fill are (0.31, 0.53, 0.80). All three are MDX
 version 1800, whose light records `war3-model` 4.0.1 rejects; the tracks
 were read by their chunk tags.
 
-Smashcraft authors one lighting model per stage (smashcraft:ts/src/game/assets/stageLighting.ts;
-smashcraft:ts/scripts/stageLight.ts writes the MDL, smashcraft:tools/stage/package.ts
-compiles it into the stage-assets family): a directional light with constant
-key and fill colours at intensity 1 (a stage's light may set a lower one) and the classic sun's rotation, so the
-time of day can't move it. The shell sets it with the sky and fog when a
-stage is drawn (smashcraft:ts/src/platform/shell/stageScenery.ts) and loads
-them all at map start.
+Every stage draws with the stock Lordaeron light, so fighters are never
+darker than at stock (#375). A stage's mood stays in its sky, fog and scenery
+colour: smashcraft:ts/src/game/assets/stageLighting.ts keeps each stage's
+key and fill, and `sceneryColor` in smashcraft:ts/src/game/presentation/stageScenery.ts
+multiplies each scenery piece's stock colour (its stage `tint`, else its own
+colour, else white) by that light divided by the stock noon light (the first
+entry), averaging key and fill, clamped at 255. `-dev lighting stock|stage`
+switches the scenery between its stock and mood colours; the fighters' light
+never changes. Stage-specific lighting models and fighter tints were removed;
+a deliberately darker light needs Tom's sign-off.
+
+`bun tools/stage/contrast.ts --stock-light [--out DIR] [STAGE...]` from
+smashcraft's root (about two minutes a stage, serial, local Warcraft storage)
+draws each stage's near and far views for both clients in Classic and
+Definitive with Wisp, and fails when the fighters' mean L\* falls below the
+same frame under the stock light at one decimal. It also prints each view's
+contrast row against the stock look (stock light, stock scenery colours) and
+the empty-backdrop share at horizon row 1/3.
 
 Patch 2.0 broke custom DNC models: one with a light node lit the whole map
 with no shadows, one without went black

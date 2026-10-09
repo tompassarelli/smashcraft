@@ -31,20 +31,25 @@ export const STRATHOLME_SCENERY: StageScenery = {
 /** The Broken Isles: the Naga's sunken ruins before the Tomb of Sargeras, a waterfall pouring off the left cliffs. */
 export const TOMB_OF_SARGERAS_SCENERY: StageScenery = {
   sky: STAGE_SKY_MODELS[7] ?? "",
+  tint: [96, 144, 152],
   fog: { start: 5000.0, end: 11000.0, red: 0.25, green: 0.4375, blue: 0.46875 },
   // TS-1/TS-2: teal haze below the bright tide floor leaves the fighting plane clear.
   heightFog: { start: 5000.0, end: 11000.0, density: 0.25, heightStart: -1800.0, heightEnd: -100.0, maxDensity: 0.375, drawOverSky: false },
   pieces: [
-    // TS-2/TS-c: the temple's crown sits in the open right third above the deck edge; the 64:27 far view's deck edge (row 0.178) caps its scale near 1.15.
-    { model: "Buildings\\Naga\\TempleOfTides\\TempleOfTides.mdx", x: 2000.0, y: 5600.0, z: 450.0, scale: f32(1.15), yaw: 250.0 },
-    { model: "Doodads\\Ruins\\Rocks\\Ruins_Rock\\Ruins_Rock0.mdx", x: 2000.0, y: 5600.0, z: -3500.0, scale: f32(9.05), yaw: 287.0, matrixScale: [1.0, 1.0, f32(2.833)] },
+    // Delfino's continuous drowned shoreline, with the temple above the right third.
+    { model: "Buildings\\Naga\\TempleOfTides\\TempleOfTides.mdx", x: 1250.0, y: 4000.0, z: -800.0, scale: 4.0, yaw: 250.0 },
+    { model: "Doodads\\Ruins\\Structures\\SRuinArch\\SRuinArch.mdx", x: -4000.0, y: 3900.0, z: -1900.0, scale: 5.0, yaw: 90.0, matrixScale: [0.5, 2.0, 1.0] },
+    { model: "Doodads\\Ruins\\Structures\\SRuinArch\\SRuinArch.mdx", x: 0.0, y: 4500.0, z: -2150.0, scale: 6.25, yaw: 270.0, matrixScale: [0.5, 2.0, 1.0] },
+    { model: "Doodads\\Ruins\\Structures\\SRuinArch\\SRuinArch.mdx", x: 4000.0, y: 4500.0, z: -1400.0, scale: 4.0, yaw: 85.0, matrixScale: [0.5, 2.0, 1.0] },
+    { model: "Doodads\\Ruins\\Rocks\\Ruins_Rock\\Ruins_Rock0.mdx", x: 1500.0, y: 4600.0, z: -5000.0, scale: 17.0, yaw: 287.0, matrixScale: [1.0, 1.0, 2.0] },
     // TS-c: the waterfall stays on the left; HD/DE imports replace only its misty model, keeping Classic stock.
-    { model: "Doodads\\Terrain\\CliffDoodad\\Waterfall\\Waterfall.mdx", x: -1900.0, y: 5600.0, z: -1515.0, scale: 3.5, yaw: 270.0, matrixScale: [1.0, 1.0, f32(2.498)] },
-    { model: "Doodads\\Ruins\\Structures\\SRuinArch\\SRuinArch.mdx", x: -1500.0, y: 3600.0, z: -1350.0, scale: 2.0, yaw: 15.0 },
-    { model: "Doodads\\Ruins\\Rocks\\Ruins_Rock\\Ruins_Rock0.mdx", x: -1510.0, y: 3180.0, z: -2435.0, scale: f32(5.9), yaw: 52.0, matrixScale: [1.0, 1.0, f32(1.294)] },
+    { model: "Doodads\\Terrain\\CliffDoodad\\Waterfall\\Waterfall.mdx", x: -2200.0, y: 3600.0, z: -2200.0, scale: 5.0, yaw: 270.0, matrixScale: [1.0, 1.0, 2.5] },
+    { model: "Doodads\\Ruins\\Structures\\SRuinArch\\SRuinArch.mdx", x: -1800.0, y: 3500.0, z: -900.0, scale: 4.0, yaw: 15.0 },
+    { model: "Doodads\\Ruins\\Rocks\\Ruins_Rock\\Ruins_Rock0.mdx", x: -3100.0, y: 3900.0, z: -5300.0, scale: 16.0, yaw: 52.0, matrixScale: [1.0, 1.0, 2.0] },
+    { model: "Doodads\\Ruins\\Rocks\\Ruins_Rock\\Ruins_Rock0.mdx", x: -850.0, y: 4100.0, z: -5500.0, scale: 14.0, yaw: 145.0, matrixScale: [1.0, 1.0, 2.5] },
     // TS-1/TS-3: coral frames the outer edge rather than stacking another column beneath the waterfall.
-    { model: "Doodads\\Ruins\\Water\\Coral\\Coral0.mdx", x: -2200.0, y: 2500.0, z: -3300.0, scale: 2, yaw: 300.0, matrixScale: [1.0, 1.0, 5.25] },
-    { model: "Doodads\\Ruins\\Rocks\\Ruins_Spires\\Ruins_Spires0.mdx", x: 2300.0, y: 2700.0, z: -3400.0, scale: 2, yaw: 140.0, matrixScale: [1.0, 1.0, f32(3.392)] },
-    { model: "Doodads\\Ruins\\Rocks\\Ruins_Rock\\Ruins_Rock0.mdx", x: 1900.0, y: 4000.0, z: -2985.0, scale: 3, yaw: 205.0, matrixScale: [1.0, 1.0, 4.75] },
+    { model: "Doodads\\Ruins\\Water\\Coral\\Coral0.mdx", x: -2500.0, y: 2500.0, z: -2600.0, scale: 3.0, yaw: 300.0, matrixScale: [1.0, 1.0, 4.0] },
+    { model: "Doodads\\Ruins\\Rocks\\Ruins_Spires\\Ruins_Spires0.mdx", x: 2400.0, y: 2700.0, z: -2800.0, scale: 3.0, yaw: 140.0, matrixScale: [1.0, 1.0, 3.0] },
+    { model: "Doodads\\Ruins\\Rocks\\Ruins_Rock\\Ruins_Rock0.mdx", x: 3250.0, y: 3700.0, z: -5400.0, scale: 12.0, yaw: 205.0, matrixScale: [1.0, 1.0, 3.0] },
   ],
 };

@@ -1,6 +1,6 @@
-// Each stage's light: one directional key light and its ambient fill, which
-// tools/stage/package.ts writes into the stage's day/night lighting model.
-// Fighters and scenery effects take this light; the decks are unshaded.
+// Each stage's mood light: a key and its ambient fill. Every stage draws with
+// the stock light; sceneryColor (presentation/stageScenery.ts) carries this
+// light's ratio to the stock one on the scenery only, never on the fighters.
 // Rules and measurements: smashcraft:docs/design/visual-quality.md.
 import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, DRIFTING_DECK_STAGE, FROZEN_THRONE_STAGE, HELLFIRE_STAGE, PATTERNED_DECKS_STAGE, STRATHOLME_STAGE, TIMED_TEST_STAGE, TOMB_OF_SARGERAS_STAGE, WIND_TEST_STAGE } from "../sim/stage";
 

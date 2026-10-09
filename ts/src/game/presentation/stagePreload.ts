@@ -6,7 +6,7 @@ import { hasCannon, hasTide } from "../sim/stageHazards";
 import { hasLava } from "../sim/lava";
 import { STAGE_LAVA_MODEL } from "../assets/terrainAssetInfo";
 import { CANNON_MODEL, HYDRA_CREST_MODEL, HYDRA_RING_MODEL } from "./stageHazards";
-import { placedPieces, stageLightModel, stageScenery } from "./stageScenery";
+import { placedPieces, stageScenery } from "./stageScenery";
 import { platformParts } from "./stockPlatforms";
 import { CARRIED_TEST_STAGE, TOMB_OF_SARGERAS_STAGE, surfacePass } from "../sim/stage";
 import { f32 } from "wisp/src/sim/f32";
@@ -53,16 +53,6 @@ export function preloadModels(): string[] {
   const models: string[] = [];
   for (const { id } of STAGE_CATALOG) for (const model of stageModels(id)) if (!models.includes(model)) models.push(model);
   return models;
-}
-
-/** Each distinct lighting model of every selectable stage. */
-export function preloadLights(): string[] {
-  const lights: string[] = [];
-  for (const { id } of STAGE_CATALOG) {
-    const light = stageLightModel(id);
-    if (!lights.includes(light)) lights.push(light);
-  }
-  return lights;
 }
 
 /** Each distinct sky of every selectable stage. */

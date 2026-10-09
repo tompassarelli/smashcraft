@@ -108,8 +108,9 @@ test("Ahn'Qiraj keeps neutral fighter colours, the hit pulse and scenery at stoc
     expect(scenery()).toEqual(backdrop);
     applyDeveloperCommand(s, 0, "-dev lighting stock");
     expect(body()?.color).toEqual([155, 210, 255]);
-    expect(scenery()).toEqual(backdrop);
+    expect(scenery()).not.toEqual(backdrop);
     applyDeveloperCommand(s, 0, "-dev lighting stage");
+    expect(scenery()).toEqual(backdrop);
     fighter.status.frozenFrames = 0;
     s.participants[0].pooled = false;
     renderFighter(s, 0, pose, false);

@@ -30,6 +30,7 @@ import { Character, DownState, SurfaceContact } from "../src/game/sim/codes";
 import { fighterAt } from "../src/game/sim/roster";
 import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, FROZEN_THRONE_STAGE, TIMED_TEST_STAGE, WIND_TEST_STAGE, DRIFTING_DECK_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, MAIN_DECK_UNDERSIDE_Z, solidSurfaceAt, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
 import { stageBounds } from "../src/game/sim/stageBounds";
+import { SEA_SURFACE_Z } from "../src/game/sim/stageHazards";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "../src/game/sim/knockback";
 import { MATCH_CAMERA_ASPECT, advanceMatchCamera, createMatchCamera } from "../src/game/sim/matchCamera";
 import { initializeScenario } from "../src/game/shell/scenarios";
@@ -123,7 +124,7 @@ const STAND_BOUNDS: Readonly<Record<string, { readonly min: readonly [number, nu
   [TEMPLE_OF_TIDES]: { min: [-180.0, -170.0, -91.0], max: [176.0, 183.0, 374.0] },
 };
 
-test("Tomb's Temple of Tides draws its whole standing body and roof above the deck's top edge on the right third at both camera extremes and client widths [repro #299]", () => {
+test("Tomb's close Temple of Tides occupies a visible quarter of match height on the right third at both camera extremes and client widths [spec #360]", () => {
   const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
   clients.start();
   clients.frames(30);
@@ -145,18 +146,23 @@ test("Tomb's Temple of Tides draws its whole standing body and roof above the de
       0.5 + (x - camera.x) / (2 * depth(y, z) * camera.tangent * aspect),
       0.5 - (y * Math.sin(tilt) + (z - camera.z) * Math.cos(tilt)) / (2 * depth(y, z) * camera.tangent),
     ] as const;
-
-    const deckTop = Math.min(...[-600, 600].map(x => project(x, MAIN_DECK_HALF_DEPTH, 0)[1]));
+    const rows: number[] = [];
+    const columns: number[] = [];
     for (const [x, y, z] of corners) {
       expect(depth(y, z), extreme).toBeLessThan(ARENA_CAMERA.farZ);
       const [column, row] = project(x, y, z);
       expect(column, extreme).toBeGreaterThan(0);
       expect(column, extreme).toBeLessThan(1);
-      expect(row, extreme).toBeGreaterThan(0);
-      expect(row, extreme).toBeLessThan(deckTop);
+      columns.push(column);
+      expect(row, extreme).toBeLessThan(1);
+      rows.push(row);
     }
+    // Tom's close-set-piece reference allows a cropped crown; platforms and ledges remain inside the frame.
+    expect(Math.min(1, Math.max(...rows)) - Math.max(0, Math.min(...rows)), extreme).toBeGreaterThanOrEqual(0.25);
     const centre = corners.reduce((sum, [x, y, z]) => [sum[0] + x / 8, sum[1] + y / 8, sum[2] + z / 8], [0, 0, 0]);
-    expect(project(centre[0], centre[1], centre[2])[0], extreme).toBeGreaterThanOrEqual(2 / 3);
+    expect(project(centre[0], centre[1], centre[2])[0], extreme).toBeGreaterThan(0.5);
+    expect(Math.min(...columns), extreme).toBeLessThan(2 / 3);
+    expect(Math.max(...columns), extreme).toBeGreaterThan(2 / 3);
     aspects.set(client, aspect);
     clients.chat(0, `-dev view ${extreme}`);
     clients.frames(1);
@@ -315,6 +321,8 @@ test("no stage shows a scenery piece's base below the deck at either camera extr
         return (y1 > row) !== (y2 > row) && column < ((x2 - x1) * (row - y1)) / (y2 - y1) + x1 ? !inside : inside;
       }, false);
       for (const piece of placed) {
+        // The opaque Tomb sea covers the sunken ruin bases (#360).
+        if (stage.id === 7 && piece.bottom < SEA_SURFACE_Z) continue;
         const shown = Array.from({ length: 21 }, (_, step) => piece.left + ((piece.right - piece.left) * step) / 20).filter((x) => {
           if (depth(piece.front, piece.bottom) > ARENA_CAMERA.farZ) return false;
           const at = project(x, piece.front, piece.bottom);

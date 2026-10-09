@@ -1,11 +1,10 @@
 import { expect, test } from "bun:test";
 import { MAIN_DECK_HALF_DEPTH, type DeckFace, type OutlinePoint, mainDeckFaces, mainDeckMdl, mainDeckModelFile, mainDeckOutlineStage, paletteTexture } from "../scripts/stageDeck";
-import { STAGE_DECK_MODELS, STAGE_LIGHT_MODELS, STAGE_MAIN_DECK_MODEL, STAGE_POINT_LIGHT_MODELS } from "../src/game/assets/stageAssetInfo";
-import { STAGE_LIGHTS } from "../src/game/assets/stageLighting";
+import { STAGE_DECK_MODELS, STAGE_MAIN_DECK_MODEL, STAGE_POINT_LIGHT_MODELS } from "../src/game/assets/stageAssetInfo";
 import { STAGE_SKY_MODELS } from "../src/game/assets/stageSkyInfo";
 import { STAGE_SKIES } from "../scripts/stageSky";
 import { STAGE_POINT_LIGHTS } from "../src/game/assets/stagePointLights";
-import { stageLightMdl, stageLightModelFile, stagePointLightMdl, stagePointLightModelFile } from "../scripts/stageLight";
+import { stagePointLightMdl, stagePointLightModelFile } from "../scripts/stageLight";
 import { LAVA_GLOW, LIQUID_TEXTURE_SIZE, STOCK_BLOOM_THRESHOLD, lavaGlowTexel, liquidTexel } from "../scripts/stageLiquid";
 import { luma } from "../src/game/assets/stagePalette";
 import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";
@@ -127,12 +126,6 @@ test("every face of the main deck faces out along its normal, so Warcraft draws 
       wound[2] += (x - nextX) * (y + nextY);
     });
     expect(wound[0] * normal[0] + wound[1] * normal[1] + wound[2] * normal[2]).toBeGreaterThan(0);
-  }
-});
-
-test("each stage's shipped lighting model is the one its light declares [invariant]", () => {
-  for (const { stage, theme, light } of STAGE_LIGHTS) {
-    expect(STAGE_LIGHT_MODELS[stage], theme).toBe(`war3mapImported\\${stageLightModelFile(stageLightMdl(light))}`);
   }
 });
 

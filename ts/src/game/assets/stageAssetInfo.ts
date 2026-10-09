@@ -19,20 +19,6 @@ export const STAGE_DECK_MODEL = "war3mapImported\\StageDeck-7e2aae2330a24a8ac729
 export const STAGE_MAIN_DECK_MODEL = "war3mapImported\\StageMainDeck-d84846d2cdced8d9736dca878d5d1fb303a50f512a0dea0eb06142af33fe1b06.mdx";
 /** Drifting snow behind the fighting plane, using the stock snowflake texture. */
 export const STAGE_SNOW_MODEL = "war3mapImported\\StageSnow-917b74168e66aca0467360dffd3956aabf3e0b69503b2f26da0ddedc1e8a5bd4.mdx";
-/** Each selectable stage's day/night lighting model, from its light in stageLighting.ts. */
-export const STAGE_LIGHT_MODELS: Readonly<Record<number, string>> = {
-  0: "war3mapImported\\StageLight-58aa70a31b10f62d7bb32417f729569e4b05db2baa78efd264754cca6e604be6.mdx",
-  2: "war3mapImported\\StageLight-1ad8299ee23d76791423ad6ef47e0c1efe055f732fbf692f5eea764c7bf0f738.mdx",
-  10: "war3mapImported\\StageLight-237830eeeab84963d9a926cef8a7feaa72a71cb011309292ea8ad44f5ca69774.mdx",
-  11: "war3mapImported\\StageLight-05aabd398820dbd090d773939d22c06f15272ac65ae31484b6ac69312ca119b6.mdx",
-  3: "war3mapImported\\StageLight-fb31be74844f3d133719d66ba8227f747932fcf3d203a7cf8181ca071c7c6fcc.mdx",
-  4: "war3mapImported\\StageLight-a8838c4494329246e327192ff2fadd0bf84886b70f9eacb0af1e7514e5a16029.mdx",
-  14: "war3mapImported\\StageLight-8633e6ea80fe4e717a460aabe244a7be6e9387f5a394bef2adc4f67fe9a10827.mdx",
-  12: "war3mapImported\\StageLight-1b9742fd35a7bd91a98fd818f4ff13946e3cb4f09b9fd9bc7f168616cb91aa43.mdx",
-  6: "war3mapImported\\StageLight-79edd605146efb956c78e48e3a8880c561b3daf10f8071569276bdf468101f04.mdx",
-  7: "war3mapImported\\StageLight-edf3b5df8d80335a608fe64f09ae146f616bfd1e255338dcf59c73937403957a.mdx",
-  13: "war3mapImported\\StageLight-3b4bd0aa6e0598a929146d14a4ea093139d4acab860e42d13227568b48f14ec3.mdx",
-};
 /** Each stage's backdrop omni light models, in the order of its lights in stagePointLights.ts. */
 export const STAGE_POINT_LIGHT_MODELS: Readonly<Record<number, readonly string[]>> = {
   4: ["war3mapImported\\StagePointLight-3c239f503cd4b885fb1d2ccbd395dce50e78f4797f65e6db0ea63e33a1d92923.mdx"],

@@ -142,7 +142,7 @@ commit both files with the stage change. Without `--stage` it redraws every
 stage (about a minute). smashcraft:ts/test/stage-thumbnails.test.ts fails,
 naming the stage and printing its `--stage` command, when a selectable stage
 has neither zone art nor a recorded render, when a rendered stage's own inputs
-(its scenery, terrain, lighting model, decks, scenery models and surfaces,
+(its scenery, its placed pieces with their mood colours, terrain, decks, scenery models and surfaces,
 hero camera and the card format; stage-assets files are named by their
 contents' hash, so their names stand for their bytes) hash differently from
 its recorded hash, or when its silhouette differs from what its surfaces draw

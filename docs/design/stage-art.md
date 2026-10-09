@@ -244,9 +244,11 @@ from the floor (smashcraft:ts/src/game/presentation/stageScenery.ts).
     The lip carries the theme's accent.
     smashcraft:ts/src/game/assets/stagePalette.tests.ts enforces the values;
     smashcraft:ts/src/game/assets/stagePalette.ts declares the palettes.
-11. **No ground under the stage** (Tom decided, 7 Oct, delegated). Matches
-    draw no terrain: below the deck a player sees only the deck's underside,
-    the sky and the stage's low atmosphere. Background pieces that would
+11. **The deck sits in a world** (Tom's 9 Oct playtest, #360). Water, cliffs or
+    structure fill the space beneath and beside the deck; no background
+    surface is presented as another place to land. Tomb's opaque sea sits at
+    its real swimming height and covers its sunken ruin bases. Matches draw
+    no terrain. Background pieces that would
     stand on the ground fade into that atmosphere before their bases show,
     so nothing beneath the deck reads as a place to land, at either camera
     extreme (`-dev view near|far`). Fog alone can't do it: the near band sits

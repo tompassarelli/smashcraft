@@ -6,7 +6,7 @@
 import { createHash } from "node:crypto";
 import { STAGE_CATALOG, type StageTile } from "../src/game/menu/stageCatalog";
 import { deckModel, stageModels } from "../src/game/presentation/stagePreload";
-import { stageLightModel, stageScenery, terrainPieces } from "../src/game/presentation/stageScenery";
+import { placedPieces, stageScenery, terrainPieces } from "../src/game/presentation/stageScenery";
 import { surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "../src/game/sim/stage";
 import { hasCannon } from "../src/game/sim/stageHazards";
 
@@ -123,7 +123,7 @@ export function stageArtInputs(stage: StageTile) {
   }));
   return {
     stage, file: thumbnailFile(stage),
-    scenery: stageScenery(stage), terrain: terrainPieces(stage), light: stageLightModel(stage), models: stageModels(stage), cannon: hasCannon(stage), surfaces,
+    scenery: stageScenery(stage), terrain: terrainPieces(stage), pieces: placedPieces(stage), models: stageModels(stage), cannon: hasCannon(stage), surfaces,
     camera: HERO_CAMERAS[stage], card: CARD,
   };
 }
