@@ -1,7 +1,10 @@
-// Measure the full project check after a real shared implementation edit.
-// The cold check establishes dependency state; its duration is reported separately.
+
+
 import { readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { BunRuntime, BunServices } from "@effect/platform-bun";
+import { Effect, Stream } from "effect";
+import { ChildProcess } from "effect/process";
 
 const project = resolve(import.meta.dir, "..");
 const source = resolve(project, "src/runtime/gameFiles.ts");
@@ -11,22 +14,23 @@ const signature = "export const devCommandReceiptFile = (build: string, slot: nu
 const targetMs = 1000;
 let currentSource = original;
 
-function check(name: string) {
+const check = Effect.fn("check")(function*(name: string) {
   const started = performance.now();
-  const child = Bun.spawnSync([process.execPath, "run", "check"], {
-    cwd: project,
-    stdout: "pipe",
-    stderr: "pipe",
-  });
+  const result = yield* Effect.scoped(Effect.gen(function*() {
+    const child = yield* ChildProcess.make(process.execPath, ["run", "check"], { cwd: project });
+    const [stdout, stderr, exitCode] = yield* Effect.all([
+      Stream.mkString(Stream.decodeText(child.stdout)), Stream.mkString(Stream.decodeText(child.stderr)), child.exitCode,
+    ], { concurrency: "unbounded" });
+    return { stdout, stderr, exitCode };
+  }));
   const elapsedMs = performance.now() - started;
-  const stdout = new TextDecoder().decode(child.stdout);
-  process.stdout.write(stdout);
-  process.stderr.write(child.stderr);
-  console.log(`${name}: ${elapsedMs.toFixed(0)} ms (exit ${child.exitCode})`);
-  return { exitCode: child.exitCode, elapsedMs, stdout };
-}
+  process.stdout.write(result.stdout);
+  process.stderr.write(result.stderr);
+  console.log(`${name}: ${elapsedMs.toFixed(0)} ms (exit ${result.exitCode})`);
+  return { ...result, elapsedMs };
+});
 
-function requireSuccess(result: ReturnType<typeof check>): void {
+function requireSuccess(result: { readonly exitCode: number }): void {
   if (result.exitCode !== 0) {
     process.exitCode ||= result.exitCode;
     throw new Error(`full project check failed with exit code ${result.exitCode}`);
@@ -42,17 +46,23 @@ function edit(text: string): void {
   utimesSync(source, now, now);
 }
 
-try {
+const main = Effect.gen(function*() {
+  yield* Effect.acquireRelease(Effect.void, () => Effect.gen(function*() {
+    if (currentSource !== original) {
+      edit(original);
+      requireSuccess(yield* check("restored full type-check"));
+    }
+  }).pipe(Effect.orDie));
   if (!original.includes(body) || !original.includes(signature)) {
     throw new Error("shared developer receipt function changed; inspect it before benchmarking");
   }
   for (const cache of ["build/typecheck-host.tsbuildinfo", "build/typecheck-game.tsbuildinfo"]) {
     rmSync(resolve(project, cache), { force: true });
   }
-  requireSuccess(check("cold full type-check (reported)"));
+  requireSuccess(yield* check("cold full type-check (reported)"));
 
   edit(original.replace(body, '`smashcraft-dev-probe-${build}-p${slot}.txt`'));
-  const edited = check("full type-check after shared implementation edit (target ≤1 s)");
+  const edited = yield* check("full type-check after shared implementation edit (target ≤1 s)");
   requireSuccess(edited);
   if (edited.elapsedMs > targetMs) {
     const message = `full type-check after shared implementation edit exceeded ${targetMs} ms`;
@@ -64,19 +74,13 @@ try {
   }
 
   edit(currentSource.replace(signature, "export const devCommandReceiptFile = (build: number, slot: number)"));
-  const invalid = check("invalid shared signature");
+  const invalid = yield* check("invalid shared signature");
   if (invalid.exitCode === 0
     || !/scripts\/wisp\/commands\/fresh\.ts\(\d+,\d+\): error TS2345/.test(invalid.stdout)
     || !/src\/game\/shell\/journalFiles\.ts\(\d+,\d+\): error TS2345/.test(invalid.stdout)) {
     throw new Error("changed shared signature did not fail at both host and game consumers");
   }
   console.log("changed shared signature rejected by host and game consumers");
-} catch (error) {
-  console.error(error);
-  process.exitCode ||= 1;
-} finally {
-  if (currentSource !== original) {
-    edit(original);
-    requireSuccess(check("restored full type-check"));
-  }
-}
+});
+
+BunRuntime.runMain(main.pipe(Effect.scoped, Effect.provide(BunServices.layer)));

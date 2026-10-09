@@ -21,7 +21,7 @@ export const controller: Command = (args) => Effect.gen(function*() {
     return;
   }
   const helper = yield* currentHelper;
-  if (unitInstalled()) {
+  if (yield* unitInstalled) {
     const runs = yield* ensureService(helper);
     console.log(`Controller service: ${runs}, helper ${helper}. Its state: ${CONTROLLER_STATUS}`);
     return;

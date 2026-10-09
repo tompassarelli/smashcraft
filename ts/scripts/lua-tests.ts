@@ -20,16 +20,21 @@
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { BunRuntime, BunServices } from "@effect/platform-bun";
 import { Effect } from "effect";
+import { ChildProcess } from "effect/process";
 import { BUSY_PRESSURE, INCONCLUSIVE_EXIT, withPressure } from "wisp/scripts/wisp/testRunner";
 import { runAdmitted } from "./heavyCapacity";
 import { LUA_TEST_CEILING_S, addCost, judge, type Costs } from "./testCost";
 import { stockLua } from "./wisp/luaRuntimes";
 import { refuseUntagged } from "./oracleTags";
 
-const compile = (config: string) =>
-  Bun.spawnSync([process.execPath, "--bun", "node_modules/typescript-to-lua/dist/tstl.js", "-p", config], { stdout: "inherit", stderr: "inherit" }).exitCode ?? 1;
-const run = (bundle: string) => Bun.spawnSync([lua, bundle], { stdout: "inherit", stderr: "inherit" }).exitCode ?? 1;
+const processCode = (command: string, args: readonly string[], env?: Record<string, string | undefined>) => Effect.scoped(Effect.gen(function*() {
+  const child = yield* ChildProcess.make(command, args, { stdout: "inherit", stderr: "inherit", ...(env === undefined ? {} : { env }) });
+  return yield* child.exitCode;
+}));
+const compile = (config: string) => processCode(process.execPath, ["--bun", "node_modules/typescript-to-lua/dist/tstl.js", "-p", config]);
+const run = (bundle: string) => processCode(lua, [bundle]);
 const jobs = Math.max(1, Number(process.env.LUA_JOBS ?? "1"));
 const [partition = NaN, partitions = NaN] = (process.env.LUA_PARTITION ?? "0/1").split("/").map(Number);
 if (!Number.isInteger(partition) || !Number.isInteger(partitions) || partition < 0 || partitions <= partition) {
@@ -39,14 +44,10 @@ const only = process.env.LUA_TESTS_STEP;
 const savedCosts = process.env.LUA_TEST_COST_DIR;
 const costDirectory = savedCosts ?? mkdtempSync(join(tmpdir(), "smashcraft-lua-cost-"));
 const costFile = (shard: number) => join(costDirectory, `${shard}.tsv`);
-const runSharded = async (bundle: string) => {
-  const codes = await Promise.all(Array.from({ length: jobs }, (_, shard) =>
-    Bun.spawn([lua, bundle], {
-      env: { ...process.env, ...(jobs * partitions === 1 ? {} : { LUA_SHARD: `${partition * jobs + shard}/${jobs * partitions}` }), LUA_TEST_COST: costFile(shard) },
-      stdout: "inherit", stderr: "inherit",
-    }).exited));
-  return codes.find((code) => code !== 0) ?? 0;
-};
+const runSharded = (bundle: string) => Effect.forEach(Array.from({ length: jobs }, (_, shard) => shard), (shard) =>
+  processCode(lua, [bundle], { ...process.env, ...(jobs * partitions === 1 ? {} : { LUA_SHARD: `${partition * jobs + shard}/${jobs * partitions}` }), LUA_TEST_COST: costFile(shard) }),
+  { concurrency: jobs },
+).pipe(Effect.map((codes) => codes.find((code) => code !== 0) ?? 0));
 
 let pressure: { readonly peak: number | undefined } = { peak: undefined };
 
@@ -99,26 +100,30 @@ const lua = await Effect.runPromise(stockLua);
 await Bun.write("test/lua/index.ts", [
   'import { registeredTests } from "wisp/src/runtime/testing";',
   "export const testModules: [number, string][] = [];",
-  // Lua limits a function to 200 locals; register each module through a call.
+
   "const mark = (module: string): void => {",
   "  testModules.push([registeredTests.length, module]);",
   "};",
   ...loaded.map((module) => `mark("${module}");\nrequire("../../${module.replace(/\.ts$/, "")}");`),
   "",
 ].join("\n"));
-const steps = only === "compile" ? [() => compile("tsconfig.lua-tests.json")]
-  : only === "stack" ? [() => compile("tsconfig.lua-stack.json"), () => run("build/lua-stack/stack.lua")]
+const steps = only === "compile" ? [compile("tsconfig.lua-tests.json")]
+  : only === "stack" ? [compile("tsconfig.lua-stack.json"), run("build/lua-stack/stack.lua")]
   : [
-    () => compile("tsconfig.lua-tests.json"),
-    async () => {
-      const measured = await Effect.runPromise(withPressure(Effect.promise(() => runSharded("build/lua-tests/tests.lua"))));
+    compile("tsconfig.lua-tests.json"),
+    withPressure(runSharded("build/lua-tests/tests.lua")).pipe(Effect.map((measured) => {
       pressure = measured.pressure;
       return measured.value;
-    },
-    ...(soak || sweeps || !remainder ? [] : [() => compile("tsconfig.lua-stack.json"), () => run("build/lua-stack/stack.lua")]),
-    ...(soak || sweeps ? [] : [budget]),
+    })),
+    ...(soak || sweeps || !remainder ? [] : [compile("tsconfig.lua-stack.json"), run("build/lua-stack/stack.lua")]),
+    ...(soak || sweeps ? [] : [Effect.sync(budget)]),
   ];
-for (const step of steps) {
-  const exitCode = await step();
-  if (exitCode !== 0) process.exit(exitCode);
-}
+BunRuntime.runMain(Effect.gen(function*() {
+  for (const step of steps) {
+    const exitCode = yield* step;
+    if (exitCode !== 0) {
+      process.exitCode = exitCode;
+      return;
+    }
+  }
+}).pipe(Effect.provide(BunServices.layer)));

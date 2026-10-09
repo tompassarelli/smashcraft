@@ -1,3 +1,7 @@
+import { BunRuntime, BunServices } from "@effect/platform-bun";
+import { Effect, Schema } from "effect";
+import { ChildProcess } from "effect/process";
+import { runProcess } from "./hostProcess";
 import { collectDashCalibration, collectTechnicalCalibration, dashPercentile } from "../src/game/match/botDashCalibration";
 import { parseArgs } from "node:util";
 import { CALIBRATION_SEEDS, calibrationFailures, collectCalibrationRow, type CalibrationMeasure, type CalibrationRow } from "../src/game/match/cpuCalibration";
@@ -74,14 +78,21 @@ export function calibrationReport(revision: string, trials = 10) {
   return { rows, failures, text: lines.join("\n") + "\n" };
 }
 
-if (import.meta.main) {
-  const { values } = parseArgs({ args: process.argv.slice(2), options: { revision: { type: "string" }, out: { type: "string" }, json: { type: "string" }, "trials-per-seed": { type: "string" } }, strict: true });
-  const trials = Number(values["trials-per-seed"] ?? 10);
-  if (!Number.isSafeInteger(trials) || trials < 1 || trials > 100) throw new Error("trials-per-seed must be an integer from 1 to 100");
-  const revision = values.revision ?? Bun.spawnSync(["git", "rev-parse", "HEAD"]).stdout.toString().trim();
+const main = Effect.gen(function*() {
+  const { values } = yield* Effect.try(() => parseArgs({ args: process.argv.slice(2), options: { revision: { type: "string" }, out: { type: "string" }, json: { type: "string" }, "trials-per-seed": { type: "string" } }, strict: true }));
+  const trials = yield* Schema.decodeEffect(Schema.Int.check(Schema.isBetween({ minimum: 1, maximum: 100 })))(Number(values["trials-per-seed"] ?? 10));
+  const revision = values.revision ?? (yield* runProcess(ChildProcess.make("git", ["rev-parse", "HEAD"])));
   const report = calibrationReport(revision, trials);
   console.log(report.text);
-  if (values.out !== undefined) await Bun.write(values.out, report.text);
-  if (values.json !== undefined) await Bun.write(values.json, JSON.stringify({ revision, seeds: CALIBRATION_SEEDS, trialsPerSeed: trials, rows: report.rows, failures: report.failures }, null, 2) + "\n");
+  if (values.out !== undefined) {
+    const out = values.out;
+    yield* Effect.tryPromise(() => Bun.write(out, report.text));
+  }
+  if (values.json !== undefined) {
+    const json = values.json;
+    yield* Effect.tryPromise(() => Bun.write(json, JSON.stringify({ revision, seeds: CALIBRATION_SEEDS, trialsPerSeed: trials, rows: report.rows, failures: report.failures }, null, 2) + "\n"));
+  }
   if (report.failures.length > 0) process.exitCode = 1;
-}
+});
+
+if (import.meta.main) BunRuntime.runMain(main.pipe(Effect.provide(BunServices.layer)));

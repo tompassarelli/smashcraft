@@ -8,6 +8,9 @@ import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join } from "node:path";
 import { Console, Effect, Schema } from "effect";
+import { BunServices } from "@effect/platform-bun";
+import { ChildProcess } from "effect/process";
+import { runProcess } from "../../hostProcess";
 import { type Command, UsageFailure, describeCause, flagValues } from "wisp/scripts/wisp/command";
 import { captureProcess } from "wisp/scripts/wisp/mapBuild";
 import { step } from "wisp/scripts/wisp/timings";
@@ -36,17 +39,16 @@ async function inputsHash(paths: readonly string[]): Promise<string> {
 }
 
 
-async function compileReplayLua(): Promise<void> {
+const compileReplayLua = Effect.gen(function*() {
   const sources = ["src", "test/replay"].flatMap((dir) => [...new Bun.Glob(`${dir}/**/*.ts`).scanSync(ts)]).sort().map((path) => join(ts, path));
   const framework = [...new Bun.Glob("src/**/*.{ts,lua}").scanSync(join(ts, "node_modules/wisp"))].map((file) => join(ts, "node_modules/wisp", file));
   const config = join(ts, "tsconfig.lua-replay.json");
-  const hash = await inputsHash([...sources, ...framework.sort(), join(ts, "node_modules/wisp/plugins/warcraft-numbers.ts"), config]);
+  const hash = yield* Effect.tryPromise(() => inputsHash([...sources, ...framework.sort(), join(ts, "node_modules/wisp/plugins/warcraft-numbers.ts"), config]));
   const stamp = Bun.file(`${replayLua}.inputs`);
-  if (await Bun.file(replayLua).exists() && await stamp.exists() && await stamp.text() === hash) return;
-  const result = Bun.spawnSync([process.execPath, "--bun", join(ts, "node_modules/typescript-to-lua/dist/tstl.js"), "-p", config], { cwd: ts, stdout: "pipe", stderr: "pipe" });
-  if (result.exitCode !== 0) throw new Error(`${result.stdout.toString()}${result.stderr.toString()}`.trim() || `tstl exit ${result.exitCode}`);
-  await Bun.write(stamp, hash);
-}
+  if (yield* Effect.tryPromise(async () => await Bun.file(replayLua).exists() && await stamp.exists() && await stamp.text() === hash)) return;
+  yield* runProcess(ChildProcess.make(process.execPath, ["--bun", join(ts, "node_modules/typescript-to-lua/dist/tstl.js"), "-p", config], { cwd: ts }));
+  yield* Effect.tryPromise(() => Bun.write(stamp, hash));
+}).pipe(Effect.provide(BunServices.layer));
 
 
 export function parseLuaReport(stdout: string): MatchReplayResult | undefined {
@@ -70,7 +72,7 @@ const report = (runtime: string, result: MatchReplayResult) => [
 
 export const replayInLua = (file: string, given?: string) => Effect.gen(function*() {
   const lua = given ?? (yield* stockLua.pipe(Effect.mapError((problem) => new ReplayFailure({ problem }))));
-  yield* Effect.tryPromise({ try: compileReplayLua, catch: (cause) => new ReplayFailure({ problem: `compiling the Lua replayer: ${describeCause(cause)}` }) }).pipe(step("compile Lua replayer"));
+  yield* compileReplayLua.pipe(Effect.mapError((cause) => new ReplayFailure({ problem: `compiling the Lua replayer: ${describeCause(cause)}` }))).pipe(step("compile Lua replayer"));
   const { stdout, stderr, exitCode } = yield* captureProcess("replay in 32-bit Lua", file, [lua, replayLua], { env: { ...process.env, REPLAY_FILE: file } }).pipe(
     Effect.mapError((cause) => new ReplayFailure({ problem: describeCause(cause) })),
   );

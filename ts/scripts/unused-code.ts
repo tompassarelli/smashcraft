@@ -1,25 +1,29 @@
-// Lists unused code: exports that no other module uses, smashcraft:ts/ files that
-// nothing imports or names, and smashcraft:tools/ files that no live file names.
-// Live files are tracked files outside smashcraft:evidence/ (dated records cite a
-// tool at its recorded commit) and the vendored reference trees.
-// Usage (from ts/): bun scripts/unused-code.ts; exits 1 when anything is listed.
+
+
+
+
+
 import { basename, dirname, join, relative, resolve } from "node:path";
 import ts from "typescript";
+import { BunRuntime, BunServices } from "@effect/platform-bun";
+import { Effect, Schema } from "effect";
+import { ChildProcess } from "effect/process";
+import { runProcess } from "./hostProcess";
 
 const project = resolve(import.meta.dir, "..");
 const repository = resolve(project, "..");
-const listed = Bun.spawnSync(["git", "ls-files"], { cwd: repository });
-if (listed.exitCode !== 0) throw new Error("git ls-files failed");
-const tracked = listed.stdout.toString().split("\n").filter((file) => file !== "");
+const main = Effect.gen(function*() {
+const listed = yield* runProcess(ChildProcess.make("git", ["ls-files"], { cwd: repository }));
+const tracked = listed.split("\n").filter((file) => file !== "");
 const projectFiles = tracked.filter((file) => file.startsWith("ts/") && !file.startsWith("ts/vendor/"));
 const sources = projectFiles.filter((file) => file.endsWith(".ts")).map((file) => join(repository, file));
-// Read by their tool from a fixed location rather than named by another file.
+
 const conventional = new Set([".gitignore", "bunfig.toml", "package.json", "bun.lock", "README.md"]);
 
 const live = tracked.filter((file) => !/^(evidence|repos|references)\//.test(file) && !file.startsWith("ts/vendor/")
   && !/\.(png|svg|jsonl|pld|txt|chain|toc|fdf|tgz)$/.test(file));
 const liveText = new Map<string, string>();
-for (const file of live) liveText.set(file, await Bun.file(join(repository, file)).text());
+for (const file of live) liveText.set(file, yield* Effect.tryPromise(() => Bun.file(join(repository, file)).text()));
 
 const options: ts.CompilerOptions = {
   target: ts.ScriptTarget.ESNext, module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler,
@@ -29,7 +33,7 @@ const program = ts.createProgram(sources, options);
 const checker = program.getTypeChecker();
 const ours = new Set(sources);
 
-// The generated map script calls the bundle entry's exports.
+
 const bundleEntries = new Set(projectFiles.filter((file) => /(^|\/)tsconfig[^/]*\.json$/.test(file)).flatMap((file) => {
   const config: unknown = ts.parseConfigFileTextToJson(file, liveText.get(file) ?? "").config;
   const entry = typeof config === "object" && config !== null && "tstl" in config && typeof config.tstl === "object" && config.tstl !== null
@@ -83,10 +87,10 @@ for (const source of program.getSourceFiles()) {
 
 const basenameCounts = new Map<string, number>();
 for (const file of tracked) basenameCounts.set(basename(file), (basenameCounts.get(basename(file)) ?? 0) + 1);
-/** Whole-word mention. A stem (no extension) must not continue into another extension, as in demonhunter.mdx. */
+
 const mentions = (text: string, word: string, hasExtension: boolean): boolean =>
   new RegExp(`(^|[^A-Za-z0-9_.-])${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}($|[^A-Za-z0-9_${hasExtension ? "" : "."}-])`, "m").test(text);
-/** Named by path, by a unique file name, or by stem from inside its own tool directory. */
+
 const named = (file: string): boolean => {
   const name = basename(file);
   const stem = name.replace(/\.[^.]+$/, "");
@@ -110,3 +114,6 @@ for (const file of unreachedFiles) console.log(`unreached file ${file}`);
 for (const file of unreferencedTools) console.log(`unreferenced tool ${file}`);
 console.log(`unused exports: ${unusedExports.length}; unreached ts/ files: ${unreachedFiles.length}; unreferenced tools/ files: ${unreferencedTools.length}`);
 if (unusedExports.length + unreachedFiles.length + unreferencedTools.length > 0) process.exitCode = 1;
+
+});
+BunRuntime.runMain(main.pipe(Effect.provide(BunServices.layer)));

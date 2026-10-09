@@ -206,11 +206,11 @@ const referenceFor = (references: Readonly<Record<string, typeof ReferenceEntry.
 
 const WikiImages = Schema.fromJsonString(Schema.Struct({ continue: Schema.optional(Schema.Struct({ aicontinue: Schema.String })), query: Schema.Struct({ allimages: Schema.Array(Schema.Struct({ name: Schema.String, url: Schema.String })) }) }));
 const wikiName = (character: string) => character.split("_").map((part) => part === "&" ? part : part.charAt(0).toUpperCase() + part.slice(1)).join("_").replace("Mr._game_&_watch", "Mr._Game_&_Watch");
-const httpGet = (url: string) => attempt(`fetch ${url}`, async () => {
+const httpGet = (url: string) => Effect.tryPromise({ try: async () => {
   const response = await fetch(url, { headers: { "user-agent": "smashcraft-animation-scorecard (private reference study)" } });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   return response;
-});
+}, catch: (cause) => new AnimFailure({ problem: `fetch ${url}: ${String(cause)}` }) });
 
 
 const fetchReferences = Effect.gen(function*() {

@@ -2,8 +2,10 @@
 
 
 
-import { BunRuntime } from "@effect/platform-bun";
+import { BunRuntime, BunServices } from "@effect/platform-bun";
 import { Cause, Effect, Exit } from "effect";
+import { ChildProcess } from "effect/process";
+import { runProcess } from "./hostProcess";
 import type { Teardown } from "effect/Runtime";
 import type { Command } from "wisp/scripts/wisp/command";
 import { step, timingsLayer } from "wisp/scripts/wisp/timings";
@@ -52,13 +54,6 @@ if (name === undefined || entry === undefined) {
 
 
 
-if (name === "play") {
-  const install = Bun.spawnSync([process.execPath, "install", "--frozen-lockfile"], { cwd: import.meta.dir + "/..", stdout: "ignore", stderr: "pipe" });
-  if (install.exitCode !== 0) {
-    console.error(`couldn't install the pinned dependencies: ${install.stderr.toString().trim()}`);
-    process.exit(1);
-  }
-}
 const command = await entry.load();
 
 const teardown: Teardown = (exit) => {
@@ -70,7 +65,11 @@ const teardown: Teardown = (exit) => {
 };
 
 
-BunRuntime.runMain(command(args).pipe(
+BunRuntime.runMain(Effect.gen(function*() {
+  if (name === "play") yield* runProcess(ChildProcess.make(process.execPath, ["install", "--frozen-lockfile"], { cwd: import.meta.dir + "/..", stdout: "ignore" }));
+  yield* command(args);
+}).pipe(
+  Effect.provide(BunServices.layer),
   step(name),
   Effect.provide(timingsLayer((line) => console.error(line))),
   Effect.catch((failure) => Effect.sync(() => {

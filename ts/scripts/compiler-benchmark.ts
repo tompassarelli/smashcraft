@@ -1,8 +1,12 @@
-// Measures the first and repeated body-edit compiles in one compiler process,
-// then compares the last incremental bundle with a fresh full compile.
+
+
 import { readFileSync, writeFileSync, utimesSync } from "node:fs";
 import { resolve } from "node:path";
 import { mapCompiler, report } from "wisp/scripts/compiler";
+import { BunRuntime, BunServices } from "@effect/platform-bun";
+import { Effect } from "effect";
+import { ChildProcess } from "effect/process";
+import { runProcess } from "./hostProcess";
 
 const project = resolve(import.meta.dir, "..");
 const source = resolve(project, "src/platform/shell/diagnostics.ts");
@@ -38,8 +42,9 @@ function edit(marker: string): void {
   const now = Date.now() / 1000;
   utimesSync(source, now, now);
 }
-try {
-  compile(incremental); // cold compiler state: establish the full output and validation baseline
+const main = Effect.gen(function*() {
+  yield* Effect.acquireRelease(Effect.void, () => Effect.sync(restore));
+  compile(incremental);
   for (const marker of markers) {
     edit(marker);
     const started = performance.now();
@@ -47,14 +52,12 @@ try {
     timings.push(performance.now() - started);
     incrementalOutput = bytes();
   }
-  const fullCompile = Bun.spawnSync([
-    process.execPath,
+  yield* runProcess(ChildProcess.make(process.execPath, [
     "--bun",
     resolve(project, "node_modules/typescript-to-lua/dist/tstl.js"),
     "-p",
     resolve(project, "tsconfig.map.json"),
-  ], { cwd: project, stdout: "pipe", stderr: "pipe" });
-  if (fullCompile.exitCode !== 0) throw new Error(new TextDecoder().decode(fullCompile.stderr));
+  ], { cwd: project }));
   if (incrementalOutput === undefined || !same(incrementalOutput, bytes())) throw new Error("incremental bundle differs from full TSTL compile");
 
   const validSource = currentSource;
@@ -70,8 +73,8 @@ try {
     throw new Error("changed exported signature did not report the dependent call-site error");
   }
 
-  // This is valid TypeScript but cannot emit a declaration. Both the TSTL
-  // preflight and TypeScript's emit gate must retain that failure between edits.
+
+
   currentSource = validSource + "\nexport const compilerDeclarationProbe = class { private value = 1; };\n";
   writeFileSync(source, currentSource);
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -85,7 +88,9 @@ try {
   writeFileSync(source, currentSource);
   compile(incremental);
   if (!same(incrementalOutput, bytes())) throw new Error("fixing a declaration error did not restore the full-compile output");
-} finally {
+});
+
+function restore(): void {
   if (readFileSync(source, "utf8") === currentSource && currentSource !== original) {
     writeFileSync(source, original);
     const now = Date.now() / 1000;
@@ -95,5 +100,9 @@ try {
   }
 }
 
+function summarize(): void {
 console.log(`edited compile ms: ${timings.map((time) => time.toFixed(0)).join(", ")}`);
 console.log("bundle and source map equal full TSTL; dependent signature error rejected; declaration error retained and recovery passed");
+}
+
+BunRuntime.runMain(main.pipe(Effect.scoped, Effect.tap(() => Effect.sync(summarize)), Effect.provide(BunServices.layer)));

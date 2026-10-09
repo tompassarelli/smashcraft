@@ -8,7 +8,9 @@ import { spawn } from "node:child_process";
 import { closeSync, existsSync, mkdirSync, openSync, readFileSync, readlinkSync, renameSync, rmSync, symlinkSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
-import { Effect } from "effect";
+import { Effect, Stream } from "effect";
+import { BunServices } from "@effect/platform-bun";
+import { ChildProcess } from "effect/process";
 import { PlayProblem } from "wisp/scripts/wisp/play";
 import { pollUntil } from "../hostPoll";
 
@@ -56,8 +58,15 @@ export function pointLauncher(helper: string, launcher = CONTROLLER_LAUNCHER): b
   return true;
 }
 
-const systemctl = (...args: string[]) => Bun.spawnSync(["systemctl", "--user", ...args], { stdout: "ignore", stderr: "pipe" });
-export const unitInstalled = () => systemctl("cat", CONTROLLER_UNIT).exitCode === 0;
+const systemctl = (...args: string[]) => Effect.scoped(Effect.gen(function*() {
+  const child = yield* ChildProcess.make("systemctl", ["--user", ...args], { stdout: "ignore" });
+  const [exitCode, stderr] = yield* Effect.all([child.exitCode, Stream.mkString(Stream.decodeText(child.stderr))], { concurrency: "unbounded" });
+  return { exitCode, stderr };
+})).pipe(
+  Effect.provide(BunServices.layer),
+  Effect.mapError((cause) => new PlayProblem({ problem: `couldn't run systemctl: ${cause.message}` })),
+);
+export const unitInstalled = systemctl("cat", CONTROLLER_UNIT).pipe(Effect.map((result) => result.exitCode === 0));
 
 const alive = (pid: string | undefined) => pid !== undefined && /^\d+$/.test(pid) && existsSync(`/proc/${pid}`);
 
@@ -66,9 +75,9 @@ const fail = (problem: string) => new PlayProblem({ problem });
 
 export const ensureService = (helper: string) => Effect.gen(function*() {
   const changed = pointLauncher(helper);
-  if (unitInstalled()) {
-    if (changed || systemctl("is-active", "--quiet", CONTROLLER_UNIT).exitCode !== 0) {
-      const restart = systemctl("restart", CONTROLLER_UNIT);
+  if (yield* unitInstalled) {
+    if (changed || (yield* systemctl("is-active", "--quiet", CONTROLLER_UNIT)).exitCode !== 0) {
+      const restart = yield* systemctl("restart", CONTROLLER_UNIT);
       if (restart.exitCode !== 0) return yield* fail(`couldn't start ${CONTROLLER_UNIT}: ${restart.stderr.toString().trim()}`);
     }
     return `${CONTROLLER_UNIT} (journalctl --user -u ${CONTROLLER_UNIT})`;
