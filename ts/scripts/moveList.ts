@@ -19,8 +19,9 @@ export function moveListMarkdown(): string {
     "ultimates have official names, and so does each jab chain; the other",
     "normals are named by their input (forward tilt, forward air, down smash,",
     "pummel, up throw). A normal's",
-    "\"inspired by\" note is a design reference, not a name. Ultimates are off in",
-    "matches until the match rules turn them on.",
+    "\"inspired by\" note is a design reference, not a name. An ultimate is",
+    "Attack + Special together at a full bar (docs/design/ultimates.md), unless",
+    "the match's Ultimates rule is off.",
   ];
   for (const character of SELECTABLE_CHARACTERS) {
     const kit = fighterKit(character);

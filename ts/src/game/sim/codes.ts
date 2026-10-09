@@ -78,6 +78,7 @@ export const SpecialAction = {
   heroSide: 14,
   heroUp: 15,
   heroDown: 16,
+  heroUltimate: 17,
 } as const;
 export type SpecialAction = (typeof SpecialAction)[keyof typeof SpecialAction];
 
@@ -147,7 +148,7 @@ export const HitElement = { normal: 0, fire: 1, electric: 2, slash: 3, ice: 5, d
 export type HitElement = (typeof HitElement)[keyof typeof HitElement];
 
 // Append only: these status codes are serialized in replay text.
-export const HeroStatusKind = { none: 0, sleep: 1, poison: 2, hex: 3, stun: 4, chill: 5, carried: 7, silence: 8, root: 9 } as const;
+export const HeroStatusKind = { none: 0, sleep: 1, poison: 2, hex: 3, stun: 4, chill: 5, carried: 7, silence: 8, root: 9, charm: 10 } as const;
 export type HeroStatusKind = (typeof HeroStatusKind)[keyof typeof HeroStatusKind];
 
 

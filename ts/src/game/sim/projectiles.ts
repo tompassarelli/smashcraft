@@ -487,6 +487,14 @@ export function updateProjectiles(world: Roster, stage?: number, matchFrame = 0)
         projectile.life = 0;
         projectile.poolHits = 0;
         projectile.poolWait = 0;
+        const into = projectile.kind === ProjectileKind.hero ? projectile.spec?.expiresInto : undefined;
+        if (into !== undefined) {
+          projectile.spec = into;
+          projectile.velocityX = f32(projectile.direction * into.velocityX);
+          projectile.velocityZ = into.velocityZ;
+          projectile.z = f32(projectile.z + into.offsetZ);
+          projectile.life = into.life;
+        }
       }
     }
   }

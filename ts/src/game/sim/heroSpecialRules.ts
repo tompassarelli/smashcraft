@@ -5,6 +5,8 @@
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
+import { idiv } from "wisp/src/sim/intMath";
+import { applyItemBuffFor } from "./itemBuffs";
 import { advanceHeroConditions, cleansePoisonAndSlow } from "./heroStatus";
 import { AttackStyle, ProjectileKind, SpecialAction } from "./codes";
 import { mutableProjectile } from "./fighterProjectiles";
@@ -28,10 +30,19 @@ const DIAGONAL = 0.7071067690849304;
 
 export const HERO_PROJECTILE_CAP = 3;
 
-export const isHeroSpecialAction = (action: number): boolean => action >= SpecialAction.heroNeutral && action <= SpecialAction.heroDown;
+export const isHeroSpecialAction = (action: number): boolean => action >= SpecialAction.heroNeutral && action <= SpecialAction.heroUltimate;
+
+
+export function ultimateForm(ultimate: Readonly<AuthoredSpecial>, form: number): AuthoredSpecial {
+  return form >= FOLLOW_UP_FORM ? ultimate.followUps?.[idiv(form, FOLLOW_UP_FORM) - 1]?.special ?? ultimate : ultimate;
+}
 
 
 export function runningHeroSpecial(f: Readonly<Fighter>): AuthoredSpecial | undefined {
+  if (f.special.action === SpecialAction.heroUltimate) {
+    const ultimate = f.tuning.ultimate;
+    return ultimate === undefined ? undefined : ultimateForm(ultimate, f.special.form);
+  }
   const specials = f.tuning.specials;
   if (specials === undefined || !isHeroSpecialAction(f.special.action)) return undefined;
   return specialForm(specialKit(specials, f.special.action - SpecialAction.heroNeutral), f.special.form, f.special.ex);
@@ -248,9 +259,26 @@ function clearLine(stage: number, fromX: number, fromZ: number, toX: number, toZ
   return true;
 }
 
-function spawnHeroProjectile(owner: Fighter, spec: Readonly<SpecialProjectile>, serial: number, stage: number): void {
-  const x = f32(owner.motion.x + f32(owner.facing * spec.offsetX));
-  const z = f32(owner.motion.z + spec.offsetZ);
+function nearestFoe(world: Roster | undefined, owner: Readonly<Fighter>): Fighter | undefined {
+  if (world === undefined) return undefined;
+  let nearest: Fighter | undefined;
+  let distance = 0.0;
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
+    if (!isActive(world, slot)) continue;
+    const other = fighterAt(world, slot);
+    if (other === owner || other.status.out) continue;
+    const dx = Math.abs(f32(other.motion.x - owner.motion.x));
+    if (nearest !== undefined && dx >= distance) continue;
+    nearest = other;
+    distance = dx;
+  }
+  return nearest;
+}
+
+function spawnHeroProjectile(owner: Fighter, spec: Readonly<SpecialProjectile>, serial: number, stage: number, world?: Roster): void {
+  const foe = spec.atFoe === true ? nearestFoe(world, owner) : undefined;
+  const x = foe !== undefined ? foe.motion.x : f32(owner.motion.x + f32(owner.facing * spec.offsetX));
+  const z = foe !== undefined ? f32(foe.motion.z + spec.offsetZ) : f32(owner.motion.z + spec.offsetZ);
   if (spec.needsLineOfSight === true && !clearLine(stage, owner.motion.x, z, x, z)) return;
   const up = owner.special.aimZ > 0 && spec.upVelocityX !== undefined;
   spawnHeroProjectileAt(owner, spec, x, z, owner.facing, up, serial);
@@ -287,6 +315,7 @@ export function spawnHeroProjectileAt(owner: Fighter, spec: Readonly<SpecialProj
 
 function applyMotion(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number, input: Readonly<Controls> | undefined): void {
   const { motion, special } = f;
+  if (special.grabFrame > 0 && move.commandGrab !== undefined) return;
   for (const segment of move.motion ?? []) {
     if (frame < segment.first || frame > segment.last) continue;
     let velocityX = f32(f.facing * segment.velocityX);
@@ -380,7 +409,7 @@ function endHeroSpecial(f: Fighter, move: Readonly<AuthoredSpecial>): void {
 
 function burstProjectiles(f: Fighter, from: Readonly<SpecialProjectile>, into: Readonly<SpecialProjectile>): void {
   const specials = f.tuning.specials;
-  const kit = specials === undefined ? undefined : specialKit(specials, f.special.action - SpecialAction.heroNeutral);
+  const kit = specials === undefined || f.special.action === SpecialAction.heroUltimate ? undefined : specialKit(specials, f.special.action - SpecialAction.heroNeutral);
   const ordinary = kit === undefined ? undefined : specialForm(kit, f.special.form).burst;
   const upgraded = kit === undefined ? undefined : specialForm(kit, f.special.form, true).burst;
   let index = -1;
@@ -398,13 +427,15 @@ function burstProjectiles(f: Fighter, from: Readonly<SpecialProjectile>, into: R
 }
 
 
-export function advanceHeroSpecial(f: Fighter, stage = 0, input?: Readonly<Controls>): void {
+export function advanceHeroSpecial(f: Fighter, stage = 0, input?: Readonly<Controls>, world?: Roster): void {
   const move = runningHeroSpecial(f);
   if (move === undefined) return;
   const frame = f.special.frame;
   if (move.cleanseFrame === frame) cleansePoisonAndSlow(f);
+  if (move.rehits?.includes(frame) === true) for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) f.special.hitTargets[entry] = undefined;
+  if (move.buff?.frame === frame) applyItemBuffFor(f, move.buff.kind, move.buff.frames);
   applyMotion(f, move, frame, input);
-  for (const spec of move.projectiles ?? []) if (spec.spawnFrame === frame) spawnHeroProjectile(f, spec, f.attack.serial + 1, stage);
+  for (const spec of move.projectiles ?? []) if (spec.spawnFrame === frame) spawnHeroProjectile(f, spec, f.attack.serial + 1, stage, world);
   if (move.placement?.frame === frame) placeObject(f, move.placement);
   if (move.command?.frame === frame) orderCompanion(f, move.command.order, move.command.slot);
   if (move.burst?.frame === frame) burstProjectiles(f, move.burst.from, move.burst.into);
@@ -516,6 +547,15 @@ function threatensBody(attacker: Readonly<Fighter>, target: Readonly<Fighter>): 
 function guardSucceeds(f: Fighter, guard: Readonly<SpecialGuard>): void {
   const { status } = f;
   f.special.guarded = true;
+  if (guard.counter === true) {
+    const next = runningHeroSpecial(f)?.followUps?.[0]?.special;
+    if (next !== undefined) {
+      f.special.form += FOLLOW_UP_FORM;
+      enterFollowUp(f, next);
+      status.invincible = max(status.invincible, 2);
+      return;
+    }
+  }
   const heal = min(guard.heal, max(0.0, status.damage));
   status.damage = f32(status.damage - heal);
   if (guard.shieldFrames !== undefined) {
@@ -635,6 +675,13 @@ export function followUpHeroSpecial(f: Fighter, input: Readonly<Controls>): bool
   const next = followUp.special;
   if (followUp.facesStick === true && input.direction !== 0) f.facing = input.direction < 0 ? -1 : 1;
   special.form += FOLLOW_UP_FORM * (index + 1);
+  enterFollowUp(f, next);
+  return true;
+}
+
+
+function enterFollowUp(f: Fighter, next: Readonly<AuthoredSpecial>): void {
+  const { special } = f;
   special.exArmorUsed = special.ex;
   special.frame = 0;
   special.duration = next.endFrame;
@@ -644,5 +691,24 @@ export function followUpHeroSpecial(f: Fighter, input: Readonly<Controls>): bool
   for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
   special.hit = false;
   applyWindows(f, next, 0);
-  return true;
+}
+
+
+/** Starts the fighter's ultimate after the special action began (docs/design/ultimates.md). */
+export function enterUltimate(f: Fighter, input: Readonly<Controls>): AuthoredSpecial | undefined {
+  const move = f.tuning.ultimate;
+  if (move === undefined) return undefined;
+  const { special } = f;
+  endDivineShield(f);
+  special.form = 0;
+  special.grabFrame = 0;
+  const aimX = input.specialX !== 0 ? input.specialX : input.direction;
+  const aimZ = input.specialZ !== 0 ? input.specialZ : input.verticalDirection;
+  special.aimX = aimX < 0 ? -1 : aimX > 0 ? 1 : 0;
+  special.aimZ = aimZ < 0 ? -1 : aimZ > 0 ? 1 : 0;
+  for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
+  special.hit = false;
+  special.guarded = false;
+  applyWindows(f, move, 0);
+  return move;
 }

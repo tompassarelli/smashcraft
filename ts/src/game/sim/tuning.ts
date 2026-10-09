@@ -8,7 +8,8 @@ import { AttackStyle, Character } from "./codes";
 import { attackDurationFramesForGrounding, attackStartupFrames } from "./moves";
 import type { Roster } from "./roster";
 import type { FighterMoves } from "./heroMoves";
-import type { FighterSpecials } from "./heroSpecials";
+import type { AuthoredSpecial, FighterSpecials } from "./heroSpecials";
+import { FIGHTER_ULTIMATES } from "./ultimates";
 import { heroBody } from "./heroes/heroBodies";
 import { heroDefinition } from "./heroes/registry";
 import { originalFighterMoves } from "./originalMoves";
@@ -101,6 +102,7 @@ export interface FighterTuning {
   moves?: FighterMoves | undefined;
 
   specials?: FighterSpecials | undefined;
+  ultimate?: AuthoredSpecial | undefined;
   physics: FighterPhysics;
   surface: SurfaceRecoveryPhysics;
   ground: GroundMovementRules;
@@ -387,6 +389,7 @@ export function authoredTuning(character: Character): FighterTuning {
   return {
     moves: hero?.moves ?? originalFighterMoves(character),
     specials: hero?.specials,
+    ultimate: FIGHTER_ULTIMATES[character],
     physics: authoredPhysics(character),
     surface: authoredSurfaceRecovery(character),
     ground: AUTHORED_GROUND_MOVEMENT_RULES,

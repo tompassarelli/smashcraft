@@ -170,6 +170,8 @@ function heroAfter(message: string, prefix: string): Character | undefined {
 
 
 export const RESET_COMMAND = "-dev reset";
+/** Sets every fighter's super meter, for ultimate captures (#382). */
+export const METER_COMMAND = "-dev meter ";
 
 
 export const DESYNC_COMMAND = "-dev desync";

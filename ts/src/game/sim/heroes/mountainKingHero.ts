@@ -16,7 +16,6 @@ export const MOUNTAIN_KING_HERO: HeroDefinition = {
   moves: MOUNTAIN_KING_MOVES,
   specials: MOUNTAIN_KING_SPECIALS,
   jab: { name: "Tavern Brawl", description: "A short punch, then a heavy hook on a second jab." },
-  ultimate: { name: "Avatar", description: "He turns to stone for a while: heavier and harder-hitting." },
   gameplan: MOUNTAIN_KING_GAMEPLAN,
   presentation: {
     model: "units\\human\\HeroMountainKing\\HeroMountainKing.mdl",

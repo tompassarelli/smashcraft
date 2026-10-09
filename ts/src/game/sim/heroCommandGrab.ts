@@ -9,6 +9,7 @@ import { canBeGrabbed, inGrabContext, isIntangible } from "./conditions";
 import { queueDamageContact } from "./contacts";
 import type { Fighter } from "./fighter";
 import { runningHeroSpecial } from "./heroSpecialRules";
+import { applyHeroStatus } from "./heroStatus";
 import { grabTouchesBody } from "./hurtboxes";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt, isActive } from "./roster";
@@ -90,6 +91,7 @@ export function advanceHeroCommandGrab(world: Roster, slot: number): void {
   clearGrabLinks(world, slot);
   const target = fighterAt(world, targetSlot);
   queueDamageContact(world, slot, targetSlot, grab.effect, owner.facing, ContactKind.throw, true, undefined);
+  if (grab.status !== undefined) applyHeroStatus(target, grab.status);
   const heal = grab.heal;
   if (heal !== undefined) {
     const { status } = owner;

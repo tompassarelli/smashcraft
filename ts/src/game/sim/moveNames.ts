@@ -10,6 +10,7 @@ import { heroDefinition } from "./heroes/registry";
 import type { FighterMoves } from "./heroMoves";
 import { FOLLOW_UP_FORM, type AuthoredSpecial, type SpecialKit, SpecialForm, SpecialSlot, specialForm, specialKit } from "./heroSpecials";
 import { ORIGINAL_KITS } from "./originalKits";
+import { ultimateText } from "./ultimates";
 
 
 export interface NamedForm {
@@ -101,7 +102,7 @@ export function fighterKit(character: number): FighterKitText {
       }),
       trait: undefined,
       jab: hero.jab,
-      ultimate: hero.ultimate,
+      ultimate: ultimateText(character),
       inspiredBy: heroInspirations(hero.moves),
     };
   }
@@ -111,7 +112,7 @@ export function fighterKit(character: number): FighterKitText {
     specials: original.specials.map((special) => ({ name: special.name, description: special.description, forms: special.forms ?? [] })),
     trait: original.trait,
     jab: original.jab,
-    ultimate: original.ultimate,
+    ultimate: ultimateText(character),
     inspiredBy: notes(NORMAL_NAMES, original.inspiredBy ?? {}),
   };
 }
@@ -121,12 +122,14 @@ export function specialName(character: number, action: number, form: number): st
   const hero = heroDefinition(character);
   if (hero !== undefined) {
     const { specials } = hero;
+    if (action === SpecialAction.heroUltimate) return ultimateText(character)?.name ?? "Special";
     if (specials === undefined || action < SpecialAction.heroNeutral || action > SpecialAction.heroDown) return "Special";
     const kit = specialKit(specials, action - SpecialAction.heroNeutral);
     return specialForm(kit, form).name ?? kit.name;
   }
   const original = ORIGINAL_KITS[character];
   if (original === undefined) return "Special";
+  if (action === SpecialAction.heroUltimate) return ultimateText(character)?.name ?? "Special";
   for (const special of original.specials) {
     if (special.action !== action) continue;
     for (const named of special.forms ?? []) if (named.form === form) return named.name;

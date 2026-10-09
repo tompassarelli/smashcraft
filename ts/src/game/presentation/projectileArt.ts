@@ -7,6 +7,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { Character, ProjectileKind } from "../sim/codes";
 import type { Projectile } from "../sim/fighter";
 import { HERO_ROSTER, heroDefinition } from "../sim/heroes/registry";
+import { FIGHTER_ULTIMATES } from "../sim/ultimates";
 import type { AuthoredSpecial, FighterSpecials, SpecialProjectile } from "../sim/heroSpecials";
 
 
@@ -34,7 +35,10 @@ export type SpecialSlot = (typeof SPECIAL_SLOTS)[number];
 
 function formProjectiles(special: AuthoredSpecial | undefined, into: SpecialProjectile[]): void {
   if (special === undefined) return;
-  for (const projectile of special.projectiles ?? []) into.push(projectile);
+  for (const projectile of special.projectiles ?? []) {
+    into.push(projectile);
+    if (projectile.expiresInto !== undefined) into.push(projectile.expiresInto);
+  }
   if (special.placement?.shot !== undefined) into.push(special.placement.shot);
   if (special.burst !== undefined) into.push(special.burst.from, special.burst.into);
   for (const followUp of special.followUps ?? []) formProjectiles(followUp.special, into);
@@ -68,16 +72,24 @@ export function projectileModelOf(projectile: Readonly<Projectile>): string | un
 
 export function fighterProjectileModels(character: Character): readonly string[] {
   const specials = heroDefinition(character)?.specials;
-  if (specials === undefined) return (ORIGINAL_KINDS[character] ?? [ProjectileKind.blaster]).map((kind) => ORIGINAL_PROJECTILE_MODELS[kind]);
-  const models: string[] = [];
-  for (const { spec } of heroProjectileArt(specials)) if (spec.model !== undefined && !models.includes(spec.model)) models.push(spec.model);
+  const models: string[] = specials === undefined ? (ORIGINAL_KINDS[character] ?? [ProjectileKind.blaster]).map((kind) => ORIGINAL_PROJECTILE_MODELS[kind]) : [];
+  if (specials !== undefined) for (const { spec } of heroProjectileArt(specials)) if (spec.model !== undefined && !models.includes(spec.model)) models.push(spec.model);
+  for (const spec of ultimateProjectiles(character)) if (spec.model !== undefined && !models.includes(spec.model)) models.push(spec.model);
   return models;
 }
 
 
+export function ultimateProjectiles(character: Character): readonly SpecialProjectile[] {
+  const specs: SpecialProjectile[] = [];
+  formProjectiles(FIGHTER_ULTIMATES[character], specs);
+  return specs;
+}
+
 export function allProjectileModels(): readonly string[] {
   const models: string[] = Object.values(ORIGINAL_PROJECTILE_MODELS);
-  for (const hero of HERO_ROSTER) for (const model of fighterProjectileModels(hero.character)) if (!models.includes(model)) models.push(model);
+  for (const character of [Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)]) {
+    for (const model of fighterProjectileModels(character)) if (!models.includes(model)) models.push(model);
+  }
   return models;
 }
 

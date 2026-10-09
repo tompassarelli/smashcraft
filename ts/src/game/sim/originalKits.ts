@@ -20,7 +20,6 @@ export interface OriginalKit {
   readonly trait?: string | undefined;
 
   readonly jab: NamedMove;
-  readonly ultimate?: NamedMove | undefined;
 
   readonly inspiredBy?: { readonly [style: number]: string | undefined } | undefined;
 }
@@ -62,6 +61,5 @@ export const ORIGINAL_KITS: Readonly<Record<number, OriginalKit>> = {
       [AttackStyle.forwardSmash]: "Fel Lunge, from the Demon Hunter's Fel Rush",
       [AttackStyle.forwardAir]: "His twin warglaives crossing",
     },
-    ultimate: { name: "Metamorphosis", description: "He becomes a demon for a while: heavier, with a fast bolt and a draining aura." },
   },
 };

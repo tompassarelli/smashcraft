@@ -10,7 +10,6 @@ export const CHEN_HERO: HeroDefinition = {
   weakness: "Broad body, slow run and committed finishes", complete: true,
   moves: CHEN_MOVES, specials: CHEN_SPECIALS, gameplan: CHEN_GAMEPLAN,
   jab: { name: "Staggering Three", description: "A palm, a staff butt and a belly check on repeated jabs." },
-  ultimate: { name: "Storm, Earth and Fire", description: "Three spirits divide defense, movement and striking roles." },
   presentation: { model: CHEN_MODEL_FILE, objectId: 0x6d666368,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNPandarenBrewmaster.blp", clips: CHEN_CLIPS, damageClips: CHEN_DAMAGE_CLIPS, fallback: CHEN_FALLBACK_CLIP },
 };

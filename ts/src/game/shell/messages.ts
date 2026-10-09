@@ -54,6 +54,7 @@ export const endlessSetting = (endless: boolean) => `Endless: ${endless ? "On" :
 export const automaticRematchSetting = (automatic: boolean) => `Automatic rematch: ${automatic ? "On" : "Off"}`;
 export const hazardsSetting = (on: boolean) => `Hazards: ${on ? "On" : "Off"}`;
 export const itemsSetting = (on: boolean) => `Items: ${on ? "On" : "Off"}`;
+export const ultimatesSetting = (on: boolean) => `Ultimates: ${on ? "On" : "Off"}`;
 export const itemKindSetting = (kind: ItemKind, on: boolean) => `${kind === ItemKind.speed ? "Speed" : kind === ItemKind.extraJump ? "Extra jump" : "Heavy"}: ${on ? "On" : "Off"}`;
 
 

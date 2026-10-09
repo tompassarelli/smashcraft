@@ -12,8 +12,10 @@ import { PARTICIPANT_SLOTS, type ParticipantSlot, isParticipantSlot } from "../.
 import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/playerKeys";
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
 import { Phase, cancelRematchCountdown, characterFor, copyMatchState, firstHumanSlot, humanActive, recallCharacter, selectCharacter } from "../../game/match/rules";
+import { ROSTER_MANA } from "../../game/sim/mana";
+import { fighterAt, isActive } from "../../game/sim/roster";
 import { NO_LESSON, tutorialFinished } from "../../game/match/tutorial";
-import { classicDevRequest, loreDevRequest, LORE_WIN_COMMAND, winLoreBattle, DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchPair, quickPromoRequest, prepareQuickPromo, quickStageSettings, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../game/shell/devSettings";
+import { METER_COMMAND, classicDevRequest, loreDevRequest, LORE_WIN_COMMAND, winLoreBattle, DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchPair, quickPromoRequest, prepareQuickPromo, quickStageSettings, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../game/shell/devSettings";
 import { fighterName } from "../../game/sim/heroes/registry";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { endReplaySegment } from "./replays";
@@ -307,6 +309,11 @@ export function applyDeveloperCommand(s: ShellState, actor: number, original: st
   } else if (message === RESET_COMMAND) {
     receipt = "dev: reset";
     resetToStartingSelection(s);
+  } else if (message.startsWith(METER_COMMAND)) {
+    const points = S2I(message.substring(METER_COMMAND.length));
+    if (s.game.phase !== Phase.match || points < 0 || points > ROSTER_MANA.max) return;
+    for (const slot of PARTICIPANT_SLOTS) if (isActive(s.world, slot)) fighterAt(s.world, slot).mana.points = points;
+    receipt = `dev: meter ${points}`;
   } else if (message === "-dev camera") {
     receipt = "dev: camera match";
     startQuickMatch(s, 0, "camera");

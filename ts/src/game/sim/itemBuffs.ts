@@ -66,9 +66,14 @@ function jumpLimit(f: Readonly<Fighter>): number {
 
 
 export function applyItemBuff(f: Fighter, kind: ItemKind): void {
-  if (kind === ItemKind.none) return;
+  applyItemBuffFor(f, kind, ITEM_BUFF_FRAMES);
+}
+
+
+export function applyItemBuffFor(f: Fighter, kind: number, frames: number): void {
+  if (kind !== ItemKind.speed && kind !== ItemKind.extraJump && kind !== ItemKind.heavy) return;
   f.status.buff = kind;
-  f.status.buffFrames = ITEM_BUFF_FRAMES;
+  f.status.buffFrames = frames;
   f.jump.remaining = min(kind === ItemKind.extraJump ? f.jump.remaining + 1 : f.jump.remaining, jumpLimit(f));
 }
 

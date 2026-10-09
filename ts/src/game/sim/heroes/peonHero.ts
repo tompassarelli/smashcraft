@@ -14,7 +14,6 @@ export const PEON_HERO: HeroDefinition = {
   moves: PEON_MOVES,
   specials: PEON_SPECIALS,
   jab: { name: "Work Work", description: "A quick haft tap followed by a short axe chop." },
-  ultimate: { name: "Overtime", description: "A work frenzy with quicker building and harder tool hits." },
   gameplan: PEON_GAMEPLAN,
   presentation: {
     model: "units\\orc\\Peon\\Peon.mdl",

@@ -11,7 +11,6 @@ export const SYLVANAS_HERO: HeroDefinition = {
   complete: true,
   moves: SYLVANAS_MOVES, specials: SYLVANAS_SPECIALS, gameplan: SYLVANAS_GAMEPLAN,
   jab: { name: "Bow Check", description: "Three close checks of the bow on repeated jabs." },
-  ultimate: { name: "Charm", description: "Command a spectral echo to fire at the nearest foe." },
   presentation: {
     model: "Units\\Undead\\EvilSylvanas\\EvilSylvanas.mdl", objectId: 0x6d667379,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNBansheeRanger.blp",

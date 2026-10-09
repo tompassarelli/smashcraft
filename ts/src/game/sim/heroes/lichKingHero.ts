@@ -16,7 +16,6 @@ export const LICH_KING_HERO: HeroDefinition = {
   purpose: "Heavy Frostmourne swordsman who commands the dead",
   weakness: "Slow walk and slow aerials; fast pressure and juggles get inside the blade",
   jab: { name: "Pommel and Rake", description: "A gauntlet check, a rake of the blade, then a Frostmourne thrust on repeated jabs." },
-  ultimate: { name: "Fury of Frostmourne", description: "Every foe at high damage who isn't shielding or dodging is launched." },
   complete: true,
   moves: LICH_KING_MOVES,
   specials: LICH_KING_SPECIALS,

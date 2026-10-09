@@ -49,7 +49,7 @@ import { MENU_FONT, type TextBox } from "./hudLayout";
 import { MOVES_BODY_BOX, MOVES_BUTTON_HEIGHT, MOVES_BUTTON_TOP, MOVES_TITLE_BOX, selectionTitleBox } from "./selectionLayout";
 import { PLAYABLE_CHARACTERS, fighterName, fighterPortrait, nextSelectableCharacter } from "../sim/heroes/registry";
 import {
-  MOVES_HEADER, itemsSetting, itemKindSetting, automaticRematchSetting, movesPage, selectionModeLabel, endlessSetting, hitAreasSetting, partnerBehaviourSetting, partnerDamageSetting, partnerEscapeSetting,
+  MOVES_HEADER, itemsSetting, ultimatesSetting, itemKindSetting, automaticRematchSetting, movesPage, selectionModeLabel, endlessSetting, hitAreasSetting, partnerBehaviourSetting, partnerDamageSetting, partnerEscapeSetting,
   partnerTechSetting, stockSetting, timeSetting, modeSetting, trainingSpeedSetting,
 } from "../shell/messages";
 import { classicRouteSummary, classicTierSetting } from "../classic/classicText";
@@ -74,6 +74,7 @@ export interface SelectionActions {
   toggleEndless(participantId: number): void;
   toggleAutomaticRematch(participantId: number): void;
   toggleItems(participantId: number): void;
+  toggleUltimates(participantId: number): void;
   toggleItemKind(participantId: number, kind: ItemKind): void;
   cycleMatchMode(participantId: number): void;
   stepClassicTier(participantId: number, direction: -1 | 1): void;
@@ -88,7 +89,7 @@ export interface SelectionActions {
 }
 
 type RuleButton = { kind: "stocks"; direction: -1 | 1 } | { kind: "time"; direction: -1 | 1 } | { kind: "endless" } | { kind: "automaticRematch" }
-  | { kind: "items" } | { kind: "itemKind"; item: ItemKind } | { kind: "training" } | { kind: "partner"; setting: TrainingSetting; direction: -1 | 1 } | { kind: "hitAreas" } | { kind: "speed" }
+  | { kind: "items" } | { kind: "ultimates" } | { kind: "itemKind"; item: ItemKind } | { kind: "training" } | { kind: "partner"; setting: TrainingSetting; direction: -1 | 1 } | { kind: "hitAreas" } | { kind: "speed" }
   | { kind: "classicTier"; direction: -1 | 1 };
 type SelectionButton = { kind: "mode"; slot: number } | { kind: "cpuSettings"; slot: number } | { kind: "cpuStep"; row: 0 | 1; direction: -1 | 1 } | { kind: "cpuClose" } | { kind: "start" } | { kind: "settings" } | RuleButton
   | { kind: "moves" } | { kind: "movesBack" } | { kind: "movesStep"; direction: -1 | 1 } | TutorialButton;
@@ -188,6 +189,7 @@ export class SelectionPanel {
   private readonly endlessToggle: framehandle;
   private readonly rematchToggle: framehandle;
   private readonly itemsToggle: framehandle;
+  private readonly ultimatesToggle: framehandle;
   private readonly itemToggles: readonly framehandle[];
   private readonly trainingToggle: framehandle;
   private readonly hitAreasToggle: framehandle;
@@ -356,6 +358,7 @@ export class SelectionPanel {
     this.endlessToggle = ruleButton(endless, { kind: "endless" }, "");
     this.rematchToggle = ruleButton(automaticRematch, { kind: "automaticRematch" }, "");
     this.itemsToggle = ruleButton(RULE_BUTTONS.items, { kind: "items" }, "");
+    this.ultimatesToggle = ruleButton(RULE_BUTTONS.ultimates, { kind: "ultimates" }, "");
     this.itemToggles = [
       ruleButton(RULE_BUTTONS.itemSpeed, { kind: "itemKind", item: ItemKind.speed }, ""),
       ruleButton(RULE_BUTTONS.itemExtraJump, { kind: "itemKind", item: ItemKind.extraJump }, ""),
@@ -388,7 +391,7 @@ export class SelectionPanel {
       ruleButton(harderClassic, { kind: "classicTier", direction: 1 }, "+"),
       this.classicTierValue, this.classicRoute,
     ];
-    this.matchRuleFrames = [...this.steps, this.stockValue, this.timeValue, this.endlessToggle, this.rematchToggle, this.itemsToggle, ...this.itemToggles];
+    this.matchRuleFrames = [...this.steps, this.stockValue, this.timeValue, this.endlessToggle, this.rematchToggle, this.itemsToggle, this.ultimatesToggle, ...this.itemToggles];
     const owner = [participantId];
     this.syncTriggers = [
       createSyncTrigger(`ui.selection.${suffix}.drop`, "fighter-drop", owner, (_, data) => this.acceptDrop(data)),
@@ -433,6 +436,7 @@ export class SelectionPanel {
     else if (button.kind === "time") this.actions.changeTime(this.participantId, button.direction);
     else if (button.kind === "endless") this.actions.toggleEndless(this.participantId);
     else if (button.kind === "items") this.actions.toggleItems(this.participantId);
+    else if (button.kind === "ultimates") this.actions.toggleUltimates(this.participantId);
     else if (button.kind === "itemKind") this.actions.toggleItemKind(this.participantId, button.item);
     else if (button.kind === "training") this.actions.cycleMatchMode(this.participantId);
     else if (button.kind === "classicTier") this.actions.stepClassicTier(this.participantId, button.direction);
@@ -752,7 +756,7 @@ export class SelectionPanel {
     if (this.shownMoves === this.movesCharacter) return;
     this.shownMoves = this.movesCharacter;
 
-    const { title, lines } = movesPage(this.movesCharacter, false);
+    const { title, lines } = movesPage(this.movesCharacter, this.game?.ultimatesOff !== true);
     BlzFrameSetText(this.movesTitle, title);
     BlzFrameSetText(this.movesBody, lines.join("\n\n"));
   }
@@ -761,7 +765,7 @@ export class SelectionPanel {
     const { stockCount, timeLimitMinutes, endless, automaticRematch, training, trainer, items, classic, classicTier, lore, loreBattle: battle } = game;
     const clears = loreClears();
     const fighter = characterFor(game, this.participantId) ?? Character.rifleman;
-    const rules = `${lore ? "1" : "0"} ${I2S(battle)} ${I2S(clears.count())} ${classic ? "1" : "0"} ${I2S(classicTier)} ${I2S(fighter)} ${I2S(stockCount)} ${I2S(timeLimitMinutes)} ${endless ? "1" : "0"} ${automaticRematch ? "1" : "0"} ${training ? "1" : "0"} ${I2S(trainer.behaviour)} ${I2S(trainer.escape)} ${I2S(trainer.tech)} ${I2S(trainer.damage)} ${trainer.showHitAreas ? "1" : "0"} ${I2S(trainer.speed)} ${items.on ? "1" : "0"} ${I2S(items.enabledMask)} ${I2S(trainer.lesson)}`;
+    const rules = `${lore ? "1" : "0"} ${I2S(battle)} ${I2S(clears.count())} ${classic ? "1" : "0"} ${I2S(classicTier)} ${I2S(fighter)} ${I2S(stockCount)} ${I2S(timeLimitMinutes)} ${endless ? "1" : "0"} ${automaticRematch ? "1" : "0"} ${training ? "1" : "0"} ${I2S(trainer.behaviour)} ${I2S(trainer.escape)} ${I2S(trainer.tech)} ${I2S(trainer.damage)} ${trainer.showHitAreas ? "1" : "0"} ${I2S(trainer.speed)} ${items.on ? "1" : "0"} ${game.ultimatesOff ? "1" : "0"} ${I2S(items.enabledMask)} ${I2S(trainer.lesson)}`;
     if (rules === this.shownRules) return;
     this.shownRules = rules;
     BlzFrameSetText(this.stockValue, stockSetting(stockCount));
@@ -770,6 +774,7 @@ export class SelectionPanel {
     BlzFrameSetText(this.rematchToggle, automaticRematchSetting(automaticRematch));
     for (const step of this.steps) BlzFrameSetEnable(step, !endless);
     BlzFrameSetText(this.itemsToggle, itemsSetting(items.on));
+    BlzFrameSetText(this.ultimatesToggle, ultimatesSetting(!game.ultimatesOff));
     for (let index = 0; index < this.itemToggles.length; index++) {
       const frame = this.itemToggles[index];
       if (frame === undefined) continue;

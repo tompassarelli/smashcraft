@@ -51,6 +51,7 @@ export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, 
   destination.cStickX = (has(held, Action.smashRight) ? 1 : 0) - (has(held, Action.smashLeft) ? 1 : 0);
   destination.cStickZ = (has(held, Action.smashUp) ? 1 : 0) - (has(held, Action.smashDown) ? 1 : 0);
   destination.specialPressed = has(pressed, Action.special);
+  destination.ultimatePressed = (destination.specialPressed && has(held | pressed, Action.attack)) || (has(pressed, Action.attack) && has(held, Action.special));
   destination.specialX = destination.specialPressed && !(has(held, Action.walk) && row.specialZ === 0) ? row.specialX : 0;
   destination.specialZ = destination.specialPressed ? row.specialZ : 0;
   destination.down = has(held, Action.moveDown);

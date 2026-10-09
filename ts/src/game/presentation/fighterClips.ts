@@ -324,6 +324,23 @@ const byGrounding = (clips: GroundingClips, grounded: boolean): HeroClip => grou
 
 
 
+const ULTIMATE_POSES: { readonly [character: number]: HeroPose | undefined } = {
+  [Character.blademaster]: "upSpecial", [Character.mountainKing]: "downSpecial", [Character.warden]: "neutralSpecial",
+  [Character.lich]: "neutralSpecial", [Character.forsakenPaladin]: "downSpecial", [Character.dreadlord]: "neutralSpecial",
+  [Character.shadowHunter]: "downSpecial", [Character.pitLord]: "grab", [Character.beastmaster]: "sideSpecial",
+  [Character.lichKing]: "downSpecial", [Character.thrall]: "downSpecial", [Character.jaina]: "neutralSpecial",
+  [Character.sylvanas]: "neutralSpecial", [Character.cairne]: "downSpecial", [Character.chen]: "downSpecial",
+  [Character.peon]: "forwardSmash", [Character.tinker]: "sideSpecial", [Character.kaelthas]: "downSpecial",
+  [Character.murloc]: "neutralSpecial", [Character.grom]: "sideSpecial", [Character.anubarak]: "neutralSpecial",
+  [Character.malfurion]: "downSpecial", [Character.medivh]: "neutralSpecial", [Character.kobold]: "sideSpecial",
+};
+
+function ultimateClip(character: number, grounded: boolean): HeroClip {
+  if (character === Character.rifleman) return RIFLEMAN_BEAR;
+  if (character === Character.demonHunter) return byGrounding(IMMOLATE, grounded);
+  return clipFor(character, ULTIMATE_POSES[character] ?? "neutralSpecial");
+}
+
 const FOLLOW_UP_POSES: readonly (readonly [grounded: HeroFollowUpPose, air: HeroFollowUpPose])[] = [
   ["neutralSpecialFollowUp", "neutralSpecialFollowUpAir"], ["sideSpecialFollowUp", "sideSpecialFollowUpAir"],
   ["upSpecialFollowUp", "upSpecialFollowUpAir"], ["downSpecialFollowUp", "downSpecialFollowUpAir"],
@@ -345,6 +362,7 @@ export function specialClip(character: number, action: SpecialAction, grounded: 
     case SpecialAction.riflemanBear: return RIFLEMAN_BEAR;
     case SpecialAction.riflemanTrap: return RIFLEMAN_TRAP;
     case SpecialAction.riflemanRecovery: return RIFLEMAN_RECOVERY;
+    case SpecialAction.heroUltimate: return ultimateClip(character, grounded);
     default: return byGrounding(RIFLEMAN_BLASTER, !aerialShot);
   }
 }

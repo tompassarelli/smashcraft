@@ -45,6 +45,8 @@ const WALK_RANGE = 120;
 
 interface MatchScript {
   readonly placement?: string;
+  /** Both fighters' super meter right after the start (#382). */
+  readonly meter?: number;
   readonly characters: readonly [Character, Character];
   readonly stage: number;
   readonly stocks: number;
@@ -100,6 +102,7 @@ function menuLines(script: MatchScript): string[] {
   return [
     `character 0 ${script.characters[0]}`, `character 1 ${script.characters[1]}`, `stocks 0 ${script.stocks}`, `time 0 ${script.minutes}`, "stage-select 0",
     ...(script.stage > 1 ? [`test-stage ${script.stage}`] : [`stage 0 ${script.stage}`]), ...(script.hazardsOff === true ? ["hazards 0 0"] : []), "start 0", ...(script.placement === undefined ? [] : [script.placement]),
+    ...(script.meter === undefined ? [] : [`test-meter 0 ${script.meter}`, `test-meter 1 ${script.meter}`]),
   ];
 }
 
@@ -476,6 +479,42 @@ export function generateTapes(): Map<string, string> {
       ]],
       approaches: [[[1, 60], [60, 70], [120, 140], [180, 45], [290, 60], [325, 45], [360, 60], [430, 60]], [[1, 80], [90, 50], [140, 45]]],
       rollbacks: [...every(30, 470, 40, 8), [76, 100], [244, 290]], predictions: [[70, 86], [126, 140], [436, 450]],
+    }])],
+    ["ultimate-murloc", recordTape("murloc and grom ultimates bought with a full bar, shielded, struck and rolled back (#382).", [{
+      characters: [Character.murloc, Character.grom], stage: 0, stocks: 3, minutes: 0, frames: 360, meter: 100,
+      holds: [[[40, 2, ATTACK, SPECIAL], [150, 2, ATTACK], [300, 2, ATTACK, SPECIAL]], [[20, 30, SHIELD_LEFT], [70, 2, ATTACK], [200, 2, ATTACK, SPECIAL], [260, 2, ATTACK]]],
+      approaches: [[[120, 60], [280, 80]], [[60, 80], [180, 120]]],
+      rollbacks: [[44, 70], [204, 230], [302, 330]], predictions: [[60, 72], [210, 222]],
+    }])],
+    ["ultimate-cairne", recordTape("cairne and pitLord ultimates bought with a full bar, shielded, struck and rolled back (#382).", [{
+      characters: [Character.cairne, Character.pitLord], stage: 0, stocks: 3, minutes: 0, frames: 360, meter: 100,
+      holds: [[[40, 2, ATTACK, SPECIAL], [150, 2, ATTACK], [300, 2, ATTACK, SPECIAL]], [[20, 30, SHIELD_LEFT], [70, 2, ATTACK], [200, 2, ATTACK, SPECIAL], [260, 2, ATTACK]]],
+      approaches: [[[120, 60], [280, 80]], [[60, 80], [180, 120]]],
+      rollbacks: [[44, 70], [204, 230], [302, 330]], predictions: [[60, 72], [210, 222]],
+    }])],
+    ["ultimate-lichKing", recordTape("lichKing and sylvanas ultimates bought with a full bar, shielded, struck and rolled back (#382).", [{
+      characters: [Character.lichKing, Character.sylvanas], stage: 0, stocks: 3, minutes: 0, frames: 360, meter: 100,
+      holds: [[[40, 2, ATTACK, SPECIAL], [150, 2, ATTACK], [300, 2, ATTACK, SPECIAL]], [[20, 30, SHIELD_LEFT], [70, 2, ATTACK], [200, 2, ATTACK, SPECIAL], [260, 2, ATTACK]]],
+      approaches: [[[120, 60], [280, 80]], [[60, 80], [180, 120]]],
+      rollbacks: [[44, 70], [204, 230], [302, 330]], predictions: [[60, 72], [210, 222]],
+    }])],
+    ["ultimate-tinker", recordTape("tinker and kaelthas ultimates bought with a full bar, shielded, struck and rolled back (#382).", [{
+      characters: [Character.tinker, Character.kaelthas], stage: 0, stocks: 3, minutes: 0, frames: 360, meter: 100,
+      holds: [[[40, 2, ATTACK, SPECIAL], [150, 2, ATTACK], [300, 2, ATTACK, SPECIAL]], [[20, 30, SHIELD_LEFT], [70, 2, ATTACK], [200, 2, ATTACK, SPECIAL], [260, 2, ATTACK]]],
+      approaches: [[[120, 60], [280, 80]], [[60, 80], [180, 120]]],
+      rollbacks: [[44, 70], [204, 230], [302, 330]], predictions: [[60, 72], [210, 222]],
+    }])],
+    ["ultimate-shadowHunter", recordTape("shadowHunter and warden ultimates bought with a full bar, shielded, struck and rolled back (#382).", [{
+      characters: [Character.shadowHunter, Character.warden], stage: 0, stocks: 3, minutes: 0, frames: 360, meter: 100,
+      holds: [[[40, 2, ATTACK, SPECIAL], [150, 2, ATTACK], [300, 2, ATTACK, SPECIAL]], [[20, 30, SHIELD_LEFT], [70, 2, ATTACK], [200, 2, ATTACK, SPECIAL], [260, 2, ATTACK]]],
+      approaches: [[[120, 60], [280, 80]], [[60, 80], [180, 120]]],
+      rollbacks: [[44, 70], [204, 230], [302, 330]], predictions: [[60, 72], [210, 222]],
+    }])],
+    ["ultimate-mountainKing", recordTape("mountainKing and demonHunter ultimates bought with a full bar, shielded, struck and rolled back (#382).", [{
+      characters: [Character.mountainKing, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 360, meter: 100,
+      holds: [[[40, 2, ATTACK, SPECIAL], [150, 2, ATTACK], [300, 2, ATTACK, SPECIAL]], [[20, 30, SHIELD_LEFT], [70, 2, ATTACK], [200, 2, ATTACK, SPECIAL], [260, 2, ATTACK]]],
+      approaches: [[[120, 60], [280, 80]], [[60, 80], [180, 120]]],
+      rollbacks: [[44, 70], [204, 230], [302, 330]], predictions: [[60, 72], [210, 222]],
     }])],
     ["computer", recordTape("A player against the computer on the raised decks, with replays.", [COMPUTER])],
     ["lich", recordTape("Lich's specials, free recovery and normals against the Illidan, with replays.", [LICH])],

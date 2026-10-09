@@ -6,7 +6,7 @@ import type { QuickStageSettings } from "../../game/shell/devSettings";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, isParticipantSlot } from "../../game/input/participants";
 import {
   Phase, changeStagePoolMode, changeStagePoolStage, canChooseComputer, cancelRematchCountdown, firstHumanSlot, characterFor, confirmRematch, cycleSlotMode, humanActive, recallCharacter,
-  requestStageSelect, requestStart, setAutomaticRematch, setCpuOpponent, setCpuTier, setEndless, setHitAreas, setPartnerDamage, setTraining, cycleMatchMode, stepClassicTier, stepLoreBattle, setItemsOn, toggleItemKind, stepPartnerBehaviour,
+  requestStageSelect, requestStart, setAutomaticRematch, setCpuOpponent, setCpuTier, setEndless, setHitAreas, setPartnerDamage, setTraining, cycleMatchMode, stepClassicTier, stepLoreBattle, setItemsOn, setUltimatesOn, toggleItemKind, stepPartnerBehaviour,
   stepPartnerEscape, stepPartnerTech, stepTrainingSpeed, setTutorialLesson, tickRematchCountdown,
   returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setHazards, setStocks, setTimeLimit, updateConnectedHumans,
   type MatchState, copyMatchState, createMatchState, setParticipants,
@@ -249,6 +249,9 @@ export function panelActions(): PanelActions {
       }),
       toggleItems: participant => withSlot(participant, (s, slot) => {
         if (controlsAvailable(s, slot)) setItemsOn(s.game, slot, !s.game.items.on);
+      }),
+      toggleUltimates: participant => withSlot(participant, (s, slot) => {
+        if (controlsAvailable(s, slot)) setUltimatesOn(s.game, slot, s.game.ultimatesOff);
       }),
       toggleItemKind: (participant, kind) => withSlot(participant, (s, slot) => {
         if (controlsAvailable(s, slot)) toggleItemKind(s.game, slot, kind);

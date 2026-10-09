@@ -19,7 +19,7 @@ import { parseDecimal } from "../netcode/journal/decimal";
 import { PARTICIPANT_SLOTS, isParticipantMask, isParticipantSlot } from "../input/participants";
 import {
   type MatchState, Phase, computerActive, cycleSlotMode, humanActive, humanFighterActive, selectCharacter, selectCpuCharacter, setAutomaticRematch,
-  setHitAreas, setItemsOn, setPartnerDamage, setStocks, setTimeLimit, setTraining, stepTrainingSpeed, toggleItemKind,
+  setHitAreas, setItemsOn, setUltimatesOn, setPartnerDamage, setStocks, setTimeLimit, setTraining, stepTrainingSpeed, toggleItemKind,
 } from "../match/rules";
 import { selectableStage } from "../menu/stageCatalog";
 import { type Character, ItemKind, itemBit } from "../sim/codes";
@@ -37,6 +37,7 @@ export const HIT_AREAS_COMMAND = "-dev hit-areas ";
 export const PARTNER_COMMAND = "-dev partner ";
 export const SPEED_COMMAND = "-dev speed ";
 export const ITEMS_COMMAND = "-dev items ";
+export const ULTIMATES_COMMAND = "-dev ultimates ";
 export const ITEM_COMMAND = "-dev item ";
 
 const itemCommandKind = (name: string | undefined): ItemKind | undefined =>
@@ -123,6 +124,7 @@ export function applySetupCommand(game: MatchState, actor: number, message: stri
   };
   if (message.startsWith(TRAINING_COMMAND)) return toggle(TRAINING_COMMAND, on => setTraining(game, actor, on), () => game.training, "training");
   if (message.startsWith(HIT_AREAS_COMMAND)) return toggle(HIT_AREAS_COMMAND, on => setHitAreas(game, actor, on), () => game.trainer.showHitAreas, "hit-areas");
+  if (message.startsWith(ULTIMATES_COMMAND)) return toggle(ULTIMATES_COMMAND, on => setUltimatesOn(game, actor, on), () => !game.ultimatesOff, "ultimates");
   if (message.startsWith(ITEMS_COMMAND)) return toggle(ITEMS_COMMAND, on => setItemsOn(game, actor, on), () => game.items.on, "items");
   if (message.startsWith(ITEM_COMMAND)) {
     const [name, value, extra] = message.substring(ITEM_COMMAND.length).split(" ");

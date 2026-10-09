@@ -17,7 +17,6 @@ export const WARDEN_HERO: HeroDefinition = {
   moves: WARDEN_MOVES,
   specials: WARDEN_SPECIALS,
   jab: { name: "Crescent Flurry", description: "Three quick cuts of her crescent blade on repeated jabs." },
-  ultimate: { name: "Spirit of Vengeance", description: "For a while, each of her normals repeats as a ghostly copy a moment later." },
   gameplan: WARDEN_GAMEPLAN,
   presentation: {
     model: WARDEN_MODEL_FILE,

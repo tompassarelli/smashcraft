@@ -33,9 +33,12 @@ interface StatusRules {
 
 
   readonly carry?: { readonly speed: number; readonly rise: number } | undefined;
+
+  readonly mirrors?: boolean | undefined;
 }
 
 const RULES: { readonly [kind: number]: StatusRules | undefined } = {
+  [HeroStatusKind.charm]: { blocksActions: false, blocksSpecials: false, endsOnDamage: false, mirrors: true },
   [HeroStatusKind.root]: { blocksActions: false, blocksSpecials: false, endsOnDamage: true },
   [HeroStatusKind.silence]: { blocksActions: false, blocksSpecials: true, endsOnDamage: false },
 
@@ -190,6 +193,22 @@ export function maskHeroStatusControls(f: Fighter, input: Controls, commands: At
     input.getupAttackPressed = false;
   }
   if (active.blocksSpecials && input.specialZ <= 0) input.specialPressed = false;
+  if (active.mirrors === true) mirrorControls(input);
+}
+
+
+function mirrorControls(input: Controls): void {
+  input.direction = 0 - input.direction;
+  if (input.driftStickX !== undefined) input.driftStickX = 0 - input.driftStickX;
+  input.diStickX = 0 - input.diStickX;
+  input.sdiX = 0 - input.sdiX;
+  input.cStickX = 0 - input.cStickX;
+  input.specialX = 0 - input.specialX;
+  input.dodgeX = 0 - input.dodgeX;
+  input.grabThrowX = 0 - input.grabThrowX;
+  input.groundDodgeDirection = 0 - input.groundDodgeDirection;
+  input.getupDirection = 0 - input.getupDirection;
+  input.cStickSideFlick = 0 - input.cStickSideFlick;
 }
 
 

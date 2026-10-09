@@ -94,6 +94,8 @@ export interface CommandGrab extends FrameWindow {
   readonly recovery: number;
 
   readonly heal?: { readonly heal: number } | undefined;
+
+  readonly status?: AppliedStatus | undefined;
 }
 
 
@@ -146,6 +148,12 @@ export interface SpecialProjectile {
   readonly returns?: { readonly age: number; readonly speed: number } | undefined;
 
   readonly pool?: ProjectilePool | undefined;
+
+  /** Spawns under the nearest opponent instead of at the owner's offset. */
+  readonly atFoe?: boolean | undefined;
+
+  /** What this becomes where it ends when its life runs out or it strikes. */
+  readonly expiresInto?: SpecialProjectile | undefined;
 }
 
 export interface SpecialArmor extends FrameWindow {
@@ -250,6 +258,9 @@ export interface SpecialGuard extends FrameWindow {
   readonly heal: number;
 
   readonly shieldFrames?: number | undefined;
+
+  /** A guarded strike starts the move's first follow-up at once. */
+  readonly counter?: boolean | undefined;
 }
 
 export interface AuthoredSpecial {
@@ -318,6 +329,12 @@ export interface AuthoredSpecial {
   readonly burst?: { readonly frame: number; readonly from: SpecialProjectile; readonly into: SpecialProjectile } | undefined;
 
   readonly ritual?: { readonly frame: number; readonly mana: number } | undefined;
+
+  /** Frames on which each target may be struck again. */
+  readonly rehits?: readonly number[] | undefined;
+
+  /** A timed movement buff granted on a frame (Metamorphosis, Avatar). */
+  readonly buff?: { readonly frame: number; readonly kind: number; readonly frames: number } | undefined;
 }
 
 export interface SpecialFollowUp {

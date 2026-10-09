@@ -70,6 +70,7 @@ export interface MatchState {
 
   readonly items: MatchItems;
 
+  ultimatesOff: boolean;
   classic: boolean;
   classicTier: number;
 
@@ -94,7 +95,7 @@ export function createMatchState(): MatchState {
     stageChoice: 2, hazards: true, stageResolved: false, stagePool: createStagePool(), winner: undefined, stockCount: 3, timeLimitMinutes: 7, endless: false, automaticRematch: false, rematchCountdown: 0,
 
     remainingFrames: 7 * 60 * MATCH_TICKS_PER_SECOND, startHold: 0, matchFrame: 0, timedOut: false, practice: false,
-    training: false, trainer: createTrainingState(), items: createMatchItems(),
+    training: false, trainer: createTrainingState(), items: createMatchItems(), ultimatesOff: false,
     classic: false, classicTier: CLASSIC_TIER_DEFAULT, lore: false, loreBattle: 0, run: createConfiguredRun(),
   };
 }
@@ -211,6 +212,7 @@ export function copyMatchState(target: MatchState, source: Readonly<MatchState>)
   target.training = source.training;
   copyTrainingState(target.trainer, source.trainer);
   copyMatchItems(target.items, source.items);
+  target.ultimatesOff = source.ultimatesOff;
   target.classic = source.classic;
   target.classicTier = source.classicTier;
   target.lore = source.lore;
@@ -435,6 +437,10 @@ export function setItemsOn(game: MatchState, slot: number, on: boolean): void {
   if (settingRules(game, slot)) game.items.on = on;
 }
 
+
+export function setUltimatesOn(game: MatchState, slot: number, on: boolean): void {
+  if (settingRules(game, slot)) game.ultimatesOff = !on;
+}
 
 export function toggleItemKind(game: MatchState, slot: number, kind: ItemKind): void {
   if (settingRules(game, slot) && kind !== ItemKind.none) game.items.enabledMask ^= itemBit(kind);

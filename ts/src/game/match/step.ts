@@ -206,6 +206,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     if (!isActive(world, slot) || wasGrabbed[slot]) continue;
     resetObservedActions();
     const special = fighterAt(world, slot);
+    if (game.ultimatesOff) controls.inputs[slot].ultimatePressed = false;
     const started = startFighterSpecial(special, stage, stageFrame, platformSpecialInput(special, controls.inputs[slot]), world);
     observedFrameLegalActions[slot] |= observedActions.legal;
     if (started) observedFrameStartedActions[slot] |= 64;

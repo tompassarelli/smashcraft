@@ -101,7 +101,10 @@ normal aerial momentum. QWERTY uses 7 for right trigger and 8 for the
 alternate jump key.
 
 Specials use U with a direction; every fighter's specials and
-ultimate are listed by name in the [move list](move-list.md).
+ultimate are listed by name in the [move list](move-list.md). Shield + U is
+the EX form, costing one of the super bar's three segments. At a full bar,
+N + U together (A + X on a controller) is the fighter's ultimate; the
+Ultimates rule at fighter selection turns them off.
 
 Use Warcraft's ordinary Quit Mission to leave and recreate a custom game.
 The map's Ctrl+R restart path is unreliable, and F5 has previously hung the

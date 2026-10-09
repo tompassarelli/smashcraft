@@ -15,6 +15,8 @@ import { HitElement, type HitEffect, type HitRegion, NO_HIT_REGION } from "./hit
 import { heroSpecialMove } from "./heroSpecials";
 import { advanceHeroCommandGrab } from "./heroCommandGrab";
 import { enterExSpecial } from "./exSpecials";
+import { ROSTER_MANA, spendMana } from "./mana";
+import { cancelAttack } from "./transitions";
 import { applyAttackHit } from "./hits";
 import { meleeHitIntersectsShield } from "./attacks";
 import { observeActionDecision } from "./observations";
@@ -26,7 +28,7 @@ import { advanceCompanion } from "./companions";
 import { RIFLEMAN_BEAR_LIFETIME, advanceBear, recordSpecialHit, specialAlreadyHit, canStartFreezeTrap, startFreezeTrap } from "./summons";
 import { at } from "wisp/src/runtime/lookup";
 import { travelBeforeBodies } from "./travelStop";
-import { advanceHeroSpecial, chargedAimX, chargedAimZ, chooseHeroSpecial, enterHeroSpecial, followUpHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, relocateHeroSpecial, runningHeroSpecial, resolveHeroGuards, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
+import { advanceHeroSpecial, chargedAimX, enterUltimate, chargedAimZ, chooseHeroSpecial, enterHeroSpecial, followUpHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, relocateHeroSpecial, runningHeroSpecial, resolveHeroGuards, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
 
 
 export const DEMONHUNTER_MANA_BURN_STARTUP = 16;
@@ -525,8 +527,47 @@ function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>, worl
 }
 
 
+/** Frames into a special or attack an ultimate may still replace, so Attack and Special need not land on one frame. */
+export const ULTIMATE_INPUT_LENIENCY = 3;
+
+function replaceableForUltimate(owner: Readonly<Fighter>): boolean {
+  const { special, attack } = owner;
+  if (special.action === SpecialAction.heroUltimate) return false;
+  if (owner.launch.hitlag > 0 || owner.launch.hitstun > 0 || owner.status.frozenFrames > 0 || owner.shield.raised) return false;
+  if (special.action !== SpecialAction.none) return special.frame <= ULTIMATE_INPUT_LENIENCY;
+  return attack.style === undefined || (attack.frame <= ULTIMATE_INPUT_LENIENCY && !attack.hit);
+}
+
+/** Starts the ultimate at a full bar; anything else leaves the press to the ordinary special. */
+export function startUltimate(owner: Fighter, input: Readonly<Controls>): boolean {
+  const ultimate = owner.tuning.ultimate;
+  if (!input.ultimatePressed || ultimate === undefined || owner.mana.points < ROSTER_MANA.max) return false;
+  if (ultimate.groundOnly === true && !owner.motion.grounded) return false;
+  if (!replaceableForUltimate(owner)) return false;
+  const { special } = owner;
+  if (special.action !== SpecialAction.none) {
+    if (special.ex) owner.mana.points = min(ROSTER_MANA.max, owner.mana.points + ROSTER_MANA.exCost);
+    special.action = SpecialAction.none;
+    special.lockFrames = 0;
+    owner.attack.cooldown = 0;
+  } else if (owner.attack.style !== undefined) {
+    cancelAttack(owner);
+    owner.attack.cooldown = 0;
+  }
+  if (special.lockFrames > 0 || !canAttack(owner) || owner.mana.points < ROSTER_MANA.max) return false;
+  observeActionDecision(SPECIAL_ACTION_BIT);
+  turnForSpecial(owner, input);
+  startSpecialAction(owner, SpecialAction.heroUltimate, ultimate.endFrame, owner.facing);
+  spendMana(owner, ROSTER_MANA.max);
+  enterUltimate(owner, input);
+  return true;
+}
+
+
 export function startFighterSpecial(owner: Fighter, stage: number, matchFrame: number, input: Readonly<Controls>, world?: Roster): boolean {
   steerHeroSpecial(owner, input);
+  if (startUltimate(owner, input)) return true;
+  if (owner.special.action === SpecialAction.heroUltimate) return false;
   if (owner.tuning.specials !== undefined && isHeroSpecialAction(owner.special.action)) return followUpHeroSpecial(owner, input);
   if (!input.specialPressed) return false;
   if (owner.tuning.specials !== undefined) return startHeroFighterSpecial(owner, input, world);
@@ -568,12 +609,12 @@ function endSpecialAction(owner: Fighter, helpless: boolean): void {
   owner.special.frame = 0;
 }
 
-function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number, input: Readonly<Controls> | undefined): void {
+function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number, input: Readonly<Controls> | undefined, world: Roster): void {
   const { special, motion } = owner;
   if (special.action === SpecialAction.none || owner.launch.hitlag > 0) return;
   special.frame++;
   if (isHeroSpecialAction(special.action)) {
-    advanceHeroSpecial(owner, stage, input);
+    advanceHeroSpecial(owner, stage, input, world);
     return;
   }
   const shotSerial = owner.attack.serial + 1;
@@ -783,7 +824,7 @@ export function advanceSpecials(world: Roster, stage: number, matchFrame: number
   resolveHeroGuards(world);
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (!isActive(world, slot)) continue;
-    advanceSpecialAction(fighterAt(world, slot), stage, matchFrame, inputs?.[slot]);
+    advanceSpecialAction(fighterAt(world, slot), stage, matchFrame, inputs?.[slot], world);
     relocateHeroSpecial(world, slot);
     stopFelRushAtShields(world, slot);
     stopHeroMotionAtBodies(world, slot);

@@ -31,6 +31,8 @@ import { HeroSpecialUse, heroSpecialUse, startableForm, strikeMeets } from "./bo
 import { aheadX, moveReachAhead } from "./botMoves";
 import { botChance, botChoice } from "./botRandom";
 import type { CpuSkill } from "./cpuSkill";
+import { ROSTER_MANA } from "../sim/mana";
+import { ULTIMATE_REACH } from "../sim/ultimates";
 
 
 const FEINT_GAP = 110.0;
@@ -322,6 +324,27 @@ function orbTowardTarget(f: Readonly<Fighter>, target: Readonly<Fighter>) {
 
 
 
+
+
+export function pressUltimate(f: Readonly<Fighter>, target: Readonly<Fighter>, skill: CpuSkill, frame: number, input: Controls): boolean {
+  const reach = ULTIMATE_REACH[f.character];
+  const move = f.tuning.ultimate;
+  if (reach === undefined || move === undefined || reach.far <= 0.0 || skill.tier === "rookie" || skill.kitTenths <= 0) return false;
+  if (f.mana.points < ROSTER_MANA.max || !canAttack(f) || f.special.action !== SpecialAction.none || f.launch.hitstun > 0) return false;
+  if (move.groundOnly === true && !f.motion.grounded) return false;
+  const dx = f32(target.motion.x - f.motion.x);
+  const gap = Math.abs(dx);
+  if (gap < reach.near || gap > reach.far || Math.abs(f32(target.motion.z - f.motion.z)) > 80.0 || target.status.out) return false;
+  if (!takes(skill, floorDiv(frame, 20), f.character * 7 + 40)) return false;
+  const toward = towardOf(f, target.motion.x);
+  input.specialPressed = true;
+  input.ultimatePressed = true;
+  input.attackHeld = true;
+  input.specialX = toward;
+  input.specialZ = 0;
+  input.direction = toward;
+  return true;
+}
 
 
 export function pressKitOption(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, skill: CpuSkill, frame: number, ready: boolean, input: Controls, commands: AttackBuffer): boolean {

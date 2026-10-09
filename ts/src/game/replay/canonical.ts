@@ -1139,6 +1139,7 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
 
   if (match.startHold !== 0) int("match.startHold", match.startHold);
   writeMatchItems(match.items, int, bool);
+  if (match.ultimatesOff) bool("match.ultimatesOff", true);
   bool("match.timedOut", match.timedOut);
   bool("match.practice", match.practice);
 

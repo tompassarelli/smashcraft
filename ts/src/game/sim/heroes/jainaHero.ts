@@ -10,7 +10,6 @@ export const JAINA_HERO: HeroDefinition = {
   weakness: "Slow on foot and exposed while setting up spells", complete: true,
   moves: JAINA_MOVES, specials: JAINA_SPECIALS, gameplan: JAINA_GAMEPLAN,
   jab: { name: "Staff Check", description: "Two short staff strikes to create space." },
-  ultimate: { name: "Mass Teleport", description: "Bring nearby allies to her Water Elemental." },
   presentation: {
     model: JAINA_MODEL_FILE, objectId: 0x6d666a61,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNJaina.blp",

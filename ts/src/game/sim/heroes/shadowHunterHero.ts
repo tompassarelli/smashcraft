@@ -51,7 +51,6 @@ export const SHADOW_HUNTER_HERO: HeroDefinition = {
   moves: SHADOW_HUNTER_MOVES,
   specials: SHADOW_HUNTER_SPECIALS,
   jab: { name: "Glaive Handle", description: "Two jabs of the glaive handle, then a cut of its blade, on repeated jabs." },
-  ultimate: { name: "Big Bad Voodoo", description: "A ward zone that makes him take less damage while he stands in it." },
   gameplan: SHADOW_HUNTER_GAMEPLAN,
   presentation: {
     model: "units\\orc\\HeroShadowHunter\\HeroShadowHunter.mdl",

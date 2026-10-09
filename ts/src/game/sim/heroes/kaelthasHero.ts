@@ -9,7 +9,6 @@ export const KAELTHAS_HERO: HeroDefinition = {
   character: Character.kaelthas, name: "Kael'thas Sunstrider", purpose: "Mobile fire caster", weakness: "Exposed casting and committed recovery", complete: true,
   moves: KAELTHAS_MOVES, specials: KAELTHAS_SPECIALS, gameplan: KAELTHAS_GAMEPLAN,
   jab: { name: "Verdant Touch", description: "A palm check, then a sphere shove on a second tap." },
-  ultimate: { name: "Phoenix", description: "Summon a phoenix that burns enemies and returns from its egg." },
   presentation: {
     model: KAELTHAS_MODEL_FILE, objectId: 0x6d666b74,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroBloodElfPrince.blp",

@@ -25,7 +25,7 @@ import { chooseDefense } from "./botDefense";
 import { choosePunish } from "./botPunish";
 import { chooseRecoveryInput } from "./botRecovery";
 import { pressHeroFollowUp } from "./botHeroKit";
-import { dashIn, pressKitOption, steerHeroBranches, steerRunningSpecial } from "./botKitOptions";
+import { dashIn, pressKitOption, pressUltimate, steerHeroBranches, steerRunningSpecial } from "./botKitOptions";
 import { MATCH_TICKS_PER_SECOND, type MatchState, stageClock, computerActive } from "./rules";
 import { trainingPartnerInput } from "./training";
 import { sameFighterState } from "../replay/fighterState";
@@ -298,6 +298,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
   if (skill.basicMoves === undefined && pressBotRead(runtime.botStrategies[slot], fighter, target, stage, stageFrame, frame, input, commands)) return;
   // An idle stretch stands where it is: no approach, no attack.
   if (botChance(floorDiv(frame, IDLE_FRAMES), slot * 17 + fighter.character, skill.idle, 100)) return;
+  if (skill.basicMoves === undefined && !game.ultimatesOff && pressUltimate(fighter, target, skill, frame, input)) return;
   if (skill.basicMoves === undefined && pressKitOption(fighter, target, stage, skill, frame, delay <= 0, input, commands)) {
     if (input.specialPressed || input.attackHeld) runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
     return;

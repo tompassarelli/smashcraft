@@ -10,7 +10,6 @@ export const CAIRNE_HERO: HeroDefinition = {
   character: Character.cairne, name: "Cairne Bloodhoof", purpose: "Super-heavyweight with sweeping totem strikes",
   weakness: "A huge target with slow whiffs and exposed recovery", complete: true,
   jab: { name: "Haft and Totem", description: "Check with the haft, then press again for the totem's short finishing blow." },
-  ultimate: { name: "Ancestral Reincarnation", description: "At high damage, risk a long ritual to regain some strength without restoring a stock." },
   moves: CAIRNE_MOVES, specials: CAIRNE_SPECIALS, gameplan: CAIRNE_GAMEPLAN,
   presentation: {
     model: "units\\orc\\HeroTaurenChieftain\\HeroTaurenChieftain.mdl", objectId: 0x6d666361,

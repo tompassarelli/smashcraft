@@ -10,7 +10,6 @@ export const TINKER_HERO: HeroDefinition = {
   character: Character.tinker, name: "Goblin Tinker", purpose: "Factory and rocket space control",
   weakness: "Short claws and vulnerable setup",
   jab: { name: "Claw-Pack", description: "Two short claw taps and a wrench shove." },
-  ultimate: { name: "Robo-Goblin Overdrive", description: "An extended armored hammer-tank advance." },
   complete: true, moves: TINKER_MOVES, specials: TINKER_SPECIALS, gameplan: TINKER_GAMEPLAN,
   presentation: {
     model: "units\\creeps\\HeroTinker\\HeroTinker.mdl", objectId: 0x6d667469,

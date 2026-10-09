@@ -16,7 +16,6 @@ export const DREADLORD_HERO: HeroDefinition = {
   moves: DREADLORD_MOVES,
   specials: DREADLORD_SPECIALS,
   jab: { name: "Vampiric Claws", description: "Two claw rakes and a wing strike on repeated jabs." },
-  ultimate: { name: "Infernal", description: "An Infernal crashes down where he marks and swipes twice before it fades." },
   gameplan: DREADLORD_GAMEPLAN,
   presentation: {
     model: DREADLORD_MODEL_FILE,

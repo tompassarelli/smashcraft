@@ -116,7 +116,6 @@ export interface HeroDefinition {
 
   readonly jab: NamedMove;
 
-  readonly ultimate?: NamedMove | undefined;
   readonly presentation: HeroPresentation;
 
   readonly gameplan?: FighterGameplan | undefined;

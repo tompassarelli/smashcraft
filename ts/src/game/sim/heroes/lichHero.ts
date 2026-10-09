@@ -40,7 +40,6 @@ export const LICH_HERO: HeroDefinition = {
   moves: LICH_MOVES,
   specials: LICH_SPECIALS,
   jab: { name: "Chilling Touch", description: "A slap, then a freezing palm on a second jab." },
-  ultimate: { name: "Frost Wyrm", description: "He summons a frost wyrm." },
   gameplan: LICH_GAMEPLAN,
   presentation: {
     model: "units\\undead\\HeroLich\\HeroLich.mdl",

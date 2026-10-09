@@ -141,6 +141,10 @@ function perform(session: TapeSession, operation: TapeOperation): { result: stri
       setWorldMotionValue(motion.meleeZ, motion.z);
       return { result: "-" };
     }
+    case "test-meter":
+      if (!isActive(live.world, operation.slot)) return { refused: "test-meter needs an active fighter" };
+      fighterAt(live.world, operation.slot).mana.points = operation.points;
+      return { result: "-" };
     case "test-stage":
       game.stageChoice = operation.stage;
       return { result: "-" };

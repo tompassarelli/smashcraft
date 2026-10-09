@@ -16,7 +16,6 @@ export const BLADEMASTER_HERO: HeroDefinition = {
   moves: BLADEMASTER_MOVES,
   specials: BLADEMASTER_SPECIALS,
   jab: { name: "Swift Cuts", description: "Two quick cuts close to his body on repeated jabs." },
-  ultimate: { name: "Bladestorm", description: "A powered-up whirlwind: a long flurry of cuts with one strong finishing hit." },
   gameplan: BLADEMASTER_GAMEPLAN,
   presentation: {
     model: "units\\orc\\HeroBladeMaster\\HeroBladeMaster.mdl",
