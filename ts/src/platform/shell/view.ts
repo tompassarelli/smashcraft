@@ -321,6 +321,7 @@ function presentedMatch(s: ShellState): PresentedMatch {
 
 
 const agencyMarks: Slots<FighterAgency> = ["act", "act", "act", "act"];
+const FORECAST_STEPS_PER_CALLBACK = 8;
 
 
 
@@ -331,17 +332,21 @@ const agencyMarks: Slots<FighterAgency> = ["act", "act", "act", "act"];
 function markAgency(ui: UiObjects, world: Readonly<Roster>, stage: number, matchFrame: number, controls: Readonly<FrameControls>): void {
   let stalest = -1;
   let stalestAge = -1;
+  let budget = FORECAST_STEPS_PER_CALLBACK;
   for (const slot of PARTICIPANT_SLOTS) {
     const forecast = ui.fighters[slot]?.agency.forecast;
     if (forecast === undefined || !isActive(world, slot)) continue;
     const immediate = forecast.immediate(world, slot, stage, matchFrame);
     if (immediate !== undefined) {
+      forecast.cancel();
       agencyMarks[slot] = immediate;
       continue;
     }
+    if (forecast.pendingFor(world, slot)) continue;
     const age = forecast.reuseAge(world, slot, matchFrame);
-    if (age === undefined) agencyMarks[slot] = forecast.forecast(world, slot, stage, matchFrame, controls.commands[slot].graceFrames);
+    if (age === undefined) forecast.begin(world, slot, stage, matchFrame, controls.commands[slot].graceFrames);
     else {
+      forecast.cancel();
       agencyMarks[slot] = forecast.reused(world, slot);
       if (age > stalestAge) {
         stalest = slot;
@@ -349,8 +354,17 @@ function markAgency(ui: UiObjects, world: Readonly<Roster>, stage: number, match
       }
     }
   }
-  const forecast = stalest < 0 ? undefined : at(ui.fighters, stalest)?.agency.forecast;
-  if (forecast !== undefined && stalestAge > 0) agencyMarks[stalest] = forecast.forecast(world, stalest, stage, matchFrame, at(controls.commands, stalest).graceFrames);
+  for (const slot of PARTICIPANT_SLOTS) {
+    const forecast = ui.fighters[slot]?.agency.forecast;
+    if (forecast === undefined || !isActive(world, slot) || forecast.finished()) continue;
+    budget -= forecast.advance(budget);
+    if (forecast.finished()) agencyMarks[slot] = forecast.result();
+  }
+  const forecast = stalest < 0 || budget <= 0 ? undefined : at(ui.fighters, stalest)?.agency.forecast;
+  if (forecast === undefined || stalestAge <= 0) return;
+  forecast.begin(world, stalest, stage, matchFrame, at(controls.commands, stalest).graceFrames);
+  forecast.advance(budget);
+  if (forecast.finished()) agencyMarks[stalest] = forecast.result();
 }
 
 

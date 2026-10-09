@@ -54,6 +54,17 @@ export class FighterAgencyForecast {
   private forecastHit?: number;
   private forecastButtons?: boolean;
 
+  private running?: boolean;
+  private runStage = 0;
+  private runFrame = 0;
+  private runHit = 0;
+  private runBuffer = ATTACK_BUFFER_FRAMES;
+  private runOffset = 0;
+  private runNextCheck = 0;
+  private runButtons = false;
+  private runDi = false;
+  private runLockedHorizon = 0;
+
 
   constructor(private readonly bounded = true) {}
 
@@ -106,6 +117,13 @@ export class FighterAgencyForecast {
 
 
   forecast(world: Readonly<Roster>, slot: number, stage: number, frame: number, bufferFrames = ATTACK_BUFFER_FRAMES): FighterAgency {
+    this.begin(world, slot, stage, frame, bufferFrames);
+    this.advance(TECH_WINDOW_FRAMES);
+    return this.result();
+  }
+
+
+  begin(world: Readonly<Roster>, slot: number, stage: number, frame: number, bufferFrames = ATTACK_BUFFER_FRAMES): void {
     const f = fighterAt(world, slot);
     const freshHit = this.fighter.visuals.hit !== f.visuals.hit;
     copyFighterState(this.fighter, f, world.mask);
@@ -114,17 +132,46 @@ export class FighterAgencyForecast {
     this.pressedTech.pressAge = f.tech.pressAge;
     this.pressedTech.previousPressAge = f.tech.previousPressAge;
     this.pressedTech.accumulatedPress = f.tech.accumulatedPress;
+    this.runStage = stage;
+    this.runFrame = frame;
+    this.runHit = f.visuals.hit;
+    this.runBuffer = bufferFrames;
+    this.runOffset = 0;
+    this.runNextCheck = 0;
+    this.runButtons = false;
+    this.runDi = f.launch.hitlag > 0 && f.launch.diPending;
+    this.runLockedHorizon = freshHit ? bufferFrames : Math.max(bufferFrames, TECH_WINDOW_FRAMES - f.launch.hitlag - 1);
+    this.running = true;
+  }
+
+
+  pendingFor(world: Readonly<Roster>, slot: number): boolean {
+    return this.running === true && this.runHit === fighterAt(world, slot).visuals.hit;
+  }
+
+
+  cancel(): void {
+    this.running = false;
+  }
+
+
+  advance(maxSteps: number): number {
+    if (this.running !== true) return 0;
     const legal = observedActions.legal;
     const started = observedActions.started;
-    let buttons = false;
-    let nextCheck = 0;
-
-
-
-
-    const lockedHorizon = freshHit ? bufferFrames : Math.max(bufferFrames, TECH_WINDOW_FRAMES - f.launch.hitlag - 1);
+    const stage = this.runStage;
+    const frame = this.runFrame;
+    const bufferFrames = this.runBuffer;
+    let steps = 0;
+    let done = true;
     try {
-      for (let offset = 0; offset < TECH_WINDOW_FRAMES; offset++) {
+      for (let offset = this.runOffset; offset < TECH_WINDOW_FRAMES; offset++) {
+        if (steps >= maxSteps) {
+          this.runOffset = offset;
+          done = false;
+          break;
+        }
+        steps++;
         const before = this.fighter.down.state;
         const recoverySerial = this.fighter.surfaceRecovery.contactSerial;
         if (this.fighter.status.frozenFrames <= 0) {
@@ -133,34 +180,47 @@ export class FighterAgencyForecast {
         advanceFighterMotion(this.world, 0, stage, frame + offset + 1, this.input, 0.0);
 
         if (offset <= bufferFrames && (canAttack(this.fighter) || canShieldGrab(this.fighter))) {
-          buttons = true;
+          this.runButtons = true;
           break;
         }
         const floorContact = before === DownState.tumble && this.fighter.down.state !== DownState.tumble;
         const solidContact = before === DownState.tumble && this.fighter.surfaceRecovery.contactSerial !== recoverySerial;
         if ((floorContact || solidContact) && techInputEligible(this.pressedTech) !== techInputEligible(this.fighter.tech)) {
-          buttons = true;
+          this.runButtons = true;
           break;
         }
 
 
         if (offset >= bufferFrames && (this.fighter.motion.grounded || this.fighter.down.state !== DownState.tumble)) break;
-        if (offset >= lockedHorizon && this.bounded && !mayTechWithoutFreshPress(this.pressedTech) && !mayTechWithoutFreshPress(this.fighter.tech)) break;
+        if (offset >= this.runLockedHorizon && this.bounded && !mayTechWithoutFreshPress(this.pressedTech) && !mayTechWithoutFreshPress(this.fighter.tech)) break;
 
-        if (offset >= bufferFrames && offset >= nextCheck && this.bounded && clearFlight(this.fighter)) {
+        if (offset >= bufferFrames && offset >= this.runNextCheck && this.bounded && clearFlight(this.fighter)) {
           if (surelyClear(this.fighter, stage, frame + offset + 1, TECH_WINDOW_FRAMES - 1 - offset)) break;
-          nextCheck = offset + CLEARANCE_RECHECK;
+          this.runNextCheck = offset + CLEARANCE_RECHECK;
         }
       }
     } finally {
       observedActions.legal = legal;
       observedActions.started = started;
     }
-    this.forecastFrame = frame;
-    this.forecastHit = f.visuals.hit;
-    this.forecastButtons = buttons;
-    if (buttons) return "act";
-    return f.launch.hitlag > 0 && f.launch.diPending ? "di" : "none";
+    if (done) {
+      this.running = false;
+      this.forecastFrame = frame;
+      this.forecastHit = this.runHit;
+      this.forecastButtons = this.runButtons;
+    }
+    return steps;
+  }
+
+
+  finished(): boolean {
+    return this.running !== true;
+  }
+
+
+  result(): FighterAgency {
+    if (this.forecastButtons === true) return "act";
+    return this.runDi ? "di" : "none";
   }
 
 
