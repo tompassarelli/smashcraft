@@ -11,7 +11,7 @@
   then `bun wisp perf compare BASELINE CANDIDATE --json` gates the current
   candidate. The exact command and calibration scope are in
   smashcraft:docs/native-bot-session.md, "Wisp-only frame-cost acceptance".
-  `bun wisp perf budget RUN_FILE` holds a `--samples` run to #168's frame
+  `bun wisp perf budget RUN_FILE --p99 10 --worst 10` holds a `--samples` run to #168's frame
   budget (p99 10 ms, worst 10 ms predicted). `bun wisp perf profile
   playable-bot-four --phases --out FILE` preserves measured samples and each
   client's slow-frame phase samples and simulation/repair step counts;
