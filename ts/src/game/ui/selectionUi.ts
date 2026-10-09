@@ -287,7 +287,7 @@ export class SelectionPanel {
       const summary = label(root, `MeleeCpuSummary${name}`, x + f32(0.004), f32(0.139), f32(0.152), f32(0.031), f32(0.009));
       return { card, tag, mode, portrait, name: name_, status, chip, summary, settings };
     });
-    this.hand = art(root, `MeleeHand${suffix}`, "war3mapImported\\SelectionHandPoint.tga", 0.0, 0.0, HAND_SIZE, HAND_SIZE);
+    this.hand = art(root, `MeleeHand${suffix}`, "war3mapImported\\SelectionHandPinch.tga", 0.0, 0.0, HAND_SIZE, HAND_SIZE);
     BlzFrameSetLevel(this.hand, 20);
     BlzFrameSetVisible(this.hand, false);
     art(root, `MeleeConfirmArt${suffix}`, "war3mapImported\\SelectionAction.tga", f32(0.071), f32(0.043), f32(0.235), f32(0.037));
@@ -438,7 +438,7 @@ export class SelectionPanel {
   }
 
   destroy(): void {
-    this.showHand(false, false, 0.0, 0.0);
+    this.showHand(false, 0.0, 0.0);
     this.clicks.destroy();
     for (const trigger of this.syncTriggers) DestroyTrigger(trigger);
     for (const frame of this.movesFrames) BlzDestroyFrame(frame);
@@ -618,13 +618,10 @@ export class SelectionPanel {
     if (this.choosing() !== undefined && chip !== undefined) this.actions.recallChoice(this.participantId, chip);
   }
 
-  private showHand(shown: boolean, pinching: boolean, x: number, y: number): void {
+  private showHand(shown: boolean, x: number, y: number): void {
     if (!this.ownsLocalClient()) return;
     BlzFrameSetVisible(this.hand, shown);
-    if (shown) {
-      BlzFrameSetTexture(this.hand, pinching ? "war3mapImported\\SelectionHandPinch.tga" : "war3mapImported\\SelectionHandPoint.tga", 0, true);
-      placeTopLeft(this.hand, handLeft(pinching, x), handTop(pinching, y));
-    }
+    if (shown) placeTopLeft(this.hand, handLeft(x), handTop(y));
     if (shown === this.cursorHidden) return;
     this.cursorHidden = shown;
     BlzEnableCursor(!shown);
@@ -704,19 +701,19 @@ export class SelectionPanel {
     }
     if (!visible || cpuOpen || this.movesOpen) this.hideHelp();
     if (!visible) {
-      this.showHand(false, false, 0.0, 0.0);
+      this.showHand(false, 0.0, 0.0);
       clearSelectionDrag(drag);
       return;
     }
     if (cpuOpen && this.cpuSlot !== undefined) {
-      this.showHand(false, false, 0.0, 0.0);
+      this.showHand(false, 0.0, 0.0);
       BlzFrameSetVisible(this.root, false);
       clearSelectionDrag(drag);
       this.showCpuSettings(game, this.cpuSlot);
       return;
     }
     if (this.movesOpen) {
-      this.showHand(false, false, 0.0, 0.0);
+      this.showHand(false, 0.0, 0.0);
       BlzFrameSetVisible(this.root, false);
       clearSelectionDrag(drag);
       this.showMoves();
@@ -786,7 +783,7 @@ export class SelectionPanel {
         carried ? carriedChipTop(y, size) : ready ? chipY(this.roster.grid, slot, chipChoice) : f32(0.2),
       );
     }
-    this.showHand(width > 0 && height > 0 && !settingsOpen && !this.tutorialOpen, pinching, x, y);
+    this.showHand(pinching && width > 0 && height > 0 && !settingsOpen && !this.tutorialOpen, x, y);
     BlzFrameSetText(this.confirm, this.confirmText(game));
     this.showRules(game);
     this.showHelp(game, x, y);
