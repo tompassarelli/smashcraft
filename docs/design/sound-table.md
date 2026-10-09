@@ -243,9 +243,9 @@ poison or arcane hit also layers that element's sound. Normals sharing every sou
 | Jab, Second jab | BattleNetWooshStereo1 | WoodLightBashFlesh | WoodHeavyBashFlesh + HeroFlameLordMissileImpact | WoodLightBashMetal |  |
 | Up smash, Down smash, Forward smash | BattleNetWooshStereo1 | WoodHeavyBashFlesh | WoodHeavyBashFlesh + HeroFlameLordMissileImpact | WoodHeavyBashMetal |  |
 | Forward tilt, Up tilt, Down tilt, Forward tilt (up), Forward tilt (down), Get-up attack, Neutral air, Forward air, Back air, Up air, Down air, Ledge attack, Dash attack | BattleNetWooshStereo1 | WoodMediumBashFlesh | WoodHeavyBashFlesh + HeroFlameLordMissileImpact | WoodMediumBashMetal |  |
-| Neutral special: Flame Strike | FireballLaunch | FlameStrike | FlameStrike + HeroFlameLordMissileImpact | WoodMediumBashMetal |  |
-| Side special: Siphon Mana | SiphonManaCaster | ManaBurn | ManaBurn + HeroFlameLordMissileImpact | WoodMediumBashMetal |  |
-| Up special: Phoenix Flight | PhoenixMissileLaunch | Fireball | Fireball + HeroFlameLordMissileImpact | WoodMediumBashMetal |  |
+| Neutral special: Flamestrike | FireballLaunch | FlameStrike | FlameStrike + HeroFlameLordMissileImpact | WoodMediumBashMetal |  |
+| Side special: Drain Mana | SiphonManaCaster | ManaBurn | ManaBurn + HeroFlameLordMissileImpact | WoodMediumBashMetal |  |
+| Up special: Phoenix | PhoenixMissileLaunch | Fireball | Fireball + HeroFlameLordMissileImpact | WoodMediumBashMetal |  |
 | Down special: Banish | BanishCaster | Feedback | Feedback + HeroFlameLordMissileImpact | WoodMediumBashMetal |  |
 
 ## Murloc
