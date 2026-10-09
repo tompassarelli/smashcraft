@@ -5,6 +5,7 @@ import { adaptInput } from "../input/adapter";
 import { attackBuffer } from "../input/attackBuffer";
 import { type InputRow, inputRow } from "../input/inputRow";
 import { keyboardCapture, sampleKeys } from "../input/keyboardCapture";
+import { PAD_AXIS_LEVELS } from "../input/padCapture";
 import { createFighter } from "./fighter";
 import { SELECTABLE_CHARACTERS } from "./heroes/registry";
 import { type Character } from "./codes";
@@ -46,6 +47,21 @@ test("half-pushed input rows drift slower than full rows and keyboard stays at f
       const fullDrift = drift(character, full, 12);
       assertEquals(diagonalDrift.motion.vx, fullDrift.motion.vx);
       assertNear(diagonalDrift.motion.x, fullDrift.motion.x, 0.00009999999747378752);
+    }
+  }
+});
+
+test("every quantized pad stick level drifts, and a farther push never drifts slower [spec docs/controller-platforms.md]", () => {
+  for (const character of SELECTABLE_CHARACTERS) {
+    let previous = 0.0;
+    for (const level of PAD_AXIS_LEVELS) {
+      if (level <= 0) continue;
+      const row = assertDefined(inputRow({ axisX: level }));
+      const fighter = drift(character, row, 12);
+      const mirrored = drift(character, assertDefined(inputRow({ axisX: -level })), 12);
+      assertGreaterThan(fighter.motion.x, previous);
+      assertEquals(mirrored.motion.x, f32(-fighter.motion.x));
+      previous = fighter.motion.x;
     }
   }
 });

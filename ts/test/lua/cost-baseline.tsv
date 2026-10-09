@@ -133,7 +133,7 @@ src/game/shell/scenarios.tests.ts	1	1422000	826
 src/game/shell/sessionSetup.tests.ts	2	9000	29
 src/game/shell/stageLoad.tests.ts	1	1000	12
 src/game/sim/actionLocks.tests.ts	19	9370000	8295
-src/game/sim/analogAirDrift.tests.ts	1	16194000	16788
+src/game/sim/analogAirDrift.tests.ts	2	41714000	35598
 src/game/sim/analogShield.tests.ts	8	213000	141
 src/game/sim/dashDance.tests.ts	5	134755000	145509
 src/game/sim/demonHunterContracts.tests.ts	12	13641000	2847
