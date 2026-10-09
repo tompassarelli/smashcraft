@@ -11,10 +11,10 @@ import { InputLedger, LEDGER_CAPACITY, type Receipt } from "./ledger";
 import { at } from "wisp/src/runtime/lookup";
 
 /** The input delays a schedule supports. */
-export type FixedDelay = 0 | 1 | 2 | 3 | 5;
+export type FixedDelay = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 export function isFixedDelay(value: number): value is FixedDelay {
-  return value === 0 || value === 1 || value === 2 || value === 3 || value === 5;
+  return Math.floor(value) === value && value >= 0 && value <= 8;
 }
 
 /** The frame a sample taken while `frame` is next belongs to, or undefined past the last frame. */

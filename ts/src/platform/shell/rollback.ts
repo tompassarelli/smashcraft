@@ -37,6 +37,7 @@ import { LASTING, resumePresentationHeld, setStatus } from "./view";
 import { holdPresentedCapture } from "./visualCapture";
 import { samplePad } from "../../game/input/padCapture";
 import { pollPad, recordPadRow } from "./analogPad";
+import { beginNetEpoch, matchDelay, noteDepth, noteEcho, noteSent } from "./netDelay";
 
 
 const STALL_NOTICE_CALLBACKS = 20;
@@ -57,7 +58,9 @@ export function beginRollbackEpoch(s: ShellState, rollback: Rollback): boolean {
   }
   const { schedule, speculative } = rollback;
   rollback.epoch++;
-  rollback.delay = s.dev.delay;
+  const devDelay = s.build.devConsole && s.dev.delay !== rollback.mode.delay;
+  rollback.delay = rollback.keyboard === undefined || devDelay ? s.dev.delay : matchDelay(rollback.net, s.game, s.participants.map(participant => participant.bindings.delay));
+  beginNetEpoch(rollback.net);
   rollback.window = s.dev.rollback;
   rollback.batch = s.dev.batch;
   if (!schedule.beginEpoch(rollback.epoch, rollback.delay, rollback.window, s.game.humanMask)) return false;
@@ -132,7 +135,10 @@ function sendBatch(s: ShellState, rollback: Rollback, keyboard: KeyboardRollback
   const sent = BlzSendSyncData(INPUT_PREFIX, wire);
   probeSendFinished(s.probe, started);
   if (!sent) return false;
-  for (let row = 0; row < count; row++) probeTransportSend(s.probe, rollback.epoch, packet.firstFrame + row);
+  for (let row = 0; row < count; row++) {
+    probeTransportSend(s.probe, rollback.epoch, packet.firstFrame + row);
+    noteSent(rollback.net, packet.firstFrame + row);
+  }
   const { trace } = s;
   if (trace.active) {
     trace.window.localSends++;
@@ -282,6 +288,7 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
   const correction = reconciled === "unchanged" ? 0 : reconciled.replayedFrom;
   if (reconciled !== "unchanged") {
     const depth = speculative.runtime.simulationFrame - reconciled.replayedFrom + 1;
+    noteDepth(rollback.net, depth);
     if (trace.active) {
       trace.window.corrections++;
       trace.window.replayedFrames += depth;
@@ -361,6 +368,7 @@ function receivePacket(s: ShellState, rollback: Rollback, sender: number, packet
       probeInput(probe, "receive", packet.epoch, sender, frame, row.held, row.pressed, row.released, schedule.speculativeFrame());
       if (local) probeTransportReceive(probe, packet.epoch, frame);
     }
+    if (local && receipt === "accepted" && packet.epoch === rollback.epoch) noteEcho(rollback.net, frame);
     if (trace.active && local) recordEcho(trace, packet.epoch, frame, receivedCallback, receivedSeconds);
   }
   if (receipt !== "accepted" && receipt !== "wrongEpoch") setStatus(s, "The players could not stay connected. Restart the match.", LASTING);

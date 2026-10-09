@@ -37,9 +37,11 @@ import { makePreview } from "./preview";
 import { preloadStageAssets } from "./stageScenery";
 import { PROBE_EXPORT, exportProbe, exportProbePage, probeBegin, probeFighterPosition, probeIntegrity, probePresent, probeRecording, startProbe } from "./responseProbe";
 import { receiveInput, rollbackTick } from "./rollback";
+import { floorMod } from "wisp/src/sim/intMath";
+import { DELAY_RECEIVED, type NetDelay, createNetDelay, lobbyDelayText, receiveDelayProposal, registerDelayProposals, serviceNetDelay } from "./netDelay";
 import { SAVE_MOMENT, momentKey, serviceMomentRequest, serviceMomentSave } from "./moment";
 import { readMatchIndex, writeMatchRecord } from "./matchRecords";
-import { type ShellState, activeRollback, createShellState, localSlot, momentSaves, replayRecording, shellState } from "./state";
+import { type Rollback, type ShellState, activeRollback, createShellState, localSlot, momentSaves, replayRecording, shellState } from "./state";
 import { endReplaySegment, serviceReplay } from "./replays";
 import { CONTROL_ACK_PREFIX, PAUSE_REQUEST_PREFIX } from "../../game/shell/pauseBarrier";
 import { clearMatchEffects, createUi, recreateUi, views } from "./ui";
@@ -108,6 +110,7 @@ function gameTick(s: ShellState): void {
   serviceMomentSave(s);
   serviceReplay(s);
   captureNativeDriverInputs(s);
+  if (s.rollback !== undefined) serviceDelay(s, s.rollback);
   if (rollback !== undefined && s.game.phase === Phase.match) {
     const { journal } = rollback;
     if (journal !== undefined) journalPause.serviceControlAck(s, rollback, journal);
@@ -254,6 +257,7 @@ function createTriggers(s: ShellState): void {
   syncKeyEvents(s);
   const { rollback } = s;
   if (rollback !== undefined) syncTrigger(s, INPUT_PREFIX, INPUT, true);
+  if (rollback !== undefined) registerDelayProposals(DELAY_RECEIVED);
   if (rollback?.journal !== undefined) syncTrigger(s, CONTROL_ACK_PREFIX, CONTROL_ACK, true);
   if (rollback?.journal?.editbox !== undefined) {
     syncTrigger(s, PAUSE_REQUEST_PREFIX, PAUSE_REQUEST, true);
@@ -325,6 +329,15 @@ function initialize(): void {
 }
 
 
+function serviceDelay(s: ShellState, rollback: Rollback): void {
+  const local = localSlot();
+  serviceNetDelay(rollback.net, s.game, local, rollback.delay, s.game.phase === Phase.match);
+  if (s.game.phase !== Phase.characterMenu || floorMod(rollback.net.ticks, 30) !== 0) return;
+  const text = lobbyDelayText(rollback.net, s.game, s.participants.map(participant => participant.bindings.delay));
+  for (const panel of views(s).selections) panel.showDelay(text);
+}
+
+
 function withShell(handler: (s: ShellState) => void): () => void {
   return () => {
     const s = shellState();
@@ -341,6 +354,7 @@ export function installShell(): void {
   on(KEY_DOWN, withShell(onKeyDown));
   on(KEY_UP, withShell(onKeyUp));
   on(INPUT, withShell(receiveInput));
+  on(DELAY_RECEIVED, withShell(s => { if (s.rollback !== undefined) receiveDelayProposal(s.rollback.net); }));
   on(CONTROL_ACK, withShell(journalPause.receiveControlAckEvent));
   on(PAUSE_REQUEST, withShell(journalPause.pauseRequestEvent));
   on(CHAT_CLOSED, withShell(journalPause.chatClosedEvent));
@@ -362,6 +376,8 @@ export function installShell(): void {
 
   if (s !== undefined && s.moment === undefined) s.moment = momentSaves();
   if (s !== undefined && s.replay === undefined) s.replay = replayRecording();
+  const rollback: { net?: NetDelay; readonly mode: { readonly rollback: number } } | undefined = s?.rollback;
+  if (rollback !== undefined && rollback.net === undefined) rollback.net = createNetDelay(rollback.mode.rollback);
 
   if (s !== undefined && s.drawnStage === undefined) view.drawStage(s);
 }

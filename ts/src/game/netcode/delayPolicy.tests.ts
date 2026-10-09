@@ -49,7 +49,7 @@ test("over generated round-trip traces the delay stays within 2 and the ceiling 
   }
 });
 
-test("a rising-ping match keeps 2 frames until the one-way trip passes 2 + R frames, then warns [spec #396]", () => {
+test("a rising-ping match keeps 2 frames until the one-way trip passes 2 + R frames, and warns past delay + R [spec #396]", () => {
   const policy = delayPolicy(24);
   const pingMs = [30, 120, 290, 380, 700, 1200];
   assertEquals(playStocks(policy, pingMs, 6, 9).join(","), "2,2,2,5,8,8");
@@ -59,8 +59,6 @@ test("a rising-ping match keeps 2 frames until the one-way trip passes 2 + R fra
   assertFalse(connectionPoor(policy, estimate, 5));
   assertFalse(highDelay(5));
   for (let sample = 0; sample < SAMPLES_PER_STOCK; sample++) observeRtt(estimate, 700);
-  assertFalse(connectionPoor(policy, estimate, 8));
-  for (let sample = 0; sample < SAMPLES_PER_STOCK; sample++) observeRtt(estimate, 1200);
   assertTrue(connectionPoor(policy, estimate, 8));
   assertTrue(highDelay(8));
   assertEquals(agreedDelay([requestedDelay(AUTO_DELAY, 2), requestedDelay(3, 2)]), 3);

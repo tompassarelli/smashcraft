@@ -60,7 +60,7 @@ export function applyDevCommand(settings: DevSettings, message: string): string 
   }
   if (message.startsWith("-dev delay ")) {
     const value = commandInteger(message.substring(11));
-    if (value === undefined || !isFixedDelay(value)) return "dev: delay must be 0, 1, 2, 3 or 5";
+    if (value === undefined || !isFixedDelay(value)) return "dev: delay must be 0 to 8";
     settings.delay = value;
     return describeDevSettings(settings);
   }

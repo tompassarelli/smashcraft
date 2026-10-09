@@ -20,6 +20,7 @@ import { type MatchState, REMATCH_COUNTDOWN_SECONDS, createMatchState } from "..
 import { matchSpawnX } from "../../game/match/step";
 import { createMatchCamera, type MatchCamera } from "../../game/sim/matchCamera";
 import type { FixedDelay } from "../../game/netcode/fixedSchedule";
+import { type NetDelay, createNetDelay } from "./netDelay";
 import { InputBatch } from "../../game/netcode/inputBatch";
 import type { KeyboardMailbox } from "../../game/netcode/journal/keyboard";
 import type { MatchLifecycle } from "../../game/netcode/journal/lifecycle";
@@ -166,6 +167,7 @@ export interface Rollback {
   window: number;
 
   batch: number;
+  readonly net: NetDelay;
   readonly schedule: ShadowInputSchedule;
   readonly playback: RollbackPlayback;
   readonly speculative: SpeculativeMatch;
@@ -352,7 +354,7 @@ function journal(ingress: JournalIngress, editbox: EditboxIngress | undefined): 
 
 function rollback(mode: ShadowInputMode, playback: RollbackPlayback, editbox: EditboxIngress | undefined): Rollback {
   return {
-    mode, active: false, epoch: 0, delay: mode.delay, window: mode.rollback, batch: DEFAULT_BATCH,
+    mode, active: false, epoch: 0, delay: mode.delay, window: mode.rollback, batch: DEFAULT_BATCH, net: createNetDelay(mode.rollback),
     schedule: new ShadowInputSchedule(), playback,
     speculative: { world: speculativeRoster(), game: createMatchState(), controls: createBufferedFrameControls(), runtime: createPacingAndPresentation() },
     seed: createReplaySnapshot(), accepted: participantInputs(), sendFailed: false,

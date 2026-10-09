@@ -75,7 +75,7 @@ export function expectedRollback(estimate: Readonly<RttEstimate>, delay: number)
 }
 
 export function connectionPoor(policy: DelayPolicy, estimate: Readonly<RttEstimate>, delay: number): boolean {
-  return estimate.samples > 0 && oneWayFrames(smoothedRttMs(estimate)) > policy.window + delay;
+  return estimate.samples > 0 && oneWayFrames(smoothedRttMs(estimate)) > policy.budget + delay;
 }
 
 export const highDelay = (delay: number): boolean => delay >= HIGH_DELAY_FRAMES;

@@ -10,15 +10,19 @@ import {
   applyBindingPreset,
   beginBindingCapture,
   cancelBindingCapture,
+  chooseDelay,
   saveBindingSettings,
 } from "./bindingSettings";
 import { ButtonClicks, createText, gameUi, placeTopLeft } from "./frames";
+import { AUTO_DELAY, MAX_FIXED_DELAY } from "../netcode/delayPolicy";
 
 export interface SettingsActions {
   closeSettings(participantId: number): void;
+  delayInfo(participantId: number): string;
+  recalibrate(participantId: number): void;
 }
 
-type SettingsButton = { kind: "standard" } | { kind: "custom" } | { kind: "save" } | { kind: "close" } | { kind: "key"; action: Action; slot: KeySlot };
+type SettingsButton = { kind: "standard" } | { kind: "custom" } | { kind: "save" } | { kind: "close" } | { kind: "delay" } | { kind: "recalibrate" } | { kind: "key"; action: Action; slot: KeySlot };
 
 interface ActionRow {
   readonly action: Action;
@@ -32,6 +36,8 @@ export class SettingsPanel {
   private readonly title: framehandle;
   private readonly help: framehandle;
   private readonly status: framehandle;
+  private readonly delayButton: framehandle;
+  private readonly delayInfo: framehandle;
   private readonly buttons: readonly framehandle[];
   private readonly rows: readonly ActionRow[];
 
@@ -72,6 +78,10 @@ export class SettingsPanel {
       button(`MeleeSettingsSave${suffix}`, 422 + offset, f32(0.39), f32(0.065), f32(0.105), "Save", { kind: "save" }),
       button(`MeleeSettingsClose${suffix}`, 424 + offset, 0.5, f32(0.065), f32(0.105), "Back", { kind: "close" }),
     ];
+    this.delayButton = button(`MeleeSettingsDelay${suffix}`, 425 + offset, f32(0.625), f32(0.505), f32(0.15), "Delay: Auto", { kind: "delay" });
+    const recalibrate = button(`MeleeSettingsRecalibrate${suffix}`, 426 + offset, f32(0.625), f32(0.468), f32(0.15), "Recalibrate", { kind: "recalibrate" });
+    this.delayInfo = text(`MeleeSettingsDelayInfo${suffix}`, 427 + offset, f32(0.625), f32(0.43), f32(0.15), f32(0.1));
+    this.buttons = [...this.buttons, this.delayButton, recalibrate];
     const rows: ActionRow[] = [];
     for (const action of ACTION_ORDER) {
       const y = f32(0.505) - action * f32(0.023);
@@ -85,7 +95,7 @@ export class SettingsPanel {
       rows.push({ action, label, keys: [key(0, f32(0.41)), key(1, f32(0.52))] });
     }
     this.rows = rows;
-    this.all = [this.title, this.help, this.status, ...this.buttons];
+    this.all = [this.title, this.help, this.status, this.delayInfo, ...this.buttons];
     for (const row of rows) this.all.push(row.label, ...row.keys);
     this.setVisible(false);
   }
@@ -112,6 +122,8 @@ export class SettingsPanel {
     else if (button.kind === "custom") applyBindingPreset(settings, "custom");
     else if (button.kind === "save") saveBindingSettings(settings);
     else if (button.kind === "close") this.close();
+    else if (button.kind === "delay") chooseDelay(settings, settings.delay >= MAX_FIXED_DELAY ? AUTO_DELAY : settings.delay + 1);
+    else if (button.kind === "recalibrate") this.actions.recalibrate(this.participantId);
     else beginBindingCapture(settings, button.action, button.slot);
   }
 
@@ -140,10 +152,13 @@ export class SettingsPanel {
     if (GetLocalPlayer() !== Player(this.participantId) || !this.open) return;
     const { settings } = this;
     const { capture } = settings;
-    const signature = `${encodeBindings(settings.bindings)}${settings.message}${capture === undefined ? "0" : "1"}${settings.ready ? "1" : "0"}`;
+    const info = this.actions.delayInfo(this.participantId);
+    const signature = `${encodeBindings(settings.bindings)}${settings.message}${capture === undefined ? "0" : "1"}${settings.ready ? "1" : "0"}${I2S(settings.delay)}${info}`;
     if (signature === this.lastSignature) return;
     this.lastSignature = signature;
     this.setVisible(true);
+    BlzFrameSetText(this.delayButton, settings.delay === AUTO_DELAY ? "Delay: Auto" : `Delay: ${I2S(settings.delay)} frames`);
+    BlzFrameSetText(this.delayInfo, info);
     BlzFrameSetText(this.status, settings.message);
     BlzFrameSetText(this.help, capture === undefined ? "Q: full shield · T: light shield · P: tilt · Z: short hop\nClick a binding to change it. Each action accepts two keys." : "Press an unassigned key. Escape cancels.");
     for (const { action, label, keys } of this.rows) {

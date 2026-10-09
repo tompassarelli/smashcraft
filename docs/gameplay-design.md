@@ -195,8 +195,8 @@ transport (wisp#110) both call it.
 
 - **Default 2 frames (33 ms)** against computers, in local versus and online,
   as in Slippi.
-- **Delay setting**, saved per player with the controls (Options, reached
-  from character select, which is also the lobby): **Auto** (the default) or
+- **Delay setting**, saved per player with the controls (Controls and delay,
+  F1 on character select, which is also the lobby): **Auto** (the default) or
   **Fixed N** frames, 0 to 8, used as-is. Rollback absorbs the rest. Local
   matches can lower it to 0 or 1. **Recalibrate** shows the measured ping,
   Auto's choice and the expected rollback depth, and one press makes that
@@ -220,7 +220,11 @@ transport (wisp#110) both call it.
   channel. It never changes mid-exchange.
 - **Time sync (GGPO-style, pause-free):** the client that runs ahead by two
   or more frames of advantage waits one frame, at most once per second, so
-  rollback depth stays even on both sides.
+  rollback depth stays even on both sides (`timeSyncWait`). Wisp's
+  peer-to-peer transport (wisp#110) needs it. The Warcraft map does not call
+  it: Warcraft relays every sync message through its host to all clients on
+  the same turn, so neither client runs ahead, and a local wait would only
+  make the two clients' predicted drawing differ.
 - **Network indicator:** online matches show the current delay and rollback
   depth. If the one-way trip exceeds the window plus the delay, it shows
   "connection poor" instead of desyncing.

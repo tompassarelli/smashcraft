@@ -178,6 +178,8 @@ export class SelectionPanel {
   private readonly movesFrames: readonly framehandle[];
   private readonly movesTitle: framehandle;
   private readonly movesBody: framehandle;
+  private readonly delayLine: framehandle;
+  private shownDelay = "";
 
   private readonly modeLabel: framehandle;
   private shownMode = "";
@@ -278,6 +280,8 @@ export class SelectionPanel {
     art(root, `MeleeSettingsArt${suffix}`, "war3mapImported\\SelectionAction.tga", f32(0.51), f32(0.043), f32(0.235), f32(0.037));
     const settingsLabel = label(root, `MeleeSettingsLabel${suffix}`, f32(0.518), f32(0.039), f32(0.219), f32(0.028), f32(0.011));
     BlzFrameSetText(settingsLabel, "Controls (F1)");
+    this.delayLine = label(root, `MeleeDelayLine${suffix}`, f32(0.36), f32(0.6), f32(0.42), f32(0.03), f32(0.010));
+    BlzFrameSetTextAlignment(this.delayLine, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_RIGHT);
     this.clicks.add(hotspot(root, f32(0.51), f32(0.043), f32(0.235), f32(0.037)), { kind: "settings" });
     art(root, `MeleeMovesArt${suffix}`, "war3mapImported\\SelectionAction.tga", f32(0.318), f32(0.043), f32(0.18), f32(0.037));
     BlzFrameSetText(label(root, `MeleeMovesLabel${suffix}`, f32(0.324), f32(0.039), f32(0.168), f32(0.028), f32(0.011)), "Moves");
@@ -624,6 +628,12 @@ export class SelectionPanel {
     markTutorialSeen();
   }
 
+
+  showDelay(text: string): void {
+    if (text === this.shownDelay) return;
+    this.shownDelay = text;
+    BlzFrameSetText(this.delayLine, text);
+  }
 
   update(game: Readonly<MatchState>, settingsOpen: boolean): void {
     this.game = game;
