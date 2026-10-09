@@ -41,14 +41,16 @@ export function optionsFrom(args: readonly string[]): TextMatchOptions {
   };
 }
 
+const STDOUT_BUSY = "stdout busy";
+
 const writeAll = (text: string): Effect.Effect<void, TextMatchFailure> => {
   const bytes = Buffer.from(text);
   const from = (at: number): Effect.Effect<void, TextMatchFailure> => at >= bytes.length ? Effect.void : Effect.try({
     try: () => writeSync(1, bytes, at),
-    catch: (cause) => cause,
+    catch: (cause) => typeof cause === "object" && cause !== null && "code" in cause && cause.code === "EAGAIN" ? STDOUT_BUSY : new TextMatchFailure({ problem: describeCause(cause) }),
   }).pipe(
     Effect.map((written) => at + written),
-    Effect.catch((cause) => (cause as NodeJS.ErrnoException).code === "EAGAIN" ? Effect.sleep("1 millis").pipe(Effect.as(at)) : Effect.fail(new TextMatchFailure({ problem: describeCause(cause) }))),
+    Effect.catch((failure) => failure === STDOUT_BUSY ? Effect.sleep("1 millis").pipe(Effect.as(at)) : Effect.fail(failure)),
     Effect.flatMap(from),
   );
   return from(0);
