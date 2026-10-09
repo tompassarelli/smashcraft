@@ -13,7 +13,7 @@ import { DEFINITIVE_BODY_MODELS } from "../scripts/wisp/mapInputs";
 import { Character } from "../src/game/sim/codes";
 import { DEFINITIVE_FIGHTERS } from "../src/game/assets/definitiveFighters";
 import { originalClip } from "../src/game/assets/fighterOriginalClipInfo";
-import { HUMANOID_JOINTS, RIG_FIELDS, canonicalMotion, type FighterRig } from "../../tools/animations/canonical-rig";
+import { HUMANOID_JOINTS, RIG_FIELDS, canonicalMotion, rigNode, type FighterRig } from "../../tools/animations/canonical-rig";
 import { authoredMotion, definitiveBody, fighterBodies, playedMoves } from "../../tools/animations/hd-models";
 import { FIGHTER_RIGS } from "../../tools/animations/hd-rigs";
 import { generateHdBody } from "../../tools/animations/hd-retarget";
@@ -65,7 +65,7 @@ const turned = (degrees: number) => new Float32Array(quat.setAxisAngle(quat.crea
 test("editing one canonical move changes that move in both bodies' exported animation and no other move [spec #366]", () => {
   const rig: FighterRig = { character: Character.kobold, classic: { "shoulder.R": "Shoulder", "wrist.R": "Hand" }, pairs: [["shoulder.R", "Shoulder"], ["wrist.R", "Hand"]] };
   const motion = canonicalMotion(arm(false), rig);
-  const shoulder = motion.Bones.find((bone) => bone.Name === "shoulder.R")!;
+  const shoulder = motion.Bones.find((bone) => bone.Name === rigNode("shoulder.R"))!;
   shoulder.Rotation = { LineType: mdx.LineType.Linear, GlobalSeqId: null, Keys: [
     { Frame: 0, Vector: turned(0) }, { Frame: 100, Vector: turned(0) },
     { Frame: 200, Vector: turned(0) }, { Frame: 300, Vector: turned(60) },
@@ -74,7 +74,7 @@ test("editing one canonical move changes that move in both bodies' exported anim
   const moves = { classic: [0, 1], definitive: [0, 1] };
   const before = fighterBodies(motion, rig, stock, moves);
   const edited = structuredClone(motion);
-  edited.Bones.find((bone) => bone.Name === "shoulder.R")!.Rotation!.Keys[3]!.Vector = turned(30);
+  edited.Bones.find((bone) => bone.Name === rigNode("shoulder.R"))!.Rotation!.Keys[3]!.Vector = turned(30);
   const after = fighterBodies(edited, rig, stock, moves);
   const drawn = (bytes: ArrayBuffer, seconds: number) => Array.from(new DrawnModel(bytes, 1).triangles(0, seconds, 1));
   for (const look of ["classic", "definitive"] as const) {

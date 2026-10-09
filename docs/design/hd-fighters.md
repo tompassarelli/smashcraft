@@ -29,7 +29,8 @@ look is tuned by hand.
   `character`, `stockPath`, `classic` (humanoid joint → Classic node), `pairs`
   (rig joint → Definitive bone, any number per joint) and the body fit
   (`fitScale`, `limbScales`, `visibilityPairs`). It names no move, sequence or frame.
-  The rig joint names are what `registerRig` reads; Definitive bones that no pair
+  In canonical motion a rig joint's node is named `@<joint>` (`rigNode`), so it never collides with a
+  source node such as Illidan's own `pelvis`; Definitive bones that no pair
   names keep their stock pose under their nearest mapped parent.
 - **Both bodies are generated.** `fighterBodies` (smashcraft:tools/animations/hd-models.ts)
   writes the Classic timeline body through the Classic mapping and the Definitive

@@ -13,7 +13,9 @@ export const HUMANOID_JOINTS = [
 export type HumanoidJoint = (typeof HUMANOID_JOINTS)[number];
 const HUMANOID = new Set<string>(HUMANOID_JOINTS);
 
-export const isLegJoint = (name: string) => /^(hip|knee|ankle|toe)\.[LR]$/.test(name);
+/** A rig joint's node name in canonical motion; the prefix keeps it apart from a source node of the same name. */
+export const rigNode = (joint: string) => HUMANOID.has(joint) ? `@${joint}` : joint;
+export const isLegJoint = (name: string) => /^@(hip|knee|ankle|toe)\.[LR]$/.test(name);
 
 /**
  * One fighter's two body mappings onto the rig. A rig module exports these fields and nothing else:
@@ -43,14 +45,14 @@ function classicNames(model: mdx.Model, rig: FighterRig): Map<string, string> {
         if (node === undefined || !present.has(node)) throw new Error(`Classic skeleton has no ${node} for ${joint}`);
         if (names.has(node)) throw new Error(`Classic ${node} carries two rig joints`);
         if (model.Nodes.filter(item => item?.Name === node).length !== 1) throw new Error(`Classic ${node} names more than one node`);
-        names.set(node, joint);
+        names.set(node, rigNode(joint));
     }
-    for (const name of present) if (HUMANOID.has(name) && !names.has(name)) throw new Error(`Classic node ${name} shadows a rig joint`);
+    for (const name of present) if (name.startsWith('@')) throw new Error(`Classic node ${name} uses the rig joint prefix`);
     return names;
 }
 
 /**
- * A fighter's canonical motion: its authored moves on the rig. Humanoid joints take their rig names, the fighter's
+ * A fighter's canonical motion: its authored moves on the rig. Humanoid joints take their `rigNode` names, the fighter's
  * other animated nodes are its own secondary joints, and the mesh is the reference silhouette the bodies plant and
  * fit against. Today's Classic animations are its first source.
  */
@@ -60,5 +62,5 @@ export function canonicalMotion(authored: mdx.Model, rig: FighterRig): mdx.Model
 
 /** The Classic skeleton driven by canonical motion: the Classic mapping applied in reverse. */
 export function classicSkeleton(motion: mdx.Model, rig: FighterRig): mdx.Model {
-    return renamed(motion, new Map(Object.entries(rig.classic).map(([joint, node]) => [joint, node!])));
+    return renamed(motion, new Map(Object.entries(rig.classic).map(([joint, node]) => [rigNode(joint), node!])));
 }
