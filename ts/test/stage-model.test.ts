@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { f32 } from "wisp/src/sim/f32";
 import { MAIN_DECK_HALF_DEPTH, type DeckFace, type OutlinePoint, mainDeckFaces, mainDeckMdl, mainDeckModelFile, mainDeckOutlineStage, paletteTexture } from "../scripts/stageDeck";
 import { STAGE_DECK_MODELS, STAGE_MAIN_DECK_MODEL, STAGE_POINT_LIGHT_MODELS } from "../src/game/assets/stageAssetInfo";
 import { STAGE_SKY_MODELS } from "../src/game/assets/stageSkyInfo";
@@ -273,6 +274,7 @@ test("Naxxramas's cold green light frames the necropolis with one shadow and lea
   for (const { color: [red, green, blue] } of lights) expect(green > red && blue > red).toBe(true);
   expect(shadowCastingLights(PATTERNED_DECKS_STAGE)).toBe(1);
   for (const light of lights) expect(light.y - light.radius - 200).toBeGreaterThan(3000);
+  expect(stageScenery(PATTERNED_DECKS_STAGE).fog).toEqual({ start: 5000, end: 5500, red: f32(0.3), green: f32(0.6), blue: f32(0.7) });
   const scenery = stageScenery(PATTERNED_DECKS_STAGE).pieces;
   const citadel = scenery.find(({ model }) => model.includes("Necropolis"));
   expect(citadel).toBeDefined();

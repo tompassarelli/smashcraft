@@ -1,3 +1,4 @@
+import { f32 } from "wisp/src/sim/f32";
 
 
 
@@ -90,11 +91,10 @@ export const STAGE_DECK_PALETTES: readonly { readonly stage: number; readonly th
   } },
 
   { stage: DRIFTING_DECK_STAGE, theme: "Durotar", palette: { top: [214, 180, 130], lip: [140, 62, 40], body: [70, 46, 34], underside: [96, 66, 46] }, materials: {"top":{"texture":"TerrainArt\\Barrens\\Barrens_Dirt.blp"},"lip":{"texture":"Textures\\Watchtower.blp","crop":[0.09375,0.3125,0.3125,0.41015625]},"body":{"texture":"TerrainArt\\Barrens\\Barrens_Rock.blp"},"underside":{"texture":"Textures\\BarrensNatural02.blp"},"platform":{"top":{"texture":"Textures\\Watchtower.blp","crop":[0.09375,0.3125,0.3125,0.41015625]},"lip":{"texture":"Textures\\Watchtower.blp","crop":[0.09375,0.3125,0.3125,0.41015625]},"body":{"texture":"TerrainArt\\Barrens\\Barrens_DirtRough.blp"},"underside":{"texture":"TerrainArt\\Barrens\\Barrens_DirtRough.blp"},"tint":[218,166,100]}} },
-
-  { stage: PATTERNED_DECKS_STAGE, theme: "Scourge", palette: { top: [160, 168, 176], lip: [100, 170, 110], body: [54, 60, 74], underside: [76, 84, 100] }, materials: {
+  { stage: PATTERNED_DECKS_STAGE, theme: "Scourge", palette: { top: [232, 238, 244], lip: [100, 170, 110], body: [180, 184, 204], underside: [76, 84, 100] }, materials: {
     top: { texture: "TerrainArt\\Icecrown\\Ice_BlackSquares.blp" },
     lip: { texture: "TerrainArt\\Icecrown\\Ice_RuneBricks.blp" },
-    body: { texture: "Textures\\NewZigguratscarycreepytex.blp", crop: [0, 0, 0.5, 0.5] },
+    body: { texture: "Textures\\NewZigguratscarycreepytex.blp", crop: [f32(0.16), f32(0.38), f32(0.3), f32(0.68)] },
     underside: { texture: "TerrainArt\\Icecrown\\Ice_BlackBricks.blp" },
     platform: {
       top: { texture: "Textures\\CreepyNecropolis.blp", crop: [0.34375, 0.90625, 0.515625, 0.9375] },
