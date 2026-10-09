@@ -93,8 +93,8 @@ short hop when released during startup. In the air, Z uses your second jump.
 
 Attacks buffer for six frames, including through jump squat. Hold P to walk;
 P with E crouches on a platform instead of climbing down. Jumping into a
-platform from below climbs onto it: hold E to stop on top, or shield to land
-shielding.
+platform from below climbs onto it: hold P with E to stop on top, or shield to
+land shielding.
 N with a direction performs a smash, or a tilt while walking. B (or /) is
 C-stick left; H is down; J is up; M is right. C-stick down-air preserves
 normal aerial momentum. QWERTY uses 7 for right trigger and 8 for the
