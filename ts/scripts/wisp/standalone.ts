@@ -24,7 +24,7 @@ const ACTIONS: Readonly<Record<string, Action>> = {
 const BINDINGS = presetBindings("standard");
 export const NEUTRAL_INPUT: StandaloneInput = { buttons: [], axisX: 0, axisY: 0 };
 
-function keys(input: StandaloneInput): Set<number> {
+export function heldKeys(input: StandaloneInput): Set<number> {
   const buttons = new Set(input.buttons);
   if (input.axisX < -0.28) buttons.add("left");
   if (input.axisX > 0.28) buttons.add("right");
@@ -107,7 +107,7 @@ export async function createStandaloneSession(options: { readonly script?: strin
           beatHeld = hold;
           tap = beatTap;
         } else if (script === undefined) {
-          const next = keys(input);
+          const next = heldKeys(input);
           for (const key of held) if (!next.has(key)) client.key(0, key, 0, false);
           for (const key of next) if (!held.has(key)) client.key(0, key, 0, true);
           held = next;

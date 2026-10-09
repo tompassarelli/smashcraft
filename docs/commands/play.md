@@ -19,3 +19,12 @@
   `--four-fighters --frames 7200 --out DIR` is wisp#48's 60 FPS measurement
   (one game copy, four fighters; smashcraft:docs/play.md).
   Private map and Warcraft assets stay in the existing local asset store.
+
+- Two processes over Wisp's transport: `bun wisp net pair --script PAD --frames N
+  [--rtt MS] [--loss P]` plays the playable keyboard build, one slot per process:
+  each process presses only its own pad's keys (pad a is slot 0, b slot 1), and
+  Wisp's UDP lockstep carries them to both clients (wisp:docs/network-model.md).
+  It prints each side's checksum agreement every 60 frames and delivery times;
+  `--rtt`/`--loss` add Wisp's delay and loss proxy, `--freeze-at F` and
+  `--quit-at F` drill a silent or departing joiner. `net host` and `net join
+  ADDRESS:PORT` run one side each (wisp#110).
