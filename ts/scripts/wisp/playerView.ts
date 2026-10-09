@@ -28,7 +28,7 @@ import { SUMMON_BEAR, summonClip, summonClipCount } from "../../src/game/present
 import { CANNON_MODEL, HYDRA_CREST_MODEL, HYDRA_RING_MODEL } from "../../src/game/presentation/stageHazards";
 import { allProjectileModels, SPECIAL_SLOTS } from "../../src/game/presentation/projectileArt";
 import { ELEMENTS, elementLook } from "../../src/game/presentation/elementLooks";
-import { allCueModels } from "../../src/game/presentation/specialCues";
+import { allCueModels, MISSING_CUE_MODEL } from "../../src/game/presentation/specialCues";
 import { allAttackCueModels } from "../../src/game/presentation/attackCues";
 import { Character } from "../../src/game/sim/codes";
 import type { AuthoredSpecial } from "../../src/game/sim/heroSpecials";
@@ -141,6 +141,7 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
     },
     // Each special's startup and active spell, shown while the special runs (presentation/specialCues.ts).
     { name: "special cue", lifetime: seconds(3), models: [...new Set([...allCueModels(), ...allAttackCueModels()])] },
+    { name: "missing effect marker", models: [MISSING_CUE_MODEL] },
     // A hit's element on its victim through hitlag and hitstun, a few seconds at most (presentation/elementLooks.ts).
     { name: "hit element", lifetime: seconds(5), models: ELEMENTS.flatMap((element) => elementLook(element).victim ?? []) },
     // Stock game models (render/effects.ts STOCK_MODELS, shell/fighterBody.ts); the host can't load those modules' natives.

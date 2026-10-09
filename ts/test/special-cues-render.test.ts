@@ -1,11 +1,11 @@
 import { expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
-import { MISSING_CUE_MODEL, SpecialCueEffects } from "../src/game/render/specialCueEffects";
+import { SpecialCueEffects } from "../src/game/render/specialCueEffects";
 import { Character, SpecialAction } from "../src/game/sim/codes";
 import { createFighter } from "../src/game/sim/fighter";
 import { heroDefinition } from "../src/game/sim/heroes/registry";
-import { HERO_CUES, heroCueWindows } from "../src/game/presentation/specialCues";
+import { HERO_CUES, MISSING_CUE_MODEL, heroCueWindows } from "../src/game/presentation/specialCues";
 import { pollModelFailures, startModelFailures } from "wisp/src/platform/modelFailures";
 import { modelFailureFile, modelFailureRequestFile } from "wisp/src/runtime/gameFiles";
 import { configureRuntime } from "wisp/src/runtime/config";

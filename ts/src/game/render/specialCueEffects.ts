@@ -8,14 +8,12 @@ import type { Character } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { ATTACK_CUES, type AttackCueState, attackCueState, fighterRenderedCues } from "../presentation/attackCues";
 import { characterModelScale } from "../presentation/modelScale";
-import { CUE_ANCHORS, type Cue, specialCueState } from "../presentation/specialCues";
+import { CUE_ANCHORS, MISSING_CUE_MODEL, type Cue, specialCueState } from "../presentation/specialCues";
 import { type ParkedFlags, type WorldOrigin, facingYaw, parkOnce, placeEffect } from "./effects";
 import { HitAreaEffects } from "./hitAreaEffects";
 import { DEFINITIVE_CUE_EMITTERS } from "../presentation/cueEmitterInfo";
 import { modelFailed } from "wisp/src/platform/modelFailures";
 import { fighterName } from "../sim/heroes/registry";
-
-export const MISSING_CUE_MODEL = "Objects\\InventoryItems\\QuestionMark\\QuestionMark.mdl";
 
 declare global { var __smashcraftCueDefinitive: boolean | undefined; }
 

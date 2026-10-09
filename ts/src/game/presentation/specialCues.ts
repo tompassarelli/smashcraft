@@ -41,6 +41,8 @@ import { RIFLEMAN_MODEL_FILE } from "./fighterAssetInfo";
 /** Where a cue stands, facing-relative, in the fighter's model scale. */
 export type CueAnchor = "hand" | "body" | "feet" | "ahead" | "behind" | "overhead" | "barrel" | "breath";
 
+export const MISSING_CUE_MODEL = "Objects\\InventoryItems\\QuestionMark\\QuestionMark.mdl";
+
 export const CUE_ANCHORS: { readonly [anchor in CueAnchor]: { readonly x: number; readonly z: number } } = {
   hand: { x: 40.0, z: 70.0 },
   body: { x: 0.0, z: 50.0 },
