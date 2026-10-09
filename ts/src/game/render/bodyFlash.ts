@@ -1,4 +1,5 @@
 import { WHITE_FIGHTER_MODELS } from "../assets/whiteFighterModels";
+import { ARENA_CAMERA } from "../presentation/arenaCamera";
 import { originalClip, originalClipNamed } from "../assets/fighterOriginalClipInfo";
 import { fitFighterPlacement } from "../presentation/fighterPlacement";
 import type { FighterPose } from "../presentation/fighterPose";
@@ -9,6 +10,8 @@ import { fighterPoseFacing } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { facingYaw, hideEffect, placeEffect, type WorldOrigin } from "./effects";
 import { at } from "wisp/src/runtime/lookup";
+
+const FLASH_LIFT = 8.0;
 
 export class BodyFlash {
   private readonly model: effect;
@@ -41,9 +44,16 @@ export class BodyFlash {
     else seconds = Math.min(seconds, duration);
     BlzSetSpecialEffectTime(this.model, clip.startSeconds + seconds);
     BlzSetSpecialEffectYaw(this.model, facingYaw(fighterPoseFacing(fighter)));
-
-    placeEffect(this.model, this.origin.x + this.placement.x, this.origin.y - 0.5, this.origin.z + this.placement.z);
-    BlzSetSpecialEffectScale(this.model, characterModelScale(fighter.character));
+    const x = this.origin.x + this.placement.x, y = this.origin.y, z = this.origin.z + this.placement.z;
+    const pitch = ARENA_CAMERA.angleOfAttack * (Math.PI / 180.0), yaw = ARENA_CAMERA.rotation * (Math.PI / 180.0);
+    const distance = GetCameraField(CAMERA_FIELD_TARGET_DISTANCE);
+    const towardX = GetCameraTargetPositionX() - Math.cos(yaw) * Math.cos(pitch) * distance - x;
+    const towardY = this.origin.y - Math.sin(yaw) * Math.cos(pitch) * distance - y;
+    const towardZ = GetCameraField(CAMERA_FIELD_ZOFFSET) - Math.sin(pitch) * distance - z;
+    const length = Math.sqrt(towardX * towardX + towardY * towardY + towardZ * towardZ);
+    const lift = length > FLASH_LIFT * 2.0 ? FLASH_LIFT / length : 0.0;
+    placeEffect(this.model, x + towardX * lift, y + towardY * lift, z + towardZ * lift);
+    BlzSetSpecialEffectScale(this.model, characterModelScale(fighter.character) * (1.0 - lift));
     BlzSetSpecialEffectAlpha(this.model, alpha);
     BlzSetSpecialEffectColor(this.model, 255, 255, 255);
     this.shown = true;

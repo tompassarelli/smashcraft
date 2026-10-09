@@ -3,15 +3,17 @@ import { originalClip, originalClipCount, originalClipNamed } from "../assets/fi
 import { characterClips, namedClips } from "../presentation/fighterClips";
 import { Character } from "../sim/codes";
 import { SELECTABLE_CHARACTERS, fighterName, heroDefinition } from "../sim/heroes/registry";
+import { WHITE_FIGHTER_MODELS } from "../assets/whiteFighterModels";
 
 
 
 
-test("every selectable fighter has a clip pool covering its clip table [invariant]", () => {
+test("every selectable fighter has a clip pool covering its clip table and a white flash body [invariant]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const name = fighterName(character);
     const count = originalClipCount(character);
     assertEquals(count > 0, true, `${name} has no clip pool`);
+    assertEquals(WHITE_FIGHTER_MODELS[character] !== undefined, true, `${name} has no white body for its smash-charge and heavy-hit flash`);
     for (let index = 0; index < count; index++) assertEquals(originalClip(character, index) !== undefined, true, `${name} clip ${index} is missing`);
     const table = characterClips(character);
     const fallback = heroDefinition(character)?.presentation.fallback;

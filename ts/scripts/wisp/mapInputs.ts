@@ -216,6 +216,7 @@ export const rebuildMap = (map: string) => {
   );
 };
 
+const DEFINITIVE_PREFIX = "_de.w3mod/";
 const imported = (directory: string, file: string): ArchiveEntry => ({ entry: `war3mapImported\\${file}`, source: join(directory, file) });
 
 
@@ -283,7 +284,8 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
     const path = join(assets, list);
     const files = yield* importLines(path);
     yield* requireListed(path, files, models, `package them with ${generator}`);
-    return files.filter((file) => !file.toLowerCase().endsWith(".mdx") || models.includes(`war3mapImported\\${file}`)).map((file) => imported(dirname(path), file));
+    return files.filter((file) => !file.toLowerCase().endsWith(".mdx") || models.includes(`war3mapImported\\${file.replace(DEFINITIVE_PREFIX, "")}`)).map((file) =>
+      file.startsWith(DEFINITIVE_PREFIX) ? { entry: `_de.w3mod\\war3mapImported\\${file.slice(DEFINITIVE_PREFIX.length)}`, source: join(dirname(path), file) } : imported(dirname(path), file));
   }));
   const evidencePath = join(summon, "summon-clips-evidence.json");
   const evidence = yield* readJson(SummonEvidence, evidencePath);
@@ -299,6 +301,22 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
     return existsSync(source) ? [{ entry, source }] : [];
   });
 
+  const whiteEntries = new Set(generated.flat().map(({ entry }) => entry));
+  const unflashed = Object.values(Character).flatMap((character) => {
+    const white = WHITE_FIGHTER_MODELS[character];
+    const body = originalClip(character, 0)?.modelPath;
+    return white !== undefined && body !== undefined && definitiveBodies.some(({ entry }) => entry === `_de.w3mod\\${body}`) && !whiteEntries.has(`_de.w3mod\\${white}`) ? [white] : [];
+  });
+  const misshapen = Object.values(Character).flatMap((character) => {
+    const white = WHITE_FIGHTER_MODELS[character];
+    return white !== undefined && !DEFINITIVE_FIGHTERS.has(character) && whiteEntries.has(`_de.w3mod\\${white}`) ? [white] : [];
+  });
+  if (misshapen.length > 0) {
+    return yield* new MapBuildFailure({ operation: "check Definitive white bodies", path: join(assets, "impact-assets"), cause: `${some(misshapen)} have a Definitive white body but their fighter draws Classic in Definitive; regenerate with tools/animations/white-flash-models.ts --definitive` });
+  }
+  if (unflashed.length > 0) {
+    return yield* new MapBuildFailure({ operation: "check Definitive white bodies", path: join(assets, "impact-assets"), cause: `${some(unflashed)} lack a Definitive white body over their Definitive body; package them with tools/animations/white-flash-models.ts` });
+  }
   yield* requireListed(clipEvidencePath, clipFiles, ORIGINAL_CLIP_MODELS,
     `this assets folder's clip pool predates the checkout's clips. From the repository root, export a new pool from ${assets} ` +
     "with animation-assets and illidan-animation holding the packaged models fighterAssetInfo.ts and demonHunterAssetInfo.ts name: " +
