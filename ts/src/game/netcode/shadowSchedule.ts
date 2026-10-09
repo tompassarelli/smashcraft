@@ -178,6 +178,11 @@ export class ShadowInputSchedule {
     return this.acceptedCount;
   }
 
+  /** The first frame of any packet accepted since the last call (past INPUT_LAST_FRAME when none was), and starts afresh. */
+  takeLowestAccepted(): number {
+    return this.schedule.takeLowestAccepted();
+  }
+
   private counted(receipt: Receipt): Receipt {
     if (receipt === "accepted") this.acceptedCount++;
     return receipt;

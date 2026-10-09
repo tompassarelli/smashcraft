@@ -252,6 +252,11 @@ export class ReplayHistory {
     return this.authoritativeThrough + 1;
   }
 
+  /** The recorded row, valid until the history records or amends that frame again. */
+  inputRow(epoch: number, frame: number): Readonly<MatchFrameInput> | undefined {
+    return this.contains(epoch, frame) ? this.inputAt(frame) : undefined;
+  }
+
   copyInputRow(epoch: number, frame: number, target: MatchFrameInput): boolean {
     if (!this.contains(epoch, frame)) return false;
     copyMatchFrameInput(target, this.inputAt(frame));

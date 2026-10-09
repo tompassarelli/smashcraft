@@ -5,10 +5,12 @@ import { type InputRow, copyInput, emptyInput, predictInto } from "../input/inpu
 import { PARTICIPANT_SLOTS, participantInputs } from "../input/participants";
 import {
   captureNetworkFrame,
+  copyMatchFrameInput,
   copyNetworkRow,
   createMatchFrameInput,
   executeMatchFrame,
   hasNetworkRows,
+  networkRowsMatch,
   replaceNetworkRows,
 } from "../match/frameInput";
 import { humanActive } from "../match/rules";
@@ -137,14 +139,23 @@ export class ShadowInputPlayback {
     // Frames before the first correctable one are authoritative and never
     // change. This playback records only network rows of every human, so
     // the latest of them alone gives each slot its prediction basis.
-    const firstFrame = Math.max(history.firstRetainedFrame(), schedule.firstAcceptedFrame(), history.firstCorrectableFrame() - 1);
+    const retained = Math.max(history.firstRetainedFrame(), schedule.firstAcceptedFrame(), history.firstCorrectableFrame() - 1);
     const lastFrame = history.lastRecordedFrame();
+    const lowest = schedule.takeLowestAccepted();
     for (const row of actual) copyInput(row, NEUTRAL);
+    // Rows before the first frame of any newly accepted packet already hold
+    // what this walk would rebuild, so it resumes from the row before it.
+    let firstFrame = retained;
+    if (this.reconciledPackets !== undefined && lowest > retained + 1 && history.copyInputRow(epoch, Math.min(lowest, lastFrame + 1) - 1, correctionRow) && hasNetworkRows(correctionRow)) {
+      firstFrame = Math.min(lowest, lastFrame + 1);
+      for (const slot of PARTICIPANT_SLOTS) if (humanActive(match, slot)) copyNetworkRow(correctionRow, slot, actual[slot]);
+    }
     for (let frame = firstFrame; frame <= lastFrame; frame++) {
-      if (!history.copyInputRow(epoch, frame, correctionRow) || correctionRow.mask !== world.mask) return "rejected";
-      if (!hasNetworkRows(correctionRow)) continue;
+      const stored = history.inputRow(epoch, frame);
+      if (stored === undefined || stored.mask !== world.mask) return "rejected";
+      if (!hasNetworkRows(stored)) continue;
       if (!history.isSpeculative(epoch, frame)) {
-        for (const slot of PARTICIPANT_SLOTS) if (humanActive(match, slot)) copyNetworkRow(correctionRow, slot, actual[slot]);
+        for (const slot of PARTICIPANT_SLOTS) if (humanActive(match, slot)) copyNetworkRow(stored, slot, actual[slot]);
         continue;
       }
       let allAccepted = true;
@@ -156,12 +167,15 @@ export class ShadowInputPlayback {
           continue;
         }
         if (slot === localPlayer) {
-          copyNetworkRow(correctionRow, slot, actual[slot]);
+          copyNetworkRow(stored, slot, actual[slot]);
           continue;
         }
         allAccepted = false;
         predictInto(actual[slot], actual[slot]);
       }
+      // A row that stays speculative with the inputs it ran on changes nothing in history.amend.
+      if (!allAccepted && networkRowsMatch(stored, actual)) continue;
+      copyMatchFrameInput(correctionRow, stored);
       replaceNetworkRows(correctionRow, actual);
       if (!(allAccepted ? corrections.add(correctionRow) : corrections.addSpeculative(correctionRow))) return "rejected";
     }
