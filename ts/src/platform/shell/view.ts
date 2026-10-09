@@ -129,8 +129,9 @@ function clearStageDecks(s: ShellState): void {
 
 function placePart(deck: effect, part: Readonly<PlatformPart>, x: number, y: number, z: number): void {
   BlzSetSpecialEffectPosition(deck, x + part.x, y + part.y, z + part.z);
-  BlzSetSpecialEffectMatrixScale(deck, part.scale[0], part.scale[1], part.scale[2]);
+  // Native yaw discards an earlier matrix scale (0.0.103 drew Frozen Throne's floes unsquashed), so the scale goes last.
   BlzSetSpecialEffectYaw(deck, part.yaw * (Math.PI / 180.0));
+  BlzSetSpecialEffectMatrixScale(deck, part.scale[0], part.scale[1], part.scale[2]);
 }
 
 

@@ -45,8 +45,8 @@ export function drawStageScenery(s: ShellState): void {
     BlzSetSpecialEffectPosition(effect, x, y, s.origin.z + piece.z);
     BlzSetSpecialEffectScale(effect, piece.scale);
     if (piece.color !== undefined) BlzSetSpecialEffectColor(effect, piece.color[0], piece.color[1], piece.color[2]);
-    if (piece.matrixScale !== undefined) BlzSetSpecialEffectMatrixScale(effect, piece.matrixScale[0], piece.matrixScale[1], piece.matrixScale[2]);
     BlzSetSpecialEffectYaw(effect, piece.yaw * (Math.PI / 180.0));
+    if (piece.matrixScale !== undefined) BlzSetSpecialEffectMatrixScale(effect, piece.matrixScale[0], piece.matrixScale[1], piece.matrixScale[2]);
 
     BlzPlaySpecialEffect(effect, ANIM_TYPE_STAND);
     effects.push(effect);
@@ -83,8 +83,8 @@ export function showBackdrop(s: ShellState, visible: boolean): void {
 
       if (piece.matrixScale !== undefined) {
         BlzResetSpecialEffectMatrix(effect);
-        BlzSetSpecialEffectMatrixScale(effect, piece.matrixScale[0], piece.matrixScale[1], piece.matrixScale[2]);
         BlzSetSpecialEffectYaw(effect, piece.yaw * (Math.PI / 180.0));
+        BlzSetSpecialEffectMatrixScale(effect, piece.matrixScale[0], piece.matrixScale[1], piece.matrixScale[2]);
       }
     }
   }
