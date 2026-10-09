@@ -1,6 +1,6 @@
 # Native
 
-- One-client look captures (clone-a, or any single signed-in client):
+- One-client Definitive look captures (signed-in clone b, c or d):
   `bun scripts/nativeCapture.ts build --out MAP.w3x --control PAD|DIR...` bakes
   the scripts and their `capture` frames into a native-capture map that plays
   both pads itself and holds each capture frame with the fighters' animations
@@ -26,9 +26,10 @@ Keep ordinary combat completion intact; do not force a win to shorten a test.
 
 Frame acceptance follows the root AGENTS.md budget.
 
-Pick the clients by what the test needs (Tom, 7 Oct). The offline LAN pool
-is the default for native testing: pad parity runs, captures, `accept`
-checks and desync hunts.
+Never touch Tom’s install or account a. Pick clients by the required look:
+the offline LAN pool is Classic only; Definitive checks use signed-in clones
+b, c or d. The offline pool remains the default for Classic pad parity,
+captures, `accept` checks and desync hunts.
 
 Wisp is the test engine (Tom, 8 Oct; wisp#75 M1): 98% of checks run on Wisp,
 not on a running Warcraft copy. A gameplay box (rules, meters, items, hazards,
@@ -41,7 +42,7 @@ New Done-when boxes are written against Wisp evidence. Warcraft records
 reference captures when art or the client changes, plays one smoke match
 before a build goes to Tom, and covers listed intractable cases only.
 
-Native lanes: four solo-profile lanes, one per client (a, b, c, d), share
+Native checks use one worker per available client (signed-in b, c, d for Definitive), sharing
 the visual queue; pairs are only for sync and EX checks. A TypeScript-only
 change (presentation values, effects, menus, CPU tuning) hot-reloads into one
 running match with `bun wisp hot --data ... --watch` between captures; rebuild
@@ -56,10 +57,11 @@ To run four timing lanes together, start their foreground batch runner inside
 one `machine-capacity run --class exclusive --timeout-seconds 900 -- ...`
 command; pad children reuse that window. Separate exclusive commands queue in turn.
 Each result records `load_average` and `capacity_lease` (#311).
-The signed-in clones (B, C, D) are only for tests that need Battle.net
-itself: real netplay or latency, direct play (#142), spectating, and as the
-updated install the pool is copied from. Do not start them for an offline check; preserve an already signed-in client at its menu for the next client worker. Tom's install (account a,
-display :0) is Tom's. A run during which a client wrote a desync report or
+The signed-in clones (B, C, D) cover Definitive captures and tests that need Battle.net
+itself: real netplay or latency, direct play, spectating, and as the
+updated install the pool is copied from. Do not start them for a Classic offline check;
+preserve an already signed-in client at its menu for the next client worker.
+A run during which a client wrote a desync report or
 crashed is invalid; rerun it.
 
 Read warcraft-modding and its off-monitor dependency,

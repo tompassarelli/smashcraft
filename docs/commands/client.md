@@ -1,7 +1,7 @@
 # Client
 
 Offline clients never construct account launchers, even when named a or b.
-Clones start through their own launch script and keep their sign-in; doctor
+Clones b, c and d start through their own launch script and keep their sign-in; doctor
 supplies no account to clones. The older signed-in a/b configuration alone
 uses the authorized encrypted account fields described below.
 
@@ -23,7 +23,7 @@ uses the authorized encrypted account fields described below.
   a stuck loading screen, or shares its prefix with a second runtime, and
   signs a launcher at its Battle.net sign-in form in with the client's account
   (A: account c, B: account b; smashcraft:ts/scripts/wisp/doctor.ts), so Tom
-  never signs in by hand (wisp:docs/doctor.md). Clients named clone-a, clone-b,
+  never signs in by hand (wisp:docs/doctor.md). Clients named clone-b,
   clone-c or clone-d start only through ~/.local/share/wisp/online/launch.sh and keep
   their own sign-in (wisp:docs/lan.md, "Clone-a"). `bun wisp client sign-out
   CLIENT...` signs a client out; the next doctor run signs it in. `fresh`,

@@ -1,5 +1,9 @@
 # Perf
 
+The command currently defaults to p99 10 ms and worst 14 ms; that older worst
+limit remains until the frame-cost work lowers it. Acceptance still requires
+the root’s 10 ms worst-frame budget, so pass `--p99 10 --worst 10` explicitly.
+
 - Frame cost: `LUA=<32-bit lua> bun wisp perf [quick-match|bot|bot-four|playable-bot-four|playable-duel|playable-human-four]`
   plays a run in 32-bit Lua and prints each client's predicted Warcraft cost
   per frame (p50, p95, worst, typing stall); `bun wisp perf compare A B` fails

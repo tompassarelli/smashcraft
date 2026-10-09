@@ -3,8 +3,8 @@
 profile: prototype
 
 - Keep Wisp changes in Wisp; consume its published pin via the updater. Never edit installed dependencies or add a framework copy.
-- Add only Grom, Anub’arak, Malfurion, Medivh and Kobold, then hold the roster at 26 until every fighter feels good. Give each a specific personality; prefer Warcraft’s models.
-- Support Classic and Definitive only, with identical gameplay, move timing, hitboxes and hurtboxes.
+- The roster holds at 26 until every fighter feels good; each has a specific personality; prefer Warcraft models.
+- Definitive is the first-class look and Classic the fallback, per fighter; both looks share gameplay, timing, hitboxes and hurtboxes, and each visible body fits its boxes.
 - Every frame must sustain 60 fps; the map’s own work stays below 10 ms, including the worst frame (Warcraft draws inside 16.7 ms). A miss remains unfinished work.
 - Keep every mutable gameplay field in deterministic snapshots/replay; local presentation stays separate and shared handles are created consistently.
 - Publish a release only when Tom decides; private playable builds are Smashcraft 0.0.N (increment N only). Diagnostics keep distinct run IDs and names; keep one current candidate under Maps/00-Smashcraft.
