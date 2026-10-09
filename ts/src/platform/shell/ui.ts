@@ -154,12 +154,21 @@ function endFighterRenderers(renderers: FighterRenderers | undefined): void {
 
 
 
+function sharedPlay(): boolean {
+  let humans = 0;
+  for (const slot of PARTICIPANT_SLOTS) {
+    const player = Player(slot);
+    if (GetPlayerController(player) === MAP_CONTROL_USER && GetPlayerSlotState(player) === PLAYER_SLOT_STATE_PLAYING) humans++;
+  }
+  return humans > 1;
+}
+
 export function beginFighterRenderers(s: ShellState, slot: ParticipantSlot, character: Character, pooled: boolean): boolean {
   const ui = views(s);
   endFighterRenderers(ui.fighters[slot]);
   const pool = pooled ? new FighterPoolPresentation(character, slot, s.origin) : undefined;
   ui.placed.prepareFighter(slot, character);
-  ui.fighters[slot] = { character, shield: new ShieldPresentation(slot, s.origin), projectiles: new ProjectilePresentation(character, s.origin), cues: new SpecialCueEffects(character, s.origin), pool, agency: new AgencyMarker(s.origin), flash: new BodyFlash(character, s.origin),
+  ui.fighters[slot] = { character, shield: new ShieldPresentation(slot, s.origin), projectiles: new ProjectilePresentation(character, s.origin), cues: new SpecialCueEffects(character, s.origin, sharedPlay()), pool, agency: new AgencyMarker(s.origin), flash: new BodyFlash(character, s.origin),
     hitAreas: s.game.training && s.game.trainer.showHitAreas ? new HitAreaPresentation(s.origin) : undefined,
   };
   return pool?.admitted() === true;
