@@ -34,6 +34,7 @@ From ts/, `bun wisp help` lists commands and topics; `bun wisp help TOPIC` print
 | `soak` | [soak](commands/soak.md) |
 | `dev` | [dev](commands/dev.md) |
 | `play` | [play](commands/play.md) |
+| `net` | [play](commands/play.md) |
 | `controller` | [controller](commands/controller.md) |
 | `tune` | [tune](commands/tune.md) |
 | `repro` | [repro](commands/repro.md) |
