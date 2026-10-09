@@ -248,7 +248,7 @@ passes criterion 1 in either look: the source animations are the limit, which
 | 11 | Beastmaster | 0/18, 4.79 / 0/18, 5.17 | pass | pass | pass (10 October: `heldProps` puts the axes in the hands) | Definitive |
 | 12 | Lich King | — | pass | pass | pass (up tilt first frame +11.62 where Classic is outside at +6.78; both inside a frame later) | Definitive |
 | 13 | Thrall | 0/19, 3.70 / 0/19, 3.76 | pass | pass | pass | Definitive |
-| 14 | Jaina | 0/18, 7.00 / 0/18, 7.51 | pass | pass | pass (10 October: `alignRoot`, arm 1.09, staff 1.2; down air +1.87) | Definitive |
+| 14 | Jaina | 0/18, 7.00 / 0/18, 7.51 | pass | pass | pass (10 October: `alignRoot`, fit 1.15, arm 1.09, staff 1.25; down air +2.51) | Definitive |
 | 15 | Sylvanas | 0/19, 7.88 / 0/19, 7.00 | pass | pass | pass | Definitive |
 | 16 | Cairne | 0/19, 5.53 / 0/19, 5.39 | pass | pass | pass | Definitive |
 | 17 | Chen | 0/20, 9.36 / 0/20, 8.58 | pass | pass | pass | Definitive |

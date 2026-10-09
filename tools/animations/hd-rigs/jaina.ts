@@ -3,7 +3,9 @@ export const stockPath = 'war3.w3mod:_de.w3mod:units\\human\\Jaina\\Jaina.mdx';
 // The stock Stand Ready steps 12.7 units back of the origin; Classic stands on it.
 export const alignRoot = true;
 // The stock arm is 30.6 units to Classic's 33.3, and its grip sits further down the staff.
-export const limbScales = [['R_upr_arm_bind_jnt', 1.09], ['weapon_bind_jnt', 1.2]] as const;
+export const limbScales = [['R_upr_arm_bind_jnt', 1.09], ['weapon_bind_jnt', 1.25]] as const;
+// The stock body otherwise draws at 0.85 of her hurt capsules (drawn-size check, de-scale-audit).
+export const fitScale = 1.15;
 
 export const classic = {
     root: 'Bone_RootArchDruid',
