@@ -3,7 +3,7 @@ import { SurfaceContact } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { HitElement } from "../sim/hitRegions";
 import { elementLook } from "./elementLooks";
-import { SWING_SOUND, TIER_HIT_VOLUME, TIER_SWING_PITCH, TIER_SWING_VOLUME, tierHitPath } from "./moveTiers";
+import { SoundTier, SWING_SOUND, TIER_HIT_VOLUME, TIER_SWING_PITCH, TIER_SWING_VOLUME, tierHitPath } from "./moveTiers";
 import { at } from "wisp/src/runtime/lookup";
 import { type ImpactEvents, ImpactLanding, JumpCue } from "./impactEvents";
 import { playHit, playPerform, playShieldHit } from "./moveSounds";
@@ -90,8 +90,9 @@ export function presentImpactSounds(events: Readonly<ImpactEvents>, sink: Impact
   else if (events.hit) {
 
     const electric = events.element !== HitElement.fire && events.electric;
-    const path = electric ? undefined : tierHitPath(events.element, events.tier, events.variant);
-    const volume = at(TIER_HIT_VOLUME, events.tier);
+    const tier = events.strong ? SoundTier.large : events.tier;
+    const path = electric ? undefined : tierHitPath(events.element, tier, events.variant);
+    const volume = at(TIER_HIT_VOLUME, tier);
     if (path !== undefined) sink(path, events.x, events.z, volume, 1.0, true, VoiceClass.hit);
     else hit(electric ? "LightningBolt" : elementLook(events.element).sound ?? "LightningBolt", volume);
   }

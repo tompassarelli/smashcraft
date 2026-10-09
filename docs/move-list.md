@@ -25,6 +25,14 @@ inside Melee's roster spread (smashcraft:docs/gameplay-design.md,
 
 Ground movement: walk 1.40, initial dash 1.90, run 1.50; run from dash frame 14.
 
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward tilt (signature) | Position | sweetspot, frames 7-9, 9.3% | sourspot, frames 7-9, 6.5% | The bayonet's point: he keeps foes at the end of the barrel, so a thrust spaced to the tip pays. |
+| Forward tilt (up) | Position | sweetspot, frames 7-9, 9.3% | sourspot, frames 7-9, 6.5% | The bayonet's point: he keeps foes at the end of the barrel, so a thrust spaced to the tip pays. |
+| Forward tilt (down) | Position | sweetspot, frames 7-9, 9.3% | sourspot, frames 7-9, 6.5% | The bayonet's point: he keeps foes at the end of the barrel, so a thrust spaced to the tip pays. |
+
 ## Illidan
 
 | Input | Name | What it does |
@@ -46,6 +54,12 @@ Normals, inspired by:
 - Forward tilt: Shear, from the Black Temple encounter
 - Forward air: His twin warglaives crossing
 
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Neutral air (signature) | Timing | clean, frames 4-7, 7% | late, frames 8-31, 4.9% | The glaive spin cuts hardest as it starts and punishes a jump-in; its long lingering spin stays a weak landing and edge-guard cover. |
+
 ## Blademaster
 
 | Input | Name | What it does |
@@ -59,6 +73,18 @@ Normals, inspired by:
 | Ultimate | Bladestorm | A steerable whirlwind of cuts ending in a strong slash, then he is dizzy. Shield, jump above it or outrun it. |
 
 Ground movement: walk 1.60, initial dash 1.98, run 2.29; run from dash frame 14.
+
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward tilt | Position | sweetspot, frames 7-9, 10.5% | sourspot, frames 7-9, 7.6% | A fast poke whose tip is the spacing reward. |
+| Forward tilt (up) | Position | sweetspot, frames 7-9, 10.5% | sourspot, frames 7-9, 7.6% | A fast poke whose tip is the spacing reward. |
+| Forward tilt (down) | Position | sweetspot, frames 7-9, 10.5% | sourspot, frames 7-9, 7.6% | A fast poke whose tip is the spacing reward. |
+| Down tilt | Position | sweetspot, frames 6-7, 7.6% | sourspot, frames 6-7, 4.8% | A low sweep whose tip is the spacing reward. |
+| Dash attack | Position | sweetspot, frames 9-12, 9.6% | sourspot, frames 9-12, 7.6% | A running cut that hits hardest when it arrives at full reach. |
+| Forward smash (signature) | Position | sweetspot, frames 17-19, 18.1% | sourspot, frames 17-19, 14.3% | Critical Strike at the katana's tip: the duelist who spaces to the tip kills. |
+| Forward air | Position | sweetspot, frames 10-12, 13.4% | sourspot, frames 10-12, 10.5% | The katana's tip again, rewarding spaced aerial cuts. |
 
 ## Mountain King
 
@@ -74,6 +100,13 @@ Ground movement: walk 1.60, initial dash 1.98, run 2.29; run from dash frame 14.
 
 Ground movement: walk 1.41, initial dash 1.67, run 1.94; run from dash frame 14.
 
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward smash (signature) | Position | sweetspot, frames 20-22, 23.2% | sourspot, frames 20-22, 17.7% | The storm hammer's head carries the weight; the haft only shoves. |
+| Forward air | Position | sweetspot, frames 16-18, 17.7% | sourspot, frames 16-18, 12.2% | The hammer head spikes; the haft only bumps. |
+
 ## Warden
 
 | Input | Name | What it does |
@@ -87,6 +120,12 @@ Ground movement: walk 1.41, initial dash 1.67, run 1.94; run from dash frame 14.
 | Ultimate | Vengeance | The Avatar of Vengeance rises behind her and throws four ghostly glaives. Break it or dodge the glaives. |
 
 Ground movement: walk 1.60, initial dash 2.00, run 2.30; run from dash frame 14.
+
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward smash (signature) | Position | sweetspot, frames 15-17, 16% | sourspot, frames 15-17, 12% | The blade's far edge: a hunter who strikes at her reach. |
 
 ## Lich
 
@@ -102,6 +141,12 @@ Ground movement: walk 1.60, initial dash 2.00, run 2.30; run from dash frame 14.
 
 Ground movement: walk 1.44, initial dash 1.71, run 1.98; run from dash frame 14.
 
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward smash (signature) | Position | sweetspot, frames 18-20, 18% | sourspot, frames 18-20, 12.6% | Frost bursts at the staff's tip, so a caster who keeps distance kills at range. |
+
 ## Forsaken Paladin
 
 | Input | Name | What it does |
@@ -115,6 +160,12 @@ Ground movement: walk 1.44, initial dash 1.71, run 1.98; run from dash frame 14.
 | Ultimate | Light's Hammer | A golden circle marks where the Light's hammer will fall, then blesses the ground twice. Leave the circle. |
 
 Ground movement: walk 1.47, initial dash 1.75, run 2.02; run from dash frame 14.
+
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward smash (signature) | Position | sweetspot, frames 21-23, 20% | sourspot, frames 21-23, 15% | The hammer's head carries the blessing; the haft only shoves. |
 
 ## Dreadlord
 
@@ -130,6 +181,12 @@ Ground movement: walk 1.47, initial dash 1.75, run 2.02; run from dash frame 14.
 
 Ground movement: walk 1.60, initial dash 1.99, run 2.29; run from dash frame 14.
 
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Back air (signature) | Timing | clean, frames 9-9, 13.6% | late, frames 10-12, 9.5% | The wing-claw rakes hardest the frame it opens; a vampire who reads the approach takes the clean strike, the rest lingers as a weak wall. |
+
 ## Shadow Hunter
 
 | Input | Name | What it does |
@@ -143,6 +200,12 @@ Ground movement: walk 1.60, initial dash 1.99, run 2.29; run from dash frame 14.
 | Ultimate | Big Bad Voodoo | He dances untouchable inside a voodoo ring that pulses, then erupts. Leave the ring. |
 
 Ground movement: walk 1.60, initial dash 1.98, run 2.29; run from dash frame 14.
+
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward tilt (signature) | Position | sweetspot, frames 9-10, 11% | sourspot, frames 9-10, 7.7% | The spear's point: a trickster who pokes from outside reach. |
 
 ## Pit Lord
 
@@ -158,6 +221,12 @@ Ground movement: walk 1.60, initial dash 1.98, run 2.29; run from dash frame 14.
 
 Ground movement: walk 1.28, initial dash 1.52, run 1.76; run from dash frame 16.
 
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward smash (signature) | Position | sweetspot, frames 27-30, 25% | sourspot, frames 27-30, 19% | The cleaver's far edge: the demon lord's huge reach is the point. |
+
 ## Beastmaster
 
 | Input | Name | What it does |
@@ -171,6 +240,12 @@ Ground movement: walk 1.28, initial dash 1.52, run 1.76; run from dash frame 16.
 | Ultimate | Stampede | His pack stampedes past: a low quilbeast, a bear, then a high hawk. Jump, shield, then stay low. |
 
 Ground movement: walk 1.55, initial dash 1.84, run 2.13; run from dash frame 14.
+
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward smash (signature) | Position | sweetspot, frames 21-24, 19.1% | sourspot, frames 21-24, 13.4% | The axe head bites; the haft only shoves. |
 
 ## Lich King
 
@@ -198,6 +273,13 @@ Normals, inspired by:
 - Dash attack: Arthas's charge at Stratholme
 - Down throw: Harvest Soul (Icecrown Citadel)
 
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward smash (signature) | Position | sweetspot, frames 22-25, 21% | sourspot, frames 22-25, 17% | Frostmourne's point: the king kills at the end of the blade. |
+| Up smash | Timing | clean, frames 18-21, 15% | late, frames 22-25, 10% | Remorseless Winter's first burst is the strong one; the lingering frost is weaker. |
+
 ## Thrall
 
 | Input | Name | What it does |
@@ -211,6 +293,12 @@ Normals, inspired by:
 | Ultimate | Earthquake | Tremors run along the ground both ways. Jump them or stand on a platform. |
 
 Ground movement: walk 1.09, initial dash 1.29, run 1.50; run from dash frame 16.
+
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward smash (signature) | Timing | clean, frames 20-20, 18% | late, frames 21-22, 12.6% | The Doomhammer lands its full weight only on impact; the follow-through is a weak shove. |
 
 ## Jaina Proudmoore
 
@@ -226,6 +314,12 @@ Ground movement: walk 1.09, initial dash 1.29, run 1.50; run from dash frame 16.
 
 Ground movement: walk 0.80, initial dash 1.00, run 1.10; run from dash frame 14.
 
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Neutral air (signature) | Timing | clean, frames 8-9, 8% | late, frames 10-12, 5.6% | An arcane burst strongest as it forms and fading as it lingers: a landing and edge-guard cover. |
+
 ## Sylvanas Windrunner
 
 | Input | Name | What it does |
@@ -239,6 +333,12 @@ Ground movement: walk 0.80, initial dash 1.00, run 1.10; run from dash frame 14.
 | Ultimate | Charm | A slow banshee spirit; a foe it reaches has left and right swapped for 3 seconds. |
 
 Ground movement: walk 1.33, initial dash 1.58, run 1.83; run from dash frame 14.
+
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward smash (signature) | Position | sweetspot, frames 16-18, 16.5% | sourspot, frames 16-18, 11.6% | The blade's point: the Windrunner is rewarded for keeping her distance. |
 
 ## Cairne Bloodhoof
 
@@ -254,6 +354,12 @@ Ground movement: walk 1.33, initial dash 1.58, run 1.83; run from dash frame 14.
 
 Ground movement: walk 1.08, initial dash 1.28, run 1.49; run from dash frame 16.
 
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward smash (signature) | Position | sweetspot, frames 28-31, 25% | sourspot, frames 28-31, 19% | The totem's head carries the earth's weight; the haft only shoves. |
+
 ## Chen Stormstout
 
 | Input | Name | What it does |
@@ -267,6 +373,12 @@ Ground movement: walk 1.08, initial dash 1.28, run 1.49; run from dash frame 16.
 | Ultimate | Storm, Earth and Fire | He splits into Earth, Storm and Fire, which strike around him one after another. |
 
 Ground movement: walk 1.16, initial dash 1.38, run 1.60; run from dash frame 14.
+
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Neutral air (signature) | Timing | clean, frames 7-8, 10% | late, frames 9-11, 7% | A drunken flying kick: hit early to punish, let it linger to cover a landing. |
 
 ## Peon
 
@@ -282,6 +394,12 @@ Ground movement: walk 1.16, initial dash 1.38, run 1.60; run from dash frame 14.
 
 Ground movement: walk 1.16, initial dash 1.38, run 1.60; run from dash frame 14.
 
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward smash (signature) | Position | sweetspot, frames 22-24, 19% | sourspot, frames 22-24, 13.3% | The pick bites hardest at its point, like a swing at the mine. |
+
 ## Goblin Tinker
 
 | Input | Name | What it does |
@@ -295,6 +413,12 @@ Ground movement: walk 1.16, initial dash 1.38, run 1.60; run from dash frame 14.
 | Ultimate | Robo-Goblin Overdrive | His Robo-Goblin waddles ahead and explodes. Walk away or shield the blast. |
 
 Ground movement: walk 1.25, initial dash 1.49, run 1.73; run from dash frame 14.
+
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward smash (signature) | Position | sweetspot, frames 20-23, 17% | sourspot, frames 20-23, 11.9% | The claw clamps hardest at full extension; the arm only pushes. |
 
 ## Kael'thas Sunstrider
 
@@ -310,6 +434,12 @@ Ground movement: walk 1.25, initial dash 1.49, run 1.73; run from dash frame 14.
 
 Ground movement: walk 1.60, initial dash 1.95, run 2.26; run from dash frame 14.
 
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward smash (signature) | Position | sweetspot, frames 13-15, 16% | sourspot, frames 13-15, 11.2% | Phoenix flame at the blade's tip: a vain duelist who must space to shine. |
+
 ## Murloc
 
 | Input | Name | What it does |
@@ -323,6 +453,12 @@ Ground movement: walk 1.60, initial dash 1.95, run 2.26; run from dash frame 14.
 | Ultimate | Mrglglgl Stampede | He blows a conch and a swarm of murlocs pours across the ground. Jump over it or shield. |
 
 Ground movement: walk 1.60, initial dash 2.00, run 2.30; run from dash frame 14.
+
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Neutral air (signature) | Timing | clean, frames 5-6, 8% | late, frames 7-10, 5.6% | A flailing spin strongest at its first slap; the rest is a scrappy weak wall. |
 
 ## Grom Hellscream
 
@@ -338,6 +474,12 @@ Ground movement: walk 1.60, initial dash 2.00, run 2.30; run from dash frame 14.
 
 Ground movement: walk 1.60, initial dash 1.98, run 2.29; run from dash frame 14.
 
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward smash (signature) | Position | sweetspot, frames 18-21, 18% | sourspot, frames 18-21, 12.6% | Gorehowl bites with its blade; the haft only shoves. |
+
 ## Kobold
 
 | Input | Name | What it does |
@@ -351,6 +493,12 @@ Ground movement: walk 1.60, initial dash 1.98, run 2.29; run from dash frame 14.
 | Ultimate | You No Take Candle! | He digs in and burrows toward the foe, then bursts up under them. Watch the dirt. |
 
 Ground movement: walk 1.60, initial dash 1.99, run 2.30; run from dash frame 14.
+
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward smash (signature) | Position | sweetspot, frames 14-16, 16% | sourspot, frames 14-16, 11.2% | The candle's flame at the end of the pick: you no take candle. |
 
 ## Malfurion Stormrage
 
@@ -366,6 +514,12 @@ Ground movement: walk 1.60, initial dash 1.99, run 2.30; run from dash frame 14.
 
 Ground movement: walk 1.31, initial dash 1.55, run 1.80; run from dash frame 14.
 
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward smash (signature) | Position | sweetspot, frames 19-21, 17% | sourspot, frames 19-21, 11.9% | Wrath bursts at the staff's tip, so the druid kills at range. |
+
 ## Medivh
 
 | Input | Name | What it does |
@@ -380,6 +534,12 @@ Ground movement: walk 1.31, initial dash 1.55, run 1.80; run from dash frame 14.
 
 Ground movement: walk 1.57, initial dash 1.86, run 2.16; run from dash frame 14.
 
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Neutral air (signature) | Timing | clean, frames 8-9, 6% | late, frames 10-13, 4.2% | An arcane ring strongest as it forms, lingering as weak cover. |
+
 ## Anub'arak
 
 | Input | Name | What it does |
@@ -393,3 +553,9 @@ Ground movement: walk 1.57, initial dash 1.86, run 2.16; run from dash frame 14.
 | Ultimate | Locust Swarm | A slow cloud of beetles drifts ahead, stinging anyone standing in it. Jump or shield. |
 
 Ground movement: walk 1.31, initial dash 1.56, run 1.80; run from dash frame 16.
+
+Strong and weak hits (frames are active frames, damage uncharged):
+
+| Move | Axis | Strong hit | Weak hit | Why |
+| --- | --- | --- | --- | --- |
+| Forward smash (signature) | Position | sweetspot, frames 20-23, 20% | sourspot, frames 20-23, 14% | The impaling claw's point. |

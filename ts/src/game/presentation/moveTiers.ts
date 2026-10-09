@@ -74,3 +74,4 @@ export const TIER_SWING_VOLUME: readonly number[] = [45, 65, 90];
 export const TIER_SWING_PITCH: readonly number[] = [1.5, 1.25, 1.0];
 
 export const TIER_SPARK_SCALE: readonly number[] = [0.75, 1.0, 1.25];
+export const STRONG_SPARK_SCALE = 1.75;

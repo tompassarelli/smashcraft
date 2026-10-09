@@ -7,7 +7,7 @@ import { fighter, frameMasks } from "./padScene";
 const setup = { stage: 0, attacker: Character.blademaster, defender: Character.rifleman, attackerX: -20.0, defenderX: 20.0, facing: 1, attackerZ: 0.0, defenderZ: 0.0, percent: 0.0 };
 const routes: readonly { readonly route: ComboRoute; readonly damage: number; readonly stocksLost: number }[] = [
   { route: { setup, held: [128, 0, 1, 0, 0, 6, 8, 2, 1, 0, 2, 25, 16418, 2, 1, 0, 2, 19, 0, 0, 4] }, damage: 16.235000610351562, stocksLost: 0 },
-  { route: { setup: { ...setup, percent: 130.0 }, held: [128, 0, 1, 0, 0, 6, 8, 2, 1, 0, 2, 23, 2048, 2, 1, 0, 2, 59] }, damage: 23.875, stocksLost: 1 },
+  { route: { setup: { ...setup, percent: 130.0 }, held: [128, 0, 1, 0, 0, 6, 8, 2, 1, 0, 2, 23, 2048, 2, 1, 0, 2, 62] }, damage: 23.875, stocksLost: 1 },
   { route: { setup: { ...setup, attackerZ: 100.0 }, held: [2048, 0, 1, 0, 0, 9, 0, 2, 12, 0, 0, 4] }, damage: 10.505000114440918, stocksLost: 0 },
 ];
 

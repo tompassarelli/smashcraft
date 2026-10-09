@@ -5,6 +5,7 @@ import { AttackStyle, GrabAction, HitElement, LAST_ATTACK_STYLE } from "../codes
 import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import { WARDEN_GROUND } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
+import { strongHit } from "../strongHits";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
 import { type Strike, drillStrikes, linkAt, multiHit } from "./multiHit";
 
@@ -66,7 +67,7 @@ function cut(first: number, heights: readonly number[], reach: number, inner: Re
     const zAt = (x: number) => f32(45.0 + f32(rise * f32(x / end)));
     if (tip !== undefined) {
       const tipStart = f32(boundary + BLADE_RADIUS);
-      regions.push(heroRegion(frame, frame, blade(f32(tipStart * facing), zAt(tipStart), f32(end * facing), height), tip));
+      regions.push(heroRegion(frame, frame, blade(f32(tipStart * facing), zAt(tipStart), f32(end * facing), height), strongHit(tip)));
     }
     const innerEnd = tip === undefined ? end : boundary;
     regions.push(heroRegion(frame, frame, blade(f32(18.0 * facing), zAt(18.0), f32(innerEnd * facing), zAt(innerEnd)), inner));

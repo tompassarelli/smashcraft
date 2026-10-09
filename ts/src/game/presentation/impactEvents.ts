@@ -339,7 +339,7 @@ export function finishImpactEventsAfter(events: ImpactEvents, fighter: Readonly<
   events.variant = visuals.hit;
   events.pummel = events.hit && visuals.hitPummel;
   if (events.hit && !events.pummel) {
-    events.strong = visuals.hitStrength === 2;
+    events.strong = visuals.hitStrong;
     strikingMove(fighter, world, false, events);
   }
   if (present && events.previousFrozenFrames === 0 && status.frozenFrames > 0) {

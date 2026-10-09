@@ -4,13 +4,15 @@
 
 import { join } from "node:path";
 import { SELECTABLE_CHARACTERS, fighterName } from "../src/game/sim/heroes/registry";
-import { SPECIAL_INPUTS, fighterKit } from "../src/game/sim/moveNames";
+import { SPECIAL_INPUTS, fighterKit, normalName } from "../src/game/sim/moveNames";
 import { WORLD_UNITS_PER_MELEE_UNIT, authoredTuning } from "../src/game/sim/tuning";
 import { EdgeGuardTool, edgeGuardTool } from "../src/game/match/edgeGuardScenarios";
+import { SIGNATURE_STRONG_HIT, strongHitReason, strongHitRows } from "../src/game/sim/strongHitTable";
 
 export const MOVE_LIST_PATH = join(import.meta.dir, "../../docs/move-list.md");
 
 const cell = (text: string) => text.replaceAll("|", "\\|");
+const percent = (damage: number) => `${Math.round(damage * 10) / 10}%`;
 
 export function moveListMarkdown(): string {
   const lines = [
@@ -45,6 +47,14 @@ export function moveListMarkdown(): string {
     if (kit.inspiredBy.length > 0) {
       lines.push("", "Normals, inspired by:", "");
       for (const { move, note } of kit.inspiredBy) lines.push(`- ${move}: ${note}`);
+    }
+    lines.push("", "Strong and weak hits (frames are active frames, damage uncharged):", "",
+      "| Move | Axis | Strong hit | Weak hit | Why |", "| --- | --- | --- | --- | --- |");
+    for (const row of strongHitRows(character)) {
+      const signature = SIGNATURE_STRONG_HIT[character] === row.style ? " (signature)" : "";
+      const strong = `${row.position ? "sweetspot" : "clean"}, frames ${row.strongFirst}-${row.strongLast}, ${percent(row.strongDamage)}`;
+      const weak = `${row.position ? "sourspot" : "late"}, frames ${row.weakFirst}-${row.weakLast}, ${percent(row.weakDamage)}`;
+      lines.push(`| ${normalName(row.style)}${signature} | ${row.position ? "Position" : "Timing"} | ${strong} | ${weak} | ${cell(strongHitReason(character, row.style) ?? "")} |`);
     }
   }
   return `${lines.join("\n")}\n`;

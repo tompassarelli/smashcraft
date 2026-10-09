@@ -3,6 +3,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, jabStep, heroHurtPose, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
+import { strongHit } from "../strongHits";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 
 
@@ -173,7 +174,7 @@ export const PIT_LORD_MOVES: FighterMoves = {
 
     [AttackStyle.forwardSmash]: heroMove(27, 4, 43, 0, [
       ...[150.0, 100.0, 50.0, 10.0].map((z, index) => heroRegion(27 + index, 27 + index,
-        capsule(f32(XL - 55.0), z, f32(XL - 14.0), f32(z - 10.0), 14.0), hit(25.0, "KILL", 40))),
+        capsule(f32(XL - 55.0), z, f32(XL - 14.0), f32(z - 10.0), 14.0), strongHit(hit(25.0, "KILL", 40)))),
       ...cleave(27, [150.0, 100.0, 50.0, 10.0], f32(XL - 50.0), hit(19.0, "KILL", 40)),
     ]),
 

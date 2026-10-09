@@ -79,6 +79,8 @@ export function ordinaryHitKnockback(preHitPercent: number, hitDamage: number, v
   return contactKnockback(postHitPercent, hitDamage, victimWeight, growthPercent, baseKnockback, contextScale);
 }
 
+export const STRONG_HIT_EXTRA_HITLAG = 3;
+
 export function victimHitlagFrames(hitDamage: number, electric: boolean, crouching: boolean): number {
   if (hitDamage <= 0) return 0;
   const base = toInt(f32(f32(integerHitPower(hitDamage) / 3.0) + 3));

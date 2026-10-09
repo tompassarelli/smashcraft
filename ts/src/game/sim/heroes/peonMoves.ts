@@ -1,6 +1,6 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
+import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type MoveRegion, type StrikeCapsule, tipperMove } from "../heroMoves";
 import { hurtPart, type HurtPart, type HurtPose } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
 
@@ -61,7 +61,7 @@ export const PEON_MOVES: FighterMoves = {
     [AttackStyle.upTilt]: heroMove(7, 4, 20, 0, swing(7, [[45.0, 106.0], [15.0, 118.0], [-15.0, 118.0], [-36.0, 102.0]], 8.0, 85, 70.0, 40.0)),
     [AttackStyle.downTilt]: heroMove(6, 3, 19, 0, swing(6, [[74.0, 8.0], [74.0, 16.0], [66.0, 28.0]], 7.0, 70, 65.0, 45.0)),
     [AttackStyle.dashAttack]: heroMove(10, 4, 25, 0, swing(10, [[80.0, 38.0], [80.0, 42.0], [74.0, 48.0], [68.0, 50.0]], 10.0, 55), 34.0, true),
-    [AttackStyle.forwardSmash]: heroMove(22, 3, 35, 0, swing(22, [[110.0, 104.0], [128.0, 55.0], [116.0, 8.0]], 19.0, 40, 124.0, 28.0)),
+    [AttackStyle.forwardSmash]: tipperMove(heroMove(22, 3, 35, 0, swing(22, [[110.0, 104.0], [128.0, 55.0], [116.0, 8.0]], 19.0, 40, 124.0, 28.0)), 0.25),
     [AttackStyle.upSmash]: heroMove(17, 4, 31, 0, swing(17, [[34.0, 136.0], [10.0, 148.0], [-10.0, 148.0], [-34.0, 136.0]], 16.0, 90, 120.0, 26.0)),
     [AttackStyle.downSmash]: heroMove(18, 5, 32, 0, [
       ...swing(18, [[100.0, 22.0], [100.0, 8.0], [90.0, 2.0]], 14.0, 25, 110.0, 26.0),

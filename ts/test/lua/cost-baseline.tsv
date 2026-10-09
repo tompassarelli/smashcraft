@@ -224,6 +224,7 @@ src/game/sim/slopes.tests.ts	7	4182000	2463
 src/game/sim/smashDirectionalInfluence.tests.ts	9	446000	1329
 src/game/sim/specialContracts.tests.ts	2	1351000	260
 src/game/sim/stageTopology.tests.ts	4	15326000	21588
+src/game/sim/strongHits.tests.ts	2	19836000	344
 src/game/sim/surfaces.tests.ts	26	10804000	5564
 src/game/sim/tech.tests.ts	7	1159000	1510
 src/game/sim/tumbleLandings.tests.ts	1	74873000	99036
