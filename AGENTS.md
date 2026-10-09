@@ -374,15 +374,23 @@ code. From smashcraft:ts/:
   each `#! cue FROM[-TO] NAME: sound=… effect=… tint=b shake=b recoil=b` line
   against the held capture frames, without a Warcraft client.
 - Offline LAN pool, the default for native testing (see "Native testing and
-  UI"): `bun wisp lan setup --from INSTALL [--pairs N]` creates throwaway
-  clients with no account once; `bun wisp lan pool --pairs N [--pool-profile
+  UI"), on live build 3.0.0.24268 only (the private LAN plugin refuses other
+  builds): `bun wisp lan setup --from INSTALL [--pairs N]` creates throwaway
+  clients with no account from one updated install (a clone's
+  `pfx/drive_c/Program Files (x86)/Warcraft III`, under 1 s for 4 pairs); `bun wisp lan pool --pairs N [--pool-profile
   parity|visual]` runs them in pairs, each pair in a network namespace with
   only loopback (foreground, admitted by the capacity helper); `bun wisp lan
   fresh MAP.w3x [--pair K]` hosts and starts a LAN match on Wisp's own host;
   `lan status`, `lan end --pair K`. The host logs every turn's actions and
   compares checksums each turn. Joining LAN games needs Wisp's private LAN
   plugin in ~/.local/share/wisp-private/lan/. The pool's clients file is
-  ~/.local/state/wisp/lan/clients.json (wisp:docs/lan.md).
+  ~/.local/state/wisp/lan/clients.json (wisp:docs/lan.md). Pad parity on the
+  pool takes an integrity map (`bun wisp map build --profile integrity` or
+  `map rebuild MAP --profile integrity`) and `--pair K...`; measured 9 Oct, a
+  pair runs 70 s after `lan pool` starts and is in a match 36 s after `pad`
+  asks. Run two pairs by default and add one only while the capacity helper's
+  `protectedCpuSomeAvg10` stays under 20 (three pairs read 22-31 under normal
+  agent load).
 - Client recovery: `bun wisp client doctor [CLIENT...]` brings clients A and B to a
   ready state: it recovers a client that dropped from Battle.net, crashed
   with its error dialog up, sits at the empty login shell, a stale lobby or
@@ -827,8 +835,10 @@ To run four timing lanes together, start their foreground batch runner inside
 one `machine-capacity run --class exclusive --timeout-seconds 900 -- ...`
 command; pad children reuse that window. Separate exclusive commands queue in turn.
 Each result records `load_average` and `capacity_lease` (#311).
-Signed-in A and B are only for tests that need Battle.net itself: real
-netplay or latency, direct play (#142), spectating. Tom's install (account a,
+The signed-in clones (B, C, D) are only for tests that need Battle.net
+itself: real netplay or latency, direct play (#142), spectating, and as the
+updated install the pool is copied from. Keep them stopped otherwise; with
+all three running, two pool pairs pushed protected pressure to 44. Tom's install (account a,
 display :0) is Tom's. A run during which a client wrote a desync report or
 crashed is invalid; rerun it.
 
