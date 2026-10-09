@@ -20,13 +20,13 @@ import { steerInAir, steerOnGround } from "./botFooting";
 import { chooseAttack, lastChoicePassedForVariety, smashChargeGoal } from "./botMoves";
 import { botChance, botChoice, useMatchSeed } from "./botRandom";
 import { type CpuSkill, cpuSkill, cpuReactionFloor, cpuReactionFrames, perceivedCpuSkill } from "./cpuSkill";
-import { type BotMemory, observeOpponents, perceivedOpponent, perceivedHeldFighter, commitBotDirection, samePerception } from "./botPerception";
+import { FAST_BOT_HISTORY_FRAMES, BOT_HISTORY_FRAMES, type BotMemory, observeOpponents, perceivedOpponent, perceivedHeldFighter, commitBotDirection, samePerception } from "./botPerception";
 import { chooseDefense } from "./botDefense";
 import { choosePunish } from "./botPunish";
 import { chooseRecoveryInput } from "./botRecovery";
 import { pressHeroFollowUp } from "./botHeroKit";
 import { dashIn, kitChargeGoal, pressKitOption, steerHeroBranches, steerRunningSpecial } from "./botKitOptions";
-import { MATCH_TICKS_PER_SECOND, type MatchState, stageClock } from "./rules";
+import { MATCH_TICKS_PER_SECOND, type MatchState, stageClock, computerActive } from "./rules";
 import { trainingPartnerInput } from "./training";
 import { sameFighterState } from "../replay/fighterState";
 import { type BotStrategy, copyBotStrategy, learnBotHabit, prepareBotRead, pressBotRead, sameBotStrategy } from "./botStrategy";
@@ -143,6 +143,14 @@ function reactionDelay(game: Readonly<MatchState>, runtime: Readonly<BotRuntime>
   return cpuReactionFrames(fighter, skill, game.matchSeed, slot, key);
 }
 
+function observationFrames(game: Readonly<MatchState>, skill: CpuSkill): number {
+  if (skill.tier === "rookie" || skill.tier === "beginner") return BOT_HISTORY_FRAMES;
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (computerActive(game, slot) && (game.cpuTiers[slot] === "rookie" || game.cpuTiers[slot] === "beginner")) return BOT_HISTORY_FRAMES;
+  }
+  return FAST_BOT_HISTORY_FRAMES;
+}
+
 /**
  * The computer in `slot` plays its resolved identity and tier under the match seed. Correcting
  * human movement also corrects every computer decision derived from it.
@@ -152,7 +160,7 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
   const opponent = game.cpuResolvedOpponents[slot];
   const tier = game.cpuTiers[slot];
   const skill = skillOverride ?? cpuSkill(opponent, tier);
-  observeOpponents(runtime.botMemory, world, frame);
+  observeOpponents(runtime.botMemory, world, frame, observationFrames(game, skill));
   const fighter = fighterAt(world, slot);
   const reactionFrames = reactionDelay(game, runtime, fighter, slot, frame, skill);
   useMatchSeed(game.matchSeed);
@@ -194,7 +202,9 @@ export function sameComputerInputs(game: Readonly<MatchState>, world: Readonly<R
   if (game.stageChoice !== before.stageChoice || stageClock(game) !== stageClock(before)) return false;
   if (game.timeLimitMinutes !== before.timeLimitMinutes || game.remainingFrames !== before.remainingFrames) return false;
   const fighter = fighterAt(world, slot);
-  const delay = reactionDelay(game, runtime, fighter, slot, frame, cpuSkill(opponent, tier));
+  const skill = cpuSkill(opponent, tier);
+  if (observationFrames(game, skill) !== observationFrames(before, skill)) return false;
+  const delay = reactionDelay(game, runtime, fighter, slot, frame, skill);
   // With no delay the computer sees this frame's observation, which a rollback rewrites.
   if (delay < 1) return false;
   const attackDelay = runtime.botAttackDelays[slot];
@@ -214,7 +224,7 @@ export function sameComputerInputs(game: Readonly<MatchState>, world: Readonly<R
  * frame and takes that step's decision and its strategy, delay and direction.
  */
 export function repeatComputerInput(world: Readonly<Roster>, runtime: BotRuntime, after: Readonly<BotRuntime>, decision: Readonly<BotDecision>, slot: ParticipantSlot, frame: number, input: Controls, commands: AttackBuffer): void {
-  observeOpponents(runtime.botMemory, world, frame);
+  observeOpponents(runtime.botMemory, world, frame, Math.max(FAST_BOT_HISTORY_FRAMES, after.botMemory.history.length));
   copyControls(input, decision.input);
   const grace = commands.graceFrames;
   clearAttackBuffer(commands);

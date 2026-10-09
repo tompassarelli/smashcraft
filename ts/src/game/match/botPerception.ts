@@ -34,8 +34,9 @@ export function botReversalFrames(chosenFrame: number, slot: ParticipantSlot, ti
   const overshoot = botChoice(chosenFrame, slot * 37 + 853, 10000) < runChance;
   return overshoot ? 24 + floorDiv(missed, 20) : intended + late;
 }
-// The slowest authored delay is 42, plus the reaction curve’s 24-frame tail.
-export const BOT_HISTORY_FRAMES = 67;
+export const FAST_BOT_HISTORY_FRAMES = 43;
+// The slowest authored delay is 36, plus the reaction curve’s 24-frame tail.
+export const BOT_HISTORY_FRAMES = 61;
 // Unobserved input buffers, resource plans and hit registries stay neutral.
 const EMPTY = createFighter(1, 0.0, 1);
 
@@ -587,7 +588,7 @@ function foldObservationText(text: string, repetitions: number): void {
 const checksumWriter = { byte: foldObservationByte, number: foldObservationNumber, text: foldObservationText };
 
 /** Captures once per input frame even when several computer slots make decisions. */
-export function observeOpponents(memory: BotMemory, world: Roster, frame: number): void {
+export function observeOpponents(memory: BotMemory, world: Roster, frame: number, historyFrames = BOT_HISTORY_FRAMES): void {
   const storage = storageFor(memory);
   const previous = storage.history.length > 0 ? at(storage.history, storage.history.length - 1) : undefined;
   if (previous?.frame === frame) return;
@@ -596,7 +597,7 @@ export function observeOpponents(memory: BotMemory, world: Roster, frame: number
     storage.entries.length = 0;
     storage.history.length = 0;
   }
-  if (storage.entries.length === BOT_HISTORY_FRAMES) {
+  while (storage.entries.length >= historyFrames) {
     release(at(storage.entries, 0));
     storage.entries.shift();
     storage.history.shift();
