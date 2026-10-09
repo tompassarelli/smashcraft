@@ -10,7 +10,9 @@ import { AttackStyle, type Character } from "../src/game/sim/codes";
 import type { Fighter } from "../src/game/sim/fighter";
 import { SELECTABLE_CHARACTERS, fighterName } from "../src/game/sim/heroes/registry";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../src/game/sim/tuning";
-import { fighter, frame, scene, solo } from "../src/game/match/padScene";
+import { fighter, frame, scene, solo, type Scene } from "../src/game/match/padScene";
+import { copyReplayState } from "../src/game/replay/snapshot";
+import { resetMatchFrameInput } from "../src/game/match/frameInput";
 
 
 export const AIR_SPEED_BAND = { min: 0.75, max: 1.25 } as const;
@@ -21,11 +23,11 @@ const units = (world: number): number => world / WORLD_UNITS_PER_MELEE_UNIT;
 type Held = readonly Action[];
 
 export interface Takeoff {
-
+  
   readonly ground: number;
-
+  
   readonly takeoff: number;
-
+  
   readonly held: number;
 }
 
@@ -76,20 +78,19 @@ const LAST_PRESS = 70;
 export interface CrossUp {
   readonly hop: "short" | "full";
   readonly aerial: AttackStyle;
-
+  
   readonly press: number;
-
+  
   readonly behind: number;
 }
 
 
-function attempt(character: Character, full: boolean, style: AttackStyle, press: number): number | undefined {
-  const s = scene(0, [{ character, x: DEFENDER_X - CROSS_UP_DISTANCE, facing: 1 }, { character, x: DEFENDER_X, facing: -1 }]);
+function attempt(s: Scene, full: boolean, style: AttackStyle, press: number): number | undefined {
   const a = fighter(s, 0);
   const b = fighter(s, 1);
   const jump = CROSS_UP_DASH_FRAMES + 1;
   let serial = -1;
-  for (let n = 1; n <= LAST_PRESS + 60; n++) {
+  for (let n = press; n <= LAST_PRESS + 60; n++) {
     const held: Action[] = [Action.moveRight];
     if (n === jump || (full && n > jump)) held.push(Action.jump);
     if (n === press) held.push(...aerialPress(a, style));
@@ -110,10 +111,24 @@ function attempt(character: Character, full: boolean, style: AttackStyle, press:
 
 
 export function crossUp(character: Character): CrossUp | undefined {
+  const placements = [{ character, x: DEFENDER_X - CROSS_UP_DISTANCE, facing: 1 }, { character, x: DEFENDER_X, facing: -1 }];
+  const trial = scene(0, placements);
+  const trialState = { world: trial.world, match: trial.game, controls: trial.controls, runtime: trial.runtime };
   for (const hop of ["short", "full"] as const) {
     for (const aerial of AERIALS) {
+      const prefix = scene(0, placements);
+      const prefixState = { world: prefix.world, match: prefix.game, controls: prefix.controls, runtime: prefix.runtime };
       for (let press = CROSS_UP_DASH_FRAMES + 2; press <= LAST_PRESS; press++) {
-        const behind = attempt(character, hop === "full", aerial, press);
+        while (prefix.runtime.simulationFrame < press - 1) {
+          const n = prefix.runtime.simulationFrame + 1;
+          const held = n === CROSS_UP_DASH_FRAMES + 1 || (hop === "full" && n > CROSS_UP_DASH_FRAMES + 1)
+            ? [Action.moveRight, Action.jump] : [Action.moveRight];
+          frame(prefix, held, [Action.rightTrigger]);
+        }
+        copyReplayState(trialState, prefixState);
+        resetMatchFrameInput(trial.row);
+        for (let slot = 0; slot < prefix.previous.length; slot++) trial.previous[slot] = prefix.previous[slot] ?? 0;
+        const behind = attempt(trial, hop === "full", aerial, press);
         if (behind !== undefined && behind > 0) return { hop, aerial, press, behind };
       }
     }
