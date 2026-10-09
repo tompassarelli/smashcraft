@@ -217,8 +217,10 @@ function sameObservation(a: Readonly<Fighter>, b: Readonly<Fighter>): boolean {
     const x = p[index];
     const y = q[index];
     if (x === y) continue;
-    if (x === undefined || y === undefined) return false;
-    if (x.life !== y.life || (x.x !== y.x || (x.x === 0 && 1 / x.x !== 1 / y.x)) || (x.z !== y.z || (x.z === 0 && 1 / x.z !== 1 / y.z)) || (x.direction !== y.direction || (x.direction === 0 && 1 / x.direction !== 1 / y.direction)) || (x.velocityX !== y.velocityX || (x.velocityX === 0 && 1 / x.velocityX !== 1 / y.velocityX))
+    if (x === undefined || y === undefined || x.life !== y.life) return false;
+    // copyObservation keeps every lifeless observed projectile at EMPTY's values.
+    if (x.life <= 0) continue;
+    if ((x.x !== y.x || (x.x === 0 && 1 / x.x !== 1 / y.x)) || (x.z !== y.z || (x.z === 0 && 1 / x.z !== 1 / y.z)) || (x.direction !== y.direction || (x.direction === 0 && 1 / x.direction !== 1 / y.direction)) || (x.velocityX !== y.velocityX || (x.velocityX === 0 && 1 / x.velocityX !== 1 / y.velocityX))
       || (x.velocityZ !== y.velocityZ || (x.velocityZ === 0 && 1 / x.velocityZ !== 1 / y.velocityZ)) || x.serial !== y.serial) return false;
   }
   return true;
