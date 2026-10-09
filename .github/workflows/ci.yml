@@ -3,8 +3,8 @@ name: CI
 on:
   pull_request:
   push:
-    # `bun wisp farm`'s scratch branches run only the workflow it dispatches.
-    branches-ignore: ["farm/**"]
+    # Farm scratch branches and claude/ branches run only the workflow that checks them.
+    branches-ignore: ["farm/**", "claude/**"]
   # Autoland's pushes to main start no workflows, so it dispatches this one.
   workflow_dispatch:
 
