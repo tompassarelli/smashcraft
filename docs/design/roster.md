@@ -1392,6 +1392,19 @@ the air at his glaives' length, forward air in and back air drifting out,
 threatens forward smash's reach on the ground, and whittles the
 opponent's mana before a Mana Burn stun.
 
+#### Balance record
+
+9 Oct 2026, #359 (a defect fix, not a tuning pass): his dash attack
+launched at 23° and killed sooner than his forward smash, and the forward
+smash dealt 9% where this section commits to 10. Dash attack now launches
+at 60° (damage 9, base 20, growth 95 unchanged); forward smash's glaive
+swing deals 10%. Measured from the centre of stage 0, no DI, against
+Rifleman / Murloc / Cairne: uncharged forward smash kills from 145 / 137 /
+190% before and 131 / 124 / 173% after; fully charged Eye Blast is
+unchanged at 77 / 76 / 114%. Dash attack kills from 115 / 115 / 170%
+before and 145 / 135 / 190% after; at 120% it now sends Rifleman 180 units
+up (39 before) with Illidan 22 frames ahead.
+
 #### Mana Burn (neutral special)
 
 Delegated design, 7 Oct 2026 (#116). Tom asked for a slower B, "like a Ryu

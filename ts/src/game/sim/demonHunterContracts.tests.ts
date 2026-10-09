@@ -16,6 +16,9 @@ import { type Roster, createRoster } from "./roster";
 import { canAttack } from "./conditions";
 import { resolveLedges } from "./ledge";
 import { cancelSpecialState } from "./transitions";
+import { comboScene } from "../match/comboRoute";
+import { fighter, frameMasks } from "../match/padScene";
+import { Action, bit } from "../input/actions";
 
 test("simultaneousImmolatesTradeInEitherSlotOrder [invariant]", () => {
   for (const airborne of [false, true]) for (const reversed of [false, true]) {
@@ -298,4 +301,28 @@ test("manaBurnAndAnOpposingShotCancelEachOther [spec #116]", () => {
   assertEquals(illidan.status.damage, 0.0);
   assertEquals(rifleman.status.damage, 0.0);
   assertGreaterThan(orb.x, 0.0);
+});
+
+// #359: a dash attack is a pop-up and a forward smash is the kill move. At 23 degrees
+// his dash attack killed Rifleman from the centre at 115%, before his forward smash (145%).
+function centreHit(press: (n: number) => number, percent: number, spacing: number): { angle: number; ko: boolean } {
+  const match = comboScene({ stage: 0, attacker: Character.demonHunter, defender: Character.rifleman, attackerX: -spacing / 2, defenderX: spacing / 2, facing: 1, attackerZ: 0, defenderZ: 0, percent });
+  const target = fighter(match, 1);
+  const stocks = target.status.stocks;
+  let angle = Number.NaN;
+  for (let n = 1; n <= 300; n++) {
+    frameMasks(match, (slot) => (slot === 0 ? press(n) : 0));
+    if (Number.isNaN(angle) && target.visuals.hit > 0) angle = Math.atan2(target.launch.knockbackZ, target.launch.knockbackX) * 180 / Math.PI;
+    if (target.status.stocks < stocks) return { angle, ko: true };
+  }
+  return { angle, ko: false };
+}
+
+test("illidanDashAttackPopsUpAndHisForwardSmashKillsFirst [repro #359]", () => {
+  const dashAttack = (n: number) => (n <= 6 ? bit(Action.moveRight) : n === 7 ? bit(Action.attack) : 0);
+  const forwardSmash = (n: number) => (n === 1 ? bit(Action.smashRight) : 0);
+  const dash = centreHit(dashAttack, 120, 100.0);
+  assertGreaterThan(dash.angle, 45.0);
+  assertFalse(dash.ko);
+  assertTrue(centreHit(forwardSmash, 135, 40.0).ko);
 });

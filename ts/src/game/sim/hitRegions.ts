@@ -107,8 +107,9 @@ const DEMON_HUNTER_REGIONS: { readonly [style: number]: Readonly<HitRegion> } = 
   [AttackStyle.jab3]: region(0.0, 110.0, -50.0, 110.0, 6.0, 95.0, 22.0, 0.7660444378852844, 0.6427876353263855),
   [AttackStyle.upSmash]: region(-105.0, 105.0, -30.0, 195.0, 15.0, 100.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
   [AttackStyle.downSmash]: region(-105.0, 105.0, -195.0, 45.0, 15.0, 100.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
-  [AttackStyle.forwardSmash]: region(25.0, 195.0, -75.0, 105.0, 9.0, 85.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
-  [AttackStyle.demonHunterDashAttack]: region(0.0, 150.0, -70.0, 115.0, 9.0, 95.0, 20.0, 0.9200000166893005, 0.38999998569488525),
+  [AttackStyle.forwardSmash]: region(25.0, 195.0, -75.0, 105.0, 10.0, 85.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
+  // A 60-degree pop-up (#359): at 23 degrees it out-killed his forward smash.
+  [AttackStyle.demonHunterDashAttack]: region(0.0, 150.0, -70.0, 115.0, 9.0, 95.0, 20.0, 0.5, 0.8660253882408142),
   // Shear (#147): the tank-buster as the mana cutter, 9% at a low 25 degrees.
   [AttackStyle.forwardTilt]: region(0.0, 135.0, -80.0, 95.0, 9.0, 80.0, 20.0, 0.9063078165054321, 0.4226182699203491),
   [AttackStyle.upTilt]: region(0.0, 125.0, -30.0, 185.0, 8.0, 105.0, 18.0, 0.25, 0.968245804309845),
