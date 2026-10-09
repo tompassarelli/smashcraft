@@ -74,9 +74,11 @@ export function headlessRender(options: RenderAssetOptions = {}) {
     const file = Bun.file(path);
     return await file.exists() ? file.bytes() : undefined;
   });
-  /** Runs a tool in its own scope: true when it exited 0. Interrupting the read stops it. */
+  // The stock extractor can exit 0 without writing a missing asset.
   const succeeds = (program: string, args: readonly string[]) =>
-    runProcess(ChildProcess.make(program, args, { stdin: "ignore" })).pipe(Effect.as(true), Effect.catchTag("ProcessFailure", () => Effect.succeed(false)));
+    runProcess(ChildProcess.make(program, args, { stdin: "ignore" })).pipe(
+      Effect.flatMap(() => read(args[args.length - 1]!).pipe(Effect.map((bytes) => bytes !== undefined && bytes.length > 0))),
+      Effect.catchTag("ProcessFailure", () => Effect.succeed(false)));
   /** A stock art layer; DDS textures are converted to PNG in private storage. */
   const stockLayer = (normalized: string, layer: AssetLayer) => Effect.gen(function*() {
     const directory = join(yield* stockCache, layer);
@@ -90,7 +92,10 @@ export function headlessRender(options: RenderAssetOptions = {}) {
     mkdirSync(dirname(join(directory, target)), { recursive: true });
     if (!texture) return (yield* succeeds(extractor, [storage, `war3.w3mod:${layer}:${normalized}`, join(directory, target)])) ? yield* read(join(directory, target)) : undefined;
     const dds = join(directory, normalized.replace(/\.[^.]+$/, ".dds"));
-    if (!(yield* succeeds(extractor, [storage, `war3.w3mod:${layer}:${normalized.replace(/\.[^.]+$/, ".dds")}`, dds]))) return undefined;
+    if (!(yield* succeeds(extractor, [storage, `war3.w3mod:${layer}:${normalized.replace(/\.[^.]+$/, ".dds")}`, dds]))) {
+      const blp = join(directory, normalized.replace(/\.[^.]+$/, ".blp"));
+      return (yield* succeeds(extractor, [storage, `war3.w3mod:${layer}:${normalized.replace(/\.[^.]+$/, ".blp")}`, blp])) ? yield* read(blp) : undefined;
+    }
     yield* runProcess(ChildProcess.make("magick", [`${dds}[0]`, join(directory, target)], { stdin: "ignore" })).pipe(
       Effect.mapError((failure) => new RenderAssetFailure({ problem: `cannot convert stock texture ${normalized}: ${failure.problem}` })));
     return yield* read(join(directory, target));
@@ -128,7 +133,10 @@ export function headlessRender(options: RenderAssetOptions = {}) {
     const oldPng = yield* read(png);
     if (oldPng !== undefined) return oldPng;
     const dds = cache.replace(/\.[^.]+$/, ".dds");
-    if (!(yield* succeeds(extractor, [storage, `war3.w3mod:${normalized.replace(/\.[^.]+$/, ".dds")}`, dds]))) return undefined;
+    if (!(yield* succeeds(extractor, [storage, `war3.w3mod:${normalized.replace(/\.[^.]+$/, ".dds")}`, dds]))) {
+      const blp = cache.replace(/\.[^.]+$/, ".blp");
+      return (yield* succeeds(extractor, [storage, `war3.w3mod:${normalized.replace(/\.[^.]+$/, ".blp")}`, blp])) ? yield* read(blp) : undefined;
+    }
     yield* runProcess(ChildProcess.make("magick", [`${dds}[0]`, png], { stdin: "ignore" })).pipe(
       Effect.mapError((failure) => new RenderAssetFailure({ problem: `cannot convert stock texture ${path}: ${failure.problem}` })));
     return yield* read(png);
