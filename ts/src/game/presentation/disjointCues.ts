@@ -10,7 +10,7 @@ import { DEMONHUNTER_GLIDE_SLASH_FIRST, DEMONHUNTER_GLIDE_SLASH_LAST, DEMONHUNTE
 
 
 export const DISJOINT_MODELS: { readonly [character: number]: string } = {
-  [Character.rifleman]: "Abilities\\Weapons\\GyroCopter\\GyroCopterMissile.mdx",
+  [Character.rifleman]: "Abilities\\Weapons\\FlyingMachine\\FlyingMachineImpact.mdx",
   [Character.demonHunter]: "Abilities\\Weapons\\DemonHunterMissile\\DemonHunterMissile.mdx",
   [Character.blademaster]: "Abilities\\Weapons\\SentinelMissile\\SentinelMissile.mdx",
   [Character.mountainKing]: "Abilities\\Spells\\Other\\FrostBolt\\FrostBoltMissile.mdx",
@@ -38,6 +38,31 @@ export const DISJOINT_MODELS: { readonly [character: number]: string } = {
   [Character.medivh]: "Abilities\\Weapons\\DruidoftheTalonMissile\\DruidoftheTalonMissile.mdx",
 };
 
+
+export const DEFINITIVE_ACCENT_REDRAWS: { readonly [model: string]: string } = {
+  "Abilities\\Weapons\\DemonHunterMissile\\DemonHunterMissile.mdx": "Popcorn glaive missile",
+  "Abilities\\Weapons\\SentinelMissile\\SentinelMissile.mdx": "HD glaive",
+  "Abilities\\Spells\\Other\\FrostBolt\\FrostBoltMissile.mdx": "HD frost bolt with Popcorn trail",
+  "Abilities\\Spells\\NightElf\\FanOfKnives\\FanOfKnivesMissile.mdx": "Popcorn knife",
+  "Abilities\\Spells\\Human\\HolyBolt\\HolyBoltSpecialArt.mdx": "Popcorn holy light",
+  "Abilities\\Weapons\\BansheeMissile\\BansheeMissile.mdx": "Popcorn banshee wisp",
+  "Abilities\\Weapons\\ShadowHunterMissile\\ShadowHunterMissile.mdx": "HD glaive with Popcorn trail",
+  "Abilities\\Weapons\\Axe\\AxeMissile.mdx": "HD thrown axe",
+  "Abilities\\Spells\\Undead\\FreezingBreath\\FreezingBreathMissile.mdx": "Popcorn frost breath",
+  "Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireDamage.mdx": "Popcorn flame",
+  "Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile.mdx": "Popcorn fireball",
+  "Abilities\\Weapons\\FarseerMissile\\FarseerMissile.mdx": "Popcorn lightning orb",
+  "Abilities\\Spells\\Other\\FrostDamage\\FrostDamage.mdx": "Popcorn frost burst",
+  "Abilities\\Spells\\Other\\BlackArrow\\BlackArrowMissile.mdl": "Popcorn black arrow",
+  "Abilities\\Weapons\\RockBoltMissile\\RockBoltMissile.mdx": "HD rock bolt",
+  "Abilities\\Weapons\\catapult\\CatapultMissile.mdx": "HD catapult stone",
+  "Abilities\\Spells\\Other\\AcidBomb\\BottleMissile.mdx": "HD acid bottle",
+  "Abilities\\Weapons\\MurgulMagicMissile\\MurgulMagicMissile.mdx": "HD Mur'gul bolt",
+  "Abilities\\Spells\\Other\\ImmolationRed\\ImmolationRedDamage.mdx": "Popcorn red flame",
+  "Abilities\\Weapons\\CryptFiendMissile\\CryptFiendMissile.mdx": "HD crypt fiend web",
+  "Abilities\\Weapons\\KeeperGroveMissile\\KeeperGroveMissile.mdx": "HD Keeper bolt",
+  "Abilities\\Weapons\\DruidoftheTalonMissile\\DruidoftheTalonMissile.mdx": "Popcorn raven bolt",
+};
 
 export function isDisjointRegion(fighter: Readonly<Fighter>, region: Readonly<HitRegion>): boolean {
   let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
