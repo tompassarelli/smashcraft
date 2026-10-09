@@ -12,6 +12,7 @@ import { SELECTABLE_CHARACTERS } from "./heroes/registry";
 import { authoredTuning } from "./tuning";
 import { EYE_BLAST_MARKS, eyeBlastMark } from "../presentation/eyeBlastMarker";
 import { EYE_BLAST_FORM, EYE_BLAST_LAST, EYE_BLAST_REACH, EYE_BLAST_WINDUP, FLAME_CRASH_FORM, FLAME_CRASH_FRAMES, FLAME_CRASH_HANG_LAST, FLAME_CRASH_LANDING_FORM, flameCrashRegion } from "./specials";
+import { ROSTER_MANA } from "./mana";
 import { type Duel, duel, lift } from "./testDuel";
 import { controls } from "./testWorld";
 
@@ -130,14 +131,14 @@ test("Fel Lunge's full-charge reach stays inside the roster's forward smash band
   assertTrue(illidan <= widest);
 });
 
-test("Eye Blast: a full meter's grounded EX neutral special, with a 24-frame windup and ground marker before a beam reaching 645 [spec #379]", () => {
+test("Eye Blast: a grounded EX neutral special spending one meter segment, with a 24-frame windup and ground marker before a beam reaching 645 [spec #379]", () => {
   const d = duel(420.0);
   d.illidan.mana.points = 100;
   d.target.mana.points = 50;
   d.step(EYE_BLAST_PRESS);
   assertEquals(d.illidan.special.action, SpecialAction.demonHunterManaBurn);
   assertEquals(d.illidan.special.form, EYE_BLAST_FORM);
-  assertEquals(d.illidan.mana.points, 0);
+  assertEquals(d.illidan.mana.points, 100 - ROSTER_MANA.exCost);
   assertGreaterThan(EYE_BLAST_WINDUP + 1, 20);
   while (d.illidan.special.frame < EYE_BLAST_WINDUP) {
     for (let mark = 0; mark < EYE_BLAST_MARKS; mark++) assertTrue(eyeBlastMark(d.illidan, mark) !== undefined);
