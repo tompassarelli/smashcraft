@@ -1,18 +1,31 @@
 import { f32 } from "wisp/src/sim/f32";
 import { STAGE_SKY_MODELS } from "../assets/stageSkyInfo";
 import type { StageScenery } from "./stageScenery";
+import { STAGE_SEA_MODEL } from "../assets/terrainAssetInfo";
+
+const SPIRES = "Doodads\\Outland\\Rocks\\Outland_Spires\\Outland_Spires7.mdx";
+const MOUND = "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks2.mdx";
 
 export const DUROTAR_SCENERY: StageScenery = {
   sky: STAGE_SKY_MODELS[3] ?? "",
   fog: { start: 5000.0, end: 11000.0, red: 0.75, green: 0.5, blue: 0.25 },
+  floor: { model: STAGE_SEA_MODEL, z: -1300.0, color: [168, 140, 120] },
   pieces: [
 
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -2150.0, y: 2600.0, z: -2205.0, scale: 3, yaw: 15.0, matrixScale: [1.0, 1.0, f32(5.33)] },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 2450.0, y: 3300.0, z: -2635.0, scale: f32(2.45), yaw: 135.0, matrixScale: [1.0, 1.0, f32(7.269)] },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -1550.0, y: 5400.0, z: -3700.0, scale: f32(4.35), yaw: 65.0, matrixScale: [1.0, 1.0, f32(7.463)] },
-    { model: "buildings\\orc\\WatchTower\\WatchTower.mdx", x: -1525.0, y: 5450.0, z: -1075.0, scale: 1.25, yaw: 300.0 },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -1565.0, y: 5450.0, z: -3730.0, scale: f32(4.9), yaw: 337.0, matrixScale: [1.0, 1.0, f32(6.417)] },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 1100.0, y: 6200.0, z: -4240.0, scale: f32(3.65), yaw: 205.0, matrixScale: [1.0, 1.0, f32(9.859)] },
+    { model: MOUND, x: -4000.0, y: 4500.0, z: -1608.0, scale: 12.0, yaw: 195.0, matrixScale: [2.5, 1.0, 1.75] },
+    { model: MOUND, x: -3150.0, y: 4300.0, z: -1708.0, scale: 10.5, yaw: 170.0, matrixScale: [2.75, 1.0, 2.0] },
+    { model: MOUND, x: -2300.0, y: 4600.0, z: -1730.0, scale: 13.0, yaw: 185.0, matrixScale: [2.5, 1.0, 1.75] },
+    { model: MOUND, x: -1400.0, y: 4350.0, z: -1486.0, scale: 11.0, yaw: 165.0, matrixScale: [2.75, 1.0, 1.75] },
+    { model: MOUND, x: -500.0, y: 4650.0, z: -1694.0, scale: 12.5, yaw: 200.0, matrixScale: [2.5, 1.0, 1.75] },
+    { model: MOUND, x: 400.0, y: 4400.0, z: -1610.0, scale: 10.0, yaw: 175.0, matrixScale: [3.0, 1.0, 2.0] },
+    { model: MOUND, x: 1150.0, y: 4700.0, z: -1558.0, scale: 14.0, yaw: 190.0, matrixScale: [2.5, 1.0, 1.5] },
+    { model: MOUND, x: 2050.0, y: 4300.0, z: -1609.0, scale: 10.25, yaw: 160.0, matrixScale: [3.0, 1.0, 2.0] },
+    { model: MOUND, x: 3000.0, y: 4550.0, z: -1498.0, scale: 13.25, yaw: 205.0, matrixScale: [2.5, 1.0, 1.5] },
+    { model: MOUND, x: 3950.0, y: 4350.0, z: -1682.0, scale: 8.5, yaw: 180.0, matrixScale: [3.5, 1.0, 2.5] },
+    { model: SPIRES, x: -3500.0, y: 4100.0, z: -1459.0, scale: 1.75, yaw: 30.0, matrixScale: [1.5, 1.0, 2.75] },
+    { model: SPIRES, x: 3600.0, y: 4200.0, z: -1524.0, scale: 2.25, yaw: 330.0, matrixScale: [1.5, 1.0, 2.25] },
+    { model: "buildings\\orc\\WatchTower\\WatchTower.mdx", x: -2300.0, y: 4600.0, z: 350.0, scale: 3.0, yaw: 300.0 },
+    { model: "buildings\\orc\\TrollBurrow\\TrollBurrow.mdl", x: 1150.0, y: 4700.0, z: 450.0, scale: 3.25, yaw: 230.0 },
   ],
 };
 

@@ -17,7 +17,7 @@ import { deckModel } from "../src/game/presentation/stagePreload";
 import { platformParts } from "../src/game/presentation/stockPlatforms";
 import { STAGE_DECK_MODELS } from "../src/game/assets/stageAssetInfo";
 import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";
-import { placedPieces, stageScenery } from "../src/game/presentation/stageScenery";
+import { hiddenBelow, placedPieces, stageScenery } from "../src/game/presentation/stageScenery";
 import { modelReach } from "wisp/scripts/wisp/models";
 import { boxSeen } from "wisp/scripts/wisp/visibility";
 import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
@@ -29,7 +29,6 @@ import { Character, DownState, SurfaceContact } from "../src/game/sim/codes";
 import { fighterAt } from "../src/game/sim/roster";
 import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, FROZEN_THRONE_STAGE, TIMED_TEST_STAGE, WIND_TEST_STAGE, DRIFTING_DECK_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, MAIN_DECK_UNDERSIDE_Z, solidSurfaceAt, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
 import { stageBounds } from "../src/game/sim/stageBounds";
-import { SEA_SURFACE_Z } from "../src/game/sim/stageHazards";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "../src/game/sim/knockback";
 import { MATCH_CAMERA_ASPECT, advanceMatchCamera, createMatchCamera } from "../src/game/sim/matchCamera";
 import { initializeScenario } from "../src/game/shell/scenarios";
@@ -301,8 +300,8 @@ test("no stage shows a scenery piece's base below the deck at either camera extr
         return (y1 > row) !== (y2 > row) && column < ((x2 - x1) * (row - y1)) / (y2 - y1) + x1 ? !inside : inside;
       }, false);
       for (const piece of placed) {
-        // The opaque Tomb sea covers the sunken ruin bases (#360).
-        if (stage.id === 7 && piece.bottom < SEA_SURFACE_Z) continue;
+        const surface = hiddenBelow(stage.id);
+        if (surface !== undefined && piece.bottom < surface) continue;
         const shown = Array.from({ length: 21 }, (_, step) => piece.left + ((piece.right - piece.left) * step) / 20).filter((x) => {
           if (depth(piece.front, piece.bottom) > ARENA_CAMERA.farZ) return false;
           const at = project(x, piece.front, piece.bottom);

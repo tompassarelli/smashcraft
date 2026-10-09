@@ -32,6 +32,8 @@ export interface StageScenery {
   /** The pieces' colour under the stock light, before the stage's mood (sceneryColor). */
   readonly tint?: readonly [number, number, number];
   readonly fog?: { readonly start: number; readonly end: number; readonly red: number; readonly green: number; readonly blue: number };
+  /** #360: an opaque full-width surface far below the bottom blast zone; it hides the bases of the pieces that stand in it. */
+  readonly floor?: { readonly model: string; readonly z: number; readonly color: readonly [number, number, number] };
   readonly heightFog?: {
     readonly start: number;
     readonly end: number;
@@ -108,9 +110,16 @@ export function terrainPieces(stage: number): readonly SceneryPiece[] {
     { model: STAGE_SEA_MODEL, x: 0.0, y: 2200.0, z: SEA_SURFACE_Z, scale: 1.0,
       matrixScale: [240.0, 140.0, 1.0], color: [176, 160, 144], yaw: 0.0 },
   ];
+  const floor = stageScenery(stage).floor;
+  if (floor !== undefined) return [
+    { model: floor.model, x: 0.0, y: 2200.0, z: floor.z, scale: 1.0, matrixScale: [240.0, 140.0, 1.0], color: floor.color, yaw: 0.0 },
+  ];
   return [];
 }
 
+export function hiddenBelow(stage: number): number | undefined {
+  return stage === TOMB_OF_SARGERAS_STAGE ? SEA_SURFACE_Z : stageScenery(stage).floor?.z;
+}
 
 export function lavaPiece(side: -1 | 1): SceneryPiece {
   return { model: STAGE_LAVA_MODEL, x: side * LAVA_CENTER_X, y: 0.0, z: 1.0, scale: 1.0, matrixScale: [(2 * LAVA_HALF_WIDTH) / 100, 1.0, 1.0], yaw: 0.0 };
