@@ -27,6 +27,8 @@ import { copyPacingAndPresentation } from "../match/pacingAndPresentation";
 import { copyFighterState, sameFighterState } from "./fighterState";
 import { apartFromOthers, authoredMotionApartFromOthers, matchScopable, scopedStepHeld } from "./scopedRepair";
 import { sameReplayState } from "./difference";
+import { firstFighterPoseDifference } from "../presentation/fighterPose";
+import { firstSummonPoseDifference } from "../presentation/summonPose";
 
 /** A whole repaired frame's cost against a repair's budget, where a fighter-scoped one costs 1. */
 export const REPAIR_WHOLE_COST = 2;
@@ -142,9 +144,11 @@ export class ReplayHistory {
   private readonly changed = repeat(REPLAY_HISTORY_CAPACITY, () => 0);
   /** Slots whose state in the pending repair may differ from the snapshot at repairNext. */
   private repairDirty = 0;
+  /** Slots whose poses, special effects or summons in the pending repair may differ from the earlier run at repairNext. */
+  private repairShown = 0;
   /** Slots whose rows the pending repair has met changed so far. */
   private repairInputs = 0;
-  private readonly scope: ScopedFrame = { slot: 0, after: createReplaySnapshot() };
+  private readonly scope: ScopedFrame = { slot: 0, after: createReplaySnapshot(), reused: 0 };
   private scopedSteps = 0;
   scopedRepair: ScopedRepair = "auto";
   /** Tests see each scoped frame: the state before it (its snapshot), its row and the state it reached. */
@@ -195,6 +199,7 @@ export class ReplayHistory {
     this.liveFollows = false;
     this.changed.fill(0);
     this.repairDirty = 0;
+    this.repairShown = 0;
     this.repairInputs = 0;
     this.unfollowed = undefined;
     return true;
@@ -398,6 +403,7 @@ export class ReplayHistory {
       copyReplayState(state, this.snapshotAt(start));
       this.repairPositioned = !direct;
       this.repairDirty = 0;
+      this.repairShown = 0;
       this.repairInputs = 0;
       restored = true;
     }
@@ -421,7 +427,7 @@ export class ReplayHistory {
       if (repeated !== undefined) for (const computer of PARTICIPANT_SLOTS) if (participantActive(repeated.mask, computer)) this.repeatedDecisions++;
       if (!first) {
         // Fighters the repair hasn't changed already match the snapshot.
-        this.copySnapshot(frame, state, unchanged);
+        this.copySnapshot(frame, state, unchanged, state.world.mask & ~this.repairShown);
         // Either the state this repair carried from the frame before or the one its previous call left.
         this.follows[slot] = true;
       }
@@ -435,6 +441,7 @@ export class ReplayHistory {
       if (resume === frame || !this.sameState(this.snapshotAt(frame), state, this.repairDirty | this.repairInputs)) continue;
       this.follows[this.slotOf(frame)] = true;
       this.repairDirty = 0;
+      this.repairShown = 0;
       this.repairInputs = 0;
       this.skippedFrames += resume - frame;
       converged = resume === this.nextFrame;
@@ -514,9 +521,11 @@ export class ReplayHistory {
       const after = this.snapshotAt(frame + 1);
       this.scope.slot = scoped;
       this.scope.after = after;
+      this.scope.reused = state.world.mask & ~this.repairShown & ~(1 << scoped);
       if (!executeMatchFrame(row, state.match, state.world, state.controls, state.runtime, frame, repeated, this.scope)) return false;
       const held = this.scopedRepair === "force" || (apartFromOthers(scoped, fighterAt(state.world, scoped), state.world) && scopedStepHeld(scoped, state.match, state.world, after.match));
       if (held) {
+        this.repairShown |= 1 << scoped;
         this.scopedSteps++;
         this.observeScoped?.(frame, this.snapshotAt(frame), row, state);
         return true;
@@ -526,7 +535,25 @@ export class ReplayHistory {
     }
     if (!executeMatchFrame(row, state.match, state.world, state.controls, state.runtime, frame, repeated)) return false;
     this.repairDirty = this.changedFighters(frame, state);
+    this.repairShown = this.changedPresentation(frame, state, this.repairDirty);
     return true;
+  }
+
+  /** After a whole step that changed only the fighters in `changed`: those, when every other fighter's presentation came out as the next snapshot holds it; otherwise every fighter. */
+  private changedPresentation(frame: number, state: Readonly<ReplayState>, changed: number): number {
+    const mask = state.world.mask;
+    if (changed === mask) return mask;
+    const snapshot = this.snapshotAt(frame + 1);
+    const shown = state.runtime;
+    const was = snapshot.runtime;
+    for (const slot of PARTICIPANT_SLOTS) {
+      if (participantActive(changed, slot) || !isActive(state.world, slot)) continue;
+      if (shown.specials.drainSerial[slot] !== was.specials.drainSerial[slot] || shown.specials.drainAge[slot] !== was.specials.drainAge[slot]
+        || shown.summons.bearHitSerial[slot] !== was.summons.bearHitSerial[slot]
+        || firstSummonPoseDifference(shown.summons.bears[slot], was.summons.bears[slot]) !== undefined
+        || firstFighterPoseDifference(shown.poses[slot], was.poses[slot], state.world, snapshot.world) !== undefined) return mask;
+    }
+    return changed;
   }
 
   /**
@@ -598,8 +625,8 @@ export class ReplayHistory {
     return executeMatchFrame(this.inputAt(frame), live.match, live.world, live.controls, live.runtime, frame);
   }
 
-  /** `unchanged` names fighters the snapshot already holds as `source` has them. */
-  private copySnapshot(frame: number, source: Readonly<ReplayState>, unchanged = 0): void {
+  /** `unchanged` names fighters, and `shown` fighters' poses, the snapshot already holds as `source` has them. */
+  private copySnapshot(frame: number, source: Readonly<ReplayState>, unchanged = 0, shown = 0): void {
     const slot = this.slotOf(frame);
     let target = at(this.snapshots, slot);
     if (target === this.borrowed) {
@@ -619,7 +646,7 @@ export class ReplayHistory {
       if (!participantActive(unchanged, fighter)) copyFighterState(fighterAt(target.world, fighter), fighterAt(source.world, fighter), mask);
     }
     copyMatchState(target.match, source.match);
-    copyPacingAndPresentation(target.runtime, source.runtime, source.world);
+    copyPacingAndPresentation(target.runtime, source.runtime, source.world, shown);
   }
 
   private advanceAuthoritative(): void {

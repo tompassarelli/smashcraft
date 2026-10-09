@@ -67,8 +67,8 @@ export function clearPresentationHistory(runtime: PacingAndPresentation): void {
   for (const slot of PARTICIPANT_SLOTS) clearFighterPose(runtime.poses[slot]);
 }
 
-/** Copies between worlds: poses of the source world's participants, with their slot references. */
-export function copyPacingAndPresentation(target: PacingAndPresentation, source: Readonly<PacingAndPresentation>, sourceWorld: Readonly<Roster>): void {
+/** Copies between worlds: poses of the source world's participants, with their slot references, apart from `keptPoses`, which the target already holds. */
+export function copyPacingAndPresentation(target: PacingAndPresentation, source: Readonly<PacingAndPresentation>, sourceWorld: Readonly<Roster>, keptPoses = 0): void {
   target.simulationFrame = source.simulationFrame;
   copyBotMemory(target.botMemory, source.botMemory);
   copyImpactStateInto(target.impacts, source.impacts);
@@ -82,7 +82,7 @@ export function copyPacingAndPresentation(target: PacingAndPresentation, source:
     if (decision.decided) copyBotDecision(target.botDecisions[slot], decision);
     target.observedLegal[slot] = source.observedLegal[slot];
     target.observedStarted[slot] = source.observedStarted[slot];
-    if (isActive(sourceWorld, slot)) copyFighterPoseInto(target.poses[slot], source.poses[slot], sourceWorld);
+    if (isActive(sourceWorld, slot) && (keptPoses & (1 << slot)) === 0) copyFighterPoseInto(target.poses[slot], source.poses[slot], sourceWorld);
   }
 }
 

@@ -1,12 +1,13 @@
 import { copyAttackBuffer, queueAttack, sameAttackBuffer } from "../input/attackBuffer";
 import { adaptInput } from "../input/adapter";
 import { type InputRow, copyInput, sameInput } from "../input/inputRow";
-import { PARTICIPANT_SLOTS, type ParticipantInputs, type Slots, isParticipantMask, isParticipantSlot, participantActive, participantInputs } from "../input/participants";
+import { PARTICIPANT_SLOTS, type ParticipantInputs, type ParticipantSlot, type Slots, isParticipantMask, isParticipantSlot, participantActive, participantInputs } from "../input/participants";
 import { captureImpactEventsBefore, finishImpactEventsAfter } from "../presentation/impactEvents";
 import { advanceImpacts, clearImpactState, emitImpacts } from "../presentation/impactState";
 import { advanceSpecialEffect, clearSpecialEffectState } from "../presentation/specialEffectState";
 import { advanceSummons, clearSummonState } from "../presentation/summonState";
-import { advanceFighterPose } from "../presentation/fighterPose";
+import { advanceFighterPose, copyFighterPoseInto } from "../presentation/fighterPose";
+import { copySummonPoseInto } from "../presentation/summonPose";
 import { type Roster, copyControls, fighterAt, isActive, sameControls } from "../sim/roster";
 import { type FrameControls, createFrameControls } from "./controls";
 import type { PacingAndPresentation } from "./pacingAndPresentation";
@@ -184,9 +185,23 @@ function prepareMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster
   return true;
 }
 
-/** A scoped step's other fighters end as `after` holds them, with the observations that run made. */
+/**
+ * A scoped step's other fighters end as `after` holds them, with the
+ * observations that run made. Those in `reused` began the frame with that
+ * run's poses, special effects and summons, so they take its results too.
+ */
 export interface ScopedFrame extends StepScope {
   after: Readonly<ReplayState>;
+  reused: number;
+}
+
+function reusePresentation(runtime: PacingAndPresentation, after: Readonly<ReplayState>, slot: ParticipantSlot): void {
+  const was = after.runtime;
+  runtime.specials.drainSerial[slot] = was.specials.drainSerial[slot];
+  runtime.specials.drainAge[slot] = was.specials.drainAge[slot];
+  copySummonPoseInto(runtime.summons.bears[slot], was.summons.bears[slot]);
+  runtime.summons.bearHitSerial[slot] = was.summons.bearHitSerial[slot];
+  copyFighterPoseInto(runtime.poses[slot], was.poses[slot], after.world);
 }
 
 export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number, repeated?: RepeatedComputers, scope?: Readonly<ScopedFrame>): boolean {
@@ -220,6 +235,11 @@ export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world:
     if (!isActive(world, slot)) { advanceSummons(runtime.summons, undefined, slot); continue; }
     const f = fighterAt(world, slot);
     finishImpactEventsAfter(runtime.frameImpacts[slot], f, world);
+    if (scope !== undefined && slot !== scope.slot && participantActive(scope.reused, slot)) {
+      emitImpacts(runtime.impacts, runtime.frameImpacts[slot], frame);
+      reusePresentation(runtime, scope.after, slot);
+      continue;
+    }
     if (game.phase === Phase.match) {
       emitImpacts(runtime.impacts, runtime.frameImpacts[slot], frame);
       advanceSpecialEffect(runtime.specials, f, slot);
