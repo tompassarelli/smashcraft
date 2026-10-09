@@ -433,7 +433,7 @@ export function renderPersistentPresentation(s: ShellState): void {
       else renderers.pool.hide();
     }
     const live = playing ? fighter : undefined;
-    renderers?.flash.present(ui.match.posing === slot ? undefined : live, runtime.poses[slot], stage, runtime.simulationFrame);
+    renderers?.flash.present(ui.match.posing === slot ? undefined : live, runtime.poses[slot], stage, runtime.simulationFrame, game.camera);
     if (renderers !== undefined) renderers.agency.present(live, live === undefined ? "act" : agencyMarks[slot]);
     ui.special.presentStatic(runtime.specials, live, slot);
     ui.special.presentSummons(runtime.summons, live, slot);
