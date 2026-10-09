@@ -8,6 +8,7 @@ profile: prototype
 - Every frame must sustain 60 fps; the map’s own work stays below 10 ms, including the worst frame (Warcraft draws inside 16.7 ms). A miss remains unfinished work.
 - Keep every mutable gameplay field in deterministic snapshots/replay; local presentation stays separate and shared handles are created consistently.
 - Publish a release only when Tom decides; private playable builds are Smashcraft 0.0.N (increment N only). Diagnostics keep distinct run IDs and names; keep one current candidate under Maps/00-Smashcraft.
+- Never touch Tom’s install or account a; the offline pool is Classic-only, and Definitive checks run on signed-in clones b, c and d.
 
 Commands: from ts/, run bun wisp help.
 Docs and source layout: [docs/README.md](docs/README.md), topic → file.
