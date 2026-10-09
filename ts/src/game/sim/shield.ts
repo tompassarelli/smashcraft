@@ -245,10 +245,33 @@ export function regenerateShield(f: Fighter): void {
 
 
 
+// Raw doubles decide only a miss beyond a 3% plus one-unit margin, far wider than the exact path's binary32 rounding.
+function surelyApart(
+  oldX: number, oldZ: number, newX: number, newZ: number, capsuleRadius: number,
+  centerX: number, centerZ: number, circleRadius: number, circleScale: number,
+): boolean {
+  if (!(circleScale >= 0.0078125 && circleScale <= 128.0 && capsuleRadius >= 0.0 && circleRadius >= 0.0 && circleRadius <= 1048576.0 && capsuleRadius <= 1048576.0)) return false;
+  const magnitude = Math.max(Math.abs(oldX), Math.abs(oldZ), Math.abs(newX), Math.abs(newZ), Math.abs(centerX), Math.abs(centerZ));
+  if (!(magnitude < 1048576.0)) return false;
+  const deltaX = oldX - newX;
+  const deltaZ = oldZ - newZ;
+  const lengthSquared = deltaX * deltaX + deltaZ * deltaZ;
+  const endOffsetX = newX - centerX;
+  const endOffsetZ = newZ - centerZ;
+  const projection = lengthSquared > 0.0 ? Math.max(0.0, Math.min(1.0, -(endOffsetX * deltaX + endOffsetZ * deltaZ) / lengthSquared)) : 0.0;
+  const offsetX = centerX - (newX + projection * deltaX);
+  const offsetZ = centerZ - (newZ + projection * deltaZ);
+  const distanceSquared = offsetX * offsetX + offsetZ * offsetZ;
+  const reach = (capsuleRadius + circleRadius * circleScale) * 1.03125 + 1.0;
+  const floor = magnitude * 0.0009765625;
+  return distanceSquared > reach * reach && distanceSquared > floor * floor;
+}
+
 export function capsuleCircleIntersects(
   oldX: number, oldZ: number, newX: number, newZ: number, capsuleRadius: number,
   centerX: number, centerZ: number, circleRadius: number, circleScale: number,
 ): boolean {
+  if (surelyApart(oldX, oldZ, newX, newZ, capsuleRadius, centerX, centerZ, circleRadius, circleScale)) return false;
   const deltaX = subtractFloat32(oldX, newX);
   const deltaZ = subtractFloat32(oldZ, newZ);
   const lengthSquared = addFloat32(multiplyFloat32(deltaX, deltaX), multiplyFloat32(deltaZ, deltaZ));

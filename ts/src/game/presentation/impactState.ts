@@ -163,20 +163,26 @@ export function copyImpactStateInto(target: ImpactState, source: Readonly<Impact
   }
 }
 
+function impactSlotDifference(expected: Readonly<ImpactState>, actual: Readonly<ImpactState>, i: number): string {
+  if (expected.character[i] !== actual.character[i]) return "character";
+  if (expected.ages[i] !== actual.ages[i]) return "age";
+  if (expected.originX[i] !== actual.originX[i]) return "originX";
+  if (expected.originZ[i] !== actual.originZ[i]) return "originZ";
+  if (expected.drift[i] !== actual.drift[i]) return "drift";
+  if (expected.driftZ[i] !== actual.driftZ[i]) return "driftZ";
+  if (expected.pitch[i] !== actual.pitch[i]) return "pitch";
+  return "strength";
+}
+
 export function firstImpactDifference(expected: Readonly<ImpactState>, actual: Readonly<ImpactState>): string | undefined {
   for (let kind = 0; kind < IMPACT_KIND_COUNT; kind++) {
     if (expected.nextSlot[kind] !== actual.nextSlot[kind]) return `nextSlot[${kind}]`;
   }
   for (let i = 0; i < IMPACT_COUNT; i++) {
-    const prefix = `slot[${i}].`;
-    if (expected.character[i] !== actual.character[i]) return `${prefix}character`;
-    if (expected.ages[i] !== actual.ages[i]) return `${prefix}age`;
-    if (expected.originX[i] !== actual.originX[i]) return `${prefix}originX`;
-    if (expected.originZ[i] !== actual.originZ[i]) return `${prefix}originZ`;
-    if (expected.drift[i] !== actual.drift[i]) return `${prefix}drift`;
-    if (expected.driftZ[i] !== actual.driftZ[i]) return `${prefix}driftZ`;
-    if (expected.pitch[i] !== actual.pitch[i]) return `${prefix}pitch`;
-    if (expected.strength[i] !== actual.strength[i]) return `${prefix}strength`;
+    if (expected.character[i] !== actual.character[i] || expected.ages[i] !== actual.ages[i]
+      || expected.originX[i] !== actual.originX[i] || expected.originZ[i] !== actual.originZ[i]
+      || expected.drift[i] !== actual.drift[i] || expected.driftZ[i] !== actual.driftZ[i]
+      || expected.pitch[i] !== actual.pitch[i] || expected.strength[i] !== actual.strength[i]) return `slot[${i}].${impactSlotDifference(expected, actual, i)}`;
   }
   return undefined;
 }

@@ -175,21 +175,19 @@ export function firstBotMemoryDifference(expected: Readonly<BotMemory>, actual: 
   return undefined;
 }
 
-/** A number as copies keep it: signed zeros differ. */
-const exact = (a: number, b: number): boolean => a === b && (a !== 0 || 1 / a === 1 / b);
 const sameSlot = (a: number | undefined, b: number | undefined): boolean => a === b;
 
-/** Whether two observed bodies hold every field copyObservation copies equal. */
+/** Whether two observed bodies hold every field copyObservation copies equal; signed zeros differ. */
 function sameObservation(a: Readonly<Fighter>, b: Readonly<Fighter>): boolean {
   if (a === b) return true;
-  if (a.character !== b.character || !exact(a.facing, b.facing)) return false;
+  if (a.character !== b.character || (a.facing !== b.facing || (a.facing === 0 && 1 / a.facing !== 1 / b.facing))) return false;
   const t = a.tuning;
   const u = b.tuning;
   if (t.moves !== u.moves || t.specials !== u.specials || t.physics !== u.physics || t.surface !== u.surface || t.ground !== u.ground
     || t.dashGrab !== u.dashGrab || t.shield !== u.shield || t.tech !== u.tech || t.shieldBreak !== u.shieldBreak) return false;
   const m = a.motion;
   const n = b.motion;
-  if (!exact(m.x, n.x) || !exact(m.z, n.z) || !exact(m.deltaX, n.deltaX) || !exact(m.deltaZ, n.deltaZ) || !exact(m.vx, n.vx) || !exact(m.vz, n.vz)
+  if ((m.x !== n.x || (m.x === 0 && 1 / m.x !== 1 / n.x)) || (m.z !== n.z || (m.z === 0 && 1 / m.z !== 1 / n.z)) || (m.deltaX !== n.deltaX || (m.deltaX === 0 && 1 / m.deltaX !== 1 / n.deltaX)) || (m.deltaZ !== n.deltaZ || (m.deltaZ === 0 && 1 / m.deltaZ !== 1 / n.deltaZ)) || (m.vx !== n.vx || (m.vx === 0 && 1 / m.vx !== 1 / n.vx)) || (m.vz !== n.vz || (m.vz === 0 && 1 / m.vz !== 1 / n.vz))
     || m.grounded !== n.grounded || m.surface !== n.surface) return false;
   const at1 = a.attack;
   const at2 = b.attack;
@@ -201,7 +199,7 @@ function sameObservation(a: Readonly<Fighter>, b: Readonly<Fighter>): boolean {
   if (a.launch.hitstun !== b.launch.hitstun || a.launch.hitlag !== b.launch.hitlag || !sameSlot(a.hits.lastAttacker, b.hits.lastAttacker)) return false;
   const st = a.status;
   const su = b.status;
-  if (st.out !== su.out || st.stocks !== su.stocks || !exact(st.damage, su.damage) || st.invincible !== su.invincible || st.frozenFrames !== su.frozenFrames
+  if (st.out !== su.out || st.stocks !== su.stocks || (st.damage !== su.damage || (st.damage === 0 && 1 / st.damage !== 1 / su.damage)) || st.invincible !== su.invincible || st.frozenFrames !== su.frozenFrames
     || st.condition !== su.condition || st.conditionFrames !== su.conditionFrames || st.poisonFrames !== su.poisonFrames) return false;
   if (a.landing.lag !== b.landing.lag) return false;
   if (a.down.state !== b.down.state || a.down.frame !== b.down.frame || a.down.direction !== b.down.direction || a.down.faceUp !== b.down.faceUp) return false;
@@ -211,7 +209,7 @@ function sameObservation(a: Readonly<Fighter>, b: Readonly<Fighter>): boolean {
   const d2 = b.dodge;
   if (d1.groundFrame !== d2.groundFrame || d1.groundDirection !== d2.groundDirection || d1.airDodging !== d2.airDodging || d1.airFrame !== d2.airFrame) return false;
   if (a.surfaceRecovery.state !== b.surfaceRecovery.state || a.surfaceRecovery.frame !== b.surfaceRecovery.frame || !sameSlot(a.cannon.held, b.cannon.held)) return false;
-  if (a.bear.life !== b.bear.life || !exact(a.bear.x, b.bear.x) || !exact(a.bear.z, b.bear.z) || a.bear.hitSerial !== b.bear.hitSerial) return false;
+  if (a.bear.life !== b.bear.life || (a.bear.x !== b.bear.x || (a.bear.x === 0 && 1 / a.bear.x !== 1 / b.bear.x)) || (a.bear.z !== b.bear.z || (a.bear.z === 0 && 1 / a.bear.z !== 1 / b.bear.z)) || a.bear.hitSerial !== b.bear.hitSerial) return false;
   const p = a.projectiles;
   const q = b.projectiles;
   if (p.length !== q.length) return false;
@@ -220,8 +218,8 @@ function sameObservation(a: Readonly<Fighter>, b: Readonly<Fighter>): boolean {
     const y = q[index];
     if (x === y) continue;
     if (x === undefined || y === undefined) return false;
-    if (x.life !== y.life || !exact(x.x, y.x) || !exact(x.z, y.z) || !exact(x.direction, y.direction) || !exact(x.velocityX, y.velocityX)
-      || !exact(x.velocityZ, y.velocityZ) || x.serial !== y.serial) return false;
+    if (x.life !== y.life || (x.x !== y.x || (x.x === 0 && 1 / x.x !== 1 / y.x)) || (x.z !== y.z || (x.z === 0 && 1 / x.z !== 1 / y.z)) || (x.direction !== y.direction || (x.direction === 0 && 1 / x.direction !== 1 / y.direction)) || (x.velocityX !== y.velocityX || (x.velocityX === 0 && 1 / x.velocityX !== 1 / y.velocityX))
+      || (x.velocityZ !== y.velocityZ || (x.velocityZ === 0 && 1 / x.velocityZ !== 1 / y.velocityZ)) || x.serial !== y.serial) return false;
   }
   return true;
 }
