@@ -2,7 +2,8 @@
 // Classic and once in Definitive, from the body the match draws in each mode
 // (the Definitive body resolves under _de.w3mod, docs/design/hd-fighters.md).
 // Both sets share one camera, light and pose, so only the graphics mode differs.
-// Usage: bun scripts/fighterPortraits.ts PRIVATE_OUTPUT [--only NAME,...] [--graphics classic|definitive]
+// Usage: bun scripts/fighterPortraits.ts PRIVATE_OUTPUT [--only NAME,...] [--graphics classic|definitive] [--orientation]
+// --orientation only checks each portrait pose draws its head upright, without rendering.
 // Writes the raw 1024 px renders to PRIVATE_OUTPUT/{classic,definitive}/ and the
 // map's portraits to PRIVATE_OUTPUT/fighter-renders/ (Classic) and its de/
 // folder (Definitive): store that folder as the fighter-renders family.
@@ -27,6 +28,7 @@ import { bustPixels, combine, exposureFor, lightOf } from './portraitLight';
 
 const [outputArg] = process.argv.slice(2);
 const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1]?.split(',') : undefined;
+const orientationOnly = process.argv.includes('--orientation');
 const graphicsArg = process.argv.includes('--graphics') ? process.argv[process.argv.indexOf('--graphics') + 1] : undefined;
 if (graphicsArg !== undefined && graphicsArg !== 'classic' && graphicsArg !== 'definitive') throw new Error('--graphics must be classic or definitive');
 const graphicsModes: readonly ('classic' | 'definitive')[] = graphicsArg === undefined ? ['classic', 'definitive'] : [graphicsArg];
@@ -253,9 +255,10 @@ interface Portrait { readonly elapsed: number; readonly yaw: number; readonly an
  * face in shadow that leaves the match's lighting alone), `body` (turn and
  * frame by the body, as for heads too small to place a face), `bones`
  * (joints turned for the portrait only, withBones) and `rest` (the rig's bind
- * pose, bindPose, for a rig whose every Stand clip hides the face).
+ * pose, bindPose, for a rig whose every Stand clip hides the face) and `flipped`
+ * (the head bone's local up axis points down on screen, so the upright check reverses it).
  */
-interface Correction { readonly rest?: boolean; readonly turn?: number; readonly elapsed?: number; readonly angle?: number; readonly zoom?: number; readonly level?: boolean; readonly lift?: number; readonly body?: boolean; readonly bones?: Readonly<Record<string, readonly [number, number, number]>> }
+interface Correction { readonly rest?: boolean; readonly turn?: number; readonly elapsed?: number; readonly angle?: number; readonly zoom?: number; readonly level?: boolean; readonly lift?: number; readonly body?: boolean; readonly flipped?: boolean; readonly bones?: Readonly<Record<string, readonly [number, number, number]>> }
 const CORRECTIONS: Readonly<Record<'classic' | 'definitive', Readonly<Record<string, Correction>>>> = {
   classic: {
     "Anub'arak": { zoom: 0.6, lift: 2.6, angle: -30 },
@@ -272,6 +275,7 @@ const CORRECTIONS: Readonly<Record<'classic' | 'definitive', Readonly<Record<str
     ShadowHunter: { level: true, zoom: 1.5 },
     "Kael'thasSunstrider": { angle: 15, turn: 30 },
     CairneBloodhoof: { elapsed: 30.5, angle: 20, zoom: 1.5 },
+    "Anub'arak": { flipped: true },
     Murloc: { rest: true, body: true, zoom: 0.5, bones: { bone_head: [0, -20, 0] } },
   },
 };
@@ -413,7 +417,7 @@ interface Head { readonly x: number; readonly y: number; readonly size: number; 
  * draws with). Framing the head mesh rather than the body's bounds keeps
  * weapons, wings and shoulders from pulling the crop off the face.
  */
-function headBox(bytes: Uint8Array, scene: RenderScene, height: number): Head | undefined {
+function headBox(bytes: Uint8Array, scene: RenderScene, height: number, flipped = false): Head | undefined {
   const model = parseMDX(bytes.slice().buffer);
   const head = headOf(model);
   const pose = scene.effects[0];
@@ -440,9 +444,8 @@ function headBox(bytes: Uint8Array, scene: RenderScene, height: number): Head | 
   const [left, right] = span(xs), [top, bottom] = span(ys);
   const own = everyHeight.filter((row) => row[2]), heights = (own.length >= 8 ? own : everyHeight).sort((a, b) => b[0] - a[0]);
   const tenth = Math.ceil(heights.length / 10), drawnAt = (rows: [number, number, boolean][]) => rows.reduce((total, row) => total + row[1], 0) / rows.length;
-  const jointsAt = (pattern: RegExp) => head.joints.filter((joint) => pattern.test(joint.name)).flatMap((joint) => { const matrix = state.nodes[joint.id]?.matrix; return matrix === undefined ? [] : [project(apply(matrix, Array.from(model.PivotPoints[joint.id] ?? [0, 0, 0]), 1))]; });
-  const eyes = jointsAt(/eye|brow/i), jaw = jointsAt(/jaw|chin/i), average = (values: number[]) => values.reduce((total, value) => total + value, 0) / values.length;
-  const upright = eyes.length > 0 && jaw.length > 0 ? average(eyes) < average(jaw) : drawnAt(heights.slice(0, tenth)) < drawnAt(heights.slice(-tenth));
+  const crown = state.nodes[head.head]?.matrix, pivot = crown === undefined ? undefined : apply(crown, Array.from(model.PivotPoints[head.head] ?? [0, 0, 0]), 1), up = crown === undefined ? undefined : apply(crown, [0, 0, flipped ? -1 : 1], 0);
+  const upright = pivot === undefined || up === undefined ? drawnAt(heights.slice(0, tenth)) < drawnAt(heights.slice(-tenth)) : project([pivot[0] + up[0], pivot[1] + up[1], pivot[2] + up[2]]) < project(pivot);
   return { x: (left + right) / 2, y: (top + bottom) / 2, size: Math.max(right - left, bottom - top), upright };
 }
 
@@ -558,6 +561,15 @@ await Effect.runPromise(Effect.gen(function*() {
       const degrees = (angle: number) => (angle * 180 / Math.PI).toFixed(1);
       console.log(`${graphics} ${fighterRenderName(character)}: ${found === undefined ? 'no head geometry, ' : ''}Stand at ${pose.elapsed} s, yaw ${degrees(pose.yaw)}, angle ${pose.angle}, zoom ${pose.zoom}`);
     }
+    if (orientationOnly) {
+      for (const character of fighters) for (const variant of VARIANTS.keys()) {
+        const scene = portraitScene(required(captured.get(character), 'scene'), character, wide0, variant, poses.get(character)), body = at(scene.effects, 0);
+        const bytes = (yield* Effect.promise(() => project.resolveAsset(body.model, graphics))).bytes;
+        const found = bytes === undefined || required(poses.get(character), 'pose').body ? undefined : headBox(bytes, scene, wide0.height, correctionOf(graphics, character).flipped);
+        if (found !== undefined && !found.upright) upsideDown.push(`${graphics} ${fighterRenderName(character)}${at(VARIANTS, variant).suffix}`);
+      }
+      continue;
+    }
     // A first wide view finds each fighter; the second fits its silhouette.
     const wide = wide0;
     const first = yield* renderScenes(project, fighters.map((character) => portraitScene(required(captured.get(character), 'scene'), character, wide, 0, poses.get(character))), join(directory, 'wide'), graphics);
@@ -597,7 +609,7 @@ await Effect.runPromise(Effect.gen(function*() {
       // The grid keeps the neutral tile; the slot outfits carry every kind (MAP_PORTRAITS).
       const scene = required(scenes.get(frame), 'scene'), body = at(scene.effects, 0);
       const bytes = (yield* Effect.promise(() => project.resolveAsset(body.model, graphics))).bytes;
-      if (!crops(raw, into, name, suffix, kinds ?? (variant === 0 ? ['Tile'] : PORTRAIT_KINDS), bytes === undefined || required(poses.get(character), 'pose').body ? undefined : headBox(bytes, scene, required(heights.get(character), 'height')), required(poses.get(character), 'pose').zoom)) upsideDown.push(`${graphics} ${name}${suffix}`);
+      if (!crops(raw, into, name, suffix, kinds ?? (variant === 0 ? ['Tile'] : PORTRAIT_KINDS), bytes === undefined || required(poses.get(character), 'pose').body ? undefined : headBox(bytes, scene, required(heights.get(character), 'height'), correctionOf(graphics, character).flipped), required(poses.get(character), 'pose').zoom)) upsideDown.push(`${graphics} ${name}${suffix}`);
       return raw;
     };
     // Each pass's P1 bust is drawn alone; every lighting variant, exposed to the
@@ -628,5 +640,6 @@ await Effect.runPromise(Effect.gen(function*() {
       console.log(`${graphics}: ${yield* draw(frame, image, required(lighting.get(character), 'lighting'), gammaOf(character), portraits)}`);
     }
   }
+  if (orientationOnly && upsideDown.length === 0) console.log(`upright: ${fighters.length} fighters in ${graphicsModes.join(", ")}`);
   if (upsideDown.length > 0) { console.log(`FAIL head drawn upside down: ${[...new Set(upsideDown)].join(', ')}`); process.exitCode = 1; }
 }));
