@@ -29,7 +29,7 @@ export const STAGE_LIGHTS: readonly { readonly stage: number; readonly theme: st
   { stage: WIND_TEST_STAGE, theme: "Nordrassil", light: { key: [236, 246, 232], ambient: [136, 178, 172] } },
 
 
-  { stage: CARRIED_TEST_STAGE, theme: "Aerie", light: { key: [255, 248, 226], ambient: [164, 182, 220], intensity: 0.20000000298023224 } },
+  { stage: CARRIED_TEST_STAGE, theme: "Aerie", light: { key: [255, 248, 226], ambient: [164, 182, 220], intensity: 1.25 } },
 
 
   { stage: DRIFTING_DECK_STAGE, theme: "Durotar", light: { key: [255, 236, 214], ambient: [214, 196, 190], intensity: 1.25 } },
