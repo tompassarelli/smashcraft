@@ -1,7 +1,9 @@
 # Player guide
 
 Requires Warcraft III 3.0 and a keyboard; nothing else to install. Put the
-map in the Warcraft III Maps folder and open it from Custom Games. A
+map in the Warcraft III Maps folder and open it from Custom Games. Fighters
+look Classic or Definitive by your Graphics setting; after changing it,
+restart Warcraft III, because the new look applies only when the game starts. A
 controller is optional: the Smashcraft controller helper turns its buttons
 and sticks into the same keys (A attacks, X specials, B or Y jumps, RB grabs,
 either trigger shields, LB walks, left-stick click (L3) short hops, Start pauses). The current prototype includes character and stage
