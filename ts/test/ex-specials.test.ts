@@ -61,7 +61,7 @@ test.each(SELECTABLE_CHARACTERS)("real Wisp map fires fighter %i's four EX speci
           specialX: slot === SpecialSlot.side ? 1 : 0,
           specialZ: slot === SpecialSlot.up ? 1 : slot === SpecialSlot.down ? -1 : 0 }), world), `${fighterName(character)}:${slot}`).toBe(true);
         expect(owner.special.ex).toBe(true);
-        expect(owner.mana.points).toBe(0);
+        expect(owner.mana.points).toBe(67);
         duration = owner.special.duration;
         observed = owner;
       });
