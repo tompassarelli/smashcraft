@@ -62,6 +62,7 @@ src/game/menu/selectionDrag.tests.ts	2	350000	1416
 src/game/menu/selectionGrid.tests.ts	8	110000	349
 src/game/menu/stagePool.tests.ts	5	535000	404
 src/game/menu/stageSelection.tests.ts	2	133000	39
+src/game/netcode/delayPolicy.tests.ts	2	48563000	107
 src/game/netcode/fixedSchedule.tests.ts	6	8716000	31792
 src/game/netcode/inputBatch.tests.ts	1	97000	1853
 src/game/netcode/journal/editbox.tests.ts	1	9000	9

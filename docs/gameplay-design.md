@@ -188,20 +188,65 @@ Historical fixture before #339: - **Not a Melee clone.** Melee's data is a refer
 
 ## Online input timing
 
-Tom decided, 7 Oct 2026 (#60): online play uses a fixed two-frame input
-delay with rollback, and press-to-screen response must stay within three
-frames in ordinary play. The delay stays fixed throughout a match; it does
-not increase to hide network jitter. The playable keyboard build captures
-local keys into rows for two simulation frames later, sends each row without
-waiting for another sample, and draws the local prediction. The correction
-window is 24 frames. Keyboard play needs no helper; an optional controller
-maps to the same keys.
+Tom decided, 9 Oct 2026 (#396), superseding the fixed delay of #60: input
+delay feels the same in every mode, so practice transfers. The pure policy is
+smashcraft:ts/src/game/netcode/delayPolicy.ts; the Warcraft map and Wisp's own
+transport (wisp#110) both call it.
 
-The journal integrity diagnostic also defaults to delay 2 and rollback 24.
-Its capture-to-first-prediction check measures map admission, which does not
-establish press-to-screen time. Native acceptance retains the stimulus clock
-and reports the response distribution, separately from intentional action
-startup, recovery, and prediction held at the correction limit.
+- **Default 2 frames (33 ms)** against computers, in local versus and online,
+  as in Slippi.
+- **Delay setting**, saved per player with the controls (Options, reached
+  from character select, which is also the lobby): **Auto** (the default) or
+  **Fixed N** frames, 0 to 8, used as-is. Rollback absorbs the rest. Local
+  matches can lower it to 0 or 1. **Recalibrate** shows the measured ping,
+  Auto's choice and the expected rollback depth, and one press makes that
+  choice fixed.
+- **Lobby agreement:** each player sees the other's request on character
+  select. The match uses the higher request, so nobody plays below what they
+  asked for. When the agreed delay is 8 frames (133 ms) or more, the lobby
+  warns: "Input delay of 8+ frames: this connection will feel sluggish".
+- **Auto, online:** round trip comes from the input stream itself, the echo
+  of each sent row, with no extra packets. It is smoothed in integer
+  milliseconds with Jacobson/Karels (RFC 6298: SRTT gain 1/8, RTTVAR gain
+  1/4). Auto chooses delay = max(2, ceil(one-way frames) − R), using the
+  smoothed trip plus two deviations, and caps it at 8. R, the rollback budget,
+  is 7 frames. Delay rises above 2 only past 2 + R = 9 one-way frames (about
+  300 ms round trip), so ordinary connections keep 2 frames and rollback
+  absorbs the rest. Auto raises at once but lowers only when one more frame of
+  round trip would still allow the lower value, so jitter cannot flip it back
+  and forth.
+- **When delay changes:** only at match start, on the epoch every client
+  begins together, from requests already exchanged through the synchronized
+  channel. It never changes mid-exchange.
+- **Time sync (GGPO-style, pause-free):** the client that runs ahead by two
+  or more frames of advantage waits one frame, at most once per second, so
+  rollback depth stays even on both sides.
+- **Network indicator:** online matches show the current delay and rollback
+  depth. If the one-way trip exceeds the window plus the delay, it shows
+  "connection poor" instead of desyncing.
+- **Rollback window:** 24 frames, the hard stall limit
+  (smashcraft:ts/src/game/replay/limits.ts). It is not the budget: deeper
+  corrections look like teleports and cost more replay.
+
+Prior art, read from source on 9 Oct 2026:
+- GGPO: `MAX_PREDICTION_FRAMES 8` (pond3r/ggpo src/lib/ggpo/sync.h). Its time
+  sync (src/lib/ggpo/timesync.cpp) averages local and remote frame advantage
+  over 40 frames. The side ahead sleeps round((remote − local) / 2) frames when
+  that is at least 3, at most 9, and asks again every 240 frames
+  (backends/p2p.cpp). Smashcraft slows more gently: one frame a second at most.
+- Slippi: `ROLLBACK_MAX_FRAMES 7` (project-slippi/Ishiiruka
+  Source/Core/Core/Slippi/SlippiNetplay.h). Players pick delay frames, 2 by
+  default, and rollback absorbs the rest. R = 7 follows Slippi; GGPO's 8 is
+  one frame more.
+- Rivals of Aether 2 (SnapNet) shows input and prediction frames on screen.
+  Players set input frames, or the netcode adapts delay to the connection
+  (edgegap.com, "Rivals of Aether 2 – How is its online experience is so
+  good?"). Players report 2 delay frames and 2 rollback frames as the
+  defaults; that is not confirmed from an official source.
+
+The journal integrity diagnostic and the playable keyboard build both start
+at delay 2 with the 24-frame window. The capture-to-first-prediction check
+measures map admission, which does not establish press-to-screen time.
 
 ## Bounded SDI
 
