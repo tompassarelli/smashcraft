@@ -7,6 +7,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { sweep } from "../../runtime/sweep";
 import { Character, LedgeState, SpecialAction } from "../sim/codes";
 import { ledgeCatchBox } from "../sim/ledge";
+import { runningHeroSpecial } from "../sim/heroSpecialRules";
 import { WARDEN_SPECIALS } from "../sim/heroes/wardenSpecials";
 import { mainDeckRight } from "../sim/stage";
 import { insideMainDeckBody } from "../sim/surfaces";
@@ -31,7 +32,8 @@ const check = (ok: boolean, label: string): void => assertEquals(ok ? "" : label
 
 function upSpecial(run: RecoveryRun, aim: number, frames: number, each?: (frame: number) => void): void {
   for (let frame = 1; frame <= frames; frame++) {
-    playKeys(run, frame === 1 ? SPECIAL | UP | (aim & TOWARD) : frame <= 12 ? aim : TOWARD);
+    const aiming = frame <= 12 || run.fighter.special.frame < (runningHeroSpecial(run.fighter)?.aimFrames ?? 0);
+    playKeys(run, frame === 1 ? SPECIAL | UP | (aim & TOWARD) : aiming ? aim : TOWARD);
     each?.(frame);
     if (recovered(run.fighter) || run.fighter.status.out) return;
   }
@@ -99,9 +101,9 @@ test("[spec #252] a Blink that meets the stage below its lip stops there, and a 
 
 test("[spec #252] an up special that comes down beside the ledge catches it before its helpless fall", () => {
 
-  const run = recoveryRun(Character.kaelthas, 100, 760.0, 160.0);
+  const run = recoveryRun(Character.kaelthas, 100, 850.0, 230.0);
   let caughtDuringSpecial = false;
-  upSpecial(run, TOWARD | DOWN, 60, () => {
+  upSpecial(run, TOWARD | DOWN, 90, () => {
     const f = run.fighter;
     if (f.ledge.state === LedgeState.hang && !f.special.fall) caughtDuringSpecial = true;
   });

@@ -61,6 +61,7 @@ export interface SpecialMotion extends FrameWindow {
 
 
   readonly driftSpeed?: number | undefined;
+  readonly liftSpeed?: number | undefined;
 
 
 
@@ -146,6 +147,10 @@ export interface SpecialProjectile {
   readonly returns?: { readonly age: number; readonly speed: number } | undefined;
 
   readonly pool?: ProjectilePool | undefined;
+  /** Each frame its vertical speed turns by at most `turn` toward the nearest opponent ahead, up to `maxRise`. */
+  readonly homing?: { readonly turn: number; readonly maxRise: number } | undefined;
+  /** On body or shield contact it becomes this projectile where it is, which deals the hit and then only shows. */
+  readonly burstInto?: SpecialProjectile | undefined;
 }
 
 export interface SpecialArmor extends FrameWindow {
@@ -264,6 +269,8 @@ export interface AuthoredSpecial {
   readonly endFrame: number;
 
   readonly cooldownFrames?: number | undefined;
+  /** Frames whose regions may hit a target the special already hit: the hit registry clears on the frame before each. */
+  readonly rehitFrames?: readonly number[] | undefined;
 
   readonly regions?: readonly MoveRegion[] | undefined;
   readonly motion?: readonly SpecialMotion[] | undefined;

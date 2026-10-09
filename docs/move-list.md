@@ -40,7 +40,7 @@ Normals, inspired by:
 
 | Input | Name | What it does |
 | --- | --- | --- |
-| Neutral special | Wind Cutter | A short blade wave that costs no mana. |
+| Neutral special | Wind Cutter | A short blade wave. |
 | Side special | Wind Walk (Backstab, Step Out) | Fade and walk through bodies; attack to Backstab on either side, special to step out. |
 | Up special | Rising Whirlwind | Hold a direction as he gathers, then a slashing dash that way and a helpless fall. |
 | Down special | Mirror Image (Image Swap) | Step back and leave an image; press again to swap to it with a slash. One hit breaks it. |
@@ -172,7 +172,7 @@ Normals, inspired by:
 | --- | --- | --- |
 | Neutral special | Frostbolt | A straight frost bolt; jump it or shield it. |
 | Side special | Blizzard | Ice falls twice on the marked patch ahead; leave it before the first strike. |
-| Up special | Blink | Aim a teleport, then fall helpless. Empty mana shortens its reach. |
+| Up special | Blink | Aim a teleport, then fall helpless. |
 | Down special | Summon Water Elemental | Summon a fragile ally that fires four water bolts. Press again to recall it. |
 | Jab, repeated | Staff Check | Two short staff strikes to create space. |
 | Ultimate | Mass Teleport | Bring nearby allies to her Water Elemental. |
@@ -236,12 +236,11 @@ Normals, inspired by:
 
 | Input | Name | What it does |
 | --- | --- | --- |
-| Neutral special | Flame Strike | Send a wall of flame along the ground that launches the first enemy it reaches. Shield it or jump over it. |
-| Side special | Siphon Mana | Reach ahead to take mana from an enemy. Shields stop it. |
-| Up special | Phoenix Flight | Aim, then ride a burst of fire. You fall helpless after the flight. |
-| Down special | Banish | Briefly turn ethereal, then push nearby enemies away. |
+| Neutral special | Flamestrike | A fire bolt that drifts toward the enemy and bursts into a pillar of flame on contact. Shield or reflect it. |
+| Side special | Drain Mana | A short tether that grabs through shields and drinks the victim's meter. Jump or dodge it. |
+| Up special | Phoenix | Charge in swirling flame, then fly as a phoenix the way you aim; up or down bends the flight. Helpless after. |
+| Down special | Banish | A close curse: the victim turns ethereal, slowed and unable to attack, and takes more damage from Kael's spells. |
 | Jab, repeated | Verdant Touch | A palm check, then a sphere shove on a second tap. |
-| Ultimate | Phoenix | Summon a phoenix that burns enemies and returns from its egg. |
 
 ## Murloc
 
@@ -253,3 +252,53 @@ Normals, inspired by:
 | Down special | Disease Cloud | Leave a small plague cloud that poisons enemies standing in it; jumping clears it. |
 | Jab, repeated | Claw Flurry | A quick claw poke, then a second swipe on another tap. |
 | Ultimate | Mrgllgll Swarm | A tide of murlocs rushes across the stage. |
+
+## Grom Hellscream
+
+| Input | Name | What it does |
+| --- | --- | --- |
+| Neutral special | Warsong Cry | Roar in their face and launch them upward. Rush after them. |
+| Side special | Gorehowl Rush | Charge axe-first. A shield stops the rush; a miss leaves you open. |
+| Up special | Blood Leap | Haul Gorehowl upward as you leap, then fall helpless. |
+| Down special | Mannoroth's Bane | Commit to a furious two-handed execution chop. |
+| Jab, repeated | Warsong Greeting | Check them with the hilt, then chop on a second tap. |
+
+## Kobold
+
+| Input | Name | What it does |
+| --- | --- | --- |
+| Neutral special | Wick Flick | Flick candle flame forward. Jump or shield it, then punish the recovery. |
+| Side special | Panic Dig | Scurry forward behind the pick. A raised shield stops the charge. |
+| Up special | Candle Escape | Spring upward in a panic, steer, then fall helpless. |
+| Down special | Mine! | Protect the candle with a two-sided ankle sweep. Jump over the pick. |
+| Jab, repeated | Pick Pick! | Two nervous mining-pick taps. You no take candle! |
+
+## Malfurion Stormrage
+
+| Input | Name | What it does |
+| --- | --- | --- |
+| Neutral special | Entangling Roots | Mark the ground ahead. Jump or shield before the roots close. |
+| Side special | Stag Charge | Bound forward with branching antlers. A shield stops the charge. |
+| Up special | Dream Ascent | Rise through the canopy, then fall helpless. |
+| Down special | Force of Nature | Plant a fragile treant that throws four branches. Press again to recall it. |
+| Jab, repeated | Gardening Lesson | Two dismissive staff taps: mind the flowers. |
+
+## Medivh
+
+| Input | Name | What it does |
+| --- | --- | --- |
+| Neutral special | Arcane Omen | Send a slow omen ahead. Shield it or jump over it. |
+| Side special | Vanishing Act | Blink forward and strike. Your arrival is open to a punish. |
+| Up special | Raven Flight | Aim and become a raven. Fall helpless after the flight. |
+| Down special | Last Word | Blink back and burst outward. Bait an impatient chase. |
+| Jab, repeated | Impatient Prophecy | Two pointed staff taps for those who will not listen. |
+
+## Anub'arak
+
+| Input | Name | What it does |
+| --- | --- | --- |
+| Neutral special | Impale | Drive a line of spines along the floor. Jump the line or block the stamp. |
+| Side special | Burrow Hunt | Scuttle beneath the floor and erupt. Follow the mound and punish the emergence. |
+| Up special | Crypt Eruption | Choose a direction and launch the crown, then fall helpless. |
+| Down special | Carrion Beetle | Plant a fragile nest that sends beetles along the ground. Press again to recall it. |
+| Jab, repeated | Royal Rebuke | The king dismisses prey with one tusk, then the other. |

@@ -33,6 +33,10 @@ interface SpecialSlot {
   readonly wingTrail: effect;
   readonly drainFlash: effect;
   readonly silence: effect;
+  readonly siphon: lightning;
+  siphonShown: boolean;
+  lastX: number;
+  lastZ: number;
 
   readonly cursor: ImpactPresentationCursor;
   previousSpecial: SpecialAction;
@@ -49,6 +53,8 @@ const WING_TRAIL = 4;
 const DRAIN_FLASH = 5;
 const SILENCE = 7;
 const SLOT_EFFECTS = 8;
+/** Warcraft's Drain Mana lightning, the Blood Mage's own Siphon Mana beam. */
+const SIPHON_LIGHTNING = "DRAM";
 
 export class SpecialEffects {
   private readonly slots: readonly SpecialSlot[];
@@ -68,11 +74,13 @@ export class SpecialEffects {
       const wingTrail = AddSpecialEffect(IMPACT_DUST_MODEL, x, y);
       const drainFlash = AddSpecialEffect(IMPACT_TECH_MODEL, x, y);
       const silence = AddSpecialEffect(STOCK_MODELS.silenceTarget, x, y);
+      const siphon = AddLightningEx(SIPHON_LIGHTNING, false, x, y, origin.z - 4096.0, x, y, origin.z - 4096.0);
+      SetLightningColor(siphon, 1.0, 1.0, 1.0, 0.0);
       BlzSetSpecialEffectTimeScale(aura, 0.0);
       BlzSetSpecialEffectTimeScale(wingTrail, 0.0);
       BlzSetSpecialEffectTimeScale(drainFlash, 0.0);
       return {
-        bear, aura, felFlames, manaHand, wingTrail, drainFlash, silence, cursor,
+        bear, aura, felFlames, manaHand, wingTrail, drainFlash, silence, siphon, siphonShown: false, lastX: 0.0, lastZ: 0.0, cursor,
         previousSpecial: SpecialAction.none, previousSpecialFrame: 0,
       };
     });
@@ -94,6 +102,7 @@ export class SpecialEffects {
       this.park(slot.wingTrail, index, WING_TRAIL);
       this.park(slot.drainFlash, index, DRAIN_FLASH);
       this.park(slot.silence, index, SILENCE);
+      this.hideSiphon(slot);
       slot.previousSpecial = SpecialAction.none;
       slot.previousSpecialFrame = 0;
       this.releaseImmolationLoop(slot);
@@ -209,14 +218,41 @@ export class SpecialEffects {
     const effects = this.slots[slot];
     if (effects === undefined) return;
     if (fighter === undefined) {
+      this.hideSiphon(effects);
       this.park(effects.aura, slot, AURA);
       this.park(effects.wingTrail, slot, WING_TRAIL);
       this.park(effects.drainFlash, slot, DRAIN_FLASH);
       return;
     }
+    effects.lastX = fighter.motion.x;
+    effects.lastZ = fighter.motion.z;
+    this.presentSiphon(effects, fighter);
     this.applyStatic(effects.aura, slot, AURA, projectSpecialEffect(state, fighter, slot, STATIC_AURA));
     this.applyStatic(effects.wingTrail, slot, WING_TRAIL, projectSpecialEffect(state, fighter, slot, STATIC_WING_TRAIL));
     this.applyStatic(effects.drainFlash, slot, DRAIN_FLASH, projectSpecialEffect(state, fighter, slot, STATIC_DRAIN_FLASH));
+  }
+
+  private hideSiphon(slot: SpecialSlot): void {
+    if (!slot.siphonShown) return;
+    SetLightningColor(slot.siphon, 1.0, 1.0, 1.0, 0.0);
+    slot.siphonShown = false;
+  }
+
+  /** While Siphon Mana holds its victim, a drain beam joins Kael's hand to the victim's chest. */
+  private presentSiphon(effects: SpecialSlot, fighter: Readonly<Fighter>): void {
+    const target = fighter.grab.target;
+    const victim = target === undefined ? undefined : this.slots[target];
+    if (fighter.character !== Character.kaelthas || fighter.status.out || fighter.special.action !== SpecialAction.heroSide
+      || fighter.special.grabFrame <= 0 || victim === undefined) {
+      this.hideSiphon(effects);
+      return;
+    }
+    const scale = characterModelScale(fighter.character);
+    const { x, z } = this.origin;
+    MoveLightningEx(effects.siphon, false, x + fighter.motion.x + fighter.facing * 40.0 * scale, this.front, z + fighter.motion.z + 65.0 * scale,
+      x + victim.lastX, this.front, z + victim.lastZ + 55.0);
+    SetLightningColor(effects.siphon, 1.0, 1.0, 1.0, 1.0);
+    effects.siphonShown = true;
   }
 
   presentSummons(state: Readonly<SummonState>, fighter: Readonly<Fighter> | undefined, slot: number): void {
@@ -235,6 +271,7 @@ export class SpecialEffects {
       this.releaseImmolationLoop(slot);
       slot.bear.destroy();
       for (const model of [slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.drainFlash, slot.silence]) DestroyEffect(model);
+      DestroyLightning(slot.siphon);
     }
   }
 }

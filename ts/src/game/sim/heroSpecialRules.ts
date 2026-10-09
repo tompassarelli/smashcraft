@@ -303,6 +303,10 @@ function applyMotion(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number,
       const stick = input.diStickValid ? input.diStickX : input.direction;
       velocityX = f32(velocityX + f32(min(1.0, max(-1.0, stick)) * segment.driftSpeed));
     }
+    if (segment.liftSpeed !== undefined && input !== undefined) {
+      const stick = input.diStickValid ? input.diStickZ : input.verticalDirection;
+      velocityZ = f32(velocityZ + f32(min(1.0, max(-1.0, stick)) * segment.liftSpeed));
+    }
     motion.vx = velocityX;
     motion.vz = velocityZ;
     if (velocityZ > 0 && motion.grounded) {
@@ -404,6 +408,9 @@ export function advanceHeroSpecial(f: Fighter, stage = 0, input?: Readonly<Contr
   const frame = f.special.frame;
   if (move.cleanseFrame === frame) cleansePoisonAndSlow(f);
   applyMotion(f, move, frame, input);
+  if (move.rehitFrames !== undefined) {
+    for (const rehit of move.rehitFrames) if (rehit - 1 === frame) for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) f.special.hitTargets[entry] = undefined;
+  }
   for (const spec of move.projectiles ?? []) if (spec.spawnFrame === frame) spawnHeroProjectile(f, spec, f.attack.serial + 1, stage);
   if (move.placement?.frame === frame) placeObject(f, move.placement);
   if (move.command?.frame === frame) orderCompanion(f, move.command.order, move.command.slot);

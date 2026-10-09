@@ -11,6 +11,7 @@ import { type AuthoredSpecial, FOLLOW_UP_FORM, type FrameWindow, SpecialForm } f
 import { idiv } from "wisp/src/sim/intMath";
 import { runningHeroSpecial } from "../sim/heroSpecialRules";
 import { HERO_ROSTER } from "../sim/heroes/registry";
+import { PHOENIX_CHARGE_FRAMES, PHOENIX_FLIGHT_FRAMES } from "../sim/heroes/kaelthasSpecials";
 import {
   CHAOS_STRIKE_AIR_FORM,
   CHAOS_STRIKE_FIRST,
@@ -124,6 +125,9 @@ const FROST = cue("Abilities\\Spells\\Undead\\ReplenishMana\\SpiritTouchTarget.m
 const ARCANE = cue("Abilities\\Spells\\Human\\DispelMagic\\DispelMagicTarget.mdx", "hand", 0.5);
 const HOLY = cue("Abilities\\Spells\\Human\\Heal\\HealTarget.mdx", "hand", f32(0.7));
 const VAMPIRIC = cue("Abilities\\Spells\\Undead\\UnholyFrenzy\\UnholyFrenzyTarget.mdx", "hand", f32(0.8));
+const KAEL_PHOENIX_CHARGE: MoveCues = { spell: "Phoenix", startup: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "body", 0.5), active: cue("Doodads\\Cinematic\\TownBurningFireEmitter\\TownBurningFireEmitter.mdx", "body", f32(0.6)) };
+// The flight is the phoenix itself: Kael's body is replaced by it until the flight ends.
+const KAEL_PHOENIX_FORM: MoveCues = { spell: "Phoenix", startup: KAEL_PHOENIX_CHARGE.active, active: { ...timed(cue("units\\human\\Phoenix\\Phoenix.mdx", "body", f32(0.55)), "stand", 0.0), replacesBody: true } };
 const DREADLORD_BITE_CUES: MoveCues = { spell: "Healing bite", startup: VAMPIRIC, active: cue("Abilities\\Weapons\\Blood\\BloodImpact.mdx", "ahead", 1.0) };
 const VOODOO = cue("Abilities\\Spells\\Orc\\TrollBerserk\\TrollBeserkerTarget.mdx", "hand", f32(0.7));
 const FEL = cue("Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilSpecialArt.mdx", "hand", f32(0.7));
@@ -186,10 +190,10 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     down: { spell: "Robo-Goblin", startup: drawn("units\\creeps\\HeroTinker\\HeroTinker.mdl", "body"), active: drawn("units\\creeps\\HeroTinker\\HeroTinker.mdl", "body") },
   },
   [Character.kaelthas]: {
-    neutral: { spell: "Flame Strike", startup: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "hand", 0.5), active: cue("Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile.mdx", "hand", 0.5) },
-    side: { spell: "Siphon Mana", startup: FROST, active: cue("Abilities\\Spells\\Human\\ManaFlare\\ManaFlareTarget.mdx", "ahead", 0.75) },
-    up: { spell: "Phoenix Flight", startup: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "body", 0.5), active: timed(cue("units\\human\\Phoenix\\Phoenix.mdx", "body", 0.5), "stand", 0.0) },
-    down: { spell: "Banish", startup: cue("Abilities\\Spells\\Human\\Banish\\BanishTarget.mdx", "body", 0.75), active: cue("Abilities\\Spells\\Human\\Banish\\BanishTarget.mdx", "body", 0.75) },
+    neutral: { spell: "Flamestrike", startup: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "hand", 0.5), active: cue("Abilities\\Spells\\Other\\ImmolationRed\\ImmolationRedDamage.mdx", "hand", 0.5) },
+    side: { spell: "Drain Mana", startup: FROST, active: cue("Abilities\\Spells\\Human\\ManaFlare\\ManaFlareTarget.mdx", "ahead", 0.75) },
+    up: KAEL_PHOENIX_CHARGE,
+    down: { spell: "Banish", startup: cue("Abilities\\Spells\\Orc\\EtherealForm\\SpiritWalkerChange.mdx", "hand", 0.5), active: cue("Abilities\\Spells\\Human\\Banish\\BanishTarget.mdx", "hand", 0.5) },
   },
   [Character.murloc]: {
     neutral: { spell: "Ensnare", startup: MURGUL, active: cue("Abilities\\Spells\\Orc\\Ensnare\\EnsnareTarget.mdx", "hand", 0.75) },
@@ -483,6 +487,10 @@ export function specialCueState(fighter: Readonly<Fighter>): CueState {
   if (fighter.character === Character.dreadlord && action === SpecialAction.heroSide && fighter.special.grabFrame > 0) {
     return frame <= fighter.special.grabFrame + 16 ? { cues: DREADLORD_BITE_CUES, phase: "active" } : NONE;
   }
+  if (fighter.character === Character.kaelthas && action === SpecialAction.heroUp && fighter.special.form < FOLLOW_UP_FORM) {
+    if (frame > PHOENIX_CHARGE_FRAMES && frame <= PHOENIX_CHARGE_FRAMES + PHOENIX_FLIGHT_FRAMES) return { cues: KAEL_PHOENIX_FORM, phase: "active" };
+    return frame <= PHOENIX_CHARGE_FRAMES ? { cues: KAEL_PHOENIX_CHARGE, phase: frame < 16 ? "startup" : "active" } : NONE;
+  }
   let cues: MoveCues | undefined;
   let windows: CueWindows | undefined;
   if (action >= SpecialAction.heroNeutral && action <= SpecialAction.heroDown) {
@@ -518,7 +526,7 @@ export function fighterMoveCues(character: Character): readonly MoveCues[] {
 
 
 export function fighterCueList(character: Character): readonly Cue[] {
-  return [...fighterMoveCues(character), ...fighterBranchCues(character), ...(character === Character.dreadlord ? [DREADLORD_BITE_CUES] : [])].flatMap((cues) => [cues.startup, cues.active]);
+  return [...fighterMoveCues(character), ...fighterBranchCues(character), ...(character === Character.dreadlord ? [DREADLORD_BITE_CUES] : []), ...(character === Character.kaelthas ? [KAEL_PHOENIX_FORM] : [])].flatMap((cues) => [cues.startup, cues.active]);
 }
 
 

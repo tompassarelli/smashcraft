@@ -1,0 +1,20 @@
+fighter	move	class	passed	shortfall	L1	body share	mass shift	limb	L2	end error	jump	overshoot	L3	windup	peak	settle	fill	first active	last active	end	L4	contrast	IoU windup/contact	IoU contact/recovery	L5	judges	lowest	readability	weight	anticipation	follow-through	character	Melee reference	ref start	ref total
+kael'thas-sunstrider	back-air	aerial	4/5	0.00	pass	0.42	0.16	arm R	pass	0.00	0.01	0.17	pass	7	13	37	1.00	11	13	37	pass	0.30	0.41	0.70	FAIL	1	2.00	3.00	2.00	2.00	3.00	2.00	zelda bair	5	35
+kael'thas-sunstrider	dash-attack	tilt	4/5	0.00	pass	1.00	0.29	leg R	pass	0.02	0.03	0.09	pass	5	11	34	0.92	9	12	36	pass	0.60	0.20	0.40	FAIL	1	2.00	2.00	2.00	2.00	3.00	2.00	zelda dattack	6	37
+kael'thas-sunstrider	down-air	aerial	4/5	0.00	pass	0.98	0.25	arm L	pass	0.00	0.01	0.14	pass	8	16	45	1.00	14	16	45	pass	0.26	0.42	0.74	FAIL	1	2.00	2.00	2.00	3.00	2.00	2.00	zelda dair	14	43
+kael'thas-sunstrider	down-smash	smash	4/5	0.00	pass	0.76	0.32	leg R	pass	0.02	0.01	0.10	pass	11	22	52	0.94	19	22	54	pass	0.45	0.20	0.55	FAIL	1	2.00	3.00	3.00	3.00	2.00	2.00	zelda dsmash	4	39
+kael'thas-sunstrider	down-special	special	4/5	0.00	pass	0.98	0.64	arm R	pass	0.03	0.03	0.09	pass	7	12	33	0.95	11	13	34	pass	0.68	0.00	0.32	FAIL	1	2.00	2.00	3.00	2.00	3.00	3.00	zelda down_b	34	69
+kael'thas-sunstrider	down-tilt	tilt	4/5	0.00	pass	0.98	0.32	leg R	pass	0.02	0.03	0.08	pass	4	8	24	0.89	6	8	26	pass	0.52	0.12	0.48	FAIL	1	1.00	2.00	3.00	1.00	3.00	2.00	zelda dtilt	5	31
+kael'thas-sunstrider	forward-air	aerial	4/5	0.00	pass	0.54	0.13	arm R	pass	0.00	0.01	0.18	pass	4	8	34	1.00	7	9	34	pass	0.32	0.46	0.68	FAIL	1	2.00	2.00	2.00	2.00	2.00	2.00	zelda fair	8	39
+kael'thas-sunstrider	forward-smash	smash	4/5	0.00	pass	0.69	0.27	arm R	pass	0.02	0.01	0.14	pass	7	14	43	0.94	12	14	45	pass	0.45	0.25	0.55	FAIL	1	2.00	2.00	3.00	2.00	3.00	2.00	zelda fsmash	16	39
+kael'thas-sunstrider	forward-tilt	tilt	4/5	0.00	pass	1.00	0.33	leg R	pass	0.02	0.03	0.07	pass	5	10	29	0.95	8	10	30	pass	0.50	0.16	0.50	FAIL	1	2.00	2.00	3.00	2.00	3.00	2.00	zelda ftilt	12	37
+kael'thas-sunstrider	forward-tilt-down	tilt	4/5	0.00	pass	1.00	0.15	leg R	pass	0.02	0.03	0.08	pass	5	10	28	0.90	8	10	30	pass	0.46	0.38	0.54	FAIL	1	2.00	2.00	3.00	2.00	3.00	2.00	zelda ftilt	12	37
+kael'thas-sunstrider	forward-tilt-up	tilt	4/5	0.00	pass	0.98	0.18	arm R	pass	0.02	0.03	0.13	pass	5	10	29	0.95	8	10	30	pass	0.45	0.35	0.55	FAIL	1	2.00	2.00	2.00	2.00	3.00	2.00	zelda ftilt	12	37
+kael'thas-sunstrider	jab	jab	4/5	0.00	pass	0.99	0.15	arm L	pass	0.03	0.03	0.04	pass	2	5	18	1.00	4	5	18	pass	0.39	0.42	0.61	FAIL	1	2.00	2.00	3.00	2.00	3.00	2.00	zelda jab1	11	29
+kael'thas-sunstrider	jab2	jab	4/5	0.00	pass	0.86	0.16	leg R	pass	0.02	0.03	0.08	pass	3	6	22	0.94	5	7	23	pass	0.45	0.43	0.55	FAIL	1	2.00	2.00	3.00	2.00	3.00	2.00			
+kael'thas-sunstrider	neutral-air	aerial	4/5	0.00	pass	1.00	0.15	body	pass	0.00	0.01	0.14	pass	4	10	34	1.00	7	12	34	pass	0.32	0.43	0.68	FAIL	1	2.00	2.00	2.00	2.00	3.00	2.00	zelda nair	6	49
+kael'thas-sunstrider	neutral-special	special	4/5	0.00	pass	1.00	0.47	arm R	pass	0.03	0.05	0.05	pass	9	16	35	0.95	15	15	36	pass	0.62	0.09	0.38	FAIL	1	2.00	2.00	3.00	3.00	3.00	3.00	zelda neutral_b	12	59
+kael'thas-sunstrider	up-air	aerial	4/5	0.00	pass	0.44	0.15	arm R	pass	0.00	0.01	0.13	pass	5	10	33	1.00	9	12	33	pass	0.26	0.54	0.74	FAIL	1	2.00	3.00	2.00	3.00	3.00	2.00	zelda uair	14	54
+kael'thas-sunstrider	up-smash	smash	4/5	0.00	pass	0.59	0.16	leg L	pass	0.02	0.01	0.10	pass	10	17	52	1.00	17	21	52	pass	0.44	0.42	0.56	FAIL	1	3.00	3.00	3.00	4.00	3.00	3.00	zelda usmash	5	56
+kael'thas-sunstrider	up-special	special	4/5	0.00	pass	0.98	0.24	leg R	pass	0.02	0.05	0.05	pass	8	20	82	1.00	19	71	82	pass	0.51	0.33	0.49	FAIL	1	3.00	3.00	3.00	3.00	3.00	3.00	zelda up_b	10	114
+kael'thas-sunstrider	up-tilt	tilt	4/5	0.00	pass	1.00	0.07	arm R	pass	0.02	0.03	0.18	pass	4	9	28	0.90	7	10	30	pass	0.25	0.70	0.75	FAIL	1	2.00	2.00	2.00	2.00	2.00	2.00	zelda utilt	10	43
