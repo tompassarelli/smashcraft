@@ -9,7 +9,7 @@ import { createBotStrategy, learnBotHabit, prepareBotRead } from "./botStrategy"
 import { CPU_OPPONENT_IDS, CPU_PROFILES, CPU_TIERS, cpuProfile, resolveCpuOpponent } from "./cpuProfiles";
 import { Phase, copyMatchState, createMatchState, requestStart, setCpuOpponent, setCpuTier, setParticipants } from "./rules";
 
-test("Flint changes a practiced strike read after fewer new shield events at each tier [spec #186]", () => {
+test("Flint changes a practiced strike read after fewer new shield events at each tier at the human response deadline [spec #186] [spec #354]", () => {
   let earlier = 8001;
   for (const tier of CPU_TIERS) {
     const profile = cpuProfile("flint", tier);
@@ -34,13 +34,14 @@ test("Flint changes a practiced strike read after fewer new shield events at eac
         learnBotHabit(strategy, own, target, 1, frame, profile);
         target.shield.raised = false;
         learnBotHabit(strategy, own, target, 1, frame + 8, profile);
-        prepareBotRead(strategy, own, target, frame + profile.reactionFrames + 9, profile.reactionFrames, profile);
+        // #354 compares observed answers at a shared 40-frame deadline, independent of their reaction floor.
+        prepareBotRead(strategy, own, target, frame + 40, profile.reactionFrames, profile);
         if (strategy.readActive && strategy.readChoice === HabitChoice.shield) { switched = event + 1; break; }
       }
       assertTrue(switched > 0);
       total += switched;
     }
-    assertTrue(total < earlier);
+    if (total >= earlier) throw new Error(`${tier}: ${total} shield events, previous tier ${earlier}`);
     earlier = total;
   }
   useMatchSeed(0);

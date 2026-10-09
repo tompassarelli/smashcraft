@@ -13,7 +13,7 @@ import { chooseHeroSpecial, isHeroSpecialAction, runningHeroSpecial } from "../s
 import { type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, FOLLOW_UP_FORM, FollowUpInput, SpecialSlot, specialForm, specialKit } from "../sim/heroSpecials";
 import { type Controls, neutralControls } from "../sim/roster";
 import { floorFriction, floorTraction } from "../sim/stage";
-import { heightAhead, safeAt } from "./botFooting";
+import { deckUnder, heightAhead, safeAt } from "./botFooting";
 
 /** How the computer may use a special this frame. */
 export const HeroSpecialUse = { none: 0, close: 1, ranged: 2 } as const;
@@ -158,8 +158,15 @@ export function heroSpecialUse(f: Readonly<Fighter>, target: Readonly<Fighter>, 
   // A special that strikes only through a follow-up strikes once its own travel ends, the travel strikeMeets carries;
   // by then a falling target may have dropped out of its height.
   if (firstStrike === undefined && !target.motion.grounded) for (const segment of move.motion ?? []) if (firstStrike === undefined || segment.last > firstStrike) firstStrike = segment.last;
+  if (firstStrike !== undefined && !f.motion.grounded && move.landingLag !== undefined && (move.motion ?? []).length === 0) {
+    const deck = deckUnder(stage, 0, f.motion.x, f.motion.z);
+    // Landing cancels this air form before its first active strike.
+    if (deck !== undefined && heightAhead(f, firstStrike + 1, stage, 0) <= deck) return HeroSpecialUse.none;
+  }
   // A falling opponent may leave the special's height before its first strike.
-  const strikeZ = firstStrike === undefined ? localZ : f32(heightAhead(target, observationAge + firstStrike + 1, stage, 0) - f.motion.z);
+  const ownStrikeZ = firstStrike === undefined || f.motion.grounded || (move.motion ?? []).length > 0
+    ? f.motion.z : heightAhead(f, firstStrike + 1, stage, 0);
+  const strikeZ = firstStrike === undefined ? localZ : f32(heightAhead(target, observationAge + firstStrike + 1, stage, 0) - ownStrikeZ);
   if (strikeMeets(move, target, localX, strikeZ)) return HeroSpecialUse.close;
   for (const spec of move.projectiles ?? []) if (projectileMeets(spec, target, localX, localZ, f.facing)) return HeroSpecialUse.ranged;
   // A placed object fires from where it stands: set one when its shot would reach the target there.

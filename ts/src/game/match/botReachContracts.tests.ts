@@ -5,7 +5,7 @@
 // or when the move has a purpose at range: a projectile, a trap, a summon, a
 // beam. Starts that strike nothing (stances, armor, the up specials that
 // carry the fighter) are moves, not attacks.
-import { assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { clearAttackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
@@ -18,7 +18,8 @@ import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 import { attackStartupFrames } from "../sim/moves";
 import { copyControls, createRoster, fighterAt, isActive, neutralControls } from "../sim/roster";
 import { immolationRegion } from "../sim/specials";
-import { strikeMeets } from "./botHeroKit";
+import { HeroSpecialUse, heroSpecialUse, strikeMeets } from "./botHeroKit";
+import { SpecialSlot } from "../sim/heroSpecials";
 import { moveReaches } from "./botMoves";
 import { produceComputerInput } from "./botPlay";
 import { createFrameControls } from "./controls";
@@ -33,6 +34,8 @@ const RAISED_STAGE = 1;
 const RAISED_Z = 170.0;
 const FRAMES = 600;
 const ARRIVAL_FRAMES = 5 * MATCH_TICKS_PER_SECOND;
+// #354 measures human responses over 40 frames; an ended launch can still be the computer's observation.
+const IDLE_OBSERVATION_FRAMES = 40;
 /** A strike passing within about a body width of the opponent was aimed at it: this contract is about swings at nothing. */
 const SLACK = 40.0;
 /** Fel Rush carries Illidan about this far and Chaos Strike reaches about this far past it (botKitOptions.ts). */
@@ -120,7 +123,11 @@ function playIdleOpponent(character: Character, cx: number, cz: number, surface:
   const result: ReachRun = { outOfReach: [], idleStarts: 0, hits: 0, arrival: -1 };
   let serial = c.attack.serial;
   let action: number = c.special.action;
+  let idleFrames = 0;
+  let idleX = o.motion.x;
+  let idleZ = o.motion.z;
   let attack: { serial: number; style: AttackStyle; reached: boolean; where: string } | undefined;
+  let special: { action: number; form: number; reached: boolean; where: string } | undefined;
   for (let i = 1; i <= FRAMES; i++) {
     const frame = runtime.simulationFrame + 1;
     for (const slot of PARTICIPANT_SLOTS) {
@@ -131,6 +138,10 @@ function playIdleOpponent(character: Character, cx: number, cz: number, surface:
     }
     assertTrue(captureFrame(row, frame, world.mask, produced, runtime));
     assertTrue(executeMatchFrame(row, match, world, controls, runtime, frame));
+    idleFrames = standsIdle(o) && o.motion.x === idleX && o.motion.z === idleZ ? idleFrames + 1 : 0;
+    idleX = o.motion.x;
+    idleZ = o.motion.z;
+    const observedIdle = idleFrames >= IDLE_OBSERVATION_FRAMES;
     if (result.arrival < 0 && c.motion.grounded && o.motion.grounded && c.motion.surface === o.motion.surface) result.arrival = i;
     const style = c.attack.style;
     const where = `frame ${i} at (${Math.round(o.motion.x - c.motion.x)}, ${Math.round(o.motion.z - c.motion.z)}), facing ${c.facing}, travel (${c.motion.deltaX}, ${c.motion.deltaZ}), velocity (${c.motion.vx}, ${c.motion.vz}), dash ${c.ground.dashFrame}`;
@@ -139,17 +150,43 @@ function playIdleOpponent(character: Character, cx: number, cz: number, surface:
       if (!attack.reached) result.outOfReach.push(attack.where);
       attack = undefined;
     }
+    if (special !== undefined && (c.special.action !== special.action || c.special.form !== special.form)) {
+      if (!special.reached) result.outOfReach.push(special.where);
+      special = undefined;
+    }
     const started = (c.attack.serial !== serial && style !== undefined) || (c.special.action !== action && c.special.action !== SpecialAction.none);
-    if (started && standsIdle(o)) result.idleStarts++;
-    if (c.attack.serial !== serial && style !== undefined) attack = { serial: c.attack.serial, style, reached: !standsIdle(o), where: `attack ${style} started ${where}` };
+    if (started && observedIdle) result.idleStarts++;
+    if (c.attack.serial !== serial && style !== undefined) attack = { serial: c.attack.serial, style, reached: !observedIdle, where: `attack ${style} started ${where}` };
     if (attack !== undefined && !attack.reached) attack.reached = c.attack.hit || c.grab.target !== undefined || ((attack.style === AttackStyle.grab || c.attack.frame >= attackStartupFrames(attack.style, c.tuning.moves)) && strikesNow(c, o, attack.style));
-    if (c.special.action !== action && c.special.action !== SpecialAction.none && standsIdle(o) && !specialAccountedFor(c, o)) result.outOfReach.push(`special ${c.special.action} form ${c.special.form} ${where}`);
+    if (c.special.action !== action && c.special.action !== SpecialAction.none) special = {
+      action: c.special.action, form: c.special.form, reached: !observedIdle || specialAccountedFor(c, o), where: `special ${c.special.action} form ${c.special.form} ${where}`,
+    };
+    if (special !== undefined && !special.reached) {
+      const move = runningHeroSpecial(c);
+      const active = move !== undefined && ((move.regions ?? []).some(region => c.special.frame >= region.firstFrame && c.special.frame <= region.lastFrame)
+        || (move.commandGrab !== undefined && c.special.frame >= move.commandGrab.first && c.special.frame <= move.commandGrab.last));
+      special.reached = c.special.hit || c.grab.target !== undefined || (active && specialAccountedFor(c, o));
+    }
     serial = c.attack.serial;
     action = c.special.action;
   }
   result.hits = o.visuals.hit;
   return result;
 }
+
+test("Sylvanas waits when her jump lands and cancels Silence before its strike [repro #345]", () => {
+  const own = createFighter(Character.sylvanas, 0.0, -1);
+  own.motion.grounded = false;
+  own.motion.z = 24.0;
+  own.motion.deltaZ = 10.0;
+  own.motion.vz = 10.0;
+  const target = createFighter(Character.rifleman, -173.0, 1);
+  assertEquals(heroSpecialUse(own, target, RAISED_STAGE, SpecialSlot.side), HeroSpecialUse.none);
+  own.motion.grounded = true;
+  own.motion.z = 0.0;
+  own.motion.deltaZ = 0.0;
+  assertEquals(heroSpecialUse(own, target, RAISED_STAGE, SpecialSlot.side), HeroSpecialUse.close);
+});
 
 test("Blademaster approaches the raised deck without drifting a stationary drill into reach [repro #345]", () => {
   const run = playIdleOpponent(Character.blademaster, 450.0, 0.0, 0, -265.0, RAISED_Z, 1);
@@ -158,7 +195,7 @@ test("Blademaster approaches the raised deck without drifting a stationary drill
   assertGreaterThan(run.hits, 0);
 });
 
-sweep("computerApproachesAnOpponentOutOfReachInsteadOfAttacking [repro #160]", () => {
+sweep("computerApproachesAnOpponentOutOfReachInsteadOfAttacking after 40 stationary observation frames [repro #160] [spec #354]", () => {
   const failures: string[] = [];
   let idleStarts = 0;
   for (const character of SELECTABLE_CHARACTERS) {
