@@ -1,8 +1,9 @@
 import { copyFileSync, existsSync, mkdirSync, readdirSync, renameSync } from "node:fs";
 import { basename, join } from "node:path";
+import { PLAYABLE_FILE, pruneTargets } from "./greenBuilds";
 
 
-const PLAYABLE = /^Smashcraft \d+\.\d+\.\d+\.w3x$/;
+const PLAYABLE = PLAYABLE_FILE;
 
 
 export function installLatest(documents: string, map: string): void {
@@ -16,9 +17,7 @@ export function installLatest(documents: string, map: string): void {
   const staged = join(root, `${name}.${process.pid}.next`);
   copyFileSync(map, staged);
   renameSync(staged, join(root, name));
-  const versions = readdirSync(root).filter((entry) => PLAYABLE.test(entry) && entry !== name);
-  versions.sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
-  for (const entry of versions.slice(2)) {
+  for (const entry of pruneTargets(readdirSync(root), name)) {
     const target = join(older, entry);
     if (!existsSync(target)) renameSync(join(root, entry), target);
   }

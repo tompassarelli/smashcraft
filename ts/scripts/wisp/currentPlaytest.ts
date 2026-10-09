@@ -13,6 +13,7 @@ import { PlayProblem } from "wisp/scripts/wisp/play";
 import { runProcess } from "../hostProcess";
 import { buildOnce } from "./buildInputs";
 import { withLock } from "./fileLock";
+import { PLAYABLE_FILE, installName } from "./greenBuilds";
 import { projectRoot } from "./project";
 
 const inputsRoot = join(homedir(), ".local/share/smashcraft-build-inputs");
@@ -45,7 +46,7 @@ export function playVersion(directory: string, library: string, revision: string
   const numbered = (folder: string): (readonly [number, number, number])[] => {
     if (statSync(folder, { throwIfNoEntry: false })?.isDirectory() !== true) return [];
     return readdirSync(folder).flatMap((entry) => {
-      const version = /^Smashcraft (\d+\.\d+\.\d+)\.w3x$/.exec(entry)?.[1];
+      const version = PLAYABLE_FILE.exec(entry)?.[1];
       return version === undefined ? [] : parse(version);
     });
   };
@@ -75,15 +76,27 @@ const reserveVersion = (library: string, revision: string) => withLock(join(lock
   }));
 
 
-const resolveMain = Effect.gen(function*() {
-  const resolved = yield* capture(projectRoot, ["git", "rev-parse", "main", "main:controller"]);
-  const [revision, controller] = (resolved ?? "").split("\n");
-  if (resolved === undefined || revision === undefined || controller === undefined || !/^[a-f0-9]{40}$/.test(revision) || !/^[a-f0-9]{40}$/.test(controller)) return yield* playProblem(new Error("couldn't resolve Smashcraft main"));
+const mainCheckoutOf = Effect.gen(function*() {
   const registry = yield* capture(projectRoot, ["git", "worktree", "list", "--porcelain"]);
   const mainBlock = registry?.split("\n\n").find((block) => block.split("\n").includes("branch refs/heads/main"));
   const mainCheckout = mainBlock?.split("\n").find((line) => line.startsWith("worktree "))?.slice(9);
   if (mainCheckout === undefined) return yield* playProblem(new Error("couldn't locate the main checkout"));
-  return { mainCheckout, revision, controller };
+  return mainCheckout;
+});
+
+
+const resolveMain = Effect.gen(function*() {
+  const resolved = yield* capture(projectRoot, ["git", "rev-parse", "main", "main:controller"]);
+  const [revision, controller] = (resolved ?? "").split("\n");
+  if (resolved === undefined || revision === undefined || controller === undefined || !/^[a-f0-9]{40}$/.test(revision) || !/^[a-f0-9]{40}$/.test(controller)) return yield* playProblem(new Error("couldn't resolve Smashcraft main"));
+  return { mainCheckout: yield* mainCheckoutOf, revision, controller };
+});
+
+
+const resolveRevision = (revision: string) => Effect.gen(function*() {
+  const controller = (yield* capture(projectRoot, ["git", "rev-parse", `${revision}:controller`]))?.trim();
+  if (controller === undefined || !/^[a-f0-9]{40}$/.test(controller)) return yield* playProblem(new Error(`couldn't resolve commit ${revision}`));
+  return { mainCheckout: yield* mainCheckoutOf, revision, controller };
 });
 
 
@@ -150,10 +163,21 @@ export const currentHelper = Effect.gen(function*() {
 
 
 
-export const currentPlaytest = (library: string) => Effect.gen(function*() {
-  const { revision, controller, mainCheckout } = yield* resolveMain;
-  const title = `Smashcraft ${yield* reserveVersion(library, revision)}`;
+export interface PlaytestOptions {
+  readonly revision?: string;
+  readonly named?: boolean;
+  readonly helper?: boolean;
+}
+
+const builtMap = (folder: string): string | undefined =>
+  existsSync(folder) ? readdirSync(folder).find((entry) => PLAYABLE_FILE.test(entry)) : undefined;
+
+export const currentPlaytest = (library: string, { revision: wanted, named = false, helper: wantsHelper = true }: PlaytestOptions = {}) => Effect.gen(function*() {
+  const { revision, controller, mainCheckout } = yield* (wanted === undefined ? resolveMain : resolveRevision(wanted));
+  const version = yield* reserveVersion(library, revision);
   const final = join(builds, revision);
+  const built = builtMap(final);
+  const title = built !== undefined ? built.slice(0, -".w3x".length) : named ? installName(version, revision) : `Smashcraft ${version}`;
   const map = { folder: "00-Smashcraft", file: `${title}.w3x`, title, source: join(final, `${title}.w3x`) };
   const helper = helperPath(controller);
   yield* buildOnce(revisionLock(revision), final, (folder) => existsSync(join(folder, map.file)), `Waiting for another build of ${title}`, (staging) => Effect.gen(function*() {
@@ -161,7 +185,7 @@ export const currentPlaytest = (library: string) => Effect.gen(function*() {
     const lane = yield* buildLane(mainCheckout, revision);
     yield* run(join(lane, "ts"), ["bun", "install", "--frozen-lockfile"]);
     yield* run(join(lane, "ts"), ["bun", "wisp", "map", "build", "--profile", "playable", "--name", title, "--out", join(staging, map.file)]);
-    if (!existsSync(helper)) {
+    if (wantsHelper && !existsSync(helper)) {
       yield* buildHelper(lane, helper).pipe(Effect.catch((problem) => Effect.sync(() => console.log(`No controller helper for this build (${problem.problem}); the keyboard plays`))));
     }
     yield* removeLane(mainCheckout, revision);

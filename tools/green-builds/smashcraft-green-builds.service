@@ -1,0 +1,14 @@
+[Unit]
+Description=Install the newest green Smashcraft main under Maps/00-Smashcraft
+Documentation=https://github.com/tompassarelli/smashcraft/blob/main/docs/commands/play.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/code/smashcraft/main/ts
+Environment=PATH=%h/.bun/bin:%h/.nix-profile/bin:/run/current-system/sw/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=bun wisp play --install-green
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=45min

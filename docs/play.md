@@ -39,7 +39,9 @@ in, logs out or switches accounts.
 Maps/00-Smashcraft holds the newest version, `Smashcraft 0.0.N`, the two
 versions before it, older/, and tests/. Each new build of main takes the next
 number after every version already built or in the folder; rebuilding the same
-commit keeps its number. The file and in-game title carry the same name. A
+commit keeps its number. The file and in-game title carry the same name; a build installed by
+`bun wisp play --install-green` adds its short commit, `Smashcraft 0.0.N abc1234`
+(smashcraft:docs/commands/play.md). A
 one-off build is named after the version it tests, `Smashcraft 0.0.N test K`,
 and lives in tests/. Experimental builds use `wisp fresh`, captures or `wisp accept` and
 install under tests/; they do not change what `play` launches.

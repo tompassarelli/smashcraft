@@ -228,6 +228,10 @@ export const play: Command = (args) => Effect.gen(function*() {
     const { standalonePlay } = yield* Effect.tryPromise({ try: () => import("../standalone"), catch: (cause) => new PlayProblem({ problem: String(cause) }) });
     return yield* standalonePlay(args);
   }
+  if (args.includes("--install-green")) {
+    const { installGreen } = yield* Effect.tryPromise({ try: () => import("../installGreen"), catch: (cause) => new PlayProblem({ problem: String(cause) }) });
+    return yield* installGreen(documentsFolder(PLAYTEST_PREFIX));
+  }
   yield* signInTom;
   const current = yield* currentPlaytest(join(documentsFolder(PLAYTEST_PREFIX), "Maps/00-Smashcraft"));
   const declaration = playtest({ ...PLAYTEST, ...current });
