@@ -140,14 +140,14 @@ test("Kaelthas Banish leaves the victim slowed, unable to attack but able to cas
   assertEquals(cursed.target.status.damage, f32(12.0 * f32(1.3)));
 });
 
-test("Kaelthas Phoenix charges 42 frames with four swirl hits, flies the aimed line, bends with up or down and ends helpless with snapshot state [spec docs/design/kaelthas.md] [invariant]", () => {
+test("Kaelthas Phoenix charges 42 frames with four swirl hits, flies the line aimed by frame 14, bends with up or down and ends helpless with snapshot state [spec docs/design/kaelthas.md] [invariant]", () => {
   const heights: number[] = [];
   for (const lift of [0, 1, -1]) {
     const { owner, world } = pair(1000.0); owner.motion.grounded = false; owner.motion.surface = undefined; owner.motion.z = 300.0;
     frame(world, controls({ specialPressed: true, specialZ: 1 })); assertEquals(owner.special.action, SpecialAction.heroUp);
-    for (let tick = 2; tick <= 15; tick++) frame(world);
-    assertNear(owner.motion.z, 300.0, 3.0);
-    for (let tick = 16; tick <= 42; tick++) frame(world, controls({ direction: 1 }));
+    for (let tick = 2; tick <= 14; tick++) frame(world, controls({ direction: 1 }));
+    frame(world); assertNear(owner.motion.z, 300.0, 3.0);
+    for (let tick = 16; tick <= 42; tick++) frame(world, controls({ direction: -1 }));
     const charged = owner.motion.z; assertLessThan(charged, 300.0);
     const restored = createFighter(Character.kaelthas, 0.0, 1); copyFighterState(restored, owner, 3); assertEquals(firstFighterDifference(owner, restored, 3, 3), undefined);
     for (let tick = 43; tick <= 72; tick++) frame(world, controls({ verticalDirection: lift }));
