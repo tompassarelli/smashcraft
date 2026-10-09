@@ -3,7 +3,10 @@ import { attackBuffer, queueAttack } from "../input/attackBuffer";
 import type { FrameControls } from "../match/controls";
 import { captureFrame, createMatchFrameInput } from "../match/frameInput";
 import { neutralControls } from "../sim/roster";
-import { beginStateChecksum, canonicalBoolean, canonicalChecksum, canonicalInt, canonicalReal, canonicalRealField, canonicalState, foldStateChecksum, stateChecksum, writeCanonicalNumber } from "./canonical";
+import { beginStateChecksum, canonicalBoolean, canonicalChecksum, canonicalInt, canonicalReal, canonicalRealField, canonicalState, fighterMovesCanonical, foldStateChecksum, kitDigestBuildCount, observedOpponentKitCanonical, stateChecksum, writeCanonicalNumber } from "./canonical";
+import { createFighter } from "../sim/fighter";
+import { AttackStyle, Character } from "../sim/codes";
+import { RIFLEMAN_MOVES } from "../sim/originalMoves";
 import { captureTape, createTapeWorld, executeTapeRow } from "./tapeWorld";
 
 test("canonical real fields retain Wurst's exact binary representation [reference]", () => {
@@ -26,6 +29,21 @@ test("canonical fragments and checksums match Wurst's ASCII tape form [reference
   assertEquals(canonicalChecksum("|x=1"), "825651:309834");
   assertEquals(canonicalChecksum("non-ascii: é"), "invalid-ascii");
   assertEquals(canonicalChecksum("line\nbreak"), "invalid-ascii");
+});
+
+test("relinked immutable kit copies reuse digests and edited kits keep canonical checksums [repro #312]", () => {
+  const fighter = createFighter(Character.rifleman, 0, 1);
+  fighter.tuning.moves = { ...RIFLEMAN_MOVES };
+  const original = observedOpponentKitCanonical(fighter);
+  const built = kitDigestBuildCount();
+  fighter.tuning.moves = { ...RIFLEMAN_MOVES };
+  assertEquals(observedOpponentKitCanonical(fighter), original);
+  assertEquals(kitDigestBuildCount(), built);
+  fighter.tuning.moves = { ...RIFLEMAN_MOVES, dashAttack: AttackStyle.jab };
+  const changed = observedOpponentKitCanonical(fighter);
+  assertTrue(changed !== original);
+  assertEquals(changed, `|moves.digest=${canonicalChecksum(fighterMovesCanonical(fighter.tuning.moves))}`);
+  assertEquals(kitDigestBuildCount(), built + 1);
 });
 
 test("canonical integers print as Wurst's I2S whichever Lua number type holds them [reference]", () => {

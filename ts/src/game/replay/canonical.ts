@@ -528,6 +528,12 @@ const MOVES_DIGESTS = new Map<Readonly<FighterMoves>, string>();
 const SPECIALS_DIGESTS = new Map<Readonly<FighterSpecials>, string>();
 const PLACEMENT_DIGESTS = new Map<Readonly<SpecialPlacement>, string>();
 const placedSpecCanonical = (spec: Readonly<SpecialPlacement>): string => specialPlacementCanonical(spec, "placedSpec");
+declare global {
+  var __smashcraftKitDigests: Record<string, string | undefined> | undefined;
+}
+// Reloads recreate kit objects. Full canonical text is their identity across
+// reloads; publishing the current table after preparation drops unused texts.
+const retainedKitDigests: Record<string, string | undefined> = {};
 let kitDigestBuilds = 0;
 
 /** Kit texts folded so far; a match frame after prepareKitDigests adds none. */
@@ -539,8 +545,13 @@ function kitDigestField<K>(name: string, kit: K | undefined, digests: Map<K, str
   if (kit === undefined) return "";
   let digest = digests.get(kit);
   if (digest === undefined) {
-    kitDigestBuilds++;
-    digest = canonicalChecksum(text(kit));
+    const canonical = text(kit);
+    digest = retainedKitDigests[canonical] ?? globalThis.__smashcraftKitDigests?.[canonical];
+    if (digest === undefined) {
+      kitDigestBuilds++;
+      digest = canonicalChecksum(canonical);
+    }
+    retainedKitDigests[canonical] = digest;
     digests.set(kit, digest);
   }
   return `|${name}.digest=${digest}`;
@@ -1230,4 +1241,5 @@ export function prepareKitDigests(): void {
       }
     }
   }
+  globalThis.__smashcraftKitDigests = retainedKitDigests;
 }

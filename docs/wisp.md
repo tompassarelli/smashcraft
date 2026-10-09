@@ -33,6 +33,44 @@ smashcraft:typescript-toolchain.lock pins Bun 1.3.13, TypeScript compiler API
 tsgo 0.48.0. smashcraft:ts/wisp.lock pins the consumed Wisp archive;
 each dated observation below identifies the Wisp/source revision it ran.
 
+## Reload preparation
+
+Hot reload acknowledges a version after its synchronized `install()` finishes.
+That install prepares the replay digests for every fighter kit. Module relinking
+creates new kit objects, so the object-keyed digest tables alone repeat that
+work even when an edit changes only a developer receipt. The kit digest cache
+now retains results by full canonical text across reloads; changed text is
+hashed again. Preparation replaces the retained table with the current texts.
+Replay bytes and the checksum algorithm stay the same.
+
+On 9 October 2026, a Lua32 run of the actual map modules based on Smashcraft
+`3fa049be0`, with the #312 digest cache change, measured one cold preparation
+and one preparation after relinking every module:
+
+| Work | Cold | Relinked |
+| --- | --- | --- |
+| Module loading and linking, CPU | 79.1 ms | 81.7 ms |
+| Kit digest preparation, CPU | 916.8 ms | 323.6 ms |
+| Newly hashed kit texts | 71 | 0 |
+
+Preparation used 64.7% less CPU, saving 593.1 ms. These are host Lua32 CPU
+measurements. The last native LAN result in
+[Smashcraft #312](https://github.com/tompassarelli/smashcraft/issues/312) remains
+4.43 s median over ten edits: 1.31 s to publish and 2.99 s from publish to both
+acknowledgements, on 3.0.0.24268. The original ≤1.5 s target needs a native
+recheck on the landed change.
+
+For that recheck, the native lane uses one development match and runs
+`bun wisp hot --data <A CustomMapData> --data <B CustomMapData> --watch` from
+the same source checkout. Wait for the first full publish to be acknowledged,
+then make ten distinct one-line edits to the `dev: reset` receipt string in
+`ts/src/platform/shell/keys.ts`, waiting for both acknowledgements before each
+next edit, and restore it afterwards. Record each save-to-running time and its
+compile, publish and acknowledgement steps; report the median of the ten
+edits, excluding the warmup and restore. Keep the client build and source
+revision with the result. Reset checksum equivalence and the same twenty
+scripts' checks per hour remain separate #312 measurements.
+
 ## Menu control
 
 In `~/.local/state/smashcraft/clients.json`, a client may set
