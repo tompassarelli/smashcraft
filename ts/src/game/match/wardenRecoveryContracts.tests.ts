@@ -10,13 +10,14 @@ import { chooseRecoveryInput } from "./botRecovery";
 import { createFrameControls } from "./controls";
 import { Phase, createMatchState } from "./rules";
 import { stepMatch } from "./step";
+import { useMatchSeed } from "./botRandom";
 
-test("the computer's Warden blinks back to the stage from every spot in reach [spec #184]", () => {
+test("the computer's Warden blinks back to the stage from every spot in reach under every match seed [spec #184]", () => {
   const spots = [
     [700.0, 100.0, 0], [700.0, -40.0, 0], [700.0, -150.0, 0], [800.0, 100.0, 0], [800.0, -40.0, 0], [800.0, -150.0, 0],
     [700.0, -300.0, 1], [800.0, -150.0, 1], [950.0, -40.0, 1], [950.0, -150.0, 1], [950.0, -300.0, 1],
   ] as const;
-  for (const side of [-1, 1]) {
+  for (let seed = 0; seed < 6; seed++) for (const side of [-1, 1]) {
     for (const [out, z, jumps] of spots) {
       const x = f32(out * side);
       const warden = createFighter(Character.warden, x, -side);
@@ -36,7 +37,9 @@ test("the computer's Warden blinks back to the stage from every spot in reach [s
         input.direction = 0;
         input.jumpPressed = false;
         input.jumpHeld = false;
+        useMatchSeed(seed * 7919 + 11);
         chooseRecoveryInput(warden, 0, 0, input);
+        useMatchSeed(0);
         copyControls(controls.inputs[0], input);
         stepMatch(game, roster, controls, frame);
         if (warden.status.out || warden.status.stocks < 3 || (warden.motion.grounded && Math.abs(warden.motion.x) <= 600.0)) break;

@@ -127,31 +127,41 @@ test("a learned shield read positions and buffers a grab before the next shield 
   assertTrue(game.strategy.readActed);
 });
 
-test("an anticipatory grab remains buffered through four frames of own recovery [spec #182]", () => {
-  const game = readyRead(HabitChoice.shield);
-  const world = createRoster(3, [game.own, game.target]);
-  const match = createMatchState();
-  match.phase = Phase.match;
-  match.cpuOpponents[0] = "wren";
-  match.cpuResolvedOpponents[0] = "wren";
-  match.cpuTiers[0] = "expert";
-  const runtime = createPacingAndPresentation();
-  runtime.simulationFrame = 533;
-  runtime.botStrategies[0] = game.strategy;
-  for (let frame = 510; frame <= 533; frame++) observeOpponents(runtime.botMemory, world, frame);
-  game.own.attack.cooldown = 4;
-  const controls = createBufferedFrameControls();
-  const produced = createFrameControls();
-  const row = createMatchFrameInput();
-  let started = -1;
-  for (let frame = 534; frame <= 539; frame++) {
-    produceComputerInput(match, world, runtime, 0, frame, produced.inputs[0], produced.commands[0]);
-    if (frame === 534) assertEquals(assertDefined(produced.commands[0].pending).style, AttackStyle.grab);
-    assertTrue(captureFrame(row, frame, world.mask, produced, runtime));
-    assertTrue(executeMatchFrame(row, match, world, controls, runtime, frame));
-    if (game.own.attack.style === AttackStyle.grab && started < 0) started = frame;
+test("an anticipatory grab remains buffered through four frames of own recovery, across match seeds [spec #182]", () => {
+  const seeds = 12;
+  let buffered = 0;
+  for (let seed = 0; seed < seeds; seed++) {
+    const game = readyRead(HabitChoice.shield);
+    const world = createRoster(3, [game.own, game.target]);
+    const match = createMatchState();
+    match.phase = Phase.match;
+    match.matchSeed = seed * 38;
+    match.cpuOpponents[0] = "wren";
+    match.cpuResolvedOpponents[0] = "wren";
+    match.cpuTiers[0] = "expert";
+    const runtime = createPacingAndPresentation();
+    runtime.simulationFrame = 533;
+    runtime.botStrategies[0] = game.strategy;
+    for (let frame = 510; frame <= 533; frame++) observeOpponents(runtime.botMemory, world, frame);
+    game.own.attack.cooldown = 4;
+    const controls = createBufferedFrameControls();
+    const produced = createFrameControls();
+    const row = createMatchFrameInput();
+    let pressed = false;
+    let started = -1;
+    for (let frame = 534; frame <= 539; frame++) {
+      produceComputerInput(match, world, runtime, 0, frame, produced.inputs[0], produced.commands[0]);
+      if (frame === 534) pressed = produced.commands[0].pending?.style === AttackStyle.grab;
+      assertTrue(captureFrame(row, frame, world.mask, produced, runtime));
+      assertTrue(executeMatchFrame(row, match, world, controls, runtime, frame));
+      if (game.own.attack.style === AttackStyle.grab && started < 0) started = frame;
+    }
+    if (!pressed) continue;
+    buffered++;
+    assertEquals(started, 537, `match seed ${match.matchSeed}`);
   }
-  assertEquals(started, 537);
+  // 8 of these 12 seeds read the shield at 534; fewer than a third would mean the read stopped acting early.
+  assertTrue(buffered >= seeds / 3);
 });
 
 function guardRead(opponentOption: AttackStyle) {

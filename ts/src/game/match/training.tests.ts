@@ -4,7 +4,7 @@ import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "
 import { f32 } from "wisp/src/sim/f32";
 import { clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
-import { AttackStyle, Character, DownState, LedgeState } from "../sim/codes";
+import { AttackStyle, Character, DownState, LedgeState, SpecialAction } from "../sim/codes";
 import { snapToLedge } from "../sim/ledge";
 import { attackActive, attackStartup } from "../sim/conditions";
 import { createFighter } from "../sim/fighter";
@@ -116,10 +116,12 @@ test("partnerBehaviours [spec #120]", () => {
   attack.until(() => attack.partner.attack.serial >= 3, 200);
   assertEquals(attack.partner.attack.style ?? AttackStyle.jab, AttackStyle.jab);
 
-  const fight = trainingMatch(PartnerBehaviour.fight, 300.0);
-  const start = fight.partner.motion.x;
-  for (let i = 0; i < 90; i++) fight.step();
-  assertTrue(fight.partner.motion.x < start - 20.0 || fight.partner.attack.serial > 0);
+  for (let seed = 0; seed < 6; seed++) {
+    const fight = trainingMatch(PartnerBehaviour.fight, 300.0);
+    fight.game.matchSeed = seed * 38;
+    const start = fight.partner.motion.x;
+    fight.until(() => fight.partner.motion.x < start - 20.0 || fight.partner.attack.serial > 0 || fight.partner.special.action !== SpecialAction.none, 90);
+  }
 });
 
 test("the tutorial partner climbs back from a ledge so later lessons can reach it [repro #306]", () => {

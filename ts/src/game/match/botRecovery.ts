@@ -249,6 +249,7 @@ export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, m
   const ledge = outside > 0 && aimsForLedge(fighter, side, target, skill.mixesUp);
 
   if (ledge) input.direction = outside < LEDGE_LINE_NEAR ? side : outside > LEDGE_LINE_FAR ? -side : 0;
+  else if (z < floor && outside < LEDGE_LINE_NEAR) input.direction = side;
   else input.direction = x < (side < 0 ? f32(left + 60) : f32(right - 60)) ? 1 : -1;
   aimUpSpecial(fighter, stage, side, input);
 
