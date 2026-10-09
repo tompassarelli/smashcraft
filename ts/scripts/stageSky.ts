@@ -7,7 +7,7 @@ export const STAGE_SKIES: readonly StageSky[] = [
   { stage: 2, theme: "Icecrown", zenith: [24, 39, 69], horizon: [85, 125, 158], nadir: [18, 27, 44], cloud: 12 },
   { stage: 11, theme: "Gryphon", zenith: [50, 77, 112], horizon: [150, 173, 182], nadir: [31, 42, 58], cloud: 14 },
   { stage: 3, theme: "Durotar", zenith: [73, 55, 63], horizon: [175, 128, 86], nadir: [38, 30, 32], cloud: 10 },
-  { stage: 4, theme: "Naxxramas", zenith: [19, 33, 48], horizon: [57, 99, 111], nadir: [16, 28, 34], cloud: 8 },
+  { stage: 4, theme: "Naxxramas", zenith: [19, 33, 48], horizon: [30, 46, 54], nadir: [16, 28, 34], cloud: 8 },
   { stage: 14, theme: "Hellfire", zenith: [27, 24, 42], horizon: [71, 106, 74], nadir: [23, 30, 26], cloud: 6 },
   { stage: 12, theme: "Blackrock", zenith: [20, 18, 22], horizon: [58, 38, 30], nadir: [128, 76, 46], cloud: 7 },
   { stage: 6, theme: "Stratholme", zenith: [40, 28, 52], horizon: [100, 50, 32], nadir: [30, 20, 22], cloud: 10 },

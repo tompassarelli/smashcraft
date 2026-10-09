@@ -213,7 +213,7 @@ both modes; the three stock skies preserve their stock animation.
 | Nordrassil | 236,246,232 / 136,178,172; 1 | Stock FelwoodSky aurora | 5,500–11,000; 0.25,0.5,0.375 |
 | Gryphon Aerie | 255,248,226 / 164,182,220; 0.2 | Original mountain sky | 5,500–11,500; 0.25,0.375,0.5 |
 | Durotar Skies | 255,226,180 / 190,152,134; 0.3 | Original dusty sky | 5,000–11,000; 0.75,0.5,0.25 |
-| Naxxramas | 222,230,255 / 150,136,196; 1 | Original slate-teal sky | 5,000–11,000; 0.25,0.5,0.625 |
+| Naxxramas | 255,255,255 / 180,156,196; 2 | Original dark slate sky (horizon 30,46,54) | 5,000–11,000; 0.25,0.5,0.625 |
 | Hellfire Citadel | 255,222,224 / 192,240,160; 1.25 | Stock Outland_Sky | 5,000–11,000; 0.25,0.5,0.125 |
 | Blackrock | 255,248,232 / 170,124,112; 1.2 | Original forge sky | 5,000–10,000; 0.5,0.125,0.0625 |
 | Ahn'Qiraj | 230,236,255 / 150,162,204; 0.3 (approved #267) | Original sandstone sky | 5,000–10,000; 0.75,0.625,0.375 |
@@ -498,7 +498,7 @@ Per stage (backdrop facts from [Per-stage recommendations](#per-stage-recommenda
 | Ahn'Qiraj (13) | bright sandstone; light at 0.5 | Dusk-ochre height fog below the deck; the G3 Definitive light copy | — |
 | Hellfire (14) | dark haze *(guess)* | Fel-green omni lights from imported effects; bloom on fel fire. Outland_Sky is available in every mode | — |
 
-Naxxramas's row is in place (#296). NX-1's cold plague-green omni light
+Naxxramas's sky horizon is dark slate, RGB (30, 46, 54), and its white key and violet fill shine at 2.0 so fighters stand off it (#296). Naxxramas's row is in place (#296). NX-1's cold plague-green omni light
 frames NX-3's lone necropolis at (1450, 6000, -900), with radius 1400,
 intensity 0.875 and no flicker. Its reach ends 4400 units behind the fighter
 volume; the one shadow caster adds depth around the citadel. NX-1's teal fog

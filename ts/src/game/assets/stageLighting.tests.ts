@@ -3,7 +3,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { luma } from "./stagePalette";
 import { STAGE_LIGHTS } from "./stageLighting";
-import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, DRIFTING_DECK_STAGE, FROZEN_THRONE_STAGE, HELLFIRE_STAGE, TIMED_TEST_STAGE } from "../sim/stage";
+import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, DRIFTING_DECK_STAGE, FROZEN_THRONE_STAGE, HELLFIRE_STAGE, PATTERNED_DECKS_STAGE, TIMED_TEST_STAGE } from "../sim/stage";
 
 // smashcraft:docs/design/visual-quality.md, "Stage light rules".
 test("every selectable stage has its own light [spec docs/design/visual-quality.md]", () => {
@@ -32,9 +32,10 @@ test("each stage's light keeps fighters bright, shaded sides readable and team c
 test("Ahn'Qiraj's light shines at half strength so fighters stay darker than the bright ring [spec docs/design/visual-quality.md]", () => {
   const qiraji = STAGE_LIGHTS.find(({ stage }) => stage === TIMED_TEST_STAGE)?.light;
   assertEquals(`${qiraji?.key.join(",")}/${qiraji?.ambient.join(",")}@${qiraji?.intensity}`, "255,240,204/192,170,136@0.5");
-  for (const { theme, light } of STAGE_LIGHTS) {
-    const intensity = light.intensity ?? 1;
-    assertEquals(intensity > 0 && intensity <= 1.25, true, `${theme}: intensity ${intensity} is outside (0, 1.25]`);
+  // #296: Naxxramas lifts fighters off its dark teal sky at 2.0; every other stage stays at most 1.25.
+  for (const { stage, theme, light } of STAGE_LIGHTS) {
+    const intensity = light.intensity ?? 1, limit = stage === PATTERNED_DECKS_STAGE ? 2 : 1.25;
+    assertEquals(intensity > 0 && intensity <= limit, true, `${theme}: intensity ${intensity} is outside (0, ${limit}]`);
   }
 });
 
