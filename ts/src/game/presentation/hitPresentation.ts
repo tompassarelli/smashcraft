@@ -2,12 +2,13 @@ import { imod } from "wisp/src/sim/intMath";
 import { SurfaceContact } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { HitElement } from "../sim/hitRegions";
-import { elementLook } from "./elementLooks";
-import { SWING_SOUND, TIER_HIT_VOLUME, TIER_SWING_PITCH, TIER_SWING_VOLUME, tierHitPath } from "./moveTiers";
+import { ELEMENTS, elementLook } from "./elementLooks";
+import { SWING_SOUND, TIER_HIT_VOLUME, TIER_SWING_PITCH, TIER_SWING_VOLUME, tierHitPath, tierSoundPaths } from "./moveTiers";
 import { at } from "wisp/src/runtime/lookup";
 import { type ImpactEvents, ImpactLanding, JumpCue } from "./impactEvents";
-import { playHit, playPerform, playShieldHit } from "./moveSounds";
+import { moveSoundLabels, playHit, playPerform, playShieldHit, soundFiles } from "./moveSounds";
 import { VoiceClass } from "./voiceBudget";
+import type { Character } from "../sim/codes";
 import { IMPACT_FIRE_HIT, IMPACT_SLASH_HIT, IMPACT_ICE_HIT, IMPACT_ELECTRIC_SHIELD, IMPACT_PUMMEL } from "./impactState";
 import { IMPACT_DUST_MODEL, IMPACT_ROLL_MODEL, IMPACT_TECH_MODEL, IMPACT_JUMP_MODEL, IMPACT_SHIELD_MODEL, IMPACT_HIT_MODEL, IMPACT_KO_MODEL } from "../assets/impactAssetInfo";
 
@@ -67,6 +68,27 @@ export function impactModelScale(kind: number): number {
   return kind === 0 || kind === IMPACT_PUMMEL ? 1.5 : 1.0;
 }
 
+
+const IMPACT_LABELS: readonly string[] = ["LightningBolt", "BlinkTarget", "Defend", "ThunderClap", "EntanglingRoots", "DispelMagic", "Warstomp", "DeepFootstep", "DeepFootstep2"];
+
+export interface ImpactSoundNames {
+  readonly files: readonly string[];
+  readonly labels: readonly string[];
+}
+
+
+export function impactSoundNames(characters: readonly Character[]): ImpactSoundNames {
+  const files = new Set<string>(tierSoundPaths());
+  const labels = new Set<string>(IMPACT_LABELS);
+  for (const element of ELEMENTS) {
+    const sound = elementLook(element).sound;
+    if (sound === undefined) continue;
+    labels.add(sound);
+    for (const path of soundFiles(sound)) files.add(path);
+  }
+  for (const label of moveSoundLabels(characters)) for (const path of soundFiles(label)) files.add(path);
+  return { files: [...files], labels: [...labels] };
+}
 
 type ImpactSoundSink = (sound: string, x: number, z: number, volume: number, pitch: number, file: boolean, cls: VoiceClass) => void;
 

@@ -48,7 +48,7 @@ test("Bear command draws a large rear-up, one roar and a bite-only impact [spec 
     effects.present(fighter, 0);
     const labels = client.log.filter(call => call.name === "SetTextTagText").map(call => call.args[1]);
     expect(labels).toEqual([]);
-    const sounds = client.log.filter(call => call.name === "CreateSoundFromLabel").map(call => call.args[0]);
+    const sounds = client.soundLog.filter(cue => cue.event === "start").map(cue => cue.label);
     expect(sounds).toEqual(["BattleRoar", "MetalHeavySliceFlesh"]);
     bear.life = 0;
     effects.present(fighter, 0);

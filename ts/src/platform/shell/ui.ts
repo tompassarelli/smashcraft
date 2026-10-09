@@ -112,6 +112,7 @@ function menuControls(s: Readonly<ShellState>): MenuControls {
 // Create shared panels, HUD plates and effect pools in the same order on every client.
 export function createUi(s: ShellState, actions: PanelActions): UiObjects {
   const controls = menuControls(s);
+  let combat: CombatEffects;
   const ui: UiObjects = {
     pause: new PauseMenu(),
     items: new ItemPresentation(s.origin),
@@ -125,12 +126,12 @@ export function createUi(s: ShellState, actions: PanelActions): UiObjects {
     stage: new StagePanel(actions.stage, controls),
     selections: each(slot => new SelectionPanel(actions.selection, slot, controls)),
     settings: each(slot => new SettingsPanel(s.participants[slot].bindings, actions.settings, slot)),
-    combat: new CombatEffects(s.origin),
+    combat: combat = new CombatEffects(s.origin),
     frost: new FrostEffects(s.origin),
     placed: new PlacedObjectEffects(s.origin),
     special: new SpecialEffects(s.origin),
     fighters: [undefined, undefined, undefined, undefined],
-    sounds: modelSoundPresentation(s.origin),
+    sounds: modelSoundPresentation(s.origin, combat.sounds),
     match: new MatchPresentation(s.origin),
     elements: new ElementEffects(s.origin),
     classic: new ClassicPresentation(s.origin),
@@ -214,7 +215,7 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
   ui.placed.bindNestedCode();
   bindPrototype(ui.special, SpecialEffects.prototype);
   ui.special.bindNestedCode();
-  ui.sounds = modelSoundPresentation(s.origin);
+  ui.sounds = modelSoundPresentation(s.origin, ui.combat.sounds);
   const retainedBars: { readonly manaBars?: Slots<ManaBars> } = ui;
   if (retainedBars.manaBars === undefined) ui.manaBars = each(createManaBars);
   else for (const slot of PARTICIPANT_SLOTS) {

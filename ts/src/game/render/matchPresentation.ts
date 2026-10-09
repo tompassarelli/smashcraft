@@ -8,7 +8,7 @@ import type { MatchState } from "../match/rules";
 import type { Character } from "../sim/codes";
 import type { Roster } from "../sim/roster";
 import { characterModelScale } from "../presentation/modelScale";
-import { MatchCue, MENU_MUSIC, cueSound, presentationSoundPaths, readyVoice, victoryAnimation, victoryMusic, warcryVoice } from "../presentation/matchAudio";
+import { MatchCue, MENU_MUSIC, cueSound, interfaceSoundPaths, presentationSoundPaths, readyVoice, victoryAnimation, victoryMusic, warcryVoice } from "../presentation/matchAudio";
 import {
   type ResultsView, clearMatchTally, confirmedFrameCues, createCueObservation, createMatchTally, createMenuCues, createMenuObservation,
   menuFrameCues, observeForCues,
@@ -22,6 +22,7 @@ import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { coverScreen, createBackdrop, createText, gameUi } from "../ui/frames";
 import { MENU_FONT } from "../ui/hudLayout";
 import type { WorldOrigin } from "./effects";
+import { SoundBank, SoundKind } from "./soundBank";
 import { fighterModel } from "./combatEffects";
 import { type FighterOriginalClip, originalClip, originalClipNamed } from "../assets/fighterOriginalClipInfo";
 
@@ -30,15 +31,6 @@ const PANEL_TEXTURE = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.bl
 export const RESULTS_DELAY_FRAMES = 90;
 
 const FACING_CAMERA = f32(-1.5707963705062866);
-
-function playFile(path: string, volume = 127): sound {
-  const cue = CreateSound(path, false, false, false, 10, 10, "DefaultEAXON");
-  SetSoundDuration(cue, GetSoundFileDuration(path));
-  SetSoundVolume(cue, volume);
-  StartSound(cue);
-  KillSoundWhenDone(cue);
-  return cue;
-}
 
 const createItemSounds = (): sound[] => [MatchCue.lastStock, MatchCue.itemSpawn, MatchCue.confirm].map(cue => {
     const path = cueSound(cue);
@@ -75,6 +67,7 @@ export class MatchPresentation {
   private readonly hoverSound = CreateSound(cueSound(MatchCue.hover), false, false, false, 10, 10, "DefaultEAXON");
   private music: string | undefined;
   private readonly voices: (sound | undefined)[] = [];
+  private readonly sounds = new SoundBank();
   private readonly panel: framehandle;
   private readonly title: framehandle;
   private readonly lines: readonly framehandle[];
@@ -89,6 +82,7 @@ export class MatchPresentation {
     SetSoundDuration(this.hoverSound, GetSoundFileDuration(cueSound(MatchCue.hover)));
     SetSoundVolume(this.hoverSound, 70);
     for (const path of presentationSoundPaths(SELECTABLE_CHARACTERS, STAGE_CATALOG.map(stage => stage.id))) Preload(path);
+    this.sounds.prepare(SoundKind.interfaceFile, interfaceSoundPaths(SELECTABLE_CHARACTERS));
     const parent = gameUi();
     this.panel = createBackdrop("MatchResultsPanel", parent, 0);
     BlzFrameSetTexture(this.panel, PANEL_TEXTURE, 0, true);
@@ -114,13 +108,17 @@ export class MatchPresentation {
     BlzFrameSetVisible(this.panel, false);
   }
 
+  private playFile(path: string): sound | undefined {
+    return this.sounds.play(SoundKind.interfaceFile, path, 127);
+  }
+
   cue(cue: MatchCue): void {
     if (cue === MatchCue.hover) {
       StopSound(this.hoverSound, false, false);
       StartSound(this.hoverSound);
       return;
     }
-    playFile(cueSound(cue));
+    this.playFile(cueSound(cue));
   }
 
 
@@ -137,7 +135,7 @@ export class MatchPresentation {
   voice(slot: number, path: string): void {
     const previous = this.voices[slot];
     if (previous !== undefined) StopSound(previous, false, false);
-    this.voices[slot] = playFile(path);
+    this.voices[slot] = this.playFile(path);
   }
 
 
@@ -232,7 +230,7 @@ export class MatchPresentation {
     if (theme !== undefined) PlayThematicMusic(theme);
     if (winner === undefined) return;
     this.cue(MatchCue.cheer);
-    playFile(warcryVoice(winner));
+    this.playFile(warcryVoice(winner));
     this.posing = view.rows[0]?.slot;
 
     this.victory = this.pose(winner, view.winnerSlot, GetCameraTargetPositionX() - this.origin.x - 240.0, 0.0);
