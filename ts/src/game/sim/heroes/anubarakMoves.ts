@@ -46,6 +46,6 @@ export const ANUBARAK_MOVES: FighterMoves = {
     [GrabAction.throwForward]: { contactFrame: 16, totalFrames: 40, effect: anubarakHit(9.0, 40, 95.0, 30.0) },
     [GrabAction.throwBack]: { contactFrame: 19, totalFrames: 46, effect: anubarakHit(11.0, 40, 110.0, 34.0, true) },
     [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 36, effect: anubarakHit(8.0, 90, 60.0, 50.0) },
-    [GrabAction.throwDown]: { contactFrame: 21, totalFrames: 48, effect: anubarakHit(7.0, 70, 55.0, 42.0) },
+    [GrabAction.throwDown]: { contactFrame: 21, totalFrames: 48, effect: anubarakHit(7.0, 70, 40.0, 75.0) },
   },
 };

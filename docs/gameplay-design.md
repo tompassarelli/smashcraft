@@ -499,6 +499,64 @@ Rivals 2 is not sourced. The window covers grabs only: a grab pressed 6 or
 more frames after the jump misses every fighter, and no attack gets the
 window, so jumping out of shield still escapes slower attacks.
 
+## Advantage state
+
+Owner direction, 9 Oct 2026 (#388): the advantage state is built from grabs,
+tech chases, juggles, DI mix-ups and tech traps, and every fighter has each of
+them. Grabs are the usual launcher, above all at low percent. The tools extend
+"Combo structure": the true part stays short, and each step past it is a read.
+
+Prior art. In Melee a grab at low percent is the standard starter: Marth's and
+Fox's up throws lead into up airs, Sheik's and Captain Falcon's down throws
+start tech chases, and DI decides which follow-up works, so attackers "throw
+out an unexpected move which punishes the player for their DI"
+([SmashWiki DI](https://www.ssbwiki.com/Directional_influence),
+[SmashWiki Tech-chasing](https://www.ssbwiki.com/Tech-chasing),
+[chain grabs](design/melee/techniques.md#chain-grabs)). Ultimate keeps
+up-throw juggles but shortens tech rolls, making tech chases reads rather than
+reactions ([SmashWiki Tech-chasing](https://www.ssbwiki.com/Tech-chasing)).
+A juggled fighter escapes with DI and air dodge and escapes more easily as its
+percent rises ([SmashWiki Juggle](https://www.ssbwiki.com/Juggle)). Rivals 2
+restored grabs "because they counter shields"
+([Rivals 2 FAQ](https://rivals2.com/faq)). A tech trap is a hitbox placed or
+timed to catch two tech options at once, typically tech in place and the
+missed tech, whose vulnerable frames overlap
+([platform fighters](design/platform-fighters.md#tech-chases)).
+
+Targets, for every fighter against a light, a medium and a heavy target
+(Lich, Rifleman and Cairne, the roster's lightest, middle and heaviest
+weights), measured by the combo explorer at 0, 20, 40 and 60%:
+
+- **Grabs.** At each of 0, 20 and 40%, at least one throw starts a true combo
+  (a follow-up that lands against the escape-optimal DI), a DI mix-up or a
+  forced knockdown. Grab reach is #337's (see
+  [grabs](design/grabs.md)).
+- **Tech-chasing.** At least one move (the down throw first, then down smash,
+  down tilt, forward or back throw) knocks the victim down under every DI, and
+  some follow-up lands against each of tech in place, tech in, tech away and
+  the missed tech when the attacker reads it.
+- **Juggling.** An up-angled launcher (up throw, up tilt or up smash) is
+  followed by an up air or up tilt that hits the falling victim at some
+  percent against every DI but at most one (of none, in, out, up and down), so
+  only a correct DI guess escapes the re-launch; the victim's landing (drift,
+  air dodge, fast fall) is what the juggler then reads.
+- **DI mix-ups.** At least one throw whose first follow-up against DI in
+  differs from the one against DI out, so the attacker reads DI instead of
+  repeating one string.
+- **Tech traps.** One of the tech-chase reads lands against at least two of
+  the four tech options with the same inputs.
+
+None of these may become a true zero-to-death: no throw takes a stock at 0 to
+60% against the escape-optimal DI, and "Combo structure"'s limits still apply.
+Computer fighters tech chase: a downed or teching opponent is a punish window
+(smashcraft:ts/src/game/match/botPunish.ts) that opens when its intangibility
+ends, so tiers with faster reactions and more punish judgment chase more.
+
+`bun wisp combos --advantage` (from ts/) writes the per-fighter report to
+smashcraft:tools/move-data/advantage-state.md: true combos from each throw
+with and without DI, the DI mix-ups, the knockdown and its tech-chase
+coverage, the tech trap and the juggle.
+
 ## Platforms
 
 Owner decisions, 6 Oct 2026 (#103), implemented in

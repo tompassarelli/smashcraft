@@ -168,6 +168,6 @@ export const MOUNTAIN_KING_MOVES: FighterMoves = {
     [GrabAction.throwForward]: { contactFrame: 14, totalFrames: 36, effect: hit(9.944999694824219, "EDGE", 35) },
     [GrabAction.throwBack]: { contactFrame: 18, totalFrames: 45, effect: hit(11.049999237060547, "KILL", 40, true) },
     [GrabAction.throwUp]: { contactFrame: 16, totalFrames: 29, effect: hit(8.839999198913574, "JUGGLE", 90) },
-    [GrabAction.throwDown]: { contactFrame: 20, totalFrames: 46, effect: hit(7.734999656677246, "CHASE", 25) },
+    [GrabAction.throwDown]: { contactFrame: 20, totalFrames: 46, effect: hit(7.734999656677246, "CHASE", 70) },
   },
 };

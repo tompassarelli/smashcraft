@@ -18,12 +18,15 @@ import { playComboRoute } from "../../../src/game/match/comboRoute";
 import { Character } from "../../../src/game/sim/codes";
 import { SELECTABLE_CHARACTERS, fighterName } from "../../../src/game/sim/heroes/registry";
 import { type FighterSummary, MAX_CONVERSIONS, OPPONENTS, PERCENTS, POSITIONS, type RouteRecord, type UnitReport, fighterNamed, summarize } from "../../comboExplorer";
+import { type AdvantageRow, TARGETS, advantagePage, unmet } from "../../advantageState";
 import { admit } from "../../heavyCapacity";
 
 const moveData = join(import.meta.dir, "../../../../tools/move-data");
 const unitsFile = join(moveData, "combos/units.jsonl");
 const summaryFile = join(moveData, "combo-potential.json");
 const pageFile = join(moveData, "combo-potential.md");
+const advantageFile = join(moveData, "advantage-state.jsonl");
+const advantagePageFile = join(moveData, "advantage-state.md");
 
 class CombosFailure extends Schema.TaggedError<CombosFailure>()("CombosFailure", { problem: Schema.String }) {
   override get message(): string {
@@ -158,9 +161,73 @@ function page(summaries: readonly FighterSummary[], units: readonly UnitReport[]
 }
 
 
+const AdvantageRowSchema = Schema.Struct({
+  fighter: Schema.String, target: Schema.Literals(["light", "medium", "heavy"]), opponent: Schema.String,
+  throws: Schema.Array(Schema.Struct({
+    opener: Schema.String, percent: Schema.Finite, withoutDi: Schema.Finite, withDi: Schema.Finite, withDiDamage: Schema.Finite,
+    withDiMoves: Schema.Array(Schema.String), diMixup: Schema.optionalKey(Schema.Struct({ in: Schema.String, out: Schema.String })),
+    knockdown: Schema.Boolean, ko: Schema.Boolean,
+  })),
+  techChase: Schema.optionalKey(Schema.Struct({
+    opener: Schema.String, percent: Schema.Finite,
+    covered: Schema.Array(Schema.Struct({ option: Schema.String, read: Schema.optionalKey(Schema.String) })),
+    trap: Schema.optionalKey(Schema.Struct({ read: Schema.String, options: Schema.Array(Schema.String) })),
+  })),
+  juggle: Schema.optionalKey(Schema.Struct({ launcher: Schema.String, percent: Schema.Finite, relaunch: Schema.String, dis: Schema.Finite })),
+  targets: Schema.Struct({ grabs: Schema.Boolean, techChasing: Schema.Boolean, juggling: Schema.Boolean, diMixups: Schema.Boolean, techTraps: Schema.Boolean }),
+  zeroToDeath: Schema.Array(Schema.String),
+});
+
+const measureAdvantage = (attackers: readonly Character[], jobs: number) => Effect.gen(function* () {
+  const units = attackers.flatMap((attacker) => TARGETS.map((_, target) => ({ attacker, target })));
+  let done = 0;
+  const started = performance.now();
+  return yield* Effect.forEach(units, (unit) => Effect.scoped(Effect.gen(function* () {
+    const worker = yield* Effect.acquireRelease(
+      Effect.sync(() => new Worker(new URL("../../advantageStateWorker.ts", import.meta.url).href)),
+      (thread) => Effect.sync(() => thread.terminate()),
+    );
+    const row = yield* Effect.callback<AdvantageRow, CombosFailure>((resume) => {
+      worker.onmessage = (event: MessageEvent<AdvantageRow>) => resume(Effect.succeed(event.data));
+      worker.onerror = (event) => resume(Effect.fail(failure(new Error(`${fighterName(unit.attacker)} advantage state: ${event.message}`))));
+      worker.postMessage(unit);
+    });
+    done++;
+    yield* Console.error(`combos: ${done}/${units.length} ${row.fighter} against the ${row.target} target, ${((performance.now() - started) / 1000).toFixed(0)} s`);
+    return row;
+  })), { concurrency: jobs });
+});
+
+const advantage = (attackers: readonly Character[], jobs: number, partial: boolean) => Effect.gen(function* () {
+  const rows = yield* measureAdvantage(attackers, jobs).pipe(step(`${attackers.length * TARGETS.length} fighter and target advantage rows on ${jobs} threads`));
+  const previous = yield* Effect.tryPromise({
+    try: async () => !partial || !(await Bun.file(advantageFile).exists()) ? "" : await Bun.file(advantageFile).text(),
+    catch: failure,
+  });
+  const decoded = yield* Effect.forEach(previous.split("\n").filter((line) => line !== ""),
+    (line) => Schema.decodeEffect(Schema.fromJsonString(AdvantageRowSchema))(line).pipe(Effect.mapError(failure)));
+  const kept: AdvantageRow[] = decoded.filter((row) => !rows.some((own) => own.fighter === row.fighter)).map((row) => ({
+    ...row, juggle: row.juggle,
+    throws: row.throws.map((cell) => ({ ...cell, diMixup: cell.diMixup })),
+    techChase: row.techChase === undefined ? undefined : { ...row.techChase, trap: row.techChase.trap, covered: row.techChase.covered.map(({ option, read }) => ({ option, read })) },
+  }));
+  const order = SELECTABLE_CHARACTERS.map(fighterName);
+  const weight = (row: AdvantageRow) => TARGETS.findIndex((target) => target.weight === row.target);
+  const all = [...kept, ...rows].sort((x, y) => order.indexOf(x.fighter) - order.indexOf(y.fighter) || weight(x) - weight(y));
+  yield* Effect.tryPromise({
+    try: async () => {
+      await Bun.write(advantageFile, all.map((row) => JSON.stringify(row)).join("\n") + "\n");
+      await Bun.write(advantagePageFile, advantagePage(all) + "\n");
+    },
+    catch: failure,
+  }).pipe(step("writing tools/move-data/advantage-state.jsonl and .md"));
+  const misses = rows.flatMap((row) => unmet(row).map((problem) => `${row.fighter}: ${problem}`));
+  yield* Console.log([`advantage state: ${rows.filter((row) => unmet(row).length === 0).length} of ${rows.length} fighter and target rows meet every target`, ...misses.map((miss) => `  ${miss}`)].join("\n"));
+});
+
 export const combos: Command = (args) => Effect.gen(function*() {
   const parsed = yield* Effect.try({
-    try: () => parseArgs({ args: [...args], options: { fighter: { type: "string", multiple: true }, jobs: { type: "string" } }, strict: true }).values,
+    try: () => parseArgs({ args: [...args], options: { fighter: { type: "string", multiple: true }, jobs: { type: "string" }, advantage: { type: "boolean" } }, strict: true }).values,
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
   const names = parsed.fighter ?? [];
@@ -174,6 +241,7 @@ export const combos: Command = (args) => Effect.gen(function*() {
     if (code !== 0) return yield* new CombosFailure({ problem: `the admitted run exited ${code}` });
     return;
   }
+  if (parsed.advantage === true) return yield* advantage(attackers.filter((attacker): attacker is Character => attacker !== undefined), jobs, names.length > 0);
   const units: Unit[] = attackers.flatMap((attacker) => attacker === undefined ? [] : OPPONENTS.flatMap((opponent) => POSITIONS.map((position) => ({ attacker, opponent, position }))));
   const reports = yield* measureUnits(units, jobs).pipe(step(`${units.length} fighter, opponent and position cells on ${jobs} threads`));
   const summaries = [...new Set(reports.map((report) => report.attacker))].map((fighter) => summarize(fighter, reports.filter((report) => report.attacker === fighter)));

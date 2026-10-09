@@ -1,3 +1,4 @@
+import { at } from "wisp/src/runtime/lookup";
 
 
 
@@ -9,7 +10,8 @@ import { f32 } from "wisp/src/sim/f32";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
-import { AttackStyle, Character, HeroStatusKind } from "../sim/codes";
+import { AttackStyle, Character, DownState, HeroStatusKind } from "../sim/codes";
+import { beginDownState } from "../sim/transitions";
 import { createFighter, type Fighter } from "../sim/fighter";
 import { copyFighterState } from "../replay/fighterState";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
@@ -220,7 +222,8 @@ sweep("computers punish in ordinary Wren Expert matches: they attack into open w
       for (const slot of [0, 1] as const) {
         const other = fighterAt(world, slot === 0 ? 1 : 0);
         wasOpen[slot] = open[slot] === true;
-        open[slot] = punishWindow(other, frame, windows[slot] ?? windows[0]);
+        const window = at(windows, slot);
+        open[slot] = punishWindow(other, frame, window) && window.kind !== PunishKind.knockdown;
         if (open[slot] === true && !wasOpen[slot]) {
           windowsSeen++;
           tried[slot] = false;
@@ -293,5 +296,68 @@ test("a grounded sleeper is a punish window for its frames left, and a Wren Expe
       hit = sleeper.status.damage > 0.0 || sleeper.grab.owner !== undefined;
     }
     assertTrue(hit);
+  }
+});
+
+
+const KNOCKDOWNS = [DownState.bound, DownState.tech] as const;
+
+
+function techChases(character: Character, tier: CpuTier, knockdown: DownState, seed: number): boolean {
+  const world = createRoster(3, [createFighter(Character.pitLord, 0.0, 1), createFighter(character, 120.0, -1)]);
+  const match = createMatchState();
+  match.phase = Phase.match;
+  for (const slot of [0, 1] as const) {
+    match.cpuOpponents[slot] = "wren";
+    match.cpuResolvedOpponents[slot] = "wren";
+    match.cpuTiers[slot] = tier;
+  }
+  match.stageChoice = 0;
+  match.timeLimitMinutes = 0;
+  match.matchSeed = seed;
+  const produced = createFrameControls();
+  const controls = createFrameControls();
+  const runtime = createPacingAndPresentation();
+  const row = createMatchFrameInput();
+  const downed = fighterAt(world, 0);
+  beginDownState(downed, knockdown, 0);
+  const window: PunishWindow = { frames: 0, kind: PunishKind.none, elapsed: 0, key: 0 };
+
+  
+  for (let n = 1; n <= 30; n++) {
+    const frame = runtime.simulationFrame + 1;
+    for (const slot of PARTICIPANT_SLOTS) {
+      if (!isActive(world, slot)) continue;
+      copyControls(produced.inputs[slot], NEUTRAL);
+      clearAttackBuffer(produced.commands[slot]);
+    }
+    produceComputerInput(match, world, runtime, 1, frame, produced.inputs[1], produced.commands[1]);
+    assertTrue(captureFrame(row, frame, world.mask, produced, runtime));
+    assertTrue(executeMatchFrame(row, match, world, controls, runtime, frame));
+    if (downed.status.damage > 0.0 || downed.grab.owner !== undefined) return true;
+  }
+  return false;
+}
+
+const CHASE_SEEDS = 8;
+
+test("a Wren Expert Rifleman computer hits Pit Lord lying after a missed tech and after a tech in place's intangibility in at least 1 of 2 seeds [spec #388]", () => {
+  for (const knockdown of KNOCKDOWNS) {
+    let chased = 0;
+    for (let seed = 0; seed < 2; seed++) if (techChases(Character.rifleman, "expert", knockdown, seed)) chased++;
+    assertGreaterThan(chased, 0);
+  }
+});
+
+sweep("Wren Expert computers hit more than a quarter of a downed Pit Lord's missed techs and techs in place, fewest 69 of 208 on four seed offsets, and more than twice Rookie [spec #388]", () => {
+  for (const knockdown of KNOCKDOWNS) {
+    let hard = 0;
+    let easy = 0;
+    for (const character of SELECTABLE_CHARACTERS) for (let seed = 0; seed < CHASE_SEEDS; seed++) {
+      if (techChases(character, "expert", knockdown, sweepSeed(seed))) hard++;
+      if (techChases(character, "rookie", knockdown, sweepSeed(seed))) easy++;
+    }
+    assertGreaterThan(hard * 4, SELECTABLE_CHARACTERS.length * CHASE_SEEDS);
+    assertGreaterThan(hard, easy * 2);
   }
 });

@@ -69,6 +69,6 @@ export const TINKER_MOVES: FighterMoves = {
     [GrabAction.throwForward]: { contactFrame: 14, totalFrames: 36, effect: tinkerHit(8.0, "edge", 35) },
     [GrabAction.throwBack]: { contactFrame: 18, totalFrames: 43, effect: tinkerHit(9.0, "edge", 45, -1.0) },
     [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 24, effect: tinkerHit(7.0, "juggle", 85) },
-    [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 44, effect: tinkerHit(6.0, "chase", 25) },
+    [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 44, effect: tinkerHit(6.0, "chase", 70) },
   },
 };

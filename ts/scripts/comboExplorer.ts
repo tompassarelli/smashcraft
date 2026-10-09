@@ -214,8 +214,8 @@ const offstage = (b: Readonly<Fighter>): boolean => b.motion.x < mainDeckLeft(ST
 
 
 function defenderMask(d: Defender, n: number, freedAt: number | undefined, b: Readonly<Fighter>, a: Readonly<Fighter>): number {
-  if (d.tech !== undefined && d.tech.option !== "missed tech" && n === d.tech.landing - TECH_LEAD) {
-    return SHIELD | (d.tech.option === "tech in" ? toward(b, a) : d.tech.option === "tech away" ? away(b, a) : 0);
+  if (d.tech !== undefined && d.tech.option !== "missed tech" && n >= d.tech.landing - TECH_LEAD && n <= d.tech.landing && !b.motion.grounded) {
+    return (n === d.tech.landing - TECH_LEAD ? SHIELD : 0) | (d.tech.option === "tech in" ? toward(b, a) : d.tech.option === "tech away" ? away(b, a) : 0);
   }
   if (owned(b) || freedAt === undefined) return owned(b) ? diMask(d.di, b, a) : 0;
   if (!offstage(b) || b.motion.grounded) return 0;
@@ -356,7 +356,7 @@ const started = (a: Readonly<Fighter>, before: Started): boolean =>
   || (a.special.action !== SpecialAction.none && (a.special.action !== before.special || a.special.frame < before.specialFrame));
 
 class Explorer {
-  constructor(private readonly sim: Sim) {}
+  constructor(private readonly sim: Sim, private readonly onChild?: (moves: readonly string[]) => void) {}
 
 
 
@@ -467,6 +467,7 @@ class Explorer {
             const key = `${child.moves.at(-1)}|${Math.round(child.damage * 10)}|${Math.round(b.motion.x / 8)}|${Math.round(b.motion.z / 8)}|${b.launch.hitstun}`;
             if (seen.has(key)) { free(child.saved); continue; }
             seen.add(key);
+            this.onChild?.(child.moves);
             children.push(child);
           }
           sim.load(saved);
@@ -571,12 +572,19 @@ class Explorer {
 
 
   readTechChase(ending: Ending, di: Di, percent: number): Ending | undefined {
+    let best: Ending | undefined;
+    for (const found of this.techReads(ending, di, percent)) if (found !== undefined && better(best, found)) best = found;
+    return best;
+  }
+
+
+  techReads(ending: Ending, di: Di, percent: number): (Ending | undefined)[] {
     const { sim } = this;
 
     const held = expand(ending.route.held);
 
     const landing = held.attacker.length + 1;
-    let best: Ending | undefined;
+    const reads: (Ending | undefined)[] = [];
     for (const option of TECH_OPTIONS) {
       const from = Math.max(0, landing - TECH_LEAD - 1);
       const replay = new Sim(sim.setup);
@@ -587,9 +595,9 @@ class Explorer {
       const d: Defender = { name: option, di, tech: { option, landing: landing - from } };
       const { best: found } = this.search(root, d, percent);
       free(start);
-      if (found.moves.length > root.moves.length && better(best, found)) best = found;
+      reads.push(found.moves.length > root.moves.length ? found : undefined);
     }
-    return best;
+    return reads;
   }
 }
 
@@ -681,7 +689,7 @@ export interface Cell {
   readonly escape: Ending | undefined;
   readonly escapeDi: Di | undefined;
 
-  readonly byDi: Readonly<Partial<Record<Di, { readonly damage: number; readonly ko: boolean }>>>;
+  readonly byDi: Readonly<Partial<Record<Di, { readonly damage: number; readonly ko: boolean; readonly moves: readonly string[]; readonly situation: Situation }>>>;
   readonly nodes: number;
 }
 
@@ -692,7 +700,7 @@ export function measureCell(attacker: Character, defender: Character, opener: Op
   let escape: Ending | undefined;
   let escapeDi: Di | undefined;
   let nodes = 0;
-  const byDi: Partial<Record<Di, { readonly damage: number; readonly ko: boolean }>> = {};
+  const byDi: Partial<Record<Di, { readonly damage: number; readonly ko: boolean; readonly moves: readonly string[]; readonly situation: Situation }>> = {};
   for (const di of DIS) {
     const d: Defender = { name: di, di };
     const played = openerRoot(setup, opener, d);
@@ -701,7 +709,7 @@ export function measureCell(attacker: Character, defender: Character, opener: Op
     const found = explorer.search(played.root, d, percent, escape);
     free(played.root.saved);
     nodes += found.nodes;
-    byDi[di] = { damage: found.best.damage, ko: found.best.ko };
+    byDi[di] = { damage: found.best.damage, ko: found.best.ko, moves: found.best.moves, situation: found.best.situation };
     if (escape === undefined || better(found.best, escape)) {
       escape = found.best;
       escapeDi = di;
@@ -887,7 +895,7 @@ export function exploreFrom(setup: ComboSetup, state: ReplayState): Ending {
   return best;
 }
 
-export { Explorer, Sim, openerRoot, expand, settled };
+export { Explorer, Sim, openerRoot, expand, settled, defenderMask, landingSetup, better };
 export type { Defender, Opener };
 export const fighterNamed = (name: string): Character | undefined =>
   SELECTABLE_CHARACTERS.find((character) => fighterName(character).toLowerCase() === name.toLowerCase() || fighterName(character).split(" ")[0]?.toLowerCase() === name.toLowerCase());

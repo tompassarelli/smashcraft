@@ -12,7 +12,8 @@ import { f32 } from "wisp/src/sim/f32";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { type AttackBuffer, queueAttack } from "../input/attackBuffer";
 import { AttackStyle, Character, DownState, GrabAction, LedgeState } from "../sim/codes";
-import { GROUND_ROLL_FRAMES, SPOT_DODGE_FRAMES, SPOT_DODGE_INTANGIBLE_END, canAttack, canShieldGrab, isIntangible } from "../sim/conditions";
+import { GROUND_ROLL_FRAMES, SPOT_DODGE_FRAMES, SPOT_DODGE_INTANGIBLE_END, TECH_INTANGIBLE_FRAMES, TECH_ROLL_INTANGIBLE_FRAMES, canAttack, canShieldGrab, isIntangible } from "../sim/conditions";
+import { DOWN_BOUND_FRAMES, TECH_IN_PLACE_FRAMES, TECH_ROLL_FRAMES } from "../sim/down";
 import { heroStatusBlocksActions } from "../sim/heroStatus";
 import type { Fighter } from "../sim/fighter";
 import { heroSpecialEndFrame, runningHeroSpecial } from "../sim/heroSpecialRules";
@@ -27,7 +28,7 @@ import { botChance } from "./botRandom";
 import type { CpuSkill } from "./cpuSkill";
 
 
-export const PunishKind = { none: 0, endLag: 1, grab: 2, special: 3, landing: 4, shieldDrop: 5, dodge: 6, status: 7 } as const;
+export const PunishKind = { none: 0, endLag: 1, grab: 2, special: 3, landing: 4, shieldDrop: 5, dodge: 6, status: 7, knockdown: 8 } as const;
 export type PunishKind = (typeof PunishKind)[keyof typeof PunishKind];
 
 
@@ -45,10 +46,28 @@ export interface PunishWindow {
   kind: PunishKind;
   elapsed: number;
   key: number;
+  earliest?: number;
 }
 
 
-const open: PunishWindow = { frames: 0, kind: PunishKind.none, elapsed: 0, key: 0 };
+const open: PunishWindow = { frames: 0, kind: PunishKind.none, elapsed: 0, key: 0, earliest: 0 };
+
+
+function knockdownWindow(t: Readonly<Fighter>, frame: number, age: number, window: PunishWindow): boolean {
+  const { down } = t;
+  const tech = down.state === DownState.tech;
+  const roll = down.state === DownState.techRoll;
+  if (!t.motion.grounded || t.launch.hitstun > 0 || (!tech && !roll && down.state !== DownState.bound)) return false;
+  const total = tech ? TECH_IN_PLACE_FRAMES : roll ? TECH_ROLL_FRAMES : DOWN_BOUND_FRAMES;
+  const intangible = tech ? TECH_INTANGIBLE_FRAMES : roll ? TECH_ROLL_INTANGIBLE_FRAMES : 0;
+  const at = down.frame + age;
+  window.kind = PunishKind.knockdown;
+  window.elapsed = at;
+  window.frames = total - at;
+  window.earliest = Math.max(0, intangible - at);
+  window.key = (frame - down.frame) * 16 + PunishKind.knockdown;
+  return window.frames > 0;
+}
 
 
 
@@ -102,6 +121,10 @@ function landingWindow(t: Readonly<Fighter>, stage: number, matchFrame: number, 
 export function punishWindow(t: Readonly<Fighter>, frame: number, window: PunishWindow = open, observationAge = 0, stage = -1, matchFrame = 0): boolean {
   window.kind = PunishKind.none;
   window.frames = 0;
+  window.earliest = 0;
+  if (!t.status.out && t.status.frozenFrames <= 0 && t.grab.owner === undefined && t.down.state !== DownState.none) {
+    return knockdownWindow(t, frame, Math.max(0, observationAge - Math.max(0, t.launch.hitlag - 1)), window);
+  }
   if (t.status.out || t.launch.hitlag > observationAge || t.launch.hitstun > 0 || t.status.frozenFrames > 0
     || t.down.state !== DownState.none || t.grab.owner !== undefined || t.grab.target !== undefined || t.grab.action !== GrabAction.none
     || t.ledge.state !== LedgeState.none || t.shield.raised || t.shield.stun > 0) return false;
@@ -212,7 +235,7 @@ export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, st
     const tool = plan !== undefined && spacingTool(plan, style === move ? move : AttackStyle.dashAttack);
     const better = best === undefined || (tool && !bestTool) || (tool === bestTool && startup < bestStartup);
     const x = Math.abs(aheadX(f, target, startup, style, observationAge, stage, matchFrame));
-    if (startup <= believed && better && moveReaches(f.character, style, target, x, aheadZ(f, target, startup, stage, matchFrame, observationAge), moves) && grabSure(f, style, target, x)) {
+    if (startup <= believed && startup > (open.earliest ?? 0) && better && moveReaches(f.character, style, target, x, aheadZ(f, target, startup, stage, matchFrame, observationAge), moves) && grabSure(f, style, target, x)) {
       best = move;
       bestStartup = startup;
       bestTool = tool;

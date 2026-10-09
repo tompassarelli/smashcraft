@@ -73,6 +73,6 @@ export const SYLVANAS_MOVES: FighterMoves = {
     [GrabAction.throwForward]: { contactFrame: 13, totalFrames: 33, effect: sylvanasHit(7.0, 40, 100.0, 24.0) },
     [GrabAction.throwBack]: { contactFrame: 16, totalFrames: 37, effect: sylvanasHit(8.0, 40, 100.0, 24.0, true) },
     [GrabAction.throwUp]: { contactFrame: 14, totalFrames: 24, effect: sylvanasHit(6.0, 90, 55.0, 45.0) },
-    [GrabAction.throwDown]: { contactFrame: 18, totalFrames: 39, effect: sylvanasHit(6.0, 25, 40.0, 75.0) },
+    [GrabAction.throwDown]: { contactFrame: 18, totalFrames: 39, effect: sylvanasHit(6.0, 70, 40.0, 75.0) },
   },
 };

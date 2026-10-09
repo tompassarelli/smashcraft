@@ -61,6 +61,6 @@ export const MEDIVH_MOVES: FighterMoves = {
     [GrabAction.throwForward]: throwMove(14, 22, ordinary(7.0, 35)),
     [GrabAction.throwBack]: throwMove(17, 25, ordinary(9.0, 40, 110.0, 28.0, true)),
     [GrabAction.throwUp]: throwMove(16, 15, ordinary(7.0, 90, 55.0, 50.0)),
-    [GrabAction.throwDown]: throwMove(18, 24, ordinary(6.0, 25, 40.0, 75.0)),
+    [GrabAction.throwDown]: throwMove(18, 24, ordinary(6.0, 70, 40.0, 75.0)),
   },
 };
