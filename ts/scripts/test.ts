@@ -38,13 +38,10 @@ const only = [first, ...rest].filter((arg) => arg !== undefined).map((arg) => ar
 if (only.length > 0) files.splice(0, files.length, ...files.filter((file) => only.includes(file)));
 const junitDirectory = process.env.TEST_JUNIT_DIR;
 
-// Each isolated group gets its own process. The game registry and the other
-// files are each spread over a few processes, so no one process bounds the
-// run; a process more than that only repeats module loading and JIT warm-up.
-// The other files fill the CPUs the rest leave, balanced by baseline CPU.
+// A file's CPU depends on the files before it in its process, so the processes are fixed by name hash, never by machine.
 // SWEEPS=1 runs only the sweeps (src/runtime/sweep.ts) in the same processes.
 const GAME_SHARDS = 3;
-const REST_SHARDS = 3;
+const REST_SHARDS = 4;
 const baselinePath = resolve(project, "test/cost-baseline.tsv");
 const baseline = readBaseline(baselinePath);
 const fileCost = (file: string) => baseline.get(file)?.cpu ?? 1;
@@ -57,24 +54,19 @@ const shared = testFiles.filter((file) => !isolated.flat().includes(file));
 const gameModules = files.includes("test/game.test.ts")
   ? [...new Bun.Glob("**/*.tests.ts").scanSync(resolve(project, "src"))].sort().filter((module) => !sweeps || hasSweeps(`src/${module}`))
   : [];
+const shardOf = (name: string, count: number) => {
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < name.length; index++) hash = Math.imul(hash ^ name.charCodeAt(index), 0x01000193) >>> 0;
+  return hash % count;
+};
+const byName = (names: readonly string[], count: number) =>
+  Array.from({ length: count }, (_, shard) => names.filter((name) => shardOf(name, count) === shard));
 const groups: Group[] = [
-  ...Array.from({ length: GAME_SHARDS }, (_, shard) => gameModules.filter((_, index) => index % GAME_SHARDS === shard))
-    .filter((modules) => modules.length > 0)
-    .map((modules) => ({ files: ["test/game.test.ts"], env: { GAME_MODULES: modules.join(",") } })),
-  ...balance(shared, Math.max(REST_SHARDS, usableCpus() - 1 - GAME_SHARDS - isolated.length)).map((bin) => ({ files: bin })),
+  ...byName(gameModules, GAME_SHARDS).filter((modules) => modules.length > 0).map((modules) => ({ files: ["test/game.test.ts"], env: { GAME_MODULES: modules.join(",") } })),
+  ...byName(shared, REST_SHARDS).map((bin) => ({ files: bin })),
   ...isolated.map((names) => ({ files: testFiles.filter((file) => names.includes(file)) })),
 ].filter((group) => group.files.length > 0);
 refuseUntagged(project, [...testFiles, ...gameModules.map((module) => `src/${module}`)]);
-/** Spreads files over `count` processes, heaviest first onto the lightest. */
-function balance(names: readonly string[], count: number): string[][] {
-  const bins = Array.from({ length: count }, () => ({ files: new Array<string>(), cpu: 0 }));
-  for (const file of [...names].sort((a, b) => fileCost(b) - fileCost(a))) {
-    const lightest = bins.reduce((best, bin) => (bin.cpu < best.cpu ? bin : best));
-    lightest.files.push(file);
-    lightest.cpu += fileCost(file);
-  }
-  return bins.map((bin) => bin.files.sort());
-}
 const groupCost = (group: Group) => group.env?.GAME_MODULES === undefined
   ? group.files.reduce((sum, file) => sum + fileCost(file), 0)
   : group.env.GAME_MODULES.split(",").reduce((sum, module) => sum + fileCost(`src/${module}`), 0);

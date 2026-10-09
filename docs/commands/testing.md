@@ -27,7 +27,12 @@
   both name the file and say "shrink it or move it to the farm" (shrink it, or
   make it a `sweep()`). A new file or a changed test count passes under the
   ceiling and rewrites its row: commit it with the tests. `TEST_COST_UPDATE=1`
-  rewrites every measured row, after a cut. Rows are scaled by the run's
+  rewrites every measured row, after a cut. A file's CPU depends on the files
+  before it in its process, so every machine runs the same processes (fixed
+  counts, files by name hash), and rows come from CI's runner: `gh workflow
+  run ci.yml --ref BRANCH -f cost-update=true` on the exact commit, then
+  commit the `cost-baseline` artifact as ts/test/cost-baseline.tsv (every CI
+  run uploads it). Rows are scaled by the run's
   median ratio, so a slower machine compares fairly; a verdict reached while
   CPU pressure was above Wisp's 30% is inconclusive (exit 75), not a failure.
   Every run ends with the suite's CPU, test count and CPU per test against

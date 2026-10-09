@@ -7,6 +7,11 @@ on:
     branches-ignore: ["farm/**"]
   # Autoland's pushes to main start no workflows, so it dispatches this one.
   workflow_dispatch:
+    inputs:
+      # Rewrites every Bun test cost row on this runner, skipping the Lua and sweep jobs (docs/commands/testing.md).
+      cost-update:
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -39,6 +44,13 @@ jobs:
         working-directory: ts
         env:
           CI_TIMING: report
+          TEST_COST_UPDATE: ${{ inputs.cost-update && '1' || '' }}
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: cost-baseline
+          path: ts/test/cost-baseline.tsv
+          retention-days: 7
       - name: Report every selectable computer fighter
         if: ${{ !cancelled() }}
         run: bun scripts/cpuCoverage.ts
@@ -74,6 +86,7 @@ jobs:
         working-directory: ts
 
   lua-tests:
+    if: ${{ !inputs.cost-update }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
     strategy:
@@ -144,6 +157,7 @@ jobs:
   # Sweeps (many matches, whole-roster measurements) that the suite skips run
   # here on every push, so a failure still turns main red (#243).
   sweeps:
+    if: ${{ !inputs.cost-update }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
     name: Sweeps (Bun)
